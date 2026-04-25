@@ -27,6 +27,7 @@ pub mod firmware;
 pub mod handoff;
 pub mod hardware;
 pub mod image_format;
+pub mod tpm;
 pub mod kernel_verify;
 pub mod loader;
 pub mod log;
