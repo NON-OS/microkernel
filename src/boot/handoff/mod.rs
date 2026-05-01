@@ -15,12 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod api;
+pub mod kernel_handoff;
 pub mod types;
 
 #[cfg(test)]
 mod tests;
 
 pub use api::{get_handoff, init_handoff, is_initialized, total_memory, HandoffError};
+pub use kernel_handoff::{
+    ArchSpecificHandoff, CpuTopology, EarlyConsole, Framebuffer, KernelHandoff, Measurement,
+    MemoryHandoff, TimingHandoff,
+};
 pub use types::{flags, memory_type, pixel_format};
 pub use types::{truncate_cmdline, validate_cmdline_len, HANDOFF_MAGIC, HANDOFF_VERSION};
 pub use types::{
