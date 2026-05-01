@@ -17,7 +17,15 @@
 pub mod cpu;
 pub mod halt;
 pub mod nonos_boot;
+
+#[cfg(target_arch = "x86_64")]
 pub mod x86_64;
+
+#[cfg(target_arch = "aarch64")]
+pub mod aarch64;
+
+#[cfg(target_arch = "riscv64")]
+pub mod riscv64;
 
 #[cfg(test)]
 mod tests;
@@ -27,4 +35,12 @@ pub use cpu::{
 };
 pub use halt::halt_loop;
 pub use nonos_boot as boot;
+
+#[cfg(target_arch = "x86_64")]
 pub use x86_64::*;
+
+#[cfg(target_arch = "aarch64")]
+pub use aarch64::*;
+
+#[cfg(target_arch = "riscv64")]
+pub use riscv64::*;
