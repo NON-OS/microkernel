@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod cpu;
+pub mod halt;
 pub mod nonos_boot;
 pub mod x86_64;
 
@@ -24,5 +25,6 @@ mod tests;
 pub use cpu::{
     cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features,
 };
+pub use halt::halt_loop;
 pub use nonos_boot as boot;
 pub use x86_64::*;
