@@ -15,15 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod common;
+mod contract_bridge;
 mod dispatch;
-mod dispatch_exception;
 mod dispatch_other;
 mod exports;
 mod isr_exceptions;
 mod isr_irqs;
 mod utils;
 mod utils_io;
-mod utils_panic;
 
 pub(crate) use exports::*;
 pub(crate) use utils::{inb, io_wait, outb};
