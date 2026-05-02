@@ -19,7 +19,7 @@ use super::super::selection::{select_next_process, switch_to_process};
 use super::state::SCHEDULER_STATS;
 use core::sync::atomic::Ordering;
 
-pub fn preempt_current_process() {
+pub(crate) fn preempt_current_process() {
     use crate::process::nonos_core::{current_pid, save_fpu_state, ProcessState, PROCESS_TABLE};
 
     let curr_pid = match current_pid() {
