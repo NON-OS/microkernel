@@ -24,8 +24,6 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::RtSigreturn
         | SyscallNumber::RtSigsuspend
         | SyscallNumber::RtSigpending
-        | SyscallNumber::RtSigtimedwait
-        | SyscallNumber::Sigaltstack
         | SyscallNumber::Pause
         | SyscallNumber::Signalfd
         | SyscallNumber::Signalfd4 => caps.is_valid(),
@@ -33,8 +31,16 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::Kill
         | SyscallNumber::Tkill
         | SyscallNumber::Tgkill
-        | SyscallNumber::RtSigqueueinfo
-        | SyscallNumber::RtTgsigqueueinfo => caps.can_signal(),
+        | SyscallNumber::RtSigqueueinfo => caps.can_signal(),
+
+        // Recognised by the enum but removed from the dispatched
+        // surface in the legacy syscall/signals cleanup. Pass the cap
+        // check so the dispatcher's wildcard returns ENOSYS rather
+        // than EPERM, which is the honest answer for "this syscall
+        // is not implemented" versus "you lack permission".
+        SyscallNumber::RtSigtimedwait
+        | SyscallNumber::RtTgsigqueueinfo
+        | SyscallNumber::Sigaltstack => caps.is_valid(),
 
         _ => return None,
     })
