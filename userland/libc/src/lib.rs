@@ -16,10 +16,16 @@
 
 #![no_std]
 
+pub mod crypto;
+pub mod ipc;
+pub mod mem;
 mod panic;
 pub mod signal;
 mod syscall;
 mod unistd;
 
+pub use crypto::{crypto_decrypt, crypto_encrypt, crypto_random};
+pub use ipc::{mk_ipc_call, mk_ipc_recv, mk_ipc_send};
+pub use mem::{brk, mmap};
 pub use signal::__nonos_rt_sigreturn;
 pub use unistd::{_exit, read, write};
