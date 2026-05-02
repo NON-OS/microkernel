@@ -24,6 +24,7 @@ pub mod preload;
 pub mod relocate;
 pub mod resolve;
 pub mod search;
+mod syscall;
 pub mod tls;
 
 pub use audit::*;
