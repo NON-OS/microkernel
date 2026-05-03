@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod create;
+mod cursor_present;
 mod destroy;
 mod display_dimensions;
 mod display_list;
@@ -24,8 +25,10 @@ mod present;
 mod present_rect;
 mod reclaim;
 mod registry;
+mod va_alloc;
 
 pub use create::sys_surface_create;
+pub use cursor_present::sys_cursor_present;
 pub use destroy::sys_surface_destroy;
 pub use display_dimensions::sys_display_dimensions;
 pub use display_list::sys_display_list;
