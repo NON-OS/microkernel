@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod create;
 mod display_dimensions;
+mod pixel_format;
+mod registry;
 
+pub use create::sys_surface_create;
 pub use display_dimensions::sys_display_dimensions;
