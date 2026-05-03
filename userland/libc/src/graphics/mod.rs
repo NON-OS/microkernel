@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod display_dimensions;
+mod display_list;
 mod surface_create;
 mod surface_destroy;
 mod surface_map;
@@ -22,6 +23,7 @@ mod surface_present;
 mod surface_present_rect;
 
 pub use display_dimensions::nonos_display_dimensions;
+pub use display_list::{nonos_display_list, NonosDisplayInfo};
 pub use surface_create::{nonos_surface_create, NONOS_PIXEL_FMT_ARGB8888};
 pub use surface_destroy::nonos_surface_destroy;
 pub use surface_map::nonos_surface_map;
