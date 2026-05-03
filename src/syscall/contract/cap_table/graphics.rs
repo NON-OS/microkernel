@@ -20,6 +20,10 @@ use crate::syscall::numbers::SyscallNumber;
 pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<bool> {
     Some(match number {
         SyscallNumber::GraphicsDisplayDimensions => caps.can_graphics_display_query(),
+        SyscallNumber::GraphicsSurfaceCreate => caps.can_graphics_surface_create(),
+        SyscallNumber::GraphicsSurfaceDestroy => caps.can_graphics_surface_create(),
+        SyscallNumber::GraphicsSurfaceMap => caps.can_graphics_surface_map(),
+        SyscallNumber::GraphicsSurfacePresentFull => caps.can_graphics_present(),
 
         _ => return None,
     })
