@@ -19,6 +19,7 @@ use crate::memory::paging::unmap_page;
 use crate::memory::VirtAddr;
 
 use super::registry::drain_owned_by;
+use super::va_alloc;
 
 const PAGE_SIZE: u64 = 4096;
 
@@ -33,4 +34,5 @@ pub fn release_for(owner_pid: u32) {
             let _ = deallocate_frame(frame);
         }
     }
+    va_alloc::release(owner_pid);
 }
