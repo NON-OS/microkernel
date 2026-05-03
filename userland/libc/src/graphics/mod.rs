@@ -16,6 +16,8 @@
 
 mod display_dimensions;
 mod surface_create;
+mod surface_destroy;
 
 pub use display_dimensions::nonos_display_dimensions;
 pub use surface_create::{nonos_surface_create, NONOS_PIXEL_FMT_ARGB8888};
+pub use surface_destroy::nonos_surface_destroy;
