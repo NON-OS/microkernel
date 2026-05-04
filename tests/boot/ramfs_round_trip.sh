@@ -55,16 +55,26 @@ OVMF_PATH="$(resolve_ovmf)" || {
 }
 echo "[harness] firmware: ${OVMF_PATH}"
 
-echo "[harness] building capsule + kernel with smoketest feature"
-make kernel-with-ramfs-smoketest >/dev/null
+echo "[harness] building capsule + kernel with ramfs smoketest"
+make nonos-mk-ramfs-test >/dev/null
 
 echo "[harness] packaging ESP and booting under QEMU (timeout ${TIMEOUT_SECS}s)"
-make esp >/dev/null
+make nonos-mk-esp >/dev/null
 mkdir -p "$(dirname "${LOG}")"
 : > "${LOG}"
 
+# Pick the timeout tool. Linux ships `timeout` in coreutils; macOS does
+# not. Fall back to `gtimeout` (homebrew coreutils) or perl `alarm`.
+if command -v timeout >/dev/null 2>&1; then
+    TIMEOUT_CMD=(timeout "${TIMEOUT_SECS}")
+elif command -v gtimeout >/dev/null 2>&1; then
+    TIMEOUT_CMD=(gtimeout "${TIMEOUT_SECS}")
+else
+    TIMEOUT_CMD=(perl -e 'alarm shift; exec @ARGV or die "exec failed: $!"' "${TIMEOUT_SECS}")
+fi
+
 set +e
-timeout "${TIMEOUT_SECS}" qemu-system-x86_64 \
+"${TIMEOUT_CMD[@]}" qemu-system-x86_64 \
     -m 2G -cpu max -smp 2 -machine q35 \
     -drive "format=raw,file=fat:rw:${REPO_ROOT}/target/esp" \
     -drive if=pflash,format=raw,readonly=on,file="${OVMF_PATH}" \
