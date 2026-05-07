@@ -29,6 +29,7 @@ pub use prepare::{
     allocate_handoff_resources, build_handoff_flags, detect_cpu_security_features,
     estimate_tsc_frequency, HandoffAllocations, MAX_MMAP_ENTRIES, MMAP_PAGES,
 };
+pub use timing::get_uefi_time_epoch;
 pub use types::{
     BootHandoffV1, CryptoHandoff, ZkAttestation, HANDOFF_MAGIC, HANDOFF_VERSION,
 };
