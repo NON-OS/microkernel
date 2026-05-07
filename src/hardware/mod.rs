@@ -21,4 +21,5 @@
 
 pub mod broker;
 pub mod virtio_blk_capsule;
+pub mod virtio_net_capsule;
 pub mod virtio_rng_capsule;
