@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod clear_low_half;
 mod count_pml4_entries;
 mod print_dec;
 mod print_hex;
