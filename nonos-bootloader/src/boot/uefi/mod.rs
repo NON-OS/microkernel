@@ -16,8 +16,8 @@
 
 mod init;
 mod screen;
-
-pub const TOTAL_BOOT_STAGES: u8 = 10;
+mod stages;
 
 pub use init::{run_uefi_init, UefiInitResult};
 pub use screen::run_boot_screen_init;
+pub use stages::TOTAL_BOOT_STAGES;
