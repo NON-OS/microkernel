@@ -15,15 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
+use super::teardown::teardown_user_half;
 use crate::memory::frame_alloc;
-use crate::memory::paging::error::PagingResult;
+use crate::memory::paging::constants::KERNEL_ASID;
+use crate::memory::paging::error::{PagingError, PagingResult};
 
 impl PagingManager {
     pub fn cleanup_address_space(&mut self, asid: u32) -> PagingResult<()> {
+        if asid == KERNEL_ASID {
+            return Err(PagingError::KernelSpaceViolation);
+        }
         if let Some(address_space) = self.address_spaces.remove(&asid) {
-            for mapping_addr in &address_space.mappings {
-                let _ = self.unmap_page(*mapping_addr);
-            }
+            teardown_user_half(address_space.cr3_value);
             let _ = frame_alloc::deallocate_frame(address_space.cr3_value);
         }
         Ok(())
