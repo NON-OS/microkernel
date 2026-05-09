@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side capsule manifest. The kernel reads only the fields it
-// actually enforces: publisher signature, package/entry hash, caps,
-// and the IPC endpoints the capsule will register. Marketplace
-// metadata (name, publisher display name, prices, payment policy,
-// storage/network/display labels) lives in a userland-extended
-// envelope that wraps this manifest; the kernel never parses it.
-
+mod cursor;
 mod decode;
+mod error;
 mod schema;
 mod verify;
 
-pub use decode::{decode, DecodeError};
-pub use schema::{EndpointDecl, Manifest, ManifestError, Version, MANIFEST_SCHEMA_VERSION};
-pub use verify::{verify, VerifiedManifest, VerifyError};
+pub use decode::decode;
+pub use error::{ManifestDecodeError, ManifestVerifyError};
+pub use schema::{
+    CapsuleManifest, EndpointDecl, EndpointKind, PublisherSignature, VerifiedManifest, Version,
+    MANIFEST_SCHEMA_VERSION, MAX_ENDPOINTS, MAX_ENDPOINT_NAME_LEN, MAX_NAMESPACE_LEN,
+    MAX_PUBLISHER_SIGNATURES, MAX_TARGET_TRIPLE_LEN, NONOS_ID_CERT_ID_LEN, PAYLOAD_HASH_LEN,
+    PUBLISHER_KEY_ID_LEN,
+};
+pub use verify::{verify_with_publisher, DeclaredEndpoint};
