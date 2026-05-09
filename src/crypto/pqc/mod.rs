@@ -17,8 +17,7 @@
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]
 pub mod kyber;
 
-#[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
-pub mod dilithium;
+pub mod ml_dsa_65;
 
 pub mod sphincs;
 
