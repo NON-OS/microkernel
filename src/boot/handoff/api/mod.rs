@@ -18,8 +18,10 @@ mod cleanup;
 mod error;
 mod init;
 mod query;
+mod security;
 
 pub use cleanup::wipe_sensitive_handoff_data;
-pub use error::HandoffError;
+pub use error::{FbGeometryReason, HandoffError};
 pub use init::init_handoff;
 pub use query::{get_handoff, is_initialized, total_memory};
+pub(crate) use security::validate_security;
