@@ -20,4 +20,5 @@ mod ops;
 mod types;
 
 pub use create::{create_process, create_process_with_mem};
+pub(crate) use inherit::apply_inherit_bound;
 pub use types::{allocate_tid, ProcessTable, CURRENT_PID, PROCESS_TABLE};
