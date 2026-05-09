@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod user_ptr;
-
-pub use user_ptr::{
-    copy_from_user, copy_to_user, in_user_range, is_canonical, is_nonnull, is_reasonable_len,
-    read_cstr_from_user, user_slice, user_slice_mut, validate_user_region, Access,
-    MAX_GUARDED_COPY,
-};
+//! Userspace pointer validation for the syscall surface. The single
+//! authoritative usercopy implementation lives at `crate::usercopy`;
+//! syscall handlers must call `crate::usercopy::{validate_user_read,
+//! validate_user_write, copy_from_user, copy_to_user, read_user_string}`
+//! directly. This module deliberately re-exports nothing — a second
+//! validator would duplicate page-walk logic and drift over time.
