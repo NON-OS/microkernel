@@ -14,16 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Shared capsule spawn pipeline. Each capsule kernel module passes a
-//! `CapsuleSpec` describing its name, ports, embedded ELF, and caps;
-//! `runner::spawn` runs the kernel-primitive dance — endpoint
-//! registration, process creation, ELF load in capsule AS, kernel and
-//! user stacks, iretq frame, run-queue insert. The capsule's own
-//! `spawn.rs` only adds policy: which spec, and `state::set_alive`
-//! after success.
-
 mod runner;
 mod spec;
 
-pub use runner::spawn;
-pub use spec::{CapsuleSpec, SpawnError};
+pub use runner::{spawn, spawn_verified};
+pub use spec::{CapsuleSpec, CapsuleSpecVerified, SpawnError};
