@@ -15,20 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod context;
+pub mod irq_handlers;
 pub mod registers;
 
 pub use context::{init_plic_hart, PlicContext};
-pub use registers::{claim_interrupt, complete_interrupt, set_threshold};
-pub use registers::{disable_irq, enable_irq, init_plic, set_priority, Plic};
-
-use core::sync::atomic::{AtomicU64, Ordering};
-
-static PLIC_BASE: AtomicU64 = AtomicU64::new(0x0C00_0000);
-
-pub fn set_plic_base(base: u64) {
-    PLIC_BASE.store(base, Ordering::Release);
-}
-
-pub fn plic_base() -> u64 {
-    PLIC_BASE.load(Ordering::Acquire)
-}
+pub use irq_handlers::{
+    dispatch as dispatch_irq, register as register_irq_handler,
+    register_for_capsule as register_irq_handler_for_capsule,
+    unregister_for_capsule as unregister_irq_handler_for_capsule,
+};
+pub use registers::{
+    claim_interrupt, complete_interrupt, disable_irq, enable_irq, init_plic, plic_present,
+    set_priority, set_threshold, Plic,
+};
