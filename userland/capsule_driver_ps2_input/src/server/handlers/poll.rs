@@ -32,8 +32,15 @@ use crate::protocol::{
 use crate::server::context::Context;
 
 pub fn handle(ctx: &mut Context, req: &Request, tx: &mut [u8]) {
-    drain(ctx.driver.pio_grant_id, &mut ctx.drainer, &mut ctx.ring);
+    drain(
+        ctx.driver.pio_grant_id,
+        &mut ctx.drainer,
+        &mut ctx.ring,
+        &mut ctx.mouse,
+        &mut ctx.mouse_ring,
+    );
     let _ = mk_irq_ack(ctx.driver.irq_grant_id);
+    let _ = mk_irq_ack(ctx.driver.aux_irq_grant_id);
 
     let mut count: u32 = 0;
     let cap = MAX_POLL_EVENTS as u32;

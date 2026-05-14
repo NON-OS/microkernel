@@ -19,6 +19,7 @@
 //! and the driver binding (PIO/IRQ grant ids). All handlers see
 //! it through `&mut Context`.
 
+use crate::mouse::{MouseParser, MouseRing};
 use crate::poll::Drainer;
 use crate::ring::Ring;
 use crate::setup::Driver;
@@ -27,10 +28,18 @@ pub struct Context {
     pub driver: Driver,
     pub ring: Ring,
     pub drainer: Drainer,
+    pub mouse: MouseParser,
+    pub mouse_ring: MouseRing,
 }
 
 impl Context {
     pub fn new(driver: Driver) -> Self {
-        Self { driver, ring: Ring::new(), drainer: Drainer::new() }
+        Self {
+            driver,
+            ring: Ring::new(),
+            drainer: Drainer::new(),
+            mouse: MouseParser::new(),
+            mouse_ring: MouseRing::new(),
+        }
     }
 }
