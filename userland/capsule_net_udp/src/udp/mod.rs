@@ -19,9 +19,6 @@ mod checksum;
 mod header;
 mod parse;
 
-pub use build::{build, BuildError, BuildRequest};
-pub use checksum::compute;
-pub use header::{
-    UdpHeader, CHECKSUM_OFFSET, DST_PORT_OFFSET, HDR_LEN, LENGTH_OFFSET, SRC_PORT_OFFSET,
-};
-pub use parse::{parse, ParseError};
+pub use build::{build, BuildRequest};
+pub use header::HDR_LEN;
+pub use parse::parse;

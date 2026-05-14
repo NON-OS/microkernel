@@ -15,21 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const HDR_LEN: usize = 8;
-pub const CHECKSUM_OFFSET: usize = 6;
-pub const SRC_PORT_OFFSET: usize = 0;
-pub const DST_PORT_OFFSET: usize = 2;
-pub const LENGTH_OFFSET: usize = 4;
+pub(super) const CHECKSUM_OFFSET: usize = 6;
 
 #[derive(Clone, Copy, Debug)]
 pub struct UdpHeader {
     pub src_port: u16,
     pub dst_port: u16,
-    pub length: u16,
-    pub checksum: u16,
-}
-
-impl UdpHeader {
-    pub fn payload_bytes(&self) -> usize {
-        (self.length as usize).saturating_sub(HDR_LEN)
-    }
 }
