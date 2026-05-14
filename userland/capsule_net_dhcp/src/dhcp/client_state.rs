@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! RFC 2131 client state machine. The transitions match figure 5
-//! in the RFC; renewal (RENEWING / REBINDING) is owned by the
-//! caller via the lease-timer driver in `main.rs`.
+//! RFC 2131 client state. The DORA driver and the renewal/release
+//! handlers transition between these states explicitly.
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum State {
@@ -25,28 +24,4 @@ pub enum State {
     Requesting,
     Bound,
     Renewing,
-    Rebinding,
-    InitReboot,
-}
-
-impl State {
-    pub fn next_on_offer(self) -> Option<Self> {
-        match self {
-            Self::Selecting => Some(Self::Requesting),
-            _ => None,
-        }
-    }
-
-    pub fn next_on_ack(self) -> Option<Self> {
-        match self {
-            Self::Requesting | Self::Renewing | Self::Rebinding | Self::InitReboot => {
-                Some(Self::Bound)
-            }
-            _ => None,
-        }
-    }
-
-    pub fn next_on_nak(self) -> Self {
-        Self::Init
-    }
 }
