@@ -15,9 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod call;
+mod inbox_name;
+mod lookup;
 mod recv;
+mod recv_from;
 mod send;
+mod send_to_pid;
+mod sender_pid;
 
 pub use call::sys_ipc_call;
+pub use lookup::sys_service_lookup;
 pub use recv::sys_ipc_recv;
+pub use recv_from::sys_ipc_recv_from;
 pub use send::sys_ipc_send;
+pub use send_to_pid::sys_ipc_send_to_pid;
