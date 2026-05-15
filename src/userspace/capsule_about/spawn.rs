@@ -19,6 +19,8 @@ use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 #[cfg(not(feature = "nonos-production"))]
 use super::embed::ABOUT_ELF;
 #[cfg(not(feature = "nonos-production"))]
+use super::state;
+#[cfg(not(feature = "nonos-production"))]
 use crate::capabilities::Capability;
 #[cfg(not(feature = "nonos-production"))]
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpec};
@@ -55,6 +57,7 @@ pub fn spawn_about_capsule() -> Result<(), SpawnError> {
         caps_bits,
         debug_tag: b"[ABOUT-DEBUG] load_elf_executable error:",
     };
-    let _ = capsule_spawn::spawn(&spec)?;
+    let pid = capsule_spawn::spawn(&spec)?;
+    state::set_alive(pid);
     Ok(())
 }

@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod embed;
+mod state;
 mod spawn;
 
+pub use state::shared_state;
 pub use spawn::spawn_about_capsule;
