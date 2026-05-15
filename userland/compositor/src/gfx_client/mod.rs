@@ -21,6 +21,6 @@ pub mod transfer;
 pub mod wire;
 
 pub use flush::resource_flush;
-pub use get_primary::{get_primary_surface, PrimaryReply};
+pub use get_primary::get_primary_surface;
 pub use set_scanout::set_scanout;
 pub use transfer::transfer_to_host;
