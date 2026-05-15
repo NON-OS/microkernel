@@ -20,6 +20,7 @@
 extern crate alloc;
 
 mod compositor_client;
+mod decode_client;
 mod debug;
 mod paint;
 mod protocol;
