@@ -16,5 +16,6 @@
 
 mod discover;
 mod prime;
+mod retry;
 
-pub use prime::run;
+pub use retry::run;
