@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const DEFAULT_CLIENT_PORT: u16 = 17890;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Gateway {
     pub ip: [u8; 4],
     pub port: u16,
-    pub local_port: u16,
+    pub stream: u32,
 }
