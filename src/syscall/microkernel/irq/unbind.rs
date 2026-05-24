@@ -16,7 +16,7 @@
 
 use crate::hardware::broker::IrqError;
 use crate::process::current_pid;
-use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_PERM};
+use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
 
 pub fn sys_irq_unbind(grant_id: u64) -> i64 {
     let pid = match current_pid() {
@@ -27,5 +27,6 @@ pub fn sys_irq_unbind(grant_id: u64) -> i64 {
         Ok(()) => 0,
         Err(IrqError::NotHolder) => ERRNO_PERM,
         Err(IrqError::UnknownGrant) => ERRNO_INVAL,
+        Err(IrqError::PlatformError) => ERRNO_NODEV,
     }
 }
