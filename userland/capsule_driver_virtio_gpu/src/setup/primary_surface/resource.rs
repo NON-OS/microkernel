@@ -22,14 +22,16 @@ pub fn insert(
     backing_addr: u64,
     backing_len: u32,
 ) -> Result<(), &'static str> {
-    resources.insert(Resource {
-        resource_id,
-        owner_pid: 0,
-        width: scanout.width,
-        height: scanout.height,
-        format: VG_FORMAT_B8G8R8A8_UNORM,
-        backing_addr,
-        backing_len,
-        in_use: true,
-    })
+    resources
+        .insert(Resource {
+            resource_id,
+            owner_pid: 0,
+            width: scanout.width,
+            height: scanout.height,
+            format: VG_FORMAT_B8G8R8A8_UNORM,
+            backing_addr,
+            backing_len,
+            in_use: true,
+        })
+        .map_err(|_| "virtio-gpu: primary resource insert failed")
 }
