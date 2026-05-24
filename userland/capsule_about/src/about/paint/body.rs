@@ -22,5 +22,5 @@ use crate::about::theme::{HEADER_HEIGHT, SECTION_TOP_PADDING, TAB_BAR_HEIGHT};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let body_top = HEADER_HEIGHT + TAB_BAR_HEIGHT + SECTION_TOP_PADDING;
-    render_section(state.section, state.scroll, body_top, fb);
+    render_section(state.section, state.scroll, state.last_visible_lines, body_top, fb);
 }
