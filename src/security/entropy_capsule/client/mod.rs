@@ -16,6 +16,8 @@
 
 mod get_random;
 mod get_stats;
+mod healthcheck;
+mod reseed;
 mod seq;
 mod transport;
 
@@ -23,3 +25,5 @@ pub(super) use transport::REPLY_INBOX;
 
 pub use get_random::get_random;
 pub use get_stats::{get_stats, EntropyStats};
+pub use healthcheck::healthcheck;
+pub use reseed::reseed;
