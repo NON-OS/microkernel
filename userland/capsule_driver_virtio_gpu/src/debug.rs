@@ -18,14 +18,11 @@ use nonos_libc::mk_debug;
 
 const PREFIX: &[u8] = b"[virtio_gpu] ";
 const MAX_LABEL: usize = 200;
+const NEWLINE: &[u8] = b"\n";
 
 pub fn marker(label: &[u8]) {
     let label_len = if label.len() > MAX_LABEL { MAX_LABEL } else { label.len() };
-    let mut buf = [0u8; PREFIX.len() + MAX_LABEL + 1];
-    let prefix_end = PREFIX.len();
-    buf[..prefix_end].copy_from_slice(PREFIX);
-    buf[prefix_end..prefix_end + label_len].copy_from_slice(&label[..label_len]);
-    buf[prefix_end + label_len] = b'\n';
-    let total = prefix_end + label_len + 1;
-    let _ = mk_debug(buf.as_ptr(), total);
+    let _ = mk_debug(PREFIX.as_ptr(), PREFIX.len());
+    let _ = mk_debug(label.as_ptr(), label_len);
+    let _ = mk_debug(NEWLINE.as_ptr(), NEWLINE.len());
 }
