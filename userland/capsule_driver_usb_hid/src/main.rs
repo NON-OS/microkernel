@@ -24,6 +24,7 @@ mod hid;
 mod protocol;
 mod server;
 mod state;
+mod xhci;
 
 use nonos_libc::{heap_init, mk_exit};
 
