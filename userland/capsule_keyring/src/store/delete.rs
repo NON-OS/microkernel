@@ -26,9 +26,7 @@ impl Store {
             Some(entry) => entry,
             None => return Err(StoreError::NotFound),
         };
-        for byte in removed.data.iter_mut() {
-            *byte = 0;
-        }
+        super::wipe::secure_wipe(&mut removed.data);
         Ok(())
     }
 }
