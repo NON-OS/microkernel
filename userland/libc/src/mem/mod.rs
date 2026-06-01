@@ -15,5 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod mmap;
+mod munmap;
 
 pub use mmap::mk_mmap;
+pub use munmap::mk_munmap;
