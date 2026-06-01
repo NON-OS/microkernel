@@ -16,7 +16,6 @@
 
 use super::wire::call;
 
-// compositor::OP_FOCUS_SET = 0x0004. Body: target_pid u32, _pad u32.
 const OP: u16 = 0x0004;
 const BODY_LEN: usize = 8;
 
