@@ -14,13 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Kernel-side surface registry. Owner capsules register pixel
-// buffers; the kernel tracks (pid, sid) → frame list + refcount +
-// metadata. Cross-address-space attach is the only path that maps
-// another capsule's frames in. No userland refcount manipulation; the
-// CAS lives here.
-
 pub mod attach_map;
+mod dump;
 pub mod input_ring;
 pub mod release;
 pub mod share;
@@ -29,8 +24,9 @@ pub mod types;
 pub mod vsync;
 
 pub use attach_map::lookup as lookup_attached_va;
+pub use dump::dump_surface_accounting;
 pub use input_ring::{drain_input, post_input};
-pub use release::release_surface;
+pub use release::{release_owned_by_pid, release_surface};
 pub use share::{attach_surface, share_surface};
 pub use table::{lookup_owned, register_surface};
 pub use types::{
