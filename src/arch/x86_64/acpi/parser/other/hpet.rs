@@ -21,6 +21,10 @@ use crate::arch::x86_64::acpi::tables::{Hpet, SIG_HPET};
 
 pub fn parse_hpet(registry: &mut TableRegistry) {
     if let Some(&addr) = registry.tables.get(&SIG_HPET) {
+        let addr = match super::super::phys::directmap(addr) {
+            Some(v) => v,
+            None => return,
+        };
         unsafe {
             let hpet = ptr::read_volatile(addr as *const Hpet);
             if hpet.is_valid() {
