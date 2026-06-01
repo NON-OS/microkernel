@@ -24,6 +24,7 @@ pub(super) fn write(w: &mut Writer<'_>, entry: &MarketplaceEntry) {
     w.lp_string(&entry.name);
     w.lp_string(&entry.publisher_name);
     w.fixed(&entry.publisher_pubkey);
+    w.fixed(&entry.publisher_eth_address);
     w.lp_string(&entry.description);
 
     encode_price::write(w, &entry.price);

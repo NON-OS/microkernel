@@ -16,12 +16,15 @@
 
 use alloc::vec::Vec;
 
-use super::types::{Store, StoreError};
+use super::types::{KeyType, Store, StoreError};
 
 impl Store {
     pub fn retrieve(&mut self, id: u32, caller_pid: u32) -> Result<Vec<u8>, StoreError> {
         let entry = self.entries.get_mut(&id).ok_or(StoreError::NotFound)?;
         if entry.owner_pid != caller_pid {
+            return Err(StoreError::AccessDenied);
+        }
+        if entry.key_type == KeyType::Secp256k1Eth {
             return Err(StoreError::AccessDenied);
         }
         if entry.locked {
