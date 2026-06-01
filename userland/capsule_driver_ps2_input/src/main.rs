@@ -17,6 +17,7 @@
 #![no_main]
 extern crate alloc;
 mod constants;
+mod debug;
 mod discover;
 mod init;
 mod keymap;
