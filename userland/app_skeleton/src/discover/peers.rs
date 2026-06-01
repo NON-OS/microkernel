@@ -20,3 +20,8 @@ pub struct Peers {
     pub input_router: u32,
     pub toolkit: u32,
 }
+
+pub struct ServicePeer {
+    pub port: u32,
+    pub pid: u32,
+}
