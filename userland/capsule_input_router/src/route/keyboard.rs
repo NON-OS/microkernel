@@ -16,13 +16,18 @@
 
 use nonos_libc::InputEvent;
 
+use crate::clients::wm;
 use crate::state::Context;
 
 use super::deliver::deliver_one;
 
 pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
-    let pid = ctx.focus_pid;
-    if pid == 0 || !ctx.subscriptions.allows(pid, event.kind) {
+    let rid = ctx.issue_request_id();
+    let Some(pid) = wm::query_focus(&mut ctx.wm_port, rid) else {
+        ctx.record(0);
+        return 0;
+    };
+    if !ctx.subscriptions.allows(pid, event.kind) {
         ctx.record(0);
         return 0;
     }

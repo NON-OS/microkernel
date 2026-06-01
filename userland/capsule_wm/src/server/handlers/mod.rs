@@ -16,6 +16,7 @@
 
 pub mod health;
 pub mod lifecycle_subscribe;
+pub mod query_focus;
 pub mod query_topmost;
 pub mod route_focus;
 pub mod window_close;
