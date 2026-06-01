@@ -21,4 +21,7 @@ use crate::canvas::Canvas;
 pub trait Control {
     fn paint(&self, canvas: &mut Canvas<'_>);
     fn on_event(&mut self, event: &InputEvent) -> bool;
+    fn wants_close(&self) -> bool {
+        false
+    }
 }
