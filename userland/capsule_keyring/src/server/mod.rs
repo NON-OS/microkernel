@@ -22,6 +22,7 @@ mod field32;
 mod handlers;
 mod rlp;
 mod runner;
+mod wipe;
 mod zeroize;
 
 pub use runner::run;
