@@ -1,0 +1,39 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use crate::input::{InputEvent, InputKind};
+use crate::clients::wm;
+
+pub(super) fn handle(
+    event: InputEvent,
+    wm_port: u32,
+    window_id: u32,
+    request_id: &mut u32,
+) {
+    if event.kind != InputKind::ButtonDown {
+        return;
+    }
+    let raise_id = next(request_id);
+    let _ = wm::window_raise(wm_port, raise_id, window_id);
+    let focus_id = next(request_id);
+    let _ = wm::window_focus(wm_port, focus_id, window_id);
+}
+
+fn next(slot: &mut u32) -> u32 {
+    let id = *slot;
+    *slot = slot.wrapping_add(1).max(1);
+    id
+}

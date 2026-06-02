@@ -26,6 +26,7 @@ impl InputEvent {
                 | InputKind::Wheel
                 | InputKind::ButtonDown
                 | InputKind::ButtonUp
+                | InputKind::Touch
         )
     }
 
