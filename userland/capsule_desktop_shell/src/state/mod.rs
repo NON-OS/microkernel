@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod context;
+pub mod indicators;
 pub mod notify;
 pub mod spotlight;
 pub mod tray;
