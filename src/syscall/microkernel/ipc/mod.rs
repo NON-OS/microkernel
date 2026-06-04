@@ -17,6 +17,7 @@
 mod call;
 mod inbox_name;
 mod lookup;
+mod pending_reply;
 mod recv;
 mod recv_from;
 mod reply;
