@@ -16,10 +16,12 @@
 
 #![cfg(feature = "zk-groth16")]
 
+pub mod attestation_vk;
 pub mod deserialize;
 pub mod error;
 pub mod params;
 mod verifier;
+mod verifier_bls12_381;
 
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
@@ -30,5 +32,7 @@ pub const MAX_VK_BYTES: usize = 16 * 1024 * 1024;
 pub const MAX_PROOF_BYTES: usize = 1 * 1024 * 1024;
 pub const MAX_PUBLIC_INPUTS: usize = 262_000;
 
+pub use attestation_vk::{verify_attestation, ATTESTATION_VK};
 pub use error::Groth16Error;
 pub use verifier::{groth16_verify_bn254, Groth16Verifier};
+pub use verifier_bls12_381::groth16_verify_bls12_381;
