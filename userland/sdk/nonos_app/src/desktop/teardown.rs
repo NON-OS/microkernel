@@ -24,7 +24,6 @@ impl DesktopWindow {
     pub(crate) fn close(self) {
         let _ = scene_remove(self.peers.compositor, self.rid, 0);
         let _ = destroy(self.handle);
-        let _ = destroy(self.handle);
         let _ = munmap(self.backing as *mut u8, self.byte_len as usize);
         let _ = window_close(self.peers.wm, self.rid.wrapping_add(1).max(1), self.window_id);
     }
