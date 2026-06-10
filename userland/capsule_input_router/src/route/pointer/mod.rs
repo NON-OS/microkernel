@@ -18,6 +18,7 @@ mod constants;
 mod mirror_shell_pointer;
 mod refresh_display;
 mod route_pointer;
+mod route_to_press;
 mod route_to_shell;
 mod route_to_window;
 mod shell_pid;
