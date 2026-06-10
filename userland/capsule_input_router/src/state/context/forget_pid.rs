@@ -25,6 +25,9 @@ impl Context {
         if self.press.is_some_and(|p| p.pid == pid) {
             self.press = None;
         }
+        if self.hover.is_some_and(|h| h.pid == pid) {
+            self.hover = None;
+        }
         self.grabs.release(pid);
         if self.shell_pid == pid {
             self.shell_pid = 0;
