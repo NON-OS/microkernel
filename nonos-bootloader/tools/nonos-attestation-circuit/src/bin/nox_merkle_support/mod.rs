@@ -16,6 +16,7 @@
 
 mod amount;
 mod args;
+mod deployment;
 mod input;
 mod keccak;
 mod leaf;
