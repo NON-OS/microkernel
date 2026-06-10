@@ -15,9 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod args;
-mod fields;
 mod run;
-mod verify_ceremony;
-mod verify_work;
 
 pub use run::run;
