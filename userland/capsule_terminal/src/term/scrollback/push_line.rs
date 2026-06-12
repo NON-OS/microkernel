@@ -14,11 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec::Vec;
+
 use super::types::Scrollback;
 use crate::term::dimensions::{COLS, SCROLLBACK_ROWS};
 
 impl Scrollback {
     pub fn push_line(&mut self, line: &[u8]) {
+        if let Some(buf) = self.capture.as_mut() {
+            buf.push(Vec::from(line));
+            return;
+        }
         let slot = (self.head + self.count) % SCROLLBACK_ROWS;
         let n = line.len().min(COLS);
         self.rows[slot][..n].copy_from_slice(&line[..n]);
