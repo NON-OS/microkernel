@@ -22,7 +22,7 @@ use crate::term::state::State;
 
 pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
     if args.len() < 2 {
-        state.scrollback.push_line(b"usage: nox mv <old> <new>");
+        state.scrollback.push_error(b"usage: nox mv <old> <new>");
         return false;
     }
     let pid = ensure_pid(state);
@@ -34,7 +34,7 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
             true
         }
         Err(e) => {
-            state.scrollback.push_line(e.as_bytes());
+            state.scrollback.push_error(e.as_bytes());
             false
         }
     }
