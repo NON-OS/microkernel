@@ -16,17 +16,18 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::snake::grid::{BOARD_X, TITLEBAR_H};
+use super::layout::Layout;
+use crate::snake::grid::TITLEBAR_H;
 use crate::snake::state::Game;
 
 const LABEL: u32 = 0xFF9A_A4B2;
 const VALUE: u32 = 0xFF6A_D47A;
 
-pub fn paint(game: &Game, fb: &mut PaintBuffer) {
+pub fn paint(game: &Game, layout: &Layout, fb: &mut PaintBuffer) {
     let mut buf = [0u8; 10];
     let digits = itoa(game.score, &mut buf);
-    fb.text_scaled(BOARD_X, TITLEBAR_H + 10, b"SCORE", LABEL, 2);
-    fb.text_scaled(BOARD_X + 104, TITLEBAR_H + 10, digits, VALUE, 2);
+    fb.text_scaled(layout.x, TITLEBAR_H + 10, b"SCORE", LABEL, 2);
+    fb.text_scaled(layout.x + 104, TITLEBAR_H + 10, digits, VALUE, 2);
 }
 
 fn itoa(mut value: u32, buf: &mut [u8; 10]) -> &[u8] {
