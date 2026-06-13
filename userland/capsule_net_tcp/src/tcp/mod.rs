@@ -17,6 +17,7 @@
 mod build;
 mod checksum;
 mod header;
+mod iss;
 mod parse;
 mod siphash;
 mod state;
@@ -24,6 +25,7 @@ mod tcb;
 
 pub use build::{build, BuildRequest};
 pub use header::{TcpHeader, FLAG_ACK, FLAG_FIN, FLAG_PSH, FLAG_RST, FLAG_SYN};
+pub use iss::iss_for;
 pub use parse::parse;
 pub use siphash::siphash24;
 pub use state::State;
