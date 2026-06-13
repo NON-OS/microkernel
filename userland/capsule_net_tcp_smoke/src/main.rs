@@ -21,10 +21,10 @@ extern crate alloc;
 
 mod client;
 mod lifecycle;
-mod netup;
 mod siphash;
+mod wait;
 
-use nonos_libc::{heap_init, mk_debug, mk_exit, mk_yield};
+use nonos_libc::{heap_init, mk_debug, mk_exit};
 
 const ISS_KEY: [u64; 2] = [0x0706_0504_0302_0100, 0x0f0e_0d0c_0b0a_0908];
 const ISS_KAT: u64 = 0xa129_ca61_49be_45e5;
@@ -43,16 +43,6 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(1);
     }
     iss_ok();
-    let mut up = false;
-    for _ in 0..6000 {
-        if netup::online() {
-            up = true;
-            break;
-        }
-        mk_yield();
-    }
-    if up {
-        lifecycle::run();
-    }
+    lifecycle::run();
     mk_exit(0)
 }
