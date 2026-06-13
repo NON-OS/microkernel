@@ -24,6 +24,10 @@ pub(super) const OP_OPEN: u16 = 1;
 pub(super) const OP_CLOSE: u16 = 2;
 pub(super) const OP_READ: u16 = 3;
 pub(super) const OP_WRITE: u16 = 4;
+pub(super) const OP_STAT: u16 = 5;
+pub(super) const OP_LIST: u16 = 6;
+pub(super) const OP_MKDIR: u16 = 8;
+pub(super) const OP_UNLINK: u16 = 9;
 pub(super) const O_CREATE: u32 = 1;
 pub(super) const O_TRUNC: u32 = 1 << 1;
 

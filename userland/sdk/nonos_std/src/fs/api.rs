@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::file::File;
@@ -23,6 +24,13 @@ pub fn read(path: &[u8]) -> Result<Vec<u8>> {
     let mut file = File::open(path)?;
     let mut out = Vec::new();
     file.read_to_end(&mut out)?;
+    Ok(out)
+}
+
+pub fn read_to_string(path: &[u8]) -> Result<String> {
+    let mut file = File::open(path)?;
+    let mut out = String::new();
+    file.read_to_string(&mut out)?;
     Ok(out)
 }
 
