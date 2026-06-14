@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod collapse;
 mod expire_pulses;
 mod expire_visibility;
 mod mark_launch;
@@ -22,6 +23,7 @@ mod reveal;
 mod set_open;
 mod types;
 
+pub use collapse::collapse_taskbar;
 pub use expire_pulses::expire_taskbar_pulses;
 pub use expire_visibility::expire_taskbar_visibility;
 pub use mark_launch::mark_taskbar_launch;
