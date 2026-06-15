@@ -20,3 +20,4 @@ pub mod get_mac;
 pub mod health;
 pub mod poll_frame;
 pub mod send_frame;
+pub mod set_ip;
