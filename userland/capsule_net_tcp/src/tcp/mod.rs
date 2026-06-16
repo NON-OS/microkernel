@@ -19,6 +19,7 @@ mod checksum;
 mod header;
 mod iss;
 mod parse;
+pub mod seq;
 mod siphash;
 mod state;
 mod tcb;
