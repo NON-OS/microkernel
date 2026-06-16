@@ -24,6 +24,7 @@ pub mod seq;
 mod siphash;
 mod state;
 mod tcb;
+pub mod window;
 
 pub use build::{build, BuildRequest};
 pub use header::{TcpHeader, FLAG_ACK, FLAG_FIN, FLAG_PSH, FLAG_RST, FLAG_SYN};
@@ -32,6 +33,9 @@ pub use parse::parse;
 pub use siphash::siphash24;
 pub use state::State;
 pub use tcb::{Endpoint4, Tcb};
+
+pub const MSS: usize = crate::protocol::SEGMENT_PAYLOAD_MAX;
+pub const RWND_MAX: u16 = 32 * 1460;
 
 pub const MSL_MS: u64 = 30_000;
 
