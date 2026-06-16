@@ -19,6 +19,8 @@
 
 extern crate alloc;
 
+#[cfg(feature = "tcp-chaos")]
+mod chaos;
 mod egress;
 mod icmp;
 mod ingress;
