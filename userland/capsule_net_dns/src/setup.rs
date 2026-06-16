@@ -36,5 +36,6 @@ pub fn run() -> Result<(), SetupError> {
     }
     udp_client::bind(port, local_port()).map_err(|_| SetupError::BindFailed)?;
     set_udp_port(port);
+    crate::dhcp_upstream::apply();
     Ok(())
 }
