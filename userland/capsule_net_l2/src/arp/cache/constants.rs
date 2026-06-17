@@ -15,3 +15,4 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(super) const ENTRY_CAP: usize = 64;
+pub(super) const PENDING_CAP: usize = 8;
