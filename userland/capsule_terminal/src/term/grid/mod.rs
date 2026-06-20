@@ -15,3 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod cell;
+pub mod types;
+pub mod new;
+
+pub use types::Grid;
