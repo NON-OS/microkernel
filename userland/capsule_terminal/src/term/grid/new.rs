@@ -20,6 +20,7 @@ use crate::term::grid::cell::Cell;
 use crate::term::grid::types::Grid;
 use crate::term::dimensions::{COLS, VISIBLE_ROWS, SCROLLBACK_ROWS};
 use crate::term::vt::color::{DEFAULT_FG, DEFAULT_BG};
+use crate::term::vt::parser::Parser;
 
 impl Grid {
     pub fn new() -> Grid {
@@ -36,6 +37,7 @@ impl Grid {
             fg: DEFAULT_FG,
             bg: DEFAULT_BG,
             flags: 0,
+            parser: Parser::new(),
         }
     }
 }
