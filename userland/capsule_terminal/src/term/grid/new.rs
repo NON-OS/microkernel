@@ -32,6 +32,7 @@ impl Grid {
             hist_count: 0,
             view_offset: 0,
             alternate: false,
+            cursor_visible: true,
             x: 0,
             y: 0,
             fg: DEFAULT_FG,
