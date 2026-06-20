@@ -23,5 +23,6 @@ pub mod erase;
 pub mod move_cells;
 pub mod feed;
 pub mod view;
+pub mod scroll_view;
 
 pub use types::Grid;
