@@ -16,6 +16,7 @@
 
 mod capture;
 mod clear;
+mod feed_raw;
 mod jump_bottom;
 mod new;
 mod push_error;
