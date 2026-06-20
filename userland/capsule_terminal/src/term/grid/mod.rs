@@ -24,5 +24,6 @@ pub mod move_cells;
 pub mod feed;
 pub mod view;
 pub mod scroll_view;
+pub mod alt;
 
 pub use types::Grid;
