@@ -34,6 +34,7 @@ impl State {
             last_status: true,
             aliases: alloc::vec::Vec::new(),
             hist_prefix: alloc::vec::Vec::new(),
+            blocks: alloc::vec::Vec::new(),
         }
     }
 }
