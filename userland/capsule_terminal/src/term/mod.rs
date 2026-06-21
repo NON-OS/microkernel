@@ -23,6 +23,7 @@ pub mod history;
 pub mod line;
 pub mod manifest;
 pub mod prompt;
+pub mod rtc;
 pub mod scrollback;
 pub mod state;
 pub mod terminal;
