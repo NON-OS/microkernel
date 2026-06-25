@@ -22,6 +22,8 @@ extern crate alloc;
 mod device;
 mod iface;
 mod protocol;
+mod register;
+mod server;
 mod setup;
 mod state;
 
@@ -34,10 +36,8 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(1);
     }
     wait_for_setup();
-    loop {
-        iface::poll::pump();
-        mk_yield();
-    }
+    register::all();
+    server::run();
 }
 
 fn wait_for_setup() {
