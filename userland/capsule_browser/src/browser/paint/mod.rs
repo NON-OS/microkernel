@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod chrome;
+mod document;
 
 use nonos_app_skeleton::PaintBuffer;
 
@@ -22,4 +23,5 @@ use crate::browser::state::State;
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     chrome::paint(state, fb);
+    document::paint(state, fb);
 }
