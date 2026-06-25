@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod dhcp_status;
+pub mod dns;
 pub mod health;
 pub mod tcp;
 pub mod udp;
