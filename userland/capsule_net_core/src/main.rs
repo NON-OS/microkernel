@@ -27,6 +27,7 @@ mod register;
 mod server;
 mod setup;
 mod state;
+mod udp_ports;
 
 use nonos_libc::{heap_init, mk_exit, mk_yield};
 use setup::SetupError;
