@@ -20,6 +20,7 @@ pub struct State {
     pub address: String,
     pub address_focused: bool,
     pub status: String,
+    pub pending_nav: Option<String>,
 }
 
 impl State {
@@ -28,6 +29,7 @@ impl State {
             address: String::new(),
             address_focused: true,
             status: String::from("ready"),
+            pending_nav: None,
         }
     }
 }
