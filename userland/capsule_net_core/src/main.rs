@@ -19,6 +19,9 @@
 
 extern crate alloc;
 
+mod device;
+mod protocol;
+
 use nonos_libc::{heap_init, mk_exit};
 
 #[no_mangle]
