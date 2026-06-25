@@ -20,14 +20,23 @@
 extern crate alloc;
 
 mod device;
+mod iface;
 mod protocol;
+mod setup;
+mod state;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_exit, mk_yield};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    mk_exit(0);
+    if setup::run().is_err() {
+        mk_exit(2);
+    }
+    loop {
+        iface::poll::pump();
+        mk_yield();
+    }
 }
