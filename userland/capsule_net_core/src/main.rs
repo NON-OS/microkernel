@@ -20,6 +20,7 @@
 extern crate alloc;
 
 mod device;
+mod handles;
 mod iface;
 mod protocol;
 mod register;
