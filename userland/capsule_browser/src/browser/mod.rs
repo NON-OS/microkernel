@@ -18,6 +18,7 @@ extern crate alloc;
 
 mod app;
 mod event;
+pub mod html;
 pub mod http;
 mod keymap;
 pub mod manifest;
