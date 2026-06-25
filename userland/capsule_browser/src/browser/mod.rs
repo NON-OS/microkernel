@@ -20,6 +20,7 @@ mod app;
 mod event;
 mod keymap;
 pub mod manifest;
+mod net;
 mod paint;
 pub mod state;
 
