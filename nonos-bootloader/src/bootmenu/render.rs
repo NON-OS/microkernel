@@ -17,11 +17,12 @@
 use super::footer::draw_footer;
 use super::header::draw_header;
 use super::list::draw_list;
+use super::security_status::draw_security_status;
 use crate::display::fx::fill_atmosphere;
 use crate::display::gop::get_dimensions;
 use crate::security::SecurityContext;
 
-pub(super) fn render(sel: usize, remaining_s: u32, _sec: &SecurityContext) {
+pub(super) fn render(sel: usize, remaining_s: u32, sec: &SecurityContext) {
     let (w, h) = get_dimensions();
     fill_atmosphere();
 
@@ -33,4 +34,5 @@ pub(super) fn render(sel: usize, remaining_s: u32, _sec: &SecurityContext) {
     draw_header(w, title_y);
     draw_list(w, list_top, sel);
     draw_footer(w, status_y, remaining_s);
+    draw_security_status(w, status_y + 44, sec);
 }
