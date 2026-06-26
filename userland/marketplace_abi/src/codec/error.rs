@@ -14,18 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum DecodeError {
-    /// Buffer ended before the next field could be read.
     Short,
-    /// A length-prefixed field exceeded its declared upper bound.
     TooLarge,
-    /// A list count exceeded its declared upper bound.
     TooManyItems,
-    /// A UTF-8 string was not valid.
     BadUtf8,
-    /// A schema version we do not understand.
     UnsupportedSchema,
-    /// Encoded blob is larger than `MAX_INDEX_BLOB`.
     BlobTooLarge,
 }
