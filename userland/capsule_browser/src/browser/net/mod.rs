@@ -17,6 +17,7 @@
 mod call;
 mod constants;
 mod lookup;
+mod read_tls_flight;
 mod recv_all;
 mod resolve;
 mod socket_close;
@@ -26,6 +27,7 @@ mod socket_recv;
 mod socket_send;
 
 pub use lookup::lookup;
+pub use read_tls_flight::read_tls_flight;
 pub use recv_all::recv_all;
 pub use resolve::resolve;
 pub use socket_close::socket_close;
