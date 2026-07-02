@@ -19,6 +19,7 @@ use super::constants::*;
 pub fn create_image_footer(
     kernel_size: u32,
     signature_size: u32,
+    signature_algorithm: u8,
     proof_size: u32,
     total_image_size: u64,
     rollback_index: u32,
@@ -29,7 +30,7 @@ pub fn create_image_footer(
     footer[8..10].copy_from_slice(&FOOTER_VERSION.to_le_bytes());
     footer[10..12].copy_from_slice(&FLAG_HAS_ZK_PROOF.to_le_bytes());
     footer[12] = HASH_ALG_BLAKE3;
-    footer[13] = SIG_ALG_ED25519;
+    footer[13] = signature_algorithm;
     footer[14..16].copy_from_slice(&0u16.to_le_bytes());
     footer[16..24].copy_from_slice(&total_image_size.to_le_bytes());
     footer[24..28].copy_from_slice(&0u32.to_le_bytes());
