@@ -23,8 +23,10 @@ mod geom;
 mod manifest;
 mod paint;
 mod paint_analog;
+mod paint_stopwatch;
 mod paint_tabbar;
 mod state;
+mod stopwatch;
 mod tabs;
 mod theme;
 

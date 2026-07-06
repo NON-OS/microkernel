@@ -14,20 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::time::{mk_time_rtc, RtcTime};
+use nonos_libc::time::{mk_time_millis, mk_time_rtc, RtcTime};
 
+use crate::clock::stopwatch::Stopwatch;
 use crate::clock::tabs::Tab;
 
 pub struct State {
     pub rtc: RtcTime,
+    pub now_ms: u64,
     pub tab: Tab,
+    pub sw: Stopwatch,
 }
 
 impl State {
     pub fn new() -> Self {
         let mut s = State {
             rtc: RtcTime::default(),
+            now_ms: 0,
             tab: Tab::Clock,
+            sw: Stopwatch::default(),
         };
         s.refresh();
         s
@@ -37,6 +42,10 @@ impl State {
         let mut t = RtcTime::default();
         if mk_time_rtc(&mut t as *mut RtcTime) == 0 {
             self.rtc = t;
+        }
+        let n = mk_time_millis();
+        if n >= 0 {
+            self.now_ms = n as u64;
         }
     }
 }
