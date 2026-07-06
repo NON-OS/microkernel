@@ -19,12 +19,14 @@ pub enum Tab {
     Clock,
     Stopwatch,
     Timer,
+    Set,
 }
 
 pub const BAR_H: i32 = 32;
+pub const BAR_TOP: i32 = 28;
 
-pub fn all() -> [Tab; 3] {
-    [Tab::Clock, Tab::Stopwatch, Tab::Timer]
+pub fn all() -> [Tab; 4] {
+    [Tab::Clock, Tab::Stopwatch, Tab::Timer, Tab::Set]
 }
 
 pub fn label(t: Tab) -> &'static [u8] {
@@ -32,17 +34,19 @@ pub fn label(t: Tab) -> &'static [u8] {
         Tab::Clock => b"Clock",
         Tab::Stopwatch => b"Stopwatch",
         Tab::Timer => b"Timer",
+        Tab::Set => b"Set",
     }
 }
 
 pub fn hit(width: i32, x: i32, y: i32) -> Option<Tab> {
-    if y < 0 || y >= BAR_H {
+    if y < BAR_TOP || y >= BAR_TOP + BAR_H {
         return None;
     }
-    let w = width / 3;
+    let w = width / 4;
     match x / w {
         0 => Some(Tab::Clock),
         1 => Some(Tab::Stopwatch),
-        _ => Some(Tab::Timer),
+        2 => Some(Tab::Timer),
+        _ => Some(Tab::Set),
     }
 }
