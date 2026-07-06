@@ -16,13 +16,16 @@
 
 mod angles;
 mod app;
+mod event;
 mod fixed;
 mod fmt;
 mod geom;
 mod manifest;
 mod paint;
 mod paint_analog;
+mod paint_tabbar;
 mod state;
+mod tabs;
 mod theme;
 
 pub use app::Clock;
