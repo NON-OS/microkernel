@@ -35,6 +35,10 @@ impl Air for Squaring {
         2
     }
 
+    fn constraint_degree(&self) -> usize {
+        2
+    }
+
     fn num_transition(&self) -> usize {
         1
     }
