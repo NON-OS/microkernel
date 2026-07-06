@@ -17,7 +17,7 @@
 use nonos_app_skeleton::{AppManifest, WindowKind};
 
 pub const WIDTH: u32 = 360;
-pub const HEIGHT: u32 = 220;
+pub const HEIGHT: u32 = 440;
 const WINDOW_ID: u32 = 0x434C_4F4B;
 const TITLE: &[u8] = b"Clock";
 const INPUT_BUTTON_DOWN_BIT: u32 = 1 << 5;
