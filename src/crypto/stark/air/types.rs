@@ -16,24 +16,22 @@
 
 //! The STARK proof: a trace commitment, a FRI proof that the constraint
 //! composition is low degree, and per-query openings that bind the composition
-//! back to the committed trace.
+//! back to the committed trace over the whole constraint window.
 
 use super::super::field::Fp;
 use super::super::fri::FriProof;
 use alloc::vec::Vec;
 
-/// One consistency query: the composition value at position `p` and the trace
-/// values at `p` and one row ahead, each with a Merkle path to its commitment.
+/// One consistency query: the composition value at position `p`, and the trace
+/// values across the constraint window starting at `p`, each with a Merkle path.
 pub struct StarkQuery {
     pub comp: Fp,
     pub comp_path: Vec<[u8; 32]>,
-    pub t_x: Fp,
-    pub t_x_path: Vec<[u8; 32]>,
-    pub t_gx: Fp,
-    pub t_gx_path: Vec<[u8; 32]>,
+    pub window: Vec<Fp>,
+    pub window_paths: Vec<Vec<[u8; 32]>>,
 }
 
-/// A complete STARK proof for the squaring AIR.
+/// A complete STARK proof.
 pub struct StarkProof {
     pub trace_root: [u8; 32],
     pub fri: FriProof,
