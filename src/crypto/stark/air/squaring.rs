@@ -31,6 +31,10 @@ impl Air for Squaring {
         self.log_t
     }
 
+    fn trace_width(&self) -> usize {
+        1
+    }
+
     fn window_size(&self) -> usize {
         2
     }
@@ -48,7 +52,8 @@ impl Air for Squaring {
         vec![window[1] - window[0] * window[0]]
     }
 
-    fn boundary(&self) -> Vec<(usize, Fp)> {
-        vec![(0, self.seed)]
+    fn boundary(&self) -> Vec<(usize, usize, Fp)> {
+        // column 0, row 0, the public seed.
+        vec![(0, 0, self.seed)]
     }
 }
