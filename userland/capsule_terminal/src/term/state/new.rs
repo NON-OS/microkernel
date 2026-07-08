@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::State;
+use crate::jobs::JobTable;
 use crate::term::cwd::Cwd;
 use crate::term::history::History;
 use crate::term::line::Line;
@@ -35,6 +36,7 @@ impl State {
             aliases: alloc::vec::Vec::new(),
             hist_prefix: alloc::vec::Vec::new(),
             blocks: alloc::vec::Vec::new(),
+            jobs: JobTable::new(),
         }
     }
 }
