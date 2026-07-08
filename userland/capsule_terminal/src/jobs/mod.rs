@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod classify;
 mod env;
+mod submit;
 mod table;
 mod work;
 
+pub use classify::{is_job_command, Verdict};
 pub use env::JobEnv;
+pub use submit::submit;
 pub use table::{JobProgress, JobRecord, JobState, JobTable};
 pub use work::{step, JobWork};
