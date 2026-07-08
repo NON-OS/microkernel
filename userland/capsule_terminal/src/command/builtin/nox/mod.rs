@@ -32,7 +32,7 @@ mod help;
 mod history;
 mod id;
 mod ifconfig;
-mod install;
+pub mod install;
 mod ls;
 mod mk;
 mod motd;
