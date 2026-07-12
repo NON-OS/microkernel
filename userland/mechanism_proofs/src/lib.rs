@@ -22,6 +22,7 @@
 
 pub mod buddy;
 pub mod phys;
+pub mod region;
 pub mod spec;
 
 #[cfg(test)]
