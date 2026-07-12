@@ -21,9 +21,11 @@
 //! code-bound proof; see `verification/lean/REFINEMENT.md`.
 
 pub mod buddy;
+pub mod mmio;
 pub mod phys;
 pub mod quota;
 pub mod region;
+pub mod ring;
 pub mod spec;
 pub mod timer;
 
