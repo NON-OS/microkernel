@@ -29,6 +29,7 @@ pub mod quota;
 pub mod refcount;
 pub mod region;
 pub mod ring;
+pub mod scheduler;
 pub mod spec;
 pub mod timer;
 
