@@ -19,3 +19,4 @@ pub mod hcmd;
 pub mod mgmt;
 pub mod rx;
 pub mod wpa;
+pub mod eapol;
