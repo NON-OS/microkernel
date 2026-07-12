@@ -23,3 +23,14 @@
 pub fn buddy_order_size(order: usize) -> usize {
     1usize << order
 }
+
+// Bitmap index arithmetic: verification/lean Nonos/Bitmap.lean. The byte and
+// bit position of an index, restated with a modulo rather than the mask the
+// implementation uses.
+pub fn bitmap_byte_of(idx: usize) -> usize {
+    idx / 8
+}
+
+pub fn bitmap_bit_mask(idx: usize) -> u8 {
+    1u8 << (idx % 8)
+}
