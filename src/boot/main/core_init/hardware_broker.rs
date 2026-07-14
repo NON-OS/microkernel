@@ -27,5 +27,6 @@ pub(super) fn seed_hardware_broker() {
     crate::hardware::broker::init_from_pci(&devices);
     let _ = crate::hardware::broker::register_legacy_platform_devices();
     crate::hardware::broker::register_acpi_i2c();
+    crate::hardware::broker::register_acpi_gpio();
     serial::println(b"[NONOS] hardware broker seeded");
 }
