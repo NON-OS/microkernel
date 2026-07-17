@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod args;
+pub mod auth;
 pub mod conn;
 pub mod fetch;
 pub mod framing;
