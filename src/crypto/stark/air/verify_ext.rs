@@ -24,7 +24,7 @@
 use super::super::field::{Fp, Fp2};
 use super::super::fri::root_of_unity;
 use super::super::fri_ext::fri_verify_ext;
-use super::super::merkle::{verify_path, verify_path_ext};
+use super::super::merkle::{verify_path_ext, verify_path_wide};
 use super::super::poly::eval_lagrange_ext;
 use super::super::transcript::Transcript;
 use super::composition::{compose_ext, domain_params_blown, num_coeffs};
@@ -54,6 +54,20 @@ pub fn stark_verify_ext_blown<A: AirExt>(
     grind_bits: u32,
     extra_blowup_bits: u32,
 ) -> bool {
+    stark_verify_ext_blown_bound(air, proof, n_queries, grind_bits, extra_blowup_bits, &[])
+}
+
+/// The same verifier bound to `context`, absorbed into the transcript first, so a
+/// proof drawn under one context never verifies under another. The money-grade
+/// attestation verifier.
+pub fn stark_verify_ext_blown_bound<A: AirExt>(
+    air: &A,
+    proof: &StarkProofExt,
+    n_queries: usize,
+    grind_bits: u32,
+    extra_blowup_bits: u32,
+    context: &[u8],
+) -> bool {
     let log_t = air.log_trace_len();
     let t = 1usize << log_t;
     let width = air.trace_width();
@@ -61,10 +75,7 @@ pub fn stark_verify_ext_blown<A: AirExt>(
     let n = 1usize << log_n;
     let window_size = air.window_size();
 
-    if proof.trace_roots.len() != width
-        || proof.ood_frame.len() != window_size * width
-        || proof.queries.len() != n_queries
-    {
+    if proof.ood_frame.len() != window_size * width || proof.queries.len() != n_queries {
         return false;
     }
 
@@ -73,9 +84,10 @@ pub fn stark_verify_ext_blown<A: AirExt>(
     let shift = Fp::from_u64(SHIFT);
 
     let mut transcript = Transcript::new(b"NONOS-STARK-EXT");
-    for root in &proof.trace_roots {
-        transcript.absorb_digest(root);
+    if !context.is_empty() {
+        transcript.absorb_digest(&crate::crypto::hash::keccak256(context));
     }
+    transcript.absorb_digest(&proof.trace_root);
     let coeffs: Vec<Fp2> = (0..num_coeffs(air)).map(|_| transcript.challenge_fp2()).collect();
     transcript.absorb_digest(&proof.comp_root);
     let z = draw_ood_point_ext(&mut transcript, shift, n, t);
@@ -110,18 +122,14 @@ pub fn stark_verify_ext_blown<A: AirExt>(
 
     for qd in &proof.queries {
         let p = transcript.challenge_index(n);
-        if qd.trace.len() != width || qd.trace_paths.len() != width {
+        if qd.trace.len() != width {
             return false;
         }
         if !verify_path_ext(&deep_root, p, qd.deep, &qd.deep_path)
             || !verify_path_ext(&proof.comp_root, p, qd.comp, &qd.comp_path)
+            || !verify_path_wide(&proof.trace_root, p, &qd.trace, &qd.trace_path)
         {
             return false;
-        }
-        for c in 0..width {
-            if !verify_path(&proof.trace_roots[c], p, qd.trace[c], &qd.trace_paths[c]) {
-                return false;
-            }
         }
 
         let x = shift * omega.pow(p as u64);
@@ -132,7 +140,8 @@ pub fn stark_verify_ext_blown<A: AirExt>(
             for c in 0..width {
                 let claimed = proof.ood_frame[k * width + c];
                 acc = acc
-                    + deep_coeffs[k * width + c] * ((Fp2::from_base(qd.trace[c]) - claimed) * inv_x_zk);
+                    + deep_coeffs[k * width + c]
+                        * ((Fp2::from_base(qd.trace[c]) - claimed) * inv_x_zk);
             }
         }
         let e = deep_coeffs[width * window_size];

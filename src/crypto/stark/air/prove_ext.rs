@@ -36,7 +36,12 @@ const SHIFT: u64 = 7;
 /// Draw the out-of-domain point from the extension: off the evaluation coset and
 /// off the trace domain, so every DEEP and periodic denominator is invertible in
 /// `Fp2`. Both sides run this identically, so they agree on the point.
-pub(super) fn draw_ood_point_ext(transcript: &mut Transcript, shift: Fp, n: usize, t: usize) -> Fp2 {
+pub(super) fn draw_ood_point_ext(
+    transcript: &mut Transcript,
+    shift: Fp,
+    n: usize,
+    t: usize,
+) -> Fp2 {
     let shift_n = Fp2::from_base(shift.pow(n as u64));
     let mut z = transcript.challenge_fp2();
     while z.pow(n as u64) == shift_n || z.pow(t as u64) == Fp2::ONE {
@@ -67,6 +72,21 @@ pub fn stark_prove_ext_blown<A: AirExt>(
     grind_bits: u32,
     extra_blowup_bits: u32,
 ) -> StarkProofExt {
+    stark_prove_ext_blown_bound(air, trace, n_queries, grind_bits, extra_blowup_bits, &[])
+}
+
+/// The same prover bound to `context`, which is absorbed into the transcript before
+/// anything else, so the proof only verifies under the same context. This is the
+/// money-grade attestation prover: the extension challenges and the raised FRI rate
+/// give 128-bit soundness with the proof pinned to the capsule identity.
+pub fn stark_prove_ext_blown_bound<A: AirExt>(
+    air: &A,
+    trace: &[Fp],
+    n_queries: usize,
+    grind_bits: u32,
+    extra_blowup_bits: u32,
+    context: &[u8],
+) -> StarkProofExt {
     let log_t = air.log_trace_len();
     let t = 1usize << log_t;
     let width = air.trace_width();
@@ -79,22 +99,23 @@ pub fn stark_prove_ext_blown<A: AirExt>(
     let omega = root_of_unity(log_n);
     let shift = Fp::from_u64(SHIFT);
 
-    // Trace columns are extended onto the coset and committed in the base field.
+    // Trace columns are extended onto the coset, then committed row-wise as one
+    // wide-leaf tree: leaf i hashes every column at row i, so a query authenticates
+    // the whole row with a single path and the transcript absorbs one root.
     let mut transcript = Transcript::new(b"NONOS-STARK-EXT");
+    if !context.is_empty() {
+        transcript.absorb_digest(&crate::crypto::hash::keccak256(context));
+    }
     let mut trace_d: Vec<Vec<Fp>> = Vec::with_capacity(width);
     let mut trace_coeffs: Vec<Vec<Fp>> = Vec::with_capacity(width);
-    let mut trace_trees: Vec<MerkleTree> = Vec::with_capacity(width);
-    let mut trace_roots: Vec<[u8; 32]> = Vec::with_capacity(width);
     for c in 0..width {
         let column: Vec<Fp> = (0..t).map(|i| trace[i * width + c]).collect();
-        let column_d = lde(&column, g, shift, omega, n);
-        let tree = MerkleTree::commit(&column_d);
-        transcript.absorb_digest(&tree.root());
-        trace_roots.push(tree.root());
         trace_coeffs.push(intt(&column, g));
-        trace_trees.push(tree);
-        trace_d.push(column_d);
+        trace_d.push(lde(&column, g, shift, omega, n));
     }
+    let trace_tree = MerkleTree::commit_wide(&trace_d);
+    let trace_root = trace_tree.root();
+    transcript.absorb_digest(&trace_root);
 
     // Composition batching coefficients, drawn from the extension for soundness.
     let coeffs: Vec<Fp2> = (0..num_coeffs(air)).map(|_| transcript.challenge_fp2()).collect();
@@ -166,7 +187,8 @@ pub fn stark_prove_ext_blown<A: AirExt>(
             for (c, column) in trace_d.iter().enumerate() {
                 let claimed = ood_frame[k * width + c];
                 acc = acc
-                    + deep_coeffs[k * width + c] * ((Fp2::from_base(column[j]) - claimed) * inv_x_zk);
+                    + deep_coeffs[k * width + c]
+                        * ((Fp2::from_base(column[j]) - claimed) * inv_x_zk);
             }
         }
         let e = deep_coeffs[width * window_size];
@@ -185,16 +207,15 @@ pub fn stark_prove_ext_blown<A: AirExt>(
     for _ in 0..n_queries {
         let p = transcript.challenge_index(n);
         let trace_vals: Vec<Fp> = trace_d.iter().map(|col| col[p]).collect();
-        let trace_paths: Vec<Vec<[u8; 32]>> = trace_trees.iter().map(|tree| tree.open(p)).collect();
         queries.push(StarkQueryExt {
             deep: deep_d[p],
             deep_path: deep_tree.open(p),
             trace: trace_vals,
-            trace_paths,
+            trace_path: trace_tree.open(p),
             comp: comp_d[p],
             comp_path: comp_tree.open(p),
         });
     }
 
-    StarkProofExt { trace_roots, comp_root: comp_tree.root(), ood_frame, fri, queries }
+    StarkProofExt { trace_root, comp_root: comp_tree.root(), ood_frame, fri, queries }
 }
