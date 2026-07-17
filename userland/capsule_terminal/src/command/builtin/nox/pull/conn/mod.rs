@@ -18,5 +18,7 @@ mod connect;
 mod frame;
 mod io_recv;
 mod io_send;
+mod transport;
 
 pub use connect::{connect, Conn, Rx};
+pub use transport::Transport;
