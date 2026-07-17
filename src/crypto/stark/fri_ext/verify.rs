@@ -20,12 +20,12 @@
 //! Merkle path. It only reads the proof and never panics.
 
 use super::super::field::Fp;
+use super::super::field::Fp2;
 use super::super::fri::root_of_unity;
 use super::super::merkle::verify_path_ext;
 use super::super::transcript::Transcript;
 use super::types::FriProofExt;
 use alloc::vec::Vec;
-use super::super::field::Fp2;
 
 /// Verify a money-grade FRI proof. Returns `true` only if every structural,
 /// grinding, Merkle, folding, and low-degree check passes for all queries.
