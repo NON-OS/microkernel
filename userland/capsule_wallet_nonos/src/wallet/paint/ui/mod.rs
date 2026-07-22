@@ -21,6 +21,7 @@
 mod badge;
 mod button;
 mod card;
+mod shade;
 
 pub use badge::{badge, chip};
 pub use button::{outline, primary};
