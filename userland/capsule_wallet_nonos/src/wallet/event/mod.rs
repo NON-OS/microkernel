@@ -29,6 +29,7 @@ mod on_pointer_view;
 mod probe_tick;
 mod recipient;
 mod send_input;
+mod send_now;
 mod sign_both;
 mod sign_eth;
 mod sign_nox;
