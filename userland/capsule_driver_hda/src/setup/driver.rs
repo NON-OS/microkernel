@@ -27,4 +27,9 @@ pub struct Driver {
     pub corb: DmaMapOut,
     pub rirb: DmaMapOut,
     pub path: OutputPath,
+    pub bdl: DmaMapOut,
+    pub sample: DmaMapOut,
+    pub stream_off: u32,
+    pub stream_tag: u8,
+    pub stream_gi: u16,
 }
