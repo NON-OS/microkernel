@@ -20,7 +20,9 @@
 extern crate alloc;
 
 mod mark;
+mod selftest;
 mod server;
+mod sink;
 
 use nonos_libc::{heap_init, mk_exit};
 

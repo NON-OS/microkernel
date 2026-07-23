@@ -19,12 +19,17 @@ use alloc::vec;
 use nonos_libc::mk_ipc_recv;
 
 use crate::mark::mark;
+use crate::selftest;
+use crate::sink::Sink;
 
 const RX_LEN: usize = 4096;
 const RECV_TIMEOUT_MS: u64 = 1000;
 
 pub fn run() -> ! {
     mark("[AUDIO] up\n");
+    if let Some(sink) = Sink::resolve() {
+        selftest::run(&sink);
+    }
     let mut rx = vec![0u8; RX_LEN];
     loop {
         let _ = mk_ipc_recv(0, rx.as_mut_ptr(), RX_LEN, RECV_TIMEOUT_MS);
