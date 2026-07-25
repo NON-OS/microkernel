@@ -17,6 +17,7 @@
 #![no_std]
 #![no_main]
 mod app;
+mod audio_client;
 mod decode;
 mod loader;
 mod mark;
