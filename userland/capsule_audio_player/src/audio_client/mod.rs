@@ -16,5 +16,4 @@
 
 mod call;
 mod proto;
-mod sink;
 pub use call::{AudioClient, FeedResult};
