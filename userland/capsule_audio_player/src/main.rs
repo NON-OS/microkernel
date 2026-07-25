@@ -20,6 +20,7 @@ mod app;
 mod decode;
 mod loader;
 mod mark;
+mod resample;
 use app::PlayerApp;
 use nonos_app_skeleton::run;
 #[no_mangle]
