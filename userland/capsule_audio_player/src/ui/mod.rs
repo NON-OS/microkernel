@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod control;
+pub mod control;
 mod draw;
 pub mod event;
 mod format;
 mod geometry;
+pub mod sprite;
 mod view;
 
-pub use geometry::{layout, Layout, Rect};
-pub use view::paint_player;
+pub use geometry::{layout, list_row_at, Layout};
+pub use view::{paint_library, paint_player};

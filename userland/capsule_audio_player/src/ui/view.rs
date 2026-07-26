@@ -16,24 +16,22 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::library::{Library, Queue};
 use crate::model::PlayerView;
 use crate::waveform::Waveform;
 
-use super::draw::{paint_bar, paint_buttons, paint_waveform, ACCENT, BG, MUTED, TEXT};
-use super::format::{state_label, time_readout};
+use super::draw::{paint_header, paint_list, paint_panel, paint_transport, BG};
 use super::geometry::Layout;
 
 pub fn paint_player(fb: &mut PaintBuffer, v: &PlayerView, wf: &Waveform, l: &Layout) {
     fb.clear(BG);
-    fb.text_scaled(24, 20, v.title.as_bytes(), TEXT, 2);
-    fb.text(24, 56, v.artist.as_bytes(), MUTED);
-    fb.text(24, 72, v.format.as_bytes(), MUTED);
-    let mut buf = [0u8; 16];
-    let n = time_readout(&mut buf, v.pos_ms, v.dur_ms);
-    fb.text(288, 24, &buf[..n], TEXT);
-    fb.text(288, 44, state_label(v.state), ACCENT);
-    paint_waveform(fb, v, wf, &l.waveform);
-    paint_bar(fb, &l.progress, v.pos_ms, v.dur_ms);
-    paint_bar(fb, &l.volume, v.volume_q15.max(0) as u32, 0x8000);
-    paint_buttons(fb, v, l);
+    paint_header(fb, l, false);
+    paint_panel(fb, v, wf, l);
+    paint_transport(fb, v, l);
+}
+
+pub fn paint_library(fb: &mut PaintBuffer, lib: &Library, q: &Queue, current: Option<usize>, l: &Layout) {
+    fb.clear(BG);
+    paint_header(fb, l, true);
+    paint_list(fb, lib, q, current, &l.list);
 }
