@@ -19,6 +19,7 @@
 mod app;
 mod audio_client;
 mod decode;
+mod library;
 mod loader;
 mod mark;
 mod model;
