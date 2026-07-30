@@ -22,6 +22,7 @@
 
 pub mod bounds;
 pub mod buddy;
+pub mod context;
 pub mod mmio;
 pub mod nonce;
 pub mod phys;
