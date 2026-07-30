@@ -17,7 +17,11 @@
 mod mark;
 mod mark_named;
 mod mark_once;
+pub mod measure;
+#[cfg(feature = "nonos-bench-micro")]
+pub mod suite;
 
 pub use mark::mark;
 pub use mark_named::mark_named;
 pub use mark_once::mark_once;
+pub use measure::{measure, report, Sample};
