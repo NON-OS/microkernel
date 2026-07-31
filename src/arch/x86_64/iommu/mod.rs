@@ -26,4 +26,6 @@ pub mod device;
 pub mod domain;
 pub mod globals;
 pub mod mapping;
+pub mod regs;
+pub mod tables;
 pub mod types;
