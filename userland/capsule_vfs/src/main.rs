@@ -19,6 +19,7 @@
 
 extern crate alloc;
 
+mod blk;
 mod protocol;
 mod server;
 mod store;
