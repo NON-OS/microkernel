@@ -19,10 +19,13 @@
 mod compare;
 mod encode;
 mod entry;
+mod mode;
 mod is_sorted;
+mod name;
 mod parse;
 mod sort;
 
 pub use encode::encode;
-pub use entry::{Mode, TreeEntry};
+pub use entry::TreeEntry;
+pub use mode::Mode;
 pub use parse::{parse, TreeError};
