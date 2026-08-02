@@ -17,6 +17,7 @@
 
 mod dirs;
 mod files;
+mod join;
 mod vfs_storage;
 
 pub use vfs_storage::VfsStorage;
