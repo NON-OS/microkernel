@@ -20,6 +20,7 @@
 extern crate alloc;
 
 mod command;
+mod git;
 mod event;
 mod jobs;
 mod paint;
