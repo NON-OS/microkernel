@@ -18,14 +18,9 @@ use alloc::vec::Vec;
 
 use super::types::Node;
 
-/// Where a directory came from, which is what decides how it earns trust.
-///
-/// A fetched directory is bytes off the network and has to prove itself with
-/// a signature from an authority the operator installed. A built-in one is a
-/// table compiled into the kernel image, which the bootloader has already
-/// measured, dual signed, and checked against its STARK enrollment before the
-/// jump. Demanding a second signature over it would add no guarantee, only a
-/// key that can be stolen.
+/// Where a directory came from, which decides how it earns trust. Fetched
+/// bytes need a signature; a table compiled into the image is already covered
+/// by the image's own signatures and STARK enrollment.
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Provenance {
     /// Compiled into the attested image.
