@@ -16,6 +16,7 @@
 
 //! Carrying SOCKS streams over the mixnet.
 
+mod bind;
 mod exit;
 mod send;
 mod session;
