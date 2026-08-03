@@ -16,8 +16,8 @@
 //! The ref advertisement a fetch begins with.
 
 mod parse;
-mod remote_ref;
 mod ref_line;
+mod remote_ref;
 
 pub use parse::parse_advertisement;
 pub use remote_ref::RemoteRef;
