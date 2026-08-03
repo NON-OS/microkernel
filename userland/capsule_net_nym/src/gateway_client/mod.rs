@@ -17,6 +17,7 @@
 mod autoconnect;
 mod bandwidth;
 mod binary;
+mod establish;
 mod handshake;
 mod ops;
 mod register;
