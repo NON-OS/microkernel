@@ -21,5 +21,6 @@ mod feed;
 mod open;
 mod run;
 mod state;
+mod trace;
 
 pub use run::run;
