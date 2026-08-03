@@ -27,8 +27,10 @@ mod error;
 mod request;
 mod response;
 mod stream;
+mod url;
 
 pub use error::HttpError;
 pub use request::{Request, RequestBuilder};
 pub use response::{parse_response, Response};
 pub use stream::{fetch, Stream};
+pub use url::{parse_url, Url};
