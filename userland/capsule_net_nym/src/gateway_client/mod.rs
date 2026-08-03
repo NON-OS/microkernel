@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod autoconnect;
+mod bandwidth;
 mod binary;
 mod handshake;
 mod ops;
+mod register;
 mod ws;
 
 pub use ops::{close, connect, recv, send};
@@ -26,3 +28,4 @@ pub use binary::{
     KIND_FORWARD_SPHINX_V2, KIND_PUSHED_MIX_MESSAGE,
 };
 pub use autoconnect::autoconnect;
+pub use bandwidth::claim_free_bandwidth;
