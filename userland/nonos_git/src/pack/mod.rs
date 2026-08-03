@@ -19,6 +19,7 @@
 //! Most objects arrive as deltas against another object in the same pack, so
 //! reading one means resolving those chains before anything can be stored.
 
+mod checksum;
 mod delta;
 mod entry;
 mod error;
