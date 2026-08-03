@@ -21,4 +21,4 @@ mod send;
 mod types;
 
 pub use recv::recv_binary;
-pub use send::{send_binary, send_close};
+pub use send::{send_binary, send_close, send_text};
