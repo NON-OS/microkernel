@@ -22,6 +22,7 @@ mod dispatch;
 mod init;
 mod log;
 mod push;
+mod remote;
 mod repo;
 mod status;
 
