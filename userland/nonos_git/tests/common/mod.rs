@@ -23,12 +23,16 @@
 
 mod build;
 mod git_cmd;
+mod local_git;
 mod receive;
+mod replay;
 mod scratch;
 mod storage;
 
 pub use build::{build_repo, signature};
 pub use git_cmd::{git, git_available};
+pub use local_git::LocalGit;
 pub use receive::receive_pack;
+pub use replay::Replay;
 pub use scratch::Scratch;
 pub use storage::DirStorage;
