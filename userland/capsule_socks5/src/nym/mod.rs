@@ -27,12 +27,7 @@ mod session;
 pub use address::parse_address;
 pub use bootstrap::{bootstrap_exit, BOOTSTRAP_EXITS};
 pub use exit::{exit, set_exit, Exit};
-pub use send::{connect_request, SendError};
+pub use send::{connect_request, send_through_mixnet, SendError};
 pub use session::{open_session, session};
 
-/// Serve SOCKS clients. Not yet wired to an IPC listener.
-pub fn serve() -> ! {
-    loop {
-        core::hint::spin_loop();
-    }
-}
+
