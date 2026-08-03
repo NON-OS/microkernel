@@ -21,9 +21,9 @@
 //! git agrees with.
 
 mod encode;
-mod mode_word;
 pub(crate) mod entry;
 pub(crate) mod error;
+mod mode_word;
 mod read;
 mod stage;
 

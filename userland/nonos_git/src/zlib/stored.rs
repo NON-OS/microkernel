@@ -23,10 +23,7 @@ use alloc::vec::Vec;
 use super::bit_reader::BitReader;
 use super::error::InflateError;
 
-pub(super) fn inflate_stored(
-    r: &mut BitReader<'_>,
-    out: &mut Vec<u8>,
-) -> Result<(), InflateError> {
+pub(super) fn inflate_stored(r: &mut BitReader<'_>, out: &mut Vec<u8>) -> Result<(), InflateError> {
     r.align();
     if r.byte + 4 > r.data.len() {
         return Err(InflateError::Truncated);
