@@ -26,7 +26,6 @@ mod route_home;
 pub mod seal;
 
 pub use address::routing_address;
-pub use encode::encode_sphinx;
 pub use encode_message::{encode_message, Addressed};
 pub use mix_packet::frame_mix_packet;
 pub use route::sphinx_route;
