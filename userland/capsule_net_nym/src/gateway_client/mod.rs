@@ -21,6 +21,7 @@ mod candidate;
 mod establish;
 mod handshake;
 mod ops;
+mod pick;
 mod register;
 pub mod trace;
 mod ws;
