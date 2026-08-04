@@ -27,9 +27,11 @@ mod fetch_palette;
 mod fetch_uptime;
 mod footer;
 mod header;
+mod line_chars;
 mod line_text;
 mod metrics;
 mod shade;
+mod syntax;
 pub mod tabstrip;
 
 pub use compose::paint_tabs;
