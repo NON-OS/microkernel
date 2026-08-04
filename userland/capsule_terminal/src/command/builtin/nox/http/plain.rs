@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_http::{fetch, RequestBuilder, Response};
-use nonos_socket::TcpStream;
+use crate::mixnet::Wire;
 
 use super::io::SocketIo;
 use super::url::Url;
@@ -26,7 +26,7 @@ const AGENT: &str = "nonos-terminal";
 /// Cleartext HTTP. Reached only when the caller wrote `http://`, so nothing
 /// arrives here without having asked for it.
 pub fn get(url: &Url) -> Result<Response, &'static str> {
-    let stream = TcpStream::connect(&url.host, url.port).map_err(|_| "connect failed")?;
+    let stream = Wire::connect(&url.host, url.port).map_err(|_| "connect failed")?;
     let mut io = SocketIo::new(stream);
     let request = RequestBuilder::get(&url.host, &url.path).user_agent(AGENT).build();
     fetch(&mut io, &request, MAX_BODY).map_err(|_| "no response")
