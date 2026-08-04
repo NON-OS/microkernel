@@ -27,6 +27,7 @@ mod fetch_palette;
 mod fetch_uptime;
 mod footer;
 mod header;
+mod line_text;
 mod metrics;
 mod shade;
 pub mod tabstrip;
