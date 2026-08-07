@@ -35,6 +35,7 @@ mod history;
 mod http;
 mod id;
 mod ifconfig;
+mod keep;
 mod kill;
 mod uptime;
 pub mod install;
