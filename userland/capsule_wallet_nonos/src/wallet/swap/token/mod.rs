@@ -21,4 +21,4 @@ mod list;
 mod lookup;
 
 pub use kind::Token;
-pub use lookup::token;
+pub use lookup::{count, token};
