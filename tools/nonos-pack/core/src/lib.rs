@@ -17,7 +17,9 @@
 #![no_std]
 
 mod parse;
+mod trailer;
 mod types;
 
 pub use parse::parse;
+pub use trailer::check_trailer;
 pub use types::{PkgErr, Sections, MAGIC};
