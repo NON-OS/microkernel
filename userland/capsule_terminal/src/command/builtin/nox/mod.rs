@@ -46,6 +46,7 @@ mod mv;
 mod nslookup;
 mod pathname;
 mod ping;
+mod pkg;
 mod pull;
 mod push;
 mod read;
