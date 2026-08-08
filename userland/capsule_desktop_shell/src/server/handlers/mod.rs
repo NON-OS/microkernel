@@ -22,6 +22,8 @@ pub mod launcher_request;
 pub mod launchpad;
 pub mod notify;
 pub mod open_with;
+pub mod pkg_consent;
+pub mod pkg_install;
 pub mod spotlight_open;
 pub mod take_open_arg;
 pub mod tray_register;
