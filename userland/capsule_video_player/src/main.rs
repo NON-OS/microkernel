@@ -19,22 +19,12 @@
 
 extern crate alloc;
 
+mod app;
 mod player;
 
-use nonos_libc::{heap_init_sized, mk_exit};
-use zune_jpeg::JpegDecoder;
-
-const PROBE_HEAP_BYTES: usize = 1 << 20;
+use nonos_app_skeleton::run;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
-    if heap_init_sized(PROBE_HEAP_BYTES).is_err() {
-        mk_exit(1);
-    }
-    let mut decoder = JpegDecoder::new(&[] as &[u8]);
-    let status = match decoder.decode_headers() {
-        Ok(()) => 0,
-        Err(_) => 2,
-    };
-    mk_exit(status)
+    run(app::VideoApp::new)
 }
