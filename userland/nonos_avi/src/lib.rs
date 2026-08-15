@@ -19,7 +19,11 @@
 mod bytes;
 mod chunk;
 mod error;
+mod header;
+mod stream;
 
 pub use bytes::{fourcc_at, u16_at, u32_at};
 pub use chunk::{chunks, Chunk, ChunkIter};
 pub use error::AviError;
+pub use header::{parse_avih, AviHeader};
+pub use stream::{is_video_strh, parse_strf_video, parse_strh_rate, VideoInfo};
