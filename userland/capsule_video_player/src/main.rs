@@ -19,6 +19,8 @@
 
 extern crate alloc;
 
+mod player;
+
 use nonos_libc::{heap_init_sized, mk_exit};
 use zune_jpeg::JpegDecoder;
 
