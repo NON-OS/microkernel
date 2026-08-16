@@ -23,6 +23,7 @@ mod app;
 mod player;
 #[cfg(feature = "nonos-video-player-smoketest")]
 mod selftest;
+mod ui;
 
 #[cfg(feature = "nonos-video-player-smoketest")]
 #[no_mangle]
