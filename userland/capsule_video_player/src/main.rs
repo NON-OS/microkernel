@@ -20,6 +20,7 @@
 extern crate alloc;
 
 mod app;
+mod event;
 mod player;
 #[cfg(feature = "nonos-video-player-smoketest")]
 mod selftest;
