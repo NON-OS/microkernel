@@ -17,9 +17,9 @@
 //! The real NØNOS logo and wordmark on the left. Clicking here opens the app
 //! launcher; see brand_hit.
 
-use super::metrics::{logo_size, logo_x, wordmark_x, WORDMARK};
+use super::metrics::{logo_size, logo_x, wordmark_x, WORDMARK, WORDMARK_TEXT};
 use crate::render::icons::draw_logo;
-use crate::render::text_aa::text_aa_bytes;
+use crate::render::text_aa::text_aa_bold;
 use crate::render::ui_font::{top_y_centered, TITLE_PX};
 use crate::state::Context;
 
@@ -28,5 +28,5 @@ pub(super) fn brand(ctx: &Context) {
     let logo_y = bar_h.saturating_sub(logo_size()) / 2;
     draw_logo(ctx, logo_x(), logo_y, logo_size());
     let text_y = top_y_centered(0, bar_h, TITLE_PX);
-    text_aa_bytes(ctx, wordmark_x(), text_y, b"NONOS", WORDMARK, TITLE_PX);
+    text_aa_bold(ctx, wordmark_x(), text_y, WORDMARK_TEXT, WORDMARK, TITLE_PX);
 }
