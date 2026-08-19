@@ -25,6 +25,7 @@ mod icons;
 pub mod launchpad;
 pub mod layout;
 pub mod measure_aa;
+pub mod menubar_menu;
 pub mod palette;
 pub mod panel;
 pub mod pkg_consent;
