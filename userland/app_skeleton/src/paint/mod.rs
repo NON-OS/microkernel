@@ -18,11 +18,15 @@
 mod blend;
 mod blit;
 mod buffer;
+mod circle;
 mod clear;
 mod fill_rect;
 mod glyph_advance;
 pub mod mixer;
+mod panel;
 pub mod radius;
+mod round_fill;
+mod round_stroke;
 mod text;
 mod text_scaled;
 mod text_ttf;
