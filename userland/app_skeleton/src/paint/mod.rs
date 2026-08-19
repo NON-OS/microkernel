@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
+mod blend;
 mod blit;
 mod buffer;
 mod clear;
 mod fill_rect;
 mod glyph_advance;
+pub mod mixer;
 mod text;
 mod text_scaled;
 mod text_ttf;
