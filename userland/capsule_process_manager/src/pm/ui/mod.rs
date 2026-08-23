@@ -31,6 +31,7 @@ pub mod nav_geom;
 pub mod paint;
 pub mod risk_strip;
 pub mod screens;
+pub mod search;
 pub mod sidebar;
 pub mod spark;
 pub mod status_bar;
