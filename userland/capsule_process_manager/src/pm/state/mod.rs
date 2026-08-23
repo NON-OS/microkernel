@@ -23,6 +23,7 @@ mod refresh;
 mod samples;
 mod screen;
 mod secnav;
+mod select;
 mod types;
 
 pub use filter::{Filter, FILTERS};
