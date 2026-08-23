@@ -25,6 +25,7 @@ mod screen;
 mod search;
 mod secnav;
 mod select;
+mod sort;
 mod types;
 
 pub use filter::{Filter, FILTERS};
@@ -32,4 +33,5 @@ pub use history::History;
 pub use samples::{Ring, SAMPLES};
 pub use screen::{Screen, SCREENS};
 pub use search::Query;
-pub use types::{Row, Sort, State, FIRST_ROW_Y, ROW_H, SIGKILL, SIGTERM};
+pub use sort::Sort;
+pub use types::{Row, State, FIRST_ROW_Y, ROW_H, SIGKILL, SIGTERM};
