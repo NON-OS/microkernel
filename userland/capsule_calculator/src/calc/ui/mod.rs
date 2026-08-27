@@ -18,6 +18,7 @@ pub mod bits_geom;
 pub mod convert_geom;
 pub mod convert_hit;
 pub mod history_geom;
+pub mod icon_table;
 pub mod keypad_geom;
 pub mod keypad_hit;
 pub mod metrics;
