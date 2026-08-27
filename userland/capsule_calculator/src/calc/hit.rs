@@ -15,10 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::mode::Mode;
+use super::ui::convert_hit::ConvertHit;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Hit {
     Rail(Mode),
     Key(usize, usize),
     Bit(u8),
+    Convert(ConvertHit),
+    Row(usize),
 }
