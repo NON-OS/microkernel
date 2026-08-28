@@ -14,5 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod style;
+pub mod block;
+pub mod document;
+pub mod kind;
 pub mod measure;
+pub mod style;
