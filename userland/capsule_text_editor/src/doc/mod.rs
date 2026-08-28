@@ -15,12 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod block;
+pub mod counts;
 pub mod document;
 pub mod edit;
 pub mod kind;
 pub mod linebox;
 pub mod linebreak;
 pub mod measure;
+pub mod page;
+pub mod paginate;
 pub mod restyle;
 pub mod style;
 #[cfg(target_os = "none")]
