@@ -20,6 +20,7 @@ pub enum BlockKind {
     Heading(u8),
     Bullet,
     Numbered,
+    PageBreak,
 }
 
 impl BlockKind {
