@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod align;
 pub mod block;
 pub mod counts;
 pub mod document;
@@ -28,6 +29,7 @@ pub mod page;
 pub mod paginate;
 pub mod restyle;
 pub mod style;
+pub mod table;
 pub mod text_bridge;
 #[cfg(target_os = "none")]
 pub mod ttf_measure;
