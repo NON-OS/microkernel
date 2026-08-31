@@ -16,10 +16,13 @@
 
 mod brand;
 mod create;
+mod doc_click;
+mod docs;
 mod event;
 mod footer;
 mod metrics;
 mod metrics_pane;
+mod mru;
 mod paint;
 mod palette;
 mod pane;
