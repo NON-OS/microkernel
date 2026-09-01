@@ -36,6 +36,7 @@ mod shade;
 mod suggestion;
 mod syntax;
 pub mod tabstrip;
+pub mod tokens;
 
 pub use compose::paint_tabs;
 pub use tabstrip::draw_tabstrip;
