@@ -23,6 +23,7 @@ pub mod grid;
 pub mod history;
 pub mod line;
 pub mod manifest;
+pub mod prefs;
 pub mod prompt;
 pub mod rtc;
 pub mod scrollback;
