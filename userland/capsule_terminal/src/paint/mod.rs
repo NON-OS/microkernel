@@ -22,7 +22,7 @@ mod draw_cursor;
 mod draw_grid;
 mod draw_input_line;
 mod fetch;
-mod fetch_banner;
+pub(crate) mod fetch_banner;
 mod fetch_palette;
 mod fetch_uptime;
 mod fit_text;
