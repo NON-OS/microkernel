@@ -22,6 +22,9 @@ mod app_impl_on_event;
 mod app_impl_on_tick;
 mod app_impl_paint;
 mod new;
+mod palette_act;
+mod palette_key;
+mod palette_pick;
 mod rail_click;
 #[cfg(feature = "nonos-autorun-selftest")]
 pub mod selftest;
