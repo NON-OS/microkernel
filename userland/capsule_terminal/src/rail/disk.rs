@@ -16,10 +16,11 @@
 
 use super::value::Metric;
 
-/// NONOS mounts no filesystem to measure: there is no statfs syscall and the
-/// capsule store is a raw signed region of the block device, not a volume with
-/// a capacity. Every figure here is a standing gap, kept so the panel can say
-/// so rather than the rail quietly omitting a row.
+/// The VFS reports the bytes its store currently holds, so `used_kb` is a real
+/// measurement. It has no byte ceiling to report against: the store is bounded
+/// by a 2048-slot file table, and the 16 MiB budget in the block layer covers
+/// only the persisted extents rather than the namespace this figure sums. A
+/// total is therefore a standing gap the panel says out loud.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Disk {
     pub total_kb: Metric<u64>,
@@ -27,6 +28,5 @@ pub struct Disk {
 }
 
 impl Disk {
-    pub const UNSUPPORTED: Disk =
-        Disk { total_kb: Metric::Unsupported, used_kb: Metric::Unsupported };
+    pub const UNKNOWN: Disk = Disk { total_kb: Metric::Unsupported, used_kb: Metric::Unknown };
 }
