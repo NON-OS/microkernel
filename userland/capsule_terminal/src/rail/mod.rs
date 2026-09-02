@@ -15,9 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod derive;
+pub mod disk;
+pub mod mem;
 pub mod metrics;
+pub mod net;
+pub mod net_decode;
+pub mod net_query;
 pub mod ring;
 pub mod sample;
 pub mod state;
+pub mod value;
 
 pub use state::Rail;
