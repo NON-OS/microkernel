@@ -19,6 +19,7 @@ mod proof_boot;
 mod proof_capsule_list;
 mod proof_invariants;
 mod proof_summary;
+mod proof_verdict;
 mod router;
 
 pub use router::route;

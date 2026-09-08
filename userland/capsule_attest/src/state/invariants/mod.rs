@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod invariants;
-pub mod live;
-mod product;
+//! What this system claims about itself, and how each claim is settled.
 
-pub use invariants::{Probe, INVARIANTS};
-pub use product::{PRODUCT_NAME, PRODUCT_TAGLINE, PRODUCT_VERSION};
+mod probe;
+mod table;
+
+pub use probe::Probe;
+pub use table::INVARIANTS;
