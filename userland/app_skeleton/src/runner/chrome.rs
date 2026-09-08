@@ -14,36 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod boot;
-pub mod chrome;
-mod click_focus;
-mod control;
-mod decorations;
-mod dispatch;
-mod drag;
-mod drain_ipc;
-mod ensure_primed;
-#[cfg(feature = "runtime")]
-mod entry;
-#[cfg(feature = "runtime")]
-mod ephemeral;
-mod fail;
-mod fit_display;
-mod frame_finish;
-mod idle;
-mod maximize;
-mod move_window;
-mod paint_frame;
-mod paint_once;
-mod prime_frame;
-mod refresh_input;
-mod repaint;
-mod request_id;
-mod resize_window;
-mod run_loop;
-mod service_frame;
-mod teardown;
+//! Desktop chrome an application has to work around.
+//!
+//! One definition. The menubar height was written out separately in the drag
+//! code and the maximise code, both as 28, while the shell actually draws 46.
+//! So a window dragged to the top slid eighteen pixels under the bar, and a
+//! maximised one left a strip of desktop showing above it. Three numbers for
+//! one bar is three chances to be wrong about it.
 
-#[cfg(feature = "runtime")]
-pub use entry::run;
-pub use run_loop::run_loop;
+/// Height of the desktop menubar, matching the shell's own `MENUBAR_H_LOGICAL`.
+///
+/// If the shell's bar changes, this changes with it. There is no way to read it
+/// at runtime today, so it is mirrored here and named so the pair can be found.
+pub const MENUBAR_H: u32 = 46;

@@ -18,7 +18,9 @@ use nonos_toolkit::decorations::{hit_test, margin, DecorationHit};
 
 use crate::input::{InputEvent, InputKind};
 
-const MENUBAR_H: i64 = 28;
+/// The shell's bar, from the one definition. As i64 because the drag maths
+/// works in signed coordinates.
+const MENUBAR_H: i64 = super::chrome::MENUBAR_H as i64;
 const EDGE: u32 = 10; // grab band on the right / bottom borders
 const MIN_W: u32 = 300;
 const MIN_H: u32 = 200;
