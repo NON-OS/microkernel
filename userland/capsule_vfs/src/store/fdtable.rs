@@ -30,6 +30,7 @@ mod query;
 mod read;
 mod rename;
 mod rmdir;
+mod search;
 mod seed;
 mod seek;
 mod time;
