@@ -16,6 +16,15 @@
 
 use super::types::Store;
 
+// A path is under `prefix` only if `prefix` is a full path segment of it, not
+// merely a string prefix: `/docs` must not match a sibling like `/docs2/x`.
+fn in_subtree(name: &str, prefix: &str) -> bool {
+    if !name.starts_with(prefix) || name.len() == prefix.len() {
+        return false;
+    }
+    prefix == "/" || name.as_bytes()[prefix.len()] == b'/'
+}
+
 impl Store {
     // Recursive occupancy under `prefix`: file count, directory count, and the
     // summed size of the files. Stops after `max_nodes` entries and reports
@@ -26,7 +35,7 @@ impl Store {
         let mut bytes = 0u64;
         let mut seen = 0usize;
         for f in self.files.iter() {
-            if !f.name.starts_with(prefix) || f.name.len() == prefix.len() {
+            if !in_subtree(&f.name, prefix) {
                 continue;
             }
             if seen >= max_nodes {
