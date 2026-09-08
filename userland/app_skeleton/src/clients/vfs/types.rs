@@ -38,6 +38,8 @@ pub const OP_STORE_STATUS: u16 = 19;
 pub const OP_STORE_INSTALL: u16 = 20;
 pub const OP_STORE_UNINSTALL: u16 = 21;
 pub const OP_DIRSTAT: u16 = 22;
+pub const OP_JOURNAL_TOUCH: u16 = 23;
+pub const OP_JOURNAL_LIST: u16 = 24;
 // Marks the last OP_STORE_INSTALL chunk; hand-synced with capsule_vfs.
 pub const STORE_INSTALL_FINAL: u8 = 1 << 0;
 pub const O_CREATE: u32 = 1 << 0;
