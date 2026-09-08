@@ -19,6 +19,7 @@ mod builtin;
 mod by_identity;
 mod clock;
 mod directory;
+mod draw;
 mod fetched;
 mod layout;
 mod node;

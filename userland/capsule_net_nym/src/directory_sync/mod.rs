@@ -20,6 +20,7 @@ mod budget_roles;
 mod exit;
 mod http;
 mod https;
+mod keep;
 mod live;
 mod plain;
 mod resolve;
