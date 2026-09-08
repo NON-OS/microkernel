@@ -17,6 +17,7 @@
 mod call;
 mod chmod;
 mod copy;
+mod dirstat;
 mod errmsg;
 mod list_paths;
 mod mkdir;
@@ -41,6 +42,7 @@ mod write_file;
 
 pub use chmod::chmod;
 pub use copy::copy;
+pub use dirstat::dirstat;
 pub use list_paths::list_paths;
 pub use mkdir::mkdir;
 pub use persist::persist;
