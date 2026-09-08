@@ -17,31 +17,43 @@
 //! Whether the store has changed since the last time anyone looked.
 //!
 //! The desktop icons and the package list both need to notice a new file, and
-//! both used to find out by listing a directory on every clock tick and
-//! comparing the result. That is a tree walk, a serialisation and an IPC copy
-//! once a second for the life of the session, to learn nothing almost every
-//! time.
+//! both used to find out by listing a directory on every clock tick. That is a
+//! tree walk, a serialisation and an IPC copy once a second for the life of the
+//! session, to learn nothing almost every time.
 //!
-//! One counter read answers for both. It is deliberately shared rather than one
-//! per caller: they run in the same pass, so a second read would return the
-//! same number and cost another round trip to learn it.
+//! One counter read answers for both. It is shared rather than one per caller:
+//! they run in the same pass, so a second read would return the same number and
+//! cost another round trip to learn it.
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
+use super::backoff::Backoff;
+
 /// Last generation acted on. Starts at a value the store cannot report, so the
-/// first pass always lists: a desktop that waits for a change before drawing
+/// first pass always lists: a desktop that waited for a change before drawing
 /// anything would come up empty.
 const NEVER: u64 = u64::MAX;
 static SEEN: AtomicU64 = AtomicU64::new(NEVER);
 
-/// True when the store may have changed, or when vfs_pool will not say.
+/// vfs_pool is unreachable while it stages packages, and every attempt through
+/// that window costs a full timeout inside the shell's loop.
+static GAP: Backoff = Backoff::new(250, 4000);
+
+/// True when the store may have changed and it is worth paying for a listing.
 ///
-/// A missing answer counts as changed. vfs_pool is unreachable during package
-/// staging, and a shell that treated silence as "nothing new" would hold a
-/// stale desktop for as long as the service stayed quiet.
+/// A service that will not answer reports false, not true. Reporting true was
+/// the bug: it sent the caller on to two directory listings that were about to
+/// time out for the same reason the counter read just had, so one dead call per
+/// tick became three. The desktop holds what it has and asks again later, which
+/// is the same thing it would have shown anyway.
 pub fn since_last_look() -> bool {
+    if !GAP.due() {
+        return false;
+    }
     let Some(now) = crate::vfs_client::generation() else {
-        return true;
+        GAP.missed();
+        return false;
     };
+    GAP.answered();
     SEEN.swap(now, Ordering::Relaxed) != now
 }

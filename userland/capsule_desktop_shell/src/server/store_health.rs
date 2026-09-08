@@ -23,21 +23,24 @@ use core::sync::atomic::{AtomicBool, Ordering};
 
 use nonos_libc::mk_time_millis;
 
-use super::store_probe_gap;
+use super::backoff::Backoff;
 use crate::render::sync_toast_layer;
 use crate::state::{Context, NotifyLevel};
 
 static ANSWERED: AtomicBool = AtomicBool::new(false);
 
+/// Same window, same reason: vfs_pool cannot answer while it stages packages.
+static GAP: Backoff = Backoff::new(250, 4000);
+
 pub fn check(ctx: &mut Context) {
     if ANSWERED.load(Ordering::Relaxed) {
         return;
     }
-    if !store_probe_gap::due() {
+    if !GAP.due() {
         return;
     }
     let Some(code) = crate::vfs_client::store_status() else {
-        store_probe_gap::missed();
+        GAP.missed();
         return;
     };
     ANSWERED.store(true, Ordering::Relaxed);

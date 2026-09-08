@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod backoff;
 pub mod desktop;
 mod dispatch;
 pub mod handlers;
@@ -30,7 +31,6 @@ mod retry_wm_subscription;
 pub mod runner;
 mod store_changed;
 mod store_health;
-mod store_probe_gap;
 mod wm_notify;
 mod wm_notify_app_index;
 mod wm_notify_label;
