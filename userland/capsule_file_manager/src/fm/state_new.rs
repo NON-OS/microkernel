@@ -41,6 +41,8 @@ impl State {
             row_h: super::layout::ROW_H,
             view: ViewKind::Grid,
             grid_cols: 5,
+            tags: super::tags::TagMap::default(),
+            tag_filter: String::new(),
         }
     }
 }

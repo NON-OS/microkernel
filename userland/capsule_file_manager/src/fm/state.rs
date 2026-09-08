@@ -81,4 +81,6 @@ pub struct State {
     // click maps to the same cell that was drawn.
     pub view: ViewKind,
     pub grid_cols: u32,
+    pub tags: super::tags::TagMap,
+    pub tag_filter: String,
 }
