@@ -21,6 +21,7 @@ use alloc::vec::Vec;
 const COMMANDS: &[&[u8]] = &[
     b"help",
     b"about",
+    b"bench",
     b"version",
     b"whoami",
     b"caps",
