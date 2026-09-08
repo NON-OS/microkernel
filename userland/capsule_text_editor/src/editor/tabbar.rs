@@ -57,7 +57,12 @@ pub(super) fn paint_tabs(
     for (i, d) in docs.iter().enumerate() {
         let name = basename(d);
         let nw = fb.measure_ttf(name, CHROME_PX).max(0) as u32;
-        let modified = !d.undo.is_empty();
+        // Not "has ever been edited", which is what an undo stack answers and
+        // what this used to ask: that dot appeared on the first keystroke and
+        // stayed through every save, because saving does not empty the undo
+        // history. The flag is cleared by a write that landed, so the dot and
+        // the close confirmation now agree about what unsaved means.
+        let modified = d.dirty;
         let tw = nw + 46;
         let bg = if i == active { th.tab_active_bg } else { th.tab_inactive_bg };
         fb.fill_rect(x, TITLEBAR_H, tw, TABBAR_H, bg);

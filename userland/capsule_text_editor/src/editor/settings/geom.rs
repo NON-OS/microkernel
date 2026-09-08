@@ -29,15 +29,12 @@ pub(super) const HEAD_PX: f32 = 19.0;
 pub(super) const NAV_PX: f32 = 17.0;
 pub(super) const ROW_PX: f32 = 17.0;
 
-pub(super) const NAV_LABELS: [&str; 7] = [
-    "General",
-    "Editing",
-    "Auto Save",
-    "Language",
-    "Spelling & Grammar",
-    "Collaboration",
-    "Advanced",
-];
+// Five entries were removed: Auto Save, Language, Spelling & Grammar,
+// Collaboration and Advanced. None of them had a subsystem behind them. Their
+// switches flipped a bit nothing read, and their dropdowns had nothing to
+// open, so the panel described an editor that does not exist. They come back
+// one at a time, each with the feature it configures.
+pub(super) const NAV_LABELS: [&str; 2] = ["General", "Editing"];
 
 pub(super) fn title_top() -> u32 {
     22

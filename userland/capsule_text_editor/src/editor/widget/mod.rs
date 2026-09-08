@@ -20,7 +20,6 @@
 mod docrow;
 mod docrow_hit;
 mod dropdown;
-mod dropdown_hit;
 mod navlist;
 mod navlist_hit;
 mod searchbox;
@@ -31,7 +30,6 @@ mod truncate;
 pub(in crate::editor) use docrow::{paint_docrow, DocRowStyle};
 pub(in crate::editor) use docrow_hit::docrow_hit;
 pub(in crate::editor) use dropdown::{dropdown_w, paint_dropdown, DropdownStyle};
-pub(in crate::editor) use dropdown_hit::dropdown_hit;
 pub(in crate::editor) use navlist::{nav_row_h, paint_navlist, NavStyle};
 pub(in crate::editor) use navlist_hit::navlist_hit;
 pub(in crate::editor) use searchbox::{paint_searchbox, searchbox_hit, SearchStyle};

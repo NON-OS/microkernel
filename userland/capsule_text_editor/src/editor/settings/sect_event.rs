@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Press routing for the six table-driven sections. Only `Ctl::Toggle` rows are
-//! hit tested, because the dropdowns are drawn dimmed and have nothing to open;
-//! rects come from `control_box` with the latched width, as the painter does.
+//! Press routing for the table-driven sections. Rects come from
+//! `control_box` with the latched width, exactly as the painter uses.
 
 use nonos_app_skeleton::EventOutcome;
 
@@ -32,11 +31,10 @@ pub(super) fn section_press(nav: usize, sec: &Section, mx: i32, my: i32) -> Even
         return EventOutcome::Idle;
     }
     for (row, spec) in sec.rows.iter().enumerate() {
-        if let Ctl::Toggle(bit) = spec.1 {
-            if toggle_hit(control_box(w, row, TOGGLE_W, TOGGLE_H), mx, my) {
-                flip_sect(nav, bit);
-                return EventOutcome::Repaint;
-            }
+        let Ctl::Toggle(bit) = spec.1;
+        if toggle_hit(control_box(w, row, TOGGLE_W, TOGGLE_H), mx, my) {
+            flip_sect(nav, bit);
+            return EventOutcome::Repaint;
         }
     }
     EventOutcome::Idle

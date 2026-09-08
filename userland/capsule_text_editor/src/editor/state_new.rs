@@ -42,6 +42,7 @@ impl State {
             prompt_path: [0u8; 256],
             prompt_len: 0,
             shell_port: 0,
+            dirty: false,
             undo: alloc::vec::Vec::new(),
             redo: alloc::vec::Vec::new(),
             find_active: false,

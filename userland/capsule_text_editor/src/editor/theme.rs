@@ -61,7 +61,7 @@ pub struct Theme {
 pub const THEMES: [Theme; 4] = [
     // NONOS Docs.
     Theme {
-        background: 0xFF060C15,
+        background: 0xFF0B1319,
         foreground: 0xFFE4ECF5,
         title: 0xFFE4ECF5,
         muted: 0xFF9BB0C7,
@@ -80,8 +80,8 @@ pub const THEMES: [Theme; 4] = [
         gutter_fg: 0xFF456079,
         gutter_cur: 0xFFE4ECF5,
         line: 0xFF1C2F47,
-        accent: 0xFF17BED9,
-        caret: 0xFF17BED9,
+        accent: 0xFF35C4E2,
+        caret: 0xFF35C4E2,
         current_line: 0xFF0B1524,
         selection: 0xFF0C4C5D,
         syn_keyword: 0xFFC678DD,
