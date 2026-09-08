@@ -22,11 +22,11 @@ use nonos_app_skeleton::sidecar;
 
 // A path carries at most this many tags, the whole map at most this many
 // paths, so a sidecar blob stays inside one vfs write.
-pub(crate) const TAG_MAX_PER_PATH: usize = 8;
-pub(crate) const TAG_MAX_ASSIGNMENTS: usize = 4096;
+pub(in crate::fm) const TAG_MAX_PER_PATH: usize = 8;
+pub(in crate::fm) const TAG_MAX_ASSIGNMENTS: usize = 4096;
 const TAG_NAME_MAX: usize = 24;
 
-pub(crate) fn valid_tag(name: &str) -> bool {
+pub(in crate::fm) fn valid_tag(name: &str) -> bool {
     !name.is_empty()
         && name.len() <= TAG_NAME_MAX
         && name.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
@@ -34,7 +34,7 @@ pub(crate) fn valid_tag(name: &str) -> bool {
 
 #[derive(Default)]
 pub struct TagMap {
-    pub(crate) entries: Vec<(String, Vec<String>)>,
+    pub(in crate::fm) entries: Vec<(String, Vec<String>)>,
 }
 
 impl TagMap {
