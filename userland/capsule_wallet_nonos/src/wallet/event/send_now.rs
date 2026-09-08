@@ -18,9 +18,9 @@ use nonos_app_skeleton::EventOutcome;
 
 use crate::wallet::ipc::sign_nox_transfer;
 use crate::wallet::state::State;
+use crate::wallet::units::send_decimals;
 
 // One thousandth of an 18-decimal token, so a milli-unit amount becomes wei.
-const WEI_PER_MILLI: u128 = 1_000_000_000_000_000;
 
 // One press signs the transfer and, if the signature succeeded, broadcasts it.
 // "Sign & send" builds and signs the EIP-1559 transfer in the keyring, then
@@ -48,7 +48,7 @@ fn sign_nox(state: &mut State) {
         state.status = b"recipient incomplete";
         return;
     };
-    let amount = state.send_amount_milli_eth as u128 * WEI_PER_MILLI;
+    let amount = state.send_amount.scaled(send_decimals(state.send_token));
     if amount == 0 {
         state.status = b"amount too small";
         return;

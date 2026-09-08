@@ -41,7 +41,7 @@ fn backspace(state: &mut State) -> Option<EventOutcome> {
     if state.send_focus == SEND_FIELD_TO && state.send_to_len > 0 {
         state.send_to_len -= 1;
     } else if state.send_focus == SEND_FIELD_AMOUNT {
-        state.send_amount_milli_eth /= 10;
+        state.send_amount.backspace();
     } else if state.send_focus == SEND_FIELD_NONCE {
         state.send_nonce /= 10;
     }

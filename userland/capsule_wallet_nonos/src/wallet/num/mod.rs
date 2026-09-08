@@ -18,8 +18,10 @@
 //! leave 128 bits, so the intermediate is carried at 256 and only the result
 //! is narrowed, with a refusal where it will not fit.
 
+mod amount;
 mod div_wide;
 mod mul_div;
 mod mul_wide;
 
+pub use amount::Amount;
 pub use mul_div::mul_div;
