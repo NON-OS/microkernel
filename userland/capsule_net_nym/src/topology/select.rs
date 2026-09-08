@@ -16,6 +16,7 @@
 
 use alloc::vec::Vec;
 
+use super::draw::draw;
 use super::store;
 use super::types::{Node, Role, RouteError};
 
@@ -47,8 +48,7 @@ fn pick(
     if matches.is_empty() {
         return Err(RouteError::MissingHop);
     }
-    let idx = (seed[salt as usize] as usize) % matches.len();
-    Ok(matches[idx])
+    Ok(matches[draw(seed, salt, matches.len())])
 }
 
 fn matching(nodes: &[Node], role: Role, layer: u8) -> Vec<Node> {
