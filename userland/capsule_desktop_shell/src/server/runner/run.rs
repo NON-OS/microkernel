@@ -45,14 +45,17 @@ pub fn run(mut ctx: Context) -> ! {
                 let port = ctx.wm_port;
                 crate::setup::subscribe_wm(&mut ctx, port);
             }
-            // Keep the desktop icons in step with the filesystem: this catches
-            // the first listing once vfs_pool is up and any later change,
-            // without ever wiping a good desktop on a transient empty reply.
-            if crate::server::desktop::refresh(&mut ctx) {
-                crate::server::repaint::repaint(&mut ctx);
+            // Keep the desktop icons in step with the filesystem, but only
+            // when the store says something moved. Both listings below walk a
+            // directory and copy it across an IPC boundary, and they used to do
+            // that every second whether or not there was anything to find.
+            if crate::server::store_changed::since_last_look() {
+                if crate::server::desktop::refresh(&mut ctx) {
+                    crate::server::repaint::repaint(&mut ctx);
+                }
+                crate::server::packages::refresh(&mut ctx);
             }
             crate::server::installed_apps::load_once(&mut ctx);
-            crate::server::packages::refresh(&mut ctx);
             crate::server::store_health::check(&mut ctx);
             ctx.toasts.expire(now);
             if !ctx.toasts.is_empty() || ctx.toast_layer_live {

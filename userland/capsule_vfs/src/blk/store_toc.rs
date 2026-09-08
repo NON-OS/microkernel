@@ -73,8 +73,5 @@ fn decode_name(field: &[u8]) -> Result<String, BlkError> {
 // The NUL and length bounds are implied for a name `decode_name` just carved
 // out of a fixed NUL-padded field, and are what the writer actually needs.
 pub(super) fn valid_name(name: &str) -> bool {
-    !name.is_empty()
-        && name.is_ascii()
-        && name.len() <= NAME_LEN
-        && !name.as_bytes().contains(&0)
+    !name.is_empty() && name.is_ascii() && name.len() <= NAME_LEN && !name.as_bytes().contains(&0)
 }
