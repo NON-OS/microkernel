@@ -29,6 +29,7 @@ mod retry_input_subscription;
 mod retry_wm_subscription;
 pub mod runner;
 mod store_health;
+mod store_probe_gap;
 mod wm_notify;
 mod wm_notify_app_index;
 mod wm_notify_label;
