@@ -18,7 +18,7 @@
 //!
 //! Every entry in the rail used to draw the same twelve-pixel square, six of
 //! them down the side of the window, differing only in colour when selected. A
-//! row of identical squares is not iconography; it is a placeholder that shipped,
+//! row of identical squares is not iconography; it is a stand-in that shipped,
 //! and it is the first thing that makes a window look unfinished.
 //!
 //! Drawn from rectangles, like the quick-action icons and for the same reason:

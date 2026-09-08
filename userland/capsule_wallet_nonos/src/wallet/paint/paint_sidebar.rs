@@ -35,8 +35,8 @@ pub const NAV_STEP: u32 = 46;
 pub fn paint_sidebar(state: &State, fb: &mut PaintBuffer) {
     // The real mark, not a coloured square. `logo` rasterises the brand SVG
     // and has been available in this module the whole time; the sidebar drew a
-    // 20 by 20 accent rectangle in its place, which is what a placeholder
-    // looks like when nobody comes back to it.
+    // 20 by 20 accent rectangle in its place, which is what a stand-in looks
+    // like when nobody comes back to it.
     super::logo::logo(fb, 16, 44, 26);
     let _ = fb.text_ttf(48, 48, "NONOS", FG(), scale::TITLE);
     let items = [
