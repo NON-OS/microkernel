@@ -14,6 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn eth_value_wei(milli_eth: u32) -> Option<u64> {
-    (milli_eth as u64).checked_mul(1_000_000_000_000_000)
+//! How many decimal places each asset the send screen moves is counted in.
+//!
+//! Both are eighteen today, which is exactly why they are written down
+//! separately: a single shared constant would read as a fact about tokens rather
+//! than a coincidence between two of them, and the first asset that counts to six
+//! would be scaled by a factor of a trillion by whoever reused it.
+
+use crate::wallet::nox::NOX_DECIMALS;
+
+pub const ETH_DECIMALS: u32 = 18;
+
+/// The precision for whichever asset the send screen is set to move.
+/// `send_token` is 0 for ETH and 1 for NOX.
+pub fn send_decimals(send_token: u8) -> u32 {
+    if send_token == 1 {
+        NOX_DECIMALS
+    } else {
+        ETH_DECIMALS
+    }
 }

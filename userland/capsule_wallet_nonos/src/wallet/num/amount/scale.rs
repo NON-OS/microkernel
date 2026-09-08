@@ -14,44 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod backup;
-mod broadcast;
-mod broadcast_arm;
-mod edit_amount;
-mod edit_nonce;
-mod export_key;
-mod field_input;
-mod generate;
-mod hex_digit;
-mod home_empty_click;
-mod import;
-mod on_event;
-mod on_key;
-mod on_pointer;
-mod on_pointer_view;
-mod probe_tick;
-mod recipient;
-mod recover;
-mod send_input;
-mod send_now;
-mod shortcuts;
-mod sign_both;
-mod sign_eth;
-mod sign_nox;
-mod sign_result;
-mod stake_amount;
-mod stake_flow;
-mod stake_guard;
-mod stake_input;
-mod stake_set;
-mod stake_sign;
-mod stake_wei;
-mod swap_amount;
-mod swap_input;
-mod swap_pair;
-pub(crate) mod swap_quote;
-mod tx_freshen;
-mod unstake_flow;
+//! The figure as the chain counts it.
 
-pub use on_event::on_event;
-pub use probe_tick::probe_tick;
+use super::Amount;
+
+impl Amount {
+    /// The typed digits shifted up by whatever precision the fraction did not
+    /// already use.
+    ///
+    /// Saturating, never wrapping. An amount past `u128` is not one this wallet
+    /// can sign, and wrapping it would turn a refusal into a different, payable
+    /// figure.
+    pub fn scaled(&self, decimals: u32) -> u128 {
+        let places = self.places.min(decimals);
+        let mut v = self.value;
+        let mut shift = decimals - places;
+        while shift > 0 {
+            v = v.saturating_mul(10);
+            shift -= 1;
+        }
+        v
+    }
+}

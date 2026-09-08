@@ -14,44 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod backup;
-mod broadcast;
-mod broadcast_arm;
-mod edit_amount;
-mod edit_nonce;
-mod export_key;
-mod field_input;
-mod generate;
-mod hex_digit;
-mod home_empty_click;
-mod import;
-mod on_event;
-mod on_key;
-mod on_pointer;
-mod on_pointer_view;
-mod probe_tick;
-mod recipient;
-mod recover;
-mod send_input;
-mod send_now;
-mod shortcuts;
-mod sign_both;
-mod sign_eth;
-mod sign_nox;
-mod sign_result;
-mod stake_amount;
-mod stake_flow;
-mod stake_guard;
-mod stake_input;
-mod stake_set;
-mod stake_sign;
-mod stake_wei;
-mod swap_amount;
-mod swap_input;
-mod swap_pair;
-pub(crate) mod swap_quote;
-mod tx_freshen;
-mod unstake_flow;
+//! Setting the figure from something other than the keypad.
 
-pub use on_event::on_event;
-pub use probe_tick::probe_tick;
+use super::Amount;
+
+impl Amount {
+    pub fn clear(&mut self) {
+        *self = Amount::new();
+    }
+
+    /// Replace the figure with one that did not come from the keypad, such as a
+    /// drag on a bar or a max shortcut.
+    pub fn set_scaled(&mut self, scaled: u128, decimals: u32) {
+        self.value = scaled;
+        self.places = decimals;
+        self.typed = 0;
+        self.point = decimals > 0;
+    }
+}

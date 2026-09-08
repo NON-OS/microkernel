@@ -43,6 +43,14 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
     }
     // The field on the current view gets first refusal, and declines anything
     // it cannot use so the shortcuts below still work.
+    // Escape cancels an armed send before anything else looks at the key. A
+    // reader reaching for the cancel of an irreversible action should not have
+    // to know which field currently owns the keyboard.
+    if code == nonos_app_skeleton::KEY_ESC && state.broadcast_armed {
+        super::broadcast_arm::disarm(state);
+        state.status = b"send cancelled";
+        return EventOutcome::Repaint;
+    }
     if let Some(out) = super::field_input::field_input(state, code) {
         return out;
     }
