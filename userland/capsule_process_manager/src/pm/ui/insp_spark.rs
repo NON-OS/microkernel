@@ -28,28 +28,47 @@ use super::{spark, text};
 // "collecting" and the plot stays empty until two points can be joined.
 pub fn paint(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, ring: Option<&Ring>) -> u32 {
     let live = ring.map(|r| r.len() >= 2).unwrap_or(false);
-    let mut y = head(fb, x, y, w, b"CPU", live);
-    plot(fb, x, y, w, ring.filter(|_| live), true);
+    // A process that genuinely uses nothing plots flat along the baseline and
+    // is indistinguishable from a panel that failed to draw. That is the state
+    // most processes on an idle machine are in, so it is worth its own word:
+    // the caption says so and the flat line is drawn where a reader can see
+    // it, rather than hidden under the axis.
+    let flat_cpu = live && ring.map(|r| (0..r.len()).all(|i| r.cpu_at(i) == 0)).unwrap_or(false);
+    let flat_mem = live && ring.map(|r| (0..r.len()).all(|i| r.mem_at(i) == 0)).unwrap_or(false);
+
+    let mut y = head(fb, x, y, w, b"CPU", live, flat_cpu);
+    plot(fb, x, y, w, ring.filter(|_| live), true, flat_cpu);
     y += SPARK_H + INSP_SECTION_GAP;
-    y = head(fb, x, y, w, b"Memory", live);
-    plot(fb, x, y, w, ring.filter(|_| live), false);
+    y = head(fb, x, y, w, b"Memory", live, flat_mem);
+    plot(fb, x, y, w, ring.filter(|_| live), false, flat_mem);
     y + SPARK_H + INSP_SECTION_GAP
 }
 
-fn head(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, label: &[u8], live: bool) -> u32 {
+fn head(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, label: &[u8], live: bool, flat: bool) -> u32 {
     text::left(fb, x, y, label, MUTED, BODY_PX);
-    let tail: &[u8] = if live { b"last 32s" } else { b"collecting" };
+    let tail: &[u8] = match (live, flat) {
+        (false, _) => b"collecting",
+        (true, true) => b"idle, last 32s",
+        (true, false) => b"last 32s",
+    };
     text::right(fb, x + w, y, tail, MUTED, BODY_PX);
     y + line_height(BODY_PX).max(1) as u32 + CARD_LINE_GAP
 }
 
 // The baseline is drawn either way, so an empty panel still reads as a plot
 // waiting for data rather than as a gap in the pane.
-fn plot(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, ring: Option<&Ring>, cpu: bool) {
+fn plot(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, ring: Option<&Ring>, cpu: bool, flat: bool) {
     fb.fill_rect(x, y + SPARK_H.saturating_sub(1), w, 1, TRACK_BG);
     let Some(ring) = ring else {
         return;
     };
+    if flat {
+        // Drawn one pixel clear of the axis and in the series colour, so a
+        // reader sees a measured zero rather than an axis with nothing on it.
+        let c = if cpu { ACCENT } else { OK };
+        fb.fill_rect(x, y + SPARK_H.saturating_sub(2), w, 1, c);
+        return;
+    }
     if cpu {
         spark::cpu(fb, x, y, w, SPARK_H, ring, ACCENT);
     } else {
