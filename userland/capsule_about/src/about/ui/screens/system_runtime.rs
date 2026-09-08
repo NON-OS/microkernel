@@ -49,11 +49,8 @@ fn live(fb: &mut PaintBuffer, x: u32, top: i32, w: u32, r: &Runtime) {
     let mut count = [0u8; 20];
     let mut mem = [0u8; 64];
     let mut load = [0u8; 48];
-    let values: [&[u8]; 3] = [
-        u64_decimal(r.capsules as u64, &mut count),
-        memory(r, &mut mem),
-        loads(r, &mut load),
-    ];
+    let values: [&[u8]; 3] =
+        [u64_decimal(r.capsules as u64, &mut count), memory(r, &mut mem), loads(r, &mut load)];
     for (i, value) in values.into_iter().enumerate() {
         let row_y = top + (i as u32 * ROW_H) as i32;
         kv(fb, x + CARD_PAD, row_y, card::inner(w), LABELS[i], value, true);

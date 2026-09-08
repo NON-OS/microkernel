@@ -35,12 +35,12 @@ pub fn u64_decimal(mut value: u64, dst: &mut [u8; 20]) -> &[u8] {
     &dst[..out_len]
 }
 
-
 // `VERSION` is the repository file verbatim, so it carries the newline the file
 // ends with. Every surface that prints it wants the token, not the line.
 pub fn trimmed(bytes: &[u8]) -> &[u8] {
     let mut end = bytes.len();
-    while end > 0 && (bytes[end - 1] == b'\n' || bytes[end - 1] == b'\r' || bytes[end - 1] == b' ') {
+    while end > 0 && (bytes[end - 1] == b'\n' || bytes[end - 1] == b'\r' || bytes[end - 1] == b' ')
+    {
         end -= 1;
     }
     &bytes[..end]

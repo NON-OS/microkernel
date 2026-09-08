@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod append;
 mod chain;
 mod prose;
 mod prose_wrap;
@@ -38,12 +39,27 @@ mod trust_caps;
 mod trust_caps_list;
 mod trust_chain;
 mod trust_hops;
+mod verify_boot;
+mod verify_boot_body;
+mod verify_census;
+mod verify_doc;
+mod verify_doc_body;
+mod verify_doc_cover;
+mod verify_doc_rows;
+mod verify_evidence;
+mod verify_glyph;
+mod verify_items;
+mod verify_live;
+mod verify_mark;
+mod verify_open;
+mod verify_row;
 
 pub mod display;
 pub mod licenses;
 pub mod overview;
 pub mod system;
 pub mod trust;
+pub mod verify;
 
 mod extent;
 pub use extent::content_h;

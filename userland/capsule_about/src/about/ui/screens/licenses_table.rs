@@ -30,8 +30,7 @@ pub const HEAD_ROLE: &[u8] = b"ROLE";
 const HEAD_LICENSE: &[u8] = b"LICENCE";
 const HEAD_RULE_GAP: u32 = 6;
 
-pub const HEIGHT: u32 =
-    card::OVERHEAD + ROW_H + HEAD_RULE_GAP + ROW_H * COMPONENTS.len() as u32;
+pub const HEIGHT: u32 = card::OVERHEAD + ROW_H + HEAD_RULE_GAP + ROW_H * COMPONENTS.len() as u32;
 
 pub fn paint(fb: &mut PaintBuffer, y: i32, w: u32) {
     let top = titled(fb, 0, y, w, HEIGHT, b"Third-party components");
