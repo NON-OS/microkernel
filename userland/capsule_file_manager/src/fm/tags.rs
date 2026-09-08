@@ -38,18 +38,6 @@ pub struct TagMap {
 }
 
 impl TagMap {
-    pub fn from_blob(buf: &[u8]) -> TagMap {
-        let mut map = TagMap::default();
-        for (path, joined) in sidecar::decode(buf) {
-            let tags: Vec<String> =
-                joined.split(',').filter(|t| !t.is_empty()).map(String::from).collect();
-            if !tags.is_empty() {
-                map.entries.push((path, tags));
-            }
-        }
-        map
-    }
-
     pub fn to_blob(&self) -> Vec<u8> {
         let records: Vec<(String, String)> =
             self.entries.iter().map(|(p, t)| (p.clone(), t.join(","))).collect();
