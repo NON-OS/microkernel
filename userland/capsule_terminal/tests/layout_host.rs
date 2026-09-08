@@ -184,12 +184,7 @@ fn the_rail_drops_on_a_narrow_window() {
 fn the_body_never_starves() {
     for w in [320u32, 520, 640, 700, 900, 1024, 1440, 2560] {
         let l = lay(w, 900, BOTH_RAILS);
-        assert!(
-            l.body.w >= MIN_BODY_W.min(w),
-            "body starved at {}: got {}",
-            w,
-            l.body.w
-        );
+        assert!(l.body.w >= MIN_BODY_W.min(w), "body starved at {}: got {}", w, l.body.w);
     }
 }
 
@@ -242,13 +237,7 @@ fn the_thresholds_match_the_spec() {
 fn row_top_advances_by_the_measured_line_height() {
     for lh in [13u32, 15, 17, 20, 23, 27] {
         for i in 0u32..15 {
-            assert_eq!(
-                rows::row_top(i, 50, lh),
-                50 + i * lh,
-                "row {} at line height {}",
-                i,
-                lh
-            );
+            assert_eq!(rows::row_top(i, 50, lh), 50 + i * lh, "row {} at line height {}", i, lh);
         }
     }
 }

@@ -176,13 +176,7 @@ fn light_is_light_and_the_rest_are_dark() {
         luma(LIGHT.bg)
     );
     for (name, t) in [("DARK", DARK), ("DIM", DIM), ("ABYSS", ABYSS)] {
-        assert!(
-            luma(t.bg) < 60,
-            "{}.bg {:#010X} luma {}, want < 60",
-            name,
-            t.bg,
-            luma(t.bg)
-        );
+        assert!(luma(t.bg) < 60, "{}.bg {:#010X} luma {}, want < 60", name, t.bg, luma(t.bg));
     }
 }
 
@@ -192,9 +186,5 @@ fn light_is_light_and_the_rest_are_dark() {
 /// the old accent values back — they are intentionally gone.
 #[test]
 fn darks_background_is_unchanged_from_the_pre_refactor_constant() {
-    assert_eq!(
-        DARK.bg, 0xFF07_090B,
-        "DARK.bg is {:#010X}, want 0xFF07090B",
-        DARK.bg
-    );
+    assert_eq!(DARK.bg, 0xFF07_090B, "DARK.bg is {:#010X}, want 0xFF07090B", DARK.bg);
 }

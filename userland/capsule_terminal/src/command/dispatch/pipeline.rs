@@ -20,7 +20,8 @@ use super::exec::exec;
 use super::filter::apply;
 use crate::term::state::State;
 
-const FILTERS: [&[u8]; 8] = [b"grep", b"sort", b"uniq", b"cut", b"nl", b"wc", b"head", b"tail"];
+const FILTERS: [&[u8]; 10] =
+    [b"grep", b"sort", b"uniq", b"cut", b"nl", b"wc", b"head", b"tail", b"tac", b"rev"];
 
 // Run a `a | b | c` pipeline: split the args on `|`, then fold each stage
 // in order over an accumulating buffer. A stage whose command name is a

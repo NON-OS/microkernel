@@ -102,6 +102,30 @@ jobs:
       - name: Mixnet proxy clippy
         run: cargo clippy --release -- -D warnings
         working-directory: userland/capsule_socks5_proofs
+      - name: Mixnet route selection proofs
+        run: cargo test --release
+        working-directory: userland/nym_topology_proofs
+      - name: Mixnet route selection clippy
+        run: cargo clippy --release -- -D warnings
+        working-directory: userland/nym_topology_proofs
+      - name: Terminal line editor proofs
+        run: cargo test --release
+        working-directory: userland/terminal_line_proofs
+      - name: Terminal line editor clippy
+        run: cargo clippy --release -- -D warnings
+        working-directory: userland/terminal_line_proofs
+      - name: Attestation document parser proofs
+        run: cargo test --release
+        working-directory: userland/attest_doc_proofs
+      - name: Benchmark summary proofs
+        run: cargo test --release
+        working-directory: userland/bench_core_proofs
+      - name: Benchmark summary clippy
+        run: cargo clippy --release -- -D warnings
+        working-directory: userland/bench_core_proofs
+      - name: Attestation document parser clippy
+        run: cargo clippy --release -- -D warnings
+        working-directory: userland/attest_doc_proofs
 
   crypto-proofs:
     runs-on: ubuntu-latest
