@@ -39,14 +39,7 @@ fn row(fb: &mut PaintBuffer, x: i32, y: i32, label: &str, value: &str, t: &Theme
     let _ = fb.text_ttf_mono(x + 96, y, value, t.fg, INFO_PX);
 }
 
-pub fn draw_fetch(
-    state: &State,
-    fb: &mut PaintBuffer,
-    x: u32,
-    body_y: u32,
-    right: u32,
-    t: &Theme,
-) {
+pub fn draw_fetch(state: &State, fb: &mut PaintBuffer, x: u32, body_y: u32, right: u32, t: &Theme) {
     let ix = x as i32;
     let edge = right as i32;
     let after = draw_banner(fb, ix, body_y as i32 + BANNER_PAD, edge, t);

@@ -21,10 +21,10 @@
 
 use alloc::vec::Vec;
 
+use super::abspath;
 use super::ls_emit::emit;
 use super::ls_flags::{parse, LsFlags};
 use super::ls_list::{children, visible};
-use super::abspath;
 use crate::command::output::Output;
 use crate::term::state::State;
 

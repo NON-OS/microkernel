@@ -14,13 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod codec;
-pub mod gate;
-pub mod paths;
-pub mod projects;
-mod rail_flags;
-pub mod store;
-pub mod types;
+//! The bits inside `Prefs::rails`.
+//!
+//! Two bits, both stored in one byte of the preferences record, so they are
+//! named here rather than written as literals at the places that read them.
 
-pub use rail_flags::RAIL_VISIBLE;
-pub use types::Prefs;
+/// Bit 0, inverted: the telemetry monitor is running.
+///
+/// Stored inverted because the default record is all zeroes and the monitor
+/// should be on for anyone who has asked for the rail at all.
+pub const RAIL_MONITOR_OFF: u8 = 0b01;
+
+/// Bit 1: the left rail is on screen.
+///
+/// Off by default. Ctrl-B brings it in, the same key that shows and hides the
+/// file tree in the editor, so one gesture uncovers the side panel anywhere in
+/// the system.
+pub const RAIL_VISIBLE: u8 = 0b10;

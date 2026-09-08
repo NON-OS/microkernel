@@ -23,7 +23,6 @@ use super::tokens::TOOLBAR_ACTIVE;
 use super::toolbar::{draw_toolbar, TOOLBAR_W};
 use crate::term::state::State;
 
-
 /// Width of the accessory left to the tabs and the new-tab chip once the
 /// feature buttons have taken their right-aligned share.
 pub fn tabs_avail(acc_w: u32) -> u32 {

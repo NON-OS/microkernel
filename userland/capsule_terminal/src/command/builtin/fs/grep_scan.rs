@@ -18,9 +18,9 @@
 
 use alloc::vec::Vec;
 
+use super::grep_match::{contains, prefix, push_num};
 use super::read_file::slurp;
 use crate::command::output::Output;
-use super::grep_match::{contains, prefix, push_num};
 use crate::term::state::State;
 
 pub(super) struct Opts {
@@ -34,7 +34,7 @@ pub(super) struct Opts {
 pub(super) fn scan(state: &mut State, path: &[u8], pat: &[u8], opts: &Opts) {
     let Some(bytes) = slurp(state, path) else { return };
     let mut hits = 0u64;
-    let mut rows: Vec<Vec<u8>> = Vec::new();
+    let mut rows: Vec<(Vec<u8>, usize)> = Vec::new();
     for (i, line) in bytes.split(|&b| b == b'\n').enumerate() {
         if contains(line, pat, opts.fold) == opts.invert {
             continue;
@@ -48,8 +48,11 @@ pub(super) fn scan(state: &mut State, path: &[u8], pat: &[u8], opts: &Opts) {
             push_num(&mut row, i as u64 + 1);
             row.push(b':');
         }
+        // Where the file name and line number end, so the highlight only
+        // considers the line's own text.
+        let body_at = row.len();
         row.extend_from_slice(line);
-        rows.push(row);
+        rows.push((row, body_at));
     }
     let mut out = Output::new(&mut state.scrollback);
     if opts.count {
@@ -58,7 +61,15 @@ pub(super) fn scan(state: &mut State, path: &[u8], pat: &[u8], opts: &Opts) {
         out.writeln(&row);
         return;
     }
-    for row in &rows {
-        out.writeln(row);
+    for (row, body_at) in &rows {
+        // An inverted search selected lines that do *not* contain the pattern,
+        // so there is nothing in them to mark.
+        match (!opts.invert)
+            .then(|| super::grep_paint::highlight(row, *body_at, pat, opts.fold))
+            .flatten()
+        {
+            Some(styled) => out.writeln_styled(row, &styled),
+            None => out.writeln(row),
+        }
     }
 }

@@ -14,13 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod codec;
-pub mod gate;
-pub mod paths;
-pub mod projects;
-mod rail_flags;
-pub mod store;
-pub mod types;
+//! Letting expansion read the history.
+//!
+//! The expander takes a trait rather than the concrete type so it can be
+//! driven from a host test with a handful of lines. This is the one
+//! implementation that matters: the real ring, read back exactly as the
+//! `history` command prints it, so `!2` and the second line anyone sees are
+//! the same entry.
 
-pub use rail_flags::RAIL_VISIBLE;
-pub use types::Prefs;
+use super::expand::Entries;
+use super::types::History;
+
+impl Entries for History {
+    fn count(&self) -> usize {
+        self.count()
+    }
+
+    fn get(&self, index: usize) -> &[u8] {
+        self.get(index)
+    }
+}
