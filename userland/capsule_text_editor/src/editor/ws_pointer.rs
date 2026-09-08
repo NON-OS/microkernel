@@ -74,7 +74,13 @@ impl Editor {
 
         let in_sidebar = self.sidebar_open && x >= ACTIVITY_W as i32 && x < px && y >= tb_bot;
         if press && in_sidebar {
-            let row = sidebar_row_at(y, &self.tree, self.last_h, self.entry.is_some());
+            let row = sidebar_row_at(
+                y,
+                &self.tree,
+                self.last_h,
+                self.entry.is_some(),
+                self.ribbon_shown(),
+            );
             if event.code == BTN_RIGHT {
                 self.menu = Some(open_menu(&self.tree, x.max(0) as u32, y.max(0) as u32, row));
             } else if let Some(vi) = row {

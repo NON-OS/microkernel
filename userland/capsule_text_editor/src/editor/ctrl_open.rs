@@ -36,6 +36,7 @@ pub(super) fn ctrl_open(state: &mut State) -> EventOutcome {
         Ok(bytes) if core::str::from_utf8(&bytes).is_ok() && bytes.len() <= CAPACITY => {
             state.buf[..bytes.len()].copy_from_slice(&bytes);
             state.len = bytes.len();
+            state.dirty = false;
             state.status = b"opened";
             // Open at the top of the file with the caret ready to edit.
             state.caret = 0;

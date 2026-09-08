@@ -21,8 +21,8 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::card::{
-    card_rect, control_box, row_y, DROP_H, DROP_MIN_W, DROP_VALUES, RADIUS, ROWS, ROW_H, ROW_LABELS,
-    ROW_PAD, TOGGLE_H, TOGGLE_W,
+    card_rect, control_box, row_y, DROP_H, DROP_MIN_W, DROP_VALUES, RADIUS, ROWS, ROW_H,
+    ROW_LABELS, ROW_PAD, TOGGLE_H, TOGGLE_W,
 };
 use super::geom::{head_top, lh, pane_x, HEAD_PX, PANE_PAD, ROW_PX};
 use super::state::SettingsState;

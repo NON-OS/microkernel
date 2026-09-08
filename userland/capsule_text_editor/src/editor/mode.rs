@@ -20,13 +20,18 @@ pub enum Mode {
     Document,
 }
 
-pub(super) fn mode_for_path(path: &str) -> Mode {
-    let name = path.rsplit('/').next().unwrap_or(path);
-    match name.rsplit_once('.') {
-        Some((stem, ext)) if !stem.is_empty() => match ext {
-            "md" | "txt" => Mode::Document,
-            _ => Mode::Code,
-        },
-        _ => Mode::Document,
-    }
+/// The view a file opens in.
+///
+/// Code, always. This used to open `.txt`, `.md` and anything without an
+/// extension as a document, which put a word-processor ribbon, a page count
+/// and a word count in front of a reader who had opened a config file, and
+/// took away the line numbers and syntax colouring they were looking for. On a
+/// system whose files are mostly source and configuration, the document view
+/// is the special case, not the default.
+///
+/// Ctrl+M switches, so nothing is lost: a reader who wants pages and a word
+/// count is one keystroke away, and a reader who wants a gutter no longer has
+/// to rename the file to get one.
+pub(super) fn mode_for_path(_path: &str) -> Mode {
+    Mode::Code
 }
