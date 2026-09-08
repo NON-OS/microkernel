@@ -20,6 +20,15 @@ use alloc::string::String;
 
 use super::tags::TagMap;
 
+// A path is under `prefix` only if `prefix` is a full path segment of it, not
+// merely a string prefix: `/docs` must not match a sibling like `/docs2/x`.
+fn in_subtree(path: &str, prefix: &str) -> bool {
+    if !path.starts_with(prefix) || path.len() == prefix.len() {
+        return false;
+    }
+    prefix == "/" || path.as_bytes()[prefix.len()] == b'/'
+}
+
 // Drop tag assignments whose path no longer exists. Scoped to `prefix` because
 // `live` only lists the directory currently loaded, so a global sweep would
 // delete every tag outside the view.
@@ -27,7 +36,7 @@ pub fn reconcile(map: &mut TagMap, prefix: &str, live: &[String]) {
     let stale: alloc::vec::Vec<String> = map
         .tagged_paths()
         .into_iter()
-        .filter(|p| p.starts_with(prefix) && !live.iter().any(|l| l == p))
+        .filter(|p| in_subtree(p, prefix) && !live.iter().any(|l| l == p))
         .map(String::from)
         .collect();
     for path in stale {
