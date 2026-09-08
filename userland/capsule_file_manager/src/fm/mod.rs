@@ -80,6 +80,7 @@ mod sort_next;
 mod state;
 mod state_new;
 mod tags;
+mod tags_load;
 mod tags_mutate;
 mod tags_query;
 mod tags_reconcile;

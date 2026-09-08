@@ -31,9 +31,21 @@ pub struct Favorites {
 
 impl Favorites {
     // Ordinal keys are zero-padded so the sidecar's sort-by-key preserves the
-    // order the user pinned them in rather than sorting the paths.
+    // order the user pinned them in rather than sorting the paths. A
+    // corrupted blob can carry the same path under two ordinals, so dedup
+    // while capping rather than trusting the record count.
     pub fn from_blob(buf: &[u8]) -> Favorites {
-        Favorites { paths: sidecar::decode(buf).into_iter().map(|(_, p)| p).collect() }
+        let mut paths: Vec<String> = Vec::new();
+        for (_, p) in sidecar::decode(buf) {
+            if paths.len() >= FAVORITES_MAX {
+                break;
+            }
+            if paths.iter().any(|q| *q == p) {
+                continue;
+            }
+            paths.push(p);
+        }
+        Favorites { paths }
     }
 
     pub fn to_blob(&self) -> Vec<u8> {
