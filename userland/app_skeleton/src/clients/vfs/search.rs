@@ -27,8 +27,9 @@ pub const SEARCH_NAMES: u32 = 1;
 pub const SEARCH_CONTENT: u32 = 2;
 pub const SEARCH_CASE: u32 = 4;
 
-// Store-wide search. Each hit is (kind, line, path); kind 0 is a name match
-// with line 0, kind 1 is a content match with a 1-based line number.
+// Store-wide search. Each hit is (kind, line, path); kind 0 is a file matched
+// by name and kind 2 a directory matched by name, both with line 0; kind 1 is
+// a content match with a 1-based line number.
 pub fn search(
     owner_pid: u32,
     query: &[u8],

@@ -61,3 +61,22 @@ fn search_skips_binary_content() {
     put(&mut s, "/b.bin", b"\x00\x01needle\x02");
     assert!(s.search("needle", SEARCH_CONTENT, 512).is_empty());
 }
+
+#[test]
+fn search_matches_directory_names_with_their_own_kind() {
+    let mut s = Store::new();
+    s.mkdir("/reports").unwrap();
+    put(&mut s, "/reports/q1.txt", b"x");
+    let hits = s.search("report", SEARCH_NAMES, 512);
+    assert_eq!(
+        hits,
+        alloc::vec![(2, 0, "/reports"), (0, 0, "/reports/q1.txt")]
+    );
+}
+
+#[test]
+fn search_never_reads_content_out_of_a_directory() {
+    let mut s = Store::new();
+    s.mkdir("/needle").unwrap();
+    assert!(s.search("needle", SEARCH_CONTENT, 512).is_empty());
+}
