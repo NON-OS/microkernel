@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod app;
-mod data;
-mod event;
-mod format;
-mod format_hex;
-mod manifest;
-mod section;
-mod state;
-mod theme;
-mod ui;
+//! What a parsed document carries.
 
-pub use app::About;
+pub struct Doc {
+    pub registry_root: [u8; 32],
+    pub capsule_count: u32,
+    /// Clear once any running capsule could not be recorded, which is the
+    /// machine saying it no longer knows everything it is running.
+    pub registry_complete: bool,
+    /// Whether the challenge came back unchanged. This is the anti-replay check
+    /// and the one part of the document this capsule can verify on its own.
+    pub challenge_echoed: bool,
+    pub attest_len: u32,
+    pub signature_len: u32,
+}

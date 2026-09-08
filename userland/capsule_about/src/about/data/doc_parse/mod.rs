@@ -14,15 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod app;
-mod data;
-mod event;
-mod format;
-mod format_hex;
-mod manifest;
-mod section;
-mod state;
-mod theme;
-mod ui;
+//! The attestation document's wire format, and nothing else.
+//!
+//! Split from the syscall that fetches one so it can be driven directly by the
+//! host proofs in `attest_doc_proofs`. A parser that decides whether a signed
+//! statement is well formed is exactly the code that should be tested against
+//! malformed input rather than trusted, and it cannot be if reaching it needs a
+//! trusted platform module.
 
-pub use app::About;
+mod layout;
+mod parse;
+mod types;
+
+pub use layout::DOC_CAP;
+pub use parse::parse;
+pub use types::Doc;

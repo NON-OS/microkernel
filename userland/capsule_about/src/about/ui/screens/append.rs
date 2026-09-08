@@ -14,15 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod app;
-mod data;
-mod event;
-mod format;
-mod format_hex;
-mod manifest;
-mod section;
-mod state;
-mod theme;
-mod ui;
+//! Building one short label out of several pieces.
+//!
+//! Three screens grew the same three-line helper under three names. It is here
+//! once so a fix to the bounds check is a fix everywhere, and because a routine
+//! that silently truncates deserves to be read in one place rather than trusted
+//! in three.
 
-pub use app::About;
+/// Append what fits and report how much landed. The caller advances by the
+/// return, so a piece cut short by a full buffer shortens the label rather than
+/// writing past it.
+pub(super) fn put(dst: &mut [u8], src: &[u8]) -> usize {
+    let n = src.len().min(dst.len());
+    dst[..n].copy_from_slice(&src[..n]);
+    n
+}

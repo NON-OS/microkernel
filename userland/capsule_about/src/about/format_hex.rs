@@ -14,15 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod app;
-mod data;
-mod event;
-mod format;
-mod format_hex;
-mod manifest;
-mod section;
-mod state;
-mod theme;
-mod ui;
+//! Digests as text.
 
-pub use app::About;
+// A digest as lowercase hex. The buffer the caller owns decides how much of it
+// lands: a 32-byte hash is 64 columns, which no card here is wide enough to
+// hold, so a short buffer truncates on a byte boundary and the caller says so
+// rather than this returning a half-written pair.
+pub fn hex_bytes<'a>(src: &[u8], dst: &'a mut [u8]) -> &'a [u8] {
+    let mut n = 0;
+    for byte in src {
+        if n + 2 > dst.len() {
+            break;
+        }
+        dst[n] = nibble(byte >> 4);
+        dst[n + 1] = nibble(byte & 0xf);
+        n += 2;
+    }
+    &dst[..n]
+}
+
+fn nibble(v: u8) -> u8 {
+    if v < 10 {
+        b'0' + v
+    } else {
+        b'a' + v - 10
+    }
+}
