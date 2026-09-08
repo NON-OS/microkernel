@@ -23,6 +23,8 @@ mod delete_entry;
 mod drag_grab;
 mod move_into;
 mod refresh;
+
+pub use refresh::HOME;
 mod release_keys;
 mod rename_key;
 mod same;

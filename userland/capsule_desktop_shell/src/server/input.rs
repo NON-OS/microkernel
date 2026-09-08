@@ -246,8 +246,13 @@ fn open_item(ctx: &mut Context, idx: usize) {
     // By service rather than by position: the table is edited often enough
     // that an index would drift into launching the wrong app.
     let Some(app) = LAUNCHER_APPS.iter().find(|a| a.service == service) else { return };
-    // Desktop items are the root listing, so the path is the name under "/".
-    let mut path = alloc::string::String::from("/");
+    // Desktop items are the home listing, so the path is the name under it.
+    // Built from the one definition the listing uses, or an icon would open a
+    // path that is not the file it was drawn from.
+    let mut path = alloc::string::String::from(
+        core::str::from_utf8(crate::server::desktop::HOME).unwrap_or("/"),
+    );
+    path.push('/');
     path.push_str(&item.name);
     if let Ok(service) = core::str::from_utf8(app.service) {
         ctx.pending_open.insert(alloc::string::String::from(service), path);
