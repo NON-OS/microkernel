@@ -22,11 +22,14 @@ use super::tags::TagMap;
 
 // A path is under `prefix` only if `prefix` is a full path segment of it, not
 // merely a string prefix: `/docs` must not match a sibling like `/docs2/x`.
+// `State::prefix` carries a trailing slash, so the separator is trimmed before
+// the segment check rather than being counted twice.
 fn in_subtree(path: &str, prefix: &str) -> bool {
-    if !path.starts_with(prefix) || path.len() == prefix.len() {
+    let base = prefix.trim_end_matches('/');
+    if !path.starts_with(base) || path.len() == base.len() {
         return false;
     }
-    prefix == "/" || path.as_bytes()[prefix.len()] == b'/'
+    base.is_empty() || path.as_bytes()[base.len()] == b'/'
 }
 
 // Drop tag assignments whose path no longer exists. Scoped to `prefix` because
