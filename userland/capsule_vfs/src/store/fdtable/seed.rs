@@ -30,6 +30,10 @@ impl Store {
         let _ = self.mkdir("/tmp");
         let _ = self.mkdir("/capsules");
         let _ = self.mkdir("/home/nonos/workspace");
+        // The desktop shows the home directory, so a first boot that leaves it
+        // empty shows a bare desktop and nothing to open.
+        let _ = self.mkdir("/home/nonos/documents");
+        self.seed_file("/home/nonos/readme.txt", README);
         self.seed_file("/readme.txt", README);
         self.seed_file("/docs/about.txt", ABOUT);
         self.seed_file("/docs/demo.txt", DEMO);
@@ -70,8 +74,9 @@ impl Store {
 
 #[cfg(feature = "seed-terminal-store")]
 mod store {
-    pub const HELLO_ELF: &[u8] =
-        include_bytes!("../../../../../userland/capsule_hello/target/x86_64-nonos-user/release/hello");
+    pub const HELLO_ELF: &[u8] = include_bytes!(
+        "../../../../../userland/capsule_hello/target/x86_64-nonos-user/release/hello"
+    );
     pub const HELLO_CERT: &[u8] =
         include_bytes!("../../../../../nonos-data/trust/capsules/hello.nonos_id_cert.bin");
     pub const HELLO_MANIFEST: &[u8] =

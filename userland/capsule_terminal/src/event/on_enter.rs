@@ -37,10 +37,36 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
     let mut ctx = [0u8; COLS];
     let cn = context_line(USER, hostname(), state.cwd.as_bytes(), home_var(state), &mut ctx);
     state.scrollback.push_line(&ctx[..cn]);
-    let body = state.line.as_bytes();
+    // A `!` form is resolved before anything else sees the line, so what is
+    // echoed, recorded in history and run are all the same text. Expanding
+    // later would put one command on screen and another through the parser.
     let mut entered = [0u8; COLS];
-    let n = body.len();
-    entered[..n].copy_from_slice(body);
+    let n;
+    match crate::term::history::expand(state.line.as_bytes(), &state.history) {
+        // The expansion is what gets echoed, which is the whole safety of the
+        // feature: the reader sees the command that is about to run, not the
+        // shorthand they typed for it.
+        Some(Ok(line)) => {
+            n = line.len().min(COLS);
+            entered[..n].copy_from_slice(&line[..n]);
+        }
+        Some(Err(_)) => {
+            // Naming an entry that is not there runs nothing. Silently
+            // dropping the `!` would run the rest of the line, which is how
+            // history expansion earns its reputation.
+            state.scrollback.push_line(b"no matching history entry");
+            state.line.clear();
+            state.history.reset_cursor();
+            state.last_status = 1;
+            state.scrollback.jump_bottom();
+            return EventOutcome::Repaint;
+        }
+        None => {
+            let body = state.line.as_bytes();
+            n = body.len();
+            entered[..n].copy_from_slice(body);
+        }
+    }
     let mut echo = [0u8; COLS + 8];
     let mut k = 0;
     k += copy_into(&mut echo[k..], PROMPT_BYTES);

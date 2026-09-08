@@ -38,7 +38,7 @@ pub fn parse<'a>(spec: &Spec, args: &[&'a [u8]]) -> Result<Parsed<'a>, Vec<u8>> 
             continue;
         }
         let body = &arg[1..];
-        if spec.words.iter().any(|w| *w == body) {
+        if spec.words.contains(&body) {
             let Some(&val) = args.get(i) else { return Err(missing(spec, arg)) };
             i += 1;
             out.wvals.push((body, val));

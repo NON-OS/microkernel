@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use core::sync::atomic::AtomicU32;
 
-pub static BG: AtomicU32 = AtomicU32::new(0xFF10_1620);
-pub static SURFACE: AtomicU32 = AtomicU32::new(0xFF1A_2030);
-pub static ACCENT: AtomicU32 = AtomicU32::new(0xFF66_FFFF);
-pub static TEXT: AtomicU32 = AtomicU32::new(0xFFF4_F4F4);
-pub static BORDER: AtomicU32 = AtomicU32::new(0xFF2E_5C5C);
+pub static BG: AtomicU32 = AtomicU32::new(super::super::palette::BACKGROUND);
+pub static SURFACE: AtomicU32 = AtomicU32::new(super::super::palette::SURFACE);
+pub static ACCENT: AtomicU32 = AtomicU32::new(super::super::palette::ACCENT);
+pub static TEXT: AtomicU32 = AtomicU32::new(super::super::palette::TEXT);
+pub static BORDER: AtomicU32 = AtomicU32::new(super::super::palette::BORDER);
 pub static REVISION: AtomicU32 = AtomicU32::new(1);
