@@ -47,7 +47,7 @@ const DESKTOP_SHELL: &str = "desktop_shell";
 /// hardware. Bounding by the monotonic clock (which does not depend on the timer
 /// tick) gives the instance real time to appear while still capping the wait so a
 /// genuinely missing shell can never wedge the init drain.
-const BOOT_DEADLINE_MS: u64 = 1000;
+const BOOT_DEADLINE_MS: u64 = 3000;
 
 pub(super) fn boot(instance_pid: u32) {
     let to = format!("proc.{}", instance_pid);
@@ -58,6 +58,13 @@ pub(super) fn boot(instance_pid: u32) {
         }
         crate::sched::yield_now();
     }
+    // Giving up used to be silent, and a window that never appears is exactly
+    // the failure a reader cannot diagnose: the capsule is spawned, attested and
+    // listed in the process table, and simply never draws. One line names the
+    // instance so the next boot says which app lost its frame rather than
+    // leaving the desktop to look broken for no stated reason.
+    crate::sys::serial::print(b"[SPAWN-INSTANCE] no boot frame delivered to ");
+    crate::sys::serial::println(to.as_bytes());
 }
 
 // Deliver the focus frame once. Returns true only when the shell is registered,
