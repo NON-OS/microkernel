@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod dispatch;
+pub mod generation;
 mod handlers;
 mod runner;
 mod seeder;

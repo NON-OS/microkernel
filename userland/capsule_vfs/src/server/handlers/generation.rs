@@ -14,26 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Wire constants for the vfs_pool protocol.
+//! Answer with the store's generation counter.
 
-pub(super) const VFS_PORT: u32 = 4104;
-pub(super) const MAGIC: u32 = 0x4E4F_5646;
-pub(super) const VERSION: u16 = 1;
-pub(super) const HDR_LEN: usize = 20;
+use alloc::vec::Vec;
 
-pub(super) const OP_OPEN: u16 = 1;
-pub(super) const OP_CLOSE: u16 = 2;
-pub(super) const OP_LIST: u16 = 6;
-pub(super) const OP_MKDIR: u16 = 8;
-pub(super) const OP_UNLINK: u16 = 9;
-pub(super) const OP_RENAME: u16 = 10;
-pub(super) const OP_RMDIR: u16 = 11;
-pub(super) const OP_STORE_STATUS: u16 = 19;
-pub(super) const OP_GENERATION: u16 = 22;
+use crate::protocol::{encode_response, Request, OP_GENERATION};
+use crate::server::generation;
 
-pub(super) const O_CREATE: u32 = 1;
-
-pub(super) const TIMEOUT_MS: u64 = 300;
-
-/// Longest path or name the wire header can carry (one length byte).
-pub(super) const MAX_NAME: usize = 255;
+/// Eight bytes and no walk. This exists so a caller polling for change does not
+/// have to list a directory to find out there was none.
+pub fn generation(req: Request<'_>) -> Vec<u8> {
+    let n = generation::current();
+    encode_response(OP_GENERATION, req.flags, req.request_id, 0, &n.to_le_bytes())
+}

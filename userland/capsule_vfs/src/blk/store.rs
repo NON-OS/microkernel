@@ -41,9 +41,7 @@ pub struct StoreEntry {
 const STORE_BASE_LBA: u64 = 256;
 
 pub fn load() -> Result<Vec<StoreEntry>, BlkError> {
-    let capacity_bytes = capacity()?
-        .checked_mul(SECTOR_SIZE as u64)
-        .ok_or(BlkError::BadLength)?;
+    let capacity_bytes = capacity()?.checked_mul(SECTOR_SIZE as u64).ok_or(BlkError::BadLength)?;
     let mut head = [0u8; SECTOR_SIZE];
     read_blocks(STORE_BASE_LBA, &mut head)?;
     let count = entry_count(&head)?;
