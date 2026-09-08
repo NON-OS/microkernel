@@ -27,6 +27,8 @@ mod chmod;
 mod close;
 #[path = "../../../capsule_vfs/src/store/fdtable/copy.rs"]
 mod copy;
+#[path = "../../../capsule_vfs/src/store/fdtable/dirstat.rs"]
+mod dirstat;
 #[path = "../../../capsule_vfs/src/store/fdtable/lookup.rs"]
 mod lookup;
 #[path = "../../../capsule_vfs/src/store/fdtable/mkdir.rs"]
