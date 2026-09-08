@@ -846,7 +846,7 @@ sha1-legacy = []
 std = []
 
 [dependencies]
-nonos_bench_core = { path = "nonos-bench" }
+nonos_bench_core = { path = "nonos-bench", version = "0.1.0" }
 # Transparent STARK stack, shared with the bootloader for kernel self-attestation.
 nonos-stark = { path = "stark-attest/crates/stark-core", version = "0.2.0" }
 # Synchronization. spin is the kernel-wide lock primitive (no_std,
