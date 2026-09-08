@@ -19,9 +19,7 @@
 pub(super) fn matches(pat: &[u8], name: &[u8]) -> bool {
     match pat.first() {
         None => name.is_empty(),
-        Some(b'*') => {
-            matches(&pat[1..], name) || (!name.is_empty() && matches(pat, &name[1..]))
-        }
+        Some(b'*') => matches(&pat[1..], name) || (!name.is_empty() && matches(pat, &name[1..])),
         Some(b'?') => !name.is_empty() && matches(&pat[1..], &name[1..]),
         Some(&c) => !name.is_empty() && name[0] == c && matches(&pat[1..], &name[1..]),
     }

@@ -33,7 +33,6 @@ use crate::term::prefs::types::Project;
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
 
-
 pub fn paint_tabs(
     tabs: &[State],
     active: usize,
@@ -45,8 +44,9 @@ pub fn paint_tabs(
     monitor: bool,
     scroll: u32,
     pal: &Palette,
+    rail_open: bool,
 ) -> Layout {
-    let l = paint(&tabs[active], fb, t, font_scale);
+    let l = paint(&tabs[active], fb, t, font_scale, rail_open);
     if l.left_rail.w > 0 {
         rail_left::draw(fb, l.left_rail, tabs, active, projects, rail, monitor, scroll, t);
     }
@@ -62,6 +62,7 @@ pub fn paint(
     fb: &mut PaintBuffer,
     t: &Theme,
     font_scale: u32,
+    rail_open: bool,
 ) -> Layout {
     fb.clear(t.bg);
     draw_header(state, fb, t);
@@ -74,7 +75,12 @@ pub fn paint(
         text_left: TEXT_LEFT,
         row_h: m.lh,
     };
-    let l = compute(fb.width, fb.height, &chrome, Rails { left: LEFT_RAIL_W });
+    // The rail is off unless it was asked for. A terminal that opens with a
+    // quarter of the window given to charts is a dashboard that happens to
+    // accept commands; the grid is the window, and the telemetry is there for
+    // whoever wants it.
+    let left = if rail_open { LEFT_RAIL_W } else { 0 };
+    let l = compute(fb.width, fb.height, &chrome, Rails { left });
     let text_x = l.body.x + chrome.text_left;
     let text_r = (l.body.x + l.body.w).saturating_sub(chrome.text_left);
     let alt = state.scrollback.grid.alternate;

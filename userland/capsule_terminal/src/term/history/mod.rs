@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod entries;
+pub mod expand;
 mod get;
 mod new;
 mod next_matching;
@@ -25,4 +27,5 @@ mod searching;
 mod suggest;
 mod types;
 
+pub use expand::expand;
 pub use types::History;

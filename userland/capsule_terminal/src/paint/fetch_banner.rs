@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The NONOS block banner, the same art the build prints. JetBrains Mono has
-//! the block and box-drawing glyphs, so it renders crisply through the mono
-//! TrueType path.
+//! The NONOS block banner, the same art the build prints. The mono face the
+//! toolkit loads is NotoSansMono, and it carries every codepoint the art uses:
+//! the full block at U+2588 and the double box-drawing run from U+2550 to
+//! U+255D. Checked rather than assumed, because a missing glyph here does not
+//! fail, it draws a row of tofu boxes across the first thing anyone sees.
 
 use nonos_app_skeleton::PaintBuffer;
 
