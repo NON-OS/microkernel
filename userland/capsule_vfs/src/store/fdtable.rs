@@ -19,6 +19,7 @@ mod close;
 mod copy;
 mod dirstat;
 mod install;
+mod journal;
 mod lookup;
 mod mkdir;
 mod new;
