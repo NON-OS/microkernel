@@ -18,12 +18,27 @@ use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::ttf::line_height;
 use nonos_toolkit::icons::{draw, IconId};
 
-use crate::pm::theme::{CARD_BG, CARD_BORDER, MUTED, TITLE, WARNING};
+use crate::pm::theme::{MUTED, TITLE, WARNING};
 
+use super::frame::frame;
 use super::metrics::{
-    BODY_PX, CARD_H, CARD_ICON, CARD_LABEL_GAP, CARD_LINE_GAP, CARD_PAD, CARD_RADIUS, CARD_VALUE_PX,
+    BODY_PX, CARD_H, CARD_ICON, CARD_LABEL_GAP, CARD_LINE_GAP, CARD_PAD, CARD_VALUE_PX,
 };
 use super::text;
+
+// The frame and its caption line on their own, returning the y where the body
+// starts. A card that fills its body with something other than a single number
+// calls this instead of `paint`, so every card on the screen is cut from the
+// same rounded rect and captioned at the same height whatever it holds.
+pub fn head(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, icon: IconId, caption: &[u8]) -> u32 {
+    frame(fb, x, y, w, CARD_H);
+    let left = x + CARD_PAD;
+    let cap_top = y + CARD_PAD;
+    let body_h = line_height(BODY_PX).max(1) as u32;
+    draw(fb, icon, left, cap_top + body_h.saturating_sub(CARD_ICON) / 2, CARD_ICON, MUTED);
+    text::left(fb, left + CARD_ICON + CARD_LABEL_GAP, cap_top, caption, WARNING, BODY_PX);
+    cap_top + body_h + CARD_LINE_GAP
+}
 
 // A stat card: icon and caption on the first line, the number in mono with its
 // unit on the second, the subcaption alone on the third so a wide value cannot
@@ -41,14 +56,9 @@ pub fn paint(
     unit: &[u8],
     sub: &[u8],
 ) -> u32 {
-    fb.fill_round(x, y, w, CARD_H, CARD_RADIUS, CARD_BG);
-    fb.stroke_round(x, y, w, CARD_H, CARD_RADIUS, 1, CARD_BORDER);
+    let value_top = head(fb, x, y, w, icon, caption);
     let left = x + CARD_PAD;
-    let cap_top = y + CARD_PAD;
     let body_h = line_height(BODY_PX).max(1) as u32;
-    draw(fb, icon, left, cap_top + body_h.saturating_sub(CARD_ICON) / 2, CARD_ICON, MUTED);
-    text::left(fb, left + CARD_ICON + CARD_LABEL_GAP, cap_top, caption, WARNING, BODY_PX);
-    let value_top = cap_top + body_h + CARD_LINE_GAP;
     let value_h = line_height(CARD_VALUE_PX).max(1) as u32;
     let after = text::mono(fb, left, value_top, value, TITLE, CARD_VALUE_PX).max(0) as u32;
     let base = value_top + value_h.saturating_sub(body_h);

@@ -14,25 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod auth_cells;
-pub mod auth_legend;
-pub mod auth_row;
-pub mod authority;
-pub mod cpu;
-pub mod cpu_bands;
-pub mod cpu_chart;
-pub mod mem_consumers;
-pub mod mem_trend;
-pub mod memory;
-pub mod overview;
-pub mod ovw_auth_delta;
-pub mod ovw_auth_labels;
-pub mod ovw_auth_row;
-pub mod ovw_authority;
-pub mod ovw_cards;
-pub mod ovw_counts;
-pub mod processes;
-pub mod sec_alerts;
-pub mod sec_geom;
-pub mod sec_row;
-pub mod security;
+//! The change since the session started.
+
+use crate::pm::format::u32_decimal;
+
+// "+2" or "-1" against the session's first sample. A gain is amber rather than
+// red at the call site: a capsule taking raw hardware is worth a look, and the
+// monitor is not entitled to call it wrong.
+pub(super) fn delta(held: u32, was: u32, out: &mut [u8]) -> usize {
+    let (sign, mag) = if held > was { (b'+', held - was) } else { (b'-', was - held) };
+    if out.is_empty() {
+        return 0;
+    }
+    out[0] = sign;
+    1 + u32_decimal(mag, &mut out[1..])
+}

@@ -14,25 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod auth_cells;
-pub mod auth_legend;
-pub mod auth_row;
-pub mod authority;
-pub mod cpu;
-pub mod cpu_bands;
-pub mod cpu_chart;
-pub mod mem_consumers;
-pub mod mem_trend;
-pub mod memory;
-pub mod overview;
-pub mod ovw_auth_delta;
-pub mod ovw_auth_labels;
-pub mod ovw_auth_row;
-pub mod ovw_authority;
-pub mod ovw_cards;
-pub mod ovw_counts;
-pub mod processes;
-pub mod sec_alerts;
-pub mod sec_geom;
-pub mod sec_row;
-pub mod security;
+//! The card shape, on its own.
+
+use nonos_app_skeleton::PaintBuffer;
+
+use crate::pm::theme::{CARD_BG, CARD_BORDER};
+
+use super::metrics::CARD_RADIUS;
+
+// The rounded rect on its own. A card whose body will not fit the shared
+// padding draws this and lays itself out, which keeps its outer edge identical
+// to its neighbours while its inside is its own business.
+pub fn frame(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32) {
+    fb.fill_round(x, y, w, h, CARD_RADIUS, CARD_BG);
+    fb.stroke_round(x, y, w, h, CARD_RADIUS, 1, CARD_BORDER);
+}

@@ -22,7 +22,7 @@ use super::super::chrome::Rect;
 use super::super::metrics::{CARD_GAP, CARD_H};
 use super::super::table;
 use super::super::table_geom::COLS_OVERVIEW;
-use super::{ovw_cards, ovw_counts};
+use super::{ovw_authority, ovw_cards, ovw_counts};
 
 // Four stat cards across the top, then the five-column table taking the rest.
 // The card width is divided out of r.w rather than fixed, because this screen
@@ -33,7 +33,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
     ovw_cards::cpu(state, fb, r.x, r.y, w);
     ovw_cards::memory(state, fb, r.x + step, r.y, w);
     ovw_counts::processes(state, fb, r.x + step * 2, r.y, w);
-    ovw_counts::authority(state, fb, r.x + step * 3, r.y, w);
+    ovw_authority::paint(state, fb, r.x + step * 3, r.y, w);
     let below = CARD_H + CARD_GAP;
     let rect = Rect { x: r.x, y: r.y + below, w: r.w, h: r.h.saturating_sub(below) };
     table::paint(state, fb, &rect, &COLS_OVERVIEW);
