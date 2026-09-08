@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::ui;
@@ -65,7 +66,7 @@ pub fn paint_nox(state: &State, fb: &mut PaintBuffer) {
     stat(fb, cx + 3 * (sw + 16), 146, sw, "NOX BALANCE", bal);
 
     ui::card(fb, cx, 252, cw, 150);
-    let _ = fb.text_ttf((cx + 20) as i32, 270, "NOX ON-CHAIN STATE", DIM(), 12.1);
+    let _ = fb.text_ttf((cx + 20) as i32, 270, "NOX ON-CHAIN STATE", DIM(), scale::BODY);
     let mut ts_b = [0u8; 48];
     let ts = crate::wallet::nox::live_amount(
         state.nox.stats_ready,
@@ -73,25 +74,25 @@ pub fn paint_nox(state: &State, fb: &mut PaintBuffer) {
         up,
         &mut ts_b,
     );
-    let _ = fb.text_ttf((cx + 20) as i32, 300, "Total staked", MUTED(), 14.9);
-    let tw = fb.measure_ttf(ts, 17.2).max(0) as u32;
-    let _ = fb.text_ttf((cx + cw - 20 - tw) as i32, 298, ts, FG(), 17.2);
+    let _ = fb.text_ttf((cx + 20) as i32, 300, "Total staked", MUTED(), scale::BODY);
+    let tw = fb.measure_ttf(ts, scale::BODY).max(0) as u32;
+    let _ = fb.text_ttf((cx + cw - 20 - tw) as i32, 298, ts, FG(), scale::BODY);
     let mut sa = [0u8; 13];
     crate::wallet::hex::short_addr(&crate::wallet::nox::constants::STAKING_PROXY, &mut sa);
-    let _ = fb.text_ttf((cx + 20) as i32, 328, "Staking contract", MUTED(), 14.9);
+    let _ = fb.text_ttf((cx + 20) as i32, 328, "Staking contract", MUTED(), scale::BODY);
     let _ = fb.text_ttf_mono(
         (cx + cw - 20 - 96) as i32,
         328,
         core::str::from_utf8(&sa).unwrap_or(""),
         DIM(),
-        14.9,
+        scale::BODY,
     );
     let _ = fb.text_ttf(
         (cx + 20) as i32,
         360,
         "Read live from Ethereum mainnet (chain 1).",
         MUTED(),
-        14.9,
+        scale::BODY,
     );
 
     super::paint_nox_stake::paint_nox_stake(state, fb);
@@ -99,6 +100,6 @@ pub fn paint_nox(state: &State, fb: &mut PaintBuffer) {
 
 fn stat(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, label: &str, val: &str) {
     ui::card(fb, x, y, w, 90);
-    let _ = fb.text_ttf((x + 18) as i32, (y + 18) as i32, label, DIM(), 12.1);
-    let _ = fb.text_ttf((x + 18) as i32, (y + 40) as i32, val, FG(), 32.2);
+    let _ = fb.text_ttf((x + 18) as i32, (y + 18) as i32, label, DIM(), scale::BODY);
+    let _ = fb.text_ttf((x + 18) as i32, (y + 40) as i32, val, FG(), scale::HERO);
 }

@@ -16,6 +16,7 @@
 
 //! One half of the trade.
 
+use crate::wallet::paint::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::super::ui;
@@ -33,7 +34,7 @@ pub fn side(fb: &mut PaintBuffer, state: &State, x: u32, y: u32, w: u32, cap: &s
     let idx = if pay { state.swap_from } else { state.swap_to };
     let t = token(idx);
     ui::bordered(fb, x + 20, y, w - 40, 88, PANEL_2(), LINE2());
-    let _ = fb.text_ttf((x + 36) as i32, (y + 12) as i32, cap, DIM(), 12.1);
+    let _ = fb.text_ttf((x + 36) as i32, (y + 12) as i32, cap, DIM(), scale::BODY);
 
     // The amount is the largest thing here because it is what the reader is
     // actually deciding.
@@ -41,11 +42,11 @@ pub fn side(fb: &mut PaintBuffer, state: &State, x: u32, y: u32, w: u32, cap: &s
     let n = crate::wallet::swap::amount_text(state, pay, &mut buf);
     let text = core::str::from_utf8(&buf[..n]).unwrap_or("0");
     let colour = if pay { FG() } else { CYAN() };
-    let _ = fb.text_ttf((x + 36) as i32, (y + 36) as i32, text, colour, 30.0);
+    let _ = fb.text_ttf((x + 36) as i32, (y + 36) as i32, text, colour, scale::HERO);
 
     // Mark and symbol sit right, where the eye lands after the number.
-    let sw = fb.measure_ttf(t.symbol, 17.0).max(0) as u32;
+    let sw = fb.measure_ttf(t.symbol, scale::BODY).max(0) as u32;
     let right = x + w - 40;
-    let _ = fb.text_ttf((right - sw) as i32, (y + 40) as i32, t.symbol, FG(), 17.0);
+    let _ = fb.text_ttf((right - sw) as i32, (y + 40) as i32, t.symbol, FG(), scale::BODY);
     mark(fb, right - sw - 34, y + 30, t);
 }

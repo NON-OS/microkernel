@@ -81,13 +81,21 @@ pub struct State {
     pub send_focus: u8,
     pub send_to_hex: [u8; 40],
     pub send_to_len: usize,
-    pub send_amount_milli_eth: u32,
+    /// What to send, typed at chain precision on the shared keypad. It replaced
+    /// a `u32` of thousandths of an ether, which could not express a figure
+    /// smaller than 0.001 and had no decimal point at all.
+    pub send_amount: crate::wallet::num::Amount,
     pub send_nonce: u64,
     pub tx_hash: [u8; 32],
     pub tx_len: u32,
     pub tx_raw: Vec<u8>,
     pub tx_ready: bool,
     pub tx_kind: &'static [u8],
+    /// A signed transaction waiting for its confirming second press. Sending is
+    /// the one act in this window that cannot be undone, so it is armed rather
+    /// than fired: the same shape the process manager uses before it ends a
+    /// process, which is a far more recoverable thing to do.
+    pub broadcast_armed: bool,
     pub broadcast_ready: bool,
     pub broadcast_hash: [u8; 32],
     pub receipt_ready: bool,
@@ -172,4 +180,9 @@ pub struct State {
     pub view_h: u32,
     // Local shielded UTXO set, reconstructed from the note secrets.
     pub notes: crate::wallet::shield::notes::NoteStore,
+    /// Whether a shield capsule answered the service probe this session.
+    ///
+    /// Starts `Unknown` and is only ever set from a real lookup, so the
+    /// shielded screens cannot enable themselves by default.
+    pub shield: crate::wallet::shield::probe::Shield,
 }

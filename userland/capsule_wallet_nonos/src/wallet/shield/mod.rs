@@ -18,3 +18,4 @@
 //! backend prover/pool/association-set seams live in `wallet::pool`.
 
 pub mod notes;
+pub mod probe;

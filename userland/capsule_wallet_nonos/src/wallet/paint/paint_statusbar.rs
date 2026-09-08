@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::wallet::state::State;
@@ -23,11 +24,11 @@ pub fn paint_statusbar(state: &State, fb: &mut PaintBuffer) {
     let y = fb.height.saturating_sub(30);
     fb.fill_rect(200, y, fb.width.saturating_sub(200), 30, SYSBAR());
     fb.fill_rect(200, y, fb.width.saturating_sub(200), 1, LINE());
-    let sx = fb.text_ttf(226, (y + 8) as i32, "STATUS: ", MUTED(), 13.8);
+    let sx = fb.text_ttf(226, (y + 8) as i32, "STATUS: ", MUTED(), scale::BODY);
     let msg = core::str::from_utf8(state.status).unwrap_or("ready");
-    let _ = fb.text_ttf(sx, (y + 8) as i32, msg, GREEN(), 13.8);
+    let _ = fb.text_ttf(sx, (y + 8) as i32, msg, GREEN(), scale::BODY);
     // The chain the wallet transacts on, not a fabricated block height.
     let right = "Ethereum mainnet";
-    let w = fb.measure_ttf(right, 13.8).max(0) as u32;
-    let _ = fb.text_ttf((fb.width - 26 - w) as i32, (y + 8) as i32, right, DIM(), 13.8);
+    let w = fb.measure_ttf(right, scale::BODY).max(0) as u32;
+    let _ = fb.text_ttf((fb.width - 26 - w) as i32, (y + 8) as i32, right, DIM(), scale::BODY);
 }

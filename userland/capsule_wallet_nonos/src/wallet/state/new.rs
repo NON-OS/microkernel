@@ -48,13 +48,14 @@ pub fn new_state() -> State {
         send_focus: super::types::SEND_FIELD_TO,
         send_to_hex: [0; 40],
         send_to_len: 0,
-        send_amount_milli_eth: 1,
+        send_amount: crate::wallet::num::Amount::new(),
         send_nonce: 0,
         tx_hash: [0; 32],
         tx_len: 0,
         tx_raw: alloc::vec::Vec::new(),
         tx_ready: false,
         tx_kind: b"none",
+        broadcast_armed: false,
         broadcast_ready: false,
         broadcast_hash: [0; 32],
         receipt_ready: false,
@@ -104,5 +105,8 @@ pub fn new_state() -> State {
         view_w: 1280,
         view_h: 0,
         notes: crate::wallet::shield::notes::NoteStore::new(),
+        // Not probed yet, which reads as unavailable until a lookup says
+        // otherwise. Absence is the default all the way down.
+        shield: crate::wallet::shield::probe::Shield::Unknown,
     }
 }
