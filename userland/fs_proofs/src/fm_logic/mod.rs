@@ -20,6 +20,8 @@
 
 #[path = "../../../capsule_file_manager/src/fm/entries.rs"]
 mod entries;
+#[path = "../../../capsule_file_manager/src/fm/favorites.rs"]
+pub mod favorites;
 #[path = "../../../capsule_file_manager/src/fm/file_color.rs"]
 mod file_color;
 #[path = "../../../capsule_file_manager/src/fm/file_ext.rs"]
@@ -28,6 +30,26 @@ mod file_ext;
 mod file_kind;
 #[path = "../../../capsule_file_manager/src/fm/filetype.rs"]
 mod filetype;
+#[path = "../../../capsule_file_manager/src/fm/open_with_table.rs"]
+pub mod open_with_table;
+#[path = "../../../capsule_file_manager/src/fm/prefs.rs"]
+pub mod prefs;
+
+// Shim, not capsule source: see the header of `state.rs`.
+pub mod state;
+
+#[path = "../../../capsule_file_manager/src/fm/tags.rs"]
+pub mod tags;
+#[path = "../../../capsule_file_manager/src/fm/tags_load.rs"]
+mod tags_load;
+#[path = "../../../capsule_file_manager/src/fm/tags_mutate.rs"]
+mod tags_mutate;
+#[path = "../../../capsule_file_manager/src/fm/tags_query.rs"]
+mod tags_query;
+#[path = "../../../capsule_file_manager/src/fm/tags_reconcile.rs"]
+pub mod tags_reconcile;
+#[path = "../../../capsule_file_manager/src/fm/undo.rs"]
+pub mod undo;
 
 pub use entries::{build_entries, Entry};
 pub use file_color::color;
