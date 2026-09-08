@@ -14,40 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod bars;
-pub mod card;
-pub mod chips;
-pub mod chrome;
-pub mod frame;
-pub mod help;
-pub mod hit;
-pub mod icon_table;
-pub mod insp_actions;
-pub mod insp_chips;
-pub mod insp_fields;
-pub mod insp_geom;
-pub mod insp_spark;
-pub mod inspector;
-pub mod keys;
-pub mod keys_filter;
-pub mod keys_group;
-pub mod keys_nav;
-pub mod keys_sort;
-pub mod keys_table;
-pub mod matrix_geom;
-pub mod metrics;
-pub mod nav_geom;
-pub mod paint;
-pub mod risk_strip;
-pub mod screens;
-pub mod search;
-pub mod sidebar;
-pub mod spark;
-pub mod status_bar;
-pub mod table;
-pub mod table_cell;
-pub mod table_geom;
-pub mod table_head;
-pub mod table_row;
-pub mod text;
-pub mod tint;
+//! The keyboard overlay: what this window answers to, on screen.
+
+mod geom;
+mod panel;
+mod row;
+
+pub use panel::paint;

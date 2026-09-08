@@ -50,8 +50,14 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     x = pair(fb, x, top, b"MEM", &buf[..n]);
     let (tone, label) = posture(state);
     text::left(fb, x, top, label, tone, BODY_PX);
+    // The sort column describes the table, so it sits right. The key hint sits
+    // left of it because an overlay nobody knows about is no better than none:
+    // every shortcut in this window was invisible until this line existed.
     let right_x = fb.width.saturating_sub(PANE_PAD_X);
     text::right(fb, right_x, top, state.sort.label(), ACCENT, BODY_PX);
+    let sort_w = text::width(fb, state.sort.label(), BODY_PX);
+    let hint_x = right_x.saturating_sub(sort_w + STATUS_GROUP_GAP);
+    text::right(fb, hint_x, top, b"? keys", MUTED, BODY_PX);
 }
 
 fn pair(fb: &mut PaintBuffer, x: u32, top: u32, label: &[u8], value: &[u8]) -> u32 {

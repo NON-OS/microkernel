@@ -14,40 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod bars;
-pub mod card;
-pub mod chips;
-pub mod chrome;
-pub mod frame;
-pub mod help;
-pub mod hit;
-pub mod icon_table;
-pub mod insp_actions;
-pub mod insp_chips;
-pub mod insp_fields;
-pub mod insp_geom;
-pub mod insp_spark;
-pub mod inspector;
-pub mod keys;
-pub mod keys_filter;
-pub mod keys_group;
-pub mod keys_nav;
-pub mod keys_sort;
-pub mod keys_table;
-pub mod matrix_geom;
-pub mod metrics;
-pub mod nav_geom;
-pub mod paint;
-pub mod risk_strip;
-pub mod screens;
-pub mod search;
-pub mod sidebar;
-pub mod spark;
-pub mod status_bar;
-pub mod table;
-pub mod table_cell;
-pub mod table_geom;
-pub mod table_head;
-pub mod table_row;
-pub mod text;
-pub mod tint;
+//! Narrowing the table.
+
+use super::keys::{Act, Binding};
+use super::keys_group::Group;
+
+pub const FILTERS: &[Binding] = &[
+    Binding {
+        key: b"r",
+        codes: &[0x52, 0x72],
+        label: b"sample the kernel again now",
+        group: Group::Act,
+        act: Act::Refresh,
+    },
+    Binding {
+        key: b"k",
+        codes: &[0x4B, 0x6B],
+        label: b"ask the selected process to stop, twice to confirm",
+        group: Group::Act,
+        act: Act::Terminate,
+    },
+    Binding {
+        key: b"f",
+        codes: &[0x46, 0x66],
+        label: b"force it to stop, twice to confirm",
+        group: Group::Act,
+        act: Act::ForceKill,
+    },
+];

@@ -46,6 +46,11 @@ pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
         inspector::paint(state, fb);
     }
     chrome::status_bar(fb, state);
+    // Last, so it covers the frame as well as the pane: an overlay the sidebar
+    // punched through would read as part of the window rather than over it.
+    if state.help_open {
+        super::help::paint(fb, w, h);
+    }
 }
 
 fn meta(state: &State, out: &mut [u8]) -> usize {

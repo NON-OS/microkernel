@@ -14,40 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod bars;
-pub mod card;
-pub mod chips;
-pub mod chrome;
-pub mod frame;
-pub mod help;
-pub mod hit;
-pub mod icon_table;
-pub mod insp_actions;
-pub mod insp_chips;
-pub mod insp_fields;
-pub mod insp_geom;
-pub mod insp_spark;
-pub mod inspector;
-pub mod keys;
-pub mod keys_filter;
-pub mod keys_group;
-pub mod keys_nav;
-pub mod keys_sort;
-pub mod keys_table;
-pub mod matrix_geom;
-pub mod metrics;
-pub mod nav_geom;
-pub mod paint;
-pub mod risk_strip;
-pub mod screens;
-pub mod search;
-pub mod sidebar;
-pub mod spark;
-pub mod status_bar;
-pub mod table;
-pub mod table_cell;
-pub mod table_geom;
-pub mod table_head;
-pub mod table_row;
-pub mod text;
-pub mod tint;
+//! How the overlay groups the bindings.
+//!
+//! The headings are what a reader is actually trying to do, not the internals
+//! the keys happen to touch: someone hunting for a key wants "narrow the table",
+//! not "filter enum".
+
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub enum Group {
+    Move,
+    Sort,
+    Filter,
+    Act,
+}
+
+impl Group {
+    pub fn label(self) -> &'static [u8] {
+        match self {
+            Group::Move => b"MOVE AROUND",
+            Group::Sort => b"ORDER THE TABLE",
+            Group::Filter => b"NARROW THE TABLE",
+            Group::Act => b"ACT ON A PROCESS",
+        }
+    }
+}
