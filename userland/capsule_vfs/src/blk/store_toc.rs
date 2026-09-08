@@ -28,6 +28,7 @@ use super::wire::SECTOR_SIZE;
 pub(super) const NAME_LEN: usize = 96;
 pub(super) const MAX_TOTAL_BYTES: u64 = 16 * 1024 * 1024;
 
+#[derive(Clone)]
 pub struct TocEntry {
     pub name: String,
     pub offset: u64,
