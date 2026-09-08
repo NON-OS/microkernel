@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::wallet::theme::{GREEN, LINE, WIDTH};
@@ -26,7 +27,7 @@ pub fn paint_statusline(fb: &mut PaintBuffer) {
         (y + 9) as i32,
         "keys sealed  \u{00b7}  TLS secured  \u{00b7}  route local  \u{00b7}  security STRONG",
         GREEN(),
-        14.4,
+        scale::BODY,
     );
     fb.fill_rect(200, 130, WIDTH - 200, 1, LINE());
 }

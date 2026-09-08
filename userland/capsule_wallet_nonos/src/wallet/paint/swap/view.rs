@@ -16,6 +16,7 @@
 
 //! What goes in, what comes back, and the terms alongside.
 
+use crate::wallet::paint::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::super::ui;
@@ -29,8 +30,13 @@ const CARD_W: u32 = 560;
 
 pub fn paint_swap(state: &State, fb: &mut PaintBuffer) {
     let cx = 226u32;
+    // Asked, not assumed: the notice appears because no shield capsule answered
+    // the service probe, and disappears the day one does.
+    if !state.shield.available() {
+        crate::wallet::paint::not_wired::paint(fb, cx, 100, CARD_W, "The liquidity pool");
+    }
     ui::card(fb, cx, 150, CARD_W, 300);
-    let _ = fb.text_ttf((cx + 20) as i32, 168, "SWAP", DIM(), 12.1);
+    let _ = fb.text_ttf((cx + 20) as i32, 168, "SWAP", DIM(), scale::BODY);
 
     side(fb, state, cx, 196, CARD_W, "You pay", true);
     arrow(fb, cx + CARD_W / 2, 300);
@@ -58,5 +64,5 @@ fn action(state: &State) -> &'static [u8] {
 /// The direction of the trade, between the two sides.
 fn arrow(fb: &mut PaintBuffer, cx: u32, y: u32) {
     ui::bordered(fb, cx - 14, y, 28, 28, PANEL_2(), LINE2());
-    let _ = fb.text_ttf((cx - 4) as i32, (y + 6) as i32, "v", MUTED(), 14.0);
+    let _ = fb.text_ttf((cx - 4) as i32, (y + 6) as i32, "v", MUTED(), scale::BODY);
 }
