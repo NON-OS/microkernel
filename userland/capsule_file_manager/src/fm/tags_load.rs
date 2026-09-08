@@ -31,6 +31,9 @@ impl TagMap {
             if map.entries.len() >= TAG_MAX_ASSIGNMENTS {
                 break;
             }
+            if map.entries.iter().any(|(p, _)| *p == path) {
+                continue;
+            }
             let mut tags: Vec<String> = Vec::new();
             for raw in joined.split(',').filter(|t| !t.is_empty()) {
                 let tag = raw.to_ascii_lowercase();

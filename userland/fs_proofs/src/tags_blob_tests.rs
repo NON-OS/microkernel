@@ -38,3 +38,17 @@ fn reconcile_drops_vanished_paths_only_under_the_prefix() {
     assert_eq!(m.tags_for("/p/here.txt"), alloc::vec!["work"]);
     assert_eq!(m.tags_for("/elsewhere.txt"), alloc::vec!["work"]);
 }
+
+#[test]
+fn from_blob_collapses_duplicate_path_records() {
+    let mut raw = alloc::vec::Vec::new();
+    for _ in 0..4 {
+        raw.push((
+            alloc::string::String::from("/a/b"),
+            alloc::string::String::from("work"),
+        ));
+    }
+    let m = TagMap::from_blob(&crate::sidecar::encode(&raw));
+    assert_eq!(m.tagged_paths().len(), 1);
+    assert_eq!(m.tags_for("/a/b"), alloc::vec!["work"]);
+}
