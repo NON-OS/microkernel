@@ -47,6 +47,8 @@ mod read;
 mod rename;
 #[path = "../../../capsule_vfs/src/store/fdtable/rmdir.rs"]
 mod rmdir;
+#[path = "../../../capsule_vfs/src/store/fdtable/search.rs"]
+mod search;
 #[path = "../../../capsule_vfs/src/store/fdtable/seek.rs"]
 mod seek;
 #[path = "../../../capsule_vfs/src/store/fdtable/truncate.rs"]
