@@ -62,10 +62,6 @@ pub(super) fn row_h() -> u32 {
 
 /// Panel width: wide enough for the longest label the open menu can show.
 pub(super) fn width(ctx: &Context) -> u32 {
-    let widest = items(ctx)
-        .iter()
-        .map(|label| measure_aa_bytes(label, UI_PX))
-        .max()
-        .unwrap_or(0);
+    let widest = items(ctx).iter().map(|label| measure_aa_bytes(label, UI_PX)).max().unwrap_or(0);
     (label_x() + widest + pad_x()).max(MIN_W_LOGICAL * scale())
 }

@@ -19,10 +19,10 @@
 
 use super::cell_rect::cell_rect;
 use super::metrics::{caret_w, icon};
-use crate::render::layout::Rect;
-use crate::render::palette;
 use crate::render::icons::draw_fs_icon;
+use crate::render::layout::Rect;
 use crate::render::measure_aa::{measure_aa, truncate_to_width};
+use crate::render::palette;
 use crate::render::text_aa::text_aa;
 use crate::render::ui_font::{line_h, scale, top_y_centered, LABEL_PX, META_PX};
 use crate::state::Context;
