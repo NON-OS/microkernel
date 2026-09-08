@@ -14,27 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod about;
-pub mod bench;
-pub mod capsules;
-pub mod clear;
-pub mod display;
-pub mod echo;
-pub mod exit_check;
-pub mod fs;
-pub mod git;
-pub mod help;
-pub mod help_one;
-pub mod history_cmd;
-pub mod jobs;
-pub mod market;
-pub mod motd;
-pub mod neofetch;
-pub mod nox;
-pub mod ping;
-pub mod service;
-pub mod theme;
-pub mod tool;
-pub mod version;
-pub mod which;
-pub mod whoami;
+//! Ordering a run before it is reduced.
+
+/// Insertion sort. The buffers here are thousands of entries at most, it needs
+/// no scratch allocation, and it is short enough to read in one sitting, which
+/// matters more than an asymptote for a routine that runs after the timing has
+/// already finished.
+pub fn sort(buf: &mut [u64]) {
+    for i in 1..buf.len() {
+        let v = buf[i];
+        let mut j = i;
+        while j > 0 && buf[j - 1] > v {
+            buf[j] = buf[j - 1];
+            j -= 1;
+        }
+        buf[j] = v;
+    }
+}

@@ -14,27 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod about;
-pub mod bench;
-pub mod capsules;
-pub mod clear;
-pub mod display;
-pub mod echo;
-pub mod exit_check;
-pub mod fs;
-pub mod git;
-pub mod help;
-pub mod help_one;
-pub mod history_cmd;
-pub mod jobs;
-pub mod market;
-pub mod motd;
-pub mod neofetch;
-pub mod nox;
-pub mod ping;
-pub mod service;
-pub mod theme;
-pub mod tool;
-pub mod version;
-pub mod which;
-pub mod whoami;
+//! Cycle-accurate measurement of the primitives this microkernel is built from.
+
+mod format;
+mod probes;
+mod run;
+
+pub use run::run;
