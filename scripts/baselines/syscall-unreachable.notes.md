@@ -13,10 +13,6 @@ Current set, and why each is still here:
   which lives outside this tree and is not scanned. Not dark.
 - `SYS_THREAD_SPAWN` (MTSP), `SYS_SET_TLS` (MSTB): the std PAL's thread
   support is the intended consumer. Check the PAL before treating as dark.
-- `SYS_CAP_GRANT`, `SYS_CAP_REVOKE`, `SYS_CAP_CHECK`: capability grant,
-  revoke and check. Genuinely dark. The security model is enforced at every
-  syscall, but no capsule can ask what it holds, hand a subset on, or drop
-  one. Wiring these is real work with a design behind it, not a libc stub.
 - `SYS_SPAWN` (MSPN): the kernel spawns capsules itself; userland goes
   through the installer and `SYS_SPAWN_INSTANCE`. Dark by design so far.
 - `SYS_STDOUT_WRITE` (MSOW): std uses `MkProcOutput`. Dark.

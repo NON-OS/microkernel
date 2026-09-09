@@ -14,10 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod exit;
-mod idle;
-mod sched;
+//! The capability syscalls, which every capsule is governed by and none could
+//! call.
+//!
+//! Every syscall this kernel dispatches is checked against the caller's mask,
+//! and the mask itself was invisible to the process holding it: the three
+//! calls that ask about, extend and withdraw authority were implemented in the
+//! kernel and reachable from no capsule. A program learned it lacked a
+//! capability by being refused, which is the wrong time to find out.
 
-pub use exit::mk_exit;
-pub use idle::mk_idle_ms;
-pub use sched::mk_yield;
+mod check;
+mod grant;
+mod revoke;
+
+pub use check::mk_cap_check;
+pub use grant::mk_cap_grant;
+pub use revoke::mk_cap_revoke;

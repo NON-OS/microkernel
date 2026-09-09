@@ -14,10 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod exit;
-mod idle;
-mod sched;
+use crate::syscall::{call_raw, N_MK_CAP_CHECK};
 
-pub use exit::mk_exit;
-pub use idle::mk_idle_ms;
-pub use sched::mk_yield;
+/// Whether `pid` holds every bit in `mask`.
+///
+/// Ungated: any process may ask about any other, which discloses nothing the
+/// process table does not already publish to everyone. It exists so a capsule
+/// can ask before acting rather than discovering a refusal mid-operation, and
+/// so a claim about what a process holds can be checked against the kernel's
+/// own answer rather than a copy of it.
+///
+/// Returns 1 when held, 0 when not or when `pid` is unknown.
+pub fn mk_cap_check(pid: u32, mask: u64) -> bool {
+    call_raw(N_MK_CAP_CHECK, [pid as u64, mask, 0, 0, 0, 0]) == 1
+}

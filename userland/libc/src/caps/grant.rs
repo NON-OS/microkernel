@@ -14,10 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod exit;
-mod idle;
-mod sched;
+use crate::syscall::{call_raw, N_MK_CAP_GRANT};
 
-pub use exit::mk_exit;
-pub use idle::mk_idle_ms;
-pub use sched::mk_yield;
+/// Extend `pid` by every bit in `mask`.
+///
+/// The kernel refuses unless the caller holds Admin and also holds every bit
+/// it is handing on: an administrator cannot manufacture authority it does not
+/// itself possess. Today only init holds Admin, so from any shipped capsule
+/// this returns a refusal, which is the correct answer and is now an answer
+/// rather than an absence.
+///
+/// Returns 0, or a negative errno.
+pub fn mk_cap_grant(pid: u32, mask: u64) -> i64 {
+    call_raw(N_MK_CAP_GRANT, [pid as u64, mask, 0, 0, 0, 0])
+}
