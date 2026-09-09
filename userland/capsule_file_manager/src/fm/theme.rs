@@ -53,3 +53,28 @@ pub const ALT_ROW: u32 = PANEL;
 pub const SELECT_BG: u32 = RAISE;
 pub const ACCENT: u32 = CY;
 pub const FILE_C: u32 = INK2;
+
+// Elevation. Both carry alpha and must be laid down with a blending primitive;
+// fill_rect would replace the pixels beneath instead of glowing over them.
+pub const GLOW: u32 = 0x3322D3EE;
+pub const SHADE: u32 = 0x66020509;
+
+// Alpha-carrying edges, for chrome drawn over paint that is already down.
+pub const HAIR: u32 = 0x99143446;
+pub const HAIR_CY: u32 = 0x8022D3EE;
+
+// Card tint: one value of lift across the plate, neutral so it reads as light.
+pub const TINT_TOP: u32 = 0x16FFFFFF;
+pub const TINT_BOT: u32 = 0x04FFFFFF;
+
+// Pill states. Idle and hover step the ground; only the active one spends cyan.
+pub const PILL_IDLE: u32 = PANEL;
+pub const PILL_HOVER: u32 = RAISE;
+pub const PILL_ON: u32 = 0x3322D3EE;
+pub const PILL_ON_LINE: u32 = HAIR_CY;
+pub const PILL_INK: u32 = INK2;
+pub const PILL_INK_ON: u32 = CY;
+
+// Corner radii in logical pixels: the window shell, then every inner plate.
+pub const R_SHELL: u32 = 14;
+pub const R_CARD: u32 = 10;

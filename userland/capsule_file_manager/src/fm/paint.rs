@@ -30,7 +30,9 @@ use super::screen_search::paint_search;
 use super::screen_shared::paint_shared;
 use super::screen_tags::paint_tags;
 use super::state::{Mode, State, ViewKind};
-use super::theme::BACKGROUND;
+use super::chrome_card::Plate;
+use super::chrome_glow::glow_in;
+use super::theme::{HAIR, R_SHELL, WIN};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if matches!(state.mode, Mode::Help) {
@@ -41,7 +43,10 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         paint_preview(preview, fb);
         return;
     }
-    fb.clear(BACKGROUND);
+    let (w, h) = (fb.width, fb.height);
+    fb.clear(0);
+    Plate::new(WIN).radius(R_SHELL).line(HAIR).draw(fb, 0, 0, w, h);
+    glow_in(fb, 0, 0, w, h, R_SHELL, 6);
     super::paint_sidebar::paint_sidebar(state, fb);
     paint_header(state, fb);
     match state.screen {
