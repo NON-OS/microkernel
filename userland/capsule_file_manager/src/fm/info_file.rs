@@ -41,7 +41,7 @@ pub fn file_body(fb: &mut PaintBuffer, entry: &Entry, x: u32, top: u32, w: u32) 
     y += kv(fb, x, y, w, "Permissions", perms);
     let handlers = handlers_for(&entry.full_path);
     if handlers.is_empty() {
-        return y + kv(fb, x, y, w, "Opens with", "no handler");
+        y += kv(fb, x, y, w, "Opens with", "no handler");
     }
     for (i, handler) in handlers.iter().enumerate() {
         let label = if i == 0 { "Opens with" } else { "" };
