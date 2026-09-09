@@ -23,10 +23,10 @@ use nonos_app_skeleton::{EventOutcome, KEY_ENTER};
 use super::event_browse::on_browse_key;
 use super::event_grid::grid_select;
 use super::event_head::on_head;
-use super::event_mouse::select_row;
 use super::event_side::on_side;
 use super::header_hit::head_hit;
 use super::layout::{HEADER_H, SIDEBAR_W};
+use super::list_click::list_click;
 use super::navigate::navigate;
 use super::screen::Screen;
 use super::screen_hit::{screen_hit, ScreenHit};
@@ -52,14 +52,15 @@ pub fn on_click(state: &mut State, x: u32, y: u32) -> EventOutcome {
     if state.screen != Screen::Browse {
         return on_screen(state, x, y);
     }
-    let hit = match state.view {
-        ViewKind::Grid => grid_select(state, x, y),
-        ViewKind::List => select_row(state, y),
-    };
-    if !hit {
-        return EventOutcome::Idle;
+    match state.view {
+        ViewKind::Grid => {
+            if !grid_select(state, x, y) {
+                return EventOutcome::Idle;
+            }
+            on_browse_key(state, KEY_ENTER)
+        }
+        ViewKind::List => list_click(state, x, y),
     }
-    on_browse_key(state, KEY_ENTER)
 }
 
 // A stacked surface resolves to a path to open or a tag to filter by. Clicking
@@ -69,6 +70,10 @@ fn on_screen(state: &mut State, x: u32, y: u32) -> EventOutcome {
     match screen_hit(state, x, y) {
         Some(ScreenHit::Open(path)) => {
             navigate(state, path.as_str());
+            EventOutcome::Repaint
+        }
+        Some(ScreenHit::Go(screen)) => {
+            state.screen = screen;
             EventOutcome::Repaint
         }
         Some(ScreenHit::Tag(name)) => {

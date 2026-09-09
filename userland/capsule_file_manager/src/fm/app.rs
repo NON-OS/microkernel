@@ -61,6 +61,7 @@ impl App for FileManager {
         self.state.win_h = fb.height;
         super::layout::measure(&mut self.state, fb.height);
         super::info_cache::sync_info(&mut self.state);
+        super::home_count::sync_places(&mut self.state);
         paint(&self.state, fb);
     }
 }

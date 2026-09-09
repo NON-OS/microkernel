@@ -26,6 +26,7 @@ use super::view::rebuild_view;
 pub fn refresh(state: &mut State) {
     state.preview = None;
     state.dir_info = None;
+    state.place_stats.clear();
     if state.owner_pid == 0 {
         // Send our own authoritative pid: the vfs server's anti-impersonation
         // check requires the claimed owner pid to equal the real sender pid, so
