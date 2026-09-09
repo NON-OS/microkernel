@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
@@ -22,21 +23,37 @@ use nonos_libc::mk_time_millis;
 use super::file_color::color;
 use super::file_kind::kind_of_name;
 use super::layout::{CONTENT_X, FOOTER_H, HEADER_H, PAD_X, SECTION_GAP};
+use super::recents_chip_paint::paint_chips;
+use super::recents_chips::{chips_bottom, kind_chips, KindChip};
+use super::recents_tally::{kind_counts, shown};
 use super::recents_group::{group, parent_of, rel_time};
 use super::screen_list::Line;
 use super::screen_row::{screen_row, section_label, LABEL_ADV, LIST_ROW_H};
 use super::sidebar_rows::base_label;
 use super::state::State;
 
-/// `recents_group::group` is the single geometry source: it decides which
-/// sections exist and what each holds, and this walks the result into the
-/// screen's one line list, so an empty bucket is never drawn as a bare heading
-/// and a click can never land past the last line drawn.
+/// The journal's own millisecond base, or zero when the wall clock is
+/// unavailable -- a case `group` reports rather than mislabels.
+pub fn now_ms() -> u64 {
+    mk_time_millis().max(0) as u64
+}
+
+/// The filetype chip row, always counted over the *unfiltered* journal so the
+/// axis never collapses to the one chip already selected.
+pub fn recents_chip_row(state: &State) -> Vec<KindChip> {
+    let rows = shown(&state.recents, None);
+    kind_chips(&kind_counts(rows.iter().map(|(_, path)| *path)), state.win_w)
+}
+
+/// The chip row and `group` are the single geometry source: the row fixes where
+/// the list starts, the grouping decides which sections exist, and both the
+/// headings and the rows land in this one line list -- so the hit-test steps the
+/// same rhythm the painter drew and a click below a heading cannot slip a row.
 pub fn recents_lines(state: &State, now: u64) -> Vec<Line> {
     let bottom = state.win_h.saturating_sub(FOOTER_H);
     let mut out = Vec::new();
-    let mut y = HEADER_H + 16;
-    for (label, rows) in group(now, &state.recents) {
+    let mut y = chips_bottom(&recents_chip_row(state));
+    for (label, rows) in group(now, &shown(&state.recents, state.recents_filter)) {
         if y + LIST_ROW_H > bottom {
             break;
         }
@@ -46,7 +63,7 @@ pub fn recents_lines(state: &State, now: u64) -> Vec<Line> {
             if y + LIST_ROW_H > bottom {
                 break;
             }
-            out.push(Line::row(y, LIST_ROW_H, path, rel_time(now, ms), path.ends_with('/')));
+            out.push(Line::row(y, LIST_ROW_H, path, age(now, ms), path.ends_with('/')));
             y += LIST_ROW_H;
         }
         y += SECTION_GAP;
@@ -54,11 +71,20 @@ pub fn recents_lines(state: &State, now: u64) -> Vec<Line> {
     out
 }
 
+// With no clock there is no honest age to state, so the meta column stays empty
+// rather than reporting every entry as "just now".
+fn age(now: u64, ms: u64) -> String {
+    match now {
+        0 => String::new(),
+        _ => rel_time(now, ms),
+    }
+}
+
 pub fn paint_recents(state: &State, fb: &mut PaintBuffer) {
     let x = CONTENT_X + PAD_X;
     let w = fb.width.saturating_sub(CONTENT_X + PAD_X * 2);
-    let lines = recents_lines(state, mk_time_millis().max(0) as u64);
-    if lines.is_empty() {
+    let chips = recents_chip_row(state);
+    if chips.len() < 2 {
         super::screen_row::empty_state(
             fb,
             x,
@@ -69,7 +95,9 @@ pub fn paint_recents(state: &State, fb: &mut PaintBuffer) {
         );
         return;
     }
-    for line in &lines {
+    section_label(fb, x, HEADER_H + 16, "RECENTS");
+    paint_chips(fb, &chips, state.recents_filter);
+    for line in &recents_lines(state, now_ms()) {
         let Some(path) = paint_head(fb, x, line) else { continue };
         let title = base_label(path);
         let row = (title.as_str(), parent_of(path), line.meta.as_str());

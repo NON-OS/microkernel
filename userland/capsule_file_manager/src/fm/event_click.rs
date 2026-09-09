@@ -25,11 +25,13 @@ use super::event_grid::grid_select;
 use super::event_head::on_head;
 use super::event_side::on_side;
 use super::header_hit::head_hit;
+use super::info_hit::info_click;
 use super::layout::{HEADER_H, SIDEBAR_W};
 use super::list_click::list_click;
 use super::navigate::navigate;
 use super::screen::Screen;
 use super::screen_hit::{screen_hit, ScreenHit};
+use super::sel_hit::band_click;
 use super::state::{Mode, State, ViewKind};
 
 /// Resolve a click against the chrome in the order it is stacked: the sidebar
@@ -51,6 +53,12 @@ pub fn on_click(state: &mut State, x: u32, y: u32) -> EventOutcome {
     }
     if state.screen != Screen::Browse {
         return on_screen(state, x, y);
+    }
+    if let Some(outcome) = band_click(state, x, y) {
+        return outcome;
+    }
+    if let Some(outcome) = info_click(state, x, y) {
+        return outcome;
     }
     match state.view {
         ViewKind::Grid => {
@@ -74,6 +82,13 @@ fn on_screen(state: &mut State, x: u32, y: u32) -> EventOutcome {
         }
         Some(ScreenHit::Go(screen)) => {
             state.screen = screen;
+            EventOutcome::Repaint
+        }
+        Some(ScreenHit::Filter(kind)) => {
+            match state.screen {
+                Screen::Recents => state.recents_filter = kind,
+                _ => state.hit_filter = kind,
+            }
             EventOutcome::Repaint
         }
         Some(ScreenHit::Tag(name)) => {

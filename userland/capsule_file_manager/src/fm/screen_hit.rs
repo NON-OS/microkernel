@@ -23,10 +23,11 @@ use nonos_libc::mk_time_millis;
 
 use super::home_geom::home_lines;
 use super::home_hit::home_hit;
+use super::recents_chip_paint::chip_at as kind_at;
 use super::screen::Screen;
 use super::screen_list::Line;
-use super::screen_recents::recents_lines;
-use super::screen_search::search_lines;
+use super::screen_recents::{recents_chip_row, recents_lines};
+use super::screen_search::{search_chip_row, search_lines};
 use super::state::State;
 use super::tags_geom::chip_at;
 use super::tags_rows::tag_lines;
@@ -38,6 +39,9 @@ pub enum ScreenHit {
     Open(String),
     Tag(String),
     Go(Screen),
+    // A filetype chip on Recents or Search; the payload is the filter it
+    // selects, `None` being the All chip.
+    Filter(Option<super::filetype::Kind>),
 }
 
 /// Test `(x, y)` against the very line list the active screen's painter drew
@@ -54,7 +58,25 @@ pub fn screen_hit(state: &State, x: u32, y: u32) -> Option<ScreenHit> {
             return Some(ScreenHit::Tag(name));
         }
     }
+    if let Some(kind) = kind_chip_at(state, x, y) {
+        return Some(ScreenHit::Filter(kind));
+    }
     line_at(&lines_of(state), y).map(ScreenHit::Open)
+}
+
+// The filetype chip row, tested against the very slots its surface painted. A
+// lone All chip means the surface has no data and drew no row at all, so it is
+// not offered as a hit target either.
+fn kind_chip_at(state: &State, x: u32, y: u32) -> Option<Option<super::filetype::Kind>> {
+    let chips = match state.screen {
+        Screen::Recents => recents_chip_row(state),
+        Screen::Search => search_chip_row(state),
+        _ => return None,
+    };
+    if chips.len() < 2 {
+        return None;
+    }
+    kind_at(&chips, x, y)
 }
 
 // The active screen's one layout pass. Browse and Shared lay out no lines.

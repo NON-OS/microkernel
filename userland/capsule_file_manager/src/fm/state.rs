@@ -116,6 +116,11 @@ pub struct State {
     // line is the 1-based match line for a content hit and 0 otherwise.
     pub query: String,
     pub hits: Vec<(u32, u32, String)>,
+    // The active filetype chip on each filtering surface; `None` is the All
+    // chip. Only kinds the data actually holds are ever offered, so a filter can
+    // never select an empty list.
+    pub hit_filter: Option<super::filetype::Kind>,
+    pub recents_filter: Option<super::filetype::Kind>,
     // Journal entries as (millis, path), newest first, grouped by the Recents
     // and Home surfaces.
     pub recents: Vec<(u64, String)>,
