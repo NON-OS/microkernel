@@ -17,48 +17,44 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::chip::{chip, chip_w, CHIP_H};
-use super::fmt_time::fmt_time;
-use super::human_size::human_size;
 use super::layout::ROW_H;
-use super::measure_text::{right_text, truncate_to_width, width_of};
+use super::list_check::check_box;
+use super::list_cols::{cols, CHECK_S};
+use super::list_row_meta::row_meta;
+use super::measure_text::{truncate_to_width, width_of};
 use super::paint_row_tile::row_tile;
 use super::recents_group::parent_of;
+use super::selection_is_selected::is_selected;
 use super::state::State;
 use super::theme::{INK, INK3};
 
-// The trailing meta columns are fixed-width so size and date line up down the
-// list; the text inside each is still placed by measurement.
 const NAME_PX: f32 = 17.0;
 const SUB_PX: f32 = 14.0;
-const DATE_W: u32 = 128;
-const SIZE_W: u32 = 92;
+const TAG_GAP: u32 = 16;
 
 /// One detail row's content, drawn inside the tile `paint_rows` already laid
-/// down. Every column is placed by measurement, never by glyph count.
+/// down. Every cell comes from `list_cols::cols` -- the layout the header strip
+/// and the hit-test read too -- and every string is placed by measurement,
+/// never by glyph count.
 pub fn row_body(state: &State, fb: &mut PaintBuffer, index: usize, y: u32, left: u32, cw: u32) {
     let entry = &state.entries[index];
-    let name_x = row_tile(fb, entry, y, left);
-    let date_end = left + cw;
-    let size_end = date_end.saturating_sub(DATE_W);
-    let tag_end = size_end.saturating_sub(SIZE_W);
-    let room = tag_end.saturating_sub(name_x + 16);
+    let c = cols(left, cw);
+    let on = is_selected(state, &entry.full_path);
+    check_box(fb, c.check_x, y + (ROW_H - CHECK_S) / 2, on);
+    let name_x = row_tile(fb, entry, y, c.tile_x);
+    let room = c.tag_end.saturating_sub(name_x + TAG_GAP);
     let name = truncate_to_width(fb, entry.label.trim_end_matches('/'), NAME_PX, room);
     let name_w = width_of(fb, name, NAME_PX);
     let _ = fb.text_ttf(name_x as i32, (y + 1) as i32, name, INK, NAME_PX);
     let loc = truncate_to_width(fb, parent_of(&entry.full_path), SUB_PX, name_w);
     let _ = fb.text_ttf(name_x as i32, (y + 22) as i32, loc, INK3, SUB_PX);
 
-    let mut tx = name_x + name_w + 16;
+    let mut tx = name_x + name_w + TAG_GAP;
     for tag in state.tags.tags_for(&entry.full_path) {
-        if tx + chip_w(tag) > tag_end {
+        if tx + chip_w(tag) > c.tag_end {
             break;
         }
         tx += chip(fb, tx, y + (ROW_H - CHIP_H) / 2, tag, false);
     }
-    if let Some(size) = entry.size {
-        right_text(fb, size_end, y + 11, &human_size(size), SUB_PX, INK3);
-    }
-    if entry.mtime != 0 {
-        right_text(fb, date_end, y + 11, &fmt_time(entry.mtime), SUB_PX, INK3);
-    }
+    row_meta(fb, entry, y, &c);
 }

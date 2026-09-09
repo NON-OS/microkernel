@@ -20,8 +20,9 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::layout::{content_w, content_x, ROW_H};
+use super::list_head::paint_head;
 use super::paint_row::row_body;
-use super::row_geom::row_slots;
+use super::row_geom::{list_top, row_slots};
 use super::screen_row::empty_state;
 use super::state::State;
 use super::theme::SELECT_BG;
@@ -29,13 +30,14 @@ use super::theme::SELECT_BG;
 pub fn paint_rows(state: &State, fb: &mut PaintBuffer) {
     let left = content_x();
     let cw = content_w(fb.width);
+    paint_head(state, fb, left, cw, state.row_top);
     if state.entries.is_empty() {
         let note = if state.filter.is_empty() {
             "This folder has nothing in it."
         } else {
             "No entry matches the current filter."
         };
-        empty_state(fb, left, state.row_top + 40, cw, "Nothing here", note);
+        empty_state(fb, left, list_top(state) + 40, cw, "Nothing here", note);
         return;
     }
     for slot in row_slots(state) {
