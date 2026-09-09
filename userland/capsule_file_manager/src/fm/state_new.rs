@@ -44,6 +44,7 @@ impl State {
             win_w: super::manifest::WIDTH,
             win_h: super::manifest::HEIGHT,
             dir_info: None,
+            usage: None,
             tags: super::tags::TagMap::default(),
             tag_filter: String::new(),
             screen: super::screen::Screen::Browse,

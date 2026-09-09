@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::clients::vfs::{journal_list, list_paths};
+use nonos_app_skeleton::clients::vfs::{journal_list, list_paths, usage};
 use nonos_libc::mk_getpid;
 
 use super::entries::{build_entries, RESERVED_PREFIX};
@@ -34,6 +34,7 @@ pub fn refresh(state: &mut State) {
         state.owner_pid = mk_getpid();
     }
     refresh_recents(state);
+    state.usage = usage(state.owner_pid).ok();
     match list_paths(state.owner_pid, state.prefix.as_bytes()) {
         Ok(paths) => {
             state.all = build_entries(state.prefix.as_str(), &paths);
