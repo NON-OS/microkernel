@@ -53,6 +53,8 @@ impl State {
             undo: super::undo::UndoStack::default(),
             query: String::new(),
             hits: Vec::new(),
+            hit_filter: None,
+            recents_filter: None,
             recents: Vec::new(),
             place_stats: Vec::new(),
         }

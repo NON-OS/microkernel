@@ -25,6 +25,23 @@ use super::theme::{INK, INK2, INK3, LINE};
 pub const LIST_ROW_H: u32 = 48;
 pub const LABEL_ADV: u32 = 28;
 const ROW_ICON: u32 = 20;
+const TEXT_GAP: u32 = 16;
+const TITLE_DY: u32 = 4;
+const SUB_DY: u32 = 26;
+
+// The two em sizes a row's text lines are drawn at, and the line box between
+// them. `MIN_UI_PX` clamps both draw and measure, so anything measuring against
+// these gets the same advance the painter did.
+pub const TITLE_PX: f32 = 18.0;
+pub const SUB_PX: f32 = 14.0;
+pub const LINE_BOX: u32 = SUB_DY - TITLE_DY;
+
+/// Where `screen_row` puts its text: the shared left edge, the title's top y,
+/// and the sub line's. Anything drawn under those glyphs -- a search match band
+/// -- measures from here rather than restating the offsets.
+pub fn row_text(x: u32, y: u32) -> (u32, u32, u32) {
+    (x + ROW_ICON + TEXT_GAP, y + TITLE_DY, y + SUB_DY)
+}
 
 /// One list line: filetype icon, title, its parent path beneath, and an
 /// optional right-aligned meta column placed by `measure_ttf` rather than by
@@ -43,9 +60,9 @@ pub fn screen_row(
     let iy = y + (LIST_ROW_H - ROW_ICON) / 2;
     let kind = if dir { Icon::Folder } else { Icon::Doc };
     draw(fb, kind, x, iy, ROW_ICON, tint);
-    let tx = (x + ROW_ICON + 16) as i32;
-    let _ = fb.text_ttf(tx, (y + 4) as i32, title, INK, 18.0);
-    let _ = fb.text_ttf(tx, (y + 26) as i32, sub, INK3, 14.0);
+    let (tx, ty, sy) = row_text(x, y);
+    let _ = fb.text_ttf(tx as i32, ty as i32, title, INK, TITLE_PX);
+    let _ = fb.text_ttf(tx as i32, sy as i32, sub, INK3, SUB_PX);
     if !meta.is_empty() {
         let mw = fb.measure_ttf(meta, 14.0).max(0) as u32;
         let mx = (x + w).saturating_sub(mw);

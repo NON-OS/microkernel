@@ -18,8 +18,6 @@ extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
 
-use super::entries::RESERVED_PREFIX;
-
 // Pure millisecond arithmetic against a fixed day, not a calendar: the journal
 // clock and `mk_time_millis` are the same wall clock, so an age in days is all
 // the bucketing needs and no timezone has to be invented.
@@ -59,23 +57,27 @@ pub fn bucket_of(now_ms: u64, then_ms: u64) -> Bucket {
     }
 }
 
-/// The one grouping pass the Recents surface draws from: reserved sidecar paths
-/// are dropped here, and only non-empty buckets come back, so the painter never
+/// The heading used when there is no wall clock to bucket against. Every age
+/// would saturate to zero and read as TODAY, which would be a lie, so the whole
+/// journal goes under one section that says the clock is missing instead.
+pub const NO_CLOCK: &str = "RECENTLY OPENED (CLOCK UNAVAILABLE)";
+
+/// The one grouping pass the Recents surface draws from, over rows the surface
+/// has already filtered. Only non-empty buckets come back, so the painter never
 /// has to decide whether a section exists.
-pub fn group<'a>(
-    now_ms: u64,
-    entries: &'a [(u64, String)],
-) -> Vec<(&'static str, Vec<(u64, &'a str)>)> {
+pub fn group<'a>(now_ms: u64, rows: &[(u64, &'a str)]) -> Vec<(&'static str, Vec<(u64, &'a str)>)> {
+    if now_ms == 0 {
+        return match rows.is_empty() {
+            true => Vec::new(),
+            false => alloc::vec![(NO_CLOCK, rows.to_vec())],
+        };
+    }
     let mut out = Vec::new();
     for (bucket, label) in BUCKETS {
-        let rows: Vec<(u64, &str)> = entries
-            .iter()
-            .filter(|(_, path)| !path.starts_with(RESERVED_PREFIX))
-            .filter(|(ms, _)| bucket_of(now_ms, *ms) == bucket)
-            .map(|(ms, path)| (*ms, path.as_str()))
-            .collect();
-        if !rows.is_empty() {
-            out.push((label, rows));
+        let got: Vec<(u64, &str)> =
+            rows.iter().copied().filter(|(ms, _)| bucket_of(now_ms, *ms) == bucket).collect();
+        if !got.is_empty() {
+            out.push((label, got));
         }
     }
     out
