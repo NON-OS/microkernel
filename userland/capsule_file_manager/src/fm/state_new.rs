@@ -41,8 +41,18 @@ impl State {
             row_h: super::layout::ROW_H,
             view: ViewKind::Grid,
             grid_cols: 5,
+            win_w: super::manifest::WIDTH,
+            win_h: super::manifest::HEIGHT,
+            dir_info: None,
             tags: super::tags::TagMap::default(),
             tag_filter: String::new(),
+            screen: super::screen::Screen::Browse,
+            favorites: super::favorites::Favorites::default(),
+            prefs: super::prefs::Prefs::default(),
+            undo: super::undo::UndoStack::default(),
+            query: String::new(),
+            hits: Vec::new(),
+            recents: Vec::new(),
         }
     }
 }
