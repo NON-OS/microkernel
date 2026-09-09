@@ -21,8 +21,8 @@ use alloc::{string::String, vec::Vec};
 use nonos_app_skeleton::measure_ttf;
 
 use super::header_slots::{
-    HeadHit, Slot, GRID_LABEL, LIST_LABEL, SEARCH_W, TOOL_GAP, TOOL_H, TOOL_PAD, TOOL_PX,
-    UNDO_LABEL,
+    HeadHit, Slot, GLYPH_GAP, GLYPH_S, ICON_BTN, ICON_PAD, FIELD_MIN_W, NEW_LABEL, SEARCH_W,
+    TOOL_GAP, TOOL_H, TOOL_PAD, TOOL_PX, UNDO_LABEL,
 };
 use super::layout::{HEADER_H, PAD_X};
 use super::state::State;
@@ -32,16 +32,36 @@ pub fn tool_y() -> u32 {
     (HEADER_H - TOOL_H) / 2 + 6
 }
 
-/// The sort control's label. Measured and drawn from this one string.
+/// The sort control's label: the mode alone, because the sliders glyph beside it
+/// already says what the control is.
 pub fn sort_text(state: &State) -> String {
-    let mut text = String::from("Sort: ");
-    text.push_str(core::str::from_utf8(state.sort_mode.label()).unwrap_or("?"));
-    text
+    String::from(core::str::from_utf8(state.sort_mode.label()).unwrap_or("?"))
 }
 
 /// Width of a labelled pill at the strip's em size.
 pub fn pill_w(label: &str) -> u32 {
     (measure_ttf(label, TOOL_PX).max(0) as u32) + TOOL_PAD * 2
+}
+
+/// Width of a pill that leads with a glyph and follows it with a label.
+pub fn icon_pill_w(label: &str) -> u32 {
+    (measure_ttf(label, TOOL_PX).max(0) as u32) + GLYPH_S + GLYPH_GAP + ICON_PAD * 2
+}
+
+/// The search control is a full field only where the window is wide enough to
+/// leave the breadcrumb a usable share of the band; below that it collapses to
+/// its bare glyph. Both the painter and the hit-test read this one width.
+pub fn search_w(state: &State) -> u32 {
+    if state.win_w >= FIELD_MIN_W {
+        SEARCH_W
+    } else {
+        ICON_BTN
+    }
+}
+
+/// Whether the search control is currently drawn as a field rather than a glyph.
+pub fn search_is_field(state: &State) -> bool {
+    search_w(state) > ICON_BTN
 }
 
 /// The control strip, laid out right-to-left from the window edge and returned
@@ -53,11 +73,12 @@ pub fn tool_slots(state: &State) -> Vec<Slot> {
     let mut x = state.win_w.saturating_sub(PAD_X);
     let sort = sort_text(state);
     for (w, hit, gap) in [
+        (icon_pill_w(NEW_LABEL), HeadHit::New, TOOL_GAP),
+        (icon_pill_w(&sort), HeadHit::Sort, TOOL_GAP),
+        (ICON_BTN, HeadHit::ViewList, 0),
+        (ICON_BTN, HeadHit::ViewGrid, TOOL_GAP),
+        (search_w(state), HeadHit::Search, TOOL_GAP),
         (pill_w(UNDO_LABEL), HeadHit::Undo, TOOL_GAP),
-        (pill_w(&sort), HeadHit::Sort, TOOL_GAP),
-        (pill_w(GRID_LABEL), HeadHit::ViewGrid, 0),
-        (pill_w(LIST_LABEL), HeadHit::ViewList, TOOL_GAP),
-        (SEARCH_W, HeadHit::Search, TOOL_GAP),
     ] {
         x = x.saturating_sub(w);
         out.push(Slot { x, w, hit });

@@ -17,10 +17,12 @@
 use nonos_app_skeleton::EventOutcome;
 
 use super::event_crumb::crumb_nav;
+use super::event_parent::open_parent;
 use super::event_undo::undo;
 use super::header_slots::HeadHit;
+use super::prompt_start::start_prompt;
 use super::screen::Screen;
-use super::state::{State, ViewKind};
+use super::state::{PromptKind, State, ViewKind};
 use super::store_meta::save_meta;
 use super::view::rebuild_view;
 
@@ -42,7 +44,14 @@ pub fn on_head(state: &mut State, hit: HeadHit) -> EventOutcome {
             state.screen = Screen::Search;
             state.status = b"type to search, Enter to run";
         }
+        HeadHit::SearchClear => {
+            state.query.clear();
+            state.hits.clear();
+        }
         HeadHit::Undo => return undo(state),
+        HeadHit::New => return start_prompt(state, PromptKind::NewFile, b"new file: "),
+        HeadHit::NavBack => return open_parent(state),
+        HeadHit::NavFwd => return EventOutcome::Idle,
     }
     EventOutcome::Repaint
 }

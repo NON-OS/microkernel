@@ -23,8 +23,8 @@ use super::navigate::navigate;
 use super::state::State;
 
 /// Navigate to the prefix the crumb at `index` names. Index 0 is the root
-/// segment, which the painter draws as a name rather than a bare slash, so it
-/// contributes no path component of its own.
+/// segment, which the painter draws as a home glyph rather than a bare slash, so
+/// it contributes no path component of its own.
 pub fn crumb_nav(state: &mut State, index: usize) {
     let parts = crumb_parts(state);
     let mut path = String::from("/");

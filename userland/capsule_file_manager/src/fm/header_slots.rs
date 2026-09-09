@@ -15,24 +15,37 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Control-strip metrics: the em size every control's label is measured and drawn
-// at, the pill's inner padding, the gap between controls, and the pill band.
+// at, a text pill's inner padding, the gap between controls, and the band all of
+// them share. Every control in the header sits in this one band.
 pub const TOOL_PX: f32 = 17.0;
 pub const TOOL_PAD: u32 = 14;
 pub const TOOL_GAP: u32 = 10;
 pub const TOOL_H: u32 = 32;
-pub const SEARCH_W: u32 = 190;
 
-// Breadcrumb metrics. The root segment is named rather than drawn as a bare
-// slash, so the separators between segments read unambiguously.
-pub const CRUMB_PX: f32 = 26.0;
-pub const CRUMB_Y: u32 = 26;
-pub const CRUMB_H: u32 = 34;
+// The search field's width, and the window width below which it collapses to a
+// bare magnifier so the breadcrumb keeps a usable share of a narrow header.
+pub const SEARCH_W: u32 = 160;
+pub const FIELD_MIN_W: u32 = 1000;
+pub const CLEAR_W: u32 = 26;
+
+// Icon-control metrics: the square box a bare icon button occupies, the glyph
+// centred inside it, the gap from a glyph to the label beside it, and the inner
+// padding of a pill that leads with an icon rather than with text.
+pub const ICON_BTN: u32 = 30;
+pub const GLYPH_S: u32 = 16;
+pub const GLYPH_GAP: u32 = 6;
+pub const ICON_PAD: u32 = 10;
+
+// Breadcrumb metrics. The root is drawn as a home glyph of this width and the
+// separators as chevrons centred in a gap of this width.
+pub const CRUMB_PX: f32 = 17.0;
+pub const CRUMB_PAD: u32 = 10;
+pub const CRUMB_SEP_W: u32 = 14;
+pub const HOME_W: u32 = 18;
 pub const CRUMB_ROOT: &str = "Root";
-pub const CRUMB_SEP: &str = " / ";
 
-pub const LIST_LABEL: &str = "List";
-pub const GRID_LABEL: &str = "Grid";
 pub const UNDO_LABEL: &str = "Undo";
+pub const NEW_LABEL: &str = "New";
 pub const SEARCH_HINT: &str = "Search";
 
 /// What a header click targets. `Crumb` carries the index of the breadcrumb
@@ -40,10 +53,14 @@ pub const SEARCH_HINT: &str = "Search";
 #[derive(Clone, Copy, PartialEq)]
 pub enum HeadHit {
     Search,
+    SearchClear,
     ViewList,
     ViewGrid,
     Sort,
     Undo,
+    New,
+    NavBack,
+    NavFwd,
     Crumb(usize),
 }
 
