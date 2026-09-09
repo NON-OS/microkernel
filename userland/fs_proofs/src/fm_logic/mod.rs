@@ -49,6 +49,7 @@ pub mod tags;
 
 // Pure colour tokens, pulled in because `file_color` maps a file kind onto them.
 #[path = "../../../capsule_file_manager/src/fm/theme.rs"]
+#[allow(dead_code)]
 mod theme;
 #[path = "../../../capsule_file_manager/src/fm/tags_load.rs"]
 mod tags_load;

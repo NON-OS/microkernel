@@ -37,7 +37,7 @@ impl TagMap {
             let mut tags: Vec<String> = Vec::new();
             for raw in joined.split(',').filter(|t| !t.is_empty()) {
                 let tag = raw.to_ascii_lowercase();
-                if !valid_tag(&tag) || tags.iter().any(|t| *t == tag) {
+                if !valid_tag(&tag) || tags.contains(&tag) {
                     continue;
                 }
                 tags.push(tag);

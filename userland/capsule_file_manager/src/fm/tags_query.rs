@@ -32,7 +32,7 @@ impl TagMap {
         let tag = tag.to_ascii_lowercase();
         self.entries
             .iter()
-            .filter(|(_, tags)| tags.iter().any(|t| *t == tag))
+            .filter(|(_, tags)| tags.contains(&tag))
             .map(|(p, _)| p.as_str())
             .collect()
     }
