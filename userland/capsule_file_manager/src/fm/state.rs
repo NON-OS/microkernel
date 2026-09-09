@@ -119,4 +119,9 @@ pub struct State {
     // Journal entries as (millis, path), newest first, grouped by the Recents
     // and Home surfaces.
     pub recents: Vec<(u64, String)>,
+    // One cached `dirstat` walk per store prefix the Home cards state a figure
+    // for, keyed by that prefix. Taken while Home is showing and dropped by a
+    // refresh, because paint must never block on IPC; `None` inside the pair is
+    // a cached failure and is reported as one rather than shown as zero.
+    pub place_stats: Vec<(String, Option<(u32, u32, u64, bool)>)>,
 }

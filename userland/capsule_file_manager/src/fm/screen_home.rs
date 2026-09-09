@@ -17,27 +17,31 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_libc::mk_time_millis;
 
-use super::card::{card, Card};
-use super::file_color::color;
-use super::file_kind::kind_of_name;
-use super::home_geom::{cards_bottom, cards_label_y, home_lines};
-use super::home_storage::storage_cards;
-use super::layout::{CONTENT_X, FOOTER_H, HEADER_H, PAD_X};
-use super::recents_group::parent_of;
+use super::home_cat_paint::paint_cats;
+use super::home_date::date_line;
+use super::home_geom::{
+    cards_label_y, cats_label_y, date_y, greet_y, home_lines, stor_label_y, DATE_PX, GREET_PX,
+};
+use super::home_rows::recent_row;
+use super::home_storage::paint_storage_row;
+use super::layout::{CONTENT_X, PAD_X};
 use super::screen_row::{section_label, LABEL_ADV};
-use super::sidebar_rows::base_label;
 use super::state::State;
-use super::theme::{INK, INK3};
+use super::theme::{INK, INK2, INK3};
 
 pub fn paint_home(state: &State, fb: &mut PaintBuffer) {
     let x = CONTENT_X + PAD_X;
     let w = fb.width.saturating_sub(CONTENT_X + PAD_X * 2);
-    let bottom = fb.height.saturating_sub(FOOTER_H);
     let now = mk_time_millis().max(0) as u64;
-    let _ = fb.text_ttf(x as i32, (HEADER_H + 16) as i32, greeting(now), INK, 30.0);
+    let _ = fb.text_ttf(x as i32, greet_y() as i32, greeting(now), INK, GREET_PX);
+    let date = date_line(now);
+    let _ = fb.text_ttf(x as i32, date_y() as i32, date.as_str(), INK2, DATE_PX);
+    section_label(fb, x, cats_label_y(), "CATEGORIES");
+    paint_cats(state, fb);
     section_label(fb, x, cards_label_y(), "CONTINUE WORKING");
-    recent_cards(state, fb, x, w, now);
-    storage_cards(state, fb, x, cards_bottom(state, now), w, bottom);
+    recent_rows(state, fb, x, w, now);
+    section_label(fb, x, stor_label_y(state.win_h), "STORAGE & DEVICES");
+    paint_storage_row(state, fb);
 }
 
 // The wall clock is the only time source, and `fmt_time` already reads a civil
@@ -50,25 +54,17 @@ fn greeting(now_ms: u64) -> &'static str {
     }
 }
 
-// Draws the cards `home_geom` laid out; an empty journal says so in their place.
-fn recent_cards(state: &State, fb: &mut PaintBuffer, x: u32, w: u32, now: u64) {
+// Draws the rows `home_geom` laid out; an empty journal says so in their place
+// rather than leaving the band blank.
+fn recent_rows(state: &State, fb: &mut PaintBuffer, x: u32, w: u32, now: u64) {
     let lines = home_lines(state, now);
     if lines.is_empty() {
         let y = cards_label_y() + LABEL_ADV;
-        let _ = fb.text_ttf(x as i32, y as i32, "Nothing opened yet.", INK3, 15.0);
+        let note = "Nothing opened yet. Files you open land here.";
+        let _ = fb.text_ttf(x as i32, y as i32, note, INK3, 15.0);
         return;
     }
     for line in &lines {
-        let path = line.path.as_str();
-        let title = base_label(path);
-        let spec = Card {
-            title: title.as_str(),
-            sub: parent_of(path),
-            meta: line.meta.as_str(),
-            tint: color(kind_of_name(path)),
-            dir: line.dir,
-            bar: None,
-        };
-        card(fb, x, line.y, w, &spec);
+        recent_row(fb, x, line.y, w, line.path.as_str(), line.meta.as_str());
     }
 }

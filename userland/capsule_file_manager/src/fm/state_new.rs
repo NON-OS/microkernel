@@ -54,6 +54,7 @@ impl State {
             query: String::new(),
             hits: Vec::new(),
             recents: Vec::new(),
+            place_stats: Vec::new(),
         }
     }
 }
