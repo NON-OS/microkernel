@@ -16,9 +16,11 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::icon;
+use super::icon_draw::draw;
+use super::icon_path::Icon;
 use super::layout::{PAD_X, SIDEBAR_W, SIDE_FIRST_Y, SIDE_ROW_H};
-use super::sidebar_model::SideHit;
+use super::screen::Screen;
+use super::sidebar_model::{SideHit, DOWNLOADS};
 use super::sidebar_rows::{row_active, side_rows};
 use super::state::State;
 use super::theme::{CY, CY_DIM, DEEP, INK, INK2, INK3, LINE, RAISE};
@@ -53,24 +55,34 @@ fn section_label(fb: &mut PaintBuffer, label: &str, y: u32) {
     let _ = fb.text_ttf(PAD_X as i32, (y + 4) as i32, label, INK3, 13.0);
 }
 
-// The icons hollow themselves by overpainting with `bg`, so they are handed the
-// colour actually drawn under them: the pill when active, the sidebar otherwise.
+// The icons are stroked line art, so a row only needs its tint; nothing is
+// hollowed against the colour drawn underneath any more.
 fn nav_row(state: &State, fb: &mut PaintBuffer, label: &str, y: u32, hit: &SideHit) {
     let active = row_active(state, hit);
-    let mut ground = DEEP;
     if active {
         fb.fill_round(PILL_X, y, SIDEBAR_W - PILL_X * 2, PILL_H, 11, RAISE);
         fb.fill_round(PILL_X, y, 3, PILL_H, 1, CY);
-        ground = RAISE;
     }
     let tint = if active { CY_DIM } else { INK3 };
     let iy = y + (PILL_H - ICON_S) / 2;
-    match hit {
-        SideHit::Screen(_) => icon::file(fb, PAD_X, iy, ICON_S, tint, ground),
-        SideHit::Path(_) => icon::folder(fb, PAD_X, iy, ICON_S, tint, ground),
-    }
+    draw(fb, nav_icon(hit), PAD_X, iy, ICON_S, tint);
     let ink = if active { INK } else { INK2 };
     let _ = fb.text_ttf((PAD_X + 30) as i32, (y + 4) as i32, label, ink, 18.0);
+}
+
+/// The glyph a navigation row wears. Downloads is a directory but reads as a
+/// destination, so it keeps the arrow rather than the generic folder.
+fn nav_icon(hit: &SideHit) -> Icon {
+    match hit {
+        SideHit::Screen(Screen::Home) => Icon::Home,
+        SideHit::Screen(Screen::Recents) => Icon::Clock,
+        SideHit::Screen(Screen::Shared) => Icon::People,
+        SideHit::Screen(Screen::Tags) => Icon::Tag,
+        SideHit::Screen(Screen::Search) => Icon::Magnifier,
+        SideHit::Screen(_) => Icon::Folder,
+        SideHit::Path(p) if p == DOWNLOADS => Icon::Download,
+        SideHit::Path(_) => Icon::Folder,
+    }
 }
 
 /// Superseded by `sidebar_rows::side_hit`, which accounts for the variable

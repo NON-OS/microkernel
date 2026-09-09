@@ -16,8 +16,9 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::icon;
-use super::theme::{INK, INK2, INK3, LINE, WIN};
+use super::icon_draw::draw;
+use super::icon_path::Icon;
+use super::theme::{INK, INK2, INK3, LINE};
 
 // Shared line metrics for every non-Browse surface, so Recents, Search and Tags
 // stack identically and a section label always advances by the same amount.
@@ -40,11 +41,8 @@ pub fn screen_row(
 ) -> u32 {
     let (title, sub, meta) = row;
     let iy = y + (LIST_ROW_H - ROW_ICON) / 2;
-    if dir {
-        icon::folder(fb, x, iy, ROW_ICON, tint, WIN);
-    } else {
-        icon::file(fb, x, iy, ROW_ICON, tint, WIN);
-    }
+    let kind = if dir { Icon::Folder } else { Icon::Doc };
+    draw(fb, kind, x, iy, ROW_ICON, tint);
     let tx = (x + ROW_ICON + 16) as i32;
     let _ = fb.text_ttf(tx, (y + 4) as i32, title, INK, 18.0);
     let _ = fb.text_ttf(tx, (y + 26) as i32, sub, INK3, 14.0);
@@ -67,7 +65,7 @@ pub fn section_label(fb: &mut PaintBuffer, x: u32, y: u32, text: &str) -> u32 {
 /// window width.
 pub fn empty_state(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, title: &str, note: &str) {
     let iw = 40u32;
-    icon::folder(fb, x + w.saturating_sub(iw) / 2, y, iw, INK3, WIN);
+    draw(fb, Icon::Folder, x + w.saturating_sub(iw) / 2, y, iw, INK3);
     let tw = fb.measure_ttf(title, 20.0).max(0) as u32;
     let _ = fb.text_ttf((x + w.saturating_sub(tw) / 2) as i32, (y + 60) as i32, title, INK2, 20.0);
     let nw = fb.measure_ttf(note, 15.0).max(0) as u32;
