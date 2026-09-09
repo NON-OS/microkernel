@@ -22,6 +22,7 @@ use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
 use crate::fm_logic::recents_group::{bucket_of, group, parent_of, rel_time, Bucket, DAY_MS};
+use crate::fm_logic::recents_tally::shown;
 
 const NOW: u64 = 1_000 * DAY_MS;
 
@@ -54,14 +55,14 @@ fn a_future_timestamp_saturates_to_today_instead_of_wrapping_to_older() {
 }
 
 #[test]
-fn group_drops_the_reserved_sidecar_namespace() {
+fn the_journal_view_drops_the_reserved_sidecar_namespace() {
     let entries = [
         entry(NOW, "/.files/tags"),
         entry(NOW, "/.files/favorites"),
         entry(NOW, "/.files/prefs"),
         entry(NOW, "/docs/report.txt"),
     ];
-    let out = group(NOW, &entries);
+    let out = group(NOW, &shown(&entries, None));
     let rows: Vec<&str> = out.iter().flat_map(|(_, r)| r.iter().map(|(_, p)| *p)).collect();
     assert_eq!(rows, ["/docs/report.txt"]);
 }
@@ -69,7 +70,7 @@ fn group_drops_the_reserved_sidecar_namespace() {
 #[test]
 fn a_reserved_only_journal_produces_no_sections_at_all() {
     let entries = [entry(NOW, "/.files/tags")];
-    assert!(group(NOW, &entries).is_empty());
+    assert!(group(NOW, &shown(&entries, None)).is_empty());
 }
 
 #[test]
@@ -79,14 +80,14 @@ fn only_non_empty_buckets_come_back_and_they_keep_the_declared_order() {
         entry(NOW, "/new.txt"),
         entry(NOW - 3 * DAY_MS, "/mid.txt"),
     ];
-    assert_eq!(labels(&group(NOW, &entries)), ["TODAY", "EARLIER THIS WEEK", "LAST WEEK"]);
+    assert_eq!(labels(&group(NOW, &shown(&entries, None))), ["TODAY", "EARLIER THIS WEEK", "LAST WEEK"]);
 }
 
 #[test]
 fn every_entry_lands_in_exactly_one_bucket() {
     let entries: Vec<(u64, String)> =
         (0..30).map(|d| entry(NOW - d * DAY_MS, "/f.txt")).collect();
-    let total: usize = group(NOW, &entries).iter().map(|(_, r)| r.len()).sum();
+    let total: usize = group(NOW, &shown(&entries, None)).iter().map(|(_, r)| r.len()).sum();
     assert_eq!(total, entries.len());
 }
 
