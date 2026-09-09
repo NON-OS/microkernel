@@ -27,7 +27,7 @@ impl TagMap {
             return false;
         }
         if let Some(slot) = self.entries.iter_mut().find(|(p, _)| p == path) {
-            if slot.1.iter().any(|t| *t == tag) {
+            if slot.1.contains(&tag) {
                 return true;
             }
             if slot.1.len() >= TAG_MAX_PER_PATH {

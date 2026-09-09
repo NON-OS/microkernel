@@ -40,7 +40,7 @@ impl Favorites {
             if paths.len() >= FAVORITES_MAX {
                 break;
             }
-            if paths.iter().any(|q| *q == p) {
+            if paths.contains(&p) {
                 continue;
             }
             paths.push(p);
