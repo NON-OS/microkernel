@@ -140,6 +140,8 @@ mod prefs_tests;
 #[cfg(test)]
 mod protocol_tests;
 #[cfg(test)]
+mod recents_tests;
+#[cfg(test)]
 mod search_limit_tests;
 #[cfg(test)]
 mod search_tests;

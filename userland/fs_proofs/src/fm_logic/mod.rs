@@ -34,12 +34,18 @@ mod filetype;
 pub mod open_with_table;
 #[path = "../../../capsule_file_manager/src/fm/prefs.rs"]
 pub mod prefs;
+#[path = "../../../capsule_file_manager/src/fm/recents_group.rs"]
+pub mod recents_group;
 
 // Shim, not capsule source: see the header of `state.rs`.
 pub mod state;
 
 #[path = "../../../capsule_file_manager/src/fm/tags.rs"]
 pub mod tags;
+
+// Pure colour tokens, pulled in because `file_color` maps a file kind onto them.
+#[path = "../../../capsule_file_manager/src/fm/theme.rs"]
+mod theme;
 #[path = "../../../capsule_file_manager/src/fm/tags_load.rs"]
 mod tags_load;
 #[path = "../../../capsule_file_manager/src/fm/tags_mutate.rs"]

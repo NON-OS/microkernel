@@ -14,34 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
 use nonos_app_skeleton::PaintBuffer;
 
-use super::layout::{CONTENT_X, HEADER_H, PAD_X};
+use super::crumbs::{crumb_parts, crumb_slots};
+use super::header_slots::{HeadHit, CRUMB_PX, CRUMB_SEP, CRUMB_Y};
+use super::layout::{CONTENT_X, HEADER_H};
+use super::paint_toolbar::paint_toolbar;
 use super::state::State;
-use super::theme::{ACCENT, FOREGROUND, HEADER_BG, LINE, MUTED};
+use super::theme::{DEEP, INK, INK3, LINE};
 
 pub fn paint_header(state: &State, fb: &mut PaintBuffer) {
     let w = fb.width;
     let cw = w.saturating_sub(CONTENT_X);
-    fb.fill_rect(CONTENT_X, 0, cw, HEADER_H, HEADER_BG);
+    fb.fill_rect(CONTENT_X, 0, cw, HEADER_H, DEEP);
     fb.fill_rect(CONTENT_X, HEADER_H - 1, cw, 1, LINE);
+    paint_crumbs(state, fb);
+    paint_toolbar(state, fb);
+}
 
-    // accent tick + current path as the title (below the 26px window titlebar)
-    fb.fill_rect(CONTENT_X + PAD_X, 32, 4, 22, ACCENT);
-    let path = if state.prefix.is_empty() { "/" } else { state.prefix.as_str() };
-    let _ = fb.text_ttf((CONTENT_X + PAD_X + 16) as i32, 28, path, FOREGROUND, 26.0);
-
-    // right side: item count + active sort + filter, small and muted
-    let mut meta = alloc::format!("{} items", state.entries.len());
-    meta.push_str("   sort ");
-    meta.push_str(core::str::from_utf8(state.sort_mode.label()).unwrap_or("?"));
-    if !state.filter.is_empty() {
-        meta.push_str("   /");
-        meta.push_str(&state.filter);
+// Separators are painted into the gap `crumb_slots` already reserved for them,
+// so the measured layout stays the only source of horizontal positions.
+fn paint_crumbs(state: &State, fb: &mut PaintBuffer) {
+    let parts = crumb_parts(state);
+    let mut prev_end = 0u32;
+    for slot in crumb_slots(state) {
+        let HeadHit::Crumb(i) = slot.hit else { continue };
+        let Some(text) = parts.get(i) else { continue };
+        if i > 0 {
+            let _ = fb.text_ttf(prev_end as i32, CRUMB_Y as i32, CRUMB_SEP, INK3, CRUMB_PX);
+        }
+        let _ = fb.text_ttf(slot.x as i32, CRUMB_Y as i32, text, INK, CRUMB_PX);
+        prev_end = slot.x + slot.w;
     }
-    let mw = fb.measure_ttf(&meta, 16.0).max(0) as u32;
-    let mx = w.saturating_sub(PAD_X + mw);
-    let _ = fb.text_ttf(mx as i32, 34, &meta, MUTED, 16.0);
 }

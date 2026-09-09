@@ -18,37 +18,63 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::icon;
 use super::layout::{PAD_X, SIDEBAR_W, SIDE_FIRST_Y, SIDE_ROW_H};
+use super::sidebar_model::SideHit;
+use super::sidebar_rows::{row_active, side_rows};
 use super::state::State;
-use super::theme::{ACCENT, DIRECTORY, FOREGROUND, HEADER_BG, LINE, MUTED, SELECT_BG};
+use super::theme::{CY, CY_DIM, DEEP, INK, INK2, INK3, LINE, RAISE};
 
 // Fixed quick-access locations. `(display, path)`; paths match how the vfs
 // reports directory prefixes.
 pub const PLACES: [(&str, &str); 3] =
     [("Root", "/"), ("Documents", "/docs/"), ("Capsules", "/capsules/")];
 
+// The active row's pill is inset from both edges and sits a touch shorter than
+// its row, so consecutive active rows would never touch.
+const PILL_X: u32 = 8;
+const PILL_H: u32 = SIDE_ROW_H - 4;
+const ICON_S: u32 = 18;
+
 pub fn paint_sidebar(state: &State, fb: &mut PaintBuffer) {
     let h = fb.height;
-    fb.fill_rect(0, 0, SIDEBAR_W, h, HEADER_BG);
+    fb.fill_rect(0, 0, SIDEBAR_W, h, DEEP);
     fb.fill_rect(SIDEBAR_W - 1, 0, 1, h, LINE);
-
-    // section label, below the window titlebar
-    fb.text(PAD_X, 40, b"PLACES", MUTED);
-
-    for (i, (label, path)) in PLACES.iter().enumerate() {
-        let y = SIDE_FIRST_Y + i as u32 * SIDE_ROW_H;
-        let active = state.prefix.as_str() == *path;
-        let row_bg = if active { SELECT_BG } else { HEADER_BG };
-        if active {
-            fb.fill_rect(8, y.saturating_sub(6), SIDEBAR_W - 16, SIDE_ROW_H - 2, SELECT_BG);
-            fb.fill_rect(8, y.saturating_sub(6), 3, SIDE_ROW_H - 2, ACCENT);
+    let _ = fb.text_ttf(PAD_X as i32, 32, "NØNOS Files", INK, 21.0);
+    for row in side_rows(state) {
+        match &row.hit {
+            None => section_label(fb, &row.label, row.y),
+            Some(hit) => nav_row(state, fb, &row.label, row.y, hit),
         }
-        icon::folder(fb, PAD_X, y, 18, DIRECTORY, row_bg);
-        let c = if active { FOREGROUND } else { MUTED };
-        let _ = fb.text_ttf((PAD_X + 30) as i32, (y.saturating_sub(2)) as i32, label, c, 18.0);
     }
 }
 
-/// If `y` lands on a place row, return its path for navigation.
+// Section labels sit in the tertiary ink at the readable floor; anything smaller
+// is clamped back up to it by the font layer anyway.
+fn section_label(fb: &mut PaintBuffer, label: &str, y: u32) {
+    let _ = fb.text_ttf(PAD_X as i32, (y + 4) as i32, label, INK3, 13.0);
+}
+
+// The icons hollow themselves by overpainting with `bg`, so they are handed the
+// colour actually drawn under them: the pill when active, the sidebar otherwise.
+fn nav_row(state: &State, fb: &mut PaintBuffer, label: &str, y: u32, hit: &SideHit) {
+    let active = row_active(state, hit);
+    let mut ground = DEEP;
+    if active {
+        fb.fill_round(PILL_X, y, SIDEBAR_W - PILL_X * 2, PILL_H, 11, RAISE);
+        fb.fill_round(PILL_X, y, 3, PILL_H, 1, CY);
+        ground = RAISE;
+    }
+    let tint = if active { CY_DIM } else { INK3 };
+    let iy = y + (PILL_H - ICON_S) / 2;
+    match hit {
+        SideHit::Screen(_) => icon::file(fb, PAD_X, iy, ICON_S, tint, ground),
+        SideHit::Path(_) => icon::folder(fb, PAD_X, iy, ICON_S, tint, ground),
+    }
+    let ink = if active { INK } else { INK2 };
+    let _ = fb.text_ttf((PAD_X + 30) as i32, (y + 4) as i32, label, ink, 18.0);
+}
+
+/// Superseded by `sidebar_rows::side_hit`, which accounts for the variable
+/// Favorites section. Kept for the callers still on the fixed-index geometry.
 pub fn place_at(y: u32) -> Option<&'static str> {
     if y < SIDE_FIRST_Y.saturating_sub(6) {
         return None;
