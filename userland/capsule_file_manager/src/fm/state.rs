@@ -99,6 +99,10 @@ pub struct State {
     // describes. Paint must never block on IPC, so the walk runs once per cursor
     // path and a refresh drops it; `None` inside the pair is a cached failure.
     pub dir_info: Option<(String, Option<(u32, u32, u64, bool)>)>,
+    // Store occupancy as the vfs reports it: (files, bytes_used, max_files).
+    // Read once per refresh, like `dir_info`, because the sidebar's drive card
+    // draws every frame and paint must never block on IPC.
+    pub usage: Option<(u32, u64, u32)>,
     pub tags: super::tags::TagMap,
     pub tag_filter: String,
     // Which top-level surface is drawn, and the persisted sidecar state the
