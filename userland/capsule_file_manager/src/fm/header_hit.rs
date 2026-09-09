@@ -18,28 +18,23 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use super::crumbs::crumb_slots;
-use super::header_layout::{tool_slots, tool_y};
-use super::header_slots::{HeadHit, Slot, CRUMB_H, CRUMB_Y, TOOL_H};
+use super::header_bar::header_slots;
+use super::header_layout::tool_y;
+use super::header_slots::{HeadHit, Slot, TOOL_H};
 use super::layout::HEADER_H;
 use super::state::State;
 
-/// Which header control `(x, y)` lands on. Both bands are tested against the
-/// same slot lists the painter drew from, so nothing is clickable off-target.
+/// Which header control `(x, y)` lands on. Every control shares one band and one
+/// slot list with the painter, so nothing is clickable off-target.
 pub fn head_hit(state: &State, x: u32, y: u32) -> Option<HeadHit> {
     if y >= HEADER_H {
         return None;
     }
     let band = tool_y();
-    if y >= band && y < band + TOOL_H {
-        if let Some(hit) = pick(tool_slots(state), x) {
-            return Some(hit);
-        }
+    if y < band || y >= band + TOOL_H {
+        return None;
     }
-    if y >= CRUMB_Y && y < CRUMB_Y + CRUMB_H {
-        return pick(crumb_slots(state), x);
-    }
-    None
+    pick(header_slots(state), x)
 }
 
 fn pick(slots: Vec<Slot>, x: u32) -> Option<HeadHit> {

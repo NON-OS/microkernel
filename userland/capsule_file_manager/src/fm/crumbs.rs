@@ -21,8 +21,10 @@ use alloc::{string::String, vec::Vec};
 use nonos_app_skeleton::measure_ttf;
 
 use super::header_layout::strip_left;
-use super::header_slots::{HeadHit, Slot, CRUMB_PX, CRUMB_ROOT, CRUMB_SEP};
-use super::layout::{CONTENT_X, PAD_X};
+use super::header_nav::nav_right;
+use super::header_slots::{
+    HeadHit, Slot, CRUMB_PAD, CRUMB_PX, CRUMB_ROOT, CRUMB_SEP_W, HOME_W, TOOL_GAP,
+};
 use super::state::State;
 
 /// The current prefix as breadcrumb segments, root first. Index 0 is the root,
@@ -38,19 +40,26 @@ pub fn crumb_parts(state: &State) -> Vec<String> {
     parts
 }
 
+/// Left edge of the first breadcrumb segment, inset from the plate that wraps
+/// the trail. The plate itself is derived back from this in the painter.
+pub fn crumb_x() -> u32 {
+    nav_right() + TOOL_GAP + CRUMB_PAD
+}
+
 /// Where each segment is drawn. The painter walks these and `head_hit` tests
 /// against them, so a crumb click always lands on the segment under the cursor.
-/// A segment that would run under the control strip is dropped from both.
+/// A segment that would run under the control strip is dropped from both. The
+/// root is a home glyph of fixed width rather than measured text, and each
+/// separator is a chevron drawn into the gap reserved ahead of its segment.
 pub fn crumb_slots(state: &State) -> Vec<Slot> {
-    let limit = strip_left(state);
-    let sep = measure_ttf(CRUMB_SEP, CRUMB_PX).max(0) as u32;
+    let limit = strip_left(state).saturating_sub(CRUMB_PAD);
     let mut out = Vec::new();
-    let mut x = CONTENT_X + PAD_X;
+    let mut x = crumb_x();
     for (i, part) in crumb_parts(state).iter().enumerate() {
         if i > 0 {
-            x += sep;
+            x += CRUMB_SEP_W;
         }
-        let w = measure_ttf(part, CRUMB_PX).max(0) as u32;
+        let w = if i == 0 { HOME_W } else { measure_ttf(part, CRUMB_PX).max(0) as u32 };
         if x + w > limit {
             break;
         }

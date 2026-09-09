@@ -16,26 +16,54 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use super::chrome_pill::PillState;
+use super::header_bar::clear_slot;
 use super::header_layout::{sort_text, tool_slots, tool_y};
-use super::header_slots::{HeadHit, Slot, GRID_LABEL, LIST_LABEL, TOOL_H, UNDO_LABEL};
-use super::paint_tool_pill::{half, pill, search};
+use super::header_nav::{can_back, can_fwd, nav_slots};
+use super::header_slots::{HeadHit, Slot, UNDO_LABEL};
+use super::icon_path::Icon;
+use super::paint_tool_pill::pill;
 use super::state::{State, ViewKind};
-use super::theme::{INK, INK2, INK3, LINE, PANEL};
+use super::theme::{INK2, INK3};
+use super::toolbar_buttons::{group_plate, icon_btn};
+use super::toolbar_new::{icon_label, new_btn};
+use super::toolbar_search::search;
 
 pub fn paint_toolbar(state: &State, fb: &mut PaintBuffer) {
     let y = tool_y();
+    paint_nav(state, fb, y);
     let slots = tool_slots(state);
     toggle_ground(fb, &slots, y);
     let sort = sort_text(state);
+    let clear = clear_slot(state, &slots);
     for slot in &slots {
         match slot.hit {
-            HeadHit::Search => search(state, fb, slot, y),
-            HeadHit::ViewList => half(fb, slot, y, LIST_LABEL, state.view == ViewKind::List),
-            HeadHit::ViewGrid => half(fb, slot, y, GRID_LABEL, state.view == ViewKind::Grid),
-            HeadHit::Sort => pill(fb, slot, y, &sort, INK2),
+            HeadHit::Search => search(state, fb, slot, y, clear.as_ref()),
+            HeadHit::ViewGrid => {
+                icon_btn(fb, slot, y, Icon::Grid, state.view == ViewKind::Grid, false)
+            }
+            HeadHit::ViewList => {
+                icon_btn(fb, slot, y, Icon::List, state.view == ViewKind::List, false)
+            }
+            HeadHit::Sort => icon_label(fb, slot, y, Icon::Sliders, &sort, PillState::Idle),
             HeadHit::Undo => pill(fb, slot, y, UNDO_LABEL, undo_ink(state)),
-            HeadHit::Crumb(_) => {}
+            HeadHit::New => new_btn(fb, slot, y),
+            _ => {}
         }
+    }
+}
+
+// The history group. Forward has no visit stack behind it, so it draws dimmed
+// and stays inert rather than looking live and doing nothing.
+fn paint_nav(state: &State, fb: &mut PaintBuffer, y: u32) {
+    let slots = nav_slots();
+    let (Some(first), Some(last)) = (slots.first(), slots.last()) else { return };
+    group_plate(fb, first, last, y);
+    for slot in &slots {
+        let back = slot.hit == HeadHit::NavBack;
+        let live = if back { can_back(state) } else { can_fwd(state) };
+        let icon = if back { Icon::Back } else { Icon::Forward };
+        icon_btn(fb, slot, y, icon, false, !live);
     }
 }
 
@@ -44,16 +72,16 @@ fn undo_ink(state: &State) -> u32 {
     if state.undo.is_empty() {
         INK3
     } else {
-        INK
+        INK2
     }
 }
 
-// The two halves share one panel, so the toggle reads as a single track with a
-// raised active half rather than as two adjacent pills.
+// The two halves share one ground, so the toggle reads as a single track with a
+// lit active half rather than as two adjacent pills.
 fn toggle_ground(fb: &mut PaintBuffer, slots: &[Slot], y: u32) {
-    let list = slots.iter().find(|s| s.hit == HeadHit::ViewList);
     let grid = slots.iter().find(|s| s.hit == HeadHit::ViewGrid);
-    if let (Some(list), Some(grid)) = (list, grid) {
-        fb.panel(list.x, y, (grid.x + grid.w).saturating_sub(list.x), TOOL_H, 9, PANEL, LINE);
+    let list = slots.iter().find(|s| s.hit == HeadHit::ViewList);
+    if let (Some(grid), Some(list)) = (grid, list) {
+        group_plate(fb, grid, list, y);
     }
 }
