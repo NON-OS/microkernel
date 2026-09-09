@@ -17,8 +17,9 @@
 use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 
 use super::layout::{CONTENT_X, FOOTER_H, PAD_X};
+use super::sel_summary::count_label;
 use super::state::{Mode, State};
-use super::theme::{INK, INK3, LINE, PANEL};
+use super::theme::{CY, INK, INK3, LINE, PANEL};
 
 const HINT: &str = "n new    m dir    r rename    d del    c/x/p copy    / find    ? help";
 const FOOT_PX: f32 = 14.0;
@@ -33,8 +34,12 @@ pub fn paint_footer(state: &State, fb: &mut PaintBuffer) {
     let y = fb.height.saturating_sub(FOOTER_H);
     fb.fill_rect(CONTENT_X, y, band, FOOTER_H, PANEL);
     fb.fill_rect(CONTENT_X, y, band, 1, LINE);
-    let left = CONTENT_X + PAD_X;
+    let mut left = CONTENT_X + PAD_X;
     let ty = (y + 8) as i32;
+    if let Some(count) = count_label(state) {
+        let _ = fb.text_ttf(left as i32, ty, count.as_str(), CY, FOOT_PX);
+        left += measure_ttf(count.as_str(), FOOT_PX).max(0) as u32 + GAP;
+    }
     let status = core::str::from_utf8(state.status).unwrap_or("");
     let _ = fb.text_ttf(left as i32, ty, status, INK3, FOOT_PX);
     match state.mode {

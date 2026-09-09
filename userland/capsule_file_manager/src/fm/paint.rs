@@ -29,6 +29,7 @@ use super::screen_recents::paint_recents;
 use super::screen_search::paint_search;
 use super::screen_shared::paint_shared;
 use super::screen_tags::paint_tags;
+use super::sel_band::paint_band;
 use super::state::{Mode, State, ViewKind};
 use super::chrome_card::Plate;
 use super::chrome_glow::glow_in;
@@ -69,4 +70,5 @@ fn paint_browse(state: &State, fb: &mut PaintBuffer) {
         ViewKind::List => paint_rows(state, fb),
     }
     paint_info(state, fb);
+    paint_band(state, fb);
 }

@@ -16,27 +16,29 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::chip::{chip, chip_w, CHIP_GAP, CHIP_H};
-use super::tags::TagMap;
+use super::chip::{chip, CHIP_H};
+use super::info_geom::InfoGeom;
+use super::info_sizes::SEC_PX;
+use super::info_tag_add::{add_box, ADD_LABEL};
+use super::info_tag_chip::tag_chip;
+use super::info_tag_geom::tag_slots;
 use super::theme::INK3;
 
-const LABEL_PX: f32 = 14.0;
+const HEADING: &str = "Tags";
 
-/// The tags on `path` as a wrapped chip band, or an honest note when there are
-/// none. Chips wrap when the next measured pill would overrun `w`.
-pub fn tag_band(fb: &mut PaintBuffer, tags: &TagMap, path: &str, x: u32, top: u32, w: u32) {
-    let names = tags.tags_for(path);
-    if names.is_empty() {
-        let _ = fb.text_ttf(x as i32, top as i32, "No tags", INK3, LABEL_PX);
+/// The tags on the cursor path as a wrapped chip band, each chip carrying the
+/// box that removes it, and an add chip closing the band. Chips wrap when the
+/// next measured pill would overrun `g.w`; `info_tag_geom` decides where each
+/// one lands and `info_tag_hit` reads the same pass back.
+pub fn tag_band(fb: &mut PaintBuffer, g: &InfoGeom, names: &[&str]) {
+    if g.chips_y + CHIP_H > g.bottom {
         return;
     }
-    let mut cx = x;
-    let mut y = top;
-    for name in names {
-        if cx > x && cx + chip_w(name) > x + w {
-            cx = x;
-            y += CHIP_H + CHIP_GAP;
-        }
-        cx += chip(fb, cx, y, name, false);
+    let _ = fb.text_ttf(g.x as i32, g.tags_head as i32, HEADING, INK3, SEC_PX);
+    let slots = tag_slots(names, g.x, g.chips_y, g.w);
+    for slot in &slots {
+        tag_chip(fb, slot);
     }
+    let (ax, ay, _) = add_box(&slots, g.x, g.chips_y, g.w);
+    let _ = chip(fb, ax, ay, ADD_LABEL, false);
 }
