@@ -34,8 +34,12 @@ mod filetype;
 pub mod open_with_table;
 #[path = "../../../capsule_file_manager/src/fm/prefs.rs"]
 pub mod prefs;
+#[path = "../../../capsule_file_manager/src/fm/recents_filter.rs"]
+pub mod recents_filter;
 #[path = "../../../capsule_file_manager/src/fm/recents_group.rs"]
 pub mod recents_group;
+#[path = "../../../capsule_file_manager/src/fm/recents_tally.rs"]
+pub mod recents_tally;
 
 // Shim, not capsule source: see the header of `state.rs`.
 pub mod state;
