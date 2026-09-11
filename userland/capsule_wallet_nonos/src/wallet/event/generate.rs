@@ -69,6 +69,7 @@ pub fn generate(state: &mut State) -> EventOutcome {
             state.backup_count = count;
             state.backup_active = true;
             state.status = b"wallet created, write down the phrase";
+            super::keep::keep(state);
             super::probe_tick::probe_kick(state)
         }
         Err(_) => {
