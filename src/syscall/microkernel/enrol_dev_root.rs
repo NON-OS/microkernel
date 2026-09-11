@@ -60,8 +60,8 @@ pub fn sys_dev_root_confirm(answer: u64) -> i64 {
     let answer = answer as u32;
     match confirm_dev_root(caps, answer) {
         Ok(Authority::Developer(slot)) => slot as i64,
-        // The vendor authority is never the result of an enrolment.
-        Ok(Authority::Vendor) => ERRNO_FAULT,
+        // Neither the vendor nor a publisher is ever the result of an enrolment.
+        Ok(Authority::Vendor) | Ok(Authority::Publisher) => ERRNO_FAULT,
         Err(e) => {
             crate::sys::serial::print(b"[DEV-ROOT] confirm refused: ");
             crate::sys::serial::println(e.as_str().as_bytes());
