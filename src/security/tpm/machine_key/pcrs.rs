@@ -14,14 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Runtime TPM support.
-//!
-//! The bootloader has its own TPM stack for measuring the boot chain. This one
-//! exists because a quote must be taken while the machine is running, against
-//! a nonce that did not exist at boot, and by then the bootloader is gone.
+//! Which PCRs the key is bound to.
 
-pub mod ak;
-pub mod crb;
-pub mod error;
-pub mod machine_key;
-pub mod quote;
+use super::consts::PCR_SELECT_BYTES;
+
+/// Firmware code, the boot manager the firmware measured, the Secure Boot
+/// policy, and the kernel hash the bootloader extends. Not PCR 1 or 3: a
+/// changed boot order or a docked laptop would cost the owner their volume.
+pub const BOUND_PCRS: [u8; 4] = [0, 4, 7, 9];
+
+pub(super) fn bitmap(pcrs: &[u8]) -> [u8; PCR_SELECT_BYTES] {
+    let mut sel = [0u8; PCR_SELECT_BYTES];
+    for &p in pcrs {
+        let i = (p / 8) as usize;
+        if i < PCR_SELECT_BYTES {
+            sel[i] |= 1 << (p % 8);
+        }
+    }
+    sel
+}

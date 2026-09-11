@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Runtime TPM support.
-//!
-//! The bootloader has its own TPM stack for measuring the boot chain. This one
-//! exists because a quote must be taken while the machine is running, against
-//! a nonce that did not exist at boot, and by then the bootloader is gone.
+//! `TPM2_FlushContext`. The handle is a parameter rather than a handle: the
+//! command is about the slot, not an object it authorises against.
 
-pub mod ak;
-pub mod crb;
-pub mod error;
-pub mod machine_key;
-pub mod quote;
+use alloc::vec::Vec;
+
+use super::consts::{TPM_CC_FLUSH_CONTEXT, TPM_ST_NO_SESSIONS};
+use super::wire::frame;
+
+pub(super) fn build_flush(handle: u32) -> Vec<u8> {
+    frame(TPM_ST_NO_SESSIONS, TPM_CC_FLUSH_CONTEXT, &handle.to_be_bytes())
+}
