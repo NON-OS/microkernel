@@ -39,6 +39,5 @@ pub(super) fn init_device_routing() {
 pub(super) fn init_process_runtime() {
     crate::process::init_process_management();
     crate::elf::loader::init_elf_loader();
-    crate::crypto::kernel_keys::init();
     crate::sys::bench::mark(b"process_runtime_ready");
 }
