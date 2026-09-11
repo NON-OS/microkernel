@@ -121,3 +121,9 @@ mod store_tests;
 mod util_tests;
 #[cfg(test)]
 mod vfs_path_tests;
+
+// The kernel directory-record layout: entry offsets, name matching, chaining.
+pub mod blockfs_dir;
+
+#[cfg(test)]
+mod store_patch_tests;
