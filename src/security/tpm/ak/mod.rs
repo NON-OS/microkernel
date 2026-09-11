@@ -24,7 +24,11 @@
 //! amnesic machine therefore still has an identity a counterparty can pin.
 
 mod create;
+mod cursor;
+mod identity;
 mod load;
+mod public;
 mod template;
 
+pub use identity::ak_public;
 pub use load::{ak_handle, load_ak};
