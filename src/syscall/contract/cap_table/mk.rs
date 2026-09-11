@@ -79,8 +79,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkWait => caps.can_ipc(),
         SyscallNumber::MkKill => caps.can_ipc(),
 
-        SyscallNumber::MkSpawn
-        | SyscallNumber::MkIpcCall
+        SyscallNumber::MkIpcCall
         | SyscallNumber::MkIpcRecv
         | SyscallNumber::MkIpcRecvFrom
         | SyscallNumber::MkIpcReply
