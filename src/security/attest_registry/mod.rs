@@ -24,11 +24,14 @@
 
 mod complete;
 mod entry;
+mod format;
+mod order;
 mod record;
 mod root;
 mod table;
 
 pub use complete::registry_complete;
 pub use entry::AttestedCapsule;
+pub use format::{DOMAIN, ENTRY_LEN};
 pub use record::{forget_attested, record_attested};
 pub use root::{attested_count, registry_root};
