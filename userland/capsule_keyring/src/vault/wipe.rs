@@ -14,21 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod decode;
-mod encode;
-mod errno;
-mod ops;
-mod types;
+//! Scrubbing the root and the secret.
 
-pub use decode::decode_request;
+use core::sync::atomic::{compiler_fence, Ordering};
 
-pub use encode::encode_response;
-pub use errno::{EACCES, EBUSY, EINVAL, ENOENT, ENOSPC};
-pub use types::{
-    Request, KERNEL_REPLY_ENDPOINT, OP_COUNT, OP_DELETE, OP_LIST_WALLET_RAILS, OP_LOCK,
-    OP_METADATA, OP_RETRIEVE, OP_SIGN_ETH_TRANSFER, OP_SIGN_NOX_APPROVE, OP_SIGN_NOX_RECEIPT,
-    OP_SIGN_NOX_STAKE, OP_SIGN_NOX_STAKE_APPROVE, OP_SIGN_NOX_STAKE_LOCKED, OP_SIGN_NOX_TRANSFER,
-    OP_SIGN_NOX_UNSTAKE, OP_STORE, OP_UNLOCK, OP_VAULT_OPEN, OP_VAULT_SEAL, OP_WALLET_ADDRESS,
-    OP_WALLET_EXPORT, OP_WALLET_GENERATE, OP_WALLET_GENERATE_HD, OP_WALLET_IMPORT,
-    OP_WALLET_RECOVER,
-};
+/// A volatile write per byte, so the compiler cannot drop stores to a buffer
+/// it can see is never read again. The machine root and the account secret
+/// both pass through this module's stack.
+pub(super) fn wipe32(buf: &mut [u8; 32]) {
+    for byte in buf.iter_mut() {
+        // SAFETY: ek@nonos.systems - a byte of an array this call owns
+        // mutably, written volatile only to defeat dead-store elimination.
+        unsafe { core::ptr::write_volatile(byte, 0) };
+    }
+    compiler_fence(Ordering::SeqCst);
+}

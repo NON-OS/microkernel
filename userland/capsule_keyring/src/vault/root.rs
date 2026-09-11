@@ -14,21 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod decode;
-mod encode;
-mod errno;
-mod ops;
-mod types;
+//! The machine root, fetched and given back.
 
-pub use decode::decode_request;
+use nonos_libc::machine_key;
+use nonos_vault::ROOT_LABEL;
 
-pub use encode::encode_response;
-pub use errno::{EACCES, EBUSY, EINVAL, ENOENT, ENOSPC};
-pub use types::{
-    Request, KERNEL_REPLY_ENDPOINT, OP_COUNT, OP_DELETE, OP_LIST_WALLET_RAILS, OP_LOCK,
-    OP_METADATA, OP_RETRIEVE, OP_SIGN_ETH_TRANSFER, OP_SIGN_NOX_APPROVE, OP_SIGN_NOX_RECEIPT,
-    OP_SIGN_NOX_STAKE, OP_SIGN_NOX_STAKE_APPROVE, OP_SIGN_NOX_STAKE_LOCKED, OP_SIGN_NOX_TRANSFER,
-    OP_SIGN_NOX_UNSTAKE, OP_STORE, OP_UNLOCK, OP_VAULT_OPEN, OP_VAULT_SEAL, OP_WALLET_ADDRESS,
-    OP_WALLET_EXPORT, OP_WALLET_GENERATE, OP_WALLET_GENERATE_HD, OP_WALLET_IMPORT,
-    OP_WALLET_RECOVER,
-};
+/// The root every capsule's records derive from.
+///
+/// Held for exactly the length of one seal or open. `nonos_vault` takes it as
+/// an argument rather than fetching it, so the decision about how long a root
+/// lives in memory belongs here, where the answer is: not longer than the
+/// operation that needed it.
+pub(super) fn machine_root() -> Result<[u8; 32], i64> {
+    machine_key(ROOT_LABEL)
+}
