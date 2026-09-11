@@ -23,6 +23,7 @@
 //! folds that set into one digest, which is the value an attestation signs.
 
 mod complete;
+mod dump;
 mod entry;
 mod format;
 mod order;
@@ -31,6 +32,7 @@ mod root;
 mod table;
 
 pub use complete::registry_complete;
+pub use dump::registry_entries;
 pub use entry::AttestedCapsule;
 pub use format::{DOMAIN, ENTRY_LEN};
 pub use record::{forget_attested, record_attested};

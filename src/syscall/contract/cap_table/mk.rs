@@ -32,6 +32,15 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAttestStatus
         | SyscallNumber::MkCapCheck => caps.is_valid(),
 
+        /*
+         * The registry entries behind an attestation are readable by any capsule
+         * holding a valid token, because they carry no authority: a verifier
+         * checks them against a root the TPM signed, and a capsule that alters
+         * one produces a set that no longer folds to it. Restricting them would
+         * hide from a program what the machine already tells strangers.
+         */
+        SyscallNumber::MkAttestEntries => caps.is_valid(),
+
         SyscallNumber::MkTimeAdjust => caps.can_set_time(),
 
         SyscallNumber::MkMmap => caps.can_allocate_memory(),
