@@ -21,7 +21,7 @@ use crate::elf::loader::load_elf_entry_into;
 use crate::memory::paging::manager::lookup_asid_for_process;
 
 pub(super) fn load_elf_into_pid(
-    elf: &'static [u8],
+    elf: &[u8],
     pid: u32,
     debug_tag: &'static [u8],
 ) -> Result<u64, SpawnError> {
