@@ -17,7 +17,8 @@
 pub mod api;
 pub mod init;
 pub mod isolation;
-pub mod pcb;
+pub mod inbox_name;
+mod pcb;
 mod pcb_memory;
 mod pcb_memory_share;
 mod pcb_ops;
