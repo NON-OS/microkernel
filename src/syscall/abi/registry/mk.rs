@@ -55,6 +55,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MPIN", SyscallNumber::MkProcInput, "MkProcInput"),
     e(b"MSRD", SyscallNumber::MkStdinRead, "MkStdinRead"),
     e(b"MAST", SyscallNumber::MkAttestStatus, "MkAttestStatus"),
+    e(b"MAEN", SyscallNumber::MkAttestEntries, "MkAttestEntries"),
     e(b"MCGT", SyscallNumber::MkCapGrant, "MkCapGrant"),
     e(b"MCRV", SyscallNumber::MkCapRevoke, "MkCapRevoke"),
     e(b"MCCK", SyscallNumber::MkCapCheck, "MkCapCheck"),
