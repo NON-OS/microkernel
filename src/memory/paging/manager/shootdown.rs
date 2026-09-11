@@ -192,6 +192,7 @@ fn wait_for_acks() {
     while REQ_PENDING_ACKS.load(Ordering::Acquire) > 0 {
         if read_tsc() > deadline {
             crate::sys::serial::println(b"[FATAL] TLB shootdown timeout");
+            report_stuck();
             crate::smp::send_panic_ipi();
             crate::arch::halt_loop();
         }
@@ -204,4 +205,43 @@ fn read_tsc() -> u64 {
     // SAFETY: eK@nonos.systems — rdtsc has no side effects and is
     // unconditionally available on every x86_64 CPU NØNOS supports.
     crate::arch::read_time_counter()
+}
+
+/// What every CPU looked like when the round gave up, printed before the halt.
+///
+/// A timeout says only that an acknowledgement did not arrive. Which CPU owed
+/// it, whether that CPU was ever marked as a target, whether it is halted in
+/// its idle loop or buried in an interrupt handler, and how deep its interrupt
+/// masking goes are what separate "the IPI was never delivered" from "the IPI
+/// was delivered and the CPU was in no position to run it".
+fn report_stuck() {
+    use crate::sys::serial::{print, print_dec, println};
+    print(b"[SMP] acks outstanding=");
+    print_dec(REQ_PENDING_ACKS.load(Ordering::Acquire) as u64);
+    println(b"");
+    for cpu in 0..crate::smp::MAX_CPUS {
+        if !crate::smp::cpu_is_online(cpu) {
+            continue;
+        }
+        let (Some(d), Some(desc)) = (crate::smp::percpu::get(cpu), crate::smp::get_cpu(cpu)) else {
+            continue;
+        };
+        print(b"[SMP]  cpu=");
+        print_dec(cpu as u64);
+        print(b" apic=");
+        print_dec(d.apic_id as u64);
+        print(b" pending=");
+        print_dec(d.tlb_flush_pending.load(Ordering::Acquire) as u64);
+        print(b" irq_nest=");
+        print_dec(d.irq_nesting as u64);
+        print(b" cli_depth=");
+        print_dec(d.interrupt_disable_depth as u64);
+        print(b" asid=");
+        print_dec(d.active_asid.load(Ordering::Acquire) as u64);
+        print(b" idle=");
+        print_dec(u64::from(desc.idle.load(Ordering::Acquire)));
+        print(b" idle_cycles=");
+        print_dec(desc.idle_cycles.load(Ordering::Acquire));
+        println(b"");
+    }
 }
