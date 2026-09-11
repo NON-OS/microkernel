@@ -1,0 +1,16 @@
+{
+  "module": "hygiene",
+  "commit": "b688d834fc89991c6a30f62eb8a7850bcec6cbf7",
+  "toolchain": "nightly-2026-01-16",
+  "status": "pass",
+  "blocking": true,
+  "checks": [
+    {
+      "name": "production-source-hygiene",
+      "status": "pass",
+      "detail": "0 violation(s)",
+      "artifact": ""
+    }
+  ],
+  "gaps": []
+}
