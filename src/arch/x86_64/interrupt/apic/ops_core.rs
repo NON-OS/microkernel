@@ -19,8 +19,26 @@ use super::mmio::{mmio_r32, mmio_w32};
 use super::state::*;
 use core::sync::atomic::Ordering;
 
+/// The APIC id of the CPU that calls this, read from that CPU's own hardware.
+///
+/// It is deliberately not `CACHED_ID`. That cache is one global word, written
+/// by whichever CPU initialised the APIC, so every secondary asking which one
+/// it was got the boot CPU's answer. `percpu::init_ap` populates `apic_id`
+/// from here, so every AP recorded 0, and the TLB shootdown then addressed its
+/// IPIs by that field: three rounds all sent to the boot CPU, none to the CPUs
+/// that owed the acknowledgement, and the originator spun to its deadline and
+/// halted the machine.
+///
+/// Before the APIC is initialised there is exactly one CPU executing and the
+/// cache holds its id, which is why that path is still safe to take. It also
+/// has to be taken: the MMIO read below dereferences a base that does not
+/// exist yet.
 pub fn id() -> u32 {
-    CACHED_ID.load(Ordering::Acquire)
+    if INITIALIZED.load(Ordering::Acquire) {
+        read_id_internal()
+    } else {
+        CACHED_ID.load(Ordering::Acquire)
+    }
 }
 
 pub fn read_id_internal() -> u32 {
