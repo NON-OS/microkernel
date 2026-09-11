@@ -139,7 +139,7 @@ enum Redirect {
 // drain (ToReplyInbox). Every other send is addressed as written (AsAddressed).
 fn redirect_reply(sender_pid: u32, target: &str) -> Redirect {
     let own_reply = crate::process::get_process(sender_pid).and_then(|p| p.reply_inbox());
-    if own_reply == Some(target) {
+    if own_reply.as_ref().map(|n| n.as_str()) == Some(target) {
         if let Some((caller_pid, caller_inbox, token)) = super::pending_reply::pop(sender_pid) {
             return Redirect::ToCaller { caller_inbox, caller_pid, token };
         }

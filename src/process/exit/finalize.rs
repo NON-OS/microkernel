@@ -26,8 +26,8 @@ pub(super) fn finalize_teardown(pid: Pid) {
     // on-demand window instance that closes would leak its reply slot and the
     // next spawn into that slot would collide on the stale endpoint.
     if let Some(reply) = *pcb.reply_inbox.read() {
-        let _ = crate::services::registry::unregister_endpoint_by_name(reply);
-        let _ = crate::ipc::nonos_inbox::unregister_inbox(reply);
+        let _ = crate::services::registry::unregister_endpoint_by_name(reply.as_str());
+        let _ = crate::ipc::nonos_inbox::unregister_inbox(reply.as_str());
     }
     if !super::postmortem::is_retained(pid) {
         let _ = crate::ipc::nonos_inbox::unregister_for_pid(pid);
