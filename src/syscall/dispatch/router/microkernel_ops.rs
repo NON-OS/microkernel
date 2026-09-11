@@ -48,10 +48,15 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkTimeAdjust
             | MkBatteryStatus
             | MkProcStat
+            | MkFutexWait
+            | MkFutexWake
             | MkProcOutput
             | MkProcInput
             | MkStdinRead
             | MkAttestStatus
+            | MkAttestDoc
+            | MkDevRootRequest
+            | MkDevRootConfirm
             | MkCapGrant
             | MkCapRevoke
             | MkCapCheck
