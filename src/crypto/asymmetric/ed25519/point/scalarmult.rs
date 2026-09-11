@@ -16,12 +16,18 @@
 
 use super::ops::{ge_add, ge_double, ge_identity, ge_p1p1_to_p3, ge_to_cached};
 use super::pack::ge_basepoint;
-use super::precomp::PRECOMP;
+use super::precomp::ensure_precomp;
 use super::types::GeP3;
 use crate::crypto::asymmetric::ed25519::field::{fe_cmov, fe_equal, fe_is_zero};
 
 pub(crate) fn ge_scalarmult_base_ct(a: &[u8; 32]) -> GeP3 {
-    let _ = PRECOMP.wait();
+    /*
+     * Build the table here if nobody has yet. This used to wait on it, which
+     * spins until some other caller has built it, and the only caller at boot
+     * was a keypair generated for nothing else: remove that and the first
+     * verify at the first capsule spawn waited forever.
+     */
+    ensure_precomp();
     let base = ge_basepoint();
     ge_scalarmult_ct(&base, a)
 }
