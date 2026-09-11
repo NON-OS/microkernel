@@ -53,7 +53,11 @@ FEATURE_LINE = re.compile(r'^\s*([A-Za-z0-9_-]+)\s*=\s*\[([^\]]*)\]', re.M | re.
 CFG_SITE = re.compile(r'feature\s*=\s*"([A-Za-z0-9_-]+)"')
 FLAG = re.compile(r'--features[ =]+([^\s\\]+)')
 BUILD_CALL = re.compile(r'\$\(call nonos_kernel_build,[^,]*,([^)]*)\)')
-VARIABLE = re.compile(r'\$\([^)]*\)')
+VARIABLE = re.compile(r'\$\([^)]*\)|\$\{\{[^}]*\}\}')
+# A workflow matrix hands cargo its feature string through an expression, so
+# the values live in the list under `features:` rather than on the command
+# line. Items are `- a,b` lines until the indentation drops back.
+MATRIX_LIST = re.compile(r'^(\s+)features:\s*\n((?:\1\s+-\s+[A-Za-z0-9_,-]+\s*\n)+)', re.M)
 
 
 def features_table(text):
@@ -75,7 +79,9 @@ def lane_features(root):
             if not p.is_file():
                 continue
             text = p.read_text(errors="replace").replace("$(_boot_comma)", ",")
-            for m in FLAG.findall(text) + BUILD_CALL.findall(text):
+            matrix = [item.split("-", 1)[1] for _, block in MATRIX_LIST.findall(text)
+                      for item in block.split("\n") if "-" in item]
+            for m in FLAG.findall(text) + BUILD_CALL.findall(text) + matrix:
                 for name in VARIABLE.sub("", m).split(","):
                     if name.strip():
                         names.add(name.strip())
@@ -128,6 +134,14 @@ def self_test():
                                          '#[cfg(feature = "ghost")] fn c() {}\n')
         (root / "mk").mkdir()
         (root / "Makefile").write_text("build:\n\tcargo build --features lit\n")
+        (root / ".github/workflows").mkdir(parents=True)
+        (root / ".github/workflows/x.yml").write_text(
+            "    strategy:\n      matrix:\n        features:\n          - viamatrix\n"
+            "    steps:\n      - run: cargo check --features lit,${{ matrix.features }}\n")
+        (root / "Cargo.toml").write_text((root / "Cargo.toml").read_text().replace(
+            'decoy = []\n', 'decoy = []\nviamatrix = []\n'))
+        (root / "src/lib.rs").write_text((root / "src/lib.rs").read_text()
+                                         + '#[cfg(feature = "viamatrix")] fn d() {}\n')
         dark, undeclared, _ = analyse(root)
         assert dark == ["decoy"], dark
         assert undeclared == ["ghost"], undeclared

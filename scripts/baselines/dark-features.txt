@@ -1,15 +1,4 @@
-crypto-curve25519
-crypto-ed25519-dalek
-dbg-ring
-heap-track
 microkernel-setup-wizard
-mldsa2
-mldsa3
-mldsa5
-mlkem1024
-mlkem512
-mlkem768
-nonos-dev-unverified-capsules
 nonos-smp
 nonos-tool-selftest
 std
