@@ -53,7 +53,6 @@ pub enum SyscallNumber {
     MkServiceRegister = tag4(b"MSVR"),
     MkMmap = tag4(b"MMAP"),
     MkMunmap = tag4(b"MUMP"),
-    MkSpawn = tag4(b"MSPN"),
     MkCapsuleLoad = tag4(b"MCLD"),
     MkCapsuleVerify = tag4(b"MCVF"),
     MkExit = tag4(b"MEXT"),
