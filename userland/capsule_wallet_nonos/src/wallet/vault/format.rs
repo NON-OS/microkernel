@@ -14,45 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod backup;
-mod broadcast;
-mod broadcast_arm;
-mod edit_amount;
-mod edit_nonce;
-mod export_key;
-mod field_input;
-mod generate;
-mod hex_digit;
-mod home_empty_click;
-mod import;
-mod on_event;
-mod on_key;
-mod on_pointer;
-mod on_pointer_view;
-mod probe_tick;
-mod recipient;
-mod recover;
-mod send_input;
-mod send_now;
-mod shortcuts;
-mod sign_both;
-mod sign_eth;
-mod sign_nox;
-mod sign_result;
-mod stake_amount;
-mod stake_flow;
-mod stake_guard;
-mod stake_input;
-mod stake_set;
-mod stake_sign;
-mod stake_wei;
-mod swap_amount;
-mod swap_input;
-mod swap_pair;
-pub(crate) mod swap_quote;
-mod tx_freshen;
-mod unstake_flow;
-mod keep;
+//! What the wallet has to know about a blob it never opens.
+//!
+//! One number, kept in a file with no dependencies so the proofs can include
+//! it beside the keyring's own layout and check the two agree. The wallet
+//! reads and writes exactly this many bytes and refuses anything else, which
+//! is what keeps a truncated file from reaching a TPM derivation.
 
-pub use on_event::on_event;
-pub use probe_tick::probe_tick;
+use nonos_seal::{NONCE_LEN, TAG_LEN};
+
+/// Header 12, nonce 12, secret 32, tag 16.
+pub const BLOB_LEN: usize = HEADER_LEN + NONCE_LEN + SECRET_LEN + TAG_LEN;
+
+/// Magic 8, version 2, key type 1, reserved 1.
+pub const HEADER_LEN: usize = 12;
+
+pub const SECRET_LEN: usize = 32;

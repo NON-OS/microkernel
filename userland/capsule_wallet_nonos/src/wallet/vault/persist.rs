@@ -14,45 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod backup;
-mod broadcast;
-mod broadcast_arm;
-mod edit_amount;
-mod edit_nonce;
-mod export_key;
-mod field_input;
-mod generate;
-mod hex_digit;
-mod home_empty_click;
-mod import;
-mod on_event;
-mod on_key;
-mod on_pointer;
-mod on_pointer_view;
-mod probe_tick;
-mod recipient;
-mod recover;
-mod send_input;
-mod send_now;
-mod shortcuts;
-mod sign_both;
-mod sign_eth;
-mod sign_nox;
-mod sign_result;
-mod stake_amount;
-mod stake_flow;
-mod stake_guard;
-mod stake_input;
-mod stake_set;
-mod stake_sign;
-mod stake_wei;
-mod swap_amount;
-mod swap_input;
-mod swap_pair;
-pub(crate) mod swap_quote;
-mod tx_freshen;
-mod unstake_flow;
-mod keep;
+//! The step that makes a write outlive the power.
+//!
+//! Without it the file is in the RAM filesystem and nowhere else. The block
+//! store is what the seeder reads at boot, so a vault that was written but
+//! not persisted is a vault that quietly does not exist.
 
-pub use on_event::on_event;
-pub use probe_tick::probe_tick;
+use alloc::vec;
+use alloc::vec::Vec;
+
+use nonos_libc::mk_getpid;
+
+use super::vfs::{call, OP_STORE_PERSIST};
+
+pub(super) fn persist(path: &[u8]) -> bool {
+    let pid = mk_getpid();
+    let mut body = Vec::with_capacity(5 + path.len());
+    body.extend_from_slice(&pid.to_le_bytes());
+    body.push(path.len() as u8);
+    body.extend_from_slice(path);
+    let mut rx = vec![0u8; 64];
+    call(OP_STORE_PERSIST, &body, &mut rx).worked()
+}

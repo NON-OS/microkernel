@@ -36,6 +36,8 @@ pub fn new_state() -> State {
         keyring_port: 0,
         owner_pid: 0,
         wallet_id: 0,
+        vault_saved: false,
+        vault_restore_tried: false,
         address: [0; 20],
         address_ready: false,
         balance_ready: false,

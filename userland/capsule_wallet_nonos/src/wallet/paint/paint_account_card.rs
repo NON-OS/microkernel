@@ -69,6 +69,12 @@ pub fn paint_account_card(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w
             GREEN(),
             GREEN_INK(),
         );
+        /*
+         * Whether the machine can keep this wallet past the next boot, beside
+         * the badge that says it is live now.
+         */
+        let badge_y = caption_y.saturating_sub(3);
+        super::account_custody::badge(state, fb, x + w - 20 - aw - 8, badge_y);
     }
 
     // Headline the NOX balance (the native token), with the live ETH balance on

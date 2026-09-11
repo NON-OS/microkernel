@@ -69,6 +69,12 @@ pub struct State {
     pub keyring_port: u32,
     pub owner_pid: u32,
     pub wallet_id: u32,
+    /// Whether this wallet is on the disk sealed to this machine. False on a
+    /// machine with no TPM, and the status line says so once.
+    pub vault_saved: bool,
+    /// One attempt per window. A vault that will not open must not be retried
+    /// on every hydrate, which would put a TPM derivation on a timer.
+    pub vault_restore_tried: bool,
     pub address: [u8; 20],
     pub address_ready: bool,
     pub balance_ready: bool,
