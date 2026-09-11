@@ -40,7 +40,7 @@ pub use constants::*;
 pub use cpu::*;
 pub use cpu_id::cpu_id;
 pub use sole_cpu::sole_cpu_apic_id;
-pub(crate) use state::{cpu_count, cpus_online};
+pub(crate) use state::{cpu_count, cpu_is_online, cpus_online};
 pub use types::*;
 pub fn current_cpu_id() -> u32 {
     cpu_id() as u32
