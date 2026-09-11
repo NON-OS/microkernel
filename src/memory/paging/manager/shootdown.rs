@@ -101,10 +101,18 @@ fn broadcast(va: VirtAddr, page_count: u32, asid: u32) {
     };
 
     let self_cpu = crate::smp::cpu_id();
-    let count = cpus_online();
     let mut targets: u32 = 0;
-    for cpu in 0..count {
-        if cpu == self_cpu {
+    /*
+     * Every cpu slot, filtered by whether it is running. Not `0..cpus_online()`:
+     * that is a population count, while cpu numbers are handed out once per AP
+     * attempted and are not reused when one fails. With a single failed AP the
+     * live numbers are sparse, so counting up to the population both targets a
+     * slot that never started, which can never acknowledge, and skips a cpu
+     * that is running, which never gets the IPI. The wait below then always
+     * reaches its deadline and halts the machine.
+     */
+    for cpu in 0..crate::smp::MAX_CPUS {
+        if cpu == self_cpu || !crate::smp::cpu_is_online(cpu) {
             continue;
         }
         let Some(d) = crate::smp::percpu::get(cpu) else {
@@ -126,8 +134,13 @@ fn broadcast(va: VirtAddr, page_count: u32, asid: u32) {
     REQ_PAGES.store(page_count, Ordering::Release);
     REQ_PENDING_ACKS.store(targets, Ordering::SeqCst);
 
-    for cpu in 0..count {
-        if cpu == self_cpu {
+    /*
+     * The same slots as the marking loop above, for the same reason. The
+     * pending flag is what selects the targets here, and only a cpu the loop
+     * above could reach ever has it set, so the two must walk the same range.
+     */
+    for cpu in 0..crate::smp::MAX_CPUS {
+        if cpu == self_cpu || !crate::smp::cpu_is_online(cpu) {
             continue;
         }
         let Some(d) = crate::smp::percpu::get(cpu) else {

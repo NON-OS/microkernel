@@ -39,6 +39,22 @@ pub(crate) fn cpu_count() -> usize {
     CPU_COUNT.load(Ordering::Acquire)
 }
 
+/// How many CPUs are running. This is a population count and never an index
+/// bound: cpu numbers are handed out once per AP that is attempted and are not
+/// reused when one fails to come up, so with any failed AP the live numbers
+/// are sparse and the largest of them is greater than this. Walking `0..this`
+/// would then miss a running CPU and visit a slot that never started. Use
+/// [`cpu_is_online`] over `0..MAX_CPUS` to enumerate.
 pub(crate) fn cpus_online() -> usize {
     CPUS_ONLINE.load(Ordering::Acquire)
+}
+
+/// Whether `cpu` is a CPU that came up and is running.
+///
+/// An AP that missed its start deadline is left `Offline` by `ap_unit::start`,
+/// and a slot that was never attempted has never left its initial state, so
+/// this is the only safe way to decide whether a cpu number can be expected to
+/// answer an IPI.
+pub(crate) fn cpu_is_online(cpu: usize) -> bool {
+    cpu < MAX_CPUS && CPU_DESCRIPTORS[cpu].state() == super::types::CpuState::Online
 }
