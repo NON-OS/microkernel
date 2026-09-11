@@ -51,4 +51,4 @@ pub use bar::FakeBar;
 pub use live::{run, LiveDevice};
 
 #[cfg(test)]
-mod handshake_tests;
+mod tests;
