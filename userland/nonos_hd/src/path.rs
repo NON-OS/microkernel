@@ -21,8 +21,8 @@ use crate::wipe::wipe;
 /// seed and return the account private key. The two non-hardened steps need
 /// the parent public key, supplied by `pubkey`: given a 32-byte secret it
 /// returns the 65-byte uncompressed SEC1 public key, or None on failure. In
-/// the capsule that provider is the kernel `crypto_secp256k1_pubkey`
-/// syscall; on the host it is the audited k256 crate. Every intermediate
+/// the capsule that provider is `nonos_secp256k1`, and on the host it is the
+/// audited k256 crate. Every intermediate
 /// extended key wipes itself; on any failure the output is zeroed.
 pub fn derive_eth_key<F>(seed: &[u8; 64], mut pubkey: F, out: &mut [u8; 32]) -> bool
 where

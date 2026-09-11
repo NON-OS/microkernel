@@ -20,9 +20,11 @@
 //! live in this crate, proven on the host against the official BIP39 and BIP32
 //! test vectors. The one primitive not implemented here is secp256k1 scalar
 //! multiplication: non-hardened derivation takes the parent public key from a
-//! caller-supplied provider, which inside the capsule is the kernel's proven
-//! `crypto_secp256k1_pubkey` syscall and in host tests is the audited k256
-//! crate. Secret intermediates are wiped with volatile writes on every path.
+//! caller-supplied provider, which inside the capsule is `nonos_secp256k1`
+//! and in host tests is the audited k256 crate. That provider used to be the
+//! kernel's `crypto_secp256k1_pubkey` syscall; the curve left ring 0, since it
+//! had no in-kernel caller and served only the wallet. Secret intermediates
+//! are wiped with volatile writes on every path.
 
 #![no_std]
 
