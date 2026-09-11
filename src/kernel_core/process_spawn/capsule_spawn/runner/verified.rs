@@ -25,7 +25,7 @@ use super::preflight;
 // from spec.requested_caps. requested_caps is only the upper bound
 // the spawn site is willing to grant for optional caps.
 pub fn spawn_verified(
-    spec: &CapsuleSpecVerified,
+    spec: &CapsuleSpecVerified<'_>,
     trust_anchor: &NonosTrustAnchorPolicy,
     now_ms: Option<u64>,
 ) -> Result<u32, SpawnError> {
@@ -36,7 +36,7 @@ pub fn spawn_verified(
 // `on_behalf_of` (a kernel-attested pid) instead of the caller. Used by the
 // capsule-load-from-store path when the caller holds spawn-broker authority.
 pub(crate) fn spawn_verified_as(
-    spec: &CapsuleSpecVerified,
+    spec: &CapsuleSpecVerified<'_>,
     trust_anchor: &NonosTrustAnchorPolicy,
     now_ms: Option<u64>,
     on_behalf_of: Option<AttestedParent>,

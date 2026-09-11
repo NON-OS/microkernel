@@ -21,7 +21,7 @@ use crate::security::capsule_attest::{verify_capsule_attestation, Proved};
 /// both once a pid exists. `None` only on the rollout path, where nothing was
 /// proved at all.
 pub(crate) fn attest_gate(
-    spec: &CapsuleSpecVerified,
+    spec: &CapsuleSpecVerified<'_>,
     install_caps: u64,
 ) -> Result<Option<Proved>, SpawnError> {
     let trailer = spec.attestation_trailer;
