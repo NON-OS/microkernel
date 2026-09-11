@@ -59,10 +59,14 @@ pub fn parse_entries(bytes: &[u8]) -> Result<Vec<Entry>, ParseError> {
 fn read_one(b: &[u8]) -> Entry {
     let mut measurement = [0u8; 32];
     measurement.copy_from_slice(&b[4..36]);
+    let mut pid = [0u8; 4];
+    pid.copy_from_slice(&b[..4]);
+    let mut caps = [0u8; 8];
+    caps.copy_from_slice(&b[36..44]);
     Entry {
-        pid: u32::from_be_bytes(b[..4].try_into().expect("4 bytes")),
+        pid: u32::from_be_bytes(pid),
         measurement,
-        caps: u64::from_be_bytes(b[36..44].try_into().expect("8 bytes")),
+        caps: u64::from_be_bytes(caps),
         authority: Authority::from_byte(b[44]),
     }
 }
