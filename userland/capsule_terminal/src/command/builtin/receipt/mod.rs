@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod call;
-mod emit;
-mod fmt;
-mod manage;
+//! `receipt`: what the kernel recorded about every running capsule.
+//!
+//! These are the entries the attestation registry root folds, read straight
+//! from the kernel rather than from any capsule's account of itself. Off the
+//! machine, `nonos-receipt` refolds them and checks the result against a root
+//! a TPM signed; `receipt --hex` prints them in the form that tool reads.
 
+mod hexdump;
+mod row;
 mod run;
 mod summary;
-mod wire;
 
 pub use run::run;
