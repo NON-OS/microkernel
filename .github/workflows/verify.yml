@@ -36,6 +36,13 @@ jobs:
         run: cargo clippy --manifest-path nonos-verify/Cargo.toml --all-targets -- -D warnings
       - name: Production source hygiene
         run: cargo run --manifest-path nonos-verify/Cargo.toml -- hygiene
+      # A feature no lane enables gates code nothing has compiled since a person
+      # last built it by hand. The dark set is held against a baseline that may
+      # only shrink.
+      - name: Features no build lane enables
+        run: |
+          python3 scripts/check_dark_features.py --self-test
+          python3 scripts/check_dark_features.py
 
   # The committed verification/evidence/EVIDENCE.json is a machine-readable inventory of
   # everything NONOS proves. Regenerate it from the source tree and fail if it
