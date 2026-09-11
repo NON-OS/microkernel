@@ -69,23 +69,9 @@ pub mod p256;
 #[path = "../../../../../src/crypto/asymmetric/p384/mod.rs"]
 pub mod p384;
 
-// secp256k1 ECDSA (the chain signature curve). Uses hmac_sha256, the rng shim,
-// and the crypto error types, all provided above.
-#[allow(
-    unused_imports,
-    clippy::needless_range_loop,
-    clippy::unnecessary_cast,
-    clippy::manual_is_multiple_of,
-    clippy::redundant_closure,
-    clippy::wrong_self_convention,
-    clippy::identity_op,
-    clippy::manual_rotate,
-    clippy::useless_conversion,
-    clippy::should_implement_trait,
-    clippy::manual_memcpy
-)]
-#[path = "../../../../../src/crypto/asymmetric/secp256k1/mod.rs"]
-pub mod secp256k1;
+// secp256k1 is no longer here: the curve moved to userland as nonos_secp256k1,
+// which carries its own vectors. It had no in-kernel caller and existed only to
+// answer syscalls for the wallet.
 
 // Curve25519 (Edwards point arithmetic) used by the kernel ZK verifier.
 // (The module self-allows `needless_range_loop`.)
