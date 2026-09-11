@@ -24,6 +24,7 @@ pub mod bus;
 pub mod capabilities;
 pub mod elf;
 pub mod memory;
+pub mod process;
 pub mod syscall;
 pub mod time;
 pub mod spec;
@@ -33,6 +34,8 @@ pub mod usercopy;
 mod authorization_tests;
 #[cfg(test)]
 mod elf_tests;
+#[cfg(test)]
+mod inbox_name_tests;
 #[cfg(test)]
 mod permissions_tests;
 #[cfg(test)]
