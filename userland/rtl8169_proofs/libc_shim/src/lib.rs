@@ -30,7 +30,9 @@ static TURN: Mutex<()> = Mutex::new(());
 /// Holds the entropy switch in one position until dropped. The switch is
 /// process-wide and the tests run in parallel, so every test that draws an
 /// address takes its turn through this; dropping it puts entropy back on.
-pub struct Entropy(MutexGuard<'static, ()>);
+pub struct Entropy {
+    _turn: MutexGuard<'static, ()>,
+}
 
 impl Drop for Entropy {
     fn drop(&mut self) {
@@ -41,7 +43,7 @@ impl Drop for Entropy {
 pub fn entropy(available: bool) -> Entropy {
     let turn = TURN.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     ENTROPY.store(available, Ordering::SeqCst);
-    Entropy(turn)
+    Entropy { _turn: turn }
 }
 
 /// Fills `len` bytes with a fixed pattern when entropy is on, so a test can
