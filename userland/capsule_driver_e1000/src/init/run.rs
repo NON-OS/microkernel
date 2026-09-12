@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Hardware bring-up orchestrator. Reset -> station address -> RAL/RAH
-//! + MTA -> RX ring -> TX ring. The Driver's existing RX/TX ring
-//! state is programmed in place; the server loop reads them
-//! through `&mut driver.rx` / `&mut driver.tx` after this returns.
+//! The bring-up, in order: reset, station address, receive address filter
+//! and multicast table, receive ring, transmit ring. The driver's ring state
+//! is programmed in place; the server loop reads it afterwards.
 
 use crate::setup::Driver;
 
