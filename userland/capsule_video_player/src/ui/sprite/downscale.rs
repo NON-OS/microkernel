@@ -14,17 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bars;
-mod chip;
-mod header;
-mod library;
-mod meter;
-mod palette;
-mod panel;
-mod transport;
+//! Box-filtered alpha lookup that resamples a 64px mask to the drawn size.
 
-pub use header::paint_header;
-pub use library::paint_list;
-pub use palette::BG;
-pub use panel::paint_panel;
-pub use transport::paint_transport;
+use super::canvas::Sprite;
+
+fn span(d: u32, n: u32, extent: u32) -> (u32, u32) {
+    let lo = d * extent / n;
+    let hi = ((d + 1) * extent / n).max(lo + 1).min(extent);
+    (lo, hi)
+}
+
+pub fn alpha(m: &Sprite, dx: u32, dy: u32, n: u32) -> u32 {
+    let (x0, x1) = span(dx, n, m.w);
+    let (y0, y1) = span(dy, n, m.h);
+    let mut acc = 0u32;
+    let mut count = 0u32;
+    for sy in y0..y1 {
+        for sx in x0..x1 {
+            acc += m.rgba[((sy * m.w + sx) * 4 + 3) as usize] as u32;
+            count += 1;
+        }
+    }
+    if count == 0 {
+        0
+    } else {
+        acc / count
+    }
+}
