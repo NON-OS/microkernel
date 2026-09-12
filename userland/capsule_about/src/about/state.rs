@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::data::attest_doc::{request, Attestation};
 use super::section::{Section, SECTIONS};
 use super::ui::metrics::SCROLL_STEP;
 
@@ -28,11 +29,24 @@ pub struct State {
     pub fb_h: u32,
     pub view_h: u32,
     pub content_h: u32,
+    // The signed statement of what this machine is running. Asking costs a TPM
+    // signature, so it is asked when the user opens the Verify screen and held
+    // until the window closes: a document re-signed on every repaint would put
+    // the TPM on the paint path for no gain in truth.
+    pub attest: Attestation,
 }
 
 impl State {
     pub fn new() -> Self {
-        State { section: Section::Overview, scroll: 0, fb_w: 0, fb_h: 0, view_h: 0, content_h: 0 }
+        State {
+            section: Section::Overview,
+            scroll: 0,
+            fb_w: 0,
+            fb_h: 0,
+            view_h: 0,
+            content_h: 0,
+            attest: Attestation::NotAsked,
+        }
     }
     pub fn record_extent(&mut self, view_h: u32, content_h: u32) {
         self.view_h = view_h;
@@ -48,6 +62,12 @@ impl State {
         }
         self.section = section;
         self.scroll = 0;
+        // Opening the screen is the act that asks the machine to attest itself,
+        // and it is asked once: a second visit shows the document from the first,
+        // which is the honest thing since nothing about it has been re-checked.
+        if section == Section::Verify && matches!(self.attest, Attestation::NotAsked) {
+            self.attest = request();
+        }
         true
     }
     pub fn select_next_section(&mut self) {

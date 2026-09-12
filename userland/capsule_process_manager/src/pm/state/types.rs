@@ -103,4 +103,8 @@ pub struct State {
     pub alert_sel: usize,
     pub alert_scroll: usize,
     pub alert_visible: usize,
+    /// Whether the keyboard overlay is up. Twenty shortcuts that only a reader
+    /// of the source could find are not features, so there is a key that lists
+    /// them and a hint in the status strip that says which key.
+    pub help_open: bool,
 }

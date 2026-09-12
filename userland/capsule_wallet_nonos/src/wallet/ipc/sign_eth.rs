@@ -27,7 +27,7 @@ pub fn sign_eth_transfer(
     wallet_id: u32,
     to: [u8; 20],
     nonce: u64,
-    value_wei: u64,
+    value_wei: u128,
     gas_price_wei: u64,
 ) -> Result<Vec<u8>, i32> {
     let (max_priority, max_fee) = eip1559_fees(gas_price_wei);
@@ -40,7 +40,7 @@ pub fn sign_eth_transfer(
     push_word(&mut payload, max_fee);
     // A plain value transfer to an account always costs exactly 21000 gas.
     push_word(&mut payload, 21_000);
-    push_word(&mut payload, value_wei as u128);
+    push_word(&mut payload, value_wei);
     let rx = keyring_call(port, OP_SIGN_ETH_TRANSFER, &payload, 256)?;
     if rx.len() <= HDR_LEN {
         return Err(-11);

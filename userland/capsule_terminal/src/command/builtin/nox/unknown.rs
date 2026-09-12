@@ -20,8 +20,27 @@ use crate::term::state::State;
 
 pub fn run(state: &mut State, verb: &[u8]) {
     let mut line = Vec::new();
-    line.extend_from_slice(b"nox: unknown verb '");
     line.extend_from_slice(verb);
-    line.extend_from_slice(b"' (try: nox help)");
+    line.extend_from_slice(b": not found");
+
+    // A mistyped command nearly always has an obvious neighbour, and naming it
+    // ends the problem here rather than sending the reader to look it up. The
+    // candidates are every name that would actually have run.
+    let candidates = crate::event::complete::all_names();
+    match crate::command::suggest::nearest_two(verb, candidates.into_iter()) {
+        (Some(near), Some(alt)) => {
+            line.extend_from_slice(b". did you mean '");
+            line.extend_from_slice(near);
+            line.extend_from_slice(b"' or '");
+            line.extend_from_slice(alt);
+            line.extend_from_slice(b"'?");
+        }
+        (Some(near), None) => {
+            line.extend_from_slice(b". did you mean '");
+            line.extend_from_slice(near);
+            line.extend_from_slice(b"'?");
+        }
+        _ => line.extend_from_slice(b". 'help' lists what there is"),
+    }
     state.scrollback.push_error(&line);
 }

@@ -30,7 +30,7 @@ static SECT_BITS: [AtomicU32; 7] = [
     AtomicU32::new(0b1011),
 ];
 
-pub(super) fn sect_on(nav: usize, bit: u32) -> bool {
+pub(crate) fn sect_on(nav: usize, bit: u32) -> bool {
     match SECT_BITS.get(nav) {
         Some(cell) => cell.load(Ordering::Relaxed) & (1 << bit) != 0,
         None => false,

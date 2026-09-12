@@ -18,25 +18,15 @@ fn matches(label: &[u8], query: &str) -> bool {
         return false;
     }
     let fold = |b: u8| b.to_ascii_lowercase();
-    label
-        .windows(q.len())
-        .any(|w| w.iter().map(|&b| fold(b)).eq(q.iter().map(|&b| fold(b))))
+    label.windows(q.len()).any(|w| w.iter().map(|&b| fold(b)).eq(q.iter().map(|&b| fold(b))))
 }
 
 pub(crate) fn label_of(ctx: &Context, t: Target) -> &[u8] {
     match t {
         Target::App(a) => LAUNCHER_APPS[a].label,
         Target::Tool(t) => TOOL_APPS[t].label,
-        Target::Installed(i) => ctx
-            .installed_apps
-            .get(i)
-            .map(|n| n.as_slice())
-            .unwrap_or(b""),
-        Target::Package(i) => ctx
-            .pkg_files
-            .get(i)
-            .map(|n| n.as_bytes())
-            .unwrap_or(b""),
+        Target::Installed(i) => ctx.installed_apps.get(i).map(|n| n.as_slice()).unwrap_or(b""),
+        Target::Package(i) => ctx.pkg_files.get(i).map(|n| n.as_bytes()).unwrap_or(b""),
     }
 }
 

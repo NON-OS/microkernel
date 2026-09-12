@@ -17,7 +17,7 @@
 use nonos_app_skeleton::EventOutcome;
 
 use crate::wallet::state::{
-    State, VIEW_HOME, VIEW_NOX, VIEW_PROOF, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELDED,
+    State, VIEW_HOME, VIEW_NOX, VIEW_PROOF, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELDED, VIEW_SWAP,
 };
 
 pub fn on_pointer(state: &mut State, x: i32, y: i32) -> EventOutcome {
@@ -115,6 +115,12 @@ fn nav(state: &mut State, x: u32, y: u32) -> bool {
     }
     let views = [VIEW_HOME, VIEW_RECEIVE, VIEW_SEND, VIEW_PROOF, VIEW_SHIELDED, VIEW_NOX];
     state.view = views[i as usize];
+    // Ask on arrival, once per visit. A shield capsule can be installed while
+    // the wallet is open, and a screen that answered "unavailable" at launch
+    // should not keep saying it after the thing arrives.
+    if matches!(state.view, VIEW_SHIELDED | VIEW_SWAP) {
+        state.shield = crate::wallet::shield::probe::probe();
+    }
     true
 }
 

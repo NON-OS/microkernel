@@ -575,6 +575,15 @@ microkernel-desktop-base = [
 microkernel-desktop-gui = [
   "microkernel-desktop-base",
   "nonos-tool-capsules",
+]
+
+# The desktop plus the async runtime gate. `capsule_tokio_smoke` races a timer
+# against an idle accept to prove the mio backend's self-wake, and it never
+# finishes doing it: in the desktop image it held about a sixth of a core for
+# the life of the session, starving the services a desktop actually needs. It
+# is a test, and it belongs in a build whose job is testing.
+microkernel-desktop-gui-async-gate = [
+  "microkernel-desktop-gui",
   "nonos-capsule-tokio-smoke",
 ]
 
@@ -837,6 +846,7 @@ sha1-legacy = []
 std = []
 
 [dependencies]
+nonos_bench_core = { path = "nonos-bench", version = "0.1.0" }
 # Transparent STARK stack, shared with the bootloader for kernel self-attestation.
 nonos-stark = { path = "stark-attest/crates/stark-core", version = "0.2.0" }
 # Synchronization. spin is the kernel-wide lock primitive (no_std,

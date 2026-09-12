@@ -35,7 +35,8 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     let right = state.fb_w.saturating_sub(STATUS_PAD_X);
     text::right(fb, right, top, b"Esc closes", MUTED, BODY_PX);
     let hint = b"Tab cycles sections";
-    let hint_right = right.saturating_sub(text::width(fb, b"Esc closes", BODY_PX))
+    let hint_right = right
+        .saturating_sub(text::width(fb, b"Esc closes", BODY_PX))
         .saturating_sub(STATUS_GROUP_GAP);
     if hint_right > STATUS_PAD_X * 6 {
         text::right(fb, hint_right, top, hint, MUTED, BODY_PX);

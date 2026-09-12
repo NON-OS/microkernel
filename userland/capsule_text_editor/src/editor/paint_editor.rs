@@ -52,7 +52,7 @@ impl Editor {
 
         paint_activity(fb, h, Screen::Editor, self.sidebar_open);
         if self.sidebar_open {
-            paint_sidebar(fb, &self.tree, h, self.entry.is_some());
+            paint_sidebar(fb, &self.tree, h, self.entry.is_some(), self.ribbon_shown());
         }
         let px = pane_x(self.sidebar_open);
         self.tab_layout = paint_tabs(fb, &self.docs, self.active, px, w);
@@ -60,10 +60,17 @@ impl Editor {
         self.mb_layout = paint_menubar(fb, w, self.mb_open);
 
         let i = self.active.min(self.docs.len().saturating_sub(1));
-        let rb = ribbon_state(&self.docs[i]);
-        self.rb_layout = paint_ribbon(fb, w, &rb, self.rb_open);
+        let ribbon = self.ribbon_shown();
+        if ribbon {
+            let rb = ribbon_state(&self.docs[i]);
+            self.rb_layout = paint_ribbon(fb, w, &rb, self.rb_open);
+        } else {
+            // Cleared rather than left stale, so the hit test cannot match a
+            // control that is no longer painted.
+            self.rb_layout = Default::default();
+        }
 
-        let (rx, ry, rw, rh) = pane_rect(w, h, self.sidebar_open);
+        let (rx, ry, rw, rh) = pane_rect(w, h, self.sidebar_open, ribbon);
         {
             let d = &mut self.docs[i];
             d.pane_x = rx;
@@ -78,7 +85,7 @@ impl Editor {
         // Overlays last so they sit above everything else.
         if self.sidebar_open {
             if let Some(entry) = &self.entry {
-                paint_entry(fb, entry);
+                paint_entry(fb, entry, ribbon);
             }
         }
         if let Some(menu) = &self.menu {

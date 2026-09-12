@@ -32,11 +32,7 @@ pub(super) fn paint(ctx: &Context) {
     let r = R * scale();
     let mut buf = surface(ctx);
     for i in 0..n {
-        let argb = if i == ctx.launchpad_page {
-            palette::ACCENT
-        } else {
-            palette::TEXT_DIM
-        };
+        let argb = if i == ctx.launchpad_page { palette::ACCENT } else { palette::TEXT_DIM };
         buf.circle(x0 + (i as u32) * step, y, r, argb);
     }
 }

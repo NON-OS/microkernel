@@ -19,14 +19,15 @@
 use alloc::vec::Vec;
 
 use super::budget_roles::{ENTRY_BUDGET, EXIT_BUDGET, MIX_BUDGET};
+use super::keep::keep;
 use super::live::{fetch_exits, fetch_gateways, fetch_mixnodes, layers_present};
 use super::step::{Step, PARTIAL};
 use crate::topology::{self, Node};
 /// The mix layers, which are what a route is built from.
 pub(super) fn first(tcp_port: u32) -> Step {
     match fetch_mixnodes(tcp_port) {
-        Ok(mut nodes) if layers_present(&nodes) => {
-            nodes.truncate(MIX_BUDGET);
+        Ok(nodes) if layers_present(&nodes) => {
+            let nodes = keep(nodes, MIX_BUDGET, b"mix");
             *PARTIAL.lock() = Some((nodes, 1));
             Step::Progressed
         }
@@ -56,8 +57,8 @@ const GATEWAY_ATTEMPTS: u32 = 12;
 pub(super) fn gateways(tcp_port: u32, mut nodes: Vec<Node>) -> Step {
     for _ in 0..GATEWAY_ATTEMPTS {
         match fetch_gateways(tcp_port) {
-            Ok(mut found) if !found.is_empty() => {
-                found.truncate(ENTRY_BUDGET);
+            Ok(found) if !found.is_empty() => {
+                let mut found = keep(found, ENTRY_BUDGET, b"entry gateways");
                 nodes.append(&mut found);
                 break;
             }
@@ -89,8 +90,8 @@ const EXIT_ATTEMPTS: u32 = 12;
 pub(super) fn exits(tcp_port: u32, mut nodes: Vec<Node>) -> Step {
     for _ in 0..EXIT_ATTEMPTS {
         match fetch_exits(tcp_port) {
-            Ok(mut found) => {
-                found.truncate(EXIT_BUDGET);
+            Ok(found) => {
+                let mut found = keep(found, EXIT_BUDGET, b"exit gateways");
                 nodes.append(&mut found);
                 break;
             }

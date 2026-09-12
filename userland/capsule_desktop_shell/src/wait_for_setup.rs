@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_debug, mk_yield};
+use nonos_libc::{mk_debug, mk_idle_ms};
+
+/// Sleep between attempts instead of spinning through them.
+const RETRY_MS: u64 = 250;
 
 pub fn wait_for_setup() -> crate::state::Context {
     let mut last: &'static str = "";
@@ -36,9 +39,10 @@ pub fn wait_for_setup() -> crate::state::Context {
                     last = step;
                 }
                 rounds = rounds.wrapping_add(1);
-                for _ in 0..64 {
-                    mk_yield();
-                }
+                // The same yield-spin login held a core with. `mk_yield` returns
+                // at once when nothing else wants the processor, so a setup that
+                // stays stuck is waited on flat out rather than waited on at all.
+                mk_idle_ms(RETRY_MS);
             }
         }
     }

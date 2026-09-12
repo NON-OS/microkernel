@@ -512,6 +512,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_bench_core"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_kernel"
 version = "0.9.2"
 dependencies = [
@@ -530,6 +534,7 @@ dependencies = [
  "lazy_static",
  "linked_list_allocator",
  "nonos-stark",
+ "nonos_bench_core",
  "sha2",
  "sha3",
  "smallvec",

@@ -21,16 +21,18 @@ pub enum Section {
     Overview,
     System,
     Trust,
+    Verify,
     Display,
     Licenses,
 }
 
 // Sidebar order. The nav painter and the click router both walk this slice, so
 // the rail can never draw an entry the hit test does not know about.
-pub const SECTIONS: [Section; 5] = [
+pub const SECTIONS: [Section; 6] = [
     Section::Overview,
     Section::System,
     Section::Trust,
+    Section::Verify,
     Section::Display,
     Section::Licenses,
 ];
@@ -41,6 +43,7 @@ impl Section {
             Section::Overview => b"Overview",
             Section::System => b"System",
             Section::Trust => b"Trust",
+            Section::Verify => b"Verify",
             Section::Display => b"Display",
             Section::Licenses => b"Licenses",
         }
@@ -52,6 +55,7 @@ impl Section {
             Section::Overview => b"identity and terms",
             Section::System => b"build and address space",
             Section::Trust => b"signing chain and capabilities",
+            Section::Verify => b"claims this machine can check on itself",
             Section::Display => b"surface and present path",
             Section::Licenses => b"this image and its third parties",
         }
@@ -61,6 +65,7 @@ impl Section {
             Section::Overview => IconId::PmOverview,
             Section::System => IconId::SettingsDeveloper,
             Section::Trust => IconId::PmAuthority,
+            Section::Verify => IconId::SettingsSecurity,
             Section::Display => IconId::SettingsAppearance,
             Section::Licenses => IconId::FsFile,
         }
@@ -70,8 +75,9 @@ impl Section {
             Section::Overview => 0,
             Section::System => 1,
             Section::Trust => 2,
-            Section::Display => 3,
-            Section::Licenses => 4,
+            Section::Verify => 3,
+            Section::Display => 4,
+            Section::Licenses => 5,
         }
     }
 }

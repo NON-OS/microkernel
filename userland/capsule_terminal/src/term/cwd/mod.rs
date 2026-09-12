@@ -20,8 +20,8 @@ mod home;
 mod home_var;
 mod new;
 mod resolve;
-mod shorten;
 mod set;
+mod shorten;
 mod strip_home;
 mod types;
 

@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod exit;
+mod idle;
 mod sched;
 
 pub use exit::mk_exit;
 pub use sched::mk_yield;
+pub use idle::mk_idle_ms;

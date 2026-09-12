@@ -47,13 +47,18 @@ pub fn shortcut(state: &mut State, code: u32) -> EventOutcome {
         code if code == b'E' as u32 => super::sign_eth::sign_eth(state),
         code if code == b'n' as u32 || code == b'N' as u32 => super::sign_nox::sign_nox(state),
         code if code == b'P' as u32 => super::sign_both::sign_both(state),
-        code if code == b'b' as u32 || code == b'B' as u32 => super::broadcast::broadcast(state),
+        code if code == b'b' as u32 || code == b'B' as u32 => {
+            super::broadcast_arm::arm_or_send(state)
+        }
         code if code == b'w' as u32 || code == b'W' as u32 => super::probe_tick::probe_kick(state),
         _ => EventOutcome::Idle,
     }
 }
 
 fn view(state: &mut State, view: u8) -> EventOutcome {
+    // Leaving the screen abandons any armed send: a confirmation must never
+    // survive into a view where the reader cannot see what it would spend.
+    super::broadcast_arm::disarm(state);
     state.view = view;
     EventOutcome::Repaint
 }

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::AtomicU32;
+use core::sync::atomic::{AtomicU32, Ordering};
 use nonos_libc::mk_ipc_recv_from;
 
 use super::cadence::{next_wait, note_idle, note_work};
@@ -32,6 +32,14 @@ static BUSY: AtomicU32 = AtomicU32::new(0);
 /// expensive during a handshake, which is several round trips that each pay
 /// it once. So the loop waits briefly while there is traffic and settles
 /// back down when there is none.
+/// Whether the loop is in an active exchange rather than sitting quiet.
+///
+/// Exposed so the serve loop can poll the device at the exchange's rate while
+/// one is in flight, and fall back to a floor when there is nothing to carry.
+pub fn attentive() -> bool {
+    BUSY.load(Ordering::Relaxed) > 0
+}
+
 pub fn receive(rx: &mut [u8], sender_pid: &mut u32) -> i64 {
     let wait = next_wait(&BUSY);
     let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait, sender_pid);

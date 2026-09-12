@@ -3,6 +3,7 @@
 //! shipping files. `mul_div` reads its two halves as siblings exactly as it
 //! does in the capsule, so the module shape has to match.
 
+pub mod amount;
 #[allow(dead_code)]
 #[path = "../../../../capsule_wallet_nonos/src/wallet/num/div_wide.rs"]
 pub mod div_wide;
@@ -13,4 +14,5 @@ pub mod mul_div;
 #[path = "../../../../capsule_wallet_nonos/src/wallet/num/mul_wide.rs"]
 pub mod mul_wide;
 
+pub use amount::Amount;
 pub use mul_div::mul_div;

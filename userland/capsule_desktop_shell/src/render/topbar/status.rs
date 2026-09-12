@@ -20,9 +20,9 @@
 use super::battery_glyph::battery_glyph;
 use super::metrics::{batt_glyph_w, dot, gap, net_glyph_w, right_margin, search_glyph_w, FG};
 use super::net_glyph::net_glyph;
+use super::notify_dot::notify_dot;
 use super::search_box::{search_box, total};
 use super::search_glyph::search_glyph;
-use super::notify_dot::notify_dot;
 use crate::render::layout::menubar_rect;
 use crate::render::palette;
 use crate::render::text_aa::text_aa_bytes;

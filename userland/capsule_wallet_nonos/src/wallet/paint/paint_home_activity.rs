@@ -14,16 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
+
+// A caption line and the clearance a 17px line box needs under it.
+const ROW_DROP: u32 = 26;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::ui;
 use crate::wallet::state::State;
 use crate::wallet::theme::{ACCENT, DIM, FG, LINE2, MUTED};
 
-pub fn paint_home_activity(state: &State, fb: &mut PaintBuffer, cx: u32, cw: u32) {
+/// `y` is the section's caption row. It used to be a literal here and another
+/// literal in the caller, so moving anything above this section left a gap
+/// nobody could see the cause of.
+pub fn paint_home_activity(state: &State, fb: &mut PaintBuffer, cx: u32, cw: u32, y: u32) {
     let col = (cw - 28) / 2;
     let rx = cx + col + 28;
-    let _ = fb.text_ttf(cx as i32, 486, "ENABLED RAILS", DIM(), 12.1);
+    let _ = fb.text_ttf(cx as i32, y as i32, "ENABLED RAILS", DIM(), scale::BODY);
+    let rows = y + ROW_DROP;
 
     // ETH and NOX show live balances; a field still loading shows "fetching"
     // while the link is up, a dash only when there is no route.
@@ -39,7 +47,7 @@ pub fn paint_home_activity(state: &State, fb: &mut PaintBuffer, cx: u32, cw: u32
     } else {
         pending
     };
-    rail(fb, cx, 508, col, "ETH", b"L1", eth);
+    rail(fb, cx, rows, col, "ETH", b"L1", eth);
     let mut nox_b = [0u8; 48];
     let nox = crate::wallet::nox::live_amount(
         state.nox.balance_ready,
@@ -50,14 +58,14 @@ pub fn paint_home_activity(state: &State, fb: &mut PaintBuffer, cx: u32, cw: u32
     rail(fb, cx, 570, col, "NOX", b"ERC-20", nox);
     rail(fb, cx, 632, col, "PR", b"RSVD", "\u{2014}");
 
-    super::home_activity_row::activity(state, fb, rx, col, 508);
+    super::home_activity_row::activity(state, fb, rx, col, rows);
 }
 
 fn rail(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, sym: &str, tag: &[u8], val: &str) {
     ui::card(fb, x, y, w, 54);
     fb.fill_rect(x, y, 3, 54, ACCENT());
-    let sx = fb.text_ttf((x + 18) as i32, (y + 18) as i32, sym, FG(), 18.4);
+    let sx = fb.text_ttf((x + 18) as i32, (y + 18) as i32, sym, FG(), scale::VALUE);
     ui::badge(fb, sx as u32 + 10, y + 18, tag, LINE2(), MUTED());
-    let vw = fb.measure_ttf(val, 19.5).max(0) as u32;
-    let _ = fb.text_ttf((x + w - 18 - vw) as i32, (y + 17) as i32, val, FG(), 19.5);
+    let vw = fb.measure_ttf(val, scale::VALUE).max(0) as u32;
+    let _ = fb.text_ttf((x + w - 18 - vw) as i32, (y + 17) as i32, val, FG(), scale::VALUE);
 }

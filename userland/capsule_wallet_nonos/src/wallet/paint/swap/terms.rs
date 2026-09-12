@@ -21,6 +21,7 @@
 //! and the number that would have stopped them was one tap out of sight. It
 //! costs a panel to leave open, and the panel is the product.
 
+use crate::wallet::paint::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::super::ui;
@@ -34,10 +35,10 @@ const W: u32 = 340;
 
 pub fn terms(state: &State, fb: &mut PaintBuffer, x: u32, y: u32) {
     ui::card(fb, x, y, W, 300);
-    let _ = fb.text_ttf((x + 20) as i32, (y + 18) as i32, "TERMS", DIM(), 12.1);
+    let _ = fb.text_ttf((x + 20) as i32, (y + 18) as i32, "TERMS", DIM(), scale::BODY);
     if !state.swap_quote.ready {
         let msg = "Enter an amount to price this trade.";
-        let _ = fb.text_ttf((x + 20) as i32, (y + 56) as i32, msg, MUTED(), 13.8);
+        let _ = fb.text_ttf((x + 20) as i32, (y + 56) as i32, msg, MUTED(), scale::BODY);
         return;
     }
 

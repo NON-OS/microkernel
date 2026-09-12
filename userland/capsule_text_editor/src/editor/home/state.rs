@@ -21,14 +21,8 @@
 
 use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 
-pub(super) const NAV_LABELS: [&str; 6] = [
-    "Home",
-    "Recent",
-    "Starred",
-    "Shared with me",
-    "Templates",
-    "Trash",
-];
+pub(super) const NAV_LABELS: [&str; 6] =
+    ["Home", "Recent", "Starred", "Shared with me", "Templates", "Trash"];
 
 pub(super) const NAV_LIVE: [bool; 6] = [true, true, false, false, false, false];
 
@@ -76,7 +70,11 @@ impl HomeState {
     pub(super) fn view_all_hit(mx: i32, my: i32) -> bool {
         let (x, y) = (VIEW_X.load(Ordering::Relaxed), VIEW_Y.load(Ordering::Relaxed));
         let (w, h) = (VIEW_W.load(Ordering::Relaxed), VIEW_H.load(Ordering::Relaxed));
-        w != 0 && h != 0 && mx >= x as i32 && my >= y as i32
-            && mx < (x + w) as i32 && my < (y + h) as i32
+        w != 0
+            && h != 0
+            && mx >= x as i32
+            && my >= y as i32
+            && mx < (x + w) as i32
+            && my < (y + h) as i32
     }
 }

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::ui;
@@ -21,21 +22,53 @@ use crate::wallet::hex::short_addr;
 use crate::wallet::state::State;
 use crate::wallet::theme::{ACCENT, DIM, FG, GREEN, GREEN_INK, MUTED};
 
-pub fn paint_account_card(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
-    ui::card(fb, x, y, w, 132);
+// The card's own rhythm. The balance is set at the splash size, whose line box
+// is around sixty-two pixels, and the rows underneath were placed as though it
+// were forty: the ETH line began four pixels before the balance had finished, so
+// the two collided on every screen that had an account. Deriving each row from
+// the one above it means the next type change moves them together.
+const PAD: u32 = 18;
+const CAPTION_H: u32 = 26;
+const BALANCE_H: u32 = 64;
+/// Both cards on the home row are this tall. They used to differ by forty-eight
+/// pixels, which left a hole under the shorter one that read as something having
+/// failed to load rather than as a card that had said all it had to say.
+pub const CARD_H: u32 = super::paint_network_card::NET_H;
 
-    // The real account address, or a clear prompt before one is generated.
-    if state.address_ready {
+pub fn paint_account_card(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
+    // Before there is an account there is nothing to report, so the card stops
+    // pretending to be a balance and becomes the one instruction that matters.
+    if !state.address_ready {
+        super::paint_account_empty::paint_account_empty(fb, x, y, w, CARD_H);
+        return;
+    }
+    ui::card(fb, x, y, w, CARD_H);
+    let caption_y = y + PAD;
+    let balance_y = caption_y + CAPTION_H;
+    let second_y = balance_y + BALANCE_H;
+
+    // The real account address, short form.
+    {
         let mut sa = [0u8; 13];
         short_addr(&state.address, &mut sa);
         let label = core::str::from_utf8(&sa).unwrap_or("");
-        let lx =
-            fb.text_ttf((x + 20) as i32, (y + 18) as i32, "TOTAL BALANCE  \u{00b7}  ", DIM(), 12.1);
-        let _ = fb.text_ttf(lx, (y + 18) as i32, label, DIM(), 12.1);
-        let aw = fb.measure_ttf("ACTIVE", 12.6).max(0) as u32 + 18;
-        ui::badge(fb, x + w - 20 - aw, y + 15, b"ACTIVE", GREEN(), GREEN_INK());
-    } else {
-        let _ = fb.text_ttf((x + 20) as i32, (y + 18) as i32, "NO ACCOUNT YET", DIM(), 12.1);
+        let lx = fb.text_ttf(
+            (x + 20) as i32,
+            caption_y as i32,
+            "TOTAL BALANCE  \u{00b7}  ",
+            DIM(),
+            scale::BODY,
+        );
+        let _ = fb.text_ttf(lx, caption_y as i32, label, DIM(), scale::BODY);
+        let aw = fb.measure_ttf("ACTIVE", scale::BODY).max(0) as u32 + 18;
+        ui::badge(
+            fb,
+            x + w - 20 - aw,
+            caption_y.saturating_sub(3),
+            b"ACTIVE",
+            GREEN(),
+            GREEN_INK(),
+        );
     }
 
     // Headline the NOX balance (the native token), with the live ETH balance on
@@ -49,8 +82,10 @@ pub fn paint_account_card(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w
         up,
         &mut nb,
     );
-    let pen = fb.text_ttf((x + 20) as i32, (y + 44) as i32, nox, FG(), 46.0);
-    let _ = fb.text_ttf(pen + 10, (y + 62) as i32, "NOX", ACCENT(), 20.7);
+    let pen = fb.text_ttf((x + 20) as i32, balance_y as i32, nox, FG(), scale::SPLASH);
+    // The ticker sits on the balance's baseline rather than its top edge, so a
+    // taller figure does not leave it floating.
+    let _ = fb.text_ttf(pen + 10, (balance_y + 18) as i32, "NOX", ACCENT(), scale::TITLE);
 
     let mut eb = [0u8; 40];
     let eth = if state.balance_ready {
@@ -61,8 +96,8 @@ pub fn paint_account_card(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w
     } else {
         "\u{2014}"
     };
-    let ex = fb.text_ttf((x + 20) as i32, (y + 102) as i32, eth, MUTED(), 17.2);
-    let _ = fb.text_ttf(ex + 6, (y + 103) as i32, "ETH", DIM(), 14.9);
+    let ex = fb.text_ttf((x + 20) as i32, second_y as i32, eth, MUTED(), scale::BODY);
+    let _ = fb.text_ttf(ex + 6, second_y as i32, "ETH", DIM(), scale::BODY);
 }
 
 fn format_eth(v: u64, out: &mut [u8]) -> usize {

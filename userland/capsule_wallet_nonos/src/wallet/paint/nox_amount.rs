@@ -40,7 +40,7 @@ pub fn amount_row(state: &State, fb: &mut PaintBuffer, l: &NoxLayout, stake: boo
             (l.track_y() + 18) as i32,
             "press 0-9 to choose, Enter to close",
             DIM(),
-            13.8,
+            scale::BODY,
         );
         return;
     }

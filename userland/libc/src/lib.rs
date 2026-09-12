@@ -44,7 +44,7 @@ pub mod transport;
 mod unistd;
 
 pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown};
-pub use attest::{mk_attest_status, AttestStatus};
+pub use attest::{mk_attest_doc, mk_attest_status, AttestStatus, ATTEST_DOC_REFUSED};
 pub use battery::mk_battery_status;
 pub use broker::{
     mk_device_claim, mk_device_list, mk_device_release, mk_dma_map, mk_dma_unmap, mk_irq_ack,
@@ -87,4 +87,4 @@ pub use surface_registry::{
 };
 pub use syscall::call_raw as mk_syscall_raw;
 pub use time::{mk_time_adjust, mk_time_millis, mk_time_rtc, mk_uptime_ms, Deadline, RtcTime};
-pub use unistd::{mk_exit, mk_yield};
+pub use unistd::{mk_exit, mk_idle_ms, mk_yield};

@@ -31,5 +31,6 @@ mod swap;
 mod theme;
 mod tls13;
 mod tx_hash;
+mod units;
 
 pub use app::Wallet;

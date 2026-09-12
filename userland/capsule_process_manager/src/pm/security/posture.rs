@@ -31,6 +31,21 @@ pub struct Posture {
 }
 
 impl Posture {
+    // The count for one sensitive class, addressed by the same mask constant the
+    // risk strip and the capability chips use. Reading a class out by mask rather
+    // than by field is what lets a caller walk `CLASSES` in order and stay in step
+    // with the strip: a class added there resolves here or fails to compile.
+    pub fn held(&self, mask: u64) -> u32 {
+        match mask {
+            ADMIN => self.admin,
+            RAW_HW => self.raw_hw,
+            DMA => self.dma,
+            SPAWN => self.spawn,
+            DEBUG => self.debug,
+            _ => 0,
+        }
+    }
+
     pub fn compute(rows: &[Row]) -> Self {
         let mut p = Posture { total: rows.len() as u32, ..Posture::default() };
         for r in rows {

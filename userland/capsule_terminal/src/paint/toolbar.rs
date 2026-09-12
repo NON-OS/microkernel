@@ -17,16 +17,23 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::tab_pill::{PILL_H, RADIUS};
-use super::tokens::{TAB_HOVER, TOOLBAR_ACTIVE, TOOLBAR_ICON, TOOLBAR_LABEL};
-use super::tool_icon::{icon_new_tab, icon_search, icon_settings, icon_split, icon_theme};
+use super::tokens::{TAB_HOVER, TOOLBAR_ACTIVE, TOOLBAR_ICON};
+use super::tool_icon::{icon_new_tab, icon_search, icon_theme};
 use crate::layout::Rect;
 
 pub const TOOL_W: u32 = 30;
-pub const TOOL_COUNT: usize = 5;
+/// Buttons on the strip. Every one of them does something.
+///
+/// There were five. Two were controls for things that do not exist: a split
+/// button for panes the terminal has never had, and a settings button with
+/// nothing behind it. They were drawn dimmed and refused clicks, which is the
+/// polite version of the problem and still leaves a reader wondering what they
+/// did wrong. A control that can never activate is not a disabled control, it
+/// is a promise the window cannot keep, so they are gone rather than greyed.
+pub const TOOL_COUNT: usize = 3;
 pub const TOOLBAR_W: u32 = TOOL_W * TOOL_COUNT as u32;
 
 const ICON: u32 = 16;
-const WIRED: [bool; TOOL_COUNT] = [true, false, false, true, false];
 
 /// Shared geometry for one toolbar button; the painter and the hit-test both
 /// read their bounds from here so a click can never drift from the glyph.
@@ -45,31 +52,24 @@ pub fn draw_toolbar(fb: &mut PaintBuffer, avail_w: u32, active: Option<usize>) {
         if r.x + r.w > fb.width {
             continue;
         }
-        let live = WIRED[i];
-        let fg = match (live, active == Some(i)) {
-            (false, _) => TOOLBAR_LABEL,
-            (true, true) => TOOLBAR_ACTIVE,
-            (true, false) => TOOLBAR_ICON,
-        };
-        if live && active == Some(i) {
+        let hot = active == Some(i);
+        let fg = if hot { TOOLBAR_ACTIVE } else { TOOLBAR_ICON };
+        if hot {
             fb.fill_round(r.x + 1, r.y, r.w - 2, r.h, RADIUS, TAB_HOVER);
         }
         let ic = icon_rect(r);
         match i {
             0 => icon_new_tab(fb, ic, fg),
-            1 => icon_split(fb, ic, fg),
-            2 => icon_search(fb, ic, fg),
-            3 => icon_theme(fb, ic, fg),
-            _ => icon_settings(fb, ic, fg),
+            1 => icon_search(fb, ic, fg),
+            _ => icon_theme(fb, ic, fg),
         }
     }
 }
 
-/// Index of the wired button under `(x, y)`; unwired buttons return None so a
-/// dimmed control never absorbs a click and silently does nothing.
+/// Index of the button under `(x, y)`.
 pub fn toolbar_hit(avail_w: u32, x: u32, y: u32) -> Option<usize> {
     (0..TOOL_COUNT).find(|&i| {
         let r = button_rect(i, avail_w);
-        WIRED[i] && x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h
+        x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h
     })
 }

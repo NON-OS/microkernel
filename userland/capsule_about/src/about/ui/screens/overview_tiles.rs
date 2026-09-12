@@ -16,13 +16,13 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use super::super::gauge;
+use super::super::metrics::TILE_GAP;
+use super::tile_text::{dims, ratio, uptime};
 use crate::about::data::caps::{is_granted, ALL_CAPS};
 use crate::about::data::display::primary_dimensions;
 use crate::about::data::uptime::read_millis;
 use crate::about::format::u64_decimal;
-use super::super::gauge;
-use super::super::metrics::TILE_GAP;
-use super::tile_text::{dims, ratio, uptime};
 
 const DAY_S: u64 = 86_400;
 

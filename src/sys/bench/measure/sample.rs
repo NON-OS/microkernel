@@ -14,55 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_bench_core::{sort, Summary};
+
 /// What one timing run produced, in counter ticks.
 ///
-/// `min` is the number to quote. It is the run least disturbed by an interrupt,
-/// a cache miss or a migration, so it is the closest thing to the cost of the
-/// work itself; `avg` carries whatever the machine was also doing, and `max` is
-/// usually a timer tick landing mid-measurement rather than a property of the
-/// code. Reporting all three is what lets a reader tell a real regression from
-/// a noisy runner.
-#[derive(Clone, Copy)]
+/// Percentiles, not a minimum and a mean. The old shape quoted `min` as "the
+/// cost of the work itself" and it is a defensible number, but it is the number
+/// that cannot regress: a change that makes one call in fifty take twenty times
+/// as long leaves `min` untouched and `avg` barely moved, and that call is the
+/// one a person notices. The tail is the measurement.
+///
+/// The reduction is `nonos_bench_core`, the same code the `bench` command in the
+/// terminal runs. Two harnesses reporting different statistics about one machine
+/// is how a regression hides between them.
 pub struct Sample {
-    pub min: u64,
-    pub avg: u64,
-    pub max: u64,
-    pub iterations: u32,
+    pub summary: Summary,
 }
 
 impl Sample {
-    /// Fold a set of tick counts into the three figures worth printing.
-    pub(crate) fn from_runs(runs: &[u64]) -> Self {
-        if runs.is_empty() {
-            return Self { min: 0, avg: 0, max: 0, iterations: 0 };
-        }
-
-        let mut min = u64::MAX;
-        let mut max = 0u64;
-        // Widened, because a slow operation timed many times overflows a u64
-        // sum of cycle counts far sooner than the arithmetic suggests.
-        let mut total: u128 = 0;
-
-        for &run in runs {
-            if run < min {
-                min = run;
-            }
-            if run > max {
-                max = run;
-            }
-            total += run as u128;
-        }
-
-        Self { min, avg: (total / runs.len() as u128) as u64, max, iterations: runs.len() as u32 }
+    /// Fold a set of tick counts into the figures worth printing.
+    ///
+    /// Sorts in place: the caller's buffer is scratch that is consumed here, and
+    /// a kernel path has nowhere to copy a second one to.
+    pub(crate) fn from_runs(runs: &mut [u64]) -> Self {
+        sort(runs);
+        // Overhead is not subtracted here. The kernel harness times whole
+        // operations that dwarf a counter read, and claiming a correction that
+        // was never calibrated would be worse than leaving it in and saying so.
+        Sample { summary: Summary::from_sorted(runs, 0) }
     }
 
-    /// Ticks converted to nanoseconds, or `None` where the platform never
-    /// reported a counter frequency and the conversion would be invented.
-    pub fn min_nanos(&self) -> Option<u64> {
+    /// The median in nanoseconds, or `None` where the platform never reported a
+    /// counter frequency and the conversion would be invented.
+    pub fn p50_nanos(&self) -> Option<u64> {
         let hz = crate::arch::time_counter_hz();
         if hz == 0 {
             return None;
         }
-        Some(((self.min as u128 * 1_000_000_000u128) / hz as u128) as u64)
+        Some(((self.summary.p50 as u128 * 1_000_000_000u128) / hz as u128) as u64)
     }
 }

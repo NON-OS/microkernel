@@ -16,25 +16,29 @@
 
 use nonos_app_skeleton::EventOutcome;
 
+use super::home_empty_click::empty_state;
 use super::on_pointer::hit;
+use crate::wallet::paint::home_geom::{actions, quick_w, quick_x, QUICK_H};
 use crate::wallet::state::{
     State, SEND_FIELD_AMOUNT, SEND_FIELD_TO, VIEW_NOX, VIEW_RECEIVE, VIEW_SEND,
 };
 
 // Home quick actions route to their screens.
 pub(super) fn home(state: &mut State, x: u32, y: u32) -> EventOutcome {
-    // Mirror paint_home.rs: four quick-action cards from cx, each qw wide with a
-    // 16px gap, where qw is derived from the live framebuffer width.
-    let cx = 226u32;
-    let cw = state.view_w.saturating_sub(252);
-    let qw = (cw.saturating_sub(48)) / 4;
-    if y < 386 || y >= 386 + 82 {
+    // Same geometry the painter uses, not a copy of it. These four targets used
+    // to be pinned to a literal row that the painter had since moved, so they
+    // sat ten pixels above the cards a reader could see.
+    if let Some(out) = empty_state(state, x, y) {
+        return out;
+    }
+    let qw = quick_w(state.view_w);
+    let top = actions();
+    if y < top || y >= top + QUICK_H {
         return EventOutcome::Idle;
     }
-    let step = qw + 16;
     let views = [VIEW_SEND, VIEW_RECEIVE, VIEW_NOX, VIEW_NOX];
     for (i, v) in views.iter().enumerate() {
-        let bx = cx + i as u32 * step;
+        let bx = quick_x(state.view_w, i as u32);
         if x >= bx && x < bx + qw {
             state.view = *v;
             return EventOutcome::Repaint;
