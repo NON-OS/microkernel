@@ -52,6 +52,12 @@ jobs:
         run: python3 scripts/check_caps_abi.py
       - name: Capability names the screens print against the kernel bits
         run: python3 scripts/check_userland_caps.py
+      - name: Capability bits against the kernel and its mirrors
+        run: python3 scripts/check_cap_parity.py
+      - name: Service capability constants against the kernel bits
+        run: python3 scripts/check_service_caps.py
+      - name: Attestation parameters live in one place
+        run: python3 scripts/check_attest_params.py
 
   # The committed verification/evidence/EVIDENCE.json is a machine-readable inventory of
   # everything NONOS proves. Regenerate it from the source tree and fail if it
