@@ -39,7 +39,13 @@ pub fn source_root() -> &'static str {
 }
 
 #[cfg(test)]
+mod amount_tests;
+#[cfg(test)]
+mod format_typed_tests;
+#[cfg(test)]
 mod mul_div_tests;
+#[cfg(test)]
+mod scale_tests;
 #[cfg(test)]
 mod stakeable_tests;
 #[cfg(test)]

@@ -19,17 +19,10 @@ use nonos_toolkit::icons::IconId;
 
 use crate::pm::format::u32_decimal;
 use crate::pm::state::State;
-use crate::pm::theme::{AMBER, OK};
+use crate::pm::theme::OK;
 
 use super::super::card;
-use super::super::risk_strip::CLASSES;
 use super::ovw_cards::{meter, sub_n};
-
-// A privileged process is one holding any bit the risk strip draws, so this
-// count and every strip in the table can never disagree about who is dangerous.
-fn privileged(caps: u64) -> bool {
-    CLASSES.iter().any(|(mask, _)| caps & mask != 0)
-}
 
 // Running is the only figure the card claims, because it is the one state the
 // kernel reports outright; the rest are parked and the table spells them out.
@@ -43,16 +36,4 @@ pub(super) fn processes(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: 
     let icon = IconId::Processes;
     let band = card::paint(fb, x, y, w, icon, b"PROCESSES", &buf[..n], b"", &sub[..s]);
     meter(fb, (x, y, w), band, running, total, OK);
-}
-
-pub(super) fn authority(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
-    let total = state.rows.len() as u64;
-    let held = state.rows.iter().filter(|row| privileged(row.caps)).count() as u64;
-    let mut buf = [0u8; 24];
-    let n = u32_decimal(held as u32, &mut buf);
-    let mut sub = [0u8; 24];
-    let s = sub_n(&mut sub, b"of ", total as u32, b" processes");
-    let icon = IconId::SettingsSecurity;
-    let band = card::paint(fb, x, y, w, icon, b"PRIVILEGED", &buf[..n], b"", &sub[..s]);
-    meter(fb, (x, y, w), band, held, total, AMBER);
 }

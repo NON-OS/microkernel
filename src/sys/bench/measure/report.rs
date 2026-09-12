@@ -20,27 +20,29 @@ use crate::sys::serial;
 /// Print one measurement on the same channel the boot markers use, so the
 /// benchmark harness parses both with one reader.
 ///
-/// Shape is `[BENCH] <uptime> micro:<name> iters min avg max` with ticks, and
-/// nanoseconds only where the platform actually told us the counter rate.
-/// Where it did not, the field is absent rather than estimated: a made up
-/// nanosecond figure would be quoted later as if it had been measured.
+/// Shape is `[BENCH] <uptime> micro:<name> iters p50 p95 p99 max` in ticks, and
+/// nanoseconds only where the platform actually told us the counter rate. Where
+/// it did not, the field is absent rather than estimated: a made up nanosecond
+/// figure would be quoted later as if it had been measured.
 pub fn report(name: &[u8], sample: &Sample) {
     serial::print(b"[BENCH] ");
     serial::print_dec(crate::sys::timer::uptime_ms());
     serial::print(b" micro:");
     serial::print(name);
     serial::print(b" iters=");
-    serial::print_dec(sample.iterations as u64);
-    serial::print(b" min=");
-    serial::print_dec(sample.min);
-    serial::print(b" avg=");
-    serial::print_dec(sample.avg);
+    serial::print_dec(sample.summary.samples as u64);
+    serial::print(b" p50=");
+    serial::print_dec(sample.summary.p50);
+    serial::print(b" p95=");
+    serial::print_dec(sample.summary.p95);
+    serial::print(b" p99=");
+    serial::print_dec(sample.summary.p99);
     serial::print(b" max=");
-    serial::print_dec(sample.max);
+    serial::print_dec(sample.summary.max);
 
-    match sample.min_nanos() {
+    match sample.p50_nanos() {
         Some(ns) => {
-            serial::print(b" min_ns=");
+            serial::print(b" p50_ns=");
             serial::print_dec(ns);
             serial::println(b"");
         }

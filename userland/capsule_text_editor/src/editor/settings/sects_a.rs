@@ -20,35 +20,25 @@
 
 use super::sect::{Ctl, Section};
 
+// Every row here changes what the editor does. The bit numbers are the ones
+// `live.rs` reads, so moving a row means moving a constant with it.
+//
+// Four rows were removed rather than left drawn and ignored:
+//
+//   Word wrap. Turning it off needs horizontal scrolling, which the editor
+//   does not have, so a reader who switched it off would watch text leave the
+//   right edge with no way to reach it. The switch returns when the scrolling
+//   does.
+//
+//   Smart quotes and auto-capitalise. Neither exists, and neither is obviously
+//   wanted in an editor that opens source files; adding them to justify a
+//   switch would be building backwards from the panel.
+//
+//   Tab width. It is a dropdown, and dropdowns here have nothing to open.
 pub(super) const EDITING: Section = Section {
     head: "Editing",
     rows: &[
-        ("Word wrap", Ctl::Toggle(0)),
         ("Show invisible characters", Ctl::Toggle(1)),
-        ("Smart quotes", Ctl::Toggle(2)),
-        ("Auto-capitalise sentences", Ctl::Toggle(3)),
         ("Highlight the current line", Ctl::Toggle(4)),
-        ("Tab width", Ctl::Drop("4 spaces")),
-    ],
-};
-
-pub(super) const AUTO_SAVE: Section = Section {
-    head: "Auto Save",
-    rows: &[
-        ("Auto save documents", Ctl::Toggle(0)),
-        ("Save when the window loses focus", Ctl::Toggle(1)),
-        ("Keep version history", Ctl::Toggle(2)),
-        ("Save interval", Ctl::Drop("Every 30 seconds")),
-        ("Version retention", Ctl::Drop("30 days")),
-    ],
-};
-
-pub(super) const LANGUAGE: Section = Section {
-    head: "Language",
-    rows: &[
-        ("Detect document language", Ctl::Toggle(0)),
-        ("Right-to-left layout", Ctl::Toggle(1)),
-        ("Display language", Ctl::Drop("English (US)")),
-        ("Document language", Ctl::Drop("English (US)")),
     ],
 };

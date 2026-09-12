@@ -1115,6 +1115,11 @@ nonos-mk-audio-player-smoketest-dev-test: $(proof-io_MANIFEST) $(audio_MANIFEST)
 # The capsules that link against the std platform layer. That layer issues
 # syscalls with raw x86_64 registers, so these do not cross-compile to aarch64
 # yet and are kept separate from the base set.
+# tokio-smoke is deliberately absent. It is the async runtime gate: a timer
+# raced against an idle accept, forever, to prove the mio waker self-wakes.
+# That is a test, and in the desktop image it held a steady share of a core for
+# the life of the session while the services a desktop needs went hungry. The
+# `microkernel-desktop-gui-async-gate` profile builds it.
 DESKTOP_STD_TOOL_ARTIFACTS := $(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) \
 		$(sd_ARTIFACTS) \
 		$(flacprobe_ARTIFACTS) \
@@ -1124,8 +1129,7 @@ DESKTOP_STD_TOOL_ARTIFACTS := $(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) \
 		$(jsonxf_ARTIFACTS) \
 		$(pastel_ARTIFACTS) \
 		$(dotenv-linter_ARTIFACTS) \
-		$(grex_ARTIFACTS) \
-		$(tokio-smoke_ARTIFACTS)
+		$(grex_ARTIFACTS)
 
 # Named by slug so the two flavours below stay in step. A capsule's
 # `_ARTIFACTS` includes its STARK attestation trailer, and generating one

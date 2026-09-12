@@ -24,7 +24,7 @@ mod submit;
 mod table;
 mod work;
 
-pub use classify::{is_job_command, Verdict};
+pub use classify::{is_job_command, is_store_tool, Verdict};
 pub use env::JobEnv;
 pub use pump::pump;
 pub use submit::submit;

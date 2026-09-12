@@ -86,7 +86,8 @@ fn every_field_round_trips() {
 /// "no preferences yet", and above all must not index past the end.
 #[test]
 fn short_buffers_fall_back_to_defaults() {
-    let full = encode(&Prefs { theme: 3, font_scale: 5, cursor: 2, rails: 0b11, ..Prefs::default() });
+    let full =
+        encode(&Prefs { theme: 3, font_scale: 5, cursor: 2, rails: 0b11, ..Prefs::default() });
     let d = Prefs::default();
     for n in 0..HEAD {
         let got = decode(&full[..n]);
@@ -104,7 +105,8 @@ fn short_buffers_fall_back_to_defaults() {
 /// as settings.
 #[test]
 fn bad_magic_falls_back_to_defaults() {
-    let mut b = encode(&Prefs { theme: 3, font_scale: 5, cursor: 2, rails: 0b11, ..Prefs::default() });
+    let mut b =
+        encode(&Prefs { theme: 3, font_scale: 5, cursor: 2, rails: 0b11, ..Prefs::default() });
     b[0] = b'X';
     let got = decode(&b);
     assert!(same(&got, &Prefs::default()), "got {}", show(&got));
@@ -114,7 +116,8 @@ fn bad_magic_falls_back_to_defaults() {
 /// reading it as version 1 would apply garbage settings.
 #[test]
 fn an_unknown_version_falls_back_to_defaults() {
-    let mut b = encode(&Prefs { theme: 3, font_scale: 5, cursor: 2, rails: 0b11, ..Prefs::default() });
+    let mut b =
+        encode(&Prefs { theme: 3, font_scale: 5, cursor: 2, rails: 0b11, ..Prefs::default() });
     b[4] = 7;
     b[5] = 0;
     let got = decode(&b);
@@ -125,7 +128,13 @@ fn an_unknown_version_falls_back_to_defaults() {
 /// table, and an out-of-range font scale sizes every glyph on screen.
 #[test]
 fn out_of_range_values_are_clamped() {
-    let b = encode(&Prefs { theme: 9999, font_scale: 200, cursor: 99, rails: 0xFF, ..Prefs::default() });
+    let b = encode(&Prefs {
+        theme: 9999,
+        font_scale: 200,
+        cursor: 99,
+        rails: 0xFF,
+        ..Prefs::default()
+    });
     let got = decode(&b);
     assert!(got.theme < 4, "theme {} out of range", got.theme);
     assert!(

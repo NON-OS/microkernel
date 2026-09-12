@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::ui_font;
 use crate::state::spotlight::{SPOTLIGHT_HEIGHT, SPOTLIGHT_WIDTH};
 use crate::state::LAUNCHER_APPS;
-use super::ui_font;
 
 const TASKBAR_ENTRY_W_LOGICAL: u32 = 46;
 const DOCK_GAP_LOGICAL: u32 = 7;

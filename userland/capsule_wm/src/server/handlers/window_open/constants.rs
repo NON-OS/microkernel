@@ -18,3 +18,9 @@ pub(super) const PLACEMENT_LEFT: u32 = 96;
 pub(super) const PLACEMENT_TOP: u32 = 72;
 pub(super) const PLACEMENT_GAP: u32 = 24;
 pub(super) const PLACEMENT_STEP: u32 = 40;
+
+/// Height of the desktop menubar, which a window must not open underneath.
+/// Mirrors the shell's `MENUBAR_H_LOGICAL` and the app skeleton's `chrome`
+/// constant; a window placed above this is one whose titlebar cannot be
+/// grabbed. Three crates, one number, and it must stay one number.
+pub(super) const MENUBAR_H: u32 = 46;

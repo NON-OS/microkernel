@@ -14,42 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, KEY_BACKSPACE, KEY_ESC, KEY_TAB};
+use nonos_app_skeleton::{EventOutcome, KEY_BACKSPACE, KEY_ESC};
 
-use super::super::state::{Filter, Screen, Sort, State, SCREENS, SIGKILL, SIGTERM};
+use super::super::state::State;
+use super::event_apply::apply;
 use super::event_scroll::scroll_key;
+use crate::pm::ui::keys::Act;
+use crate::pm::ui::keys_table::act_for;
 
 pub fn key(state: &mut State, code: u32) -> EventOutcome {
+    // The overlay answers two keys and swallows the rest. A panel that let the
+    // table scroll underneath it would be a panel the reader has to fight.
+    if state.help_open {
+        if code == KEY_ESC || code == 0x3F {
+            state.help_open = false;
+            return EventOutcome::Repaint;
+        }
+        return EventOutcome::Idle;
+    }
+    if code == 0x3F && !state.query_focused() {
+        state.help_open = true;
+        return EventOutcome::Repaint;
+    }
     if state.query_focused() {
         if let Some(outcome) = typing(state, code) {
             return outcome;
         }
     }
-    if let Some(screen) = ordinal(code) {
-        state.set_screen(screen);
+    if let Some(act) = ordinal(code) {
+        apply(state, act);
         return EventOutcome::Repaint;
     }
     if scroll_key(state, code) {
         return EventOutcome::Repaint;
     }
-    match code {
-        KEY_ESC => return EventOutcome::Close,
-        KEY_TAB => state.set_screen(state.screen.next()),
-        0x53 | 0x73 => state.toggle_security(),
-        0x4B | 0x6B => state.kill_selected(SIGTERM),
-        0x46 | 0x66 => state.kill_selected(SIGKILL),
-        0x43 | 0x63 => state.set_sort(Sort::Cpu),
-        0x4D | 0x6D => state.set_sort(Sort::Mem),
-        0x4E | 0x6E => state.set_sort(Sort::Name),
-        0x50 | 0x70 => state.set_sort(Sort::Pid),
-        0x52 | 0x72 => state.refresh(),
-        0x41 | 0x61 => state.set_filter(Filter::All),
-        0x45 | 0x65 => state.set_filter(Filter::Elevated),
-        0x54 | 0x74 => state.set_filter(Filter::Protected),
-        0x47 | 0x67 => state.set_filter(Filter::Flagged),
-        0x2F => state.focus_search(true),
-        _ => return EventOutcome::Idle,
-    }
+    let Some(act) = act_for(code) else {
+        return if code == KEY_ESC { EventOutcome::Close } else { EventOutcome::Idle };
+    };
+    apply(state, act);
     EventOutcome::Repaint
 }
 
@@ -70,7 +72,10 @@ fn typing(state: &mut State, code: u32) -> Option<EventOutcome> {
     Some(EventOutcome::Repaint)
 }
 
-// The digit row selects a screen by the position its nav row is drawn at.
-fn ordinal(code: u32) -> Option<Screen> {
-    (0x31..=0x36).contains(&code).then(|| SCREENS[(code - 0x31) as usize])
+// The digit row selects a screen by the position its nav row is drawn at. It
+// goes through the same `apply` as every other key rather than reaching for the
+// state directly, so `Act::Screen` is a case something actually dispatches
+// instead of a variant the table mentions and nothing produces.
+fn ordinal(code: u32) -> Option<Act> {
+    (0x31..=0x36).contains(&code).then(|| Act::Screen((code - 0x31) as usize))
 }

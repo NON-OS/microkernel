@@ -50,6 +50,7 @@ fn section(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
         Section::Overview => screens::overview::paint(state, fb, rect),
         Section::System => screens::system::paint(state, fb, rect),
         Section::Trust => screens::trust::paint(state, fb, rect),
+        Section::Verify => screens::verify::paint(state, fb, rect),
         Section::Display => screens::display::paint(state, fb, rect),
         Section::Licenses => screens::licenses::paint(state, fb, rect),
     }

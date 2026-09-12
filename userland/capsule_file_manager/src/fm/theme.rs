@@ -14,16 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const BACKGROUND: u32 = 0xFF0F1420;
-pub const FOREGROUND: u32 = 0xFFD7E2F2;
-pub const SELECTED: u32 = 0xFF4C9AFF;
-pub const DIRECTORY: u32 = 0xFF6CE08C;
-pub const MUTED: u32 = 0xFF8394A8;
+// The chrome takes the house palette. These were a private set before, close
+// enough to the rest of the desktop to look intentional and different enough
+// to look wrong beside it: the ground was two steps lighter and the accent was
+// green while every other window was cyan.
+pub const BACKGROUND: u32 = 0xFF0B1319;
+pub const FOREGROUND: u32 = 0xFFE4ECF5;
+pub const MUTED: u32 = 0xFF9BB0C7;
+pub const HEADER_BG: u32 = 0xFF08111D;
+pub const ACCENT: u32 = 0xFF35C4E2;
+pub const LINE: u32 = 0xFF233243;
 
-// Curated surface + accent tokens for the redesigned list.
-pub const HEADER_BG: u32 = 0xFF0B1019;
-pub const ALT_ROW: u32 = 0xFF141B29;
-pub const SELECT_BG: u32 = 0xFF1E2B45;
-pub const ACCENT: u32 = 0xFF66E0A0;
-pub const LINE: u32 = 0xFF253043;
+/// Selection follows the accent, because selection is the system saying which
+/// row you are on, and that is what the accent is for.
+pub const SELECTED: u32 = ACCENT;
+
+// Content colours, which are about what a row *is* rather than about chrome,
+// so they stay their own. A directory reads green here the same way it does in
+// every file listing anyone has used.
+pub const DIRECTORY: u32 = 0xFF6CE08C;
 pub const FILE_C: u32 = 0xFFB7C4D8;
+
+// Row banding and the selected row's ground, lifted from the background rather
+// than picked, so they stay correct if the ground moves.
+pub const ALT_ROW: u32 = 0xFF111A22;
+pub const SELECT_BG: u32 = 0xFF17303B;

@@ -60,7 +60,11 @@ pub(super) const TOOLS: [MenuRow; 3] = [
     ("Delete Line", Ctrl(0x4B, true)),
     ("Word Count", WordCount),
 ];
-pub(super) const TABLE: [MenuRow; 4] =
-    [("Insert Table", Table(0)), ("Insert Row", Table(1)), ("Insert Column", Table(2)), ("Delete Table", Table(3))];
+pub(super) const TABLE: [MenuRow; 4] = [
+    ("Insert Table", Table(0)),
+    ("Insert Row", Table(1)),
+    ("Insert Column", Table(2)),
+    ("Delete Table", Table(3)),
+];
 pub(super) const HELP: [MenuRow; 2] =
     [("Keyboard Shortcuts", Info(0)), ("About NONOS Docs", Info(1))];

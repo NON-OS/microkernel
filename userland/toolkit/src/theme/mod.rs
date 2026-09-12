@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod apply;
+pub mod palette;
 pub mod store;
 
 pub use apply::apply;

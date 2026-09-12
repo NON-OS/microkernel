@@ -14,9 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Whether a point falls on the closed dropdown control.
+//! The figure as the chain counts it.
 
-pub(in crate::editor) fn dropdown_hit(rect: (u32, u32, u32, u32), mx: i32, my: i32) -> bool {
-    let (x, y, w, h) = rect;
-    mx >= x as i32 && my >= y as i32 && mx < (x + w) as i32 && my < (y + h) as i32
+use super::Amount;
+
+impl Amount {
+    /// The typed digits shifted up by whatever precision the fraction did not
+    /// already use.
+    ///
+    /// Saturating, never wrapping. An amount past `u128` is not one this wallet
+    /// can sign, and wrapping it would turn a refusal into a different, payable
+    /// figure.
+    pub fn scaled(&self, decimals: u32) -> u128 {
+        let places = self.places.min(decimals);
+        let mut v = self.value;
+        let mut shift = decimals - places;
+        while shift > 0 {
+            v = v.saturating_mul(10);
+            shift -= 1;
+        }
+        v
+    }
 }

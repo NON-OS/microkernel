@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
 use nonos_app_skeleton::PaintBuffer;
 
+use super::nav_icon::{self, Nav};
 use super::ui;
 use crate::wallet::state::{
     State, VIEW_HOME, VIEW_NOX, VIEW_PROOF, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELDED,
@@ -31,28 +33,39 @@ pub const NAV_Y0: u32 = 96;
 pub const NAV_STEP: u32 = 46;
 
 pub fn paint_sidebar(state: &State, fb: &mut PaintBuffer) {
-    fb.fill_rect(18, 50, 20, 20, ACCENT());
-    let _ = fb.text_ttf(48, 48, "NONOS", FG(), 21.8);
-    nav(fb, NAV_Y0, "Home", state.view == VIEW_HOME);
-    nav(fb, NAV_Y0 + NAV_STEP, "Receive", state.view == VIEW_RECEIVE);
-    nav(fb, NAV_Y0 + 2 * NAV_STEP, "Send", state.view == VIEW_SEND);
-    nav(fb, NAV_Y0 + 3 * NAV_STEP, "Proof", state.view == VIEW_PROOF);
-    nav(fb, NAV_Y0 + 4 * NAV_STEP, "Shielded", state.view == VIEW_SHIELDED);
-    nav(fb, NAV_Y0 + 5 * NAV_STEP, "NOX", state.view == VIEW_NOX);
+    // The real mark, not a coloured square. `logo` rasterises the brand SVG
+    // and has been available in this module the whole time; the sidebar drew a
+    // 20 by 20 accent rectangle in its place, which is what a stand-in looks
+    // like when nobody comes back to it.
+    super::logo::logo(fb, 16, 44, 26);
+    let _ = fb.text_ttf(48, 48, "NONOS", FG(), scale::TITLE);
+    let items = [
+        (Nav::Home, "Home", VIEW_HOME),
+        (Nav::Receive, "Receive", VIEW_RECEIVE),
+        (Nav::Send, "Send", VIEW_SEND),
+        (Nav::Proof, "Proof", VIEW_PROOF),
+        (Nav::Shielded, "Shielded", VIEW_SHIELDED),
+        (Nav::Token, "NOX", VIEW_NOX),
+    ];
+    for (i, (icon, label, view)) in items.into_iter().enumerate() {
+        nav(fb, NAV_Y0 + i as u32 * NAV_STEP, icon, label, state.view == view);
+    }
 
-    let _ = fb.text_ttf(22, 700, "RAILS", DIM(), 11.5);
+    let _ = fb.text_ttf(22, 700, "RAILS", DIM(), scale::BODY);
     ui::chip(fb, 22, 722, b"ETH", ACCENT(), INK());
     ui::chip(fb, 70, 722, b"NOX", GREEN(), GREEN_INK());
     ui::chip(fb, 118, 722, b"PR", LINE2(), MUTED());
 }
 
-fn nav(fb: &mut PaintBuffer, y: u32, label: &str, active: bool) {
-    let bullet = if active { ACCENT() } else { LINE2() };
+fn nav(fb: &mut PaintBuffer, y: u32, kind: Nav, label: &str, active: bool) {
+    let tint = if active { ACCENT() } else { LINE2() };
     if active {
         fb.fill_rect(NAV_X, y, NAV_W, NAV_H, SEL());
         fb.fill_rect(NAV_X, y, 3, NAV_H, ACCENT());
     }
-    fb.fill_rect(NAV_X + 16, y + 13, 12, 12, bullet);
+    // Was one twelve-pixel square repeated six times down the rail, which told
+    // a reader nothing except that an icon was meant to be there.
+    nav_icon::icon(fb, NAV_X + 16, y + 12, kind, tint);
     let color = if active { FG() } else { MUTED() };
-    let _ = fb.text_ttf((NAV_X + 38) as i32, (y + 10) as i32, label, color, 17.2);
+    let _ = fb.text_ttf((NAV_X + 38) as i32, (y + 10) as i32, label, color, scale::BODY);
 }

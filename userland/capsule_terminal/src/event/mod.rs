@@ -16,7 +16,7 @@
 
 mod accept_suggestion;
 mod bool_to_outcome;
-mod complete;
+pub(crate) mod complete;
 mod copy_line;
 mod fg_stdin;
 mod on_ctrl;

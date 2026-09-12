@@ -23,9 +23,9 @@ use crate::editor::theme;
 
 // The input bar at the top of the sidebar: a short prompt for the operation,
 // the name typed so far, and a caret mark.
-pub(in crate::editor) fn paint_entry(fb: &mut PaintBuffer, entry: &SbEntry) {
+pub(in crate::editor) fn paint_entry(fb: &mut PaintBuffer, entry: &SbEntry, ribbon: bool) {
     let th = theme::active();
-    let y = pane_y();
+    let y = pane_y(ribbon);
     fb.fill_rect(ACTIVITY_W, y, SIDEBAR_W, ROW_H, th.tab_inactive_bg);
     fb.fill_rect(ACTIVITY_W, y + ROW_H - 1, SIDEBAR_W, 1, th.accent);
     let prompt = match entry.op {

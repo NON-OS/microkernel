@@ -20,11 +20,7 @@ pub fn parse(buf: &[u8]) -> Result<(Request, &[u8]), (Request, i32)> {
     if buf.len() < HDR_LEN {
         return Err((empty(), E_BAD_LEN));
     }
-    let req = Request {
-        op: u16_le(buf, 6),
-        flags: u16_le(buf, 8),
-        request_id: u32_le(buf, 12),
-    };
+    let req = Request { op: u16_le(buf, 6), flags: u16_le(buf, 8), request_id: u32_le(buf, 12) };
     if u32_le(buf, 0) != MAGIC {
         return Err((req, E_BAD_MAGIC));
     }

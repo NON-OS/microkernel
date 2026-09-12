@@ -18,8 +18,8 @@ use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer
 
 use super::event::on_event;
 use super::manifest::manifest;
-use super::ui::frame;
 use super::state::State;
+use super::ui::frame;
 
 pub struct About {
     state: State,

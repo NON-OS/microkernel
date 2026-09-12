@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the attestation document parser the About window
+# uses to read what the machine signed about itself. Builds for the host so
+# `cargo test` drives the real capsule source, included via `#[path]`, against
+# documents that are truncated, overlong, mistyped and replayed.
+[package]
+name = "attest_doc_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"

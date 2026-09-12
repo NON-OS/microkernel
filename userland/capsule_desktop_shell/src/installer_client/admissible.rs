@@ -38,17 +38,11 @@ fn well_formed(name: &[u8]) -> bool {
 }
 
 fn impersonates_builtin(name: &[u8]) -> bool {
-    LAUNCHER_APPS
-        .iter()
-        .any(|app| claims(app.label, app.service, APP_PREFIX, name))
-        || TOOL_APPS
-            .iter()
-            .any(|app| claims(app.label, app.service, TOOL_PREFIX, name))
+    LAUNCHER_APPS.iter().any(|app| claims(app.label, app.service, APP_PREFIX, name))
+        || TOOL_APPS.iter().any(|app| claims(app.label, app.service, TOOL_PREFIX, name))
 }
 
 fn claims(label: &[u8], service: &[u8], prefix: &[u8], name: &[u8]) -> bool {
     label.eq_ignore_ascii_case(name)
-        || service
-            .strip_prefix(prefix)
-            .is_some_and(|base| base.eq_ignore_ascii_case(name))
+        || service.strip_prefix(prefix).is_some_and(|base| base.eq_ignore_ascii_case(name))
 }

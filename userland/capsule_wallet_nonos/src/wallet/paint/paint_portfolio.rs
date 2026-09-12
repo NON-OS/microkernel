@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::ui;
@@ -21,13 +22,19 @@ use crate::wallet::state::State;
 use crate::wallet::theme::{CYAN, DIM, FG, GREEN, MUTED};
 
 pub fn paint_portfolio(state: &State, fb: &mut PaintBuffer) {
+    // Shielded balances come from a shield capsule. Whether one is present is
+    // a question with an answer, so it is asked rather than compiled in.
+    if !state.shield.available() {
+        crate::wallet::paint::not_wired::paint(fb, 226, 100, 420, "The shielded pool");
+    }
     let cx = 226u32;
     let cw = fb.width.saturating_sub(252);
     let col = (cw - 16) / 2;
 
     // Transparent: the live on-chain balance.
     ui::card(fb, cx, 146, col, 120);
-    let _ = fb.text_ttf((cx + 20) as i32, 166, "TRANSPARENT  \u{00b7}  ON-CHAIN", DIM(), 12.1);
+    let _ =
+        fb.text_ttf((cx + 20) as i32, 166, "TRANSPARENT  \u{00b7}  ON-CHAIN", DIM(), scale::BODY);
     let mut buf = [0u8; 40];
     let bal = if state.balance_ready {
         let n = format_eth(lower_u64(&state.balance_wei), &mut buf);
@@ -35,17 +42,17 @@ pub fn paint_portfolio(state: &State, fb: &mut PaintBuffer) {
     } else {
         "\u{2014}"
     };
-    let px = fb.text_ttf((cx + 20) as i32, 188, bal, FG(), 39.1);
-    let _ = fb.text_ttf(px + 8, 202, "ETH", CYAN(), 18.4);
-    let _ = fb.text_ttf((cx + 20) as i32, 240, "public balance", MUTED(), 14.9);
+    let px = fb.text_ttf((cx + 20) as i32, 188, bal, FG(), scale::SPLASH);
+    let _ = fb.text_ttf(px + 8, 202, "ETH", CYAN(), scale::VALUE);
+    let _ = fb.text_ttf((cx + 20) as i32, 240, "public balance", MUTED(), scale::BODY);
 
     // Shielded: no note scanner is wired yet, so no private balance is shown.
     let rx = cx + col + 16;
     ui::card(fb, rx, 146, col, 120);
-    let _ = fb.text_ttf((rx + 20) as i32, 166, "SHIELDED  \u{00b7}  PRIVATE", DIM(), 12.1);
-    let sx = fb.text_ttf((rx + 20) as i32, 188, "\u{2014}", GREEN(), 39.1);
-    let _ = fb.text_ttf(sx + 8, 202, "ETH", GREEN(), 18.4);
-    let _ = fb.text_ttf((rx + 20) as i32, 240, "shielded notes not scanned", MUTED(), 14.9);
+    let _ = fb.text_ttf((rx + 20) as i32, 166, "SHIELDED  \u{00b7}  PRIVATE", DIM(), scale::BODY);
+    let sx = fb.text_ttf((rx + 20) as i32, 188, "\u{2014}", GREEN(), scale::SPLASH);
+    let _ = fb.text_ttf(sx + 8, 202, "ETH", GREEN(), scale::VALUE);
+    let _ = fb.text_ttf((rx + 20) as i32, 240, "shielded notes not scanned", MUTED(), scale::BODY);
 }
 
 fn format_eth(v: u64, out: &mut [u8]) -> usize {
