@@ -31,6 +31,10 @@ impl RxRing {
         Self { ring_user_va, buffer_user_va, buffer_device_addr, head: 0 }
     }
 
+    /// # Safety
+    ///
+    /// `idx` is below the descriptor count; the ring memory is the DMA grant
+    /// taken in setup, `RX_DESC_COUNT` descriptors long.
     pub unsafe fn descriptor(&self, idx: u16) -> *mut RxDesc {
         let base = self.ring_user_va as *mut RxDesc;
         base.add(idx as usize)

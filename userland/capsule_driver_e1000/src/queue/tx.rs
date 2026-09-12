@@ -41,6 +41,10 @@ impl TxRing {
         Self { ring_user_va, buffer_user_va, buffer_device_addr, tail: 0 }
     }
 
+    /// # Safety
+    ///
+    /// `idx` is below the descriptor count; the ring memory is the DMA grant
+    /// taken in setup, `TX_DESC_COUNT` descriptors long.
     pub unsafe fn descriptor(&self, idx: u16) -> *mut TxDesc {
         (self.ring_user_va as *mut TxDesc).add(idx as usize)
     }
