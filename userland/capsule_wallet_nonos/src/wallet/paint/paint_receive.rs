@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::ui;
@@ -33,17 +34,22 @@ pub fn paint_receive(state: &State, fb: &mut PaintBuffer) {
     ui::card(fb, cx, 146, 300, 300);
     qr(fb, state, cx + 40, 176);
     let cap = "Scan to send to this account";
-    let cwid = fb.measure_ttf(cap, 14.9).max(0) as u32;
-    let _ = fb.text_ttf((cx + 150 - cwid / 2) as i32, 420, cap, DIM(), 14.9);
+    let cwid = fb.measure_ttf(cap, scale::BODY).max(0) as u32;
+    let _ = fb.text_ttf((cx + 150 - cwid / 2) as i32, 420, cap, DIM(), scale::BODY);
 
     let rx = cx + 316;
     let rw = cw - 316;
     ui::card(fb, rx, 146, rw, 116);
-    let _ = fb.text_ttf((rx + 20) as i32, 164, "YOUR ADDRESS", DIM(), 12.1);
+    let _ = fb.text_ttf((rx + 20) as i32, 164, "YOUR ADDRESS", DIM(), scale::BODY);
     let mut a = [0u8; 42];
     hex_addr(&state.address, &mut a);
-    let _ =
-        fb.text_ttf_mono((rx + 20) as i32, 190, core::str::from_utf8(&a).unwrap_or(""), FG(), 17.2);
+    let _ = fb.text_ttf_mono(
+        (rx + 20) as i32,
+        190,
+        core::str::from_utf8(&a).unwrap_or(""),
+        FG(),
+        scale::BODY,
+    );
     ui::primary(fb, rx + rw - 92, 182, 72, b"COPY");
     ui::outline(fb, rx + 20, 222, 88, b"Share");
     ui::outline(fb, rx + 118, 222, 100, b"Save QR");
@@ -59,23 +65,23 @@ pub fn paint_receive(state: &State, fb: &mut PaintBuffer) {
             402,
             "PRIVATE KEY \u{2014} never share this",
             ACCENT(),
-            12.1,
+            scale::BODY,
         );
         // The full 66-char key (0x + 64 hex) on one line, so it is obviously a
         // complete private key, with a caption confirming what it is.
         let key = core::str::from_utf8(&state.export_hex).unwrap_or("");
-        let _ = fb.text_ttf_mono((rx + 20) as i32, 432, key, FG(), 14.0);
+        let _ = fb.text_ttf_mono((rx + 20) as i32, 432, key, FG(), scale::BODY);
         let _ = fb.text_ttf(
             (rx + 20) as i32,
             458,
             "64 hex chars \u{00b7} import this anywhere to recover this exact account",
             DIM(),
-            11.5,
+            scale::BODY,
         );
         ui::outline(fb, rx + 300, 392, 96, b"Hide");
     } else {
-        let _ = fb.text_ttf((rx + 20) as i32, 402, "ACCOUNT", DIM(), 12.1);
-        let _ = fb.text_ttf_mono((rx + 20) as i32, 432, "m/44'/60'/0'/0/0", MUTED(), 14.9);
+        let _ = fb.text_ttf((rx + 20) as i32, 402, "ACCOUNT", DIM(), scale::BODY);
+        let _ = fb.text_ttf_mono((rx + 20) as i32, 432, "m/44'/60'/0'/0/0", MUTED(), scale::BODY);
         if state.address_ready {
             let mut full = [0u8; 42];
             hex_addr(&state.address, &mut full);
@@ -84,11 +90,17 @@ pub fn paint_receive(state: &State, fb: &mut PaintBuffer) {
                 456,
                 core::str::from_utf8(&full).unwrap_or(""),
                 FG(),
-                14.9,
+                scale::BODY,
             );
             ui::outline(fb, rx + 300, 392, 96, b"Export (K)");
         } else {
-            let _ = fb.text_ttf((rx + 20) as i32, 456, "Generate an account first", MUTED(), 14.9);
+            let _ = fb.text_ttf(
+                (rx + 20) as i32,
+                456,
+                "Generate an account first",
+                MUTED(),
+                scale::BODY,
+            );
         }
     }
 }
@@ -100,17 +112,17 @@ pub fn paint_receive(state: &State, fb: &mut PaintBuffer) {
 fn setup(fb: &mut PaintBuffer, state: &State, rx: u32, rw: u32) {
     ui::card(fb, rx, 278, rw, 96);
     if state.recover_active {
-        let _ = fb.text_ttf((rx + 20) as i32, 296, "RECOVER FROM PHRASE", DIM(), 12.1);
+        let _ = fb.text_ttf((rx + 20) as i32, 296, "RECOVER FROM PHRASE", DIM(), scale::BODY);
         let fw = rw - 40;
         ui::bordered(fb, rx + 20, 314, fw, 36, PANEL_2(), ACCENT());
         let typed = core::str::from_utf8(&state.recover_buf[..state.recover_len]).unwrap_or("");
         // Show the tail that fits so the caret area stays visible while long
         // phrases are typed.
         let mut shown = typed;
-        while fb.measure_ttf(shown, 14.9).max(0) as u32 > fw - 24 && !shown.is_empty() {
+        while fb.measure_ttf(shown, scale::BODY).max(0) as u32 > fw - 24 && !shown.is_empty() {
             shown = &shown[1..];
         }
-        let _ = fb.text_ttf_mono((rx + 32) as i32, 324, shown, FG(), 14.9);
+        let _ = fb.text_ttf_mono((rx + 32) as i32, 324, shown, FG(), scale::BODY);
         let words = state.recover_buf[..state.recover_len]
             .split(|&b| b == b' ')
             .filter(|w| !w.is_empty())
@@ -120,19 +132,19 @@ fn setup(fb: &mut PaintBuffer, state: &State, rx: u32, rw: u32) {
         let mut cnt = [0u8; 12];
         let cl = build_word_count(&nb[..dn], &mut cnt);
         let cs = core::str::from_utf8(&cnt[..cl]).unwrap_or("");
-        let cw2 = fb.measure_ttf(cs, 13.8).max(0) as u32;
-        let _ = fb.text_ttf((rx + rw - 32 - cw2) as i32, 326, cs, MUTED(), 13.8);
+        let cw2 = fb.measure_ttf(cs, scale::BODY).max(0) as u32;
+        let _ = fb.text_ttf((rx + rw - 32 - cw2) as i32, 326, cs, MUTED(), scale::BODY);
         let _ = fb.text_ttf(
             (rx + 20) as i32,
             360,
             "12-24 words, space separated  \u{00b7}  Enter to recover  \u{00b7}  Esc to cancel",
             DIM(),
-            13.2,
+            scale::BODY,
         );
         return;
     }
     if state.import_active {
-        let _ = fb.text_ttf((rx + 20) as i32, 296, "IMPORT PRIVATE KEY", DIM(), 12.1);
+        let _ = fb.text_ttf((rx + 20) as i32, 296, "IMPORT PRIVATE KEY", DIM(), scale::BODY);
         // Show the key as it is typed so the user can read every character back
         // and confirm it, the way a hardware wallet's import screen does. This
         // is entered only on a machine the user already trusts with the key. A
@@ -148,17 +160,17 @@ fn setup(fb: &mut PaintBuffer, state: &State, rx: u32, rw: u32) {
         buf[2..2 + n].copy_from_slice(&state.import_hex[..n]);
         let typed = core::str::from_utf8(&buf[..2 + n]).unwrap_or("0x");
         let mut shown = typed;
-        while fb.measure_ttf(shown, 14.9).max(0) as u32 > fw - 24 && shown.len() > 2 {
+        while fb.measure_ttf(shown, scale::BODY).max(0) as u32 > fw - 24 && shown.len() > 2 {
             shown = &shown[1..];
         }
-        let _ = fb.text_ttf_mono((rx + 32) as i32, 324, shown, FG(), 14.9);
+        let _ = fb.text_ttf_mono((rx + 32) as i32, 324, shown, FG(), scale::BODY);
         let mut nb = [0u8; 20];
         let dn = super::format_u64::format_u64(state.import_len as u64, &mut nb);
         let mut cnt = [0u8; 8];
         let cl = build_count(&nb[..dn], &mut cnt);
         let cs = core::str::from_utf8(&cnt[..cl]).unwrap_or("");
-        let cw = fb.measure_ttf(cs, 13.8).max(0) as u32;
-        let _ = fb.text_ttf((rx + rw - 32 - cw) as i32, 326, cs, MUTED(), 13.8);
+        let cw = fb.measure_ttf(cs, scale::BODY).max(0) as u32;
+        let _ = fb.text_ttf((rx + rw - 32 - cw) as i32, 326, cs, MUTED(), scale::BODY);
         let fill = (fw - 4) * (state.import_len.min(64) as u32) / 64;
         fb.fill_rect(rx + 22, 348, fill, 2, ACCENT());
         let _ = fb.text_ttf(
@@ -166,10 +178,10 @@ fn setup(fb: &mut PaintBuffer, state: &State, rx: u32, rw: u32) {
             360,
             "Paste or type 64 hex chars  \u{00b7}  Enter to import  \u{00b7}  Esc to cancel",
             DIM(),
-            13.2,
+            scale::BODY,
         );
     } else {
-        let _ = fb.text_ttf((rx + 20) as i32, 296, "SET UP THIS WALLET", DIM(), 12.1);
+        let _ = fb.text_ttf((rx + 20) as i32, 296, "SET UP THIS WALLET", DIM(), scale::BODY);
         ui::primary(fb, rx + 20, 318, 150, b"Generate (G)");
         ui::outline(fb, rx + 182, 318, 180, b"Import key (I)");
         ui::outline(fb, rx + 374, 318, 160, b"Recover (M)");
@@ -178,7 +190,7 @@ fn setup(fb: &mut PaintBuffer, state: &State, rx: u32, rw: u32) {
             366,
             "Generate makes a fresh key with a 12-word phrase. Recover rebuilds the same account from yours.",
             DIM(),
-            13.2,
+            scale::BODY,
         );
     }
 }

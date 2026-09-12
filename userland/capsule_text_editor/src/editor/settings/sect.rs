@@ -20,13 +20,15 @@
 //! that varies with the row count.
 
 use super::card::{card_rect, ROW_H};
-use super::sects_a::{AUTO_SAVE, EDITING, LANGUAGE};
-use super::sects_b::{ADVANCED, COLLABORATION, SPELLING};
+use super::sects_a::EDITING;
 
+/// A row's control. One kind, because a switch is the only control the panel
+/// can honour: the dropdowns it used to draw had nothing behind them to open,
+/// and a control that cannot be operated is not a disabled control, it is a
+/// picture of one.
 #[derive(Clone, Copy)]
 pub(super) enum Ctl {
     Toggle(u32),
-    Drop(&'static str),
 }
 
 pub(super) struct Section {
@@ -42,11 +44,6 @@ pub(super) fn sect_rect(width: u32, rows: usize) -> (u32, u32, u32, u32) {
 pub(super) fn section(nav: usize) -> Option<&'static Section> {
     match nav {
         1 => Some(&EDITING),
-        2 => Some(&AUTO_SAVE),
-        3 => Some(&LANGUAGE),
-        4 => Some(&SPELLING),
-        5 => Some(&COLLABORATION),
-        6 => Some(&ADVANCED),
         _ => None,
     }
 }

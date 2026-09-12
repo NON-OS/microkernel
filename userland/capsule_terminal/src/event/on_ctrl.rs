@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, MOD_SHIFT};
+use nonos_app_skeleton::{EventOutcome, KEY_LEFT, KEY_RIGHT, MOD_SHIFT};
 use nonos_libc::mk_kill;
 
 use super::accept_suggestion::accept_suggestion;
+use super::bool_to_outcome::bool_to_outcome;
 use super::copy_line::copy_line;
 use super::paste_clipboard::paste_clipboard;
 use super::search::{search_cancel, search_step};
@@ -44,6 +45,10 @@ const CTRL_L_LO: u32 = 0x6C;
 const CTRL_U_LO: u32 = 0x75;
 const CTRL_V_LO: u32 = 0x76;
 const CTRL_W_LO: u32 = 0x77;
+const CTRL_D: u32 = 0x44;
+const CTRL_D_LO: u32 = 0x64;
+const CTRL_Y: u32 = 0x59;
+const CTRL_Y_LO: u32 = 0x79;
 
 pub fn on_ctrl(state: &mut State, code: u32, flags: u16) -> Option<EventOutcome> {
     let shift = flags & MOD_SHIFT != 0;
@@ -87,7 +92,7 @@ pub fn on_ctrl(state: &mut State, code: u32, flags: u16) -> Option<EventOutcome>
             Some(EventOutcome::Repaint)
         }
         CTRL_U | CTRL_U_LO => {
-            state.line.clear();
+            state.line.kill_line();
             Some(EventOutcome::Repaint)
         }
         CTRL_W | CTRL_W_LO => {
@@ -98,6 +103,24 @@ pub fn on_ctrl(state: &mut State, code: u32, flags: u16) -> Option<EventOutcome>
             state.line.kill_to_end();
             Some(EventOutcome::Repaint)
         }
+        // Ctrl-D deletes the character under the cursor, the forward twin of
+        // backspace. It does not close the terminal on an empty line: that is
+        // what `exit` is for, and a window that vanishes on a mistyped key is
+        // a window nobody trusts to hold work.
+        CTRL_D | CTRL_D_LO => Some(bool_to_outcome(state.line.delete())),
+        // Ctrl-Y puts back what the last kill key cut. Without it Ctrl-U,
+        // Ctrl-W and Ctrl-K are destructive with no way back, which is the
+        // one thing a line editor must never be.
+        CTRL_Y | CTRL_Y_LO => {
+            state.line.yank();
+            Some(EventOutcome::Repaint)
+        }
+        // Ctrl with the arrows moves by word, the motion that sits between
+        // stepping one byte and jumping to the end of the line. These arrive
+        // here rather than with the other arrows because any Ctrl key is
+        // routed to this function first.
+        KEY_LEFT => Some(bool_to_outcome(state.line.move_word_left())),
+        KEY_RIGHT => Some(bool_to_outcome(state.line.move_word_right())),
         CTRL_A | CTRL_A_LO => {
             state.line.move_home();
             Some(EventOutcome::Repaint)

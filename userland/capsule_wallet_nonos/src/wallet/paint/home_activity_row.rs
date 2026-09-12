@@ -48,7 +48,7 @@ pub fn activity(state: &State, fb: &mut PaintBuffer, rx: u32, col: u32, y: u32) 
             (y + 58) as i32,
             "Sent and received transfers",
             DIM(),
-            13.2,
+            scale::BODY,
         );
         let _ =
             fb.text_ttf((rx + 18) as i32, (y + 76) as i32, "will appear here", DIM(), scale::SMALL);

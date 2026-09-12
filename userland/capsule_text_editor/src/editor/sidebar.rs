@@ -25,7 +25,13 @@ use super::shell::pane_y;
 use super::theme;
 use super::tree::FileTree;
 
-pub(super) fn paint_sidebar(fb: &mut PaintBuffer, tree: &FileTree, height: u32, entry_open: bool) {
+pub(super) fn paint_sidebar(
+    fb: &mut PaintBuffer,
+    tree: &FileTree,
+    height: u32,
+    entry_open: bool,
+    ribbon: bool,
+) {
     let th = theme::active();
     fb.fill_rect(ACTIVITY_W, 0, SIDEBAR_W, height, th.sidebar_bg);
     fb.fill_rect(ACTIVITY_W, TITLEBAR_H, SIDEBAR_W, TABBAR_H, th.header_bg);
@@ -34,7 +40,7 @@ pub(super) fn paint_sidebar(fb: &mut PaintBuffer, tree: &FileTree, height: u32, 
     fb.fill_rect(ACTIVITY_W + SIDEBAR_W - 1, 0, 1, height, th.line);
 
     // While the name entry is open its bar takes the first row slot.
-    let top = pane_y() + if entry_open { ROW_H } else { 0 };
+    let top = pane_y(ribbon) + if entry_open { ROW_H } else { 0 };
     let avail = height.saturating_sub(top + FOOTER_H);
     let rows = avail / ROW_H;
 
@@ -75,8 +81,9 @@ pub(super) fn sidebar_row_at(
     tree: &FileTree,
     height: u32,
     entry_open: bool,
+    ribbon: bool,
 ) -> Option<usize> {
-    let top = pane_y() + if entry_open { ROW_H } else { 0 };
+    let top = pane_y(ribbon) + if entry_open { ROW_H } else { 0 };
     if y < top as i32 || (y as u32) >= height.saturating_sub(FOOTER_H) {
         return None;
     }

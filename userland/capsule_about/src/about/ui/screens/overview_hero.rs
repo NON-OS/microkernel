@@ -23,8 +23,8 @@ use crate::about::theme::{ACCENT, FOREGROUND, MUTED, TITLE};
 use super::super::card;
 use super::super::chip::chip;
 use super::super::metrics::{
-    BODY_PX, CARD_PAD, CHIP_H, HERO_H, HERO_META_TOP, HERO_SUB_TOP, HERO_TEXT_X,
-    HERO_TITLE_TOP, VALUE_PX,
+    BODY_PX, CARD_PAD, CHIP_H, HERO_H, HERO_META_TOP, HERO_SUB_TOP, HERO_TEXT_X, HERO_TITLE_TOP,
+    VALUE_PX,
 };
 use super::super::text::{self, line};
 use super::overview_mark::mark;

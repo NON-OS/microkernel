@@ -30,7 +30,11 @@ pub fn on_tab(state: &mut State) -> EventOutcome {
     let line = state.line.as_bytes().to_vec();
     let start = line.iter().rposition(|&b| b == b' ').map(|i| i + 1).unwrap_or(0);
     let word = &line[start..];
-    let (cands, base): (Vec<Vec<u8>>, Vec<u8>) = if start == 0 {
+    // The first word is a command; a later word is usually a path, except
+    // after the handful of commands whose argument is itself a command name.
+    let first = line.split(|&b| b == b' ').next().unwrap_or(b"");
+    let complete_command = start == 0 || super::complete::takes_command_argument(first);
+    let (cands, base): (Vec<Vec<u8>>, Vec<u8>) = if complete_command {
         (command_candidates(word).iter().map(|c| c.to_vec()).collect(), word.to_vec())
     } else {
         let resolved = resolve(state.cwd.as_bytes(), word);

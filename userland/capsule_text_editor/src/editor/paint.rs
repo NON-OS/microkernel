@@ -73,6 +73,11 @@ fn row_top(state: &State, line: u32) -> u32 {
 }
 
 fn paint_current_line(state: &State, fb: &mut PaintBuffer, caret_line: u32) {
+    // The switch in Settings, Editing. It was drawn and ignored before: the
+    // band was painted whatever the panel said.
+    if !super::settings::live::highlight_current_line() {
+        return;
+    }
     if state.sel_range().is_none() && in_view(state, caret_line) {
         let x = state.pane_x + GUTTER_W;
         fb.fill_rect(
@@ -104,6 +109,7 @@ fn paint_gutter(state: &State, fb: &mut PaintBuffer, caret_line: u32) {
 }
 
 fn paint_body(state: &State, fb: &mut PaintBuffer, adv: u32) {
+    let invisibles = super::settings::live::show_invisibles();
     let px = body_px(state.font_scale);
     let lh = line_height(state.font_scale);
     let toks = highlight::classify(&state.buf[..state.len]);
@@ -139,8 +145,35 @@ fn paint_body(state: &State, fb: &mut PaintBuffer, adv: u32) {
             let color = highlight::color(toks.get(bi).copied().unwrap_or(highlight::Tok::Text));
             let s = ch.encode_utf8(&mut chbuf);
             let _ = fb.text_ttf_mono(x as i32, ty as i32, s, color, px);
+        } else if invisibles {
+            paint_invisible(fb, ch, x, ty, adv, lh);
         }
         col += 1;
+    }
+}
+
+/// Mark whitespace when Settings, Editing has invisibles switched on.
+///
+/// Drawn as marks rather than glyphs so they cannot be confused with text a
+/// document actually contains: a centred dot for a space, a short arrow for a
+/// tab. Both in the disabled colour, which is the dimmest the theme defines,
+/// because these are an aid and not content.
+///
+/// Line ends are not marked. The wrap loop consumes a newline before a column
+/// is known for it, so marking one would need the position from before the
+/// wrap, and a mark in the wrong column is worse than none.
+fn paint_invisible(fb: &mut PaintBuffer, ch: char, x: u32, ty: u32, adv: u32, lh: u32) {
+    let c = theme::active().disabled;
+    match ch {
+        ' ' => {
+            fb.fill_rect(x + adv / 2, ty + lh / 2, 1, 1, c);
+        }
+        '\t' => {
+            let y = ty + lh / 2;
+            fb.fill_rect(x + 1, y, adv.saturating_sub(2), 1, c);
+            fb.fill_rect(x + adv.saturating_sub(3), y.saturating_sub(1), 1, 3, c);
+        }
+        _ => {}
     }
 }
 

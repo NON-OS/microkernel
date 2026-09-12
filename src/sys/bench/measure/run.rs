@@ -21,9 +21,13 @@ use crate::arch::read_time_counter;
 /// and cold caches is not reported as the cost of the operation.
 const WARMUP: u32 = 8;
 
-/// Ceiling on stored runs. A microbenchmark that wants more than this is
-/// measuring throughput rather than latency and belongs in its own harness.
-const MAX_RUNS: usize = 256;
+/// Ceiling on stored runs.
+///
+/// A thousand samples is what makes a ninety-ninth percentile mean anything:
+/// with two hundred and fifty-six, p99 is the third-slowest run and moves on
+/// noise. Eight kilobytes of stack is affordable on the kernel's own bench path,
+/// which runs at boot and nowhere near an interrupt stack.
+const MAX_RUNS: usize = 1024;
 
 /// Time `body` once per iteration and report the spread.
 ///
@@ -49,5 +53,5 @@ pub fn measure(iterations: u32, mut body: impl FnMut()) -> Sample {
         *slot = end.saturating_sub(start);
     }
 
-    Sample::from_runs(&runs[..wanted])
+    Sample::from_runs(&mut runs[..wanted])
 }

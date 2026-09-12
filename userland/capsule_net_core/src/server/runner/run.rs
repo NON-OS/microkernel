@@ -31,9 +31,25 @@ pub fn run() -> ! {
     let mut rx = vec![0u8; HDR_LEN + IPC_BUF_MAX];
     let mut tx = vec![0u8; HDR_LEN + IPC_BUF_MAX];
     let mut last_reeval: i64 = 0;
+    // Least time between device polls while the stack is quiet.
+    //
+    // `pump` runs a full smoltcp poll: every socket, every queue, the device.
+    // It used to run on every turn of this loop, so the poll rate was whatever
+    // the receive wait happened to be, and a single message a second held the
+    // loop attentive long enough to poll about ninety times a second forever.
+    // The wait tier was never the cost; this was. Under traffic the loop is
+    // attentive anyway and polls at its own rate, so this floor only applies
+    // to a stack with nothing to do.
+    const IDLE_POLL_MS: i64 = 20;
+    let mut last_poll: i64 = 0;
+
     loop {
-        crate::iface::poll::pump();
         let now = mk_time_millis();
+        // Poll when something is happening, or when the idle floor has passed.
+        if receive::attentive() || now.wrapping_sub(last_poll) >= IDLE_POLL_MS {
+            crate::iface::poll::pump();
+            last_poll = now;
+        }
         if now.wrapping_sub(last_reeval) >= REEVAL_INTERVAL_MS {
             crate::setup::reevaluate();
             last_reeval = now;

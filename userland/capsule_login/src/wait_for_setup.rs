@@ -13,15 +13,23 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_libc::mk_yield;
+use nonos_libc::mk_idle_ms;
+
+/// How long to sleep between attempts. Short enough that a setup which becomes
+/// ready is picked up without a visible pause, long enough to cost nothing.
+const RETRY_MS: u64 = 250;
 
 pub fn wait_for_setup() -> crate::state::Context {
     loop {
         if let Ok(ctx) = crate::setup::run() {
             return ctx;
         }
-        for _ in 0..64 {
-            mk_yield();
-        }
+        // Sixty-four yields, not a wait. `mk_yield` returns immediately when
+        // nothing else wants the processor, so on an idle machine this loop ran
+        // flat out: login held eighty-eight percent of the core for as long as
+        // the desktop was up, still spinning on a setup step that would not
+        // arrive any sooner for it. A quarter second of real sleep costs four
+        // wakeups a second and answers just as fast.
+        mk_idle_ms(RETRY_MS);
     }
 }

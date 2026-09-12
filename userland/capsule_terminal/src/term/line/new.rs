@@ -19,6 +19,18 @@ use crate::term::dimensions::COLS;
 
 impl Line {
     pub const fn new() -> Self {
-        Self { buf: [0; COLS], len: 0, cursor: 0 }
+        Self {
+            buf: [0; COLS],
+            len: 0,
+            cursor: 0,
+            killed: [0; super::types::KILL_CAP],
+            killed_len: 0,
+        }
+    }
+}
+
+impl Default for Line {
+    fn default() -> Self {
+        Self::new()
     }
 }

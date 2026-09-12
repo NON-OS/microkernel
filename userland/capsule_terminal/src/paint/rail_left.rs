@@ -49,11 +49,7 @@ pub fn draw(
     if r.w == 0 || r.h == 0 {
         return;
     }
-    let fit = RailFit {
-        sessions: tabs.len() as u32,
-        projects: projects.len() as u32,
-        telemetry,
-    };
+    let fit = RailFit { sessions: tabs.len() as u32, projects: projects.len() as u32, telemetry };
     let mut fb = fb.sub(r.x, r.y, r.w, r.h);
     let fb = &mut fb;
     fb.blend_rect(r.w.saturating_sub(1), 0, 1, r.h, t.chrome_edge);

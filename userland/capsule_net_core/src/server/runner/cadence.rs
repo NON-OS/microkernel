@@ -23,9 +23,25 @@ use core::sync::atomic::{AtomicU32, Ordering};
 /// rather than spinning a core.
 const BUSY_MS: u64 = 2;
 
+/// What to wait once the burst has passed but the exchange may not be over.
+///
+/// Between the two extremes, because there was no middle before: any single
+/// packet bought sixty-four turns of two-millisecond polling, and a machine
+/// seeing occasional traffic never reached the quiet wait at all. Five hundred
+/// syscall round trips a second is a measurable share of a core spent on a
+/// connection that has already gone quiet.
+const SETTLING_MS: u64 = 12;
+
 /// What to wait when nothing is asking. A machine with no connection open
 /// should not be polling a card it has no reason to read.
 const QUIET_MS: u64 = 50;
+
+/// Turns of full attention before stepping down to `SETTLING_MS`.
+///
+/// Sized to cover the gap between the messages of one handshake, which is what
+/// the fast wait is for. Everything after that is the tail of an exchange, and
+/// the tail does not need the same rate as the exchange.
+const ATTENTIVE: u32 = 8;
 
 /// How many quiet turns to stay attentive after the last one that mattered.
 ///
@@ -36,10 +52,10 @@ const LINGER: u32 = 64;
 
 /// How long to wait for the next request.
 pub fn next_wait(busy: &AtomicU32) -> u64 {
-    if busy.load(Ordering::Relaxed) > 0 {
-        BUSY_MS
-    } else {
-        QUIET_MS
+    match busy.load(Ordering::Relaxed) {
+        0 => QUIET_MS,
+        n if n > LINGER - ATTENTIVE => BUSY_MS,
+        _ => SETTLING_MS,
     }
 }
 

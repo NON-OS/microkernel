@@ -33,12 +33,12 @@ mod term {
 
 #[path = "../src/command/builtin/fs/ls_date.rs"]
 mod ls_date;
-#[path = "../src/command/builtin/fs/ls_num.rs"]
-mod ls_num;
-#[path = "../src/command/builtin/fs/ls_long.rs"]
-mod ls_long;
 #[path = "../src/command/builtin/fs/ls_dots.rs"]
 mod ls_dots;
+#[path = "../src/command/builtin/fs/ls_long.rs"]
+mod ls_long;
+#[path = "../src/command/builtin/fs/ls_num.rs"]
+mod ls_num;
 #[path = "../src/command/builtin/fs/ls_total.rs"]
 mod ls_total;
 

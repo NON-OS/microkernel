@@ -20,6 +20,8 @@ use super::state::{Screen, State, SIGKILL, SIGTERM};
 use super::ui::hit::{self, Target};
 use super::ui::table_geom;
 
+#[path = "event_apply.rs"]
+mod event_apply;
 #[path = "event_key.rs"]
 mod event_key;
 #[path = "event_scroll.rs"]

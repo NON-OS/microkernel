@@ -26,6 +26,7 @@ mod find;
 mod glob;
 mod grep;
 mod grep_match;
+mod grep_paint;
 mod grep_scan;
 mod head;
 mod ls;
@@ -47,6 +48,8 @@ mod rmdir;
 mod stat;
 mod tail;
 mod touch;
+mod tree;
+pub mod tree_render;
 mod wc;
 
 pub use cat::cat;
@@ -64,6 +67,7 @@ pub use rmdir::rmdir;
 pub use stat::stat;
 pub use tail::tail;
 pub use touch::touch;
+pub use tree::tree;
 pub use wc::wc;
 
 use crate::term::state::State;

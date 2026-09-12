@@ -16,16 +16,23 @@
 
 mod activity_status;
 mod format_eth;
+mod format_typed;
+mod format_u128;
 mod format_u32;
 mod format_u64;
 mod hex_hash;
 mod home_activity_row;
+pub mod home_geom;
 mod logo;
 mod logo_bits;
+mod nav_glyph;
+mod nav_icon;
+pub mod not_wired;
 mod nox_amount;
 pub mod nox_layout;
 mod paint;
-mod paint_account_card;
+pub mod paint_account_card;
+mod paint_account_empty;
 mod paint_background;
 mod paint_backup;
 mod paint_button;

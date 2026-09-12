@@ -40,11 +40,16 @@ pub(crate) fn service() {
             PendingApp::VideoPlayer => spawn_video_player(),
         };
         match result {
-            // Deliver the focus frame the app skeleton waits for, so the
-            // new instance builds its window instead of sitting idle.
+            // Deliver the focus frame the app skeleton waits for. A freshly
+            // spawned instance builds its window on it instead of sitting idle;
+            // an app that was already at its window cap restores, raises and
+            // focuses the window the user asked for. The spawn decides which of
+            // those the pid is, because only it knows whether a slot was free.
             Ok(pid) => super::boot_frame::boot(pid),
             Err(e) => {
-                crate::sys::serial::print(b"[SPAWN-INSTANCE] deferred spawn rejected err=");
+                crate::sys::serial::print(b"[SPAWN-INSTANCE] rejected ");
+                crate::sys::serial::print(app.name());
+                crate::sys::serial::print(b" err=");
                 crate::sys::serial::println(spawn_error_name(e));
             }
         }

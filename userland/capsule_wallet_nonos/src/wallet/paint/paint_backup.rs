@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::ui;
@@ -29,20 +30,20 @@ pub fn paint_backup(state: &State, fb: &mut PaintBuffer) {
     let cw = fb.width.saturating_sub(252);
     ui::card(fb, cx, 146, cw, 470);
 
-    let _ = fb.text_ttf((cx + 20) as i32, 170, "RECOVERY PHRASE", ACCENT(), 13.2);
+    let _ = fb.text_ttf((cx + 20) as i32, 170, "RECOVERY PHRASE", ACCENT(), scale::BODY);
     let _ = fb.text_ttf(
         (cx + 20) as i32,
         196,
         "Write these words down, in order, on paper. They are shown exactly once.",
         FG(),
-        15.5,
+        scale::BODY,
     );
     let _ = fb.text_ttf(
         (cx + 20) as i32,
         220,
         "Anyone holding this phrase controls the account. Never type it into a website, never photograph it.",
         DIM(),
-        13.2,
+        scale::BODY,
     );
 
     let count = state.backup_count as usize;
@@ -63,11 +64,11 @@ pub fn paint_backup(state: &State, fb: &mut PaintBuffer) {
             (by + 14) as i32,
             core::str::from_utf8(&num[..n]).unwrap_or(""),
             MUTED(),
-            12.1,
+            scale::BODY,
         );
 
         let word = nonos_hd::ENGLISH_WORDLIST.get(word_index as usize).copied().unwrap_or("");
-        let _ = fb.text_ttf_mono((bx + 12) as i32, (by + 34) as i32, word, FG(), 17.2);
+        let _ = fb.text_ttf_mono((bx + 12) as i32, (by + 34) as i32, word, FG(), scale::BODY);
     }
 
     ui::primary(fb, cx + 20, 560, 280, b"I wrote them down (Enter)");
@@ -76,6 +77,6 @@ pub fn paint_backup(state: &State, fb: &mut PaintBuffer) {
         574,
         "Confirming wipes the phrase from this machine.",
         DIM(),
-        13.2,
+        scale::BODY,
     );
 }

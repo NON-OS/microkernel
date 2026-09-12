@@ -45,6 +45,11 @@ impl Terminal {
         if let Some(f) = toolbar_hit(self.acc_w, x, event.y as u32) {
             match f {
                 0 => self.open_tab(),
+                // The search icon opens the command palette, which is what
+                // searching means here: one field over commands, tabs and
+                // projects rather than a second history search the keyboard
+                // already has on Ctrl-R.
+                1 => self.palette.show(),
                 _ => self.theme = (self.theme + 1) % profiles::COUNT,
             }
             return EventOutcome::Repaint;

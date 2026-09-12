@@ -16,13 +16,14 @@
 
 mod backup;
 mod broadcast;
+mod broadcast_arm;
 mod edit_amount;
 mod edit_nonce;
-mod eth_value;
 mod export_key;
 mod field_input;
 mod generate;
 mod hex_digit;
+mod home_empty_click;
 mod import;
 mod on_event;
 mod on_key;

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{call_raw, N_MK_ATTEST_STATUS};
+use crate::syscall::{call_raw, N_MK_ATTEST_DOC, N_MK_ATTEST_STATUS};
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -29,4 +29,23 @@ pub struct AttestStatus {
 
 pub extern "C" fn mk_attest_status(out: *mut AttestStatus) -> i64 {
     call_raw(N_MK_ATTEST_STATUS, [out as u64, 0, 0, 0, 0, 0])
+}
+
+/// Errno the kernel returns when it will not attest: no TPM, or a capsule
+/// registry it could not complete. It is deliberately the same value for both,
+/// so a caller cannot probe the machine's state through the failure code.
+pub const ATTEST_DOC_REFUSED: i64 = -1;
+
+/// Ask the machine for a signed statement of what it is running.
+///
+/// The challenge is folded into the qualifying data the TPM signs, which is what
+/// stops a document being replayed: a verifier supplies its own and checks it
+/// comes back. Returns the encoded document's length, or a negative errno. On
+/// overflow the length is not returned, so a caller sizes generously and reads
+/// the length rather than probing upward to learn how much is running.
+pub fn mk_attest_doc(challenge: &[u8; 32], out: &mut [u8]) -> i64 {
+    call_raw(
+        N_MK_ATTEST_DOC,
+        [challenge.as_ptr() as u64, out.as_mut_ptr() as u64, out.len() as u64, 0, 0, 0],
+    )
 }

@@ -29,6 +29,7 @@ nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
 nonos_inflate = { path = "../inflate" }
 nonos_base64 = { path = "../base64" }
+nonos_bench_core = { path = "../../nonos-bench" }
 nonos_git = { path = "../nonos_git" }
 nonos_http = { path = "../nonos_http" }
 nonos_policy_proto = { path = "../policy_proto" }

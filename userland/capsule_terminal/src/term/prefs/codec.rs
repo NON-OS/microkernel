@@ -64,7 +64,11 @@ pub fn decode(b: &[u8]) -> Prefs {
     let (list, count) = projects::decode_from(&b[HEAD..]);
     Prefs {
         theme: if theme < THEME_COUNT { theme } else { 0 },
-        font_scale: if font_scale as u32 >= MIN_FONT_SCALE && font_scale as u32 <= MAX_FONT_SCALE { font_scale } else { 2 },
+        font_scale: if font_scale as u32 >= MIN_FONT_SCALE && font_scale as u32 <= MAX_FONT_SCALE {
+            font_scale
+        } else {
+            2
+        },
         cursor: if cursor < CURSOR_COUNT { cursor } else { 0 },
         rails: b[10] & RAILS_MASK,
         projects: list,

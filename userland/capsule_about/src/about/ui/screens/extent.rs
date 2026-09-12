@@ -18,7 +18,7 @@ use crate::about::section::Section;
 use crate::about::state::State;
 
 use super::super::chrome::Rect;
-use super::{display, licenses, overview, system, trust};
+use super::{display, licenses, overview, system, trust, verify};
 
 // How tall the active section's content is. The frame asks before it paints so
 // the scroll offset is already clamped when the painter reads it; a section
@@ -28,6 +28,7 @@ pub fn content_h(state: &State, rect: &Rect) -> u32 {
         Section::Overview => overview::content_h(rect),
         Section::System => system::content_h(rect),
         Section::Trust => trust::content_h(rect),
+        Section::Verify => verify::content_h(rect),
         Section::Display => display::content_h(rect),
         Section::Licenses => licenses::content_h(rect),
     };

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::ui;
@@ -23,17 +24,17 @@ use crate::wallet::theme::{ACCENT, AMBER, AMBER_INK, DIM, FG, GREEN, GREEN_INK, 
 pub fn paint_proof_view(state: &State, fb: &mut PaintBuffer) {
     let cx = 226u32;
     let cw = fb.width.saturating_sub(252);
-    let _ = fb.text_ttf(cx as i32, 160, "SIGNED TRANSACTIONS", DIM(), 12.1);
+    let _ = fb.text_ttf(cx as i32, 160, "SIGNED TRANSACTIONS", DIM(), scale::BODY);
 
     if !state.tx_ready {
         ui::card(fb, cx, 180, cw, 96);
-        let _ = fb.text_ttf((cx + 20) as i32, 212, "No transactions yet", MUTED(), 17.2);
+        let _ = fb.text_ttf((cx + 20) as i32, 212, "No transactions yet", MUTED(), scale::BODY);
         let _ = fb.text_ttf(
             (cx + 20) as i32,
             238,
             "A signed transfer and its on-chain receipt appear here.",
             DIM(),
-            14.4,
+            scale::BODY,
         );
         return;
     }
@@ -57,7 +58,7 @@ pub fn paint_proof_view(state: &State, fb: &mut PaintBuffer) {
 
     ui::card(fb, cx, 180, cw, 60);
     fb.fill_rect(cx, 180, 3, 60, ACCENT());
-    let _ = fb.text_ttf_mono((cx + 20) as i32, 192, hash, FG(), 18.4);
+    let _ = fb.text_ttf_mono((cx + 20) as i32, 192, hash, FG(), scale::VALUE);
     let mut meta = [0u8; 32];
     let ml = kind_meta(state.tx_kind, &mut meta);
     let _ = fb.text_ttf(
@@ -65,9 +66,10 @@ pub fn paint_proof_view(state: &State, fb: &mut PaintBuffer) {
         216,
         core::str::from_utf8(&meta[..ml]).unwrap_or(""),
         DIM(),
-        14.4,
+        scale::BODY,
     );
-    let bw = fb.measure_ttf(core::str::from_utf8(tag).unwrap_or(""), 12.6).max(0) as u32 + 18;
+    let bw =
+        fb.measure_ttf(core::str::from_utf8(tag).unwrap_or(""), scale::BODY).max(0) as u32 + 18;
     ui::badge(fb, cx + cw - 20 - bw, 197, tag, bg, fg);
 }
 

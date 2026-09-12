@@ -18,13 +18,25 @@
 
 use crate::state::Context;
 
+/// Where the desktop looks. One definition, so the listing and anything that
+/// later resolves an icon to a path cannot disagree about which directory the
+/// desktop is showing.
+pub const HOME: &[u8] = b"/home/nonos";
+
 /// Reload the root listing. A failed call, which happens while vfs_pool is
 /// still coming up or is briefly busy after a write, never clears a good
 /// desktop. An answer that is genuinely empty is adopted: keying on
 /// non-emptiness meant deleting your last item left its icon painted until
 /// something else was created. Returns whether the desktop wants a repaint.
 pub fn refresh(ctx: &mut Context) -> bool {
-    let Some(items) = crate::vfs_client::list(b"/") else {
+    // The home directory, not the filesystem root.
+    //
+    // The desktop listed `/` before, so the icons on it were the seeded system
+    // directories and nothing a person made was ever on their own desktop:
+    // `mkdir` in a shell sitting at `~` created a real folder that simply never
+    // appeared. A desktop shows your files. The system tree is still one click
+    // away in the file manager.
+    let Some(items) = crate::vfs_client::list(HOME) else {
         return false;
     };
     if super::same::same(&ctx.desktop_items, &items) {

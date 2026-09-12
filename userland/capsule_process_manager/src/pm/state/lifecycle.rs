@@ -42,6 +42,7 @@ impl State {
             filter: Filter::All,
             query: Query::new(),
             screen: Screen::Overview,
+            help_open: false,
             monitor: Monitor::new(),
             alerts: Vec::new(),
             flagged: Vec::new(),

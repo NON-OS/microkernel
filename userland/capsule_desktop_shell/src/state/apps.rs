@@ -56,19 +56,7 @@ pub const LAUNCHER_APPS: [LauncherApp; 12] = [
     },
     LauncherApp { icon: LauncherIcon::Wallet, label: b"Wallet", service: b"app.nonos_wallet" },
     LauncherApp { icon: LauncherIcon::Browser, label: b"Browser", service: b"app.browser" },
-    LauncherApp {
-        icon: LauncherIcon::AudioPlayer,
-        label: b"Music",
-        service: b"app.audio_player",
-    },
-    LauncherApp {
-        icon: LauncherIcon::VideoPlayer,
-        label: b"Video",
-        service: b"app.video_player",
-    },
-    LauncherApp {
-        icon: LauncherIcon::Snake,
-        label: b"Snake",
-        service: b"app.snake",
-    },
+    LauncherApp { icon: LauncherIcon::AudioPlayer, label: b"Music", service: b"app.audio_player" },
+    LauncherApp { icon: LauncherIcon::VideoPlayer, label: b"Video", service: b"app.video_player" },
+    LauncherApp { icon: LauncherIcon::Snake, label: b"Snake", service: b"app.snake" },
 ];
