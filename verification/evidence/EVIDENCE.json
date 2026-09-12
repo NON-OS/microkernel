@@ -57,7 +57,7 @@
       "toolchain": "leanprover/lean4:v4.15.0"
     },
     "runnable": {
-      "proof_crates": 40
+      "proof_crates": 41
     },
     "verus": {
       "source_files": 5

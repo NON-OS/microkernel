@@ -234,6 +234,7 @@ jobs:
           - hda_proofs
           - i2c_pci_proofs
           - virtio_rng_proofs
+          - ps2_input_proofs
           - rtl8169_proofs
           - virtio_gpu_proofs
     steps:
