@@ -235,6 +235,7 @@ jobs:
           - i2c_pci_proofs
           - virtio_rng_proofs
           - rtl8169_proofs
+          - virtio_gpu_proofs
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
         with:
