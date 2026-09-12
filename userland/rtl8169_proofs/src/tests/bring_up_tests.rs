@@ -20,6 +20,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 use nonos_devmodel::{run, FakeBar};
+use nonos_libc::entropy;
 
 use super::memory::Memory;
 use super::model::{idr, resetting_part, window, FACTORY};
@@ -46,6 +47,7 @@ fn watching_part(leaked: Arc<AtomicBool>) -> impl Fn(&FakeBar) {
 
 #[test]
 fn the_part_is_never_enabled_while_it_still_carries_the_factory_address() {
+    let _turn = entropy(true);
     let bar = window();
     let leaked = Arc::new(AtomicBool::new(false));
     let _part = run(&bar, watching_part(leaked.clone()));

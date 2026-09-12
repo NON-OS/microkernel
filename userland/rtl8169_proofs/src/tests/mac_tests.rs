@@ -17,7 +17,7 @@
 //! The station address: drawn, local, programmed under the lock, and never the
 //! factory one.
 
-use nonos_libc::set_entropy;
+use nonos_libc::entropy;
 use nonos_mac::is_local_unicast;
 
 use super::model::{idr, window, FACTORY};
@@ -27,7 +27,7 @@ use crate::regs::Regs;
 
 #[test]
 fn the_programmed_address_is_drawn_locally_administered_and_not_the_factory_one() {
-    set_entropy(true);
+    let _turn = entropy(true);
     let bar = window();
     let mac = mac_program(&Regs::new(bar.base())).expect("an address is programmed");
     assert_ne!(mac, FACTORY);
@@ -38,10 +38,9 @@ fn the_programmed_address_is_drawn_locally_administered_and_not_the_factory_one(
 
 #[test]
 fn without_entropy_nothing_is_programmed_and_the_factory_address_is_not_used() {
-    set_entropy(false);
+    let _turn = entropy(false);
     let bar = window();
     let result = mac_program(&Regs::new(bar.base()));
-    set_entropy(true);
     assert!(result.is_err(), "no entropy is a refusal, not a fallback");
     assert_eq!(idr(&bar), FACTORY, "the IDR bytes were not touched");
     assert_eq!(bar.wrote8(REG_CFG9346), 0, "the lock was never opened");

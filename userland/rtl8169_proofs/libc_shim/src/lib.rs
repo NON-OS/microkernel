@@ -22,12 +22,26 @@
 //! test switches it off to hold the driver to that.
 
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::{Mutex, MutexGuard};
 
 static ENTROPY: AtomicBool = AtomicBool::new(true);
+static TURN: Mutex<()> = Mutex::new(());
 
-/// Whether the next draw succeeds. On by default.
-pub fn set_entropy(available: bool) {
+/// Holds the entropy switch in one position until dropped. The switch is
+/// process-wide and the tests run in parallel, so every test that draws an
+/// address takes its turn through this; dropping it puts entropy back on.
+pub struct Entropy(MutexGuard<'static, ()>);
+
+impl Drop for Entropy {
+    fn drop(&mut self) {
+        ENTROPY.store(true, Ordering::SeqCst);
+    }
+}
+
+pub fn entropy(available: bool) -> Entropy {
+    let turn = TURN.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     ENTROPY.store(available, Ordering::SeqCst);
+    Entropy(turn)
 }
 
 /// Fills `len` bytes with a fixed pattern when entropy is on, so a test can
