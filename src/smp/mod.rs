@@ -25,6 +25,7 @@ mod init;
 mod ipi_dispatch;
 mod ipi_handler;
 mod preempt;
+mod responsive;
 mod sole_cpu;
 mod state;
 mod stats;
@@ -40,7 +41,7 @@ pub use constants::*;
 pub use cpu::*;
 pub use cpu_id::cpu_id;
 pub use sole_cpu::sole_cpu_apic_id;
-pub(crate) use state::{cpu_count, cpus_online};
+pub(crate) use state::{cpu_count, cpu_is_online, cpus_online};
 pub use types::*;
 pub fn current_cpu_id() -> u32 {
     cpu_id() as u32
@@ -50,4 +51,5 @@ pub use ap::*;
 pub use init::*;
 pub use ipi_handler::*;
 pub use preempt::*;
+pub use responsive::lock_responsive;
 pub use stats::*;

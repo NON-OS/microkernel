@@ -1,7 +1,7 @@
 # Booting the image under QEMU (GUI, headless, serial, GDB, TPM), plus the
 # static and verification gates that run over the built kernel.
 
-.PHONY: nonos-mk-debug nonos-mk-plan-a-runtime nonos-mk-run nonos-mk-run-input-probe-inject-serial-log nonos-mk-run-nat nonos-mk-run-net nonos-mk-run-serial nonos-mk-run-serial-log nonos-mk-run-serial-nat nonos-mk-run-serial-net nonos-mk-check-caps nonos-mk-scan nonos-mk-static nonos-mk-swtpm-start nonos-mk-swtpm-stop nonos-mk-verify nonos-mk-verify-fast
+.PHONY: nonos-mk-run-smp-serial-log nonos-mk-debug nonos-mk-plan-a-runtime nonos-mk-run nonos-mk-run-input-probe-inject-serial-log nonos-mk-run-nat nonos-mk-run-net nonos-mk-run-serial nonos-mk-run-serial-log nonos-mk-run-serial-nat nonos-mk-run-serial-net nonos-mk-check-caps nonos-mk-scan nonos-mk-static nonos-mk-swtpm-start nonos-mk-swtpm-stop nonos-mk-verify nonos-mk-verify-fast
 
 # QEMU
 
@@ -360,3 +360,17 @@ nonos-mk-verify: nonos-mk-static
 
 # Full test: verify + required QEMU boot harnesses.
 nonos-mk-test: nonos-mk-verify nonos-mk-boot-ramfs nonos-mk-boot-keyring nonos-mk-boot-desktop-gui
+
+# The multiprocessor boot. Identical to nonos-mk-run-serial-log except that
+# QEMU is given more than one CPU and the kernel is built with nonos-smp, so
+# the [SMP-PROOF] line in the log is the AP bring-up reporting itself.
+nonos-mk-run-smp-serial-log: nonos-mk-smp-prod nonos-mk-esp $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
+	@mkdir -p $(dir $(QEMU_SMP_SERIAL_LOG))
+	@echo "Booting NONOS on $(QEMU_SMP) CPUs in QEMU..."
+	@echo "  Network: $(QEMU_NET_DESC)"
+	@echo "  Serial log: $(QEMU_SMP_SERIAL_LOG)"
+	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp $(QEMU_SMP) -machine q35 \
+		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
+		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
+		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
+		-serial "file:$(QEMU_SMP_SERIAL_LOG)" -display none -no-reboot
