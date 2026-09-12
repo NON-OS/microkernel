@@ -14,20 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const BG: u32 = 0xFF0A0A0F;
-pub const PANEL: u32 = 0xFF15151E;
-pub const GROOVE: u32 = 0xFF20202C;
-pub const ACCENT: u32 = 0xFF8B7FF0;
-pub const ACCENT_DIM: u32 = 0xFF6A5FC4;
-pub const ACCENT_LIGHT: u32 = 0xFFA99BF7;
-pub const WAVE: u32 = 0xFF2B2B3A;
-pub const TEXT: u32 = 0xFFF2F1F8;
-pub const MUTED: u32 = 0xFF8A8A99;
-pub const DIM: u32 = 0xFF5C5C6B;
-pub const LINE: u32 = 0xFF19191D;
-pub const LINE_2: u32 = 0xFF202025;
-pub const ACCENT_WASH: u32 = 0xFF12111D;
+//! Anti-aliased RGBA8 glyph rasteriser shared by every video-player icon.
 
-pub fn rgb24(argb: u32) -> u32 {
-    argb & 0x00FF_FFFF
-}
+mod arrow;
+mod canvas;
+mod downscale;
+mod kind;
+mod mark;
+mod media;
+mod mode;
+mod nav;
+mod prim;
+mod shape;
+mod stroke;
+mod table;
+mod tool;
+mod transport;
+mod unit;
+mod view;
+
+pub mod cache;
+
+pub use kind::Glyph;
