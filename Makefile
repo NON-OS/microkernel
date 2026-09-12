@@ -87,6 +87,12 @@ qemu: nonos-mk-run
 # drives. Drops real-hardware-only drivers so the boot reaches ready under QEMU.
 qemu-serial: nonos-mk-run-serial-log
 
+# The same boot on more than one CPU. Every other lane pins QEMU to `-smp 1`,
+# so the AP bring-up path had never run; this is the one that exercises it.
+# Set CPUS=n to change the count (default 4). The [SMP-PROOF] line in the log
+# is the kernel reporting how many cores it actually brought online.
+qemu-smp: nonos-mk-run-smp-serial-log
+.PHONY: qemu-smp
 # ── Boot it on real hardware ─────────────────────────────────────────────────
 # A GPT-partitioned image firmware will boot from a stick, which an El Torito
 # ISO is not dependable for. `make usb` builds it; add DISK=/dev/... to write

@@ -3,4 +3,5 @@
 //! `crate::wallet::num` resolve here exactly as they do in the wallet.
 
 pub mod num;
+pub mod paint;
 pub mod swap;

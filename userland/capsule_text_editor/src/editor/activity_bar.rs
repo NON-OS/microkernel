@@ -35,7 +35,12 @@ pub(super) fn row_screen(row: usize) -> Screen {
     }
 }
 
-pub(super) fn paint_activity(fb: &mut PaintBuffer, height: u32, screen: Screen, sidebar_open: bool) {
+pub(super) fn paint_activity(
+    fb: &mut PaintBuffer,
+    height: u32,
+    screen: Screen,
+    sidebar_open: bool,
+) {
     let th = theme::active();
     fb.fill_rect(0, 0, ACTIVITY_W, height, th.activity_bg);
     for row in 0..ROW_COUNT {

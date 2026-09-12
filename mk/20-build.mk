@@ -3,7 +3,7 @@
 # STARK attestation for the kernel and every capsule. This is where make,
 # make qemu, and make from-config all resolve their real work.
 
-.PHONY: nonos-mk-check-driver-ahci-keys nonos-mk-check-driver-e1000-keys nonos-mk-check-driver-hda-keys nonos-mk-check-driver-i2c-hid-keys nonos-mk-check-driver-i2c-pci-keys nonos-mk-check-driver-iwlwifi-keys nonos-mk-check-driver-nvme-keys nonos-mk-check-driver-rtl8139-keys nonos-mk-check-driver-rtl8169-keys nonos-mk-check-driver-rtl8821ce-keys nonos-mk-check-driver-usb-msc-keys nonos-mk-check-driver-virtio-gpu-keys nonos-mk-check-ps2-input-keys nonos-mk-check-ramfs-keys nonos-mk-check-virtio-blk-keys nonos-mk-check-virtio-net-keys nonos-mk-check-virtio-rng-keys nonos-mk-check-xhci-keys nonos-mk-crypto nonos-mk-driver-ahci nonos-mk-driver-ahci-sign nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-driver-hda nonos-mk-driver-hda-sign nonos-mk-driver-i2c-hid nonos-mk-driver-i2c-hid-sign nonos-mk-driver-i2c-pci nonos-mk-driver-i2c-pci-sign nonos-mk-driver-iwlwifi nonos-mk-driver-iwlwifi-sign nonos-mk-driver-nvme nonos-mk-driver-nvme-sign nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-driver-rtl8821ce nonos-mk-driver-rtl8821ce-sign nonos-mk-driver-usb-msc nonos-mk-driver-usb-msc-sign nonos-mk-driver-virtio-gpu nonos-mk-driver-virtio-gpu-sign nonos-mk-entropy nonos-mk-keyring nonos-mk-market nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-vfs nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-wallpaper nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-all-capsules-attested nonos-mk-attest nonos-mk-attestation nonos-mk-attestation-receipt nonos-mk-bootloader nonos-mk-capsules nonos-mk-check nonos-mk-check-trust-keys nonos-mk-check-trust-manifest nonos-mk-core nonos-mk-core-attested nonos-mk-desktop-gui-prod nonos-mk-ensure-zk-keys nonos-mk-esp nonos-mk-from-config nonos-mk-host-trust-verify nonos-mk-libc nonos-mk-live-production-proof nonos-mk-marketplace-abi nonos-mk-marketplace-index-tool nonos-mk-menuconfig nonos-mk-sign nonos-mk-terminal-test nonos-mk-trust-policy nonos-mk-usb-img nonos-mk-userland-clean nonos-mk-verify-capsule-attest nonos-mk-verify-trust nonos-mk-zerostate nonos-mk-zk-report nonos-mk-zk-tools nonos-mk-zk-verify-live
+.PHONY: nonos-mk-check-driver-ahci-keys nonos-mk-check-driver-e1000-keys nonos-mk-check-driver-hda-keys nonos-mk-check-driver-i2c-hid-keys nonos-mk-check-driver-i2c-pci-keys nonos-mk-check-driver-iwlwifi-keys nonos-mk-check-driver-nvme-keys nonos-mk-check-driver-rtl8139-keys nonos-mk-check-driver-rtl8169-keys nonos-mk-check-driver-rtl8821ce-keys nonos-mk-check-driver-usb-msc-keys nonos-mk-check-driver-virtio-gpu-keys nonos-mk-check-ps2-input-keys nonos-mk-check-ramfs-keys nonos-mk-check-virtio-blk-keys nonos-mk-check-virtio-net-keys nonos-mk-check-virtio-rng-keys nonos-mk-check-xhci-keys nonos-mk-crypto nonos-mk-driver-ahci nonos-mk-driver-ahci-sign nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-driver-hda nonos-mk-driver-hda-sign nonos-mk-driver-i2c-hid nonos-mk-driver-i2c-hid-sign nonos-mk-driver-i2c-pci nonos-mk-driver-i2c-pci-sign nonos-mk-driver-iwlwifi nonos-mk-driver-iwlwifi-sign nonos-mk-driver-nvme nonos-mk-driver-nvme-sign nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-driver-rtl8821ce nonos-mk-driver-rtl8821ce-sign nonos-mk-driver-usb-msc nonos-mk-driver-usb-msc-sign nonos-mk-driver-virtio-gpu nonos-mk-driver-virtio-gpu-sign nonos-mk-entropy nonos-mk-keyring nonos-mk-market nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-vfs nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-wallpaper nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-all-capsules-attested nonos-mk-attest nonos-mk-attestation nonos-mk-attestation-receipt nonos-mk-bootloader nonos-mk-capsules nonos-mk-check nonos-mk-check-trust-keys nonos-mk-check-trust-manifest nonos-mk-core nonos-mk-core-attested nonos-mk-desktop-gui-prod nonos-mk-smp-prod nonos-mk-ensure-zk-keys nonos-mk-esp nonos-mk-from-config nonos-mk-host-trust-verify nonos-mk-libc nonos-mk-live-production-proof nonos-mk-marketplace-abi nonos-mk-marketplace-index-tool nonos-mk-menuconfig nonos-mk-sign nonos-mk-terminal-test nonos-mk-trust-policy nonos-mk-usb-img nonos-mk-userland-clean nonos-mk-verify-capsule-attest nonos-mk-verify-trust nonos-mk-zerostate nonos-mk-zk-report nonos-mk-zk-tools nonos-mk-zk-verify-live
 
 # ZK attestation: transparent enrolled-secret tools
 
@@ -1115,6 +1115,11 @@ nonos-mk-audio-player-smoketest-dev-test: $(proof-io_MANIFEST) $(audio_MANIFEST)
 # The capsules that link against the std platform layer. That layer issues
 # syscalls with raw x86_64 registers, so these do not cross-compile to aarch64
 # yet and are kept separate from the base set.
+# tokio-smoke is deliberately absent. It is the async runtime gate: a timer
+# raced against an idle accept, forever, to prove the mio waker self-wakes.
+# That is a test, and in the desktop image it held a steady share of a core for
+# the life of the session while the services a desktop needs went hungry. The
+# `microkernel-desktop-gui-async-gate` profile builds it.
 DESKTOP_STD_TOOL_ARTIFACTS := $(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) \
 		$(sd_ARTIFACTS) \
 		$(flacprobe_ARTIFACTS) \
@@ -1124,8 +1129,7 @@ DESKTOP_STD_TOOL_ARTIFACTS := $(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) \
 		$(jsonxf_ARTIFACTS) \
 		$(pastel_ARTIFACTS) \
 		$(dotenv-linter_ARTIFACTS) \
-		$(grex_ARTIFACTS) \
-		$(tokio-smoke_ARTIFACTS)
+		$(grex_ARTIFACTS)
 
 # Named by slug so the two flavours below stay in step. A capsule's
 # `_ARTIFACTS` includes its STARK attestation trailer, and generating one
@@ -1159,6 +1163,14 @@ nonos-mk-desktop-gui-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	$(call nonos_kernel_build,microkernel-desktop-gui + nonos-stark-attest,microkernel-desktop-gui$(_boot_comma)nonos-stark-attest)
+
+# nonos-mk-smp-prod: the desktop profile with the secondary CPUs turned on.
+# Same capsule set and the same attestation, so a difference between this boot
+# and the single-CPU one is the AP bring-up and nothing else.
+nonos-mk-smp-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) \
+		nonos-mk-verify-desktop-gui-capsules \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	$(call nonos_kernel_build,microkernel-desktop-gui + nonos-smp,microkernel-desktop-gui$(_boot_comma)nonos-stark-attest$(_boot_comma)nonos-smp)
 
 # The fast loop. Proving is a release cost, never an iteration cost: the policy
 # tree commits to the whole capsule set, so one changed capsule re-proves all of

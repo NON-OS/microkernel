@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::wallet::paint::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::super::ui;
@@ -31,7 +32,7 @@ const SIZE: u32 = 26;
 /// is as identifiable at this size as a downloaded image would be.
 pub fn mark(fb: &mut PaintBuffer, x: u32, y: u32, t: &Token) {
     ui::bordered(fb, x, y, SIZE, SIZE, t.tint, t.tint);
-    let w = fb.measure_ttf(t.mark, 14.0).max(0) as u32;
+    let w = fb.measure_ttf(t.mark, scale::BODY).max(0) as u32;
     let cx = x + SIZE / 2 - w / 2;
-    let _ = fb.text_ttf(cx as i32, (y + 5) as i32, t.mark, INK(), 14.0);
+    let _ = fb.text_ttf(cx as i32, (y + 5) as i32, t.mark, INK(), scale::BODY);
 }

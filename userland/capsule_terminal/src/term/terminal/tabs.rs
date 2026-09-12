@@ -19,11 +19,17 @@ use nonos_app_skeleton::{
 };
 
 use super::types::Terminal;
+use crate::term::prefs::RAIL_VISIBLE;
 use crate::term::state::State;
 
 const MAX_TABS: usize = 9;
 const KEY_T: u32 = 0x54;
 const KEY_W: u32 = 0x57;
+
+/// 'B' in both cases. The skeleton names the keys that have no character;
+/// a letter arrives as its byte, the way the digit keys are matched below.
+const KEY_B_UPPER: u32 = 0x42;
+const KEY_B_LOWER: u32 = 0x62;
 
 impl Terminal {
     pub(super) fn tab_command(&mut self, event: InputEvent) -> Option<EventOutcome> {
@@ -37,6 +43,13 @@ impl Terminal {
             KEY_PAGE_DOWN => self.switch(1),
             KEY_PAGE_UP => self.switch(-1),
             c @ 0x31..=0x39 => self.jump((c - 0x31) as usize),
+            // Ctrl-B shows and hides the left rail. The same key uncovers the
+            // file tree in the editor, so one gesture reaches the side panel
+            // wherever you are, and the terminal opens without one.
+            KEY_B_UPPER | KEY_B_LOWER if !shift => {
+                self.prefs.rails ^= RAIL_VISIBLE;
+                self.prefs_dirty = true;
+            }
             _ => return None,
         }
         Some(EventOutcome::Repaint)

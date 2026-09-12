@@ -149,5 +149,8 @@ fn the_plus_affordances_sit_in_their_captions() {
     assert!(hits(&g.s_plus, g.s_plus.x, g.s_plus.y));
     assert!(g.s_plus.x + g.s_plus.w <= g.s_head.x + g.s_head.w);
     assert!(g.p_plus.x + g.p_plus.w <= g.p_head.x + g.p_head.w);
-    assert!(g.s_plus.y >= g.s_head.y && g.s_plus.y + g.s_plus.h as i32 <= g.s_head.y + g.s_head.h as i32);
+    assert!(
+        g.s_plus.y >= g.s_head.y
+            && g.s_plus.y + g.s_plus.h as i32 <= g.s_head.y + g.s_head.h as i32
+    );
 }

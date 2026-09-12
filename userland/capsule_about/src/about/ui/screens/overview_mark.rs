@@ -16,22 +16,40 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::about::theme::{ACCENT, TRACK_BG};
+use crate::about::theme::TRACK_BG;
 
-use super::super::metrics::{CARD_PAD, HERO_H, HERO_MARK_R, HERO_MARK_T};
+use super::super::metrics::{CARD_PAD, HERO_H, HERO_MARK_R};
 
-// The ring reads as a seal and the stroke through it as the slash in the wordmark.
-// Both are integer primitives centred on the same point, so the diagonal always
-// meets the annulus at the same two places whatever the ring radius becomes.
+// The real brand mark, from the same 512x556 rasterization of
+// wallet_logos/nonos-icon-teal.svg that the wallet and the dock draw. This card
+// used to approximate it with a ring and a diagonal line: close enough to read as
+// the logo at a glance, and wrong in every detail next to the actual one. An
+// About box that shows an imitation of its own product's mark is the last place
+// that should be guessing.
+const ICON: &[u8] = include_bytes!("../../../../../assets/icons/nonos_logo.rgba");
+const ICON_W: u32 = 512;
+const ICON_H: u32 = 556;
+
+// The keyline the mark sits in. It survives from the drawn version because it
+// gives the hero a left edge to align against, and it is a frame rather than a
+// depiction of anything.
+const RING_GAP: u32 = 7;
+
 pub fn mark(fb: &mut PaintBuffer, y: i32) {
     let cy = y + (HERO_H / 2) as i32;
-    if cy < (HERO_MARK_R + 8) as i32 || cy + (HERO_MARK_R + 8) as i32 >= fb.height as i32 {
+    let reach = (HERO_MARK_R + RING_GAP + 1) as i32;
+    if cy < reach || cy + reach >= fb.height as i32 {
         return;
     }
     let cx = CARD_PAD + HERO_MARK_R + 8;
     let cy = cy as u32;
-    fb.ring(cx, cy, HERO_MARK_R + 7, 1, TRACK_BG);
-    fb.ring(cx, cy, HERO_MARK_R, HERO_MARK_T, ACCENT);
-    let r = (HERO_MARK_R - 8) as i32;
-    fb.line_aa(cx as i32 - r, cy as i32 + r, cx as i32 + r, cy as i32 - r, ACCENT);
+    fb.ring(cx, cy, HERO_MARK_R + RING_GAP, 1, TRACK_BG);
+
+    // Fitted to the ring's inner diameter and centred on the same point, with the
+    // mark's own 512:556 aspect kept: scaling it to a square would flatten the
+    // logo, which is the sort of small wrongness this change exists to remove.
+    let box_h = HERO_MARK_R * 2;
+    let dh = box_h;
+    let dw = (box_h * ICON_W / ICON_H).max(1);
+    fb.blit_rgba8_scaled(cx - dw / 2, cy - dh / 2, dw, dh, ICON, ICON_W, ICON_H);
 }

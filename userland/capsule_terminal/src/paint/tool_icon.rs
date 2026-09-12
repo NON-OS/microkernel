@@ -30,12 +30,6 @@ pub fn icon_new_tab(fb: &mut PaintBuffer, r: Rect, argb: u32) {
     fb.blend_rect(cx, cy - s / 2, 1, s, argb);
 }
 
-pub fn icon_split(fb: &mut PaintBuffer, r: Rect, argb: u32) {
-    let (cx, cy, s) = center(r);
-    fb.stroke_round(cx - s, cy - s + 1, s * 2, s * 2 - 2, 2, 1, argb);
-    fb.blend_rect(cx, cy - s + 2, 1, s * 2 - 4, argb);
-}
-
 pub fn icon_search(fb: &mut PaintBuffer, r: Rect, argb: u32) {
     let (cx, cy, s) = center(r);
     fb.ring(cx - 1, cy - 1, s - 1, 1, argb);
@@ -50,14 +44,4 @@ pub fn icon_theme(fb: &mut PaintBuffer, r: Rect, argb: u32) {
     fb.circle(cx, cy - s / 2, 1, argb);
     fb.circle(cx - s / 2, cy + s / 3, 1, argb);
     fb.circle(cx + s / 2, cy + s / 3, 1, argb);
-}
-
-pub fn icon_settings(fb: &mut PaintBuffer, r: Rect, argb: u32) {
-    let (cx, cy, s) = center(r);
-    let h = s / 2 + 1;
-    fb.ring(cx, cy, h, 1, argb);
-    fb.blend_rect(cx - s, cy, s - h, 1, argb);
-    fb.blend_rect(cx + h + 1, cy, s - h, 1, argb);
-    fb.blend_rect(cx, cy - s, 1, s - h, argb);
-    fb.blend_rect(cx, cy + h + 1, 1, s - h, argb);
 }

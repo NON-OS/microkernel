@@ -17,7 +17,14 @@
 pub const DIR_MAGIC: [u8; 4] = *b"NYMD";
 pub const DIR_VERSION: u8 = 1;
 pub const DIR_HEADER_LEN: usize = 128;
-pub const NODE_CAP: usize = 128;
+/// How many nodes the store holds.
+///
+/// Sized to carry the whole active set with room for it to grow, not to
+/// ration it. The active sets are 60 mix, 180 entry and 179 exit, and a node
+/// is 76 bytes on the wire, so the entire network is under 40 KB. Holding a
+/// prefix of it instead would mean every client routed through the same few
+/// gateways, which is a smaller crowd to hide in for no saving worth having.
+pub const NODE_CAP: usize = 512;
 /// A node record on the wire. Carries both ports a node answers on: the mix
 /// port a packet is routed to, and the websocket port a client dials.
 pub const NODE_WIRE_LEN: usize = 76;

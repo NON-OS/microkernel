@@ -24,6 +24,11 @@ pub enum PromptOp {
     Open,
     Save,
     Export,
+    /// Go to a line by number. Shares the prompt because it is the same
+    /// gesture: one field, Enter commits, Esc leaves the document alone.
+    Goto,
+    /// Find a file by part of its name and open it.
+    Quick,
 }
 
 pub struct State {
@@ -64,6 +69,10 @@ pub struct State {
     pub shell_port: u32,
     // Undo and redo stacks of reversible edits. Every mutation goes through
     // `apply_edit`, so both stay in sync with the buffer.
+    /// Set by every recorded edit, cleared when the document is loaded or
+    /// written. Tracked here rather than inferred from the undo depth, because
+    /// undoing back to a coincidentally equal depth is not the same document.
+    pub dirty: bool,
     pub undo: alloc::vec::Vec<super::edit::EditOp>,
     pub redo: alloc::vec::Vec<super::edit::EditOp>,
     // Incremental find: the query being typed and whether the find bar is open.

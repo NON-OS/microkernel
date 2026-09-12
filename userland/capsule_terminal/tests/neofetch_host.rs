@@ -146,9 +146,10 @@ fn the_styled_strip_carries_one_escape_per_block() {
 fn the_styled_strip_names_the_standard_colours_in_order() {
     let (_, styled) = palette();
     let line = text(&styled);
-    for code in ["\x1b[31m", "\x1b[32m", "\x1b[33m", "\x1b[34m", "\x1b[35m", "\x1b[36m",
-        "\x1b[37m", "\x1b[90m"]
-    {
+    for code in [
+        "\x1b[31m", "\x1b[32m", "\x1b[33m", "\x1b[34m", "\x1b[35m", "\x1b[36m", "\x1b[37m",
+        "\x1b[90m",
+    ] {
         assert!(line.contains(code), "{code:?}");
     }
     assert!(line.find("\x1b[31m") < line.find("\x1b[90m"));

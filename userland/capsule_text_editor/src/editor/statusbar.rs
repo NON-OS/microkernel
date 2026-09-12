@@ -35,7 +35,6 @@ use crate::doc::counts::word_count;
 // Status-bar text draws at the facade's 17px floor, so the gap between groups
 // is sized against that, not against the nominal STATUS_PX.
 const GROUP_GAP: i32 = 24;
-const LANGUAGE: &str = "English (US)";
 const VIEW: &str = "Page view";
 
 pub(super) fn paint_status(fb: &mut PaintBuffer, doc: &State, width: u32, height: u32) {
@@ -97,8 +96,10 @@ pub(super) fn paint_status(fb: &mut PaintBuffer, doc: &State, width: u32, height
         let _ = fb.text_ttf(x, ty, &page, th.muted, STATUS_PX);
         x += fb.measure_ttf(&page, STATUS_PX) + GROUP_GAP;
         let _ = fb.text_ttf(x, ty, &words, th.muted, STATUS_PX);
-        x += fb.measure_ttf(&words, STATUS_PX) + GROUP_GAP;
-        let _ = fb.text_ttf(x, ty, LANGUAGE, th.muted, STATUS_PX);
+        // A document language used to be printed here, always "English (US)".
+        // Nothing detected it, nothing set it and nothing used it: a real
+        // application's status bar copied without the thing it reports. Page,
+        // words and zoom are all measured from the document in front of you.
 
         let zoom = format!("{}%", zoom_percent(doc.font_scale));
         let vw = fb.measure_ttf(VIEW, STATUS_PX).max(0) as u32;

@@ -78,7 +78,6 @@ pub const NUM_PX: f32 = 17.0;
 // the same space as the card and row metrics above.
 pub const HERO_H: u32 = 124;
 pub const HERO_MARK_R: u32 = 30;
-pub const HERO_MARK_T: u32 = 3;
 pub const HERO_TEXT_X: u32 = 96;
 pub const HERO_TITLE_TOP: u32 = 20;
 pub const HERO_SUB_TOP: u32 = 58;

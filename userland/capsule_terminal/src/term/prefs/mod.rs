@@ -18,7 +18,9 @@ pub mod codec;
 pub mod gate;
 pub mod paths;
 pub mod projects;
+mod rail_flags;
 pub mod store;
 pub mod types;
 
+pub use rail_flags::RAIL_VISIBLE;
 pub use types::Prefs;

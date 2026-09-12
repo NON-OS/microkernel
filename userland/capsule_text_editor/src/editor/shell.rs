@@ -27,14 +27,25 @@ pub(super) fn pane_x(sidebar_open: bool) -> u32 {
 // Top edge of the code pane: below the menu bar, the tab strip, and the ribbon.
 // The sidebar tree hangs off this too, and the ribbon band spans the whole
 // window right of the activity bar, so both stay flush with no seam.
-pub(super) fn pane_y() -> u32 {
-    TITLEBAR_H + TABBAR_H + RIBBON_H
+/// Top of the editing pane.
+///
+/// The formatting ribbon belongs to the document view. In the code view there
+/// is nothing for it to format, and forty pixels of bold, italic and paragraph
+/// alignment above a source file is chrome from a different program. So the
+/// pane starts higher when the ribbon is not drawn.
+pub(super) fn pane_y(ribbon: bool) -> u32 {
+    TITLEBAR_H + TABBAR_H + if ribbon { RIBBON_H } else { 0 }
 }
 
 // The code pane rectangle for a given window size and sidebar state.
-pub(super) fn pane_rect(width: u32, height: u32, sidebar_open: bool) -> (u32, u32, u32, u32) {
+pub(super) fn pane_rect(
+    width: u32,
+    height: u32,
+    sidebar_open: bool,
+    ribbon: bool,
+) -> (u32, u32, u32, u32) {
     let x = pane_x(sidebar_open);
-    let y = pane_y();
+    let y = pane_y(ribbon);
     let w = width.saturating_sub(x);
     let h = height.saturating_sub(y + super::layout::FOOTER_H);
     (x, y, w, h)

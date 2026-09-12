@@ -30,18 +30,8 @@ pub(crate) fn hit(ctx: &Context, px: u32, py: u32) -> bool {
 
 pub(super) fn paint(ctx: &Context) {
     let (x, y, w, h) = rect(ctx);
-    let border = if ctx.launchpad_query.is_empty() {
-        palette::LINE_SOFT
-    } else {
-        palette::ACCENT
-    };
-    panel(
-        ctx,
-        Rect { x, y, width: w, height: h },
-        palette::R_DOCK,
-        palette::TILE_FILL,
-        border,
-    );
+    let border = if ctx.launchpad_query.is_empty() { palette::LINE_SOFT } else { palette::ACCENT };
+    panel(ctx, Rect { x, y, width: w, height: h }, palette::R_DOCK, palette::TILE_FILL, border);
 
     let pad = 14 * scale();
     let text_x = x + pad;

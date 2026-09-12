@@ -19,8 +19,8 @@
 //! open documents and the file tree; input and painting are delegated to the
 //! `ws_event` and `ws_paint` modules.
 
-use alloc::vec;
 use alloc::string::String;
+use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
@@ -29,9 +29,9 @@ use super::manifest::manifest;
 use super::menubar::TitleSpan;
 use super::panel::Panel;
 use super::ribbon::RibbonCell;
-use super::screen::Screen;
 use super::sb_entry::SbEntry;
 use super::sb_menu::SbMenu;
+use super::screen::Screen;
 use super::state::State;
 use super::tabbar::TabSpan;
 use super::tree::FileTree;
@@ -42,6 +42,14 @@ pub struct Editor {
     pub(super) tree: FileTree,
     pub(super) mru: Vec<String>,
     pub(super) sidebar_open: bool,
+    /// Ctrl+K was pressed and the shell is waiting for the key that
+    /// completes the chord. Cleared by whatever arrives next, so it can
+    /// never swallow more than one keystroke.
+    pub(super) chord_ctrl_k: bool,
+    /// A close was asked for on a document with unsaved edits and refused
+    /// once. Cleared by anything else, so the confirmation cannot be
+    /// satisfied by a keystroke from a minute ago.
+    pub(super) close_armed: bool,
     pub(super) owner_pid: u32,
     // Tab pixel spans from the last paint, used to hit-test tab-strip clicks.
     pub(super) tab_layout: Vec<TabSpan>,
@@ -73,6 +81,8 @@ impl Editor {
             tree: FileTree::new(),
             mru: Vec::new(),
             sidebar_open: true,
+            chord_ctrl_k: false,
+            close_armed: false,
             owner_pid: 0,
             tab_layout: Vec::new(),
             last_w: 0,
@@ -86,6 +96,14 @@ impl Editor {
             panel: None,
             screen: Screen::Editor,
         }
+    }
+
+    /// Whether the formatting ribbon is on screen for the active document.
+    ///
+    /// One answer, used by the painter, the pane geometry and the hit test, so
+    /// a click can never land on a band that is not drawn.
+    pub(super) fn ribbon_shown(&self) -> bool {
+        self.docs.get(self.active).map(|d| d.mode == super::mode::Mode::Document).unwrap_or(false)
     }
 
     pub(super) fn doc(&mut self) -> &mut State {

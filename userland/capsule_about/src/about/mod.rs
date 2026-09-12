@@ -18,6 +18,7 @@ mod app;
 mod data;
 mod event;
 mod format;
+mod format_hex;
 mod manifest;
 mod section;
 mod state;
