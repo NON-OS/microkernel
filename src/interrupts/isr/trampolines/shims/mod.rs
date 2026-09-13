@@ -22,17 +22,7 @@
 
 mod errors;
 mod faults;
+mod read_frame;
 mod irqs;
 
-use x86_64::structures::idt::InterruptStackFrame;
-
-/// Read the frame the trampoline built.
-///
-/// The trampoline passes a pointer into the live interrupt stack it just
-/// laid out, valid for the duration of the shim; that is the single safety
-/// fact every shim relies on.
-#[inline(always)]
-fn frame(p: *const InterruptStackFrame) -> InterruptStackFrame {
-    // SAFETY: see above.
-    unsafe { core::ptr::read(p) }
-}
+use read_frame::frame;

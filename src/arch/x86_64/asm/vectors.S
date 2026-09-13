@@ -24,77 +24,12 @@
  * error code push a zero themselves so the frame layout is uniform.
  */
 
+
 .intel_syntax noprefix
 .text
+#include "vec_gate.inc"
 
-.p2align 4
-interrupt_common:
-    push    rax
-    push    rbx
-    push    rcx
-    push    rdx
-    push    rsi
-    push    rdi
-    push    rbp
-    push    r8
-    push    r9
-    push    r10
-    push    r11
-    push    r12
-    push    r13
-    push    r14
-    push    r15
-    cld
-    mov     ax, ds
-    push    rax
-    mov     ax, 0x10
-    mov     ds, ax
-    mov     es, ax
-    mov     rdi, rsp
-    /* The frame is 8 mod 16 here; the ABI wants 16 at the call. */
-    sub     rsp, 8
-    call    interrupt_dispatch
-    add     rsp, 8
-    pop     rax
-    mov     ds, ax
-    mov     es, ax
-    pop     r15
-    pop     r14
-    pop     r13
-    pop     r12
-    pop     r11
-    pop     r10
-    pop     r9
-    pop     r8
-    pop     rbp
-    pop     rdi
-    pop     rsi
-    pop     rdx
-    pop     rcx
-    pop     rbx
-    pop     rax
-    add     rsp, 16
-    iretq
-
-/* CPU pushes no error code: supply the zero, then the vector. */
-.macro VEC_NOERR name vector
-.global \name
-.p2align 4
-\name:
-    push    0
-    push    \vector
-    jmp     interrupt_common
-.endm
-
-/* CPU pushes the error code: only the vector is missing. */
-.macro VEC_ERR name vector
-.global \name
-.p2align 4
-\name:
-    push    \vector
-    jmp     interrupt_common
-.endm
-
+/* Exceptions 0 to 31. */
 VEC_NOERR isr_divide_error          0
 VEC_NOERR isr_debug                 1
 VEC_NOERR isr_nmi                   2
@@ -127,32 +62,3 @@ VEC_NOERR isr_reserved_28          28
 VEC_ERR   isr_reserved_29          29
 VEC_ERR   isr_reserved_30          30
 VEC_NOERR isr_reserved_31          31
-
-VEC_NOERR isr_irq0                 32
-VEC_NOERR isr_irq1                 33
-VEC_NOERR isr_irq2                 34
-VEC_NOERR isr_irq3                 35
-VEC_NOERR isr_irq4                 36
-VEC_NOERR isr_irq5                 37
-VEC_NOERR isr_irq6                 38
-VEC_NOERR isr_irq7                 39
-VEC_NOERR isr_irq8                 40
-VEC_NOERR isr_irq9                 41
-VEC_NOERR isr_irq10                42
-VEC_NOERR isr_irq11                43
-VEC_NOERR isr_irq12                44
-VEC_NOERR isr_irq13                45
-VEC_NOERR isr_irq14                46
-VEC_NOERR isr_irq15                47
-VEC_NOERR isr_generic_48           48
-
-/* Inter-processor interrupts. Without these gates the first IPI sent once
- * SMP is enabled faults the target CPU; dispatch routes them through the
- * registered other-handlers and signals LAPIC EOI. */
-VEC_NOERR isr_ipi_64               64
-VEC_NOERR isr_ipi_65               65
-VEC_NOERR isr_ipi_66               66
-VEC_NOERR isr_ipi_67               67
-VEC_NOERR isr_ipi_68               68
-
-VEC_NOERR isr_syscall             128
