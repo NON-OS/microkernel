@@ -34,9 +34,13 @@
 
 use super::percpu_stacks::{CpuStacks, IST_STACKS};
 use crate::memory::addr::VirtAddr;
-use crate::memory::paging::manager::api::unmap_page;
+use crate::memory::paging::manager::api::unmap_image_page;
 
 /// Unmap the guard page under every stack in `stacks`.
+///
+/// The stacks are part of the kernel image, mapped by the bootloader, so
+/// they go through the image path: the manager's own record does not know
+/// them and would refuse the unmap as a page that was never mapped.
 ///
 /// Reports how many were taken out. A page that cannot be unmapped is left
 /// mapped rather than treated as armed: the count is what the caller prints,
@@ -45,11 +49,11 @@ use crate::memory::paging::manager::api::unmap_page;
 pub(super) fn arm(stacks: &CpuStacks) -> usize {
     let mut armed = 0;
     for slot in &stacks.ist {
-        if unmap_page(VirtAddr::new(slot.guard_base())).is_ok() {
+        if unmap_image_page(VirtAddr::new(slot.guard_base())).is_ok() {
             armed += 1;
         }
     }
-    if unmap_page(VirtAddr::new(stacks.kernel.guard_base())).is_ok() {
+    if unmap_image_page(VirtAddr::new(stacks.kernel.guard_base())).is_ok() {
         armed += 1;
     }
     armed
