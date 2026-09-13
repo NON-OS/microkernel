@@ -20,8 +20,10 @@ use alloc::vec::Vec;
 use super::types::{File, Store, StoreError, StoreResult, MAX_FILES};
 
 impl Store {
-    // Create `path` and any missing ancestor directories (mkdir -p), so a
-    // nested path never leaves an orphaned prefix in the flat namespace.
+    /*
+     * Create `path` and any missing ancestor directories (mkdir -p), so a
+     * nested path never leaves an orphaned prefix in the flat namespace.
+     */
     pub fn mkdir(&mut self, path: &str, owner: u32) -> StoreResult<()> {
         if self.find(path).is_some() {
             return Err(StoreError::Exists);

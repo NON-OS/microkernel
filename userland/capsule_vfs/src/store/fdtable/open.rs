@@ -36,9 +36,11 @@ impl Store {
         if self.files[file_idx].is_dir {
             return Err(StoreError::IsDir);
         }
-        // The handle is writable only if the caller was allowed to write and the
-        // file's own permissions permit it. Truncating a read-only file is
-        // rejected rather than silently clearing it.
+        /*
+         * The handle is writable only if the caller was allowed to write and the
+         * file's own permissions permit it. Truncating a read-only file is
+         * rejected rather than silently clearing it.
+         */
         let mode_writable = self.files[file_idx].mode & MODE_WRITE != 0;
         let writable = writable && mode_writable;
         if truncate {
