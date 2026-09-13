@@ -35,11 +35,15 @@ pub fn verify_material(
     if signature.len() != SIGNATURE_BYTES {
         return false;
     }
-    // The gateway signs its own key first, the mirror of what we sign, so
-    // neither side's material replays back at the other.
+    /*
+     * The gateway signs its own key first, the mirror of what we sign, so
+     * neither side's material replays back at the other.
+     */
     let mut signed = [0u8; EPHEMERAL_BYTES * 2];
     signed[..EPHEMERAL_BYTES].copy_from_slice(gateway_ephemeral);
     signed[EPHEMERAL_BYTES..].copy_from_slice(own_ephemeral);
-    // Argument order is (pubkey, signature, message, len), unlike signing.
+    /*
+     * Argument order is (pubkey, signature, message, len), unlike signing.
+     */
     ed25519_verify(gateway_identity, &signature, &signed) == 0
 }

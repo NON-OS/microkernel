@@ -62,14 +62,18 @@ impl HmacSha512 {
         outer.update(&self.opad);
         outer.update(&inner_hash);
         outer.finalize()
-        // Drop wipes opad; the replaced inner hasher wipes itself.
+        /*
+         * Drop wipes opad; the replaced inner hasher wipes itself.
+         */
     }
 }
 
 impl Drop for HmacSha512 {
     fn drop(&mut self) {
-        // The pads are key-derived, so a MAC abandoned before finalize must
-        // not leave them behind.
+        /*
+         * The pads are key-derived, so a MAC abandoned before finalize must
+         * not leave them behind.
+         */
         wipe(&mut self.opad);
     }
 }

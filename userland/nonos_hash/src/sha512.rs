@@ -156,8 +156,10 @@ impl Sha512 {
     }
 
     pub fn finalize(mut self) -> [u8; 64] {
-        // Tail padding: 0x80, zeros to 112 mod 128, then the 128-bit length.
-        // The tail plus padding always fits in two blocks.
+        /*
+         * Tail padding: 0x80, zeros to 112 mod 128, then the 128-bit length.
+         * The tail plus padding always fits in two blocks.
+         */
         let mut pad = [0u8; 256];
         pad[..self.buffer_len].copy_from_slice(&self.buffer[..self.buffer_len]);
         pad[self.buffer_len] = 0x80;
@@ -181,12 +183,16 @@ impl Sha512 {
 
     fn clear(&mut self) {
         for v in &mut self.state {
-            // SAFETY: volatile write so the wipe of absorbed key material
-            // cannot be optimized out.
+            /*
+             * SAFETY: volatile write so the wipe of absorbed key material
+             * cannot be optimized out.
+             */
             unsafe { core::ptr::write_volatile(v, 0) };
         }
         crate::wipe::wipe(&mut self.buffer);
-        // SAFETY: volatile write, same wipe guarantee for the length counter.
+        /*
+         * SAFETY: volatile write, same wipe guarantee for the length counter.
+         */
         unsafe { core::ptr::write_volatile(&mut self.bit_len, 0) };
         self.buffer_len = 0;
         compiler_fence(Ordering::SeqCst);

@@ -42,8 +42,10 @@ pub fn sha256(data: &[u8]) -> [u8; 32] {
         compress(&mut h, &block);
     }
 
-    // Pad the remainder: 0x80, zeros, and the 64-bit bit length. The tail plus
-    // padding always fits in two blocks.
+    /*
+     * Pad the remainder: 0x80, zeros, and the 64-bit bit length. The tail plus
+     * padding always fits in two blocks.
+     */
     let rem = full.remainder();
     let mut tail = [0u8; 128];
     tail[..rem.len()].copy_from_slice(rem);
