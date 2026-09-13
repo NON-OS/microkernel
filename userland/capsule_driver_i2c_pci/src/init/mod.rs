@@ -1,4 +1,4 @@
-mod scl;
+pub mod scl;
 
 use crate::constants::*;
 use crate::regs::Regs;
