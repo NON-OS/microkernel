@@ -225,35 +225,15 @@ fn encoded_response_headers_decode_back_to_the_request_fields() {
 // Write authority.
 
 #[test]
-fn mutating_ops_answer_only_the_kernel_or_the_attested_installer() {
+fn mutating_ops_answer_only_the_kernel_or_a_sender_holding_store_write() {
     use crate::protocol::{OP_CAPACITY, OP_FLUSH, OP_HEALTHCHECK, OP_READ_BLOCKS, OP_WRITE_BLOCKS};
     use crate::server::acl::rule::allows;
     for op in [OP_WRITE_BLOCKS, OP_FLUSH] {
         assert!(allows(op, 0, false), "the kernel client must never be refused");
-        assert!(!allows(op, 7, false), "an unattested capsule reached a mutating op");
-        assert!(allows(op, 7, true), "the attested installer was refused");
+        assert!(!allows(op, 7, false), "a sender without StoreWrite reached a mutating op");
+        assert!(allows(op, 7, true), "a sender the kernel vouches for was refused");
     }
     for op in [OP_CAPACITY, OP_READ_BLOCKS, OP_HEALTHCHECK, 0xffff] {
         assert!(allows(op, 7, false), "the read side must stay open as before");
     }
-}
-
-#[test]
-fn the_installer_name_matches_exactly_or_not_at_all() {
-    use crate::server::acl::rule::{entry_names_installer, INSTALLER_NAME};
-    let want = INSTALLER_NAME.len() as u8;
-    let mut name = [0u8; 24];
-    name[..INSTALLER_NAME.len()].copy_from_slice(INSTALLER_NAME);
-    assert!(entry_names_installer(&name, want));
-
-    let mut longer = name;
-    longer[INSTALLER_NAME.len()] = b'x';
-    assert!(!entry_names_installer(&longer, want + 1), "a prefix extension passed");
-    assert!(!entry_names_installer(&name, want - 1), "a truncation passed");
-
-    let mut off = name;
-    off[0] ^= 1;
-    assert!(!entry_names_installer(&off, want), "a one-bit name change passed");
-
-    assert!(!entry_names_installer(&name[..4], want), "a length past the buffer passed");
 }
