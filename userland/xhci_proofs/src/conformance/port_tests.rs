@@ -35,11 +35,15 @@ fn a_port_is_powered_reset_and_left_enabled_with_its_change_acknowledged() {
      * on silicon is the register. What the specification fixes is what the
      * port shows once the device has taken the acknowledgement: enabled, and
      * the change bit down. The model clears it only on the driver's write of
-     * one, so this is the driver's W1C, observed.
+     * one, so this is the driver's W1C, observed. A read that lands between
+     * the driver's write and the model's answer sees the write itself, so
+     * the wait is for the device-shown state, not for any value with the
+     * change bit down.
      */
-    let settled = (0..1_000_000).map(|_| bar.wrote32(PORT1)).find(|v| v & PORTSC_PRC == 0);
-    let shown = settled.expect("the device acknowledged the change");
-    assert_ne!(shown & PORTSC_PED, 0, "the port is enabled");
+    let settled = (0..1_000_000)
+        .map(|_| bar.wrote32(PORT1))
+        .find(|v| v & (PORTSC_PRC | PORTSC_PED) == PORTSC_PED);
+    assert!(settled.is_some(), "the device shows the port enabled with the change acknowledged");
 }
 
 #[test]
