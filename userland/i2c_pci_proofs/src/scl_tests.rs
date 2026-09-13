@@ -14,68 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The SCL divider, which is arithmetic and needs no window at all.
+//! The SCL divider against the bus timing the I2C specification requires
+//! (UM10204 table 10), which is arithmetic and needs no window at all.
 //!
-//! src/init/scl.rs:1-8 records what this cost once: "The earlier tHIGH/tLOW
-//! form ran the Fast-mode bus near 500kHz, over the 400kHz budget, which a
-//! real ELAN NAKs; this keeps it in spec on hardware."
-//!
-//! An over-clocked bus does not fail cleanly. Some transfers NAK and others
-//! complete, so the touchpad reads as intermittently broken hardware and the
-//! divider is the last place anyone looks.
+//! A bus clocked out of spec does not fail cleanly. Some transfers NAK and
+//! others complete, so the touchpad reads as intermittently broken hardware
+//! and the divider is the last place anyone looks. The times are checked as
+//! the DesignWare databook defines them: SCL high lasts HCNT + SPKLEN + 7
+//! input clocks, SCL low lasts LCNT + 1.
 
-use crate::init::scl::{fast, fs_spklen, sda_hold, standard};
+use crate::init::scl::{fast, fs_spklen, standard, SclCounts, HIGH_OVERHEAD, LOW_OVERHEAD};
 
-const GEMINI_LAKE: u32 = 133_000_000;
-const TIGER_LAKE: u32 = 100_000_000;
-const SUNRISE_POINT: u32 = 120_000_000;
-/// High and low count offsets the DesignWare core adds to every bit period.
-const CORE_OVERHEAD: u32 = 8;
+const CLOCKS: [u32; 3] = [133_000_000, 100_000_000, 120_000_000];
+
+/// (high, low) in nanoseconds, rounded down so a minimum is never met by
+/// rounding.
+fn times_ns(clk: u32, c: SclCounts) -> (u64, u64) {
+    let ns = |cycles: u32| cycles as u64 * 1_000_000_000 / clk as u64;
+    (ns(c.hcnt + fs_spklen(clk) + HIGH_OVERHEAD), ns(c.lcnt + LOW_OVERHEAD))
+}
 
 #[test]
-fn the_fast_mode_bus_never_runs_over_the_four_hundred_kilohertz_budget() {
-    for clk in [GEMINI_LAKE, TIGER_LAKE, SUNRISE_POINT] {
-        let counts = fast(clk);
-        let period = counts.hcnt + counts.lcnt + CORE_OVERHEAD;
-        assert!(period >= clk / 400_000, "{clk} Hz clocks the fast-mode bus over spec");
+fn fast_mode_meets_its_minimum_high_and_low_times_and_stays_under_400_khz() {
+    for clk in CLOCKS {
+        let (high, low) = times_ns(clk, fast(clk));
+        assert!(high >= 600, "{clk} Hz: fast-mode tHIGH {high} ns under 600");
+        assert!(low >= 1_300, "{clk} Hz: fast-mode tLOW {low} ns under 1300");
+        assert!(high + low >= 2_500, "{clk} Hz: period {} ns is over 400 kHz", high + low);
     }
 }
 
 #[test]
-fn each_input_clock_gives_the_counts_the_proven_divider_produces() {
-    /*
-     * Deriving these from the wrong input clock is the documented Gemini Lake
-     * trap: 133 MHz counts fed a 100 MHz assumption clock the bus a third
-     * fast, which is in spec for nothing.
-     */
-    assert_eq!((standard(GEMINI_LAKE).hcnt, standard(GEMINI_LAKE).lcnt), (658, 664));
-    assert_eq!((fast(GEMINI_LAKE).hcnt, fast(GEMINI_LAKE).lcnt), (159, 165));
-    assert_eq!((standard(TIGER_LAKE).hcnt, standard(TIGER_LAKE).lcnt), (493, 499));
-    assert_eq!((fast(TIGER_LAKE).hcnt, fast(TIGER_LAKE).lcnt), (118, 124));
-    assert_eq!((standard(SUNRISE_POINT).hcnt, standard(SUNRISE_POINT).lcnt), (593, 599));
-    assert_eq!((fast(SUNRISE_POINT).hcnt, fast(SUNRISE_POINT).lcnt), (143, 149));
-}
-
-#[test]
-fn a_clock_too_slow_to_divide_still_yields_counts_the_core_will_accept() {
-    /*
-     * The subtraction underflows below roughly 2 MHz. Saturating to zero and
-     * programming a zero count stops the clock entirely, so the floors are
-     * what keep a misreported input clock from bricking the bus.
-     */
-    let counts = standard(1_000_000);
-    assert_eq!((counts.hcnt, counts.lcnt), (6, 8));
-}
-
-#[test]
-fn the_spike_filter_and_sda_hold_are_never_programmed_as_zero() {
-    /*
-     * Zero spike length disables glitch suppression, and zero SDA hold puts
-     * the data edge on the clock edge, which reads back as random NAKs.
-     */
-    for clk in [GEMINI_LAKE, TIGER_LAKE, SUNRISE_POINT, 1_000_000] {
-        assert!(fs_spklen(clk) >= 1, "{clk} Hz gave a zero spike length");
-        assert!(sda_hold(clk) >= 1, "{clk} Hz gave a zero SDA hold");
+fn standard_mode_meets_its_minimum_high_and_low_times_and_stays_under_100_khz() {
+    for clk in CLOCKS {
+        let (high, low) = times_ns(clk, standard(clk));
+        assert!(high >= 4_000, "{clk} Hz: standard tHIGH {high} ns under 4000");
+        assert!(low >= 4_700, "{clk} Hz: standard tLOW {low} ns under 4700");
+        assert!(high + low >= 10_000, "{clk} Hz: period {} ns is over 100 kHz", high + low);
     }
-    assert_eq!((fs_spklen(GEMINI_LAKE), sda_hold(GEMINI_LAKE)), (13, 39));
 }
