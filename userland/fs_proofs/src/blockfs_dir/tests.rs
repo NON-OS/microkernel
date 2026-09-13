@@ -160,10 +160,14 @@ fn a_block_that_is_not_a_record_is_refused() {
     let mut wrong = empty();
     wrong[7] = b'2';
     assert!(!is_record(&wrong), "the magic must be checked in full");
-    // Short blocks are refused before any offset is used.
+    /*
+     * Short blocks are refused before any offset is used, and a header
+     * alone is short: the entry accessors reach seven entries past it.
+     */
     assert!(!is_record(&[]));
-    assert!(!is_record(&empty()[..REC_ENTRY_BASE - 1]));
-    assert!(is_record(&empty()[..REC_ENTRY_BASE]));
+    assert!(!is_record(&empty()[..REC_ENTRY_BASE]));
+    assert!(!is_record(&empty()[..REC_ENTRY_BASE + MAX_ENTRIES * ENTRY_BYTES - 1]));
+    assert!(is_record(&empty()[..REC_ENTRY_BASE + MAX_ENTRIES * ENTRY_BYTES]));
 }
 
 #[test]
