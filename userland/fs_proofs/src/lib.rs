@@ -127,3 +127,5 @@ pub mod blockfs_dir;
 
 #[cfg(test)]
 mod store_patch_tests;
+#[cfg(test)]
+mod store_replace_tests;

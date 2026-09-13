@@ -29,10 +29,13 @@ pub mod store_header;
 pub mod patch;
 #[path = "../../../capsule_vfs/src/blk/store_rules.rs"]
 pub mod store_rules;
+#[path = "../../../capsule_vfs/src/blk/store_free.rs"]
+pub mod store_free;
 #[path = "../../../capsule_vfs/src/blk/store_toc.rs"]
 pub mod store_toc;
 #[path = "../../../capsule_vfs/src/blk/wire.rs"]
 pub mod wire;
 
-pub use patch::{patch_digest, DIGEST_AT, DIGEST_LEN};
+pub use patch::{entry_sector, patch_digest, patch_entry, DIGEST_AT, DIGEST_LEN, OFFSET_AT};
+pub use store_free::free_extent;
 pub use store_rules::{in_capsule_tree, permitted, CAPSULE_TREE};
