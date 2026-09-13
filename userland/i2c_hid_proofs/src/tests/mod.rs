@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Parsing a HID report descriptor into a touchpad field map, and decoding an
-//! input report through that map into an absolute touch sample.
+//! The touchpad driver from service lookup to posted pointer events.
 
-mod decode;
-mod layout;
-mod parse;
-mod read_bits;
-
-pub use decode::{decode_touch, TouchSample};
-pub use layout::{Field, TouchLayout};
-pub use parse::parse;
+mod configure_tests;
+mod driven;
+mod fixture;
+mod frames;
+mod gesture_multi_tests;
+mod gesture_tests;
+mod layout_tests;
+mod parse_tests;
+mod poll_scroll_tests;
+mod poll_tests;
+mod service;
+mod setup_tests;
+mod wake_tests;

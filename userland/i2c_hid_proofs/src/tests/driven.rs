@@ -14,14 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Parsing a HID report descriptor into a touchpad field map, and decoding an
-//! input report through that map into an absolute touch sample.
+//! A bound driver being fed frames through the pad's input register.
 
-mod decode;
-mod layout;
-mod parse;
-mod read_bits;
+use nonos_i2cmodel::touchpad::{touch_report, Touch};
+use nonos_libc::take_events;
 
-pub use decode::{decode_touch, TouchSample};
-pub use layout::{Field, TouchLayout};
-pub use parse::parse;
+use super::fixture::{rig, Rig};
+use crate::input::poll;
+use crate::setup;
+use crate::state::State;
+
+/// The driver after setup, with whatever setup posted already discarded.
+pub(super) fn bound() -> (Rig, State) {
+    let r = rig();
+    let state = setup::run().expect("setup");
+    take_events();
+    (r, state)
+}
+
+/// Queue one frame at the pad and let the driver poll it.
+pub(super) fn frame(r: &Rig, state: &mut State, touch: Touch) {
+    r.pad.lock().push_input(&touch_report(&touch));
+    poll(state);
+}
