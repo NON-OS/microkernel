@@ -684,7 +684,7 @@ ret  = {type="i64"}
 
 [desc.MAEN]
 nr   = 0x4E45414D
-caps = ["valid_token"]
+caps = ["AttestRead"]
 args = [{name="out_ptr",type="u64",dir="out"},{name="out_len",type="u64",dir="in"}]
 ret  = {type="i64"}
 

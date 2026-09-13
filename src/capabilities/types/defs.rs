@@ -83,4 +83,8 @@ pub enum Capability {
     // Authority to reach the marketplace and install a capsule. Held by the
     // installer, not by every capsule that happens to draw a window.
     AppInstall,
+    // Authority to read the attestation registry's entries: which capsules
+    // are running, their measurements and their capability masks. Held by
+    // the programs that render a receipt, not by every capsule with a token.
+    AttestRead,
 }
