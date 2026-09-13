@@ -51,7 +51,10 @@ interrupt_common:
     mov     ds, ax
     mov     es, ax
     mov     rdi, rsp
+    /* The frame is 8 mod 16 here; the ABI wants 16 at the call. */
+    sub     rsp, 8
     call    interrupt_dispatch
+    add     rsp, 8
     pop     rax
     mov     ds, ax
     mov     es, ax
@@ -121,8 +124,8 @@ VEC_NOERR isr_reserved_25          25
 VEC_NOERR isr_reserved_26          26
 VEC_NOERR isr_reserved_27          27
 VEC_NOERR isr_reserved_28          28
-VEC_NOERR isr_reserved_29          29
-VEC_NOERR isr_reserved_30          30
+VEC_ERR   isr_reserved_29          29
+VEC_ERR   isr_reserved_30          30
 VEC_NOERR isr_reserved_31          31
 
 VEC_NOERR isr_irq0                 32

@@ -20,7 +20,8 @@
 #
 # nonos_scrub_bytes(ptr: rdi, len: rsi), SysV.
 #   rep stosb consumes rdi and rcx and stores al, all caller-saved, so the
-#   routine clobbers nothing it must preserve. Zero length falls through the
+#   routine clobbers nothing it must preserve. cld first: the ABI promises a
+#   clear direction flag at a call, and this routine does not lean on it. Zero length falls through the
 #   rep prefix by the instruction's own definition. sfence orders the stores
 #   before whatever the caller does next, poweroff included.
 
@@ -28,6 +29,7 @@
 .global nonos_scrub_bytes
 .p2align 4
 nonos_scrub_bytes:
+    cld
     mov     rcx, rsi
     xor     eax, eax
     rep stosb
