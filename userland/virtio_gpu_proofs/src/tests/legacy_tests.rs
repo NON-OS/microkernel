@@ -19,15 +19,17 @@
 //! driver's fixed region only does at 256 entries.
 
 use crate::constants::{
-    LEG_GUEST_FEATURES, LEG_QUEUE_PFN, LEG_STATUS, STATUS_ACKNOWLEDGE, STATUS_DRIVER,
-    STATUS_DRIVER_OK, STATUS_FAILED, STATUS_FEATURES_OK, VIRTIO_GPU_F_EDID, VIRTIO_GPU_F_VIRGL,
-    VIRTIO_GPU_TRANSITIONAL, VQ_AVAIL_OFFSET, VQ_MAX_SIZE, VQ_USED_OFFSET,
+    LEG_GUEST_FEATURES, LEG_QUEUE_PFN, LEG_STATUS, STATUS_DRIVER_OK, STATUS_FAILED,
+    VIRTIO_GPU_F_EDID, VIRTIO_GPU_F_VIRGL, VIRTIO_GPU_TRANSITIONAL, VQ_AVAIL_OFFSET, VQ_MAX_SIZE,
+    VQ_USED_OFFSET,
 };
 use crate::init::bring_up;
 use crate::regs::Regs;
 use crate::tests::model::{legacy_window, REGION_PHYS};
 
-const LIVE: u8 = STATUS_ACKNOWLEDGE | STATUS_DRIVER | STATUS_FEATURES_OK | STATUS_DRIVER_OK;
+/// The status byte as the virtio specification numbers it: ACKNOWLEDGE 1,
+/// DRIVER 2, DRIVER_OK 4, FEATURES_OK 8.
+const LIVE: u8 = 0x0F;
 
 /// Where the legacy layout puts the rings for `size` entries: the available
 /// ring directly after the descriptor table, the used ring on the next page.

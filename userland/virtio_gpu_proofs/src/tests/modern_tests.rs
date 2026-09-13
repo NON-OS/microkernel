@@ -18,13 +18,14 @@
 
 use crate::constants::{
     FEATURE_PAGE_HIGH, MOD_DEVICE_STATUS, MOD_DRIVER_FEATURE, MOD_DRIVER_FEATURE_SELECT,
-    STATUS_ACKNOWLEDGE, STATUS_DRIVER, STATUS_DRIVER_OK, STATUS_FEATURES_OK,
     VIRTIO_F_VERSION_1_HIGH, VIRTIO_GPU_F_EDID, VIRTIO_GPU_F_VIRGL, VIRTIO_GPU_MODERN,
 };
 use crate::init::bring_up;
 use crate::tests::model::{modern_regs, modern_window, QUEUE_SIZE, REGION_PHYS};
 
-const LIVE: u8 = STATUS_ACKNOWLEDGE | STATUS_DRIVER | STATUS_FEATURES_OK | STATUS_DRIVER_OK;
+/// The status byte as the virtio specification numbers it: ACKNOWLEDGE 1,
+/// DRIVER 2, DRIVER_OK 4, FEATURES_OK 8.
+const LIVE: u8 = 0x0F;
 
 #[test]
 fn a_part_offering_both_features_ends_live_with_both_accepted() {
