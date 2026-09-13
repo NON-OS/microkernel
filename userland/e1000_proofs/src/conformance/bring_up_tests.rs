@@ -16,11 +16,10 @@
 
 //! The whole bring-up: on the air under a drawn address, or not at all.
 
-use nonos_devmodel::run;
 use nonos_libc::entropy;
 
 use super::memory::Memory;
-use super::model::{receive_address, resetting_part, window, EEPROM};
+use super::model::{live_part, receive_address, window, EEPROM};
 use crate::constants::regs::{REG_RCTL, REG_TCTL};
 use crate::constants::status::{RCTL_EN, TCTL_EN};
 use crate::init::bring_up;
@@ -36,7 +35,7 @@ use crate::init::bring_up;
 fn with_entropy_the_card_ends_up_filtering_on_the_drawn_address_and_enabled() {
     let _turn = entropy(true);
     let bar = window();
-    let _part = run(&bar, resetting_part);
+    let _part = live_part(&bar);
     let mut mem = Memory::new();
     let mut driver = mem.driver(&bar);
     bring_up(&mut driver).expect("brought up");
@@ -50,7 +49,7 @@ fn with_entropy_the_card_ends_up_filtering_on_the_drawn_address_and_enabled() {
 fn without_entropy_the_card_is_reset_and_left_off_the_air() {
     let _turn = entropy(false);
     let bar = window();
-    let _part = run(&bar, resetting_part);
+    let _part = live_part(&bar);
     let mut mem = Memory::new();
     let mut driver = mem.driver(&bar);
     let err = bring_up(&mut driver).err();

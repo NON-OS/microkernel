@@ -17,9 +17,7 @@
 //! The reset handshake: requested, waited for, then the part quiesced and
 //! the link set up.
 
-use nonos_devmodel::run;
-
-use super::model::{resetting_part, window};
+use super::model::{live_part, window};
 use crate::constants::regs::{REG_CTRL, REG_IMC};
 use crate::constants::status::{CTRL_ASDE, CTRL_LRST, CTRL_RST, CTRL_SLU};
 use crate::init::reset_run;
@@ -28,17 +26,8 @@ use crate::regs::Regs;
 #[test]
 fn reset_is_requested_waited_for_then_interrupts_masked_and_the_link_set_up() {
     let bar = window();
-    let _part = run(&bar, resetting_part);
-    /*
-     * The driver waits a fixed number of spins for the part, and a model
-     * thread that has not been scheduled yet loses that race on a busy
-     * machine. Hand the part one reset first and wait for it to answer, so
-     * the test starts with a part that is provably live.
-     */
-    bar.present32(REG_CTRL, CTRL_RST | CTRL_LRST);
-    while bar.wrote32(REG_CTRL) & CTRL_RST != 0 {
-        std::thread::yield_now();
-    }
+    let _part = live_part(&bar);
+    bar.present32(REG_CTRL, CTRL_LRST);
     reset_run(&Regs::new(bar.base())).expect("the part completed the reset");
     let ctrl = bar.wrote32(REG_CTRL);
     assert_eq!(ctrl & CTRL_RST, 0, "reset is over");
