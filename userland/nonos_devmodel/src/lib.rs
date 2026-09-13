@@ -46,6 +46,7 @@
 mod bar;
 mod live;
 mod observe;
+mod present;
 
 pub use bar::FakeBar;
 pub use live::{run, LiveDevice};

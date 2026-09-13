@@ -29,8 +29,10 @@ use crate::dispi_offsets::dispi_off;
 
 #[test]
 fn each_dispi_index_is_two_bytes_past_the_one_before_it() {
-    // The DISPI block is an array of 16-bit registers based at 0x500. An
-    // index scaled by anything but two overlaps its neighbour.
+    /*
+     * The DISPI block is an array of 16-bit registers based at 0x500. An
+     * index scaled by anything but two overlaps its neighbour.
+     */
     assert_eq!(dispi_off(0), DISPI_IOPORT_OFFSET);
     assert_eq!(dispi_off(DISPI_INDEX_XRES), 0x502);
     assert_eq!(dispi_off(DISPI_INDEX_YRES), 0x504);

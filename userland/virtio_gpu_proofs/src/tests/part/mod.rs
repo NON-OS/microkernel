@@ -26,48 +26,19 @@ mod bodies;
 mod ring;
 mod serve;
 
+mod types;
+
 use std::sync::atomic::AtomicU16;
 use std::sync::{Arc, Mutex};
 
-use nonos_devmodel::{run, FakeBar, LiveDevice};
+use nonos_devmodel::{run, FakeBar};
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Answer {
-    Spec,
-    Reject,
-    WrongDescriptor,
-    BadEdidMagic,
-    WrongFence,
-}
-
-/// One request as the part saw it: the bytes and the flags on each side of
-/// the chain.
-pub struct Seen {
-    pub request: Vec<u8>,
-    pub request_flags: u16,
-    pub response_flags: u16,
-}
-
-pub struct Part {
-    pub seen: Arc<Mutex<Vec<Seen>>>,
-    _live: LiveDevice,
-}
-
-impl Part {
-    pub fn seen(&self) -> Vec<Vec<u8>> {
-        self.seen
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
-            .iter()
-            .map(|s| s.request.clone())
-            .collect()
-    }
-}
+pub use types::{Answer, Part, Seen};
 
 pub fn answering(region: &Arc<FakeBar>, answer: Answer) -> Part {
     let seen = Arc::new(Mutex::new(Vec::new()));
     let served = Arc::new(AtomicU16::new(0));
     let log = Arc::clone(&seen);
     let live = run(region, move |bar| serve::step(bar, &served, &log, answer));
-    Part { seen, _live: live }
+    Part::new(seen, live)
 }

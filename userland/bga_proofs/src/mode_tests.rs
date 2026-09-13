@@ -56,9 +56,11 @@ fn the_adapter_is_left_with_its_linear_framebuffer_decoding() {
 
 #[test]
 fn the_mode_is_programmed_at_thirty_two_bits_per_pixel() {
-    // The capsule's clear, and every compositor above it, writes one u32 per
-    // pixel. A 16bpp mode takes those writes and shows half a screen of
-    // doubled pixels rather than reporting anything.
+    /*
+     * The capsule's clear, and every compositor above it, writes one u32 per
+     * pixel. A 16bpp mode takes those writes and shows half a screen of
+     * doubled pixels rather than reporting anything.
+     */
     let bar = FakeBar::new(WINDOW);
     set_mode(Regs::new(bar.base()), 1024, 768);
     assert_eq!(bar.wrote16(reg(DISPI_INDEX_BPP)), DISPI_BPP_32);
@@ -66,8 +68,10 @@ fn the_mode_is_programmed_at_thirty_two_bits_per_pixel() {
 
 #[test]
 fn the_resolution_asked_for_is_the_one_left_in_the_mode_registers() {
-    // XRES and YRES are adjacent 16-bit slots, so transposing them costs one
-    // digit and yields a portrait mode on a landscape panel.
+    /*
+     * XRES and YRES are adjacent 16-bit slots, so transposing them costs one
+     * digit and yields a portrait mode on a landscape panel.
+     */
     let bar = FakeBar::new(WINDOW);
     set_mode(Regs::new(bar.base()), 1280, 800);
     assert_eq!(bar.wrote16(reg(DISPI_INDEX_XRES)), 1280);

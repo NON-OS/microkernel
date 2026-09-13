@@ -38,9 +38,11 @@ fn aperture(pixels: usize) -> FakeBar {
 
 #[test]
 fn every_pixel_in_the_span_takes_the_colour_it_was_given() {
-    // A clear that covers all but the last row is how a display comes up with
-    // one band of whatever the firmware left behind, which reads as a corrupt
-    // mode rather than as an arithmetic slip.
+    /*
+     * A clear that covers all but the last row is how a display comes up with
+     * one band of whatever the firmware left behind, which reads as a corrupt
+     * mode rather than as an arithmetic slip.
+     */
     let pixels = 64;
     let fb = aperture(pixels);
     clear(fb.base(), pixels as u64, COLOR);
@@ -66,8 +68,10 @@ fn the_pixel_past_the_end_of_the_span_is_left_alone() {
 
 #[test]
 fn a_span_of_no_pixels_writes_nothing_at_all() {
-    // A zero-sized mode is the degenerate case the discovery path can hand
-    // over when a BAR fails to map, and it must not touch the aperture.
+    /*
+     * A zero-sized mode is the degenerate case the discovery path can hand
+     * over when a BAR fails to map, and it must not touch the aperture.
+     */
     let fb = aperture(0);
     clear(fb.base(), 0, COLOR);
     assert_eq!(fb.wrote32(0), GUARD, "an empty clear still wrote a pixel");
