@@ -21,7 +21,7 @@
 //! capability is appended here in the position it takes there. CI holds this
 //! table against the kernel's in `scripts/check_userland_caps.py`.
 
-pub(crate) const CAP_NAMES: [&[u8]; 31] = [
+pub(crate) const CAP_NAMES: [&[u8]; 32] = [
     b"CoreExec",
     b"IO",
     b"Network",
@@ -53,4 +53,5 @@ pub(crate) const CAP_NAMES: [&[u8]; 31] = [
     b"Keyring",
     b"Entropy",
     b"AppInstall",
+    b"AttestRead",
 ];
