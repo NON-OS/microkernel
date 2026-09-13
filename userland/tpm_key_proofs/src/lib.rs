@@ -26,6 +26,7 @@ extern crate alloc;
 
 /// The kernel's module tree, enough of it for `crate::security::tpm::...` to
 /// resolve to the shipping files.
+#[cfg(test)]
 pub mod security;
-
+#[cfg(test)]
 pub use security::tpm::machine_key;
