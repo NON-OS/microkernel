@@ -16,9 +16,9 @@
 
 //! A BAR0 window and the part that answers from it. Rings are in `memory`.
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard};
 
-use nonos_devmodel::FakeBar;
+use nonos_devmodel::{run, FakeBar, LiveDevice};
 
 use crate::constants::regs::{CMD_RESET, REG_CMD, REG_MAC0};
 use crate::constants::MAC_LEN;
@@ -48,4 +48,20 @@ pub fn resetting_part(bar: &FakeBar) {
     if cmd & CMD_RESET != 0 {
         bar.present8(REG_CMD, cmd & !CMD_RESET);
     }
+}
+
+static TURN: Mutex<()> = Mutex::new(());
+
+/// A running part and the turn it holds: one live test at a time, so the
+/// model thread is not preempted past the driver's spin budget on a loaded
+/// runner.
+pub struct Live {
+    _part: LiveDevice,
+    _turn: MutexGuard<'static, ()>,
+}
+
+/// `part` running against `bar`, alone on the machine until dropped.
+pub fn live<F: Fn(&FakeBar) + Send + 'static>(bar: &Arc<FakeBar>, part: F) -> Live {
+    let turn = TURN.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+    Live { _part: run(bar, part), _turn: turn }
 }

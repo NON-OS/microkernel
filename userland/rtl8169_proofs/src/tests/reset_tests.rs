@@ -16,9 +16,7 @@
 
 //! Software reset, against a part that completes it and one that does not.
 
-use nonos_devmodel::run;
-
-use super::model::{resetting_part, window};
+use super::model::{live, resetting_part, window};
 use crate::constants::regs::{CMD_RESET, REG_CMD};
 use crate::init::reset_run;
 use crate::regs::Regs;
@@ -26,7 +24,7 @@ use crate::regs::Regs;
 #[test]
 fn reset_is_requested_and_waited_for() {
     let bar = window();
-    let _part = run(&bar, resetting_part);
+    let _part = live(&bar, resetting_part);
     reset_run(&Regs::new(bar.base())).expect("a conforming part completes reset");
     assert_eq!(bar.wrote8(REG_CMD) & CMD_RESET, 0);
 }
