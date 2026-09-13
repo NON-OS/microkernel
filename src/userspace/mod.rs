@@ -19,7 +19,7 @@
 // binaries live under `userland/<name>/`; the mirror here only
 // carries the signed embed bytes (ELF + manifest + cert), the
 // spawn entry, and liveness state. No protocol logic lives in
-// the kernel — that runs inside the spawned capsule.
+// the kernel, that runs inside the spawned capsule.
 //
 // Kernel-resident `*_engine` wrappers live under `src/services/`
 // and are not real userspace. The CI grep gate in
