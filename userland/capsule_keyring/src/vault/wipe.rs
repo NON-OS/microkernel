@@ -20,11 +20,11 @@ use core::sync::atomic::{compiler_fence, Ordering};
 
 /// A volatile write per byte, so the compiler cannot drop stores to a buffer
 /// it can see is never read again. The machine root and the account secret
-/// both pass through this module's stack.
+/// both pass through this module's stack. The one unsafe block writes a byte
+/// of an array this call holds mutably, through a raw pointer only so the
+/// store is volatile.
 pub(super) fn wipe32(buf: &mut [u8; 32]) {
     for byte in buf.iter_mut() {
-        // SAFETY: ek@nonos.systems - a byte of an array this call owns
-        // mutably, written volatile only to defeat dead-store elimination.
         unsafe { core::ptr::write_volatile(byte, 0) };
     }
     compiler_fence(Ordering::SeqCst);
