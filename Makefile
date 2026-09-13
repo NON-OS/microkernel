@@ -93,6 +93,10 @@ qemu-serial: nonos-mk-run-serial-log
 # is the kernel reporting how many cores it actually brought online.
 qemu-smp: nonos-mk-run-smp-serial-log
 .PHONY: qemu-smp
+# Every machine the images claim to boot on, several times each. Slow by
+# design; BOOT_MATRIX_CELLS=q35-up BOOT_MATRIX_REPEAT=1 narrows it.
+boot-matrix: nonos-mk-boot-matrix
+.PHONY: boot-matrix
 # ── Boot it on real hardware ─────────────────────────────────────────────────
 # A GPT-partitioned image firmware will boot from a stick, which an El Torito
 # ISO is not dependable for. `make usb` builds it; add DISK=/dev/... to write
