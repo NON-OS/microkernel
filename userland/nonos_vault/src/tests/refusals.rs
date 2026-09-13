@@ -23,9 +23,11 @@ use super::*;
 
 #[test]
 fn a_v1_record_is_refused_rather_than_misread() {
-    // Version one sealed under the machine key directly, with no per-record
-    // key. Opening it under these rules would use the wrong key anyway; it
-    // has to fail on the version, before any derivation.
+    /*
+     * Version one sealed under the machine key directly, with no per-record
+     * key. Opening it under these rules would use the wrong key anyway; it
+     * has to fail on the version, before any derivation.
+     */
     let mut blob = sealed(b"settings.theme", b"dark");
     blob[8] = 1;
     let mut out = [0u8; 4];

@@ -21,20 +21,9 @@
 //! properties worth proving are about what the derivation does with a root,
 //! not about where the root came from.
 
+mod fixtures;
 mod keys;
 mod records;
 mod refusals;
 
-use crate::blob::OVERHEAD;
-use crate::{open, seal, subkey};
-
-pub(super) const ROOT: [u8; 32] = [0x5a; 32];
-pub(super) const OTHER_ROOT: [u8; 32] = [0x5b; 32];
-pub(super) const NONCE: [u8; 12] = [0x11; 12];
-
-pub(super) fn sealed(record: &[u8], plaintext: &[u8]) -> alloc::vec::Vec<u8> {
-    let mut out = alloc::vec![0u8; plaintext.len() + OVERHEAD];
-    let n = seal(&ROOT, record, plaintext, &NONCE, &mut out).expect("seal");
-    out.truncate(n);
-    out
-}
+use fixtures::{sealed, NONCE, OTHER_ROOT, ROOT};

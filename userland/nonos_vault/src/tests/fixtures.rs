@@ -14,4 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod tpm;
+//! The root, the other machine's root, a nonce, and a record sealed under them.
+
+use crate::blob::OVERHEAD;
+use crate::seal;
+
+pub(super) const ROOT: [u8; 32] = [0x5a; 32];
+pub(super) const OTHER_ROOT: [u8; 32] = [0x5b; 32];
+pub(super) const NONCE: [u8; 12] = [0x11; 12];
+
+pub(super) fn sealed(record: &[u8], plaintext: &[u8]) -> alloc::vec::Vec<u8> {
+    let mut out = alloc::vec![0u8; plaintext.len() + OVERHEAD];
+    let n = seal(&ROOT, record, plaintext, &NONCE, &mut out).expect("seal");
+    out.truncate(n);
+    out
+}
