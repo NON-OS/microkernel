@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A part on its own thread, consuming the control queue.
-//!
-//! It walks the available ring the way a device does: each new head names a
-//! descriptor chain, the first descriptor is the request, the second is the
-//! buffer the answer goes in, and completion is a used-ring entry naming the
-//! head. `Answer` picks how it replies; `Spec` is a conforming part.
+//! Starting the part on its own thread against a ring region.
 
-pub mod answers;
-mod bodies;
-mod ring;
-mod serve;
+use std::sync::atomic::AtomicU16;
+use std::sync::{Arc, Mutex};
 
-mod answering;
-mod types;
+use nonos_devmodel::{run, FakeBar};
 
-pub use answering::answering;
-pub use types::{Answer, Part, Seen};
+use super::{serve, Answer, Part};
+
+pub fn answering(region: &Arc<FakeBar>, answer: Answer) -> Part {
+    let seen = Arc::new(Mutex::new(Vec::new()));
+    let served = Arc::new(AtomicU16::new(0));
+    let log = Arc::clone(&seen);
+    let live = run(region, move |bar| serve::step(bar, &served, &log, answer));
+    Part::new(seen, live)
+}
