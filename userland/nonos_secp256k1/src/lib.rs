@@ -36,12 +36,6 @@
  * style lint would be editing signing code for no reason, and what stands
  * behind the move is that the bytes did not change.
  */
-#![allow(
-    clippy::needless_range_loop,
-    clippy::manual_memcpy,
-    clippy::unnecessary_cast,
-    clippy::useless_conversion
-)]
 
 extern crate alloc;
 

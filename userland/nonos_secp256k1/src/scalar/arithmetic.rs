@@ -20,21 +20,30 @@ pub(crate) fn reduce(s: &mut Scalar) {
     let mut borrow = 0i128;
     let mut temp = [0u64; 4];
 
-    for i in 0..4 {
-        borrow += s.0[i] as i128 - Scalar::N[i] as i128;
+    for (out, (a, b)) in temp.iter_mut().zip(s.0.iter().zip(Scalar::N.iter())) {
+
+        borrow += *a as i128 - *b as i128;
+
         if borrow < 0 {
-            temp[i] = (borrow + (1i128 << 64)) as u64;
+
+            *out = (borrow + (1i128 << 64)) as u64;
+
             borrow = -1;
+
         } else {
-            temp[i] = borrow as u64;
+
+            *out = borrow as u64;
+
             borrow = 0;
+
         }
+
     }
 
     let no_borrow = ((borrow >> 127) & 1) as u64;
     let mask = no_borrow.wrapping_sub(1);
-    for i in 0..4 {
-        s.0[i] = (temp[i] & mask) | (s.0[i] & !mask);
+    for (out, t) in s.0.iter_mut().zip(temp.iter()) {
+        *out = (*t & mask) | (*out & !mask);
     }
 }
 
@@ -83,10 +92,14 @@ impl Scalar {
         let mut result = [0u64; 4];
         let mut carry = 0u128;
 
-        for i in 0..4 {
-            carry += self.0[i] as u128 + other.0[i] as u128;
-            result[i] = carry as u64;
+        for (out, (a, b)) in result.iter_mut().zip(self.0.iter().zip(other.0.iter())) {
+
+            carry += *a as u128 + *b as u128;
+
+            *out = carry as u64;
+
             carry >>= 64;
+
         }
 
         const RR: [u64; 4] =
