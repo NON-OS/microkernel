@@ -14,15 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The C shims the assembly trampolines call, one per vector, grouped by
-//! what the vector pushes. A shim reads the frame the trampoline points it
-//! at and forwards to the handler, nothing else. The names are the contract
-//! with `exceptions.S`; a rename on either side is a link error, never a
-//! silent rebind.
+//! Reading the frame a trampoline points a shim at.
 
-mod errors;
-mod faults;
-mod read_frame;
-mod irqs;
+use x86_64::structures::idt::InterruptStackFrame;
 
-use read_frame::frame;
+/// Read the frame the trampoline built.
+///
+/// The trampoline passes a pointer into the live interrupt stack it just
+/// laid out, valid for the duration of the shim; that is the single safety
+/// fact every shim relies on.
+#[inline(always)]
+pub(super) fn frame(p: *const InterruptStackFrame) -> InterruptStackFrame {
+    /*
+     * SAFETY: the pointer is into the live interrupt stack the trampoline
+     * just laid out, valid for the duration of the shim.
+     */
+    unsafe { core::ptr::read(p) }
+}
