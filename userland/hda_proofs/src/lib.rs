@@ -27,7 +27,6 @@
 //! modelled, and neither are the halves of the capsule that talk to the broker
 //! rather than to registers (`discover`, `setup`, `server`, `handles`).
 
-#[allow(clippy::missing_safety_doc)]
 #[path = "../../capsule_driver_hda/src/regs/mod.rs"]
 pub mod regs;
 
@@ -37,23 +36,8 @@ pub mod constants;
 #[path = "../../capsule_driver_hda/src/error/mod.rs"]
 pub mod error;
 
-/*
- * The capsule's own `setup` and `server` trees are the only consumers of some
- * of these items and of some of these re-exports, and neither tree is included
- * here, so they read as dead in this crate while being live in the one that
- * ships.
- */
-#[allow(dead_code, unused_imports)]
-#[path = "../../capsule_driver_hda/src/controller/mod.rs"]
+#[cfg(test)]
 pub mod controller;
-
-/*
- * `streams` is private inside the controller's module tree, so the copy above
- * is sealed. It is included a second time here, where a test can call it.
- */
-#[allow(clippy::duplicate_mod)]
-#[path = "../../capsule_driver_hda/src/controller/streams.rs"]
-pub mod streams;
 
 #[cfg(test)]
 mod model;

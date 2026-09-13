@@ -30,14 +30,6 @@
 //! symptom for each. That is exactly the class of defect a test with no
 //! adapter can pin down.
 
-/*
- * The framebuffer clear takes a raw user virtual address, which the driver
- * has no way to describe in a safety comment beyond what its own module says.
- * That capsule has its own clippy job where its style is judged; re-judging it
- * from inside the proof crate would only make the two disagree.
- */
-#![allow(clippy::missing_safety_doc)]
-
 #[path = "../../capsule_driver_bga/src/constants.rs"]
 pub mod constants;
 
@@ -47,18 +39,7 @@ pub mod error;
 #[path = "../../capsule_driver_bga/src/regs.rs"]
 pub mod regs;
 
-#[path = "../../capsule_driver_bga/src/dispi/mod.rs"]
 pub mod dispi;
-
-/*
- * `dispi_off` is `pub(super)` in the capsule, so the copy reached through
- * `dispi` above is sealed inside it. Including the same file a second time at
- * the crate root puts the identical arithmetic where a test can call it. The
- * lib target itself never calls it, hence the allow.
- */
-#[allow(dead_code, clippy::duplicate_mod)]
-#[path = "../../capsule_driver_bga/src/dispi/dispi_off.rs"]
-pub mod dispi_offsets;
 
 #[cfg(test)]
 mod clear_tests;

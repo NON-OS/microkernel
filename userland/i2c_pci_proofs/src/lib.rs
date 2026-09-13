@@ -45,20 +45,6 @@ pub mod init;
 #[path = "../../capsule_driver_i2c_pci/src/driver.rs"]
 pub mod driver;
 
-/*
- * `control` and `scl` are private inside the capsule's own module tree, so
- * the copies reached through `transaction` and `init` above are sealed. Each
- * is included a second time at the crate root, where a test can call it. The
- * allows cover the duplicate module and the items the lib target never calls.
- */
-#[allow(dead_code, clippy::duplicate_mod)]
-#[path = "../../capsule_driver_i2c_pci/src/transaction/control/mod.rs"]
-pub mod control;
-
-#[allow(clippy::duplicate_mod)]
-#[path = "../../capsule_driver_i2c_pci/src/init/scl.rs"]
-pub mod scl;
-
 #[cfg(test)]
 mod clock_tests;
 #[cfg(test)]

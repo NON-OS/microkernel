@@ -68,14 +68,12 @@ fn consume_passes_only_complete_bounded_frames() {
     }
 }
 
-#[test]
-#[allow(clippy::assertions_on_constants)] // guarding constant relations is the point
-fn an_accepted_length_always_fits_the_slot_buffer() {
-    // consume bounds len by MAX_ETHERNET_FRAME; the handler copies len bytes
-    // from the slot at buffer_va(idx). This relation is what keeps that copy
-    // inside the slot.
-    assert!(MAX_ETHERNET_FRAME <= RX_BUFFER_LEN);
-}
+/*
+ * consume bounds len by MAX_ETHERNET_FRAME and the handler copies len bytes
+ * from the slot at buffer_va(idx); this relation is what keeps that copy
+ * inside the slot, so it is checked when the crate compiles.
+ */
+const _: () = assert!(MAX_ETHERNET_FRAME <= RX_BUFFER_LEN);
 
 #[test]
 fn slot_addresses_are_laid_out_by_buffer_len() {

@@ -13,9 +13,7 @@
 pub mod constants;
 #[path = "../../capsule_driver_xhci/src/protocol/mod.rs"]
 pub mod protocol;
-// Upstream LinkTrbBuilder has new() without Default; kept as it ships.
 #[path = "../../capsule_driver_xhci/src/trb/mod.rs"]
-#[allow(clippy::new_without_default)]
 pub mod trb;
 
 /*

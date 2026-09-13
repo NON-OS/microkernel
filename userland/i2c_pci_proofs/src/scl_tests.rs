@@ -24,7 +24,7 @@
 //! complete, so the touchpad reads as intermittently broken hardware and the
 //! divider is the last place anyone looks.
 
-use crate::scl::{fast, fs_spklen, sda_hold, standard};
+use crate::init::scl::{fast, fs_spklen, sda_hold, standard};
 
 const GEMINI_LAKE: u32 = 133_000_000;
 const TIGER_LAKE: u32 = 100_000_000;

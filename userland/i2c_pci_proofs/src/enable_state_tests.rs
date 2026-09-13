@@ -26,9 +26,9 @@
 use nonos_devmodel::FakeBar;
 
 use crate::constants::{IC_ENABLE, IC_TAR};
-use crate::control::set_target;
 use crate::model::{live, stuck_enabled};
 use crate::regs::Regs;
+use crate::transaction::control::set_target;
 use crate::transaction::TransferError;
 
 const TOUCHPAD: u8 = 0x15;

@@ -29,9 +29,9 @@ use crate::constants::{
     IC_ENABLE, IC_FS_SCL_HCNT, IC_FS_SCL_LCNT, IC_SDA_HOLD, IC_SS_SCL_HCNT, IC_SS_SCL_LCNT,
 };
 use crate::init::bring_up;
+use crate::init::scl::{fast, sda_hold, standard};
 use crate::model::{live, refusal, stuck_enabled, CLOCK_HZ};
 use crate::regs::Regs;
-use crate::scl::{fast, sda_hold, standard};
 
 #[test]
 fn the_counts_are_not_programmed_until_the_controller_is_confirmed_disabled() {
