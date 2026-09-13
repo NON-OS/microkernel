@@ -50,6 +50,7 @@ pub fn cap_bit(name: &str) -> Option<u64> {
         "Keyring" => 268435456,
         "Entropy" => 536870912,
         "AppInstall" => 1073741824,
+        "AttestRead" => 2147483648,
         _ => return None,
     };
     Some(bit)
