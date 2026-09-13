@@ -19,7 +19,7 @@
 //! MAX_PAYLOAD_BYTES; the server appends at the offset the client states and
 //! hands the assembled file to the on-device store when FINAL arrives. This is
 //! the only write path allowed into the read-only /capsules tree, which is why
-//! `split_artifact` — not `is_read_only` — is what stands between a caller and
+//! `split_artifact`, not `is_read_only`, is what stands between a caller and
 //! that tree.
 
 use alloc::vec::Vec;

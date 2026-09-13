@@ -26,12 +26,16 @@ const DEMO: &[u8] = b"Demo loop:\n 1. terminal: write /hello.txt hello from nono
 impl Store {
     pub fn seed(&mut self) {
         let _ = self.mkdir("/docs", 0);
-        // Scratch space; std's env::temp_dir() on NONOS points here.
+        /*
+         * Scratch space; std's env::temp_dir() on NONOS points here.
+         */
         let _ = self.mkdir("/tmp", 0);
         let _ = self.mkdir("/capsules", 0);
         let _ = self.mkdir("/home/nonos/workspace", 0);
-        // The desktop shows the home directory, so a first boot that leaves it
-        // empty shows a bare desktop and nothing to open.
+        /*
+         * The desktop shows the home directory, so a first boot that leaves it
+         * empty shows a bare desktop and nothing to open.
+         */
         let _ = self.mkdir("/home/nonos/documents", 0);
         self.seed_file("/home/nonos/readme.txt", README);
         self.seed_file("/readme.txt", README);

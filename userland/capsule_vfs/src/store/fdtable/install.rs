@@ -20,11 +20,13 @@ use alloc::vec::Vec;
 use super::types::{File, Store, StoreError, StoreResult, MAX_FILES, MAX_FILE_BYTES};
 
 impl Store {
-    // Place one chunk of an artifact at `path`. Offset zero replaces the whole
-    // file; a later chunk must start exactly where the previous one ended, so a
-    // dropped or reordered chunk fails instead of stitching a corrupt image.
-    // Directories are never overwritten and no fd is involved, so this cannot
-    // be reached by a caller holding only a descriptor.
+    /*
+     * Place one chunk of an artifact at `path`. Offset zero replaces the whole
+     * file; a later chunk must start exactly where the previous one ended, so a
+     * dropped or reordered chunk fails instead of stitching a corrupt image.
+     * Directories are never overwritten and no fd is involved, so this cannot
+     * be reached by a caller holding only a descriptor.
+     */
     pub fn install_bytes(
         &mut self,
         path: &str,
