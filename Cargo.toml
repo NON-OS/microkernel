@@ -836,7 +836,6 @@ mldsa2    = []
 mldsa3    = []
 mldsa5    = []
 
-
 # Legacy hash, retained for Git object hashes / TOTP only.
 sha1-legacy = []
 
@@ -876,7 +875,6 @@ volatile = { version = "0.4", default-features = false }
 
 # Network stack used by the virtio-net interface bridge.
 smoltcp = { version = "0.11", default-features = false, features = ["alloc", "socket-raw", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6", "medium-ethernet"] }
-
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
