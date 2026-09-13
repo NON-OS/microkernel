@@ -40,8 +40,10 @@ pub(crate) fn attest_gate(
             crate::sys::bench::mark_named(b"capsule_attest_ok", spec.name.as_bytes());
             crate::sys::serial::print(b"[ZK-ATTEST] ok ");
             crate::sys::serial::print(spec.name.as_bytes());
-            // The authority is on the line: a reader of the boot log should be
-            // able to tell shipped capsules from ones built on this machine.
+            /*
+             * The authority is on the line: a reader of the boot log should be
+             * able to tell shipped capsules from ones built on this machine.
+             */
             crate::sys::serial::print(b" ");
             crate::sys::serial::print(proved.authority.as_str().as_bytes());
             crate::sys::serial::print(b"\n");

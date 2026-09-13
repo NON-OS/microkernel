@@ -24,6 +24,7 @@ pub mod bus;
 pub mod capabilities;
 pub mod elf;
 pub mod memory;
+#[cfg(test)]
 pub mod process;
 pub mod syscall;
 pub mod time;
