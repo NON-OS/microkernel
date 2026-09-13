@@ -64,6 +64,7 @@ fn spawn_error_name(e: SpawnError) -> &'static [u8] {
         SpawnError::ProcessCreation => b"ProcessCreation",
         SpawnError::AddressSpace => b"AddressSpace",
         SpawnError::EndpointCollision => b"EndpointCollision",
+        SpawnError::InboxName => b"InboxName",
         SpawnError::NonosIdCertRejected(_) => b"CertRejected",
         SpawnError::ManifestRejected(_) => b"ManifestRejected",
         SpawnError::AttestationRejected => b"AttestationRejected",
