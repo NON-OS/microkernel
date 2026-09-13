@@ -13,11 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::IC_TXFLR;
-use crate::regs::Regs;
 
-/// Commands the transmit FIFO will still take, against the depth the core
-/// reported at bring-up. A command pushed past that is silently lost.
-pub fn tx_space(regs: Regs, depth: u32) -> u32 {
-    depth.saturating_sub(regs.read32(IC_TXFLR))
-}
+//! The transfer engine, the probe and the handler against the modelled core.
+
+mod fifo_tests;
+mod fixture;
+mod handler_tests;
+mod last_byte_tests;
+mod nack_tests;
+mod order_tests;
+mod probe_tests;
+mod read_tests;
+mod write_tests;

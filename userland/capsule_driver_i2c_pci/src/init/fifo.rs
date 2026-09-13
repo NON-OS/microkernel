@@ -13,11 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::IC_TXFLR;
-use crate::regs::Regs;
 
-/// Commands the transmit FIFO will still take, against the depth the core
-/// reported at bring-up. A command pushed past that is silently lost.
-pub fn tx_space(regs: Regs, depth: u32) -> u32 {
-    depth.saturating_sub(regs.read32(IC_TXFLR))
+//! The FIFO depths, read from the core rather than assumed. Intel's LPSS
+//! instances carry 64 entries each way, but the DesignWare core is built with
+//! 8, 16 and 32 as well, and a transfer engine that pushes to an assumed
+//! depth loses commands on every part shallower than it guessed.
+
+use crate::constants::{COMP_PARAM_RX_DEPTH_SHIFT, COMP_PARAM_TX_DEPTH_SHIFT};
+
+/// (TX depth, RX depth) in entries, from IC_COMP_PARAM_1, which stores each
+/// depth minus one in an eight-bit field.
+pub fn fifo_depths(comp_param: u32) -> (u32, u32) {
+    let tx = ((comp_param >> COMP_PARAM_TX_DEPTH_SHIFT) & 0xFF) + 1;
+    let rx = ((comp_param >> COMP_PARAM_RX_DEPTH_SHIFT) & 0xFF) + 1;
+    (tx, rx)
 }

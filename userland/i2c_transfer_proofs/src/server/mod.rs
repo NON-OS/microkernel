@@ -13,11 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::IC_TXFLR;
-use crate::regs::Regs;
 
-/// Commands the transmit FIFO will still take, against the depth the core
-/// reported at bring-up. A command pushed past that is silently lost.
-pub fn tx_space(regs: Regs, depth: u32) -> u32 {
-    depth.saturating_sub(regs.read32(IC_TXFLR))
-}
+//! The shipping IPC handler for transfers and the reply path it uses. The
+//! runner that receives requests is not included: it is the loop around
+//! these, and the tests call them directly.
+
+pub mod handlers;
+#[path = "../../../capsule_driver_i2c_pci/src/server/respond.rs"]
+pub mod respond;

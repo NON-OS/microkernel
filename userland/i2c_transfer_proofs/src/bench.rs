@@ -13,43 +13,41 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use nonos_libc::mk_irq_ack;
 
-use crate::discover::Found;
+//! A driver over whatever core is attached on this thread, bound the way
+//! setup binds one after a successful probe. Public so the HID proof crate
+//! can stand a controller behind the HID driver's IPC calls.
+
 use crate::driver::Driver;
 use crate::init::bring_up;
 use crate::regs::Regs;
-use crate::setup::{claim, irq, mmio, pci};
 
-pub(super) fn bring_up_one(dev: Found) -> Result<Driver, &'static str> {
-    let claim_epoch = claim::claim(dev.device_id)?;
-    if !dev.is_acpi {
-        pci::enable(dev.device_id, claim_epoch)?;
-    }
-    let mmio = mmio::map(dev, claim_epoch)?;
-    let irq = irq::bind(dev, claim_epoch);
-    let regs = Regs::new(mmio.user_va);
-    let init = bring_up(regs, dev.clock_hz)?;
-    if irq.grant_id != 0 {
-        let _ = mk_irq_ack(irq.grant_id);
-    }
+/// Gemini Lake's I2C input clock, the part this capsule was brought up on.
+pub const GEMINI_LAKE_HZ: u32 = 133_000_000;
+
+/// Run the shipping bring-up against the attached core and bind the result
+/// to `bound_addr`; zero means setup found no candidate and the HID driver
+/// scans the bus itself.
+pub fn driver(clock_hz: u32, bound_addr: u8) -> Result<Driver, &'static str> {
+    let regs = Regs::new(0);
+    let init = bring_up(regs, clock_hz)?;
     Ok(Driver {
-        device_id: dev.device_id,
-        pci_device: dev.pci_device,
-        claim_epoch,
-        mmio_grant: mmio.grant_id,
-        irq_grant: irq.grant_id,
-        irq_vector: irq.vector,
-        clock_hz: dev.clock_hz,
-        family: dev.family,
+        device_id: 1,
+        pci_device: 0x31AC,
+        claim_epoch: 1,
+        mmio_grant: 2,
+        irq_grant: 0,
+        irq_vector: 0,
+        clock_hz,
+        family: "Gemini Lake",
         comp_type: init.comp_type,
         comp_param: init.comp_param,
         tx_depth: init.tx_depth,
         rx_depth: init.rx_depth,
         enabled: init.enabled,
         status: init.status,
-        bound_by_probe: false,
-        bound_addr: 0,
+        bound_by_probe: bound_addr != 0,
+        bound_addr,
         regs,
     })
 }
