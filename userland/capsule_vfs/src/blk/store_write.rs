@@ -40,10 +40,13 @@ pub fn append(name: &str, data: &[u8]) -> Result<(), BlkError> {
     let reserved = sector_span(HEADER_LEN + ENTRY_LEN * MAX_ENTRIES);
     let mut next_off = STORE_BASE_LBA * SECTOR_SIZE as u64 + reserved as u64;
     let mut committed = 0u64;
-    for (index, entry) in decode(&toc, count, capacity_bytes)?.into_iter().enumerate() {
+    let entries = decode(&toc, count, capacity_bytes)?;
+    for (index, entry) in entries.iter().enumerate() {
         if entry.name == name {
-            return same_bytes(&entry, data)
-                .or_else(|_| super::store_replace::replace(&toc, index, &entry, data));
+            return same_bytes(entry, data).or_else(|_| {
+                let floor = STORE_BASE_LBA * SECTOR_SIZE as u64 + reserved as u64;
+                super::store_replace::replace(&toc, index, &entries, floor, capacity_bytes, data)
+            });
         }
         committed += entry.len;
         next_off = next_off.max(align_up(entry.offset + entry.len, SECTOR_SIZE));
@@ -94,6 +97,13 @@ pub(super) fn write_payload(next_off: u64, data: &[u8]) -> Result<(), BlkError> 
         done += take;
     }
     Ok(())
+}
+
+/// The one sector of the table that holds entry `index`'s offset and digest.
+pub(super) fn commit_entry(region: &[u8], index: usize) -> Result<(), BlkError> {
+    let sector = super::store_patch::entry_sector(index);
+    let at = sector * SECTOR_SIZE;
+    write_sectors(STORE_BASE_LBA + sector as u64, &region[at..at + SECTOR_SIZE])
 }
 
 pub(super) fn commit(region: &[u8]) -> Result<(), BlkError> {
