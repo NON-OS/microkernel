@@ -24,10 +24,10 @@
 
 use nonos_devmodel::FakeBar;
 
+use crate::controller::streams::{addr64, bidi_streams, input_streams, output_streams};
 use crate::controller::{layout, ControllerInfo, STREAM_OUTPUT};
 use crate::model::WINDOW;
 use crate::regs::Regs;
-use crate::streams::{addr64, bidi_streams, input_streams, output_streams};
 
 /// A four-in, four-out controller that can address 64-bit memory, which is
 /// what every Intel PCH this system has booted on reports.

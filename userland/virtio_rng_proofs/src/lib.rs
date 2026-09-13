@@ -30,14 +30,6 @@
 //! every conforming implementation, which is exactly the class of defect a
 //! test with no device can catch.
 
-/*
- * Lints below fire on the capsule source this crate includes by #[path], not
- * on anything written here. That capsule has its own clippy job where its own
- * style is judged; re-judging it from inside the proof crate would only make
- * the two disagree.
- */
-#![allow(clippy::missing_safety_doc)]
-
 #[path = "../../capsule_driver_virtio_rng/src/constants/mod.rs"]
 pub mod constants;
 

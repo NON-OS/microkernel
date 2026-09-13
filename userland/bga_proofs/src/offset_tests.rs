@@ -25,7 +25,7 @@
 use crate::constants::{
     DISPI_INDEX_BPP, DISPI_INDEX_ENABLE, DISPI_INDEX_XRES, DISPI_INDEX_YRES, DISPI_IOPORT_OFFSET,
 };
-use crate::dispi_offsets::dispi_off;
+use crate::dispi::dispi_off;
 
 #[test]
 fn each_dispi_index_is_two_bytes_past_the_one_before_it() {

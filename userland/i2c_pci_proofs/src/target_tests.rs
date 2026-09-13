@@ -22,9 +22,9 @@
 //! as a device that has started returning nonsense.
 
 use crate::constants::IC_TAR;
-use crate::control::set_target;
 use crate::model::live;
 use crate::regs::Regs;
+use crate::transaction::control::set_target;
 
 const TOUCHPAD: u8 = 0x15;
 
