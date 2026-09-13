@@ -48,8 +48,8 @@
 //! timer-tick body. On return from the handler the trampoline pops
 //! the GPRs, `swapgs`-es back if returning to CPL=3, and `iretq`s.
 //!
-//! From CPL=0 the CPU does not switch to TSS.RSP0 — the trampoline
-//! runs on whatever kernel stack was already current — and `swapgs`
+//! From CPL=0 the CPU does not switch to TSS.RSP0, the trampoline
+//! runs on whatever kernel stack was already current, and `swapgs`
 //! is skipped on both entry and exit.
 
 mod handler;
