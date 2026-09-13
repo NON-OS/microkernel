@@ -14,28 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod map_device_memory;
-mod map_huge_page;
-mod map_kernel_page;
-mod map_page;
-mod map_user_dma;
-mod map_user_mmio;
-mod map_user_page;
-mod unmap_image_page;
-mod unmap_page;
-mod unmap_range;
-mod unmap_user_dma;
-mod unmap_user_mmio;
+use super::super::globals::PAGING_MANAGER;
+use crate::arch::run_without_interrupts as without_interrupts;
+use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::paging::error::PagingResult;
 
-pub use map_device_memory::map_device_memory;
-pub use map_huge_page::map_huge_page;
-pub use map_kernel_page::map_kernel_page;
-pub use map_page::map_page;
-pub use map_user_dma::map_user_dma;
-pub use map_user_mmio::map_user_mmio;
-pub use map_user_page::map_user_page;
-pub use unmap_image_page::unmap_image_page;
-pub use unmap_page::unmap_page;
-pub use unmap_range::unmap_range;
-pub use unmap_user_dma::unmap_user_dma;
-pub use unmap_user_mmio::unmap_user_mmio;
+/// Unmap a page of the kernel image, which the bootloader mapped and the
+/// manager therefore has no record of. For the stack guards: `unmap_page`
+/// refuses them as unmapped, and a guard that is refused is a guard that is
+/// not there. No statistics are recorded, since the mapping was never
+/// counted when it was made.
+pub fn unmap_image_page(virtual_addr: VirtAddr) -> PagingResult<PhysAddr> {
+    without_interrupts(|| PAGING_MANAGER.lock().unmap_image_page(virtual_addr))
+}
