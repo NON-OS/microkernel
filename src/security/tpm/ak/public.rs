@@ -25,7 +25,7 @@
 //! is not the key this kernel meant, whatever else it might be.
 
 use super::cursor::Cursor;
-use super::template::OBJECT_ATTRIBUTES;
+use super::attributes::OBJECT_ATTRIBUTES;
 use crate::security::tpm::error::TpmError;
 
 const TPM_ALG_ECC: u16 = 0x0023;
