@@ -31,7 +31,7 @@ impl Store {
     ) -> Result<u32, StoreError> {
         let file_idx = match self.find(path) {
             Some(i) => i,
-            None => self.create_file(path, create)?,
+            None => self.create_file(path, create, owner_pid)?,
         };
         if self.files[file_idx].is_dir {
             return Err(StoreError::IsDir);
@@ -54,14 +54,14 @@ impl Store {
         Ok(fd_slot as u32)
     }
 
-    fn create_file(&mut self, path: &str, create: bool) -> StoreResult<usize> {
+    fn create_file(&mut self, path: &str, create: bool, owner: u32) -> StoreResult<usize> {
         if !create {
             return Err(StoreError::NotFound);
         }
         if self.files.len() >= MAX_FILES {
             return Err(StoreError::Full);
         }
-        self.files.push(File::new(String::from(path), Vec::new(), false));
+        self.files.push(File::new(String::from(path), Vec::new(), false, owner));
         Ok(self.files.len() - 1)
     }
 }
