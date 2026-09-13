@@ -69,11 +69,3 @@ pub(crate) fn ge_p1p1_to_p3(r: &GeP1P1) -> GeP3 {
     let T = fe_mul(&r.X, &r.Y);
     GeP3 { X, Y, Z, T }
 }
-
-#[inline]
-pub(crate) fn ge_p1p1_to_p2(r: &GeP1P1) -> GeP2 {
-    let X = fe_mul(&r.X, &r.T);
-    let Y = fe_mul(&r.Y, &r.Z);
-    let Z = fe_mul(&r.Z, &r.T);
-    GeP2 { X, Y, Z }
-}

@@ -16,7 +16,6 @@
 
 use super::ops::{ge_add, ge_double, ge_identity, ge_p1p1_to_p3, ge_to_cached};
 use super::pack::ge_basepoint;
-use super::precomp::ensure_precomp;
 use super::types::GeP3;
 use crate::field::{fe_cmov, fe_equal, fe_is_zero};
 
@@ -27,7 +26,6 @@ pub(crate) fn ge_scalarmult_base_ct(a: &[u8; 32]) -> GeP3 {
      * was a keypair generated for nothing else: remove that and the first
      * verify at the first capsule spawn waited forever.
      */
-    ensure_precomp();
     let base = ge_basepoint();
     ge_scalarmult_ct(&base, a)
 }

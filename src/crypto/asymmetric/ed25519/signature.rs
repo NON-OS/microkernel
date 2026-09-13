@@ -23,7 +23,7 @@ use crate::crypto::sha512::sha512;
 
 use crate::crypto::asymmetric::ed25519::field::ct_eq_32;
 use crate::crypto::asymmetric::ed25519::point::{
-    ensure_precomp, ge_add, ge_has_large_order, ge_p1p1_to_p3, ge_pack, ge_scalarmult_base_ct,
+    ge_add, ge_has_large_order, ge_p1p1_to_p3, ge_pack, ge_scalarmult_base_ct,
     ge_to_cached, ge_unpack, scalarmult_vartime,
 };
 use crate::crypto::asymmetric::ed25519::scalar::{
@@ -80,7 +80,6 @@ impl KeyPair {
         let mut a = [0u8; 32];
         a.copy_from_slice(&h[..32]);
         clamp_scalar(&mut a);
-        ensure_precomp();
         let A = ge_scalarmult_base_ct(&a);
         let public = ge_pack(&A);
         Self { public, private: seed }
@@ -99,8 +98,6 @@ pub fn sign(kp: &KeyPair, msg: &[u8]) -> Signature {
     r_in.extend_from_slice(msg);
     let mut r64 = sha512(&r_in);
     let r = sc_reduce_mod_l(&mut r64);
-
-    ensure_precomp();
     let Rpt = ge_scalarmult_base_ct(&r);
     let R = ge_pack(&Rpt);
 
