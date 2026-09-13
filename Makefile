@@ -93,7 +93,6 @@ qemu-serial: nonos-mk-run-serial-log
 # is the kernel reporting how many cores it actually brought online.
 qemu-smp: nonos-mk-run-smp-serial-log
 .PHONY: qemu-smp
-
 # The same boot with DMA remapping hardware present. Every other lane gives
 # QEMU no IOMMU, so the kernel reports "DMA is unrestricted" and the VT-d
 # bring-up compiled into every image never executes. Slow: VT-d needs TCG.
