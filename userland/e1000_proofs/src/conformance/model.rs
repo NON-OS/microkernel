@@ -16,7 +16,7 @@
 
 //! A BAR0 window and the part that answers from it.
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex, MutexGuard};
 
 use nonos_devmodel::{run, FakeBar, LiveDevice};
 
@@ -51,17 +51,24 @@ pub fn resetting_part(bar: &FakeBar) {
     }
 }
 
-/// The resetting part, running, and proven to answer before the driver asks.
-///
-/// The driver waits a fixed number of spins for a reset to complete and a
-/// model thread that has not been scheduled yet loses that race on a busy
-/// machine. One reset is handed to the part here and its answer awaited, so
-/// every test starts against a part that is running.
-pub fn live_part(bar: &Arc<FakeBar>) -> LiveDevice {
+static TURN: Mutex<()> = Mutex::new(());
+
+/// A running part and the turn it holds. The driver waits a fixed number of
+/// spins for the part to answer, and on a loaded runner a model thread that
+/// shares the machine with a dozen other tests can be preempted for longer
+/// than that budget. One live test at a time keeps the part scheduled.
+pub struct Live {
+    _part: LiveDevice,
+    _turn: MutexGuard<'static, ()>,
+}
+
+/// The resetting part, running, proven to answer, and alone on the machine.
+pub fn live_part(bar: &Arc<FakeBar>) -> Live {
+    let turn = TURN.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
     let part = run(bar, resetting_part);
     bar.present32(REG_CTRL, CTRL_RST);
     while bar.wrote32(REG_CTRL) & CTRL_RST != 0 {
         std::thread::yield_now();
     }
-    part
+    Live { _part: part, _turn: turn }
 }
