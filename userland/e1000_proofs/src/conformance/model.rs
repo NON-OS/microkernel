@@ -18,7 +18,7 @@
 
 use std::sync::Arc;
 
-use nonos_devmodel::FakeBar;
+use nonos_devmodel::{run, FakeBar, LiveDevice};
 
 use crate::constants::regs::{REG_CTRL, REG_RAH0, REG_RAL0};
 use crate::constants::status::{CTRL_RST, RAH_AV};
@@ -49,4 +49,19 @@ pub fn resetting_part(bar: &FakeBar) {
     if ctrl & CTRL_RST != 0 {
         bar.present32(REG_CTRL, ctrl & !CTRL_RST);
     }
+}
+
+/// The resetting part, running, and proven to answer before the driver asks.
+///
+/// The driver waits a fixed number of spins for a reset to complete and a
+/// model thread that has not been scheduled yet loses that race on a busy
+/// machine. One reset is handed to the part here and its answer awaited, so
+/// every test starts against a part that is running.
+pub fn live_part(bar: &Arc<FakeBar>) -> LiveDevice {
+    let part = run(bar, resetting_part);
+    bar.present32(REG_CTRL, CTRL_RST);
+    while bar.wrote32(REG_CTRL) & CTRL_RST != 0 {
+        std::thread::yield_now();
+    }
+    part
 }
