@@ -94,6 +94,7 @@ fn compile_arch_asm() {
     let mut build = cc::Build::new();
     build
         .compiler("clang")
+        .include(&dir)
         .files(&files)
         .flag("-target")
         .flag(clang_target)
