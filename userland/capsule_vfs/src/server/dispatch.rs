@@ -26,9 +26,11 @@ use crate::protocol::{
 use crate::store::Store;
 
 pub fn dispatch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
-    // One place, so no handler can forget. Bumped on the attempt rather than on
-    // success: a refused mkdir moving the counter costs one redundant listing,
-    // while a handler that forgets leaves a desktop that never updates.
+    /*
+     * One place, so no handler can forget. Bumped on the attempt rather than on
+     * success: a refused mkdir moving the counter costs one redundant listing,
+     * while a handler that forgets leaves a desktop that never updates.
+     */
     if mutates(req.op) {
         super::generation::bump();
     }

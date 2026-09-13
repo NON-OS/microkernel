@@ -32,17 +32,21 @@ pub fn run(out: &mut Output<'_>, _argv: &[&[u8]]) {
     blank_line(out, overhead.cycles);
     heading(out);
 
-    // One buffer, reused. A capsule has no business allocating sixteen kilobytes
-    // per probe when the samples are consumed before the next probe starts.
+    /*
+     * One buffer, reused. A capsule has no business allocating sixteen kilobytes
+     * per probe when the samples are consumed before the next probe starts.
+     */
     let mut buf = [0u64; SAMPLES];
     for (i, p) in PROBES.iter().enumerate() {
         let s: Summary = measure(&mut buf, overhead, || fire(i));
         row(out, p.name, &s);
     }
 
-    // The round trip, which needs a peer that answers rather than only the
-    // kernel. Fewer samples: each one is a scheduler round trip through
-    // another process, so 2048 of them is a visible pause.
+    /*
+     * The round trip, which needs a peer that answers rather than only the
+     * kernel. Fewer samples: each one is a scheduler round trip through
+     * another process, so 2048 of them is a visible pause.
+     */
     match Peer::find() {
         Some(peer) => {
             let mut rx = [0u8; 64];
