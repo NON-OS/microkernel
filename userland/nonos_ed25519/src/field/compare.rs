@@ -41,15 +41,17 @@ pub(crate) fn ct_eq_32(a: &[u8; 32], b: &[u8; 32]) -> bool {
 pub(crate) fn fe_cmov(a: &Fe, b: &Fe, mask: u8) -> Fe {
     let mut r = [0i32; 10];
     let m = if mask == 0xFF { !0i32 } else { 0i32 };
-    for i in 0..10 {
-        r[i] = (a.0[i] & !m) | (b.0[i] & m);
+    for (out, (x, y)) in r.iter_mut().zip(a.0.iter().zip(b.0.iter())) {
+        *out = (x & !m) | (y & m);
     }
     Fe(r)
 }
 
 pub(crate) fn fe_is_zero(f: &Fe) -> bool {
-    // Compare the canonical byte encoding against zero to avoid limb-carry
-    // edge cases and out-of-bounds indexing in ad-hoc normalization.
+    /*
+     * Compare the canonical byte encoding against zero to avoid limb-carry
+     * edge cases and out-of-bounds indexing in ad-hoc normalization.
+     */
     let z = [0u8; 32];
     ct_eq_32(&fe_tobytes(f), &z)
 }
