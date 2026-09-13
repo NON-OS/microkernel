@@ -27,8 +27,15 @@ pub use super::error;
 pub mod store_header;
 #[path = "../../../capsule_vfs/src/blk/store_patch.rs"]
 pub mod patch;
+/*
+ * store_entry names its neighbour by the capsule's module name, so the
+ * include is reachable under that name here as well.
+ */
+pub use self::patch as store_patch;
 #[path = "../../../capsule_vfs/src/blk/store_rules.rs"]
 pub mod store_rules;
+#[path = "../../../capsule_vfs/src/blk/store_entry.rs"]
+pub mod store_entry;
 #[path = "../../../capsule_vfs/src/blk/store_free.rs"]
 pub mod store_free;
 #[path = "../../../capsule_vfs/src/blk/store_toc.rs"]
@@ -36,6 +43,7 @@ pub mod store_toc;
 #[path = "../../../capsule_vfs/src/blk/wire.rs"]
 pub mod wire;
 
-pub use patch::{entry_sector, patch_digest, patch_entry, DIGEST_AT, DIGEST_LEN, OFFSET_AT};
+pub use patch::{patch_digest, DIGEST_AT, DIGEST_LEN, OFFSET_AT};
+pub use store_entry::{entry_sector, patch_entry};
 pub use store_free::free_extent;
 pub use store_rules::{in_capsule_tree, permitted, CAPSULE_TREE};

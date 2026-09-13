@@ -37,7 +37,7 @@
 use super::digest::digest16;
 use super::error::BlkError;
 use super::store_free::free_extent;
-use super::store_patch::patch_entry;
+use super::store_entry::patch_entry;
 use super::store_rules::permitted;
 use super::store_toc::{TocEntry, MAX_TOTAL_BYTES};
 use super::store_write::{commit_entry, write_payload};
