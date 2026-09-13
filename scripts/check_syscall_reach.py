@@ -20,63 +20,13 @@ The failure this catches has one shape: a capability that is implemented,
 sits in the dispatch table, and is referenced by nothing. No compiler warns
 about it and no test exercises it, so it survives until someone notices the
 feature it was meant to serve does not work. In one day that shape was
-MkCapsuleVerify, MkAttestDoc and MkFutexWait, plus a filesystem mount that
-had never been called.
-
-A syscall counts as reached if any file under userland/ names its tag,
-either as tag4(b"XXXX") or as the equivalent little-endian hex literal, since
-libc writes one of them that way. The std PAL lives in the pinned rust-src
-outside this tree and is not scanned; a syscall reached only from there is
-listed in the notes file beside the baseline so nobody chases it.
-
-Prints the unreachable set and its size. The size is what the baseline gate
-compares, and it may only go down.
 """
 
 import argparse
 import pathlib
-import re
 import sys
 
-KERNEL_NUMBERS = pathlib.Path("src/syscall/microkernel/numbers.rs")
-USERLAND = pathlib.Path("userland")
-SKIP = ("/target/", "/vendor/", "/third_party/")
-
-TAG_RE = re.compile(r'pub const (SYS_\w+): u64 = tag4\(b"(....)"\);')
-
-
-def tag_hex(tag: str) -> str:
-    """The little-endian i64 a tag4 call produces, as libc writes it by hand."""
-    value = 0
-    for shift, byte in enumerate(tag.encode()):
-        value |= byte << (8 * shift)
-    hex_digits = f"{value:08X}"
-    return f"{hex_digits[:4]}_{hex_digits[4:]}"
-
-
-def kernel_syscalls() -> dict[str, str]:
-    text = KERNEL_NUMBERS.read_text()
-    return {tag: name for name, tag in TAG_RE.findall(text)}
-
-
-def userland_text() -> str:
-    parts = []
-    for path in USERLAND.rglob("*.rs"):
-        s = str(path)
-        if any(k in s for k in SKIP):
-            continue
-        parts.append(path.read_text(errors="replace"))
-    return "\n".join(parts)
-
-
-def unreachable(syscalls: dict[str, str], corpus: str) -> list[tuple[str, str]]:
-    out = []
-    for tag, name in syscalls.items():
-        by_tag = f'b"{tag}"' in corpus
-        by_hex = tag_hex(tag) in corpus or tag_hex(tag).replace("_", "") in corpus
-        if not (by_tag or by_hex):
-            out.append((name, tag))
-    return sorted(out)
+from syscall_reach_scan import KERNEL_NUMBERS, kernel_syscalls, unreachable, userland_text
 
 
 def main() -> int:
