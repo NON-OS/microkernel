@@ -26,46 +26,14 @@
 // the canonical implementation). Those style lints are allowed on the included
 // source rather than rewritten, since the KATs prove behavior and any deviation
 // from the reference shape is what crypto review is meant to catch.
-#[allow(
-    unused_imports,
-    clippy::needless_range_loop,
-    clippy::unnecessary_cast,
-    clippy::manual_is_multiple_of,
-    clippy::redundant_closure,
-    clippy::wrong_self_convention
-)]
 #[path = "../../../../../src/crypto/asymmetric/ed25519/mod.rs"]
 pub mod ed25519;
 
 // NIST P-256 ECDSA (self-contained; reference-shape field/scalar arithmetic).
-#[allow(
-    unused_imports,
-    clippy::needless_range_loop,
-    clippy::unnecessary_cast,
-    clippy::manual_is_multiple_of,
-    clippy::redundant_closure,
-    clippy::wrong_self_convention,
-    clippy::identity_op,
-    clippy::manual_rotate,
-    clippy::useless_conversion,
-    clippy::should_implement_trait
-)]
 #[path = "../../../../../src/crypto/asymmetric/p256/mod.rs"]
 pub mod p256;
 
 // NIST P-384 ECDSA (self-contained; reference-shape arithmetic).
-#[allow(
-    unused_imports,
-    clippy::needless_range_loop,
-    clippy::unnecessary_cast,
-    clippy::manual_is_multiple_of,
-    clippy::redundant_closure,
-    clippy::wrong_self_convention,
-    clippy::identity_op,
-    clippy::manual_rotate,
-    clippy::useless_conversion,
-    clippy::should_implement_trait
-)]
 #[path = "../../../../../src/crypto/asymmetric/p384/mod.rs"]
 pub mod p384;
 
@@ -75,41 +43,10 @@ pub mod p384;
 
 // Curve25519 (Edwards point arithmetic) used by the kernel ZK verifier.
 // (The module self-allows `needless_range_loop`.)
-#[allow(
-    unused_imports,
-    clippy::unnecessary_cast,
-    clippy::manual_is_multiple_of,
-    clippy::redundant_closure,
-    clippy::wrong_self_convention,
-    clippy::identity_op,
-    clippy::manual_rotate,
-    clippy::useless_conversion,
-    clippy::should_implement_trait,
-    clippy::manual_memcpy,
-    clippy::manual_div_ceil,
-    clippy::needless_borrow,
-    clippy::op_ref
-)]
 #[path = "../../../../../src/crypto/asymmetric/curve25519/mod.rs"]
 pub mod curve25519;
 
 // RSA (PKCS#1 v1.5 / PSS). Uses the bigint, entropy, error and hash modules
 // provided above.
-#[allow(
-    unused_imports,
-    clippy::needless_range_loop,
-    clippy::unnecessary_cast,
-    clippy::manual_is_multiple_of,
-    clippy::redundant_closure,
-    clippy::wrong_self_convention,
-    clippy::identity_op,
-    clippy::manual_rotate,
-    clippy::useless_conversion,
-    clippy::should_implement_trait,
-    clippy::manual_memcpy,
-    clippy::manual_div_ceil,
-    clippy::same_item_push,
-    clippy::needless_borrow
-)]
 #[path = "../../../../../src/crypto/asymmetric/rsa/mod.rs"]
 pub mod rsa;

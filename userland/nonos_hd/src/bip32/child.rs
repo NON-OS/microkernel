@@ -54,8 +54,10 @@ fn split(parent: &Xprv, mut i: [u8; 64]) -> Option<Xprv> {
     chain.copy_from_slice(&i[32..]);
     wipe(&mut i);
 
-    // BIP32: reject the derivation when the tweak is out of range or the sum
-    // lands on zero; the caller moves to the next index. Never clamp.
+    /*
+     * BIP32: reject the derivation when the tweak is out of range or the sum
+     * lands on zero; the caller moves to the next index. Never clamp.
+     */
     if !is_valid_scalar(&tweak) {
         wipe(&mut tweak);
         wipe(&mut chain);
