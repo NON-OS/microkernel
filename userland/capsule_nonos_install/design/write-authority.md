@@ -8,22 +8,24 @@ authority without softening the rule for anyone else.
 
 ## The mechanism the kernel already provides
 
-MkProcStat returns, for every live pid, the service name and capability
-set the kernel itself recorded at spawn. A capsule only ever holds the
-name app.nonos_install because the spawn gate verified its certificate,
-manifest, and membership trailer against the baked policy root; the name
-is therefore as strong as the attestation chain. The sender pid on an
-IPC message is stamped by the kernel and cannot be forged. Joining the
-two gives a driver an attested caller identity in two steps and zero new
-kernel surface.
+The sender pid on an IPC message is stamped by the kernel and cannot be
+forged. MkCapCheck answers, for any pid, whether the kernel's own
+capability table grants it a mask; that table was filled at spawn from
+the manifest the spawn gate verified against the baked policy root, so
+the answer is exactly as strong as the attestation chain. The installer's
+manifest carries StoreWrite. Joining the two gives a driver an attested
+authorisation in one call and zero new kernel surface, with no name
+anywhere in the decision. A process name would have been the wrong
+shape even when sound: nothing binds it to a principal, and the table
+it would be read from is visible to everyone.
 
 ## The extended rule
 
 permits(op, sender) for mutating ops becomes: the kernel client as
-before, or a sender whose MkProcStat entry names app.nonos_install. The
-lookup runs per request; a stale cache would outlive the installer's
-exit and hand its pid to a stranger. Everything else stays refused, and
-the read-side stays open as today.
+before, or a sender the kernel says holds StoreWrite. The check runs per
+request; a cached verdict would outlive the holder's exit and hand its
+pid to a stranger. Everything else stays refused, and the read side stays
+open as today.
 
 ## The target device
 
