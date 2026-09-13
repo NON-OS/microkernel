@@ -60,8 +60,10 @@ pub(crate) fn spawn_verified_as(
         debug_tag: spec.debug_tag,
         on_behalf_of,
     })?;
-    // First point at which a pid exists. What goes in is the measurement the
-    // proof was checked against, never one recomputed from the image.
+    /*
+     * First point at which a pid exists. What goes in is the measurement the
+     * proof was checked against, never one recomputed from the image.
+     */
     if let Some(proved) = preflighted.proved {
         crate::security::attest_registry::record_attested(
             pid,

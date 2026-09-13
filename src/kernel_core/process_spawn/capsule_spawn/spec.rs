@@ -50,8 +50,10 @@ pub struct CapsuleSpecVerified<'a> {
     pub elf: &'a [u8],
     pub nonos_id_cert_bytes: &'a [u8],
     pub manifest_bytes: &'a [u8],
-    // Per-capsule ZK attestation trailer (NZKCAPS1), embedded alongside the
-    // manifest. Empty when the capsule has no sidecar in this build.
+    /*
+     * Per-capsule ZK attestation trailer (NZKCAPS1), embedded alongside the
+     * manifest. Empty when the capsule has no sidecar in this build.
+     */
     pub attestation_trailer: &'a [u8],
     pub target_triple: &'a str,
     pub requested_caps: u64,

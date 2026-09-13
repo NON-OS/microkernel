@@ -59,10 +59,12 @@ pub(crate) fn run(params: &InstallParams<'_>) -> Result<u32, SpawnError> {
     if !named {
         return Err(SpawnError::InboxName);
     }
-    // The reply inbox was registered unowned above, because its name is needed
-    // before a pid exists. Claim it now. An unowned inbox with no entry
-    // requirement is one any capsule may write into, which is how a forged
-    // reply gets into somebody else's request and response flow.
+    /*
+     * The reply inbox was registered unowned above, because its name is needed
+     * before a pid exists. Claim it now. An unowned inbox with no entry
+     * requirement is one any capsule may write into, which is how a forged
+     * reply gets into somebody else's request and response flow.
+     */
     adopt_endpoint(params.reply_inbox, pid, Capability::IPC.bit())
         .map_err(|_| SpawnError::EndpointCollision)?;
     nonos_inbox::register_inbox(&format!("proc.{}", pid), pid)
