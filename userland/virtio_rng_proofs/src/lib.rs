@@ -47,4 +47,4 @@ pub mod regs;
 pub mod init;
 
 #[cfg(test)]
-mod handshake_tests;
+mod tests;
