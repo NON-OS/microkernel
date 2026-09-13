@@ -21,21 +21,30 @@ impl FieldElement {
         let mut borrow = 0i128;
         let mut temp = [0u64; 4];
 
-        for i in 0..4 {
-            borrow += self.0[i] as i128 - Self::P[i] as i128;
+        for (out, (a, b)) in temp.iter_mut().zip(self.0.iter().zip(Self::P.iter())) {
+
+            borrow += *a as i128 - *b as i128;
+
             if borrow < 0 {
-                temp[i] = (borrow + (1i128 << 64)) as u64;
+
+                *out = (borrow + (1i128 << 64)) as u64;
+
                 borrow = -1;
+
             } else {
-                temp[i] = borrow as u64;
+
+                *out = borrow as u64;
+
                 borrow = 0;
+
             }
+
         }
 
         let no_borrow = ((borrow >> 127) & 1) as u64;
         let mask = no_borrow.wrapping_sub(1);
-        for i in 0..4 {
-            self.0[i] = (temp[i] & mask) | (self.0[i] & !mask);
+        for (out, t) in self.0.iter_mut().zip(temp.iter()) {
+            *out = (*t & mask) | (*out & !mask);
         }
     }
 
@@ -43,9 +52,7 @@ impl FieldElement {
         let c: u64 = 0x1000003D1;
         let mut acc = [0u128; 5];
 
-        for i in 0..4 {
-            acc[i] = wide[i];
-        }
+        acc[..4].copy_from_slice(&wide[..4]);
 
         for i in 4..8 {
             let hi = wide[i];

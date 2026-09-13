@@ -21,22 +21,26 @@ impl FieldElement {
         let mut result = [0u64; 4];
         let mut carry = 0u128;
 
-        for i in 0..4 {
-            carry += self.0[i] as u128 + other.0[i] as u128;
-            result[i] = carry as u64;
+        for (out, (a, b)) in result.iter_mut().zip(self.0.iter().zip(other.0.iter())) {
+
+            carry += *a as u128 + *b as u128;
+
+            *out = carry as u64;
+
             carry >>= 64;
+
         }
 
         let mut fold = carry * 0x1000003D1u128;
-        for i in 0..4 {
-            fold += result[i] as u128;
-            result[i] = fold as u64;
+        for limb in result.iter_mut() {
+            fold += *limb as u128;
+            *limb = fold as u64;
             fold >>= 64;
         }
         let mut fold2 = fold * 0x1000003D1u128;
-        for i in 0..4 {
-            fold2 += result[i] as u128;
-            result[i] = fold2 as u64;
+        for limb in result.iter_mut() {
+            fold2 += *limb as u128;
+            *limb = fold2 as u64;
             fold2 >>= 64;
         }
 
@@ -49,23 +53,32 @@ impl FieldElement {
         let mut result = [0u64; 4];
         let mut borrow = 0i128;
 
-        for i in 0..4 {
-            borrow += self.0[i] as i128 - other.0[i] as i128;
+        for (out, (a, b)) in result.iter_mut().zip(self.0.iter().zip(other.0.iter())) {
+
+            borrow += *a as i128 - *b as i128;
+
             if borrow < 0 {
-                result[i] = (borrow + (1i128 << 64)) as u64;
+
+                *out = (borrow + (1i128 << 64)) as u64;
+
                 borrow = -1;
+
             } else {
-                result[i] = borrow as u64;
+
+                *out = borrow as u64;
+
                 borrow = 0;
+
             }
+
         }
 
         let mut res = Self(result);
         if borrow < 0 {
             let mut carry = 0u128;
-            for i in 0..4 {
-                carry += res.0[i] as u128 + Self::P[i] as u128;
-                res.0[i] = carry as u64;
+            for (out, c) in res.0.iter_mut().zip(Self::P.iter()) {
+                carry += *out as u128 + *c as u128;
+                *out = carry as u64;
                 carry >>= 64;
             }
         }

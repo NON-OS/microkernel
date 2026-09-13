@@ -55,7 +55,7 @@ fn nonzero(bytes: &[u8]) -> (Scalar, u64) {
 
 pub(crate) fn split(pk: &PublicKey, message_hash: &[u8; 32], sig: &Signature) -> Parts {
     let (point, key_valid) =
-        match AffinePoint::from_uncompressed(pk.try_into().unwrap_or(&[0u8; 65])) {
+        match AffinePoint::from_uncompressed(pk) {
             Some(p) => (p, 1u64),
             None => (AffinePoint::identity(), 0u64),
         };
