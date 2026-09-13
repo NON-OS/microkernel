@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::bip32::{child_hardened, child_normal, compress_pubkey, master_from_seed, Xprv};
-use crate::wipe::wipe;
+use nonos_hash::wipe;
 
 /// Walk the standard Ethereum account path m/44'/60'/0'/0/0 from a BIP39
 /// seed and return the account private key. The two non-hardened steps need

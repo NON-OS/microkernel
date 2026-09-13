@@ -28,21 +28,14 @@
 
 #![no_std]
 
-mod hmac512;
 mod pbkdf2;
-mod sha256;
-mod sha512;
-mod wipe;
 mod wordlist;
 
 pub mod bip32;
 pub mod bip39;
 mod path;
 
-pub use hmac512::{hmac_sha512, HmacSha512};
+pub use nonos_hash::{hmac_sha512, sha256, sha512, wipe, HmacSha512, Sha512};
 pub use path::derive_eth_key;
 pub use pbkdf2::pbkdf2_hmac_sha512;
-pub use sha256::sha256;
-pub use sha512::{sha512, Sha512};
-pub use wipe::wipe;
 pub use wordlist::ENGLISH_WORDLIST;

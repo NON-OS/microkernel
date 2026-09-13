@@ -17,7 +17,7 @@
 //! HMAC-SHA256, the one hash this curve needs.
 //!
 //! RFC 6979 derives the signing nonce with it. In the kernel this came from
-//! `crypto::hmac_sha256`; here it is built on `nonos_hd::sha256`, which is
+//! `crypto::hmac_sha256`; here it is built on `nonos_hash::sha256`, which is
 //! already in userland and already proven against the standard vectors.
 //!
 //! No allocation. The obvious implementation builds `ipad || message` in a
@@ -27,7 +27,7 @@
 //! message of a length known at compile time, so the working buffer is a
 //! fixed array that is wiped before it goes out of scope.
 
-use nonos_hd::sha256;
+use nonos_hash::sha256;
 
 use crate::wipe::wipe;
 
