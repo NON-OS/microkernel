@@ -1,5 +1,4 @@
 microkernel-setup-wizard
-nonos-smp
 nonos-tool-selftest
 std
 zk-halo2

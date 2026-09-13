@@ -36,6 +36,12 @@ feature with cfg sites and no lane is dark. The dark set is held against
 scripts/baselines/dark-features.txt: a feature may leave the list when a lane
 starts enabling it, and a feature may not join it. --write-baseline records
 the current set, and --self-test proves the check bites on a decoy.
+
+What this does not reach: cfg sites are read under src/ only, so build.rs,
+the bootloader and the capsules are not scanned; the lanes are read from
+this tree, not from the nonos-mk submodule; and a feature counted as lit
+here has been compiled by some lane, which says nothing about whether the
+profile that compiles it boots.
 """
 
 import argparse
@@ -57,7 +63,8 @@ VARIABLE = re.compile(r'\$\([^)]*\)|\$\{\{[^}]*\}\}')
 # A workflow matrix hands cargo its feature string through an expression, so
 # the values live in the list under `features:` rather than on the command
 # line. Items are `- a,b` lines until the indentation drops back.
-MATRIX_LIST = re.compile(r'^(\s+)features:\s*\n((?:\1\s+-\s+[A-Za-z0-9_,-]+\s*\n)+)', re.M)
+# A matrix list may carry comment lines between its entries.
+MATRIX_LIST = re.compile(r'^(\s+)features:\s*\n((?:\1\s+(?:-\s+[A-Za-z0-9_,-]+|#.*)\s*\n)+)', re.M)
 
 
 def features_table(text):
@@ -80,7 +87,8 @@ def lane_features(root):
                 continue
             text = p.read_text(errors="replace").replace("$(_boot_comma)", ",")
             matrix = [item.split("-", 1)[1] for _, block in MATRIX_LIST.findall(text)
-                      for item in block.split("\n") if "-" in item]
+                      for item in block.split("\n")
+                      if "-" in item and not item.lstrip().startswith("#")]
             for m in FLAG.findall(text) + BUILD_CALL.findall(text) + matrix:
                 for name in VARIABLE.sub("", m).split(","):
                     if name.strip():
