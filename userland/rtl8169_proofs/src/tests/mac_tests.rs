@@ -21,7 +21,7 @@ use nonos_libc::entropy;
 use nonos_mac::is_local_unicast;
 
 use super::model::{idr, window, FACTORY};
-use crate::constants::regs::{CFG9346_LOCK, REG_CFG9346};
+use crate::constants::regs::REG_CFG9346;
 use crate::init::mac_program;
 use crate::regs::Regs;
 
@@ -33,7 +33,7 @@ fn the_programmed_address_is_drawn_locally_administered_and_not_the_factory_one(
     assert_ne!(mac, FACTORY);
     assert!(is_local_unicast(&mac), "locally administered, unicast");
     assert_eq!(idr(&bar), mac, "the IDR bytes hold the drawn address");
-    assert_eq!(bar.wrote8(REG_CFG9346), CFG9346_LOCK, "the config lock is back on");
+    assert_eq!(bar.wrote8(REG_CFG9346), 0x00, "9346CR back to normal mode: the lock");
 }
 
 #[test]
@@ -43,5 +43,5 @@ fn without_entropy_nothing_is_programmed_and_the_factory_address_is_not_used() {
     let result = mac_program(&Regs::new(bar.base()));
     assert!(result.is_err(), "no entropy is a refusal, not a fallback");
     assert_eq!(idr(&bar), FACTORY, "the IDR bytes were not touched");
-    assert_eq!(bar.wrote8(REG_CFG9346), 0, "the lock was never opened");
+    assert_eq!(bar.wrote8(REG_CFG9346), 0x00, "the lock was never opened");
 }

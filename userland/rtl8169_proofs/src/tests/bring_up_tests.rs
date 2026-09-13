@@ -24,9 +24,7 @@ use nonos_libc::entropy;
 
 use super::memory::Memory;
 use super::model::{idr, resetting_part, window, FACTORY};
-use crate::constants::regs::{
-    CMD_RESET, CMD_RX_ENABLE, CMD_TX_ENABLE, ISR_ENABLED, REG_CMD, REG_IMR,
-};
+use crate::constants::regs::{CMD_RX_ENABLE, ISR_ENABLED, REG_CMD, REG_IMR};
 use crate::init::bring_up;
 
 /*
@@ -57,7 +55,6 @@ fn the_part_is_never_enabled_while_it_still_carries_the_factory_address() {
     assert!(!leaked.load(Ordering::SeqCst), "receive was enabled with the factory address");
     assert_eq!(d.mac, idr(&bar));
     let cmd = bar.wrote8(REG_CMD);
-    assert_eq!(cmd & (CMD_RX_ENABLE | CMD_TX_ENABLE), CMD_RX_ENABLE | CMD_TX_ENABLE);
-    assert_eq!(cmd & CMD_RESET, 0);
+    assert_eq!(cmd & 0x1C, 0x0C, "TE bit 2 and RE bit 3 on, RST bit 4 off, per the datasheet");
     assert_eq!(bar.wrote16(REG_IMR), ISR_ENABLED);
 }
