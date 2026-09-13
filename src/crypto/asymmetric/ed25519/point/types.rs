@@ -39,12 +39,6 @@ pub(crate) struct GeCached {
     pub(crate) T2d: Fe,
 }
 
-impl GeCached {
-    pub(crate) fn identity() -> Self {
-        Self { YplusX: Fe::one(), YminusX: Fe::one(), Z: Fe::one(), T2d: Fe::zero() }
-    }
-}
-
 impl GeP3 {
     pub(crate) fn identity() -> Self {
         Self { X: Fe::zero(), Y: Fe::one(), Z: Fe::one(), T: Fe::zero() }

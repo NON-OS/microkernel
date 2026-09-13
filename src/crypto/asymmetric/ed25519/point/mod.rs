@@ -16,12 +16,10 @@
 
 pub(super) mod ops;
 mod pack;
-mod precomp;
 mod scalarmult;
 pub(super) mod types;
 
 pub(crate) use ops::{ge_add, ge_p1p1_to_p3, ge_to_cached};
 pub(crate) use pack::{ge_pack, ge_unpack};
-pub(crate) use precomp::ensure_precomp;
 pub(crate) use scalarmult::ge_scalarmult_vartime as scalarmult_vartime;
 pub(crate) use scalarmult::{ge_has_large_order, ge_scalarmult_base_ct};
