@@ -18,8 +18,8 @@ use super::types::Fe;
 
 pub(crate) fn fe_tobytes(f: &Fe) -> [u8; 32] {
     let mut h = [0i64; 10];
-    for i in 0..10 {
-        h[i] = f.0[i] as i64;
+    for (out, &limb) in h.iter_mut().zip(f.0.iter()) {
+        *out = limb as i64;
     }
 
     let mut carry: i64;
@@ -140,16 +140,16 @@ pub(crate) fn fe_tobytes(f: &Fe) -> [u8; 32] {
 }
 
 pub(crate) fn fe_frombytes(s: &[u8; 32]) -> Fe {
-    let h0 = load4(&s[0..4]) as i64;
-    let h1 = (load3(&s[4..7]) << 6) as i64;
-    let h2 = (load3(&s[7..10]) << 5) as i64;
-    let h3 = (load3(&s[10..13]) << 3) as i64;
-    let h4 = (load3(&s[13..16]) << 2) as i64;
-    let h5 = load4(&s[16..20]) as i64;
-    let h6 = (load3(&s[20..23]) << 7) as i64;
-    let h7 = (load3(&s[23..26]) << 5) as i64;
-    let h8 = (load3(&s[26..29]) << 4) as i64;
-    let h9 = ((load3(&s[29..32]) & 0x7fffff) << 2) as i64;
+    let h0 = load4(&s[0..4]);
+    let h1 = load3(&s[4..7]) << 6;
+    let h2 = load3(&s[7..10]) << 5;
+    let h3 = load3(&s[10..13]) << 3;
+    let h4 = load3(&s[13..16]) << 2;
+    let h5 = load4(&s[16..20]);
+    let h6 = load3(&s[20..23]) << 7;
+    let h7 = load3(&s[23..26]) << 5;
+    let h8 = load3(&s[26..29]) << 4;
+    let h9 = (load3(&s[29..32]) & 0x7fffff) << 2;
 
     let mut carry: i64;
     let mut h = [h0, h1, h2, h3, h4, h5, h6, h7, h8, h9];

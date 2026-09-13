@@ -19,8 +19,8 @@ use super::types::Fe;
 #[inline]
 pub(crate) fn fe_add(a: &Fe, b: &Fe) -> Fe {
     let mut r = [0i32; 10];
-    for i in 0..10 {
-        r[i] = a.0[i] + b.0[i];
+    for (out, (x, y)) in r.iter_mut().zip(a.0.iter().zip(b.0.iter())) {
+        *out = x + y;
     }
     Fe(r)
 }
@@ -28,8 +28,8 @@ pub(crate) fn fe_add(a: &Fe, b: &Fe) -> Fe {
 #[inline]
 pub(crate) fn fe_sub(a: &Fe, b: &Fe) -> Fe {
     let mut r = [0i32; 10];
-    for i in 0..10 {
-        r[i] = a.0[i] - b.0[i];
+    for (out, (x, y)) in r.iter_mut().zip(a.0.iter().zip(b.0.iter())) {
+        *out = x - y;
     }
     Fe(r)
 }

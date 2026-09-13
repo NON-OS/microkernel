@@ -37,8 +37,6 @@
 //! is one that can be made to sign under a key someone else chose.
 
 #![no_std]
-#![allow(non_snake_case)]
-#![allow(clippy::many_single_char_names)]
 /*
  * The field, point and scalar arithmetic is moved verbatim and is written the
  * way this kind of code is normally written: indexed loops over limb arrays,
@@ -46,15 +44,6 @@
  * satisfy a style lint would be editing signing code for no reason. The
  * vectors in `tests` are what stands behind the move.
  */
-#![allow(clippy::needless_range_loop)]
-#![allow(clippy::manual_memcpy)]
-#![allow(clippy::unnecessary_cast)]
-#![allow(clippy::useless_conversion)]
-#![allow(clippy::identity_op)]
-#![allow(clippy::manual_rotate)]
-#![allow(clippy::wrong_self_convention)]
-#![allow(clippy::redundant_closure)]
-#![allow(clippy::needless_late_init)]
 
 extern crate alloc;
 
