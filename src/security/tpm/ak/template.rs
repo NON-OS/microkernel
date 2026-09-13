@@ -30,7 +30,7 @@ const TPM_ECC_NIST_P256: u16 = 0x0003;
 /// sign an attestation structure handed to it from outside. Without it, a
 /// quote proves nothing: anyone able to talk to the TPM could have it sign a
 /// fabricated `TPMS_ATTEST`.
-const OBJECT_ATTRIBUTES: u32 = 0x0005_0072;
+pub(super) const OBJECT_ATTRIBUTES: u32 = 0x0005_0072;
 
 /// The template whose derivation gives this machine its identity.
 ///

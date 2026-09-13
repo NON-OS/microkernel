@@ -25,6 +25,7 @@
 //! is not the key this kernel meant, whatever else it might be.
 
 use super::cursor::Cursor;
+use super::template::OBJECT_ATTRIBUTES;
 use crate::security::tpm::error::TpmError;
 
 const TPM_ALG_ECC: u16 = 0x0023;
@@ -44,7 +45,12 @@ pub(super) fn parse_public(resp: &[u8]) -> Result<[u8; 64], TpmError> {
         return Err(TpmError::InvalidResponse);
     }
     let ok = c.u16()? == TPM_ALG_ECC && c.u16()? == TPM_ALG_SHA256;
-    c.u32()?;
+    /*
+     * The attributes are the property. A key without restricted, or not fixed
+     * to this TPM, would sign anything handed to it, so the parse refuses
+     * anything but the template's exact set.
+     */
+    let ok = ok && c.u32()? == OBJECT_ATTRIBUTES;
     let policy = c.u16()? as usize;
     c.skip(policy)?;
     let ok = ok && c.u16()? == TPM_ALG_NULL;
