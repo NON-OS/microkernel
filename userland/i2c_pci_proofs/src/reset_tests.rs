@@ -53,8 +53,10 @@ fn the_reset_is_deasserted_before_any_designware_register_is_written() {
 
 #[test]
 fn a_completed_bring_up_still_leaves_the_reset_deasserted() {
-    // Nothing later in the sequence may re-assert it, whether by writing the
-    // register again or by mapping another register onto the same offset.
+    /*
+     * Nothing later in the sequence may re-assert it, whether by writing the
+     * register again or by mapping another register onto the same offset.
+     */
     let bar = live();
     bring_up(Regs::new(bar.base()), CLOCK_HZ).expect("bring-up");
     assert_eq!(bar.wrote32(LPSS_PRIV_RESETS as usize), LPSS_PRIV_RESETS_DEASSERT);
@@ -62,8 +64,10 @@ fn a_completed_bring_up_still_leaves_the_reset_deasserted() {
 
 #[test]
 fn the_deassert_value_releases_the_function_and_both_idma_resets() {
-    // Deasserting only the function reset leaves the integrated DMA held,
-    // which the DesignWare core needs out of reset before it will run.
+    /*
+     * Deasserting only the function reset leaves the integrated DMA held,
+     * which the DesignWare core needs out of reset before it will run.
+     */
     assert_eq!(LPSS_PRIV_RESETS, LPSS_PRIV + 0x04);
     assert_eq!(LPSS_PRIV_RESETS_DEASSERT, 0x7);
     assert_eq!(LPSS_PRIV_RESETS_DEASSERT, LPSS_PRIV_RESETS_FUNC | LPSS_PRIV_RESETS_IDMA);

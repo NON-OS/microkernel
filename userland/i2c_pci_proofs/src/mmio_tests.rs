@@ -53,8 +53,10 @@ fn a_controller_whose_window_reads_all_ones_is_refused_and_told_so() {
 
 #[test]
 fn a_live_controller_is_accepted_and_reports_the_signature_it_read() {
-    // The counterpart to the two refusals. A guard that rejects everything
-    // passes both tests above and binds no hardware at all.
+    /*
+     * The counterpart to the two refusals. A guard that rejects everything
+     * passes both tests above and binds no hardware at all.
+     */
     let bar = live();
     let state = bring_up(Regs::new(bar.base()), CLOCK_HZ).expect("bring-up");
     assert_eq!(state.comp_type, DW_COMP_TYPE);

@@ -44,9 +44,11 @@ fn enabled_and_quiescent() -> FakeBar {
 
 #[test]
 fn a_disabled_controller_is_not_switched_on_behind_the_callers_back() {
-    // Nothing had to be disabled, so nothing may be enabled afterwards.
-    // Restoring an enable bit that was never set arms a controller the caller
-    // believed was quiescent, and the first stray transfer is a real one.
+    /*
+     * Nothing had to be disabled, so nothing may be enabled afterwards.
+     * Restoring an enable bit that was never set arms a controller the caller
+     * believed was quiescent, and the first stray transfer is a real one.
+     */
     let bar = live();
     assert!(set_target(Regs::new(bar.base()), TOUCHPAD).is_ok(), "target change refused");
     assert_eq!(bar.wrote32(IC_ENABLE as usize), 0, "a disabled controller was enabled");
@@ -54,9 +56,11 @@ fn a_disabled_controller_is_not_switched_on_behind_the_callers_back() {
 
 #[test]
 fn a_controller_that_will_not_disable_never_has_its_target_address_changed() {
-    // If the disable does not take, the IC_TAR write is swallowed by the core
-    // and the caller goes on to address a device it never selected. Refusing
-    // is the only outcome that leaves the bus in a knowable state.
+    /*
+     * If the disable does not take, the IC_TAR write is swallowed by the core
+     * and the caller goes on to address a device it never selected. Refusing
+     * is the only outcome that leaves the bus in a knowable state.
+     */
     let bar = stuck_enabled();
     let err = set_target(Regs::new(bar.base()), TOUCHPAD).expect_err("must refuse");
     assert!(matches!(err, TransferError::Timeout));
@@ -65,9 +69,11 @@ fn a_controller_that_will_not_disable_never_has_its_target_address_changed() {
 
 #[test]
 fn an_enabled_controller_has_its_enable_bit_put_back_after_the_address_changes() {
-    // The caller handed over a running controller and must get one back. A
-    // missing restore leaves the bus dead from the next transfer on, with the
-    // address change as the only thing that happened in between.
+    /*
+     * The caller handed over a running controller and must get one back. A
+     * missing restore leaves the bus dead from the next transfer on, with the
+     * address change as the only thing that happened in between.
+     */
     let bar = enabled_and_quiescent();
     let _ = set_target(Regs::new(bar.base()), TOUCHPAD);
     assert_eq!(bar.wrote32(IC_TAR as usize), TOUCHPAD as u32);

@@ -53,8 +53,10 @@ fn the_counts_are_not_programmed_until_the_controller_is_confirmed_disabled() {
 
 #[test]
 fn a_completed_bring_up_leaves_the_controller_disabled_and_its_counts_loaded() {
-    // The other half: the counts that were computed are the counts left in
-    // the window, and nothing along the way turned the controller back on.
+    /*
+     * The other half: the counts that were computed are the counts left in
+     * the window, and nothing along the way turned the controller back on.
+     */
     let bar = live();
     bring_up(Regs::new(bar.base()), CLOCK_HZ).expect("bring-up");
 

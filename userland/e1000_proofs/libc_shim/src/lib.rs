@@ -61,7 +61,6 @@ pub fn crypto_random(ptr: *mut u8, len: usize) -> i64 {
     }
     len as i64
 }
-
 pub fn mk_device_release(_device_id: u64) -> i64 {
     0
 }

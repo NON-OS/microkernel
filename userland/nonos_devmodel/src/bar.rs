@@ -29,7 +29,7 @@
 //! of `u8`, so the driver's raw volatile accesses through `base()` see exactly
 //! the bytes they would have seen.
 
-use core::sync::atomic::{AtomicU8, Ordering};
+use core::sync::atomic::AtomicU8;
 
 pub struct FakeBar {
     cells: Box<[AtomicU8]>,
@@ -64,22 +64,5 @@ impl FakeBar {
     /// test rather than reading whatever follows the allocation.
     pub(crate) fn cell(&self, offset: usize) -> &AtomicU8 {
         &self.cells[offset]
-    }
-
-    /// Present `value` at `offset`, as the device would.
-    pub fn present8(&self, offset: usize, value: u8) {
-        self.cell(offset).store(value, Ordering::Release);
-    }
-
-    pub fn present16(&self, offset: usize, value: u16) {
-        for (i, b) in value.to_le_bytes().iter().enumerate() {
-            self.present8(offset + i, *b);
-        }
-    }
-
-    pub fn present32(&self, offset: usize, value: u32) {
-        for (i, b) in value.to_le_bytes().iter().enumerate() {
-            self.present8(offset + i, *b);
-        }
     }
 }

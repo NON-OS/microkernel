@@ -43,9 +43,11 @@ fn the_fast_mode_bus_never_runs_over_the_four_hundred_kilohertz_budget() {
 
 #[test]
 fn each_input_clock_gives_the_counts_the_proven_divider_produces() {
-    // Deriving these from the wrong input clock is the documented Gemini Lake
-    // trap: 133 MHz counts fed a 100 MHz assumption clock the bus a third
-    // fast, which is in spec for nothing.
+    /*
+     * Deriving these from the wrong input clock is the documented Gemini Lake
+     * trap: 133 MHz counts fed a 100 MHz assumption clock the bus a third
+     * fast, which is in spec for nothing.
+     */
     assert_eq!((standard(GEMINI_LAKE).hcnt, standard(GEMINI_LAKE).lcnt), (658, 664));
     assert_eq!((fast(GEMINI_LAKE).hcnt, fast(GEMINI_LAKE).lcnt), (159, 165));
     assert_eq!((standard(TIGER_LAKE).hcnt, standard(TIGER_LAKE).lcnt), (493, 499));
@@ -56,17 +58,21 @@ fn each_input_clock_gives_the_counts_the_proven_divider_produces() {
 
 #[test]
 fn a_clock_too_slow_to_divide_still_yields_counts_the_core_will_accept() {
-    // The subtraction underflows below roughly 2 MHz. Saturating to zero and
-    // programming a zero count stops the clock entirely, so the floors are
-    // what keep a misreported input clock from bricking the bus.
+    /*
+     * The subtraction underflows below roughly 2 MHz. Saturating to zero and
+     * programming a zero count stops the clock entirely, so the floors are
+     * what keep a misreported input clock from bricking the bus.
+     */
     let counts = standard(1_000_000);
     assert_eq!((counts.hcnt, counts.lcnt), (6, 8));
 }
 
 #[test]
 fn the_spike_filter_and_sda_hold_are_never_programmed_as_zero() {
-    // Zero spike length disables glitch suppression, and zero SDA hold puts
-    // the data edge on the clock edge, which reads back as random NAKs.
+    /*
+     * Zero spike length disables glitch suppression, and zero SDA hold puts
+     * the data edge on the clock edge, which reads back as random NAKs.
+     */
     for clk in [GEMINI_LAKE, TIGER_LAKE, SUNRISE_POINT, 1_000_000] {
         assert!(fs_spklen(clk) >= 1, "{clk} Hz gave a zero spike length");
         assert!(sda_hold(clk) >= 1, "{clk} Hz gave a zero SDA hold");
