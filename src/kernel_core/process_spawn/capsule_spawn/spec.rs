@@ -65,6 +65,8 @@ pub enum SpawnError {
     ProcessCreation,
     AddressSpace,
     EndpointCollision,
+    /// The reply inbox name is empty or longer than a process stores.
+    InboxName,
     NonosIdCertRejected(IdCertVerifyError),
     ManifestRejected(ManifestVerifyError),
     AttestationRejected,
