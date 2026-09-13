@@ -38,6 +38,11 @@ impl Store {
         for entry in staged {
             self.stage(entry.name, entry.data);
         }
+        /*
+         * Staging lands from the idle slot, not through dispatch, so the
+         * counter the desktop and the package list wait on is moved here.
+         */
+        crate::server::generation::bump();
     }
 
     fn stage(&mut self, name: String, data: Vec<u8>) {
