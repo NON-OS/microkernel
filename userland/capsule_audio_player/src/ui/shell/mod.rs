@@ -14,22 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Anti-aliased RGBA8 glyph rasteriser. Every mask is built once at start-up
-//! by `icon::Icons` and tinted at blit time, so no frame pays for supersampling.
+mod bar;
+mod rail;
+mod ground;
+mod sidebar;
+mod topbar;
+mod transport;
 
-mod canvas;
-mod glyph_a;
-mod glyph_b;
-mod glyph_c;
-mod prim;
-mod shape;
-mod stroke;
-mod transport_a;
-mod transport_b;
-
-pub use canvas::Sprite;
-pub use glyph_a::{magnifier, note, speaker};
-pub use glyph_b::{check, close, plus};
-pub use glyph_c::{bell, chevron, compass, download, gear, grid, heart, home, radio};
-pub use transport_a::{next, pause, play, prev};
-pub use transport_b::{repeat, shuffle};
+pub use bar::bar;
+pub use rail::{queue_at as rail_queue_at, rail, tab_at as rail_tab_at};
+pub use ground::Ground;
+pub use sidebar::{plist_at, row_at as nav_at, sidebar};
+pub use topbar::{clear as search_clear, field as search_field, topbar};
+pub use transport::transport;

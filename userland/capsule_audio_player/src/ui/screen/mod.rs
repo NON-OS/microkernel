@@ -14,22 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Anti-aliased RGBA8 glyph rasteriser. Every mask is built once at start-up
-//! by `icon::Icons` and tinted at blit time, so no frame pays for supersampling.
+mod browse;
+mod downloads;
+mod home;
+mod lib_geom;
+mod library;
+mod nowplaying;
+mod radio;
+mod search;
+mod settings;
+mod settings_view;
 
-mod canvas;
-mod glyph_a;
-mod glyph_b;
-mod glyph_c;
-mod prim;
-mod shape;
-mod stroke;
-mod transport_a;
-mod transport_b;
-
-pub use canvas::Sprite;
-pub use glyph_a::{magnifier, note, speaker};
-pub use glyph_b::{check, close, plus};
-pub use glyph_c::{bell, chevron, compass, download, gear, grid, heart, home, radio};
-pub use transport_a::{next, pause, play, prev};
-pub use transport_b::{repeat, shuffle};
+pub use browse::paint as browse;
+pub use downloads::{paint as downloads, row_at as downloads_row_at, visible as downloads_visible};
+pub use radio::{paint as radio, tile_at as radio_tile_at};
+pub use home::{card_at, paint as home};
+pub use lib_geom::{row_at as lib_row_at, rows_for, tab_hit, visible as lib_visible};
+pub use library::paint as library;
+pub use nowplaying::paint as nowplaying;
+pub use search::{paint as search, row_at as search_row_at, play_at as search_play_at};
+pub use settings::{hit as settings_hit, Hit as SettingsHit};
+pub use settings_view::paint as settings;

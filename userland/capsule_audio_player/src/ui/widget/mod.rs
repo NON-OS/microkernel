@@ -14,22 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Anti-aliased RGBA8 glyph rasteriser. Every mask is built once at start-up
-//! by `icon::Icons` and tinted at blit time, so no frame pays for supersampling.
+//! The section-03 primitives, drawn straight into the frame buffer.
 
-mod canvas;
-mod glyph_a;
-mod glyph_b;
-mod glyph_c;
-mod prim;
-mod shape;
-mod stroke;
-mod transport_a;
-mod transport_b;
+mod button;
+mod card;
+mod chip;
+mod eq;
+mod header;
+mod hero;
+mod row;
+mod slider;
+mod switch;
+mod tile;
+mod wave;
 
-pub use canvas::Sprite;
-pub use glyph_a::{magnifier, note, speaker};
-pub use glyph_b::{check, close, plus};
-pub use glyph_c::{bell, chevron, compass, download, gear, grid, heart, home, radio};
-pub use transport_a::{next, pause, play, prev};
-pub use transport_b::{repeat, shuffle};
+pub use button::{button, measure as button_w, Variant};
+pub use card::{card, card_h};
+pub use chip::{chip, measure as chip_w};
+pub use hero::{action_at as hero_action_at, hero, HERO_H};
+pub use header::{card_panel, page_header, section_header};
+pub use row::{header as table_header, row, Flags, ROW_H};
+pub use slider::{permille, slider};
+pub use switch::{switch, tab_at, tab_bar, SWITCH_H, SWITCH_W};
+pub use wave::waveform;
+pub use tile::{stat_tile, storage_meter, TILE_H};
