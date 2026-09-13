@@ -33,10 +33,12 @@ pub struct TxRing {
     pub tail: u16,
 }
 
-// SAFETY anchor for every unsafe in this file: eK@nonos.systems —
-// `ring_user_va` is the broker DMA grant taken in `setup::dma`,
-// which covers TX_DESC_COUNT contiguous 16-byte `TxDesc`s; `tail`
-// is held below TX_DESC_COUNT by construction in `post`.
+/*
+ * SAFETY anchor for every unsafe in this file: `ring_user_va` is the broker
+ * DMA grant taken in `setup::dma`, which covers TX_DESC_COUNT contiguous
+ * 16-byte `TxDesc`s, and `tail` is held below TX_DESC_COUNT by construction
+ * in `post`.
+ */
 impl TxRing {
     pub fn new(ring_user_va: u64, buffer_user_va: u64, buffer_device_addr: u64) -> Self {
         Self { ring_user_va, buffer_user_va, buffer_device_addr, tail: 0 }
