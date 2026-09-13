@@ -383,14 +383,15 @@ nonos-mk-run-smp-serial-log: nonos-mk-smp-prod nonos-mk-esp $(QEMU_BLK_IMG) $(QE
 # lane presents an intel-iommu so it does. TCG rather than hvf: the hypervisor
 # framework does not emulate VT-d, so this boots slowly on purpose. It is a
 # proof lane, not an iteration lane.
-nonos-mk-run-iommu-serial-log: nonos-mk-desktop-gui-prod nonos-mk-esp $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
+nonos-mk-run-iommu-serial-log: nonos-mk-desktop-gui-prod nonos-mk-esp $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW)
 	@mkdir -p $(dir $(QEMU_IOMMU_SERIAL_LOG))
 	@echo "Booting NONOS with an IOMMU in QEMU (TCG, slow)..."
 	@echo "  Serial log: $(QEMU_IOMMU_SERIAL_LOG)"
-	@$(QEMU) -m $(QEMU_MEM) -cpu qemu64,+rdrand -smp 1 \
+	@$(QEMU) -m $(QEMU_MEM) -cpu max -smp 1 \
 		-machine q35,kernel-irqchip=split \
-		-device intel-iommu,intremap=on,caching-mode=on \
+		-device intel-iommu,$(QEMU_IOMMU_OPTS) \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
-		$(QEMU_BLK) $(QEMU_NET) $(QEMU_RNG) \
+		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
+		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
 		-serial "file:$(QEMU_IOMMU_SERIAL_LOG)" -display none -no-reboot
