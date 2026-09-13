@@ -57,4 +57,6 @@ mod parse_tests;
 #[cfg(test)]
 mod swtpm;
 #[cfg(test)]
+mod swtpm_io;
+#[cfg(test)]
 mod wire_tests;
