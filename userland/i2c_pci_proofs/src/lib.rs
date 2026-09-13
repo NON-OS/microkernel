@@ -56,6 +56,8 @@ mod model;
 #[cfg(test)]
 mod reset_tests;
 #[cfg(test)]
+mod scl_count_tests;
+#[cfg(test)]
 mod scl_tests;
 #[cfg(test)]
 mod target_tests;
