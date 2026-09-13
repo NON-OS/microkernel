@@ -101,7 +101,7 @@ pub(super) fn write_payload(next_off: u64, data: &[u8]) -> Result<(), BlkError> 
 
 /// The one sector of the table that holds entry `index`'s offset and digest.
 pub(super) fn commit_entry(region: &[u8], index: usize) -> Result<(), BlkError> {
-    let sector = super::store_patch::entry_sector(index);
+    let sector = super::store_entry::entry_sector(index);
     let at = sector * SECTOR_SIZE;
     write_sectors(STORE_BASE_LBA + sector as u64, &region[at..at + SECTOR_SIZE])
 }
