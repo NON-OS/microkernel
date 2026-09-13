@@ -21,16 +21,21 @@
 //! particular decides how far the entry accessors will walk, so it is clamped
 //! here rather than anywhere it is used.
 
-use super::dir_consts::{MAX_ENTRIES, REC_COUNT_OFFSET, REC_ENTRY_BASE, REC_MAGIC, REC_NEXT_OFFSET};
+use super::dir_consts::{
+    ENTRY_BYTES, MAX_ENTRIES, REC_COUNT_OFFSET, REC_ENTRY_BASE, REC_MAGIC, REC_NEXT_OFFSET,
+};
 use super::read_u32::read_u32;
 use super::read_u64::read_u64;
 use super::write_u32::write_u32;
 use super::write_u64::write_u64;
 
-/// The length check comes first: a short block would make every offset below
-/// an out-of-bounds index rather than a wrong answer.
+/// Every byte the entry accessors reach: the header and a full set of entries.
+const RECORD_BYTES: usize = REC_ENTRY_BASE + MAX_ENTRIES * ENTRY_BYTES;
+
+/// The length check covers the whole record, not just the header, so a short
+/// block is refused here rather than indexed past its end by an accessor.
 pub(super) fn is_record(block: &[u8]) -> bool {
-    block.len() >= REC_ENTRY_BASE && block[0..8] == REC_MAGIC[..]
+    block.len() >= RECORD_BYTES && block[0..8] == REC_MAGIC[..]
 }
 
 /// Entries in this block, clamped to what it can hold. The stored count comes
