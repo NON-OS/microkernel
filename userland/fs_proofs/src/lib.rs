@@ -118,6 +118,8 @@ mod protocol_tests;
 #[cfg(test)]
 mod store_tests;
 #[cfg(test)]
+mod store_owner_tests;
+#[cfg(test)]
 mod util_tests;
 #[cfg(test)]
 mod vfs_path_tests;
