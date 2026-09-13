@@ -20,9 +20,6 @@ mod cursor;
 pub mod public;
 #[path = "../../../../../../src/security/tpm/ak/attributes.rs"]
 mod attributes;
+mod seam;
 
-/// The kernel keeps the parser private to the module; this is the seam the
-/// tests reach it through.
-pub fn parse_public(resp: &[u8]) -> Result<[u8; 64], super::error::TpmError> {
-    public::parse_public(resp)
-}
+pub use seam::parse_public;
