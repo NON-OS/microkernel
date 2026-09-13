@@ -59,6 +59,9 @@ jobs:
           - mldsa2,mlkem512
           - mldsa5,mlkem1024
           - dbg-ring,heap-track
+          # Composable with microkernel-core only while core does not also
+          # select nonos-production: the two are a trust-posture mutex, held
+          # by a compile_error! in src/lib.rs. Do not add production to core.
           - nonos-dev-unverified-capsules
           - crypto-curve25519
           - crypto-ed25519-dalek
