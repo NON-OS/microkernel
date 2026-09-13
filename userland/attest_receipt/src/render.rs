@@ -52,12 +52,16 @@ pub fn render(entries: &[Entry]) -> String {
 fn summary(entries: &[Entry]) -> String {
     let networked = entries.iter().filter(|e| reaches_network(e.caps)).count();
     let vendor = entries.iter().filter(|e| e.authority == Authority::Vendor).count();
+    let publisher = entries.iter().filter(|e| e.authority == Authority::Publisher).count();
+    let developer = entries.len() - vendor - publisher;
     format!(
         "\n{} of {} capsules can reach the network. {} were proved by the vendor \
-         key, {} by a key enrolled on that machine.\n",
+         key, {} by a key enrolled on that machine, and {} carry a publisher \
+         signature with no proof behind it.\n",
         networked,
         entries.len(),
         vendor,
-        entries.len() - vendor,
+        developer,
+        publisher,
     )
 }
