@@ -13,54 +13,27 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Who may write the medium this driver guards.
+//!
+//! The package store at LBA 0 is read back as trusted input on the next
+//! boot, so the write path answers the kernel-internal client, which arrives
+//! as sender pid 0 because every real capsule's envelope is kernel-stamped,
+//! and otherwise only a sender the kernel says holds StoreWrite. The kernel
+//! is asked on every request: a cached verdict would outlive the holder's
+//! exit and follow its pid to whatever process is handed that pid next.
+
 mod rule;
 
-use core::mem::size_of;
+use nonos_libc::mk_cap_check;
 
-use nonos_libc::{mk_proc_stat, ProcStatEntry, ProcStatHeader};
+/// StoreWrite, as abi/caps.toml numbers it. Held by the installer and by the
+/// vfs server, and by nothing that merely draws a window.
+pub const CAP_STORE_WRITE: u64 = 1 << 26;
 
-use rule::entry_names_installer;
-
-// Matches the kernel's pid table bound; an entry is 64 bytes, so the stack
-// buffer stays within a page and change.
-const MAX_PROCS: usize = 64;
-const HEADER_LEN: usize = size_of::<ProcStatHeader>();
-const ENTRY_LEN: usize = size_of::<ProcStatEntry>();
-
-// The sender pid is parsed by the kernel from the message envelope it stamps
-// itself (`proc.<pid>`), so a capsule cannot forge it, and pid 0 is never
-// handed to a process. Only the kernel-internal client enqueues without that
-// prefix and so arrives as 0. Mutating operations answer it, or the attested
-// installer, and nobody else: the package store at LBA 0 is read back as
-// trusted input on the next boot.
 pub fn permits(op: u16, sender_pid: u32) -> bool {
     if rule::allows(op, sender_pid, false) {
         return true;
     }
-    rule::allows(op, sender_pid, sender_is_installer(sender_pid))
-}
-
-// The lookup runs on every mutating request. A cached verdict would outlive
-// the installer's exit and follow its pid to whatever process the kernel
-// hands that pid next; asking the kernel each time keeps the answer exactly
-// as current as the process table.
-fn sender_is_installer(sender_pid: u32) -> bool {
-    let mut buf = [0u8; HEADER_LEN + MAX_PROCS * ENTRY_LEN];
-    let written = mk_proc_stat(buf.as_mut_ptr(), MAX_PROCS as u32);
-    if written <= 0 {
-        return false;
-    }
-    let count = (written as usize).min(MAX_PROCS);
-    for i in 0..count {
-        let off = HEADER_LEN + i * ENTRY_LEN;
-        // In bounds by construction of the buffer; read_unaligned because
-        // the entry is packed into a byte stream, exactly as the kernel
-        // wrote it.
-        let e: ProcStatEntry =
-            unsafe { core::ptr::read_unaligned(buf.as_ptr().add(off) as *const ProcStatEntry) };
-        if e.pid == sender_pid {
-            return entry_names_installer(&e.name, e.name_len);
-        }
-    }
-    false
+    rule::allows(op, sender_pid, mk_cap_check(sender_pid, CAP_STORE_WRITE) == 1)
 }
