@@ -74,9 +74,11 @@ fn a_live_device_answers_both_edges_of_a_reset_handshake() {
 
 #[test]
 fn a_passive_window_cannot_answer_the_same_handshake() {
-    // The control. No device, so the status register never changes and the
-    // first wait runs out. This is what the whole module exists to fix, and
-    // asserting it keeps the previous test from passing for a trivial reason.
+    /*
+     * The control. No device, so the status register never changes and the
+     * first wait runs out. This is what the whole module exists to fix, and
+     * asserting it keeps the previous test from passing for a trivial reason.
+     */
     let bar = Arc::new(FakeBar::new(64));
     let err = reset_sequence(&bar).expect_err("a passive window must stall");
     assert!(err.contains("echoed"), "unexpected error: {err}");
@@ -84,8 +86,10 @@ fn a_passive_window_cannot_answer_the_same_handshake() {
 
 #[test]
 fn a_stopped_device_stops_answering() {
-    // Dropping the guard joins the thread, so a test cannot leave a model
-    // running against a window a later test reuses.
+    /*
+     * Dropping the guard joins the thread, so a test cannot leave a model
+     * running against a window a later test reuses.
+     */
     let bar = Arc::new(FakeBar::new(64));
     {
         let _device = run(&bar, mirroring_device);
