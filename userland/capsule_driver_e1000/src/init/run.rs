@@ -24,9 +24,11 @@ use super::{mac_filter, reset, rx_setup, station_address, tx_setup};
 
 pub fn bring_up(driver: &mut Driver) -> Result<(), &'static str> {
     reset::run(&driver.regs)?;
-    // Drawn, not read out of the EEPROM. The factory address identifies this
-    // card to every network it ever joins, which outlives a system that keeps
-    // nothing on disk.
+    /*
+     * Drawn, not read out of the EEPROM. The factory address identifies this
+     * card to every network it ever joins, which outlives a system that keeps
+     * nothing on disk.
+     */
     let mac = station_address::draw()?;
     driver.mac = mac;
     mac_filter::program(&driver.regs, &mac);
