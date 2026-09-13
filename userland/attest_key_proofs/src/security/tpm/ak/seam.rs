@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[path = "../../../../../../src/security/tpm/ak/cursor.rs"]
-mod cursor;
-#[path = "../../../../../../src/security/tpm/ak/public.rs"]
-pub mod public;
-#[path = "../../../../../../src/security/tpm/ak/attributes.rs"]
-mod attributes;
-mod seam;
+//! The one function the tests reach the kernel's private parser through.
 
-pub use seam::parse_public;
+use super::super::error::TpmError;
+
+/// The kernel keeps the parser private to its module; this is the seam.
+pub fn parse_public(resp: &[u8]) -> Result<[u8; 64], TpmError> {
+    super::public::parse_public(resp)
+}
