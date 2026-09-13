@@ -3,7 +3,7 @@
 #
 # secp256k1 for userland. The same arithmetic that was in the kernel, moved out
 # of ring 0: it had no in-kernel caller and existed only to answer syscalls for
-# the wallet. no_std, and dependent only on nonos_hd for SHA-256, which RFC 6979
+# the wallet. no_std, and dependent only on nonos_hash for SHA-256, which RFC 6979
 # needs and which is already proven against the standard vectors.
 [package]
 name = "nonos_secp256k1"
@@ -16,4 +16,4 @@ license = "AGPL-3.0-or-later"
 path = "src/lib.rs"
 
 [dependencies]
-nonos_hd = { path = "../nonos_hd" }
+nonos_hash = { path = "../nonos_hash" }

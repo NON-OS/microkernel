@@ -16,7 +16,7 @@
 
 //! Padding the key to one HMAC block.
 
-use nonos_hd::sha256;
+use nonos_hash::sha256;
 
 use crate::hmac::BLOCK;
 
