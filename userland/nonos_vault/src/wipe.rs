@@ -25,11 +25,11 @@ use core::sync::atomic::{compiler_fence, Ordering};
 
 /// A volatile write per byte, so the compiler cannot elide stores to a buffer
 /// it can see is never read again, which is exactly what this is.
+///
+/// The one unsafe block writes a byte of a slice this call holds mutably,
+/// through a raw pointer only so the store is volatile.
 pub(crate) fn wipe(buf: &mut [u8]) {
     for byte in buf.iter_mut() {
-        // SAFETY: ek@nonos.systems - a byte inside a slice this call owns
-        // mutably, written through a raw pointer only to defeat the
-        // optimiser's dead-store elimination.
         unsafe { core::ptr::write_volatile(byte, 0) };
     }
     compiler_fence(Ordering::SeqCst);
