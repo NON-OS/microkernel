@@ -26,10 +26,8 @@
 //! agent on the register file, which is what a device is: the driver polls
 //! memory while the device concurrently changes it. [`run`] starts a closure
 //! on its own thread and lets it do exactly that, written from the
-//! specification. It proves the driver against a device that behaves as the
-//! specification describes; it does not model timing or silicon errata.
-//!
-//! The README says what a concurrent model can and cannot reach, and why a
+//! specification; it proves the driver against a device that behaves as the
+//! specification describes, not against timing or silicon errata. The README says what a concurrent model can and cannot reach, and why a
 //! property it cannot reach stays documented rather than asserted.
 
 use std::sync::atomic::{AtomicBool, Ordering};
