@@ -131,7 +131,9 @@ fn the_old_template_cannot_be_used_from_the_wrong_state() {
     t.run(&build_flush(key));
     t.run(&build_flush(session));
     match r {
-        Err(KeyError::Refused(rc)) => assert_eq!(rc & 0xFFF, 0x99D, "TPM_RC_POLICY_FAIL, got {rc:#x}"),
+        Err(KeyError::Refused(rc)) => {
+            assert_eq!(rc & 0xFFF, 0x99D, "TPM_RC_POLICY_FAIL, got {rc:#x}")
+        }
         other => panic!("expected policy failure, got {other:?}"),
     }
 }

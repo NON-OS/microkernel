@@ -116,5 +116,8 @@ fn hmac_is_authorised_by_the_session_with_an_empty_hmac() {
 
 #[test]
 fn flush_names_the_handle_as_a_parameter() {
-    assert_eq!(build_flush(0x0300_0000), [0x80, 0x01, 0, 0, 0, 14, 0, 0, 0x01, 0x65, 0x03, 0, 0, 0]);
+    assert_eq!(
+        build_flush(0x0300_0000),
+        [0x80, 0x01, 0, 0, 0, 14, 0, 0, 0x01, 0x65, 0x03, 0, 0, 0]
+    );
 }
