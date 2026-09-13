@@ -18,6 +18,8 @@
 mod cursor;
 #[path = "../../../../../../src/security/tpm/ak/public.rs"]
 pub mod public;
+#[path = "../../../../../../src/security/tpm/ak/attributes.rs"]
+mod attributes;
 
 /// The kernel keeps the parser private to the module; this is the seam the
 /// tests reach it through.
