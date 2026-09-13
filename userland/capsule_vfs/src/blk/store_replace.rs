@@ -14,38 +14,56 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Replacing a payload of the same length, in place.
+//! Replacing a payload of the same length, without a window in which a crash
+//! leaves the table lying.
 //!
-//! The appender writes a name once. That is right for capsule images, which
-//! are written by the packer and never edited, and wrong for the one kind of
-//! file a running system rewrites: a record it keeps for itself. The wallet's
-//! sealed vault is written whenever the wallet changes, and its second write
-//! was refused with `Exists`, so a machine could keep the first wallet it ever
-//! had and no other.
+//! The appender writes a name once. That is right for capsule images and
+//! wrong for the one kind of file a running system rewrites: a record it keeps
+//! for itself, such as the wallet's sealed vault, whose second write used to be
+//! refused.
 //!
-//! Nothing here allocates or moves an extent. The replacement must be exactly
-//! as long as what is there, which every fixed-format record is, and then the
-//! payload is overwritten where it lies and the table of contents keeps the
-//! same offset and length with a new digest. A different length is refused,
-//! because moving an extent needs an allocator this container does not have
-//! and reporting success without one would leave the old bytes on the disk.
+//! Overwriting in place cannot be made safe: whichever of payload and digest
+//! is written first, a crash between them leaves the other stale, and the
+//! next boot authenticates bytes the digest does not describe. So the new
+//! payload goes to a free extent first, where nothing points at it, and then
+//! the table entry is repointed and re-digested in one sector write. Before
+//! that write the old record is whole; after it the new one is. The extent the
+//! record left behind is free for the next replacement to reuse.
+//!
+//! A different length is still refused, because the table records length as
+//! part of the entry this path does not rewrite, and the rule about what may
+//! be replaced at all stays in `store_rules`.
 
 use super::digest::digest16;
 use super::error::BlkError;
-use super::store_patch::patch_digest;
+use super::store_free::free_extent;
+use super::store_patch::patch_entry;
 use super::store_rules::permitted;
-use super::store_toc::TocEntry;
-use super::store_write::{commit, write_payload};
+use super::store_toc::{TocEntry, MAX_TOTAL_BYTES};
+use super::store_write::{commit_entry, write_payload};
 
-/// Overwrite `entry` with `data`, which must be the same length.
-///
-/// `toc` is the table region as read, and `index` the entry's position in
-/// it, because the digest is written back into that record and nothing else
-/// in the region changes: the count is the same and every other entry keeps
-/// its offset.
-pub fn replace(toc: &[u8], index: usize, entry: &TocEntry, data: &[u8]) -> Result<(), BlkError> {
+/// Replace entry `index` of `entries` with `data`, which must be the same
+/// length. `floor` is the first byte after the reserved table region and
+/// `capacity_bytes` the device's size, both bounds on where the payload may go.
+pub fn replace(
+    toc: &[u8],
+    index: usize,
+    entries: &[TocEntry],
+    floor: u64,
+    capacity_bytes: u64,
+    data: &[u8],
+) -> Result<(), BlkError> {
+    let entry = entries.get(index).ok_or(BlkError::BadContainer)?;
     permitted(&entry.name, entry.len, data.len())?;
-    let region = patch_digest(toc, index, &digest16(data))?;
-    write_payload(entry.offset, data)?;
-    commit(&region)
+    let live: u64 = entries.iter().map(|e| e.len).sum();
+    if live.saturating_add(data.len() as u64) > MAX_TOTAL_BYTES {
+        return Err(BlkError::BadLength);
+    }
+    let at = free_extent(entries, floor, data.len() as u64);
+    if at.saturating_add(data.len() as u64) > capacity_bytes {
+        return Err(BlkError::BadLength);
+    }
+    write_payload(at, data)?;
+    let region = patch_entry(toc, index, at, &digest16(data))?;
+    commit_entry(&region, index)
 }
