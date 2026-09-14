@@ -43,8 +43,12 @@ def parser(doc):
     return ap
 
 
-def arguments(doc, cells):
-    """Parsed arguments, with the inputs a run needs checked for presence."""
+def arguments(doc):
+    """Parsed arguments, with the inputs every run needs checked for presence.
+
+    Which images are needed depends on which cells were asked for, so that
+    check belongs to `images_for` once the selection is known.
+    """
     ap = parser(doc)
     a = ap.parse_args()
     if a.list:
@@ -52,7 +56,18 @@ def arguments(doc, cells):
     for name in ("ovmf", "ovmf_vars", "blk_img"):
         if getattr(a, name) is None:
             ap.error(f"--{name.replace('_', '-')} is required")
-    unbuilt = sorted({c.profile for c in cells} - dict(a.esp).keys())
-    if unbuilt:
-        ap.error(f"no --esp given for profile {', '.join(unbuilt)}")
     return a
+
+
+def images_for(args, cells):
+    """The profile-to-ESP map, checked against the cells actually selected.
+
+    Checking against every known cell instead made a single-cell run demand
+    an image it would never boot: asking for `q35-up` alone was refused for
+    want of the nonos-smp ESP.
+    """
+    esp = dict(args.esp)
+    unbuilt = sorted({c.profile for c in cells} - esp.keys())
+    if unbuilt:
+        raise SystemExit(f"boot-matrix: no --esp given for profile {', '.join(unbuilt)}")
+    return esp
