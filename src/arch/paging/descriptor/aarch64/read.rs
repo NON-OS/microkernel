@@ -43,6 +43,26 @@ pub const fn is_user(entry: u64) -> bool {
     entry & AP_EL0 != 0
 }
 
+/// True when instructions may be fetched from a leaf this entry maps, by the
+/// exception level the mapping belongs to.
+///
+/// The two execute-never bits are asymmetric, which is why this cannot be a
+/// single mask. A user mapping runs at EL0 and is executable when UXN is
+/// clear; a kernel mapping runs at EL1 and is executable when PXN is clear.
+/// `leaf` sets the opposite bit in each case, so the level that does not own
+/// the mapping never gets to run from it.
+#[inline]
+pub const fn is_executable(entry: u64) -> bool {
+    if entry & VALID == 0 {
+        return false;
+    }
+    if entry & AP_EL0 != 0 {
+        entry & UXN == 0
+    } else {
+        entry & PXN == 0
+    }
+}
+
 /// Unlike x86_64, a table descriptor restricts nothing unless its hierarchical
 /// bits say so, and the ones this kernel writes leave them clear.
 #[inline]
