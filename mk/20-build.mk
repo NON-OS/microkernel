@@ -1366,6 +1366,13 @@ endif
 	@cp $(TARGET_DIR)/kernel_attested.bin $(ESP_DIR)/EFI/nonos/kernel.bin
 	@printf "timeout=0\ndefault=nonos\n" > $(ESP_DIR)/EFI/nonos/boot.cfg
 	@echo 'fs0:\EFI\Boot\BOOTX64.EFI' > $(ESP_DIR)/startup.nsh
+	@# The ELF just linked is a byte prefix of what was staged, or the pack
+	@# chain raced the link and this ESP boots an older kernel. Checked here
+	@# rather than in each boot target, so nothing that consumes an ESP can
+	@# skip it and no boot verdict can describe a kernel that is not in the
+	@# tree.
+	@$(NONOS_PYTHON) scripts/check_staged_kernel.py \
+		--elf $(MICROKERNEL_BIN) --staged $(ESP_DIR)/EFI/nonos/kernel.bin
 	@echo "ESP ready at $(ESP_DIR)"
 
 # Produce a real, flashable GPT disk image with a FAT32 EFI System Partition.
