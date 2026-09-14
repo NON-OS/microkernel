@@ -25,6 +25,7 @@ mod init_runtime;
 mod init_vm_and_protection;
 mod microkernel_init;
 mod microkernel_main;
+mod report_sections;
 
 pub use microkernel_init::microkernel_init;
 pub use microkernel_main::microkernel_main;

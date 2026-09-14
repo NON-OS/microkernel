@@ -44,29 +44,7 @@ pub(super) fn init_vm_and_protection() {
         Err(_) => fatal("memory: protection flags unreadable", "mmu not initialised"),
     }
     arm_stack_guards();
-    report_kernel_sections();
-}
-
-/// Say whether the kernel image is mapped the way its own section table
-/// declares: text executable and not writable, rodata neither, data and bss
-/// writable and not executable.
-///
-/// Reported rather than enforced, because this is the first boot at which the
-/// question can be asked at all. The table's symbols were defined in no
-/// linker script until now, so every reader of it was dead-code eliminated
-/// and the check that exists to establish W^X on the kernel image had never
-/// run. Printing it is also what keeps the table in the binary.
-fn report_kernel_sections() {
-    let (conforming, total) = crate::memory::hardening::section_conformance();
-    crate::sys::serial::print(b"[KSEC] ");
-    crate::sys::serial::print_dec(conforming as u64);
-    crate::sys::serial::print(b"/");
-    crate::sys::serial::print_dec(total as u64);
-    if conforming == total {
-        crate::sys::serial::println(b" sections mapped as declared");
-    } else {
-        crate::sys::serial::println(b" sections mapped as declared, WARNING W^X not held");
-    }
+    super::report_sections::report_kernel_sections();
 }
 
 /// Take the guard page under each of the boot CPU's fault stacks out of the

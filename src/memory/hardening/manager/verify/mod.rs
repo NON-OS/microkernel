@@ -18,10 +18,12 @@ pub(super) mod helpers;
 mod integrity;
 mod protection;
 mod regions;
+mod section_fault;
 mod section_perms;
 
 pub use helpers::read_bytes;
 pub use integrity::{verify_kernel_data_integrity, verify_kernel_page_tables};
 pub use protection::init_module_memory_protection;
 pub use regions::get_all_process_regions;
-pub use section_perms::conformance as section_conformance;
+pub use section_fault::{Granted, SectionFault};
+pub use section_perms::first_fault as section_first_fault;
