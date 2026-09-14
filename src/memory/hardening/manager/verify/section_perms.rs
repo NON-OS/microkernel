@@ -37,6 +37,14 @@ use crate::memory::paging::{self, PagePermissions};
 ///
 /// The whole span is walked. A single page sampled at `section.start` says
 /// nothing about the mapping of the pages behind it.
+/// How many kernel sections are mapped as declared, against how many there
+/// are. The boot reports this, which is what keeps the section table and
+/// everything reading it out of the linker's dead-code pass.
+pub fn conformance() -> (usize, usize) {
+    let sections = layout::kernel_sections();
+    (sections.iter().filter(|s| section_conforms(s)).count(), sections.len())
+}
+
 pub(super) fn section_conforms(section: &Section) -> bool {
     let page = layout::PAGE_SIZE as u64;
     let mut va = layout::align_down(section.start, page);
