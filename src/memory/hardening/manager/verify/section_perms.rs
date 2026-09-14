@@ -56,6 +56,17 @@ pub fn first_fault(section: &Section) -> Option<SectionFault> {
          * whose every segment the bootloader maps correctly.
          */
         let Some(perms) = paging::live_page_permissions(VirtAddr::new(va)) else {
+            /*
+             * A stack guard sits inside .bss and is unmapped on purpose, so
+             * an absent mapping there is the guard working. Reporting it as a
+             * hole is how this check first read .bss as non-conforming: the
+             * first missing page it found was the guard under the boot CPU's
+             * stacks, armed a few lines earlier in the same boot.
+             */
+            if crate::arch::deliberately_unmapped(va) {
+                va = va.saturating_add(page);
+                continue;
+            }
             return Some(fault);
         };
         let granted = Granted {
