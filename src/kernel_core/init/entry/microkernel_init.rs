@@ -43,6 +43,12 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
     init_core_services(handoff);
     init_vm_and_protection();
 
+    // After the heap, because the AEAD check allocates its output, and before
+    // anything verifies a capsule signature. These primitives are what the
+    // kernel signs and seals with, and until this ran, nothing on the machine
+    // had ever checked them against a published answer.
+    let _ = crate::crypto::application::certification::run_selftest();
+
     // Runs here rather than earlier because seeding the broker walks PCI
     // config space, which needs the paging manager to hand out a register
     // window. On x86_64 the boot path has already done this and the call

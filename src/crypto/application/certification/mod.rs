@@ -17,10 +17,20 @@
 extern crate alloc;
 
 mod kat;
+mod kat_aead;
+mod kat_hash;
+mod kat_sign;
 mod metadata;
+mod rfc8439;
+mod selftest;
+mod vectors;
 
 pub use kat::*;
+pub use kat_aead::kat_chacha20poly1305;
+pub use kat_hash::{kat_blake3, kat_sha3_256};
+pub use kat_sign::kat_ed25519;
 pub use metadata::*;
+pub use selftest::run_selftest;
 
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
