@@ -21,6 +21,7 @@
 use super::init_arch_firmware::init_arch_firmware;
 use super::init_arch_framebuffer::init_arch_framebuffer;
 use super::init_arch_memory_and_framebuffer::init_arch_memory_and_framebuffer;
+use super::init_boot_entropy::init_boot_entropy;
 use super::init_core_services::init_core_services;
 use super::init_runtime::{init_device_routing, init_process_runtime};
 use super::init_vm_and_protection::init_vm_and_protection;
@@ -29,6 +30,10 @@ use crate::sys::boot_log;
 
 pub fn microkernel_init(handoff: &KernelHandoff) {
     crate::sys::bench::mark(b"microkernel_init_start");
+    // Ahead of every stage that derives from it. The canary and the allocator
+    // seeds read the boot nonce and fall back to a constant when it is unset,
+    // so a stage that runs before this one keeps the constant for the boot.
+    init_boot_entropy();
     init_arch_memory_and_framebuffer(handoff);
     let cursor_y = handoff.framebuffer.map(|fb| fb.cursor_y).unwrap_or(0);
     boot_log::init_after_fb(cursor_y);
