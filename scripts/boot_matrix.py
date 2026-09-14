@@ -29,18 +29,18 @@ nonos-mk-boot-matrix` builds both images and runs this.
 import sys
 
 from bootmatrix.cells import CELLS, select
-from bootmatrix.cli import arguments
+from bootmatrix.cli import arguments, images_for
 from bootmatrix.report import failed, table, write_json
 from bootmatrix.run import Paths, cell_runs
 
 
 def main():
-    a = arguments(__doc__, CELLS)
+    a = arguments(__doc__)
     if a.list:
         print("\n".join(c.name for c in CELLS))
         return 0
     cells = select(a.cells)
-    paths = Paths(a.qemu, dict(a.esp), a.ovmf, a.ovmf_vars, a.blk_img, a.extra)
+    paths = Paths(a.qemu, images_for(a, cells), a.ovmf, a.ovmf_vars, a.blk_img, a.extra)
     a.out.mkdir(parents=True, exist_ok=True)
     runs = []
     for cell in cells:
