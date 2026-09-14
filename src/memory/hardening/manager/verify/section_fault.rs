@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod diagnostics_silenced;
-mod fatal;
-mod init_arch_firmware;
-mod init_arch_framebuffer;
-mod init_arch_memory_and_framebuffer;
-mod init_boot_entropy;
-mod init_core_services;
-mod init_runtime;
-mod init_vm_and_protection;
-mod microkernel_init;
-mod microkernel_main;
-mod report_sections;
+//! What is wrong with a kernel section's mapping, in enough detail to act on.
+//!
+//! A count of conforming sections says a boot is not clean and nothing more.
+//! Naming the page and what the hardware grants there is the difference
+//! between a second forty minute boot and a fix.
 
-pub use microkernel_init::microkernel_init;
-pub use microkernel_main::microkernel_main;
+/// The first page of a section that does not match its descriptor.
+#[derive(Clone, Copy)]
+pub struct SectionFault {
+    pub va: u64,
+    /// None when no page-table entry maps `va` at all.
+    pub granted: Option<Granted>,
+    pub want_writable: bool,
+    pub want_executable: bool,
+}
+
+#[derive(Clone, Copy)]
+pub struct Granted {
+    pub writable: bool,
+    pub executable: bool,
+}
