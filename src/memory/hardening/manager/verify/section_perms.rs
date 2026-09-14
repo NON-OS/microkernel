@@ -49,7 +49,14 @@ pub(super) fn section_conforms(section: &Section) -> bool {
     let page = layout::PAGE_SIZE as u64;
     let mut va = layout::align_down(section.start, page);
     while va < section.end {
-        let Some(perms) = paging::get_page_permissions(VirtAddr::new(va)) else {
+        /*
+         * The live tables, not the manager's record of what it mapped. The
+         * kernel image came from the bootloader, so that record holds nothing
+         * for any of these pages and get_page_permissions answers None for
+         * every one: this check read 0 of 4 sections that way, on a kernel
+         * whose every segment the bootloader maps correctly.
+         */
+        let Some(perms) = paging::live_page_permissions(VirtAddr::new(va)) else {
             return false;
         };
         if perms.contains(PagePermissions::EXECUTE) == section.nx {
