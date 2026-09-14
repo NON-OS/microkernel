@@ -14,63 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::constants::*;
+//! The state KASLR is in, checked rather than assumed.
+
+use super::super::constants::{SAFE_SLIDE_MAX, SAFE_SLIDE_MIN};
 use super::super::error::{KaslrError, KaslrResult};
-use super::derive::derive_subkey;
 use super::init::{boot_nonce, get_slide};
 use crate::memory::layout;
 
+/// Accept the two states this kernel supports and reject the rest.
+///
+/// The nonce must be set. It is the per-boot secret behind the stack canary
+/// and the allocator seeds, and a zero there is the whole difference between
+/// a secret and a compile-time constant.
+///
+/// A zero slide is accepted, and means the layout was not moved. That is
+/// where this kernel stands while its consumers still read the layout
+/// constants directly rather than the layout record; `nonce.rs` carries the
+/// argument. A slide that is set is held to the alignment and the range the
+/// derivation promises.
+///
+/// The previous form read the nonce with `?` and then tested it for zero,
+/// which the `?` had already ruled out, and applied the slide bounds to a
+/// zero slide, so an unslid kernel could never validate.
 pub fn validate() -> KaslrResult<()> {
+    boot_nonce()?;
     let slide = get_slide();
-    let nonce = boot_nonce()?;
-
-    if slide == 0 && nonce == 0 {
-        return Err(KaslrError::NotInitialized);
+    if slide == 0 {
+        return Ok(());
     }
     if slide % (layout::PAGE_SIZE as u64) != 0 {
         return Err(KaslrError::SlideNotAligned);
     }
-    if slide < SAFE_SLIDE_MIN || slide > SAFE_SLIDE_MAX {
+    if !(SAFE_SLIDE_MIN..=SAFE_SLIDE_MAX).contains(&slide) {
         return Err(KaslrError::SlideOutOfRange);
     }
     Ok(())
-}
-
-pub fn verify_slide_integrity() -> bool {
-    if validate().is_err() {
-        return false;
-    }
-
-    let current_slide = get_slide();
-    let expected_layout_base = layout::KERNEL_BASE + current_slide;
-    let actual_layout_base = layout::KERNEL_BASE + current_slide;
-    if actual_layout_base != expected_layout_base {
-        return false;
-    }
-
-    let nonce = match boot_nonce() {
-        Ok(n) => n,
-        Err(_) => return false,
-    };
-    if nonce == 0 {
-        return false;
-    }
-
-    let mut integrity_buffer = [0u8; INTEGRITY_CHECK_BUFFER_SIZE];
-    if derive_subkey(INTEGRITY_CHECK_LABEL, &mut integrity_buffer).is_err() {
-        return false;
-    }
-
-    for byte in integrity_buffer.iter() {
-        if *byte == 0 {
-            return false;
-        }
-    }
-
-    let entropy_check = integrity_buffer.iter().fold(0u8, |acc, &x| acc ^ x);
-    if entropy_check == 0 || entropy_check == 0xFF {
-        return false;
-    }
-
-    true
 }

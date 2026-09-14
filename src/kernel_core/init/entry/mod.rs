@@ -19,6 +19,7 @@ mod fatal;
 mod init_arch_firmware;
 mod init_arch_framebuffer;
 mod init_arch_memory_and_framebuffer;
+mod init_boot_entropy;
 mod init_core_services;
 mod init_runtime;
 mod init_vm_and_protection;
