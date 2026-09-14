@@ -42,7 +42,7 @@ pub fn validate() -> KaslrResult<()> {
     if slide == 0 {
         return Ok(());
     }
-    if slide % (layout::PAGE_SIZE as u64) != 0 {
+    if !slide.is_multiple_of(layout::PAGE_SIZE as u64) {
         return Err(KaslrError::SlideNotAligned);
     }
     if !(SAFE_SLIDE_MIN..=SAFE_SLIDE_MAX).contains(&slide) {

@@ -18,6 +18,7 @@ pub(super) mod helpers;
 mod integrity;
 mod protection;
 mod regions;
+mod section_perms;
 
 pub use helpers::read_bytes;
 pub use integrity::{verify_kernel_data_integrity, verify_kernel_page_tables};
