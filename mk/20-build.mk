@@ -1236,6 +1236,10 @@ nonos-mk-input-probe-inject-esp: $(NONOS_BOOT_EFI)
 	@cp $(TARGET_DIR)/kernel_attested.bin $(NONOS_INPUT_PROBE_INJECT_ESP)/EFI/nonos/kernel.bin
 	@printf "timeout=0\ndefault=nonos\n" > $(NONOS_INPUT_PROBE_INJECT_ESP)/EFI/nonos/boot.cfg
 	@echo 'fs0:\EFI\Boot\BOOTX64.EFI' > $(NONOS_INPUT_PROBE_INJECT_ESP)/startup.nsh
+	@# This target packs its own ESP instead of going through nonos-mk-esp, so
+	@# it needs the same check: the staged kernel is the one just linked.
+	@$(NONOS_PYTHON) scripts/check_staged_kernel.py --elf $(MICROKERNEL_BIN) \
+		--staged $(NONOS_INPUT_PROBE_INJECT_ESP)/EFI/nonos/kernel.bin
 
 nonos-mk-terminal-only-prod: $(proof-io_ARTIFACTS) $(ramfs_ARTIFACTS) $(keyring_ARTIFACTS) \
 		$(entropy_ARTIFACTS) $(crypto_ARTIFACTS) $(vfs_ARTIFACTS) \
