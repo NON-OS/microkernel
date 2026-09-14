@@ -48,7 +48,10 @@ def run(name, phrase, sites, baseline, args):
         path.write_text("\n".join(current) + "\n")
         print(f"{name}: baseline written, {len(current)} sites")
         return 0
-    known = path.read_text().split() if path.exists() else []
+    # One entry per line, not per whitespace-separated word: an entry may
+    # carry a name beside its site, and splitting on spaces tore those in two
+    # so that every site read as new and the whole baseline read as closed.
+    known = path.read_text().splitlines() if path.exists() else []
     new = sorted(set(current) - set(known))
     for s in new:
         print(f"{name}: {phrase} {s}")
