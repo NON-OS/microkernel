@@ -17,7 +17,7 @@
 use crate::syscall::abi::{tag4, AbiDomain, AbiEntry, AbiStatus};
 use crate::syscall::numbers::SyscallNumber;
 
-// All Mk* native syscalls. Every entry is Routed — the dispatcher
+// All Mk* native syscalls. Every entry is Routed, the dispatcher
 // match in `dispatch/router/dispatch_fn.rs` forwards each to
 // `microkernel::dispatch_microkernel_syscall`. Capability gates live
 // at `contract/cap_table/mk.rs`.
@@ -32,7 +32,6 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MSVR", SyscallNumber::MkServiceRegister, "MkServiceRegister"),
     e(b"MMAP", SyscallNumber::MkMmap, "MkMmap"),
     e(b"MUMP", SyscallNumber::MkMunmap, "MkMunmap"),
-    e(b"MSPN", SyscallNumber::MkSpawn, "MkSpawn"),
     e(b"MCLD", SyscallNumber::MkCapsuleLoad, "MkCapsuleLoad"),
     e(b"MEXT", SyscallNumber::MkExit, "MkExit"),
     e(b"MPAL", SyscallNumber::MkPidAlive, "MkPidAlive"),
