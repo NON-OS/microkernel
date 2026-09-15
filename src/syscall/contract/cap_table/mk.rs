@@ -32,6 +32,26 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAttestStatus
         | SyscallNumber::MkCapCheck => caps.is_valid(),
 
+        /*
+         * An attestation and the entries behind it are readable by any capsule
+         * holding a valid token, because neither carries authority. The
+         * document's weight is a TPM signature over a challenge the caller did
+         * not choose, and the entries are checked against it; a capsule that
+         * alters either produces something a verifier rejects. Restricting them
+         * would hide from a program what the machine already tells strangers.
+         */
+        SyscallNumber::MkAttestDoc => caps.is_valid(),
+
+        /*
+         * Enrolling a signing root changes which software this machine will
+         * start, so it is gated on its own capability rather than on Admin. The
+         * handler asks the live token again and a human confirms out of band;
+         * this is the first of the three refusals, not the only one.
+         */
+        SyscallNumber::MkDevRootRequest | SyscallNumber::MkDevRootConfirm => {
+            caps.can_enrol_dev_root()
+        }
+
         SyscallNumber::MkTimeAdjust => caps.can_set_time(),
 
         SyscallNumber::MkMmap => caps.can_allocate_memory(),
