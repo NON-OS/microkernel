@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(feature = "zk-halo2")]
-pub mod halo2;
 pub mod nonos_zk;
 
 // Re-export zk_kernel from parent for convenient access
