@@ -14,5 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod leaf;
-mod walk;
+//! What is wrong with a kernel section's mapping, in enough detail to act on.
+//!
+//! A count of conforming sections says a boot is not clean and nothing more.
+//! Naming the page and what the hardware grants there is the difference
+//! between a second forty minute boot and a fix.
+
+/// The first page of a section that does not match its descriptor.
+#[derive(Clone, Copy)]
+pub struct SectionFault {
+    pub va: u64,
+    /// None when no page-table entry maps `va` at all.
+    pub granted: Option<Granted>,
+    pub want_writable: bool,
+    pub want_executable: bool,
+}
+
+#[derive(Clone, Copy)]
+pub struct Granted {
+    pub writable: bool,
+    pub executable: bool,
+}
