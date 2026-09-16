@@ -44,6 +44,7 @@ pub(super) fn init_vm_and_protection() {
         Err(_) => fatal("memory: protection flags unreadable", "mmu not initialised"),
     }
     arm_stack_guards();
+    super::report_sections::report_kernel_sections();
 }
 
 /// Take the guard page under each of the boot CPU's fault stacks out of the
