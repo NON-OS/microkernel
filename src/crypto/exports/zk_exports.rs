@@ -16,9 +16,6 @@
 
 pub use super::super::zk::nonos_zk;
 
-#[cfg(feature = "zk-halo2")]
-pub use super::super::zk::halo2::{halo2_verify, Halo2Error, Halo2Verifier};
-
 pub use super::super::zk::nonos_zk::{
     commit, commit_u64, create_attestation, issue_credential, verify_attestation,
     verify_commitment, verify_credential, zeroize_array, zeroize_mut, AttestationProof, Credential,
