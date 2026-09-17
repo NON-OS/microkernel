@@ -96,9 +96,13 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkIpcSend
         | SyscallNumber::MkIpcSendToPid
         | SyscallNumber::MkServiceLookup
-        | SyscallNumber::MkServiceRegister
-        | SyscallNumber::MkCapGrant
-        | SyscallNumber::MkCapRevoke => caps.can_ipc(),
+        | SyscallNumber::MkServiceRegister => caps.can_ipc(),
+        /*
+         * The handlers ask for Admin again and refuse to grant a bit the
+         * caller lacks. The table asks first, so a capsule without Admin is
+         * turned away before the handler runs.
+         */
+        SyscallNumber::MkCapGrant | SyscallNumber::MkCapRevoke => caps.can_admin(),
 
         SyscallNumber::MkDeviceList => caps.can_device_enum(),
         SyscallNumber::MkDeviceClaim | SyscallNumber::MkDeviceRelease => caps.can_driver(),
