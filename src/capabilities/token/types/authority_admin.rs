@@ -40,6 +40,16 @@ impl CapabilityToken {
     pub fn can_spawn_window(&self) -> bool {
         self.grants(Capability::SpawnWindow) || self.grants(Capability::Admin)
     }
+    /*
+     * Authority to widen what this machine will execute, by enrolling a
+     * signing root of its own. Admin does not imply it: a capsule holding
+     * broad authority over a running system still cannot change which
+     * software the system is willing to start.
+     */
+    #[inline]
+    pub fn can_enrol_dev_root(&self) -> bool {
+        self.grants(Capability::EnrolDevRoot)
+    }
     // Authority to terminate a process the caller does not parent.
     #[inline]
     pub fn can_control_processes(&self) -> bool {
