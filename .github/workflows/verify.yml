@@ -292,6 +292,8 @@ jobs:
         with:
           components: clippy
       - name: Runnable proofs and clippy
+        env:
+          RUST_TEST_THREADS: 1
         run: |
           if [ -d "userland/${{ matrix.crate }}" ]; then
             cargo test --release --manifest-path "userland/${{ matrix.crate }}/Cargo.toml"
