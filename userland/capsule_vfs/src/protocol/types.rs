@@ -42,6 +42,9 @@ pub const OP_DIRSTAT: u16 = 22;
 pub const OP_JOURNAL_TOUCH: u16 = 23;
 pub const OP_JOURNAL_LIST: u16 = 24;
 pub const OP_SEARCH: u16 = 25;
+/// A counter that moves whenever the store may have changed. Lets a caller poll
+/// for change without asking for a directory listing it will throw away.
+pub const OP_GENERATION: u16 = 26;
 
 // Set on the last OP_STORE_INSTALL chunk of an artifact: the RAM copy is
 // complete and the whole file is handed to the on-device store.
