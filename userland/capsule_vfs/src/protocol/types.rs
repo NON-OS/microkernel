@@ -57,6 +57,11 @@ pub const O_TRUNC: u32 = 1 << 1;
 pub const O_APPEND: u32 = 1 << 2;
 
 pub const MAX_PATH_BYTES: u32 = 256;
+
+// Reply record names carry a u8 length prefix, so a name that normalize() has
+// pushed to 256 bytes cannot be expressed on the wire and is skipped instead of
+// being truncated to a zero length that would desynchronize the whole reply.
+pub const MAX_WIRE_NAME: usize = 255;
 pub const MAX_DATA_BYTES: u32 = 65536;
 pub const MAX_LIST_BYTES: u32 = 65536;
 pub const MAX_PAYLOAD_BYTES: u32 = 65536;

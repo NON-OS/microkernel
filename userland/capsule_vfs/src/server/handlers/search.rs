@@ -18,7 +18,7 @@ use alloc::vec::Vec;
 use core::str;
 
 use super::util::split_caller;
-use crate::protocol::{encode_response, Request, EINVAL, OP_SEARCH};
+use crate::protocol::{encode_response, Request, EINVAL, MAX_WIRE_NAME, OP_SEARCH};
 use crate::store::Store;
 
 // Clamped on both sides: 200 hits at a 255-byte path stays inside
@@ -44,9 +44,10 @@ pub fn search(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Err(_) => return encode_response(OP_SEARCH, req.flags, req.request_id, EINVAL, &[]),
     };
     let hits = store.search(query, flags, max_hits.min(SEARCH_MAX_HITS));
+    let sendable: Vec<_> = hits.iter().filter(|(_, _, p)| p.len() <= MAX_WIRE_NAME).collect();
     let mut body = Vec::new();
-    body.extend_from_slice(&(hits.len() as u32).to_le_bytes());
-    for (kind, line, path) in hits.iter() {
+    body.extend_from_slice(&(sendable.len() as u32).to_le_bytes());
+    for (kind, line, path) in sendable {
         body.extend_from_slice(&kind.to_le_bytes());
         body.extend_from_slice(&line.to_le_bytes());
         body.push(path.len() as u8);
