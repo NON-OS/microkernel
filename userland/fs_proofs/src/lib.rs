@@ -68,6 +68,7 @@ pub use vfs_store as store;
 mod vfs_util;
 
 // The production reply encoders, with the module shape they resolve against.
+#[cfg(test)]
 mod vfs_handlers;
 
 // Public surface for the attestation helpers so they are exercised as API.
