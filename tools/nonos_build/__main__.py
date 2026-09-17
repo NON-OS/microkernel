@@ -44,6 +44,9 @@ def main():
     ap.add_argument("--from-step", type=int, default=1, metavar="N", help="resume at step N")
     args = ap.parse_args()
 
+    if not 1 <= args.from_step <= len(RITUAL):
+        ap.error(f"--from-step must be between 1 and {len(RITUAL)}")
+
     if not os.path.isfile("Makefile"):
         print("run from the NONOS repository root")
         sys.exit(1)
