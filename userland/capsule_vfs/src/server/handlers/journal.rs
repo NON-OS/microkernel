@@ -20,7 +20,8 @@ use core::str;
 use super::path::normalize;
 use super::util::split_caller;
 use crate::protocol::{
-    encode_response, Request, EINVAL, MAX_PATH_BYTES, OP_JOURNAL_LIST, OP_JOURNAL_TOUCH,
+    encode_response, Request, EINVAL, MAX_PATH_BYTES, MAX_WIRE_NAME, OP_JOURNAL_LIST,
+    OP_JOURNAL_TOUCH,
 };
 use crate::store::Store;
 
@@ -58,9 +59,10 @@ pub fn journal_list(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec
     }
     let max = u32::from_le_bytes([rest[0], rest[1], rest[2], rest[3]]) as usize;
     let listed = store.journal_list(max.min(JOURNAL_LIST_MAX));
+    let sendable: Vec<_> = listed.iter().filter(|(_, p)| p.len() <= MAX_WIRE_NAME).collect();
     let mut body = Vec::new();
-    body.extend_from_slice(&(listed.len() as u32).to_le_bytes());
-    for (atime, path) in listed.iter() {
+    body.extend_from_slice(&(sendable.len() as u32).to_le_bytes());
+    for (atime, path) in sendable {
         body.extend_from_slice(&atime.to_le_bytes());
         body.push(path.len() as u8);
         body.extend_from_slice(path.as_bytes());
