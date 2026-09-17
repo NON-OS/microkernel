@@ -14,11 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The journal reply body is a variable-length record list; these proofs walk it
-// back exactly as the client does, so a length-prefix change on either side is
-// caught here rather than as a truncated Recents list at runtime.
+// These proofs drive the production OP_JOURNAL_LIST encoder rather than a copy
+// of it, so a length-prefix change on either side of the wire fails here rather
+// than surfacing as a truncated Recents list at runtime.
 
+use alloc::string::String;
+use alloc::vec::Vec;
+
+use crate::protocol::{Request, HDR_LEN, OP_JOURNAL_LIST};
 use crate::store::Store;
+use crate::vfs_handlers::journal::journal_list;
+
+const PID: u32 = 7;
+
+fn list_reply(store: &mut Store, max: u32) -> Vec<u8> {
+    let mut payload = Vec::new();
+    payload.extend_from_slice(&PID.to_le_bytes());
+    payload.extend_from_slice(&max.to_le_bytes());
+    let req =
+        Request { op: OP_JOURNAL_LIST, flags: 0, request_id: 1, payload: &payload };
+    journal_list(store, req, PID)
+}
+
+fn decode(rx: &[u8]) -> Vec<(u64, String)> {
+    let mut off = HDR_LEN + 4;
+    let count = u32::from_le_bytes(rx[off..off + 4].try_into().unwrap()) as usize;
+    off += 4;
+    let mut out = Vec::new();
+    for _ in 0..count {
+        let atime = u64::from_le_bytes(rx[off..off + 8].try_into().unwrap());
+        off += 8;
+        let n = rx[off] as usize;
+        off += 1;
+        out.push((atime, String::from_utf8(rx[off..off + n].to_vec()).unwrap()));
+        off += n;
+    }
+    assert_eq!(off, rx.len(), "record list did not consume the reply exactly");
+    out
+}
 
 #[test]
 fn journal_opcodes_follow_dirstat() {
@@ -32,25 +65,20 @@ fn journal_list_reply_body_round_trips() {
     s.journal_touch("/a");
     s.journal_touch("/bb");
 
-    let listed = s.journal_list(200);
-    let mut body = alloc::vec::Vec::new();
-    body.extend_from_slice(&(listed.len() as u32).to_le_bytes());
-    for (atime, path) in listed.iter() {
-        body.extend_from_slice(&atime.to_le_bytes());
-        body.push(path.len() as u8);
-        body.extend_from_slice(path.as_bytes());
-    }
+    let got = decode(&list_reply(&mut s, 200));
+    let names: Vec<&str> = got.iter().map(|(_, p)| p.as_str()).collect();
+    assert_eq!(names, ["/bb", "/a"]);
+}
 
-    let mut off = 4usize;
-    let count = u32::from_le_bytes(body[0..4].try_into().unwrap());
-    let mut names = alloc::vec::Vec::new();
-    for _ in 0..count {
-        off += 8;
-        let n = body[off] as usize;
-        off += 1;
-        names.push(core::str::from_utf8(&body[off..off + n]).unwrap());
-        off += n;
-    }
-    assert_eq!(off, body.len());
-    assert_eq!(names, alloc::vec!["/bb", "/a"]);
+#[test]
+fn a_name_too_long_for_the_prefix_is_skipped_not_truncated() {
+    let mut s = Store::new();
+    let long = crate::vfs_path::normalize(&"a".repeat(255));
+    assert_eq!(long.len(), 256, "normalize prepends a slash, pushing 255 to 256");
+    s.journal_touch(&long);
+    s.journal_touch("/after");
+
+    let got = decode(&list_reply(&mut s, 200));
+    let names: Vec<&str> = got.iter().map(|(_, p)| p.as_str()).collect();
+    assert_eq!(names, ["/after"]);
 }

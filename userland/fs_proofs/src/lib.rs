@@ -67,6 +67,9 @@ pub use vfs_store as store;
 #[path = "../../capsule_vfs/src/server/handlers/util.rs"]
 mod vfs_util;
 
+// The production reply encoders, with the module shape they resolve against.
+mod vfs_handlers;
+
 // Public surface for the attestation helpers so they are exercised as API.
 pub fn split_caller(payload: &[u8], sender_pid: u32) -> Result<(u32, &[u8]), i32> {
     vfs_util::split_caller(payload, sender_pid)
