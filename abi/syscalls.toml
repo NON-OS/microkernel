@@ -47,6 +47,7 @@ max_devices     = 256
 
 [numbers]
 MADC = 0x4344414D
+MAEN = 0x4E45414D
 MDRC = 0x4352444D
 MDRQ = 0x5152444D
 APPS = 0x53505041
@@ -110,7 +111,6 @@ MISP = 0x5053494D
 MSVL = 0x4C56534D
 MMAP = 0x50414D4D
 MUMP = 0x504D554D
-MSPN = 0x4E50534D
 MEXT = 0x5458454D
 MPAL = 0x4C41504D
 MYLD = 0x444C594D
@@ -237,12 +237,6 @@ ret  = {type="i64"}
 nr   = 0x504D554D
 caps = ["valid_token"]
 args = [{name="addr",type="u64",dir="in"},{name="len",type="usize",dir="in"}]
-ret  = {type="i64"}
-
-[desc.MSPN]
-nr   = 0x4E50534D
-caps = ["IPC"]
-args = [{name="elf",type="u8*",dir="in"},{name="len",type="usize",dir="in"},{name="argv",type="u8*",dir="in"},{name="argv_len",type="usize",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MEXT]
@@ -679,6 +673,12 @@ ret  = {type="i64"}
 nr   = 0x4344414D
 caps = ["valid_token"]
 args = [{name="challenge_ptr",type="u64",dir="in"},{name="out_ptr",type="u64",dir="out"},{name="out_len",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MAEN]
+nr   = 0x4E45414D
+caps = ["AttestRead"]
+args = [{name="out_ptr",type="u64",dir="out"},{name="out_len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MDRC]
