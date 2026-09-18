@@ -21,6 +21,7 @@ use core::sync::atomic::{AtomicU32, Ordering};
 use crate::ipc::kernel_ipc::kernel_route_ipc_corr;
 use crate::ipc::nonos_channel::IpcMessage;
 use crate::ipc::nonos_inbox;
+use crate::process::accounting::{Kind, Total};
 use crate::process::current_pid;
 use crate::services::registry::{lookup_port, lookup_service};
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
@@ -47,7 +48,12 @@ fn trace(pid: u32, endpoint: u64, target: &str, len: usize) {
 }
 
 pub fn sys_ipc_send(endpoint: u64, buf: u64, len: usize) -> i64 {
-    send_with_correlation(endpoint, buf, len, 0)
+    let rc = send_with_correlation(endpoint, buf, len, 0);
+    if rc == 0 {
+        crate::process::accounting::bump(current_pid().unwrap_or(0), Kind::IpcTx);
+        crate::process::accounting::bump_total(Total::IpcMessages);
+    }
+    rc
 }
 
 pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correlation: u64) -> i64 {
@@ -104,13 +110,15 @@ pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correla
         // send it to proc.<self>, where the serve loop reads its own reply as a
         // request and self-mails a core to death; that is the loop the old drop
         // guarded, and dropping instead stranded every kernel round trip.
-        Redirect::ToReplyInbox => match IpcMessage::new(&alloc::format!("proc.{}", pid), &target, &data) {
-            Ok(msg) => {
-                let _ = nonos_inbox::try_enqueue_strict(&target, msg);
-                0
+        Redirect::ToReplyInbox => {
+            match IpcMessage::new(&alloc::format!("proc.{}", pid), &target, &data) {
+                Ok(msg) => {
+                    let _ = nonos_inbox::try_enqueue_strict(&target, msg);
+                    0
+                }
+                Err(_) => 0,
             }
-            Err(_) => 0,
-        },
+        }
         // Any other send goes to its addressed target with its own correlation
         // (0 for sys_ipc_send, all a forged reply injection can carry).
         Redirect::AsAddressed => {

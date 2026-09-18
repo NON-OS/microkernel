@@ -16,5 +16,6 @@
 
 #[inline]
 pub fn send_eoi() {
+    crate::process::accounting::bump_total(crate::process::accounting::Total::Interrupts);
     crate::sys::apic::eoi();
 }
