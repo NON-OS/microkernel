@@ -15,36 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! The filesystem a guest sees.
-//!
-//! Every path a guest names is resolved here and reached through the store
-//! under this capsule's own identity. The kernel is not involved and holds
-//! no filesystem view for a hosted process to inherit.
+//! Naming a call this capsule does not serve.
 
-mod close;
-mod dir;
-mod dirent;
-mod dirents;
-mod file;
-pub mod flags;
-mod open;
-mod path;
-mod pread;
-mod query;
-mod read;
-mod resolve;
-mod seek;
-mod slot;
-mod stat;
-mod statbuf;
-mod write;
+use crate::linux::abi::{errno, name};
 
-pub use close::close;
-pub use dirents::getdents64;
-pub use open::openat;
-pub use pread::pread64;
-pub use query::{access, getcwd, readlink};
-pub use read::read;
-pub use seek::lseek;
-pub use stat::{fstat, newfstatat};
-pub use write::write;
+/// Name what was asked for. A guest that dies on a missing call should
+/// leave behind the name of the call it needed.
+pub fn unserved(number: u64) -> u64 {
+    let mut line = [0u8; 64];
+    let head = b"[LINUX] unserved ";
+    let tag = name::of(number);
+    let n = head.len().min(line.len());
+    line[..n].copy_from_slice(&head[..n]);
+    let m = (n + tag.len()).min(line.len());
+    line[n..m].copy_from_slice(&tag[..m - n]);
+    let end = (m + 1).min(line.len());
+    line[m..end].copy_from_slice(b"\n");
+    let _ = nonos_libc::mk_debug(line.as_ptr(), end);
+    errno::fail(errno::ENOSYS)
+}
