@@ -16,6 +16,7 @@
 
 use super::super::super::constants::*;
 use super::helpers::read_bytes;
+use super::section_perms::section_conforms;
 use crate::memory::addr::VirtAddr;
 use crate::memory::paging::PagePermissions;
 use crate::memory::{heap, kaslr, layout, paging, safety};
@@ -97,24 +98,14 @@ pub fn verify_kernel_data_integrity() -> bool {
     true
 }
 
+/// Every kernel section is mapped exactly as its descriptor declares.
+///
+/// The per-section rule, and the argument for checking both directions of it,
+/// is in `section_perms`.
 pub fn verify_kernel_page_tables() -> bool {
     let current_cr3 = paging::get_current_cr3();
     if current_cr3.as_u64() == 0 {
         return false;
     }
-    let kernel_sections = layout::kernel_sections();
-    for section in &kernel_sections {
-        let va = VirtAddr::new(section.start);
-        if let Some(perms) = paging::get_page_permissions(va) {
-            if section.rx && !perms.contains(PagePermissions::EXECUTE) {
-                return false;
-            }
-            if section.rw && !perms.contains(PagePermissions::WRITE) {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-    true
+    layout::kernel_sections().iter().all(section_conforms)
 }
