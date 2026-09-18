@@ -28,6 +28,7 @@ pub mod debug;
 pub mod graphics;
 #[cfg(feature = "heap")]
 pub mod heap;
+pub mod install_source;
 pub mod ipc;
 pub mod mem;
 #[cfg(feature = "panic-handler")]
@@ -72,6 +73,10 @@ pub use debug::mk_debug;
 pub use graphics::nonos_display_dimensions;
 #[cfg(feature = "heap")]
 pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
+pub use install_source::{
+    mk_install_source, mk_install_source_size, INSTALL_SOURCE_KERNEL_IMAGE,
+    INSTALL_SOURCE_LOADER_IMAGE,
+};
 pub use ipc::{
     mk_ipc_call, mk_ipc_call_timeout, mk_ipc_recv, mk_ipc_recv_from, mk_ipc_reply, mk_ipc_send,
     mk_ipc_send_to_pid, mk_service_lookup, mk_service_register,

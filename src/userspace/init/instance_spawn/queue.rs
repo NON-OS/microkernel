@@ -36,6 +36,7 @@ pub enum PendingApp {
     ProcessManager,
     AudioPlayer,
     VideoPlayer,
+    Install,
 }
 
 impl PendingApp {
@@ -58,6 +59,7 @@ impl PendingApp {
             PendingApp::ProcessManager => b"app.process_manager",
             PendingApp::AudioPlayer => b"app.audio_player",
             PendingApp::VideoPlayer => b"app.video_player",
+            PendingApp::Install => b"app.install",
         }
     }
 }

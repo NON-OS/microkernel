@@ -18,6 +18,7 @@ mod action;
 mod boot;
 mod dev;
 mod init;
+mod install_source;
 mod mode;
 mod pipeline;
 

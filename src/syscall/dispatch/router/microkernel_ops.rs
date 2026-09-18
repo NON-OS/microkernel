@@ -55,6 +55,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAttestStatus
             | MkAttestDoc
             | MkAttestEntries
+            | MkInstallSource
             | MkDevRootRequest
             | MkDevRootConfirm
             | MkCapGrant

@@ -18,6 +18,7 @@ mod cleanup;
 mod fb_probe;
 mod gather;
 mod handoff_init;
+mod modules;
 mod orchestrate;
 mod params;
 mod validate;

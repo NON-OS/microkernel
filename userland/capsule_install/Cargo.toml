@@ -1,0 +1,32 @@
+# NONOS userland: capsule_install
+# eK@nonos.systems
+#
+# Install NONOS onto a disk. A desktop app on nonos_app_skeleton: lists the
+# disks the block driver capsules are serving, shows what this boot verified,
+# asks for the disk to be named, then writes the image the machine is running
+# (the bootloader and the attested kernel image, taken from the memory the
+# bootloader left them in) as a GPT disk with one EFI system partition, and
+# reads every sector back before it says done.
+
+[package]
+name = "nonos_install"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS installer capsule"
+
+[[bin]]
+name = "install"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_app_skeleton = { path = "../app_skeleton" }
+nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_disk = { path = "../nonos_disk" }
+nonos_blk_client = { path = "../nonos_blk_client" }
+
+[profile.release]
+panic = "abort"

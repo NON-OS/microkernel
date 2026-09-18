@@ -70,6 +70,7 @@ MFTK = 0x4B54464D
 MFTW = 0x5754464D
 MGPD = 0x4450474D
 MIEW = 0x5745494D
+MISR = 0x5253494D
 MIRW = 0x5752494D
 MIRY = 0x5952494D
 MKAR = 0x52414B4D
@@ -279,6 +280,12 @@ ret  = {type="i64"}
 nr   = 0x534C444D
 caps = ["DeviceEnum"]
 args = [{name="class",type="u32",dir="in"},{name="buf",type="u8*",dir="out"},{name="count",type="usize",dir="in",max="@limits.max_devices"}]
+ret  = {type="i64"}
+
+[desc.MISR]
+nr   = 0x5253494D
+caps = ["DeviceEnum"]
+args = [{name="kind",type="u32",dir="in"},{name="offset",type="u64",dir="in"},{name="out",type="u8*",dir="out"},{name="out_len",type="usize",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MDCL]

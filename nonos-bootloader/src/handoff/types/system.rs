@@ -28,7 +28,23 @@ pub struct SmbiosInfo {
     pub entry: u64,
 }
 
-/// Boot modules loaded by bootloader (initramfs, etc).
+/// One region the loader leaves in memory for the kernel: base, size and
+/// what it is. `kind` 1 is the loader's own image, 2 is the kernel image
+/// file as loaded and verified. Layout matches the kernel's `Module`.
+#[repr(C)]
+#[derive(Copy, Clone, Default)]
+pub struct Module {
+    pub base: u64,
+    pub size: u64,
+    pub kind: u32,
+    pub reserved: u32,
+}
+
+pub const MODULE_KIND_LOADER_IMAGE: u32 = 1;
+pub const MODULE_KIND_KERNEL_IMAGE: u32 = 2;
+
+/// Boot modules the loader leaves for the kernel: today the two images the
+/// installer writes to a disk.
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct Modules {

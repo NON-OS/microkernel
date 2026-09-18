@@ -28,4 +28,7 @@ pub use framebuffer::FramebufferInfo;
 pub use handoff::BootHandoffV1;
 pub use memory::MemoryMap;
 pub use security::{Measurements, RngSeed, ZkAttestation};
-pub use system::{AcpiInfo, Modules, SmbiosInfo, Timing};
+pub use system::{
+    AcpiInfo, Module, Modules, SmbiosInfo, Timing, MODULE_KIND_KERNEL_IMAGE,
+    MODULE_KIND_LOADER_IMAGE,
+};

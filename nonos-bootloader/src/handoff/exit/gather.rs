@@ -21,7 +21,7 @@ use crate::handoff::prepare::{
     build_handoff_flags, detect_cpu_security_features, estimate_tsc_frequency, HandoffAllocations,
 };
 use crate::handoff::timing::get_uefi_time_epoch;
-use crate::handoff::types::CryptoHandoff;
+use crate::handoff::types::{CryptoHandoff, Module};
 use crate::loader::KernelImage;
 use uefi::prelude::*;
 use uefi::table::boot::BootServices;
@@ -36,6 +36,7 @@ pub fn gather_system_info(
     tpm_measured: bool,
     allocs: &HandoffAllocations,
     rng_seed: [u8; 32],
+    install_source: [Module; 2],
 ) -> HandoffInitParams {
     let fb_info = get_framebuffer_info(bs);
     // Paint the framebuffer the kernel will inherit onto the splash: on a
@@ -72,5 +73,7 @@ pub fn gather_system_info(
         crypto: *crypto,
         firmware,
         rng_seed,
+        modules_addr: allocs.modules_addr,
+        install_source,
     }
 }
