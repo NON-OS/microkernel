@@ -21,6 +21,7 @@ pub(crate) const N_CRYPTO_ENCRYPT: i64 = tag4(b"CENC");
 pub(crate) const N_CRYPTO_DECRYPT: i64 = tag4(b"CDEC");
 pub(crate) const N_CRYPTO_ENCRYPT_AAD: i64 = tag4(b"CEAD");
 pub(crate) const N_CRYPTO_DECRYPT_AAD: i64 = tag4(b"CDAD");
+pub(crate) const N_CRYPTO_MACHINE_KEY: i64 = tag4(b"CMKY");
 pub(crate) const N_CRYPTO_X25519_PUBLIC: i64 = tag4(b"CXPK");
 pub(crate) const N_CRYPTO_X25519_SHARED: i64 = tag4(b"CXSH");
 pub(crate) const N_CRYPTO_HMAC_SHA256: i64 = tag4(b"CHMC");

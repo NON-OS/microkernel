@@ -54,6 +54,7 @@ APPS = 0x53505041
 CDAD = 0x44414443
 CEAD = 0x44414543
 CHKF = 0x464B4843
+CMKY = 0x594B4D43
 CHMC = 0x434D4843
 CKEC = 0x43454B43
 CXPK = 0x4B505843
@@ -137,6 +138,12 @@ MSPR = 0x5250534D
 MDVW = 0x5756444D
 MIEP = 0x5045494D
 MIED = 0x4445494D
+
+[desc.CMKY]
+nr   = 0x594B4D43
+caps = ["Crypto"]
+args = [{name="label_ptr",type="u64",dir="in"},{name="label_len",type="u64",dir="in"},{name="out_ptr",type="u64",dir="out"}]
+ret  = {type="i64"}
 
 [desc.CRND]
 nr   = 0x444E5243
