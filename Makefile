@@ -105,10 +105,6 @@ qemu-smp: nonos-mk-run-smp-serial-log
 # bring-up compiled into every image never executes. Slow: VT-d needs TCG.
 qemu-iommu: nonos-mk-run-iommu-serial-log
 .PHONY: qemu-iommu
-# Every machine the images claim to boot on, several times each. Slow by
-# design; BOOT_MATRIX_CELLS=q35-up BOOT_MATRIX_REPEAT=1 narrows it.
-boot-matrix: nonos-mk-boot-matrix
-.PHONY: boot-matrix
 # ── Boot it on real hardware ─────────────────────────────────────────────────
 # A GPT-partitioned image firmware will boot from a stick, which an El Torito
 # ISO is not dependable for. `make usb` builds it; add DISK=/dev/... to write
