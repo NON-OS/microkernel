@@ -20,7 +20,8 @@ pub mod admin;
 pub mod attest;
 pub mod battery;
 pub mod broker;
-pub mod capsule_load;
+pub mod caps;
+mod capsule_load;
 pub mod capsule_verify;
 pub mod crypto;
 pub mod debug;
@@ -44,7 +45,10 @@ pub mod transport;
 mod unistd;
 
 pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown};
-pub use attest::{mk_attest_doc, mk_attest_status, AttestStatus, ATTEST_DOC_REFUSED};
+pub use attest::{
+    mk_attest_doc, mk_attest_entries, mk_attest_status, AttestStatus, ATTEST_DOC_REFUSED,
+    ATTEST_ENTRY_LEN,
+};
 pub use battery::mk_battery_status;
 pub use broker::{
     mk_device_claim, mk_device_list, mk_device_release, mk_dma_map, mk_dma_unmap, mk_irq_ack,
@@ -55,14 +59,14 @@ pub use broker::{
     MK_DMA_MAP_HIGH, MK_IRQ_BIND_MSIX, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
     MK_PCI_CMD_MEMORY_SPACE, MK_PCI_MSIX_CTRL_ENABLE, MK_PCI_MSIX_CTRL_FUNCTION_MASK,
 };
+pub use caps::{mk_cap_check, mk_cap_grant, mk_cap_revoke};
 pub use capsule_load::{mk_capsule_load, CapsuleLoadRequest};
 pub use capsule_verify::{mk_capsule_verify, CapsuleVerifyRequest, CapsuleVerifySummary};
 pub use crypto::{
-    crypto_decrypt, crypto_decrypt_aad, crypto_ed25519_pubkey, crypto_ed25519_sign,
-    crypto_ed25519_verify, crypto_encrypt, crypto_encrypt_aad, crypto_hash, crypto_hkdf_sha256,
-    crypto_hmac_sha256, crypto_keccak256, crypto_machine_key, crypto_random,
-    crypto_secp256k1_pubkey, crypto_secp256k1_sign, crypto_x25519_public, crypto_x25519_shared,
-    machine_key, MACHINE_KEY_LABEL_MAX, MACHINE_KEY_NO_TPM, MACHINE_KEY_WRONG_STATE,
+    crypto_decrypt, crypto_decrypt_aad, crypto_encrypt, crypto_encrypt_aad, crypto_hash,
+    crypto_hkdf_sha256, crypto_hmac_sha256, crypto_keccak256, crypto_machine_key, crypto_random,
+    crypto_x25519_public, crypto_x25519_shared, machine_key, MACHINE_KEY_LABEL_MAX,
+    MACHINE_KEY_NO_TPM, MACHINE_KEY_WRONG_STATE,
 };
 pub use debug::mk_debug;
 pub use graphics::nonos_display_dimensions;

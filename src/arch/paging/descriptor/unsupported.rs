@@ -53,6 +53,11 @@ pub const fn is_writable(_entry: u64) -> bool {
 }
 
 #[inline]
+pub const fn is_executable(_entry: u64) -> bool {
+    false
+}
+
+#[inline]
 pub const fn is_user(_entry: u64) -> bool {
     false
 }

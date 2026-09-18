@@ -16,9 +16,6 @@
 
 mod decrypt;
 mod decrypt_aad;
-mod ed25519_pubkey;
-mod ed25519_sign;
-mod ed25519_verify;
 mod encrypt;
 mod encrypt_aad;
 mod hash;
@@ -26,15 +23,10 @@ mod keccak256;
 mod machine_key;
 mod prf;
 mod random;
-mod secp256k1_pubkey;
-mod secp256k1_sign;
 mod x25519;
 
 pub use decrypt::crypto_decrypt;
 pub use decrypt_aad::crypto_decrypt_aad;
-pub use ed25519_pubkey::crypto_ed25519_pubkey;
-pub use ed25519_sign::crypto_ed25519_sign;
-pub use ed25519_verify::crypto_ed25519_verify;
 pub use encrypt::crypto_encrypt;
 pub use encrypt_aad::crypto_encrypt_aad;
 pub use hash::crypto_hash;
@@ -45,6 +37,4 @@ pub use machine_key::{
 };
 pub use prf::{crypto_hkdf_sha256, crypto_hmac_sha256};
 pub use random::crypto_random;
-pub use secp256k1_pubkey::crypto_secp256k1_pubkey;
-pub use secp256k1_sign::crypto_secp256k1_sign;
 pub use x25519::{crypto_x25519_public, crypto_x25519_shared};
