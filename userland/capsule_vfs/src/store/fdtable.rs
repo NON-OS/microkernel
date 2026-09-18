@@ -17,7 +17,9 @@
 mod chmod;
 mod close;
 mod copy;
+mod dirstat;
 mod install;
+mod journal;
 mod lookup;
 mod mkdir;
 mod new;
@@ -28,14 +30,15 @@ mod query;
 mod read;
 mod rename;
 mod rmdir;
+mod search;
 mod seed;
 mod seek;
 mod time;
 mod truncate;
 mod types;
-mod usage;
-mod zeroize;
 mod unlink;
+mod usage;
 mod write;
+mod zeroize;
 
 pub use types::{SeekWhence, Store, StoreError};
