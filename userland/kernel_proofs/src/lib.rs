@@ -19,6 +19,8 @@
 //! directly, so the invariants are proven about the code that actually gates
 //! memory access.
 
+extern crate alloc;
+
 pub mod arch;
 pub mod bus;
 pub mod capabilities;
@@ -28,7 +30,9 @@ pub mod memory;
 pub mod process;
 pub mod syscall;
 pub mod time;
+pub mod security;
 pub mod spec;
+pub mod sys;
 pub mod usercopy;
 
 #[cfg(test)]
@@ -39,6 +43,12 @@ mod elf_tests;
 mod inbox_name_tests;
 #[cfg(test)]
 mod permissions_tests;
+#[cfg(test)]
+mod registry_support;
+#[cfg(test)]
+mod registry_fold_tests;
+#[cfg(test)]
+mod registry_set_tests;
 #[cfg(test)]
 mod syscall_tests;
 #[cfg(test)]
