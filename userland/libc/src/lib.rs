@@ -63,10 +63,10 @@ pub use caps::{mk_cap_check, mk_cap_grant, mk_cap_revoke};
 pub use capsule_load::{mk_capsule_load, CapsuleLoadRequest};
 pub use capsule_verify::{mk_capsule_verify, CapsuleVerifyRequest, CapsuleVerifySummary};
 pub use crypto::{
-    crypto_decrypt, crypto_decrypt_aad, crypto_encrypt,
-    crypto_encrypt_aad, crypto_hash, crypto_hkdf_sha256, crypto_hmac_sha256, crypto_keccak256,
-    crypto_random, crypto_x25519_public,
-    crypto_x25519_shared,
+    crypto_decrypt, crypto_decrypt_aad, crypto_encrypt, crypto_encrypt_aad, crypto_hash,
+    crypto_hkdf_sha256, crypto_hmac_sha256, crypto_keccak256, crypto_machine_key, crypto_random,
+    crypto_x25519_public, crypto_x25519_shared, machine_key, MACHINE_KEY_LABEL_MAX,
+    MACHINE_KEY_NO_TPM, MACHINE_KEY_WRONG_STATE,
 };
 pub use debug::mk_debug;
 pub use graphics::nonos_display_dimensions;
