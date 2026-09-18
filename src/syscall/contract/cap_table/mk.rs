@@ -123,6 +123,18 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkStdoutWrite => caps.can_ipc(),
         SyscallNumber::MkStoreWrite => caps.can_store_write(),
 
+        /*
+         * Hosting unverified code is one right, and it covers every call
+         * that touches a guest: creating it, building its address space,
+         * and answering for it.
+         */
+        SyscallNumber::MkForeignSpawn
+        | SyscallNumber::MkForeignStart
+        | SyscallNumber::MkForeignWait
+        | SyscallNumber::MkForeignReply
+        | SyscallNumber::MkPeerMap
+        | SyscallNumber::MkPeerCopy => caps.can_foreign_exec(),
+
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare
         | SyscallNumber::MkSurfaceRelease => caps.can_surface_create(),
