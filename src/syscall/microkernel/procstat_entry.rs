@@ -14,32 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The process table as the kernel reports it: one header for the machine,
-//! one entry per live process. Both mirror the kernel's wire layout field
-//! for field (src/syscall/microkernel/procstat_header.rs and
-//! procstat_entry.rs); fields are appended, never inserted.
+//! One process as `MkProcStat` reports it. The layout is the wire format
+//! `nonos_libc::ProcStatEntry` mirrors field for field; new fields are
+//! appended, never inserted, so an older reader keeps its offsets.
 
-use crate::syscall::{call_raw, N_MK_PROC_STAT};
-
-/// Inline process name length; must match the kernel's PROC_NAME_LEN.
+/// Name bytes carried inline so a monitor needs no extra lookup per pid.
 pub const PROC_NAME_LEN: usize = 24;
 
-/// The header layout this crate was built for.
-pub const PROC_STAT_VERSION: u32 = 3;
-
-/// state: 0 new, 1 ready, 2 running, 3 sleeping, 4 stopped, 5 zombie,
-/// 6 terminated. priority: 0 idle, 1 low, 2 normal, 3 high, 4 realtime.
 #[repr(C)]
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy)]
 pub struct ProcStatEntry {
     pub pid: u32,
+    /// 0 new, 1 ready, 2 running, 3 sleeping, 4 stopped, 5 zombie, 6 terminated.
     pub state: u8,
     pub name_len: u8,
+    /// Scheduling class: 0 idle, 1 low, 2 normal, 3 high, 4 realtime.
     pub priority: u8,
     pub _pad: u8,
     pub run_ticks: u64,
     pub caps: u64,
     pub mem_kb: u64,
+    /// Milliseconds alive on the same monotonic clock the header uses.
     pub uptime_ms: u64,
     pub name: [u8; PROC_NAME_LEN],
     pub ppid: u32,
@@ -49,19 +44,11 @@ pub struct ProcStatEntry {
     pub ipc_rx: u64,
     pub faults: u64,
     pub switches: u64,
+    /// Ticks that interrupted this process's own code; the rest of
+    /// `run_ticks` was the kernel working for it.
     pub user_ticks: u64,
+    /// Every mapped region summed, and how many there are.
     pub mapped_kb: u64,
     pub vma_count: u32,
     pub _pad3: u32,
-}
-
-impl ProcStatEntry {
-    pub fn name_str(&self) -> &str {
-        let n = (self.name_len as usize).min(PROC_NAME_LEN);
-        core::str::from_utf8(&self.name[..n]).unwrap_or("")
-    }
-}
-
-pub extern "C" fn mk_proc_stat(buf: *mut u8, max_entries: u32) -> i64 {
-    call_raw(N_MK_PROC_STAT, [buf as u64, max_entries as u64, 0, 0, 0, 0])
 }

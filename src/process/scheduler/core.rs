@@ -72,7 +72,9 @@ pub fn run() -> ! {
                 get_queue().lock().push(task);
             }
         } else {
+            crate::process::accounting::idle_enter();
             crate::arch::idle_cpu();
+            crate::process::accounting::idle_leave();
         }
     }
 }

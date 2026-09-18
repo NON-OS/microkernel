@@ -79,6 +79,7 @@ pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext) {
     // here is safe: IF stays clear until the iretq, so the handler cannot
     // re-enter; a next tick pends and fires after the return.
     send_eoi();
+    crate::process::accounting::set_tick_origin(from_user);
     timer::on_timer_interrupt();
     // Never reclaim while the interrupted context is a dying one: after
     // exit_and_yield tears the current process down, CURRENT_PID is cleared

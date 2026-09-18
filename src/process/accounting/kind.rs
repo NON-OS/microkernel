@@ -14,22 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::contract::{dispatch as contract_dispatch, SyscallArgs};
-use super::numbers::SyscallNumber;
-use super::types::errnos;
+//! The events counted per process. The discriminant is the slot index.
 
-fn ret_errno(e: i32) -> u64 {
-    (-(e as i64)) as u64
+#[derive(Clone, Copy, PartialEq, Eq)]
+#[repr(usize)]
+pub enum Kind {
+    /// One syscall entered, whatever it returned.
+    Syscall = 0,
+    /// One message handed to the kernel for another process.
+    IpcTx = 1,
+    /// One message copied out to this process.
+    IpcRx = 2,
+    /// One page fault taken while this process was current.
+    Fault = 3,
+    /// One switch onto the processor.
+    Switch = 4,
+    /// One timer tick that interrupted this process's own code.
+    UserTick = 5,
 }
 
-pub fn handle_syscall(id: u64, a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> u64 {
-    let Some(number) = SyscallNumber::from_u64(id) else {
-        return ret_errno(errnos::ENOSYS);
-    };
-    crate::process::accounting::bump(
-        crate::process::current_pid().unwrap_or(0),
-        crate::process::accounting::Kind::Syscall,
-    );
-    crate::process::accounting::bump_total(crate::process::accounting::Total::Syscalls);
-    contract_dispatch(number, SyscallArgs::new([a0, a1, a2, a3, a4, a5])).value as u64
+impl Kind {
+    pub const COUNT: usize = 6;
 }
