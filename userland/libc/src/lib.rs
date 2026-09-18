@@ -72,7 +72,9 @@ pub use crypto::{
     MACHINE_KEY_NO_TPM, MACHINE_KEY_WRONG_STATE,
 };
 pub use debug::mk_debug;
-pub use foreign::{mk_foreign_reply, mk_foreign_spawn, mk_foreign_start, mk_foreign_wait};
+pub use foreign::{
+    mk_foreign_reply, mk_foreign_spawn, mk_foreign_start, mk_foreign_thread, mk_foreign_wait,
+};
 pub use foreign_frame::ForeignFrame;
 pub use graphics::nonos_display_dimensions;
 #[cfg(feature = "heap")]
