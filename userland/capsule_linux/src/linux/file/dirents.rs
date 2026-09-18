@@ -23,7 +23,7 @@ use alloc::vec::Vec;
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
-use super::dirent::{encode, record_len, DT_REG};
+use super::dirent::{encode, record_len, DT_UNKNOWN};
 
 pub fn getdents64(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     let Some(entry) = guest.fds.get(fd as usize) else {
@@ -39,7 +39,7 @@ pub fn getdents64(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
         if out.len() + record_len(name) > len as usize {
             break;
         }
-        encode(&mut out, name, at as u64, DT_REG);
+        encode(&mut out, name, at as u64, DT_UNKNOWN);
         at += 1;
     }
     /*
