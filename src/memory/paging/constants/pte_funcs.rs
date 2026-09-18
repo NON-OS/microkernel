@@ -43,3 +43,13 @@ pub const fn pte_address(pte: u64) -> u64 {
 pub const fn pte_is_writable(pte: u64) -> bool {
     descriptor::is_writable(pte)
 }
+
+#[inline]
+pub const fn pte_is_executable(pte: u64) -> bool {
+    descriptor::is_executable(pte)
+}
+
+#[inline]
+pub const fn pte_is_user(pte: u64) -> bool {
+    descriptor::is_user(pte)
+}
