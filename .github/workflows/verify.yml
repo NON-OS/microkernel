@@ -132,6 +132,17 @@ jobs:
           retention-days: 90
           if-no-files-found: error
 
+  syscall-reach:
+    # A syscall the kernel dispatches that no userland code references is a
+    # capability written and never wired. Three were dark at once in one day.
+    # The count in scripts/baselines may only go down.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
+      - name: Kernel syscalls nothing in userland can reach
+        run: python3 scripts/check_syscall_reach.py --baseline scripts/baselines/syscall-unreachable-count.txt
+
   runnable-proofs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -295,6 +306,18 @@ jobs:
           - sync_proofs
           - mechanism_proofs
           - wallet_proofs
+          - bga_proofs
+          - hda_proofs
+          - i2c_pci_proofs
+          - virtio_rng_proofs
+          - ps2_input_proofs
+          - rtl8169_proofs
+          - virtio_gpu_proofs
+          - nonos_i2cmodel
+          - i2c_transfer_proofs
+          - i2c_hid_proofs
+          - attest_receipt
+          - attest_key_proofs
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
         with:
@@ -303,6 +326,8 @@ jobs:
         with:
           components: clippy
       - name: Runnable proofs and clippy
+        env:
+          RUST_TEST_THREADS: 1
         run: |
           if [ -d "userland/${{ matrix.crate }}" ]; then
             cargo test --release --manifest-path "userland/${{ matrix.crate }}/Cargo.toml"

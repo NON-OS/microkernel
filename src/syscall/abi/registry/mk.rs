@@ -55,6 +55,7 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MSRD", SyscallNumber::MkStdinRead, "MkStdinRead"),
     e(b"MAST", SyscallNumber::MkAttestStatus, "MkAttestStatus"),
     e(b"MADC", SyscallNumber::MkAttestDoc, "MkAttestDoc"),
+    e(b"MAEN", SyscallNumber::MkAttestEntries, "MkAttestEntries"),
     e(b"MDRQ", SyscallNumber::MkDevRootRequest, "MkDevRootRequest"),
     e(b"MDRC", SyscallNumber::MkDevRootConfirm, "MkDevRootConfirm"),
     e(b"MCGT", SyscallNumber::MkCapGrant, "MkCapGrant"),
