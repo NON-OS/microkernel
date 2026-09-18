@@ -34,7 +34,7 @@ include $(sort $(wildcard mk/*.mk))
 # `make` with no target builds the shipping image, never nothing.
 .DEFAULT_GOAL := nonos
 
-.PHONY: nonos qemu qemu-serial usb hardware verify test bench doctor clean clean-all distclean fmt
+.PHONY: nonos run qemu qemu-serial usb hardware verify test bench doctor clean clean-all distclean fmt
 
 # ── The image that ships ─────────────────────────────────────────────────────
 # The full ZeroState system: every capsule and driver, TPM-measured boot, a
@@ -82,6 +82,21 @@ dev-qemu: nonos-mk-run-from-config
 # (swtpm, CRB at 0xFED40000) backs the measured boot, so the attestation chain
 # is exercised, not stubbed.
 qemu: nonos-mk-run
+
+# ── First boot ──────────────────────────────────────────────────────────────
+# `make run` builds and boots, whatever state the checkout is in. With an
+# enrolled identity it is the production boot; on a clean clone it mints the
+# development identity from the public seed, says so on the console, builds
+# and boots. One command, so nobody has to learn an internal target name to
+# see the desktop, and the warning is printed by the build, not hidden in a
+# doc.
+run:
+	@if [ -f "$(ZK_BOOT_ROOT)" ] && [ "$(NONOS_DEV)" != "1" ]; then \
+		$(MAKE) --no-print-directory nonos-mk-run; \
+	else \
+		$(MAKE) --no-print-directory nonos-mk-dev-run; \
+	fi
+.PHONY: run
 
 # Headless desktop cut, serial console to a log: the profile CI's boot harness
 # drives. Drops real-hardware-only drivers so the boot reaches ready under QEMU.
