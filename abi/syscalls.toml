@@ -259,13 +259,13 @@ ret  = {type="i64"}
 
 [desc.MCGT]
 nr   = 0x5447434D
-caps = ["IPC"]
+caps = ["Admin"]
 args = [{name="target_pid",type="u32",dir="in"},{name="cap_mask",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MCRV]
 nr   = 0x5652434D
-caps = ["IPC"]
+caps = ["Admin"]
 args = [{name="target_pid",type="u32",dir="in"},{name="cap_mask",type="u64",dir="in"}]
 ret  = {type="i64"}
 
