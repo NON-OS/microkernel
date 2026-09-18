@@ -105,4 +105,11 @@ pub enum Capability {
      * the programs that render a receipt, not by every capsule with a token.
      */
     AttestRead,
+    /*
+     * Hosting code this kernel has not verified: create a process with no
+     * capabilities, build its address space, and answer the syscalls it
+     * makes that the kernel refuses. One capsule holds this, and an
+     * auditor reading a capability set can see which.
+     */
+    ForeignExec,
 }
