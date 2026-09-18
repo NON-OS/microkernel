@@ -33,6 +33,7 @@ pub mod motd;
 pub mod neofetch;
 pub mod nox;
 pub mod ping;
+pub mod receipt;
 pub mod service;
 pub mod theme;
 pub mod tool;
