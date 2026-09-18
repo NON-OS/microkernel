@@ -48,7 +48,14 @@ include $(sort $(wildcard mk/*.mk))
 # the same gate the kernel enforces, root embedding) run against the artifacts
 # just written, and the build receipt records the measured result. A build
 # that cannot prove what it produced does not get to say it is ready.
-nonos: nonos-mk-zerostate nonos-mk-esp nonos-mk-iso
+#
+# The kernel, the ESP and the ISO are built from the recipe rather than named
+# as prerequisites: prerequisites resolve in parallel, and packing an ESP
+# beside the link that produces its kernel puts the previous kernel on the
+# shipping image.
+nonos:
+	$(call nonos_kernel_and_esp,nonos-mk-zerostate)
+	@$(MAKE) --no-print-directory nonos-mk-iso
 	@$(MAKE) --no-print-directory nonos-mk-trust-ledger
 	@$(MAKE) --no-print-directory nonos-mk-verify-image
 	@echo
