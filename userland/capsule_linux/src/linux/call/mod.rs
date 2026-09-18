@@ -22,6 +22,7 @@ mod io;
 mod life;
 mod clone;
 mod ctl;
+mod io_socket;
 mod map;
 mod map_file;
 mod map_req;
