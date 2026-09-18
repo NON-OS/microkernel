@@ -37,6 +37,7 @@ mod stack_pointer;
 mod time_counter;
 pub mod trap;
 pub mod user_access;
+pub mod image_holes;
 pub mod wall_clock;
 #[cfg(target_arch = "x86_64")]
 pub mod nonos_boot;
@@ -52,6 +53,7 @@ pub(crate) use active_page_table_root::active_page_table_root;
 pub use cpu::init_cpu_features;
 pub use cpu::{cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu};
 pub use halt::halt_loop;
+pub use image_holes::deliberately_unmapped;
 pub(crate) use init_boot_memory::init_boot_memory;
 pub(crate) use init_broker_irq_routing::init_broker_irq_routing;
 pub(crate) use percpu_base::set as set_percpu_base;
