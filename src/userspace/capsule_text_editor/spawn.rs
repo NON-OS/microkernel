@@ -34,7 +34,7 @@ const SERVICE_NAME: &str = "app.text_editor";
 const SERVICE_PORT: u32 = 4726;
 const REPLY_INBOX: &str = "endpoint.app.text_editor.reply";
 const REPLY_PORT: u32 = 4727;
-const TARGET_TRIPLE: &str = "x86_64-nonos-user";
+const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
 // Extra window endpoints, each declared in the signed manifest. Ordered, so the
 // lowest-numbered free one is taken.
@@ -65,6 +65,7 @@ pub fn spawn_text_editor_instance() -> Result<u32, SpawnError> {
         requested_caps: Capability::CoreExec.bit()
             | Capability::IPC.bit()
             | Capability::Memory.bit()
+            | Capability::FileSystem.bit()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit(),
         instances: TEXT_EDITOR_INSTANCES,
@@ -88,6 +89,7 @@ pub fn spawn_text_editor_capsule() -> Result<(), SpawnError> {
         requested_caps: Capability::CoreExec.bit()
             | Capability::IPC.bit()
             | Capability::Memory.bit()
+            | Capability::FileSystem.bit()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit(),
         debug_tag: b"",

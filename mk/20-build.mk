@@ -3,11 +3,16 @@
 # STARK attestation for the kernel and every capsule. This is where make,
 # make qemu, and make from-config all resolve their real work.
 
-.PHONY: nonos-mk-check-driver-ahci-keys nonos-mk-check-driver-e1000-keys nonos-mk-check-driver-hda-keys nonos-mk-check-driver-i2c-hid-keys nonos-mk-check-driver-i2c-pci-keys nonos-mk-check-driver-iwlwifi-keys nonos-mk-check-driver-nvme-keys nonos-mk-check-driver-rtl8139-keys nonos-mk-check-driver-rtl8169-keys nonos-mk-check-driver-rtl8821ce-keys nonos-mk-check-driver-usb-msc-keys nonos-mk-check-driver-virtio-gpu-keys nonos-mk-check-ps2-input-keys nonos-mk-check-ramfs-keys nonos-mk-check-virtio-blk-keys nonos-mk-check-virtio-net-keys nonos-mk-check-virtio-rng-keys nonos-mk-check-xhci-keys nonos-mk-crypto nonos-mk-driver-ahci nonos-mk-driver-ahci-sign nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-driver-hda nonos-mk-driver-hda-sign nonos-mk-driver-i2c-hid nonos-mk-driver-i2c-hid-sign nonos-mk-driver-i2c-pci nonos-mk-driver-i2c-pci-sign nonos-mk-driver-iwlwifi nonos-mk-driver-iwlwifi-sign nonos-mk-driver-nvme nonos-mk-driver-nvme-sign nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-driver-rtl8821ce nonos-mk-driver-rtl8821ce-sign nonos-mk-driver-usb-msc nonos-mk-driver-usb-msc-sign nonos-mk-driver-virtio-gpu nonos-mk-driver-virtio-gpu-sign nonos-mk-entropy nonos-mk-keyring nonos-mk-market nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-vfs nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-wallpaper nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-all-capsules-attested nonos-mk-attest nonos-mk-attestation nonos-mk-attestation-receipt nonos-mk-bootloader nonos-mk-capsules nonos-mk-check nonos-mk-check-trust-keys nonos-mk-check-trust-manifest nonos-mk-core nonos-mk-core-attested nonos-mk-desktop-gui-prod nonos-mk-ensure-zk-keys nonos-mk-esp nonos-mk-from-config nonos-mk-host-trust-verify nonos-mk-libc nonos-mk-live-production-proof nonos-mk-marketplace-abi nonos-mk-marketplace-index-tool nonos-mk-menuconfig nonos-mk-sign nonos-mk-terminal-test nonos-mk-trust-policy nonos-mk-usb-img nonos-mk-userland-clean nonos-mk-verify-capsule-attest nonos-mk-verify-trust nonos-mk-zerostate nonos-mk-zk-report nonos-mk-zk-tools nonos-mk-zk-verify-live
+.PHONY: nonos-mk-check-driver-ahci-keys nonos-mk-check-driver-e1000-keys nonos-mk-check-driver-hda-keys nonos-mk-check-driver-i2c-hid-keys nonos-mk-check-driver-i2c-pci-keys nonos-mk-check-driver-iwlwifi-keys nonos-mk-check-driver-nvme-keys nonos-mk-check-driver-rtl8139-keys nonos-mk-check-driver-rtl8169-keys nonos-mk-check-driver-rtl8821ce-keys nonos-mk-check-driver-usb-msc-keys nonos-mk-check-driver-virtio-gpu-keys nonos-mk-check-ps2-input-keys nonos-mk-check-ramfs-keys nonos-mk-check-virtio-blk-keys nonos-mk-check-virtio-net-keys nonos-mk-check-virtio-rng-keys nonos-mk-check-xhci-keys nonos-mk-crypto nonos-mk-driver-ahci nonos-mk-driver-ahci-sign nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-driver-hda nonos-mk-driver-hda-sign nonos-mk-driver-i2c-hid nonos-mk-driver-i2c-hid-sign nonos-mk-driver-i2c-pci nonos-mk-driver-i2c-pci-sign nonos-mk-driver-iwlwifi nonos-mk-driver-iwlwifi-sign nonos-mk-driver-nvme nonos-mk-driver-nvme-sign nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-driver-rtl8821ce nonos-mk-driver-rtl8821ce-sign nonos-mk-driver-usb-msc nonos-mk-driver-usb-msc-sign nonos-mk-driver-virtio-gpu nonos-mk-driver-virtio-gpu-sign nonos-mk-entropy nonos-mk-keyring nonos-mk-market nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-vfs nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-wallpaper nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-all-capsules-attested nonos-mk-attest nonos-mk-attestation nonos-mk-attestation-receipt nonos-mk-bootloader nonos-mk-capsules nonos-mk-check nonos-mk-check-trust-keys nonos-mk-check-trust-manifest nonos-mk-core nonos-mk-core-attested nonos-mk-desktop-gui-prod nonos-mk-smp-prod nonos-mk-ensure-zk-keys nonos-mk-esp nonos-mk-from-config nonos-mk-host-trust-verify nonos-mk-libc nonos-mk-live-production-proof nonos-mk-marketplace-abi nonos-mk-marketplace-index-tool nonos-mk-menuconfig nonos-mk-sign nonos-mk-terminal-test nonos-mk-trust-policy nonos-mk-usb-img nonos-mk-userland-clean nonos-mk-verify-capsule-attest nonos-mk-verify-trust nonos-mk-zerostate nonos-mk-zk-report nonos-mk-zk-tools nonos-mk-zk-verify-live
 
 # ZK attestation: transparent enrolled-secret tools
 
-$(ZK_ENROLL_TOOL) $(ZK_TRANSPARENT_PROVE_TOOL) $(ZK_TRANSPARENT_VERIFY_TOOL) $(ZK_CAPSULE_PROOF_TOOL): nonos-mk-check-deps
+# Every host tool tracks its sources. A restored cache hands back old
+# binaries, and a rule with no file prerequisites would treat them as
+# final; the sources keep cargo the authority on staleness.
+ZK_TOOL_SRCS := $(shell find $(ZK_CIRCUIT_DIR)/src -type f -name '*.rs' 2>/dev/null) \
+                $(ZK_CIRCUIT_DIR)/Cargo.toml
+$(ZK_ENROLL_TOOL) $(ZK_TRANSPARENT_PROVE_TOOL) $(ZK_TRANSPARENT_VERIFY_TOOL) $(ZK_CAPSULE_PROOF_TOOL): nonos-mk-check-deps $(ZK_TOOL_SRCS)
 	@echo "Building transparent ZK attestation tools..."
 	@cd $(ZK_CIRCUIT_DIR) && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build --release --bin transparent-enroll --bin transparent-prove --bin transparent-verify --bin capsule-attest-proof --target $(HOST_TARGET)
@@ -15,7 +20,9 @@ $(ZK_ENROLL_TOOL) $(ZK_TRANSPARENT_PROVE_TOOL) $(ZK_TRANSPARENT_VERIFY_TOOL) $(Z
 nonos-mk-zk-tools: $(ZK_ENROLL_TOOL) $(ZK_TRANSPARENT_PROVE_TOOL) $(ZK_TRANSPARENT_VERIFY_TOOL) $(ZK_CAPSULE_PROOF_TOOL)
 
 # Transparent STARK enrollment tool, the production capsule attestation prover.
-$(NONOS_STARK_ENROLL): nonos-mk-check-deps
+STARK_ENROLL_SRCS := $(shell find nonos-stark-enroll/src -type f -name '*.rs' 2>/dev/null) \
+                     nonos-stark-enroll/Cargo.toml
+$(NONOS_STARK_ENROLL): nonos-mk-check-deps $(STARK_ENROLL_SRCS)
 	@echo "Building transparent STARK enrollment tool..."
 	@cd nonos-stark-enroll && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build --release --target $(HOST_TARGET)
@@ -24,6 +31,55 @@ nonos-mk-ensure-zk-keys: $(ZK_BOOT_ROOT) $(ZK_BOOT_COMMITMENTS)
 
 nonos-mk-verify-capsule-attest: nonos-mk-all-capsules-attested
 	@printf "\n  transparent capsule attestation is kernel-verified at spawn\n\n"
+
+# Self-verification of the shipped image. Five independent checks, each with a
+# different source of truth, so no single compromised input passes quietly:
+#   A  the trust artifact ledger, against the baked SHA-256 list
+#   B  every manifest signature, Ed25519 + ML-DSA-65 against the trust anchor
+#   C  every binary's .nonos.caps section, against the manifest it shipped with
+#   D  every STARK membership trailer, re-verified with the same nonos-stark
+#      gate the kernel runs at spawn and the bootloader runs before the jump
+#   E  the policy root proven in D, byte-embedded in the kernel that boots
+# Fail-closed: the first failure stops the build claiming to be verified.
+.PHONY: nonos-mk-verify-image
+nonos-mk-verify-image: $(NONOS_STARK_ENROLL) $(CAPSULE_SIGN_BIN)
+	@echo "Self-verifying the image..."
+	@echo "  [A] trust artifact ledger"
+	@$(MAKE) --no-print-directory nonos-mk-check-trust-manifest >/dev/null
+	@echo "        ok    baked SHA-256 ledger matches the tree"
+	@echo "  [B] manifest signatures (Ed25519 + ML-DSA-65, trust anchor policy)"
+	@t0=$$(date +%s); $(foreach s,$(NONOS_ENROLLED_CAPSULES),\
+		$(CAPSULE_SIGN_BIN) verify-manifest \
+			--manifest $($(s)_MANIFEST) --cert $($(s)_CERT) \
+			--policy $(NONOS_TRUST_ANCHOR_POLICY_BIN) >/dev/null || exit 1;) \
+	echo "        ok    $(words $(NONOS_ENROLLED_CAPSULES)) manifests verify ($$(($$(date +%s)-t0))s)"
+	@echo "  [C] declared capabilities (.nonos.caps vs the signed manifest)"
+	@t0=$$(date +%s); $(foreach s,$(NONOS_ENROLLED_CAPSULES),\
+		$(NONOS_CAPS_CHECK) $($(s)_BIN) \
+			--manifest-caps $($(s)_REQUIRED_CAPS) --allow-missing >/dev/null || exit 1;) \
+	echo "        ok    $(words $(NONOS_ENROLLED_CAPSULES)) binaries declare what their manifests grant ($$(($$(date +%s)-t0))s)"
+	@echo "  [D] STARK membership proofs (the gate the kernel runs at spawn)"
+	@# No output piping here: a pipe would let the pipeline's last command mask
+	@# the verifier's exit code, and a verifier that cannot fail the build is
+	@# decoration. The tool's own per-capsule lines are the evidence.
+	@$(NONOS_STARK_ENROLL) verify $(ZK_CAPSULE_ROOT) \
+		$(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_REQUIRED_CAPS):$($(s)_BIN):$($(s)_ATTESTATION))
+	@if [ -f "$(KERNEL_ATTEST_ROOT_BIN)" ] && [ -f "$(KERNEL_ATTEST_TRAILER)" ] && [ -f "$(dir $(KERNEL_ATTEST_TRAILER))kernel.enrolled.elf" ]; then \
+		$(NONOS_STARK_ENROLL) verify-kernel "$(KERNEL_ATTEST_ROOT_BIN)" \
+			"$(dir $(KERNEL_ATTEST_TRAILER))kernel.enrolled.elf" "$(KERNEL_ATTEST_TRAILER)" || exit 1; \
+	else \
+		echo "        --    kernel self-attestation artifacts not present in this profile"; \
+	fi
+	@echo "  [E] root embedding + build receipt"
+	@$(NONOS_PYTHON) scripts/build_receipt.py \
+		--policy-root "$(ZK_CAPSULE_ROOT)" \
+		--kernel-attest-root "$(KERNEL_ATTEST_ROOT_BIN)" \
+		--bootloader "$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi" \
+		--enrolled-elf "$(dir $(KERNEL_ATTEST_TRAILER))kernel.enrolled.elf" \
+		--kernel "$(TARGET_DIR)/kernel_attested.bin" \
+		--artifact "$(TARGET_DIR)/nonos.iso" \
+		--artifact "$(ESP_DIR)/EFI/nonos/kernel.bin" \
+		--out "$(TARGET_DIR)/attestation/build-receipt.json"
 
 nonos-mk-zk-report: $(ZK_BOOT_ROOT) $(ZK_BOOT_COMMITMENTS)
 	@printf "\n  transparent enrolled-secret root   %s\n\n" "$(NONOS_ZK_ROOT_FPR)"
@@ -43,16 +99,37 @@ nonos-mk-attestation-receipt: $(TARGET_DIR)/kernel_attested.bin
 		"$(NONOS_ZK_ROOT_FPR)" "$(TARGET_DIR)/kernel_attested.bin" > $(NONOS_RECEIPT)
 	@cat $(NONOS_RECEIPT)
 
-$(EMBED_TOOL): nonos-mk-check-deps
+EMBED_TOOL_SRCS := $(shell find $(BOOTLOADER_DIR)/tools/embed-zk-proof/src -type f -name '*.rs' 2>/dev/null) \
+                   $(BOOTLOADER_DIR)/tools/embed-zk-proof/Cargo.toml
+$(EMBED_TOOL): nonos-mk-check-deps $(EMBED_TOOL_SRCS)
 	@echo "Building ZK embed tool..."
 	@cd $(BOOTLOADER_DIR)/tools/embed-zk-proof && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build --release --target $(HOST_TARGET)
 
-$(SIGN_TOOL): nonos-mk-check-deps
+SIGN_TOOL_SRCS := $(shell find $(BOOTLOADER_DIR)/tools/sign-kernel/src -type f -name '*.rs' 2>/dev/null) \
+                  $(BOOTLOADER_DIR)/tools/sign-kernel/Cargo.toml
+$(SIGN_TOOL): nonos-mk-check-deps $(SIGN_TOOL_SRCS)
 	@echo "Building kernel signing tool..."
 	@cd $(BOOTLOADER_DIR)/tools/sign-kernel && RUSTFLAGS="" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build --release --target $(HOST_TARGET)
 
+ifeq ($(NONOS_DEVICE_BINDING),unbound)
+# The vendor image carries no device slot set. The baked root is the
+# sha256 of a fixed public tag, so it is reproducible by anyone and
+# opens nothing: every runtime binding proof is refused until the
+# installer enrolls the owner's slots and writes an enrolled loader.
+# The boot gate itself is the kernel STARK self-attestation and does
+# not touch this root. Secrets have no rule here on purpose; a target
+# that wants them in an unbound build must fail loudly.
+$(ZK_BOOT_ROOT):
+	@mkdir -p $(dir $@)
+	@printf '%s' 'NONOS-DEVICE-SLOT-UNBOUND-v1' | $(SHA256) | cut -c1-64 | xxd -r -p > $@
+	@test "$$(wc -c < $@ | tr -d ' ')" = 32 || { echo "sentinel root malformed"; exit 1; }
+	@echo "Device slot: unbound (sentinel root baked)"
+
+$(ZK_BOOT_COMMITMENTS): $(ZK_BOOT_ROOT)
+	@: > $@
+else
 $(ZK_BOOT_LABELS):
 	@test "$(NONOS_DEV)" = 1 || { echo "$@ is required"; exit 1; }
 	@mkdir -p $(dir $@)
@@ -68,6 +145,7 @@ $(ZK_BOOT_ROOT) $(ZK_BOOT_COMMITMENTS) $(ZK_BOOT_SECRETS): $(ZK_BOOT_LABELS) $(Z
 		--root-out $(ZK_BOOT_ROOT) \
 		--secrets-out $(ZK_BOOT_SECRETS) \
 		--commitments-out $(ZK_BOOT_COMMITMENTS)
+endif
 
 # Bootloader
 #
@@ -121,20 +199,26 @@ $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi: \
 		$(if $(NONOS_TRUST_ANCHOR_PUBKEY),$(NONOS_TRUST_ANCHOR_PUBKEY),$(SIGNING_KEY)) \
 		$(KERNEL_MLDSA65_PUB) \
 		$(ZK_BOOT_ROOT) \
-		$(if $(NONOS_STARK_KERNEL_ATTEST_ON),$(KERNEL_ATTEST_ROOT_BIN)) \
 		$(GOP_PREF_STAMP) \
 		$(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building UEFI bootloader (policy: $(BOOTLOADER_POLICY))..."
 	$(eval SIGNING_KEY_ABS := $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY)))
 	@cd $(BOOTLOADER_DIR) && \
 		$(if $(NONOS_TRUST_ANCHOR_PUBKEY),NONOS_TRUST_ANCHOR_PUBKEY=$(abspath $(NONOS_TRUST_ANCHOR_PUBKEY)),NONOS_SIGNING_KEY=$(SIGNING_KEY_ABS)) \
-		NONOS_MLDSA65_PUBKEY=$(shell pwd)/$(KERNEL_MLDSA65_PUB) \
-		NONOS_ZK_DEVICE_ROOT=$(shell pwd)/$(ZK_BOOT_ROOT) \
-		$(if $(NONOS_STARK_KERNEL_ATTEST_ON),NONOS_KERNEL_ATTEST_ROOT=$(shell pwd)/$(KERNEL_ATTEST_ROOT_BIN)) \
+		NONOS_MLDSA65_PUBKEY=$(abspath $(KERNEL_MLDSA65_PUB)) \
+		NONOS_ZK_DEVICE_ROOT=$(abspath $(ZK_BOOT_ROOT)) \
+		$(if $(NONOS_STARK_KERNEL_ATTEST_ON),NONOS_KERNEL_ATTEST_ROOT=$(abspath $(KERNEL_ATTEST_ROOT_BIN))) \
 		$(if $(NONOS_GOP_PREF),NONOS_GOP_PREF=$(NONOS_GOP_PREF)) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		RUSTFLAGS='-C panic=abort -C target-feature=+crt-static --cfg curve25519_dalek_backend="serial" --remap-path-prefix=$(abspath .)=/nonos -C link-arg=/DEBUG:NONE' \
 		$(CARGO) build --target x86_64-unknown-uefi --release \
 			--features zk-transparent,$(BOOTLOADER_POLICY)$(BOOT_STARK_FEATURE)
+# The RUSTFLAGS line above is authoritative and mirrors the target
+# flags in nonos-bootloader/.cargo/config.toml, which cargo ignores
+# whenever the env var is set. The two additions make the loader
+# byte-reproducible: checkout paths would otherwise reach the binary
+# through panic locations, and the linker's debug directory carries a
+# PDB record no UEFI release has any use for.
 
 nonos-mk-bootloader: $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi
 
@@ -158,7 +242,14 @@ nonos-mk-verify-reproducible-boot:
 # Userland capsules
 
 USERLAND_DIR  := userland
-USERLAND_LIBC := $(USERLAND_DIR)/libc/target/x86_64-nonos-user/release/libnonos_libc.a
+# Which user target the capsules and their libc are built for, so the whole
+# userland pipeline follows one setting and an artifact path cannot disagree
+# with what was compiled. Deliberately not named CAPSULE_TARGET: capsule.mk
+# clears that one after every capsule so a per-capsule override cannot leak
+# into the next, which would wipe a global set here.
+NONOS_USER_TARGET ?= x86_64-nonos-user
+export NONOS_USER_TARGET
+USERLAND_LIBC := $(USERLAND_DIR)/libc/target/$(NONOS_USER_TARGET)/release/libnonos_libc.a
 # The std startup object lives in the build tree, not /tmp. It must be an
 # absolute path because capsules build from their own subdirectories and pass
 # it to the linker as -Clink-arg. cargo clean removes it; the rule below
@@ -166,11 +257,11 @@ USERLAND_LIBC := $(USERLAND_DIR)/libc/target/x86_64-nonos-user/release/libnonos_
 NONOS_RT_OBJ  ?= $(abspath $(TARGET_DIR))/nonos_rt.o
 USERLAND_LIBC_SRCS := $(shell find $(USERLAND_DIR)/libc/src -name '*.rs') \
                       $(USERLAND_DIR)/libc/Cargo.toml \
-                      $(USERLAND_DIR)/x86_64-nonos-user.json
+                      $(USERLAND_DIR)/$(NONOS_USER_TARGET).json
 NONOS_RT_SRCS := $(shell find toolchain/nonos-rt/src -name '*.rs' 2>/dev/null) \
                  toolchain/nonos-rt/Cargo.toml \
                  toolchain/nonos-rt/Cargo.lock \
-                 $(USERLAND_DIR)/x86_64-nonos-user.json
+                 $(USERLAND_DIR)/$(NONOS_USER_TARGET).json
 
 # Trust-anchor inputs, global to all signed capsules. The two
 # pubkeys (Ed25519 + ML-DSA-65) are sealed into a policy blob and
@@ -202,7 +293,7 @@ $(USERLAND_LIBC): $(USERLAND_LIBC_SRCS) | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building userland libc..."
 	@cd $(USERLAND_DIR)/libc && \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) rustc --release --target ../x86_64-nonos-user.json \
+		$(CARGO) rustc --release --target ../$(NONOS_USER_TARGET).json \
 		-Zbuild-std=core --crate-type staticlib
 	@touch $@
 
@@ -212,8 +303,18 @@ $(NONOS_RT_OBJ): $(NONOS_RT_SRCS) | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building NONOS std startup object..."
 	@cd toolchain/nonos-rt && \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) rustc --release --target ../../userland/x86_64-nonos-user.json \
+		$(CARGO) rustc --release --target ../../userland/$(NONOS_USER_TARGET).json \
 		-Zbuild-std=core -- --emit obj=$(NONOS_RT_OBJ)
+	@# `--emit obj=` only writes when cargo actually runs rustc. This crate keeps
+	@# its own target directory, which `distclean` does not remove, so cargo can
+	@# call it fresh, skip rustc and leave nothing behind while still exiting 0.
+	@# Every std capsule then fails to link against an object that is not there.
+	@test -f $(NONOS_RT_OBJ) || { \
+		cd toolchain/nonos-rt && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) clean && cd ../.. && \
+		cd toolchain/nonos-rt && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) $(CARGO) rustc --release \
+			--target ../../userland/$(NONOS_USER_TARGET).json \
+			-Zbuild-std=core -- --emit obj=$(NONOS_RT_OBJ); }
+	@test -f $(NONOS_RT_OBJ) || { echo "nonos_rt.o was not produced"; exit 1; }
 
 # std platform layer: patch the pinned rust-src so -Zbuild-std=std turns
 # unmodified `use std::...` crates into NONOS binaries. Stamped and keyed on
@@ -241,11 +342,11 @@ nonos-mk-apply-std: $(NONOS_STD_PAL_STAMP)
 UPSTREAM_RIPGREP_VERSION := 14.1.1
 UPSTREAM_RIPGREP_BIN     := $(TARGET_DIR)/upstream-ripgrep/rg
 $(UPSTREAM_RIPGREP_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
-		userland/x86_64-nonos-user.json | $(TARGET_DIR)/.nonos-toolchain.stamp
+		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building upstream ripgrep $(UPSTREAM_RIPGREP_VERSION) for NONOS (unmodified crates.io source)..."
 	@RUSTUP_TOOLCHAIN=$(TOOLCHAIN) RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install ripgrep --version $(UPSTREAM_RIPGREP_VERSION) \
-		--target $(abspath userland/x86_64-nonos-user.json) \
+		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
 		-Zbuild-std=std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
 		--root $(abspath $(TARGET_DIR)/upstream-ripgrep) --no-track --force --bin rg
 	@cp $(TARGET_DIR)/upstream-ripgrep/bin/rg $@
@@ -261,12 +362,12 @@ UPSTREAM_SD_VERSION := 1.0.0
 UPSTREAM_SD_SRC     := userland/upstream-src/sd-$(UPSTREAM_SD_VERSION)
 UPSTREAM_SD_BIN     := $(TARGET_DIR)/upstream-sd/sd
 $(UPSTREAM_SD_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
-		userland/x86_64-nonos-user.json | $(TARGET_DIR)/.nonos-toolchain.stamp
+		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building upstream sd $(UPSTREAM_SD_VERSION) for NONOS (unmodified crates.io source)..."
 	@cd $(UPSTREAM_SD_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install --path . \
-		--target $(abspath userland/x86_64-nonos-user.json) \
+		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
 		-Zbuild-std=std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
 		--root $(abspath $(TARGET_DIR)/upstream-sd) --no-track --force --bin sd
 	@cp $(TARGET_DIR)/upstream-sd/bin/sd $@
@@ -280,12 +381,12 @@ nonos-mk-upstream-sd: $(UPSTREAM_SD_BIN)
 UPSTREAM_TOKIO_SMOKE_SRC := userland/upstream-src/tokio-smoke
 UPSTREAM_TOKIO_SMOKE_BIN := $(TARGET_DIR)/upstream-tokio-smoke/tokio-smoke
 $(UPSTREAM_TOKIO_SMOKE_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
-		userland/x86_64-nonos-user.json | $(TARGET_DIR)/.nonos-toolchain.stamp
+		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
 	@echo "Building tokio-smoke runtime gate for NONOS (tokio via mio backend + socket2 shim)..."
 	@cd $(UPSTREAM_TOKIO_SMOKE_SRC) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ))" \
 		$(CARGO) install --path . \
-		--target $(abspath userland/x86_64-nonos-user.json) \
+		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
 		-Zbuild-std=std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
 		--root $(abspath $(TARGET_DIR)/upstream-tokio-smoke) --no-track --force --bin tokio-smoke
 	@cp $(TARGET_DIR)/upstream-tokio-smoke/bin/tokio-smoke $@
@@ -293,9 +394,51 @@ $(UPSTREAM_TOKIO_SMOKE_BIN): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
 .PHONY: nonos-mk-upstream-tokio-smoke
 nonos-mk-upstream-tokio-smoke: $(UPSTREAM_TOKIO_SMOKE_BIN)
 
-$(CAPSULE_SIGN_BIN):
+# Installed crates.io command-line tools, cross-compiled unmodified for
+# x86_64-nonos from the byte-identical source vendored under upstream-src (cargo
+# only honors [patch] for path builds, so shimmed crates must build with --path).
+# Each tool's Capsule.mk consumes target/upstream-<bin>/bin/<bin>; this template
+# is the one rule that builds it, so adding a tool is a name in NONOS_TOOL_BINS
+# plus its `nonos-app add`, not a new recipe. getrandom-backed tools take the
+# RDRAND backend, which nonos x86_64 always has.
+NONOS_TOOL_BINS := grex dotenv-linter pastel jsonxf tokei huniq csview
+
+# Default is to strip default features (they pull unix-only or update-check
+# extras nonos does not want). grex and tokei gate their binary behind a `cli`
+# feature, so those two re-enable it. Per-tool overrides live in <bin>_CARGO_FEATURES.
+NONOS_TOOL_FEATURES_DEFAULT := --no-default-features
+grex_CARGO_FEATURES  := --no-default-features --features cli
+tokei_CARGO_FEATURES := --no-default-features --features cli
+
+define nonos_upstream_tool_rule
+$(TARGET_DIR)/upstream-$(1)/bin/$(1): $(NONOS_RT_OBJ) $(NONOS_STD_PAL_STAMP) \
+		userland/$(NONOS_USER_TARGET).json | $(TARGET_DIR)/.nonos-toolchain.stamp
+	@echo "Building upstream $(1) for NONOS (unmodified crates.io source)..."
+	@cd userland/upstream-src/$(1) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
+		RUSTFLAGS="-Clink-arg=$(abspath $(NONOS_RT_OBJ)) --cfg getrandom_backend=\"rdrand\"" \
+		$(CARGO) install --path . $(or $($(1)_CARGO_FEATURES),$(NONOS_TOOL_FEATURES_DEFAULT)) \
+		--target $(abspath userland/$(NONOS_USER_TARGET).json) \
+		-Zbuild-std=std,panic_abort -Zbuild-std-features=compiler-builtins-mem \
+		--root $(abspath $(TARGET_DIR)/upstream-$(1)) --no-track --force --bin $(1)
+endef
+$(foreach t,$(NONOS_TOOL_BINS),$(eval $(call nonos_upstream_tool_rule,$(t))))
+
+.PHONY: nonos-mk-upstream-tools
+nonos-mk-upstream-tools: $(foreach t,$(NONOS_TOOL_BINS),$(TARGET_DIR)/upstream-$(t)/bin/$(t))
+
+# Real source prerequisites, same shape as BOOTLOADER_SRCS: a restored
+# cache can hand back a stale binary, and a bare file target would then
+# never consult cargo again, so a submodule bump never reached the tool.
+CAPSULE_SIGN_SRCS := $(shell find nonos-sign/src -type f -name '*.rs' 2>/dev/null) \
+                     nonos-sign/Cargo.toml nonos-sign/Cargo.lock
+$(CAPSULE_SIGN_BIN): $(CAPSULE_SIGN_SRCS)
 	@echo "Building capsule-sign host tool..."
 	@cd nonos-sign && cargo build --release --bin capsule-sign
+
+NONOS_PACK_BIN := tools/nonos-pack/target/release/nonos-pack
+$(NONOS_PACK_BIN):
+	@echo "Building nonos-pack host tool..."
+	@cd tools/nonos-pack && cargo build --release --bin nonos-pack
 
 .PHONY: nonos-mk-host-trust-elfs
 nonos-mk-host-trust-elfs: $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB) \
@@ -318,10 +461,39 @@ nonos-mk-check-trust-manifest:
 	@echo "Verifying baked trust artifact SHA-256 ledger..."
 	@cd $(NONOS_TRUST_DIR) && $(SHA256) -c MANIFEST.sha256
 
+# Re-stamp the ledger over the current trust tree. A local rebuild legitimately
+# regenerates trailers and signatures (STARK grinding is randomized), so the
+# build refreshes the ledger it will then verify against; publishing commits
+# the refreshed ledger, and from that point the check pins the shipped set.
+# Deterministic order, so two stamps of one tree are byte-identical.
+.PHONY: nonos-mk-trust-ledger
+nonos-mk-trust-ledger:
+	@cd $(NONOS_TRUST_DIR) && \
+		find capsules keys policy zk -type f ! -name MANIFEST.sha256 2>/dev/null \
+		| LC_ALL=C sort | xargs $(SHA256) > MANIFEST.sha256
+	@echo "Trust ledger re-stamped over $$(wc -l < $(NONOS_TRUST_DIR)/MANIFEST.sha256 | tr -d ' ') artifacts."
+
 nonos-mk-verify-trust: nonos-mk-desktop-gui-prod
 	@$(MAKE) nonos-mk-host-trust-verify
 	@$(MAKE) nonos-mk-check-trust-manifest
 
+# Nothing signs in a reuse build, so no seed is required to exist.
+ifeq ($(NONOS_TRUST_REUSE),1)
+# The about and settings capsules bake a commit id at compile time. The
+# enrolled binaries carry the commit the enrollment builder ran on, so a
+# verifying rebuild at any later commit must pin the same value or drift
+# by exactly that embedded string. The keystore records it at enrollment.
+NONOS_ENROLLED_COMMIT := $(strip $(shell cat nonos-data/trust/COMMIT 2>/dev/null))
+ifneq ($(NONOS_ENROLLED_COMMIT),)
+export NONOS_BUILD_SHA := $(NONOS_ENROLLED_COMMIT)
+endif
+
+nonos-mk-check-trust-keys:
+	@true
+
+$(NONOS_TRUST_ANCHOR_POLICY_BIN):
+	@test -f $@ || { echo "::error::$@ is not committed; a reuse build cannot seal it"; exit 1; }
+else
 nonos-mk-check-trust-keys:
 	@for f in $(NONOS_TA_ED25519_SEED) $(NONOS_TA_ED25519_PUB) \
 	          $(NONOS_TA_MLDSA65_SEED) $(NONOS_TA_MLDSA65_PUB); do \
@@ -340,6 +512,7 @@ $(NONOS_TRUST_ANCHOR_POLICY_BIN): $(NONOS_TA_ED25519_PUB) $(NONOS_TA_MLDSA65_PUB
 		--valid-from-ms  $(NONOS_CERT_VALID_FROM_MS) \
 		--valid-until-ms $(NONOS_CERT_VALID_UNTIL_MS) \
 		--out $@
+endif
 
 nonos-mk-trust-policy: $(NONOS_TRUST_ANCHOR_POLICY_BIN)
 
@@ -354,6 +527,16 @@ include userland/capsule_proof_io/Capsule.mk
 include userland/capsule_std_proof/Capsule.mk
 include userland/capsule_ripgrep/Capsule.mk
 include userland/capsule_sd/Capsule.mk
+ifneq ($(wildcard userland/capsule_flacprobe/Capsule.mk),)
+  include userland/capsule_flacprobe/Capsule.mk
+endif
+include userland/capsule_csview/Capsule.mk
+include userland/capsule_huniq/Capsule.mk
+include userland/capsule_tokei/Capsule.mk
+include userland/capsule_jsonxf/Capsule.mk
+include userland/capsule_pastel/Capsule.mk
+include userland/capsule_dotenv-linter/Capsule.mk
+include userland/capsule_grex/Capsule.mk
 include userland/capsule_tokio_smoke/Capsule.mk
 include userland/capsule_ramfs/Capsule.mk
 include userland/capsule_keyring/Capsule.mk
@@ -368,11 +551,17 @@ include userland/capsule_wm/Capsule.mk
 include userland/capsule_desktop_shell/Capsule.mk
 include userland/capsule_image_codec/Capsule.mk
 include userland/capsule_image_viewer/Capsule.mk
+include userland/capsule_video_player/Capsule.mk
 include userland/capsule_clipboard/Capsule.mk
 include userland/capsule_login/Capsule.mk
 include userland/toolkit/Capsule.mk
 include userland/capsule_about/Capsule.mk
 include userland/capsule_hello/Capsule.mk
+include userland/capsule_gui_demo/Capsule.mk
+include userland/capsule_game_2048/Capsule.mk
+include userland/capsule_egui_proof/Capsule.mk
+include userland/capsule_mdview/Capsule.mk
+include userland/capsule_qrgen/Capsule.mk
 include userland/capsule_boot_splash/Capsule.mk
 include userland/capsule_calculator/Capsule.mk
 include userland/capsule_clock/Capsule.mk
@@ -407,6 +596,8 @@ include userland/capsule_driver_rtl8139/Capsule.mk
 include userland/capsule_driver_rtl8169/Capsule.mk
 include userland/capsule_driver_ahci/Capsule.mk
 include userland/capsule_driver_hda/Capsule.mk
+include userland/capsule_audio/Capsule.mk
+include userland/capsule_audio_player/Capsule.mk
 include userland/capsule_driver_nvme/Capsule.mk
 include userland/capsule_net_l2/Capsule.mk
 include userland/capsule_net_core/Capsule.mk
@@ -418,6 +609,7 @@ include userland/capsule_net_dns/Capsule.mk
 include userland/capsule_net_ntp/Capsule.mk
 include userland/capsule_net_sockets/Capsule.mk
 include userland/capsule_net_nym/Capsule.mk
+include userland/capsule_socks5/Capsule.mk
 include userland/capsule_wallpaper/Capsule.mk
 include userland/capsule_attest/Capsule.mk
 include userland/capsule_power/Capsule.mk
@@ -441,16 +633,44 @@ $(ZK_CAPSULE_LABELS): $(NONOS_VERIFIED_CAPSULE_MKS) Makefile
 # depends each trailer on this rule, so building any capsule's artifacts
 # triggers the single enrollment. This replaces the curve enrolled-secret
 # pipeline, which was not post-quantum.
+# Which capsules go under the root. Every verified capsule by default, which
+# is what an x86_64 image ships. A target that cannot build the whole set
+# narrows this to what it does ship, since enrolling a capsule means measuring
+# a binary that has to exist for that architecture.
+NONOS_ENROLLED_CAPSULES ?= $(NONOS_VERIFIED_CAPSULES)
+
+# A reuse build never re-enrolls: the committed root and trailers are
+# the enrolled truth, and the per-capsule manifest checks already pin
+# every fresh ELF to its enrolled measurement. Re-running the grinder
+# here would replace owner-enrolled artifacts with pipeline ones.
+ifeq ($(NONOS_TRUST_REUSE),1)
+$(ZK_CAPSULE_ROOT):
+	@test -f $@ || { echo "::error::$@ is not committed; a reuse build cannot enroll"; exit 1; }
+else
 $(ZK_CAPSULE_ROOT): $(NONOS_STARK_ENROLL) \
-		$(foreach s,$(NONOS_VERIFIED_CAPSULES),$($(s)_BIN) $($(s)_MANIFEST))
-	@echo "Enrolling $(words $(NONOS_VERIFIED_CAPSULES)) capsules under one transparent STARK policy root..."
+		$(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_BIN) $($(s)_MANIFEST))
+	@echo "Enrolling $(words $(NONOS_ENROLLED_CAPSULES)) capsules under one transparent STARK policy root..."
 	@mkdir -p $(dir $(ZK_CAPSULE_ROOT)) $(NONOS_BAKED_TRUST_DIR)/capsules
 	@$(NONOS_STARK_ENROLL) capsules $(ZK_CAPSULE_ROOT) \
-		$(foreach s,$(NONOS_VERIFIED_CAPSULES),$($(s)_REQUIRED_CAPS):$($(s)_BIN):$($(s)_ATTESTATION))
+		$(foreach s,$(NONOS_ENROLLED_CAPSULES),$($(s)_REQUIRED_CAPS):$($(s)_BIN):$($(s)_ATTESTATION))
+endif
 
 .PHONY: nonos-mk-stark-enroll-capsules
 nonos-mk-stark-enroll-capsules: $(ZK_CAPSULE_ROOT)
 	@echo "Enrolled the capsule set under the STARK policy root $(ZK_CAPSULE_ROOT)"
+
+# Every verified capsule binary, the exact set the trust chain covers.
+# The enrollment builder uses this so no capsule can be silently absent
+# from what gets enrolled; the hand-listed host-trust subset is not it.
+.PHONY: nonos-mk-verified-elfs
+nonos-mk-verified-elfs: $(foreach s,$(NONOS_VERIFIED_CAPSULES),$($(s)_BIN))
+	@echo "Built $(words $(NONOS_VERIFIED_CAPSULES)) verified capsule binaries."
+
+# One capsule binary path per line, for tooling that mirrors the set:
+# the enrollment builder packages exactly this list, nothing inferred.
+.PHONY: nonos-mk-print-verified-bins
+nonos-mk-print-verified-bins:
+	@$(foreach s,$(NONOS_VERIFIED_CAPSULES),echo $($(s)_BIN);)
 
 nonos-mk-all-capsules-attested: $(NONOS_VERIFIED_ARTIFACTS)
 	@echo "Signed and attested $(words $(NONOS_VERIFIED_CAPSULES)) included capsules."
@@ -459,13 +679,46 @@ nonos-mk-all-capsules-attested: $(NONOS_VERIFIED_ARTIFACTS)
 # trailer. The bootloader embeds the root (NONOS_KERNEL_ATTEST_ROOT) and verifies
 # the trailer, carried in the kernel image footer, before jumping. The tool
 # re-checks the trailer against the same verifier the bootloader runs.
-$(KERNEL_ATTEST_ROOT_BIN) $(KERNEL_ATTEST_TRAILER): $(KERNEL_ATTEST_ELF) $(NONOS_STARK_ENROLL)
+# One rule, one run. A multi-target rule executes its recipe once per demanded
+# target, so under -j the root and the trailer were enrolled by two concurrent
+# processes writing the same files, and the interleaved trailer verified
+# against nothing. The stamp makes the enrollment a single grouped step the
+# portable way (macOS ships make 3.81, which has no `&:` grouped targets).
+KERNEL_ATTEST_STAMP := $(TARGET_DIR)/kernel-attest/.enrolled
+$(KERNEL_ATTEST_STAMP): $(KERNEL_ATTEST_ELF) $(NONOS_STARK_ENROLL)
 	@echo "Enrolling the kernel self-attestation..."
 	@mkdir -p $(dir $(KERNEL_ATTEST_ROOT_BIN)) $(dir $(KERNEL_ATTEST_TRAILER))
-	@$(NONOS_STARK_ENROLL) kernel $(KERNEL_ATTEST_ELF) \
+	@# Snapshot first, enroll the snapshot: the loose ELF path is shared by
+	@# several kernel profiles and can be relinked mid-build, so the proof is
+	@# issued over frozen bytes, verify-kernel runs against the same frozen
+	@# bytes, and the receipt ties them to kernel_attested.bin by byte prefix.
+	@cp $(KERNEL_ATTEST_ELF) $(dir $(KERNEL_ATTEST_TRAILER))kernel.enrolled.elf
+	@$(NONOS_STARK_ENROLL) kernel $(dir $(KERNEL_ATTEST_TRAILER))kernel.enrolled.elf \
 		$(KERNEL_ATTEST_ROOT_BIN) $(KERNEL_ATTEST_TRAILER)
+	@touch $@
 
-nonos-mk-kernel-attest: $(KERNEL_ATTEST_ROOT_BIN) $(KERNEL_ATTEST_TRAILER)
+# With the attest gate on, the loader bakes the root that enrollment
+# produces, so a fresh tree must enroll before the loader compiles;
+# under -j the two otherwise race and the loader's build script
+# refuses, correctly. Gate off, a standalone loader build stays free
+# of any enrollment. Declared here because the stamp path is assigned
+# just above; earlier in the file it would expand empty and bind
+# nothing.
+ifeq ($(NONOS_STARK_KERNEL_ATTEST_ON),1)
+$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi: $(KERNEL_ATTEST_STAMP)
+endif
+
+# The stamp says enrollment ran; the byproducts live in two directories with
+# more than one historical cleaner. If either file is gone the stamp is stale
+# by definition, so invalidate it and re-drive rather than trust it.
+.PHONY: nonos-mk-kernel-attest-ensure
+nonos-mk-kernel-attest-ensure:
+	@if [ ! -f "$(KERNEL_ATTEST_ROOT_BIN)" ] || [ ! -f "$(KERNEL_ATTEST_TRAILER)" ]; then \
+		rm -f $(KERNEL_ATTEST_STAMP); \
+	fi
+	@$(MAKE) --no-print-directory $(KERNEL_ATTEST_STAMP)
+
+nonos-mk-kernel-attest: $(KERNEL_ATTEST_STAMP)
 	@echo "Kernel self-attestation enrolled: root $(KERNEL_ATTEST_ROOT_BIN)"
 
 NONOS_DESKTOP_GUI_CAPSULE_CHECKS = \
@@ -493,13 +746,13 @@ nonos-mk-verify-desktop-gui-capsules: $(NONOS_DESKTOP_GUI_CAPSULE_CHECKS)
 
 WALLPAPER_BIN := $(wallpaper_BIN)
 
-MARKETPLACE_ABI_LIB := $(USERLAND_DIR)/marketplace_abi/target/x86_64-nonos-user/release/libnonos_marketplace_abi.rlib
+MARKETPLACE_ABI_LIB := $(USERLAND_DIR)/marketplace_abi/target/$(NONOS_USER_TARGET)/release/libnonos_marketplace_abi.rlib
 
 $(MARKETPLACE_ABI_LIB):
 	@echo "Building marketplace ABI rlib..."
 	@cd $(USERLAND_DIR)/marketplace_abi && \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		$(CARGO) build --release --target ../$(NONOS_USER_TARGET).json \
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
 nonos-mk-marketplace-abi: $(MARKETPLACE_ABI_LIB)
@@ -519,7 +772,7 @@ nonos-mk-market-smoke: $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB)
 	@echo "Building marketplace capsule (smoketest-trust)..."
 	@cd $(USERLAND_DIR)/capsule_market && \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
-		$(CARGO) build --release --target ../x86_64-nonos-user.json \
+		$(CARGO) build --release --target ../$(NONOS_USER_TARGET).json \
 		--features smoketest-trust \
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
@@ -579,6 +832,9 @@ nonos-mk-userland-clean:
 KERNEL_BUILD_FLAGS := --release --target x86_64-nonos.json \
 		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
 
+ARM_KERNEL_BUILD_FLAGS := --release --target aarch64-nonos.json \
+		-Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
+
 KERNEL_SIGNING_KEY = $(if $(filter /%,$(SIGNING_KEY)),$(SIGNING_KEY),$(shell pwd)/$(SIGNING_KEY))
 
 # nonos_kernel_build: compile the kernel with one cargo feature set. Every
@@ -596,7 +852,14 @@ endef
 # Kernel ELF artefact rule, no-features default (resolves to
 # microkernel-core via Cargo.toml). Phony deps stay off this rule so a
 # chain walk does not invalidate kernels built with a feature variant.
-$(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: $(SIGNING_KEY)
+#
+# The signing key is an order-only prerequisite for the same reason. A rotated
+# key is newer than the kernel ELF, and as a normal prerequisite that rebuilt
+# this featureless kernel over the same output path a feature variant writes.
+# The signer then dual-signed and attested a microkernel-core image while the
+# log still said microkernel-full-gui. The key has to exist; its age says
+# nothing about whether this ELF is current.
+$(TARGET_DIR)/x86_64-nonos/release/nonos-kernel: | $(SIGNING_KEY)
 	@echo "Building kernel (default = microkernel-core)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
@@ -608,6 +871,79 @@ nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) check $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-core
+
+# A note on aarch64-nonos.json, which cannot carry comments of its own: the cpu
+# stays "generic" so codegen targets ARMv8.0, and the feature bits only let the
+# assembler accept the mnemonics the kernel writes by hand: pointer authentication,
+# the speculation barriers, memory tagging (gcr_el1) and the v8.5 RNG (rndr). Named
+# one by one rather than as an architecture version, because +v8.5a would also let
+# LLVM emit v8.5 instructions into ordinary code and those fault on a Cortex-A72.
+# Every one of these is reached through a runtime ID register check, so a single
+# binary runs on a Pi and still uses tagging and PAC on an Apple M-series.
+#
+# Build the aarch64 kernel. PATH puts the rustup shims first because a Homebrew
+# rustc on /usr/local/bin shadows them and then rejects the -Z flags with a
+# confusing "only accepted on the nightly compiler".
+.PHONY: nonos-mk-arm nonos-mk-arm-bench nonos-mk-bench-micro nonos-mk-arm-run nonos-mk-arm-gui nonos-mk-arm-gui-capsules nonos-mk-arm-gui-run
+nonos-mk-arm: nonos-mk-ensure-signing-key
+	@echo "Building kernel (aarch64, microkernel-core + nonos-arch-preview)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) PATH="$(HOME)/.cargo/bin:$$PATH" \
+		$(CARGO) build $(ARM_KERNEL_BUILD_FLAGS) \
+		--no-default-features --features microkernel-core$(_boot_comma)nonos-arch-preview
+
+# Boot the aarch64 kernel under QEMU. Every flag here is load bearing.
+#
+#   gic-version=3   virt defaults to a GICv2, and the kernel drives a v3. Without
+#                   this the redistributor is not there and the first access to it
+#                   aborts.
+#   -cpu max        advertises the optional features, so the paths guarded by an
+#                   ID register check are the ones that actually run. It is the
+#                   closer proxy for a Neoverse or an M series part than a72 is,
+#                   and it is what caught the MTE and SVE gaps.
+#   virtio-rng-pci  the RNG refuses to seed from nothing, so without an entropy
+#                   source the boot stops at init_rng and says so.
+#
+# QEMU passes no device tree when it boots an ELF, so x0 arrives as zero and the
+# board facts come from the defaults in BootInfo. That path is what this target
+# exercises; a device tree boot needs an Image-format target instead.
+ARM_QEMU_FLAGS := -M virt,gic-version=3 -cpu max -m 512 -nographic \
+		-serial mon:stdio -device virtio-rng-pci
+
+# Build with the in-kernel microbenchmarks compiled in and boot far enough to
+# print them. The numbers are cycle counts from the kernel's own paths, so they
+# belong to this image and this machine, not to a marketing table.
+nonos-mk-arm-bench: nonos-mk-ensure-signing-key
+	@echo "Building kernel (aarch64, microkernel-core + nonos-bench-micro)..."
+	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) PATH="$(HOME)/.cargo/bin:$$PATH" \
+		$(CARGO) build $(ARM_KERNEL_BUILD_FLAGS) \
+		--no-default-features \
+		--features microkernel-core$(_boot_comma)nonos-arch-preview$(_boot_comma)nonos-bench-micro
+
+# The same measurement image for x86_64. The kernel paths under test are the
+# shared ones, so the two runs are comparable and the difference between them
+# is the architecture rather than the build.
+nonos-mk-bench-micro: nonos-mk-check-deps nonos-mk-ensure-signing-key
+	$(call nonos_kernel_build,microkernel-core + nonos-bench-micro,microkernel-core$(_boot_comma)nonos-bench-micro)
+
+nonos-mk-arm-run: nonos-mk-arm
+	@echo "Booting aarch64 kernel under QEMU (ctrl-a x to quit)..."
+	@qemu-system-aarch64 $(ARM_QEMU_FLAGS) \
+		-kernel $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel
+
+# The desktop needs a framebuffer, so this swaps -nographic for a virtio-gpu and
+# keeps the serial log on the terminal. virt has no VGA to fall back on: without
+# a display device the compositor has nothing to draw into.
+ARM_GUI_QEMU_FLAGS := -M virt,gic-version=3 -cpu max -m 2048 \
+		-device virtio-gpu-pci -device virtio-keyboard-pci \
+		-device virtio-tablet-pci -device virtio-rng-pci \
+		-serial mon:stdio
+
+nonos-mk-arm-gui-run: nonos-mk-arm-gui
+	@echo "Booting aarch64 desktop under QEMU..."
+	@qemu-system-aarch64 $(ARM_GUI_QEMU_FLAGS) \
+		-kernel $(TARGET_DIR)/aarch64-nonos/release/nonos-kernel
 
 nonos-mk-core: nonos-mk-check-deps nonos-mk-ensure-signing-key
 	$(call nonos_kernel_build,microkernel-core,microkernel-core)
@@ -715,6 +1051,60 @@ nonos-mk-image-viewer-test: $(proof-io_ARTIFACTS) \
 	@$(MAKE) -B image-viewer_CARGO_FEATURES=nonos-image-viewer-smoketest nonos-mk-image-viewer-sign
 	$(call nonos_kernel_build,microkernel-image-viewer-smoketest,microkernel-image-viewer-smoketest)
 
+nonos-mk-video-player-test: $(proof-io_ARTIFACTS) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building video_player capsule (nonos-video-player-smoketest)..."
+	@$(MAKE) -B video-player_CARGO_FEATURES=nonos-video-player-smoketest nonos-mk-video-player-sign
+	$(call nonos_kernel_build,microkernel-video-player-smoketest,microkernel-video-player-smoketest)
+
+nonos-mk-driver-hda-smoketest-test: $(proof-io_ARTIFACTS) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building kernel (microkernel-driver-hda-smoketest)..."
+	@$(MAKE) -B driver-hda_CARGO_FEATURES=nonos-driver-hda-smoketest nonos-mk-driver-hda-sign
+	@$(MAKE) nonos-mk-audio-sign
+	@$(MAKE) nonos-mk-stark-enroll-capsules
+	$(call nonos_kernel_build,microkernel-driver-hda-smoketest + nonos-stark-attest,microkernel-driver-hda-smoketest$(_boot_comma)nonos-stark-attest)
+
+# Dev fast-path for driver-hda iterations. Depends on the capsules' _MANIFEST
+# (which pulls _BIN + _CERT) but deliberately NOT their _ATTESTATION, so a
+# changed capsule ELF does not pull $(ZK_CAPSULE_ROOT) and re-trigger the
+# ~11min STARK enrollment. The kernel is built with nonos-stark-attest +
+# nonos-zk-rollout: it still runs the real attest verify against whatever
+# (now stale) trailer is embedded, but a mismatch is logged, not fatal.
+# nonos-zk-rollout is compile_error-exclusive with nonos-production, so this
+# can never leak into a ship build. Select it with
+# HDA_BUILD_TARGET=nonos-mk-driver-hda-smoketest-dev-test.
+nonos-mk-driver-hda-smoketest-dev-test: $(proof-io_MANIFEST) $(audio_MANIFEST) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building driver-hda capsule (nonos-driver-hda-smoketest feature)..."
+	@$(MAKE) -B driver-hda_CARGO_FEATURES=nonos-driver-hda-smoketest nonos-mk-driver-hda-sign
+	@echo "Building kernel (microkernel-driver-hda-smoketest, zk-rollout; no enroll)..."
+	$(call nonos_kernel_build,microkernel-driver-hda-smoketest + nonos-zk-rollout,microkernel-driver-hda-smoketest$(_boot_comma)nonos-stark-attest$(_boot_comma)nonos-zk-rollout)
+
+nonos-mk-audio-player-smoketest-test: $(proof-io_ARTIFACTS) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building capsules (audio-player smoketest)..."
+	@$(MAKE) -B audio_player_CARGO_FEATURES=nonos-audio-player-smoketest vfs_CARGO_FEATURES=seed-audio-store \
+		nonos-mk-audio_player-sign nonos-mk-vfs-sign
+	@$(MAKE) nonos-mk-driver-hda-sign
+	@$(MAKE) nonos-mk-audio-sign
+	@$(MAKE) nonos-mk-stark-enroll-capsules
+	$(call nonos_kernel_build,microkernel-audio-player-smoketest + nonos-stark-attest,microkernel-audio-player-smoketest$(_boot_comma)nonos-stark-attest)
+
+# Dev fast-path for audio-player iterations. See the driver-hda dev-test note:
+# depends on _MANIFEST (not _ATTESTATION) so a changed capsule ELF does not pull
+# $(ZK_CAPSULE_ROOT) and re-trigger the ~11min STARK enrollment. The kernel runs
+# the real attest verify but a mismatch is logged, not fatal (nonos-zk-rollout,
+# compile_error-exclusive with nonos-production so it can never leak into a ship
+# build). vfs is rebuilt with seed-audio-store so the boot WAV is present.
+nonos-mk-audio-player-smoketest-dev-test: $(proof-io_MANIFEST) $(audio_MANIFEST) $(driver-hda_MANIFEST) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@echo "Building capsules (audio-player smoketest, dev; no enroll)..."
+	@$(MAKE) -B audio_player_CARGO_FEATURES=nonos-audio-player-smoketest vfs_CARGO_FEATURES=seed-audio-store \
+		nonos-mk-audio_player-sign nonos-mk-vfs-sign
+	@echo "Building kernel (microkernel-audio-player-smoketest, zk-rollout; no enroll)..."
+	$(call nonos_kernel_build,microkernel-audio-player-smoketest + nonos-zk-rollout,microkernel-audio-player-smoketest$(_boot_comma)nonos-stark-attest$(_boot_comma)nonos-zk-rollout)
+
 # nonos-mk-desktop-gui-prod: the QEMU-bootable profile. This is NOT just a lighter
 # cut of zerostate; it deliberately excludes the real-hardware driver capsules
 # (iwlwifi, rtl8821ce, rtl8169, e1000, rtl8139, ahci, hda, nvme, usb-msc, i2c)
@@ -722,33 +1112,102 @@ nonos-mk-image-viewer-test: $(proof-io_ARTIFACTS) \
 # absent. The runtime, debug, and benchmark boot targets use this so a QEMU boot
 # reaches the ready marker. The full hardware image is nonos-mk-zerostate, which
 # is what ships and what the ISO carries; do not fold this into it.
-nonos-mk-desktop-gui-prod: $(proof-io_ARTIFACTS) \
-		$(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) $(sd_ARTIFACTS) \
-		$(tokio-smoke_ARTIFACTS) $(ramfs_ARTIFACTS) \
-		$(keyring_ARTIFACTS) $(entropy_ARTIFACTS) $(crypto_ARTIFACTS) \
-		$(vfs_ARTIFACTS) $(driver-virtio-rng_ARTIFACTS) \
-		$(driver-virtio-blk_ARTIFACTS) $(driver-virtio-gpu_ARTIFACTS) \
-		$(driver-virtio-net_ARTIFACTS) $(driver-ps2-input_ARTIFACTS) \
-		$(driver-xhci_ARTIFACTS) $(driver-usb-hid_ARTIFACTS) \
-		$(net-core_ARTIFACTS) \
-		$(net-sockets_ARTIFACTS) $(net-nym_ARTIFACTS) \
-		$(policy_ARTIFACTS) $(wallpaper_catalog_ARTIFACTS) \
-		$(installer_ARTIFACTS) \
-		$(input-router_ARTIFACTS) $(compositor_ARTIFACTS) \
-		$(wm_ARTIFACTS) $(desktop-shell_ARTIFACTS) \
-		$(image-codec_ARTIFACTS) $(image-viewer_ARTIFACTS) $(clipboard_ARTIFACTS) \
-		$(login_ARTIFACTS) $(wallpaper_ARTIFACTS) \
-		$(toolkit_ARTIFACTS) $(about_ARTIFACTS) $(boot-splash_ARTIFACTS) \
-		$(calculator_ARTIFACTS) $(clock_ARTIFACTS) $(browser_ARTIFACTS) \
-		$(snake_ARTIFACTS) \
-		$(wallet-nonos_ARTIFACTS) $(terminal_ARTIFACTS) \
-		$(file-manager_ARTIFACTS) $(text-editor_ARTIFACTS) \
-		$(settings_ARTIFACTS) $(process-manager_ARTIFACTS) \
-		$(attest_ARTIFACTS) $(power_ARTIFACTS) \
-		$(ZK_POLICY_ROOT) \
+# The capsules that link against the std platform layer. That layer issues
+# syscalls with raw x86_64 registers, so these do not cross-compile to aarch64
+# yet and are kept separate from the base set.
+# tokio-smoke is deliberately absent. It is the async runtime gate: a timer
+# raced against an idle accept, forever, to prove the mio waker self-wakes.
+# That is a test, and in the desktop image it held a steady share of a core for
+# the life of the session while the services a desktop needs went hungry. The
+# `microkernel-desktop-gui-async-gate` profile builds it.
+DESKTOP_STD_TOOL_ARTIFACTS := $(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) \
+		$(sd_ARTIFACTS) \
+		$(flacprobe_ARTIFACTS) \
+		$(csview_ARTIFACTS) \
+		$(huniq_ARTIFACTS) \
+		$(tokei_ARTIFACTS) \
+		$(jsonxf_ARTIFACTS) \
+		$(pastel_ARTIFACTS) \
+		$(dotenv-linter_ARTIFACTS) \
+		$(grex_ARTIFACTS)
+
+# Named by slug so the two flavours below stay in step. A capsule's
+# `_ARTIFACTS` includes its STARK attestation trailer, and generating one
+# enrols every capsule in the policy root, tool capsules included.
+DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
+		driver-virtio-rng driver-virtio-blk driver-virtio-gpu \
+		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid \
+		net-core net-sockets net-nym socks5 policy wallpaper_catalog \
+		installer input-router compositor wm desktop-shell image-codec \
+		clipboard login wallpaper toolkit about boot-splash calculator \
+		browser wallet-nonos terminal file-manager text-editor \
+		settings process-manager attest power \
+		audio driver-hda audio_player video-player
+
+DESKTOP_BASE_CAPSULE_ARTIFACTS := \
+		$(foreach s,$(DESKTOP_BASE_SLUGS),$($(s)_ARTIFACTS))
+
+# The same capsules signed, without the attestation trailer. A profile built
+# without the STARK spawn gate never reads one, and depending on it would drag
+# the whole enrolment in.
+DESKTOP_BASE_SIGNED_ARTIFACTS := \
+		$(foreach s,$(DESKTOP_BASE_SLUGS),$($(s)_BIN) $($(s)_CERT) $($(s)_MANIFEST))
+
+# The policy root enrols every capsule the STARK spawn gate will admit, tool
+# capsules included, so it belongs with the profile that compiles that gate in.
+DESKTOP_GUI_CAPSULE_ARTIFACTS := $(DESKTOP_BASE_CAPSULE_ARTIFACTS) \
+		$(DESKTOP_STD_TOOL_ARTIFACTS) \
+		$(ZK_POLICY_ROOT)
+
+nonos-mk-desktop-gui-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	$(call nonos_kernel_build,microkernel-desktop-gui + nonos-stark-attest,microkernel-desktop-gui$(_boot_comma)nonos-stark-attest)
+
+# nonos-mk-smp-prod: the desktop profile with the secondary CPUs turned on.
+# Same capsule set and the same attestation, so a difference between this boot
+# and the single-CPU one is the AP bring-up and nothing else.
+nonos-mk-smp-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) \
+		nonos-mk-verify-desktop-gui-capsules \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	$(call nonos_kernel_build,microkernel-desktop-gui + nonos-smp,microkernel-desktop-gui$(_boot_comma)nonos-stark-attest$(_boot_comma)nonos-smp)
+
+# The fast loop. Proving is a release cost, never an iteration cost: the policy
+# tree commits to the whole capsule set, so one changed capsule re-proves all of
+# them (~10 minutes of STARK grinding), which no edit-compile-boot loop should
+# ever pay. This target builds and signs exactly what changed and the kernel in
+# rollout mode (`nonos-zk-rollout`: a stale proof is logged at spawn, not
+# fatal), reusing the trailers already on disk. Signing still runs, capability
+# checks still run; only the membership proofs are allowed to be stale, and the
+# boot log says so on every spawn. `make` remains the only path that proves.
+.PHONY: nonos-mk-dev
+nonos-mk-dev: $(filter-out %.zk_trailer.bin,$(DESKTOP_GUI_CAPSULE_ARTIFACTS)) \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@ls $(NONOS_BAKED_TRUST_DIR)/capsules/*.zk_trailer.bin >/dev/null 2>&1 || { \
+		echo "no trailers on disk yet; run 'make' once so dev builds have proofs to carry"; exit 1; }
+	@echo "DEV BUILD: membership proofs may be stale by design; 'make' is the proving path."
+	$(call nonos_kernel_build,microkernel-desktop-gui + rollout (DEV),microkernel-desktop-gui$(_boot_comma)nonos-stark-attest$(_boot_comma)nonos-zk-rollout)
+	@$(MAKE) --no-print-directory nonos-mk-esp
+	@echo "Dev image ready: make dev-qemu boots it."
+
+# The desktop for aarch64. The capsule pass runs as a sub-make so
+# NONOS_USER_TARGET reaches the artefact paths, which are expanded when the
+# rules are read and so cannot be redirected by a target-specific variable.
+# Signing runs over the aarch64 ELFs, and the certificates it writes land in
+# the shared trust directory, so an x86_64 image built earlier needs its own
+# capsule pass again before it will boot.
+nonos-mk-arm-gui-capsules: $(DESKTOP_BASE_SIGNED_ARTIFACTS) $(ZK_POLICY_ROOT)
+
+nonos-mk-arm-gui: nonos-mk-check-deps nonos-mk-ensure-signing-key
+	@$(MAKE) NONOS_USER_TARGET=aarch64-nonos-user \
+		NONOS_ENROLLED_CAPSULES="$(DESKTOP_BASE_SLUGS)" nonos-mk-arm-gui-capsules
+	@echo "Building kernel (aarch64, microkernel-desktop-base + nonos-stark-attest)..."
+	@$(SDK_FLAGS) NONOS_USER_TARGET=aarch64-nonos-user \
+		NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) PATH="$(HOME)/.cargo/bin:$$PATH" \
+		$(CARGO) build $(ARM_KERNEL_BUILD_FLAGS) \
+		--no-default-features \
+		--features microkernel-desktop-base$(_boot_comma)nonos-arch-preview$(_boot_comma)nonos-stark-attest
 
 # nonos-mk-zerostate: the canonical NONOS image. The whole ZeroState system in
 # one build: every capsule and driver, the transparent STARK spawn gate
@@ -824,7 +1283,7 @@ ifeq ($(NONOS_STARK_KERNEL_ATTEST),1)
 # Kernel self-attestation: embed the transparent STARK trailer the bootloader
 # verifies against the enrolled kernel root before jump, in place of the curve
 # boot proof. The trailer is bound to the kernel measurement by nonos-stark-enroll.
-$(TARGET_DIR)/kernel_attested.bin: $(TARGET_DIR)/kernel_signed.bin $(EMBED_TOOL) $(KERNEL_ATTEST_TRAILER)
+$(TARGET_DIR)/kernel_attested.bin: $(TARGET_DIR)/kernel_signed.bin $(EMBED_TOOL) $(KERNEL_ATTEST_STAMP)
 	@echo "Embedding kernel STARK self-attestation trailer..."
 	@$(EMBED_TOOL) --input $< --output $@ --proof-file $(KERNEL_ATTEST_TRAILER) --verbose
 else
@@ -876,6 +1335,31 @@ nonos-mk-boot-zk-sidecar: $(ZK_BOOT_SIDECAR)
 nonos-mk-esp: \
 		$(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi \
 		$(TARGET_DIR)/kernel_attested.bin
+	@# Re-drive the whole attested-kernel chain at pack time. Recursive
+	@# sub-makes relink the kernel after this target's prerequisites were
+	@# resolved. If the ELF moved after its self-attestation was enrolled, the
+	@# embedded trailer measures a kernel that no longer exists and the kernel
+	@# refuses to boot. Deleting the enrollment forces it to bind the final
+	@# ELF, then the sign and embed follow; re-statting here cannot be raced by
+	@# an earlier resolution.
+	@# Sequential re-drive. Recursive sub-makes may have relinked the kernel
+	@# after this rule's prerequisites were resolved, so re-stat and re-run the
+	@# chain in order: enrollment binds the final ELF, the bootloader bakes the
+	@# root that enrollment produced, and the embed carries the trailer that
+	@# matches both. One recipe, three ordered steps, no window in which a
+	@# parallel job can observe a half-rebuilt chain; the old approach deleted
+	@# the enrollment here, which shot any bootloader compile already in flight.
+	@# Enrol, then rebuild the bootloader against the root that enrolment
+	@# produced, then embed. Sequenced here rather than as a prerequisite of
+	@# the bootloader: a bootloader built on its own, with the attest gate off
+	@# or with no kernel to enrol, must not be made to demand an enrolment it
+	@# has no way to perform.
+ifeq ($(NONOS_STARK_KERNEL_ATTEST_ON),1)
+	@$(MAKE) --no-print-directory nonos-mk-kernel-attest-ensure
+	@rm -f $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi
+	@$(MAKE) --no-print-directory $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi
+endif
+	@$(MAKE) --no-print-directory $(TARGET_DIR)/kernel_attested.bin
 	@echo "Packaging EFI System Partition..."
 	@mkdir -p $(ESP_DIR)/EFI/Boot $(ESP_DIR)/EFI/nonos
 	@cp $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(ESP_DIR)/EFI/Boot/BOOTX64.EFI

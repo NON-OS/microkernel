@@ -28,6 +28,8 @@ pub enum LauncherIcon {
     Wallet,
     Browser,
     ImageViewer,
+    AudioPlayer,
+    VideoPlayer,
 }
 
 pub struct LauncherApp {
@@ -52,13 +54,9 @@ pub const LAUNCHER_APPS: [LauncherApp; 12] = [
         label: b"Calculator",
         service: b"app.calculator",
     },
-    LauncherApp { icon: LauncherIcon::Clock, label: b"Clock", service: b"app.clock" },
-    LauncherApp { icon: LauncherIcon::Snake, label: b"Snake", service: b"app.snake" },
     LauncherApp { icon: LauncherIcon::Wallet, label: b"Wallet", service: b"app.nonos_wallet" },
     LauncherApp { icon: LauncherIcon::Browser, label: b"Browser", service: b"app.browser" },
-    LauncherApp {
-        icon: LauncherIcon::ImageViewer,
-        label: b"Images",
-        service: b"app.image_viewer",
-    },
+    LauncherApp { icon: LauncherIcon::AudioPlayer, label: b"Music", service: b"app.audio_player" },
+    LauncherApp { icon: LauncherIcon::VideoPlayer, label: b"Video", service: b"app.video_player" },
+    LauncherApp { icon: LauncherIcon::Snake, label: b"Snake", service: b"app.snake" },
 ];

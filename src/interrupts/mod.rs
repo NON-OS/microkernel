@@ -27,7 +27,9 @@ pub mod isr;
 pub mod pic;
 pub mod safety;
 pub mod stats;
-#[cfg(target_arch = "x86_64")]
+// The tick counter and the liveness heartbeat. Whatever raises the interrupt,
+// counting it and noticing when it stops are the same job everywhere, and this
+// module contains no instruction of its own.
 pub mod timer;
 
 pub use allocation::{
@@ -60,10 +62,9 @@ pub use idt::{
 
 #[cfg(target_arch = "x86_64")]
 pub use isr::{
-    irq_keyboard, irq_mouse, irq_syscall, irq_timer, isr_alignment_check, isr_bound_range,
-    isr_breakpoint, isr_debug, isr_device_na, isr_divide_error, isr_double_fault, isr_gpf,
-    isr_invalid_opcode, isr_invalid_tss, isr_machine_check, isr_nmi, isr_overflow, isr_page_fault,
-    isr_segment_not_present, isr_simd_fp, isr_stack_segment_fault, isr_virtualization, isr_x87_fp,
+    irq_timer, isr_alignment_check, isr_bound_range, isr_breakpoint, isr_debug, isr_divide_error,
+    isr_double_fault, isr_invalid_opcode, isr_machine_check, isr_nmi, isr_overflow, isr_page_fault,
+    isr_simd_fp,
 };
 
 #[cfg(target_arch = "x86_64")]
@@ -120,7 +121,9 @@ pub fn get_interrupt_stats() -> InterruptStatsExt {
         ],
     }
 }
-#[cfg(target_arch = "x86_64")]
+
+/// Counts only, read off the tick counter, which every architecture keeps the
+/// same way. Nothing here touches a controller, so there is nothing to gate.
 pub fn get_softirq_stats() -> SoftirqStats {
     SoftirqStats {
         total: timer::tick_count(),

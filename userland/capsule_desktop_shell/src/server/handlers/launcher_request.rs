@@ -18,10 +18,25 @@ use nonos_libc::{mk_ipc_send_to_pid, mk_service_lookup, mk_spawn_instance};
 
 use crate::state::apps::LauncherApp;
 
+/// What a dock-launch click actually did, so the caller can surface it on
+/// screen. `Queued` means the kernel accepted a new-window spawn; `Focused`
+/// means the slot table was full and the running window was raised instead.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum LaunchOutcome {
+    Queued,
+    Focused,
+    Failed,
+}
+
 const CONTROL_LEN: usize = 8;
 const CONTROL_MAGIC: u32 = u32::from_le_bytes(*b"NCTL");
 const CONTROL_VERSION: u16 = 1;
 const OP_FOCUS_SELF: u16 = 1;
+
+// Services that own a single device-backed session, so a second window
+// would fight the first over the same hardware stream rather than give
+// the user anything new.
+const SINGLE_INSTANCE: [&[u8]; 0] = [];
 
 // Clicking a dock app asks the kernel to spawn another attested instance.
 // The kernel queues the request and init performs the spawn in its own
@@ -29,14 +44,38 @@ const OP_FOCUS_SELF: u16 = 1;
 // caller. A click with a free instance slot returns ok and a new window
 // appears a tick later; when every declared slot is live the kernel returns
 // an error and we focus the running instance instead, so a click is never a
-// dead end.
-pub fn request(app: &LauncherApp) -> bool {
-    if mk_spawn_instance(app.service) >= 0 {
-        return true;
+// dead end. Single-instance services skip the spawn and always focus.
+pub fn request(app: &LauncherApp) -> LaunchOutcome {
+    request_service(app.service)
+}
+
+/// Launch, or focus if already running, whatever capsule owns `service`. Used
+/// by both the dock (a desktop app) and the Launchpad (an installed tool).
+pub fn request_service(service: &[u8]) -> LaunchOutcome {
+    if !is_single_instance(service) && mk_spawn_instance(service) >= 0 {
+        return LaunchOutcome::Queued;
     }
-    let Some(pid) = lookup_pid(app.service) else { return false };
+    focus_service(service)
+}
+
+/// Focus whatever already owns `service`, spawning nothing.
+///
+/// The dock uses this when it knows the app is running. Going through
+/// `request_service` spawned a fresh window on every click and left a
+/// minimized one hidden, which made it unreachable: this message is the only
+/// thing that reaches `wm::window_restore`.
+pub fn focus_service(service: &[u8]) -> LaunchOutcome {
+    let Some(pid) = lookup_pid(service) else { return LaunchOutcome::Failed };
     let frame = focus_frame();
-    mk_ipc_send_to_pid(pid, frame.as_ptr(), frame.len()) >= 0
+    if mk_ipc_send_to_pid(pid, frame.as_ptr(), frame.len()) >= 0 {
+        LaunchOutcome::Focused
+    } else {
+        LaunchOutcome::Failed
+    }
+}
+
+fn is_single_instance(service: &[u8]) -> bool {
+    SINGLE_INSTANCE.iter().any(|s| *s == service)
 }
 
 pub(crate) fn lookup_pid(service: &[u8]) -> Option<u32> {
@@ -49,7 +88,7 @@ pub(crate) fn lookup_pid(service: &[u8]) -> Option<u32> {
     Some(pid)
 }
 
-fn focus_frame() -> [u8; CONTROL_LEN] {
+pub(crate) fn focus_frame() -> [u8; CONTROL_LEN] {
     let mut frame = [0u8; CONTROL_LEN];
     frame[0..4].copy_from_slice(&CONTROL_MAGIC.to_le_bytes());
     frame[4..6].copy_from_slice(&CONTROL_VERSION.to_le_bytes());

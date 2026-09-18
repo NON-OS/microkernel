@@ -21,8 +21,13 @@ extern crate alloc;
 
 mod command;
 mod event;
+mod git;
 mod jobs;
+mod layout;
+mod mixnet;
 mod paint;
+mod palette;
+mod rail;
 mod term;
 
 #[cfg(not(feature = "nonos-autorun-selftest"))]

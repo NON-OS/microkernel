@@ -403,7 +403,7 @@ dependencies = [
 
 [[package]]
 name = "nonos-verify"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "blake3",
  "nonos-sign",

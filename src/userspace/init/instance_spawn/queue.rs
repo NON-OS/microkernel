@@ -34,6 +34,32 @@ pub enum PendingApp {
     WalletNonos,
     FileManager,
     ProcessManager,
+    AudioPlayer,
+    VideoPlayer,
+}
+
+impl PendingApp {
+    /// The capsule name behind this request, for the one place it matters: a
+    /// spawn that was refused. The drain used to report the error alone, so a
+    /// dock icon that had quietly stopped opening looked identical on the wire
+    /// to one that had never been clicked.
+    pub(super) fn name(self) -> &'static [u8] {
+        match self {
+            PendingApp::Terminal => b"app.terminal",
+            PendingApp::Browser => b"app.browser",
+            PendingApp::TextEditor => b"app.text_editor",
+            PendingApp::Settings => b"app.settings",
+            PendingApp::Calculator => b"app.calculator",
+            PendingApp::Clock => b"app.clock",
+            PendingApp::About => b"app.about",
+            PendingApp::Snake => b"app.snake",
+            PendingApp::WalletNonos => b"app.nonos_wallet",
+            PendingApp::FileManager => b"app.file_manager",
+            PendingApp::ProcessManager => b"app.process_manager",
+            PendingApp::AudioPlayer => b"app.audio_player",
+            PendingApp::VideoPlayer => b"app.video_player",
+        }
+    }
 }
 
 // A click enqueues one request; a few in flight at once is the most a user
@@ -50,7 +76,21 @@ pub(super) fn push(app: PendingApp) -> bool {
         return false;
     }
     q.push(app);
+    super::priority::raise();
     true
+}
+
+/// Return init to its idle band once nothing is left to spawn. The check and
+/// the demotion happen under the queue lock, the same lock `push` raises
+/// under, so a click landing here can never be left queued behind a
+/// demotion it raced.
+pub(super) fn settle() {
+    let Some(q) = PENDING.try_lock() else {
+        return;
+    };
+    if q.is_empty() {
+        super::priority::restore();
+    }
 }
 
 /// Take everything queued so far. Called from init's context only.
@@ -63,4 +103,15 @@ pub(super) fn take() -> Vec<PendingApp> {
         return Vec::new();
     }
     core::mem::take(&mut *q)
+}
+
+/// Whether any window-instance request is waiting to be drained. The init loop
+/// reads this to raise its priority only while there is deferred window work. A
+/// contended lock means a push is in flight, which is itself pending work, so it
+/// counts as pending rather than risking a missed boost.
+pub(crate) fn has_pending() -> bool {
+    match PENDING.try_lock() {
+        Some(q) => !q.is_empty(),
+        None => true,
+    }
 }

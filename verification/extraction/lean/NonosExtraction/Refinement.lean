@@ -58,6 +58,12 @@ def idx : capabilities.types.defs.Capability → Nat
   | .SpawnBroker => 23
   | .SpawnWindow => 24
   | .ProcessControl => 25
+  | .StoreWrite => 26
+  | .EnrolDevRoot => 27
+  | .Keyring => 28
+  | .Entropy => 29
+  | .AppInstall => 30
+  | .AttestRead => 31
 
 theorem idx_lt_64 (cap : capabilities.types.defs.Capability) : idx cap < 64 := by
   cases cap <;> decide

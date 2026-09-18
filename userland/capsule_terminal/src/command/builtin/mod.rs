@@ -15,20 +15,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod about;
+pub mod bench;
+pub mod cap_names;
 pub mod capsules;
 pub mod clear;
 pub mod display;
 pub mod echo;
 pub mod exit_check;
 pub mod fs;
+pub mod git;
 pub mod help;
+pub mod help_one;
 pub mod history_cmd;
 pub mod jobs;
 pub mod market;
 pub mod motd;
+pub mod neofetch;
 pub mod nox;
 pub mod ping;
+pub mod receipt;
 pub mod service;
 pub mod theme;
+pub mod tool;
 pub mod version;
+pub mod which;
 pub mod whoami;

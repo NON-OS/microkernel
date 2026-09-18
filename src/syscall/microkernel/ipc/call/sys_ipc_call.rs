@@ -16,17 +16,33 @@
 
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL};
 use crate::{process::current_pid, services::registry::lookup_port};
-use core::sync::atomic::AtomicBool;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use super::super::pending_reply;
-use super::super::recv::recv_from_inbox;
+use super::super::recv::recv_reply_correlated;
 use super::super::reply_inbox;
-use super::super::send::sys_ipc_send;
+use super::super::send::send_with_correlation;
 use super::trace::trace;
+
+static STARVED: crate::sys::diag::Site = crate::sys::diag::Site::new(b"ipc.call");
 
 static GPU_TRANSFER: AtomicBool = AtomicBool::new(false);
 static GPU_SCANOUT: AtomicBool = AtomicBool::new(false);
 static GPU_FLUSH: AtomicBool = AtomicBool::new(false);
+
+// Per-call correlation token: monotonic and never zero, so it can never collide
+// with the correlation an attacker's `mk_ipc_send` produces (always 0) nor with
+// another in-flight call. The reply must carry this exact value.
+static CALL_TOKEN: AtomicU64 = AtomicU64::new(1);
+
+fn next_call_token() -> u64 {
+    let t = CALL_TOKEN.fetch_add(1, Ordering::Relaxed);
+    if t == 0 {
+        CALL_TOKEN.fetch_add(1, Ordering::Relaxed)
+    } else {
+        t
+    }
+}
 
 pub fn sys_ipc_call(
     ep: u64,
@@ -43,27 +59,50 @@ pub fn sys_ipc_call(
     if crate::usercopy::validate_user_write(resp, resp_len).is_err() {
         return ERRNO_FAULT;
     }
+    // This call's correlation token, registered with the pending reply keyed by
+    // this caller's inbox. Both reply paths read it back from that same entry:
+    // the redirect path (a service replying via `mk_ipc_send` to its fixed reply
+    // endpoint) and the direct `mk_ipc_reply` path both stamp the reply with it.
+    // The genuine reply carries this token; a forged injection can only carry 0.
+    let token = next_call_token();
     let inbox = reply_inbox::for_pid(pid);
     let endpoint = lookup_port(ep as u32);
     let endpoint_pid = endpoint.as_ref().map(|endpoint| endpoint.pid);
     if let Some(server_pid) = endpoint_pid {
-        if !pending_reply::push(server_pid, inbox.clone()) {
+        if !pending_reply::push(server_pid, pid, inbox.clone(), token) {
             return ERRNO_BUSY;
         }
     }
-    let send_result = sys_ipc_send(ep, req, req_len);
+    let send_result = send_with_correlation(ep, req, req_len, token);
     trace(pid, b"send", send_result);
     if send_result < 0 {
         if let Some(server_pid) = endpoint_pid {
-            pending_reply::remove(server_pid, &inbox);
+            // Strip exactly the entry this call pushed: the newest match. An
+            // older match can be a reply still owed from a timed-out call, and
+            // removing it shifts the server's FIFO onto the wrong callers.
+            pending_reply::remove_latest(server_pid, &inbox);
         }
         return send_result;
     }
     let timeout = if timeout_ms == 0 { 5000 } else { timeout_ms };
-    let recv_result = recv_from_inbox(pid, &inbox, resp, resp_len, timeout);
+    let recv_result = recv_reply_correlated(pid, &inbox, resp, resp_len, timeout, token);
     if recv_result < 0 {
-        if let Some(server_pid) = endpoint_pid {
-            pending_reply::remove(server_pid, &inbox);
+        // The pending entry is NOT removed on a timeout. The server received
+        // this request and will still reply to it; the redirect pairs replies
+        // to callers strictly by FIFO position, so consuming an entry out of
+        // order shifts every later reply onto the wrong caller, stamped with
+        // that caller's own token. One timeout then desyncs the server's whole
+        // reply stream and the misdeliveries cause further timeouts. Left in
+        // place, the entry is popped in order and the late reply lands on this
+        // (no longer waiting) inbox, where the correlation check discards it.
+        // Entries are only removed when the send itself failed, where the
+        // server never saw a request, and by clear_pid when either side dies.
+        //
+        // A negative receive after a successful send is a served call that got
+        // no answer: the server is wedged or the reply path lost the message.
+        // Refusals log at the gates, so this line is specifically starvation.
+        if let Some(endpoint) = endpoint.as_ref() {
+            STARVED.starved(&endpoint.name, pid, recv_result, endpoint.pid);
         }
     }
     if recv_result >= 24 && req_len >= 20 {

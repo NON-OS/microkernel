@@ -25,6 +25,7 @@ pub(super) fn spawn() {
     spawn_wallet_nonos();
     spawn_terminal();
     spawn_file_manager();
+    spawn_audio_player();
     super::apps_tools::spawn();
 }
 
@@ -73,12 +74,7 @@ fn spawn_calculator() {}
 #[cfg(feature = "nonos-capsule-clock")]
 fn spawn_clock() {
     use crate::userspace::capsule_clock as c;
-    super::boot::capsule(
-        "APP-CLOCK",
-        "app_clock",
-        c::spawn_clock_capsule,
-        c::shared_state,
-    );
+    super::boot::capsule("APP-CLOCK", "app_clock", c::spawn_clock_capsule, c::shared_state);
 }
 #[cfg(not(feature = "nonos-capsule-clock"))]
 fn spawn_clock() {}
@@ -86,12 +82,7 @@ fn spawn_clock() {}
 #[cfg(feature = "nonos-capsule-browser")]
 fn spawn_browser() {
     use crate::userspace::capsule_browser as b;
-    super::boot::capsule(
-        "APP-BROWSER",
-        "app_browser",
-        b::spawn_browser_capsule,
-        b::shared_state,
-    );
+    super::boot::capsule("APP-BROWSER", "app_browser", b::spawn_browser_capsule, b::shared_state);
 }
 #[cfg(not(feature = "nonos-capsule-browser"))]
 fn spawn_browser() {}
@@ -134,6 +125,19 @@ fn spawn_file_manager() {
 }
 #[cfg(not(feature = "nonos-capsule-file-manager"))]
 fn spawn_file_manager() {}
+
+#[cfg(feature = "nonos-capsule-audio-player")]
+fn spawn_audio_player() {
+    use crate::userspace::capsule_audio_player as c;
+    super::boot::capsule(
+        "APP-AUDIO-PLAYER",
+        "app_audio_player",
+        c::spawn_audio_player_capsule,
+        c::shared_state,
+    );
+}
+#[cfg(not(feature = "nonos-capsule-audio-player"))]
+fn spawn_audio_player() {}
 
 #[cfg(feature = "nonos-capsule-snake")]
 fn spawn_snake() {

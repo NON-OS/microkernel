@@ -8,7 +8,7 @@
 
 [package]
 name = "nonos_capsule_driver_hda"
-version = "0.1.0"
+version = "0.3.0"
 edition = "2021"
 publish = false
 license = "AGPL-3.0"
@@ -18,6 +18,9 @@ description = "NONOS userland Intel HD-Audio controller driver capsule"
 [[bin]]
 name = "driver_hda"
 path = "src/main.rs"
+
+[features]
+nonos-driver-hda-smoketest = []
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }

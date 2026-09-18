@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod accept_suggestion;
 mod bool_to_outcome;
-mod complete;
+pub(crate) mod complete;
 mod copy_line;
 mod fg_stdin;
 mod on_ctrl;
@@ -27,7 +28,9 @@ mod on_printable;
 mod on_tab;
 mod on_up;
 mod paste_clipboard;
+pub(crate) mod search;
+pub(crate) mod search_edit;
+mod search_place;
 
-#[cfg(feature = "nonos-autorun-selftest")]
 pub use on_enter::on_enter;
 pub use on_event::on_event;

@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod invariants;
+pub mod live;
 mod product;
 
-pub use invariants::INVARIANTS;
+pub use invariants::{Probe, INVARIANTS};
 pub use product::{PRODUCT_NAME, PRODUCT_TAGLINE, PRODUCT_VERSION};

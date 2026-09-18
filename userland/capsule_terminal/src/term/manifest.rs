@@ -16,8 +16,15 @@
 
 use nonos_app_skeleton::{AppManifest, WindowKind};
 
-pub const WIDTH: u32 = 520;
-pub const HEIGHT: u32 = 300;
+/// The window a terminal opens at.
+///
+/// Sized to hold eighty columns, which is not a preference: it is the width
+/// every command-line tool has assumed since terminals were hardware, and the
+/// width this shell's own `help` is written to. At the previous 520 by 300 the
+/// text area was about fifty-eight columns and `help` was clipped at the right
+/// edge, silently, with no wrap and no scroll to reach the rest.
+pub const WIDTH: u32 = 760;
+pub const HEIGHT: u32 = 460;
 
 const INPUT_KEY_DOWN_BIT: u32 = 1 << 0;
 

@@ -33,6 +33,22 @@ pub const OP_TRUNCATE: u16 = 13;
 pub const OP_USAGE: u16 = 14;
 pub const OP_CHMOD: u16 = 15;
 pub const OP_SEEK: u16 = 16;
+pub const OP_STORE_PERSIST: u16 = 17;
+pub const OP_STORE_REMOVE: u16 = 18;
+pub const OP_STORE_STATUS: u16 = 19;
+pub const OP_STORE_INSTALL: u16 = 20;
+pub const OP_STORE_UNINSTALL: u16 = 21;
+pub const OP_DIRSTAT: u16 = 22;
+pub const OP_JOURNAL_TOUCH: u16 = 23;
+pub const OP_JOURNAL_LIST: u16 = 24;
+pub const OP_SEARCH: u16 = 25;
+/// A counter that moves whenever the store may have changed. Lets a caller poll
+/// for change without asking for a directory listing it will throw away.
+pub const OP_GENERATION: u16 = 26;
+
+// Set on the last OP_STORE_INSTALL chunk of an artifact: the RAM copy is
+// complete and the whole file is handed to the on-device store.
+pub const STORE_INSTALL_FINAL: u8 = 1 << 0;
 
 // Seek whence values, matching the POSIX ordering std uses.
 pub const SEEK_SET: u8 = 0;
@@ -44,6 +60,11 @@ pub const O_TRUNC: u32 = 1 << 1;
 pub const O_APPEND: u32 = 1 << 2;
 
 pub const MAX_PATH_BYTES: u32 = 256;
+
+// Reply record names carry a u8 length prefix, so a name that normalize() has
+// pushed to 256 bytes cannot be expressed on the wire and is skipped instead of
+// being truncated to a zero length that would desynchronize the whole reply.
+pub const MAX_WIRE_NAME: usize = 255;
 pub const MAX_DATA_BYTES: u32 = 65536;
 pub const MAX_LIST_BYTES: u32 = 65536;
 pub const MAX_PAYLOAD_BYTES: u32 = 65536;

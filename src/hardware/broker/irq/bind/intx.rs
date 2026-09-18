@@ -16,9 +16,7 @@
 
 use super::super::records;
 use super::super::slots;
-use super::super::types::{
-    IrqBindError, IrqBindRequest, IrqBindResult, IrqGrant, IrqGrantKind,
-};
+use super::super::types::{IrqBindError, IrqBindRequest, IrqBindResult, IrqGrant, IrqGrantKind};
 use super::super::validate::validate_intx_request;
 use crate::arch::interrupt::broker::vector_of;
 use crate::arch::interrupt::ioapic;
@@ -39,13 +37,19 @@ pub(super) fn bind_intx(
     // mask and record everything by the resolved GSI so ack/unmask later
     // operate on the same redirection entry.
     let gsi = ioapic::gsi_for_irq(req.irq_source);
+    // Ahead of the grant records: those only describe lines other capsules
+    // hold. The kernel programs its own through a different module, so a line
+    // it listens on has to be refused here or a capsule reprograms it.
+    if super::super::reserved::is_reserved(gsi) {
+        return Err(IrqBindError::ReservedGsi);
+    }
     if records::vector_for_gsi(gsi).is_some() {
         return Err(IrqBindError::AlreadyBound);
     }
 
     let slot = slots::try_alloc_slot().ok_or(IrqBindError::NoVector)?;
     let vector = vector_of(slot).ok_or(IrqBindError::NoVector)?;
-    let dest_apic_id = crate::arch::interrupt::apic::id();
+    let dest_apic_id = crate::arch::interrupt_controller::local_id();
 
     if ioapic::program_route_external(gsi, vector, dest_apic_id).is_err() {
         slots::free_slot(slot);

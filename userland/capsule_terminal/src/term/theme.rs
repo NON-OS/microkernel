@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const BACKGROUND: u32 = 0xFF181A1F;
-pub const FOREGROUND: u32 = 0xFFCBD0D8;
-pub const PROMPT: u32 = 0xFF98C379;
-pub const CURSOR: u32 = 0xFF5FB0C9;
-pub const ACCENT: u32 = 0xFF5FB0C9;
-pub const PATH: u32 = 0xFF7FC9A0;
-pub const DIM: u32 = 0xFF707682;
-// Chrome (header, tab strip, footer, input bar, command blocks) no longer uses
-// fixed shades; it derives from the active `state.bg` via paint::shade::elevate
-// so every theme, including the translucent profiles, stays complete.
-pub const BLOCK_OK: u32 = 0xFF98C379;
-pub const BLOCK_ERR: u32 = 0xFFE06C75;
-pub const BLOCK_RUN: u32 = 0xFF707682;
+//! The terminal palette.
+//!
+//! Near black rather than pure black, because the chrome is drawn by lifting
+//! the background a few steps and there is nowhere to lift from at zero. The
+//! accent is one colour used consistently for what the system says about
+//! itself, and it is kept apart from the colours that carry meaning: a reader
+//! who has learned that green passed and red failed should not have to
+//! relearn it because those are also the brand.
+//!
+//! Chrome (header, tab strip, footer, input bar, command blocks) is not stored
+//! but derived from the active profile background via paint::shade::elevate,
+//! so every profile including the translucent ones stays complete.
+
+pub mod profiles;
+pub mod types;

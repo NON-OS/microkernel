@@ -16,91 +16,134 @@
 
 use nonos_app_skeleton::EventOutcome;
 
+use super::home_empty_click::empty_state;
 use super::on_pointer::hit;
-use crate::wallet::state::{State, SEND_FIELD_AMOUNT, SEND_FIELD_TO, VIEW_NOX, VIEW_RECEIVE, VIEW_SEND};
+use crate::wallet::paint::home_geom::{actions, quick_w, quick_x, QUICK_H};
+use crate::wallet::state::{
+    State, SEND_FIELD_AMOUNT, SEND_FIELD_TO, VIEW_NOX, VIEW_RECEIVE, VIEW_SEND,
+};
 
 // Home quick actions route to their screens.
 pub(super) fn home(state: &mut State, x: u32, y: u32) -> EventOutcome {
-    let v = if hit(x, y, 226, 386, 245, 82) {
-        VIEW_SEND
-    } else if hit(x, y, 487, 386, 245, 82) {
-        VIEW_RECEIVE
-    } else if hit(x, y, 748, 386, 245, 82) || hit(x, y, 1009, 386, 245, 82) {
-        VIEW_NOX
-    } else {
+    // Same geometry the painter uses, not a copy of it. These four targets used
+    // to be pinned to a literal row that the painter had since moved, so they
+    // sat ten pixels above the cards a reader could see.
+    if let Some(out) = empty_state(state, x, y) {
+        return out;
+    }
+    let qw = quick_w(state.view_w);
+    let top = actions();
+    if y < top || y >= top + QUICK_H {
         return EventOutcome::Idle;
-    };
-    state.view = v;
-    EventOutcome::Repaint
+    }
+    let views = [VIEW_SEND, VIEW_RECEIVE, VIEW_NOX, VIEW_NOX];
+    for (i, v) in views.iter().enumerate() {
+        let bx = quick_x(state.view_w, i as u32);
+        if x >= bx && x < bx + qw {
+            state.view = *v;
+            return EventOutcome::Repaint;
+        }
+    }
+    EventOutcome::Idle
 }
 
 pub(super) fn receive(state: &mut State, x: u32, y: u32) -> EventOutcome {
-    use crate::wallet::paint::{GEN_BTN_H, GEN_BTN_W, GEN_BTN_X, GEN_BTN_Y};
-    if hit(x, y, GEN_BTN_X, GEN_BTN_Y, GEN_BTN_W, GEN_BTN_H) || hit(x, y, 1104, 320, 130, 42) {
-        return if state.address_ready {
-            super::probe_net::probe_net(state)
-        } else {
-            super::generate::generate(state)
-        };
+    // The backup screen owns input until the phrase is confirmed written
+    // down; the confirm button is the only live control.
+    if state.backup_active {
+        if hit(x, y, 246, 560, 280, 42) {
+            return super::backup::confirm_backup(state);
+        }
+        return EventOutcome::Idle;
+    }
+    // The import and recovery fields own input while open; keyboard-driven.
+    if state.import_active || state.recover_active {
+        return EventOutcome::Idle;
+    }
+    // Export / Hide toggle in the account card (rx = 542, card at y = 384).
+    // Height matches the 42px the outline button actually draws.
+    if state.address_ready && hit(x, y, 842, 392, 96, 42) {
+        return super::export_key::toggle_export(state);
+    }
+    // Set-up panel: Generate a fresh HD account, import a raw key, or recover
+    // from a phrase.
+    if hit(x, y, 562, 318, 150, 42) {
+        return super::generate::generate(state);
+    }
+    if hit(x, y, 724, 318, 180, 42) {
+        return super::import::toggle_import(state);
+    }
+    if hit(x, y, 916, 318, 160, 42) {
+        return super::recover::toggle_recover(state);
     }
     EventOutcome::Idle
 }
 
 pub(super) fn send(state: &mut State, x: u32, y: u32) -> EventOutcome {
-    if hit(x, y, 246, 182, 600, 40) {
+    // Coordinates match paint_send.rs: card at cx=226, fields inset at ix=246,
+    // iw=600. The ETH/NOX asset tabs sit at ix+iw-156 and ix+iw-76 (690, 770).
+    if hit(x, y, 690, 152, 74, 26) {
+        state.send_token = 0;
+    } else if hit(x, y, 770, 152, 74, 26) {
+        state.send_token = 1;
+    } else if hit(x, y, 246, 182, 600, 40) {
         state.send_focus = SEND_FIELD_TO;
-    } else if hit(x, y, 246, 342, 508, 40) {
+    } else if hit(x, y, 246, 292, 600, 40) {
         state.send_focus = SEND_FIELD_AMOUNT;
-    } else if hit(x, y, 750, 318, 44, 24) {
-        state.usd_mode = false;
-    } else if hit(x, y, 794, 318, 44, 24) {
-        state.usd_mode = true;
-    } else if hit(x, y, 246, 440, 192, 58) {
-        state.fee_tier = 0;
-    } else if hit(x, y, 450, 440, 192, 58) {
-        state.fee_tier = 1;
-    } else if hit(x, y, 654, 440, 192, 58) {
-        state.fee_tier = 2;
-    } else if hit(x, y, 246, 636, 150, 42) {
-        return super::sign_eth::sign_eth(state);
-    } else if hit(x, y, 408, 636, 150, 42) {
-        return super::sign_both::sign_both(state);
-    } else if hit(x, y, 910, 470, 324, 42) {
-        return super::broadcast::broadcast(state);
+    } else if hit(x, y, 246, 500, 150, 42) {
+        // "Sign & send": sign the transfer and broadcast it in one press.
+        return super::send_now::send_now(state);
     } else {
         return EventOutcome::Idle;
     }
     EventOutcome::Repaint
 }
 
-pub(super) fn proof(state: &mut State, x: u32, y: u32) -> EventOutcome {
-    let f = if hit(x, y, 954, 228, 60, 40) {
-        0
-    } else if hit(x, y, 1014, 228, 110, 40) {
-        1
-    } else if hit(x, y, 1124, 228, 130, 40) {
-        2
-    } else {
-        return EventOutcome::Idle;
-    };
-    state.proof_filter = f;
-    EventOutcome::Repaint
+pub(super) fn proof(_state: &mut State, _x: u32, _y: u32) -> EventOutcome {
+    // The proof view is a read-only record of the signed transaction; nothing
+    // to click.
+    EventOutcome::Idle
 }
 
 pub(super) fn nox(state: &mut State, x: u32, y: u32) -> EventOutcome {
-    if hit(x, y, 246, 438, 200, 36) {
+    // Geometry comes from the same layout the painter used, so a resized
+    // window cannot draw a control in one place and answer it in another.
+    let l = crate::wallet::paint::NoxLayout::sized(state.view_w, state.view_h);
+    let tabs = l.tabs_y();
+    if hit(x, y, l.cx + 20, tabs, l.tab_w, 36) {
         state.stake_unstake = 0;
-    } else if hit(x, y, 446, 438, 200, 36) {
+    } else if hit(x, y, l.cx + 20 + l.tab_w, tabs, l.tab_w, 36) {
         state.stake_unstake = 1;
-    } else if hit(x, y, 246, 516, 560, 30) {
-        let rel = x.saturating_sub(246).min(560);
-        state.stake_amount = rel * crate::wallet::state::MAX_STAKE / 560;
-    } else if hit(x, y, 246, 626, 560, 42) {
-        return super::sign_nox::sign_nox(state);
-    } else if hit(x, y, 862, 496, 372, 42) {
-        return super::probe_net::probe_net(state);
+    } else if state.stake_unstake == 0 && hit(x, y, l.track_x, l.track_y() - 8, l.track_w, 26) {
+        // The bar spans what this wallet holds, so its far end is the whole
+        // balance rather than a ceiling nobody has. Typing is what reaches an
+        // exact figure; the bar is for choosing a proportion of it. Dragging
+        // to the very end sets the balance exactly, since the arithmetic that
+        // gets there otherwise loses the last wei to the division.
+        let rel = x.saturating_sub(l.track_x).min(l.track_w) as u128;
+        let held = crate::wallet::nox::held_wei(state.nox.balance_ready, &state.nox.balance_wei)
+            .unwrap_or(0);
+        let span = l.track_w.max(1) as u128;
+        let wei = if rel >= span { held } else { held / span * rel };
+        super::stake_set::set_wei(state, wei);
+    } else if let Some(term) = lock_chip(&l, x, y) {
+        state.stake_lock = term;
+    } else if hit(x, y, l.cx + 20, l.action_y(), l.track_w, 42) {
+        return super::stake_flow::stake_flow(state);
     } else {
         return EventOutcome::Idle;
     }
     EventOutcome::Repaint
+}
+
+// Which lock chip a click landed on, if any. Chips share the lock card's
+// width evenly, exactly as `nox_lock` draws them.
+fn lock_chip(l: &crate::wallet::paint::NoxLayout, x: u32, y: u32) -> Option<u8> {
+    let ly = l.lock_y();
+    let terms = crate::wallet::nox::LOCK_TERMS.len() as u32;
+    let chips = l.rw.saturating_sub(40) / terms;
+    if chips == 0 || !hit(x, y, l.rx + 20, ly + 32, chips * terms, 26) {
+        return None;
+    }
+    Some((x.saturating_sub(l.rx + 20) / chips).min(terms - 1) as u8)
 }

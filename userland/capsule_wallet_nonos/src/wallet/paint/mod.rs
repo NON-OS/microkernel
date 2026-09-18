@@ -14,32 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod activity_status;
+mod format_eth;
+mod format_typed;
+mod format_u128;
 mod format_u32;
 mod format_u64;
 mod hex_hash;
+mod home_activity_row;
+pub mod home_geom;
 mod logo;
 mod logo_bits;
+mod nav_glyph;
+mod nav_icon;
+pub mod not_wired;
+mod nox_amount;
+pub mod nox_layout;
 mod paint;
-mod paint_account_card;
+pub mod paint_account_card;
+mod paint_account_empty;
 mod paint_background;
+mod paint_backup;
 mod paint_button;
 mod paint_home;
 mod paint_home_activity;
+mod paint_home_security;
 mod paint_icons;
-mod paint_panels;
 mod paint_network_card;
 mod paint_network_labels;
-mod paint_home_security;
 mod paint_nox;
+pub use nox_layout::NoxLayout;
+mod nox_lock;
+mod nox_rhythm;
+mod nox_right;
 mod paint_nox_stake;
+mod paint_panels;
 mod paint_portfolio;
 mod paint_proof_view;
 mod paint_proofs;
 mod paint_rail_card;
 mod paint_receive;
 mod paint_send;
-mod paint_send_side;
 mod paint_send_route_label;
+mod paint_send_side;
 mod paint_sidebar;
 mod paint_statusbar;
 mod paint_statusline;
@@ -47,12 +64,14 @@ mod paint_sysbar;
 mod paint_topbar;
 mod paint_tx;
 mod panel;
+mod put_u32;
+mod quick_icon;
+mod scale;
+mod swap;
+
 mod ui;
 
 pub use paint::paint;
-// Shared so the pointer handler can hit-test the Generate/probe button at the
-// exact rect the Receive screen paints it.
-pub use paint_receive::{GEN_BTN_H, GEN_BTN_W, GEN_BTN_X, GEN_BTN_Y};
 pub use paint_sidebar::{NAV_H, NAV_STEP, NAV_W, NAV_X, NAV_Y0};
 pub use paint_topbar::{
     CMD_BTN_X, HDR_H, HDR_Y, ICON_W, LOCK_BTN_X, MAIN_BTN_X, MAIN_W, MSG_BTN_X, THEME_BTN_X,

@@ -22,6 +22,10 @@ impl Line {
         if self.cursor >= self.len {
             return false;
         }
+        let mut cut = [0u8; super::types::KILL_CAP];
+        let n = self.len - self.cursor;
+        cut[..n].copy_from_slice(&self.buf[self.cursor..self.len]);
+        self.hold_killed(&cut[..n]);
         self.len = self.cursor;
         true
     }

@@ -1,6 +1,6 @@
 [package]
 name = "nonos-stark-enroll"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 license = "AGPL-3.0"
 description = "Enroll capsule and kernel measurements and emit their transparent STARK attestation trailers"
@@ -10,5 +10,5 @@ name = "nonos-stark-enroll"
 path = "src/main.rs"
 
 [dependencies]
-nonos-stark = { path = "../nonos-stark" }
+nonos-stark = { path = "../stark-attest/crates/stark-core" }
 blake3 = "1"

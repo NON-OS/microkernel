@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::Category;
-
 use crate::settings::schema::ALL_FIELDS;
+use crate::settings::section::{Section, SECTION_COUNT};
 use crate::wifi::{
     ConnectResult, DataPath, DriverStage, NetStatus, ScanNetwork, ScanOutcome, ScanStats,
     WifiInterface,
@@ -52,16 +51,22 @@ pub enum WifiConnect {
 pub struct State {
     pub policy_port: u32,
     pub policy_ready: bool,
-    pub category: Category,
-    pub cursor: [usize; 3],
-    pub scroll_top: [usize; 3],
+    pub section: Section,
+    pub cursor: [usize; SECTION_COUNT],
+    /// Pixel scroll per section. The pane lays out cards of differing heights,
+    /// so a row-index offset cannot address a position inside one.
+    pub scroll_px: [u32; SECTION_COUNT],
+    /// The titlebar search query. Non-empty replaces the section pane with
+    /// results drawn from every section, so search answers where a setting
+    /// lives rather than filtering the screen already open.
+    pub search: EditBuffer,
+    pub search_focused: bool,
+    pub search_cursor: usize,
+    pub search_scroll: u32,
     pub values: [FieldValue; FIELD_SLOTS],
     pub editing: bool,
     pub edit: EditBuffer,
     pub status: Status,
-    /// The Wi-Fi tab is the fourth top-level section. It sits beside the policy
-    /// categories rather than among them, so it carries its own selection state.
-    pub wifi_active: bool,
     pub wifi_adapters: [WifiInterface; WIFI_MAX],
     pub wifi_adapter_count: usize,
     pub wifi_cursor: usize,
@@ -88,4 +93,10 @@ pub struct State {
     /// What net_core reports: down, bound-but-no-address, or a bound lease. Splits
     /// "the stack never started" from "started but got no address".
     pub wifi_net: NetStatus,
+    /// Window size as of the last paint. The window is resizable, so layout and
+    /// hit tests read this rather than the manifest's starting size: against
+    /// the constants, clicks below the original height were treated as the
+    /// status bar and the control on the right of a widened window did nothing.
+    pub win_w: u32,
+    pub win_h: u32,
 }

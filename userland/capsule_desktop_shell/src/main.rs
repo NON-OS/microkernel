@@ -20,7 +20,9 @@
 extern crate alloc;
 
 mod compositor_client;
+mod frametime;
 mod input_router_client;
+mod installer_client;
 mod market_client;
 mod protocol;
 mod render;

@@ -33,7 +33,7 @@ const SERVICE_NAME: &str = "app.terminal";
 const SERVICE_PORT: u32 = 4722;
 const REPLY_INBOX: &str = "endpoint.app.terminal.reply";
 const REPLY_PORT: u32 = 4723;
-const TARGET_TRIPLE: &str = "x86_64-nonos-user";
+const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
 // The requested-caps ceiling, shared by the boot instance and every extra
 // window so the attestation context (which binds granted caps) is identical.
@@ -43,6 +43,7 @@ fn terminal_caps() -> u64 {
         | Capability::Network.bit()
         | Capability::Memory.bit()
         | Capability::Crypto.bit()
+        | Capability::FileSystem.bit()
         | Capability::GraphicsDisplayQuery.bit()
         | Capability::GraphicsSurfaceCreate.bit()
 }

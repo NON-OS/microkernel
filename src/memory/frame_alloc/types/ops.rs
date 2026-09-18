@@ -16,45 +16,37 @@
 
 use super::super::error::{FrameAllocError, FrameResult};
 use super::allocator::FrameAllocator;
+use crate::memory::addr::PhysAddr;
 use core::sync::atomic::Ordering;
-use x86_64::structures::paging::{FrameAllocator as X86FrameAllocator, PhysFrame, Size4KiB};
 
 impl FrameAllocator {
-    pub fn alloc(&mut self) -> Option<PhysFrame> {
+    pub fn alloc(&mut self) -> Option<PhysAddr> {
         if !self.initialized {
             return None;
         }
 
-        if let Some(frame) = crate::memory::phys::alloc(crate::memory::phys::AllocFlags::EMPTY) {
-            let phys_frame = PhysFrame::containing_address(x86_64::PhysAddr::new(frame.0));
+        // The bitmap allocator (`memory::phys`) is the single source of truth for
+        // physical frames and owns the whole managed range, so a frame handed out
+        // here MUST come from it. There is deliberately no secondary bump
+        // allocator: an earlier fallback bump-allocated `[16 MiB, 512 MiB)`, a
+        // range the bitmap already owns, so once the bitmap filled it re-handed
+        // frames that were already live (double-alloc) and `dealloc` then cleared
+        // the wrong bitmap bit (cross-owner double-free). On exhaustion the
+        // correct answer is `None`; every caller already treats that as an
+        // allocation failure.
+        crate::memory::phys::alloc(crate::memory::phys::AllocFlags::EMPTY).map(|frame| {
             self.frames_allocated.fetch_add(1, Ordering::Relaxed);
-            return Some(phys_frame);
-        }
-
-        while let Some(range) = self.usable.last_mut() {
-            if let Some(frame) = range.next_frame() {
-                self.frames_allocated.fetch_add(1, Ordering::Relaxed);
-                return Some(frame);
-            } else {
-                self.usable.pop();
-            }
-        }
-        None
+            PhysAddr::new(frame.0)
+        })
     }
 
-    pub fn dealloc(&self, frame: PhysFrame) -> FrameResult<()> {
+    pub fn dealloc(&self, addr: PhysAddr) -> FrameResult<()> {
         if !self.initialized {
             return Err(FrameAllocError::NotInitialized);
         }
-        let phys_frame = crate::memory::phys::Frame(frame.start_address().as_u64());
+        let phys_frame = crate::memory::phys::Frame(addr.as_u64());
         crate::memory::phys::free(phys_frame).map_err(|_| FrameAllocError::FrameNotAllocated)?;
         self.frames_allocated.fetch_sub(1, Ordering::Relaxed);
         Ok(())
-    }
-}
-
-unsafe impl X86FrameAllocator<Size4KiB> for FrameAllocator {
-    fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
-        self.alloc()
     }
 }
