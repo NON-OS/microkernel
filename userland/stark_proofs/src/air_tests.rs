@@ -461,7 +461,14 @@ fn the_capsule_attestation_gate_accepts_enrolled_and_rejects_forged() {
     // The kernel gate accepts the enrolled capsule under its own identity.
     assert!(
         verify_membership_attestation(
-            &hasher, log_rounds, root, &path, &directions, QUERIES, &bytes, context
+            &hasher,
+            log_rounds,
+            root,
+            &path,
+            &directions,
+            QUERIES,
+            &bytes,
+            context
         ),
         "an enrolled capsule attestation was rejected"
     );
@@ -484,7 +491,14 @@ fn the_capsule_attestation_gate_accepts_enrolled_and_rejects_forged() {
     bad_root[0] = bad_root[0] + Fp::from_u64(1);
     assert!(
         !verify_membership_attestation(
-            &hasher, log_rounds, bad_root, &path, &directions, QUERIES, &bytes, context
+            &hasher,
+            log_rounds,
+            bad_root,
+            &path,
+            &directions,
+            QUERIES,
+            &bytes,
+            context
         ),
         "an attestation passed against a forged policy root"
     );
@@ -630,7 +644,8 @@ fn a_built_trailer_is_accepted_by_the_gate_logic() {
     let context = b"capsule:b:v1";
 
     // Tool side.
-    let trailer = build_attestation_trailer(&hasher, log_rounds, &images, index, context, 32, 16, 3);
+    let trailer =
+        build_attestation_trailer(&hasher, log_rounds, &images, index, context, 32, 16, 3);
 
     // Kernel side: the same parse the spawn gate runs.
     let depth = trailer[8] as usize;
@@ -677,8 +692,7 @@ fn the_shared_verify_core_accepts_a_kernel_self_attestation() {
     let log_rounds = 3u32;
     let hasher = Poseidon::new(log_rounds, [Fp::ZERO; RATE]);
     // The enrolled kernel image plus a few others, its measurement in the root.
-    let images: [&[u8]; 4] =
-        [b"nonos-kernel image", b"other:a", b"other:b", b"other:c"];
+    let images: [&[u8]; 4] = [b"nonos-kernel image", b"other:a", b"other:b", b"other:c"];
     let index = 0usize;
     let boot_ctx = b"kernel:boot:epoch:1";
 
@@ -700,7 +714,15 @@ fn the_shared_verify_core_accepts_a_kernel_self_attestation() {
     );
     assert!(
         !verify_membership_trailer(
-            &hasher, log_rounds, root, depth, &trailer, b"kernel:boot:epoch:2", 32, 16, 3
+            &hasher,
+            log_rounds,
+            root,
+            depth,
+            &trailer,
+            b"kernel:boot:epoch:2",
+            32,
+            16,
+            3
         ),
         "a self-attestation passed under the wrong boot context"
     );
@@ -1443,7 +1465,7 @@ fn a_fold_bound_to_its_committed_opening_verifies() {
     let (beta, a, b, x_inv, dir, final_value, log_layers, n_folds) = trace_fold_data(6);
     let (mem_trace, mem, cells) = opening_of_scalar(a[0], 2);
     assert_eq!(cells[0].1, 0, "the committed scalar should sit in column zero");
-    let mem_h = mem_trace.len() / WIDTH;
+    let mem_h = mem.rows();
     let fold = TraceFold::new(log_layers, n_folds, x_inv, dir, final_value);
     let fold_trace = fold.trace(&beta, &a, &b);
 
@@ -1467,7 +1489,7 @@ fn a_fold_folding_an_uncommitted_value_is_rejected() {
     // committed, so the single proof fails.
     let (beta, a, b, x_inv, dir, final_value, log_layers, n_folds) = trace_fold_data(6);
     let (mem_trace, mem, cells) = opening_of_scalar(a[0] + Fp::ONE, 2);
-    let mem_h = mem_trace.len() / WIDTH;
+    let mem_h = mem.rows();
     let fold = TraceFold::new(log_layers, n_folds, x_inv, dir, final_value);
     let fold_trace = fold.trace(&beta, &a, &b);
 
@@ -1498,7 +1520,7 @@ fn a_full_per_query_verifier_is_one_stark() {
 
     // Region offsets: source [0,8), opening [8,24), fold [24,32).
     let src_h = 1usize << 3;
-    let mem_h = mem_trace.len() / WIDTH;
+    let mem_h = mem.rows();
     let fold_off = src_h + mem_h;
     let (k, span) = (2usize, (src_h + mem_h + (1usize << log_layers)).next_power_of_two());
     let mut sigma: Vec<usize> = (0..span * k).collect();
@@ -1526,7 +1548,7 @@ fn a_per_query_verifier_rejects_a_wrong_challenge() {
     let fold_trace = fold.trace(&beta, &a, &b);
 
     let src_h = 1usize << 3;
-    let mem_h = mem_trace.len() / WIDTH;
+    let mem_h = mem.rows();
     let fold_off = src_h + mem_h;
     let (k, span) = (2usize, (src_h + mem_h + (1usize << log_layers)).next_power_of_two());
     let mut sigma: Vec<usize> = (0..span * k).collect();
@@ -1557,7 +1579,7 @@ fn a_per_query_verifier_rejects_a_wrong_opening() {
     let fold_trace = fold.trace(&beta, &a, &b);
 
     let src_h = 1usize << 3;
-    let mem_h = mem_trace.len() / WIDTH;
+    let mem_h = mem.rows();
     let fold_off = src_h + mem_h;
     let (k, span) = (2usize, (src_h + mem_h + (1usize << log_layers)).next_power_of_two());
     let mut sigma: Vec<usize> = (0..span * k).collect();
@@ -1658,7 +1680,7 @@ fn whole_proof_monolith(queries: &[usize], seeds: &[u64], wrong_opening: bool) -
         let scalar = if wrong_opening && qi == 0 { a[0] + Fp::ONE } else { a[0] };
         let (mtr, mem, _) = opening_of_scalar(scalar, 2);
         open_idx.push(regions.len());
-        heights.push(mtr.len() / WIDTH);
+        heights.push(mem.rows());
         traces.push(mtr);
         regions.push(Box::new(mem));
 
@@ -1769,7 +1791,7 @@ fn both_fold_inputs_are_bound_to_committed_openings() {
     let fold = TraceFold::new(log_layers, n_folds, x_inv, dir, final_value);
     let fold_trace = fold.trace(&beta, &a, &b);
 
-    let mem_h = open_a.len() / WIDTH;
+    let mem_h = mem_a.rows();
     let fold_off = 2 * mem_h;
     let k = 3usize;
     let span = (2 * mem_h + (1usize << log_layers)).next_power_of_two();
@@ -1795,7 +1817,7 @@ fn a_fold_with_an_uncommitted_second_input_is_rejected() {
     let fold = TraceFold::new(log_layers, n_folds, x_inv, dir, final_value);
     let fold_trace = fold.trace(&beta, &a, &b);
 
-    let mem_h = open_a.len() / WIDTH;
+    let mem_h = mem_a.rows();
     let fold_off = 2 * mem_h;
     let k = 3usize;
     let span = (2 * mem_h + (1usize << log_layers)).next_power_of_two();
@@ -2318,7 +2340,7 @@ fn whole_proof_monolith_ext(
         n_folds = nf;
         let (mtr, mem, _) = opening_of_scalar(a[0], 2);
         open_idx.push(regions.len());
-        heights.push(mtr.len() / WIDTH);
+        heights.push(mem.rows());
         traces.push(mtr);
         regions.push(Box::new(mem));
 
@@ -2574,7 +2596,7 @@ fn wired_recursive_check(deep_val: Fp) -> (crate::crypto::stark::air::WiredExt, 
     use alloc::boxed::Box;
     let scalar = Fp::from_u64(777);
     let (mtr, mem, _) = opening_of_scalar(scalar, 2);
-    let mem_height = mtr.len() / WIDTH;
+    let mem_height = mem.rows();
 
     let (cl, cp, cpz, x, z, c0, e) = (
         Fp::from_u64(2),
@@ -2778,13 +2800,14 @@ fn wired_recursive_verifier(
     let regions: Vec<Box<dyn AirExt>> =
         alloc::vec![Box::new(fs) as Box<dyn AirExt>, Box::new(mem), Box::new(fold), Box::new(dc),];
 
-    // Region row offsets exactly as Stack::of lays them, each rounded to a power of
-    // two. The FS challenge sits at row (2^ls - 1) * 2^lr, column 0.
+    // Region row offsets exactly as the engine stacks them: each region takes
+    // its actual rows, unpadded. The FS challenge sits at row (2^ls - 1) * 2^lr,
+    // column 0 of its own region.
     let mut offs = Vec::with_capacity(regions.len());
     let mut row = 0usize;
     for r in &regions {
         offs.push(row);
-        row += 1usize << r.log_trace_len();
+        row += r.rows();
     }
     let span = row.next_power_of_two();
     let (o_mem, o_fold, o_dc) = (offs[1], offs[2], offs[3]);
@@ -2860,9 +2883,7 @@ fn gen_wired_recursive_public_selftest() {
     // per query), so the 32-query test instances are only ~40-bit. For a fund gate
     // the vector is generated at rate 1/16 (EXTRA_BLOWUP_BITS = 3, 4 conjectured
     // bits per query): 32 queries give 128 bits and 16 grind bits add margin.
-    const EXTRA_BLOWUP_BITS: u32 = 3;
-    const N_QUERIES: usize = 32;
-    const GRIND_BITS: u32 = 16;
+    use crate::crypto::stark::attest_params::{EXTRA_BLOWUP_BITS, GRIND_BITS, N_QUERIES};
 
     let (wired, witness) = wired_recursive_verifier(RecursiveFault::None);
     let proof = stark_prove_ext_blown(&wired, &witness, N_QUERIES, GRIND_BITS, EXTRA_BLOWUP_BITS);

@@ -15,14 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `MkBatteryStatus` returns the battery charge as a percentage 0..=100,
-//! or a negative errno when no battery can be read. NONOS has no ACPI
-//! battery (_BST/_BIF) support yet — that needs an AML interpreter the
-//! kernel does not have — so until a battery driver lands this reports
-//! AC-full. When such a driver exists it should replace the body here
-//! with the real remaining-capacity reading.
+//! or a negative errno when no battery can be read.
+//!
+//! There is no reading to give. A battery percentage comes from the ACPI
+//! `_BST` and `_BIF` objects, evaluating those needs an AML interpreter, and
+//! the kernel does not have one: it scans AML for device resources and never
+//! executes it.
+//!
+//! So this refuses. It previously answered a fixed 100, which meant every
+//! caller was told the machine was on full charge, on hardware with no battery
+//! at all, with no way to tell that apart from a real reading. A shell asking
+//! for a number it cannot have should be told so, and the caller already
+//! handles a negative return as "not reported". Inventing a plausible number
+//! is the one answer that cannot be checked and cannot be corrected.
+//!
+//! When an AML evaluator lands, replace the body with the real remaining
+//! capacity and this comment with nothing.
 
-const AC_FULL_PERCENT: i64 = 100;
+use super::errnos::ERRNO_NODEV;
 
 pub fn sys_battery_status() -> i64 {
-    AC_FULL_PERCENT
+    ERRNO_NODEV
 }

@@ -26,6 +26,8 @@ pub fn sign_result(
     kind: &'static [u8],
     raw: Result<Vec<u8>, i32>,
 ) -> EventOutcome {
+    // Whatever was armed referred to the previous transaction.
+    super::broadcast_arm::disarm(state);
     let Ok(raw) = raw else {
         state.status = b"transaction sign failed";
         return EventOutcome::Repaint;

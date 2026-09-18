@@ -15,10 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod abi;
+pub mod attest_challenge;
+pub mod attest_doc;
 pub mod build;
 pub mod caps;
 pub mod display;
+pub mod doc_parse;
+pub mod layout;
 pub mod license;
 pub mod product;
+pub mod runtime;
+pub mod third_party;
 pub mod trust;
 pub mod uptime;
+pub mod verify;

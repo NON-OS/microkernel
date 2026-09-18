@@ -31,10 +31,13 @@
 //! shell stable.
 
 mod boot_frame;
+mod priority;
 mod queue;
 mod request;
 mod service;
 
+pub(super) use priority::adopt as adopt_drain_pid;
+pub(crate) use queue::has_pending;
 pub use queue::PendingApp;
 pub use request::request;
 pub(crate) use service::service;

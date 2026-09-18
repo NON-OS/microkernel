@@ -23,9 +23,22 @@ mod cat;
 mod cd;
 mod cp;
 mod find;
+mod glob;
 mod grep;
+mod grep_match;
+mod grep_paint;
+mod grep_scan;
 mod head;
 mod ls;
+mod ls_date;
+mod ls_dots;
+mod ls_emit;
+mod ls_flags;
+mod ls_list;
+mod ls_long;
+mod ls_meta;
+mod ls_num;
+mod ls_total;
 mod mkdir;
 mod mv;
 mod pwd;
@@ -35,6 +48,8 @@ mod rmdir;
 mod stat;
 mod tail;
 mod touch;
+mod tree;
+pub mod tree_render;
 mod wc;
 
 pub use cat::cat;
@@ -52,45 +67,8 @@ pub use rmdir::rmdir;
 pub use stat::stat;
 pub use tail::tail;
 pub use touch::touch;
+pub use tree::tree;
 pub use wc::wc;
-
-// Parse a `-n N` count with a fallback, returning the count and the file arg.
-pub(super) fn head_tail_args<'a>(
-    argv: &'a [&'a [u8]],
-    default: usize,
-) -> (usize, Option<&'a [u8]>) {
-    let mut n = default;
-    let mut file = None;
-    let mut i = 1;
-    while i < argv.len() {
-        if argv[i] == b"-n" {
-            if let Some(v) = argv.get(i + 1) {
-                n = parse_usize(v).unwrap_or(default);
-                i += 2;
-                continue;
-            }
-        }
-        if argv[i].first() != Some(&b'-') {
-            file = Some(argv[i]);
-        }
-        i += 1;
-    }
-    (n, file)
-}
-
-fn parse_usize(b: &[u8]) -> Option<usize> {
-    if b.is_empty() {
-        return None;
-    }
-    let mut v: usize = 0;
-    for &c in b {
-        if !c.is_ascii_digit() {
-            return None;
-        }
-        v = v.checked_mul(10)?.checked_add((c - b'0') as usize)?;
-    }
-    Some(v)
-}
 
 use crate::term::state::State;
 

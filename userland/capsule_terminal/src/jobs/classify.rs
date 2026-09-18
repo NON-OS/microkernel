@@ -18,6 +18,7 @@ use alloc::vec::Vec;
 
 use crate::command::builtin::nox::install;
 use crate::command::builtin::ping;
+use crate::command::builtin::tool;
 use crate::command::dispatch::split_stages;
 use crate::command::output::Output;
 use crate::term::state::State;
@@ -68,8 +69,36 @@ pub fn is_job_command(state: &mut State, args: &[&[u8]]) -> Verdict {
                 Verdict::Handled
             }
         },
+        // Bare-name run of a store tool staged in the vfs (`sd a b`, ...): route
+        // it through the same async installer path as `install <name>`, so the
+        // tool loads and streams its output without blocking the event loop.
+        // The tool name is args[0], which prepare reads as the capsule stem.
+        name if STORE_TOOLS.contains(&name) => match install::prepare(state, args) {
+            Some(job) => Verdict::Job(JobWork::InstallDrain(job)),
+            None => {
+                state.last_status = 1;
+                Verdict::Handled
+            }
+        },
+        // Bare-name run of a baked, attested tool (`tokei`, `grex foo`, ...): the
+        // kernel spawns it parented to this terminal and it streams its stdout
+        // through the same drain job.
+        name if tool::is_tool(name) => match tool::prepare(state, args) {
+            Some(job) => Verdict::Job(JobWork::InstallDrain(job)),
+            None => Verdict::Handled,
+        },
         _ => Verdict::Instant,
     }
+}
+
+// The CLI tools staged in the vfs store. A bare invocation of one of these runs
+// it from the store instead of falling through to "unknown verb".
+const STORE_TOOLS: &[&[u8]] = &[b"sd", b"tokio-smoke", b"std_proof"];
+
+/// Whether a bare name runs from the store. Read from the same list the
+/// dispatcher uses, so what `type` reports is what would run.
+pub fn is_store_tool(name: &[u8]) -> bool {
+    STORE_TOOLS.contains(&name)
 }
 
 fn is_plain(args: &[&[u8]]) -> bool {

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod ahci_capsule;
+pub mod audio_capsule;
 pub mod block_device;
 pub mod broker;
 pub mod e1000_capsule;
@@ -25,8 +26,8 @@ pub mod iwlwifi_capsule;
 pub mod nvme_capsule;
 pub mod ps2_kbd_capsule;
 pub mod rtl8139_capsule;
-pub mod rtl8821ce_capsule;
 pub mod rtl8169_capsule;
+pub mod rtl8821ce_capsule;
 pub mod virtio_blk_capsule;
 pub mod virtio_gpu_capsule;
 pub mod virtio_net_capsule;

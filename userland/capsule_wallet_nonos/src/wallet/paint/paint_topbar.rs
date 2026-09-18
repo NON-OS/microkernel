@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::{paint_icons as ic, ui};
@@ -39,7 +40,7 @@ pub fn paint_topbar(state: &State, fb: &mut PaintBuffer) {
         VIEW_NOX => "NOX revenue & staking",
         _ => "Account overview",
     };
-    let _ = fb.text_ttf(226, 46, title, FG(), 20.0);
+    let _ = fb.text_ttf(226, 46, title, FG(), scale::TITLE);
 
     let mut c = box_edge(fb, THEME_BTN_X, ICON_W, false);
     ic::theme(fb, THEME_BTN_X, HDR_Y, state.light_mode, c);

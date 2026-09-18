@@ -19,19 +19,54 @@ use nonos_libc::mk_time_millis;
 
 use crate::command;
 use crate::jobs;
+use crate::term::context::context_line;
+use crate::term::cwd::home_var;
 use crate::term::dimensions::COLS;
+use crate::term::identity::{hostname, USER};
 use crate::term::prompt::PROMPT_BYTES;
 use crate::term::state::State;
 use crate::term::util::{copy_into, format_u64};
 
 pub fn on_enter(state: &mut State) -> EventOutcome {
+    // Running a line ends any search that found it. The match is already on
+    // the line, so accepting it is simply leaving the mode.
+    super::search::search_accept(state);
     state.fresh = false;
     let started = mk_time_millis();
     state.open_block(crate::term::rtc::rtc_hms());
-    let body = state.line.as_bytes();
+    let mut ctx = [0u8; COLS];
+    let cn = context_line(USER, hostname(), state.cwd.as_bytes(), home_var(state), &mut ctx);
+    state.scrollback.push_line(&ctx[..cn]);
+    // A `!` form is resolved before anything else sees the line, so what is
+    // echoed, recorded in history and run are all the same text. Expanding
+    // later would put one command on screen and another through the parser.
     let mut entered = [0u8; COLS];
-    let n = body.len();
-    entered[..n].copy_from_slice(body);
+    let n;
+    match crate::term::history::expand(state.line.as_bytes(), &state.history) {
+        // The expansion is what gets echoed, which is the whole safety of the
+        // feature: the reader sees the command that is about to run, not the
+        // shorthand they typed for it.
+        Some(Ok(line)) => {
+            n = line.len().min(COLS);
+            entered[..n].copy_from_slice(&line[..n]);
+        }
+        Some(Err(_)) => {
+            // Naming an entry that is not there runs nothing. Silently
+            // dropping the `!` would run the rest of the line, which is how
+            // history expansion earns its reputation.
+            state.scrollback.push_line(b"no matching history entry");
+            state.line.clear();
+            state.history.reset_cursor();
+            state.last_status = 1;
+            state.scrollback.jump_bottom();
+            return EventOutcome::Repaint;
+        }
+        None => {
+            let body = state.line.as_bytes();
+            n = body.len();
+            entered[..n].copy_from_slice(body);
+        }
+    }
     let mut echo = [0u8; COLS + 8];
     let mut k = 0;
     k += copy_into(&mut echo[k..], PROMPT_BYTES);

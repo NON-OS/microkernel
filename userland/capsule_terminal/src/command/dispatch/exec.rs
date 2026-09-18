@@ -28,8 +28,10 @@ pub(super) fn exec(state: &mut State, args: &[&[u8]]) -> Outcome {
     match args[0] {
         b"nox" => return builtin::nox::dispatch(state, &args[1..]),
         b"about" => builtin::about::run(&mut Output::new(&mut state.scrollback), args),
+        b"bench" => builtin::bench::run(&mut Output::new(&mut state.scrollback), args),
         b"version" => builtin::version::run(&mut Output::new(&mut state.scrollback), args),
         b"whoami" => builtin::whoami::run(&mut Output::new(&mut state.scrollback), args),
+        b"receipt" => builtin::receipt::run(&mut Output::new(&mut state.scrollback), args),
         b"capsules" | b"caps" => {
             builtin::capsules::run(&mut Output::new(&mut state.scrollback), args)
         }
@@ -39,11 +41,14 @@ pub(super) fn exec(state: &mut State, args: &[&[u8]]) -> Outcome {
         b"history" => {
             builtin::history_cmd::run(&mut Output::new(&mut state.scrollback), &state.history, args)
         }
-        b"jobs" => builtin::jobs::run_jobs(&mut Output::new(&mut state.scrollback), &state.jobs, args),
+        b"jobs" => {
+            builtin::jobs::run_jobs(&mut Output::new(&mut state.scrollback), &state.jobs, args)
+        }
         b"fg" => builtin::jobs::run_fg(state, args),
         b"bg" => builtin::jobs::run_bg(&mut Output::new(&mut state.scrollback), &state.jobs, args),
         b"market" => builtin::market::run(&mut Output::new(&mut state.scrollback), args),
         b"motd" => builtin::motd::run(&mut state.scrollback, args),
+        b"neofetch" => builtin::neofetch::run(state),
         b"ping" => builtin::ping::run(&mut Output::new(&mut state.scrollback), args),
         b"service" | b"svc" => builtin::service::run(&mut Output::new(&mut state.scrollback), args),
         b"pwd" => builtin::fs::pwd(state),
@@ -58,11 +63,25 @@ pub(super) fn exec(state: &mut State, args: &[&[u8]]) -> Outcome {
         b"stat" => builtin::fs::stat(state, args),
         b"rmdir" => builtin::fs::rmdir(state, args),
         b"find" => builtin::fs::find(state, args),
+        b"tree" => builtin::fs::tree(state, args),
         b"head" => builtin::fs::head(state, args),
         b"tail" => builtin::fs::tail(state, args),
         b"grep" => builtin::fs::grep(state, args),
         b"wc" => builtin::fs::wc(state, args),
-        b"help" | b"commands" => builtin::help::run(&mut Output::new(&mut state.scrollback)),
+        b"type" | b"which" => {
+            let ok = builtin::which::run(&mut Output::new(&mut state.scrollback), args);
+            state.last_status = i32::from(!ok);
+        }
+        b"help" | b"commands" => {
+            let mut out = Output::new(&mut state.scrollback);
+            match args.get(1) {
+                Some(name) => {
+                    let ok = builtin::help_one::run(&mut out, name);
+                    state.last_status = i32::from(!ok);
+                }
+                None => builtin::help::run(&mut out),
+            }
+        }
         b"theme" | b"profile" => builtin::theme::run(state, args),
         _ => return builtin::nox::dispatch(state, args),
     }

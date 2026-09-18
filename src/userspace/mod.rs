@@ -28,6 +28,7 @@
 
 pub mod capsule_about;
 pub mod capsule_attest;
+pub mod capsule_audio_player;
 pub mod capsule_boot_splash;
 pub mod capsule_browser;
 pub mod capsule_calculator;
@@ -38,6 +39,8 @@ pub mod capsule_desktop_shell;
 pub mod capsule_driver_i2c_hid;
 pub mod capsule_driver_usb_hid;
 pub mod capsule_driver_usb_msc;
+#[cfg(feature = "nonos-capsule-flacprobe")]
+pub mod capsule_flacprobe;
 pub mod capsule_file_manager;
 pub mod capsule_hello;
 pub mod capsule_image_codec;
@@ -56,6 +59,7 @@ pub mod capsule_net_l2;
 #[cfg(feature = "nonos-capsule-net-ntp")]
 pub mod capsule_net_ntp;
 pub mod capsule_net_nym;
+pub mod capsule_socks5;
 pub mod capsule_net_sockets;
 pub mod capsule_net_tcp;
 pub mod capsule_net_udp;
@@ -70,13 +74,15 @@ pub mod capsule_setup_wizard;
 pub mod capsule_snake;
 pub mod capsule_std_proof;
 pub mod capsule_terminal;
-pub mod capsule_tokio_smoke;
 pub mod capsule_text_editor;
+pub mod capsule_tokio_smoke;
 pub mod capsule_toolkit;
+pub mod capsule_video_player;
 pub mod capsule_wallet_nonos;
 pub mod capsule_wallpaper;
 pub mod capsule_wallpaper_catalog;
 pub mod capsule_wm;
 pub mod init;
+pub mod tool_capsules;
 
 pub use init::run_init;

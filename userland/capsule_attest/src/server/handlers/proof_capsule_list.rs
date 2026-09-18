@@ -14,46 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! What is running, with the authority the kernel actually granted it.
+//!
+//! The wire shape is unchanged: a count, then `name_len | name | caps` per
+//! capsule. What changed is where the bytes come from. They used to be a literal
+//! list of seventeen names with masks typed beside them; they are now one read of
+//! the kernel's process table, so the answer is what is running rather than what
+//! was running when someone last edited this file.
+
 use crate::protocol::{Request, E_INVAL, HDR_LEN, STATUS_LEN};
 use crate::server::respond;
+use crate::state::live::snapshot;
 
-const KNOWN_CAPSULES: &[(&[u8], u64)] = &[
-    (b"ramfs", 0x19),
-    (b"vfs", 0x19),
-    (b"keyring", 0x19),
-    (b"entropy", 0x19),
-    (b"crypto", 0x19),
-    (b"market", 0x19),
-    (b"clipboard", 0x19),
-    (b"attest", 0x19),
-    (b"input_router", 0x19),
-    (b"wm", 0x19),
-    (b"compositor", 0x7819),
-    (b"desktop_shell", 0x1819),
-    (b"wallpaper", 0x1819),
-    (b"about", 0x1819),
-    (b"calculator", 0x1819),
-    (b"terminal", 0x1819),
-    (b"driver.virtio_gpu0", 0x1F9019),
-];
-
+// E_AGAIN would be wrong here: the kernel refusing the process table is not a
+// transient condition the caller should retry through, and answering 0 capsules
+// would be a lie about an empty machine.
 pub fn run(out: &mut [u8], req: &Request) -> usize {
+    let Some(snap) = snapshot() else {
+        return respond::status(out, req, E_INVAL);
+    };
     let dst = HDR_LEN + STATUS_LEN;
     if dst + 4 > out.len() {
         return respond::status(out, req, E_INVAL);
     }
-    out[dst..dst + 4].copy_from_slice(&(KNOWN_CAPSULES.len() as u32).to_le_bytes());
+
+    // The count is written last, once it is known how many entries actually fit,
+    // so a caller can never read a count that promises more than the payload
+    // carries.
     let mut written = 4usize;
-    for (name, mask) in KNOWN_CAPSULES {
+    let mut listed = 0u32;
+    for capsule in snap.live() {
+        let name = capsule.name();
         let needed = 4 + name.len() + 8;
         if dst + written + needed > out.len() {
-            return respond::status(out, req, E_INVAL);
+            break;
         }
-        out[dst + written..dst + written + 4].copy_from_slice(&(name.len() as u32).to_le_bytes());
-        out[dst + written + 4..dst + written + 4 + name.len()].copy_from_slice(name);
-        out[dst + written + 4 + name.len()..dst + written + 4 + name.len() + 8]
-            .copy_from_slice(&mask.to_le_bytes());
+        let at = dst + written;
+        out[at..at + 4].copy_from_slice(&(name.len() as u32).to_le_bytes());
+        out[at + 4..at + 4 + name.len()].copy_from_slice(name);
+        let caps_at = at + 4 + name.len();
+        out[caps_at..caps_at + 8].copy_from_slice(&capsule.caps.to_le_bytes());
         written += needed;
+        listed += 1;
     }
+    out[dst..dst + 4].copy_from_slice(&listed.to_le_bytes());
     respond::with_payload(out, req, 0, written)
 }

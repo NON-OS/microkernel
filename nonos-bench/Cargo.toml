@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Cycle-accurate measurement for the primitives that define a microkernel.
+# no_std and dependency-free so the kernel and a capsule can share one
+# reduction: two harnesses reporting different statistics about the same
+# machine is how a regression hides. Pure enough that the maths is proved on
+# the host.
+[package]
+name = "nonos_bench_core"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"

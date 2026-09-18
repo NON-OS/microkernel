@@ -16,88 +16,77 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use super::nox_amount::amount_row;
+use super::nox_layout::NoxLayout;
+use super::nox_right::right_column;
+use super::scale;
 use super::ui;
 use crate::wallet::state::State;
-use crate::wallet::theme::{ACCENT, CYAN, DIM, FG, GREEN, INK, LINE2, MUTED, PANEL_2};
+use crate::wallet::theme::{ACCENT, FG, INK, LINE2, MUTED};
 
 pub fn paint_nox_stake(state: &State, fb: &mut PaintBuffer) {
-    let cx = 226u32;
-    let cw = fb.width.saturating_sub(252);
-    let lw = 600u32;
-    ui::card(fb, cx, 418, lw, 236);
+    let l = NoxLayout::sized(fb.width, fb.height);
+    ui::card(fb, l.cx, l.top(), l.lw, NoxLayout::CARD_H);
     let stake = state.stake_unstake == 0;
-    tab(fb, cx + 20, 438, "Stake NOX", stake);
-    tab(fb, cx + 220, 438, "Unstake", !stake);
+    tab(fb, l.cx + 20, l.tabs_y(), l.tab_w, "Stake NOX", stake);
+    tab(fb, l.cx + 20 + l.tab_w, l.tabs_y(), l.tab_w, "Unstake", !stake);
 
-    let amt = state.stake_amount.min(crate::wallet::state::MAX_STAKE);
-    let track = lw - 40;
-    let fill = track * amt / crate::wallet::state::MAX_STAKE;
-    let _ = fb.text_ttf((cx + 20) as i32, 494, "Amount", MUTED(), 13.0);
-    let mut ab = [0u8; 24];
-    let an = label(&mut ab, b"", amt, b" NOX");
-    let av = core::str::from_utf8(&ab[..an]).unwrap_or("0");
-    let aw = fb.measure_ttf(av, 14.0).max(0) as u32;
-    let _ = fb.text_ttf((cx + lw - 20 - aw) as i32, 493, av, CYAN(), 14.0);
-    fb.fill_rect(cx + 20, 528, track, 5, PANEL_2());
-    fb.fill_rect(cx + 20, 528, fill, 5, ACCENT());
-    fb.fill_rect(cx + 13 + fill, 523, 14, 14, CYAN());
-    let _ = fb.text_ttf((cx + 20) as i32, 546, "0", DIM(), 12.0);
-    let _ = fb.text_ttf((cx + lw - 90) as i32, 546, "18,204 avail", DIM(), 12.0);
+    amount_row(state, fb, &l, stake);
 
-    ui::bordered(fb, cx + 20, 576, lw - 40, 40, PANEL_2(), LINE2());
-    let _ = fb.text_ttf((cx + 34) as i32, 587, "Projected reward / yr", MUTED(), 13.0);
-    let mut pb = [0u8; 24];
-    let pn = label(&mut pb, b"", amt * 840 / 10000, b" NOX");
-    let ps = core::str::from_utf8(&pb[..pn]).unwrap_or("0");
-    let pw = fb.measure_ttf(ps, 13.0).max(0) as u32;
-    let _ = fb.text_ttf((cx + lw - 20 - pw) as i32, 587, ps, CYAN(), 13.0);
-    let mut bb = [0u8; 32];
-    let pre: &[u8] = if stake { b"Stake " } else { b"Unstake " };
-    let bn = label(&mut bb, pre, amt, b" NOX");
-    ui::primary(fb, cx + 20, 626, lw - 40, &bb[..bn]);
+    // Staking is approve then stake; the label tracks which step is next.
+    // Closing a position needs no approve, so it says what it will do.
+    let mut bb = [0u8; 80];
+    let bn = action_label(state, stake, &mut bb);
+    ui::primary(fb, l.cx + 20, l.action_y(), l.track_w, &bb[..bn]);
 
-    let rx = cx + lw + 16;
-    let rw = cw - lw - 16;
-    ui::card(fb, rx, 418, rw, 116);
-    let _ = fb.text_ttf((rx + 20) as i32, 436, "CLAIMABLE REWARDS", DIM(), 10.5);
-    let _ = fb.text_ttf((rx + 20) as i32, 458, "0.284 ETH", GREEN(), 28.0);
-    ui::primary(fb, rx + 20, 496, rw - 40, b"Claim");
-    ui::card(fb, rx, 546, rw, 108);
-    let _ = fb.text_ttf((rx + 20) as i32, 564, "LOCK PERIOD", DIM(), 10.5);
-    let _ = fb.text_ttf((rx + 20) as i32, 586, "12d 04h 22m", FG(), 24.0);
-    fb.fill_rect(rx + 20, 626, rw - 40, 6, PANEL_2());
-    fb.fill_rect(rx + 20, 626, (rw - 40) * 64 / 100, 6, ACCENT());
+    right_column(state, fb, &l);
 
-    ui::card(fb, cx, 668, cw, 92);
-    let _ = fb.text_ttf((cx + 20) as i32, 682, "Where the fee goes", FG(), 14.0);
-    fee(fb, cx, 708, "protocol fee", "treasury / NOX stakers / buyback-burn");
-    fee(fb, cx, 730, "relayer fee", "the relayer that fronts gas");
+    ui::card(fb, l.cx, l.fees_y(), l.cw, 92);
+    let _ = fb.text_ttf(
+        (l.cx + 20) as i32,
+        (l.fees_y() + 14) as i32,
+        "Where the fee goes",
+        FG(),
+        scale::VALUE,
+    );
+    fee(fb, l.cx, l.fees_y() + 40, "protocol fee", "treasury / NOX stakers / buyback-burn");
+    fee(fb, l.cx, l.fees_y() + 62, "the relayer", "fronts the gas for a stake");
 }
 
-fn label(buf: &mut [u8], pre: &[u8], n: u32, suf: &[u8]) -> usize {
+// What the button will actually sign, said plainly.
+fn action_label(state: &State, stake: bool, out: &mut [u8]) -> usize {
+    if !stake {
+        let pre = b"Close position ";
+        out[..pre.len()].copy_from_slice(pre);
+        let mut nb = [0u8; 20];
+        let n = super::put_u32::put_u32(&mut nb, state.stake_position as u32);
+        out[pre.len()..pre.len() + n].copy_from_slice(&nb[..n]);
+        return pre.len() + n;
+    }
+    let pre: &[u8] = if state.stake_step == 0 { b"Approve " } else { b"Stake " };
     let mut i = pre.len();
-    buf[..i].copy_from_slice(pre);
-    let mut nb = [0u8; 10];
-    let nn = super::format_u32::format_u32(n, &mut nb);
-    buf[i..i + nn].copy_from_slice(&nb[..nn]);
+    out[..i].copy_from_slice(pre);
+    let mut nb = [0u8; 48];
+    let nn = crate::wallet::nox::format_nox(state.stake_amount, &mut nb);
+    out[i..i + nn].copy_from_slice(&nb[..nn]);
     i += nn;
-    buf[i..i + suf.len()].copy_from_slice(suf);
-    i + suf.len()
+    out[i..i + 4].copy_from_slice(b" NOX");
+    i + 4
 }
 
-fn tab(fb: &mut PaintBuffer, x: u32, y: u32, label: &str, sel: bool) {
+fn tab(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, label: &str, sel: bool) {
     if sel {
-        fb.fill_rect(x, y, 200, 36, ACCENT());
+        fb.fill_rect(x, y, w, 36, ACCENT());
     } else {
-        ui::edge(fb, x, y, 200, 36, LINE2());
+        ui::edge(fb, x, y, w, 36, LINE2());
     }
     let c = if sel { INK() } else { MUTED() };
-    let tw = fb.measure_ttf(label, 13.0).max(0) as u32;
-    let _ = fb.text_ttf((x + 100 - tw / 2) as i32, (y + 11) as i32, label, c, 13.0);
+    let tw = fb.measure_ttf(label, scale::BODY).max(0) as u32;
+    let tx = x + w.saturating_sub(tw) / 2;
+    let _ = fb.text_ttf(tx as i32, (y + 9) as i32, label, c, scale::BODY);
 }
 
-fn fee(fb: &mut PaintBuffer, x: u32, y: u32, k: &str, v: &str) {
-    let _ = fb.text_ttf((x + 20) as i32, y as i32, k, CYAN(), 13.0);
-    let _ = fb.text_ttf((x + 150) as i32, y as i32, "\u{203a}", DIM(), 13.0);
-    let _ = fb.text_ttf((x + 180) as i32, y as i32, v, MUTED(), 13.0);
+fn fee(fb: &mut PaintBuffer, cx: u32, y: u32, what: &str, who: &str) {
+    let _ = fb.text_ttf((cx + 20) as i32, y as i32, what, MUTED(), scale::SMALL);
+    let _ = fb.text_ttf((cx + 190) as i32, y as i32, who, FG(), scale::SMALL);
 }

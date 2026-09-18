@@ -16,12 +16,10 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use crate::about::section_render::section_line_count;
 use crate::about::state::State;
 
 pub fn on_end(state: &mut State) -> EventOutcome {
-    let total = section_line_count(state.section);
-    let max = total.saturating_sub(state.last_visible_lines);
+    let max = state.max_scroll();
     if state.scroll == max {
         return EventOutcome::Idle;
     }

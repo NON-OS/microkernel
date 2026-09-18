@@ -15,61 +15,62 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::EventOutcome;
-use nonos_policy_proto::Category;
 
-use crate::settings::manifest::{HEIGHT, WIDTH};
-use crate::settings::paint::{
-    layout::{BODY_TOP, HEADER_H, ROW_H, STATUS_H, TAB_H, VALUE_LEFT},
-    visible_rows::visible_rows,
-};
-use crate::settings::state::{
-    focused_count::focused_count, refresh_wifi::enter_wifi, set_category::set_category,
-    track_scroll::track_scroll, State,
-};
+use crate::settings::state::{search_clear, searching, set_section, track_scroll, view_h, State};
+use crate::settings::ui::bytes::as_str;
+use crate::settings::ui::hit::{at, Hit};
+use crate::settings::ui::metrics::SIDEBAR_W;
+use crate::settings::ui::nav_geom;
+use crate::settings::ui::results;
+use crate::settings::ui::results_geom::index_at;
 
-use super::adjust::adjust;
-use super::toggle_or_inc::toggle_or_inc;
-
-const TAB_WIDTH: u32 = WIDTH / 4;
+use super::on_search_key::open_selected;
+use super::pointer_row::activate;
 
 pub(super) fn on_pointer(state: &mut State, x: i32, y: i32) -> EventOutcome {
     if x < 0 || y < 0 {
         return EventOutcome::Idle;
     }
-    let (x, y) = (x as u32, y as u32);
-    if (HEADER_H..HEADER_H + TAB_H).contains(&y) {
-        match core::cmp::min(x / TAB_WIDTH, 3) {
-            0 => set_category(state, Category::User),
-            1 => set_category(state, Category::Identity),
-            2 => set_category(state, Category::Kernel),
-            _ => enter_wifi(state),
+    let was_focused = core::mem::replace(&mut state.search_focused, false);
+    let outcome = route(state, x, y);
+    if was_focused && outcome == EventOutcome::Idle {
+        return EventOutcome::Repaint;
+    }
+    outcome
+}
+
+fn route(state: &mut State, x: i32, y: i32) -> EventOutcome {
+    if x < SIDEBAR_W as i32 {
+        let Some(section) = nav_geom::at(x, y) else { return EventOutcome::Idle };
+        search_clear(state);
+        set_section(state, section);
+        return EventOutcome::Repaint;
+    }
+    if y >= view_h(state) as i32 {
+        return EventOutcome::Idle;
+    }
+    if searching(state) {
+        return results_click(state, y);
+    }
+    let pane_w = state.win_w.saturating_sub(SIDEBAR_W);
+    let scroll = state.scroll_px[state.section.index()];
+    match at(state, x - SIDEBAR_W as i32, y, scroll, pane_w) {
+        Hit::Field { index, control } => {
+            state.cursor[state.section.index()] = index;
+            track_scroll(state);
+            activate(state, control)
         }
-        return EventOutcome::Repaint;
+        Hit::Network(i) => {
+            state.wifi_cursor = i;
+            EventOutcome::Repaint
+        }
+        Hit::None => EventOutcome::Idle,
     }
-    // The Wi-Fi panel is keyboard-driven; body clicks there do nothing.
-    if state.wifi_active {
-        return EventOutcome::Idle;
-    }
-    if y < BODY_TOP || y >= HEIGHT.saturating_sub(STATUS_H) {
-        return EventOutcome::Idle;
-    }
-    let row = ((y - BODY_TOP) / ROW_H) as usize;
-    let cat = state.category as usize;
-    let idx = state.scroll_top[cat] + row;
-    if row >= visible_rows() || idx >= focused_count(state.category) {
-        return EventOutcome::Idle;
-    }
-    state.cursor[cat] = idx;
-    track_scroll(state);
-    if x < VALUE_LEFT {
-        return EventOutcome::Repaint;
-    }
-    if x < VALUE_LEFT + 96 {
-        adjust(state, -1);
-    } else if x > WIDTH.saturating_sub(120) {
-        adjust(state, 1);
-    } else {
-        toggle_or_inc(state);
-    }
-    EventOutcome::Repaint
+}
+
+fn results_click(state: &mut State, y: i32) -> EventOutcome {
+    let n = results::count(as_str(state.search.as_slice()));
+    let Some(i) = index_at(y, state.search_scroll, n) else { return EventOutcome::Idle };
+    state.search_cursor = i;
+    open_selected(state)
 }

@@ -30,8 +30,8 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkServiceRegister
             | MkMmap
             | MkMunmap
-            | MkSpawn
             | MkCapsuleLoad
+            | MkCapsuleVerify
             | MkExit
             | MkPidAlive
             | MkWait
@@ -47,10 +47,16 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkTimeAdjust
             | MkBatteryStatus
             | MkProcStat
+            | MkFutexWait
+            | MkFutexWake
             | MkProcOutput
             | MkProcInput
             | MkStdinRead
             | MkAttestStatus
+            | MkAttestDoc
+            | MkAttestEntries
+            | MkDevRootRequest
+            | MkDevRootConfirm
             | MkCapGrant
             | MkCapRevoke
             | MkCapCheck
@@ -73,7 +79,10 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkPioWrite
             | MkPioRelease
             | MkDebug
+            | MkStdoutWrite
+            | MkStoreWrite
             | MkSpawnInstance
+            | MkToolRun
     )
 }
 

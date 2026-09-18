@@ -19,6 +19,7 @@ use nonos_app_skeleton::EventOutcome;
 use crate::wallet::ipc::{sign_eth_transfer, sign_nox_approve};
 use crate::wallet::state::{record_tx, State};
 use crate::wallet::tx_hash::tx_hash;
+use crate::wallet::units::send_decimals;
 
 pub fn sign_both(state: &mut State) -> EventOutcome {
     if state.wallet_id == 0 {
@@ -29,10 +30,11 @@ pub fn sign_both(state: &mut State) -> EventOutcome {
         state.status = b"recipient incomplete";
         return EventOutcome::Repaint;
     };
-    let Some(value) = super::eth_value::eth_value_wei(state.send_amount_milli_eth) else {
-        state.status = b"amount too large";
+    let value = state.send_amount.scaled(send_decimals(state.send_token));
+    if value == 0 {
+        state.status = b"enter an amount";
         return EventOutcome::Repaint;
-    };
+    }
     let Ok(eth) = sign_eth_transfer(
         state.keyring_port,
         state.owner_pid,
@@ -40,6 +42,7 @@ pub fn sign_both(state: &mut State) -> EventOutcome {
         to,
         state.send_nonce,
         value,
+        state.fee_wei,
     ) else {
         state.status = b"ETH proof failed";
         return EventOutcome::Repaint;

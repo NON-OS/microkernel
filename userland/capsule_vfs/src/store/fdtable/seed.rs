@@ -28,11 +28,12 @@ impl Store {
         let _ = self.mkdir("/docs");
         // Scratch space; std's env::temp_dir() on NONOS points here.
         let _ = self.mkdir("/tmp");
-        // The package store. It starts empty: capsules land here at runtime
-        // when the installer fetches and verifies them, not baked into the
-        // image. `install <name>` reads /capsules/<name>.{elf,cert,manifest,
-        // trailer} from this directory.
         let _ = self.mkdir("/capsules");
+        let _ = self.mkdir("/home/nonos/workspace");
+        // The desktop shows the home directory, so a first boot that leaves it
+        // empty shows a bare desktop and nothing to open.
+        let _ = self.mkdir("/home/nonos/documents");
+        self.seed_file("/home/nonos/readme.txt", README);
         self.seed_file("/readme.txt", README);
         self.seed_file("/docs/about.txt", ABOUT);
         self.seed_file("/docs/demo.txt", DEMO);
@@ -40,8 +41,8 @@ impl Store {
         self.seed_file("/images/hardware.jpg", include_bytes!("../../../testimages/hardware.jpg"));
         self.seed_file("/images/network.gif", include_bytes!("../../../testimages/network.gif"));
         self.seed_file("/images/field.png", include_bytes!("../../../testimages/field.png"));
-        self.seed_packages();
         self.seed_capsule_store();
+        self.seed_audio_store();
     }
 
     #[cfg(not(feature = "seed-terminal-store"))]
@@ -55,6 +56,15 @@ impl Store {
         self.seed_file("/capsules/hello.zk_trailer.bin", store::HELLO_TRAILER);
     }
 
+    #[cfg(not(feature = "seed-audio-store"))]
+    fn seed_audio_store(&mut self) {}
+
+    #[cfg(feature = "seed-audio-store")]
+    fn seed_audio_store(&mut self) {
+        self.seed_file("/audio/boot_tone.wav", include_bytes!("../../testassets/boot_tone.wav"));
+        self.seed_file("/audio/boot_tone.mp3", include_bytes!("../../testassets/boot_tone.mp3"));
+    }
+
     fn seed_file(&mut self, name: &str, data: &[u8]) {
         if self.files.len() < MAX_FILES && self.find(name).is_none() {
             self.files.push(File::new(String::from(name), Vec::from(data), false));
@@ -64,8 +74,9 @@ impl Store {
 
 #[cfg(feature = "seed-terminal-store")]
 mod store {
-    pub const HELLO_ELF: &[u8] =
-        include_bytes!("../../../../../userland/capsule_hello/target/x86_64-nonos-user/release/hello");
+    pub const HELLO_ELF: &[u8] = include_bytes!(
+        "../../../../../userland/capsule_hello/target/x86_64-nonos-user/release/hello"
+    );
     pub const HELLO_CERT: &[u8] =
         include_bytes!("../../../../../nonos-data/trust/capsules/hello.nonos_id_cert.bin");
     pub const HELLO_MANIFEST: &[u8] =

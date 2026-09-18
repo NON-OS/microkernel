@@ -18,8 +18,9 @@
 //! then re-sync. Both indices are into the root listing.
 
 use alloc::format;
+use nonos_libc::mk_time_millis;
 
-use crate::state::Context;
+use crate::state::{Context, NotifyLevel};
 
 pub fn move_into(ctx: &mut Context, src: usize, folder: usize) {
     if src == folder {
@@ -36,9 +37,15 @@ pub fn move_into(ctx: &mut Context, src: usize, folder: usize) {
     if !folder_item.is_dir {
         return;
     }
-    let old = format!("/{src_name}");
-    let new = format!("/{}/{}", folder_item.name, src_name);
+    // Same home prefix the listing uses, for the same reason.
+    let home = core::str::from_utf8(super::refresh::HOME).unwrap_or("/");
+    let old = format!("{home}/{src_name}");
+    let new = format!("{home}/{}/{}", folder_item.name, src_name);
     if crate::vfs_client::rename(old.as_bytes(), new.as_bytes()) {
         let _ = super::refresh::refresh(ctx);
+    } else {
+        // The icon just sprang back to where it started, unexplained.
+        let now = mk_time_millis();
+        ctx.toasts.push(b"could not move", NotifyLevel::Error, now);
     }
 }

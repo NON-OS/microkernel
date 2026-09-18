@@ -33,7 +33,9 @@ pub fn run_init() -> ! {
     spawn_plan::spawn_market();
     spawn_plan::spawn_apps();
     run_tokio_smoke();
+    run_flacprobe();
     boot_log::ok("INIT", "Capsules spawned");
+    run_tool_selftest();
     lower_init_priority();
     yield_after_spawns();
     launch_final_payload();
@@ -59,6 +61,17 @@ fn run_std_proof() {
 #[cfg(not(feature = "nonos-capsule-std-proof"))]
 fn run_std_proof() {}
 
+#[cfg(feature = "nonos-capsule-flacprobe")]
+fn run_flacprobe() {
+    match crate::userspace::capsule_flacprobe::spawn_flacprobe_capsule() {
+        Ok(()) => boot_log::ok("FLAC-PROBE", "capsule spawned"),
+        Err(_) => boot_log::error("FLAC-PROBE capsule spawn failed"),
+    }
+}
+
+#[cfg(not(feature = "nonos-capsule-flacprobe"))]
+fn run_flacprobe() {}
+
 #[cfg(feature = "nonos-capsule-ripgrep")]
 fn run_ripgrep() {
     match crate::userspace::capsule_ripgrep::spawn_ripgrep_capsule() {
@@ -81,6 +94,39 @@ fn run_sd() {
 #[cfg(not(feature = "nonos-capsule-sd"))]
 fn run_sd() {}
 
+// Boot self-test: run each installed tool once with an argument that prints and
+// exits without reading stdin (`--version`, or `-h` for the getopts tool). The
+// tool is spawned parented to init, so its stdout flows through the debug sink
+// onto the serial log, proving the whole run path end to end. A marker frames
+// each tool's output so the boot log can be asserted against.
+#[cfg(feature = "nonos-tool-selftest")]
+fn run_tool_selftest() {
+    const TESTS: &[(&[u8], &[u8], &str)] = &[
+        (b"tool.grex", b"grex\0--version", "grex"),
+        (b"tool.tokei", b"tokei\0--version", "tokei"),
+        (b"tool.csview", b"csview\0--version", "csview"),
+        (b"tool.pastel", b"pastel\0--version", "pastel"),
+        (b"tool.jsonxf", b"jsonxf\0-h", "jsonxf"),
+        (b"tool.huniq", b"huniq\0--version", "huniq"),
+        (b"tool.dotenv-linter", b"dotenv-linter\0--version", "dotenv-linter"),
+    ];
+    for (service, argv, label) in TESTS {
+        boot_log::ok("TOOL-SELFTEST run", label);
+        if crate::userspace::tool_capsules::run_named(service, argv).is_none() {
+            boot_log::error("tool self-test spawn failed");
+        }
+        // Let the scheduler run the tool to completion before the next one, so
+        // its output is not interleaved and the port is free again.
+        for _ in 0..4000 {
+            crate::sched::yield_now();
+        }
+        boot_log::ok("TOOL-SELFTEST done", label);
+    }
+}
+
+#[cfg(not(feature = "nonos-tool-selftest"))]
+fn run_tool_selftest() {}
+
 #[cfg(feature = "nonos-capsule-tokio-smoke")]
 fn run_tokio_smoke() {
     match crate::userspace::capsule_tokio_smoke::spawn_tokio_smoke_capsule() {
@@ -99,6 +145,7 @@ fn lower_init_priority() {
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
         *pcb.priority.lock() = Priority::Low;
     }
+    super::instance_spawn::adopt_drain_pid(pid);
 }
 
 fn yield_after_spawns() {

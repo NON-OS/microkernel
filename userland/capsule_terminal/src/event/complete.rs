@@ -21,7 +21,9 @@ use alloc::vec::Vec;
 const COMMANDS: &[&[u8]] = &[
     b"help",
     b"about",
+    b"bench",
     b"version",
+    b"receipt",
     b"whoami",
     b"caps",
     b"capsules",
@@ -65,6 +67,7 @@ const COMMANDS: &[&[u8]] = &[
     b"ifconfig",
     b"ip",
     b"nslookup",
+    b"nym",
     b"id",
     b"sys",
     b"apps",
@@ -83,10 +86,65 @@ const COMMANDS: &[&[u8]] = &[
     b"uniq",
     b"nl",
     b"install",
+    b"type",
+    b"which",
+    b"tree",
+    // Reachable at the prompt and, until this line, never offered by Tab.
+    b"jobs",
+    b"fg",
+    b"bg",
+    b"rmdir",
+    b"neofetch",
+    b"commands",
+    b"profile",
+    b"theme",
+    b"tac",
+    b"rev",
 ];
 
+/// Whether the shell answers to this name, by the same table Tab completes
+/// from. One list, so `type` can never claim a command that completion does
+/// not offer, or the reverse.
+pub fn is_command_name(name: &[u8]) -> bool {
+    COMMANDS.contains(&name)
+}
+
+/// Commands whose argument is another command's name rather than a path.
+///
+/// Without this, `help gr<Tab>` looks for a file called `gr`, finds nothing,
+/// and appears broken. The completion a reader gets has to match what the
+/// command actually takes, or Tab teaches them not to press it.
+const TAKES_COMMAND: &[&[u8]] = &[b"help", b"commands", b"type", b"which"];
+
+pub fn takes_command_argument(first: &[u8]) -> bool {
+    TAKES_COMMAND.contains(&first)
+}
+
+/// Every name that would run: shell commands and installed tools alike.
+///
+/// One source for completion, for `type`, and for the suggestion made when a
+/// name is not found, so all three agree about what exists.
+pub fn all_names() -> Vec<&'static [u8]> {
+    COMMANDS
+        .iter()
+        .copied()
+        .chain(crate::command::builtin::tool::TOOLS.iter().map(|(typed, _)| *typed))
+        .collect()
+}
+
+/// Command names, plus the installed tools.
+///
+/// The tools are read from their own table rather than copied into `COMMANDS`,
+/// because a second list of the same names is a list that will disagree with
+/// the first one eventually. A tool that can be run and cannot be completed is
+/// a tool nobody finds.
 pub(super) fn command_candidates(prefix: &[u8]) -> Vec<&'static [u8]> {
-    COMMANDS.iter().copied().filter(|c| c.starts_with(prefix)).collect()
+    COMMANDS
+        .iter()
+        .copied()
+        .chain(crate::command::builtin::tool::TOOLS.iter().map(|(typed, _)| *typed))
+        .filter(|c| c.starts_with(prefix))
+        .collect()
 }
 
 pub(super) fn common_prefix(cands: &[&[u8]]) -> Vec<u8> {

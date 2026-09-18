@@ -29,7 +29,7 @@ pub use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 const SERVICE_NAME: &str = "vfs_pool";
 const SERVICE_PORT: u32 = 4104;
 const REPLY_PORT: u32 = 4105;
-const TARGET_TRIPLE: &str = "x86_64-nonos-user";
+const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
 // CAP_VFS is the caller-facing gate, not the capsule's bit. The
 // capsule itself only needs IPC + Memory. Manifest is the source
@@ -48,7 +48,10 @@ pub fn spawn_vfs_capsule() -> Result<(), SpawnError> {
         manifest_bytes: VFS_MANIFEST_BYTES,
         attestation_trailer: VFS_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::IPC.bit() | Capability::Memory.bit(),
+        requested_caps: Capability::IPC.bit()
+            | Capability::Memory.bit()
+            | crate::capabilities::serial_debug_cap()
+            | Capability::StoreWrite.bit(),
         debug_tag: b"[VFS-DEBUG] load_elf_executable error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

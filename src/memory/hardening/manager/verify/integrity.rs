@@ -16,6 +16,7 @@
 
 use super::super::super::constants::*;
 use super::helpers::read_bytes;
+use super::section_perms::section_conforms;
 use crate::memory::addr::VirtAddr;
 use crate::memory::paging::PagePermissions;
 use crate::memory::{heap, kaslr, layout, paging, safety};
@@ -28,13 +29,21 @@ pub fn verify_kernel_data_integrity() -> bool {
     if current_cr3.as_u64() == 0 {
         return false;
     }
+// The required CR4 bits are SMEP, SMAP and the rest of the ring-0
+// restrictions, which only x86_64 keeps in a control register. aarch64
+// enforces the same properties through PAN and the PXN and UXN table bits,
+// and those are checked with the tables below rather than here.
+#[cfg(target_arch = "x86_64")]
+{
     let current_cr4: u64;
+    // SAFETY: reading CR4 has no side effect and touches no memory.
     unsafe {
         core::arch::asm!("mov {}, cr4", out(reg) current_cr4, options(nostack, preserves_flags));
     }
     if (current_cr4 & CR4_REQUIRED_BITS) != CR4_REQUIRED_BITS {
         return false;
     }
+}
     if !verify_kernel_page_tables() {
         return false;
     }
@@ -89,24 +98,14 @@ pub fn verify_kernel_data_integrity() -> bool {
     true
 }
 
+/// Every kernel section is mapped exactly as its descriptor declares.
+///
+/// The per-section rule, and the argument for checking both directions of it,
+/// is in `section_perms`.
 pub fn verify_kernel_page_tables() -> bool {
     let current_cr3 = paging::get_current_cr3();
     if current_cr3.as_u64() == 0 {
         return false;
     }
-    let kernel_sections = layout::kernel_sections();
-    for section in &kernel_sections {
-        let va = VirtAddr::new(section.start);
-        if let Some(perms) = paging::get_page_permissions(va) {
-            if section.rx && !perms.contains(PagePermissions::EXECUTE) {
-                return false;
-            }
-            if section.rw && !perms.contains(PagePermissions::WRITE) {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-    true
+    layout::kernel_sections().iter().all(section_conforms)
 }

@@ -17,7 +17,7 @@
 use super::Capability;
 
 impl Capability {
-    pub const fn all() -> [Capability; 26] {
+    pub const fn all() -> [Capability; 32] {
         [
             Self::CoreExec,
             Self::IO,
@@ -45,10 +45,18 @@ impl Capability {
             Self::SpawnBroker,
             Self::SpawnWindow,
             Self::ProcessControl,
+            Self::StoreWrite,
+            Self::EnrolDevRoot,
+            Self::Keyring,
+            Self::Entropy,
+            Self::AppInstall,
+            Self::AttestRead,
         ]
     }
 
+    /// Derived from the array rather than written out, so the two cannot
+    /// drift apart again. This previously reported 23 against an array of 27.
     pub const fn count() -> usize {
-        23
+        Self::all().len()
     }
 }

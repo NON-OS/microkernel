@@ -44,15 +44,41 @@ endif
 
 QEMU_MEM := 2G
 QEMU_CPU := max
-QEMU_SMP := 2
+QEMU_SMP ?= 4
 QEMU_HOST_SSH_PORT ?= 2222
 QEMU_HOST_HTTP_PORT ?= 8080
 QEMU_NET_MODE ?= nat
 QEMU_NET_CAPTURE ?=
 QEMU_SERIAL_LOG ?= $(TARGET_DIR)/qemu-serial.log
+QEMU_SMP_SERIAL_LOG ?= $(TARGET_DIR)/qemu-smp-serial.log
+QEMU_IOMMU_SERIAL_LOG ?= $(TARGET_DIR)/qemu-iommu-serial.log
+# Options for the intel-iommu device the IOMMU lane adds; a knob like the
+# others so the lane can be driven from the command line.
+QEMU_IOMMU_OPTS ?= intremap=on,caching-mode=on
 QEMU_BLK_IMG := $(TARGET_DIR)/qemu-virtio-blk.img
 QEMU_OVMF_VARS_RW := $(TARGET_DIR)/qemu-OVMF_VARS.fd
 QEMU_BLK := -drive "file=$(QEMU_BLK_IMG),if=none,id=vd0,format=raw" -device virtio-blk-pci,drive=vd0
+# Control socket for screendumps and input injection against a live desktop.
+QEMU_QMP_SOCK := $(TARGET_DIR)/qemu-run.qmp
+QEMU_QMP := -qmp unix:$(QEMU_QMP_SOCK),server,nowait
+# These feed xres=/yres= on the GPU device line AND NONOS_GOP_PREF in the
+# bootloader, so a non-default mode must go through nonos-mk-dev-run (see
+# mk/40-run.mk:58) to reach the bootloader splash.
+#
+# The desktop resolution is a separate decision: it comes from the virtio-gpu
+# GET_DISPLAY_INFO reply, not from GOP. Under -display cocoa the UI overrides
+# xres/yres with its own window geometry, fitted to the host screen in logical
+# POINTS -- on a 1440x900-point Retina panel every 16:9 request comes back as
+# 1280x720, whether 2560x1440 or 5120x2880 was asked for. No xres/yres value
+# escapes that cap. For a full-resolution desktop, serve the framebuffer over
+# VNC: with no client attached at boot nothing overrides xres/yres, and the
+# guest reads GET_DISPLAY_INFO once at driver init, so attaching a viewer
+# afterwards cannot shrink it.
+#   make NONOS_DEV=1 QEMU_XRES=2560 QEMU_YRES=1440 \
+#        QEMU_DISPLAY=vnc=127.0.0.1:1 nonos-mk-dev-run
+#   open vnc://127.0.0.1:5901
+# Screendumps over QMP ($(QEMU_QMP_SOCK)) work on either display.
+# The default stays 1080p because fill cost scales with pixel count on 1 vCPU.
 QEMU_XRES ?= 1920
 QEMU_YRES ?= 1080
 # QEMU_GL=1 swaps the display device for virtio-vga-gl (modern transport,
@@ -62,7 +88,7 @@ ifeq ($(QEMU_GL),1)
 QEMU_GPU := -device virtio-vga-gl,xres=$(QEMU_XRES),yres=$(QEMU_YRES)
 QEMU_DISPLAY := cocoa,gl=es,zoom-to-fit=on
 else
-QEMU_GPU := -device virtio-vga,disable-modern=on,vectors=0,xres=$(QEMU_XRES),yres=$(QEMU_YRES)
+QEMU_GPU := -device virtio-vga,disable-modern=on,vectors=0,edid=on,xres=$(QEMU_XRES),yres=$(QEMU_YRES)
 QEMU_DISPLAY := cocoa,zoom-to-fit=on
 endif
 # Keyboard/mouse via the q35 i8042 (PS/2). USB HID interrupt-IN transfers
@@ -70,6 +96,8 @@ endif
 # there; the xHCI controller stays for the USB stack/storage paths.
 QEMU_USB := -device qemu-xhci,id=xhci
 QEMU_RNG := -device virtio-rng-pci
+QEMU_AUDIODEV ?= coreaudio
+QEMU_AUDIO := -audiodev $(QEMU_AUDIODEV),id=snd0 -device intel-hda -device hda-duplex,audiodev=snd0
 
 # Software TPM 2.0 for measured boot. The guest reaches it by direct MMIO at
 # 0xFED40000 (tpm-crb), so no TCG2 firmware is needed; swtpm backs it over a
@@ -77,6 +105,11 @@ QEMU_RNG := -device virtio-rng-pci
 SWTPM ?= swtpm
 SWTPM_STATE ?= /tmp/nonos-swtpm
 SWTPM_SOCK ?= $(SWTPM_STATE)/swtpm-sock
+# Provisioning tool. A TPM with no endorsement key answers TPM_RC_HANDLE to
+# every EK read, so without this the boot chain exercises measurement but never
+# the hardware identity it is supposed to bind to. Real parts ship with an EK
+# already in them; an emulated one has to be given one.
+SWTPM_SETUP ?= swtpm_setup
 QEMU_TPM := -chardev socket,id=chrtpm,path=$(SWTPM_SOCK) -tpmdev emulator,id=tpm0,chardev=chrtpm -device tpm-crb,tpmdev=tpm0
 
 ifeq ($(QEMU_NET_MODE),off)
@@ -125,7 +158,10 @@ $(SIGNING_KEY):
 	@head -c 32 /dev/urandom > $@
 	@echo "Wrote $@"
 
-$(KERNEL_MLDSA65_KEY): $(CAPSULE_SIGN_BIN)
+# Order-only on the tool: a rebuilt capsule-sign must never invalidate
+# an existing keypair. A key regenerates when the key is missing, not
+# when the binary that mints it is newer.
+$(KERNEL_MLDSA65_KEY): | $(CAPSULE_SIGN_BIN)
 	@echo "Generating kernel signing key (ML-DSA-65)..."
 	@mkdir -p $(KEYS_DIR)
 	@$(CAPSULE_SIGN_BIN) keygen --alg mldsa65 --out $(KERNEL_MLDSA65_PREFIX)

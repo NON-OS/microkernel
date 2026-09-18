@@ -19,7 +19,6 @@ use crate::process::current_pid;
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT, ERRNO_TIMEDOUT};
 use core::sync::atomic::{AtomicU32, Ordering};
 
-use super::correlation::note_request;
 use super::inbox_name::resolve_for_recv;
 use super::sender_pid::from_envelope;
 
@@ -94,7 +93,6 @@ fn deliver(
     sender_pid_out: u64,
 ) -> i64 {
     let sender_pid = from_envelope(&msg.from);
-    note_request(sender_pid, msg.correlation);
     trace_dequeue(pid, sender_pid);
     let copy_len = msg.data.len().min(len);
     if crate::usercopy::copy_to_user(buf, &msg.data[..copy_len]).is_err() {
@@ -113,7 +111,13 @@ fn drain(buf: u64, len: usize, timeout_ms: u64, sender_pid_out: u64, inbox: &str
     let start = crate::time::timestamp_millis();
     let pid = current_pid().unwrap_or(0);
     loop {
+        // Token before the check, so a delivery landing between an empty
+        // check and the transition to Sleeping blocks the sleep instead of
+        // spending its wake on a still-Running process. Same lost-wakeup
+        // window as recv_from_inbox; this loop is the one most servers run.
+        let token = crate::sched::wake_token(pid);
         if let Some(msg) = nonos_inbox::try_dequeue_existing(inbox) {
+            super::pending_reply::record_served(pid, msg.correlation);
             return deliver(pid, &msg, buf, len, sender_pid_out);
         }
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
@@ -121,8 +125,9 @@ fn drain(buf: u64, len: usize, timeout_ms: u64, sender_pid_out: u64, inbox: &str
             return ERRNO_TIMEDOUT;
         }
         let deadline = if timeout_ms == 0 { u64::MAX } else { start.saturating_add(timeout_ms) };
-        crate::sched::sleep_until(pid, deadline);
+        crate::sched::sleep_until_unless_woken(pid, deadline, token);
         if let Some(msg) = nonos_inbox::try_dequeue_existing(inbox) {
+            super::pending_reply::record_served(pid, msg.correlation);
             return deliver(pid, &msg, buf, len, sender_pid_out);
         }
         trace(b"before yield", pid);

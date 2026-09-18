@@ -23,7 +23,6 @@ pub use crate::process::scheduler::dispatch as process;
 pub use crate::process::scheduler::module_tasks;
 pub use crate::process::scheduler::preemption;
 pub use crate::process::scheduler::selection;
-pub use crate::process::scheduler::smp;
 pub use crate::process::scheduler::stats;
 pub use crate::process::scheduler::types;
 
@@ -34,11 +33,8 @@ pub use module_tasks::{
 pub use preemption::{clear_reschedule, need_reschedule, tick, yield_now};
 pub use process::{
     add_to_run_queue, get_remaining_sleep, get_runnable_pids, is_in_run_queue, is_sleeping,
-    remove_from_run_queue, runnable_process_count, sleep_until, wake_process, wakeup,
-};
-pub use smp::{
-    cpu_count as smp_cpu_count, force_balance, get_stats as get_smp_stats, init_ap_scheduler,
-    init_smp_scheduler, is_enabled as smp_enabled, local_queue_len, total_runnable, SmpSchedStats,
+    remove_from_run_queue, runnable_process_count, sleep_until, sleep_until_unless_woken,
+    wake_process, wake_token, wakeup,
 };
 pub use stats::get_scheduler_stats;
 pub use types::{ModuleTaskError, ModuleTaskResult, Scheduler, SchedulerStatsSnapshot};

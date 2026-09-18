@@ -16,17 +16,39 @@
 
 use super::state::PENDING;
 
-pub(in crate::syscall::microkernel::ipc) fn remove(server_pid: u32, caller_inbox: &str) -> bool {
+/// Remove the pending-reply entry for `caller_inbox` under `server_pid` and
+/// return the per-call correlation token it carried. Matching is by the
+/// caller's private inbox, so the token is the one that exact `mk_ipc_call`
+/// registered, even when several callers have replies outstanding on the same
+/// server. Returns `None` when there is no such pending call (a forged or
+/// duplicate reply), which the caller treats as "drop".
+pub(in crate::syscall::microkernel::ipc) fn remove(
+    server_pid: u32,
+    caller_inbox: &str,
+) -> Option<u64> {
     let mut map = PENDING.lock();
-    let Some(queue) = map.get_mut(&server_pid) else {
-        return false;
-    };
-    let Some(pos) = queue.iter().position(|inbox| inbox == caller_inbox) else {
-        return false;
-    };
-    queue.remove(pos);
+    let queue = map.get_mut(&server_pid)?;
+    let pos = queue.iter().position(|(_, inbox, _)| inbox == caller_inbox)?;
+    // main's entry is (caller_pid, inbox, token); return the token so the direct
+    // mk_ipc_reply path stamps the reply from the same entry it removes.
+    let (_, _, token) = queue.remove(pos)?;
     if queue.is_empty() {
         map.remove(&server_pid);
     }
-    true
+    Some(token)
+}
+
+/// Remove the newest entry for `caller_inbox`. The failed-send path must strip
+/// the entry it just pushed and only that one: this caller may still be owed an
+/// older reply from an earlier timed-out call, and taking the older entry shifts
+/// the server's whole FIFO onto the wrong callers.
+pub(in crate::syscall::microkernel::ipc) fn remove_latest(server_pid: u32, caller_inbox: &str) {
+    let mut map = PENDING.lock();
+    let Some(queue) = map.get_mut(&server_pid) else { return };
+    if let Some(pos) = queue.iter().rposition(|(_, inbox, _)| inbox == caller_inbox) {
+        queue.remove(pos);
+    }
+    if queue.is_empty() {
+        map.remove(&server_pid);
+    }
 }

@@ -29,6 +29,10 @@ pub(super) fn ctrl_save(state: &mut State) -> EventOutcome {
     if ok {
         super::notify::notify_saved(state);
     }
+    // Only a write that landed makes the document clean again.
+    if ok {
+        state.dirty = false;
+    }
     state.status = if ok { b"saved" } else { b"save failed" };
     EventOutcome::Repaint
 }

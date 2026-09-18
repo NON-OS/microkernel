@@ -19,14 +19,23 @@
 //! shows the query and match count instead.
 
 use alloc::format;
+use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
 
+use super::canvas::page_index;
 use super::language::language_name;
-use super::layout::{FOOTER_H, PAD_X, STATUS_PX};
+use super::layout::{body_px, FOOTER_H, PAD_X, STATUS_PX};
+use super::mode::Mode;
 use super::paint::caret_position;
 use super::state::State;
 use super::theme;
+use crate::doc::counts::word_count;
+
+// Status-bar text draws at the facade's 17px floor, so the gap between groups
+// is sized against that, not against the nominal STATUS_PX.
+const GROUP_GAP: i32 = 24;
+const VIEW: &str = "Page view";
 
 pub(super) fn paint_status(fb: &mut PaintBuffer, doc: &State, width: u32, height: u32) {
     let th = theme::active();
@@ -65,9 +74,64 @@ pub(super) fn paint_status(fb: &mut PaintBuffer, doc: &State, width: u32, height
     let status = core::str::from_utf8(doc.status).unwrap_or("");
     let _ = fb.text_ttf(PAD_X as i32, ty, status, th.muted, STATUS_PX);
 
+    // While a path prompt is open, show what is being typed. It edits its own
+    // buffer now, so the document's path on the right would not reflect it.
+    if doc.prompt.is_some() {
+        let typed = core::str::from_utf8(&doc.prompt_path[..doc.prompt_len]).unwrap_or("");
+        let sw = fb.measure_ttf(status, STATUS_PX).max(0) as u32;
+        let x = PAD_X + sw + 12;
+        let _ = fb.text_ttf(x as i32, ty, typed, th.foreground, STATUS_PX);
+        let tw = fb.measure_ttf(typed, STATUS_PX).max(0) as u32;
+        let _ = fb.text_ttf((x + tw) as i32, ty, "|", th.accent, STATUS_PX);
+        return;
+    }
+
+    if doc.mode == Mode::Document {
+        let page = format!("Page {} of {}", page_index(doc) + 1, doc.pages.len().max(1));
+        let words = format!("{} words", grouped(word_count(&doc.doc)));
+        let mut x = PAD_X as i32;
+        if !status.is_empty() {
+            x += fb.measure_ttf(status, STATUS_PX) + GROUP_GAP;
+        }
+        let _ = fb.text_ttf(x, ty, &page, th.muted, STATUS_PX);
+        x += fb.measure_ttf(&page, STATUS_PX) + GROUP_GAP;
+        let _ = fb.text_ttf(x, ty, &words, th.muted, STATUS_PX);
+        // A document language used to be printed here, always "English (US)".
+        // Nothing detected it, nothing set it and nothing used it: a real
+        // application's status bar copied without the thing it reports. Page,
+        // words and zoom are all measured from the document in front of you.
+
+        let zoom = format!("{}%", zoom_percent(doc.font_scale));
+        let vw = fb.measure_ttf(VIEW, STATUS_PX).max(0) as u32;
+        let zw = fb.measure_ttf(&zoom, STATUS_PX).max(0) as u32;
+        let rx = width.saturating_sub(PAD_X + vw + GROUP_GAP as u32 + zw);
+        let _ = fb.text_ttf(rx as i32, ty, VIEW, th.muted, STATUS_PX);
+        let zx = (rx + vw + GROUP_GAP as u32) as i32;
+        let _ = fb.text_ttf(zx, ty, &zoom, th.foreground, STATUS_PX);
+        return;
+    }
+
     let (line, col) = caret_position(doc);
     let path = core::str::from_utf8(&doc.path[..doc.path_len]).unwrap_or("");
     let info = format!("Ln {}, Col {}    {}    UTF-8", line + 1, col + 1, language_name(path));
     let iw = fb.measure_ttf(&info, STATUS_PX).max(0) as u32;
     let _ = fb.text_ttf(width.saturating_sub(PAD_X + iw) as i32, ty, &info, th.muted, STATUS_PX);
+}
+
+// Zoom relative to the default scale 2, whose 15px body reads as 100%.
+fn zoom_percent(scale: u32) -> u32 {
+    (body_px(scale) * 100.0 / body_px(2)) as u32
+}
+
+// Thousands separators, so a long document reads "1,245 words".
+fn grouped(n: usize) -> String {
+    let digits = format!("{}", n);
+    let mut out = String::new();
+    for (i, c) in digits.char_indices() {
+        if i > 0 && (digits.len() - i) % 3 == 0 {
+            out.push(',');
+        }
+        out.push(c);
+    }
+    out
 }
