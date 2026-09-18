@@ -18,19 +18,19 @@ use super::args::Args;
 use crate::syscall::microkernel::attest::sys_attest_status;
 use crate::syscall::microkernel::attest_doc::sys_attest_doc;
 use crate::syscall::microkernel::attest_entries::sys_attest_entries;
-use crate::syscall::microkernel::enrol_dev_root::{sys_dev_root_confirm, sys_dev_root_request};
 use crate::syscall::microkernel::battery::sys_battery_status;
 use crate::syscall::microkernel::capsule_load::sys_capsule_load;
 use crate::syscall::microkernel::capsule_verify::sys_capsule_verify;
+use crate::syscall::microkernel::enrol_dev_root::{sys_dev_root_confirm, sys_dev_root_request};
 use crate::syscall::microkernel::futex::{sys_futex_wait, sys_futex_wake};
+use crate::syscall::microkernel::install_source::sys_install_source;
 use crate::syscall::microkernel::kill::sys_kill;
 use crate::syscall::microkernel::memory::{sys_mmap, sys_munmap};
 use crate::syscall::microkernel::numbers::*;
 use crate::syscall::microkernel::proc_output::sys_proc_output;
 use crate::syscall::microkernel::proc_stdin::{sys_proc_input, sys_stdin_read};
 use crate::syscall::microkernel::process::{
-    sys_args, sys_exit, sys_getpid, sys_pid_alive, sys_set_tls, sys_thread_spawn,
-    sys_yield,
+    sys_args, sys_exit, sys_getpid, sys_pid_alive, sys_set_tls, sys_thread_spawn, sys_yield,
 };
 use crate::syscall::microkernel::procstat::sys_proc_stat;
 use crate::syscall::microkernel::spawn_instance::sys_spawn_instance;
@@ -73,6 +73,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_ATTEST_STATUS => sys_attest_status(a.a0),
         SYS_ATTEST_DOC => sys_attest_doc(a.a0, a.a1, a.a2),
         SYS_ATTEST_ENTRIES => sys_attest_entries(a.a0, a.a1),
+        SYS_INSTALL_SOURCE => sys_install_source(a.a0, a.a1, a.a2, a.a3),
         SYS_DEV_ROOT_REQUEST => sys_dev_root_request(a.a0),
         SYS_DEV_ROOT_CONFIRM => sys_dev_root_confirm(a.a0),
         SYS_SPAWN_INSTANCE => sys_spawn_instance(a.a0, a.a1),

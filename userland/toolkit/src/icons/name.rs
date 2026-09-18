@@ -66,6 +66,7 @@ impl IconId {
             IconId::CalcProgrammer => "calc_programmer",
             IconId::CalcConvert => "calc_convert",
             IconId::CalcHistory => "calc_history",
+            IconId::Install => "install",
         }
     }
 }

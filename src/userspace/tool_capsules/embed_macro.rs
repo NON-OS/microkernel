@@ -9,8 +9,12 @@
 /// found by binary name under the trust directory. All paths resolve relative to
 /// the invoking file, which is the registry.
 macro_rules! tool_capsule {
-    ($name:literal, $port:expr, $reply:literal, $reply_port:expr, $elf:literal, $bin:literal) => {
+    ($name:literal, $port:expr, $reply:literal, $reply_port:expr, $elf:expr, $bin:literal) => {
+        tool_capsule!($name, $port, $reply, $reply_port, $elf, $bin, super::spec::SANDBOX_CAPS)
+    };
+    ($name:literal, $port:expr, $reply:literal, $reply_port:expr, $elf:expr, $bin:literal, $caps:expr) => {
         super::spec::ToolCapsule {
+            caps: $caps,
             name: $name,
             service_port: $port,
             reply_inbox: $reply,

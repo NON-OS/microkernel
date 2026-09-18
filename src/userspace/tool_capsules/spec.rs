@@ -26,11 +26,19 @@ pub struct ToolCapsule {
     pub cert: &'static [u8],
     pub manifest: &'static [u8],
     pub attestation: &'static [u8],
+    /// What the tool is spawned with. Generated crates.io tools get the
+    /// sandbox set; a first-party tool declares more at its registry entry,
+    /// and the manifest it ships with has to agree or the spawn refuses.
+    pub caps: u64,
 }
+
+/// Execute, IPC, memory: what every crates.io tool runs with.
+pub const SANDBOX_CAPS: u64 =
+    Capability::CoreExec.bit() | Capability::IPC.bit() | Capability::Memory.bit();
 
 impl ToolCapsule {
     /// Verify the artifacts under the baked trust anchor and spawn the tool with
-    /// the sandboxed capability set (execute, IPC, memory) every tool shares.
+    /// the capability set its registry entry declares.
     /// The process is parented to the caller in the syscall context, so that
     /// caller feeds its stdin and drains its stdout, and `argv` (a NUL-separated
     /// `name\0arg1\0...` blob) becomes the tool's argument vector. Returns the
@@ -48,9 +56,7 @@ impl ToolCapsule {
             manifest_bytes: self.manifest,
             attestation_trailer: self.attestation,
             target_triple: env!("NONOS_USER_TARGET"),
-            requested_caps: Capability::CoreExec.bit()
-                | Capability::IPC.bit()
-                | Capability::Memory.bit(),
+            requested_caps: self.caps,
             debug_tag: b"",
         };
         let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

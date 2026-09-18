@@ -27,6 +27,7 @@
 // `src/userspace/*_service` directory.
 
 pub mod capsule_about;
+pub mod capsule_install;
 pub mod capsule_attest;
 pub mod capsule_audio_player;
 pub mod capsule_boot_splash;

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::params::HandoffInitParams;
+use super::modules::init_modules;
 use crate::handoff::types::{
     BootHandoffV1, CryptoHandoff, Measurements, MemoryMap, RngSeed, ZkAttestation, HANDOFF_MAGIC,
     HANDOFF_VERSION,
@@ -36,9 +37,7 @@ pub unsafe fn init_boothandoff(bh_ptr: *mut BootHandoffV1, p: &HandoffInitParams
     (*bh_ptr).mmap = MemoryMap { ptr: 0, entry_size: 0, entry_count: 0, desc_version: 0 };
     (*bh_ptr).acpi.rsdp = p.acpi_rsdp;
     (*bh_ptr).smbios.entry = p.smbios_entry;
-    (*bh_ptr).modules.ptr = 0;
-    (*bh_ptr).modules.count = 0;
-    (*bh_ptr).modules.reserved = 0;
+    init_modules(bh_ptr, p);
     (*bh_ptr).timing.tsc_hz = p.tsc_hz;
     (*bh_ptr).timing.unix_epoch_ms = p.unix_epoch_ms;
     init_measurements(bh_ptr, &p.crypto);

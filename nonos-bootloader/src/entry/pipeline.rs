@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::install_source::install_source;
 use nonos_boot::boot::prepare::HandoffParams;
+use nonos_boot::handoff::types::Module;
 use nonos_boot::boot::{
     attest_kernel, commit_rollback, run_crypto_verification, run_elf_parse, run_handoff_prepare,
     run_kernel_load,
@@ -45,7 +47,8 @@ pub fn run_verified_boot(
     );
     let kernel_image = run_elf_parse(&mut st, &kernel_data, &crypto_result, gop);
     commit_rollback(&mut st, &kernel_data, mode, gop);
-    let params = handoff_params(&security, &crypto_result, zk_result);
+    let install_source = install_source(&st, &kernel_data);
+    let params = handoff_params(&security, &crypto_result, zk_result, install_source);
     run_handoff_prepare(st, &kernel_image, params, gop);
 }
 
@@ -53,6 +56,7 @@ fn handoff_params(
     security: &SecurityContext,
     crypto: &CryptoVerifyResult,
     zk_result: BootAttestationResult,
+    install_source: [Module; 2],
 ) -> HandoffParams {
     HandoffParams {
         signature_valid: crypto.signature_valid,
@@ -60,5 +64,6 @@ fn handoff_params(
         kernel_hash: crypto.kernel_hash_full,
         zk_result,
         tpm_measured: security.measured_boot_active,
+        install_source,
     }
 }

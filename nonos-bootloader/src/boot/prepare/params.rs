@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::handoff::types::Module;
 use crate::zk::BootAttestationResult;
 
 pub struct HandoffParams {
@@ -22,4 +23,7 @@ pub struct HandoffParams {
     pub kernel_hash: [u8; 32],
     pub zk_result: BootAttestationResult,
     pub tpm_measured: bool,
+    /// The loader image and the kernel image file, as loaded, for the
+    /// installer. Both sit in loader memory the kernel never reclaims.
+    pub install_source: [Module; 2],
 }

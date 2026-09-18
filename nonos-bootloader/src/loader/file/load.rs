@@ -24,6 +24,7 @@ use uefi::CStr16;
 
 use crate::log::logger::{log_error, log_info};
 
+use super::own_volume::own_first;
 use super::read::read_regular_file;
 use super::types::{FileLoadError, FileResult};
 
@@ -37,7 +38,9 @@ pub fn load_file_from_esp(system_table: &SystemTable<Boot>, path: &CStr16) -> Fi
         return Err(FileLoadError::NoFilesystem);
     }
 
-    for &handle in handles.iter() {
+    // The loader's own volume first: with an installed disk and the stick both
+    // present, the kernel must come from where this loader came from.
+    for handle in own_first(bs, &handles) {
         if let Ok(mut fs) = bs.open_protocol_exclusive::<SimpleFileSystem>(handle) {
             if let Ok(mut root) = fs.open_volume() {
                 match root.open(path, FileMode::Read, FileAttribute::empty()) {

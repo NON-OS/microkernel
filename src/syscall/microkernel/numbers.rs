@@ -62,6 +62,8 @@ pub const SYS_ATTEST_DOC: u64 = tag4(b"MADC");
 /// The capsule entries the document's registry root folds, so a verifier can
 /// recompute that root and read what each program was permitted to do.
 pub const SYS_ATTEST_ENTRIES: u64 = tag4(b"MAEN");
+/// A chunk of the image this machine booted, for the installer to write.
+pub const SYS_INSTALL_SOURCE: u64 = tag4(b"MISR");
 /// Ask to enrol a signing root so software built here runs here. Prints a
 /// confirmation code; enrols nothing on its own.
 pub const SYS_DEV_ROOT_REQUEST: u64 = tag4(b"MDRQ");

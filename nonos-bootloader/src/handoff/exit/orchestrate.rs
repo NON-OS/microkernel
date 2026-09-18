@@ -26,7 +26,7 @@ use crate::firmware::FirmwareHandoff;
 use crate::handoff::jump::{copy_memory_map, finalize_mmap, settle_delay};
 use crate::handoff::prepare::allocate_handoff_resources;
 use crate::handoff::prepare::fatal_alloc_error;
-use crate::handoff::types::{BootHandoffV1, CryptoHandoff};
+use crate::handoff::types::{BootHandoffV1, CryptoHandoff, Module};
 use crate::loader::KernelImage;
 use crate::paging::{build_kernel_pml4, phys_to_directmap_virt, switch_to_kernel_pml4};
 
@@ -38,11 +38,21 @@ pub fn exit_and_jump(
     firmware: FirmwareHandoff,
     rng_seed: [u8; 32],
     tpm_measured: bool,
+    install_source: [Module; 2],
 ) -> ! {
     let bs = st.boot_services();
     let allocs = allocate_handoff_resources(&st, cmdline);
-    let params =
-        gather_system_info(&st, bs, kernel, &crypto, firmware, tpm_measured, &allocs, rng_seed);
+    let params = gather_system_info(
+        &st,
+        bs,
+        kernel,
+        &crypto,
+        firmware,
+        tpm_measured,
+        &allocs,
+        rng_seed,
+        install_source,
+    );
     let bh_ptr = allocs.boothandoff_addr as *mut BootHandoffV1;
     unsafe { init_boothandoff(bh_ptr, &params) };
 

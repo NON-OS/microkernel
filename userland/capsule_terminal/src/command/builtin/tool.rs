@@ -32,6 +32,7 @@ pub const TOOLS: &[(&[u8], &[u8])] = &[
     (b"csview", b"csview"),
     (b"rg", b"ripgrep"),
     (b"ripgrep", b"ripgrep"),
+    (b"install", b"install"),
 ];
 
 // `sd` is deliberately absent. It runs from the vfs store through `STORE_TOOLS`

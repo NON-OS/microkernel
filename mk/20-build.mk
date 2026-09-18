@@ -450,7 +450,7 @@ nonos-mk-host-trust-elfs: $(USERLAND_LIBC) $(MARKETPLACE_ABI_LIB) \
 		$(net-l2_BIN) $(net-ip_BIN) $(net-udp_BIN) $(net-dhcp_BIN) \
 		$(input-router_BIN) $(compositor_BIN) $(wm_BIN) $(desktop-shell_BIN) \
 		$(image-codec_BIN) $(clipboard_BIN) $(login_BIN) $(wallpaper_BIN) \
-		$(toolkit_BIN) $(about_BIN) $(calculator_BIN) $(clock_BIN) $(snake_BIN) $(terminal_BIN) \
+		$(toolkit_BIN) $(about_BIN) $(install_BIN) $(calculator_BIN) $(clock_BIN) $(snake_BIN) $(terminal_BIN) \
 		$(file-manager_BIN) $(text-editor_BIN) $(settings_BIN) $(process-manager_BIN)
 	@echo "Capsule ELFs built for the host-trust artifact proof."
 
@@ -556,6 +556,8 @@ include userland/capsule_clipboard/Capsule.mk
 include userland/capsule_login/Capsule.mk
 include userland/toolkit/Capsule.mk
 include userland/capsule_about/Capsule.mk
+include userland/capsule_install/Capsule.mk
+include userland/tool_install/Capsule.mk
 include userland/capsule_hello/Capsule.mk
 include userland/capsule_gui_demo/Capsule.mk
 include userland/capsule_game_2048/Capsule.mk
@@ -731,11 +733,11 @@ NONOS_DESKTOP_GUI_CAPSULE_CHECKS = \
 	$(driver-usb-hid_VERIFY) \
 	$(net-core_VERIFY) $(net-sockets_VERIFY) $(net-nym_VERIFY) \
 	$(policy_VERIFY) $(wallpaper_catalog_VERIFY) \
-	$(installer_VERIFY) \
+	$(installer_VERIFY) $(install_VERIFY) \
 	$(input-router_VERIFY) $(compositor_VERIFY) $(wm_VERIFY) \
 	$(desktop-shell_VERIFY) $(image-codec_VERIFY) $(image-viewer_VERIFY) $(clipboard_VERIFY) \
 	$(login_VERIFY) $(wallpaper_VERIFY) $(toolkit_VERIFY) \
-	$(boot-splash_VERIFY) $(about_VERIFY) $(calculator_VERIFY) $(clock_VERIFY) \
+	$(boot-splash_VERIFY) $(about_VERIFY) $(install_VERIFY) $(calculator_VERIFY) $(clock_VERIFY) \
 	$(browser_VERIFY) $(web_VERIFY) \
 	$(snake_VERIFY) $(wallet-nonos_VERIFY) $(terminal_VERIFY) \
 	$(file-manager_VERIFY) $(text-editor_VERIFY) $(settings_VERIFY) \
@@ -1121,6 +1123,7 @@ nonos-mk-audio-player-smoketest-dev-test: $(proof-io_MANIFEST) $(audio_MANIFEST)
 # the life of the session while the services a desktop needs went hungry. The
 # `microkernel-desktop-gui-async-gate` profile builds it.
 DESKTOP_STD_TOOL_ARTIFACTS := $(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) \
+		$(install-cli_ARTIFACTS) \
 		$(sd_ARTIFACTS) \
 		$(flacprobe_ARTIFACTS) \
 		$(csview_ARTIFACTS) \
@@ -1139,7 +1142,7 @@ DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
 		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid \
 		net-core net-sockets net-nym socks5 policy wallpaper_catalog \
 		installer input-router compositor wm desktop-shell image-codec \
-		clipboard login wallpaper toolkit about boot-splash calculator \
+		clipboard login wallpaper toolkit about install install-cli boot-splash calculator \
 		browser wallet-nonos terminal file-manager text-editor \
 		settings process-manager attest power \
 		audio driver-hda audio_player video-player
@@ -1163,6 +1166,15 @@ nonos-mk-desktop-gui-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	$(call nonos_kernel_build,microkernel-desktop-gui + nonos-stark-attest,microkernel-desktop-gui$(_boot_comma)nonos-stark-attest)
+
+# nonos-mk-install-prod: the desktop profile with the NVMe driver capsule in
+# it. The desktop cut leaves NVMe out because a driver whose hardware is absent
+# blocks on spawn; the install lane presents an NVMe target to QEMU, so the
+# driver has a device and the installer has a disk that is not the store.
+nonos-mk-install-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) $(driver-nvme_ARTIFACTS) \
+		nonos-mk-verify-desktop-gui-capsules \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	$(call nonos_kernel_build,microkernel-desktop-gui + nvme + install,microkernel-desktop-gui$(_boot_comma)nonos-stark-attest$(_boot_comma)nonos-capsule-driver-nvme)
 
 # nonos-mk-smp-prod: the desktop profile with the secondary CPUs turned on.
 # Same capsule set and the same attestation, so a difference between this boot
