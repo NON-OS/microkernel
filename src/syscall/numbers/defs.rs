@@ -34,6 +34,7 @@ pub enum SyscallNumber {
     CryptoHmacSha256 = tag4(b"CHMC"),
     CryptoHkdfSha256 = tag4(b"CHKF"),
     CryptoKeccak256 = tag4(b"CKEC"),
+    CryptoMachineKey = tag4(b"CMKY"),
     AdminReboot = tag4(b"ARBT"),
     AdminShutdown = tag4(b"ASDN"),
     AdminPolicyPush = tag4(b"APPS"),

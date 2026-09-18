@@ -20,6 +20,7 @@ mod encrypt;
 mod encrypt_aad;
 mod hash;
 mod keccak256;
+mod machine_key;
 mod prf;
 mod random;
 mod x25519;
@@ -30,6 +31,10 @@ pub use encrypt::crypto_encrypt;
 pub use encrypt_aad::crypto_encrypt_aad;
 pub use hash::crypto_hash;
 pub use keccak256::crypto_keccak256;
+pub use machine_key::{
+    crypto_machine_key, machine_key, MACHINE_KEY_LABEL_MAX, MACHINE_KEY_NO_TPM,
+    MACHINE_KEY_WRONG_STATE,
+};
 pub use prf::{crypto_hkdf_sha256, crypto_hmac_sha256};
 pub use random::crypto_random;
 pub use x25519::{crypto_x25519_public, crypto_x25519_shared};
