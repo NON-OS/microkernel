@@ -45,5 +45,6 @@ mod backend;
 mod backend;
 
 pub use backend::{
-    address, is_block, is_present, is_user, is_writable, leaf, table, table_grants_user, ADDR_MASK,
+    address, is_block, is_executable, is_present, is_user, is_writable, leaf, table,
+    table_grants_user, ADDR_MASK,
 };

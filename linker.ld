@@ -22,19 +22,33 @@ SECTIONS {
         KEEP(*(.multiboot))
     } :text
 
+    /* The __kernel_*_start/end pairs below are what
+     * layout::kernel_sections() reads to describe the image to the
+     * permission checks. They were declared there and defined in no linker
+     * script, so every caller of that table was dead-code eliminated and the
+     * kernel linked with the whole subtree, W^X verification included, gone
+     * from the binary. The names are the contract; keep them in step with
+     * src/memory/layout/manager/state.rs. */
+
     .text ALIGN(0x1000) : {
+        __kernel_text_start = .;
         *(.text._start)
         *(.text .text.*)
         *(.ltext .ltext.*)
+        __kernel_text_end = .;
     } :text
 
     .rodata ALIGN(0x1000) : {
+        __kernel_rodata_start = .;
         *(.rodata .rodata.*)
         *(.lrodata .lrodata.*)
+        __kernel_rodata_end = .;
     } :rodata
 
     .data ALIGN(0x1000) : {
+        __kernel_data_start = .;
         *(.data .data.*)
+        __kernel_data_end = .;
     } :data
 
     .nonos.manifest ALIGN(0x1000) : {
@@ -65,9 +79,11 @@ SECTIONS {
      * static data the kernel grows. */
     .bss ALIGN(0x1000) : {
         __bss_start = .;
+        __kernel_bss_start = .;
         *(.bss .bss.*)
         *(COMMON)
         __bss_end = .;
+        __kernel_bss_end = .;
     } :data
 
     . = ALIGN(0x1000);

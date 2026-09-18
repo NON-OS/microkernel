@@ -17,10 +17,11 @@
 mod client;
 mod digest;
 pub(crate) mod error;
+pub mod load;
 mod reply;
 mod request;
 pub(crate) mod status;
-mod store;
+pub mod store;
 mod store_header;
 pub(crate) mod store_remove;
 mod store_toc;
@@ -32,5 +33,3 @@ pub(crate) mod store_replace;
 pub(crate) mod store_rules;
 mod transport;
 mod wire;
-
-pub use store::load;
