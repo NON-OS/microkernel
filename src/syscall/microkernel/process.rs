@@ -17,11 +17,9 @@
 extern crate alloc;
 
 use super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOMEM, ERRNO_PERM};
-use crate::process::core::{create_process, Priority, ProcessState};
 use crate::process::current_pid;
 use core::sync::atomic::{AtomicU32, Ordering};
 
-const MAX_NAME_LEN: usize = 256;
 static EXIT_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
 
 fn trace_exit(label: &[u8], pid: u32) {
@@ -32,27 +30,6 @@ fn trace_exit(label: &[u8], pid: u32) {
     }
     crate::sys::serial::print(b"[EXIT] ");
     crate::sys::serial::println(label);
-}
-
-pub fn sys_spawn(name_ptr: u64, name_len: usize) -> i64 {
-    if name_len == 0 || name_len > MAX_NAME_LEN {
-        return ERRNO_INVAL;
-    }
-    if crate::usercopy::validate_user_read(name_ptr, name_len).is_err() {
-        return ERRNO_FAULT;
-    }
-    let mut name_bytes = alloc::vec![0u8; name_len];
-    if crate::usercopy::copy_from_user(name_ptr, &mut name_bytes).is_err() {
-        return ERRNO_FAULT;
-    }
-    let name = match core::str::from_utf8(&name_bytes) {
-        Ok(s) => s,
-        Err(_) => return ERRNO_FAULT,
-    };
-    match create_process(name, ProcessState::Ready, Priority::Normal) {
-        Ok(pid) => pid as i64,
-        Err(_) => ERRNO_NOMEM,
-    }
 }
 
 pub fn sys_exit(code: i32) -> i64 {

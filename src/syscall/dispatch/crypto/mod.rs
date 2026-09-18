@@ -20,12 +20,7 @@ mod hash;
 mod keccak;
 mod primitives;
 mod random;
-mod secp256k1_pubkey;
-mod ed25519_pubkey;
-mod ed25519_sign;
-mod secp256k1_sign;
 mod machine_key;
-mod verify;
 
 pub use aead::{
     handle_crypto_decrypt, handle_crypto_decrypt_aad, handle_crypto_encrypt,
@@ -37,9 +32,4 @@ pub use primitives::{
     handle_hkdf_sha256, handle_hmac_sha256, handle_x25519_public, handle_x25519_shared,
 };
 pub use random::handle_crypto_random;
-pub use secp256k1_pubkey::handle_crypto_secp256k1_pubkey;
-pub use ed25519_pubkey::handle_crypto_ed25519_pubkey;
-pub use ed25519_sign::handle_crypto_ed25519_sign;
-pub use secp256k1_sign::handle_crypto_secp256k1_sign;
 pub use machine_key::handle_machine_key;
-pub use verify::handle_crypto_ed25519_verify;
