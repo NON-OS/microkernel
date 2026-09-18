@@ -22,6 +22,8 @@ use nonos_libc::ForeignFrame;
 
 use crate::linux::abi::{errno, name, nr};
 use crate::linux::call;
+use crate::linux::file;
+use crate::linux::file::flags;
 use crate::linux::guest::Guest;
 
 pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> u64 {
@@ -31,6 +33,13 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> u64 {
         nr::WRITEV => call::writev(guest, a[0], a[1], a[2]),
         nr::READ => call::read(guest, a[0], a[1], a[2]),
         nr::CLOSE => call::close(guest, a[0]),
+        nr::OPENAT => file::openat(guest, a[0], a[1], a[2]),
+        nr::OPEN => file::openat(guest, flags::AT_FDCWD, a[0], a[1]),
+        nr::LSEEK => file::lseek(guest, a[0], a[1], a[2]),
+        nr::FSTAT => file::fstat(guest, a[0], a[1]),
+        nr::STAT | nr::LSTAT => file::newfstatat(guest, flags::AT_FDCWD, a[0], a[1]),
+        nr::NEWFSTATAT => file::newfstatat(guest, a[0], a[1], a[2]),
+        nr::GETDENTS64 => file::getdents64(guest, a[0], a[1], a[2]),
         nr::BRK => call::brk(guest, a[0]),
         nr::MMAP => call::mmap(guest, a[0], a[1], a[2], a[3]),
         nr::MUNMAP => call::munmap(guest, a[0], a[1]),
