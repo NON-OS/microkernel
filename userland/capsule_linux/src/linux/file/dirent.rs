@@ -27,8 +27,13 @@ use alloc::vec::Vec;
 /// d_ino, d_off, d_reclen, d_type: 8 + 8 + 2 + 1.
 pub const HEADER: usize = 19;
 
-pub const DT_DIR: u8 = 4;
-pub const DT_REG: u8 = 8;
+/*
+ * The store's listing says what is there and not what each entry
+ * is, and a wrong d_type sends a caller down the wrong path without
+ * checking. Unknown is the answer Linux defines for exactly this, and
+ * a caller that cares then stats the name itself.
+ */
+pub const DT_UNKNOWN: u8 = 0;
 
 /// The bytes one entry occupies, name and terminator included.
 pub fn record_len(name: &[u8]) -> usize {

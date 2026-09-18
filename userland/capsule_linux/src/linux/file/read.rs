@@ -16,6 +16,10 @@
 
 
 //! Reading from a file a guest has open.
+//!
+//! The descriptor is inspected, released, and only then are the bytes put
+//! into the guest: writing into the guest needs the guest itself, and the
+//! descriptor is a part of it.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
@@ -24,30 +28,37 @@ use crate::linux::guest::{Guest, Kind};
 const MAX_IO: u64 = 1 << 20;
 
 pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
-    let Some(entry) = guest.fds.get_mut(fd as usize) else {
-        return errno::fail(errno::EBADF);
-    };
-    if entry.kind != Kind::File {
-        return errno::fail(errno::EBADF);
-    }
-    let Some(stream) = entry.stream.as_mut() else {
-        /* Opened to write only: Linux answers EBADF, not end of file. */
-        return errno::fail(errno::EBADF);
-    };
-    if len == 0 || entry.offset >= entry.size {
-        return errno::ok(0);
-    }
-    let want = len.min(MAX_IO).min(entry.size - entry.offset);
-    let Ok(bytes) = stream.read_window(entry.offset, want as u32) else {
-        return errno::fail(errno::EIO);
+    let bytes = match take(guest, fd, len) {
+        Ok(bytes) => bytes,
+        Err(e) => return e,
     };
     if bytes.is_empty() {
         return errno::ok(0);
     }
-    let wrote = guest.write(buf, &bytes);
-    if wrote < bytes.len() as i64 {
+    if guest.write(buf, &bytes) < bytes.len() as i64 {
         return errno::fail(errno::EFAULT);
     }
-    entry.offset += bytes.len() as u64;
+    if let Some(entry) = guest.fds.get_mut(fd as usize) {
+        entry.offset += bytes.len() as u64;
+    }
     errno::ok(bytes.len() as u64)
+}
+
+fn take(guest: &mut Guest, fd: u64, len: u64) -> Result<alloc::vec::Vec<u8>, u64> {
+    let Some(entry) = guest.fds.get_mut(fd as usize) else {
+        return Err(errno::fail(errno::EBADF));
+    };
+    if entry.kind != Kind::File {
+        return Err(errno::fail(errno::EBADF));
+    }
+    if len == 0 || entry.offset >= entry.size {
+        return Ok(alloc::vec::Vec::new());
+    }
+    let want = len.min(MAX_IO).min(entry.size - entry.offset);
+    let at = entry.offset;
+    /* Opened to write only: Linux answers EBADF, not end of file. */
+    let Some(stream) = entry.stream.as_mut() else {
+        return Err(errno::fail(errno::EBADF));
+    };
+    stream.read_window(at, want as u32).map_err(|_| errno::fail(errno::EIO))
 }
