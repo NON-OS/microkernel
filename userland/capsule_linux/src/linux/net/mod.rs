@@ -15,37 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! The filesystem a guest sees.
-//!
-//! Every path a guest names is resolved here and reached through the store
-//! under this capsule's own identity. The kernel is not involved and holds
-//! no filesystem view for a hosted process to inherit.
+//! Sockets, over the net.sockets service. A guest's descriptor holds a
+//! handle that service issued to this capsule, so a guest reaches only
+//! the sockets this capsule opened for it.
 
-mod close;
-mod dir;
-mod dirent;
-mod dirents;
-mod file;
-pub mod flags;
-mod open;
-mod path;
-mod pread;
-mod query;
-mod read;
-mod resolve;
-mod seek;
-mod slot;
-mod stat;
-mod statbuf;
-mod write;
+mod addr;
+mod call;
+mod connect;
+mod ops;
+mod poll;
+mod poll_set;
+mod socket;
+mod stream;
 
-pub use close::close;
-pub use dirents::getdents64;
-pub use open::openat;
-pub use pread::pread64;
-pub use query::{access, getcwd, readlink};
-pub use read::read;
-pub use seek::lseek;
-pub use slot::install;
-pub use stat::{fstat, newfstatat};
-pub use write::write;
+pub use connect::connect;
+pub use poll_set::poll;
+pub use socket::socket;
+pub use stream::{close, recv, send};

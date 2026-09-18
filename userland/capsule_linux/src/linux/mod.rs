@@ -21,6 +21,7 @@ mod abi;
 mod call;
 mod file;
 mod guest;
+mod net;
 mod image;
 pub mod serve;
 mod source;

@@ -15,37 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! The filesystem a guest sees.
-//!
-//! Every path a guest names is resolved here and reached through the store
-//! under this capsule's own identity. The kernel is not involved and holds
-//! no filesystem view for a hosted process to inherit.
+//! `struct sockaddr_in` out of a guest.
 
-mod close;
-mod dir;
-mod dirent;
-mod dirents;
-mod file;
-pub mod flags;
-mod open;
-mod path;
-mod pread;
-mod query;
-mod read;
-mod resolve;
-mod seek;
-mod slot;
-mod stat;
-mod statbuf;
-mod write;
+use crate::linux::guest::Guest;
 
-pub use close::close;
-pub use dirents::getdents64;
-pub use open::openat;
-pub use pread::pread64;
-pub use query::{access, getcwd, readlink};
-pub use read::read;
-pub use seek::lseek;
-pub use slot::install;
-pub use stat::{fstat, newfstatat};
-pub use write::write;
+/// family(2) port(2) addr(4), and the rest of the sixteen bytes unused.
+const SOCKADDR_IN: usize = 16;
+const AF_INET: u16 = 2;
+
+/// Port in network order and address in network order, which is the
+/// order net.sockets wants as well, so neither is byte swapped here.
+pub fn inet(guest: &Guest, at: u64, len: u64) -> Option<(u16, [u8; 4])> {
+    if len < SOCKADDR_IN as u64 {
+        return None;
+    }
+    let raw = guest.read(at, SOCKADDR_IN)?;
+    if u16::from_le_bytes([raw[0], raw[1]]) != AF_INET {
+        return None;
+    }
+    let port = u16::from_be_bytes([raw[2], raw[3]]);
+    Some((port, [raw[4], raw[5], raw[6], raw[7]]))
+}

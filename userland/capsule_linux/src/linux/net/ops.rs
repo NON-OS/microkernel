@@ -15,37 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! The filesystem a guest sees.
+//! The net.sockets opcodes this capsule uses.
 //!
-//! Every path a guest names is resolved here and reached through the store
-//! under this capsule's own identity. The kernel is not involved and holds
-//! no filesystem view for a hosted process to inherit.
+//! Transcribed from userland/capsule_net_sockets/src/protocol/ops.rs. The
+//! server is a separate binary and its protocol module is not a library,
+//! so these cannot be imported; a number changed there and not here is a
+//! wrong operation, which is why the source is named.
 
-mod close;
-mod dir;
-mod dirent;
-mod dirents;
-mod file;
-pub mod flags;
-mod open;
-mod path;
-mod pread;
-mod query;
-mod read;
-mod resolve;
-mod seek;
-mod slot;
-mod stat;
-mod statbuf;
-mod write;
+pub const OP_SOCKET: u16 = 2;
+pub const OP_CONNECT: u16 = 6;
+pub const OP_SEND: u16 = 7;
+pub const OP_RECV: u16 = 8;
+pub const OP_CLOSE: u16 = 9;
+pub const OP_POLL: u16 = 13;
 
-pub use close::close;
-pub use dirents::getdents64;
-pub use open::openat;
-pub use pread::pread64;
-pub use query::{access, getcwd, readlink};
-pub use read::read;
-pub use seek::lseek;
-pub use slot::install;
-pub use stat::{fstat, newfstatat};
-pub use write::write;
+/// What OP_POLL reports: a recv would return data, a send would take it.
+pub const POLL_READABLE: u8 = 1;
+pub const POLL_WRITABLE: u8 = 2;

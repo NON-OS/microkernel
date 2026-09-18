@@ -22,6 +22,7 @@ use crate::linux::call;
 use crate::linux::file;
 use crate::linux::file::flags;
 use crate::linux::guest::Guest;
+use crate::linux::net;
 
 pub fn plain(guest: &mut Guest, nr: u64, a: [u64; 6]) -> u64 {
     match nr {
@@ -29,6 +30,12 @@ pub fn plain(guest: &mut Guest, nr: u64, a: [u64; 6]) -> u64 {
         nr::WRITEV => call::writev(guest, a[0], a[1], a[2]),
         nr::READ => call::read(guest, a[0], a[1], a[2]),
         nr::CLOSE => call::close(guest, a[0]),
+        nr::SOCKET => net::socket(guest, a[0], a[1]),
+        nr::CONNECT => net::connect(guest, a[0], a[1], a[2]),
+        nr::SENDTO => call::write(guest, a[0], a[1], a[2]),
+        nr::RECVFROM => call::read(guest, a[0], a[1], a[2]),
+        nr::POLL => net::poll(guest, a[0], a[1]),
+        nr::SHUTDOWN => call::close(guest, a[0]),
         nr::OPENAT => file::openat(guest, a[0], a[1], a[2]),
         nr::OPEN => file::openat(guest, flags::AT_FDCWD, a[0], a[1]),
         nr::LSEEK => file::lseek(guest, a[0], a[1], a[2]),

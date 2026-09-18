@@ -15,37 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! The filesystem a guest sees.
-//!
-//! Every path a guest names is resolved here and reached through the store
-//! under this capsule's own identity. The kernel is not involved and holds
-//! no filesystem view for a hosted process to inherit.
+//! Reads and writes that land on a socket rather than a file.
 
-mod close;
-mod dir;
-mod dirent;
-mod dirents;
-mod file;
-pub mod flags;
-mod open;
-mod path;
-mod pread;
-mod query;
-mod read;
-mod resolve;
-mod seek;
-mod slot;
-mod stat;
-mod statbuf;
-mod write;
+use crate::linux::abi::errno;
+use crate::linux::guest::Guest;
+use crate::linux::net;
 
-pub use close::close;
-pub use dirents::getdents64;
-pub use open::openat;
-pub use pread::pread64;
-pub use query::{access, getcwd, readlink};
-pub use read::read;
-pub use seek::lseek;
-pub use slot::install;
-pub use stat::{fstat, newfstatat};
-pub use write::write;
+pub(super) fn socket_write(guest: &Guest, fd: u64, buf: u64, len: u64) -> u64 {
+    match guest.socket_handle(fd) {
+        Some(h) => net::send(guest, h, buf, len),
+        None => errno::fail(errno::EBADF),
+    }
+}
+
+pub(super) fn socket_read(guest: &Guest, fd: u64, buf: u64, len: u64) -> u64 {
+    match guest.socket_handle(fd) {
+        Some(h) => net::recv(guest, h, buf, len),
+        None => errno::fail(errno::EBADF),
+    }
+}
+
