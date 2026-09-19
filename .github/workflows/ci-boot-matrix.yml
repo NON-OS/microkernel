@@ -47,6 +47,11 @@ jobs:
           targets: x86_64-nonos,x86_64-unknown-uefi
           qemu: "true"
           module: boot-matrix
+      - name: Host CPU
+        run: |
+          set -euo pipefail
+          awk -F: '/^vendor_id|^model name|^cpu family|^model[[:space:]]/ {print $1": "$2; }' \
+            /proc/cpuinfo | sort -u
       - name: Hardware virtualisation for the runner user
         run: |
           set -euo pipefail
