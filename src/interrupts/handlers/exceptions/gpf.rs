@@ -18,8 +18,10 @@ use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_exception_with_code, ExceptionContext};
 use super::rip_probe::rip_byte_range_mapped;
+use crate::arch::x86_64::diag::print_hex_u64;
 use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
+use crate::sys::serial::{print, println};
 
 #[derive(Debug, Clone, Copy)]
 pub struct GpfErrorCode {
@@ -55,6 +57,9 @@ impl GpfErrorCode {
 pub fn handle(frame: InterruptStackFrame, error_code: u64) {
     crate::arch::x86_64::diag::dump_trap(b"GP", &frame, Some(error_code), None);
     let ctx = ExceptionContext::from_frame(&frame);
+    if !ctx.is_user_mode() {
+        dump_gp_iret_frame(frame.stack_pointer.as_u64());
+    }
     log_exception_with_code("GENERAL PROTECTION FAULT", &ctx, error_code);
     stats::increment_exceptions();
 
@@ -66,6 +71,34 @@ pub fn handle(frame: InterruptStackFrame, error_code: u64) {
     } else {
         kernel_panic(&ctx);
     }
+}
+
+fn dump_gp_iret_frame(rsp: u64) {
+    print(b"[GP-FRAME] at=");
+    print_hex_u64(rsp);
+    if rip_byte_range_mapped(rsp, 40) {
+        let base = rsp as *const u64;
+        let labels: [&[u8]; 5] = [b" rip=", b" cs=", b" rflags=", b" rsp=", b" ss="];
+        for i in 0..5 {
+            print(labels[i]);
+            print_hex_u64(unsafe { core::ptr::read_unaligned(base.add(i)) });
+        }
+    } else {
+        print(b" <unmapped>");
+    }
+    let mut gdtr = [0u8; 10];
+    unsafe {
+        core::arch::asm!("sgdt [{}]", in(reg) gdtr.as_mut_ptr(), options(nostack, preserves_flags));
+    }
+    let limit = u16::from_le_bytes([gdtr[0], gdtr[1]]) as u64;
+    let gdt_base = u64::from_le_bytes([
+        gdtr[2], gdtr[3], gdtr[4], gdtr[5], gdtr[6], gdtr[7], gdtr[8], gdtr[9],
+    ]);
+    print(b" gdtr_limit=");
+    print_hex_u64(limit);
+    print(b" gdtr_base=");
+    print_hex_u64(gdt_base);
+    println(b"");
 }
 
 fn analyze_gpf(ctx: &ExceptionContext, error: &GpfErrorCode) {
