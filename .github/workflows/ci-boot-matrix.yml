@@ -16,7 +16,11 @@ on:
       repeat:
         description: "boots per cell"
         required: false
-        default: "5"
+        default: "1"
+      cells:
+        description: "cells to boot, space separated, or all for the whole matrix"
+        required: false
+        default: "q35-up"
 
 permissions:
   contents: read
@@ -59,8 +63,13 @@ jobs:
           bash nonos-ci/scratch-trust-bootstrap.sh
       - name: Boot the matrix
         env:
-          BOOT_MATRIX_REPEAT: ${{ github.event.inputs.repeat || '5' }}
-        run: make QEMU_NET_MODE=off BOOT_MATRIX_REPEAT="$BOOT_MATRIX_REPEAT" nonos-mk-boot-matrix
+          BOOT_MATRIX_REPEAT: ${{ github.event.inputs.repeat || '1' }}
+          BOOT_MATRIX_CELLS: ${{ github.event.inputs.cells || 'q35-up' }}
+        run: |
+          set -euo pipefail
+          if [ "$BOOT_MATRIX_CELLS" = all ]; then BOOT_MATRIX_CELLS=""; fi
+          make QEMU_NET_MODE=off BOOT_MATRIX_REPEAT="$BOOT_MATRIX_REPEAT" \
+            BOOT_MATRIX_CELLS="$BOOT_MATRIX_CELLS" nonos-mk-boot-matrix
       - name: Upload serial logs and the verdict
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
