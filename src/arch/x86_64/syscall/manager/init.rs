@@ -44,8 +44,8 @@ pub fn init() -> Result<(), &'static str> {
     let syscall_cs = ((star >> 32) & 0xFFFF) as u16;
     let syscall_ss = syscall_cs.wrapping_add(8);
     let sysret_base = ((star >> 48) & 0xFFFF) as u16;
-    let sysret_ss = sysret_base.wrapping_add(8) | 3;
-    let sysret_cs = sysret_base.wrapping_add(16) | 3;
+    let sysret_ss = sysret_base.wrapping_add(8);
+    let sysret_cs = sysret_base.wrapping_add(16);
     if syscall_cs != SEL_KERNEL_CODE_RAW
         || syscall_ss != SEL_KERNEL_DATA_RAW
         || sysret_cs != SEL_USER_CODE
