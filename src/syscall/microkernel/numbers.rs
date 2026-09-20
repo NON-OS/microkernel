@@ -52,8 +52,7 @@ pub const SYS_PROC_OUTPUT: u64 = tag4(b"MOUT");
 pub const SYS_PROC_INPUT: u64 = tag4(b"MPIN");
 pub const SYS_STDIN_READ: u64 = tag4(b"MSRD");
 // Program stdout: mirrors bytes into the caller's own `proc.<pid>` inbox and
-// writes nothing to serial. Gated on the IPC capability so a capsule without
-// `Capability::Debug` still has a stdout.
+// writes nothing to serial.
 pub const SYS_STDOUT_WRITE: u64 = tag4(b"MSOW");
 pub const SYS_STORE_WRITE: u64 = tag4(b"MSWR");
 pub const SYS_ATTEST_STATUS: u64 = tag4(b"MAST");
@@ -62,6 +61,40 @@ pub const SYS_ATTEST_DOC: u64 = tag4(b"MADC");
 /// The capsule entries the document's registry root folds, so a verifier can
 /// recompute that root and read what each program was permitted to do.
 pub const SYS_ATTEST_ENTRIES: u64 = tag4(b"MAEN");
+/// Create a process with no capabilities, supervised by the caller, to
+/// host code the kernel has not verified and does not interpret.
+pub const SYS_FOREIGN_SPAWN: u64 = tag4(b"MFSP");
+/// Give such a process an entry point and make it runnable.
+pub const SYS_FOREIGN_START: u64 = tag4(b"MFST");
+/// Wait for one of the caller's guests to issue a syscall this kernel
+/// refuses, and take its register frame.
+pub const SYS_FOREIGN_WAIT: u64 = tag4(b"MFWT");
+/// Answer one parked guest with the value its `rax` receives.
+pub const SYS_FOREIGN_REPLY: u64 = tag4(b"MFRP");
+/// Back a span of a guest's address space with fresh frames.
+pub const SYS_PEER_MAP: u64 = tag4(b"MPMP");
+/// Copy bytes between the caller and a guest it supervises.
+pub const SYS_PEER_COPY: u64 = tag4(b"MPCP");
+/// Set the protection of pages a guest already has.
+pub const SYS_PEER_PROTECT: u64 = tag4(b"MPPT");
+/// A thread inside a guest, sharing its address space.
+pub const SYS_FOREIGN_THREAD: u64 = tag4(b"MFTH");
+/// The thread pointer a guest thread wakes with.
+pub const SYS_PEER_TLS: u64 = tag4(b"MPTL");
+/// A second process holding a guest's register state.
+pub const SYS_FOREIGN_FORK: u64 = tag4(b"MFFK");
+/// Take pages back from a guest, which exec needs.
+pub const SYS_PEER_UNMAP: u64 = tag4(b"MPUN");
+/// Replace the program a parked guest is running.
+pub const SYS_FOREIGN_EXEC: u64 = tag4(b"MFEX");
+/// Mint a trailer for something this machine is installing.
+pub const SYS_LOCAL_SIGN: u64 = tag4(b"MLSG");
+/// Ask whether an image is proved under a root this machine trusts.
+pub const SYS_LOCAL_VERIFY: u64 = tag4(b"MLVF");
+/// Ask for a distribution package to be installed.
+pub const SYS_APP_INSTALL: u64 = tag4(b"MAIN");
+/// Ask to enrol this machine's own build root.
+pub const SYS_DEV_ROOT_LOCAL: u64 = tag4(b"MDRO");
 /// Ask to enrol a signing root so software built here runs here. Prints a
 /// confirmation code; enrols nothing on its own.
 pub const SYS_DEV_ROOT_REQUEST: u64 = tag4(b"MDRQ");

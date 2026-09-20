@@ -14,19 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The spawn gate: what a capsule must prove before it is allowed to run.
+//! `MkDevRootLocal`: consent to run what this machine builds and fetches.
 
-mod against_pedersen;
-mod against_root;
-mod error;
-pub(crate) mod layout;
-mod policy_root;
-mod proved;
-#[cfg(feature = "nonos-stark-attest")]
-mod stark;
-mod trailer;
-mod verify;
+use crate::capabilities::caps_to_bits;
+use crate::security::dev_roots::request_local_build_root;
+use crate::syscall::caps::current_caps_or_default;
 
-pub use error::AttestError;
-pub use proved::Proved;
-pub use verify::verify_capsule_attestation;
+/// Ask to enrol *this machine's own* build root, which is the only root a
+/// local install can ever be proved under.
+pub fn sys_dev_root_local() -> i64 {
+    let caps = caps_to_bits(&current_caps_or_default().permissions);
+    match request_local_build_root(caps) {
+        Ok(()) => 0,
+        Err(e) => {
+            crate::sys::serial::print(b"[DEV-ROOT] local request refused: ");
+            crate::sys::serial::println(e.as_str().as_bytes());
+            e.to_errno()
+        }
+    }
+}
