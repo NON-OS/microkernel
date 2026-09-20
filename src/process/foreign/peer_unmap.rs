@@ -14,23 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! Changing the protection of pages a guest already has.
+//! Taking pages away from a guest.
 
 use crate::memory::addr::VirtAddr;
-use crate::memory::paging::manager::{map_page_in_asid, translate_in_asid};
-use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL};
+use crate::memory::paging::manager::{translate_in_asid, unmap_page_in_asid};
+use crate::memory::paging::types::PagePermissions;
+use crate::syscall::microkernel::errnos::ERRNO_INVAL;
 
 use super::peer_guard::{in_user_half, supervised_asid, MAX_SPAN, PAGE};
-use super::peer_map::perms_of;
 
 fn span_ok(addr: u64, len: u64) -> bool {
     len != 0 && len <= MAX_SPAN && addr % PAGE == 0 && in_user_half(addr, len)
 }
 
-/// `MkPeerProtect`: set the protection of `[addr, addr + len)` in a guest the
-/// caller supervises.
-pub fn sys_peer_protect(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
+/// `MkPeerUnmap`: drop `[addr, addr + len)` from a guest the caller
+/// supervises.
+pub fn sys_peer_unmap(pid: u64, addr: u64, len: u64) -> i64 {
     let Some(caller) = crate::process::current_pid() else {
         return ERRNO_INVAL;
     };
@@ -41,14 +40,14 @@ pub fn sys_peer_protect(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
     if !span_ok(addr, len) {
         return ERRNO_INVAL;
     }
-    let perms = perms_of(prot);
+    let perms = PagePermissions::READ | PagePermissions::USER;
     for i in 0..len.div_ceil(PAGE) {
         let va = VirtAddr::new(addr + i * PAGE);
-        let Some(phys) = translate_in_asid(asid, va) else {
-            return ERRNO_FAULT;
-        };
-        if map_page_in_asid(asid, va, phys, perms).is_err() {
-            return ERRNO_FAULT;
+        if translate_in_asid(asid, va).is_none() {
+            continue;
+        }
+        if let Ok(frame) = unmap_page_in_asid(asid, va, perms) {
+            let _ = crate::memory::frame_alloc::deallocate_frame(frame);
         }
     }
     0
