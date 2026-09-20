@@ -1,0 +1,92 @@
+name: ci-boot-matrix
+
+# The scheduled compatibility matrix, and not a merge gate: every machine the
+# images claim to boot on, several times each, over the cells in
+# scripts/bootmatrix/cells.py for the single-CPU and the nonos-smp image. The
+# SMP cells are known red, so this lane reports breadth nightly while
+# ci-boot-smoke.yml is the one that blocks a PR. The runner has to offer KVM:
+# under TCG an eight-CPU boot with an IOMMU is minutes long and a timeout would
+# say nothing about the kernel, so the lane refuses to run rather than pass a
+# thinner matrix in silence.
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      repeat:
+        description: "boots per cell"
+        required: false
+        default: "1"
+      cells:
+        description: "cells to boot, space separated, or all for the whole matrix"
+        required: false
+        default: "q35-up"
+# A dispatch defaults to the one cell, for a quick answer; the nightly run has
+# no inputs and falls through to the whole matrix at the make default repeat.
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-boot-matrix-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  boot-matrix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: ./.github/actions/nonos-setup
+        with:
+          targets: x86_64-nonos,x86_64-unknown-uefi
+          qemu: "true"
+          module: boot-matrix
+      # Kernel bugs here are vendor-specific: #524 reproduced only on
+      # AuthenticAMD, so a green cell is only readable next to the host CPU.
+      - name: Host CPU
+        run: |
+          set -euo pipefail
+          awk -F: '/^vendor_id|^model name|^cpu family|^model[[:space:]]/ {print $1": "$2; }' /proc/cpuinfo | sort -u
+      - name: Hardware virtualisation for the runner user
+        run: |
+          set -euo pipefail
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          test -w /dev/kvm || { echo "::error::this runner offers no KVM; the matrix needs it"; exit 1; }
+      - name: Provision scratch trust material
+        run: |
+          set -euo pipefail
+          bash nonos-ci/setup-signing-key.sh
+          echo "NONOS_DEV=1" >> "$GITHUB_ENV"
+          bash nonos-ci/scratch-trust-bootstrap.sh
+      - name: Boot the matrix
+        env:
+          BOOT_MATRIX_REPEAT: ${{ github.event.inputs.repeat || '5' }}
+          BOOT_MATRIX_CELLS: ${{ github.event.inputs.cells || 'all' }}
+        run: |
+          set -euo pipefail
+          if [ "$BOOT_MATRIX_CELLS" = all ]; then BOOT_MATRIX_CELLS=""; fi
+          make QEMU_NET_MODE=off BOOT_MATRIX_REPEAT="$BOOT_MATRIX_REPEAT" \
+            BOOT_MATRIX_CELLS="$BOOT_MATRIX_CELLS" nonos-mk-boot-matrix
+      - name: Upload serial logs and the verdict
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: boot-matrix
+          path: |
+            target/boot-matrix/*.log
+            target/boot-matrix/*.qemu-stderr
+            target/boot-matrix/boot-matrix.json
+          retention-days: 14
+          if-no-files-found: error
