@@ -91,16 +91,13 @@ pub(super) static NEXT_PID: AtomicU32 = AtomicU32::new(1);
 static PID_ALLOC_LOCK: spin::Mutex<()> = spin::Mutex::new(());
 
 pub fn allocate_tid() -> Option<Pid> {
-    // The single serialized PID allocator. Every PID/TID must come through here
-    // so allocation stays race-free on SMP: the lock plus the active-PID check
-    // guarantee a unique, live-unused id. The selection arithmetic lives in the
-    // dependency-free `choose_pid` so it can be proven on the host.
+    // The single serialized PID allocator.
     let _guard = PID_ALLOC_LOCK.lock();
     let current = NEXT_PID.load(Ordering::SeqCst);
     match super::pid_alloc::choose_pid(current, |p| PROCESS_TABLE.is_active_pid(p as u64)) {
         Some((pid, next)) => {
             NEXT_PID.store(next, Ordering::SeqCst);
-            crate::process::exit::postmortem::purge_for_new_pid(pid);
+            crate::process::exit::purge_for_new_pid(pid);
             Some(pid)
         }
         None => {
