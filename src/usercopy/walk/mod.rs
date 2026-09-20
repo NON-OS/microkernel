@@ -19,6 +19,7 @@ mod bounds;
 mod leaf;
 mod levels;
 mod root;
+mod step;
 
 pub(super) use access::{translate_read, translate_write};
 pub(super) use leaf::UserLeaf;

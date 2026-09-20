@@ -14,25 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Directmap bounds for the page walk. Every table page and leaf
-//! frame is read through the directmap, so a physical address past
-//! its window would turn a corrupt PTE into a wild kernel
-//! dereference. Reject the walk instead.
+//! Directmap bounds for the page walk.
 
 use super::leaf::UserLeaf;
 use crate::memory::layout::{DIRECTMAP_BASE, DIRECTMAP_SIZE};
 use crate::usercopy::error::UsercopyError;
 
-pub(super) fn directmap_of(phys: u64) -> Result<u64, UsercopyError> {
-    if phys >= DIRECTMAP_SIZE {
-        return Err(UsercopyError::PageTableCorrupt);
-    }
+/// A page table is 512 entries of eight bytes, and the walker reads
+/// any of them.
+const TABLE_BYTES: u64 = 4096;
+
+/// The directmap address of a table page.
+pub(super) fn table_in_directmap(phys: u64) -> Result<u64, UsercopyError> {
+    fits(phys, TABLE_BYTES)?;
     Ok(DIRECTMAP_BASE + phys)
 }
 
+/// A leaf frame, whose size the walk has already decided.
 pub(super) fn leaf_in_directmap(leaf: UserLeaf) -> Result<UserLeaf, UsercopyError> {
-    if leaf.phys_base >= DIRECTMAP_SIZE - (leaf.size - 1) {
-        return Err(UsercopyError::PageTableCorrupt);
-    }
+    fits(leaf.phys_base, leaf.size)?;
     Ok(leaf)
+}
+
+/// Whether `[phys, phys + len)` lies inside the window.
+fn fits(phys: u64, len: u64) -> Result<(), UsercopyError> {
+    match phys.checked_add(len) {
+        Some(end) if end <= DIRECTMAP_SIZE => Ok(()),
+        _ => Err(UsercopyError::PageTableCorrupt),
+    }
 }
