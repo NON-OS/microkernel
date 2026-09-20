@@ -17,10 +17,7 @@
 use crate::syscall::abi::{tag4, AbiDomain, AbiEntry, AbiStatus};
 use crate::syscall::numbers::SyscallNumber;
 
-// All Mk* native syscalls. Every entry is Routed, the dispatcher
-// match in `dispatch/router/dispatch_fn.rs` forwards each to
-// `microkernel::dispatch_microkernel_syscall`. Capability gates live
-// at `contract/cap_table/mk.rs`.
+// All Mk* native syscalls.
 pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MISD", SyscallNumber::MkIpcSend, "MkIpcSend"),
     e(b"MIRC", SyscallNumber::MkIpcRecv, "MkIpcRecv"),
@@ -90,6 +87,22 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MIED", SyscallNumber::MkInputEventDrain, "MkInputEventDrain"),
     e(b"MIEW", SyscallNumber::MkInputEventWait, "MkInputEventWait"),
     e(b"MSPI", SyscallNumber::MkSpawnInstance, "MkSpawnInstance"),
+    e(b"MFSP", SyscallNumber::MkForeignSpawn, "MkForeignSpawn"),
+    e(b"MFST", SyscallNumber::MkForeignStart, "MkForeignStart"),
+    e(b"MFWT", SyscallNumber::MkForeignWait, "MkForeignWait"),
+    e(b"MFRP", SyscallNumber::MkForeignReply, "MkForeignReply"),
+    e(b"MPMP", SyscallNumber::MkPeerMap, "MkPeerMap"),
+    e(b"MPCP", SyscallNumber::MkPeerCopy, "MkPeerCopy"),
+    e(b"MPPT", SyscallNumber::MkPeerProtect, "MkPeerProtect"),
+    e(b"MFTH", SyscallNumber::MkForeignThread, "MkForeignThread"),
+    e(b"MPTL", SyscallNumber::MkPeerTls, "MkPeerTls"),
+    e(b"MFFK", SyscallNumber::MkForeignFork, "MkForeignFork"),
+    e(b"MPUN", SyscallNumber::MkPeerUnmap, "MkPeerUnmap"),
+    e(b"MFEX", SyscallNumber::MkForeignExec, "MkForeignExec"),
+    e(b"MLSG", SyscallNumber::MkLocalSign, "MkLocalSign"),
+    e(b"MLVF", SyscallNumber::MkLocalVerify, "MkLocalVerify"),
+    e(b"MAIN", SyscallNumber::MkAppInstall, "MkAppInstall"),
+    e(b"MDRO", SyscallNumber::MkDevRootLocal, "MkDevRootLocal"),
     e(b"MTRN", SyscallNumber::MkToolRun, "MkToolRun"),
     e(b"MSOW", SyscallNumber::MkStdoutWrite, "MkStdoutWrite"),
     e(b"MSWR", SyscallNumber::MkStoreWrite, "MkStoreWrite"),

@@ -26,11 +26,25 @@ impl CapabilityToken {
         self.grants(Capability::Admin) && self.is_valid()
     }
     #[inline]
+    pub fn can_local_sign(&self) -> bool {
+        self.grants(Capability::LocalSign) && self.is_valid()
+    }
+    #[inline]
     pub fn can_attest_read(&self) -> bool {
         self.grants(Capability::AttestRead) && self.is_valid()
     }
     #[inline]
     pub fn can_store_write(&self) -> bool {
         self.grants(Capability::StoreWrite) && self.is_valid()
+    }
+    #[inline]
+    pub fn can_foreign_exec(&self) -> bool {
+        self.grants(Capability::ForeignExec) && self.is_valid()
+    }
+    /// The right to ask for a package to be installed. Deliberately
+    /// separate from `ForeignExec`: the asker never hosts anything.
+    #[inline]
+    pub fn can_app_install(&self) -> bool {
+        self.grants(Capability::AppInstall) && self.is_valid()
     }
 }

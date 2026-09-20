@@ -15,13 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The spawn gate: what a capsule must prove before it is allowed to run.
-//!
-//! A capsule proves its measurement is enrolled under a policy tree the kernel
-//! trusts. The vendor's tree ships in the image; a user may enrol their own so
-//! software written on this machine can run on it. Both take the same proof at
-//! the same strength, and the result records which of them vouched, because a
-//! measurement without its authority does not say who verified it.
 
+mod against_pedersen;
 mod against_root;
 mod error;
 pub(crate) mod layout;

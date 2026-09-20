@@ -32,33 +32,19 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkAttestStatus
         | SyscallNumber::MkCapCheck => caps.is_valid(),
 
-        /*
-         * An attestation and the entries behind it are readable by any capsule
-         * holding a valid token, because neither carries authority. The
-         * document's weight is a TPM signature over a challenge the caller did
-         * not choose, and the entries are checked against it; a capsule that
-         * alters either produces something a verifier rejects. Restricting them
-         * would hide from a program what the machine already tells strangers.
-         */
+        // An attestation and the entries behind it are readable by any capsule
+        // holding a valid token, because neither carries authority.
         SyscallNumber::MkAttestDoc => caps.is_valid(),
 
-        /*
-         * The entries name every running capsule with its measurement and
-         * its capability mask. That is the machine's inventory, so reading it
-         * takes a capability of its own rather than any valid token; the
-         * programs that render a receipt hold it.
-         */
+        // The entries name every running capsule with its measurement and its
+        // capability mask.
         SyscallNumber::MkAttestEntries => caps.can_attest_read(),
 
-        /*
-         * Enrolling a signing root changes which software this machine will
-         * start, so it is gated on its own capability rather than on Admin. The
-         * handler asks the live token again and a human confirms out of band;
-         * this is the first of the three refusals, not the only one.
-         */
-        SyscallNumber::MkDevRootRequest | SyscallNumber::MkDevRootConfirm => {
-            caps.can_enrol_dev_root()
-        }
+        // Enrolling a signing root changes which software this machine will
+        // start, so it is gated on its own capability rather than on Admin.
+        SyscallNumber::MkDevRootRequest
+        | SyscallNumber::MkDevRootConfirm
+        | SyscallNumber::MkDevRootLocal => caps.can_enrol_dev_root(),
 
         SyscallNumber::MkTimeAdjust => caps.can_set_time(),
 
@@ -78,10 +64,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkGetPid => caps.can_getpid(),
         SyscallNumber::MkArgs => caps.can_getpid(),
         SyscallNumber::MkThreadSpawn => caps.can_ipc(),
-        /*
-         * A capsule may only move its own fs base; that mutates nothing
-         * outside its own PCB, so a valid token is the whole requirement.
-         */
+        // A capsule may only move its own fs base; that mutates nothing
+        // outside its own PCB, so a valid token is the whole requirement.
         SyscallNumber::MkSetTls => caps.is_valid(),
         SyscallNumber::MkProcOutput => caps.can_ipc(),
         SyscallNumber::MkProcInput => caps.can_ipc(),
@@ -97,11 +81,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkIpcSendToPid
         | SyscallNumber::MkServiceLookup
         | SyscallNumber::MkServiceRegister => caps.can_ipc(),
-        /*
-         * The handlers ask for Admin again and refuse to grant a bit the
-         * caller lacks. The table asks first, so a capsule without Admin is
-         * turned away before the handler runs.
-         */
+        // The handlers ask for Admin again and refuse to grant a bit the
+        // caller lacks.
         SyscallNumber::MkCapGrant | SyscallNumber::MkCapRevoke => caps.can_admin(),
 
         SyscallNumber::MkDeviceList => caps.can_device_enum(),
@@ -123,6 +104,34 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkStdoutWrite => caps.can_ipc(),
         SyscallNumber::MkStoreWrite => caps.can_store_write(),
 
+        /*
+         * Hosting unverified code is one right, and it covers every call that
+         * touches a guest: creating it, building its address space, and
+         * answering for it.
+         */
+        SyscallNumber::MkForeignSpawn
+        | SyscallNumber::MkForeignStart
+        | SyscallNumber::MkForeignWait
+        | SyscallNumber::MkForeignReply
+        | SyscallNumber::MkPeerMap
+        | SyscallNumber::MkPeerCopy
+        | SyscallNumber::MkPeerProtect
+        | SyscallNumber::MkForeignThread
+        | SyscallNumber::MkPeerTls
+        | SyscallNumber::MkForeignFork
+        | SyscallNumber::MkPeerUnmap
+        | SyscallNumber::MkForeignExec => caps.can_foreign_exec(),
+
+        // Minting a trailer is a trust operation, so it sits with the
+        // enrolment calls rather than with the installer ones.
+        SyscallNumber::MkLocalSign => caps.can_local_sign(),
+
+        // Asking is not minting.
+        SyscallNumber::MkLocalVerify => caps.can_foreign_exec(),
+
+        // The right to ask, which is not the right to host.
+        SyscallNumber::MkAppInstall => caps.can_app_install(),
+
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare
         | SyscallNumber::MkSurfaceRelease => caps.can_surface_create(),
@@ -130,27 +139,19 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkSurfacePresent => caps.can_present(),
         SyscallNumber::MkDisplayVsyncWait => caps.can_display_query(),
         SyscallNumber::MkInputEventPost => caps.can_input_source(),
-        /*
-         * Draining/waiting on the global raw-input ring is a privileged consumer
-         * operation: the ring carries every keystroke. `can_input_source()`
-         * accepts `Irq`, which every device driver holds, so it let any driver
-         * capsule steal the keystroke stream (cross-capsule keylogging). The
-         * consumer gate requires `InputSource` (the input_router's cap) and
-         * excludes `Irq`, keeping drivers able to POST but not DRAIN.
-         */
+        // Draining/waiting on the global raw-input ring is a privileged
+        // consumer operation: the ring carries every keystroke.
         SyscallNumber::MkInputEventDrain => caps.can_input_consumer(),
         SyscallNumber::MkInputEventWait => caps.can_input_consumer(),
 
-        /*
-         * Only a SpawnWindow-trusted capsule (the desktop shell) may ask the
-         * kernel to open another window instance of an embedded app capsule.
-         */
+        // Only a SpawnWindow-trusted capsule (the desktop shell) may ask the
+        // kernel to open another window instance of an embedded app capsule.
         SyscallNumber::MkSpawnInstance => caps.can_spawn_window(),
 
         /*
-         * Running a baked command-line tool needs only IPC: the tool is spawned
-         * parented to the caller so the caller can drive its stdio, and only the
-         * baked, attested set can be named.
+         * Running a baked command-line tool needs only IPC: the tool is
+         * spawned parented to the caller so the caller can drive its stdio,
+         * and only the baked, attested set can be named.
          */
         SyscallNumber::MkToolRun => caps.can_ipc(),
 
