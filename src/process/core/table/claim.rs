@@ -14,17 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build_pcb;
-mod claim;
-mod create;
-mod inherit;
-mod ops;
-mod pid_alloc;
-mod thread_spawn;
-mod types;
+//! Taking a process from made to runnable, once.
 
-pub(crate) use create::create_process_with_parent;
-pub use claim::{claim_new, release_new};
-pub use create::{create_process, create_process_with_mem};
-pub use thread_spawn::{admit_thread, spawn_thread, spawn_thread_in, spawn_thread_parked};
-pub use types::{allocate_tid, ProcessTable, CURRENT_PID, PROCESS_TABLE};
+use super::super::types::{Pid, ProcessState};
+
+/// Move `pid` from `New` to `Ready`. True for the caller that won it;
+/// anyone else is looking at a process already started.
+pub fn claim_new(pid: Pid) -> bool {
+    crate::process::with_process(pid, |pcb| {
+        let mut state = pcb.state.lock();
+        if !matches!(*state, ProcessState::New) {
+            return false;
+        }
+        *state = ProcessState::Ready;
+        true
+    })
+    .unwrap_or(false)
+}
+
+/// Put a claim back, for a caller whose setup failed after winning one.
+pub fn release_new(pid: Pid) {
+    crate::process::with_process(pid, |pcb| *pcb.state.lock() = ProcessState::New);
+}
