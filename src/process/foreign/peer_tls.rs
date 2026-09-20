@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Making a built guest runnable.
+
+//! Setting a guest thread's thread pointer.
 
 use super::peer_guard::in_user_half;
-use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_PERM};
+use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOENT, ERRNO_PERM};
 
-// `rsp` of zero asks for the kernel's own user stack.
-pub fn sys_foreign_start(pid: u64, entry: u64, rsp: u64) -> i64 {
+/// `MkPeerTls`: the FS base `pid` wakes with from now on.
+pub fn sys_peer_tls(pid: u64, base: u64) -> i64 {
     let Some(caller) = crate::process::current_pid() else {
         return ERRNO_INVAL;
     };
@@ -29,18 +30,14 @@ pub fn sys_foreign_start(pid: u64, entry: u64, rsp: u64) -> i64 {
         return ERRNO_PERM;
     }
     /*
-     * An entry of zero means the guest already holds the state it should wake
-     * in, which is what a fork leaves behind.
+     * The context switch writes this straight to MSR_FS_BASE, and that
+     * instruction faults in ring zero for a non-canonical value.
      */
-    if entry == 0 && rsp == 0 {
-        return super::resume::resume(pid);
-    }
-    /*
-     * A guest runs in ring three, so a kernel entry or stack would fault on
-     * its first instruction rather than escalate.
-     */
-    if !in_user_half(entry, 1) || (rsp != 0 && !in_user_half(rsp, 0)) {
+    if !in_user_half(base, 1) {
         return ERRNO_INVAL;
     }
-    super::start_context::install(pid, entry, rsp)
+    match crate::process::with_process(pid, |pcb| pcb.set_tls_base(base)) {
+        Some(()) => 0,
+        None => ERRNO_NOENT,
+    }
 }
