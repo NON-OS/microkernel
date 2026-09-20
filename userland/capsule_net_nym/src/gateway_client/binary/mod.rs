@@ -22,6 +22,6 @@ mod parse;
 mod response;
 
 pub use blob::make_encrypted_blob;
-pub use kinds::{KIND_FORWARD_SPHINX, KIND_FORWARD_SPHINX_V2};
+pub use kinds::{KIND_FORWARD_SPHINX, KIND_FORWARD_SPHINX_V2, NONCE_BYTES};
 pub use parse::{parse_blob, Incoming};
 pub use response::{is_pushed_message, KIND_PUSHED_MIX_MESSAGE};
