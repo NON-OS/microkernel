@@ -14,31 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+//! A control frame from the gateway, which arrives in the clear.
 
-use super::directory_clock::{now_ms, NEXT_TRY_MS};
-use super::directory_outcome::record;
-use crate::directory_sync::sync_step;
-use crate::setup;
-use crate::state::{directory_exit_count, directory_gateway_count};
+use super::control::note_control;
+use crate::gateway_client;
 use crate::trace;
 
-
-/// Fetch the node list while nothing is asking to be served.
-pub fn directory_tick() {
-    // Not done until the directory carries both a gateway and an exit.
-    if directory_gateway_count() > 0 && directory_exit_count() > 0 {
+/// Handle one clear-text frame.
+pub(super) fn control(tcp_port: u32, stream: u32, frame: &[u8]) {
+    if !note_control(frame) {
         return;
     }
-    if now_ms() < NEXT_TRY_MS.load(Ordering::Relaxed) {
-        return;
-    }
-    let tcp_port = setup::tcp_port();
-    if tcp_port == 0 {
-        return;
-    }
-
-    trace::say(b"directory: fetching");
-    record(sync_step(tcp_port));
+    /*
+     * Allowance is granted per session and spent per packet, so running out is
+     * a state to leave rather than a failure to report.
+     */
+    let _ = gateway_client::claim_free_bandwidth(tcp_port, stream);
+    trace::say(b"asked the gateway for allowance again");
 }
-

@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod authz;
-mod connect_tick;
-mod directory_clock;
-mod directory_outcome;
-mod directory_tick;
-mod rebind;
+//! Refusing a gateway frame that has arrived before.
 
-mod handlers;
-mod keepalive;
-mod parse_req;
-mod pump_tick;
-mod respond;
-mod runner;
+use spin::Mutex;
 
-pub use connect_tick::gateway_lost;
-pub use runner::run;
+use crate::gateway_client::NONCE_BYTES;
+use crate::packet::REPLAY_TAG_LEN;
+use crate::state::ReplayWindow;
+
+static SEEN: Mutex<ReplayWindow> = Mutex::new(ReplayWindow::new());
+
+/// True the first time this nonce is offered, false every time after.
+pub(super) fn fresh(nonce: &[u8; NONCE_BYTES]) -> bool {
+    let mut tag = [0u8; REPLAY_TAG_LEN];
+    /*
+     * Left aligned and carried whole: twelve bytes into thirty-two,
+     * never folded down, since truncating invents collisions.
+     */
+    tag[..NONCE_BYTES].copy_from_slice(nonce);
+    SEEN.lock().accept(&tag)
+}
