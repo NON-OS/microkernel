@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build_pcb;
-mod claim;
-mod create;
-mod inherit;
-mod ops;
-mod pid_alloc;
-mod thread_spawn;
-mod types;
+//! Exclusion over a guest's address space.
 
-pub(crate) use create::create_process_with_parent;
-pub use claim::{claim_new, release_new};
-pub use create::{create_process, create_process_with_mem};
-pub use thread_spawn::{admit_thread, spawn_thread, spawn_thread_in, spawn_thread_parked};
-pub use types::{allocate_tid, ProcessTable, CURRENT_PID, PROCESS_TABLE};
+use spin::{Mutex, MutexGuard};
+
+/*
+ * Every peer call that reads or reshapes a guest's address space runs under
+ * this.
+ */
+static ADDRESS_SPACE: Mutex<()> = Mutex::new(());
+
+/// Proof that the caller holds the peer lock.
+pub(super) type Held = MutexGuard<'static, ()>;
+
+/// Take it. Only `peer_guard::supervised_asid` calls this, and it hands
+/// the result back beside the asid so the two cannot be separated.
+pub(super) fn take() -> Held {
+    ADDRESS_SPACE.lock()
+}

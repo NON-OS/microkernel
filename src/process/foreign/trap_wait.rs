@@ -14,17 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build_pcb;
-mod claim;
-mod create;
-mod inherit;
-mod ops;
-mod pid_alloc;
-mod thread_spawn;
-mod types;
+//! A guest asleep inside the syscall it made.
 
-pub(crate) use create::create_process_with_parent;
-pub use claim::{claim_new, release_new};
-pub use create::{create_process, create_process_with_mem};
-pub use thread_spawn::{admit_thread, spawn_thread, spawn_thread_in, spawn_thread_parked};
-pub use types::{allocate_tid, ProcessTable, CURRENT_PID, PROCESS_TABLE};
+use super::trap_table::take_answer;
+
+pub(super) fn wait_for_answer(pid: u32) -> u64 {
+    loop {
+        if let Some(value) = take_answer(pid) {
+            return settle(pid, value);
+        }
+        let token = crate::sched::wake_token(pid);
+        if let Some(value) = take_answer(pid) {
+            return settle(pid, value);
+        }
+        crate::sched::sleep_until_unless_woken(pid, u64::MAX, token);
+        crate::sched::yield_now();
+    }
+}
+
+/// Every answer but one is a return value.
+fn settle(pid: u32, value: u64) -> u64 {
+    if value == super::exec::EXECED {
+        super::exec_enter::enter(pid)
+    }
+    value
+}

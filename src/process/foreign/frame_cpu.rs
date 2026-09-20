@@ -14,17 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build_pcb;
-mod claim;
-mod create;
-mod inherit;
-mod ops;
-mod pid_alloc;
-mod thread_spawn;
-mod types;
+//! The one word of a guest's state that is not in the saved frame.
 
-pub(crate) use create::create_process_with_parent;
-pub use claim::{claim_new, release_new};
-pub use create::{create_process, create_process_with_mem};
-pub use thread_spawn::{admit_thread, spawn_thread, spawn_thread_in, spawn_thread_parked};
-pub use types::{allocate_tid, ProcessTable, CURRENT_PID, PROCESS_TABLE};
+/// The user stack pointer.
+#[inline]
+pub(super) fn user_rsp() -> u64 {
+    let rsp: u64;
+    /*
+     * SAFETY: eK@nonos.systems - reads `user_stack_saved` in PerCpuData
+     * at a compile-time offset. Kernel GS is still active on this path:
+     * neither sysret nor iretq has run, which is the same condition the
+     * sigreturn path relies on for the same read.
+     */
+    unsafe {
+        core::arch::asm!(
+            "mov {0}, gs:[{off}]",
+            out(reg) rsp,
+            off = const crate::smp::percpu::layout::USER_STACK_SAVED,
+            options(nomem, nostack, preserves_flags),
+        );
+    }
+    rsp
+}

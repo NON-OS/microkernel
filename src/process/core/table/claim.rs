@@ -31,3 +31,8 @@ pub fn claim_new(pid: Pid) -> bool {
     })
     .unwrap_or(false)
 }
+
+/// Put a claimed `pid` back to `New`, for a start that failed after its claim.
+pub fn release_new(pid: Pid) {
+    crate::process::with_process(pid, |pcb| *pcb.state.lock() = ProcessState::New);
+}

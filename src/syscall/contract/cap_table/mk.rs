@@ -141,7 +141,11 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkPeerMap
         | SyscallNumber::MkPeerCopy
         | SyscallNumber::MkPeerProtect
-        | SyscallNumber::MkForeignThread => caps.can_foreign_exec(),
+        | SyscallNumber::MkForeignThread
+        | SyscallNumber::MkPeerTls
+        | SyscallNumber::MkForeignFork
+        | SyscallNumber::MkPeerUnmap
+        | SyscallNumber::MkForeignExec => caps.can_foreign_exec(),
 
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare

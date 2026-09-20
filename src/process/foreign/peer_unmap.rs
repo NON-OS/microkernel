@@ -14,32 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Backing a span of a guest's address space with fresh frames.
+//! Taking pages away from a guest.
 
 use crate::memory::addr::VirtAddr;
-use crate::memory::paging::manager::{map_page_in_asid, translate_in_asid};
+use crate::memory::paging::manager::{translate_in_asid, unmap_page_in_asid};
 use crate::memory::paging::types::PagePermissions;
-use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOMEM};
+use crate::syscall::microkernel::errnos::ERRNO_INVAL;
 
-use super::peer_guard::{in_user_half, supervised_asid, MAX_SPAN, PAGE, PROT_EXEC, PROT_WRITE};
+use super::peer_guard::{in_user_half, supervised_asid, MAX_SPAN, PAGE};
 
 fn span_ok(addr: u64, len: u64) -> bool {
     len != 0 && len <= MAX_SPAN && addr % PAGE == 0 && in_user_half(addr, len)
 }
 
-pub(super) fn perms_of(prot: u64) -> PagePermissions {
-    let mut perms = PagePermissions::READ | PagePermissions::USER;
-    if prot & PROT_WRITE != 0 {
-        perms = perms | PagePermissions::WRITE;
-    }
-    if prot & PROT_EXEC != 0 {
-        perms = perms | PagePermissions::EXECUTE;
-    }
-    perms
-}
-
-/// `MkPeerMap`: map `[addr, addr + len)` in a guest the caller supervises.
-pub fn sys_peer_map(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
+/// `MkPeerUnmap`: drop `[addr, addr + len)` from a guest the caller
+/// supervises.
+pub fn sys_peer_unmap(pid: u64, addr: u64, len: u64) -> i64 {
     let Some(caller) = crate::process::current_pid() else {
         return ERRNO_INVAL;
     };
@@ -50,19 +40,14 @@ pub fn sys_peer_map(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
     if !span_ok(addr, len) {
         return ERRNO_INVAL;
     }
-    let perms = perms_of(prot);
+    let perms = PagePermissions::READ | PagePermissions::USER;
     for i in 0..len.div_ceil(PAGE) {
         let va = VirtAddr::new(addr + i * PAGE);
-        if translate_in_asid(asid, va).is_some() {
+        if translate_in_asid(asid, va).is_none() {
             continue;
         }
-        let Some(frame) = crate::memory::frame_alloc::allocate_frame() else {
-            return ERRNO_NOMEM;
-        };
-        crate::memory::frame_alloc::zero_frame(frame);
-        if map_page_in_asid(asid, va, frame, perms).is_err() {
+        if let Ok(frame) = unmap_page_in_asid(asid, va, perms) {
             let _ = crate::memory::frame_alloc::deallocate_frame(frame);
-            return ERRNO_NOMEM;
         }
     }
     0

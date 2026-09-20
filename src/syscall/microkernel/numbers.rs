@@ -82,6 +82,15 @@ pub const SYS_PEER_COPY: u64 = tag4(b"MPCP");
 pub const SYS_PEER_PROTECT: u64 = tag4(b"MPPT");
 /// A thread inside a guest, sharing its address space.
 pub const SYS_FOREIGN_THREAD: u64 = tag4(b"MFTH");
+/// Set the thread pointer a guest thread wakes with.
+pub const SYS_PEER_TLS: u64 = tag4(b"MPTL");
+/// A second guest holding a parked guest's registers, its memory left to the
+/// supervisor to copy.
+pub const SYS_FOREIGN_FORK: u64 = tag4(b"MFFK");
+/// Take pages away from a guest.
+pub const SYS_PEER_UNMAP: u64 = tag4(b"MPUN");
+/// Release a parked guest into a new program its supervisor has loaded.
+pub const SYS_FOREIGN_EXEC: u64 = tag4(b"MFEX");
 /// Ask to enrol a signing root so software built here runs here. Prints a
 /// confirmation code; enrols nothing on its own.
 pub const SYS_DEV_ROOT_REQUEST: u64 = tag4(b"MDRQ");

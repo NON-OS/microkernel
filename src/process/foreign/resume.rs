@@ -14,17 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build_pcb;
-mod claim;
-mod create;
-mod inherit;
-mod ops;
-mod pid_alloc;
-mod thread_spawn;
-mod types;
+//! Waking a guest on state it already holds.
 
-pub(crate) use create::create_process_with_parent;
-pub use claim::{claim_new, release_new};
-pub use create::{create_process, create_process_with_mem};
-pub use thread_spawn::{admit_thread, spawn_thread, spawn_thread_in, spawn_thread_parked};
-pub use types::{allocate_tid, ProcessTable, CURRENT_PID, PROCESS_TABLE};
+use crate::process::core::claim_new;
+use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_PERM};
+
+/// Make a guest runnable on the state it already carries. Used by a
+/// fork, whose child was born holding its parent's registers.
+pub(super) fn resume(pid: u32) -> i64 {
+    let has_state =
+        crate::process::with_process(pid, |pcb| pcb.saved_user_context.lock().is_some());
+    if has_state != Some(true) {
+        return ERRNO_INVAL;
+    }
+    /*
+     * The claim is the check. A fork started twice would otherwise put
+     * the child on a run queue twice.
+     */
+    if !claim_new(pid) {
+        return ERRNO_PERM;
+    }
+    crate::sched::add_to_run_queue(pid);
+    0
+}
