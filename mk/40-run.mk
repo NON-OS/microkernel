@@ -1,7 +1,7 @@
 # Booting the image under QEMU (GUI, headless, serial, GDB, TPM), plus the
 # static and verification gates that run over the built kernel.
 
-.PHONY: nonos-mk-check-caps nonos-mk-debug nonos-mk-plan-a-runtime nonos-mk-run nonos-mk-run-input-probe-inject-serial-log nonos-mk-run-iommu-serial-log nonos-mk-run-nat nonos-mk-run-net nonos-mk-run-serial nonos-mk-run-serial-log nonos-mk-run-serial-nat nonos-mk-run-serial-net nonos-mk-run-smp-serial-log nonos-mk-scan nonos-mk-static nonos-mk-swtpm-start nonos-mk-swtpm-stop nonos-mk-verify nonos-mk-verify-fast
+.PHONY: nonos-mk-boot-matrix nonos-mk-check-caps nonos-mk-debug nonos-mk-plan-a-runtime nonos-mk-run nonos-mk-run-input-probe-inject-serial-log nonos-mk-run-iommu-serial-log nonos-mk-run-nat nonos-mk-run-net nonos-mk-run-serial nonos-mk-run-serial-log nonos-mk-run-serial-nat nonos-mk-run-serial-net nonos-mk-run-smp-serial-log nonos-mk-scan nonos-mk-static nonos-mk-swtpm-start nonos-mk-swtpm-stop nonos-mk-verify nonos-mk-verify-fast
 
 # Build a kernel profile, then pack the ESP from it.
 #
@@ -417,3 +417,25 @@ nonos-mk-run-iommu-serial-log: nonos-mk-desktop-gui-prod nonos-mk-esp $(QEMU_BLK
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
 		-serial "file:$(QEMU_IOMMU_SERIAL_LOG)" -display none -no-reboot
+
+# The machine matrix. Both shipping images (single CPU, and the same tree with
+# nonos-smp) are packed into their own ESP copies, then scripts/boot_matrix.py
+# boots each cell of scripts/bootmatrix/cells.py BOOT_MATRIX_REPEAT times: q35
+# and i440fx, one to eight CPUs, with and without an IOMMU, and a kill during
+# store traffic followed by a reboot of the same disk. A cell fails on any boot
+# that misses readiness, reports a fault, brings up fewer CPUs than it was
+# given, or says DMA is unrestricted with an IOMMU present.
+BOOT_MATRIX_DIR ?= $(TARGET_DIR)/boot-matrix
+BOOT_MATRIX_REPEAT ?= 5
+BOOT_MATRIX_TIMEOUT ?= 300
+BOOT_MATRIX_CELLS ?=
+nonos-mk-boot-matrix: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW)
+	$(call nonos_kernel_and_esp,nonos-mk-desktop-gui-prod)
+	@rm -rf $(BOOT_MATRIX_DIR)/esp-up && mkdir -p $(BOOT_MATRIX_DIR) && cp -R $(ESP_DIR) $(BOOT_MATRIX_DIR)/esp-up
+	$(call nonos_kernel_and_esp,nonos-mk-smp-prod)
+	@rm -rf $(BOOT_MATRIX_DIR)/esp-smp && cp -R $(ESP_DIR) $(BOOT_MATRIX_DIR)/esp-smp
+	@$(NONOS_PYTHON) scripts/boot_matrix.py \
+		--esp up=$(BOOT_MATRIX_DIR)/esp-up --esp smp=$(BOOT_MATRIX_DIR)/esp-smp \
+		--qemu "$(QEMU)" --ovmf "$(OVMF)" --ovmf-vars "$(QEMU_OVMF_VARS_RW)" --blk-img "$(QEMU_BLK_IMG)" \
+		--extra "$(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG)" \
+		--repeat $(BOOT_MATRIX_REPEAT) --timeout $(BOOT_MATRIX_TIMEOUT) --out $(BOOT_MATRIX_DIR) $(BOOT_MATRIX_CELLS)
