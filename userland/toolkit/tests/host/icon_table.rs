@@ -15,8 +15,11 @@ use mask::{dim, mask};
 fn main() {
     let all = IconId::ALL;
     let mut fail = 0usize;
-    if all.len() != 42 {
-        println!("expected 42 icons, got {}", all.len());
+    // Kept in step with IconId::ALL by hand, which is the point: a count that
+    // updated itself would not catch an icon added to one list and not the
+    // other.
+    if all.len() != 48 {
+        println!("expected 48 icons, got {}", all.len());
         fail += 1;
     }
     for (i, a) in all.iter().enumerate() {

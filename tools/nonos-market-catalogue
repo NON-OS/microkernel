@@ -1,0 +1,352 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Build the marketplace index JSON from what actually exists on disk.
+
+Three sources, one catalogue:
+
+  nonos      capsules this tree builds and signs, read out of the trust
+             directory so a listing exists only for something that has a
+             manifest and a certificate
+
+  linux      distribution packages, fetched and hashed here. A listing
+             asserts "these bytes, this hash", and a hash nobody computed
+             is not an assertion, so a package that has not been fetched
+             is not listed
+
+  community  submissions under nonos-data/marketplace/community, each a
+             JSON file naming a publisher key and a release the operator
+             has already validated
+
+The output is the plain JSON the `marketplace-index` CLI encodes and
+signs. Nothing here signs anything: the operator key never touches a
+generator.
+"""
+
+import argparse
+import json
+import subprocess
+import sys
+import tarfile
+import time
+import urllib.request
+from pathlib import Path
+
+MIRROR = "https://dl-cdn.alpinelinux.org/alpine"
+BRANCHES = ("main", "community")
+# 2: the release carries the hash of its zk trailer, and the publisher
+# signature covers it.
+SCHEMA = 2
+
+# Capsules that are not applications. A driver or a transport is part of
+# the system, cannot be installed or removed by a user, and listing one
+# would offer an install that cannot happen.
+NOT_APPS = (
+    "driver_",
+    "net_",
+    "input_",
+    "proof_",
+    "std_proof",
+    "egui_proof",
+    "tokio-smoke",
+    "hello",
+    "gui_demo",
+    "boot_splash",
+    "compositor",
+    "wm",
+    "vfs",
+    "ramfs",
+    "keyring",
+    "policy",
+    "entropy",
+    "market",
+    "login",
+    "setup_wizard",
+    "toolkit",
+    "wallpaper",
+    "wallpaper_catalog",
+    "image_codec",
+    "audio_server",
+)
+
+FREE = {"kind": "free", "amount_atomic": "0", "period_seconds": 0}
+NOX = {"symbol": "NOX", "decimals": 18, "chain_id": 1, "contract_address": ""}
+
+
+def blake3(data: bytes) -> str:
+    """BLAKE3-256, the hash every other artifact in this tree is named by.
+
+    b3sum is what the signing tools use, so the digest in a listing is
+    the same one a person gets checking the artifact by hand.
+    """
+    try:
+        done = subprocess.run(
+            ["b3sum", "--no-names", "--raw"],
+            input=data, stdout=subprocess.PIPE, check=True,
+        )
+    except FileNotFoundError:
+        sys.exit("b3sum not found: install it, or the digests would be guesses")
+    return done.stdout[:32].hex()
+
+
+def validation(note: str, validator: str, when_ms: int) -> dict:
+    return {
+        "status": "validated",
+        "note": note,
+        "validator_id": validator,
+        "validated_at_ms": when_ms,
+    }
+
+
+def release(rid, manifest, package, url, arches, caps, note, validator,
+             when_ms, trailer=""):
+    return {
+        "release_id": rid,
+        "manifest_hash": manifest,
+        "package_hash": package,
+        "package_url": url,
+        "publisher_signature": "",
+        "supported_arches": arches,
+        "kernel_abi_min": 1,
+        "required_capabilities": caps,
+        "zk_trailer_hash": trailer,
+        "validation": validation(note, validator, when_ms),
+    }
+
+
+def entry(listing, capsule_id, name, publisher, pubkey, text, releases):
+    return {
+        "listing_id": listing,
+        "capsule_id": capsule_id,
+        "name": name,
+        "publisher_name": publisher,
+        "publisher_pubkey": pubkey,
+        "publisher_eth_address": "00" * 20,
+        "description": text,
+        "price": FREE,
+        "token": NOX,
+        "releases": releases,
+    }
+
+
+def is_app(slug: str) -> bool:
+    return not any(slug == n or slug.startswith(n) for n in NOT_APPS)
+
+
+def nonos_entries(trust: Path, pubkey: str, when_ms: int) -> list:
+    """One listing per signed capsule that is an application."""
+    out = []
+    for manifest in sorted(trust.glob("*.manifest.bin")):
+        slug = manifest.name[: -len(".manifest.bin")]
+        if not is_app(slug):
+            continue
+        cert = trust / f"{slug}.nonos_id_cert.bin"
+        trailer = trust / f"{slug}.zk_trailer.bin"
+        if not cert.exists() or not trailer.exists():
+            # No proof, no listing. An entry whose install is going to
+            # be refused at the spawn gate is worse than no entry: the
+            # refusal arrives after the download and reads like a bug.
+            print(f"  skip {slug}: no trailer", file=sys.stderr)
+            continue
+        mhash = blake3(manifest.read_bytes())
+        thash = blake3(trailer.read_bytes())
+        out.append(
+            entry(
+                f"nonos.app.{slug}",
+                blake3(cert.read_bytes()),
+                slug.replace("_", " "),
+                "NONOS",
+                pubkey,
+                f"NONOS capsule {slug}, signed and attested in this image.",
+                [
+                    release(
+                        f"{slug}@builtin",
+                        mhash,
+                        mhash,
+                        "",
+                        ["x86_64-nonos"],
+                        [],
+                        "built and signed by this tree",
+                        "nonos.build",
+                        when_ms,
+                        thash,
+                    )
+                ],
+            )
+        )
+    return out
+
+
+def apkindex(cache: Path, release_name: str, arch: str, branch: str) -> dict:
+    """name -> record, from one branch's APKINDEX."""
+    base = f"{MIRROR}/{release_name}/{branch}/{arch}"
+    tgz = cache / f"{branch}-APKINDEX.tar.gz"
+    if not tgz.exists():
+        tgz.parent.mkdir(parents=True, exist_ok=True)
+        with urllib.request.urlopen(f"{base}/APKINDEX.tar.gz", timeout=120) as r:
+            tgz.write_bytes(r.read())
+    with tarfile.open(tgz) as t:
+        raw = t.extractfile("APKINDEX").read().decode(errors="replace")
+    out, rec = {}, {}
+    for line in raw.split("\n"):
+        if not line:
+            if rec.get("P"):
+                rec["base"] = base
+                out[rec["P"]] = rec
+            rec = {}
+            continue
+        if len(line) > 2 and line[1] == ":":
+            rec[line[0]] = line[2:]
+    return out
+
+
+def linux_trailer(cache: Path, apk: str) -> str:
+    """The trailer an operator minted for this package, if they have.
+
+    A Linux package carries no NONOS proof of its own, so somebody has
+    to enrol its measurement before the machine will run it. Until that
+    has happened there is nothing truthful to put in the field, and the
+    listing is held back rather than shipped as ready.
+    """
+    at = cache / f"{apk}.zk_trailer.bin"
+    return blake3(at.read_bytes()) if at.exists() else ""
+
+
+def linux_entries(cache, names, release_name, arch, pubkey, when_ms) -> list:
+    """One listing per package, fetched so its hash is a measured fact."""
+    table = {}
+    for branch in BRANCHES:
+        table.update(apkindex(cache, release_name, arch, branch))
+    out = []
+    for name in names:
+        rec = table.get(name)
+        if rec is None:
+            print(f"  skip {name}: not in the index", file=sys.stderr)
+            continue
+        apk = f"{rec['P']}-{rec['V']}.apk"
+        url = f"{rec['base']}/{apk}"
+        blob = cache / apk
+        if not blob.exists():
+            try:
+                with urllib.request.urlopen(url, timeout=180) as r:
+                    blob.write_bytes(r.read())
+            except OSError as e:
+                print(f"  skip {name}: {e}", file=sys.stderr)
+                continue
+        raw = blob.read_bytes()
+        digest = blake3(raw)
+        out.append(
+            entry(
+                f"linux.{rec['P']}",
+                digest,
+                rec["P"],
+                f"Alpine {release_name}",
+                pubkey,
+                rec.get("T", "").strip() or f"Linux package {rec['P']}",
+                [
+                    release(
+                        f"{rec['P']}@{rec['V']}",
+                        digest,
+                        digest,
+                        url,
+                        ["x86_64-linux"],
+                        ["ForeignExec"],
+                        f"fetched and hashed at {len(raw)} bytes",
+                        "nonos.operator.linux",
+                        when_ms,
+                        linux_trailer(cache, apk),
+                    )
+                ],
+            )
+        )
+    return out
+
+
+def community_entries(where: Path) -> list:
+    """Submissions, passed through as the operator validated them."""
+    out = []
+    for path in sorted(where.glob("*.json")):
+        item = json.loads(path.read_text())
+        if not item.get("listing_id", "").startswith("community."):
+            sys.exit(f"{path}: listing_id must start with 'community.'")
+        out.append(item)
+    return out
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--trust", type=Path, default=Path("nonos-data/trust/capsules"))
+    ap.add_argument("--community", type=Path,
+                    default=Path("nonos-data/marketplace/community"))
+    ap.add_argument("--cache", type=Path, default=Path("target/market-cache"))
+    ap.add_argument("--operator-pubkey", required=True,
+                    help="hex Ed25519 key the index will be signed under")
+    ap.add_argument("--alpine-release", default="v3.21")
+    ap.add_argument("--alpine-arch", default="x86_64")
+    ap.add_argument("--linux-package", action="append", default=[],
+                    help="repeatable; a package to fetch, hash and list")
+    ap.add_argument("--linux-list", type=Path,
+                    help="file of package names, one per line")
+    ap.add_argument("--serial", type=int, required=True)
+    ap.add_argument("--no-nonos", action="store_true")
+    args = ap.parse_args()
+
+    when_ms = int(time.time() * 1000)
+    key = args.operator_pubkey.removeprefix("0x").lower()
+    if len(key) != 64:
+        sys.exit("--operator-pubkey must be 32 hex bytes")
+
+    entries = []
+    if not args.no_nonos and args.trust.is_dir():
+        found = nonos_entries(args.trust, key, when_ms)
+        print(f"nonos: {len(found)} capsules", file=sys.stderr)
+        entries += found
+
+    names = list(args.linux_package)
+    if args.linux_list and args.linux_list.exists():
+        names += [
+            line.split("#", 1)[0].strip()
+            for line in args.linux_list.read_text().splitlines()
+            if line.split("#", 1)[0].strip()
+        ]
+    if names:
+        args.cache.mkdir(parents=True, exist_ok=True)
+        found = linux_entries(args.cache, names, args.alpine_release,
+                              args.alpine_arch, key, when_ms)
+        print(f"linux: {len(found)} of {len(names)} packages", file=sys.stderr)
+        entries += found
+
+    if args.community.is_dir():
+        found = community_entries(args.community)
+        print(f"community: {len(found)} submissions", file=sys.stderr)
+        entries += found
+
+    index = {
+        "schema_version": SCHEMA,
+        "operator_id": "nonos.marketplace.v1",
+        "published_at_ms": when_ms,
+        "serial": args.serial,
+        "entries": entries,
+    }
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps(index, indent=2) + "\n")
+    print(f"{args.out}: {len(entries)} listings, serial {args.serial}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

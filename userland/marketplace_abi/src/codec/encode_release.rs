@@ -37,5 +37,6 @@ pub(super) fn write(w: &mut Writer<'_>, release: &CapsuleRelease) {
         w.lp_string(cap);
     }
 
+    w.fixed(&release.zk_trailer_hash);
     encode_validation::write(w, &release.validation);
 }

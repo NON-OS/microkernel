@@ -14,12 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `OP_INSTALL_READY`. The userland capsule evaluates a hard AND
-//! of nine install gates and returns the verdict as six bytes:
-//! one for the AND-result followed by the per-check bits. The
-//! kernel surfaces the result as a structured value so a caller
-//! can short-circuit on the AND-result while still being able to
-//! tell which gate refused.
+//! `OP_INSTALL_READY`.
 
 use alloc::vec::Vec;
 
@@ -30,7 +25,7 @@ use super::seq::next_request_id;
 use super::status_map::lift;
 use super::transport::round_trip;
 
-const READINESS_LEN: usize = 6;
+const READINESS_LEN: usize = 7;
 
 #[derive(Debug, Clone, Copy)]
 pub struct InstallReadiness {
@@ -40,6 +35,8 @@ pub struct InstallReadiness {
     pub publisher_signature_present: bool,
     pub validation_passed: bool,
     pub arch_match: bool,
+    /// The release offers a zk trailer for its own measurement.
+    pub attestation_present: bool,
 }
 
 pub fn install_ready(listing_id: &str, release_id: &str) -> Result<InstallReadiness, MarketError> {
@@ -66,5 +63,6 @@ pub fn install_ready(listing_id: &str, release_id: &str) -> Result<InstallReadin
         publisher_signature_present: resp.body[3] != 0,
         validation_passed: resp.body[4] != 0,
         arch_match: resp.body[5] != 0,
+        attestation_present: resp.body[6] != 0,
     })
 }

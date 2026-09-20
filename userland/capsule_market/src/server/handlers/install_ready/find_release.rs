@@ -25,10 +25,12 @@ pub(super) fn find_release<'a>(
         if e.listing_id != listing_id {
             return None;
         }
-        e.releases
-            .iter()
-            .enumerate()
-            .find(|(_, r)| r.release_id == release_id)
-            .map(|(release_index, r)| (entry_index, release_index, r))
+        // An empty id asks for the default, which the index defines as the
+        // first release.
+        let wanted = match release_id.is_empty() {
+            true => e.releases.first().map(|r| (0usize, r)),
+            false => e.releases.iter().enumerate().find(|(_, r)| r.release_id == release_id),
+        };
+        wanted.map(|(release_index, r)| (entry_index, release_index, r))
     })
 }

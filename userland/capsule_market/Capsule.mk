@@ -17,4 +17,11 @@ CAPSULE_REPLY_ENDPOINT   := reply:4107:endpoint.4294967303
 CAPSULE_REQUIRED_CAPS    := 0x39
 CAPSULE_KERNEL_MIRROR    := src/security/market_capsule
 
+# The capsule embeds the signed catalogue, so a newer index has to
+# rebuild it. Cargo tracks the include_bytes! path, but the make rule
+# lists only sources, and without this line a freshly signed catalogue
+# was silently left out of the image: the build succeeded, the boot
+# succeeded, and the machine served the previous one.
+CAPSULE_EXTRA_DEPS := nonos-data/marketplace/index.bin
+
 include nonos-mk/capsule.mk

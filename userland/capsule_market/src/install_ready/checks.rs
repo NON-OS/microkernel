@@ -16,9 +16,13 @@
 
 use nonos_marketplace_abi::{CapsuleRelease, InstallReadiness, ValidationStatus};
 
-use super::arch::RUNNING_ARCH;
+use super::arch::{HOSTED_ARCH, RUNNING_ARCH};
 
 pub const RUNNING_KERNEL_ABI: u32 = 1;
+
+/// Releases carrying this arch are distribution packages the personality
+/// hosts.
+const LOCAL_ARCH: &str = HOSTED_ARCH;
 
 pub fn evaluate(
     signature_verified: bool,
@@ -30,8 +34,15 @@ pub fn evaluate(
     let package_url_present = !release.package_url.is_empty();
     let package_hash_present = release.package_hash.iter().any(|&b| b != 0);
     let manifest_hash_present = release.manifest_hash.iter().any(|&b| b != 0);
-    let arch_match = release.supported_arches.iter().any(|a| a.as_str() == RUNNING_ARCH);
+    let runs_here = |a: &alloc::string::String| {
+        a.as_str() == RUNNING_ARCH || (!HOSTED_ARCH.is_empty() && a.as_str() == HOSTED_ARCH)
+    };
+    let arch_match = release.supported_arches.iter().any(runs_here);
     let kernel_abi_compatible = release.kernel_abi_min <= RUNNING_KERNEL_ABI;
+    // Everything above this line is somebody's word.
+    let minted_locally = release.supported_arches.iter().any(|a| a.as_str() == LOCAL_ARCH);
+    let ships_proof = release.zk_trailer_hash.iter().any(|&b| b != 0);
+    let attestation_present = ships_proof || minted_locally;
 
     let install_ready = index_signature_valid
         && validation_passed
@@ -40,7 +51,8 @@ pub fn evaluate(
         && manifest_hash_present
         && publisher_signature_verified
         && arch_match
-        && kernel_abi_compatible;
+        && kernel_abi_compatible
+        && attestation_present;
 
     InstallReadiness {
         install_ready,
@@ -49,5 +61,6 @@ pub fn evaluate(
         publisher_signature_present: publisher_signature_verified,
         validation_passed,
         arch_match: arch_match && kernel_abi_compatible,
+        attestation_present,
     }
 }

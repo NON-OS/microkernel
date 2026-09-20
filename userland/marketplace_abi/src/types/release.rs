@@ -14,10 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One concrete release of a marketplace entry. A release is the
-//! signed unit the future capsule_installer fetches and verifies;
-//! everything an installer needs to refuse a stale, mistargeted, or
-//! tampered package lives here.
+//! One concrete release of a marketplace entry.
 
 extern crate alloc;
 
@@ -39,10 +36,6 @@ pub struct CapsuleRelease {
     /// the entry is index-only (no fetchable artifact).
     pub package_url: String,
     /// Publisher's Ed25519 signature over `release_signing_bytes`.
-    /// This covers the artifact hashes, URL, supported arches,
-    /// kernel ABI, and requested capabilities. It deliberately does
-    /// not cover the marketplace-operator validation report, which
-    /// is signed by the enclosing index.
     pub publisher_signature: Vec<u8>,
     /// Architecture triples the release supports (e.g.
     /// "x86_64-nonos"). At least one entry is required.
@@ -51,6 +44,9 @@ pub struct CapsuleRelease {
     pub kernel_abi_min: u32,
     /// Capability names the manifest requests at install time.
     pub required_capabilities: Vec<String>,
+    /// BLAKE3-256 of the zk trailer that proves this package's own measurement
+    /// is enrolled under the trust root the kernel enforces at spawn.
+    pub zk_trailer_hash: [u8; 32],
     /// Marketplace operator's validation report.
     pub validation: ValidationReport,
 }
