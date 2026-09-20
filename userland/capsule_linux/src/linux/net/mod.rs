@@ -14,21 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! Sockets, over the net.sockets service. A guest's descriptor holds a
-//! handle that service issued to this capsule, so a guest reaches only
-//! the sockets this capsule opened for it.
+//! Sockets, over the net.sockets service.
 
 mod addr;
 mod call;
 mod connect;
+mod dgram;
+mod dgram_addr;
+pub mod dns;
 mod ops;
 mod poll;
 mod poll_set;
+mod poll_socket;
+pub mod raw;
+pub mod raw_io;
+mod select;
 mod socket;
 mod stream;
 
 pub use connect::connect;
+pub use dgram::{recvfrom, sendto};
+pub use poll::ready;
 pub use poll_set::poll;
+pub use select::select;
 pub use socket::socket;
 pub use stream::{close, recv, send};
