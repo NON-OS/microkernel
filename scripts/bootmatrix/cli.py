@@ -39,6 +39,7 @@ def parser(doc):
     ap.add_argument("--timeout", type=float, default=300.0, help="seconds per boot")
     ap.add_argument("--out", type=Path, default=Path("target/boot-matrix"))
     ap.add_argument("--list", action="store_true", help="name the cells and stop")
+    ap.add_argument("--profiles", action="store_true", help="name the profiles the cells need and stop")
     ap.add_argument("cells", nargs="*")
     return ap
 
@@ -51,7 +52,7 @@ def arguments(doc):
     """
     ap = parser(doc)
     a = ap.parse_args()
-    if a.list:
+    if a.list or a.profiles:
         return a
     for name in ("ovmf", "ovmf_vars", "blk_img"):
         if getattr(a, name) is None:

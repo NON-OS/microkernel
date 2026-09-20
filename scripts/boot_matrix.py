@@ -23,7 +23,8 @@
 A cell passes when every one of its boots reaches readiness with nothing
 fatal in the log, all its CPUs online, and DMA restricted when an IOMMU is
 present. The exit status is the number of failing boots. `make
-nonos-mk-boot-matrix` builds both images and runs this.
+nonos-mk-boot-matrix` builds the images the selected cells need and runs this;
+`--profiles` is how it asks which those are, and `--list` names every cell.
 """
 
 import sys
@@ -38,6 +39,9 @@ def main():
     a = arguments(__doc__)
     if a.list:
         print("\n".join(c.name for c in CELLS))
+        return 0
+    if a.profiles:
+        print(" ".join(sorted({c.profile for c in select(a.cells)})))
         return 0
     cells = select(a.cells)
     paths = Paths(a.qemu, images_for(a, cells), a.ovmf, a.ovmf_vars, a.blk_img, a.extra)
