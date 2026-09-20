@@ -14,19 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! `poll` over the guest's descriptors.
-//!
-//! A console or a file is always ready, which is what Linux reports for
-//! them too. A socket is asked, one call per descriptor: net.sockets
-//! reports readiness for one handle at a time and inventing a batched
-//! form here would mean a second protocol nobody serves.
 
-use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
-use super::call::call;
-use super::ops::{OP_POLL, POLL_READABLE, POLL_WRITABLE};
+use super::poll_socket::socket_bits;
 
 const POLLIN: u16 = 0x001;
 const POLLOUT: u16 = 0x004;
@@ -40,23 +32,26 @@ pub fn ready(guest: &Guest, fd: u64) -> u16 {
             Some(handle) => socket_bits(handle),
             None => POLLNVAL,
         },
+        Some(Kind::Timer) => timer_bits(guest, fd),
+        Some(Kind::Resolver) => resolver_bits(guest, fd),
         Some(_) => POLLIN | POLLOUT,
     }
 }
 
-fn socket_bits(handle: u32) -> u16 {
-    let Some((0, out)) = call(OP_POLL, &handle.to_le_bytes(), 1) else {
-        return 0;
-    };
-    let Some(bits) = out.first() else {
-        return 0;
-    };
-    let mut set = 0;
-    if bits & POLL_READABLE != 0 {
-        set |= POLLIN;
+/// A timer is readable once it has fired and never writable.
+fn timer_bits(guest: &Guest, fd: u64) -> u16 {
+    let now = nonos_libc::mk_uptime_ms().max(0) as u64;
+    match guest.fds.get(fd as usize) {
+        Some(e) if e.expiry != 0 && now >= e.expiry => POLLIN,
+        _ => 0,
     }
-    if bits & POLL_WRITABLE != 0 {
-        set |= POLLOUT;
+}
+
+/// Readable once an answer is waiting, and always writable: a query is taken
+/// whenever it is offered.
+fn resolver_bits(guest: &Guest, fd: u64) -> u16 {
+    match guest.fds.get(fd as usize) {
+        Some(e) if !e.replies.is_empty() => POLLIN | POLLOUT,
+        _ => POLLOUT,
     }
-    set
 }
