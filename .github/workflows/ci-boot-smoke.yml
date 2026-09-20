@@ -28,8 +28,9 @@ jobs:
   boot-smoke:
     runs-on: ubuntu-latest
     # One cell, but two STARK enrolments: a measured end-to-end run is 27-37
-    # minutes, so 90 leaves headroom for a cold cache without hiding a wedge.
-    timeout-minutes: 90
+    # minutes under KVM. The budget also has to cover a TCG boot on a runner
+    # without /dev/kvm, whose 2400s deadline sits on top of the same build.
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
         with:
@@ -46,6 +47,12 @@ jobs:
         run: |
           set -euo pipefail
           awk -F: '/^vendor_id|^model name|^cpu family|^model[[:space:]]/ {print $1": "$2; }' /proc/cpuinfo | sort -u
+      # A third of hosted runners offer no /dev/kvm (2 of 6 observed), and the
+      # runner is not ours to choose. Failing there would redden a third of all
+      # PRs for a reason no diff caused, so the cell boots under TCG instead:
+      # slower, but a real boot rather than an untested merge. scripts/
+      # bootmatrix/qemu.py already falls back on its own; this step only sets
+      # the boot deadline to match, since TCG needs far longer than 300s.
       - name: Hardware virtualisation for the runner user
         run: |
           set -euo pipefail
@@ -53,7 +60,14 @@ jobs:
             | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-          test -w /dev/kvm || { echo "::error::this runner offers no KVM; the boot gate needs it"; exit 1; }
+          if test -w /dev/kvm; then
+            echo "BOOT_MATRIX_TIMEOUT=300" >> "$GITHUB_ENV"
+            echo "accel: kvm (deadline 300s)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::this runner offers no KVM; booting the cell under TCG instead"
+            echo "BOOT_MATRIX_TIMEOUT=2400" >> "$GITHUB_ENV"
+            echo "accel: TCG, no KVM on this runner (deadline 2400s)" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Provision scratch trust material
         run: |
           set -euo pipefail
@@ -64,6 +78,7 @@ jobs:
         run: |
           set -euo pipefail
           make QEMU_NET_MODE=off BOOT_MATRIX_REPEAT=1 \
+            BOOT_MATRIX_TIMEOUT="$BOOT_MATRIX_TIMEOUT" \
             BOOT_MATRIX_CELLS=q35-up nonos-mk-boot-matrix
       - name: Upload serial logs and the verdict
         if: always()
