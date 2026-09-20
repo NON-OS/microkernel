@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The net.sockets opcodes this capsule uses.
-//!
-//! Transcribed from userland/capsule_net_sockets/src/protocol/ops.rs. The
-//! server is a separate binary and its protocol module is not a library,
-//! so these cannot be imported; a number changed there and not here is a
-//! wrong operation, which is why the source is named.
 
 pub const OP_SOCKET: u16 = 2;
+pub const OP_CONNECT_HOST: u16 = 12;
 pub const OP_CONNECT: u16 = 6;
 pub const OP_SEND: u16 = 7;
 pub const OP_RECV: u16 = 8;
 pub const OP_CLOSE: u16 = 9;
 pub const OP_POLL: u16 = 13;
+
+/// The socket kinds the server offers: 1 stream, 2 datagram, 3 mixnet.
+pub const KIND_MIXNET: u16 = 3;
+
+/// The address family the server takes. It is not AF_INET: the number
+/// is the server's own and the two only look alike.
+pub const DOMAIN: u16 = 4;
 
 /// What OP_POLL reports: a recv would return data, a send would take it.
 pub const POLL_READABLE: u8 = 1;
