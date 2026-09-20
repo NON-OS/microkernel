@@ -14,29 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const KEYRING_SERVICE: &[u8] = b"keyring";
-pub const OP_WALLET_IMPORT: u16 = 8;
-pub const OP_WALLET_ADDRESS: u16 = 10;
-pub const OP_SIGN_NOX_APPROVE: u16 = 12;
-pub const OP_SIGN_ETH_TRANSFER: u16 = 13;
-pub const OP_LIST_WALLET_RAILS: u16 = 14;
-pub const OP_WALLET_EXPORT: u16 = 15;
-pub const OP_SIGN_NOX_STAKE_APPROVE: u16 = 16;
-pub const OP_SIGN_NOX_STAKE: u16 = 17;
-pub const OP_SIGN_NOX_TRANSFER: u16 = 18;
-pub const OP_SIGN_NOX_UNSTAKE: u16 = 19;
-pub const OP_SIGN_NOX_STAKE_LOCKED: u16 = 20;
-pub const OP_WALLET_GENERATE_HD: u16 = 21;
-pub const OP_WALLET_RECOVER: u16 = 22;
-pub const OP_VAULT_SEAL: u16 = 23;
-pub const OP_VAULT_OPEN: u16 = 24;
-pub const HDR_LEN: usize = 8;
+//! Two operations may not share an opcode.
 
-// Must match `capsule_keyring/src/protocol/types.rs`.
+use super::types::*;
+
 const _: () = {
     let ops = [
+        OP_STORE,
+        OP_RETRIEVE,
+        OP_DELETE,
+        OP_LOCK,
+        OP_UNLOCK,
+        OP_METADATA,
+        OP_COUNT,
         OP_WALLET_IMPORT,
+        OP_WALLET_GENERATE,
         OP_WALLET_ADDRESS,
+        OP_SIGN_NOX_RECEIPT,
         OP_SIGN_NOX_APPROVE,
         OP_SIGN_ETH_TRANSFER,
         OP_LIST_WALLET_RAILS,
