@@ -14,11 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_frames;
-mod attach_surface;
-mod descriptor;
-mod self_attach;
-mod share_surface;
+use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+use super::event::on_event;
+use super::manifest::manifest;
+use super::state::State;
+use super::ui::frame;
+
+pub struct Store {
+    state: State,
+}
+
+impl Store {
+    pub fn new() -> Self {
+        Store { state: State::new() }
+    }
+}
+
+impl App for Store {
+    fn manifest(&self) -> AppManifest {
+        manifest()
+    }
+    fn on_event(&mut self, event: InputEvent) -> EventOutcome {
+        on_event(&mut self.state, event)
+    }
+    fn paint(&mut self, fb: &mut PaintBuffer) {
+        frame(&mut self.state, fb);
+    }
+}

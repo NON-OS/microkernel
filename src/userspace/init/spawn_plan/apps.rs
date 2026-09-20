@@ -17,6 +17,7 @@
 pub(super) fn spawn() {
     spawn_input_proof();
     spawn_about();
+    spawn_app_store();
     spawn_hello();
     spawn_calculator();
     spawn_clock();
@@ -26,6 +27,7 @@ pub(super) fn spawn() {
     spawn_terminal();
     spawn_file_manager();
     spawn_audio_player();
+    spawn_linux();
     super::apps_tools::spawn();
 }
 
@@ -49,6 +51,14 @@ fn spawn_about() {
 }
 #[cfg(not(feature = "nonos-capsule-about"))]
 fn spawn_about() {}
+
+#[cfg(feature = "nonos-capsule-app-store")]
+fn spawn_app_store() {
+    use crate::userspace::capsule_app_store as c;
+    super::boot::capsule("APP-STORE", "app_store", c::spawn_app_store_capsule, c::shared_state);
+}
+#[cfg(not(feature = "nonos-capsule-app-store"))]
+fn spawn_app_store() {}
 
 #[cfg(feature = "nonos-capsule-hello")]
 fn spawn_hello() {
@@ -146,3 +156,13 @@ fn spawn_snake() {
 }
 #[cfg(not(feature = "nonos-capsule-snake"))]
 fn spawn_snake() {}
+
+// The Linux personality.
+#[cfg(feature = "nonos-capsule-linux")]
+fn spawn_linux() {
+    use crate::userspace::capsule_linux as c;
+    super::boot::capsule("APP-LINUX", "app_linux", c::spawn_linux_capsule, c::shared_state);
+}
+
+#[cfg(not(feature = "nonos-capsule-linux"))]
+fn spawn_linux() {}

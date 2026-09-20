@@ -14,11 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_frames;
-mod attach_surface;
-mod descriptor;
-mod self_attach;
-mod share_surface;
+//! How each stage of enrolment reads to the user.
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+use crate::store::consent::Consent;
+
+pub fn label(c: Consent) -> &'static [u8] {
+    match c {
+        Consent::Idle => b"",
+        Consent::Typing(_, 0) => b"code is on the console; type it",
+        Consent::Typing(..) => b"typing code, Enter to confirm",
+        Consent::Granted => b"this machine will run what it installs",
+        Consent::Refused => b"enrolment refused",
+    }
+}

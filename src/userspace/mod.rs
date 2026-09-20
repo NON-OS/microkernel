@@ -14,19 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Microkernel runtime: init bootstrap and the kernel-side mirrors
-// for every userland capsule the boot path spawns. Real capsule
-// binaries live under `userland/<name>/`; the mirror here only
-// carries the signed embed bytes (ELF + manifest + cert), the
-// spawn entry, and liveness state. No protocol logic lives in
-// the kernel — that runs inside the spawned capsule.
-//
-// Kernel-resident `*_engine` wrappers live under `src/services/`
-// and are not real userspace. The CI grep gate in
-// `nonos-ci/run-static-checks.sh` rejects any new
-// `src/userspace/*_service` directory.
+// Microkernel runtime: init bootstrap and the kernel-side mirrors for every
+// userland capsule the boot path spawns.
 
 pub mod capsule_about;
+pub mod capsule_app_store;
+pub mod capsule_linux;
 pub mod capsule_attest;
 pub mod capsule_audio_player;
 pub mod capsule_boot_splash;

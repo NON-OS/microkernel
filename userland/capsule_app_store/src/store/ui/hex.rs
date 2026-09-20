@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_frames;
-mod attach_surface;
-mod descriptor;
-mod self_attach;
-mod share_surface;
+//! A measurement, short enough to read off the screen.
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+/// The first six bytes.
+pub fn short(m: &[u8; 32]) -> [u8; 12] {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut out = [0u8; 12];
+    for i in 0..6 {
+        out[i * 2] = HEX[(m[i] >> 4) as usize];
+        out[i * 2 + 1] = HEX[(m[i] & 0xF) as usize];
+    }
+    out
+}

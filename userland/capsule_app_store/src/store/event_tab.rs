@@ -13,12 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Walking the tab strip with the arrow keys.
 
-mod attach_frames;
-mod attach_surface;
-mod descriptor;
-mod self_attach;
-mod share_surface;
+use super::state::{State, TABS};
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+pub(super) fn step_tab(state: &mut State, delta: isize) -> bool {
+    let at = TABS.iter().position(|t| *t == state.tab).unwrap_or(0) as isize;
+    let want = (at + delta).clamp(0, TABS.len() as isize - 1) as usize;
+    state.set_tab(TABS[want])
+}

@@ -14,11 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_frames;
-mod attach_surface;
-mod descriptor;
-mod self_attach;
-mod share_surface;
+//! "N listed", built without a formatter because this is `no_std`.
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+/// Right-aligned in a fixed field so the head band does not reflow as the
+/// count changes.
+pub fn listed(n: usize) -> [u8; 16] {
+    let mut out = *b"       0 listed ";
+    let mut at = 8;
+    let mut left = n;
+    loop {
+        at -= 1;
+        out[at] = b'0' + (left % 10) as u8;
+        left /= 10;
+        if left == 0 || at == 0 {
+            break;
+        }
+    }
+    out
+}

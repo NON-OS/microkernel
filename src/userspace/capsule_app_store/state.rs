@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_frames;
-mod attach_surface;
-mod descriptor;
-mod self_attach;
-mod share_surface;
+use crate::services::lifecycle::CapsuleState;
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+static STATE: CapsuleState = CapsuleState::new();
+
+pub(super) fn set_alive(pid: u32) {
+    STATE.set_alive(pid);
+}
+
+pub fn shared_state() -> &'static CapsuleState {
+    &STATE
+}
