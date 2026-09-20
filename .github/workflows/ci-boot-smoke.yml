@@ -36,10 +36,10 @@ concurrency:
 jobs:
   boot-smoke:
     runs-on: ubuntu-latest
-    # One cell, but two STARK enrolments: a measured end-to-end run is 27-37
-    # minutes under KVM. The budget also has to cover a TCG boot on a runner
-    # without /dev/kvm, whose 2400s deadline sits on top of the same build.
-    timeout-minutes: 150
+    # One cell, but two STARK enrolments, which dominate: measured 33m38s
+    # under KVM and 35m31s under TCG. 90 covers either with room for a cold
+    # cargo cache, without letting a wedged job burn a long budget.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
         with:
@@ -80,8 +80,8 @@ jobs:
             echo "accel: kvm (deadline 300s)" >> "$GITHUB_STEP_SUMMARY"
           else
             echo "::warning::this runner offers no KVM; booting the cell under TCG instead"
-            echo "BOOT_MATRIX_TIMEOUT=2400" >> "$GITHUB_ENV"
-            echo "accel: TCG, no KVM on this runner (deadline 2400s)" >> "$GITHUB_STEP_SUMMARY"
+            echo "BOOT_MATRIX_TIMEOUT=600" >> "$GITHUB_ENV"
+            echo "accel: TCG, no KVM on this runner (deadline 600s)" >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Provision scratch trust material
         run: |
