@@ -14,20 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod address_space;
-pub mod api;
-mod core;
-mod faults;
-mod mapping;
-mod pending_flush;
-mod protection;
-mod query;
-pub mod shootdown;
-mod tlb_scope;
-mod translation;
+use super::shootdown::flush_tlb_range_smp;
+use crate::memory::addr::VirtAddr;
 
-pub use self::core::PagingManager;
-pub use api::*;
-pub use shootdown::{
-    flush_tlb_all_smp, flush_tlb_one_smp, flush_tlb_range_smp, handle_shootdown_ipi, ASID_KERNEL,
-};
+#[must_use = "a pending TLB invalidation must be committed after the paging lock is released"]
+pub(super) struct PendingFlush {
+    start: VirtAddr,
+    pages: usize,
+    asid: u32,
+}
+
+impl PendingFlush {
+    pub(super) fn one(va: VirtAddr, asid: u32) -> Self {
+        Self { start: va, pages: 1, asid }
+    }
+
+    pub(super) fn range(start: VirtAddr, pages: usize, asid: u32) -> Self {
+        Self { start, pages, asid }
+    }
+
+    pub(super) fn commit(self) {
+        if self.pages == 0 {
+            return;
+        }
+        flush_tlb_range_smp(self.start, self.pages, self.asid);
+    }
+}
