@@ -27,6 +27,20 @@ pub enum SessionError {
     Certificate,
     /// The server sent more than the caller allows.
     TooLarge,
+    /*
+     * The server asked for a different key exchange group. This client offers
+     * x25519 alone, so there is nothing to retry with and the honest answer is to
+     * say which side ended it. Left unrecognised, a retry looked exactly like a
+     * peer that had gone quiet.
+     */
+    RetryUnsupported,
+    /*
+     * The peer sent an alert, and this is its description byte. It is carried
+     * rather than flattened because it is the one number that says which side is
+     * wrong: handshake_failure means it rejected what we offered, unknown_ca
+     * means it rejected what we sent, and both used to arrive as silence.
+     */
+    PeerAlert(u8),
 }
 
 /// The byte stream underneath: a TCP socket, or a buffer in a test.
