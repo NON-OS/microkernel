@@ -13,20 +13,20 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use core::sync::atomic::Ordering;
 
-use super::state::{ACCENT, BG, BORDER, MUTED, QUIET, REVISION, SURFACE, TEXT};
-use super::theme::Theme;
+//! The lines between things.
 
-pub fn snapshot() -> Theme {
-    Theme {
-        background_argb: BG.load(Ordering::Acquire),
-        surface_argb: SURFACE.load(Ordering::Acquire),
-        accent_argb: ACCENT.load(Ordering::Acquire),
-        text_argb: TEXT.load(Ordering::Acquire),
-        border_argb: BORDER.load(Ordering::Acquire),
-        muted_argb: MUTED.load(Ordering::Acquire),
-        quiet_argb: QUIET.load(Ordering::Acquire),
-        revision: REVISION.load(Ordering::Acquire),
-    }
+use super::super::derive::{mix, opaque};
+use super::super::store::snapshot;
+
+/// Separators, card edges, and the line under a row.
+pub fn hairline() -> u32 {
+    opaque(snapshot().border_argb)
+}
+
+/// A lighter line, for a division inside one surface rather than between two.
+/// Two thirds of the way from the ground to the border, which reads as a hint of a
+pub fn hairline_soft() -> u32 {
+    let t = snapshot();
+    opaque(mix(t.background_argb, t.border_argb, 168))
 }
