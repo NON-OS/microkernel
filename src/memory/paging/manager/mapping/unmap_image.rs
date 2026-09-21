@@ -24,6 +24,7 @@
 //! stays armed on paper only. This path walks the live tables instead.
 
 use super::super::core::PagingManager;
+use super::super::pending_flush::PendingFlush;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::error::{PagingError, PagingResult};
 
@@ -32,7 +33,10 @@ impl PagingManager {
     /// The page table entry is cleared in the live root and the TLB flushed,
     /// exactly as for a recorded page; only the bookkeeping is skipped, since
     /// there is none to update.
-    pub fn unmap_image_page(&self, virtual_addr: VirtAddr) -> PagingResult<PhysAddr> {
+    pub fn unmap_image_page(
+        &self,
+        virtual_addr: VirtAddr,
+    ) -> PagingResult<(PhysAddr, PendingFlush)> {
         if !self.initialized {
             return Err(PagingError::NotInitialized);
         }

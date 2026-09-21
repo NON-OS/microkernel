@@ -21,8 +21,9 @@ use crate::memory::paging::error::PagingResult;
 use crate::smp::lock_responsive;
 
 pub fn unmap_page(virtual_addr: VirtAddr) -> PagingResult<PhysAddr> {
-    let (phys, perms, size) =
+    let (phys, perms, size, flush) =
         without_interrupts(|| lock_responsive(&PAGING_MANAGER).unmap_page(virtual_addr))?;
+    flush.commit();
     PAGING_STATS.record_unmapping(perms, size);
     Ok(phys)
 }

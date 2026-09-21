@@ -26,5 +26,8 @@ use crate::smp::lock_responsive;
 /// not there. No statistics are recorded, since the mapping was never
 /// counted when it was made.
 pub fn unmap_image_page(virtual_addr: VirtAddr) -> PagingResult<PhysAddr> {
-    without_interrupts(|| lock_responsive(&PAGING_MANAGER).unmap_image_page(virtual_addr))
+    let (phys, flush) =
+        without_interrupts(|| lock_responsive(&PAGING_MANAGER).unmap_image_page(virtual_addr))?;
+    flush.commit();
+    Ok(phys)
 }

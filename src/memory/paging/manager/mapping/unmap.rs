@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
-use super::super::shootdown::flush_tlb_one_smp;
+use super::super::pending_flush::PendingFlush;
 use super::super::tlb_scope::mutation_asid;
 use crate::arch::paging::read_root as read_cr3;
 use crate::memory::addr::{PhysAddr, VirtAddr};
@@ -32,20 +32,20 @@ impl PagingManager {
     pub fn unmap_page(
         &mut self,
         virtual_addr: VirtAddr,
-    ) -> PagingResult<(PhysAddr, PagePermissions, PageSize)> {
+    ) -> PagingResult<(PhysAddr, PagePermissions, PageSize, PendingFlush)> {
         if !self.initialized {
             return Err(PagingError::NotInitialized);
         }
         let page_addr = page_align_down(virtual_addr.as_u64());
         let mapping = self.mappings.remove(&page_addr).ok_or(PagingError::PageNotMapped)?;
-        let physical_addr = self.remove_mapping(virtual_addr)?;
-        Ok((physical_addr, mapping.permissions, mapping.size))
+        let (physical_addr, flush) = self.remove_mapping(virtual_addr)?;
+        Ok((physical_addr, mapping.permissions, mapping.size, flush))
     }
 
     pub(in crate::memory::paging::manager) fn remove_mapping(
         &self,
         va: VirtAddr,
-    ) -> PagingResult<PhysAddr> {
+    ) -> PagingResult<(PhysAddr, PendingFlush)> {
         let va_val = va.as_u64();
         let (l4_idx, l3_idx, l2_idx, l1_idx) =
             (pml4_index(va_val), pdpt_index(va_val), pd_index(va_val), pt_index(va_val));
@@ -78,8 +78,7 @@ impl PagingManager {
             // `invlpg`; SMP runtime broadcasts to peer CPUs running
             // the same address space.
             let asid = mutation_asid(va, Some(crate::smp::percpu::active_asid()));
-            flush_tlb_one_smp(va, asid);
-            Ok(pa)
+            Ok((pa, PendingFlush::one(va, asid)))
         }
     }
 }
