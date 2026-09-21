@@ -20,8 +20,8 @@
 //! asid (or every online CPU for a kernel-half flush). On single-CPU
 //! runtime the broadcast block is skipped. Timeout policy is fail-
 //! hard: a stale TLB entry would back freed DMA or MMIO, so an ack
-//! that does not arrive inside `SHOOTDOWN_TIMEOUT_TSC` triggers a
-//! panic-IPI broadcast and halts the originator.
+//! that does not arrive inside the shootdown budget (`shootdown_timeout_ticks`)
+//! triggers a panic-IPI broadcast and halts the originator.
 
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
@@ -38,10 +38,15 @@ use crate::smp::percpu::ASID_NONE;
 /// because the kernel half is shared across every address space.
 pub const ASID_KERNEL: u32 = 0;
 
-/// Bound on cross-CPU wait. ~10ms on a 1 GHz CPU, ~2.5ms on 4 GHz —
-/// far longer than any healthy `invlpg` cycle. Tuned upwards is fine;
-/// tuned to "wait forever" is forbidden.
-const SHOOTDOWN_TIMEOUT_TSC: u64 = 10_000_000;
+/// Target bound on cross-CPU wait, in wall-clock milliseconds, converted to
+/// ticks against the calibrated counter frequency by `shootdown_timeout_ticks`.
+/// Far longer than any healthy `invlpg` cycle even under a descheduled peer
+/// vCPU. Tuned upwards is fine; tuned to "wait forever" is forbidden.
+const SHOOTDOWN_TIMEOUT_MS: u64 = 50;
+
+/// Tick budget used when `time_counter_hz` reports `0` (uncalibrated). At
+/// least 50ms on any CPU up to 5 GHz.
+const SHOOTDOWN_TIMEOUT_FALLBACK_TICKS: u64 = 250_000_000;
 
 static SHOOTDOWN_LOCK: Mutex<()> = Mutex::new(());
 static REQ_VA: AtomicU64 = AtomicU64::new(0);
@@ -187,8 +192,16 @@ pub fn handle_shootdown_ipi() {
     REQ_PENDING_ACKS.fetch_sub(1, Ordering::Release);
 }
 
+fn shootdown_timeout_ticks() -> u64 {
+    let hz = crate::arch::time_counter_hz();
+    if hz == 0 {
+        return SHOOTDOWN_TIMEOUT_FALLBACK_TICKS;
+    }
+    hz / 1000 * SHOOTDOWN_TIMEOUT_MS
+}
+
 fn wait_for_acks() {
-    let deadline = read_tsc().wrapping_add(SHOOTDOWN_TIMEOUT_TSC);
+    let deadline = read_tsc().wrapping_add(shootdown_timeout_ticks());
     while REQ_PENDING_ACKS.load(Ordering::Acquire) > 0 {
         if read_tsc() > deadline {
             let outstanding = REQ_PENDING_ACKS.load(Ordering::Acquire);
