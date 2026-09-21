@@ -27,7 +27,7 @@ import re
 STORE_SERVING = "[VFS] serving, store status "
 DESKTOP = ("[COMPOSITOR] capsule spawned", "[WM] capsule spawned", "[desktop_shell]", "[compositor]")
 READY = ["Handoff OK", "Capsules spawned", STORE_SERVING]
-FATAL = ("[FATAL]", "[PANIC]", "[ZK-ATTEST] FAIL", "[SMP-PROOF] FAIL")
+FATAL = ("[FATAL]", "[PANIC]", "[TRAP ", "[ZK-ATTEST] FAIL", "[SMP-PROOF] FAIL")
 UNRESTRICTED = "DMA is unrestricted"
 REMAPPED = "[VT-D] enumerated devices identity mapped; others denied"
 SMP_PROOF = re.compile(r"\[SMP-PROOF\] cpu_count=(\d+) PASS")
