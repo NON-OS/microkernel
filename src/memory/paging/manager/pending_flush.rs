@@ -29,14 +29,19 @@ impl PendingFlush {
         Self { start: va, pages: 1, asid }
     }
 
-    pub(super) fn range(start: VirtAddr, pages: usize, asid: u32) -> Self {
-        Self { start, pages, asid }
-    }
-
     pub(super) fn commit(self) {
         if self.pages == 0 {
             return;
         }
         flush_tlb_range_smp(self.start, self.pages, self.asid);
+    }
+
+    /// Folds another invalidation into this one, widening the page count.
+    /// The caller must only absorb tokens for pages contiguous with this
+    /// token's range and in the same address space; `unmap_range` walks a
+    /// single contiguous mapping, so both hold there.
+    pub(super) fn absorb(&mut self, other: PendingFlush) {
+        debug_assert_eq!(self.asid, other.asid);
+        self.pages += other.pages;
     }
 }
