@@ -18,15 +18,14 @@ use alloc::vec;
 
 use crate::mark::mark;
 use crate::mixer::Mixer;
-use crate::server::proto;
 use crate::server::pump::PumpState;
 use crate::server::streams::StreamTable;
 use crate::sink::Sink;
+use nonos_audio_proto::TONE_MSG_LEN as TONE_MSG;
 
 const CHUNK_BYTES: usize = 4096;
 const HALF_PERIOD: usize = 44;
 const AMPLITUDE: i16 = 0x1800;
-const TONE_MSG: usize = 32;
 const REPLY_MSG: usize = 24;
 
 pub fn run(sink: &Sink) {
@@ -52,12 +51,7 @@ pub fn run_mix(mixer: &mut Mixer, sink: &Sink) {
 }
 
 fn tone_request(id: u32, freq: u32, ms: u32, gain: u16, out: &mut [u8]) -> usize {
-    proto::write_header(out, proto::OP_PLAY_TONE, id, 12);
-    out[20..24].copy_from_slice(&freq.to_le_bytes());
-    out[24..28].copy_from_slice(&ms.to_le_bytes());
-    out[28..30].copy_from_slice(&gain.to_le_bytes());
-    out[30..32].copy_from_slice(&0u16.to_le_bytes());
-    TONE_MSG
+    nonos_audio_proto::tone_request(out, id, freq, ms, gain)
 }
 
 fn fill_tone(buf: &mut [u8]) {
