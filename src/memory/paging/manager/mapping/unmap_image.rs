@@ -33,7 +33,7 @@ impl PagingManager {
     /// The page table entry is cleared in the live root and the TLB flushed,
     /// exactly as for a recorded page; only the bookkeeping is skipped, since
     /// there is none to update.
-    pub fn unmap_image_page(
+    pub(in crate::memory::paging::manager) fn unmap_image_page(
         &self,
         virtual_addr: VirtAddr,
     ) -> PagingResult<(PhysAddr, PendingFlush)> {

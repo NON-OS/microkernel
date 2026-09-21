@@ -29,7 +29,7 @@ fn table_at(pa: PhysAddr) -> *mut [u64; PAGE_TABLE_ENTRIES] {
 }
 
 impl PagingManager {
-    pub fn unmap_page(
+    pub(in crate::memory::paging::manager) fn unmap_page(
         &mut self,
         virtual_addr: VirtAddr,
     ) -> PagingResult<(PhysAddr, PagePermissions, PageSize, PendingFlush)> {
