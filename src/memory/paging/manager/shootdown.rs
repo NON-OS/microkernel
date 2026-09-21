@@ -44,7 +44,8 @@ pub const ASID_KERNEL: u32 = 0;
 /// vCPU. Tuned upwards is fine; tuned to "wait forever" is forbidden.
 const SHOOTDOWN_TIMEOUT_MS: u64 = 50;
 
-/// Tick budget used when `time_counter_hz` reports `0` (uncalibrated). At
+/// Tick budget used when the computed budget comes back `0` (uncalibrated,
+/// or a frequency too low to clear one millisecond at this resolution). At
 /// least 50ms on any CPU up to 5 GHz.
 const SHOOTDOWN_TIMEOUT_FALLBACK_TICKS: u64 = 250_000_000;
 
@@ -193,15 +194,16 @@ pub fn handle_shootdown_ipi() {
 }
 
 fn shootdown_timeout_ticks() -> u64 {
-    let hz = crate::arch::time_counter_hz();
-    if hz == 0 {
+    let ticks = crate::sys::timer::tsc::tsc_frequency() / 1000 * SHOOTDOWN_TIMEOUT_MS;
+    if ticks == 0 {
         return SHOOTDOWN_TIMEOUT_FALLBACK_TICKS;
     }
-    hz / 1000 * SHOOTDOWN_TIMEOUT_MS
+    ticks
 }
 
 fn wait_for_acks() {
-    let deadline = read_tsc().wrapping_add(shootdown_timeout_ticks());
+    let budget = shootdown_timeout_ticks();
+    let deadline = read_tsc().wrapping_add(budget);
     while REQ_PENDING_ACKS.load(Ordering::Acquire) > 0 {
         if read_tsc() > deadline {
             let outstanding = REQ_PENDING_ACKS.load(Ordering::Acquire);
