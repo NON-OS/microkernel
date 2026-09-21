@@ -38,7 +38,11 @@ pub(super) fn start(
     crate::arch::x86_64::interrupt::apic::start_ap(apic_id, (AP_TRAMPOLINE_ADDR >> 12) as u8);
 
     if wait_online(ap) {
-        crate::log_info!("[SMP] AP {} online (APIC {})", cpu_id, apic_id);
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[SMP] ap=").dec(cpu_id as u64);
+        l.str(b" apic=").dec(apic_id as u64);
+        l.str(b" online");
+        l.end();
         Ok(true)
     } else {
         /*
@@ -50,7 +54,11 @@ pub(super) fn start(
          * TLB entries with nobody flushing them. Leaving the descriptor in
          * Starting makes the CPU the only writer of its own Online.
          */
-        crate::log_error!("[SMP] AP {} (APIC {}) did not answer in time", cpu_id, apic_id);
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[SMP] ap=").dec(cpu_id as u64);
+        l.str(b" apic=").dec(apic_id as u64);
+        l.str(b" timeout");
+        l.end();
         Ok(false)
     }
 }
