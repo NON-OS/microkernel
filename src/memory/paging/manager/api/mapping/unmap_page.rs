@@ -18,10 +18,11 @@ use super::super::globals::{PAGING_MANAGER, PAGING_STATS};
 use crate::arch::run_without_interrupts as without_interrupts;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::error::PagingResult;
+use crate::smp::lock_responsive;
 
 pub fn unmap_page(virtual_addr: VirtAddr) -> PagingResult<PhysAddr> {
     let (phys, perms, size) =
-        without_interrupts(|| PAGING_MANAGER.lock().unmap_page(virtual_addr))?;
+        without_interrupts(|| lock_responsive(&PAGING_MANAGER).unmap_page(virtual_addr))?;
     PAGING_STATS.record_unmapping(perms, size);
     Ok(phys)
 }

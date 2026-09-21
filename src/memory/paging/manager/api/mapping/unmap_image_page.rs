@@ -18,6 +18,7 @@ use super::super::globals::PAGING_MANAGER;
 use crate::arch::run_without_interrupts as without_interrupts;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::error::PagingResult;
+use crate::smp::lock_responsive;
 
 /// Unmap a page of the kernel image, which the bootloader mapped and the
 /// manager therefore has no record of. For the stack guards: `unmap_page`
@@ -25,5 +26,5 @@ use crate::memory::paging::error::PagingResult;
 /// not there. No statistics are recorded, since the mapping was never
 /// counted when it was made.
 pub fn unmap_image_page(virtual_addr: VirtAddr) -> PagingResult<PhysAddr> {
-    without_interrupts(|| PAGING_MANAGER.lock().unmap_image_page(virtual_addr))
+    without_interrupts(|| lock_responsive(&PAGING_MANAGER).unmap_image_page(virtual_addr))
 }
