@@ -14,11 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    // The structure is built by `hkdf_label`, which is pure and has proofs; this
-    // is the expansion it feeds, which is a syscall and has none.
-    match super::hkdf_label::hkdf_label(out.len(), label, context) {
-        Some(info) => super::hkdf::expand(prk, &info, out),
-        None => false,
-    }
+//! The two ways to complete a flight, authenticated or not.
+
+use crate::flight::ClientFlight;
+
+use super::complete::complete;
+use super::types::ServerComplete;
+
+/// Complete the handshake, requiring the certificate to chain to a trusted root
+/// for `host`. `None` if the flight does not verify.
+pub fn server_complete(
+    client: &ClientFlight,
+    bytes: &[u8],
+    host: &[u8],
+    now: u64,
+) -> Option<ServerComplete> {
+    complete(client, bytes, host, now, true)
+}
+
+/// Complete the handshake without walking the certificate chain.
+///
+pub fn server_complete_unauthenticated(
+    client: &ClientFlight,
+    bytes: &[u8],
+) -> Option<ServerComplete> {
+    complete(client, bytes, &[], 0, false)
 }

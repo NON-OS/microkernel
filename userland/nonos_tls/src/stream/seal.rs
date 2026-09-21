@@ -14,11 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    // The structure is built by `hkdf_label`, which is pure and has proofs; this
-    // is the expansion it feeds, which is a syscall and has none.
-    match super::hkdf_label::hkdf_label(out.len(), label, context) {
-        Some(info) => super::hkdf::expand(prk, &info, out),
-        None => false,
+//! Sealing one application record.
+
+extern crate alloc;
+
+use alloc::vec::Vec;
+
+use super::content::APPLICATION_DATA;
+use super::types::Stream;
+
+impl Stream {
+    /// One sealed application record. `None` if the cipher refuses or the write
+    /// sequence has run out, which at 2^64 records it will not.
+    pub fn seal(&mut self, body: &[u8]) -> Option<Vec<u8>> {
+        let record = crate::record_seal::seal(
+            self.app.suite,
+            &self.app.client_key,
+            &self.app.client_iv,
+            self.write_seq,
+            APPLICATION_DATA,
+            body,
+        )?;
+        self.write_seq = self.write_seq.checked_add(1)?;
+        Some(record)
     }
 }

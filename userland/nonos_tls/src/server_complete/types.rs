@@ -14,11 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    // The structure is built by `hkdf_label`, which is pure and has proofs; this
-    // is the expansion it feeds, which is a syscall and has none.
-    match super::hkdf_label::hkdf_label(out.len(), label, context) {
-        Some(info) => super::hkdf::expand(prk, &info, out),
-        None => false,
-    }
+//! What a completed server flight yields.
+
+extern crate alloc;
+
+use alloc::vec::Vec;
+
+use crate::traffic_keys::TrafficKeys;
+
+pub struct ServerComplete {
+    pub handshake: TrafficKeys,
+    pub app: TrafficKeys,
+    pub transcript: Vec<u8>,
+    /// The Certificate message body, so a caller that authenticates the peer
+    /// itself can reach the leaf. Empty if none arrived.
+    pub certificates: Vec<u8>,
 }

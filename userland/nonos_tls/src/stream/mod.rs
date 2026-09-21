@@ -14,11 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    // The structure is built by `hkdf_label`, which is pure and has proofs; this
-    // is the expansion it feeds, which is a syscall and has none.
-    match super::hkdf_label::hkdf_label(out.len(), label, context) {
-        Some(info) => super::hkdf::expand(prk, &info, out),
-        None => false,
-    }
-}
+//! A TLS 1.3 session that stays open across many reads and writes.
+
+mod absorb;
+mod connect;
+mod content;
+mod dispatch;
+mod finished;
+mod gather;
+mod handshake_keys;
+mod io;
+mod limits;
+mod open_record;
+mod seal;
+mod settle;
+mod span;
+mod span_scan;
+mod types;
+
+pub use connect::connect_unauthenticated;
+pub use types::Stream;

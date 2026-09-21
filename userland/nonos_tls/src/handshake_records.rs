@@ -14,11 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    // The structure is built by `hkdf_label`, which is pure and has proofs; this
-    // is the expansion it feeds, which is a syscall and has none.
-    match super::hkdf_label::hkdf_label(out.len(), label, context) {
-        Some(info) => super::hkdf::expand(prk, &info, out),
-        None => false,
-    }
+//! Decrypting the server's encrypted handshake records into one message run.
+
+use alloc::vec::Vec;
+
+use super::handshake_walk::walk;
+use super::traffic_keys::TrafficKeys;
+
+pub(super) fn handshake_messages(keys: &TrafficKeys, from: usize, bytes: &[u8]) -> Option<Vec<u8>> {
+    walk(keys, from, bytes).map(|flight| flight.msgs)
+}
+
+pub(super) fn alert_in_flight(keys: &TrafficKeys, from: usize, bytes: &[u8]) -> Option<u8> {
+    walk(keys, from, bytes).and_then(|flight| flight.alert)
 }

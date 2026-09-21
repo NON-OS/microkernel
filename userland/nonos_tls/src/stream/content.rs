@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    // The structure is built by `hkdf_label`, which is pure and has proofs; this
-    // is the expansion it feeds, which is a syscall and has none.
-    match super::hkdf_label::hkdf_label(out.len(), label, context) {
-        Some(info) => super::hkdf::expand(prk, &info, out),
-        None => false,
-    }
-}
+//! TLS record and inner content types.
+
+pub(super) const CHANGE_CIPHER_SPEC: u8 = 20;
+pub(super) const ALERT: u8 = 21;
+pub(super) const HANDSHAKE: u8 = 22;
+pub(super) const APPLICATION_DATA: u8 = 23;
+
+pub(super) const FINISHED: u8 = 20;
+pub(super) const KEY_UPDATE: u8 = 24;

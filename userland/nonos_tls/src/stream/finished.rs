@@ -14,11 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    // The structure is built by `hkdf_label`, which is pure and has proofs; this
-    // is the expansion it feeds, which is a syscall and has none.
-    match super::hkdf_label::hkdf_label(out.len(), label, context) {
-        Some(info) => super::hkdf::expand(prk, &info, out),
-        None => false,
+//! Spotting a complete Finished message in a run of handshake messages.
+
+use super::content::FINISHED;
+
+pub(super) fn has_finished(msgs: &[u8]) -> bool {
+    let mut pos = 0usize;
+    while pos + 4 <= msgs.len() {
+        let len = ((msgs[pos + 1] as usize) << 16)
+            | ((msgs[pos + 2] as usize) << 8)
+            | msgs[pos + 3] as usize;
+        let end = pos + 4 + len;
+        if end > msgs.len() {
+            return false;
+        }
+        if msgs[pos] == FINISHED {
+            return true;
+        }
+        pos = end;
     }
+    false
 }

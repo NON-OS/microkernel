@@ -14,11 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    // The structure is built by `hkdf_label`, which is pure and has proofs; this
-    // is the expansion it feeds, which is a syscall and has none.
-    match super::hkdf_label::hkdf_label(out.len(), label, context) {
-        Some(info) => super::hkdf::expand(prk, &info, out),
-        None => false,
+//! What one decrypted record contributes to the handshake.
+
+/// Inner content type for a handshake message, RFC 8446 section 5.
+const HANDSHAKE: u8 = 22;
+
+pub(super) enum Step<'a> {
+    Messages(&'a [u8]),
+    Stop(u8),
+    Ignore,
+}
+
+pub(super) fn step(plain: &[u8]) -> Step<'_> {
+    let Some((content, inner)) = super::inner_plain::split(plain) else {
+        return Step::Ignore;
+    };
+    if inner == HANDSHAKE {
+        return Step::Messages(content);
+    }
+    match super::alert::description_in_plaintext(inner, content) {
+        Some(description) => Step::Stop(description),
+        None => Step::Ignore,
     }
 }

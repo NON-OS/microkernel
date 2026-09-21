@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    // The structure is built by `hkdf_label`, which is pure and has proofs; this
-    // is the expansion it feeds, which is a syscall and has none.
-    match super::hkdf_label::hkdf_label(out.len(), label, context) {
-        Some(info) => super::hkdf::expand(prk, &info, out),
-        None => false,
-    }
+//! Why the server stopped, once the handshake keys existed.
+
+use crate::flight::ClientFlight;
+
+/// The alert description in the server's encrypted flight, or `None` if it sent
+/// no alert.
+pub fn handshake_alert(client: &ClientFlight, bytes: &[u8]) -> Option<u8> {
+    let ctx = crate::server_keys::server_keys(client, bytes)?;
+    crate::handshake_records::alert_in_flight(&ctx.keys, ctx.used, bytes)
 }

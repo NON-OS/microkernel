@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    // The structure is built by `hkdf_label`, which is pure and has proofs; this
-    // is the expansion it feeds, which is a syscall and has none.
-    match super::hkdf_label::hkdf_label(out.len(), label, context) {
-        Some(info) => super::hkdf::expand(prk, &info, out),
-        None => false,
+//! Reaching the peer's leaf certificate out of the Certificate message.
+
+use super::types::ServerComplete;
+
+impl ServerComplete {
+    /// The peer's own certificate, DER encoded. `None` if the peer sent no
+    /// Certificate message or its list is malformed.
+    pub fn leaf(&self) -> Option<&[u8]> {
+        crate::cert_at::cert_at(&self.certificates, 0)
     }
 }

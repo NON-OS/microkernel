@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    // The structure is built by `hkdf_label`, which is pure and has proofs; this
-    // is the expansion it feeds, which is a syscall and has none.
-    match super::hkdf_label::hkdf_label(out.len(), label, context) {
-        Some(info) => super::hkdf::expand(prk, &info, out),
-        None => false,
-    }
+//! Opening one record the server sent, with the keys that own it.
+
+extern crate alloc;
+
+use alloc::vec::Vec;
+
+use crate::traffic_keys::TrafficKeys;
+
+pub(super) fn open(keys: &TrafficKeys, seq: u64, record: &[u8]) -> Option<Vec<u8>> {
+    crate::record_open::open(keys.suite, &keys.server_key, &keys.server_iv, seq, record)
 }
