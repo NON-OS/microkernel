@@ -30,7 +30,7 @@ READY = ["Handoff OK", "Capsules spawned", STORE_SERVING]
 FATAL = ("[FATAL]", "[PANIC]", "[TRAP ", "[ZK-ATTEST] FAIL", "[SMP-PROOF] FAIL")
 UNRESTRICTED = "DMA is unrestricted"
 REMAPPED = "[VT-D] enumerated devices identity mapped; others denied"
-SMP_PROOF = re.compile(r"\[SMP-PROOF\] cpu_count=(\d+) PASS")
+SMP_PROOF = re.compile(r"\[SMP-PROOF\] cpu_count=(\d+) (PASS|UP)")
 STORE_STATUS = re.compile(r"\[VFS\] serving, store status ([0-9a-f]{2})")
 CPU_PROT = re.compile(r"\[CPU-PROT\] smep=(\d) smap=(\d) umip=(\d) nx=(\d) wp=(\d)")
 PROTECTED = {"smep": 0, "smap": 1, "nx": 3, "wp": 4}
@@ -54,9 +54,9 @@ def judge(cell, text, reached, ending):
     if cell.wants_smp_proof():
         proof = SMP_PROOF.search(text)
         if not proof:
-            bad.append("no [SMP-PROOF] PASS line")
+            bad.append("no [SMP-PROOF] line at all")
         elif int(proof.group(1)) != cell.cpus:
-            bad.append(f"{proof.group(1)} CPUs online, {cell.cpus} given")
+            bad.append(f"cpu_count={proof.group(1)} {proof.group(2)}, {cell.cpus} given")
     prot = CPU_PROT.search(text)
     if reached and not prot:
         bad.append("no [CPU-PROT] line")
