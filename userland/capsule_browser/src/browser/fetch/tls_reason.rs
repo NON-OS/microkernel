@@ -14,16 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod decrypt;
-mod flight_quiet;
-mod flight_settled;
-mod hello;
-mod read_flight;
-mod trace;
-mod verify_and_send;
+//! The message a failed fetch is shown with.
 
-pub(super) use decrypt::decrypt;
-pub(super) use flight_settled::flight_settled;
-pub(super) use hello::hello;
-pub(super) use read_flight::read_flight;
-pub(super) use verify_and_send::verify_and_send;
+use alloc::string::String;
+
+use crate::browser::fetch::types::Fetch;
+use crate::browser::tls13;
+
+// The reason arrives as a byte on the wire; the sentence is a rendering of it.
+pub(super) fn reason(job: &Fetch) -> String {
+    let base = match job.error {
+        Some(err) => err,
+        None => "error",
+    };
+    match job.tls_alert {
+        Some(description) => alloc::format!("{base}: {}", tls13::alert_name(description)),
+        None => String::from(base),
+    }
+}
