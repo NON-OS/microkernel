@@ -1,0 +1,21 @@
+# NONOS shared audio wire format.
+# The magic, version and op numbers the audio service answers to. They had been
+# written out by hand in the server and again in the player's client, and the two
+# had already diverged in what they covered: the server knew OP_PLAY_TONE and the
+# client did not. A third copy was about to be written for the desktop shell's
+# alert tone, so they live here once instead.
+
+[package]
+name = "nonos_audio_proto"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS audio service wire format"
+
+[lib]
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = 2
