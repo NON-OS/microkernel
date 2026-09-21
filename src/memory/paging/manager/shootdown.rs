@@ -191,7 +191,13 @@ fn wait_for_acks() {
     let deadline = read_tsc().wrapping_add(SHOOTDOWN_TIMEOUT_TSC);
     while REQ_PENDING_ACKS.load(Ordering::Acquire) > 0 {
         if read_tsc() > deadline {
-            crate::sys::serial::println(b"[FATAL] TLB shootdown timeout");
+            let outstanding = REQ_PENDING_ACKS.load(Ordering::Acquire);
+            if outstanding == 0 {
+                return;
+            }
+            let mut line = crate::sys::serial::Line::new();
+            line.str(b"[FATAL] TLB shootdown timeout outstanding=").dec(outstanding as u64);
+            line.end();
             report_stuck();
             crate::smp::send_panic_ipi();
             crate::arch::halt_loop();
