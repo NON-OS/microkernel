@@ -22,7 +22,8 @@ use crate::smp::trampoline::{write_per_ap_context, PerApBootContext};
 use crate::smp::{CpuDescriptor, CpuState};
 use core::sync::atomic::Ordering;
 
-const AP_START_TIMEOUT_TSC: u64 = 100_000_000;
+const AP_START_TIMEOUT_MS: u64 = 100;
+const AP_START_TIMEOUT_FALLBACK_TSC: u64 = 250_000_000;
 
 pub(super) fn start(
     cpu_id: usize,
@@ -79,11 +80,17 @@ fn write_context(cpu_id: usize, stack_top: u64, boot: &ApBootInputs) -> Result<(
 
 fn wait_online(ap: &CpuDescriptor) -> bool {
     let start = super::time::read_tsc();
+    let budget = ap_start_timeout_tsc();
     while ap.state() != CpuState::Online {
-        if super::time::read_tsc() - start > AP_START_TIMEOUT_TSC {
+        if super::time::read_tsc() - start > budget {
             return false;
         }
         core::hint::spin_loop();
     }
     true
+}
+
+fn ap_start_timeout_tsc() -> u64 {
+    let ticks = crate::sys::timer::tsc::tsc_frequency() / 1000 * AP_START_TIMEOUT_MS;
+    if ticks == 0 { AP_START_TIMEOUT_FALLBACK_TSC } else { ticks }
 }
