@@ -108,6 +108,7 @@ fn broadcast(va: VirtAddr, page_count: u32, asid: u32) {
 
     let self_cpu = crate::smp::cpu_id();
     let mut targets: u32 = 0;
+    let mut selected = [0u64; crate::smp::MAX_CPUS.div_ceil(64)];
     /*
      * Every cpu slot, filtered by whether it is running. Not `0..cpus_online()`:
      * that is a population count, while cpu numbers are handed out once per AP
@@ -127,9 +128,7 @@ fn broadcast(va: VirtAddr, page_count: u32, asid: u32) {
         if !cpu_should_flush(d, asid) {
             continue;
         }
-        // Mark the target before the request is published so it cannot be
-        // read as "not my round" by a cpu that is already spinning here.
-        d.tlb_flush_pending.store(1, Ordering::Relaxed);
+        selected[cpu / 64] |= 1u64 << (cpu % 64);
         targets += 1;
     }
     if targets == 0 {
@@ -141,20 +140,24 @@ fn broadcast(va: VirtAddr, page_count: u32, asid: u32) {
     REQ_PENDING_ACKS.store(targets, Ordering::SeqCst);
 
     /*
-     * The same slots as the marking loop above, for the same reason. The
-     * pending flag is what selects the targets here, and only a cpu the loop
-     * above could reach ever has it set, so the two must walk the same range.
+     * Mark and send from the set chosen above rather than re-deriving it, and
+     * only now that the request and the ack count are published. A cpu serves
+     * this round by hand the moment it sees its own mark, from the lock spin
+     * above or from `lock_responsive`, with no ipi involved; marking before
+     * the count was armed let that cpu pay an ack into a count of zero, which
+     * wrapped and was then overwritten by the arming store, so the ack was
+     * owed by nobody and the wait below always reached its deadline. Deriving
+     * the set twice would be its own bug: a cpu that came online in between
+     * would be marked without being counted.
      */
     for cpu in 0..crate::smp::MAX_CPUS {
-        if cpu == self_cpu || !crate::smp::cpu_is_online(cpu) {
+        if selected[cpu / 64] & (1u64 << (cpu % 64)) == 0 {
             continue;
         }
         let Some(d) = crate::smp::percpu::get(cpu) else {
             continue;
         };
-        if d.tlb_flush_pending.load(Ordering::Relaxed) == 0 {
-            continue;
-        }
+        d.tlb_flush_pending.store(1, Ordering::Release);
         let _ = crate::arch::interrupt_controller::send_ipi(d.apic_id, Ipi::TlbShootdown);
     }
     wait_for_acks();
