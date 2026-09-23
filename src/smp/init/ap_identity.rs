@@ -31,7 +31,7 @@
 //! this point, so the window is closed before it could matter.
 
 use crate::memory::addr::{PhysAddr, VirtAddr};
-use crate::memory::paging::manager::api::{map_page, unmap_page};
+use crate::memory::paging::manager::api::{map_page, unmap_range};
 use crate::memory::paging::types::PagePermissions;
 use crate::smp::constants::AP_TRAMPOLINE_ADDR;
 
@@ -60,13 +60,12 @@ pub(super) fn install() -> Result<(), &'static str> {
     Ok(())
 }
 
-// Drop the temporary mapping and re-clear the low half, restoring the
-// post-VM-init invariant. Best-effort: a failure here is logged by the caller,
-// not fatal, since the APs are already up by the time this runs.
+// Drop the temporary mapping in one batched range unmap and re-clear the low
+// half, restoring the post-VM-init invariant. Best-effort: a failure here is
+// logged by the caller, not fatal, since the APs are already up by the time
+// this runs.
 pub(super) fn remove() {
     let base = region_base();
-    for i in 0..TRAMPOLINE_PAGES {
-        let _ = unmap_page(VirtAddr::new(base + i * PAGE));
-    }
+    let _ = unmap_range(VirtAddr::new(base), (TRAMPOLINE_PAGES * PAGE) as usize);
     let _ = crate::arch::x86_64::paging::clear_low_half();
 }

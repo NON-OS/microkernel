@@ -76,7 +76,10 @@ pub(super) fn start_aps() -> Result<usize, &'static str> {
      * nobody invalidates and the boot looks healthy while doing it.
      */
     let online = crate::smp::cpus_online();
-    crate::log_info!("[SMP] {} APs answered in time, {} CPUs online", started, online);
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[SMP] answered=").dec(started as u64);
+    l.str(b" online=").dec(online as u64);
+    l.end();
     Ok(online.saturating_sub(1))
 }
 
