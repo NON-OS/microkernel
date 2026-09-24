@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, AtomicU64};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64};
 
 /// Address-space id reserved for "no user CR3 currently active on
 /// this CPU" — set at boot before any process runs, and after a CPU
@@ -58,7 +58,13 @@ pub struct PerCpuData {
     /// path here does the flush first. It is what makes the flush both
     /// correctly targeted and safe to run twice.
     pub tlb_flush_pending: AtomicU32,
-    _reserved: [u8; 4096 - 132],
+    /// Raised while this CPU halts with nothing to run, so its own timer tick
+    /// is charged to idle rather than to whichever process ran here last.
+    pub accounting_idle: AtomicBool,
+    /// Whether the tick this CPU is handling interrupted CPL 3. The timer
+    /// trampoline writes it and the same CPU's scheduler tick reads it.
+    pub tick_from_user: AtomicBool,
+    _reserved: [u8; 4096 - 134],
 }
 
 impl PerCpuData {
@@ -81,7 +87,9 @@ impl PerCpuData {
             time_slice: AtomicU64::new(0),
             need_resched: AtomicU32::new(0),
             tlb_flush_pending: AtomicU32::new(0),
-            _reserved: [0; 4096 - 132],
+            accounting_idle: AtomicBool::new(false),
+            tick_from_user: AtomicBool::new(false),
+            _reserved: [0; 4096 - 134],
         }
     }
 }
