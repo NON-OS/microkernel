@@ -14,11 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_frames;
-mod attach_surface;
-mod descriptor;
-mod self_attach;
-mod share_surface;
+//! The painter.
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+pub mod chrome;
+mod card;
+mod consent_text;
+mod counter;
+mod detail;
+mod frame;
+mod gates;
+pub mod geometry;
+mod hex;
+pub mod metrics;
+mod rows;
+mod scrollbar;
+mod searchbar;
+mod standing;
+mod status;
+mod text;
+mod wrap;
+
+pub use frame::frame;

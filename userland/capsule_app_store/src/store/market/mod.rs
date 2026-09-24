@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_frames;
-mod attach_surface;
-mod descriptor;
-mod self_attach;
-mod share_surface;
+//! Talking to the market capsule.
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+mod detail;
+mod list;
+mod ready;
+mod service;
+mod wire;
+
+pub use detail::{fetch as get_app, Detail};
+pub use list::fetch as list_apps;
+pub use ready::{fetch as install_ready, Readiness, GATES};
+pub use service::{next_id, port};

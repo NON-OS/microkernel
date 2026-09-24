@@ -14,11 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_frames;
-mod attach_surface;
-mod descriptor;
-mod self_attach;
-mod share_surface;
+#![no_std]
+#![no_main]
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+extern crate alloc;
+
+mod store;
+
+use nonos_app_skeleton::run;
+
+/// # Safety The loader calls this once, on a fresh stack, as the process entry
+/// point.
+#[no_mangle]
+pub unsafe extern "C" fn _start() -> ! {
+    run(store::Store::new)
+}
