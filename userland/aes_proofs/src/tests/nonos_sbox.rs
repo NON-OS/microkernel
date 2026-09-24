@@ -13,10 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The published vectors, and the counter behaviour a keystream depends on.
 
-mod aes_ctr_tests;
-mod aes_tests;
-mod nonos_sbox;
-mod sbox_table;
-mod sbox_tests;
+//! The S-box nonos_aes computes, compiled in from its own source so the test
+//! sees exactly the code the crate ships and its API stays unchanged.
+
+#[path = "../../../nonos_aes/src/xtime.rs"]
+mod xtime;
+
+#[path = "../../../nonos_aes/src/sub_byte.rs"]
+pub(super) mod sub_byte;

@@ -13,10 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The published vectors, and the counter behaviour a keystream depends on.
 
-mod aes_ctr_tests;
-mod aes_tests;
-mod nonos_sbox;
-mod sbox_table;
-mod sbox_tests;
+//! The computed S-box against the standard table, for every input.
+
+use super::nonos_sbox::sub_byte::sub_byte;
+use super::sbox_table::REFERENCE_SBOX;
+
+#[test]
+fn nonos_aes_sbox_matches_fips197_for_all_inputs() {
+    for input in 0..=u8::MAX {
+        assert_eq!(sub_byte(input), REFERENCE_SBOX[input as usize], "input {input:#04x}");
+    }
+}
