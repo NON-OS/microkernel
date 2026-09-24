@@ -18,8 +18,6 @@
 use crate::text_scale::{scale_of, ONE};
 use nonos_policy_proto::font_size_labels::FONT_SIZE_LABELS;
 
-const STORED_DEFAULT: u8 = 1;
-
 #[test]
 fn the_steps_are_a_usable_size_apart() {
     for i in 1..FONT_SIZE_LABELS.len() {
