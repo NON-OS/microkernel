@@ -20,7 +20,7 @@ defaults:
 # Cancel superseded runs on the same ref so a fast push does not pile up
 # redundant verification passes.
 concurrency:
-  group: verify-${{ github.ref }}
+  group: verify-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -338,6 +338,7 @@ jobs:
           - i2c_hid_proofs
           - attest_receipt
           - attest_key_proofs
+          - aes_proofs
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
         with:
