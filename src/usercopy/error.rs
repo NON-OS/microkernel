@@ -68,6 +68,7 @@ impl From<UsercopyError> for i32 {
             UsercopyError::NoProcessContext => -3,
             UsercopyError::SizeTooLarge => -12,
             UsercopyError::InvalidUtf8 => -22,
+            UsercopyError::NotTerminated => -36,
         }
     }
 }
