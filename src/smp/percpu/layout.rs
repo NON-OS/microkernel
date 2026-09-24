@@ -34,3 +34,4 @@ const _: () = assert!(SELF_PTR == 0x00);
 const _: () = assert!(CPU_ID == 0x08);
 const _: () = assert!(KERNEL_STACK_TOP == 0x20);
 const _: () = assert!(USER_STACK_SAVED == 0x28);
+const _: () = assert!(core::mem::size_of::<PerCpuData>() == 4096);
