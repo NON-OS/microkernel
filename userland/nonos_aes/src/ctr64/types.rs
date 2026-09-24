@@ -23,10 +23,17 @@ use crate::types::{Aes128, BLOCK_BYTES, KEY_BYTES};
 pub struct Ctr64Be {
     pub(super) cipher: Aes128,
     pub(super) counter: [u8; BLOCK_BYTES],
+    pub(super) held: [u8; BLOCK_BYTES],
+    pub(super) used: usize,
 }
 
 impl Ctr64Be {
     pub fn new(key: &[u8; KEY_BYTES], iv: &[u8; BLOCK_BYTES]) -> Self {
-        Self { cipher: Aes128::new(key), counter: *iv }
+        Self {
+            cipher: Aes128::new(key),
+            counter: *iv,
+            held: [0u8; BLOCK_BYTES],
+            used: BLOCK_BYTES,
+        }
     }
 }

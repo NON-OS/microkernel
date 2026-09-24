@@ -14,23 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Applying the low 64 bit keystream, one block at a time.
+//! Applying the low 64 bit keystream, byte by byte across blocks.
 
 use crate::types::BLOCK_BYTES;
 
 use super::types::Ctr64Be;
 
 impl Ctr64Be {
-    /// XOR the keystream into `data`. Encryption and decryption are the same.
+    /// XOR the keystream into `data`, continuing where the last call stopped.
+    /// Encryption and decryption are the same operation.
     pub fn apply(&mut self, data: &mut [u8]) {
-        for chunk in data.chunks_mut(BLOCK_BYTES) {
-            let mut keystream = self.counter;
-            self.cipher.encrypt_block(&mut keystream);
-            for (byte, key) in chunk.iter_mut().zip(keystream.iter()) {
-                *byte ^= key;
+        for byte in data.iter_mut() {
+            if self.used == BLOCK_BYTES {
+                self.refill();
             }
-            self.bump();
+            *byte ^= self.held[self.used];
+            self.used += 1;
         }
+    }
+
+    fn refill(&mut self) {
+        self.held = self.counter;
+        self.cipher.encrypt_block(&mut self.held);
+        self.used = 0;
+        self.bump();
     }
 
     /*

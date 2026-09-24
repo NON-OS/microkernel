@@ -17,3 +17,10 @@
 
 mod aes_ctr_tests;
 mod aes_tests;
+mod ctr64_tests;
+mod ctr_vectors;
+mod nonos_sbox;
+mod nym_aes;
+mod nym_aes_tests;
+mod sbox_table;
+mod sbox_tests;
