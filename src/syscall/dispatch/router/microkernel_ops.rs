@@ -82,6 +82,22 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkStdoutWrite
             | MkStoreWrite
             | MkSpawnInstance
+            | MkForeignSpawn
+            | MkForeignStart
+            | MkForeignWait
+            | MkForeignReply
+            | MkPeerMap
+            | MkPeerCopy
+            | MkPeerProtect
+            | MkForeignThread
+            | MkPeerTls
+            | MkForeignFork
+            | MkPeerUnmap
+            | MkForeignExec
+            | MkLocalSign
+            | MkLocalVerify
+            | MkAppInstall
+            | MkDevRootLocal
             | MkToolRun
     )
 }

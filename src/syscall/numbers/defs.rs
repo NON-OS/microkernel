@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Active NØNOS syscall ABI. Discriminants are 4-byte ASCII tags
-// packed little-endian via `tag4`; the registry in
-// `crate::syscall::abi::REGISTRY` is the source of truth.
+// Active NØNOS syscall ABI.
 
 use crate::syscall::abi::tag4;
 
@@ -29,12 +27,16 @@ pub enum SyscallNumber {
     CryptoDecrypt = tag4(b"CDEC"),
     CryptoEncryptAad = tag4(b"CEAD"),
     CryptoDecryptAad = tag4(b"CDAD"),
+    CryptoEd25519Verify = tag4(b"CEDV"),
+    CryptoEd25519Sign = tag4(b"CEDS"),
+    CryptoEd25519Pubkey = tag4(b"CEDP"),
     CryptoX25519Public = tag4(b"CXPK"),
     CryptoX25519Shared = tag4(b"CXSH"),
     CryptoHmacSha256 = tag4(b"CHMC"),
     CryptoHkdfSha256 = tag4(b"CHKF"),
     CryptoKeccak256 = tag4(b"CKEC"),
-    CryptoMachineKey = tag4(b"CMKY"),
+    CryptoSecp256k1Sign = tag4(b"CSKS"),
+    CryptoSecp256k1Pubkey = tag4(b"CSPB"),
     AdminReboot = tag4(b"ARBT"),
     AdminShutdown = tag4(b"ASDN"),
     AdminPolicyPush = tag4(b"APPS"),
@@ -111,4 +113,20 @@ pub enum SyscallNumber {
     MkInputEventDrain = tag4(b"MIED"),
     MkInputEventWait = tag4(b"MIEW"),
     MkSpawnInstance = tag4(b"MSPI"),
+    MkForeignSpawn = tag4(b"MFSP"),
+    MkForeignStart = tag4(b"MFST"),
+    MkForeignWait = tag4(b"MFWT"),
+    MkForeignReply = tag4(b"MFRP"),
+    MkPeerMap = tag4(b"MPMP"),
+    MkPeerCopy = tag4(b"MPCP"),
+    MkPeerProtect = tag4(b"MPPT"),
+    MkForeignThread = tag4(b"MFTH"),
+    MkPeerTls = tag4(b"MPTL"),
+    MkForeignFork = tag4(b"MFFK"),
+    MkPeerUnmap = tag4(b"MPUN"),
+    MkForeignExec = tag4(b"MFEX"),
+    MkLocalSign = tag4(b"MLSG"),
+    MkLocalVerify = tag4(b"MLVF"),
+    MkAppInstall = tag4(b"MAIN"),
+    MkDevRootLocal = tag4(b"MDRO"),
 }
