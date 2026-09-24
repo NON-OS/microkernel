@@ -14,12 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const OP_GET: u16 = 0x0001;
-pub const OP_SET: u16 = 0x0002;
+//! Finding the store.
 
-/*
- * Addresses no field, unlike GET and SET: it asks what the kernel reports about
- * its own hardening, which is one record rather than a value per row, so the
- * header's field word is unused on both sides.
- */
-pub const OP_STATUS: u16 = 0x0003;
+use core::ptr;
+
+use nonos_libc::mk_service_lookup;
+use nonos_policy_proto::POLICY_SERVICE_NAME;
+
+/// The store's port, or `None` while it has not announced itself yet.
+///
+pub fn lookup() -> Option<u32> {
+    let mut port: u32 = 0;
+    let rc = mk_service_lookup(
+        POLICY_SERVICE_NAME.as_ptr(),
+        POLICY_SERVICE_NAME.len(),
+        &mut port as *mut u32,
+        ptr::null_mut(),
+    );
+    if rc != 0 || port == 0 {
+        return None;
+    }
+    Some(port)
+}

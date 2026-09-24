@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const OP_GET: u16 = 0x0001;
-pub const OP_SET: u16 = 0x0002;
+//! Host proofs for the audio service's wire format.
+//!
+//! The format lived twice, hand written at both ends, and the two copies had
+//! already diverged in what they covered. Now that it lives once, what it says
+//! is worth pinning: the server parses these bytes by fixed offset, so a field
+//! moving by two bytes would be read as a frequency of forty million.
 
-/*
- * Addresses no field, unlike GET and SET: it asks what the kernel reports about
- * its own hardening, which is one record rather than a value per row, so the
- * header's field word is unused on both sides.
- */
-pub const OP_STATUS: u16 = 0x0003;
+#[cfg(test)]
+mod header_tests;
+#[cfg(test)]
+mod tone_tests;

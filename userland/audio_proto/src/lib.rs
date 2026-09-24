@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const OP_GET: u16 = 0x0001;
-pub const OP_SET: u16 = 0x0002;
+//! The wire format of the audio service, for both ends of it.
 
-/*
- * Addresses no field, unlike GET and SET: it asks what the kernel reports about
- * its own hardening, which is one record rather than a value per row, so the
- * header's field word is unused on both sides.
- */
-pub const OP_STATUS: u16 = 0x0003;
+#![no_std]
+
+pub mod header;
+pub mod ops;
+pub mod tone;
+
+pub use header::{write_header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
+pub use ops::OP_STREAM_OPEN;
+pub use ops::{E_AGAIN, E_INVAL, E_OK};
+pub use ops::{OP_CLOSE, OP_FEED_PCM, OP_PAUSE, OP_PLAY_PCM, OP_PLAY_TONE, OP_RESUME, OP_STOP};
+pub use tone::{tone_request, TONE_MSG_LEN, TONE_PAYLOAD_LEN};
