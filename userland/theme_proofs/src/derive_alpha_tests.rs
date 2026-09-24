@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Setting alpha without touching the colour.
 
-use crate::theme::derive::{mix, opaque, with_alpha};
+use crate::theme::derive::{opaque, with_alpha};
 
 #[test]
 fn alpha_replaces_only_the_alpha() {

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Mixing two colours.
 
-use crate::theme::derive::{mix, opaque, with_alpha};
+use crate::theme::derive::mix;
 
 #[test]
 fn the_ends_of_a_mix_are_exact() {

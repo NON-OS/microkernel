@@ -16,7 +16,7 @@
 //! The accent, and the scheme that overrides every other.
 
 use crate::theme::select::theme_of;
-use crate::wcag::{ratio, BODY, LARGE};
+use crate::wcag::{ratio, LARGE};
 use nonos_policy_proto::theme_labels::THEME_LABELS;
 
 /// The accent is not text, so it takes the 3:1 floor. It marks selection and focus,

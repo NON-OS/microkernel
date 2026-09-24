@@ -17,7 +17,7 @@
 
 use crate::theme::schemes::SCHEMES;
 use crate::theme::select::theme_of;
-use crate::wcag::{ratio, BODY, LARGE};
+use crate::wcag::{ratio, BODY};
 use nonos_policy_proto::theme_labels::THEME_LABELS;
 
 #[test]
