@@ -61,6 +61,10 @@ pub fn fetch_tls(tcp_port: u32, host: &str, path: &str) -> Result<Vec<u8>, u16> 
         Err(nonos_tls::SessionError::Handshake) => 3,
         Err(nonos_tls::SessionError::Certificate) => 4,
         Err(nonos_tls::SessionError::TooLarge) => 5,
+        Err(nonos_tls::SessionError::RetryUnsupported) => 6,
+        // The peer's own description, offset past the stage numbers above so a
+        // reader can tell an alert from a stage this client gave up at.
+        Err(nonos_tls::SessionError::PeerAlert(description)) => 100 + *description as u64,
     };
     crate::trace::say_two(b"fetch: ok-len-or-err", stage, io.overran() as u64);
     let _ = tcp_client::close(tcp_port, stream);

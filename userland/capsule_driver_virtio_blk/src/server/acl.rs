@@ -35,5 +35,5 @@ pub fn permits(op: u16, sender_pid: u32) -> bool {
     if rule::allows(op, sender_pid, false) {
         return true;
     }
-    rule::allows(op, sender_pid, mk_cap_check(sender_pid, CAP_STORE_WRITE) == 1)
+    rule::allows(op, sender_pid, mk_cap_check(sender_pid, CAP_STORE_WRITE))
 }

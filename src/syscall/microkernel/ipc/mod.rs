@@ -21,6 +21,7 @@ mod pending_reply;
 mod recv;
 mod recv_from;
 mod register;
+mod register_allowed;
 mod reply;
 mod reply_inbox;
 mod send;

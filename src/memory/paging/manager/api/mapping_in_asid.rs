@@ -19,6 +19,7 @@ use crate::arch::x86_64::idt::without_interrupts;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::error::PagingResult;
 use crate::memory::paging::types::{PagePermissions, PageSize};
+use crate::smp::lock_responsive;
 
 pub fn map_page_in_asid(
     asid: u32,
@@ -27,7 +28,7 @@ pub fn map_page_in_asid(
     permissions: PagePermissions,
 ) -> PagingResult<()> {
     without_interrupts(|| {
-        PAGING_MANAGER.lock().map_page_in_asid(
+        lock_responsive(&PAGING_MANAGER).map_page_in_asid(
             asid,
             virtual_addr,
             physical_addr,
@@ -44,7 +45,7 @@ pub fn unmap_page_in_asid(
     permissions: PagePermissions,
 ) -> PagingResult<PhysAddr> {
     without_interrupts(|| {
-        PAGING_MANAGER.lock().unmap_page_in_asid(
+        lock_responsive(&PAGING_MANAGER).unmap_page_in_asid(
             asid,
             virtual_addr,
             permissions,
@@ -55,5 +56,5 @@ pub fn unmap_page_in_asid(
 }
 
 pub fn translate_in_asid(asid: u32, virtual_addr: VirtAddr) -> Option<PhysAddr> {
-    PAGING_MANAGER.lock().translate_in_asid(asid, virtual_addr)
+    lock_responsive(&PAGING_MANAGER).translate_in_asid(asid, virtual_addr)
 }

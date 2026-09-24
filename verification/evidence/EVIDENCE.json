@@ -28,7 +28,7 @@
       "generated_files": [
         {
           "path": "verification/extraction/lean/NonosExtraction/Caps.lean",
-          "sha256": "a303dc29404bd30a804ce2829d597fa539cccd3e14ef9c0a8758a552a1ce2c99"
+          "sha256": "c4d405171f22fb70a5925f089ca11199746d1b5c44d5eabf0e582f704ba35982"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Irq.lean",
@@ -57,7 +57,7 @@
       "toolchain": "leanprover/lean4:v4.15.0"
     },
     "runnable": {
-      "proof_crates": 38
+      "proof_crates": 53
     },
     "verus": {
       "source_files": 5

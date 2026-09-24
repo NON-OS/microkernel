@@ -17,7 +17,7 @@
 use crate::syscall::abi::{tag4, AbiDomain, AbiEntry, AbiStatus};
 use crate::syscall::numbers::SyscallNumber;
 
-// All Mk* native syscalls. Every entry is Routed — the dispatcher
+// All Mk* native syscalls. Every entry is Routed, the dispatcher
 // match in `dispatch/router/dispatch_fn.rs` forwards each to
 // `microkernel::dispatch_microkernel_syscall`. Capability gates live
 // at `contract/cap_table/mk.rs`.
@@ -32,7 +32,6 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MSVR", SyscallNumber::MkServiceRegister, "MkServiceRegister"),
     e(b"MMAP", SyscallNumber::MkMmap, "MkMmap"),
     e(b"MUMP", SyscallNumber::MkMunmap, "MkMunmap"),
-    e(b"MSPN", SyscallNumber::MkSpawn, "MkSpawn"),
     e(b"MCLD", SyscallNumber::MkCapsuleLoad, "MkCapsuleLoad"),
     e(b"MEXT", SyscallNumber::MkExit, "MkExit"),
     e(b"MPAL", SyscallNumber::MkPidAlive, "MkPidAlive"),
@@ -55,6 +54,10 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MPIN", SyscallNumber::MkProcInput, "MkProcInput"),
     e(b"MSRD", SyscallNumber::MkStdinRead, "MkStdinRead"),
     e(b"MAST", SyscallNumber::MkAttestStatus, "MkAttestStatus"),
+    e(b"MADC", SyscallNumber::MkAttestDoc, "MkAttestDoc"),
+    e(b"MAEN", SyscallNumber::MkAttestEntries, "MkAttestEntries"),
+    e(b"MDRQ", SyscallNumber::MkDevRootRequest, "MkDevRootRequest"),
+    e(b"MDRC", SyscallNumber::MkDevRootConfirm, "MkDevRootConfirm"),
     e(b"MCGT", SyscallNumber::MkCapGrant, "MkCapGrant"),
     e(b"MCRV", SyscallNumber::MkCapRevoke, "MkCapRevoke"),
     e(b"MCCK", SyscallNumber::MkCapCheck, "MkCapCheck"),
@@ -87,6 +90,13 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MIED", SyscallNumber::MkInputEventDrain, "MkInputEventDrain"),
     e(b"MIEW", SyscallNumber::MkInputEventWait, "MkInputEventWait"),
     e(b"MSPI", SyscallNumber::MkSpawnInstance, "MkSpawnInstance"),
+    e(b"MFSP", SyscallNumber::MkForeignSpawn, "MkForeignSpawn"),
+    e(b"MFST", SyscallNumber::MkForeignStart, "MkForeignStart"),
+    e(b"MFWT", SyscallNumber::MkForeignWait, "MkForeignWait"),
+    e(b"MFRP", SyscallNumber::MkForeignReply, "MkForeignReply"),
+    e(b"MPMP", SyscallNumber::MkPeerMap, "MkPeerMap"),
+    e(b"MPCP", SyscallNumber::MkPeerCopy, "MkPeerCopy"),
+    e(b"MPPT", SyscallNumber::MkPeerProtect, "MkPeerProtect"),
     e(b"MTRN", SyscallNumber::MkToolRun, "MkToolRun"),
     e(b"MSOW", SyscallNumber::MkStdoutWrite, "MkStdoutWrite"),
     e(b"MSWR", SyscallNumber::MkStoreWrite, "MkStoreWrite"),

@@ -28,6 +28,7 @@ mod protocol;
 mod render;
 mod server;
 mod setup;
+mod sound;
 mod state;
 mod vfs_client;
 mod wait_for_setup;

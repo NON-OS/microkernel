@@ -20,14 +20,17 @@ use crate::security::nonos_id_cert::{
 };
 use crate::security::nonos_trust_anchor::NonosTrustAnchorPolicy;
 
-use crate::security::capsule_attest::Proved;
 use super::super::spec::{CapsuleSpecVerified, SpawnError};
+use crate::security::capsule_attest::Proved;
 
 pub(crate) struct Preflighted {
     /// What the spawn gate proved and who proved it, recorded once a pid
     /// exists. `None` when nothing was proved.
     pub proved: Option<Proved>,
     pub install_caps: u64,
+    /// The publisher-signed identity of manifest and image, checked by
+    /// `verify_with_publisher`.
+    pub capsule_id: [u8; 32],
 }
 
 pub(crate) fn run(
@@ -62,6 +65,8 @@ pub(crate) fn run(
         &declared,
     )?;
     let install_caps = verification.1;
+    crate::security::image_ceiling::would_refuse(spec.name, install_caps);
+    let capsule_id = verification.0.capsule_id;
     let required_caps = verification.0.manifest.required_caps;
     let namespace = verification.0.manifest.namespace_str();
     let proved = match super::tier::classify(namespace) {
@@ -71,5 +76,5 @@ pub(crate) fn run(
         }
     };
 
-    Ok(Preflighted { install_caps, proved })
+    Ok(Preflighted { install_caps, proved, capsule_id })
 }

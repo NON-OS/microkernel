@@ -21,7 +21,9 @@
 use super::init_arch_firmware::init_arch_firmware;
 use super::init_arch_framebuffer::init_arch_framebuffer;
 use super::init_arch_memory_and_framebuffer::init_arch_memory_and_framebuffer;
+use super::init_boot_entropy::init_boot_entropy;
 use super::init_core_services::init_core_services;
+use super::init_dma_protection::init_dma_protection;
 use super::init_runtime::{init_device_routing, init_process_runtime};
 use super::init_vm_and_protection::init_vm_and_protection;
 use crate::boot::handoff::KernelHandoff;
@@ -29,6 +31,10 @@ use crate::sys::boot_log;
 
 pub fn microkernel_init(handoff: &KernelHandoff) {
     crate::sys::bench::mark(b"microkernel_init_start");
+    // Ahead of every stage that derives from it. The canary and the allocator
+    // seeds read the boot nonce and fall back to a constant when it is unset,
+    // so a stage that runs before this one keeps the constant for the boot.
+    init_boot_entropy();
     init_arch_memory_and_framebuffer(handoff);
     let cursor_y = handoff.framebuffer.map(|fb| fb.cursor_y).unwrap_or(0);
     boot_log::init_after_fb(cursor_y);
@@ -37,6 +43,17 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
     init_arch_firmware(handoff);
     init_core_services(handoff);
     init_vm_and_protection();
+
+    // Immediately after paging, because reaching a remapping unit means
+    // mapping its register window, and long before any driver capsule is in
+    // a position to ask a device for DMA.
+    init_dma_protection();
+
+    // After the heap, because the AEAD check allocates its output, and before
+    // anything verifies a capsule signature. These primitives are what the
+    // kernel signs and seals with, and until this ran, nothing on the machine
+    // had ever checked them against a published answer.
+    let _ = crate::crypto::application::certification::run_selftest();
 
     // Runs here rather than earlier because seeding the broker walks PCI
     // config space, which needs the paging manager to hand out a register

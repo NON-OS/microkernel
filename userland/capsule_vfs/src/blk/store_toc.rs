@@ -28,6 +28,7 @@ use super::wire::SECTOR_SIZE;
 pub(super) const NAME_LEN: usize = 96;
 pub(super) const MAX_TOTAL_BYTES: u64 = 16 * 1024 * 1024;
 
+#[derive(Clone)]
 pub struct TocEntry {
     pub name: String,
     pub offset: u64,
@@ -46,7 +47,7 @@ pub fn decode(toc: &[u8], count: usize, capacity_bytes: u64) -> Result<Vec<TocEn
         let offset = le_u64(toc, base + NAME_LEN);
         let len = le_u64(toc, base + NAME_LEN + 8);
         let end = offset.checked_add(len).ok_or(BlkError::BadContainer)?;
-        if offset % SECTOR_SIZE as u64 != 0 || end > capacity_bytes || len > budget {
+        if !offset.is_multiple_of(SECTOR_SIZE as u64) || end > capacity_bytes || len > budget {
             return Err(BlkError::BadContainer);
         }
         budget -= len;
@@ -73,8 +74,5 @@ fn decode_name(field: &[u8]) -> Result<String, BlkError> {
 // The NUL and length bounds are implied for a name `decode_name` just carved
 // out of a fixed NUL-padded field, and are what the writer actually needs.
 pub(super) fn valid_name(name: &str) -> bool {
-    !name.is_empty()
-        && name.is_ascii()
-        && name.len() <= NAME_LEN
-        && !name.as_bytes().contains(&0)
+    !name.is_empty() && name.is_ascii() && name.len() <= NAME_LEN && !name.as_bytes().contains(&0)
 }

@@ -26,6 +26,38 @@ pub const OP_SIGN_NOX_STAKE: u16 = 17;
 pub const OP_SIGN_NOX_TRANSFER: u16 = 18;
 pub const OP_SIGN_NOX_UNSTAKE: u16 = 19;
 pub const OP_SIGN_NOX_STAKE_LOCKED: u16 = 20;
-pub const OP_WALLET_GENERATE_HD: u16 = 19;
-pub const OP_WALLET_RECOVER: u16 = 20;
+pub const OP_WALLET_GENERATE_HD: u16 = 21;
+pub const OP_WALLET_RECOVER: u16 = 22;
+pub const OP_VAULT_SEAL: u16 = 23;
+pub const OP_VAULT_OPEN: u16 = 24;
 pub const HDR_LEN: usize = 8;
+
+// Must match `capsule_keyring/src/protocol/types.rs`.
+const _: () = {
+    let ops = [
+        OP_WALLET_IMPORT,
+        OP_WALLET_ADDRESS,
+        OP_SIGN_NOX_APPROVE,
+        OP_SIGN_ETH_TRANSFER,
+        OP_LIST_WALLET_RAILS,
+        OP_WALLET_EXPORT,
+        OP_SIGN_NOX_STAKE_APPROVE,
+        OP_SIGN_NOX_STAKE,
+        OP_SIGN_NOX_TRANSFER,
+        OP_SIGN_NOX_UNSTAKE,
+        OP_SIGN_NOX_STAKE_LOCKED,
+        OP_WALLET_GENERATE_HD,
+        OP_WALLET_RECOVER,
+        OP_VAULT_SEAL,
+        OP_VAULT_OPEN,
+    ];
+    let mut i = 0;
+    while i < ops.len() {
+        let mut j = i + 1;
+        while j < ops.len() {
+            assert!(ops[i] != ops[j], "two keyring operations share an opcode");
+            j += 1;
+        }
+        i += 1;
+    }
+};

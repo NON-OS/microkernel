@@ -34,7 +34,7 @@ include $(sort $(wildcard mk/*.mk))
 # `make` with no target builds the shipping image, never nothing.
 .DEFAULT_GOAL := nonos
 
-.PHONY: nonos qemu qemu-serial usb hardware verify test bench doctor clean clean-all distclean fmt
+.PHONY: nonos run qemu qemu-serial usb hardware verify test bench doctor clean clean-all distclean fmt
 
 # ── The image that ships ─────────────────────────────────────────────────────
 # The full ZeroState system: every capsule and driver, TPM-measured boot, a
@@ -48,7 +48,14 @@ include $(sort $(wildcard mk/*.mk))
 # the same gate the kernel enforces, root embedding) run against the artifacts
 # just written, and the build receipt records the measured result. A build
 # that cannot prove what it produced does not get to say it is ready.
-nonos: nonos-mk-zerostate nonos-mk-esp nonos-mk-iso
+#
+# The kernel, the ESP and the ISO are built from the recipe rather than named
+# as prerequisites: prerequisites resolve in parallel, and packing an ESP
+# beside the link that produces its kernel puts the previous kernel on the
+# shipping image.
+nonos:
+	$(call nonos_kernel_and_esp,nonos-mk-zerostate)
+	@$(MAKE) --no-print-directory nonos-mk-iso
 	@$(MAKE) --no-print-directory nonos-mk-trust-ledger
 	@$(MAKE) --no-print-directory nonos-mk-verify-image
 	@echo
@@ -83,6 +90,21 @@ dev-qemu: nonos-mk-run-from-config
 # is exercised, not stubbed.
 qemu: nonos-mk-run
 
+# ── First boot ──────────────────────────────────────────────────────────────
+# `make run` builds and boots, whatever state the checkout is in. With an
+# enrolled identity it is the production boot; on a clean clone it mints the
+# development identity from the public seed, says so on the console, builds
+# and boots. One command, so nobody has to learn an internal target name to
+# see the desktop, and the warning is printed by the build, not hidden in a
+# doc.
+run:
+	@if [ -f "$(ZK_BOOT_ROOT)" ] && [ "$(NONOS_DEV)" != "1" ]; then \
+		$(MAKE) --no-print-directory nonos-mk-run; \
+	else \
+		$(MAKE) --no-print-directory nonos-mk-dev-run; \
+	fi
+.PHONY: run
+
 # Headless desktop cut, serial console to a log: the profile CI's boot harness
 # drives. Drops real-hardware-only drivers so the boot reaches ready under QEMU.
 qemu-serial: nonos-mk-run-serial-log
@@ -93,6 +115,15 @@ qemu-serial: nonos-mk-run-serial-log
 # is the kernel reporting how many cores it actually brought online.
 qemu-smp: nonos-mk-run-smp-serial-log
 .PHONY: qemu-smp
+# The same boot with DMA remapping hardware present. Every other lane gives
+# QEMU no IOMMU, so the kernel reports "DMA is unrestricted" and the VT-d
+# bring-up compiled into every image never executes. Slow: VT-d needs TCG.
+qemu-iommu: nonos-mk-run-iommu-serial-log
+.PHONY: qemu-iommu
+# Every machine the images claim to boot on, several times each. Slow by
+# design; BOOT_MATRIX_CELLS=q35-up BOOT_MATRIX_REPEAT=1 narrows it.
+boot-matrix: nonos-mk-boot-matrix
+.PHONY: boot-matrix
 # ── Boot it on real hardware ─────────────────────────────────────────────────
 # A GPT-partitioned image firmware will boot from a stick, which an El Torito
 # ISO is not dependable for. `make usb` builds it; add DISK=/dev/... to write
