@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Page-by-page byte transfer between kernel buffers and the
-//! physical frames behind a user virtual address. Every transfer
-//! window calls `walk::translate_read` or `walk::translate_write`
-//! itself; "validate ran earlier" is not a substitute. Bytes move
-//! at `DIRECTMAP_BASE + phys + offset`, never through the user VA.
+//! Page-by-page byte transfer between kernel buffers and the physical frames
+//! behind a user virtual address.
 
 use super::error::UsercopyError;
 use super::walk::{translate_read, translate_write, UserLeaf};
@@ -27,10 +24,11 @@ use crate::memory::layout::DIRECTMAP_BASE;
 pub(super) fn copy_from_user_directmap(user_ptr: u64, dst: &mut [u8]) -> Result<(), UsercopyError> {
     transfer(user_ptr, dst.len(), translate_read, |leaf, off, n| {
         let src = (DIRECTMAP_BASE + leaf.phys_base + leaf.offset) as *const u8;
-        // SAFETY: ek@nonos.systems — `leaf` came from `translate_read`
-        // so the underlying page is mapped, USER, and reachable
-        // through the directmap. `n` does not exceed the bytes
-        // remaining in the leaf page.
+        /*
+         * SAFETY: ek@nonos.systems - `leaf` came from `translate_read`
+         * so the page is mapped, USER, and reachable through the
+         * directmap, and `n` does not exceed the bytes left in it.
+         */
         unsafe { core::ptr::copy_nonoverlapping(src, dst[off..].as_mut_ptr(), n) };
     })
 }

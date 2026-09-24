@@ -29,6 +29,7 @@ pub enum UsercopyError {
     PageFault,
     NoProcessContext,
     SizeTooLarge,
+    NotTerminated,
     InvalidUtf8,
 }
 
@@ -43,6 +44,7 @@ impl fmt::Display for UsercopyError {
             Self::PageNotUser => write!(f, "page not accessible from userspace"),
             Self::PageNotWritable => write!(f, "page not writable"),
             Self::PageTableCorrupt => write!(f, "page table outside directmap"),
+            Self::NotTerminated => write!(f, "user string has no terminator"),
             Self::PageFault => write!(f, "page fault during access"),
             Self::NoProcessContext => write!(f, "no process context"),
             Self::SizeTooLarge => write!(f, "copy size too large"),
@@ -66,6 +68,7 @@ impl From<UsercopyError> for i32 {
             UsercopyError::NoProcessContext => -3,
             UsercopyError::SizeTooLarge => -12,
             UsercopyError::InvalidUtf8 => -22,
+            UsercopyError::NotTerminated => -36,
         }
     }
 }

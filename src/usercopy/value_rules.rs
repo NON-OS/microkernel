@@ -14,21 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bytes;
-mod copy;
-mod direct;
-mod error;
-mod policy;
-mod string;
-mod string_scan;
-mod validate;
-mod value;
-mod value_rules;
-mod walk;
-
-pub use bytes::*;
-pub use copy::*;
-pub use error::*;
-pub use string::*;
-pub use validate::*;
-pub use value::*;
+//! What a `T` must be to cross the typed accessors, and why neither rule is a
+//! bound the compiler checks.
