@@ -25,6 +25,8 @@ mod capsule_load;
 pub mod capsule_verify;
 pub mod crypto;
 pub mod debug;
+pub mod foreign;
+pub mod foreign_frame;
 pub mod graphics;
 #[cfg(feature = "heap")]
 pub mod heap;
@@ -69,6 +71,11 @@ pub use crypto::{
     MACHINE_KEY_NO_TPM, MACHINE_KEY_WRONG_STATE,
 };
 pub use debug::mk_debug;
+pub use foreign::{
+    mk_foreign_reply, mk_foreign_spawn, mk_foreign_start, mk_foreign_wait, mk_peer_map,
+    mk_peer_read, mk_peer_write, PEER_PROT_EXEC, PEER_PROT_WRITE,
+};
+pub use foreign_frame::ForeignFrame;
 pub use graphics::nonos_display_dimensions;
 #[cfg(feature = "heap")]
 pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
