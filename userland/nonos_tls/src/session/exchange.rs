@@ -22,6 +22,7 @@ use alloc::vec::Vec;
 use super::flight::read_flight;
 use super::response::read_response;
 use super::traits::{Io, SessionError};
+use crate::handshake_fault::handshake_fault;
 
 /// Bound on the handshake flight, so a server cannot make a caller allocate
 /// without limit before anything has been verified.
@@ -47,8 +48,9 @@ pub fn exchange<S: Io>(
     // The certificate chain is checked here, inside application_write. A
     // failure has to stop the request: sending it anyway would hand the
     // payload to whoever answered.
-    let out = crate::application_write(&cf, &flight, request, host.as_bytes(), now)
-        .ok_or(SessionError::Certificate)?;
+    let Some(out) = crate::application_write(&cf, &flight, request, host.as_bytes(), now) else {
+        return Err(handshake_fault(&cf, &flight, SessionError::Certificate));
+    };
 
     // Derive the server keys once, from the same verified handshake, so the
     // response decrypts without walking the chain again per record.
@@ -59,6 +61,6 @@ pub fn exchange<S: Io>(
     match app {
         Some(app) => Ok(crate::application_plaintext_cached(&app, &buf)),
         None => crate::application_plaintext(&cf, &flight, &buf, host.as_bytes(), now)
-            .ok_or(SessionError::Certificate),
+            .ok_or_else(|| handshake_fault(&cf, &flight, SessionError::Certificate)),
     }
 }
