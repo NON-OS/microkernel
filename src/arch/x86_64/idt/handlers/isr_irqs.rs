@@ -35,7 +35,6 @@ extern "C" {
     pub(crate) fn isr_irq13();
     pub(crate) fn isr_irq14();
     pub(crate) fn isr_irq15();
-    pub(crate) fn isr_generic_48();
     pub(crate) fn isr_ipi_64();
     pub(crate) fn isr_ipi_65();
     pub(crate) fn isr_ipi_66();
