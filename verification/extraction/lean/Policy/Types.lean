@@ -21,7 +21,7 @@ structure memory.paging.types.permissions.flags.PagePermissions where
   bits : Std.U32
 
 /-- [nonos_policy::usercopy::error::UsercopyError]
-    Source: 'src/usercopy/../../../../../src/usercopy/error.rs', lines 20:0-33:1
+    Source: 'src/usercopy/../../../../../src/usercopy/error.rs', lines 20:0-34:1
     Visibility: public -/
 @[discriminant isize]
 inductive usercopy.error.UsercopyError where
@@ -36,6 +36,7 @@ inductive usercopy.error.UsercopyError where
 | PageFault : usercopy.error.UsercopyError
 | NoProcessContext : usercopy.error.UsercopyError
 | SizeTooLarge : usercopy.error.UsercopyError
+| NotTerminated : usercopy.error.UsercopyError
 | InvalidUtf8 : usercopy.error.UsercopyError
 
 /-- [nonos_policy::usercopy::policy::UserRange]
