@@ -1,0 +1,32 @@
+# NONOS userland: tool_install
+# eK@nonos.systems
+#
+# `install` at the terminal prompt. Lists the disks the block drivers serve,
+# writes the running image to the one named, reads it back, prints a receipt.
+# The layout, the drivers and the confirmation word come from the same crates
+# the desktop installer uses, so the two never disagree about a disk.
+
+[package]
+name = "nonos_install_cli"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS installer, command line"
+
+[[bin]]
+name = "install-cli"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }
+nonos_disk = { path = "../nonos_disk" }
+nonos_blk_client = { path = "../nonos_blk_client" }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

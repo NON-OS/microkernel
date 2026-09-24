@@ -120,6 +120,15 @@ qemu-smp: nonos-mk-run-smp-serial-log
 # bring-up compiled into every image never executes. Slow: VT-d needs TCG.
 qemu-iommu: nonos-mk-run-iommu-serial-log
 .PHONY: qemu-iommu
+# The installer, end to end. `make qemu-install` boots the desktop with a blank
+# NVMe disk beside the store; open Install from the launcher and write it.
+# `make qemu-installed` then boots that disk alone, which is the proof: the
+# machine comes up from the disk the installer wrote, with no stick attached.
+# `make install-target-reset` blanks the target for another run.
+qemu-install: nonos-mk-run-install
+qemu-installed: nonos-mk-run-installed
+install-target-reset: nonos-mk-install-target-reset
+.PHONY: qemu-install qemu-installed install-target-reset
 # Every machine the images claim to boot on, several times each. Slow by
 # design; BOOT_MATRIX_CELLS=q35-up BOOT_MATRIX_REPEAT=1 narrows it.
 boot-matrix: nonos-mk-boot-matrix

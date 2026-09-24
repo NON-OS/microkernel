@@ -63,4 +63,5 @@ pub enum IconId {
     CalcProgrammer,
     CalcConvert,
     CalcHistory,
+    Install,
 }

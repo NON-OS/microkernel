@@ -49,6 +49,12 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          * programs that render a receipt hold it.
          */
         SyscallNumber::MkAttestEntries => caps.can_attest_read(),
+        /*
+         * The bytes of the image this machine booted, for writing to a
+         * disk. Public bytes, but a hundred megabytes of them; the same
+         * authority that lists disks is the one that installs to them.
+         */
+        SyscallNumber::MkInstallSource => caps.can_install_source(),
 
         /*
          * Enrolling a signing root changes which software this machine will

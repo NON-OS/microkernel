@@ -38,6 +38,7 @@ pub(crate) fn service() {
             PendingApp::ProcessManager => spawn_process_manager(),
             PendingApp::AudioPlayer => spawn_audio_player(),
             PendingApp::VideoPlayer => spawn_video_player(),
+            PendingApp::Install => spawn_install(),
         };
         match result {
             /*
@@ -200,5 +201,14 @@ fn spawn_video_player() -> Result<u32, SpawnError> {
 
 #[cfg(not(feature = "nonos-capsule-video-player"))]
 fn spawn_video_player() -> Result<u32, SpawnError> {
+    Err(SpawnError::FeatureDisabled)
+}
+
+#[cfg(feature = "nonos-capsule-install")]
+fn spawn_install() -> Result<u32, SpawnError> {
+    crate::userspace::capsule_install::spawn_install_instance()
+}
+#[cfg(not(feature = "nonos-capsule-install"))]
+fn spawn_install() -> Result<u32, SpawnError> {
     Err(SpawnError::FeatureDisabled)
 }

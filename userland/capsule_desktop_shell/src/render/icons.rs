@@ -49,6 +49,7 @@ fn icon_bytes(icon: LauncherIcon) -> &'static [u8] {
         LauncherIcon::ImageViewer => IconId::ImageViewer,
         LauncherIcon::AudioPlayer => IconId::AudioPlayer,
         LauncherIcon::VideoPlayer => IconId::VideoPlayer,
+        LauncherIcon::Install => IconId::Install,
     })
 }
 

@@ -111,6 +111,8 @@ nonos-capsule-image-codec       = []
 nonos-capsule-image-viewer      = []
 nonos-capsule-video-player      = []
 nonos-capsule-about             = []
+nonos-capsule-install           = []
+nonos-capsule-install-cli       = []
 nonos-capsule-audio-player      = []
 nonos-capsule-hello             = []
 nonos-capsule-boot-splash       = []
@@ -552,6 +554,8 @@ microkernel-desktop-base = [
   "nonos-capsule-wallpaper-catalog",
   "nonos-capsule-toolkit",
   "nonos-capsule-about",
+  "nonos-capsule-install",
+  "nonos-capsule-install-cli",
   "nonos-capsule-linux",
   "nonos-capsule-audio",
   "nonos-capsule-driver-hda",

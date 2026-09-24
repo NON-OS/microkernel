@@ -398,6 +398,55 @@ nonos-mk-run-smp-serial-log: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
 		-serial "file:$(QEMU_SMP_SERIAL_LOG)" -display none -no-reboot
+# The install lane. Boots the desktop with a blank NVMe disk attached beside
+# the virtio-blk store, so "Install NONOS" in the launcher has a target that
+# is not the disk the system is running from. The target image is sparse and
+# eight GiB: big enough to look like a real drive to the layout code, cheap
+# until something is written to it. A second target boots what the installer
+# wrote as the only disk, which is the proof that the disk it produced boots.
+INSTALL_TARGET_IMG := $(TARGET_DIR)/install-target.img
+
+$(INSTALL_TARGET_IMG):
+	@mkdir -p $(dir $@)
+	@truncate -s 8G $@
+
+.PHONY: nonos-mk-run-install nonos-mk-run-installed nonos-mk-install-target-reset
+nonos-mk-install-target-reset:
+	@rm -f $(INSTALL_TARGET_IMG)
+
+# The kernel build and the ESP packing are sequenced in the recipe, not
+# listed as prerequisites. Prerequisites run in parallel under -j, and the
+# ESP rule re-drives the signing chain against whatever ELF is on disk at
+# that moment: with the featured kernel still linking, that was the previous
+# build, and the ESP shipped a kernel without the NVMe driver or the
+# installer while the log said both were in.
+nonos-mk-run-install: nonos-mk-swtpm-start $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW) $(INSTALL_TARGET_IMG)
+	@$(MAKE) --no-print-directory nonos-mk-install-prod
+	@$(MAKE) --no-print-directory nonos-mk-esp
+	@echo "Booting NONOS with a blank NVMe install target..."
+	@echo "  Target: $(INSTALL_TARGET_IMG) (nvme, serial NONOS-TARGET)"
+	@echo "  Quit: Ctrl+A then X"
+	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
+		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
+		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
+		$(QEMU_BLK) \
+		-drive "file=$(INSTALL_TARGET_IMG),if=none,id=tgt,format=raw" \
+		-device nvme,drive=tgt,serial=NONOS-TARGET \
+		$(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) $(QEMU_TPM) \
+		-serial mon:stdio -vga none -display $(QEMU_DISPLAY) -no-reboot
+
+nonos-mk-run-installed: nonos-mk-swtpm-start $(QEMU_OVMF_VARS_RW)
+	@test -f $(INSTALL_TARGET_IMG) || { echo "no install target yet: run make qemu-install and install first"; exit 1; }
+	@echo "Booting the disk the installer wrote, as the only disk..."
+	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
+		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
+		-drive "file=$(INSTALL_TARGET_IMG),if=none,id=tgt,format=raw" \
+		-device nvme,drive=tgt,serial=NONOS-TARGET \
+		$(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) $(QEMU_TPM) \
+		-serial mon:stdio -vga none -display $(QEMU_DISPLAY) -no-reboot
+
 # The DMA-protection boot. Every other lane starts QEMU with no remapping
 # hardware, so the kernel finds an empty DMAR and says so:
 #

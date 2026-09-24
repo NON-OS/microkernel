@@ -27,6 +27,7 @@ use crate::syscall::microkernel::capsule_load::sys_capsule_load;
 use crate::syscall::microkernel::capsule_verify::sys_capsule_verify;
 use crate::syscall::microkernel::enrol_dev_root::{sys_dev_root_confirm, sys_dev_root_request};
 use crate::syscall::microkernel::futex::{sys_futex_wait, sys_futex_wake};
+use crate::syscall::microkernel::install_source::sys_install_source;
 use crate::syscall::microkernel::kill::sys_kill;
 use crate::syscall::microkernel::memory::{sys_mmap, sys_munmap};
 use crate::syscall::microkernel::numbers::*;
@@ -76,6 +77,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_ATTEST_STATUS => sys_attest_status(a.a0),
         SYS_ATTEST_DOC => sys_attest_doc(a.a0, a.a1, a.a2),
         SYS_ATTEST_ENTRIES => sys_attest_entries(a.a0, a.a1),
+        SYS_INSTALL_SOURCE => sys_install_source(a.a0, a.a1, a.a2, a.a3),
         SYS_FOREIGN_SPAWN => sys_foreign_spawn(a.a0, a.a1),
         SYS_FOREIGN_START => sys_foreign_start(a.a0, a.a1, a.a2),
         SYS_FOREIGN_WAIT => sys_foreign_wait(a.a0, a.a1, a.a2),

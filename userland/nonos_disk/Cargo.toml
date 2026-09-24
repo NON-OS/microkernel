@@ -1,0 +1,21 @@
+# NONOS userland: nonos_disk
+# eK@nonos.systems
+#
+# Writes a bootable NONOS disk: a protective MBR, a GPT with one EFI system
+# partition, and a FAT32 volume carrying the bootloader and the attested
+# kernel image. Pure layout code over a sector sink, so the installer capsule
+# and the host tests drive the same bytes; the host tests mount the result
+# with mtools and read every file back.
+
+[package]
+name = "nonos_disk"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "GPT and FAT32 writer for the NONOS installer"
+
+[lib]
+
+[dependencies]
