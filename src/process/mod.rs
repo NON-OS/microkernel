@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod accounting;
 pub mod address_space;
 pub mod alarm;
 pub mod api;
@@ -22,6 +23,7 @@ pub mod context;
 pub mod core;
 pub mod exit;
 pub mod fd_table;
+pub mod foreign;
 pub mod fd_types;
 pub mod manager;
 pub mod mmap_va;

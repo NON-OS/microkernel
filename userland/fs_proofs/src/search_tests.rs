@@ -65,7 +65,7 @@ fn search_skips_binary_content() {
 #[test]
 fn search_matches_directory_names_with_their_own_kind() {
     let mut s = Store::new();
-    s.mkdir("/reports").unwrap();
+    s.mkdir("/reports", 1).unwrap();
     put(&mut s, "/reports/q1.txt", b"x");
     let hits = s.search("report", SEARCH_NAMES, 512);
     assert_eq!(
@@ -77,6 +77,6 @@ fn search_matches_directory_names_with_their_own_kind() {
 #[test]
 fn search_never_reads_content_out_of_a_directory() {
     let mut s = Store::new();
-    s.mkdir("/needle").unwrap();
+    s.mkdir("/needle", 1).unwrap();
     assert!(s.search("needle", SEARCH_CONTENT, 512).is_empty());
 }

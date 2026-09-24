@@ -15,6 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::args::Args;
+use crate::process::foreign::{
+    sys_foreign_reply, sys_foreign_spawn, sys_foreign_start, sys_foreign_wait, sys_peer_copy,
+    sys_foreign_thread, sys_peer_map, sys_peer_protect,
+};
 use crate::syscall::microkernel::attest::sys_attest_status;
 use crate::syscall::microkernel::attest_doc::sys_attest_doc;
 use crate::syscall::microkernel::attest_entries::sys_attest_entries;
@@ -74,6 +78,14 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_ATTEST_DOC => sys_attest_doc(a.a0, a.a1, a.a2),
         SYS_ATTEST_ENTRIES => sys_attest_entries(a.a0, a.a1),
         SYS_INSTALL_SOURCE => sys_install_source(a.a0, a.a1, a.a2, a.a3),
+        SYS_FOREIGN_SPAWN => sys_foreign_spawn(a.a0, a.a1),
+        SYS_FOREIGN_START => sys_foreign_start(a.a0, a.a1, a.a2),
+        SYS_FOREIGN_WAIT => sys_foreign_wait(a.a0, a.a1, a.a2),
+        SYS_FOREIGN_REPLY => sys_foreign_reply(a.a0, a.a1),
+        SYS_PEER_MAP => sys_peer_map(a.a0, a.a1, a.a2, a.a3),
+        SYS_PEER_COPY => sys_peer_copy(a.a0, a.a1, a.a2, a.a3, a.a4),
+        SYS_PEER_PROTECT => sys_peer_protect(a.a0, a.a1, a.a2, a.a3),
+        SYS_FOREIGN_THREAD => sys_foreign_thread(a.a0, a.a1, a.a2, a.a3),
         SYS_DEV_ROOT_REQUEST => sys_dev_root_request(a.a0),
         SYS_DEV_ROOT_CONFIRM => sys_dev_root_confirm(a.a0),
         SYS_SPAWN_INSTANCE => sys_spawn_instance(a.a0, a.a1),

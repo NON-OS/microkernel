@@ -16,9 +16,10 @@
 
 use super::globals::PAGING_MANAGER;
 use crate::memory::paging::error::PagingResult;
+use crate::smp::lock_responsive;
 
 pub fn create_address_space(process_id: u32) -> PagingResult<u32> {
-    let mut mgr = PAGING_MANAGER.lock();
+    let mut mgr = lock_responsive(&PAGING_MANAGER);
     if !mgr.is_initialized() {
         mgr.init()?;
     }
@@ -26,15 +27,15 @@ pub fn create_address_space(process_id: u32) -> PagingResult<u32> {
 }
 
 pub fn switch_address_space(asid: u32) -> PagingResult<()> {
-    PAGING_MANAGER.lock().switch_address_space(asid)
+    lock_responsive(&PAGING_MANAGER).switch_address_space(asid)
 }
 
 pub fn cleanup_address_space(asid: u32) -> PagingResult<()> {
-    PAGING_MANAGER.lock().cleanup_address_space(asid)
+    lock_responsive(&PAGING_MANAGER).cleanup_address_space(asid)
 }
 
 pub fn lookup_asid_for_process(process_id: u32) -> Option<u32> {
-    PAGING_MANAGER.lock().lookup_asid_for_process(process_id)
+    lock_responsive(&PAGING_MANAGER).lookup_asid_for_process(process_id)
 }
 
 pub fn switch_to_process_address_space(process_id: u32) -> PagingResult<()> {
@@ -44,7 +45,7 @@ pub fn switch_to_process_address_space(process_id: u32) -> PagingResult<()> {
 }
 
 pub fn get_process_cr3(process_id: u32) -> Option<u64> {
-    let mgr = PAGING_MANAGER.lock();
+    let mgr = lock_responsive(&PAGING_MANAGER);
     for (_, addr_space) in mgr.address_spaces.iter() {
         if addr_space.process_id == process_id {
             return Some(addr_space.cr3_value.as_u64());

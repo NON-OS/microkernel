@@ -13,9 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Taking a new theme.
+
 use core::sync::atomic::Ordering;
 
-use super::state::{ACCENT, BG, BORDER, REVISION, SURFACE, TEXT};
+use super::state::{ACCENT, BG, BORDER, MUTED, QUIET, REVISION, SURFACE, TEXT};
 use super::theme::Theme;
 
 pub fn replace(new: Theme) {
@@ -24,5 +27,12 @@ pub fn replace(new: Theme) {
     ACCENT.store(new.accent_argb, Ordering::Release);
     TEXT.store(new.text_argb, Ordering::Release);
     BORDER.store(new.border_argb, Ordering::Release);
+    MUTED.store(new.muted_argb, Ordering::Release);
+    QUIET.store(new.quiet_argb, Ordering::Release);
+    /*
+     * Last, and after the colours it describes. A reader that saw a new revision
+     * would repaint, and repainting between the stores would draw half of one theme
+     * and half of another.
+     */
     REVISION.fetch_add(1, Ordering::AcqRel);
 }

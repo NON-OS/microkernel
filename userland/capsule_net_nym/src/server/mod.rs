@@ -16,6 +16,7 @@
 
 mod authz;
 mod connect_tick;
+mod directory_clock;
 mod directory_outcome;
 mod directory_tick;
 mod rebind;

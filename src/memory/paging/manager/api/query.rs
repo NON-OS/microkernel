@@ -17,9 +17,10 @@
 use super::globals::PAGING_MANAGER;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::types::{PageMapping, PagePermissions};
+use crate::smp::lock_responsive;
 
 pub fn translate_address(virtual_addr: VirtAddr) -> Option<PhysAddr> {
-    PAGING_MANAGER.lock().translate_address(virtual_addr).ok()
+    lock_responsive(&PAGING_MANAGER).translate_address(virtual_addr).ok()
 }
 
 pub fn is_mapped(virtual_addr: VirtAddr) -> bool {
@@ -27,7 +28,7 @@ pub fn is_mapped(virtual_addr: VirtAddr) -> bool {
 }
 
 pub fn get_mapping_info(virtual_addr: VirtAddr) -> Option<PageMapping> {
-    PAGING_MANAGER.lock().get_mapping_info(virtual_addr).cloned()
+    lock_responsive(&PAGING_MANAGER).get_mapping_info(virtual_addr).cloned()
 }
 
 pub fn get_page_permissions(virtual_addr: VirtAddr) -> Option<PagePermissions> {
@@ -37,15 +38,15 @@ pub fn get_page_permissions(virtual_addr: VirtAddr) -> Option<PagePermissions> {
 // Active CR3 as recorded by the paging manager. `None` until
 // `manager::api::init()` has run.
 pub fn active_page_table() -> Option<PhysAddr> {
-    PAGING_MANAGER.lock().active_page_table()
+    lock_responsive(&PAGING_MANAGER).active_page_table()
 }
 
 // Number of registered address spaces. Used by boot-time validation
 // to confirm `create_kernel_address_space` ran inside `init()`.
 pub fn address_spaces_count() -> usize {
-    PAGING_MANAGER.lock().address_spaces_count()
+    lock_responsive(&PAGING_MANAGER).address_spaces_count()
 }
 
 pub fn active_asid() -> Option<u32> {
-    PAGING_MANAGER.lock().active_asid()
+    lock_responsive(&PAGING_MANAGER).active_asid()
 }

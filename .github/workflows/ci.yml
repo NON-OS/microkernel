@@ -17,7 +17,7 @@ defaults:
     shell: bash
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -64,6 +64,7 @@ jobs:
   # set verified against every rebuilt capsule. Tag-only gates hid every
   # release failure so far; this one runs here first.
   production-build:
+    if: github.actor != 'dependabot[bot]' && github.event.pull_request.user.login != 'dependabot[bot]'
     uses: ./.github/workflows/ci-build.yml
     secrets: inherit
     with:

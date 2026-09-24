@@ -70,6 +70,8 @@ pub(crate) fn preempt_current_process() {
         Some(next) if next != curr_pid => {
             SCHEDULER_STATS.context_switches.fetch_add(1, Ordering::Relaxed);
             SCHEDULER_STATS.preemptions.fetch_add(1, Ordering::Relaxed);
+            crate::process::accounting::bump(next, crate::process::accounting::Kind::Switch);
+            crate::process::accounting::bump_total(crate::process::accounting::Total::Switches);
             trace(b"switch away", curr_pid);
             switch_to_process(next);
         }
