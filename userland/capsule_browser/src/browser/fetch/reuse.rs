@@ -57,6 +57,7 @@ pub(crate) fn try_reuse(state: &mut State, url: &Url, key: &str) -> Option<Fetch
         idle: 0,
         started_ms: mk_time_millis(),
         error: None,
+        tls_alert: None,
         suppress: true,
         image: Some(String::from(key)),
         last_check: 0,

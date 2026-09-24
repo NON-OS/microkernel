@@ -20,14 +20,12 @@ use alloc::vec::Vec;
 
 pub struct Incoming {
     pub kind: u8,
+    /// The nonce the frame was sealed under.
+    pub nonce: [u8; NONCE_BYTES],
     pub plaintext: Vec<u8>,
 }
 
 /// Unwrap a gateway frame, rejecting anything that fails authentication.
-///
-/// An unencrypted frame is refused rather than passed through: the flag is
-/// attacker-controlled, so honouring a zero would let anyone on the path hand
-/// us plaintext we would treat as the gateway's.
 pub fn parse_blob(raw: &[u8], key: &[u8; 32]) -> Option<Incoming> {
     if raw.len() < HEADER_BYTES + NONCE_BYTES {
         return None;
@@ -38,5 +36,5 @@ pub fn parse_blob(raw: &[u8], key: &[u8; 32]) -> Option<Incoming> {
     let mut nonce = [0u8; NONCE_BYTES];
     nonce.copy_from_slice(&raw[HEADER_BYTES..HEADER_BYTES + NONCE_BYTES]);
     let plaintext = open(key, &nonce, &[], &raw[HEADER_BYTES + NONCE_BYTES..])?;
-    Some(Incoming { kind: raw[0], plaintext })
+    Some(Incoming { kind: raw[0], nonce, plaintext })
 }

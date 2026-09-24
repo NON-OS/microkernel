@@ -34,6 +34,7 @@ mod table;
 mod timing;
 
 pub use ack_key::ack_key;
+pub use replay::ReplayWindow;
 pub use authority::{install as install_authority, trusted as trusted_authority};
 pub use bootstrap::{bootstrap_gateway, BOOTSTRAP_GATEWAYS};
 pub use bootstrap_mix::{bootstrap_route, BOOTSTRAP_MIXNODES, PER_LAYER};

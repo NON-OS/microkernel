@@ -25,14 +25,6 @@ pub fn volatile_write_u8(ptr: *mut u8, value: u8) {
 }
 
 #[inline(always)]
-pub fn volatile_write_u64(ptr: *mut u64, value: u64) {
-    // SAFETY: caller ensures ptr is valid and aligned
-    unsafe {
-        core::ptr::write_volatile(ptr, value);
-    }
-}
-
-#[inline(always)]
 pub fn volatile_read_u8(ptr: *const u8) -> u8 {
     // SAFETY: caller ensures ptr is valid
     unsafe { core::ptr::read_volatile(ptr) }

@@ -143,6 +143,7 @@ pub(super) fn recv_from_inbox(
             if crate::usercopy::copy_to_user(buf, &msg.data[..copy_len]).is_err() {
                 return ERRNO_FAULT;
             }
+            crate::process::accounting::bump(pid, crate::process::accounting::Kind::IpcRx);
             return copy_len as i64;
         }
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
@@ -158,6 +159,7 @@ pub(super) fn recv_from_inbox(
             if crate::usercopy::copy_to_user(buf, &msg.data[..copy_len]).is_err() {
                 return ERRNO_FAULT;
             }
+            crate::process::accounting::bump(pid, crate::process::accounting::Kind::IpcRx);
             return copy_len as i64;
         }
         trace(b"before yield", pid);

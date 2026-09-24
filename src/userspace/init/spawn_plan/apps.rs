@@ -17,6 +17,7 @@
 pub(super) fn spawn() {
     spawn_input_proof();
     spawn_about();
+    spawn_nonos_install();
     spawn_hello();
     spawn_calculator();
     spawn_clock();
@@ -26,6 +27,7 @@ pub(super) fn spawn() {
     spawn_terminal();
     spawn_file_manager();
     spawn_audio_player();
+    spawn_linux();
     super::apps_tools::spawn();
 }
 
@@ -49,6 +51,21 @@ fn spawn_about() {
 }
 #[cfg(not(feature = "nonos-capsule-about"))]
 fn spawn_about() {}
+
+// The install ritual is console-only and spawns at boot; an image built
+// with this feature is a live installer image by definition.
+#[cfg(feature = "nonos-capsule-nonos-install")]
+fn spawn_nonos_install() {
+    use crate::userspace::capsule_nonos_install as c;
+    super::boot::capsule(
+        "APP-NONOS-INSTALL",
+        "app_nonos_install",
+        c::spawn_nonos_install_capsule,
+        c::shared_state,
+    );
+}
+#[cfg(not(feature = "nonos-capsule-nonos-install"))]
+fn spawn_nonos_install() {}
 
 #[cfg(feature = "nonos-capsule-hello")]
 fn spawn_hello() {
@@ -146,3 +163,17 @@ fn spawn_snake() {
 }
 #[cfg(not(feature = "nonos-capsule-snake"))]
 fn spawn_snake() {}
+
+/*
+ * The Linux personality. Spawned at boot while it hosts one embedded
+ * guest and proves the mechanism; once it takes its guest from the
+ * filesystem it moves to the on-demand path the other apps use.
+ */
+#[cfg(feature = "nonos-capsule-linux")]
+fn spawn_linux() {
+    use crate::userspace::capsule_linux as c;
+    super::boot::capsule("APP-LINUX", "app_linux", c::spawn_linux_capsule, c::shared_state);
+}
+
+#[cfg(not(feature = "nonos-capsule-linux"))]
+fn spawn_linux() {}
