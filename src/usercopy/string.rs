@@ -14,18 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Read a NUL-terminated user string. Range rules come from
-//! `policy::check_range`; per-page translation comes from
-//! `walk::translate_read`. The kernel never dereferences the user
-//! virtual address directly; the byte scan reads at
-//! `DIRECTMAP_BASE + phys + offset`, bounded by the bytes remaining
-//! in the current leaf.
+//! Read a NUL-terminated user string.
 
 use super::error::UsercopyError;
-use super::policy::check_range;
-use super::walk::translate_read;
+use super::policy::{check_range, USER_SPACE_END};
+use super::string_scan::scan_until_nul;
 use crate::arch::run_without_interrupts;
-use crate::memory::layout::DIRECTMAP_BASE;
 
 const MAX_STRING_LEN: usize = 4096;
 
@@ -33,7 +27,9 @@ pub fn read_user_string(
     user_ptr: u64,
     max_len: usize,
 ) -> Result<alloc::string::String, UsercopyError> {
-    let safe_len = max_len.min(MAX_STRING_LEN);
+    // Bounded by what is left of the user half as well as by the ceiling.
+    let room = USER_SPACE_END.saturating_sub(user_ptr).saturating_add(1);
+    let safe_len = max_len.min(MAX_STRING_LEN).min(room as usize);
     if check_range(user_ptr, safe_len)?.is_none() {
         return Ok(alloc::string::String::new());
     }
@@ -41,28 +37,4 @@ pub fn read_user_string(
     let actual_len = run_without_interrupts(|| scan_until_nul(user_ptr, safe_len, &mut buf))?;
     buf.truncate(actual_len);
     alloc::string::String::from_utf8(buf).map_err(|_| UsercopyError::InvalidUtf8)
-}
-
-fn scan_until_nul(user_ptr: u64, safe_len: usize, buf: &mut [u8]) -> Result<usize, UsercopyError> {
-    let mut cursor = 0usize;
-    while cursor < safe_len {
-        let va = user_ptr.checked_add(cursor as u64).ok_or(UsercopyError::AddressOverflow)?;
-        let leaf = translate_read(va)?;
-        let bytes_in_page = leaf.bytes_remaining_in_page() as usize;
-        let take = bytes_in_page.min(safe_len - cursor);
-        let src = (DIRECTMAP_BASE + leaf.phys_base + leaf.offset) as *const u8;
-        for i in 0..take {
-            // SAFETY: ek@nonos.systems — `leaf` came from
-            // `translate_read`; the read targets directmap memory
-            // covered by the caller's CR3. The byte read is volatile
-            // so the compiler does not collapse the NUL scan.
-            let byte = unsafe { core::ptr::read_volatile(src.add(i)) };
-            if byte == 0 {
-                return Ok(cursor + i);
-            }
-            buf[cursor + i] = byte;
-        }
-        cursor += take;
-    }
-    Ok(cursor)
 }

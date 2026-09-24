@@ -44,7 +44,7 @@
         },
         {
           "path": "verification/extraction/lean/Policy/Types.lean",
-          "sha256": "697e73e7dd6dfeaface785514d527f787b54d8703492e8f8dae621f40960172f"
+          "sha256": "d6cc172c4b84236bf414de2073a36f24c32fd635a98003e74adc2808d6f08a0f"
         }
       ]
     },
