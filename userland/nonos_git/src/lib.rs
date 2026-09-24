@@ -14,23 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Git's object model for the NONOS terminal, from scratch and `no_std`.
+//! Git for the NONOS terminal, from scratch and `no_std`.
 //!
-//! A git repository is a content-addressed store: every blob, tree and commit
-//! is named by the SHA-1 of its framed bytes, `<type> <size>\0<content>`. This
-//! crate is that core, the part that must agree with real git bit for bit so a
-//! repository written here is one `git` can read and one written by `git` reads
-//! here. It owns the hash, the object framing, and the object id; the store on
-//! disk and the higher commands build on top.
-//!
-//! Everything is pure and deterministic, so it is proven on the host against
-//! the hashes real `git` produces for the same content.
+//! Every object is named by the SHA-1 of its framed bytes. This crate is that
+//! model, packfiles both ways, the wire protocol, and clone and push over a
+//! transport it does not implement. It has to agree with real git bit for bit,
+//! so it is checked against real git rather than against itself.
 
 #![cfg_attr(not(test), no_std)]
 
 extern crate alloc;
 
 mod commit;
+pub(crate) mod config;
 mod index;
 mod object;
 mod odb;
@@ -47,11 +43,15 @@ mod wire;
 mod zlib;
 
 pub use commit::{parse as parse_commit, Commit, CommitError, Signature};
+pub use config::{remote_url, set_remote};
 pub use index::{IndexEntry, IndexError};
 pub use object::{frame, unframe, ObjectKind};
 pub use odb::{read_object, write_object, OdbError};
 pub use oid::ObjectId;
-pub use pack::{read_pack, write_pack, PackError, PackObject};
+pub use pack::{
+    build_index_rows, index_entries, pack_lookup, read_pack, write_pack, write_pack_index,
+    PackError, PackObject,
+};
 pub use refs::{is_valid_ref_name, read_head, resolve_head, set_head_branch, update_ref, Head};
 pub use remote::{clone, discover, fetch, push};
 pub use repo::{

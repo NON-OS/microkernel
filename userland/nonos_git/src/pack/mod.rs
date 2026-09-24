@@ -19,14 +19,20 @@
 //! Most objects arrive as deltas against another object in the same pack, so
 //! reading one means resolving those chains before anything can be stored.
 
+mod checksum;
 mod delta;
 mod entry;
 mod error;
 mod header;
+mod index;
 mod reader;
 mod varint;
 mod write;
 
 pub use error::PackError;
-pub use reader::{read_pack, PackObject};
+pub use index::{
+    build as build_index_rows, entries as index_entries, lookup as pack_lookup,
+    write_index as write_pack_index,
+};
+pub use reader::{read_at, read_pack, PackObject};
 pub use write::write_pack;

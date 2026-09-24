@@ -17,25 +17,20 @@
 
 extern crate alloc;
 
-use crate::odb::write_object;
-use crate::pack::read_pack;
+use crate::odb::store_pack_files;
 use crate::storage::Storage;
 
 use super::super::error::RepoError;
 
-/// Write every object a pack carries into `git_dir`, returning how many landed.
+/// Store a fetched pack, returning how many objects it carries.
 ///
-/// The reader recomputes each id from the object it reconstructed, so a pack
-/// that claims one thing and delivers another is rejected before anything is
-/// written.
+/// The pack is kept whole with an index beside it, which is what git does and
+/// what makes a repository of any size workable: exploding it would mean one
+/// file per object and the whole tree resident at once.
 pub fn store_pack<S: Storage>(
     storage: &mut S,
     git_dir: &str,
     pack: &[u8],
 ) -> Result<usize, RepoError> {
-    let objects = read_pack(pack)?;
-    for object in &objects {
-        write_object(storage, git_dir, object.kind, &object.data)?;
-    }
-    Ok(objects.len())
+    Ok(store_pack_files(storage, git_dir, pack)?)
 }
