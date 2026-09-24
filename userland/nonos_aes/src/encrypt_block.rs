@@ -17,8 +17,8 @@
 //! The forward cipher: one block, ten rounds, in place.
 
 use crate::mix_columns::mix_columns;
-use crate::sbox::SBOX;
 use crate::shift_rows::shift_rows;
+use crate::sub_byte::sub_byte;
 use crate::types::{Aes128, BLOCK_BYTES, ROUNDS};
 
 impl Aes128 {
@@ -47,6 +47,6 @@ impl Aes128 {
 
 fn sub_bytes(block: &mut [u8; BLOCK_BYTES]) {
     for byte in block.iter_mut() {
-        *byte = SBOX[*byte as usize];
+        *byte = sub_byte(*byte);
     }
 }

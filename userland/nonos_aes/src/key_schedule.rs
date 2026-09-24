@@ -16,7 +16,7 @@
 
 //! Expanding a 16 byte key into eleven round keys.
 
-use crate::sbox::SBOX;
+use crate::sub_byte::sub_byte;
 use crate::types::{Aes128, EXPANDED_BYTES, KEY_BYTES};
 
 const RCON: [u8; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36];
@@ -31,10 +31,10 @@ impl Aes128 {
                 [round_keys[at - 4], round_keys[at - 3], round_keys[at - 2], round_keys[at - 1]];
             if at.is_multiple_of(KEY_BYTES) {
                 word = [
-                    SBOX[word[1] as usize] ^ RCON[at / KEY_BYTES - 1],
-                    SBOX[word[2] as usize],
-                    SBOX[word[3] as usize],
-                    SBOX[word[0] as usize],
+                    sub_byte(word[1]) ^ RCON[at / KEY_BYTES - 1],
+                    sub_byte(word[2]),
+                    sub_byte(word[3]),
+                    sub_byte(word[0]),
                 ];
             }
             for (offset, byte) in word.iter().enumerate() {
