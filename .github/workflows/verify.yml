@@ -20,7 +20,7 @@ defaults:
 # Cancel superseded runs on the same ref so a fast push does not pile up
 # redundant verification passes.
 concurrency:
-  group: verify-${{ github.ref }}
+  group: verify-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
