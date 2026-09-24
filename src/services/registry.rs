@@ -29,17 +29,12 @@ pub(crate) use adopt::adopt_endpoint;
 pub use endpoint::ServiceEndpoint;
 pub use error::RegError;
 pub use policy::required_caps;
-pub(crate) use reserved::is_reserved_service;
+pub(crate) use reserved::{is_reserved_service, is_runtime_registrable};
 
 pub const MAX_SERVICES: usize = 256;
 pub(self) static ENDPOINTS: Mutex<Vec<ServiceEndpoint>> = Mutex::new(Vec::new());
 
-/// Register a service endpoint on behalf of `pid`. This is the trusted core
-/// path: the kernel spawn path calls it to publish a verified capsule's own
-/// declared endpoint, so the only authorization it enforces is that `pid`
-/// actually holds the capabilities the endpoint advertises. The runtime
-/// `sys_service_register` syscall layers the caller-side register-right check
-/// on top before reaching here (see `caller_has_register_right`).
+/// Register a service endpoint on behalf of `pid`.
 pub fn register_endpoint(name: &str, port: u32, pid: u32, caps: u64) -> Result<(), RegError> {
     if !auth::owner_has_required(pid, caps) {
         return Err(RegError::PermissionDenied);
@@ -59,9 +54,7 @@ pub fn register_endpoint(name: &str, port: u32, pid: u32, caps: u64) -> Result<(
 }
 
 /// True if the current process is allowed to register a service name it does
-/// not already own. Gates the runtime `sys_service_register` syscall so an
-/// ordinary capsule cannot squat a peer's service; publishers granted
-/// `RegisterService` (e.g. net.core) pass.
+/// not already own.
 pub(crate) fn caller_has_register_right() -> bool {
     auth::caller_has_register_right()
 }
@@ -81,11 +74,7 @@ pub fn unregister_endpoints_for_pid(pid: u32) -> usize {
     before - eps.len()
 }
 
-/// Drop the endpoint registered under `name`, whoever owns it. A capsule's
-/// reply endpoint is registered kernel-owned (pid 0), so it is not caught by
-/// the per-pid sweep on teardown; without this an on-demand instance that
-/// closes would leak its reply endpoint and the next spawn of the same slot
-/// would collide on it. Returns true if an entry was removed.
+/// Drop the endpoint registered under `name`, whoever owns it.
 pub fn unregister_endpoint_by_name(name: &str) -> bool {
     let mut eps = ENDPOINTS.lock();
     let before = eps.len();

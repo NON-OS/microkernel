@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the TLS client. Builds for the host so `cargo test`
+# runs the real nonos_tls source (included via #[path]) against bytes captured
+# from a live Anyone relay. The crate had no tests of any kind before this, and
+# five capsules depend on it.
+[package]
+name = "tls_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

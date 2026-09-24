@@ -21,6 +21,7 @@ mod entry_presets;
 pub mod error;
 pub mod fs_gs;
 mod guard_api;
+mod guard_query;
 mod guarded_stack;
 pub mod ops;
 mod ops_init;
@@ -47,6 +48,7 @@ pub use fs_gs::{
     swapgs,
 };
 pub use guard_api::{arm_ap_guards, arm_bsp_guards, guards_per_cpu};
+pub use guard_query::is_stack_guard;
 pub use ops::{
     get_ist, get_kernel_stack, init, init_ap, is_initialized, set_ist, set_kernel_stack,
 };

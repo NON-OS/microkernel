@@ -22,7 +22,7 @@ use super::tone;
 use crate::mixer::{Mixer, SAMPLES};
 use crate::sink::Sink;
 
-const TONE_PAYLOAD: usize = 12;
+use nonos_audio_proto::TONE_PAYLOAD_LEN as TONE_PAYLOAD;
 const PCM_HDR: usize = 8;
 const STREAM_FEED_HDR: usize = 8;
 

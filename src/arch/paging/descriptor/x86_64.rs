@@ -74,6 +74,16 @@ pub const fn is_writable(entry: u64) -> bool {
     entry & flags::WRITABLE != 0
 }
 
+/// True when instructions may be fetched from a leaf this entry maps.
+///
+/// Presence is part of the question, as it is for `is_block`: an absent entry
+/// maps nothing, and its execute-never bit says nothing about a page that is
+/// not there.
+#[inline]
+pub const fn is_executable(entry: u64) -> bool {
+    is_present(entry) && entry & flags::NO_EXECUTE == 0
+}
+
 /// True when EL0 / ring 3 may reach a leaf mapped by this entry.
 #[inline]
 pub const fn is_user(entry: u64) -> bool {
