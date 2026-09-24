@@ -15,9 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Reading a whole pack into resolved objects.
 
+mod chain;
 mod object;
+mod one;
 mod read;
 mod resolve;
 
 pub use object::PackObject;
+pub use one::read_at;
 pub use read::read_pack;
