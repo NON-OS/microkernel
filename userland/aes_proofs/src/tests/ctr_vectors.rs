@@ -13,14 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The published vectors, and the counter behaviour a keystream depends on.
 
-mod aes_ctr_tests;
-mod aes_tests;
-mod ctr64_tests;
-mod ctr_vectors;
-mod nonos_sbox;
-mod nym_aes;
-mod nym_aes_tests;
-mod sbox_table;
-mod sbox_tests;
+//! NIST SP 800-38A F.5.1, CTR-AES128 with a non-zero initial counter block.
+
+pub(super) const F51_PLAINTEXT: &str = concat!(
+    "6bc1bee22e409f96e93d7e117393172a",
+    "ae2d8a571e03ac9c9eb76fac45af8e51",
+    "30c81c46a35ce411e5fbc1191a0a52ef",
+    "f69f2445df4f9b17ad2b417be66c3710",
+);
+
+pub(super) const F51_CIPHERTEXT: &str = concat!(
+    "874d6191b620e3261bef6864990db6ce",
+    "9806f66b7970fdff8617187bb9fffdff",
+    "5ae4df3edbd5d35e5b4f09020db03eab",
+    "1e031dda2fbe03d1792170a0f3009cee",
+);

@@ -36,8 +36,8 @@ mod ctr64;
 mod encrypt_block;
 mod key_schedule;
 mod mix_columns;
-mod sbox;
 mod shift_rows;
+mod sub_byte;
 mod types;
 mod xtime;
 

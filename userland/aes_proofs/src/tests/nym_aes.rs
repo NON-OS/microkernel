@@ -13,14 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The published vectors, and the counter behaviour a keystream depends on.
 
-mod aes_ctr_tests;
-mod aes_tests;
-mod ctr64_tests;
-mod ctr_vectors;
-mod nonos_sbox;
-mod nym_aes;
-mod nym_aes_tests;
-mod sbox_table;
-mod sbox_tests;
+//! The capsule_net_nym AES, compiled in from the capsule source so its AES-256
+//! is held to the same published vectors as the shared AES-128.
+
+#[path = "../../../capsule_net_nym/src/crypto/aes/mod.rs"]
+pub(super) mod aes;
