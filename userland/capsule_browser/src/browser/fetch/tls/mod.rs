@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod decrypt;
+mod flight_quiet;
 mod flight_settled;
 mod hello;
 mod read_flight;

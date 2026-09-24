@@ -17,7 +17,7 @@
 //! Clearing a leaf in the address space this cpu is running.
 
 use super::super::core::PagingManager;
-use super::super::shootdown::flush_tlb_one_smp;
+use super::super::pending_flush::PendingFlush;
 use super::super::tlb_scope::mutation_asid;
 use super::tables::table_at;
 use crate::arch::paging::read_root as read_cr3;
@@ -29,7 +29,7 @@ impl PagingManager {
     pub(in crate::memory::paging::manager) fn remove_mapping(
         &self,
         va: VirtAddr,
-    ) -> PagingResult<PhysAddr> {
+    ) -> PagingResult<(PhysAddr, PendingFlush)> {
         let va_val = va.as_u64();
         let (l4_idx, l3_idx, l2_idx, l1_idx) =
             (pml4_index(va_val), pdpt_index(va_val), pd_index(va_val), pt_index(va_val));
@@ -62,8 +62,8 @@ impl PagingManager {
              * Scoped to the asid that owned the mapping, so the ipi
              * reaches the cores running it and no others.
              */
-            flush_tlb_one_smp(va, mutation_asid(va, Some(crate::smp::percpu::active_asid())));
-            Ok(pa)
+            let asid = mutation_asid(va, Some(crate::smp::percpu::active_asid()));
+            Ok((pa, PendingFlush::one(va, asid)))
         }
     }
 }
