@@ -13,20 +13,34 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use core::sync::atomic::Ordering;
 
-use super::state::{ACCENT, BG, BORDER, MUTED, QUIET, REVISION, SURFACE, TEXT};
-use super::theme::Theme;
+//! Host proofs for the live theme.
 
-pub fn snapshot() -> Theme {
-    Theme {
-        background_argb: BG.load(Ordering::Acquire),
-        surface_argb: SURFACE.load(Ordering::Acquire),
-        accent_argb: ACCENT.load(Ordering::Acquire),
-        text_argb: TEXT.load(Ordering::Acquire),
-        border_argb: BORDER.load(Ordering::Acquire),
-        muted_argb: MUTED.load(Ordering::Acquire),
-        quiet_argb: QUIET.load(Ordering::Acquire),
-        revision: REVISION.load(Ordering::Acquire),
-    }
-}
+/// The text size table, included from the toolkit so the proofs measure the
+/// factors the desktop actually draws with.
+#[path = "../../toolkit/src/font/ttf/text_scale.rs"]
+pub mod text_scale;
+
+pub mod theme;
+
+#[cfg(test)]
+mod wcag;
+
+#[cfg(test)]
+mod contrast_edge_tests;
+#[cfg(test)]
+mod contrast_tests;
+#[cfg(test)]
+mod derive_alpha_tests;
+#[cfg(test)]
+mod derive_tests;
+#[cfg(test)]
+mod scheme_accent_tests;
+#[cfg(test)]
+mod scheme_contrast_tests;
+#[cfg(test)]
+mod scheme_tests;
+#[cfg(test)]
+mod text_scale_range_tests;
+#[cfg(test)]
+mod text_scale_tests;

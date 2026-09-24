@@ -14,19 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod apply;
-pub mod chrome;
-pub mod contrast;
-pub mod derive;
-pub mod legible;
-mod legible_walk;
-pub mod linear;
-pub mod palette;
-pub mod schemes;
-pub mod select;
-pub mod store;
+//! The toolkit's theme modules, included so the proofs run the real source.
+//!
+//! The shape mirrors `toolkit/src/theme` exactly, because each included file
+//! resolves its siblings through `super::`. A shim that renamed or flattened
+//! anything here would be proving a different arrangement than the one that ships.
 
-pub use apply::apply;
-pub use schemes::{scheme, Scheme, SCHEMES};
-pub use select::theme_of;
-pub use store::{snapshot, Theme};
+#[path = "../../../toolkit/src/theme/chrome/mod.rs"]
+pub mod chrome;
+#[path = "../../../toolkit/src/theme/contrast.rs"]
+pub mod contrast;
+#[path = "../../../toolkit/src/theme/derive.rs"]
+pub mod derive;
+#[path = "../../../toolkit/src/theme/legible.rs"]
+pub mod legible;
+#[path = "../../../toolkit/src/theme/legible_walk.rs"]
+pub mod legible_walk;
+#[path = "../../../toolkit/src/theme/linear.rs"]
+pub mod linear;
+#[path = "../../../toolkit/src/theme/palette.rs"]
+pub mod palette;
+#[path = "../../../toolkit/src/theme/schemes/mod.rs"]
+pub mod schemes;
+#[path = "../../../toolkit/src/theme/select.rs"]
+pub mod select;
+#[path = "../../../toolkit/src/theme/store/mod.rs"]
+pub mod store;

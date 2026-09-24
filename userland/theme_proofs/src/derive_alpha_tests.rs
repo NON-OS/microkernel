@@ -13,20 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use core::sync::atomic::Ordering;
+//! Setting alpha without touching the colour.
 
-use super::state::{ACCENT, BG, BORDER, MUTED, QUIET, REVISION, SURFACE, TEXT};
-use super::theme::Theme;
+use crate::theme::derive::{opaque, with_alpha};
 
-pub fn snapshot() -> Theme {
-    Theme {
-        background_argb: BG.load(Ordering::Acquire),
-        surface_argb: SURFACE.load(Ordering::Acquire),
-        accent_argb: ACCENT.load(Ordering::Acquire),
-        text_argb: TEXT.load(Ordering::Acquire),
-        border_argb: BORDER.load(Ordering::Acquire),
-        muted_argb: MUTED.load(Ordering::Acquire),
-        quiet_argb: QUIET.load(Ordering::Acquire),
-        revision: REVISION.load(Ordering::Acquire),
-    }
+#[test]
+fn alpha_replaces_only_the_alpha() {
+    assert_eq!(with_alpha(0xFF35_C4E2, 0x80), 0x8035_C4E2);
+    assert_eq!(with_alpha(0x0035_C4E2, 0xFF), 0xFF35_C4E2);
+}
+#[test]
+fn a_ground_is_forced_opaque() {
+    assert_eq!(opaque(0x0012_3456), 0xFF12_3456);
+    assert_eq!(opaque(0xFF12_3456), 0xFF12_3456);
 }

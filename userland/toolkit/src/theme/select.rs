@@ -13,20 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use core::sync::atomic::Ordering;
 
-use super::state::{ACCENT, BG, BORDER, MUTED, QUIET, REVISION, SURFACE, TEXT};
-use super::theme::Theme;
+//! Turning two stored settings into the live theme.
 
-pub fn snapshot() -> Theme {
-    Theme {
-        background_argb: BG.load(Ordering::Acquire),
-        surface_argb: SURFACE.load(Ordering::Acquire),
-        accent_argb: ACCENT.load(Ordering::Acquire),
-        text_argb: TEXT.load(Ordering::Acquire),
-        border_argb: BORDER.load(Ordering::Acquire),
-        muted_argb: MUTED.load(Ordering::Acquire),
-        quiet_argb: QUIET.load(Ordering::Acquire),
-        revision: REVISION.load(Ordering::Acquire),
-    }
+use super::schemes::{scheme, HIGH_CONTRAST};
+use super::store::Theme;
+
+/// The theme for a stored theme index and contrast preference.
+///
+pub fn theme_of(index: u8, high_contrast: bool) -> Theme {
+    let s = if high_contrast { HIGH_CONTRAST } else { scheme(index) };
+    Theme::from_roles(s.bg, s.surface, s.accent, s.text, s.border)
 }
