@@ -19,40 +19,33 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+use nonos_libc::{mk_uptime_ms, mk_yield};
+
 use super::traits::{Io, SessionError};
 
 /// The request asks the server to close after answering, so the response ends
-/// when the socket goes quiet. Quiet has to be counted rather than waited on,
-/// because the socket layer returns zero on a timeout rather than blocking.
-const QUIET_READS: u32 = 60;
-
-/// A ceiling on reads regardless of whether they carry anything.
-///
-/// Counting only quiet reads is not enough on its own: a server sending one
-/// byte at a time resets that counter forever and the loop never ends. This
-/// bounds the exchange whether the peer is slow, stuck, or deliberate.
-const MAX_READS: u32 = 200_000;
+/// when the socket goes quiet. Quiet is measured rather than counted: the
+/// socket layer returns zero when nothing has arrived rather than blocking,
+/// and an empty read costs far less than the round trip being waited on.
+const QUIET_MS: i64 = 4_000;
 
 pub(super) fn read_response<S: Io>(io: &mut S, limit: usize) -> Result<Vec<u8>, SessionError> {
     let mut buf = Vec::new();
     let mut chunk = [0u8; 4096];
-    let mut quiet = 0u32;
-    let mut reads = 0u32;
-    while quiet < QUIET_READS {
-        reads += 1;
-        if reads > MAX_READS {
-            return Err(SessionError::Io);
-        }
+    let mut quiet_until = mk_uptime_ms().saturating_add(QUIET_MS);
+    loop {
         let n = io.read(&mut chunk)?;
         if n == 0 {
-            quiet += 1;
+            if mk_uptime_ms() >= quiet_until {
+                return Ok(buf);
+            }
+            mk_yield();
             continue;
         }
-        quiet = 0;
+        quiet_until = mk_uptime_ms().saturating_add(QUIET_MS);
         if buf.len() + n > limit {
             return Err(SessionError::TooLarge);
         }
         buf.extend_from_slice(&chunk[..n]);
     }
-    Ok(buf)
 }

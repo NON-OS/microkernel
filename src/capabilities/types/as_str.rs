@@ -45,6 +45,13 @@ impl Capability {
             Self::SpawnBroker => "SpawnBroker",
             Self::SpawnWindow => "SpawnWindow",
             Self::ProcessControl => "ProcessControl",
+            Self::StoreWrite => "StoreWrite",
+            Self::EnrolDevRoot => "EnrolDevRoot",
+            Self::Keyring => "Keyring",
+            Self::Entropy => "Entropy",
+            Self::AppInstall => "AppInstall",
+            Self::AttestRead => "AttestRead",
+            Self::ForeignExec => "ForeignExec",
         }
     }
 }

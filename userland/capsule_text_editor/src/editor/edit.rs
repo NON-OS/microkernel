@@ -88,6 +88,7 @@ impl State {
         self.buf[at..at + ins.len()].copy_from_slice(ins);
         self.len = self.len - del + ins.len();
         self.caret = at + ins.len();
+        self.reflow();
         Some(removed)
     }
 
@@ -101,6 +102,9 @@ impl State {
     // Push an undo step, coalescing a run of single-character typing so one
     // Ctrl-Z removes a word rather than a letter.
     fn push_undo(&mut self, at: usize, removed: Vec<u8>, inserted_len: usize) {
+        // The one place every mutation passes through, so the one place that
+        // needs to know the document has moved away from what is on disk.
+        self.dirty = true;
         if removed.is_empty() && inserted_len == 1 {
             if let Some(last) = self.undo.last_mut() {
                 if last.deleted.is_empty() && last.at + last.inserted_len == at {

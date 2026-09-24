@@ -23,8 +23,6 @@ use super::boot::BootedApp;
 use super::repaint::repaint;
 use super::request_id::next;
 
-const MENUBAR_H: u32 = 28;
-
 pub(super) fn toggle<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_id: &mut u32) {
     if booted.maximized {
         let (x, y, w, h) = booted.saved;
@@ -37,7 +35,11 @@ pub(super) fn toggle<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_i
     } else if let Ok(di) = compositor::display_info(peers.compositor, next(request_id)) {
         booted.saved =
             (booted.binding.x, booted.binding.y, booted.binding.width, booted.binding.height);
-        let (x, y, w, h) = (0, MENUBAR_H, di.width, di.height.saturating_sub(MENUBAR_H));
+        // The whole display, menubar included. It used to stop below the bar,
+        // so "maximised" left a strip of desktop across the top and never
+        // looked like a window that had taken the screen. Restoring puts back
+        // the saved rect, so nothing is lost by covering the bar.
+        let (x, y, w, h) = (0, 0, di.width, di.height);
         if let Ok(b) = reopen_surface(peers, &booted.binding, x, y, w, h, request_id) {
             booted.binding = b;
             let rid = next(request_id);

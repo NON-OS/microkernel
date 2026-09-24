@@ -16,9 +16,9 @@
 
 use super::{
     alias, apps, battery, caps, clear, copy, date, display, du, echo, enter, exec, find, help,
-    history, http, id, ifconfig, install, kill, ls, mk, motd, mv, nslookup, pathname, ping, pull,
-    push, read, rm, run, set, stat, svc, sysinfo, touch, unalias, unknown, unset, uptime, whereis,
-    write,
+    history, http, id, ifconfig, install, keep, kill, ls, mk, motd, mv, nslookup, nym, pathname,
+    ping, pkg, pull, push, read, rm, run, set, stat, svc, sysinfo, touch, unalias, unknown, unset,
+    uptime, whereis, write,
 };
 use crate::command::output::Output;
 use crate::command::Outcome;
@@ -50,6 +50,7 @@ pub fn dispatch(state: &mut State, args: &[&[u8]]) -> Outcome {
         b"copy" | b"cp" => copy::run(state, rest),
         b"mk" | b"mkdir" => mk::run(state, rest),
         b"rm" | b"del" => rm::run(state, rest),
+        b"keep" => keep::run(state, rest),
         b"mv" | b"move" => mv::run(state, rest),
         b"stat" => stat::run(state, rest),
         b"find" => find::run(state, rest),
@@ -60,6 +61,7 @@ pub fn dispatch(state: &mut State, args: &[&[u8]]) -> Outcome {
         b"date" => date::run(state),
         b"ifconfig" | b"ip" => ifconfig::run(state),
         b"nslookup" | b"host" => nslookup::run(state, rest),
+        b"nym" => nym::run(state),
         b"http" | b"curl" | b"get" | b"fetch" => http::run(state, rest),
         b"kill" => kill::run(state, rest),
         b"uptime" => {
@@ -101,6 +103,7 @@ pub fn dispatch(state: &mut State, args: &[&[u8]]) -> Outcome {
         b"run" | b"open" => run::run(state, rest),
         b"exec" => exec::run(state, rest),
         b"install" => install::run(state, rest),
+        b"pkg" => pkg::run(state, rest),
         b"git" => {
             crate::command::builtin::git::run(state, rest);
             true

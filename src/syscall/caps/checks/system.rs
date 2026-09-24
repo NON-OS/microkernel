@@ -25,4 +25,16 @@ impl CapabilityToken {
     pub fn can_admin(&self) -> bool {
         self.grants(Capability::Admin) && self.is_valid()
     }
+    #[inline]
+    pub fn can_attest_read(&self) -> bool {
+        self.grants(Capability::AttestRead) && self.is_valid()
+    }
+    #[inline]
+    pub fn can_store_write(&self) -> bool {
+        self.grants(Capability::StoreWrite) && self.is_valid()
+    }
+    #[inline]
+    pub fn can_foreign_exec(&self) -> bool {
+        self.grants(Capability::ForeignExec) && self.is_valid()
+    }
 }

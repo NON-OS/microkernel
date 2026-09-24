@@ -18,41 +18,40 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+use nonos_libc::{mk_uptime_ms, mk_yield};
 
 use super::settled::settled;
 use super::traits::{Io, SessionError};
 
-/// How many empty reads in a row are taken to mean the server has finished
-/// sending. The socket layer returns zero on a timeout rather than blocking,
-/// so quiet has to be counted rather than waited on.
-const QUIET_READS: u32 = 40;
-
-/// A ceiling on reads regardless of whether they carry anything, so a peer
-/// that dribbles bytes cannot hold the handshake open forever.
-const MAX_READS: u32 = 20_000;
+/// How long a server may stay quiet before it is taken to have stopped
+/// sending. The socket layer returns zero when nothing has arrived rather
+/// than blocking, so quiet has to be measured.
+///
+/// A duration rather than a number of reads: an empty read costs microseconds,
+/// so counting them gave up long before a server one round trip away could
+/// answer at all.
+const QUIET_MS: i64 = 4_000;
 
 /// Read until the flight is complete or the server stops sending.
 pub(super) fn read_flight<S: Io>(io: &mut S, limit: usize) -> Result<Vec<u8>, SessionError> {
     let mut flight = Vec::new();
     let mut chunk = [0u8; 4096];
-    let mut quiet = 0u32;
-    let mut reads = 0u32;
-    while quiet < QUIET_READS {
-        reads += 1;
-        if reads > MAX_READS {
-            return Err(SessionError::Handshake);
-        }
+    let mut quiet_until = mk_uptime_ms().saturating_add(QUIET_MS);
+    loop {
         let n = io.read(&mut chunk)?;
         if n == 0 {
-            quiet += 1;
             // A flight holding an application record is complete, and waiting
             // for more would just burn the remaining budget.
             if settled(&flight) {
                 return Ok(flight);
             }
+            if mk_uptime_ms() >= quiet_until {
+                break;
+            }
+            mk_yield();
             continue;
         }
-        quiet = 0;
+        quiet_until = mk_uptime_ms().saturating_add(QUIET_MS);
         if flight.len() + n > limit {
             return Err(SessionError::TooLarge);
         }

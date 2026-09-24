@@ -37,13 +37,21 @@ pub(crate) fn service() {
             PendingApp::FileManager => spawn_file_manager(),
             PendingApp::ProcessManager => spawn_process_manager(),
             PendingApp::AudioPlayer => spawn_audio_player(),
+            PendingApp::VideoPlayer => spawn_video_player(),
         };
         match result {
-            // Deliver the focus frame the app skeleton waits for, so the
-            // new instance builds its window instead of sitting idle.
+            /*
+             * Deliver the focus frame the app skeleton waits for. A freshly
+             * spawned instance builds its window on it instead of sitting idle;
+             * an app that was already at its window cap restores, raises and
+             * focuses the window the user asked for. The spawn decides which of
+             * those the pid is, because only it knows whether a slot was free.
+             */
             Ok(pid) => super::boot_frame::boot(pid),
             Err(e) => {
-                crate::sys::serial::print(b"[SPAWN-INSTANCE] deferred spawn rejected err=");
+                crate::sys::serial::print(b"[SPAWN-INSTANCE] rejected ");
+                crate::sys::serial::print(app.name());
+                crate::sys::serial::print(b" err=");
                 crate::sys::serial::println(spawn_error_name(e));
             }
         }
@@ -58,6 +66,7 @@ fn spawn_error_name(e: SpawnError) -> &'static [u8] {
         SpawnError::ProcessCreation => b"ProcessCreation",
         SpawnError::AddressSpace => b"AddressSpace",
         SpawnError::EndpointCollision => b"EndpointCollision",
+        SpawnError::InboxName => b"InboxName",
         SpawnError::NonosIdCertRejected(_) => b"CertRejected",
         SpawnError::ManifestRejected(_) => b"ManifestRejected",
         SpawnError::AttestationRejected => b"AttestationRejected",
@@ -181,5 +190,15 @@ fn spawn_audio_player() -> Result<u32, SpawnError> {
 
 #[cfg(not(feature = "nonos-capsule-audio-player"))]
 fn spawn_audio_player() -> Result<u32, SpawnError> {
+    Err(SpawnError::FeatureDisabled)
+}
+
+#[cfg(feature = "nonos-capsule-video-player")]
+fn spawn_video_player() -> Result<u32, SpawnError> {
+    crate::userspace::capsule_video_player::spawn_video_player_instance()
+}
+
+#[cfg(not(feature = "nonos-capsule-video-player"))]
+fn spawn_video_player() -> Result<u32, SpawnError> {
     Err(SpawnError::FeatureDisabled)
 }

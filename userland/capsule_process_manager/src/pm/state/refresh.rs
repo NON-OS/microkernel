@@ -38,7 +38,19 @@ impl State {
         let header: ProcStatHeader =
             unsafe { core::ptr::read_unaligned(buf.as_ptr() as *const ProcStatHeader) };
         let dt = header.total_ticks.saturating_sub(self.last_total_ticks);
-        let warmed = self.last_total_ticks != 0 && dt > 0;
+        // A percentage is only meaningful over enough ticks to divide by.
+        //
+        // This used to accept any dt above zero. A refresh landing four ticks
+        // after the last one gives every process that ran even once 1/4 of the
+        // window, so four busy-ish processes each read 25.0% and the total read
+        // 100.0% on a machine doing very little. The suspiciously round numbers
+        // were the tell: real load does not land on quarters.
+        //
+        // Below the floor the previous percentages are kept rather than
+        // recomputed, so the table holds still instead of flickering between
+        // quantised values.
+        const MIN_TICKS: u64 = 32;
+        let warmed = self.last_total_ticks != 0 && dt >= MIN_TICKS;
 
         let mut rows = Vec::with_capacity(count);
         let mut prev = Vec::with_capacity(count);
@@ -55,7 +67,10 @@ impl State {
                 let d = e.run_ticks.saturating_sub(last);
                 (d.saturating_mul(100) / dt).min(100) as u8
             } else {
-                0
+                // Too short a window to divide by. Hold what this pid last
+                // read rather than dropping it to zero, so the column stays
+                // still between real samples instead of blinking.
+                self.rows.iter().find(|r| r.pid == e.pid).map(|r| r.cpu_pct).unwrap_or(0)
             };
             rows.push(Row {
                 pid: e.pid,
@@ -71,7 +86,10 @@ impl State {
         }
         // Totals across the whole live set.
         self.total_mem_kb = rows.iter().map(|r| r.mem_kb).sum();
-        self.total_cpu = rows.iter().map(|r| r.cpu_pct as u32).sum();
+        // A share of one processor, so the total cannot pass a hundred however
+        // the per-process rounding falls. Summing forty-five figures each
+        // rounded up on their own is how it did.
+        self.total_cpu = rows.iter().map(|r| r.cpu_pct as u32).sum::<u32>().min(100);
 
         match self.sort {
             Sort::Cpu => rows.sort_by(|a, b| b.cpu_pct.cmp(&a.cpu_pct).then(a.pid.cmp(&b.pid))),
@@ -81,8 +99,20 @@ impl State {
         }
 
         self.rows = rows;
-        self.prev = prev;
-        self.last_total_ticks = header.total_ticks;
+        // The tick snapshot pairs with the baseline above: keeping one while
+        // resetting the other would measure a delta against the wrong moment.
+        if warmed {
+            self.prev = prev;
+        }
+        // Only move the baseline when a percentage was actually computed from
+        // it. Advancing every refresh would restart the window each time and
+        // `dt` would never reach the floor, so the percentages would never be
+        // computed at all.
+        if warmed {
+            self.last_total_ticks = header.total_ticks;
+        } else if self.last_total_ticks == 0 {
+            self.last_total_ticks = header.total_ticks;
+        }
         self.status = b"live: name, pid, state, cpu, memory, caps";
 
         // Keep the selection on screen after the list changes. With nothing
@@ -95,7 +125,7 @@ impl State {
         } else {
             self.selected_pid = 0;
         }
-        let max = self.rows.len().saturating_sub(self.visible);
+        let max = self.filtered().len().saturating_sub(self.visible);
         if self.scroll > max {
             self.scroll = max;
         }
@@ -104,5 +134,20 @@ impl State {
         // then keep the findings selection valid against the new list.
         self.alerts = self.monitor.evaluate(&self.rows);
         self.clamp_alert_scroll();
+        self.flagged = self.alerts.iter().filter(|a| a.pid != 0).map(|a| a.pid).collect();
+        // Only a warmed sample goes into the history. An unwarmed pass holds
+        // each process's previous figure, and a screenful of held figures summed
+        // past two hundred and fifty-five during boot, clamped to a byte, and
+        // was then displayed forever as "peak 255%". A saturation constant shown
+        // as a measurement is worse than showing nothing: it is a number the
+        // machine cannot produce, on the screen whose job is to be trusted.
+        if warmed {
+            self.history.total.push(self.total_cpu as u8, self.total_mem_kb);
+        }
+        for row in &self.rows {
+            self.history.record(row.pid, row.cpu_pct, row.mem_kb);
+        }
+        let live: Vec<u32> = self.rows.iter().map(|r| r.pid).collect();
+        self.history.retain_live(&live);
     }
 }

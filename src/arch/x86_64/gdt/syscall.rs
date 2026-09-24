@@ -54,7 +54,8 @@ pub unsafe fn setup_syscall(entry_point: u64, rflags_mask: u64) {
             options(nomem, nostack, preserves_flags)
         );
 
-        let star: u64 = (0x10u64 << 48) | (0x08u64 << 32);
+        let sysret_base = ((SEL_USER_DATA_RAW - 8) | 3) as u64;
+        let star: u64 = (sysret_base << 48) | ((SEL_KERNEL_CODE_RAW as u64) << 32);
         asm!(
             "wrmsr",
             in("ecx") MSR_STAR,

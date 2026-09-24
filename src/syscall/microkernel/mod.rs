@@ -15,9 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod attest;
+pub mod attest_doc;
+pub mod attest_entries;
+pub mod enrol_dev_root;
 pub mod battery;
 pub mod capability;
 pub mod capsule_load;
+pub mod capsule_verify;
 pub mod debug;
 #[cfg(feature = "nonos-user-entry-proof")]
 pub mod debug_diag;
@@ -41,11 +45,16 @@ pub mod proc_stdin;
 pub mod process;
 pub mod procstat;
 pub mod spawn_instance;
+pub mod stdout_write;
+pub mod store_write;
 pub mod time;
 pub mod tool_run;
 pub mod wait;
 
 pub use attest::sys_attest_status;
+pub use attest_doc::sys_attest_doc;
+pub use attest_entries::sys_attest_entries;
+pub use enrol_dev_root::{sys_dev_root_confirm, sys_dev_root_request};
 pub use battery::sys_battery_status;
 pub use capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
 pub use debug::sys_mk_debug;
@@ -63,7 +72,9 @@ pub use pci::sys_pci_config_write;
 pub use pio::{sys_pio_grant, sys_pio_read, sys_pio_release, sys_pio_write};
 pub use proc_output::sys_proc_output;
 pub use proc_stdin::{sys_proc_input, sys_stdin_read};
-pub use process::{sys_args, sys_exit, sys_set_tls, sys_spawn, sys_thread_spawn, sys_yield};
+pub use process::{sys_args, sys_exit, sys_set_tls, sys_thread_spawn, sys_yield};
 pub use procstat::sys_proc_stat;
+pub use stdout_write::sys_stdout_write;
+pub use store_write::sys_store_write;
 pub use time::{sys_time_adjust, sys_time_millis, sys_time_monotonic, sys_time_rtc};
 pub use wait::sys_wait;

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use core::sync::atomic::Ordering;
 
-use super::state::{ACCENT, BG, BORDER, REVISION, SURFACE, TEXT};
+use super::state::{ACCENT, BG, BORDER, MUTED, QUIET, REVISION, SURFACE, TEXT};
 use super::theme::Theme;
 
 pub fn snapshot() -> Theme {
@@ -25,6 +25,8 @@ pub fn snapshot() -> Theme {
         accent_argb: ACCENT.load(Ordering::Acquire),
         text_argb: TEXT.load(Ordering::Acquire),
         border_argb: BORDER.load(Ordering::Acquire),
+        muted_argb: MUTED.load(Ordering::Acquire),
+        quiet_argb: QUIET.load(Ordering::Acquire),
         revision: REVISION.load(Ordering::Acquire),
     }
 }

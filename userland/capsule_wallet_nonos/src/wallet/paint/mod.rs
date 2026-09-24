@@ -14,13 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod activity_status;
+mod format_eth;
+mod format_typed;
+mod format_u128;
 mod format_u32;
 mod format_u64;
 mod hex_hash;
+mod home_activity_row;
+pub mod home_geom;
 mod logo;
 mod logo_bits;
+mod nav_glyph;
+mod nav_icon;
+pub mod not_wired;
+mod nox_amount;
+pub mod nox_layout;
 mod paint;
-mod paint_account_card;
+pub mod paint_account_card;
+mod paint_account_empty;
 mod paint_background;
 mod paint_backup;
 mod paint_button;
@@ -31,6 +43,10 @@ mod paint_icons;
 mod paint_network_card;
 mod paint_network_labels;
 mod paint_nox;
+pub use nox_layout::NoxLayout;
+mod nox_lock;
+mod nox_rhythm;
+mod nox_right;
 mod paint_nox_stake;
 mod paint_panels;
 mod paint_portfolio;
@@ -48,7 +64,14 @@ mod paint_sysbar;
 mod paint_topbar;
 mod paint_tx;
 mod panel;
+mod put_u32;
+mod quick_icon;
+mod scale;
+mod swap;
+
 mod ui;
+mod account_custody;
+mod status_fit;
 
 pub use paint::paint;
 pub use paint_sidebar::{NAV_H, NAV_STEP, NAV_W, NAV_X, NAV_Y0};

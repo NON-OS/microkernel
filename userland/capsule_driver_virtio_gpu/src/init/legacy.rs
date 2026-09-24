@@ -18,6 +18,7 @@ use super::types::InitOut;
 use crate::constants::{
     LEG_GUEST_FEATURES, LEG_HOST_FEATURES, LEG_QUEUE_NUM, LEG_QUEUE_PFN, LEG_QUEUE_SEL, LEG_STATUS,
     STATUS_ACKNOWLEDGE, STATUS_DRIVER, STATUS_DRIVER_OK, STATUS_FAILED, STATUS_FEATURES_OK,
+    VIRTIO_GPU_F_EDID, VQ_MAX_SIZE,
 };
 use crate::regs::Regs;
 
@@ -27,7 +28,8 @@ pub fn bring_up_legacy(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static 
         regs.w8(LEG_STATUS, STATUS_ACKNOWLEDGE);
         regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER);
         let host = regs.r32(LEG_HOST_FEATURES);
-        regs.w32(LEG_GUEST_FEATURES, 0);
+        let guest = host & VIRTIO_GPU_F_EDID;
+        regs.w32(LEG_GUEST_FEATURES, guest);
         regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_FEATURES_OK);
         if regs.r8(LEG_STATUS) & STATUS_FEATURES_OK == 0 {
             regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_FAILED);
@@ -39,8 +41,23 @@ pub fn bring_up_legacy(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static 
             regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_FAILED);
             return Err("virtio-gpu: missing control queue");
         }
+        /*
+         * The ring region is laid out for 256 entries and a legacy part
+         * dictates its size. Any other size puts the rings where the part
+         * will not look, so refuse rather than publish into the void.
+         */
+        if qsize != VQ_MAX_SIZE {
+            regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_FAILED);
+            return Err("virtio-gpu: legacy queue size does not fit the ring layout");
+        }
         regs.w32(LEG_QUEUE_PFN, (queue_phys >> 12) as u32);
         regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_DRIVER_OK);
-        Ok(InitOut { queue_size: qsize, host_features: host, virgl: false, regs })
+        Ok(InitOut {
+            queue_size: qsize,
+            host_features: host,
+            virgl: false,
+            edid: guest & VIRTIO_GPU_F_EDID != 0,
+            regs,
+        })
     }
 }

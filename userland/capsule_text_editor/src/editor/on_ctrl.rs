@@ -20,9 +20,9 @@ use super::ctrl_copy::ctrl_copy;
 use super::ctrl_cut::ctrl_cut;
 use super::ctrl_paste::ctrl_paste;
 use super::layout::{MAX_SCALE, MIN_SCALE};
+use super::mode::Mode;
 use super::path_prompt;
 use super::state::{PromptOp, State};
-use super::theme;
 
 pub(super) fn on_ctrl(state: &mut State, code: u32, shift: bool) -> EventOutcome {
     match code {
@@ -30,9 +30,22 @@ pub(super) fn on_ctrl(state: &mut State, code: u32, shift: bool) -> EventOutcome
         0x43 | 0x63 => ctrl_copy(state),
         0x44 | 0x64 => line_edit(state, false),
         0x46 | 0x66 => open_find(state),
+        // Ctrl+M switches between the two views.
+        //
+        // The view used to be decided once, from the file extension, and never
+        // again: a .txt or a file with no extension opened as a document and
+        // could not be shown as code, so its line numbers and syntax colouring
+        // were unreachable no matter what was in it. The extension is a good
+        // first guess and a bad final answer.
+        0x4D | 0x6D => toggle_view(state),
+        // Ctrl+G goes to a line by number, through the same prompt that opens
+        // and saves. Free until now, and the one navigation a compiler message
+        // sends you looking for.
+        0x47 | 0x67 => path_prompt::start(state, PromptOp::Goto),
         0x48 | 0x68 if shift => replace_all(state),
         0x48 | 0x68 => open_replace(state),
         0x4B | 0x6B if shift => line_edit(state, true),
+        0x45 | 0x65 => path_prompt::start(state, PromptOp::Export),
         0x4F | 0x6F => path_prompt::start(state, PromptOp::Open),
         // Ctrl+S writes straight to the file's own path; Ctrl+Shift+S (and a
         // document that never had a path) goes through the Save As prompt.
@@ -48,8 +61,10 @@ pub(super) fn on_ctrl(state: &mut State, code: u32, shift: bool) -> EventOutcome
         0x3D | 0x2B => zoom(state, 1),
         0x2D | 0x5F => zoom(state, -1),
         0x30 => zoom_reset(state),
-        // Ctrl+B cycles the editor theme.
-        0x42 | 0x62 => cycle_theme(state),
+        // Ctrl+Shift+B bolds the selection, Ctrl+I italicises it, Ctrl+U underlines it.
+        0x42 | 0x62 if shift => run_toggle(state, 0),
+        0x49 | 0x69 => run_toggle(state, 1),
+        0x55 | 0x75 => run_toggle(state, 2),
         _ => EventOutcome::Idle,
     }
 }
@@ -75,9 +90,29 @@ fn zoom_reset(state: &mut State) -> EventOutcome {
     EventOutcome::Repaint
 }
 
-fn cycle_theme(state: &mut State) -> EventOutcome {
-    theme::cycle();
-    state.status = b"theme";
+// A ribbon run-style toggle driven from the keyboard or a Format menu row, so
+// the row and the shortcut cannot drift apart.
+fn run_toggle(state: &mut State, t: usize) -> EventOutcome {
+    state.apply_toggle(t);
+    EventOutcome::Repaint
+}
+
+/// Flip between the document view and the code view.
+///
+/// Both are fully built; only the choice between them was missing. Scroll is
+/// reset to the caret because the two views measure lines differently and a
+/// scroll offset from one is meaningless in the other.
+fn toggle_view(state: &mut State) -> EventOutcome {
+    state.mode = match state.mode {
+        Mode::Document => Mode::Code,
+        Mode::Code => Mode::Document,
+    };
+    state.status = match state.mode {
+        Mode::Code => b"code view",
+        Mode::Document => b"page view",
+    };
+    let rows = state.visible_rows;
+    super::follow_caret::follow_caret(state, rows);
     EventOutcome::Repaint
 }
 

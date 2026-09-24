@@ -17,7 +17,22 @@
 use super::hooks;
 use super::state;
 
+// The EWMA decay constants in the load-average module assume a five-second
+// sampling period; the LAPIC preemption timer runs at 100 Hz.
+const LOAD_SAMPLE_TICKS: u64 = 500;
+
 pub fn on_timer_interrupt() {
+    /*
+     * Per-CPU evidence that this CPU takes interrupts at all. The tick counter
+     * below is one global, so a machine whose boot CPU ticks happily while its
+     * application processors never take an interrupt reads exactly like a
+     * healthy one. This field was declared for the purpose and nothing ever
+     * wrote it, which is why a CPU that had stopped answering could only be
+     * inferred, two subsystems away, from a shootdown that timed out.
+     */
+    crate::smp::percpu::current()
+        .last_tick_tsc
+        .store(crate::arch::read_time_counter(), core::sync::atomic::Ordering::Relaxed);
     state::increment_ticks();
     if option_env!("NONOS_FBCONSOLE").is_some() {
         super::heartbeat::on_tick(state::get_ticks());
@@ -34,6 +49,13 @@ pub fn on_timer_interrupt() {
     if state::get_ticks() % 10 == 0 {
         crate::process::alarm::tick();
     }
+
+    if state::get_ticks() % LOAD_SAMPLE_TICKS == 0 {
+        crate::fs::procfs::update_load_averages();
+    }
+
+    #[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
+    crate::arch::x86_64::iommu::unit::fault::poll_faults(state::get_ticks());
 
     hooks::invoke_hook();
 

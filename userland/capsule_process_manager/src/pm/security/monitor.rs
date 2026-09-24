@@ -39,6 +39,12 @@ pub struct Monitor {
     // (pid, consecutive refreshes at or above saturation).
     streak: Vec<(u32, u8)>,
     pub posture: Posture,
+    // The posture at the first sample this monitor ever took. Kept so a reader
+    // can be told what the authority set has done, not only what it is: a raw
+    // hardware holder that appeared after the session settled is the event worth
+    // seeing, and a bare count cannot show it. The monitor starts with the
+    // window, well after boot, so the honest word for the span is "start".
+    first: Option<Posture>,
 }
 
 impl Monitor {
@@ -46,10 +52,20 @@ impl Monitor {
         Monitor::default()
     }
 
+    // What the posture was when this monitor first sampled. Before that first
+    // sample there is nothing to compare against, so it reports the live posture
+    // and every delta computed from it is zero, which is the truth.
+    pub fn start_posture(&self) -> Posture {
+        self.first.unwrap_or(self.posture)
+    }
+
     // Recompute posture and findings from the current rows, updating the
     // cross-refresh memory. Findings are returned worst-first.
     pub fn evaluate(&mut self, rows: &[Row]) -> Vec<Alert> {
         self.posture = Posture::compute(rows);
+        if self.first.is_none() {
+            self.first = Some(self.posture);
+        }
         let mut alerts = Vec::new();
 
         self.check_missing_services(rows, &mut alerts);

@@ -16,8 +16,10 @@
 
 pub mod builtin;
 pub mod dispatch;
+pub mod flags;
 pub mod output;
 pub mod parse;
+pub mod suggest;
 pub mod wire;
 
 pub use dispatch::{alias_expand, expand, run, split_program, Conn, Outcome, Stmt};

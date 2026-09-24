@@ -94,6 +94,7 @@ import Nonos.ServiceRegistry
 import Nonos.Signal
 import Nonos.Spawn
 import Nonos.SpawnCaps
+import Nonos.SeedCustody
 import Nonos.SigningKey
 import Nonos.KeyLifecycle
 import Nonos.KeyringCustody
@@ -106,6 +107,7 @@ import Nonos.Stark.CapabilityBinding
 import Nonos.Stark.Commitment
 import Nonos.Stark.Constraint
 import Nonos.Stark.ContextBinding
+import Nonos.Stark.ContextLayout
 import Nonos.Stark.CopyConstraint
 import Nonos.Stark.DomainSeparation
 import Nonos.Stark.Enrollment

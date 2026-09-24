@@ -51,19 +51,41 @@ pub struct InstanceSpawn {
 
 extern crate alloc;
 
-/// Spawn the next free instance window and return its pid. Each instance is a
-/// fresh, fully attested capsule; closing its window exits it, which zeroizes
-/// its RAM and frees the slot, so the next spawn here reuses that slot with a
-/// brand new capsule rather than reviving a lingering one. Every declared slot
-/// being live means the on-screen cap is reached; the caller then focuses an
-/// existing window instead. The instance is marked ephemeral through its argv
-/// so the app skeleton exits on close rather than idling.
+/// Open a window for this app and return the pid to focus.
+///
+/// The returned pid is a freshly spawned instance when a declared slot was
+/// free, and an already-running one when every slot is live. Both cases want
+/// the same thing from the caller, which is the focus frame, so they are not
+/// distinguished in the return: asking for a window the user already has is not
+/// an error, and the honest answer to it is that window.
+///
+/// A new instance is a fresh, fully attested capsule. Closing its window exits
+/// it, which zeroizes its RAM and frees the slot, so the next call here reuses
+/// that slot with a brand new capsule rather than reviving a lingering one. The
+/// instance is marked ephemeral through its argv, which is what the app skeleton
+/// reads to decide to exit on close instead of idling.
 pub fn spawn_next(app: &InstanceSpawn) -> Result<u32, SpawnError> {
-    let slot = app
+    let free = app
         .instances
         .iter()
-        .find(|e| lookup_service(e.name).is_none() && lookup_port(e.port).is_none())
-        .ok_or(SpawnError::EndpointCollision)?;
+        .find(|e| lookup_service(e.name).is_none() && lookup_port(e.port).is_none());
+    let Some(slot) = free else {
+        // Every declared slot is live, so the on-screen cap is reached. Hand back
+        // an existing window's pid: the caller delivers the focus frame to it,
+        // which restores, raises and focuses the window the user already has.
+        //
+        // This is the branch that used to return EndpointCollision, and the
+        // caller logged it to a serial line nobody reads and dropped the
+        // request. The user saw a dock icon that had silently stopped working:
+        // the wallet opened twice per boot and every click after that did
+        // nothing at all, with no way to tell that from a crash.
+        //
+        // The collision error survives for the case it actually describes, which
+        // is a slot whose name or port is registered but whose owner cannot be
+        // found. That is a leaked endpoint rather than a full screen, and
+        // silently focusing nothing would hide it.
+        return live_instance(app).ok_or(SpawnError::EndpointCollision);
+    };
 
     let trust = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
         .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
@@ -97,3 +119,10 @@ pub fn spawn_next(app: &InstanceSpawn) -> Result<u32, SpawnError> {
 /// The argv marker that tells the app skeleton it is an on-demand window
 /// instance and must exit when its window closes.
 pub(crate) const INSTANCE_ARG: &str = "--nonos-window-instance";
+
+// The pid behind one of the declared slots. Walked in table order, so the window
+// handed back is the lowest-numbered one rather than whichever the registry
+// happens to hold first.
+fn live_instance(app: &InstanceSpawn) -> Option<u32> {
+    app.instances.iter().find_map(|e| lookup_service(e.name).map(|found| found.pid))
+}

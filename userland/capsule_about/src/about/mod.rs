@@ -18,11 +18,11 @@ mod app;
 mod data;
 mod event;
 mod format;
+mod format_hex;
 mod manifest;
-mod paint;
 mod section;
-mod section_render;
 mod state;
 mod theme;
+mod ui;
 
 pub use app::About;

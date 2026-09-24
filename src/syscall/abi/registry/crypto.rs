@@ -17,8 +17,8 @@
 use crate::syscall::abi::{tag4, AbiDomain, AbiEntry, AbiStatus};
 use crate::syscall::numbers::SyscallNumber;
 
-// Crypto family. CRND routes to the entropy capsule. CHSH, CENC,
-// CDEC, and CEDV route to the crypto capsule.
+// Crypto family. CRND routes to the entropy capsule. CHSH, CENC and
+// CDEC route to the crypto capsule.
 pub(super) const ENTRIES: &[AbiEntry] = &[
     r(b"CRND", SyscallNumber::CryptoRandom, "CryptoRandom"),
     r(b"CHSH", SyscallNumber::CryptoHash, "CryptoHash"),
@@ -26,14 +26,12 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     r(b"CDEC", SyscallNumber::CryptoDecrypt, "CryptoDecrypt"),
     r(b"CEAD", SyscallNumber::CryptoEncryptAad, "CryptoEncryptAad"),
     r(b"CDAD", SyscallNumber::CryptoDecryptAad, "CryptoDecryptAad"),
-    r(b"CEDV", SyscallNumber::CryptoEd25519Verify, "CryptoEd25519Verify"),
     r(b"CXPK", SyscallNumber::CryptoX25519Public, "CryptoX25519Public"),
     r(b"CXSH", SyscallNumber::CryptoX25519Shared, "CryptoX25519Shared"),
     r(b"CHMC", SyscallNumber::CryptoHmacSha256, "CryptoHmacSha256"),
     r(b"CHKF", SyscallNumber::CryptoHkdfSha256, "CryptoHkdfSha256"),
     r(b"CKEC", SyscallNumber::CryptoKeccak256, "CryptoKeccak256"),
-    r(b"CSKS", SyscallNumber::CryptoSecp256k1Sign, "CryptoSecp256k1Sign"),
-    r(b"CSPB", SyscallNumber::CryptoSecp256k1Pubkey, "CryptoSecp256k1Pubkey"),
+    r(b"CMKY", SyscallNumber::CryptoMachineKey, "CryptoMachineKey"),
 ];
 
 const fn r(tag: &[u8; 4], variant: SyscallNumber, name: &'static str) -> AbiEntry {

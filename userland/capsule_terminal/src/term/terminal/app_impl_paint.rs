@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::term::prefs::RAIL_VISIBLE;
 use nonos_app_skeleton::PaintBuffer;
 use nonos_libc::mk_time_millis;
 
@@ -27,6 +28,20 @@ impl Terminal {
             }
         }
         self.width = fb.width;
-        crate::paint::paint_tabs(&self.tabs, self.active, fb);
+        let theme = crate::term::theme::profiles::by_index(self.theme);
+        let l = crate::paint::paint_tabs(
+            &self.tabs,
+            self.active,
+            fb,
+            theme,
+            self.font_scale,
+            &self.rail,
+            self.prefs.project_slice(),
+            self.prefs.rails & 1 == 0,
+            self.rail_scroll,
+            &self.palette,
+            self.prefs.rails & RAIL_VISIBLE != 0,
+        );
+        self.layout = Some(l);
     }
 }

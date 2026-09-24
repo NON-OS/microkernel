@@ -17,9 +17,10 @@
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
 use crate::memory::layout;
 use crate::memory::paging::types::PagingStats;
+use crate::smp::lock_responsive;
 
 pub fn get_paging_stats() -> PagingStats {
-    let manager = PAGING_MANAGER.lock();
+    let manager = lock_responsive(&PAGING_MANAGER);
     PAGING_STATS.snapshot(manager.mappings_count(), manager.address_spaces_count())
 }
 

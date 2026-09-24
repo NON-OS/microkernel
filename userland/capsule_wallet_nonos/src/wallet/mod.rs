@@ -21,13 +21,17 @@ mod ipc;
 mod manifest;
 mod net;
 mod nox;
-mod paint;
+mod num;
+pub mod paint;
+pub mod vault;
 mod pool;
 mod rpc;
 mod shield;
 mod state;
+mod swap;
 mod theme;
 mod tls13;
 mod tx_hash;
+mod units;
 
 pub use app::Wallet;

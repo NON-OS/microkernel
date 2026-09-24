@@ -1,6 +1,6 @@
 [package]
 name = "nonos_wallet"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 publish = false
 license = "AGPL-3.0"
@@ -13,9 +13,11 @@ path = "src/main.rs"
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_seal = { path = "../nonos_seal" }
 nonos_app_skeleton = { path = "../app_skeleton" }
 nonos_qr = { path = "../nonos_qr" }
 nonos_hd = { path = "../nonos_hd" }
+nonos_tls = { path = "../nonos_tls" }
 
 [profile.release]
 panic = "abort"

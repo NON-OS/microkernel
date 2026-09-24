@@ -22,6 +22,7 @@ pub mod context;
 pub mod core;
 pub mod exit;
 pub mod fd_table;
+pub mod foreign;
 pub mod fd_types;
 pub mod manager;
 pub mod mmap_va;

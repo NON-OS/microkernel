@@ -16,16 +16,20 @@
 
 pub mod banner;
 pub mod block;
+pub mod context;
 pub mod cwd;
 pub mod dimensions;
 pub mod dur;
 pub mod grid;
 pub mod history;
+pub mod identity;
 pub mod line;
 pub mod manifest;
+pub mod prefs;
 pub mod prompt;
 pub mod rtc;
 pub mod scrollback;
+pub mod search;
 pub mod state;
 pub mod terminal;
 pub mod theme;

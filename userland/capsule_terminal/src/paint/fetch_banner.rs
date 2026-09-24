@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The NONOS block banner, the same art the build prints. JetBrains Mono has
-//! the block and box-drawing glyphs, so it renders crisply through the mono
-//! TrueType path.
+//! The NONOS block banner, the same art the build prints. The mono face the
+//! toolkit loads is NotoSansMono, and it carries every codepoint the art uses:
+//! the full block at U+2588 and the double box-drawing run from U+2550 to
+//! U+255D. Checked rather than assumed, because a missing glyph here does not
+//! fail, it draws a row of tofu boxes across the first thing anyone sees.
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::term::theme::ACCENT;
+use crate::term::theme::types::Theme;
 
-const BANNER: [&str; 6] = [
+pub(crate) const BANNER: [&str; 6] = [
     "███╗   ██╗ ██████╗ ███╗   ██╗ ██████╗ ███████╗",
     "████╗  ██║██╔═══██╗████╗  ██║██╔═══██╗██╔════╝",
     "██╔██╗ ██║██║   ██║██╔██╗ ██║██║   ██║███████╗",
@@ -34,11 +36,19 @@ const BANNER: [&str; 6] = [
 const BANNER_PX: f32 = 13.0;
 const BANNER_ROW: i32 = 15;
 
-// Draw the banner at (x, y). Returns the y just below it.
-pub fn draw_banner(fb: &mut PaintBuffer, x: i32, y: i32) -> i32 {
+// Draw the banner at (x, y), inside `right`. Returns the y just below it, or
+// `y` unchanged when the art is too wide for the space and is omitted.
+pub fn draw_banner(fb: &mut PaintBuffer, x: i32, y: i32, right: i32, t: &Theme) -> i32 {
+    let mut w = 0;
+    for line in BANNER {
+        w = w.max(fb.measure_ttf_mono(line, BANNER_PX));
+    }
+    if x + w > right {
+        return y;
+    }
     let mut yy = y;
     for line in BANNER {
-        let _ = fb.text_ttf_mono(x, yy, line, ACCENT, BANNER_PX);
+        let _ = fb.text_ttf_mono(x, yy, line, t.accent, BANNER_PX);
         yy += BANNER_ROW;
     }
     yy

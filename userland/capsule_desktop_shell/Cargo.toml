@@ -2,7 +2,7 @@
 
 [package]
 name = "nonos_desktop_shell"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["NONOS Contributors"]
 license = "AGPL-3.0"
@@ -12,7 +12,16 @@ description = "NONOS desktop shell capsule skeleton"
 name = "desktop_shell"
 path = "src/main.rs"
 
+[features]
+default = []
+shell-frametime = []
+
 [dependencies]
+# The tone the alert and the startup chime ask the audio service for, and the
+# two switches that decide whether either is heard.
+nonos_audio_proto = { path = "../audio_proto" }
+nonos_policy_client = { path = "../policy_client" }
+nonos_policy_proto = { path = "../policy_proto" }
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_toolkit = { path = "../toolkit" }
 

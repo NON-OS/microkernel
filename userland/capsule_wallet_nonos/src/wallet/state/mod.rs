@@ -22,6 +22,8 @@ mod live_view;
 mod new;
 mod rail_allowed;
 mod record_tx;
+mod restore;
+mod restore_words;
 mod types;
 
 pub use default_net::default_net;
@@ -32,5 +34,5 @@ pub use record_tx::record_tx;
 pub use types::{
     Rail, State, MAX_RAILS, MAX_STAKE, SEND_FIELD_AMOUNT, SEND_FIELD_NONCE, SEND_FIELD_TO,
     VIEW_APPROVALS, VIEW_HOME, VIEW_NOX, VIEW_PROOF, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELD,
-    VIEW_SHIELDED, VIEW_SIGN, VIEW_UNSHIELD,
+    VIEW_SHIELDED, VIEW_SIGN, VIEW_SWAP, VIEW_UNSHIELD,
 };
