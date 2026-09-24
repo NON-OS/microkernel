@@ -38,6 +38,7 @@ mod panic;
 pub mod proc_output;
 pub mod process;
 pub mod procstat;
+pub mod procstat_header;
 pub mod spawn_instance;
 pub mod store_write;
 pub mod surface_registry;
@@ -86,7 +87,8 @@ pub use ipc::{
 pub use mem::{mk_mmap, mk_munmap};
 pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
 pub use process::{mk_args, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
-pub use procstat::{mk_proc_stat, ProcStatEntry, ProcStatHeader, PROC_NAME_LEN};
+pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_NAME_LEN};
+pub use procstat_header::ProcStatHeader;
 pub use spawn_instance::mk_spawn_instance;
 pub use store_write::mk_store_write;
 pub use surface_registry::{
