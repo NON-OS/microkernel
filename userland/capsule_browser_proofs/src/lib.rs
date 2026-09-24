@@ -34,6 +34,8 @@ mod grid_clip_tests;
 #[cfg(test)]
 mod grid_tests;
 #[cfg(test)]
+mod gzip_tests;
+#[cfg(test)]
 mod selector_tests;
 #[cfg(test)]
 mod table_tests;
