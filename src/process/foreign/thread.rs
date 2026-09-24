@@ -17,7 +17,7 @@
 
 //! A second thread inside a guest.
 
-use crate::process::core::spawn_thread_in;
+use crate::process::core::{admit_thread, spawn_thread_parked};
 use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOMEM, ERRNO_PERM};
 
 /// `MkForeignThread`: a thread in `pid`, sharing its address space and
@@ -37,16 +37,15 @@ pub fn sys_foreign_thread(pid: u64, entry: u64, rsp: u64, tls: u64) -> i64 {
     if entry == 0 || rsp == 0 {
         return ERRNO_INVAL;
     }
-    let Ok(tid) = spawn_thread_in(pid, entry, rsp) else {
+    let Ok(tid) = spawn_thread_parked(pid, entry, rsp) else {
         return ERRNO_NOMEM;
     };
     if tls != 0 {
         crate::process::with_process(tid, |pcb| pcb.set_tls_base(tls));
     }
-    // Its unknown syscalls have to reach the same supervisor, or the
-    // thread traps into ENOSYS while its siblings are being served.
     if !super::registry::insert(tid, caller) {
         return ERRNO_NOMEM;
     }
+    admit_thread(tid);
     tid as i64
 }
