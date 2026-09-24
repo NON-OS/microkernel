@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const OP_GET: u16 = 0x0001;
-pub const OP_SET: u16 = 0x0002;
+//! Operation and status numbers.
 
-/*
- * Addresses no field, unlike GET and SET: it asks what the kernel reports about
- * its own hardening, which is one record rather than a value per row, so the
- * header's field word is unused on both sides.
- */
-pub const OP_STATUS: u16 = 0x0003;
+pub const OP_PLAY_TONE: u16 = 1;
+pub const OP_PLAY_PCM: u16 = 2;
+pub const OP_STOP: u16 = 3;
+pub const OP_STREAM_OPEN: u16 = 4;
+pub const OP_FEED_PCM: u16 = 5;
+pub const OP_PAUSE: u16 = 6;
+pub const OP_CLOSE: u16 = 7;
+pub const OP_RESUME: u16 = 8;
+
+pub const E_OK: i32 = 0;
+pub const E_INVAL: i32 = -22;
+pub const E_AGAIN: i32 = -11;

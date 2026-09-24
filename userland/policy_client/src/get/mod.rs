@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const OP_GET: u16 = 0x0001;
-pub const OP_SET: u16 = 0x0002;
+//! Reading one field, by the type the field carries.
 
-/*
- * Addresses no field, unlike GET and SET: it asks what the kernel reports about
- * its own hardening, which is one record rather than a value per row, so the
- * header's field word is unused on both sides.
- */
-pub const OP_STATUS: u16 = 0x0003;
+mod bool_value;
+mod i8_value;
+mod str_value;
+mod u8_value;
+
+pub use bool_value::get_bool;
+pub use i8_value::get_i8;
+pub use str_value::get_str;
+pub use u8_value::get_u8;

@@ -14,12 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const OP_GET: u16 = 0x0001;
-pub const OP_SET: u16 = 0x0002;
+//! A text field.
 
-/*
- * Addresses no field, unlike GET and SET: it asks what the kernel reports about
- * its own hardening, which is one record rather than a value per row, so the
- * header's field word is unused on both sides.
- */
-pub const OP_STATUS: u16 = 0x0003;
+use nonos_policy_proto::{Field, IPC_PAYLOAD_MAX, KIND_STR, OP_GET};
+
+use crate::call::call;
+
+/// Copy the stored text into `out` and return its length.
+///
+pub fn get_str(port: u32, field: Field, out: &mut [u8]) -> Option<usize> {
+    let mut rx = [0u8; IPC_PAYLOAD_MAX];
+    let reply = call(port, OP_GET, field as u32, KIND_STR, &mut rx)?;
+    if reply.header.kind != KIND_STR || reply.header.field != field as u32 {
+        return None;
+    }
+    let n = reply.payload.len();
+    if n > out.len() {
+        return None;
+    }
+    out[..n].copy_from_slice(reply.payload);
+    Some(n)
+}
