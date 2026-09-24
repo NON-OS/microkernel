@@ -24,7 +24,7 @@ defaults:
     shell: bash
 
 concurrency:
-  group: lean-${{ github.ref }}
+  group: lean-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:

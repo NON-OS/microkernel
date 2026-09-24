@@ -36,7 +36,13 @@ pub(in crate::browser::fetch) fn verify_and_send(port: u32, f: &mut Fetch) {
     let Some(out) =
         tls13::application_write(&tls.cf, &tls.flight, req.as_bytes(), host.as_bytes(), tls.now)
     else {
-        f.error = Some("cert verify failed");
+        // A server that refused says why, in an alert inside the encrypted
+        // flight. Every one of those used to be reported as a chain failure,
+        // which sent the reader to the certificate store for a fault that was
+        // on the wire and named.
+        let refused = tls13::handshake_alert(&tls.cf, &tls.flight);
+        f.tls_alert = refused;
+        f.error = Some("tls handshake refused");
         f.phase = Phase::Error;
         return;
     };

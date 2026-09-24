@@ -1,0 +1,35 @@
+# NØNOS userland: capsule_linux
+# eK@nonos.systems
+#
+# The Linux personality. Hosts unmodified Linux binaries in processes
+# that hold no NONOS capabilities, and answers every syscall they make.
+# The kernel holds no Linux knowledge: the numbers, the structs, the
+# errnos and the filesystem view all live here, so this capsule can be
+# replaced or revoked without touching ring 0.
+
+[package]
+name = "nonos_capsule_linux"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS Linux personality: hosts Linux binaries outside the trusted computing base"
+
+[[bin]]
+name = "linux"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
