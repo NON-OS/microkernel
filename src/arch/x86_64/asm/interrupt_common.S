@@ -38,7 +38,7 @@ interrupt_common:
     mov     ds, ax
     mov     es, ax
     mov     rbp, rsp
-    mov     rdi, rbp
+    lea     rdi, [rbp + 8]
     sub     rsp, 528
     and     rsp, -16
     fxsave  [rsp]
