@@ -49,6 +49,7 @@ mod socks;
 mod stash;
 mod step;
 mod tls;
+mod tls_reason;
 pub mod types;
 mod unsupported_content;
 mod webfont_shim;
