@@ -18,6 +18,10 @@ on:
         description: "boots per cell"
         required: false
         default: "1"
+      timeout:
+        description: "seconds a single boot may take before the cell is called timed out"
+        required: false
+        default: "300"
       cells:
         description: "cells to boot, space separated, or all for the whole matrix"
         required: false
@@ -74,10 +78,15 @@ jobs:
         env:
           BOOT_MATRIX_REPEAT: ${{ github.event.inputs.repeat || '5' }}
           BOOT_MATRIX_CELLS: ${{ github.event.inputs.cells || 'all' }}
+          BOOT_MATRIX_TIMEOUT: ${{ github.event.inputs.timeout || '300' }}
         run: |
           set -euo pipefail
           if [ "$BOOT_MATRIX_CELLS" = all ]; then BOOT_MATRIX_CELLS=""; fi
+          case "$BOOT_MATRIX_TIMEOUT" in
+            ''|*[!0-9]*) echo "::error::timeout must be digits only"; exit 1 ;;
+          esac
           make QEMU_NET_MODE=off BOOT_MATRIX_REPEAT="$BOOT_MATRIX_REPEAT" \
+            BOOT_MATRIX_TIMEOUT="$BOOT_MATRIX_TIMEOUT" \
             BOOT_MATRIX_CELLS="$BOOT_MATRIX_CELLS" nonos-mk-boot-matrix
       - name: Upload serial logs and the verdict
         if: always()
