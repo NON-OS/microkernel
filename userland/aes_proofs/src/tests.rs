@@ -17,6 +17,8 @@
 
 mod aes_ctr_tests;
 mod aes_tests;
+mod ctr64_tests;
+mod ctr_vectors;
 mod nonos_sbox;
 mod sbox_table;
 mod sbox_tests;
