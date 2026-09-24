@@ -18,6 +18,7 @@ use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_exception_with_code, ExceptionContext};
 use super::rip_probe::rip_byte_range_mapped;
+use crate::arch::x86_64::diag::print_hex_u64;
 use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
 
@@ -55,10 +56,13 @@ impl GpfErrorCode {
 pub fn handle(frame: InterruptStackFrame, error_code: u64) {
     crate::arch::x86_64::diag::dump_trap(b"GP", &frame, Some(error_code), None);
     let ctx = ExceptionContext::from_frame(&frame);
+    let gpf_error = GpfErrorCode::from_bits(error_code);
+    if !ctx.is_user_mode() {
+        emit_fatal_notice(&gpf_error);
+    }
     log_exception_with_code("GENERAL PROTECTION FAULT", &ctx, error_code);
     stats::increment_exceptions();
 
-    let gpf_error = GpfErrorCode::from_bits(error_code);
     analyze_gpf(&ctx, &gpf_error);
 
     if ctx.is_user_mode() {
@@ -66,6 +70,19 @@ pub fn handle(frame: InterruptStackFrame, error_code: u64) {
     } else {
         kernel_panic(&ctx);
     }
+}
+
+fn emit_fatal_notice(error: &GpfErrorCode) {
+    crate::sys::serial::print(b"[PANIC GP] fatal general protection fault in kernel mode");
+    crate::sys::serial::print(b" selector=");
+    print_hex_u64(error.selector_index() as u64);
+    crate::sys::serial::print(b" external=");
+    crate::sys::serial::print(&[b'0' + error.is_external() as u8]);
+    crate::sys::serial::print(b" idt=");
+    crate::sys::serial::print(&[b'0' + error.is_idt() as u8]);
+    crate::sys::serial::print(b" ldt=");
+    crate::sys::serial::print(&[b'0' + error.is_ldt() as u8]);
+    crate::sys::serial::println(b" -- CPU halting, boot terminated");
 }
 
 fn analyze_gpf(ctx: &ExceptionContext, error: &GpfErrorCode) {

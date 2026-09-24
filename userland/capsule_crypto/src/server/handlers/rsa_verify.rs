@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-use rsa::pkcs8::DecodePublicKey;
-use rsa::pss::Pss;
-use rsa::{Pkcs1v15Sign, RsaPublicKey};
-use sha2::{Sha256, Sha384, Sha512};
+//! Unframing an RSA verify request; the scheme itself lives next door.
 
+use alloc::vec::Vec;
+
+use super::rsa_scheme::verify;
 use crate::protocol::{encode_response, Request, EBADMSG, EINVAL, OP_RSA_VERIFY};
 
 pub fn rsa_verify(req: Request<'_>) -> Vec<u8> {
@@ -44,28 +43,14 @@ pub fn rsa_verify(req: Request<'_>) -> Vec<u8> {
     }
     let sig = &p[o..o + sig_len];
     o += sig_len;
-    let digest = &p[o..];
-    let want = match hashid {
-        0 => 32,
-        1 => 48,
-        2 => 64,
-        _ => return reply(EINVAL),
-    };
-    if digest.len() != want {
-        return reply(EINVAL);
+    match verify(scheme, hashid, spki, sig, &p[o..]) {
+        Some(true) => reply(0),
+        Some(false) => reply(EBADMSG),
+        /*
+         * A key that will not decode, a digest of the wrong length, or a
+         * scheme that is not offered. None of those is a failed signature, and
+         * reporting them as one would tell a caller its key was rejected.
+         */
+        None => reply(EINVAL),
     }
-    let key = match RsaPublicKey::from_public_key_der(spki) {
-        Ok(k) => k,
-        Err(_) => return reply(EINVAL),
-    };
-    let ok = match (scheme, hashid) {
-        (0, 0) => key.verify(Pkcs1v15Sign::new::<Sha256>(), digest, sig).is_ok(),
-        (0, 1) => key.verify(Pkcs1v15Sign::new::<Sha384>(), digest, sig).is_ok(),
-        (0, 2) => key.verify(Pkcs1v15Sign::new::<Sha512>(), digest, sig).is_ok(),
-        (1, 0) => key.verify(Pss::new::<Sha256>(), digest, sig).is_ok(),
-        (1, 1) => key.verify(Pss::new::<Sha384>(), digest, sig).is_ok(),
-        (1, 2) => key.verify(Pss::new::<Sha512>(), digest, sig).is_ok(),
-        _ => false,
-    };
-    reply(if ok { 0 } else { EBADMSG })
 }

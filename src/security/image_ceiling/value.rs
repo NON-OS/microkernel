@@ -16,10 +16,8 @@
 
 use crate::capabilities::Capability;
 
-// Staged by build.rs: the image's ceiling file when it ships one, otherwise the
-// unset default that reads back as unrestricted. An image restricts its own
-// authority by dropping nonos-data/trust/policy/image_capability_ceiling.bin;
-// absence is not a build error, it is the ordinary case.
+// Staged by build.rs: the image's ceiling file when it ships one, otherwise
+// the unset default that reads back as unrestricted.
 const BAKED: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/image_capability_ceiling.bin"));
 
 /// Const because `ceiling` sits on the token mint path.
@@ -36,12 +34,7 @@ const fn unrestricted() -> u64 {
 
 const UNRESTRICTED: u64 = unrestricted();
 
-/// The most authority any capsule in this image may hold. Baked in beside the
-/// policy root, so nothing the image runs can raise it.
-///
-/// Malformed or absent reads as unrestricted, not as zero. Zero is a machine
-/// that cannot spawn anything, and it would make a corrupt file look like a
-/// deliberately locked image.
+/// The most authority any capsule in this image may hold.
 pub const fn ceiling() -> u64 {
     if BAKED.len() != 8 {
         return UNRESTRICTED;

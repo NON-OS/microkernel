@@ -22,7 +22,8 @@ use crate::smp::trampoline::{write_per_ap_context, PerApBootContext};
 use crate::smp::{CpuDescriptor, CpuState};
 use core::sync::atomic::Ordering;
 
-const AP_START_TIMEOUT_TSC: u64 = 100_000_000;
+const AP_START_TIMEOUT_MS: u64 = 100;
+const AP_START_TIMEOUT_FALLBACK_TSC: u64 = 250_000_000;
 
 pub(super) fn start(
     cpu_id: usize,
@@ -38,11 +39,27 @@ pub(super) fn start(
     crate::arch::x86_64::interrupt::apic::start_ap(apic_id, (AP_TRAMPOLINE_ADDR >> 12) as u8);
 
     if wait_online(ap) {
-        crate::log_info!("[SMP] AP {} online (APIC {})", cpu_id, apic_id);
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[SMP] ap=").dec(cpu_id as u64);
+        l.str(b" apic=").dec(apic_id as u64);
+        l.str(b" online");
+        l.end();
         Ok(true)
     } else {
-        crate::log_error!("[SMP] AP {} (APIC {}) startup timeout", cpu_id, apic_id);
-        ap.set_state(CpuState::Offline);
+        /*
+         * Not marked Offline. This AP missed the deadline; it was not stopped,
+         * and the loop that called us says so in its own comment. Writing
+         * Offline here raced the AP's own write of Online: lose that race and
+         * a running CPU is recorded as down, `shootdown::broadcast` skips it
+         * because it filters on `cpu_is_online`, and it goes on holding stale
+         * TLB entries with nobody flushing them. Leaving the descriptor in
+         * Starting makes the CPU the only writer of its own Online.
+         */
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[SMP] ap=").dec(cpu_id as u64);
+        l.str(b" apic=").dec(apic_id as u64);
+        l.str(b" timeout");
+        l.end();
         Ok(false)
     }
 }
@@ -63,11 +80,17 @@ fn write_context(cpu_id: usize, stack_top: u64, boot: &ApBootInputs) -> Result<(
 
 fn wait_online(ap: &CpuDescriptor) -> bool {
     let start = super::time::read_tsc();
+    let budget = ap_start_timeout_tsc();
     while ap.state() != CpuState::Online {
-        if super::time::read_tsc() - start > AP_START_TIMEOUT_TSC {
+        if super::time::read_tsc() - start > budget {
             return false;
         }
         core::hint::spin_loop();
     }
     true
+}
+
+fn ap_start_timeout_tsc() -> u64 {
+    let ticks = crate::sys::timer::tsc::tsc_frequency() / 1000 * AP_START_TIMEOUT_MS;
+    if ticks == 0 { AP_START_TIMEOUT_FALLBACK_TSC } else { ticks }
 }

@@ -35,6 +35,8 @@ mod journal;
 mod lookup;
 #[path = "../../../capsule_vfs/src/store/fdtable/mkdir.rs"]
 mod mkdir;
+#[path = "../../../capsule_vfs/src/store/fdtable/persist.rs"]
+mod persist;
 #[path = "../../../capsule_vfs/src/store/fdtable/new.rs"]
 mod new;
 #[path = "../../../capsule_vfs/src/store/fdtable/open.rs"]
