@@ -26,6 +26,7 @@ mod face;
 mod metrics;
 mod readable;
 mod slant;
+pub mod text_scale;
 
 pub use face::builtin_face;
 pub use readable::MIN_UI_PX;

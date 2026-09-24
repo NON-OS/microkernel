@@ -23,5 +23,10 @@
 // control returns. How a given CPU waits without losing an already
 // pending wake is the arch layer's business.
 pub(super) fn idle_until_interrupt() {
+    // The halt belongs to no process: without the mark, the tick that ends
+    // it was charged to whichever process yielded last, and an idle desktop
+    // read as a third of the processor spent in init.
+    crate::process::accounting::idle_enter();
     crate::arch::idle::wait_for_interrupt();
+    crate::process::accounting::idle_leave();
 }

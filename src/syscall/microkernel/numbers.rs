@@ -64,6 +64,24 @@ pub const SYS_ATTEST_DOC: u64 = tag4(b"MADC");
 pub const SYS_ATTEST_ENTRIES: u64 = tag4(b"MAEN");
 /// A chunk of the image this machine booted, for the installer to write.
 pub const SYS_INSTALL_SOURCE: u64 = tag4(b"MISR");
+/// Create a process with no capabilities, supervised by the caller, to
+/// host code the kernel has not verified and does not interpret.
+pub const SYS_FOREIGN_SPAWN: u64 = tag4(b"MFSP");
+/// Give such a process an entry point and make it runnable.
+pub const SYS_FOREIGN_START: u64 = tag4(b"MFST");
+/// Wait for one of the caller's guests to issue a syscall this kernel
+/// refuses, and take its register frame.
+pub const SYS_FOREIGN_WAIT: u64 = tag4(b"MFWT");
+/// Answer one parked guest with the value its `rax` receives.
+pub const SYS_FOREIGN_REPLY: u64 = tag4(b"MFRP");
+/// Back a span of a guest's address space with fresh frames.
+pub const SYS_PEER_MAP: u64 = tag4(b"MPMP");
+/// Copy bytes between the caller and a guest it supervises.
+pub const SYS_PEER_COPY: u64 = tag4(b"MPCP");
+/// Set the protection of pages a guest already has.
+pub const SYS_PEER_PROTECT: u64 = tag4(b"MPPT");
+/// A thread inside a guest, sharing its address space.
+pub const SYS_FOREIGN_THREAD: u64 = tag4(b"MFTH");
 /// Ask to enrol a signing root so software built here runs here. Prints a
 /// confirmation code; enrols nothing on its own.
 pub const SYS_DEV_ROOT_REQUEST: u64 = tag4(b"MDRQ");

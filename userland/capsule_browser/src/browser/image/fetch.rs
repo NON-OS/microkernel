@@ -107,6 +107,7 @@ fn begin(state: &mut State, target: &str, key: &str) -> Result<(), &'static str>
         idle: 0,
         started_ms: mk_time_millis(),
         error: None,
+        tls_alert: None,
         suppress: true,
         image: Some(String::from(key)),
         last_check: 0,

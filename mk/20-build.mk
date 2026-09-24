@@ -547,6 +547,7 @@ include userland/capsule_input_router/Capsule.mk
 include userland/capsule_input_proof/Capsule.mk
 include userland/capsule_input_probe/Capsule.mk
 include userland/capsule_setup_wizard/Capsule.mk
+include userland/capsule_nonos_install/Capsule.mk
 include userland/capsule_wm/Capsule.mk
 include userland/capsule_desktop_shell/Capsule.mk
 include userland/capsule_image_codec/Capsule.mk
@@ -558,6 +559,7 @@ include userland/toolkit/Capsule.mk
 include userland/capsule_about/Capsule.mk
 include userland/capsule_install/Capsule.mk
 include userland/tool_install/Capsule.mk
+include userland/capsule_linux/Capsule.mk
 include userland/capsule_hello/Capsule.mk
 include userland/capsule_gui_demo/Capsule.mk
 include userland/capsule_game_2048/Capsule.mk
@@ -733,7 +735,7 @@ NONOS_DESKTOP_GUI_CAPSULE_CHECKS = \
 	$(driver-usb-hid_VERIFY) \
 	$(net-core_VERIFY) $(net-sockets_VERIFY) $(net-nym_VERIFY) \
 	$(policy_VERIFY) $(wallpaper_catalog_VERIFY) \
-	$(installer_VERIFY) $(install_VERIFY) \
+	$(installer_VERIFY) $(linux_VERIFY) \
 	$(input-router_VERIFY) $(compositor_VERIFY) $(wm_VERIFY) \
 	$(desktop-shell_VERIFY) $(image-codec_VERIFY) $(image-viewer_VERIFY) $(clipboard_VERIFY) \
 	$(login_VERIFY) $(wallpaper_VERIFY) $(toolkit_VERIFY) \
@@ -1143,6 +1145,7 @@ DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
 		net-core net-sockets net-nym socks5 policy wallpaper_catalog \
 		installer input-router compositor wm desktop-shell image-codec \
 		clipboard login wallpaper toolkit about install install-cli boot-splash calculator \
+		clipboard login wallpaper toolkit about linux boot-splash calculator \
 		browser wallet-nonos terminal file-manager text-editor \
 		settings process-manager attest power \
 		audio driver-hda audio_player video-player
@@ -1248,6 +1251,10 @@ nonos-mk-input-probe-inject-esp: $(NONOS_BOOT_EFI)
 	@cp $(TARGET_DIR)/kernel_attested.bin $(NONOS_INPUT_PROBE_INJECT_ESP)/EFI/nonos/kernel.bin
 	@printf "timeout=0\ndefault=nonos\n" > $(NONOS_INPUT_PROBE_INJECT_ESP)/EFI/nonos/boot.cfg
 	@echo 'fs0:\EFI\Boot\BOOTX64.EFI' > $(NONOS_INPUT_PROBE_INJECT_ESP)/startup.nsh
+	@# This target packs its own ESP instead of going through nonos-mk-esp, so
+	@# it needs the same check: the staged kernel is the one just linked.
+	@$(NONOS_PYTHON) scripts/check_staged_kernel.py --elf $(MICROKERNEL_BIN) \
+		--staged $(NONOS_INPUT_PROBE_INJECT_ESP)/EFI/nonos/kernel.bin
 
 nonos-mk-terminal-only-prod: $(proof-io_ARTIFACTS) $(ramfs_ARTIFACTS) $(keyring_ARTIFACTS) \
 		$(entropy_ARTIFACTS) $(crypto_ARTIFACTS) $(vfs_ARTIFACTS) \
@@ -1378,6 +1385,13 @@ endif
 	@cp $(TARGET_DIR)/kernel_attested.bin $(ESP_DIR)/EFI/nonos/kernel.bin
 	@printf "timeout=0\ndefault=nonos\n" > $(ESP_DIR)/EFI/nonos/boot.cfg
 	@echo 'fs0:\EFI\Boot\BOOTX64.EFI' > $(ESP_DIR)/startup.nsh
+	@# The ELF just linked is a byte prefix of what was staged, or the pack
+	@# chain raced the link and this ESP boots an older kernel. Checked here
+	@# rather than in each boot target, so nothing that consumes an ESP can
+	@# skip it and no boot verdict can describe a kernel that is not in the
+	@# tree.
+	@$(NONOS_PYTHON) scripts/check_staged_kernel.py \
+		--elf $(MICROKERNEL_BIN) --staged $(ESP_DIR)/EFI/nonos/kernel.bin
 	@echo "ESP ready at $(ESP_DIR)"
 
 # Produce a real, flashable GPT disk image with a FAT32 EFI System Partition.

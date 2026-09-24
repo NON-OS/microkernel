@@ -31,5 +31,8 @@ pub fn run() -> Result<Context, &'static str> {
     open_chrome_windows::open_chrome_windows(&mut ctx)?;
     super::subscribe_wm::subscribe_wm(&mut ctx, peers.wm_port);
     super::subscribe_input::subscribe_input(&mut ctx, peers.input_router_port);
+    // Last, and only where a context is returned: the desktop is committed,
+    // painted and listening, which is what finished booting looks like.
+    crate::sound::chime();
     Ok(ctx)
 }
