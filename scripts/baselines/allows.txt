@@ -40,6 +40,7 @@ userland/capsule_browser_proofs/src/lib.rs:7
 userland/capsule_browser_proofs/src/lib.rs:8
 userland/capsule_desktop_shell/src/render/fill.rs:50
 userland/capsule_driver_virtio_gpu/src/device/cmd/transfer_3d/wire.rs:23
+userland/capsule_linux/src/linux/abi/mod.rs:23
 userland/capsule_net_nym/src/crypto/blake2b/mix.rs:17
 userland/capsule_process_manager/tests/host/matrix_geometry.rs:1
 userland/capsule_process_manager/tests/host/nav_geometry.rs:1
