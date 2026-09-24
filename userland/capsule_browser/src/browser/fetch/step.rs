@@ -16,6 +16,7 @@
 
 use nonos_libc::mk_time_millis;
 
+use crate::browser::fetch::tls_reason;
 use crate::browser::fetch::types::Phase;
 use crate::browser::fetch::{budget, fail, finish, plain, rtc_packed, socks, tls};
 use crate::browser::http;
@@ -209,13 +210,7 @@ pub fn step(state: &mut State) -> bool {
             None => fail::fail(state, "decrypt failed"),
         },
         Phase::Done => finish::finish(state, &job.buf, job.suppress),
-        _ => fail::fail(
-            state,
-            match job.error {
-                Some(err) => err,
-                None => "error",
-            },
-        ),
+        _ => fail::fail(state, &tls_reason::reason(&job)),
     }
     true
 }

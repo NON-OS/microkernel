@@ -16,7 +16,7 @@
 
 use crate::browser::fetch::tls::flight_settled;
 use crate::browser::fetch::types::{Fetch, Phase};
-use crate::browser::fetch::{append_capped, budget, constants};
+use crate::browser::fetch::{append_capped, constants};
 use crate::browser::net;
 use crate::browser::tls13;
 
@@ -47,6 +47,20 @@ pub(in crate::browser::fetch) fn read_flight(port: u32, f: &mut Fetch) {
                     f.phase = Phase::TlsVerify;
                     return;
                 }
+                /*
+                 * A server that refuses the hello answers with an alert in the
+                 * clear, and no ServerHello is ever coming. Without this the
+                 * loop drains, the flight never reads as ready, and a refusal
+                 * we were told about in the first packet is reported as a
+                 * handshake that timed out.
+                 */
+                if let Some(description) = tls13::description_in_record(&tls.flight) {
+                    super::trace::flight(b"refused", tls.flight.len(), f.idle);
+                    f.tls_alert = Some(description);
+                    f.error = Some("tls handshake refused");
+                    f.phase = Phase::Error;
+                    return;
+                }
             }
             _ => break,
         }
@@ -54,17 +68,7 @@ pub(in crate::browser::fetch) fn read_flight(port: u32, f: &mut Fetch) {
     if got {
         f.idle = 0;
     } else {
-        f.idle = f.idle.wrapping_add(1);
-        if flight_settled(&tls.flight) && f.idle >= budget::flight_settle() {
-            // Believed on a quiet gap rather than because the flight said it
-            // was done. Over the mixnet the rest can still be on its way, so
-            // this is the case worth being able to tell apart.
-            super::trace::flight(b"settled", tls.flight.len(), f.idle);
-            f.phase = Phase::TlsVerify;
-        } else if f.idle >= budget::hs_wait() {
-            super::trace::flight(b"abandoned", tls.flight.len(), f.idle);
-            f.error = Some("tls handshake failed");
-            f.phase = Phase::Error;
-        }
+        let (settled, have) = (flight_settled(&tls.flight), tls.flight.len());
+        super::flight_quiet::quiet(f, settled, have);
     }
 }

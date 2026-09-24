@@ -17,7 +17,8 @@
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
 use crate::memory::addr::VirtAddr;
 use crate::memory::paging::error::PagingResult;
+use crate::smp::lock_responsive;
 
 pub fn handle_page_fault(virtual_addr: VirtAddr, error_code: u64) -> PagingResult<()> {
-    PAGING_MANAGER.lock().handle_page_fault(virtual_addr, error_code, &PAGING_STATS)
+    lock_responsive(&PAGING_MANAGER).handle_page_fault(virtual_addr, error_code, &PAGING_STATS)
 }
