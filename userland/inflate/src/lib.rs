@@ -20,6 +20,7 @@ extern crate alloc;
 
 mod bits;
 mod codes;
+mod crc32;
 mod dynamic;
 mod fixed;
 mod gzip;
