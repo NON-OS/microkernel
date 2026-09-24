@@ -15,15 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The most authority any capsule in this image may hold.
-//!
-//! Per-capsule bits answer "what can this program do". Answering "can anything
-//! here reach the network" from those means enumerating every capsule and
-//! trusting the enumeration, which a remote party cannot do. This is one
-//! value, enforced on the path every capsule takes, and folded into the
-//! attestation.
 
 mod admits;
 mod value;
 
-pub use admits::{admits, excess, report, report_pid};
+pub use admits::{admits, excess, report, report_pid, would_refuse};
 pub use value::{ceiling, is_restricted};
