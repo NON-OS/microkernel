@@ -19,6 +19,7 @@
 
 mod abi;
 mod call;
+mod file;
 mod guest;
 mod image;
 mod serve;
