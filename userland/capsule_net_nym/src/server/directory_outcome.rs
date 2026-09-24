@@ -18,45 +18,47 @@
 
 use core::sync::atomic::Ordering;
 
-use super::directory_tick::{BACKOFF, MAX_BACKOFF, SKIP};
+use super::directory_clock::{now_ms, BACKOFF_MS, FIRST_BACKOFF_MS, MAX_BACKOFF_MS, NEXT_TRY_MS};
 use crate::directory_sync::Step;
 use crate::trace;
 
-/// Idle ticks to wait before re-syncing when a directory arrived with gateways
-/// but no exit. Long enough not to hammer the API, short enough that the
-/// mixnet becomes usable within moments of the boot-time pressure clearing.
-const RESYNC_FOR_EXIT: usize = 1;
+/// How long to wait before re-syncing when a directory arrived with gateways
+/// but no exit.
+const RESYNC_FOR_EXIT_MS: u64 = 250;
 
 /// Record a step, and hold off after one that did not arrive.
 pub fn record(step: Step) {
     match step {
         Step::Progressed => {
             trace::say(b"directory: mix layers in hand, gateways next");
-            BACKOFF.store(1, Ordering::Relaxed);
+            BACKOFF_MS.store(FIRST_BACKOFF_MS, Ordering::Relaxed);
         }
         Step::Done(count) => {
             trace::say_num(b"directory synced, nodes", count as u64);
             // The gateway in hand was dialled before there was a directory,
             // so it is probably not in the one that just arrived.
             super::rebind::rebind_if_unknown();
-            BACKOFF.store(1, Ordering::Relaxed);
+            BACKOFF_MS.store(FIRST_BACKOFF_MS, Ordering::Relaxed);
             // A sync missing a gateway or an exit is not usable: the tick will
             // run again because one of those counts is still zero, but
-            // re-fetching the whole list every tick would hammer the directory.
-            // Sit out a fixed stretch first, long enough for the boot-time
-            // crypto pressure that failed the handshake to clear, without giving
-            // up on it.
+            // re-fetching the whole list every tick would hammer the
+            // directory.
             if crate::state::directory_gateway_count() == 0
                 || crate::state::directory_exit_count() == 0
             {
-                SKIP.store(RESYNC_FOR_EXIT, Ordering::Relaxed);
+                hold(RESYNC_FOR_EXIT_MS);
             }
         }
         Step::Failed(code) => {
             trace::say_num(b"directory sync failed, code", code as u64);
-            let wait = BACKOFF.load(Ordering::Relaxed);
-            SKIP.store(wait, Ordering::Relaxed);
-            BACKOFF.store((wait + 1).min(MAX_BACKOFF), Ordering::Relaxed);
+            let wait = BACKOFF_MS.load(Ordering::Relaxed);
+            hold(wait);
+            BACKOFF_MS.store((wait * 2).min(MAX_BACKOFF_MS), Ordering::Relaxed);
         }
     }
+}
+
+/// Refuse the next attempt until `wait` milliseconds from now.
+fn hold(wait: u64) {
+    NEXT_TRY_MS.store(now_ms().saturating_add(wait), Ordering::Relaxed);
 }
