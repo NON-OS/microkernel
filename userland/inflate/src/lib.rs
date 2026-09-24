@@ -23,6 +23,7 @@ mod codes;
 mod dynamic;
 mod fixed;
 mod gzip;
+mod gzip_header;
 mod huff;
 mod inflate_raw;
 mod stored;

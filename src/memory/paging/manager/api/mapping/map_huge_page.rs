@@ -19,6 +19,7 @@ use crate::arch::run_without_interrupts as without_interrupts;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::error::PagingResult;
 use crate::memory::paging::types::{PagePermissions, PageSize};
+use crate::smp::lock_responsive;
 
 pub fn map_huge_page(
     virtual_addr: VirtAddr,
@@ -27,7 +28,7 @@ pub fn map_huge_page(
     size: PageSize,
 ) -> PagingResult<()> {
     without_interrupts(|| {
-        PAGING_MANAGER.lock().map_page(
+        lock_responsive(&PAGING_MANAGER).map_page(
             virtual_addr,
             physical_addr,
             permissions,
