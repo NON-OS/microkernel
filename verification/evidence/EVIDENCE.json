@@ -12,7 +12,7 @@
   },
   "proof_systems": {
     "kani": {
-      "harnesses": 99
+      "harnesses": 100
     },
     "lean_extraction": {
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas, then proven on the extracted definition.",
@@ -28,7 +28,7 @@
       "generated_files": [
         {
           "path": "verification/extraction/lean/NonosExtraction/Caps.lean",
-          "sha256": "b0a10889f305b0b8547070132291fbd59a33cecfec0780bc4cb9211d995f5b2f"
+          "sha256": "c4d405171f22fb70a5925f089ca11199746d1b5c44d5eabf0e582f704ba35982"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Irq.lean",
@@ -57,7 +57,7 @@
       "toolchain": "leanprover/lean4:v4.15.0"
     },
     "runnable": {
-      "proof_crates": 49
+      "proof_crates": 54
     },
     "verus": {
       "source_files": 5

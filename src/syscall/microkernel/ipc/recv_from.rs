@@ -104,6 +104,7 @@ fn deliver(
             return ERRNO_FAULT;
         }
     }
+    crate::process::accounting::bump(pid, crate::process::accounting::Kind::IpcRx);
     copy_len as i64
 }
 

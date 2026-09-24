@@ -13,55 +13,38 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! gzip, including the concatenated members RFC 1952 allows.
 
 use alloc::vec::Vec;
 
-use super::inflate_raw::inflate;
+use super::gzip_header::body_at;
+use super::inflate_raw::inflate_counted;
+use super::tables::MAX_OUT;
 
+/// A member ends with a CRC32 and an ISIZE.
+const TRAILER: usize = 8;
+
+/// Enough for a distribution index in several parts.
+const MAX_MEMBERS: usize = 64;
+
+/// Every member, concatenated.
 pub fn gunzip(data: &[u8]) -> Option<Vec<u8>> {
-    if data.len() < 18 || data[0] != 0x1f || data[1] != 0x8b || data[2] != 8 {
-        return None;
+    let mut out: Vec<u8> = Vec::new();
+    let mut at = 0usize;
+    for _ in 0..MAX_MEMBERS {
+        let Some(start) = body_at(data.get(at..)?) else {
+            return (at != 0).then_some(out);
+        };
+        let from = at.checked_add(start)?;
+        let (mut part, used) = inflate_counted(data.get(from..)?)?;
+        if out.len().checked_add(part.len())? > MAX_OUT {
+            return None;
+        }
+        out.append(&mut part);
+        at = from.checked_add(used)?.checked_add(TRAILER)?;
+        if at >= data.len() {
+            return Some(out);
+        }
     }
-    let mut p = 10usize;
-    skip_extra(data, &mut p)?;
-    skip_name(data, &mut p)?;
-    skip_comment(data, &mut p)?;
-    if data[3] & 2 != 0 {
-        p = p.checked_add(2)?;
-    }
-    if p >= data.len().saturating_sub(8) {
-        return None;
-    }
-    inflate(&data[p..data.len() - 8])
-}
-
-fn skip_extra(data: &[u8], p: &mut usize) -> Option<()> {
-    if data[3] & 4 == 0 {
-        return Some(());
-    }
-    let xlen = *data.get(*p)? as usize | ((*data.get(*p + 1)? as usize) << 8);
-    *p = p.checked_add(2)?.checked_add(xlen)?;
-    (*p < data.len()).then_some(())
-}
-
-fn skip_name(data: &[u8], p: &mut usize) -> Option<()> {
-    if data[3] & 8 == 0 {
-        return Some(());
-    }
-    while *data.get(*p)? != 0 {
-        *p += 1;
-    }
-    *p += 1;
-    Some(())
-}
-
-fn skip_comment(data: &[u8], p: &mut usize) -> Option<()> {
-    if data[3] & 16 == 0 {
-        return Some(());
-    }
-    while *data.get(*p)? != 0 {
-        *p += 1;
-    }
-    *p += 1;
-    Some(())
+    None
 }

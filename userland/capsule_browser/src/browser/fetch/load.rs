@@ -80,6 +80,7 @@ pub fn load(state: &mut State, target: &str) -> Result<(), &'static str> {
         idle: 0,
         started_ms: mk_time_millis(),
         error: None,
+        tls_alert: None,
         suppress,
         image: None,
         last_check: 0,

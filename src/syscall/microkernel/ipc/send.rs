@@ -21,6 +21,7 @@ use core::sync::atomic::{AtomicU32, Ordering};
 use crate::ipc::kernel_ipc::kernel_route_ipc_corr;
 use crate::ipc::nonos_channel::IpcMessage;
 use crate::ipc::nonos_inbox;
+use crate::process::accounting::{Kind, Total};
 use crate::process::current_pid;
 use crate::services::registry::{lookup_port, lookup_service};
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
@@ -47,7 +48,12 @@ fn trace(pid: u32, endpoint: u64, target: &str, len: usize) {
 }
 
 pub fn sys_ipc_send(endpoint: u64, buf: u64, len: usize) -> i64 {
-    send_with_correlation(endpoint, buf, len, 0)
+    let rc = send_with_correlation(endpoint, buf, len, 0);
+    if rc == 0 {
+        crate::process::accounting::bump(current_pid().unwrap_or(0), Kind::IpcTx);
+        crate::process::accounting::bump_total(Total::IpcMessages);
+    }
+    rc
 }
 
 pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correlation: u64) -> i64 {

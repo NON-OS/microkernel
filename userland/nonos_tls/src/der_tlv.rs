@@ -22,7 +22,8 @@ pub fn der_tlv(buf: &[u8], off: usize) -> Option<(u8, usize, usize)> {
     let first = buf[off + 1];
     if first < 128 {
         let val = off + 2;
-        return Some((tag, val, val.checked_add(first as usize)?));
+        let end = val.checked_add(first as usize)?;
+        return if end <= buf.len() { Some((tag, val, end)) } else { None };
     }
     let n = (first & 0x7f) as usize;
     if n == 0 || n > 4 || off + 2 + n > buf.len() {
