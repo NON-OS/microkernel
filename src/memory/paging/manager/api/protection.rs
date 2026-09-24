@@ -19,12 +19,13 @@ use crate::memory::addr::VirtAddr;
 use crate::memory::paging::constants::PAGE_SIZE_4K;
 use crate::memory::paging::error::PagingResult;
 use crate::memory::paging::types::PagePermissions;
+use crate::smp::lock_responsive;
 
 pub fn update_page_flags(
     virtual_addr: VirtAddr,
     new_permissions: PagePermissions,
 ) -> PagingResult<()> {
-    PAGING_MANAGER.lock().update_page_flags(virtual_addr, new_permissions, &PAGING_STATS)
+    lock_responsive(&PAGING_MANAGER).update_page_flags(virtual_addr, new_permissions, &PAGING_STATS)
 }
 
 pub fn update_page_protection(
