@@ -53,7 +53,8 @@ pub fn spawn_nonos_install_capsule() -> Result<(), SpawnError> {
             | Capability::IO.bit()
             | Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::DeviceEnum.bit(),
+            | Capability::DeviceEnum.bit()
+            | Capability::StoreWrite.bit(),
         debug_tag: b"[NONOS-INSTALL] elf error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
