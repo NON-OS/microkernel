@@ -111,7 +111,9 @@ nonos-mk-run-nat:
 	@$(MAKE) --no-print-directory QEMU_NET_MODE=nat nonos-mk-run
 
 nonos-mk-swtpm-stop:
-	@pkill -f "$(SWTPM)" 2>/dev/null || true
+	@# Matched on this run's state directory. `pkill -f swtpm` ends every
+	@# emulator on the machine, and the victim sees only its TPM disappear.
+	@pkill -f "tpmstate dir=$(SWTPM_STATE)" 2>/dev/null || true
 
 nonos-mk-swtpm-start: nonos-mk-swtpm-stop
 	@command -v "$(SWTPM)" >/dev/null || { echo "swtpm not found (brew install swtpm)"; exit 1; }
@@ -405,7 +407,8 @@ nonos-mk-run-smp-serial-log: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
 # lane presents an intel-iommu so it does. TCG rather than hvf: the hypervisor
 # framework does not emulate VT-d, so this boots slowly on purpose. It is a
 # proof lane, not an iteration lane.
-nonos-mk-run-iommu-serial-log: nonos-mk-desktop-gui-prod nonos-mk-esp $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW)
+nonos-mk-run-iommu-serial-log: nonos-mk-desktop-gui-prod $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW)
+	@$(MAKE) --no-print-directory nonos-mk-esp
 	@mkdir -p $(dir $(QEMU_IOMMU_SERIAL_LOG))
 	@echo "Booting NONOS with an IOMMU in QEMU (TCG, slow)..."
 	@echo "  Serial log: $(QEMU_IOMMU_SERIAL_LOG)"
