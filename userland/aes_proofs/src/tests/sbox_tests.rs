@@ -25,3 +25,13 @@ fn nonos_aes_sbox_matches_fips197_for_all_inputs() {
         assert_eq!(sub_byte(input), REFERENCE_SBOX[input as usize], "input {input:#04x}");
     }
 }
+
+/// capsule_net_nym keeps its own AES, which adds AES-256 and a raw keystream
+/// this crate does not offer, so it carries a copy of the S-box source. This
+/// pins that copy to the one checked exhaustively above.
+#[test]
+fn net_nym_sbox_is_the_checked_source() {
+    let shared = include_str!("../../../nonos_aes/src/sub_byte.rs");
+    let nym = include_str!("../../../capsule_net_nym/src/crypto/aes/sub_byte.rs");
+    assert_eq!(shared, nym);
+}

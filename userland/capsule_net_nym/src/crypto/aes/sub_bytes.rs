@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::sbox::SBOX;
+use super::sub_byte::sub_byte;
 use super::types::BLOCK_BYTES;
 
 pub(crate) fn sub_bytes(block: &mut [u8; BLOCK_BYTES]) {
     for byte in block.iter_mut() {
-        *byte = SBOX[*byte as usize];
+        *byte = sub_byte(*byte);
     }
 }
