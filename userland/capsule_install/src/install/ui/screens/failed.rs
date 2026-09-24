@@ -25,7 +25,7 @@ use crate::install::format::bytes;
 use crate::install::state::State;
 use crate::install::ui::frame::Body;
 use crate::install::ui::metrics::{BODY_PX, LINE_H};
-use crate::install::ui::wrap::paragraph;
+use crate::install::ui::wrap::{paragraph, Ink};
 use crate::install::ui::{text, theme};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
@@ -36,7 +36,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
         .or(state.notice.as_deref())
         .unwrap_or("stopped for a reason the writer did not name");
     text::line(fb, b.x, b.y, "The install did not complete.", theme::DANGER, BODY_PX);
-    let mut y = paragraph(fb, b.x, b.y + LINE_H + 8, b.w, why, theme::FOREGROUND, BODY_PX, LINE_H);
+    let mut y = paragraph(fb, b.x, b.y + LINE_H + 8, b.w, why, Ink::body(theme::FOREGROUND));
     y += 12;
 
     if let Some(o) = state.outcome.as_ref() {
@@ -47,7 +47,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
         } else {
             "The disk has no partition table. Firmware will treat it as empty."
         };
-        y = paragraph(fb, b.x, y, b.w, state_line, theme::MUTED, BODY_PX, LINE_H);
+        y = paragraph(fb, b.x, y, b.w, state_line, Ink::body(theme::MUTED));
         let progress = alloc::format!("{} written before it stopped", bytes(o.bytes_written));
         text::line(fb, b.x, y + 8, &progress, theme::MUTED, BODY_PX);
     }

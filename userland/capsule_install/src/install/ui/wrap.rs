@@ -20,21 +20,28 @@ use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
 
+use super::metrics::{BODY_PX, LINE_H};
 use super::text::{line, width};
 
-/// Word-wrapped lines of `s` within `max_w`, painted from `top` at `step`
+/// How a paragraph's lines look: colour, size, and the advance per line.
+#[derive(Clone, Copy)]
+pub struct Ink {
+    pub argb: u32,
+    pub px: f32,
+    pub step: u32,
+}
+
+impl Ink {
+    /// Body-size text in `argb`, one line box per line.
+    pub fn body(argb: u32) -> Self {
+        Self { argb, px: BODY_PX, step: LINE_H }
+    }
+}
+
+/// Word-wrapped lines of `s` within `max_w`, painted from `top` at `ink.step`
 /// per line. Returns the y after the last line.
-#[allow(clippy::too_many_arguments)]
-pub fn paragraph(
-    fb: &mut PaintBuffer,
-    x: u32,
-    top: u32,
-    max_w: u32,
-    s: &str,
-    argb: u32,
-    px: f32,
-    step: u32,
-) -> u32 {
+pub fn paragraph(fb: &mut PaintBuffer, x: u32, top: u32, max_w: u32, s: &str, ink: Ink) -> u32 {
+    let Ink { argb, px, step } = ink;
     let mut y = top;
     let mut current = String::new();
     for word in s.split(' ') {
