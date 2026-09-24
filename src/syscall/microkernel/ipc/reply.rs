@@ -88,6 +88,8 @@ pub fn sys_ipc_reply(dest_pid: u64, buf: u64, len: usize) -> i64 {
     let rc = match try_enqueue_strict(&dest, msg) {
         Ok(()) => {
             crate::sched::wake_process(dest_pid as u32);
+            crate::process::accounting::bump(caller_pid, crate::process::accounting::Kind::IpcTx);
+            crate::process::accounting::bump_total(crate::process::accounting::Total::IpcMessages);
             0
         }
         Err(StrictEnqueueError::MissingInbox) | Err(StrictEnqueueError::DeadOwner) => ERRNO_NOENT,

@@ -84,8 +84,13 @@ pub fn sys_ipc_call(
         }
         return send_result;
     }
+    crate::process::accounting::bump(pid, crate::process::accounting::Kind::IpcTx);
+    crate::process::accounting::bump_total(crate::process::accounting::Total::IpcMessages);
     let timeout = if timeout_ms == 0 { 5000 } else { timeout_ms };
     let recv_result = recv_reply_correlated(pid, &inbox, resp, resp_len, timeout, token);
+    if recv_result >= 0 {
+        crate::process::accounting::bump(pid, crate::process::accounting::Kind::IpcRx);
+    }
     if recv_result < 0 {
         // The pending entry is NOT removed on a timeout. The server received
         // this request and will still reply to it; the redirect pairs replies

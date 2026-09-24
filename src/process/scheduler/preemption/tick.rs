@@ -20,7 +20,15 @@ use super::state::{set_reschedule, spend_time_slice, SCHEDULER_STATS};
 use core::sync::atomic::Ordering;
 
 pub fn tick() {
-    proc_ticks::charge_tick(crate::process::CURRENT_PID.load(Ordering::Relaxed));
+    // A halted processor belongs to nobody: the tick that wakes it is idle
+    // time, not the last process's.
+    if crate::process::accounting::is_idle() {
+        crate::process::accounting::tick_idle();
+    } else {
+        let pid = crate::process::CURRENT_PID.load(Ordering::Relaxed);
+        proc_ticks::charge_tick(pid);
+        crate::process::accounting::tick_charge(pid);
+    }
     SCHEDULER_STATS.tick_count.fetch_add(1, Ordering::SeqCst);
     // This CPU's own slice. The tick that takes it from one to zero is the one
     // that exhausted it.
