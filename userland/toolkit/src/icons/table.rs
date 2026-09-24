@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// One 8-bit coverage mask per icon, ordered to match `IconId`. The host test
-/// compares every entry against the file `IconId::name` points at, so the
-/// ordinal indexing below is proven rather than assumed.
-pub(super) const MASKS: [&[u8]; 47] = [
+/// One 8-bit coverage mask per icon, ordered to match `IconId`.
+pub(super) const MASKS: [&[u8]; 48] = [
     include_bytes!("../../../assets/icons/about.a8"),
     include_bytes!("../../../assets/icons/audio_player.a8"),
     include_bytes!("../../../assets/icons/browser.a8"),
@@ -31,6 +29,7 @@ pub(super) const MASKS: [&[u8]; 47] = [
     include_bytes!("../../../assets/icons/processes.a8"),
     include_bytes!("../../../assets/icons/settings.a8"),
     include_bytes!("../../../assets/icons/snake.a8"),
+    include_bytes!("../../../assets/icons/store.a8"),
     include_bytes!("../../../assets/icons/terminal.a8"),
     include_bytes!("../../../assets/icons/video_player.a8"),
     include_bytes!("../../../assets/icons/wallet.a8"),

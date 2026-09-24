@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Attach a publisher signature to every release in the index.
+
+The generator cannot do this: it never touches a key. The CLI signs one
+release per invocation, deliberately, so the loop lives here rather than
+inside a command that would then be holding a key across a whole
+catalogue.
+
+Every release this signs is one whose publisher is the operator, which
+is true for the capsules this tree builds and for packages the operator
+fetched and hashed itself. A third-party submission arrives already
+signed by its own publisher and is skipped: re-signing it here would
+replace the submitter's authority with the operator's, quietly.
+"""
+
+import argparse
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--cli", type=Path, required=True)
+    ap.add_argument("--index", type=Path, required=True)
+    ap.add_argument("--key-file", type=Path, required=True)
+    ap.add_argument("--operator-pubkey", required=True)
+    args = ap.parse_args()
+
+    key = args.operator_pubkey.removeprefix("0x").lower()
+    doc = json.loads(args.index.read_text())
+    todo = []
+    for entry in doc["entries"]:
+        if entry["publisher_pubkey"].lower() != key:
+            continue
+        for rel in entry["releases"]:
+            if not rel.get("publisher_signature"):
+                todo.append((entry["listing_id"], rel["release_id"]))
+
+    signed = 0
+    for listing_id, release_id in todo:
+        done = subprocess.run(
+            [
+                str(args.cli), "sign-release",
+                "--in", str(args.index),
+                "--listing-id", listing_id,
+                "--release-id", release_id,
+                "--key-file", str(args.key_file),
+                "--out", str(args.index),
+            ],
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        if done.returncode != 0:
+            print(f"  {listing_id}: {done.stderr.decode().strip()}", file=sys.stderr)
+            continue
+        signed += 1
+
+    doc = json.loads(args.index.read_text())
+    total = sum(len(e["releases"]) for e in doc["entries"])
+    have = sum(
+        1 for e in doc["entries"] for r in e["releases"] if r.get("publisher_signature")
+    )
+    print(f"signed {signed}; {have} of {total} releases now carry a signature")
+    return 0 if have == total else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

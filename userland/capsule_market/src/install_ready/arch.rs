@@ -17,6 +17,14 @@
 #[cfg(target_arch = "x86_64")]
 pub const RUNNING_ARCH: &str = "x86_64-nonos";
 
+/// The other triple this machine runs: a Linux binary of the same hardware
+/// arch, hosted by the personality capsule.
+#[cfg(target_arch = "x86_64")]
+pub const HOSTED_ARCH: &str = "x86_64-linux";
+
+#[cfg(not(target_arch = "x86_64"))]
+pub const HOSTED_ARCH: &str = "";
+
 #[cfg(target_arch = "aarch64")]
 pub const RUNNING_ARCH: &str = "aarch64-nonos";
 
