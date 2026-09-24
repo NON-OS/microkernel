@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the software AES. The cipher is used where the hardware
+# instructions are not reachable, so the published vectors are what say it is
+# the cipher and not something that merely returns sixteen bytes.
+[package]
+name = "aes_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_aes = { path = "../nonos_aes" }

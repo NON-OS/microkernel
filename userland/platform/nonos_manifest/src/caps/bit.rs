@@ -53,6 +53,7 @@ pub fn cap_bit(name: &str) -> Option<u64> {
         "Entropy" => 536870912,
         "AppInstall" => 1073741824,
         "AttestRead" => 2147483648,
+        "ForeignExec" => 4294967296,
         _ => return None,
     };
     Some(bit)
