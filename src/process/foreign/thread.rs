@@ -44,6 +44,7 @@ pub fn sys_foreign_thread(pid: u64, entry: u64, rsp: u64, tls: u64) -> i64 {
         crate::process::with_process(tid, |pcb| pcb.set_tls_base(tls));
     }
     if !super::registry::insert(tid, caller) {
+        crate::process::exit::teardown(tid, ERRNO_NOMEM as i32, false);
         return ERRNO_NOMEM;
     }
     admit_thread(tid);
