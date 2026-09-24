@@ -32,6 +32,7 @@ pub mod graphics;
 pub mod heap;
 pub mod ipc;
 pub mod mem;
+pub mod peer;
 #[cfg(feature = "panic-handler")]
 mod panic;
 pub mod proc_output;
@@ -71,10 +72,7 @@ pub use crypto::{
     MACHINE_KEY_NO_TPM, MACHINE_KEY_WRONG_STATE,
 };
 pub use debug::mk_debug;
-pub use foreign::{
-    mk_foreign_reply, mk_foreign_spawn, mk_foreign_start, mk_foreign_wait, mk_peer_map,
-    mk_peer_read, mk_peer_write, PEER_PROT_EXEC, PEER_PROT_WRITE,
-};
+pub use foreign::{mk_foreign_reply, mk_foreign_spawn, mk_foreign_start, mk_foreign_wait};
 pub use foreign_frame::ForeignFrame;
 pub use graphics::nonos_display_dimensions;
 #[cfg(feature = "heap")]
