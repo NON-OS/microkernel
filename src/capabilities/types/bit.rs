@@ -52,6 +52,7 @@ impl Capability {
             Self::Entropy => 536870912,
             Self::AppInstall => 1073741824,
             Self::AttestRead => 2147483648,
+            Self::ForeignExec => 4294967296,
         }
     }
 }

@@ -556,6 +556,7 @@ include userland/capsule_clipboard/Capsule.mk
 include userland/capsule_login/Capsule.mk
 include userland/toolkit/Capsule.mk
 include userland/capsule_about/Capsule.mk
+include userland/capsule_linux/Capsule.mk
 include userland/capsule_hello/Capsule.mk
 include userland/capsule_gui_demo/Capsule.mk
 include userland/capsule_game_2048/Capsule.mk
@@ -731,7 +732,7 @@ NONOS_DESKTOP_GUI_CAPSULE_CHECKS = \
 	$(driver-usb-hid_VERIFY) \
 	$(net-core_VERIFY) $(net-sockets_VERIFY) $(net-nym_VERIFY) \
 	$(policy_VERIFY) $(wallpaper_catalog_VERIFY) \
-	$(installer_VERIFY) \
+	$(installer_VERIFY) $(linux_VERIFY) \
 	$(input-router_VERIFY) $(compositor_VERIFY) $(wm_VERIFY) \
 	$(desktop-shell_VERIFY) $(image-codec_VERIFY) $(image-viewer_VERIFY) $(clipboard_VERIFY) \
 	$(login_VERIFY) $(wallpaper_VERIFY) $(toolkit_VERIFY) \
@@ -1139,7 +1140,7 @@ DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
 		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid \
 		net-core net-sockets net-nym socks5 policy wallpaper_catalog \
 		installer input-router compositor wm desktop-shell image-codec \
-		clipboard login wallpaper toolkit about boot-splash calculator \
+		clipboard login wallpaper toolkit about linux boot-splash calculator \
 		browser wallet-nonos terminal file-manager text-editor \
 		settings process-manager attest power \
 		audio driver-hda audio_player video-player
@@ -1163,6 +1164,15 @@ nonos-mk-desktop-gui-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
 	$(call nonos_kernel_build,microkernel-desktop-gui + nonos-stark-attest,microkernel-desktop-gui$(_boot_comma)nonos-stark-attest)
+
+# nonos-mk-install-prod: the desktop profile with the NVMe driver capsule in
+# it. The desktop cut leaves NVMe out because a driver whose hardware is absent
+# blocks on spawn; the install lane presents an NVMe target to QEMU, so the
+# driver has a device and the installer has a disk that is not the store.
+nonos-mk-install-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) $(driver-nvme_ARTIFACTS) \
+		nonos-mk-verify-desktop-gui-capsules \
+		nonos-mk-check-deps nonos-mk-ensure-signing-key
+	$(call nonos_kernel_build,microkernel-desktop-gui + nvme + install,microkernel-desktop-gui$(_boot_comma)nonos-stark-attest$(_boot_comma)nonos-capsule-driver-nvme)
 
 # nonos-mk-smp-prod: the desktop profile with the secondary CPUs turned on.
 # Same capsule set and the same attestation, so a difference between this boot
