@@ -22,14 +22,18 @@ pub fn apply(payload: &[u8]) -> u16 {
     if payload.len() < 20 {
         return E_SHORT;
     }
-    let new = Theme {
-        background_argb: u32_le(&payload[0..4]),
-        surface_argb: u32_le(&payload[4..8]),
-        accent_argb: u32_le(&payload[8..12]),
-        text_argb: u32_le(&payload[12..16]),
-        border_argb: u32_le(&payload[16..20]),
-        revision: 0,
-    };
-    replace(new);
+    /*
+     * Through the constructor, so a theme pushed over IPC gets the same derived
+     * secondary text as one chosen in the settings panel. The wire carries the five
+     * roles only: the derived pair is not a decision a sender gets to make, because
+     * a sender could send one that fails the contrast floor.
+     */
+    replace(Theme::from_roles(
+        u32_le(&payload[0..4]),
+        u32_le(&payload[4..8]),
+        u32_le(&payload[8..12]),
+        u32_le(&payload[12..16]),
+        u32_le(&payload[16..20]),
+    ));
     STATUS_OK
 }

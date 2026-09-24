@@ -51,6 +51,7 @@ impl Capability {
             Self::Entropy => "Entropy",
             Self::AppInstall => "AppInstall",
             Self::AttestRead => "AttestRead",
+            Self::ForeignExec => "ForeignExec",
         }
     }
 }

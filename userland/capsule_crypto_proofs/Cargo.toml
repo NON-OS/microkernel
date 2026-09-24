@@ -1,0 +1,27 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the crypto pool's RSA scheme selection. Builds for
+# the host and includes the real capsule source via `#[path]`, so what is
+# checked is what the pool serves.
+#
+# The vector is a real directory authority certificate, fetched from the
+# Anyone authority at 49.13.145.234:9230 on 2026-09-18. Its signature is not
+# synthesised here: the certificate is parsed, its digest recomputed, and the
+# signature it already carried is verified.
+[package]
+name = "capsule_crypto_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The same crates, at the same versions, that capsule_crypto pins.
+rsa = { version = "0.9", default-features = false, features = ["sha2"] }
+sha2 = { version = "0.10", default-features = false, features = ["force-soft", "oid"] }
+sha1 = { version = "0.10", default-features = false }
+base64ct = { version = "1", features = ["alloc"] }

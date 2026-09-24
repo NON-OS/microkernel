@@ -28,10 +28,20 @@ impl Animation {
     pub fn start(&mut self, from: i32, to: i32, duration_ms: DurationMs, curve: Curve) {
         self.from = from;
         self.to = to;
-        self.value = from;
         self.elapsed_ms = 0;
         self.duration_ms = duration_ms.clamped();
         self.curve = curve;
+        /*
+         * With motion off the animation is finished before it starts: the value is
+         * the destination and nothing steps. Leaving it inactive at `from` would
+         * make the setting cancel the change rather than shorten it.
+         */
+        if !super::enabled::enabled() {
+            self.value = to;
+            self.active = false;
+            return;
+        }
+        self.value = from;
         self.active = true;
     }
 
