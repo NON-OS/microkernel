@@ -25,7 +25,7 @@ use crate::install::state::State;
 use crate::install::ui::frame::Body;
 use crate::install::ui::metrics::{BODY_PX, LINE_H};
 use crate::install::ui::widgets::{card, kv};
-use crate::install::ui::wrap::paragraph;
+use crate::install::ui::wrap::{paragraph, Ink};
 use crate::install::ui::{text, theme};
 
 const INTRO: &str = "NØNOS runs from memory and keeps nothing on disk. Installing puts the \
@@ -33,7 +33,7 @@ image you are running now onto a drive in this computer so it can boot without t
 The drive you choose is erased. Nothing else on the computer is touched.";
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
-    let mut y = paragraph(fb, b.x, b.y, b.w, INTRO, theme::FOREGROUND, BODY_PX, LINE_H);
+    let mut y = paragraph(fb, b.x, b.y, b.w, INTRO, Ink::body(theme::FOREGROUND));
     y += 12;
     let inner = card(fb, b.x, y, b.w, 5 * LINE_H + 40, "what will be written");
     let x = b.x + 16;
