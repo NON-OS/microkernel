@@ -50,6 +50,11 @@ pub(super) extern "C" fn syscall_handler(
             None => (-(errnos::ENOSYS as i64)) as u64,
         };
     };
+    crate::process::accounting::bump(
+        crate::process::current_pid().unwrap_or(0),
+        crate::process::accounting::Kind::Syscall,
+    );
+    crate::process::accounting::bump_total(crate::process::accounting::Total::Syscalls);
     let result = contract_dispatch(sc, SyscallArgs::new([arg1, arg2, arg3, arg4, arg5, arg6]));
     result.value as u64
 }

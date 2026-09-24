@@ -338,6 +338,7 @@ jobs:
           - i2c_hid_proofs
           - attest_receipt
           - attest_key_proofs
+          - theme_proofs
           - tls_proofs
           - audio_proto_proofs
           - capsule_crypto_proofs

@@ -15,8 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod apply;
+pub mod chrome;
+pub mod contrast;
+pub mod derive;
+pub mod legible;
+mod legible_walk;
+pub mod linear;
 pub mod palette;
+pub mod schemes;
+pub mod select;
 pub mod store;
 
 pub use apply::apply;
+pub use schemes::{scheme, Scheme, SCHEMES};
+pub use select::theme_of;
 pub use store::{snapshot, Theme};

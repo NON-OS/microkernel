@@ -26,5 +26,10 @@ pub fn handle_syscall(id: u64, a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: 
     let Some(number) = SyscallNumber::from_u64(id) else {
         return ret_errno(errnos::ENOSYS);
     };
+    crate::process::accounting::bump(
+        crate::process::current_pid().unwrap_or(0),
+        crate::process::accounting::Kind::Syscall,
+    );
+    crate::process::accounting::bump_total(crate::process::accounting::Total::Syscalls);
     contract_dispatch(number, SyscallArgs::new([a0, a1, a2, a3, a4, a5])).value as u64
 }
