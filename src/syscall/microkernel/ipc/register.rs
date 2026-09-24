@@ -27,11 +27,7 @@ use crate::syscall::microkernel::errnos::{
 
 const NAME_MAX: usize = 64;
 
-// `MkServiceRegister(name_ptr, name_len, port)`. Anchors the calling
-// capsule as the owner of the named service on the given port so
-// peers can resolve it via `MkServiceLookup` without hardcoding the
-// wire-side endpoint. The kernel records (name, port, pid) under
-// the caller's pid; teardown sweeps the entry when the capsule exits.
+/// `MkServiceRegister(name_ptr, name_len, port)`.
 pub fn sys_service_register(name_ptr: u64, name_len: usize, port: u32) -> i64 {
     if name_len == 0 || name_len > NAME_MAX || port == 0 {
         return ERRNO_INVAL;
@@ -51,26 +47,8 @@ pub fn sys_service_register(name_ptr: u64, name_len: usize, port: u32) -> i64 {
         Ok(s) => s,
         Err(_) => return ERRNO_INVAL,
     };
-    if name.starts_with("proc.") || name.starts_with("endpoint.") {
-        return ERRNO_PERM;
-    }
-    // Core service names/ports are owned by the kernel spawn path; a capsule
-    // must never register them at runtime. This closes the post-crash squat
-    // window where a capsule could impersonate keyring/crypto/vfs. Legitimate
-    // (re)spawn registration bypasses this syscall, so it is unaffected.
-    if crate::services::registry::is_reserved_service(name, port) {
-        return ERRNO_PERM;
-    }
-    // A capsule may confirm the endpoint the kernel already published for it at
-    // spawn (idempotent self-registration); claiming any other name requires the
-    // RegisterService right. This lets an ordinary capsule re-assert its own
-    // service without holding the right, keeps a publisher like net.core able to
-    // register its extra sub-endpoints, and still bars a runtime capsule from
-    // squatting a peer's name.
-    let owns_already = crate::services::registry::lookup_service(name)
-        .map_or(false, |e| e.pid == pid && e.port == port);
-    if !owns_already && !crate::services::registry::caller_has_register_right() {
-        return ERRNO_PERM;
+    if let Err(e) = super::register_allowed::allowed(name, port, pid) {
+        return e;
     }
     match register_endpoint(name, port, pid, required_caps(name, Capability::IPC.bit())) {
         Ok(()) => 0,

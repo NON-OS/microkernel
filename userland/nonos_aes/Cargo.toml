@@ -1,0 +1,22 @@
+# NONOS userland: nonos_aes
+# eK@nonos.systems
+#
+# One AES-128 for the system, with the counter modes the two onion
+# transports are each defined in. No dependencies: the block cipher is
+# self contained and the crypto pool does not offer a bare stream cipher.
+
+[package]
+name = "nonos_aes"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "AES-128 and counter mode for NONOS userland, no_std"
+
+[lib]
+name = "nonos_aes"
+path = "src/lib.rs"
+crate-type = ["rlib"]
+
+[dependencies]

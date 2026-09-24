@@ -47,10 +47,6 @@ pub fn supervisor_of(pid: u32) -> Option<u32> {
     FOREIGN.read().iter().find(|e| e.pid == pid).map(|e| e.supervisor)
 }
 
-pub fn is_foreign(pid: u32) -> bool {
-    FOREIGN.read().iter().any(|e| e.pid == pid)
-}
-
 /// Every guest of `supervisor`, so its death can take them with it.
 pub(super) fn guests_of(supervisor: u32) -> Vec<u32> {
     FOREIGN.read().iter().filter(|e| e.supervisor == supervisor).map(|e| e.pid).collect()
