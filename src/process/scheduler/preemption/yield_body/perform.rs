@@ -57,6 +57,8 @@ pub(crate) fn perform_yield_inline() {
     loop {
         if let Some(next) = select_next_process() {
             if next != pid {
+                crate::process::accounting::bump(next, crate::process::accounting::Kind::Switch);
+                crate::process::accounting::bump_total(crate::process::accounting::Total::Switches);
                 switch_to_process(next);
             } else if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
                 let mut state = pcb.state.lock();

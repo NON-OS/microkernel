@@ -24,6 +24,7 @@ pub mod pkg_prompt;
 pub mod scale;
 pub mod spotlight;
 pub mod taskbar;
+pub mod toast;
 pub mod toasts;
 pub mod tool_apps;
 pub mod tray;
