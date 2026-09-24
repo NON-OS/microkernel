@@ -19,6 +19,7 @@ mod encode;
 mod errno;
 mod ops;
 mod types;
+mod types_guard;
 
 pub use decode::decode_request;
 

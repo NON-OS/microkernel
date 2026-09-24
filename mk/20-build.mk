@@ -3,7 +3,7 @@
 # STARK attestation for the kernel and every capsule. This is where make,
 # make qemu, and make from-config all resolve their real work.
 
-.PHONY: nonos-mk-check-driver-ahci-keys nonos-mk-check-driver-e1000-keys nonos-mk-check-driver-hda-keys nonos-mk-check-driver-i2c-hid-keys nonos-mk-check-driver-i2c-pci-keys nonos-mk-check-driver-iwlwifi-keys nonos-mk-check-driver-nvme-keys nonos-mk-check-driver-rtl8139-keys nonos-mk-check-driver-rtl8169-keys nonos-mk-check-driver-rtl8821ce-keys nonos-mk-check-driver-usb-msc-keys nonos-mk-check-driver-virtio-gpu-keys nonos-mk-check-ps2-input-keys nonos-mk-check-ramfs-keys nonos-mk-check-virtio-blk-keys nonos-mk-check-virtio-net-keys nonos-mk-check-virtio-rng-keys nonos-mk-check-xhci-keys nonos-mk-crypto nonos-mk-driver-ahci nonos-mk-driver-ahci-sign nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-driver-hda nonos-mk-driver-hda-sign nonos-mk-driver-i2c-hid nonos-mk-driver-i2c-hid-sign nonos-mk-driver-i2c-pci nonos-mk-driver-i2c-pci-sign nonos-mk-driver-iwlwifi nonos-mk-driver-iwlwifi-sign nonos-mk-driver-nvme nonos-mk-driver-nvme-sign nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-driver-rtl8821ce nonos-mk-driver-rtl8821ce-sign nonos-mk-driver-usb-msc nonos-mk-driver-usb-msc-sign nonos-mk-driver-virtio-gpu nonos-mk-driver-virtio-gpu-sign nonos-mk-entropy nonos-mk-keyring nonos-mk-market nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-vfs nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-wallpaper nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-all-capsules-attested nonos-mk-attest nonos-mk-attestation nonos-mk-attestation-receipt nonos-mk-bootloader nonos-mk-capsules nonos-mk-check nonos-mk-check-trust-keys nonos-mk-check-trust-manifest nonos-mk-core nonos-mk-core-attested nonos-mk-desktop-gui-prod nonos-mk-smp-prod nonos-mk-ensure-zk-keys nonos-mk-esp nonos-mk-from-config nonos-mk-host-trust-verify nonos-mk-libc nonos-mk-live-production-proof nonos-mk-cap-audit nonos-mk-market-catalogue nonos-mk-market-catalogue-sign nonos-mk-marketplace-abi nonos-mk-marketplace-index-tool nonos-mk-menuconfig nonos-mk-sign nonos-mk-terminal-test nonos-mk-trust-policy nonos-mk-usb-img nonos-mk-userland-clean nonos-mk-verify-capsule-attest nonos-mk-verify-trust nonos-mk-zerostate nonos-mk-zk-report nonos-mk-zk-tools nonos-mk-zk-verify-live
+.PHONY: nonos-mk-check-driver-ahci-keys nonos-mk-check-driver-e1000-keys nonos-mk-check-driver-hda-keys nonos-mk-check-driver-i2c-hid-keys nonos-mk-check-driver-i2c-pci-keys nonos-mk-check-driver-iwlwifi-keys nonos-mk-check-driver-nvme-keys nonos-mk-check-driver-rtl8139-keys nonos-mk-check-driver-rtl8169-keys nonos-mk-check-driver-rtl8821ce-keys nonos-mk-check-driver-usb-msc-keys nonos-mk-check-driver-virtio-gpu-keys nonos-mk-check-ps2-input-keys nonos-mk-check-ramfs-keys nonos-mk-check-virtio-blk-keys nonos-mk-check-virtio-net-keys nonos-mk-check-virtio-rng-keys nonos-mk-check-xhci-keys nonos-mk-crypto nonos-mk-driver-ahci nonos-mk-driver-ahci-sign nonos-mk-driver-e1000 nonos-mk-driver-e1000-sign nonos-mk-driver-hda nonos-mk-driver-hda-sign nonos-mk-driver-i2c-hid nonos-mk-driver-i2c-hid-sign nonos-mk-driver-i2c-pci nonos-mk-driver-i2c-pci-sign nonos-mk-driver-iwlwifi nonos-mk-driver-iwlwifi-sign nonos-mk-driver-nvme nonos-mk-driver-nvme-sign nonos-mk-driver-rtl8139 nonos-mk-driver-rtl8139-sign nonos-mk-driver-rtl8169 nonos-mk-driver-rtl8169-sign nonos-mk-driver-rtl8821ce nonos-mk-driver-rtl8821ce-sign nonos-mk-driver-usb-msc nonos-mk-driver-usb-msc-sign nonos-mk-driver-virtio-gpu nonos-mk-driver-virtio-gpu-sign nonos-mk-entropy nonos-mk-keyring nonos-mk-market nonos-mk-proof-io nonos-mk-proof-io-sign nonos-mk-ps2-input nonos-mk-ps2-input-sign nonos-mk-ramfs nonos-mk-ramfs-sign nonos-mk-vfs nonos-mk-virtio-blk nonos-mk-virtio-blk-sign nonos-mk-virtio-net nonos-mk-virtio-net-sign nonos-mk-virtio-rng nonos-mk-virtio-rng-sign nonos-mk-wallpaper nonos-mk-xhci nonos-mk-xhci-sign nonos-mk-all-capsules-attested nonos-mk-attest nonos-mk-attestation nonos-mk-attestation-receipt nonos-mk-bootloader nonos-mk-capsules nonos-mk-check nonos-mk-check-trust-keys nonos-mk-check-trust-manifest nonos-mk-core nonos-mk-core-attested nonos-mk-desktop-gui-prod nonos-mk-smp-prod nonos-mk-ensure-zk-keys nonos-mk-esp nonos-mk-from-config nonos-mk-host-trust-verify nonos-mk-libc nonos-mk-live-production-proof nonos-mk-marketplace-abi nonos-mk-marketplace-index-tool nonos-mk-menuconfig nonos-mk-sign nonos-mk-terminal-test nonos-mk-trust-policy nonos-mk-usb-img nonos-mk-userland-clean nonos-mk-verify-capsule-attest nonos-mk-verify-trust nonos-mk-zerostate nonos-mk-zk-report nonos-mk-zk-tools nonos-mk-zk-verify-live
 
 # ZK attestation: transparent enrolled-secret tools
 
@@ -547,6 +547,7 @@ include userland/capsule_input_router/Capsule.mk
 include userland/capsule_input_proof/Capsule.mk
 include userland/capsule_input_probe/Capsule.mk
 include userland/capsule_setup_wizard/Capsule.mk
+include userland/capsule_nonos_install/Capsule.mk
 include userland/capsule_wm/Capsule.mk
 include userland/capsule_desktop_shell/Capsule.mk
 include userland/capsule_image_codec/Capsule.mk
@@ -1247,6 +1248,10 @@ nonos-mk-input-probe-inject-esp: $(NONOS_BOOT_EFI)
 	@cp $(TARGET_DIR)/kernel_attested.bin $(NONOS_INPUT_PROBE_INJECT_ESP)/EFI/nonos/kernel.bin
 	@printf "timeout=0\ndefault=nonos\n" > $(NONOS_INPUT_PROBE_INJECT_ESP)/EFI/nonos/boot.cfg
 	@echo 'fs0:\EFI\Boot\BOOTX64.EFI' > $(NONOS_INPUT_PROBE_INJECT_ESP)/startup.nsh
+	@# This target packs its own ESP instead of going through nonos-mk-esp, so
+	@# it needs the same check: the staged kernel is the one just linked.
+	@$(NONOS_PYTHON) scripts/check_staged_kernel.py --elf $(MICROKERNEL_BIN) \
+		--staged $(NONOS_INPUT_PROBE_INJECT_ESP)/EFI/nonos/kernel.bin
 
 nonos-mk-terminal-only-prod: $(proof-io_ARTIFACTS) $(ramfs_ARTIFACTS) $(keyring_ARTIFACTS) \
 		$(entropy_ARTIFACTS) $(crypto_ARTIFACTS) $(vfs_ARTIFACTS) \
@@ -1377,6 +1382,13 @@ endif
 	@cp $(TARGET_DIR)/kernel_attested.bin $(ESP_DIR)/EFI/nonos/kernel.bin
 	@printf "timeout=0\ndefault=nonos\n" > $(ESP_DIR)/EFI/nonos/boot.cfg
 	@echo 'fs0:\EFI\Boot\BOOTX64.EFI' > $(ESP_DIR)/startup.nsh
+	@# The ELF just linked is a byte prefix of what was staged, or the pack
+	@# chain raced the link and this ESP boots an older kernel. Checked here
+	@# rather than in each boot target, so nothing that consumes an ESP can
+	@# skip it and no boot verdict can describe a kernel that is not in the
+	@# tree.
+	@$(NONOS_PYTHON) scripts/check_staged_kernel.py \
+		--elf $(MICROKERNEL_BIN) --staged $(ESP_DIR)/EFI/nonos/kernel.bin
 	@echo "ESP ready at $(ESP_DIR)"
 
 # Produce a real, flashable GPT disk image with a FAT32 EFI System Partition.
@@ -1396,50 +1408,3 @@ nonos-mk-usb-img: nonos-mk-esp
 	@echo "  Validate as a real disk:  make nonos-mk-usb-run"
 	@echo "  Flash (macOS): sudo dd if=$(USB_IMG) of=/dev/rdiskN bs=4m && sync"
 	@echo "  Flash (Linux): sudo dd if=$(USB_IMG) of=/dev/sdX  bs=4M oflag=direct && sync"
-
-# The marketplace catalogue. The generator reads what is actually on
-# disk (signed capsules, fetched packages, community submissions) and
-# writes plain JSON; the CLI encodes it to the canonical binary the
-# market capsule ingests. Signing is a separate step with the operator
-# seed, which never appears in a build rule.
-MARKET_CATALOGUE_JSON := nonos-data/marketplace/index.json
-MARKET_CATALOGUE_BIN  := nonos-data/marketplace/index.bin
-MARKET_OPERATOR_PUBKEY ?= a7c92db24d99e7baee8b45a06dc353ccd4142622c1a90a52b5327db2e6d17811
-MARKET_SERIAL ?= 1
-# The operator seed. Gitignored, 0600, generated by `marketplace-index
-# keygen`. Overridable so a release build can sign from elsewhere.
-MARKET_OPERATOR_SEED ?= .keys/marketplace_operator_ed25519.seed
-
-# The catalogue records the hash of each capsule's trailer, and
-# enrolment rewrites every trailer, so generating it first would record
-# hashes of files that no longer exist. Ordering it after the policy
-# root is the difference between a catalogue and a list of stale
-# digests that still looks well formed.
-# A capability that cannot reach a token is not a capability, and a
-# syscall with no gate is not gated. Both failures compile, boot and stay
-# silent, so they are checked here rather than trusted.
-nonos-mk-cap-audit:
-	@python3 tools/nonos-cap-audit --root .
-
-nonos-mk-market-catalogue: $(ZK_CAPSULE_ROOT)
-	@python3 tools/nonos-market-catalogue \
-		--out $(MARKET_CATALOGUE_JSON) \
-		--operator-pubkey $(MARKET_OPERATOR_PUBKEY) \
-		--serial $(MARKET_SERIAL) \
-		--linux-list nonos-data/marketplace/linux.list
-
-# Requires MARKET_OPERATOR_SEED to name a file holding the 32-byte
-# operator seed. Without it the catalogue encodes but stays unsigned,
-# and the capsule refuses an unsigned index, which is the point.
-# Not `nonos-mk-market-sign`: capsule.mk emits that name for the market
-# capsule itself, and two recipes under one target is a coin toss.
-nonos-mk-market-catalogue-sign: $(MARKETPLACE_INDEX_TOOL) $(MARKET_CATALOGUE_JSON)
-	@test -n "$(MARKET_OPERATOR_SEED)" || \
-		{ echo "::error::set MARKET_OPERATOR_SEED=<path to 32-byte seed>"; exit 1; }
-	@$(MARKETPLACE_INDEX_TOOL) sign \
-		--in $(MARKET_CATALOGUE_JSON) \
-		--key-file $(MARKET_OPERATOR_SEED) \
-		--pubkey $(MARKET_OPERATOR_PUBKEY) \
-		--out $(MARKET_CATALOGUE_BIN)
-	@$(MARKETPLACE_INDEX_TOOL) verify \
-		--in $(MARKET_CATALOGUE_BIN) --pubkey $(MARKET_OPERATOR_PUBKEY)

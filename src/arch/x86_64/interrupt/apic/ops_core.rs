@@ -64,6 +64,7 @@ pub fn get_tpr() -> u8 {
 
 #[inline(always)]
 pub fn eoi() {
+    crate::process::accounting::bump_total(crate::process::accounting::Total::Interrupts);
     if X2APIC_MODE.load(Ordering::Acquire) {
         wrmsr(IA32_X2APIC_EOI, 0);
     } else {
