@@ -19,13 +19,25 @@ use super::mmio::{mmio_r32, mmio_w32};
 use super::state::*;
 use core::sync::atomic::Ordering;
 
+/*
+ * Every interrupt command written below carries it. The bit is level-assert,
+ * and the processor delivers a command without it only in the one case it
+ * still means something, an INIT level de-assert; a fixed-delivery command
+ * with the bit clear is dropped. Of the mode constants this file ORs together
+ * it is also the only one that is not zero, so leaving it out produced a word
+ * that was purely destination and vector and looked complete while sending
+ * nothing. `ipi_ap.rs` passes it by hand, which is why AP startup worked while
+ * every runtime IPI, including the TLB shootdown, silently went nowhere.
+ */
+const ICR_SEND: u64 = ICR_DELIV_FIXED | ICR_LEVEL_ASSERT | ICR_TRIG_EDGE;
+
 pub fn ipi_self(vec: u8) {
     if X2APIC_MODE.load(Ordering::Acquire) {
-        wrmsr(IA32_X2APIC_ICR, ICR_DELIV_FIXED | ICR_SH_SELF | (vec as u64));
+        wrmsr(IA32_X2APIC_ICR, ICR_SEND | ICR_SH_SELF | (vec as u64));
     } else {
         wait_icr_idle();
         mmio_w32(LAPIC_ICR_HIGH, 0);
-        mmio_w32(LAPIC_ICR_LOW, ICR_SH_SELF as u32 | vec as u32);
+        mmio_w32(LAPIC_ICR_LOW, (ICR_SEND | ICR_SH_SELF) as u32 | vec as u32);
     }
 }
 
@@ -34,7 +46,7 @@ pub fn ipi_one(apic_id: u32, vec: u8) {
         wrmsr(
             IA32_X2APIC_ICR,
             (apic_id as u64) << 32
-                | ICR_DELIV_FIXED
+                | ICR_SEND
                 | ICR_DST_PHYSICAL
                 | ICR_SH_NONE
                 | (vec as u64),
@@ -42,27 +54,27 @@ pub fn ipi_one(apic_id: u32, vec: u8) {
     } else {
         wait_icr_idle();
         mmio_w32(LAPIC_ICR_HIGH, apic_id << 24);
-        mmio_w32(LAPIC_ICR_LOW, vec as u32);
+        mmio_w32(LAPIC_ICR_LOW, ICR_SEND as u32 | vec as u32);
     }
 }
 
 pub fn ipi_all(vec: u8) {
     if X2APIC_MODE.load(Ordering::Acquire) {
-        wrmsr(IA32_X2APIC_ICR, ICR_DELIV_FIXED | ICR_SH_ALL | (vec as u64));
+        wrmsr(IA32_X2APIC_ICR, ICR_SEND | ICR_SH_ALL | (vec as u64));
     } else {
         wait_icr_idle();
         mmio_w32(LAPIC_ICR_HIGH, 0);
-        mmio_w32(LAPIC_ICR_LOW, ICR_SH_ALL as u32 | vec as u32);
+        mmio_w32(LAPIC_ICR_LOW, (ICR_SEND | ICR_SH_ALL) as u32 | vec as u32);
     }
 }
 
 pub fn ipi_others(vec: u8) {
     if X2APIC_MODE.load(Ordering::Acquire) {
-        wrmsr(IA32_X2APIC_ICR, ICR_DELIV_FIXED | ICR_SH_OTHERS | (vec as u64));
+        wrmsr(IA32_X2APIC_ICR, ICR_SEND | ICR_SH_OTHERS | (vec as u64));
     } else {
         wait_icr_idle();
         mmio_w32(LAPIC_ICR_HIGH, 0);
-        mmio_w32(LAPIC_ICR_LOW, ICR_SH_OTHERS as u32 | vec as u32);
+        mmio_w32(LAPIC_ICR_LOW, (ICR_SEND | ICR_SH_OTHERS) as u32 | vec as u32);
     }
 }
 

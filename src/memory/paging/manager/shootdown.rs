@@ -20,13 +20,14 @@
 //! asid (or every online CPU for a kernel-half flush). On single-CPU
 //! runtime the broadcast block is skipped. Timeout policy is fail-
 //! hard: a stale TLB entry would back freed DMA or MMIO, so an ack
-//! that does not arrive inside `SHOOTDOWN_TIMEOUT_TSC` triggers a
-//! panic-IPI broadcast and halts the originator.
+//! that does not arrive inside the shootdown budget (`shootdown_timeout_ticks`)
+//! triggers a panic-IPI broadcast and halts the originator.
 
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
 
 use super::super::tlb;
+use crate::arch::interrupt_controller::Ipi;
 use crate::memory::addr::VirtAddr;
 use crate::memory::paging::constants::PAGE_SIZE_4K;
 use crate::smp::cpus_online;
@@ -37,10 +38,16 @@ use crate::smp::percpu::ASID_NONE;
 /// because the kernel half is shared across every address space.
 pub const ASID_KERNEL: u32 = 0;
 
-/// Bound on cross-CPU wait. ~10ms on a 1 GHz CPU, ~2.5ms on 4 GHz —
-/// far longer than any healthy `invlpg` cycle. Tuned upwards is fine;
-/// tuned to "wait forever" is forbidden.
-const SHOOTDOWN_TIMEOUT_TSC: u64 = 10_000_000;
+/// Target bound on cross-CPU wait, in wall-clock milliseconds, converted to
+/// ticks against the calibrated counter frequency by `shootdown_timeout_ticks`.
+/// Far longer than any healthy `invlpg` cycle even under a descheduled peer
+/// vCPU. Tuned upwards is fine; tuned to "wait forever" is forbidden.
+const SHOOTDOWN_TIMEOUT_MS: u64 = 50;
+
+/// Tick budget used when the computed budget comes back `0` (uncalibrated,
+/// or a frequency too low to clear one millisecond at this resolution). At
+/// least 50ms on any CPU up to 5 GHz.
+const SHOOTDOWN_TIMEOUT_FALLBACK_TICKS: u64 = 250_000_000;
 
 static SHOOTDOWN_LOCK: Mutex<()> = Mutex::new(());
 static REQ_VA: AtomicU64 = AtomicU64::new(0);
@@ -87,12 +94,32 @@ pub fn flush_tlb_all_smp(asid: u32) {
 }
 
 fn broadcast(va: VirtAddr, page_count: u32, asid: u32) {
-    let _guard = SHOOTDOWN_LOCK.lock();
+    // Serve any round already in flight while waiting for our turn. Page-table
+    // mutation sites reach here with interrupts masked, so a cpu that simply
+    // blocked on the lock could not answer the holder's IPI, and the two would
+    // wait on each other until the timeout below halted the machine.
+    let _guard = loop {
+        if let Some(guard) = SHOOTDOWN_LOCK.try_lock() {
+            break guard;
+        }
+        handle_shootdown_ipi();
+        core::hint::spin_loop();
+    };
+
     let self_cpu = crate::smp::cpu_id();
-    let count = cpus_online();
     let mut targets: u32 = 0;
-    for cpu in 0..count {
-        if cpu == self_cpu {
+    let mut selected = [0u64; crate::smp::MAX_CPUS.div_ceil(64)];
+    /*
+     * Every cpu slot, filtered by whether it is running. Not `0..cpus_online()`:
+     * that is a population count, while cpu numbers are handed out once per AP
+     * attempted and are not reused when one fails. With a single failed AP the
+     * live numbers are sparse, so counting up to the population both targets a
+     * slot that never started, which can never acknowledge, and skips a cpu
+     * that is running, which never gets the IPI. The wait below then always
+     * reaches its deadline and halts the machine.
+     */
+    for cpu in 0..crate::smp::MAX_CPUS {
+        if cpu == self_cpu || !crate::smp::cpu_is_online(cpu) {
             continue;
         }
         let Some(d) = crate::smp::percpu::get(cpu) else {
@@ -101,27 +128,39 @@ fn broadcast(va: VirtAddr, page_count: u32, asid: u32) {
         if !cpu_should_flush(d, asid) {
             continue;
         }
+        selected[cpu / 64] |= 1u64 << (cpu % 64);
         targets += 1;
     }
     if targets == 0 {
         return;
     }
+
     REQ_VA.store(va.as_u64(), Ordering::Release);
     REQ_PAGES.store(page_count, Ordering::Release);
     REQ_PENDING_ACKS.store(targets, Ordering::SeqCst);
-    for cpu in 0..count {
-        if cpu == self_cpu {
+
+    /*
+     * Mark and send from the set chosen above rather than re-deriving it, and
+     * only now that the request and the ack count are published. A cpu serves
+     * this round by hand the moment it sees its own mark, from the lock spin
+     * above or from `lock_responsive`, with no ipi involved; marking before
+     * the count was armed let that cpu pay an ack into a count of zero, which
+     * wrapped and was then overwritten by the arming store, so the ack was
+     * owed by nobody and the wait below always reached its deadline. Deriving
+     * the set twice would be its own bug: a cpu that came online in between
+     * would be marked without being counted.
+     */
+    for cpu in 0..crate::smp::MAX_CPUS {
+        if selected[cpu / 64] & (1u64 << (cpu % 64)) == 0 {
             continue;
         }
         let Some(d) = crate::smp::percpu::get(cpu) else {
             continue;
         };
-        if !cpu_should_flush(d, asid) {
-            continue;
-        }
-        let _ = crate::smp::ipi::call_on_cpu(cpu, ipi_handler, 0);
+        d.tlb_flush_pending.store(1, Ordering::Release);
+        let _ = crate::arch::interrupt_controller::send_ipi(d.apic_id, Ipi::TlbShootdown);
     }
-    wait_for_acks(va, asid);
+    wait_for_acks();
 }
 
 #[inline]
@@ -133,7 +172,17 @@ fn cpu_should_flush(data: &crate::smp::percpu::PerCpuData, asid: u32) -> bool {
     active != ASID_NONE && active == asid
 }
 
-fn ipi_handler(_arg: usize) {
+/// Flush for the round in progress, if this cpu is one of its targets.
+///
+/// Driven by the TlbShootdown vector, and also called directly by a cpu
+/// spinning for the lock in `broadcast`. The pending flag makes it safe either
+/// way: it is what says the round applies to us, and clearing it before the
+/// ack means neither path can acknowledge twice.
+pub fn handle_shootdown_ipi() {
+    let me = crate::smp::percpu::current();
+    if me.tlb_flush_pending.swap(0, Ordering::AcqRel) == 0 {
+        return;
+    }
     let pages = REQ_PAGES.load(Ordering::Acquire);
     if pages == 0 {
         tlb::invalidate_all();
@@ -147,17 +196,32 @@ fn ipi_handler(_arg: usize) {
     REQ_PENDING_ACKS.fetch_sub(1, Ordering::Release);
 }
 
-fn wait_for_acks(va: VirtAddr, asid: u32) {
-    let deadline = read_tsc().wrapping_add(SHOOTDOWN_TIMEOUT_TSC);
+fn shootdown_timeout_ticks() -> u64 {
+    let ticks = crate::sys::timer::tsc::tsc_frequency() / 1000 * SHOOTDOWN_TIMEOUT_MS;
+    if ticks == 0 {
+        return SHOOTDOWN_TIMEOUT_FALLBACK_TICKS;
+    }
+    ticks
+}
+
+fn wait_for_acks() {
+    let budget = shootdown_timeout_ticks();
+    let deadline = read_tsc().wrapping_add(budget);
     while REQ_PENDING_ACKS.load(Ordering::Acquire) > 0 {
         if read_tsc() > deadline {
-            crate::sys::serial::println(b"[FATAL] TLB shootdown timeout");
+            let outstanding = REQ_PENDING_ACKS.load(Ordering::Acquire);
+            if outstanding == 0 {
+                return;
+            }
+            let mut line = crate::sys::serial::Line::new();
+            line.str(b"[FATAL] TLB shootdown timeout outstanding=").dec(outstanding as u64);
+            line.end();
+            report_stuck();
             crate::smp::send_panic_ipi();
             crate::arch::halt_loop();
         }
         core::hint::spin_loop();
     }
-    let _ = (va, asid);
 }
 
 #[inline]
@@ -165,4 +229,71 @@ fn read_tsc() -> u64 {
     // SAFETY: eK@nonos.systems — rdtsc has no side effects and is
     // unconditionally available on every x86_64 CPU NØNOS supports.
     crate::arch::read_time_counter()
+}
+
+/// What every CPU looked like when the round gave up, printed before the halt.
+///
+/// A timeout says only that an acknowledgement did not arrive. Which CPU owed
+/// it, whether that CPU was ever marked as a target, whether it is halted in
+/// its idle loop or inside an interrupt handler, and whether it has taken a
+/// timer interrupt since it came up are what separate "the IPI was never
+/// delivered" from "the IPI was delivered and the CPU was in no position to
+/// run it".
+///
+/// Each of those has to be read from something that is actually written. This
+/// used to name interrupt-masking depth as well, and printed a field nothing
+/// maintains.
+fn report_stuck() {
+    let mut head = crate::sys::serial::Line::new();
+    head.str(b"[SMP] acks outstanding=").dec(REQ_PENDING_ACKS.load(Ordering::Acquire) as u64);
+    head.end();
+    for cpu in 0..crate::smp::MAX_CPUS {
+        if !crate::smp::cpu_is_online(cpu) {
+            continue;
+        }
+        let (Some(d), Some(desc)) = (crate::smp::percpu::get(cpu), crate::smp::get_cpu(cpu)) else {
+            continue;
+        };
+        /*
+         * One line per cpu, built whole. These are printed while the other
+         * cpus are still running and printing, and a dump that interleaves
+         * with them is unreadable exactly when it is needed.
+         *
+         * `irq_depth` comes from `interrupts::safety`, which the live handlers
+         * maintain. This used to print `smp::percpu::irq_nesting` beside an
+         * `interrupt_disable_depth`, and nothing writes either of them:
+         * `enter_irq`, `leave_irq` and `in_irq` have no callers, and the
+         * disable depth is only ever read here. Both columns were zero on
+         * every cpu of every dump this kernel has ever produced, which reads
+         * as a measurement and is a constant. The disable depth is gone rather
+         * than reported, since there is nothing behind it to report.
+         */
+        let mut l = crate::sys::serial::Line::new();
+        l.str(b"[SMP]  cpu=").dec(cpu as u64);
+        l.str(b" apic=").dec(d.apic_id as u64);
+        l.str(b" pending=").dec(d.tlb_flush_pending.load(Ordering::Acquire) as u64);
+        l.str(b" irq_depth=").dec(crate::interrupts::safety::depth_of(cpu) as u64);
+        l.str(b" asid=").dec(d.active_asid.load(Ordering::Acquire) as u64);
+        l.str(b" idle=").dec(u64::from(desc.idle.load(Ordering::Acquire)));
+        l.str(b" idle_cycles=").dec(desc.idle_cycles.load(Ordering::Acquire));
+        // Zero means this cpu has never taken a timer interrupt, which
+        // separates "did not answer this round" from "has not answered
+        // anything since it came up". Those need different fixes and the dump
+        // could not tell them apart.
+        l.str(b" ticked=").dec(u64::from(d.last_tick_tsc.load(Ordering::Acquire) != 0));
+        // Where it was when it stopped answering. A halted CPU and one
+        // spinning on a lock with interrupts masked are the same silence from
+        // here, and they are not the same defect.
+        l.str(b" at=").str(desc.stage().as_str().as_bytes());
+        // What that CPU's own APIC had in service when it last looked. A vector
+        // stuck here blocks its whole priority class and everything below it,
+        // while leaving higher classes working, which is what a CPU taking
+        // IPIs at 0x40 and no timer at 0x20 looks like from outside.
+        match desc.in_service_seen.load(Ordering::Acquire) {
+            0 => l.str(b" isr=unread"),
+            1 => l.str(b" isr=none"),
+            v => l.str(b" isr=").hex((v - 2) as u64),
+        };
+        l.end();
+    }
 }

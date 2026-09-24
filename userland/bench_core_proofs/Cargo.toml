@@ -1,0 +1,14 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the benchmark summary maths. Includes the real capsule
+# source via `#[path]` so the code under test is the code that ships.
+[package]
+name = "bench_core_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"

@@ -1,0 +1,4 @@
+microkernel-setup-wizard
+nonos-tool-selftest
+std
+zk-halo2

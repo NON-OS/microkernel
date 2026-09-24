@@ -20,29 +20,38 @@ pub mod admin;
 pub mod attest;
 pub mod battery;
 pub mod broker;
-pub mod capsule_load;
+pub mod caps;
+mod capsule_load;
+pub mod capsule_verify;
 pub mod crypto;
 pub mod debug;
+pub mod foreign;
+pub mod foreign_frame;
 pub mod graphics;
 #[cfg(feature = "heap")]
 pub mod heap;
 pub mod ipc;
 pub mod mem;
+pub mod peer;
 #[cfg(feature = "panic-handler")]
 mod panic;
 pub mod proc_output;
 pub mod process;
 pub mod procstat;
 pub mod spawn_instance;
-pub mod tool_run;
+pub mod store_write;
 pub mod surface_registry;
 mod syscall;
 pub mod time;
+pub mod tool_run;
 pub mod transport;
 mod unistd;
 
 pub use admin::{mk_admin_policy_push, mk_admin_reboot, mk_admin_shutdown};
-pub use attest::{mk_attest_status, AttestStatus};
+pub use attest::{
+    mk_attest_doc, mk_attest_entries, mk_attest_status, AttestStatus, ATTEST_DOC_REFUSED,
+    ATTEST_ENTRY_LEN,
+};
 pub use battery::mk_battery_status;
 pub use broker::{
     mk_device_claim, mk_device_list, mk_device_release, mk_dma_map, mk_dma_unmap, mk_irq_ack,
@@ -50,24 +59,22 @@ pub use broker::{
     mk_pci_config_read, mk_pci_config_write, mk_pio_grant, mk_pio_read, mk_pio_release,
     mk_pio_write, Bar, DeviceRecord, DmaMapOut, IrqBindOut, IrqPollOut, MmioMapOut, PioGrantOut,
     BAR_KIND_MMIO, BAR_KIND_NONE, BAR_KIND_PIO, BUS_KIND_ACPI, BUS_KIND_PCI, BUS_KIND_VIRT,
-    MK_DMA_MAP_HIGH, MK_IRQ_BIND_MSIX, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_MEMORY_SPACE,
-    MK_PCI_MSIX_CTRL_ENABLE, MK_PCI_MSIX_CTRL_FUNCTION_MASK,
+    MK_DMA_MAP_HIGH, MK_IRQ_BIND_MSIX, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER,
+    MK_PCI_CMD_MEMORY_SPACE, MK_PCI_MSIX_CTRL_ENABLE, MK_PCI_MSIX_CTRL_FUNCTION_MASK,
 };
+pub use caps::{mk_cap_check, mk_cap_grant, mk_cap_revoke};
 pub use capsule_load::{mk_capsule_load, CapsuleLoadRequest};
-pub use spawn_instance::mk_spawn_instance;
-pub use tool_run::mk_tool_run;
+pub use capsule_verify::{mk_capsule_verify, CapsuleVerifyRequest, CapsuleVerifySummary};
 pub use crypto::{
-    crypto_decrypt, crypto_decrypt_aad, crypto_ed25519_verify, crypto_encrypt,
-    crypto_encrypt_aad, crypto_hash, crypto_hkdf_sha256, crypto_hmac_sha256, crypto_keccak256,
-    crypto_random, crypto_secp256k1_pubkey, crypto_secp256k1_sign, crypto_x25519_public,
-    crypto_x25519_shared,
+    crypto_decrypt, crypto_decrypt_aad, crypto_encrypt, crypto_encrypt_aad, crypto_hash,
+    crypto_hkdf_sha256, crypto_hmac_sha256, crypto_keccak256, crypto_machine_key, crypto_random,
+    crypto_x25519_public, crypto_x25519_shared, machine_key, MACHINE_KEY_LABEL_MAX,
+    MACHINE_KEY_NO_TPM, MACHINE_KEY_WRONG_STATE,
 };
 pub use debug::mk_debug;
-pub use graphics::{
-    nonos_cursor_present, nonos_display_dimensions, nonos_display_list, nonos_surface_create,
-    nonos_surface_destroy, nonos_surface_map, nonos_surface_present_full,
-    nonos_surface_present_rect, NonosDisplayInfo, NONOS_PIXEL_FMT_ARGB8888,
-};
+pub use foreign::{mk_foreign_reply, mk_foreign_spawn, mk_foreign_start, mk_foreign_wait};
+pub use foreign_frame::ForeignFrame;
+pub use graphics::nonos_display_dimensions;
 #[cfg(feature = "heap")]
 pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
 pub use ipc::{
@@ -78,6 +85,8 @@ pub use mem::{mk_mmap, mk_munmap};
 pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
 pub use process::{mk_args, mk_getpid, mk_kill, mk_pid_alive, mk_wait};
 pub use procstat::{mk_proc_stat, ProcStatEntry, ProcStatHeader, PROC_NAME_LEN};
+pub use spawn_instance::mk_spawn_instance;
+pub use store_write::mk_store_write;
 pub use surface_registry::{
     mk_display_vsync_wait, mk_input_event_drain, mk_input_event_post, mk_input_event_wait,
     mk_surface_attach, mk_surface_present, mk_surface_present_rect, mk_surface_register,
@@ -87,4 +96,5 @@ pub use surface_registry::{
 };
 pub use syscall::call_raw as mk_syscall_raw;
 pub use time::{mk_time_adjust, mk_time_millis, mk_time_rtc, mk_uptime_ms, Deadline, RtcTime};
-pub use unistd::{mk_exit, mk_yield};
+pub use tool_run::mk_tool_run;
+pub use unistd::{mk_exit, mk_idle_ms, mk_yield};

@@ -22,7 +22,12 @@ pub fn status(out: &mut [u8], req: &Request, status_code: i32) -> usize {
     HDR_LEN + STATUS_LEN
 }
 
-pub fn with_payload(out: &mut [u8], req: &Request, status_code: i32, payload_extra: usize) -> usize {
+pub fn with_payload(
+    out: &mut [u8],
+    req: &Request,
+    status_code: i32,
+    payload_extra: usize,
+) -> usize {
     response_header(out, req, (STATUS_LEN + payload_extra) as u32);
     write_status(out, status_code);
     HDR_LEN + STATUS_LEN + payload_extra

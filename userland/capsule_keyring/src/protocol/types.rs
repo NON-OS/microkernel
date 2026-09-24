@@ -32,8 +32,13 @@ pub const OP_WALLET_EXPORT: u16 = 15;
 pub const OP_SIGN_NOX_STAKE_APPROVE: u16 = 16;
 pub const OP_SIGN_NOX_STAKE: u16 = 17;
 pub const OP_SIGN_NOX_TRANSFER: u16 = 18;
-pub const OP_WALLET_GENERATE_HD: u16 = 19;
-pub const OP_WALLET_RECOVER: u16 = 20;
+pub const OP_SIGN_NOX_UNSTAKE: u16 = 19;
+pub const OP_SIGN_NOX_STAKE_LOCKED: u16 = 20;
+// 21 and 22, not 19 and 20.
+pub const OP_WALLET_GENERATE_HD: u16 = 21;
+pub const OP_WALLET_RECOVER: u16 = 22;
+pub const OP_VAULT_SEAL: u16 = 23;
+pub const OP_VAULT_OPEN: u16 = 24;
 
 pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_0002;
 

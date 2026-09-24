@@ -1,4 +1,4 @@
-# NØNOS kernel — upper-half microkernel.
+# NØNOS kernel, upper-half microkernel.
 # eK@nonos.systems
 #
 # Static ET_EXEC kernel handed off by the UEFI bootloader. The kernel
@@ -8,7 +8,7 @@
 # in their own ASID; the kernel reaches user pages through the
 # directmap, never by switching CR3 to the user table.
 #
-# `cargo build` resolves to `default = ["microkernel-core"]` — the
+# `cargo build` resolves to `default = ["microkernel-core"]`, the
 # brutal-minimum boot/runtime profile, what plain `cargo check`
 # compiles on a clean tree.
 #
@@ -25,12 +25,12 @@
 
 [package]
 name        = "nonos_kernel"
-version     = "0.9.0"
+version     = "0.9.2"
 edition     = "2021"
 publish     = false
 license     = "AGPL-3.0"
 authors     = ["eK@nonos.systems", "senseix21 <mahdix2118@protonmail.com>"]
-description = "NØNOS upper-half microkernel — RAM-resident, capability-enforced, signed CPL=3 capsules"
+description = "NØNOS upper-half microkernel, RAM-resident, capability-enforced, signed CPL=3 capsules"
 repository  = "https://github.com/NON-OS/nonos-micro-kernel"
 build       = "build.rs"
 keywords    = ["kernel", "microkernel", "os", "security", "privacy"]
@@ -98,6 +98,7 @@ nonos-capsule-desktop-shell     = []
 nonos-capsule-input-router      = []
 nonos-capsule-input-proof       = []
 nonos-capsule-input-probe       = []
+nonos-capsule-flacprobe         = []
 nonos-capsule-setup-wizard      = []
 nonos-capsule-wm                = []
 nonos-capsule-toolkit           = []
@@ -107,6 +108,7 @@ nonos-capsule-attest            = []
 nonos-capsule-power             = []
 nonos-capsule-image-codec       = []
 nonos-capsule-image-viewer      = []
+nonos-capsule-video-player      = []
 nonos-capsule-about             = []
 nonos-capsule-audio-player      = []
 nonos-capsule-hello             = []
@@ -157,12 +159,14 @@ nonos-capsule-net-ntp           = []
 nonos-capsule-net-core          = []
 nonos-capsule-net-sockets       = []
 nonos-capsule-net-nym           = []
+nonos-capsule-socks5            = []
+nonos-capsule-linux             = []
 nonos-capsule-market            = []
 
 # Layout-stable debug ring. Allocation-free, formatter-free fixed-VA
 # byte ring at the `.nonos.dbg_ring` section. Triggered by adding
 # `dbg_emit(tag, &payload)` call sites; drained from the panic path
-# and diagnostic paths. Off by default — production builds are
+# and diagnostic paths. Off by default, production builds are
 # byte-identical to before when this feature is absent.
 dbg-ring = []
 
@@ -208,6 +212,7 @@ input-probe-inject = []
 nonos-terminal-smoketest = ["nonos-capsule-terminal", "nonos-user-entry-proof"]
 
 nonos-image-viewer-smoketest = ["nonos-capsule-image-viewer", "nonos-user-entry-proof"]
+nonos-video-player-smoketest = ["nonos-capsule-video-player", "nonos-user-entry-proof"]
 
 nonos-ntp-smoketest = ["microkernel-net-ntp", "nonos-user-entry-proof"]
 
@@ -225,6 +230,7 @@ microkernel-core = [
   "sha3",
   "crypto-ed25519-int",
   "nonos-arch-iommu",
+  "nonos-iommu-enforce",
 ]
 
 # Runtime baseline: core + the three live capsule embeds.
@@ -489,6 +495,7 @@ microkernel-net-nym = [
   "nonos-capsule-driver-virtio-net",
   "nonos-capsule-net-core",
   "nonos-capsule-net-nym",
+  "nonos-capsule-socks5",
 ]
 
 microkernel-net-sockets = [
@@ -499,6 +506,7 @@ microkernel-net-sockets = [
   "nonos-capsule-net-core",
   "nonos-capsule-net-sockets",
   "nonos-capsule-net-nym",
+  "nonos-capsule-socks5",
 ]
 
 # Desktop boot profile. This is the signed QEMU GUI lane:
@@ -530,12 +538,12 @@ microkernel-desktop-base = [
   "nonos-capsule-net-core",
   "nonos-capsule-net-sockets",
   "nonos-capsule-net-nym",
+  "nonos-capsule-socks5",
   "nonos-capsule-input-router",
   "nonos-capsule-compositor",
   "nonos-capsule-wm",
   "nonos-capsule-desktop-shell",
   "nonos-capsule-image-codec",
-  "nonos-capsule-image-viewer",
   "nonos-capsule-clipboard",
   "nonos-capsule-attest",
   "nonos-capsule-login",
@@ -543,14 +551,15 @@ microkernel-desktop-base = [
   "nonos-capsule-wallpaper-catalog",
   "nonos-capsule-toolkit",
   "nonos-capsule-about",
-  "nonos-capsule-audio-player",
+  "nonos-capsule-linux",
   "nonos-capsule-audio",
   "nonos-capsule-driver-hda",
   "nonos-capsule-boot-splash",
   "nonos-capsule-calculator",
-  "nonos-capsule-clock",
-  "nonos-capsule-browser",
   "nonos-capsule-snake",
+  "nonos-capsule-browser",
+  "nonos-capsule-audio-player",
+  "nonos-capsule-video-player",
   "nonos-capsule-wallet-nonos",
   "nonos-capsule-terminal",
   "nonos-capsule-file-manager",
@@ -568,6 +577,15 @@ microkernel-desktop-base = [
 microkernel-desktop-gui = [
   "microkernel-desktop-base",
   "nonos-tool-capsules",
+]
+
+# The desktop plus the async runtime gate. `capsule_tokio_smoke` races a timer
+# against an idle accept to prove the mio backend's self-wake, and it never
+# finishes doing it: in the desktop image it held about a sixth of a core for
+# the life of the session, starving the services a desktop actually needs. It
+# is a test, and it belongs in a build whose job is testing.
+microkernel-desktop-gui-async-gate = [
+  "microkernel-desktop-gui",
   "nonos-capsule-tokio-smoke",
 ]
 
@@ -652,6 +670,18 @@ microkernel-image-viewer-smoketest = [
   "nonos-image-viewer-smoketest",
 ]
 
+# Headless video_player smoketest. The capsule is built with
+# `nonos-video-player-smoketest` by the Makefile target and exercises
+# only the baked AVI parse + MJPEG decode + scale path: no vfs, no IPC.
+microkernel-video-player-smoketest = [
+  "microkernel-core",
+  "capsule-serial-debug",
+  "nonos-stark-attest",
+  "nonos-capsule-proof-io",
+  "nonos-capsule-video-player",
+  "nonos-video-player-smoketest",
+]
+
 # Headless HDA driver smoketest. Trimmed kernel that spawns only the
 # proof-io sentinel and driver.hda0 (no desktop, no production trust
 # posture) so an intel-hda QEMU boot reaches the driver fast and its
@@ -707,6 +737,7 @@ microkernel-input-e2e-ps2 = [
   "nonos-capsule-net-dns",
   "nonos-capsule-net-sockets",
   "nonos-capsule-net-nym",
+  "nonos-capsule-socks5",
   "nonos-capsule-input-router",
   "nonos-capsule-compositor",
   "nonos-capsule-wm",
@@ -742,6 +773,7 @@ microkernel-input-e2e-xhci = [
   "nonos-capsule-net-dns",
   "nonos-capsule-net-sockets",
   "nonos-capsule-net-nym",
+  "nonos-capsule-socks5",
   "nonos-capsule-input-router",
   "nonos-capsule-compositor",
   "nonos-capsule-wm",
@@ -756,7 +788,7 @@ microkernel-input-e2e-xhci = [
 # Minimal input-probe fleet (Task 0.4). The narrowest set that can
 # prove a keystroke reaching a focused capsule: PS/2 + virtio-gpu
 # drivers, input_router, compositor, and the input_probe surface.
-# NO window manager, shell, or other GUI apps — the probe is the sole
+# NO window manager, shell, or other GUI apps, the probe is the sole
 # focusable window, so input never starves behind the full fleet.
 microkernel-input-probe = [
   "microkernel-core",
@@ -781,6 +813,16 @@ microkernel = ["microkernel-capsules"]
 # Mid-refactor cfg gates referenced from src.
 nonos-arch-iommu     = []   # src/arch/x86_64/iommu/*
 
+# Program the DMA remapping unit at boot and turn translation on. Without it
+# the VT-d tree still probes and reports what the firmware described, but every
+# device keeps unrestricted access to physical memory, which is the posture a
+# machine has with no IOMMU at all. Split from `nonos-arch-iommu` because that
+# flag only decides whether the code compiles; this one decides whether the
+# hardware is put in charge. Part of `microkernel-core`: a build that omits it
+# says so on the console at boot, and the DMA API refuses to hand out a
+# device address it cannot back with a translation.
+nonos-iommu-enforce  = ["nonos-arch-iommu"]
+
 # In-tree crypto, audit-anchored constant-time implementations.
 crypto-ed25519-int   = []
 crypto-ed25519-dalek = ["ed25519-dalek"]
@@ -796,9 +838,6 @@ mldsa2    = []
 mldsa3    = []
 mldsa5    = []
 
-# Zero-knowledge proof systems. Source path: src/crypto/zk/halo2/*.
-zk-halo2   = ["halo2_proofs", "halo2curves"]
-
 # Legacy hash, retained for Git object hashes / TOTP only.
 sha1-legacy = []
 
@@ -806,8 +845,9 @@ sha1-legacy = []
 std = []
 
 [dependencies]
+nonos_bench_core = { path = "nonos-bench", version = "0.1.0" }
 # Transparent STARK stack, shared with the bootloader for kernel self-attestation.
-nonos-stark = { path = "nonos-stark", version = "0.2.0" }
+nonos-stark = { path = "stark-attest/crates/stark-core", version = "0.2.0" }
 # Synchronization. spin is the kernel-wide lock primitive (no_std,
 # interrupt-safe).
 spin        = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "lazy", "rwlock"] }
@@ -837,10 +877,6 @@ volatile = { version = "0.4", default-features = false }
 
 # Network stack used by the virtio-net interface bridge.
 smoltcp = { version = "0.11", default-features = false, features = ["alloc", "socket-raw", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6", "medium-ethernet"] }
-
-# Zero-knowledge — halo2.
-halo2_proofs = { version = "0.3", default-features = false, optional = true }
-halo2curves  = { version = "0.6", default-features = false, optional = true }
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
@@ -881,7 +917,7 @@ perf        = "warn"
 # src/capabilities/types.rs.
 [package.metadata.nonos]
 zerostate = true
-version   = "0.9.0"
+version   = "0.9.1"
 abi       = "Mk-v0"
 
 [package.metadata.nonos.vm]
@@ -954,7 +990,14 @@ max_size  = "16MiB"
 [profile.release]
 opt-level       = 3
 lto             = "thin"
-codegen-units   = 4
+# One codegen unit, to keep the build reproducible. Thin LTO across several
+# units settles its imports and partition boundaries per run, which is a known
+# way for two builds of one commit to diverge. Measured here the kernel ELF came
+# out byte identical either way, so this is precaution rather than a fix, paid
+# for in build time. The divergence that was actually observed is in the STARK
+# attestation trailer, which is randomised because the proof is zero knowledge,
+# and no build setting changes that.
+codegen-units   = 1
 panic           = "abort"
 strip           = "debuginfo"
 debug           = false

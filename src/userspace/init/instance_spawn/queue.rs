@@ -35,6 +35,31 @@ pub enum PendingApp {
     FileManager,
     ProcessManager,
     AudioPlayer,
+    VideoPlayer,
+}
+
+impl PendingApp {
+    /// The capsule name behind this request, for the one place it matters: a
+    /// spawn that was refused. The drain used to report the error alone, so a
+    /// dock icon that had quietly stopped opening looked identical on the wire
+    /// to one that had never been clicked.
+    pub(super) fn name(self) -> &'static [u8] {
+        match self {
+            PendingApp::Terminal => b"app.terminal",
+            PendingApp::Browser => b"app.browser",
+            PendingApp::TextEditor => b"app.text_editor",
+            PendingApp::Settings => b"app.settings",
+            PendingApp::Calculator => b"app.calculator",
+            PendingApp::Clock => b"app.clock",
+            PendingApp::About => b"app.about",
+            PendingApp::Snake => b"app.snake",
+            PendingApp::WalletNonos => b"app.nonos_wallet",
+            PendingApp::FileManager => b"app.file_manager",
+            PendingApp::ProcessManager => b"app.process_manager",
+            PendingApp::AudioPlayer => b"app.audio_player",
+            PendingApp::VideoPlayer => b"app.video_player",
+        }
+    }
 }
 
 // A click enqueues one request; a few in flight at once is the most a user

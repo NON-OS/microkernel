@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::{read_i32, read_u16, read_u32};
-use crate::render::layout::{bottom_dock_rect, MENUBAR_HEIGHT};
+use crate::render::layout::{bottom_dock_rect, menubar_height};
 use crate::render::{desktop_icons, desktop_menu, topbar};
 use crate::server::desktop;
-use crate::server::handlers::{launcher_focus, launcher_request, launchpad};
+use crate::server::handlers::{launcher_focus, launcher_request, launchpad, menubar_click};
 use crate::server::refresh_taskbar::refresh_taskbar;
-use crate::state::{collapse_taskbar, reveal_taskbar, Context, LAUNCHER_APPS};
+use crate::state::{reveal_taskbar, Context, LAUNCHER_APPS};
 use nonos_libc::{
     mk_time_millis, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN,
     INPUT_KIND_POINTER_ABS, INPUT_KIND_TOUCH,
@@ -43,10 +43,12 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
     // A key press while an inline rename is active edits the name; keys carry no
     // pointer position, so this is handled before the x/y checks below.
     if kind == INPUT_KIND_KEY_DOWN {
+        let code = read_u32(buf, 12).unwrap_or(0);
         if ctx.rename.is_some() {
-            let code = read_u32(buf, 12).unwrap_or(0);
             desktop::rename_key(ctx, code);
             super::repaint::repaint(ctx);
+        } else if ctx.launchpad {
+            super::handlers::launchpad_key::key(ctx, code);
         }
         return true;
     }
@@ -85,6 +87,14 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
             }
             return true;
         }
+        // A menu-bar drop-down tracks the pointer across its own titles and
+        // rows for as long as it is open.
+        if ctx.menubar.open.is_some() {
+            if menubar_click::motion(ctx, x as u32, y as u32) {
+                super::repaint::repaint(ctx);
+            }
+            return true;
+        }
         // With the menu open, track which row the pointer is over so it lights
         // up; otherwise fall through to the dock reveal behaviour.
         if ctx.desktop_menu.is_some() {
@@ -105,10 +115,22 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
         return true;
     }
     let (px, py) = (x as u32, y as u32);
+    if super::handlers::consent::click(ctx, px, py) {
+        return true;
+    }
+    if super::handlers::pkg_consent::click(ctx, px, py) {
+        return true;
+    }
     // The Launchpad, while open, captures every click: a tile launches its app
     // or tool, and anything else dismisses the overlay.
     if ctx.launchpad {
         launchpad::click(ctx, px, py);
+        return true;
+    }
+    // A click on a menu-bar title, or anywhere while a drop-down is open,
+    // belongs to the menu bar.
+    if menubar_click::click(ctx, px, py) {
+        super::repaint::repaint(ctx);
         return true;
     }
     // While the right-click menu is open, the next click either picks an item
@@ -135,12 +157,19 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
     // New File on empty space, or Open / Rename / Delete on an icon.
     if kind == INPUT_KIND_BUTTON_DOWN && read_u32(buf, 12) == Some(2) {
         let dock_top = bottom_dock_rect(ctx.width, ctx.height).y.saturating_sub(18);
-        if py > MENUBAR_HEIGHT && py < dock_top {
+        if py > menubar_height() && py < dock_top {
             ctx.menu_target = desktop_icons::hit(ctx, px, py);
+            ctx.menubar.open = None;
+            ctx.menubar.hover = None;
             ctx.desktop_menu = Some((px, py));
             ctx.menu_hover = None;
             super::repaint::repaint(ctx);
         }
+        return true;
+    }
+    // The magnifier on the menu bar is the same search the Spotlight request opens.
+    if topbar::search_hit(ctx, px, py) {
+        crate::server::handlers::spotlight_toggle::toggle(ctx);
         return true;
     }
     // Clicking the brand on the menu bar brings up the app dock.
@@ -208,18 +237,22 @@ fn is_image_name(name: &str) -> bool {
 // The path travels the way the file manager's Open With already sends it.
 fn open_item(ctx: &mut Context, idx: usize) {
     let Some(item) = ctx.desktop_items.get(idx) else { return };
-    let service: &[u8] = if item.is_dir {
-        b"app.file_manager"
-    } else if is_image_name(&item.name) {
-        b"app.image_viewer"
-    } else {
-        b"app.text_editor"
-    };
+    // An image has no viewer in this image, and the editor would show a
+    // screenful of bytes rather than a picture, so nothing opens.
+    if !item.is_dir && is_image_name(&item.name) {
+        return;
+    }
+    let service: &[u8] = if item.is_dir { b"app.file_manager" } else { b"app.text_editor" };
     // By service rather than by position: the table is edited often enough
     // that an index would drift into launching the wrong app.
     let Some(app) = LAUNCHER_APPS.iter().find(|a| a.service == service) else { return };
-    // Desktop items are the root listing, so the path is the name under "/".
-    let mut path = alloc::string::String::from("/");
+    // Desktop items are the home listing, so the path is the name under it.
+    // Built from the one definition the listing uses, or an icon would open a
+    // path that is not the file it was drawn from.
+    let mut path = alloc::string::String::from(
+        core::str::from_utf8(crate::server::desktop::HOME).unwrap_or("/"),
+    );
+    path.push('/');
     path.push_str(&item.name);
     if let Ok(service) = core::str::from_utf8(app.service) {
         ctx.pending_open.insert(alloc::string::String::from(service), path);

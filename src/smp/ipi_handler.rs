@@ -23,7 +23,29 @@ use core::sync::atomic::Ordering;
 pub fn send_reschedule_ipi(cpu_id: usize) {
     if let Some(cpu) = get_cpu(cpu_id) {
         if cpu.is_online() {
-            let _ = send_ipi(cpu.apic_id, Ipi::Reschedule);
+            let _ = send_ipi(cpu.get_apic_id(), Ipi::Reschedule);
+        }
+    }
+}
+
+/// Hand newly runnable work to a CPU that is halted, if there is one.
+///
+/// One CPU, not a broadcast: waking every idle CPU for a single task has them
+/// all take the run queue lock, and all but one find it empty again. The task
+/// producer calls this after the queue is populated, so the woken CPU sees the
+/// work when it looks. Waking nobody is not a failure; every CPU reaches the
+/// scheduler on its own timer tick regardless, and the idle loop tests the run
+/// queue rather than trusting the wake.
+pub fn wake_idle_cpu() {
+    let me = super::cpu::cpu_id();
+    for id in 0..super::state::cpu_count() {
+        if id == me {
+            continue;
+        }
+        let Some(cpu) = get_cpu(id) else { continue };
+        if cpu.is_online() && cpu.idle.load(Ordering::Acquire) {
+            let _ = send_ipi(cpu.get_apic_id(), Ipi::Reschedule);
+            return;
         }
     }
 }

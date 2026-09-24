@@ -20,6 +20,11 @@
 
 extern crate alloc;
 
+// The file-manager source imports `nonos_app_skeleton::sidecar`. Aliasing this
+// crate to that name makes the included source resolve against the sidecar
+// module below instead of needing the whole app_skeleton dependency.
+extern crate self as nonos_app_skeleton;
+
 use alloc::string::String;
 
 // Real capsule source under test, included verbatim.
@@ -36,6 +41,9 @@ pub mod vfs_store;
 // Self-contained file-manager logic (listing parser, type classifier).
 pub mod fm_logic;
 
+// The app_skeleton key/value sidecar codec the file manager persists with.
+pub mod sidecar;
+
 // Real network wire parsers for untrusted-input coverage.
 pub mod net;
 
@@ -46,8 +54,12 @@ mod kani_proofs;
 // The vfs wire protocol codec.
 pub mod vfs_protocol;
 
+// The block-layer error taxonomy the vfs handlers turn into errnos.
+pub mod vfs_blk;
+
 // Aliases so capsule source that uses crate-absolute paths (`crate::protocol`,
-// `crate::store`) resolves when included here.
+// `crate::store`, `crate::blk`) resolves when included here.
+pub use vfs_blk as blk;
 pub use vfs_protocol as protocol;
 pub use vfs_store as store;
 
@@ -55,9 +67,16 @@ pub use vfs_store as store;
 #[path = "../../capsule_vfs/src/server/handlers/util.rs"]
 mod vfs_util;
 
+// The production reply encoders, with the module shape they resolve against.
+#[cfg(test)]
+mod vfs_handlers;
+
 // Public surface for the attestation helpers so they are exercised as API.
 pub fn split_caller(payload: &[u8], sender_pid: u32) -> Result<(u32, &[u8]), i32> {
     vfs_util::split_caller(payload, sender_pid)
+}
+pub fn map_blk_err(err: blk::error::BlkError) -> i32 {
+    vfs_util::map_blk_err(err)
 }
 pub fn map_store_err(err: store::StoreError) -> i32 {
     vfs_util::map_store_err(err)
@@ -99,18 +118,58 @@ pub fn desktop_walk(rx: &[u8], start: usize, end: usize) -> alloc::vec::Vec<(Str
 #[cfg(test)]
 mod desktop_tests;
 #[cfg(test)]
+mod dirstat_wire_tests;
+#[cfg(test)]
+mod favorites_tests;
+#[cfg(test)]
+mod files_fixture;
+#[cfg(test)]
+mod files_tests;
+#[cfg(test)]
 mod fm_tests;
 #[cfg(test)]
 mod fmt_tests;
 #[cfg(test)]
 mod fuzz_tests;
 #[cfg(test)]
+mod journal_tests;
+#[cfg(test)]
+mod journal_wire_tests;
+#[cfg(test)]
 mod net_tests;
+#[cfg(test)]
+mod open_with_tests;
+#[cfg(test)]
+mod prefs_tests;
 #[cfg(test)]
 mod protocol_tests;
 #[cfg(test)]
+mod recents_tests;
+#[cfg(test)]
+mod search_limit_tests;
+#[cfg(test)]
+mod search_tests;
+#[cfg(test)]
+mod search_wire_tests;
+#[cfg(test)]
+mod sidecar_tests;
+#[cfg(test)]
 mod store_tests;
+#[cfg(test)]
+mod store_owner_tests;
+#[cfg(test)]
+mod tags_blob_tests;
+#[cfg(test)]
+mod tags_tests;
 #[cfg(test)]
 mod util_tests;
 #[cfg(test)]
 mod vfs_path_tests;
+
+// The kernel directory-record layout: entry offsets, name matching, chaining.
+pub mod blockfs_dir;
+
+#[cfg(test)]
+mod store_patch_tests;
+#[cfg(test)]
+mod store_replace_tests;

@@ -52,7 +52,7 @@ pub fn css_pump(state: &mut State) -> bool {
         super::apply_css::apply_css(state, None, None);
         return true;
     }
-    let phase = if proxy.is_some() {
+    let phase = if proxy.is_some() || crate::browser::net::mixnet::is_on() {
         Phase::SocksHello
     } else if u.scheme == url::Scheme::Https {
         Phase::TlsHello
@@ -69,6 +69,7 @@ pub fn css_pump(state: &mut State) -> bool {
         idle: 0,
         started_ms: mk_time_millis(),
         error: None,
+        tls_alert: None,
         suppress: true,
         image: None,
         last_check: 0,

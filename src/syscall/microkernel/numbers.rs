@@ -29,8 +29,8 @@ pub const SYS_SERVICE_LOOKUP: u64 = tag4(b"MSVL");
 pub const SYS_SERVICE_REGISTER: u64 = tag4(b"MSVR");
 pub const SYS_MMAP: u64 = tag4(b"MMAP");
 pub const SYS_MUNMAP: u64 = tag4(b"MUMP");
-pub const SYS_SPAWN: u64 = tag4(b"MSPN");
 pub const SYS_CAPSULE_LOAD: u64 = tag4(b"MCLD");
+pub const SYS_CAPSULE_VERIFY: u64 = tag4(b"MCVF");
 pub const SYS_EXIT: u64 = tag4(b"MEXT");
 pub const SYS_PID_ALIVE: u64 = tag4(b"MPAL");
 pub const SYS_WAIT: u64 = tag4(b"MWAT");
@@ -51,7 +51,38 @@ pub const SYS_PROC_STAT: u64 = tag4(b"MPST");
 pub const SYS_PROC_OUTPUT: u64 = tag4(b"MOUT");
 pub const SYS_PROC_INPUT: u64 = tag4(b"MPIN");
 pub const SYS_STDIN_READ: u64 = tag4(b"MSRD");
+// Program stdout: mirrors bytes into the caller's own `proc.<pid>` inbox and
+// writes nothing to serial. Gated on the IPC capability so a capsule without
+// `Capability::Debug` still has a stdout.
+pub const SYS_STDOUT_WRITE: u64 = tag4(b"MSOW");
+pub const SYS_STORE_WRITE: u64 = tag4(b"MSWR");
 pub const SYS_ATTEST_STATUS: u64 = tag4(b"MAST");
+/// A signed attestation document, as opposed to the unsigned status above.
+pub const SYS_ATTEST_DOC: u64 = tag4(b"MADC");
+/// The capsule entries the document's registry root folds, so a verifier can
+/// recompute that root and read what each program was permitted to do.
+pub const SYS_ATTEST_ENTRIES: u64 = tag4(b"MAEN");
+/// Create a process with no capabilities, supervised by the caller, to
+/// host code the kernel has not verified and does not interpret.
+pub const SYS_FOREIGN_SPAWN: u64 = tag4(b"MFSP");
+/// Give such a process an entry point and make it runnable.
+pub const SYS_FOREIGN_START: u64 = tag4(b"MFST");
+/// Wait for one of the caller's guests to issue a syscall this kernel
+/// refuses, and take its register frame.
+pub const SYS_FOREIGN_WAIT: u64 = tag4(b"MFWT");
+/// Answer one parked guest with the value its `rax` receives.
+pub const SYS_FOREIGN_REPLY: u64 = tag4(b"MFRP");
+/// Back a span of a guest's address space with fresh frames.
+pub const SYS_PEER_MAP: u64 = tag4(b"MPMP");
+/// Copy bytes between the caller and a guest it supervises.
+pub const SYS_PEER_COPY: u64 = tag4(b"MPCP");
+/// Set the protection of pages a guest already has.
+pub const SYS_PEER_PROTECT: u64 = tag4(b"MPPT");
+/// Ask to enrol a signing root so software built here runs here. Prints a
+/// confirmation code; enrols nothing on its own.
+pub const SYS_DEV_ROOT_REQUEST: u64 = tag4(b"MDRQ");
+/// Complete a pending enrolment with the code the kernel displayed.
+pub const SYS_DEV_ROOT_CONFIRM: u64 = tag4(b"MDRC");
 pub const SYS_CAP_GRANT: u64 = tag4(b"MCGT");
 pub const SYS_CAP_REVOKE: u64 = tag4(b"MCRV");
 pub const SYS_CAP_CHECK: u64 = tag4(b"MCCK");

@@ -14,16 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::scale;
 use nonos_app_skeleton::PaintBuffer;
 
 use super::ui;
 use crate::wallet::state::State;
 use crate::wallet::theme::{DIM, FG, GREEN, LINE, MUTED};
 
+/// The right-hand card is the taller of the two on this row, so the sections
+/// below the pair are measured from this rather than from the account card.
+pub const NET_H: u32 = 200;
+
+// Clearance under a caption line set at the body size.
+const CAPTION_DROP: u32 = 26;
+
 pub fn paint_network_card(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
-    ui::card(fb, x, y, w, 200);
-    let _ =
-        fb.text_ttf((x + 20) as i32, (y + 18) as i32, "GAS  \u{00b7}  ETHEREUM L1", DIM(), 12.1);
+    ui::card(fb, x, y, w, NET_H);
+    let _ = fb.text_ttf(
+        (x + 20) as i32,
+        (y + 18) as i32,
+        "GAS  \u{00b7}  ETHEREUM L1",
+        DIM(),
+        scale::BODY,
+    );
 
     // The real gas price read from the RPC, to two decimals so a sub-gwei price
     // does not collapse to zero. A dash before the read lands.
@@ -36,8 +49,12 @@ pub fn paint_network_card(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w
     } else {
         "\u{2014}"
     };
-    let gx = fb.text_ttf((x + 20) as i32, (y + 38) as i32, g, FG(), 34.5);
-    let _ = fb.text_ttf(gx + 8, (y + 50) as i32, "gwei", MUTED(), 14.9);
+    // The caption above ends twenty-three pixels below its own top, so a figure
+    // set twenty pixels under it started three pixels early. Same defect as the
+    // account card, same cause: rows placed for text smaller than the font draws.
+    let figure_y = y + CAPTION_DROP;
+    let gx = fb.text_ttf((x + 20) as i32, figure_y as i32, g, FG(), scale::HERO);
+    let _ = fb.text_ttf(gx + 8, (figure_y + 12) as i32, "gwei", MUTED(), scale::BODY);
 
     // Honest facts about the route, not invented fee tiers.
     row(fb, x, w, y + 84, "Route", "PublicNode RPC", "TLS 1.3");
@@ -45,13 +62,40 @@ pub fn paint_network_card(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w
     row(fb, x, w, y + 160, "Transfer gas", "21000", "fixed");
 }
 
+// A label on the left, its value on the right, and a tag after it.
+//
+// Everything is measured and nothing is assumed. The value used to be placed
+// at a fixed inset that reserved room for the tag, so on a narrow card the
+// label and the value ran into each other and read as one word: Chain and
+// Ethereum mainnet became ChainEthereum mainnet. When the room is not there
+// the tag is dropped first, since it is the least of the three, and the value
+// is dropped before it is allowed to overlap.
 fn row(fb: &mut PaintBuffer, x: u32, w: u32, y: u32, label: &str, val: &str, t: &str) {
-    fb.fill_rect(x + 20, y + 30, w - 40, 1, LINE());
-    let _ = fb.text_ttf((x + 20) as i32, (y + 6) as i32, label, MUTED(), 16.1);
-    let vw = fb.measure_ttf(val, 16.1).max(0) as u32;
-    let _ = fb.text_ttf((x + w - 96 - vw) as i32, (y + 6) as i32, val, FG(), 16.1);
-    let tw = fb.measure_ttf(t, 14.9).max(0) as u32;
-    let _ = fb.text_ttf((x + w - 20 - tw) as i32, (y + 7) as i32, t, GREEN(), 14.9);
+    fb.fill_rect(x + 20, y + 30, w.saturating_sub(40), 1, LINE());
+    let _ = fb.text_ttf((x + 20) as i32, (y + 6) as i32, label, MUTED(), scale::BODY);
+    let lw = fb.measure_ttf(label, scale::BODY).max(0) as u32;
+    let floor = x + 20 + lw + 12;
+    let vw = fb.measure_ttf(val, scale::BODY).max(0) as u32;
+    let tw = fb.measure_ttf(t, scale::BODY).max(0) as u32;
+    let right = x + w.saturating_sub(20);
+    // With the tag: value, gap, tag, all inside the card.
+    if right.saturating_sub(tw + 12 + vw) >= floor {
+        let _ =
+            fb.text_ttf(right.saturating_sub(tw) as i32, (y + 7) as i32, t, GREEN(), scale::BODY);
+        let _ = fb.text_ttf(
+            right.saturating_sub(tw + 12 + vw) as i32,
+            (y + 6) as i32,
+            val,
+            FG(),
+            scale::BODY,
+        );
+        return;
+    }
+    // Without it, if the value alone still fits.
+    if right.saturating_sub(vw) >= floor {
+        let _ =
+            fb.text_ttf(right.saturating_sub(vw) as i32, (y + 6) as i32, val, FG(), scale::BODY);
+    }
 }
 
 // wei-per-gas to "N.NN gwei" with two decimals.

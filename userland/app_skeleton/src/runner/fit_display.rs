@@ -27,7 +27,8 @@ use crate::discover::Peers;
 
 use super::request_id::next;
 
-const MENUBAR_H: u32 = 28;
+/// The shell's bar, from the one definition.
+const MENUBAR_H: u32 = super::chrome::MENUBAR_H;
 // Largest a window opens relative to the display, as a percent. Below 100 so
 // windows cascade with reachable titlebars instead of covering the screen.
 const WINDOW_FRACTION: u32 = 88;

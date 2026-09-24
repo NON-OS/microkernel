@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, Ordering};
+use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 
 use nonos_libc::mk_service_lookup;
 
@@ -36,6 +36,13 @@ const WIRED_NICS: &[&str] =
 // coming up after boot) should replace the one bound at startup.
 static BOUND_PORT: AtomicU32 = AtomicU32::new(0);
 
+/// How many NIC drivers one discovery pass may block on.
+const MAX_PROBES_PER_PASS: usize = 2;
+
+/// Where the next discovery pass resumes, so a long candidate list is swept
+/// across passes instead of inside one.
+static PROBE_CURSOR: AtomicUsize = AtomicUsize::new(0);
+
 /// The broker port of the interface the stack is bound to, or zero before the
 /// first bind. Read by the lease-status reply so a panel can see which NIC the
 /// stack chose when no address ever binds.
@@ -53,17 +60,74 @@ pub fn bound_port() -> u32 {
 // connects, while still preferring a wired NIC that genuinely has carrier. A
 // racing, dying wired capsule answers link_up with `None`, which is treated as
 // not-up and skipped rather than taking net_core down.
+// Each probe is a driver round trip the serve loop is blocked on, so a pass
+// spends at most MAX_PROBES_PER_PASS of them and resumes at the next candidate
+// a second later. Every real configuration registers one or two NIC drivers and
+// so still sweeps the whole list in a single pass.
+//
+// Last logged verdict per candidate: 0 unseen, 1 down, 2 no-answer. Indexed by
+// position in the WiFi-then-wired order, so a change logs once, not per tick.
+static PROBE_SEEN: [AtomicU32; 8] = [const { AtomicU32::new(0) }; 8];
+
 fn discover_nic() -> Option<u32> {
-    for name in WIFI_NICS.iter().chain(WIRED_NICS.iter()) {
+    let count = WIFI_NICS.len() + WIRED_NICS.len();
+    let start = PROBE_CURSOR.load(Ordering::Relaxed);
+    let mut probes = 0usize;
+    for step in 0..count {
+        let idx = (start + step) % count;
+        let name = candidate(idx);
         let mut port: u32 = 0;
         let mut pid: u32 = 0;
-        if mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid) == 0
-            && device::link_up(port) == Some(true)
-        {
-            return Some(port);
+        if mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid) != 0 {
+            continue;
+        }
+        probes += 1;
+        match device::link_up(port) {
+            Some(true) => {
+                PROBE_CURSOR.store(idx, Ordering::Relaxed);
+                return Some(port);
+            }
+            verdict => {
+                let code = if verdict.is_none() { 2 } else { 1 };
+                if idx < PROBE_SEEN.len() && PROBE_SEEN[idx].swap(code, Ordering::Relaxed) != code {
+                    probe_log(name, verdict);
+                }
+            }
+        }
+        if probes == MAX_PROBES_PER_PASS {
+            PROBE_CURSOR.store((idx + 1) % count, Ordering::Relaxed);
+            return None;
         }
     }
+    PROBE_CURSOR.store(0, Ordering::Relaxed);
     None
+}
+
+/// The NIC name at `idx`, counting WiFi candidates before wired ones.
+fn candidate(idx: usize) -> &'static str {
+    if idx < WIFI_NICS.len() {
+        WIFI_NICS[idx]
+    } else {
+        WIRED_NICS[idx - WIFI_NICS.len()]
+    }
+}
+
+// Which NIC was found and why it was not bound. A silent None here reads as a
+// stack that never comes up, with every layer above reporting its own timeout.
+fn probe_log(name: &str, verdict: Option<bool>) {
+    let mut line = [0u8; 96];
+    let tag: &[u8] = b"[NET-CORE] link probe ";
+    let n = tag.len();
+    line[..n].copy_from_slice(tag);
+    let m = name.len().min(line.len() - n - 8);
+    line[n..n + m].copy_from_slice(&name.as_bytes()[..m]);
+    let tail: &[u8] = match verdict {
+        Some(false) => b" down",
+        None => b" no-answer",
+        Some(true) => b" up",
+    };
+    line[n + m..n + m + tail.len()].copy_from_slice(tail);
+    let _ = nonos_libc::mk_debug(line.as_ptr(), n + m + tail.len());
 }
 
 /// Bind, or rebind, the stack to the best up link. The first call after boot with
@@ -78,12 +142,22 @@ pub fn reevaluate() {
     if best == BOUND_PORT.load(Ordering::Acquire) {
         return;
     }
+    // Both remaining exits used to be silent, and a stack that failed here
+    // looked identical to one that found no link at all: no bind, no lease,
+    // and every consumer reporting its own timeout.
     let Some(mac) = device::mac(best) else {
+        bind_log(b"[NET-CORE] bind: mac query failed");
         return;
     };
     let Some(net_state) = build::build(mac, best) else {
+        bind_log(b"[NET-CORE] bind: stack build failed");
         return;
     };
     state::store(net_state);
     BOUND_PORT.store(best, Ordering::Release);
+    bind_log(b"[NET-CORE] bind: interface up");
+}
+
+fn bind_log(msg: &[u8]) {
+    let _ = nonos_libc::mk_debug(msg.as_ptr(), msg.len());
 }

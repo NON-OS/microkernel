@@ -16,18 +16,18 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-// Real brand mark, rasterized from userland/assets/wallet_logos/nonos-icon-teal.svg
-// at 128x139 RGBA. Rendered anti-aliased at any size via the alpha blit, so it
+// Real brand mark, from the shared icon source, rasterized from wallet_logos/
+// nonos-icon-teal.svg at 512x556. Rendered anti-aliased at any size, so it
 // stays crisp instead of the old hand-traced 1-bit bitmap.
-const ICON: &[u8] = include_bytes!("../../../assets/nonos_icon_128x139.rgba");
-const ICON_W: u32 = 128;
-const ICON_H: u32 = 139;
+const ICON: &[u8] = include_bytes!("../../../../assets/icons/nonos_logo.rgba");
+const ICON_W: u32 = 512;
+const ICON_H: u32 = 556;
 
 pub fn logo(fb: &mut PaintBuffer, x: u32, y: u32, s: u32) {
     if s == 0 {
         return;
     }
-    // Preserve the mark's 128:139 aspect inside an s-tall box, centred.
+    // Preserve the mark's 512:556 aspect inside an s-tall box, centred.
     let dh = s;
     let dw = (s * ICON_W / ICON_H).max(1);
     let dx = x + s.saturating_sub(dw) / 2;

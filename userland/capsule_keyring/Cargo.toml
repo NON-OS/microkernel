@@ -7,7 +7,7 @@
 
 [package]
 name = "nonos_capsule_keyring"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 publish = false
 license = "AGPL-3.0"
@@ -20,6 +20,9 @@ path = "src/main.rs"
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_secp256k1 = { path = "../nonos_secp256k1" }
+nonos_seal = { path = "../nonos_seal" }
+nonos_vault = { path = "../nonos_vault" }
 nonos_hd = { path = "../nonos_hd" }
 
 [profile.release]

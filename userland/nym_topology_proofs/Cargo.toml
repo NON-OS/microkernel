@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for mixnet route selection. Builds for the host so
+# `cargo test` runs the real draw source (included via `#[path]`) against
+# candidate counts taken from the live active sets, checking that the choice
+# stays in range and does not lean on the front of any list.
+[package]
+name = "nym_topology_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"

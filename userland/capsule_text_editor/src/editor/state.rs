@@ -23,6 +23,12 @@ pub const PATH: &[u8] = b"/notes.txt";
 pub enum PromptOp {
     Open,
     Save,
+    Export,
+    /// Go to a line by number. Shares the prompt because it is the same
+    /// gesture: one field, Enter commits, Esc leaves the document alone.
+    Goto,
+    /// Find a file by part of its name and open it.
+    Quick,
 }
 
 pub struct State {
@@ -63,6 +69,10 @@ pub struct State {
     pub shell_port: u32,
     // Undo and redo stacks of reversible edits. Every mutation goes through
     // `apply_edit`, so both stay in sync with the buffer.
+    /// Set by every recorded edit, cleared when the document is loaded or
+    /// written. Tracked here rather than inferred from the undo depth, because
+    /// undoing back to a coincidentally equal depth is not the same document.
+    pub dirty: bool,
     pub undo: alloc::vec::Vec<super::edit::EditOp>,
     pub redo: alloc::vec::Vec<super::edit::EditOp>,
     // Incremental find: the query being typed and whether the find bar is open.
@@ -81,4 +91,11 @@ pub struct State {
     // reproduces the original 15px look exactly. The theme is process-wide, so
     // it does not live here.
     pub font_scale: u32,
+    // The styled document model, rebuilt from `buf` on every mutation while the
+    // editor is in Document mode, plus the pages it lays out into. Painting and
+    // hit-testing both read `pages`, so a click lands where the glyph was drawn.
+    pub doc: crate::doc::document::Doc,
+    pub pages: alloc::vec::Vec<crate::doc::page::Page>,
+    pub page_metrics: crate::doc::page::PageMetrics,
+    pub mode: super::mode::Mode,
 }

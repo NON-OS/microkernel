@@ -16,13 +16,20 @@
 
 use alloc::vec::Vec;
 
+use super::draw::draw;
 use super::store;
 use super::types::{Node, Role, RouteError};
 
-pub fn route(seed: &[u8; 32]) -> Result<[Node; 5], RouteError> {
+/// One hop from each mix layer, then the gateway the packet leaves by.
+///
+/// Five nodes carry the packet, but only four of them are hops the header
+/// holds a layer for. The entry gateway is the fifth: we hand it the packet
+/// over the websocket we are already holding, and it forwards to the first
+/// hop the mix packet names. Listing it as that first hop asked it to forward
+/// the packet to itself.
+pub fn route(seed: &[u8; 32]) -> Result<[Node; 4], RouteError> {
     let nodes = store::snapshot()?;
     Ok([
-        pick(&nodes, Role::EntryGateway, 0, seed, 0)?,
         pick(&nodes, Role::Mix, 1, seed, 1)?,
         pick(&nodes, Role::Mix, 2, seed, 2)?,
         pick(&nodes, Role::Mix, 3, seed, 3)?,
@@ -41,8 +48,7 @@ fn pick(
     if matches.is_empty() {
         return Err(RouteError::MissingHop);
     }
-    let idx = (seed[salt as usize] as usize) % matches.len();
-    Ok(matches[idx])
+    Ok(matches[draw(seed, salt, matches.len())])
 }
 
 fn matching(nodes: &[Node], role: Role, layer: u8) -> Vec<Node> {

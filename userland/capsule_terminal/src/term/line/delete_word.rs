@@ -34,6 +34,9 @@ impl Line {
         if removed == 0 {
             return false;
         }
+        let mut cut = [0u8; super::types::KILL_CAP];
+        cut[..removed].copy_from_slice(&self.buf[start..self.cursor]);
+        self.hold_killed(&cut[..removed]);
         if self.cursor < self.len {
             self.buf.copy_within(self.cursor..self.len, start);
         }

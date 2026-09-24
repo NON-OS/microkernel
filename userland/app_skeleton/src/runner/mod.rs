@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod boot;
+pub mod chrome;
 mod click_focus;
 mod control;
 mod decorations;
@@ -22,17 +23,17 @@ mod dispatch;
 mod drag;
 mod drain_ipc;
 mod ensure_primed;
+#[cfg(feature = "runtime")]
 mod entry;
+#[cfg(feature = "runtime")]
 mod ephemeral;
 mod fail;
 mod fit_display;
+mod frame_finish;
 mod idle;
 mod maximize;
 mod move_window;
-mod paint_close_button;
 mod paint_frame;
-mod paint_maximize_button;
-mod paint_minimize_button;
 mod paint_once;
 mod prime_frame;
 mod refresh_input;
@@ -43,5 +44,6 @@ mod run_loop;
 mod service_frame;
 mod teardown;
 
+#[cfg(feature = "runtime")]
 pub use entry::run;
 pub use run_loop::run_loop;

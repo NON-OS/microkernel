@@ -17,9 +17,17 @@
 mod exit_and_yield;
 mod finalize;
 mod pending;
+pub mod postmortem;
+mod reap_log;
 mod teardown;
 
 pub use exit_and_yield::exit_and_yield;
 pub(crate) use pending::drain as drain_pending_teardowns;
+pub(crate) use reap_log::{reap_exit_status, reap_exit_status_for};
 pub use teardown::teardown;
-pub(crate) use teardown::{reap_exit_status, reap_exit_status_for};
+
+/// Drop everything a freshly allocated pid would inherit from a dead one.
+pub(crate) fn purge_for_new_pid(pid: crate::process::core::Pid) {
+    postmortem::purge_for_new_pid(pid);
+    reap_log::purge_for_new_pid(pid);
+}

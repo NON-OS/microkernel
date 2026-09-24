@@ -19,11 +19,14 @@ pub mod apic;
 pub mod bench;
 pub mod boot_log;
 pub mod clock;
+pub mod diag;
 #[cfg(target_arch = "x86_64")]
 pub mod gdt;
 #[cfg(target_arch = "x86_64")]
 pub mod idt;
 pub mod io;
+#[cfg(feature = "nonos-bench-micro")]
+pub mod microbench;
 pub mod policy;
 pub mod serial;
 pub mod sync;

@@ -95,6 +95,12 @@ pub fn is_job_command(state: &mut State, args: &[&[u8]]) -> Verdict {
 // it from the store instead of falling through to "unknown verb".
 const STORE_TOOLS: &[&[u8]] = &[b"sd", b"tokio-smoke", b"std_proof"];
 
+/// Whether a bare name runs from the store. Read from the same list the
+/// dispatcher uses, so what `type` reports is what would run.
+pub fn is_store_tool(name: &[u8]) -> bool {
+    STORE_TOOLS.contains(&name)
+}
+
 fn is_plain(args: &[&[u8]]) -> bool {
     !args.iter().any(|a| matches!(*a, b"|" | b">" | b">>" | b"<"))
 }

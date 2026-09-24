@@ -1,0 +1,108 @@
+name: ci-boot-smoke
+
+# The blocking boot gate: one cell, one boot. q35-up is the machine every image
+# is expected to come up on, so a change that stops the kernel booting at all
+# cannot reach main. The breadth lives in ci-boot-matrix.yml, which is
+# scheduled and does not gate merges, because the SMP cells are known red. The
+# runner has to offer KVM: under TCG this boot is minutes long and a timeout
+# would say nothing about the kernel, so the lane refuses to run rather than
+# pass in silence.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  # The TCG path only runs on a runner that happens to lack /dev/kvm, so it
+  # would otherwise go untested until the day it is needed. This makes it
+  # reachable on demand, and gives a way to measure what TCG actually costs.
+  workflow_dispatch:
+    inputs:
+      force_tcg:
+        description: "boot under TCG even if the runner offers KVM"
+        required: false
+        default: "false"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  boot-smoke:
+    runs-on: ubuntu-latest
+    # One cell, but two STARK enrolments, which dominate: measured 33m38s
+    # under KVM and 35m31s under TCG. 90 covers either with room for a cold
+    # cargo cache, without letting a wedged job burn a long budget.
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.2.2
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: ./.github/actions/nonos-setup
+        with:
+          targets: x86_64-nonos,x86_64-unknown-uefi
+          qemu: "true"
+          module: boot-matrix
+      # Kernel bugs here are vendor-specific: #524 reproduced only on
+      # AuthenticAMD, so a green cell is only readable next to the host CPU.
+      - name: Host CPU
+        run: |
+          set -euo pipefail
+          awk -F: '/^vendor_id|^model name|^cpu family|^model[[:space:]]/ {print $1": "$2; }' /proc/cpuinfo | sort -u
+      # A third of hosted runners offer no /dev/kvm (2 of 6 observed), and the
+      # runner is not ours to choose. Failing there would redden a third of all
+      # PRs for a reason no diff caused, so the cell boots under TCG instead:
+      # slower, but a real boot rather than an untested merge. scripts/
+      # bootmatrix/qemu.py already falls back on its own; this step only sets
+      # the boot deadline to match, since TCG needs far longer than 300s.
+      - name: Hardware virtualisation for the runner user
+        env:
+          FORCE_TCG: ${{ github.event.inputs.force_tcg }}
+        run: |
+          set -euo pipefail
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules >/dev/null
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          if [ "${FORCE_TCG:-false}" = "true" ]; then
+            sudo rm -f /dev/kvm
+            echo "::warning::force_tcg requested; /dev/kvm removed for this job"
+          fi
+          if test -w /dev/kvm; then
+            echo "BOOT_MATRIX_TIMEOUT=300" >> "$GITHUB_ENV"
+            echo "accel: kvm (deadline 300s)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::this runner offers no KVM; booting the cell under TCG instead"
+            echo "BOOT_MATRIX_TIMEOUT=600" >> "$GITHUB_ENV"
+            echo "accel: TCG, no KVM on this runner (deadline 600s)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Provision scratch trust material
+        run: |
+          set -euo pipefail
+          bash nonos-ci/setup-signing-key.sh
+          echo "NONOS_DEV=1" >> "$GITHUB_ENV"
+          bash nonos-ci/scratch-trust-bootstrap.sh
+      - name: Boot the smoke cell
+        run: |
+          set -euo pipefail
+          make QEMU_NET_MODE=off BOOT_MATRIX_REPEAT=1 \
+            BOOT_MATRIX_TIMEOUT="$BOOT_MATRIX_TIMEOUT" \
+            BOOT_MATRIX_CELLS=q35-up nonos-mk-boot-matrix
+      - name: Upload serial logs and the verdict
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: boot-smoke
+          path: |
+            target/boot-matrix/*.log
+            target/boot-matrix/*.qemu-stderr
+            target/boot-matrix/boot-matrix.json
+          retention-days: 14
+          if-no-files-found: error

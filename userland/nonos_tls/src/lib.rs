@@ -28,6 +28,7 @@ extern crate alloc;
 
 mod aad_frame;
 mod aes_gcm;
+mod alert;
 mod app_keys;
 mod application_plaintext;
 mod application_request;
@@ -35,6 +36,9 @@ mod application_write;
 mod cert_at;
 mod cert_count;
 mod cert_dns_match;
+mod cert_ext;
+mod cert_ext_entry;
+mod cert_is_ca;
 mod cert_issuer;
 mod cert_sig_alg;
 mod cert_signature;
@@ -62,9 +66,16 @@ mod finished_key;
 mod finished_value;
 mod finished_verify;
 pub mod flight;
+mod handshake_alert;
+mod handshake_fault;
+mod handshake_records;
+mod handshake_step;
+mod handshake_walk;
 mod hash_sha256;
 mod hash_sha384;
+mod hello_retry;
 mod hkdf;
+mod hkdf_label;
 mod inner_plain;
 mod nonce;
 mod push;
@@ -72,8 +83,9 @@ mod read;
 mod record;
 mod record_open;
 mod record_seal;
-mod rtc_now;
 mod roots;
+mod rtc_now;
+mod scan_messages;
 mod scan_server_finished;
 mod schedule;
 mod server_complete;
@@ -83,18 +95,29 @@ mod server_hello;
 mod server_keys;
 mod session;
 mod spki_point;
+pub mod stream;
 mod traffic_keys;
 mod verify_link;
 mod verify_p256;
 mod verify_p384;
 mod verify_rsa;
 
+/// The standard's name for an alert description, so a log can say
+/// "handshake_failure" rather than a number nobody looks up.
+pub use alert::description_in_record;
+pub use alert::name as alert_name;
 pub use application_plaintext::{application_plaintext, application_plaintext_cached};
+// Exported so the browser's own chain walk enforces the same issuer rule from
+// the same code. A second copy is how one of them gets fixed and the other
+// does not.
 pub use application_request::application_request;
 pub use application_write::application_write;
+pub use cert_is_ca::cert_is_ca;
 pub use client_flight::client_flight;
-pub use server_complete::server_complete;
-pub use server_finished_flight_ready::server_finished_flight_ready;
+pub use handshake_alert::handshake_alert;
+pub use handshake_fault::handshake_fault;
 pub use rtc_now::rtc_now;
+pub use server_complete::{server_complete, server_complete_unauthenticated, ServerComplete};
+pub use server_finished_flight_ready::server_finished_flight_ready;
 pub use session::{exchange, Io, SessionError};
 pub use traffic_keys::TrafficKeys;

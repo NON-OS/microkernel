@@ -5,14 +5,14 @@
 # src/crypto/stark source and checks it against the field axioms.
 [package]
 name = "stark_proofs"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 
 [lib]
 path = "src/lib.rs"
 
 [dependencies]
-nonos-stark = { path = "../../nonos-stark" }
+nonos-stark = { path = "../../stark-attest/crates/stark-core" }
 
 [dev-dependencies]
 rayon = "1"

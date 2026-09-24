@@ -20,6 +20,7 @@ mod clear;
 mod delete;
 mod delete_word;
 mod insert;
+mod kill_ring;
 mod kill_to_end;
 mod move_end;
 mod move_home;
@@ -28,5 +29,6 @@ mod move_right;
 mod new;
 mod replace;
 mod types;
+mod word_nav;
 
 pub use types::Line;
