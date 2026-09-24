@@ -58,7 +58,8 @@ pub fn program(
     let bias = if kind == ET_DYN { EXEC_BASE } else { 0 };
     let image = load_at(guest, bytes, bias)?;
     let Some(path) = image.interp.clone() else {
-        return Ok((image, image.entry, 0));
+        let entry = image.entry;
+        return Ok((image, entry, 0));
     };
     let raw = fetch(&path).ok_or(LoadError::Interp)?;
     let ld = load_at(guest, &raw, INTERP_BASE).map_err(|_| LoadError::Interp)?;

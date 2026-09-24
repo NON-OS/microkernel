@@ -48,7 +48,7 @@ pub use frame::ForeignFrame;
 pub use peer_copy::sys_peer_copy;
 pub use peer_map::sys_peer_map;
 pub use peer_protect::sys_peer_protect;
-pub use registry::{clear, is_foreign, supervisor_of};
+pub use registry::{clear, supervisor_of};
 pub use spawn::sys_foreign_spawn;
 pub use spawn_start::sys_foreign_start;
 pub use thread::sys_foreign_thread;
