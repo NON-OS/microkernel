@@ -22,6 +22,6 @@ CAPSULE_KERNEL_MIRROR    := src/security/market_capsule
 # lists only sources, and without this line a freshly signed catalogue
 # was silently left out of the image: the build succeeded, the boot
 # succeeded, and the machine served the previous one.
-CAPSULE_EXTRA_DEPS := nonos-data/marketplace/index.bin
+CAPSULE_EXTRA_DEPS := $(wildcard nonos-data/marketplace/index.bin)
 
 include nonos-mk/capsule.mk
