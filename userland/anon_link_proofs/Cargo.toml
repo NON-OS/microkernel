@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the link handshake's certificate chain. Includes the
+# real capsule source via `#[path]`, and takes Ed25519 and SHA-256 from the
+# kernel's own primitives through crypto_proofs, so both halves are real.
+#
+# The vectors are a CERTS cell and TLS leaf certificate captured from a live
+# Anyone relay. See vectors/source.txt.
+[package]
+name = "anon_link_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+crypto_proofs = { path = "../crypto_proofs" }
+spin = { version = "0.9", default-features = false, features = ["once", "mutex", "spin_mutex"] }

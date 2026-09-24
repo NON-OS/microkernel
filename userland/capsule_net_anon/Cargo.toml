@@ -1,0 +1,33 @@
+# NONOS userland: capsule_net_anon
+# eK@nonos.systems
+#
+# Anyone Protocol onion routing transport capsule. Owns relay link
+# sessions, ntor circuit crypto, stream multiplexing and the directory
+# the network publishes.
+
+[package]
+name = "nonos_capsule_net_anon"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Anyone Protocol onion routing capsule"
+
+[[bin]]
+name = "net_anon"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_inflate = { path = "../inflate" }
+nonos_aes = { path = "../nonos_aes" }
+nonos_tls = { path = "../nonos_tls" }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
