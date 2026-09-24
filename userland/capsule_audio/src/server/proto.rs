@@ -14,22 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const MAGIC: u32 = 0x4e41_5544;
-pub const VERSION: u16 = 1;
-pub const HDR_LEN: usize = 20;
-pub const STATUS_LEN: usize = 4;
-pub const OP_PLAY_TONE: u16 = 1;
-pub const OP_PLAY_PCM: u16 = 2;
-pub const OP_STOP: u16 = 3;
-// NAUD ops (magic 0x4e41_5544) — distinct namespace from NHDA.
-pub const OP_STREAM_OPEN: u16 = 4;
-pub const OP_FEED_PCM: u16 = 5;
-pub const OP_PAUSE: u16 = 6;
-pub const OP_CLOSE: u16 = 7;
-pub const OP_RESUME: u16 = 8;
-pub const E_OK: i32 = 0;
-pub const E_INVAL: i32 = -22;
-pub const E_AGAIN: i32 = -11;
+/*
+ * The numbers and the header layout come from the shared crate. They were written
+ * out here and again in the player's client, and the two copies had already
+ * diverged in what they covered.
+ */
+pub use nonos_audio_proto::{write_header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
+pub use nonos_audio_proto::{E_AGAIN, E_INVAL, E_OK};
+pub use nonos_audio_proto::{OP_CLOSE, OP_FEED_PCM, OP_PAUSE, OP_PLAY_PCM, OP_PLAY_TONE};
+pub use nonos_audio_proto::{OP_RESUME, OP_STOP, OP_STREAM_OPEN};
 
 pub struct Request {
     pub op: u16,
@@ -53,15 +46,6 @@ pub fn decode(msg: &[u8]) -> Option<Request> {
     })
 }
 
-pub fn write_header(out: &mut [u8], op: u16, request_id: u32, payload_len: u32) {
-    out[0..4].copy_from_slice(&MAGIC.to_le_bytes());
-    out[4..6].copy_from_slice(&VERSION.to_le_bytes());
-    out[6..8].copy_from_slice(&op.to_le_bytes());
-    out[8..12].copy_from_slice(&0u32.to_le_bytes());
-    out[12..16].copy_from_slice(&request_id.to_le_bytes());
-    out[16..20].copy_from_slice(&payload_len.to_le_bytes());
-}
-
 pub fn encode_reply(req: &Request, status: i32, out: &mut [u8]) -> usize {
     if out.len() < HDR_LEN + STATUS_LEN {
         return 0;
@@ -75,7 +59,12 @@ pub fn encode_open_reply(req: &Request, status: i32, stream_id: u32, out: &mut [
     if out.len() < 28 {
         return 0;
     }
-    write_header(out, req.op, req.request_id, STATUS_LEN as u32 + core::mem::size_of::<u32>() as u32);
+    write_header(
+        out,
+        req.op,
+        req.request_id,
+        STATUS_LEN as u32 + core::mem::size_of::<u32>() as u32,
+    );
     out[HDR_LEN..HDR_LEN + STATUS_LEN].copy_from_slice(&status.to_le_bytes());
     out[24..28].copy_from_slice(&stream_id.to_le_bytes());
     28
