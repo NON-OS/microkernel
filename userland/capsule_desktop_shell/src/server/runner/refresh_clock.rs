@@ -26,6 +26,7 @@ pub(super) fn refresh_clock(ctx: &mut Context) {
     if let Some(v) = policy::clock_24h(&mut ctx.policy_port) {
         ctx.clock_24h = v;
     }
+    crate::sound::service();
     let net_now = net::online();
     if net_now && !ctx.net_was_online {
         ctx.toasts.push(b"network connected", NotifyLevel::Info, mk_time_millis());

@@ -1,0 +1,15 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the audio wire format. The server decodes what these build, so
+# the two directions are checked against each other here rather than on a boot.
+[package]
+name = "audio_proto_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_audio_proto = { path = "../audio_proto" }
