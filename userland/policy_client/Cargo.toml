@@ -1,0 +1,36 @@
+# NONOS shared policy reader.
+# Every capsule that owns a setting has to look the store up, send a
+# GET and check the reply before it can apply anything. Three copies of
+# that had already been written by hand and they disagreed on which
+# replies to trust, so it lives here once.
+
+[package]
+name = "nonos_policy_client"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS policy store client"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# Two syscalls and nothing else: a service lookup and an IPC call. Taking the
+# libc's default features would drag in its heap and its CPL=3 panic handler,
+# and a std capsule reaching this crate through the app skeleton then carries
+# two #[panic_handler] definitions and does not link. Not a theoretical
+# objection: it broke mdview, qrgen and egui_proof the first time this crate
+# was wired into the skeleton.
+nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }
+nonos_policy_proto = { path = "../policy_proto" }
+
+[profile.release]
+opt-level = 2
+lto = false
+debug = false
+
+[profile.dev]
+opt-level = 0
+debug = true

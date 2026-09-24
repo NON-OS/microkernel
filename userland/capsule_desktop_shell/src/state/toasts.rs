@@ -14,20 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::toast::Toast;
 use super::NotifyLevel;
 
 pub const MAX_TOASTS: usize = 3;
-pub const TOAST_TEXT_MAX: usize = 48;
-pub const TOAST_LIFETIME_MS: i64 = 4000;
-
-#[derive(Clone, Copy)]
-pub struct Toast {
-    pub text: [u8; TOAST_TEXT_MAX],
-    pub len: usize,
-    pub level: NotifyLevel,
-    pub expires_at_ms: i64,
-}
-
 pub struct ToastQueue {
     entries: [Option<Toast>; MAX_TOASTS],
 }
@@ -38,13 +28,10 @@ impl ToastQueue {
     }
 
     pub fn push(&mut self, text: &[u8], level: NotifyLevel, now_ms: i64) {
-        let mut toast = Toast {
-            text: [0; TOAST_TEXT_MAX],
-            len: text.len().min(TOAST_TEXT_MAX),
-            level,
-            expires_at_ms: now_ms + TOAST_LIFETIME_MS,
-        };
-        toast.text[..toast.len].copy_from_slice(&text[..toast.len]);
+        // Marked, not played: the tone goes out on the clock tick, so no drag
+        // handler waits on the audio service to finish a toast.
+        crate::sound::mark(level);
+        let toast = Toast::new(text, level, now_ms);
         if let Some(slot) = self.entries.iter_mut().find(|e| e.is_none()) {
             *slot = Some(toast);
             return;
