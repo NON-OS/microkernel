@@ -20,8 +20,8 @@ use crate::store::Store;
 #[test]
 fn dirstat_counts_recursively() {
     let mut s = Store::new();
-    s.mkdir("/p").unwrap();
-    s.mkdir("/p/sub").unwrap();
+    s.mkdir("/p", 1).unwrap();
+    s.mkdir("/p/sub", 1).unwrap();
     put(&mut s, "/p/a.txt", b"1234");
     put(&mut s, "/p/sub/b.txt", b"123456");
     put(&mut s, "/other.txt", b"xxxxxxxxxx");
@@ -36,7 +36,7 @@ fn dirstat_counts_recursively() {
 #[test]
 fn dirstat_excludes_the_prefix_itself() {
     let mut s = Store::new();
-    s.mkdir("/p").unwrap();
+    s.mkdir("/p", 1).unwrap();
     let (files, dirs, bytes, _) = s.dirstat("/p", 20_000);
     assert_eq!((files, dirs, bytes), (0, 0, 0));
 }
@@ -50,7 +50,7 @@ fn dirstat_missing_prefix_is_all_zero() {
 #[test]
 fn dirstat_reports_truncation_at_the_node_cap() {
     let mut s = Store::new();
-    s.mkdir("/p").unwrap();
+    s.mkdir("/p", 1).unwrap();
     for i in 0..10 {
         put(&mut s, &alloc::format!("/p/f{i}"), b"z");
     }

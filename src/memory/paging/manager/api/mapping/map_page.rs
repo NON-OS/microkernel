@@ -19,6 +19,7 @@ use crate::arch::run_without_interrupts as without_interrupts;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::error::PagingResult;
 use crate::memory::paging::types::{PagePermissions, PageSize};
+use crate::smp::lock_responsive;
 
 pub fn map_page(
     virtual_addr: VirtAddr,
@@ -31,7 +32,7 @@ pub fn map_page(
     // preempt_current_process and re-enter the same spin::Mutex,
     // deadlocking the CPU.
     without_interrupts(|| {
-        PAGING_MANAGER.lock().map_page(
+        lock_responsive(&PAGING_MANAGER).map_page(
             virtual_addr,
             physical_addr,
             permissions,
