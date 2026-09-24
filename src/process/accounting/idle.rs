@@ -23,24 +23,23 @@
 //! card read ninety percent. The scheduler now marks the halt, and the
 //! tick charges this counter instead while the mark is up.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use core::sync::atomic::{AtomicU64, Ordering};
 
-static IDLE: AtomicBool = AtomicBool::new(false);
 static IDLE_TICKS: AtomicU64 = AtomicU64::new(0);
 
 #[inline]
 pub fn idle_enter() {
-    IDLE.store(true, Ordering::Relaxed);
+    crate::smp::percpu::current().accounting_idle.store(true, Ordering::Relaxed);
 }
 
 #[inline]
 pub fn idle_leave() {
-    IDLE.store(false, Ordering::Relaxed);
+    crate::smp::percpu::current().accounting_idle.store(false, Ordering::Relaxed);
 }
 
 #[inline]
 pub fn is_idle() -> bool {
-    IDLE.load(Ordering::Relaxed)
+    crate::smp::percpu::current().accounting_idle.load(Ordering::Relaxed)
 }
 
 /// Called by the timer tick instead of charging a process.
