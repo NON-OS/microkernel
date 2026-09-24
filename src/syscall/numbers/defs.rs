@@ -111,4 +111,10 @@ pub enum SyscallNumber {
     MkInputEventDrain = tag4(b"MIED"),
     MkInputEventWait = tag4(b"MIEW"),
     MkSpawnInstance = tag4(b"MSPI"),
+    MkForeignSpawn = tag4(b"MFSP"),
+    MkForeignStart = tag4(b"MFST"),
+    MkForeignWait = tag4(b"MFWT"),
+    MkForeignReply = tag4(b"MFRP"),
+    MkPeerMap = tag4(b"MPMP"),
+    MkPeerCopy = tag4(b"MPCP"),
 }

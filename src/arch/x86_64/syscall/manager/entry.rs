@@ -37,7 +37,18 @@ pub(super) extern "C" fn syscall_handler(
     kernel_entry();
 
     let Some(sc) = SyscallNumber::from_u64(number) else {
-        return (-(errnos::ENOSYS as i64)) as u64;
+        /*
+         * A number this kernel does not know. NONOS numbers are four
+         * character tags, so nothing legitimate lands here; a foreign
+         * binary's own numbering does. When the caller is a guest, its
+         * supervisor answers and the kernel stays ignorant of what was
+         * asked. Everyone else still gets ENOSYS.
+         */
+        let args = [arg1, arg2, arg3, arg4, arg5, arg6];
+        return match crate::process::foreign::redirect(number, args, 0) {
+            Some(value) => value,
+            None => (-(errnos::ENOSYS as i64)) as u64,
+        };
     };
     let result = contract_dispatch(sc, SyscallArgs::new([arg1, arg2, arg3, arg4, arg5, arg6]));
     result.value as u64

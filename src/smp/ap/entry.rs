@@ -49,6 +49,7 @@ pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
     unsafe {
         let _ = crate::arch::x86_64::cpu::init_ap(cpu_id as u16, apic_id);
     }
+    crate::arch::set_percpu_base(crate::smp::percpu::current().self_ptr);
 
     // Its own block: the slot was handed to this CPU and is never reused.
     let _ = crate::arch::x86_64::gdt::arm_ap_guards(cpu_id);

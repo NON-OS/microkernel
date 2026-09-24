@@ -14,15 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 pub fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) -> bool {
-    let mut info = Vec::with_capacity(label.len() + context.len() + 10);
-    super::push::u16(&mut info, out.len() as u16);
-    info.push((label.len() + 6) as u8);
-    info.extend_from_slice(b"tls13 ");
-    info.extend_from_slice(label);
-    info.push(context.len() as u8);
-    info.extend_from_slice(context);
-    super::hkdf::expand(prk, &info, out)
+    // The structure is built by `hkdf_label`, which is pure and has proofs; this
+    // is the expansion it feeds, which is a syscall and has none.
+    match super::hkdf_label::hkdf_label(out.len(), label, context) {
+        Some(info) => super::hkdf::expand(prk, &info, out),
+        None => false,
+    }
 }

@@ -17,22 +17,23 @@
 //! Dropping a mapping from the running address space and its record.
 
 use super::super::core::PagingManager;
+use super::super::pending_flush::PendingFlush;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::constants::page_align_down;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::types::{PagePermissions, PageSize};
 
 impl PagingManager {
-    pub fn unmap_page(
+    pub(in crate::memory::paging::manager) fn unmap_page(
         &mut self,
         virtual_addr: VirtAddr,
-    ) -> PagingResult<(PhysAddr, PagePermissions, PageSize)> {
+    ) -> PagingResult<(PhysAddr, PagePermissions, PageSize, PendingFlush)> {
         if !self.initialized {
             return Err(PagingError::NotInitialized);
         }
         let page_addr = page_align_down(virtual_addr.as_u64());
         let mapping = self.mappings.remove(&page_addr).ok_or(PagingError::PageNotMapped)?;
-        let physical_addr = self.remove_mapping(virtual_addr)?;
-        Ok((physical_addr, mapping.permissions, mapping.size))
+        let (physical_addr, flush) = self.remove_mapping(virtual_addr)?;
+        Ok((physical_addr, mapping.permissions, mapping.size, flush))
     }
 }
