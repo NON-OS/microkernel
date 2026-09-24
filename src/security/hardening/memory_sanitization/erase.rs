@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::primitives::{memory_fence, volatile_read_u8, volatile_write_u64, volatile_write_u8};
+use super::primitives::{memory_fence, volatile_read_u8, volatile_write_u8};
 use super::state::{BYTES_SANITIZED, SANITIZATION_CALLS, SANITIZATION_LEVEL};
 use super::types::SanitizationLevel;
 use core::sync::atomic::Ordering;
