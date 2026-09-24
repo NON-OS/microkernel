@@ -27,6 +27,7 @@ mod hmac_core;
 mod hmac_sha256;
 mod p256_ecdsa_verify;
 mod p384_ecdsa_verify;
+mod rsa_scheme;
 mod rsa_verify;
 mod sha256_hash;
 mod sha3_256_hash;

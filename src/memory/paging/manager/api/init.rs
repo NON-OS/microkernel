@@ -16,11 +16,12 @@
 
 use super::globals::PAGING_MANAGER;
 use crate::memory::paging::error::PagingResult;
+use crate::smp::lock_responsive;
 
 pub fn init() -> PagingResult<()> {
-    PAGING_MANAGER.lock().init()
+    lock_responsive(&PAGING_MANAGER).init()
 }
 
 pub fn is_initialized() -> bool {
-    PAGING_MANAGER.lock().is_initialized()
+    lock_responsive(&PAGING_MANAGER).is_initialized()
 }
