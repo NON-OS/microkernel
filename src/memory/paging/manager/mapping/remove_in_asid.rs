@@ -17,14 +17,10 @@
 use super::super::core::PagingManager;
 use super::super::shootdown::{flush_tlb_one_smp, ASID_KERNEL};
 use super::super::tlb_scope::is_kernel_half;
+use super::tables::table_at;
 use crate::memory::addr::{PhysAddr, VirtAddr};
-use crate::memory::layout;
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
-
-fn table_at(pa: PhysAddr) -> *mut [u64; PAGE_TABLE_ENTRIES] {
-    (layout::DIRECTMAP_BASE + pa.as_u64()) as *mut [u64; PAGE_TABLE_ENTRIES]
-}
 
 impl PagingManager {
     pub(in crate::memory::paging::manager) fn remove_mapping_in_asid(
@@ -39,10 +35,8 @@ impl PagingManager {
         let (l4_idx, l3_idx, l2_idx, l1_idx) =
             (pml4_index(va_val), pdpt_index(va_val), pd_index(va_val), pt_index(va_val));
 
-        // SAFETY: cr3 is the recorded cr3_value of an AddressSpace this
-        // manager owns, so every table it names is a live 4 KiB frame
-        // reachable through the directmap; each level is checked present
-        // before the next is dereferenced.
+        // SAFETY: eK@nonos.systems - cr3 is one of ours, and every
+        // level is checked present before the next is dereferenced.
         let pa = unsafe {
             let l4 = &*table_at(cr3);
             if !pte_is_present(l4[l4_idx]) {
@@ -65,11 +59,15 @@ impl PagingManager {
             pa
         };
 
-        if is_kernel_half(va) {
-            flush_tlb_one_smp(va, ASID_KERNEL);
-        } else if self.active_asid == Some(asid) {
-            flush_tlb_one_smp(va, asid);
-        }
+        /*
+         * Unconditional, and skipping it costs most here: the caller frees the
+         * frame this returns, so a core still running the guest reads and
+         * writes it after the allocator has handed it to somebody else, one
+         * process silently editing another's memory with nothing in either of
+         * them wrong.
+         */
+        let scope = if is_kernel_half(va) { ASID_KERNEL } else { asid };
+        flush_tlb_one_smp(va, scope);
         Ok(pa)
     }
 }

@@ -20,19 +20,23 @@
 
 mod io;
 mod life;
+mod clone;
 mod ctl;
 mod map;
 mod map_file;
 mod map_req;
 mod memory;
+mod futex;
 mod prot;
 mod thread;
 mod uname;
 mod vector;
 
 pub use io::{close, read, write};
+pub use clone::clone;
 pub use ctl::{fcntl, ioctl};
-pub use life::exit;
+pub use futex::futex;
+pub use life::{exit, exit_thread};
 pub use map::mmap;
 pub use map_req::MapReq;
 pub use memory::{brk, munmap};

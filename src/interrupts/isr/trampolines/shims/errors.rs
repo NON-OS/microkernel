@@ -49,5 +49,10 @@ extern "C" fn nonos_trap_ac(f: *const InterruptStackFrame, _error_code: u64) {
 
 #[no_mangle]
 extern "C" fn nonos_trap_pf(f: *const InterruptStackFrame, error_code: u64) {
+    crate::process::accounting::bump(
+        crate::process::current_pid().unwrap_or(0),
+        crate::process::accounting::Kind::Fault,
+    );
+    crate::process::accounting::bump_total(crate::process::accounting::Total::Faults);
     handlers::page_fault(frame(f), error_code);
 }
