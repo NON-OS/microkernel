@@ -53,6 +53,12 @@ pub struct Fetch {
     pub idle: u32,
     pub started_ms: i64,
     pub error: Option<&'static str>,
+    // The description a server gave for refusing the handshake, kept as the
+    // byte it sent rather than as a sentence: the wording belongs where the
+    // failure is shown. A fetch refused for a named reason is a different
+    // thing from one that simply did not verify, and they were the same
+    // message until now.
+    pub tls_alert: Option<u8>,
     pub suppress: bool,
     // Set when this fetch services an <img> resource rather than a page
     // navigation; carries the absolute source url the raster is keyed by.

@@ -18,3 +18,6 @@ pub const KIND_BOOL: u8 = 1;
 pub const KIND_U8: u8 = 2;
 pub const KIND_I8: u8 = 3;
 pub const KIND_STR: u8 = 4;
+
+/// An opaque record whose layout the two ends agree on out of band.
+pub const KIND_BYTES: u8 = 5;

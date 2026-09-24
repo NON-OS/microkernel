@@ -23,6 +23,7 @@ use super::init_arch_framebuffer::init_arch_framebuffer;
 use super::init_arch_memory_and_framebuffer::init_arch_memory_and_framebuffer;
 use super::init_boot_entropy::init_boot_entropy;
 use super::init_core_services::init_core_services;
+use super::init_dma_protection::init_dma_protection;
 use super::init_runtime::{init_device_routing, init_process_runtime};
 use super::init_vm_and_protection::init_vm_and_protection;
 use crate::boot::handoff::KernelHandoff;
@@ -42,6 +43,11 @@ pub fn microkernel_init(handoff: &KernelHandoff) {
     init_arch_firmware(handoff);
     init_core_services(handoff);
     init_vm_and_protection();
+
+    // Immediately after paging, because reaching a remapping unit means
+    // mapping its register window, and long before any driver capsule is in
+    // a position to ask a device for DMA.
+    init_dma_protection();
 
     // After the heap, because the AEAD check allocates its output, and before
     // anything verifies a capsule signature. These primitives are what the

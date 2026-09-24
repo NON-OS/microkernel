@@ -59,3 +59,5 @@ pub const CAP_ENTROPY: u64 = 536870912;
 pub const CAP_APP_INSTALL: u64 = 1073741824;
 /// Read the attestation registry's entries.
 pub const CAP_ATTEST_READ: u64 = 2147483648;
+/// Host a foreign binary the kernel has not verified.
+pub const CAP_FOREIGN_EXEC: u64 = 4294967296;
