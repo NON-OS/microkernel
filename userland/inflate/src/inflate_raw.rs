@@ -23,6 +23,11 @@ use super::stored::stored;
 use super::tables::MAX_OUT;
 
 pub fn inflate(src: &[u8]) -> Option<Vec<u8>> {
+    inflate_counted(src).map(|(out, _)| out)
+}
+
+/// The same, and how many bytes of `src` the stream occupied.
+pub fn inflate_counted(src: &[u8]) -> Option<(Vec<u8>, usize)> {
     let mut b = Bits::new(src);
     let mut out: Vec<u8> = Vec::new();
     loop {
@@ -37,7 +42,7 @@ pub fn inflate(src: &[u8]) -> Option<Vec<u8>> {
             return None;
         }
         if last == 1 {
-            return Some(out);
+            return Some((out, b.consumed()));
         }
     }
 }
