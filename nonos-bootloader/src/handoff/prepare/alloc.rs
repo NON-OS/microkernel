@@ -27,6 +27,7 @@ pub struct HandoffAllocations {
     pub stack_top: usize,
     pub mmap_addr: u64,
     pub cmdline_addr: u64,
+    pub modules_addr: u64,
 }
 
 /// Allocate all memory needed for handoff: struct, stack (64KB), mmap buffer, cmdline.
@@ -47,5 +48,17 @@ pub fn allocate_handoff_resources(
         .allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, MMAP_PAGES)
         .unwrap_or_else(|_| fatal_alloc_error(st, "mmap"));
     let cmdline_addr = allocate_cmdline(bs, cmdline);
-    HandoffAllocations { boothandoff_addr: bh_addr, stack_addr, stack_top, mmap_addr, cmdline_addr }
+    // The module array outlives boot services like everything else here:
+    // loader data, which the kernel never hands to its allocator.
+    let modules_addr = bs
+        .allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, 1)
+        .unwrap_or_else(|_| fatal_alloc_error(st, "modules"));
+    HandoffAllocations {
+        boothandoff_addr: bh_addr,
+        stack_addr,
+        stack_top,
+        mmap_addr,
+        cmdline_addr,
+        modules_addr,
+    }
 }

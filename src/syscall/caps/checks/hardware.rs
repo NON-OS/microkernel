@@ -25,4 +25,8 @@ impl CapabilityToken {
     pub fn can_hardware(&self) -> bool {
         self.grants(Capability::Hardware) && self.is_valid()
     }
+    #[inline]
+    pub fn can_install_source(&self) -> bool {
+        self.grants(Capability::DeviceEnum) && self.is_valid()
+    }
 }

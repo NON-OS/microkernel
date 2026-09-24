@@ -76,6 +76,7 @@ pub enum SyscallNumber {
     MkAttestStatus = tag4(b"MAST"),
     MkAttestDoc = tag4(b"MADC"),
     MkAttestEntries = tag4(b"MAEN"),
+    MkInstallSource = tag4(b"MISR"),
     MkDevRootRequest = tag4(b"MDRQ"),
     MkDevRootConfirm = tag4(b"MDRC"),
     MkToolRun = tag4(b"MTRN"),

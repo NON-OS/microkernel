@@ -83,6 +83,27 @@ fn embedded_tools() -> Vec<ToolCapsule> {
             "csview"
         ),
         // nonos-app:end
+        /*
+         * First-party, hand-registered: the command-line installer. Not a
+         * crates.io tool and not in apps.list, so it sits outside the
+         * generated block, and it declares the authority the window version
+         * has: disks, the boot image, entropy, the attestation verdict, and
+         * the reboot at the end.
+         */
+        #[cfg(feature = "nonos-capsule-install-cli")]
+        tool_capsule!(
+            "tool.install",
+            4934,
+            "endpoint.tool.install.reply",
+            4935,
+            concat!(
+                "../../../userland/tool_install/target/",
+                env!("NONOS_USER_TARGET"),
+                "/release/install-cli"
+            ),
+            "install-cli",
+            crate::userspace::capsule_install::CLI_CAPS
+        ),
     ]
 }
 

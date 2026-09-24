@@ -62,6 +62,8 @@ pub const SYS_ATTEST_DOC: u64 = tag4(b"MADC");
 /// The capsule entries the document's registry root folds, so a verifier can
 /// recompute that root and read what each program was permitted to do.
 pub const SYS_ATTEST_ENTRIES: u64 = tag4(b"MAEN");
+/// A chunk of the image this machine booted, for the installer to write.
+pub const SYS_INSTALL_SOURCE: u64 = tag4(b"MISR");
 /// Create a process with no capabilities, supervised by the caller, to
 /// host code the kernel has not verified and does not interpret.
 pub const SYS_FOREIGN_SPAWN: u64 = tag4(b"MFSP");

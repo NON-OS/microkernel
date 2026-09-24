@@ -88,6 +88,7 @@ fn queue_by_name(name: &str) -> i64 {
         "app.process_manager" => PendingApp::ProcessManager,
         "app.audio_player" => PendingApp::AudioPlayer,
         "app.video_player" => PendingApp::VideoPlayer,
+        "app.install" => PendingApp::Install,
         _ => return ERRNO_NOENT,
     };
     if request_instance(app) {

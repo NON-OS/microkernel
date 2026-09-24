@@ -1,0 +1,28 @@
+# NONOS userland: nonos_blk_client
+# eK@nonos.systems
+#
+# One client for the three block driver capsules. virtio-blk, NVMe and AHCI
+# each speak their own request magic and opcode table over the same
+# twenty-byte header, so a capsule that wants a disk had to know which
+# driver it was talking to. This crate knows for it: it finds whichever
+# drivers are registered, speaks each one's dialect, and hands back a device
+# that reads, writes and flushes whole sectors. The installer writes a disk
+# through it; nonos_disk's sink is implemented on top.
+
+[package]
+name = "nonos_blk_client"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "Block device client over the NONOS driver capsules"
+
+[lib]
+
+[dependencies]
+# Default features off: this crate is linked into std tools as well as
+# no_std capsules, and the libc heap and panic handler must come from the
+# program, once, not from a library it happens to depend on.
+nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }
+nonos_disk = { path = "../nonos_disk" }

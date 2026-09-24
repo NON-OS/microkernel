@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod load;
+mod own_volume;
 mod read;
 mod types;
 

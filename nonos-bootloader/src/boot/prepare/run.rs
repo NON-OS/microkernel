@@ -61,5 +61,14 @@ pub fn run_handoff_prepare(
     audit(AuditEvent::ExitBootServices, 0, b"handoff");
     seal_audit_log();
     log_info("handoff", "transferring control to kernel");
-    exit_and_jump(st, ki, None, crypto_handoff, firmware_handoff, rng_seed, p.tpm_measured);
+    exit_and_jump(
+        st,
+        ki,
+        None,
+        crypto_handoff,
+        firmware_handoff,
+        rng_seed,
+        p.tpm_measured,
+        p.install_source,
+    );
 }
