@@ -44,7 +44,7 @@ pub fn paint(fb: &mut PaintBuffer, search: &Search, right: u32) -> u32 {
     match search.text().is_empty() {
         true => text::line(fb, x + PAD, top, b"type to search", MUTED, SMALL_PX),
         false => text::line(fb, x + PAD, top, search.text(), TITLE, SMALL_PX),
-    }
+    };
     if search.active {
         let caret = x + PAD + text::width_of(search.text(), SMALL_PX) + 2;
         fb.fill_rect(caret.min(x + W - 3), y + 5, 1, H - 10, ACCENT);
