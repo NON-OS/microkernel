@@ -79,7 +79,9 @@ pub fn run() -> ! {
             }
         } else {
             mark(Stage::SchedulerIdle);
+            crate::process::accounting::idle_enter();
             crate::arch::idle_cpu();
+            crate::process::accounting::idle_leave();
         }
     }
 }

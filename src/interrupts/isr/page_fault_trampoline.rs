@@ -87,5 +87,10 @@ pub unsafe extern "C" fn page_fault_trampoline() {
 
 extern "C" fn page_fault_trap_handler(frame: *const InterruptStackFrame, error_code: u64) {
     let isf = unsafe { core::ptr::read(frame) };
+    crate::process::accounting::bump(
+        crate::process::current_pid().unwrap_or(0),
+        crate::process::accounting::Kind::Fault,
+    );
+    crate::process::accounting::bump_total(crate::process::accounting::Total::Faults);
     crate::interrupts::handlers::page_fault(isf, error_code);
 }
