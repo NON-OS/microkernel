@@ -51,6 +51,11 @@ impl<'a> Bits<'a> {
         }
     }
 
+    /// Bytes consumed so far, rounded up to a whole byte.
+    pub fn consumed(&self) -> usize {
+        self.byte + usize::from(self.bit != 0)
+    }
+
     pub fn take(&mut self) -> Option<u8> {
         let b = *self.d.get(self.byte)?;
         self.byte += 1;

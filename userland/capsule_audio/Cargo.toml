@@ -20,6 +20,8 @@ name = "audio_server"
 path = "src/main.rs"
 
 [dependencies]
+# The wire format both ends of the audio service read, instead of a copy each.
+nonos_audio_proto = { path = "../audio_proto" }
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 
 [profile.release]
