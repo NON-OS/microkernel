@@ -24,6 +24,17 @@ use crate::wire::{read_u32, HDR_LEN};
 const CHUNK: u32 = 65536;
 
 pub fn read_file(owner_pid: u32, path: &[u8], max_bytes: u32) -> Result<Vec<u8>, &'static str> {
+    read_file_within(owner_pid, path, max_bytes, 0)
+}
+
+/// `read_file` with every round trip bounded by `timeout_ms`; 0 keeps the
+/// kernel's default reply timeout.
+pub fn read_file_within(
+    owner_pid: u32,
+    path: &[u8],
+    max_bytes: u32,
+    timeout_ms: u64,
+) -> Result<Vec<u8>, &'static str> {
     if path.is_empty() || path.len() > 255 {
         return Err("vfs path invalid");
     }
@@ -34,7 +45,8 @@ pub fn read_file(owner_pid: u32, path: &[u8], max_bytes: u32) -> Result<Vec<u8>,
     open.extend_from_slice(path);
     open.extend_from_slice(&0u32.to_le_bytes());
     let mut rx = vec![0u8; HDR_LEN + 4 + CHUNK as usize];
-    let (status, total) = super::call::call(port, super::types::OP_OPEN, 2, &open, &mut rx)?;
+    let (status, total) =
+        super::call::call_within(port, super::types::OP_OPEN, 2, &open, &mut rx, timeout_ms)?;
     if status != 0 || total < HDR_LEN + 8 {
         return Err("vfs open failed");
     }
@@ -51,14 +63,20 @@ pub fn read_file(owner_pid: u32, path: &[u8], max_bytes: u32) -> Result<Vec<u8>,
         read[..4].copy_from_slice(&owner_pid.to_le_bytes());
         read[4..8].copy_from_slice(&fd.to_le_bytes());
         read[8..12].copy_from_slice(&want.to_le_bytes());
-        let (status, total) =
-            match super::call::call(port, super::types::OP_READ, 3, &read, &mut rx) {
-                Ok(v) => v,
-                Err(e) => {
-                    err = Some(e);
-                    break;
-                }
-            };
+        let (status, total) = match super::call::call_within(
+            port,
+            super::types::OP_READ,
+            3,
+            &read,
+            &mut rx,
+            timeout_ms,
+        ) {
+            Ok(v) => v,
+            Err(e) => {
+                err = Some(e);
+                break;
+            }
+        };
         if status != 0 || total < HDR_LEN + 4 {
             err = Some("vfs read failed");
             break;
@@ -73,7 +91,7 @@ pub fn read_file(owner_pid: u32, path: &[u8], max_bytes: u32) -> Result<Vec<u8>,
     let mut close = [0u8; 8];
     close[..4].copy_from_slice(&owner_pid.to_le_bytes());
     close[4..8].copy_from_slice(&fd.to_le_bytes());
-    let _ = super::call::call(port, super::types::OP_CLOSE, 4, &close, &mut rx);
+    let _ = super::call::call_within(port, super::types::OP_CLOSE, 4, &close, &mut rx, timeout_ms);
 
     match err {
         Some(e) => Err(e),
