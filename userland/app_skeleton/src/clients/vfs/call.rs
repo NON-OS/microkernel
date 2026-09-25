@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_ipc_call;
+use nonos_libc::mk_ipc_call_timeout;
 
 use crate::wire::{build_request, read_i32, HDR_LEN};
 
@@ -25,8 +25,26 @@ pub fn call(
     body: &[u8],
     rx: &mut [u8],
 ) -> Result<(i32, usize), &'static str> {
+    call_within(port, op, request_id, body, rx, 0)
+}
+
+pub fn call_within(
+    port: u32,
+    op: u16,
+    request_id: u32,
+    body: &[u8],
+    rx: &mut [u8],
+    timeout_ms: u64,
+) -> Result<(i32, usize), &'static str> {
     let tx = build_request(super::types::MAGIC, op, request_id, body);
-    let rc = mk_ipc_call(port as u64, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), rx.len());
+    let rc = mk_ipc_call_timeout(
+        port as u64,
+        tx.as_ptr(),
+        tx.len(),
+        rx.as_mut_ptr(),
+        rx.len(),
+        timeout_ms,
+    );
     if rc <= 0 || (rc as usize) < HDR_LEN + 4 {
         return Err("vfs ipc failed");
     }
