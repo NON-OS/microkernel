@@ -20,6 +20,12 @@ use nonos_libc::mk_getpid;
 use super::types::Prefs;
 use super::{codec, gate, paths};
 
+// `Terminal::new` runs before the window opens, so a VFS still staging packages
+// must not hold the window hostage: the read gets a short bound and a miss falls
+// back to defaults. A slow answer here is not proof the server is dead, so it
+// does not latch the gate; `save` still pays the full timeout once if it is.
+const LOAD_TIMEOUT_MS: u64 = 500;
+
 // Best-effort throughout: an absent VFS, a first boot with no file, or a corrupt
 // record all yield the defaults, so the terminal paints either way. Called once,
 // from `Terminal::new`, never on a frame path.
@@ -31,12 +37,9 @@ pub fn load() -> Prefs {
     if pid == 0 {
         return Prefs::default();
     }
-    match vfs::read_file(pid, paths::PREFS, paths::MAX_FILE_BYTES) {
+    match vfs::read_file_within(pid, paths::PREFS, paths::MAX_FILE_BYTES, LOAD_TIMEOUT_MS) {
         Ok(bytes) => codec::decode(&bytes),
-        Err(err) => {
-            gate::note(err);
-            Prefs::default()
-        }
+        Err(_) => Prefs::default(),
     }
 }
 
