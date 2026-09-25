@@ -51,7 +51,7 @@ pub use journal_touch::journal_touch;
 pub use list_paths::list_paths;
 pub use mkdir::mkdir;
 pub use persist::persist;
-pub use read_file::read_file;
+pub use read_file::{read_file, read_file_within};
 pub use rename::rename;
 pub use rmdir::rmdir;
 pub use search::{search, SEARCH_CASE, SEARCH_CONTENT, SEARCH_NAMES};
