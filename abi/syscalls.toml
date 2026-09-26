@@ -93,6 +93,7 @@ MAIN = 0x4E49414D
 MDRO = 0x4F52444D
 MLCG = 0x47434C4D
 MLCR = 0x52434C4D
+MAPL = 0x4C50414D
 MIRW = 0x5752494D
 MIRY = 0x5952494D
 MKAR = 0x52414B4D
@@ -707,6 +708,12 @@ ret  = {type="i64"}
 nr   = 0x52434C4D
 caps = ["EnrolDevRoot"]
 args = [{name="token_ptr",type="u8*",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MAPL]
+nr   = 0x4C50414D
+caps = ["AppInstall"]
+args = [{name="listing_ptr",type="u64",dir="in"},{name="listing_len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MPPT]

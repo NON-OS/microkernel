@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! `MkAppInstall`: ask for a marketplace listing to be installed.
 
 use alloc::string::String;
@@ -22,17 +21,21 @@ use alloc::string::String;
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL};
 use crate::usercopy::{read_user_bytes, validate_user_read};
 
-/// Long enough for any real listing or release id and short enough that
-/// neither argument can become a payload.
+/// Long enough for any real id, short enough not to become a payload.
 const MAX_ID: usize = 96;
 
-/// The only listings with anything to fetch are distribution packages.
+/// Only distribution packages have anything to fetch.
 const HOSTED: &str = "linux.";
 
 /// `MkAppInstall(listing_ptr, listing_len, release_ptr, release_len)`. An
 /// empty release asks for the listing's default. Nothing the caller says
 /// about readiness is taken: init asks the market before anything runs.
-pub fn sys_app_install(listing_ptr: u64, listing_len: u64, release_ptr: u64, release_len: u64) -> i64 {
+pub fn sys_app_install(
+    listing_ptr: u64,
+    listing_len: u64,
+    release_ptr: u64,
+    release_len: u64,
+) -> i64 {
     let listing = match id(listing_ptr, listing_len) {
         Ok(Some(s)) => s,
         Ok(None) => return ERRNO_INVAL,
@@ -42,7 +45,8 @@ pub fn sys_app_install(listing_ptr: u64, listing_len: u64, release_ptr: u64, rel
         Ok(s) => s.unwrap_or_default(),
         Err(e) => return e,
     };
-    if !listing.strip_prefix(HOSTED).is_some_and(|name| !name.is_empty() && !name.starts_with('.')) {
+    if !listing.strip_prefix(HOSTED).is_some_and(|name| !name.is_empty() && !name.starts_with('.'))
+    {
         return ERRNO_INVAL;
     }
     match crate::userspace::init::request_install(listing, release) {
@@ -53,7 +57,7 @@ pub fn sys_app_install(listing_ptr: u64, listing_len: u64, release_ptr: u64, rel
 
 /// One id argument. `None` for an empty one. The id reaches a URL and a store
 /// path, so it is held to what a package id actually is.
-fn id(ptr: u64, len: u64) -> Result<Option<String>, i64> {
+pub(super) fn id(ptr: u64, len: u64) -> Result<Option<String>, i64> {
     let len = usize::try_from(len).map_err(|_| ERRNO_INVAL)?;
     if len == 0 {
         return Ok(None);
@@ -62,7 +66,8 @@ fn id(ptr: u64, len: u64) -> Result<Option<String>, i64> {
         return Err(ERRNO_INVAL);
     }
     let raw = read_user_bytes(ptr, len).map_err(|_| ERRNO_FAULT)?;
-    let allowed = |b: &u8| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'+' | b'.' | b'@');
+    let allowed =
+        |b: &u8| b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'+' | b'.' | b'@');
     if !raw.iter().all(allowed) {
         return Err(ERRNO_INVAL);
     }

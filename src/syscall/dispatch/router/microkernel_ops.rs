@@ -101,6 +101,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkDevRootLocal
             | MkLocalConsent
             | MkLocalRestore
+            | MkAppLaunch
             | MkToolRun
     )
 }

@@ -33,7 +33,6 @@ impl State {
             trouble: None,
             ready: None,
             asked: None,
-            consent: super::consent::Consent::Idle,
             search: super::search::Search::default(),
             detail: None,
         };

@@ -87,7 +87,7 @@ pub use foreign::{
 pub use foreign_frame::ForeignFrame;
 pub use graphics::nonos_display_dimensions;
 pub use local_sign::{
-    mk_app_install, mk_local_sign, mk_local_sign_len, mk_local_verify,
+    mk_app_install, mk_app_launch, mk_local_sign, mk_local_sign_len, mk_local_verify,
 };
 #[cfg(feature = "heap")]
 pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};

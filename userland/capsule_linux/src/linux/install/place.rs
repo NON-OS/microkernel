@@ -17,10 +17,15 @@
 
 use super::auth::Verified;
 use super::place_entry::one;
+use super::program::record;
 use super::tar::entries;
 
 /// Unpack a package's authenticated files into the store and report how
-/// many landed.
-pub fn unpack(files: &Verified) -> usize {
+/// many landed. `chosen` names the package the person asked for, whose
+/// program is recorded so it can be started later.
+pub fn unpack(files: &Verified, chosen: Option<&str>) -> usize {
+    if let Some(name) = chosen {
+        record(name, files);
+    }
     entries(files.files()).iter().filter(|entry| one(entry)).count()
 }

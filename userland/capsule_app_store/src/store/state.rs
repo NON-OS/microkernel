@@ -23,7 +23,6 @@ use alloc::vec::Vec;
 use super::listing::Listing;
 use super::market;
 
-
 pub struct State {
     pub listings: Vec<Listing>,
     pub tab: Tab,
@@ -38,8 +37,6 @@ pub struct State {
     /// What the last install request was answered with, shown until the next
     /// one.
     pub asked: Option<super::install::Asked>,
-    /// Where enrolment has got to.
-    pub consent: super::consent::Consent,
     /// Description and publisher for the selected listing, fetched once per
     /// selection.
     pub search: super::search::Search,

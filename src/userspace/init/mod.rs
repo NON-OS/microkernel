@@ -16,16 +16,16 @@
 
 mod capsule_boot;
 mod entry;
-mod install_queue;
 mod instance_spawn;
+mod linux_jobs;
 use instance_spawn::set_drain_priority as set_init_priority;
 mod spawn_plan;
 mod supervisor;
 
 pub use entry::run_init;
-pub(crate) use install_queue::request as request_install;
-pub(crate) use install_queue::has_pending as installs_pending;
-pub(crate) use install_queue::service as service_installs;
+pub(crate) use linux_jobs::{request_install, request_run};
+pub(crate) use linux_jobs::has_pending as installs_pending;
+pub(crate) use linux_jobs::service as service_installs;
 pub(crate) use instance_spawn::has_pending as instance_spawns_pending;
 pub(crate) use instance_spawn::service as service_instance_spawns;
 pub use instance_spawn::{request as request_instance, PendingApp};

@@ -163,7 +163,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         /*
          * The right to ask, which is not the right to host.
          */
-        SyscallNumber::MkAppInstall => caps.can_app_install(),
+        SyscallNumber::MkAppInstall | SyscallNumber::MkAppLaunch => caps.can_app_install(),
 
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare

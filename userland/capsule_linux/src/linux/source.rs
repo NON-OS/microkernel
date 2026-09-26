@@ -31,12 +31,19 @@ static BUILT_IN: &[u8] = include_bytes!("../../guests/busybox.elf");
 const MAX_IMAGE: u32 = 64 << 20;
 const MAX_ARGS: usize = 256;
 
-/// The program's path, its bytes, and where they came from.
-pub fn source() -> (Vec<u8>, Vec<u8>, Origin) {
-    match named() {
+/// The program's path, its bytes, and where they came from. A run of an
+/// installed package is its recorded program or nothing: falling back to the
+/// built-in program would start something the person did not ask for.
+pub fn source() -> Option<(Vec<u8>, Vec<u8>, Origin)> {
+    if let Some(name) = super::request::run_request() {
+        let path = super::install::recorded(&name)?;
+        let bytes = store_read(&key(&path), MAX_IMAGE).ok()?;
+        return Some((path, bytes, Origin::Store));
+    }
+    Some(match named() {
         Some((path, bytes)) => (path, bytes, Origin::Store),
         None => (b"/bin/busybox".to_vec(), BUILT_IN.to_vec(), Origin::BuiltIn),
-    }
+    })
 }
 
 fn named() -> Option<(Vec<u8>, Vec<u8>)> {

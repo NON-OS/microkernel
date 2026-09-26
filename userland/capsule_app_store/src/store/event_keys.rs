@@ -30,10 +30,7 @@ use super::state::State;
 const KEY_SLASH: u32 = b'/' as u32;
 
 pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
-    /*
-     * The field takes the keyboard while open, or a name with a digit in it
-     * types into the consent code.
-     */
+    // The field takes the keyboard while open.
     if state.search.active {
         if let Some(outcome) = typing(state, code) {
             return outcome;

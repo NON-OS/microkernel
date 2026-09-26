@@ -30,14 +30,11 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     fb.fill_rect(0, y, state.fb_w, STATUS_H, STATUS_BG);
     fb.fill_rect(0, y, state.fb_w, 1, RULE);
     let top = text::top_of(y as i32, STATUS_H, SMALL_PX);
-    let keys: &[u8] = b"up/down select    Enter install    e enrol    r refresh    Esc close";
+    let keys: &[u8] = b"up/down select    Enter install    o open    r refresh    Esc close";
     text::line(fb, STATUS_PAD_X, top, keys, MUTED, SMALL_PX);
     // The answer to the last request sits opposite the keys.
     let right = state.fb_w.saturating_sub(STATUS_PAD_X);
-    let consent = super::consent_text::label(state.consent);
-    if !consent.is_empty() {
-        text::right(fb, right, top, consent, ACCENT, SMALL_PX);
-    } else if let Some(asked) = state.asked {
+    if let Some(asked) = state.asked {
         text::right(fb, right, top, asked.label(), ACCENT, SMALL_PX);
     }
 }

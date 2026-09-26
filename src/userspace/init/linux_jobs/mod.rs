@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How each stage of enrolment reads to the user.
 
-use crate::store::consent::Consent;
+//! Work a capsule asks the Linux personality to do, performed by init: an
+//! install once the market vouches for it, or a run of what was installed.
 
-pub fn label(c: Consent) -> &'static [u8] {
-    match c {
-        Consent::Idle => b"",
-        Consent::Typing(_, 0) => b"code is on the console; type it",
-        Consent::Typing(..) => b"typing code, Enter to confirm",
-        Consent::Granted => b"this machine will run what it installs",
-        Consent::Refused => b"enrolment refused",
-    }
-}
+mod queue;
+mod service;
+
+pub(crate) use queue::{has_pending, request_install, request_run};
+pub(crate) use service::service;

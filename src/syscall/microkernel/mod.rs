@@ -39,6 +39,7 @@ pub mod ipc;
 pub mod irq;
 pub mod kill;
 pub mod app_install;
+pub mod app_launch;
 pub mod enrol_local_root;
 mod local_image;
 pub mod local_consent;

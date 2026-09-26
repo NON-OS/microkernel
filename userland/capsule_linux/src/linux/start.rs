@@ -32,7 +32,10 @@ pub fn run() -> ! {
         say(if ok { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
         mk_exit(if ok { 0 } else { 1 })
     }
-    let (path, bytes, origin) = source();
+    let Some((path, bytes, origin)) = source() else {
+        say(b"[LINUX] nothing installed under that name\n");
+        mk_exit(1)
+    };
     let pid = mk_foreign_spawn(b"linux");
     if pid < 0 {
         say(b"[LINUX] no guest, errno ");

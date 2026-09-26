@@ -18,29 +18,25 @@
 
 use nonos_app_skeleton::{EventOutcome, KEY_ENTER};
 
-use super::consent::Consent;
 use super::install;
 use super::state::State;
 
-const KEY_E: u32 = b'e' as u32;
+const KEY_O: u32 = b'o' as u32;
 const KEY_R: u32 = b'r' as u32;
 
 pub(super) fn act(state: &mut State, code: u32) -> EventOutcome {
     let changed = match code {
-        KEY_E => {
-            state.consent = Consent::begin();
-            true
-        }
-        // Enter confirms a typed code, installs otherwise.
         KEY_ENTER => {
-            match state.consent {
-                Consent::Typing(..) => state.consent = state.consent.submit(),
-                _ => state.asked = Some(install::ask(state)),
-            }
+            state.asked = Some(install::ask(state));
             true
         }
-        d if (b'0' as u32..=b'9' as u32).contains(&d) => {
-            state.consent = state.consent.digit(d - b'0' as u32);
+        /*
+         * Whether the program may start is not this window's answer: the
+         * kernel queues the run, and the exec gate checks the trailer the
+         * machine minted at install under the consent given in setup.
+         */
+        KEY_O => {
+            state.asked = Some(install::open(state));
             true
         }
         KEY_R => {

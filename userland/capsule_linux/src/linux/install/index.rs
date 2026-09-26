@@ -16,10 +16,10 @@
 
 //! The distribution's package index, as this capsule needs it.
 
-use alloc::string::String;
-use alloc::vec::Vec;
 use super::pkg::bare;
 pub use super::pkg::Pkg;
+use alloc::string::String;
+use alloc::vec::Vec;
 
 pub struct Index {
     pkgs: Vec<Pkg>,

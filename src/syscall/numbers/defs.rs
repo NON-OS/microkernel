@@ -130,4 +130,5 @@ pub enum SyscallNumber {
     MkDevRootLocal = tag4(b"MDRO"),
     MkLocalConsent = tag4(b"MLCG"),
     MkLocalRestore = tag4(b"MLCR"),
+    MkAppLaunch = tag4(b"MAPL"),
 }

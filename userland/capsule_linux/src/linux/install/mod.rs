@@ -26,8 +26,10 @@ mod index_load;
 mod pkg;
 mod place;
 mod place_entry;
+mod program;
 mod run;
 mod tar;
 mod tar_field;
 
+pub use program::recorded;
 pub use run::install;

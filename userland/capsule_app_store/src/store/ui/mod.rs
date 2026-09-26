@@ -18,7 +18,6 @@
 
 pub mod chrome;
 mod card;
-mod consent_text;
 mod counter;
 mod detail;
 mod frame;

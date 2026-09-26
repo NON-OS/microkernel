@@ -37,4 +37,5 @@ pub(crate) const N_MK_APP_INSTALL: i64 = tag4(b"MAIN");
 pub(crate) const N_MK_DEV_ROOT_LOCAL: i64 = tag4(b"MDRO");
 pub(crate) const N_MK_LOCAL_CONSENT: i64 = tag4(b"MLCG");
 pub(crate) const N_MK_LOCAL_RESTORE: i64 = tag4(b"MLCR");
+pub(crate) const N_MK_APP_LAUNCH: i64 = tag4(b"MAPL");
 pub(crate) const N_MK_DEV_ROOT_CONFIRM: i64 = tag4(b"MDRC");

@@ -20,7 +20,6 @@
 
 mod app;
 mod event;
-mod consent;
 mod event_actions;
 mod event_click;
 mod event_keys;

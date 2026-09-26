@@ -102,6 +102,8 @@ pub const SYS_DEV_ROOT_LOCAL: u64 = tag4(b"MDRO");
 pub const SYS_LOCAL_CONSENT: u64 = tag4(b"MLCG");
 /// Restore that consent, at setup, from the token a grant returned.
 pub const SYS_LOCAL_RESTORE: u64 = tag4(b"MLCR");
+/// Start the program a distribution package installed.
+pub const SYS_APP_LAUNCH: u64 = tag4(b"MAPL");
 /// Ask to enrol a signing root so software built here runs here. Prints a
 /// confirmation code; enrols nothing on its own.
 pub const SYS_DEV_ROOT_REQUEST: u64 = tag4(b"MDRQ");

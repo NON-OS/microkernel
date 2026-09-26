@@ -21,6 +21,7 @@ use crate::process::foreign::{
     sys_peer_tls, sys_peer_unmap,
 };
 use crate::syscall::microkernel::app_install::sys_app_install;
+use crate::syscall::microkernel::app_launch::sys_app_launch;
 use crate::syscall::microkernel::attest::sys_attest_status;
 use crate::syscall::microkernel::attest_doc::sys_attest_doc;
 use crate::syscall::microkernel::attest_entries::sys_attest_entries;
@@ -102,6 +103,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_DEV_ROOT_LOCAL => sys_dev_root_local(),
         SYS_LOCAL_CONSENT => sys_local_consent(a.a0, a.a1),
         SYS_LOCAL_RESTORE => sys_local_restore(a.a0),
+        SYS_APP_LAUNCH => sys_app_launch(a.a0, a.a1),
         SYS_DEV_ROOT_REQUEST => sys_dev_root_request(a.a0),
         SYS_DEV_ROOT_CONFIRM => sys_dev_root_confirm(a.a0),
         SYS_SPAWN_INSTANCE => sys_spawn_instance(a.a0, a.a1),
