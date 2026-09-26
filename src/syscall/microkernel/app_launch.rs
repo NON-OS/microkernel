@@ -29,7 +29,9 @@ pub fn sys_app_launch(listing_ptr: u64, listing_len: u64) -> i64 {
         Ok(None) => return ERRNO_INVAL,
         Err(e) => return e,
     };
-    let Some(name) = listing.strip_prefix("linux.").filter(|n| !n.is_empty()) else {
+    let Some(name) =
+        listing.strip_prefix("linux.").filter(|n| !n.is_empty() && !n.starts_with('.'))
+    else {
         return ERRNO_INVAL;
     };
     match crate::userspace::init::request_run(alloc::string::String::from(name)) {
