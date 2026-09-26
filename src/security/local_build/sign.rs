@@ -25,7 +25,7 @@ use super::error::LocalBuildError;
 use super::identity::with_identity;
 use super::trailer::encode;
 
-/// Laid out as `against_root::verify` lays it out. If the two disagree the
+/// Laid out as `against_pedersen::verify` lays it out. If the two disagree the
 /// proof verifies against nothing.
 fn context(elf: &[u8], granted_caps: u64) -> [u8; 48] {
     let mut ctx = [0u8; 48];
@@ -42,6 +42,15 @@ pub fn sign(elf: &[u8], granted_caps: u64) -> Result<Vec<u8>, LocalBuildError> {
      * picked its parser from that flag and would have read these NZKCAPS2
      * bytes as a malformed STARK.
      */
+    /*
+     * A proof made here admits a capsule holding what it names, so it names
+     * nothing beyond what every process inherits. Minting LocalSign, or any
+     * scarce right, would let a signer hand out authority it cannot be asked
+     * to justify.
+     */
+    if granted_caps & !crate::process::core::AMBIENT_CAPS != 0 {
+        return Err(LocalBuildError::ScarceCapability);
+    }
     let ctx = context(elf, granted_caps);
     let proof = with_identity(|id| {
         prove_enrolled(&id.secret, &id.blinding, 0, &super::tree::empty_siblings(), &id.root, &ctx)

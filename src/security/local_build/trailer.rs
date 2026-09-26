@@ -23,6 +23,10 @@ use crate::security::capsule_attest::layout::POLICY_TREE_DEPTH;
 
 const TRAILER_MAGIC: &[u8; 8] = b"NZKCAPS2";
 
+/// Magic, four 32-byte fields, the depth, the siblings, the packed directions.
+pub const TRAILER_LEN: usize =
+    8 + 4 * 32 + 1 + POLICY_TREE_DEPTH * 32 + POLICY_TREE_DEPTH.div_ceil(8);
+
 /// The inverse of `capsule_attest::trailer::parse`, field for field. Written
 /// against that reader: a trailer one byte long is refused as malformed, and
 /// that looks identical to a proof that was simply wrong.
@@ -33,7 +37,7 @@ pub fn encode(proof: &EnrolledSecretProof) -> Option<Vec<u8>> {
         return None;
     }
     let dir_bytes = POLICY_TREE_DEPTH.div_ceil(8);
-    let mut out = Vec::with_capacity(137 + POLICY_TREE_DEPTH * 32 + dir_bytes);
+    let mut out = Vec::with_capacity(TRAILER_LEN);
     out.extend_from_slice(TRAILER_MAGIC);
     out.extend_from_slice(&proof.commitment);
     out.extend_from_slice(&proof.nonce_point);
@@ -48,5 +52,5 @@ pub fn encode(proof: &EnrolledSecretProof) -> Option<Vec<u8>> {
         packed[i / 8] |= (d & 1) << (i % 8);
     }
     out.extend_from_slice(&packed);
-    Some(out)
+    (out.len() == TRAILER_LEN).then_some(out)
 }

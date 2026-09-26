@@ -14,22 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LocalBuildError {
-    NoIdentity,
-    ProofFailed,
-    TrailerShape,
-    /// The capabilities asked for include one a local proof may not carry.
-    ScarceCapability,
-}
+//! The spawn gate's local-root path, mounted from the kernel.
 
-impl LocalBuildError {
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::NoIdentity => "no local build identity",
-            Self::ProofFailed => "local proof generation failed",
-            Self::TrailerShape => "proof does not match the trailer layout",
-            Self::ScarceCapability => "a local proof may carry only the ambient capabilities",
-        }
-    }
-}
+pub mod capsule_attest;

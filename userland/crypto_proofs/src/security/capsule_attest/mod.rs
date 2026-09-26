@@ -14,22 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LocalBuildError {
-    NoIdentity,
-    ProofFailed,
-    TrailerShape,
-    /// The capabilities asked for include one a local proof may not carry.
-    ScarceCapability,
-}
+//! The kernel's attestation files a local trailer passes through.
 
-impl LocalBuildError {
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::NoIdentity => "no local build identity",
-            Self::ProofFailed => "local proof generation failed",
-            Self::TrailerShape => "proof does not match the trailer layout",
-            Self::ScarceCapability => "a local proof may carry only the ambient capabilities",
-        }
-    }
-}
+#[path = "../../../../../src/security/capsule_attest/error.rs"]
+pub mod error;
+
+#[path = "../../../../../src/security/capsule_attest/layout.rs"]
+pub mod layout;
+
+#[path = "../../../../../src/security/capsule_attest/trailer.rs"]
+pub mod trailer;
+
+#[path = "../../../../../src/security/capsule_attest/against_pedersen.rs"]
+pub mod against_pedersen;
+
+#[cfg(test)]
+mod local_root_refusals;
+#[cfg(test)]
+mod local_root_tests;

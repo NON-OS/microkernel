@@ -44,7 +44,7 @@ use crate::capabilities::Capability;
 // spawner. `RegisterService` and `Network`/`FileSystem`/`Crypto`/
 // `Hardware` are not part of the active syscall surface today and
 // are deliberately excluded from the ambient.
-const AMBIENT_CAPS: u64 =
+pub(crate) const AMBIENT_CAPS: u64 =
     Capability::CoreExec.bit() | Capability::IPC.bit() | Capability::Memory.bit();
 
 // Bits that must never appear in `AMBIENT_CAPS` in any production
