@@ -40,7 +40,14 @@ pub struct InstallReadiness {
 }
 
 pub fn install_ready(listing_id: &str, release_id: &str) -> Result<InstallReadiness, MarketError> {
-    let _caller = gate_call()?;
+    gate_call()?;
+    queued_install_ready(listing_id, release_id)
+}
+
+/// Without the caller gate, for init's install drain: the request it serves
+/// passed `can_app_install` in the syscall that queued it, and init is not
+/// the caller the gate is about.
+pub(crate) fn queued_install_ready(listing_id: &str, release_id: &str) -> Result<InstallReadiness, MarketError> {
     let mut body: Vec<u8> = Vec::with_capacity(8 + listing_id.len() + release_id.len());
     body.extend_from_slice(&(listing_id.len() as u32).to_le_bytes());
     body.extend_from_slice(listing_id.as_bytes());

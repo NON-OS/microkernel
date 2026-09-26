@@ -81,8 +81,7 @@ fn park() {
     crate::sched::yield_now();
 }
 
-// Set init's own scheduling priority, through the one setter that holds the
-// lock with interrupts off.
+// Set init's priority through the one setter that holds the lock with irqs off.
 fn set_init_priority(p: Priority) {
     super::super::set_init_priority(p);
 }

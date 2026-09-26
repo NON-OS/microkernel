@@ -26,9 +26,9 @@ use super::start_guest::start;
 pub fn run() -> ! {
     let _ = heap_init();
     say(b"[LINUX] personality up\n");
-    if let Some(name) = super::request::install_request() {
+    if let Some((name, pin)) = super::request::install_request() {
         say(b"[LINUX] installing\n");
-        let ok = super::install::install(&name);
+        let ok = super::install::install(&name, &pin);
         say(if ok { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
         mk_exit(if ok { 0 } else { 1 })
     }

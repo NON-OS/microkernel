@@ -14,55 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Package installs asked for by a capsule, performed by init.
 
-extern crate alloc;
+//! Package installs asked for by a capsule, performed by init once the
+//! market says the listing is ready and names the bytes to expect.
 
 use alloc::string::String;
 use alloc::vec::Vec;
-
 use spin::Mutex;
 
-/// Deep enough for a person clicking faster than a download completes,
-/// shallow enough that a caller in a loop cannot grow it without bound.
+use crate::security::market_capsule::client::{queued_get_release, queued_install_ready};
+use crate::sys::serial::{print, println};
+
+/// Deeper than a person clicks, shallower than a caller in a loop can grow.
 const DEPTH: usize = 8;
 
-static PENDING: Mutex<Vec<String>> = Mutex::new(Vec::new());
+/// A listing and the release asked for, which is empty for the default.
+static PENDING: Mutex<Vec<(String, String)>> = Mutex::new(Vec::new());
 
-/// Record a request. False when the queue is full, which the caller
-/// reports as busy rather than silently dropping.
-pub(crate) fn request(package: String) -> bool {
+/// Record a request. False when full, which the caller reports as busy.
+pub(crate) fn request(listing: String, release: String) -> bool {
     let mut q = PENDING.lock();
-    if q.len() >= DEPTH || q.contains(&package) {
+    if q.len() >= DEPTH || q.iter().any(|(l, _)| *l == listing) {
         return false;
     }
-    q.push(package);
+    q.push((listing, release));
     drop(q);
     super::instance_spawn::raise_drain();
     true
 }
 
-/// Whether an install is waiting. A contended lock is a push in flight, which
-/// counts as waiting rather than risking a missed boost.
+/// Whether an install is waiting; a contended lock is a push in flight.
 pub(crate) fn has_pending() -> bool {
     PENDING.try_lock().map_or(true, |q| !q.is_empty())
 }
 
-/// Perform every queued install.
+/// Perform every queued install the market still vouches for.
 pub(crate) fn service() {
-    let taken: Vec<String> = core::mem::take(&mut *PENDING.lock());
-    for package in taken {
-        match crate::userspace::capsule_linux::spawn_install(&package) {
-            Ok(pid) => {
-                crate::sys::serial::print(b"[LINUX-INSTALL] started pid=");
-                crate::sys::serial::print_hex(pid as u64);
-                crate::sys::serial::print(b" ");
-                crate::sys::serial::println(package.as_bytes());
-            }
-            Err(_) => {
-                crate::sys::serial::print(b"[LINUX-INSTALL] refused ");
-                crate::sys::serial::println(package.as_bytes());
-            }
+    let taken = core::mem::take(&mut *PENDING.lock());
+    for (listing, release) in taken {
+        let Some(name) = listing.strip_prefix("linux.") else { continue };
+        /*
+         * The store showed the listing as ready, and that was its word. The
+         * market's own verdict is asked for again here, and the release's
+         * package hash goes to the installer, which refuses any other bytes.
+         */
+        let ready = queued_install_ready(&listing, &release).is_ok_and(|r| r.install_ready);
+        let pinned = queued_get_release(&listing, &release).ok().map(|r| r.package_hash);
+        let (true, Some(hash)) = (ready, pinned) else {
+            print(b"[LINUX-INSTALL] not ready, refused ");
+            println(listing.as_bytes());
+            continue;
+        };
+        match crate::userspace::capsule_linux::spawn_install(name, &hash) {
+            Ok(_) => print(b"[LINUX-INSTALL] started "),
+            Err(_) => print(b"[LINUX-INSTALL] refused "),
         }
+        println(listing.as_bytes());
     }
 }

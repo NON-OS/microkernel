@@ -45,8 +45,9 @@ pub fn mk_local_verify(elf: &[u8], caps: u64, trailer: &[u8]) -> bool {
     call_raw(N_MK_LOCAL_VERIFY, args) == 0
 }
 
-/// Ask for a distribution package to be installed.
-pub fn mk_app_install(package: &[u8]) -> i64 {
-    call_raw(N_MK_APP_INSTALL, [package.as_ptr() as u64, package.len() as u64, 0, 0, 0, 0])
+/// Ask for a marketplace listing to be installed. An empty `release` asks
+/// for the listing's default.
+pub fn mk_app_install(listing: &[u8], release: &[u8]) -> i64 {
+    let (l, r) = (listing.as_ptr() as u64, release.as_ptr() as u64);
+    call_raw(N_MK_APP_INSTALL, [l, listing.len() as u64, r, release.len() as u64, 0, 0])
 }
-

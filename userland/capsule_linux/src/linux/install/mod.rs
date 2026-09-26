@@ -19,9 +19,11 @@
 mod auth;
 mod download;
 mod enrol;
+mod fetch;
 mod http;
 mod index;
 mod index_load;
+mod pkg;
 mod place;
 mod place_entry;
 mod run;

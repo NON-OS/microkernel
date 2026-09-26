@@ -36,7 +36,8 @@ const SERVICE_PORT: u32 = 4938;
 const REPLY_INBOX: &str = "endpoint.app.linux.install.reply";
 const REPLY_PORT: u32 = 4939;
 
-pub fn spawn_install(package: &str) -> Result<u32, SpawnError> {
+/// Spawn the installer for `package`, which must hash to `pinned`.
+pub fn spawn_install(package: &str, pinned: &[u8; 32]) -> Result<u32, SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
         .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
     let spec = CapsuleSpecVerified {
@@ -53,7 +54,8 @@ pub fn spawn_install(package: &str) -> Result<u32, SpawnError> {
         debug_tag: b"[LINUX-INSTALL] elf error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
-    let argv = vec![String::from("install"), String::from(package)];
+    let hex: String = pinned.iter().map(|b| alloc::format!("{b:02x}")).collect();
+    let argv = vec![String::from("install"), String::from(package), hex];
     crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv);
     Ok(pid)
 }

@@ -97,7 +97,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_FOREIGN_EXEC => sys_foreign_exec(a.a0, a.a1, a.a2),
         SYS_LOCAL_SIGN => sys_local_sign(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_LOCAL_VERIFY => sys_local_verify(a.a0, a.a1, a.a2, a.a3, a.a4),
-        SYS_APP_INSTALL => sys_app_install(a.a0, a.a1),
+        SYS_APP_INSTALL => sys_app_install(a.a0, a.a1, a.a2, a.a3),
         SYS_DEV_ROOT_LOCAL => sys_dev_root_local(),
         SYS_DEV_ROOT_REQUEST => sys_dev_root_request(a.a0),
         SYS_DEV_ROOT_CONFIRM => sys_dev_root_confirm(a.a0),

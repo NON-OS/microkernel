@@ -22,8 +22,7 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_debug;
 
-use super::auth::verified;
-use super::download::download;
+use super::fetch::fetch;
 use super::index_load::load_index;
 use super::place::unpack;
 
@@ -33,36 +32,40 @@ pub(super) const RELEASE: &str = "v3.20";
 pub(super) const ARCH: &str = "x86_64";
 pub(super) const BRANCHES: [&str; 2] = ["main", "community"];
 
-/// Rounds of resolution. A closure that has not settled by now is a
-/// dependency cycle the index cannot satisfy, and looping would hide it.
-const ROUNDS: usize = 12;
+/// Packages one install may bring in. A closure larger than this is not a
+/// program someone chose; it is an index that names half the distribution.
+const MAX_PACKAGES: usize = 96;
 
-pub fn install(name: &str) -> bool {
+pub fn install(name: &str, pin: &[u8; 32]) -> bool {
     let Some(index) = load_index() else {
         say(b"[LINUX] no package index\n");
         return false;
     };
     let mut wanted: Vec<String> = vec![String::from(name)];
     let mut done: Vec<String> = Vec::new();
-    for _ in 0..ROUNDS {
-        let Some(next) = wanted.pop() else {
-            return true;
+    while let Some(next) = wanted.pop() {
+        let found = match next.strip_prefix("so:") {
+            Some(lib) => index.by_lib(lib),
+            None => index.by_name(&next),
         };
-        if done.contains(&next) {
-            continue;
-        }
-        let Some(pkg) = index.by_name(&next).or_else(|| index.by_lib(&next)) else {
+        let Some(pkg) = found else {
             say(b"[LINUX] nothing provides it\n");
             return false;
         };
-        let apk = download(&pkg.name, &pkg.version);
-        let Some(files) = pkg.checksum.and_then(|sum| verified(&apk, &sum)) else {
-            say(b"[LINUX] package did not download, or does not match its index record\n");
+        if done.contains(&pkg.name) {
+            continue;
+        }
+        if done.len() == MAX_PACKAGES {
+            say(b"[LINUX] more packages than one install resolves\n");
+            return false;
+        }
+        let Some(files) = fetch(pkg, (pkg.name == name).then_some(pin)) else {
             return false;
         };
         say(b"[LINUX] provenance Verified: index signature and checksums match\n");
         unpack(&files);
-        done.push(next);
+        done.push(pkg.name.clone());
+        wanted.extend(pkg.depends.iter().cloned());
     }
     true
 }

@@ -44,14 +44,15 @@ pub fn ask(state: &State) -> Asked {
     let Some(listing) = state.current() else {
         return Asked::NotInstallable;
     };
-    // Only a distribution package has anything to fetch.
-    let Some(package) = listing.id.strip_prefix(b"linux.".as_slice()) else {
-        return Asked::NotInstallable;
-    };
-    if !listing.ready {
+    /*
+     * Only a distribution package has anything to fetch. `ready` only saves
+     * a pointless request: the kernel asks the market again before anything
+     * is fetched, so a stale or forged flag here decides nothing.
+     */
+    if !listing.id.starts_with(b"linux.") || !listing.ready {
         return Asked::NotInstallable;
     }
-    match mk_app_install(package) {
+    match mk_app_install(&listing.id, b"") {
         0 => Asked::Queued,
         -16 => Asked::Busy,
         _ => Asked::Refused,

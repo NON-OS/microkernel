@@ -27,6 +27,7 @@ nonos_inflate = { path = "../inflate" }
 nonos_hash = { path = "../nonos_hash" }
 nonos_tls = { path = "../nonos_tls" }
 sha1 = { version = "0.10", default-features = false }
+blake3 = { version = "1", default-features = false, features = ["pure"] }
 
 [profile.release]
 panic = "abort"

@@ -15,18 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! The installer's pure parsers, included from the capsule.
+//! The index reader, on a record shaped the way Alpine writes one.
 
-pub mod auth;
+use crate::install::index::Index;
 
-#[path = "../../../capsule_linux/src/linux/install/tar_field.rs"]
-pub mod tar_field;
-
-#[path = "../../../capsule_linux/src/linux/install/tar.rs"]
-pub mod tar;
-
-#[path = "../../../capsule_linux/src/linux/install/pkg.rs"]
-pub mod pkg;
-
-#[path = "../../../capsule_linux/src/linux/install/index.rs"]
-pub mod index;
+#[test]
+fn a_record_names_its_dependencies_and_what_it_provides() {
+    let text = b"C:Q1VBuPqTmRFkXS59UyXcV3OwNgKi4=\nP:foot\nV:1.0-r0\n\
+D:so:libc.musl-x86_64.so.1 fontconfig>=2.14 !foot-old /bin/sh cmd:sh pc:x\np:so:libfoot.so.1=1 foot-term\n\n";
+    let index = Index::parse(text);
+    let pkg = index.by_name("foot").expect("foot");
+    assert_eq!(pkg.depends, ["so:libc.musl-x86_64.so.1", "fontconfig"]);
+    assert!(index.by_lib("libfoot.so.1").is_some());
+    assert_eq!(index.by_name("foot-term").map(|p| p.name.as_str()), Some("foot"));
+}
