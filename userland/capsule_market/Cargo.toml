@@ -25,6 +25,7 @@ path = "src/main.rs"
 nonos_ed25519 = { path = "../nonos_ed25519" }
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_marketplace_abi = { path = "../marketplace_abi" }
+nonos_app_skeleton = { path = "../app_skeleton" }
 
 [features]
 default = []

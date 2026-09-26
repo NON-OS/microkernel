@@ -29,6 +29,7 @@ pub enum IconId {
     Processes,
     Settings,
     Snake,
+    Store,
     Terminal,
     VideoPlayer,
     Wallet,

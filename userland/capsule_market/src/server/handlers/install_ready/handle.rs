@@ -49,5 +49,6 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
     slot[3] = verdict.publisher_signature_present as u8;
     slot[4] = verdict.validation_passed as u8;
     slot[5] = verdict.arch_match as u8;
+    slot[6] = verdict.attestation_present as u8;
     reply_with_body(tx, req, READINESS_LEN);
 }

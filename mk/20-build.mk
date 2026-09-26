@@ -794,6 +794,21 @@ $(MARKETPLACE_INDEX_TOOL):
 
 nonos-mk-marketplace-index-tool: $(MARKETPLACE_INDEX_TOOL)
 
+# The catalogue the market capsule embeds. Signed and verified here when the
+# operator seed is present; empty otherwise, which the capsule reads as no
+# baseline. The serial is the commit time, so a later build never publishes
+# an index older than one already installed.
+MARKET_OPERATOR_SEED := .keys/marketplace_operator_ed25519.seed
+MARKET_OPERATOR_PUB  := .keys/marketplace_operator_ed25519.pub
+MARKET_LINUX_LIST    := userland/capsule_market/linux-packages.txt
+MARKET_INDEX_BIN     := $(TARGET_DIR)/market/index.bin
+
+$(MARKET_INDEX_BIN): $(MARKETPLACE_INDEX_TOOL) $(MARKET_OPERATOR_PUB) $(MARKET_LINUX_LIST) \
+		tools/nonos-market-index tools/nonos-market-catalogue $(wildcard $(MARKET_OPERATOR_SEED))
+	@$(NONOS_PYTHON) tools/nonos-market-index --out $@ --cli $(MARKETPLACE_INDEX_TOOL) \
+		--seed $(MARKET_OPERATOR_SEED) --pubkey $(MARKET_OPERATOR_PUB) \
+		--linux-list $(MARKET_LINUX_LIST) --serial $$(git log -1 --format=%ct)
+
 # Generate the four signed fixtures the kernel-side market smoke
 # embeds. Depends on the host marketplace-index CLI. The trusted
 # seed is `0x42`-repeated-32 (publicly known); the matching

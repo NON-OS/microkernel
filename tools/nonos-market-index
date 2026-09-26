@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Write the catalogue the market capsule embeds as its baseline.
+
+With the operator seed present this runs the whole chain: the catalogue
+generator reads what the tree built and the Linux packages it is asked to
+list, every operator release is signed, the index is signed and then
+verified under the operator key the capsule trusts, so an image never
+ships an index its own market would refuse. Without the seed the output is
+empty, which the capsule reads as "no baseline", and a build says so
+rather than quietly embedding a stale catalogue.
+"""
+import argparse
+import subprocess
+import sys
+from pathlib import Path
+
+
+def run(*argv):
+    subprocess.run([str(a) for a in argv], check=True)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--cli", type=Path, required=True)
+    ap.add_argument("--seed", type=Path, required=True, help="32-byte operator seed")
+    ap.add_argument("--pubkey", type=Path, required=True, help="32-byte operator key")
+    ap.add_argument("--linux-list", type=Path, required=True)
+    ap.add_argument("--serial", type=int, required=True)
+    a = ap.parse_args()
+    a.out.parent.mkdir(parents=True, exist_ok=True)
+    if not a.seed.exists():
+        print(f"market index: no operator seed at {a.seed}; the image has no baseline catalogue",
+              file=sys.stderr)
+        a.out.write_bytes(b"")
+        return 0
+    key = a.pubkey.read_bytes().hex()
+    if len(key) != 64:
+        sys.exit(f"{a.pubkey}: an operator key is 32 bytes")
+    tools = Path(__file__).parent
+    catalogue = a.out.with_suffix(".json")
+    # --no-nonos: every capsule this tree builds is already in the image, so
+    # the baseline lists only what a user can install, and does not depend on
+    # which capsules happened to be signed before this ran.
+    run(sys.executable, tools / "nonos-market-catalogue", "--out", catalogue, "--no-nonos",
+        "--operator-pubkey", key, "--linux-list", a.linux_list, "--serial", a.serial)
+    run(sys.executable, tools / "nonos-market-sign-releases", "--cli", a.cli,
+        "--index", catalogue, "--key-file", a.seed, "--operator-pubkey", key)
+    run(a.cli, "sign", "--in", catalogue, "--key-file", a.seed, "--pubkey", key, "--out", a.out)
+    run(a.cli, "verify", "--in", a.out, "--pubkey", key)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

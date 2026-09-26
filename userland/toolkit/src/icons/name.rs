@@ -32,6 +32,7 @@ impl IconId {
             IconId::Processes => "processes",
             IconId::Settings => "settings",
             IconId::Snake => "snake",
+            IconId::Store => "store",
             IconId::Terminal => "terminal",
             IconId::VideoPlayer => "video_player",
             IconId::Wallet => "wallet",

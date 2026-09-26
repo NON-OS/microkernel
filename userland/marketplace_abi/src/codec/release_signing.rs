@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Canonical bytes a publisher signs for one release. Publisher
-//! authority covers artifact identity and requested authority.
-//! Marketplace validation is signed by the enclosing operator index.
+//! Canonical bytes a publisher signs for one release.
 
 extern crate alloc;
 
@@ -25,7 +23,8 @@ use alloc::vec::Vec;
 use super::writer::Writer;
 use crate::types::CapsuleRelease;
 
-const RELEASE_SIGNING_DOMAIN: &[u8] = b"NONOS.marketplace.release.v1";
+// v2 because the signed bytes gained the trailer hash below.
+const RELEASE_SIGNING_DOMAIN: &[u8] = b"NONOS.marketplace.release.v2";
 
 pub fn release_signing_bytes(release: &CapsuleRelease) -> Vec<u8> {
     let mut out = Vec::new();
@@ -46,5 +45,6 @@ pub fn release_signing_bytes(release: &CapsuleRelease) -> Vec<u8> {
     for cap in &release.required_capabilities {
         w.lp_string(cap);
     }
+    w.fixed(&release.zk_trailer_hash);
     out
 }

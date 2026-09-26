@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Verdict the capsule emits when a caller asks "is this release
-//! ready to install?". Five independent gates must all pass; the
-//! report carries which ones tripped so a UI can explain the
-//! refusal precisely.
+//! Verdict the capsule emits when a caller asks "is this release ready to
+//! install?".
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct InstallReadiness {
@@ -28,13 +26,14 @@ pub struct InstallReadiness {
     /// `package_url` is non-empty.
     pub package_url_present: bool,
     /// Publisher signature verifies against the listing pubkey.
-    /// The field name is kept for wire compatibility with earlier
-    /// six-byte readiness replies.
     pub publisher_signature_present: bool,
     /// Operator's `validation_status` is `Validated`.
     pub validation_passed: bool,
     /// Running kernel arch is in the release's `supported_arches`.
     pub arch_match: bool,
+    /// The release names a zk trailer binding its own measurement to the
+    /// enrolled set.
+    pub attestation_present: bool,
 }
 
 impl InstallReadiness {
@@ -46,10 +45,11 @@ impl InstallReadiness {
             publisher_signature_present: false,
             validation_passed: false,
             arch_match: false,
+            attestation_present: false,
         }
     }
 
-    /// Compose a verdict from the five checks. `install_ready` is
+    /// Compose a verdict from the six checks. `install_ready` is
     /// the AND of the inputs; anything `false` blocks install.
     pub fn from_checks(
         index_signature_valid: bool,
@@ -57,12 +57,14 @@ impl InstallReadiness {
         publisher_signature_verified: bool,
         validation_passed: bool,
         arch_match: bool,
+        attestation_present: bool,
     ) -> Self {
         let install_ready = index_signature_valid
             && package_url_present
             && publisher_signature_verified
             && validation_passed
-            && arch_match;
+            && arch_match
+            && attestation_present;
         Self {
             install_ready,
             index_signature_valid,
@@ -70,6 +72,7 @@ impl InstallReadiness {
             publisher_signature_present: publisher_signature_verified,
             validation_passed,
             arch_match,
+            attestation_present,
         }
     }
 }
