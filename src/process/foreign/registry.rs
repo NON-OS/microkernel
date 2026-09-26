@@ -37,6 +37,10 @@ pub(super) fn insert(pid: u32, supervisor: u32) -> bool {
     true
 }
 
+pub fn is_foreign(pid: u32) -> bool {
+    FOREIGN.read().iter().any(|e| e.pid == pid)
+}
+
 pub fn supervisor_of(pid: u32) -> Option<u32> {
     FOREIGN.read().iter().find(|e| e.pid == pid).map(|e| e.supervisor)
 }

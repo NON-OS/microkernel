@@ -41,7 +41,7 @@ pub(super) fn park(frame: ForeignFrame) -> bool {
     let mut parked = PARKED.lock();
     parked.push(Parked { frame, answer: None, claimed: false });
     // Checked with the table held, and after the push rather than before.
-    if registry::supervisor_of(pid).is_some() {
+    if registry::is_foreign(pid) {
         return true;
     }
     parked.pop();
