@@ -14,19 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capsule_boot;
-mod entry;
-mod install_queue;
-mod wake;
+use nonos_app_skeleton::{App, AppManifest, EventOutcome, InputEvent, PaintBuffer};
 
-pub(crate) use wake::{nudge as nudge_init, owns_the_queues, settle as settle_priority};
-mod instance_spawn;
-mod spawn_plan;
-mod supervisor;
+use super::event::on_event;
+use super::manifest::manifest;
+use super::state::State;
+use super::ui::frame;
 
-pub use entry::run_init;
-pub(crate) use install_queue::request as request_install;
-pub(crate) use install_queue::service as service_installs;
-pub(crate) use instance_spawn::has_pending as instance_spawns_pending;
-pub(crate) use instance_spawn::service as service_instance_spawns;
-pub use instance_spawn::{request as request_instance, PendingApp};
+pub struct Store {
+    state: State,
+}
+
+impl Store {
+    pub fn new() -> Self {
+        Store { state: State::new() }
+    }
+}
+
+impl App for Store {
+    fn manifest(&self) -> AppManifest {
+        manifest()
+    }
+    fn on_event(&mut self, event: InputEvent) -> EventOutcome {
+        on_event(&mut self.state, event)
+    }
+    fn paint(&mut self, fb: &mut PaintBuffer) {
+        frame(&mut self.state, fb);
+    }
+}

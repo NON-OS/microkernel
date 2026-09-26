@@ -41,9 +41,7 @@ pub enum PendingApp {
 
 impl PendingApp {
     /// The capsule name behind this request, for the one place it matters: a
-    /// spawn that was refused. The drain used to report the error alone, so a
-    /// dock icon that had quietly stopped opening looked identical on the wire
-    /// to one that had never been clicked.
+    /// spawn that was refused.
     pub(super) fn name(self) -> &'static [u8] {
         match self {
             PendingApp::Terminal => b"app.terminal",
@@ -73,6 +71,10 @@ pub(super) static PENDING: Mutex<Vec<PendingApp>> = Mutex::new(Vec::new());
 /// Record a spawn request. Returns false only when the queue is saturated,
 /// which the caller treats as "try again", never as a hard failure.
 pub(super) fn push(app: PendingApp) -> bool {
+    // Raising init is part of queueing, not a separate courtesy: work left in
+    // a queue nobody is scheduled to drain is work that never happens, and the
+    // caller was told it was accepted.
+    super::super::wake::nudge();
     let mut q = PENDING.lock();
     if q.len() >= MAX_PENDING {
         return false;
@@ -82,10 +84,7 @@ pub(super) fn push(app: PendingApp) -> bool {
     true
 }
 
-/// Return init to its idle band once nothing is left to spawn. The check and
-/// the demotion happen under the queue lock, the same lock `push` raises
-/// under, so a click landing here can never be left queued behind a
-/// demotion it raced.
+/// Return init to its idle band once nothing is left to spawn.
 pub(super) fn settle() {
     let Some(q) = PENDING.try_lock() else {
         return;
@@ -107,10 +106,7 @@ pub(super) fn take() -> Vec<PendingApp> {
     core::mem::take(&mut *q)
 }
 
-/// Whether any window-instance request is waiting to be drained. The init loop
-/// reads this to raise its priority only while there is deferred window work. A
-/// contended lock means a push is in flight, which is itself pending work, so it
-/// counts as pending rather than risking a missed boost.
+/// Whether any window-instance request is waiting to be drained.
 pub(crate) fn has_pending() -> bool {
     match PENDING.try_lock() {
         Some(q) => !q.is_empty(),

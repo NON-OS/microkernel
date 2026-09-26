@@ -28,6 +28,7 @@
 
 pub mod capsule_about;
 pub mod capsule_install;
+pub mod capsule_app_store;
 pub mod capsule_linux;
 pub mod capsule_attest;
 pub mod capsule_audio_player;

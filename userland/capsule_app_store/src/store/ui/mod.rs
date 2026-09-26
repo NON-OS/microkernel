@@ -14,19 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capsule_boot;
-mod entry;
-mod install_queue;
-mod wake;
+//! The painter.
 
-pub(crate) use wake::{nudge as nudge_init, owns_the_queues, settle as settle_priority};
-mod instance_spawn;
-mod spawn_plan;
-mod supervisor;
+pub mod chrome;
+mod card;
+mod consent_text;
+mod counter;
+mod detail;
+mod frame;
+mod gates;
+pub mod geometry;
+mod hex;
+pub mod metrics;
+mod rows;
+mod scrollbar;
+mod searchbar;
+mod standing;
+mod status;
+mod text;
+mod wrap;
 
-pub use entry::run_init;
-pub(crate) use install_queue::request as request_install;
-pub(crate) use install_queue::service as service_installs;
-pub(crate) use instance_spawn::has_pending as instance_spawns_pending;
-pub(crate) use instance_spawn::service as service_instance_spawns;
-pub use instance_spawn::{request as request_instance, PendingApp};
+pub use frame::frame;

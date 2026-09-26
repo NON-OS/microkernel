@@ -14,19 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capsule_boot;
-mod entry;
-mod install_queue;
-mod wake;
+//! The marketplace window: the catalogue the market capsule serves, the three
+//! namespaces it carries, and why any one listing can or cannot be installed
+//! on this machine.
 
-pub(crate) use wake::{nudge as nudge_init, owns_the_queues, settle as settle_priority};
-mod instance_spawn;
-mod spawn_plan;
-mod supervisor;
+mod app;
+mod event;
+mod consent;
+mod event_actions;
+mod event_click;
+mod event_keys;
+mod event_rows;
+mod event_search;
+mod event_tab;
+mod install;
+mod listing;
+pub mod market;
+mod manifest;
+pub mod search;
+mod state;
+mod state_move;
+mod state_refresh;
+mod state_select;
+mod state_window;
+mod tab;
+mod state_ops;
+mod theme;
+mod ui;
+mod verdict;
 
-pub use entry::run_init;
-pub(crate) use install_queue::request as request_install;
-pub(crate) use install_queue::service as service_installs;
-pub(crate) use instance_spawn::has_pending as instance_spawns_pending;
-pub(crate) use instance_spawn::service as service_instance_spawns;
-pub use instance_spawn::{request as request_instance, PendingApp};
+pub use app::Store;

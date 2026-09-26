@@ -25,6 +25,7 @@ pub enum LauncherIcon {
     Calculator,
     Clock,
     Snake,
+    Store,
     Wallet,
     Browser,
     ImageViewer,
@@ -50,6 +51,7 @@ pub const LAUNCHER_APPS: [LauncherApp; 13] = [
         service: b"app.process_manager",
     },
     LauncherApp { icon: LauncherIcon::About, label: b"About", service: b"app.about" },
+    LauncherApp { icon: LauncherIcon::Store, label: b"Marketplace", service: b"app.store" },
     LauncherApp {
         icon: LauncherIcon::Calculator,
         label: b"Calculator",

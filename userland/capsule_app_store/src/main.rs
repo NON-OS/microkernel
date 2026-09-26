@@ -14,19 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capsule_boot;
-mod entry;
-mod install_queue;
-mod wake;
+#![no_std]
+#![no_main]
 
-pub(crate) use wake::{nudge as nudge_init, owns_the_queues, settle as settle_priority};
-mod instance_spawn;
-mod spawn_plan;
-mod supervisor;
+extern crate alloc;
 
-pub use entry::run_init;
-pub(crate) use install_queue::request as request_install;
-pub(crate) use install_queue::service as service_installs;
-pub(crate) use instance_spawn::has_pending as instance_spawns_pending;
-pub(crate) use instance_spawn::service as service_instance_spawns;
-pub use instance_spawn::{request as request_instance, PendingApp};
+mod store;
+
+use nonos_app_skeleton::run;
+
+/// # Safety The loader calls this once, on a fresh stack, as the process entry
+/// point.
+#[no_mangle]
+pub unsafe extern "C" fn _start() -> ! {
+    run(store::Store::new)
+}

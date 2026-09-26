@@ -14,19 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capsule_boot;
-mod entry;
-mod install_queue;
-mod wake;
+//! How each stage of enrolment reads to the user.
 
-pub(crate) use wake::{nudge as nudge_init, owns_the_queues, settle as settle_priority};
-mod instance_spawn;
-mod spawn_plan;
-mod supervisor;
+use crate::store::consent::Consent;
 
-pub use entry::run_init;
-pub(crate) use install_queue::request as request_install;
-pub(crate) use install_queue::service as service_installs;
-pub(crate) use instance_spawn::has_pending as instance_spawns_pending;
-pub(crate) use instance_spawn::service as service_instance_spawns;
-pub use instance_spawn::{request as request_instance, PendingApp};
+pub fn label(c: Consent) -> &'static [u8] {
+    match c {
+        Consent::Idle => b"",
+        Consent::Typing(_, 0) => b"code is on the console; type it",
+        Consent::Typing(..) => b"typing code, Enter to confirm",
+        Consent::Granted => b"this machine will run what it installs",
+        Consent::Refused => b"enrolment refused",
+    }
+}

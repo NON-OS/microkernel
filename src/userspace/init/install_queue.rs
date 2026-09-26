@@ -37,6 +37,7 @@ pub(crate) fn request(package: String) -> bool {
         return false;
     }
     q.push(package);
+    super::wake::nudge();
     true
 }
 

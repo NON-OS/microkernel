@@ -559,6 +559,7 @@ include userland/toolkit/Capsule.mk
 include userland/capsule_about/Capsule.mk
 include userland/capsule_install/Capsule.mk
 include userland/tool_install/Capsule.mk
+include userland/capsule_app_store/Capsule.mk
 include userland/capsule_linux/Capsule.mk
 include userland/capsule_hello/Capsule.mk
 include userland/capsule_gui_demo/Capsule.mk
