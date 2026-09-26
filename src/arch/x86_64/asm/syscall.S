@@ -27,6 +27,20 @@ syscall_entry_asm:
        below destroys them, so stash the user copies under the saved frame and
        restore them on exit. One pad slot keeps 16-alignment since three
        arg-saves are odd. Eleven slots -> rsp = 8 (mod 16). */
+    /* The callee-saved five, plus a pad to keep the parity the comment
+       above depends on. Nothing else on this path writes them to memory,
+       and Rust cannot read them either: by the time a handler runs, its
+       own prologue may already be using them. A forked child has to
+       resume with the parent's whole register state, so the capture has
+       to happen here or not at all. Six slots is 0 (mod 16), so every
+       offset below stays exactly where it was. */
+    push    r15
+    push    r14
+    push    r13
+    push    r12
+    push    rbx
+    sub     rsp, 8
+
     sub     rsp, 8
     push    rdx
     push    rsi
@@ -50,10 +64,23 @@ syscall_entry_asm:
     mov     r9,  [rsp + 0x08]
     mov     r11, [rsp + 0x10]
 
-    /* Spill a6 as 7th arg, realigns to 16. */
+    /* a6 goes on the stack as the seventh argument; the eighth is a
+       pointer to the frame just saved. A pointer rather than a single
+       register because a forked child resumes with the parent's whole
+       state, and the frame holds all of it: the return address is the
+       saved rcx at offset 0x20 and the rest follows it. Taken before
+       the two pushes, so it points at the saved rax.
+
+       One push left rsp 16-aligned for the call. Two do not, so a pad goes
+       underneath them: the arguments themselves must sit at [rsp] and
+       [rsp+8] when the call executes. Cleanup grows from 0x10 to 0x20 for
+       the pad and the extra argument. */
+    mov     rax, rsp
+    sub     rsp, 8
+    push    rax
     push    r11
     call    syscall_handler
-    add     rsp, 0x10
+    add     rsp, 0x20
 
     /* SyscallSavedFrame{rax, r8, r9, r10, rcx, r11, rbp} at rsp. */
     push    rax
@@ -79,6 +106,17 @@ syscall_entry_asm:
     pop     rsi
     pop     rdx
     add     rsp, 8
+
+    /* The callee-saved five come back with their pad, in reverse. They
+       still hold the user's values, so this restores rather than
+       changes them; the point of saving was to give a supervisor a
+       complete frame to fork from. */
+    add     rsp, 8
+    pop     rbx
+    pop     r12
+    pop     r13
+    pop     r14
+    pop     r15
 
     push    rax
     movabs  rax, 0xffffffffffe08aff
