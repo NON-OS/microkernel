@@ -96,7 +96,7 @@ nonos-mk-run: nonos-mk-swtpm-start nonos-mk-live-production-proof $(QEMU_BLK_IMG
 	@echo "  TPM: swtpm CRB"
 	@echo "  Quit: Ctrl+A then X"
 	@rm -f "$(QEMU_QMP_SOCK)"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
@@ -153,7 +153,7 @@ nonos-mk-run-wizard: nonos-mk-setup-wizard-esp $(QEMU_BLK_IMG) $(QEMU_OVMF_VARS_
 	@echo "Booting NONOS (first-boot setup wizard) in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
 	@echo "  Drive it with the host keyboard; Quit: Ctrl+A then X"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(TARGET_DIR)/esp-setup-wizard" \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
@@ -175,7 +175,7 @@ nonos-mk-run-serial: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
 	$(call nonos_kernel_and_esp,nonos-mk-desktop-gui-prod)
 	@echo "Booting NONOS serial console in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
@@ -193,7 +193,7 @@ nonos-mk-run-serial-log: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
 	@echo "Booting NONOS serial console in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
 	@echo "  Serial log: $(QEMU_SERIAL_LOG)"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
@@ -204,7 +204,7 @@ nonos-mk-run-input-probe-inject-serial-log: nonos-mk-input-probe-inject-esp $(QE
 	@echo "Booting NONOS input-probe inject serial console in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
 	@echo "  Serial log: $(QEMU_SERIAL_LOG)"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(NONOS_INPUT_PROBE_INJECT_ESP)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
@@ -393,7 +393,7 @@ nonos-mk-run-smp-serial-log: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
 	@echo "Booting NONOS on $(QEMU_SMP) CPUs in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
 	@echo "  Serial log: $(QEMU_SMP_SERIAL_LOG)"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp $(QEMU_SMP) -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp $(QEMU_SMP) -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
@@ -426,7 +426,7 @@ nonos-mk-run-install: nonos-mk-swtpm-start $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAM
 	@echo "Booting NONOS with a blank NVMe install target..."
 	@echo "  Target: $(INSTALL_TARGET_IMG) (nvme, serial NONOS-TARGET)"
 	@echo "  Quit: Ctrl+A then X"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
@@ -439,7 +439,7 @@ nonos-mk-run-install: nonos-mk-swtpm-start $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAM
 nonos-mk-run-installed: nonos-mk-swtpm-start $(QEMU_OVMF_VARS_RW)
 	@test -f $(INSTALL_TARGET_IMG) || { echo "no install target yet: run make qemu-install and install first"; exit 1; }
 	@echo "Booting the disk the installer wrote, as the only disk..."
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
 		-drive "file=$(INSTALL_TARGET_IMG),if=none,id=tgt,format=raw" \

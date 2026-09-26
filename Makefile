@@ -197,6 +197,11 @@ doctor:
 	else echo "  MISS  rust $(TOOLCHAIN)   (rustup toolchain install $(TOOLCHAIN))"; ok=0; fi; \
 	if [ -n "$(OVMF)" ] && [ -f "$(OVMF)" ]; then echo "  ok    OVMF $(OVMF)"; \
 	else echo "  MISS  OVMF UEFI firmware"; ok=0; fi; \
+	if ! $(QEMU) -accel help 2>/dev/null | grep -qx "$(QEMU_ACCEL)"; then \
+		echo "  MISS  accel $(QEMU_ACCEL)   ($(QEMU) does not offer it; set QEMU_ACCEL)"; ok=0; \
+	elif [ "$(QEMU_ACCEL)" = tcg ]; then \
+		echo "  ok    accel tcg   (no /dev/kvm or hvf: the CPU is emulated and boots are slow)"; \
+	else echo "  ok    accel $(QEMU_ACCEL)"; fi; \
 	echo; \
 	if [ $$ok = 1 ]; then echo "  This host can build and boot NONOS."; \
 	else \

@@ -44,6 +44,23 @@ endif
 
 QEMU_MEM := 2G
 QEMU_CPU := max
+# The accelerator follows the host, by the rule scripts/bootmatrix/qemu.py
+# already uses: KVM when /dev/kvm opens read-write, hvf on macOS, TCG
+# otherwise. TCG emulates the processor, so `-cpu host` names nothing there and
+# it gets `max`, which carries RDRAND. Set QEMU_ACCEL to override.
+ifeq ($(shell [ -r /dev/kvm ] && [ -w /dev/kvm ] && echo y),y)
+    QEMU_ACCEL_AUTO := kvm
+else ifeq ($(UNAME_S),Darwin)
+    QEMU_ACCEL_AUTO := hvf
+else
+    QEMU_ACCEL_AUTO := tcg
+endif
+QEMU_ACCEL ?= $(QEMU_ACCEL_AUTO)
+ifeq ($(QEMU_ACCEL),tcg)
+    QEMU_ACCEL_ARGS := -accel tcg -cpu $(QEMU_CPU)
+else
+    QEMU_ACCEL_ARGS := -accel $(QEMU_ACCEL) -cpu host,+rdrand,+rdseed
+endif
 QEMU_SMP ?= 4
 QEMU_HOST_SSH_PORT ?= 2222
 QEMU_HOST_HTTP_PORT ?= 8080
@@ -84,19 +101,29 @@ QEMU_YRES ?= 1080
 # QEMU_GL=1 swaps the display device for virtio-vga-gl (modern transport,
 # virglrenderer backend) so the guest can negotiate the 3D command set; the
 # cocoa display then needs a GL context. Default stays the plain 2D device.
+# cocoa exists only on macOS; elsewhere the window is gtk.
+ifeq ($(UNAME_S),Darwin)
+QEMU_UI := cocoa
+else
+QEMU_UI := gtk
+endif
 ifeq ($(QEMU_GL),1)
 QEMU_GPU := -device virtio-vga-gl,xres=$(QEMU_XRES),yres=$(QEMU_YRES)
-QEMU_DISPLAY := cocoa,gl=es,zoom-to-fit=on
+QEMU_DISPLAY ?= $(QEMU_UI),gl=es,zoom-to-fit=on
 else
 QEMU_GPU := -device virtio-vga,disable-modern=on,vectors=0,edid=on,xres=$(QEMU_XRES),yres=$(QEMU_YRES)
-QEMU_DISPLAY := cocoa,zoom-to-fit=on
+QEMU_DISPLAY ?= $(QEMU_UI),zoom-to-fit=on
 endif
 # Keyboard/mouse via the q35 i8042 (PS/2). USB HID interrupt-IN transfers
 # are not serviced under macOS hvf, so usb-kbd/usb-mouse never deliver input
 # there; the xHCI controller stays for the USB stack/storage paths.
 QEMU_USB := -device qemu-xhci,id=xhci
 QEMU_RNG := -device virtio-rng-pci
+ifeq ($(UNAME_S),Darwin)
 QEMU_AUDIODEV ?= coreaudio
+else
+QEMU_AUDIODEV ?= none
+endif
 QEMU_AUDIO := -audiodev $(QEMU_AUDIODEV),id=snd0 -device intel-hda -device hda-duplex,audiodev=snd0
 
 # Software TPM 2.0 for measured boot. The guest reaches it by direct MMIO at
