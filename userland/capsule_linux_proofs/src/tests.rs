@@ -17,6 +17,8 @@
 
 //! Every proof, by the thing it constrains.
 
+mod auth_refusals;
+mod auth_tests;
 mod dirent_tests;
 mod elf_tests;
 mod exec_shebang_tests;

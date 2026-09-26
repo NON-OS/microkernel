@@ -19,6 +19,7 @@
 use alloc::format;
 use alloc::vec::Vec;
 
+use super::auth::{rsa_verify, signed_index};
 use super::http::get;
 use super::index::Index;
 use super::run::{ARCH, BRANCHES, HOST, PORT, RELEASE};
@@ -29,7 +30,15 @@ pub(super) fn load_index() -> Option<Index> {
     for branch in BRANCHES {
         let path = format!("/alpine/{RELEASE}/{branch}/{ARCH}/APKINDEX.tar.gz");
         let raw = get(HOST, PORT, &path)?;
-        let plain = nonos_inflate::gunzip(&raw)?;
+        /*
+         * A branch whose signature does not verify refuses the whole index:
+         * resolving against half of it would pick a dependency from whichever
+         * branch happened to be authentic.
+         */
+        let Some(plain) = signed_index(&raw, &rsa_verify) else {
+            say(b"[LINUX] package index signature did not verify\n");
+            return None;
+        };
         for entry in entries(&plain) {
             if entry.name.ends_with(b"APKINDEX") {
                 all.extend_from_slice(&entry.body);
@@ -37,4 +46,8 @@ pub(super) fn load_index() -> Option<Index> {
         }
     }
     Some(Index::parse(&all))
+}
+
+fn say(line: &[u8]) {
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
 }

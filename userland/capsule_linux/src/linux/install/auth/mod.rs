@@ -14,13 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where a package's bytes came from, and whether anything vouches for them
-//! arriving intact.
+//! Whether a package is the one the distribution published.
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub(super) enum Provenance {
-    /// The bytes match a checksum from a signed index.
-    Verified,
-    /// Nothing says these are the bytes the distribution published.
-    Unauthenticated,
-}
+mod base64;
+mod checksum;
+mod digest;
+mod keys;
+mod package;
+mod pkginfo;
+mod rsa;
+mod signature;
+mod verified;
+
+pub use checksum::parse as checksum;
+pub use package::verified;
+pub use rsa::verify as rsa_verify;
+pub use signature::signed_index;
+pub use verified::Verified;

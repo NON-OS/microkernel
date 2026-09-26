@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Package bytes that something authenticated.
 
-//! The installer's pure parsers, included from the capsule.
+use alloc::vec::Vec;
 
-pub mod auth;
+/// A package's files, decompressed. Only `package::verified` makes one, so
+/// bytes that did not match a signed index cannot be unpacked at all.
+pub struct Verified {
+    files: Vec<u8>,
+}
 
-#[path = "../../../capsule_linux/src/linux/install/tar_field.rs"]
-pub mod tar_field;
+impl Verified {
+    pub(super) fn checked(files: Vec<u8>) -> Self {
+        Self { files }
+    }
 
-#[path = "../../../capsule_linux/src/linux/install/tar.rs"]
-pub mod tar;
-
-#[path = "../../../capsule_linux/src/linux/install/index.rs"]
-pub mod index;
+    pub fn files(&self) -> &[u8] {
+        &self.files
+    }
+}

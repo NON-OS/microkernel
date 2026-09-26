@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The `C:` field of an index record: the SHA-1 of a package's control
+//! member, written `Q1` and then base64.
 
-//! The installer's pure parsers, included from the capsule.
+use super::base64::decode;
 
-pub mod auth;
-
-#[path = "../../../capsule_linux/src/linux/install/tar_field.rs"]
-pub mod tar_field;
-
-#[path = "../../../capsule_linux/src/linux/install/tar.rs"]
-pub mod tar;
-
-#[path = "../../../capsule_linux/src/linux/install/index.rs"]
-pub mod index;
+pub fn parse(field: &str) -> Option<[u8; 20]> {
+    let raw = decode(field.strip_prefix("Q1")?.as_bytes())?;
+    raw.try_into().ok()
+}

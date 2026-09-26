@@ -14,16 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The two digests an Alpine package is checked with.
 
-//! The installer's pure parsers, included from the capsule.
+use sha1::{Digest, Sha1};
 
-pub mod auth;
+pub fn sha1(data: &[u8]) -> [u8; 20] {
+    Sha1::digest(data).into()
+}
 
-#[path = "../../../capsule_linux/src/linux/install/tar_field.rs"]
-pub mod tar_field;
-
-#[path = "../../../capsule_linux/src/linux/install/tar.rs"]
-pub mod tar;
-
-#[path = "../../../capsule_linux/src/linux/install/index.rs"]
-pub mod index;
+pub fn sha256(data: &[u8]) -> [u8; 32] {
+    nonos_hash::sha256(data)
+}

@@ -22,7 +22,6 @@ use nonos_libc::mk_debug;
 use crate::linux::file::{key, store_write, visible};
 
 use super::enrol::vouch;
-use super::provenance::Provenance;
 use super::tar::Entry;
 
 /// Paths a package may not write: a package dropping one of these
@@ -30,7 +29,7 @@ use super::tar::Entry;
 const REFUSED: &[&[u8]] = &[b".nonos_id_cert.bin", b".manifest.bin", b".zk_trailer.bin"];
 
 /// True when the file landed in the store.
-pub(super) fn one(entry: &Entry, from: Provenance) -> bool {
+pub(super) fn one(entry: &Entry) -> bool {
     if entry.name.starts_with(b".") {
         return false;
     }
@@ -43,18 +42,14 @@ pub(super) fn one(entry: &Entry, from: Provenance) -> bool {
         return false;
     }
     if is_elf(&entry.body) {
-        vouch_for(&at, &entry.body, from);
+        vouch_for(&at, &entry.body);
     }
     true
 }
 
-/// Minting says this machine agreed to run these bytes, so it is only said
-/// about bytes something authenticated.
-fn vouch_for(at: &[u8], body: &[u8], from: Provenance) {
-    if from == Provenance::Unauthenticated {
-        say(b"[LINUX] installed unvouched: package bytes are not authenticated\n");
-        return;
-    }
+/// Minting says this machine agreed to run these bytes. It is only reached
+/// with a `Verified` package, so it is only said about authenticated bytes.
+fn vouch_for(at: &[u8], body: &[u8]) {
     if !vouch(at, body) {
         say(b"[LINUX] installed but unvouched: no enrolled root, or may not mint\n");
     }

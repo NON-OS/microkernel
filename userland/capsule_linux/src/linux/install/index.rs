@@ -19,9 +19,12 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+#[derive(Clone)]
 pub struct Pkg {
     pub name: String,
     pub version: String,
+    /// SHA-1 of the package's control member, from its `C:` line.
+    pub checksum: Option<[u8; 20]>,
 }
 
 pub struct Index {
@@ -35,22 +38,20 @@ impl Index {
     pub fn parse(raw: &[u8]) -> Index {
         let text = String::from_utf8_lossy(raw);
         let (mut libs, mut names) = (Vec::new(), Vec::new());
-        let (mut name, mut version) = (String::new(), String::new());
+        let mut cur = Pkg { name: String::new(), version: String::new(), checksum: None };
         for line in text.lines() {
+            let rest = line.get(2..).unwrap_or("");
             match line.as_bytes().first() {
-                Some(b'P') => name = String::from(&line[2..]),
+                None => cur.checksum = None,
+                Some(b'C') => cur.checksum = super::auth::checksum(rest),
+                Some(b'P') => cur.name = String::from(rest),
                 Some(b'V') => {
-                    version = String::from(&line[2..]);
-                    names
-                        .push((name.clone(), Pkg { name: name.clone(), version: version.clone() }));
+                    cur.version = String::from(rest);
+                    names.push((cur.name.clone(), cur.clone()));
                 }
                 Some(b'p') => {
-                    for token in line[2..].split_whitespace() {
-                        if let Some(so) = token.strip_prefix("so:") {
-                            let so = so.split('=').next().unwrap_or(so);
-                            let pkg = Pkg { name: name.clone(), version: version.clone() };
-                            libs.push((String::from(so), pkg));
-                        }
+                    for so in rest.split_whitespace().filter_map(|t| t.strip_prefix("so:")) {
+                        libs.push((String::from(so.split('=').next().unwrap_or(so)), cur.clone()));
                     }
                 }
                 _ => {}

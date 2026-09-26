@@ -22,10 +22,10 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_debug;
 
+use super::auth::verified;
 use super::download::download;
 use super::index_load::load_index;
 use super::place::unpack;
-use super::provenance::Provenance;
 
 pub(super) const HOST: &str = "dl-cdn.alpinelinux.org";
 pub(super) const PORT: u16 = 80;
@@ -56,15 +56,12 @@ pub fn install(name: &str) -> bool {
             return false;
         };
         let apk = download(&pkg.name, &pkg.version);
-        if apk.is_empty() {
-            say(b"[LINUX] package would not download\n");
+        let Some(files) = pkg.checksum.and_then(|sum| verified(&apk, &sum)) else {
+            say(b"[LINUX] package did not download, or does not match its index record\n");
             return false;
-        }
-        /*
-         * Nothing says these are the bytes the distribution
-         * published: see `provenance`.
-         */
-        unpack(&apk, Provenance::Unauthenticated);
+        };
+        say(b"[LINUX] provenance Verified: index signature and checksums match\n");
+        unpack(&files);
         done.push(next);
     }
     true

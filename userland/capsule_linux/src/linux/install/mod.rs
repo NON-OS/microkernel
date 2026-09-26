@@ -16,6 +16,7 @@
 
 //! Installing a Linux program from within the system.
 
+mod auth;
 mod download;
 mod enrol;
 mod http;
@@ -23,7 +24,6 @@ mod index;
 mod index_load;
 mod place;
 mod place_entry;
-mod provenance;
 mod run;
 mod tar;
 mod tar_field;

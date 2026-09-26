@@ -14,16 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Asking the crypto service whether a signature verifies. The capsule
+//! holds no RSA of its own, so there is one verifier on the machine.
 
-//! The installer's pure parsers, included from the capsule.
-
-pub mod auth;
-
-#[path = "../../../capsule_linux/src/linux/install/tar_field.rs"]
-pub mod tar_field;
-
-#[path = "../../../capsule_linux/src/linux/install/tar.rs"]
-pub mod tar;
-
-#[path = "../../../capsule_linux/src/linux/install/index.rs"]
-pub mod index;
+pub fn verify(spki: &[u8], sig: &[u8], hashid: u8, digest: &[u8]) -> bool {
+    nonos_tls::verify_rsa(0, hashid, spki, sig, digest)
+}

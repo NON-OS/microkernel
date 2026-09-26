@@ -17,3 +17,14 @@ authors = ["eK@nonos.systems"]
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+# What the mounted installer files link against in the capsule.
+nonos_inflate = { path = "../inflate" }
+nonos_hash = { path = "../nonos_hash" }
+sha1 = { version = "0.10", default-features = false }
+
+[dev-dependencies]
+# The verifier the crypto service runs, standing in for the IPC call.
+rsa = { version = "0.9", default-features = false, features = ["sha2"] }
+sha1 = { version = "0.10", default-features = false, features = ["oid"] }
