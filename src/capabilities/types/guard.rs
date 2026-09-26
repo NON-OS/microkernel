@@ -14,10 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod as_str;
-mod defs;
-mod display;
-mod guard;
-mod table;
+//! What the capability list has to satisfy, checked when the kernel is built
+//! rather than trusted.
 
-pub use defs::Capability;
+use super::Capability;
+
+const _: () = {
+    let caps = Capability::all();
+    let mut seen = 0u64;
+    let mut i = 0;
+    while i < caps.len() {
+        let bit = caps[i].bit();
+        assert!(bit.count_ones() == 1, "a capability must occupy exactly one bit");
+        assert!(seen & bit == 0, "two capabilities share a bit");
+        seen |= bit;
+        i += 1;
+    }
+};
