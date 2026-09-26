@@ -20,12 +20,14 @@ use super::arch::{HOSTED_ARCH, RUNNING_ARCH};
 
 pub const RUNNING_KERNEL_ABI: u32 = 1;
 
-/// Releases carrying this arch are distribution packages the personality
-/// hosts.
-const LOCAL_ARCH: &str = HOSTED_ARCH;
+/// Listings under this namespace are distribution packages. The store sends
+/// them to the Linux installer, which authenticates the bytes against the
+/// distribution's own signatures and has the machine mint their proof.
+const HOSTED_NAMESPACE: &str = "linux.";
 
 pub fn evaluate(
     signature_verified: bool,
+    listing_id: &str,
     release: &CapsuleRelease,
     publisher_signature_verified: bool,
 ) -> InstallReadiness {
@@ -39,8 +41,14 @@ pub fn evaluate(
     };
     let arch_match = release.supported_arches.iter().any(runs_here);
     let kernel_abi_compatible = release.kernel_abi_min <= RUNNING_KERNEL_ABI;
-    // Everything above this line is somebody's word.
-    let minted_locally = release.supported_arches.iter().any(|a| a.as_str() == LOCAL_ARCH);
+    /*
+     * Exempting a release from shipping a proof because it names an arch let
+     * any release exempt itself. The exemption now follows the namespace the
+     * store routes on, so a release earns it only by going where the proof
+     * is minted after its bytes are authenticated.
+     */
+    let minted_locally = listing_id.starts_with(HOSTED_NAMESPACE)
+        && release.supported_arches.iter().any(|a| a.as_str() == HOSTED_ARCH);
     let ships_proof = release.zk_trailer_hash.iter().any(|&b| b != 0);
     let attestation_present = ships_proof || minted_locally;
 
