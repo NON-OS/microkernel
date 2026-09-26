@@ -19,14 +19,15 @@
 use rsa::pkcs8::DecodePublicKey;
 use rsa::pss::Pss;
 use rsa::{Pkcs1v15Sign, RsaPublicKey};
+use sha1::Sha1;
 use sha2::{Sha256, Sha384, Sha512};
 
 /*
- * hashid 3 is a twenty byte digest and is reachable only under scheme 2. A
- * directory authority certificate is signed over a SHA-1 digest with no
- * DigestInfo, so that length has to be accepted for the chain to be checkable
- * at all. It is deliberately not paired with a prefixed scheme: there is no
- * reason to sign a new SHA-1 DigestInfo and every reason not to offer one.
+ * hashid 3 is a twenty byte SHA-1 digest. A directory authority certificate is
+ * signed over one with no DigestInfo (scheme 2), and an Alpine package index
+ * is signed over one with it (scheme 0): both are signatures someone else
+ * already made, and neither chain is checkable without them. This capsule
+ * only verifies, so offering SHA-1 here signs nothing new with it.
  */
 /// The digest length `hashid` names, or `None` if the pair is not offered.
 pub fn digest_len(scheme: u8, hashid: u8) -> Option<usize> {
@@ -34,7 +35,7 @@ pub fn digest_len(scheme: u8, hashid: u8) -> Option<usize> {
         0 => Some(32),
         1 => Some(48),
         2 => Some(64),
-        3 if scheme == 2 => Some(20),
+        3 if scheme == 0 || scheme == 2 => Some(20),
         _ => None,
     }
 }
@@ -59,6 +60,7 @@ pub fn verify(scheme: u8, hashid: u8, spki: &[u8], sig: &[u8], digest: &[u8]) ->
         (0, 0) => key.verify(Pkcs1v15Sign::new::<Sha256>(), digest, sig).is_ok(),
         (0, 1) => key.verify(Pkcs1v15Sign::new::<Sha384>(), digest, sig).is_ok(),
         (0, 2) => key.verify(Pkcs1v15Sign::new::<Sha512>(), digest, sig).is_ok(),
+        (0, 3) => key.verify(Pkcs1v15Sign::new::<Sha1>(), digest, sig).is_ok(),
         (1, 0) => key.verify(Pss::new::<Sha256>(), digest, sig).is_ok(),
         (1, 1) => key.verify(Pss::new::<Sha384>(), digest, sig).is_ok(),
         (1, 2) => key.verify(Pss::new::<Sha512>(), digest, sig).is_ok(),

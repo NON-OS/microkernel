@@ -36,10 +36,10 @@ fn the_same_signature_is_refused_by_the_prefixed_schemes() {
     let cert = parse(CERT);
     let spki = wrap_pkcs1(&cert.identity_pkcs1);
     /*
-     * A 20 byte digest has no prefixed home, so this is a bad argument rather
-     * than a failed signature, which is itself the point.
+     * Under scheme 0 a SHA-1 digest is expected behind a DigestInfo, which
+     * this block does not carry.
      */
-    assert_eq!(verify(0, 3, &spki, &cert.signature, &cert.digest), None);
+    assert_eq!(verify(0, 3, &spki, &cert.signature, &cert.digest), Some(false));
     // Offered at a SHA-256 length, the digest no longer fits.
     assert_eq!(verify(0, 0, &spki, &cert.signature, &cert.digest), None);
 }

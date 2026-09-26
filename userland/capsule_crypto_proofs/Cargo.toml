@@ -23,5 +23,5 @@ path = "src/lib.rs"
 # The same crates, at the same versions, that capsule_crypto pins.
 rsa = { version = "0.9", default-features = false, features = ["sha2"] }
 sha2 = { version = "0.10", default-features = false, features = ["force-soft", "oid"] }
-sha1 = { version = "0.10", default-features = false }
+sha1 = { version = "0.10", default-features = false, features = ["oid"] }
 base64ct = { version = "1", features = ["alloc"] }
