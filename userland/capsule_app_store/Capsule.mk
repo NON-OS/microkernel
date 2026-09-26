@@ -20,7 +20,7 @@ CAPSULE_FEATURE          := nonos-capsule-app-store
 CAPSULE_NAMESPACE        := systems.nonos.app.store
 CAPSULE_SERVICE_ENDPOINT := service:4940:app.store
 CAPSULE_REPLY_ENDPOINT   := reply:4941:endpoint.app.store.reply
-CAPSULE_REQUIRED_CAPS    := 0xC0001819
+CAPSULE_REQUIRED_CAPS    := 0x40001819
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_app_store
 
 include nonos-mk/capsule.mk
