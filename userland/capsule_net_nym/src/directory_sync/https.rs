@@ -19,7 +19,7 @@ use alloc::vec::Vec;
 use nonos_tls::{exchange, rtc_now};
 
 use super::http::parse;
-use super::resolve::resolve;
+use super::pinned::address;
 use super::tls_io::TcpIo;
 use crate::tcp_client;
 
@@ -35,8 +35,7 @@ const MAX_RESPONSE: usize = 512 * 1024;
 /// this fetch is anonymous: it happens before there is a mixnet to be
 /// anonymous over.
 pub fn fetch_tls(tcp_port: u32, host: &str, path: &str) -> Result<Vec<u8>, u16> {
-    crate::trace::say(b"fetch: resolving");
-    let ip = resolve(host.as_bytes()).ok_or(21u16)?;
+    let ip = address(host).ok_or(21u16)?;
     crate::trace::say(b"fetch: connecting");
     let stream = tcp_client::connect(tcp_port, ip, HTTPS_PORT)?;
     tcp_client::wait_established(tcp_port, stream)?;
