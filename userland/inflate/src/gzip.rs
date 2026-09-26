@@ -26,7 +26,7 @@ use super::tables::MAX_OUT;
 const TRAILER: usize = 8;
 
 /// Enough for a distribution index in several parts.
-const MAX_MEMBERS: usize = 64;
+pub(super) const MAX_MEMBERS: usize = 64;
 
 /// Every member, concatenated. Bytes after a verified member that do not
 /// decode as another member are trailing garbage, and end the stream.
@@ -50,7 +50,7 @@ pub fn gunzip(data: &[u8]) -> Option<Vec<u8>> {
     (at == data.len()).then_some(out)
 }
 
-fn verified(d: &[u8]) -> Option<(Vec<u8>, usize)> {
+pub(super) fn verified(d: &[u8]) -> Option<(Vec<u8>, usize)> {
     let (out, end) = inflated(d)?;
     checked(d, &out, end)?;
     Some((out, end.checked_add(TRAILER)?))
