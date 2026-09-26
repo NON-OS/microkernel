@@ -34,13 +34,13 @@ dependencies = [
 name = "nonos_ed25519"
 version = "0.1.0"
 dependencies = [
- "nonos_hd",
+ "nonos_hash",
  "spin",
 ]
 
 [[package]]
-name = "nonos_hd"
-version = "0.3.0"
+name = "nonos_hash"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_tls"
