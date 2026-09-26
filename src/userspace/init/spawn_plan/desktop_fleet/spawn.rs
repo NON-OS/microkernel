@@ -27,6 +27,15 @@ pub(crate) fn spawn() {
         return;
     }
     spawn_gui_core();
+    spawn_rest();
+}
+
+/// Everything after the compositor and input router. Setup runs on those two,
+/// so the desktop that follows it must not spawn them a second time.
+pub(crate) fn spawn_rest() {
+    if !desktop_enabled() {
+        return;
+    }
     spawn_boot_splash();
     spawn_wm();
     spawn_wallpaper_catalog();

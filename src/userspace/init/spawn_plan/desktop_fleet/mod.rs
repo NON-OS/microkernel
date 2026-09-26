@@ -28,5 +28,7 @@ mod spawn_wallpaper;
 mod spawn_wallpaper_catalog;
 mod spawn_wm;
 
-pub(super) use spawn::spawn;
+pub(super) use spawn::{spawn, spawn_rest};
+#[cfg(feature = "microkernel-setup-wizard")]
+pub(super) use spawn_gui_core::spawn_gui_core;
 pub(super) use spawn_early_display::spawn_early_display;

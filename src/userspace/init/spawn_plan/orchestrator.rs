@@ -67,7 +67,7 @@ pub(in crate::userspace::init) fn spawn_desktop() {
 
 #[cfg(feature = "microkernel-setup-wizard")]
 pub(in crate::userspace::init) fn spawn_post_wizard() {
-    super::desktop_fleet::spawn();
+    super::desktop_fleet::spawn_rest();
     super::core::spawn_market();
 }
 
