@@ -14,21 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which capability admits which syscall.
+//! `MkDevRootLocal`: consent to run what this machine builds and fetches.
 
-mod admin;
-mod crypto;
-mod graphics;
-mod mk;
+use crate::capabilities::caps_to_bits;
+use crate::security::dev_roots::request_local_build_root;
+use crate::syscall::caps::current_caps_or_default;
 
-use crate::capabilities::CapabilityToken;
-use crate::syscall::numbers::SyscallNumber;
-
-/// Total cap-table over `SyscallNumber`.
-pub(super) fn is_allowed(caps: &CapabilityToken, number: SyscallNumber) -> bool {
-    crypto::check(caps, number)
-        .or_else(|| admin::check(caps, number))
-        .or_else(|| mk::check(caps, number))
-        .or_else(|| graphics::check(caps, number))
-        .unwrap_or(false)
+/// Ask to enrol *this machine's own* build root, which is the only root a
+/// local install can ever be proved under.
+pub fn sys_dev_root_local() -> i64 {
+    let caps = caps_to_bits(&current_caps_or_default().permissions);
+    match request_local_build_root(caps) {
+        Ok(()) => 0,
+        Err(e) => {
+            crate::sys::serial::print(b"[DEV-ROOT] local request refused: ");
+            crate::sys::serial::println(e.as_str().as_bytes());
+            e.to_errno()
+        }
+    }
 }
