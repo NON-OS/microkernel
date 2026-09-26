@@ -36,10 +36,11 @@ pub fn restore() -> bool {
 }
 
 /// Apply what the person chose. Withdrawing deletes the token too, so the
-/// next boot does not quietly restore what was just taken back.
-pub fn apply(allow: bool, was_allowed: bool) {
+/// next boot does not quietly restore what was just taken back. `keep` is
+/// the persistence choice: an amnesic machine keeps nothing, this included.
+pub fn apply(allow: bool, was_allowed: bool, keep: bool) {
     match (allow, was_allowed) {
-        (true, false) => grant(),
+        (true, false) => grant(keep),
         (false, true) => {
             let _ = mk_local_consent_revoke();
             let _ = vfs::store_remove(TOKEN);
@@ -51,10 +52,13 @@ pub fn apply(allow: bool, was_allowed: bool) {
 
 /// A machine with no key to keep consent with gets it for this boot only,
 /// and nothing is written that could be mistaken for more.
-fn grant() {
+fn grant(keep: bool) {
     let Ok(Some(token)) = mk_local_consent_grant() else {
         return;
     };
+    if !keep {
+        return;
+    }
     let pid = mk_getpid();
     let _ = vfs::mkdir(pid, b"/nonos");
     let _ = vfs::mkdir(pid, b"/nonos/consent");
