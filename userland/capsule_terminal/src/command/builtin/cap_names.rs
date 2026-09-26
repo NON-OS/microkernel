@@ -17,11 +17,11 @@
 //! Bit i holds the name of the capability whose kernel bit is `1 << i`.
 //!
 //! A hand-synced mirror of `src/capabilities/types/{defs,bit,as_str}.rs`: the
-//! order is `bit.rs`'s and the strings are `as_str.rs`'s verbatim, so a new
+//! order is `defs.rs`'s and the strings are `as_str.rs`'s verbatim, so a new
 //! capability is appended here in the position it takes there. CI holds this
 //! table against the kernel's in `scripts/check_userland_caps.py`.
 
-pub(crate) const CAP_NAMES: [&[u8]; 33] = [
+pub(crate) const CAP_NAMES: [&[u8]; 34] = [
     b"CoreExec",
     b"IO",
     b"Network",
@@ -55,4 +55,5 @@ pub(crate) const CAP_NAMES: [&[u8]; 33] = [
     b"AppInstall",
     b"AttestRead",
     b"ForeignExec",
+    b"LocalSign",
 ];

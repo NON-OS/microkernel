@@ -17,7 +17,7 @@
 """Check every userland copy of the capability table against the kernel's.
 
 The kernel decides what a capability bit means, in `src/capabilities/types/
-bit.rs`. Three places in userland restate that table so they can print a mask
+defs.rs`. Three places in userland restate that table so they can print a mask
 by name: the desktop shell, the About window and the terminal. They cannot
 include the kernel file, because capsules build for a different target, so
 they are hand-synced mirrors.

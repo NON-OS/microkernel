@@ -39,7 +39,7 @@ pub const CAP_INPUT_SOURCE: u64 = 2097152;
 
 // These six exist in the kernel and had no name here, so no capsule could
 // declare them. The values are the kernel's; see `Capability::bit` in
-// `src/capabilities/types/bit.rs`, which is the only authority for what a bit
+// `src/capabilities/types/defs.rs`, which is the only authority for what a bit
 // means. Anything added there must be added here in the same commit.
 pub const CAP_TIME_SET: u64 = 4194304;
 pub const CAP_SPAWN_BROKER: u64 = 8388608;
@@ -61,3 +61,5 @@ pub const CAP_APP_INSTALL: u64 = 1073741824;
 pub const CAP_ATTEST_READ: u64 = 2147483648;
 /// Host a foreign binary the kernel has not verified.
 pub const CAP_FOREIGN_EXEC: u64 = 4294967296;
+/// Mint a proof that this machine agreed to run bytes it installed itself.
+pub const CAP_LOCAL_SIGN: u64 = 8589934592;
