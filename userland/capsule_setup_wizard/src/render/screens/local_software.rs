@@ -20,8 +20,8 @@ use crate::render::{self, widgets::rows};
 use crate::server::step::{default_key, list_nav, Outcome};
 use crate::state::Context;
 
-const MODES: &[&[u8]] =
-    &[b"Only software that ships with NONOS", b"Also programs this machine installs and proves"];
+/// Short enough for the list box: the longer wording ran past its edge.
+const MODES: &[&[u8]] = &[b"Only NONOS software", b"Also software installed here"];
 
 pub fn draw(ctx: &Context) {
     render::frame(
