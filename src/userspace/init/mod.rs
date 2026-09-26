@@ -17,15 +17,14 @@
 mod capsule_boot;
 mod entry;
 mod install_queue;
-mod wake;
-
-pub(crate) use wake::{nudge as nudge_init, owns_the_queues, settle as settle_priority};
 mod instance_spawn;
+use instance_spawn::set_drain_priority as set_init_priority;
 mod spawn_plan;
 mod supervisor;
 
 pub use entry::run_init;
 pub(crate) use install_queue::request as request_install;
+pub(crate) use install_queue::has_pending as installs_pending;
 pub(crate) use install_queue::service as service_installs;
 pub(crate) use instance_spawn::has_pending as instance_spawns_pending;
 pub(crate) use instance_spawn::service as service_instance_spawns;

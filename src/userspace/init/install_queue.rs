@@ -37,8 +37,15 @@ pub(crate) fn request(package: String) -> bool {
         return false;
     }
     q.push(package);
-    super::wake::nudge();
+    drop(q);
+    super::instance_spawn::raise_drain();
     true
+}
+
+/// Whether an install is waiting. A contended lock is a push in flight, which
+/// counts as waiting rather than risking a missed boost.
+pub(crate) fn has_pending() -> bool {
+    PENDING.try_lock().map_or(true, |q| !q.is_empty())
 }
 
 /// Perform every queued install.

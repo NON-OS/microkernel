@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Init's residual loop after every capsule has been spawned.
+//! Init's residual loop after every capsule has been spawned. Walks
+//! the lifecycle registry once per second; any capsule that exited is
+//! observed `Dead` on its next IPC. The kernel does not actively
+//! probe capsules — liveness arrives through the existing process
+//! state machine.
 
 use crate::process::core::Priority;
 
@@ -22,13 +26,10 @@ const TICK_INTERVAL_MS: u64 = 1000;
 const PARK_SLICE_MS: u64 = 20;
 
 pub(crate) fn init_loop() -> ! {
-    // Tell the queue side which process drains it.
-    if let Some(pid) = crate::process::current_pid() {
-        crate::userspace::init::owns_the_queues(pid);
-    }
     let mut last_tick = 0u64;
     #[cfg(feature = "microkernel-setup-wizard")]
     let mut desktop_started = false;
+    let mut boosted = false;
     loop {
         let now = crate::time::timestamp_millis();
         if now >= last_tick + TICK_INTERVAL_MS {
@@ -40,21 +41,36 @@ pub(crate) fn init_loop() -> ! {
             super::super::spawn_plan::spawn_post_wizard();
             desktop_started = true;
         }
-        // Perform any window-instance spawns the shell requested.
+        // Init runs at Priority::Low so an idle system spends its cycles on the
+        // apps, but the window-instance drain below (and the focus-frame
+        // delivery inside it) must not be starved: a busy-yielding app with a
+        // network fetch in flight would otherwise keep a low-priority init off
+        // the single CPU, so a dock click never opened its second window. Raise
+        // to Normal while there is queued window work and drop back to Low when
+        // idle, so the drain runs promptly without making an idle init costly.
+        let want = crate::userspace::init::instance_spawns_pending()
+            || crate::userspace::init::installs_pending();
+        if want != boosted {
+            set_init_priority(if want { Priority::Normal } else { Priority::Low });
+            boosted = want;
+        }
+        // Perform any window-instance spawns the shell requested. Running
+        // them here, in init's context, keeps the heavy spawn out of the
+        // calling capsule's syscall, which is what stopped the caller from
+        // resuming (it faulted on its own code under the wrong page tables).
         crate::userspace::init::service_instance_spawns();
         crate::userspace::init::service_installs();
-        // Back to Low now the queues are empty. Raising is the
-        // producer's job; only this loop can know when to stop.
-        if !crate::userspace::init::instance_spawns_pending() {
-            crate::userspace::init::settle_priority();
-        }
         park();
     }
 }
 
-// A bare yield left init permanently runnable, so `select_next_process` never
-// came up empty and the scheduler's `sti; hlt` idle path was unreachable: the
-// vCPU spun at full load with an idle desktop.
+// A bare yield left init permanently runnable, so `select_next_process`
+// never came up empty and the scheduler's `sti; hlt` idle path was
+// unreachable: the vCPU spun at full load with an idle desktop. Sleeping
+// on a short deadline takes init off the run queue between passes, which
+// lets the CPU actually halt, while still draining the shell's window
+// spawn requests inside one compositor frame. Falling back to the yield
+// keeps the loop live if init runs before its pid is current.
 fn park() {
     let Some(pid) = crate::process::current_pid() else {
         crate::sched::yield_now();
@@ -65,12 +81,8 @@ fn park() {
     crate::sched::yield_now();
 }
 
-// Set init's own scheduling priority.
+// Set init's own scheduling priority, through the one setter that holds the
+// lock with interrupts off.
 fn set_init_priority(p: Priority) {
-    use crate::process::core::{CURRENT_PID, PROCESS_TABLE};
-    use core::sync::atomic::Ordering;
-    let pid = CURRENT_PID.load(Ordering::Relaxed);
-    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        *pcb.priority.lock() = p;
-    }
+    super::super::set_init_priority(p);
 }
