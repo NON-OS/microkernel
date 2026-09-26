@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A guest reaching for the NØNOS native ABI.
+//! A guest trying to leave its filesystem tree.
 
 use std::process::ExitCode;
 
-use nonos_linux_guests::native_probe;
+use nonos_linux_guests::fs_probe;
 use nonos_linux_guests::report::Report;
 
 fn main() -> ExitCode {
-    let mut r = Report::new("native");
-    native_probe::scan(&mut r);
+    let mut r = Report::new("fs");
+    fs_probe::scan(&mut r);
     r.finish()
 }

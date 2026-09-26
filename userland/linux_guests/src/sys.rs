@@ -30,7 +30,10 @@ pub const NANOSLEEP: u64 = 35;
 pub const GETPID: u64 = 39;
 pub const KILL: u64 = 62;
 pub const PTRACE: u64 = 101;
+pub const CHDIR: u64 = 80;
+pub const RENAME: u64 = 82;
 pub const SYMLINK: u64 = 88;
+pub const GETCWD: u64 = 79;
 pub const OPENAT: u64 = 257;
 pub const PROCESS_VM_READV: u64 = 310;
 
