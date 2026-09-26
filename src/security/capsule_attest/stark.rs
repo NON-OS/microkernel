@@ -31,7 +31,7 @@ use alloc::vec::Vec;
 // agree exactly; a drift downward in queries or grinding still verifies.
 use crate::crypto::stark::attest_params::{GRIND_BITS, LOG_ROUNDS, N_QUERIES, EXTRA_BLOWUP_BITS as EXTRA_BLOWUP};
 
-const MAGIC: &[u8; 8] = b"NZKSTRK1";
+pub(super) const MAGIC: &[u8; 8] = b"NZKSTRK1";
 
 /// Read four little-endian words into a rate-width Poseidon digest.
 fn to_rate(bytes: &[u8]) -> [Fp; RATE] {
