@@ -26,8 +26,6 @@ use super::fetch::fetch;
 use super::index_load::load_index;
 use super::place::unpack;
 
-pub(super) const HOST: &str = "dl-cdn.alpinelinux.org";
-pub(super) const PORT: u16 = 80;
 pub(super) const RELEASE: &str = "v3.20";
 pub(super) const ARCH: &str = "x86_64";
 pub(super) const BRANCHES: [&str; 2] = ["main", "community"];

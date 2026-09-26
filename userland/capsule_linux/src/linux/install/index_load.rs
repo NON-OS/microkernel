@@ -22,14 +22,16 @@ use alloc::vec::Vec;
 use super::auth::{rsa_verify, signed_index};
 use super::http::get;
 use super::index::Index;
-use super::run::{ARCH, BRANCHES, HOST, PORT, RELEASE};
+use super::mirror::mirror;
+use super::run::{ARCH, BRANCHES, RELEASE};
 use super::tar::entries;
 
 pub(super) fn load_index() -> Option<Index> {
     let mut all: Vec<u8> = Vec::new();
     for branch in BRANCHES {
         let path = format!("/alpine/{RELEASE}/{branch}/{ARCH}/APKINDEX.tar.gz");
-        let raw = get(HOST, PORT, &path)?;
+        let (ip, port) = mirror();
+        let raw = get(ip, port, &path)?;
         /*
          * A branch whose signature does not verify refuses the whole index:
          * resolving against half of it would pick a dependency from whichever
