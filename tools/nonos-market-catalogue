@@ -295,7 +295,9 @@ def main() -> int:
     ap.add_argument("--cache", type=Path, default=Path("target/market-cache"))
     ap.add_argument("--operator-pubkey", required=True,
                     help="hex Ed25519 key the index will be signed under")
-    ap.add_argument("--alpine-release", default="v3.21")
+    # The release the Linux installer fetches from (run.rs RELEASE). A listing
+    # hashed from another release names bytes the installer never downloads.
+    ap.add_argument("--alpine-release", default="v3.20")
     ap.add_argument("--alpine-arch", default="x86_64")
     ap.add_argument("--linux-package", action="append", default=[],
                     help="repeatable; a package to fetch, hash and list")
