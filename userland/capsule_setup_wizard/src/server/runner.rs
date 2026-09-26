@@ -10,8 +10,16 @@ use crate::state::Context;
 use super::step::{self, DONE};
 
 pub fn run(mut ctx: Context) -> ! {
-    let _ = input_router::subscribe(ctx.router_port, 1);
-    let _ = input_router::grab_keyboard(ctx.router_port, 2);
+    // Said on the console: a setup that never gets the keyboard looks like one
+    // that is waiting for a person.
+    let heard = input_router::subscribe(ctx.router_port, 1).is_ok();
+    let held = input_router::grab_keyboard(ctx.router_port, 2).is_ok();
+    let line: &[u8] = match (heard, held) {
+        (true, true) => b"[SETUP] keyboard held\n",
+        (true, false) => b"[SETUP] subscribed, but the keyboard grab was refused\n",
+        _ => b"[SETUP] the input router refused the subscription\n",
+    };
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
     redraw(&ctx);
     let mut rx = vec![0u8; DELIVERY_LEN.max(64)];
     loop {

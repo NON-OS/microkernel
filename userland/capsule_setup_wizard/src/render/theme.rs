@@ -22,5 +22,6 @@ pub const STEP_LABELS: &[&[u8]] = &[
     b"Admin",
     b"Privacy",
     b"Appearance",
+    b"Installed software",
     b"Review",
 ];
