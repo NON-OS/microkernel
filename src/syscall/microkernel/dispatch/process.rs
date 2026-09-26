@@ -20,6 +20,7 @@ use crate::process::foreign::{
     sys_foreign_thread, sys_foreign_wait, sys_peer_copy, sys_peer_map, sys_peer_protect,
     sys_peer_tls, sys_peer_unmap,
 };
+use crate::syscall::microkernel::app_install::sys_app_install;
 use crate::syscall::microkernel::attest::sys_attest_status;
 use crate::syscall::microkernel::attest_doc::sys_attest_doc;
 use crate::syscall::microkernel::attest_entries::sys_attest_entries;
@@ -27,13 +28,13 @@ use crate::syscall::microkernel::battery::sys_battery_status;
 use crate::syscall::microkernel::capsule_load::sys_capsule_load;
 use crate::syscall::microkernel::capsule_verify::sys_capsule_verify;
 use crate::syscall::microkernel::enrol_dev_root::{sys_dev_root_confirm, sys_dev_root_request};
+use crate::syscall::microkernel::enrol_local_root::sys_dev_root_local;
 use crate::syscall::microkernel::futex::{sys_futex_wait, sys_futex_wake};
 use crate::syscall::microkernel::install_source::sys_install_source;
-use crate::syscall::microkernel::local_sign::sys_local_sign;
-use crate::syscall::microkernel::app_install::sys_app_install;
-use crate::syscall::microkernel::enrol_local_root::sys_dev_root_local;
-use crate::syscall::microkernel::local_verify::sys_local_verify;
 use crate::syscall::microkernel::kill::sys_kill;
+use crate::syscall::microkernel::local_consent::{sys_local_consent, sys_local_restore};
+use crate::syscall::microkernel::local_sign::sys_local_sign;
+use crate::syscall::microkernel::local_verify::sys_local_verify;
 use crate::syscall::microkernel::memory::{sys_mmap, sys_munmap};
 use crate::syscall::microkernel::numbers::*;
 use crate::syscall::microkernel::proc_output::sys_proc_output;
@@ -99,6 +100,8 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_LOCAL_VERIFY => sys_local_verify(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_APP_INSTALL => sys_app_install(a.a0, a.a1, a.a2, a.a3),
         SYS_DEV_ROOT_LOCAL => sys_dev_root_local(),
+        SYS_LOCAL_CONSENT => sys_local_consent(a.a0, a.a1),
+        SYS_LOCAL_RESTORE => sys_local_restore(a.a0),
         SYS_DEV_ROOT_REQUEST => sys_dev_root_request(a.a0),
         SYS_DEV_ROOT_CONFIRM => sys_dev_root_confirm(a.a0),
         SYS_SPAWN_INSTANCE => sys_spawn_instance(a.a0, a.a1),

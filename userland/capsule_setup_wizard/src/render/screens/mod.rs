@@ -3,6 +3,7 @@ pub mod appearance;
 pub mod keyboard;
 pub mod keygen;
 pub mod language;
+pub mod local_software;
 pub mod network;
 pub mod passphrase;
 pub mod persistence;
@@ -23,7 +24,8 @@ pub fn draw(ctx: &Context) {
         6 => admin::draw(ctx),
         7 => privacy::draw(ctx),
         8 => appearance::draw(ctx),
-        9 => review::draw(ctx),
+        9 => local_software::draw(ctx),
+        10 => review::draw(ctx),
         _ => crate::render::frame(ctx, b"Setup", b"", b"ENTER NEXT  ESC BACK"),
     }
 }
@@ -39,7 +41,8 @@ pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {
         6 => admin::on_key(ctx, code),
         7 => privacy::on_key(ctx, code),
         8 => appearance::on_key(ctx, code),
-        9 => review::on_key(ctx, code),
+        9 => local_software::on_key(ctx, code),
+        10 => review::on_key(ctx, code),
         _ => default_key(code),
     }
 }

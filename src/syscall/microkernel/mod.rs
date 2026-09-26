@@ -41,6 +41,7 @@ pub mod kill;
 pub mod app_install;
 pub mod enrol_local_root;
 mod local_image;
+pub mod local_consent;
 pub mod local_sign;
 pub mod local_verify;
 pub mod memory;

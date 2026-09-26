@@ -128,4 +128,6 @@ pub enum SyscallNumber {
     MkLocalVerify = tag4(b"MLVF"),
     MkAppInstall = tag4(b"MAIN"),
     MkDevRootLocal = tag4(b"MDRO"),
+    MkLocalConsent = tag4(b"MLCG"),
+    MkLocalRestore = tag4(b"MLCR"),
 }

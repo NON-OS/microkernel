@@ -107,6 +107,8 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MLVF", SyscallNumber::MkLocalVerify, "MkLocalVerify"),
     e(b"MAIN", SyscallNumber::MkAppInstall, "MkAppInstall"),
     e(b"MDRO", SyscallNumber::MkDevRootLocal, "MkDevRootLocal"),
+    e(b"MLCG", SyscallNumber::MkLocalConsent, "MkLocalConsent"),
+    e(b"MLCR", SyscallNumber::MkLocalRestore, "MkLocalRestore"),
     e(b"MTRN", SyscallNumber::MkToolRun, "MkToolRun"),
     e(b"MSOW", SyscallNumber::MkStdoutWrite, "MkStdoutWrite"),
     e(b"MSWR", SyscallNumber::MkStoreWrite, "MkStoreWrite"),

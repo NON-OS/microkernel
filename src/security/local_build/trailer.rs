@@ -24,7 +24,7 @@ use crate::security::capsule_attest::layout::POLICY_TREE_DEPTH;
 const TRAILER_MAGIC: &[u8; 8] = b"NZKCAPS2";
 
 /// Magic, four 32-byte fields, the depth, the siblings, the packed directions.
-pub const TRAILER_LEN: usize =
+pub(super) const TRAILER_LEN: usize =
     8 + 4 * 32 + 1 + POLICY_TREE_DEPTH * 32 + POLICY_TREE_DEPTH.div_ceil(8);
 
 /// The inverse of `capsule_attest::trailer::parse`, field for field. Written

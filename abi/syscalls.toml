@@ -91,6 +91,8 @@ MLSG = 0x47534C4D
 MLVF = 0x46564C4D
 MAIN = 0x4E49414D
 MDRO = 0x4F52444D
+MLCG = 0x47434C4D
+MLCR = 0x52434C4D
 MIRW = 0x5752494D
 MIRY = 0x5952494D
 MKAR = 0x52414B4D
@@ -693,6 +695,18 @@ ret  = {type="i64"}
 nr   = 0x4F52444D
 caps = ["EnrolDevRoot"]
 args = []
+ret  = {type="i64"}
+
+[desc.MLCG]
+nr   = 0x47434C4D
+caps = ["EnrolDevRoot"]
+args = [{name="op",type="u64",dir="in"},{name="token_ptr",type="u8*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MLCR]
+nr   = 0x52434C4D
+caps = ["EnrolDevRoot"]
+args = [{name="token_ptr",type="u8*",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MPPT]

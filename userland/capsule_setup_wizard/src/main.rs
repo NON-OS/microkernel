@@ -4,6 +4,7 @@
 extern crate alloc;
 
 mod clients;
+mod consent;
 mod protocol;
 mod render;
 mod server;
@@ -21,5 +22,8 @@ pub unsafe extern "C" fn _start() -> ! {
         Ok(ctx) => ctx,
         Err(_) => mk_exit(2),
     };
+    let mut ctx = ctx;
+    ctx.local_was = consent::restore();
+    ctx.local_sel = ctx.local_was as u8;
     server::runner::run(ctx)
 }

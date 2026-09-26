@@ -1160,8 +1160,8 @@ DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
 		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid \
 		net-core net-sockets net-nym socks5 policy wallpaper_catalog \
 		installer input-router compositor wm desktop-shell image-codec \
-		clipboard login wallpaper toolkit about install install-cli boot-splash calculator \
-		clipboard login wallpaper toolkit about linux boot-splash calculator \
+		clipboard login wallpaper toolkit about install install-cli linux boot-splash \
+		calculator market app_store setup-wizard \
 		browser wallet-nonos terminal file-manager text-editor \
 		settings process-manager attest power \
 		audio driver-hda audio_player video-player
@@ -1184,7 +1184,7 @@ DESKTOP_GUI_CAPSULE_ARTIFACTS := $(DESKTOP_BASE_CAPSULE_ARTIFACTS) \
 nonos-mk-desktop-gui-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
-	$(call nonos_kernel_build,microkernel-desktop-gui + nonos-stark-attest,microkernel-desktop-gui$(_boot_comma)nonos-stark-attest)
+	$(call nonos_kernel_build,microkernel-setup-wizard + nonos-stark-attest,microkernel-setup-wizard$(_boot_comma)nonos-stark-attest)
 
 # nonos-mk-install-prod: the desktop profile with the NVMe driver capsule in
 # it. The desktop cut leaves NVMe out because a driver whose hardware is absent

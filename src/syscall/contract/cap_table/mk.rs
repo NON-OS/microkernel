@@ -64,7 +64,9 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          */
         SyscallNumber::MkDevRootRequest
         | SyscallNumber::MkDevRootConfirm
-        | SyscallNumber::MkDevRootLocal => caps.can_enrol_dev_root(),
+        | SyscallNumber::MkDevRootLocal
+        | SyscallNumber::MkLocalConsent
+        | SyscallNumber::MkLocalRestore => caps.can_enrol_dev_root(),
 
         SyscallNumber::MkTimeAdjust => caps.can_set_time(),
 
