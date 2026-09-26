@@ -22,6 +22,7 @@ use nonos_libc::CapsuleVerifySummary;
 
 use crate::linux::file::{key, store_read};
 
+use super::attest_local;
 use super::attest_paths::beside;
 use super::attest_publisher;
 
@@ -31,12 +32,8 @@ const MAX_ARTIFACT: u32 = 1 << 22;
 
 pub fn verify(path: &[u8], image: &[u8]) -> Result<CapsuleVerifySummary, &'static str> {
     let trailer = fetch(path, b".zk_trailer.bin")?;
-    /*
-     * No certificate means nobody published it, and nothing on this machine
-     * vouches for what it installs yet, so there is no proof to check.
-     */
     let Ok(cert) = fetch(path, b".nonos_id_cert.bin") else {
-        return Err("no publisher, and this machine vouches for nothing it installs");
+        return attest_local::verify(image, &trailer);
     };
     let manifest = fetch(path, b".manifest.bin")?;
     attest_publisher::verify(image, &cert, &manifest, &trailer)

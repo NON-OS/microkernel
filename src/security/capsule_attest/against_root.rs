@@ -16,15 +16,15 @@
 
 use super::error::AttestError;
 
-/// Verify a capsule's proof against one specific root.
+/// Verify a capsule's proof against the vendor's root.
 ///
-/// The root is a parameter rather than a lookup. That is the whole point: the
-/// verification is identical whoever owns the tree, so a capsule built on this
-/// machine clears exactly the bar a shipped one does. Only membership differs.
+/// A kernel built for STARK attestation accepts only a STARK here, whatever
+/// the trailer says it is: letting the trailer choose would let a prover pick
+/// the weaker verifier for the root everything shipped is measured under.
 ///
 /// Returns the measurement the proof was checked against, so a caller records
 /// what was verified rather than recomputing it and hoping the two agree.
-pub(super) fn verify(
+pub(super) fn vendor(
     trailer: &[u8],
     elf: &[u8],
     granted_caps: u64,
@@ -36,21 +36,27 @@ pub(super) fn verify(
     }
     #[cfg(not(feature = "nonos-stark-attest"))]
     {
-        use super::layout::POLICY_EPOCH;
-        use super::trailer::parse;
-        use crate::crypto::zk_kernel::verify_enrolled;
-
-        let proof = parse(trailer)?;
-        let capsule_hash = *blake3::hash(elf).as_bytes();
-        let mut ctx = [0u8; 48];
-        ctx[..32].copy_from_slice(&capsule_hash);
-        ctx[32..40].copy_from_slice(&granted_caps.to_be_bytes());
-        ctx[40..48].copy_from_slice(&POLICY_EPOCH.to_be_bytes());
-
-        if verify_enrolled(&proof, root, &ctx) {
-            Ok(capsule_hash)
-        } else {
-            Err(AttestError::Rejected)
-        }
+        super::pedersen_root::verify(trailer, elf, granted_caps, root)
     }
+}
+
+/// Verify against a root a human enrolled on this machine. Here the trailer's
+/// magic picks the verifier: a local root's leaf is a commitment to a secret
+/// only this kernel holds, so the Pedersen proof it mints is sound for it, and
+/// minting a STARK locally would cost minutes.
+pub(super) fn enrolled(
+    trailer: &[u8],
+    elf: &[u8],
+    granted_caps: u64,
+    root: &[u8; 32],
+) -> Result<[u8; 32], AttestError> {
+    /*
+     * A build without the STARK verifier has no reader for that magic; the
+     * Pedersen parser refuses it as malformed, which is the right answer.
+     */
+    #[cfg(feature = "nonos-stark-attest")]
+    if trailer.starts_with(super::stark::MAGIC) {
+        return super::stark::verify_against(trailer, elf, granted_caps, root);
+    }
+    super::pedersen_root::verify(trailer, elf, granted_caps, root)
 }

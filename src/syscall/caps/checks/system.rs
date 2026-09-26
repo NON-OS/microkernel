@@ -37,4 +37,8 @@ impl CapabilityToken {
     pub fn can_foreign_exec(&self) -> bool {
         self.grants(Capability::ForeignExec) && self.is_valid()
     }
+    #[inline]
+    pub fn can_local_sign(&self) -> bool {
+        self.grants(Capability::LocalSign) && self.is_valid()
+    }
 }

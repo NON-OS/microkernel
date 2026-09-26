@@ -25,7 +25,7 @@ use super::error::LocalBuildError;
 use super::identity::with_identity;
 use super::trailer::encode;
 
-/// Laid out as `against_root::verify` lays it out. If the two disagree the
+/// Laid out as `pedersen_root::verify` lays it out. If the two disagree the
 /// proof verifies against nothing.
 fn context(elf: &[u8], granted_caps: u64) -> [u8; 48] {
     let mut ctx = [0u8; 48];
@@ -41,13 +41,14 @@ fn context(elf: &[u8], granted_caps: u64) -> [u8; 48] {
 /// manifest cannot be widened after the proof is made. The root still has to
 /// be enrolled before any of this spawns.
 pub fn sign(elf: &[u8], granted_caps: u64) -> Result<Vec<u8>, LocalBuildError> {
-    // capsule_attest::against_root sends this build's trailers to
-    // stark::verify_against, which reads NZKSTRK1 and a serialized STARK. What
-    // is minted below is the NZKCAPS2 Pedersen trailer the other branch reads,
-    // so refuse here rather than hand back bytes that spawn will call
-    // malformed.
-    if cfg!(feature = "nonos-stark-attest") {
-        return Err(LocalBuildError::StarkRequired);
+    /*
+     * A proof made here admits a capsule holding what it names, so it names
+     * nothing beyond what every process inherits. Minting LocalSign, or any
+     * scarce right, would let a signer hand out authority it cannot be asked
+     * to justify.
+     */
+    if granted_caps & !crate::process::core::AMBIENT_CAPS != 0 {
+        return Err(LocalBuildError::ScarceCapability);
     }
     let ctx = context(elf, granted_caps);
     let proof = with_identity(|id| {

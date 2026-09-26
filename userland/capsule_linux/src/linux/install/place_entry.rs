@@ -21,6 +21,7 @@ use nonos_libc::mk_debug;
 
 use crate::linux::file::{key, store_write, visible};
 
+use super::enrol::vouch;
 use super::provenance::Provenance;
 use super::tar::Entry;
 
@@ -42,18 +43,20 @@ pub(super) fn one(entry: &Entry, from: Provenance) -> bool {
         return false;
     }
     if is_elf(&entry.body) {
-        unvouched(from);
+        vouch_for(&at, &entry.body, from);
     }
     true
 }
 
-/// An installed program runs only once something vouches for it, and nothing
-/// on this machine can yet; the line says which reason applies.
-fn unvouched(from: Provenance) {
+/// Minting says this machine agreed to run these bytes, so it is only said
+/// about bytes something authenticated.
+fn vouch_for(at: &[u8], body: &[u8], from: Provenance) {
     if from == Provenance::Unauthenticated {
         say(b"[LINUX] installed unvouched: package bytes are not authenticated\n");
-    } else {
-        say(b"[LINUX] installed unvouched: this machine cannot vouch for a program\n");
+        return;
+    }
+    if !vouch(at, body) {
+        say(b"[LINUX] installed but unvouched: no enrolled root, or may not mint\n");
     }
 }
 

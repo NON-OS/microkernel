@@ -14,22 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum LocalBuildError {
-    NoIdentity,
-    ProofFailed,
-    TrailerShape,
-    /// The capabilities asked for include one a local proof may not carry.
-    ScarceCapability,
-}
+//! The Pedersen membership proof, checked against one root.
 
-impl LocalBuildError {
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::NoIdentity => "no local build identity",
-            Self::ProofFailed => "local proof generation failed",
-            Self::TrailerShape => "proof does not match the trailer layout",
-            Self::ScarceCapability => "a local proof may carry only the ambient capabilities",
-        }
+use super::error::AttestError;
+use super::layout::POLICY_EPOCH;
+use super::trailer::parse;
+use crate::crypto::zk_kernel::verify_enrolled;
+
+pub(super) fn verify(
+    trailer: &[u8],
+    elf: &[u8],
+    granted_caps: u64,
+    root: &[u8; 32],
+) -> Result<[u8; 32], AttestError> {
+    let proof = parse(trailer)?;
+    let capsule_hash = *blake3::hash(elf).as_bytes();
+    let mut ctx = [0u8; 48];
+    ctx[..32].copy_from_slice(&capsule_hash);
+    ctx[32..40].copy_from_slice(&granted_caps.to_be_bytes());
+    ctx[40..48].copy_from_slice(&POLICY_EPOCH.to_be_bytes());
+    if verify_enrolled(&proof, root, &ctx) {
+        Ok(capsule_hash)
+    } else {
+        Err(AttestError::Rejected)
     }
 }

@@ -14,22 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proving what this machine built, so it will run it.
-//!
-//! One secret, one leaf, one root. Each local build gets a membership proof
-//! whose challenge binds the measurement and the capabilities, so a trailer
-//! minted for a capsule holding nothing does not verify for the same bytes
-//! installed with more.
-//!
-//! Nothing here enrols. Minting a proof is not consent.
+//! The kernel's attestation files a local trailer passes through.
 
-mod error;
-mod identity;
-mod sign;
-mod trailer;
-mod tree;
+#[path = "../../../../../src/security/capsule_attest/error.rs"]
+pub mod error;
 
-pub use error::LocalBuildError;
-pub use identity::root;
-pub use sign::sign;
-pub use trailer::TRAILER_LEN;
+#[path = "../../../../../src/security/capsule_attest/layout.rs"]
+pub mod layout;
+
+#[path = "../../../../../src/security/capsule_attest/trailer.rs"]
+pub mod trailer;
+
+#[path = "../../../../../src/security/capsule_attest/pedersen_root.rs"]
+pub mod pedersen_root;
+
+#[cfg(test)]
+mod local_root_refusals;
+#[cfg(test)]
+mod local_root_tests;
+#[cfg(test)] mod diag_tmp;

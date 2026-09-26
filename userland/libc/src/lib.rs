@@ -32,6 +32,7 @@ pub mod graphics;
 pub mod heap;
 pub mod install_source;
 pub mod ipc;
+mod local_sign;
 pub mod mem;
 pub mod peer;
 #[cfg(feature = "panic-handler")]
@@ -90,6 +91,7 @@ pub use ipc::{
     mk_ipc_call, mk_ipc_call_timeout, mk_ipc_recv, mk_ipc_recv_from, mk_ipc_reply, mk_ipc_send,
     mk_ipc_send_to_pid, mk_service_lookup, mk_service_register,
 };
+pub use local_sign::{mk_local_sign, mk_local_sign_len, mk_local_verify};
 pub use mem::{mk_mmap, mk_munmap};
 pub use proc_output::{mk_proc_input, mk_proc_output, mk_stdin_read};
 pub use process::{mk_args, mk_getpid, mk_kill, mk_pid_alive, mk_wait};

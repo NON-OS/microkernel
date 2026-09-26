@@ -146,6 +146,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkForeignFork
         | SyscallNumber::MkPeerUnmap
         | SyscallNumber::MkForeignExec => caps.can_foreign_exec(),
+        SyscallNumber::MkLocalSign | SyscallNumber::MkLocalVerify => caps.can_local_sign(),
 
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare

@@ -43,7 +43,8 @@ pub const LINUX_CAPS: u64 = Capability::CoreExec.bit()
     | Capability::Memory.bit()
     | Capability::Crypto.bit()
     | Capability::Debug.bit()
-    | Capability::ForeignExec.bit();
+    | Capability::ForeignExec.bit()
+    | Capability::LocalSign.bit();
 
 pub fn spawn_linux_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)

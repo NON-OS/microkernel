@@ -14,22 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proving what this machine built, so it will run it.
-//!
-//! One secret, one leaf, one root. Each local build gets a membership proof
-//! whose challenge binds the measurement and the capabilities, so a trailer
-//! minted for a capsule holding nothing does not verify for the same bytes
-//! installed with more.
-//!
-//! Nothing here enrols. Minting a proof is not consent.
+//! The spawn gate's local-root path, mounted from the kernel.
 
-mod error;
-mod identity;
-mod sign;
-mod trailer;
-mod tree;
-
-pub use error::LocalBuildError;
-pub use identity::root;
-pub use sign::sign;
-pub use trailer::TRAILER_LEN;
+pub mod capsule_attest;

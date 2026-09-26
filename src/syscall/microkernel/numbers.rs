@@ -91,6 +91,10 @@ pub const SYS_FOREIGN_FORK: u64 = tag4(b"MFFK");
 pub const SYS_PEER_UNMAP: u64 = tag4(b"MPUN");
 /// Release a parked guest into a new program its supervisor has loaded.
 pub const SYS_FOREIGN_EXEC: u64 = tag4(b"MFEX");
+/// A trailer proving this machine agreed to run bytes it installed itself.
+pub const SYS_LOCAL_SIGN: u64 = tag4(b"MLSG");
+/// Whether a trailer admits an image, by the spawn gate's own answer.
+pub const SYS_LOCAL_VERIFY: u64 = tag4(b"MLVF");
 /// Ask to enrol a signing root so software built here runs here. Prints a
 /// confirmation code; enrols nothing on its own.
 pub const SYS_DEV_ROOT_REQUEST: u64 = tag4(b"MDRQ");

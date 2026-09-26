@@ -17,6 +17,7 @@
 //! Installing a Linux program from within the system.
 
 mod download;
+mod enrol;
 mod http;
 mod index;
 mod index_load;

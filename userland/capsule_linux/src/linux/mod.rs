@@ -19,6 +19,7 @@
 
 mod abi;
 mod attest;
+mod attest_local;
 mod attest_paths;
 mod attest_publisher;
 mod call;
