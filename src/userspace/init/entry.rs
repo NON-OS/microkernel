@@ -143,6 +143,7 @@ fn lower_init_priority() {
     use core::sync::atomic::Ordering;
     let pid = CURRENT_PID.load(Ordering::Relaxed);
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+        let _irq = crate::interrupts::disable_interrupts_guard();
         *pcb.priority.lock() = Priority::Low;
     }
     super::instance_spawn::adopt_drain_pid(pid);
