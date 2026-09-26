@@ -20,7 +20,7 @@
 use crate::arch::context::SavedUser;
 use crate::process::userspace::{USER_CS, USER_DS};
 
-/// Words the entry stub pushes before it calls the handler.
+/// Words the syscall.S entry pushes before it calls the handler.
 pub const FRAME_WORDS: usize = 16;
 
 /// Offsets into that frame. rax is pushed last so it sits at zero and
