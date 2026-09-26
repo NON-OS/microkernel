@@ -65,6 +65,7 @@ def idx : capabilities.types.defs.Capability → Nat
   | .AppInstall => 30
   | .AttestRead => 31
   | .ForeignExec => 32
+  | .LocalSign => 33
 
 theorem idx_lt_64 (cap : capabilities.types.defs.Capability) : idx cap < 64 := by
   cases cap <;> decide
@@ -84,7 +85,7 @@ private theorem nat_bridge2 (n v k : Nat) (hv : v = 2 ^ k) :
 /-- The extracted bit table is total and yields exactly one bit: the power of
     two at the capability's index. -/
 theorem bit_spec (cap : capabilities.types.defs.Capability) :
-    ∃ v, capabilities.types.bit.Capability.bit cap = ok v ∧ v.val = 2 ^ idx cap := by
+    ∃ v, capabilities.types.defs.Capability.bit cap = ok v ∧ v.val = 2 ^ idx cap := by
   cases cap <;> exact ⟨_, rfl, by decide⟩
 
 /-- A single test never fails, and answers exactly the denotation: the
@@ -92,7 +93,7 @@ theorem bit_spec (cap : capabilities.types.defs.Capability) :
 theorem has_capability_spec (bits : Std.U64) (cap : capabilities.types.defs.Capability) :
     capabilities.bits.has_capability bits cap = ok (capsOf bits.val (idx cap)) := by
   cases cap <;> (
-    simp only [capabilities.bits.has_capability, capabilities.types.bit.Capability.bit,
+    simp only [capabilities.bits.has_capability, capabilities.types.defs.Capability.bit,
       lift, bind_tc_ok, ok.injEq, Nonos.CapabilityBits.capsOf, idx]
     rw [u64_ne_zero]
     simp only [UScalar.val_and]
