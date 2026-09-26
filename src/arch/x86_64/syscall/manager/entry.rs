@@ -39,7 +39,7 @@ pub(super) extern "C" fn syscall_handler(
         // A number this kernel does not know.
         let args = [arg1, arg2, arg3, arg4, arg5, arg6];
         // SAFETY: eK@nonos.systems - `frame` is the pointer the entry
-        // stub in syscall.S passed, naming the sixteen words it pushed
+        // code in syscall.S passed, naming the sixteen words it pushed
         // on this kernel stack, which outlive this call. This is the
         // one place that pointer is turned into a reference; everything
         // downstream of it is safe code.
