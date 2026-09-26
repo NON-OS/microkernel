@@ -14,7 +14,7 @@ CAPSULE_FEATURE          := nonos-capsule-setup-wizard
 CAPSULE_NAMESPACE        := systems.nonos.app.setup_wizard
 CAPSULE_SERVICE_ENDPOINT := service:4794:app.setup_wizard
 CAPSULE_REPLY_ENDPOINT   := reply:4795:endpoint.app.setup_wizard.reply
-CAPSULE_REQUIRED_CAPS    := 0x8001819
+CAPSULE_REQUIRED_CAPS    := 0x8001919
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_setup_wizard
 
 include nonos-mk/capsule.mk

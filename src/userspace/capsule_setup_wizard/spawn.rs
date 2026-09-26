@@ -52,7 +52,8 @@ pub fn spawn_setup_wizard_capsule() -> Result<(), SpawnError> {
             | Capability::Memory.bit()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit()
-            | Capability::EnrolDevRoot.bit(),
+            | Capability::EnrolDevRoot.bit()
+            | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
