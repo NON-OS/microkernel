@@ -20,6 +20,7 @@
 mod dirent_tests;
 mod elf_tests;
 mod exec_shebang_tests;
+mod key_tests;
 mod resolve_tests;
 mod stack_words_tests;
 mod stat_tests;

@@ -25,6 +25,9 @@ pub mod wire;
 #[path = "../../capsule_linux/src/linux/wayland/args.rs"]
 pub mod args;
 
+#[path = "../../capsule_linux/src/linux/file/root.rs"]
+pub mod root;
+
 #[path = "../../capsule_linux/src/linux/file/resolve.rs"]
 pub mod resolve;
 
@@ -37,6 +40,7 @@ pub mod statbuf;
 #[path = "../../capsule_linux/src/linux/call/spawn/exec_shebang.rs"]
 pub mod exec_shebang;
 
+#[cfg(test)]
 pub mod image;
 
 /// The installer's parsers, which read bytes fetched off a network.

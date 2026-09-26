@@ -32,3 +32,6 @@ pub mod elf;
 
 #[path = "../../../capsule_linux/src/linux/image/elf_phdr.rs"]
 pub mod elf_phdr;
+
+#[cfg(test)]
+mod phdr_tests;
