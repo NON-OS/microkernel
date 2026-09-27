@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::arch::x86_64::iommu::globals::snoop_control;
 use crate::arch::x86_64::iommu::tables::frame::entries_mut;
-use crate::arch::x86_64::iommu::tables::touched::Touched;
 use crate::arch::x86_64::iommu::tables::sl_pte::{leaf, level_span, SL_LARGE};
+use crate::arch::x86_64::iommu::tables::touched::Touched;
 use crate::arch::x86_64::iommu::tables::walk::walk_create_to;
 use crate::arch::x86_64::iommu::types::VtdError;
 
@@ -45,7 +46,7 @@ pub fn map_identity(root: u64, levels: u8, limit: u64, leaf_level: u8) -> Result
     let mut touched = Touched::default();
     while addr < end {
         let slot = walk_create_to(root, addr, levels, leaf_level)?;
-        entries_mut(slot.table_phys)?[slot.index] = leaf(addr, true, true, true) | large;
+        entries_mut(slot.table_phys)?[slot.index] = leaf(addr, true, true, snoop_control()) | large;
         touched.note(slot.table_phys);
         addr += span;
     }

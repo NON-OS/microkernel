@@ -16,7 +16,7 @@
 
 use super::assign::assign_enumerated;
 use super::domain::identity_domain;
-use crate::arch::x86_64::iommu::globals::{set_enforcing, set_page_levels};
+use crate::arch::x86_64::iommu::globals::{set_enforcing, set_page_levels, set_snoop_control};
 use crate::arch::x86_64::iommu::tables::root::root_table;
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::enable::bring_into_service;
@@ -32,6 +32,7 @@ pub fn bring_up() -> Result<usize, VtdError> {
     let levels = info.levels.page_table_levels();
 
     set_page_levels(levels);
+    set_snoop_control(info.ecap);
     let root = root_table()?;
 
     let (domain, sl_root) = identity_domain(levels, info.cap)?;
