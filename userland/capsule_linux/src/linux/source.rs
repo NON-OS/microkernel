@@ -40,7 +40,7 @@ pub fn source() -> Option<(Vec<u8>, Vec<u8>, Origin)> {
         let bytes = store_read(&key(&path), MAX_IMAGE).ok()?;
         return Some((path, bytes, Origin::Store));
     }
-    Some(match named() {
+    Some(match named().or_else(|| super::boot_guest::boot_guest(MAX_IMAGE)) {
         Some((path, bytes)) => (path, bytes, Origin::Store),
         None => (b"/bin/busybox".to_vec(), BUILT_IN.to_vec(), Origin::BuiltIn),
     })

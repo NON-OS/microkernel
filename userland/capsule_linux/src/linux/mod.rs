@@ -22,6 +22,7 @@ mod attest;
 mod attest_local;
 mod attest_paths;
 mod attest_publisher;
+mod boot_guest;
 mod call;
 mod env;
 mod file;

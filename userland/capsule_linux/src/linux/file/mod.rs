@@ -17,6 +17,7 @@
 //! The filesystem a guest sees.
 
 mod at;
+mod clamp;
 pub(super) mod close;
 mod cstr;
 mod dir;
