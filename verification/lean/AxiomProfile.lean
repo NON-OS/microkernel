@@ -406,3 +406,18 @@ import Nonos
 #print axioms Nonos.StationAddress.never_a_factory_address
 #print axioms Nonos.StationAddress.never_broadcast
 #print axioms Nonos.StationAddress.never_zero
+
+-- The answer path: a refusal that does not reach the caller is not a refusal,
+-- and a call nobody answered must deliver nothing. Both were unstated until a
+-- resume from the saved trap frame reported every refused syscall as success.
+#print axioms Nonos.Answer.refusal_is_an_error
+#print axioms Nonos.Answer.served_is_not_an_error
+#print axioms Nonos.Answer.error_test_is_faithful
+#print axioms Nonos.Answer.parked_yields_nothing
+#print axioms Nonos.Answer.observation_implies_decided
+#print axioms Nonos.Answer.answer_ignores_the_request
+#print axioms Nonos.Answer.trap_frame_resume_fakes_success
+#print axioms Nonos.Answer.trap_frame_resume_is_unsound
+#print axioms Nonos.Answer.small_request_numbers_look_like_success
+#print axioms Nonos.Answer.gate_refusals_reach_the_caller
+#print axioms Nonos.Answer.gate_is_void_when_answered_from_the_frame
