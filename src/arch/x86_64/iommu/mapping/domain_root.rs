@@ -14,16 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod limits;
-mod map;
-mod pool;
-mod records;
-mod release;
-mod scrub;
-mod types;
-mod va;
+use crate::arch::x86_64::iommu::globals::state::VtdState;
+use crate::arch::x86_64::iommu::types::{DomainId, VtdError, MAX_VTD_DOMAINS};
 
-pub use map::map_for_caller;
-pub(crate) use pool::{init_display_pool, init_low32_pool, low32_capacity_pages};
-pub use release::{release_all_for_pid, release_for_device, unmap_grant};
-pub use types::{DmaError, DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult};
+/// The second-level root of a live domain, read under the caller's lock.
+pub(super) fn domain_root(state: &VtdState, domain: DomainId) -> Result<u64, VtdError> {
+    let index = domain.as_u16() as usize;
+    if index >= MAX_VTD_DOMAINS || !state.domains[index].used {
+        return Err(VtdError::DomainNotFound);
+    }
+    Ok(state.domains[index].root)
+}

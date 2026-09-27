@@ -17,6 +17,7 @@
 use super::table::root_table;
 use crate::arch::x86_64::iommu::tables::context::{entry_address, is_present, root_low};
 use crate::arch::x86_64::iommu::tables::frame::{allocate_table, entries_mut};
+use crate::arch::x86_64::iommu::tables::publish::publish;
 use crate::arch::x86_64::iommu::types::VtdError;
 
 /// Root and context entries are 128 bits stored low half first, so entry `i`
@@ -41,5 +42,6 @@ pub(super) fn context_table_for(bus: u8) -> Result<u64, VtdError> {
     // describes is in place first.
     entries[slot + 1] = 0;
     entries[slot] = root_low(table);
+    publish(root);
     Ok(table)
 }

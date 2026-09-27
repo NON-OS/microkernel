@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod limits;
-mod map;
-mod pool;
-mod records;
-mod release;
-mod scrub;
-mod types;
-mod va;
+//! One IOMMU domain per driver capsule. A device a capsule claims leaves the
+//! identity domain for the capsule's own, which maps nothing until `MkDmaMap`
+//! grants a buffer, so the device reaches that capsule's grants and faults on
+//! everything else. Without a unit in service these are no-ops that say so:
+//! the device then reaches all of memory, and the boot log states it.
 
-pub use map::map_for_caller;
-pub(crate) use pool::{init_display_pool, init_low32_pool, low32_capacity_pages};
-pub use release::{release_all_for_pid, release_for_device, unmap_grant};
-pub use types::{DmaError, DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult};
+mod attach;
+mod detach;
+mod iova;
+mod map;
+mod table;
+
+pub(super) use attach::attach;
+pub(super) use detach::{detach, detach_all};
+pub(super) use map::{map, unmap};

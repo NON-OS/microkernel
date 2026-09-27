@@ -27,6 +27,8 @@ pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     }
     let epoch = claims[idx].epoch;
     claims.remove(idx);
+    drop(claims);
+    crate::hardware::broker::confine::detach(pid, device_id);
     Ok(epoch)
 }
 
@@ -37,5 +39,8 @@ pub fn release_all_for_pid(pid: u32) -> usize {
     let mut claims = CLAIMS.lock();
     let before = claims.len();
     claims.retain(|c| c.pid != pid);
-    before - claims.len()
+    let released = before - claims.len();
+    drop(claims);
+    crate::hardware::broker::confine::detach_all(pid);
+    released
 }

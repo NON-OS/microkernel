@@ -16,6 +16,7 @@
 
 use super::slot::LeafSlot;
 use crate::arch::x86_64::iommu::tables::frame::{allocate_table, entries_mut};
+use crate::arch::x86_64::iommu::tables::publish::publish;
 use crate::arch::x86_64::iommu::tables::sl_pte::{entry_address, index_for, is_present, table};
 use crate::arch::x86_64::iommu::types::VtdError;
 
@@ -48,6 +49,7 @@ pub fn walk_create_to(
         } else {
             let next = allocate_table()?;
             entries_mut(current)?[index] = table(next);
+            publish(current);
             next
         };
         level -= 1;

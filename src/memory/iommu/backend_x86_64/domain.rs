@@ -19,6 +19,7 @@
 use crate::arch::x86_64::iommu::domain::DomainId as VtdDomainId;
 use crate::arch::x86_64::iommu::domain::{create_domain, destroy_domain};
 use crate::arch::x86_64::iommu::globals::allocate_domain_id;
+use crate::arch::x86_64::iommu::types::VtdError;
 use crate::memory::iommu::{DomainId, IommuError};
 
 use super::enforced;
@@ -28,13 +29,17 @@ use super::enforced;
 /// this backend must never let a caller believe it has.
 pub(crate) fn allocate_domain() -> Result<DomainId, IommuError> {
     enforced::require()?;
-    let raw_id = allocate_domain_id();
-    if raw_id > u16::MAX as u64 {
-        return Err(IommuError::DomainExhausted);
+    // A slot found free can be taken by a racing claim before it is created;
+    // the loser looks again rather than failing a claim that had room.
+    for _ in 0..4 {
+        let raw = u16::try_from(allocate_domain_id()).map_err(|_| IommuError::DomainExhausted)?;
+        match create_domain(VtdDomainId::new(raw)) {
+            Ok(()) => return Ok(DomainId::new(raw)),
+            Err(VtdError::DomainAlreadyExists) => continue,
+            Err(_) => return Err(IommuError::DomainExhausted),
+        }
     }
-    let vtd_id = VtdDomainId::new(raw_id as u16);
-    create_domain(vtd_id).map_err(|_| IommuError::DomainExhausted)?;
-    Ok(DomainId::new(raw_id as u16))
+    Err(IommuError::DomainExhausted)
 }
 
 /// Teardown is deliberately ungated: a domain can only exist if allocation

@@ -26,6 +26,9 @@ pub struct DmaGrant {
     pub user_va: u64,
     pub length: u64,
     pub flags: u32,
+    /// What the device was given: an IOVA when `confined`, else `physical_start`.
+    pub device_addr: u64,
+    pub confined: bool,
 }
 
 #[derive(Debug, Clone, Copy)]

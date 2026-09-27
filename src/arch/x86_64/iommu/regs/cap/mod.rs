@@ -21,7 +21,7 @@ mod limits;
 mod pages;
 
 pub use agaw::{preferred_levels, AgawLevels};
-pub use behaviour::{caching_mode, requires_write_buffer_flush};
+pub use behaviour::{caching_mode, page_walk_coherent, requires_write_buffer_flush};
 pub use fault::{fault_recording_count, fault_recording_offset};
 pub use limits::{domain_count, max_address_width};
 pub use pages::best_leaf_level;
