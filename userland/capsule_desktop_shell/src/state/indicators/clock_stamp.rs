@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::clock::hhmm;
-use nonos_libc::{mk_time_rtc, RtcTime};
+use super::local_time;
 
 /// `Thu 20 Aug  02:33` — the menu bar's single-line stamp.
 pub const STAMP_LEN: usize = 17;
@@ -28,11 +28,11 @@ const SHIFT: [i32; 12] = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
 
 /// Fill `buf` with the stamp, or leave it untouched and answer `false` when the
 /// RTC does not respond.
-pub fn stamp(buf: &mut [u8; STAMP_LEN], h24: bool) -> bool {
-    let mut t = RtcTime::default();
-    if mk_time_rtc(&mut t as *mut RtcTime) != 0 {
+// The day, date and time in the user's time zone.
+pub fn stamp(buf: &mut [u8; STAMP_LEN], h24: bool, offset_hours: i8) -> bool {
+    let Some(t) = local_time::now(offset_hours) else {
         return false;
-    }
+    };
     let month = (t.month as usize).clamp(1, 12);
     buf[..3].copy_from_slice(DAYS[weekday(t.year as i32, month, t.day as i32)]);
     buf[3] = b' ';
@@ -43,9 +43,7 @@ pub fn stamp(buf: &mut [u8; STAMP_LEN], h24: bool) -> bool {
     buf[10] = b' ';
     buf[11] = b' ';
     let mut hm = [b'-'; 5];
-    if !hhmm(&mut hm, h24) {
-        return false;
-    }
+    hhmm(&mut hm, &t, h24);
     buf[12..].copy_from_slice(&hm);
     true
 }

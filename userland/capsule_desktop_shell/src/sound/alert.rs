@@ -18,28 +18,19 @@
 
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
-use nonos_policy_client::{get_bool, lookup};
-use nonos_policy_proto::Field;
+use nonos_policy_client::lookup;
 
 use crate::state::NotifyLevel;
 
-/// 880 Hz for 90 ms: short enough not to sit over the toast it announces.
 const ALERT_HZ: u32 = 880;
 const ALERT_MS: u32 = 90;
 
-/// The gain the audio service's own tone uses.
-pub(super) const GAIN: u16 = 0x2000;
-
-/// The caller runs about once a second, and nobody moves this switch often.
 const EVERY: u32 = 8;
 
-static ENABLED: AtomicBool = AtomicBool::new(false);
 static DUE: AtomicBool = AtomicBool::new(false);
 static PORT: AtomicU32 = AtomicU32::new(0);
 static TICKS: AtomicU32 = AtomicU32::new(0);
 
-// Info is something that happened on its own. Warn and Error are answers to
-// what the reader just did, and those are the ones worth a sound.
 pub fn mark(level: NotifyLevel) {
     if matches!(level, NotifyLevel::Info) {
         return;
@@ -47,16 +38,16 @@ pub fn mark(level: NotifyLevel) {
     DUE.store(true, Ordering::Relaxed);
 }
 
-/// Clears the flag either way, so a tone marked while the switch was off does
-/// not sound the moment it is turned on.
 pub fn service() {
     follow();
-    if DUE.swap(false, Ordering::Relaxed) && ENABLED.load(Ordering::Relaxed) {
-        super::play::play(ALERT_HZ, ALERT_MS, GAIN);
+    if !DUE.swap(false, Ordering::Relaxed) || !super::levels::alerts_on() {
+        return;
+    }
+    if let Some(gain) = super::levels::gain() {
+        super::play::play(ALERT_HZ, ALERT_MS, gain);
     }
 }
 
-/// Off until the store says otherwise, which is the stored default too.
 fn follow() {
     if TICKS.fetch_add(1, Ordering::Relaxed) % EVERY != 0 {
         return;
@@ -69,7 +60,5 @@ fn follow() {
         };
         PORT.store(port, Ordering::Relaxed);
     }
-    if let Some(value) = get_bool(port, Field::AlertSounds) {
-        ENABLED.store(value, Ordering::Relaxed);
-    }
+    super::levels::follow(port);
 }

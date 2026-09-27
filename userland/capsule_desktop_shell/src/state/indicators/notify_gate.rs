@@ -14,24 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Did that click land on the magnifier? Answered from the same box the
-//! painter drew into.
+use core::sync::atomic::{AtomicBool, Ordering};
 
-use crate::state::indicators::battery;
-use crate::state::indicators::clock_stamp::{stamp, STAMP_LEN};
-use crate::state::Context;
+use nonos_policy_client::get_bool;
+use nonos_policy_proto::Field;
 
-use super::search_box::search_box;
+use crate::state::NotifyLevel;
 
-pub fn search_hit(ctx: &Context, px: u32, py: u32) -> bool {
-    let mut bbuf = [0u8; 4];
-    let blen = battery::label(&mut bbuf);
-    let mut sbuf = [b'-'; STAMP_LEN];
-    let stamped = stamp(&mut sbuf, ctx.clock_24h, ctx.tz_hours);
-    let when: &[u8] = if stamped { &sbuf } else { b"--:--" };
+static ENABLED: AtomicBool = AtomicBool::new(true);
 
-    match search_box(ctx, &bbuf[..blen], when) {
-        Some((x, y, w)) => px >= x && px < x + w && py >= y && py < y + w,
-        None => false,
+// Follow the Notifications setting; an unanswered read keeps the last value.
+pub fn follow(port: u32) {
+    if port == 0 {
+        return;
     }
+    if let Some(v) = get_bool(port, Field::NotificationsEnabled) {
+        ENABLED.store(v, Ordering::Relaxed);
+    }
+}
+
+// With notifications off, an app's news is dropped; warnings and errors still show.
+pub fn shows(level: NotifyLevel) -> bool {
+    ENABLED.load(Ordering::Relaxed) || !matches!(level, NotifyLevel::Info)
 }
