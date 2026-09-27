@@ -23,7 +23,7 @@ use crate::store::theme::{ACCENT, DANGER, MUTED, OK};
 use crate::store::verdict::Verdict;
 
 use super::gates;
-use super::metrics::{BODY_PX, GATE_ROW_H, SMALL_PX};
+use super::metrics::{BODY_PX, SMALL_PX};
 use super::text;
 
 /// Paints and returns the y to carry on from.
@@ -38,8 +38,9 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, left: u32, mut top: i32) -> i3
             };
             text::line(fb, left, top, v.sentence(), hue, BODY_PX);
             top += 30;
-            gates::paint(fb, left, top, &r);
-            top += 6 * GATE_ROW_H as i32 + 14;
+            // Where the gates end, not a guess at their height: a guess once
+            // put the measurement on top of the last gate.
+            top = gates::paint(fb, left, top, &r) + 14;
         }
         None => {
             text::line(fb, left, top, b"checking", MUTED, SMALL_PX);

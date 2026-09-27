@@ -29,7 +29,8 @@ use super::text;
 /// enough that the longest label above still clears it.
 const MARK_X: u32 = 190;
 
-pub fn paint(fb: &mut PaintBuffer, x: u32, mut top: i32, r: &Readiness) {
+/// Paints and returns the y just below the last gate.
+pub fn paint(fb: &mut PaintBuffer, x: u32, mut top: i32, r: &Readiness) -> i32 {
     let verdict = Verdict::of(r);
     let hue = match verdict {
         Verdict::Ready => OK,
@@ -50,4 +51,5 @@ pub fn paint(fb: &mut PaintBuffer, x: u32, mut top: i32, r: &Readiness) {
         text::line(fb, x + MARK_X, top, mark, hue, SMALL_PX);
         top += GATE_ROW_H as i32;
     }
+    top
 }
