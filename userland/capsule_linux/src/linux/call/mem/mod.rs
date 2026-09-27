@@ -21,6 +21,7 @@ mod map;
 mod map_anon;
 mod map_exec;
 mod map_file;
+mod map_fill;
 mod map_req;
 mod memory;
 mod prot;

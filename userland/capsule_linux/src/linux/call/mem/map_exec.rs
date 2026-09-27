@@ -16,24 +16,25 @@
 
 //! Proving a file before any of its pages become executable.
 
+use alloc::vec::Vec;
+
 use crate::linux::file::{key, store_read};
 use crate::linux::guest::{Guest, Kind};
 
 /// The same ceiling the exec path reads an image under.
 const MAX_IMAGE: u32 = 64 << 20;
 
-/// Whether `fd` names a file this machine has agreed to execute.
-pub fn proven(guest: &Guest, fd: u64) -> bool {
-    let Some(entry) = guest.fds.get(fd as usize).filter(|f| f.kind == Kind::File) else {
-        return false;
-    };
+/// The bytes of `fd`'s file, if this machine has agreed to execute them. The
+/// mapping is filled from these, not read again: a second read could see a
+/// file rewritten after it was proved, and map those bytes executable.
+pub fn proven(guest: &Guest, fd: u64) -> Option<Vec<u8>> {
+    let entry = guest.fds.get(fd as usize).filter(|f| f.kind == Kind::File)?;
     /*
      * A descriptor's path was normalised when it was opened, so it
      * needs no resolving here, only confining.
      */
     let at = &entry.path;
-    let Ok(bytes) = store_read(&key(at), MAX_IMAGE) else {
-        return false;
-    };
-    crate::linux::attest::verify(at, &bytes).is_ok()
+    let bytes = store_read(&key(at), MAX_IMAGE).ok()?;
+    crate::linux::attest::verify(at, &bytes).ok()?;
+    Some(bytes)
 }
