@@ -18,7 +18,8 @@
 
 use crate::constants::{
     FEATURE_PAGE_HIGH, MOD_DEVICE_STATUS, MOD_DRIVER_FEATURE, MOD_DRIVER_FEATURE_SELECT,
-    VIRTIO_F_VERSION_1_HIGH, VIRTIO_GPU_F_EDID, VIRTIO_GPU_F_VIRGL, VIRTIO_GPU_MODERN,
+    VIRTIO_F_ACCESS_PLATFORM_HIGH, VIRTIO_F_VERSION_1_HIGH, VIRTIO_GPU_F_EDID, VIRTIO_GPU_F_VIRGL,
+    VIRTIO_GPU_MODERN,
 };
 use crate::init::bring_up;
 use crate::tests::model::{modern_regs, modern_window, QUEUE_SIZE, REGION_PHYS};
@@ -34,6 +35,19 @@ fn a_part_offering_both_features_ends_live_with_both_accepted() {
     assert_eq!(bar.wrote8(MOD_DEVICE_STATUS), LIVE);
     assert!(out.virgl && out.edid);
     assert_eq!(bar.wrote32(MOD_DRIVER_FEATURE_SELECT), FEATURE_PAGE_HIGH, "high page acked last");
+    // The model shows one feature word for both pages, so bits 0 and 1 in the
+    // high page are VERSION_1 and ACCESS_PLATFORM: both offered, both taken.
+    assert_eq!(
+        bar.wrote32(MOD_DRIVER_FEATURE),
+        VIRTIO_F_VERSION_1_HIGH | VIRTIO_F_ACCESS_PLATFORM_HIGH
+    );
+}
+
+#[test]
+fn access_platform_is_taken_only_when_offered() {
+    // Bit 0 alone: the high page offers VERSION_1 and not ACCESS_PLATFORM.
+    let bar = modern_window(VIRTIO_GPU_F_VIRGL, QUEUE_SIZE);
+    bring_up(modern_regs(&bar), REGION_PHYS, VIRTIO_GPU_MODERN).expect("live");
     assert_eq!(bar.wrote32(MOD_DRIVER_FEATURE), VIRTIO_F_VERSION_1_HIGH);
 }
 

@@ -20,11 +20,10 @@ use crate::constants::{
     MOD_DEVICE_FEATURE_SELECT, MOD_DEVICE_STATUS, MOD_DRIVER_FEATURE, MOD_DRIVER_FEATURE_SELECT,
     MOD_QUEUE_DESC, MOD_QUEUE_DEVICE, MOD_QUEUE_DRIVER, MOD_QUEUE_ENABLE, MOD_QUEUE_NOTIFY_OFF,
     MOD_QUEUE_SELECT, MOD_QUEUE_SIZE, STATUS_ACKNOWLEDGE, STATUS_DRIVER, STATUS_DRIVER_OK,
-    STATUS_FAILED, STATUS_FEATURES_OK, VIRTIO_F_VERSION_1_HIGH, VIRTIO_GPU_F_EDID, VQ_AVAIL_OFFSET,
-    VQ_DESC_OFFSET, VQ_MAX_SIZE, VQ_USED_OFFSET,
+    STATUS_FAILED, STATUS_FEATURES_OK, VIRTIO_F_ACCESS_PLATFORM_HIGH, VIRTIO_F_VERSION_1_HIGH,
+    VIRTIO_GPU_F_EDID, VQ_AVAIL_OFFSET, VQ_DESC_OFFSET, VQ_MAX_SIZE, VQ_USED_OFFSET,
 };
 use crate::regs::Regs;
-
 pub fn bring_up_modern(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static str> {
     unsafe {
         regs.w8(MOD_DEVICE_STATUS, 0);
@@ -33,18 +32,19 @@ pub fn bring_up_modern(regs: Regs, queue_phys: u64) -> Result<InitOut, &'static 
         regs.w32(MOD_DEVICE_FEATURE_SELECT, FEATURE_PAGE_LOW);
         let host = regs.r32(MOD_DEVICE_FEATURE);
         regs.w32(MOD_DEVICE_FEATURE_SELECT, FEATURE_PAGE_HIGH);
-        if regs.r32(MOD_DEVICE_FEATURE) & VIRTIO_F_VERSION_1_HIGH == 0 {
+        let host_high = regs.r32(MOD_DEVICE_FEATURE);
+        if host_high & VIRTIO_F_VERSION_1_HIGH == 0 {
             regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_FAILED);
             return Err("virtio-gpu: modern feature missing");
         }
-        // Accept the 3D command set when the host offers it (virtio-vga-gl
-        // with a virglrenderer backend) and EDID when it is on offer;
-        // everything else in the low page is declined as before.
+        // Low page: VIRGL and EDID when offered, nothing else.
         regs.w32(MOD_DRIVER_FEATURE_SELECT, FEATURE_PAGE_LOW);
         let low = host & (crate::constants::VIRTIO_GPU_F_VIRGL | VIRTIO_GPU_F_EDID);
         regs.w32(MOD_DRIVER_FEATURE, low);
         regs.w32(MOD_DRIVER_FEATURE_SELECT, FEATURE_PAGE_HIGH);
-        regs.w32(MOD_DRIVER_FEATURE, VIRTIO_F_VERSION_1_HIGH);
+        // ACCESS_PLATFORM makes the device translate the grant IOVAs below.
+        let high = VIRTIO_F_VERSION_1_HIGH | (host_high & VIRTIO_F_ACCESS_PLATFORM_HIGH);
+        regs.w32(MOD_DRIVER_FEATURE, high);
         regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_FEATURES_OK);
         if regs.r8(MOD_DEVICE_STATUS) & STATUS_FEATURES_OK == 0 {
             regs.w8(MOD_DEVICE_STATUS, regs.r8(MOD_DEVICE_STATUS) | STATUS_FAILED);
