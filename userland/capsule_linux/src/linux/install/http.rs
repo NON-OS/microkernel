@@ -46,13 +46,14 @@ pub fn get_as(ip: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
     let req = format!(
         "GET {path} HTTP/1.1\r\nHost: {host}\r\nUser-Agent: nonos\r\nConnection: close\r\n\r\n"
     );
-    if send_all(handle, req.as_bytes()).is_none() {
-        close(handle);
-        return None;
-    }
-    let raw = recv_all(handle, MAX_BODY);
+    let raw = send_all(handle, req.as_bytes()).and_then(|()| recv_all(handle, MAX_BODY));
     close(handle);
-    body(raw?)
+    let got = raw.and_then(body);
+    if got.is_none() {
+        let line = format!("[LINUX] mirror {ip}: GET {path} gave no 200 reply\n");
+        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    }
+    got
 }
 
 /// The bytes after the header block. A reply whose status is not 200 is

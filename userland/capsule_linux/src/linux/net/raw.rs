@@ -41,7 +41,7 @@ pub fn open_stream_to(ip: &str) -> Option<u32> {
         Some((0, out)) if out.len() >= 4 => {
             Some(u32::from_le_bytes([out[0], out[1], out[2], out[3]]))
         }
-        _ => None,
+        got => failed("socket", ip, got.map(|g| g.0)),
     }
 }
 
@@ -53,6 +53,18 @@ pub fn connect_host(handle: u32, host: &str, port: u16) -> Option<()> {
     body.extend_from_slice(host.as_bytes());
     match call(OP_CONNECT_HOST, &body, 0) {
         Some((0, _)) => Some(()),
-        _ => None,
+        got => failed("connect", host, got.map(|g| g.0)),
     }
+}
+
+/// Which step a mirror fetch stopped at, and what net.sockets said: an
+/// install that fails with only "no package index" cannot be told apart
+/// from a mirror that is down.
+fn failed<T>(step: &str, to: &str, status: Option<u16>) -> Option<T> {
+    let line = match status {
+        Some(code) => alloc::format!("[LINUX] mirror {to}: {step} refused, status {code}\n"),
+        None => alloc::format!("[LINUX] mirror {to}: {step} got no reply\n"),
+    };
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    None
 }
