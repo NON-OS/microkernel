@@ -25,9 +25,9 @@
       "bv_decide_calls": 12,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 422,
-        "proven": 420,
-        "substantive": 158,
+        "extracted": 423,
+        "proven": 421,
+        "substantive": 159,
         "trivial": 262,
         "unproven": 2
       },
@@ -77,6 +77,7 @@
         "nonos_ct::security::crypto::constant_time::ops::ct_max_u32",
         "nonos_ct::security::crypto::constant_time::ops::ct_min_u32",
         "nonos_ed_field::ed25519_ct_eq_32",
+        "nonos_ed_field::shared_ct_eq_32",
         "nonos_elf::elf::loader::core::parse_header::bounds::program_header_bounds",
         "nonos_elf::elf::reloc::apply::range::in_range",
         "nonos_elf::elf::reloc::utils::supported::is_supported",
@@ -467,7 +468,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Align.lean",
-          "sha256": "949276dbc9a4159421864f9bf1dca122fba3541e104259e40662ca1c8d724e83"
+          "sha256": "d99493635e8300a9d16ba0e1fb182ebce113a26a973bedc47d585a0a94221398"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AmlTypes.lean",
@@ -551,7 +552,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/EdField.lean",
-          "sha256": "ca8a55f5330c6e68102792f6e93478ca5fa9d66e78869877dc0f652432dcfdc5"
+          "sha256": "cf4ed5e0fb2906d496fccab3d78d217f123807cd518622098d16d594e1562eb6"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Elf.lean",
