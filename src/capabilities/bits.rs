@@ -20,14 +20,54 @@ use alloc::vec::Vec;
 
 use super::types::Capability;
 
+/// Fold a table of capabilities into a token word.
+///
+/// Takes the table as an argument rather than reaching for it, so the function
+/// is a function of its inputs and the extraction in
+/// `verification/extraction/caps` can start from it. The loop is there for the
+/// same reason: the iterator adapters this was written with are outside the
+/// fragment Aeneas translates, so the version that shipped could not be proven
+/// about at all.
+#[inline]
+pub fn fold_caps(table: &[Capability], bits: u64) -> u64 {
+    let mut acc = bits;
+    let mut i = 0;
+    while i < table.len() {
+        acc |= table[i].bit();
+        i += 1;
+    }
+    acc
+}
+
+/// The capabilities of `table` that `bits` grants, in table order.
+///
+/// The one place the kernel turns a token word back into capabilities. A
+/// capability missing from the table it is handed resolves to nothing here and
+/// nothing anywhere else notices, which is where `ForeignExec` spent a release.
+/// `granting_resolves` in `verification/extraction/lean/NonosExtraction` is the
+/// theorem that rules that out, and it is stated about this function.
+#[inline]
+pub fn select_caps(table: &[Capability], bits: u64) -> Vec<Capability> {
+    let mut out = Vec::new();
+    let mut i = 0;
+    while i < table.len() {
+        let cap = table[i];
+        if bits & cap.bit() != 0 {
+            out.push(cap);
+        }
+        i += 1;
+    }
+    out
+}
+
 #[inline]
 pub fn caps_to_bits(caps: &[Capability]) -> u64 {
-    caps.iter().fold(0u64, |acc, c| acc | c.bit())
+    fold_caps(caps, 0)
 }
 
 #[inline]
 pub fn bits_to_caps(bits: u64) -> Vec<Capability> {
-    Capability::all().iter().copied().filter(|c| bits & c.bit() != 0).collect()
+    select_caps(Capability::all(), bits)
 }
 
 #[inline]
