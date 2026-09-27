@@ -23,34 +23,8 @@ use alloc::string::String;
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::ttf::{draw_text_tracked, line_height_with, measure_tracked};
 
-use super::face::{font, Face};
-use super::tokens::{TEXT, TEXT_3};
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Role {
-    ScreenLabel,
-    Lead,
-    RowName,
-    RowValue,
-    Fact,
-    Button,
-    ActionLabel,
-    Status,
-}
-
-struct Spec(Face, f32, f32, bool, u32);
-
-fn spec(role: Role) -> Spec {
-    match role {
-        Role::ScreenLabel => Spec(Face::Mono, 12.0, 2.4, true, TEXT_3),
-        Role::Lead | Role::RowName => Spec(Face::Sans, 14.0, 0.0, false, TEXT_3),
-        Role::RowValue => Spec(Face::Mono, 13.0, 0.0, false, TEXT),
-        Role::Fact => Spec(Face::Mono, 12.0, 0.0, false, TEXT),
-        Role::Button => Spec(Face::Mono, 12.0, 1.6, true, TEXT),
-        Role::ActionLabel => Spec(Face::SansMedium, 13.0, 0.0, false, TEXT),
-        Role::Status => Spec(Face::Mono, 10.0, 0.6, false, TEXT_3),
-    }
-}
+use super::face::font;
+use super::roles::{spec, Role, Spec};
 
 fn shaped(caps: bool, text: &str) -> String {
     if caps {

@@ -18,5 +18,8 @@
 //! roles first, then the parts and the one frame every screen sits in.
 
 pub mod face;
+mod roles;
 pub mod text;
 pub mod tokens;
+
+pub use roles::Role;
