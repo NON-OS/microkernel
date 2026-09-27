@@ -18,11 +18,9 @@
 //! capsule gate all agree on. They are the single source of these numbers for
 //! the security tools, so a tool cannot drift from the gate it tests.
 
-pub const LOG_ROUNDS: u32 = 3;
+// Re-exported, not copied: a copy here had drifted to three rounds.
+pub use nonos_stark::attest_params::{EXTRA_BLOWUP_BITS, GRIND_BITS, LOG_ROUNDS, N_QUERIES};
 pub const DEPTH: usize = 8;
 pub const LEAVES: usize = 1 << DEPTH;
-pub const N_QUERIES: usize = 32;
-pub const GRIND_BITS: u32 = 16;
-pub const EXTRA_BLOWUP_BITS: u32 = 3;
 pub const BOOT_EPOCH: u64 = 1;
 pub const PAD_IMAGE: &[u8] = b"\x00NONOS-POLICY-RESERVED-SLOT-v1";

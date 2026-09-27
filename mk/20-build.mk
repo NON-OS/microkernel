@@ -638,7 +638,7 @@ $(ZK_CAPSULE_LABELS): $(NONOS_VERIFIED_CAPSULE_MKS) Makefile
 
 # Capsule attestation policy, transparent post-quantum STARK. The enrollment
 # produces the policy root over the actual capsule measurements and every
-# capsule's NZKSTRK1 trailer together, each re-checked against the exact
+# capsule's NZKSTRK2 trailer together, each re-checked against the exact
 # spawn-gate parse before it is written. The nonos-mk/capsule.mk companion
 # depends each trailer on this rule, so building any capsule's artifacts
 # triggers the single enrollment. This replaces the curve enrolled-secret

@@ -24,7 +24,7 @@ pub const ELF_MAGIC: [u8; 4] = [0x7f, b'E', b'L', b'F'];
 pub const ZK_PROOF_MAGIC: [u8; 4] = [0x4E, 0xC3, 0x5A, 0x50];
 // The transparent-STARK kernel self-attestation trailer carries this magic
 // instead of the boot-binding block above.
-pub const STARK_TRAILER_MAGIC: [u8; 8] = *b"NZKSTRK1";
+pub const STARK_TRAILER_MAGIC: [u8; 8] = *b"NZKSTRK2";
 pub const MIN_ZK_PROOF_SIZE: usize = 272;
 
 pub fn validate_image(data: &[u8]) -> Result<ParsedImage<'_>, ImageValidationError> {

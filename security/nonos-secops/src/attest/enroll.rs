@@ -17,9 +17,9 @@
 //! Enroll a kernel image and build the trailer that proves its membership. Same
 //! padding, same commitment, same trailer the build side produces.
 
-use super::constants::{EXTRA_BLOWUP_BITS, GRIND_BITS, LEAVES, LOG_ROUNDS, N_QUERIES, PAD_IMAGE};
+use super::constants::{LEAVES, LOG_ROUNDS, PAD_IMAGE};
 use super::context::{kernel_context, root_to_bytes};
-use nonos_stark::air::{build_attestation_trailer, enroll_policy_root, Poseidon, RATE};
+use nonos_stark::air::{build_public_trailer, MeasuredSet, Poseidon, RATE};
 use nonos_stark::field::Fp;
 
 /// Enroll a kernel image: pad the tree to the gate depth, commit, and build the
@@ -30,17 +30,10 @@ pub fn enroll_kernel(kernel_bytes: &[u8]) -> ([u8; 32], Vec<u8>) {
     while images.len() < LEAVES {
         images.push(PAD_IMAGE);
     }
-    let root = root_to_bytes(enroll_policy_root(&hasher, &images));
+    // The hybrid set is what the bootloader recomputes the kernel's leaf with.
+    let set = MeasuredSet::commit_hybrid(&hasher, &images);
+    let root = root_to_bytes(set.root());
     let ctx = kernel_context(kernel_bytes);
-    let trailer = build_attestation_trailer(
-        &hasher,
-        LOG_ROUNDS,
-        &images,
-        0,
-        &ctx,
-        N_QUERIES,
-        GRIND_BITS,
-        EXTRA_BLOWUP_BITS,
-    );
+    let trailer = build_public_trailer(&set, 0, &ctx).unwrap_or_default();
     (root, trailer)
 }

@@ -43,11 +43,12 @@ def inTree (f : α → α → α) (root : α) (m : α) : Prop :=
 def T2 (acc : Attestation α → α → Capsule α → Prop) (f : α → α → α) (root : α) : Prop :=
   ∀ (c : Capsule α) (a : Attestation α), acc a root c → inTree f root c.measurement
 
-/-- The kernel's verifier today: the leaf is the prover's to choose. -/
+/-- The kernel's verifier under NZKSTRK1: the leaf is the prover's to choose. -/
 def privateLeaf (f : α → α → α) (bind : Nat → Nat) : Attestation α → α → Capsule α → Prop :=
   fun a root c => accepts f bind a root c.ctx
 
-/-- The verifier T2 needs: the opened leaf is the capsule's own measurement. -/
+/-- The verifier T2 needs, and NZKSTRK2 runs: the opened leaf is the capsule's
+    own measurement. -/
 def publicLeaf (f : α → α → α) (bind : Nat → Nat) : Attestation α → α → Capsule α → Prop :=
   fun a root c => a.leaf = c.measurement ∧ accepts f bind a root c.ctx
 

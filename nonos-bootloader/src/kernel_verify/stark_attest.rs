@@ -22,11 +22,7 @@
 //! the prover and the verifier agree by construction. No trusted setup, no
 //! pairing: trust rests only on the hash.
 
-use nonos_stark::air::{verify_membership_trailer, Poseidon, RATE};
-use nonos_stark::field::Fp;
-// One definition, in nonos_stark. Prover and verifier must
-// agree exactly; a drift downward in queries or grinding still verifies.
-use nonos_stark::attest_params::{GRIND_BITS, LOG_ROUNDS, N_QUERIES, EXTRA_BLOWUP_BITS as EXTRA_BLOWUP_BITS};
+use nonos_stark::air::verify_public_trailer;
 
 const DEPTH: usize = 8;
 const BOOT_EPOCH: u64 = 1;
@@ -53,16 +49,6 @@ pub fn verify_kernel_self_attestation(kernel_bytes: &[u8], trailer: &[u8]) -> bo
     ctx[..32].copy_from_slice(&measurement);
     ctx[32..40].copy_from_slice(&BOOT_EPOCH.to_be_bytes());
 
-    let hasher = Poseidon::new(LOG_ROUNDS, [Fp::ZERO; RATE]);
-    verify_membership_trailer(
-        &hasher,
-        LOG_ROUNDS,
-        KERNEL_ATTEST_ROOT,
-        DEPTH,
-        trailer,
-        &ctx,
-        N_QUERIES,
-        GRIND_BITS,
-        EXTRA_BLOWUP_BITS,
-    )
+    // The leaf is measured from the bytes about to run, not taken on trust.
+    verify_public_trailer(&KERNEL_ATTEST_ROOT, DEPTH, kernel_bytes, trailer, &ctx)
 }

@@ -24,18 +24,13 @@
 //! byte layout, the same verdict.
 
 use embed_zk_proof::{assemble_attested_image, SignedKernel};
-use nonos_stark::air::{
-    build_attestation_trailer, enroll_policy_root, verify_membership_trailer, Poseidon, RATE,
-};
+use nonos_stark::air::{build_public_trailer, verify_public_trailer, MeasuredSet, Poseidon, RATE};
+use nonos_stark::attest_params::LOG_ROUNDS;
 use nonos_stark::field::Fp;
 
 // The constants the bootloader's stark_attest.rs and the enrollment tool agree on.
-const LOG_ROUNDS: u32 = 3;
 const DEPTH: usize = 8;
 const LEAVES: usize = 1 << DEPTH;
-const N_QUERIES: usize = 32;
-const GRIND_BITS: u32 = 16;
-const EXTRA_BLOWUP_BITS: u32 = 3;
 const BOOT_EPOCH: u64 = 1;
 const PAD_IMAGE: &[u8] = b"\x00NONOS-POLICY-RESERVED-SLOT-v1";
 
@@ -65,11 +60,9 @@ fn enroll_kernel(kernel_bytes: &[u8]) -> ([u8; 32], Vec<u8>) {
     while images.len() < LEAVES {
         images.push(PAD_IMAGE);
     }
-    let root = root_to_bytes(enroll_policy_root(&hasher, &images));
-    let ctx = kernel_context(kernel_bytes);
-    let trailer = build_attestation_trailer(
-        &hasher, LOG_ROUNDS, &images, 0, &ctx, N_QUERIES, GRIND_BITS, EXTRA_BLOWUP_BITS,
-    );
+    let set = MeasuredSet::commit_hybrid(&hasher, &images);
+    let root = root_to_bytes(set.root());
+    let trailer = build_public_trailer(&set, 0, &kernel_context(kernel_bytes)).unwrap_or_default();
     (root, trailer)
 }
 
@@ -91,18 +84,7 @@ fn parse_footer(image: &[u8]) -> (Vec<u8>, Vec<u8>) {
 
 /// Verify a trailer exactly as the bootloader does before the jump.
 fn boot_verify(root: &[u8; 32], kernel_bytes: &[u8], trailer: &[u8]) -> bool {
-    let hasher = Poseidon::new(LOG_ROUNDS, [Fp::ZERO; RATE]);
-    verify_membership_trailer(
-        &hasher,
-        LOG_ROUNDS,
-        *root,
-        DEPTH,
-        trailer,
-        &kernel_context(kernel_bytes),
-        N_QUERIES,
-        GRIND_BITS,
-        EXTRA_BLOWUP_BITS,
-    )
+    verify_public_trailer(root, DEPTH, kernel_bytes, trailer, &kernel_context(kernel_bytes))
 }
 
 fn signed_kernel(kernel_bytes: &[u8]) -> SignedKernel {
@@ -117,7 +99,8 @@ fn signed_kernel(kernel_bytes: &[u8]) -> SignedKernel {
 
 #[test]
 fn the_kernel_self_attestation_survives_embed_and_boot_verify() {
-    let kernel_bytes = b"nonos-kernel code region, the exact bytes the bootloader measures".to_vec();
+    let kernel_bytes =
+        b"nonos-kernel code region, the exact bytes the bootloader measures".to_vec();
 
     // Enroll and embed, the build side.
     let (root, trailer) = enroll_kernel(&kernel_bytes);
@@ -137,7 +120,8 @@ fn the_kernel_self_attestation_survives_embed_and_boot_verify() {
 
 #[test]
 fn a_tampered_kernel_fails_self_attestation() {
-    let kernel_bytes = b"nonos-kernel code region, the exact bytes the bootloader measures".to_vec();
+    let kernel_bytes =
+        b"nonos-kernel code region, the exact bytes the bootloader measures".to_vec();
     let (root, trailer) = enroll_kernel(&kernel_bytes);
 
     let mut tampered = kernel_bytes.clone();
@@ -156,7 +140,8 @@ fn a_tampered_kernel_fails_self_attestation() {
 #[test]
 fn attack_flip_a_byte_in_the_image_kernel_region() {
     // An attacker edits the flashed image's kernel code, keeping the trailer.
-    let kernel_bytes = b"nonos-kernel code region, the exact bytes the bootloader measures".to_vec();
+    let kernel_bytes =
+        b"nonos-kernel code region, the exact bytes the bootloader measures".to_vec();
     let (root, trailer) = enroll_kernel(&kernel_bytes);
     let mut image = assemble_attested_image(&signed_kernel(&kernel_bytes), trailer).data;
     image[10] ^= 0xFF;
