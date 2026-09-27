@@ -28,17 +28,20 @@ use crate::linux::file::{key, store_read, visible};
 /// Guest-visible, so it lives under /linux like the program it names.
 const BOOT_GUEST: &[u8] = b"/etc/nonos-boot-guest";
 
-const MAX_NAME: u32 = 256;
+const MAX_NAME: u32 = 1024;
 
-/// The path the image names and the program's bytes, or None when the image
-/// names nothing.
-pub(super) fn boot_guest(max_image: u32) -> Option<(Vec<u8>, Vec<u8>)> {
+/// The path the image names, the program's bytes and its arguments, or None
+/// when the image names nothing. One argument a line, so a script passed to
+/// `sh -c` needs no quoting rules.
+pub(super) fn boot_guest(max_image: u32) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
     let named = store_read(&key(BOOT_GUEST), MAX_NAME).ok()?;
-    let path = named.split(|b| *b == b'\n' || *b == 0).next()?;
+    let mut lines = named.split(|b| *b == b'\n').filter(|l| !l.is_empty());
+    let path = lines.next()?;
     if path.first() != Some(&b'/') {
         return None;
     }
+    let args = lines.map(|l| l.to_vec()).collect();
     let at = visible(b"/", path);
     let bytes = store_read(&key(&at), max_image).ok()?;
-    Some((at, bytes))
+    Some((at, bytes, args))
 }

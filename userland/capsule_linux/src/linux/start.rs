@@ -32,7 +32,7 @@ pub fn run() -> ! {
         say(if ok { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
         mk_exit(if ok { 0 } else { 1 })
     }
-    let Some((path, bytes, origin)) = source() else {
+    let Some(launch) = source() else {
         say(b"[LINUX] nothing installed under that name\n");
         mk_exit(1)
     };
@@ -45,7 +45,7 @@ pub fn run() -> ! {
         mk_exit(1)
     }
     let mut guest = Guest::new(pid as u32);
-    let code = match start(&mut guest, &path, &bytes, origin) {
+    let code = match start(&mut guest, &launch) {
         Ok(()) => {
             say(b"[LINUX] guest running\n");
             serve(guest)

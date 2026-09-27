@@ -14,31 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux personality: everything this system knows about Linux, in
-//! one capsule that holds the capabilities its guests do not.
+//! The program a machine runs when its store names none.
 
-mod abi;
-mod attest;
-mod attest_local;
-mod attest_paths;
-mod attest_publisher;
-mod boot_guest;
-mod built_in;
-mod call;
-mod env;
-mod file;
-mod guest;
-mod image;
-mod install;
-mod launch;
-mod net;
-mod origin;
-mod request;
-pub mod serve;
-mod source;
-mod start;
-mod start_guest;
-mod unix;
-mod wayland;
+use alloc::vec::Vec;
 
-pub use start::run;
+use super::launch::Launch;
+use super::origin::Origin;
+
+/// The built-in program: Alpine's static busybox, embedded so a machine with
+/// nothing in the store still runs a real Linux binary.
+static BUILT_IN: &[u8] = include_bytes!("../../guests/busybox.elf");
+
+pub(super) fn built_in() -> Launch {
+    Launch {
+        path: b"/bin/busybox".to_vec(),
+        bytes: BUILT_IN.to_vec(),
+        origin: Origin::BuiltIn,
+        args: Vec::new(),
+    }
+}

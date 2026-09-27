@@ -14,31 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux personality: everything this system knows about Linux, in
-//! one capsule that holds the capabilities its guests do not.
+//! What the personality is about to run.
 
-mod abi;
-mod attest;
-mod attest_local;
-mod attest_paths;
-mod attest_publisher;
-mod boot_guest;
-mod built_in;
-mod call;
-mod env;
-mod file;
-mod guest;
-mod image;
-mod install;
-mod launch;
-mod net;
-mod origin;
-mod request;
-pub mod serve;
-mod source;
-mod start;
-mod start_guest;
-mod unix;
-mod wayland;
+use alloc::vec::Vec;
 
-pub use start::run;
+use super::origin::Origin;
+
+pub struct Launch {
+    /// The guest-visible path, which is also argv[0].
+    pub path: Vec<u8>,
+    pub bytes: Vec<u8>,
+    pub origin: Origin,
+    /// Arguments after argv[0].
+    pub args: Vec<Vec<u8>>,
+}
