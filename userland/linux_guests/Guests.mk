@@ -65,11 +65,4 @@ $(eval $(call LINUX_GUEST,reader,4954,4955))
 # Alpine's static busybox, the one app.linux embeds, as a program from the store.
 $(eval $(call LINUX_GUEST,busybox,4956,4957,userland/capsule_linux/guests/busybox.elf))
 
-# The boot program and its arguments, `|` between them, one a line in the file.
-LINUX_GUEST_BOOT_LINES ?= /bin/suite
-LINUX_GUEST_BOOT_FILE := $(TARGET_DIR)/linux-guests/nonos-boot-guest
-.PHONY: nonos-mk-linux-guest-boot
-$(LINUX_GUEST_BOOT_FILE): nonos-mk-linux-guest-boot
-	@mkdir -p $(@D) && printf '%s\n' '$(LINUX_GUEST_BOOT_LINES)' | tr '|' '\n' > $@
-LINUX_GUEST_STORE_DEPS += $(LINUX_GUEST_BOOT_FILE)
-LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/nonos-boot-guest=$(LINUX_GUEST_BOOT_FILE)
+include $(LINUX_GUESTS_DIR)/GuestFiles.mk
