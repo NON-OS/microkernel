@@ -18,8 +18,10 @@
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas, then proven on the extracted definition.",
       "extracted_functions": [
         "nonos_caps::capabilities::bits::add_capability",
+        "nonos_caps::capabilities::bits::fold_caps",
         "nonos_caps::capabilities::bits::has_capability",
         "nonos_caps::capabilities::bits::remove_capability",
+        "nonos_caps::capabilities::bits::select_caps",
         "nonos_irq::irq::validate::validate_msix_request",
         "nonos_policy::is_wx_violation",
         "nonos_policy::to_pte_flags",
@@ -28,7 +30,7 @@
       "generated_files": [
         {
           "path": "verification/extraction/lean/NonosExtraction/Caps.lean",
-          "sha256": "77e5bee70ae37650045a6eff1f76d2247b8d580090ff72ac0412fd6473c1dd13"
+          "sha256": "2cf649959881385c3eec0414c618858fc3d10c12a3ada9683778d107ae5442e2"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Irq.lean",
@@ -49,11 +51,11 @@
       ]
     },
     "lean_specification": {
-      "axiom_profiled_theorems": 302,
+      "axiom_profiled_theorems": 611,
       "mathlib": false,
-      "modules": 163,
+      "modules": 185,
       "sorry_count": 0,
-      "theorems": 1139,
+      "theorems": 1451,
       "toolchain": "leanprover/lean4:v4.15.0"
     },
     "runnable": {
