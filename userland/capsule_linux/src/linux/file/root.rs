@@ -18,9 +18,10 @@
 
 use alloc::vec::Vec;
 
-/// Where the Linux world is kept. Every path a guest sees is relative
-/// to this, and it never appears in anything handed back to a guest.
-pub const ROOT: &[u8] = b"/linux";
+// Where the Linux world is kept: the chosen family's tree. Every path a
+// guest sees is relative to it, and it never appears in anything handed
+// back to a guest.
+use super::family::root as family_root;
 
 /// A path in the store, already confined. Built only from a normalised
 /// guest-visible path, by `resolve::key`.
@@ -37,8 +38,9 @@ impl Key {
             out.extend_from_slice(visible);
             return Key(out, false);
         }
-        let mut out = Vec::with_capacity(ROOT.len() + visible.len());
-        out.extend_from_slice(ROOT);
+        let root = family_root();
+        let mut out = Vec::with_capacity(root.len() + visible.len());
+        out.extend_from_slice(root);
         /*
          * The guest's root is the store's `/linux`, not `/linux/`: a trailing
          * separator makes every listing prefix wrong by one byte and every

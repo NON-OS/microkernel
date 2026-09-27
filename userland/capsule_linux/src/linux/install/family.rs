@@ -16,13 +16,14 @@
 
 //! Which distribution an install is for. A family is named, never inferred
 //! from the package: `pacman:` and `deb:` say so, and a bare name is Alpine's.
+//! The name was split when the process started (`file::family::choose`).
 
-pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
-    if let Some(pkg) = name.strip_prefix("pacman:") {
-        return super::pacman::install(pkg, pin);
+use crate::linux::file::family::{chosen, Family};
+
+pub fn install(pkg: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
+    match chosen() {
+        Family::Pacman => super::pacman::install(pkg, pin),
+        Family::Debian => super::deb::install(pkg, pin),
+        Family::Alpine => super::run::install(pkg, pin),
     }
-    if let Some(pkg) = name.strip_prefix("deb:") {
-        return super::deb::install(pkg, pin);
-    }
-    super::run::install(name, pin)
 }

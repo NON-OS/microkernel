@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Every proof, by the thing it constrains.
 
 mod auth_refusals;
@@ -22,12 +21,15 @@ mod auth_tests;
 mod deb_chain_tests;
 mod deb_file_tests;
 mod deb_path_tests;
+mod dir_children_tests;
 mod dirent_tests;
 mod elf_tests;
 mod exec_shebang_tests;
+mod family_tests;
 mod index_tests;
 mod kali_anchor_tests;
 mod key_tests;
+mod listing_family_tests;
 mod mutation;
 mod mutation_tests;
 mod pacman_desc_tests;

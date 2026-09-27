@@ -20,6 +20,7 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_args;
 
+use crate::linux::file::family::choose;
 use crate::linux::file::{key, store_read, visible};
 
 use super::launch::Launch;
@@ -34,7 +35,7 @@ const MAX_ARGS: usize = 256;
 pub fn source() -> Option<Launch> {
     let store = |path: Vec<u8>, bytes, args| Launch { path, bytes, origin: Origin::Store, args };
     if let Some(name) = super::request::run_request() {
-        let path = super::install::recorded(&name)?;
+        let path = super::install::recorded(choose(&name))?;
         let bytes = store_read(&key(&path), MAX_IMAGE).ok()?;
         return Some(store(path, bytes, Vec::new()));
     }

@@ -18,19 +18,20 @@
 
 use nonos_libc::{heap_init, mk_debug, mk_exit, mk_foreign_spawn};
 
-use super::guest::Guest;
 use super::serve::serve;
 use super::source::source;
 use super::start_guest::start;
+use super::{file::family::choose, guest::Guest};
 
 pub fn run() -> ! {
     let _ = heap_init();
     say(b"[LINUX] personality up\n");
     if let Some((name, pin)) = super::request::install_request() {
         say(b"[LINUX] installing\n");
+        let pkg = choose(&name);
         super::file::allow_shared_writes();
         // The exit code names the reason, which the store shows.
-        let done = super::install::install(&name, &pin);
+        let done = super::install::install(pkg, &pin);
         say(if done.is_ok() { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
         mk_exit(done.map_or_else(|why| why.code(), |()| 0))
     }

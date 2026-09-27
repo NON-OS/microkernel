@@ -24,8 +24,9 @@ use nonos_libc::mk_getpid;
 use super::auth::Verified;
 use super::tar::entries;
 
-/// Outside `/linux`, where no guest can rewrite what its package starts as.
-const RECORDS: &[u8] = b"/nonos/linux/apps/";
+// Outside every family's tree, where no guest can rewrite what its package
+// starts as. One directory per family, so two families' `jq` do not collide.
+use crate::linux::file::family::records;
 
 /// Record `usr/bin/<name>` if the package has it, else its first program.
 pub(super) fn record(name: &str, files: &Verified) {
@@ -41,7 +42,7 @@ pub(super) fn record(name: &str, files: &Verified) {
     };
     let Some(path) = chosen else { return };
     let pid = mk_getpid();
-    for dir in [b"/nonos".as_slice(), b"/nonos/linux", b"/nonos/linux/apps"] {
+    for dir in [b"/nonos".as_slice(), b"/nonos/linux", records()] {
         let _ = vfs::mkdir(pid, dir);
     }
     let _ = vfs::write_file(pid, &at(name), &[b"/".as_slice(), path].concat());
@@ -53,5 +54,5 @@ pub fn recorded(name: &str) -> Option<Vec<u8>> {
 }
 
 fn at(name: &str) -> Vec<u8> {
-    [RECORDS, name.as_bytes()].concat()
+    [records(), b"/", name.as_bytes()].concat()
 }

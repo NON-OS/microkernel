@@ -16,7 +16,7 @@
 
 use crate::security::market_capsule::client::{queued_get_release, queued_install_ready};
 use crate::sys::serial::{print, println};
-use crate::userspace::capsule_linux::{spawn_install, spawn_run};
+use crate::userspace::capsule_linux::{package_arg, spawn_install, spawn_run};
 
 use super::queue::{take, Job};
 use super::status::Stage;
@@ -39,7 +39,7 @@ pub(crate) fn service() {
 }
 
 fn install(listing: &str, release: &str) {
-    let Some(name) = listing.strip_prefix("linux.") else { return };
+    let Some(name) = listing.strip_prefix("linux.").and_then(package_arg) else { return };
     /*
      * The store showed the listing as ready, and that was its word. The
      * market's own verdict is asked for again here, and the release's
@@ -50,7 +50,7 @@ fn install(listing: &str, release: &str) {
     let pinned = queued_get_release(listing, release).map(|r| r.package_hash);
     super::why::say(&asked, &pinned);
     let said: &[u8] = match (ready, pinned.ok()) {
-        (true, Some(hash)) => match spawn_install(name, &hash) {
+        (true, Some(hash)) => match spawn_install(&name, &hash) {
             Ok(pid) => {
                 super::status::set(listing, Stage::Running(pid));
                 b"[LINUX-INSTALL] started "

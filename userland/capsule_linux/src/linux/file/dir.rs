@@ -17,12 +17,12 @@
 //! Directory open. The listing is snapshotted here, which is all POSIX
 //! promises a directory stream.
 
-use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{Fd, Guest};
 
+use super::dir_children::children;
 use super::{resolve, slot, store};
 
 pub fn open(guest: &mut Guest, path: Vec<u8>) -> u64 {
@@ -41,26 +41,4 @@ pub fn open(guest: &mut Guest, path: Vec<u8>) -> u64 {
         Some(n) => errno::ok(n),
         None => errno::fail(errno::EMFILE),
     }
-}
-
-// OP_LIST returns whole keys at any depth. Cut at the first separator
-// past the prefix and dedupe, or every file below shows up as a sibling.
-fn children(at: &[u8], keys: Vec<String>) -> Vec<String> {
-    let cut = at.len() + 1;
-    let mut out: Vec<String> = Vec::new();
-    for key in keys {
-        let bytes = key.as_bytes();
-        if bytes.len() <= cut {
-            continue;
-        }
-        let rest = &bytes[cut..];
-        let end = rest.iter().position(|b| *b == b'/').unwrap_or(rest.len());
-        let Ok(name) = core::str::from_utf8(&rest[..end]) else {
-            continue;
-        };
-        if !out.iter().any(|seen| seen == name) {
-            out.push(String::from(name));
-        }
-    }
-    out
 }

@@ -18,11 +18,13 @@
 //! kernel, and the spawn that admits them.
 
 mod embed;
+mod family;
 mod install;
 mod roles;
 mod spawn;
 mod state;
 
+pub use family::package_arg;
 pub use install::{spawn_install, spawn_run};
 pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
 pub use state::shared_state;
