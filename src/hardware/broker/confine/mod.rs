@@ -21,7 +21,6 @@
 //! the device then reaches all of memory, and the boot log states it.
 
 mod attach;
-mod bypass;
 mod detach;
 mod iova;
 mod map;
