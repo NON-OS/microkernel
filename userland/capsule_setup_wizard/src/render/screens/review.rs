@@ -39,6 +39,7 @@ fn commit(ctx: &Context) {
     let _ = policy::set_bool(p, Field::AutoWipe as u32, ctx.privacy & 0b010 != 0);
     let _ = policy::set_bool(p, Field::NymEnabled as u32, ctx.privacy & 0b001 != 0);
     let _ = policy::set_bool(p, Field::Persistent as u32, ctx.persist_sel == 1);
+    let _ = policy::set_bool(p, Field::SystemKeysGenerated as u32, ctx.keys_done);
     crate::consent::apply(ctx.local_sel == 1, ctx.local_was, ctx.persist_sel == 1);
     if ctx.host_len > 0 {
         let _ = policy::set_str(p, Field::Hostname as u32, &ctx.host_buf[..ctx.host_len]);
