@@ -115,6 +115,7 @@ import Nonos.SigningKey
 import Nonos.Spawn
 import Nonos.SpawnCaps
 import Nonos.Spinlock
+import Nonos.StackSetup
 import Nonos.Stark.AssociationSet
 import Nonos.Stark.Attest
 import Nonos.Stark.AttestSoundness
