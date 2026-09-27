@@ -22,6 +22,7 @@ mod band;
 pub mod face;
 pub mod frame;
 mod frame_bar;
+mod frame_foot;
 pub mod frame_spec;
 pub mod groups;
 pub mod parts;

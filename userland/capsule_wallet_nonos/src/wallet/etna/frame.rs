@@ -24,11 +24,12 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::band::band;
-use super::frame_bar::{bar, foot, foot_height};
+use super::frame_bar::{band_height, bar};
+use super::frame_foot::{foot, foot_height};
 use super::frame_spec::{FrameLayout, FrameSpec};
 use super::parts::failure::failure;
 use super::rect::Rect;
-use super::tokens::{BANNER_H, BAR_H, COLUMN, GAP, INK, ROOM, SIDE};
+use super::tokens::{BAR_H, COLUMN, GAP, INK, ROOM, SIDE};
 
 pub fn column_x(fb: &PaintBuffer) -> u32 {
     fb.width.saturating_sub(COLUMN) / 2
@@ -42,10 +43,11 @@ pub fn begin(fb: &mut PaintBuffer, spec: &FrameSpec) -> FrameLayout {
     let top = (BAR_H + 1) as i64 - i64::from(spec.scroll);
     let mut y = top;
     if let Some(which) = spec.backdrop {
-        if y + i64::from(BANNER_H) > 0 {
-            band(fb, x0, y, which);
+        let h = band_height(fb, spec);
+        if y + i64::from(h) > 0 {
+            band(fb, x0, y, which, h);
         }
-        y += i64::from(BANNER_H);
+        y += i64::from(h);
     }
     y += i64::from(ROOM);
     let (cx, cw) = (x0 + SIDE, COLUMN - 2 * SIDE);

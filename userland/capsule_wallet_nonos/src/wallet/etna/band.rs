@@ -30,8 +30,8 @@ use super::tokens::{BANNER_H, COLUMN, INK};
 /// One decoded photograph at a time: the section on screen.
 static DECODED: Mutex<Option<(Backdrop, Vec<u32>)>> = Mutex::new(None);
 
-fn fade(row: u32) -> u32 {
-    let t = row * 1000 / BANNER_H;
+fn fade(row: u32, h: u32) -> u32 {
+    let t = row * 1000 / h.max(1);
     let alpha = match t {
         0..=299 => 350 * (300 - t) / 300,
         300..=549 => 0,
@@ -40,28 +40,31 @@ fn fade(row: u32) -> u32 {
     alpha.min(1000) * 255 / 1000
 }
 
-/// Draw `which` with its top-left at `x, top`, rows above the screen left
-/// out; returns the band's height.
-pub fn band(fb: &mut PaintBuffer, x: u32, top: i64, which: Backdrop) -> u32 {
+/// Draw `which` `h` rows tall with its top-left at `x, top`, rows above the
+/// screen left out. A band shorter than the photograph shows its middle,
+/// which is where each photograph's eruption sits.
+pub fn band(fb: &mut PaintBuffer, x: u32, top: i64, which: Backdrop, h: u32) -> u32 {
+    let h = h.min(BANNER_H);
+    let skip = (BANNER_H - h) / 2;
     let mut slot = DECODED.lock();
     if slot.as_ref().map(|(b, _)| *b) != Some(which) {
         let mut px = alloc::vec![0u32; (COLUMN * BANNER_H) as usize];
         let ok = decode_png_argb8888(which.png(), &mut px).is_ok_and(|s| s.width == COLUMN);
         *slot = ok.then_some((which, px));
     }
-    for row in 0..BANNER_H {
+    for row in 0..h {
         let Ok(y) = u32::try_from(top + i64::from(row)) else {
             continue;
         };
         if let Some((_, px)) = slot.as_ref() {
-            let from = (row * COLUMN) as usize;
+            let from = ((row + skip) * COLUMN) as usize;
             for col in 0..COLUMN {
                 fb.blend_px(x + col, y, px[from + col as usize] | 0xFF00_0000);
             }
         } else {
             fb.fill_rect(x, y, COLUMN, 1, INK);
         }
-        fb.blend_rect(x, y, COLUMN, 1, (fade(row) << 24) | (INK & 0x00FF_FFFF));
+        fb.blend_rect(x, y, COLUMN, 1, (fade(row, h) << 24) | (INK & 0x00FF_FFFF));
     }
-    BANNER_H
+    h
 }
