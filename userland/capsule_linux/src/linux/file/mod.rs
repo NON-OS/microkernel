@@ -34,6 +34,7 @@ mod meta;
 mod open;
 mod path;
 mod pread;
+mod private;
 mod read;
 mod regular;
 mod rename;
@@ -62,6 +63,7 @@ pub use meta::{
 pub use open::openat;
 pub use path::read_path;
 pub use pread::pread64;
+pub use private::{allow_shared_writes, clear as clear_private, prepare as prepare_private};
 pub use read::read;
 pub use rename::rename;
 pub use resolve::{key, visible};

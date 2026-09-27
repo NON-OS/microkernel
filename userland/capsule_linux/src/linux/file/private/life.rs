@@ -14,37 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Store operations that change the namespace rather than content.
+//! A family's private directories, made before it runs and gone after.
 
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
 
-use super::root::Key;
+use super::names::{choose, root, PRIVATE};
 
-type Fail = &'static str;
-
-pub fn mkdir(at: &Key) -> Result<(), Fail> {
-    at.writable()?;
-    vfs::mkdir(mk_getpid(), at.as_bytes())
+/// A fresh id and the scratch directories a program expects to find. False
+/// when there is no id to keep them apart by, and the guest must not start.
+pub fn prepare() -> bool {
+    if !choose() {
+        return false;
+    }
+    let pid = mk_getpid();
+    for p in PRIVATE {
+        let mut at = root();
+        at.extend_from_slice(p);
+        if vfs::mkdir(pid, &at).is_err() {
+            return false;
+        }
+    }
+    true
 }
 
-pub fn rmdir(at: &Key) -> Result<(), Fail> {
-    at.writable()?;
-    vfs::rmdir(mk_getpid(), at.as_bytes(), false)
-}
-
-pub fn unlink(at: &Key) -> Result<(), Fail> {
-    at.writable()?;
-    vfs::unlink(mk_getpid(), at.as_bytes())
-}
-
-pub fn rename(from: &Key, to: &Key) -> Result<(), Fail> {
-    from.writable()?;
-    to.writable()?;
-    vfs::rename(mk_getpid(), from.as_bytes(), to.as_bytes())
-}
-
-pub fn chmod(at: &Key, mode: u16) -> Result<(), Fail> {
-    at.writable()?;
-    vfs::chmod(mk_getpid(), at.as_bytes(), mode)
+/// Everything the family wrote to its own directories, removed.
+pub fn clear() {
+    let _ = vfs::rmdir(mk_getpid(), &root(), true);
 }

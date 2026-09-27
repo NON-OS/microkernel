@@ -31,6 +31,7 @@ pub fn read(at: &Key, max: u32) -> Result<Vec<u8>, Fail> {
 }
 
 pub fn write(at: &Key, data: &[u8]) -> Result<(), Fail> {
+    at.writable()?;
     vfs::write_file(mk_getpid(), at.as_bytes(), data)
 }
 
