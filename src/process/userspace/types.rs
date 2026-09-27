@@ -122,26 +122,29 @@ impl FpuState {
         }
     }
 
-    // Architectural default FPU/SSE state for a fresh thread. FNINIT sets
-    // FCW=0x037F; MXCSR must be 0x1F80 (all SIMD exceptions masked, round to
-    // nearest). Restoring a zeroed FXSAVE image instead leaves MXCSR=0, which
-    // unmasks every SIMD exception and makes the first inexact result trap.
+    /// A new thread's unit: every register zero, FCW 0x037F, MXCSR 0x1F80.
+    /// FNINIT and LDMXCSR alone left xmm and the ymm upper halves holding the
+    /// last thread's values, which the state suite read from a sibling.
     #[inline(always)]
     pub fn init() {
-        let mxcsr: u32 = 0x1F80;
-        // x87 and SSE control words, so this is the x86_64 unit. The aarch64
-        // FPCR is set where that FPU is brought up.
-        #[cfg(target_arch = "x86_64")]
-        // SAFETY: FNINIT resets the x87 unit; LDMXCSR loads the SSE control word
-        // from the 4-byte `mxcsr` local. Neither touches the stack.
-        unsafe {
-            core::arch::asm!(
-                "fninit",
-                "ldmxcsr [{}]",
-                in(reg) &mxcsr as *const u32,
-                options(nostack),
-            );
-        }
+        CLEAN.restore();
+    }
+}
+
+/// The initial state, as an area to restore: control words set, registers
+/// zero, and an XSAVE header whose empty XSTATE_BV puts every component the
+/// area covers in its initial configuration. MXCSR is 0x1F80, every SIMD
+/// exception masked: an all-zero area would unmask them all.
+static CLEAN: FpuState = FpuState::clean();
+
+impl FpuState {
+    const fn clean() -> Self {
+        let mut data = [0u8; FPU_AREA];
+        data[0] = 0x7F;
+        data[1] = 0x03;
+        data[24] = 0x80;
+        data[25] = 0x1F;
+        Self { data }
     }
 }
 
