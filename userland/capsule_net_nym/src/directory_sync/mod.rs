@@ -21,6 +21,7 @@ mod exit;
 mod http;
 mod https;
 mod keep;
+mod lease;
 mod live;
 mod plain;
 mod source;

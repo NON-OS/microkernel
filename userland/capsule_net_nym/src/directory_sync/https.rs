@@ -19,6 +19,7 @@ use alloc::vec::Vec;
 use nonos_tls::{exchange, rtc_now};
 
 use super::http::parse;
+use super::lease::wait_for_lease;
 use super::tls_io::TcpIo;
 use crate::tcp_client;
 
@@ -42,6 +43,7 @@ pub fn fetch_tls(
     addresses: &[[u8; 4]],
     path: &str,
 ) -> Result<Vec<u8>, u16> {
+    wait_for_lease()?;
     let mut last = 21u16;
     for ip in addresses {
         match fetch_at(tcp_port, *ip, host, path) {
