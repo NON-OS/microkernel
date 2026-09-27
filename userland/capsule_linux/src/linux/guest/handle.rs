@@ -69,4 +69,6 @@ pub struct Guest {
     pub ended: Vec<(u32, i32)>,
     /// A parked wait4: the pid it wants, where the status goes, the caller.
     pub waiting: Option<(u64, u64, u32)>,
+    /// A read parked on an empty pipe: its buffer slot, where, how much, who.
+    pub pipe_wait: Option<(usize, u64, u64, u32)>,
 }

@@ -19,6 +19,7 @@
 mod answer;
 mod dispatch;
 mod family;
+mod family_pipes;
 mod family_reap;
 mod loop_impl;
 mod table;

@@ -26,6 +26,7 @@ const SIGKILL: u64 = 9;
 impl Family {
     /// End every process that asked to, and tell its parent.
     pub fn reap(&mut self) {
+        self.settle_pipes();
         while let Some(i) = self.guests.iter().position(|g| g.exited.is_some()) {
             let gone = self.guests.remove(i);
             let code = gone.exited.unwrap_or(0);

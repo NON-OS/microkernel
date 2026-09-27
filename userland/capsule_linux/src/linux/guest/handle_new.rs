@@ -53,6 +53,7 @@ impl Guest {
             forked: Vec::new(),
             ended: Vec::new(),
             waiting: None,
+            pipe_wait: None,
         }
     }
 }

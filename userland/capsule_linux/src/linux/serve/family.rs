@@ -57,6 +57,7 @@ impl Family {
             let _ = mk_foreign_reply(frame.pid, value);
         }
         self.guests.extend(born);
+        self.settle_pipes();
     }
 
     /// Done once nothing it hosts is left; the code is the first guest's.
