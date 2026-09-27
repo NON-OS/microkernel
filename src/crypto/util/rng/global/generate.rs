@@ -24,7 +24,7 @@ pub fn get_random_bytes() -> [u8; 32] {
 
     if ensure_initialized().is_ok() {
         if let Some(ref mut rng) = *GLOBAL_RNG.lock() {
-            rng.fill_bytes(&mut out);
+            super::reseed::draw(rng, &mut out);
             return out;
         }
     }
@@ -38,7 +38,7 @@ pub fn get_random_bytes_secure() -> RngResult<[u8; 32]> {
 
     let mut out = [0u8; 32];
     if let Some(ref mut rng) = *GLOBAL_RNG.lock() {
-        rng.fill_bytes(&mut out);
+        super::reseed::draw(rng, &mut out);
         return Ok(out);
     }
 
@@ -48,7 +48,7 @@ pub fn get_random_bytes_secure() -> RngResult<[u8; 32]> {
 pub fn fill_random_bytes(buf: &mut [u8]) {
     if ensure_initialized().is_ok() {
         if let Some(ref mut rng) = *GLOBAL_RNG.lock() {
-            rng.fill_bytes(buf);
+            super::reseed::draw(rng, buf);
             return;
         }
     }
@@ -60,7 +60,7 @@ pub fn fill_random_bytes_secure(buf: &mut [u8]) -> RngResult<()> {
     ensure_initialized()?;
 
     if let Some(ref mut rng) = *GLOBAL_RNG.lock() {
-        rng.fill_bytes(buf);
+        super::reseed::draw(rng, buf);
         return Ok(());
     }
 
