@@ -587,3 +587,177 @@ import Nonos
 #print axioms Nonos.TrapEntry.unconditional_swap_breaks_ring_zero
 #print axioms Nonos.TrapEntry.handler_always_runs_on_the_kernel_base
 #print axioms Nonos.TrapEntry.return_restores_what_entry_changed
+
+-- ApBringup
+#print axioms Nonos.ApBringup.arrived_survives
+#print axioms Nonos.ApBringup.interrupts_need_the_tables
+#print axioms Nonos.ApBringup.interrupts_need_the_per_cpu_base
+#print axioms Nonos.ApBringup.interrupts_need_the_lapic
+#print axioms Nonos.ApBringup.interrupts_after_everything_survive
+#print axioms Nonos.ApBringup.halting_with_interrupts_off_never_wakes
+#print axioms Nonos.ApBringup.halting_with_interrupts_on_wakes
+#print axioms Nonos.ApBringup.the_window_is_exactly_one_step
+#print axioms Nonos.ApBringup.one_step_earlier_does_not_survive
+#print axioms Nonos.ApBringup.the_bad_order_looks_correct_at_the_end
+#print axioms Nonos.ApBringup.removing_it_does_not_wake
+#print axioms Nonos.ApBringup.started_is_not_ready
+#print axioms Nonos.ApBringup.waiting_for_ready_is_what_makes_it_safe
+#print axioms Nonos.ApBringup.counting_before_the_acknowledgement_is_unsafe
+
+-- ArchiveStreams
+#print axioms Nonos.ArchiveStreams.agree_on_empty
+#print axioms Nonos.ArchiveStreams.one_member_is_indistinguishable
+#print axioms Nonos.ArchiveStreams.a_prefix_reader_is_correct_on_short_input
+#print axioms Nonos.ArchiveStreams.a_prefix_reader_is_wrong_on_long_input
+#print axioms Nonos.ArchiveStreams.it_drops_the_tail
+#print axioms Nonos.ArchiveStreams.the_index_is_in_a_later_member
+#print axioms Nonos.ArchiveStreams.the_full_reader_finds_it
+#print axioms Nonos.ArchiveStreams.an_empty_result_is_not_an_error
+#print axioms Nonos.ArchiveStreams.both_stop_at_the_end_marker
+#print axioms Nonos.ArchiveStreams.a_single_zero_block_is_padding
+#print axioms Nonos.ArchiveStreams.leading_padding_yields_nothing
+#print axioms Nonos.ArchiveStreams.the_walks_agree_without_padding
+#print axioms Nonos.ArchiveStreams.the_correct_walk_invents_nothing
+#print axioms Nonos.ArchiveStreams.both_defects_yield_nothing
+#print axioms Nonos.ArchiveStreams.the_fixed_reader_finds_both
+
+-- ArgvBounds
+#print axioms Nonos.ArgvBounds.short_arguments_are_unaffected
+#print axioms Nonos.ArgvBounds.the_path_bound_refuses_a_legal_argument
+#print axioms Nonos.ArgvBounds.the_bounds_differ_on_an_interval
+#print axioms Nonos.ArgvBounds.oversized_arguments_are_still_refused
+#print axioms Nonos.ArgvBounds.sound_total_fits_the_stack
+#print axioms Nonos.ArgvBounds.the_fit_has_margin
+#print axioms Nonos.ArgvBounds.a_total_the_size_of_the_stack_is_unsound
+#print axioms Nonos.ArgvBounds.the_total_is_coupled_to_the_stack
+#print axioms Nonos.ArgvBounds.raising_both_stays_sound
+#print axioms Nonos.ArgvBounds.greatest_sound_total
+#print axioms Nonos.ArgvBounds.count_is_bounded_by_the_total
+#print axioms Nonos.ArgvBounds.no_arguments_fit
+#print axioms Nonos.ArgvBounds.one_maximal_argument_fits
+
+-- GateLayers
+#print axioms Nonos.GateLayers.entry_alone_is_not_authority
+#print axioms Nonos.GateLayers.authority_alone_is_not_the_whole_gate
+#print axioms Nonos.GateLayers.absent_from_the_table_is_unreachable
+#print axioms Nonos.GateLayers.denied_by_authority_is_unreachable
+#print axioms Nonos.GateLayers.admission_requires_both
+#print axioms Nonos.GateLayers.both_passing_admits
+#print axioms Nonos.GateLayers.widening_the_table_grants_no_authority
+#print axioms Nonos.GateLayers.widening_the_table_widens_reach
+#print axioms Nonos.GateLayers.the_audit_is_complete
+#print axioms Nonos.GateLayers.nothing_is_unaudited
+#print axioms Nonos.GateLayers.every_syscall_has_both_layers
+#print axioms Nonos.GateLayers.disclosure_and_independence_conflict
+#print axioms Nonos.GateLayers.a_hardcoded_pid_names_whoever_holds_it
+
+-- GsiRouting
+#print axioms Nonos.GsiRouting.identity_without_an_override
+#print axioms Nonos.GsiRouting.override_wins
+#print axioms Nonos.GsiRouting.other_overrides_are_skipped
+#print axioms Nonos.GsiRouting.translation_is_total
+#print axioms Nonos.GsiRouting.a_collapsing_translation_merges_two_devices
+#print axioms Nonos.GsiRouting.identity_collapses_nothing
+#print axioms Nonos.GsiRouting.vector_avoids_the_exception_range
+#print axioms Nonos.GsiRouting.vector_fits
+#print axioms Nonos.GsiRouting.vectors_are_distinct
+#print axioms Nonos.GsiRouting.the_boot_processor_receives_everything
+#print axioms Nonos.GsiRouting.a_fixed_destination_starves_the_others
+#print axioms Nonos.GsiRouting.a_chosen_destination_reaches_any_processor
+#print axioms Nonos.GsiRouting.masked_delivers_to_nobody
+#print axioms Nonos.GsiRouting.unmasked_rewrite_has_a_bad_window
+#print axioms Nonos.GsiRouting.masked_rewrite_has_no_window
+#print axioms Nonos.GsiRouting.masked_rewrite_ends_correct
+#print axioms Nonos.GsiRouting.a_routed_interrupt_arrives
+#print axioms Nonos.GsiRouting.uncollapsed_interrupts_get_different_vectors
+
+-- ImageStaging
+#print axioms Nonos.ImageStaging.stale_package_boots_the_earlier_build
+#print axioms Nonos.ImageStaging.the_tree_holds_the_later_build
+#print axioms Nonos.ImageStaging.tree_and_image_disagree
+#print axioms Nonos.ImageStaging.package_copies_the_tree
+#print axioms Nonos.ImageStaging.building_leaves_the_image
+#print axioms Nonos.ImageStaging.booting_changes_nothing
+#print axioms Nonos.ImageStaging.no_package_boots_nothing
+#print axioms Nonos.ImageStaging.resequenced_boots_the_current_build
+#print axioms Nonos.ImageStaging.sequenced_tree_and_image_agree
+#print axioms Nonos.ImageStaging.package_then_boot_is_current
+#print axioms Nonos.ImageStaging.measurement_follows_the_image
+#print axioms Nonos.ImageStaging.stale_measurement_is_true_about_the_wrong_kernel
+#print axioms Nonos.ImageStaging.measuring_before_packaging_measures_nothing
+#print axioms Nonos.ImageStaging.measure_after_package_matches_the_boot
+#print axioms Nonos.ImageStaging.all_three_agree_when_sequenced
+
+-- PodBound
+#print axioms Nonos.PodBound.bool_has_no_padding
+#print axioms Nonos.PodBound.bool_is_not_inhabited
+#print axioms Nonos.PodBound.invalid_pattern_is_reachable
+#print axioms Nonos.PodBound.plain_read_is_always_sound
+#print axioms Nonos.PodBound.non_plain_read_needs_a_check
+#print axioms Nonos.PodBound.plain_layout_writes_only_the_value
+#print axioms Nonos.PodBound.padding_is_not_determined_by_the_value
+#print axioms Nonos.PodBound.padding_fails_the_bound
+#print axioms Nonos.PodBound.padded_layout_leaks
+#print axioms Nonos.PodBound.padded_layout_reads_soundly
+#print axioms Nonos.PodBound.padded_layout_is_not_plain
+#print axioms Nonos.PodBound.the_bound_discharges_every_site
+#print axioms Nonos.PodBound.one_bad_site_is_enough
+
+-- Reachability
+#print axioms Nonos.Reachability.unreached_is_not_live
+#print axioms Nonos.Reachability.removing_an_unreached_control_changes_nothing
+#print axioms Nonos.Reachability.a_reached_control_can_refuse
+#print axioms Nonos.Reachability.dead_stack_is_empty
+#print axioms Nonos.Reachability.dead_controls_grant_everything
+#print axioms Nonos.Reachability.any_number_of_dead_controls_grants_everything
+#print axioms Nonos.Reachability.a_duplicate_with_a_dead_copy_is_one_check
+#print axioms Nonos.Reachability.the_dead_copy_does_not_tighten
+#print axioms Nonos.Reachability.ratchet_is_reflexive
+#print axioms Nonos.Reachability.ratchet_is_transitive
+#print axioms Nonos.Reachability.a_new_dead_control_breaks_the_ratchet
+#print axioms Nonos.Reachability.wiring_one_up_satisfies_the_ratchet
+#print axioms Nonos.Reachability.zero_is_the_floor
+
+-- TimerLiveness
+#print axioms Nonos.TimerLiveness.one_source_is_a_single_point_of_failure
+#print axioms Nonos.TimerLiveness.a_second_live_source_keeps_time
+#print axioms Nonos.TimerLiveness.any_live_source_suffices
+#print axioms Nonos.TimerLiveness.time_stops_only_if_all_are_dead
+#print axioms Nonos.TimerLiveness.no_sources_is_no_time
+#print axioms Nonos.TimerLiveness.a_derived_source_adds_nothing
+#print axioms Nonos.TimerLiveness.a_derived_heartbeat_does_not_save_the_hp
+#print axioms Nonos.TimerLiveness.an_independent_source_covers_the_failure
+#print axioms Nonos.TimerLiveness.the_clock_is_independent_of_the_timer
+#print axioms Nonos.TimerLiveness.derived_is_never_independent
+#print axioms Nonos.TimerLiveness.the_heartbeat_bounds_the_stall
+#print axioms Nonos.TimerLiveness.the_bound_is_under_ten_milliseconds
+#print axioms Nonos.TimerLiveness.a_dead_source_bounds_nothing
+#print axioms Nonos.TimerLiveness.the_heartbeat_bounds_preemption
+#print axioms Nonos.TimerLiveness.more_sources_never_loosen_the_bound
+
+-- Stark.Blinding
+#print axioms Nonos.Stark.Blinding.revealing_more_than_the_coefficients_determines
+#print axioms Nonos.Stark.Blinding.masking_past_the_surplus_hides
+#print axioms Nonos.Stark.Blinding.masking_within_the_surplus_hides_nothing
+#print axioms Nonos.Stark.Blinding.least_sufficient_mask
+#print axioms Nonos.Stark.Blinding.shipped_surplus_is_one
+#print axioms Nonos.Stark.Blinding.the_shipped_numbers_leave_nothing_hidden
+#print axioms Nonos.Stark.Blinding.a_mask_of_one_is_not_enough
+#print axioms Nonos.Stark.Blinding.a_mask_of_two_hides
+#print axioms Nonos.Stark.Blinding.two_is_the_least_sufficient_mask
+#print axioms Nonos.Stark.Blinding.part_masks_add
+#print axioms Nonos.Stark.Blinding.the_composition_needs_its_own_margin
+#print axioms Nonos.Stark.Blinding.composition_hides_iff
+#print axioms Nonos.Stark.Blinding.the_relayer_learns_the_column
+
+-- Stark.ChallengeDrawing
+#print axioms Nonos.Stark.ChallengeDrawing.fixed_challenge_is_unsound
+#print axioms Nonos.Stark.ChallengeDrawing.the_witness_fails_at_a_different_challenge
+#print axioms Nonos.Stark.ChallengeDrawing.shipped_beta_is_unsound
+#print axioms Nonos.Stark.ChallengeDrawing.constantDraw_is_constant
+#print axioms Nonos.Stark.ChallengeDrawing.a_constant_draw_is_known_in_advance
+#print axioms Nonos.Stark.ChallengeDrawing.a_constant_draw_admits_a_forgery
+#print axioms Nonos.Stark.ChallengeDrawing.a_separating_draw_pins_one_commitment
+#print axioms Nonos.Stark.ChallengeDrawing.separating_is_not_constant
+#print axioms Nonos.Stark.ChallengeDrawing.changing_the_commitment_changes_the_challenge
+#print axioms Nonos.Stark.ChallengeDrawing.a_constant_draw_makes_the_transcript_empty
