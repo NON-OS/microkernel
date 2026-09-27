@@ -44,32 +44,38 @@ def security.crypto.constant_time.core.ct_select_u32
   ok (b ^^^ i1)
 
 /-- [nonos_ct::security::crypto::constant_time::ops::ct_lt_u32]:
-    Source: 'src/security/crypto/constant_time/../../../../../../../src/security/crypto/constant_time/ops.rs', lines 21:0-24:1
+    Source: 'src/security/crypto/constant_time/../../../../../../../src/security/crypto/constant_time/ops.rs', lines 28:0-31:1
     Visibility: public -/
 def security.crypto.constant_time.ops.ct_lt_u32
   (a : Std.U32) (b : Std.U32) : Result Std.U32 := do
-  let diff ← lift (core.num.U32.wrapping_sub a b)
-  let i ← diff >>> 31#i32
-  ok (i &&& 1#u32)
+  let i ← lift (a ^^^ b)
+  let i1 ← lift (core.num.U32.wrapping_sub a b)
+  let i2 ← lift (i1 ^^^ b)
+  let i3 ← lift (i ||| i2)
+  let x ← lift (a ^^^ i3)
+  x >>> 31#i32
 
 /-- [nonos_ct::security::crypto::constant_time::ops::ct_lt_u64]:
-    Source: 'src/security/crypto/constant_time/../../../../../../../src/security/crypto/constant_time/ops.rs', lines 27:0-30:1
+    Source: 'src/security/crypto/constant_time/../../../../../../../src/security/crypto/constant_time/ops.rs', lines 36:0-39:1
     Visibility: public -/
 def security.crypto.constant_time.ops.ct_lt_u64
   (a : Std.U64) (b : Std.U64) : Result Std.U64 := do
-  let diff ← lift (core.num.U64.wrapping_sub a b)
-  let i ← diff >>> 63#i32
-  ok (i &&& 1#u64)
+  let i ← lift (a ^^^ b)
+  let i1 ← lift (core.num.U64.wrapping_sub a b)
+  let i2 ← lift (i1 ^^^ b)
+  let i3 ← lift (i ||| i2)
+  let x ← lift (a ^^^ i3)
+  x >>> 63#i32
 
 /-- [nonos_ct::security::crypto::constant_time::ops::ct_gt_u32]:
-    Source: 'src/security/crypto/constant_time/../../../../../../../src/security/crypto/constant_time/ops.rs', lines 33:0-35:1
+    Source: 'src/security/crypto/constant_time/../../../../../../../src/security/crypto/constant_time/ops.rs', lines 42:0-44:1
     Visibility: public -/
 def security.crypto.constant_time.ops.ct_gt_u32
   (a : Std.U32) (b : Std.U32) : Result Std.U32 := do
   security.crypto.constant_time.ops.ct_lt_u32 b a
 
 /-- [nonos_ct::security::crypto::constant_time::ops::ct_min_u32]:
-    Source: 'src/security/crypto/constant_time/../../../../../../../src/security/crypto/constant_time/ops.rs', lines 58:0-60:1
+    Source: 'src/security/crypto/constant_time/../../../../../../../src/security/crypto/constant_time/ops.rs', lines 67:0-69:1
     Visibility: public -/
 def security.crypto.constant_time.ops.ct_min_u32
   (a : Std.U32) (b : Std.U32) : Result Std.U32 := do
@@ -77,7 +83,7 @@ def security.crypto.constant_time.ops.ct_min_u32
   security.crypto.constant_time.core.ct_select_u32 i a b
 
 /-- [nonos_ct::security::crypto::constant_time::ops::ct_max_u32]:
-    Source: 'src/security/crypto/constant_time/../../../../../../../src/security/crypto/constant_time/ops.rs', lines 63:0-65:1
+    Source: 'src/security/crypto/constant_time/../../../../../../../src/security/crypto/constant_time/ops.rs', lines 72:0-74:1
     Visibility: public -/
 def security.crypto.constant_time.ops.ct_max_u32
   (a : Std.U32) (b : Std.U32) : Result Std.U32 := do
