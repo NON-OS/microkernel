@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every field the panel knows about must be reachable from some section, or a
-//! setting exists that no screen can show. The check runs at compile time, so
-//! adding a field without placing it on a screen fails the build.
+//! The other direction: a row may only name a field in `ALL_FIELDS`, the list
+//! of fields that some code reads, so a switch wired to nothing fails the build.
 
 use crate::settings::section::{SECTIONS, SECTION_COUNT};
 
@@ -24,18 +23,29 @@ use super::all_fields::ALL_FIELDS;
 use super::blocks_for::blocks_for;
 use super::rows::Row;
 
-const fn placed(id: u32) -> bool {
+const fn listed(id: u32) -> bool {
+    let mut i = 0;
+    while i < ALL_FIELDS.len() {
+        if ALL_FIELDS[i] as u32 == id {
+            return true;
+        }
+        i += 1;
+    }
+    false
+}
+
+// Every row on a screen names a field from the list of fields with a reader.
+const fn all_listed() -> bool {
     let mut s = 0;
     while s < SECTION_COUNT {
         let blocks = blocks_for(SECTIONS[s]);
         let mut b = 0;
         while b < blocks.len() {
-            let rows = blocks[b].rows;
             let mut r = 0;
-            while r < rows.len() {
-                if let Row::Field(f) = rows[r] {
-                    if f as u32 == id {
-                        return true;
+            while r < blocks[b].rows.len() {
+                if let Row::Field(f) = blocks[b].rows[r] {
+                    if !listed(f as u32) {
+                        return false;
                     }
                 }
                 r += 1;
@@ -44,18 +54,7 @@ const fn placed(id: u32) -> bool {
         }
         s += 1;
     }
-    false
-}
-
-const fn all_placed() -> bool {
-    let mut i = 0;
-    while i < ALL_FIELDS.len() {
-        if !placed(ALL_FIELDS[i] as u32) {
-            return false;
-        }
-        i += 1;
-    }
     true
 }
 
-const _: () = assert!(all_placed(), "every listed field must appear on a settings screen");
+const _: () = assert!(all_listed(), "a settings row must name a field that something reads");

@@ -19,30 +19,11 @@ use nonos_policy_proto::Field;
 use crate::settings::schema::rows::{Block, Pill, Row};
 
 pub const APPEARANCE: &[Block] = &[
-    Block {
-        title: "Theme",
-        note: None,
-        pill: Pill::None,
-        rows: &[
-            Row::Field(Field::Theme),
-            Row::Field(Field::Wallpaper),
-            Row::Field(Field::HighContrast),
-        ],
-    },
-    Block {
-        title: "Display",
-        note: None,
-        pill: Pill::None,
-        rows: &[
-            Row::Field(Field::Brightness),
-            Row::Field(Field::FontSize),
-            Row::Field(Field::AnimationsEnabled),
-        ],
-    },
+    Block { title: "Desktop", note: None, pill: Pill::None, rows: &[Row::Field(Field::Wallpaper)] },
     Block {
         title: "Pointer",
         note: None,
         pill: Pill::None,
-        rows: &[Row::Field(Field::CursorSize), Row::Field(Field::MouseSensitivity)],
+        rows: &[Row::Field(Field::MouseSensitivity)],
     },
 ];

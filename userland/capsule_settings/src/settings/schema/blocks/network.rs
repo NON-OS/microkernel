@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::Field;
-
 use crate::settings::schema::rows::{Block, Live, Pill, Row};
 
 pub const NETWORK: &[Block] = &[
@@ -31,20 +29,9 @@ pub const NETWORK: &[Block] = &[
         ],
     },
     Block {
-        title: "Network options",
-        note: None,
-        pill: Pill::None,
-        rows: &[
-            Row::Field(Field::WifiAutoconnect),
-            Row::Field(Field::PreferIpv6),
-            Row::Field(Field::MeteredConnection),
-            Row::Field(Field::ProxyMode),
-        ],
-    },
-    Block {
         title: "Interfaces",
         note: None,
         pill: Pill::None,
-        rows: &[Row::Live("Adapter", Live::Adapter)],
+        rows: &[Row::Live("Wireless adapter", Live::Adapter)],
     },
 ];

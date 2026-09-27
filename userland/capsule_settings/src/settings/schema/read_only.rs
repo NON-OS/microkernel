@@ -25,5 +25,6 @@ use nonos_policy_proto::Field;
 
 /// Whether `field` is a status the panel displays without editing.
 pub fn read_only(field: Field) -> bool {
-    matches!(field, Field::SystemKeysGenerated)
+    // Persistence is granted with consent in the setup wizard, not from a row.
+    matches!(field, Field::SystemKeysGenerated | Field::Persistent)
 }
