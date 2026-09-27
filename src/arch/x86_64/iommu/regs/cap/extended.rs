@@ -14,16 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod agaw;
-mod behaviour;
-mod extended;
-mod fault;
-mod limits;
-mod pages;
-
-pub use agaw::{preferred_levels, AgawLevels};
-pub use behaviour::{caching_mode, requires_write_buffer_flush};
-pub use extended::snoop_control;
-pub use fault::{fault_recording_count, fault_recording_offset};
-pub use limits::{domain_count, max_address_width};
-pub use pages::best_leaf_level;
+/// Snoop Control, ECAP bit 7: the unit honours the snoop bit of a second-level leaf.
+pub const fn snoop_control(ecap: u64) -> bool {
+    ecap & (1 << 7) != 0
+}

@@ -448,9 +448,10 @@ nonos-mk-run-installed: nonos-mk-swtpm-start $(QEMU_OVMF_VARS_RW)
 		-serial mon:stdio -vga none -display $(QEMU_DISPLAY) -no-reboot
 
 # The DMA-protection boot. Every other lane starts QEMU with no remapping
-# hardware, so the kernel finds an empty DMAR and says so:
+# hardware, so the kernel finds neither a DMAR unit nor an IVRS table and
+# says so:
 #
-#     [VT-D] no remapping units in DMAR; DMA is unrestricted
+#     [IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted
 #
 # which means the IOMMU bring-up compiled into every image has never run. This
 # lane presents an intel-iommu so it does. TCG rather than hvf: the hypervisor
