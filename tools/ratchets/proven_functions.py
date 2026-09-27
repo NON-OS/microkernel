@@ -34,7 +34,7 @@ import sys
 from pathlib import Path
 
 # Raise these when the numbers improve. They may never be lowered.
-FLOOR = 101
+FLOOR = 118
 GAP_CEILING = 2
 
 PROOF_MODULES = ('CapsComplete.lean', 'Closure.lean')

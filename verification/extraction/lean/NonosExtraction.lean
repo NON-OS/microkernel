@@ -33,6 +33,9 @@ import NonosExtraction.Paging
 import NonosExtraction.PagingRefinement
 import NonosExtraction.PolicyRefinement
 import NonosExtraction.Refinement
+import NonosExtraction.RvFlags
+import NonosExtraction.RvFlagsRefinement
+import NonosExtraction.Shapes
 import NonosExtraction.Signal
 import NonosExtraction.SignalRefinement
 import NonosExtraction.Uefi

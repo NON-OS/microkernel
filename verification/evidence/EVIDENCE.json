@@ -99,6 +99,23 @@
         "nonos_policy::is_wx_violation",
         "nonos_policy::to_pte_flags",
         "nonos_policy::usercopy::policy::check_range",
+        "nonos_rv_flags::pteflags_accessed",
+        "nonos_rv_flags::pteflags_bits",
+        "nonos_rv_flags::pteflags_dirty",
+        "nonos_rv_flags::pteflags_executable",
+        "nonos_rv_flags::pteflags_from_bits",
+        "nonos_rv_flags::pteflags_global",
+        "nonos_rv_flags::pteflags_is_executable",
+        "nonos_rv_flags::pteflags_is_leaf",
+        "nonos_rv_flags::pteflags_is_readable",
+        "nonos_rv_flags::pteflags_is_user",
+        "nonos_rv_flags::pteflags_is_valid",
+        "nonos_rv_flags::pteflags_is_writable",
+        "nonos_rv_flags::pteflags_new",
+        "nonos_rv_flags::pteflags_readable",
+        "nonos_rv_flags::pteflags_user",
+        "nonos_rv_flags::pteflags_valid",
+        "nonos_rv_flags::pteflags_writable",
         "nonos_signal::process::signal::helpers::can_be_blocked",
         "nonos_signal::process::signal::helpers::can_be_caught",
         "nonos_signal::process::signal::helpers::can_be_ignored",
@@ -151,6 +168,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/Paging.lean",
           "sha256": "6b72a1b86d723cb9f0a4b86bc296480bfb7935181eaf856ef16c0d87852025d0"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/RvFlags.lean",
+          "sha256": "b78ef3c9eb7caf65b113f4e7416cafbc2b9c6a7a378cde37458f228aafdaba5a"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Signal.lean",
