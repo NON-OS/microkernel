@@ -35,6 +35,7 @@ pub enum Object {
     Seat,
     Pointer,
     Keyboard,
+    Output,
 }
 
 pub struct Objects {

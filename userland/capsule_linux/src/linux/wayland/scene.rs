@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The client's scene, and the NONOS surface it ends up on.
 
 use alloc::vec::Vec;
@@ -36,6 +35,8 @@ pub struct Scene {
     pub keyboard: Option<u32>,
     pub pointer_entered: bool,
     pub keyboard_entered: bool,
+    /// Whether the input router has taken this personality's subscription.
+    pub subscribed: bool,
 }
 
 impl Scene {
@@ -51,6 +52,7 @@ impl Scene {
             keyboard: None,
             pointer_entered: false,
             keyboard_entered: false,
+            subscribed: false,
         }
     }
 
