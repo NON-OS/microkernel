@@ -1,0 +1,114 @@
+# What each served Linux call tells a guest, and why that is acceptable.
+# One line per call: name | discloses | why acceptable. tools/ratchets/
+# disclosure.py fails when a served call has no line or a line names a call
+# not served. Section 8 of the completion doc: a plausible constant over the
+# truth wherever the truth is nobody's business; the machine must look the
+# same from every guest on every install unless the person chose otherwise.
+read | bytes of the guest's own files, pipes and sockets | its own data
+write | nothing back but a count | a count of its own bytes
+open | whether a path exists in the Linux tree or the family's private dirs | the tree holds installs every machine with them shares; private dirs are the family's own
+close | nothing | none
+stat | size and kind of a path; fixed inode, times and owner | size is of shared installs or the family's own files
+fstat | size and kind of an open descriptor | as stat
+lstat | as stat | as stat
+poll | readiness of its own descriptors | its own state
+lseek | its own file offset | its own state
+mmap | an address in its own layout, chosen here | the layout is the personality's, not the machine's
+mprotect | success or refusal of its own pages | its own state
+munmap | success or refusal of its own pages | its own state
+brk | its own break, in a layout chosen here | as mmap
+rt_sigaction | the previous handler it set | its own state
+rt_sigprocmask | the mask it set | its own state
+ioctl | ENOTTY for every open descriptor, EBADF otherwise | a constant; no terminal size or device is described
+pread64 | bytes of its own files | as read
+readv | as read | as read
+writev | as write | as write
+access | whether a path exists | as open
+pipe | two descriptor numbers | its own table
+select | readiness of its own descriptors | as poll
+sched_yield | nothing | none
+madvise | 0 | a constant
+dup | a descriptor number | its own table
+dup2 | a descriptor number | its own table
+nanosleep | elapsed time at 1 ms, on the family's clock | the family's clock starts at its own start, not the machine's boot
+getpid | the family's own number for the process | family numbering hides the machine's process count
+socket | a descriptor number | its own table
+connect | success or refusal; names resolve to addresses invented here | no DNS leaves the machine; the remote sees the network service's egress, not this machine
+sendto | a count | as write
+recvfrom | bytes the remote sent | the guest asked for them
+sendmsg | a count, on the display socket | the family's own display
+recvmsg | display events for its own surfaces | input only while focused, through the router
+shutdown | nothing | none
+clone | a thread number in the family's numbering | as getpid
+fork | a child number in the family's numbering | as getpid
+vfork | as fork | as getpid
+execve | whether a program is enrolled and proved | refusal names no measurement or key
+exit | nothing | none
+wait4 | its own child's number and exit code | its own children
+kill | whether a number is its own or its child's | nothing outside the family is named or reachable
+uname | Linux, nonos, 6.1.0, NONOS Linux personality, x86_64, nonos | constants; the person's hostname is never shown
+fcntl | its own descriptor flags | its own state
+fsync | 0, or EIO if its own buffered bytes did not reach the store | the store is RAM; nothing reaches disk from a guest
+ftruncate | success or refusal of its own file | its own state
+getcwd | its own cwd under its own root | its own state
+chdir | whether a directory exists | as open
+fchdir | as chdir | as open
+rename | success, or refusal outside its private dirs | the shared tree is read-only to guests
+mkdir | as rename | as rename
+rmdir | as rename | as rename
+unlink | as rename | as rename
+readlink | the target of a link in the Linux tree | links come with the shared installs
+chmod | as rename | as rename
+fchmod | as rename | as rename
+umask | the mask it set | its own state
+gettimeofday | the wall clock at 1 ms | shared by every machine on network time; no finer step is given
+getrlimit | fixed limits | constants
+getuid | 0 | a constant
+getgid | 0 | a constant
+setuid | success only for 0 | a constant
+setgid | success only for 0 | a constant
+geteuid | 0 | a constant
+getegid | 0 | a constant
+setpgid | success within the family | family numbering
+getppid | the parent's number; 1 for the program the personality started | family numbering
+getpgrp | the group's number in the family | family numbering
+setsid | the session's number in the family | family numbering
+getpgid | as getpgrp | family numbering
+getsid | as setsid | family numbering
+sigaltstack | the stack it set | its own state
+statfs | a 1 GiB volume, half free | a constant; the store's real usage is shared and sizes the install
+fstatfs | as statfs | a constant
+arch_prctl | its own thread pointer | its own state
+gettid | the calling thread's number in the family | family numbering
+tkill | as kill | as kill
+time | the wall clock in seconds | as gettimeofday
+futex | wakes among its own threads | its own state
+getdents64 | names in the Linux tree or its private dirs | as open
+set_tid_address | the calling thread's number in the family | family numbering
+clock_gettime | wall clocks at 1 ms; other clocks since the family started | as nanosleep and gettimeofday
+clock_getres | 1 ms for every clock | a constant
+clock_nanosleep | as nanosleep | as nanosleep
+exit_group | nothing | none
+epoll_wait | readiness of its own descriptors | as poll
+epoll_ctl | its own interest set | its own state
+openat | as open | as open
+mkdirat | as mkdir | as rename
+newfstatat | as stat | as stat
+unlinkat | as unlink | as rename
+fchmodat | as chmod | as rename
+faccessat | as access | as open
+pselect6 | as select | as poll
+ppoll | as poll | as poll
+set_robust_list | 0 | a constant
+epoll_pwait | as epoll_wait | as poll
+timerfd_create | a descriptor number | its own table
+timerfd_settime | expirations on the family's clock | as nanosleep
+epoll_create1 | a descriptor number | its own table
+dup3 | a descriptor number | its own table
+pipe2 | as pipe | its own table
+prlimit64 | fixed limits; changes refused | constants
+getrandom | bytes from the kernel's generator, up to 256 a call | fresh per call and never shared between guests
+memfd_create | a descriptor number | its own table
+statx | as stat | as stat
+rseq | 0 | a constant
+faccessat2 | as access | as open
