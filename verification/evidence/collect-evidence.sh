@@ -86,7 +86,13 @@ jq -Sn \
     axiom_policy: {
       allowed: ["propext", "Classical.choice", "Quot.sound"],
       forbidden: ["sorryAx"],
-      note: "Every profiled Lean theorem depends on at most the three standard axioms; a sorry would surface as sorryAx and fail CI."
+      note: "The core corpus under verification/lean depends on at most the three standard axioms, and proof-corpus-root.sh refuses to emit a root otherwise. A sorry would surface as sorryAx and fail CI.",
+      extraction_tier: {
+        extra_axiom: "Std.Tactic.BVDecide.Reflect.verifyBVExpr",
+        introduced_by: "bv_decide",
+        what_it_trusts: "An LRAT certificate was checked by compiled code rather than by the Lean kernel. The SAT solver itself is not trusted; its certificate is checked.",
+        scope: "verification/extraction only, never the core corpus or the release root"
+      }
     },
     proof_systems: {
       lean_specification: {
