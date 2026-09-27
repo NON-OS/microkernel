@@ -32,3 +32,17 @@ pub fn scroll(state: &mut State, delta_y: i32) -> EventOutcome {
     state.scroll = next as u32;
     EventOutcome::Repaint
 }
+
+/// The arrow and page keys scroll an Etna screen as the wheel does: one
+/// wheel step for an arrow, five for a page.
+pub fn scroll_key(state: &mut State, code: u32) -> Option<EventOutcome> {
+    use nonos_app_skeleton::{KEY_DOWN, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_UP};
+    let steps = match code {
+        KEY_UP => 1,
+        KEY_DOWN => -1,
+        KEY_PAGE_UP => 5,
+        KEY_PAGE_DOWN => -5,
+        _ => return None,
+    };
+    on_etna(state).then(|| scroll(state, steps))
+}

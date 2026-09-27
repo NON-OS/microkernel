@@ -36,6 +36,9 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
     if state.recover_active {
         return super::recover::recover_input(state, code);
     }
+    if let Some(done) = super::etna_scroll::scroll_key(state, code) {
+        return done;
+    }
     // While the import field is open it owns every key, so a typed hex digit is
     // never mistaken for a view shortcut.
     if state.import_active {
