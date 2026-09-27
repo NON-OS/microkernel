@@ -14,16 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Etna design system in the wallet capsule: tokens, faces and type
-//! roles first, then the parts and the one frame every screen sits in.
+//! The screen's number and name in the bar, "03  RECEIVE", and the lead
+//! sentence a screen is allowed.
 
-pub mod face;
-pub mod groups;
-pub mod parts;
-pub mod rect;
-mod roles;
-pub mod text;
-pub mod tokens;
-pub mod wrap;
+use alloc::{format, string::String};
 
-pub use roles::Role;
+use nonos_app_skeleton::PaintBuffer;
+
+use super::super::roles::Role;
+use super::super::text::draw;
+
+pub fn screen_label(fb: &mut PaintBuffer, x: i32, top: i32, number: &str, title: &str) -> i32 {
+    let text = if number.is_empty() { String::from(title) } else { format!("{number}  {title}") };
+    draw(fb, x, top, Role::ScreenLabel, &text)
+}

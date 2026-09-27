@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Etna design system in the wallet capsule: tokens, faces and type
-//! roles first, then the parts and the one frame every screen sits in.
+//! A one-pixel rule that divides without shouting, optionally inset so it
+//! starts under the text of a row.
 
-pub mod face;
-pub mod groups;
-pub mod parts;
-pub mod rect;
-mod roles;
-pub mod text;
-pub mod tokens;
-pub mod wrap;
+use nonos_app_skeleton::PaintBuffer;
 
-pub use roles::Role;
+use super::super::tokens::LINE;
+
+pub fn rule(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, inset: u32) {
+    fb.fill_rect(x.saturating_add(inset), y, w.saturating_sub(inset), 1, LINE);
+}

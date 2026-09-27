@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Etna design system in the wallet capsule: tokens, faces and type
-//! roles first, then the parts and the one frame every screen sits in.
+//! What the wallet knows, as values instead of sentences: a name in mono
+//! capitals on the left, the value on the right. Never a placeholder value.
 
-pub mod face;
-pub mod groups;
-pub mod parts;
-pub mod rect;
-mod roles;
-pub mod text;
-pub mod tokens;
-pub mod wrap;
+use nonos_app_skeleton::PaintBuffer;
 
-pub use roles::Role;
+use super::super::roles::Role;
+use super::super::text::{draw, draw_in, line, width};
+use super::super::tokens::TEXT_3;
+
+/// Facts are 10 apart.
+pub const FACT_GAP: u32 = 10;
+
+pub fn fact(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, name: &str, value: &str) -> u32 {
+    let upper = name.to_uppercase();
+    draw_in(fb, x as i32, y as i32, Role::Fact, &upper, TEXT_3);
+    let vx = (x + w) as i32 - width(Role::Fact, value);
+    draw(fb, vx, y as i32, Role::Fact, value);
+    line(Role::Fact) as u32 + FACT_GAP
+}
