@@ -29,13 +29,22 @@ pub(crate) fn fe_equal(a: &Fe, b: &Fe) -> bool {
     ct_eq_32(&sa, &sb)
 }
 
+/*
+ * This used to be a second copy of the shared comparison, identical except that
+ * it had no compiler fence between the accumulating loop and the test against
+ * zero. Nothing in the loop's value depends on that fence, which is exactly why
+ * an optimiser was free to notice diff only grows, exit once it is non-zero, and
+ * make the running time depend on where the first differing byte is. This runs
+ * on ge_pack output during signature verification, so that timing is a function
+ * of attacker-supplied points.
+ *
+ * NonosExtraction.CtEq proves the two loops were definitionally the same
+ * function, which is what makes delegating here a substitution rather than a
+ * behaviour change.
+ */
 #[inline]
 pub(crate) fn ct_eq_32(a: &[u8; 32], b: &[u8; 32]) -> bool {
-    let mut diff = 0u8;
-    for i in 0..32 {
-        diff |= a[i] ^ b[i];
-    }
-    diff == 0
+    crate::crypto::util::constant_time::ct_eq_32(a, b)
 }
 
 pub(crate) fn fe_cmov(a: &Fe, b: &Fe, mask: u8) -> Fe {

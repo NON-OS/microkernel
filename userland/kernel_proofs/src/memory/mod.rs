@@ -15,4 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Mirrors the kernel `crate::memory` parent for the included paging source.
+pub mod align;
 pub mod paging;
