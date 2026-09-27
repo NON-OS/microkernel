@@ -40,9 +40,24 @@ impl PagingManager {
                 return Err(PagingError::UnhandledPageFault);
             }
             stats.record_demand_load();
+            log_demand_fill(virtual_addr, error_code);
             return self.handle_demand_fault(virtual_addr, stats);
         }
 
         Err(PagingError::UnhandledPageFault)
     }
+}
+
+// A demand fill puts a zeroed page where nothing was mapped. Named on the
+// serial log so a fill that lands where code or a peer's page belonged is
+// visible at the moment it happens, not only at the fault it causes later.
+fn log_demand_fill(virtual_addr: VirtAddr, error_code: u64) {
+    let pid = crate::process::current_pid().unwrap_or(0);
+    crate::sys::serial::print(b"[PF] demand fill pid=");
+    crate::sys::serial::print_hex(pid as u64);
+    crate::sys::serial::print(b" va=");
+    crate::sys::serial::print_hex(virtual_addr.as_u64());
+    crate::sys::serial::print(b" err=");
+    crate::sys::serial::print_hex(error_code);
+    crate::sys::serial::println(b"");
 }
