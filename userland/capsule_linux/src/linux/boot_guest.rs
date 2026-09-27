@@ -23,9 +23,6 @@
 
 use alloc::vec::Vec;
 
-use nonos_app_skeleton::clients::vfs;
-use nonos_libc::{mk_yield, Deadline};
-
 use crate::linux::file::{key, store_read, visible};
 use crate::linux::start::say;
 
@@ -33,8 +30,6 @@ use crate::linux::start::say;
 const BOOT_GUEST: &[u8] = b"/etc/nonos-boot-guest";
 
 const MAX_NAME: u32 = 1024;
-// The VFS always settles, loaded or given up; this bound only covers a dead one.
-const READY_MS: u64 = 300_000;
 
 /// The path the image names, the program's bytes and its arguments, or None
 /// when the image names nothing. One argument a line, so a script passed to
@@ -56,13 +51,8 @@ pub(super) fn boot_guest(max_image: u32) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8
 // VFS has finished loading the store from disk, a missing file may only be
 // not loaded yet: on SMP this ran before staging and took busybox instead.
 fn read_when_ready() -> Option<Vec<u8>> {
-    let until = Deadline::after_ms(READY_MS);
-    while !matches!(vfs::store_settled(), Ok(true)) {
-        if until.expired() {
-            say(b"[LINUX] boot guest unreadable: store never settled\n");
-            return None;
-        }
-        let _ = mk_yield();
+    if !super::settle::wait_settled() {
+        return None;
     }
     match store_read(&key(BOOT_GUEST), MAX_NAME) {
         Ok(named) => Some(named),

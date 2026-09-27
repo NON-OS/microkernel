@@ -36,6 +36,7 @@ mod origin;
 mod request;
 pub mod serve;
 mod source;
+mod settle;
 mod start;
 mod start_guest;
 mod unix;
