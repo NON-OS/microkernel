@@ -25,11 +25,14 @@ use super::frame::ForeignFrame;
 use super::registry;
 
 /// What wakes a parked guest. Exec is its own case, not a reserved value:
-/// every u64 is some syscall's honest answer, and u64::MAX is -EPERM.
+/// every u64 is some syscall's honest answer, and u64::MAX is -EPERM. A
+/// signal is a whole context: a handler to enter, or the frame it returns to.
 #[derive(Clone, Copy)]
 pub(super) enum Answer {
     Value(u64),
     Execed,
+    Deliver(crate::arch::context::SavedUser),
+    Sigreturn(crate::arch::context::SavedUser),
 }
 
 pub(super) struct Parked {

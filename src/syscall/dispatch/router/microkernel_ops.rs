@@ -87,6 +87,8 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkForeignStart
             | MkForeignWait
             | MkForeignReply
+            | MkForeignContext
+            | MkForeignSignal
             | MkPeerMap
             | MkPeerCopy
             | MkPeerProtect

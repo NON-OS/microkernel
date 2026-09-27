@@ -58,6 +58,7 @@ pub(super) fn answer_raw(pid: u32, answer: Answer) -> i64 {
 /// pid cannot collect an answer left behind by its predecessor.
 pub(super) fn forget(pid: u32) {
     PARKED.lock().retain(|p| p.frame.pid != pid);
+    super::signal_enter::forget(pid);
 }
 
 /// Release every frame belonging to a guest whose supervisor has gone.

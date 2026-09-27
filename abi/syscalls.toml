@@ -79,6 +79,8 @@ MFSP = 0x5053464D
 MFST = 0x5453464D
 MFWT = 0x5457464D
 MFRP = 0x5052464D
+MFCX = 0x5843464D
+MFSG = 0x4753464D
 MPMP = 0x504D504D
 MPCP = 0x5043504D
 MPPT = 0x5450504D
@@ -630,6 +632,18 @@ ret  = {type="i64"}
 nr   = 0x5052464D
 caps = ["ForeignExec"]
 args = [{name="pid",type="u32",dir="in"},{name="value",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MFCX]
+nr   = 0x5843464D
+caps = ["ForeignExec"]
+args = [{name="pid",type="u32",dir="in"},{name="out",type="u64*",dir="out"}]
+ret  = {type="i64"}
+
+[desc.MFSG]
+nr   = 0x4753464D
+caps = ["ForeignExec"]
+args = [{name="pid",type="u32",dir="in"},{name="regs",type="u64*",dir="in"},{name="kind",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MPMP]

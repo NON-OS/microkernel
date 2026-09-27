@@ -74,6 +74,10 @@ pub const SYS_FOREIGN_START: u64 = tag4(b"MFST");
 pub const SYS_FOREIGN_WAIT: u64 = tag4(b"MFWT");
 /// Answer one parked guest with the value its `rax` receives.
 pub const SYS_FOREIGN_REPLY: u64 = tag4(b"MFRP");
+/// Copy a parked guest's registers out, in `struct sigcontext` order.
+pub const SYS_FOREIGN_CONTEXT: u64 = tag4(b"MFCX");
+/// Answer a parked guest with a context: a signal handler, or its return.
+pub const SYS_FOREIGN_SIGNAL: u64 = tag4(b"MFSG");
 /// Back a span of a guest's address space with fresh frames.
 pub const SYS_PEER_MAP: u64 = tag4(b"MPMP");
 /// Copy bytes between the caller and a guest it supervises.

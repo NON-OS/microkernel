@@ -28,6 +28,7 @@ pub mod crypto;
 pub mod debug;
 pub mod foreign;
 pub mod foreign_frame;
+pub mod foreign_signal;
 pub mod graphics;
 #[cfg(feature = "heap")]
 pub mod heap;
@@ -85,6 +86,9 @@ pub use foreign::{
     mk_foreign_start, mk_foreign_thread, mk_foreign_wait,
 };
 pub use foreign_frame::ForeignFrame;
+pub use foreign_signal::{
+    mk_foreign_context, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER, SIGNAL_RETURN,
+};
 pub use graphics::nonos_display_dimensions;
 pub use local_sign::{
     mk_app_install, mk_app_launch, mk_local_sign, mk_local_sign_len, mk_local_verify,
