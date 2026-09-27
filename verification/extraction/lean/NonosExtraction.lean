@@ -17,12 +17,12 @@ not imported below is checked by nothing.
 -/
 
 import NonosExtraction.Caps
+import NonosExtraction.CapsComplete
+import NonosExtraction.CapsCoreRefinement
 import NonosExtraction.Closure
 import NonosExtraction.Ct
 import NonosExtraction.CtPrimitivesRefinement
 import NonosExtraction.CtRefinement
-import NonosExtraction.CapsComplete
-import NonosExtraction.CapsCoreRefinement
 import NonosExtraction.Elf
 import NonosExtraction.ElfRefinement
 import NonosExtraction.Iommu
