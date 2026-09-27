@@ -24,6 +24,8 @@ import NonosExtraction.Iommu
 import NonosExtraction.IommuRefinement
 import NonosExtraction.Irq
 import NonosExtraction.IrqRefinement
+import NonosExtraction.Paging
+import NonosExtraction.PagingRefinement
 import NonosExtraction.PolicyRefinement
 import NonosExtraction.Refinement
 import NonosExtraction.Signal
