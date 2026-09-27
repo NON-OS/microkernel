@@ -52,7 +52,7 @@ pub fn newfstatat(guest: &mut Guest, dirfd: u64, path_ptr: u64, out: u64) -> u64
     if dirfd != AT_FDCWD {
         return errno::fail(errno::ENOSYS);
     }
-    let full = resolve::visible(&guest.cwd, &name);
+    let full = guest.links.follow(resolve::visible(&guest.cwd, &name), true);
     match look(&full) {
         Some((size, is_dir)) => write_out(guest, out, size, is_dir),
         None => errno::fail(errno::ENOENT),

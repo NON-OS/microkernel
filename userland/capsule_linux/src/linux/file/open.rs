@@ -32,7 +32,7 @@ pub fn openat(guest: &mut Guest, dirfd: u64, path_ptr: u64, flags: u64) -> u64 {
         Ok(base) => base,
         Err(e) => return e,
     };
-    let full = resolve::visible(&base, &name);
+    let full = guest.links.follow(resolve::visible(&base, &name), true);
     let got = match store::stat(&resolve::key(&full)).ok() {
         Some((_, true)) => dir::open(guest, full),
         Some((_, false)) if flags & O_DIRECTORY != 0 => errno::fail(errno::ENOTDIR),

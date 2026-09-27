@@ -45,6 +45,7 @@ pub fn run() -> ! {
         mk_exit(1)
     }
     let mut guest = Guest::new(pid as u32);
+    guest.links = alloc::rc::Rc::new(super::guest::Links::load());
     let code = match start(&mut guest, &launch) {
         Ok(()) => {
             say(b"[LINUX] guest running\n");

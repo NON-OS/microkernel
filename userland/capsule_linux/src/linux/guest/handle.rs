@@ -60,8 +60,7 @@ pub struct Guest {
     /// Process group and session.
     pub pgid: u32,
     pub sid: u32,
-    /// Remembered, not enforced: the store does not apply it when it creates a
-    /// file.
+    /// Remembered, not enforced: the store does not apply it to a new file.
     pub umask: u16,
     /// Children forked while answering, for the serve loop to adopt.
     pub forked: Vec<Guest>,
@@ -71,4 +70,6 @@ pub struct Guest {
     pub waiting: Option<(u64, u64, u32)>,
     /// A read parked on an empty pipe: its buffer slot, where, how much, who.
     pub pipe_wait: Option<(usize, u64, u64, u32)>,
+    /// The image's symbolic links, read once and shared by the family.
+    pub links: alloc::rc::Rc<super::Links>,
 }

@@ -29,11 +29,12 @@ use super::resolve::visible;
 /// guest opened.
 pub fn resolve_at(guest: &Guest, dirfd: u64, path: u64) -> Option<Vec<u8>> {
     let name = read_path(guest, path)?;
-    if name.first() == Some(&b'/') {
-        return Some(visible(b"/", &name));
-    }
-    let base = base_of(guest, dirfd)?;
-    Some(visible(&base, &name))
+    // The *at calls act on the name, so its own last component is not followed.
+    let full = match name.first() == Some(&b'/') {
+        true => visible(b"/", &name),
+        false => visible(&base_of(guest, dirfd)?, &name),
+    };
+    Some(guest.links.follow(full, false))
 }
 
 fn base_of(guest: &Guest, dirfd: u64) -> Option<Vec<u8>> {

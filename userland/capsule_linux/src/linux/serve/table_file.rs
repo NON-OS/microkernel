@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Calls that name a file or a descriptor.
 
 use crate::linux::abi::{nr, nr_path as np};
@@ -68,7 +67,7 @@ pub fn file_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64
         np::STATX => file::statx(guest, a[0], a[1], a[4]),
         np::EPOLL_WAIT => file::epoll_wait(guest, a[0], a[1], a[2]),
         nr::ACCESS => file::access(guest, a[0]),
-        nr::READLINK => file::readlink(guest, a[0]),
+        nr::READLINK => file::readlink(guest, a[0], a[1], a[2]),
         _ => return None,
     })
 }

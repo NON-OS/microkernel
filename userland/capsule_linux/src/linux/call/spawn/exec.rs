@@ -40,7 +40,7 @@ pub fn execve(guest: &mut Guest, pid: u32, path: u64, argv: u64, envp: u64) -> A
      * Found, followed through any `#!` line, and proved at every step, all
      * while the caller still has an address space to be told no in.
      */
-    let program = match resolve(&guest.cwd, &name, &args) {
+    let program = match resolve(&guest.links, &guest.cwd, &name, &args) {
         Ok(p) => p,
         Err(e) => return Answer::value(e),
     };

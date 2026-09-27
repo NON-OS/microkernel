@@ -16,6 +16,7 @@
 
 //! Which image actually runs, once `#!` has had its say.
 
+use crate::linux::guest::Links;
 use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
@@ -35,8 +36,9 @@ pub struct Program {
     pub argv: Vec<Vec<u8>>,
 }
 
-pub fn resolve(cwd: &[u8], name: &[u8], argv: &[Vec<u8>]) -> Result<Program, u64> {
-    let mut path = visible(cwd, name);
+/// A path reached through a link is loaded, and proved, as the file it names.
+pub fn resolve(links: &Links, cwd: &[u8], name: &[u8], argv: &[Vec<u8>]) -> Result<Program, u64> {
+    let mut path = links.follow(visible(cwd, name), true);
     let mut args = argv.to_vec();
     for _ in 0..MAX_DEPTH {
         let Ok(bytes) = store_read(&key(&path), MAX_IMAGE) else {
@@ -49,7 +51,7 @@ pub fn resolve(cwd: &[u8], name: &[u8], argv: &[Vec<u8>]) -> Result<Program, u64
             return Ok(Program { path, bytes, argv: args });
         };
         args = rewrite(&interp, &path, &args);
-        path = visible(cwd, &interp.path);
+        path = links.follow(visible(cwd, &interp.path), true);
     }
     Err(errno::fail(errno::ELOOP))
 }

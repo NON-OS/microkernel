@@ -45,6 +45,7 @@ impl Guest {
         g.pgid = self.pgid;
         g.sid = self.sid;
         g.umask = self.umask;
+        g.links = self.links.clone();
         g
     }
 }
