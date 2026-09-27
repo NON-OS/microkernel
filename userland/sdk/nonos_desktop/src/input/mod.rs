@@ -16,5 +16,6 @@
 
 mod drain;
 mod parse;
+mod router;
 
 pub use drain::drain_input;

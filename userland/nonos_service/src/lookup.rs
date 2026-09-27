@@ -17,6 +17,16 @@
 use nonos_abi::{syscall, N_SERVICE_LOOKUP};
 
 pub fn lookup(name: &[u8]) -> Option<u32> {
+    raw(name).map(|(port, _)| port)
+}
+
+/// The pid that registered `name`: what a receiver compares a message's
+/// kernel-recorded sender against before believing it came from that service.
+pub fn owner(name: &[u8]) -> Option<u32> {
+    raw(name).map(|(_, pid)| pid)
+}
+
+fn raw(name: &[u8]) -> Option<(u32, u32)> {
     let mut port: u32 = 0;
     let mut pid: u32 = 0;
     let rc = syscall(
@@ -33,5 +43,5 @@ pub fn lookup(name: &[u8]) -> Option<u32> {
     if rc < 0 || pid == 0 || port == 0 {
         return None;
     }
-    Some(port)
+    Some((port, pid))
 }

@@ -14,10 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
+//! Whether an input frame came from the input router. Any IPC-capable process
+//! can send to any pid's inbox, so the magic proves nothing; the sender the
+//! kernel recorded does.
 
-mod lookup;
-mod register;
+use core::sync::atomic::{AtomicU32, Ordering};
 
-pub use lookup::{lookup, owner};
-pub use register::register;
+static ROUTER_PID: AtomicU32 = AtomicU32::new(0);
+
+pub(super) fn from_router(sender: u32) -> bool {
+    let known = ROUTER_PID.load(Ordering::Acquire);
+    if known != 0 && known == sender {
+        return true;
+    }
+    // Looked up again before refusing, so a restarted router is followed.
+    let Some(pid) = nonos_service::owner(b"input_router") else {
+        return false;
+    };
+    ROUTER_PID.store(pid, Ordering::Release);
+    pid == sender
+}

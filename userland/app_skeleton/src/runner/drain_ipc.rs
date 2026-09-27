@@ -70,6 +70,10 @@ pub(super) fn drain<A: App>(
             ControlOutcome::NotControl => {}
         }
         let Some(event) = parse_delivery(&rx[..n as usize]) else { continue };
+        // Routed input only: a frame any other process sent is not the user.
+        if !crate::discover::from_router(sender) {
+            continue;
+        }
         let event = decorations::normalize(event);
         click_focus::handle(event, wm_port, window_id, request_id);
         match decorations::handle(width, height, maximized, event) {
