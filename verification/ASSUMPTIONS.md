@@ -16,6 +16,7 @@ have no detector. This file is one list by design, so it is longer than the
 | `stated:fri-soundness` | stated | The FRI proximity bound the STARK soundness figures use holds at these parameters. |
 | `stated:lean-kernel` | stated | Lean's kernel and its three standard axioms (propext, Classical.choice, Quot.sound) are sound. |
 | `stated:extraction` | stated | Charon and Aeneas lower MIR faithfully, so an extracted definition is the kernel function. |
+| `stated:debian-musl` | stated | The musl loader and libc the Tier 2 test image carries are Debian's musl 1.2.4 build, trusted as packaged. |
 | `stated:alpine-busybox` | stated | The busybox guest test images carry is Alpine's static build, trusted as built by Alpine. |
 | `crate:bitflags` | crate | Third-party code linked into ring 0. |
 | `crate:bitvec` | crate | Third-party code linked into ring 0. |

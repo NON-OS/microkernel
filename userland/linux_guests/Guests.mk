@@ -31,8 +31,9 @@ $(NONOS_BAKED_TRUST_DIR)/keys/guest_%_publisher_mldsa65.pub: | $(CAPSULE_SIGN_BI
 		mv .keys/guest_$*_publisher_$$alg.pub $(NONOS_BAKED_TRUST_DIR)/keys/; \
 	done
 
-# name, service port, reply port[, prebuilt ELF]. The enrolled copy is named
-# guest_<name>, so its certificate and trailer cannot collide with a capsule's.
+# name, service port, reply port[, prebuilt ELF[, guest path]]. The enrolled
+# copy is named guest_<name>, so its certificate and trailer cannot collide
+# with a capsule's. The guest path defaults to /bin/<name>.
 define LINUX_GUEST
 CAPSULE_SLUG             := linux-guest-$(1)
 CAPSULE_HANDLE           := linux.guest.$(1)
@@ -53,10 +54,10 @@ nonos-mk-check-linux-guest-$(1)-keys: \
 	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_ed25519.pub \
 	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_mldsa65.pub
 LINUX_GUEST_STORE_DEPS += $$(linux-guest-$(1)_ARTIFACTS) $$(linux-guest-$(1)_ATTESTATION)
-LINUX_GUEST_STORE_ENTRIES += --entry /linux/bin/$(1)=$$(linux-guest-$(1)_BIN) \
-	--entry /linux/bin/$(1).nonos_id_cert.bin=$$(linux-guest-$(1)_CERT) \
-	--entry /linux/bin/$(1).manifest.bin=$$(linux-guest-$(1)_MANIFEST) \
-	--entry /linux/bin/$(1).zk_trailer.bin=$$(linux-guest-$(1)_ATTESTATION)
+LINUX_GUEST_STORE_ENTRIES += --entry /linux$(or $(5),/bin/$(1))=$$(linux-guest-$(1)_BIN) \
+	--entry /linux$(or $(5),/bin/$(1)).nonos_id_cert.bin=$$(linux-guest-$(1)_CERT) \
+	--entry /linux$(or $(5),/bin/$(1)).manifest.bin=$$(linux-guest-$(1)_MANIFEST) \
+	--entry /linux$(or $(5),/bin/$(1)).zk_trailer.bin=$$(linux-guest-$(1)_ATTESTATION)
 endef
 
 $(eval $(call LINUX_GUEST,suite,4950,4951))
@@ -64,5 +65,18 @@ $(eval $(call LINUX_GUEST,holder,4952,4953))
 $(eval $(call LINUX_GUEST,reader,4954,4955))
 # Alpine's static busybox, the one app.linux embeds, as a program from the store.
 $(eval $(call LINUX_GUEST,busybox,4956,4957,userland/capsule_linux/guests/busybox.elf))
+
+# Tier 2: a dynamically linked program, its library, and musl's loader, which
+# is also its libc. Each is proved like any program; the loader refuses a
+# library whose bytes were not.
+LINUX_GUESTS_C := $(TARGET_DIR)/linux-guests/c
+MUSL_LIBC := /usr/lib/x86_64-linux-musl/libc.so
+$(LINUX_GUESTS_C)/libprobe.so: $(LINUX_GUESTS_DIR)/c/probe_lib.c
+	@mkdir -p $(@D) && musl-gcc -shared -fPIC -O2 -o $@ $<
+$(LINUX_GUESTS_C)/dyn: $(LINUX_GUESTS_DIR)/c/dyn.c $(LINUX_GUESTS_C)/libprobe.so
+	@musl-gcc -O2 -o $@ $< -L$(LINUX_GUESTS_C) -lprobe
+$(eval $(call LINUX_GUEST,dyn,4958,4959,$(LINUX_GUESTS_C)/dyn))
+$(eval $(call LINUX_GUEST,libprobe,4960,4961,$(LINUX_GUESTS_C)/libprobe.so,/lib/libprobe.so))
+$(eval $(call LINUX_GUEST,ldmusl,4962,4963,$(MUSL_LIBC),/lib/ld-musl-x86_64.so.1))
 
 include $(LINUX_GUESTS_DIR)/GuestFiles.mk

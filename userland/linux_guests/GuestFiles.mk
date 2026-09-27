@@ -30,3 +30,14 @@ LINUX_GUEST_STORE_ENTRIES += --entry /linux/bin/tampered=$(LINUX_GUEST_TAMPERED)
 	--entry /linux/bin/tampered.nonos_id_cert.bin=$(linux-guest-suite_CERT) \
 	--entry /linux/bin/tampered.manifest.bin=$(linux-guest-suite_MANIFEST) \
 	--entry /linux/bin/tampered.zk_trailer.bin=$(linux-guest-suite_ATTESTATION)
+
+# libprobe.so with one byte flipped, beside the good library's proofs: the
+# library a dynamic program is refused when it asks for it.
+LINUX_GUEST_BAD_LIB := $(TARGET_DIR)/linux-guests/libprobe_bad.so
+$(LINUX_GUEST_BAD_LIB): $(linux-guest-libprobe_BIN) tools/nonos-flip-byte
+	@mkdir -p $(@D) && $(NONOS_PYTHON) tools/nonos-flip-byte $< $@
+LINUX_GUEST_STORE_DEPS += $(LINUX_GUEST_BAD_LIB)
+LINUX_GUEST_STORE_ENTRIES += --entry /linux/lib/libprobe_bad.so=$(LINUX_GUEST_BAD_LIB) \
+	--entry /linux/lib/libprobe_bad.so.nonos_id_cert.bin=$(linux-guest-libprobe_CERT) \
+	--entry /linux/lib/libprobe_bad.so.manifest.bin=$(linux-guest-libprobe_MANIFEST) \
+	--entry /linux/lib/libprobe_bad.so.zk_trailer.bin=$(linux-guest-libprobe_ATTESTATION)
