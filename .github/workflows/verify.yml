@@ -115,6 +115,8 @@ jobs:
         run: python3 scripts/check_service_caps.py
       - name: Attestation parameters live in one place
         run: python3 scripts/check_attest_params.py
+      - name: Every assumption the security rests on is registered
+        run: python3 tools/nonos-assumptions
 
   # The committed verification/evidence/EVIDENCE.json is a machine-readable inventory of
   # everything NONOS proves. Regenerate it from the source tree and fail if it
