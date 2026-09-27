@@ -25,19 +25,17 @@ use crate::command::output::Output;
 /// nothing else on screen says they exist, and a tool nobody can discover may
 /// as well not be installed.
 pub fn tools(out: &mut Output<'_>) {
-    const LEAD: &[u8] = b"tools    ";
-    let mut line = [b' '; 96];
-    line[..LEAD.len()].copy_from_slice(LEAD);
-    let mut n = LEAD.len();
+    let mut list = alloc::vec::Vec::with_capacity(96);
     for (typed, _) in super::tool::TOOLS {
         // Two spaces between names, matching the groups above. A name that
         // would not fit is dropped rather than wrapped: the list is a pointer
         // to what exists, not the manual.
-        if n + typed.len() + 2 > line.len() {
+        if list.len() + typed.len() + 2 > 84 {
             break;
         }
-        line[n..n + typed.len()].copy_from_slice(typed);
-        n += typed.len() + 2;
+        list.extend_from_slice(typed);
+        list.extend_from_slice(b"  ");
     }
-    out.writeln(&line[..n]);
+    // Styled and aligned like every other group.
+    super::help::row(out, b"tools", &list, 9);
 }

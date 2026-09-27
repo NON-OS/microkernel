@@ -28,7 +28,7 @@ impl Progress {
             Progress::Installing => (b"Downloading and checking every file", ACCENT),
             Progress::Installed => (b"Installed. Press Enter to open it", OK),
             Progress::Refused => (b"The system would not start the installer", DANGER),
-            Progress::Failed(2) => (b"The package index did not verify", DANGER),
+            Progress::Failed(2) => (b"The package index did not download or verify", DANGER),
             Progress::Failed(3) => (b"Something it needs is in no index", DANGER),
             Progress::Failed(4) => (b"It needs more packages than this machine allows", DANGER),
             Progress::Failed(5) => (b"A package did not download, or did not verify", DANGER),

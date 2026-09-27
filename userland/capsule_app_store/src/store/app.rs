@@ -43,7 +43,12 @@ impl App for Store {
     }
     /// Only while an install is moving: an idle store costs nothing.
     fn on_tick(&mut self) -> bool {
-        self.state.any_pending() && self.state.poll_pending()
+        let moved = self.state.any_pending() && self.state.poll_pending();
+        if moved {
+            // "install requested" is stale once the system has said more.
+            self.state.asked = None;
+        }
+        moved
     }
     fn tick_interval_ms(&self) -> i64 {
         500

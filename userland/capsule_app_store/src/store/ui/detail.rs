@@ -61,7 +61,8 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
         text::line(fb, left, top, &r.note, MUTED, SMALL_PX);
         top += 24;
     }
-    text::line(fb, left, top, b"measurement", MUTED, SMALL_PX);
-    top += 20;
-    text::line(fb, left, top, &short(&listing.measurement), MUTED, SMALL_PX);
+    // One line, so it stays inside the pane under a failure sentence and a note.
+    let mut line = b"measurement  ".to_vec();
+    line.extend_from_slice(&short(&listing.measurement));
+    text::line(fb, left, top, &line, MUTED, SMALL_PX);
 }

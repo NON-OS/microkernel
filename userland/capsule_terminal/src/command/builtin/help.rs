@@ -61,7 +61,7 @@ pub fn topic(out: &mut Output<'_>, name: &[u8]) -> bool {
 }
 
 /// A label in the accent colour, padded to `pad`, then the text.
-fn row(out: &mut Output<'_>, name: &[u8], text: &[u8], pad: usize) {
+pub(super) fn row(out: &mut Output<'_>, name: &[u8], text: &[u8], pad: usize) {
     let mut plain = alloc::vec![b' '; 2];
     plain.extend_from_slice(name);
     plain.resize(2 + pad.max(name.len() + 1), b' ');
