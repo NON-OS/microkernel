@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Processes that hold the system or desktop up: ending one strands the session
-// or the kernel. The monitor still allows it (the authority is real), but arms
-// an extra confirmation so it is never a single stray keypress.
+// or the kernel, so this monitor refuses to (kill_selected), and the inspector
+// draws its actions as disabled rather than offering what it will not do.
 const CRITICAL: &[&[u8]] = &[
     b"init",
     b"login",
