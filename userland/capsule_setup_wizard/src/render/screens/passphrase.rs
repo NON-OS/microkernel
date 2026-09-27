@@ -5,8 +5,8 @@ use crate::state::Context;
 pub fn draw(ctx: &Context) {
     render::frame(
         ctx,
-        b"Disk-encryption passphrase",
-        b"Protects the persistent store at rest",
+        b"Passphrase",
+        b"Not used yet: the store at rest is not encrypted",
         b"TYPE  BACKSPACE EDIT  ENTER NEXT  ESC BACK",
     );
     let spx = ctx.stride as usize / 4;

@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Putting a package's files into the store, under the Linux root.
 
+use nonos_libc::mk_debug;
+
 use super::auth::Verified;
 use super::place_entry::one;
 use super::program::record;
@@ -27,5 +29,10 @@ pub fn unpack(files: &Verified, chosen: Option<&str>) -> usize {
     if let Some(name) = chosen {
         record(name, files);
     }
-    entries(files.files()).iter().filter(|entry| one(entry)).count()
+    let landed = entries(files.files()).iter().filter(|entry| one(entry)).count();
+    // Nothing persists unless asked, and never in plaintext. The store at
+    // rest is not encrypted, so an install lives until the next reboot.
+    let line = b"[LINUX] unserved persist: install kept in RAM, store at rest unencrypted\n";
+    let _ = mk_debug(line.as_ptr(), line.len());
+    landed
 }

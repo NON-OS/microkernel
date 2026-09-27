@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 
 use nonos_libc::{mk_local_sign, mk_local_sign_len};
 
-use crate::linux::file::{key, store_write_durable};
+use crate::linux::file::{key, store_write};
 
 use crate::linux::attest_paths::beside;
 
@@ -41,5 +41,5 @@ pub fn vouch(path: &[u8], image: &[u8]) -> bool {
     };
     trailer.truncate(got);
     let at = beside(path, b".zk_trailer.bin");
-    store_write_durable(&key(&at), &trailer).is_ok()
+    store_write(&key(&at), &trailer).is_ok()
 }

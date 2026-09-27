@@ -19,7 +19,7 @@
 
 use nonos_libc::mk_debug;
 
-use crate::linux::file::{key, store_write_durable, visible};
+use crate::linux::file::{key, store_write, visible};
 
 use super::enrol::vouch;
 use super::tar::Entry;
@@ -38,7 +38,7 @@ pub(super) fn one(entry: &Entry) -> bool {
         return false;
     }
     let at = visible(b"/", &entry.name);
-    if store_write_durable(&key(&at), &entry.body).is_err() {
+    if store_write(&key(&at), &entry.body).is_err() {
         return false;
     }
     if is_elf(&entry.body) {
