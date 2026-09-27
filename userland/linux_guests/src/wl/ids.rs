@@ -14,24 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Shared pieces of the hostile guests.
+//! The object ids this client allocates, in the order it creates them.
+//! wl_display is 1 by the protocol.
 
-pub mod arg;
-pub mod bounds_probe;
-pub mod clock_probe;
-pub mod dyn_probe;
-pub mod exec_child;
-pub mod exec_probe;
-pub mod fs_paths;
-pub mod fp_probe;
-pub mod fs_probe;
-pub mod life_probe;
-pub mod native_probe;
-pub mod proc_probe;
-pub mod report;
-pub mod sep_child;
-pub mod sep_probe;
-pub mod shared_name;
-pub mod sys;
-pub mod vm_probe;
-pub mod wl;
+pub const REG: u32 = 2;
+pub const SYNC: u32 = 3;
+pub const COMP: u32 = 4;
+pub const SHM: u32 = 5;
+pub const XDG: u32 = 6;
+pub const SURF: u32 = 7;
+pub const XSURF: u32 = 8;
+pub const TOP: u32 = 9;
+pub const POOL: u32 = 10;
+pub const BUF: u32 = 11;

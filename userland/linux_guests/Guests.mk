@@ -63,6 +63,7 @@ endef
 $(eval $(call LINUX_GUEST,suite,4950,4951))
 $(eval $(call LINUX_GUEST,holder,4952,4953))
 $(eval $(call LINUX_GUEST,reader,4954,4955))
+$(eval $(call LINUX_GUEST,window,4964,4965))
 # Alpine's static busybox, the one app.linux embeds, as a program from the store.
 $(eval $(call LINUX_GUEST,busybox,4956,4957,userland/capsule_linux/guests/busybox.elf))
 

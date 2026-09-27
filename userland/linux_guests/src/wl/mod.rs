@@ -14,24 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Shared pieces of the hostile guests.
+//! A Wayland client in raw syscalls and wire bytes, no libwayland: it speaks
+//! exactly what a libwayland client puts on the socket.
 
-pub mod arg;
-pub mod bounds_probe;
-pub mod clock_probe;
-pub mod dyn_probe;
-pub mod exec_child;
-pub mod exec_probe;
-pub mod fs_paths;
-pub mod fp_probe;
-pub mod fs_probe;
-pub mod life_probe;
-pub mod native_probe;
-pub mod proc_probe;
-pub mod report;
-pub mod sep_child;
-pub mod sep_probe;
-pub mod shared_name;
-pub mod sys;
-pub mod vm_probe;
-pub mod wl;
+pub mod conn;
+pub mod draw;
+pub mod ids;
+pub mod msg;
+pub mod pixels;
+pub mod window;
+pub mod window_globals;
