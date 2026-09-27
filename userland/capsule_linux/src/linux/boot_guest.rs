@@ -33,8 +33,8 @@ use crate::linux::start::say;
 const BOOT_GUEST: &[u8] = b"/etc/nonos-boot-guest";
 
 const MAX_NAME: u32 = 1024;
-// How long to wait for the VFS to finish loading the store.
-const READY_MS: u64 = 30_000;
+// The VFS always settles, loaded or given up; this bound only covers a dead one.
+const READY_MS: u64 = 300_000;
 
 /// The path the image names, the program's bytes and its arguments, or None
 /// when the image names nothing. One argument a line, so a script passed to
