@@ -15,6 +15,7 @@ path = "src/lib.rs"
 nonos-stark = { path = "../../stark-attest/crates/stark-core" }
 
 [dev-dependencies]
+blake3 = { version = "1.0", default-features = false }
 rayon = "1"
 
 [features]
