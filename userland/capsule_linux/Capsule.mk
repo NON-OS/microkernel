@@ -17,7 +17,10 @@
 # which lapses at the next boot.
 #
 # = CoreExec 0x1 | IPC 0x8 | Memory 0x10 | Crypto 0x20 | Debug 0x100
-#   | ForeignExec 0x100000000 | LocalSign 0x200000000 = 0x300000139
+#   | GfxQuery 0x800 | GfxCreate 0x1000
+#   | ForeignExec 0x100000000 | LocalSign 0x200000000 = 0x300001939
+# GfxQuery and GfxCreate are what any windowed app holds, for a guest's
+# Wayland surface; it presents through the compositor, so no GfxPresent.
 
 CAPSULE_SLUG             := linux
 CAPSULE_HANDLE           := app.linux
@@ -28,7 +31,7 @@ CAPSULE_FEATURE          := nonos-capsule-linux
 CAPSULE_NAMESPACE        := systems.nonos.app.linux
 CAPSULE_SERVICE_ENDPOINT := service:4936:app.linux
 CAPSULE_REPLY_ENDPOINT   := reply:4937:endpoint.app.linux.reply
-CAPSULE_REQUIRED_CAPS    := 0x300000139
+CAPSULE_REQUIRED_CAPS    := 0x300001939
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_linux
 
 include nonos-mk/capsule.mk

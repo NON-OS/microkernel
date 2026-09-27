@@ -41,6 +41,9 @@ pub const LINUX_CAPS: u64 = Capability::CoreExec.bit()
     | Capability::Memory.bit()
     | Capability::Crypto.bit()
     | Capability::Debug.bit()
+    // A guest's Wayland surface, registered and presented like any window.
+    | Capability::GraphicsDisplayQuery.bit()
+    | Capability::GraphicsSurfaceCreate.bit()
     | Capability::ForeignExec.bit()
     | Capability::LocalSign.bit();
 
