@@ -1246,6 +1246,9 @@ nonos-mk-arm-gui: nonos-mk-check-deps nonos-mk-ensure-signing-key
 		--no-default-features \
 		--features microkernel-desktop-base$(_boot_comma)nonos-arch-preview$(_boot_comma)nonos-stark-attest
 
+# The image that ships runs every core it finds. Real machines have several,
+# and a race only one core hides is still a race; the four-cpu QEMU lane
+# (nonos-mk-run-smp-serial-log) is where it shows first.
 # nonos-mk-zerostate: the canonical NONOS image. The whole ZeroState system in
 # one build: every capsule and driver, the transparent STARK spawn gate
 # enforced, dual Ed25519 + ML-DSA-65 signing, the anti-rollback index bound into
@@ -1256,7 +1259,7 @@ nonos-mk-zerostate: nonos-mk-all-capsules-attested \
 		$(driver-iwlwifi_ARTIFACTS) $(driver-rtl8821ce_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
-	$(call nonos_kernel_build,zerostate: microkernel-full-gui + nonos-stark-attest,microkernel-full-gui$(_boot_comma)nonos-stark-attest)
+	$(call nonos_kernel_build,zerostate: microkernel-full-gui + nonos-stark-attest + nonos-smp,microkernel-full-gui$(_boot_comma)nonos-stark-attest$(_boot_comma)nonos-smp)
 
 nonos-mk-input-probe-inject-prod: $(proof-io_ARTIFACTS) \
 		$(driver-ps2-input_ARTIFACTS) $(driver-virtio-gpu_ARTIFACTS) \
