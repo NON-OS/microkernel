@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Extraction root mirroring the ed25519 field module. It carries its own
+# constant-time 32 byte comparison, separate from the one in
+# crypto/util/constant_time, and the two are compared in
+# NonosExtraction.CtEqRefinement. The kernel source is included with #[path],
+# never copied.
+[package]
+name = "nonos_ed_field"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

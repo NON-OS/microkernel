@@ -25,9 +25,9 @@
       "bv_decide_calls": 12,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 412,
-        "proven": 410,
-        "substantive": 143,
+        "extracted": 415,
+        "proven": 413,
+        "substantive": 146,
         "trivial": 267,
         "unproven": 2
       },
@@ -42,6 +42,8 @@
         "nonos_caps::capabilities::delegation::lifetime::delegation_expiry",
         "nonos_caps::capabilities::resource::limits::has_at_least",
         "nonos_caps::capabilities::resource::nonce_compose::compose",
+        "nonos_ct::crypto::util::constant_time::compare::ct_eq_32",
+        "nonos_ct::crypto::util::constant_time::compare::ct_eq_64",
         "nonos_ct::crypto::util::constant_time::compare::ct_gt_u64",
         "nonos_ct::crypto::util::constant_time::compare::ct_lt_u64",
         "nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8",
@@ -67,6 +69,7 @@
         "nonos_ct::security::crypto::constant_time::ops::ct_lt_u64",
         "nonos_ct::security::crypto::constant_time::ops::ct_max_u32",
         "nonos_ct::security::crypto::constant_time::ops::ct_min_u32",
+        "nonos_ed_field::ed25519_ct_eq_32",
         "nonos_elf::elf::loader::core::parse_header::bounds::program_header_bounds",
         "nonos_elf::elf::reloc::apply::range::in_range",
         "nonos_elf::elf::reloc::utils::supported::is_supported",
@@ -525,7 +528,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Ct.lean",
-          "sha256": "9938544febc39d89d3483de1f456aa126f10dbbf203546fe25ae67357678f41d"
+          "sha256": "1161f0b947c15dbdd965a381ca11a8ad8f85b2d44294cad8547be6eb966c468b"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DataInterrupt.lean",
@@ -534,6 +537,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/DescriptorUnsupported.lean",
           "sha256": "be18898e51b99c713803401525ba5fa6dae8bfb0c31e39b09deaf7e6c7712083"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/EdField.lean",
+          "sha256": "ca8a55f5330c6e68102792f6e93478ca5fa9d66e78869877dc0f652432dcfdc5"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Elf.lean",
