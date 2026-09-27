@@ -14,28 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Shared pieces of the hostile guests.
+//! Waiting for a forked child, bounded, so a child that never runs is
+//! reported instead of hanging the probe.
 
-pub mod arg;
-pub mod child_wait;
-pub mod bounds_probe;
-pub mod clock_probe;
-pub mod dyn_probe;
-pub mod exec_child;
-pub mod exec_probe;
-pub mod fs_paths;
-pub mod fp_probe;
-pub mod fs_probe;
-pub mod life_probe;
-pub mod native_probe;
-pub mod proc_probe;
-pub mod report;
-pub mod sep_child;
-pub mod sep_probe;
-pub mod shared_name;
-pub mod state_probe;
-pub mod state_regs;
-pub mod state_regs_sse;
-pub mod sys;
-pub mod vm_probe;
-pub mod wl;
+use crate::sys::{call, NANOSLEEP};
+
+const WAIT4: u64 = 61;
+const WNOHANG: u64 = 1;
+
+// The child's exit status, or None if it did not finish within ten seconds.
+pub fn wait(child: i64) -> Option<u32> {
+    let mut status = 0i32;
+    for _ in 0..100 {
+        let rc = call(WAIT4, [child as u64, &mut status as *mut i32 as u64, WNOHANG, 0, 0, 0]);
+        if rc == child {
+            return Some(((status >> 8) & 0xff) as u32);
+        }
+        let tenth = [0u64, 100_000_000];
+        let _ = call(NANOSLEEP, [tenth.as_ptr() as u64, 0, 0, 0, 0, 0]);
+    }
+    None
+}

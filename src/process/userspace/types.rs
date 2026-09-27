@@ -66,52 +66,56 @@ impl Default for KernelStack {
     }
 }
 
+// The x86_64 area holds every XSAVE component the boot CPU enabled.
+#[cfg(target_arch = "x86_64")]
+const FPU_AREA: usize = crate::arch::x86_64::cpu::xstate::AREA;
+#[cfg(not(target_arch = "x86_64"))]
+const FPU_AREA: usize = 1024;
+
 #[derive(Clone)]
 #[repr(C, align(64))]
 pub struct FpuState {
-    pub data: [u8; 1024],
+    pub data: [u8; FPU_AREA],
 }
 
 impl FpuState {
     pub fn new() -> Box<Self> {
-        Box::new(Self { data: [0; 1024] })
+        Box::new(Self { data: [0; FPU_AREA] })
     }
 
     #[inline(always)]
     pub fn save(&mut self) {
-        // SAFETY: FXSAVE saves the FPU/SSE state to a 512-byte memory region.
-        // self.data is 1024 bytes and 64-byte aligned (repr(C, align(64))), which
-        // exceeds the 16-byte alignment requirement for FXSAVE. The nostack option
-        // is correct as FXSAVE only writes to the provided memory location.
-        // FXSAVE writes the x86_64 legacy area. The aarch64 register file has a
-        // different shape and is saved by `arch::aarch64::fpu`, so this body is
-        // the one architecture that uses this layout.
+        // XSAVE over every component XCR0 enables when the boot CPU turned it
+        // on, FXSAVE otherwise. The aarch64 register file is saved by
+        // `arch::aarch64::fpu`, so this body is x86_64 only.
         #[cfg(target_arch = "x86_64")]
-        // SAFETY: the destination is this struct is own 512-byte align(64)
-        // buffer, which meets FXSAVE is alignment and size requirement.
+        // SAFETY: eK@nonos.systems - `data` is AREA bytes, 64-byte aligned by
+        // repr(align(64)), and `record_boot` keeps the enabled components within
+        // AREA. The area is zeroed when made, so the XSAVE header starts clear.
         unsafe {
-            core::arch::asm!(
-                "fxsave [{}]",
-                in(reg) self.data.as_mut_ptr(),
-                options(nostack, preserves_flags)
-            );
+            if crate::arch::x86_64::cpu::xstate::uses_xsave() {
+                core::arch::asm!("xsave64 [{}]", in(reg) self.data.as_mut_ptr(),
+                    in("eax") u32::MAX, in("edx") u32::MAX, options(nostack, preserves_flags));
+            } else {
+                core::arch::asm!("fxsave64 [{}]", in(reg) self.data.as_mut_ptr(),
+                    options(nostack, preserves_flags));
+            }
         }
     }
 
     #[inline(always)]
     pub fn restore(&self) {
-        // SAFETY: FXRSTOR restores FPU/SSE state from a 512-byte memory region.
-        // self.data must have been previously populated by save() or be zeroed.
-        // The alignment requirement (16 bytes) is satisfied by our align(64) repr.
-        // The nostack option is correct as FXRSTOR only reads from memory.
         #[cfg(target_arch = "x86_64")]
-        // SAFETY: reads back the same buffer `save` wrote, at the same alignment.
+        // SAFETY: eK@nonos.systems - reads back an area `save` wrote on a CPU
+        // with the same XCR0, which `mirror_on_ap` guarantees for every CPU.
         unsafe {
-            core::arch::asm!(
-                "fxrstor [{}]",
-                in(reg) self.data.as_ptr(),
-                options(nostack, preserves_flags)
-            );
+            if crate::arch::x86_64::cpu::xstate::uses_xsave() {
+                core::arch::asm!("xrstor64 [{}]", in(reg) self.data.as_ptr(),
+                    in("eax") u32::MAX, in("edx") u32::MAX, options(nostack, preserves_flags));
+            } else {
+                core::arch::asm!("fxrstor64 [{}]", in(reg) self.data.as_ptr(),
+                    options(nostack, preserves_flags));
+            }
         }
     }
 
@@ -140,7 +144,7 @@ impl FpuState {
 
 impl Default for FpuState {
     fn default() -> Self {
-        Self { data: [0; 1024] }
+        Self { data: [0; FPU_AREA] }
     }
 }
 

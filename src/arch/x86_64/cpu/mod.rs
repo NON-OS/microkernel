@@ -44,6 +44,7 @@ mod msr_safe;
 pub mod msr_stats;
 pub mod per_cpu;
 pub mod state;
+pub mod xstate;
 mod state_getters;
 pub mod state_globals;
 mod state_init;

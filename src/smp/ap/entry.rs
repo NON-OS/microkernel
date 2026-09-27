@@ -51,6 +51,11 @@ pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
     }
     crate::arch::set_percpu_base(crate::smp::percpu::current().self_ptr);
 
+    // The trampoline leaves CR4.OSXSAVE clear and XCR0 unset, so AVX code
+    // faulted here and an area saved on the boot CPU could not be restored.
+    // SAFETY: eK@nonos.systems - once, during this AP's bring-up, interrupts off.
+    unsafe { crate::arch::x86_64::cpu::xstate::mirror_on_ap() };
+
     // Its own block: the slot was handed to this CPU and is never reused.
     let _ = crate::arch::x86_64::gdt::arm_ap_guards(cpu_id);
 
