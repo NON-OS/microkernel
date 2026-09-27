@@ -14,17 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod allocate_domain_id;
-mod is_enforcing;
-mod is_present;
-mod page_levels;
-mod set_present;
-mod snoop_control;
-pub(super) mod state;
+use core::sync::atomic::Ordering;
 
-pub use allocate_domain_id::allocate_domain_id;
-pub use is_enforcing::{is_enforcing, set_enforcing};
-pub use is_present::is_present;
-pub use page_levels::{page_levels, set_page_levels};
-pub use set_present::set_present;
-pub use snoop_control::{set_snoop_control, snoop_control};
+use super::state::SNOOP_CONTROL;
+
+/*
+ * ECAP.SC. Bit 11 of a second-level leaf asks the unit to snoop CPU caches,
+ * and is a reserved bit on a unit that does not report snoop control: every
+ * access through such an entry faults (reason 0xC) instead of reaching memory.
+ */
+pub fn snoop_control() -> bool {
+    SNOOP_CONTROL.load(Ordering::Acquire)
+}
+
+// Record what the probed unit reported. Set once, before any table is built.
+pub fn set_snoop_control(ecap: u64) {
+    SNOOP_CONTROL.store(ecap & (1 << 7) != 0, Ordering::Release);
+}
