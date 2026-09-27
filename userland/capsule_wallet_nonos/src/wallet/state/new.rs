@@ -51,6 +51,7 @@ pub fn new_state() -> State {
         fee_ready: false,
         fee_wei: 0,
         view: super::types::VIEW_HOME,
+        scroll: 0,
         send_focus: super::types::SEND_FIELD_TO,
         send_to_hex: [0; 40],
         send_to_len: 0,

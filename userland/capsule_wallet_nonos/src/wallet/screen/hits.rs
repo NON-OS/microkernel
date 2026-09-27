@@ -56,3 +56,15 @@ pub fn at(x: u32, y: u32) -> Option<Press> {
     let h = HITS.lock();
     h.0[..h.1].iter().find(|(_, r)| r.contains(x, y)).map(|(p, _)| *p)
 }
+
+static LIMIT: Mutex<u32> = Mutex::new(0);
+
+/// How far the screen on show may scroll: where its content ended, less the
+/// room above the fixed foot. Written by the screen as it paints.
+pub fn reach(content_end: u32, scroll: u32, content_bottom: u32) {
+    *LIMIT.lock() = (content_end + scroll).saturating_sub(content_bottom);
+}
+
+pub fn limit() -> u32 {
+    *LIMIT.lock()
+}

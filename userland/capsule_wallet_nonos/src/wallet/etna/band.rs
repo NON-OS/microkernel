@@ -40,8 +40,9 @@ fn fade(row: u32) -> u32 {
     alpha.min(1000) * 255 / 1000
 }
 
-/// Draw `which` with its top-left at `x, y`; returns the band's height.
-pub fn band(fb: &mut PaintBuffer, x: u32, y: u32, which: Backdrop) -> u32 {
+/// Draw `which` with its top-left at `x, top`, rows above the screen left
+/// out; returns the band's height.
+pub fn band(fb: &mut PaintBuffer, x: u32, top: i64, which: Backdrop) -> u32 {
     let mut slot = DECODED.lock();
     if slot.as_ref().map(|(b, _)| *b) != Some(which) {
         let mut px = alloc::vec![0u32; (COLUMN * BANNER_H) as usize];
@@ -49,15 +50,18 @@ pub fn band(fb: &mut PaintBuffer, x: u32, y: u32, which: Backdrop) -> u32 {
         *slot = ok.then_some((which, px));
     }
     for row in 0..BANNER_H {
+        let Ok(y) = u32::try_from(top + i64::from(row)) else {
+            continue;
+        };
         if let Some((_, px)) = slot.as_ref() {
             let from = (row * COLUMN) as usize;
             for col in 0..COLUMN {
-                fb.blend_px(x + col, y + row, px[from + col as usize] | 0xFF00_0000);
+                fb.blend_px(x + col, y, px[from + col as usize] | 0xFF00_0000);
             }
         } else {
-            fb.fill_rect(x, y + row, COLUMN, 1, INK);
+            fb.fill_rect(x, y, COLUMN, 1, INK);
         }
-        fb.blend_rect(x, y + row, COLUMN, 1, (fade(row) << 24) | (INK & 0x00FF_FFFF));
+        fb.blend_rect(x, y, COLUMN, 1, (fade(row) << 24) | (INK & 0x00FF_FFFF));
     }
     BANNER_H
 }

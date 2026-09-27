@@ -24,7 +24,7 @@ use super::amounts::{eth, nox, UNREAD};
 use super::hits::{self, Press};
 use super::home_pills::pills;
 use crate::wallet::etna::backdrop::Backdrop;
-use crate::wallet::etna::frame::frame;
+use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
 use crate::wallet::etna::parts::tile::{row_height, tile, tile_row};
 use crate::wallet::etna::rect::Rect;
@@ -42,8 +42,10 @@ pub fn home(state: &State, fb: &mut PaintBuffer) {
         failure: None,
         footer: &[],
         status: &status,
+        scroll: state.scroll,
     };
-    let c = frame(fb, &spec).content;
+    let mut l = begin(fb, &spec);
+    let c = l.content;
     crate::wallet::paint::logo::logo(fb, c.x, c.y + (BACK - 18) / 2, 18);
     let gear = Rect::new(c.x + c.w - BACK, c.y, BACK, BACK);
     crate::wallet::etna::symbol::gear(fb, gear);
@@ -60,4 +62,10 @@ pub fn home(state: &State, fb: &mut PaintBuffer) {
     }
     y += th + GAP;
     super::home_actions::actions(state, fb, c, y);
+    hits::reach(
+        y + crate::wallet::etna::parts::round::round_height(),
+        state.scroll,
+        l.content_bottom,
+    );
+    end(fb, &spec, &mut l);
 }

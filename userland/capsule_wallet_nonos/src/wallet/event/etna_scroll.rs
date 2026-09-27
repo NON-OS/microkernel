@@ -14,22 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Etna design system in the wallet capsule: tokens, faces and type
-//! roles first, then the parts and the one frame every screen sits in.
+//! Scrolling an Etna screen.
 
-pub mod backdrop;
-mod band;
-pub mod face;
-pub mod frame;
-mod frame_bar;
-pub mod frame_spec;
-pub mod groups;
-pub mod parts;
-pub mod rect;
-mod roles;
-pub mod symbol;
-pub mod text;
-pub mod tokens;
-pub mod wrap;
+use nonos_app_skeleton::EventOutcome;
 
-pub use roles::Role;
+use super::etna_click::on_etna;
+use crate::wallet::screen::hits::limit;
+use crate::wallet::state::State;
+
+/// The wheel moves the photograph and content under the fixed bar and foot,
+/// no further than the screen's content reaches.
+pub fn scroll(state: &mut State, delta_y: i32) -> EventOutcome {
+    if !on_etna(state) {
+        return EventOutcome::Idle;
+    }
+    let next = (i64::from(state.scroll) - i64::from(delta_y) * 60).clamp(0, i64::from(limit()));
+    state.scroll = next as u32;
+    EventOutcome::Repaint
+}

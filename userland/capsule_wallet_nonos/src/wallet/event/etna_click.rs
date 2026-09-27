@@ -14,28 +14,52 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A click on a screen drawn on the Etna frame. The old chrome's header
-//! icons and side rail are not on these screens, so their hit zones must
-//! not answer here: this handler runs instead of them, not before them.
+//! A click or a scroll on a screen drawn on the Etna frame. The old chrome's
+//! header icons and side rail are not on these screens, so their hit zones
+//! must not answer here: this handler runs instead of them, not before them.
 
+use nonos_app_skeleton::clients::clipboard::clipboard_copy;
 use nonos_app_skeleton::EventOutcome;
 
 use crate::wallet::screen::hits::{at, Press};
-use crate::wallet::state::{State, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELD, VIEW_SWAP};
+use crate::wallet::state::{State, VIEW_HOME, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELD, VIEW_SWAP};
+
+/// Whether the screen on show is drawn on the Etna frame.
+pub fn on_etna(state: &State) -> bool {
+    state.panel == 0
+        && (state.view == VIEW_HOME || (state.view == VIEW_RECEIVE && !state.import_active))
+}
+
+fn go(state: &mut State, view: u8) -> EventOutcome {
+    state.view = view;
+    state.scroll = 0;
+    EventOutcome::Repaint
+}
 
 pub fn etna_click(state: &mut State, x: u32, y: u32) -> EventOutcome {
     let Some(press) = at(x, y) else {
         return EventOutcome::Idle;
     };
-    match press {
-        Press::Footer(0) if !state.address_ready => return super::generate::generate(state),
-        Press::Footer(1) if !state.address_ready => return super::import::toggle_import(state),
-        Press::Send => state.view = VIEW_SEND,
-        Press::Receive => state.view = VIEW_RECEIVE,
-        Press::Swap => state.view = VIEW_SWAP,
-        Press::Shield => state.view = VIEW_SHIELD,
-        Press::Settings | Press::Accounts => state.panel = 3,
-        _ => return EventOutcome::Idle,
+    match (press, state.view) {
+        (Press::Footer(0), VIEW_HOME) if !state.address_ready => super::generate::generate(state),
+        (Press::Footer(1), VIEW_HOME) if !state.address_ready => {
+            super::import::toggle_import(state)
+        }
+        (Press::Footer(0), VIEW_RECEIVE) => {
+            let hex = crate::wallet::screen::receive_address::address_hex(state);
+            let _ = clipboard_copy(hex.as_bytes());
+            state.status = b"address copied";
+            EventOutcome::Repaint
+        }
+        (Press::Back, _) => go(state, VIEW_HOME),
+        (Press::Send, _) => go(state, VIEW_SEND),
+        (Press::Receive, _) => go(state, VIEW_RECEIVE),
+        (Press::Swap, _) => go(state, VIEW_SWAP),
+        (Press::Shield, _) => go(state, VIEW_SHIELD),
+        (Press::Settings | Press::Accounts, _) => {
+            state.panel = 3;
+            EventOutcome::Repaint
+        }
+        _ => EventOutcome::Idle,
     }
-    EventOutcome::Repaint
 }

@@ -14,19 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind, KEY_ESC};
+//! The account's address as the 0x text a person reads, copies and scans.
 
+use alloc::string::String;
+
+use nonos_app_skeleton::PaintBuffer;
+
+use crate::wallet::etna::parts::fact::fact;
+use crate::wallet::etna::rect::Rect;
 use crate::wallet::state::State;
 
-// Repaint only when a handler actually changed state; a click or key that hits
-// nothing returns Idle and the dense screen is not re-rendered. This keeps the
-// UI responsive — every stray click no longer forces a full 1280x800 repaint.
-pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
-    match event.kind {
-        InputKind::KeyDown if event.code == KEY_ESC => EventOutcome::Close,
-        InputKind::KeyDown => super::on_key::on_key(state, event.code),
-        InputKind::ButtonDown => super::on_pointer::on_pointer(state, event.x, event.y),
-        InputKind::Wheel => super::etna_scroll::scroll(state, event.delta_y),
-        _ => EventOutcome::Idle,
+pub fn address_hex(state: &State) -> String {
+    let mut hex = String::from("0x");
+    for b in state.address {
+        hex.push_str(&alloc::format!("{b:02x}"));
     }
+    hex
+}
+
+/// What is known about the address, as facts; returns their height.
+pub fn facts(state: &State, fb: &mut PaintBuffer, c: Rect, y: u32) -> u32 {
+    let key = if state.vault_saved { "sealed to this machine" } else { "RAM only, gone at reboot" };
+    let h = fact(fb, c.x, y, c.w, "network", "Ethereum mainnet");
+    h + fact(fb, c.x, y + h, c.w, "key", key)
 }

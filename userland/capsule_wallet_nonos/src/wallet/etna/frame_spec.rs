@@ -29,6 +29,8 @@ pub struct FrameSpec<'a> {
     /// Up to three pinned actions, top to bottom.
     pub footer: &'a [(&'a str, Weight, bool)],
     pub status: &'a [&'a str],
+    /// How far the photograph and content have scrolled up, in pixels.
+    pub scroll: u32,
 }
 
 #[derive(Default)]
@@ -38,4 +40,6 @@ pub struct FrameLayout {
     /// The column left for the screen's own content.
     pub content: Rect,
     pub footer: [Rect; 3],
+    /// Where the fixed foot begins; content below it is covered.
+    pub content_bottom: u32,
 }

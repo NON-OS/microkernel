@@ -22,7 +22,7 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::hits::{self, Press};
 use crate::wallet::etna::backdrop::Backdrop;
-use crate::wallet::etna::frame::frame;
+use crate::wallet::etna::frame::{begin, end};
 use crate::wallet::etna::frame_spec::FrameSpec;
 use crate::wallet::etna::parts::action::Weight;
 use crate::wallet::etna::tokens::{GAP, TEXT, TEXT_3};
@@ -49,13 +49,16 @@ pub fn welcome(state: &State, fb: &mut PaintBuffer) {
         failure: None,
         footer: &footer,
         status: &status,
+        scroll: state.scroll,
     };
-    let l = frame(fb, &spec);
+    let mut l = begin(fb, &spec);
     let c = l.content;
     crate::wallet::paint::logo::logo(fb, c.x, c.y, 44);
     let mut y = (c.y + 44 + GAP) as i32;
     y += wrapped(fb, c.x as i32, y, c.w as i32, Role::Statement, STATEMENT, TEXT) + GAP as i32;
-    wrapped(fb, c.x as i32, y, c.w as i32, Role::Lead, LEAD, TEXT_3);
+    y += wrapped(fb, c.x as i32, y, c.w as i32, Role::Lead, LEAD, TEXT_3);
+    hits::reach(y as u32, state.scroll, l.content_bottom);
+    end(fb, &spec, &mut l);
     hits::put(Press::Footer(0), l.footer[0]);
     hits::put(Press::Footer(1), l.footer[1]);
 }

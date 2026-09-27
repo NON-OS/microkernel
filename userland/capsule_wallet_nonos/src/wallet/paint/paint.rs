@@ -22,10 +22,11 @@ use crate::wallet::state::{
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     // Home and the first screen are drawn on the Etna frame, alone.
-    if state.view == VIEW_HOME && state.panel == 0 {
-        match state.address_ready {
-            true => crate::wallet::screen::home::home(state, fb),
-            false => crate::wallet::screen::welcome::welcome(state, fb),
+    if crate::wallet::event::on_etna(state) {
+        match (state.view, state.address_ready) {
+            (VIEW_RECEIVE, _) => crate::wallet::screen::receive::receive(state, fb),
+            (_, true) => crate::wallet::screen::home::home(state, fb),
+            (_, false) => crate::wallet::screen::welcome::welcome(state, fb),
         }
         return;
     }

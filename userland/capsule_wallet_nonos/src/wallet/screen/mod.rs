@@ -22,5 +22,7 @@ pub mod hits;
 pub mod home;
 mod home_actions;
 mod home_pills;
+pub mod receive;
+pub mod receive_address;
 pub mod status;
 pub mod welcome;
