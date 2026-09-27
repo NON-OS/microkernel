@@ -463,4 +463,9 @@ jobs:
           if [ ! -d verification/extraction ]; then exit 0; fi
           cd verification/extraction/lean
           lake exe cache get
-          lake build
+          lake build 2>&1 | tee /tmp/extraction-build.log
+      - name: Every axiom is stated
+        run: |
+          set -euo pipefail
+          if [ ! -d verification/extraction ]; then exit 0; fi
+          python3 tools/ratchets/stated_axioms.py --log /tmp/extraction-build.log --root .
