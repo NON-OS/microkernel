@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""What a boot left on disk, read from the image's package container.
+
+The store at LBA 256 is a NONOSTR1 table of named extents. --record writes its
+rows before a boot; --against compares after one, and exit 1 names every row
+the boot added or changed. An amnesic boot must add none: nothing on disk.
+"""
+
+import argparse
+import struct
+import sys
+
+STORE_LBA, SECTOR = 256, 512
+HEADER, ENTRY, NAME, MAX = 32, 128, 96, 64
+
+
+def rows(image):
+    with open(image, "rb") as f:
+        f.seek(STORE_LBA * SECTOR)
+        head = f.read(HEADER + ENTRY * MAX)
+    if head[:8] != b"NONOSTR1" or struct.unpack_from("<I", head, 8)[0] != 1:
+        sys.exit(f"{image}: no NONOSTR1 container at LBA {STORE_LBA}")
+    count = struct.unpack_from("<I", head, 12)[0]
+    if count > MAX:
+        sys.exit(f"{image}: {count} entries, above {MAX}")
+    out = []
+    for i in range(count):
+        base = HEADER + ENTRY * i
+        name = head[base:base + NAME].split(b"\0", 1)[0].decode("ascii", "replace")
+        off, length = struct.unpack_from("<QQ", head, base + NAME)
+        digest = head[base + NAME + 16:base + NAME + 32].hex()
+        out.append(f"{name} {off} {length} {digest}")
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("image", help="the raw disk image QEMU booted")
+    ap.add_argument("--record", help="write the rows here, before the boot")
+    ap.add_argument("--against", help="rows recorded before the boot")
+    args = ap.parse_args()
+    now = rows(args.image)
+    if args.record:
+        with open(args.record, "w") as f:
+            f.write("".join(r + "\n" for r in now))
+        return print(f"[amnesic] recorded {len(now)} rows") or 0
+    if not args.against:
+        print("\n".join(now))
+        return 0
+    with open(args.against) as f:
+        before = set(f.read().split("\n")) - {""}
+    added = [r for r in now if r not in before]
+    for r in added:
+        print(f"[amnesic] the boot left {r.split(' ', 1)[0]} on disk")
+    print(f"[amnesic] {len(added)} rows added or changed, {len(now)} in all")
+    return 1 if added else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
