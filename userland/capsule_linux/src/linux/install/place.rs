@@ -18,9 +18,12 @@
 use nonos_libc::mk_debug;
 
 use super::auth::Verified;
-use super::place_entry::one;
+use alloc::vec::Vec;
+
+use super::place_entry::{allowed, one};
 use super::program::record;
-use super::tar::entries;
+use super::tar::{walk, Kind};
+use crate::linux::file::visible;
 
 /// Unpack a package's authenticated files into the store and report how
 /// many landed. `chosen` names the package the person asked for, whose
@@ -29,7 +32,25 @@ pub fn unpack(files: &Verified, chosen: Option<&str>) -> usize {
     if let Some(name) = chosen {
         record(name, files);
     }
-    let landed = entries(files.files()).iter().filter(|entry| one(entry)).count();
+    let archive = walk(files.files());
+    let mut landed = 0usize;
+    let mut links: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
+    for entry in &archive.entries {
+        match &entry.kind {
+            Kind::File => landed += usize::from(one(entry)),
+            Kind::Symlink(to) if allowed(&entry.name) => {
+                links.push((visible(b"/", &entry.name), to.clone()));
+            }
+            // A hard link names another member, so its target is absolute.
+            Kind::Hardlink(to) if allowed(&entry.name) => {
+                links.push((visible(b"/", &entry.name), visible(b"/", to)));
+            }
+            // Directories are implied by the paths under them.
+            _ => {}
+        }
+    }
+    let linked = super::place_links::record(&links);
+    super::place_report::say(landed, links.len(), linked, archive.dropped);
     // Nothing persists unless asked, and never in plaintext. The store at
     // rest is not encrypted, so an install lives until the next reboot.
     let line = b"[LINUX] unserved persist: install kept in RAM, store at rest unencrypted\n";

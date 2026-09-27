@@ -22,6 +22,12 @@ pub mod auth;
 #[path = "../../../capsule_linux/src/linux/install/tar_field.rs"]
 pub mod tar_field;
 
+#[path = "../../../capsule_linux/src/linux/install/tar_kind.rs"]
+pub mod tar_kind;
+
+#[path = "../../../capsule_linux/src/linux/install/tar_pax.rs"]
+pub mod tar_pax;
+
 #[path = "../../../capsule_linux/src/linux/install/tar.rs"]
 pub mod tar;
 

@@ -27,5 +27,6 @@ mod key_tests;
 mod resolve_tests;
 mod stack_words_tests;
 mod stat_tests;
+mod tar_link_tests;
 mod tar_tests;
 mod wire_tests;

@@ -30,11 +30,7 @@ const REFUSED: &[&[u8]] = &[b".nonos_id_cert.bin", b".manifest.bin", b".zk_trail
 
 /// True when the file landed in the store.
 pub(super) fn one(entry: &Entry) -> bool {
-    if entry.name.starts_with(b".") {
-        return false;
-    }
-    if REFUSED.iter().any(|s| entry.name.ends_with(s)) {
-        say(b"[LINUX] refused a package writing its own proof\n");
+    if !allowed(&entry.name) {
         return false;
     }
     let at = visible(b"/", &entry.name);
@@ -43,6 +39,19 @@ pub(super) fn one(entry: &Entry) -> bool {
     }
     if is_elf(&entry.body) {
         vouch_for(&at, &entry.body);
+    }
+    true
+}
+
+/// Not a control file, and not a proof a package would be minting for itself.
+/// A link is held to the same names as a file.
+pub(super) fn allowed(name: &[u8]) -> bool {
+    if name.starts_with(b".") {
+        return false;
+    }
+    if REFUSED.iter().any(|s| name.ends_with(s)) {
+        say(b"[LINUX] refused a package writing its own proof\n");
+        return false;
     }
     true
 }

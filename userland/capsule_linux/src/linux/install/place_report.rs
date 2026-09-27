@@ -13,28 +13,22 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Putting a package's files into the store, under the Linux root.
 
-//! Installing a Linux program from within the system.
+//! What an unpack did, as numbers in the log: files, links, and anything the
+//! archive held that had nowhere to go. A dropped entry is never silent.
 
-mod auth;
-mod download;
-mod enrol;
-mod fetch;
-mod http;
-mod index;
-mod index_load;
-mod mirror;
-mod pkg;
-mod place;
-mod place_entry;
-mod place_links;
-mod place_report;
-mod program;
-mod run;
-mod tar;
-mod tar_field;
-mod tar_kind;
-mod tar_pax;
+use alloc::format;
 
-pub use program::recorded;
-pub use run::install;
+use nonos_libc::mk_debug;
+
+pub(super) fn say(files: usize, links: usize, linked: Option<usize>, dropped: u32) {
+    let written = match linked {
+        Some(n) => format!("{n}"),
+        None => "0 (table not written)".into(),
+    };
+    let line = format!(
+        "[LINUX] unpacked files={files} links={links} linked={written} dropped={dropped}\n"
+    );
+    let _ = mk_debug(line.as_ptr(), line.len());
+}
