@@ -72,7 +72,8 @@ const FPU_AREA: usize = crate::arch::x86_64::cpu::xstate::AREA;
 #[cfg(not(target_arch = "x86_64"))]
 const FPU_AREA: usize = 1024;
 
-#[derive(Clone)]
+// Never on a stack: the area is 4 KiB and 64-byte aligned, and a kernel stack
+// that held one per switch overflowed. `new` builds it on the heap, zeroed.
 #[repr(C, align(64))]
 pub struct FpuState {
     pub data: [u8; FPU_AREA],
@@ -80,7 +81,9 @@ pub struct FpuState {
 
 impl FpuState {
     pub fn new() -> Box<Self> {
-        Box::new(Self { data: [0; FPU_AREA] })
+        // SAFETY: eK@nonos.systems - FpuState is plain bytes, so all zeros is a
+        // valid value, and a zeroed area is also a clear XSAVE header.
+        unsafe { Box::<Self>::new_zeroed().assume_init() }
     }
 
     #[inline(always)]
@@ -139,12 +142,6 @@ impl FpuState {
                 options(nostack),
             );
         }
-    }
-}
-
-impl Default for FpuState {
-    fn default() -> Self {
-        Self { data: [0; FPU_AREA] }
     }
 }
 

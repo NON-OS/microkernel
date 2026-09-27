@@ -18,6 +18,7 @@
 //! state stays in the kernel: entering saves the thread's own and gives the
 //! handler a clean unit, returning puts it back, and no guest can forge it.
 
+use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 
@@ -30,10 +31,10 @@ use crate::process::userspace::{restore_user_context_iretq, types::FpuState};
 /// Handlers nested deeper than this end the thread.
 const DEPTH: usize = 8;
 
-static SAVED: Mutex<BTreeMap<u32, Vec<FpuState>>> = Mutex::new(BTreeMap::new());
+static SAVED: Mutex<BTreeMap<u32, Vec<Box<FpuState>>>> = Mutex::new(BTreeMap::new());
 
 pub(super) fn deliver(pid: u32, ctx: SavedUser) -> ! {
-    let mut fpu = FpuState::default();
+    let mut fpu = FpuState::new();
     fpu.save();
     let pushed = {
         let mut saved = SAVED.lock();
