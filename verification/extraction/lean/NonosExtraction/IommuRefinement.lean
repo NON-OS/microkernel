@@ -220,6 +220,35 @@ theorem out_of_range_device_numbers_alias :
     ctxIndex 255#u8 255#u8 = ctxIndex 31#u8 7#u8 := by
   encode
 
+/-! ### The snoop bit
+
+    Bit 11 of a second-level leaf asks the unit to snoop CPU caches. It is
+    reserved on a unit that does not report snoop control in `ECAP.SC`, and an
+    access through an entry with a reserved bit set faults rather than reaching
+    memory. The encoder sets it whenever its caller asks, and has no way to know
+    whether the unit supports it: that decision belongs to the caller, and
+    `Nonos.IommuSnoop` is where the obligation is stated. -/
+
+/-- A leaf built with snoop carries bit 11. -/
+theorem a_snooped_leaf_sets_bit_eleven :
+    (do let e ← arch.x86_64.iommu.tables.sl_pte.leaf 0x1000#u64 true true true;
+        ok (e &&& 0x800#u64)) = ok 0x800#u64 := by
+  encode
+
+/-- A leaf built without it does not, so the bit is exactly the caller's request
+    and nothing else sets it. -/
+theorem an_unsnooped_leaf_leaves_bit_eleven_clear :
+    (do let e ← arch.x86_64.iommu.tables.sl_pte.leaf 0x1000#u64 true true false;
+        ok (e &&& 0x800#u64)) = ok 0#u64 := by
+  encode
+
+/-- The whole entry, both ways, so the difference is visible as one bit rather
+    than as two opaque words. -/
+theorem snoop_is_the_only_difference :
+    arch.x86_64.iommu.tables.sl_pte.leaf 0x1000#u64 true true true = ok 0x1803#u64 ∧
+    arch.x86_64.iommu.tables.sl_pte.leaf 0x1000#u64 true true false = ok 0x1003#u64 := by
+  refine ⟨?_, ?_⟩ <;> encode
+
 /-! ### The level arithmetic, and why its failure is unreachable -/
 
 /-- The span of one entry at each depth the hardware can be configured to, as a
@@ -282,6 +311,9 @@ theorem the_context_width_fits_its_field (l : Agaw) :
 #print axioms NonosExtraction.the_domain_id_round_trips
 #print axioms NonosExtraction.out_of_range_device_numbers_alias
 #print axioms NonosExtraction.the_span_fails_at_level_zero
+#print axioms NonosExtraction.a_snooped_leaf_sets_bit_eleven
+#print axioms NonosExtraction.an_unsnooped_leaf_leaves_bit_eleven_clear
+#print axioms NonosExtraction.snoop_is_the_only_difference
 #print axioms NonosExtraction.the_span_is_total_at_every_real_depth
 #print axioms NonosExtraction.the_producer_keeps_the_indexing_total
 #print axioms NonosExtraction.the_depth_is_three_four_or_five
