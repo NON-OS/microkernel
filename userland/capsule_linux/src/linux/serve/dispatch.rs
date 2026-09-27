@@ -27,6 +27,7 @@ use crate::linux::guest::Guest;
 
 pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     let a = frame.args();
+    super::tally::call();
     match frame.nr {
         nr::CLONE => clone(guest, frame),
         nr::FORK | nr::VFORK => crate::linux::call::fork(guest),

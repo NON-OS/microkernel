@@ -27,6 +27,7 @@ mod table_file;
 mod table_mem;
 mod table_net;
 mod table_proc;
+mod tally;
 mod unserved;
 
 pub use answer::Answer;

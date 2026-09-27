@@ -119,6 +119,10 @@ jobs:
         run: python3 tools/nonos-assumptions
       - name: No new control that exists and does not run
         run: python3 scripts/check_unenforced.py && python3 scripts/check_unenforced.py --self-test
+      - name: Linux syscall coverage does not fall
+        run: python3 tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt
+      - name: Wayland coverage does not fall
+        run: python3 tools/nonos-wayland-coverage --baseline scripts/baselines/wayland-globals.txt
 
   # The committed verification/evidence/EVIDENCE.json is a machine-readable inventory of
   # everything NONOS proves. Regenerate it from the source tree and fail if it

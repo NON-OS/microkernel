@@ -21,6 +21,7 @@ use crate::linux::abi::{errno, name};
 /// Name what was asked for. A guest that dies on a missing call should
 /// leave behind the name of the call it needed.
 pub fn unserved(number: u64) -> u64 {
+    super::tally::missed();
     let mut line = [0u8; 64];
     let head = b"[LINUX] unserved ";
     // The name table covers what is served; anything else is named by number.

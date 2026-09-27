@@ -34,6 +34,7 @@ pub fn serve(guest: Guest) -> i32 {
         }
         family.reap();
         if let Some(code) = family.done() {
+            super::tally::report();
             return code;
         }
     }
