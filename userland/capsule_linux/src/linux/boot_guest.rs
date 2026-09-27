@@ -23,18 +23,26 @@
 
 use alloc::vec::Vec;
 
+use nonos_libc::{mk_yield, Deadline};
+
 use crate::linux::file::{key, store_read, visible};
+use crate::linux::start::say;
 
 /// Guest-visible, so it lives under /linux like the program it names.
 const BOOT_GUEST: &[u8] = b"/etc/nonos-boot-guest";
 
 const MAX_NAME: u32 = 1024;
 
+// How long to wait for the store to answer at all. With several CPUs this
+// capsule can ask before the VFS serves, and a read that cannot be answered is
+// not an image that names nothing.
+const READY_MS: u64 = 30_000;
+
 /// The path the image names, the program's bytes and its arguments, or None
 /// when the image names nothing. One argument a line, so a script passed to
 /// `sh -c` needs no quoting rules.
 pub(super) fn boot_guest(max_image: u32) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
-    let named = store_read(&key(BOOT_GUEST), MAX_NAME).ok()?;
+    let named = read_when_ready()?;
     let mut lines = named.split(|b| *b == b'\n').filter(|l| !l.is_empty());
     let path = lines.next()?;
     if path.first() != Some(&b'/') {
@@ -44,4 +52,22 @@ pub(super) fn boot_guest(max_image: u32) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8
     let at = visible(b"/", path);
     let bytes = store_read(&key(&at), max_image).ok()?;
     Some((at, bytes, args))
+}
+
+// The file's bytes, or None once the store answered that it has none.
+fn read_when_ready() -> Option<Vec<u8>> {
+    let until = Deadline::after_ms(READY_MS);
+    loop {
+        match store_read(&key(BOOT_GUEST), MAX_NAME) {
+            Ok(named) => return Some(named),
+            Err("vfs unavailable" | "vfs ipc failed") if !until.expired() => {
+                let _ = mk_yield();
+            }
+            Err("vfs open failed") => return None,
+            Err(_) => {
+                say(b"[LINUX] boot guest unreadable: store did not answer\n");
+                return None;
+            }
+        }
+    }
 }
