@@ -872,6 +872,7 @@ define nonos_kernel_build
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features $(2)
+	@$(NONOS_PYTHON) scripts/check_unenforced.py --list
 endef
 
 # Kernel ELF artefact rule, no-features default (resolves to
