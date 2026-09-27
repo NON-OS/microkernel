@@ -30,6 +30,10 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
     let Some(address) = pci_address(device_id) else {
         return Ok(());
     };
+    if super::bypass::bypasses_translation(device_id) {
+        say(b"unconfined: virtio without ACCESS_PLATFORM bypasses the IOMMU", pid, address);
+        return Ok(());
+    }
     let mut all = CAPSULES.lock();
     let pos = match all.iter().position(|c| c.pid == pid) {
         Some(i) => i,

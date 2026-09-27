@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One IOMMU domain per driver capsule. A device a capsule claims leaves the
-//! identity domain for the capsule's own, which maps nothing until `MkDmaMap`
-//! grants a buffer, so the device reaches that capsule's grants and faults on
-//! everything else. Without a unit in service these are no-ops that say so:
-//! the device then reaches all of memory, and the boot log states it.
+use crate::drivers::pci::config::ConfigSpace;
 
-mod attach;
-mod bypass;
-mod detach;
-mod iova;
-mod map;
-mod table;
+const VIRTIO_VENDOR: u16 = 0x1AF4;
 
-pub(super) use attach::attach;
-pub(super) use detach::{detach, detach_all};
-pub(super) use map::{map, unmap};
+/*
+ * A virtio device translates its DMA through the IOMMU only once the driver
+ * negotiates VIRTIO_F_ACCESS_PLATFORM, and no driver here does (the GPU runs
+ * the legacy interface, which cannot). Such a device takes the address it is
+ * given as physical. Confining it would hand it IOVAs it writes through as
+ * physical memory, so it is left unconfined and said to be.
+ */
+pub(super) fn bypasses_translation(device_id: u64) -> bool {
+    let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) else {
+        return false;
+    };
+    matches!(ConfigSpace::new(handle.address).read16(0), Ok(VIRTIO_VENDOR))
+}
