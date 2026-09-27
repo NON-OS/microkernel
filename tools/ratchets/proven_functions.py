@@ -40,7 +40,7 @@ GAP_CEILING = 2
 # wrapper theorem is real, and it is what ties a manifest entry to the method a
 # theorem talks about, but on its own it says nothing about behaviour. Counting
 # the two together would be the inflation this file exists to stop.
-SUBSTANTIVE_FLOOR = 100
+SUBSTANTIVE_FLOOR = 141
 
 PROOF_MODULES = ('CapsComplete.lean', 'Closure.lean')
 PROOF_DIRS = (
@@ -94,8 +94,11 @@ def classify(root):
     # A wrapper theorem names the function only on its own line; a substantive
     # theorem names it somewhere else. Strip the generated wrapper block and see
     # what still mentions it.
+    # Only continuation lines, never blank ones: `\s+` matches a newline, so a
+    # greedy version of this ate everything after the first wrapper theorem and
+    # reported every crate as wrapper-only.
     without_wrappers = re.sub(
-        r'theorem the_\w+_wrapper_is_its_method[^\n]*\n(?:\s+[^\n]*\n)*', '', code)
+        r'theorem the_\w+_wrapper_is_its_method[^\n]*\n(?:[ \t]+[^\n]*\n)*', '', code)
 
     proven, bare, substantive = [], [], []
     for name in names:
