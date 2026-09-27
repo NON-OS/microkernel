@@ -31,6 +31,10 @@ pub(super) const ARCH: &str = "x86_64";
 pub(super) const BRANCHES: [&str; 2] = ["main", "community"];
 
 pub fn install(name: &str, pin: &[u8; 32]) -> bool {
+    // A family is named, never inferred: a bare name is Alpine's.
+    if let Some(pkg) = name.strip_prefix("pacman:") {
+        return super::pacman::install(pkg, pin);
+    }
     let Some(index) = load_index() else {
         say(b"[LINUX] no package index\n");
         return false;

@@ -14,29 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Installing a Linux program from within the system.
+//! A SHA-256 written as 64 hex digits, either case.
 
-mod auth;
-mod download;
-mod enrol;
-mod fetch;
-mod http;
-mod index;
-mod index_load;
-mod limit;
-mod mirror;
-mod pacman;
-mod pkg;
-mod place;
-mod place_entry;
-mod place_links;
-mod place_report;
-mod program;
-mod run;
-mod tar;
-mod tar_field;
-mod tar_kind;
-mod tar_pax;
-
-pub use program::recorded;
-pub use run::install;
+pub fn hex32(s: &str) -> Option<[u8; 32]> {
+    let b = s.as_bytes();
+    if b.len() != 64 {
+        return None;
+    }
+    let digit = |c: u8| (c as char).to_digit(16).map(|d| d as u8);
+    let mut out = [0u8; 32];
+    for (i, o) in out.iter_mut().enumerate() {
+        *o = digit(b[2 * i])? << 4 | digit(b[2 * i + 1])?;
+    }
+    Some(out)
+}

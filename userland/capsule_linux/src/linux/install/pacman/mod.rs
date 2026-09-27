@@ -14,29 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Installing a Linux program from within the system.
+//! Arch's package format: a signed repository database, and packages each
+//! held to its checksum there and to its own detached signature.
 
-mod auth;
-mod download;
-mod enrol;
+mod db;
+mod desc;
 mod fetch;
-mod http;
-mod index;
-mod index_load;
-mod limit;
-mod mirror;
-mod pacman;
-mod pkg;
-mod place;
-mod place_entry;
-mod place_links;
-mod place_report;
-mod program;
+mod hex;
+mod keyring;
+mod request;
 mod run;
-mod tar;
-mod tar_field;
-mod tar_kind;
-mod tar_pax;
+mod signed;
+mod source;
+mod spki;
+mod unpacked;
+mod verifier;
 
-pub use program::recorded;
 pub use run::install;

@@ -179,11 +179,22 @@ version = "0.1.0"
 dependencies = [
  "blake3",
  "nonos_app_skeleton",
+ "nonos_ed25519",
  "nonos_hash",
  "nonos_inflate",
+ "nonos_openpgp",
  "nonos_tls",
  "nonos_userland_libc",
+ "nonos_zstd",
  "sha1",
+]
+
+[[package]]
+name = "nonos_ed25519"
+version = "0.1.0"
+dependencies = [
+ "nonos_hash",
+ "spin",
 ]
 
 [[package]]
@@ -193,6 +204,14 @@ version = "0.1.0"
 [[package]]
 name = "nonos_inflate"
 version = "0.3.0"
+
+[[package]]
+name = "nonos_openpgp"
+version = "0.1.0"
+dependencies = [
+ "nonos_hash",
+ "sha1",
+]
 
 [[package]]
 name = "nonos_tls"
@@ -216,6 +235,10 @@ version = "0.3.0"
 dependencies = [
  "linked_list_allocator",
 ]
+
+[[package]]
+name = "nonos_zstd"
+version = "0.1.0"
 
 [[package]]
 name = "owned_ttf_parser"

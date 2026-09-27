@@ -14,29 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Installing a Linux program from within the system.
+//! OpenPGP's arithmetic on this machine: RSA through the crypto service, and
+//! Ed25519 in this capsule.
 
-mod auth;
-mod download;
-mod enrol;
-mod fetch;
-mod http;
-mod index;
-mod index_load;
-mod limit;
-mod mirror;
-mod pacman;
-mod pkg;
-mod place;
-mod place_entry;
-mod place_links;
-mod place_report;
-mod program;
-mod run;
-mod tar;
-mod tar_field;
-mod tar_kind;
-mod tar_pax;
+use nonos_openpgp::Verifier;
 
-pub use program::recorded;
-pub use run::install;
+use super::request::request;
+
+/// The crypto service's PKCS#1 v1.5 scheme.
+const PKCS1: u8 = 0;
+
+pub struct Machine;
+
+impl Verifier for Machine {
+    fn rsa(&self, n: &[u8], e: &[u8], sig: &[u8], hash: u8, digest: &[u8]) -> bool {
+        request(n, e, sig, hash)
+            .is_some_and(|r| nonos_tls::verify_rsa(PKCS1, r.hashid, &r.spki, &r.sig, digest))
+    }
+
+    fn ed25519(&self, key: &[u8; 32], sig: &[u8; 64], digest: &[u8]) -> bool {
+        nonos_ed25519::verify(key, digest, &nonos_ed25519::Signature::from_bytes(sig))
+    }
+}

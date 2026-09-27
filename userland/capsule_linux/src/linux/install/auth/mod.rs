@@ -16,7 +16,7 @@
 
 //! Whether a package is the one the distribution published.
 
-mod base64;
+pub(in crate::linux::install) mod base64;
 mod checksum;
 mod digest;
 mod keys;

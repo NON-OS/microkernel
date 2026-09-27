@@ -112,6 +112,7 @@ version = "0.1.0"
 dependencies = [
  "nonos_hash",
  "nonos_inflate",
+ "nonos_openpgp",
  "rsa",
  "sha1",
 ]
@@ -123,6 +124,14 @@ version = "0.1.0"
 [[package]]
 name = "nonos_inflate"
 version = "0.3.0"
+
+[[package]]
+name = "nonos_openpgp"
+version = "0.1.0"
+dependencies = [
+ "nonos_hash",
+ "sha1",
+]
 
 [[package]]
 name = "num-bigint-dig"

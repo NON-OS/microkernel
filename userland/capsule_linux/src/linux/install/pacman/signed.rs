@@ -14,29 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Installing a Linux program from within the system.
+//! A detached signature, checked against the pinned keyring, and said.
 
-mod auth;
-mod download;
-mod enrol;
-mod fetch;
-mod http;
-mod index;
-mod index_load;
-mod limit;
-mod mirror;
-mod pacman;
-mod pkg;
-mod place;
-mod place_entry;
-mod place_links;
-mod place_report;
-mod program;
-mod run;
-mod tar;
-mod tar_field;
-mod tar_kind;
-mod tar_pax;
+use alloc::format;
+use alloc::string::String;
 
-pub use program::recorded;
-pub use run::install;
+use nonos_openpgp::{verify, Key};
+
+use super::verifier::Machine;
+
+pub fn signed(ring: &[Key], sig: &[u8], data: &[u8]) -> bool {
+    let (ok, line) = match verify(&Machine, ring, sig, data) {
+        Ok(v) => (true, format!("[LINUX] pacman signature Verified by {}\n", hex(&v.fingerprint))),
+        Err(r) => (false, format!("[LINUX] pacman signature refused: {}\n", r.why())),
+    };
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    ok
+}
+
+fn hex(b: &[u8]) -> String {
+    b.iter().map(|x| format!("{x:02X}")).collect()
+}

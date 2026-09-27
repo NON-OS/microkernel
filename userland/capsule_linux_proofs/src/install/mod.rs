@@ -36,3 +36,5 @@ pub mod pkg;
 
 #[path = "../../../capsule_linux/src/linux/install/index.rs"]
 pub mod index;
+
+pub mod pacman;

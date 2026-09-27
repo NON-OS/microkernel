@@ -14,22 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Package bytes that something authenticated.
+//! An OpenPGP RSA check, put as the crypto service takes it.
 
 use alloc::vec::Vec;
 
-/// A package's files, decompressed. Only `package::verified` and pacman's
-/// `fetch` make one, so bytes nothing authenticated cannot be unpacked.
-pub struct Verified {
-    files: Vec<u8>,
+use super::spki::rsa_spki;
+
+/// What the crypto service is asked: its hash number, the key, and the
+/// signature at the modulus's width (an MPI drops leading zeros).
+pub struct Request {
+    pub hashid: u8,
+    pub spki: Vec<u8>,
+    pub sig: Vec<u8>,
 }
 
-impl Verified {
-    pub(crate) fn checked(files: Vec<u8>) -> Self {
-        Self { files }
-    }
-
-    pub fn files(&self) -> &[u8] {
-        &self.files
-    }
+/// OpenPGP's SHA-256 and SHA-512 are the service's 0 and 2; nothing else.
+pub fn request(n: &[u8], e: &[u8], sig: &[u8], hash: u8) -> Option<Request> {
+    let hashid = match hash {
+        8 => 0,
+        10 => 2,
+        _ => return None,
+    };
+    let mut full = alloc::vec![0u8; n.len().checked_sub(sig.len())?];
+    full.extend_from_slice(sig);
+    Some(Request { hashid, spki: rsa_spki(n, e)?, sig: full })
 }

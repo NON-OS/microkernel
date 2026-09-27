@@ -27,9 +27,14 @@ use crate::linux::net::raw_io::{close, recv_all, send_all};
 /// rather than truncated into a half-parsed index.
 const MAX_BODY: usize = 64 << 20;
 
-/// A GET to `ip`, which must be a dotted IPv4 address: a name here would be
-/// resolved by the socket service, in the clear.
+/// A GET to Alpine's mirror.
 pub fn get(ip: &str, port: u16, path: &str) -> Option<Vec<u8>> {
+    get_as(ip, port, HOST_LINE, path)
+}
+
+/// A GET to `ip`, which must be a dotted IPv4 address: a name here would be
+/// resolved by the socket service, in the clear. `host` is only the Host line.
+pub fn get_as(ip: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
     if ip.split('.').filter(|o| o.parse::<u8>().is_ok()).count() != 4 {
         return None;
     }
@@ -39,7 +44,7 @@ pub fn get(ip: &str, port: u16, path: &str) -> Option<Vec<u8>> {
         return None;
     }
     let req = format!(
-        "GET {path} HTTP/1.1\r\nHost: {HOST_LINE}\r\nUser-Agent: nonos\r\nConnection: close\r\n\r\n"
+        "GET {path} HTTP/1.1\r\nHost: {host}\r\nUser-Agent: nonos\r\nConnection: close\r\n\r\n"
     );
     if send_all(handle, req.as_bytes()).is_none() {
         close(handle);

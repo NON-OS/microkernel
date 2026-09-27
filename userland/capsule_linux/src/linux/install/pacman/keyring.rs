@@ -14,29 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Installing a Linux program from within the system.
+//! The keys pacman packages must be signed by, pinned into this capsule when
+//! it is built: the file NONOS_PACMAN_KEYRING names, as `gpg --export` wrote
+//! it. The capsule is inside the measured image, so the keyring is too.
 
-mod auth;
-mod download;
-mod enrol;
-mod fetch;
-mod http;
-mod index;
-mod index_load;
-mod limit;
-mod mirror;
-mod pacman;
-mod pkg;
-mod place;
-mod place_entry;
-mod place_links;
-mod place_report;
-mod program;
-mod run;
-mod tar;
-mod tar_field;
-mod tar_kind;
-mod tar_pax;
+use alloc::vec::Vec;
 
-pub use program::recorded;
-pub use run::install;
+use nonos_openpgp::{keys, Key};
+
+const RING: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/pacman-keyring.gpg"));
+
+/// None when the image was built without one; nothing then verifies.
+pub fn pinned() -> Option<Vec<Key>> {
+    keys(RING)
+}

@@ -14,29 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Installing a Linux program from within the system.
+//! pacman's pure parts, included from the capsule.
 
-mod auth;
-mod download;
-mod enrol;
-mod fetch;
-mod http;
-mod index;
-mod index_load;
-mod limit;
-mod mirror;
-mod pacman;
-mod pkg;
-mod place;
-mod place_entry;
-mod place_links;
-mod place_report;
-mod program;
-mod run;
-mod tar;
-mod tar_field;
-mod tar_kind;
-mod tar_pax;
+#[path = "../../../capsule_linux/src/linux/install/pacman/desc.rs"]
+pub mod desc;
 
-pub use program::recorded;
-pub use run::install;
+#[path = "../../../capsule_linux/src/linux/install/pacman/hex.rs"]
+pub mod hex;
+
+#[path = "../../../capsule_linux/src/linux/install/pacman/spki.rs"]
+pub mod spki;
+
+#[path = "../../../capsule_linux/src/linux/install/pacman/request.rs"]
+pub mod request;

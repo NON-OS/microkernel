@@ -27,4 +27,6 @@ sha1 = { version = "0.10", default-features = false }
 [dev-dependencies]
 # The verifier the crypto service runs, standing in for the IPC call.
 rsa = { version = "0.9", default-features = false, features = ["sha2"] }
+# Reads the GnuPG vectors the pacman request is checked with.
+nonos_openpgp = { path = "../openpgp" }
 sha1 = { version = "0.10", default-features = false, features = ["oid"] }
