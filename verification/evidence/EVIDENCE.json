@@ -108,6 +108,17 @@
         "nonos_signal::process::signal::helpers::is_stop_signal",
         "nonos_signal::process::signal::helpers::is_synchronous",
         "nonos_signal::process::signal::helpers::is_valid_signal",
+        "nonos_uefi_attrs::variableattributes_bits",
+        "nonos_uefi_attrs::variableattributes_contains",
+        "nonos_uefi_attrs::variableattributes_empty",
+        "nonos_uefi_attrs::variableattributes_from_bits",
+        "nonos_uefi_attrs::variableattributes_from_bits_truncate",
+        "nonos_uefi_attrs::variableattributes_intersection",
+        "nonos_uefi_attrs::variableattributes_is_empty",
+        "nonos_uefi_attrs::variableattributes_is_non_volatile",
+        "nonos_uefi_attrs::variableattributes_is_runtime_access",
+        "nonos_uefi_attrs::variableattributes_requires_authentication",
+        "nonos_uefi_attrs::variableattributes_union",
         "nonos_vectors::interrupts::vectors::exception_has_error_code",
         "nonos_vectors::interrupts::vectors::exception_is_fatal",
         "nonos_vectors::interrupts::vectors::irq_to_vector",
@@ -144,6 +155,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/Signal.lean",
           "sha256": "b40253ddc5addde3a2d67389dd9ec00910623bf27c09ec0f4eda996995b34847"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Uefi.lean",
+          "sha256": "3c4d4e3bd07ce97e4736a45a8345af678b95d6af894f17c194dc9631986f5976"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Vectors.lean",

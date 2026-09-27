@@ -35,5 +35,7 @@ import NonosExtraction.PolicyRefinement
 import NonosExtraction.Refinement
 import NonosExtraction.Signal
 import NonosExtraction.SignalRefinement
+import NonosExtraction.Uefi
+import NonosExtraction.UefiRefinement
 import NonosExtraction.Vectors
 import NonosExtraction.VectorsRefinement
