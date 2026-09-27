@@ -12,12 +12,42 @@ set_option maxHeartbeats 1000000
 /- You can set the `maxRecDepth` value with the `-max-recdepth` CLI option -/
 set_option maxRecDepth 2048
 
+/- You can remove the following line by using the CLI option `-all-computable`: -/
+noncomputable section
+
 namespace nonos_ed_field
 
-/-- [nonos_ed_field::field::compare::ct_eq_32]: loop body 0:
-    Source: 'src/../../../../src/crypto/asymmetric/ed25519/field/compare.rs', lines 35:4-37:5 -/
+/-- [core::sync::atomic::Ordering]
+    Source: '/rustc/library/core/src/sync/atomic.rs', lines 447:0-447:17
+    Name pattern: [core::sync::atomic::Ordering]
+    Visibility: public -/
+@[discriminant isize, rust_type "core::sync::atomic::Ordering"]
+inductive core.sync.atomic.Ordering where
+| Relaxed : core.sync.atomic.Ordering
+| Release : core.sync.atomic.Ordering
+| Acquire : core.sync.atomic.Ordering
+| AcqRel : core.sync.atomic.Ordering
+| SeqCst : core.sync.atomic.Ordering
+
+/-- [core::sync::atomic::compiler_fence]:
+    Source: '/rustc/library/core/src/sync/atomic.rs', lines 4461:0-4461:38
+    Name pattern: [core::sync::atomic::compiler_fence]
+    Visibility: public -/
+@[rust_fun "core::sync::atomic::compiler_fence"]
+axiom core.sync.atomic.compiler_fence
+  : core.sync.atomic.Ordering → Result Unit
+
+/-- [nonos_ed_field::crypto::util::constant_time::barriers::compiler_fence]:
+    Source: 'src/crypto/util/../../../../../../src/crypto/util/constant_time/barriers.rs', lines 23:0-25:1
+    Visibility: public -/
+def crypto.util.constant_time.barriers.compiler_fence : Result Unit := do
+  core.sync.atomic.compiler_fence core.sync.atomic.Ordering.SeqCst
+
+/-- [nonos_ed_field::crypto::util::constant_time::compare::ct_eq_32]: loop body 0:
+    Source: 'src/crypto/util/../../../../../../src/crypto/util/constant_time/compare.rs', lines 43:4-45:5
+    Visibility: public -/
 @[rust_loop_body]
-def field.compare.ct_eq_32_loop.body
+def crypto.util.constant_time.compare.ct_eq_32_loop.body
   (a : Array Std.U8 32#usize) (b : Array Std.U8 32#usize)
   (iter : core.ops.range.Range Std.Usize) (diff : Std.U8) :
   Result (ControlFlow ((core.ops.range.Range Std.Usize) × Std.U8) Std.U8)
@@ -33,32 +63,49 @@ def field.compare.ct_eq_32_loop.body
     let diff1 ← lift (diff ||| i3)
     ok (cont (iter1, diff1))
 
-/-- [nonos_ed_field::field::compare::ct_eq_32]: loop 0:
-    Source: 'src/../../../../src/crypto/asymmetric/ed25519/field/compare.rs', lines 35:4-37:5 -/
+/-- [nonos_ed_field::crypto::util::constant_time::compare::ct_eq_32]: loop 0:
+    Source: 'src/crypto/util/../../../../../../src/crypto/util/constant_time/compare.rs', lines 43:4-45:5
+    Visibility: public -/
 @[rust_loop]
-def field.compare.ct_eq_32_loop
+def crypto.util.constant_time.compare.ct_eq_32_loop
   (iter : core.ops.range.Range Std.Usize) (a : Array Std.U8 32#usize)
   (b : Array Std.U8 32#usize) (diff : Std.U8) :
   Result Std.U8
   := do
   loop
-    (fun (iter1, diff1) => field.compare.ct_eq_32_loop.body a b iter1 diff1)
+    (fun (iter1, diff1) => crypto.util.constant_time.compare.ct_eq_32_loop.body
+      a b iter1 diff1)
     (iter, diff)
 
-/-- [nonos_ed_field::field::compare::ct_eq_32]:
-    Source: 'src/../../../../src/crypto/asymmetric/ed25519/field/compare.rs', lines 33:0-39:1 -/
-def field.compare.ct_eq_32
+/-- [nonos_ed_field::crypto::util::constant_time::compare::ct_eq_32]:
+    Source: 'src/crypto/util/../../../../../../src/crypto/util/constant_time/compare.rs', lines 41:0-48:1
+    Visibility: public -/
+def crypto.util.constant_time.compare.ct_eq_32
   (a : Array Std.U8 32#usize) (b : Array Std.U8 32#usize) : Result Bool := do
   let diff ←
-    field.compare.ct_eq_32_loop { start := 0#usize, «end» := 32#usize } a b
-      0#u8
+    crypto.util.constant_time.compare.ct_eq_32_loop
+      { start := 0#usize, «end» := 32#usize } a b 0#u8
+  crypto.util.constant_time.barriers.compiler_fence
   ok (diff = 0#u8)
 
+/-- [nonos_ed_field::field::compare::ct_eq_32]:
+    Source: 'src/../../../../src/crypto/asymmetric/ed25519/field/compare.rs', lines 46:0-48:1 -/
+def field.compare.ct_eq_32
+  (a : Array Std.U8 32#usize) (b : Array Std.U8 32#usize) : Result Bool := do
+  crypto.util.constant_time.compare.ct_eq_32 a b
+
 /-- [nonos_ed_field::ed25519_ct_eq_32]:
-    Source: 'src/lib.rs', lines 11:0-13:1
+    Source: 'src/lib.rs', lines 28:0-30:1
     Visibility: public -/
 def ed25519_ct_eq_32
   (a : Array Std.U8 32#usize) (b : Array Std.U8 32#usize) : Result Bool := do
   field.compare.ct_eq_32 a b
+
+/-- [nonos_ed_field::shared_ct_eq_32]:
+    Source: 'src/lib.rs', lines 32:0-34:1
+    Visibility: public -/
+def shared_ct_eq_32
+  (a : Array Std.U8 32#usize) (b : Array Std.U8 32#usize) : Result Bool := do
+  crypto.util.constant_time.compare.ct_eq_32 a b
 
 end nonos_ed_field

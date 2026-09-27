@@ -186,6 +186,21 @@ theorem the_selector_is_correct :
     Every theorem here is a closed term the kernel reduces, or a reduction between
     two definitions, so the profile is the standard three and nothing else. -/
 
+
+/-- The sixty-four byte comparison fences between the loop and the test, the same
+    way the thirty-two byte one does, so the shared module is internally
+    consistent and there is no second place for a caller to pick the wrong one.
+
+    The thirty-two byte side lives in `NonosExtraction.CtEq`, with ed25519's
+    delegation to it. -/
+theorem the_sixty_four_byte_comparison_also_fences (a b : Std.Array Std.U8 64#usize) :
+    crypto.util.constant_time.compare.ct_eq_64 a b =
+      (do let diff ← crypto.util.constant_time.compare.ct_eq_64_loop
+                       { start := 0#usize, «end» := 64#usize } a b 0#u8
+          crypto.util.constant_time.barriers.compiler_fence
+          ok (diff = 0#u8)) := rfl
+
+#print axioms NonosExtraction.the_sixty_four_byte_comparison_also_fences
 #print axioms NonosExtraction.the_two_implementations_agree
 #print axioms NonosExtraction.greater_than_is_less_than_reversed
 #print axioms NonosExtraction.the_hard_pairs_are_right
