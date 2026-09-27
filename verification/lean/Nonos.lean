@@ -101,6 +101,7 @@ import Nonos.KeyringCustody
 import Nonos.Spinlock
 import Nonos.Stark.AssociationSet
 import Nonos.Stark.Attest
+import Nonos.Stark.T2
 import Nonos.Stark.AttestSoundness
 import Nonos.Stark.BootChain
 import Nonos.Stark.CapabilityBinding
