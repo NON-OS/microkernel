@@ -518,6 +518,23 @@ jobs:
             --start-from 'nonos_ct::security::crypto::constant_time::ops::ct_min_u32' \
             --start-from 'nonos_ct::security::crypto::constant_time::ops::ct_max_u32' \
             --start-from 'nonos_ct::security::crypto::constant_time::core::ct_select_u32' \
+            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_u8' \
+            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_u16' \
+            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_u32' \
+            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_u64' \
+            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_usize' \
+            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_u64_bit' \
+            --start-from 'nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8' \
+            --start-from 'nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8_16' \
+            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_add_u64' \
+            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_sub_u64' \
+            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_add_overflow_u64' \
+            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_popcount_u64' \
+            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_clz_u64' \
+            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_bswap_u64' \
+            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_bswap_u32' \
+            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_reduce_once_u64' \
+            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_conditional_negate' \
             --dest-file ct.llbc
           mkdir -p /tmp/regen-ct
           aeneas -backend lean ct.llbc -dest /tmp/regen-ct
