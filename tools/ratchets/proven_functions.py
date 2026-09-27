@@ -34,8 +34,13 @@ import sys
 from pathlib import Path
 
 # Raise these when the numbers improve. They may never be lowered.
-FLOOR = 118
+FLOOR = 438
 GAP_CEILING = 2
+# Functions carrying a property beyond "this wrapper is its method". That
+# wrapper theorem is real, and it is what ties a manifest entry to the method a
+# theorem talks about, but on its own it says nothing about behaviour. Counting
+# the two together would be the inflation this file exists to stop.
+SUBSTANTIVE_FLOOR = 120
 
 PROOF_MODULES = ('CapsComplete.lean', 'Closure.lean')
 PROOF_DIRS = (
@@ -65,12 +70,23 @@ def classify(root):
         (root / 'verification/evidence/EVIDENCE.json').read_text())
     names = manifest['proof_systems']['lean_extraction']['extracted_functions']
     code = proof_text(root)
-    proven, bare = [], []
+    # A wrapper theorem names the function only on its own line; a substantive
+    # theorem names it somewhere else. Strip the generated wrapper block and see
+    # what still mentions it.
+    without_wrappers = re.sub(
+        r'theorem the_\w+_wrapper_is_its_method[^\n]*\n(?:\s+[^\n]*\n)*', '', code)
+
+    proven, bare, substantive = [], [], []
     for name in names:
         leaf = name.split('::')[-1]
-        target = proven if re.search(r'\b%s\b' % re.escape(leaf), code) else bare
-        target.append(name)
-    return names, proven, bare
+        pat = r'\b%s\b' % re.escape(leaf)
+        if re.search(pat, code):
+            proven.append(name)
+            if re.search(pat, without_wrappers):
+                substantive.append(name)
+        else:
+            bare.append(name)
+    return names, proven, bare, substantive
 
 
 def main():
@@ -79,10 +95,12 @@ def main():
     args = ap.parse_args()
     root = Path(args.root)
 
-    names, proven, bare = classify(root)
+    names, proven, bare, substantive = classify(root)
     print('extracted and CI-diffed  %4d' % len(names))
     print('carrying a proof         %4d   (floor %d)' % (len(proven), FLOOR))
     print('extracted, no proof      %4d   (ceiling %d)' % (len(bare), GAP_CEILING))
+    print('of those, with a property beyond the wrapper  %4d   (floor %d)'
+          % (len(substantive), SUBSTANTIVE_FLOOR))
     for name in bare:
         print('   no proof:', name)
 
@@ -95,8 +113,14 @@ def main():
         print('\n%d extracted functions carry no proof, ceiling is %d'
               % (len(bare), GAP_CEILING), file=sys.stderr)
         failed = True
+    if len(substantive) < SUBSTANTIVE_FLOOR:
+        print('\nsubstantive count fell to %d, floor is %d'
+              % (len(substantive), SUBSTANTIVE_FLOOR), file=sys.stderr)
+        failed = True
     if len(proven) > FLOOR:
         print('\nproven count is %d; raise FLOOR in this file' % len(proven))
+    if len(substantive) > SUBSTANTIVE_FLOOR:
+        print('substantive count is %d; raise SUBSTANTIVE_FLOOR' % len(substantive))
     return 1 if failed else 0
 
 

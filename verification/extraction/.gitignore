@@ -1,3 +1,5 @@
 .lake/
 target/
 *.llbc
+*.llbc
+sweep/*/target/

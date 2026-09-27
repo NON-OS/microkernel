@@ -41,9 +41,19 @@ lean_toolchain=$(cat verification/lean/lean-toolchain 2>/dev/null | tr -d '[:spa
 axiom_profiled=$(grep -c '^#print axioms' verification/lean/AxiomProfile.lean 2>/dev/null || echo 0)
 
 # --- Mechanically extracted functions (Charon + Aeneas, from real MIR) ---
-# The extraction start points are the source of truth in the CI workflow.
-extracted_starts=$(grep -oE "start-from '[^']+'" .github/workflows/verify.yml 2>/dev/null \
-  | sed "s/start-from '//;s/'//" | LC_ALL=C sort)
+# The extraction start points are the source of truth in crates.json, which
+# tools/extraction/regen.py is the only thing that acts on, so the manifest
+# and the job that proves it cannot disagree.
+extracted_starts=$(python3 -c '
+import json, sys
+from pathlib import Path
+p = Path("verification/extraction/crates.json")
+if not p.is_file():
+    sys.exit(0)
+for c in json.loads(p.read_text())["crates"]:
+    for s in c["starts"]:
+        print(s)
+' 2>/dev/null | LC_ALL=C sort)
 extracted_json=$(printf '%s\n' "$extracted_starts" | grep -v '^$' \
   | jq -R . | jq -s .)
 # The generated Lean files that carry the extraction, with their hashes.

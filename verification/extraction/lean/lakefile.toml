@@ -15,8 +15,15 @@ subDir = "backends/lean"
 name = "nonos"
 path = "../../lean"
 
+# Every module under NonosExtraction is a build target in its own right.
+# Importing all of them into one root does not work: Aeneas emits the same
+# derived instance in every crate that uses a discriminant attribute, and two
+# independent definitions of it collide when merged into one environment. A
+# glob builds and checks each module without merging them, which is what the
+# gate needs.
 [[lean_lib]]
 name = "NonosExtraction"
+globs = ["NonosExtraction.+"]
 
 [[lean_lib]]
 name = "Policy"
