@@ -44,9 +44,11 @@ fn install(listing: &str, release: &str) {
      * market's own verdict is asked for again here, and the release's
      * package hash goes to the installer, which refuses any other bytes.
      */
-    let ready = queued_install_ready(listing, release).is_ok_and(|r| r.install_ready);
-    let pinned = queued_get_release(listing, release).ok().map(|r| r.package_hash);
-    let said: &[u8] = match (ready, pinned) {
+    let asked = queued_install_ready(listing, release);
+    let ready = asked.as_ref().is_ok_and(|r| r.install_ready);
+    let pinned = queued_get_release(listing, release).map(|r| r.package_hash);
+    super::why::say(&asked, &pinned);
+    let said: &[u8] = match (ready, pinned.ok()) {
         (true, Some(hash)) => match spawn_install(name, &hash) {
             Ok(_) => b"[LINUX-INSTALL] started ",
             Err(_) => b"[LINUX-INSTALL] refused ",

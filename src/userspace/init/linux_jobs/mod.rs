@@ -20,6 +20,7 @@
 
 mod queue;
 mod service;
+mod why;
 
 pub(crate) use queue::{has_pending, request_install, request_run};
 pub(crate) use service::service;
