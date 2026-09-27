@@ -888,8 +888,13 @@ nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
 # Build the aarch64 kernel. PATH puts the rustup shims first because a Homebrew
 # rustc on /usr/local/bin shadows them and then rejects the -Z flags with a
 # confusing "only accepted on the nightly compiler".
+#
+# The compile reads only the Ed25519 seed, which build.rs uses to sign the
+# embedded manifest. Nothing here signs with ML-DSA, so the target asks for the
+# seed alone rather than minting an ML-DSA keypair it never reads. CI's
+# build-aarch64 lane runs this target, so the lane builds what a developer does.
 .PHONY: nonos-mk-arm nonos-mk-arm-bench nonos-mk-bench-micro nonos-mk-arm-run nonos-mk-arm-gui nonos-mk-arm-gui-capsules nonos-mk-arm-gui-run
-nonos-mk-arm: nonos-mk-ensure-signing-key
+nonos-mk-arm: | $(SIGNING_KEY)
 	@echo "Building kernel (aarch64, microkernel-core + nonos-arch-preview)..."
 	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) PATH="$(HOME)/.cargo/bin:$$PATH" \

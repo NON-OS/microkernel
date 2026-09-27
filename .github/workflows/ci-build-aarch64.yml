@@ -1,0 +1,50 @@
+name: ci-build-aarch64
+
+# Reusable aarch64 compile proof. Builds the kernel for aarch64-nonos.json with
+# the core profile through the same make target a developer runs, then checks
+# the output is a loadable AArch64 image rather than only that cargo exited 0.
+#
+# What it checks:
+#   - the crate, the arch assembly and the link all succeed for aarch64
+#   - the ELF is an AArch64 static executable whose entry is `_start`
+#   - the entry lies in an executable PT_LOAD and no PT_LOAD is W+X
+#   - the signed manifest and signature sections are present
+# It does not boot the image. That is the boot-aarch64-qemu lane's job.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ci-build-aarch64-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-aarch64:
+    name: build-aarch64
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: ./.github/actions/nonos-setup
+        with:
+          targets: aarch64-nonos
+          module: build-aarch64
+      - name: Provision a scratch signing key
+        # The build embeds an Ed25519 signature over the kernel manifest, so it
+        # needs a seed. This lane proves compilation, not the trust chain; the
+        # fork dev seed is enough and never reaches a release.
+        run: bash nonos-ci/setup-signing-key.sh
+      - name: Build the aarch64 kernel (microkernel-core + nonos-arch-preview)
+        run: make nonos-mk-arm SIGNING_KEY=.keys/signing_key_v1.bin
+      - name: Check the image is a loadable AArch64 kernel
+        run: python3 scripts/check_kernel_elf.py --arch aarch64 --elf target/aarch64-nonos/release/nonos-kernel
