@@ -421,3 +421,169 @@ import Nonos
 #print axioms Nonos.Answer.small_request_numbers_look_like_success
 #print axioms Nonos.Answer.gate_refusals_reach_the_caller
 #print axioms Nonos.Answer.gate_is_void_when_answered_from_the_frame
+
+-- DnsAutomap
+#print axioms Nonos.DnsAutomap.range_is_cgnat
+#print axioms Nonos.DnsAutomap.size_matches_the_prefix
+#print axioms Nonos.DnsAutomap.address_is_in_range
+#print axioms Nonos.DnsAutomap.address_is_injective
+#print axioms Nonos.DnsAutomap.position_of_address
+#print axioms Nonos.DnsAutomap.outside_the_range_has_no_position
+#print axioms Nonos.DnsAutomap.find_lt
+#print axioms Nonos.DnsAutomap.find_correct
+#print axioms Nonos.DnsAutomap.repeated_resolution_is_stable
+#print axioms Nonos.DnsAutomap.new_name_is_appended
+#print axioms Nonos.DnsAutomap.resolved_addresses_are_synthetic
+#print axioms Nonos.DnsAutomap.automap_round_trips
+#print axioms Nonos.DnsAutomap.existing_address_maps_back
+#print axioms Nonos.DnsAutomap.resolution_emits_nothing
+#print axioms Nonos.DnsAutomap.no_name_reaches_a_resolver
+#print axioms Nonos.DnsAutomap.exhaustion_refuses_rather_than_asking
+#print axioms Nonos.DnsAutomap.refusal_carries_no_address
+
+-- ForeignBoundary
+#print axioms Nonos.ForeignBoundary.accepted_bytes_are_user_bytes
+#print axioms Nonos.ForeignBoundary.boundary_is_exclusive
+#print axioms Nonos.ForeignBoundary.wrapAdd_faithful_below_the_word
+#print axioms Nonos.ForeignBoundary.wrapping_sum_looks_contained
+#print axioms Nonos.ForeignBoundary.wrapping_span_is_refused
+#print axioms Nonos.ForeignBoundary.pidArg_is_exact
+#print axioms Nonos.ForeignBoundary.truncation_renames_the_target
+#print axioms Nonos.ForeignBoundary.never_reaches_an_unsupervised_guest
+#print axioms Nonos.ForeignBoundary.out_of_range_pid_resolves_nothing
+#print axioms Nonos.ForeignBoundary.own_guest_resolves
+#print axioms Nonos.ForeignBoundary.chunk_is_bounded
+#print axioms Nonos.ForeignBoundary.chunk_stays_inside
+#print axioms Nonos.ForeignBoundary.chunk_of_a_contained_range_is_contained
+#print axioms Nonos.ForeignBoundary.nonempty_takes_a_call
+#print axioms Nonos.ForeignBoundary.empty_takes_no_calls
+#print axioms Nonos.ForeignBoundary.last_chunk_ends_at_len
+
+-- FpuState
+#print axioms Nonos.FpuState.every_is_complete
+#print axioms Nonos.FpuState.zero_unmasks_everything
+#print axioms Nonos.FpuState.zero_traps_on_arithmetic
+#print axioms Nonos.FpuState.default_masks_everything
+#print axioms Nonos.FpuState.default_never_traps
+#print axioms Nonos.FpuState.default_sets_nothing_else
+#print axioms Nonos.FpuState.mask_field_is_exactly_the_default
+#print axioms Nonos.FpuState.default_is_the_sum_of_the_masks
+#print axioms Nonos.FpuState.blank_is_not_fresh
+#print axioms Nonos.FpuState.fresh_restore_is_usable
+#print axioms Nonos.FpuState.blank_restore_is_unusable
+
+-- GuestLayout
+#print axioms Nonos.GuestLayout.layout_is_ordered
+#print axioms Nonos.GuestLayout.limits_are_page_aligned
+#print axioms Nonos.GuestLayout.pageUp_ge
+#print axioms Nonos.GuestLayout.pageUp_aligned
+#print axioms Nonos.GuestLayout.pageUp_lt_next_page
+#print axioms Nonos.GuestLayout.pageUp_fixes_aligned
+#print axioms Nonos.GuestLayout.pageUp_respects_an_aligned_bound
+#print axioms Nonos.GuestLayout.break_stays_below_mappings
+#print axioms Nonos.GuestLayout.break_never_goes_below_base
+#print axioms Nonos.GuestLayout.outside_the_window_is_refused
+#print axioms Nonos.GuestLayout.heap_apart_from_mappings
+#print axioms Nonos.GuestLayout.mappings_apart_from_image
+#print axioms Nonos.GuestLayout.mappings_apart_from_stack
+#print axioms Nonos.GuestLayout.heap_apart_from_stack
+#print axioms Nonos.GuestLayout.guest_reach_is_below_the_kernel_half
+#print axioms Nonos.GuestLayout.guest_reach_is_bounded
+#print axioms Nonos.GuestLayout.zero_length_unmap_is_refused
+
+-- ImageCeiling
+#print axioms Nonos.ImageCeiling.table_indices_are_the_range
+#print axioms Nonos.ImageCeiling.shipped_is_thirty_one_bits
+#print axioms Nonos.ImageCeiling.shipped_admits_the_low_table
+#print axioms Nonos.ImageCeiling.shipped_refuses_attest_read
+#print axioms Nonos.ImageCeiling.shipped_refuses_foreign_exec
+#print axioms Nonos.ImageCeiling.shipped_refuses_local_sign
+#print axioms Nonos.ImageCeiling.the_shipped_ceiling_is_not_sound
+#print axioms Nonos.ImageCeiling.full_mask_is_sound
+#print axioms Nonos.ImageCeiling.full_mask_covers_the_highest
+#print axioms Nonos.ImageCeiling.sound_ceiling_admits_every_capability
+#print axioms Nonos.ImageCeiling.sound_ceiling_is_at_least_full
+#print axioms Nonos.ImageCeiling.an_unenforced_ceiling_refuses_nothing
+#print axioms Nonos.ImageCeiling.shipped_ceiling_refused_nothing_in_practice
+#print axioms Nonos.ImageCeiling.enforcement_changes_behaviour_where_unsound
+#print axioms Nonos.ImageCeiling.enforcing_a_sound_ceiling_is_invisible
+
+-- LocalSign
+#print axioms Nonos.LocalSign.unheld_authority_is_unreachable
+#print axioms Nonos.LocalSign.dedicated_bit_is_reachable
+#print axioms Nonos.LocalSign.dedicated_bit_still_refuses
+#print axioms Nonos.LocalSign.asking_is_not_signing
+#print axioms Nonos.LocalSign.refusal_became_an_untrailered_install
+#print axioms Nonos.LocalSign.propagating_install_refuses
+#print axioms Nonos.LocalSign.propagating_install_never_writes_untrailered
+#print axioms Nonos.LocalSign.one_dissenting_site_closes_the_path
+#print axioms Nonos.LocalSign.agreement_opens_the_path
+#print axioms Nonos.LocalSign.derived_sites_agree
+#print axioms Nonos.LocalSign.derived_path_is_open_iff_held
+#print axioms Nonos.LocalSign.the_seven_sites_agree
+
+-- PerCpuAsid
+#print axioms Nonos.PerCpuAsid.no_single_value_tracks_two_spaces
+#print axioms Nonos.PerCpuAsid.per_cpu_read_is_exact
+#print axioms Nonos.PerCpuAsid.global_read_is_exact_only_by_luck
+#print axioms Nonos.PerCpuAsid.flushed_space_is_gone
+#print axioms Nonos.PerCpuAsid.flush_keeps_other_spaces
+#print axioms Nonos.PerCpuAsid.wrong_key_leaves_the_stale_entry
+#print axioms Nonos.PerCpuAsid.right_key_clears_the_space
+#print axioms Nonos.PerCpuAsid.single_field_flush_is_unsound
+#print axioms Nonos.PerCpuAsid.reload_leaves_nothing
+#print axioms Nonos.PerCpuAsid.reload_is_sound_regardless
+#print axioms Nonos.PerCpuAsid.pcid_reload_is_the_selective_flush
+
+-- Provenance
+#print axioms Nonos.Provenance.le_refl
+#print axioms Nonos.Provenance.le_trans
+#print axioms Nonos.Provenance.rank_injective
+#print axioms Nonos.Provenance.unauthenticated_is_bottom
+#print axioms Nonos.Provenance.verified_is_top
+#print axioms Nonos.Provenance.meet_le_left
+#print axioms Nonos.Provenance.meet_le_right
+#print axioms Nonos.Provenance.unauthenticated_is_absorbing
+#print axioms Nonos.Provenance.meet_never_raises
+#print axioms Nonos.Provenance.no_signature_concludes_nothing
+#print axioms Nonos.Provenance.verified_requires_both
+#print axioms Nonos.Provenance.signature_alone_stops_at_signed
+#print axioms Nonos.Provenance.stage_never_raises
+#print axioms Nonos.Provenance.no_laundering
+#print axioms Nonos.Provenance.unauthenticated_stays
+#print axioms Nonos.Provenance.unauthenticated_never_executes
+#print axioms Nonos.Provenance.signed_but_unmatched_never_executes
+#print axioms Nonos.Provenance.fetched_without_authentication_never_runs
+#print axioms Nonos.Provenance.never_attests_unauthenticated
+
+-- StoreRoot
+#print axioms Nonos.StoreRoot.root_is_a_prefix
+#print axioms Nonos.StoreRoot.up_at_the_root_is_refused
+#print axioms Nonos.StoreRoot.escape_is_refused
+#print axioms Nonos.StoreRoot.resolve_refuses_an_escape
+#print axioms Nonos.StoreRoot.up_below_the_root_pops
+#print axioms Nonos.StoreRoot.here_is_a_no_op
+#print axioms Nonos.StoreRoot.depth_is_bounded
+#print axioms Nonos.StoreRoot.resolved_length_is_bounded
+#print axioms Nonos.StoreRoot.every_key_is_confined
+#print axioms Nonos.StoreRoot.key_remembers_its_root
+#print axioms Nonos.StoreRoot.escape_mints_no_key
+#print axioms Nonos.StoreRoot.every_open_is_under_the_root
+
+-- TrapEntry
+#print axioms Nonos.TrapEntry.zero_means_no_switch
+#print axioms Nonos.TrapEntry.encode_decode
+#print axioms Nonos.TrapEntry.encode_injective
+#print axioms Nonos.TrapEntry.slot_is_never_zero
+#print axioms Nonos.TrapEntry.encoded_slots_are_in_range
+#print axioms Nonos.TrapEntry.off_by_one_selects_the_stack_below
+#print axioms Nonos.TrapEntry.off_by_one_disables_the_first_slot
+#print axioms Nonos.TrapEntry.wrong_encoding_is_not_injective
+#print axioms Nonos.TrapEntry.swap_involutive
+#print axioms Nonos.TrapEntry.even_swaps_are_identity
+#print axioms Nonos.TrapEntry.odd_swaps_are_a_swap
+#print axioms Nonos.TrapEntry.paired_path_restores_the_user_base
+#print axioms Nonos.TrapEntry.unpaired_path_leaks_the_kernel_base
+#print axioms Nonos.TrapEntry.unconditional_swap_breaks_ring_zero
+#print axioms Nonos.TrapEntry.handler_always_runs_on_the_kernel_base
+#print axioms Nonos.TrapEntry.return_restores_what_entry_changed
