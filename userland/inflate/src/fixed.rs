@@ -20,7 +20,7 @@ use super::bits::Bits;
 use super::codes::codes;
 use super::huff::build;
 
-pub fn fixed(b: &mut Bits, out: &mut Vec<u8>) -> Option<()> {
+pub fn fixed(b: &mut Bits, out: &mut Vec<u8>, limit: usize) -> Option<()> {
     let mut ll = [0u8; 288];
     for item in ll.iter_mut().take(144) {
         *item = 8;
@@ -36,5 +36,5 @@ pub fn fixed(b: &mut Bits, out: &mut Vec<u8>) -> Option<()> {
     }
     let lit = build(&ll);
     let dist = build(&[5u8; 30]);
-    codes(b, out, &lit, &dist)
+    codes(b, out, &lit, &dist, limit)
 }

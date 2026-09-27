@@ -33,15 +33,20 @@ pub struct Member {
 /// byte range, so a byte that belongs to no member is not garbage to skip; it
 /// is content that nothing vouched for, and the whole file is refused.
 pub fn members(data: &[u8]) -> Option<Vec<Member>> {
+    members_within(data, MAX_OUT)
+}
+
+/// The same, with the caller's bound on all members' output together.
+pub fn members_within(data: &[u8], limit: usize) -> Option<Vec<Member>> {
     let mut out: Vec<Member> = Vec::new();
     let (mut at, mut total) = (0usize, 0usize);
     while at < data.len() {
         if out.len() == MAX_MEMBERS {
             return None;
         }
-        let (body, len) = verified(data.get(at..)?)?;
+        let (body, len) = verified(data.get(at..)?, limit)?;
         total = total.checked_add(body.len())?;
-        if total > MAX_OUT {
+        if total > limit {
             return None;
         }
         let end = at.checked_add(len)?;

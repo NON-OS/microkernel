@@ -18,9 +18,10 @@
 
 use alloc::vec::Vec;
 
-use nonos_inflate::members;
+use nonos_inflate::members_within;
 
 use super::super::tar::{entries, Entry};
+use super::super::unpacked::MAX_INFLATED;
 use super::digest::{sha1, sha256};
 use super::keys::spki;
 
@@ -31,7 +32,7 @@ pub type Rsa = dyn Fn(&[u8], &[u8], u8, &[u8]) -> bool;
 /// The index tar, if a key trusted here signed the member that holds it.
 /// An index is exactly two members, so nothing unsigned rides along.
 pub fn signed_index(raw: &[u8], rsa: &Rsa) -> Option<Vec<u8>> {
-    let mut parts = members(raw)?;
+    let mut parts = members_within(raw, MAX_INFLATED)?;
     if parts.len() != 2 {
         return None;
     }

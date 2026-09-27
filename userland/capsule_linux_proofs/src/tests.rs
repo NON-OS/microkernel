@@ -29,6 +29,7 @@ mod exec_shebang_tests;
 mod family_tests;
 mod host_body_tests;
 mod http_reply_tests;
+mod inflate_bound_tests;
 mod index_tests;
 mod kali_anchor_tests;
 mod key_tests;

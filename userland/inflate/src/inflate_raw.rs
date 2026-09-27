@@ -28,17 +28,22 @@ pub fn inflate(src: &[u8]) -> Option<Vec<u8>> {
 
 /// The same, and how many bytes of `src` the stream occupied.
 pub fn inflate_counted(src: &[u8]) -> Option<(Vec<u8>, usize)> {
+    inflate_counted_within(src, MAX_OUT)
+}
+
+/// The same, with the caller's bound on the output in place of MAX_OUT.
+pub fn inflate_counted_within(src: &[u8], limit: usize) -> Option<(Vec<u8>, usize)> {
     let mut b = Bits::new(src);
     let mut out: Vec<u8> = Vec::new();
     loop {
         let last = b.bit()?;
         match b.bits(2)? {
-            0 => stored(&mut b, &mut out)?,
-            1 => fixed(&mut b, &mut out)?,
-            2 => dynamic(&mut b, &mut out)?,
+            0 => stored(&mut b, &mut out, limit)?,
+            1 => fixed(&mut b, &mut out, limit)?,
+            2 => dynamic(&mut b, &mut out, limit)?,
             _ => return None,
         }
-        if out.len() > MAX_OUT {
+        if out.len() > limit {
             return None;
         }
         if last == 1 {

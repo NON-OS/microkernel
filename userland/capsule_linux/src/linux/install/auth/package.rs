@@ -18,8 +18,9 @@
 
 use alloc::vec::Vec;
 
-use nonos_inflate::members;
+use nonos_inflate::members_within;
 
+use super::super::unpacked::MAX_INFLATED;
 use super::digest::{sha1, sha256};
 use super::pkginfo::datahash;
 use super::verified::Verified;
@@ -29,7 +30,7 @@ use super::verified::Verified;
 /// Either alone leaves something unvouched: the index names only the
 /// control member, and only the control member names the data.
 pub fn verified(apk: &[u8], checksum: &[u8; 20]) -> Option<Verified> {
-    let parts = members(apk)?;
+    let parts = members_within(apk, MAX_INFLATED)?;
     let [_signature, control, data @ ..] = parts.as_slice() else {
         return None;
     };

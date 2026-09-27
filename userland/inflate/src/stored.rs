@@ -17,9 +17,7 @@
 use alloc::vec::Vec;
 
 use super::bits::Bits;
-use super::tables::MAX_OUT;
-
-pub fn stored(b: &mut Bits, out: &mut Vec<u8>) -> Option<()> {
+pub fn stored(b: &mut Bits, out: &mut Vec<u8>, limit: usize) -> Option<()> {
     b.align();
     let lo = b.take()? as usize;
     let hi = b.take()? as usize;
@@ -27,7 +25,7 @@ pub fn stored(b: &mut Bits, out: &mut Vec<u8>) -> Option<()> {
     let nlo = b.take()? as usize;
     let nhi = b.take()? as usize;
     let nlen = nlo | (nhi << 8);
-    if len ^ nlen != 0xffff || out.len().checked_add(len)? > MAX_OUT {
+    if len ^ nlen != 0xffff || out.len().checked_add(len)? > limit {
         return None;
     }
     for _ in 0..len {
