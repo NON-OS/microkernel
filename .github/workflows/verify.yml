@@ -475,6 +475,34 @@ jobs:
           mkdir -p /tmp/regen-irq
           aeneas -backend lean irq.llbc -dest /tmp/regen-irq
           diff -u ../lean/NonosExtraction/Irq.lean /tmp/regen-irq/Irq.lean
+          cd ../vectors
+          charon cargo --preset=aeneas \
+            --start-from 'nonos_vectors::interrupts::vectors::is_exception' \
+            --start-from 'nonos_vectors::interrupts::vectors::is_irq' \
+            --start-from 'nonos_vectors::interrupts::vectors::is_user_allocatable' \
+            --start-from 'nonos_vectors::interrupts::vectors::irq_to_vector' \
+            --start-from 'nonos_vectors::interrupts::vectors::vector_to_irq' \
+            --start-from 'nonos_vectors::interrupts::vectors::exception_has_error_code' \
+            --start-from 'nonos_vectors::interrupts::vectors::exception_is_fatal' \
+            --dest-file vectors.llbc
+          mkdir -p /tmp/regen-vectors
+          aeneas -backend lean vectors.llbc -dest /tmp/regen-vectors
+          diff -u ../lean/NonosExtraction/Vectors.lean /tmp/regen-vectors/Vectors.lean
+          cd ../signal
+          charon cargo --preset=aeneas \
+            --start-from 'nonos_signal::process::signal::helpers::is_valid_signal' \
+            --start-from 'nonos_signal::process::signal::helpers::is_rt_signal' \
+            --start-from 'nonos_signal::process::signal::helpers::can_be_caught' \
+            --start-from 'nonos_signal::process::signal::helpers::can_be_ignored' \
+            --start-from 'nonos_signal::process::signal::helpers::can_be_blocked' \
+            --start-from 'nonos_signal::process::signal::helpers::is_synchronous' \
+            --start-from 'nonos_signal::process::signal::helpers::is_stop_signal' \
+            --start-from 'nonos_signal::process::signal::helpers::is_fatal_by_default' \
+            --start-from 'nonos_signal::process::signal::helpers::generates_core_dump' \
+            --dest-file signal.llbc
+          mkdir -p /tmp/regen-signal
+          aeneas -backend lean signal.llbc -dest /tmp/regen-signal
+          diff -u ../lean/NonosExtraction/Signal.lean /tmp/regen-signal/Signal.lean
       - name: Verify the refinement theorems
         run: |
           set -euo pipefail

@@ -25,7 +25,23 @@
         "nonos_irq::irq::validate::validate_msix_request",
         "nonos_policy::is_wx_violation",
         "nonos_policy::to_pte_flags",
-        "nonos_policy::usercopy::policy::check_range"
+        "nonos_policy::usercopy::policy::check_range",
+        "nonos_signal::process::signal::helpers::can_be_blocked",
+        "nonos_signal::process::signal::helpers::can_be_caught",
+        "nonos_signal::process::signal::helpers::can_be_ignored",
+        "nonos_signal::process::signal::helpers::generates_core_dump",
+        "nonos_signal::process::signal::helpers::is_fatal_by_default",
+        "nonos_signal::process::signal::helpers::is_rt_signal",
+        "nonos_signal::process::signal::helpers::is_stop_signal",
+        "nonos_signal::process::signal::helpers::is_synchronous",
+        "nonos_signal::process::signal::helpers::is_valid_signal",
+        "nonos_vectors::interrupts::vectors::exception_has_error_code",
+        "nonos_vectors::interrupts::vectors::exception_is_fatal",
+        "nonos_vectors::interrupts::vectors::irq_to_vector",
+        "nonos_vectors::interrupts::vectors::is_exception",
+        "nonos_vectors::interrupts::vectors::is_irq",
+        "nonos_vectors::interrupts::vectors::is_user_allocatable",
+        "nonos_vectors::interrupts::vectors::vector_to_irq"
       ],
       "generated_files": [
         {
@@ -35,6 +51,14 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/Irq.lean",
           "sha256": "9bda548e235ff0e615d704ef376481377371b395429b846c18b8fb9ecca5e2d3"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Signal.lean",
+          "sha256": "b40253ddc5addde3a2d67389dd9ec00910623bf27c09ec0f4eda996995b34847"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Vectors.lean",
+          "sha256": "3e34f1c55dae23203ca92470ef0ca26cf3767ce927162589cc7626a0b6f657dd"
         },
         {
           "path": "verification/extraction/lean/Policy/Funs.lean",
