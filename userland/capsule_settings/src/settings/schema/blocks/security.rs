@@ -21,16 +21,13 @@ use crate::settings::schema::rows::{Block, Pill, Row};
 pub const SECURITY: &[Block] = &[
     Block {
         title: "Keys",
-        note: Some("Made on this machine by the setup wizard. They never leave it."),
+        note: Some("Made on this machine by the setup wizard."),
         pill: Pill::None,
         rows: &[Row::Field(Field::SystemKeysGenerated)],
     },
     Block {
         title: "Kernel protections",
-        note: Some(
-            "SMEP, SMAP, UMIP, NX and write protection are turned on at boot when the \
-             processor has them. They are not settings, so nothing here can turn them off.",
-        ),
+        note: Some("SMEP, SMAP, UMIP, NX and WP are set at boot when the CPU has them."),
         pill: Pill::None,
         rows: &[],
     },

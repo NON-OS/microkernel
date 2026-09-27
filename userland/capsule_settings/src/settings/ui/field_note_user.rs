@@ -22,7 +22,7 @@ pub fn note(field: Field) -> Option<&'static str> {
         Field::WifiRadio => "Scan for and join wireless networks.",
         Field::SystemKeysGenerated => "Set when setup has made this machine's keys.",
         Field::Timezone => "Hours from UTC, used by the menu bar clock.",
-        Field::MouseSensitivity => "Scales mouse movement. Touchpads and tablets keep theirs.",
+        Field::MouseSensitivity => "Scales mouse movement only.",
         Field::Persistent => "Files and installed apps are kept between boots.",
         Field::SoundEnabled => "Every tone the system plays.",
         Field::AlertSounds => "A tone for warnings and errors.",
