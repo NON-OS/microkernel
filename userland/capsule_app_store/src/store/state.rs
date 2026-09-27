@@ -41,4 +41,6 @@ pub struct State {
     /// selection.
     pub search: super::search::Search,
     pub detail: Option<market::Detail>,
+    /// The release the selected listing would install.
+    pub release: Option<market::Release>,
 }

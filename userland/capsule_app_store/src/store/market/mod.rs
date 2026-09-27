@@ -19,10 +19,12 @@
 mod detail;
 mod list;
 mod ready;
+mod release;
 mod service;
 mod wire;
 
 pub use detail::{fetch as get_app, Detail};
 pub use list::fetch as list_apps;
 pub use ready::{fetch as install_ready, Readiness, GATES};
+pub use release::{fetch as get_release, Release};
 pub use service::{next_id, port};

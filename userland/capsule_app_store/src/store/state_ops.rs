@@ -35,6 +35,7 @@ impl State {
             asked: None,
             search: super::search::Search::default(),
             detail: None,
+            release: None,
         };
         state.refresh();
         state

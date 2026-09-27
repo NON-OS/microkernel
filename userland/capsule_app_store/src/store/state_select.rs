@@ -24,9 +24,11 @@ impl State {
     pub fn select(&mut self) {
         self.ready = None;
         self.detail = None;
+        self.release = None;
         let Some(listing) = self.current() else { return };
         let (id, port) = (listing.id.clone(), market::port());
         self.detail = market::get_app(port, market::next_id(), &id);
+        self.release = market::get_release(port, market::next_id(), &id);
         /*
          * The release is left unnamed because the capsule resolves the default
          * when it is.

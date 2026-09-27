@@ -18,12 +18,12 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::store::state::State;
-use crate::store::theme::{ACCENT, FOREGROUND, MUTED, PANE_BG, TITLE};
 use super::hex::short;
 use super::metrics::{BODY_PX, DETAIL_PAD, SMALL_PX, TITLE_PX};
 use super::text;
 use super::wrap::wrap;
+use crate::store::state::State;
+use crate::store::theme::{ACCENT, FOREGROUND, MUTED, PANE_BG, TITLE};
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32) {
     fb.fill_rect(x, y, w, h, PANE_BG);
@@ -39,7 +39,16 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
 
     if let Some(d) = &state.detail {
         text::line(fb, left, top, &d.publisher, ACCENT, SMALL_PX);
-        top += 26;
+        top += 22;
+        // Which version, and where its bytes come from, before anything else.
+        if let Some(r) = &state.release {
+            let mut line = r.version.clone();
+            line.extend_from_slice(b"  from  ");
+            line.extend_from_slice(&r.host);
+            text::line(fb, left, top, &line, MUTED, SMALL_PX);
+            top += 20;
+        }
+        top += 6;
         for line in wrap(&d.description, room, SMALL_PX).iter().take(4) {
             text::line(fb, left, top, line, FOREGROUND, SMALL_PX);
             top += 20;
@@ -48,6 +57,10 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
     }
 
     top = super::standing::paint(fb, state, left, top);
+    if let Some(r) = state.release.as_ref().filter(|r| !r.note.is_empty()) {
+        text::line(fb, left, top, &r.note, MUTED, SMALL_PX);
+        top += 24;
+    }
     text::line(fb, left, top, b"measurement", MUTED, SMALL_PX);
     top += 20;
     text::line(fb, left, top, &short(&listing.measurement), MUTED, SMALL_PX);
