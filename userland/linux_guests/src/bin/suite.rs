@@ -23,7 +23,7 @@
 use std::process::ExitCode;
 
 use nonos_linux_guests::report::Report;
-use nonos_linux_guests::{bounds_probe, fs_probe, native_probe, proc_probe};
+use nonos_linux_guests::{bounds_probe, fs_probe, life_probe, native_probe, proc_probe};
 
 fn main() -> ExitCode {
     let mut broken = false;
@@ -37,6 +37,8 @@ fn main() -> ExitCode {
         scan(&mut r);
         broken |= r.finish() != ExitCode::SUCCESS;
     }
+    // Last, since a personality that loses the child may lose this process.
+    life_probe::run();
     ExitCode::from(u8::from(broken))
 }
 

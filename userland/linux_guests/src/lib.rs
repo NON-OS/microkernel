@@ -20,6 +20,7 @@ pub mod arg;
 pub mod bounds_probe;
 pub mod fs_paths;
 pub mod fs_probe;
+pub mod life_probe;
 pub mod native_probe;
 pub mod proc_probe;
 pub mod report;
