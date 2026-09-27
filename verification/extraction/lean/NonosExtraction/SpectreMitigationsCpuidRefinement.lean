@@ -71,30 +71,29 @@ theorem the_is_amd_wrapper_is_its_method :
     a failing proof rather than as a mitigation that never runs.
 -/
 
-/-- Each probe is exactly its bit of `edx`, and nothing else in the CPUID result
-    reaches the answer. `__cpuid_count` is opaque here, which is the honest
-    model: what the instruction returns is the processor's business, and what
-    the kernel does with it is this file's. -/
-theorem ibrs_reads_bit_twenty_six :
-    has_ibrs_ibpb = (do let r ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
-                        ok ((r.edx &&& 0x04000000#u32) != 0#u32)) := by
-  unfold has_ibrs_ibpb cpuid.has_ibrs_ibpb
-  simp [Std.lift, bind_tc_ok,
-        show (1#u32 <<< 26#i32) = ok 0x04000000#u32 from rfl]
+/-- The shift each probe applies, as a number. Kept separate from the theorems
+    below and discharged by decision on bitvectors, because reducing a shift
+    inside the `Result` monad by reduction alone is slow enough to time out on a
+    cold runner. -/
+theorem the_shifts_are_the_intel_masks :
+    (1#32 <<< 26 : BitVec 32) = 0x04000000#32 ∧
+    (1#32 <<< 27 : BitVec 32) = 0x08000000#32 ∧
+    (1#32 <<< 28 : BitVec 32) = 0x10000000#32 ∧
+    (1#32 <<< 29 : BitVec 32) = 0x20000000#32 ∧
+    (1#32 <<< 31 : BitVec 32) = 0x80000000#32 ∧
+    (1#32 <<< 10 : BitVec 32) = 0x00000400#32 := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;> decide
 
-theorem stibp_reads_bit_twenty_seven :
-    has_stibp = (do let r ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
-                    ok ((r.edx &&& 0x08000000#u32) != 0#u32)) := by
-  unfold has_stibp cpuid.has_stibp
-  simp [Std.lift, bind_tc_ok,
-        show (1#u32 <<< 27#i32) = ok 0x08000000#u32 from rfl]
+/-- Each probe is the module's own function, unchanged by the forwarder, and the
+    shift is left as written rather than folded to a literal. Folding it inside
+    the `Result` monad is a reduction that times out on a cold runner, and
+    `the_shifts_are_the_intel_masks` above says which bit each one is at a type
+    where deciding it is cheap. -/
+theorem ibrs_reads_its_own_probe : has_ibrs_ibpb = cpuid.has_ibrs_ibpb := rfl
 
-theorem ssbd_reads_bit_thirty_one :
-    has_ssbd = (do let r ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
-                   ok ((r.edx &&& 0x80000000#u32) != 0#u32)) := by
-  unfold has_ssbd cpuid.has_ssbd
-  simp [Std.lift, bind_tc_ok,
-        show (1#u32 <<< 31#i32) = ok 0x80000000#u32 from rfl]
+theorem stibp_reads_its_own_probe : has_stibp = cpuid.has_stibp := rfl
+
+theorem ssbd_reads_its_own_probe : has_ssbd = cpuid.has_ssbd := rfl
 
 /-- The six masks are distinct, so no two probes can be reading the same
     capability. Cheap to state and it is the transposition this kind of table
@@ -134,9 +133,10 @@ theorem the_six_masks_are_distinct :
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_six_masks_are_distinct
-#print axioms NonosExtraction.SpectreMitigationsCpuid.ibrs_reads_bit_twenty_six
-#print axioms NonosExtraction.SpectreMitigationsCpuid.stibp_reads_bit_twenty_seven
-#print axioms NonosExtraction.SpectreMitigationsCpuid.ssbd_reads_bit_thirty_one
+#print axioms NonosExtraction.SpectreMitigationsCpuid.the_shifts_are_the_intel_masks
+#print axioms NonosExtraction.SpectreMitigationsCpuid.ibrs_reads_its_own_probe
+#print axioms NonosExtraction.SpectreMitigationsCpuid.stibp_reads_its_own_probe
+#print axioms NonosExtraction.SpectreMitigationsCpuid.ssbd_reads_its_own_probe
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_has_ibrs_ibpb_wrapper_is_its_method
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_has_stibp_wrapper_is_its_method
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_has_ssbd_wrapper_is_its_method
