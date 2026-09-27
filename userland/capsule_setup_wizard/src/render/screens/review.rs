@@ -19,7 +19,7 @@ pub fn draw(ctx: &Context) {
     let lines: [(&[u8], bool); 4] = [
         (b"Identity keys", ctx.keys_done),
         (b"Passphrase set", ctx.pass_len > 0),
-        (b"Layout/wallpaper chosen", true),
+        (b"Layout and wallpaper chosen", true),
         (local, true),
     ];
     render::widgets::progress::busy(buf, spx, w, h, render::content_x(w), 120, &lines, 0);
@@ -33,8 +33,7 @@ fn commit(ctx: &Context) {
     let _ = policy::set_u8(p, Field::Language as u32, ctx.lang_sel);
     let _ = policy::set_u8(p, Field::KeyboardLayout as u32, ctx.kbd_sel);
     let _ = policy::set_i8(p, Field::Timezone as u32, ctx.tz_off);
-    let _ = policy::set_u8(p, Field::Wallpaper as u32, ctx.wall_sel);
-    let _ = policy::set_u8(p, Field::Theme as u32, ctx.theme_sel);
+    let _ = policy::set_u8(p, Field::Wallpaper as u32, super::appearance::wallpaper(ctx.wall_sel));
     let _ = policy::set_bool(p, Field::AnonymousMode as u32, ctx.net_sel == 0);
     let _ = policy::set_bool(p, Field::WifiAutoconnect as u32, ctx.net_sel == 1);
     let _ = policy::set_bool(p, Field::AutoWipe as u32, ctx.privacy & 0b010 != 0);

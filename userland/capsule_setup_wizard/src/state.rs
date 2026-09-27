@@ -15,7 +15,6 @@ pub struct Context {
     pub keygen_stage: u8,
     pub lang_sel: u8,
     pub tz_off: i8,
-    pub theme_sel: u8,
     pub net_sel: u8,
     pub persist_sel: u8,
     /// 1 when installed programs may run. Starts at what an earlier boot
@@ -59,7 +58,6 @@ impl Context {
             keygen_stage: 0,
             lang_sel: 0,
             tz_off: 0,
-            theme_sel: 0,
             net_sel: 0,
             persist_sel: 0,
             local_sel: 0,

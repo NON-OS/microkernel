@@ -22,9 +22,10 @@ use crate::paint::{decode_jpeg, fill_argb, paint_image};
 use crate::policy_client::lookup_policy;
 use crate::state::{Context, FadeTimeline, Policy};
 
-const DEFAULT_ARGB: u32 = 0xFF00_80FF;
+// Ink, the desktop's darkest tone, shows if no image decodes.
+const DEFAULT_ARGB: u32 = 0xFF0A_0B0D;
 const EMBEDDED_WALLPAPER: &[u8] =
-    include_bytes!("../../../../../nonos-data/wallpapers/special-variant-6-1080p.jpg");
+    include_bytes!("../../../../../nonos-data/wallpapers/special-variant-9.jpg");
 
 pub fn run() -> Result<Context, &'static str> {
     let compositor_port = discover::lookup_compositor_port()?;
@@ -49,7 +50,7 @@ pub fn run() -> Result<Context, &'static str> {
     };
     ctx.set_argb(DEFAULT_ARGB);
     if let Some(img) = decode_jpeg(EMBEDDED_WALLPAPER) {
-        paint_image(&ctx, &img);
+        let _ = paint_image(&ctx, &img);
     }
     let rid = ctx.issue_request_id();
     register::register_wallpaper(compositor_port, rid, &backing)?;

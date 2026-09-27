@@ -42,7 +42,8 @@ pub const fn store() -> Store {
         wifi_autoconnect: true,
         animations_enabled: true,
         cursor_size: 1,
-        wallpaper: 48,
+        // special-variant-9: catalog index 13 + 14 + 18 + 10.
+        wallpaper: 55,
         clock_format24: true,
         prefer_ipv6: false,
         metered_connection: false,
