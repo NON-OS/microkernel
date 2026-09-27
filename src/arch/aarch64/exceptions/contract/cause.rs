@@ -16,7 +16,7 @@
 
 use crate::arch::aarch64::exceptions::frame::ExceptionFrame;
 use crate::arch::aarch64::exceptions::syndrome::ExceptionClass;
-use crate::arch::trap::contract::{FaultAccess, PageFaultInfo, TrapCause};
+use crate::arch::trap::contract::TrapCause;
 
 use super::page_fault;
 

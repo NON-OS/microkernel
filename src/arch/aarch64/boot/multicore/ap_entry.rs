@@ -40,8 +40,6 @@ pub extern "C" fn aarch64_ap_entry() -> ! {
 
     CPUS_ONLINE.fetch_add(1, Ordering::AcqRel);
 
-    let cpu_id = cpu::id::cpu_id();
-
     loop {
         idle_cpu();
     }
