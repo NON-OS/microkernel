@@ -43,13 +43,12 @@ impl Source {
         }
     }
 
-    /// The line under a card's name. Two distributions can list one package,
-    /// so a Linux card names its distribution, read off the namespace.
-    pub fn origin(self, listing_id: &[u8]) -> &'static [u8] {
-        match listing_id {
-            id if id.starts_with(b"linux.kali.") => b"Kali Linux",
-            id if id.starts_with(b"linux.blackarch.") => b"BlackArch",
-            _ if self == Source::Linux => b"Alpine Linux",
+    /// The line under a card's name. The store sells apps: where a Linux
+    /// package is fetched from is provenance, kept in the signed listing and
+    /// checked at install, not what the card is about.
+    pub fn origin(self) -> &'static [u8] {
+        match self {
+            Source::Linux => b"Linux app",
             _ => self.label(),
         }
     }

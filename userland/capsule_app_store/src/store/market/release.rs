@@ -25,8 +25,6 @@ const OP_GET_RELEASE: u16 = 4;
 
 pub struct Release {
     pub version: Vec<u8>,
-    /// The host the package is fetched from, without the scheme or path.
-    pub host: Vec<u8>,
     /// The operator's validation note, such as the size it hashed.
     pub note: Vec<u8>,
 }
@@ -40,17 +38,13 @@ pub fn fetch(port: u32, request_id: u32, listing: &[u8]) -> Option<Release> {
     let out = call(port, OP_GET_RELEASE, request_id, &body)?;
     // release_id, manifest, package, url, signature, arches, abi, caps, status, note
     let (version, at) = lp(&out, 0)?;
-    let (url, mut at) = lp(&out, at + 64)?;
+    // The url is provenance the installer checks; the store does not show it.
+    let (_, mut at) = lp(&out, at + 64)?;
     at = skip_blob(&out, at)?;
     at = skip_list(&out, at)? + 4;
     at = skip_list(&out, at)? + 1;
     let (note, _) = lp(&out, at)?;
-    Some(Release { version, host: host_of(&url), note })
-}
-
-fn host_of(url: &[u8]) -> Vec<u8> {
-    let rest = url.split(|&b| b == b'/').nth(2).unwrap_or(url);
-    rest.to_vec()
+    Some(Release { version, note })
 }
 
 fn lp(body: &[u8], at: usize) -> Option<(Vec<u8>, usize)> {

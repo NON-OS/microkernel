@@ -47,7 +47,7 @@ pub fn paint(fb: &mut PaintBuffer, l: &Listing, x: u32, y: u32, w: u32, selected
 
     let text_x = x + CARD_PAD + TILE + TILE_GAP;
     text::line(fb, text_x, y as i32 + 12, &l.name, TITLE, NAME_PX);
-    text::line(fb, text_x, y as i32 + 34, l.source.origin(&l.id), MUTED, SMALL_PX);
+    text::line(fb, text_x, y as i32 + 34, l.source.origin(), MUTED, SMALL_PX);
 
     action(fb, l, action_rect(x, y, w));
 }

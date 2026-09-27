@@ -40,11 +40,11 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32
     if let Some(d) = &state.detail {
         text::line(fb, left, top, &d.publisher, ACCENT, SMALL_PX);
         top += 22;
-        // Which version, and where its bytes come from, before anything else.
+        // Which version, before anything else. Where the bytes come from is
+        // provenance the install checks, not a label.
         if let Some(r) = &state.release {
-            let mut line = r.version.clone();
-            line.extend_from_slice(b"  from  ");
-            line.extend_from_slice(&r.host);
+            let mut line = b"Version ".to_vec();
+            line.extend_from_slice(r.version.rsplit(|b| *b == b'@').next().unwrap_or(&r.version));
             text::line(fb, left, top, &line, MUTED, SMALL_PX);
             top += 20;
         }

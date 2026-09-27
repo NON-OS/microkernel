@@ -270,7 +270,7 @@ def linux_entries(cache, names, release_name, arch, pubkey, when_ms) -> list:
                 f"linux.{rec['P']}",
                 digest,
                 rec["P"],
-                f"Alpine {release_name}",
+                "Linux",
                 pubkey,
                 rec.get("T", "").strip() or f"Linux package {rec['P']}",
                 [
@@ -378,7 +378,7 @@ def kali_entries(cache, names, arch, pubkey, when_ms) -> list:
                       ["ForeignExec"], f"fetched and hashed at {len(raw)} bytes",
                       "nonos.operator.linux", when_ms,
                       linux_trailer(cache, Path(rec["Filename"]).name))
-        out.append(entry(f"linux.kali.{name}", digest, name, "Kali rolling", pubkey,
+        out.append(entry(f"linux.kali.{name}", digest, name, "Linux", pubkey,
                          text, [rel]))
     return out
 
