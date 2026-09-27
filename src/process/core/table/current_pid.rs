@@ -14,21 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod access;
-mod alarm_scan;
-mod build_pcb;
-mod claim;
-mod create;
-mod current_pid;
-mod inherit;
-mod ops;
-mod pid_alloc;
-mod thread_spawn;
-mod types;
+use core::sync::atomic::{AtomicU32, Ordering};
 
-pub(crate) use create::create_process_with_parent;
-pub(crate) use inherit::AMBIENT_CAPS;
-pub use claim::{claim_new, release_new};
-pub use create::{create_process, create_process_with_mem};
-pub use thread_spawn::{admit_thread, spawn_thread, spawn_thread_in, spawn_thread_parked};
-pub use types::{allocate_tid, ProcessTable, CURRENT_PID, PROCESS_TABLE};
+const INIT_PID: AtomicU32 = AtomicU32::new(0);
+
+pub struct CurrentPid {
+    slots: [AtomicU32; crate::smp::MAX_CPUS],
+}
+
+impl CurrentPid {
+    pub const fn new() -> Self {
+        Self { slots: [INIT_PID; crate::smp::MAX_CPUS] }
+    }
+
+    #[inline]
+    fn slot(&self) -> &AtomicU32 {
+        &self.slots[crate::smp::cpu_id()]
+    }
+
+    #[inline]
+    pub fn load(&self, order: Ordering) -> u32 {
+        self.slot().load(order)
+    }
+
+    #[inline]
+    pub fn store(&self, value: u32, order: Ordering) {
+        self.slot().store(value, order);
+    }
+
+    #[inline]
+    pub fn swap(&self, value: u32, order: Ordering) -> u32 {
+        self.slot().swap(value, order)
+    }
+}

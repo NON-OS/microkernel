@@ -18,70 +18,13 @@ use super::super::pcb::ProcessControlBlock;
 use super::super::types::Pid;
 use alloc::{sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU32, Ordering};
+
+pub use super::current_pid::CurrentPid;
 use spin::RwLock;
-
-const INIT_PID: AtomicU32 = AtomicU32::new(0);
-
-pub struct CurrentPid {
-    slots: [AtomicU32; crate::smp::MAX_CPUS],
-}
-
-impl CurrentPid {
-    pub const fn new() -> Self {
-        Self { slots: [INIT_PID; crate::smp::MAX_CPUS] }
-    }
-
-    #[inline]
-    fn slot(&self) -> &AtomicU32 {
-        &self.slots[crate::smp::cpu_id()]
-    }
-
-    #[inline]
-    pub fn load(&self, order: Ordering) -> u32 {
-        self.slot().load(order)
-    }
-
-    #[inline]
-    pub fn store(&self, value: u32, order: Ordering) {
-        self.slot().store(value, order);
-    }
-
-    #[inline]
-    pub fn swap(&self, value: u32, order: Ordering) -> u32 {
-        self.slot().swap(value, order)
-    }
-}
 
 #[derive(Default)]
 pub struct ProcessTable {
     pub(super) inner: RwLock<Vec<Arc<ProcessControlBlock>>>,
-}
-
-impl ProcessTable {
-    pub fn add(&self, pcb: Arc<ProcessControlBlock>) {
-        self.inner.write().push(pcb);
-    }
-    pub fn get_all_processes(&self) -> Vec<Arc<ProcessControlBlock>> {
-        self.inner.read().clone()
-    }
-    pub fn find_by_pid(&self, pid: Pid) -> Option<Arc<ProcessControlBlock>> {
-        self.inner.read().iter().find(|p| p.pid == pid).cloned()
-    }
-    pub fn is_active_name(&self, name: &str) -> bool {
-        self.inner.read().iter().any(|p| p.name.lock().as_str() == name)
-    }
-    pub fn is_active_pid(&self, pid: u64) -> bool {
-        self.inner.read().iter().any(|p| p.pid as u64 == pid)
-    }
-    pub fn get_children_of(&self, parent_pid: Pid) -> Vec<Arc<ProcessControlBlock>> {
-        self.inner.read().iter().filter(|p| p.parent_pid() == parent_pid).cloned().collect()
-    }
-    pub fn has_children(&self, pid: Pid) -> bool {
-        self.inner.read().iter().any(|p| p.parent_pid() == pid)
-    }
-    pub fn get_process(&self, pid: Pid) -> Option<Arc<ProcessControlBlock>> {
-        self.find_by_pid(pid)
-    }
 }
 
 pub static PROCESS_TABLE: ProcessTable = ProcessTable { inner: RwLock::new(Vec::new()) };

@@ -20,11 +20,13 @@ use core::sync::atomic::Ordering;
 
 impl ProcessTable {
     pub fn terminate_process(&self, pid: Pid) -> Result<(), &'static str> {
+        let irq = crate::interrupts::disable_interrupts_guard();
         let mut inner = self.inner.write();
         if let Some(pos) = inner.iter().position(|p| p.pid == pid) {
             *inner[pos].state.lock() = ProcessState::Terminated(0);
             inner.remove(pos);
             drop(inner);
+            drop(irq);
             crate::sched::remove_from_run_queue(pid);
             // The registry states what is running, so a process that has
             // stopped must leave it or every later attestation overstates
