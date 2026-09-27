@@ -35,9 +35,10 @@ pub fn formats(guest: &mut Guest, id: u32) {
 }
 
 /// The descriptor was passed in the control data of the sendmsg that
-/// carried this request, so it is taken from the queue in order.
+/// carried this request, so it is taken from the queue in order. An fd
+/// argument has no word in the body: the body is the new id and the size.
 pub fn create_pool(guest: &mut Guest, args: &mut Args<'_>) {
-    let (Some(id), Some(_fd_slot), Some(size)) = (args.u32(), args.u32(), args.u32()) else {
+    let (Some(id), Some(size)) = (args.u32(), args.u32()) else {
         return;
     };
     let Some(fd) = take_fd(guest) else {
