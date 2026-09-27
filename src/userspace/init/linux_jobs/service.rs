@@ -51,7 +51,11 @@ fn install(listing: &str, release: &str) {
     let said: &[u8] = match (ready, pinned.ok()) {
         (true, Some(hash)) => match spawn_install(name, &hash) {
             Ok(_) => b"[LINUX-INSTALL] started ",
-            Err(_) => b"[LINUX-INSTALL] refused ",
+            Err(e) => {
+                // Which preflight check refused the installer, not only that one did.
+                println(alloc::format!("[LINUX-INSTALL] installer refused: {e:?}").as_bytes());
+                b"[LINUX-INSTALL] refused "
+            }
         },
         _ => b"[LINUX-INSTALL] not ready, refused ",
     };
