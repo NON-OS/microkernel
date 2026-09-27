@@ -55,7 +55,7 @@ pub fn tabs(fb: &mut PaintBuffer, state: &State) {
         let (x, w) = tab_rect(i);
         let active = *tab == state.tab;
         if active {
-            fb.fill_rect(x, y, w, TAB_H, TAB_BG_ACTIVE);
+            fb.blend_rect(x, y, w, TAB_H, TAB_BG_ACTIVE);
         }
         let fg = if active { TAB_FG_ACTIVE } else { TAB_FG };
         let top = text::top_of(y as i32, TAB_H, SMALL_PX);
