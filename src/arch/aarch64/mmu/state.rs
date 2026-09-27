@@ -31,7 +31,9 @@ static mut KERNEL_L2: [PageTable; 6] = [
 /// the direct map hangs off its own level 1 rather than sharing the identity
 /// map's.
 static mut KERNEL_L1_HIGH: PageTable = PageTable::new();
-static mut KERNEL_L3: [[PageTable; 512]; 4] = [[PageTable::new(); 512]; 4];
+/// How many level 1 entries have level 3 tables behind them.
+pub(super) const L3_L1_SPAN: usize = 4;
+static mut KERNEL_L3: [[PageTable; 512]; L3_L1_SPAN] = [[PageTable::new(); 512]; L3_L1_SPAN];
 
 /*
  * The table getters hand out `&'static mut` to a static, so two live results for
