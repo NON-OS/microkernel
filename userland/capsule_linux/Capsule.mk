@@ -37,6 +37,10 @@ CAPSULE_REPLY_ENDPOINT   := reply:4937:endpoint.app.linux.reply
 # installed package was refused before the capsule started.
 CAPSULE_INSTANCE_ENDPOINTS := service:4938:app.linux.install reply:4939:endpoint.app.linux.install.reply service:4942:app.linux.run reply:4943:endpoint.app.linux.run.reply
 CAPSULE_REQUIRED_CAPS    := 0x300001939
+# Network (bit 2) is optional: only the install role asks for it, to reach a
+# package mirror through net.sockets (roles.rs). A guest runs without it.
+CAPSULE_OPTIONAL_CAPS    := 0x4
+CAPSULE_CAPS_CEILING     := 0x30000193D
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_linux
 
 include nonos-mk/capsule.mk

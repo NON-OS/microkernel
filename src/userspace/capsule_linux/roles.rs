@@ -16,6 +16,8 @@
 
 //! The endpoints the personality answers on in each role it is spawned for.
 
+use crate::capabilities::Capability;
+
 /// Each role is its own live process with its own endpoints: two of them
 /// announcing one endpoint is a race over which answers.
 pub(super) struct Role {
@@ -24,6 +26,10 @@ pub(super) struct Role {
     pub inbox: &'static str,
     pub reply_port: u32,
     pub tag: &'static [u8],
+    /// Optional capabilities this role asks for beyond LINUX_CAPS. The
+    /// manifest declares them optional, so a role that does not ask runs
+    /// without them.
+    pub extra_caps: u64,
 }
 
 pub(super) const INSTALL: Role = Role {
@@ -32,6 +38,9 @@ pub(super) const INSTALL: Role = Role {
     inbox: "endpoint.app.linux.install.reply",
     reply_port: 4939,
     tag: b"[LINUX-INSTALL] elf error:",
+    // A package mirror is reached through net.sockets, which serves only
+    // holders of Network.
+    extra_caps: Capability::Network.bit(),
 };
 
 pub(super) const RUN: Role = Role {
@@ -40,4 +49,6 @@ pub(super) const RUN: Role = Role {
     inbox: "endpoint.app.linux.run.reply",
     reply_port: 4943,
     tag: b"[LINUX-RUN] elf error:",
+    // A guest's own sockets are the socket model's to grant, not this.
+    extra_caps: 0,
 };

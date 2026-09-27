@@ -56,7 +56,7 @@ fn spawn(role: &Role, argv: Vec<String>) -> Result<u32, SpawnError> {
         manifest_bytes: LINUX_MANIFEST_BYTES,
         attestation_trailer: LINUX_ATTESTATION_BYTES,
         target_triple: env!("NONOS_USER_TARGET"),
-        requested_caps: LINUX_CAPS,
+        requested_caps: LINUX_CAPS | role.extra_caps,
         debug_tag: role.tag,
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
