@@ -458,6 +458,10 @@ jobs:
             --start-from 'nonos_caps::capabilities::bits::remove_capability' \
             --start-from 'nonos_caps::capabilities::bits::fold_caps' \
             --start-from 'nonos_caps::capabilities::bits::select_caps' \
+            --start-from 'nonos_caps::capabilities::delegation::lifetime::delegation_expiry' \
+            --start-from 'nonos_caps::capabilities::resource::limits::has_at_least' \
+            --start-from 'nonos_caps::capabilities::resource::nonce_compose::compose' \
+            --start-from 'nonos_caps::capabilities::chain::constants::max_chain_depth' \
             --dest-file caps.llbc
           mkdir -p /tmp/regen-caps
           aeneas -backend lean caps.llbc -dest /tmp/regen-caps

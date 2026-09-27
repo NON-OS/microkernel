@@ -217,4 +217,45 @@ def capabilities.bits.remove_capability
   let i1 ← lift (~~~ i)
   ok (bits &&& i1)
 
+/-- [nonos_caps::capabilities::chain::constants::MAX_CHAIN_DEPTH]
+    Source: 'src/capabilities/chain/../../../../../../src/capabilities/chain/constants.rs', lines 17:0-17:38
+    Visibility: public -/
+@[global_simps, irreducible]
+def capabilities.chain.constants.MAX_CHAIN_DEPTH : Std.Usize := 16#usize
+
+/-- [nonos_caps::capabilities::chain::constants::max_chain_depth]:
+    Source: 'src/capabilities/chain/../../../../../../src/capabilities/chain/constants.rs', lines 20:0-22:1
+    Visibility: public -/
+def capabilities.chain.constants.max_chain_depth : Result Std.Usize := do
+  ok capabilities.chain.constants.MAX_CHAIN_DEPTH
+
+/-- [nonos_caps::capabilities::delegation::lifetime::delegation_expiry]:
+    Source: 'src/capabilities/delegation/../../../../../../src/capabilities/delegation/lifetime.rs', lines 32:0-46:1 -/
+def capabilities.delegation.lifetime.delegation_expiry
+  (requested : Option Std.U64) (parent : Option Std.U64) :
+  Result (Option Std.U64)
+  := do
+  match parent with
+  | none => ok requested
+  | some parent_exp =>
+    match requested with
+    | none => ok parent
+    | some e => if e < parent_exp
+                then ok requested
+                else ok parent
+
+/-- [nonos_caps::capabilities::resource::limits::has_at_least]:
+    Source: 'src/capabilities/resource/../../../../../../src/capabilities/resource/limits.rs', lines 23:0-25:1 -/
+def capabilities.resource.limits.has_at_least
+  (remaining : Std.U64) (amount : Std.U64) : Result Bool := do
+  ok (remaining >= amount)
+
+/-- [nonos_caps::capabilities::resource::nonce_compose::compose]:
+    Source: 'src/capabilities/resource/../../../../../../src/capabilities/resource/nonce_compose.rs', lines 26:0-28:1 -/
+def capabilities.resource.nonce_compose.compose
+  (timestamp : Std.U64) (counter : Std.U64) : Result Std.U64 := do
+  let i ← timestamp <<< 32#i32
+  let i1 ← lift (counter &&& 4294967295#u64)
+  ok (i ^^^ i1)
+
 end nonos_caps
