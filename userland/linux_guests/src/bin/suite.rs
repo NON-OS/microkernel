@@ -24,13 +24,15 @@ use std::process::ExitCode;
 
 use nonos_linux_guests::report::Report;
 use nonos_linux_guests::{
-    bounds_probe, dyn_probe, exec_probe, fs_probe, life_probe, native_probe, proc_probe, sep_probe,
+    bounds_probe, dyn_probe, exec_probe, fp_probe, fs_probe, life_probe, native_probe, proc_probe,
+    sep_probe,
 };
 
 fn main() -> ExitCode {
     let mut broken = false;
     for (guest, scan) in [
-        ("native", native_probe::scan as fn(&mut Report)),
+        ("fingerprint", fp_probe::scan as fn(&mut Report)),
+        ("native", native_probe::scan),
         ("bounds", bounds_probe::scan),
         ("fs", fs_probe::scan),
         ("proc", proc_self),

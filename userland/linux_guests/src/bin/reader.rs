@@ -26,13 +26,17 @@ use nonos_linux_guests::report::{Report, Seen};
 use nonos_linux_guests::sys::{
     call, GETPID, MAP_FIXED, MAP_PRIVATE_ANON, MMAP, PATTERN, PATTERN_AT, PROT_RW,
 };
-use nonos_linux_guests::{proc_probe, vm_probe};
+use nonos_linux_guests::{clock_probe, proc_probe, shared_name, vm_probe};
 
 /// Guest pids are small; a sibling started beside this one sits well inside.
 const PID_RANGE: u32 = 256;
 
 fn main() -> ExitCode {
+    let mut clock = Report::new("clock");
+    clock_probe::scan(&mut clock);
+    let clock_broken = clock.finish() != ExitCode::SUCCESS;
     let mut r = Report::new("reader");
+    shared_name::look(&mut r);
     let me = call(GETPID, [0; 6]) as u32;
     let pids: Vec<u32> = (1..=PID_RANGE).filter(|p| *p != me).collect();
     vm_probe::scan(&mut r, &pids);
@@ -50,5 +54,8 @@ fn main() -> ExitCode {
         }
     };
     r.check("same address, own page", seen);
-    r.finish()
+    match r.finish() {
+        _ if clock_broken => ExitCode::FAILURE,
+        verdict => verdict,
+    }
 }

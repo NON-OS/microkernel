@@ -18,10 +18,12 @@
 
 pub mod arg;
 pub mod bounds_probe;
+pub mod clock_probe;
 pub mod dyn_probe;
 pub mod exec_child;
 pub mod exec_probe;
 pub mod fs_paths;
+pub mod fp_probe;
 pub mod fs_probe;
 pub mod life_probe;
 pub mod native_probe;
@@ -29,5 +31,6 @@ pub mod proc_probe;
 pub mod report;
 pub mod sep_child;
 pub mod sep_probe;
+pub mod shared_name;
 pub mod sys;
 pub mod vm_probe;

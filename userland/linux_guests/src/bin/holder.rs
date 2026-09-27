@@ -38,6 +38,7 @@ fn main() {
     for chunk in page.chunks_mut(PATTERN.len()) {
         chunk.copy_from_slice(&PATTERN[..chunk.len()]);
     }
+    nonos_linux_guests::shared_name::leave();
     let pid = call(GETPID, [0; 6]);
     out(format!("[GUEST] holder pid={pid} pattern at {PATTERN_AT:#x}\n").as_bytes());
     let ts = [HOLD_SECS, 0u64];
