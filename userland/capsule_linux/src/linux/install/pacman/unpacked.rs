@@ -30,13 +30,8 @@ pub fn unpacked(b: &[u8]) -> Option<Vec<u8>> {
         return nonos_inflate::gunzip(b);
     }
     if b.starts_with(&XZ) {
-        say(b"[LINUX] refused: xz is not read yet\n");
-        return None;
+        return nonos_xz::decompress(b);
     }
     // An uncompressed tar says so at offset 257.
     (b.get(257..262) == Some(b"ustar".as_slice())).then(|| b.to_vec())
-}
-
-fn say(line: &[u8]) {
-    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
 }

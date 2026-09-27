@@ -185,6 +185,7 @@ dependencies = [
  "nonos_openpgp",
  "nonos_tls",
  "nonos_userland_libc",
+ "nonos_xz",
  "nonos_zstd",
  "sha1",
 ]
@@ -234,6 +235,13 @@ name = "nonos_userland_libc"
 version = "0.3.0"
 dependencies = [
  "linked_list_allocator",
+]
+
+[[package]]
+name = "nonos_xz"
+version = "0.1.0"
+dependencies = [
+ "nonos_hash",
 ]
 
 [[package]]

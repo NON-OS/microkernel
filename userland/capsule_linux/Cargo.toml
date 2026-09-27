@@ -29,6 +29,7 @@ nonos_tls = { path = "../nonos_tls" }
 nonos_openpgp = { path = "../openpgp" }
 nonos_ed25519 = { path = "../nonos_ed25519" }
 nonos_zstd = { path = "../zstd" }
+nonos_xz = { path = "../xz" }
 sha1 = { version = "0.10", default-features = false }
 blake3 = { version = "1", default-features = false, features = ["pure"] }
 
