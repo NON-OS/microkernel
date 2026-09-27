@@ -19,15 +19,16 @@
 use crate::report::{Report, Seen};
 use crate::sys::{call, KILL, PATTERN_AT, PROCESS_VM_READV, PTRACE};
 
-const PTRACE_ATTACH: u64 = 16;
+/// Attaches without stopping the target, so a success does not wedge it.
+const PTRACE_SEIZE: u64 = 0x4206;
 
 /// process_vm_readv, ptrace and kill against every pid. Each reports once:
 /// the first escape it finds, or the errno every pid gave.
 pub fn scan(r: &mut Report, pids: &[u32]) {
     r.check("process_vm_readv", sweep(pids, read_sibling));
     r.check(
-        "ptrace attach",
-        sweep(pids, |pid| call(PTRACE, [PTRACE_ATTACH, pid as u64, 0, 0, 0, 0])),
+        "ptrace seize",
+        sweep(pids, |pid| call(PTRACE, [PTRACE_SEIZE, pid as u64, 0, 0, 0, 0])),
     );
     // Signal 0 delivers nothing and only answers whether the pid exists, so
     // a yes is a disclosure; SIGKILL would end the holder and the run.

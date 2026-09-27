@@ -23,7 +23,7 @@
 use std::process::ExitCode;
 
 use nonos_linux_guests::report::Report;
-use nonos_linux_guests::{bounds_probe, fs_probe, life_probe, native_probe, proc_probe};
+use nonos_linux_guests::{bounds_probe, fs_probe, life_probe, native_probe, proc_probe, sep_probe};
 
 fn main() -> ExitCode {
     let mut broken = false;
@@ -32,6 +32,7 @@ fn main() -> ExitCode {
         ("bounds", bounds_probe::scan),
         ("fs", fs_probe::scan),
         ("proc", proc_self),
+        ("separation", sep_probe::scan),
     ] {
         let mut r = Report::new(guest);
         scan(&mut r);

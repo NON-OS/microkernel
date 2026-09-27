@@ -24,5 +24,7 @@ pub mod life_probe;
 pub mod native_probe;
 pub mod proc_probe;
 pub mod report;
+pub mod sep_child;
+pub mod sep_probe;
 pub mod sys;
 pub mod vm_probe;
