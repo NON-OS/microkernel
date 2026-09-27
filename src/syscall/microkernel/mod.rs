@@ -59,6 +59,7 @@ pub mod procstat_entry;
 pub mod procstat_fill;
 pub mod procstat_header;
 pub mod procstat_header_fill;
+pub mod procstat_redact;
 pub mod spawn_instance;
 pub mod stdout_write;
 pub mod store_write;
