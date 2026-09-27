@@ -51,6 +51,8 @@ mod p384_tests;
 #[cfg(test)]
 mod rsa_tests;
 #[cfg(test)]
+mod rsa_pkcs1_encoding_tests;
+#[cfg(test)]
 #[cfg(test)]
 mod zk_tests;
 #[cfg(test)]
