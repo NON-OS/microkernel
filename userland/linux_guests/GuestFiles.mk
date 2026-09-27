@@ -19,3 +19,14 @@ $(LINUX_GUEST_LINKS): userland/capsule_linux/guests/busybox.elf
 		sed 's|^|/|; s|$$| /bin/busybox|' > $@
 LINUX_GUEST_STORE_DEPS += $(LINUX_GUEST_LINKS)
 LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/nonos-links=$(LINUX_GUEST_LINKS)
+
+# The suite with one byte flipped, beside the suite's own proofs: a tampered
+# library or program that must be refused however it is reached.
+LINUX_GUEST_TAMPERED := $(TARGET_DIR)/linux-guests/tampered
+$(LINUX_GUEST_TAMPERED): $(linux-guest-suite_BIN) tools/nonos-flip-byte
+	@mkdir -p $(@D) && $(NONOS_PYTHON) tools/nonos-flip-byte $< $@
+LINUX_GUEST_STORE_DEPS += $(LINUX_GUEST_TAMPERED)
+LINUX_GUEST_STORE_ENTRIES += --entry /linux/bin/tampered=$(LINUX_GUEST_TAMPERED) \
+	--entry /linux/bin/tampered.nonos_id_cert.bin=$(linux-guest-suite_CERT) \
+	--entry /linux/bin/tampered.manifest.bin=$(linux-guest-suite_MANIFEST) \
+	--entry /linux/bin/tampered.zk_trailer.bin=$(linux-guest-suite_ATTESTATION)

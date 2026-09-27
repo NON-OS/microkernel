@@ -18,6 +18,8 @@
 
 pub mod arg;
 pub mod bounds_probe;
+pub mod exec_child;
+pub mod exec_probe;
 pub mod fs_paths;
 pub mod fs_probe;
 pub mod life_probe;

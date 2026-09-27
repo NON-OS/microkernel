@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Copy a file with one byte flipped, for a negative test.
+
+A proof must stop verifying the moment the bytes it measured change, and the
+only honest way to show that is to change one and watch the refusal. The copy
+keeps its length, so a size check alone cannot catch it.
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("src", type=Path)
+    ap.add_argument("dst", type=Path)
+    ap.add_argument("--at", type=int, default=None, help="byte offset; default: the middle")
+    a = ap.parse_args()
+    data = bytearray(a.src.read_bytes())
+    if not data:
+        print(f"nonos-flip-byte: {a.src} is empty", file=sys.stderr)
+        return 1
+    at = len(data) // 2 if a.at is None else a.at
+    if not 0 <= at < len(data):
+        print(f"nonos-flip-byte: offset {at} outside {len(data)} bytes", file=sys.stderr)
+        return 1
+    data[at] ^= 0xFF
+    a.dst.write_bytes(bytes(data))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
