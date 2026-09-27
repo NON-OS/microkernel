@@ -37,16 +37,30 @@ generator.
 """
 
 import argparse
+import gzip
+import hashlib
 import json
+import lzma
 import subprocess
 import sys
 import tarfile
+import tempfile
 import time
 import urllib.request
 from pathlib import Path
 
 MIRROR = "https://dl-cdn.alpinelinux.org/alpine"
 BRANCHES = ("main", "community")
+# Listing namespaces a distribution other than Alpine publishes under. The
+# kernel reads `linux.kali.<pkg>` as Debian and `linux.blackarch.<pkg>` as
+# pacman (src/userspace/capsule_linux/family.rs); an Alpine name inside one
+# would be read as the wrong family, so none is listed.
+NAMESPACES = ("kali.", "blackarch.")
+# The archive the capsule's deb installer reads (capsule_linux build.rs
+# NONOS_DEB_ROOT, NONOS_DEB_SUITE), and the key it pins.
+KALI = "https://kali.download/kali"
+KALI_SUITE = "kali-rolling"
+KALI_KEY = Path("userland/capsule_linux/keys/kali/archive-key-2025.asc")
 # 2: the release carries the hash of its zk trailer, and the publisher
 # signature covers it.
 SCHEMA = 2
@@ -233,6 +247,9 @@ def linux_entries(cache, names, release_name, arch, pubkey, when_ms) -> list:
     out = []
     for name in names:
         rec = table.get(name)
+        if name.startswith(NAMESPACES):
+            print(f"  skip {name}: inside a namespace another family owns", file=sys.stderr)
+            continue
         if rec is None:
             print(f"  skip {name}: not in the index", file=sys.stderr)
             continue
@@ -275,6 +292,97 @@ def linux_entries(cache, names, release_name, arch, pubkey, when_ms) -> list:
     return out
 
 
+def fetch(url: str, to: Path) -> bytes:
+    if not to.exists():
+        to.parent.mkdir(parents=True, exist_ok=True)
+        with urllib.request.urlopen(url, timeout=180) as r:
+            to.write_bytes(r.read())
+    return to.read_bytes()
+
+
+def gpgv(key: Path, signed: Path, sig: Path) -> bool:
+    """The Release verifies under the pinned key and no other."""
+    with tempfile.TemporaryDirectory() as home:
+        ring = Path(home) / "ring.gpg"
+        dearmor = subprocess.run(
+            ["gpg", "--homedir", home, "--dearmor", "--output", str(ring), str(key)],
+            capture_output=True,
+        )
+        if dearmor.returncode != 0:
+            return False
+        done = subprocess.run(
+            ["gpgv", "--homedir", home, "--keyring", str(ring), str(sig), str(signed)],
+            capture_output=True,
+        )
+    return done.returncode == 0
+
+
+def stanzas(text: str):
+    rec, last = {}, None
+    for line in text.split("\n"):
+        if not line.strip():
+            if rec:
+                yield rec
+            rec, last = {}, None
+        elif line[0] in " \t" and last:
+            rec[last] += "\n" + line.strip()
+        elif ":" in line:
+            last, _, value = line.partition(":")
+            rec[last] = value.strip()
+    if rec:
+        yield rec
+
+
+def kali_index(cache: Path, arch: str) -> dict:
+    """name -> Packages record, through the chain the device checks."""
+    at = cache / "kali"
+    rel = at / "Release"
+    fetch(f"{KALI}/dists/{KALI_SUITE}/Release", rel)
+    fetch(f"{KALI}/dists/{KALI_SUITE}/Release.gpg", at / "Release.gpg")
+    if not gpgv(KALI_KEY, rel, at / "Release.gpg"):
+        sys.exit("kali: Release does not verify under the pinned key; nothing listed")
+    sums = {}
+    for line in next(stanzas(rel.read_text())).get("SHA256", "").split("\n"):
+        parts = line.split()
+        if len(parts) == 3:
+            sums[parts[2]] = parts[0]
+    # The order the installer tries them in (deb/index.rs LISTS).
+    lists = [f"main/binary-{arch}/Packages.{x}" for x in ("xz", "gz")]
+    path = next((p for p in lists if p in sums), None)
+    if path is None:
+        sys.exit("kali: the Release lists no Packages file the installer reads")
+    raw = fetch(f"{KALI}/dists/{KALI_SUITE}/{path}", at / Path(path).name)
+    if hashlib.sha256(raw).hexdigest() != sums[path]:
+        sys.exit(f"kali: {path} does not match its Release")
+    inflate = lzma.decompress if path.endswith(".xz") else gzip.decompress
+    text = inflate(raw).decode(errors="replace")
+    return {r["Package"]: r for r in stanzas(text) if "Package" in r}
+
+
+def kali_entries(cache, names, arch, pubkey, when_ms) -> list:
+    table = kali_index(cache, arch) if names else {}
+    out = []
+    for name in names:
+        rec = table.get(name)
+        if rec is None:
+            print(f"  skip kali.{name}: not in the index", file=sys.stderr)
+            continue
+        url = f"{KALI}/{rec['Filename']}"
+        raw = fetch(url, cache / "kali" / Path(rec["Filename"]).name)
+        if hashlib.sha256(raw).hexdigest() != rec.get("SHA256"):
+            print(f"  skip kali.{name}: bytes do not match the index", file=sys.stderr)
+            continue
+        digest = blake3(raw)
+        text = rec.get("Description", "").split("\n")[0] or f"Kali package {name}"
+        rel = release(f"{name}@{rec['Version']}", digest, digest, url, ["x86_64-linux"],
+                      ["ForeignExec"], f"fetched and hashed at {len(raw)} bytes",
+                      "nonos.operator.linux", when_ms,
+                      linux_trailer(cache, Path(rec["Filename"]).name))
+        out.append(entry(f"linux.kali.{name}", digest, name, "Kali rolling", pubkey,
+                         text, [rel]))
+    return out
+
+
 def community_entries(where: Path) -> list:
     """Submissions, passed through as the operator validated them."""
     out = []
@@ -302,7 +410,7 @@ def main() -> int:
     ap.add_argument("--linux-package", action="append", default=[],
                     help="repeatable; a package to fetch, hash and list")
     ap.add_argument("--linux-list", type=Path,
-                    help="file of package names, one per line")
+                    help="file of package names, one per line; kali.<name> for Kali")
     ap.add_argument("--serial", type=int, required=True)
     ap.add_argument("--no-nonos", action="store_true")
     args = ap.parse_args()
@@ -325,11 +433,18 @@ def main() -> int:
             for line in args.linux_list.read_text().splitlines()
             if line.split("#", 1)[0].strip()
         ]
+    kali = [n.removeprefix("kali.") for n in names if n.startswith("kali.")]
+    alpine = [n for n in names if not n.startswith("kali.")]
     if names:
         args.cache.mkdir(parents=True, exist_ok=True)
-        found = linux_entries(args.cache, names, args.alpine_release,
+    if alpine:
+        found = linux_entries(args.cache, alpine, args.alpine_release,
                               args.alpine_arch, key, when_ms)
-        print(f"linux: {len(found)} of {len(names)} packages", file=sys.stderr)
+        print(f"linux: {len(found)} of {len(alpine)} Alpine packages", file=sys.stderr)
+        entries += found
+    if kali:
+        found = kali_entries(args.cache, kali, "amd64", key, when_ms)
+        print(f"linux: {len(found)} of {len(kali)} Kali packages", file=sys.stderr)
         entries += found
 
     if args.community.is_dir():
