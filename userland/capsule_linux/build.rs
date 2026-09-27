@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Pins the package keyrings into the capsule. NONOS_PACMAN_KEYRING and
-//! NONOS_DEB_KEYRING each name a keyring file; unset, that keyring is empty
-//! and every install from that family is refused. A named file that cannot
+//! NONOS_DEB_KEYRING each name a keyring file. Unset, pacman's is empty and
+//! every pacman install is refused; Debian's is Kali's pinned archive key. A named file that cannot
 //! be read fails the build, since an image that silently lost its keyring
 //! would look like one built without it.
 
@@ -40,18 +40,21 @@ fn main() {
         println!("cargo:rerun-if-env-changed={var}");
     }
     let Some(out) = env::var_os("OUT_DIR").map(PathBuf::from) else { fail("no OUT_DIR") };
-    pin("NONOS_PACMAN_KEYRING", &out.join("pacman-keyring.gpg"));
-    pin("NONOS_DEB_KEYRING", &out.join("deb-keyring.gpg"));
+    pin("NONOS_PACMAN_KEYRING", &out.join("pacman-keyring.gpg"), None);
+    // Kali's archive key is pinned by default; see design/package-trust.md.
+    pin("NONOS_DEB_KEYRING", &out.join("deb-keyring.gpg"), Some("keys/kali/archive-key-2025.asc"));
 }
 
-fn pin(var: &str, to: &Path) {
+/// The keyring `var` names, else `default` (relative to this crate), else none.
+fn pin(var: &str, to: &Path, default: Option<&str>) {
     println!("cargo:rerun-if-env-changed={var}");
-    let ring = match env::var(var) {
-        Ok(path) => {
+    let path = env::var(var).ok().or_else(|| default.map(String::from));
+    let ring = match path {
+        Some(path) => {
             println!("cargo:rerun-if-changed={path}");
             fs::read(&path).unwrap_or_else(|e| fail(&format!("{var}={path}: {e}")))
         }
-        Err(_) => Vec::new(),
+        None => Vec::new(),
     };
     if let Err(e) = fs::write(to, ring) {
         fail(&format!("writing {}: {e}", to.display()));

@@ -60,6 +60,29 @@ happens to contain.
 Finding: the keyring's signer is outside the keyring's own trusted list, and
 no independent source was reachable. The backend stays keyless.
 
-## Kali: not pinned
+## Kali, 2026-09-27: pinned
 
-Held to the same three sources before anything is pinned.
+Pinned: `827C8569F2518CC677FECA1AED65462EC8D5E4C5`, "Kali Linux Archive
+Automatic Signing Key (2025)", RSA 4096, created 2025-04-17, expires
+2028-04-17, in `keys/kali/archive-key-2025.asc` (SHA-256 `bbaef4b3...71b1`).
+All three sources name it:
+
+1. The `kali-archive-keyring` 2025.2 package from kali-rolling (SHA-256
+   `9250b08f...c8cf0`, matching its Packages record): `kali-archive-keyring.gpg`
+   holds this key, and also the old repository key `ED444FF07D8D0BF6`.
+2. `https://archive.kali.org/archive-key.asc` over TLS: this key alone.
+3. Kali's announcement, `https://www.kali.org/blog/new-kali-archive-signing-key/`:
+   names this key as the new signing key, and says Kali lost access to the old
+   one.
+
+Only the 2025 key is pinned: the old key's holder says they no longer control
+it, so a signature under it proves nothing. The kali-rolling `Release` fetched
+the same day verifies under the pin, and the proof crate checks that against
+the committed copy.
+
+What it is trusted for: that a `Release` for the suite is Kali's. A package is
+authentic only through that `Release`, by the checksum it gives the Packages
+file, and the checksum that file gives the `.deb`.
+
+Known limit: kali-rolling's `Release` has no `Valid-Until`, so an older, validly
+signed `Release` replayed by a mirror is not caught.

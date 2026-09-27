@@ -26,6 +26,7 @@ mod dirent_tests;
 mod elf_tests;
 mod exec_shebang_tests;
 mod index_tests;
+mod kali_anchor_tests;
 mod key_tests;
 mod mutation;
 mod mutation_tests;
