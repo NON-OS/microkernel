@@ -39,6 +39,7 @@ mod start_context;
 mod thread;
 mod trap;
 mod trap_claim;
+mod trap_frame;
 mod trap_reply;
 mod trap_table;
 mod trap_wait;

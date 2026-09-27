@@ -52,5 +52,5 @@ pub fn sys_foreign_fork(pid: u64) -> i64 {
 }
 
 fn saved_state(pid: u32) -> Option<crate::arch::context::SavedUser> {
-    crate::process::with_process(pid, |pcb| *pcb.saved_user_context.lock()).flatten()
+    super::trap_frame::parked_frame(pid)
 }

@@ -34,6 +34,7 @@ pub(super) fn wait_for_answer(pid: u32) -> u64 {
 
 /// Every answer but one is a return value.
 fn settle(pid: u32, value: u64) -> u64 {
+    super::trap_frame::drop_frame(pid);
     if value == super::exec::EXECED {
         super::exec_enter::enter(pid)
     }
