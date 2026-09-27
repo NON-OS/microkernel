@@ -1,0 +1,51 @@
+[
+ {
+  "name": "pid-namespace",
+  "file": "userland/capsule_linux/src/linux/serve/pid_out.rs",
+  "old": "Ok(k) if returns_pid && k > 0 => u64::from(ns.outward(k)),",
+  "new": "Ok(k) if returns_pid && k > 0 => u64::from(k),",
+  "escapes": "[GUEST] fingerprint ESCAPED the machine's pid count"
+ },
+ {
+  "name": "family-clock",
+  "file": "userland/capsule_linux/src/linux/call/epoch.rs",
+  "old": "uptime().saturating_sub(START.load(Ordering::Relaxed))",
+  "new": "uptime()",
+  "escapes": "[GUEST] clock ESCAPED the monotonic clock"
+ },
+ {
+  "name": "statfs-constant",
+  "file": "userland/capsule_linux/src/linux/file/meta/statfs.rs",
+  "old": "const BLOCKS: u64 = 1 << 20;",
+  "new": "const BLOCKS: u64 = 1 << 21;",
+  "escapes": "[GUEST] fingerprint ESCAPED the store's size"
+ },
+ {
+  "name": "private-tmp",
+  "file": "userland/capsule_linux/src/linux/file/private/names.rs",
+  "old": ".any(|p| visible.starts_with(p) && matches!(visible.get(p.len()), None | Some(b'/')))",
+  "new": ".any(|p| p.is_empty() && visible.starts_with(p))",
+  "escapes": "[GUEST] reader ESCAPED the sibling's /tmp/nonos-sibling"
+ },
+ {
+  "name": "read-only-tree",
+  "file": "userland/capsule_linux/src/linux/file/root.rs",
+  "old": "match self.1 && !super::private::shared_writes_allowed() {",
+  "new": "match false {",
+  "escapes": "[GUEST] reader ESCAPED the sibling's /nonos-sibling"
+ },
+ {
+  "name": "trap-frame",
+  "file": "src/process/foreign/trap.rs",
+  "old": "super::trap_frame::keep(pid, saved);",
+  "new": "super::trap_frame::keep(pid, saved);\n    crate::process::with_process(pid, |pcb| *pcb.saved_user_context.lock() = Some(saved));",
+  "escapes": "[GUEST] exec ESCAPED"
+ },
+ {
+  "name": "amnesic-gate",
+  "file": "userland/capsule_vfs/src/server/handlers/persist_gate.rs",
+  "old": "lookup().and_then(|port| get_bool(port, Field::Persistent)) == Some(true)",
+  "new": "true",
+  "escapes": "[amnesic] the boot left"
+ }
+]
