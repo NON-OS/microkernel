@@ -6,7 +6,8 @@
 //! the image itself.
 
 use crate::crypto::stark::air::{
-    build_public_trailer, verify_public_trailer, MeasuredSet, Poseidon, RATE,
+    build_public_trailer, verify_public_trailer, verify_public_trailer_digest, MeasuredSet,
+    Poseidon, RATE,
 };
 use crate::crypto::stark::attest_params::LOG_ROUNDS;
 use crate::crypto::stark::field::Fp;
@@ -58,4 +59,15 @@ fn another_images_slot_does_not_admit_a_rogue() {
     let ctx = context(ROGUE, 7);
     let forged = build_public_trailer(&s, 2, &ctx).unwrap_or_default();
     assert!(!verify_public_trailer(&root_bytes(s.root()), DEPTH, ROGUE, &forged, &ctx));
+}
+
+// The web gate's form: the member's digest instead of its bytes, same verdicts.
+#[test]
+fn the_digest_form_binds_the_same_member() {
+    let (s, img) = (set(true), &images()[2]);
+    let (ctx, root) = (context(img, 7), root_bytes(set(true).root()));
+    let t = build_public_trailer(&s, 2, &ctx).unwrap_or_default();
+    assert!(verify_public_trailer_digest(&root, DEPTH, blake3::hash(img).as_bytes(), &t, &ctx));
+    let other = blake3::hash(&images()[3]);
+    assert!(!verify_public_trailer_digest(&root, DEPTH, other.as_bytes(), &t, &ctx));
 }
