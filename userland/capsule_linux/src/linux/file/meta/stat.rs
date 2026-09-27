@@ -21,7 +21,7 @@ use crate::linux::guest::{Guest, Kind};
 
 use super::super::flags::AT_FDCWD;
 use super::super::{path, resolve, store};
-use super::statbuf::{build, STAT_LEN};
+use super::statbuf::{build, inode, STAT_LEN};
 
 /// Size and whether it is a directory, or nothing when the path is
 /// absent. `full` is guest-visible and is confined here.
@@ -42,7 +42,8 @@ pub fn fstat(guest: &mut Guest, fd: u64, out: u64) -> u64 {
         Kind::File => (entry.size.max(entry.pending.len() as u64), false),
         _ => (0, false),
     };
-    write_out(guest, out, size, is_dir)
+    let ino = inode(&entry.path);
+    write_out(guest, out, size, is_dir, ino)
 }
 
 pub fn newfstatat(guest: &mut Guest, dirfd: u64, path_ptr: u64, out: u64) -> u64 {
@@ -54,13 +55,13 @@ pub fn newfstatat(guest: &mut Guest, dirfd: u64, path_ptr: u64, out: u64) -> u64
     }
     let full = guest.links.follow(resolve::visible(&guest.cwd, &name), true);
     match look(&full) {
-        Some((size, is_dir)) => write_out(guest, out, size, is_dir),
+        Some((size, is_dir)) => write_out(guest, out, size, is_dir, inode(&full)),
         None => errno::fail(errno::ENOENT),
     }
 }
 
-fn write_out(guest: &Guest, out: u64, size: u64, is_dir: bool) -> u64 {
-    if guest.write(out, &build(size, is_dir)) < STAT_LEN as i64 {
+fn write_out(guest: &Guest, out: u64, size: u64, is_dir: bool, ino: u64) -> u64 {
+    if guest.write(out, &build(size, is_dir, ino)) < STAT_LEN as i64 {
         return errno::fail(errno::EFAULT);
     }
     errno::ok(0)

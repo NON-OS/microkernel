@@ -22,15 +22,27 @@ pub const STAT_LEN: usize = 144;
 pub const S_IFREG: u32 = 0o100000;
 pub const S_IFDIR: u32 = 0o040000;
 
+const OFF_INO: usize = 8;
 const OFF_NLINK: usize = 16;
 const OFF_MODE: usize = 24;
 const OFF_SIZE: usize = 48;
 const OFF_BLKSIZE: usize = 56;
 const OFF_BLOCKS: usize = 64;
 
-pub fn build(size: u64, is_dir: bool) -> [u8; STAT_LEN] {
+/// A file's number, stable for its path and never zero. Distinct numbers are
+/// how a loader tells two libraries apart; zero for every file made each
+/// dlopen after the first hand back the library already loaded.
+pub fn inode(path: &[u8]) -> u64 {
+    let fold = path
+        .iter()
+        .fold(0xcbf2_9ce4_8422_2325u64, |h, b| (h ^ u64::from(*b)).wrapping_mul(0x100_0000_01b3));
+    fold | 1
+}
+
+pub fn build(size: u64, is_dir: bool, ino: u64) -> [u8; STAT_LEN] {
     let mut out = [0u8; STAT_LEN];
     let mode = if is_dir { S_IFDIR | 0o755 } else { S_IFREG | 0o644 };
+    put64(&mut out, OFF_INO, ino);
     put64(&mut out, OFF_NLINK, 1);
     put32(&mut out, OFF_MODE, mode);
     put64(&mut out, OFF_SIZE, size);

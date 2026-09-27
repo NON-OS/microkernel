@@ -8,7 +8,7 @@ read | bytes of the guest's own files, pipes and sockets | its own data
 write | nothing back but a count | a count of its own bytes
 open | whether a path exists in the Linux tree or the family's private dirs | the tree holds installs every machine with them shares; private dirs are the family's own
 close | nothing | none
-stat | size and kind of a path; fixed inode, times and owner | size is of shared installs or the family's own files
+stat | size and kind of a path; an inode derived from the path alone; fixed times and owner | size is of shared installs or the family's own files; the inode says nothing the path does not
 fstat | size and kind of an open descriptor | as stat
 lstat | as stat | as stat
 poll | readiness of its own descriptors | its own state
