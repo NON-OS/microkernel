@@ -22,6 +22,9 @@
 #[cfg(target_arch = "x86_64")]
 pub(super) fn init_extended_state() {
     use crate::arch::x86_64::cpu::xstate;
+    // Nothing on this path has run CPUID into the cache yet, and without it
+    // every feature reads absent and SSE bring-up refuses.
+    crate::arch::x86_64::cpu::detect_features();
     // SAFETY: eK@nonos.systems - the boot CPU, once, before any thread exists.
     // Each enable step checks CPUID first and leaves a missing feature off.
     if let Err(e) = unsafe { crate::arch::x86_64::boot::validation::enable_sse_avx() } {
