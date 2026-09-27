@@ -1232,6 +1232,23 @@
       "starts": [
         "nonos_ed_field::ed25519_ct_eq_32"
       ]
+    },
+    {
+      "name": "align",
+      "crate": "nonos_align",
+      "dir": "verification/extraction/align",
+      "lean": "Align",
+      "generated": "Align.lean",
+      "llbc": "align",
+      "starts": [
+        "nonos_align::boot_align_up",
+        "nonos_align::boot_align_down",
+        "nonos_align::buddy_align_up",
+        "nonos_align::layout_align_up",
+        "nonos_align::layout_align_down",
+        "nonos_align::phys_align_up",
+        "nonos_align::phys_align_down"
+      ]
     }
   ]
 }
