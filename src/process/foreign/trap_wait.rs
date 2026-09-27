@@ -16,7 +16,7 @@
 
 //! A guest asleep inside the syscall it made.
 
-use super::trap_table::take_answer;
+use super::trap_table::{take_answer, Answer};
 
 pub(super) fn wait_for_answer(pid: u32) -> u64 {
     loop {
@@ -33,10 +33,10 @@ pub(super) fn wait_for_answer(pid: u32) -> u64 {
 }
 
 /// Every answer but one is a return value.
-fn settle(pid: u32, value: u64) -> u64 {
+fn settle(pid: u32, answer: Answer) -> u64 {
     super::trap_frame::drop_frame(pid);
-    if value == super::exec::EXECED {
-        super::exec_enter::enter(pid)
+    match answer {
+        Answer::Value(value) => value,
+        Answer::Execed => super::exec_enter::enter(pid),
     }
-    value
 }
