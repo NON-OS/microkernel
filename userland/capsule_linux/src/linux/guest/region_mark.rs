@@ -14,38 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A hosted process: what it is, what it has open, and how this capsule
-//! reaches into it.
+//! Marking file bytes that were never proved, and asking about them.
 
-mod fd;
-mod fd_dup;
-mod fd_empty;
-mod fd_kind;
-mod fd_make;
-mod fork_state;
-mod handle;
-mod handle_new;
-mod layout;
-mod links;
-mod links_list;
-mod links_load;
-mod mem;
-mod mem_copy;
-mod mem_map;
-mod mem_unmap;
-mod region;
-mod region_cut;
-mod region_find;
-mod region_mark;
-mod threads;
+use super::handle::Guest;
 
-pub use fd::Fd;
-pub use fd_kind::Kind;
-pub use handle::Guest;
-pub use links::Links;
-pub use layout::{
-    BRK_BASE, BRK_LIMIT, EXEC_BASE, INTERP_BASE, MMAP_BASE, MMAP_LIMIT, STACK_SIZE,
-    STACK_TOP,
-};
-pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
-pub use region::Region;
+impl Guest {
+    /// Every region inside [at, at + len) holds file bytes nothing proved.
+    pub fn mark_unproven(&mut self, at: u64, len: u64) {
+        let end = at.saturating_add(len);
+        for r in self.regions.iter_mut().filter(|r| r.at >= at && r.at < end) {
+            r.unproven = true;
+        }
+    }
+
+    /// Whether any region overlapping [at, at + len) is unproven file bytes.
+    pub fn span_unproven(&self, at: u64, len: u64) -> bool {
+        let end = at.saturating_add(len);
+        self.regions.iter().any(|r| r.unproven && r.at < end && at < r.at.saturating_add(r.len))
+    }
+}

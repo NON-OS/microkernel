@@ -57,6 +57,10 @@ pub fn file(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     if protect_span(guest, at, span, req.prot) < 0 {
         return errno::fail(errno::EACCES);
     }
+    // Not proved, since nothing asked to run it: it stays that way.
+    if req.prot & PROT_EXEC == 0 {
+        guest.mark_unproven(at, span);
+    }
     if req.fixed().is_none() {
         guest.mmap_next += span;
     }

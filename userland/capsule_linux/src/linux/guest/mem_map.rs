@@ -50,7 +50,7 @@ impl Guest {
          * Remembered because fork copies a guest by walking what its
          * supervisor gave it.
          */
-        self.regions.push(Region { at: start, len: span, write, exec });
+        self.regions.push(Region { at: start, len: span, write, exec, unproven: false });
         0
     }
 }

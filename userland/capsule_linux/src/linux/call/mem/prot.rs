@@ -43,6 +43,15 @@ pub fn mprotect(guest: &mut Guest, addr: u64, len: u64, prot: u64) -> u64 {
     let Some((start, span)) = span_within(addr, len, STACK_TOP) else {
         return errno::fail(errno::EINVAL);
     };
+    /*
+     * A file mapped without exec was never proved, and making it executable
+     * now would run bytes the exec path would have refused. Anonymous memory
+     * may still become executable, as a JIT needs; that is the guest's own
+     * code, confined by its token rather than by provenance.
+     */
+    if prot & PROT_EXEC != 0 && guest.span_unproven(start, span) {
+        return errno::fail(errno::EPERM);
+    }
     if protect_span(guest, start, span, prot) < 0 {
         return errno::fail(errno::EACCES);
     }

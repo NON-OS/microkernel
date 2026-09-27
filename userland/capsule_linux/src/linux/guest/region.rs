@@ -22,4 +22,7 @@ pub struct Region {
     pub len: u64,
     pub write: bool,
     pub exec: bool,
+    /// File bytes mapped without exec, so never proved: mprotect may not
+    /// make them executable later.
+    pub unproven: bool,
 }
