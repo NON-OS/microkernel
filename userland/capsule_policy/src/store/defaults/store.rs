@@ -53,6 +53,7 @@ pub const fn store() -> Store {
         audio_balance: 50,
         alert_sounds: false,
         startup_chime: false,
+        persistent: false,
         kernel_aslr: true,
         kernel_stack_guard: true,
         kernel_nx_bit: true,

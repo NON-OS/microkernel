@@ -57,6 +57,7 @@ pub struct Store {
     pub audio_balance: u8,
     pub alert_sounds: bool,
     pub startup_chime: bool,
+    pub persistent: bool,
     pub kernel_aslr: bool,
     pub kernel_stack_guard: bool,
     pub kernel_nx_bit: bool,

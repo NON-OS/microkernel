@@ -18,6 +18,7 @@ use alloc::vec::Vec;
 use core::str;
 
 use super::path::normalize;
+use super::persist_gate::require_persistent;
 use super::util::{map_blk_err, map_store_err, split_caller};
 use crate::protocol::{encode_response, Request, EINVAL, MAX_PATH_BYTES, OP_STORE_PERSIST};
 use crate::store::Store;
@@ -53,6 +54,9 @@ pub fn store_persist(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Ve
             )
         }
     };
+    if let Err(s) = require_persistent(&data) {
+        return encode_response(OP_STORE_PERSIST, req.flags, req.request_id, s, &[]);
+    }
     match crate::blk::store_write::append(&path, &data) {
         Ok(()) => encode_response(OP_STORE_PERSIST, req.flags, req.request_id, 0, &[]),
         Err(e) => encode_response(OP_STORE_PERSIST, req.flags, req.request_id, map_blk_err(e), &[]),

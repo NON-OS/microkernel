@@ -51,6 +51,7 @@ pub fn decode(id: u32) -> Option<Field> {
         0x011F => Field::AudioBalance,
         0x0120 => Field::AlertSounds,
         0x0121 => Field::StartupChime,
+        0x0122 => Field::Persistent,
         0x0201 => Field::KernelAslr,
         0x0202 => Field::KernelStackGuard,
         0x0203 => Field::KernelNxBit,
