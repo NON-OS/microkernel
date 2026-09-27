@@ -467,7 +467,7 @@ nonos-mk-run-iommu-serial-log: nonos-mk-desktop-gui-prod $(QEMU_BLK_IMG) $(QEMU_
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
-		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
+		$(call iommu_virtio_args,$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_RNG)) $(QEMU_USB) \
 		-serial "file:$(QEMU_IOMMU_SERIAL_LOG)" -display none -no-reboot
 
 # The machine matrix. The shipping images (single CPU, and the same tree with
