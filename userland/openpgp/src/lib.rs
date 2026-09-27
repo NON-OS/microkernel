@@ -13,20 +13,30 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The hash primitives shared by the wallet, the signing crates and the key
-//! derivation. Moved here from nonos_hd so a crate that needs SHA-512 does
-//! not carry BIP39 and a word list to get it.
+
+//! OpenPGP detached signatures (RFC 4880, RFC 9580), verified against a
+//! pinned keyring: the provenance a pacman or apt repository gives its files.
+//!
+//! This crate reads packets and computes what was signed; the arithmetic is
+//! the caller's `Verifier`, so a machine keeps one RSA and one Ed25519. Only
+//! v4 signatures of binary documents, over SHA-256 or SHA-512, are accepted.
+//! Anything else is a `Refusal` with its reason, never a silent pass.
 
 #![no_std]
 
-mod hmac512;
-mod sha256;
-mod sha256_stream;
-mod sha512;
-mod wipe;
+extern crate alloc;
 
-pub use hmac512::{hmac_sha512, HmacSha512};
-pub use sha256::sha256;
-pub use sha256_stream::Sha256;
-pub use sha512::{sha512, Sha512};
-pub use wipe::wipe;
+mod digest;
+mod key;
+mod keyring;
+mod mpi;
+mod packet;
+mod refusal;
+mod sig;
+mod subpacket;
+mod verify;
+
+pub use key::{Key, Material};
+pub use keyring::keys;
+pub use refusal::Refusal;
+pub use verify::{verify, Verified, Verifier};

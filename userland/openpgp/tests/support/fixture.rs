@@ -13,20 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! The hash primitives shared by the wallet, the signing crates and the key
-//! derivation. Moved here from nonos_hd so a crate that needs SHA-512 does
-//! not carry BIP39 and a word list to get it.
 
-#![no_std]
+//! The vectors tools/nonos-openpgp-vectors wrote, and the file they sign.
 
-mod hmac512;
-mod sha256;
-mod sha256_stream;
-mod sha512;
-mod wipe;
+use nonos_openpgp::{keys, Key};
 
-pub use hmac512::{hmac_sha512, HmacSha512};
-pub use sha256::sha256;
-pub use sha256_stream::Sha256;
-pub use sha512::{sha512, Sha512};
-pub use wipe::wipe;
+pub fn file(name: &str) -> Vec<u8> {
+    let path = format!("{}/tests/vectors/{name}", env!("CARGO_MANIFEST_DIR"));
+    std::fs::read(&path).unwrap_or_else(|e| panic!("{path}: {e}"))
+}
+
+/// The signed file, as tools/nonos-openpgp-vectors made it.
+pub fn data() -> Vec<u8> {
+    (0..70000u32).map(|i| ((i * 131 + 17) % 251) as u8).collect()
+}
+
+pub fn ring(name: &str) -> Vec<Key> {
+    keys(&file(&format!("{name}.pub"))).unwrap_or_else(|| panic!("{name}.pub: no keys"))
+}
