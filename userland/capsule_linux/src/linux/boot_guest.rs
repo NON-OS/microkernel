@@ -23,6 +23,7 @@
 
 use alloc::vec::Vec;
 
+use nonos_app_skeleton::clients::vfs;
 use nonos_libc::{mk_yield, Deadline};
 
 use crate::linux::file::{key, store_read, visible};
@@ -32,10 +33,7 @@ use crate::linux::start::say;
 const BOOT_GUEST: &[u8] = b"/etc/nonos-boot-guest";
 
 const MAX_NAME: u32 = 1024;
-
-// How long to wait for the store to answer at all. With several CPUs this
-// capsule can ask before the VFS serves, and a read that cannot be answered is
-// not an image that names nothing.
+// How long to wait for the VFS to finish loading the store.
 const READY_MS: u64 = 30_000;
 
 /// The path the image names, the program's bytes and its arguments, or None
@@ -54,20 +52,24 @@ pub(super) fn boot_guest(max_image: u32) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8
     Some((at, bytes, args))
 }
 
-// The file's bytes, or None once the store answered that it has none.
+// The file's bytes, or None once a settled store says it has none. Until the
+// VFS has finished loading the store from disk, a missing file may only be
+// not loaded yet: on SMP this ran before staging and took busybox instead.
 fn read_when_ready() -> Option<Vec<u8>> {
     let until = Deadline::after_ms(READY_MS);
-    loop {
-        match store_read(&key(BOOT_GUEST), MAX_NAME) {
-            Ok(named) => return Some(named),
-            Err("vfs unavailable" | "vfs ipc failed") if !until.expired() => {
-                let _ = mk_yield();
-            }
-            Err("vfs open failed") => return None,
-            Err(_) => {
-                say(b"[LINUX] boot guest unreadable: store did not answer\n");
-                return None;
-            }
+    while !matches!(vfs::store_settled(), Ok(true)) {
+        if until.expired() {
+            say(b"[LINUX] boot guest unreadable: store never settled\n");
+            return None;
+        }
+        let _ = mk_yield();
+    }
+    match store_read(&key(BOOT_GUEST), MAX_NAME) {
+        Ok(named) => Some(named),
+        Err("vfs open failed") => None,
+        Err(_) => {
+            say(b"[LINUX] boot guest unreadable: store did not answer\n");
+            None
         }
     }
 }
