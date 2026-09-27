@@ -56,8 +56,107 @@ theorem the_virtaddr_align_down_wrapper_is_its_method (a : virt.VirtAddr) (b : S
 theorem the_virtaddr_align_up_wrapper_is_its_method (a : virt.VirtAddr) (b : Std.U64) :
     virtaddr_align_up a b = virt.VirtAddr.align_up a b := rfl
 
+/-! ### Alignment
+
+    Three functions decide alignment for every virtual address in the kernel,
+    and they do not agree with each other.
+
+    This is the same code as `PhysAddr` carries, written out a second time
+    rather than shared, so the same three findings hold here. That duplication
+    is itself worth noticing: two copies of an alignment rule drift, and a fix
+    applied to one of them leaves the other wrong.
+
+    `is_aligned` asks `addr % align == 0`, which is the right question for any
+    alignment. `align_down` and `align_up` clear low bits with `!(align - 1)`,
+    which answers a different question unless `align` is a power of two. Nothing
+    in the type says it has to be.
+
+    The kernel builds with `overflow-checks = true` and `panic = "abort"`, so
+    the checked arithmetic below is faithful: where the extracted function fails,
+    the shipping kernel halts. That is a controlled halt rather than silent
+    corruption, which is the trade the profile comment argues for, but it is
+    still a halt reachable from an address and an alignment.
+-/
+
+/-- The disagreement, at the smallest witness. Aligning ten down to a multiple
+    of three gives eight, and `is_aligned` then says eight is not aligned to
+    three. Both functions are reachable from the same call site with the same
+    argument, and a caller that aligns and then checks gets told no. -/
+theorem aligning_down_can_produce_an_unaligned_address :
+    virtaddr_align_down 10#u64 3#u64 = ok 8#u64 ∧
+    virtaddr_is_aligned 8#u64 3#u64 = ok false := by
+  refine ⟨?_, ?_⟩ <;> rfl
+
+/-- On a power of two the two do agree, which is the case every caller in the
+    kernel actually passes and the reason this has never been noticed. -/
+theorem on_a_power_of_two_they_agree :
+    virtaddr_align_down 10#u64 4#u64 = ok 8#u64 ∧
+    virtaddr_is_aligned 8#u64 4#u64 = ok true := by
+  refine ⟨?_, ?_⟩ <;> rfl
+
+/-- An alignment of zero is not refused, it halts the machine. `align - 1`
+    underflows, and under this profile an underflow aborts. `is_aligned` handles
+    the same argument by answering false, so the three functions disagree about
+    zero as well. -/
+theorem an_alignment_of_zero_halts_rather_than_refusing :
+    virtaddr_is_aligned 4096#u64 0#u64 = ok false ∧
+    virtaddr_align_down 4096#u64 0#u64 = fail Error.integerOverflow := by
+  refine ⟨rfl, rfl⟩
+
+/-- Aligning up near the top of the address space halts too, because the sum
+    overflows before the mask is applied. The witness is an address one page
+    below the top, aligned to a page, which is an ordinary thing to ask for at
+    the end of a memory map. -/
+theorem aligning_up_near_the_top_halts :
+    virtaddr_align_up 0xFFFFFFFFFFFFF001#u64 4096#u64 = fail Error.integerOverflow := by
+  rfl
+
+/-- Away from the top it behaves, so the halt is a boundary case and not a
+    broken function. -/
+theorem aligning_up_in_the_ordinary_range :
+    virtaddr_align_up 4097#u64 4096#u64 = ok 8192#u64 ∧
+    virtaddr_align_up 4096#u64 4096#u64 = ok 4096#u64 := by
+  refine ⟨rfl, rfl⟩
+
+/-- Aligning down never moves an address upward, for every address, on a page
+    alignment. This is the property callers rely on when they align a base down
+    to find the page containing it. -/
+theorem aligning_down_is_the_mask (a : Std.U64) :
+    virtaddr_align_down a 4096#u64 = ok (a &&& 0xFFFFFFFFFFFFF000#u64) := by
+  rfl
+
+/-- And clearing those bits never moves an address upward, for every word. This
+    is the property a caller relies on when it aligns a base down to find the
+    page containing it. -/
+theorem masking_down_never_moves_up (a : BitVec 64) :
+    (a &&& 0xFFFFFFFFFFFFF000#64) ≤ a := by
+  bv_decide
+
+/-! ### The trivial readers
+
+    `new` and `as_u64` are each other's inverse, which is what makes the newtype
+    free: nothing is lost by carrying an address as a `PhysAddr` rather than a
+    word. -/
+
+theorem the_newtype_round_trips (w : Std.U64) :
+    (do let a ← virtaddr_new w; virtaddr_as_u64 a) = ok w := by rfl
+
+theorem zero_is_null_and_nothing_else :
+    (do let a ← virtaddr_zero; virtaddr_is_null a) = ok true ∧
+    virtaddr_is_null 1#u64 = ok false := by
+  refine ⟨rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
+#print axioms NonosExtraction.AddrVirt.aligning_down_can_produce_an_unaligned_address
+#print axioms NonosExtraction.AddrVirt.on_a_power_of_two_they_agree
+#print axioms NonosExtraction.AddrVirt.an_alignment_of_zero_halts_rather_than_refusing
+#print axioms NonosExtraction.AddrVirt.aligning_up_near_the_top_halts
+#print axioms NonosExtraction.AddrVirt.aligning_up_in_the_ordinary_range
+#print axioms NonosExtraction.AddrVirt.aligning_down_is_the_mask
+#print axioms NonosExtraction.AddrVirt.masking_down_never_moves_up
+#print axioms NonosExtraction.AddrVirt.the_newtype_round_trips
+#print axioms NonosExtraction.AddrVirt.zero_is_null_and_nothing_else
 #print axioms NonosExtraction.AddrVirt.the_virtaddr_new_wrapper_is_its_method
 #print axioms NonosExtraction.AddrVirt.the_virtaddr_zero_wrapper_is_its_method
 #print axioms NonosExtraction.AddrVirt.the_virtaddr_as_u64_wrapper_is_its_method
