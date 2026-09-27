@@ -34,13 +34,13 @@ import sys
 from pathlib import Path
 
 # Raise these when the numbers improve. They may never be lowered.
-FLOOR = 410
+FLOOR = 413
 GAP_CEILING = 2
 # Functions carrying a property beyond "this wrapper is its method". That
 # wrapper theorem is real, and it is what ties a manifest entry to the method a
 # theorem talks about, but on its own it says nothing about behaviour. Counting
 # the two together would be the inflation this file exists to stop.
-SUBSTANTIVE_FLOOR = 143
+SUBSTANTIVE_FLOOR = 146
 
 PROOF_MODULES = ('CapsComplete.lean', 'Closure.lean')
 PROOF_DIRS = (
@@ -87,9 +87,12 @@ def mirrored_sources(root):
 
 
 def classify(root):
+    # Read the crate manifest, not EVIDENCE.json. The evidence script calls this
+    # to fill its own counts field, so reading its output here would make the
+    # numbers a function of the last run rather than of the tree.
     manifest = json.loads(
-        (root / 'verification/evidence/EVIDENCE.json').read_text())
-    names = manifest['proof_systems']['lean_extraction']['extracted_functions']
+        (root / 'verification/extraction/crates.json').read_text())
+    names = sorted({s for c in manifest['crates'] for s in c['starts']})
     code = proof_text(root)
     # A wrapper theorem names the function only on its own line; a substantive
     # theorem names it somewhere else. Strip the generated wrapper block and see

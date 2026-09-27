@@ -57,6 +57,96 @@ axiom core.sync.atomic.compiler_fence
 def crypto.util.constant_time.barriers.compiler_fence : Result Unit := do
   core.sync.atomic.compiler_fence core.sync.atomic.Ordering.SeqCst
 
+/-- [nonos_ct::crypto::util::constant_time::compare::ct_eq_32]: loop body 0:
+    Source: 'src/crypto/util/constant_time/../../../../../../../src/crypto/util/constant_time/compare.rs', lines 43:4-45:5
+    Visibility: public -/
+@[rust_loop_body]
+def crypto.util.constant_time.compare.ct_eq_32_loop.body
+  (a : Array Std.U8 32#usize) (b : Array Std.U8 32#usize)
+  (iter : core.ops.range.Range Std.Usize) (diff : Std.U8) :
+  Result (ControlFlow ((core.ops.range.Range Std.Usize) × Std.U8) Std.U8)
+  := do
+  let (o, iter1) ←
+    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
+  match o with
+  | none => ok (done diff)
+  | some i =>
+    let i1 ← Array.index_usize a i
+    let i2 ← Array.index_usize b i
+    let i3 ← lift (i1 ^^^ i2)
+    let diff1 ← lift (diff ||| i3)
+    ok (cont (iter1, diff1))
+
+/-- [nonos_ct::crypto::util::constant_time::compare::ct_eq_32]: loop 0:
+    Source: 'src/crypto/util/constant_time/../../../../../../../src/crypto/util/constant_time/compare.rs', lines 43:4-45:5
+    Visibility: public -/
+@[rust_loop]
+def crypto.util.constant_time.compare.ct_eq_32_loop
+  (iter : core.ops.range.Range Std.Usize) (a : Array Std.U8 32#usize)
+  (b : Array Std.U8 32#usize) (diff : Std.U8) :
+  Result Std.U8
+  := do
+  loop
+    (fun (iter1, diff1) => crypto.util.constant_time.compare.ct_eq_32_loop.body
+      a b iter1 diff1)
+    (iter, diff)
+
+/-- [nonos_ct::crypto::util::constant_time::compare::ct_eq_32]:
+    Source: 'src/crypto/util/constant_time/../../../../../../../src/crypto/util/constant_time/compare.rs', lines 41:0-48:1
+    Visibility: public -/
+def crypto.util.constant_time.compare.ct_eq_32
+  (a : Array Std.U8 32#usize) (b : Array Std.U8 32#usize) : Result Bool := do
+  let diff ←
+    crypto.util.constant_time.compare.ct_eq_32_loop
+      { start := 0#usize, «end» := 32#usize } a b 0#u8
+  crypto.util.constant_time.barriers.compiler_fence
+  ok (diff = 0#u8)
+
+/-- [nonos_ct::crypto::util::constant_time::compare::ct_eq_64]: loop body 0:
+    Source: 'src/crypto/util/constant_time/../../../../../../../src/crypto/util/constant_time/compare.rs', lines 53:4-55:5
+    Visibility: public -/
+@[rust_loop_body]
+def crypto.util.constant_time.compare.ct_eq_64_loop.body
+  (a : Array Std.U8 64#usize) (b : Array Std.U8 64#usize)
+  (iter : core.ops.range.Range Std.Usize) (diff : Std.U8) :
+  Result (ControlFlow ((core.ops.range.Range Std.Usize) × Std.U8) Std.U8)
+  := do
+  let (o, iter1) ←
+    core.iter.range.IteratorRange.next core.iter.range.StepUsize iter
+  match o with
+  | none => ok (done diff)
+  | some i =>
+    let i1 ← Array.index_usize a i
+    let i2 ← Array.index_usize b i
+    let i3 ← lift (i1 ^^^ i2)
+    let diff1 ← lift (diff ||| i3)
+    ok (cont (iter1, diff1))
+
+/-- [nonos_ct::crypto::util::constant_time::compare::ct_eq_64]: loop 0:
+    Source: 'src/crypto/util/constant_time/../../../../../../../src/crypto/util/constant_time/compare.rs', lines 53:4-55:5
+    Visibility: public -/
+@[rust_loop]
+def crypto.util.constant_time.compare.ct_eq_64_loop
+  (iter : core.ops.range.Range Std.Usize) (a : Array Std.U8 64#usize)
+  (b : Array Std.U8 64#usize) (diff : Std.U8) :
+  Result Std.U8
+  := do
+  loop
+    (fun (iter1, diff1) => crypto.util.constant_time.compare.ct_eq_64_loop.body
+      a b iter1 diff1)
+    (iter, diff)
+
+/-- [nonos_ct::crypto::util::constant_time::compare::ct_eq_64]:
+    Source: 'src/crypto/util/constant_time/../../../../../../../src/crypto/util/constant_time/compare.rs', lines 51:0-58:1
+    Visibility: public -/
+def crypto.util.constant_time.compare.ct_eq_64
+  (a : Array Std.U8 64#usize) (b : Array Std.U8 64#usize) : Result Bool := do
+  let diff ←
+    crypto.util.constant_time.compare.ct_eq_64_loop
+      { start := 0#usize, «end» := 64#usize } a b 0#u8
+  crypto.util.constant_time.barriers.compiler_fence
+  ok (diff = 0#u8)
+
 /-- [nonos_ct::crypto::util::constant_time::compare::ct_lt_u64]:
     Source: 'src/crypto/util/constant_time/../../../../../../../src/crypto/util/constant_time/compare.rs', lines 71:0-74:1
     Visibility: public -/

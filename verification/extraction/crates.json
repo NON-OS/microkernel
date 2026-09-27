@@ -110,7 +110,9 @@
         "nonos_ct::crypto::util::constant_time::math::ct_bswap_u64",
         "nonos_ct::crypto::util::constant_time::math::ct_bswap_u32",
         "nonos_ct::crypto::util::constant_time::math::ct_reduce_once_u64",
-        "nonos_ct::crypto::util::constant_time::math::ct_conditional_negate"
+        "nonos_ct::crypto::util::constant_time::math::ct_conditional_negate",
+        "nonos_ct::crypto::util::constant_time::compare::ct_eq_32",
+        "nonos_ct::crypto::util::constant_time::compare::ct_eq_64"
       ]
     },
     {
@@ -1218,6 +1220,17 @@
         "nonos_x_gic_state::set_bases",
         "nonos_x_gic_state::dist_base",
         "nonos_x_gic_state::redist_base"
+      ]
+    },
+    {
+      "name": "ed_field",
+      "crate": "nonos_ed_field",
+      "dir": "verification/extraction/ed_field",
+      "lean": "EdField",
+      "generated": "EdField.lean",
+      "llbc": "ed_field",
+      "starts": [
+        "nonos_ed_field::ed25519_ct_eq_32"
       ]
     }
   ]
