@@ -14,27 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Member paths, as every archive family writes them.
 
-//! Every proof, by the thing it constrains.
+use alloc::vec::Vec;
 
-mod auth_refusals;
-mod auth_tests;
-mod deb_chain_tests;
-mod deb_file_tests;
-mod deb_path_tests;
-mod dirent_tests;
-mod elf_tests;
-mod exec_shebang_tests;
-mod index_tests;
-mod key_tests;
-mod mutation;
-mod mutation_tests;
-mod pacman_desc_tests;
-mod pacman_rsa_tests;
-mod resolve_tests;
-mod service;
-mod stack_words_tests;
-mod stat_tests;
-mod tar_link_tests;
-mod tar_tests;
-mod wire_tests;
+/// A member path as the archive's root sees it. dpkg writes `./usr/bin/x`
+/// where apk writes `usr/bin/x`, and a directory ends in `/` on the wire.
+/// A symlink's target is left as written: `./` there is meaningful.
+pub(super) fn member(mut name: Vec<u8>) -> Vec<u8> {
+    while name.starts_with(b"./") {
+        name.drain(..2);
+    }
+    while name.len() > 1 && name.last() == Some(&b'/') {
+        name.pop();
+    }
+    name
+}

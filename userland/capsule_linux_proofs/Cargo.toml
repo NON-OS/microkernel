@@ -22,6 +22,8 @@ path = "src/lib.rs"
 # What the mounted installer files link against in the capsule.
 nonos_inflate = { path = "../inflate" }
 nonos_hash = { path = "../nonos_hash" }
+nonos_xz = { path = "../xz" }
+nonos_zstd = { path = "../zstd" }
 sha1 = { version = "0.10", default-features = false }
 
 [dev-dependencies]

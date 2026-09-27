@@ -17,34 +17,16 @@
 //! The RSA request the capsule sends for an OpenPGP signature, checked the
 //! way the crypto service checks it, against GnuPG's own signatures.
 
-use nonos_openpgp::{keys, verify, Material, Verifier};
+use nonos_openpgp::{keys, verify, Material};
 use rsa::pkcs8::DecodePublicKey;
-use rsa::sha2::{Sha256, Sha512};
 use rsa::traits::PublicKeyParts;
-use rsa::{BigUint, Pkcs1v15Sign, RsaPublicKey};
+use rsa::{BigUint, RsaPublicKey};
 
-use crate::install::pacman::request::request;
+use super::service::Service;
+
+use crate::install::pgp::request::request;
 
 const VECTORS: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../openpgp/tests/vectors");
-
-/// capsule_crypto's rsa_scheme for scheme 0, standing in for the IPC call.
-struct Service;
-
-impl Verifier for Service {
-    fn rsa(&self, n: &[u8], e: &[u8], sig: &[u8], hash: u8, digest: &[u8]) -> bool {
-        let Some(r) = request(n, e, sig, hash) else { return false };
-        let Ok(key) = RsaPublicKey::from_public_key_der(&r.spki) else { return false };
-        match r.hashid {
-            0 => key.verify(Pkcs1v15Sign::new::<Sha256>(), digest, &r.sig).is_ok(),
-            2 => key.verify(Pkcs1v15Sign::new::<Sha512>(), digest, &r.sig).is_ok(),
-            _ => false,
-        }
-    }
-
-    fn ed25519(&self, _: &[u8; 32], _: &[u8; 64], _: &[u8]) -> bool {
-        false
-    }
-}
 
 fn read(name: &str) -> Vec<u8> {
     std::fs::read(format!("{VECTORS}/{name}")).expect(name)

@@ -14,27 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! A pool path in a Packages stanza stays under the mirror's root.
 
-//! Every proof, by the thing it constrains.
+use crate::install::deb::packages::stanzas;
 
-mod auth_refusals;
-mod auth_tests;
-mod deb_chain_tests;
-mod deb_file_tests;
-mod deb_path_tests;
-mod dirent_tests;
-mod elf_tests;
-mod exec_shebang_tests;
-mod index_tests;
-mod key_tests;
-mod mutation;
-mod mutation_tests;
-mod pacman_desc_tests;
-mod pacman_rsa_tests;
-mod resolve_tests;
-mod service;
-mod stack_words_tests;
-mod stat_tests;
-mod tar_link_tests;
-mod tar_tests;
-mod wire_tests;
+#[test]
+fn a_pool_path_that_leaves_the_root_is_dropped() {
+    let sum = "0".repeat(64);
+    for bad in ["../../etc/x.deb", "/abs/x.deb", "pool/./x.deb", "pool//x.deb", "pool/x.tar"] {
+        let text = format!("Package: x\nVersion: 1\nFilename: {bad}\nSHA256: {sum}\n");
+        assert!(stanzas(&text).is_empty(), "{bad}");
+    }
+}

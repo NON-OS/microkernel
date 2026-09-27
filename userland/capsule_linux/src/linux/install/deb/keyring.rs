@@ -14,27 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The archive keys a Release must be signed by, pinned into this capsule
+//! when it is built from the file NONOS_DEB_KEYRING names, armored as
+//! Debian and Kali publish them or binary.
 
-//! Every proof, by the thing it constrains.
+use alloc::vec::Vec;
 
-mod auth_refusals;
-mod auth_tests;
-mod deb_chain_tests;
-mod deb_file_tests;
-mod deb_path_tests;
-mod dirent_tests;
-mod elf_tests;
-mod exec_shebang_tests;
-mod index_tests;
-mod key_tests;
-mod mutation;
-mod mutation_tests;
-mod pacman_desc_tests;
-mod pacman_rsa_tests;
-mod resolve_tests;
-mod service;
-mod stack_words_tests;
-mod stat_tests;
-mod tar_link_tests;
-mod tar_tests;
-mod wire_tests;
+use nonos_openpgp::{dearmor, keys, Key};
+
+const RING: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/deb-keyring.gpg"));
+
+/// None when the image was built without one; nothing then verifies.
+pub fn pinned() -> Option<Vec<Key>> {
+    match RING.starts_with(b"-----BEGIN") {
+        true => keys(&dearmor(RING)?),
+        false => keys(RING),
+    }
+}

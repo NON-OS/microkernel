@@ -14,27 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The OpenPGP request the capsule sends the crypto service, included.
 
-//! Every proof, by the thing it constrains.
+#[path = "../../../capsule_linux/src/linux/install/pgp/spki.rs"]
+pub mod spki;
 
-mod auth_refusals;
-mod auth_tests;
-mod deb_chain_tests;
-mod deb_file_tests;
-mod deb_path_tests;
-mod dirent_tests;
-mod elf_tests;
-mod exec_shebang_tests;
-mod index_tests;
-mod key_tests;
-mod mutation;
-mod mutation_tests;
-mod pacman_desc_tests;
-mod pacman_rsa_tests;
-mod resolve_tests;
-mod service;
-mod stack_words_tests;
-mod stat_tests;
-mod tar_link_tests;
-mod tar_tests;
-mod wire_tests;
+#[path = "../../../capsule_linux/src/linux/install/pgp/request.rs"]
+pub mod request;

@@ -22,16 +22,23 @@ const GZIP: [u8; 2] = [0x1F, 0x8B];
 const ZSTD: [u8; 4] = [0x28, 0xB5, 0x2F, 0xFD];
 const XZ: [u8; 6] = [0xFD, 0x37, 0x7A, 0x58, 0x5A, 0x00];
 
+/// A tar, decompressed if it is compressed.
 pub fn unpacked(b: &[u8]) -> Option<Vec<u8>> {
+    // An uncompressed tar says so at offset 257.
+    let tar = b.get(257..262) == Some(b"ustar".as_slice());
+    if tar {
+        return Some(b.to_vec());
+    }
+    decompressed(b)
+}
+
+/// Bytes compressed with zstd, gzip or xz; anything else is None.
+pub fn decompressed(b: &[u8]) -> Option<Vec<u8>> {
     if b.starts_with(&ZSTD) {
         return nonos_zstd::decompress(b);
     }
     if b.starts_with(&GZIP) {
         return nonos_inflate::gunzip(b);
     }
-    if b.starts_with(&XZ) {
-        return nonos_xz::decompress(b);
-    }
-    // An uncompressed tar says so at offset 257.
-    (b.get(257..262) == Some(b"ustar".as_slice())).then(|| b.to_vec())
+    b.starts_with(&XZ).then(|| nonos_xz::decompress(b))?
 }

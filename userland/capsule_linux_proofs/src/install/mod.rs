@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The installer's pure parsers, included from the capsule.
 
 pub mod auth;
@@ -28,6 +27,9 @@ pub mod tar_kind;
 #[path = "../../../capsule_linux/src/linux/install/tar_pax.rs"]
 pub mod tar_pax;
 
+#[path = "../../../capsule_linux/src/linux/install/tar_path.rs"]
+pub mod tar_path;
+
 #[path = "../../../capsule_linux/src/linux/install/tar.rs"]
 pub mod tar;
 
@@ -40,4 +42,9 @@ pub mod index;
 #[path = "../../../capsule_linux/src/linux/install/hex.rs"]
 pub mod hex;
 
+pub mod deb;
 pub mod pacman;
+pub mod pgp;
+
+#[path = "../../../capsule_linux/src/linux/install/unpacked.rs"]
+pub mod unpacked;

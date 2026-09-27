@@ -18,9 +18,3 @@
 
 #[path = "../../../capsule_linux/src/linux/install/pacman/desc.rs"]
 pub mod desc;
-
-#[path = "../../../capsule_linux/src/linux/install/pgp/spki.rs"]
-pub mod spki;
-
-#[path = "../../../capsule_linux/src/linux/install/pgp/request.rs"]
-pub mod request;

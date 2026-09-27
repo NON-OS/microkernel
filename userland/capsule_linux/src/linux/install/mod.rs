@@ -17,8 +17,10 @@
 //! Installing a Linux program from within the system.
 
 mod auth;
+mod deb;
 mod download;
 mod enrol;
+mod family;
 mod fetch;
 mod hex;
 mod http;
@@ -39,7 +41,8 @@ mod tar;
 mod tar_field;
 mod tar_kind;
 mod tar_pax;
+mod tar_path;
 mod unpacked;
 
 pub use program::recorded;
-pub use run::install;
+pub use family::install;

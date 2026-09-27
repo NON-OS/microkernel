@@ -14,27 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Damage the way hostile bytes arrive: a flipped bit, an overwritten byte,
+//! a truncation, or a separator inserted where a parser splits.
 
-//! Every proof, by the thing it constrains.
-
-mod auth_refusals;
-mod auth_tests;
-mod deb_chain_tests;
-mod deb_file_tests;
-mod deb_path_tests;
-mod dirent_tests;
-mod elf_tests;
-mod exec_shebang_tests;
-mod index_tests;
-mod key_tests;
-mod mutation;
-mod mutation_tests;
-mod pacman_desc_tests;
-mod pacman_rsa_tests;
-mod resolve_tests;
-mod service;
-mod stack_words_tests;
-mod stat_tests;
-mod tar_link_tests;
-mod tar_tests;
-mod wire_tests;
+pub fn damage(s: &mut u64, v: &mut Vec<u8>) {
+    let mut next = || {
+        *s ^= *s << 13;
+        *s ^= *s >> 7;
+        *s ^= *s << 17;
+        *s
+    };
+    let at = (next() % v.len().max(1) as u64) as usize;
+    match next() % 4 {
+        0 if at < v.len() => v[at] ^= 1 << (next() % 8),
+        1 if at < v.len() => v[at] = next() as u8,
+        2 => v.truncate(at),
+        _ => v.insert(at.min(v.len()), b"\n:%/ ."[(next() % 6) as usize]),
+    }
+}

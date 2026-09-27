@@ -17,6 +17,7 @@
 //! What one header is: an entry, a record about the next entry, or dropped.
 
 use super::tar_field::{cstr, link_of, name_of};
+use super::tar_path::member;
 use super::tar_pax::{read as read_pax, Overrides};
 use alloc::vec::Vec;
 
@@ -43,7 +44,7 @@ pub(super) enum Read {
 pub(super) fn read(flag: u8, head: &[u8], body: &[u8], next: &mut Overrides) -> Read {
     let kind = match flag {
         b'0' | 0 | b'7' => Kind::File,
-        b'1' => Kind::Hardlink(next.link.take().unwrap_or_else(|| link_of(head))),
+        b'1' => Kind::Hardlink(member(next.link.take().unwrap_or_else(|| link_of(head)))),
         b'2' => Kind::Symlink(next.link.take().unwrap_or_else(|| link_of(head))),
         b'5' => Kind::Dir,
         b'x' => {
@@ -64,11 +65,7 @@ pub(super) fn read(flag: u8, head: &[u8], body: &[u8], next: &mut Overrides) -> 
             return Read::Dropped;
         }
     };
-    // A directory's name ends in `/` on the wire; the path is the same without.
-    let mut name = next.path.take().unwrap_or_else(|| name_of(head));
-    while name.len() > 1 && name.last() == Some(&b'/') {
-        name.pop();
-    }
+    let name = member(next.path.take().unwrap_or_else(|| name_of(head)));
     let body = if matches!(kind, Kind::File) { body.to_vec() } else { Vec::new() };
     *next = Overrides::default();
     Read::Entry(Entry { name, kind, body })
