@@ -46,11 +46,7 @@ pub fn open_stream_to(ip: &str) -> Option<u32> {
 }
 
 pub fn connect_host(handle: u32, host: &str, port: u16) -> Option<()> {
-    let mut body = Vec::with_capacity(7 + host.len());
-    body.extend_from_slice(&handle.to_le_bytes());
-    body.extend_from_slice(&port.to_le_bytes());
-    body.push(host.len() as u8);
-    body.extend_from_slice(host.as_bytes());
+    let body = super::host_body::host_body(handle, port, host.as_bytes())?;
     match call(OP_CONNECT_HOST, &body, 0) {
         Some((0, _)) => Some(()),
         got => failed("connect", host, got.map(|g| g.0)),
