@@ -98,12 +98,22 @@ pub fn ct_bswap_u32(x: u32) -> u32 {
     (x >> 16) | (x << 16)
 }
 
+/// Subtract `m` once if `a` is at least `m`, without branching.
+///
+/// This is the final conditional subtraction of a Montgomery or Barrett
+/// reduction, not a modulo: it subtracts `m` at most once, so it agrees with
+/// `a % m` exactly when `a < 2m` and not otherwise. It was called `ct_mod_u64`,
+/// which promised the general operation: at `a = 14, m = 7` the old name returned
+/// 7 rather than 0, and on random `u64` inputs it disagreed with `%` on every
+/// one. `CtPrimitivesRefinement.lean` states the contract it does satisfy and
+/// keeps the promise the name used to make, so the name cannot drift back.
+///
+/// A caller that needs a modulo for arbitrary `a` needs a reduction loop, and
+/// this is not one.
 #[inline(always)]
-pub fn ct_mod_u64(a: u64, m: u64) -> u64 {
-    let mut result = a;
-    let should_sub = ct_gt_u64(result, m.wrapping_sub(1));
-    result = ct_select_u64(should_sub != 0, result.wrapping_sub(m), result);
-    result
+pub fn ct_reduce_once_u64(a: u64, m: u64) -> u64 {
+    let should_sub = ct_gt_u64(a, m.wrapping_sub(1));
+    ct_select_u64(should_sub != 0, a.wrapping_sub(m), a)
 }
 
 #[inline(always)]

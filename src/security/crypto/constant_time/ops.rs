@@ -17,16 +17,25 @@
 use super::core::{ct_is_zero_u32, ct_is_zero_u64, ct_select_u32, ct_select_u8};
 use core::sync::atomic::{compiler_fence, Ordering};
 
+/// One when `a < b`, zero otherwise, without branching.
+///
+/// The top bit of `a - b` is not the borrow: the borrow is bit 32, which a `u32`
+/// does not have, so reading the difference's sign answers the wrong question
+/// whenever the two arguments differ in their own top bit. This computes the
+/// borrow instead, which costs two more operations and is what
+/// `CtRefinement.lean` proves about it.
 #[inline(always)]
 pub fn ct_lt_u32(a: u32, b: u32) -> u32 {
-    let diff = a.wrapping_sub(b);
-    (diff >> 31) & 1
+    let x = a ^ ((a ^ b) | (a.wrapping_sub(b) ^ b));
+    x >> 31
 }
 
+/// One when `a < b`, zero otherwise, without branching. The same borrow as
+/// above, a word wider.
 #[inline(always)]
 pub fn ct_lt_u64(a: u64, b: u64) -> u64 {
-    let diff = a.wrapping_sub(b);
-    (diff >> 63) & 1
+    let x = a ^ ((a ^ b) | (a.wrapping_sub(b) ^ b));
+    x >> 63
 }
 
 #[inline(always)]

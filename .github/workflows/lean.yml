@@ -12,7 +12,12 @@
 # a profiled theorem's closure would surface as `sorryAx` and fail the run.
 name: lean
 on:
+  # A pull-request branch is covered by the pull_request event alone. Firing on
+  # push as well ran every job twice per commit and the concurrency group
+  # cancelled one copy, so a green pull request read as dozens of cancelled
+  # checks. Push covers the branches that have no pull request.
   push:
+    branches: [main, develop]
   pull_request:
   workflow_dispatch:
 
