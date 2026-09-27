@@ -30,6 +30,23 @@
         "nonos_ct::security::crypto::constant_time::ops::ct_lt_u64",
         "nonos_ct::security::crypto::constant_time::ops::ct_max_u32",
         "nonos_ct::security::crypto::constant_time::ops::ct_min_u32",
+        "nonos_iommu::agaw_context_aw",
+        "nonos_iommu::agaw_page_table_levels",
+        "nonos_iommu::arch::x86_64::iommu::regs::cap::agaw::preferred_levels",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::context_domain",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::context_high",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::context_index",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::context_low",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::entry_address",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::is_present",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::root_low",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::entry_address",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::fits_address_width",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::index_for",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::is_present",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::leaf",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::level_span",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::table",
         "nonos_irq::irq::validate::validate_msix_request",
         "nonos_policy::is_wx_violation",
         "nonos_policy::to_pte_flags",
@@ -59,6 +76,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/Ct.lean",
           "sha256": "b649c3ad89898d1fed082438dbb5ba85bbfd9db547e7a1f38627c85f730d98d1"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Iommu.lean",
+          "sha256": "00bd82326b3382666b8ff8922b71a2f40f0766e9230c037796d3dc710dddb384"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Irq.lean",

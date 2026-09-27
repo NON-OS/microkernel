@@ -20,6 +20,8 @@ import NonosExtraction.Caps
 import NonosExtraction.Ct
 import NonosExtraction.CtRefinement
 import NonosExtraction.CapsComplete
+import NonosExtraction.Iommu
+import NonosExtraction.IommuRefinement
 import NonosExtraction.Irq
 import NonosExtraction.IrqRefinement
 import NonosExtraction.PolicyRefinement
