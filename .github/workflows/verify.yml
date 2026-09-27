@@ -451,6 +451,8 @@ jobs:
             --start-from 'nonos_caps::capabilities::bits::has_capability' \
             --start-from 'nonos_caps::capabilities::bits::add_capability' \
             --start-from 'nonos_caps::capabilities::bits::remove_capability' \
+            --start-from 'nonos_caps::capabilities::bits::fold_caps' \
+            --start-from 'nonos_caps::capabilities::bits::select_caps' \
             --dest-file caps.llbc
           mkdir -p /tmp/regen-caps
           aeneas -backend lean caps.llbc -dest /tmp/regen-caps
