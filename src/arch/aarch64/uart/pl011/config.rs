@@ -23,7 +23,7 @@ pub enum Pl011ConfigError {
     InvalidClock,
 }
 
-pub type Pl011ConfigResult<T> = Result<T, Pl011ConfigError>;
+pub(super) type Pl011ConfigResult<T> = Result<T, Pl011ConfigError>;
 
 impl Pl011 {
     pub fn init(&self, baud: u32, clock: u32) -> Pl011ConfigResult<()> {

@@ -14,26 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const UARTDR: u64 = 0x000;
-pub const UARTFR: u64 = 0x018;
-pub const UARTIBRD: u64 = 0x024;
-pub const UARTFBRD: u64 = 0x028;
-pub const UARTLCR_H: u64 = 0x02C;
-pub const UARTCR: u64 = 0x030;
-pub const UARTIMSC: u64 = 0x038;
-pub const UARTMIS: u64 = 0x040;
-pub const UARTICR: u64 = 0x044;
+pub(super) const UARTDR: u64 = 0x000;
+pub(super) const UARTFR: u64 = 0x018;
+pub(super) const UARTIBRD: u64 = 0x024;
+pub(super) const UARTFBRD: u64 = 0x028;
+pub(super) const UARTLCR_H: u64 = 0x02C;
+pub(super) const UARTCR: u64 = 0x030;
+pub(super) const UARTIMSC: u64 = 0x038;
+pub(super) const UARTMIS: u64 = 0x040;
+pub(super) const UARTICR: u64 = 0x044;
 
-pub const FR_BUSY: u32 = 1 << 3;
-pub const FR_RXFE: u32 = 1 << 4;
-pub const FR_TXFF: u32 = 1 << 5;
+pub(super) const FR_BUSY: u32 = 1 << 3;
+pub(super) const FR_RXFE: u32 = 1 << 4;
+pub(super) const FR_TXFF: u32 = 1 << 5;
 
-pub const CR_UARTEN: u32 = 1 << 0;
-pub const CR_TXE: u32 = 1 << 8;
-pub const CR_RXE: u32 = 1 << 9;
+pub(super) const CR_UARTEN: u32 = 1 << 0;
+pub(super) const CR_TXE: u32 = 1 << 8;
+pub(super) const CR_RXE: u32 = 1 << 9;
 
-pub const LCR_FEN: u32 = 1 << 4;
-pub const LCR_WLEN_8: u32 = 0b11 << 5;
+pub(super) const LCR_FEN: u32 = 1 << 4;
+pub(super) const LCR_WLEN_8: u32 = 0b11 << 5;
 
-pub const IMSC_RXIM: u32 = 1 << 4;
-pub const INTERRUPT_CLEAR_ALL: u32 = 0x7FF;
+pub(super) const IMSC_RXIM: u32 = 1 << 4;
+pub(super) const INTERRUPT_CLEAR_ALL: u32 = 0x7FF;
