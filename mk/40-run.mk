@@ -355,6 +355,7 @@ TCB_BUDGET ?= nonos-ci/baselines/tcb-x86_64-capsules.txt
 .PHONY: nonos-mk-tcb
 nonos-mk-tcb:
 	@$(NONOS_PYTHON) tools/nonos-tcb --by-module --baseline $(TCB_BUDGET)
+	@$(NONOS_PYTHON) tools/nonos-proof-coverage --baseline scripts/baselines/proof-coverage.txt
 
 MICROKERNEL_BIN := $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 

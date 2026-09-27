@@ -24,9 +24,8 @@ dep-info for the kernel library says it read. A file inside that set is
 counted whole, including anything a `cfg` removes from it, so the number is
 an upper bound at file granularity.
 
-Generated files under OUT_DIR and `include_bytes!` payloads are not source
-anyone reviews in the tree and are left out; the count is Rust under src/.
-A line counts when it is neither blank nor a comment.
+Generated files, `include_bytes!` payloads and path crates such as
+nonos-stark are left out: the count is non-comment Rust under src/.
 """
 
 import argparse
@@ -34,84 +33,31 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-
-def depinfo_sources(depinfo, root):
-    """The .rs files under root/src that the dep-info lists."""
-    text = depinfo.read_text()
-    first = text.split("\n", 1)[0]
-    _, _, deps = first.partition(": ")
-    src = (root / "src").resolve()
-    out = set()
-    # Paths with spaces are escaped with a backslash; the kernel has none, so
-    # a plain split is exact here and anything odd is refused below.
-    for dep in deps.split():
-        p = Path(dep)
-        if not p.is_absolute():
-            p = root / p
-        p = p.resolve()
-        if p.suffix == ".rs" and src in p.parents:
-            out.add(p)
-    return sorted(out)
-
-
-def code_lines(path):
-    """Lines that are neither blank nor comment. Block comments may nest in
-    Rust; the tree does not nest them, and a nested one only miscounts the
-    lines inside it."""
-    n = 0
-    in_block = False
-    for raw in path.read_text(errors="replace").splitlines():
-        s = raw.strip()
-        if in_block:
-            if "*/" in s:
-                in_block = False
-            continue
-        if not s or s.startswith("//"):
-            continue
-        if s.startswith("/*"):
-            in_block = "*/" not in s
-            continue
-        n += 1
-    return n
-
-
-def newest_depinfo(target):
-    found = []
-    for d in target.glob("nonos_kernel-*.d"):
-        # The library's dep-info lists every module; the binary's lists two.
-        if len(d.read_text().split("\n", 1)[0].split()) > 64:
-            found.append(d)
-    if not found:
-        return None
-    return max(found, key=lambda d: d.stat().st_mtime)
+sys.path.insert(0, str(Path(__file__).resolve().parent / "ratchets"))
+import budget  # noqa: E402
+from kernel_files import DEPS, kernel_files  # noqa: E402
+from ring0 import code_lines  # noqa: E402
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     ap.add_argument("--root", type=Path, default=Path("."), help="repository root")
     ap.add_argument("--depinfo", type=Path, help="kernel library dep-info (.d); default: newest")
-    ap.add_argument("--target-deps", type=Path, default=Path("target/x86_64-nonos/release/deps"))
+    ap.add_argument("--target-deps", type=Path, default=DEPS)
     ap.add_argument("--baseline", type=Path, help="fail when the count exceeds this file's number")
     ap.add_argument("--by-module", action="store_true", help="print the count per top-level module")
     a = ap.parse_args()
 
     root = a.root.resolve()
-    depinfo = a.depinfo or newest_depinfo(root / a.target_deps)
-    if depinfo is None or not depinfo.is_file():
-        print("nonos-tcb: no kernel dep-info; build the kernel first", file=sys.stderr)
-        return 2
-    files = depinfo_sources(depinfo, root)
+    depinfo, files = kernel_files(root, a.depinfo, a.target_deps)
     if not files:
-        print(f"nonos-tcb: {depinfo} lists no kernel sources", file=sys.stderr)
         return 2
 
     per = Counter()
-    total = 0
     for f in files:
-        n = code_lines(f)
-        total += n
         rel = f.relative_to(root / "src")
-        per[rel.parts[0] if len(rel.parts) > 1 else "(root)"] += n
+        per[rel.parts[0] if len(rel.parts) > 1 else "(root)"] += code_lines(f)
+    total = sum(per.values())
 
     print(f"[tcb] {len(files)} files, {total} lines of ring 0 code ({depinfo.name})")
     if a.by_module:
@@ -119,19 +65,7 @@ def main():
             print(f"[tcb]   {name:24} {n:7}")
 
     if a.baseline:
-        want = a.baseline.read_text().strip()
-        if not want.isdigit():
-            print(f"nonos-tcb: baseline {a.baseline} is not an integer: {want!r}", file=sys.stderr)
-            return 2
-        budget = int(want)
-        print(f"[tcb] budget {budget}, delta {total - budget:+d}")
-        if total > budget:
-            print(
-                f"::error::ring 0 grew past its budget: {total} > {budget}. "
-                "Move the code out of the kernel, or justify raising the budget in the PR.",
-                file=sys.stderr,
-            )
-            return 1
+        return budget.held("tcb", total, a.baseline, grows_ok=False)
     return 0
 
 

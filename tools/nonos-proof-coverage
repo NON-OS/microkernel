@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""How much of ring 0 a theorem over extracted code constrains.
+
+A kernel line counts when it is code, the kernel links its file, and it lies
+inside a definition Aeneas extracted that a hand-written theorem file names.
+The count may grow and may not shrink; the fraction of the TCB is printed
+beside it. Models written by hand, however faithful, do not count.
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "ratchets"))
+import budget  # noqa: E402
+from kernel_files import DEPS, kernel_files  # noqa: E402
+from proof_cover import covered  # noqa: E402
+from ring0 import code_line_numbers, code_lines  # noqa: E402
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("--root", type=Path, default=Path("."))
+    ap.add_argument("--lean", type=Path, default=Path("verification/extraction/lean"))
+    ap.add_argument("--depinfo", type=Path)
+    ap.add_argument("--target-deps", type=Path, default=DEPS)
+    ap.add_argument("--baseline", type=Path, help="fail when the count falls below this file's number")
+    ap.add_argument("--by-file", action="store_true")
+    a = ap.parse_args()
+    root = a.root.resolve()
+    _, files = kernel_files(root, a.depinfo, a.target_deps)
+    if not files:
+        return 2
+    cover = covered(root, root / a.lean, files, code_line_numbers)
+    lines = sum(len(v) for v in cover.values())
+    tcb = sum(code_lines(f) for f in files)
+    print(f"[proof] {lines} of {tcb} ring 0 lines under a theorem over extracted code "
+          f"({100 * lines / tcb:.3f}%), in {len(cover)} files")
+    if a.by_file:
+        for f, v in sorted(cover.items()):
+            print(f"[proof]   {f.relative_to(root)} {len(v)}")
+    if a.baseline:
+        return budget.held("proof", lines, a.baseline, grows_ok=True)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
