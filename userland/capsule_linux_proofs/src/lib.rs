@@ -60,6 +60,9 @@ pub mod server;
 #[path = "../../capsule_linux/src/linux/net/route.rs"]
 pub mod route;
 
+#[path = "../../capsule_linux/src/linux/call/sigframe.rs"]
+pub mod sigframe;
+
 #[path = "../../capsule_linux/src/linux/call/spawn/exec_shebang.rs"]
 pub mod exec_shebang;
 

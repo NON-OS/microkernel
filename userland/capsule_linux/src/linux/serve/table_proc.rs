@@ -23,6 +23,7 @@ use crate::linux::guest::Guest;
 pub fn proc_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
     Some(match nr {
         np::KILL | np::TKILL => call::kill(guest, a[0], a[1]),
+        np::TGKILL => call::kill(guest, a[1], a[2]),
         np::GETPPID => call::getppid(guest),
         np::SETPGID => call::setpgid(guest, a[0], a[1]),
         np::GETPGRP | np::GETPGID => call::getpgid(guest),

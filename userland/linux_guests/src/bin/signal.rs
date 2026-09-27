@@ -14,41 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A hosted process: what it is, what it has open, and how this capsule
-//! reaches into it.
+//! Prove signal delivery end to end: a handler installed, a signal raised at
+//! this thread, the handler run and returned from. Exits 0 only on delivery.
 
-mod fd;
-mod fd_dup;
-mod fd_empty;
-mod fd_kind;
-mod fd_make;
-mod fork_state;
-mod handle;
-mod handle_new;
-pub mod sigqueue;
-pub mod sigstate;
-mod layout;
-mod links;
-mod links_add;
-mod links_list;
-mod links_load;
-mod mem;
-mod mem_copy;
-mod mem_map;
-mod mem_unmap;
-mod region;
-mod region_cut;
-mod region_find;
-mod region_mark;
-mod threads;
+use std::process::ExitCode;
 
-pub use fd::Fd;
-pub use fd_kind::Kind;
-pub use handle::Guest;
-pub use links::Links;
-pub use layout::{
-    BRK_BASE, BRK_LIMIT, EXEC_BASE, INTERP_BASE, MMAP_BASE, MMAP_LIMIT, STACK_SIZE,
-    STACK_TOP,
-};
-pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
-pub use region::Region;
+use nonos_linux_guests::signal_probe;
+
+fn main() -> ExitCode {
+    match signal_probe::scan() {
+        true => ExitCode::SUCCESS,
+        false => ExitCode::FAILURE,
+    }
+}

@@ -56,6 +56,7 @@ pub const FSTATFS: u64 = 138;
 pub const STATX: u64 = 332;
 pub const KILL: u64 = 62;
 pub const TKILL: u64 = 200;
+pub const TGKILL: u64 = 234;
 pub const GETRESUID: u64 = 118;
 pub const GETRESGID: u64 = 120;
 pub const PPOLL: u64 = 271;

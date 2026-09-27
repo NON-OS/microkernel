@@ -43,8 +43,8 @@ pub struct Guest {
     pub objects: crate::linux::wayland::Objects,
     /// What those objects describe, and the surface it reaches.
     pub scene: crate::linux::wayland::Scene,
-    /// Handlers installed; nothing is raised against them (`call::signal`).
-    pub handlers: [bool; 64],
+    /// Signal dispositions and what is raised against this process's threads.
+    pub signals: super::sigqueue::Signals,
     /// What a relative path is relative to.
     pub cwd: Vec<u8>,
     /// Names this guest has resolved, each with the address it was given.

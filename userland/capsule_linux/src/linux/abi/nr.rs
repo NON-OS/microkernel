@@ -34,6 +34,7 @@ pub const MUNMAP: u64 = 11;
 pub const BRK: u64 = 12;
 pub const RT_SIGACTION: u64 = 13;
 pub const RT_SIGPROCMASK: u64 = 14;
+pub const RT_SIGRETURN: u64 = 15;
 pub const IOCTL: u64 = 16;
 pub const PREAD64: u64 = 17;
 pub const PWRITE64: u64 = 18;

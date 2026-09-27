@@ -34,7 +34,7 @@ impl Guest {
             children: Vec::new(),
             threads: Vec::new(),
             waits: Vec::new(),
-            handlers: [false; 64],
+            signals: super::sigqueue::Signals::default(),
             display: Default::default(),
             objects: Default::default(),
             scene: Default::default(),

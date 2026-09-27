@@ -64,3 +64,19 @@ fn damaged_indexes_never_panic() {
         }
     }
 }
+
+#[test]
+fn a_damaged_signal_frame_never_panics_returning() {
+    use crate::sigframe::{build, returned};
+    let mut s = 0x516E_A100u64;
+    let mut base = [0u64; 18];
+    base[15] = 0x7fff_ff00_0000;
+    let (_, buf, _) = build(&base, 0x4000, 0x4008, 11, 0).expect("frame");
+    for _ in 0..ROUNDS {
+        let mut v = buf.clone();
+        damage(&mut s, &mut v);
+        // rt_sigreturn reads the ucontext at the guest's rsp: any bytes there.
+        let _ = returned(&v);
+        let _ = v.first().map(|_| returned(&v[v.len().min(8)..]));
+    }
+}

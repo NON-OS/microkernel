@@ -40,6 +40,7 @@ mod pacman_desc_tests;
 mod pacman_rsa_tests;
 mod resolve_tests;
 mod route_tests;
+mod sigframe_tests;
 mod service;
 mod stack_words_tests;
 mod stat_tests;

@@ -37,7 +37,7 @@ impl Guest {
         g.fds = self.fds.iter().map(|f| Fd { cloexec: f.cloexec, ..Fd::clone_of(f) }).collect();
         g.regions = self.regions.clone();
         g.pipes = Vec::new();
-        g.handlers = self.handlers;
+        g.signals = self.signals.clone();
         g.cwd = self.cwd.clone();
         g.automap = self.automap.clone();
         g.fs_base = self.fs_base;

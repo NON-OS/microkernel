@@ -14,41 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A hosted process: what it is, what it has open, and how this capsule
-//! reaches into it.
+//! A signal's disposition: what the guest asked to happen when it fires.
+//! Process-wide, as on Linux.
 
-mod fd;
-mod fd_dup;
-mod fd_empty;
-mod fd_kind;
-mod fd_make;
-mod fork_state;
-mod handle;
-mod handle_new;
-pub mod sigqueue;
-pub mod sigstate;
-mod layout;
-mod links;
-mod links_add;
-mod links_list;
-mod links_load;
-mod mem;
-mod mem_copy;
-mod mem_map;
-mod mem_unmap;
-mod region;
-mod region_cut;
-mod region_find;
-mod region_mark;
-mod threads;
+/// The largest signal Linux defines.
+pub const NSIG: usize = 64;
 
-pub use fd::Fd;
-pub use fd_kind::Kind;
-pub use handle::Guest;
-pub use links::Links;
-pub use layout::{
-    BRK_BASE, BRK_LIMIT, EXEC_BASE, INTERP_BASE, MMAP_BASE, MMAP_LIMIT, STACK_SIZE,
-    STACK_TOP,
-};
-pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
-pub use region::Region;
+/// `struct sigaction` as the guest passes it: handler, flags, restorer, mask.
+#[derive(Clone, Copy, Default)]
+pub struct SigAction {
+    pub handler: u64,
+    pub flags: u64,
+    pub restorer: u64,
+    pub mask: u64,
+}
+
+impl SigAction {
+    /// SIG_DFL is a null handler and SIG_IGN is 1; neither enters guest code.
+    pub fn catches(&self) -> bool {
+        self.handler > 1
+    }
+    pub fn ignores(&self) -> bool {
+        self.handler == 1
+    }
+}

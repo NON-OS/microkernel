@@ -14,13 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every process this personality hosts: the guest it started, and whatever
-//! that guest forks.
-//!
-//! Each has its own state, so a child's descriptors, break and cwd are its
-//! own. Pipe buffers are the family's, since a pipe opened before a fork has
-//! a reader and a writer in different processes; they are lent to the guest
-//! being answered and taken back after.
+//! Every process this personality hosts: the guest it started and whatever
+//! that guest forks. Each keeps its own descriptors, break and cwd. Pipe
+//! buffers are the family's, lent to the guest being answered and taken back:
+//! a pipe opened before a fork has its ends in different processes.
 
 use alloc::vec::Vec;
 use core::mem;
@@ -44,8 +41,7 @@ pub struct Family {
 
 impl Family {
     pub fn new(mut first: Guest) -> Self {
-        let pipes = mem::take(&mut first.pipes);
-        let root = first.pid;
+        let (pipes, root) = (mem::take(&mut first.pipes), first.pid);
         let ns = PidNs::new(first.parent, root);
         Family { guests: alloc::vec![first], pipes, root, root_code: 0, ns }
     }
@@ -62,7 +58,11 @@ impl Family {
         mem::swap(&mut self.pipes, &mut g.pipes);
         let born = mem::take(&mut g.forked);
         if let Answer::Reply(value) = got {
-            let _ = mk_foreign_reply(frame.pid, value_out(&mut self.ns, frame.nr, value));
+            // A caught signal for this thread is delivered in place of the reply.
+            let out = value_out(&mut self.ns, frame.nr, value);
+            if !super::deliver::maybe_deliver(g, frame.pid, out) {
+                let _ = mk_foreign_reply(frame.pid, out);
+            }
         }
         self.guests.extend(born);
         self.settle_pipes();

@@ -14,45 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! Signal dispositions, recorded and never delivered.
-//!
-//! Delivery means pushing a frame onto a guest thread's stack and
-//! redirecting it, which needs the guest's register state, and the trap
-//! mechanism hands out a frame but no way to rewrite one. So the
-//! handlers a program installs are remembered and nothing is ever
-//! raised. That is a real limit and it is recorded here rather than
-//! hidden behind a success: a program whose correctness depends on
-//! SIGALRM firing will hang, not misbehave quietly.
-
+//! Signal dispositions, recorded here and delivered on the return path in
+//! `serve::deliver`: a handler is kept with its flags, restorer and mask.
 use crate::linux::abi::errno;
+use crate::linux::guest::sigstate::{SigAction, NSIG};
 use crate::linux::guest::Guest;
 
-/// Linux refuses to let these two be caught, and so does this.
+// SIGKILL/SIGSTOP cannot be caught; `struct sigaction` is 32 bytes.
 const SIGKILL: u64 = 9;
 const SIGSTOP: u64 = 19;
-
-/// The largest signal number Linux defines.
-const NSIG: u64 = 64;
+const SIGACTION_LEN: usize = 32;
 
 pub fn rt_sigaction(guest: &mut Guest, signum: u64, act: u64, old: u64) -> u64 {
-    if signum == 0 || signum > NSIG || signum == SIGKILL || signum == SIGSTOP {
+    if signum == 0 || signum > NSIG as u64 || signum == SIGKILL || signum == SIGSTOP {
         return errno::fail(errno::EINVAL);
     }
-    if old != 0 && guest.write(old, &[0u8; SIGACTION_LEN]) < SIGACTION_LEN as i64 {
+    let n = signum as usize;
+    if old != 0
+        && guest.write(old, &encode(guest.signals.action(n).unwrap_or_default()))
+            < SIGACTION_LEN as i64
+    {
         return errno::fail(errno::EFAULT);
     }
     if act != 0 {
-        guest.handlers[signum as usize - 1] = true;
+        match guest.read(act, SIGACTION_LEN) {
+            Some(raw) => guest.signals.set(n, decode(&raw)),
+            None => return errno::fail(errno::EFAULT),
+        }
     }
     errno::ok(0)
 }
 
-/// `struct sigaction` on x86_64: handler, flags, restorer, mask.
-const SIGACTION_LEN: usize = 32;
+fn decode(raw: &[u8]) -> SigAction {
+    let w = |i: usize| u64::from_le_bytes(raw[i..i + 8].try_into().unwrap_or([0; 8]));
+    SigAction { handler: w(0), flags: w(8), restorer: w(16), mask: w(24) }
+}
+fn encode(a: SigAction) -> [u8; SIGACTION_LEN] {
+    let mut b = [0u8; SIGACTION_LEN];
+    b[0..8].copy_from_slice(&a.handler.to_le_bytes());
+    b[8..16].copy_from_slice(&a.flags.to_le_bytes());
+    b[16..24].copy_from_slice(&a.restorer.to_le_bytes());
+    b[24..32].copy_from_slice(&a.mask.to_le_bytes());
+    b
+}
 
-/// The mask is recorded nowhere because nothing is ever raised against
-/// it. Reporting an empty old mask is true: no signal is pending.
+/// The old mask reads back empty: nothing is held back, delivery ignores it.
 pub fn rt_sigprocmask(guest: &Guest, old: u64) -> u64 {
     if old != 0 && guest.write(old, &[0u8; 8]) < 8 {
         return errno::fail(errno::EFAULT);
@@ -60,7 +66,7 @@ pub fn rt_sigprocmask(guest: &Guest, old: u64) -> u64 {
     errno::ok(0)
 }
 
-/// An alternate stack for a handler that will never run.
+/// The old alternate stack reads back unset; a handler uses the own stack.
 pub fn sigaltstack(guest: &Guest, old: u64) -> u64 {
     if old != 0 && guest.write(old, &[0u8; 24]) < 24 {
         return errno::fail(errno::EFAULT);

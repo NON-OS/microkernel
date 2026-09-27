@@ -20,6 +20,7 @@ pub mod arg;
 pub mod child_wait;
 pub mod bounds_probe;
 pub mod clock_probe;
+pub mod signal_probe;
 pub mod dyn_probe;
 pub mod exec_child;
 pub mod exec_probe;

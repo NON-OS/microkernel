@@ -17,6 +17,7 @@
 //! Answering for a guest: the loop, and the table it answers from.
 
 mod answer;
+mod deliver;
 mod dispatch;
 mod family;
 mod family_pipes;

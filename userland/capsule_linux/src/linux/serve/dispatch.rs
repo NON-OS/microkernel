@@ -40,6 +40,7 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
             let _ = crate::linux::call::exit(guest, a[0]);
             Answer::Park
         }
+        nr::RT_SIGRETURN => crate::linux::call::rt_sigreturn(guest, frame.pid),
         nr::FUTEX => futex(guest, frame.pid, a[0], a[1], a[2]),
         // The caller's own thread, which is not always the process.
         nr::GETTID | nr::SET_TID_ADDRESS => Answer::value(u64::from(frame.pid)),
