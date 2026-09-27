@@ -24,7 +24,6 @@ use crate::report::{Report, Seen};
 use crate::sys::{call, GETPID, MAP_FIXED, MAP_PRIVATE_ANON, MMAP, PROT_RW};
 
 const FORK: u64 = 57;
-const WAIT4: u64 = 61;
 const EXIT_GROUP: u64 = 231;
 const AT: u64 = 0x5000_0000;
 
@@ -46,8 +45,9 @@ pub fn scan(r: &mut Report) {
     }
     poke(b'B');
     let mut status = 0i32;
-    let _ = call(WAIT4, [child as u64, &mut status as *mut i32 as u64, 0, 0, 0, 0]);
-    let bits = (status >> 8) & 0xff;
+    let Some(bits) = super::sep_child::heard(r, child, &mut status) else {
+        return;
+    };
     let seen = |bit: i32, how: &str| match bits & bit {
         0 => Seen::Refused(0),
         _ => Seen::Escaped(how.into()),

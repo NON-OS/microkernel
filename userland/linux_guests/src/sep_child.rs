@@ -16,11 +16,17 @@
 
 //! The child's half of the separation probe.
 
+use crate::report::{Report, Seen};
 use crate::sep_probe::{peek, poke};
 use crate::sys::{call, NANOSLEEP, PROCESS_VM_READV, PTRACE};
 
+const WAIT4: u64 = 61;
+
 /// Attaches without stopping the target, so a success does not wedge it.
 const PTRACE_SEIZE: u64 = 0x4206;
+
+/// Set on every report, so a status of zero cannot pass for one.
+pub const REPORTED: u64 = 0x40;
 
 /// Bits of the exit status: 1 saw the parent's later write, 2 reached into
 /// the parent through a call.
@@ -44,5 +50,16 @@ pub fn run(parent: u32) -> u64 {
         bits |= 2;
     }
     poke(b'C');
-    bits
+    bits | REPORTED
+}
+
+/// The child's report bits. Without one every check would read as refused.
+pub(crate) fn heard(r: &mut Report, child: i64, status: &mut i32) -> Option<i32> {
+    let waited = call(WAIT4, [child as u64, status as *mut i32 as u64, 0, 0, 0, 0]);
+    let bits = (*status >> 8) & 0xff;
+    if waited == child && bits & REPORTED as i32 != 0 {
+        return Some(bits);
+    }
+    r.check("hear from the child", Seen::Escaped(format!("wait4 gave {waited:#x}")));
+    None
 }
