@@ -40,6 +40,9 @@ pub mod dirent;
 #[path = "../../capsule_linux/src/linux/file/meta/statbuf.rs"]
 pub mod statbuf;
 
+#[path = "../../capsule_linux/src/linux/net/route.rs"]
+pub mod route;
+
 #[path = "../../capsule_linux/src/linux/call/spawn/exec_shebang.rs"]
 pub mod exec_shebang;
 

@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use alloc::{format, string::String};
 
 use super::mirror::HOST_LINE;
-use crate::linux::net::raw::{connect_host, open_stream};
+use crate::linux::net::raw::{connect_host, open_stream_to};
 use crate::linux::net::raw_io::{close, recv_all, send_all};
 
 /// Enough for the largest package index; a reply beyond it is refused
@@ -38,7 +38,7 @@ pub fn get_as(ip: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
     if ip.split('.').filter(|o| o.parse::<u8>().is_ok()).count() != 4 {
         return None;
     }
-    let handle = open_stream()?;
+    let handle = open_stream_to(ip)?;
     if connect_host(handle, ip, port).is_none() {
         close(handle);
         return None;

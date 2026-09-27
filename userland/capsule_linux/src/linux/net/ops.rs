@@ -26,6 +26,7 @@ pub const OP_POLL: u16 = 13;
 
 /// The socket kinds the server offers: 1 stream, 2 datagram, 3 mixnet.
 pub const KIND_MIXNET: u16 = 3;
+pub const KIND_STREAM: u16 = 1;
 
 /// The address family the server takes. It is not AF_INET: the number
 /// is the server's own and the two only look alike.

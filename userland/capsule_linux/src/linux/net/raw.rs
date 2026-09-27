@@ -19,13 +19,24 @@
 use alloc::vec::Vec;
 
 use super::call::call;
-use super::ops::{DOMAIN, KIND_MIXNET, OP_CONNECT_HOST, OP_SOCKET};
+use super::ops::{DOMAIN, KIND_MIXNET, KIND_STREAM, OP_CONNECT_HOST, OP_SOCKET};
 
-/// Over the mixnet, like everything else.
-pub fn open_stream() -> Option<u32> {
+/// A stream to `ip`: over the mixnet, like everything else, unless `ip` is a
+/// mirror on the local network (`route::is_local`), which is dialled directly
+/// and said so.
+pub fn open_stream_to(ip: &str) -> Option<u32> {
+    let kind = match super::route::is_local(ip) {
+        true => {
+            let line =
+                alloc::format!("[LINUX] mirror {ip} is on the local network: reached directly\n");
+            let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+            KIND_STREAM
+        }
+        false => KIND_MIXNET,
+    };
     let mut body = Vec::with_capacity(4);
     body.extend_from_slice(&DOMAIN.to_le_bytes());
-    body.extend_from_slice(&KIND_MIXNET.to_le_bytes());
+    body.extend_from_slice(&kind.to_le_bytes());
     match call(OP_SOCKET, &body, 8) {
         Some((0, out)) if out.len() >= 4 => {
             Some(u32::from_le_bytes([out[0], out[1], out[2], out[3]]))

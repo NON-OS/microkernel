@@ -33,6 +33,7 @@ mod mutation_tests;
 mod pacman_desc_tests;
 mod pacman_rsa_tests;
 mod resolve_tests;
+mod route_tests;
 mod service;
 mod stack_words_tests;
 mod stat_tests;
