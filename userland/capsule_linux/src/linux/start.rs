@@ -48,7 +48,7 @@ pub fn run() -> ! {
     let code = match start(&mut guest, &path, &bytes, origin) {
         Ok(()) => {
             say(b"[LINUX] guest running\n");
-            serve(&mut guest)
+            serve(guest)
         }
         Err(step) => {
             say(step);

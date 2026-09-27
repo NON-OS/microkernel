@@ -63,4 +63,10 @@ pub struct Guest {
     /// Remembered, not enforced: the store does not apply it when it creates a
     /// file.
     pub umask: u16,
+    /// Children forked while answering, for the serve loop to adopt.
+    pub forked: Vec<Guest>,
+    /// Children that have ended, with their exit codes, until waited for.
+    pub ended: Vec<(u32, i32)>,
+    /// A parked wait4: the pid it wants, where the status goes, the caller.
+    pub waiting: Option<(u64, u64, u32)>,
 }

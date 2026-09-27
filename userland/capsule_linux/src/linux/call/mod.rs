@@ -60,7 +60,7 @@ pub use session::{getpgid, getsid, setpgid, setsid};
 pub use signal::{rt_sigaction, rt_sigprocmask, sigaltstack};
 pub use signal_send::kill;
 pub use sleep::nanosleep;
-pub use spawn::{clone, execve, fork, wait4};
+pub use spawn::{clone, execve, fork, reap_one, wait4};
 pub use thread::{arch_prctl, clock_gettime, getrandom};
 pub use timeops::{gettimeofday, time};
 pub use umask::{umask, DEFAULT_UMASK};

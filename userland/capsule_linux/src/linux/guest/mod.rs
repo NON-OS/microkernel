@@ -22,6 +22,7 @@ mod fd_dup;
 mod fd_empty;
 mod fd_kind;
 mod fd_make;
+mod fork_state;
 mod handle;
 mod handle_new;
 mod layout;

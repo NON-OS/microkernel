@@ -50,6 +50,9 @@ impl Guest {
             pgid: pid,
             sid: pid,
             umask: crate::linux::call::DEFAULT_UMASK,
+            forked: Vec::new(),
+            ended: Vec::new(),
+            waiting: None,
         }
     }
 }

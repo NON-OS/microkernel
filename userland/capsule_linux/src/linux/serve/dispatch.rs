@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! One refused call, answered. The two that can leave a caller parked are
+//! One refused call, answered. The ones that can leave a caller parked are
 //! taken first; everything else is a plain value.
 
 use nonos_libc::ForeignFrame;
@@ -32,9 +31,14 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
         nr::CLONE => clone(guest, frame),
         nr::FORK | nr::VFORK => crate::linux::call::fork(guest),
         nr::EXECVE => crate::linux::call::execve(guest, frame.pid, a[0], a[1], a[2]),
-        nr::WAIT4 => crate::linux::call::wait4(guest, a[0], a[1], a[2]),
+        nr::WAIT4 => crate::linux::call::wait4(guest, a[0], a[1], a[2], frame.pid),
         // A thread exiting is not the process exiting.
         nr::EXIT if frame.pid != guest.pid => Answer::Reply(exit_thread(guest, frame.pid)),
+        // Never answered: the family ends the process, so it cannot run on.
+        nr::EXIT | nr::EXIT_GROUP => {
+            let _ = crate::linux::call::exit(guest, a[0]);
+            Answer::Park
+        }
         nr::FUTEX => futex(guest, frame.pid, a[0], a[1], a[2]),
         other => Answer::Reply(plain(guest, frame.pid, other, a)),
     }
