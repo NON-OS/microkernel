@@ -16,12 +16,17 @@ runs it. Every generated and refinement module belongs here, because one that is
 not imported below is checked by nothing.
 -/
 
+import NonosExtraction.Align
+import NonosExtraction.AlignRefinement
 import NonosExtraction.Caps
+import NonosExtraction.CapsComplete
+import NonosExtraction.CapsCoreRefinement
+import NonosExtraction.Closure
 import NonosExtraction.Ct
 import NonosExtraction.CtPrimitivesRefinement
 import NonosExtraction.CtRefinement
-import NonosExtraction.CapsComplete
-import NonosExtraction.CapsCoreRefinement
+import NonosExtraction.CtEqRefinement
+import NonosExtraction.EdField
 import NonosExtraction.Elf
 import NonosExtraction.ElfRefinement
 import NonosExtraction.Iommu
@@ -32,7 +37,12 @@ import NonosExtraction.Paging
 import NonosExtraction.PagingRefinement
 import NonosExtraction.PolicyRefinement
 import NonosExtraction.Refinement
+import NonosExtraction.RvFlags
+import NonosExtraction.RvFlagsRefinement
+import NonosExtraction.Shapes
 import NonosExtraction.Signal
 import NonosExtraction.SignalRefinement
+import NonosExtraction.Uefi
+import NonosExtraction.UefiRefinement
 import NonosExtraction.Vectors
 import NonosExtraction.VectorsRefinement

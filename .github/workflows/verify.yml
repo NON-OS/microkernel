@@ -142,6 +142,11 @@ jobs:
           fi
           jq -e '.proof_systems.lean_specification.sorry_count == 0' /tmp/EVIDENCE.json >/dev/null \
             || { echo "::error::a sorry is present in the Lean corpus"; exit 1; }
+      - name: Every extracted function carries a proof
+        run: |
+          set -euo pipefail
+          if [ ! -d verification/extraction ]; then exit 0; fi
+          python3 tools/ratchets/proven_functions.py --root .
       - name: Publish evidence manifest
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -447,162 +452,20 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://elan.lean-lang.org/elan-init.sh \
             | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Regenerate and check for drift
+      - name: Regenerate every crate and check for drift
         run: |
           set -euo pipefail
           if [ ! -d verification/extraction ]; then exit 0; fi
-          cd verification/extraction/caps
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_caps::capabilities::bits::has_capability' \
-            --start-from 'nonos_caps::capabilities::bits::add_capability' \
-            --start-from 'nonos_caps::capabilities::bits::remove_capability' \
-            --start-from 'nonos_caps::capabilities::bits::fold_caps' \
-            --start-from 'nonos_caps::capabilities::bits::select_caps' \
-            --start-from 'nonos_caps::capabilities::delegation::lifetime::delegation_expiry' \
-            --start-from 'nonos_caps::capabilities::resource::limits::has_at_least' \
-            --start-from 'nonos_caps::capabilities::resource::nonce_compose::compose' \
-            --start-from 'nonos_caps::capabilities::chain::constants::max_chain_depth' \
-            --dest-file caps.llbc
-          mkdir -p /tmp/regen-caps
-          aeneas -backend lean caps.llbc -dest /tmp/regen-caps
-          diff -u ../lean/NonosExtraction/Caps.lean /tmp/regen-caps/Caps.lean
-          cd ../policy
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_policy::usercopy::policy::check_range' \
-            --start-from 'nonos_policy::to_pte_flags' \
-            --start-from 'nonos_policy::is_wx_violation' \
-            --dest-file policy.llbc
-          mkdir -p /tmp/regen-policy
-          aeneas -backend lean -split-files policy.llbc -dest /tmp/regen-policy
-          for f in Types.lean Funs.lean FunsExternal_Template.lean; do
-            diff -u "../lean/Policy/$f" "/tmp/regen-policy/$f"
-          done
-          cd ../irq
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_irq::irq::validate::validate_msix_request' \
-            --dest-file irq.llbc
-          mkdir -p /tmp/regen-irq
-          aeneas -backend lean irq.llbc -dest /tmp/regen-irq
-          diff -u ../lean/NonosExtraction/Irq.lean /tmp/regen-irq/Irq.lean
-          cd ../vectors
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_vectors::interrupts::vectors::is_exception' \
-            --start-from 'nonos_vectors::interrupts::vectors::is_irq' \
-            --start-from 'nonos_vectors::interrupts::vectors::is_user_allocatable' \
-            --start-from 'nonos_vectors::interrupts::vectors::irq_to_vector' \
-            --start-from 'nonos_vectors::interrupts::vectors::vector_to_irq' \
-            --start-from 'nonos_vectors::interrupts::vectors::exception_has_error_code' \
-            --start-from 'nonos_vectors::interrupts::vectors::exception_is_fatal' \
-            --dest-file vectors.llbc
-          mkdir -p /tmp/regen-vectors
-          aeneas -backend lean vectors.llbc -dest /tmp/regen-vectors
-          diff -u ../lean/NonosExtraction/Vectors.lean /tmp/regen-vectors/Vectors.lean
-          cd ../signal
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_signal::process::signal::helpers::is_valid_signal' \
-            --start-from 'nonos_signal::process::signal::helpers::is_rt_signal' \
-            --start-from 'nonos_signal::process::signal::helpers::can_be_caught' \
-            --start-from 'nonos_signal::process::signal::helpers::can_be_ignored' \
-            --start-from 'nonos_signal::process::signal::helpers::can_be_blocked' \
-            --start-from 'nonos_signal::process::signal::helpers::is_synchronous' \
-            --start-from 'nonos_signal::process::signal::helpers::is_stop_signal' \
-            --start-from 'nonos_signal::process::signal::helpers::is_fatal_by_default' \
-            --start-from 'nonos_signal::process::signal::helpers::generates_core_dump' \
-            --dest-file signal.llbc
-          mkdir -p /tmp/regen-signal
-          aeneas -backend lean signal.llbc -dest /tmp/regen-signal
-          diff -u ../lean/NonosExtraction/Signal.lean /tmp/regen-signal/Signal.lean
-          cd ../ct
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_ct::crypto::util::constant_time::compare::ct_lt_u64' \
-            --start-from 'nonos_ct::crypto::util::constant_time::compare::ct_gt_u64' \
-            --start-from 'nonos_ct::security::crypto::constant_time::ops::ct_lt_u64' \
-            --start-from 'nonos_ct::security::crypto::constant_time::ops::ct_lt_u32' \
-            --start-from 'nonos_ct::security::crypto::constant_time::ops::ct_gt_u32' \
-            --start-from 'nonos_ct::security::crypto::constant_time::ops::ct_min_u32' \
-            --start-from 'nonos_ct::security::crypto::constant_time::ops::ct_max_u32' \
-            --start-from 'nonos_ct::security::crypto::constant_time::core::ct_select_u32' \
-            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_u8' \
-            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_u16' \
-            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_u32' \
-            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_u64' \
-            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_usize' \
-            --start-from 'nonos_ct::crypto::util::constant_time::select::ct_select_u64_bit' \
-            --start-from 'nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8' \
-            --start-from 'nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8_16' \
-            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_add_u64' \
-            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_sub_u64' \
-            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_add_overflow_u64' \
-            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_popcount_u64' \
-            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_clz_u64' \
-            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_bswap_u64' \
-            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_bswap_u32' \
-            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_reduce_once_u64' \
-            --start-from 'nonos_ct::crypto::util::constant_time::math::ct_conditional_negate' \
-            --dest-file ct.llbc
-          mkdir -p /tmp/regen-ct
-          aeneas -backend lean ct.llbc -dest /tmp/regen-ct
-          diff -u ../lean/NonosExtraction/Ct.lean /tmp/regen-ct/Ct.lean
-          cd ../iommu
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::is_present' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::entry_address' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::leaf' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::table' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::index_for' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::level_span' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::fits_address_width' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::root_low' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::context_low' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::context_high' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::context_index' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::is_present' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::entry_address' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::context_domain' \
-            --start-from 'nonos_iommu::agaw_page_table_levels' \
-            --start-from 'nonos_iommu::agaw_context_aw' \
-            --start-from 'nonos_iommu::arch::x86_64::iommu::regs::cap::agaw::preferred_levels' \
-            --dest-file iommu.llbc
-          mkdir -p /tmp/regen-iommu
-          aeneas -backend lean iommu.llbc -dest /tmp/regen-iommu
-          diff -u ../lean/NonosExtraction/Iommu.lean /tmp/regen-iommu/Iommu.lean
-          cd ../paging
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::leaf' \
-            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::table' \
-            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::is_present' \
-            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::is_block' \
-            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::address' \
-            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::is_writable' \
-            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::is_executable' \
-            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::is_user' \
-            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::table_grants_user' \
-            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::is_present' \
-            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::is_block' \
-            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::address' \
-            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::is_writable' \
-            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::is_executable' \
-            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::is_user' \
-            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::table_grants_user' \
-            --start-from 'nonos_paging::aarch64_leaf' \
-            --start-from 'nonos_paging::aarch64_table' \
-            --dest-file paging.llbc
-          mkdir -p /tmp/regen-paging
-          aeneas -backend lean paging.llbc -dest /tmp/regen-paging
-          diff -u ../lean/NonosExtraction/Paging.lean /tmp/regen-paging/Paging.lean
-          cd ../elf
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_elf::elf::loader::core::parse_header::bounds::program_header_bounds' \
-            --start-from 'nonos_elf::elf::reloc::apply::range::in_range' \
-            --start-from 'nonos_elf::elf::reloc::utils::supported::is_supported' \
-            --dest-file elf.llbc
-          mkdir -p /tmp/regen-elf
-          aeneas -backend lean elf.llbc -dest /tmp/regen-elf
-          diff -u ../lean/NonosExtraction/Elf.lean /tmp/regen-elf/Elf.lean
+          python3 tools/extraction/regen.py --repo-root .
       - name: Verify the refinement theorems
         run: |
           set -euo pipefail
           if [ ! -d verification/extraction ]; then exit 0; fi
           cd verification/extraction/lean
           lake exe cache get
-          lake build
+          lake build 2>&1 | tee /tmp/extraction-build.log
+      - name: Every axiom is stated
+        run: |
+          set -euo pipefail
+          if [ ! -d verification/extraction ]; then exit 0; fi
+          python3 tools/ratchets/stated_axioms.py --log /tmp/extraction-build.log --root .
