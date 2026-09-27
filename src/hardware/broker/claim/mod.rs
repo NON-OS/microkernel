@@ -16,6 +16,7 @@
 
 mod claim;
 mod lookup;
+mod quiesce;
 mod release;
 mod state;
 mod types;
