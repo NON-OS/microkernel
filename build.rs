@@ -570,7 +570,11 @@ fn rerun_on_capsule_binaries() {
 /// the whole space uniformly and needs neither.
 fn c_target(arch: &str) -> Option<(&'static str, &'static [&'static str])> {
     match arch {
-        "x86_64" => Some(("x86_64-unknown-none-elf", &["-mno-red-zone", "-mcmodel=kernel"][..])),
+        // No vector registers: kernel code runs before a thread's are saved.
+        "x86_64" => Some((
+            "x86_64-unknown-none-elf",
+            &["-mno-red-zone", "-mcmodel=kernel", "-mno-mmx", "-mno-sse", "-mno-sse2", "-mno-avx"][..],
+        )),
         "aarch64" => Some(("aarch64-unknown-none-elf", &[][..])),
         "riscv64" => Some(("riscv64-unknown-none-elf", &[][..])),
         _ => None,

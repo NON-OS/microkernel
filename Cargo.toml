@@ -876,7 +876,9 @@ x25519-dalek     = { version = "2",     default-features = false, features = ["s
 sha3             = { version = "0.10",  default-features = false, optional = true }
 
 # Hashing.
-blake3 = { version = "1.0",  default-features = false }
+# Portable only: the SSE and AVX assembly would use vector registers in the
+# kernel, which runs before a thread's are saved.
+blake3 = { version = "1.0",  default-features = false, features = ["pure"] }
 sha2   = { version = "0.10", default-features = false, features = ["force-soft"] }
 
 # Core utilities used in the kernel tree.
@@ -888,9 +890,6 @@ smoltcp = { version = "0.11", default-features = false, features = ["alloc", "so
 
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
-
-[target.'cfg(not(target_arch = "x86_64"))'.dependencies]
-blake3 = { version = "1.0", default-features = false, features = ["pure"] }
 
 [build-dependencies]
 blake3        = { version = "1.5",  default-features = false }
