@@ -26,12 +26,19 @@ use super::prot::wx_refused;
 
 const MAP_SHARED: u64 = 0x01;
 const MAP_ANONYMOUS: u64 = 0x20;
+const MAP_FIXED: u64 = 0x10;
 
 pub fn mmap(guest: &mut Guest, req: MapReq) -> u64 {
     if req.len == 0 {
         return errno::fail(errno::EINVAL);
     }
     if wx_refused(req.prot) {
+        return errno::fail(errno::EPERM);
+    }
+    // MAP_FIXED is the exact address or failure. Page zero is never in the
+    // plan, and landing elsewhere would hand back memory the guest did not
+    // ask for, so it is refused, as Linux refuses it below mmap_min_addr.
+    if req.flags & MAP_FIXED != 0 && req.addr == 0 {
         return errno::fail(errno::EPERM);
     }
     // The ceiling differs by who chose the address.
