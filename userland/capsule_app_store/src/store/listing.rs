@@ -42,6 +42,17 @@ impl Source {
             Source::Community => b"Community",
         }
     }
+
+    /// The line under a card's name. Two distributions can list one package,
+    /// so a Linux card names its distribution, read off the namespace.
+    pub fn origin(self, listing_id: &[u8]) -> &'static [u8] {
+        match listing_id {
+            id if id.starts_with(b"linux.kali.") => b"Kali Linux",
+            id if id.starts_with(b"linux.blackarch.") => b"BlackArch",
+            _ if self == Source::Linux => b"Alpine Linux",
+            _ => self.label(),
+        }
+    }
 }
 
 pub struct Listing {
