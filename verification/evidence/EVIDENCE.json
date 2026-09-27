@@ -27,8 +27,8 @@
       "counts": {
         "extracted": 422,
         "proven": 420,
-        "substantive": 155,
-        "trivial": 265,
+        "substantive": 158,
+        "trivial": 262,
         "unproven": 2
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
