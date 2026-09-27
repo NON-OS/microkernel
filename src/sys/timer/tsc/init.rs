@@ -42,7 +42,7 @@ pub fn init(tsc_hz: u64, boot_epoch_ms: u64) {
 
     TIMER_INIT.store(true, Ordering::SeqCst);
 
-    serial::print(b"[TIMER] Initialized, TSC freq=");
+    serial::print(COUNTER_LABEL);
     serial::print_dec(hz / 1_000_000);
     serial::println(b" MHz");
 }
@@ -57,3 +57,12 @@ pub fn init_default() {
 pub fn calibrate_tsc_hz() -> u64 {
     crate::arch::time_counter_hz()
 }
+
+/*
+ * The rate printed above belongs to the TSC on x86_64 and to the generic timer
+ * (CNTFRQ_EL0) elsewhere, so the line names the counter it measured.
+ */
+#[cfg(target_arch = "x86_64")]
+const COUNTER_LABEL: &[u8] = b"[TIMER] Initialized, TSC freq=";
+#[cfg(not(target_arch = "x86_64"))]
+const COUNTER_LABEL: &[u8] = b"[TIMER] Initialized, generic timer freq=";
