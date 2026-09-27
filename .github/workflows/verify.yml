@@ -621,6 +621,29 @@ jobs:
           mkdir -p /tmp/regen-uefi
           aeneas -backend lean uefi.llbc -dest /tmp/regen-uefi
           diff -u ../lean/NonosExtraction/Uefi.lean /tmp/regen-uefi/Uefi.lean
+          cd ../rv_flags
+          charon cargo --preset=aeneas \
+            --start-from 'nonos_rv_flags::pteflags_new' \
+            --start-from 'nonos_rv_flags::pteflags_from_bits' \
+            --start-from 'nonos_rv_flags::pteflags_bits' \
+            --start-from 'nonos_rv_flags::pteflags_is_valid' \
+            --start-from 'nonos_rv_flags::pteflags_is_leaf' \
+            --start-from 'nonos_rv_flags::pteflags_is_readable' \
+            --start-from 'nonos_rv_flags::pteflags_is_writable' \
+            --start-from 'nonos_rv_flags::pteflags_is_executable' \
+            --start-from 'nonos_rv_flags::pteflags_is_user' \
+            --start-from 'nonos_rv_flags::pteflags_valid' \
+            --start-from 'nonos_rv_flags::pteflags_readable' \
+            --start-from 'nonos_rv_flags::pteflags_writable' \
+            --start-from 'nonos_rv_flags::pteflags_executable' \
+            --start-from 'nonos_rv_flags::pteflags_user' \
+            --start-from 'nonos_rv_flags::pteflags_global' \
+            --start-from 'nonos_rv_flags::pteflags_accessed' \
+            --start-from 'nonos_rv_flags::pteflags_dirty' \
+            --dest-file rv.llbc
+          mkdir -p /tmp/regen-rv
+          aeneas -backend lean rv.llbc -dest /tmp/regen-rv
+          diff -u ../lean/NonosExtraction/RvFlags.lean /tmp/regen-rv/Rv.lean
       - name: Verify the refinement theorems
         run: |
           set -euo pipefail
