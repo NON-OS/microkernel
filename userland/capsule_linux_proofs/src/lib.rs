@@ -25,6 +25,9 @@ pub mod wire;
 #[path = "../../capsule_linux/src/linux/wayland/args.rs"]
 pub mod args;
 
+mod host_doubles;
+pub use host_doubles::{clamp, private};
+
 #[path = "../../capsule_linux/src/linux/file/root.rs"]
 pub mod root;
 

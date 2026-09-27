@@ -31,7 +31,7 @@ fn u64_at(b: &[u8], at: usize) -> u64 {
 /// at 56, blocks at 64.
 #[test]
 fn a_regular_file_lands_in_the_right_fields() {
-    let s = build(4096, false);
+    let s = build(4096, false, 7);
     assert_eq!(s.len(), STAT_LEN);
     assert_eq!(u64_at(&s, 16), 1);
     assert_eq!(u32_at(&s, 24), S_IFREG | 0o644);
@@ -42,22 +42,31 @@ fn a_regular_file_lands_in_the_right_fields() {
 
 #[test]
 fn a_directory_says_so_in_the_mode() {
-    let s = build(0, true);
+    let s = build(0, true, 7);
     assert_eq!(u32_at(&s, 24), S_IFDIR | 0o755);
     assert_eq!(u64_at(&s, 48), 0);
 }
 
 #[test]
 fn block_count_rounds_up_to_the_next_five_hundred_and_twelve() {
-    assert_eq!(u64_at(&build(1, false), 64), 1);
-    assert_eq!(u64_at(&build(512, false), 64), 1);
-    assert_eq!(u64_at(&build(513, false), 64), 2);
+    assert_eq!(u64_at(&build(1, false, 7), 64), 1);
+    assert_eq!(u64_at(&build(512, false, 7), 64), 1);
+    assert_eq!(u64_at(&build(513, false, 7), 64), 2);
 }
 
 #[test]
 fn everything_unknown_is_left_at_zero() {
-    let s = build(10, false);
-    for at in [0, 8, 40, 72, 88, 104] {
+    let s = build(10, false, 7);
+    // st_ino at 8 is known now: `the_inode_given_is_the_inode_reported`.
+    for at in [0, 40, 72, 88, 104] {
         assert_eq!(u64_at(&s, at), 0, "offset {at} should be untouched");
     }
+}
+
+#[test]
+fn the_inode_given_is_the_inode_reported() {
+    // st_ino sits after st_dev, at byte 8. Every file used to report 0, and
+    // musl's loader took two libraries with one inode for the same file.
+    assert_eq!(u64_at(&build(10, false, 0xdead_beef), 8), 0xdead_beef);
+    assert_ne!(u64_at(&build(10, false, 1), 8), u64_at(&build(10, false, 2), 8));
 }
