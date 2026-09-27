@@ -23,9 +23,9 @@ use alloc::vec::Vec;
 use nonos_openpgp::Key;
 
 use super::desc::Record;
-use super::signed::signed;
+use crate::linux::install::pgp::signed;
 use super::source::Source;
-use super::unpacked::unpacked;
+use crate::linux::install::unpacked::unpacked;
 use crate::linux::install::auth::{base64, Verified};
 
 pub fn fetch(

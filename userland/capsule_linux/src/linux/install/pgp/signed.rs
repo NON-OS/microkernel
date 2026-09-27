@@ -25,8 +25,8 @@ use super::verifier::Machine;
 
 pub fn signed(ring: &[Key], sig: &[u8], data: &[u8]) -> bool {
     let (ok, line) = match verify(&Machine, ring, sig, data) {
-        Ok(v) => (true, format!("[LINUX] pacman signature Verified by {}\n", hex(&v.fingerprint))),
-        Err(r) => (false, format!("[LINUX] pacman signature refused: {}\n", r.why())),
+        Ok(v) => (true, format!("[LINUX] signature Verified by {}\n", hex(&v.fingerprint))),
+        Err(r) => (false, format!("[LINUX] signature refused: {}\n", r.why())),
     };
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
     ok

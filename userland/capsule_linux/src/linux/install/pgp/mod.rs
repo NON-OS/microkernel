@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! pacman's pure parts, included from the capsule.
+//! OpenPGP signatures on this machine: the verifier the crypto service
+//! backs, and a check that says what it found. pacman and Debian share it.
 
-#[path = "../../../capsule_linux/src/linux/install/pacman/desc.rs"]
-pub mod desc;
+mod request;
+mod signed;
+mod spki;
+mod verifier;
 
-#[path = "../../../capsule_linux/src/linux/install/pgp/spki.rs"]
-pub mod spki;
-
-#[path = "../../../capsule_linux/src/linux/install/pgp/request.rs"]
-pub mod request;
+pub use signed::signed;

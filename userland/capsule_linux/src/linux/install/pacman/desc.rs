@@ -20,7 +20,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::hex::hex32;
+use super::super::hex::hex32;
 
 #[derive(Default, Clone)]
 pub struct Record {

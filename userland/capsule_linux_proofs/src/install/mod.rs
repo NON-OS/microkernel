@@ -37,4 +37,7 @@ pub mod pkg;
 #[path = "../../../capsule_linux/src/linux/install/index.rs"]
 pub mod index;
 
+#[path = "../../../capsule_linux/src/linux/install/hex.rs"]
+pub mod hex;
+
 pub mod pacman;

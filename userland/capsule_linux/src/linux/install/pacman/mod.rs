@@ -20,14 +20,8 @@
 mod db;
 mod desc;
 mod fetch;
-mod hex;
 mod keyring;
-mod request;
 mod run;
-mod signed;
 mod source;
-mod spki;
-mod unpacked;
-mod verifier;
 
 pub use run::install;
