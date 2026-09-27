@@ -14,25 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod app;
-pub mod etna;
-mod event;
-mod hex;
-mod ipc;
-mod manifest;
-mod net;
-mod nox;
-mod num;
-pub mod paint;
-pub mod vault;
-mod pool;
-mod rpc;
-mod shield;
-mod state;
-mod swap;
-mod theme;
-mod tls13;
-mod tx_hash;
-mod units;
+//! The Etna design system in the wallet capsule: tokens, faces and type
+//! roles first, then the parts and the one frame every screen sits in.
 
-pub use app::Wallet;
+pub mod face;
+pub mod text;
+pub mod tokens;

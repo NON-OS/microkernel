@@ -114,7 +114,9 @@ dependencies = [
  "nonos_qr",
  "nonos_seal",
  "nonos_tls",
+ "nonos_toolkit",
  "nonos_userland_libc",
+ "spin",
 ]
 
 [[package]]
