@@ -22,6 +22,14 @@
         "nonos_caps::capabilities::bits::has_capability",
         "nonos_caps::capabilities::bits::remove_capability",
         "nonos_caps::capabilities::bits::select_caps",
+        "nonos_ct::crypto::util::constant_time::compare::ct_gt_u64",
+        "nonos_ct::crypto::util::constant_time::compare::ct_lt_u64",
+        "nonos_ct::security::crypto::constant_time::core::ct_select_u32",
+        "nonos_ct::security::crypto::constant_time::ops::ct_gt_u32",
+        "nonos_ct::security::crypto::constant_time::ops::ct_lt_u32",
+        "nonos_ct::security::crypto::constant_time::ops::ct_lt_u64",
+        "nonos_ct::security::crypto::constant_time::ops::ct_max_u32",
+        "nonos_ct::security::crypto::constant_time::ops::ct_min_u32",
         "nonos_irq::irq::validate::validate_msix_request",
         "nonos_policy::is_wx_violation",
         "nonos_policy::to_pte_flags",
@@ -47,6 +55,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/Caps.lean",
           "sha256": "2cf649959881385c3eec0414c618858fc3d10c12a3ada9683778d107ae5442e2"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Ct.lean",
+          "sha256": "b649c3ad89898d1fed082438dbb5ba85bbfd9db547e7a1f38627c85f730d98d1"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Irq.lean",

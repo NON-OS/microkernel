@@ -17,6 +17,8 @@ not imported below is checked by nothing.
 -/
 
 import NonosExtraction.Caps
+import NonosExtraction.Ct
+import NonosExtraction.CtRefinement
 import NonosExtraction.CapsComplete
 import NonosExtraction.Irq
 import NonosExtraction.IrqRefinement
