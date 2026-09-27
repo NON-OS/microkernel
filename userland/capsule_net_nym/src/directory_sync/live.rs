@@ -23,6 +23,12 @@ use crate::topology::{self, Node, Role};
 /// The endpoint the node list is asked for. One name, rather than a frozen
 /// copy of what it answered when the image was built.
 const API_HOST: &str = "validator.nymtech.net";
+/// Where `API_HOST` is reached, pinned so the directory fetch never asks
+/// clearnet DNS and so never names the Nym API to the local resolver.
+/// Every A record `validator.nymtech.net` answered on 2026-09-27. The name,
+/// not these addresses, is what TLS authenticates: a stale entry fails
+/// closed at the handshake rather than trusting whatever host now holds it.
+const API_ADDRESSES: &[[u8; 4]] = &[[92, 39, 63, 14]];
 /// The skimmed active views. Nym folded mixnodes and gateways into one node
 /// type, so the older split paths answer 404. Skimmed rather than described
 /// because it carries exactly what a route needs, the address, the mix port
@@ -74,7 +80,7 @@ pub(super) fn fetch_exits(tcp_port: u32) -> Result<Vec<Node>, u16> {
 }
 
 fn fetch_role(tcp_port: u32, path: &str, role: Role) -> Result<Vec<Node>, u16> {
-    let body = fetch_tls(tcp_port, API_HOST, path)?;
+    let body = fetch_tls(tcp_port, API_HOST, API_ADDRESSES, path)?;
     let found = node_objects(&body, topology::NODE_CAP);
     let nodes: Vec<Node> = found.iter().filter_map(|o| parse_node(o, role)).collect();
     if nodes.is_empty() {

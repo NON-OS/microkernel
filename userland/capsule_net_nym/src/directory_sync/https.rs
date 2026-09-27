@@ -19,7 +19,6 @@ use alloc::vec::Vec;
 use nonos_tls::{exchange, rtc_now};
 
 use super::http::parse;
-use super::resolve::resolve;
 use super::tls_io::TcpIo;
 use crate::tcp_client;
 
@@ -28,15 +27,33 @@ const HTTPS_PORT: u16 = 443;
 /// can make the capsule allocate for one answer.
 const MAX_RESPONSE: usize = 512 * 1024;
 
-/// Fetch `path` from `host` over TLS and return the response body.
+/// Fetch `path` from `host` over TLS and return the response body, trying
+/// each of `addresses` in order until one answers.
 ///
-/// The certificate chain is checked before the request is written, so a name
-/// that does not verify never sees what was being asked for. Nothing about
-/// this fetch is anonymous: it happens before there is a mixnet to be
-/// anonymous over.
-pub fn fetch_tls(tcp_port: u32, host: &str, path: &str) -> Result<Vec<u8>, u16> {
-    crate::trace::say(b"fetch: resolving");
-    let ip = resolve(host.as_bytes()).ok_or(21u16)?;
+/// The addresses only say where to connect. The certificate chain is still
+/// checked against `host`, and before the request is written, so an address
+/// that no longer belongs to `host` fails the handshake and never sees what
+/// was being asked for. No name is resolved here, so no DNS query leaves the
+/// machine. Nothing about this fetch is anonymous: it happens before there is
+/// a mixnet to be anonymous over.
+pub fn fetch_tls(
+    tcp_port: u32,
+    host: &str,
+    addresses: &[[u8; 4]],
+    path: &str,
+) -> Result<Vec<u8>, u16> {
+    let mut last = 21u16;
+    for ip in addresses {
+        match fetch_at(tcp_port, *ip, host, path) {
+            Ok(body) => return Ok(body),
+            Err(code) => last = code,
+        }
+    }
+    Err(last)
+}
+
+/// One attempt at `ip`, authenticated as `host`.
+fn fetch_at(tcp_port: u32, ip: [u8; 4], host: &str, path: &str) -> Result<Vec<u8>, u16> {
     crate::trace::say(b"fetch: connecting");
     let stream = tcp_client::connect(tcp_port, ip, HTTPS_PORT)?;
     tcp_client::wait_established(tcp_port, stream)?;
