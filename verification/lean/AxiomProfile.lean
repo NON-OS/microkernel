@@ -761,3 +761,17 @@ import Nonos
 #print axioms Nonos.Stark.ChallengeDrawing.separating_is_not_constant
 #print axioms Nonos.Stark.ChallengeDrawing.changing_the_commitment_changes_the_challenge
 #print axioms Nonos.Stark.ChallengeDrawing.a_constant_draw_makes_the_transcript_empty
+
+-- IommuSnoop
+#print axioms Nonos.IommuSnoop.no_request_never_faults
+#print axioms Nonos.IommuSnoop.a_capable_unit_never_faults
+#print axioms Nonos.IommuSnoop.the_unconditional_request_faults_on_a_unit_without_snoop_control
+#print axioms Nonos.IommuSnoop.the_unconditional_request_is_unsound
+#print axioms Nonos.IommuSnoop.the_unconditional_request_is_fine_on_capable_hardware
+#print axioms Nonos.IommuSnoop.the_gated_request_never_faults
+#print axioms Nonos.IommuSnoop.the_gate_still_asks_where_it_can
+#print axioms Nonos.IommuSnoop.the_gate_declines_where_it_cannot
+#print axioms Nonos.IommuSnoop.refusing_always_is_sound_and_useless
+#print axioms Nonos.IommuSnoop.the_default_is_conservative
+#print axioms Nonos.IommuSnoop.reading_the_record_is_sound
+#print axioms Nonos.IommuSnoop.reading_the_record_is_sound_before_the_probe

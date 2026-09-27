@@ -66,6 +66,7 @@ import Nonos.ImageStaging
 import Nonos.InputConsumer
 import Nonos.Interval
 import Nonos.Iommu
+import Nonos.IommuSnoop
 import Nonos.Ipc
 import Nonos.IrqBind
 import Nonos.Isolation
