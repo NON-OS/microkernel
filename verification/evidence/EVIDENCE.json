@@ -24,6 +24,23 @@
         "nonos_caps::capabilities::bits::select_caps",
         "nonos_ct::crypto::util::constant_time::compare::ct_gt_u64",
         "nonos_ct::crypto::util::constant_time::compare::ct_lt_u64",
+        "nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8",
+        "nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8_16",
+        "nonos_ct::crypto::util::constant_time::math::ct_add_overflow_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_add_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_bswap_u32",
+        "nonos_ct::crypto::util::constant_time::math::ct_bswap_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_clz_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_conditional_negate",
+        "nonos_ct::crypto::util::constant_time::math::ct_popcount_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_reduce_once_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_sub_u64",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_u16",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_u32",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_u64",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_u64_bit",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_u8",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_usize",
         "nonos_ct::security::crypto::constant_time::core::ct_select_u32",
         "nonos_ct::security::crypto::constant_time::ops::ct_gt_u32",
         "nonos_ct::security::crypto::constant_time::ops::ct_lt_u32",
@@ -93,7 +110,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Ct.lean",
-          "sha256": "8a7a42ce10aee2fc80c4030b6358529e3d5ec8a6f60ff4ca6e9ce8421a8affb7"
+          "sha256": "9938544febc39d89d3483de1f456aa126f10dbbf203546fe25ae67357678f41d"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Iommu.lean",
