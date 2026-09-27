@@ -22,10 +22,22 @@
 //! however this path is reached the machine ends up in the state the boot log
 //! reported rather than in whichever state ran last.
 
+#[cfg(target_arch = "x86_64")]
 use crate::memory::mmu;
 
 /// Idempotent: `init_mmu` returns having touched nothing if the bring-up
 /// already ran from the boot path, which is the usual case.
+#[cfg(target_arch = "x86_64")]
 pub fn init_module_memory_protection() {
     let _ = mmu::init_mmu();
+}
+
+/// aarch64 has no register-level bring-up to delegate to: execute-never and
+/// read-only live in each descriptor, and PAN is not set at boot. The call is
+/// refused by name so a caller cannot read it as protection switched on.
+#[cfg(not(target_arch = "x86_64"))]
+pub fn init_module_memory_protection() {
+    crate::sys::serial::println(
+        b"[MEM-HARDEN] refused: no ring-0 protection bring-up on this arch, PAN not enabled",
+    );
 }
