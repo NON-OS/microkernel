@@ -28,25 +28,52 @@ definitions by transitivity.
 
 ## Scope, honestly stated
 
-Extraction covers the pure safe decision cores: the capability bit
-operations and their call graph (`Capability::bit`) in `caps/`, together with
-the resolver `select_caps` and the folder `fold_caps`; the user-copy range
-policy (`check_range`, with the exact error variant on every rejecting path and
-totality on every input) plus the page-permission encoding (`to_pte_flags`,
-`is_wx_violation`) in `policy/`; the MSI-X bind validator in `irq/`; the
-interrupt vector classification in `vectors/`; and the signal delivery policy in
-`signal/`. The proofs in
-`lean/NonosExtraction/PolicyRefinement.lean` bind the policy to
-`Nonos.Isolation`: acceptance is exactly the model's `Accepts`, and the
-extracted encoder can never emit a writable page without NX unless the
-permission was a W^X violation. `select_caps` was written with iterator adapters, which are
-outside Aeneas's supported fragment, so it could not be extracted at all; it
-takes its table as an argument and walks it now, and `CapsComplete.lean` proves
-the resulting loop against a specification. `Capability::all` is a static, so
-Charon leaves it opaque: the resolver is proven faithful to the table it is
-handed, and that the table is the whole enumeration is the `capability_table!`
-macro's job, checked at compile time by `guard.rs`. The unsafe hardware
-glue is out of extraction scope by design and remains under Kani and Verus.
+Extraction covers the pure safe decision cores, nine crates and ninety-two
+functions. Each crate mirrors the kernel's module paths with `#[path]` so the
+included files find each other at the paths they already use, and each one holds
+no lock, no atomic and no hardware access.
+
+| crate | what it carries | proven in |
+| --- | --- | --- |
+| `caps/` | capability bit operations and `Capability::bit`, the resolver `select_caps`, the folder `fold_caps`, the delegation expiry meet, the quota comparison, the resource nonce composition, the chain depth bound | `Refinement`, `CapsComplete`, `CapsCoreRefinement` |
+| `policy/` | the user-copy range policy `check_range` with the exact error variant on every rejecting path, and the page-permission encoding `to_pte_flags` and `is_wx_violation` | `PolicyRefinement` |
+| `irq/` | the MSI-X bind validator | `IrqRefinement` |
+| `vectors/` | the interrupt vector classification and the two conversions between a line and a vector | `VectorsRefinement` |
+| `signal/` | the signal delivery policy, nine predicates | `SignalRefinement` |
+| `ct/` | both constant-time comparison implementations, the selectors, the lookups and the arithmetic helpers | `CtRefinement`, `CtPrimitivesRefinement` |
+| `iommu/` | the second-level page-table and context-table encodings, the indexing, and the address width the AGAW chooses | `IommuRefinement` |
+| `paging/` | both page-descriptor backends, x86_64 and aarch64, read and write | `PagingRefinement` |
+| `elf/` | the relocation range check and the relocation type allowlist | `ElfRefinement` |
+
+Some of what is extracted is proven wrong rather than proven right, and the file
+headers say which. `CtRefinement` proves the two constant-time comparisons
+disagreed and keeps the old shape named so the regression cannot come back;
+`PagingRefinement` proves the aarch64 table builder ignores its
+`user_accessible` argument; `VectorsRefinement` proves `irq_to_vector` fails
+above line 223. A refinement file that only proved agreement would be hiding
+those.
+
+Three things are extracted and not fully proven, said here rather than left to be
+discovered. `program_header_bounds` in `elf/` is regenerated and diffed by CI, so
+a change to it shows up, but no theorem covers it: a witness needs a fifteen-field
+header and a slice, and `?` desugars into `ControlFlow` over an opaque
+`Option::ok_or`. `ct_clz_u64` is a chain of six nested selects that does not close
+by reduction, and `ct_select_usize` goes through a cast the kernel will not reduce
+past. The first is covered by
+`kernel_proofs::elf_tests::program_header_table_never_overflows_or_escapes_the_file`,
+a host test that crafts three hundred thousand headers and asserts the table
+neither overflows nor leaves the file; the other two were sampled against their
+references on twenty thousand random words with no disagreement. All three are
+tests, not proofs, and none is described as one.
+
+`select_caps` was written with iterator adapters, which are outside Aeneas's
+supported fragment, so it could not be extracted at all; it takes its table as an
+argument and walks it now, and `CapsComplete.lean` proves the resulting loop
+against a specification. `Capability::all` is a static, so Charon leaves it
+opaque: the resolver is proven faithful to the table it is handed, and that the
+table is the whole enumeration is the `capability_table!` macro's job, checked at
+compile time by `guard.rs`. The unsafe hardware glue is out of extraction scope by
+design and remains under Kani and Verus.
 
 One external definition is provided by hand, as Aeneas prescribes for core
 functions it treats as opaque: `Option::ok_or`, four lines in
@@ -93,9 +120,10 @@ aeneas -backend lean -split-files policy.llbc -dest ../lean/Policy
 # FunsExternal.lean is hand-written from FunsExternal_Template.lean; do not
 # overwrite it.
 
-# The vectors/ and signal/ crates follow the same two commands; the exact
-# --start-from sets are in the `extraction` job of .github/workflows/verify.yml,
-# which regenerates every crate and diffs for drift.
+# Every other crate follows the same two commands. The exact --start-from sets
+# are in the `extraction` job of .github/workflows/verify.yml, which regenerates
+# all nine and diffs each one for drift, so that job is the source of truth and
+# this file does not repeat it.
 
 cd ../lean && lake exe cache get && lake build   # 0 errors == verified
 
