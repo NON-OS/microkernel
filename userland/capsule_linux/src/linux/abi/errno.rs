@@ -39,6 +39,7 @@ pub const ENFILE: i64 = 23;
 pub const EMFILE: i64 = 24;
 pub const ENOTTY: i64 = 25;
 pub const ESPIPE: i64 = 29;
+pub const EROFS: i64 = 30;
 pub const EPIPE: i64 = 32;
 pub const ERANGE: i64 = 34;
 pub const ELOOP: i64 = 40;

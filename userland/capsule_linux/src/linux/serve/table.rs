@@ -21,12 +21,16 @@ use crate::linux::call;
 use crate::linux::guest::Guest;
 
 use super::table_file::file_ops;
+use super::table_link::link_ops;
 use super::table_mem::mem_ops;
 use super::table_net::net_ops;
 use super::table_proc::proc_ops;
 
 pub fn plain(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
     if let Some(v) = file_ops(guest, tid, nr, a) {
+        return v;
+    }
+    if let Some(v) = link_ops(guest, nr, a) {
         return v;
     }
     if let Some(v) = net_ops(guest, tid, nr, a) {

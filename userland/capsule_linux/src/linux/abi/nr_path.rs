@@ -60,3 +60,21 @@ pub const GETRESUID: u64 = 118;
 pub const GETRESGID: u64 = 120;
 pub const PPOLL: u64 = 271;
 pub const EPOLL_WAIT: u64 = 232;
+
+// Links, owners, times and nodes: set one of a faithful install.
+pub const LINK: u64 = 86;
+pub const SYMLINK: u64 = 88;
+pub const READLINKAT: u64 = 267;
+pub const SYMLINKAT: u64 = 266;
+pub const LINKAT: u64 = 265;
+pub const RENAMEAT: u64 = 264;
+pub const RENAMEAT2: u64 = 316;
+pub const CHOWN: u64 = 92;
+pub const FCHOWN: u64 = 93;
+pub const LCHOWN: u64 = 94;
+pub const FCHOWNAT: u64 = 260;
+pub const UTIME: u64 = 132;
+pub const UTIMES: u64 = 235;
+pub const UTIMENSAT: u64 = 280;
+pub const MKNOD: u64 = 133;
+pub const MKNODAT: u64 = 259;

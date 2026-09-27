@@ -14,29 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Shared pieces of the hostile guests.
+//! A link made at run time, by `symlink`, joining the family's table.
 
-pub mod arg;
-pub mod child_wait;
-pub mod bounds_probe;
-pub mod clock_probe;
-pub mod dyn_probe;
-pub mod exec_child;
-pub mod exec_probe;
-pub mod fs_links;
-pub mod fs_paths;
-pub mod fp_probe;
-pub mod fs_probe;
-pub mod life_probe;
-pub mod native_probe;
-pub mod proc_probe;
-pub mod report;
-pub mod sep_child;
-pub mod sep_probe;
-pub mod shared_name;
-pub mod state_probe;
-pub mod state_regs;
-pub mod state_regs_sse;
-pub mod sys;
-pub mod vm_probe;
-pub mod wl;
+use alloc::vec::Vec;
+
+use super::links::Links;
+
+impl Links {
+    /// A new link at `path`; false when `path` already is one.
+    pub fn add(&self, path: Vec<u8>, target: Vec<u8>) -> bool {
+        if self.target(&path).is_some() {
+            return false;
+        }
+        self.0.borrow_mut().push((path, target));
+        true
+    }
+}

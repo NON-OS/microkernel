@@ -34,13 +34,12 @@ pub fn access(guest: &Guest, path_ptr: u64) -> u64 {
     }
 }
 
-/// A link's target, from the image's table. A path that exists and is not a
-/// link is EINVAL, as Linux answers.
-pub fn readlink(guest: &Guest, path_ptr: u64, buf: u64, len: u64) -> u64 {
-    let Some(name) = path::read_path(guest, path_ptr) else {
+/// A link's target, from the family's table. A path that exists and is not a
+/// link is EINVAL, as Linux answers. `readlink` is this at AT_FDCWD.
+pub fn readlinkat(guest: &Guest, dirfd: u64, path_ptr: u64, buf: u64, len: u64) -> u64 {
+    let Some(full) = super::super::at::resolve_at(guest, dirfd, path_ptr) else {
         return errno::fail(errno::EFAULT);
     };
-    let full = guest.links.follow(resolve::visible(&guest.cwd, &name), false);
     if let Some(to) = guest.links.target(&full) {
         let n = to.len().min(len as usize);
         return match guest.write(buf, &to[..n]) < n as i64 {

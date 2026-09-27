@@ -27,6 +27,7 @@ mod handle;
 mod handle_new;
 mod layout;
 mod links;
+mod links_add;
 mod links_list;
 mod links_load;
 mod mem;

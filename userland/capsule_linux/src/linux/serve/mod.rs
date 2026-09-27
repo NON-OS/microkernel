@@ -28,6 +28,7 @@ mod pid_ns;
 mod pid_out;
 mod table;
 mod table_file;
+mod table_link;
 mod table_mem;
 mod table_net;
 mod table_proc;

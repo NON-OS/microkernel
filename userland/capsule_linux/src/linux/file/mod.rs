@@ -37,6 +37,9 @@ mod pread;
 mod private;
 mod read;
 mod regular;
+mod link;
+mod mknod;
+mod owner;
 mod rename;
 mod resolve;
 mod root;
@@ -58,14 +61,17 @@ pub use fsync::fsync;
 pub use memfd::{ftruncate, is_memfd, memfd_create};
 pub use memfd_map::{mapped_at, set_mapped, staged};
 pub use meta::{
-    access, chmod, faccessat, fchmod, fchmodat, fstat, look, newfstatat, readlink, statfs, statx,
+    access, chmod, faccessat, fchmod, fchmodat, fstat, look, newfstatat, readlinkat, statfs, statx,
 };
 pub use open::openat;
 pub use path::read_path;
 pub use pread::pread64;
 pub use private::{allow_shared_writes, clear as clear_private, prepare as prepare_private};
 pub use read::read;
-pub use rename::rename;
+pub use link::{linkat, symlinkat};
+pub use mknod::mknodat;
+pub use owner::{fchown_ids, fchownat, utimensat};
+pub use rename::{rename, renameat2};
 pub use resolve::{key, visible};
 pub use seek::lseek;
 pub use slot::{install, MAX_FDS};

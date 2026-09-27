@@ -22,7 +22,7 @@
 
 use crate::fs_paths::opened;
 use crate::report::{Report, Seen};
-use crate::sys::{call, AT_FDCWD, CHDIR, CLOSE, GETCWD, OPEN, OPENAT, RENAME, SYMLINK};
+use crate::sys::{call, AT_FDCWD, CHDIR, CLOSE, GETCWD, OPEN, OPENAT, RENAME};
 
 /// Outside the guest's tree on every store image this repo packs.
 pub const OUTSIDE: &str = "capsules/std_proof.elf";
@@ -50,8 +50,7 @@ pub fn scan(r: &mut Report) {
     r.check("chdir above root", if at_root { Seen::Refused(0) } else { escaped("cwd", n) });
     let rc = call(OPENAT, [AT_FDCWD as u64, p(&format!("{OUTSIDE}\0")), O_RDONLY, 0, 0, 0]);
     r.check("relative after chdir", opened(rc));
-    let rc = call(SYMLINK, [p("/\0"), p("/tmp/up\0"), 0, 0, 0, 0]);
-    r.check("symlink to root", opened(rc));
+    crate::fs_links::through_links(r, &up);
     let dest = format!("/{up}nonos/linux/apps/pwned\0");
     let rc = call(RENAME, [p("/tmp\0"), p(&dest), 0, 0, 0, 0]);
     r.check("rename across the root", opened(rc));

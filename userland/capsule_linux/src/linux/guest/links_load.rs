@@ -34,6 +34,6 @@ impl Links {
             (from.first() == Some(&b'/') && !to.is_empty())
                 .then(|| (visible(b"/", from), to.to_vec()))
         });
-        Links(pairs.collect())
+        Links(core::cell::RefCell::new(pairs.collect()))
     }
 }

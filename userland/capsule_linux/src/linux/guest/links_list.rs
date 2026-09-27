@@ -26,7 +26,8 @@ impl Links {
     pub fn names_in(&self, dir: &[u8]) -> Vec<String> {
         let dir = if dir == b"/" { &b""[..] } else { dir };
         let leaf = |from: &[u8]| from.strip_prefix(dir)?.strip_prefix(b"/").map(|l| l.to_vec());
-        let names = self.0.iter().filter_map(|(from, _)| leaf(from));
+        let all = self.0.borrow();
+        let names = all.iter().filter_map(|(from, _)| leaf(from));
         names.filter(|l| !l.contains(&b'/')).filter_map(|l| String::from_utf8(l).ok()).collect()
     }
 }

@@ -25,14 +25,17 @@
 //! one is proved by its own path, never the link's.
 
 use alloc::vec::Vec;
+use core::cell::RefCell;
 
 use crate::linux::file::visible;
 
 /// Linux gives up at forty; a table this small never legitimately nears it.
 const MAX_HOPS: usize = 16;
 
+/// Shared by every process in the family through one `Rc`, so a link one of
+/// them makes is there for the others, as on Linux.
 #[derive(Default)]
-pub struct Links(pub(super) Vec<(Vec<u8>, Vec<u8>)>);
+pub struct Links(pub(super) RefCell<Vec<(Vec<u8>, Vec<u8>)>>);
 
 impl Links {
     /// `path` with every link in it followed; the last component too when
@@ -49,7 +52,7 @@ impl Links {
                 false => path[..dir_end].to_vec(),
             };
             joined.push(b'/');
-            joined.extend_from_slice(target);
+            joined.extend_from_slice(&target);
             joined.extend_from_slice(&path[end..]);
             path = visible(b"/", &joined);
         }
@@ -57,11 +60,11 @@ impl Links {
     }
 
     /// The target of `path` itself, when it is a link.
-    pub fn target(&self, path: &[u8]) -> Option<&[u8]> {
-        self.0.iter().find(|(from, _)| from == path).map(|(_, to)| &to[..])
+    pub fn target(&self, path: &[u8]) -> Option<Vec<u8>> {
+        self.0.borrow().iter().find(|(from, _)| from == path).map(|(_, to)| to.clone())
     }
 
-    fn first_in(&self, path: &[u8], last: bool) -> Option<(usize, &[u8])> {
+    fn first_in(&self, path: &[u8], last: bool) -> Option<(usize, Vec<u8>)> {
         let ends = path.iter().enumerate().skip(1).filter(|(_, b)| **b == b'/').map(|(i, _)| i);
         let whole = last.then_some(path.len());
         ends.chain(whole).find_map(|end| self.target(&path[..end]).map(|t| (end, t)))
