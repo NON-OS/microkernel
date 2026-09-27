@@ -65,6 +65,6 @@ fn rest(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
         nr::MEMBARRIER => call::membarrier(a[0]),
         nr::CLONE3 => call::clone3(),
         nr::EXIT | nr::EXIT_GROUP => call::exit(guest, a[0]),
-        other => super::unserved::unserved(other),
+        other => super::refused::refused(other).unwrap_or_else(|| super::unserved::unserved(other)),
     }
 }
