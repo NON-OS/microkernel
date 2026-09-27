@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::image::jpeg::zigzag::ZIGZAG;
 use crate::image::types::DecodeError;
 
 pub const MAX_QT: usize = 4;
@@ -51,20 +52,13 @@ pub fn parse_dqt(seg: &[u8], tables: &mut [QuantTable; MAX_QT]) -> Result<(), De
             return Err(DecodeError::Truncated);
         }
         let mut t = QuantTable::new();
-        if pq == 0 {
-            let mut i = 0usize;
-            while i < 64 {
-                t.values[i] = seg[p + i] as u16;
-                i += 1;
-            }
-        } else {
-            let mut i = 0usize;
-            while i < 64 {
-                let hi = seg[p + i * 2] as u16;
-                let lo = seg[p + i * 2 + 1] as u16;
-                t.values[i] = (hi << 8) | lo;
-                i += 1;
-            }
+        // The file lists the table in zigzag order; keep it in natural order.
+        for (i, &zi) in ZIGZAG.iter().enumerate() {
+            t.values[zi] = if pq == 0 {
+                seg[p + i] as u16
+            } else {
+                ((seg[p + i * 2] as u16) << 8) | seg[p + i * 2 + 1] as u16
+            };
         }
         t.present = true;
         tables[tq] = t;
