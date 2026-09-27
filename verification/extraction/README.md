@@ -29,16 +29,23 @@ definitions by transitivity.
 ## Scope, honestly stated
 
 Extraction covers the pure safe decision cores: the capability bit
-operations and their call graph (`Capability::bit`) in `caps/`, and the
-user-copy range policy (`check_range`, with the exact error variant on every
-rejecting path and totality on every input) plus the page-permission
-encoding (`to_pte_flags`, `is_wx_violation`) in `policy/`. The proofs in
+operations and their call graph (`Capability::bit`) in `caps/`, together with
+the resolver `select_caps` and the folder `fold_caps`; the user-copy range
+policy (`check_range`, with the exact error variant on every rejecting path and
+totality on every input) plus the page-permission encoding (`to_pte_flags`,
+`is_wx_violation`) in `policy/`; the MSI-X bind validator in `irq/`; the
+interrupt vector classification in `vectors/`; and the signal delivery policy in
+`signal/`. The proofs in
 `lean/NonosExtraction/PolicyRefinement.lean` bind the policy to
 `Nonos.Isolation`: acceptance is exactly the model's `Accepts`, and the
 extracted encoder can never emit a writable page without NX unless the
-permission was a W^X violation. The `Vec`-returning conversions in bits.rs
-use iterator adapters outside Aeneas's supported fragment and stay covered
-by the kernel_proofs differential harnesses and Kani. The unsafe hardware
+permission was a W^X violation. `select_caps` was written with iterator adapters, which are
+outside Aeneas's supported fragment, so it could not be extracted at all; it
+takes its table as an argument and walks it now, and `CapsComplete.lean` proves
+the resulting loop against a specification. `Capability::all` is a static, so
+Charon leaves it opaque: the resolver is proven faithful to the table it is
+handed, and that the table is the whole enumeration is the `capability_table!`
+macro's job, checked at compile time by `guard.rs`. The unsafe hardware
 glue is out of extraction scope by design and remains under Kani and Verus.
 
 One external definition is provided by hand, as Aeneas prescribes for core
@@ -71,6 +78,8 @@ charon cargo --preset=aeneas \
   --start-from 'nonos_caps::capabilities::bits::has_capability' \
   --start-from 'nonos_caps::capabilities::bits::add_capability' \
   --start-from 'nonos_caps::capabilities::bits::remove_capability' \
+  --start-from 'nonos_caps::capabilities::bits::fold_caps' \
+  --start-from 'nonos_caps::capabilities::bits::select_caps' \
   --dest-file caps.llbc
 aeneas -backend lean caps.llbc -dest ../lean/NonosExtraction
 
@@ -84,5 +93,12 @@ aeneas -backend lean -split-files policy.llbc -dest ../lean/Policy
 # FunsExternal.lean is hand-written from FunsExternal_Template.lean; do not
 # overwrite it.
 
+# The vectors/ and signal/ crates follow the same two commands; the exact
+# --start-from sets are in the `extraction` job of .github/workflows/verify.yml,
+# which regenerates every crate and diffs for drift.
+
 cd ../lean && lake exe cache get && lake build   # 0 errors == verified
+
+# NonosExtraction.lean is the root: a module missing from its imports is not
+# built by the default target and so is checked by nothing.
 ```
