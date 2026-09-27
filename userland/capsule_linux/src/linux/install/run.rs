@@ -30,15 +30,12 @@ pub(super) const RELEASE: &str = "v3.20";
 pub(super) const ARCH: &str = "x86_64";
 pub(super) const BRANCHES: [&str; 2] = ["main", "community"];
 
-/// Packages one install may bring in. A closure larger than this is not a
-/// program someone chose; it is an index that names half the distribution.
-const MAX_PACKAGES: usize = 96;
-
 pub fn install(name: &str, pin: &[u8; 32]) -> bool {
     let Some(index) = load_index() else {
         say(b"[LINUX] no package index\n");
         return false;
     };
+    let max = super::limit::max_packages();
     let mut wanted: Vec<String> = vec![String::from(name)];
     let mut done: Vec<String> = Vec::new();
     while let Some(next) = wanted.pop() {
@@ -53,8 +50,9 @@ pub fn install(name: &str, pin: &[u8; 32]) -> bool {
         if done.contains(&pkg.name) {
             continue;
         }
-        if done.len() == MAX_PACKAGES {
-            say(b"[LINUX] more packages than one install resolves\n");
+        if done.len() == max {
+            let line = alloc::format!("[LINUX] refused: closure passes {max} packages\n");
+            say(line.as_bytes());
             return false;
         }
         let Some(files) = fetch(pkg, (pkg.name == name).then_some(pin)) else {

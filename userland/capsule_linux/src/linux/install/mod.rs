@@ -23,6 +23,7 @@ mod fetch;
 mod http;
 mod index;
 mod index_load;
+mod limit;
 mod mirror;
 mod pkg;
 mod place;
