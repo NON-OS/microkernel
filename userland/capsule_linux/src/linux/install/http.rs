@@ -16,16 +16,20 @@
 
 //! A GET, over the socket service this capsule already uses.
 
+use alloc::format;
 use alloc::vec::Vec;
-use alloc::{format, string::String};
 
+use super::http_reply::{body, complete};
 use super::mirror::HOST_LINE;
 use crate::linux::net::raw::{connect_host, open_stream_to};
-use crate::linux::net::raw_io::{close, recv_all, send_all};
+use crate::linux::net::raw_io::{close, recv_until, send_all};
 
 /// Enough for the largest package index; a reply beyond it is refused
 /// rather than truncated into a half-parsed index.
 const MAX_BODY: usize = 64 << 20;
+/// How long a mirror may go silent: one fetching upstream before it answers
+/// sends nothing for a while, and a slow link for longer under emulation.
+const IDLE_MS: u64 = 120_000;
 
 /// A GET to Alpine's mirror.
 pub fn get(ip: &str, port: u16, path: &str) -> Option<Vec<u8>> {
@@ -46,30 +50,14 @@ pub fn get_as(ip: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
     let req = format!(
         "GET {path} HTTP/1.1\r\nHost: {host}\r\nUser-Agent: nonos\r\nConnection: close\r\n\r\n"
     );
-    let raw = send_all(handle, req.as_bytes()).and_then(|()| recv_all(handle, MAX_BODY));
+    let sent = send_all(handle, req.as_bytes());
+    let raw = sent.and_then(|()| recv_until(handle, MAX_BODY, &complete, IDLE_MS));
     close(handle);
     let got = raw.and_then(body);
-    if got.is_none() {
-        let line = format!("[LINUX] mirror {ip}: GET {path} gave no 200 reply\n");
-        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-    }
+    let line = match &got {
+        Some(b) => format!("[LINUX] mirror {ip}: {path}, {} bytes\n", b.len()),
+        None => format!("[LINUX] mirror {ip}: GET {path} gave no whole 200 reply\n"),
+    };
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
     got
-}
-
-/// The bytes after the header block. A reply whose status is not 200 is
-/// nothing: an error page parsed as a package is the worst outcome here.
-/// The header is cut off in place: a 20 MB index is not held twice.
-fn body(mut raw: Vec<u8>) -> Option<Vec<u8>> {
-    let head_end = find(&raw, b"\r\n\r\n")? + 4;
-    let head = String::from_utf8_lossy(&raw[..head_end]);
-    let first = head.lines().next()?;
-    if !first.contains(" 200 ") {
-        return None;
-    }
-    raw.drain(..head_end);
-    Some(raw)
-}
-
-fn find(hay: &[u8], needle: &[u8]) -> Option<usize> {
-    hay.windows(needle.len()).position(|w| w == needle)
 }

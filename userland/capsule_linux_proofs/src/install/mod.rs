@@ -18,6 +18,9 @@
 
 pub mod auth;
 
+#[path = "../../../capsule_linux/src/linux/install/http_reply.rs"]
+pub mod http_reply;
+
 #[path = "../../../capsule_linux/src/linux/install/tar_field.rs"]
 pub mod tar_field;
 

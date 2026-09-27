@@ -16,6 +16,7 @@
 
 //! Every proof, by the thing it constrains.
 
+mod alpine_index_tests;
 mod auth_refusals;
 mod auth_tests;
 mod deb_chain_tests;
@@ -27,6 +28,7 @@ mod elf_tests;
 mod exec_shebang_tests;
 mod family_tests;
 mod host_body_tests;
+mod http_reply_tests;
 mod index_tests;
 mod kali_anchor_tests;
 mod key_tests;

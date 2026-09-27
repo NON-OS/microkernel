@@ -18,10 +18,12 @@
 
 use alloc::vec::Vec;
 
+use nonos_libc::{mk_yield, Deadline};
+
 use super::call::call;
 use super::ops::{OP_CLOSE, OP_RECV, OP_SEND};
 
-/// One transfer. The service caps a reply, so a body arrives in pieces.
+/// One transfer; the service caps a reply, so a body arrives in pieces.
 const CHUNK: usize = 32 << 10;
 
 pub fn send_all(handle: u32, bytes: &[u8]) -> Option<()> {
@@ -37,17 +39,31 @@ pub fn send_all(handle: u32, bytes: &[u8]) -> Option<()> {
     Some(())
 }
 
-/// Read until the peer closes, which is what Connection: close gives.
-pub fn recv_all(handle: u32, limit: usize) -> Option<Vec<u8>> {
+/// Read until `done` says the reply is whole, or nothing arrives for
+/// `idle_ms`. An empty read is "nothing yet": net.core answers the same for
+/// a quiet socket and a closed one, so it cannot mean the end.
+type Done = dyn Fn(&[u8]) -> bool;
+
+pub fn recv_until(handle: u32, limit: usize, done: &Done, idle_ms: u64) -> Option<Vec<u8>> {
     let mut out: Vec<u8> = Vec::new();
+    let mut quiet = Deadline::after_ms(idle_ms);
     loop {
         match call(OP_RECV, &handle.to_le_bytes(), CHUNK) {
-            Some((0, part)) if part.is_empty() => return Some(out),
-            Some((0, part)) => out.extend_from_slice(&part),
-            _ => return Some(out),
+            Some((0, part)) if !part.is_empty() => {
+                out.extend_from_slice(&part);
+                quiet = Deadline::after_ms(idle_ms);
+            }
+            _ if quiet.expired() => return Some(out),
+            _ => {
+                let _ = mk_yield();
+                continue;
+            }
         }
         if out.len() > limit {
             return None;
+        }
+        if done(&out) {
+            return Some(out);
         }
     }
 }
