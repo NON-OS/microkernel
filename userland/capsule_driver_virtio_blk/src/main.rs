@@ -26,7 +26,7 @@ mod queue;
 mod regs;
 mod server;
 mod setup;
-use nonos_libc::{heap_init, mk_debug, mk_exit, mk_yield};
+use nonos_libc::{heap_init, mk_debug, mk_exit, mk_yield, Deadline};
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
@@ -53,7 +53,11 @@ pub unsafe extern "C" fn _start() -> ! {
                     last = step;
                 }
                 rounds = rounds.wrapping_add(1);
-                for _ in 0..64 {
+                // Each round claims and releases the device: back off from
+                // 50 ms to 5 s so a part that cannot start does not churn.
+                let wait = (50u64 << rounds.min(7)).min(5_000);
+                let until = Deadline::after_ms(wait);
+                while !until.expired() {
                     mk_yield();
                 }
             }
