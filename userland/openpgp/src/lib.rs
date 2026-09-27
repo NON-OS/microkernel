@@ -26,6 +26,8 @@
 
 extern crate alloc;
 
+mod armor;
+mod base64;
 mod digest;
 mod key;
 mod keyring;
@@ -36,6 +38,7 @@ mod sig;
 mod subpacket;
 mod verify;
 
+pub use armor::dearmor;
 pub use key::{Key, Material};
 pub use keyring::keys;
 pub use refusal::Refusal;

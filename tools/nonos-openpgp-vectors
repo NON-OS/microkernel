@@ -74,6 +74,11 @@ def main():
                       "-o", "-", data=data)
             (a.out / f"{name}-{digest.lower()}.sig").write_bytes(sig)
             print(f"{name}-{digest.lower()}.sig {len(sig)} bytes")
+        # Armored forms, as a Debian repository publishes its key and Release.gpg.
+        (a.out / "rsa.asc").write_bytes(gpg(home, "--armor", "--export", "rsa@nonos.invalid"))
+        asc = gpg(home, "--local-user", "rsa@nonos.invalid", "--digest-algo", "SHA256",
+                  "--armor", "--detach-sign", "-o", "-", data=data)
+        (a.out / "rsa-sha256.asc").write_bytes(asc)
     (a.out / "fingerprints.txt").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
     return 0
