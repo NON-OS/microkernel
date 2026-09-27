@@ -22,6 +22,8 @@ import NonosExtraction.CtPrimitivesRefinement
 import NonosExtraction.CtRefinement
 import NonosExtraction.CapsComplete
 import NonosExtraction.CapsCoreRefinement
+import NonosExtraction.Elf
+import NonosExtraction.ElfRefinement
 import NonosExtraction.Iommu
 import NonosExtraction.IommuRefinement
 import NonosExtraction.Irq

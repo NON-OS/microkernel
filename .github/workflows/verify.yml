@@ -590,6 +590,15 @@ jobs:
           mkdir -p /tmp/regen-paging
           aeneas -backend lean paging.llbc -dest /tmp/regen-paging
           diff -u ../lean/NonosExtraction/Paging.lean /tmp/regen-paging/Paging.lean
+          cd ../elf
+          charon cargo --preset=aeneas \
+            --start-from 'nonos_elf::elf::loader::core::parse_header::bounds::program_header_bounds' \
+            --start-from 'nonos_elf::elf::reloc::apply::range::in_range' \
+            --start-from 'nonos_elf::elf::reloc::utils::supported::is_supported' \
+            --dest-file elf.llbc
+          mkdir -p /tmp/regen-elf
+          aeneas -backend lean elf.llbc -dest /tmp/regen-elf
+          diff -u ../lean/NonosExtraction/Elf.lean /tmp/regen-elf/Elf.lean
       - name: Verify the refinement theorems
         run: |
           set -euo pipefail

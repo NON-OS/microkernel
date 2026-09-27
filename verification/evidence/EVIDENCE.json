@@ -51,6 +51,9 @@
         "nonos_ct::security::crypto::constant_time::ops::ct_lt_u64",
         "nonos_ct::security::crypto::constant_time::ops::ct_max_u32",
         "nonos_ct::security::crypto::constant_time::ops::ct_min_u32",
+        "nonos_elf::elf::loader::core::parse_header::bounds::program_header_bounds",
+        "nonos_elf::elf::reloc::apply::range::in_range",
+        "nonos_elf::elf::reloc::utils::supported::is_supported",
         "nonos_iommu::agaw_context_aw",
         "nonos_iommu::agaw_page_table_levels",
         "nonos_iommu::arch::x86_64::iommu::regs::cap::agaw::preferred_levels",
@@ -115,6 +118,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/Ct.lean",
           "sha256": "9938544febc39d89d3483de1f456aa126f10dbbf203546fe25ae67357678f41d"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Elf.lean",
+          "sha256": "000aeffdabc1318190f5ebaef942f935cfa2ca92a3aa517fdfbb3d13db74c987"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Iommu.lean",
