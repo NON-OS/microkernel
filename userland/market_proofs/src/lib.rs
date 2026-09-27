@@ -21,5 +21,11 @@ extern crate alloc;
 
 pub mod install_ready;
 
+#[path = "../../capsule_market/src/server/handlers/install_ready/find_release.rs"]
+pub mod find_release;
+
 #[cfg(test)]
 mod readiness_tests;
+
+#[cfg(test)]
+mod release_tests;

@@ -16,7 +16,7 @@
 
 use nonos_marketplace_abi::{CapsuleRelease, MarketplaceIndex};
 
-pub(super) fn find_release<'a>(
+pub fn find_release<'a>(
     index: &'a MarketplaceIndex,
     listing_id: &str,
     release_id: &str,

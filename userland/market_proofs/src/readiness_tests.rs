@@ -24,7 +24,7 @@ use nonos_marketplace_abi::{CapsuleRelease, ValidationReport, ValidationStatus};
 
 use crate::install_ready::checks::evaluate;
 
-fn release(arch: &str, trailer: u8) -> CapsuleRelease {
+pub(crate) fn release(arch: &str, trailer: u8) -> CapsuleRelease {
     CapsuleRelease {
         release_id: String::from("pkg@1"),
         manifest_hash: [1; 32],
