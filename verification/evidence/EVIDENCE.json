@@ -161,23 +161,6 @@
         "nonos_x_addr_virt::virtaddr_zero",
         "nonos_x_aml_types::gpiocontroller_is_valid",
         "nonos_x_aml_types::lpsscontroller_is_valid",
-        "nonos_x_attributes_flags::pteflags_accessed",
-        "nonos_x_attributes_flags::pteflags_bits",
-        "nonos_x_attributes_flags::pteflags_dirty",
-        "nonos_x_attributes_flags::pteflags_executable",
-        "nonos_x_attributes_flags::pteflags_from_bits",
-        "nonos_x_attributes_flags::pteflags_global",
-        "nonos_x_attributes_flags::pteflags_is_executable",
-        "nonos_x_attributes_flags::pteflags_is_leaf",
-        "nonos_x_attributes_flags::pteflags_is_readable",
-        "nonos_x_attributes_flags::pteflags_is_user",
-        "nonos_x_attributes_flags::pteflags_is_valid",
-        "nonos_x_attributes_flags::pteflags_is_writable",
-        "nonos_x_attributes_flags::pteflags_new",
-        "nonos_x_attributes_flags::pteflags_readable",
-        "nonos_x_attributes_flags::pteflags_user",
-        "nonos_x_attributes_flags::pteflags_valid",
-        "nonos_x_attributes_flags::pteflags_writable",
         "nonos_x_boot_types_context::exceptioncontext_code_segment",
         "nonos_x_boot_types_context::exceptioncontext_has_error_code",
         "nonos_x_boot_types_context::exceptioncontext_instruction_pointer",
@@ -397,17 +380,6 @@
         "nonos_x_translation_fault::translationfault_is_permission_fault",
         "nonos_x_translation_fault::translationfault_is_translation_fault",
         "nonos_x_translation_fault::translationfault_level",
-        "nonos_x_types_attributes::variableattributes_bits",
-        "nonos_x_types_attributes::variableattributes_contains",
-        "nonos_x_types_attributes::variableattributes_empty",
-        "nonos_x_types_attributes::variableattributes_from_bits",
-        "nonos_x_types_attributes::variableattributes_from_bits_truncate",
-        "nonos_x_types_attributes::variableattributes_intersection",
-        "nonos_x_types_attributes::variableattributes_is_empty",
-        "nonos_x_types_attributes::variableattributes_is_non_volatile",
-        "nonos_x_types_attributes::variableattributes_is_runtime_access",
-        "nonos_x_types_attributes::variableattributes_requires_authentication",
-        "nonos_x_types_attributes::variableattributes_union",
         "nonos_x_types_bridge::bridgeinfo_new",
         "nonos_x_types_direction::dmadirection_reads_from_device",
         "nonos_x_types_direction::dmadirection_writes_to_device",
@@ -476,10 +448,6 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/AmlTypes.lean",
           "sha256": "a014e57a34f8cd499265c57c66991c166e3468fe9b873dbffd37c7b5ed1d1442"
-        },
-        {
-          "path": "verification/extraction/lean/NonosExtraction/AttributesFlags.lean",
-          "sha256": "54acc4f9eadd5a5fb6a67b3f72c5aa40fa82fc0e86beb3b2bc66fa9f1230d1fd"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/BootTypesContext.lean",
@@ -590,10 +558,6 @@
           "sha256": "00bd82326b3382666b8ff8922b71a2f40f0766e9230c037796d3dc710dddb384"
         },
         {
-          "path": "verification/extraction/lean/NonosExtraction/IommuDevice.lean",
-          "sha256": "ffa690d5e98d3bede2cef143326c08c9756d5f006d316e8544ce7bacd96b02f6"
-        },
-        {
           "path": "verification/extraction/lean/NonosExtraction/IommuProtection.lean",
           "sha256": "02f1f92895022c6e63def5698b27f9bd1215f1f2bfee983b33d3112cdc11cfa3"
         },
@@ -678,10 +642,6 @@
           "sha256": "041b400dd85aec92d3cbf80b8e57350ee05c97e22bf64b3e76fe52ad46e593b0"
         },
         {
-          "path": "verification/extraction/lean/NonosExtraction/PqcTypes.lean",
-          "sha256": "6880ac69335ccc656f5e754de649ae4455de263328f26bf081f9f9f5f9fe8643"
-        },
-        {
           "path": "verification/extraction/lean/NonosExtraction/ProcessFdTypes.lean",
           "sha256": "18619216542697ddaf332cd2636076cb8133596b19a9da9b431cb93fa55d3162"
         },
@@ -698,16 +658,8 @@
           "sha256": "aa76f80d1ebd105f227222b5b47532cbb984a93a9a005a708cd671a945dd196d"
         },
         {
-          "path": "verification/extraction/lean/NonosExtraction/RtcBcd.lean",
-          "sha256": "f5c33f7de2661b254b180cd19b13e3ffb1c76ea5e8fa1346a9a64a8966efda5c"
-        },
-        {
           "path": "verification/extraction/lean/NonosExtraction/RvFlags.lean",
           "sha256": "b78ef3c9eb7caf65b113f4e7416cafbc2b9c6a7a378cde37458f228aafdaba5a"
-        },
-        {
-          "path": "verification/extraction/lean/NonosExtraction/SecureBootTypes.lean",
-          "sha256": "8d0c80b77ec0b67d3a45bd73a58b21245c431aa74fed3ff56f7020d8cd27ec0d"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/SemaphorePure.lean",
@@ -720,10 +672,6 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/Signal.lean",
           "sha256": "b40253ddc5addde3a2d67389dd9ec00910623bf27c09ec0f4eda996995b34847"
-        },
-        {
-          "path": "verification/extraction/lean/NonosExtraction/SmpTypes.lean",
-          "sha256": "9abc0f6c3151df88a2f1f19b6ca6ce3da495c3402695470ccb6164ab1d71268b"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/SpectreMitigationsCpuid.lean",
@@ -770,10 +718,6 @@
           "sha256": "d5adc30bcc1de8c3e20ce813e41d08234196febceae1a76a7524257dd7551a55"
         },
         {
-          "path": "verification/extraction/lean/NonosExtraction/TypesAttributes.lean",
-          "sha256": "8c56251c996c2f87dc9544b14de5f8628b75de08853b6830c86113b13cbcdf6d"
-        },
-        {
           "path": "verification/extraction/lean/NonosExtraction/TypesBridge.lean",
           "sha256": "6f293ca2211ed084d818947ecff7587dba66660c45072da9d7084792fabc7cfa"
         },
@@ -796,10 +740,6 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesPermissions.lean",
           "sha256": "3d9f0e2fb6623cfe78dad720782d07ace60de438c1974a8c904295370264318c"
-        },
-        {
-          "path": "verification/extraction/lean/NonosExtraction/TypesRange.lean",
-          "sha256": "623f737b31ceedb67223cee6ee3a8b9b52f258ea350c3654f088a39029f55bb2"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesRate.lean",
@@ -832,10 +772,6 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/UefiSecureBootStatus.lean",
           "sha256": "d11cef8793cba33548af0795daac2f3616f286d1e1b125468ae0a6de792d1f60"
-        },
-        {
-          "path": "verification/extraction/lean/NonosExtraction/UefiStats.lean",
-          "sha256": "7a81ee9c8d27d24c226d913cb633f29ae05b3392ee367c6caa59f2635d7a57c0"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/UtilsTypes.lean",
