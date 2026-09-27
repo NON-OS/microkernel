@@ -38,6 +38,8 @@ pub mod usercopy;
 #[cfg(test)]
 mod authorization_tests;
 #[cfg(test)]
+mod ipc_peers_tests;
+#[cfg(test)]
 mod elf_tests;
 #[cfg(test)]
 mod inbox_name_tests;

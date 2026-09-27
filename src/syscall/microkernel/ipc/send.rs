@@ -82,7 +82,9 @@ pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correla
          * would wake on its own.
          */
         Redirect::ToCaller { caller_inbox, caller_pid, token } => {
-            if !super::send_caps::caller_satisfies_endpoint(endpoint, &caller_inbox) {
+            if !super::send_caps::caller_satisfies_endpoint(endpoint, &caller_inbox)
+                || !crate::services::registry::caller_may_reach_pid(caller_pid)
+            {
                 return ERRNO_PERM;
             }
             trace(pid, endpoint, &caller_inbox, len);
@@ -130,7 +132,9 @@ pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correla
          * (0 for sys_ipc_send, all a forged reply injection can carry).
          */
         Redirect::AsAddressed => {
-            if !super::send_caps::caller_satisfies_endpoint(endpoint, &target) {
+            if !super::send_caps::caller_satisfies_endpoint(endpoint, &target)
+                || !crate::services::registry::caller_may_reach(&target)
+            {
                 return ERRNO_PERM;
             }
             trace(pid, endpoint, &target, len);

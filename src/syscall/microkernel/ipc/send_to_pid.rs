@@ -56,6 +56,10 @@ pub fn sys_ipc_send_to_pid(dest_pid: u64, buf: u64, len: usize) -> i64 {
         return ERRNO_FAULT;
     }
     let caller_pid = current_pid().unwrap_or(0);
+    // A capsule held to a peer list reaches only the inboxes of its peers.
+    if !crate::services::registry::caller_may_reach_pid(dest_pid as u32) {
+        return crate::syscall::microkernel::errnos::ERRNO_PERM;
+    }
     trace(caller_pid, dest_pid, len);
     let dest = alloc::format!("proc.{}", dest_pid as u32);
     let from = alloc::format!("proc.{}", caller_pid);
