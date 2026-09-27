@@ -55,6 +55,11 @@ fn rest(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
         nr::RSEQ | nr::SET_ROBUST_LIST => errno::ok(0),
         nr::ARCH_PRCTL => call::arch_prctl(guest, tid, a[0], a[1]),
         nr::GETRANDOM => call::getrandom(guest, a[0], a[1], a[2]),
+        nr::PRCTL => call::prctl(guest, tid, a[0], a[1]),
+        nr::SCHED_GETAFFINITY => call::sched_getaffinity(guest, a[1], a[2]),
+        nr::GETCPU => call::getcpu(guest, a[0], a[1]),
+        nr::MEMBARRIER => call::membarrier(a[0]),
+        nr::CLONE3 => call::clone3(),
         nr::EXIT | nr::EXIT_GROUP => call::exit(guest, a[0]),
         other => super::unserved::unserved(other),
     }

@@ -26,8 +26,11 @@ mod map_req;
 mod memory;
 mod prot;
 mod prot_span;
+mod remap;
+mod remap_move;
 
 pub use map::mmap;
 pub use map_req::MapReq;
 pub use memory::{brk, munmap};
 pub use prot::mprotect;
+pub use remap::mremap;
