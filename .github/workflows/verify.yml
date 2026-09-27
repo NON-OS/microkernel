@@ -142,6 +142,11 @@ jobs:
           fi
           jq -e '.proof_systems.lean_specification.sorry_count == 0' /tmp/EVIDENCE.json >/dev/null \
             || { echo "::error::a sorry is present in the Lean corpus"; exit 1; }
+      - name: Every extracted function carries a proof
+        run: |
+          set -euo pipefail
+          if [ ! -d verification/extraction ]; then exit 0; fi
+          python3 tools/ratchets/proven_functions.py --root .
       - name: Publish evidence manifest
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
