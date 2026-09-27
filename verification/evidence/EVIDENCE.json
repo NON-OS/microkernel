@@ -25,14 +25,21 @@
       "bv_decide_calls": 12,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 415,
-        "proven": 413,
-        "substantive": 146,
-        "trivial": 267,
+        "extracted": 422,
+        "proven": 420,
+        "substantive": 155,
+        "trivial": 265,
         "unproven": 2
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
       "extracted_functions": [
+        "nonos_align::boot_align_down",
+        "nonos_align::boot_align_up",
+        "nonos_align::buddy_align_up",
+        "nonos_align::layout_align_down",
+        "nonos_align::layout_align_up",
+        "nonos_align::phys_align_down",
+        "nonos_align::phys_align_up",
         "nonos_caps::capabilities::bits::add_capability",
         "nonos_caps::capabilities::bits::fold_caps",
         "nonos_caps::capabilities::bits::has_capability",
@@ -457,6 +464,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/AddrVirt.lean",
           "sha256": "82394c4eb9ce6385932a13232d7d369e615b388871bdb4bd27ba0b369e0aa7c7"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Align.lean",
+          "sha256": "949276dbc9a4159421864f9bf1dca122fba3541e104259e40662ca1c8d724e83"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AmlTypes.lean",

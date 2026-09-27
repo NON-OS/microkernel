@@ -16,6 +16,8 @@ runs it. Every generated and refinement module belongs here, because one that is
 not imported below is checked by nothing.
 -/
 
+import NonosExtraction.Align
+import NonosExtraction.AlignRefinement
 import NonosExtraction.Caps
 import NonosExtraction.CapsComplete
 import NonosExtraction.CapsCoreRefinement
