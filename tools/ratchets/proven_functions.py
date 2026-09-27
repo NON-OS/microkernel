@@ -34,13 +34,13 @@ import sys
 from pathlib import Path
 
 # Raise these when the numbers improve. They may never be lowered.
-FLOOR = 438
+FLOOR = 410
 GAP_CEILING = 2
 # Functions carrying a property beyond "this wrapper is its method". That
 # wrapper theorem is real, and it is what ties a manifest entry to the method a
 # theorem talks about, but on its own it says nothing about behaviour. Counting
 # the two together would be the inflation this file exists to stop.
-SUBSTANTIVE_FLOOR = 120
+SUBSTANTIVE_FLOOR = 100
 
 PROOF_MODULES = ('CapsComplete.lean', 'Closure.lean')
 PROOF_DIRS = (
@@ -63,6 +63,27 @@ def proof_text(root):
             if 'Refinement' in path.name or path.name in PROOF_MODULES:
                 out.append(strip_comments(path.read_text(errors='replace')))
     return '\n'.join(out)
+
+
+def mirrored_sources(root):
+    """Kernel file each crate mirrors, so two crates cannot cover one file.
+
+    The sweep re-extracted two files that already had hand-built crates, which
+    counted twenty-eight functions twice. Nothing caught it because both crates
+    were real and both extracted cleanly; the manifest simply listed the same
+    kernel code under two names.
+    """
+    out = {}
+    manifest = json.loads(
+        (root / 'verification/extraction/crates.json').read_text())
+    for c in manifest['crates']:
+        lib = root / c['dir'] / 'src/lib.rs'
+        if not lib.is_file():
+            continue
+        m = re.search(r'#\[path = "([^"]+)"\]', lib.read_text())
+        if m:
+            out.setdefault(m.group(1).split('../')[-1], []).append(c['name'])
+    return {k: v for k, v in out.items() if len(v) > 1}
 
 
 def classify(root):
@@ -95,6 +116,7 @@ def main():
     args = ap.parse_args()
     root = Path(args.root)
 
+    dups = mirrored_sources(root)
     names, proven, bare, substantive = classify(root)
     print('extracted and CI-diffed  %4d' % len(names))
     print('carrying a proof         %4d   (floor %d)' % (len(proven), FLOOR))
@@ -105,6 +127,12 @@ def main():
         print('   no proof:', name)
 
     failed = False
+    if dups:
+        print('\nkernel files mirrored by more than one crate, so their functions '
+              'are counted twice:', file=sys.stderr)
+        for path, crates in dups.items():
+            print('  %s  <- %s' % (path, ', '.join(crates)), file=sys.stderr)
+        failed = True
     if len(proven) < FLOOR:
         print('\nproven count fell to %d, floor is %d' % (len(proven), FLOOR),
               file=sys.stderr)

@@ -227,52 +227,6 @@
       "llbc": "rv"
     },
     {
-      "name": "types_attributes",
-      "crate": "nonos_x_types_attributes",
-      "dir": "verification/extraction/sweep/types_attributes",
-      "lean": "TypesAttributes",
-      "generated": "TypesAttributes.lean",
-      "starts": [
-        "nonos_x_types_attributes::variableattributes_empty",
-        "nonos_x_types_attributes::variableattributes_bits",
-        "nonos_x_types_attributes::variableattributes_from_bits",
-        "nonos_x_types_attributes::variableattributes_from_bits_truncate",
-        "nonos_x_types_attributes::variableattributes_contains",
-        "nonos_x_types_attributes::variableattributes_is_empty",
-        "nonos_x_types_attributes::variableattributes_is_non_volatile",
-        "nonos_x_types_attributes::variableattributes_is_runtime_access",
-        "nonos_x_types_attributes::variableattributes_requires_authentication",
-        "nonos_x_types_attributes::variableattributes_intersection",
-        "nonos_x_types_attributes::variableattributes_union"
-      ]
-    },
-    {
-      "name": "attributes_flags",
-      "crate": "nonos_x_attributes_flags",
-      "dir": "verification/extraction/sweep/attributes_flags",
-      "lean": "AttributesFlags",
-      "generated": "AttributesFlags.lean",
-      "starts": [
-        "nonos_x_attributes_flags::pteflags_new",
-        "nonos_x_attributes_flags::pteflags_from_bits",
-        "nonos_x_attributes_flags::pteflags_valid",
-        "nonos_x_attributes_flags::pteflags_readable",
-        "nonos_x_attributes_flags::pteflags_writable",
-        "nonos_x_attributes_flags::pteflags_executable",
-        "nonos_x_attributes_flags::pteflags_user",
-        "nonos_x_attributes_flags::pteflags_global",
-        "nonos_x_attributes_flags::pteflags_accessed",
-        "nonos_x_attributes_flags::pteflags_dirty",
-        "nonos_x_attributes_flags::pteflags_bits",
-        "nonos_x_attributes_flags::pteflags_is_valid",
-        "nonos_x_attributes_flags::pteflags_is_leaf",
-        "nonos_x_attributes_flags::pteflags_is_readable",
-        "nonos_x_attributes_flags::pteflags_is_writable",
-        "nonos_x_attributes_flags::pteflags_is_executable",
-        "nonos_x_attributes_flags::pteflags_is_user"
-      ]
-    },
-    {
       "name": "memory_sanitization_types",
       "crate": "nonos_x_memory_sanitization_types",
       "dir": "verification/extraction/sweep/memory_sanitization_types",
