@@ -65,7 +65,10 @@ QEMU_SMP ?= 4
 QEMU_HOST_SSH_PORT ?= 2222
 QEMU_HOST_HTTP_PORT ?= 8080
 QEMU_NET_MODE ?= nat
-QEMU_NET_CAPTURE ?=
+# Every networked run is captured, so what a boot sent is on disk rather than
+# inferred from the code; tools/nonos-pcap-egress summarises it. Set it empty
+# to run without one.
+QEMU_NET_CAPTURE ?= $(TARGET_DIR)/qemu-net.pcap
 QEMU_SERIAL_LOG ?= $(TARGET_DIR)/qemu-serial.log
 QEMU_SMP_SERIAL_LOG ?= $(TARGET_DIR)/qemu-smp-serial.log
 QEMU_IOMMU_SERIAL_LOG ?= $(TARGET_DIR)/qemu-iommu-serial.log
