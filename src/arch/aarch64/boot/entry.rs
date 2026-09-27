@@ -30,11 +30,10 @@ use crate::sys::serial;
 
 #[no_mangle]
 pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
-    // First statement in the function, before even a local exists. The compiler
-    // uses the vector registers for ordinary work, and building `BootInfo` here
-    // compiles to a `ldr q0` that traps while CPACR_EL1.FPEN is clear, with no
-    // vectors installed yet to report it. Anything placed above this call is
-    // running before the registers it may be compiled into are usable.
+    // start.S has already set CPACR_EL1.FPEN and VBAR_EL1, so the vector
+    // registers the compiler uses for ordinary work are usable here and an
+    // exception is reported. This finishes the per-CPU setup: the SCTLR bits,
+    // SVE where it is implemented, and the instruction cache.
     crate::arch::aarch64::cpu::init_cpu();
 
     let mut info = BootInfo::default();
@@ -48,7 +47,7 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
     serial::print_hex(dtb_ptr);
     serial::println(b"");
 
-let parsed = super::dtb_adapter::populate(dtb_ptr, &mut info);
+    let parsed = super::dtb_adapter::populate(dtb_ptr, &mut info);
 
     // Brings up the console, puts the MMU and caches into a known state, then
     // installs the vector table, the GIC and the timer.

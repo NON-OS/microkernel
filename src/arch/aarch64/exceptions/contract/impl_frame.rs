@@ -35,4 +35,8 @@ impl ContractFrame for ExceptionFrame {
     fn cause(&self) -> TrapCause {
         cause::project(self)
     }
+
+    fn syndrome(&self) -> Option<u64> {
+        Some(self.esr)
+    }
 }

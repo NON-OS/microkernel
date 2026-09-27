@@ -21,6 +21,7 @@ mod init;
 mod memory;
 pub mod multicore;
 mod pci_windows;
+mod refuse;
 pub mod stack;
 
 pub use entry::kernel_entry;
@@ -29,4 +30,5 @@ pub use init::init;
 pub(crate) use memory::init_boot_memory;
 pub use multicore::start_secondary_cpus;
 pub(crate) use pci_windows::remap as remap_pci_windows;
+pub(crate) use refuse::{refuse, security_reason};
 pub use stack::setup_stack;

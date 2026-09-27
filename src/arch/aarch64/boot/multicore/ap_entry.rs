@@ -16,6 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
+use crate::arch::aarch64::boot::{refuse, security_reason};
 use crate::arch::aarch64::cpu;
 use crate::arch::aarch64::exceptions::install_vbar_el1;
 use crate::arch::aarch64::gic::init_gic_cpu;
@@ -29,13 +30,13 @@ use super::state::CPUS_ONLINE;
 pub extern "C" fn aarch64_ap_entry() -> ! {
     install_vbar_el1();
     cpu::init_cpu();
-    if security::init_all().is_err() {
-        cpu::halt();
+    if let Err(error) = security::init_all() {
+        refuse(b"secondary security", security_reason(error));
     }
     init_gic_cpu();
     init_timer_cpu();
-    if install_preemption_tick().is_err() {
-        cpu::halt();
+    if let Err(reason) = install_preemption_tick() {
+        refuse(b"secondary timer tick", reason.as_bytes());
     }
 
     CPUS_ONLINE.fetch_add(1, Ordering::AcqRel);
