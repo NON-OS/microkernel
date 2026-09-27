@@ -604,6 +604,23 @@ jobs:
           mkdir -p /tmp/regen-elf
           aeneas -backend lean elf.llbc -dest /tmp/regen-elf
           diff -u ../lean/NonosExtraction/Elf.lean /tmp/regen-elf/Elf.lean
+          cd ../uefi_attrs
+          charon cargo --preset=aeneas \
+            --start-from 'nonos_uefi_attrs::variableattributes_empty' \
+            --start-from 'nonos_uefi_attrs::variableattributes_bits' \
+            --start-from 'nonos_uefi_attrs::variableattributes_from_bits' \
+            --start-from 'nonos_uefi_attrs::variableattributes_from_bits_truncate' \
+            --start-from 'nonos_uefi_attrs::variableattributes_contains' \
+            --start-from 'nonos_uefi_attrs::variableattributes_is_empty' \
+            --start-from 'nonos_uefi_attrs::variableattributes_is_non_volatile' \
+            --start-from 'nonos_uefi_attrs::variableattributes_is_runtime_access' \
+            --start-from 'nonos_uefi_attrs::variableattributes_requires_authentication' \
+            --start-from 'nonos_uefi_attrs::variableattributes_intersection' \
+            --start-from 'nonos_uefi_attrs::variableattributes_union' \
+            --dest-file uefi.llbc
+          mkdir -p /tmp/regen-uefi
+          aeneas -backend lean uefi.llbc -dest /tmp/regen-uefi
+          diff -u ../lean/NonosExtraction/Uefi.lean /tmp/regen-uefi/Uefi.lean
       - name: Verify the refinement theorems
         run: |
           set -euo pipefail
