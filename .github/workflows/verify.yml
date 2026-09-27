@@ -517,6 +517,29 @@ jobs:
           mkdir -p /tmp/regen-ct
           aeneas -backend lean ct.llbc -dest /tmp/regen-ct
           diff -u ../lean/NonosExtraction/Ct.lean /tmp/regen-ct/Ct.lean
+          cd ../iommu
+          charon cargo --preset=aeneas \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::is_present' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::entry_address' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::leaf' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::table' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::index_for' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::level_span' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::sl_pte::fits_address_width' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::root_low' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::context_low' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::context_high' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::context_index' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::is_present' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::entry_address' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::tables::context::context_domain' \
+            --start-from 'nonos_iommu::agaw_page_table_levels' \
+            --start-from 'nonos_iommu::agaw_context_aw' \
+            --start-from 'nonos_iommu::arch::x86_64::iommu::regs::cap::agaw::preferred_levels' \
+            --dest-file iommu.llbc
+          mkdir -p /tmp/regen-iommu
+          aeneas -backend lean iommu.llbc -dest /tmp/regen-iommu
+          diff -u ../lean/NonosExtraction/Iommu.lean /tmp/regen-iommu/Iommu.lean
       - name: Verify the refinement theorems
         run: |
           set -euo pipefail
