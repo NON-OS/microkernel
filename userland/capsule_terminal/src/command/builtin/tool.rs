@@ -32,9 +32,10 @@ pub const TOOLS: &[(&[u8], &[u8])] = &[
     (b"csview", b"csview"),
     (b"rg", b"ripgrep"),
     (b"ripgrep", b"ripgrep"),
-    (b"install", b"install"),
 ];
 
+// `install` is absent for the same reason as `sd`: the builtin that installs
+// from the market answers to the name first (jobs::classify).
 // `sd` is deliberately absent. It runs from the vfs store through `STORE_TOOLS`
 // in jobs::classify, which is checked before this table, so an entry here would
 // never be reached and would read as a second answer to the same question.
