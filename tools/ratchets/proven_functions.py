@@ -40,7 +40,7 @@ GAP_CEILING = 2
 # wrapper theorem is real, and it is what ties a manifest entry to the method a
 # theorem talks about, but on its own it says nothing about behaviour. Counting
 # the two together would be the inflation this file exists to stop.
-SUBSTANTIVE_FLOOR = 155
+SUBSTANTIVE_FLOOR = 158
 
 PROOF_MODULES = ('CapsComplete.lean', 'Closure.lean')
 PROOF_DIRS = (

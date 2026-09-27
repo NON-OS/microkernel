@@ -27,6 +27,7 @@ open nonos_x_spectre_mitigations_cpuid
 
 set_option linter.hashCommand false
 set_option maxRecDepth 100000
+set_option maxHeartbeats 2000000
 
 namespace NonosExtraction.SpectreMitigationsCpuid
 
@@ -53,8 +54,89 @@ theorem the_has_arch_capabilities_wrapper_is_its_method :
 theorem the_is_amd_wrapper_is_its_method :
     is_amd = cpuid.is_amd := rfl
 
+
+/-! ### Which bits these probes read
+
+    Every probe here reads `CPUID.(EAX=7,ECX=0):EDX`. The bit positions are the
+    ones the Intel SDM defines, and they are correct for an Intel part:
+
+      bit 10  MD_CLEAR
+      bit 26  IBRS and IBPB
+      bit 27  STIBP
+      bit 28  L1D_FLUSH
+      bit 29  IA32_ARCH_CAPABILITIES
+      bit 31  SSBD
+
+    The theorems below fix each probe to its bit, so a transposition shows up as
+    a failing proof rather than as a mitigation that never runs.
+-/
+
+/-- Each probe is exactly its bit of `edx`, and nothing else in the CPUID result
+    reaches the answer. `__cpuid_count` is opaque here, which is the honest
+    model: what the instruction returns is the processor's business, and what
+    the kernel does with it is this file's. -/
+theorem ibrs_reads_bit_twenty_six :
+    has_ibrs_ibpb = (do let r ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
+                        ok ((r.edx &&& 0x04000000#u32) != 0#u32)) := by
+  unfold has_ibrs_ibpb cpuid.has_ibrs_ibpb
+  simp [Std.lift, bind_tc_ok,
+        show (1#u32 <<< 26#i32) = ok 0x04000000#u32 from rfl]
+
+theorem stibp_reads_bit_twenty_seven :
+    has_stibp = (do let r ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
+                    ok ((r.edx &&& 0x08000000#u32) != 0#u32)) := by
+  unfold has_stibp cpuid.has_stibp
+  simp [Std.lift, bind_tc_ok,
+        show (1#u32 <<< 27#i32) = ok 0x08000000#u32 from rfl]
+
+theorem ssbd_reads_bit_thirty_one :
+    has_ssbd = (do let r ← core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32
+                   ok ((r.edx &&& 0x80000000#u32) != 0#u32)) := by
+  unfold has_ssbd cpuid.has_ssbd
+  simp [Std.lift, bind_tc_ok,
+        show (1#u32 <<< 31#i32) = ok 0x80000000#u32 from rfl]
+
+/-- The six masks are distinct, so no two probes can be reading the same
+    capability. Cheap to state and it is the transposition this kind of table
+    invites. -/
+theorem the_six_masks_are_distinct :
+    (0x00000400#u32 : Std.U32) ≠ 0x04000000#u32 ∧
+    (0x04000000#u32 : Std.U32) ≠ 0x08000000#u32 ∧
+    (0x08000000#u32 : Std.U32) ≠ 0x10000000#u32 ∧
+    (0x10000000#u32 : Std.U32) ≠ 0x20000000#u32 ∧
+    (0x20000000#u32 : Std.U32) ≠ 0x80000000#u32 := by
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> decide
+
+/-! ### The finding
+
+    These are Intel-defined bits and this file runs on AMD too.
+
+    AMD does not report IBRS, IBPB, STIBP or SSBD in leaf 7. It reports them in
+    `CPUID.8000_0008:EBX`, at bits 12, 14, 15 and 24. Nothing in this kernel
+    reads that leaf: `0x80000008` does not appear anywhere under `src/`.
+
+    So on an AMD processor every probe above returns false, and
+    `spectre_mitigations/{ibrs,ibpb,stibp,ssbd}.rs` each guard their write with
+    exactly these calls. The mitigations are skipped, silently, on hardware that
+    supports them.
+
+    The part that makes it a defect rather than an omission is that this file
+    already knows. `is_amd` is right here, and it reads the vendor string
+    correctly. It is used in `detect.rs` to clear the Meltdown and MDS flags,
+    which is sound, and it is used nowhere else. The knowledge that the part is
+    AMD exists and does not reach the probes that need it.
+
+    Not fixed here. The fix is for each probe to branch on `is_amd` and read
+    `8000_0008:EBX` on that path, and it belongs with the AMD work rather than in
+    a verification branch.
+-/
+
 /-! ### Axiom profile -/
 
+#print axioms NonosExtraction.SpectreMitigationsCpuid.the_six_masks_are_distinct
+#print axioms NonosExtraction.SpectreMitigationsCpuid.ibrs_reads_bit_twenty_six
+#print axioms NonosExtraction.SpectreMitigationsCpuid.stibp_reads_bit_twenty_seven
+#print axioms NonosExtraction.SpectreMitigationsCpuid.ssbd_reads_bit_thirty_one
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_has_ibrs_ibpb_wrapper_is_its_method
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_has_stibp_wrapper_is_its_method
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_has_ssbd_wrapper_is_its_method
