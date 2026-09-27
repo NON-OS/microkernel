@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup, mk_uptime_ms, mk_yield};
+use nonos_libc::{mk_idle_ms, mk_ipc_call_timeout, mk_service_lookup, mk_uptime_ms};
 
 const SERVICE: &[u8] = b"net.dhcp.client";
 const MAGIC: u32 = 0x4E44_4843;
@@ -36,13 +36,10 @@ pub(super) fn wait_for_lease() -> Result<(), u16> {
         if online() {
             return Ok(());
         }
-        let resume = mk_uptime_ms().saturating_add(POLL_MS);
-        if resume > deadline {
+        if mk_uptime_ms().saturating_add(POLL_MS) > deadline {
             return Err(E_NO_LEASE);
         }
-        while mk_uptime_ms() < resume {
-            mk_yield();
-        }
+        mk_idle_ms(POLL_MS as u64);
     }
 }
 
