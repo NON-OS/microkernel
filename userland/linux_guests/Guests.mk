@@ -1,14 +1,10 @@
-# Hostile Linux guests, signed and enrolled like capsules, for test images.
+# Linux guests signed and enrolled like capsules, for test images.
 #
-# NONOS_LINUX_GUESTS=1 builds each guest for musl, gives it a NØNOS-ID
-# certificate and manifest through the same template a capsule uses, and so
-# puts it under the enrolled policy root. The personality then verifies a
-# guest exactly as it would any NØNOS-built Linux program: nothing here
-# weakens a check to let a test through.
-#
-# Test images only: publisher keys are minted on first use, so this needs a
-# scratch trust tree (NONOS_DEV=1). A guest holds no capabilities; its two
-# endpoints are what a manifest must declare, and no guest registers them.
+# NONOS_LINUX_GUESTS=1 builds each guest, signs it through the capsule
+# template and enrols it under the policy root, so the personality verifies it
+# as it would any NØNOS-built Linux program; no check is weakened for a test.
+# Scratch trust only: publisher keys are minted on first use. A guest holds no
+# capabilities; its endpoints are declared, never registered.
 
 ifneq ($(NONOS_DEV),1)
 $(error NONOS_LINUX_GUESTS=1 mints scratch publisher keys and needs NONOS_DEV=1)
@@ -26,8 +22,6 @@ $(LINUX_GUESTS_OUT)/%: $(LINUX_GUESTS_SRCS)
 	@cd $(LINUX_GUESTS_DIR) && RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		RUSTFLAGS="-C target-feature=+crt-static -C relocation-model=static" \
 		cargo build --release --target $(LINUX_GUESTS_TRIPLE) --bin $*
-
-# A publisher key per guest, minted into the scratch tree when missing.
 $(NONOS_BAKED_TRUST_DIR)/keys/guest_%_publisher_ed25519.pub \
 $(NONOS_BAKED_TRUST_DIR)/keys/guest_%_publisher_mldsa65.pub: | $(CAPSULE_SIGN_BIN)
 	@mkdir -p .keys $(NONOS_BAKED_TRUST_DIR)/keys
@@ -37,8 +31,8 @@ $(NONOS_BAKED_TRUST_DIR)/keys/guest_%_publisher_mldsa65.pub: | $(CAPSULE_SIGN_BI
 		mv .keys/guest_$*_publisher_$$alg.pub $(NONOS_BAKED_TRUST_DIR)/keys/; \
 	done
 
-# name, service port, reply port. The enrolled copy is named guest_<name>,
-# so its certificate and trailer cannot collide with a capsule's.
+# name, service port, reply port[, prebuilt ELF]. The enrolled copy is named
+# guest_<name>, so its certificate and trailer cannot collide with a capsule's.
 define LINUX_GUEST
 CAPSULE_SLUG             := linux-guest-$(1)
 CAPSULE_HANDLE           := linux.guest.$(1)
@@ -50,34 +44,32 @@ CAPSULE_TARGET           := $(LINUX_GUESTS_TRIPLE)
 CAPSULE_SERVICE_ENDPOINT := service:$(2):linux.guest.$(1)
 CAPSULE_REPLY_ENDPOINT   := reply:$(3):endpoint.linux.guest.$(1).reply
 CAPSULE_REQUIRED_CAPS    := 0x0
-CAPSULE_PREBUILT_BIN     := $(LINUX_GUESTS_OUT)/$(1)
+CAPSULE_PREBUILT_BIN     := $(or $(4),$(LINUX_GUESTS_OUT)/$(1))
 CAPSULE_MK_FILE          := $(LINUX_GUESTS_DIR)/Guests.mk
-CAPSULE_METADATA         := NØNOS hostile Linux guest $(1)
+CAPSULE_METADATA         := NØNOS Linux guest $(1)
 include nonos-mk/capsule.mk
+# The template checks the keys exist; this makes it wait for the mint.
+nonos-mk-check-linux-guest-$(1)-keys: \
+	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_ed25519.pub \
+	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_mldsa65.pub
+LINUX_GUEST_STORE_DEPS += $$(linux-guest-$(1)_ARTIFACTS) $$(linux-guest-$(1)_ATTESTATION)
+LINUX_GUEST_STORE_ENTRIES += --entry /linux/bin/$(1)=$$(linux-guest-$(1)_BIN) \
+	--entry /linux/bin/$(1).nonos_id_cert.bin=$$(linux-guest-$(1)_CERT) \
+	--entry /linux/bin/$(1).manifest.bin=$$(linux-guest-$(1)_MANIFEST) \
+	--entry /linux/bin/$(1).zk_trailer.bin=$$(linux-guest-$(1)_ATTESTATION)
 endef
 
 $(eval $(call LINUX_GUEST,suite,4950,4951))
 $(eval $(call LINUX_GUEST,holder,4952,4953))
 $(eval $(call LINUX_GUEST,reader,4954,4955))
+# Alpine's static busybox, the one app.linux embeds, as a program from the store.
+$(eval $(call LINUX_GUEST,busybox,4956,4957,userland/capsule_linux/guests/busybox.elf))
 
-LINUX_GUEST_SLUGS := linux-guest-suite linux-guest-holder linux-guest-reader
-# The template checks keys exist; this makes the check wait for the mint.
-$(foreach g,suite holder reader,$(eval nonos-mk-check-linux-guest-$(g)-keys: \
-	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(g)_publisher_ed25519.pub \
-	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(g)_publisher_mldsa65.pub))
-
-# What the store image carries: each guest under /linux/bin with its proof
-# beside it, and the file naming the one the boot instance runs.
-LINUX_GUEST_BOOT ?= suite
-LINUX_GUEST_BOOT_FILE := $(TARGET_DIR)/linux-guests/boot-$(LINUX_GUEST_BOOT)
-$(LINUX_GUEST_BOOT_FILE):
-	@mkdir -p $(@D) && printf '/bin/%s\n' '$(LINUX_GUEST_BOOT)' > $@
-
-LINUX_GUEST_STORE_ENTRIES := --entry /linux/etc/nonos-boot-guest=$(LINUX_GUEST_BOOT_FILE) \
-	$(foreach s,$(LINUX_GUEST_SLUGS),\
-		--entry /linux/bin/$(patsubst guest_%,%,$($(s)_BIN_NAME))=$($(s)_BIN) \
-		--entry /linux/bin/$(patsubst guest_%,%,$($(s)_BIN_NAME)).nonos_id_cert.bin=$($(s)_CERT) \
-		--entry /linux/bin/$(patsubst guest_%,%,$($(s)_BIN_NAME)).manifest.bin=$($(s)_MANIFEST) \
-		--entry /linux/bin/$(patsubst guest_%,%,$($(s)_BIN_NAME)).zk_trailer.bin=$($(s)_ATTESTATION))
-LINUX_GUEST_STORE_DEPS := $(LINUX_GUEST_BOOT_FILE) \
-	$(foreach s,$(LINUX_GUEST_SLUGS),$($(s)_ARTIFACTS) $($(s)_ATTESTATION))
+# The boot program and its arguments, `|` between them, one a line in the file.
+LINUX_GUEST_BOOT_LINES ?= /bin/suite
+LINUX_GUEST_BOOT_FILE := $(TARGET_DIR)/linux-guests/nonos-boot-guest
+.PHONY: nonos-mk-linux-guest-boot
+$(LINUX_GUEST_BOOT_FILE): nonos-mk-linux-guest-boot
+	@mkdir -p $(@D) && printf '%s\n' '$(LINUX_GUEST_BOOT_LINES)' | tr '|' '\n' > $@
+LINUX_GUEST_STORE_DEPS += $(LINUX_GUEST_BOOT_FILE)
+LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/nonos-boot-guest=$(LINUX_GUEST_BOOT_FILE)
