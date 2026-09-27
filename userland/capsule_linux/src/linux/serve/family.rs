@@ -29,6 +29,9 @@ use nonos_libc::{mk_foreign_reply, ForeignFrame};
 
 use super::answer::Answer;
 use super::dispatch::answer;
+use super::pid_map::frame_in;
+use super::pid_ns::PidNs;
+use super::pid_out::value_out;
 use crate::linux::guest::Guest;
 
 pub struct Family {
@@ -36,25 +39,30 @@ pub struct Family {
     pub(super) pipes: Vec<Vec<u8>>,
     pub(super) root: u32,
     pub(super) root_code: i32,
+    pub(super) ns: PidNs,
 }
 
 impl Family {
     pub fn new(mut first: Guest) -> Self {
         let pipes = mem::take(&mut first.pipes);
         let root = first.pid;
-        Family { guests: alloc::vec![first], pipes, root, root_code: 0 }
+        let ns = PidNs::new(first.parent, root);
+        Family { guests: alloc::vec![first], pipes, root, root_code: 0, ns }
     }
 
     pub fn answer(&mut self, frame: &ForeignFrame) {
         let Some(g) = self.guests.iter_mut().find(|g| g.owns(frame.pid)) else {
             return;
         };
+        let Some(frame) = frame_in(&self.ns, frame) else {
+            return;
+        };
         mem::swap(&mut self.pipes, &mut g.pipes);
-        let got = answer(g, frame);
+        let got = answer(g, &frame);
         mem::swap(&mut self.pipes, &mut g.pipes);
         let born = mem::take(&mut g.forked);
         if let Answer::Reply(value) = got {
-            let _ = mk_foreign_reply(frame.pid, value);
+            let _ = mk_foreign_reply(frame.pid, value_out(&mut self.ns, frame.nr, value));
         }
         self.guests.extend(born);
         self.settle_pipes();

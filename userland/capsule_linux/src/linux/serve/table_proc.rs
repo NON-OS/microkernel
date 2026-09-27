@@ -37,7 +37,7 @@ pub fn proc_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
             nonos_libc::mk_yield();
             errno::ok(0)
         }
-        nr::SET_TID_ADDRESS | nr::GETTID | nr::GETPID => errno::ok(guest.pid as u64),
+        nr::GETPID => errno::ok(guest.pid as u64),
         nr::GETUID | nr::GETEUID | nr::GETGID | nr::GETEGID => errno::ok(0),
         nr::CLOCK_GETTIME => call::clock_gettime(guest, a[0], a[1]),
         _ => return None,

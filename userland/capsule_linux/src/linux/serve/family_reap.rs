@@ -43,6 +43,11 @@ impl Family {
             if let Some((want, status, tid)) = p.waiting {
                 if let Some(value) = reap_one(p, want, status) {
                     p.waiting = None;
+                    let value = super::pid_out::value_out(
+                        &mut self.ns,
+                        crate::linux::abi::nr::WAIT4,
+                        value,
+                    );
                     let _ = mk_foreign_reply(tid, value);
                 }
             }

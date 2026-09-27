@@ -41,6 +41,8 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
             Answer::Park
         }
         nr::FUTEX => futex(guest, frame.pid, a[0], a[1], a[2]),
+        // The caller's own thread, which is not always the process.
+        nr::GETTID | nr::SET_TID_ADDRESS => Answer::value(u64::from(frame.pid)),
         nr::NANOSLEEP => crate::linux::call::nanosleep(guest, frame.pid, a[0]),
         np::CLOCK_NANOSLEEP => {
             crate::linux::call::clock_nanosleep(guest, frame.pid, a[0], a[1], a[2])
