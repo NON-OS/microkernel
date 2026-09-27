@@ -6,10 +6,11 @@
       "Quot.sound"
     ],
     "extraction_tier": {
-      "extra_axiom": "Std.Tactic.BVDecide.Reflect.verifyBVExpr",
+      "axiom_shape": "One generated axiom per theorem, named <theorem>._native.bv_decide.ax_N, whose statement is an equation Std.Tactic.BVDecide.Reflect.verifyBVExpr <expr> <cert> = true. verifyBVExpr is a function, not the axiom; the axiom asserts that evaluating it returned true.",
       "introduced_by": "bv_decide",
-      "scope": "verification/extraction only, never the core corpus or the release root",
-      "what_it_trusts": "An LRAT certificate was checked by compiled code rather than by the Lean kernel. The SAT solver itself is not trusted; its certificate is checked."
+      "scope": "verification/extraction only, never the core corpus and never the release root",
+      "theorems_carrying_it": 11,
+      "what_it_trusts": "That the LRAT certificate checker, run as compiled code rather than in the Lean kernel, answered correctly. The SAT solver itself is not trusted, because its certificate is checked. This is the same class of trust as native_decide."
     },
     "forbidden": [
       "sorryAx"
@@ -21,7 +22,16 @@
       "harnesses": 100
     },
     "lean_extraction": {
-      "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas, then proven on the extracted definition.",
+      "bv_decide_calls": 12,
+      "bv_decide_theorems": 11,
+      "counts": {
+        "extracted": 412,
+        "proven": 410,
+        "substantive": 143,
+        "trivial": 267,
+        "unproven": 2
+      },
+      "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
       "extracted_functions": [
         "nonos_caps::capabilities::bits::add_capability",
         "nonos_caps::capabilities::bits::fold_caps",

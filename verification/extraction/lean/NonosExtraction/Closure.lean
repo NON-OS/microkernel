@@ -27,12 +27,24 @@ function returns one exactly when the first is below the second.
 
 That proof leans on `bv_decide`, which discharges the bitvector identity by SAT
 and checks the resulting LRAT certificate. The check runs as compiled code rather
-than in the Lean kernel, so it contributes one axiom beyond the standard three:
-`verifyBVExpr <expr> <cert> = true`. Nothing here trusts the SAT solver, only the
-checker. That axiom stays inside the extraction project. The core corpus under
-`verification/lean` is unaffected, and `proof-corpus-root.sh` still refuses to
-emit a root for anything outside Lean's own three, which is the claim the release
-identity makes.
+than in the Lean kernel, so it contributes trust beyond Lean's own three axioms.
+
+Stated precisely, because an earlier version of this paragraph was not. The
+tactic generates one axiom per theorem, named `<theorem>._native.bv_decide.ax_N`,
+and its statement is an equation `verifyBVExpr <expr> <cert> = true`.
+`verifyBVExpr` is a function; the axiom asserts that evaluating it returned true.
+That is the same class of trust as `native_decide`: trust in compiled code, not
+in the SAT solver, whose certificate is checked.
+
+Eleven theorems across this project carry such an axiom, and `EVIDENCE.json`
+records the figure. It is lower than the number of `bv_decide` calls, because the
+tactic only generates an axiom when it reaches the solver and a goal it closes by
+reduction adds nothing. This paragraph previously said three, which was true when
+it was written and had stopped being true.
+
+None of it reaches the core corpus under `verification/lean`, and
+`proof-corpus-root.sh` still refuses to emit a root for anything outside Lean's
+own three, which is the claim the release identity makes.
 -/
 
 import NonosExtraction.Caps

@@ -40,7 +40,7 @@ GAP_CEILING = 2
 # wrapper theorem is real, and it is what ties a manifest entry to the method a
 # theorem talks about, but on its own it says nothing about behaviour. Counting
 # the two together would be the inflation this file exists to stop.
-SUBSTANTIVE_FLOOR = 141
+SUBSTANTIVE_FLOOR = 143
 
 PROOF_MODULES = ('CapsComplete.lean', 'Closure.lean')
 PROOF_DIRS = (
@@ -116,11 +116,23 @@ def classify(root):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n', 1)[0])
     ap.add_argument('--root', default='.', help='repository root')
+    ap.add_argument('--json', action='store_true',
+                    help='emit the counts as JSON for the evidence manifest')
     args = ap.parse_args()
     root = Path(args.root)
 
     dups = mirrored_sources(root)
     names, proven, bare, substantive = classify(root)
+    if args.json:
+        import json as _json
+        print(_json.dumps({
+            'extracted': len(names),
+            'proven': len(proven),
+            'substantive': len(substantive),
+            'trivial': len(proven) - len(substantive),
+            'unproven': len(bare),
+        }))
+        return 0
     print('extracted and CI-diffed  %4d' % len(names))
     print('carrying a proof         %4d   (floor %d)' % (len(proven), FLOOR))
     print('extracted, no proof      %4d   (ceiling %d)' % (len(bare), GAP_CEILING))

@@ -66,6 +66,30 @@ extracted_files_json=$(
     done | jq -s .
 )
 
+# How many of the extracted functions carry a property rather than only the
+# generated wrapper theorem. The ratchet owns this split; the manifest quotes it
+# so the headline count cannot be read as if every entry were equally proven.
+counts_json=$(python3 tools/ratchets/proven_functions.py --root . --json 2>/dev/null \
+  || echo '{}')
+
+# Theorems discharged by bv_decide, which checks an LRAT certificate as compiled
+# code rather than in the Lean kernel. Each one carries its own generated axiom.
+sat_theorems=$(python3 -c '
+import re, sys
+from pathlib import Path
+n = 0
+for p in Path("verification/extraction/lean").rglob("*.lean"):
+    t = p.read_text(errors="replace")
+    t = re.sub(r"/-.*?-/", " ", t, flags=re.S)
+    n += len(re.findall(r"\bbv_decide\b", t))
+print(n)
+' 2>/dev/null || echo 0)
+
+# Theorems whose axiom profile actually names a bv_decide axiom. This is lower
+# than the call count: the tactic only generates an axiom when it reaches the
+# solver, and a goal it closes by reduction adds nothing.
+sat_carriers=11
+
 # --- Other proof systems ---
 verus_files=$(find verification/verus -name '*.rs' 2>/dev/null | wc -l | tr -d ' ')
 # Source only. A build tree carries the same string inside its artifacts, so
@@ -86,6 +110,9 @@ jq -Sn \
   --arg lean_toolchain "$lean_toolchain" \
   --argjson axiom_profiled "$axiom_profiled" \
   --argjson extracted "$extracted_json" \
+  --argjson counts "$counts_json" \
+  --argjson sat_theorems "$sat_theorems" \
+  --argjson sat_theorems_note "$sat_carriers" \
   --argjson extracted_files "$extracted_files_json" \
   --argjson verus_files "$verus_files" \
   --argjson kani_harnesses "$kani_harnesses" \
@@ -98,10 +125,11 @@ jq -Sn \
       forbidden: ["sorryAx"],
       note: "The core corpus under verification/lean depends on at most the three standard axioms, and proof-corpus-root.sh refuses to emit a root otherwise. A sorry would surface as sorryAx and fail CI.",
       extraction_tier: {
-        extra_axiom: "Std.Tactic.BVDecide.Reflect.verifyBVExpr",
         introduced_by: "bv_decide",
-        what_it_trusts: "An LRAT certificate was checked by compiled code rather than by the Lean kernel. The SAT solver itself is not trusted; its certificate is checked.",
-        scope: "verification/extraction only, never the core corpus or the release root"
+        axiom_shape: "One generated axiom per theorem, named <theorem>._native.bv_decide.ax_N, whose statement is an equation Std.Tactic.BVDecide.Reflect.verifyBVExpr <expr> <cert> = true. verifyBVExpr is a function, not the axiom; the axiom asserts that evaluating it returned true.",
+        what_it_trusts: "That the LRAT certificate checker, run as compiled code rather than in the Lean kernel, answered correctly. The SAT solver itself is not trusted, because its certificate is checked. This is the same class of trust as native_decide.",
+        theorems_carrying_it: $sat_theorems_note,
+        scope: "verification/extraction only, never the core corpus and never the release root"
       }
     },
     proof_systems: {
@@ -114,8 +142,11 @@ jq -Sn \
         mathlib: false
       },
       lean_extraction: {
-        description: "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas, then proven on the extracted definition.",
+        description: "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
         extracted_functions: $extracted,
+        counts: $counts,
+        bv_decide_calls: $sat_theorems,
+        bv_decide_theorems: $sat_theorems_note,
         generated_files: $extracted_files
       },
       verus: { source_files: $verus_files },

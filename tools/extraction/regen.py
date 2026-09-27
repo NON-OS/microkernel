@@ -17,8 +17,8 @@
 """Regenerate every extraction crate from source and fail on any drift.
 
 The extraction job used to carry one inline Charon invocation per crate. That
-stops being readable somewhere around the tenth and there are ninety-five, so the
-crates live in verification/extraction/crates.json and this walks them.
+stops being readable somewhere around the tenth, so the crates live in
+verification/extraction/crates.json and this walks them.
 
 Drift is the whole point. A kernel edit that changes an extracted function
 changes the generated Lean, the diff fails, and the proofs have to be looked at
