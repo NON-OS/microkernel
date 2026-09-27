@@ -19,6 +19,7 @@
 mod console;
 mod ctl;
 mod clock;
+mod epoch;
 mod cwd;
 mod futex;
 mod ident;
@@ -65,6 +66,7 @@ pub use signal_send::kill;
 pub use sleep::{clock_nanosleep, nanosleep};
 pub use spawn::{clone, execve, fork, reap_one, wait4};
 pub use clock::{clock_getres, clock_gettime, now_ms};
+pub use epoch::{family_ms, mark_start};
 pub use thread::{arch_prctl, getrandom};
 pub use timeops::{gettimeofday, time};
 pub use umask::{umask, DEFAULT_UMASK};

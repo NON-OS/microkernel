@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The clocks a guest reads. The realtime clocks are the wall clock, the rest
-//! count from boot; answering every clock with uptime put a guest in 1970 and
-//! broke anything that checks a certificate's dates or a file's age.
+//! count from the family's start; answering every clock with uptime put a
+//! guest in 1970 and broke anything that checks a certificate's dates.
 
-use nonos_libc::{mk_time_millis, mk_uptime_ms};
+use nonos_libc::mk_time_millis;
+
+use super::epoch::family_ms;
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
@@ -38,8 +40,7 @@ pub fn now_ms(clock: u64) -> Option<u64> {
     }
     let wall =
         matches!(clock, CLOCK_REALTIME | CLOCK_REALTIME_COARSE | CLOCK_REALTIME_ALARM | CLOCK_TAI);
-    let raw = if wall { mk_time_millis() } else { mk_uptime_ms() };
-    let ms = u64::try_from(raw).unwrap_or(0);
+    let ms = if wall { u64::try_from(mk_time_millis()).unwrap_or(0) } else { family_ms() };
     // TAI runs ahead of UTC by the leap seconds, 37 since 2017.
     Some(if clock == CLOCK_TAI { ms.saturating_add(37_000) } else { ms })
 }
