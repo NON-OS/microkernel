@@ -36,6 +36,8 @@ pub mod sys;
 pub mod usercopy;
 
 #[cfg(test)]
+mod align_tests;
+#[cfg(test)]
 mod authorization_tests;
 #[cfg(test)]
 mod elf_tests;
