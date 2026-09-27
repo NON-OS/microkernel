@@ -48,6 +48,24 @@
         "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::level_span",
         "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::table",
         "nonos_irq::irq::validate::validate_msix_request",
+        "nonos_paging::aarch64_leaf",
+        "nonos_paging::aarch64_table",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::address",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::is_block",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::is_executable",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::is_present",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::is_user",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::is_writable",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::table_grants_user",
+        "nonos_paging::arch::paging::descriptor::x86_64::address",
+        "nonos_paging::arch::paging::descriptor::x86_64::is_block",
+        "nonos_paging::arch::paging::descriptor::x86_64::is_executable",
+        "nonos_paging::arch::paging::descriptor::x86_64::is_present",
+        "nonos_paging::arch::paging::descriptor::x86_64::is_user",
+        "nonos_paging::arch::paging::descriptor::x86_64::is_writable",
+        "nonos_paging::arch::paging::descriptor::x86_64::leaf",
+        "nonos_paging::arch::paging::descriptor::x86_64::table",
+        "nonos_paging::arch::paging::descriptor::x86_64::table_grants_user",
         "nonos_policy::is_wx_violation",
         "nonos_policy::to_pte_flags",
         "nonos_policy::usercopy::policy::check_range",
@@ -84,6 +102,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/Irq.lean",
           "sha256": "9bda548e235ff0e615d704ef376481377371b395429b846c18b8fb9ecca5e2d3"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Paging.lean",
+          "sha256": "6b72a1b86d723cb9f0a4b86bc296480bfb7935181eaf856ef16c0d87852025d0"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Signal.lean",

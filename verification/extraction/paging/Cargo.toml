@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Extraction root for both page-descriptor backends. The shared paging manager
+# states a mapping in one neutral flag vocabulary and each architecture turns it
+# into its own descriptor bits, so the interesting theorem is that the two agree
+# on what a mapping means while agreeing on almost none of the bits. Charon
+# lowers this crate's MIR to LLBC and Aeneas translates it to Lean; the kernel
+# sources are included below via #[path], never copied.
+[package]
+name = "nonos_paging"
+version = "0.2.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

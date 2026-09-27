@@ -545,6 +545,30 @@ jobs:
           mkdir -p /tmp/regen-iommu
           aeneas -backend lean iommu.llbc -dest /tmp/regen-iommu
           diff -u ../lean/NonosExtraction/Iommu.lean /tmp/regen-iommu/Iommu.lean
+          cd ../paging
+          charon cargo --preset=aeneas \
+            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::leaf' \
+            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::table' \
+            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::is_present' \
+            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::is_block' \
+            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::address' \
+            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::is_writable' \
+            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::is_executable' \
+            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::is_user' \
+            --start-from 'nonos_paging::arch::paging::descriptor::x86_64::table_grants_user' \
+            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::is_present' \
+            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::is_block' \
+            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::address' \
+            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::is_writable' \
+            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::is_executable' \
+            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::is_user' \
+            --start-from 'nonos_paging::arch::paging::descriptor::aarch64::read::table_grants_user' \
+            --start-from 'nonos_paging::aarch64_leaf' \
+            --start-from 'nonos_paging::aarch64_table' \
+            --dest-file paging.llbc
+          mkdir -p /tmp/regen-paging
+          aeneas -backend lean paging.llbc -dest /tmp/regen-paging
+          diff -u ../lean/NonosExtraction/Paging.lean /tmp/regen-paging/Paging.lean
       - name: Verify the refinement theorems
         run: |
           set -euo pipefail
