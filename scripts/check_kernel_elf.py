@@ -62,6 +62,16 @@ class Elf:
                 "<IIQQQQQQ", self.data, self.e_phoff + i * self.e_phentsize)
             yield p_type, p_flags, p_vaddr, p_memsz
 
+    def read(self, vaddr, size):
+        """The file bytes a loader places at `vaddr`, or None if no PT_LOAD holds them."""
+        for i in range(self.e_phnum):
+            p_type, _, p_offset, p_vaddr, _, p_filesz, _, _ = struct.unpack_from(
+                "<IIQQQQQQ", self.data, self.e_phoff + i * self.e_phentsize)
+            if p_type == PT_LOAD and p_vaddr <= vaddr and vaddr + size <= p_vaddr + p_filesz:
+                at = p_offset + vaddr - p_vaddr
+                return self.data[at:at + size]
+        return None
+
     def sections(self):
         heads = []
         for i in range(self.e_shnum):

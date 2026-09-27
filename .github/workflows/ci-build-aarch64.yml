@@ -9,7 +9,7 @@ name: ci-build-aarch64
 #   - the ELF is an AArch64 static executable whose entry is `_start`
 #   - the entry lies in an executable PT_LOAD and no PT_LOAD is W+X
 #   - the signed manifest and signature sections are present
-# It does not boot the image. That is the boot-aarch64-qemu lane's job.
+# It does not boot the image. That is ci-boot-aarch64.yml's job.
 
 on:
   workflow_call:

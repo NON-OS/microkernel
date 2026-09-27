@@ -23,6 +23,8 @@ pub mod multicore;
 mod pci_windows;
 mod refuse;
 pub mod stack;
+#[cfg(any(feature = "nonos-trap-proof-sp0", feature = "nonos-trap-proof-kernel-abort"))]
+mod trap_proof;
 
 pub use entry::kernel_entry;
 pub use info::{BootInfo, MemoryRegion};

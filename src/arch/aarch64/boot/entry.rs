@@ -47,11 +47,17 @@ pub extern "C" fn kernel_entry(dtb_ptr: u64) -> ! {
     serial::print_hex(dtb_ptr);
     serial::println(b"");
 
+    #[cfg(feature = "nonos-trap-proof-sp0")]
+    super::trap_proof::sp_el0_vector();
+
     let parsed = super::dtb_adapter::populate(dtb_ptr, &mut info);
 
     // Brings up the console, puts the MMU and caches into a known state, then
     // installs the vector table, the GIC and the timer.
     super::init(&info);
+
+    #[cfg(feature = "nonos-trap-proof-kernel-abort")]
+    super::trap_proof::kernel_data_abort();
 
     if parsed {
         serial::println(b"[NONOS] aarch64 boot init done");
