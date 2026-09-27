@@ -95,8 +95,98 @@ def capabilities.types.defs.Capability.bit
   | capabilities.types.defs.Capability.ForeignExec => 1#u64 <<< 32#i32
   | capabilities.types.defs.Capability.LocalSign => 1#u64 <<< 33#i32
 
+/-- [nonos_caps::capabilities::bits::fold_caps]: loop body 0:
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 35:4-38:5
+    Visibility: public -/
+@[rust_loop_body]
+def capabilities.bits.fold_caps_loop.body
+  (table : Slice capabilities.types.defs.Capability) (acc : Std.U64)
+  (i : Std.Usize) :
+  Result (ControlFlow (Std.U64 × Std.Usize) Std.U64)
+  := do
+  let i1 := Slice.len table
+  if i < i1
+  then
+    let c ← Slice.index_usize table i
+    let i2 ← capabilities.types.defs.Capability.bit c
+    let acc1 ← lift (acc ||| i2)
+    let i3 ← i + 1#usize
+    ok (cont (acc1, i3))
+  else ok (done acc)
+
+/-- [nonos_caps::capabilities::bits::fold_caps]: loop 0:
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 35:4-38:5
+    Visibility: public -/
+@[rust_loop]
+def capabilities.bits.fold_caps_loop
+  (table : Slice capabilities.types.defs.Capability) (acc : Std.U64)
+  (i : Std.Usize) :
+  Result Std.U64
+  := do
+  loop
+    (fun (acc1, i1) => capabilities.bits.fold_caps_loop.body table acc1 i1)
+    (acc, i)
+
+/-- [nonos_caps::capabilities::bits::fold_caps]:
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 32:0-40:1
+    Visibility: public -/
+@[reducible]
+def capabilities.bits.fold_caps
+  (table : Slice capabilities.types.defs.Capability) (bits : Std.U64) :
+  Result Std.U64
+  := do
+  capabilities.bits.fold_caps_loop table bits 0#usize
+
+/-- [nonos_caps::capabilities::bits::select_caps]: loop body 0:
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 53:4-59:5
+    Visibility: public -/
+@[rust_loop_body]
+def capabilities.bits.select_caps_loop.body
+  (table : Slice capabilities.types.defs.Capability) (bits : Std.U64)
+  (out : alloc.vec.Vec capabilities.types.defs.Capability) (i : Std.Usize) :
+  Result (ControlFlow ((alloc.vec.Vec capabilities.types.defs.Capability) ×
+    Std.Usize) (alloc.vec.Vec capabilities.types.defs.Capability))
+  := do
+  let i1 := Slice.len table
+  if i < i1
+  then
+    let cap ← Slice.index_usize table i
+    let i2 ← capabilities.types.defs.Capability.bit cap
+    let i3 ← lift (bits &&& i2)
+    let out1 ← if i3 != 0#u64
+                 then alloc.vec.Vec.push out cap
+                 else ok out
+    let i4 ← i + 1#usize
+    ok (cont (out1, i4))
+  else ok (done out)
+
+/-- [nonos_caps::capabilities::bits::select_caps]: loop 0:
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 53:4-59:5
+    Visibility: public -/
+@[rust_loop]
+def capabilities.bits.select_caps_loop
+  (table : Slice capabilities.types.defs.Capability) (bits : Std.U64)
+  (out : alloc.vec.Vec capabilities.types.defs.Capability) (i : Std.Usize) :
+  Result (alloc.vec.Vec capabilities.types.defs.Capability)
+  := do
+  loop
+    (fun (out1, i1) => capabilities.bits.select_caps_loop.body table bits out1
+      i1)
+    (out, i)
+
+/-- [nonos_caps::capabilities::bits::select_caps]:
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 50:0-61:1
+    Visibility: public -/
+@[reducible]
+def capabilities.bits.select_caps
+  (table : Slice capabilities.types.defs.Capability) (bits : Std.U64) :
+  Result (alloc.vec.Vec capabilities.types.defs.Capability)
+  := do
+  capabilities.bits.select_caps_loop table bits (alloc.vec.Vec.new
+    capabilities.types.defs.Capability) 0#usize
+
 /-- [nonos_caps::capabilities::bits::has_capability]:
-    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 34:0-36:1
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 74:0-76:1
     Visibility: public -/
 def capabilities.bits.has_capability
   (bits : Std.U64) (cap : capabilities.types.defs.Capability) :
@@ -107,7 +197,7 @@ def capabilities.bits.has_capability
   ok (i1 != 0#u64)
 
 /-- [nonos_caps::capabilities::bits::add_capability]:
-    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 39:0-41:1
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 79:0-81:1
     Visibility: public -/
 def capabilities.bits.add_capability
   (bits : Std.U64) (cap : capabilities.types.defs.Capability) :
@@ -117,7 +207,7 @@ def capabilities.bits.add_capability
   ok (bits ||| i)
 
 /-- [nonos_caps::capabilities::bits::remove_capability]:
-    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 44:0-46:1
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 84:0-86:1
     Visibility: public -/
 def capabilities.bits.remove_capability
   (bits : Std.U64) (cap : capabilities.types.defs.Capability) :
@@ -126,5 +216,46 @@ def capabilities.bits.remove_capability
   let i ← capabilities.types.defs.Capability.bit cap
   let i1 ← lift (~~~ i)
   ok (bits &&& i1)
+
+/-- [nonos_caps::capabilities::chain::constants::MAX_CHAIN_DEPTH]
+    Source: 'src/capabilities/chain/../../../../../../src/capabilities/chain/constants.rs', lines 17:0-17:38
+    Visibility: public -/
+@[global_simps, irreducible]
+def capabilities.chain.constants.MAX_CHAIN_DEPTH : Std.Usize := 16#usize
+
+/-- [nonos_caps::capabilities::chain::constants::max_chain_depth]:
+    Source: 'src/capabilities/chain/../../../../../../src/capabilities/chain/constants.rs', lines 20:0-22:1
+    Visibility: public -/
+def capabilities.chain.constants.max_chain_depth : Result Std.Usize := do
+  ok capabilities.chain.constants.MAX_CHAIN_DEPTH
+
+/-- [nonos_caps::capabilities::delegation::lifetime::delegation_expiry]:
+    Source: 'src/capabilities/delegation/../../../../../../src/capabilities/delegation/lifetime.rs', lines 32:0-46:1 -/
+def capabilities.delegation.lifetime.delegation_expiry
+  (requested : Option Std.U64) (parent : Option Std.U64) :
+  Result (Option Std.U64)
+  := do
+  match parent with
+  | none => ok requested
+  | some parent_exp =>
+    match requested with
+    | none => ok parent
+    | some e => if e < parent_exp
+                then ok requested
+                else ok parent
+
+/-- [nonos_caps::capabilities::resource::limits::has_at_least]:
+    Source: 'src/capabilities/resource/../../../../../../src/capabilities/resource/limits.rs', lines 23:0-25:1 -/
+def capabilities.resource.limits.has_at_least
+  (remaining : Std.U64) (amount : Std.U64) : Result Bool := do
+  ok (remaining >= amount)
+
+/-- [nonos_caps::capabilities::resource::nonce_compose::compose]:
+    Source: 'src/capabilities/resource/../../../../../../src/capabilities/resource/nonce_compose.rs', lines 26:0-28:1 -/
+def capabilities.resource.nonce_compose.compose
+  (timestamp : Std.U64) (counter : Std.U64) : Result Std.U64 := do
+  let i ← timestamp <<< 32#i32
+  let i1 ← lift (counter &&& 4294967295#u64)
+  ok (i ^^^ i1)
 
 end nonos_caps

@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Extraction root for the IOMMU table encodings: the second-level page table
+# entries a device's DMA is translated through, and the root and context entries
+# that decide which device gets which table. Charon lowers this crate's MIR to
+# LLBC and Aeneas translates it to Lean, so the theorems in
+# verification/extraction/lean are about the real encoders, included below via
+# #[path], not a retyped model.
+[package]
+name = "nonos_iommu"
+version = "0.2.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
