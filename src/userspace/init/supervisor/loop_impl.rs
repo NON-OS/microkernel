@@ -88,6 +88,7 @@ fn set_init_priority(p: Priority) {
     use core::sync::atomic::Ordering;
     let pid = CURRENT_PID.load(Ordering::Relaxed);
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+        let _irq = crate::interrupts::disable_interrupts_guard();
         *pcb.priority.lock() = p;
     }
 }

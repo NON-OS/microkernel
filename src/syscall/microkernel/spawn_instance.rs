@@ -66,6 +66,7 @@ pub fn sys_spawn_instance(name_ptr: u64, name_len: u64) -> i64 {
 fn boost_init_for_drain() {
     const INIT_PID: u32 = 1;
     if let Some(pcb) = crate::process::core::PROCESS_TABLE.find_by_pid(INIT_PID) {
+        let _irq = crate::interrupts::disable_interrupts_guard();
         *pcb.priority.lock() = crate::process::core::Priority::Normal;
     }
 }
