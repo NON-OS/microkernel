@@ -29,6 +29,7 @@ pub enum Role {
     Button,
     ActionLabel,
     Status,
+    Statement,
 }
 
 /// Face, size, tracking, capitals, colour.
@@ -43,5 +44,6 @@ pub(super) fn spec(role: Role) -> Spec {
         Role::Button => Spec(Face::Mono, 12.0, 1.6, true, TEXT),
         Role::ActionLabel => Spec(Face::SansMedium, 13.0, 0.0, false, TEXT),
         Role::Status => Spec(Face::Mono, 10.0, 0.6, false, TEXT_3),
+        Role::Statement => Spec(Face::Mono, 21.0, 0.0, false, TEXT),
     }
 }

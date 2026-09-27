@@ -17,11 +17,16 @@
 //! The Etna design system in the wallet capsule: tokens, faces and type
 //! roles first, then the parts and the one frame every screen sits in.
 
+pub mod backdrop;
+mod band;
 pub mod face;
+pub mod frame;
+pub mod frame_spec;
 pub mod groups;
 pub mod parts;
 pub mod rect;
 mod roles;
+pub mod symbol;
 pub mod text;
 pub mod tokens;
 pub mod wrap;

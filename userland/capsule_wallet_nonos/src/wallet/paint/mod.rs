@@ -23,7 +23,7 @@ mod format_u64;
 mod hex_hash;
 mod home_activity_row;
 pub mod home_geom;
-mod logo;
+pub mod logo;
 mod logo_bits;
 mod nav_glyph;
 mod nav_icon;

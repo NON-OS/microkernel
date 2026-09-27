@@ -27,6 +27,7 @@ pub mod paint;
 pub mod vault;
 mod pool;
 mod rpc;
+pub mod screen;
 mod shield;
 mod state;
 mod swap;

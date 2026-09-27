@@ -30,6 +30,9 @@ pub fn on_pointer(state: &mut State, x: i32, y: i32) -> EventOutcome {
         state.locked = false;
         return EventOutcome::Repaint;
     }
+    if state.view == VIEW_HOME && state.panel == 0 {
+        return super::etna_click::etna_click(state, x, y);
+    }
     if header_icon(state, x, y) {
         return EventOutcome::Repaint;
     }

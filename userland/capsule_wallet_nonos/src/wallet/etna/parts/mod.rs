@@ -19,8 +19,11 @@
 
 pub mod action;
 pub mod fact;
+pub mod failure;
 pub mod label;
 pub mod quiet;
+pub mod round;
 pub mod rule;
+pub mod status;
 pub mod tile;
 pub mod value;

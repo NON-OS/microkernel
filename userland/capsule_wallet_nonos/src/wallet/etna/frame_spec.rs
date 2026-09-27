@@ -14,46 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod backup;
-mod broadcast;
-mod broadcast_arm;
-mod etna_click;
-mod edit_amount;
-mod edit_nonce;
-mod export_key;
-mod field_input;
-mod generate;
-mod hex_digit;
-mod home_empty_click;
-mod import;
-mod on_event;
-mod on_key;
-mod on_pointer;
-mod on_pointer_view;
-mod probe_tick;
-mod recipient;
-mod recover;
-mod send_input;
-mod send_now;
-mod shortcuts;
-mod sign_both;
-mod sign_eth;
-mod sign_nox;
-mod sign_result;
-mod stake_amount;
-mod stake_flow;
-mod stake_guard;
-mod stake_input;
-mod stake_set;
-mod stake_sign;
-mod stake_wei;
-mod swap_amount;
-mod swap_input;
-mod swap_pair;
-pub(crate) mod swap_quote;
-mod tx_freshen;
-mod unstake_flow;
-mod keep;
+//! What a screen asks its frame for, and where the frame put things.
 
-pub use on_event::on_event;
-pub use probe_tick::probe_tick;
+use super::backdrop::Backdrop;
+use super::parts::action::Weight;
+use super::rect::Rect;
+
+pub struct FrameSpec<'a> {
+    pub number: &'a str,
+    pub title: &'a str,
+    pub back: bool,
+    pub backdrop: Option<Backdrop>,
+    pub failure: Option<&'a str>,
+    /// Up to three pinned actions, top to bottom.
+    pub footer: &'a [(&'a str, Weight, bool)],
+    pub status: &'a [&'a str],
+}
+
+#[derive(Default)]
+pub struct FrameLayout {
+    pub back: Option<Rect>,
+    pub dismiss: Option<Rect>,
+    /// The column left for the screen's own content.
+    pub content: Rect,
+    pub footer: [Rect; 3],
+}

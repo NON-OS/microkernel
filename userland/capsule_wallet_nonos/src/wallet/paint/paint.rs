@@ -21,6 +21,14 @@ use crate::wallet::state::{
 };
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
+    // Home and the first screen are drawn on the Etna frame, alone.
+    if state.view == VIEW_HOME && state.panel == 0 {
+        match state.address_ready {
+            true => crate::wallet::screen::home::home(state, fb),
+            false => crate::wallet::screen::welcome::welcome(state, fb),
+        }
+        return;
+    }
     crate::wallet::theme::set_light(state.light_mode);
     super::paint_background::paint_background(fb);
     super::paint_sysbar::paint_sysbar(fb);
