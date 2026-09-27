@@ -52,19 +52,21 @@ pub fn get_as(ip: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
     }
     let raw = recv_all(handle, MAX_BODY);
     close(handle);
-    body(&raw?)
+    body(raw?)
 }
 
 /// The bytes after the header block. A reply whose status is not 200 is
 /// nothing: an error page parsed as a package is the worst outcome here.
-fn body(raw: &[u8]) -> Option<Vec<u8>> {
-    let head_end = find(raw, b"\r\n\r\n")? + 4;
+/// The header is cut off in place: a 20 MB index is not held twice.
+fn body(mut raw: Vec<u8>) -> Option<Vec<u8>> {
+    let head_end = find(&raw, b"\r\n\r\n")? + 4;
     let head = String::from_utf8_lossy(&raw[..head_end]);
     let first = head.lines().next()?;
     if !first.contains(" 200 ") {
         return None;
     }
-    Some(raw[head_end..].to_vec())
+    raw.drain(..head_end);
+    Some(raw)
 }
 
 fn find(hay: &[u8], needle: &[u8]) -> Option<usize> {

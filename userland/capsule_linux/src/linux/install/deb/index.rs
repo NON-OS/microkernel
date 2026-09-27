@@ -54,7 +54,11 @@ pub fn load(src: &Source, ring: &[Key]) -> Option<Vec<Record>> {
             say(b"[LINUX] refused: a Packages file does not match its Release\n");
             return None;
         }
-        out.extend(stanzas(&String::from_utf8_lossy(&decompressed(&raw)?)));
+        let text = decompressed(&raw)?;
+        // The compressed bytes are checked and spent; free them before the
+        // parse holds records beside the inflated text.
+        drop(raw);
+        out.extend(stanzas(&String::from_utf8_lossy(&text)));
     }
     (!out.is_empty()).then_some(out)
 }

@@ -16,7 +16,7 @@
 
 //! Bring one Linux program up and stay with it until it ends.
 
-use nonos_libc::{heap_init, mk_debug, mk_exit, mk_foreign_spawn};
+use nonos_libc::{mk_debug, mk_exit, mk_foreign_spawn};
 
 use super::serve::serve;
 use super::source::source;
@@ -24,7 +24,7 @@ use super::start_guest::start;
 use super::{file::family::choose, guest::Guest};
 
 pub fn run() -> ! {
-    let _ = heap_init();
+    super::heap::init();
     say(b"[LINUX] personality up\n");
     if let Some((name, pin)) = super::request::install_request() {
         say(b"[LINUX] installing\n");
