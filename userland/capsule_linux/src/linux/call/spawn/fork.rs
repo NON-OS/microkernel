@@ -34,6 +34,14 @@ pub fn fork(guest: &mut Guest) -> Answer {
         return Answer::value(errno::fail(errno::ENOMEM));
     }
     /*
+     * The thread pointer is a register, not memory, so copying the spans does
+     * not carry it: without this a child's first TLS access reads through a
+     * zero %fs, and musl makes one almost at once.
+     */
+    if guest.fs_base != 0 && nonos_libc::peer::mk_peer_tls(child, guest.fs_base) < 0 {
+        return Answer::value(errno::fail(errno::ENOMEM));
+    }
+    /*
      * The child's state goes to the serve loop before the child runs, so its
      * first trap finds a guest that owns it.
      */
