@@ -31,7 +31,7 @@ pub fn proc_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
         np::SETUID | np::SETGID => call::setuid(a[0]),
         np::TIME => call::time(guest, a[0]),
         np::GETTIMEOFDAY => call::gettimeofday(guest, a[0]),
-        np::NANOSLEEP | np::CLOCK_NANOSLEEP => call::nanosleep(guest, a[0]),
+        nr::CLOCK_GETRES => call::clock_getres(guest, a[0], a[1]),
         // A guest yielding is the personality yielding: one slot.
         np::SCHED_YIELD => {
             nonos_libc::mk_yield();

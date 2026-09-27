@@ -29,9 +29,12 @@ pub fn serve(guest: Guest) -> i32 {
     let mut family = Family::new(guest);
     loop {
         let mut frame = ForeignFrame::default();
-        if mk_foreign_wait(&mut frame, WAIT_MS) > 0 {
+        // A sleeper due sooner than the usual wait shortens it.
+        let wait = family.next_wake_ms().map_or(WAIT_MS, |ms| ms.clamp(1, WAIT_MS));
+        if mk_foreign_wait(&mut frame, wait) > 0 {
             family.answer(&frame);
         }
+        family.settle_sleeps();
         family.reap();
         if let Some(code) = family.done() {
             super::tally::report();

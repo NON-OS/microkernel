@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Linux x86_64 syscall numbers from one hundred up. Same contract
 //! as `nr`, split only because a file here stays under seventy-five lines.
 
@@ -37,6 +36,7 @@ pub const EPOLL_CREATE1: u64 = 291;
 pub const EPOLL_PWAIT: u64 = 281;
 pub const SET_TID_ADDRESS: u64 = 218;
 pub const CLOCK_GETTIME: u64 = 228;
+pub const CLOCK_GETRES: u64 = 229;
 pub const EXIT_GROUP: u64 = 231;
 pub const OPENAT: u64 = 257;
 pub const NEWFSTATAT: u64 = 262;

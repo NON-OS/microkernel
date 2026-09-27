@@ -18,6 +18,7 @@
 
 mod console;
 mod ctl;
+mod clock;
 mod cwd;
 mod futex;
 mod ident;
@@ -61,9 +62,10 @@ pub use pipe_wait::{is_pipe, read_or_park as pipe_read_or_park};
 pub use session::{getpgid, getsid, setpgid, setsid};
 pub use signal::{rt_sigaction, rt_sigprocmask, sigaltstack};
 pub use signal_send::kill;
-pub use sleep::nanosleep;
+pub use sleep::{clock_nanosleep, nanosleep};
 pub use spawn::{clone, execve, fork, reap_one, wait4};
-pub use thread::{arch_prctl, clock_gettime, getrandom};
+pub use clock::{clock_getres, clock_gettime, now_ms};
+pub use thread::{arch_prctl, getrandom};
 pub use timeops::{gettimeofday, time};
 pub use umask::{umask, DEFAULT_UMASK};
 pub use uname::uname;

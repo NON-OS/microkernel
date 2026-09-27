@@ -21,7 +21,7 @@ use nonos_libc::ForeignFrame;
 
 use super::answer::Answer;
 use super::table::plain;
-use crate::linux::abi::nr;
+use crate::linux::abi::{nr, nr_path as np};
 use crate::linux::call::{clone, exit_thread, futex};
 use crate::linux::guest::Guest;
 
@@ -41,6 +41,10 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
             Answer::Park
         }
         nr::FUTEX => futex(guest, frame.pid, a[0], a[1], a[2]),
+        nr::NANOSLEEP => crate::linux::call::nanosleep(guest, frame.pid, a[0]),
+        np::CLOCK_NANOSLEEP => {
+            crate::linux::call::clock_nanosleep(guest, frame.pid, a[0], a[1], a[2])
+        }
         nr::READ if crate::linux::call::is_pipe(guest, a[0]) => {
             crate::linux::call::pipe_read_or_park(guest, a[0], a[1], a[2], frame.pid)
         }

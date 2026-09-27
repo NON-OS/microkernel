@@ -27,8 +27,7 @@ pub struct Guest {
     /// The next address an anonymous mapping gets, growing upward.
     pub mmap_next: u64,
     pub fds: Vec<Fd>,
-    /// Every span this capsule has backed for the guest, in the order
-    /// it did so. Fork copies exactly this list.
+    /// Every span backed for the guest, in order; fork copies exactly this.
     pub regions: Vec<crate::linux::guest::Region>,
     /// Pipe buffers, named by index from the descriptors at each end.
     pub pipes: Vec<Vec<u8>>,
@@ -44,8 +43,7 @@ pub struct Guest {
     pub objects: crate::linux::wayland::Objects,
     /// What those objects describe, and the surface it reaches.
     pub scene: crate::linux::wayland::Scene,
-    /// Which signals the guest installed a handler for. Nothing is ever
-    /// raised against them; see `call::signal`.
+    /// Handlers installed; nothing is raised against them (`call::signal`).
     pub handlers: [bool; 64],
     /// What a relative path is relative to.
     pub cwd: Vec<u8>,
@@ -70,6 +68,8 @@ pub struct Guest {
     pub waiting: Option<(u64, u64, u32)>,
     /// A read parked on an empty pipe: its buffer slot, where, how much, who.
     pub pipe_wait: Option<(usize, u64, u64, u32)>,
+    /// Threads parked in a sleep: the monotonic deadline, and who.
+    pub sleepers: Vec<(u64, u32)>,
     /// The image's symbolic links, read once and shared by the family.
     pub links: alloc::rc::Rc<super::Links>,
 }

@@ -54,6 +54,7 @@ impl Guest {
             ended: Vec::new(),
             waiting: None,
             pipe_wait: None,
+            sleepers: Vec::new(),
             links: Default::default(),
         }
     }

@@ -21,6 +21,7 @@ mod dispatch;
 mod family;
 mod family_pipes;
 mod family_reap;
+mod family_sleep;
 mod loop_impl;
 mod table;
 mod table_file;
