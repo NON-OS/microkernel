@@ -343,6 +343,13 @@ nonos-mk-check-caps:
 nonos-mk-static: nonos-mk-check-caps
 	@./nonos-ci/run-static-checks.sh
 
+# Ring 0's size against its budget, from the kernel the last build produced.
+# Run after `nonos-mk-capsules`; TCB_BUDGET picks another profile's file.
+TCB_BUDGET ?= nonos-ci/baselines/tcb-x86_64-capsules.txt
+.PHONY: nonos-mk-tcb
+nonos-mk-tcb:
+	@$(NONOS_PYTHON) tools/nonos-tcb --by-module --baseline $(TCB_BUDGET)
+
 MICROKERNEL_BIN := $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 
 # Patterns are matched against demangled `nm` output, so each entry is
