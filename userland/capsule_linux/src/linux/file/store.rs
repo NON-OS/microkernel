@@ -34,12 +34,24 @@ pub fn write(at: &Key, data: &[u8]) -> Result<(), Fail> {
     vfs::write_file(mk_getpid(), at.as_bytes(), data)
 }
 
+/*
+ * The store keeps files and no directories: /linux/bin exists only as the
+ * prefix of what is in it. A key that is no file but has keys below it is
+ * answered as a directory, or `ls /bin` finds nothing to list.
+ */
 pub fn stat(at: &Key) -> Result<(u64, bool), Fail> {
-    vfs::stat(mk_getpid(), at.as_bytes())
+    vfs::stat(mk_getpid(), at.as_bytes()).or_else(|e| implicit_dir(at).map(|_| (0, true)).ok_or(e))
 }
 
 pub fn stat_full(at: &Key) -> Result<(u64, bool, u64, bool), Fail> {
     vfs::stat_full(mk_getpid(), at.as_bytes())
+        .or_else(|e| implicit_dir(at).map(|_| (0, true, 0, false)).ok_or(e))
+}
+
+fn implicit_dir(at: &Key) -> Option<()> {
+    let below = list(at).ok()?;
+    let prefix = at.as_bytes();
+    below.iter().any(|k| k.as_bytes().get(prefix.len()) == Some(&b'/')).then_some(())
 }
 
 pub fn list(at: &Key) -> Result<Vec<String>, Fail> {

@@ -31,7 +31,12 @@ pub fn open(guest: &mut Guest, path: Vec<u8>) -> u64 {
         return errno::fail(errno::EACCES);
     };
     // Cut against the store key, not against the path the guest named.
-    let names = children(at.as_bytes(), keys);
+    let mut names = children(at.as_bytes(), keys);
+    for link in guest.links.names_in(&path) {
+        if !names.contains(&link) {
+            names.push(link);
+        }
+    }
     match slot::install(guest, Fd::dir(path, names)) {
         Some(n) => errno::ok(n),
         None => errno::fail(errno::EMFILE),
