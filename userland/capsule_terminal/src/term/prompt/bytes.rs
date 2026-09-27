@@ -19,4 +19,4 @@
 /// The same mark `draw_prompt` puts in front of the line being typed, so what
 /// a command looked like while it was entered is what it looks like once it is
 /// history. It sits under the `user@host:path` line the block opens with.
-pub const PROMPT_BYTES: &[u8] = b"> ";
+pub const PROMPT_BYTES: &[u8] = b"$ ";

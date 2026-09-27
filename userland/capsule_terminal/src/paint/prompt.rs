@@ -56,8 +56,10 @@ pub fn draw_prompt(
     // The mark takes the colour of what the last command did, so a reader who
     // looked away while it ran learns the outcome where they are about to
     // type rather than by finding the block it came from.
+    // Where you are, then the mark, then a space: `~/src $ `. Read the other
+    // way round, `>~`, it looked like a redirect into a file named `~`.
     let mark = if state.last_status == 0 { t.accent } else { t.err };
-    text(fb, ox, y, b">", mark, adv, px);
-    text(fb, ox + adv, y, &cwd[cwd.len() - take..], t.path, adv, px);
-    1 + take + 1
+    text(fb, ox, y, &cwd[cwd.len() - take..], t.path, adv, px);
+    text(fb, ox + (take as u32 + 1) * adv, y, b"$", mark, adv, px);
+    take + 3
 }
