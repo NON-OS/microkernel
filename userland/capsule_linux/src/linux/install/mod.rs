@@ -43,6 +43,8 @@ mod tar_kind;
 mod tar_pax;
 mod tar_path;
 mod unpacked;
+mod why;
 
 pub use program::recorded;
 pub use family::install;
+pub use why::Why;

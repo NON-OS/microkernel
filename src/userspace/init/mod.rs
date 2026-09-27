@@ -23,7 +23,7 @@ mod spawn_plan;
 mod supervisor;
 
 pub use entry::run_init;
-pub(crate) use linux_jobs::{request_install, request_run};
+pub(crate) use linux_jobs::{install_stage, request_install, request_run, Stage};
 pub(crate) use linux_jobs::has_pending as installs_pending;
 pub(crate) use linux_jobs::service as service_installs;
 pub(crate) use instance_spawn::has_pending as instance_spawns_pending;

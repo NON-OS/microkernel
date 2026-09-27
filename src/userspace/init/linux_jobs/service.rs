@@ -19,6 +19,7 @@ use crate::sys::serial::{print, println};
 use crate::userspace::capsule_linux::{spawn_install, spawn_run};
 
 use super::queue::{take, Job};
+use super::status::Stage;
 
 /// Perform every queued job.
 pub(crate) fn service() {
@@ -50,14 +51,21 @@ fn install(listing: &str, release: &str) {
     super::why::say(&asked, &pinned);
     let said: &[u8] = match (ready, pinned.ok()) {
         (true, Some(hash)) => match spawn_install(name, &hash) {
-            Ok(_) => b"[LINUX-INSTALL] started ",
+            Ok(pid) => {
+                super::status::set(listing, Stage::Running(pid));
+                b"[LINUX-INSTALL] started "
+            }
             Err(e) => {
+                super::status::set(listing, Stage::Refused);
                 // Which preflight check refused the installer, not only that one did.
                 println(alloc::format!("[LINUX-INSTALL] installer refused: {e:?}").as_bytes());
                 b"[LINUX-INSTALL] refused "
             }
         },
-        _ => b"[LINUX-INSTALL] not ready, refused ",
+        _ => {
+            super::status::set(listing, Stage::Refused);
+            b"[LINUX-INSTALL] not ready, refused "
+        }
     };
     print(said);
     println(listing.as_bytes());

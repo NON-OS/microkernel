@@ -31,10 +31,10 @@ pub(super) const ARCH: &str = "x86_64";
 pub(super) const BRANCHES: [&str; 2] = ["main", "community"];
 
 /// Alpine's install; `family::install` sends the other families elsewhere.
-pub fn install(name: &str, pin: &[u8; 32]) -> bool {
+pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     let Some(index) = load_index() else {
         say(b"[LINUX] no package index\n");
-        return false;
+        return Err(super::Why::Index);
     };
     let max = super::limit::max_packages();
     let mut wanted: Vec<String> = vec![String::from(name)];
@@ -46,7 +46,7 @@ pub fn install(name: &str, pin: &[u8; 32]) -> bool {
         };
         let Some(pkg) = found else {
             say(b"[LINUX] nothing provides it\n");
-            return false;
+            return Err(super::Why::NotProvided);
         };
         if done.contains(&pkg.name) {
             continue;
@@ -54,17 +54,17 @@ pub fn install(name: &str, pin: &[u8; 32]) -> bool {
         if done.len() == max {
             let line = alloc::format!("[LINUX] refused: closure passes {max} packages\n");
             say(line.as_bytes());
-            return false;
+            return Err(super::Why::TooLarge);
         }
         let Some(files) = fetch(pkg, (pkg.name == name).then_some(pin)) else {
-            return false;
+            return Err(super::Why::Package);
         };
         say(b"[LINUX] provenance Verified: index signature and checksums match\n");
         unpack(&files, (pkg.name == name).then_some(name));
         done.push(pkg.name.clone());
         wanted.extend(pkg.depends.iter().cloned());
     }
-    true
+    Ok(())
 }
 
 fn say(line: &[u8]) {

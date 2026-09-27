@@ -17,7 +17,7 @@
 //! Which distribution an install is for. A family is named, never inferred
 //! from the package: `pacman:` and `deb:` say so, and a bare name is Alpine's.
 
-pub fn install(name: &str, pin: &[u8; 32]) -> bool {
+pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     if let Some(pkg) = name.strip_prefix("pacman:") {
         return super::pacman::install(pkg, pin);
     }

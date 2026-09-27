@@ -28,44 +28,46 @@ use super::packages::Record;
 use super::source::source;
 use crate::linux::install::limit::max_packages;
 use crate::linux::install::place::unpack;
+use crate::linux::install::Why;
 
-pub fn install(name: &str, pin: &[u8; 32]) -> bool {
+pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
     let Some(src) = source() else {
-        return say(b"[LINUX] this image was built without a Debian mirror\n");
+        return say(b"[LINUX] this image was built without a Debian mirror\n", Why::NoMirror);
     };
     let Some(ring) = pinned() else {
-        return say(b"[LINUX] this image pins no Debian archive key\n");
+        return say(b"[LINUX] this image pins no Debian archive key\n", Why::NoKeyring);
     };
     let Some(index) = load(&src, &ring) else {
-        return say(b"[LINUX] no verified Debian index\n");
+        return say(b"[LINUX] no verified Debian index\n", Why::Index);
     };
     let (max, mut done): (usize, Vec<String>) = (max_packages(), Vec::new());
     let mut wanted: Vec<Vec<String>> = vec![vec![String::from(name)]];
     while let Some(group) = wanted.pop() {
         let Some(rec): Option<&Record> = group.iter().find_map(|n| find(&index, n)) else {
-            return say(b"[LINUX] nothing provides it\n");
+            return say(b"[LINUX] nothing provides it\n", Why::NotProvided);
         };
         if done.contains(&rec.name) {
             continue;
         }
         if done.len() == max {
             return say(
-                alloc::format!("[LINUX] refused: closure passes {max} packages\n").as_bytes()
+                alloc::format!("[LINUX] refused: closure passes {max} packages\n").as_bytes(),
+                Why::TooLarge,
             );
         }
         let chosen = rec.name == name;
         let Some(files) = fetch(&src, rec, chosen.then_some(pin)) else {
-            return false;
+            return Err(Why::Package);
         };
         unpack(&files, chosen.then_some(name));
         done.push(rec.name.clone());
         wanted.extend(rec.depends.iter().cloned());
     }
-    true
+    Ok(())
 }
 
-/// Log a refusal; every caller is returning failure.
-fn say(line: &[u8]) -> bool {
+/// Log a refusal and name it.
+fn say(line: &[u8], why: Why) -> Result<(), Why> {
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-    false
+    Err(why)
 }

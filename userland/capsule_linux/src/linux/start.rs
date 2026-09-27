@@ -29,9 +29,10 @@ pub fn run() -> ! {
     if let Some((name, pin)) = super::request::install_request() {
         say(b"[LINUX] installing\n");
         super::file::allow_shared_writes();
-        let ok = super::install::install(&name, &pin);
-        say(if ok { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
-        mk_exit(if ok { 0 } else { 1 })
+        // The exit code names the reason, which the store shows.
+        let done = super::install::install(&name, &pin);
+        say(if done.is_ok() { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
+        mk_exit(done.map_or_else(|why| why.code(), |()| 0))
     }
     let Some(launch) = source() else {
         say(b"[LINUX] nothing installed under that name\n");

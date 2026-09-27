@@ -20,7 +20,9 @@
 
 mod queue;
 mod service;
+mod status;
 mod why;
 
 pub(crate) use queue::{has_pending, request_install, request_run};
 pub(crate) use service::service;
+pub(crate) use status::{get as install_stage, Stage};

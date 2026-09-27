@@ -34,7 +34,12 @@ static PENDING: Mutex<Vec<Job>> = Mutex::new(Vec::new());
 /// Queue an install. False when full or already queued, which the caller
 /// reports as busy.
 pub(crate) fn request_install(listing: String, release: String) -> bool {
-    push(Job::Install(listing, release))
+    let name = listing.clone();
+    let queued = push(Job::Install(listing, release));
+    if queued {
+        super::status::set(&name, super::status::Stage::Queued);
+    }
+    queued
 }
 
 /// Queue a run. False when full or already queued.

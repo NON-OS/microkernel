@@ -26,44 +26,45 @@ use super::keyring::pinned;
 use super::source::source;
 use crate::linux::install::limit::max_packages;
 use crate::linux::install::place::unpack;
+use crate::linux::install::Why;
 
-pub fn install(name: &str, pin: &[u8; 32]) -> bool {
+pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), Why> {
     let Some(src) = source() else {
-        return say(b"[LINUX] this image was built without a pacman mirror\n");
+        return say(b"[LINUX] this image was built without a pacman mirror\n", Why::NoMirror);
     };
     let Some(ring) = pinned() else {
-        return say(b"[LINUX] this image pins no pacman keyring\n");
+        return say(b"[LINUX] this image pins no pacman keyring\n", Why::NoKeyring);
     };
     let Some(db) = load(&src, &ring) else {
-        return say(b"[LINUX] no verified pacman database\n");
+        return say(b"[LINUX] no verified pacman database\n", Why::Index);
     };
     let max = max_packages();
     let mut wanted: Vec<String> = vec![String::from(name)];
     let mut done: Vec<String> = Vec::new();
     while let Some(next) = wanted.pop() {
         let Some((rec, repo)) = db.find(&next) else {
-            return say(b"[LINUX] nothing provides it\n");
+            return say(b"[LINUX] nothing provides it\n", Why::NotProvided);
         };
         if done.contains(&rec.name) {
             continue;
         }
         if done.len() == max {
             let line = alloc::format!("[LINUX] refused: closure passes {max} packages\n");
-            return say(line.as_bytes());
+            return say(line.as_bytes(), Why::TooLarge);
         }
         let chosen = rec.name == name;
         let Some(files) = fetch(&src, &ring, repo, rec, chosen.then_some(pin)) else {
-            return false;
+            return Err(Why::Package);
         };
         unpack(&files, chosen.then_some(name));
         done.push(rec.name.clone());
         wanted.extend(rec.depends.iter().cloned());
     }
-    true
+    Ok(())
 }
 
-/// Log a refusal; every caller is returning failure.
-fn say(line: &[u8]) -> bool {
+/// Log a refusal and name it.
+fn say(line: &[u8], why: Why) -> Result<(), Why> {
     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-    false
+    Err(why)
 }
