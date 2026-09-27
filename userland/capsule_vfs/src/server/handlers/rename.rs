@@ -47,8 +47,12 @@ pub fn rename(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Ok(s) => s,
         Err(_) => return encode_response(OP_RENAME, req.flags, req.request_id, EINVAL, &[]),
     };
-    let old = normalize(old);
-    let new = normalize(new);
+    let Some(old) = normalize(old) else {
+        return encode_response(OP_RENAME, req.flags, req.request_id, EINVAL, &[]);
+    };
+    let Some(new) = normalize(new) else {
+        return encode_response(OP_RENAME, req.flags, req.request_id, EINVAL, &[]);
+    };
     if is_read_only(&old) || is_read_only(&new) {
         return encode_response(OP_RENAME, req.flags, req.request_id, EACCES, &[]);
     }

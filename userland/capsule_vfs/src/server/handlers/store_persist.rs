@@ -38,11 +38,19 @@ pub fn store_persist(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Ve
         Ok(s) => s,
         Err(_) => return encode_response(OP_STORE_PERSIST, req.flags, req.request_id, EINVAL, &[]),
     };
-    let path = normalize(path);
+    let Some(path) = normalize(path) else {
+        return encode_response(OP_STORE_PERSIST, req.flags, req.request_id, EINVAL, &[]);
+    };
     let data = match store.persistable(&path, pid) {
         Ok(d) => d,
         Err(e) => {
-            return encode_response(OP_STORE_PERSIST, req.flags, req.request_id, map_store_err(e), &[])
+            return encode_response(
+                OP_STORE_PERSIST,
+                req.flags,
+                req.request_id,
+                map_store_err(e),
+                &[],
+            )
         }
     };
     match crate::blk::store_write::append(&path, &data) {

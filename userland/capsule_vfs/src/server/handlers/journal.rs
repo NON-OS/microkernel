@@ -45,7 +45,10 @@ pub fn journal_touch(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Ve
         Ok(s) => s,
         Err(_) => return encode_response(OP_JOURNAL_TOUCH, req.flags, req.request_id, EINVAL, &[]),
     };
-    store.journal_touch(&normalize(path));
+    let Some(path) = normalize(path) else {
+        return encode_response(OP_JOURNAL_TOUCH, req.flags, req.request_id, EINVAL, &[]);
+    };
+    store.journal_touch(&path);
     encode_response(OP_JOURNAL_TOUCH, req.flags, req.request_id, 0, &[])
 }
 

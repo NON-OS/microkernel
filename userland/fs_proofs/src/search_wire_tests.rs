@@ -79,7 +79,8 @@ fn search_reply_body_round_trips() {
 #[test]
 fn a_hit_too_long_for_the_prefix_is_skipped_not_truncated() {
     let mut s = Store::new();
-    let long = crate::vfs_path::normalize(&(String::from("needle") + &"a".repeat(249)));
+    let long = crate::vfs_path::normalize(&(String::from("needle") + &"a".repeat(249)))
+        .unwrap_or_default();
     assert_eq!(long.len(), 256, "normalize prepends a slash, pushing 255 to 256");
     put(&mut s, &long, b"x");
     put(&mut s, "/needle.txt", b"x");
