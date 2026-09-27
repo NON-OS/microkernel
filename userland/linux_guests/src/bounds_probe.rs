@@ -21,7 +21,7 @@
 //! errno to this process, with the machine still up to print the next line.
 
 use crate::report::{Report, Seen};
-use crate::sys::{call, BRK, MAP_FIXED, MAP_PRIVATE_ANON, MMAP, MPROTECT, PROT_RW};
+use crate::sys::{call, out, BRK, MAP_FIXED, MAP_PRIVATE_ANON, MMAP, MPROTECT, PROT_RW};
 
 const TIB: u64 = 1 << 40;
 /// The first address of the kernel half on x86_64.
@@ -35,9 +35,9 @@ pub fn scan(r: &mut Report) {
     r.check("mmap one TiB", granted(rc, "mapped a TiB"));
     let fixed = MAP_PRIVATE_ANON | MAP_FIXED;
     let rc = call(MMAP, [KERNEL_HALF, 4096, PROT_RW, fixed, u64::MAX, 0]);
-    r.check("mmap in the kernel half", granted(rc, "mapped the kernel half"));
+    r.check("mmap in the kernel half", landed(rc, KERNEL_HALF, "mapped the kernel half"));
     let rc = call(MMAP, [PAGE_ZERO, 4096, PROT_RW, fixed, u64::MAX, 0]);
-    r.check("mmap page zero", granted(rc, "mapped page zero"));
+    r.check("mmap page zero", landed(rc, PAGE_ZERO, "mapped page zero"));
     let base = call(BRK, [0; 6]);
     let rc = call(BRK, [(base as u64).wrapping_add(TIB), 0, 0, 0, 0, 0]);
     // brk reports failure by returning the old break, not an errno.
@@ -48,6 +48,20 @@ pub fn scan(r: &mut Report) {
     r.check("brk one TiB", seen);
     let rc = call(MPROTECT, [KERNEL_HALF, 4096, PROT_RW, 0, 0, 0]);
     r.check("mprotect the kernel half", granted(rc, "changed kernel protections"));
+}
+
+/// A fixed mapping escaped only if it landed where it asked. Landing anywhere
+/// else breaks MAP_FIXED's contract, which is a bug worth a line, but the
+/// guest did not get the address it was after.
+fn landed(rc: i64, want: u64, what: &str) -> Seen {
+    match rc {
+        rc if rc as u64 == want => Seen::Escaped(format!("{what} at {rc:#x}")),
+        rc if (-4095..0).contains(&rc) => Seen::Refused(rc),
+        rc => {
+            out(format!("[GUEST] bounds note: MAP_FIXED {want:#x} landed at {rc:#x}\n").as_bytes());
+            Seen::Refused(0)
+        }
+    }
 }
 
 /// A mapping call succeeded when it returned an address, not an errno.

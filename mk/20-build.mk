@@ -619,6 +619,11 @@ include userland/capsule_wallpaper/Capsule.mk
 include userland/capsule_attest/Capsule.mk
 include userland/capsule_power/Capsule.mk
 
+# Hostile Linux guests, enrolled beside the capsules, for test images only.
+ifeq ($(NONOS_LINUX_GUESTS),1)
+include userland/linux_guests/Guests.mk
+endif
+
 # Orchestration helper: union of every verified capsule's artifact
 # triple. Smoke and test targets that need proof_io plus another
 # capsule depend on `$(proof-io_ARTIFACTS)` directly.
