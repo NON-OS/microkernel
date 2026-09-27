@@ -30,8 +30,13 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     fb.fill_rect(0, y, state.fb_w, STATUS_H, STATUS_BG);
     fb.fill_rect(0, y, state.fb_w, 1, RULE);
     let top = text::top_of(y as i32, STATUS_H, SMALL_PX);
-    let keys: &[u8] = b"up/down select    Enter install    o open    r refresh    Esc close";
-    text::line(fb, STATUS_PAD_X, top, keys, MUTED, SMALL_PX);
+    // Enter's word is the card's button, so the hint never disagrees with it.
+    let enter = state.current().map_or(&b"Install"[..], |l| l.progress.button(l.ready));
+    let mut keys = alloc::vec::Vec::with_capacity(96);
+    keys.extend_from_slice(b"up/down select    Enter ");
+    keys.extend(enter.iter().map(u8::to_ascii_lowercase));
+    keys.extend_from_slice(b"    / search    r refresh    Esc close");
+    text::line(fb, STATUS_PAD_X, top, &keys, MUTED, SMALL_PX);
     // The answer to the last request sits opposite the keys.
     let right = state.fb_w.saturating_sub(STATUS_PAD_X);
     if let Some(asked) = state.asked {

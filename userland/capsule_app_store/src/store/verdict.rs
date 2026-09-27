@@ -42,14 +42,6 @@ impl Verdict {
         }
     }
 
-    pub fn label(self) -> &'static [u8] {
-        match self {
-            Verdict::Ready => b"Install",
-            Verdict::Installed => b"Installed",
-            Verdict::Blocked => b"Blocked",
-        }
-    }
-
     /// The same verdict as something to read rather than a word to decode.
     pub fn sentence(self) -> &'static [u8] {
         match self {

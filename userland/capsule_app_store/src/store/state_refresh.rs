@@ -32,6 +32,8 @@ impl State {
             Some(found) => {
                 self.listings = found;
                 self.trouble = None;
+                // One installed earlier in this session reads as installed.
+                self.poll_all();
             }
             /*
              * The call failed, which is not the same as the catalogue being

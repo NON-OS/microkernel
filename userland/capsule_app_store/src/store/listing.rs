@@ -51,11 +51,14 @@ pub struct Listing {
     /// The market capsule's verdict across every install gate, taken as given.
     pub ready: bool,
     pub source: Source,
+    /// Where an install of it stands, as the system last said.
+    pub progress: super::progress::Progress,
 }
 
 impl Listing {
     pub fn new(id: Vec<u8>, measurement: [u8; 32], name: Vec<u8>, ready: bool) -> Listing {
         let source = Source::of(&id);
-        Listing { id, measurement, name, ready, source }
+        let progress = super::progress::Progress::Idle;
+        Listing { id, measurement, name, ready, source, progress }
     }
 }

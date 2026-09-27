@@ -26,8 +26,9 @@ const KEY_R: u32 = b'r' as u32;
 
 pub(super) fn act(state: &mut State, code: u32) -> EventOutcome {
     let changed = match code {
+        // One key does the next sensible thing: install, wait, or open.
         KEY_ENTER => {
-            state.asked = Some(install::ask(state));
+            state.asked = super::install_primary::primary(state);
             true
         }
         /*

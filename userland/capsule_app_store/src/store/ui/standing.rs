@@ -38,6 +38,11 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, left: u32, mut top: i32) -> i3
             };
             text::line(fb, left, top, v.sentence(), hue, BODY_PX);
             top += 30;
+            // What happened after the person asked, when anything has.
+            if let Some((line, tone)) = state.current().and_then(|l| l.progress.sentence()) {
+                text::line(fb, left, top, line, tone, SMALL_PX);
+                top += 28;
+            }
             // Where the gates end, not a guess at their height: a guess once
             // put the measurement on top of the last gate.
             top = gates::paint(fb, left, top, &r) + 14;

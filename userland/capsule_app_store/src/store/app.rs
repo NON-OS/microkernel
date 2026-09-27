@@ -41,4 +41,14 @@ impl App for Store {
     fn paint(&mut self, fb: &mut PaintBuffer) {
         frame(&mut self.state, fb);
     }
+    /// Only while an install is moving: an idle store costs nothing.
+    fn on_tick(&mut self) -> bool {
+        self.state.any_pending() && self.state.poll_pending()
+    }
+    fn tick_interval_ms(&self) -> i64 {
+        500
+    }
+    fn busy(&self) -> bool {
+        self.state.any_pending()
+    }
 }

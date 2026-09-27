@@ -37,4 +37,9 @@ impl State {
     pub fn current(&self) -> Option<&super::listing::Listing> {
         self.listings.get(*self.visible().get(self.cursor)?)
     }
+
+    pub fn current_mut(&mut self) -> Option<&mut super::listing::Listing> {
+        let at = *self.visible().get(self.cursor)?;
+        self.listings.get_mut(at)
+    }
 }

@@ -19,9 +19,10 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::store::listing::{Listing, Source};
+use crate::store::progress::Progress;
 use crate::store::theme::{
-    BUTTON_BG, BUTTON_FG, BUTTON_OFF_BG, BUTTON_OFF_FG, CARD_BG, CARD_SEL_BG, CARD_SEL_EDGE, MUTED,
-    TILE_COMMUNITY, TILE_LINUX, TILE_NONOS, TITLE,
+    ACCENT, BUTTON_BG, BUTTON_FG, BUTTON_OFF_BG, BUTTON_OFF_FG, CARD_BG, CARD_SEL_BG,
+    CARD_SEL_EDGE, DANGER, MUTED, TILE_COMMUNITY, TILE_LINUX, TILE_NONOS, TITLE,
 };
 
 use super::geometry::action_rect;
@@ -52,9 +53,13 @@ pub fn paint(fb: &mut PaintBuffer, l: &Listing, x: u32, y: u32, w: u32, selected
 }
 
 fn action(fb: &mut PaintBuffer, l: &Listing, (x, y, w, h): (u32, u32, u32, u32)) {
-    let (bg, fg, word): (u32, u32, &[u8]) = match l.ready {
-        true => (BUTTON_BG, BUTTON_FG, b"Install"),
-        false => (BUTTON_OFF_BG, BUTTON_OFF_FG, b"Details"),
+    let word = l.progress.button(l.ready);
+    let (bg, fg) = match l.progress {
+        Progress::Idle if l.ready => (BUTTON_BG, BUTTON_FG),
+        Progress::Installed => (BUTTON_BG, BUTTON_FG),
+        Progress::Queued | Progress::Installing => (BUTTON_OFF_BG, ACCENT),
+        Progress::Refused | Progress::Failed(_) => (BUTTON_OFF_BG, DANGER),
+        Progress::Idle => (BUTTON_OFF_BG, BUTTON_OFF_FG),
     };
     fb.fill_rect(x, y, w, h, bg);
     let tx = x + (w - text::width_of(word, SMALL_PX)) / 2;
