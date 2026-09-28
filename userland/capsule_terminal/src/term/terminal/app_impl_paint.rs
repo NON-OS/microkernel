@@ -33,8 +33,11 @@ impl Terminal {
         let (cols, rows, m) = crate::paint::grid_size(fb, self.font_scale, rail_open);
         let theme_ix = self.theme;
         let sb = &mut self.cur().scrollback;
-        sb.fit(cols, rows, m.adv, m.lh);
+        let resized = sb.fit(cols, rows, m.adv, m.lh);
         sb.follow_theme(theme_ix, theme);
+        if resized {
+            crate::jobs::tty::resized(self.cur_ref());
+        }
         let l = crate::paint::paint_tabs(
             &self.tabs,
             self.active,

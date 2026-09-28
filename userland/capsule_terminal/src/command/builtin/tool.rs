@@ -64,6 +64,7 @@ pub fn prepare(state: &mut State, args: &[&[u8]]) -> Option<InstallJob> {
         super::tool_refused::refused(state, name, rc);
         return None;
     }
+    crate::jobs::tty::attach(state, rc as u32);
     Some(InstallJob::new(rc as u32))
 }
 

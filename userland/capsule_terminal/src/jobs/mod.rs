@@ -23,6 +23,7 @@ mod pump;
 mod reap;
 mod submit;
 mod table;
+pub mod tty;
 mod work;
 
 pub use classify::{is_job_command, is_store_tool, Verdict};

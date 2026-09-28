@@ -21,12 +21,15 @@ use crate::term::theme::types::Theme;
 
 impl Scrollback {
     /// Match the screen to the window. A resize re-wraps what is there.
-    pub fn fit(&mut self, cols: usize, rows: usize, cell_w: u32, cell_h: u32) {
+    /// True when the size in cells changed.
+    pub fn fit(&mut self, cols: usize, rows: usize, cell_w: u32, cell_h: u32) -> bool {
+        let changed = (cols, rows) != (self.vt.cols(), self.vt.rows());
         self.vt.resize(cols, rows);
         self.vt.set_cell_pixels(
             cell_w.min(u16::MAX as u32) as u16,
             cell_h.min(u16::MAX as u32) as u16,
         );
+        changed
     }
 
     /// Program colours start from the window's theme. Only a change of
