@@ -32,7 +32,7 @@ const ROUNDS: usize = 1500;
 
 #[test]
 fn damaged_debs_never_panic() {
-    let mut s = 0xDEB5_EEDu64;
+    let mut s = 0x0DEB_5EEDu64;
     for deb in [
         "pool/main/n/nonos-hello/nonos-hello_1.0_amd64.deb",
         "pool/main/l/libnonos1/libnonos1_1.0_amd64.deb",

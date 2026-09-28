@@ -14,12 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
+//! The `MkForeignInterrupt` call: a supervisor marks one of its guests.
 
-pub mod errno;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_high;
-pub mod nr_sched;
+use crate::process::foreign::trap_table::is_parked;
+
+/// Mark `pid`, one of the caller's guests. 1 says it is parked in a call
+/// already, whose answer can carry the handler; 0 says it is marked.
+pub fn sys_foreign_interrupt(pid: u64) -> i64 {
+    let pid = match crate::process::foreign::signal_call::supervised(pid) {
+        Ok(p) => p,
+        Err(e) => return e,
+    };
+    if is_parked(pid) {
+        return 1;
+    }
+    super::marks::mark(pid);
+    0
+}

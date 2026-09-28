@@ -30,12 +30,13 @@ const IGNORED_DEFAULT: [u64; 4] = [17, 23, 28, 18];
 
 pub fn kill(guest: &mut Guest, pid: u64, signo: u64) -> u64 {
     let target = pid as u32;
-    // A guest may signal itself, its threads and its children, nothing else.
+    /* A guest may signal itself, its threads and its children, nothing else. */
     if !guest.owns(target) && !guest.children.contains(&target) {
         return errno::fail(errno::ESRCH);
     }
     if signo == 0 {
-        return errno::ok(0); // an existence check, not a signal
+        /* An existence check, not a signal. */
+        return errno::ok(0);
     }
     if signo > NSIG as u64 {
         return errno::fail(errno::EINVAL);
@@ -43,9 +44,11 @@ pub fn kill(guest: &mut Guest, pid: u64, signo: u64) -> u64 {
     let act = guest.signals.action(signo as usize).unwrap_or_default();
     if act.catches() {
         guest.signals.raise(target, signo as u8);
-        // A thread running its own code makes no call to deliver on: the
-        // kernel stops it at its next tick and hands it here. One parked in
-        // a call, the caller included, gets it with that call's answer.
+        /*
+         * A thread running its own code makes no call to deliver on: the
+         * kernel stops it at its next tick and hands it here. One parked in
+         * a call, the caller included, gets it with that call's answer.
+         */
         let _ = nonos_libc::mk_foreign_interrupt(target);
         return errno::ok(0);
     }

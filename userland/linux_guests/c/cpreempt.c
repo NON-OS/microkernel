@@ -1,6 +1,8 @@
-// A caught signal sent to a thread that is running its own code, with no
-// call for it to arrive on: the handler has to run inside the spin, or the
-// spin never ends and the join never returns.
+/*
+ * A caught signal sent to a thread that is running its own code, with no
+ * call for it to arrive on: the handler has to run inside the spin, or the
+ * spin never ends and the join never returns.
+ */
 #define _GNU_SOURCE
 #include <pthread.h>
 #include <sched.h>

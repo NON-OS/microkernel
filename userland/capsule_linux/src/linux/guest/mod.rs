@@ -42,6 +42,7 @@ mod region_find;
 mod region_mark;
 pub mod sigqueue;
 pub mod sigstack;
+pub mod sigstack_t;
 pub mod sigstate;
 mod threads;
 mod timer;

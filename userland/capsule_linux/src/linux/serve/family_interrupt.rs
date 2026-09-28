@@ -32,7 +32,7 @@ impl Family {
             let _ = mk_foreign_reply(tid, 0);
             return;
         };
-        // No call is being answered: the handler returns to the thread's own rax.
+        /* No call is being answered: the handler returns to the thread's own rax. */
         if !super::deliver::maybe_deliver(g, tid, rax) {
             let _ = mk_foreign_reply(tid, 0);
         }

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! One-way death notices from the kernel to a guest's supervisor.
 //!
 //! A guest thread that ends on a signal cannot park and wait for a reply, and
@@ -34,6 +33,14 @@ struct Notice {
 }
 
 static NOTICES: Mutex<Vec<Notice>> = Mutex::new(Vec::new());
+
+/// Report to its supervisor that a guest thread ended on a signal, if it is
+/// a guest at all. The supervisor's personality decides what follows.
+pub fn note_signal_death(pid: u32, code: i32) {
+    if let Some(supervisor) = super::registry::supervisor_of(pid) {
+        post(supervisor, pid, code);
+    }
+}
 
 pub(super) fn post(supervisor: u32, pid: u32, code: i32) {
     NOTICES.lock().push(Notice { supervisor, pid, code });
