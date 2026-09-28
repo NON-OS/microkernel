@@ -14,16 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The descriptor a program opens to reach its nameserver.
+//! The options a socket keeps, with the values Linux starts a socket with
+//! (read from a Linux 6.x host: tcp_rmem[1] and rmem_default).
 
-use crate::linux::abi::errno;
-use crate::linux::guest::{Fd, Guest};
+use super::types::Proto;
 
-/// It looks like a datagram socket and holds no handle: there is
-/// nothing on the other side of it, which is the point.
-pub fn open(guest: &mut Guest) -> u64 {
-    match crate::linux::file::install(guest, Fd::resolver()) {
-        Some(n) => errno::ok(n),
-        None => errno::fail(errno::EMFILE),
+#[derive(Clone, Copy)]
+pub struct Opts {
+    pub reuseaddr: bool,
+    /// As getsockopt reports it; also what the socket's queue holds.
+    pub rcvbuf: u32,
+}
+
+impl Opts {
+    pub fn new(proto: Proto) -> Opts {
+        let rcvbuf = match proto {
+            Proto::Stream => 131_072,
+            Proto::Dgram => 212_992,
+        };
+        Opts { reuseaddr: false, rcvbuf }
     }
 }

@@ -14,15 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Asking net.sockets whether one handle is ready.
+//! A socket's readiness in poll's bits: the family's own sockets answer from
+//! the table, a stream outside the family from net.sockets.
 
 use super::call::call;
 use super::ops::{OP_POLL, POLL_READABLE, POLL_WRITABLE};
+use super::sock;
 
 const POLLIN: u16 = 0x001;
 const POLLOUT: u16 = 0x004;
+const POLLNVAL: u16 = 0x020;
 
-pub(super) fn socket_bits(handle: u32) -> u16 {
+pub(super) fn socket_bits(id: u32) -> u16 {
+    if let Some(bits) = sock::bits(id) {
+        return bits;
+    }
+    match sock::with(|t| t.get(id).and_then(|s| s.svc)) {
+        Some(handle) => service_bits(handle),
+        None => POLLNVAL,
+    }
+}
+
+fn service_bits(handle: u32) -> u16 {
     let Some((0, out)) = call(OP_POLL, &handle.to_le_bytes(), 1) else {
         return 0;
     };
