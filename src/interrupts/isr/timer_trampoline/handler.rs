@@ -119,9 +119,11 @@ pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext) {
     if from_user {
         drop(_ctx_guard);
         let words = ctx.cast::<[u64; crate::process::foreign::TICK_FRAME_WORDS]>();
-        // SAFETY: eK@nonos.systems - the trampoline's 160-byte frame read
-        // above, still on this thread's kernel stack and restored from on the
-        // way out; the 20 words are exactly that frame, nothing past it.
+        /*
+         * SAFETY: eK@nonos.systems - the trampoline's 160-byte frame read
+         * above, still on this thread's kernel stack and restored from on the
+         * way out; the 20 words are exactly that frame, nothing past it.
+         */
         crate::process::foreign::on_user_tick(unsafe { &mut *words });
     }
 }

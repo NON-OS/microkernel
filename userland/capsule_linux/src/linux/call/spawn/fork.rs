@@ -44,7 +44,7 @@ pub fn fork(guest: &mut Guest, caller: u32) -> Answer {
      * first trap finds a guest that owns it.
      */
     let mut state = guest.fork_state(child);
-    // The child's one thread has the forking thread's alternate stack.
+    /* The child's one thread has the forking thread's alternate stack. */
     state.signals.stack_for_child(caller, child);
     guest.forked.push(state);
     if mk_foreign_resume(child) < 0 {

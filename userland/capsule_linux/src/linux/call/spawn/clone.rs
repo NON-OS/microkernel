@@ -34,8 +34,10 @@ const CLONE_CHILD_CLEARTID: u64 = 0x20_0000;
 pub fn clone(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     let a = frame.args();
     let (flags, stack) = (a[0], a[1]);
-    // The fifth argument is a thread pointer only when the flag says so;
-    // without it the child keeps its parent's.
+    /*
+     * The fifth argument is a thread pointer only when the flag says so;
+     * without it the child keeps its parent's.
+     */
     let tls = if flags & CLONE_SETTLS != 0 { a[4] } else { 0 };
     if flags & (CLONE_VM | CLONE_THREAD) != CLONE_VM | CLONE_THREAD {
         /*
@@ -60,9 +62,12 @@ pub fn clone(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     }
     let tid = tid as u32;
     guest.threads.push(tid);
-    // The SETTID words get the guest's number for the tid, which only the
-    // family knows: `serve::clone_tid` writes them with the reply.
-    // Zeroed and woken when the thread exits: musl's join waits on it.
+    /*
+     * The SETTID words get the guest's number for the tid, which only the
+     * family knows: `serve::clone_tid` writes them with the reply. The
+     * CLEARTID word is zeroed and woken when the thread exits: musl's join
+     * waits on it.
+     */
     if flags & CLONE_CHILD_CLEARTID != 0 {
         guest.clear_tids.push((tid, a[3]));
     }
