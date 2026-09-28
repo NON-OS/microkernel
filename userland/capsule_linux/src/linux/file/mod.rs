@@ -54,6 +54,7 @@ mod store;
 mod store_name;
 mod timerfd;
 mod timerfd_read;
+mod timerfd_spec;
 mod write;
 
 pub use close::close;
@@ -84,6 +85,6 @@ pub use resolve::{key, visible};
 pub use seek::lseek;
 pub use slot::{install, MAX_FDS};
 pub use store::{read as store_read, write as store_write};
-pub use timerfd::{timerfd_create, timerfd_settime};
-pub use timerfd_read::read as timerfd_read;
+pub use timerfd::{timerfd_create, timerfd_gettime, timerfd_settime};
+pub use timerfd_read::{bits as timer_bits, read as timerfd_read};
 pub use write::write;

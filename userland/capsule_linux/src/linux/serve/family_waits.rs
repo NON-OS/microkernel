@@ -24,11 +24,11 @@ use super::family::Family;
 use super::waits::{attempt, expire};
 use super::waits_fds::watched;
 use crate::linux::call::now_ms;
-use crate::linux::guest::{Blocked, Guest, Kind};
+use crate::linux::guest::Kind;
 
 const CLOCK_MONOTONIC: u64 = 1;
-/// How often a wait on a socket or a timer is looked at again. Their
-/// readiness changes with no call for the family to answer.
+/// How often a wait on a socket is looked at again: its readiness changes
+/// with no call for the family to answer. A timer is looked at when it fires.
 const TICK_MS: u64 = 10;
 
 impl Family {
@@ -63,18 +63,31 @@ impl Family {
         }
     }
 
-    /// Milliseconds until a parked call is due to be looked at again.
+    /// Milliseconds until a parked call is due to be looked at again: its
+    /// deadline, a timer it watches firing, or the next look at a socket.
     pub(super) fn next_wait_ms(&self, now: u64) -> Option<u64> {
-        let due = self.guests.iter().flat_map(|g| g.blocked.iter());
-        let deadline = due.filter_map(|w| w.deadline).map(|d| d.saturating_sub(now)).min();
-        let outside = self.guests.iter().any(|g| g.blocked.iter().any(|w| watches_outside(g, w)));
-        [deadline, outside.then_some(TICK_MS)].into_iter().flatten().min()
+        let mut soonest: Option<u64> = None;
+        let mut keep = |at: u64| soonest = Some(soonest.map_or(at, |s| s.min(at)));
+        for g in self.guests.iter() {
+            for wait in g.blocked.iter() {
+                if let Some(d) = wait.deadline {
+                    keep(d.saturating_sub(now));
+                }
+                for fd in watched(g, wait) {
+                    match g.fds.get(fd as usize) {
+                        Some(f) if f.kind == Kind::Socket => keep(TICK_MS),
+                        Some(f) if f.kind == Kind::Timer => {
+                            // One that has already fired was seen by the last look.
+                            let due = self.timers.get(f.handle as usize).map_or(0, |t| t.due);
+                            if due > now {
+                                keep(due - now);
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        soonest
     }
-}
-
-/// A wait watching a socket or a timer.
-fn watches_outside(guest: &Guest, wait: &Blocked) -> bool {
-    watched(guest, wait).into_iter().any(|fd| {
-        matches!(guest.fds.get(fd as usize).map(|f| f.kind), Some(Kind::Socket | Kind::Timer))
-    })
 }

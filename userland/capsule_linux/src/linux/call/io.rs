@@ -47,7 +47,7 @@ pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
         // Nothing is typed at a guest yet, and end of file is the truth.
         Some(Kind::Stdin) => errno::ok(0),
         Some(Kind::File) => file::read(guest, fd, buf, len),
-        Some(Kind::Timer) => file::timerfd_read(guest, fd, buf),
+        Some(Kind::Timer) => file::timerfd_read(guest, fd, buf, len),
         Some(Kind::Socket) => socket_read(guest, fd, buf, len),
         Some(Kind::Unix) => crate::linux::unix::recv(guest, fd, buf, len),
         Some(Kind::Pipe) => super::pipe_read(guest, fd, buf, len),

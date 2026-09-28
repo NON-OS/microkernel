@@ -33,6 +33,7 @@ pub const ACCEPT4: u64 = 288;
 pub const PIPE2: u64 = 293;
 pub const TIMERFD_CREATE: u64 = 283;
 pub const TIMERFD_SETTIME: u64 = 286;
+pub const TIMERFD_GETTIME: u64 = 287;
 pub const EVENTFD: u64 = 284;
 pub const EVENTFD2: u64 = 290;
 pub const EPOLL_CREATE1: u64 = 291;

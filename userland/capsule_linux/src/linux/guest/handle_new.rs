@@ -33,6 +33,7 @@ impl Guest {
             pipes: Vec::new(),
             pipe_ends: Vec::new(),
             events: Vec::new(),
+            timers: Vec::new(),
             children: Vec::new(),
             threads: Vec::new(),
             clear_tids: Vec::new(),

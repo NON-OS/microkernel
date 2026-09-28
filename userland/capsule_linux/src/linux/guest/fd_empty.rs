@@ -36,7 +36,6 @@ impl Fd {
             writable: false,
             handle: 0,
             watch: Vec::new(),
-            expiry: 0,
             replies: Vec::new(),
             cloexec: false,
             nonblock: false,

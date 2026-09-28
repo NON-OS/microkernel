@@ -37,6 +37,8 @@ pub struct Guest {
     /// eventfd counters, named by index from their descriptors. The
     /// family's, lent with the pipes.
     pub events: Vec<super::Event>,
+    /// timerfd timers, the same way.
+    pub timers: Vec<super::Timer>,
     /// Children this guest has forked, for wait to report on.
     pub children: Vec<u32>,
     /// Tids of this guest's threads, not counting itself.

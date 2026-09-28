@@ -30,12 +30,13 @@ use super::dispatch::answer;
 use super::pid_map::frame_in;
 use super::pid_ns::PidNs;
 use super::pid_out::value_out;
-use crate::linux::guest::{Event, Guest};
+use crate::linux::guest::{Event, Guest, Timer};
 
 pub struct Family {
     pub(super) guests: Vec<Guest>,
     pub(super) pipes: Vec<Vec<u8>>,
     pub(super) events: Vec<Event>,
+    pub(super) timers: Vec<Timer>,
     pub(super) root: u32,
     pub(super) root_code: i32,
     pub(super) ns: PidNs,
@@ -45,8 +46,9 @@ impl Family {
     pub fn new(mut first: Guest) -> Self {
         let (pipes, root) = (mem::take(&mut first.pipes), first.pid);
         let events = mem::take(&mut first.events);
+        let timers = mem::take(&mut first.timers);
         let ns = PidNs::new(first.parent, root);
-        Family { guests: alloc::vec![first], pipes, events, root, root_code: 0, ns }
+        Family { guests: alloc::vec![first], pipes, events, timers, root, root_code: 0, ns }
     }
 
     pub fn answer(&mut self, frame: &ForeignFrame) {

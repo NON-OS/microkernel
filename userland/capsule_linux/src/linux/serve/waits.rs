@@ -51,9 +51,14 @@ pub fn timed(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
     }
 }
 
-/// True for the reads and writes that can wait: a pipe or an eventfd.
-pub fn may_wait(guest: &Guest, fd: u64) -> bool {
-    matches!(guest.fds.get(fd as usize).map(|f| f.kind), Some(Kind::Event | Kind::Pipe))
+/// True for the reads and writes that can wait: a pipe or an eventfd, and
+/// a read of a timer.
+pub fn may_wait(guest: &Guest, nr: u64, fd: u64) -> bool {
+    match guest.fds.get(fd as usize).map(|f| f.kind) {
+        Some(Kind::Event | Kind::Pipe) => true,
+        Some(Kind::Timer) => nr == nr::READ,
+        _ => false,
+    }
 }
 
 /// A read or write that answers EAGAIN waits instead, unless its descriptor

@@ -44,8 +44,6 @@ pub struct Fd {
     pub handle: u32,
     /// An epoll interest list.
     pub watch: Vec<super::Watch>,
-    /// When a timer next fires, in milliseconds of uptime.
-    pub expiry: u64,
     /// Datagrams waiting to be read, oldest first, each with the address it
     /// should appear to come from.
     pub replies: Vec<(Vec<u8>, [u8; 6])>,
