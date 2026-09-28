@@ -14,23 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Building a circuit when none is ready.
+//! Starting a circuit when none is ready, and giving up on a slow one.
 
-use crate::circuit::{build, client_circuit_id, Circuit, CircuitStage};
+use nonos_libc::mk_uptime_ms;
+
+use crate::circuit::{ask_create, client_circuit_id, BuildError, Circuit, CircuitStage};
+use crate::circuit::{Pending, HOP_MS};
 use crate::path::draw_path_through;
 use crate::protocol::CIRCUIT_MAX;
 use crate::trace;
 
-use super::link_lost::lost;
+use super::circuit_answer::failed;
 use super::state::Manager;
 
-/// Build one circuit if there is room and a link to build it over.
-///
+/// Start one circuit if there is room and a link, or time out the one being
+/// built. Replies are finished by the pump as they arrive, never waited for.
 pub fn tick(state: &mut Manager, now: u64) {
-    if !state.usable_at(now) || state.circuits.len() >= CIRCUIT_MAX {
+    let building = state.circuits.iter().position(|c| c.stage == CircuitStage::Handshaking);
+    if let Some(index) = building {
+        let late =
+            state.circuits[index].pending.as_ref().map_or(true, |p| mk_uptime_ms() >= p.deadline);
+        if late {
+            failed(state, index, BuildError::Timeout);
+        }
         return;
     }
-    if state.circuits.iter().any(|c| c.stage == CircuitStage::Handshaking) {
+    if !state.usable_at(now) || state.circuits.len() >= CIRCUIT_MAX {
         return;
     }
     let (Some(link), Some(guard)) = (state.link.as_mut(), state.guard.as_ref()) else { return };
@@ -40,25 +49,18 @@ pub fn tick(state: &mut Manager, now: u64) {
     };
     let id = client_circuit_id(state.next_circuit);
     state.next_circuit = state.next_circuit.wrapping_add(1);
-
-    match build(link, id, &path) {
-        Ok(hops) => {
-            let mut circuit = Circuit::new(id, path);
-            circuit.hops = hops;
-            circuit.stage = CircuitStage::Open;
-            circuit.opened_at = now;
-            trace::say_num(b"circuit open", id as u64);
+    let asked = ask_create(link, id, &path[0]);
+    let mut circuit = Circuit::new(id, path);
+    match asked {
+        Ok(handshake) => {
+            let deadline = mk_uptime_ms().saturating_add(HOP_MS);
+            circuit.pending = Some(Pending { handshake, deadline });
             state.circuits.push(circuit);
         }
-        Err(_) => {
-            /*
-             * A failed build leaves the far end holding whatever hops did come
-             * up, and this side cannot tell which. The link is dropped rather
-             * than reused: a half built circuit sharing it would have its cells
-             * read against the wrong digest for the life of the connection.
-             */
-            trace::say_num(b"circuit build failed", id as u64);
-            lost(state);
+        Err(why) => {
+            state.circuits.push(circuit);
+            let index = state.circuits.len() - 1;
+            failed(state, index, why);
         }
     }
 }

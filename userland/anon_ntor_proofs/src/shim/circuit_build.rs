@@ -14,29 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! An authenticated link to one relay, and the cells crossing it.
+//! The circuit build's reply handling, from the real sources. Only the part
+//! that turns a relay's answer into a hop; sending needs a link.
 
-extern crate alloc;
-
-use alloc::vec::Vec;
-use nonos_tls::stream::Stream;
-
-use super::socket::Socket;
-
-/// A link to a guard, after VERSIONS, CERTS and NETINFO.
-pub struct Link {
-    pub(super) socket: Socket,
-    pub(super) stream: Stream,
-    pub(super) partial: Vec<u8>,
-}
-
-/// Why a link could not be opened or has stopped working.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum LinkError {
-    Connect,
-    Tls,
-    Protocol,
-    Version,
-    Identity,
-    Closed,
-}
+#[path = "../../../capsule_net_anon/src/circuit/build/answer.rs"]
+pub mod answer;
+#[path = "../../../capsule_net_anon/src/circuit/build/error.rs"]
+pub mod error;
+#[path = "../../../capsule_net_anon/src/circuit/build/reply.rs"]
+mod reply;

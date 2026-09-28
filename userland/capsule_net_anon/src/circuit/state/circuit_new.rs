@@ -37,6 +37,7 @@ impl Circuit {
             failures: 0,
             opened_at: 0,
             owed_digest: None,
+            pending: None,
         }
     }
 

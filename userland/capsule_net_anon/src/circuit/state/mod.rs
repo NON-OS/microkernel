@@ -18,7 +18,9 @@
 
 pub(super) mod circuit;
 mod circuit_new;
+mod pending;
 mod stage;
 
 pub use circuit::Circuit;
+pub use pending::Pending;
 pub use stage::CircuitStage;

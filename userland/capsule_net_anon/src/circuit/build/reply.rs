@@ -14,33 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading a handshake reply off the link.
+//! The body of an EXTENDED2, or why there is none.
 
-use crate::cell::{
-    body, unpack, Cell, CELL_CREATED2, CELL_DESTROY, CELL_RELAY, CELL_RELAY_EARLY, RELAY_EXTENDED2,
-    RELAY_TRUNCATED,
-};
-use crate::link::Link;
+use crate::cell::{body, unpack, RELAY_EXTENDED2, RELAY_TRUNCATED};
 
 use super::error::BuildError;
-use super::next_cell::next;
-
-/// A CREATED2 payload for the guard, cleartext because no hop exists yet.
-pub(super) fn created2(link: &mut Link, circuit: u32) -> Result<Cell, BuildError> {
-    match next(link, circuit)? {
-        cell if cell.command == CELL_CREATED2 => Ok(cell),
-        cell if cell.command == CELL_DESTROY => Err(BuildError::Destroyed),
-        _ => Err(BuildError::Protocol),
-    }
-}
-
-pub(super) fn extended2(link: &mut Link, circuit: u32) -> Result<Cell, BuildError> {
-    match next(link, circuit)? {
-        cell if cell.command == CELL_RELAY || cell.command == CELL_RELAY_EARLY => Ok(cell),
-        cell if cell.command == CELL_DESTROY => Err(BuildError::Destroyed),
-        _ => Err(BuildError::Protocol),
-    }
-}
 
 pub(super) fn extended2_body(
     payload: &[u8; crate::cell::PAYLOAD_BYTES],

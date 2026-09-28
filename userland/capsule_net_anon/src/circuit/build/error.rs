@@ -25,3 +25,17 @@ pub enum BuildError {
     Handshake,
     Unrecognised,
 }
+
+impl BuildError {
+    /// The log line for a build that failed this way, so the cause is named.
+    pub fn said(self) -> &'static [u8] {
+        match self {
+            BuildError::Link => b"circuit build failed, link write",
+            BuildError::Protocol => b"circuit build failed, unexpected reply",
+            BuildError::Destroyed => b"circuit build failed, destroyed by a relay",
+            BuildError::Timeout => b"circuit build failed, no answer in time",
+            BuildError::Handshake => b"circuit build failed, ntor handshake",
+            BuildError::Unrecognised => b"circuit build failed, reply matched no hop",
+        }
+    }
+}

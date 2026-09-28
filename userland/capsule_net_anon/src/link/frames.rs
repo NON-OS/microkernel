@@ -34,9 +34,6 @@ impl Link {
     /// Next cell, or `None` if none has arrived inside `wait_ms`.
     ///
     pub fn recv(&mut self, wait_ms: i64) -> Result<Option<Frame>, LinkError> {
-        if let Some(frame) = self.held.pop_front() {
-            return Ok(Some(frame));
-        }
         let deadline = mk_uptime_ms().saturating_add(wait_ms);
         loop {
             if let Some((frame, used)) = parse(&self.partial) {

@@ -21,7 +21,6 @@ mod certs;
 mod constants;
 mod ed_cert;
 mod frames;
-mod held;
 mod netinfo;
 mod open;
 mod pump;

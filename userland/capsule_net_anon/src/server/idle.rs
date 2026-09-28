@@ -42,7 +42,7 @@ pub fn idle(state: &mut Manager, now: u64) {
     link_tick(state, now);
     retire_tick(state, now);
     circuit_tick(state, now);
-    pump_tick(state);
+    pump_tick(state, now);
     sendme_tick(state);
 }
 
