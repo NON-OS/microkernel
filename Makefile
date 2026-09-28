@@ -116,8 +116,9 @@ qemu-serial: nonos-mk-run-serial-log
 qemu-smp: nonos-mk-run-smp-serial-log
 .PHONY: qemu-smp
 # The same boot with DMA remapping hardware present. Every other lane gives
-# QEMU no IOMMU, so the kernel reports "DMA is unrestricted" and the VT-d
-# bring-up compiled into every image never executes. Slow: VT-d needs TCG.
+# QEMU no IOMMU, so the kernel reports "[IOMMU] vendor=none enforcing=0" and
+# the VT-d bring-up compiled into every image never executes. Slow: VT-d
+# needs TCG.
 qemu-iommu: nonos-mk-run-iommu-serial-log
 .PHONY: qemu-iommu
 # The installer, end to end. `make qemu-install` boots the desktop with a blank

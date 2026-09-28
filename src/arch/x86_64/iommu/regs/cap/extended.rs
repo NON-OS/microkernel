@@ -14,15 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capabilities;
-mod device;
-mod dispatch;
-mod domain;
-mod enforced;
-mod mapping;
-mod refuse;
-mod select;
-
-pub(crate) use capabilities::capabilities;
-pub(crate) use dispatch::{allocate_domain, attach_device, detach_device, free_domain, map, unmap};
-pub(crate) use select::select_vendor;
+/// Snoop Control, ECAP bit 7: the unit honours the snoop bit of a second-level leaf.
+pub const fn snoop_control(ecap: u64) -> bool {
+    ecap & (1 << 7) != 0
+}

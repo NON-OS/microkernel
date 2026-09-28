@@ -16,12 +16,14 @@
 
 mod agaw;
 mod behaviour;
+mod extended;
 mod fault;
 mod limits;
 mod pages;
 
 pub use agaw::{preferred_levels, AgawLevels};
 pub use behaviour::{caching_mode, page_walk_coherent, requires_write_buffer_flush};
+pub use extended::snoop_control;
 pub use fault::{fault_recording_count, fault_recording_offset};
 pub use limits::{domain_count, max_address_width};
 pub use pages::best_leaf_level;

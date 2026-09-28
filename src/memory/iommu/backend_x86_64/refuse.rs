@@ -14,15 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capabilities;
-mod device;
-mod dispatch;
-mod domain;
-mod enforced;
-mod mapping;
-mod refuse;
-mod select;
+//! A domain call on a machine with no IOMMU this kernel drives, refused by name.
 
-pub(crate) use capabilities::capabilities;
-pub(crate) use dispatch::{allocate_domain, attach_device, detach_device, free_domain, map, unmap};
-pub(crate) use select::select_vendor;
+use crate::memory::iommu::IommuError;
+use crate::sys::serial;
+
+pub(super) fn amd_vi(op: &'static [u8]) -> IommuError {
+    serial::print(b"[AMD-VI] refused ");
+    serial::print(op);
+    serial::println(b": no AMD-Vi backend in this kernel");
+    IommuError::AmdViNotDriven
+}
+
+pub(super) fn absent(op: &'static [u8]) -> IommuError {
+    serial::print(b"[IOMMU] refused ");
+    serial::print(op);
+    serial::println(b": no DMAR remapping unit and no IVRS table");
+    IommuError::NoIommu
+}

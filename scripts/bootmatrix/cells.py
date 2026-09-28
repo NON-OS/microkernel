@@ -30,7 +30,8 @@ class Cell:
     profile: str
     machine: str
     cpus: int
-    iommu: bool = False
+    # The IOMMU QEMU presents: "" for none, "intel-iommu" or "amd-iommu".
+    iommu: str = ""
     # Kill QEMU once the store is serving, then boot the same disk again and
     # require it to come back clean. Crash consistency of the block store.
     kill: bool = False
@@ -46,8 +47,9 @@ CELLS = [
     Cell("q35-smp8", "smp", "q35", 8),
     Cell("i440fx-up", "up", "pc", 1),
     Cell("i440fx-smp4", "smp", "pc", 4),
-    Cell("q35-iommu-up", "up", "q35", 1, iommu=True),
-    Cell("q35-iommu-smp4", "smp", "q35", 4, iommu=True),
+    Cell("q35-iommu-up", "up", "q35", 1, iommu="intel-iommu"),
+    Cell("q35-iommu-smp4", "smp", "q35", 4, iommu="intel-iommu"),
+    Cell("q35-amdvi-up", "up", "q35", 1, iommu="amd-iommu"),
     Cell("q35-kill-reboot", "up", "q35", 1, kill=True),
 ]
 

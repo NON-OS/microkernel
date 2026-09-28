@@ -64,5 +64,10 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         confined,
     });
 
+    // A grant no remapping unit confines reaches all memory: the posture line
+    // counts it until it is released.
+    if !confined {
+        crate::memory::iommu::note_unconfined(1);
+    }
     Ok(DmaMapResult { user_va, device_addr, length: req.length, grant_id })
 }

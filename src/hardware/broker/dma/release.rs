@@ -72,4 +72,7 @@ fn teardown(g: &DmaGrant, unmap_pages: bool) {
     } else if !pool::free(g.physical_start, pages) {
         let _ = free_contiguous(g.physical_start, pages);
     }
+    if !g.confined {
+        crate::memory::iommu::note_unconfined_released(1);
+    }
 }

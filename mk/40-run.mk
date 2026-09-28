@@ -477,9 +477,10 @@ nonos-mk-run-installed: nonos-mk-swtpm-start $(QEMU_OVMF_VARS_RW)
 		-serial mon:stdio -vga none -display $(QEMU_DISPLAY) -no-reboot
 
 # The DMA-protection boot. Every other lane starts QEMU with no remapping
-# hardware, so the kernel finds an empty DMAR and says so:
+# hardware, so the kernel finds neither a DMAR unit nor an IVRS table and
+# says so:
 #
-#     [VT-D] no remapping units in DMAR; DMA is unrestricted
+#     [IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted
 #
 # which means the IOMMU bring-up compiled into every image has never run. This
 # lane presents an intel-iommu so it does. TCG rather than hvf: the hypervisor
@@ -504,10 +505,12 @@ nonos-mk-run-iommu-serial-log: nonos-mk-desktop-gui-prod $(QEMU_BLK_IMG) $(QEMU_
 # the requested cells ask for, so a single-CPU cell never pays for the
 # multiprocessor build. scripts/boot_matrix.py then boots each cell of
 # scripts/bootmatrix/cells.py BOOT_MATRIX_REPEAT times: q35
-# and i440fx, one to eight CPUs, with and without an IOMMU, and a kill during
-# store traffic followed by a reboot of the same disk. A cell fails on any boot
-# that misses readiness, reports a fault, brings up fewer CPUs than it was
-# given, or says DMA is unrestricted with an IOMMU present.
+# and i440fx, one to eight CPUs, with no IOMMU, an intel-iommu or an
+# amd-iommu, and a kill during store traffic followed by a reboot of the same
+# disk. A cell fails on any boot that misses readiness, reports a fault, brings
+# up fewer CPUs than it was given, prints an [IOMMU] posture line other than
+# the one its IOMMU calls for, or says DMA is unrestricted with an intel-iommu
+# present.
 BOOT_MATRIX_DIR ?= $(TARGET_DIR)/boot-matrix
 BOOT_MATRIX_REPEAT ?= 5
 BOOT_MATRIX_TIMEOUT ?= 300

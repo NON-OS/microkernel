@@ -827,8 +827,10 @@ nonos-arch-iommu     = []   # src/arch/x86_64/iommu/*
 # machine has with no IOMMU at all. Split from `nonos-arch-iommu` because that
 # flag only decides whether the code compiles; this one decides whether the
 # hardware is put in charge. Part of `microkernel-core`: a build that omits it
-# says so on the console at boot, and the DMA API refuses to hand out a
-# device address it cannot back with a translation.
+# says so on the console at boot, and IommuDomain refuses to allocate, map or
+# attach while no unit translates. MkDmaMap and the direct memory::dma
+# allocators do not ask: they hand out host-physical device addresses with or
+# without a translation.
 nonos-iommu-enforce  = ["nonos-arch-iommu"]
 
 # In-tree crypto, audit-anchored constant-time implementations.

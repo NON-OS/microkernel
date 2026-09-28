@@ -14,15 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capabilities;
-mod device;
-mod dispatch;
-mod domain;
-mod enforced;
-mod mapping;
-mod refuse;
-mod select;
+//! The two questions any caller may put to the IOMMU layer.
 
-pub(crate) use capabilities::capabilities;
-pub(crate) use dispatch::{allocate_domain, attach_device, detach_device, free_domain, map, unmap};
-pub(crate) use select::select_vendor;
+use super::backend;
+use super::capabilities::IommuCapabilities;
+use super::vendor::IommuVendor;
+
+/*
+ * Decided on the first call and fixed after it, so the first call has to
+ * come after ACPI parsing. The boot makes it from init_dma_protection.
+ */
+pub fn select_vendor() -> IommuVendor {
+    backend::select_vendor()
+}
+
+/// The guarantees in force at the moment of the call. Never triggers selection.
+pub fn capabilities() -> IommuCapabilities {
+    backend::capabilities()
+}

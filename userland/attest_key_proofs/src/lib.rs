@@ -23,6 +23,8 @@ extern crate alloc;
 pub mod security;
 
 #[cfg(test)]
+mod binding_tests;
+#[cfg(test)]
 mod document_tests;
 #[cfg(test)]
 mod fixtures;
