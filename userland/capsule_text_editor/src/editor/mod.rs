@@ -31,6 +31,7 @@ mod ctrl_open;
 mod ctrl_paste;
 mod ctrl_save;
 mod delete;
+mod disclosure;
 mod dismiss;
 mod doc_pos;
 mod edit;

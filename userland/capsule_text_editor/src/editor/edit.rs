@@ -33,7 +33,6 @@ pub struct EditOp {
     pub id: u64,
 }
 
-
 impl State {
     /// Replace `buf[at..at+del]` with `ins`, recording an undo step and clearing
     /// the redo stack. Returns false if it would overflow the buffer.
