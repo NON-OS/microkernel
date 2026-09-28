@@ -42,7 +42,7 @@ def parse_entries(specs):
 
 # userland/capsule_vfs/src/blk/store_header.rs MAX_ENTRIES and
 # store_toc.rs MAX_TOTAL_BYTES.
-MAX_ENTRIES = 64
+MAX_ENTRIES = 128
 MAX_PAYLOAD = 16 * 1024 * 1024
 
 

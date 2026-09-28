@@ -25,7 +25,11 @@ const VERSION: u32 = 1;
 
 pub const HEADER_LEN: usize = 32;
 pub const ENTRY_LEN: usize = 128;
-pub const MAX_ENTRIES: usize = 64;
+// The packed boot image's file count. The table is decoded into a heap Vec
+// and every byte is still bounded by MAX_TOTAL_BYTES, so this only sizes the
+// table: 128 entries is 16 KiB. Raised from 64 once the Linux-guest test
+// image packed more than that many signed files.
+pub const MAX_ENTRIES: usize = 128;
 
 pub fn entry_count(head: &[u8]) -> Result<usize, BlkError> {
     if head.len() < HEADER_LEN || &head[0..8] != MAGIC || le_u32(head, 8) != VERSION {
