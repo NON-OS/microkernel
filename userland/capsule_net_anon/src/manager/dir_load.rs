@@ -26,13 +26,15 @@ use super::state::{Bootstrap, Manager};
  * that just failed on the very next turn re-downloads all of it, and a boot that
  * could not reach a quorum did that thirty six times. The wait is longer than the
  * bootstrap's because the thing being waited for is slower: another authority
- * becoming reachable, not a DHCP lease landing.
+ * becoming reachable, not a DHCP lease landing. In the manager's whole-second
+ * clock this is five seconds; it was written as 5000 against that clock and
+ * waited eighty three minutes.
  */
-const RETRY_MS: u64 = 5_000;
+const RETRY_SECONDS: u64 = 5;
 
 pub(super) fn load(state: &mut Manager, now: u64) {
     let Some(doc) = obtain_consensus(state.tcp_port, &state.certs, now) else {
-        state.retry_after = now.saturating_add(RETRY_MS);
+        state.retry_after = now.saturating_add(RETRY_SECONDS);
         return;
     };
     trace::say_num(b"consensus relays", doc.entries.len() as u64);
