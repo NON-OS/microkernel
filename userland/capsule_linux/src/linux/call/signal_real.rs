@@ -14,22 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Signals between processes of the family, and the timers that raise them,
-//! settled after every answer: the outbox is routed, due timers fire, and
-//! each process's parked threads take what now reaches them.
+//! ITIMER_REAL on the family's monotonic clock: arming it, and what it has
+//! left. alarm and setitimer both come here.
 
-use super::family::Family;
-use super::family_signal_fire::fire;
 use crate::linux::call::now_ms;
+use crate::linux::guest::sigtimer::Itimer;
+use crate::linux::guest::Guest;
 
 const CLOCK_MONOTONIC: u64 = 1;
 
-impl Family {
-    pub(super) fn settle_signals(&mut self) {
-        self.route_outbox();
-        if let Some(now) = now_ms(CLOCK_MONOTONIC) {
-            self.guests.iter_mut().for_each(|g| fire(g, now));
-        }
-        self.guests.iter_mut().for_each(super::deliver_wait::settle);
-    }
+/// Arm ITIMER_REAL for `value` ms, repeating every `interval`; 0 disarms.
+/// Answers what it had left and its old interval.
+pub fn arm(guest: &mut Guest, value: u64, interval: u64) -> (u64, u64) {
+    let was = remaining(guest);
+    let now = now_ms(CLOCK_MONOTONIC).unwrap_or(0);
+    guest.signals.real = (value != 0).then(|| Itimer { due: now.saturating_add(value), interval });
+    was
+}
+
+pub fn remaining(guest: &Guest) -> (u64, u64) {
+    let now = now_ms(CLOCK_MONOTONIC).unwrap_or(0);
+    guest.signals.real.map_or((0, 0), |t| (t.due.saturating_sub(now).max(1), t.interval))
 }

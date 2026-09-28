@@ -63,7 +63,7 @@ pub mod server;
 pub mod route;
 
 pub mod calls;
-pub use calls::{exec_shebang, sigframe, sigframe_build, sigframe_read};
+pub use calls::{exec_shebang, sigframe, sigframe_build, sigframe_read, sigtimer};
 
 #[cfg(test)]
 pub mod image;

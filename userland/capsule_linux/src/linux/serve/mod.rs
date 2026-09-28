@@ -31,6 +31,7 @@ mod family_pipes;
 mod family_reap;
 mod family_reap_end;
 mod family_signal;
+mod family_signal_fire;
 mod family_signal_route;
 mod family_sleep;
 mod family_wait;

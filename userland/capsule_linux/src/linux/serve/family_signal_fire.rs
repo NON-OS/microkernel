@@ -14,22 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Signals between processes of the family, and the timers that raise them,
-//! settled after every answer: the outbox is routed, due timers fire, and
-//! each process's parked threads take what now reaches them.
+//! The timers of a process that are due: ITIMER_REAL raises SIGALRM.
 
-use super::family::Family;
-use super::family_signal_fire::fire;
-use crate::linux::call::now_ms;
+use crate::linux::guest::siginfo::{SigInfo, SI_KERNEL};
+use crate::linux::guest::sigstate::SIGALRM;
+use crate::linux::guest::Guest;
 
-const CLOCK_MONOTONIC: u64 = 1;
-
-impl Family {
-    pub(super) fn settle_signals(&mut self) {
-        self.route_outbox();
-        if let Some(now) = now_ms(CLOCK_MONOTONIC) {
-            self.guests.iter_mut().for_each(|g| fire(g, now));
-        }
-        self.guests.iter_mut().for_each(super::deliver_wait::settle);
+/// Every timer of `g` due by `now`, fired.
+pub fn fire(g: &mut Guest, now: u64) {
+    if let Some(mut t) = g.signals.real.filter(|t| t.due <= now) {
+        let _ = g.signals.raise(0, SigInfo::from(SIGALRM, SI_KERNEL, 0));
+        g.signals.real = t.rearm(now).then_some(t);
     }
 }

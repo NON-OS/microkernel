@@ -14,22 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Signals between processes of the family, and the timers that raise them,
-//! settled after every answer: the outbox is routed, due timers fire, and
-//! each process's parked threads take what now reaches them.
+//! The arithmetic of ITIMER_REAL: a periodic timer moves past every period
+//! that ended while it was not looked at, and a one-shot one stops.
 
-use super::family::Family;
-use super::family_signal_fire::fire;
-use crate::linux::call::now_ms;
+use crate::sigtimer::Itimer;
 
-const CLOCK_MONOTONIC: u64 = 1;
+#[test]
+fn a_periodic_itimer_moves_past_every_period_that_ended() {
+    let mut t = Itimer { due: 1000, interval: 200 };
+    assert!(t.rearm(1450));
+    assert_eq!(t.due, 1600);
+}
 
-impl Family {
-    pub(super) fn settle_signals(&mut self) {
-        self.route_outbox();
-        if let Some(now) = now_ms(CLOCK_MONOTONIC) {
-            self.guests.iter_mut().for_each(|g| fire(g, now));
-        }
-        self.guests.iter_mut().for_each(super::deliver_wait::settle);
-    }
+#[test]
+fn a_one_shot_itimer_does_not_fire_again() {
+    let mut t = Itimer { due: 1000, interval: 0 };
+    assert!(!t.rearm(1000));
 }

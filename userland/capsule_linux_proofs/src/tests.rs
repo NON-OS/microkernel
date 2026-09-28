@@ -43,6 +43,7 @@ mod route_tests;
 mod sigframe_layout_tests;
 mod sigframe_mutation_tests;
 mod sigframe_tests;
+mod sigtimer_tests;
 mod service;
 mod stack_words_tests;
 mod stat_tests;

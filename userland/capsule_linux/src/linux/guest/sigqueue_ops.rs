@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Reading and recording a process's signal state: the disposition of each
-//! signal, and what is pending for a thread.
+//! signal, the nearest deadline its timers and waits have, and what is
+//! pending for a thread.
 
 use super::sigqueue::Signals;
 use super::sigstate::{bit, SigAction, NSIG};
@@ -30,6 +31,11 @@ impl Signals {
 
     pub fn action(&self, signum: usize) -> Option<SigAction> {
         (1..=NSIG).contains(&signum).then(|| self.actions[signum - 1])
+    }
+
+    /// The nearest deadline of a timer, for the serve loop's wait to end by.
+    pub fn next_due(&self) -> Option<u64> {
+        self.real.map(|t| t.due)
     }
 
     /// Every signal pending for `tid` or for its process, as a mask.

@@ -38,6 +38,7 @@ mod sigtake;
 pub mod sigthread;
 mod sigthread_copy;
 pub mod sigtimer;
+mod sigtimer_rearm;
 pub mod sigwaits;
 mod layout;
 mod links;
