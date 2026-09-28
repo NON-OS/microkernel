@@ -58,3 +58,13 @@ LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/bbsuite.expect=$(LINUX_GUEST_BB)
 # The users and groups an Alpine tree names, so ls and ps print root as root.
 LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/passwd=$(LINUX_GUESTS_DIR)/etc/passwd \
 	--entry /linux/etc/group=$(LINUX_GUESTS_DIR)/etc/group
+
+# The build host's facts, which cproc checks no /proc or /sys file names:
+# its CPU model, its boot id and its name.
+LINUX_GUEST_HOST_FACTS := $(TARGET_DIR)/linux-guests/cproc-host
+.PHONY: $(LINUX_GUEST_HOST_FACTS)
+$(LINUX_GUEST_HOST_FACTS):
+	@mkdir -p $(@D) && { grep -m1 'model name' /proc/cpuinfo | sed 's/.*: //'; \
+		cat /proc/sys/kernel/random/boot_id; hostname; } > $@
+LINUX_GUEST_STORE_DEPS += $(LINUX_GUEST_HOST_FACTS)
+LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/cproc-host=$(LINUX_GUEST_HOST_FACTS)
