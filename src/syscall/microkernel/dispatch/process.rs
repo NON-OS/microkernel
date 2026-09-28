@@ -95,7 +95,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_PEER_MAP => sys_peer_map(a.a0, a.a1, a.a2, a.a3),
         SYS_PEER_COPY => sys_peer_copy(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_PEER_PROTECT => sys_peer_protect(a.a0, a.a1, a.a2, a.a3),
-        SYS_FOREIGN_THREAD => sys_foreign_thread(a.a0, a.a1, a.a2, a.a3),
+        SYS_FOREIGN_THREAD => sys_foreign_thread(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_PEER_TLS => sys_peer_tls(a.a0, a.a1),
         SYS_FOREIGN_FORK => sys_foreign_fork(a.a0),
         SYS_PEER_UNMAP => sys_peer_unmap(a.a0, a.a1, a.a2),

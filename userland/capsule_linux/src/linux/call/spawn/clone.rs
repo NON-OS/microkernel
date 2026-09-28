@@ -24,13 +24,18 @@ use crate::linux::serve::Answer;
 
 const CLONE_VM: u64 = 0x100;
 const CLONE_THREAD: u64 = 0x10000;
+const CLONE_SETTLS: u64 = 0x80000;
 
-/// musl's `__clone` resumes the child at the instruction after its own
-/// `syscall`, with rax zero and rsp pointing at the function and argument it
-/// pushed.
+/// A Linux clone child resumes at the instruction after its parent's
+/// `syscall`, on its parent's registers with rax zero and rsp the new stack.
+/// Both runtimes that start threads here call through a register in the
+/// child: musl's `__clone` pops the argument and calls r9, Go's calls r12.
 pub fn clone(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     let a = frame.args();
-    let (flags, stack, tls) = (a[0], a[1], a[4]);
+    let (flags, stack) = (a[0], a[1]);
+    // The fifth argument is a thread pointer only when the flag says so;
+    // without it the child keeps its parent's.
+    let tls = if flags & CLONE_SETTLS != 0 { a[4] } else { 0 };
     if flags & (CLONE_VM | CLONE_THREAD) != CLONE_VM | CLONE_THREAD {
         /*
          * A new process, not a thread. That is fork, and fork needs an
@@ -48,7 +53,7 @@ pub fn clone(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     if stack == 0 {
         return Answer::value(errno::fail(errno::EINVAL));
     }
-    let tid = mk_foreign_thread(guest.pid, frame.rip, stack, tls);
+    let tid = mk_foreign_thread(guest.pid, frame.rip, stack, tls, frame.pid);
     if tid < 0 {
         return Answer::value(errno::fail(errno::ENOMEM));
     }

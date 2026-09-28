@@ -662,7 +662,7 @@ ret  = {type="i64"}
 [desc.MFTH]
 nr   = 0x4854464D
 caps = ["ForeignExec"]
-args = [{name="pid",type="u32",dir="in"},{name="entry",type="u64",dir="in"},{name="rsp",type="u64",dir="in"},{name="tls",type="u64",dir="in"}]
+args = [{name="pid",type="u32",dir="in"},{name="entry",type="u64",dir="in"},{name="rsp",type="u64",dir="in"},{name="tls",type="u64",dir="in"},{name="from",type="u32",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MPTL]
