@@ -23,6 +23,5 @@ pub fn services(state: &mut State) -> Result<(), &'static str> {
     if state.sockets_port == 0 {
         return Err("net.sockets unavailable");
     }
-    super::route_mixnet::route_mixnet();
-    Ok(())
+    super::route_mixnet::route_mixnet()
 }

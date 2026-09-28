@@ -47,6 +47,11 @@ pub fn is_on() -> bool {
     ROUTE.lock().is_some()
 }
 
+/// The service port the route sends to, or 0 when there is none.
+pub fn port() -> u32 {
+    ROUTE.lock().as_ref().map_or(0, |r| r.socks_port)
+}
+
 /// Run `f` against the route, or report that there is none.
 pub fn with<R>(f: impl FnOnce(&mut Route) -> R) -> Result<R, ()> {
     let mut guard = ROUTE.lock();

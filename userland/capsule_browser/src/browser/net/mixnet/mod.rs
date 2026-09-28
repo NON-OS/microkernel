@@ -15,10 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod call;
+mod choice;
 mod route;
-mod wanted;
 mod wire;
 
-pub use route::{disable, enable, is_on};
-pub use wanted::{set_wanted, wanted};
+pub use choice::{choose, chosen, Network};
+pub use route::{disable, enable, is_on, port};
 pub use wire::{close, connect, open, recv, send};
