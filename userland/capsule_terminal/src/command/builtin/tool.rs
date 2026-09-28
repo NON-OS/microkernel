@@ -28,6 +28,9 @@ pub const TOOLS: &[(&[u8], &[u8])] = &[
     (b"tokei", b"tokei"),
     (b"huniq", b"huniq"),
     (b"csview", b"csview"),
+    // Not a crates.io tool: the Linux personality, which runs the Linux program
+    // named after it from the Linux tree and shows what that program prints.
+    (b"linux", b"linux"),
 ];
 
 // `install` is absent for the same reason as `sd`: the builtin that installs
