@@ -93,6 +93,9 @@ $(GO_OUT)/%: $(LINUX_GUESTS_DIR)/go/%/main.go
 		$(GO) build -ldflags '-s -w' -o $(abspath $@) .
 $(eval $(call LINUX_GUEST,gohello,4968,4969,$(GO_OUT)/hello))
 $(eval $(call LINUX_GUEST,goconc,4970,4971,$(GO_OUT)/conc))
+# Go's network poller: a timer's epoll wait and its eventfd wake, and a pipe
+# read through the poller to end of file.
+$(eval $(call LINUX_GUEST,gopoll,4976,4977,$(GO_OUT)/poll))
 
 # A C guest that faults in a worker thread while main joins: it proves the
 # whole process ends, as on Linux, and that musl threads run. Static, so no
@@ -106,6 +109,12 @@ $(eval $(call LINUX_GUEST,threadfault,4972,4973,$(LINUX_GUESTS_C)/threadfault))
 $(LINUX_GUESTS_C)/cthreads: $(LINUX_GUESTS_DIR)/c/cthreads.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cthreads,4974,4975,$(LINUX_GUESTS_C)/cthreads))
+
+# Waiting as Linux waits: futex timeouts and requeue, eventfd, epoll_wait's
+# timeout and wake, a non-blocking pipe, a full pipe, and edge-triggered epoll.
+$(LINUX_GUESTS_C)/cwait: $(LINUX_GUESTS_DIR)/c/cwait.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cwait,4978,4979,$(LINUX_GUESTS_C)/cwait))
 
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
