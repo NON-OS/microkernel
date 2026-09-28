@@ -42,3 +42,8 @@ pub fn closing(guest: &Guest, fd: u64) {
         desc::gone(d);
     }
 }
+
+/* Every lock `pid` holds as a process, when it exits. */
+pub fn exiting(pid: u32) {
+    lock::drop_where(|l| l.owner == Owner::Posix(pid));
+}

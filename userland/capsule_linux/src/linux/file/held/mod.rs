@@ -25,3 +25,5 @@ pub(super) mod desc;
 pub(super) mod modes;
 pub(super) mod rw;
 pub(super) mod times;
+
+pub use cache::flush_all;

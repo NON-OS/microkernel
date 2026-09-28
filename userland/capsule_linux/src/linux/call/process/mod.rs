@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * flock and fcntl's record locks.
+ * What a process is and has used: its ids, groups, nice value
+ * and execution domain, and its usage.
  */
 
-pub(super) mod lock;
-pub(super) mod lock_calls;
-pub(super) mod record;
+pub(super) mod ids;
+pub(super) mod usage;
 
-pub use lock_calls::{exiting as locks_exiting, flock, WAIT as LOCK_WAIT};
-pub use record::{fcntl_lock, is_lock as is_lock_cmd};
+pub use ids::{
+    getgroups, getpriority, getres, nice_of, personality, setgroups, setpriority, setres,
+};
+pub use usage::{getrusage, mine as usage_of, sysinfo, times};

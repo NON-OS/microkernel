@@ -27,5 +27,5 @@
 mod ended;
 mod usage;
 
-pub use ended::threads_of;
+pub use ended::{children, ended, threads_of};
 pub use usage::{usage, Usage};

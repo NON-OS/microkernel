@@ -48,4 +48,15 @@ pub const PREADV2: u64 = 327;
 pub const PWRITEV2: u64 = 328;
 pub const CLOSE_RANGE: u64 = 436;
 pub const OPENAT2: u64 = 437;
+
+/* What the system is and what the process used; from syscall_64.tbl. */
+pub const GETRUSAGE: u64 = 98;
+pub const SYSINFO: u64 = 99;
 pub const TIMES: u64 = 100;
+pub const GETGROUPS: u64 = 115;
+pub const SETGROUPS: u64 = 116;
+pub const SETRESUID: u64 = 117;
+pub const SETRESGID: u64 = 119;
+pub const PERSONALITY: u64 = 135;
+pub const GETPRIORITY: u64 = 140;
+pub const SETPRIORITY: u64 = 141;

@@ -15,12 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * flock and fcntl's record locks.
+ * Who the guest is beyond its uid: its three ids, its groups, its nice
+ * value, and its execution domain.
+ *
+ * Every id the personality reports is root's, and a guest holds no
+ * capability (capget is refused), so Linux's rule for a process without
+ * CAP_SETUID applies: it may set an id only to one it already has, which
+ * here is 0. A nice value is kept and reported, not acted on: the
+ * family's threads are scheduled by NONOS, which does not read it.
  */
 
-pub(super) mod lock;
-pub(super) mod lock_calls;
-pub(super) mod record;
+mod creds;
+mod nice;
+mod who;
 
-pub use lock_calls::{exiting as locks_exiting, flock, WAIT as LOCK_WAIT};
-pub use record::{fcntl_lock, is_lock as is_lock_cmd};
+pub use creds::{getgroups, getres, personality, setgroups, setres};
+pub use nice::{getpriority, nice_of, setpriority};

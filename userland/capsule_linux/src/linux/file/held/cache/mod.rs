@@ -23,7 +23,7 @@
  * changing are kept here, once per path, and every descriptor on the path
  * reads and writes this copy: a dup, a fork's copy and a second open all
  * meet the same bytes. The copy goes to the store at close, at fsync and
- * at sync.
+ * sync, and when a process exits.
  */
 
 mod change;

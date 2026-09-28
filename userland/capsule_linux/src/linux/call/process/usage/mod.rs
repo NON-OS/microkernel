@@ -15,12 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * flock and fcntl's record locks.
+ * sysinfo, getrusage and times: what the family has used, as the kernel
+ * measured it for the family's own threads (file/system/cpu/), and the system
+ * as NONOS declares it (file/system/declared/). Two figures are not what Linux
+ * means by them: the kernel keeps no peak resident size, so ru_maxrss is
+ * the resident size at the call, and it does not tell a voluntary switch
+ * from another, so ru_nvcsw counts every switch and ru_nivcsw none. The
+ * store's reads and writes are not counted per process, so ru_inblock and
+ * ru_oublock are zero. The fields Linux itself leaves at zero are zero.
  */
 
-pub(super) mod lock;
-pub(super) mod lock_calls;
-pub(super) mod record;
+mod rusage;
+mod sysinfo;
+mod times;
 
-pub use lock_calls::{exiting as locks_exiting, flock, WAIT as LOCK_WAIT};
-pub use record::{fcntl_lock, is_lock as is_lock_cmd};
+pub use rusage::getrusage;
+pub use sysinfo::sysinfo;
+pub use times::{mine, times};

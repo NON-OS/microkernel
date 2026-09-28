@@ -42,7 +42,7 @@ pub fn flush(path: &[u8], keep: bool) -> Result<(), i64> {
     Ok(())
 }
 
-/* Every changed file to the store: sync and syncfs. */
+/* Every changed file to the store: sync, and a process's exit. */
 pub fn flush_all() -> Result<(), i64> {
     let paths: Vec<Vec<u8>> =
         CACHE.0.borrow().iter().filter(|e| e.dirty).map(|e| e.path.clone()).collect();

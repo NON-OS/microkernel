@@ -28,6 +28,7 @@ pub(super) const HOST_NS: u32 = 1;
 
 impl Family {
     pub(crate) fn lend_view(&mut self, i: usize, frame: &ForeignFrame) {
+        self.note_exit(i, frame);
         if !file::needs_view(&self.guests[i], frame.nr, frame.args()) {
             return;
         }

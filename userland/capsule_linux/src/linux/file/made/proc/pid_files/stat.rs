@@ -27,6 +27,7 @@ pub(super) fn stat(p: &Proc, tid: u32) -> Vec<u8> {
     let comm = core::str::from_utf8(&p.exe.comm).unwrap_or("");
     let start = p.exe.start_ms / (1000 / super::super::super::super::declared::HZ);
     let (e, rss) = (&p.exe, u.resident_kb / 4);
+    let nice = crate::linux::call::nice_of(p.kernel);
     let head = alloc::format!(
         "{tid} ({comm}) {state} {} {} {} 0 -1 0 {} 0 0 0 {} {} 0 0 {} {} {} 0 {start} {} {rss} \
          18446744073709551615 0 0 0 0 0 0 0 {} {} 0 0 0 17 0 0 0 0 0 0 0 0 {} {} {} {} {} 0\n",
@@ -36,8 +37,8 @@ pub(super) fn stat(p: &Proc, tid: u32) -> Vec<u8> {
         u.faults,
         u.user,
         u.system,
-        20,
-        0,
+        20 + nice,
+        nice,
         p.tids.len(),
         vsize(p),
         p.ignored,

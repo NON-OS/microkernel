@@ -64,6 +64,9 @@ pub fn file_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64
         np::CHMOD => file::chmod(guest, a[0], a[1]),
         np::FCHMOD => file::fchmod(guest, a[0], a[1]),
         np::FCHMODAT => file::fchmodat(guest, a[0], a[1], a[2]),
-        _ => return super::table_meta::meta_ops(guest, nr, a),
+        _ => {
+            let looked = super::table_meta::meta_ops(guest, nr, a);
+            return looked.or_else(|| super::table_sys::sys_ops(guest, tid, nr, a));
+        }
     })
 }

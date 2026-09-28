@@ -41,6 +41,7 @@ mod pipe_end;
 mod pipe_io;
 mod pipe_poll;
 mod pipe_read;
+mod process;
 mod sched;
 mod session;
 pub mod sigframe;
@@ -76,6 +77,7 @@ mod uname;
 mod vector;
 mod vector_read;
 
+pub use process::*;
 pub use ctl::fcntl;
 pub use ioctl::ioctl;
 pub use cwd::{chdir, fchdir, getcwd};

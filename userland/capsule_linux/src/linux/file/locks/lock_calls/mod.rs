@@ -25,7 +25,7 @@ mod closing;
 mod flock;
 mod purge;
 
-pub use closing::closing;
+pub use closing::{closing, exiting};
 pub use flock::{flock, WAIT};
 pub(crate) use purge::owners_ns;
 pub use purge::purge;
