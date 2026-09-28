@@ -41,6 +41,7 @@ mod source;
 mod start;
 mod start_guest;
 mod terminal;
+mod terminal_launch;
 mod unix;
 mod wayland;
 

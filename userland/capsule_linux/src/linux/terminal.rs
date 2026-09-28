@@ -29,9 +29,6 @@ use core::sync::atomic::{AtomicU8, Ordering};
 use nonos_libc::mk_args;
 
 use super::launch::Launch;
-use super::origin::Origin;
-use crate::linux::file::{key, store_read, visible};
-use crate::linux::guest::Links;
 use crate::linux::start::say;
 
 const MAX_ARGS: usize = 1024;
@@ -71,33 +68,6 @@ pub(super) fn requested(max_image: u32) -> Option<Option<Launch>> {
         say(b"usage: linux <program> [arguments]\n");
         return Some(None);
     };
-    let args = parts.map(<[u8]>::to_vec).collect();
-    Some(launch(program, args, max_image))
-}
-
-fn launch(program: &[u8], mut args: Vec<Vec<u8>>, max_image: u32) -> Option<Launch> {
-    if !super::settle::wait_settled() {
-        say(b"[LINUX] the store never settled\n");
-        return None;
-    }
-    let named = match program.first() {
-        Some(b'/') => visible(b"/", program),
-        _ => visible(b"/bin", program),
-    };
-    let path = Links::load().follow(named.clone(), true);
-    if path != named {
-        let typed = named.rsplit(|b| *b == b'/').next().unwrap_or(&named);
-        args.insert(0, typed.to_vec());
-    }
-    match store_read(&key(&path), max_image) {
-        Ok(bytes) => Some(Launch { path, bytes, origin: Origin::Store, args }),
-        Err(_) => {
-            let line = alloc::format!(
-                "linux: no program {} in the Linux tree\n",
-                alloc::string::String::from_utf8_lossy(&named)
-            );
-            say(line.as_bytes());
-            None
-        }
-    }
+    let args: Vec<Vec<u8>> = parts.map(<[u8]>::to_vec).collect();
+    Some(super::terminal_launch::launch(program, args, max_image))
 }
