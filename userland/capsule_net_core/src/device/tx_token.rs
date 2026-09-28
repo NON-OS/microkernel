@@ -25,7 +25,7 @@ impl smoltcp::phy::TxToken for NicTxToken {
     {
         let mut buf = alloc::vec![0u8; len];
         let r = f(&mut buf);
-        if budget::poll_open() {
+        if budget::may_send() {
             tx::send_frame(self.port, &buf);
         }
         r
