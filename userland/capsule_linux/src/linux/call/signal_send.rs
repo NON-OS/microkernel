@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `kill`, `tkill` and `tgkill`. A signal for the caller's own
+//! `kill`, `tkill` and `tgkill`, and SIGPIPE. A signal for the caller's own
 //! process is queued here and taken as `serve::deliver` decides; one for
 //! another process of the family leaves through the outbox with the caller
 //! parked, and the family answers it once it knows whether anyone was there.
@@ -23,7 +23,7 @@
 use super::signal_post::post;
 use crate::linux::abi::errno;
 use crate::linux::guest::siginfo::{SigInfo, SI_TKILL, SI_USER};
-use crate::linux::guest::sigstate::NSIG;
+use crate::linux::guest::sigstate::{NSIG, SIGPIPE};
 use crate::linux::guest::sigwaits::Target;
 use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
@@ -63,4 +63,12 @@ fn send(guest: &mut Guest, tid: u32, to: Target, signo: u64, code: i32) -> Answe
     }
     let info = SigInfo::from(signo as u8, code, guest.pid);
     post(guest, tid, to, info)
+}
+
+/// A write to a pipe no process can read raises SIGPIPE at the writing
+/// thread, as Linux's pipe_write does, before the write answers EPIPE: caught,
+/// the handler runs over that EPIPE; ignored, only EPIPE is seen; at its
+/// default, the process ends. `tid` 0 raises it at the process.
+pub fn sigpipe(guest: &mut Guest, tid: u32) {
+    let _ = guest.signals.raise(tid, SigInfo::from(SIGPIPE, SI_USER, guest.pid));
 }

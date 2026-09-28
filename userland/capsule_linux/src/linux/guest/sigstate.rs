@@ -23,6 +23,7 @@ pub const NSIG: usize = 64;
 
 pub const SIGKILL: u8 = 9;
 pub const SIGSEGV: u8 = 11;
+pub const SIGPIPE: u8 = 13;
 pub const SIGCHLD: u8 = 17;
 pub const SIGSTOP: u8 = 19;
 

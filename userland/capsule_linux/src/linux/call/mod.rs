@@ -78,7 +78,7 @@ pub use session::{getpgid, getsid, setpgid, setsid};
 pub use signal::rt_sigaction;
 pub use signal_mask::rt_sigprocmask;
 pub use signal_queue::{rt_sigqueueinfo, rt_tgsigqueueinfo};
-pub use signal_send::{kill, kill_from, tgkill_from};
+pub use signal_send::{kill, kill_from, sigpipe, tgkill_from};
 pub use signal_stack::sigaltstack;
 pub use sigreturn::rt_sigreturn;
 pub use sleep::{clock_nanosleep, nanosleep};
