@@ -21,10 +21,20 @@ use crate::server::handlers::tcp::connect::ephemeral;
 use crate::server::handlers::tcp::connect::types::{ConnectOutcome, Endpoint};
 use crate::state;
 
+/*
+ * The receive buffer is the window the peer may fill before it has to wait
+ * for an ACK. At 8 KiB the window sat near zero for a whole page load and
+ * the sender idled between the reader's drains; 64 KiB lets a page arrive
+ * while the reader is busy, and smoltcp scales the window past 65,535 bytes.
+ * Requests are small, so sending keeps a smaller buffer.
+ */
+const RX_BYTES: usize = 64 * 1024;
+const TX_BYTES: usize = 16 * 1024;
+
 pub fn open_socket(sender_pid: u32, endpoint: Endpoint) -> ConnectOutcome {
     match state::with_iface(|iface, sockets, _dev| {
-        let rx = tcp::SocketBuffer::new(alloc::vec![0u8; 8192]);
-        let tx_buf = tcp::SocketBuffer::new(alloc::vec![0u8; 8192]);
+        let rx = tcp::SocketBuffer::new(alloc::vec![0u8; RX_BYTES]);
+        let tx_buf = tcp::SocketBuffer::new(alloc::vec![0u8; TX_BYTES]);
         let mut sock = tcp::Socket::new(rx, tx_buf);
         let local = ephemeral::next_ephemeral();
         if sock.connect(iface.context(), (endpoint.remote, endpoint.port), local).is_err() {

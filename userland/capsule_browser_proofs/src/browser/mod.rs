@@ -25,3 +25,5 @@ pub mod manifest;
 
 #[path = "../../../capsule_browser/src/browser/http/chunked/mod.rs"]
 pub mod chunked;
+#[path = "../../../capsule_browser/src/browser/net/recv_pending.rs"]
+pub mod recv_pending;

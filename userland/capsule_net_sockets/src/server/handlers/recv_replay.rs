@@ -19,17 +19,16 @@
 //!
 //! A read takes bytes out of the socket before the reply carrying them is
 //! delivered, and the kernel drops a reply whose caller has already timed
-//! out. A reader that gave up on one reply therefore lost those bytes for
-//! good: the browser, which waits 200 ms per read, lost the first 23,854
-//! bytes of an 89,386 byte page this way and was left with 65,532 bytes and
-//! no headers. A reader that numbers its reads can ask again for the one it
-//! never saw, and gets the same bytes; asking for the next number releases
-//! them. A reader that sends no number reads as it always did.
+//! out, so a reader that gave up on one reply lost those bytes for good (the
+//! first 23,854 bytes of an 89,386 byte page, once). A reader that numbers
+//! its reads asks again for the one it never saw and gets the same bytes; the
+//! next number releases them. A reader that sends no number reads as before.
 
 use alloc::vec::Vec;
 
 use spin::Mutex;
 
+use crate::protocol::E_BAD_LEN;
 use crate::sockets::SocketKey;
 
 struct Kept {
@@ -46,17 +45,21 @@ fn same(a: SocketKey, b: SocketKey) -> bool {
 
 /// The bytes already handed out for read `seq`, copied into `out`, when that
 /// is the read being asked for again. A different number means the reader
-/// has what it was sent, so the kept copy is released.
-pub fn again(key: SocketKey, seq: u32, out: &mut [u8]) -> Option<usize> {
+/// has what it was sent, so the kept copy is released. A repeat that can no
+/// longer hold what it was sent is refused rather than cut short.
+pub fn again(key: SocketKey, seq: u32, out: &mut [u8]) -> Result<Option<usize>, u16> {
     let mut kept = KEPT.lock();
-    let at = kept.iter().position(|k| same(k.key, key))?;
+    let Some(at) = kept.iter().position(|k| same(k.key, key)) else { return Ok(None) };
     if kept[at].seq != seq {
         kept.swap_remove(at);
-        return None;
+        return Ok(None);
     }
-    let n = kept[at].data.len().min(out.len());
-    out[..n].copy_from_slice(&kept[at].data[..n]);
-    Some(n)
+    let n = kept[at].data.len();
+    if n > out.len() {
+        return Err(E_BAD_LEN);
+    }
+    out[..n].copy_from_slice(&kept[at].data);
+    Ok(Some(n))
 }
 
 /// Keep what read `seq` handed out until the reader moves past it.

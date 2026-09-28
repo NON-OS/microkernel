@@ -21,6 +21,7 @@ pub fn socket_close(sockets_port: u32, handle: u32) -> bool {
         return super::mixnet::close();
     }
     super::recv_seq::forget(handle);
+    super::recv_pending::forget(handle);
     let mut body = [0u8; 4];
     let mut rx = [0u8; 20];
     body.copy_from_slice(&handle.to_le_bytes());

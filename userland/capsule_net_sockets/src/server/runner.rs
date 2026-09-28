@@ -19,11 +19,12 @@ use nonos_libc::mk_ipc_recv_from;
 
 use crate::protocol::E_BAD_OP;
 use crate::server::handlers;
+use crate::server::handlers::recv_cap::RECV_MAX;
 use crate::server::parse_req::{parse, HDR_LEN};
 use crate::server::respond::respond;
 
 const SERVICE_INBOX: u64 = 0;
-const BUF_LEN: usize = HDR_LEN + 1536;
+const BUF_LEN: usize = HDR_LEN + RECV_MAX;
 
 pub fn run() -> ! {
     let mut rx = vec![0u8; BUF_LEN];
