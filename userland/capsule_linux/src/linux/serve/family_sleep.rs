@@ -40,13 +40,16 @@ impl Family {
         }
     }
 
-    /// Milliseconds until the nearest sleeper is due, if any is waiting.
+    /// Milliseconds until the nearest sleeper, futex timeout or parked wait
+    /// is due, if any.
     pub fn next_wake_ms(&self) -> Option<u64> {
         let now = now_ms(CLOCK_MONOTONIC)?;
-        self.guests
+        let sleeper = self
+            .guests
             .iter()
-            .flat_map(|g| g.sleepers.iter())
+            .flat_map(|g| g.sleepers.iter().chain(g.futex_until.iter()))
             .map(|&(d, _)| d.saturating_sub(now))
-            .min()
+            .min();
+        [sleeper, self.next_wait_ms(now)].into_iter().flatten().min()
     }
 }

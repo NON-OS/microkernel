@@ -22,7 +22,8 @@ use nonos_libc::ForeignRegs;
 
 use super::deliver_restart::{R10, RAX, RSI};
 use crate::linux::call::now_ms;
-use crate::linux::guest::{Guest, Parked};
+use crate::linux::guest::sigpark::Parked;
+use crate::linux::guest::Guest;
 
 const CLOCK_MONOTONIC: u64 = 1;
 const TIMER_ABSTIME: u64 = 1;

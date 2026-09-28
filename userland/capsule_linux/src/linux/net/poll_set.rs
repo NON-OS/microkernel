@@ -20,7 +20,7 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::poll::ready;
+use super::poll::{ready, POLLERR, POLLHUP};
 
 /// fd, events, revents.
 const POLLFD_LEN: usize = 8;
@@ -33,9 +33,14 @@ pub fn poll(guest: &mut Guest, at: u64, count: u64) -> u64 {
         let Some(raw) = guest.read(entry, POLLFD_LEN) else {
             return errno::fail(errno::EFAULT);
         };
-        let fd = u32::from_le_bytes([raw[0], raw[1], raw[2], raw[3]]) as u64;
+        let fd = i32::from_le_bytes([raw[0], raw[1], raw[2], raw[3]]);
         let events = u16::from_le_bytes([raw[4], raw[5]]);
-        let revents = ready(guest, fd) & (events | POLLNVAL);
+        // A negative descriptor is an entry switched off: never ready.
+        // Hang-up, error and a closed descriptor are reported unasked.
+        let revents = match u64::try_from(fd) {
+            Ok(fd) => ready(guest, fd) & (events | POLLNVAL | POLLHUP | POLLERR),
+            Err(_) => 0,
+        };
         if revents != 0 {
             hits += 1;
         }

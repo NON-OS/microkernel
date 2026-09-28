@@ -42,4 +42,6 @@ pub enum Kind {
     Pipe,
     /// A datagram socket a program opened to talk to a nameserver.
     Resolver,
+    /// An eventfd: a counter one thread adds to and another takes from.
+    Event,
 }

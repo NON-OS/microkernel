@@ -32,6 +32,7 @@ pub fn close(guest: &mut Guest, fd: u64) -> u64 {
      */
     let flushed = flush(entry);
     *entry = Fd::empty(Kind::Free);
+    super::epoll::forget(guest, fd);
     match flushed {
         true => errno::ok(0),
         false => errno::fail(errno::EIO),

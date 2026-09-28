@@ -26,8 +26,17 @@ use crate::linux::call::{clone, exit_thread, futex};
 use crate::linux::guest::Guest;
 
 pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
-    let a = frame.args();
     super::tally::call();
+    let got = route(guest, frame);
+    // An EAGAIN re-arms the descriptor's edge-triggered epoll entries.
+    if let Answer::Reply(value) = got {
+        crate::linux::file::rearm(guest, frame.nr, frame.args()[0], value);
+    }
+    got
+}
+
+fn route(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
+    let a = frame.args();
     match frame.nr {
         nr::CLONE => clone(guest, frame),
         nr::FORK | nr::VFORK => crate::linux::call::fork(guest, frame.pid),
@@ -41,7 +50,7 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
             Answer::Park
         }
         nr::RT_SIGRETURN => crate::linux::call::rt_sigreturn(guest, frame.pid),
-        nr::FUTEX => futex(guest, frame.pid, a[0], a[1], a[2]),
+        nr::FUTEX => futex(guest, frame.pid, a),
         // The caller's own thread, which is not always the process.
         nr::GETTID => Answer::value(u64::from(frame.pid)),
         nr::SET_TID_ADDRESS => crate::linux::call::set_tid_address(guest, frame.pid, a[0]),
@@ -49,9 +58,16 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
         np::CLOCK_NANOSLEEP => {
             crate::linux::call::clock_nanosleep(guest, frame.pid, a[0], a[1], a[2])
         }
-        nr::READ if crate::linux::call::is_pipe(guest, a[0]) => {
-            crate::linux::call::pipe_read_or_park(guest, a[0], a[1], a[2], frame.pid)
+        nr::READ | nr::WRITE if super::waits::may_wait(guest, frame.nr, a[0]) => {
+            super::waits::io(guest, frame.pid, frame.nr, a)
         }
+        nr::EPOLL_PWAIT
+        | nr::EPOLL_PWAIT2
+        | np::EPOLL_WAIT
+        | nr::POLL
+        | np::PPOLL
+        | np::SELECT
+        | np::PSELECT6 => super::waits::timed(guest, frame.pid, frame.nr, a),
         other => Answer::Reply(plain(guest, frame.pid, other, a)),
     }
 }

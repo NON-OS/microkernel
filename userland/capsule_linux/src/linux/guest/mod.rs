@@ -17,6 +17,8 @@
 //! A hosted process: what it is, what it has open, and how this capsule
 //! reaches into it.
 
+mod blocked;
+mod event;
 mod fd;
 mod fd_dup;
 mod fd_empty;
@@ -28,7 +30,7 @@ mod handle_new;
 pub mod sigdefault;
 pub mod siginfo;
 mod siglive;
-mod sigpark;
+pub mod sigpark;
 pub mod sigqueue;
 mod sigqueue_new;
 mod sigqueue_ops;
@@ -54,7 +56,11 @@ mod region_cut;
 mod region_find;
 mod region_mark;
 mod threads;
+mod timer;
+mod watch;
 
+pub use blocked::Blocked;
+pub use event::Event;
 pub use fd::Fd;
 pub use fd_kind::Kind;
 pub use handle::Guest;
@@ -65,4 +71,5 @@ pub use layout::{
 };
 pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
 pub use region::Region;
-pub use sigpark::Parked;
+pub use timer::Timer;
+pub use watch::{Watch, EPOLLET, EPOLLONESHOT};

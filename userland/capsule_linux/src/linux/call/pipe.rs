@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use crate::linux::abi::errno;
 use crate::linux::guest::{Fd, Guest};
 
-use crate::linux::file::flags::O_CLOEXEC;
+use crate::linux::file::flags::{O_CLOEXEC, O_NONBLOCK};
 use crate::linux::file::install;
 
 pub fn pipe2(guest: &mut Guest, out: u64, flags: u64) -> u64 {
@@ -33,11 +33,10 @@ pub fn pipe2(guest: &mut Guest, out: u64, flags: u64) -> u64 {
     let Some(write_end) = install(guest, Fd::pipe(buffer, true)) else {
         return errno::fail(errno::EMFILE);
     };
-    if flags & O_CLOEXEC != 0 {
-        for end in [read_end, write_end] {
-            if let Some(fd) = guest.fds.get_mut(end as usize) {
-                fd.cloexec = true;
-            }
+    for end in [read_end, write_end] {
+        if let Some(fd) = guest.fds.get_mut(end as usize) {
+            fd.cloexec = flags & O_CLOEXEC != 0;
+            fd.nonblock = flags & O_NONBLOCK != 0;
         }
     }
     let mut pair = [0u8; 8];

@@ -36,7 +36,7 @@ impl Guest {
             return Some(Parked::Sleep(due));
         }
         let waiting = self.waits.iter().any(|(t, _)| *t == tid)
-            || self.pipe_wait.is_some_and(|w| w.3 == tid)
+            || self.blocked.iter().any(|w| w.tid == tid)
             || self.signals.sigwaits.iter().any(|w| w.tid == tid)
             || self.signals.childwaits.iter().any(|w| w.tid == tid);
         waiting.then_some(Parked::Wait)
@@ -46,10 +46,8 @@ impl Guest {
     pub fn leave_waits(&mut self, tid: u32) -> Option<Parked> {
         let was = self.parked(tid)?;
         self.sleepers.retain(|(_, t)| *t != tid);
-        self.waits.retain(|(t, _)| *t != tid);
-        if self.pipe_wait.is_some_and(|w| w.3 == tid) {
-            self.pipe_wait = None;
-        }
+        /* The futex waits, their timeouts and every descriptor wait. */
+        self.forget_waits(tid);
         self.signals.sigwaits.retain(|w| w.tid != tid);
         self.signals.childwaits.retain(|w| w.tid != tid);
         Some(was)

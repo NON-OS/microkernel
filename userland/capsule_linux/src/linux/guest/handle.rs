@@ -31,6 +31,14 @@ pub struct Guest {
     pub regions: Vec<crate::linux::guest::Region>,
     /// Pipe buffers, named by index from the descriptors at each end.
     pub pipes: Vec<Vec<u8>>,
+    /// For each pipe, whether a read end and a write end are open anywhere
+    /// in the family. Filled when the family lends the buffers.
+    pub pipe_ends: Vec<(bool, bool)>,
+    /// eventfd counters, named by index from their descriptors. The
+    /// family's, lent with the pipes.
+    pub events: Vec<super::Event>,
+    /// timerfd timers, the same way.
+    pub timers: Vec<super::Timer>,
     /// Children this guest has forked, for wait to report on.
     pub children: Vec<u32>,
     /// Tids of this guest's threads, not counting itself.
@@ -41,6 +49,8 @@ pub struct Guest {
     pub clear_tids: Vec<(u32, u64)>,
     /// Threads parked in a futex wait, with the word they wait on.
     pub waits: Vec<(u32, u64)>,
+    /// The futex waits that have a timeout: the monotonic deadline, and who.
+    pub futex_until: Vec<(u64, u32)>,
     /// The display connection, when the guest has opened one.
     pub display: crate::linux::unix::Conn,
     /// The Wayland objects that connection has created.
@@ -70,10 +80,10 @@ pub struct Guest {
     pub ended: Vec<(u32, i32)>,
     /// A parked wait4: the pid it wants, where the status goes, the caller.
     pub waiting: Option<(u64, u64, u32)>,
-    /// A read parked on an empty pipe: its buffer slot, where, how much, who.
-    pub pipe_wait: Option<(usize, u64, u64, u32)>,
     /// Threads parked in a sleep: the monotonic deadline, and who.
     pub sleepers: Vec<(u64, u32)>,
+    /// Calls parked until a descriptor they wait on is ready.
+    pub blocked: Vec<super::Blocked>,
     /// The image's symbolic links, read once and shared by the family.
     pub links: alloc::rc::Rc<super::Links>,
 }

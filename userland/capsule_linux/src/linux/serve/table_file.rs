@@ -16,7 +16,7 @@
 
 //! Calls that name a file or a descriptor.
 
-use crate::linux::abi::{nr, nr_path as np};
+use crate::linux::abi::{errno, nr, nr_path as np};
 use crate::linux::call;
 use crate::linux::file;
 use crate::linux::file::flags;
@@ -39,14 +39,19 @@ pub fn file_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64
         nr::NEWFSTATAT => file::newfstatat(guest, a[0], a[1], a[2]),
         nr::GETDENTS64 => file::getdents64(guest, a[0], a[1], a[2]),
         nr::EPOLL_CREATE1 => file::epoll_create(guest),
+        // The size is a hint Linux ignores past checking it is positive.
+        nr::EPOLL_CREATE if a[0] as u32 as i32 <= 0 => errno::fail(errno::EINVAL),
+        nr::EPOLL_CREATE => file::epoll_create(guest),
+        nr::EVENTFD2 => file::eventfd2(guest, a[0], a[1]),
+        nr::EVENTFD => file::eventfd2(guest, a[0], 0),
         nr::PIPE => call::pipe2(guest, a[0], 0),
         nr::PIPE2 => call::pipe2(guest, a[0], a[1]),
         nr::DUP => call::dup(guest, a[0]),
         nr::DUP2 | nr::DUP3 => call::dup2(guest, a[0], a[1]),
         nr::EPOLL_CTL => file::epoll_ctl(guest, a[0], a[1], a[2], a[3]),
-        nr::EPOLL_PWAIT => file::epoll_wait(guest, a[0], a[1], a[2]),
-        nr::TIMERFD_CREATE => file::timerfd_create(guest),
-        nr::TIMERFD_SETTIME => file::timerfd_settime(guest, a[0], a[2]),
+        nr::TIMERFD_CREATE => file::timerfd_create(guest, a[0], a[1]),
+        nr::TIMERFD_SETTIME => file::timerfd_settime(guest, a[0], a[1], a[2], a[3]),
+        nr::TIMERFD_GETTIME => file::timerfd_gettime(guest, a[0], a[1]),
         nr::PREAD64 => file::pread64(guest, a[0], a[1], a[2], a[3]),
         nr::GETCWD => call::getcwd(guest, a[0], a[1]),
         np::CHDIR => call::chdir(guest, a[0]),
@@ -65,7 +70,6 @@ pub fn file_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64
         np::FACCESSAT | np::FACCESSAT2 => file::faccessat(guest, a[0], a[1]),
         np::STATFS | np::FSTATFS => file::statfs(guest, a[1]),
         np::STATX => file::statx(guest, a[0], a[1], a[4]),
-        np::EPOLL_WAIT => file::epoll_wait(guest, a[0], a[1], a[2]),
         nr::ACCESS => file::access(guest, a[0]),
         nr::READLINK => file::readlinkat(guest, flags::AT_FDCWD, a[0], a[1], a[2]),
         _ => return None,

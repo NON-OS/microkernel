@@ -51,7 +51,7 @@ pub fn plain(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
 
 fn rest(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
     match nr {
-        nr::IOCTL => call::ioctl(guest, a[0], a[1]),
+        nr::IOCTL => call::ioctl(guest, a[0], a[1], a[2]),
         nr::FCNTL => call::fcntl(guest, a[0], a[1], a[2]),
         nr::UNAME => call::uname(guest, a[0]),
         np::GETRLIMIT => call::getrlimit(guest, a[0], a[1]),

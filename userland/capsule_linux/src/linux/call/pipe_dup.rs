@@ -17,11 +17,13 @@
 //! `dup` and `dup2`: a second descriptor onto the same thing.
 
 use crate::linux::abi::errno;
-use crate::linux::file::install;
+use crate::linux::file::{install, MAX_FDS};
 use crate::linux::guest::{Fd, Guest, Kind};
 
 /// `dup2` puts the copy at a number the caller chose, which is how a
-/// shell wires a pipe onto stdout before it runs a command.
+/// shell wires a pipe onto stdout before it runs a command. A number past
+/// the table is EBADF; one already open is closed first, as Linux closes
+/// it, so its buffered bytes are written and its socket let go.
 pub fn dup2(guest: &mut Guest, from: u64, to: u64) -> u64 {
     let Some(source) = guest.fds.get(from as usize).filter(|f| f.is_open()).map(Fd::clone_of)
     else {
@@ -29,6 +31,12 @@ pub fn dup2(guest: &mut Guest, from: u64, to: u64) -> u64 {
     };
     if from == to {
         return errno::ok(to);
+    }
+    if to >= MAX_FDS as u64 {
+        return errno::fail(errno::EBADF);
+    }
+    if guest.fds.get(to as usize).is_some_and(|f| f.is_open()) {
+        let _ = super::close(guest, to);
     }
     while guest.fds.len() <= to as usize {
         guest.fds.push(Fd::empty(Kind::Free));

@@ -29,7 +29,6 @@ impl Family {
     /// End every process that asked to, answer the waits and signals that
     /// follows, and go again while that ends anything more.
     pub fn reap(&mut self) {
-        self.settle_pipes();
         loop {
             let ended = self.end_exited();
             self.settle_child_waits();

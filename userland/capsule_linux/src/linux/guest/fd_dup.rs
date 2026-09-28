@@ -33,6 +33,10 @@ impl Fd {
         let mut fd = Fd::empty(from.kind);
         fd.handle = from.handle;
         fd.writable = from.writable;
+        fd.nonblock = from.nonblock;
+        // Linux shares the interest list itself; a copy keeps what was
+        // registered when the descriptor was duplicated or the process forked.
+        fd.watch = from.watch.clone();
         fd.size = from.size;
         fd.offset = from.offset;
         fd.path = from.path.clone();

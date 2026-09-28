@@ -14,23 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `ioctl` and `fcntl`.
+//! `fcntl`.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::Guest;
+use crate::linux::file::flags::{O_NONBLOCK, O_RDWR, O_WRONLY};
+use crate::linux::guest::{Fd, Guest, Kind};
 
 const F_DUPFD: u64 = 0;
 const F_GETFD: u64 = 1;
 const F_SETFD: u64 = 2;
 const F_GETFL: u64 = 3;
 const F_SETFL: u64 = 4;
-
-pub fn ioctl(guest: &Guest, fd: u64, _request: u64) -> u64 {
-    match guest.fds.get(fd as usize) {
-        Some(entry) if entry.is_open() => errno::fail(errno::ENOTTY),
-        _ => errno::fail(errno::EBADF),
-    }
-}
 
 /// The only descriptor flag there is.
 const FD_CLOEXEC: u64 = 1;
@@ -50,12 +44,15 @@ pub fn fcntl(guest: &mut Guest, fd: u64, cmd: u64, arg: u64) -> u64 {
             errno::ok(0)
         }
         /*
-         * Reported as the read-write the descriptor already has; a request to
-         * change them is accepted because none of the flags a program sets
-         * here has an effect.
+         * O_NONBLOCK is the status flag that changes what a call does here,
+         * so it is the one kept. The rest a program can set (O_APPEND,
+         * O_ASYNC, O_DIRECT, O_NOATIME) are accepted and have no effect.
          */
-        F_SETFL => errno::ok(0),
-        F_GETFL => errno::ok(2),
+        F_SETFL => {
+            entry.nonblock = arg & O_NONBLOCK != 0;
+            errno::ok(0)
+        }
+        F_GETFL => errno::ok(status(entry)),
         /*
          * Duplication needs a second handle on the server, which the store
          * does not offer yet.
@@ -63,4 +60,15 @@ pub fn fcntl(guest: &mut Guest, fd: u64, cmd: u64, arg: u64) -> u64 {
         F_DUPFD => errno::fail(errno::ENOSYS),
         _ => errno::fail(errno::EINVAL),
     }
+}
+
+/// The access mode and O_NONBLOCK. A pipe's ends are read-only and
+/// write-only, as `pipe2` makes them; anything else reads as read-write.
+fn status(entry: &Fd) -> u64 {
+    let mode = match entry.kind {
+        Kind::Pipe if entry.writable => O_WRONLY,
+        Kind::Pipe => 0,
+        _ => O_RDWR,
+    };
+    mode | if entry.nonblock { O_NONBLOCK } else { 0 }
 }

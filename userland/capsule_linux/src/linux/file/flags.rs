@@ -22,6 +22,7 @@ pub const O_RDWR: u64 = 0o2;
 pub const O_CREAT: u64 = 0o100;
 pub const O_TRUNC: u64 = 0o1000;
 pub const O_APPEND: u64 = 0o2000;
+pub const O_NONBLOCK: u64 = 0o4000;
 pub const O_DIRECTORY: u64 = 0o200000;
 pub const O_CLOEXEC: u64 = 0o2000000;
 

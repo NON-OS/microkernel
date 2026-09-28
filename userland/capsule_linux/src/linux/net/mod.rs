@@ -36,8 +36,8 @@ mod stream;
 
 pub use connect::connect;
 pub use dgram::{recvfrom, sendto};
-pub use poll::ready;
+pub use poll::{ready, POLLERR, POLLHUP};
 pub use poll_set::poll;
-pub use select::select;
+pub use select::{clear as select_clear, select};
 pub use socket::socket;
 pub use stream::{close, recv, send};

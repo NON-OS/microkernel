@@ -22,8 +22,11 @@ mod clock;
 mod epoch;
 mod cwd;
 mod futex;
+mod futex_requeue;
+mod futex_time;
 mod ident;
 mod io;
+mod ioctl;
 mod io_socket;
 mod life;
 mod life_one;
@@ -36,8 +39,9 @@ mod pipe;
 mod pipe_dup;
 mod pipe_end;
 mod pipe_io;
+mod pipe_poll;
 mod pipe_read;
-mod pipe_wait;
+mod sched;
 mod session;
 pub mod sigframe;
 pub mod sigframe_build;
@@ -68,7 +72,8 @@ mod uname;
 mod vector;
 mod vector_read;
 
-pub use ctl::{fcntl, ioctl};
+pub use ctl::fcntl;
+pub use ioctl::ioctl;
 pub use cwd::{chdir, fchdir, getcwd};
 pub use futex::futex;
 pub use ident::{getppid, setuid};
@@ -82,8 +87,12 @@ pub use mem::{brk, mmap, mprotect, mremap, munmap, MapReq};
 pub use pipe::pipe2;
 pub use pipe_dup::{dup, dup2};
 pub use pipe_io::write as pipe_write;
+pub use pipe_poll::bits as pipe_bits;
 pub use pipe_read::read as pipe_read;
-pub use pipe_wait::{is_pipe, read_or_park as pipe_read_or_park};
+pub use sched::{
+    priority_bound, sched_getparam, sched_getscheduler, sched_setaffinity, sched_setparam,
+    sched_setscheduler,
+};
 pub use session::{getpgid, getsid, setpgid, setsid};
 pub use signal::rt_sigaction;
 pub use signal_mask::rt_sigprocmask;
