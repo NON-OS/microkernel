@@ -52,6 +52,7 @@ mod table;
 mod table_file;
 mod table_link;
 mod table_mem;
+mod table_meta;
 mod table_net;
 mod table_proc;
 mod table_sig;

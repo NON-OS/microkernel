@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Calls that name a file or a descriptor.
+/* Calls that name a file or a descriptor. */
 
 use crate::linux::abi::{errno, nr, nr_path as np};
 use crate::linux::call;
@@ -34,12 +34,9 @@ pub fn file_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64
         nr::OPENAT => file::openat(guest, a[0], a[1], a[2]),
         nr::OPEN => file::openat(guest, flags::AT_FDCWD, a[0], a[1]),
         nr::LSEEK => file::lseek(guest, a[0], a[1], a[2]),
-        nr::FSTAT => file::fstat(guest, a[0], a[1]),
-        nr::STAT | nr::LSTAT => file::newfstatat(guest, flags::AT_FDCWD, a[0], a[1]),
-        nr::NEWFSTATAT => file::newfstatat(guest, a[0], a[1], a[2]),
         nr::GETDENTS64 => file::getdents64(guest, a[0], a[1], a[2]),
         nr::EPOLL_CREATE1 => file::epoll_create(guest),
-        // The size is a hint Linux ignores past checking it is positive.
+        /* The size is a hint Linux ignores past checking it is positive. */
         nr::EPOLL_CREATE if a[0] as u32 as i32 <= 0 => errno::fail(errno::EINVAL),
         nr::EPOLL_CREATE => file::epoll_create(guest),
         nr::EVENTFD2 => file::eventfd2(guest, a[0], a[1]),
@@ -67,11 +64,6 @@ pub fn file_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64
         np::CHMOD => file::chmod(guest, a[0], a[1]),
         np::FCHMOD => file::fchmod(guest, a[0], a[1]),
         np::FCHMODAT => file::fchmodat(guest, a[0], a[1], a[2]),
-        np::FACCESSAT | np::FACCESSAT2 => file::faccessat(guest, a[0], a[1]),
-        np::STATFS | np::FSTATFS => file::statfs(guest, a[1]),
-        np::STATX => file::statx(guest, a[0], a[1], a[4]),
-        nr::ACCESS => file::access(guest, a[0]),
-        nr::READLINK => file::readlinkat(guest, flags::AT_FDCWD, a[0], a[1], a[2]),
-        _ => return None,
+        _ => return super::table_meta::meta_ops(guest, nr, a),
     })
 }
