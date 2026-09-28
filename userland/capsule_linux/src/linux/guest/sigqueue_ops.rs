@@ -1,0 +1,40 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Reading and recording a process's signal state: the disposition of each
+//! signal, and what is pending for a thread.
+
+use super::sigqueue::Signals;
+use super::sigstate::{bit, SigAction, NSIG};
+
+impl Signals {
+    /// Record a disposition; `signum` is 1..=NSIG.
+    pub fn set(&mut self, signum: usize, act: SigAction) {
+        if (1..=NSIG).contains(&signum) {
+            self.actions[signum - 1] = act;
+        }
+    }
+
+    pub fn action(&self, signum: usize) -> Option<SigAction> {
+        (1..=NSIG).contains(&signum).then(|| self.actions[signum - 1])
+    }
+
+    /// Every signal pending for `tid` or for its process, as a mask.
+    pub fn pending_for(&self, tid: u32) -> u64 {
+        let mine = self.pending.iter().filter(|(t, _)| *t == tid || *t == 0);
+        mine.fold(0, |m, (_, i)| m | bit(i.signo))
+    }
+}

@@ -47,7 +47,15 @@ pub fn execve(guest: &mut Guest, pid: u32, path: u64, argv: u64, envp: u64) -> A
     super::exec_threads::reap(guest, pid);
     clear(guest);
     match load_over(guest, pid, &program, &env) {
-        Some(()) => Answer::Park,
+        Some(()) => {
+            released(guest, pid);
+            Answer::Park
+        }
         None => Answer::value(errno::fail(errno::ENOEXEC)),
     }
+}
+
+/// The new program keeps what Linux keeps of the old one's signals.
+fn released(guest: &mut Guest, pid: u32) {
+    guest.signals.exec_reset(pid);
 }

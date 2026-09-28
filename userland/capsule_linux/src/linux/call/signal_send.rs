@@ -21,6 +21,7 @@
 use nonos_libc::mk_kill;
 
 use crate::linux::abi::errno;
+use crate::linux::guest::siginfo::{SigInfo, SI_USER};
 use crate::linux::guest::sigstate::NSIG;
 use crate::linux::guest::Guest;
 
@@ -42,7 +43,7 @@ pub fn kill(guest: &mut Guest, pid: u64, signo: u64) -> u64 {
     }
     let act = guest.signals.action(signo as usize).unwrap_or_default();
     if act.catches() {
-        guest.signals.raise(target, signo as u8);
+        let _ = guest.signals.raise(target, SigInfo::from(signo as u8, SI_USER, guest.pid));
         return errno::ok(0);
     }
     if act.ignores() || IGNORED_DEFAULT.contains(&signo) {
@@ -53,9 +54,8 @@ pub fn kill(guest: &mut Guest, pid: u64, signo: u64) -> u64 {
 
 /// The default action of an uncaught, non-ignored signal is to end the thread.
 fn terminate(guest: &mut Guest, target: u32, signo: u64) -> u64 {
-    guest.waits.retain(|(w, _)| *w != target);
+    guest.forget_thread(target);
     guest.threads.retain(|t| *t != target);
-    guest.signals.forget(target);
     match mk_kill(target as u64, signo) {
         n if n < 0 => errno::fail(errno::EPERM),
         _ => errno::ok(0),

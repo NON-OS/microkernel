@@ -62,3 +62,11 @@ pub fn exit(guest: &mut Guest, code: u64) -> u64 {
     guest.exited = Some(code as i32);
     errno::ok(0)
 }
+
+/// The process ends on `signum`, unless something already ended it. Kept in
+/// the shell's 128+signo form, as a thread's fatal fault is.
+pub fn killed(guest: &mut Guest, signum: u8) {
+    if guest.exited.is_none() {
+        guest.exited = Some(128 + i32::from(signum & 0x7f));
+    }
+}

@@ -14,34 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Answering for a guest: the loop, and the table it answers from.
+//! Signal dispositions, masks and stacks: the calls of that family that
+//! answer at once.
 
-mod answer;
-mod deliver;
-mod deliver_enter;
-mod deliver_say;
-mod deliver_stack;
-mod dispatch;
-mod family;
-mod family_pipes;
-mod family_reap;
-mod family_sleep;
-mod loop_impl;
-mod pid_map;
-mod pid_ns;
-mod pid_space;
-mod refused;
-mod pid_out;
-mod table;
-mod table_file;
-mod table_link;
-mod table_mem;
-mod table_net;
-mod table_proc;
-mod table_sig;
-mod tally;
-mod unserved;
+use crate::linux::abi::nr;
+use crate::linux::call;
+use crate::linux::guest::Guest;
 
-pub use answer::Answer;
-pub use loop_impl::serve;
-pub use pid_space::{inward as kernel_pid, outward as guest_pid};
+pub fn sig_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64> {
+    Some(match nr {
+        nr::RT_SIGACTION => call::rt_sigaction(guest, a[0], a[1], a[2], a[3]),
+        nr::RT_SIGPROCMASK => call::rt_sigprocmask(guest, tid, a[0], a[1], a[2], a[3]),
+        nr::SIGALTSTACK => call::sigaltstack(guest, tid, a[0], a[1]),
+        _ => return None,
+    })
+}

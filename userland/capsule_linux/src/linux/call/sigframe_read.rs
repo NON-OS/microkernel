@@ -15,10 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Reading back the frame `sigframe` built, as rt_sigreturn does: the
-//! registers the handler returns to. Pure, and any bytes at all may sit where
-//! the guest's rsp points, so every read is checked and none can panic.
+//! registers, the mask and the alternate stack the handler returns to. Pure,
+//! and any bytes at all may sit where the guest's rsp points, so every read is
+//! checked and none can panic.
 
-use super::sigframe::{SIGCONTEXT_OFF, WORDS};
+use super::sigframe::{SIGCONTEXT_OFF, SIGMASK_OFF, STACK_OFF, WORDS};
 
 fn word(uc: &[u8], at: usize) -> Option<u64> {
     Some(u64::from_le_bytes(uc.get(at..at + 8)?.try_into().ok()?))
@@ -32,4 +33,15 @@ pub fn returned(uc: &[u8]) -> Option<[u64; WORDS]> {
         *slot = word(uc, SIGCONTEXT_OFF + i * 8)?;
     }
     Some(out)
+}
+
+/// The mask a returning frame restores, from uc_sigmask.
+pub fn returned_mask(uc: &[u8]) -> Option<u64> {
+    word(uc, SIGMASK_OFF)
+}
+
+/// uc_stack as the handler left it: ss_sp, ss_flags, ss_size.
+pub fn returned_stack(uc: &[u8]) -> Option<[u64; 3]> {
+    let flags = u32::from_le_bytes(uc.get(STACK_OFF + 8..STACK_OFF + 12)?.try_into().ok()?);
+    Some([word(uc, STACK_OFF)?, u64::from(flags), word(uc, STACK_OFF + 16)?])
 }

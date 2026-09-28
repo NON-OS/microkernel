@@ -14,34 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Answering for a guest: the loop, and the table it answers from.
+//! A thread that has gone, taking its signal state and its waits with it.
 
-mod answer;
-mod deliver;
-mod deliver_enter;
-mod deliver_say;
-mod deliver_stack;
-mod dispatch;
-mod family;
-mod family_pipes;
-mod family_reap;
-mod family_sleep;
-mod loop_impl;
-mod pid_map;
-mod pid_ns;
-mod pid_space;
-mod refused;
-mod pid_out;
-mod table;
-mod table_file;
-mod table_link;
-mod table_mem;
-mod table_net;
-mod table_proc;
-mod table_sig;
-mod tally;
-mod unserved;
+use super::handle::Guest;
 
-pub use answer::Answer;
-pub use loop_impl::serve;
-pub use pid_space::{inward as kernel_pid, outward as guest_pid};
+impl Guest {
+    /// A thread that has gone takes its signal state and its waits with it.
+    pub fn forget_thread(&mut self, tid: u32) {
+        let _ = self.leave_waits(tid);
+        self.signals.threads.retain(|t| t.tid != tid);
+        self.signals.pending.retain(|(t, _)| *t != tid);
+    }
+}

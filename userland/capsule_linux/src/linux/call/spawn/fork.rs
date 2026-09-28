@@ -43,7 +43,9 @@ pub fn fork(guest: &mut Guest, caller: u32) -> Answer {
      * The child's state goes to the serve loop before the child runs, so its
      * first trap finds a guest that owns it.
      */
-    guest.forked.push(guest.fork_state(child));
+    let mut state = guest.fork_state(child);
+    state.signals = guest.signals.forked(caller, child);
+    guest.forked.push(state);
     if mk_foreign_resume(child) < 0 {
         guest.forked.pop();
         return Answer::value(errno::fail(errno::ENOMEM));

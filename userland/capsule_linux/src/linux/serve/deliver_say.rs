@@ -14,34 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Answering for a guest: the loop, and the table it answers from.
+//! What delivering a signal says in the log: each handler entered, and each
+//! stop that is not served.
 
-mod answer;
-mod deliver;
-mod deliver_enter;
-mod deliver_say;
-mod deliver_stack;
-mod dispatch;
-mod family;
-mod family_pipes;
-mod family_reap;
-mod family_sleep;
-mod loop_impl;
-mod pid_map;
-mod pid_ns;
-mod pid_space;
-mod refused;
-mod pid_out;
-mod table;
-mod table_file;
-mod table_link;
-mod table_mem;
-mod table_net;
-mod table_proc;
-mod table_sig;
-mod tally;
-mod unserved;
+/// No guest is ever stopped: job control needs the kernel to hold every
+/// thread of a process still, which it does not offer a supervisor.
+pub fn stop_unserved(signum: u8) {
+    let line = alloc::format!("[LINUX] unserved stop: signal {signum} does not stop a guest\n");
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+}
 
-pub use answer::Answer;
-pub use loop_impl::serve;
-pub use pid_space::{inward as kernel_pid, outward as guest_pid};
+pub fn say(tid: u32, signum: u8, handler: u64) {
+    let line = alloc::format!("[LINUX] signal {signum} to tid {tid}, handler {handler:#x}\n");
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+}

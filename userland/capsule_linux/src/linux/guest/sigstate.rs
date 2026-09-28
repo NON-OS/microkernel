@@ -14,11 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A signal's disposition: what the guest asked to happen when it fires.
-//! Process-wide, as on Linux.
+//! A signal's disposition, its number and its bit in a mask; what Linux does
+//! with a signal no handler takes is in sigdefault. Dispositions are
+//! process-wide, as on Linux; the numbers are transcribed.
 
 /// The largest signal Linux defines.
 pub const NSIG: usize = 64;
+
+pub const SIGKILL: u8 = 9;
+pub const SIGSEGV: u8 = 11;
+pub const SIGCHLD: u8 = 17;
+pub const SIGSTOP: u8 = 19;
+
+pub const SA_ONSTACK: u64 = 0x0800_0000;
+pub const SA_NODEFER: u64 = 0x4000_0000;
+pub const SA_RESETHAND: u64 = 0x8000_0000;
+
+/// The one bit a signal has in a mask.
+pub fn bit(signum: u8) -> u64 {
+    1u64 << (signum - 1)
+}
+
+/// SIGKILL and SIGSTOP are never blocked, whatever a mask asks for.
+pub fn blockable(mask: u64) -> u64 {
+    mask & !(bit(SIGKILL) | bit(SIGSTOP))
+}
 
 /// `struct sigaction` as the guest passes it: handler, flags, restorer, mask.
 #[derive(Clone, Copy, Default)]
