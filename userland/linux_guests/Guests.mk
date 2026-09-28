@@ -137,6 +137,13 @@ $(LINUX_GUESTS_C)/protfork: $(LINUX_GUESTS_DIR)/c/protfork.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,protfork,4984,4985,$(LINUX_GUESTS_C)/protfork))
 
+# Bytes written into an opened part of a reservation survive closing it and a
+# fork; a page never opened faults in the child; and MAP_FIXED over a written
+# page replaces it with zeroes.
+$(LINUX_GUESTS_C)/touchfork: $(LINUX_GUESTS_DIR)/c/touchfork.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,touchfork,4986,4987,$(LINUX_GUESTS_C)/touchfork))
+
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
 # normal image, which does not set NONOS_LINUX_GUESTS, still ships them.

@@ -36,7 +36,7 @@ pub fn file(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     if let Some(None) = proved {
         return errno::fail(errno::EPERM);
     }
-    if guest.map(at, span, true, false) < 0 {
+    if !req.make_room(guest, at, span) || guest.map(at, span, true, false) < 0 {
         return errno::fail(errno::ENOMEM);
     }
     if let Some(Some(bytes)) = proved {
