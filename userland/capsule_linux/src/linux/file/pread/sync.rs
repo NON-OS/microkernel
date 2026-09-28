@@ -17,14 +17,22 @@
 /* preadv and pwritev, and a write put in the store as RWF_DSYNC asks. */
 
 use crate::linux::call;
-use crate::linux::guest::Guest;
+use crate::linux::guest::{Guest, Kind};
 
 use super::vector::vectored;
 
 pub fn preadv(guest: &mut Guest, fd: u64, iov: u64, count: u64, at: u64, flags: u64) -> u64 {
-    vectored(guest, fd, at, flags, |g| call::readv(g, fd, iov, count))
+    vectored(guest, fd, at, flags, false, |g| call::readv(g, fd, iov, count))
 }
 
 pub fn pwritev(guest: &mut Guest, fd: u64, iov: u64, count: u64, at: u64, flags: u64) -> u64 {
-    vectored(guest, fd, at, flags, |g| call::writev(g, fd, iov, count))
+    vectored(guest, fd, at, flags, true, |g| call::writev(g, fd, iov, count))
+}
+
+pub(super) fn synced(guest: &Guest, fd: u64) -> Result<(), i64> {
+    let f = &guest.fds[fd as usize];
+    match f.kind == Kind::File && !super::super::synth::owns(&f.path) {
+        true => super::super::cache::flush(&f.path, true),
+        false => Ok(()),
+    }
 }

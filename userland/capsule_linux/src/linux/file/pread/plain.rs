@@ -41,7 +41,7 @@ pub fn pwrite64(guest: &mut Guest, fd: u64, buf: u64, len: u64, at: u64) -> u64 
     }
 }
 
-fn seekable(guest: &Guest, fd: u64) -> Result<u64, u64> {
+pub(super) fn seekable(guest: &Guest, fd: u64) -> Result<u64, u64> {
     match guest.fds.get(fd as usize).filter(|f| f.is_open()) {
         Some(f) if f.kind == Kind::File => Ok(super::super::desc::pos(f)),
         Some(f) if f.kind == Kind::Dir => Err(errno::fail(errno::EISDIR)),

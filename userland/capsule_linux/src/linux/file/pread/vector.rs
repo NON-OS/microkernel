@@ -19,25 +19,49 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
+use super::place::place;
 use super::plain::at_offset;
+use super::sync::synced;
+
+/* The RWF_ flags Linux 6.1 knows: HIPRI, DSYNC, SYNC, NOWAIT and APPEND. */
+const RWF_DSYNC: u64 = 0x02;
+
+const RWF_SYNC: u64 = 0x04;
+
+const RWF_APPEND: u64 = 0x10;
+
+const RWF_KNOWN: u64 = 0x1f;
 
 /*
  * The v2 forms: an offset of -1 means the descriptor's own, which then
- * moves; any RWF_ flag is one this personality does not act on.
+ * moves. HIPRI asks to poll for completion and NOWAIT not to block, and a
+ * read or write here never blocks, so both hold as they are. DSYNC and
+ * SYNC put a write in the store before answering, as fsync would. APPEND
+ * writes at the end whatever the offset. Any other flag is EOPNOTSUPP.
  */
 pub(super) fn vectored(
     guest: &mut Guest,
     fd: u64,
     at: u64,
     flags: u64,
+    write: bool,
     go: impl FnOnce(&mut Guest) -> u64,
 ) -> u64 {
-    if flags != 0 {
+    if flags & !RWF_KNOWN != 0 {
         return errno::fail(errno::EOPNOTSUPP);
     }
-    match at as i64 {
-        -1 => go(guest),
-        n if n < 0 => errno::fail(errno::EINVAL),
+    let at = match place(guest, fd, at, write && flags & RWF_APPEND != 0) {
+        Ok(at) => at,
+        Err(e) => return e,
+    };
+    let got = match at {
+        u64::MAX => go(guest),
         _ => at_offset(guest, fd, at, go),
+    };
+    if write && flags & (RWF_DSYNC | RWF_SYNC) != 0 && (got as i64) >= 0 {
+        if let Err(e) = synced(guest, fd) {
+            return errno::fail(e);
+        }
     }
+    got
 }

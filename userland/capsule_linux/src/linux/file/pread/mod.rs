@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The positional forms: pread64, pwrite64, preadv, pwritev, and preadv2 and
- * pwritev2 with no flags. Each reads or writes at the offset it is given
- * and leaves the descriptor's own offset where it was; a pipe, a socket or
- * a console has no offset, which Linux calls ESPIPE.
+ * The positional forms: pread64, pwrite64, preadv, pwritev, preadv2 and
+ * pwritev2. Each reads or writes at the offset it is given and leaves the
+ * descriptor's own offset where it was; a pipe, a socket or a console has
+ * no offset, which Linux calls ESPIPE.
  */
 
+mod place;
 mod plain;
 mod sync;
 mod vector;
