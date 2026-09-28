@@ -107,7 +107,14 @@ pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext) {
     // would free the very stack this trap frame sits on and the live page
     // tables. The queues are retried on every tick, so reclamation happens
     // as soon as a real context is interrupted instead.
-    if crate::process::current_pid().is_some() {
+    /*
+     * Nor while it is kernel code: that holds plain spin locks with
+     * interrupts open (init reads the process table once a second), and the
+     * teardown takes the same table for writing with interrupts closed, a
+     * spin that never ends on the CPU that holds the read. A tick from user
+     * mode holds no kernel lock here, the rule tick.rs switches by.
+     */
+    if from_user && crate::process::current_pid().is_some() {
         crate::process::exit::drain_pending_teardowns();
         crate::kernel_core::process_spawn::drain_pending_kernel_stacks();
     }

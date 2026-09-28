@@ -26,8 +26,13 @@ use super::root::Key;
 
 type Fail = &'static str;
 
+/// The file at `at`, up to `max` bytes, in one allocation of its size. Grown
+/// as it arrived, a 4 MB program passed through an 8 MiB buffer, which the
+/// 16 MiB heap of a run could not give beside what it already held.
 pub fn read(at: &Key, max: u32) -> Result<Vec<u8>, Fail> {
-    vfs::read_file(mk_getpid(), at.as_bytes(), max)
+    let (size, _) = vfs::stat(mk_getpid(), at.as_bytes())?;
+    let len = u32::try_from(size).unwrap_or(u32::MAX).min(max);
+    VfsStream::open(mk_getpid(), at.as_bytes())?.read_window(0, len)
 }
 
 pub fn write(at: &Key, data: &[u8]) -> Result<(), Fail> {
