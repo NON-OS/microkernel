@@ -24,7 +24,7 @@ use crate::linux::guest::Guest;
 use super::fd::sock_of;
 use super::opt_ids::*;
 use super::opt_time::{keep, timeo};
-use super::sock::{self, Proto};
+use super::sock::{self, Domain, Proto};
 
 pub fn setsockopt(guest: &Guest, fd: u64, level: u64, name: u64, val: u64, len: u64) -> u64 {
     let id = match sock_of(guest, fd) {
@@ -44,9 +44,18 @@ pub fn setsockopt(guest: &Guest, fd: u64, level: u64, name: u64, val: u64, len: 
         let Some(s) = t.get_mut(id) else {
             return errno::fail(errno::EBADF);
         };
-        let proto = s.proto;
+        let (proto, domain) = (s.proto, s.domain);
         let o = &mut s.opts;
         match (level, name) {
+            // A Unix socket has only socket-level options on Linux.
+            (l, _) if domain == Domain::Unix && l != SOL_SOCKET => {
+                return errno::fail(errno::EOPNOTSUPP)
+            }
+            (l, n)
+                if super::opt_more::known(l, n) && !(l == IPPROTO_TCP && proto == Proto::Dgram) =>
+            {
+                return super::opt_more::set(&mut o.more, proto, l, n, int)
+            }
             (SOL_SOCKET, SO_REUSEADDR) => o.reuseaddr = int != 0,
             (SOL_SOCKET, SO_REUSEPORT) => o.reuseport = int != 0,
             (SOL_SOCKET, SO_KEEPALIVE) => o.keepalive = int != 0,

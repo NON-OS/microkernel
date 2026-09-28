@@ -42,6 +42,7 @@ mod name;
 mod ops;
 mod opt_get;
 mod opt_ids;
+mod opt_more;
 mod opt_set;
 mod opt_time;
 mod opt_value;

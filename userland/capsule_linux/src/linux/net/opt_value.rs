@@ -49,6 +49,13 @@ pub fn value(s: &mut Sock, level: u64, name: u64) -> Result<Vec<u8>, u64> {
         }
         (SOL_SOCKET, SO_RCVTIMEO) => pair(o.rcvtimeo.0, o.rcvtimeo.1),
         (SOL_SOCKET, SO_SNDTIMEO) => pair(o.sndtimeo.0, o.sndtimeo.1),
+        (l, _) if s.domain == Domain::Unix && l != SOL_SOCKET => {
+            Err(errno::fail(errno::EOPNOTSUPP))
+        }
+        (IPPROTO_TCP, _) if !stream && super::opt_more::known(level, name) => {
+            Err(errno::fail(errno::EOPNOTSUPP))
+        }
+        (l, n) if super::opt_more::known(l, n) => int(super::opt_more::get(&o.more, l, n)),
         // A datagram socket has no TCP options, and Linux says so this way.
         (IPPROTO_TCP, _) if !stream => Err(errno::fail(errno::EOPNOTSUPP)),
         (IPPROTO_TCP, TCP_NODELAY) => int(u32::from(o.nodelay)),

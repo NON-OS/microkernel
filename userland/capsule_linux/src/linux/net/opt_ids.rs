@@ -18,6 +18,7 @@
 //! include/uapi/linux/in.h and include/uapi/linux/tcp.h.
 
 pub const SOL_SOCKET: u64 = 1;
+pub const IPPROTO_IP: u64 = 0;
 pub const IPPROTO_TCP: u64 = 6;
 pub const IPPROTO_IPV6: u64 = 41;
 
@@ -36,10 +37,17 @@ pub const SO_ACCEPTCONN: u64 = 30;
 pub const SO_PROTOCOL: u64 = 38;
 pub const SO_DOMAIN: u64 = 39;
 
+pub const IP_TOS: u64 = 1;
+pub const IP_TTL: u64 = 2;
+pub const SO_PRIORITY: u64 = 12;
+
 pub const TCP_NODELAY: u64 = 1;
 pub const TCP_KEEPIDLE: u64 = 4;
 pub const TCP_KEEPINTVL: u64 = 5;
 pub const TCP_KEEPCNT: u64 = 6;
+pub const TCP_QUICKACK: u64 = 12;
+pub const TCP_USER_TIMEOUT: u64 = 18;
+pub const TCP_FASTOPEN: u64 = 23;
 
 /// net.core.rmem_max and wmem_max as Linux ships them: what SO_RCVBUF and
 /// SO_SNDBUF are held to before they are doubled.

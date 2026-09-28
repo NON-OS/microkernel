@@ -39,6 +39,7 @@ pub struct Opts {
     /// microseconds, so they read back exactly.
     pub rcvtimeo: (u64, u64),
     pub sndtimeo: (u64, u64),
+    pub more: super::opts_more::More,
 }
 
 impl Opts {
@@ -61,6 +62,7 @@ impl Opts {
             linger: (0, 0),
             rcvtimeo: (0, 0),
             sndtimeo: (0, 0),
+            more: Default::default(),
         }
     }
 

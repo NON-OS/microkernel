@@ -109,7 +109,7 @@ int main(void) {
     int (*const part[])(void) = {
         pair_stream, pair_dgram, listen_accept, nb_connect, refused, half_close,
         epoll_listener, eof,     empty_recv,    peek,       epipe,   blocking_accept,
-        blocking_recv, options,  fork_share,     backlog,
+        blocking_recv, options,  fork_share,     backlog, quiet_options,
     };
     const int count = sizeof part / sizeof part[0];
     long t0 = now_ms();
