@@ -1187,10 +1187,18 @@ DESKTOP_GUI_CAPSULE_ARTIFACTS := $(DESKTOP_BASE_CAPSULE_ARTIFACTS) \
 		$(DESKTOP_STD_TOOL_ARTIFACTS) \
 		$(ZK_POLICY_ROOT)
 
+# A Linux-guest test image boots unattended, and first-boot setup waits for
+# keys nobody presses. Under the setup profile the apps, the Linux personality
+# among them, spawn only once setup exits, so that image would never start its
+# guest. It builds the desktop profile without first-boot setup instead.
 nonos-mk-desktop-gui-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
+ifeq ($(NONOS_LINUX_GUESTS),1)
+	$(call nonos_kernel_build,microkernel-desktop-gui + nonos-stark-attest (unattended guest test),microkernel-desktop-gui$(_boot_comma)nonos-stark-attest)
+else
 	$(call nonos_kernel_build,microkernel-setup-wizard + nonos-stark-attest,microkernel-setup-wizard$(_boot_comma)nonos-stark-attest)
+endif
 
 # nonos-mk-install-prod: the desktop profile with the NVMe driver capsule in
 # it. The desktop cut leaves NVMe out because a driver whose hardware is absent
