@@ -17,6 +17,7 @@
 mod backup;
 mod broadcast;
 mod broadcast_arm;
+mod escape;
 mod etna_click;
 mod etna_scroll;
 mod edit_amount;

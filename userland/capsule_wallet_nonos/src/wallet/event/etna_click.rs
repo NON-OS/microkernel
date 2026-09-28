@@ -27,7 +27,9 @@ use crate::wallet::state::{State, VIEW_HOME, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIEL
 /// Whether the screen on show is drawn on the Etna frame.
 pub fn on_etna(state: &State) -> bool {
     state.panel == 0
-        && (state.view == VIEW_HOME || (state.view == VIEW_RECEIVE && !state.import_active))
+        && (state.backup_active
+            || state.view == VIEW_HOME
+            || (state.view == VIEW_RECEIVE && !state.import_active))
 }
 
 fn go(state: &mut State, view: u8) -> EventOutcome {
@@ -40,6 +42,13 @@ pub fn etna_click(state: &mut State, x: u32, y: u32) -> EventOutcome {
     let Some(press) = at(x, y) else {
         return EventOutcome::Idle;
     };
+    if state.backup_active {
+        if press != Press::Footer(0) {
+            return EventOutcome::Idle;
+        }
+        let _ = super::backup::confirm_backup(state);
+        return go(state, VIEW_HOME);
+    }
     match (press, state.view) {
         (Press::Footer(0), VIEW_HOME) if !state.address_ready => super::generate::generate(state),
         (Press::Footer(1), VIEW_HOME) if !state.address_ready => {

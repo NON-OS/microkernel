@@ -57,6 +57,9 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
     if let Some(out) = super::field_input::field_input(state, code) {
         return out;
     }
+    if code == nonos_app_skeleton::KEY_ESC {
+        return super::escape::escape(state);
+    }
     if code == b'r' as u32 || code == b'R' as u32 {
         hydrate(state);
         return EventOutcome::Repaint;

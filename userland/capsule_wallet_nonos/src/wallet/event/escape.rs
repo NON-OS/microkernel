@@ -14,18 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
+/*
+ * Esc goes back one step: an open panel closes, any other screen returns
+ * home, and home stays where it is. It used to close the window, so every
+ * "Esc to cancel" on screen was a promise the key could not keep, and a
+ * reader backing out of a send lost the wallet window instead.
+ */
 
-use crate::wallet::state::State;
+use nonos_app_skeleton::EventOutcome;
 
-// Repaint only when a handler actually changed state; a click or key that hits
-// nothing returns Idle and the dense screen is not re-rendered. This keeps the
-// UI responsive — every stray click no longer forces a full 1280x800 repaint.
-pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
-    match event.kind {
-        InputKind::KeyDown => super::on_key::on_key(state, event.code),
-        InputKind::ButtonDown => super::on_pointer::on_pointer(state, event.x, event.y),
-        InputKind::Wheel => super::etna_scroll::scroll(state, event.delta_y),
-        _ => EventOutcome::Idle,
+use crate::wallet::state::{State, VIEW_HOME};
+
+pub fn escape(state: &mut State) -> EventOutcome {
+    if state.panel != 0 {
+        state.panel = 0;
+        return EventOutcome::Repaint;
     }
+    if state.view != VIEW_HOME {
+        state.view = VIEW_HOME;
+        state.scroll = 0;
+        return EventOutcome::Repaint;
+    }
+    EventOutcome::Idle
 }
