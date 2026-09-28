@@ -74,6 +74,7 @@ impl Family {
         if let Answer::Reply(value) = got {
             // A caught signal for this thread is delivered in place of the reply.
             let out = value_out(&mut self.ns, frame.nr, value);
+            super::clone_tid::write(g, &frame, out);
             if !super::deliver::maybe_deliver(g, frame.pid, out) {
                 let _ = mk_foreign_reply(frame.pid, out);
             }
