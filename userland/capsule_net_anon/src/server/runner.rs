@@ -37,12 +37,24 @@ pub fn run(tcp_port: u32) -> ! {
     let mut state = Manager::new(tcp_port);
     let mut rx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
+    let mut last_idle: i64 = 0;
     loop {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), IDLE_MS, &mut sender);
         let now = seconds();
-        if n <= 0 || sender == 0 {
+        /*
+         * The idle work is the transport itself: the directory, the link, the
+         * circuits, reading cells off the link and paying SENDMEs. It used to
+         * run only when no request came within IDLE_MS, so a caller polling a
+         * stream faster than that kept every cell it was waiting for unread.
+         * It now runs at least every IDLE_MS whatever the request traffic.
+         */
+        let ms = mk_time_millis();
+        if n <= 0 || sender == 0 || ms.wrapping_sub(last_idle) >= IDLE_MS as i64 {
             idle(&mut state, now);
+            last_idle = ms;
+        }
+        if n <= 0 || sender == 0 {
             continue;
         }
         match parse(&rx[..n as usize]) {
