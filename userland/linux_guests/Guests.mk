@@ -81,4 +81,22 @@ $(eval $(call LINUX_GUEST,dyn,4958,4959,$(LINUX_GUESTS_C)/dyn))
 $(eval $(call LINUX_GUEST,libprobe,4960,4961,$(LINUX_GUESTS_C)/libprobe.so,/lib/libprobe.so))
 $(eval $(call LINUX_GUEST,ldmusl,4962,4963,$(MUSL_LIBC),/lib/ld-musl-x86_64.so.1))
 
+# Tier 1: static Go binaries, the cheapest guests: no cgo, no loader, no libc.
+# Built here with the toolchain the container carries. A tool that comes up at
+# all proves the runtime's threads, memory and signals under the personality.
+GO := /usr/local/go/bin/go
+GO_OUT := $(TARGET_DIR)/linux-guests/go
+$(GO_OUT)/%: $(LINUX_GUESTS_DIR)/go/%/main.go
+	@mkdir -p $(@D) && cd $(LINUX_GUESTS_DIR)/go/$* && \
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOFLAGS=-trimpath \
+		GOCACHE=$(abspath $(GO_OUT))/cache GOPATH=$(abspath $(GO_OUT))/path \
+		$(GO) build -ldflags '-s -w' -o $(abspath $@) .
+$(eval $(call LINUX_GUEST,gohello,4968,4969,$(GO_OUT)/hello))
+$(eval $(call LINUX_GUEST,goconc,4970,4971,$(GO_OUT)/conc))
+
+# The Linux-guest test store is about guests, not media. Drop the movie
+# samples from it so the whole set fits the vfs load budget; the normal image
+# still ships them.
+override NONOS_STORE_MEDIA_ENTRIES :=
+
 include $(LINUX_GUESTS_DIR)/GuestFiles.mk
