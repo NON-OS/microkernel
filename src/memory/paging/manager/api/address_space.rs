@@ -38,6 +38,18 @@ pub fn lookup_asid_for_process(process_id: u32) -> Option<u32> {
     lock_responsive(&PAGING_MANAGER).lookup_asid_for_process(process_id)
 }
 
+/// Make `process_id` the owner of the tables `asid` names, so its release is
+/// the one that frees them. False when there is no such address space.
+pub fn hand_over_address_space(asid: u32, process_id: u32) -> bool {
+    match lock_responsive(&PAGING_MANAGER).address_spaces.get_mut(&asid) {
+        Some(space) => {
+            space.process_id = process_id;
+            true
+        }
+        None => false,
+    }
+}
+
 pub fn switch_to_process_address_space(process_id: u32) -> PagingResult<()> {
     let asid = lookup_asid_for_process(process_id)
         .ok_or(crate::memory::paging::error::PagingError::AddressSpaceNotFound)?;
