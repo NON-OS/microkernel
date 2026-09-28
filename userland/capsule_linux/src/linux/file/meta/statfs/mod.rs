@@ -15,12 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * How much room there is, in the shape `statfs` expects.
- *
- * The store's real usage is shared by everything on the machine: read here,
- * it would let a guest watch a sibling write, and it sizes this install. So
- * every guest sees the same plausible figures, and a write that does not fit
- * still fails where it is made, with ENOSPC.
+ * How much room there is, in the shape `statfs` expects: the mount's type
+ * and flags from the family's mount table, and its sizes from the family's
+ * own files (system/space/).
  */
 
 mod calls;

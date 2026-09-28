@@ -31,9 +31,16 @@ pub fn flush(path: &[u8], keep: bool) -> Result<(), i64> {
         return Ok(());
     };
     if all[i].dirty {
+        let (len, stored) = (all[i].data.len() as u64, all[i].stored);
+        if len > stored {
+            drop(all);
+            super::super::super::space::within()?;
+            all = CACHE.0.borrow_mut();
+        }
         store::write(&resolve::key(path), &all[i].data)
             .map_err(super::super::store_err::errno_of)?;
         all[i].dirty = false;
+        all[i].stored = len;
     }
     if !keep {
         all.remove(i);

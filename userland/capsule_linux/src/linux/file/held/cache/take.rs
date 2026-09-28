@@ -36,7 +36,14 @@ pub fn hold(path: &[u8], exists: bool) -> Result<(), i64> {
         }
         false => (Vec::new(), now()),
     };
-    CACHE.0.borrow_mut().push(Entry { path: path.to_vec(), data, dirty: !exists, mtime_ms });
+    let stored = data.len() as u64;
+    CACHE.0.borrow_mut().push(Entry {
+        path: path.to_vec(),
+        data,
+        dirty: !exists,
+        stored,
+        mtime_ms,
+    });
     Ok(())
 }
 

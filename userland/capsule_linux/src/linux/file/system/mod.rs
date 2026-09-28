@@ -21,3 +21,4 @@
 
 pub mod cpu;
 pub mod declared;
+pub(super) mod space;

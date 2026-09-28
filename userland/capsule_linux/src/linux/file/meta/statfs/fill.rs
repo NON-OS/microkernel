@@ -20,7 +20,7 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 use super::super::super::mounts;
-use super::calls::{BLOCKS, BSIZE, FREE};
+use super::super::super::space::{self, BSIZE};
 
 const STATFS: usize = 120;
 
@@ -30,19 +30,21 @@ const ST_VALID: u64 = 0x20;
 const OPTS: [(&str, u64); 5] =
     [("ro", 1), ("nosuid", 2), ("nodev", 4), ("noexec", 8), ("relatime", 0x1000)];
 
-/*
- * The mount's type and flags from the family's mount table; the sizes are
- * the ones the personality declares for every mount.
- */
 pub(super) fn fill(guest: &Guest, path: &[u8], out: u64) -> u64 {
     let (id, _, magic) = mounts::of(path);
-    let opts = mounts::MOUNTS.iter().find(|m| m.0 == id).map_or("", |m| m.4);
+    let (point, opts) = mounts::MOUNTS.iter().find(|m| m.0 == id).map_or(("/", ""), |m| (m.2, m.4));
+    let room = match space::of(point, opts) {
+        Ok(room) => room,
+        Err(e) => return errno::fail(e),
+    };
     let mut buf = [0u8; STATFS];
     put(&mut buf, 0, magic); /* f_type */
     put(&mut buf, 8, BSIZE); /* f_bsize */
-    put(&mut buf, 16, BLOCKS); /* f_blocks */
-    put(&mut buf, 24, FREE); /* f_bfree */
-    put(&mut buf, 32, FREE); /* f_bavail */
+    put(&mut buf, 16, room.blocks); /* f_blocks */
+    put(&mut buf, 24, room.free); /* f_bfree */
+    put(&mut buf, 32, room.free); /* f_bavail */
+    put(&mut buf, 40, room.files); /* f_files */
+    put(&mut buf, 48, 0); /* f_ffree: none, or no limit when f_files is none */
     put(&mut buf, 56, u64::from(id)); /* f_fsid */
     put(&mut buf, 64, 255); /* f_namelen, the vfs path limit */
     put(&mut buf, 72, BSIZE); /* f_frsize */

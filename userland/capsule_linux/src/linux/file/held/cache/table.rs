@@ -26,6 +26,8 @@ pub(super) struct Entry {
     pub(super) path: Vec<u8>,
     pub(super) data: Vec<u8>,
     pub(super) dirty: bool,
+    /* How long the file is in the store, which `data` replaces at flush. */
+    pub(super) stored: u64,
     /* Wall-clock milliseconds of the last change, which stat reports. */
     pub(super) mtime_ms: u64,
 }

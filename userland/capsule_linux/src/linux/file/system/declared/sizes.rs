@@ -51,3 +51,9 @@ pub const OVERCOMMIT: u64 = 1;
  * arenas. An architectural constant, the same on every x86_64 machine.
  */
 pub const HPAGE_PMD: u64 = 2 << 20;
+
+/*
+ * The most the family may keep in its private directories, all of them
+ * together: half its memory, as Linux sizes a tmpfs it is given no size.
+ */
+pub const PRIVATE: u64 = MEMORY / 2;

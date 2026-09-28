@@ -15,16 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Everything a guest can learn about the system it runs on, in one place.
+ * How much room a mount has, for statfs, from the family's own files and
+ * nothing else: the store's use as a whole would let a guest watch a
+ * sibling write, so it is never read.
  *
- * uname, /proc, /sys and sysinfo all answer from these values and from
- * nothing else. Each is what NONOS declares to a Linux family, never a fact
- * of the machine underneath: the host's CPU model, memory size, boot id or
- * name never reach a guest, so no two families can tell they share a host.
+ * The tree at / is read-only to a guest: its size is the bytes the store
+ * holds under the family's root, and none of it is free. The private
+ * directories share one quota, declared::PRIVATE, less the bytes the
+ * family keeps there, in the store or still in its cache. /dev, /proc and
+ * /sys hold no bytes, which Linux reports as no blocks.
  */
 
-mod names;
-mod sizes;
+mod room;
+mod used;
 
-pub use names::{DOMAIN, HOSTNAME, MACHINE, OSTYPE, RELEASE, VERSION};
-pub use sizes::{CPUS, HPAGE_PMD, HZ, MEMORY, OVERCOMMIT, PID_MAX, PIPE_MAX, PRIVATE};
+pub use room::{of, BSIZE};
+pub use used::within;

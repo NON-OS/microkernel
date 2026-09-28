@@ -20,6 +20,15 @@ use alloc::vec::Vec;
 
 use super::table::CACHE;
 
+/*
+ * What the family's copies add to the store's bytes once written, less
+ * what they take away.
+ */
+pub fn growth() -> i64 {
+    let all = CACHE.0.borrow();
+    all.iter().map(|e| e.data.len() as i64 - e.stored as i64).sum()
+}
+
 /* The name went away or moved: the copy follows it. */
 pub fn forget(path: &[u8]) {
     CACHE.0.borrow_mut().retain(|e| e.path != path);
