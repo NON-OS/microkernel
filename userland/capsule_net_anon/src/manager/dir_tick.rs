@@ -38,9 +38,11 @@ use super::state::{Bootstrap, Manager};
 /*
  * How long to wait before trying the directory again after a stage got nowhere.
  * Short enough that a lease arriving is acted on promptly, long enough that seven
- * instant refusals per turn stop being a busy loop.
+ * instant refusals per turn stop being a busy loop. The manager's clock is in
+ * whole seconds (server::runner::seconds), so this is one second; it was
+ * written as 750 against that clock and waited twelve and a half minutes.
  */
-const RETRY_MS: u64 = 750;
+const RETRY_SECONDS: u64 = 1;
 
 pub fn tick(state: &mut Manager, now: u64) {
     if now < state.retry_after {
@@ -66,7 +68,7 @@ fn anchor(state: &mut Manager, now: u64) {
          * instantly, and nothing about the answer can change until the stack has
          * an address, so the next sweep waits rather than spinning.
          */
-        state.retry_after = now.saturating_add(RETRY_MS);
+        state.retry_after = now.saturating_add(RETRY_SECONDS);
         return;
     }
     state.certs = certs;
