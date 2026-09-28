@@ -25,18 +25,39 @@ use crate::linux::guest::Guest;
 use super::rw::{write_at, MAX_IO};
 
 pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
-    let take = (len as usize).min(MAX_IO);
-    let Some(bytes) = guest.read(buf, take) else {
-        return errno::fail(errno::EFAULT);
-    };
     let at = guest.fds.get(fd as usize).map_or(0, super::desc::pos);
-    match write_at(guest, fd, at, &bytes) {
-        Ok((n, end)) => {
-            if let Some(entry) = guest.fds.get_mut(fd as usize) {
-                super::desc::set_pos(entry, end);
-            }
-            errno::ok(n as u64)
+    let (n, end) = match whole(guest, fd, buf, len, at) {
+        Ok(done) => done,
+        Err(e) => return errno::fail(e),
+    };
+    if let Some(entry) = guest.fds.get_mut(fd as usize) {
+        super::desc::set_pos(entry, end);
+    }
+    errno::ok(n)
+}
+
+/*
+ * All `len` bytes at `buf` into the file at `at`, as a Linux file takes a
+ * whole write: MAX_IO bounds one copy out of the guest, not the call. The
+ * count written and where the write ended; a failure after some bytes
+ * landed is the count so far, as on Linux.
+ */
+pub fn whole(guest: &mut Guest, fd: u64, buf: u64, len: u64, at: u64) -> Result<(u64, u64), i64> {
+    let (mut done, mut end) = (0u64, at);
+    loop {
+        let take = ((len - done) as usize).min(MAX_IO);
+        let got = match guest.read(buf + done, take) {
+            Some(bytes) => write_at(guest, fd, end, &bytes),
+            None => Err(errno::EFAULT),
+        };
+        match got {
+            Ok((0, _)) if take > 0 => return Ok((done, end)),
+            Ok((n, to)) => (done, end) = (done + n as u64, to),
+            Err(e) if done == 0 => return Err(e),
+            Err(_) => return Ok((done, end)),
         }
-        Err(e) => errno::fail(e),
+        if done >= len {
+            return Ok((done, end));
+        }
     }
 }
