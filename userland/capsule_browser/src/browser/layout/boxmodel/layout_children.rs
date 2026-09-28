@@ -68,7 +68,7 @@ pub(super) fn layout_children(
             let outer = fw + ml + mr;
             let (fx, fy) = floats.next_pos(is_left, outer, clear_y);
             let fh = layout_box(child, fx + ml, fy, fw, frags, depth + 1, ctx);
-            floats.record(is_left, fx, outer, fy + fh + cs.margin_bottom as i32);
+            floats.record(is_left, fx, outer, fy, fy + fh + cs.margin_bottom as i32);
             continue;
         }
         // A cleared box starts below the floats it clears.
