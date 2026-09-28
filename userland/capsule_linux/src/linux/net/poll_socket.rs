@@ -35,6 +35,12 @@ pub(super) fn socket_bits(id: u32) -> u16 {
     }
 }
 
+/// True when `id` is a stream net.sockets holds: nothing tells the family
+/// when it changes, so a wait on it is looked at again on a tick.
+pub fn outside(id: u32) -> bool {
+    sock::with(|t| t.get(id).is_some_and(|s| s.svc.is_some()))
+}
+
 fn service_bits(handle: u32) -> u16 {
     let Some((0, out)) = call(OP_POLL, &handle.to_le_bytes(), 1) else {
         return 0;

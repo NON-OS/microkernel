@@ -25,10 +25,13 @@ use super::waits::{attempt, expire};
 use super::waits_fds::watched;
 use crate::linux::call::now_ms;
 use crate::linux::guest::Kind;
+use crate::linux::net::outside;
 
 const CLOCK_MONOTONIC: u64 = 1;
-/// How often a wait on a socket is looked at again: its readiness changes
-/// with no call for the family to answer. A timer is looked at when it fires.
+/// How often a wait on a stream net.sockets holds is looked at again: its
+/// readiness changes with no call for the family to answer. A family socket
+/// changes only in an answer, after which every wait is tried, so it needs
+/// none. A timer is looked at when it fires.
 const TICK_MS: u64 = 10;
 
 impl Family {
@@ -73,9 +76,12 @@ impl Family {
                 if let Some(d) = wait.deadline {
                     keep(d.saturating_sub(now));
                 }
+                if super::waits_sock::ticks(g, wait) {
+                    keep(TICK_MS);
+                }
                 for fd in watched(g, wait) {
                     match g.fds.get(fd as usize) {
-                        Some(f) if f.kind == Kind::Socket => keep(TICK_MS),
+                        Some(f) if f.kind == Kind::Socket && outside(f.handle) => keep(TICK_MS),
                         Some(f) if f.kind == Kind::Timer => {
                             // One that has already fired was seen by the last look.
                             let due = self.timers.get(f.handle as usize).map_or(0, |t| t.due);

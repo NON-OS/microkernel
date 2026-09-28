@@ -24,11 +24,13 @@ pub struct Socks {
     pub(super) list: Vec<Option<Sock>>,
     /// Where the next ephemeral port search starts.
     pub(super) next_port: u16,
+    /// Waiting calls partway through, by thread (`progress`).
+    pub(super) progress: Vec<(u32, usize)>,
 }
 
 impl Socks {
     pub const fn new() -> Socks {
-        Socks { list: Vec::new(), next_port: 0 }
+        Socks { list: Vec::new(), next_port: 0, progress: Vec::new() }
     }
 
     /// A fresh socket held by `pid`, or by nobody yet when `pid` is None (the

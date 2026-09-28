@@ -58,6 +58,9 @@ fn route(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
         np::CLOCK_NANOSLEEP => {
             crate::linux::call::clock_nanosleep(guest, frame.pid, a[0], a[1], a[2])
         }
+        n if super::waits_sock::takes(guest, n, a[0]) => {
+            super::waits_sock::io(guest, frame.pid, n, a)
+        }
         nr::READ | nr::WRITE if super::waits::may_wait(guest, frame.nr, a[0]) => {
             super::waits::io(guest, frame.pid, frame.nr, a)
         }

@@ -14,35 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Answering for a guest: the loop, and the table it answers from.
+//! How far a waiting call has got. A blocking send on Linux returns once
+//! every byte is queued, and a receive with MSG_WAITALL once its buffer is
+//! full; a call parked partway keeps its count here, by thread, until it is
+//! answered.
 
-mod answer;
-mod deliver;
-mod dispatch;
-mod family;
-mod family_futex;
-mod family_lend;
-mod family_reap;
-mod family_sleep;
-mod family_waits;
-mod loop_impl;
-mod pid_map;
-mod pid_ns;
-mod refused;
-mod pid_out;
-mod table;
-mod table_file;
-mod table_link;
-mod table_mem;
-mod table_net;
-mod table_proc;
-mod tally;
-mod unserved;
-mod waits;
-mod waits_fds;
-mod waits_sock;
-mod waits_sock_kind;
-mod waits_time;
+use super::cell::with;
 
-pub use answer::Answer;
-pub use loop_impl::serve;
+pub fn progress(tid: u32) -> usize {
+    with(|t| t.progress.iter().find(|p| p.0 == tid).map_or(0, |p| p.1))
+}
+
+pub fn set_progress(tid: u32, done: usize) {
+    with(|t| {
+        t.progress.retain(|p| p.0 != tid);
+        if done != 0 {
+            t.progress.push((tid, done));
+        }
+    });
+}

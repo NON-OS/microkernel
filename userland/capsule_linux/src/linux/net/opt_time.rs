@@ -15,9 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The options that hold a number of seconds: the keepalive times, and the
-//! receive and send limits.
+//! receive and send limits a wait keeps to.
 
 use crate::linux::abi::errno;
+
+use super::sock::{self, Opts};
 
 /// A keepalive time or count, 1 up to Linux's most, else EINVAL.
 pub fn keep(slot: &mut u32, v: u32, most: u32) -> u64 {
@@ -39,4 +41,10 @@ pub fn timeo(slot: &mut (u64, u64), sec: Option<u64>, usec: Option<u64>) -> u64 
     }
     *slot = if (sec as i64) < 0 { (0, 0) } else { (sec, usec) };
     errno::ok(0)
+}
+
+/// The limit a receive (`read`) or a send waits for, from its option.
+pub fn limit_ms(id: u32, read: bool) -> Option<u64> {
+    sock::with(|t| t.get(id).map(|s| if read { s.opts.rcvtimeo } else { s.opts.sndtimeo }))
+        .and_then(Opts::limit_ms)
 }

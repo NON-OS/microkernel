@@ -54,6 +54,16 @@ pub fn install(guest: &mut Guest, id: u32, flags: u64) -> u64 {
     }
 }
 
+/// The socket `fd` names, if it names one.
+pub fn sock_id(guest: &Guest, fd: u64) -> Option<u32> {
+    sock_of(guest, fd).ok()
+}
+
+/// True for a stream socket.
+pub fn is_stream(id: u32) -> bool {
+    sock::with(|t| t.get(id).is_some_and(|s| s.proto == sock::Proto::Stream))
+}
+
 /// True when `fd` is non-blocking.
 pub fn nonblock(guest: &Guest, fd: u64) -> bool {
     guest.fds.get(fd as usize).is_some_and(|f| f.nonblock)

@@ -20,3 +20,4 @@ pub const MSG_OOB: u64 = 0x1;
 pub const MSG_PEEK: u64 = 0x2;
 pub const MSG_TRUNC: u64 = 0x20;
 pub const MSG_DONTWAIT: u64 = 0x40;
+pub const MSG_WAITALL: u64 = 0x100;

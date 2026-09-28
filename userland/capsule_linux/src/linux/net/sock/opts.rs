@@ -63,4 +63,10 @@ impl Opts {
             sndtimeo: (0, 0),
         }
     }
+
+    /// Milliseconds a receive or a send may wait, None for no limit.
+    pub fn limit_ms((sec, usec): (u64, u64)) -> Option<u64> {
+        let ms = sec.saturating_mul(1000).saturating_add(usec.div_ceil(1000));
+        (ms != 0).then_some(ms)
+    }
 }
