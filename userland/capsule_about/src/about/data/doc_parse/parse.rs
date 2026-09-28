@@ -16,7 +16,10 @@
 
 //! Reading one, strictly.
 
-use super::layout::{ATTEST_LEN_AT, COMPLETE_AT, COUNT_AT, MAGIC, ROOT_AT, VERSION};
+use super::layout::{
+    ATTEST_LEN_AT, COMPLETE_AT, COUNT_AT, ENFORCING_AT, KEY_LEN, MAGIC, ROOT_AT, UNCONFINED_AT,
+    VENDOR_AT, VENDOR_MAX, VERSION,
+};
 use super::types::Doc;
 
 // Strict: every length is checked against what is actually there before it is
@@ -34,11 +37,21 @@ pub fn parse(b: &[u8], sent: &[u8; 32]) -> Option<Doc> {
     registry_root.copy_from_slice(b.get(ROOT_AT..ROOT_AT + 32)?);
     let challenge_echoed = b.get(12..12 + 32)? == sent;
 
+    // A vendor this parser does not know is a layout it would be guessing at.
+    let iommu_vendor = *b.get(VENDOR_AT)?;
+    if iommu_vendor > VENDOR_MAX {
+        return None;
+    }
+
     let attest_len = be32(b, ATTEST_LEN_AT)?;
-    let sig_len_at = ATTEST_LEN_AT + 4 + attest_len as usize;
+    let sig_len_at = ATTEST_LEN_AT.checked_add(4)?.checked_add(attest_len as usize)?;
     let signature_len = be32(b, sig_len_at)?;
+    let key_len_at = sig_len_at.checked_add(4)?.checked_add(signature_len as usize)?;
+    if be32(b, key_len_at)? != KEY_LEN {
+        return None;
+    }
     // The document must end exactly where its own lengths say it does.
-    if sig_len_at + 4 + signature_len as usize != b.len() {
+    if key_len_at + 4 + KEY_LEN as usize != b.len() {
         return None;
     }
 
@@ -46,6 +59,9 @@ pub fn parse(b: &[u8], sent: &[u8; 32]) -> Option<Doc> {
         registry_root,
         capsule_count: be32(b, COUNT_AT)?,
         registry_complete: *b.get(COMPLETE_AT)? == 1,
+        iommu_vendor,
+        iommu_enforcing: *b.get(ENFORCING_AT)? == 1,
+        unconfined_grants: be32(b, UNCONFINED_AT)?,
         challenge_echoed,
         attest_len,
         signature_len,

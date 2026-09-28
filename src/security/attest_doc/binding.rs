@@ -16,10 +16,20 @@
 
 /// Domain separator. Without one, a digest computed here could be replayed as
 /// a digest computed for some other purpose over the same bytes.
-const BIND_CONTEXT: &[u8] = b"nonos.attest.bind.v1";
+const BIND_CONTEXT: &[u8] = b"nonos.attest.bind.v2";
 
-/// Fold the challenge and the registry root into the value handed to the TPM
-/// as `qualifyingData`.
+/// What the machine says about device DMA, bound into the quote beside the
+/// registry root: which IOMMU, whether it enforces, and how many mappings go
+/// around it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct DmaPosture {
+    pub vendor: u8,
+    pub enforcing: bool,
+    pub unconfined_grants: u32,
+}
+
+/// Fold the challenge, the registry root and the DMA posture into the value
+/// handed to the TPM as `qualifyingData`.
 ///
 /// This is the load-bearing step of the whole design. A TPM quote signs two
 /// things: the PCR values, and whatever the caller passed as qualifying data.
@@ -32,10 +42,21 @@ const BIND_CONTEXT: &[u8] = b"nonos.attest.bind.v1";
 /// verifier recomputes this digest from the challenge it issued and the root
 /// it was shown, and any substitution of either produces a different value
 /// than the one the TPM signed.
-pub fn qualifying_data(challenge: &[u8; 32], registry_root: &[u8; 32]) -> [u8; 32] {
+///
+/// The DMA posture is bound for the same reason. A document saying no mapping
+/// goes around the IOMMU is worth nothing if that number could be edited after
+/// the quote, so an attested boot with unconfined grants and one without are
+/// different signed statements.
+pub fn qualifying_data(
+    challenge: &[u8; 32],
+    registry_root: &[u8; 32],
+    dma: &DmaPosture,
+) -> [u8; 32] {
     let mut hasher = blake3::Hasher::new();
     hasher.update(BIND_CONTEXT);
     hasher.update(challenge);
     hasher.update(registry_root);
+    hasher.update(&[dma.vendor, u8::from(dma.enforcing)]);
+    hasher.update(&dma.unconfined_grants.to_be_bytes());
     *hasher.finalize().as_bytes()
 }

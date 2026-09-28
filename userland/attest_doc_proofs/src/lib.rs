@@ -7,8 +7,17 @@
 //! did not check is a document an attacker gets to shape. These drive it with
 //! the malformed cases rather than the happy one.
 
+extern crate alloc;
+
 /// The real parser, unchanged.
 pub mod doc_parse;
+
+/// The kernel's encoder, unchanged. The tests build every document with it, so
+/// a layout the kernel writes and the parser does not read fails here instead
+/// of on the machine.
+#[cfg(test)]
+#[path = "../../../src/security/attest_doc/document.rs"]
+mod kernel_document;
 
 #[cfg(test)]
 mod parse_tests;
