@@ -39,6 +39,7 @@ impl Scrollback {
             return;
         }
         let mut p = Palette::xterm();
+        p.colors[..16].copy_from_slice(crate::term::theme::ansi::base16_for(t.bg));
         p.fg = t.fg & 0x00FF_FFFF;
         p.bg = t.bg & 0x00FF_FFFF;
         p.cursor = t.accent & 0x00FF_FFFF;

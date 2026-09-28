@@ -86,6 +86,10 @@ pub mod help_pages;
 #[path = "../../capsule_terminal/src/command/builtin/tool_list.rs"]
 pub mod tool_list;
 
+// The colours programs name.
+#[path = "../../capsule_terminal/src/term/theme/ansi.rs"]
+pub mod ansi;
+
 #[cfg(test)]
 mod cadence_tests;
 #[cfg(test)]
@@ -106,6 +110,8 @@ mod help_tests;
 mod line_tests;
 #[cfg(test)]
 mod long_line_tests;
+#[cfg(test)]
+mod palette_tests;
 #[cfg(test)]
 mod quick_open_tests;
 #[cfg(test)]
