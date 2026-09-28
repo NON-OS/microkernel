@@ -22,6 +22,7 @@ use alloc::vec;
 use crate::linux::guest::{Guest, Kind};
 
 use super::fd::sock_of;
+use super::peer_addr::To;
 use super::sock::{self, Domain, Proto};
 use super::sockaddr::is_loopback;
 
@@ -46,14 +47,20 @@ pub fn sendto(
         let inet_dgram = sock::with(|t| {
             t.get(id).is_some_and(|s| s.proto == Proto::Dgram && s.domain == Domain::Inet)
         });
-        match to.filter(|_| inet_dgram) {
-            Some(to) if super::resolver::is_nameserver(to) => {
+        match to {
+            Some(To::Inet(a)) if inet_dgram && super::resolver::is_nameserver(a) => {
                 super::resolver::become_resolver(guest, fd)
             }
-            Some(to) if !is_loopback(to.ip) => return super::policy::refuse_out("sendto", to),
-            _ => return super::xfer_out::send(guest, id, &vec![(buf, len)], 0, flags, to),
+            Some(To::Inet(a)) if inet_dgram && !is_loopback(a.ip) => {
+                return super::policy::refuse_out("sendto", a)
+            }
+            to => return super::xfer_out::send(guest, id, &vec![(buf, len)], 0, flags, to),
         }
     }
+    let to = match to {
+        Some(To::Inet(a)) => Some(a),
+        _ => None,
+    };
     super::resolver::query(guest, fd, buf, len, to)
 }
 

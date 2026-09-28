@@ -45,8 +45,10 @@ pub fn sendmsg(guest: &mut Guest, fd: u64, msg: u64, flags: u64, skip: usize) ->
         Ok(to) => to,
         Err(e) => return e,
     };
-    if let Some(to) = to.filter(|a| !super::sockaddr::is_loopback(a.ip)) {
-        return super::policy::refuse_out("sendmsg", to);
+    if let Some(super::peer_addr::To::Inet(a)) = &to {
+        if !super::sockaddr::is_loopback(a.ip) {
+            return super::policy::refuse_out("sendmsg", *a);
+        }
     }
     super::xfer_out::send(guest, id, &h.iov, skip, flags, to)
 }

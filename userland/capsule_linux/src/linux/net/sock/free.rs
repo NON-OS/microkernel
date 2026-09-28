@@ -44,10 +44,13 @@ impl Socks {
         if let Some(h) = gone.svc {
             super::super::stream::close(h);
         }
-        if let Some(p) = gone.peer.and_then(|p| self.get_mut(p)) {
+        let reset = reset || !gone.rx.is_empty() || gone.opts.linger == (1, 0);
+        // A stream's peer points back; a connected Unix datagram socket
+        // points at this one alone. Either is told, and forgets the index.
+        for p in self.list.iter_mut().flatten().filter(|p| p.peer == Some(id)) {
             p.peer = None;
             p.eof = true;
-            if reset || !gone.rx.is_empty() || gone.opts.linger == (1, 0) {
+            if reset && p.proto == super::types::Proto::Stream {
                 p.error = ECONNRESET;
             }
         }

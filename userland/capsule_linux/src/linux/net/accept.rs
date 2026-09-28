@@ -22,7 +22,7 @@ use crate::linux::guest::Guest;
 
 use super::close::discard;
 use super::fd::{install, sock_of, SOCK_CLOEXEC, SOCK_NONBLOCK};
-use super::sock::{self, Domain, Proto};
+use super::sock::{self, Domain, Peer, Proto};
 
 pub fn accept4(guest: &mut Guest, fd: u64, at: u64, lenp: u64, flags: u64) -> u64 {
     if flags & !(SOCK_NONBLOCK | SOCK_CLOEXEC) != 0 {
@@ -44,7 +44,11 @@ pub fn accept4(guest: &mut Guest, fd: u64, at: u64, lenp: u64, flags: u64) -> u6
         let child = s.pending.pop_front().ok_or(errno::EAGAIN)?;
         let c = t.get_mut(child).ok_or(errno::ECONNABORTED)?;
         c.holders.push(pid);
-        Ok((child, c.remote.unwrap_or_default()))
+        let from = match c.domain {
+            Domain::Inet => Peer::Inet(c.remote.unwrap_or_default()),
+            Domain::Unix => Peer::Unix(c.upeer.clone()),
+        };
+        Ok((child, from))
     });
     let (child, from) = match taken {
         Ok(v) => v,
@@ -54,7 +58,7 @@ pub fn accept4(guest: &mut Guest, fd: u64, at: u64, lenp: u64, flags: u64) -> u6
     let Some(slot) = errno::slot(n) else {
         return n;
     };
-    let wrote = super::sockaddr_out::write(guest, at, lenp, Domain::Inet, from);
+    let wrote = super::sockaddr_out::write(guest, at, lenp, &from);
     if errno::slot(wrote).is_none() {
         discard(guest, slot as u64);
         return wrote;

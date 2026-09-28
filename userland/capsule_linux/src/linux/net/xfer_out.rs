@@ -24,7 +24,8 @@ use crate::linux::guest::Guest;
 
 use super::flags::MSG_OOB;
 use super::iov::{self, Iov};
-use super::sock::{self, Addr, Proto};
+use super::peer_addr::To;
+use super::sock::{self, Proto};
 
 /// What one send takes from the guest at most: the default receive buffer
 /// of a stream's peer, so a single call can fill it.
@@ -34,11 +35,12 @@ const GRAM_CAP: usize = 65508;
 
 /// Send the message in `iov` from socket `id`, `skip` bytes of it having
 /// gone already: the count sent now, or an errno.
-pub fn send(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64, to: Option<Addr>) -> u64 {
+pub fn send(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64, to: Option<To>) -> u64 {
     if flags & MSG_OOB != 0 {
         return errno::fail(errno::EOPNOTSUPP);
     }
-    let Some((proto, svc)) = sock::with(|t| t.get(id).map(|s| (s.proto, s.svc))) else {
+    let Some((proto, domain, svc)) = sock::with(|t| t.get(id).map(|s| (s.proto, s.domain, s.svc)))
+    else {
         return errno::fail(errno::EBADF);
     };
     let cap = match (svc, proto) {
@@ -53,9 +55,13 @@ pub fn send(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64, to: Opti
     if let Some(h) = svc {
         return super::stream::send_bytes(h, &bytes);
     }
+    let dest = match super::dest::dest(guest, proto, domain, to) {
+        Ok(d) => d,
+        Err(e) => return e,
+    };
     let sent = sock::with(|t| match proto {
         Proto::Stream => t.write(id, &bytes),
-        Proto::Dgram => t.autobind(id).and_then(|()| t.send_gram(id, to, &bytes)),
+        Proto::Dgram => t.autobind(id).and_then(|()| t.send_gram(id, dest, &bytes)),
     });
     match sent {
         Ok(n) => errno::ok(n as u64),

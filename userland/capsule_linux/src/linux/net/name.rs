@@ -20,18 +20,23 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 use super::fd::sock_of;
-use super::sock::{self, Addr, Domain};
+use super::sock::{self, Domain, Peer};
 
 pub fn getsockname(guest: &mut Guest, fd: u64, at: u64, lenp: u64) -> u64 {
     let id = match sock_of(guest, fd) {
         Ok(id) => id,
         Err(e) => return e,
     };
-    let Some((domain, local)) = sock::with(|t| t.get(id).map(|s| (s.domain, s.local))) else {
+    // A socket not yet bound is 0.0.0.0 port 0, or an unnamed Unix socket.
+    let Some(me) = sock::with(|t| {
+        t.get(id).map(|s| match s.domain {
+            Domain::Inet => Peer::Inet(s.local.unwrap_or_default()),
+            Domain::Unix => Peer::Unix(s.uname.clone()),
+        })
+    }) else {
         return errno::fail(errno::EBADF);
     };
-    // A socket not yet bound is 0.0.0.0, port 0.
-    super::sockaddr_out::write(guest, at, lenp, domain, local.unwrap_or_default())
+    super::sockaddr_out::write(guest, at, lenp, &me)
 }
 
 pub fn getpeername(guest: &mut Guest, fd: u64, at: u64, lenp: u64) -> u64 {
@@ -41,13 +46,16 @@ pub fn getpeername(guest: &mut Guest, fd: u64, at: u64, lenp: u64) -> u64 {
     };
     // A reset connection is closed, and has no peer; one whose peer only
     // shut down, or left cleanly, still does.
-    let peer: Option<(Domain, Addr)> = sock::with(|t| {
+    let peer: Option<Peer> = sock::with(|t| {
         let s = t.get(id)?;
         let live = s.connected && !s.broken && s.error == 0;
-        live.then(|| (s.domain, s.remote.unwrap_or_default()))
+        live.then(|| match s.domain {
+            Domain::Inet => Peer::Inet(s.remote.unwrap_or_default()),
+            Domain::Unix => Peer::Unix(s.upeer.clone()),
+        })
     });
     match peer {
-        Some((domain, addr)) => super::sockaddr_out::write(guest, at, lenp, domain, addr),
+        Some(p) => super::sockaddr_out::write(guest, at, lenp, &p),
         None => errno::fail(errno::ENOTCONN),
     }
 }

@@ -42,8 +42,7 @@ pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
         return errno::fail(errno::EBADF);
     };
     match (proto, domain) {
-        // A socketpair end is connected from the start.
-        (_, Domain::Unix) => errno::fail(errno::EISCONN),
+        (_, Domain::Unix) => super::unix_calls::connect(guest, fd, id, proto, at, len),
         (Proto::Dgram, _) => super::connect_dgram::connect(guest, fd, id, family, to),
         _ if family != AF_INET => errno::fail(errno::EAFNOSUPPORT),
         _ if is_loopback(to.ip) => super::connect_lo::loopback(id, to, nonblock(guest, fd)),

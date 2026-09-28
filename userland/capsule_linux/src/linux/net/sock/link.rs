@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Joining two stream ends: a loopback connect, which Linux completes in the
-//! caller's own call, and socketpair.
+//! Joining two stream ends: a connect on loopback or to a Unix name, which
+//! Linux completes in the caller's own call, and socketpair.
 
 use super::table::Socks;
-use super::types::{Addr, Domain, Proto};
+use super::types::{Addr, Proto};
 
 pub enum Link {
     /// Connected; the listener has one more connection to accept.
@@ -32,30 +32,38 @@ pub enum Link {
 impl Socks {
     /// Connect stream `id`, already bound, to the listener at `to`.
     pub fn link(&mut self, id: u32, to: Addr) -> Link {
-        let Some(l) = self.listener(to) else {
-            return Link::Refused;
-        };
-        let Some((backlog, queued, opts)) =
-            self.get(l).map(|s| (s.backlog, s.pending.len(), s.opts))
-        else {
+        match self.listener(to) {
+            Some(l) => self.join(id, l),
+            None => Link::Refused,
+        }
+    }
+
+    /// Connect stream `id` to listener `l`: a new server end, with the
+    /// listener's name and options, waits in its queue for accept.
+    pub fn join(&mut self, id: u32, l: u32) -> Link {
+        let Some(ls) = self.get(l) else {
             return Link::Refused;
         };
         // Linux queues one more than the backlog it was given.
-        if queued > backlog {
+        if ls.pending.len() > ls.backlog {
             return Link::Full;
         }
-        let from = self.get(id).and_then(|s| s.local);
-        let server = self.open(Domain::Inet, Proto::Stream, None);
+        let (domain, local, uname, opts) = (ls.domain, ls.local, ls.uname.clone(), ls.opts);
+        let (from, from_name) = self.get(id).map_or((None, None), |c| (c.local, c.uname.clone()));
+        let server = self.open(domain, Proto::Stream, None);
         if let Some(s) = self.get_mut(server) {
-            s.local = Some(to);
+            s.local = local;
             s.remote = from;
+            s.uname = uname.clone();
+            s.upeer = from_name;
             s.peer = Some(id);
             s.connected = true;
             // An accepted socket starts with its listener's options.
             s.opts = opts;
         }
         if let Some(c) = self.get_mut(id) {
-            c.remote = Some(to);
+            c.remote = local;
+            c.upeer = uname;
             c.peer = Some(server);
             c.connected = true;
         }
@@ -63,18 +71,5 @@ impl Socks {
             l.pending.push_back(server);
         }
         Link::Done
-    }
-
-    /// Two connected sockets, both held by `pid`.
-    pub fn pair(&mut self, domain: Domain, proto: Proto, pid: u32) -> (u32, u32) {
-        let a = self.open(domain, proto, Some(pid));
-        let b = self.open(domain, proto, Some(pid));
-        for (me, other) in [(a, b), (b, a)] {
-            if let Some(s) = self.get_mut(me) {
-                s.peer = Some(other);
-                s.connected = true;
-            }
-        }
-        (a, b)
     }
 }

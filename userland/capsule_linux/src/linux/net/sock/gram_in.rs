@@ -21,8 +21,8 @@ use core::mem;
 
 use crate::linux::abi::errno::{EAGAIN, EBADF};
 
+use super::name::Peer;
 use super::table::Socks;
-use super::types::Addr;
 
 impl Socks {
     /// The next datagram, cut to `want`, with its whole length and sender.
@@ -32,7 +32,7 @@ impl Socks {
             let got = Got {
                 bytes: gram[..want.min(gram.len())].to_vec(),
                 whole: gram.len(),
-                from: *from,
+                from: from.clone(),
             };
             if !peek {
                 s.grams.pop_front();
@@ -43,7 +43,7 @@ impl Socks {
             return Err(mem::take(&mut s.error));
         }
         if s.rd_shut {
-            return Ok(Got { bytes: Vec::new(), whole: 0, from: Addr::default() });
+            return Ok(Got { bytes: Vec::new(), whole: 0, from: Peer::Unix(None) });
         }
         Err(EAGAIN)
     }
@@ -53,5 +53,5 @@ pub struct Got {
     pub bytes: Vec<u8>,
     /// The datagram's length before it was cut to fit.
     pub whole: usize,
-    pub from: Addr,
+    pub from: Peer,
 }

@@ -14,25 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! socketpair: two sockets connected from the start.
 
-//! The display connection: a Unix socket whose far end is this capsule.
-//! Every other Unix socket is the family's own (`net::sock`).
+use super::table::Socks;
+use super::types::{Domain, Proto};
 
-mod conn;
-mod give;
-mod msg;
-mod msg_parts;
-mod msg_rights;
-mod path;
-mod recvmsg;
-mod sendmsg;
-mod sock;
-mod sock_io;
-
-pub use conn::Conn;
-pub use sock::is_unix;
-pub use recvmsg::recvmsg;
-pub use sendmsg::sendmsg;
-pub use path::is_display;
-pub use sock::connect;
-pub use sock_io::{recv, send};
+impl Socks {
+    /// Two connected sockets, both held by `pid`.
+    pub fn pair(&mut self, domain: Domain, proto: Proto, pid: u32) -> (u32, u32) {
+        let a = self.open(domain, proto, Some(pid));
+        let b = self.open(domain, proto, Some(pid));
+        for (me, other) in [(a, b), (b, a)] {
+            if let Some(s) = self.get_mut(me) {
+                s.peer = Some(other);
+                s.connected = true;
+            }
+        }
+        (a, b)
+    }
+}

@@ -33,8 +33,11 @@ pub fn listen(guest: &mut Guest, fd: u64, backlog: u64) -> u64 {
             return errno::fail(errno::EBADF);
         };
         match (s.proto, s.domain, s.local) {
-            (Proto::Dgram, ..) | (_, Domain::Unix, _) => return errno::fail(errno::EOPNOTSUPP),
+            (Proto::Dgram, ..) => return errno::fail(errno::EOPNOTSUPP),
             _ if s.connected || s.svc.is_some() => return errno::fail(errno::EINVAL),
+            // A Unix socket must be bound first: Linux does not name it here.
+            (_, Domain::Unix, _) if s.uname.is_none() => return errno::fail(errno::EINVAL),
+            (_, Domain::Unix, _) => {}
             // Linux would bind 0.0.0.0 here, which is not the family's own.
             (_, _, None) => return not_loopback("listen", Addr::default()),
             (_, _, Some(at)) if !s.listening && t.listener(at).is_some() => {

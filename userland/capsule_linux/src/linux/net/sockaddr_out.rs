@@ -16,16 +16,18 @@
 
 //! A socket's address written into guest memory.
 
+use alloc::vec::Vec;
+
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::sock::{Addr, Domain};
-use super::sockaddr::{AF_INET, AF_UNIX, SOCKADDR_IN};
+use super::sock::Peer;
+use super::sockaddr::{AF_INET, AF_UNIX};
 
-/// Write `addr` at `at`, cut to the length the guest offered at `lenp`, and
-/// the whole length back at `lenp`, as Linux's move_addr_to_user does. A
-/// socketpair end has an unnamed Unix address: the family alone.
-pub fn write(guest: &mut Guest, at: u64, lenp: u64, domain: Domain, addr: Addr) -> u64 {
+/// Write `peer` at `at`, cut to the length the guest offered at `lenp`, and
+/// the whole length back at `lenp`, as Linux's move_addr_to_user does. An
+/// unnamed Unix socket is the family alone; a path carries its NUL.
+pub fn write(guest: &mut Guest, at: u64, lenp: u64, peer: &Peer) -> u64 {
     if at == 0 || lenp == 0 {
         return errno::ok(0);
     }
@@ -36,23 +38,34 @@ pub fn write(guest: &mut Guest, at: u64, lenp: u64, domain: Domain, addr: Addr) 
     if room < 0 {
         return errno::fail(errno::EINVAL);
     }
-    let mut sa = [0u8; SOCKADDR_IN];
-    let whole = match domain {
-        Domain::Unix => {
-            sa[0..2].copy_from_slice(&AF_UNIX.to_le_bytes());
-            2
-        }
-        Domain::Inet => {
-            sa[0..2].copy_from_slice(&AF_INET.to_le_bytes());
-            sa[2..4].copy_from_slice(&addr.port.to_be_bytes());
-            sa[4..8].copy_from_slice(&addr.ip);
-            SOCKADDR_IN
-        }
-    };
-    let n = whole.min(room as usize);
-    if guest.write(at, &sa[..n]) < n as i64 || guest.write(lenp, &(whole as u32).to_le_bytes()) < 4
+    let sa = encode(peer);
+    let n = sa.len().min(room as usize);
+    if guest.write(at, &sa[..n]) < n as i64
+        || guest.write(lenp, &(sa.len() as u32).to_le_bytes()) < 4
     {
         return errno::fail(errno::EFAULT);
     }
     errno::ok(0)
+}
+
+fn encode(peer: &Peer) -> Vec<u8> {
+    let mut sa = Vec::with_capacity(16);
+    match peer {
+        Peer::Inet(addr) => {
+            sa.extend_from_slice(&AF_INET.to_le_bytes());
+            sa.extend_from_slice(&addr.port.to_be_bytes());
+            sa.extend_from_slice(&addr.ip);
+            sa.resize(16, 0);
+        }
+        Peer::Unix(name) => {
+            sa.extend_from_slice(&AF_UNIX.to_le_bytes());
+            if let Some(n) = name {
+                sa.extend_from_slice(&n.shown);
+                if !n.is_abstract() {
+                    sa.push(0);
+                }
+            }
+        }
+    }
+    sa
 }

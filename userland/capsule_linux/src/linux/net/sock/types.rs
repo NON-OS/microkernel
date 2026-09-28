@@ -19,6 +19,7 @@
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
+use super::name::{Peer, UName};
 use super::opts::Opts;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -56,7 +57,7 @@ pub struct Sock {
     /// Bytes the peer wrote that this end has not read.
     pub rx: VecDeque<u8>,
     /// Datagrams waiting to be read, each with where it came from.
-    pub grams: VecDeque<(Addr, Vec<u8>)>,
+    pub grams: VecDeque<(Peer, Vec<u8>)>,
     /// The peer will write nothing more: it shut its side or it is gone.
     pub eof: bool,
     pub wr_shut: bool,
@@ -70,4 +71,7 @@ pub struct Sock {
     pub svc: Option<u32>,
     /// The processes that hold a descriptor naming this socket.
     pub holders: Vec<u32>,
+    /// A Unix socket's own name, and its connected peer's.
+    pub uname: Option<UName>,
+    pub upeer: Option<UName>,
 }

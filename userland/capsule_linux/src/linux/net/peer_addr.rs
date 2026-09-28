@@ -22,15 +22,16 @@ use crate::linux::guest::Guest;
 
 use super::flags::MSG_TRUNC;
 use super::sock::Addr;
-use super::sockaddr::{self, AF_INET};
+use super::sockaddr::{self, AF_INET, AF_UNIX};
+use super::sockaddr_un::UAddr;
 use super::xfer_in::In;
 
 /// The count a receive answers, with the sender written out. A stream has
 /// no sender, and Linux says so with a length of zero.
 pub fn finish(guest: &mut Guest, got: In, flags: u64, at: u64, alen: u64) -> u64 {
     if at != 0 {
-        let wrote = match got.from {
-            Some((domain, from)) => super::sockaddr_out::write(guest, at, alen, domain, from),
+        let wrote = match &got.from {
+            Some(from) => super::sockaddr_out::write(guest, at, alen, from),
             None if alen != 0 && guest.write(alen, &0u32.to_le_bytes()) < 4 => {
                 errno::fail(errno::EFAULT)
             }
@@ -43,13 +44,20 @@ pub fn finish(guest: &mut Guest, got: In, flags: u64, at: u64, alen: u64) -> u64
     errno::ok(if flags & MSG_TRUNC != 0 { got.whole } else { got.n } as u64)
 }
 
-/// The address a send names, if any: IPv4 only.
-pub fn address(guest: &Guest, at: u64, alen: u64) -> Result<Option<Addr>, u64> {
+/// Where a send names: an IPv4 address or a Unix name.
+pub enum To {
+    Inet(Addr),
+    Unix(UAddr),
+}
+
+/// The address a send names, if any.
+pub fn address(guest: &Guest, at: u64, alen: u64) -> Result<Option<To>, u64> {
     if at == 0 {
         return Ok(None);
     }
     match sockaddr::read(guest, at, alen)? {
-        (AF_INET, a) => Ok(Some(a)),
+        (AF_INET, a) => Ok(Some(To::Inet(a))),
+        (AF_UNIX, _) => Ok(Some(To::Unix(super::sockaddr_un::read(guest, at, alen)?))),
         _ => Err(errno::fail(errno::EAFNOSUPPORT)),
     }
 }

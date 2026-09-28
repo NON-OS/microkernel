@@ -23,7 +23,7 @@ use crate::linux::guest::Guest;
 
 use super::flags::{MSG_OOB, MSG_PEEK, MSG_TRUNC};
 use super::iov::{self, Iov};
-use super::sock::{self, Addr, Domain, Proto};
+use super::sock::{self, Peer, Proto};
 
 pub struct In {
     /// Bytes put in the guest's buffers.
@@ -32,7 +32,7 @@ pub struct In {
     pub whole: usize,
     /// Where a datagram came from; a stream, and an unnamed sender, say
     /// nothing.
-    pub from: Option<(Domain, Addr)>,
+    pub from: Option<Peer>,
 }
 
 /// Receive into `iov` from socket `id`, `skip` bytes of it filled already.
@@ -40,8 +40,7 @@ pub fn recv(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64) -> Resul
     if flags & MSG_OOB != 0 {
         return Err(errno::fail(errno::EINVAL));
     }
-    let Some((proto, domain, svc)) = sock::with(|t| t.get(id).map(|s| (s.proto, s.domain, s.svc)))
-    else {
+    let Some((proto, svc)) = sock::with(|t| t.get(id).map(|s| (s.proto, s.svc))) else {
         return Err(errno::fail(errno::EBADF));
     };
     let want = iov::total(iov).saturating_sub(skip);
@@ -64,7 +63,10 @@ pub fn recv(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64) -> Resul
             let got = sock::with(|t| t.take_gram(id, want, peek)).map_err(errno::fail)?;
             iov::scatter(guest, iov, skip, &got.bytes)?;
             // A socketpair's peer has no name, and Linux gives none.
-            let from = (domain == Domain::Inet).then_some((domain, got.from));
+            let from = match got.from {
+                Peer::Unix(None) => None,
+                named => Some(named),
+            };
             Ok(In { n: got.bytes.len(), whole: got.whole, from })
         }
     }
