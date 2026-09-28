@@ -21,7 +21,8 @@
 
 use nonos_libc::{mk_foreign_context, mk_foreign_signal, ForeignRegs, SIGNAL_RETURN};
 
-use super::sigframe::{returned, SIGCONTEXT_OFF, WORDS};
+use super::sigframe::{SIGCONTEXT_OFF, WORDS};
+use super::sigframe_read::returned;
 use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
 

@@ -14,38 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every proof, by the thing it constrains.
+//! Reading back the frame `sigframe` built, as rt_sigreturn does: the
+//! registers the handler returns to. Pure, and any bytes at all may sit where
+//! the guest's rsp points, so every read is checked and none can panic.
 
-mod alpine_index_tests;
-mod auth_refusals;
-mod auth_tests;
-mod deb_chain_tests;
-mod deb_file_tests;
-mod deb_path_tests;
-mod dir_children_tests;
-mod dirent_tests;
-mod elf_tests;
-mod exec_shebang_tests;
-mod family_tests;
-mod host_body_tests;
-mod http_reply_tests;
-mod inflate_bound_tests;
-mod index_tests;
-mod kali_anchor_tests;
-mod key_tests;
-mod listing_family_tests;
-mod mutation;
-mod mutation_tests;
-mod pacman_desc_tests;
-mod pacman_rsa_tests;
-mod resolve_tests;
-mod route_tests;
-mod sigframe_layout_tests;
-mod sigframe_mutation_tests;
-mod sigframe_tests;
-mod service;
-mod stack_words_tests;
-mod stat_tests;
-mod tar_link_tests;
-mod tar_tests;
-mod wire_tests;
+use super::sigframe::{SIGCONTEXT_OFF, WORDS};
+
+fn word(uc: &[u8], at: usize) -> Option<u64> {
+    Some(u64::from_le_bytes(uc.get(at..at + 8)?.try_into().ok()?))
+}
+
+/// The 18 words a returning frame carries, from the ucontext the guest's rsp
+/// points at: the trampoline's `ret` left rsp there.
+pub fn returned(uc: &[u8]) -> Option<[u64; WORDS]> {
+    let mut out = [0u64; WORDS];
+    for (i, slot) in out.iter_mut().enumerate() {
+        *slot = word(uc, SIGCONTEXT_OFF + i * 8)?;
+    }
+    Some(out)
+}

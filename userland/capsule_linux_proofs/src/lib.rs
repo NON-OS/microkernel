@@ -51,8 +51,10 @@ pub mod statbuf;
 #[path = "../../capsule_linux/src/linux/net/host_body.rs"]
 pub mod host_body;
 
-// net.sockets' own reader for a connect-by-host body, mounted at the crate
-// paths it names, so the capsule's encoder is held to the real parser.
+/*
+ * net.sockets' own reader for a connect-by-host body, mounted at the crate
+ * paths it names, so the capsule's encoder is held to the real parser.
+ */
 #[path = "../../capsule_net_sockets/src/protocol/errno.rs"]
 pub mod protocol;
 pub mod server;
@@ -60,11 +62,8 @@ pub mod server;
 #[path = "../../capsule_linux/src/linux/net/route.rs"]
 pub mod route;
 
-#[path = "../../capsule_linux/src/linux/call/sigframe.rs"]
-pub mod sigframe;
-
-#[path = "../../capsule_linux/src/linux/call/spawn/exec_shebang.rs"]
-pub mod exec_shebang;
+pub mod calls;
+pub use calls::{exec_shebang, sigframe, sigframe_build, sigframe_read};
 
 #[cfg(test)]
 pub mod image;

@@ -28,7 +28,7 @@ use crate::install::unpacked::unpacked;
 
 use super::mutation::damage;
 
-const ROUNDS: usize = 1500;
+pub(super) const ROUNDS: usize = 1500;
 
 #[test]
 fn damaged_debs_never_panic() {
@@ -62,21 +62,5 @@ fn damaged_indexes_never_panic() {
             let text = String::from_utf8_lossy(&v);
             let _ = (stanzas(&text), sums(&text), records(&text));
         }
-    }
-}
-
-#[test]
-fn a_damaged_signal_frame_never_panics_returning() {
-    use crate::sigframe::{build, returned};
-    let mut s = 0x516E_A100u64;
-    let mut base = [0u64; 18];
-    base[15] = 0x7fff_ff00_0000;
-    let (_, buf, _) = build(&base, 0x4000, 0x4008, 11, 0).expect("frame");
-    for _ in 0..ROUNDS {
-        let mut v = buf.clone();
-        damage(&mut s, &mut v);
-        // rt_sigreturn reads the ucontext at the guest's rsp: any bytes there.
-        let _ = returned(&v);
-        let _ = v.first().map(|_| returned(&v[v.len().min(8)..]));
     }
 }

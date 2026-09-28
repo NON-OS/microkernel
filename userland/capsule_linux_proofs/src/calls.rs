@@ -14,38 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Every proof, by the thing it constrains.
+//! The capsule's pure call code, mounted from its tree as it ships: the
+//! signal frame built and read back, and the reading of exec's shebang line.
+//! None of it names the capsule's crate, so it runs here without a guest.
 
-mod alpine_index_tests;
-mod auth_refusals;
-mod auth_tests;
-mod deb_chain_tests;
-mod deb_file_tests;
-mod deb_path_tests;
-mod dir_children_tests;
-mod dirent_tests;
-mod elf_tests;
-mod exec_shebang_tests;
-mod family_tests;
-mod host_body_tests;
-mod http_reply_tests;
-mod inflate_bound_tests;
-mod index_tests;
-mod kali_anchor_tests;
-mod key_tests;
-mod listing_family_tests;
-mod mutation;
-mod mutation_tests;
-mod pacman_desc_tests;
-mod pacman_rsa_tests;
-mod resolve_tests;
-mod route_tests;
-mod sigframe_layout_tests;
-mod sigframe_mutation_tests;
-mod sigframe_tests;
-mod service;
-mod stack_words_tests;
-mod stat_tests;
-mod tar_link_tests;
-mod tar_tests;
-mod wire_tests;
+#[path = "../../capsule_linux/src/linux/call/sigframe.rs"]
+pub mod sigframe;
+
+#[path = "../../capsule_linux/src/linux/call/sigframe_build.rs"]
+pub mod sigframe_build;
+
+#[path = "../../capsule_linux/src/linux/call/sigframe_read.rs"]
+pub mod sigframe_read;
+
+#[path = "../../capsule_linux/src/linux/call/spawn/exec_shebang.rs"]
+pub mod exec_shebang;

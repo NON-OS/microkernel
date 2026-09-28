@@ -39,6 +39,8 @@ mod pipe_read;
 mod pipe_wait;
 mod session;
 pub mod sigframe;
+pub mod sigframe_build;
+mod sigframe_read;
 mod signal;
 mod signal_send;
 mod sigreturn;

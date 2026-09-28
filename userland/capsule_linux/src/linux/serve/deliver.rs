@@ -22,7 +22,8 @@
 
 use nonos_libc::{mk_foreign_context, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER};
 
-use crate::linux::call::sigframe::build;
+use crate::linux::call::sigframe::{Entry, INFO_LEN};
+use crate::linux::call::sigframe_build::build;
 use crate::linux::guest::Guest;
 
 /// rax in the register word order.
@@ -36,7 +37,19 @@ pub fn maybe_deliver(guest: &mut Guest, tid: u32, reply: u64) -> bool {
     let mut regs: ForeignRegs = [0; 18];
     let built = (mk_foreign_context(tid, &mut regs) == 0).then(|| {
         regs[RAX] = reply;
-        build(&regs, act.handler, act.restorer, u32::from(signum), 0)
+        /* The siginfo carries the number; uc_stack is SS_DISABLE, no alternate stack. */
+        let mut info = [0u8; INFO_LEN];
+        info[..4].copy_from_slice(&i32::from(signum).to_le_bytes());
+        let entry = Entry {
+            handler: act.handler,
+            restorer: act.restorer,
+            signum: u32::from(signum),
+            blocked: 0,
+            alt_top: None,
+            stack: [0, 2, 0],
+            info: &info,
+        };
+        build(&regs, &entry)
     });
     let Some(Some((_, buf, enter))) = built else {
         // Could not read the thread or shape a frame: keep the signal pending.
