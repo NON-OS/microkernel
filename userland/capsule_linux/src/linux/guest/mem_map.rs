@@ -22,6 +22,7 @@ use super::handle::Guest;
 use super::layout::USER_MAX;
 use super::mem::{span_within, MAX_SPAN};
 use super::region::Region;
+use super::region_cut::cut;
 
 impl Guest {
     /// Pages covering `[addr, addr + len)`.
@@ -58,6 +59,33 @@ impl Guest {
             unproven: false,
             backed: true,
         });
+        0
+    }
+
+    /// Back `[at, at + len)` of a reservation with the given protection, the
+    /// commit a fixed mmap makes. Pages the guest has not touched get zeroed
+    /// frames; pages it has touched keep their contents, since peer_map skips
+    /// a page that is already there. The span is then recorded as backed, in
+    /// place of the reservation it came from, so fork copies it.
+    pub fn commit(&mut self, at: u64, len: u64, write: bool, exec: bool) -> i64 {
+        let mut prot = 0;
+        if write {
+            prot |= PEER_PROT_WRITE;
+        }
+        if exec {
+            prot |= PEER_PROT_EXEC;
+        }
+        let mut done = 0;
+        while done < len {
+            let take = (len - done).min(MAX_SPAN);
+            let rc = mk_peer_map(self.pid, at + done, take, prot);
+            if rc < 0 {
+                return rc;
+            }
+            done += take;
+        }
+        self.regions = cut(&self.regions, at, len);
+        self.regions.push(Region { at, len, write, exec, unproven: false, backed: true });
         0
     }
 
