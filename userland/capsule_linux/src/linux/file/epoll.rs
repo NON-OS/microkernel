@@ -75,6 +75,14 @@ pub fn epoll_ctl(guest: &mut Guest, ep: u64, op: u64, fd: u64, event: u64) -> u6
     errno::ok(0)
 }
 
+/// Drop `fd` from every interest list, as Linux does when a descriptor is
+/// closed, so a later descriptor given its number starts unregistered.
+pub fn forget(guest: &mut Guest, fd: u64) {
+    for list in guest.fds.iter_mut().filter(|f| f.kind == Kind::Epoll) {
+        list.watch.retain(|w| w.fd != fd);
+    }
+}
+
 fn read_event(guest: &Guest, at: u64) -> Option<(u32, u64)> {
     let raw = guest.read(at, EVENT_LEN)?;
     let events = u32::from_le_bytes([raw[0], raw[1], raw[2], raw[3]]);
