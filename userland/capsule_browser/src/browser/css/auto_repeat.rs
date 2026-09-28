@@ -32,7 +32,7 @@ pub(super) fn parse_auto_repeat(
     em: u32,
 ) -> Option<(AutoRepeat, GridTrack, GridTrack)> {
     let v = value.trim();
-    if v.len() < 8 || !v[..7].eq_ignore_ascii_case("repeat(") {
+    if v.len() < 8 || !v.as_bytes()[..7].eq_ignore_ascii_case(b"repeat(") {
         return None;
     }
     let close = matching_paren(&v[7..]);
@@ -58,7 +58,7 @@ pub(super) fn parse_auto_repeat(
 // track itself when it is a plain length.
 fn min_track(spec: &str, em: u32) -> Option<GridTrack> {
     let t = spec.trim();
-    if t.len() >= 8 && t[..7].eq_ignore_ascii_case("minmax(") {
+    if t.len() >= 8 && t.as_bytes()[..7].eq_ignore_ascii_case(b"minmax(") {
         let inner = t.get(7..t.len() - 1)?;
         let comma = inner.rfind(',')?;
         return one_track(inner.get(..comma)?, em);

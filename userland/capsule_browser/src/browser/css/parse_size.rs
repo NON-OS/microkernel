@@ -50,7 +50,7 @@ pub(super) fn parse_size(value: &str, em_base: u32) -> Option<Size> {
 
 // The body of a calc(...) wrapper, case-insensitive, None otherwise.
 pub(super) fn strip_calc(v: &str) -> Option<&str> {
-    if v.len() >= 6 && v[..5].eq_ignore_ascii_case("calc(") && v.ends_with(')') {
+    if v.len() >= 6 && v.as_bytes()[..5].eq_ignore_ascii_case(b"calc(") && v.ends_with(')') {
         return Some(&v[5..v.len() - 1]);
     }
     None
