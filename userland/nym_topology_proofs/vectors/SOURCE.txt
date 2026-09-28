@@ -1,0 +1,3 @@
+exits.txt: the ed25519 identities of three nodes listed in
+https://validator.nymtech.net/api/v1/unstable/nym-nodes/skimmed/exit-gateways/active
+on 2026-09-28.

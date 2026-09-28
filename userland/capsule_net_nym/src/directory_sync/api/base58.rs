@@ -17,13 +17,20 @@
 /// Bitcoin-style base58, which is how Nym renders every key in an address.
 const ALPHABET: &[u8; 58] = b"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
-/// Decode into exactly 32 bytes.
+/// Decode into exactly 32 bytes, accepting only the canonical encoding.
 ///
-/// Leading zero bytes are not encoded positionally in base58, so a key with
-/// them decodes short and is right-aligned rather than rejected.
+/// In base58 each leading '1' stands for one leading zero byte and the rest
+/// is the number, so a 32-byte key has exactly one spelling. The decoder used
+/// to skip that count: empty text decoded to the all-zero key, and "1A",
+/// "11A" and "A" decoded to the same one. A key that arrives with a spelling
+/// its owner never published is refused rather than read as some other key.
 pub fn decode32(text: &[u8]) -> Option<[u8; 32]> {
+    if text.is_empty() {
+        return None;
+    }
+    let ones = text.iter().take_while(|&&c| c == b'1').count();
     let mut acc = [0u8; 32];
-    for ch in text {
+    for ch in &text[ones..] {
         let digit = ALPHABET.iter().position(|a| a == ch)? as u32;
         let mut carry = digit;
         for byte in acc.iter_mut().rev() {
@@ -34,6 +41,11 @@ pub fn decode32(text: &[u8]) -> Option<[u8; 32]> {
         if carry != 0 {
             return None;
         }
+    }
+    // The number's own leading zero bytes must be exactly the ones spelt.
+    let zeros = acc.iter().take_while(|&&b| b == 0).count();
+    if zeros != ones {
+        return None;
     }
     Some(acc)
 }
