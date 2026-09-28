@@ -12,6 +12,7 @@ extern crate alloc;
 pub mod term {
     pub mod dimensions {
         pub const COLS: usize = 96;
+        pub const LINE_MAX: usize = 1024;
     }
     pub mod util {
         pub use crate::fmt_u64::format_u64;
@@ -103,6 +104,8 @@ mod help_rows;
 mod help_tests;
 #[cfg(test)]
 mod line_tests;
+#[cfg(test)]
+mod long_line_tests;
 #[cfg(test)]
 mod quick_open_tests;
 #[cfg(test)]

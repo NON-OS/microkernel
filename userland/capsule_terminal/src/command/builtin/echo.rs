@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::command::output::Output;
-use crate::term::dimensions::COLS;
+use crate::term::dimensions::LINE_MAX;
 use crate::term::util::copy_into;
 
 pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
@@ -23,7 +23,7 @@ pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
         out.writeln(b"");
         return;
     }
-    let mut buf = [0u8; COLS];
+    let mut buf = [0u8; LINE_MAX];
     let mut n = 0;
     for (i, arg) in argv[1..].iter().enumerate() {
         if i > 0 && n < buf.len() {

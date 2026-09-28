@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::Line;
-use crate::term::dimensions::COLS;
+use crate::term::dimensions::LINE_MAX;
 
 impl Line {
     pub fn replace(&mut self, src: &[u8]) {
-        let n = src.len().min(COLS);
+        let n = src.len().min(LINE_MAX);
         self.buf[..n].copy_from_slice(&src[..n]);
         self.len = n;
         self.cursor = n;
