@@ -43,7 +43,7 @@ pub(super) fn wait_settled() -> bool {
     line[..PREFIX.len()].copy_from_slice(PREFIX);
     let ms = mk_uptime_ms().saturating_sub(start).max(0) as u64;
     let n = write_ms(&mut line[PREFIX.len()..], ms);
-    say(&line[..PREFIX.len() + n]);
+    super::start::note(&line[..PREFIX.len() + n]);
     true
 }
 

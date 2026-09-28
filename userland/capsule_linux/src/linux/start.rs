@@ -25,7 +25,7 @@ use super::{file::family::choose, guest::Guest};
 
 pub fn run() -> ! {
     super::heap::init();
-    say(b"[LINUX] personality up\n");
+    note(b"[LINUX] personality up\n");
     if let Some((name, pin)) = super::request::install_request() {
         say(b"[LINUX] installing\n");
         let pkg = choose(&name);
@@ -36,7 +36,10 @@ pub fn run() -> ! {
         mk_exit(done.map_or_else(|why| why.code(), |()| 0))
     }
     let Some(launch) = source() else {
-        say(b"[LINUX] nothing installed under that name\n");
+        // The terminal's request has already said what it looked for.
+        if !super::terminal::started() {
+            say(b"[LINUX] nothing installed under that name\n");
+        }
         mk_exit(1)
     };
     let pid = mk_foreign_spawn(b"linux");
@@ -56,7 +59,7 @@ pub fn run() -> ! {
     guest.links = alloc::rc::Rc::new(super::guest::Links::load());
     let code = match start(&mut guest, &launch) {
         Ok(()) => {
-            say(b"[LINUX] guest running\n");
+            note(b"[LINUX] guest running\n");
             serve(guest)
         }
         Err(step) => {
@@ -66,8 +69,17 @@ pub fn run() -> ! {
         }
     };
     super::file::clear_private();
-    say(b"[LINUX] guest exited\n");
+    note(b"[LINUX] guest exited\n");
     mk_exit(code)
+}
+
+/// A line about how a run is going, not about anything wrong with it. The
+/// terminal's `linux` command shows only the program's own output and what
+/// went wrong, so these stay out of it.
+pub(super) fn note(line: &[u8]) {
+    if !super::terminal::started() {
+        say(line);
+    }
 }
 
 pub(super) fn say(line: &[u8]) {

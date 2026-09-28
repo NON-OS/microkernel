@@ -24,6 +24,7 @@
 //! proof that verifies; naming one grants nothing.
 
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU8, Ordering};
 
 use nonos_libc::mk_args;
 
@@ -34,6 +35,27 @@ use crate::linux::guest::Links;
 use crate::linux::start::say;
 
 const MAX_ARGS: usize = 1024;
+
+/// 0 not yet looked, 1 not started by the terminal, 2 started by it.
+static STARTED: AtomicU8 = AtomicU8::new(0);
+
+/// True when the terminal's `linux` command started this capsule.
+pub(super) fn started() -> bool {
+    match STARTED.load(Ordering::Relaxed) {
+        0 => {
+            let mut buf = [0u8; MAX_ARGS];
+            let n = mk_args(buf.as_mut_ptr(), buf.len());
+            let first = usize::try_from(n)
+                .ok()
+                .and_then(|n| buf.get(..n))
+                .and_then(|got| got.split(|b| *b == 0).find(|p| !p.is_empty()));
+            let yes = first == Some(b"linux".as_slice());
+            STARTED.store(if yes { 2 } else { 1 }, Ordering::Relaxed);
+            yes
+        }
+        seen => seen == 2,
+    }
+}
 
 /// None when the terminal did not start this capsule; otherwise what to run,
 /// or None inside when there is nothing to run, with the reason said.

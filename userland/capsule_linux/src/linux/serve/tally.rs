@@ -36,5 +36,5 @@ pub fn report() {
     let missed = MISSED.load(Ordering::Relaxed);
     let served = CALLS.load(Ordering::Relaxed).saturating_sub(missed);
     let line = alloc::format!("[LINUX] calls served={served} unserved={missed}\n");
-    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    crate::linux::start::note(line.as_bytes());
 }
