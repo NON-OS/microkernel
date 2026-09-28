@@ -25,9 +25,13 @@ mod weights;
 #[path = "../../../capsule_net_anon/src/path/select/mod.rs"]
 mod select;
 
+#[path = "../../../capsule_net_anon/src/path/through.rs"]
+mod through;
+
 pub use relay::{Flags, Relay};
 pub use select::candidates::candidates;
 pub use select::{choose, eligible, Taken};
+pub use through::through;
 pub use weights::{weight_for, Position, Weights};
 
 /// `path::draw` is included at the crate root as well, and the real `select`

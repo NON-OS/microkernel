@@ -14,39 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Drawing a whole three hop path, exit first.
+//! A path through the guard the link is already open to.
 
 extern crate alloc;
 
 use alloc::vec::Vec;
-use nonos_libc::crypto_random;
 
 use super::relay::Relay;
 use super::select::{choose, Taken};
-use super::through::took;
 use super::weights::{Position, Weights};
 
-/// A whole path: guard, middle, exit, in that order.
+/// A three hop path whose first hop is `guard`, with each draw's dice from
+/// `roll`.
 ///
-pub fn draw_path(relays: &[Relay], weights: &Weights) -> Option<Vec<Relay>> {
+/// A circuit is created over a link, so its first hop can only be the relay
+/// at the far end of that link. A path drawn with a guard of its own sent
+/// CREATE2 carrying some other relay's identity and ntor key, and every build
+/// failed. The guard is taken first, so the exit and the middle exclude it
+/// and its /16 exactly as they exclude each other.
+pub fn through(
+    guard: &Relay,
+    relays: &[Relay],
+    weights: &Weights,
+    mut roll: impl FnMut() -> Option<u64>,
+) -> Option<Vec<Relay>> {
     let mut taken: Vec<Taken> = Vec::with_capacity(3);
+    taken.push(took(guard));
     let exit = choose(relays, weights, Position::Exit, &taken, roll()?)?.clone();
     taken.push(took(&exit));
-    let guard = choose(relays, weights, Position::Guard, &taken, roll()?)?.clone();
-    taken.push(took(&guard));
     let middle = choose(relays, weights, Position::Middle, &taken, roll()?)?.clone();
-    Some(alloc::vec![guard, middle, exit])
+    Some(alloc::vec![guard.clone(), middle, exit])
 }
 
-/// A three hop path through `guard`, the relay the link is open to.
-pub fn draw_path_through(guard: &Relay, relays: &[Relay], weights: &Weights) -> Option<Vec<Relay>> {
-    super::through::through(guard, relays, weights, roll)
-}
-
-fn roll() -> Option<u64> {
-    let mut bytes = [0u8; 8];
-    if crypto_random(bytes.as_mut_ptr(), bytes.len()) != bytes.len() as i64 {
-        return None;
-    }
-    Some(u64::from_le_bytes(bytes))
+pub(super) fn took(relay: &Relay) -> Taken {
+    Taken { identity: relay.rsa_identity, address: relay.address }
 }
