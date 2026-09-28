@@ -11,6 +11,7 @@
 #[cfg(feature = "nonos-tool-capsules")]
 #[macro_use]
 mod embed_macro;
+mod linux_terminal;
 mod registry;
 mod spec;
 
