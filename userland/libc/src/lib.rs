@@ -27,6 +27,7 @@ pub mod capsule_verify;
 pub mod crypto;
 pub mod debug;
 pub mod foreign;
+pub mod foreign_fork;
 pub mod foreign_frame;
 pub mod foreign_signal;
 pub mod graphics;
@@ -82,9 +83,10 @@ pub use consent::{
     mk_local_restore,
 };
 pub use foreign::{
-    mk_foreign_exec, mk_foreign_fork, mk_foreign_reply, mk_foreign_resume, mk_foreign_spawn,
-    mk_foreign_start, mk_foreign_thread, mk_foreign_wait,
+    mk_foreign_exec, mk_foreign_reply, mk_foreign_resume, mk_foreign_spawn, mk_foreign_start,
+    mk_foreign_thread, mk_foreign_wait,
 };
+pub use foreign_fork::{mk_foreign_fork, mk_foreign_fork_at};
 pub use foreign_frame::{ForeignFrame, FOREIGN_NR_DIED};
 pub use foreign_signal::{
     mk_foreign_context, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER, SIGNAL_RETURN,

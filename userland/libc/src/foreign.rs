@@ -18,8 +18,7 @@
 //! kernel refuses on its behalf.
 
 use crate::syscall::{
-    call_raw, N_MK_FOREIGN_EXEC, N_MK_FOREIGN_FORK, N_MK_FOREIGN_REPLY, N_MK_FOREIGN_SPAWN,
-    N_MK_FOREIGN_START,
+    call_raw, N_MK_FOREIGN_EXEC, N_MK_FOREIGN_REPLY, N_MK_FOREIGN_SPAWN, N_MK_FOREIGN_START,
     N_MK_FOREIGN_THREAD, N_MK_FOREIGN_WAIT,
 };
 
@@ -40,12 +39,6 @@ pub fn mk_foreign_start(pid: u32, entry: u64, rsp: u64) -> i64 {
 /// what a forked child was born holding.
 pub fn mk_foreign_resume(pid: u32) -> i64 {
     call_raw(N_MK_FOREIGN_START, [pid as u64, 0, 0, 0, 0, 0])
-}
-
-/// A second process holding a guest's register state, with zero in its return
-/// register.
-pub fn mk_foreign_fork(pid: u32) -> i64 {
-    call_raw(N_MK_FOREIGN_FORK, [pid as u64, 0, 0, 0, 0, 0])
 }
 
 /// Replace the program a parked guest is running.
