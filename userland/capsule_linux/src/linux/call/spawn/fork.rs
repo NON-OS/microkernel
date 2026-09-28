@@ -24,7 +24,7 @@ use crate::linux::serve::Answer;
 use super::fork_child::fork_child;
 
 pub fn fork(guest: &mut Guest, caller: u32) -> Answer {
-    match fork_child(guest, caller, SIGCHLD, |_| {}) {
+    match fork_child(guest, caller, 0, SIGCHLD, |_| {}) {
         Ok(child) => Answer::value(errno::ok(child as u64)),
         Err(e) => Answer::value(e),
     }

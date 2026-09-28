@@ -17,7 +17,7 @@
 //! The copy every new process starts as: fork's, vfork's and a clone that
 //! makes a process all come here.
 
-use nonos_libc::{mk_foreign_fork, mk_foreign_resume};
+use nonos_libc::{mk_foreign_fork_at, mk_foreign_resume};
 
 use super::fork_copy::copy_spans;
 use crate::linux::abi::errno;
@@ -27,14 +27,16 @@ use crate::linux::guest::Guest;
 /// A new process copied from this one, running, and adopted by the family
 /// once this answer is given. It raises `exit_signal` at its parent when it
 /// ends. Its signal state is the forking thread's, as Linux's fork gives it.
+/// It starts on `stack` when that is not zero, as a clone naming a stack asks.
 /// `prep` runs on the child before it runs at all.
 pub(super) fn fork_child(
     guest: &mut Guest,
     caller: u32,
+    stack: u64,
     exit_signal: u8,
     prep: impl FnOnce(&mut Guest),
 ) -> Result<u32, u64> {
-    let child = mk_foreign_fork(caller);
+    let child = mk_foreign_fork_at(caller, stack);
     if child < 0 {
         return Err(errno::fail(errno::ENOMEM));
     }

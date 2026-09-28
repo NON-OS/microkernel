@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `clone` when it makes a process rather than a thread: a copy, as fork's
-//! is, on its parent's stack, that raises the signal it named when it ends,
-//! and with CLONE_VFORK parks its parent as vfork does. The tid words it
-//! names are written as Linux writes them.
+//! is, that starts on the stack the caller named, raises the signal it named
+//! when it ends, and with CLONE_VFORK parks its parent as vfork does. The tid
+//! words it names are written as Linux writes them.
 
 use super::vfork::start;
 use super::vfork_flags::{CLONE_CHILD_CLEARTID, CLONE_CHILD_SETTID, CLONE_PARENT_SETTID};
@@ -34,8 +34,6 @@ pub fn clone_process(guest: &mut Guest, caller: u32, a: [u64; 6]) -> Answer {
         Some("clone: flags beyond a copied process")
     } else if flags & CLONE_VM != 0 && flags & CLONE_VFORK == 0 {
         Some("clone: a process sharing its parent's memory")
-    } else if stack != 0 {
-        Some("clone: a new process on a stack of its own")
     } else {
         None
     };
@@ -58,7 +56,7 @@ pub fn clone_process(guest: &mut Guest, caller: u32, a: [u64; 6]) -> Answer {
             child.clear_tids.push((child.pid, a[3]));
         }
     };
-    let answer = start(guest, caller, signal as u8, flags & CLONE_VFORK != 0, prep);
+    let answer = start(guest, caller, stack, signal as u8, flags & CLONE_VFORK != 0, prep);
     if flags & CLONE_PARENT_SETTID != 0 {
         /* Only a child made by this call is in `forked`. */
         if let Some(child) = guest.forked.last().map(|c| c.pid) {

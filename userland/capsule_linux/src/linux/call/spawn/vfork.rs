@@ -18,9 +18,10 @@
 //! rather than a thread (vfork_clone). The child is a copy, as fork's is:
 //! vfork's child shares its parent's memory on Linux, but it may only exec or
 //! exit, and the parent sleeps until it does, so what either sees is the
-//! same. That is what Go's os/exec asks for with clone(CLONE_VFORK|CLONE_VM).
-//! The parent parks here and the family answers it with the child's pid when
-//! the child's exec succeeds or the child ends.
+//! same. That is what Go's os/exec asks for with clone(CLONE_VFORK|CLONE_VM),
+//! and musl's posix_spawn with a stack of the child's own, which the kernel's
+//! fork starts it on. The parent parks here and the family answers it with
+//! the child's pid when the child's exec succeeds or the child ends.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::sigstate::SIGCHLD;
@@ -30,7 +31,7 @@ use crate::linux::serve::Answer;
 use super::fork_child::fork_child;
 
 pub fn vfork(guest: &mut Guest, caller: u32) -> Answer {
-    start(guest, caller, SIGCHLD, true, |_| {})
+    start(guest, caller, 0, SIGCHLD, true, |_| {})
 }
 
 /// Fork a child and answer with its pid, or park the caller until the child
@@ -38,11 +39,12 @@ pub fn vfork(guest: &mut Guest, caller: u32) -> Answer {
 pub(super) fn start(
     guest: &mut Guest,
     caller: u32,
+    stack: u64,
     signal: u8,
     parks: bool,
     prep: impl FnOnce(&mut Guest),
 ) -> Answer {
-    let child = match fork_child(guest, caller, signal, prep) {
+    let child = match fork_child(guest, caller, stack, signal, prep) {
         Ok(c) => c,
         Err(e) => return Answer::value(e),
     };
