@@ -40,6 +40,10 @@ pub fn glyph(fb: &mut PaintBuffer, x: u32, y: u32, ch: char, argb: u32, px: f32)
 /// text is drawn upright.
 pub fn text(fb: &mut PaintBuffer, line: &Line, cell: &Cell, x: u32, y: u32, fg: u32, m: Metrics) {
     let fg = OPAQUE | fg;
+    // Line characters run to the cell's edges so tables join between rows.
+    if super::box_draw::stroke(fb, cell.ch, x, y, m.adv, m.lh, fg) {
+        return;
+    }
     glyph(fb, x, y, cell.ch, fg, m.px);
     if cell.attr & attr::BOLD != 0 {
         glyph(fb, x + 1, y, cell.ch, fg, m.px);

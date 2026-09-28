@@ -18,6 +18,8 @@
 
 mod area;
 mod body;
+mod box_arms;
+mod box_draw;
 mod cell;
 mod cursor;
 mod deco;

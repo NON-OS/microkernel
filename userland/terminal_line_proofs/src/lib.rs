@@ -86,10 +86,14 @@ pub mod help_pages;
 #[path = "../../capsule_terminal/src/command/builtin/tool_list.rs"]
 pub mod tool_list;
 
-// The colours programs name.
+// The colours programs name, and the box characters stroked per cell.
 #[path = "../../capsule_terminal/src/term/theme/ansi.rs"]
 pub mod ansi;
+#[path = "../../capsule_terminal/src/paint/vt/box_arms.rs"]
+pub mod box_arms;
 
+#[cfg(test)]
+mod box_tests;
 #[cfg(test)]
 mod cadence_tests;
 #[cfg(test)]
