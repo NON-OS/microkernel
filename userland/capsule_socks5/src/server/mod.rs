@@ -19,6 +19,7 @@
 mod clients;
 mod feed;
 mod inbox;
+mod kept;
 mod open;
 mod relay;
 mod reply;
