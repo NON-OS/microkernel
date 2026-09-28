@@ -50,7 +50,7 @@ fn route(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
             Answer::Park
         }
         nr::RT_SIGRETURN => crate::linux::call::rt_sigreturn(guest, frame.pid),
-        nr::FUTEX => futex(guest, frame.pid, a[0], a[1], a[2]),
+        nr::FUTEX => futex(guest, frame.pid, a),
         // The caller's own thread, which is not always the process.
         nr::GETTID => Answer::value(u64::from(frame.pid)),
         nr::SET_TID_ADDRESS => crate::linux::call::set_tid_address(guest, frame.pid, a[0]),

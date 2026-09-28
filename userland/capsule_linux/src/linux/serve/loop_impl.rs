@@ -35,6 +35,7 @@ pub fn serve(guest: Guest) -> i32 {
             family.answer(&frame);
         }
         family.settle_sleeps();
+        family.settle_futex();
         family.settle_waits();
         family.reap();
         if let Some(code) = family.done() {

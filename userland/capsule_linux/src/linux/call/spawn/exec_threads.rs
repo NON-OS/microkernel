@@ -34,8 +34,7 @@ pub fn reap(guest: &mut Guest, caller: u32) {
          * can be ended: the kill marks it, but nothing collects a thread that
          * is still waiting for an answer.
          */
-        guest.waits.retain(|(w, _)| *w != tid);
-        guest.blocked.retain(|w| w.tid != tid);
+        guest.forget_waits(tid);
         let _ = mk_foreign_reply(tid, errno::fail(errno::EINTR));
         let _ = mk_kill(tid as u64, SIGKILL);
     }

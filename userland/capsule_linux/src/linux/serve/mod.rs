@@ -20,6 +20,7 @@ mod answer;
 mod deliver;
 mod dispatch;
 mod family;
+mod family_futex;
 mod family_lend;
 mod family_pipes;
 mod family_reap;

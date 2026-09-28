@@ -50,6 +50,7 @@ pub const ENOTCONN: i64 = 107;
 pub const ENOTSOCK: i64 = 88;
 pub const ENOTSUP: i64 = 95;
 pub const EAFNOSUPPORT: i64 = 97;
+pub const ETIMEDOUT: i64 = 110;
 pub const ECONNREFUSED: i64 = 111;
 pub const EINPROGRESS: i64 = 115;
 

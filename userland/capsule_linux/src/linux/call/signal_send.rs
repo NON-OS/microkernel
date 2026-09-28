@@ -53,8 +53,7 @@ pub fn kill(guest: &mut Guest, pid: u64, signo: u64) -> u64 {
 
 /// The default action of an uncaught, non-ignored signal is to end the thread.
 fn terminate(guest: &mut Guest, target: u32, signo: u64) -> u64 {
-    guest.waits.retain(|(w, _)| *w != target);
-    guest.blocked.retain(|w| w.tid != target);
+    guest.forget_waits(target);
     guest.threads.retain(|t| *t != target);
     guest.signals.forget(target);
     match mk_kill(target as u64, signo) {

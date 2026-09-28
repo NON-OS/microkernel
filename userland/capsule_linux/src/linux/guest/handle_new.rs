@@ -37,6 +37,7 @@ impl Guest {
             threads: Vec::new(),
             clear_tids: Vec::new(),
             waits: Vec::new(),
+            futex_until: Vec::new(),
             signals: super::sigqueue::Signals::default(),
             display: Default::default(),
             objects: Default::default(),

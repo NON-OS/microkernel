@@ -22,6 +22,8 @@ mod clock;
 mod epoch;
 mod cwd;
 mod futex;
+mod futex_requeue;
+mod futex_time;
 mod ident;
 mod io;
 mod io_socket;

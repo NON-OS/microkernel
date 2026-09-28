@@ -47,6 +47,8 @@ pub struct Guest {
     pub clear_tids: Vec<(u32, u64)>,
     /// Threads parked in a futex wait, with the word they wait on.
     pub waits: Vec<(u32, u64)>,
+    /// The futex waits that have a timeout: the monotonic deadline, and who.
+    pub futex_until: Vec<(u64, u32)>,
     /// The display connection, when the guest has opened one.
     pub display: crate::linux::unix::Conn,
     /// The Wayland objects that connection has created.
