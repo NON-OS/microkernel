@@ -55,7 +55,12 @@ pub fn execve(guest: &mut Guest, pid: u32, path: u64, argv: u64, envp: u64) -> A
     }
 }
 
-/// The new program keeps what Linux keeps of the old one's signals.
+/// The new program keeps what Linux keeps of the old one's signals, and a
+/// vfork parent waiting on this exec is let go with the child's pid.
 fn released(guest: &mut Guest, pid: u32) {
     guest.signals.exec_reset(pid);
+    if let Some(parent) = guest.signals.vfork.take() {
+        let child = u64::from(crate::linux::serve::guest_pid(guest.pid));
+        let _ = nonos_libc::mk_foreign_reply(parent, child);
+    }
 }

@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `fork`: a copy of the calling process that raises SIGCHLD when it ends.
+//! The clone flags a new process may be made with, as Linux numbers them.
 
-use crate::linux::abi::errno;
-use crate::linux::guest::sigstate::SIGCHLD;
-use crate::linux::guest::Guest;
-use crate::linux::serve::Answer;
-
-use super::fork_child::fork_child;
-
-pub fn fork(guest: &mut Guest, caller: u32) -> Answer {
-    match fork_child(guest, caller, SIGCHLD, |_| {}) {
-        Ok(child) => Answer::value(errno::ok(child as u64)),
-        Err(e) => Answer::value(e),
-    }
-}
+pub const CSIGNAL: u64 = 0xff;
+pub const CLONE_VM: u64 = 0x100;
+pub const CLONE_VFORK: u64 = 0x4000;
+pub const CLONE_PARENT_SETTID: u64 = 0x10_0000;
+pub const CLONE_CHILD_CLEARTID: u64 = 0x20_0000;
+pub const CLONE_DETACHED: u64 = 0x40_0000;
+pub const CLONE_UNTRACED: u64 = 0x80_0000;
+pub const CLONE_CHILD_SETTID: u64 = 0x100_0000;
+/// Every flag honoured for a new process; CLONE_DETACHED and CLONE_UNTRACED
+/// are ones Linux itself ignores.
+pub const SERVED: u64 = CSIGNAL
+    | CLONE_VM
+    | CLONE_VFORK
+    | CLONE_PARENT_SETTID
+    | CLONE_CHILD_CLEARTID
+    | CLONE_DETACHED
+    | CLONE_UNTRACED
+    | CLONE_CHILD_SETTID;

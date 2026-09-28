@@ -25,10 +25,16 @@ mod exec_resolve;
 mod exec_shebang;
 mod exec_threads;
 mod fork;
+mod fork_child;
 mod fork_copy;
+mod vfork;
+mod vfork_clone;
+mod vfork_flags;
 mod wait;
 
 pub use clone::clone;
 pub use exec::execve;
 pub use fork::fork;
+pub use vfork::vfork;
+pub use vfork_clone::clone_process;
 pub use wait::{reap_one, wait4};

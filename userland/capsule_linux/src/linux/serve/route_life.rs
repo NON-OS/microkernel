@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The calls of process lifecycle and signals that can leave their caller
-//! parked: a plain exit, and a signal sent where only the family can say
-//! whether anyone received it. Asked first by `dispatch`, so these are
-//! answered here whatever it holds.
+//! parked: a plain exit, a new process, and a signal sent where only the
+//! family can say whether anyone received it. Asked first by `dispatch`, so
+//! these are answered here whatever it holds.
 
 use nonos_libc::ForeignFrame;
 
@@ -27,6 +27,9 @@ use crate::linux::abi::{nr, nr_sig as ns};
 use crate::linux::call;
 use crate::linux::guest::Guest;
 
+/// clone's CLONE_THREAD: without it, clone makes a process.
+const CLONE_THREAD: u64 = 0x10000;
+
 pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Option<Answer> {
     let (a, tid) = (frame.args(), frame.pid);
     Some(match frame.nr {
@@ -35,6 +38,8 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Option<Answer> {
             let _ = call::exit(guest, a[0]);
             Answer::Park
         }
+        nr::CLONE if a[0] & CLONE_THREAD == 0 => call::clone_process(guest, tid, a),
+        nr::VFORK => call::vfork(guest, tid),
         ns::KILL => call::kill_from(guest, tid, a[0], a[1]),
         ns::TKILL => call::tgkill_from(guest, tid, 0, a[0], a[1]),
         ns::TGKILL if (a[0] as i64) <= 0 => Answer::value(errno::fail(errno::EINVAL)),

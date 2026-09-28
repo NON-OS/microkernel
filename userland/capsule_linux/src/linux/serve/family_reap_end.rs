@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Ending each process that has exited: its threads are killed, its end is
-//! said in the log, and its parent is told as family_reap tells it.
+//! said in the log, a vfork parent waiting on it is let go, and its parent is
+//! told as family_reap tells it.
 
 use nonos_libc::mk_kill;
 
 use super::family::Family;
 use super::family_reap::tell_parent;
+use super::family_wait::answer;
 
 const SIGKILL: u64 = 9;
 
@@ -55,6 +57,9 @@ impl Family {
             let Some(p) = self.guests.iter_mut().find(|g| g.children.contains(&gone.pid)) else {
                 continue;
             };
+            if let Some(t) = gone.signals.vfork {
+                answer(p, t, u64::from(shown));
+            }
             tell_parent(p, &gone, status, &mut self.ns);
         }
         any

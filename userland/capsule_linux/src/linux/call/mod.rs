@@ -82,7 +82,7 @@ pub use signal_send::{kill, kill_from, tgkill_from};
 pub use signal_stack::sigaltstack;
 pub use sigreturn::rt_sigreturn;
 pub use sleep::{clock_nanosleep, nanosleep};
-pub use spawn::{clone, execve, fork, reap_one, wait4};
+pub use spawn::{clone, clone_process, execve, fork, reap_one, vfork, wait4};
 pub use clock::{clock_getres, clock_gettime, now_ms};
 pub use epoch::{family_ms, mark_start};
 pub use thread::{arch_prctl, getrandom};
