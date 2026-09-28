@@ -24,6 +24,7 @@ returns `Unsupported` loudly; nothing pretends.
 | heap (`alloc`) | real | dlmalloc over `MMAP`, spin-locked (thread-safe) |
 | `println!` / stdout / stderr | real | `MDBG` serial sink, mirrored to `proc.<pid>` inbox |
 | stdin | real | blocking read of this process's kernel stdin channel (`MSRD`), fed by a launcher (the terminal); no EOF-on-close yet |
+| `IsTerminal` | real | `MTTQ`: true for a standard stream the launcher said reaches its screen (`MTTY`); a stage feeding a pipe or a file, or a process no terminal started, gets false |
 | `args` | real | `MKAR` |
 | env vars | real, process-local | in-process map; nothing is inherited across spawns yet |
 | `current_dir` | fixed `/` | capsules see the VFS from its root; `chdir` unsupported |

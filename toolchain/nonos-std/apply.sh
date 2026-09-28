@@ -15,6 +15,7 @@ SYS="$STD/src/sys"
 # 1. copy the platform modules
 cp "$HERE/sys/alloc/nonos.rs"            "$SYS/alloc/nonos.rs"
 cp "$HERE/sys/io/error/nonos.rs"         "$SYS/io/error/nonos.rs"
+cp "$HERE/sys/io/is_terminal/nonos.rs"   "$SYS/io/is_terminal/nonos.rs"
 cp "$HERE/sys/random/nonos.rs"           "$SYS/random/nonos.rs"
 cp "$HERE/sys/stdio/nonos.rs"            "$SYS/stdio/nonos.rs"
 cp "$HERE/sys/args/nonos.rs"             "$SYS/args/nonos.rs"
@@ -72,6 +73,11 @@ ARM_PAL = '    target_vendor = "nonos" => {\n        mod nonos;\n        pub use
 
 insert_before(f"{sysdir}/alloc/mod.rs", '    any(\n        target_family = "unix",', ARM_BARE, 'mod nonos')
 insert_before(f"{sysdir}/io/error/mod.rs", '    target_os = "hermit" => {', ARM, 'target_vendor = "nonos"')
+# IsTerminal: the arm sits inside `mod is_terminal`, one level deeper.
+ARM_TTY = ('        target_vendor = "nonos" => {\n            mod nonos;\n'
+    '            pub use nonos::*;\n        }\n')
+insert_before(f"{sysdir}/io/mod.rs", '        target_os = "hermit" => {\n            mod hermit;', ARM_TTY,
+    'target_vendor = "nonos" => {\n            mod nonos;')
 insert_before(f"{sysdir}/random/mod.rs", '    // Tier 1\n', ARM_FILL, 'target_vendor = "nonos"')
 insert_before(f"{sysdir}/stdio/mod.rs", '    any(target_family = "unix"', ARM, 'target_vendor = "nonos"')
 insert_before(f"{sysdir}/fs/mod.rs", '    any(target_family = "unix", target_os = "wasi") => {', ARM_IMP, 'target_vendor = "nonos"')
