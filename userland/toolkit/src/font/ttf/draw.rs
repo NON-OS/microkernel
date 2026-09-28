@@ -46,7 +46,7 @@ pub fn draw_text(
 // screen of crisp text cheap enough to repaint on every keystroke.
 #[allow(clippy::too_many_arguments)]
 fn draw_cached(
-    f: &FontRef,
+    f: &'static FontRef<'static>,
     mono: bool,
     buf: &mut [u32],
     stride: usize,
@@ -58,19 +58,21 @@ fn draw_cached(
     argb: u32,
     px: f32,
 ) -> i32 {
-    let sf = f.as_scaled(PxScale::from(px));
-    let baseline = top_y as f32 + sf.ascent();
+    let baseline = top_y as f32 + f.as_scaled(PxScale::from(px)).ascent();
     let px_bits = px.to_bits();
     let mut pen = x as f32;
-    let mut prev: Option<GlyphId> = None;
+    let mut prev: Option<(bool, GlyphId)> = None;
     for ch in text.chars() {
+        // Drawn from whichever built-in face has the glyph, cached under it.
+        let (mono, gf) = super::fallback::face_for(f, mono, ch);
+        let sf = gf.as_scaled(PxScale::from(px));
         let g = sf.scaled_glyph(ch);
-        if let Some(p) = prev {
+        if let Some((_, p)) = prev.filter(|(pm, _)| *pm == mono) {
             pen += sf.kern(p, g.id);
         }
         let adv = sf.h_advance(g.id);
         let gid = g.id.0;
-        prev = Some(g.id);
+        prev = Some((mono, g.id));
         let pen_i = pen as i32;
         let base_i = baseline as i32;
         cache::with_raster(
