@@ -63,6 +63,15 @@ pub(super) fn forget(pid: u32) {
     ANY.store(!marked.is_empty(), Ordering::Release);
 }
 
+/// A marked thread that makes a call needs no tick to stop it: the answer to
+/// that call carries what it was marked for. Left in place, the mark would
+/// stop the thread once more at a later tick for nothing.
+pub(super) fn on_call(pid: u32) {
+    if ANY.load(Ordering::Acquire) {
+        forget(pid);
+    }
+}
+
 fn take(pid: u32) -> bool {
     let mut marked = MARKED.lock();
     let Some(at) = marked.iter().position(|&p| p == pid) else {

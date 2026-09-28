@@ -27,6 +27,7 @@ use super::trap_wait::wait_for_answer;
 pub fn redirect(nr: u64, args: [u64; 6], frame: &[u64; FRAME_WORDS]) -> Option<u64> {
     let pid = crate::process::current_pid()?;
     let supervisor = registry::supervisor_of(pid)?;
+    super::interrupt::on_call(pid);
     /*
      * The frame is reachable only while this call is on the stack, and a fork
      * asks for it long afterwards, so it is copied aside now.
