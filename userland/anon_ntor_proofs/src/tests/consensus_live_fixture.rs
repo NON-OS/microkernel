@@ -17,6 +17,8 @@
 
 use alloc::vec::Vec;
 
+use crate::path::Weights;
+
 /*
  * The committed vectors are a trimmed slice, enough to pin field offsets and
  * malformed shapes. They cannot answer the question this file exists for: whether

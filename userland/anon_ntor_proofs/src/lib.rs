@@ -21,6 +21,8 @@
 //! host. Expected values come from the network's own reference implementation
 //! and from the cipher and hash standards, never from this code.
 
+extern crate alloc;
+
 #[path = "shim/cell.rs"]
 pub mod cell;
 #[path = "shim/circuit.rs"]
