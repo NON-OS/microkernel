@@ -25,6 +25,8 @@ use crate::linux::serve::Answer;
 const CLONE_VM: u64 = 0x100;
 const CLONE_THREAD: u64 = 0x10000;
 const CLONE_SETTLS: u64 = 0x80000;
+const CLONE_PARENT_SETTID: u64 = 0x10_0000;
+const CLONE_CHILD_SETTID: u64 = 0x100_0000;
 
 /// A Linux clone child resumes at the instruction after its parent's
 /// `syscall`, on its parent's registers with rax zero and rsp the new stack.
@@ -57,6 +59,15 @@ pub fn clone(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     if tid < 0 {
         return Answer::value(errno::fail(errno::ENOMEM));
     }
-    guest.threads.push(tid as u32);
-    Answer::value(errno::ok(tid as u64))
+    let tid = tid as u32;
+    guest.threads.push(tid);
+    // Linux writes the new tid where the caller asked, and ignores a word it
+    // cannot write; musl keeps the parent's copy as the thread's own tid.
+    if flags & CLONE_PARENT_SETTID != 0 {
+        let _ = guest.write(a[2], &tid.to_le_bytes());
+    }
+    if flags & CLONE_CHILD_SETTID != 0 {
+        let _ = guest.write(a[3], &tid.to_le_bytes());
+    }
+    Answer::value(errno::ok(u64::from(tid)))
 }
