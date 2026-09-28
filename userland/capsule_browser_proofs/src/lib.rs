@@ -30,6 +30,8 @@ mod dom_tests;
 #[cfg(test)]
 mod entity_tests;
 #[cfg(test)]
+mod float_tests;
+#[cfg(test)]
 mod grid_auto_tests;
 #[cfg(test)]
 mod grid_clip_tests;
