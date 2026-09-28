@@ -130,3 +130,4 @@ override NONOS_STORE_MEDIA_ENTRIES :=
 override NONOS_STORE_DEMO_ENTRIES :=
 
 include $(LINUX_GUESTS_DIR)/GuestFiles.mk
+include $(LINUX_GUESTS_DIR)/GuestOnly.mk
