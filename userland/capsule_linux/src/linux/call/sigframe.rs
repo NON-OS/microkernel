@@ -15,17 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The `rt_sigframe` x86-64 puts on a thread's stack to enter a signal handler,
-//! and where to read it back on return. Pure, so the layout is checked against
-//! a round trip without a guest. It matches Linux `struct rt_sigframe`:
-//! pretcode u64, ucontext at +8, siginfo at +312; the ucontext's sigcontext
-//! holds the 18 words `mk_foreign_context` uses, in that order.
+//! and where to read it back on return. Pure, so the layout is checked without
+//! a guest. It matches Linux `struct rt_sigframe`: pretcode u64, ucontext at
+//! +8, siginfo at +312. Within the ucontext, `uc_stack` is at +16, the
+//! sigcontext (`uc_mcontext`) at +40 and `uc_sigmask` at +296, as musl, glibc
+//! and Go all read them; the sigcontext starts with the 18 words
+//! `mk_foreign_context` uses, in that order. A handler that reads or edits its
+//! context (Go's does, to preempt) finds each register where Linux puts it.
 
 use alloc::vec::Vec;
 
 pub const WORDS: usize = 18; // r8..r15,rdi,rsi,rbp,rbx,rdx,rax,rcx,rsp,rip,rflags
 const FRAME_SIZE: usize = 440;
 const UC_OFF: usize = 8;
-pub const SIGCONTEXT_OFF: usize = 48; // sigcontext within the ucontext
+pub const SIGCONTEXT_OFF: usize = 40; // uc_mcontext within the ucontext
+pub const SIGMASK_OFF: usize = 296; // uc_sigmask within the ucontext
 const INFO_OFF: usize = 312;
 const REDZONE: u64 = 128; // the System V red zone below rsp
 
@@ -47,11 +51,11 @@ pub fn build(
         (regs[15].checked_sub(REDZONE)?.checked_sub(FRAME_SIZE as u64)? & !15u64).checked_sub(8)?;
     let mut buf = alloc::vec![0u8; FRAME_SIZE];
     put(&mut buf, 0, restorer);
-    let mc = UC_OFF + SIGCONTEXT_OFF; // the 18 words, then the sigmask
+    let mc = UC_OFF + SIGCONTEXT_OFF;
     for (i, w) in regs.iter().enumerate() {
         put(&mut buf, mc + i * 8, *w);
     }
-    put(&mut buf, UC_OFF + SIGCONTEXT_OFF + WORDS * 8, blocked);
+    put(&mut buf, UC_OFF + SIGMASK_OFF, blocked);
     put(&mut buf, INFO_OFF, u64::from(signum)); // siginfo: si_signo
     let mut out = [0u64; WORDS];
     out[8] = u64::from(signum); // rdi

@@ -43,7 +43,7 @@ fn a_returning_frame_restores_the_registers_the_handler_was_entered_over() {
     assert_eq!(enter[16], 0xdead_beef); // rip = handler
     assert_eq!(enter[8], 11); // rdi = signum
     assert_eq!(enter[12], frame + 8); // rdx = &ucontext
-    // rt_sigreturn reads the ucontext the guest's rsp points at: frame + 8.
+                                      // rt_sigreturn reads the ucontext the guest's rsp points at: frame + 8.
     let uc = &buf[8..];
     assert_eq!(returned(uc).unwrap(), saved);
 }
@@ -72,4 +72,19 @@ fn the_sigcontext_sits_where_the_ucontext_says() {
     let at = 8 + SIGCONTEXT_OFF;
     let r8 = u64::from_le_bytes(buf[at..at + 8].try_into().unwrap());
     assert_eq!(r8, saved[0]);
+}
+
+#[test]
+fn the_registers_and_mask_sit_where_linux_programs_read_them() {
+    // Offsets within the ucontext, from musl's and glibc's own
+    // offsetof(ucontext_t, ...) on x86-64: uc_mcontext.gregs[REG_R8] at 40,
+    // REG_RSP at 160, REG_RIP at 168, uc_sigmask at 296. The ucontext is at
+    // frame + 8, after the return address.
+    let saved = regs();
+    let (_, buf, _) = build(&saved, 1, 2, 3, 0x0000_8000_0000_0001).expect("frame");
+    let word = |at: usize| u64::from_le_bytes(buf[8 + at..8 + at + 8].try_into().unwrap());
+    assert_eq!(word(40), saved[0]); // r8
+    assert_eq!(word(160), saved[RSP]);
+    assert_eq!(word(168), saved[16]); // rip
+    assert_eq!(word(296), 0x0000_8000_0000_0001); // the mask
 }
