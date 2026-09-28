@@ -28,8 +28,6 @@ pub(super) const BLOCKS: u64 = 1 << 20;
 
 pub(super) const FREE: u64 = BLOCKS / 2;
 
-pub(super) const ST_RDONLY: u64 = 1;
-
 pub fn statfs(guest: &Guest, path: u64, out: u64) -> u64 {
     let Some(named) = at::resolve_at(guest, super::super::super::flags::AT_FDCWD, path) else {
         return errno::fail(errno::EFAULT);

@@ -20,9 +20,15 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 use super::super::super::mounts;
-use super::calls::{BLOCKS, BSIZE, FREE, ST_RDONLY};
+use super::calls::{BLOCKS, BSIZE, FREE};
 
 const STATFS: usize = 120;
+
+/* f_flags: ST_VALID, which Linux always sets, and the mount's options. */
+const ST_VALID: u64 = 0x20;
+
+const OPTS: [(&str, u64); 5] =
+    [("ro", 1), ("nosuid", 2), ("nodev", 4), ("noexec", 8), ("relatime", 0x1000)];
 
 /*
  * The mount's type and flags from the family's mount table; the sizes are
@@ -30,17 +36,17 @@ const STATFS: usize = 120;
  */
 pub(super) fn fill(guest: &Guest, path: &[u8], out: u64) -> u64 {
     let (id, _, magic) = mounts::of(path);
-    let ro = mounts::MOUNTS.iter().find(|m| m.0 == id).is_some_and(|m| m.4.starts_with("ro"));
+    let opts = mounts::MOUNTS.iter().find(|m| m.0 == id).map_or("", |m| m.4);
     let mut buf = [0u8; STATFS];
     put(&mut buf, 0, magic); /* f_type */
     put(&mut buf, 8, BSIZE); /* f_bsize */
     put(&mut buf, 16, BLOCKS); /* f_blocks */
     put(&mut buf, 24, FREE); /* f_bfree */
     put(&mut buf, 32, FREE); /* f_bavail */
-    put(&mut buf, 48, u64::from(id)); /* f_fsid */
-    put(&mut buf, 56, 255); /* f_namelen, the vfs path limit */
-    put(&mut buf, 64, BSIZE); /* f_frsize */
-    put(&mut buf, 72, if ro { ST_RDONLY } else { 0 }); /* f_flags */
+    put(&mut buf, 56, u64::from(id)); /* f_fsid */
+    put(&mut buf, 64, 255); /* f_namelen, the vfs path limit */
+    put(&mut buf, 72, BSIZE); /* f_frsize */
+    put(&mut buf, 80, flags(opts)); /* f_flags */
     match guest.write(out, &buf) {
         n if n < 0 => errno::fail(errno::EFAULT),
         _ => errno::ok(0),
@@ -49,4 +55,9 @@ pub(super) fn fill(guest: &Guest, path: &[u8], out: u64) -> u64 {
 
 fn put(buf: &mut [u8; STATFS], at: usize, v: u64) {
     buf[at..at + 8].copy_from_slice(&v.to_le_bytes());
+}
+
+pub(super) fn flags(opts: &str) -> u64 {
+    let set = |name: &str| opts.split(',').any(|o| o == name);
+    OPTS.iter().filter(|(name, _)| set(name)).fold(ST_VALID, |f, (_, bit)| f | bit)
 }
