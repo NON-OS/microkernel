@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What the family is told about the system it runs on, and what it
- * has used of it.
+ * The load average's module shape: system/load/ reads its constants from a
+ * sibling `declared`, as it does in the capsule.
  */
 
-pub mod cpu;
+#[path = "../../../capsule_linux/src/linux/file/system/declared/mod.rs"]
 pub mod declared;
+
+#[path = "../../../capsule_linux/src/linux/file/system/load/mod.rs"]
 pub mod load;
-pub(super) mod space;

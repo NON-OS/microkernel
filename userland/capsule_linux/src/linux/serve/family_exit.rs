@@ -39,6 +39,7 @@ impl Family {
         }
         let parent = self.guests.iter().find(|p| p.children.contains(&g.pid)).map_or(0, |p| p.pid);
         let mut used = crate::linux::call::usage_of(g);
+        file::load::exited(used.user + used.system);
         let kids = file::cpu::children(g.pid, |c| !g.children.contains(&c));
         used.user += kids.user;
         used.system += kids.system;

@@ -34,6 +34,7 @@ mod index_tests;
 mod kali_anchor_tests;
 mod key_tests;
 mod listing_family_tests;
+mod load_tests;
 mod mutation;
 mod mutation_tests;
 mod pacman_desc_tests;
