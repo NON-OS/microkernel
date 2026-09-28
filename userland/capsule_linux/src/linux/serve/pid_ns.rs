@@ -21,36 +21,30 @@
 //! it sees these instead: the personality is 1, the program it started is 2,
 //! and each process or thread after takes the next number. None is reused
 //! while the family lives, so a stale number never reaches a newer process.
+//!
+//! A personality hosts one family, so the numbers are kept in one place and
+//! any handler can write a guest's number into what it hands back: a siginfo
+//! or a waitid answer carries a pid, not only a return value.
 
-use alloc::vec::Vec;
+use super::pid_space::{inward, outward, SPACE};
 
-pub struct PidNs {
-    map: Vec<(u32, u32)>,
-    next: u32,
-}
+/// The family's numbering. Made once, when the family is.
+pub struct PidNs;
 
 impl PidNs {
     pub fn new(personality: u32, first: u32) -> Self {
-        PidNs { map: alloc::vec![(personality, 1), (first, 2)], next: 3 }
+        *SPACE.0.borrow_mut() = (alloc::vec![(personality, 1), (first, 2)], 3);
+        PidNs
     }
 
     /// The number a guest sees for kernel pid `k`, given on first sight.
     /// Zero once the space is spent, which no caller reads as a process.
     pub fn outward(&mut self, k: u32) -> u32 {
-        if let Some(&(_, g)) = self.map.iter().find(|(kp, _)| *kp == k) {
-            return g;
-        }
-        let Some(after) = self.next.checked_add(1) else {
-            return 0;
-        };
-        let g = self.next;
-        self.next = after;
-        self.map.push((k, g));
-        g
+        outward(k)
     }
 
     /// The kernel pid behind a guest's number, if it names one of this family.
     pub fn inward(&self, g: u32) -> Option<u32> {
-        self.map.iter().find(|(_, gp)| *gp == g).map(|(k, _)| *k)
+        inward(g)
     }
 }

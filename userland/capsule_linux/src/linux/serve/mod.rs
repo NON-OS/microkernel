@@ -26,6 +26,7 @@ mod family_sleep;
 mod loop_impl;
 mod pid_map;
 mod pid_ns;
+mod pid_space;
 mod refused;
 mod pid_out;
 mod table;
@@ -39,3 +40,4 @@ mod unserved;
 
 pub use answer::Answer;
 pub use loop_impl::serve;
+pub use pid_space::{inward as kernel_pid, outward as guest_pid};
