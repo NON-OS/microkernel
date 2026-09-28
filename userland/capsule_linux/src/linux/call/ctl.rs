@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `ioctl` and `fcntl`.
+//! `fcntl`.
 
 use crate::linux::abi::errno;
 use crate::linux::file::flags::{O_NONBLOCK, O_RDWR, O_WRONLY};
@@ -25,13 +25,6 @@ const F_GETFD: u64 = 1;
 const F_SETFD: u64 = 2;
 const F_GETFL: u64 = 3;
 const F_SETFL: u64 = 4;
-
-pub fn ioctl(guest: &Guest, fd: u64, _request: u64) -> u64 {
-    match guest.fds.get(fd as usize) {
-        Some(entry) if entry.is_open() => errno::fail(errno::ENOTTY),
-        _ => errno::fail(errno::EBADF),
-    }
-}
 
 /// The only descriptor flag there is.
 const FD_CLOEXEC: u64 = 1;

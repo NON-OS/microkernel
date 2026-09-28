@@ -26,6 +26,7 @@ mod futex_requeue;
 mod futex_time;
 mod ident;
 mod io;
+mod ioctl;
 mod io_socket;
 mod life;
 mod limits;
@@ -53,7 +54,8 @@ mod uname;
 mod vector;
 mod vector_read;
 
-pub use ctl::{fcntl, ioctl};
+pub use ctl::fcntl;
+pub use ioctl::ioctl;
 pub use cwd::{chdir, fchdir, getcwd};
 pub use futex::futex;
 pub use ident::{getppid, setuid};
