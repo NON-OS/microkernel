@@ -20,20 +20,23 @@ use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
 /*
- * Where a walk has got to: the names still to walk, the names walked, and
- * how many links it has followed.
+ * Where a walk has got to: the names still to walk, the names walked, the
+ * root's names at the bottom of those, and how many links it has followed.
  */
 pub(super) struct Walk {
     pub(super) todo: VecDeque<Vec<u8>>,
     pub(super) done: Vec<Vec<u8>>,
+    pub(super) floor: usize,
     pub(super) hops: usize,
 }
 
 impl Walk {
     /* Up one name; at the root there is none to go up from, so it stays. */
     pub(super) fn up(&mut self, path: &[u8]) {
-        if self.done.pop().is_none() {
+        if self.done.len() == self.floor {
             super::super::clamp::note(path);
+        } else {
+            self.done.pop();
         }
     }
 
@@ -45,7 +48,7 @@ impl Walk {
         self.hops += 1;
         self.done.pop();
         if to.first() == Some(&b'/') {
-            self.done.clear();
+            self.done.truncate(self.floor);
         }
         for (i, n) in names(to).enumerate() {
             self.todo.insert(i, n);

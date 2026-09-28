@@ -32,10 +32,26 @@ pub fn walk(
     guest: &Guest,
     path: Vec<u8>,
     last: bool,
+    check: impl FnMut(Step) -> Result<(), i64>,
+) -> Result<Vec<u8>, i64> {
+    walk_under(guest, b"/", path, last, check)
+}
+
+/*
+ * The walk with `root` standing in for `/`: an absolute name or link
+ * target starts from it, and `..` never climbs above it. openat2's
+ * RESOLVE_IN_ROOT is this with the directory descriptor's path as root.
+ */
+pub fn walk_under(
+    guest: &Guest,
+    root: &[u8],
+    path: Vec<u8>,
+    last: bool,
     mut check: impl FnMut(Step) -> Result<(), i64>,
 ) -> Result<Vec<u8>, i64> {
     let last = last || path.last() == Some(&b'/');
-    let mut w = Walk { todo: names(&path).collect(), done: Vec::new(), hops: 0 };
+    let done: Vec<Vec<u8>> = names(root).collect();
+    let mut w = Walk { todo: names(&path).collect(), floor: done.len(), done, hops: 0 };
     while let Some(name) = w.todo.pop_front() {
         if name == b".." {
             w.up(&path);

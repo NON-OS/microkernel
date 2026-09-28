@@ -31,5 +31,5 @@ mod path;
 mod state;
 mod step;
 
-pub use path::walk;
+pub use path::{walk, walk_under};
 pub use step::{follow, Step};

@@ -47,7 +47,8 @@ pub(super) fn open_how(guest: &Guest, at: u64, size: u64) -> Result<(u64, u64, u
     if mode != 0 && flags & (O_CREAT | O_TMPFILE) == 0 || mode & !0o7777 != 0 {
         return Err(errno::EINVAL);
     }
-    if rules & IN_ROOT != 0 {
+    /* BENEATH and IN_ROOT say opposite things of an absolute name. */
+    if rules & BENEATH != 0 && rules & IN_ROOT != 0 {
         return Err(errno::EINVAL);
     }
     if rules & CACHED != 0 {

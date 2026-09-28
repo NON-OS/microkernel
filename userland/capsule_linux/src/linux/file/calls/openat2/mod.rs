@@ -18,16 +18,15 @@
  * openat2: openat with a struct open_how, and RESOLVE_ flags that limit
  * how the path may be walked.
  *
- * Served: NO_XDEV, NO_MAGICLINKS, NO_SYMLINKS and BENEATH, which a walk of
- * the family's tree can check; CACHED, which Linux may always answer with
- * EAGAIN and so does here. IN_ROOT would re-root every link's target at
- * the directory, which this resolver does not do: it is refused with
- * EINVAL, as a kernel refuses a flag it does not know.
+ * Served: NO_XDEV, NO_MAGICLINKS, NO_SYMLINKS, BENEATH and IN_ROOT, each
+ * checked on the same walk open makes (walk/), and CACHED, which Linux
+ * may always answer with EAGAIN and so does here.
  */
 
 mod check;
 mod how;
 mod open;
+mod rooted;
 mod walked;
 
 pub use open::openat2;

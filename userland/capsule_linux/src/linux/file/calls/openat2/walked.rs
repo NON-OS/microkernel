@@ -22,6 +22,7 @@ use crate::linux::guest::Guest;
 use super::super::super::walk::Step;
 use super::super::super::{mounts, walk};
 use super::open::{BENEATH, NO_MAGICLINKS, NO_SYMLINKS, NO_XDEV};
+use super::rooted::magic;
 
 /*
  * Walk the name as open will, and refuse the first step `rules` forbid:
@@ -38,10 +39,7 @@ pub(super) fn walked(guest: &Guest, base: &[u8], named: &[u8], rules: u64) -> Re
     let step = |s: Step| {
         match s {
             Step::Link { at, to } => {
-                let magic = at.starts_with(b"/proc/")
-                    && !at.ends_with(b"/self")
-                    && !at.ends_with(b"/thread-self")
-                    && !at.ends_with(b"/mounts");
+                let magic = magic(at);
                 if rules & NO_SYMLINKS != 0 || (rules & NO_MAGICLINKS != 0 && magic) {
                     return Err(errno::ELOOP);
                 }

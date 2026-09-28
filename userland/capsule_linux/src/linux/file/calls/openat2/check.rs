@@ -21,9 +21,10 @@ use alloc::vec::Vec;
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::super::super::{at, path, walk};
+use super::super::super::{at, mounts, path, walk};
 use super::how::open_how;
-use super::open::BENEATH;
+use super::open::{BENEATH, IN_ROOT};
+use super::rooted::rooted;
 use super::walked::walked;
 
 pub(super) fn check(
@@ -38,6 +39,11 @@ pub(super) fn check(
     let base = walk::follow(guest, at::named_at(guest, dirfd, b".")?, true);
     if rules & BENEATH != 0 && name.first() == Some(&b'/') {
         return Err(errno::EXDEV);
+    }
+    if rules & IN_ROOT != 0 {
+        let mount = mounts::of(&base).0;
+        let inside = walk::walk_under(guest, &base, name, true, |s| rooted(s, rules, mount))?;
+        return Ok((inside, flags, mode));
     }
     let named = at::named_at(guest, dirfd, &name)?;
     walked(guest, &base, &named, rules)?;
