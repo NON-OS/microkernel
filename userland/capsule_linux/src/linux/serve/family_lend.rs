@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Lending the family's pipes to the guest being answered.
+//! Lending the family's pipes and eventfd counters to the guest being answered.
 //!
-//! A pipe is the family's, since a fork leaves its ends in more than one
-//! process. The guest being answered holds the buffers for that one answer,
+//! Both are the family's, since a fork leaves their descriptors in more than
+//! one process. The guest being answered holds them for that one answer,
 //! with a note of which ends are still open anywhere in the family: end of
 //! file, a broken pipe and a hang-up are all decided by that note.
 
@@ -33,11 +33,13 @@ impl Family {
         let g = &mut self.guests[i];
         g.pipe_ends = ends;
         mem::swap(&mut self.pipes, &mut g.pipes);
+        mem::swap(&mut self.events, &mut g.events);
     }
 
     pub(super) fn take_back(&mut self, i: usize) {
         let g = &mut self.guests[i];
         mem::swap(&mut self.pipes, &mut g.pipes);
+        mem::swap(&mut self.events, &mut g.events);
         g.pipe_ends = Vec::new();
     }
 

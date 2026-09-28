@@ -37,6 +37,7 @@ pub fn ready(guest: &Guest, fd: u64) -> u16 {
         },
         Some(Kind::Timer) => timer_bits(guest, fd),
         Some(Kind::Pipe) => crate::linux::call::pipe_bits(guest, fd),
+        Some(Kind::Event) => crate::linux::file::event_bits(guest, fd),
         Some(Kind::Resolver) => resolver_bits(guest, fd),
         Some(_) => POLLIN | POLLOUT,
     }

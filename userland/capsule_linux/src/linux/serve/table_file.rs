@@ -39,6 +39,8 @@ pub fn file_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64
         nr::NEWFSTATAT => file::newfstatat(guest, a[0], a[1], a[2]),
         nr::GETDENTS64 => file::getdents64(guest, a[0], a[1], a[2]),
         nr::EPOLL_CREATE1 => file::epoll_create(guest),
+        nr::EVENTFD2 => file::eventfd2(guest, a[0], a[1]),
+        nr::EVENTFD => file::eventfd2(guest, a[0], 0),
         nr::PIPE => call::pipe2(guest, a[0], 0),
         nr::PIPE2 => call::pipe2(guest, a[0], a[1]),
         nr::DUP => call::dup(guest, a[0]),

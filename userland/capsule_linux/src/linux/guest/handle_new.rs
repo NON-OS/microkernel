@@ -32,6 +32,7 @@ impl Guest {
             regions: Vec::new(),
             pipes: Vec::new(),
             pipe_ends: Vec::new(),
+            events: Vec::new(),
             children: Vec::new(),
             threads: Vec::new(),
             clear_tids: Vec::new(),
