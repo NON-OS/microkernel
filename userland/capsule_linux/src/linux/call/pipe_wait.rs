@@ -19,7 +19,8 @@
 //! Whether anything could still fill the pipe is the family's to say, since
 //! the write end may be in another process: the read parks here and the serve
 //! loop settles it, with bytes when some arrive or end of file when no write
-//! end is left anywhere.
+//! end is left anywhere. A non-blocking read end is answered at once, EAGAIN
+//! when the pipe is empty.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
@@ -36,8 +37,9 @@ pub fn read_or_park(guest: &mut Guest, fd: u64, buf: u64, len: u64, tid: u32) ->
     let Some((slot, writable)) = end_of(guest, fd) else {
         return Answer::value(errno::fail(errno::EBADF));
     };
+    let nonblock = guest.fds.get(fd as usize).is_some_and(|f| f.nonblock);
     let fed = !guest.pipes[slot].is_empty() || !other_end_open(guest, slot, false);
-    if writable || len == 0 || fed {
+    if writable || len == 0 || nonblock || fed {
         return Answer::value(read(guest, fd, buf, len));
     }
     guest.pipe_wait = Some((slot, buf, len, tid));

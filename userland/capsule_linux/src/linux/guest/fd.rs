@@ -53,6 +53,8 @@ pub struct Fd {
     /// Closed by exec rather than carried into the new program. A shell
     /// leaves its own descriptors set this way before it runs a command.
     pub cloexec: bool,
+    /// O_NONBLOCK: a call that would wait is answered EAGAIN instead.
+    pub nonblock: bool,
 }
 
 impl Fd {

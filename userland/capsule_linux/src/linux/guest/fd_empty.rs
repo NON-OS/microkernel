@@ -39,6 +39,7 @@ impl Fd {
             expiry: 0,
             replies: Vec::new(),
             cloexec: false,
+            nonblock: false,
         }
     }
 }

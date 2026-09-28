@@ -33,6 +33,7 @@ impl Fd {
         let mut fd = Fd::empty(from.kind);
         fd.handle = from.handle;
         fd.writable = from.writable;
+        fd.nonblock = from.nonblock;
         fd.size = from.size;
         fd.offset = from.offset;
         fd.path = from.path.clone();
