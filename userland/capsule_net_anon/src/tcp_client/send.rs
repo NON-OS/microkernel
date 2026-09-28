@@ -48,6 +48,12 @@ pub fn send_all(port: u32, handle: u32, payload: &[u8]) -> Result<(), u16> {
     Ok(())
 }
 
+/// Offer up to one segment of `payload` and report how much the socket took,
+/// without waiting for room.
+pub fn send_some(port: u32, handle: u32, payload: &[u8]) -> Result<usize, u16> {
+    send_chunk(port, handle, &payload[..payload.len().min(SEGMENT_MAX)])
+}
+
 fn send_chunk(port: u32, handle: u32, chunk: &[u8]) -> Result<usize, u16> {
     let mut body = vec![0u8; 4 + chunk.len()];
     body[0..4].copy_from_slice(&handle.to_le_bytes());

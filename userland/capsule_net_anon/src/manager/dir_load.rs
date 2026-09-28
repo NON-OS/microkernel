@@ -18,7 +18,7 @@
 
 use crate::trace;
 
-use super::dir_consensus::obtain as obtain_consensus;
+use super::dir_consensus::sweep;
 use super::state::{Bootstrap, Manager};
 
 /*
@@ -33,9 +33,13 @@ use super::state::{Bootstrap, Manager};
 const RETRY_SECONDS: u64 = 5;
 
 pub(super) fn load(state: &mut Manager, now: u64) {
-    let Some(doc) = obtain_consensus(state.tcp_port, &state.certs, now) else {
-        state.retry_after = now.saturating_add(RETRY_SECONDS);
-        return;
+    let doc = match sweep(state, now) {
+        None => return,
+        Some(Some(doc)) => doc,
+        Some(None) => {
+            state.retry_after = now.saturating_add(RETRY_SECONDS);
+            return;
+        }
     };
     trace::say_num(b"consensus relays", doc.entries.len() as u64);
     state.entries = doc.entries;
@@ -43,7 +47,7 @@ pub(super) fn load(state: &mut Manager, now: u64) {
     state.fresh_until = doc.fresh_until;
     state.valid_until = doc.valid_until;
     state.micro.clear();
-    state.micro_cursor = 0;
+    state.dir.micro = 0;
     state.authority_cursor = state.authority_cursor.wrapping_add(1);
     state.bootstrap = Bootstrap::Joining;
 }

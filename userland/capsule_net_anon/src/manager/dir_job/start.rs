@@ -14,34 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! One HTTP GET to a DirPort over net.tcp.
+//! Opening the connection a directory fetch runs on.
 
 extern crate alloc;
 
-use alloc::vec::Vec;
+use nonos_libc::mk_uptime_ms;
 
-use crate::directory::fetch::body;
+use crate::directory::fetch::get;
+use crate::tcp_client::connect;
 use crate::tcp_client::errno::{E_ERRNO, LOCAL_PORT_IN_USE, UNADDRESSABLE};
-use crate::tcp_client::{close, connect};
 use crate::trace;
 
-use super::http_exchange::exchange;
+use super::job::{Job, Stage, ESTABLISH_MS};
 
-/*
- * Every failure here retries against the next authority, so the return stayed
- * a bare None for a long time on the grounds that the action is the same. The
- * action is; the diagnosis is not.
- */
-
-/// Fetch and inflate `path` from an authority. `None` on any failure, traced.
-pub fn fetch(tcp_port: u32, address: [u8; 4], dir_port: u16, path: &[u8]) -> Option<Vec<u8>> {
-    let handle = match connect(tcp_port, address, dir_port) {
-        Ok(handle) => handle,
+/// Ask net.tcp for a connection to an authority. `None`, traced, when it
+/// refuses at once. Nothing here waits: the connection opens over the turns
+/// that follow.
+pub(super) fn start(tcp_port: u32, address: [u8; 4], dir_port: u16, path: &[u8]) -> Option<Job> {
+    match connect(tcp_port, address, dir_port) {
+        Ok(handle) => Some(Job {
+            handle,
+            address,
+            dir_port,
+            request: get(path),
+            sent: 0,
+            stage: Stage::Opening,
+            deadline: mk_uptime_ms().saturating_add(ESTABLISH_MS),
+            opening: false,
+            raw: alloc::vec::Vec::new(),
+        }),
+        /*
+         * Not "refused": nothing at the far end ever saw these. Which of
+         * net.tcp's refusals it is decides where to look next.
+         */
         Err(errno) => {
-            // The errno as well as the address. Which of net.tcp's refusals this is decides
-            // where to look next.
-            // Not "refused": nothing at the far end ever saw these. The word sent a boot
-            // looking at the network for a stack with no address yet.
             match errno {
                 e if e == E_ERRNO + UNADDRESSABLE => {
                     trace::say_addr(b"dir connect has no route yet", address, dir_port)
@@ -54,19 +60,6 @@ pub fn fetch(tcp_port: u32, address: [u8; 4], dir_port: u16, path: &[u8]) -> Opt
                     trace::say_num(b"dir connect errno", errno as u64);
                 }
             }
-            return None;
-        }
-    };
-    let raw = exchange(tcp_port, handle, path, address, dir_port);
-    let _ = close(tcp_port, handle);
-    match body(&raw?) {
-        Ok(out) if out.is_empty() => {
-            trace::say_addr(b"dir answered with nothing", address, dir_port);
-            None
-        }
-        Ok(out) => Some(out),
-        Err(_) => {
-            trace::say_addr(b"dir body not usable", address, dir_port);
             None
         }
     }

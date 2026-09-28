@@ -30,7 +30,7 @@ impl Manager {
             certs: alloc::vec::Vec::new(),
             entries: alloc::vec::Vec::new(),
             micro: alloc::vec::Vec::new(),
-            micro_cursor: 0,
+            dir: Default::default(),
             relays: alloc::vec::Vec::new(),
             weights: Weights::default(),
             fresh_until: 0,

@@ -14,37 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Everything net.anon holds between requests, and the ticks that advance it.
+//! One directory fetch at a time, advanced a step per idle turn.
+//!
+//! The serve loop answers callers only between turns, so a fetch that waited
+//! inside a turn stopped every caller for as long as it waited: up to eight
+//! seconds for a connection, ten to send and thirty to read, and a sweep of
+//! seven authorities did that seven times in one turn.
 
-mod batch;
-mod body_closed;
-mod body_step;
-mod circuit_tick;
-mod dir_certs;
-mod dir_consensus;
-mod dir_job;
-mod dir_join;
-mod dir_load;
-mod dir_micro;
-mod dir_quorum;
-mod dir_tick;
-mod end_streams;
-mod guard;
-mod inbound;
-mod link_lost;
-mod link_stage;
-mod link_tick;
-mod out;
-mod pump;
-mod relays;
-mod retire;
-mod roll;
-mod state;
+mod finish;
+mod job;
+mod opening;
+mod poll;
+mod reading;
+mod sending;
+mod start;
+mod turn;
 
-pub use circuit_tick::tick as circuit_tick;
-pub use dir_tick::tick as directory_tick;
-pub use link_tick::tick as link_tick;
-pub use out::{open_stream, send_data, send_end, sendme_tick, SendError};
-pub use pump::tick as pump_tick;
-pub use retire::tick as retire_tick;
-pub use state::{Bootstrap, Manager};
+pub use job::DirWork;
+pub(super) use turn::{turn, Turn};

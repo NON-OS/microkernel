@@ -14,39 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Fetching and anchoring the authority certificates.
-
-extern crate alloc;
-
-use alloc::vec::Vec;
+//! Fetching and anchoring the authority certificates, one authority at a time.
 
 use crate::directory::authority::AUTHORITIES;
 use crate::directory::fetch::{keys_path, upper};
-use crate::directory::verify::{check, parse, AnchorError, AuthorityCert};
+use crate::directory::verify::{check, parse, AnchorError};
 use crate::trace;
 
-use super::http::fetch;
+use super::dir_job::{turn, Turn};
+use super::state::Manager;
 
-/// Certificates held for authorities whose anchor check passed, by index.
-///
-pub fn gather(tcp_port: u32, now: u64) -> Vec<(usize, AuthorityCert)> {
-    let mut out = Vec::new();
-    for (index, authority) in AUTHORITIES.iter().enumerate() {
-        let mut hex = [0u8; 40];
-        let width = upper(&mut hex, &authority.v3ident);
-        let path = keys_path(&hex[..width]);
-        let Some(body) = fetch(tcp_port, authority.address, authority.dir_port, &path) else {
-            continue;
-        };
-        let Some(cert) = parse(&body) else { continue };
-        match check(&cert, &body, &authority.v3ident, now) {
-            Ok(()) => out.push((index, cert)),
-            Err(AnchorError::Expired) => {
-                trace::say_num(b"authority signing key expired", index as u64)
-            }
-            Err(_) => trace::say_num(b"authority cert rejected", index as u64),
-        }
+/// Advance the sweep over the authorities by one turn. `None` while it runs;
+/// once every authority has been asked, whether any certificate anchored.
+/// The ones that did are in `state.certs`, by authority index.
+pub(super) fn sweep(state: &mut Manager, now: u64) -> Option<bool> {
+    let index = state.dir.sweep;
+    let authority = &AUTHORITIES[index];
+    if index == 0 && state.dir.job.is_none() {
+        state.certs.clear();
     }
-    trace::say_two(b"authority certs", out.len() as u64, AUTHORITIES.len() as u64);
-    out
+    let mut hex = [0u8; 40];
+    let width = upper(&mut hex, &authority.v3ident);
+    match turn(state, authority.address, authority.dir_port, &keys_path(&hex[..width])) {
+        Turn::Busy => return None,
+        Turn::Got(body) => anchor(state, index, &body, now),
+        Turn::Missed => {}
+    }
+    state.dir.sweep += 1;
+    if state.dir.sweep < AUTHORITIES.len() {
+        return None;
+    }
+    state.dir.sweep = 0;
+    trace::say_two(b"authority certs", state.certs.len() as u64, AUTHORITIES.len() as u64);
+    Some(!state.certs.is_empty())
+}
+
+fn anchor(state: &mut Manager, index: usize, body: &[u8], now: u64) {
+    let Some(cert) = parse(body) else { return };
+    match check(&cert, body, &AUTHORITIES[index].v3ident, now) {
+        Ok(()) => state.certs.push((index, cert)),
+        Err(AnchorError::Expired) => trace::say_num(b"authority signing key expired", index as u64),
+        Err(_) => trace::say_num(b"authority cert rejected", index as u64),
+    }
 }

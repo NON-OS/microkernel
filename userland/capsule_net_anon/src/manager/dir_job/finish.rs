@@ -14,32 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The request and reply halves of one directory fetch.
+//! Turning a finished response into a body, or saying why not.
 
 extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::directory::fetch::get;
-use crate::tcp_client::{send_all, wait_established};
+use crate::directory::fetch::body;
 use crate::trace;
 
-use super::read_body::read_body;
-
-pub(super) fn exchange(
-    tcp_port: u32,
-    handle: u32,
-    path: &[u8],
-    address: [u8; 4],
-    dir_port: u16,
-) -> Option<Vec<u8>> {
-    if wait_established(tcp_port, handle).is_err() {
-        trace::say_addr(b"dir never established", address, dir_port);
-        return None;
+/// The inflated body of a `200` response, or `None`, traced.
+pub(super) fn finish(raw: &[u8], address: [u8; 4], dir_port: u16) -> Option<Vec<u8>> {
+    match body(raw) {
+        Ok(out) if out.is_empty() => {
+            trace::say_addr(b"dir answered with nothing", address, dir_port);
+            None
+        }
+        Ok(out) => Some(out),
+        Err(_) => {
+            trace::say_addr(b"dir body not usable", address, dir_port);
+            None
+        }
     }
-    if send_all(tcp_port, handle, &get(path)).is_err() {
-        trace::say_addr(b"dir request not sent", address, dir_port);
-        return None;
-    }
-    read_body(tcp_port, handle)
 }
