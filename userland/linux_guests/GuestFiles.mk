@@ -41,3 +41,20 @@ LINUX_GUEST_STORE_ENTRIES += --entry /linux/lib/libprobe_bad.so=$(LINUX_GUEST_BA
 	--entry /linux/lib/libprobe_bad.so.nonos_id_cert.bin=$(linux-guest-libprobe_CERT) \
 	--entry /linux/lib/libprobe_bad.so.manifest.bin=$(linux-guest-libprobe_MANIFEST) \
 	--entry /linux/lib/libprobe_bad.so.zk_trailer.bin=$(linux-guest-libprobe_ATTESTATION)
+
+# bbsuite: busybox runs 40 and more applets from a script, and what it prints
+# must equal what the same busybox printed on the host through the same links
+# (sh/bbsuite-host.sh). Plain data files: the programs are busybox's own.
+LINUX_GUEST_BB := $(TARGET_DIR)/linux-guests/bbsuite.expect
+$(LINUX_GUEST_BB): $(LINUX_GUESTS_DIR)/sh/bbsuite-body.sh $(LINUX_GUESTS_DIR)/sh/bbsuite-host.sh \
+		userland/capsule_linux/guests/busybox.elf
+	@mkdir -p $(@D) && sh $(LINUX_GUESTS_DIR)/sh/bbsuite-host.sh \
+		userland/capsule_linux/guests/busybox.elf $(LINUX_GUESTS_DIR)/sh/bbsuite-body.sh > $@
+LINUX_GUEST_STORE_DEPS += $(LINUX_GUEST_BB)
+LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/bbsuite.expect=$(LINUX_GUEST_BB) \
+	--entry /linux/etc/bbsuite.sh=$(LINUX_GUESTS_DIR)/sh/bbsuite.sh \
+	--entry /linux/etc/bbsuite-body.sh=$(LINUX_GUESTS_DIR)/sh/bbsuite-body.sh
+
+# The users and groups an Alpine tree names, so ls and ps print root as root.
+LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/passwd=$(LINUX_GUESTS_DIR)/etc/passwd \
+	--entry /linux/etc/group=$(LINUX_GUESTS_DIR)/etc/group
