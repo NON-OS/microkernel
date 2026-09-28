@@ -36,5 +36,6 @@ impl Guest {
         let _ = self.leave_waits(tid);
         self.signals.threads.retain(|t| t.tid != tid);
         self.signals.pending.retain(|(t, _)| *t != tid);
+        self.signals.timers_requeue();
     }
 }

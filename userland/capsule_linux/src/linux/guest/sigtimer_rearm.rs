@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How ITIMER_REAL moves on once it fires: a periodic one past every period
-//! that ended unseen, a one-shot one stops. Pure, so the arithmetic is checked
-//! without a guest.
+//! How a timer that ends in a signal moves on once it fires: a periodic one
+//! past every period that ended unseen, counted as overruns for a POSIX
+//! timer; a one-shot one stops. Pure, so the arithmetic is checked without a
+//! guest.
 
-use super::sigtimer::Itimer;
+use super::sigtimer::{Itimer, PosixTimer};
 
 impl Itimer {
     /// Move past every period that has ended by `now`; false for a one-shot.
@@ -29,6 +30,24 @@ impl Itimer {
         while self.due <= now {
             self.due = self.due.saturating_add(self.interval);
         }
+        true
+    }
+}
+
+impl PosixTimer {
+    /// Fire at `now`: the periods that passed unseen are overruns, as Linux
+    /// counts them. False when the timer does not fire again.
+    pub fn rearm(&mut self, now: u64) -> bool {
+        let Some(due) = self.due else {
+            return false;
+        };
+        if self.interval == 0 {
+            self.due = None;
+            return false;
+        }
+        let missed = now.saturating_sub(due) / self.interval;
+        self.overrun = self.overrun.saturating_add(missed.min(i32::MAX as u64) as i32);
+        self.due = Some(due + (missed + 1) * self.interval);
         true
     }
 }

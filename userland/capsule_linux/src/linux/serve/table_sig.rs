@@ -30,6 +30,11 @@ pub fn sig_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64>
         ns::ALARM => call::alarm(guest, a[0]),
         ns::SETITIMER => call::setitimer(guest, a[0], a[1], a[2]),
         ns::GETITIMER => call::getitimer(guest, a[0], a[1]),
+        ns::TIMER_CREATE => call::timer_create(guest, a[0], a[1], a[2]),
+        ns::TIMER_SETTIME => call::timer_settime(guest, a[0], a[1], a[2], a[3]),
+        ns::TIMER_GETTIME => call::timer_gettime(guest, a[0], a[1]),
+        ns::TIMER_GETOVERRUN => call::timer_getoverrun(guest, a[0]),
+        ns::TIMER_DELETE => call::timer_delete(guest, a[0]),
         _ => return None,
     })
 }
