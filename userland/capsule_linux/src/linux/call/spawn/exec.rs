@@ -46,6 +46,7 @@ pub fn execve(guest: &mut Guest, pid: u32, path: u64, argv: u64, envp: u64) -> A
     };
     super::exec_threads::reap(guest, pid);
     clear(guest);
+    guest.signals.clear_stacks();
     match load_over(guest, pid, &program, &env) {
         Some(()) => Answer::Park,
         None => Answer::value(errno::fail(errno::ENOEXEC)),

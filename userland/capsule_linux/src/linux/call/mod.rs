@@ -45,6 +45,7 @@ mod session;
 pub mod sigframe;
 mod signal;
 mod signal_send;
+mod signal_stack;
 mod sigreturn;
 mod sleep;
 mod spawn;
@@ -76,7 +77,8 @@ pub use sched::{
     sched_setscheduler,
 };
 pub use session::{getpgid, getsid, setpgid, setsid};
-pub use signal::{rt_sigaction, rt_sigprocmask, sigaltstack};
+pub use signal::{rt_sigaction, rt_sigprocmask};
+pub use signal_stack::sigaltstack;
 pub use sigreturn::rt_sigreturn;
 pub use signal_send::kill;
 pub use sleep::{clock_nanosleep, nanosleep};

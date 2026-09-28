@@ -19,17 +19,20 @@
 
 use alloc::vec::Vec;
 
+use super::sigstack::AltStack;
 use super::sigstate::{SigAction, NSIG};
 
 #[derive(Clone)]
 pub struct Signals {
     actions: [SigAction; NSIG],
     pending: Vec<(u32, u8)>,
+    /// Each thread's alternate signal stack (`sigstack.rs`).
+    pub(super) stacks: Vec<(u32, AltStack)>,
 }
 
 impl Default for Signals {
     fn default() -> Self {
-        Self { actions: [SigAction::default(); NSIG], pending: Vec::new() }
+        Self { actions: [SigAction::default(); NSIG], pending: Vec::new(), stacks: Vec::new() }
     }
 }
 
