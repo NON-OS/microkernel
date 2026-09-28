@@ -96,6 +96,9 @@ $(eval $(call LINUX_GUEST,goconc,4970,4971,$(GO_OUT)/conc))
 # Go's network poller: a timer's epoll wait and its eventfd wake, and a pipe
 # read through the poller to end of file.
 $(eval $(call LINUX_GUEST,gopoll,4976,4977,$(GO_OUT)/poll))
+# A goroutine spinning with no call, which only a signal to its running
+# thread can move off the one CPU the guest has.
+$(eval $(call LINUX_GUEST,gopreempt,4944,4945,$(GO_OUT)/preempt))
 
 # A C guest that faults in a worker thread while main joins: it proves the
 # whole process ends, as on Linux, and that musl threads run. Static, so no
