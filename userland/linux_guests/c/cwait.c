@@ -6,8 +6,8 @@
 // descriptor leaving epoll, timerfd one-shot, periodic and absolute, and the
 // descriptor ioctls and an epoll list carried through fork, and the scheduler
 // calls with epoll_create and epoll_pwait2, and tgkill with the numbers
-// getpid and gettid give. Each part prints as it passes, so a hang names the
-// part it hung in.
+// getpid and gettid give. Each part prints as it passes and every part runs,
+// so one run names each part that fails, and a hang the part it hung in.
 #define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
@@ -542,11 +542,22 @@ static int thread_kill(void) {
 }
 
 int main(void) {
+    int (*const part[])(void) = {
+        timed_futex,  broadcast, eventfd_semaphore, eventfd_blocking, epoll_timeout,
+        pipe_nonblock, pipe_full, edge,             two_readers,      poll_select,
+        close_forgets, timers,   ioctls_fork,       scheduler,        thread_kill,
+    };
+    const int count = sizeof part / sizeof part[0];
     long t0 = now_ms();
-    if (timed_futex() || broadcast() || eventfd_semaphore() || eventfd_blocking() ||
-        epoll_timeout() || pipe_nonblock() || pipe_full() || edge() || two_readers() ||
-        poll_select() || close_forgets() || timers() || ioctls_fork() || scheduler() ||
-        thread_kill()) {
+    int failed = 0;
+    // Every part runs, so one run names every part that fails; a hang still
+    // stops it, at the part it hangs in.
+    for (int i = 0; i < count; i++) {
+        failed += part[i]();
+    }
+    if (failed) {
+        printf("[C] cwait FAIL: %d parts failed, %d passed\n", failed, parts);
+        fflush(stdout);
         return 1;
     }
     printf("[C] cwait PASS: %d parts in %ld ms\n", parts, now_ms() - t0);
