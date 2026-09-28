@@ -14,7 +14,8 @@ if cmp -s /tmp/bbsuite.got /tmp/bbsuite.want; then
 	echo "[C] bbsuite PASS: $lines lines in $sections sections equal the host's, sha256 $got"
 	exit 0
 fi
-diff /tmp/bbsuite.want /tmp/bbsuite.got | head -n 80
-differ=$(diff /tmp/bbsuite.want /tmp/bbsuite.got | grep -c '^[<>]')
+# What differs, then everything this run printed, for a diff on the host.
+differ=$(diff -U0 /tmp/bbsuite.want /tmp/bbsuite.got | grep -v '^---\|^+++' | grep -c '^[-+]')
+sed 's/^/[C] bbsuite got: /' /tmp/bbsuite.got
 echo "[C] bbsuite FAIL: $differ lines differ of $lines, sha256 $got, host $want"
 exit 1
