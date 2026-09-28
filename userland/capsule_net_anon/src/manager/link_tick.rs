@@ -17,7 +17,6 @@
 //! Keeping one link to one guard open.
 
 use crate::link::open;
-use crate::link::LinkError;
 use crate::trace;
 
 use super::guard::{draw, Guard};

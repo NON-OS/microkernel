@@ -17,7 +17,7 @@
 
 use super::consensus_live_fixture::{live, weights_of};
 use crate::directory::consensus::parse;
-use crate::path::{candidates, Position, Relay, Taken, Weights};
+use crate::path::{candidates, Position, Relay, Taken};
 
 #[test]
 fn a_middle_survives_the_network_rule_on_a_live_consensus() {
