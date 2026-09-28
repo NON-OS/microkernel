@@ -154,6 +154,12 @@ $(LINUX_GUESTS_C)/cidle: $(LINUX_GUESTS_DIR)/c/cidle.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cidle,5008,5009,$(LINUX_GUESTS_C)/cidle))
 
+# Unix sockets with names: a path, what it leaves behind, abstract names,
+# a connected datagram socket, autobind, and a connection across fork.
+$(LINUX_GUESTS_C)/cunix: $(LINUX_GUESTS_DIR)/c/cunix.c $(wildcard $(LINUX_GUESTS_DIR)/c/cunix_parts*.h)
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cunix,5010,5011,$(LINUX_GUESTS_C)/cunix))
+
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
 # normal image, which does not set NONOS_LINUX_GUESTS, still ships them.
