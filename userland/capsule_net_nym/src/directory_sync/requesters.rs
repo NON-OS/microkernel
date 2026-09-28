@@ -30,11 +30,9 @@ use alloc::vec::Vec;
 
 use spin::Mutex;
 
-use super::api::base58::decode32;
-use super::api::field::string_field;
-use super::api::{node_objects, objects};
+use super::described::parse_described;
+use super::exit_address::ExitAddress;
 use super::https::fetch_tls;
-use crate::json::find_key;
 
 /// The validator's node self-descriptions, every node in one answer.
 const DESCRIBED_PATH: &str = "/api/v1/nym-nodes/described";
@@ -42,58 +40,7 @@ const DESCRIBED_PATH: &str = "/api/v1/nym-nodes/described";
 /// this leaves room for the network to grow without letting an answer take
 /// the heap.
 const MAX_DESCRIBED: usize = 4 * 1024 * 1024;
-/// More nodes than the network has, so a hostile answer cannot make the
-/// capsule walk without bound.
-const MAX_NODES: usize = 8192;
-
-/// The exit that opens connections on our behalf.
-#[derive(Clone, Copy)]
-pub struct ExitAddress {
-    pub identity: [u8; 32],
-    pub encryption: [u8; 32],
-    pub gateway: [u8; 32],
-}
-
 static REQUESTERS: Mutex<Vec<ExitAddress>> = Mutex::new(Vec::new());
-
-/// Parse `identity.encryption@gateway`, each part a base58 key of 32 bytes.
-pub fn parse_address(text: &[u8]) -> Option<ExitAddress> {
-    let at = text.iter().position(|&b| b == b'@')?;
-    let (client, gateway) = (&text[..at], &text[at + 1..]);
-    let dot = client.iter().position(|&b| b == b'.')?;
-    Some(ExitAddress {
-        identity: decode32(&client[..dot])?,
-        encryption: decode32(&client[dot + 1..])?,
-        gateway: decode32(gateway)?,
-    })
-}
-
-/// The first object value under `key` at the top level of `obj`.
-fn object_at<'a>(obj: &'a [u8], key: &str) -> Option<&'a [u8]> {
-    let at = find_key(obj, key)?;
-    objects(&obj[at..], 1).into_iter().next()
-}
-
-/// Every requester address in a described answer whose gateway `is_exit`
-/// accepts. The gateway is part of the address itself, so an address that
-/// names a gateway outside the authenticated exit list is dropped here.
-pub fn parse_described(body: &[u8], is_exit: impl Fn(&[u8; 32]) -> bool) -> Vec<ExitAddress> {
-    let mut out = Vec::new();
-    for node in node_objects(body, MAX_NODES) {
-        let Some(requester) =
-            object_at(node, "description").and_then(|d| object_at(d, "network_requester"))
-        else {
-            continue;
-        };
-        let Some(address) = string_field(requester, "address") else { continue };
-        if let Some(exit) = parse_address(&address) {
-            if is_exit(&exit.gateway) {
-                out.push(exit);
-            }
-        }
-    }
-    out
-}
 
 /// Fetch the described nodes and keep the requesters on known exits.
 /// Returns how many were kept; the cache is replaced only by a non-empty

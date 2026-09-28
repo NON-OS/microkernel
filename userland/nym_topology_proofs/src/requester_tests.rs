@@ -3,7 +3,8 @@
 //! live answer (vectors/SOURCE.txt says which).
 
 use crate::directory_sync::api::base58::decode32;
-use crate::directory_sync::requesters::{parse_address, parse_described};
+use crate::directory_sync::described::parse_described;
+use crate::directory_sync::exit_address::parse_address;
 
 const DESCRIBED: &[u8] = include_bytes!("../vectors/described.json");
 const EXITS: &str = include_str!("../vectors/exits.txt");

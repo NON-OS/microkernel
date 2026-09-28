@@ -20,7 +20,8 @@ use alloc::vec::Vec;
 
 use super::budget_roles::{ENTRY_BUDGET, EXIT_BUDGET, MIX_BUDGET};
 use super::keep::keep;
-use super::live::{fetch_exits, fetch_gateways, fetch_mixnodes, layers_present};
+use super::live::{fetch_exits, fetch_gateways, fetch_mixnodes};
+use super::roles::layers_present;
 use super::step::{Step, PARTIAL};
 use crate::topology::{self, Node};
 /// The mix layers, which are what a route is built from.
