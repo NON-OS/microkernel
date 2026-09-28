@@ -50,7 +50,31 @@ impl Guest {
          * Remembered because fork copies a guest by walking what its
          * supervisor gave it.
          */
-        self.regions.push(Region { at: start, len: span, write, exec, unproven: false });
+        self.regions.push(Region {
+            at: start,
+            len: span,
+            write,
+            exec,
+            unproven: false,
+            backed: true,
+        });
+        0
+    }
+
+    /// Take `len` of address space at `addr` without backing it: a PROT_NONE
+    /// reservation. Bytes appear, zeroed, when the guest first touches them.
+    pub fn reserve(&mut self, addr: u64, len: u64) -> i64 {
+        let Some((start, span)) = span_within(addr, len, STACK_TOP) else {
+            return -1;
+        };
+        self.regions.push(Region {
+            at: start,
+            len: span,
+            write: true,
+            exec: false,
+            unproven: false,
+            backed: false,
+        });
         0
     }
 }

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Copying a parent's spans into the child it just made.
 
 use crate::linux::guest::{Guest, Region};
@@ -24,6 +23,11 @@ use nonos_libc::peer::{mk_peer_map, mk_peer_write, PEER_PROT_EXEC, PEER_PROT_WRI
 pub(super) fn copy_spans(guest: &mut Guest, child: u32) -> bool {
     let spans = guest.regions.clone();
     for span in spans {
+        // An unbacked reservation has no frames to copy; the child reserves it
+        // the same way, and its own first access faults a page in.
+        if !span.backed {
+            continue;
+        }
         if mk_peer_map(child, span.at, span.len, prot_of(&span)) < 0 {
             return false;
         }

@@ -44,9 +44,16 @@ pub fn memfd(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
 }
 
 pub fn anonymous(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
-    let write = req.prot & PROT_WRITE != 0;
-    let exec = req.prot & PROT_EXEC != 0;
-    if guest.map(at, span, write, exec) < 0 {
+    // A PROT_NONE anonymous mapping is a reservation: the runtime that makes it
+    // (Go's, for one) commits a fraction of it later with a fixed RW mapping.
+    // Backing the whole span here would spend real frames on address space no
+    // one has touched, so reserve it and let the first access fault a page in.
+    let backed = if req.prot == 0 {
+        guest.reserve(at, span)
+    } else {
+        guest.map(at, span, req.prot & PROT_WRITE != 0, req.prot & PROT_EXEC != 0)
+    };
+    if backed < 0 {
         return errno::fail(errno::ENOMEM);
     }
     if req.fixed().is_none() {
