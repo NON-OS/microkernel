@@ -36,8 +36,9 @@ pub fn serve(guest: Guest) -> i32 {
         }
         family.settle_sleeps();
         family.settle_futex();
-        family.settle_waits();
+        // After reap, so a write end that left with its process reads as end of file.
         family.reap();
+        family.settle_waits();
         if let Some(code) = family.done() {
             super::tally::report();
             return code;

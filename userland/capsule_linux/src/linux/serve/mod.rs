@@ -22,7 +22,6 @@ mod dispatch;
 mod family;
 mod family_futex;
 mod family_lend;
-mod family_pipes;
 mod family_reap;
 mod family_sleep;
 mod family_waits;

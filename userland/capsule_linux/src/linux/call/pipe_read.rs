@@ -30,6 +30,9 @@ pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     if writable {
         return errno::fail(errno::EBADF);
     }
+    if len == 0 {
+        return errno::ok(0);
+    }
     let have = guest.pipes[slot].len();
     if have == 0 {
         // Empty with no write end left anywhere is end of file.

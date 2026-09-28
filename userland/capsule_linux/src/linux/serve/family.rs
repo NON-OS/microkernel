@@ -73,7 +73,6 @@ impl Family {
             }
         }
         self.guests.extend(born);
-        self.settle_pipes();
     }
 
     /// A guest thread ended on a signal. On Linux that ends the thread group,

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Calls that wait for a descriptor: `epoll_wait` until its timeout, and
-//! a read or write that would block on an eventfd or a full pipe.
+//! a read or write that would block on a pipe or an eventfd.
 //!
 //! Each is tried when it arrives. One that cannot complete is left parked
 //! in its trap, and the family tries it again after every answer and at its
@@ -44,14 +44,9 @@ pub fn epoll(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
     }
 }
 
-/// True for the reads and writes that can wait: an eventfd either way, and
-/// a pipe written to, whose reads already wait on their own.
-pub fn may_wait(guest: &Guest, nr: u64, fd: u64) -> bool {
-    match guest.fds.get(fd as usize).map(|f| f.kind) {
-        Some(Kind::Event) => true,
-        Some(Kind::Pipe) => nr == nr::WRITE,
-        _ => false,
-    }
+/// True for the reads and writes that can wait: a pipe or an eventfd.
+pub fn may_wait(guest: &Guest, fd: u64) -> bool {
+    matches!(guest.fds.get(fd as usize).map(|f| f.kind), Some(Kind::Event | Kind::Pipe))
 }
 
 /// A read or write that answers EAGAIN waits instead, unless its descriptor
