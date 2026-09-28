@@ -46,8 +46,10 @@ NONOS_STORE_MEDIA_ENTRIES := \
 endif
 
 # LINUX_GUEST_STORE_* are empty unless NONOS_LINUX_GUESTS=1 (userland/linux_guests/Guests.mk).
-$(QEMU_BLK_STORE_STAMP): $(std-proof_ARTIFACTS) $(gui_demo_ARTIFACTS) $(game_2048_ARTIFACTS) $(egui_proof_ARTIFACTS) $(LINUX_GUEST_STORE_DEPS) tools/nonos-store-pack $(NONOS_MEDIA_FILES) | $(QEMU_BLK_IMG)
-	@$(NONOS_PYTHON) tools/nonos-store-pack --image $(QEMU_BLK_IMG) --lba 256 \
+# The demo capsules the desktop offers from the store. Grouped so the
+# Linux-guest test image, which packs its own large signed set, can leave
+# them out and stay inside the vfs load budget (Guests.mk empties this).
+NONOS_STORE_DEMO_ENTRIES := \
 		--entry /capsules/std_proof.elf=$(std-proof_BIN) \
 		--entry /capsules/std_proof.nonos_id_cert.bin=$(std-proof_CERT) \
 		--entry /capsules/std_proof.manifest.bin=$(std-proof_MANIFEST) \
@@ -63,7 +65,11 @@ $(QEMU_BLK_STORE_STAMP): $(std-proof_ARTIFACTS) $(gui_demo_ARTIFACTS) $(game_204
 		--entry /capsules/egui_proof.elf=$(egui_proof_BIN) \
 		--entry /capsules/egui_proof.nonos_id_cert.bin=$(egui_proof_CERT) \
 		--entry /capsules/egui_proof.manifest.bin=$(egui_proof_MANIFEST) \
-		--entry /capsules/egui_proof.zk_trailer.bin=$(egui_proof_ATTESTATION) \
+		--entry /capsules/egui_proof.zk_trailer.bin=$(egui_proof_ATTESTATION)
+
+$(QEMU_BLK_STORE_STAMP): $(std-proof_ARTIFACTS) $(gui_demo_ARTIFACTS) $(game_2048_ARTIFACTS) $(egui_proof_ARTIFACTS) $(LINUX_GUEST_STORE_DEPS) tools/nonos-store-pack $(NONOS_MEDIA_FILES) | $(QEMU_BLK_IMG)
+	@$(NONOS_PYTHON) tools/nonos-store-pack --image $(QEMU_BLK_IMG) --lba 256 \
+		$(NONOS_STORE_DEMO_ENTRIES) \
 		$(NONOS_STORE_MEDIA_ENTRIES) \
 		$(LINUX_GUEST_STORE_ENTRIES)
 	@touch $@

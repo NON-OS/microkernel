@@ -94,9 +94,10 @@ $(GO_OUT)/%: $(LINUX_GUESTS_DIR)/go/%/main.go
 $(eval $(call LINUX_GUEST,gohello,4968,4969,$(GO_OUT)/hello))
 $(eval $(call LINUX_GUEST,goconc,4970,4971,$(GO_OUT)/conc))
 
-# The Linux-guest test store is about guests, not media. Drop the movie
-# samples from it so the whole set fits the vfs load budget; the normal image
-# still ships them.
+# The Linux-guest test store is about guests, not the desktop's media and demo
+# capsules. Drop both so the signed guest set fits the vfs load budget; the
+# normal image, which does not set NONOS_LINUX_GUESTS, still ships them.
 override NONOS_STORE_MEDIA_ENTRIES :=
+override NONOS_STORE_DEMO_ENTRIES :=
 
 include $(LINUX_GUESTS_DIR)/GuestFiles.mk
