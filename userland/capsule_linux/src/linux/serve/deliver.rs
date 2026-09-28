@@ -17,9 +17,9 @@
 //! A thread taking the signals it may take. A caught one enters its handler
 //! through Linux's rt_sigframe; an uncaught one does what its default says,
 //! and a default of ending the process ends all of it. A thread takes them
-//! when it returns from a call, with the call's value in rax (maybe_deliver),
-//! and when the kernel stops it running, on the registers it stopped with
-//! (deliver_on).
+//! when it returns from a call, with the call's value in rax (maybe_deliver);
+//! when a signal ends the wait it is parked in (deliver_wait); and when the
+//! kernel stops it running, on the registers it stopped with (deliver_on).
 
 use nonos_libc::{mk_foreign_context, ForeignRegs};
 

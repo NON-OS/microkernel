@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Signals between processes of the family, settled after every answer: the
-//! outbox is routed to every process each signal names.
+//! outbox is routed, and each process's parked threads take what now reaches
+//! them.
 
 use super::family::Family;
 
 impl Family {
     pub(super) fn settle_signals(&mut self) {
         self.route_outbox();
+        self.guests.iter_mut().for_each(super::deliver_wait::settle);
     }
 }

@@ -64,3 +64,4 @@ pub use layout::{
 };
 pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
 pub use region::Region;
+pub use sigpark::Parked;

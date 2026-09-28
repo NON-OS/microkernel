@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which wait a thread is parked in, and taking it out of every one, so a
-//! thread that has gone leaves no wait behind to be answered.
+//! Taking a thread out of the wait it is parked in, so a caught signal can end
+//! that wait as Linux does: the wait is dropped here and never answered; the
+//! handler's frame is the answer.
 
 use super::handle::Guest;
 

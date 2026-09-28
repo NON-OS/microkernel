@@ -39,4 +39,9 @@ impl Signals {
     pub fn discard(&mut self, signum: u8) {
         self.pending.retain(|(_, i)| i.signo != signum);
     }
+
+    /// Each pending signal with the thread it is for, 0 for the process.
+    pub fn queued(&self) -> alloc::vec::Vec<(u32, u8)> {
+        self.pending.iter().map(|(t, i)| (*t, i.signo)).collect()
+    }
 }
