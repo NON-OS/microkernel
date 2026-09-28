@@ -30,7 +30,7 @@ pub(super) fn one_track(tok: &str, em: u32) -> Option<GridTrack> {
     {
         return Some(GridTrack::Fr(1));
     }
-    if t.len() >= 8 && t[..7].eq_ignore_ascii_case("minmax(") {
+    if t.len() >= 8 && t.as_bytes()[..7].eq_ignore_ascii_case(b"minmax(") {
         let inner = t.get(7..t.len() - 1)?;
         let comma = inner.rfind(',')?;
         return one_track(inner.get(comma + 1..)?, em);

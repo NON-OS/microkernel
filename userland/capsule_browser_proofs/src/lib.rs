@@ -24,6 +24,8 @@ mod clone_tests;
 #[cfg(test)]
 mod color_tests;
 #[cfg(test)]
+mod css_utf8_tests;
+#[cfg(test)]
 mod dom_tests;
 #[cfg(test)]
 mod entity_tests;
