@@ -25,9 +25,10 @@ use super::exe::{comm_of, record, Exe};
 
 /*
  * argv's strings run up from the first, then the environment's, then
- * `top`, as the stack builder placed them at `at`.
+ * `top`, as the stack builder placed them at `at`; the program starts
+ * with its stack pointer at `stack`.
  */
-pub fn record_image(pid: u32, argv: &[Vec<u8>], at: &[u64], top: u64) {
+pub fn record_image(pid: u32, argv: &[Vec<u8>], at: &[u64], top: u64, stack: u64) {
     let (Some(first), Some(name)) = (at.first(), argv.first()) else {
         return;
     };
@@ -35,5 +36,6 @@ pub fn record_image(pid: u32, argv: &[Vec<u8>], at: &[u64], top: u64) {
     /* A name with no directory is not yet the file it names; exec says which. */
     let path = if name.first() == Some(&b'/') { name.clone() } else { Vec::new() };
     let start_ms = crate::linux::call::family_ms();
-    record(pid, Exe { path, comm: comm_of(name), args: *first, env, end: top, start_ms });
+    let comm = comm_of(name);
+    record(pid, Exe { path, comm, args: *first, env, end: top, stack, start_ms });
 }

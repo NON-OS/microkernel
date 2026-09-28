@@ -35,6 +35,7 @@ pub(super) fn proc_of(guests: &[Guest], ns: &mut PidNs, j: usize, asking: bool) 
     let (cwd, fds, regions) = (g.cwd.clone(), file::open_fds(g), g.regions.clone());
     let (brk, umask) = ((BRK_BASE, g.brk), g.umask);
     let (caught, ignored) = dispositions(g);
+    let reaped = file::cpu::children(g.pid, |c| !g.children.contains(&c));
     let members: Vec<u32> = [g.pid].iter().chain(g.threads.iter()).copied().collect();
     let tids = members.iter().map(|t| (ns.outward(*t), *t)).collect();
     Proc {
@@ -53,5 +54,6 @@ pub(super) fn proc_of(guests: &[Guest], ns: &mut PidNs, j: usize, asking: bool) 
         umask,
         caught,
         ignored,
+        reaped,
     }
 }

@@ -44,4 +44,6 @@ pub struct Proc {
     /* Bit n-1 set for each signal n it catches, and for each it ignores. */
     pub caught: u64,
     pub ignored: u64,
+    /* What its children used, those it has waited for. */
+    pub reaped: super::super::super::cpu::Usage,
 }
