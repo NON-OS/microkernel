@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+//! Linux x86_64 syscall numbers for sockets, from
+//! arch/x86/entry/syscalls/syscall_64.tbl. Same contract as `nr`.
 
-pub mod errno;
-pub mod errno_sock;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_high;
-pub mod nr_sched;
-pub mod nr_sock;
+pub const BIND: u64 = 49;
+pub const LISTEN: u64 = 50;
+pub const GETSOCKNAME: u64 = 51;
+pub const GETPEERNAME: u64 = 52;
+pub const SOCKETPAIR: u64 = 53;
+pub const SETSOCKOPT: u64 = 54;
+pub const GETSOCKOPT: u64 = 55;
+pub const RECVMMSG: u64 = 299;
+pub const SENDMMSG: u64 = 307;

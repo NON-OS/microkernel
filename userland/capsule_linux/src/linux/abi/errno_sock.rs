@@ -14,15 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+//! Linux errno values the socket calls answer with, from
+//! include/uapi/asm-generic/errno-base.h and errno.h.
 
-pub mod errno;
-pub mod errno_sock;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_high;
-pub mod nr_sched;
-pub mod nr_sock;
+pub const EDOM: i64 = 33;
+pub const EDESTADDRREQ: i64 = 89;
+pub const EMSGSIZE: i64 = 90;
+pub const EPROTOTYPE: i64 = 91;
+pub const ENOPROTOOPT: i64 = 92;
+pub const EPROTONOSUPPORT: i64 = 93;
+pub const ESOCKTNOSUPPORT: i64 = 94;
+pub const EOPNOTSUPP: i64 = 95;
+pub const EADDRINUSE: i64 = 98;
+pub const EADDRNOTAVAIL: i64 = 99;
+pub const ENETUNREACH: i64 = 101;
+pub const EISCONN: i64 = 106;
+pub const ECONNABORTED: i64 = 103;
+pub const EALREADY: i64 = 114;
