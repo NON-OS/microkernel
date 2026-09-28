@@ -17,12 +17,13 @@
 use crate::browser::css::selector::Selector;
 use crate::browser::dom::Dom;
 
+use super::sibling::Siblings;
 use super::simple::matches_simple;
 
 // Ancestor steps run nearest-first; a direct step must match the immediate
 // parent, a loose one may skip up the chain.
-pub fn matches_selector(dom: &Dom, id: usize, sel: &Selector) -> bool {
-    if !matches_simple(dom, id, &sel.key) {
+pub fn matches_selector(dom: &Dom, sib: &Siblings, id: usize, sel: &Selector) -> bool {
+    if !matches_simple(dom, sib, id, &sel.key) {
         return false;
     }
     let Some(node) = dom.nodes.get(id) else {
@@ -31,7 +32,7 @@ pub fn matches_selector(dom: &Dom, id: usize, sel: &Selector) -> bool {
     let mut cur = node.parent;
     for step in &sel.ancestors {
         if step.direct {
-            if cur == 0 || !matches_simple(dom, cur, &step.simple) {
+            if cur == 0 || !matches_simple(dom, sib, cur, &step.simple) {
                 return false;
             }
             cur = match dom.nodes.get(cur) {
@@ -47,7 +48,7 @@ pub fn matches_selector(dom: &Dom, id: usize, sel: &Selector) -> bool {
                     return false;
                 };
                 let parent = n.parent;
-                let hit = matches_simple(dom, cur, &step.simple);
+                let hit = matches_simple(dom, sib, cur, &step.simple);
                 cur = parent;
                 if hit {
                     break;

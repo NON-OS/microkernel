@@ -23,7 +23,7 @@ use super::apply::apply_decl;
 use super::budget::MatchBudget;
 use super::computed::Computed;
 use super::grid_spec::GridSpec;
-use super::matching::matches_selector;
+use super::matching::{matches_selector, Siblings};
 use super::rule::Rule;
 use super::rule_index::RuleIndex;
 use super::specificity::specificity;
@@ -31,6 +31,7 @@ use super::specificity::specificity;
 #[allow(clippy::too_many_arguments)]
 pub(super) fn apply_rules(
     dom: &Dom,
+    sib: &Siblings,
     id: usize,
     rules: &[Rule],
     index: &RuleIndex,
@@ -60,7 +61,7 @@ pub(super) fn apply_rules(
         for sel in &rule.selectors {
             // Pseudo-element selectors style generated content, not the host;
             // they cascade separately in pseudo_style.
-            if sel.element == 0 && matches_selector(dom, id, sel) {
+            if sel.element == 0 && matches_selector(dom, sib, id, sel) {
                 let s = specificity(sel);
                 best = Some(best.map_or(s, |b| b.max(s)));
             }

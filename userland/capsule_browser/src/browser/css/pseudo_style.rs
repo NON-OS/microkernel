@@ -23,7 +23,7 @@ use super::apply::apply_decl;
 use super::budget::MatchBudget;
 use super::computed::Computed;
 use super::content_text::content_text;
-use super::matching::matches_selector;
+use super::matching::{matches_selector, Siblings};
 use super::rule::Rule;
 use super::rule_index::RuleIndex;
 use super::specificity::specificity;
@@ -41,6 +41,7 @@ pub struct PseudoText {
 #[allow(clippy::too_many_arguments)]
 pub(super) fn pseudo_style(
     dom: &Dom,
+    sib: &Siblings,
     id: usize,
     rules: &[Rule],
     index: &RuleIndex,
@@ -58,7 +59,7 @@ pub(super) fn pseudo_style(
         let Some(rule) = rules.get(i) else { continue };
         let mut best: Option<u32> = None;
         for sel in &rule.selectors {
-            if sel.element == which && matches_selector(dom, id, sel) {
+            if sel.element == which && matches_selector(dom, sib, id, sel) {
                 let s = specificity(sel);
                 best = Some(best.map_or(s, |b| b.max(s)));
             }

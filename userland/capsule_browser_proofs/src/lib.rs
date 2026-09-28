@@ -40,6 +40,8 @@ mod gzip_tests;
 #[cfg(test)]
 mod selector_tests;
 #[cfg(test)]
+mod sibling_tests;
+#[cfg(test)]
 mod table_tests;
 #[cfg(test)]
 mod url_tests;

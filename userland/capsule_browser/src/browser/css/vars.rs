@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use crate::browser::dom::node::NodeKind;
 use crate::browser::dom::Dom;
 
-use super::matching::matches_selector;
+use super::matching::{matches_selector, Siblings};
 use super::rule::Rule;
 
 const MAX_VARS: usize = 2048;
@@ -46,7 +46,7 @@ pub(super) fn collect_vars(ua: &[Rule], author: &[Rule], dom: &Dom) -> Vec<(Stri
             if !is_root_tag {
                 return true;
             }
-            roots.iter().any(|&id| matches_selector(dom, id, sel))
+            roots.iter().any(|&id| matches_selector(dom, &Siblings::walk(), id, sel))
         });
         if !include {
             continue;

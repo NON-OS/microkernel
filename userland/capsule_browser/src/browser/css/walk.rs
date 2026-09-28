@@ -25,6 +25,7 @@ use super::apply_style_attr::apply_style_attr;
 use super::budget::MatchBudget;
 use super::computed::Computed;
 use super::grid_spec::GridSpec;
+use super::matching::Siblings;
 use super::pseudo_style::{pseudo_style, PseudoText};
 use super::rule::Rule;
 use super::rule_index::RuleIndex;
@@ -34,6 +35,7 @@ type Pseudos = Vec<(Option<PseudoText>, Option<PseudoText>)>;
 #[allow(clippy::too_many_arguments)]
 pub(super) fn walk(
     dom: &Dom,
+    sib: &Siblings,
     id: usize,
     inherited: Computed,
     ua: &[Rule],
@@ -55,9 +57,10 @@ pub(super) fn walk(
     let mut bg: Option<String> = None;
     let mut grid: Option<GridSpec> = None;
     if node.kind == NodeKind::Element {
-        apply_rules(dom, id, ua, ua_index, &mut c, parent_fs, vars, &mut bg, &mut grid, None);
+        apply_rules(dom, sib, id, ua, ua_index, &mut c, parent_fs, vars, &mut bg, &mut grid, None);
         apply_rules(
             dom,
+            sib,
             id,
             author,
             author_index,
@@ -75,8 +78,8 @@ pub(super) fn walk(
         // the pseudo boxes inherit color and font exactly like a real child.
         if let Some(p) = pseudos.as_deref_mut() {
             p[id] = (
-                pseudo_style(dom, id, author, author_index, 1, &c, vars, budget),
-                pseudo_style(dom, id, author, author_index, 2, &c, vars, budget),
+                pseudo_style(dom, sib, id, author, author_index, 1, &c, vars, budget),
+                pseudo_style(dom, sib, id, author, author_index, 2, &c, vars, budget),
             );
         }
     }
@@ -89,6 +92,7 @@ pub(super) fn walk(
     for &ch in &node.children {
         walk(
             dom,
+            sib,
             ch,
             c,
             ua,
