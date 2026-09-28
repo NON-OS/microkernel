@@ -26,6 +26,7 @@ pub(in crate::browser::fetch) fn read_body(state_port: u32, f: &mut Fetch, tls_m
         match net::socket_recv(state_port, f.handle, &mut chunk) {
             Ok(n) if n > 0 => {
                 got = true;
+                f.progress_ms = nonos_libc::mk_time_millis();
                 if append_capped::append_capped(&mut f.buf, &chunk[..n], constants::MAX_BODY)
                     .is_err()
                 {

@@ -52,6 +52,11 @@ pub struct Fetch {
     pub tls: Option<TlsCtx>,
     pub idle: u32,
     pub started_ms: i64,
+    // When bytes last arrived. The fetch budget runs from here, so a body
+    // still coming in is not cut off at a fixed age: on an emulated CPU an
+    // 89 KB page takes longer than the whole budget to drain and was parsed
+    // half-received. started_ms still bounds the fetch as a whole.
+    pub progress_ms: i64,
     pub error: Option<&'static str>,
     // The description a server gave for refusing the handshake, kept as the
     // byte it sent rather than as a sentence: the wording belongs where the

@@ -40,7 +40,10 @@ pub fn step(state: &mut State) -> bool {
         let Some(f) = state.fetch.as_mut() else {
             return false;
         };
-        if mk_time_millis().wrapping_sub(f.started_ms) > budget::max_fetch_ms() {
+        let now_ms = mk_time_millis();
+        let silent = now_ms.wrapping_sub(f.progress_ms) > budget::max_fetch_ms();
+        let too_long = now_ms.wrapping_sub(f.started_ms) > budget::max_total_ms();
+        if silent || too_long {
             if f.tls.is_some() {
                 f.phase = if tls::decrypt(f).is_some_and(|p| http::response::has_headers(&p)) {
                     Phase::Decrypt
