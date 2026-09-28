@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The settings panel behind the menu button. It shows the SOCKS5 proxy state
-//! and offers two actions: start setting a proxy (which focuses the address bar
-//! with the command prefix, reusing the address input) and turn the proxy off.
+//! The settings panel behind the menu button. It says which network requests
+//! leave through, lets the reader choose Direct, Nym or Anyone for the next
+//! request, and keeps the manual SOCKS5 proxy for the direct network (which
+//! focuses the address bar with the command prefix, reusing the address input).
 
 use alloc::format;
 use alloc::string::String;
@@ -24,15 +25,19 @@ use alloc::string::String;
 use nonos_app_skeleton::{EventOutcome, PaintBuffer};
 
 use crate::browser::manifest::WIDTH;
+use crate::browser::net::mixnet::{self, Network};
 use crate::browser::paint::chrome::constants;
 use crate::browser::state::State;
 
 const PANEL_W: i32 = 300;
-const PANEL_H: i32 = 150;
+const PANEL_H: i32 = 230;
 const PANEL_TOP: i32 = constants::TITLEBAR as i32 + 56;
-const SET_Y: i32 = PANEL_TOP + 74;
-const OFF_Y: i32 = PANEL_TOP + 110;
 const ROW_H: i32 = 30;
+const ROW_STEP: i32 = 36;
+const FIRST_ROW_Y: i32 = PANEL_TOP + 70;
+// The three networks, top to bottom, then the proxy row.
+const ROWS: [Network; 3] = [Network::Direct, Network::Nym, Network::Anyone];
+const PROXY_Y: i32 = FIRST_ROW_Y + 3 * ROW_STEP;
 
 fn panel_x(width: i32) -> i32 {
     width - PANEL_W - 12
@@ -46,6 +51,19 @@ fn width_of(state: &State) -> i32 {
     }
 }
 
+/// What the panel and the address bar say the next request leaves through.
+/// A manual proxy only carries traffic on the direct network, so it is named
+/// there and nowhere else.
+pub fn network_line(state: &State) -> String {
+    let net = mixnet::chosen();
+    match (net, state.proxy.as_ref()) {
+        (Network::Direct, Some(p)) => {
+            format!("Network: direct, SOCKS5 proxy {}:{}", p.host, p.port)
+        }
+        _ => format!("Network: {}", net.label()),
+    }
+}
+
 /// Draw the panel over the page when it is open.
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     if !state.settings_open {
@@ -55,37 +73,19 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     fb.fill_rect(x as u32, PANEL_TOP as u32, PANEL_W as u32, PANEL_H as u32, constants::TOOLBAR_BG);
     fb.fill_rect(x as u32, PANEL_TOP as u32, PANEL_W as u32, 2, constants::ACCENT);
     fb.text_ttf(x + 14, PANEL_TOP + 12, "Settings", constants::FG, 16.0);
+    fb.text_ttf(x + 14, PANEL_TOP + 42, &network_line(state), constants::DIM, 14.0);
 
-    // The mixnet route is reported ahead of a manual proxy because it is what
-    // actually carries the traffic. Reading "off" while pages leave through
-    // the mixnet would misdescribe the one property anyone opens this panel
-    // to check.
-    let status = if crate::browser::net::mixnet::is_on() {
-        String::from("Network: Nym mixnet")
-    } else {
-        match state.proxy.as_ref() {
-            Some(p) => format!("SOCKS5 proxy: {}:{}", p.host, p.port),
-            None => String::from("Network: direct, not anonymised"),
-        }
-    };
-    fb.text_ttf(x + 14, PANEL_TOP + 42, &status, constants::DIM, 14.0);
-
-    // Both rows describe the mixnet while it carries the traffic. A manual
-    // proxy is still reachable through the address bar for anyone who needs
-    // one, and does not need a button that rewrites what is typed there.
-    if crate::browser::net::mixnet::is_on() {
-        button(fb, x, SET_Y, "Every request leaves through the mixnet");
-        button(fb, x, OFF_Y, "Stop routing through Nym");
-    } else if crate::browser::net::mixnet::wanted() {
-        button(fb, x, SET_Y, "Set proxy (type host:port)");
-        button(fb, x, OFF_Y, "Turn proxy off");
-    } else {
-        button(fb, x, SET_Y, "Set proxy (type host:port)");
-        button(fb, x, OFF_Y, "Route through Nym");
+    let chosen = mixnet::chosen();
+    for (i, net) in ROWS.iter().enumerate() {
+        let y = FIRST_ROW_Y + i as i32 * ROW_STEP;
+        button(fb, x, y, net.label(), *net == chosen);
     }
+    let proxy_label =
+        if state.proxy.is_some() { "Turn proxy off" } else { "Set proxy (type host:port)" };
+    button(fb, x, PROXY_Y, proxy_label, false);
 }
 
-fn button(fb: &mut PaintBuffer, x: i32, y: i32, label: &str) {
+fn button(fb: &mut PaintBuffer, x: i32, y: i32, label: &str, active: bool) {
     fb.fill_rect(
         (x + 12) as u32,
         y as u32,
@@ -93,12 +93,16 @@ fn button(fb: &mut PaintBuffer, x: i32, y: i32, label: &str) {
         ROW_H as u32,
         constants::FIELD_BG,
     );
-    fb.text_ttf(x + 24, y + 8, label, constants::FG, 14.0);
+    if active {
+        fb.fill_rect((x + 12) as u32, y as u32, 4, ROW_H as u32, constants::ACCENT);
+    }
+    let color = if active { constants::ACCENT } else { constants::FG };
+    fb.text_ttf(x + 24, y + 8, label, color, 14.0);
 }
 
 enum Action {
-    Set,
-    Off,
+    Choose(Network),
+    Proxy,
     Close,
     Ignore,
 }
@@ -109,11 +113,14 @@ fn action_at(x: i32, y: i32, width: i32) -> Action {
     if !inside {
         return Action::Close;
     }
-    if y >= SET_Y && y < SET_Y + ROW_H {
-        return Action::Set;
+    for (i, net) in ROWS.iter().enumerate() {
+        let ry = FIRST_ROW_Y + i as i32 * ROW_STEP;
+        if y >= ry && y < ry + ROW_H {
+            return Action::Choose(*net);
+        }
     }
-    if y >= OFF_Y && y < OFF_Y + ROW_H {
-        return Action::Off;
+    if y >= PROXY_Y && y < PROXY_Y + ROW_H {
+        return Action::Proxy;
     }
     Action::Ignore
 }
@@ -121,38 +128,26 @@ fn action_at(x: i32, y: i32, width: i32) -> Action {
 /// Handle a click while the panel is open. A click on empty space, or anywhere
 /// outside the panel, closes it.
 ///
-/// While the mixnet carries the traffic both rows are statements rather than
-/// controls: there is nothing to configure, and the row that used to prefill
-/// the address bar left whatever was typed next attached to a command word,
-/// which then failed to load as a URL.
+/// Choosing a network changes where the next request goes and nothing else:
+/// the route itself is taken when that request starts, so a page already
+/// loading finishes on the network it started on.
 pub fn on_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    let routed = crate::browser::net::mixnet::is_on();
     match action_at(x, y, width_of(state)) {
-        Action::Set if routed => state.settings_open = false,
-        // The one control worth having here: whether this session leaves
-        // through the mixnet at all. It is deliberate and takes effect on the
-        // next request, so nothing already in flight changes route under it.
-        Action::Off if routed => {
-            crate::browser::net::mixnet::set_wanted(false);
-            crate::browser::net::mixnet::disable();
+        Action::Choose(net) => {
+            mixnet::choose(net);
             state.settings_open = false;
-            state.status = String::from("direct, not anonymised");
+            state.status = format!("{} from the next request", net.label());
         }
-        Action::Off if !crate::browser::net::mixnet::wanted() => {
-            crate::browser::net::mixnet::set_wanted(true);
+        Action::Proxy if state.proxy.is_some() => {
+            state.proxy = None;
             state.settings_open = false;
-            state.status = String::from("routing through Nym");
+            state.status = String::from("proxy off");
         }
-        Action::Set => {
+        Action::Proxy => {
             state.settings_open = false;
             state.address = String::from("proxy socks5://");
             state.address_focused = true;
             state.status = String::from("type host:port then press Enter");
-        }
-        Action::Off => {
-            state.proxy = None;
-            state.settings_open = false;
-            state.status = String::from("proxy off");
         }
         Action::Close => {
             state.settings_open = false;

@@ -38,4 +38,12 @@ pub fn pill(state: &State, fb: &mut PaintBuffer) {
     } else {
         fb.text_ttf(l as i32 + 30, ty, &state.address, constants::FG, 15.0);
     }
+    // The network the next request leaves through, always in view at the
+    // right end of the field, so the reader never has to open a panel to
+    // learn whether their address is hidden.
+    let net = crate::browser::settings::network_line(state);
+    let tw = (net.len() as u32) * 7 + 16;
+    let tx = (l + w).saturating_sub(tw) as i32;
+    fb.fill_rect(tx as u32 - 8, constants::TITLEBAR + 12, tw + 4, 28, constants::FIELD_BG);
+    fb.text_ttf(tx, ty + 2, &net, constants::ACCENT, 13.0);
 }

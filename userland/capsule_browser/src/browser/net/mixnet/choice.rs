@@ -14,25 +14,70 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::sync::atomic::{AtomicU8, Ordering};
 
-/// Whether the reader wants their traffic to leave through the mixnet.
+/// Which network the reader's requests leave through.
 ///
-/// On by default: a browser that has an anonymous route available and takes
-/// the direct one without being asked publishes the address the route exists
-/// to hide.
+/// Nym is the default: a browser that has an anonymous route available and
+/// takes the direct one without being asked publishes the address the route
+/// exists to hide.
 ///
-/// This is a choice, not a fallback. A request that the mixnet cannot carry
-/// still fails rather than quietly going direct, because reverting on failure
-/// would leak exactly when the network is worst. What this adds is the reader
-/// being able to say, deliberately and in advance, that this session is not
-/// one they need hidden.
-static WANTED: AtomicBool = AtomicBool::new(true);
-
-pub fn wanted() -> bool {
-    WANTED.load(Ordering::Relaxed)
+/// This is a choice, not a fallback. A request the chosen network cannot carry
+/// fails rather than quietly leaving another way, because reverting on failure
+/// would leak exactly when the network is worst. Changing the choice takes
+/// effect on the next request; nothing already in flight changes route.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Network {
+    Direct,
+    Nym,
+    Anyone,
 }
 
-pub fn set_wanted(on: bool) {
-    WANTED.store(on, Ordering::Relaxed);
+impl Network {
+    /// What the reader is shown, in the address bar and the settings panel.
+    pub fn label(self) -> &'static str {
+        match self {
+            Network::Direct => "Direct, not anonymised",
+            Network::Nym => "Nym mixnet",
+            Network::Anyone => "Anyone network",
+        }
+    }
+
+    /// The service that carries this network's streams, as SOCKS5 over IPC.
+    /// Direct has none: it reaches hosts through net.sockets.
+    pub fn service(self) -> Option<&'static [u8]> {
+        match self {
+            Network::Direct => None,
+            Network::Nym => Some(b"net.socks5"),
+            Network::Anyone => Some(b"net.anon.socks5"),
+        }
+    }
+
+    /// Why a request was refused when the service is not registered.
+    pub fn absent(self) -> &'static str {
+        match self {
+            Network::Direct => "direct: net.sockets is not running",
+            Network::Nym => "mixnet: net.socks5 is not running, so nothing was sent",
+            Network::Anyone => "anyone: net.anon.socks5 is not running, so nothing was sent",
+        }
+    }
+}
+
+static CHOSEN: AtomicU8 = AtomicU8::new(1);
+
+pub fn chosen() -> Network {
+    match CHOSEN.load(Ordering::Relaxed) {
+        0 => Network::Direct,
+        2 => Network::Anyone,
+        _ => Network::Nym,
+    }
+}
+
+pub fn choose(n: Network) {
+    let v = match n {
+        Network::Direct => 0,
+        Network::Nym => 1,
+        Network::Anyone => 2,
+    };
+    CHOSEN.store(v, Ordering::Relaxed);
 }

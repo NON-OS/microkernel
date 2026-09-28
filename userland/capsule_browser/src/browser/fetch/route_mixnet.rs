@@ -16,30 +16,31 @@
 
 use crate::browser::net::{lookup, mixnet};
 
-const PROXY: &[u8] = b"net.socks5";
-
-/// Route through the mixnet whenever the proxy capsule is running.
+/// Point the route at the network the reader chose, before a request leaves.
 ///
-/// Presence decides it, not a setting: going direct while a mixnet proxy sits
-/// there would publish the address it exists to hide, and the page would look
-/// the same either way. A proxy that cannot carry a request fails it rather
-/// than falling back, since reverting quietly is the disclosure.
-pub fn route_mixnet() {
-    // The reader can say they do not want this session hidden. Honouring it
-    // here, before a route is taken, is what makes it a choice rather than a
-    // fallback: nothing reverts on failure, and a request the mixnet cannot
-    // carry still fails instead of quietly going direct.
-    if !mixnet::wanted() {
+/// A reader who chose a private network gets it or gets no page: when its
+/// service is not running, the request fails by name. Leaving the route off
+/// in that case sent every request direct while the reader believed it was
+/// hidden, which is the one disclosure the route exists to prevent. The
+/// choice is read here, once per navigation, so a switch takes effect on the
+/// next request and never under one already in flight.
+pub fn route_mixnet() -> Result<(), &'static str> {
+    let net = mixnet::chosen();
+    let Some(service) = net.service() else {
         if mixnet::is_on() {
             mixnet::disable();
         }
-        return;
+        return Ok(());
+    };
+    let port = lookup(service);
+    if port == 0 {
+        if mixnet::is_on() {
+            mixnet::disable();
+        }
+        return Err(net.absent());
     }
-    if mixnet::is_on() {
-        return;
-    }
-    let port = lookup(PROXY);
-    if port != 0 {
+    if mixnet::port() != port {
         mixnet::enable(port);
     }
+    Ok(())
 }
