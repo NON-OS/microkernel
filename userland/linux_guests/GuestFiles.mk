@@ -43,17 +43,24 @@ LINUX_GUEST_STORE_ENTRIES += --entry /linux/lib/libprobe_bad.so=$(LINUX_GUEST_BA
 	--entry /linux/lib/libprobe_bad.so.zk_trailer.bin=$(linux-guest-libprobe_ATTESTATION)
 
 # A Go suite image holds the wrapper, the packages NONOS_LINUX_GO_SUITE_STORE
-# names (all enrolled ones unless narrowed), each package's testdata/ at the
-# path it has on the build host, and Go's zone database, and nothing else: one
-# test binary is 4 to 15 MB against the store's 16 MiB and 128 entries
-# (tools/nonos-store-pack). Changing this list needs only the store step.
+# names (all enrolled ones unless narrowed), each package's testdata/ and test
+# sources at the paths they have on the build host, and Go's zone database,
+# and nothing else: one test binary is 4 to 15 MB against the store's 16 MiB
+# and 128 entries (tools/nonos-store-pack). Changing this list needs only the
+# store step.
 ifeq ($(NONOS_LINUX_GO_SUITE),1)
 NONOS_LINUX_GO_SUITE_STORE ?= $(NONOS_LINUX_GO_SUITE_PKGS)
 GO_SUITE_ENTRY = --entry /linux/bin/$(1)=$(linux-guest-$(1)_BIN) \
 	--entry /linux/bin/$(1).nonos_id_cert.bin=$(linux-guest-$(1)_CERT) \
 	--entry /linux/bin/$(1).manifest.bin=$(linux-guest-$(1)_MANIFEST) \
 	--entry /linux/bin/$(1).zk_trailer.bin=$(linux-guest-$(1)_ATTESTATION)
-GO_SUITE_TESTDATA = $(foreach f,$(shell cd $(GO_ROOT)/src/$(1) && find testdata -type f 2>/dev/null | sort), \
+# A test also reads its own sources: an example reads example_test.go, and
+# the package directory exists for gostd to change into only if something is
+# in it. NONOS_LINUX_GO_SUITE_SOURCES=0 leaves them out for a package whose
+# testdata alone nearly fills the 128 entries (runtime).
+NONOS_LINUX_GO_SUITE_SOURCES ?= 1
+GO_SUITE_SOURCES = $(if $(filter 1,$(NONOS_LINUX_GO_SUITE_SOURCES)),$(notdir $(wildcard $(GO_ROOT)/src/$(1)/*_test.go)))
+GO_SUITE_TESTDATA = $(foreach f,$(shell cd $(GO_ROOT)/src/$(1) && find testdata -type f 2>/dev/null | sort) $(GO_SUITE_SOURCES), \
 	--entry /linux$(GO_ROOT)/src/$(1)/$(f)=$(GO_ROOT)/src/$(1)/$(f))
 LINUX_GUEST_STORE_ENTRIES := $(call GO_SUITE_ENTRY,gostd) \
 	$(foreach p,$(NONOS_LINUX_GO_SUITE_STORE),$(call GO_SUITE_ENTRY,gs$(subst /,,$(p))) $(call GO_SUITE_TESTDATA,$(p))) \
