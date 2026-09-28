@@ -20,9 +20,10 @@ mod build;
 pub mod draw;
 mod relay;
 mod select;
+mod through;
 mod weights;
 
-pub use build::draw_path;
+pub use build::{draw_path, draw_path_through};
 pub use relay::{Flags, Relay};
 pub use select::choose;
 pub use weights::{Position, Weights};

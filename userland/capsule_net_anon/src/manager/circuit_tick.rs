@@ -17,7 +17,7 @@
 //! Building a circuit when none is ready.
 
 use crate::circuit::{build, client_circuit_id, Circuit, CircuitStage};
-use crate::path::draw_path;
+use crate::path::draw_path_through;
 use crate::protocol::CIRCUIT_MAX;
 use crate::trace;
 
@@ -33,11 +33,11 @@ pub fn tick(state: &mut Manager, now: u64) {
     if state.circuits.iter().any(|c| c.stage == CircuitStage::Handshaking) {
         return;
     }
-    let Some(path) = draw_path(&state.relays, &state.weights) else {
-        trace::say(b"no three hop path in the consensus");
+    let (Some(link), Some(guard)) = (state.link.as_mut(), state.guard.as_ref()) else { return };
+    let Some(path) = draw_path_through(&guard.relay, &state.relays, &state.weights) else {
+        trace::say(b"no exit and middle to go with the guard");
         return;
     };
-    let Some(link) = state.link.as_mut() else { return };
     let id = client_circuit_id(state.next_circuit);
     state.next_circuit = state.next_circuit.wrapping_add(1);
 
