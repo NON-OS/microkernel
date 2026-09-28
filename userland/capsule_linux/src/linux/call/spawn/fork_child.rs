@@ -21,6 +21,7 @@ use nonos_libc::{mk_foreign_fork, mk_foreign_resume};
 
 use super::fork_copy::copy_spans;
 use crate::linux::abi::errno;
+use crate::linux::guest::sigstate::SIGCHLD;
 use crate::linux::guest::Guest;
 
 /// A new process copied from this one, running, and adopted by the family
@@ -61,5 +62,8 @@ pub(super) fn fork_child(
         return Err(errno::fail(errno::ENOMEM));
     }
     guest.children.push(child);
+    if exit_signal != SIGCHLD {
+        guest.signals.clone_kids.push(child);
+    }
     Ok(child)
 }

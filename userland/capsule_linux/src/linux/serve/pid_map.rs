@@ -41,6 +41,8 @@ pub fn frame_in(ns: &PidNs, frame: &ForeignFrame) -> Option<ForeignFrame> {
 fn args_in(ns: &PidNs, call: u64, a: &mut [u64; 6]) -> Result<(), u64> {
     let (slots, missing): (&[usize], i64) = match call {
         nr::WAIT4 => (&[0], errno::ECHILD),
+        /* waitid names a pid or a group only for P_PID and P_PGID. */
+        ns::WAITID if matches!(a[0], 1 | 2) && a[1] != 0 => (&[1], errno::ECHILD),
         ns::TGKILL | ns::RT_TGSIGQUEUEINFO => (&[0, 1], errno::ESRCH),
         ns::RT_SIGQUEUEINFO => (&[0], errno::ESRCH),
         np::KILL | np::TKILL | np::GETPGID | np::GETSID => (&[0], errno::ESRCH),

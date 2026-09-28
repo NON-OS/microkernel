@@ -30,6 +30,8 @@ mod family_signal;
 mod family_signal_route;
 mod family_sleep;
 mod family_wait;
+mod family_wait_report;
+mod family_wait_try;
 mod loop_impl;
 mod pid_map;
 mod pid_ns;

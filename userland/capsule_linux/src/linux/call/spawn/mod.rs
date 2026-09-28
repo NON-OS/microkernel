@@ -31,10 +31,12 @@ mod vfork;
 mod vfork_clone;
 mod vfork_flags;
 mod wait;
+mod waitid;
 
 pub use clone::clone;
 pub use exec::execve;
 pub use fork::fork;
 pub use vfork::vfork;
 pub use vfork_clone::clone_process;
-pub use wait::{reap_one, wait4};
+pub use wait::{wait4, wait4_usage, WALL, WCLONE, WEXITED, WNOHANG, WNOWAIT};
+pub use waitid::waitid;

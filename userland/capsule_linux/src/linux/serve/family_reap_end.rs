@@ -60,7 +60,7 @@ impl Family {
             if let Some(t) = gone.signals.vfork {
                 answer(p, t, u64::from(shown));
             }
-            tell_parent(p, &gone, status, &mut self.ns);
+            tell_parent(p, &gone, status);
         }
         any
     }

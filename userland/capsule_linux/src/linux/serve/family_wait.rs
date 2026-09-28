@@ -14,16 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Answering a thread the family held parked: with the value its call
-//! returns, or by entering the handler of a signal it now takes.
+//! Answering wait4 and waitid. A child that has ended and fits is reported,
+//! and reaped unless WNOWAIT; with none ended, WNOHANG answers 0, and a caller
+//! with no child that could ever fit gets ECHILD. The family answers, since a
+//! wait by group needs every child's group, which only it can see.
 
 use nonos_libc::mk_foreign_reply;
 
+use super::family::Family;
 use crate::linux::guest::Guest;
 
 /// Reply to a parked thread, or enter the handler of a signal it now takes.
 pub fn answer(g: &mut Guest, tid: u32, value: u64) {
     if !super::deliver::maybe_deliver(g, tid, value) {
         let _ = mk_foreign_reply(tid, value);
+    }
+}
+
+impl Family {
+    pub(super) fn settle_child_waits(&mut self) {
+        for i in 0..self.guests.len() {
+            for w in core::mem::take(&mut self.guests[i].signals.childwaits) {
+                match self.try_wait(i, &w) {
+                    Some(v) => answer(&mut self.guests[i], w.tid, v),
+                    None => self.guests[i].signals.childwaits.push(w),
+                }
+            }
+        }
     }
 }
