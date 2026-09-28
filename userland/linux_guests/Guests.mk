@@ -115,8 +115,8 @@ $(eval $(call LINUX_GUEST,cthreads,4974,4975,$(LINUX_GUESTS_C)/cthreads))
 
 # Waiting as Linux waits: futex timeouts and requeue, eventfd, epoll_wait's
 # timeout and wake, a non-blocking pipe, a full pipe, and edge-triggered epoll.
-$(LINUX_GUESTS_C)/cwait: $(LINUX_GUESTS_DIR)/c/cwait.c
-	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(LINUX_GUESTS_C)/cwait: $(wildcard $(LINUX_GUESTS_DIR)/c/cwait/*.c) $(LINUX_GUESTS_DIR)/c/cwait/cwait.h
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $(filter %.c,$^)
 $(eval $(call LINUX_GUEST,cwait,4978,4979,$(LINUX_GUESTS_C)/cwait))
 
 # A caught signal for a thread spinning with no call: it arrives only if the
