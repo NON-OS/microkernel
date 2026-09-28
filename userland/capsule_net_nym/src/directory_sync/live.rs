@@ -16,8 +16,8 @@
 
 use alloc::vec::Vec;
 
-use super::roles::{fetch_role, layers_present};
-use crate::topology::{self, Node, Role};
+use super::roles::fetch_role;
+use crate::topology::{Node, Role};
 
 /// The endpoint the node list is asked for. One name, rather than a frozen
 /// copy of what it answered when the image was built.
@@ -29,27 +29,6 @@ pub(super) const API_HOST: &str = "validator.nymtech.net";
 const MIXNODES_PATH: &str = "/api/v1/unstable/nym-nodes/skimmed/mixnodes/active";
 const GATEWAYS_PATH: &str = "/api/v1/unstable/nym-nodes/skimmed/entry-gateways/active";
 const EXITS_PATH: &str = "/api/v1/unstable/nym-nodes/skimmed/exit-gateways/active";
-
-/// Fetch the current node list and install it as the directory.
-///
-/// The answer is authenticated by the TLS chain, which is what every client
-/// of this API relies on. That is weaker than a signature the operator
-/// pinned, so it is recorded as such: `Provenance::Signed` is reserved for a
-/// document that proved itself, and this arrives as a fetched one.
-pub fn sync(tcp_port: u32) -> Result<usize, u16> {
-    let mut nodes = fetch_role(tcp_port, MIXNODES_PATH, Role::Mix)?;
-    if !layers_present(&nodes) {
-        return Err(13);
-    }
-    // A gateway list that does not answer is not fatal: the entry hop can
-    // still come from the one already bound.
-    if let Ok(mut gateways) = fetch_role(tcp_port, GATEWAYS_PATH, Role::EntryGateway) {
-        nodes.append(&mut gateways);
-    }
-    let count = nodes.len();
-    topology::install_fetched(nodes).map_err(|_| 20u16)?;
-    Ok(count)
-}
 
 /// The mix layers, which are what a route is built from.
 pub(super) fn fetch_mixnodes(tcp_port: u32) -> Result<Vec<Node>, u16> {
