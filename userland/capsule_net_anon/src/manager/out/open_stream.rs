@@ -39,7 +39,7 @@ pub fn open_stream(
     let index = pick(state, now).ok_or(SendError::NoCircuit)?;
     let body = begin_body(host, port).ok_or(SendError::TooLong)?;
     let circuit = state.circuits[index].id;
-    let id = free_id(state, circuit).ok_or(SendError::TableFull)?;
+    let id = free_id(state).ok_or(SendError::TableFull)?;
     state.next_stream = id;
 
     send_relay(state, index, RELAY_BEGIN, id, &body)?;
@@ -49,18 +49,21 @@ pub fn open_stream(
 }
 
 /*
- * Ids are per circuit, so the counter running on past sixty five thousand is fine
+ * Ids are allocated unique across every open stream, not only within the
+ * circuit, because the id is also the handle a caller holds: two streams
+ * sharing one would each receive the other's payload through the server.
+ * Relay cells are still matched by (circuit, id). The counter running on past sixty five thousand is fine
  * until the wrapped value lands on an id still open on the same circuit. Reaching
  * that needs more streams in one circuit's life than it will ever see, but the
  * consequence if it ever happened is two streams sharing an id and each receiving
  * the other's payload, which is not a thing to leave to arithmetic.
  */
 
-fn free_id(state: &Manager, circuit: u32) -> Option<u16> {
+fn free_id(state: &Manager) -> Option<u16> {
     let mut id = state.next_stream;
     for _ in 0..u16::MAX {
         id = next_id(id);
-        if !state.streams.iter().any(|s| s.circuit == circuit && s.id == id) {
+        if !state.streams.iter().any(|s| s.id == id) {
             return Some(id);
         }
     }

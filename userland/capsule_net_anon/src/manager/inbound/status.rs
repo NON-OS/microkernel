@@ -17,7 +17,7 @@
 //! The messages that change a stream or circuit state.
 
 use crate::circuit::window::CIRCUIT_INCREMENT;
-use crate::stream::{connected_is_valid, needs_another_exit, reason, StreamStage};
+use crate::stream::{connected_is_valid, find_on, needs_another_exit, reason, StreamStage};
 use crate::trace;
 
 use super::super::state::Manager;
@@ -25,8 +25,9 @@ use super::blame::blame;
 
 const REASON_MISC: u8 = 1;
 
-pub(super) fn connected(state: &mut Manager, id: u16, body: &[u8]) {
-    let Some(stream) = state.streams.iter_mut().find(|s| s.id == id) else {
+pub(super) fn connected(state: &mut Manager, index: usize, id: u16, body: &[u8]) {
+    let circuit = state.circuits[index].id;
+    let Some(stream) = find_on(&mut state.streams, circuit, id) else {
         return;
     };
     if !connected_is_valid(body) {
@@ -37,16 +38,27 @@ pub(super) fn connected(state: &mut Manager, id: u16, body: &[u8]) {
     trace::say_num(b"stream connected", id as u64);
 }
 
-pub(super) fn ended(state: &mut Manager, id: u16, body: &[u8]) {
+pub(super) fn ended(state: &mut Manager, index: usize, id: u16, body: &[u8]) {
     let why = reason(body);
+    let circuit = state.circuits[index].id;
     let mut on_circuit = None;
-    if let Some(stream) = state.streams.iter_mut().find(|s| s.id == id) {
+    if let Some(stream) = find_on(&mut state.streams, circuit, id) {
         stream.stage = StreamStage::Ended(why);
         on_circuit = Some(stream.circuit);
     }
     trace::say_two(b"stream ended", id as u64, why as u64);
     if needs_another_exit(why) {
         blame(state, on_circuit);
+    }
+}
+
+/// A stream-level SENDME: the exit will take STREAM_INCREMENT more cells on
+/// this stream. It used to credit the circuit instead, so a stream's own
+/// window only ever went down and an upload stopped after 500 cells.
+pub(super) fn stream_granted(state: &mut Manager, index: usize, id: u16) {
+    let circuit = state.circuits[index].id;
+    if let Some(stream) = find_on(&mut state.streams, circuit, id) {
+        stream.credit_package();
     }
 }
 

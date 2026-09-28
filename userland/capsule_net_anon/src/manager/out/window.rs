@@ -30,14 +30,16 @@ pub(super) fn room(state: &Manager, index: usize, id: u16) -> bool {
     if state.circuits[index].hops[target].package_window <= 0 {
         return false;
     }
-    state.streams.iter().any(|s| s.id == id && s.package_window > 0)
+    let circuit = state.circuits[index].id;
+    state.streams.iter().any(|s| s.circuit == circuit && s.id == id && s.package_window > 0)
 }
 
 pub(super) fn spend(state: &mut Manager, index: usize, id: u16) {
     if let Some(target) = state.circuits[index].hops.len().checked_sub(1) {
         state.circuits[index].hops[target].package_window -= 1;
     }
-    if let Some(stream) = state.streams.iter_mut().find(|s| s.id == id) {
+    let circuit = state.circuits[index].id;
+    if let Some(stream) = crate::stream::find_on(&mut state.streams, circuit, id) {
         stream.package_window -= 1;
     }
 }
