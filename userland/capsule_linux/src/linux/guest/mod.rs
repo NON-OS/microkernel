@@ -27,9 +27,6 @@ mod fd_make;
 mod fork_state;
 mod handle;
 mod handle_new;
-pub mod sigqueue;
-pub mod sigstack;
-pub mod sigstate;
 mod layout;
 mod links;
 mod links_add;
@@ -43,6 +40,9 @@ mod region;
 mod region_cut;
 mod region_find;
 mod region_mark;
+pub mod sigqueue;
+pub mod sigstack;
+pub mod sigstate;
 mod threads;
 mod timer;
 mod watch;
@@ -52,11 +52,11 @@ pub use event::Event;
 pub use fd::Fd;
 pub use fd_kind::Kind;
 pub use handle::Guest;
-pub use links::Links;
 pub use layout::{
-    BRK_BASE, BRK_LIMIT, EXEC_BASE, INTERP_BASE, MMAP_BASE, MMAP_LIMIT, STACK_SIZE,
-    STACK_TOP, USER_MAX,
+    BRK_BASE, BRK_LIMIT, EXEC_BASE, INTERP_BASE, MMAP_BASE, MMAP_LIMIT, STACK_SIZE, STACK_TOP,
+    USER_MAX,
 };
+pub use links::Links;
 pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
 pub use region::Region;
 pub use timer::Timer;
