@@ -38,7 +38,9 @@ pub fn sysinfo(guest: &Guest, out: u64) -> u64 {
         put(8 + i * 8, avg << 5); /* loads, from Linux's 11 bits to sysinfo's 16 */
     }
     put(32, declared::MEMORY); /* totalram */
-    put(40, declared::MEMORY.saturating_sub(resident)); /* freeram */
+    let cached = file::cache_bytes();
+    put(40, declared::MEMORY.saturating_sub(resident).saturating_sub(cached)); /* freeram */
+    put(48, cached); /* sharedram, the family's copies of tmpfs files */
     b[80..82].copy_from_slice(&(threads.min(u16::MAX as usize) as u16).to_le_bytes()); /* procs */
     b[104..108].copy_from_slice(&1u32.to_le_bytes()); /* mem_unit */
     match guest.write(out, &b) {

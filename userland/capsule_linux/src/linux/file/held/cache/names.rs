@@ -21,6 +21,14 @@ use alloc::vec::Vec;
 use super::table::CACHE;
 
 /*
+ * The bytes the family's copies hold in memory, which /proc/meminfo and
+ * sysinfo report as the page cache and shared memory a tmpfs file takes.
+ */
+pub fn bytes() -> u64 {
+    CACHE.0.borrow().iter().map(|e| e.data.len() as u64).sum()
+}
+
+/*
  * What the family's copies add to the store's bytes once written, less
  * what they take away.
  */
