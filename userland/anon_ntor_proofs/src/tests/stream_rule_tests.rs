@@ -29,7 +29,7 @@ fn reasons_are_read_and_classified() {
     assert_eq!(reason(&[6]), 6);
     assert!(is_clean(reason(&[6])));
     assert!(!is_clean(reason(&[4])));
-    // An empty body is a relay declining to say why, reported as MISC.
+    /* An empty body is a relay declining to say why, reported as MISC. */
     assert_eq!(reason(&[]), 1);
 }
 

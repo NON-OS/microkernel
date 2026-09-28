@@ -42,7 +42,7 @@ pub fn decode32(text: &[u8]) -> Option<[u8; 32]> {
             return None;
         }
     }
-    // The number's own leading zero bytes must be exactly the ones spelt.
+    /* The number's own leading zero bytes must be exactly the ones spelt. */
     let zeros = acc.iter().take_while(|&&b| b == 0).count();
     if zeros != ones {
         return None;

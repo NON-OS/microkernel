@@ -25,11 +25,11 @@ const ADDRESS_IPV4: u8 = 4;
 ///
 pub fn ours(their_address: [u8; 4]) -> Cell {
     let mut cell = Cell::new(0, CELL_NETINFO);
-    // timestamp, four bytes of zero, then the address we reached them at.
+    /* timestamp, four bytes of zero, then the address we reached them at. */
     cell.payload[4] = ADDRESS_IPV4;
     cell.payload[5] = 4;
     cell.payload[6..10].copy_from_slice(&their_address);
-    // Our own address count, zero.
+    /* Our own address count, zero. */
     cell.payload[10] = 0;
     cell
 }

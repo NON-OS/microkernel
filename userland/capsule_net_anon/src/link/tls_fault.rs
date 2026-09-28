@@ -27,8 +27,8 @@ use super::session::LinkError;
  * failed" was all eleven attempts had to say.
  */
 pub(super) fn tls_fault(cause: SessionError) -> LinkError {
-    // An alert is the relay's own account of what it objected to, so it is said
-    // with the name the standard gives it and the number beside it.
+    /* An alert is the relay's own account of what it objected to, so it is said
+     * with the name the standard gives it and the number beside it. */
     if let SessionError::PeerAlert(description) = cause {
         trace::say(nonos_tls::alert_name(description).as_bytes());
         trace::say_num(b"guard tls: peer alert", description as u64);
@@ -40,7 +40,7 @@ pub(super) fn tls_fault(cause: SessionError) -> LinkError {
         SessionError::Handshake => b"guard tls: server flight never completed",
         SessionError::Certificate => b"guard tls: chain did not verify",
         SessionError::TooLarge => b"guard tls: server sent more than allowed",
-        // Handled above, with its description.
+        /* Handled above, with its description. */
         SessionError::PeerAlert(_) => b"guard tls: peer alert",
         SessionError::RetryUnsupported => b"guard tls: wants another key exchange group",
     });

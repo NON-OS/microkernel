@@ -6,8 +6,8 @@ use crate::stream::{find_on, Stream, StreamStage, REASON_DESTROY};
 
 #[test]
 fn a_cell_on_one_circuit_cannot_reach_a_stream_on_another() {
-    // Ids are only unique per circuit in the protocol: stream 7 on circuit 1
-    // and stream 7 on circuit 2 are different connections.
+    /* Ids are only unique per circuit in the protocol: stream 7 on circuit 1
+     * and stream 7 on circuit 2 are different connections. */
     let mut streams = vec![Stream::new(7, 1), Stream::new(7, 2)];
     find_on(&mut streams, 2, 7).unwrap().inbound.extend_from_slice(b"for circuit two");
     assert!(streams[0].inbound.is_empty(), "circuit 1's stream got circuit 2's payload");

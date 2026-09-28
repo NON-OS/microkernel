@@ -29,7 +29,7 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         Ok(handle) => handle,
         Err(e) => return status(pid, req, e, tx),
     };
-    // A reader that numbers its reads sends the number after the handle.
+    /* A reader that numbers its reads sends the number after the handle. */
     let seq = u32_at(body, 4).ok();
     let key = SocketKey { pid, handle };
     let Some(sock) = SOCKETS.with(key, |s| *s) else {

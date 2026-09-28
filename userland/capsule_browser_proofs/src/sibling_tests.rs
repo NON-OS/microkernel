@@ -43,6 +43,6 @@ fn nth_child_counts_elements_not_text_or_comments() {
         .into_iter()
         .map(|id| d.nodes[d.nodes[id].children[0]].text.as_str())
         .collect();
-    // a, b, c, then the div, then e: the text node and the comment take no place.
+    /* a, b, c, then the div, then e: the text node and the comment take no place. */
     assert_eq!(texts, ["a", "c", "e"]);
 }

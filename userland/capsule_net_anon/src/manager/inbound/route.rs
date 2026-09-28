@@ -37,8 +37,8 @@ pub(crate) fn deliver(
         RELAY_DATA => data(state, index, header.stream, body),
         RELAY_CONNECTED => connected(state, index, header.stream, body),
         RELAY_END => ended(state, index, header.stream, body),
-        // Stream id zero is the circuit's own window; any other id is that
-        // stream's (tor-spec 7.4).
+        /* Stream id zero is the circuit's own window; any other id is that
+         * stream's (tor-spec 7.4). */
         RELAY_SENDME if header.stream == 0 => granted(state, index, hop),
         RELAY_SENDME => stream_granted(state, index, header.stream),
         RELAY_TRUNCATED => truncated(state, index, body),

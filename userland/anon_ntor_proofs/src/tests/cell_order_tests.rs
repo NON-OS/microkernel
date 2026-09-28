@@ -55,7 +55,7 @@ fn one_skipped_cell_breaks_every_cell_after_it() {
     let mut first = from_exit(&mut exit, b"one");
     assert!(open(&mut client, &mut first).is_some(), "the first cell verifies");
 
-    // The exit sends this one and the client never applies it.
+    /* The exit sends this one and the client never applies it. */
     let _skipped = from_exit(&mut exit, b"two");
 
     let mut third = from_exit(&mut exit, b"three");

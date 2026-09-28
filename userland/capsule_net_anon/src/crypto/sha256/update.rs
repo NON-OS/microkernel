@@ -25,8 +25,8 @@ impl Sha256 {
         self.total = self.total.wrapping_add(data.len() as u64);
         let mut rest = data;
 
-        // Top up a part-filled block first, so the fast path below always starts
-        // on a block boundary.
+        /* Top up a part-filled block first, so the fast path below always starts
+         * on a block boundary. */
         if self.buffered > 0 {
             let want = BLOCK_BYTES - self.buffered;
             let take = want.min(rest.len());
@@ -40,14 +40,14 @@ impl Sha256 {
             self.buffered = 0;
         }
 
-        // Whole blocks straight through the buffer.
+        /* Whole blocks straight through the buffer. */
         while rest.len() >= BLOCK_BYTES {
             self.block.copy_from_slice(&rest[..BLOCK_BYTES]);
             self.compress();
             rest = &rest[BLOCK_BYTES..];
         }
 
-        // And the tail, kept for the next call or for the padding.
+        /* And the tail, kept for the next call or for the padding. */
         if !rest.is_empty() {
             self.block[..rest.len()].copy_from_slice(rest);
             self.buffered = rest.len();

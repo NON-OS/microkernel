@@ -8,8 +8,8 @@ pub mod base64;
 #[cfg(test)]
 mod base64_tests;
 
-// The rasteriser returns the capsule's Decoded; nothing else of the image
-// store is reached from svg, so only that shape is mirrored here.
+/* The rasteriser returns the capsule's Decoded; nothing else of the image
+ * store is reached from svg, so only that shape is mirrored here. */
 #[cfg(test)]
 pub mod store {
     pub struct Decoded {

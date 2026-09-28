@@ -23,8 +23,8 @@ use super::guard::{draw, Guard};
 use super::link_stage::stage_of;
 use super::state::Manager;
 
-// One link, to one guard, reused by every circuit. A link per circuit would
-// show the guard a new TLS session for each.
+/* One link, to one guard, reused by every circuit. A link per circuit would
+ * show the guard a new TLS session for each. */
 pub fn tick(state: &mut Manager, now: u64) {
     if state.link.is_some() || !state.usable_at(now) {
         return;
@@ -54,8 +54,8 @@ pub fn tick(state: &mut Manager, now: u64) {
             if let Some(g) = state.guard.as_mut() {
                 g.failures = g.failures.saturating_add(1);
             }
-            // Which stage gave up, not just that one did. A TLS failure is this client's,
-            // a version mismatch is a fork in the protocol.
+            /* Which stage gave up, not just that one did. A TLS failure is this client's,
+             * a version mismatch is a fork in the protocol. */
             trace::say_addr(stage_of(cause), relay.address, relay.or_port);
         }
     }

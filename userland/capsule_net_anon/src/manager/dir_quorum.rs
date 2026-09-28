@@ -28,8 +28,8 @@ pub(super) fn signed(doc: &Consensus, body: &[u8], certs: &[(usize, AuthorityCer
             true
         }
         Err(QuorumError::Malformed) => {
-            // All three numbers, because printing two of them named a cause that
-            // had not been checked.
+            /* All three numbers, because printing two of them named a cause that
+             * had not been checked. */
             trace::say_two(b"consensus span from and to", doc.signed.0 as u64, doc.signed.1 as u64);
             trace::say_num(b"consensus body bytes", body.len() as u64);
             false

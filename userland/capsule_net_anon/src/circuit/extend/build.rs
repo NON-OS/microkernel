@@ -24,7 +24,7 @@ use crate::cell::HANDSHAKE_NTOR;
 
 use super::types::NextHop;
 
-// Link specifier types, from the fork's src/trunnel/link_specifier.trunnel.
+/* Link specifier types, from the fork's src/trunnel/link_specifier.trunnel. */
 const SPEC_IPV4: u8 = 0;
 const SPEC_RSA_ID: u8 = 2;
 const SPEC_ED25519_ID: u8 = 3;

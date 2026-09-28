@@ -23,7 +23,7 @@ use crate::vectors::CONSENSUS;
 #[test]
 fn live_consensus_parses() {
     let doc = parse(CONSENSUS).expect("the live consensus parses");
-    // valid-after 2026-09-18 19:00:00, fresh-until 20:00:00, valid-until 22:00.
+    /* valid-after 2026-09-18 19:00:00, fresh-until 20:00:00, valid-until 22:00. */
     assert_eq!(doc.valid_after, 1_789_758_000);
     assert_eq!(doc.fresh_until, doc.valid_after + 3_600);
     assert_eq!(doc.valid_until, doc.valid_after + 3 * 3_600);
@@ -45,7 +45,7 @@ fn validity_window_is_enforced_at_both_ends() {
 #[test]
 fn the_published_weights_are_read() {
     let doc = parse(CONSENSUS).expect("parses");
-    // bandwidth-weights Wgg=10000 Wgd=1893 Wmd=4411 Wed=3696 Wee=10000 ...
+    /* bandwidth-weights Wgg=10000 Wgd=1893 Wmd=4411 Wed=3696 Wee=10000 ... */
     assert_eq!(doc.weights.wgg, 10_000);
     assert_eq!(doc.weights.wgd, 1_893);
     assert_eq!(doc.weights.wmd, 4_411);

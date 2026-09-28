@@ -16,7 +16,7 @@
 
 //! Cell and relay command numbers, read out of the fork.
 
-// Read out of the fork's src/core/or/or.h; unchanged from upstream Tor.
+/* Read out of the fork's src/core/or/or.h; unchanged from upstream Tor. */
 
 pub const CELL_DESTROY: u8 = 4;
 pub const CELL_RELAY: u8 = 3;

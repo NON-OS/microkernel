@@ -34,8 +34,8 @@ pub(super) fn drain(
 ) -> Result<(), LinkError> {
     let mut bound = false;
     loop {
-        // A relay that says nothing within the handshake budget has not
-        // finished the handshake; that is a failed link, named as such.
+        /* A relay that says nothing within the handshake budget has not
+         * finished the handshake; that is a failed link, named as such. */
         let Some(frame) = link.recv(HANDSHAKE_MS)? else {
             trace::say(b"link handshake timed out");
             return Err(LinkError::Protocol);

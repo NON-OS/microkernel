@@ -23,7 +23,7 @@ fn entries(n: usize) -> Vec<Entry> {
     (0..n)
         .map(|i| {
             let mut e = Entry { address: [10, 0, 0, 1], or_port: 9001, ..Entry::default() };
-            // Distinct per entry so a batch cannot be confused with its neighbour.
+            /* Distinct per entry so a batch cannot be confused with its neighbour. */
             e.microdesc_digest[0] = (i >> 8) as u8;
             e.microdesc_digest[1] = i as u8;
             e
