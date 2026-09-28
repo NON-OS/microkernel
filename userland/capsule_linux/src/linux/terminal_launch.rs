@@ -51,7 +51,15 @@ pub(super) fn launch(program: &[u8], mut args: Vec<Vec<u8>>, max: u32) -> Option
         Ok((size, _)) => {
             format!("linux: {} is there ({size} bytes) but unread: {why}\n", text(&path))
         }
-        Err(_) => format!("linux: cannot find {} in the Linux tree\n", text(&named)),
+        Err(_) => match nonos_app_skeleton::clients::vfs::store_status() {
+            Ok(0) => format!("linux: cannot find {} in the Linux tree\n", text(&named)),
+            Ok(code) => {
+                format!("linux: cannot find {}: the store reports error {code}\n", text(&named))
+            }
+            Err(e) => {
+                format!("linux: cannot find {}: the store does not answer ({e})\n", text(&named))
+            }
+        },
     };
     say(line.as_bytes());
     if let (Err(why), Ok(_)) = (links, store_stat(&key(Links::TABLE))) {
