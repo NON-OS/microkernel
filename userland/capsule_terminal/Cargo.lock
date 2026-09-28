@@ -109,6 +109,7 @@ dependencies = [
  "nonos_tls",
  "nonos_toolkit",
  "nonos_userland_libc",
+ "nonos_vt",
 ]
 
 [[package]]
@@ -133,6 +134,10 @@ version = "0.3.0"
 dependencies = [
  "linked_list_allocator",
 ]
+
+[[package]]
+name = "nonos_vt"
+version = "0.1.0"
 
 [[package]]
 name = "owned_ttf_parser"

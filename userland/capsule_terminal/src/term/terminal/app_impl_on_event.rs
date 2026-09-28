@@ -34,6 +34,9 @@ impl Terminal {
         if let Some(outcome) = self.rail_click(event) {
             return outcome;
         }
+        if let Some(outcome) = self.body_pointer(event) {
+            return outcome;
+        }
         let outcome = on_event(self.cur(), event);
         self.drain_chrome_req();
         outcome

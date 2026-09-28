@@ -69,8 +69,18 @@ pub mod cadence;
 #[path = "../../capsule_terminal/src/command/builtin/fs/grep_paint.rs"]
 pub mod grep_paint;
 
+// The line editing a foreground program gets, and the pointer selection.
+#[path = "../../capsule_terminal/src/event/cooked.rs"]
+pub mod cooked;
+#[path = "../../capsule_terminal/src/event/cooked_kill.rs"]
+pub mod cooked_kill;
+#[path = "../../capsule_terminal/src/term/select.rs"]
+pub mod select;
+
 #[cfg(test)]
 mod cadence_tests;
+#[cfg(test)]
+mod cooked_tests;
 #[cfg(test)]
 mod expand_tests;
 #[cfg(test)]

@@ -15,3 +15,6 @@ license = "AGPL-3.0-or-later"
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+nonos_vt = { path = "../nonos_vt" }

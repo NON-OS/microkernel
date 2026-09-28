@@ -26,22 +26,15 @@ use super::on_enter::on_enter;
 use super::on_printable::on_printable;
 use super::on_tab::on_tab;
 use super::on_up::on_up;
-use crate::term::dimensions::VISIBLE_ROWS;
 use crate::term::state::State;
 
 pub fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
+    if let Some(out) = super::key_first::key_first(state, event) {
+        return out;
+    }
     if event.flags & MOD_CTRL != 0 {
         if let Some(out) = on_ctrl(state, event.code, event.flags) {
             return out;
-        }
-    }
-    if state.fg_running && event.flags & MOD_CTRL == 0 {
-        match event.code {
-            KEY_ENTER => return super::fg_stdin::forward(state, b'\n'),
-            code if (0x20..=0x7E).contains(&code) => {
-                return super::fg_stdin::forward(state, code as u8)
-            }
-            _ => {}
         }
     }
     match event.code {
@@ -72,11 +65,11 @@ pub fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
         KEY_UP => on_up(state),
         KEY_DOWN => on_down(state),
         KEY_PAGE_UP => {
-            state.scrollback.scroll_up(VISIBLE_ROWS - 2);
+            state.scrollback.scroll_up(super::key_first::page(state));
             EventOutcome::Repaint
         }
         KEY_PAGE_DOWN => {
-            state.scrollback.scroll_down(VISIBLE_ROWS - 2);
+            state.scrollback.scroll_down(super::key_first::page(state));
             EventOutcome::Repaint
         }
         KEY_TAB => on_tab(state),

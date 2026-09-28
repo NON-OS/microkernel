@@ -17,6 +17,7 @@
 mod classify;
 mod env;
 mod external;
+mod external_io;
 mod pipeline_job;
 mod pump;
 mod reap;

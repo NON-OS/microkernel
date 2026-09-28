@@ -16,9 +16,19 @@
 
 mod accept_suggestion;
 mod bool_to_outcome;
+mod clip;
 pub(crate) mod complete;
+pub(crate) mod cooked;
+mod cooked_kill;
 mod copy_line;
-mod fg_stdin;
+mod fg_cooked;
+mod fg_input;
+mod fg_keys;
+mod find_bar;
+mod find_seek;
+mod interrupt;
+mod key_first;
+pub(crate) mod keymap;
 mod on_ctrl;
 mod on_down;
 mod on_enter;
@@ -28,9 +38,11 @@ mod on_printable;
 mod on_tab;
 mod on_up;
 mod paste_clipboard;
+mod paste_program;
 pub(crate) mod search;
 pub(crate) mod search_edit;
 mod search_place;
 
+pub use fg_input::send as send_to_program;
 pub use on_enter::on_enter;
 pub use on_event::on_event;

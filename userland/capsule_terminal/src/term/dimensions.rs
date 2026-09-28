@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const COLS: usize = 96;
-pub const SCROLLBACK_ROWS: usize = 256;
+/// History lines each tab keeps.
+pub const SCROLLBACK_ROWS: usize = 3000;
 pub const VISIBLE_ROWS: usize = 40;
 pub const HISTORY_DEPTH: usize = 32;
 pub const MIN_FONT_SCALE: u32 = 1;
