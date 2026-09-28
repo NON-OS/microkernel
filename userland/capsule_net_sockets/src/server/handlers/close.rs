@@ -52,6 +52,7 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
             return status(pid, req, E_NO_TRANSPORT, tx);
         }
     }
+    super::recv_replay::release(key);
     if !SOCKETS.close(key) {
         return status(pid, req, E_NO_HANDLE, tx);
     }

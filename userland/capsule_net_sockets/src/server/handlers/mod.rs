@@ -29,6 +29,7 @@ mod mixnet_residual;
 mod mixnet_send;
 mod poll;
 mod recv;
+mod recv_replay;
 mod send;
 mod setsockopt;
 mod socket;
