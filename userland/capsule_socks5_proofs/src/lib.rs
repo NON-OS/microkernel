@@ -26,6 +26,8 @@ mod conn_tests;
 #[cfg(test)]
 mod inbox_tests;
 #[cfg(test)]
+mod kept_harness;
+#[cfg(test)]
 mod kept_tests;
 #[cfg(test)]
 mod manager_tests;

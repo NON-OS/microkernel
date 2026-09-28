@@ -52,6 +52,7 @@ mod onion_layer_tests;
 mod path_family_last_tests;
 mod path_family_more_tests;
 mod path_family_tests;
+mod path_pool;
 mod path_through_tests;
 mod sendme_pin_more_tests;
 mod sendme_pin_tests;

@@ -14,25 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Streams over a circuit.
+//! Finding a stream by the circuit that carries it as well as its id.
 
-mod begin;
-mod connected;
-mod data;
-mod end;
-mod find;
-mod grant;
-mod ids;
-mod sendme;
-mod stage;
-pub(crate) mod table;
+use super::table::Stream;
 
-pub use begin::body as begin_body;
-pub use connected::is_valid as connected_is_valid;
-pub use data::pieces;
-pub use end::{is_clean, needs_another_exit, reason, REASON_DONE};
-pub use find::find_on;
-pub use ids::next as next_id;
-pub use sendme::body as sendme_body;
-pub use stage::StreamStage;
-pub use table::Stream;
+/// The stream `id` on circuit `circuit`, and no other.
+///
+/// Stream ids are only unique within a circuit, and a relay cell names the
+/// stream by id alone. Finding it by id alone let a cell arriving on one
+/// circuit write into, end or credit a stream carried by another: a hostile
+/// exit could inject payload into a connection it never carried.
+pub fn find_on(streams: &mut [Stream], circuit: u32, id: u16) -> Option<&mut Stream> {
+    streams.iter_mut().find(|s| s.circuit == circuit && s.id == id)
+}

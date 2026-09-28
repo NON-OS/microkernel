@@ -17,21 +17,25 @@
 mod api;
 mod budget;
 mod budget_roles;
+mod described;
+mod exit_address;
 mod http;
 mod https;
 mod keep;
 mod live;
 mod requesters;
 mod resolve;
+mod roles;
 mod source;
 mod stages;
 mod step;
 mod tls_io;
 
 pub use api::{objects, parse_node};
+pub use exit_address::ExitAddress;
 pub use http::fetch;
 pub use https::fetch_tls;
-pub use requesters::{cached as cached_requesters, refresh as refresh_requesters, ExitAddress};
+pub use requesters::{cached as cached_requesters, refresh as refresh_requesters};
 pub use resolve::resolve;
 pub use source::{parse, DirectorySource};
 pub use step::{sync_step, Step};

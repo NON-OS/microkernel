@@ -67,13 +67,3 @@ impl Stream {
 
 /// The END reason a stream gets when its circuit is torn down (tor-spec 6.3).
 pub const REASON_DESTROY: u8 = 5;
-
-/// The stream `id` on circuit `circuit`, and no other.
-///
-/// Stream ids are only unique within a circuit, and a relay cell names the
-/// stream by id alone. Finding it by id alone let a cell arriving on one
-/// circuit write into, end or credit a stream carried by another: a hostile
-/// exit could inject payload into a connection it never carried.
-pub fn find_on(streams: &mut [Stream], circuit: u32, id: u16) -> Option<&mut Stream> {
-    streams.iter_mut().find(|s| s.circuit == circuit && s.id == id)
-}

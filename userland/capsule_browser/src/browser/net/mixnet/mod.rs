@@ -16,10 +16,13 @@
 
 mod call;
 mod choice;
+mod frames;
+mod io;
 mod refusal;
 mod route;
 mod wire;
 
 pub use choice::{choose, chosen, Network};
+pub use io::{recv, send};
 pub use route::{disable, enable, is_on, port};
-pub use wire::{close, connect, open, recv, send};
+pub use wire::{close, connect, open};

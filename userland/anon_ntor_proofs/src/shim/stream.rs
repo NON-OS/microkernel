@@ -31,6 +31,9 @@ pub mod connected;
 #[path = "../../../capsule_net_anon/src/stream/data.rs"]
 pub mod data;
 
+#[path = "../../../capsule_net_anon/src/stream/find.rs"]
+pub mod find;
+
 #[path = "../../../capsule_net_anon/src/stream/ids.rs"]
 pub mod ids;
 
@@ -43,5 +46,6 @@ pub mod table;
 #[path = "../../../capsule_net_anon/src/stream/grant.rs"]
 pub mod grant;
 
+pub use find::find_on;
 pub use stage::StreamStage;
-pub use table::{find_on, Stream, REASON_DESTROY};
+pub use table::{Stream, REASON_DESTROY};

@@ -16,8 +16,7 @@
 
 use alloc::vec::Vec;
 
-use super::api::{node_objects, parse_node};
-use super::https::fetch_tls;
+use super::roles::{fetch_role, layers_present};
 use crate::topology::{self, Node, Role};
 
 /// The endpoint the node list is asked for. One name, rather than a frozen
@@ -30,15 +29,6 @@ pub(super) const API_HOST: &str = "validator.nymtech.net";
 const MIXNODES_PATH: &str = "/api/v1/unstable/nym-nodes/skimmed/mixnodes/active";
 const GATEWAYS_PATH: &str = "/api/v1/unstable/nym-nodes/skimmed/entry-gateways/active";
 const EXITS_PATH: &str = "/api/v1/unstable/nym-nodes/skimmed/exit-gateways/active";
-
-/// Refuse a list that cannot make a route: three mix layers, and something to
-/// enter through. A short answer is a broken answer, and installing it would
-/// replace a working table with one that cannot route.
-const MIN_PER_LAYER: usize = 1;
-
-/// A node list runs to tens of kilobytes (the skimmed views measured 21,658
-/// to 75,446 bytes on 2026-09-28). This bounds what one answer may allocate.
-const MAX_LIST: usize = 512 * 1024;
 
 /// Fetch the current node list and install it as the directory.
 ///
@@ -75,20 +65,4 @@ pub(super) fn fetch_gateways(tcp_port: u32) -> Result<Vec<Node>, u16> {
 /// and the exit that opens connections runs behind it.
 pub(super) fn fetch_exits(tcp_port: u32) -> Result<Vec<Node>, u16> {
     fetch_role(tcp_port, EXITS_PATH, Role::ExitGateway)
-}
-
-fn fetch_role(tcp_port: u32, path: &str, role: Role) -> Result<Vec<Node>, u16> {
-    let body = fetch_tls(tcp_port, API_HOST, path, MAX_LIST)?;
-    let found = node_objects(&body, topology::NODE_CAP);
-    let nodes: Vec<Node> = found.iter().filter_map(|o| parse_node(o, role)).collect();
-    if nodes.is_empty() {
-        return Err(20);
-    }
-    Ok(nodes)
-}
-
-pub(super) fn layers_present(nodes: &[Node]) -> bool {
-    (1u8..=3).all(|layer| {
-        nodes.iter().filter(|n| n.role == Role::Mix && n.layer == layer).count() >= MIN_PER_LAYER
-    })
 }

@@ -36,6 +36,13 @@ pub mod microdesc;
 
 pub use base64::decode;
 
+/*
+ * The encoder was included twice, once here and once inside the directory shim,
+ * which compiles two copies of one file into one crate. The shim needs the `mod` so
+ * the capsule's `super::base64_encode` resolves there; `batch.rs` reaches it as
+ * `crate::base64_encode`, so the crate root re-exports the shim's copy rather than
+ * mounting a second one.
+ */
 #[path = "../../../capsule_net_anon/src/base64_encode.rs"]
 pub mod base64_encode;
 
