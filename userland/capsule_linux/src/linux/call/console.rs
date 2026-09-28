@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! A guest's console output, carried to the host's log.
 
 use crate::linux::abi::errno;
@@ -22,6 +21,9 @@ use crate::linux::guest::Guest;
 
 /// Cap on one transfer, matching the kernel's own peer-copy ceiling.
 const MAX_IO: u64 = 1 << 20;
+/// The kernel takes a log line of at most 256 bytes and refuses a longer one
+/// whole, so a longer write goes out in pieces.
+const LINE_MAX: usize = 256;
 
 /// A guest's console output, carried to the host's log. The bytes are the
 /// guest's and are never interpreted, only forwarded.
@@ -33,7 +35,8 @@ pub(super) fn console(guest: &Guest, buf: u64, len: u64) -> u64 {
     let Some(bytes) = guest.read(buf, take as usize) else {
         return errno::fail(errno::EFAULT);
     };
-    let _ = nonos_libc::mk_debug(bytes.as_ptr(), bytes.len());
+    for piece in bytes.chunks(LINE_MAX) {
+        let _ = nonos_libc::mk_debug(piece.as_ptr(), piece.len());
+    }
     errno::ok(take)
 }
-
