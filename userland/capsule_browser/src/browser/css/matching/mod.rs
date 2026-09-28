@@ -20,3 +20,4 @@ mod sibling;
 mod simple;
 
 pub use selector::matches_selector;
+pub use sibling::Siblings;

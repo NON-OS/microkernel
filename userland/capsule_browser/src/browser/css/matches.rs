@@ -17,7 +17,7 @@
 use crate::browser::dom::node::NodeKind;
 use crate::browser::dom::Dom;
 
-use super::matching::matches_selector;
+use super::matching::{matches_selector, Siblings};
 use super::parse::parse_selectors;
 
 /// How far up a parent chain a walk goes before giving up. A tree a script
@@ -34,7 +34,7 @@ pub fn matches(dom: &Dom, id: usize, selector: &str) -> bool {
     if dom.nodes.get(id).map(|n| n.kind) != Some(NodeKind::Element) {
         return false;
     }
-    parse_selectors(selector).iter().any(|s| matches_selector(dom, id, s))
+    parse_selectors(selector).iter().any(|s| matches_selector(dom, &Siblings::walk(), id, s))
 }
 
 /// The nearest node at or above `id` that matches, or none.
@@ -50,7 +50,9 @@ pub fn closest(dom: &Dom, id: usize, selector: &str) -> Option<usize> {
     let mut at = id;
     for _ in 0..MAX_ANCESTRY {
         let node = dom.nodes.get(at)?;
-        if node.kind == NodeKind::Element && sels.iter().any(|s| matches_selector(dom, at, s)) {
+        if node.kind == NodeKind::Element
+            && sels.iter().any(|s| matches_selector(dom, &Siblings::walk(), at, s))
+        {
             return Some(at);
         }
         if node.parent == at {

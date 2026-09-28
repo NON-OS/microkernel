@@ -21,6 +21,7 @@ use alloc::vec::Vec;
 use crate::browser::dom::Dom;
 
 use super::computed::Computed;
+use super::matching::Siblings;
 use super::parse::parse;
 use super::pseudo_style::PseudoText;
 use super::rule::Rule;
@@ -68,8 +69,10 @@ pub(super) fn cascade(dom: &Dom, author: &[Rule]) -> Styled {
     pseudos.resize_with(n, || (None, None));
     // Pseudo cascading only runs when the sheet declares any pseudo rules.
     let has_pseudos = author.iter().any(|r| r.selectors.iter().any(|s| s.element != 0));
+    let sib = Siblings::table(dom);
     walk(
         dom,
+        &sib,
         0,
         Computed::root(),
         &ua,

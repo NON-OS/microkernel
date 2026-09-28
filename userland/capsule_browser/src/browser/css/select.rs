@@ -19,7 +19,7 @@ use alloc::vec::Vec;
 use crate::browser::dom::node::NodeKind;
 use crate::browser::dom::Dom;
 
-use super::matching::matches_selector;
+use super::matching::{matches_selector, Siblings};
 use super::parse::parse_selectors;
 
 // Element ids matching a selector list, in document order, capped at
@@ -30,6 +30,7 @@ pub fn select(dom: &Dom, selector: &str, limit: usize) -> Vec<usize> {
     if sels.is_empty() {
         return out;
     }
+    let sib = Siblings::table(dom);
     for id in 0..dom.nodes.len() {
         if out.len() >= limit {
             break;
@@ -37,7 +38,7 @@ pub fn select(dom: &Dom, selector: &str, limit: usize) -> Vec<usize> {
         if dom.nodes[id].kind != NodeKind::Element {
             continue;
         }
-        if sels.iter().any(|s| matches_selector(dom, id, s)) {
+        if sels.iter().any(|s| matches_selector(dom, &sib, id, s)) {
             out.push(id);
         }
     }

@@ -18,13 +18,13 @@ use crate::browser::css::selector::Pseudo;
 use crate::browser::dom::node::NodeKind;
 use crate::browser::dom::Dom;
 
-use super::sibling::element_position;
+use super::sibling::Siblings;
 use super::simple::matches_simple;
 
-pub(super) fn pseudo_matches(dom: &Dom, id: usize, p: &Pseudo) -> bool {
+pub(super) fn pseudo_matches(dom: &Dom, sib: &Siblings, id: usize, p: &Pseudo) -> bool {
     match p {
         Pseudo::Never => false,
-        Pseudo::Not(inner) => !matches_simple(dom, id, inner),
+        Pseudo::Not(inner) => !matches_simple(dom, sib, id, inner),
         Pseudo::Empty => dom.nodes.get(id).is_some_and(|n| {
             n.children.iter().all(|&ch| {
                 dom.nodes
@@ -33,7 +33,7 @@ pub(super) fn pseudo_matches(dom: &Dom, id: usize, p: &Pseudo) -> bool {
             })
         }),
         _ => {
-            let Some((pos, count, pos_ty, count_ty)) = element_position(dom, id) else {
+            let Some((pos, count, pos_ty, count_ty)) = sib.position(dom, id) else {
                 return false;
             };
             match p {
