@@ -67,4 +67,7 @@ pub fn show(state: &State, fb: &mut PaintBuffer) {
     if ready {
         hits::put(Press::Footer(0), l.footer[0]);
     }
+    if let Some(d) = l.dismiss {
+        hits::put(Press::Dismiss, d);
+    }
 }

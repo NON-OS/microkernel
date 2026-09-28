@@ -31,7 +31,7 @@ const UNPRICED: &str = "No liquidity pool is connected to this build yet, so thi
      cannot be priced or sent. Nothing leaves this machine.";
 
 pub fn failure(state: &State) -> Option<&'static str> {
-    (state.swap_in > 0 && !state.swap_quote.ready).then_some(UNPRICED)
+    (state.swap_in > 0 && !state.swap_quote.ready && !state.swap_note_hidden).then_some(UNPRICED)
 }
 
 pub fn action(state: &State) -> &'static str {
@@ -63,6 +63,7 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
             state.view = VIEW_HOME;
             state.scroll = 0;
         }
+        Press::Dismiss => state.swap_note_hidden = true,
         Press::Asset(i) => set(state, true, i),
         Press::Pick(i) => set(state, false, i),
         Press::Footer(0) => state.status = b"signing a swap is not wired in this build",

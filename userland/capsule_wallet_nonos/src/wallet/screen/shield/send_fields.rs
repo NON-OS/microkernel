@@ -32,7 +32,7 @@ use crate::wallet::screen::hits::{self, Press};
 use crate::wallet::state::shield_ui::{ShieldUi, FIELD_AMOUNT, FIELD_OVERRIDE, FIELD_TO};
 
 const EARLY: &str = "This note has not waited long enough. Spending it now makes this \
-     payment easier to link to its deposit. To go ahead anyway, type";
+     easier to link to its deposit. To go ahead anyway, type";
 
 pub fn fields(fb: &mut PaintBuffer, c: Rect, y: u32, ui: &ShieldUi) -> u32 {
     let (to_at, a) =
