@@ -99,3 +99,5 @@ mod suggest_tests;
 mod tree_tests;
 #[cfg(test)]
 mod usage_tests;
+#[cfg(test)]
+mod word_kill_tests;

@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{
-    EventOutcome, InputEvent, KEY_BACKSPACE, KEY_DELETE, KEY_DOWN, KEY_END, KEY_ENTER, KEY_ESC,
-    KEY_HOME, KEY_LEFT, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_RIGHT, KEY_TAB, KEY_UP, MOD_CTRL,
+    EventOutcome, InputEvent, KEY_BACKSPACE, KEY_DELETE, KEY_DOWN, KEY_ENTER, KEY_ESC, KEY_TAB,
+    KEY_UP, MOD_CTRL,
 };
 
 use super::bool_to_outcome::bool_to_outcome;
@@ -37,6 +37,12 @@ pub fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
             return out;
         }
     }
+    if let Some(out) = super::readline::readline_key(state, event.code, event.flags) {
+        return out;
+    }
+    if let Some(out) = super::on_nav::on_nav(state, event.code) {
+        return out;
+    }
     match event.code {
         // Clears the line. Esc used to close the window, so one stray press
         // took the scrollback, history and working directory with it. Closing
@@ -52,26 +58,8 @@ pub fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
         }
         KEY_BACKSPACE => bool_to_outcome(state.line.backspace()),
         KEY_DELETE => bool_to_outcome(state.line.delete()),
-        KEY_LEFT => bool_to_outcome(state.line.move_left()),
-        KEY_RIGHT => bool_to_outcome(state.line.move_right()),
-        KEY_HOME => {
-            state.line.move_home();
-            EventOutcome::Repaint
-        }
-        KEY_END => {
-            state.line.move_end();
-            EventOutcome::Repaint
-        }
         KEY_UP => on_up(state),
         KEY_DOWN => on_down(state),
-        KEY_PAGE_UP => {
-            state.scrollback.scroll_up(super::key_first::page(state));
-            EventOutcome::Repaint
-        }
-        KEY_PAGE_DOWN => {
-            state.scrollback.scroll_down(super::key_first::page(state));
-            EventOutcome::Repaint
-        }
         KEY_TAB => on_tab(state),
         code if (0x20..=0x7E).contains(&code) => on_printable(state, code as u8),
         _ => EventOutcome::Idle,
