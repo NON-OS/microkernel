@@ -77,6 +77,14 @@ pub mod cooked_kill;
 #[path = "../../capsule_terminal/src/term/select.rs"]
 pub mod select;
 
+// What `help` prints and how its rows are laid out.
+#[path = "../../capsule_terminal/src/command/builtin/help_layout.rs"]
+pub mod help_layout;
+#[path = "../../capsule_terminal/src/command/builtin/help_pages.rs"]
+pub mod help_pages;
+#[path = "../../capsule_terminal/src/command/builtin/tool_list.rs"]
+pub mod tool_list;
+
 #[cfg(test)]
 mod cadence_tests;
 #[cfg(test)]
@@ -89,6 +97,10 @@ mod filter_tests;
 mod goto_tests;
 #[cfg(test)]
 mod grep_paint_tests;
+#[cfg(test)]
+mod help_rows;
+#[cfg(test)]
+mod help_tests;
 #[cfg(test)]
 mod line_tests;
 #[cfg(test)]

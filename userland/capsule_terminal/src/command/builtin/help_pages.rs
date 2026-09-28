@@ -16,12 +16,16 @@
 
 //! The deeper help pages: keys and shell syntax.
 
-pub const KEYS: [(&[u8], &[u8]); 8] = [
-    (b"move", b"Ctrl-A start   Ctrl-E end   Ctrl-Left/Right by word"),
-    (b"cut", b"Ctrl-W word   Ctrl-K to end   Ctrl-U line   Ctrl-Y put back   Ctrl-D delete"),
+pub const KEYS: [(&[u8], &[u8]); 12] = [
+    (b"move", b"Ctrl-A start   Ctrl-E end   Ctrl-F a char   Alt-B/F a word"),
+    (b"cut", b"Ctrl-W word back   Alt-D word on   Ctrl-K to end   Ctrl-U line"),
+    (b"put", b"Ctrl-Y puts back the last cut   Ctrl-D or Ctrl-H delete a character"),
     (b"complete", b"Tab completes a command or a path"),
-    (b"recall", b"Up/Down walk history   Ctrl-R search it   Ctrl-C abandon the line"),
+    (b"recall", b"Up/Down or Ctrl-P/N walk history   Ctrl-R search it   Ctrl-C abandon"),
     (b"history", b"!! the last command   !n the nth   !text the last starting with text"),
+    (b"select", b"drag   double-click a word   triple-click a line   Alt+drag a block"),
+    (b"clipboard", b"Ctrl+Shift+C copy the selection   Ctrl+Shift+V paste"),
+    (b"search", b"Ctrl+Shift+F find in scrollback   Enter older   Shift+Enter newer"),
     (b"tabs", b"Ctrl+Shift+T new   Ctrl+Shift+W close   Ctrl+PgUp/PgDn switch"),
     (b"view", b"Ctrl-B side rail   Ctrl+= / Ctrl+- font size   Ctrl-L clear"),
     (b"theme", b"theme or profile to change colours"),
