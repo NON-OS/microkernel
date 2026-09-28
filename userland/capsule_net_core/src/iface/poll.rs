@@ -26,6 +26,7 @@ pub fn pump() {
     state::with_iface(|iface, sockets, device| {
         let now = Instant::from_millis(mk_time_millis());
         iface.poll(now, device, sockets);
+        state::reap(sockets);
     });
     budget::close_poll();
     dhcp::poll_event();
