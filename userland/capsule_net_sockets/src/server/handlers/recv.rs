@@ -18,6 +18,7 @@ use crate::clients::{tcp, udp};
 use crate::protocol::{E_NOT_CONNECTED, E_NO_HANDLE, E_NO_TRANSPORT, E_OK, OP_RECV};
 use crate::server::handlers::io::u32_at;
 use crate::server::handlers::mixnet_recv::recv_mixnet;
+use crate::server::handlers::recv_replay;
 use crate::server::parse_req::Request;
 use crate::server::respond::respond;
 use crate::sockets::{Kind, Socket, SocketKey, SOCKETS};
@@ -28,12 +29,21 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         Ok(handle) => handle,
         Err(e) => return status(pid, req, e, tx),
     };
+    // A reader that numbers its reads sends the number after the handle.
+    let seq = u32_at(body, 4).ok();
     let key = SocketKey { pid, handle };
     let Some(sock) = SOCKETS.with(key, |s| *s) else {
         return status(pid, req, E_NO_HANDLE, tx);
     };
+    if let Some(n) = seq.and_then(|seq| recv_replay::again(key, seq, &mut tx[20..])) {
+        respond(pid, OP_RECV, E_OK, req.request_id, n as u32, tx);
+        return;
+    }
     match recv_socket(sock, &mut tx[20..]) {
         Ok(n) => {
+            if let Some(seq) = seq.filter(|_| n > 0) {
+                recv_replay::keep(key, seq, &tx[20..20 + n]);
+            }
             respond(pid, OP_RECV, E_OK, req.request_id, n as u32, tx);
         }
         Err(e) => status(pid, req, e, tx),

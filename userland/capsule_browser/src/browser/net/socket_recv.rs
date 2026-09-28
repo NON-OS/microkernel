@@ -24,9 +24,10 @@ pub fn socket_recv(sockets_port: u32, handle: u32, out: &mut [u8]) -> Result<usi
     if super::mixnet::is_on() {
         return super::mixnet::recv(out);
     }
-    let mut body = [0u8; 4];
+    let mut body = [0u8; 8];
     let mut rx = vec![0u8; out.len().saturating_add(20)];
-    body.copy_from_slice(&handle.to_le_bytes());
+    body[0..4].copy_from_slice(&handle.to_le_bytes());
+    body[4..8].copy_from_slice(&super::recv_seq::current(handle).to_le_bytes());
     let n =
         super::call::call_t(sockets_port, SOCKETS_MAGIC, OP_RECV, &body, &mut rx, RECV_TIMEOUT_MS)?;
     if n < 20 {
@@ -35,5 +36,8 @@ pub fn socket_recv(sockets_port: u32, handle: u32, out: &mut [u8]) -> Result<usi
     let payload = u32::from_le_bytes([rx[16], rx[17], rx[18], rx[19]]) as usize;
     let copy_len = core::cmp::min(core::cmp::min(payload, n - 20), out.len());
     out[..copy_len].copy_from_slice(&rx[20..20 + copy_len]);
+    if copy_len > 0 {
+        super::recv_seq::answered(handle);
+    }
     Ok(copy_len)
 }

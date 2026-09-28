@@ -19,6 +19,7 @@ mod constants;
 mod lookup;
 pub mod mixnet;
 mod parse_ipv4;
+mod recv_seq;
 mod socket_close;
 mod socket_connect_host;
 mod socket_open;

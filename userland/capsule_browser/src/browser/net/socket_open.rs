@@ -28,5 +28,7 @@ pub fn socket_open(sockets_port: u32) -> Result<u32, ()> {
     if n < 24 {
         return Err(());
     }
-    Ok(u32::from_le_bytes([rx[20], rx[21], rx[22], rx[23]]))
+    let handle = u32::from_le_bytes([rx[20], rx[21], rx[22], rx[23]]);
+    super::recv_seq::forget(handle);
+    Ok(handle)
 }
