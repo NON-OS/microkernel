@@ -11,6 +11,8 @@ struct open_how {
 
 #define RESOLVE_BENEATH 0x08
 
+#define RESOLVE_IN_ROOT 0x10
+
 #ifndef SYS_openat2
 #define SYS_openat2 437
 #endif
@@ -42,9 +44,25 @@ void part_openat2(void) {
     fd = oa2(AT_FDCWD, "/proc/self/status", O_RDONLY, RESOLVE_NO_MAGICLINKS);
     CHECK(p, fd >= 0, fd, errno);
     close(fd);
+    /*
+     * IN_ROOT: the directory is /, for an absolute name, a .. past it and
+     * an absolute link alike.
+     */
+    symlink("/f", DIR "/o2/abs");
+    char c = 0;
+    fd = oa2(d, "/f", O_RDONLY, RESOLVE_IN_ROOT);
+    CHECK(p, fd >= 0 && read(fd, &c, 1) == 1 && c == 'x', fd, errno);
+    close(fd);
+    fd = oa2(d, "../../../f", O_RDONLY, RESOLVE_IN_ROOT);
+    CHECK(p, fd >= 0, fd, errno);
+    close(fd);
+    fd = oa2(d, "abs", O_RDONLY, RESOLVE_IN_ROOT);
+    CHECK(p, fd >= 0, fd, errno);
+    close(fd);
+    ERR(p, oa2(d, "abs", O_RDONLY, RESOLVE_IN_ROOT | RESOLVE_BENEATH), EINVAL);
     struct open_how how = {.flags = O_RDONLY, .mode = 0644};
     ERR(p, syscall(SYS_openat2, d, "f", &how, sizeof how), EINVAL);
     ERR(p, syscall(SYS_openat2, d, "f", &how, 8), EINVAL);
     close(d);
-    done(p, "BENEATH, NO_SYMLINKS and NO_MAGICLINKS walk as Linux walks");
+    done(p, "BENEATH, IN_ROOT, NO_SYMLINKS and NO_MAGICLINKS walk as Linux walks");
 }

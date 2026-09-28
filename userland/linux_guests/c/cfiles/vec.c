@@ -1,5 +1,13 @@
 #include "cfiles.h"
 
+#ifndef RWF_DSYNC
+#define RWF_DSYNC 0x02
+#endif
+
+#ifndef RWF_APPEND
+#define RWF_APPEND 0x10
+#endif
+
 /* musl has no wrappers for the v2 forms; the offset goes as low and high words. */
 static long preadv2_(int fd, const struct iovec *v, int n, long off, int flags) {
     return syscall(SYS_preadv2, fd, v, n, off, 0, flags);
@@ -27,6 +35,15 @@ void part_vec(void) {
     CHECK(p, pwritev2_(fd, ow, 1, 8, 0) == 2, 0, 0);
     CHECK(p, lseek(fd, 0, SEEK_CUR) == 6, lseek(fd, 0, SEEK_CUR), 6);
     ERR(p, preadv(fd, iv, 2, -2), EINVAL);
+    struct iovec tail[1] = {{"Z", 1}};
+    CHECK(p, pwritev2_(fd, tail, 1, 0, RWF_APPEND | RWF_DSYNC) == 1, errno, 0);
+    struct stat st;
+    fstat(fd, &st);
+    CHECK(p, st.st_size == 11 && pread(fd, b, 1, 10) == 1 && b[0] == 'Z', st.st_size, b[0]);
+    lseek(fd, 2, SEEK_SET);
+    CHECK(p, pwritev2_(fd, tail, 1, -1, RWF_APPEND) == 1, errno, 0);
+    CHECK(p, lseek(fd, 0, SEEK_CUR) == 12, lseek(fd, 0, SEEK_CUR), 12);
+    ERR(p, pwritev2_(fd, tail, 1, 0, 0x10000), EOPNOTSUPP);
     close(fd);
-    done(p, "preadv, pwritev and the v2 forms at an offset and at -1");
+    done(p, "preadv, pwritev and the v2 forms at an offset, at -1, and with RWF_ flags");
 }
