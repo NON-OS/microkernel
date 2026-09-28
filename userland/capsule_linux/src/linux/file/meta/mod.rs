@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What the store knows about a name, and what a program may do with it.
+/* What the store knows about a name, and what a program may do with it. */
 
+mod node;
 mod perms;
 mod query;
 pub(super) mod stat;
@@ -23,8 +24,9 @@ mod statbuf;
 mod statfs;
 mod statx;
 
-pub use perms::{chmod, faccessat, fchmod, fchmodat};
-pub use query::{access, readlinkat};
+pub use node::{now as now_ms, of as meta_of};
+pub use perms::{chmod, fchmod, fchmodat};
+pub use query::{access, faccessat, is_link, readlinkat};
 pub use stat::{fstat, look, newfstatat};
 pub use statfs::statfs;
 pub use statx::statx;

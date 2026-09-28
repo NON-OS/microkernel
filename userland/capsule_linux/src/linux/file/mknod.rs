@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `mknodat`: a regular file is an empty file; no device node or fifo is made.
+/* `mknodat`: a regular file is an empty file; no device node or fifo is made. */
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
@@ -27,7 +27,7 @@ use super::resolve::key;
 const S_IFMT: u64 = 0o170000;
 const S_IFREG: u64 = 0o100000;
 
-/// A regular file is an empty file; devices and fifos are not made here.
+/* A regular file is an empty file; devices and fifos are not made here. */
 pub fn mknodat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
     if mode & S_IFMT != S_IFREG && mode & S_IFMT != 0 {
         return refused(b"[LINUX] refused mknod: no device nodes or fifos\n");
@@ -42,7 +42,10 @@ pub fn mknodat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
         return errno::fail(errno::EROFS);
     }
     match super::store_write(&key(&at), &[]) {
-        Ok(()) => errno::ok(0),
+        Ok(()) => {
+            super::modes::set(&at, mode as u32 & 0o7777 & !u32::from(guest.umask));
+            errno::ok(0)
+        }
         Err(_) => errno::fail(errno::EIO),
     }
 }

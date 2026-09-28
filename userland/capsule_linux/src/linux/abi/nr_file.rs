@@ -20,3 +20,4 @@
  */
 
 pub const FDATASYNC: u64 = 75;
+pub const TIMES: u64 = 100;

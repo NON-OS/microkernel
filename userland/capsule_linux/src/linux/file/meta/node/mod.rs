@@ -15,17 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What stat, fstat and statx say about a character device: S_IFCHR with
- * read and write for everyone, as Linux's devtmpfs makes them, and the
- * device's major and minor numbers.
+ * What stat says about a path or a descriptor, from one place, so stat,
+ * lstat, fstat, fstatat and statx never disagree.
  */
 
-use super::dev::numbers;
+mod device;
+mod fd;
+mod path;
 
-pub const MODE: u32 = 0o020666;
-
-/* Linux's st_rdev for the device: the minor's low byte, the major, the rest. */
-pub fn rdev(dev: u32) -> Option<u64> {
-    let (major, minor) = numbers(dev)?;
-    Some((minor & 0xff) | ((major & 0xfff) << 8) | ((minor & !0xff) << 12))
-}
+pub use super::statbuf::Meta;
+pub use fd::{now, of_fd};
+pub use path::{of, S_IFDIR};

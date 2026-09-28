@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * What stat, fstat and statx say about a character device: S_IFCHR with
- * read and write for everyone, as Linux's devtmpfs makes them, and the
- * device's major and minor numbers.
- */
+/* The metadata of a character device this capsule answers. */
 
-use super::dev::numbers;
+use super::super::super::dev_stat;
+use super::super::statbuf::Meta;
+use super::fd::now;
+use super::path::at;
 
-pub const MODE: u32 = 0o020666;
-
-/* Linux's st_rdev for the device: the minor's low byte, the major, the rest. */
-pub fn rdev(dev: u32) -> Option<u64> {
-    let (major, minor) = numbers(dev)?;
-    Some((minor & 0xff) | ((major & 0xfff) << 8) | ((minor & !0xff) << 12))
+/* The device `dev`, by the path it was opened at. */
+pub(super) fn device(path: &[u8], dev: u32) -> Option<Meta> {
+    let rdev = dev_stat::rdev(dev)?;
+    Some(Meta { rdev, ..at(path, dev_stat::MODE, 0, now()) })
 }

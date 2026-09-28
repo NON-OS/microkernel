@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Links, renames, owners, times and nodes. The plain calls are their *at
-//! forms at AT_FDCWD, so each property is decided in one place.
+/*
+ * Links, renames, owners, times and nodes. The plain calls are their *at
+ * forms at AT_FDCWD, so each property is decided in one place.
+ */
 
 use crate::linux::abi::nr_path as np;
 use crate::linux::file;
@@ -34,9 +36,9 @@ pub fn link_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
         np::CHOWN | np::LCHOWN => file::fchownat(guest, CWD, a[0], a[1], a[2]),
         np::FCHOWNAT => file::fchownat(guest, a[0], a[1], a[2], a[3]),
         np::FCHOWN => file::fchown_ids(a[1], a[2]),
-        np::UTIMENSAT => file::utimensat(guest, a[2]),
-        // A timeval cannot say "leave this time alone", so these always change one.
-        np::UTIME | np::UTIMES => file::utimensat(guest, 0),
+        np::UTIMENSAT => file::utimensat(guest, a[0], a[1], a[2], a[3]),
+        np::UTIMES => file::utimes(guest, a[0], a[1], true),
+        np::UTIME => file::utimes(guest, a[0], a[1], false),
         np::MKNOD => file::mknodat(guest, CWD, a[0], a[1]),
         np::MKNODAT => file::mknodat(guest, a[0], a[1], a[2]),
         _ => return None,

@@ -17,6 +17,7 @@
 /* `openat`. */
 
 mod mark;
+mod named;
 mod openat;
 
 pub use openat::openat;

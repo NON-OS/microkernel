@@ -1,0 +1,48 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+/* Copies that follow their names, and what the copies add up to. */
+
+use alloc::vec::Vec;
+
+use super::table::CACHE;
+
+/* The name went away or moved: the copy follows it. */
+pub fn forget(path: &[u8]) {
+    CACHE.0.borrow_mut().retain(|e| e.path != path);
+}
+
+pub fn renamed(from: &[u8], to: &[u8]) {
+    let mut all = CACHE.0.borrow_mut();
+    all.retain(|e| e.path != to);
+    if let Some(e) = all.iter_mut().find(|e| e.path == from) {
+        e.path = to.to_vec();
+    }
+}
+
+/*
+ * The files directly in `dir` that the family holds, which a listing must
+ * show although the store may not have them yet.
+ */
+pub fn names_in(dir: &[u8]) -> Vec<alloc::string::String> {
+    let dir = if dir == b"/" { &b""[..] } else { dir };
+    let all = CACHE.0.borrow();
+    let leaves = all.iter().filter_map(|e| e.path.strip_prefix(dir)?.strip_prefix(b"/"));
+    leaves
+        .filter(|l| !l.contains(&b'/'))
+        .filter_map(|l| alloc::string::String::from_utf8(l.to_vec()).ok())
+        .collect()
+}

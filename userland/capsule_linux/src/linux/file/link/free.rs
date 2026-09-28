@@ -14,18 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/* Whether a new name may be made where it is asked for. */
+
+use crate::linux::abi::errno;
+use crate::linux::guest::Guest;
+
+use super::super::meta::stat;
+use super::super::resolve::key;
+
 /*
- * What stat, fstat and statx say about a character device: S_IFCHR with
- * read and write for everyone, as Linux's devtmpfs makes them, and the
- * device's major and minor numbers.
+ * A new name must not exist as a file or a link, and must be somewhere the
+ * guest may write: the shared tree is read-only to it.
  */
-
-use super::dev::numbers;
-
-pub const MODE: u32 = 0o020666;
-
-/* Linux's st_rdev for the device: the minor's low byte, the major, the rest. */
-pub fn rdev(dev: u32) -> Option<u64> {
-    let (major, minor) = numbers(dev)?;
-    Some((minor & 0xff) | ((major & 0xfff) << 8) | ((minor & !0xff) << 12))
+pub(super) fn free_and_writable(guest: &Guest, at: &[u8]) -> Result<(), i64> {
+    if stat::look(at).is_some() || guest.links.target(at).is_some() {
+        return Err(errno::EEXIST);
+    }
+    key(at).writable().map_err(|_| errno::EROFS)
 }

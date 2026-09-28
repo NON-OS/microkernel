@@ -19,34 +19,18 @@
  * a relative name starts from.
  */
 
-use alloc::vec::Vec;
-
 use crate::linux::abi::errno;
-use crate::linux::guest::{Guest, Kind};
-
-use super::super::flags::AT_FDCWD;
+use crate::linux::guest::Guest;
 
 /*
  * O_CLOEXEC is a property of the descriptor, not of the open, so it is set
  * once the number is known rather than threaded through every one of the
  * paths above.
  */
-pub(super) fn mark(guest: &mut Guest, got: u64, on: bool) {
+pub(crate) fn mark(guest: &mut Guest, got: u64, on: bool) {
     if let Some(slot) = errno::slot(got).filter(|_| on) {
         if let Some(fd) = guest.fds.get_mut(slot) {
             fd.cloexec = true;
         }
-    }
-}
-
-/* AT_FDCWD or a dirfd the guest itself opened. No other dirfd resolves. */
-pub(super) fn base_of(guest: &Guest, dirfd: u64) -> Result<Vec<u8>, u64> {
-    if dirfd == AT_FDCWD {
-        return Ok(guest.cwd.clone());
-    }
-    match guest.fds.get(dirfd as usize) {
-        Some(fd) if fd.kind == Kind::Dir => Ok(fd.path.clone()),
-        Some(_) => Err(errno::fail(errno::ENOTDIR)),
-        None => Err(errno::fail(errno::EBADF)),
     }
 }

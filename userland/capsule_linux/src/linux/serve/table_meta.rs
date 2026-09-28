@@ -24,15 +24,20 @@ use crate::linux::file;
 use crate::linux::file::flags;
 use crate::linux::guest::Guest;
 
+/* fstatat's AT_SYMLINK_NOFOLLOW, which lstat is. */
+const NOFOLLOW: u64 = 0x100;
+
 pub fn meta_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
     Some(match nr {
         nr::FSTAT => file::fstat(guest, a[0], a[1]),
-        nr::STAT | nr::LSTAT => file::newfstatat(guest, flags::AT_FDCWD, a[0], a[1]),
-        nr::NEWFSTATAT => file::newfstatat(guest, a[0], a[1], a[2]),
-        np::FACCESSAT | np::FACCESSAT2 => file::faccessat(guest, a[0], a[1]),
+        nr::STAT => file::newfstatat(guest, flags::AT_FDCWD, a[0], a[1], 0),
+        nr::LSTAT => file::newfstatat(guest, flags::AT_FDCWD, a[0], a[1], NOFOLLOW),
+        nr::NEWFSTATAT => file::newfstatat(guest, a[0], a[1], a[2], a[3]),
+        np::FACCESSAT => file::faccessat(guest, a[0], a[1], a[2], 0),
+        np::FACCESSAT2 => file::faccessat(guest, a[0], a[1], a[2], a[3]),
         np::STATFS | np::FSTATFS => file::statfs(guest, a[1]),
-        np::STATX => file::statx(guest, a[0], a[1], a[4]),
-        nr::ACCESS => file::access(guest, a[0]),
+        np::STATX => file::statx(guest, a[0], a[1], a[2], a[4]),
+        nr::ACCESS => file::access(guest, a[0], a[1]),
         nr::READLINK => file::readlinkat(guest, flags::AT_FDCWD, a[0], a[1], a[2]),
         _ => return None,
     })

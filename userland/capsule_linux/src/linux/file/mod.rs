@@ -83,7 +83,7 @@ pub use meta::{
 };
 pub use mknod::mknodat;
 pub use open::openat;
-pub use owner::{fchown_ids, fchownat, utimensat};
+pub use owner::{fchown_ids, fchownat, utimensat, utimes};
 pub use path::read_path;
 pub use pread::pread64;
 pub use private::{allow_shared_writes, clear as clear_private, prepare as prepare_private};

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Moving the working directory.
+/* Moving the working directory. */
 
 use crate::linux::abi::errno;
 use crate::linux::file::{look, read_path, visible};
@@ -25,17 +25,18 @@ pub fn chdir(guest: &mut Guest, path: u64) -> u64 {
         return errno::fail(errno::EFAULT);
     };
     let at = guest.links.follow(visible(&guest.cwd, &name), true);
-    // Checked before it is taken.
+    /* Checked before it is taken. */
     match look(&at) {
-        Some(_) => {
+        Some((_, true)) => {
             guest.cwd = at;
             errno::ok(0)
         }
+        Some(_) => errno::fail(errno::ENOTDIR),
         None => errno::fail(errno::ENOENT),
     }
 }
 
-/// `fchdir`: the same, named by a directory the guest already opened.
+/* `fchdir`: the same, named by a directory the guest already opened. */
 pub fn fchdir(guest: &mut Guest, fd: u64) -> u64 {
     let Some(entry) = guest.fds.get(fd as usize).filter(|f| f.kind == Kind::Dir) else {
         return errno::fail(errno::EBADF);
@@ -44,8 +45,10 @@ pub fn fchdir(guest: &mut Guest, fd: u64) -> u64 {
     errno::ok(0)
 }
 
-/// `getcwd` writes the path and returns its length including the terminator,
-/// which is what a libc uses to tell success from a buffer that was too small.
+/*
+ * `getcwd` writes the path and returns its length including the terminator,
+ * which is what a libc uses to tell success from a buffer that was too small.
+ */
 pub fn getcwd(guest: &Guest, buf: u64, len: u64) -> u64 {
     let mut out = guest.cwd.clone();
     out.push(0);

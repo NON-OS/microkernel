@@ -14,38 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Making, removing and moving names in the store.
+/* unlinkat: a file, a link, or with AT_REMOVEDIR a directory. */
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::at::resolve_at;
-use super::resolve::key;
-use super::store_name;
-
-pub fn mkdirat(guest: &Guest, dirfd: u64, path: u64) -> u64 {
-    let Some(at) = resolve_at(guest, dirfd, path) else {
-        return errno::fail(errno::EFAULT);
-    };
-    match store_name::mkdir(&key(&at)) {
-        Ok(()) => errno::ok(0),
-        Err(_) => errno::fail(errno::EEXIST),
-    }
-}
-
-pub fn rmdir(guest: &Guest, path: u64) -> u64 {
-    let Some(at) = resolve_at(guest, super::flags::AT_FDCWD, path) else {
-        return errno::fail(errno::EFAULT);
-    };
-    /*
-     * Not recursive: POSIX rmdir refuses a populated directory, and a
-     * recursive delete behind that name is data loss.
-     */
-    match store_name::rmdir(&key(&at)) {
-        Ok(()) => errno::ok(0),
-        Err(_) => errno::fail(errno::ENOTEMPTY),
-    }
-}
+use super::super::at::resolve_at;
+use super::super::meta::look;
+use super::super::resolve::key;
+use super::super::{cache, modes, store_name};
+use super::dirs::remove_dir;
 
 pub fn unlinkat(guest: &Guest, dirfd: u64, path: u64, flags: u64) -> u64 {
     let Some(at) = resolve_at(guest, dirfd, path) else {
@@ -56,13 +34,29 @@ pub fn unlinkat(guest: &Guest, dirfd: u64, path: u64, flags: u64) -> u64 {
      * rmdir on top of one syscall.
      */
     const AT_REMOVEDIR: u64 = 0x200;
-    let at = key(&at);
-    let done = match flags & AT_REMOVEDIR {
-        0 => store_name::unlink(&at),
-        _ => store_name::rmdir(&at),
-    };
-    match done {
+    if flags & AT_REMOVEDIR != 0 {
+        return remove_dir(&at);
+    }
+    if guest.links.target(&at).is_some() {
+        return match key(&at).writable() {
+            Ok(()) if guest.links.remove(&at) => errno::ok(0),
+            _ => errno::fail(errno::EROFS),
+        };
+    }
+    let held = cache::held(&at);
+    match look(&at) {
+        None => return errno::fail(errno::ENOENT),
+        Some((_, true)) => return errno::fail(errno::EISDIR),
+        Some(_) if key(&at).writable().is_err() => return errno::fail(errno::EROFS),
+        Some(_) => {}
+    }
+    cache::forget(&at);
+    modes::forget(&at);
+    super::super::times::forget(&at);
+    /* A file only the family held was never in the store. */
+    match store_name::unlink(&key(&at)) {
         Ok(()) => errno::ok(0),
+        Err(_) if held => errno::ok(0),
         Err(_) => errno::fail(errno::ENOENT),
     }
 }

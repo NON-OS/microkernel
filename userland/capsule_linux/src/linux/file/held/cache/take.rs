@@ -21,18 +21,22 @@ use alloc::vec::Vec;
 use crate::linux::abi::errno;
 
 use super::super::super::{resolve, store};
-use super::table::{held, with, Entry, CACHE, MAX_FILE};
+use super::table::{held, now, with, Entry, CACHE, MAX_FILE};
 
 /* Hold `path`: its bytes from the store, or none for a file being made. */
 pub fn hold(path: &[u8], exists: bool) -> Result<(), i64> {
     if held(path) {
         return Ok(());
     }
-    let data = match exists {
-        true => store::read(&resolve::key(path), MAX_FILE as u32).map_err(|_| errno::EIO)?,
-        false => Vec::new(),
+    let key = resolve::key(path);
+    let (data, mtime_ms) = match exists {
+        true => {
+            let at = store::stat_full(&key).map(|s| s.2).unwrap_or_else(|_| now());
+            (store::read(&key, MAX_FILE as u32).map_err(|_| errno::EIO)?, at)
+        }
+        false => (Vec::new(), now()),
     };
-    CACHE.0.borrow_mut().push(Entry { path: path.to_vec(), data, dirty: !exists });
+    CACHE.0.borrow_mut().push(Entry { path: path.to_vec(), data, dirty: !exists, mtime_ms });
     Ok(())
 }
 

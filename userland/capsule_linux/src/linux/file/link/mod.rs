@@ -15,17 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What stat, fstat and statx say about a character device: S_IFCHR with
- * read and write for everyone, as Linux's devtmpfs makes them, and the
- * device's major and minor numbers.
+ * `symlinkat` and `linkat`; the plain forms are these at AT_FDCWD.
+ *
+ * A symbolic link joins the family's link table, where the image's own links
+ * are, and only where the guest may write. A hard link is the same bytes
+ * under a second name, copied: the store has no inodes to share, and a copy
+ * keeps what programs rely on, that removing the old name leaves the new.
  */
 
-use super::dev::numbers;
+mod calls;
+mod free;
 
-pub const MODE: u32 = 0o020666;
-
-/* Linux's st_rdev for the device: the minor's low byte, the major, the rest. */
-pub fn rdev(dev: u32) -> Option<u64> {
-    let (major, minor) = numbers(dev)?;
-    Some((minor & 0xff) | ((major & 0xfff) << 8) | ((minor & !0xff) << 12))
-}
+pub use calls::{linkat, symlinkat};

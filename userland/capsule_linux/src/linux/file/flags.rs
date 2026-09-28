@@ -27,6 +27,7 @@ pub const O_TRUNC: u64 = 0o1000;
 pub const O_APPEND: u64 = 0o2000;
 pub const O_NONBLOCK: u64 = 0o4000;
 pub const O_DIRECTORY: u64 = 0o200000;
+pub const O_NOFOLLOW: u64 = 0o400000;
 pub const O_CLOEXEC: u64 = 0o2000000;
 
 /*
@@ -34,6 +35,15 @@ pub const O_CLOEXEC: u64 = 0o2000000;
  * directory", which is the only relative form a static binary uses.
  */
 pub const AT_FDCWD: u64 = (-100i64) as u64;
+
+/*
+ * A directory descriptor as the kernel reads it: an int, so only the low 32
+ * bits count. A C program calling syscall() with an int leaves the high
+ * half of the register undefined, and Linux never looks at it.
+ */
+pub fn dirfd(raw: u64) -> u64 {
+    raw as u32 as i32 as i64 as u64
+}
 
 /* Opened O_WRONLY or O_RDWR: what a write through the descriptor needs. */
 pub fn writes(flags: u64) -> bool {

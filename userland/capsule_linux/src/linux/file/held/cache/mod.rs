@@ -27,10 +27,12 @@
 
 mod change;
 mod flush;
+mod names;
 mod table;
 mod take;
 
 pub use change::{resize, write};
 pub use flush::flush;
-pub use table::{held, size};
+pub use names::{forget, names_in, renamed};
+pub use table::{held, mtime, size};
 pub use take::{hold, read};

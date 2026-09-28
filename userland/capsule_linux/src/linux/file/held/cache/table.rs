@@ -26,6 +26,12 @@ pub(super) struct Entry {
     pub(super) path: Vec<u8>,
     pub(super) data: Vec<u8>,
     pub(super) dirty: bool,
+    /* Wall-clock milliseconds of the last change, which stat reports. */
+    pub(super) mtime_ms: u64,
+}
+
+pub(super) fn now() -> u64 {
+    u64::try_from(nonos_libc::mk_time_millis()).unwrap_or(0)
 }
 
 pub(super) struct Cache(pub(super) RefCell<Vec<Entry>>);
@@ -48,4 +54,8 @@ pub fn held(path: &[u8]) -> bool {
 
 pub fn size(path: &[u8]) -> Option<u64> {
     with(path, |e| e.data.len() as u64)
+}
+
+pub fn mtime(path: &[u8]) -> Option<u64> {
+    with(path, |e| e.mtime_ms)
 }

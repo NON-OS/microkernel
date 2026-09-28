@@ -18,7 +18,7 @@
 
 use crate::linux::abi::errno;
 
-use super::table::{with, MAX_FILE};
+use super::table::{now, with, MAX_FILE};
 
 /* Write `bytes` at `at`, filling any gap with zeros, as a sparse write reads. */
 pub fn write(path: &[u8], at: u64, bytes: &[u8]) -> Result<usize, i64> {
@@ -30,6 +30,7 @@ pub fn write(path: &[u8], at: u64, bytes: &[u8]) -> Result<usize, i64> {
         }
         e.data[at as usize..end].copy_from_slice(bytes);
         e.dirty = true;
+        e.mtime_ms = now();
         bytes.len()
     })
     .ok_or(errno::EBADF)
@@ -40,6 +41,7 @@ pub fn resize(path: &[u8], len: u64) -> Result<(), i64> {
     with(path, |e| {
         e.data.resize(len, 0);
         e.dirty = true;
+        e.mtime_ms = now();
     })
     .ok_or(errno::EBADF)
 }

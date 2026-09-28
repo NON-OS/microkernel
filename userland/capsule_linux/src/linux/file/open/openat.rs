@@ -19,34 +19,20 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::super::flags::{writes, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL};
-use super::super::{cache, dev, dir, path, regular, resolve, store};
-use super::mark::{base_of, mark};
+use super::super::flags::O_CLOEXEC;
+use super::super::path;
+use super::mark::mark;
+use super::named::open_named;
 
-pub fn openat(guest: &mut Guest, dirfd: u64, path_ptr: u64, flags: u64) -> u64 {
+pub fn openat(guest: &mut Guest, dirfd: u64, path_ptr: u64, flags: u64, mode: u64) -> u64 {
     let Some(name) = path::read_path(guest, path_ptr) else {
         return errno::fail(errno::EFAULT);
     };
-    let base = match base_of(guest, dirfd) {
-        Ok(base) => base,
-        Err(e) => return e,
+    let named = match super::super::at::named_at(guest, dirfd, &name) {
+        Ok(named) => named,
+        Err(e) => return errno::fail(e),
     };
-    let full = guest.links.follow(resolve::visible(&base, &name), true);
-    /* A file the family is making is there before the store holds it. */
-    let found = match cache::size(&full) {
-        Some(size) => Some((size, false)),
-        None => store::stat(&resolve::key(&full)).ok(),
-    };
-    let got = match found {
-        _ if dev::device_of(&full).is_some() => dev::open_path(guest, &full, flags),
-        Some(_) if flags & O_CREAT != 0 && flags & O_EXCL != 0 => errno::fail(errno::EEXIST),
-        Some((_, true)) if writes(flags) => errno::fail(errno::EISDIR),
-        Some((_, true)) => dir::open(guest, full),
-        Some((_, false)) if flags & O_DIRECTORY != 0 => errno::fail(errno::ENOTDIR),
-        Some((size, false)) => regular::open(guest, full, size, flags),
-        None if flags & O_CREAT != 0 => regular::create(guest, full, flags),
-        None => errno::fail(errno::ENOENT),
-    };
+    let got = open_named(guest, named, flags, mode);
     mark(guest, got, flags & O_CLOEXEC != 0);
     got
 }

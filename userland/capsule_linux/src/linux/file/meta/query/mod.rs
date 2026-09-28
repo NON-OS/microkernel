@@ -14,18 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * What stat, fstat and statx say about a character device: S_IFCHR with
- * read and write for everyone, as Linux's devtmpfs makes them, and the
- * device's major and minor numbers.
- */
+/* `access`, `faccessat` and `readlink`: questions about a name. */
 
-use super::dev::numbers;
+mod access;
+mod link;
 
-pub const MODE: u32 = 0o020666;
-
-/* Linux's st_rdev for the device: the minor's low byte, the major, the rest. */
-pub fn rdev(dev: u32) -> Option<u64> {
-    let (major, minor) = numbers(dev)?;
-    Some((minor & 0xff) | ((major & 0xfff) << 8) | ((minor & !0xff) << 12))
-}
+pub use access::{access, faccessat};
+pub use link::{is_link, readlinkat};

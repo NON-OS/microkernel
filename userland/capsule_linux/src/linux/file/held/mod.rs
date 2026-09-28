@@ -22,4 +22,6 @@
 
 pub(super) mod cache;
 pub(super) mod desc;
+pub(super) mod modes;
 pub(super) mod rw;
+pub(super) mod times;

@@ -22,19 +22,21 @@ use crate::linux::abi::errno;
 use crate::linux::guest::{Fd, Guest};
 
 use super::super::flags::writes;
-use super::super::{cache, resolve};
+use super::super::{cache, modes, resolve};
 use super::open::install;
 
 /*
  * Linux makes the file at open, so stat sees it before anything is written;
  * here it is held empty in the family's copy until close puts it in the store.
  */
-pub fn create(guest: &mut Guest, path: Vec<u8>, flags: u64) -> u64 {
+pub fn create(guest: &mut Guest, path: Vec<u8>, flags: u64, mode: u64) -> u64 {
     if resolve::key(&path).writable().is_err() {
         return errno::fail(errno::EROFS);
     }
     if let Err(e) = cache::hold(&path, false) {
         return errno::fail(e);
     }
+    /* The mode it is made with, less the umask, as open(2) says. */
+    modes::set(&path, mode as u32 & 0o7777 & !u32::from(guest.umask));
     install(guest, Fd::file(path, 0, None, writes(flags)), flags)
 }
