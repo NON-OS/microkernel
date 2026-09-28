@@ -57,20 +57,13 @@ pub use frame::ForeignFrame;
 pub use frame_snapshot::FRAME_WORDS;
 pub use interrupt::{on_user_tick, sys_foreign_interrupt};
 pub use interrupt_frame::WORDS as TICK_FRAME_WORDS;
+pub use notice::note_signal_death;
 pub use peer_copy::sys_peer_copy;
 pub use peer_map::sys_peer_map;
 pub use peer_protect::sys_peer_protect;
 pub use peer_tls::sys_peer_tls;
 pub use peer_unmap::sys_peer_unmap;
 pub use registry::{clear, is_foreign, supervisor_of};
-
-/// Report to its supervisor that a guest thread ended on a signal, if it is
-/// a guest at all. The supervisor's personality decides what follows.
-pub fn note_signal_death(pid: u32, code: i32) {
-    if let Some(supervisor) = registry::supervisor_of(pid) {
-        notice::post(supervisor, pid, code);
-    }
-}
 pub use signal_call::{sys_foreign_context, sys_foreign_signal};
 pub use spawn::sys_foreign_spawn;
 pub use spawn_start::sys_foreign_start;
