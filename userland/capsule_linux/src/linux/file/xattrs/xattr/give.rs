@@ -14,20 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/* An attribute's value or the list, given back as Linux gives it. */
+
+use alloc::vec::Vec;
+
+use crate::linux::abi::errno;
+use crate::linux::guest::Guest;
+
 /*
- * The file calls beyond open, read and write.
+ * Copy `bytes` out: size 0 asks only how long they are; a buffer too
+ * small is ERANGE.
  */
-
-pub(super) mod falloc;
-pub(super) mod fdrange;
-pub(super) mod fdup;
-pub(super) mod openat2;
-pub(super) mod sendfile;
-pub(super) mod size;
-
-pub use falloc::fallocate;
-pub use fdrange::close_range;
-pub use fdup::dup_from;
-pub use openat2::openat2;
-pub use sendfile::{copy_file_range, sendfile};
-pub use size::{fadvise64, ftruncate, truncate};
+pub(super) fn give(guest: &Guest, buf: u64, size: u64, bytes: Vec<u8>) -> u64 {
+    if size == 0 {
+        return errno::ok(bytes.len() as u64);
+    }
+    if (size as usize) < bytes.len() {
+        return errno::fail(errno::ERANGE);
+    }
+    match guest.write(buf, &bytes) {
+        n if n < bytes.len() as i64 => errno::fail(errno::EFAULT),
+        _ => errno::ok(bytes.len() as u64),
+    }
+}

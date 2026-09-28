@@ -50,6 +50,7 @@ mod pid_space;
 mod refused;
 mod route_life;
 mod table;
+mod table_data;
 mod table_file;
 mod table_link;
 mod table_mem;

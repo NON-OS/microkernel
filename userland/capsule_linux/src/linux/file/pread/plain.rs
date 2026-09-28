@@ -19,8 +19,26 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
+use super::super::rw::{write_at, MAX_IO};
+
 pub fn pread64(guest: &mut Guest, fd: u64, buf: u64, len: u64, at: u64) -> u64 {
     at_offset(guest, fd, at, |g| super::super::read::read(g, fd, buf, len))
+}
+
+pub fn pwrite64(guest: &mut Guest, fd: u64, buf: u64, len: u64, at: u64) -> u64 {
+    if (at as i64) < 0 {
+        return errno::fail(errno::EINVAL);
+    }
+    if let Err(e) = seekable(guest, fd) {
+        return e;
+    }
+    let Some(bytes) = guest.read(buf, (len as usize).min(MAX_IO)) else {
+        return errno::fail(errno::EFAULT);
+    };
+    match write_at(guest, fd, at, &bytes) {
+        Ok((n, _)) => errno::ok(n as u64),
+        Err(e) => errno::fail(e),
+    }
 }
 
 fn seekable(guest: &Guest, fd: u64) -> Result<u64, u64> {
@@ -33,7 +51,12 @@ fn seekable(guest: &Guest, fd: u64) -> Result<u64, u64> {
 }
 
 /* Run `go` with the descriptor's offset set to `at`, then put it back. */
-fn at_offset(guest: &mut Guest, fd: u64, at: u64, go: impl FnOnce(&mut Guest) -> u64) -> u64 {
+pub(super) fn at_offset(
+    guest: &mut Guest,
+    fd: u64,
+    at: u64,
+    go: impl FnOnce(&mut Guest) -> u64,
+) -> u64 {
     if (at as i64) < 0 {
         return errno::fail(errno::EINVAL);
     }

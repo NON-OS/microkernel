@@ -38,3 +38,19 @@ pub fn fsync(guest: &Guest, fd: u64) -> u64 {
         Err(e) => errno::fail(e),
     }
 }
+
+/* sync(2) cannot fail; syncfs answers its errors, and EBADF for a bad fd. */
+pub fn sync() -> u64 {
+    let _ = super::cache::flush_all();
+    errno::ok(0)
+}
+
+pub fn syncfs(guest: &Guest, fd: u64) -> u64 {
+    if !guest.fds.get(fd as usize).is_some_and(|f| f.is_open()) {
+        return errno::fail(errno::EBADF);
+    }
+    match super::cache::flush_all() {
+        Ok(()) => errno::ok(0),
+        Err(e) => errno::fail(e),
+    }
+}

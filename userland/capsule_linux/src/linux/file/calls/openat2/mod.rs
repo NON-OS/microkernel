@@ -15,19 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The file calls beyond open, read and write.
+ * openat2: openat with a struct open_how, and RESOLVE_ flags that limit
+ * how the path may be walked.
+ *
+ * Served: NO_XDEV, NO_MAGICLINKS, NO_SYMLINKS and BENEATH, which a walk of
+ * the family's tree can check; CACHED, which Linux may always answer with
+ * EAGAIN and so does here. IN_ROOT would re-root every link's target at
+ * the directory, which this resolver does not do: it is refused with
+ * EINVAL, as a kernel refuses a flag it does not know.
  */
 
-pub(super) mod falloc;
-pub(super) mod fdrange;
-pub(super) mod fdup;
-pub(super) mod openat2;
-pub(super) mod sendfile;
-pub(super) mod size;
+mod check;
+mod how;
+mod open;
+mod walked;
 
-pub use falloc::fallocate;
-pub use fdrange::close_range;
-pub use fdup::dup_from;
-pub use openat2::openat2;
-pub use sendfile::{copy_file_range, sendfile};
-pub use size::{fadvise64, ftruncate, truncate};
+pub use open::openat2;

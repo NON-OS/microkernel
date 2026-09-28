@@ -22,7 +22,8 @@
  * others and by stat. The store is written whole, so the bytes a family is
  * changing are kept here, once per path, and every descriptor on the path
  * reads and writes this copy: a dup, a fork's copy and a second open all
- * meet the same bytes. The copy goes to the store at close and at fsync.
+ * meet the same bytes. The copy goes to the store at close, at fsync and
+ * at sync.
  */
 
 mod change;
@@ -32,7 +33,7 @@ mod table;
 mod take;
 
 pub use change::{resize, write};
-pub use flush::flush;
+pub use flush::{flush, flush_all};
 pub use names::{forget, names_in, renamed};
 pub use table::{held, mtime, size};
 pub use take::{hold, read};

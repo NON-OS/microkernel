@@ -16,6 +16,8 @@
 
 /* A copy put in the store: at close, fsync and sync, and at exit. */
 
+use alloc::vec::Vec;
+
 use crate::linux::abi::errno;
 
 use super::super::super::{resolve, store};
@@ -38,4 +40,11 @@ pub fn flush(path: &[u8], keep: bool) -> Result<(), i64> {
         all.remove(i);
     }
     Ok(())
+}
+
+/* Every changed file to the store: sync and syncfs. */
+pub fn flush_all() -> Result<(), i64> {
+    let paths: Vec<Vec<u8>> =
+        CACHE.0.borrow().iter().filter(|e| e.dirty).map(|e| e.path.clone()).collect();
+    paths.iter().try_for_each(|p| flush(p, true))
 }

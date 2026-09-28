@@ -14,20 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * The file calls beyond open, read and write.
- */
+/* Zeros written over a range of the family's copy. */
 
-pub(super) mod falloc;
-pub(super) mod fdrange;
-pub(super) mod fdup;
-pub(super) mod openat2;
-pub(super) mod sendfile;
-pub(super) mod size;
+use crate::linux::abi::errno;
 
-pub use falloc::fallocate;
-pub use fdrange::close_range;
-pub use fdup::dup_from;
-pub use openat2::openat2;
-pub use sendfile::{copy_file_range, sendfile};
-pub use size::{fadvise64, ftruncate, truncate};
+use super::super::super::{cache, resolve, store};
+
+/* Zero [from, to) of the family's copy. */
+pub(super) fn zero(path: &[u8], from: u64, to: u64) -> u64 {
+    let exists = cache::held(path) || store::stat(&resolve::key(path)).is_ok();
+    let zeros = alloc::vec![0u8; (to - from) as usize];
+    match cache::hold(path, exists).and_then(|()| cache::write(path, from, &zeros)) {
+        Ok(_) => errno::ok(0),
+        Err(e) => errno::fail(e),
+    }
+}

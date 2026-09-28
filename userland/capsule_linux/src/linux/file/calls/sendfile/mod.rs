@@ -15,19 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The file calls beyond open, read and write.
+ * sendfile and copy_file_range: bytes from one descriptor to another
+ * without passing through the guest.
+ *
+ * Both read a file through the same path read(2) does. sendfile writes to
+ * a file or to the console; to a pipe or a socket it answers EINVAL, as
+ * Linux answers for an output it cannot splice into, and every caller
+ * then falls back to read and write, which reach those. copy_file_range
+ * is between two files, as on Linux.
  */
 
-pub(super) mod falloc;
-pub(super) mod fdrange;
-pub(super) mod fdup;
-pub(super) mod openat2;
-pub(super) mod sendfile;
-pub(super) mod size;
+mod bytes;
+mod copy;
+mod offset;
+mod send;
 
-pub use falloc::fallocate;
-pub use fdrange::close_range;
-pub use fdup::dup_from;
-pub use openat2::openat2;
-pub use sendfile::{copy_file_range, sendfile};
-pub use size::{fadvise64, ftruncate, truncate};
+pub use copy::copy_file_range;
+pub use send::sendfile;

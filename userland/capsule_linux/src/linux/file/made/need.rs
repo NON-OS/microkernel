@@ -23,12 +23,13 @@
 use crate::linux::guest::{Guest, Kind};
 
 /*
- * open, stat, lstat, access, execve, chdir, readlink, chmod, statfs,
- * utime, getppid, the *at forms, and close and the calls that close.
+ * open, stat, lstat, access, execve, truncate, chdir, readlink, chmod,
+ * statfs, utime, getppid, the xattr calls, the *at forms and openat2, and
+ * close and the calls that close.
  */
-const ALWAYS: [u64; 23] = [
-    2, 3, 4, 6, 21, 33, 59, 80, 89, 90, 110, 132, 137, 235, 257, 262, 267, 268, 269, 280, 292, 332,
-    439,
+const ALWAYS: [u64; 38] = [
+    2, 3, 4, 6, 21, 33, 59, 76, 80, 89, 90, 110, 132, 137, 188, 189, 190, 191, 192, 193, 194, 195,
+    196, 197, 198, 199, 235, 257, 262, 267, 268, 269, 280, 292, 332, 436, 437, 439,
 ];
 
 pub fn needs_view(guest: &Guest, nr: u64, a: [u64; 6]) -> bool {
@@ -41,6 +42,11 @@ pub fn needs_view(guest: &Guest, nr: u64, a: [u64; 6]) -> bool {
             .get(fd as usize)
             .is_some_and(|f| f.kind == Kind::File && f.path.starts_with(b"/proc"))
     };
-    /* read, fstat, pread64 and readv */
-    matches!(nr, 0 | 5 | 17 | 19) && proc_fd(a[0])
+    match nr {
+        /* read, fstat, pread64, readv, preadv, preadv2, copy_file_range */
+        0 | 5 | 17 | 19 | 295 | 326 | 327 => proc_fd(a[0]),
+        /* sendfile reads its second descriptor */
+        40 => proc_fd(a[1]),
+        _ => false,
+    }
 }

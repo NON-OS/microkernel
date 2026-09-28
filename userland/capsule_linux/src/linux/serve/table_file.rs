@@ -58,7 +58,7 @@ pub fn file_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64
         np::RMDIR => file::rmdir(guest, a[0]),
         np::UNLINK => file::unlinkat(guest, flags::AT_FDCWD, a[0], 0),
         np::UNLINKAT => file::unlinkat(guest, a[0], a[1], a[2]),
-        np::RENAME => file::rename(guest, a[0], a[1]),
+        np::RENAME => file::renameat2(guest, flags::AT_FDCWD, a[0], flags::AT_FDCWD, a[1], 0),
         np::FSYNC | np::FDATASYNC => file::fsync(guest, a[0]),
         np::READV => call::readv(guest, a[0], a[1], a[2]),
         np::CHMOD => file::chmod(guest, a[0], a[1]),

@@ -15,11 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * pread64: a read at the offset it is given, which leaves the descriptor's
- * own offset where it was; a pipe, a socket or a console has no offset,
- * which Linux calls ESPIPE.
+ * The positional forms: pread64, pwrite64, preadv, pwritev, and preadv2 and
+ * pwritev2 with no flags. Each reads or writes at the offset it is given
+ * and leaves the descriptor's own offset where it was; a pipe, a socket or
+ * a console has no offset, which Linux calls ESPIPE.
  */
 
 mod plain;
+mod sync;
+mod vector;
 
-pub use plain::pread64;
+pub use plain::{pread64, pwrite64};
+pub use sync::{preadv, pwritev};

@@ -24,10 +24,6 @@ use super::meta::look;
 use super::resolve::key;
 use super::{cache, modes, store_name, synth};
 
-pub fn rename(guest: &Guest, old: u64, new: u64) -> u64 {
-    renameat2(guest, super::flags::AT_FDCWD, old, super::flags::AT_FDCWD, new, 0)
-}
-
 const RENAME_NOREPLACE: u64 = 1;
 
 pub fn renameat2(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64, flags: u64) -> u64 {
@@ -68,6 +64,7 @@ pub fn renameat2(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64, fl
             cache::renamed(&from, &to);
             modes::renamed(&from, &to);
             super::times::renamed(&from, &to);
+            super::xattr_table::renamed(&from, &to);
             errno::ok(0)
         }
         Err(_) => errno::fail(errno::EIO),

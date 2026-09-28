@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * The file calls beyond open, read and write.
- */
+/* The offset a call names, or the descriptor's own. */
 
-pub(super) mod falloc;
-pub(super) mod fdrange;
-pub(super) mod fdup;
-pub(super) mod openat2;
-pub(super) mod sendfile;
-pub(super) mod size;
+use crate::linux::abi::errno;
+use crate::linux::guest::Guest;
 
-pub use falloc::fallocate;
-pub use fdrange::close_range;
-pub use fdup::dup_from;
-pub use openat2::openat2;
-pub use sendfile::{copy_file_range, sendfile};
-pub use size::{fadvise64, ftruncate, truncate};
+pub(super) fn read_offset(guest: &Guest, ptr: u64) -> Result<Option<u64>, u64> {
+    if ptr == 0 {
+        return Ok(None);
+    }
+    let raw = guest.read(ptr, 8).ok_or(errno::fail(errno::EFAULT))?;
+    let at = i64::from_le_bytes(raw.try_into().unwrap_or([0; 8]));
+    if at < 0 {
+        return Err(errno::fail(errno::EINVAL));
+    }
+    Ok(Some(at as u64))
+}

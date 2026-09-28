@@ -55,6 +55,7 @@ pub fn unlinkat(guest: &Guest, dirfd: u64, path: u64, flags: u64) -> u64 {
     cache::forget(&at);
     modes::forget(&at);
     super::super::times::forget(&at);
+    super::super::xattr_table::forget(&at);
     /* A file only the family held was never in the store. */
     match store_name::unlink(&key(&at)) {
         Ok(()) => errno::ok(0),

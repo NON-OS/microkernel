@@ -20,4 +20,7 @@
  */
 
 pub const ENXIO: i64 = 6;
+pub const EXDEV: i64 = 18;
 pub const EFBIG: i64 = 27;
+pub const ENODATA: i64 = 61;
+pub const EOPNOTSUPP: i64 = 95;

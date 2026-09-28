@@ -15,19 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The file calls beyond open, read and write.
+ * A file's length: ftruncate and truncate; and fadvise, which is only
+ * advice.
  */
 
-pub(super) mod falloc;
-pub(super) mod fdrange;
-pub(super) mod fdup;
-pub(super) mod openat2;
-pub(super) mod sendfile;
-pub(super) mod size;
+mod advice;
+mod truncate;
 
-pub use falloc::fallocate;
-pub use fdrange::close_range;
-pub use fdup::dup_from;
-pub use openat2::openat2;
-pub use sendfile::{copy_file_range, sendfile};
-pub use size::{fadvise64, ftruncate, truncate};
+pub use advice::fadvise64;
+pub(crate) use advice::resize;
+pub use truncate::{ftruncate, truncate};

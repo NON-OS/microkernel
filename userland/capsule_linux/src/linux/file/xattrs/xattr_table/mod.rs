@@ -15,19 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The file calls beyond open, read and write.
+ * Extended attributes, kept by the family as tmpfs keeps them.
+ *
+ * The store holds a file's bytes and nothing beside them, so the family's
+ * files keep their attributes here, for the family's life, which is the
+ * life of its private directories. The shared tree is read-only: its files
+ * have none and can be given none (EROFS). /proc and /dev files do not
+ * support them, as procfs does not (EOPNOTSUPP).
  */
 
-pub(super) mod falloc;
-pub(super) mod fdrange;
-pub(super) mod fdup;
-pub(super) mod openat2;
-pub(super) mod sendfile;
-pub(super) mod size;
+mod edit;
+mod set;
+mod table;
 
-pub use falloc::fallocate;
-pub use fdrange::close_range;
-pub use fdup::dup_from;
-pub use openat2::openat2;
-pub use sendfile::{copy_file_range, sendfile};
-pub use size::{fadvise64, ftruncate, truncate};
+pub use edit::{forget, list, remove, renamed};
+pub use set::set;
+pub use table::{check_name, get};

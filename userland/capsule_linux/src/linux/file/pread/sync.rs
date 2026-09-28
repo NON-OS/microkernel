@@ -14,20 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * The file calls beyond open, read and write.
- */
+/* preadv and pwritev, and a write put in the store as RWF_DSYNC asks. */
 
-pub(super) mod falloc;
-pub(super) mod fdrange;
-pub(super) mod fdup;
-pub(super) mod openat2;
-pub(super) mod sendfile;
-pub(super) mod size;
+use crate::linux::call;
+use crate::linux::guest::Guest;
 
-pub use falloc::fallocate;
-pub use fdrange::close_range;
-pub use fdup::dup_from;
-pub use openat2::openat2;
-pub use sendfile::{copy_file_range, sendfile};
-pub use size::{fadvise64, ftruncate, truncate};
+use super::vector::vectored;
+
+pub fn preadv(guest: &mut Guest, fd: u64, iov: u64, count: u64, at: u64, flags: u64) -> u64 {
+    vectored(guest, fd, at, flags, |g| call::readv(g, fd, iov, count))
+}
+
+pub fn pwritev(guest: &mut Guest, fd: u64, iov: u64, count: u64, at: u64, flags: u64) -> u64 {
+    vectored(guest, fd, at, flags, |g| call::writev(g, fd, iov, count))
+}

@@ -20,4 +20,6 @@ mod mark;
 mod named;
 mod openat;
 
+pub(super) use mark::mark;
+pub use named::open_named;
 pub use openat::openat;
