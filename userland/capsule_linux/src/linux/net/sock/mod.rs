@@ -43,4 +43,4 @@ pub use cell::with;
 pub use holders::Holder;
 pub use link::Link;
 pub use ready::bits;
-pub use types::{Addr, Domain, Proto};
+pub use types::{Addr, Domain, Proto, Sock};

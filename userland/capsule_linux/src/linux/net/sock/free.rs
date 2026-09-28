@@ -34,8 +34,9 @@ impl Socks {
     }
 
     /// Close `id`. Its peer reads end of file, or ECONNRESET if this end
-    /// left bytes unread or `reset` is set, which is when Linux sends a reset
-    /// instead of a FIN. Connections still queued on a listener are reset.
+    /// left bytes unread, set SO_LINGER to zero seconds, or `reset` is set,
+    /// which is when Linux sends a reset instead of a FIN. Connections still
+    /// queued on a listener are reset.
     pub fn free(&mut self, id: u32, reset: bool) {
         let Some(gone) = self.list.get_mut(id as usize).and_then(Option::take) else {
             return;
@@ -46,7 +47,7 @@ impl Socks {
         if let Some(p) = gone.peer.and_then(|p| self.get_mut(p)) {
             p.peer = None;
             p.eof = true;
-            if reset || !gone.rx.is_empty() {
+            if reset || !gone.rx.is_empty() || gone.opts.linger == (1, 0) {
                 p.error = ECONNRESET;
             }
         }

@@ -38,6 +38,8 @@ pub fn net_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64>
         nr::ACCEPT4 => net::accept4(guest, a[0], a[1], a[2], a[3]),
         nr::GETSOCKNAME => net::getsockname(guest, a[0], a[1], a[2]),
         nr::GETPEERNAME => net::getpeername(guest, a[0], a[1], a[2]),
+        nr::SETSOCKOPT => net::setsockopt(guest, a[0], a[1], a[2], a[3], a[4]),
+        nr::GETSOCKOPT => net::getsockopt(guest, a[0], a[1], a[2], a[3], a[4]),
         nr::SENDTO => net::sendto(guest, a[0], a[1], a[2], a[3], a[4], a[5]),
         nr::RECVFROM => net::recvfrom(guest, a[0], a[1], a[2], a[3], a[4], a[5]),
         nr::SHUTDOWN => net::shutdown(guest, a[0], a[1]),
