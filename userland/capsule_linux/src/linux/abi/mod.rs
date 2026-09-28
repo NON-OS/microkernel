@@ -16,7 +16,6 @@
 
 //! The Linux contract a compiled binary was built against: its numbers, its
 //! errnos, and the names it knows them by.
-#![allow(dead_code)]
 
 pub mod errno;
 pub mod name;
