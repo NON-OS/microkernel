@@ -118,6 +118,7 @@ pub enum SyscallNumber {
     MkForeignReply = tag4(b"MFRP"),
     MkForeignContext = tag4(b"MFCX"),
     MkForeignSignal = tag4(b"MFSG"),
+    MkForeignInterrupt = tag4(b"MFIN"),
     MkPeerMap = tag4(b"MPMP"),
     MkPeerCopy = tag4(b"MPCP"),
     MkPeerProtect = tag4(b"MPPT"),

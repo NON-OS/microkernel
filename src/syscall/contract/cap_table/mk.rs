@@ -142,6 +142,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkForeignReply
         | SyscallNumber::MkForeignContext
         | SyscallNumber::MkForeignSignal
+        | SyscallNumber::MkForeignInterrupt
         | SyscallNumber::MkPeerMap
         | SyscallNumber::MkPeerCopy
         | SyscallNumber::MkPeerProtect

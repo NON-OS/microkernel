@@ -78,6 +78,9 @@ pub const SYS_FOREIGN_REPLY: u64 = tag4(b"MFRP");
 pub const SYS_FOREIGN_CONTEXT: u64 = tag4(b"MFCX");
 /// Answer a parked guest with a context: a signal handler, or its return.
 pub const SYS_FOREIGN_SIGNAL: u64 = tag4(b"MFSG");
+/// Stop a guest thread that is running its own code at its next timer tick,
+/// and hand it over parked, so a signal can be delivered to it.
+pub const SYS_FOREIGN_INTERRUPT: u64 = tag4(b"MFIN");
 /// Back a span of a guest's address space with fresh frames.
 pub const SYS_PEER_MAP: u64 = tag4(b"MPMP");
 /// Copy bytes between the caller and a guest it supervises.

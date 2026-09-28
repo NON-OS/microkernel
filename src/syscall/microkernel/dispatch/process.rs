@@ -16,9 +16,10 @@
 
 use super::args::Args;
 use crate::process::foreign::{
-    sys_foreign_context, sys_foreign_exec, sys_foreign_fork, sys_foreign_reply, sys_foreign_signal,
-    sys_foreign_spawn, sys_foreign_start, sys_foreign_thread, sys_foreign_wait, sys_peer_copy,
-    sys_peer_map, sys_peer_protect, sys_peer_tls, sys_peer_unmap,
+    sys_foreign_context, sys_foreign_exec, sys_foreign_fork, sys_foreign_interrupt,
+    sys_foreign_reply, sys_foreign_signal, sys_foreign_spawn, sys_foreign_start,
+    sys_foreign_thread, sys_foreign_wait, sys_peer_copy, sys_peer_map, sys_peer_protect,
+    sys_peer_tls, sys_peer_unmap,
 };
 use crate::syscall::microkernel::app_install::sys_app_install;
 use crate::syscall::microkernel::app_install_status::sys_app_install_status;
@@ -92,6 +93,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_FOREIGN_REPLY => sys_foreign_reply(a.a0, a.a1),
         SYS_FOREIGN_CONTEXT => sys_foreign_context(a.a0, a.a1),
         SYS_FOREIGN_SIGNAL => sys_foreign_signal(a.a0, a.a1, a.a2),
+        SYS_FOREIGN_INTERRUPT => sys_foreign_interrupt(a.a0),
         SYS_PEER_MAP => sys_peer_map(a.a0, a.a1, a.a2, a.a3),
         SYS_PEER_COPY => sys_peer_copy(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_PEER_PROTECT => sys_peer_protect(a.a0, a.a1, a.a2, a.a3),

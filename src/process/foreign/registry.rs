@@ -67,4 +67,5 @@ pub fn clear(pid: u32) {
     super::trap_reply::forget(pid);
     super::trap_frame::drop_frame(pid);
     super::notice::forget_supervisor(pid);
+    super::interrupt::forget(pid);
 }

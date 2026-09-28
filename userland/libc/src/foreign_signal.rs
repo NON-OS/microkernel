@@ -17,7 +17,7 @@
 //! What a personality needs to deliver a signal: a parked guest's registers,
 //! and answering it with a whole context instead of a value.
 
-use crate::syscall::{call_raw, N_MK_FOREIGN_CONTEXT, N_MK_FOREIGN_SIGNAL};
+use crate::syscall::{call_raw, N_MK_FOREIGN_CONTEXT, N_MK_FOREIGN_INTERRUPT, N_MK_FOREIGN_SIGNAL};
 
 /// r8..r15, rdi, rsi, rbp, rbx, rdx, rax, rcx, rsp, rip, rflags: the order of
 /// Linux's `struct sigcontext`, so a frame can be copied without reshuffling.
@@ -38,4 +38,12 @@ pub fn mk_foreign_context(pid: u32, out: &mut ForeignRegs) -> i64 {
 /// rsp outside user space.
 pub fn mk_foreign_signal(pid: u32, regs: &ForeignRegs, kind: u64) -> i64 {
     call_raw(N_MK_FOREIGN_SIGNAL, [pid as u64, regs.as_ptr() as u64, kind, 0, 0, 0])
+}
+
+/// Stop a guest thread that is running its own code at its next timer tick,
+/// and hand it over parked, numbered `FOREIGN_NR_INTERRUPTED`, so a signal can
+/// be delivered to it. 1 says it is parked in a call already, whose answer can
+/// carry the signal; 0 says it will be stopped.
+pub fn mk_foreign_interrupt(pid: u32) -> i64 {
+    call_raw(N_MK_FOREIGN_INTERRUPT, [pid as u64, 0, 0, 0, 0, 0])
 }

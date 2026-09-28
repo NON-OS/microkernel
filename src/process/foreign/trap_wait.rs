@@ -19,13 +19,20 @@
 use super::trap_table::{take_answer, Answer};
 
 pub(super) fn wait_for_answer(pid: u32) -> u64 {
+    settle(pid, wait_raw(pid))
+}
+
+/// Sleep until the supervisor answers, and take the answer as it is.
+pub(super) fn wait_raw(pid: u32) -> Answer {
     loop {
-        if let Some(value) = take_answer(pid) {
-            return settle(pid, value);
+        if let Some(answer) = take_answer(pid) {
+            super::trap_frame::drop_frame(pid);
+            return answer;
         }
         let token = crate::sched::wake_token(pid);
-        if let Some(value) = take_answer(pid) {
-            return settle(pid, value);
+        if let Some(answer) = take_answer(pid) {
+            super::trap_frame::drop_frame(pid);
+            return answer;
         }
         crate::sched::sleep_until_unless_woken(pid, u64::MAX, token);
         crate::sched::yield_now();
@@ -34,7 +41,6 @@ pub(super) fn wait_for_answer(pid: u32) -> u64 {
 
 /// A value returns; exec and a signal leave by a context of their own.
 fn settle(pid: u32, answer: Answer) -> u64 {
-    super::trap_frame::drop_frame(pid);
     match answer {
         Answer::Value(value) => value,
         Answer::Execed => {

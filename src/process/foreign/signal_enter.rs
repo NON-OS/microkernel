@@ -34,6 +34,13 @@ const DEPTH: usize = 8;
 static SAVED: Mutex<BTreeMap<u32, Vec<Box<FpuState>>>> = Mutex::new(BTreeMap::new());
 
 pub(super) fn deliver(pid: u32, ctx: SavedUser) -> ! {
+    enter_fpu(pid);
+    resume(ctx)
+}
+
+/// Keep the thread's FPU state for its handler's return and give the handler
+/// a clean unit. Handlers nested past `DEPTH` end the thread.
+pub(super) fn enter_fpu(pid: u32) {
     let mut fpu = FpuState::new();
     fpu.save();
     let pushed = {
@@ -49,7 +56,6 @@ pub(super) fn deliver(pid: u32, ctx: SavedUser) -> ! {
         crate::process::terminate_current_with_signal(SIGSEGV);
     }
     FpuState::init();
-    resume(ctx)
 }
 
 pub(super) fn sigreturn(pid: u32, ctx: SavedUser) -> ! {

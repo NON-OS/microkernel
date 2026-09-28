@@ -59,6 +59,11 @@ pub(super) fn park(frame: ForeignFrame) -> bool {
     false
 }
 
+/// Whether `pid` is parked in a call no answer has reached yet.
+pub(super) fn is_parked(pid: u32) -> bool {
+    PARKED.lock().iter().any(|p| p.frame.pid == pid && p.answer.is_none())
+}
+
 /// The answer for `pid`, removing the entry once it is taken.
 pub(super) fn take_answer(pid: u32) -> Option<Answer> {
     let mut parked = PARKED.lock();

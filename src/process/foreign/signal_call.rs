@@ -63,7 +63,7 @@ pub fn sys_foreign_signal(pid: u64, regs: u64, kind: u64) -> i64 {
 }
 
 // Only the guest's recorded supervisor, as for a reply.
-fn supervised(pid: u64) -> Result<u32, i64> {
+pub(super) fn supervised(pid: u64) -> Result<u32, i64> {
     let caller = crate::process::current_pid().ok_or(ERRNO_INVAL)?;
     let pid = pid_arg(pid)?;
     match registry::supervisor_of(pid) == Some(caller) {

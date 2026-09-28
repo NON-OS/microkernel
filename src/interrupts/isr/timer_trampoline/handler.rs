@@ -111,4 +111,17 @@ pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext) {
         crate::process::exit::drain_pending_teardowns();
         crate::kernel_core::process_spawn::drain_pending_kernel_stacks();
     }
+    /*
+     * A guest thread its supervisor asked to stop is parked here, running
+     * no code, until it is answered; the frame it resumes from is this one,
+     * which a signal answer rewrites to enter the handler.
+     */
+    if from_user {
+        drop(_ctx_guard);
+        let words = ctx.cast::<[u64; crate::process::foreign::TICK_FRAME_WORDS]>();
+        // SAFETY: eK@nonos.systems - the trampoline's 160-byte frame read
+        // above, still on this thread's kernel stack and restored from on the
+        // way out; the 20 words are exactly that frame, nothing past it.
+        crate::process::foreign::on_user_tick(unsafe { &mut *words });
+    }
 }
