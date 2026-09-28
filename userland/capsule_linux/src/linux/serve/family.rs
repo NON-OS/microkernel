@@ -23,7 +23,7 @@
 use alloc::vec::Vec;
 use core::mem;
 
-use nonos_libc::{mk_foreign_reply, ForeignFrame, FOREIGN_NR_DIED};
+use nonos_libc::{mk_foreign_reply, ForeignFrame, FOREIGN_NR_DIED, FOREIGN_NR_INTERRUPTED};
 
 use super::answer::Answer;
 use super::dispatch::answer;
@@ -54,6 +54,10 @@ impl Family {
     pub fn answer(&mut self, frame: &ForeignFrame) {
         if frame.nr == FOREIGN_NR_DIED {
             self.thread_died(frame.pid, frame.arg0 as i32);
+            return;
+        }
+        if frame.nr == FOREIGN_NR_INTERRUPTED {
+            self.interrupted(frame.pid);
             return;
         }
         let Some(i) = self.guests.iter().position(|g| g.owns(frame.pid)) else {

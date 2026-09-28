@@ -43,6 +43,10 @@ pub fn kill(guest: &mut Guest, pid: u64, signo: u64) -> u64 {
     let act = guest.signals.action(signo as usize).unwrap_or_default();
     if act.catches() {
         guest.signals.raise(target, signo as u8);
+        // A thread running its own code makes no call to deliver on: the
+        // kernel stops it at its next tick and hands it here. One parked in
+        // a call, the caller included, gets it with that call's answer.
+        let _ = nonos_libc::mk_foreign_interrupt(target);
         return errno::ok(0);
     }
     if act.ignores() || IGNORED_DEFAULT.contains(&signo) {

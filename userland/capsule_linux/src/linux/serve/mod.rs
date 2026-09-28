@@ -21,6 +21,7 @@ mod deliver;
 mod dispatch;
 mod family;
 mod family_futex;
+mod family_interrupt;
 mod family_lend;
 mod family_reap;
 mod family_sleep;
