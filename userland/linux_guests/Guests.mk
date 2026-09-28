@@ -94,6 +94,13 @@ $(GO_OUT)/%: $(LINUX_GUESTS_DIR)/go/%/main.go
 $(eval $(call LINUX_GUEST,gohello,4968,4969,$(GO_OUT)/hello))
 $(eval $(call LINUX_GUEST,goconc,4970,4971,$(GO_OUT)/conc))
 
+# A C guest that faults in a worker thread while main joins: it proves the
+# whole process ends, as on Linux, and that musl threads run. Static, so no
+# loader is needed. musl carries pthreads in libc, so no -lpthread.
+$(LINUX_GUESTS_C)/threadfault: $(LINUX_GUESTS_DIR)/c/threadfault.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,threadfault,4972,4973,$(LINUX_GUESTS_C)/threadfault))
+
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
 # normal image, which does not set NONOS_LINUX_GUESTS, still ships them.

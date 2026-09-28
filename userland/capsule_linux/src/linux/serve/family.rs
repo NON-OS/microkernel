@@ -22,7 +22,7 @@
 use alloc::vec::Vec;
 use core::mem;
 
-use nonos_libc::{mk_foreign_reply, ForeignFrame};
+use nonos_libc::{mk_foreign_reply, ForeignFrame, FOREIGN_NR_DIED};
 
 use super::answer::Answer;
 use super::dispatch::answer;
@@ -47,6 +47,10 @@ impl Family {
     }
 
     pub fn answer(&mut self, frame: &ForeignFrame) {
+        if frame.nr == FOREIGN_NR_DIED {
+            self.thread_died(frame.pid, frame.arg0 as i32);
+            return;
+        }
         let Some(g) = self.guests.iter_mut().find(|g| g.owns(frame.pid)) else {
             return;
         };
@@ -68,8 +72,40 @@ impl Family {
         self.settle_pipes();
     }
 
+    /// A guest thread ended on a signal. On Linux that ends the thread group,
+    /// so the guest exits; reap then kills its other threads and answers any
+    /// waiter. The status carries the signal in the shell's 128+signo form.
+    fn thread_died(&mut self, pid: u32, code: i32) {
+        let Some(g) = self.guests.iter_mut().find(|g| g.owns(pid)) else {
+            return;
+        };
+        g.threads.retain(|t| *t != pid);
+        if g.exited.is_none() {
+            g.exited = Some(128 + signo_of(code));
+        }
+        let line = alloc::format!(
+            "[LINUX] guest thread {pid} ended on a signal; ending the process\n"
+        );
+        crate::linux::start::say(line.as_bytes());
+    }
+
     /// Done once nothing it hosts is left; the code is the first guest's.
     pub fn done(&self) -> Option<i32> {
         self.guests.is_empty().then_some(self.root_code)
+    }
+}
+
+/// The kernel names a fatal termination by a code that is not uniform across
+/// its exception handlers. Map the ones a guest reaches to a signal number,
+/// defaulting to SIGKILL for anything else, for the process's reported status.
+fn signo_of(code: i32) -> i32 {
+    match code {
+        -11 | -12 => 11, // SIGSEGV: page fault, stack, bound, bad segment
+        -4 => 4,         // SIGILL: bad opcode, FPU emulation, missing FPU
+        -8 => 8,         // SIGFPE: divide, overflow, x87/SSE
+        -7 => 7,         // SIGBUS: alignment, virtualisation
+        5 => 5,          // SIGTRAP: breakpoint, debug
+        c if c > 128 && c < 128 + 64 => c - 128, // terminate_current_with_signal
+        _ => 9,          // SIGKILL, and the general-protection sentinel
     }
 }
