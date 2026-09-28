@@ -1230,7 +1230,8 @@
       "generated": "EdField.lean",
       "llbc": "ed_field",
       "starts": [
-        "nonos_ed_field::ed25519_ct_eq_32"
+        "nonos_ed_field::ed25519_ct_eq_32",
+        "nonos_ed_field::shared_ct_eq_32"
       ]
     },
     {

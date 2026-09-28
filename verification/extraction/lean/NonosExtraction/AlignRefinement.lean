@@ -27,14 +27,19 @@ correctly to any modulus. The other three test `a & (a - 1)` and return the valu
 unchanged, declining. So `align_up(10, 3)` is 12 in one module and 10 in another,
 and both are the answer this kernel gives.
 
-Overflow at the top of the address space, which is the finding. `memory/layout`
-and `memory/phys` add unchecked and halt, because this kernel builds with overflow
-checks and panic set to abort. The other two do not halt and do not refuse: they
-return an address strictly below the value they were asked to round up.
-`memory/boot_memory` gets there through `saturating_add`, and
-`memory/buddy_alloc` through a `checked_add` whose `None` arm is written
-`usize::MAX & !(align - 1)`. Two independent implementations, two different
-routes, the same wrong answer.
+Overflow at the top of the address space. `memory/layout` and `memory/phys` add
+unchecked and halt, because this kernel builds with overflow checks and panic set
+to abort. `memory/boot_memory` and `memory/buddy_alloc` return the value
+unchanged.
+
+That last part is a fix rather than a description. Both of them used to return an
+address strictly below the value they were asked to round up: `boot_memory`
+through `saturating_add`, and `buddy_alloc` through a `checked_add` whose `None`
+arm was written `usize::MAX & !(align - 1)`. Two independent implementations, two
+different routes, the same wrong answer, and it is the direction that turns a
+bounds check into a pass. The theorems below are the ones that now hold, and the
+ones that used to hold are named so the regression has something to fail
+against.
 
 A caller cannot tell which of these it is calling from the name, and the modules
 are close enough together that moving a helper between them changes behaviour
@@ -51,15 +56,15 @@ set_option maxRecDepth 100000
 
 namespace NonosExtraction.Align
 
-/-- `boot_memory` reaches `saturating_add`, which is a real definition rather
-    than an opaque one but does not reduce on its own. Naming it, the width
-    constant and the guard subtraction lets the whole term compute. -/
+/-- `boot_memory` reaches `checked_add`, which reduces once it and the guard
+    subtraction are named. It used to reach `saturating_add`, which is why an
+    earlier version of this tactic named that instead. -/
 local macro "bootcalc" h:ident : tactic =>
   `(tactic|
     (simp [boot_align_up, boot_memory.align_up, boot_align_down,
-           boot_memory.align_down, $h:ident, core.num.U64.saturating_add,
-           Std.UScalar.saturating_add, Std.U64.max, Std.U64.numBits, Std.lift,
-           bind_tc_ok] <;> decide))
+           boot_memory.align_down, $h:ident, Std.U64.checked_add,
+           core.num.checked_add_UScalar, Std.Option.ofResult, Std.U64.max,
+           Std.U64.numBits, Std.lift, bind_tc_ok] <;> first | rfl | decide))
 
 /-! ### The ordinary case, where they agree
 
@@ -104,62 +109,46 @@ theorem declining_is_indistinguishable_from_succeeding :
 
     This is the one worth acting on. -/
 
-/-- `memory/boot_memory` uses `saturating_add`, so at the top of the address
-    space the sum stops at the maximum and the mask then clears the low bits.
-    The result is strictly below the value it was asked to round up.
-
-    `align_up` returning an address lower than its input is not a rounding, it is
-    a wrong answer in the direction that turns a bounds check into a pass. A
-    caller computing an end address from it gets a region that appears to end
-    before it begins. -/
-theorem boot_align_up_can_return_less_than_its_input :
-    boot_align_up 0xFFFFFFFFFFFFFFFF#u64 4096#u64 = ok 0xFFFFFFFFFFFFF000#u64 := by
+/-- The property `align_up` exists to have: its result is never below its input.
+    At the very top of the address space there is nothing to round up to, so it
+    returns the value unchanged rather than an address below it. -/
+theorem boot_align_up_never_returns_less_than_its_input :
+    boot_align_up 0xFFFFFFFFFFFFFFFF#u64 4096#u64 = ok 0xFFFFFFFFFFFFFFFF#u64 := by
   have h : (4096#u64 - 1#u64) = ok 4095#u64 := rfl
   bootcalc h
 
-/-- Stated as the order violation it is, so the theorem says the property rather
-    than the number. -/
-theorem boot_align_up_violates_the_only_thing_align_up_promises :
-    ∃ v a r, boot_align_up v a = ok r ∧ r.val < v.val := by
-  refine ⟨0xFFFFFFFFFFFFFFFF#u64, 4096#u64, 0xFFFFFFFFFFFFF000#u64,
-          boot_align_up_can_return_less_than_its_input, ?_⟩
-  decide
+/-- What it used to return, kept as a named value so the regression has something
+    to fail against. `saturating_add` pinned the sum at the maximum and the mask
+    then cleared the low bits, giving an address four thousand and ninety six
+    below the input. -/
+theorem the_value_it_used_to_return_is_below_the_input :
+    (0xFFFFFFFFFFFFF000#u64).val < (0xFFFFFFFFFFFFFFFF#u64).val := by decide
 
-/-- The other three do not do that. Two halt, which under this build profile is
-    an abort, and one returns the input unchanged. Three different behaviours at
-    one input, none of them agreeing with the fourth. -/
-theorem the_others_behave_differently_at_the_same_input :
+/-- Where the boundary actually is. Two pages below the top still rounds, and
+    one page below does not, because the rounded value would be the first address
+    outside the space. That is the correct answer rather than a lost page: there
+    is no aligned address above the input to return. -/
+theorem the_boundary_is_where_rounding_leaves_the_address_space :
+    boot_align_up 0xFFFFFFFFFFFFE001#u64 4096#u64 = ok 0xFFFFFFFFFFFFF000#u64 ∧
+    boot_align_up 0xFFFFFFFFFFFFF001#u64 4096#u64 = ok 0xFFFFFFFFFFFFF001#u64 := by
+  have h : (4096#u64 - 1#u64) = ok 4095#u64 := rfl
+  refine ⟨by bootcalc h, by bootcalc h⟩
+
+/-- The other two still halt at the same input, which is a controlled abort under
+    this build profile rather than a wrong answer. Three implementations, two
+    behaviours, and neither of them is an address below the input. -/
+theorem the_unchecked_pair_still_halts :
     layout_align_up 0xFFFFFFFFFFFFFFFF#u64 4096#u64 = fail Error.integerOverflow ∧
     phys_align_up 0xFFFFFFFFFFFFFFFF#u64 4096#u64 = fail Error.integerOverflow := by
   refine ⟨rfl, rfl⟩
 
-
 /-- `memory/buddy_alloc` declines an alignment of zero the way the others do,
-    rather than halting the way `PhysAddr::align_up` does.
-
-    Only the zero case is stated. The others are at `usize`, and Aeneas models
-    that as at least thirty two bits rather than exactly sixty four, so an
-    arithmetic witness at this type carries a width side condition that is not
-    worth the noise here. -/
+    rather than halting the way `PhysAddr::align_up` does. Only the zero case is
+    stated: the rest are at `usize`, which Aeneas models as at least thirty two
+    bits, so an arithmetic witness there carries a width side condition not worth
+    the noise. -/
 theorem buddy_declines_a_zero_alignment :
     buddy_align_up 10#usize 0#usize = ok 10#usize := rfl
-
-/-- Its overflow arm is the same defect as `boot_memory`, reached differently,
-    and it is not proven here.
-
-    The source catches the overflow with `checked_add` and then writes
-    `usize::MAX & !(align - 1)` in the arm that handles it, which is an address
-    below the input for the same reason the saturating version is. The witness
-    cannot be written at this type: Aeneas models `usize` as at least thirty two
-    bits rather than exactly sixty four, so a literal of `usize::MAX` is not
-    provably in range and the overflow case is not reachable in the model.
-
-    The `u64` theorem above is the same defect at a type where it can be stated,
-    and the two functions are the same shape. Recorded rather than proven, and
-    said here instead of left out. -/
-theorem the_ordering_is_violated_where_it_can_be_stated :
-    ∃ v a r, boot_align_up v a = ok r ∧ r.val < v.val :=
-  boot_align_up_violates_the_only_thing_align_up_promises
 
 /-! ### Alignment of zero -/
 
@@ -173,15 +162,15 @@ theorem zero_alignment_is_declined_here_and_halts_there :
 
 /-! ### Axiom profile -/
 
+#print axioms NonosExtraction.Align.buddy_declines_a_zero_alignment
+#print axioms NonosExtraction.Align.the_unchecked_pair_still_halts
+#print axioms NonosExtraction.Align.the_boundary_is_where_rounding_leaves_the_address_space
+#print axioms NonosExtraction.Align.the_value_it_used_to_return_is_below_the_input
+#print axioms NonosExtraction.Align.boot_align_up_never_returns_less_than_its_input
 #print axioms NonosExtraction.Align.on_the_ordinary_case_they_agree
 #print axioms NonosExtraction.Align.the_down_variants_agree_too
 #print axioms NonosExtraction.Align.a_non_power_of_two_gets_two_different_answers
 #print axioms NonosExtraction.Align.declining_is_indistinguishable_from_succeeding
-#print axioms NonosExtraction.Align.boot_align_up_can_return_less_than_its_input
-#print axioms NonosExtraction.Align.boot_align_up_violates_the_only_thing_align_up_promises
-#print axioms NonosExtraction.Align.buddy_declines_a_zero_alignment
-#print axioms NonosExtraction.Align.the_ordering_is_violated_where_it_can_be_stated
-#print axioms NonosExtraction.Align.the_others_behave_differently_at_the_same_input
 #print axioms NonosExtraction.Align.zero_alignment_is_declined_here_and_halts_there
 
 end NonosExtraction.Align

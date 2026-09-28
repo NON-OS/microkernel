@@ -15,7 +15,7 @@ set_option maxRecDepth 2048
 namespace nonos_align
 
 /-- [nonos_align::boot_memory::align_up]:
-    Source: 'src/../../../../src/memory/boot_memory/manager/helpers.rs', lines 18:0-23:1 -/
+    Source: 'src/../../../../src/memory/boot_memory/manager/helpers.rs', lines 18:0-35:1 -/
 def boot_memory.align_up
   (value : Std.U64) (align : Std.U64) : Result Std.U64 := do
   if align = 0#u64
@@ -26,12 +26,14 @@ def boot_memory.align_up
     if i1 != 0#u64
     then ok value
     else
-      let i2 ← lift (core.num.U64.saturating_add value i)
-      let i3 ← lift (~~~ i)
-      ok (i2 &&& i3)
+      let o ← lift (U64.checked_add value i)
+      match o with
+      | none => ok value
+      | some sum => let i2 ← lift (~~~ i)
+                    ok (sum &&& i2)
 
 /-- [nonos_align::boot_memory::align_down]:
-    Source: 'src/../../../../src/memory/boot_memory/manager/helpers.rs', lines 26:0-31:1 -/
+    Source: 'src/../../../../src/memory/boot_memory/manager/helpers.rs', lines 38:0-43:1 -/
 def boot_memory.align_down
   (value : Std.U64) (align : Std.U64) : Result Std.U64 := do
   if align = 0#u64
@@ -45,7 +47,7 @@ def boot_memory.align_down
          ok (value &&& i2)
 
 /-- [nonos_align::buddy_alloc::align_up]:
-    Source: 'src/../../../../src/memory/buddy_alloc/allocator/utils.rs', lines 15:0-23:1
+    Source: 'src/../../../../src/memory/buddy_alloc/allocator/utils.rs', lines 15:0-30:1
     Visibility: public -/
 def buddy_alloc.align_up
   (value : Std.Usize) (align : Std.Usize) : Result Std.Usize := do
@@ -59,8 +61,7 @@ def buddy_alloc.align_up
     else
       let o ← lift (Usize.checked_add value i)
       match o with
-      | none => let i2 ← lift (~~~ i)
-                ok (core.num.Usize.MAX &&& i2)
+      | none => ok value
       | some v => let i2 ← lift (~~~ i)
                   ok (v &&& i2)
 
