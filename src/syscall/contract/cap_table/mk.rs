@@ -200,6 +200,13 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          * baked, attested set can be named.
          */
         SyscallNumber::MkToolRun => caps.can_ipc(),
+        /*
+         * Saying what a child's streams are on is part of driving its stdio,
+         * so it needs what running the child needed. Asking about one's own
+         * streams reveals nothing about anyone else.
+         */
+        SyscallNumber::MkTtySet => caps.can_ipc(),
+        SyscallNumber::MkTtyQuery => true,
 
         _ => return None,
     })

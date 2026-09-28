@@ -147,3 +147,5 @@ pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
 // Run a baked, attested command-line tool by name, parented to the caller so
 // it can drive the tool's stdin and stdout. Gated on the IPC capability.
 pub const SYS_TOOL_RUN: u64 = tag4(b"MTRN");
+pub const SYS_TTY_SET: u64 = tag4(b"MTTY");
+pub const SYS_TTY_QUERY: u64 = tag4(b"MTTQ");

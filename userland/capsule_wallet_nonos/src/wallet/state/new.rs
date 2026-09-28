@@ -117,5 +117,7 @@ pub fn new_state() -> State {
          * otherwise. Absence is the default all the way down.
          */
         shield: crate::wallet::shield::probe::Shield::Unknown,
+        shield_ui: super::shield_ui::ShieldUi::default(),
+        swap_note_hidden: false,
     }
 }

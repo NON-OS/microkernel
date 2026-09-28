@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::History;
-use crate::term::dimensions::{COLS, HISTORY_DEPTH};
+use crate::term::dimensions::{LINE_MAX, HISTORY_DEPTH};
 
 impl History {
     pub const fn new() -> Self {
         Self {
-            entries: [[0; COLS]; HISTORY_DEPTH],
+            entries: [[0; LINE_MAX]; HISTORY_DEPTH],
             lengths: [0; HISTORY_DEPTH],
             count: 0,
             cursor: None,

@@ -64,8 +64,7 @@ pub(super) fn paint_sidebar(
         let x = ACTIVITY_W + indent;
         if node.is_dir {
             let expanded = tree.expanded.contains(&node.path);
-            let mark = if expanded { "\u{25BE}" } else { "\u{25B8}" };
-            let _ = fb.text_ttf(x as i32, (y + 5) as i32, mark, th.muted, 12.0);
+            super::disclosure::disclosure(fb, x + 4, y + ROW_H / 2, expanded, th.muted);
         }
         let tx = x + 15;
         let color = if node.is_dir { th.folder } else { th.foreground };

@@ -20,30 +20,18 @@
 
 use crate::command::output::Output;
 
-const GROUPS: &[(&[u8], &[u8])] = &[
-    (b"files", b"ls  tree  cat  cd  pwd  mkdir  touch  rm  rmdir  mv  cp  stat  find  du"),
-    (b"text", b"head  tail  grep  wc  echo  sort  uniq  cut  nl  tac  rev"),
-    (b"system", b"capsules  service  ps  kill  sys  id  whoami  date  uptime  battery  about"),
-    (b"net", b"ping  ifconfig  nslookup  curl  nym"),
-    (b"apps", b"market  install  pkg  git  nox"),
-];
-
-const DEEPER: &[(&[u8], &[u8])] = &[
-    (b"help keys", b"editing, history, tabs and view keys"),
-    (b"help shell", b"pipes, redirects, jobs and aliases"),
-    (b"help <cmd>", b"what one command takes"),
-];
+use super::help_layout::{plain_row, DEEPER, DEEPER_PAD, GROUPS, GROUP_PAD, INTRO, PAGE_PAD};
 
 pub fn run(out: &mut Output<'_>) {
-    out.writeln(b"Type a command and press Enter. Tab completes.");
+    out.writeln(INTRO);
     out.writeln(b"");
     for (name, list) in GROUPS {
-        row(out, name, list, 9);
+        row(out, name, list, GROUP_PAD);
     }
     super::help_tools::tools(out);
     out.writeln(b"");
     for (name, what) in DEEPER {
-        row(out, name, what, 13);
+        row(out, name, what, DEEPER_PAD);
     }
 }
 
@@ -55,17 +43,14 @@ pub fn topic(out: &mut Output<'_>, name: &[u8]) -> bool {
         _ => return false,
     };
     for (name, what) in lines {
-        row(out, name, what, 10);
+        row(out, name, what, PAGE_PAD);
     }
     true
 }
 
 /// A label in the accent colour, padded to `pad`, then the text.
 pub(super) fn row(out: &mut Output<'_>, name: &[u8], text: &[u8], pad: usize) {
-    let mut plain = alloc::vec![b' '; 2];
-    plain.extend_from_slice(name);
-    plain.resize(2 + pad.max(name.len() + 1), b' ');
-    plain.extend_from_slice(text);
+    let plain = plain_row(name, text, pad);
     let mut styled = alloc::vec::Vec::with_capacity(plain.len() + 12);
     styled.extend_from_slice(b"  \x1b[36m");
     styled.extend_from_slice(name);

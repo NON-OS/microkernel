@@ -55,6 +55,9 @@ pub struct Terminal {
     // The command overlay. It gates the whole key path while open, so it is
     // read before the tab bindings rather than beside them.
     pub(crate) palette: Palette,
+    /// Where the body's cells were drawn, and what the pointer is doing.
+    pub(crate) cells: Option<super::pointer::CellGeom>,
+    pub(crate) ptr: super::pointer::Pointer,
 }
 
 impl Terminal {

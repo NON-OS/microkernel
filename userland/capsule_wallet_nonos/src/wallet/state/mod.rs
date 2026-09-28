@@ -24,6 +24,8 @@ mod rail_allowed;
 mod record_tx;
 mod restore;
 mod restore_words;
+pub mod shield_log;
+pub mod shield_ui;
 mod types;
 
 pub use default_net::default_net;

@@ -53,6 +53,7 @@ use crate::syscall::microkernel::time::{
     sys_time_adjust, sys_time_millis, sys_time_monotonic, sys_time_rtc,
 };
 use crate::syscall::microkernel::tool_run::sys_tool_run;
+use crate::syscall::microkernel::tty::{sys_tty_query, sys_tty_set};
 use crate::syscall::microkernel::wait::sys_wait;
 
 pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
@@ -114,6 +115,8 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_DEV_ROOT_CONFIRM => sys_dev_root_confirm(a.a0),
         SYS_SPAWN_INSTANCE => sys_spawn_instance(a.a0, a.a1),
         SYS_TOOL_RUN => sys_tool_run(a.a0, a.a1, a.a2, a.a3),
+        SYS_TTY_SET => sys_tty_set(a.a0, a.a1, a.a2, a.a3),
+        SYS_TTY_QUERY => sys_tty_query(a.a0),
         _ => return None,
     })
 }

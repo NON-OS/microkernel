@@ -17,16 +17,14 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::block_chrome::draw_block_chrome;
-use super::constants::{BODY_PAD_TOP, HEADER_H, TEXT_LEFT};
-use super::draw_grid::{draw_grid, draw_grid_cursor};
 use super::draw_input_line::draw_input_line;
 use super::fetch::draw_fetch;
-use super::footer::{draw_footer, footer_h};
+use super::footer::draw_footer;
+use super::geometry::geometry;
 use super::header::draw_header;
-use super::metrics::Metrics;
 use super::rail_left;
-use crate::layout::limits::LEFT_RAIL_W;
-use crate::layout::{compute, Chrome, Layout, Rails};
+use super::vt::{draw_find_bar, draw_vt, Area, Frame, Rows};
+use crate::layout::Layout;
 use crate::palette::{Index, Palette};
 use crate::rail::Rail;
 use crate::term::prefs::types::Project;
@@ -66,34 +64,30 @@ pub fn paint(
 ) -> Layout {
     fb.clear(t.bg);
     draw_header(state, fb, t);
-    let m = Metrics::new(fb, font_scale);
-    let chrome = Chrome {
-        titlebar_h: HEADER_H,
-        tabstrip_h: 0,
-        body_pad_top: BODY_PAD_TOP,
-        footer_h: footer_h(),
-        text_left: TEXT_LEFT,
-        row_h: m.lh,
-    };
-    // The rail is off unless it was asked for. A terminal that opens with a
-    // quarter of the window given to charts is a dashboard that happens to
-    // accept commands; the grid is the window, and the telemetry is there for
-    // whoever wants it.
-    let left = if rail_open { LEFT_RAIL_W } else { 0 };
-    let l = compute(fb.width, fb.height, &chrome, Rails { left });
+    let (l, m, chrome) = geometry(fb, font_scale, rail_open);
     let text_x = l.body.x + chrome.text_left;
     let text_r = (l.body.x + l.body.w).saturating_sub(chrome.text_left);
-    let alt = state.scrollback.grid.alternate;
-    if alt {
-        draw_grid(&state.scrollback.grid, fb, text_x, l.body.y, l.footer.y, text_r, m, t);
-        draw_grid_cursor(&state.scrollback.grid, fb, text_x, l.body.y, m, t);
+    let vt = &state.scrollback.vt;
+    /*
+     * A program in the foreground, or on the alternate screen, owns the
+     * whole body and is drawn as its screen; the prompt returns at its end.
+     */
+    let owned = vt.alt_active() || state.fg_running;
+    let bottom = if owned { l.footer.y } else { l.input.y };
+    let area = Area { x: text_x, y: l.body.y, max_x: text_r, max_y: bottom };
+    let f = Frame { vt, area, m, t };
+    if owned {
+        draw_vt(&f, fb, Rows::Screen, state.shade());
     } else if state.fresh {
         draw_fetch(state, fb, text_x, l.body.y, text_r, t);
     } else {
-        draw_block_chrome(state, fb, text_x, l.body.y, l.input.y, text_r, &m, t);
-        draw_grid(&state.scrollback.grid, fb, text_x, l.body.y, l.input.y, text_r, m, t);
+        let rows = Rows::Shell { rows: (l.body.h / m.lh.max(1)) as usize, back: vt.view_offset() };
+        draw_block_chrome(state, fb, &f.area, rows.first(vt), &m, t);
+        draw_vt(&f, fb, rows, state.shade());
     }
-    if !alt {
+    if let Some(find) = &state.find {
+        draw_find_bar(find, fb, l.input, m, t);
+    } else if !owned {
         draw_input_line(state, fb, l.input, m, t);
     }
     draw_footer(fb, t);

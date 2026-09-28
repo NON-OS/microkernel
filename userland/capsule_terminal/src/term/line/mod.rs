@@ -19,6 +19,7 @@ mod backspace;
 mod clear;
 mod delete;
 mod delete_word;
+mod delete_word_right;
 mod insert;
 mod kill_ring;
 mod kill_to_end;

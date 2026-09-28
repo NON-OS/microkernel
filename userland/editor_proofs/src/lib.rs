@@ -22,6 +22,15 @@
 
 extern crate alloc;
 
+#[path = "../../capsule_text_editor/src/doc/mod.rs"]
+pub mod doc;
+#[path = "../../capsule_text_editor/src/editor/mode.rs"]
+pub mod mode;
+#[path = "../../capsule_text_editor/src/editor/reflow.rs"]
+pub mod reflow;
+#[path = "../../capsule_text_editor/src/editor/save_point.rs"]
+pub mod save_point;
+
 #[path = "../../capsule_text_editor/src/editor/autoclose.rs"]
 pub mod autoclose;
 #[path = "../../capsule_text_editor/src/editor/backspace.rs"]
@@ -70,6 +79,8 @@ pub mod state;
 pub mod state_new;
 #[path = "../../capsule_text_editor/src/editor/theme.rs"]
 pub mod theme;
+#[path = "../../capsule_text_editor/src/editor/undo_push.rs"]
+pub mod undo_push;
 #[path = "../../capsule_text_editor/src/editor/toggle_comment.rs"]
 pub mod toggle_comment;
 #[path = "../../capsule_text_editor/src/editor/visual_lines.rs"]
@@ -81,3 +92,7 @@ pub mod word_nav;
 mod edit_tests;
 #[cfg(test)]
 mod feature_tests;
+#[cfg(test)]
+mod save_history_tests;
+#[cfg(test)]
+mod save_tests;

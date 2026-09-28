@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::{State, PATH};
+use super::state::State;
 
 impl State {
     pub fn new() -> Self {
-        let mut path = [0u8; 256];
-        path[..PATH.len()].copy_from_slice(PATH);
+        /*
+         * A new document is untitled. It used to carry a default file name
+         * without reading that file, so the first save replaced whatever the
+         * file held with the new text.
+         */
+        let path = [0u8; 256];
         let mut s = State {
             owner_pid: 0,
             buf: alloc::vec![0; super::state::CAPACITY],
@@ -37,12 +41,14 @@ impl State {
             glyph_advance: super::layout::GLYPH_ADVANCE,
             status: b"Ctrl-O open  Ctrl-S save  Ctrl-E export  Ctrl-C copy  Ctrl-V paste",
             path,
-            path_len: PATH.len(),
+            path_len: 0,
             prompt: None,
             prompt_path: [0u8; 256],
             prompt_len: 0,
+            overwrite_armed: false,
             shell_port: 0,
             dirty: false,
+            saved: Default::default(),
             undo: alloc::vec::Vec::new(),
             redo: alloc::vec::Vec::new(),
             find_active: false,
@@ -60,7 +66,7 @@ impl State {
                 height: 980.0,
                 margin: 56.0,
             },
-            mode: super::mode::mode_for_path(core::str::from_utf8(PATH).unwrap_or("")),
+            mode: super::mode::mode_for_path(""),
         };
         s.reflow();
         s

@@ -29,6 +29,7 @@ pub const ERRNO_BUSY: i64 = -16;
 pub const ERRNO_EXIST: i64 = -17;
 pub const ERRNO_NODEV: i64 = -19;
 pub const ERRNO_INVAL: i64 = -22;
+pub const ERRNO_NOTTY: i64 = -25;
 pub const ERRNO_NOSYS: i64 = -38;
 pub const ERRNO_NOTSUP: i64 = -95;
 pub const ERRNO_TIMEDOUT: i64 = -110;

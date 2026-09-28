@@ -77,6 +77,14 @@ pub(super) fn drain<A: App>(
         let event = decorations::normalize(event);
         click_focus::handle(event, wm_port, window_id, request_id);
         match decorations::handle(width, height, maximized, event) {
+            /*
+             * An app with work the user would lose keeps its window and says
+             * why; the next press on close is the answer.
+             */
+            Some(EventOutcome::Close) if !app.close_requested() => {
+                repaint = true;
+                continue;
+            }
             Some(EventOutcome::Close) => {
                 return DrainResult {
                     repaint,

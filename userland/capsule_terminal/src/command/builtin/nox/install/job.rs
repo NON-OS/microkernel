@@ -27,7 +27,7 @@ const DEADLINE_MS: i64 = 5000;
 // final flush of whatever is still buffered. Holds the progress cursor
 // (elapsed start, whether any output has been seen) between slices.
 pub struct InstallJob {
-    pid: u32,
+    pub(crate) pid: u32,
     start: i64,
     saw_output: bool,
 }

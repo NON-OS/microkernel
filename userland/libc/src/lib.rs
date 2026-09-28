@@ -49,6 +49,7 @@ pub mod surface_registry;
 mod syscall;
 pub mod time;
 pub mod tool_run;
+pub mod tty;
 pub mod transport;
 mod unistd;
 
@@ -121,4 +122,5 @@ pub use surface_registry::{
 pub use syscall::call_raw as mk_syscall_raw;
 pub use time::{mk_time_adjust, mk_time_millis, mk_time_rtc, mk_uptime_ms, Deadline, RtcTime};
 pub use tool_run::mk_tool_run;
+pub use tty::{mk_tty_query, mk_tty_set, TTY_STDERR, TTY_STDIN, TTY_STDOUT};
 pub use unistd::{mk_exit, mk_idle_ms, mk_yield};

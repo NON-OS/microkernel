@@ -54,8 +54,14 @@ pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
         state.status = b"send cancelled";
         return EventOutcome::Repaint;
     }
+    if let Some(out) = crate::wallet::screen::shield::key::key(state, code) {
+        return out;
+    }
     if let Some(out) = super::field_input::field_input(state, code) {
         return out;
+    }
+    if code == nonos_app_skeleton::KEY_ESC {
+        return super::escape::escape(state);
     }
     if code == b'r' as u32 || code == b'R' as u32 {
         hydrate(state);

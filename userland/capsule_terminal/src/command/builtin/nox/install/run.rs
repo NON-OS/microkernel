@@ -37,6 +37,7 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
     let argv = argv_blob(stem, &args[1..]);
     match call_installer(stem, &argv) {
         Ok(new_pid) => {
+            crate::jobs::tty::attach(state, new_pid);
             emit_ok(state, stem, new_pid);
             debug_marker(b"[TERMINAL-INSTALL] load ok\n");
             drain_output(state, new_pid);

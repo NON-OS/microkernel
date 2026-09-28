@@ -58,4 +58,12 @@ pub trait App {
     fn on_accessory_event(&mut self, _event: InputEvent) -> EventOutcome {
         EventOutcome::Idle
     }
+
+    /// Asked when the window's close button is pressed. An app holding work
+    /// the user would lose returns false, says so in its own window, and the
+    /// window stays open; pressing close again is the user's answer. Defaults
+    /// to closing.
+    fn close_requested(&mut self) -> bool {
+        true
+    }
 }

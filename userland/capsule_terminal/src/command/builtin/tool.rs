@@ -15,13 +15,11 @@ use crate::term::state::State;
 
 /// The installed command-line tools: what you type, and the service it runs.
 ///
-/// The two are not always the same word. ripgrep installs as `rg`, which is the
-/// name its users have in their fingers, while its capsule serves
-/// `tool.ripgrep`. Mapping the pair here lets a tool keep the name it is known
-/// by without renaming its service, and both spellings can reach it.
-///
-/// Kept in step with `userland/apps.list` and the std tool capsules the desktop
-/// profile bakes.
+/// The typed name comes first because it need not be the service's: a tool
+/// can keep the name its users have in their fingers without renaming its
+/// capsule. Every service here is one `userland/apps.list` registers, which
+/// terminal_line_proofs checks, so a name on this list always has a program
+/// behind it.
 pub const TOOLS: &[(&[u8], &[u8])] = &[
     (b"grex", b"grex"),
     (b"dotenv-linter", b"dotenv-linter"),
@@ -30,8 +28,6 @@ pub const TOOLS: &[(&[u8], &[u8])] = &[
     (b"tokei", b"tokei"),
     (b"huniq", b"huniq"),
     (b"csview", b"csview"),
-    (b"rg", b"ripgrep"),
-    (b"ripgrep", b"ripgrep"),
 ];
 
 // `install` is absent for the same reason as `sd`: the builtin that installs
@@ -65,10 +61,10 @@ pub fn prepare(state: &mut State, args: &[&[u8]]) -> Option<InstallJob> {
     let argv = argv_blob(args);
     let rc = mk_tool_run(&service, &argv);
     if rc < 0 {
-        state.scrollback.push_error(b"tool: launch failed");
-        state.last_status = 1;
+        super::tool_refused::refused(state, name, rc);
         return None;
     }
+    crate::jobs::tty::attach(state, rc as u32);
     Some(InstallJob::new(rc as u32))
 }
 

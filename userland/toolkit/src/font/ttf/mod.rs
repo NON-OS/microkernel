@@ -23,6 +23,7 @@ mod blend;
 mod cache;
 mod draw;
 mod face;
+mod fallback;
 mod metrics;
 mod readable;
 mod slant;

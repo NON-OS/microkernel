@@ -31,6 +31,15 @@ fn fetch_connected(sockets_port: u32, handle: u32, ip: [u8; 4], body: &[u8]) -> 
     let flight = super::super::tls13::client_flight(ETH_RPC_HOST)?;
     super::socket_send::socket_send(sockets_port, handle, &flight.record).ok()?;
     let server = super::read_tls_flight::read_tls_flight(sockets_port, handle).ok()?;
+    /*
+     * Balances, the nonce and the fee a transaction pays all come back on
+     * this connection, so it is used only once the server has proved it is
+     * the host. A clock that cannot be read fails the check.
+     */
+    let now = super::rtc_stamp::rtc_stamp()?;
+    if !super::super::tls13::server_trusted_flight(&flight, &server, ETH_RPC_HOST, now) {
+        return None;
+    }
     let http = super::super::rpc::http_post(ETH_RPC_HOST, body);
     let out = super::super::tls13::application_write(&flight, &server, &http)?;
     super::socket_send::socket_send(sockets_port, handle, &out).ok()?;
