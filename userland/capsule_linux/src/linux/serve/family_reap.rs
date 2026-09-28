@@ -14,51 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Ending what has exited, and telling each parent.
+//! Ending what has exited, and telling each parent: the ended child waits
+//! until it is waited for, and a wait4 parked for it is answered.
 
-use nonos_libc::{mk_foreign_reply, mk_kill};
+use nonos_libc::mk_foreign_reply;
 
 use super::family::Family;
+use super::pid_ns::PidNs;
+use super::pid_out::value_out;
+use crate::linux::abi::nr;
 use crate::linux::call::reap_one;
-
-const SIGKILL: u64 = 9;
+use crate::linux::guest::Guest;
 
 impl Family {
-    /// End every process that asked to, and tell its parent.
+    /// End every process that asked to, deliver the signals that follow,
+    /// and go again while that ends anything more.
     pub fn reap(&mut self) {
         self.settle_pipes();
-        while let Some(i) = self.guests.iter().position(|g| g.exited.is_some()) {
-            let gone = self.guests.remove(i);
-            let code = gone.exited.unwrap_or(0);
-            for tid in gone.threads.iter().chain([gone.pid].iter()) {
-                let rc = mk_kill(*tid as u64, SIGKILL);
-                if rc < 0 {
-                    // Refused, it runs on after its process ended.
-                    let line = alloc::format!(
-                        "[LINUX] kill refused: pid {tid} outlives its process, errno {}\n",
-                        -rc
-                    );
-                    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-                }
+        loop {
+            let ended = self.end_exited();
+            self.settle_signals();
+            if !ended && !self.guests.iter().any(|g| g.exited.is_some()) {
+                return;
             }
-            if gone.pid == self.root {
-                self.root_code = code;
-            }
-            let Some(p) = self.guests.iter_mut().find(|g| g.children.contains(&gone.pid)) else {
-                continue;
-            };
-            p.ended.push((gone.pid, code));
-            if let Some((want, status, tid)) = p.waiting {
-                if let Some(value) = reap_one(p, want, status) {
-                    p.waiting = None;
-                    let value = super::pid_out::value_out(
-                        &mut self.ns,
-                        crate::linux::abi::nr::WAIT4,
-                        value,
-                    );
-                    let _ = mk_foreign_reply(tid, value);
-                }
-            }
+        }
+    }
+}
+
+/// Tell `p` that `gone` ended with `code`: kept until it is waited for, and a
+/// parked wait4 answered with its pid in the guest's numbering.
+pub fn tell_parent(p: &mut Guest, gone: &Guest, code: i32, ns: &mut PidNs) {
+    p.ended.push((gone.pid, code));
+    if let Some((want, status, tid)) = p.waiting {
+        if let Some(value) = reap_one(p, want, status) {
+            p.waiting = None;
+            let _ = mk_foreign_reply(tid, value_out(ns, nr::WAIT4, value));
         }
     }
 }

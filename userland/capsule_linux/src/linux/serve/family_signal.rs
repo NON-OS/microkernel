@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+//! Signals between processes of the family, settled after every answer: the
+//! outbox is routed to every process each signal names.
 
-pub mod errno;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_high;
-pub mod nr_sig;
+use super::family::Family;
+
+impl Family {
+    pub(super) fn settle_signals(&mut self) {
+        self.route_outbox();
+    }
+}

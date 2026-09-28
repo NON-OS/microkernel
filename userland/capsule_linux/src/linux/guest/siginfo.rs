@@ -20,6 +20,7 @@
 //! kernel pid in one.
 
 pub const SI_USER: i32 = 0;
+pub const SI_TKILL: i32 = -6;
 pub const INFO_LEN: usize = 128;
 
 #[derive(Clone, Copy, Default)]

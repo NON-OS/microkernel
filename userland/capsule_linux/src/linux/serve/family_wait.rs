@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+//! Answering a thread the family held parked: with the value its call
+//! returns, or by entering the handler of a signal it now takes.
 
-pub mod errno;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_high;
-pub mod nr_sig;
+use nonos_libc::mk_foreign_reply;
+
+use crate::linux::guest::Guest;
+
+/// Reply to a parked thread, or enter the handler of a signal it now takes.
+pub fn answer(g: &mut Guest, tid: u32, value: u64) {
+    if !super::deliver::maybe_deliver(g, tid, value) {
+        let _ = mk_foreign_reply(tid, value);
+    }
+}

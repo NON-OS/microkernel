@@ -14,50 +14,53 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `kill`, `tkill` and `tgkill`, for the guest's own threads and children.
-//! A signal the process catches is queued and delivered on that thread's next
-//! return; one whose default is to ignore is dropped; a fatal default ends it.
+//! `kill`, `tkill` and `tgkill`. A signal for the caller's own
+//! process is queued here and taken as `serve::deliver` decides; one for
+//! another process of the family leaves through the outbox with the caller
+//! parked, and the family answers it once it knows whether anyone was there.
+//! A guest reaches only its own family: pid_map refuses any other number.
 
-use nonos_libc::mk_kill;
-
+use super::signal_post::post;
 use crate::linux::abi::errno;
-use crate::linux::guest::siginfo::{SigInfo, SI_USER};
+use crate::linux::guest::siginfo::{SigInfo, SI_TKILL, SI_USER};
 use crate::linux::guest::sigstate::NSIG;
+use crate::linux::guest::sigwaits::Target;
 use crate::linux::guest::Guest;
+use crate::linux::serve::Answer;
 
-/// Signals whose default action is to be ignored: child status, urgent data,
-/// window size, and a continue with nothing stopped.
-const IGNORED_DEFAULT: [u64; 4] = [17, 23, 28, 18];
-
-pub fn kill(guest: &mut Guest, pid: u64, signo: u64) -> u64 {
-    let target = pid as u32;
-    // A guest may signal itself, its threads and its children, nothing else.
-    if !guest.owns(target) && !guest.children.contains(&target) {
-        return errno::fail(errno::ESRCH);
-    }
-    if signo == 0 {
-        return errno::ok(0); // an existence check, not a signal
-    }
-    if signo > NSIG as u64 {
-        return errno::fail(errno::EINVAL);
-    }
-    let act = guest.signals.action(signo as usize).unwrap_or_default();
-    if act.catches() {
-        let _ = guest.signals.raise(target, SigInfo::from(signo as u8, SI_USER, guest.pid));
-        return errno::ok(0);
-    }
-    if act.ignores() || IGNORED_DEFAULT.contains(&signo) {
-        return errno::ok(0);
-    }
-    terminate(guest, target, signo)
+/// kill(pid, sig) from thread `tid`, which parks when the family must answer.
+pub fn kill_from(guest: &mut Guest, tid: u32, pid: u64, signo: u64) -> Answer {
+    let to = match pid as i64 {
+        -1 => Target::All,
+        0 => Target::Group(guest.pgid),
+        p if p < 0 => Target::Group(p.unsigned_abs() as u32),
+        p => Target::Process(p as u32),
+    };
+    send(guest, tid, to, signo, SI_USER)
 }
 
-/// The default action of an uncaught, non-ignored signal is to end the thread.
-fn terminate(guest: &mut Guest, target: u32, signo: u64) -> u64 {
-    guest.forget_thread(target);
-    guest.threads.retain(|t| *t != target);
-    match mk_kill(target as u64, signo) {
-        n if n < 0 => errno::fail(errno::EPERM),
-        _ => errno::ok(0),
+/// kill for a caller that cannot park: a signal for another process still
+/// goes to the family, with no one to answer, so a target that is gone reads
+/// as 0 here rather than ESRCH.
+pub fn kill(guest: &mut Guest, pid: u64, signo: u64) -> u64 {
+    match kill_from(guest, 0, pid, signo) {
+        Answer::Reply(v) => v,
+        Answer::Park => errno::ok(0),
     }
+}
+
+/// tkill(tid, sig), and tgkill(tgid, tid, sig) with `tgid` non-zero.
+pub fn tgkill_from(guest: &mut Guest, tid: u32, tgid: u64, target: u64, signo: u64) -> Answer {
+    if (tgid as i64) < 0 || (target as i64) <= 0 {
+        return Answer::value(errno::fail(errno::EINVAL));
+    }
+    send(guest, tid, Target::Thread(tgid as u32, target as u32), signo, SI_TKILL)
+}
+
+fn send(guest: &mut Guest, tid: u32, to: Target, signo: u64, code: i32) -> Answer {
+    if signo > NSIG as u64 {
+        return Answer::value(errno::fail(errno::EINVAL));
+    }
+    let info = SigInfo::from(signo as u8, code, guest.pid);
+    post(guest, tid, to, info)
 }

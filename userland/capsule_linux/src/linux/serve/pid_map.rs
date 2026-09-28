@@ -22,7 +22,7 @@
 
 use nonos_libc::ForeignFrame;
 
-use crate::linux::abi::{errno, nr, nr_path as np};
+use crate::linux::abi::{errno, nr, nr_path as np, nr_sig as ns};
 
 use super::pid_ns::PidNs;
 
@@ -41,6 +41,8 @@ pub fn frame_in(ns: &PidNs, frame: &ForeignFrame) -> Option<ForeignFrame> {
 fn args_in(ns: &PidNs, call: u64, a: &mut [u64; 6]) -> Result<(), u64> {
     let (slots, missing): (&[usize], i64) = match call {
         nr::WAIT4 => (&[0], errno::ECHILD),
+        ns::TGKILL | ns::RT_TGSIGQUEUEINFO => (&[0, 1], errno::ESRCH),
+        ns::RT_SIGQUEUEINFO => (&[0], errno::ESRCH),
         np::KILL | np::TKILL | np::GETPGID | np::GETSID => (&[0], errno::ESRCH),
         np::SETPGID => (&[0, 1], errno::ESRCH),
         _ => return Ok(()),
