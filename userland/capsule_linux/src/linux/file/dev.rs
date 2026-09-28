@@ -22,7 +22,7 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::{Fd, Guest, Kind};
 
-use super::flags::wants_write;
+use super::flags::writes;
 use super::slot::install;
 
 /// Path, major, minor. The handle of an open device is its index here.
@@ -50,7 +50,7 @@ pub fn open_path(guest: &mut Guest, full: &[u8], flags: u64) -> u64 {
     let mut fd = Fd::empty(Kind::Device);
     fd.handle = dev;
     fd.path = full.to_vec();
-    fd.writable = wants_write(flags);
+    fd.writable = writes(flags);
     match install(guest, fd) {
         Some(n) => errno::ok(n),
         None => errno::fail(errno::EMFILE),

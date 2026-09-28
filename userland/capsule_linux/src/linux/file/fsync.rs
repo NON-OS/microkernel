@@ -16,14 +16,25 @@
 //! Getting a descriptor's buffered bytes onto the store.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::Guest;
+use crate::linux::guest::{Guest, Kind};
 
+/*
+ * fsync and fdatasync: the store keeps no metadata apart from the bytes,
+ * so the two are one.
+ */
 pub fn fsync(guest: &Guest, fd: u64) -> u64 {
     let Some(entry) = guest.fds.get(fd as usize).filter(|f| f.is_open()) else {
         return errno::fail(errno::EBADF);
     };
-    match super::close::flush(entry) {
-        true => errno::ok(0),
-        false => errno::fail(errno::EIO),
+    /* Linux answers EINVAL for what cannot be synced: a pipe, a socket. */
+    if !matches!(entry.kind, Kind::File | Kind::Dir) {
+        return errno::fail(errno::EINVAL);
+    }
+    if entry.kind == Kind::Dir {
+        return errno::ok(0);
+    }
+    match super::cache::flush(&entry.path, true) {
+        Ok(()) => errno::ok(0),
+        Err(e) => errno::fail(e),
     }
 }

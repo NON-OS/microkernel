@@ -14,16 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+/*
+ * The family's copy of each file it is writing, one per path.
+ *
+ * On Linux every descriptor on a file, in every process, reads and writes
+ * the same page cache, so a write through one is seen at once through the
+ * others and by stat. The store is written whole, so the bytes a family is
+ * changing are kept here, once per path, and every descriptor on the path
+ * reads and writes this copy: a dup, a fork's copy and a second open all
+ * meet the same bytes. The copy goes to the store at close and at fsync.
+ */
 
-pub mod errno;
-pub mod errno_io;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_file;
-pub mod nr_high;
-pub mod nr_sig;
-pub mod nr_sched;
+mod change;
+mod flush;
+mod table;
+mod take;
+
+pub use change::{resize, write};
+pub use flush::flush;
+pub use table::{held, size};
+pub use take::{hold, read};

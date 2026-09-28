@@ -16,6 +16,7 @@
 
 //! Linux errno values, and the convention for returning them.
 
+pub use super::errno_io::*;
 pub const EPERM: i64 = 1;
 pub const ENOENT: i64 = 2;
 pub const EINTR: i64 = 4;

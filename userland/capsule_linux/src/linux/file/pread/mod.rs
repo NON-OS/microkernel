@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+/*
+ * pread64: a read at the offset it is given, which leaves the descriptor's
+ * own offset where it was; a pipe, a socket or a console has no offset,
+ * which Linux calls ESPIPE.
+ */
 
-pub mod errno;
-pub mod errno_io;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_file;
-pub mod nr_high;
-pub mod nr_sig;
-pub mod nr_sched;
+mod plain;
+
+pub use plain::pread64;

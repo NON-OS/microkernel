@@ -14,16 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+/*
+ * What the family holds of the files it uses: one copy of each file
+ * it writes, the open file descriptions, and the modes and times it
+ * set.
+ */
 
-pub mod errno;
-pub mod errno_io;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_file;
-pub mod nr_high;
-pub mod nr_sig;
-pub mod nr_sched;
+pub(super) mod cache;
+pub(super) mod desc;
+pub(super) mod rw;

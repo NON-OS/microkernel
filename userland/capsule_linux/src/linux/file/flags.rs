@@ -14,25 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The open flags and the special directory descriptor, as Linux defines
-//! them on x86_64. Transcribed, never chosen.
+/*
+ * The open flags and the special directory descriptor, as Linux defines
+ * them on x86_64. Transcribed, never chosen.
+ */
 
 pub const O_WRONLY: u64 = 0o1;
 pub const O_RDWR: u64 = 0o2;
 pub const O_CREAT: u64 = 0o100;
+pub const O_EXCL: u64 = 0o200;
 pub const O_TRUNC: u64 = 0o1000;
 pub const O_APPEND: u64 = 0o2000;
 pub const O_NONBLOCK: u64 = 0o4000;
 pub const O_DIRECTORY: u64 = 0o200000;
 pub const O_CLOEXEC: u64 = 0o2000000;
 
-/// `openat` with this as the directory means "relative to the working
-/// directory", which is the only relative form a static binary uses.
+/*
+ * `openat` with this as the directory means "relative to the working
+ * directory", which is the only relative form a static binary uses.
+ */
 pub const AT_FDCWD: u64 = (-100i64) as u64;
 
-/// A guest asked to write if it asked for anything but read.
-pub fn wants_write(flags: u64) -> bool {
-    flags & (O_WRONLY | O_RDWR | O_CREAT | O_TRUNC | O_APPEND) != 0
+/* Opened O_WRONLY or O_RDWR: what a write through the descriptor needs. */
+pub fn writes(flags: u64) -> bool {
+    flags & (O_WRONLY | O_RDWR) != 0
 }
 
 pub fn wants_read(flags: u64) -> bool {

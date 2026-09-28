@@ -14,38 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Opening a regular file, and creating one that is not there yet.
+/* Opening a regular file of the store or of the family's copies. */
 
 use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{Fd, Guest};
 
-use super::flags::{wants_read, wants_write, O_TRUNC};
-use super::{resolve, slot, store};
+use super::super::flags::{wants_read, writes, O_APPEND, O_TRUNC};
+use super::super::{cache, desc, resolve, slot, store};
 
 pub fn open(guest: &mut Guest, path: Vec<u8>, size: u64, flags: u64) -> u64 {
-    // No server handle for write-only or O_TRUNC: nothing will read it.
-    let truncating = flags & O_TRUNC != 0;
-    let stream = if wants_read(flags) && !truncating {
-        match store::open(&resolve::key(&path)) {
+    let writing = writes(flags);
+    if writing && resolve::key(&path).writable().is_err() {
+        return errno::fail(errno::EROFS);
+    }
+    let truncating = flags & O_TRUNC != 0 && writing;
+    let stream = match wants_read(flags) && !cache::held(&path) {
+        true => match store::open(&resolve::key(&path)) {
             Ok(s) => Some(s),
             Err(_) => return errno::fail(errno::EACCES),
-        }
-    } else {
-        None
+        },
+        false => None,
     };
-    let size = if truncating { 0 } else { size };
-    let fd = Fd::file(path, size, stream, wants_write(flags));
-    match slot::install(guest, fd) {
-        Some(n) => errno::ok(n),
-        None => errno::fail(errno::EMFILE),
+    if truncating {
+        if let Err(e) = cache::hold(&path, false).and_then(|()| cache::resize(&path, 0)) {
+            return errno::fail(e);
+        }
     }
+    let size = if truncating { 0 } else { cache::size(&path).unwrap_or(size) };
+    install(guest, Fd::file(path, size, stream, writing), flags)
 }
 
-/// Nothing hits the store until close, so a create-then-die leaves no file.
-pub fn create(guest: &mut Guest, path: Vec<u8>) -> u64 {
-    let fd = Fd::file(path, 0, None, true);
+pub(super) fn install(guest: &mut Guest, mut fd: Fd, flags: u64) -> u64 {
+    fd.handle = desc::fresh(flags & O_APPEND != 0, wants_read(flags));
     match slot::install(guest, fd) {
         Some(n) => errno::ok(n),
         None => errno::fail(errno::EMFILE),

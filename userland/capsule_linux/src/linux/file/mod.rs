@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The filesystem a guest sees.
+/* The filesystem a guest sees. */
 
 mod at;
 mod clamp;
@@ -36,6 +36,7 @@ mod eventfd_io;
 pub mod family;
 pub mod flags;
 mod fsync;
+mod held;
 mod link;
 mod memfd;
 mod memfd_map;
@@ -71,6 +72,7 @@ pub use epoll_wait::epoll_wait;
 pub use eventfd::{bits as event_bits, eventfd2};
 pub use eventfd_io::{read as event_read, write as event_write};
 pub use fsync::fsync;
+use held::*;
 pub use link::{linkat, symlinkat};
 pub use memfd::{ftruncate, is_memfd, memfd_create};
 pub use memfd_map::{mapped_at, set_mapped, staged};

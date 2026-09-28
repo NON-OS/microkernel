@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+/*
+ * The bytes of a file descriptor at an offset, in and out. read, write,
+ * the p- and v- forms, sendfile and copy_file_range all come here, so a
+ * file reads the same whichever call asks.
+ *
+ * In order: the family's copy of a file it is writing; the store, through
+ * the descriptor's stream, opened again for a descriptor that dup or fork
+ * made without one.
+ */
 
-pub mod errno;
-pub mod errno_io;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_file;
-pub mod nr_high;
-pub mod nr_sig;
-pub mod nr_sched;
+mod read;
+mod write;
+
+pub use read::{read_at, MAX_IO};
+pub use write::write_at;

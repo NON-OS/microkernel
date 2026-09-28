@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+/*
+ * Opening a regular file, and creating one that is not there yet.
+ *
+ * A write-only or truncating open needs no stream from the store: nothing
+ * will be read from what is there. A write goes to the family's copy of
+ * the file (held/cache/), which is taken when the first write needs it.
+ */
 
-pub mod errno;
-pub mod errno_io;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_file;
-pub mod nr_high;
-pub mod nr_sig;
-pub mod nr_sched;
+mod create;
+mod open;
+
+pub use create::create;
+pub use open::open;

@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+/* Whether another descriptor holds the same description. */
 
-pub mod errno;
-pub mod errno_io;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_file;
-pub mod nr_high;
-pub mod nr_sig;
-pub mod nr_sched;
+use super::handle::of;
+
+/* Whether a descriptor of this process other than `fd` holds its description. */
+pub fn held_elsewhere(guest: &crate::linux::guest::Guest, fd: u64, d: u32) -> bool {
+    guest.fds.iter().enumerate().any(|(i, o)| i as u64 != fd && o.is_open() && of(o) == Some(d))
+}

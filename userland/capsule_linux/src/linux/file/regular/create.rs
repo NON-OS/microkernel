@@ -14,16 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+/* A file made by O_CREAT, with the mode it was asked for. */
 
-pub mod errno;
-pub mod errno_io;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_file;
-pub mod nr_high;
-pub mod nr_sig;
-pub mod nr_sched;
+use alloc::vec::Vec;
+
+use crate::linux::abi::errno;
+use crate::linux::guest::{Fd, Guest};
+
+use super::super::flags::writes;
+use super::super::{cache, resolve};
+use super::open::install;
+
+/*
+ * Linux makes the file at open, so stat sees it before anything is written;
+ * here it is held empty in the family's copy until close puts it in the store.
+ */
+pub fn create(guest: &mut Guest, path: Vec<u8>, flags: u64) -> u64 {
+    if resolve::key(&path).writable().is_err() {
+        return errno::fail(errno::EROFS);
+    }
+    if let Err(e) = cache::hold(&path, false) {
+        return errno::fail(e);
+    }
+    install(guest, Fd::file(path, 0, None, writes(flags)), flags)
+}

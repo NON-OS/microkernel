@@ -14,16 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
+/* A copy put in the store: at close, fsync and sync, and at exit. */
 
-pub mod errno;
-pub mod errno_io;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_file;
-pub mod nr_high;
-pub mod nr_sig;
-pub mod nr_sched;
+use crate::linux::abi::errno;
+
+use super::super::super::{resolve, store};
+use super::table::CACHE;
+
+/*
+ * Put the copy of `path` in the store, if it changed; `keep` false lets
+ * it go afterwards.
+ */
+pub fn flush(path: &[u8], keep: bool) -> Result<(), i64> {
+    let mut all = CACHE.0.borrow_mut();
+    let Some(i) = all.iter().position(|e| e.path == path) else {
+        return Ok(());
+    };
+    if all[i].dirty {
+        store::write(&resolve::key(path), &all[i].data).map_err(|_| errno::EIO)?;
+        all[i].dirty = false;
+    }
+    if !keep {
+        all.remove(i);
+    }
+    Ok(())
+}

@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `openat`.
-
-use alloc::vec::Vec;
+/* openat. */
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Guest, Kind};
+use crate::linux::guest::Guest;
 
-use super::flags::{wants_write, AT_FDCWD, O_CLOEXEC, O_CREAT, O_DIRECTORY};
-use super::{dev, dir, path, regular, resolve, store};
+use super::super::flags::{writes, O_CLOEXEC, O_CREAT, O_DIRECTORY, O_EXCL};
+use super::super::{cache, dev, dir, path, regular, resolve, store};
+use super::mark::{base_of, mark};
 
 pub fn openat(guest: &mut Guest, dirfd: u64, path_ptr: u64, flags: u64) -> u64 {
     let Some(name) = path::read_path(guest, path_ptr) else {
@@ -33,37 +32,21 @@ pub fn openat(guest: &mut Guest, dirfd: u64, path_ptr: u64, flags: u64) -> u64 {
         Err(e) => return e,
     };
     let full = guest.links.follow(resolve::visible(&base, &name), true);
-    let got = match store::stat(&resolve::key(&full)).ok() {
+    /* A file the family is making is there before the store holds it. */
+    let found = match cache::size(&full) {
+        Some(size) => Some((size, false)),
+        None => store::stat(&resolve::key(&full)).ok(),
+    };
+    let got = match found {
         _ if dev::device_of(&full).is_some() => dev::open_path(guest, &full, flags),
+        Some(_) if flags & O_CREAT != 0 && flags & O_EXCL != 0 => errno::fail(errno::EEXIST),
+        Some((_, true)) if writes(flags) => errno::fail(errno::EISDIR),
         Some((_, true)) => dir::open(guest, full),
         Some((_, false)) if flags & O_DIRECTORY != 0 => errno::fail(errno::ENOTDIR),
         Some((size, false)) => regular::open(guest, full, size, flags),
-        None if flags & O_CREAT != 0 && wants_write(flags) => regular::create(guest, full),
+        None if flags & O_CREAT != 0 => regular::create(guest, full, flags),
         None => errno::fail(errno::ENOENT),
     };
     mark(guest, got, flags & O_CLOEXEC != 0);
     got
-}
-
-/// O_CLOEXEC is a property of the descriptor, not of the open, so it is set
-/// once the number is known rather than threaded through every one of the
-/// paths above.
-fn mark(guest: &mut Guest, got: u64, on: bool) {
-    if let Some(slot) = errno::slot(got).filter(|_| on) {
-        if let Some(fd) = guest.fds.get_mut(slot) {
-            fd.cloexec = true;
-        }
-    }
-}
-
-/// AT_FDCWD or a dirfd the guest itself opened. No other dirfd resolves.
-fn base_of(guest: &Guest, dirfd: u64) -> Result<Vec<u8>, u64> {
-    if dirfd == AT_FDCWD {
-        return Ok(guest.cwd.clone());
-    }
-    match guest.fds.get(dirfd as usize) {
-        Some(fd) if fd.kind == Kind::Dir => Ok(fd.path.clone()),
-        Some(_) => Err(errno::fail(errno::ENOTDIR)),
-        None => Err(errno::fail(errno::EBADF)),
-    }
 }

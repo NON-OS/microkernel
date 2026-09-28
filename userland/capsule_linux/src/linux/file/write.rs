@@ -14,45 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! Writing to a file a guest has open.
-//!
-//! Bytes are held here until the descriptor is closed, then written as one
-//! file. The store takes whole values rather than a stream of positioned
-//! writes, and a program that writes a file expects it to appear whole or
-//! not at all, which is the same thing.
+/*
+ * `write` on a file: at the descriptor's offset, or at the end when it
+ * was opened O_APPEND, and the offset moves to where the write ended.
+ */
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Guest, Kind};
+use crate::linux::guest::Guest;
 
-/// One transfer, matching the kernel's own peer-copy ceiling.
-const MAX_IO: u64 = 1 << 20;
-
-/// What a single guest may hold unwritten. A program that produces more
-/// than this without closing is refused rather than allowed to grow this
-/// capsule's heap without bound.
-const MAX_PENDING: usize = 8 << 20;
+use super::rw::{write_at, MAX_IO};
 
 pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
-    let take = len.min(MAX_IO);
-    let Some(bytes) = guest.read(buf, take as usize) else {
+    let take = (len as usize).min(MAX_IO);
+    let Some(bytes) = guest.read(buf, take) else {
         return errno::fail(errno::EFAULT);
     };
-    let Some(entry) = guest.fds.get_mut(fd as usize) else {
-        return errno::fail(errno::EBADF);
-    };
-    if entry.kind != Kind::File || !entry.writable {
-        return errno::fail(errno::EBADF);
+    let at = guest.fds.get(fd as usize).map_or(0, super::desc::pos);
+    match write_at(guest, fd, at, &bytes) {
+        Ok((n, end)) => {
+            if let Some(entry) = guest.fds.get_mut(fd as usize) {
+                super::desc::set_pos(entry, end);
+            }
+            errno::ok(n as u64)
+        }
+        Err(e) => errno::fail(e),
     }
-    let at = entry.offset as usize;
-    if at + bytes.len() > MAX_PENDING {
-        return errno::fail(errno::ENOSPC);
-    }
-    if entry.pending.len() < at + bytes.len() {
-        entry.pending.resize(at + bytes.len(), 0);
-    }
-    entry.pending[at..at + bytes.len()].copy_from_slice(&bytes);
-    entry.offset += bytes.len() as u64;
-    entry.size = entry.size.max(entry.pending.len() as u64);
-    errno::ok(bytes.len() as u64)
 }
