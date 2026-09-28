@@ -38,8 +38,17 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
                 all.push(Capsule { pid, domain, devices: Vec::new(), next_iova: IOVA_BASE });
                 all.len() - 1
             }
-            // The posture on most hardware: said per claim, not only at boot.
-            Err(IommuError::NotInitialized | IommuError::NotSupported) => {
+            /*
+             * The posture on most hardware: said per claim, not only at boot.
+             * No unit in service is the same whether none was found, none is
+             * up yet, or the one found (AMD-Vi) has no backend here.
+             */
+            Err(
+                IommuError::NotInitialized
+                | IommuError::NotSupported
+                | IommuError::NoIommu
+                | IommuError::AmdViNotDriven,
+            ) => {
                 say(b"unconfined: no remapping unit in service, reaches all memory", pid, address);
                 return Ok(());
             }
