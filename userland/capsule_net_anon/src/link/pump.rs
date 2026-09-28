@@ -16,13 +16,14 @@
 
 //! Reading to NETINFO, verifying CERTS on the way.
 
-use crate::cell::{Frame, CELL_AUTH_CHALLENGE, CELL_CERTS, CELL_NETINFO, CELL_VPADDING};
+use crate::cell::Frame;
 use crate::path::Relay;
 use crate::trace;
 
 use super::bind::bind;
 use super::netinfo::ours;
 use super::session::{Link, LinkError};
+use super::step::{classify, Next};
 use super::timing::HANDSHAKE_MS;
 
 pub(super) fn drain(
@@ -33,11 +34,19 @@ pub(super) fn drain(
 ) -> Result<(), LinkError> {
     let mut bound = false;
     loop {
-        let Some(Frame::Var(cell)) = link.recv(HANDSHAKE_MS)? else {
+        // A relay that says nothing within the handshake budget has not
+        // finished the handshake; that is a failed link, named as such.
+        let Some(frame) = link.recv(HANDSHAKE_MS)? else {
+            trace::say(b"link handshake timed out");
             return Err(LinkError::Protocol);
         };
-        match cell.command {
-            CELL_CERTS => {
+        let (variable, command) = match &frame {
+            Frame::Var(cell) => (true, cell.command),
+            Frame::Fixed(cell) => (false, cell.command),
+        };
+        match classify(variable, command, bound) {
+            Next::Certs => {
+                let Frame::Var(cell) = frame else { return Err(LinkError::Protocol) };
                 bind(&cell.body, leaf, &relay.ed25519_identity, now).map_err(|_| {
                     trace::say(b"link certs rejected");
                     LinkError::Identity
@@ -45,22 +54,14 @@ pub(super) fn drain(
                 bound = true;
                 trace::say(b"link identity proved");
             }
-            /*
-             * A relay offers AUTH_CHALLENGE so a peer can prove it is also a
-             * relay. A client does not authenticate, so there is nothing to say.
-             */
-            CELL_AUTH_CHALLENGE | CELL_VPADDING => {}
-            CELL_NETINFO if bound => {
+            Next::Ignore => {}
+            Next::Finish => {
                 let netinfo = ours(relay.address);
                 link.send(&netinfo.encode())?;
+                trace::say(b"link open");
                 return Ok(());
             }
-            /*
-             * NETINFO before a verified CERTS would finish the handshake with a
-             * peer that never proved who it is, so it is refused here rather
-             * than accepted and checked afterwards.
-             */
-            _ => return Err(LinkError::Protocol),
+            Next::Refuse => return Err(LinkError::Protocol),
         }
     }
 }
