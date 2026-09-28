@@ -36,6 +36,7 @@ mod links_list;
 mod links_load;
 mod mem;
 mod mem_copy;
+mod mem_like;
 mod mem_map;
 mod mem_unmap;
 mod region;

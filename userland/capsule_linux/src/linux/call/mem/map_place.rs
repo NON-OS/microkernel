@@ -53,9 +53,16 @@ pub fn place(guest: &Guest, req: &MapReq) -> Result<Place, i64> {
             }
         }
     }
+    let (at, span) = free_span(guest, req.len)?;
+    Ok(Place { at, span, from_cursor: true })
+}
+
+/// The first span of `len` at or above the mapping cursor that meets
+/// nothing the guest holds.
+pub fn free_span(guest: &Guest, len: u64) -> Result<(u64, u64), i64> {
     let mut at = guest.mmap_next;
     loop {
-        let (start, span) = span_within(at, req.len, MMAP_LIMIT).ok_or(errno::ENOMEM)?;
+        let (start, span) = span_within(at, len, MMAP_LIMIT).ok_or(errno::ENOMEM)?;
         let end = start + span;
         let past = guest
             .regions
@@ -64,7 +71,7 @@ pub fn place(guest: &Guest, req: &MapReq) -> Result<Place, i64> {
             .map(|r| r.at.saturating_add(r.len))
             .max();
         match past {
-            None => return Ok(Place { at: start, span, from_cursor: true }),
+            None => return Ok((start, span)),
             Some(next) => at = page_up(next),
         }
     }
