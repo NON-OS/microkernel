@@ -21,7 +21,7 @@ use crate::directory::microdesc::{parse, pieces};
 use crate::trace;
 
 use super::batch::{batch_at, batch_count, batch_entries};
-use super::http::fetch;
+use super::dir_job::{turn, Turn};
 use super::state::Manager;
 
 pub(super) struct Batch {
@@ -38,22 +38,27 @@ pub(super) struct Batch {
 pub(super) fn gather_one(state: &mut Manager) -> Batch {
     let total = batch_count(&state.entries);
     let Some((address, dir_port, path)) =
-        batch_at(&state.entries, state.authority_cursor, state.micro_cursor)
+        batch_at(&state.entries, state.authority_cursor, state.dir.micro)
     else {
         return Batch { added: 0, last: true };
     };
-    let last = state.micro_cursor + 1 >= total;
-    let asked = state.micro_cursor;
-    state.micro_cursor += 1;
-    let Some(body) = fetch(state.tcp_port, address, dir_port, &path) else {
+    let body = match turn(state, address, dir_port, &path) {
+        Turn::Busy => return Batch { added: 0, last: false },
+        Turn::Got(body) => Some(body),
+        Turn::Missed => None,
+    };
+    let last = state.dir.micro + 1 >= total;
+    let asked = state.dir.micro;
+    state.dir.micro += 1;
+    let Some(body) = body else {
         return Batch { added: 0, last };
     };
     let mut added = 0usize;
     for (from, to) in pieces(&body) {
         let piece = &body[from..to];
         let Ok(digest) = sha256(piece) else { continue };
-        // Only the digests this request asked for. Accepting one from any batch is a
-        // looser rule than the one wanted: an answer should contain what was asked.
+        /* Only the digests this request asked for: an answer should contain
+         * what was asked, not whatever any batch named. */
         if !batch_entries(&state.entries, asked).iter().any(|e| e.microdesc_digest == digest) {
             continue;
         }

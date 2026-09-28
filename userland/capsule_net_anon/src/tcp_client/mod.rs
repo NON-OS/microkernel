@@ -40,6 +40,6 @@ mod state;
 mod wait;
 
 pub use ops::{close, connect, recv};
-pub use send::send_all;
-pub use state::state;
+pub use send::{send_all, send_some};
+pub use state::{state, CLOSED, ESTABLISHED, SYN_RECEIVED, SYN_SENT};
 pub use wait::wait_established;

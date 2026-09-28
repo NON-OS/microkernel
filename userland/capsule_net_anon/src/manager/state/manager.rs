@@ -28,6 +28,7 @@ use crate::link::Link;
 use crate::path::{Relay, Weights};
 use crate::stream::Stream;
 
+use super::super::dir_job::DirWork;
 use super::super::guard::Guard;
 use super::bootstrap::Bootstrap;
 
@@ -47,8 +48,8 @@ pub struct Manager {
     /// Microdescriptors that have arrived and matched a digest the consensus
     /// named, keyed by that digest.
     pub micro: Vec<([u8; 32], Microdesc)>,
-    /// Which request of the batch list is next, so one goes out per turn.
-    pub micro_cursor: usize,
+    /// The directory fetch in flight and where each sweep stands.
+    pub dir: DirWork,
     /// Relays with both directory halves present, so every one is usable.
     pub relays: Vec<Relay>,
     pub weights: Weights,

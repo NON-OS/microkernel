@@ -19,7 +19,7 @@
 use crate::directory::consensus::is_stale;
 use crate::trace;
 
-use super::dir_certs::gather as gather_certs;
+use super::dir_certs::sweep as sweep_certs;
 use super::dir_join;
 use super::dir_load::load;
 use super::state::{Bootstrap, Manager};
@@ -31,14 +31,14 @@ use super::state::{Bootstrap, Manager};
  * the life of the boot. Here nothing advances until the stage after it has
  * something real, and Ready is only reached with a path actually drawable.
  *
- * One fetch per turn, never a run of them. Every fetch is a TCP connection this
- * capsule waits on, and the turn it happens in is the turn the link and the
- * circuits do not get.
+ * One step of one fetch per turn, and no waiting inside a turn: the turn a
+ * fetch waits in is the turn the link, the circuits and every caller of the
+ * service do not get.
  */
 /*
  * How long to wait before trying the directory again after a stage got nowhere.
- * Short enough that a lease arriving is acted on promptly, long enough that seven
- * instant refusals per turn stop being a busy loop. The manager's clock is in
+ * Short enough that a lease arriving is acted on promptly, long enough that a
+ * sweep of seven instant refusals does not restart at once. The manager's clock is in
  * whole seconds (server::runner::seconds), so this is one second; it was
  * written as 750 against that clock and waited twelve and a half minutes.
  */
@@ -61,8 +61,8 @@ pub fn tick(state: &mut Manager, now: u64) {
 }
 
 fn anchor(state: &mut Manager, now: u64) {
-    let certs = gather_certs(state.tcp_port, now);
-    if certs.is_empty() {
+    let Some(anchored) = sweep_certs(state, now) else { return };
+    if !anchored {
         /*
          * Nothing anchored. Before the lease that is every authority refusing
          * instantly, and nothing about the answer can change until the stack has
@@ -71,6 +71,5 @@ fn anchor(state: &mut Manager, now: u64) {
         state.retry_after = now.saturating_add(RETRY_SECONDS);
         return;
     }
-    state.certs = certs;
     state.bootstrap = Bootstrap::Anchored;
 }
