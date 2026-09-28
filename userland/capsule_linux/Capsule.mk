@@ -31,11 +31,12 @@ CAPSULE_FEATURE          := nonos-capsule-linux
 CAPSULE_NAMESPACE        := systems.nonos.app.linux
 CAPSULE_SERVICE_ENDPOINT := service:4936:app.linux
 CAPSULE_REPLY_ENDPOINT   := reply:4937:endpoint.app.linux.reply
-# The install and run roles (src/userspace/capsule_linux/roles.rs) answer on
-# their own endpoints. The spawn gate refuses any endpoint the signed manifest
-# does not list, so without these every store install and every run of an
-# installed package was refused before the capsule started.
-CAPSULE_INSTANCE_ENDPOINTS := service:4938:app.linux.install reply:4939:endpoint.app.linux.install.reply service:4942:app.linux.run reply:4943:endpoint.app.linux.run.reply
+# The install, run and terminal roles (src/userspace/capsule_linux/roles.rs)
+# answer on their own endpoints. The spawn gate refuses any endpoint the signed
+# manifest does not list, so without these every store install, every run of
+# an installed package and every `linux` command in the terminal was refused
+# before the capsule started.
+CAPSULE_INSTANCE_ENDPOINTS := service:4938:app.linux.install reply:4939:endpoint.app.linux.install.reply service:4942:app.linux.run reply:4943:endpoint.app.linux.run.reply service:5100:app.linux.term reply:5101:endpoint.app.linux.term.reply
 CAPSULE_REQUIRED_CAPS    := 0x300001939
 # Network (bit 2) is optional: only the install role asks for it, to reach a
 # package mirror through net.sockets (roles.rs). A guest runs without it.
