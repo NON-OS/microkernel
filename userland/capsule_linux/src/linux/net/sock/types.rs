@@ -19,28 +19,10 @@
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
-use super::name::{Peer, UName};
+use super::name::{Gram, UName};
 use super::opts::Opts;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Proto {
-    Stream,
-    Dgram,
-}
-
-/// AF_INET, or AF_UNIX for the two ends socketpair makes.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Domain {
-    Inet,
-    Unix,
-}
-
-/// An IPv4 address and a port, the port in host order.
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
-pub struct Addr {
-    pub ip: [u8; 4],
-    pub port: u16,
-}
+pub use super::kinds::{Addr, Domain, Proto};
 
 pub struct Sock {
     pub domain: Domain,
@@ -60,8 +42,8 @@ pub struct Sock {
     pub connected: bool,
     /// Bytes the peer wrote that this end has not read.
     pub rx: VecDeque<u8>,
-    /// Datagrams waiting to be read, each with where it came from.
-    pub grams: VecDeque<(Peer, Vec<u8>)>,
+    /// Datagrams waiting to be read.
+    pub grams: VecDeque<Gram>,
     /// The peer will write nothing more: it shut its side or it is gone.
     pub eof: bool,
     pub wr_shut: bool,

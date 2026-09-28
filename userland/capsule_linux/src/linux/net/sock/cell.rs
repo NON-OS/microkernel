@@ -24,8 +24,10 @@ use super::table::Socks;
 
 struct One(RefCell<Socks>);
 
-// SAFETY: the serve loop is the only thread in this capsule that reaches the
-// table; guest threads run in their own processes and only trap into it.
+/*
+ * SAFETY: the serve loop is the only thread in this capsule that reaches the
+ * table; guest threads run in their own processes and only trap into it.
+ */
 unsafe impl Sync for One {}
 
 static TABLE: One = One(RefCell::new(Socks::new()));

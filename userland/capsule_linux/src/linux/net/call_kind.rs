@@ -17,10 +17,11 @@
 //! What kind of wait a socket call makes: its flags, and whether a
 //! blocking one waits until it has moved everything.
 
-use crate::linux::abi::nr;
+use crate::linux::abi::{errno, nr};
+use crate::linux::guest::Guest;
 
 use super::flags::{MSG_DONTWAIT, MSG_WAITALL};
-use super::mmsg;
+use super::{iov, mmsg};
 
 /// The call's flags, where it has them.
 pub fn flags(n: u64, a: [u64; 6]) -> u64 {
@@ -41,4 +42,20 @@ pub fn wants_all(stream: bool, n: u64, flags: u64) -> bool {
         nr::RECVMMSG => flags & (mmsg::MSG_WAITFORONE | MSG_DONTWAIT) == 0,
         _ => false,
     }
+}
+
+/// A receive's answer: the count, or the errno.
+pub(super) fn bytes_in(guest: &Guest, id: u32, v: &iov::Iov, done: usize, flags: u64) -> u64 {
+    match super::xfer_in::recv(guest, id, v, done, flags) {
+        Ok(got) => errno::ok(got.n as u64),
+        Err(e) => e,
+    }
+}
+
+/// The bytes a msghdr's iovecs ask for.
+pub(super) fn msg_len(guest: &Guest, msg: u64) -> usize {
+    let word = |at: u64| {
+        guest.read(at, 8).map_or(0, |b| u64::from_le_bytes(b.try_into().unwrap_or([0; 8])))
+    };
+    iov::read(guest, word(msg + 16), word(msg + 24)).map_or(0, |v| iov::total(&v))
 }

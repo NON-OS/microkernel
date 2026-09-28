@@ -20,8 +20,6 @@
 //! accept. Until then the socket is not writable, and a second connect is
 //! EALREADY.
 
-use crate::linux::abi::errno::ECONNREFUSED;
-
 use super::table::Socks;
 
 impl Socks {
@@ -50,16 +48,6 @@ impl Socks {
             if let Some(cs) = self.get_mut(c) {
                 cs.connecting = false;
                 self.join(c, l);
-            }
-        }
-    }
-
-    /// Listener `l` is gone: the connects waiting on it are refused.
-    pub fn refuse_waiting(&mut self, syn: impl Iterator<Item = u32>) {
-        for c in syn {
-            if let Some(cs) = self.get_mut(c) {
-                cs.connecting = false;
-                cs.error = ECONNREFUSED;
             }
         }
     }

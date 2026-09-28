@@ -20,8 +20,8 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::fd::sock_of;
-use super::sock;
+use crate::linux::net::fd::sock_of;
+use crate::linux::net::sock;
 
 pub fn getsockopt(guest: &Guest, fd: u64, level: u64, name: u64, val: u64, lenp: u64) -> u64 {
     let id = match sock_of(guest, fd) {
@@ -35,7 +35,7 @@ pub fn getsockopt(guest: &Guest, fd: u64, level: u64, name: u64, val: u64, lenp:
     if room < 0 {
         return errno::fail(errno::EINVAL);
     }
-    let value = sock::with(|t| t.get_mut(id).map(|s| super::opt_value::value(s, level, name)));
+    let value = sock::with(|t| t.get_mut(id).map(|s| super::value::value(s, level, name)));
     let bytes = match value {
         Some(Ok(bytes)) => bytes,
         Some(Err(e)) => return e,
@@ -53,5 +53,5 @@ pub fn getsockopt(guest: &Guest, fd: u64, level: u64, name: u64, val: u64, lenp:
 /// program may depend on it, and Linux would have kept it.
 pub fn unknown(call: &str, level: u64, name: u64) -> u64 {
     let what = alloc::format!("{call} level {level} option {name}: not kept for a guest socket");
-    super::policy::refuse(&what, errno::ENOPROTOOPT)
+    crate::linux::net::policy::refuse(&what, errno::ENOPROTOOPT)
 }

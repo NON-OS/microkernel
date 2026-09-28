@@ -28,16 +28,13 @@ impl Socks {
     /// The next datagram, cut to `want`, with its whole length and sender.
     pub fn take_gram(&mut self, id: u32, want: usize, peek: bool) -> Result<Got, i64> {
         let s = self.get_mut(id).ok_or(EBADF)?;
-        if let Some((from, gram)) = s.grams.front() {
-            let got = Got {
-                bytes: gram[..want.min(gram.len())].to_vec(),
-                whole: gram.len(),
-                from: from.clone(),
-            };
+        if let Some(g) = s.grams.front() {
+            let (bytes, whole, from) =
+                (g.bytes[..want.min(g.bytes.len())].to_vec(), g.bytes.len(), g.from.clone());
             if !peek {
                 s.grams.pop_front();
             }
-            return Ok(got);
+            return Ok(Got { bytes, whole, from });
         }
         if s.error != 0 {
             return Err(mem::take(&mut s.error));

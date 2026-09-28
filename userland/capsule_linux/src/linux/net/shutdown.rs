@@ -48,15 +48,9 @@ pub fn shutdown(guest: &Guest, fd: u64, how: u64) -> u64 {
             );
         }
         if s.listening {
-            // Shutting a listener's reading side stops it listening.
+            /* Shutting a listener's reading side stops it listening. */
             if rd {
-                s.listening = false;
-                let (queued, waiting) =
-                    (core::mem::take(&mut s.pending), core::mem::take(&mut s.syn));
-                for q in queued {
-                    t.free(q, true);
-                }
-                t.refuse_waiting(waiting.into_iter());
+                t.unlisten(id);
             }
             return errno::ok(0);
         }
@@ -67,7 +61,7 @@ pub fn shutdown(guest: &Guest, fd: u64, how: u64) -> u64 {
         s.rd_shut |= rd;
         s.wr_shut |= wr;
         let peer = s.peer;
-        // The peer reads end of file once it has what was already sent.
+        /* The peer reads end of file once it has what was already sent. */
         if let Some(p) = peer.filter(|_| wr).and_then(|p| t.get_mut(p)) {
             p.eof = true;
         }

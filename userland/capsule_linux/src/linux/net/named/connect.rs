@@ -19,13 +19,14 @@
 //! itself (`unix`); every other name is the family's own.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Fd, Guest};
+use crate::linux::guest::Guest;
+use crate::linux::net::sock::{self, Link, Proto};
+use crate::linux::net::sockaddr::{self, AF_UNSPEC};
 use crate::linux::unix;
 
-use super::sock::{self, Link, Proto};
-use super::sockaddr::{self, AF_UNIX, AF_UNSPEC};
-use super::sockaddr_un::{self, UAddr};
-use super::unix_name::{find, resolve};
+use super::addr::{unix_addr, UAddr};
+use super::display::display;
+use super::name::{find, resolve};
 
 pub fn connect(guest: &mut Guest, fd: u64, id: u32, proto: Proto, at: u64, len: u64) -> u64 {
     if proto == Proto::Dgram && matches!(sockaddr::read(guest, at, len), Ok((AF_UNSPEC, _))) {
@@ -53,7 +54,7 @@ pub fn connect(guest: &mut Guest, fd: u64, id: u32, proto: Proto, at: u64, len: 
         match proto {
             Proto::Stream if s.connected => Err(errno::EISCONN),
             Proto::Stream if s.listening => Err(errno::EINVAL),
-            // A Unix connect completes in the caller's call, blocking or not.
+            /* A Unix connect completes in the caller's call, blocking or not. */
             Proto::Stream => match t.join(id, target) {
                 Link::Done => Ok(()),
                 Link::Full => Err(errno::EAGAIN),
@@ -66,23 +67,4 @@ pub fn connect(guest: &mut Guest, fd: u64, id: u32, proto: Proto, at: u64, len: 
         }
     })
     .map_or_else(errno::fail, |()| errno::ok(0))
-}
-
-pub fn unix_addr(guest: &Guest, at: u64, len: u64) -> Result<UAddr, u64> {
-    match sockaddr::read(guest, at, len)? {
-        (AF_UNIX, _) => sockaddr_un::read(guest, at, len),
-        _ => Err(errno::fail(errno::EINVAL)),
-    }
-}
-
-/// Let go of the family socket and make `fd` the display connection.
-fn display(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
-    super::close::close(guest, fd);
-    if let Some(f) = guest.fds.get_mut(fd as usize) {
-        let (cloexec, nonblock) = (f.cloexec, f.nonblock);
-        *f = Fd::unix();
-        f.cloexec = cloexec;
-        f.nonblock = nonblock;
-    }
-    unix::connect(guest, fd, at, len)
 }

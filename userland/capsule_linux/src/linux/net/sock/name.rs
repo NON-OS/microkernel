@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A Unix socket's name, and who a message came from.
+//! A Unix socket's name, who a message came from, and a datagram.
 
 use alloc::vec::Vec;
 
@@ -42,4 +42,10 @@ impl UName {
 pub enum Peer {
     Inet(Addr),
     Unix(Option<UName>),
+}
+
+/// A datagram waiting to be read, with its sender.
+pub struct Gram {
+    pub from: Peer,
+    pub bytes: Vec<u8>,
 }

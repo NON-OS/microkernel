@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Bytes into a guest from a socket.
+//! Bytes into a guest from a family socket or a stream net.sockets holds.
 
 use alloc::vec;
 
@@ -50,26 +50,12 @@ pub fn recv(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64) -> Resul
         iov::scatter(guest, iov, skip, &bytes)?;
         return Ok(In { n: bytes.len(), whole: bytes.len(), from: None });
     }
-    match proto {
-        Proto::Stream => {
-            let bytes = sock::with(|t| t.read(id, want, peek)).map_err(errno::fail)?;
-            // A stream's MSG_TRUNC discards what it would have read.
-            if flags & MSG_TRUNC == 0 {
-                iov::scatter(guest, iov, skip, &bytes)?;
-            }
-            Ok(In { n: bytes.len(), whole: bytes.len(), from: None })
-        }
-        Proto::Dgram => {
-            let got = sock::with(|t| t.take_gram(id, want, peek)).map_err(errno::fail)?;
-            iov::scatter(guest, iov, skip, &got.bytes)?;
-            // A socketpair's peer has no name, and Linux gives none.
-            let from = match got.from {
-                Peer::Unix(None) => None,
-                named => Some(named),
-            };
-            Ok(In { n: got.bytes.len(), whole: got.whole, from })
-        }
+    let (bytes, whole, from) = sock::with(|t| t.take(id, want, peek)).map_err(errno::fail)?;
+    /* A stream's MSG_TRUNC discards what it would have read. */
+    if proto != Proto::Stream || flags & MSG_TRUNC == 0 {
+        iov::scatter(guest, iov, skip, &bytes)?;
     }
+    Ok(In { n: bytes.len(), whole, from })
 }
 
 /// `read` on a socket.

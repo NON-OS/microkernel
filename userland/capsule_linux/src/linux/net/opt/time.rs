@@ -19,7 +19,7 @@
 
 use crate::linux::abi::errno;
 
-use super::sock::{self, Opts};
+use crate::linux::net::sock::{self, Opts};
 
 /// A keepalive time or count, 1 up to Linux's most, else EINVAL.
 pub fn keep(slot: &mut u32, v: u32, most: u32) -> u64 {

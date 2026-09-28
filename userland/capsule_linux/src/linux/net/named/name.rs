@@ -24,8 +24,8 @@ use crate::linux::abi::errno;
 use crate::linux::file;
 use crate::linux::guest::Guest;
 
-use super::sock::{self, Domain, Proto, UName};
-use super::sockaddr_un::UAddr;
+use super::addr::UAddr;
+use crate::linux::net::sock::{self, Domain, Proto, UName};
 
 /// The name `ua` means for this guest; None asks for one to be chosen.
 pub fn resolve(guest: &Guest, ua: &UAddr) -> Option<UName> {
@@ -43,8 +43,10 @@ pub fn resolve(guest: &Guest, ua: &UAddr) -> Option<UName> {
 /// The family socket of kind `proto` bound to `name`, the one a connect or
 /// a send reaches: a stream's must listen. Otherwise Linux's answer.
 pub fn find(name: &UName, proto: Proto) -> Result<u32, i64> {
-    // An accepted connection carries its listener's name, as on Linux; the
-    // listener is the one a connect reaches.
+    /*
+     * An accepted connection carries its listener's name, as on Linux; the
+     * listener is the one a connect reaches.
+     */
     let found = sock::with(|t| {
         let named =
             || t.iter().filter(|(_, s)| s.domain == Domain::Unix && s.uname.as_ref() == Some(name));

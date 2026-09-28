@@ -38,14 +38,16 @@ pub fn loopback(id: u32, to: Addr, nonblock: bool) -> u64 {
             return errno::fail(e);
         }
         let linked = t.link(id, to);
-        // A full listener keeps a non-blocking connect until accept makes
-        // room, as Linux's SYN_SENT does.
+        /*
+         * A full listener keeps a non-blocking connect until accept makes
+         * room, as Linux's SYN_SENT does.
+         */
         let from = t.get(id).and_then(|s| s.local).map_or(0, |a| a.port);
         if let (Link::Full, true, Some(l)) = (&linked, nonblock, t.listener(to, from)) {
             t.wait_room(id, l);
             return errno::fail(errno::EINPROGRESS);
         }
-        // A connect that fails gives back the port it bound.
+        /* A connect that fails gives back the port it bound. */
         if !matches!(linked, Link::Done) && bound_here {
             if let Some(s) = t.get_mut(id) {
                 s.local = None;

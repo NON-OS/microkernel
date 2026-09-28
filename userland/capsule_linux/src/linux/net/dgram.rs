@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `sendto` and `recvfrom`, which differ from write and read only in
-//! carrying an address.
+//! `sendto`, which differs from write only in carrying an address.
 
 use alloc::vec;
 
@@ -64,28 +63,6 @@ pub fn sendto(
     super::resolver::query(guest, fd, buf, len, to)
 }
 
-pub fn recvfrom(
-    guest: &mut Guest,
-    fd: u64,
-    buf: u64,
-    len: u64,
-    flags: u64,
-    at: u64,
-    alen: u64,
-) -> u64 {
-    if is_resolver(guest, fd) {
-        return super::resolver::answer(guest, fd, buf, len, at, alen);
-    }
-    let id = match sock_of(guest, fd) {
-        Ok(id) => id,
-        Err(e) => return e,
-    };
-    match super::xfer_in::recv(guest, id, &vec![(buf, len)], 0, flags) {
-        Ok(got) => super::peer_addr::finish(guest, got, flags, at, alen),
-        Err(e) => e,
-    }
-}
-
-fn is_resolver(guest: &Guest, fd: u64) -> bool {
+pub(super) fn is_resolver(guest: &Guest, fd: u64) -> bool {
     guest.fds.get(fd as usize).is_some_and(|f| f.kind == Kind::Resolver)
 }

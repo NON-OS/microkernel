@@ -21,11 +21,11 @@
 
 use crate::linux::abi::errno;
 
-use super::opt_ids::{
+use super::ids::{
     IPPROTO_IP, IPPROTO_TCP, IP_TOS, IP_TTL, SOL_SOCKET, SO_PRIORITY, TCP_FASTOPEN, TCP_QUICKACK,
     TCP_USER_TIMEOUT,
 };
-use super::sock::{More, Proto};
+use crate::linux::net::sock::{More, Proto};
 
 /// Linux's net.ipv4.ip_default_ttl.
 const DEFAULT_TTL: u32 = 64;

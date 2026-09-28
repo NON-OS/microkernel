@@ -31,9 +31,9 @@ pub fn dest(guest: &Guest, proto: Proto, domain: Domain, to: Option<To>) -> Resu
             return Err(errno::fail(errno::EAFNOSUPPORT))
         }
         (_, Some(To::Unix(ua))) => {
-            let found = super::unix_name::resolve(guest, &ua)
+            let found = super::named::resolve(guest, &ua)
                 .ok_or(errno::EINVAL)
-                .and_then(|name| super::unix_name::find(&name, Proto::Dgram));
+                .and_then(|name| super::named::find(&name, Proto::Dgram));
             match found {
                 Ok(t) => Dest::Sock(t),
                 Err(e) => return Err(errno::fail(e)),

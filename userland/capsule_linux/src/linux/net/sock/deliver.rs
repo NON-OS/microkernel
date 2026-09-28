@@ -14,35 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Answering for a guest: the loop, and the table it answers from.
+//! Bytes from one socket into the family: a stream's to its peer, a
+//! datagram to where `dest` says, binding the sender first as Linux does.
 
-mod answer;
-mod deliver;
-mod dispatch;
-mod family;
-mod family_futex;
-mod family_lend;
-mod family_reap;
-mod family_sleep;
-mod family_waits;
-mod loop_impl;
-mod pid_map;
-mod pid_ns;
-mod pid_out;
-mod refused;
-mod table;
-mod table_file;
-mod table_link;
-mod table_mem;
-mod table_net;
-mod table_proc;
-mod tally;
-mod unserved;
-mod waits;
-mod waits_fds;
-mod waits_sock;
-mod waits_sock_kind;
-mod waits_time;
+use super::gram_dest::Dest;
+use super::table::Socks;
+use super::types::Proto;
 
-pub use answer::Answer;
-pub use loop_impl::serve;
+impl Socks {
+    pub fn deliver(&mut self, id: u32, dest: Dest, bytes: &[u8]) -> Result<usize, i64> {
+        match self.get(id).map(|s| s.proto) {
+            Some(Proto::Stream) => self.write(id, bytes),
+            _ => self.autobind(id).and_then(|()| self.send_gram(id, dest, bytes)),
+        }
+    }
+}

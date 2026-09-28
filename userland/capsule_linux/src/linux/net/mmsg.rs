@@ -23,11 +23,9 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 use super::flags::MSG_DONTWAIT;
+use super::mmsg_each::each;
 use super::policy::refuse;
 
-/// struct mmsghdr on x86_64: a msghdr, then msg_len.
-const MMSGHDR: u64 = 64;
-const LEN_AT: u64 = 56;
 /// Linux's UIO_MAXIOV caps vlen.
 pub const MOST: u64 = 1024;
 pub const MSG_WAITFORONE: u64 = 0x10000;
@@ -48,30 +46,6 @@ pub fn recvmmsg(guest: &mut Guest, a: [u64; 6], skip: usize) -> u64 {
     let flags = a[3] & !MSG_WAITFORONE;
     each(guest, a, skip, |g, at, first| {
         let f = if first { flags } else { flags | MSG_DONTWAIT };
-        super::msg::recvmsg(g, a[0], at, f, 0)
+        super::msg_recv::recvmsg(g, a[0], at, f, 0)
     })
-}
-
-/// Run `one` on each message from `skip` until one fails: the count moved,
-/// or the first failure's errno when none was.
-fn each(
-    guest: &mut Guest,
-    a: [u64; 6],
-    skip: usize,
-    mut one: impl FnMut(&mut Guest, u64, bool) -> u64,
-) -> u64 {
-    let vlen = a[2].min(MOST);
-    let mut moved = 0u64;
-    for i in skip as u64..vlen {
-        let at = a[1] + i * MMSGHDR;
-        let got = one(guest, at, moved == 0);
-        let Some(n) = errno::slot(got) else {
-            return if moved == 0 { got } else { errno::ok(moved) };
-        };
-        if guest.write(at + LEN_AT, &(n as u32).to_le_bytes()) < 4 {
-            return if moved == 0 { errno::fail(errno::EFAULT) } else { errno::ok(moved) };
-        }
-        moved += 1;
-    }
-    errno::ok(moved)
 }

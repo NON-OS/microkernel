@@ -45,8 +45,10 @@ impl Socks {
             super::super::stream::close(h);
         }
         let reset = reset || !gone.rx.is_empty() || gone.opts.linger == (1, 0);
-        // A stream's peer points back; a connected Unix datagram socket
-        // points at this one alone. Either is told, and forgets the index.
+        /*
+         * A stream's peer points back; a connected Unix datagram socket
+         * points at this one alone. Either is told, and forgets the index.
+         */
         for p in self.list.iter_mut().flatten().filter(|p| p.peer == Some(id)) {
             p.peer = None;
             p.eof = true;

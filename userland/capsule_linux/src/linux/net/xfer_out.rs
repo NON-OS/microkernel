@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Bytes out of a socket: to a stream's peer, a datagram to the port it is
-//! sent to, or a stream outside the family through net.sockets.
+//! Bytes out of a socket: to a stream's peer, a datagram to the port or the
+//! Unix name it is sent to, or a stream outside the family through
+//! net.sockets.
 
 use alloc::vec;
 
@@ -27,12 +28,6 @@ use super::iov::{self, Iov};
 use super::peer_addr::To;
 use super::sock::{self, Proto};
 
-/// What one send takes from the guest at most: the default receive buffer
-/// of a stream's peer, so a single call can fill it.
-const STREAM_CAP: usize = 128 << 10;
-/// One byte past the largest datagram, so a larger one is seen and refused.
-const GRAM_CAP: usize = 65508;
-
 /// Send the message in `iov` from socket `id`, `skip` bytes of it having
 /// gone already: the count sent now, or an errno.
 pub fn send(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64, to: Option<To>) -> u64 {
@@ -43,11 +38,7 @@ pub fn send(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64, to: Opti
     else {
         return errno::fail(errno::EBADF);
     };
-    let cap = match (svc, proto) {
-        (Some(_), _) => super::stream::MAX_IO,
-        (None, Proto::Stream) => STREAM_CAP,
-        (None, Proto::Dgram) => GRAM_CAP,
-    };
+    let cap = super::cap::cap(svc.is_some(), proto == Proto::Stream);
     let bytes = match iov::gather(guest, iov, skip, cap) {
         Ok(b) => b,
         Err(e) => return e,
@@ -59,11 +50,7 @@ pub fn send(guest: &Guest, id: u32, iov: &Iov, skip: usize, flags: u64, to: Opti
         Ok(d) => d,
         Err(e) => return e,
     };
-    let sent = sock::with(|t| match proto {
-        Proto::Stream => t.write(id, &bytes),
-        Proto::Dgram => t.autobind(id).and_then(|()| t.send_gram(id, dest, &bytes)),
-    });
-    match sent {
+    match sock::with(|t| t.deliver(id, dest, &bytes)) {
         Ok(n) => errno::ok(n as u64),
         Err(e) => errno::fail(e),
     }

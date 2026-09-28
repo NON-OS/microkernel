@@ -21,9 +21,9 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 use super::flags::MSG_TRUNC;
+use super::named::UAddr;
 use super::sock::Addr;
 use super::sockaddr::{self, AF_INET, AF_UNIX};
-use super::sockaddr_un::UAddr;
 use super::xfer_in::In;
 
 /// The count a receive answers, with the sender written out. A stream has
@@ -57,7 +57,7 @@ pub fn address(guest: &Guest, at: u64, alen: u64) -> Result<Option<To>, u64> {
     }
     match sockaddr::read(guest, at, alen)? {
         (AF_INET, a) => Ok(Some(To::Inet(a))),
-        (AF_UNIX, _) => Ok(Some(To::Unix(super::sockaddr_un::read(guest, at, alen)?))),
+        (AF_UNIX, _) => Ok(Some(To::Unix(super::named::read_uaddr(guest, at, alen)?))),
         _ => Err(errno::fail(errno::EAFNOSUPPORT)),
     }
 }

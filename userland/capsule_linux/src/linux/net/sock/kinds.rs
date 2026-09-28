@@ -14,35 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Answering for a guest: the loop, and the table it answers from.
+//! What kind of socket, in which family, at which IPv4 address.
 
-mod answer;
-mod deliver;
-mod dispatch;
-mod family;
-mod family_futex;
-mod family_lend;
-mod family_reap;
-mod family_sleep;
-mod family_waits;
-mod loop_impl;
-mod pid_map;
-mod pid_ns;
-mod pid_out;
-mod refused;
-mod table;
-mod table_file;
-mod table_link;
-mod table_mem;
-mod table_net;
-mod table_proc;
-mod tally;
-mod unserved;
-mod waits;
-mod waits_fds;
-mod waits_sock;
-mod waits_sock_kind;
-mod waits_time;
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Proto {
+    Stream,
+    Dgram,
+}
 
-pub use answer::Answer;
-pub use loop_impl::serve;
+/// AF_INET, or AF_UNIX for the two ends socketpair makes.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Domain {
+    Inet,
+    Unix,
+}
+
+/// An IPv4 address and a port, the port in host order.
+#[derive(Clone, Copy, PartialEq, Eq, Default)]
+pub struct Addr {
+    pub ip: [u8; 4],
+    pub port: u16,
+}
+
+/// How a stream connect to a listener went.
+pub enum Link {
+    /// Connected; the listener has one more connection to accept.
+    Done,
+    /// Nothing listens there: Linux's loopback answers with a reset.
+    Refused,
+    /// The listener's queue is full.
+    Full,
+}

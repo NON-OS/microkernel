@@ -86,8 +86,6 @@ pub struct Guest {
     pub blocked: Vec<super::Blocked>,
     /// The image's symbolic links, read once and shared by the family.
     pub links: alloc::rc::Rc<super::Links>,
-    /// The pid this process holds family sockets under. Here, rather than
-    /// in the socket table, so that dropping a process that ends lets go of
-    /// what it held, as Linux closes an exiting process's descriptors.
+    /// Lets go of this process's family sockets when it is dropped (net::sock).
     pub sockets: crate::linux::net::sock::Holder,
 }

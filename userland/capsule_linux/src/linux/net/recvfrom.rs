@@ -14,35 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Answering for a guest: the loop, and the table it answers from.
+//! `recvfrom`: a read that says where the bytes came from.
 
-mod answer;
-mod deliver;
-mod dispatch;
-mod family;
-mod family_futex;
-mod family_lend;
-mod family_reap;
-mod family_sleep;
-mod family_waits;
-mod loop_impl;
-mod pid_map;
-mod pid_ns;
-mod pid_out;
-mod refused;
-mod table;
-mod table_file;
-mod table_link;
-mod table_mem;
-mod table_net;
-mod table_proc;
-mod tally;
-mod unserved;
-mod waits;
-mod waits_fds;
-mod waits_sock;
-mod waits_sock_kind;
-mod waits_time;
+use alloc::vec;
 
-pub use answer::Answer;
-pub use loop_impl::serve;
+use crate::linux::guest::Guest;
+
+use super::dgram::is_resolver;
+use super::fd::sock_of;
+
+pub fn recvfrom(
+    guest: &mut Guest,
+    fd: u64,
+    buf: u64,
+    len: u64,
+    flags: u64,
+    at: u64,
+    alen: u64,
+) -> u64 {
+    if is_resolver(guest, fd) {
+        return super::resolver::answer(guest, fd, buf, len, at, alen);
+    }
+    let id = match sock_of(guest, fd) {
+        Ok(id) => id,
+        Err(e) => return e,
+    };
+    match super::xfer_in::recv(guest, id, &vec![(buf, len)], 0, flags) {
+        Ok(got) => super::peer_addr::finish(guest, got, flags, at, alen),
+        Err(e) => e,
+    }
+}

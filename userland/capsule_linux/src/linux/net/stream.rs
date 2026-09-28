@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Bytes on a stream that reaches outside the family, through net.sockets.
 
 use alloc::vec::Vec;

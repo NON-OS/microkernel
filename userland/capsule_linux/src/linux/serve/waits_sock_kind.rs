@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which calls `waits_sock` takes, and which of its waits need a tick.
+//! Which calls `waits_sock` takes, which of its waits need a tick, and
+//! when a wait's time runs out.
 
 use crate::linux::abi::{nr, nr_path as np};
+use crate::linux::call::now_ms;
 use crate::linux::guest::{Blocked, Guest, Kind};
 use crate::linux::net;
+
+const CLOCK_MONOTONIC: u64 = 1;
 
 /// True for a call on a socket descriptor that may have to wait.
 pub fn takes(guest: &Guest, n: u64, fd: u64) -> bool {
@@ -45,4 +49,14 @@ pub fn takes(guest: &Guest, n: u64, fd: u64) -> bool {
 pub fn ticks(guest: &Guest, wait: &Blocked) -> bool {
     takes(guest, wait.nr, wait.args[0])
         && net::sock_id(guest, wait.args[0]).is_some_and(net::outside)
+}
+
+/// When a call's SO_RCVTIMEO or SO_SNDTIMEO runs out, if it has one.
+pub fn deadline(guest: &Guest, n: u64, fd: u64) -> Option<u64> {
+    let reads = !matches!(
+        n,
+        nr::WRITE | nr::WRITEV | nr::SENDTO | nr::SENDMSG | nr::SENDMMSG | nr::CONNECT
+    );
+    let limit = net::sock_id(guest, fd).and_then(|id| net::limit_ms(id, reads))?;
+    Some(now_ms(CLOCK_MONOTONIC).unwrap_or(0).saturating_add(limit))
 }

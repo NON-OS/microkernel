@@ -26,7 +26,7 @@ use super::sock::{self, Domain, Proto};
 use super::sockaddr::{self, is_loopback, AF_INET};
 
 pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
-    // This capsule is the nameserver, so its socket has nothing to reach.
+    /* This capsule is the nameserver, so its socket has nothing to reach. */
     if guest.fds.get(fd as usize).is_some_and(|f| f.kind == Kind::Resolver) {
         return errno::ok(0);
     }
@@ -42,7 +42,7 @@ pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
         return errno::fail(errno::EBADF);
     };
     match (proto, domain) {
-        (_, Domain::Unix) => super::unix_calls::connect(guest, fd, id, proto, at, len),
+        (_, Domain::Unix) => super::named::connect(guest, fd, id, proto, at, len),
         (Proto::Dgram, _) => super::connect_dgram::connect(guest, fd, id, family, to),
         _ if family != AF_INET => errno::fail(errno::EAFNOSUPPORT),
         _ if is_loopback(to.ip) => super::connect_lo::loopback(id, to, nonblock(guest, fd)),

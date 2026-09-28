@@ -53,7 +53,7 @@ pub fn socket(guest: &mut Guest, family: u64, kind: u64, protocol: u64) -> u64 {
             return refuse("SOCK_RAW: raw sockets reach below any confinement", errno::EPERM)
         }
         (SOCK_STREAM, Domain::Unix) => (Proto::Stream, PF_UNIX),
-        // Linux gives a raw Unix socket datagram semantics.
+        /* Linux gives a raw Unix socket datagram semantics. */
         (SOCK_DGRAM | SOCK_RAW, Domain::Unix) => (Proto::Dgram, PF_UNIX),
         (SOCK_SEQPACKET, Domain::Unix) => {
             return refuse(
@@ -63,8 +63,10 @@ pub fn socket(guest: &mut Guest, family: u64, kind: u64, protocol: u64) -> u64 {
         }
         _ => return errno::fail(errno::ESOCKTNOSUPPORT),
     };
-    // Anything but the type's own protocol, MPTCP included, is one this
-    // stack does not have; Go falls back to TCP on this answer.
+    /*
+     * Anything but the type's own protocol, MPTCP included, is one this
+     * stack does not have; Go falls back to TCP on this answer.
+     */
     if protocol != 0 && protocol != own {
         return errno::fail(errno::EPROTONOSUPPORT);
     }

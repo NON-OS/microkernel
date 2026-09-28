@@ -24,6 +24,7 @@ use alloc::vec;
 use crate::linux::abi::{errno, nr, nr_path as np};
 use crate::linux::guest::Guest;
 
+use super::call_kind::{bytes_in, msg_len};
 use super::{iov, mmsg};
 
 /// The answer, and the whole amount the call asks to move.
@@ -56,7 +57,9 @@ pub fn try_call(guest: &mut Guest, n: u64, a: [u64; 6], done: usize) -> (u64, us
             (super::xfer_out::send(guest, id, &one(a[1], a[2]), done, a[3], None), a[2] as usize)
         }
         nr::SENDMSG => (super::msg::sendmsg(guest, fd, a[1], a[2], done), msg_len(guest, a[1])),
-        nr::RECVMSG => (super::msg::recvmsg(guest, fd, a[1], a[2], done), msg_len(guest, a[1])),
+        nr::RECVMSG => {
+            (super::msg_recv::recvmsg(guest, fd, a[1], a[2], done), msg_len(guest, a[1]))
+        }
         nr::SENDMMSG => (mmsg::sendmmsg(guest, a, done), a[2].min(mmsg::MOST) as usize),
         nr::RECVMMSG => (mmsg::recvmmsg(guest, a, done), a[2].min(mmsg::MOST) as usize),
         nr::ACCEPT => (super::accept::accept4(guest, fd, a[1], a[2], 0), 0),
@@ -64,18 +67,4 @@ pub fn try_call(guest: &mut Guest, n: u64, a: [u64; 6], done: usize) -> (u64, us
         nr::CONNECT => (super::connect(guest, fd, a[1], a[2]), 0),
         _ => (errno::fail(errno::ENOSYS), 0),
     }
-}
-
-fn bytes_in(guest: &Guest, id: u32, v: &iov::Iov, done: usize, flags: u64) -> u64 {
-    match super::xfer_in::recv(guest, id, v, done, flags) {
-        Ok(got) => errno::ok(got.n as u64),
-        Err(e) => e,
-    }
-}
-
-fn msg_len(guest: &Guest, msg: u64) -> usize {
-    let word = |at: u64| {
-        guest.read(at, 8).map_or(0, |b| u64::from_le_bytes(b.try_into().unwrap_or([0; 8])))
-    };
-    iov::read(guest, word(msg + 16), word(msg + 24)).map_or(0, |v| iov::total(&v))
 }

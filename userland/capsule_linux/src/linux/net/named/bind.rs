@@ -17,16 +17,14 @@
 //! `bind` on a Unix socket: a path, which becomes a file as on Linux, an
 //! abstract name, or family alone, which asks for a name to be chosen.
 
-use alloc::vec::Vec;
-
 use crate::linux::abi::errno;
 use crate::linux::file;
 use crate::linux::guest::Guest;
 
-use super::sock::{self, UName};
-use super::sockaddr_un::UAddr;
-use super::unix_calls::unix_addr;
-use super::unix_name::resolve;
+use super::addr::{unix_addr, UAddr};
+use super::auto::fresh;
+use super::name::resolve;
+use crate::linux::net::sock;
 
 pub fn bind(guest: &Guest, id: u32, at: u64, len: u64) -> u64 {
     let ua = match unix_addr(guest, at, len) {
@@ -58,22 +56,11 @@ fn bind_name(guest: &Guest, id: u32, ua: &UAddr) -> u64 {
         if key.writable().is_err() {
             return errno::fail(errno::EROFS);
         }
-        // The store refuses a file whose directory is missing.
+        /* The store refuses a file whose directory is missing. */
         if file::store_write(&key, &[]).is_err() {
             return errno::fail(errno::ENOENT);
         }
     }
     sock::with(|t| t.get_mut(id).map(|s| s.uname = Some(name)));
     errno::ok(0)
-}
-
-/// Linux's autobind: a NUL and five hex digits, the first unused.
-fn fresh() -> Option<UName> {
-    (0u32..0x10_0000).find_map(|n| {
-        let mut key: Vec<u8> = alloc::vec![0];
-        key.extend_from_slice(alloc::format!("{n:05x}").as_bytes());
-        let name = UName { key: key.clone(), shown: key };
-        let used = sock::with(|t| t.iter().any(|(_, s)| s.uname.as_ref() == Some(&name)));
-        (!used).then_some(name)
-    })
 }

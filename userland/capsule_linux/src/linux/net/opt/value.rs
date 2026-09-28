@@ -20,8 +20,8 @@ use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
 
-use super::opt_ids::*;
-use super::sock::{Domain, Proto, Sock};
+use super::ids::*;
+use crate::linux::net::sock::{Domain, Proto, Sock};
 
 pub fn value(s: &mut Sock, level: u64, name: u64) -> Result<Vec<u8>, u64> {
     let o = s.opts;
@@ -52,17 +52,17 @@ pub fn value(s: &mut Sock, level: u64, name: u64) -> Result<Vec<u8>, u64> {
         (l, _) if s.domain == Domain::Unix && l != SOL_SOCKET => {
             Err(errno::fail(errno::EOPNOTSUPP))
         }
-        (IPPROTO_TCP, _) if !stream && super::opt_more::known(level, name) => {
+        (IPPROTO_TCP, _) if !stream && super::more::known(level, name) => {
             Err(errno::fail(errno::EOPNOTSUPP))
         }
-        (l, n) if super::opt_more::known(l, n) => int(super::opt_more::get(&o.more, l, n)),
-        // A datagram socket has no TCP options, and Linux says so this way.
+        (l, n) if super::more::known(l, n) => int(super::more::get(&o.more, l, n)),
+        /* A datagram socket has no TCP options, and Linux says so this way. */
         (IPPROTO_TCP, _) if !stream => Err(errno::fail(errno::EOPNOTSUPP)),
         (IPPROTO_TCP, TCP_NODELAY) => int(u32::from(o.nodelay)),
         (IPPROTO_TCP, TCP_KEEPIDLE) => int(o.keepidle),
         (IPPROTO_TCP, TCP_KEEPINTVL) => int(o.keepintvl),
         (IPPROTO_TCP, TCP_KEEPCNT) => int(o.keepcnt),
         (IPPROTO_IPV6, _) => Err(errno::fail(errno::EOPNOTSUPP)),
-        _ => Err(super::opt_get::unknown("getsockopt", level, name)),
+        _ => Err(super::get::unknown("getsockopt", level, name)),
     }
 }

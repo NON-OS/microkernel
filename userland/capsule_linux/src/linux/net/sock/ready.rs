@@ -30,7 +30,7 @@ const POLLRDHUP: u16 = 0x2000;
 pub fn bits(id: u32) -> Option<u16> {
     with(|t| {
         let s = t.get(id).filter(|s| s.svc.is_none())?;
-        // A stream is writable while its peer has room, or once it is gone.
+        /* A stream is writable while its peer has room, or once it is gone. */
         let room =
             s.peer.and_then(|p| t.get(p)).is_none_or(|p| p.rx.len() < p.opts.rcvbuf as usize);
         Some(of(s, room))
@@ -46,11 +46,11 @@ fn of(s: &Sock, room: bool) -> u16 {
     if s.listening {
         return err | if s.pending.is_empty() { 0 } else { POLLIN };
     }
-    // A connect waiting for room: SYN_SENT, neither readable nor writable.
+    /* A connect waiting for room: SYN_SENT, neither readable nor writable. */
     if s.connecting {
         return err;
     }
-    // Never connected, refused, or reset: Linux's TCP_CLOSE.
+    /* Never connected, refused, or reset: Linux's TCP_CLOSE. */
     if !s.connected || s.broken {
         let rd = if s.connected { POLLIN | POLLRDHUP } else { 0 };
         return err | rd | POLLOUT | POLLHUP;
@@ -66,6 +66,6 @@ fn of(s: &Sock, room: bool) -> u16 {
     if shut_rd && s.wr_shut {
         set |= POLLHUP;
     }
-    // After SHUT_WR a write fails at once, so Linux reports it writable.
+    /* After SHUT_WR a write fails at once, so Linux reports it writable. */
     set | if room || s.wr_shut { POLLOUT } else { 0 }
 }

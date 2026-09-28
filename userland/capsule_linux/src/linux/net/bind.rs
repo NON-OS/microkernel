@@ -30,7 +30,7 @@ pub fn bind(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
         Err(e) => return e,
     };
     if sock::with(|t| t.get(id).is_some_and(|s| s.domain == Domain::Unix)) {
-        return super::unix_bind::bind(guest, id, at, len);
+        return super::named::bind(guest, id, at, len);
     }
     let (family, mut want) = match sockaddr::read(guest, at, len) {
         Ok(v) => v,

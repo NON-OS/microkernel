@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `sendmsg` on a family socket: an iovec and an address.
+//! `recvmsg` on a family socket: bytes into an iovec, and the sender's
+//! address.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 use super::fd::sock_of;
-use super::msg_hdr::hdr;
-use super::policy::refuse;
+use super::flags::MSG_TRUNC;
+use super::msg_hdr::{hdr, CONTROLLEN_AT, FLAGS_AT, NAMELEN_AT};
 
-/// `skip` bytes of the message went in an earlier try of this same call.
-pub fn sendmsg(guest: &mut Guest, fd: u64, msg: u64, flags: u64, skip: usize) -> u64 {
+pub fn recvmsg(guest: &mut Guest, fd: u64, msg: u64, flags: u64, skip: usize) -> u64 {
     let id = match sock_of(guest, fd) {
         Ok(id) => id,
         Err(e) => return e,
@@ -33,20 +33,20 @@ pub fn sendmsg(guest: &mut Guest, fd: u64, msg: u64, flags: u64, skip: usize) ->
         Ok(h) => h,
         Err(e) => return e,
     };
-    if h.controllen != 0 {
-        return refuse(
-            "sendmsg control data on a family socket: SCM_RIGHTS is not carried yet",
-            errno::EINVAL,
-        );
-    }
-    let to = match super::peer_addr::address(guest, h.name, h.namelen) {
-        Ok(to) => to,
+    let got = match super::xfer_in::recv(guest, id, &h.iov, skip, flags) {
+        Ok(got) => got,
         Err(e) => return e,
     };
-    if let Some(super::peer_addr::To::Inet(a)) = &to {
-        if !super::sockaddr::is_loopback(a.ip) {
-            return super::policy::refuse_out("sendmsg", *a);
-        }
+    let cut = if got.whole > got.n { MSG_TRUNC as u32 } else { 0 };
+    let (name, lenp) = if h.name != 0 { (h.name, msg + NAMELEN_AT) } else { (0, 0) };
+    let value = super::peer_addr::finish(guest, got, flags, name, lenp);
+    if errno::slot(value).is_none() {
+        return value;
     }
-    super::xfer_out::send(guest, id, &h.iov, skip, flags, to)
+    if guest.write(msg + CONTROLLEN_AT, &0u64.to_le_bytes()) < 8
+        || guest.write(msg + FLAGS_AT, &cut.to_le_bytes()) < 4
+    {
+        return errno::fail(errno::EFAULT);
+    }
+    value
 }

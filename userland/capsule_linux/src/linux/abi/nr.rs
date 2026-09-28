@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Linux x86_64 syscall numbers, by family.
 
 pub use super::nr_high::*;

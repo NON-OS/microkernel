@@ -17,69 +17,33 @@
 //! A datagram into the family: to whichever socket holds the port or the
 //! Unix name it is sent to, or to a connected socket's peer.
 
-use core::mem;
-
-use crate::linux::abi::errno::{
-    EBADF, ECONNREFUSED, EDESTADDRREQ, EINVAL, EMSGSIZE, ENOTCONN, EPERM,
-};
+use crate::linux::abi::errno::{ECONNREFUSED, EPERM};
 
 use super::gram_dest::Dest;
-use super::name::Peer;
+use super::name::{Gram, Peer};
 use super::table::Socks;
 use super::types::Domain;
 
-/// The largest UDP payload IPv4 carries.
-const MAX_GRAM: usize = 65507;
-
 impl Socks {
     /// One datagram from `id`. One nobody holds the port of is dropped, as
-    /// on the wire; a connected sender learns of it as ECONNREFUSED on its
-    /// next call, which is what the ICMP reply does on Linux.
+    /// on the wire.
     pub fn send_gram(&mut self, id: u32, dest: Dest, bytes: &[u8]) -> Result<usize, i64> {
-        let s = self.get_mut(id).ok_or(EBADF)?;
-        if s.error != 0 {
-            return Err(mem::take(&mut s.error));
-        }
-        if bytes.len() > MAX_GRAM {
-            return Err(EMSGSIZE);
-        }
-        let from = match s.domain {
-            Domain::Inet => Peer::Inet(s.local.unwrap_or_default()),
-            Domain::Unix => Peer::Unix(s.uname.clone()),
+        let target = self.gram_target(id, dest, bytes.len())?;
+        let (Some(t), Some(from)) = (target, self.sender(id)) else {
+            return Ok(bytes.len());
         };
-        let (remote, peer, connected, domain) = (s.remote, s.peer, s.connected, s.domain);
-        let target = match (dest, domain) {
-            (Dest::Sock(t), Domain::Unix) => t,
-            (Dest::Default, Domain::Unix) => match peer {
-                Some(p) => p,
-                None if connected => return Err(ECONNREFUSED),
-                None => return Err(ENOTCONN),
-            },
-            (Dest::Inet(to), Domain::Inet) => match self.inet_target(id, to, remote.is_some()) {
-                Some(r) => r,
-                None => return Ok(bytes.len()),
-            },
-            (Dest::Default, Domain::Inet) => match remote {
-                Some(to) => match self.inet_target(id, to, true) {
-                    Some(r) => r,
-                    None => return Ok(bytes.len()),
-                },
-                None => return Err(EDESTADDRREQ),
-            },
-            _ => return Err(EINVAL),
-        };
-        let r = self.get_mut(target).ok_or(ECONNREFUSED)?;
-        // A connected Unix socket takes only from its peer, and says so.
-        if r.domain == Domain::Unix && r.peer.is_some_and(|p| p != id) && r.connected {
+        let r = self.get_mut(t).ok_or(ECONNREFUSED)?;
+        /* A connected Unix socket takes only from its peer, and says so. */
+        if r.domain == Domain::Unix && r.connected && r.peer.is_some_and(|p| p != id) {
             return Err(EPERM);
         }
-        let queued: usize = r.grams.iter().map(|(_, g)| g.len()).sum();
+        let queued: usize = r.grams.iter().map(|g| g.bytes.len()).sum();
         let wanted = match (&from, r.remote) {
             (Peer::Inet(a), Some(x)) => *a == x,
             _ => true,
         };
         if wanted && queued + bytes.len() <= r.opts.rcvbuf as usize {
-            r.grams.push_back((from, bytes.to_vec()));
+            r.grams.push_back(Gram { from, bytes: bytes.to_vec() });
         }
         Ok(bytes.len())
     }

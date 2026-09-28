@@ -14,35 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Answering for a guest: the loop, and the table it answers from.
+//! The name bind chooses when a Unix socket is given its family alone.
 
-mod answer;
-mod deliver;
-mod dispatch;
-mod family;
-mod family_futex;
-mod family_lend;
-mod family_reap;
-mod family_sleep;
-mod family_waits;
-mod loop_impl;
-mod pid_map;
-mod pid_ns;
-mod pid_out;
-mod refused;
-mod table;
-mod table_file;
-mod table_link;
-mod table_mem;
-mod table_net;
-mod table_proc;
-mod tally;
-mod unserved;
-mod waits;
-mod waits_fds;
-mod waits_sock;
-mod waits_sock_kind;
-mod waits_time;
+use alloc::vec::Vec;
 
-pub use answer::Answer;
-pub use loop_impl::serve;
+use crate::linux::net::sock::{self, UName};
+
+/// Linux's autobind: a NUL and five hex digits, the first unused.
+pub fn fresh() -> Option<UName> {
+    (0u32..0x10_0000).find_map(|n| {
+        let mut key: Vec<u8> = alloc::vec![0];
+        key.extend_from_slice(alloc::format!("{n:05x}").as_bytes());
+        let name = UName { key: key.clone(), shown: key };
+        let used = sock::with(|t| t.iter().any(|(_, s)| s.uname.as_ref() == Some(&name)));
+        (!used).then_some(name)
+    })
+}

@@ -35,12 +35,12 @@ pub fn listen(guest: &mut Guest, fd: u64, backlog: u64) -> u64 {
         match (s.proto, s.domain, s.local) {
             (Proto::Dgram, ..) => return errno::fail(errno::EOPNOTSUPP),
             _ if s.connected || s.svc.is_some() => return errno::fail(errno::EINVAL),
-            // A Unix socket must be bound first: Linux does not name it here.
+            /* A Unix socket must be bound first: Linux does not name it here. */
             (_, Domain::Unix, _) if s.uname.is_none() => return errno::fail(errno::EINVAL),
             (_, Domain::Unix, _) => {}
-            // Linux would bind 0.0.0.0 here, which is not the family's own.
+            /* Linux would bind 0.0.0.0 here, which is not the family's own. */
             (_, _, None) => return not_loopback("listen", Addr::default()),
-            // Listeners share an address only when each set SO_REUSEPORT.
+            /* Listeners share an address only when each set SO_REUSEPORT. */
             (_, _, Some(at))
                 if !s.listening
                     && t.iter().any(|(_, o)| {
@@ -55,7 +55,7 @@ pub fn listen(guest: &mut Guest, fd: u64, backlog: u64) -> u64 {
         }
         if let Some(s) = t.get_mut(id) {
             s.listening = true;
-            // An int, and somaxconn's 4096 is the most Linux keeps.
+            /* An int, and somaxconn's 4096 is the most Linux keeps. */
             s.backlog = (backlog as i32).clamp(0, 4096) as usize;
         }
         errno::ok(0)

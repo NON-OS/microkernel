@@ -14,34 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Socket calls that wait: accept, connect, the sends and receives, and a
-//! read or write on a socket. Each is tried at once; a blocking one that
-//! cannot finish is parked, and the family tries it again after every
-//! answer (`family_waits`). A family socket changes only in an answer, so
-//! it needs no tick; a stream net.sockets holds is looked at on one.
-//!
-//! SO_RCVTIMEO and SO_SNDTIMEO bound the wait, which then answers EAGAIN,
-//! or the count moved so far, as Linux does.
+//! Socket calls that wait. Each is tried at once; a blocking one that cannot
+//! finish is parked and tried again after every answer (`family_waits`).
+//! SO_RCVTIMEO and SO_SNDTIMEO bound the wait, which then answers EAGAIN, or
+//! the count moved so far, as Linux does.
 
-use crate::linux::abi::{errno, nr};
+use crate::linux::abi::errno;
 use crate::linux::call::now_ms;
 use crate::linux::guest::{Blocked, Guest};
 use crate::linux::net::{self, sock};
 
 use super::answer::Answer;
+use super::waits_sock_kind::deadline;
 pub use super::waits_sock_kind::{takes, ticks};
 
 const CLOCK_MONOTONIC: u64 = 1;
 const MSG_DONTWAIT: u64 = 0x40;
 
 pub fn io(guest: &mut Guest, tid: u32, n: u64, a: [u64; 6]) -> Answer {
-    let reads = !matches!(
-        n,
-        nr::WRITE | nr::WRITEV | nr::SENDTO | nr::SENDMSG | nr::SENDMMSG | nr::CONNECT
-    );
-    let limit = net::sock_id(guest, a[0]).and_then(|id| net::limit_ms(id, reads));
-    let deadline = limit.map(|ms| now_ms(CLOCK_MONOTONIC).unwrap_or(0).saturating_add(ms));
-    let wait = Blocked { tid, nr: n, args: a, deadline };
+    let wait = Blocked { tid, nr: n, args: a, deadline: deadline(guest, n, a[0]) };
     match attempt(guest, &wait) {
         Some(v) => Answer::value(v),
         None => {
@@ -72,7 +63,7 @@ pub fn attempt(guest: &mut Guest, wait: &Blocked) -> Option<u64> {
             total as u64
         }
         None if value == errno::fail(errno::EAGAIN) && blocking && !late => return None,
-        // What moved before an error or the time limit is what Linux answers.
+        /* What moved before an error or the time limit is what Linux answers. */
         None if done != 0 => done as u64,
         None => value,
     };

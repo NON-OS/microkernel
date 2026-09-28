@@ -28,10 +28,8 @@ use crate::linux::guest::Kind;
 use crate::linux::net::outside;
 
 const CLOCK_MONOTONIC: u64 = 1;
-/// How often a wait on a stream net.sockets holds is looked at again: its
-/// readiness changes with no call for the family to answer. A family socket
-/// changes only in an answer, after which every wait is tried, so it needs
-/// none. A timer is looked at when it fires.
+/// How often a wait on a stream net.sockets holds is looked at again; a family
+/// socket changes only in an answer. A timer is looked at when it fires.
 const TICK_MS: u64 = 10;
 
 impl Family {
@@ -76,9 +74,7 @@ impl Family {
                 if let Some(d) = wait.deadline {
                     keep(d.saturating_sub(now));
                 }
-                if super::waits_sock::ticks(g, wait) {
-                    keep(TICK_MS);
-                }
+                super::waits_sock::ticks(g, wait).then(|| keep(TICK_MS));
                 for fd in watched(g, wait) {
                     match g.fds.get(fd as usize) {
                         Some(f) if f.kind == Kind::Socket && outside(f.handle) => keep(TICK_MS),

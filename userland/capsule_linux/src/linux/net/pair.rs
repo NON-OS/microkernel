@@ -34,7 +34,7 @@ pub fn socketpair(guest: &mut Guest, family: u64, kind: u64, protocol: u64, out:
     }
     match family {
         f if f == u64::from(AF_UNIX) => {}
-        // Linux has no connected pair for the internet families.
+        /* Linux has no connected pair for the internet families. */
         f if f == u64::from(AF_INET) => return errno::fail(errno::EOPNOTSUPP),
         _ => return errno::fail(errno::EAFNOSUPPORT),
     }
@@ -60,7 +60,7 @@ pub fn socketpair(guest: &mut Guest, family: u64, kind: u64, protocol: u64, out:
     let mut pair = [0u8; 8];
     pair[..4].copy_from_slice(&(na as u32).to_le_bytes());
     pair[4..].copy_from_slice(&(nb as u32).to_le_bytes());
-    // Linux copies the pair out before it installs either descriptor.
+    /* Linux copies the pair out before it installs either descriptor. */
     if guest.write(out, &pair) < 8 {
         super::close::discard(guest, na as u64);
         super::close::discard(guest, nb as u64);

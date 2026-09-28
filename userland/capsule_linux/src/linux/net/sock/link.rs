@@ -17,17 +17,9 @@
 //! Joining two stream ends: a connect on loopback or to a Unix name, which
 //! Linux completes in the caller's own call, and socketpair.
 
+use super::kinds::Link;
 use super::table::Socks;
 use super::types::{Addr, Proto};
-
-pub enum Link {
-    /// Connected; the listener has one more connection to accept.
-    Done,
-    /// Nothing listens there: Linux's loopback answers with a reset.
-    Refused,
-    /// The listener's queue is full.
-    Full,
-}
 
 impl Socks {
     /// Connect stream `id`, already bound, to the listener at `to`.
@@ -45,7 +37,7 @@ impl Socks {
         let Some(ls) = self.get(l) else {
             return Link::Refused;
         };
-        // Linux queues one more than the backlog it was given.
+        /* Linux queues one more than the backlog it was given. */
         if ls.pending.len() > ls.backlog {
             return Link::Full;
         }
@@ -59,7 +51,7 @@ impl Socks {
             s.upeer = from_name;
             s.peer = Some(id);
             s.connected = true;
-            // An accepted socket starts with its listener's options.
+            /* An accepted socket starts with its listener's options. */
             s.opts = opts;
         }
         if let Some(c) = self.get_mut(id) {

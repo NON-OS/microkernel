@@ -21,6 +21,7 @@ use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
+use crate::linux::net::sockaddr::{self, AF_UNIX};
 
 /// sun_family and the 108 bytes of sun_path.
 const SOCKADDR_UN: u64 = 110;
@@ -40,10 +41,18 @@ pub fn read(guest: &Guest, at: u64, len: u64) -> Result<UAddr, u64> {
     Ok(match path.first() {
         None => UAddr::Auto,
         Some(0) => UAddr::Abstract(path[1..].to_vec()),
-        // A path ends at its first NUL, however long the guest said it was.
+        /* A path ends at its first NUL, however long the guest said it was. */
         Some(_) => {
             let end = path.iter().position(|&b| b == 0).unwrap_or(path.len());
             UAddr::Path(path[..end].to_vec())
         }
     })
+}
+
+/// The name a bind or connect gives: EINVAL for another family.
+pub fn unix_addr(guest: &Guest, at: u64, len: u64) -> Result<UAddr, u64> {
+    match sockaddr::read(guest, at, len)? {
+        (AF_UNIX, _) => read(guest, at, len),
+        _ => Err(errno::fail(errno::EINVAL)),
+    }
 }

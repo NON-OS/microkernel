@@ -14,35 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Answering for a guest: the loop, and the table it answers from.
+//! How many bytes one send takes from the guest.
 
-mod answer;
-mod deliver;
-mod dispatch;
-mod family;
-mod family_futex;
-mod family_lend;
-mod family_reap;
-mod family_sleep;
-mod family_waits;
-mod loop_impl;
-mod pid_map;
-mod pid_ns;
-mod pid_out;
-mod refused;
-mod table;
-mod table_file;
-mod table_link;
-mod table_mem;
-mod table_net;
-mod table_proc;
-mod tally;
-mod unserved;
-mod waits;
-mod waits_fds;
-mod waits_sock;
-mod waits_sock_kind;
-mod waits_time;
+/// What one send takes from the guest at most: the default receive buffer
+/// of a stream's peer, so a single call can fill it.
+const STREAM_CAP: usize = 128 << 10;
+/// One byte past the largest datagram, so a larger one is seen and refused.
+const GRAM_CAP: usize = 65508;
 
-pub use answer::Answer;
-pub use loop_impl::serve;
+/// The most one send gathers: what net.sockets carries in a call, a
+/// stream peer's default queue, or one byte past the largest datagram.
+pub fn cap(outside: bool, stream: bool) -> usize {
+    match (outside, stream) {
+        (true, _) => super::stream::MAX_IO,
+        (false, true) => STREAM_CAP,
+        (false, false) => GRAM_CAP,
+    }
+}
