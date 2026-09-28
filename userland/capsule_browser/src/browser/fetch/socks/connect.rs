@@ -16,6 +16,7 @@
 
 use crate::browser::fetch::socks::{next_phase, recv_some, response_len};
 use crate::browser::fetch::types::{Fetch, Phase};
+use crate::browser::net::mixnet;
 
 pub fn connect(port: u32, f: &mut Fetch) {
     recv_some::recv_some(port, f);
@@ -35,15 +36,7 @@ pub fn connect(port: u32, f: &mut Fetch) {
         // the bare fact of refusal. Each of these is a different thing to go and
         // look at, and on a machine with no console this line is the only place
         // the difference shows.
-        f.error = Some(match f.socks[1] {
-            0x01 => "mixnet: the request could not be built",
-            0x02 => "mixnet: refused by ruleset",
-            0x03 => "mixnet: no session, the mixnet is not connected",
-            0x04 => "mixnet: no exit for this destination",
-            0x05 => "mixnet: the gateway refused the request",
-            0x06 => "mixnet: expired in transit",
-            _ => "socks connect rejected",
-        });
+        f.error = Some(mixnet::chosen().refused(f.socks[1]));
         f.phase = Phase::Error;
         return;
     }

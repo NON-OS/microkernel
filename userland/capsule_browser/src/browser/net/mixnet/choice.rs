@@ -49,16 +49,7 @@ impl Network {
         match self {
             Network::Direct => None,
             Network::Nym => Some(b"net.socks5"),
-            Network::Anyone => Some(b"net.anon.socks5"),
-        }
-    }
-
-    /// Why a request was refused when the service is not registered.
-    pub fn absent(self) -> &'static str {
-        match self {
-            Network::Direct => "direct: net.sockets is not running",
-            Network::Nym => "mixnet: net.socks5 is not running, so nothing was sent",
-            Network::Anyone => "anyone: net.anon.socks5 is not running, so nothing was sent",
+            Network::Anyone => Some(b"net.anon"),
         }
     }
 }
