@@ -13,3 +13,7 @@ $(eval $(call LINUX_GUEST,cfiles,5020,5021,$(LINUX_GUESTS_C)/cfiles))
 $(LINUX_GUESTS_C)/cproc: $(wildcard $(LINUX_GUESTS_DIR)/c/cproc/*.[ch])
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $(filter %.c,$^)
 $(eval $(call LINUX_GUEST,cproc,5022,5023,$(LINUX_GUESTS_C)/cproc))
+
+# Go's os, io/fs and path/filepath with flock (goos); oracle as for cfiles.
+$(GO_OUT)/goos: $(wildcard $(LINUX_GUESTS_DIR)/go/goos/*.go)
+$(eval $(call LINUX_GUEST,goos,5024,5025,$(GO_OUT)/goos))
