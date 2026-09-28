@@ -41,6 +41,7 @@ mod draw_bias_tests;
 mod draw_tests;
 mod join_more_tests;
 mod join_tests;
+mod link_step_tests;
 mod microdesc_tests;
 mod ntor_tests;
 mod onion_fixture;

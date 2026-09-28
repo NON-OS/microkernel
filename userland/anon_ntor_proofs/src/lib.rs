@@ -37,6 +37,8 @@ pub mod directory;
 pub mod draw;
 #[path = "../../capsule_net_anon/src/ntor/inputs.rs"]
 pub mod inputs;
+#[path = "../../capsule_net_anon/src/link/step.rs"]
+pub mod link_step;
 #[path = "shim/ntor.rs"]
 pub mod ntor;
 #[path = "../../capsule_net_anon/src/crypto/sha1/mod.rs"]

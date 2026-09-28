@@ -28,6 +28,7 @@ mod pump;
 mod session;
 mod sni;
 mod socket;
+mod step;
 mod timing;
 mod tls_fault;
 mod versions;
