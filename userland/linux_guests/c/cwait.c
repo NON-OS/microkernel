@@ -2,9 +2,9 @@
 // eventfd read blocking until another thread writes, epoll_wait's timeout and
 // its wake from another thread, a non-blocking pipe and its end of file, a
 // write to a full pipe waiting for room, edge-triggered epoll, two readers
-// blocked on one pipe, poll, ppoll and select with their timeouts, and a
-// closed descriptor leaving epoll. Each part prints as it passes, so a hang
-// names the part it hung in.
+// blocked on one pipe, poll, ppoll and select with their timeouts, a closed
+// descriptor leaving epoll, and timerfd one-shot, periodic and absolute. Each
+// part prints as it passes, so a hang names the part it hung in.
 #define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
@@ -16,6 +16,7 @@
 #include <sys/select.h>
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
+#include <sys/timerfd.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -376,11 +377,63 @@ static int close_forgets(void) {
     return 0;
 }
 
+static int timers(void) {
+    int tf = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
+    uint64_t n = 0;
+    if (read(tf, &n, 8) != -1 || errno != EAGAIN) {
+        return fail("unarmed timer read", (long)n, errno);
+    }
+    struct itimerspec every = {{0, 50 * 1000000}, {0, 50 * 1000000}};
+    timerfd_settime(tf, 0, &every, 0);
+    nap_ms(180);
+    struct itimerspec now;
+    timerfd_gettime(tf, &now);
+    if (read(tf, &n, 8) != 8 || n < 3 || n > 4 || now.it_interval.tv_nsec != 50 * 1000000) {
+        return fail("periodic timer count", (long)n, now.it_interval.tv_nsec);
+    }
+    long periodic = (long)n;
+    close(tf);
+    tf = timerfd_create(CLOCK_MONOTONIC, 0);
+    struct itimerspec once = {{0, 0}, {0, 100 * 1000000}};
+    timerfd_settime(tf, 0, &once, 0);
+    long t0 = now_ms();
+    ssize_t got = read(tf, &n, 8);
+    long waited = now_ms() - t0;
+    if (got != 8 || n != 1 || waited < 90) {
+        return fail("blocking timer read", (long)n, waited);
+    }
+    struct timespec at;
+    clock_gettime(CLOCK_MONOTONIC, &at);
+    at.tv_nsec += 100 * 1000000;
+    if (at.tv_nsec >= 1000000000) {
+        at.tv_sec++;
+        at.tv_nsec -= 1000000000;
+    }
+    struct itimerspec abs = {{0, 0}, at};
+    timerfd_settime(tf, TFD_TIMER_ABSTIME, &abs, 0);
+    int ep = epoll_create1(0);
+    struct epoll_event ev = {.events = EPOLLIN, .data.u64 = 3};
+    epoll_ctl(ep, EPOLL_CTL_ADD, tf, &ev);
+    t0 = now_ms();
+    int ready = epoll_wait(ep, &ev, 1, -1);
+    long absolute = now_ms() - t0;
+    close(ep);
+    close(tf);
+    if (ready != 1 || absolute < 90 || absolute > 2000) {
+        return fail("absolute timer through epoll", ready, absolute);
+    }
+    printf("[C] cwait timerfd detail: periodic 50ms fired %ld times in 180ms, one-shot read waited %ld "
+           "ms, absolute +100ms woke epoll after %ld ms\n",
+           periodic, waited, absolute);
+    ok("timerfd", "periodic, one-shot blocking and absolute timers; periodic count", periodic);
+    return 0;
+}
+
 int main(void) {
     long t0 = now_ms();
     if (timed_futex() || broadcast() || eventfd_semaphore() || eventfd_blocking() ||
         epoll_timeout() || pipe_nonblock() || pipe_full() || edge() || two_readers() ||
-        poll_select() || close_forgets()) {
+        poll_select() || close_forgets() || timers()) {
         return 1;
     }
     printf("[C] cwait PASS: %d parts in %ld ms\n", parts, now_ms() - t0);
