@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The handlers behind each operation.
+//! Where a SOCKS frame leaves the serve loop.
 
-mod close;
-mod closed;
-mod open;
-mod path;
-mod recv;
-mod send;
-mod status;
+use nonos_libc::mk_ipc_reply;
 
-pub use close::{close_circuit, close_stream};
-pub use open::{not_ready, open};
-pub use path::circuit_path;
-pub use recv::recv;
-pub use send::send;
-pub use status::status;
+use crate::manager::Manager;
+
+use super::anyone::Anyone;
+use super::frame::is_socks;
+use super::front::Front;
+
+/// Answer `frame` from `pid` if it is a SOCKS frame. `false` leaves it to
+/// the API, whose requests open with the magic rather than 0, 1 or 2.
+pub fn answer(front: &mut Front, state: &mut Manager, now: u64, pid: u32, frame: &[u8]) -> bool {
+    if !is_socks(frame) {
+        return false;
+    }
+    let out = front.serve(&mut Anyone { state, now }, pid, frame);
+    let _ = mk_ipc_reply(pid, out.as_ptr(), out.len());
+    true
+}

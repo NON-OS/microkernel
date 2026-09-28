@@ -14,19 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The handlers behind each operation.
+//! How an answer to a SOCKS frame is marked.
 
-mod close;
-mod closed;
-mod open;
-mod path;
-mod recv;
-mod send;
-mod status;
+extern crate alloc;
 
-pub use close::{close_circuit, close_stream};
-pub use open::{not_ready, open};
-pub use path::circuit_path;
-pub use recv::recv;
-pub use send::send;
-pub use status::status;
+use alloc::vec::Vec;
+
+/// The tunnel is open; any bytes that follow are stream bytes.
+const REPLY_OPEN: u8 = 0;
+
+/// The conversation is over; any bytes that follow are the last of it.
+const REPLY_CLOSED: u8 = 1;
+
+/// An answer, marker first. The marker makes "nothing yet" a real answer:
+/// the kernel refuses an empty reply, and silence leaves the caller waiting
+/// out its timeout for an answer already known.
+pub fn encode(closed: bool, bytes: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(1 + bytes.len());
+    out.push(if closed { REPLY_CLOSED } else { REPLY_OPEN });
+    out.extend_from_slice(bytes);
+    out
+}

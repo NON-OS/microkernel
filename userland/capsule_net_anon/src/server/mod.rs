@@ -22,5 +22,6 @@ mod idle;
 mod parse_req;
 mod respond;
 mod runner;
+mod socks;
 
 pub use runner::run;

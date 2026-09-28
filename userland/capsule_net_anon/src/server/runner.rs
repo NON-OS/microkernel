@@ -25,39 +25,33 @@ use crate::manager::Manager;
 use crate::protocol::{E_BAD_OP, HDR_LEN, IPC_PAYLOAD_MAX};
 
 use super::dispatch::dispatch;
-use super::idle::idle;
+use super::idle::{idle_due, IDLE_MS};
 use super::parse_req::parse;
 use super::respond::respond;
+use super::socks::{answer, Front};
 
 const SERVICE_INBOX: u64 = 0;
-
-const IDLE_MS: u64 = 200;
 
 pub fn run(tcp_port: u32) -> ! {
     let mut state = Manager::new(tcp_port);
     let mut rx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut tx = vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
     let mut last_idle: i64 = 0;
+    let mut front = Front::default();
     loop {
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), IDLE_MS, &mut sender);
         let now = seconds();
-        /*
-         * The idle work is the transport itself: the directory, the link, the
-         * circuits, reading cells off the link and paying SENDMEs. It used to
-         * run only when no request came within IDLE_MS, so a caller polling a
-         * stream faster than that kept every cell it was waiting for unread.
-         * It now runs at least every IDLE_MS whatever the request traffic.
-         */
-        let ms = mk_time_millis();
-        if n <= 0 || sender == 0 || ms.wrapping_sub(last_idle) >= IDLE_MS as i64 {
-            idle(&mut state, now);
-            last_idle = ms;
-        }
-        if n <= 0 || sender == 0 {
+        let quiet = n <= 0 || sender == 0;
+        idle_due(&mut state, now, quiet, &mut last_idle);
+        if quiet {
             continue;
         }
-        match parse(&rx[..n as usize]) {
+        let frame = &rx[..n as usize];
+        if answer(&mut front, &mut state, now, sender, frame) {
+            continue;
+        }
+        match parse(frame) {
             Ok((req, body)) => {
                 let (errno, len) = dispatch(&mut state, &req, body, now, &mut tx);
                 respond(sender, req.op, errno, req.request_id, len, &mut tx);

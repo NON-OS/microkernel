@@ -57,5 +57,13 @@ mod sha1_running_tests;
 mod sha1_tests;
 mod sha256_more_tests;
 mod sha256_tests;
+#[path = "shim/socks.rs"]
+mod socks;
+mod socks_exit_tests;
+mod socks_fake;
+mod socks_frames;
+mod socks_handshake_tests;
+mod socks_limit_tests;
+mod socks_replay_tests;
 mod stream_rule_tests;
 mod stream_scope_tests;
