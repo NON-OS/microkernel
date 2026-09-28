@@ -43,6 +43,7 @@ mod start;
 mod start_guest;
 mod terminal;
 mod terminal_launch;
+mod terminal_path;
 mod unix;
 mod wayland;
 

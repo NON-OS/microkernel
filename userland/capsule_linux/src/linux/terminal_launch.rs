@@ -24,7 +24,7 @@ use alloc::vec::Vec;
 
 use super::launch::Launch;
 use super::origin::Origin;
-use crate::linux::file::{key, store_read, store_stat, visible};
+use crate::linux::file::{key, store_read, store_stat};
 use crate::linux::guest::Links;
 use crate::linux::say::say;
 
@@ -33,12 +33,8 @@ pub(super) fn launch(program: &[u8], mut args: Vec<Vec<u8>>, max: u32) -> Option
         say(b"[LINUX] the store never settled\n");
         return None;
     }
-    let named = match program.first() {
-        Some(b'/') => visible(b"/", program),
-        _ => visible(b"/bin", program),
-    };
     let links = Links::try_load();
-    let path = links.as_ref().map_or_else(|_| named.clone(), |l| l.follow(named.clone(), true));
+    let (named, path) = super::terminal_path::find(program, links.as_ref().ok());
     if path != named {
         let typed = named.rsplit(|b| *b == b'/').next().unwrap_or(&named);
         args.insert(0, typed.to_vec());
@@ -47,17 +43,19 @@ pub(super) fn launch(program: &[u8], mut args: Vec<Vec<u8>>, max: u32) -> Option
         Ok(bytes) => return Some(Launch { path, bytes, origin: Origin::Store, args }),
         Err(why) => why,
     };
+    /* A bare name was looked for along the whole PATH, not in one place. */
+    let shown = if program.contains(&b'/') { named.clone() } else { program.to_vec() };
     let line = match store_stat(&key(&path)) {
         Ok((size, _)) => {
             format!("linux: {} is there ({size} bytes) but unread: {why}\n", text(&path))
         }
         Err(_) => match nonos_app_skeleton::clients::vfs::store_status() {
-            Ok(0) => format!("linux: cannot find {} in the Linux tree\n", text(&named)),
+            Ok(0) => format!("linux: cannot find {} in the Linux tree\n", text(&shown)),
             Ok(code) => {
-                format!("linux: cannot find {}: the store reports error {code}\n", text(&named))
+                format!("linux: cannot find {}: the store reports error {code}\n", text(&shown))
             }
             Err(e) => {
-                format!("linux: cannot find {}: the store does not answer ({e})\n", text(&named))
+                format!("linux: cannot find {}: the store does not answer ({e})\n", text(&shown))
             }
         },
     };
