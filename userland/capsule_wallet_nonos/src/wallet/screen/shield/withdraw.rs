@@ -41,7 +41,7 @@ pub fn withdraw(state: &State, fb: &mut PaintBuffer) {
     hits::clear();
     let ui = &state.shield_ui;
     let status = super::status::parts(state);
-    let ready = ui.size.is_some();
+    let ready = super::check::withdraw_ready(ui);
     let footer = [("Review withdrawal", Weight::Primary, ready)];
     let spec = FrameSpec {
         number: "07",
@@ -63,6 +63,7 @@ pub fn withdraw(state: &State, fb: &mut PaintBuffer) {
     y += fact(fb, c.x, y, c.w, "relay fee", fee(ui.asset));
     y += fact(fb, c.x, y, c.w, "to", "a fresh address of this wallet");
     y += GAP / 2 + super::meter::meter(fb, c, y + GAP / 2, ui);
+    y += super::send_fields::early(fb, c, y, ui);
     hits::reach(y, state.scroll, l.content_bottom);
     end(fb, &spec, &mut l);
     super::edges::put(state, &l);

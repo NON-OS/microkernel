@@ -47,6 +47,10 @@ pub fn wait_ok(ui: &ShieldUi) -> bool {
     super::meter::waited(ui) || ui.override_text == OVERRIDE
 }
 
+pub fn withdraw_ready(ui: &ShieldUi) -> bool {
+    ui.size.is_some() && wait_ok(ui)
+}
+
 pub fn send_ready(ui: &ShieldUi) -> bool {
     address_ok(&ui.to) && amount_ok(&ui.amount) && wait_ok(ui)
 }

@@ -29,7 +29,8 @@ use crate::wallet::state::State;
 pub fn footer(state: &mut State, n: u8) -> EventOutcome {
     let screen = state.shield_ui.screen;
     match (screen, n) {
-        (SHIELD_DEPOSIT | SHIELD_WITHDRAW, 0) if state.shield_ui.size.is_some() => open(state),
+        (SHIELD_DEPOSIT, 0) if state.shield_ui.size.is_some() => open(state),
+        (SHIELD_WITHDRAW, 0) if super::check::withdraw_ready(&state.shield_ui) => open(state),
         (SHIELD_SEND, 0) if super::check::send_ready(&state.shield_ui) => open(state),
         (SHIELD_REVIEW, 0) => {
             if let Err(why) = super::request::submit(state) {

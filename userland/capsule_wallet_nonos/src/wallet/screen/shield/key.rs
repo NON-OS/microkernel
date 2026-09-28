@@ -29,13 +29,17 @@ const MAX_TO: usize = 4096;
 const MAX_SHORT: usize = 40;
 
 pub fn key(state: &mut State, code: u32) -> Option<EventOutcome> {
-    if state.view != VIEW_SHIELD || state.shield_ui.screen != SHIELD_SEND {
+    let screen = state.shield_ui.screen;
+    if state.view != VIEW_SHIELD || (screen != SHIELD_SEND && screen != SHIELD_WITHDRAW) {
         return None;
+    }
+    if screen == SHIELD_WITHDRAW {
+        state.shield_ui.focus = FIELD_OVERRIDE;
     }
     let early = !super::meter::waited(&state.shield_ui);
     let ui = &mut state.shield_ui;
     match code {
-        KEY_TAB => ui.focus = (ui.focus + 1) % if early { 3 } else { 2 },
+        KEY_TAB if screen == SHIELD_SEND => ui.focus = (ui.focus + 1) % if early { 3 } else { 2 },
         KEY_ENTER => return Some(super::footer::footer(state, 0)),
         KEY_BACKSPACE => {
             let _ = field(ui).pop();

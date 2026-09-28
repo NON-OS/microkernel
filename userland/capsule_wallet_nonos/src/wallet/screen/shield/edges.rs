@@ -16,8 +16,7 @@
 
 /*
  * The presses every Shield screen has in the same place: back in the bar,
- * and the dismiss control on a failure the shield service reported. The
- * absence banner has no dismiss; it goes away when a service answers.
+ * and the dismiss control on whichever banner is up.
  */
 
 use crate::wallet::etna::frame_spec::FrameLayout;
@@ -28,10 +27,8 @@ pub fn put(state: &State, l: &FrameLayout) {
     if let Some(back) = l.back {
         hits::put(Press::Back, back);
     }
-    if state.shield_ui.failure.is_some() {
-        if let Some(d) = l.dismiss {
-            hits::put(Press::Dismiss, d);
-        }
+    if let Some(d) = l.dismiss {
+        hits::put(Press::Dismiss, d);
     }
 }
 

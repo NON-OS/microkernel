@@ -60,4 +60,6 @@ pub struct ShieldUi {
     pub history: Vec<Entry>,
     pub job: Option<Job>,
     pub failure: Option<&'static str>,
+    /* The absence banner, dismissed until Shield is next opened. */
+    pub absent_hidden: bool,
 }

@@ -63,7 +63,7 @@ pub fn network(state: &State, fb: &mut PaintBuffer) {
     for (name, value) in
         [("pool", POOL), ("verifier", VERIFIER), ("faucet", FAUCET), ("relayer", RELAYER)]
     {
-        y += GAP / 2 + super::pick::label(fb, c, y + GAP / 2, name);
+        y += GAP / 2 + super::pick::label(fb, c, y + GAP / 2, &name.to_uppercase());
         y += value_block(fb, c.x, y, c.w, value);
     }
     hits::reach(y, state.scroll, l.content_bottom);

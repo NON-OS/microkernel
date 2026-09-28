@@ -38,6 +38,7 @@ pub fn banner(state: &State) -> Option<&'static str> {
     }
     match state.shield {
         Shield::Present => None,
+        Shield::Absent if state.shield_ui.absent_hidden => None,
         Shield::Absent => Some(ABSENT),
         Shield::Unknown => Some(LOOKING),
     }

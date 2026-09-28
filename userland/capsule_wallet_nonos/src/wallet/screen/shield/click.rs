@@ -30,6 +30,7 @@ use crate::wallet::state::{State, VIEW_HOME, VIEW_SHIELD};
 pub fn open(state: &mut State) -> EventOutcome {
     state.shield = crate::wallet::shield::probe::probe();
     state.shield_ui.screen = SHIELD_HOME;
+    state.shield_ui.absent_hidden = false;
     state.view = VIEW_SHIELD;
     state.scroll = 0;
     EventOutcome::Repaint
@@ -51,9 +52,11 @@ pub fn click(state: &mut State, press: Press) -> EventOutcome {
     let ui = &mut state.shield_ui;
     match press {
         Press::Back => return back(state),
-        Press::Dismiss => ui.failure = None,
+        Press::Dismiss if ui.failure.is_some() => ui.failure = None,
+        Press::Dismiss => ui.absent_hidden = true,
         Press::Go(screen) => {
             ui.screen = screen;
+            ui.size = None;
             ui.failure = None;
             state.scroll = 0;
         }
