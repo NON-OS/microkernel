@@ -23,14 +23,20 @@ use crate::linux::guest::Guest;
 use super::super::super::family_ms;
 
 pub fn sysinfo(guest: &Guest, out: u64) -> u64 {
-    let (threads, resident) = file::view_with(|v| {
+    let (threads, resident, ran) = file::view_with(|v| {
         let leaders: alloc::vec::Vec<u32> = v.procs.iter().map(|p| p.kernel).collect();
+        let all: alloc::vec::Vec<&file::Proc> = v.procs.iter().collect();
+        let u = file::cpu::usage(&file::cpu::threads_of(&all));
         let n: usize = v.procs.iter().map(|p| p.tids.len()).sum();
-        (n.max(1), file::cpu::usage(&leaders).resident_kb * 1024)
+        (n.max(1), file::cpu::usage(&leaders).resident_kb * 1024, u.user + u.system)
     });
+    let loads = file::load::averages(family_ms(), ran);
     let mut b = [0u8; 112];
     let mut put = |at: usize, v: u64| b[at..at + 8].copy_from_slice(&v.to_le_bytes());
     put(0, family_ms() / 1000); /* uptime */
+    for (i, avg) in loads.iter().enumerate() {
+        put(8 + i * 8, avg << 5); /* loads, from Linux's 11 bits to sysinfo's 16 */
+    }
     put(32, declared::MEMORY); /* totalram */
     put(40, declared::MEMORY.saturating_sub(resident)); /* freeram */
     b[80..82].copy_from_slice(&(threads.min(u16::MAX as usize) as u16).to_le_bytes()); /* procs */

@@ -18,7 +18,10 @@
 
 use alloc::vec::Vec;
 
+use crate::linux::call::family_ms;
+
 use super::super::super::super::declared::HZ;
+use super::super::super::super::load;
 use super::super::super::synth::num;
 use super::super::super::view::View;
 use super::files::family;
@@ -30,11 +33,13 @@ pub(super) fn uptime(v: &View) -> Vec<u8> {
     alloc::format!("{} {}\n", two(up), two(idle)).into_bytes()
 }
 
-/* Load is not measured for a family, so it reads as none. */
+/* The family's measured load (system/load/), then its running and all threads. */
 pub(super) fn loadavg(v: &View) -> Vec<u8> {
     let threads: usize = v.procs.iter().map(|p| p.tids.len()).sum();
     let running = v.procs.iter().filter(|p| !p.sleeping).count();
-    let mut s = alloc::format!("0.00 0.00 0.00 {running}/{threads} ").into_bytes();
+    let u = family(v);
+    let [a, b, c] = load::averages(family_ms(), u.user + u.system).map(load::text);
+    let mut s = alloc::format!("{a} {b} {c} {running}/{threads} ").into_bytes();
     s.extend_from_slice(&num(u64::from(last(v))));
     s.push(b'\n');
     s

@@ -15,11 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What the family is told about the system it runs on, and what it
- * has used of it.
+ * The family's load average, measured. Linux averages the number of tasks
+ * running or waiting to run, sampled every five seconds and decayed by
+ * fixed factors for one, five and fifteen minutes. The kernel does not say
+ * how long a thread waited for the CPU, so this averages what it does
+ * say: the share of each period the family's threads ran, from their
+ * ticks. A family whose threads wait for a CPU another holds reads lower
+ * than Linux would show.
+ *
+ * Nothing samples between reads: at a read, the periods since the last
+ * one each get the share the family ran over all of them.
  */
 
-pub mod cpu;
-pub mod declared;
-pub mod load;
-pub(super) mod space;
+mod average;
+mod state;
+
+pub use average::{averages, text};
+pub use state::exited;
