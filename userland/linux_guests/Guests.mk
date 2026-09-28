@@ -107,6 +107,9 @@ $(eval $(call LINUX_GUEST,gopoll,4976,4977,$(GO_OUT)/poll))
 # A goroutine spinning with no call, which only a signal to its running
 # thread can move off the one CPU the guest has.
 $(eval $(call LINUX_GUEST,gopreempt,4944,4945,$(GO_OUT)/preempt))
+# net/http inside one guest: a server on 127.0.0.1:0 and its client, twenty
+# GETs over one kept-alive connection.
+$(eval $(call LINUX_GUEST,gohttp,5002,5003,$(GO_OUT)/http))
 
 # A C guest that faults in a worker thread while main joins: it proves the
 # whole process ends, as on Linux, and that musl threads run. Static, so no
@@ -126,6 +129,30 @@ $(eval $(call LINUX_GUEST,cthreads,4974,4975,$(LINUX_GUESTS_C)/cthreads))
 $(LINUX_GUESTS_C)/cwait: $(LINUX_GUESTS_DIR)/c/cwait.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cwait,4978,4979,$(LINUX_GUESTS_C)/cwait))
+
+# Sockets as Linux has them, on the family's own loopback: socketpair, a
+# listener with accept4's flags, a non-blocking connect, a refused port,
+# half-close, epoll on a listener, end of file, EAGAIN, MSG_PEEK, EPIPE, an
+# accept and a receive that wait, the options a server sets, and fork.
+$(LINUX_GUESTS_C)/csock: $(LINUX_GUESTS_DIR)/c/csock.c $(wildcard $(LINUX_GUESTS_DIR)/c/csock_parts*.h)
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,csock,5000,5001,$(LINUX_GUESTS_C)/csock))
+
+# Datagrams on the family's loopback: an echo, a connected socket, MSG_TRUNC,
+# a refused port, sendmmsg and recvmmsg, and no peer at all.
+$(LINUX_GUESTS_C)/cudp: $(LINUX_GUESTS_DIR)/c/cudp.c $(LINUX_GUESTS_DIR)/c/cudp_parts.h
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cudp,5004,5005,$(LINUX_GUESTS_C)/cudp))
+
+# What a guest's sockets may reach, and what a descriptor number alone gets.
+$(LINUX_GUESTS_C)/cpolicy: $(LINUX_GUESTS_DIR)/c/cpolicy.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cpolicy,5006,5007,$(LINUX_GUESTS_C)/cpolicy))
+
+# A guest blocked in accept with nothing happening, for the loop's wakeups.
+$(LINUX_GUESTS_C)/cidle: $(LINUX_GUESTS_DIR)/c/cidle.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cidle,5008,5009,$(LINUX_GUESTS_C)/cidle))
 
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
