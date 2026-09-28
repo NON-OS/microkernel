@@ -19,11 +19,11 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::pipe_end::end_of;
+use super::pipe_end::{end_of, other_end_open};
 
 /// What one pipe will hold before a writer is told to wait. Linux uses
 /// sixty-four kilobytes and programs are written around that number.
-const CAPACITY: usize = 64 << 10;
+pub(super) const CAPACITY: usize = 64 << 10;
 
 pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     let Some((slot, writable)) = end_of(guest, fd) else {
@@ -31,6 +31,10 @@ pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     };
     if !writable {
         return errno::fail(errno::EBADF);
+    }
+    // Nobody can ever read it: Linux refuses the write rather than keep it.
+    if !other_end_open(guest, slot, true) {
+        return errno::fail(errno::EPIPE);
     }
     let room = CAPACITY.saturating_sub(guest.pipes[slot].len());
     if room == 0 {

@@ -31,6 +31,9 @@ pub struct Guest {
     pub regions: Vec<crate::linux::guest::Region>,
     /// Pipe buffers, named by index from the descriptors at each end.
     pub pipes: Vec<Vec<u8>>,
+    /// For each pipe, whether a read end and a write end are open anywhere
+    /// in the family. Filled when the family lends the buffers.
+    pub pipe_ends: Vec<(bool, bool)>,
     /// Children this guest has forked, for wait to report on.
     pub children: Vec<u32>,
     /// Tids of this guest's threads, not counting itself.

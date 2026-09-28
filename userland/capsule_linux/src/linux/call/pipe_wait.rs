@@ -25,7 +25,7 @@ use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 use crate::linux::serve::Answer;
 
-use super::pipe_end::end_of;
+use super::pipe_end::{end_of, other_end_open};
 use super::pipe_read::read;
 
 pub fn is_pipe(guest: &Guest, fd: u64) -> bool {
@@ -36,7 +36,8 @@ pub fn read_or_park(guest: &mut Guest, fd: u64, buf: u64, len: u64, tid: u32) ->
     let Some((slot, writable)) = end_of(guest, fd) else {
         return Answer::value(errno::fail(errno::EBADF));
     };
-    if writable || len == 0 || !guest.pipes[slot].is_empty() {
+    let fed = !guest.pipes[slot].is_empty() || !other_end_open(guest, slot, false);
+    if writable || len == 0 || fed {
         return Answer::value(read(guest, fd, buf, len));
     }
     guest.pipe_wait = Some((slot, buf, len, tid));

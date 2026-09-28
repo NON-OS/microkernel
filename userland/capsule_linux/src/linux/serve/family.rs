@@ -16,8 +16,9 @@
 
 //! Every process this personality hosts: the guest it started and whatever
 //! that guest forks. Each keeps its own descriptors, break and cwd. Pipe
-//! buffers are the family's, lent to the guest being answered and taken back:
-//! a pipe opened before a fork has its ends in different processes.
+//! buffers are the family's, lent to the guest being answered and taken back
+//! (`family_lend`): a pipe opened before a fork has its ends in different
+//! processes.
 
 use alloc::vec::Vec;
 use core::mem;
@@ -51,15 +52,16 @@ impl Family {
             self.thread_died(frame.pid, frame.arg0 as i32);
             return;
         }
-        let Some(g) = self.guests.iter_mut().find(|g| g.owns(frame.pid)) else {
+        let Some(i) = self.guests.iter().position(|g| g.owns(frame.pid)) else {
             return;
         };
         let Some(frame) = frame_in(&self.ns, frame) else {
             return;
         };
-        mem::swap(&mut self.pipes, &mut g.pipes);
-        let got = answer(g, &frame);
-        mem::swap(&mut self.pipes, &mut g.pipes);
+        self.lend(i);
+        let got = answer(&mut self.guests[i], &frame);
+        self.take_back(i);
+        let g = &mut self.guests[i];
         let born = mem::take(&mut g.forked);
         if let Answer::Reply(value) = got {
             // A caught signal for this thread is delivered in place of the reply.
@@ -83,9 +85,8 @@ impl Family {
         if g.exited.is_none() {
             g.exited = Some(128 + signo_of(code));
         }
-        let line = alloc::format!(
-            "[LINUX] guest thread {pid} ended on a signal; ending the process\n"
-        );
+        let line =
+            alloc::format!("[LINUX] guest thread {pid} ended on a signal; ending the process\n");
         crate::linux::start::say(line.as_bytes());
     }
 

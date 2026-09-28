@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
-use crate::linux::net::ready;
+use crate::linux::net::{ready, POLLERR, POLLHUP};
 
 use super::epoll::EVENT_LEN;
 
@@ -35,7 +35,8 @@ pub fn epoll_wait(guest: &mut Guest, ep: u64, out: u64, max: u64) -> u64 {
         if hits >= max {
             break;
         }
-        let live = u32::from(ready(guest, fd)) & wanted;
+        // Hang-up and error are reported whether they were asked for or not.
+        let live = u32::from(ready(guest, fd)) & (wanted | u32::from(POLLHUP | POLLERR));
         if live == 0 {
             continue;
         }

@@ -18,10 +18,12 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::ready;
+use super::{ready, POLLERR, POLLHUP};
 
-const POLLIN: u16 = 0x001;
-const POLLOUT: u16 = 0x004;
+/// What makes a descriptor count as ready in each set, as Linux's select
+/// counts it: end of file is readable, and an error is both.
+const POLLIN: u16 = 0x001 | POLLHUP | POLLERR;
+const POLLOUT: u16 = 0x004 | POLLERR;
 
 /// Linux caps a descriptor set at 1024 bits and so does every libc that
 /// builds one, so a larger nfds is a caller error rather than a bigger set.

@@ -23,6 +23,9 @@ use super::poll_socket::socket_bits;
 const POLLIN: u16 = 0x001;
 const POLLOUT: u16 = 0x004;
 const POLLNVAL: u16 = 0x020;
+/// Reported whether asked for or not, by poll and by epoll alike.
+pub const POLLERR: u16 = 0x008;
+pub const POLLHUP: u16 = 0x010;
 
 /// What `fd` can do right now, in poll's bits.
 pub fn ready(guest: &Guest, fd: u64) -> u16 {
@@ -33,6 +36,7 @@ pub fn ready(guest: &Guest, fd: u64) -> u16 {
             None => POLLNVAL,
         },
         Some(Kind::Timer) => timer_bits(guest, fd),
+        Some(Kind::Pipe) => crate::linux::call::pipe_bits(guest, fd),
         Some(Kind::Resolver) => resolver_bits(guest, fd),
         Some(_) => POLLIN | POLLOUT,
     }

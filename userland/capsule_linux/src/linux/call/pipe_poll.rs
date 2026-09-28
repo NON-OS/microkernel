@@ -14,34 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! What a pipe end can do now, in poll's bits, as Linux's `pipe_poll` says
+//! it: a read end is readable while it holds bytes and hung up once no write
+//! end is left; a write end is writable while there is room and in error
+//! once no read end is left.
 
-//! Draining a pipe.
-
-
-use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
+use crate::linux::net::{POLLERR, POLLHUP};
 
 use super::pipe_end::{end_of, other_end_open};
+use super::pipe_io::CAPACITY;
 
-pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
+const POLLIN: u16 = 0x001;
+const POLLOUT: u16 = 0x004;
+const POLLNVAL: u16 = 0x020;
+
+pub fn bits(guest: &Guest, fd: u64) -> u16 {
     let Some((slot, writable)) = end_of(guest, fd) else {
-        return errno::fail(errno::EBADF);
+        return POLLNVAL;
     };
-    if writable {
-        return errno::fail(errno::EBADF);
+    let held = guest.pipes[slot].len();
+    let other = other_end_open(guest, slot, writable);
+    match writable {
+        false => flag(held > 0, POLLIN) | flag(!other, POLLHUP),
+        true => flag(held < CAPACITY, POLLOUT) | flag(!other, POLLERR),
     }
-    let have = guest.pipes[slot].len();
-    if have == 0 {
-        // Empty with no write end left anywhere is end of file.
-        return match other_end_open(guest, slot, false) {
-            true => errno::fail(errno::EAGAIN),
-            false => errno::ok(0),
-        };
+}
+
+fn flag(on: bool, bit: u16) -> u16 {
+    if on {
+        bit
+    } else {
+        0
     }
-    let take = (len as usize).min(have);
-    let bytes: alloc::vec::Vec<u8> = guest.pipes[slot].drain(..take).collect();
-    if guest.write(buf, &bytes) < take as i64 {
-        return errno::fail(errno::EFAULT);
-    }
-    errno::ok(take as u64)
 }
