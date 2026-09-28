@@ -17,6 +17,7 @@
 //! `fcntl`.
 
 use crate::linux::abi::errno;
+use crate::linux::file;
 use crate::linux::file::flags::{O_NONBLOCK, O_RDWR, O_WRONLY};
 use crate::linux::guest::{Fd, Guest, Kind};
 
@@ -25,6 +26,7 @@ const F_GETFD: u64 = 1;
 const F_SETFD: u64 = 2;
 const F_GETFL: u64 = 3;
 const F_SETFL: u64 = 4;
+const F_DUPFD_CLOEXEC: u64 = 1030;
 
 /// The only descriptor flag there is.
 const FD_CLOEXEC: u64 = 1;
@@ -53,11 +55,8 @@ pub fn fcntl(guest: &mut Guest, fd: u64, cmd: u64, arg: u64) -> u64 {
             errno::ok(0)
         }
         F_GETFL => errno::ok(status(entry)),
-        /*
-         * Duplication needs a second handle on the server, which the store
-         * does not offer yet.
-         */
-        F_DUPFD => errno::fail(errno::ENOSYS),
+        /* The lowest free number at or above `arg`: where a shell keeps one aside. */
+        F_DUPFD | F_DUPFD_CLOEXEC => file::dup_from(guest, fd, arg, cmd == F_DUPFD_CLOEXEC),
         _ => errno::fail(errno::EINVAL),
     }
 }

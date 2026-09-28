@@ -17,6 +17,7 @@
 /* The filesystem a guest sees. */
 
 mod at;
+mod calls;
 mod clamp;
 pub(super) mod close;
 mod cstr;
@@ -61,6 +62,7 @@ mod timerfd_read;
 mod timerfd_spec;
 mod write;
 
+pub use calls::*;
 pub use close::close;
 pub use cstr::read_cstr;
 pub use dev_io::{read as dev_read, write as dev_write};
