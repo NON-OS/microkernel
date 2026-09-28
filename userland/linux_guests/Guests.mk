@@ -34,6 +34,12 @@ $(NONOS_BAKED_TRUST_DIR)/keys/guest_%_publisher_mldsa65.pub: | $(CAPSULE_SIGN_BI
 # name, service port, reply port[, prebuilt ELF[, guest path]]. The enrolled
 # copy is named guest_<name>, so its certificate and trailer cannot collide
 # with a capsule's. The guest path defaults to /bin/<name>.
+# Every guest is built, signed and proven, but the store the vfs loads holds
+# at most 16 MiB, which the whole set outgrows. LINUX_GUEST_STORE_ONLY, when
+# set, names the guests the store carries, for example
+#   make LINUX_GUEST_STORE_ONLY="busybox csock" LINUX_GUEST_BOOT_ARGS=... \
+#        target/qemu-virtio-blk.img.store.stamp
+# and unset it carries them all, as before.
 define LINUX_GUEST
 CAPSULE_SLUG             := linux-guest-$(1)
 CAPSULE_HANDLE           := linux.guest.$(1)
@@ -54,10 +60,12 @@ nonos-mk-check-linux-guest-$(1)-keys: \
 	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_ed25519.pub \
 	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_mldsa65.pub
 LINUX_GUEST_STORE_DEPS += $$(linux-guest-$(1)_ARTIFACTS) $$(linux-guest-$(1)_ATTESTATION)
+ifneq ($(if $(LINUX_GUEST_STORE_ONLY),$(filter $(1),$(LINUX_GUEST_STORE_ONLY)),all),)
 LINUX_GUEST_STORE_ENTRIES += --entry /linux$(or $(5),/bin/$(1))=$$(linux-guest-$(1)_BIN) \
 	--entry /linux$(or $(5),/bin/$(1)).nonos_id_cert.bin=$$(linux-guest-$(1)_CERT) \
 	--entry /linux$(or $(5),/bin/$(1)).manifest.bin=$$(linux-guest-$(1)_MANIFEST) \
 	--entry /linux$(or $(5),/bin/$(1)).zk_trailer.bin=$$(linux-guest-$(1)_ATTESTATION)
+endif
 endef
 
 $(eval $(call LINUX_GUEST,suite,4950,4951))
