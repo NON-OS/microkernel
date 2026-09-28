@@ -59,8 +59,5 @@ pub fn anonymous(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     if backed < 0 {
         return errno::fail(errno::ENOMEM);
     }
-    if req.fixed().is_none() {
-        guest.mmap_next += span;
-    }
     errno::ok(at)
 }

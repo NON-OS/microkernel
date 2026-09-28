@@ -35,15 +35,6 @@ impl MapReq {
         MapReq { addr: a[0], len: a[1], prot: a[2], flags: a[3], fd: a[4], off: a[5] }
     }
 
-    /// The address the guest named, or nothing when it left the choice
-    /// to this capsule, which is the case the mapping cursor advances on.
-    pub fn fixed(&self) -> Option<u64> {
-        match self.addr {
-            0 => None,
-            addr => Some(crate::linux::guest::page_down(addr)),
-        }
-    }
-
     /// Make room for a MAP_FIXED mapping at `[at, at + span)`. Linux replaces
     /// whatever was there: the old pages go and the new mapping starts from
     /// zeroes with its own protection. Called just before the new pages go in,
