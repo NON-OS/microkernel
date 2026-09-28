@@ -56,6 +56,7 @@ pub(crate) fn try_reuse(state: &mut State, url: &Url, key: &str) -> Option<Fetch
         tls: Some(keep.tls),
         idle: 0,
         started_ms: mk_time_millis(),
+        progress_ms: mk_time_millis(),
         error: None,
         tls_alert: None,
         suppress: true,

@@ -29,7 +29,7 @@
 use super::constants;
 use crate::browser::net::mixnet;
 
-/// Longest a whole fetch may take.
+/// Longest a fetch may go without receiving a byte.
 pub fn max_fetch_ms() -> i64 {
     if mixnet::is_on() {
         // A handshake alone is several round trips, and each one is paid for
@@ -38,6 +38,17 @@ pub fn max_fetch_ms() -> i64 {
         180_000
     } else {
         constants::MAX_FETCH_MS
+    }
+}
+
+/// Longest a fetch may run in all, however steadily its bytes arrive. The
+/// per-silence budget above would otherwise let a server that trickles one
+/// byte at a time hold the fetch open without end.
+pub fn max_total_ms() -> i64 {
+    if mixnet::is_on() {
+        900_000
+    } else {
+        120_000
     }
 }
 

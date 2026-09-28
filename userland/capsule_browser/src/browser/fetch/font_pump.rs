@@ -58,6 +58,7 @@ pub fn font_pump(state: &mut State) -> bool {
         tls: None,
         idle: 0,
         started_ms: mk_time_millis(),
+        progress_ms: mk_time_millis(),
         error: None,
         tls_alert: None,
         suppress: true,
