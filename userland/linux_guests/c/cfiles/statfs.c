@@ -38,5 +38,19 @@ void part_statfs(void) {
     struct statfs f;
     CHECK(p, fstatfs(fd, &f) == 0 && f.f_type == t.f_type, f.f_type, t.f_type);
     close(fd);
-    done(p, "statfs and fstatfs: type, name length, fragment size and mount flags");
+    CHECK(p, pr.f_blocks == 0 && t.f_bavail <= t.f_bfree && t.f_bfree <= t.f_blocks, 0, 0);
+    /* 256 KiB written takes 64 pages from the free count; unlinked, gives them back. */
+    static char chunk[65536];
+    memset(chunk, 'b', sizeof chunk);
+    int big = mk("big", 0);
+    CHECK(p, statfs("/tmp", &t) == 0, errno, 0);
+    for (int i = 0; i < 4; i++) {
+        CHECK(p, write(big, chunk, sizeof chunk) == sizeof chunk, errno, i);
+    }
+    CHECK(p, fsync(big) == 0 && statfs("/tmp", &f) == 0, errno, 0);
+    CHECK(p, t.f_bfree - f.f_bfree == 262144 / f.f_bsize, t.f_bfree, f.f_bfree);
+    close(big);
+    CHECK(p, unlink(DIR "/big") == 0 && statfs("/tmp", &f) == 0, errno, 0);
+    CHECK(p, f.f_bfree == t.f_bfree, f.f_bfree, t.f_bfree);
+    done(p, "statfs and fstatfs: type, name length, fragment size, mount flags and room");
 }
