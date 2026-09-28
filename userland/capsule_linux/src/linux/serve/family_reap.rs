@@ -41,10 +41,10 @@ impl Family {
     }
 }
 
-/// Tell `p` that `gone` ended with `code`: kept until it is waited for, and a
-/// parked wait4 answered with its pid in the guest's numbering.
-pub fn tell_parent(p: &mut Guest, gone: &Guest, code: i32, ns: &mut PidNs) {
-    p.ended.push((gone.pid, code));
+/// Tell `p` that `gone` ended with `status`: kept until it is waited for, and
+/// a parked wait4 answered with its pid in the guest's numbering.
+pub fn tell_parent(p: &mut Guest, gone: &Guest, status: i32, ns: &mut PidNs) {
+    p.ended.push((gone.pid, status));
     if let Some((want, status, tid)) = p.waiting {
         if let Some(value) = reap_one(p, want, status) {
             p.waiting = None;

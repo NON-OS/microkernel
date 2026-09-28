@@ -14,11 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A thread that has gone, taking its signal state and its waits with it.
+//! Which threads of a process can take a signal, and a thread that has gone
+//! taking its signal state and its waits with it.
+
+use alloc::vec::Vec;
 
 use super::handle::Guest;
 
 impl Guest {
+    /// The leader, unless it has made a plain exit, and every other thread.
+    pub fn live_threads(&self) -> Vec<u32> {
+        let mut all = self.threads.clone();
+        if !self.signals.leader_gone {
+            all.insert(0, self.pid);
+        }
+        all
+    }
+
     /// A thread that has gone takes its signal state and its waits with it.
     pub fn forget_thread(&mut self, tid: u32) {
         let _ = self.leave_waits(tid);

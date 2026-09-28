@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Ending a guest. The call never returns to the guest, so the answer
-//! handed back is only what parks it until the supervisor tears it down.
+//! Ending a thread or a guest. The call never returns to the guest, so the
+//! answer handed back is only what parks it until the supervisor tears it
+//! down. A process's end is kept as Linux's wait status: an exit's code in
+//! the second byte, or the number of the signal that ended it in the first.
 
 use nonos_libc::mk_kill;
 
@@ -58,15 +60,15 @@ pub fn set_tid_address(guest: &mut Guest, tid: u32, word: u64) -> Answer {
     Answer::value(u64::from(tid))
 }
 
+/// exit_group: the whole process ends with `code`.
 pub fn exit(guest: &mut Guest, code: u64) -> u64 {
-    guest.exited = Some(code as i32);
+    guest.exited = Some(((code & 0xff) << 8) as i32);
     errno::ok(0)
 }
 
-/// The process ends on `signum`, unless something already ended it. Kept in
-/// the shell's 128+signo form, as a thread's fatal fault is.
+/// The process ends on `signum`, unless something already ended it.
 pub fn killed(guest: &mut Guest, signum: u8) {
     if guest.exited.is_none() {
-        guest.exited = Some(128 + i32::from(signum & 0x7f));
+        guest.exited = Some(i32::from(signum & 0x7f));
     }
 }

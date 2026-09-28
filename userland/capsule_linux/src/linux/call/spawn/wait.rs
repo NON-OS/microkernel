@@ -43,10 +43,10 @@ pub fn wait4(guest: &mut Guest, want: u64, status: u64, flags: u64, tid: u32) ->
 pub fn reap_one(guest: &mut Guest, want: u64, status: u64) -> Option<u64> {
     let any = (want as i64) <= 0;
     let at = guest.ended.iter().position(|(pid, _)| any || *pid == want as u32)?;
-    let (pid, code) = guest.ended.remove(at);
+    let (pid, kept) = guest.ended.remove(at);
     guest.children.retain(|p| *p != pid);
-    // An exit status sits in the second byte, as WEXITSTATUS reads it.
-    let word = ((code as u32) & 0xff) << 8;
+    /* Kept as Linux's wait status word: an exit's code in the second byte. */
+    let word = kept as u32;
     if status != 0 && guest.write(status, &word.to_le_bytes()) < 4 {
         return Some(errno::fail(errno::EFAULT));
     }

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Ending each process that has exited: its threads are killed and its parent
-//! is told as family_reap tells it.
+//! Ending each process that has exited: its threads are killed, its end is
+//! said in the log, and its parent is told as family_reap tells it.
 
 use nonos_libc::mk_kill;
 
@@ -30,7 +30,7 @@ impl Family {
         while let Some(i) = self.guests.iter().position(|g| g.exited.is_some()) {
             any = true;
             let gone = self.guests.remove(i);
-            let code = gone.exited.unwrap_or(0);
+            let status = gone.exited.unwrap_or(0);
             for tid in gone.threads.iter().chain([gone.pid].iter()) {
                 let rc = mk_kill(*tid as u64, SIGKILL);
                 if rc < 0 {
@@ -42,13 +42,20 @@ impl Family {
                     let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
                 }
             }
+            let (code, signo) = ((status >> 8) & 0xff, status & 0x7f);
+            let shown = crate::linux::serve::guest_pid(gone.pid);
+            let line = match signo {
+                0 => alloc::format!("[LINUX] process {shown} exited, status {code}\n"),
+                s => alloc::format!("[LINUX] process {shown} ended by signal {s}\n"),
+            };
+            let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
             if gone.pid == self.root {
-                self.root_code = code;
+                self.root_code = if signo == 0 { code } else { 128 + signo };
             }
             let Some(p) = self.guests.iter_mut().find(|g| g.children.contains(&gone.pid)) else {
                 continue;
             };
-            tell_parent(p, &gone, code, &mut self.ns);
+            tell_parent(p, &gone, status, &mut self.ns);
         }
         any
     }
