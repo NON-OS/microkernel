@@ -31,7 +31,15 @@ impl Family {
             let gone = self.guests.remove(i);
             let code = gone.exited.unwrap_or(0);
             for tid in gone.threads.iter().chain([gone.pid].iter()) {
-                let _ = mk_kill(*tid as u64, SIGKILL);
+                let rc = mk_kill(*tid as u64, SIGKILL);
+                if rc < 0 {
+                    // Refused, it runs on after its process ended.
+                    let line = alloc::format!(
+                        "[LINUX] kill refused: pid {tid} outlives its process, errno {}\n",
+                        -rc
+                    );
+                    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+                }
             }
             if gone.pid == self.root {
                 self.root_code = code;
