@@ -18,6 +18,7 @@
 //! for them, mouse reports. Shift held selects even then, as xterm does.
 
 mod cells;
+mod cells_hit;
 mod press;
 mod report;
 mod select;

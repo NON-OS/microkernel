@@ -17,7 +17,7 @@
 //! Where the body's cells were drawn in the last paint, so a pointer event
 //! can be read back as a cell and a line.
 
-use nonos_vt::{Pos, Term};
+use nonos_vt::Term;
 
 use crate::paint::Rows;
 
@@ -27,45 +27,27 @@ pub struct CellGeom {
     pub y: u32,
     pub adv: u32,
     pub lh: u32,
+    /// The margin drawn around the text, which a press may land in.
+    pub pad: u32,
     /// Rows of the body a shell drawing uses; the screen owns all rows.
     pub shell_rows: usize,
     pub owned: bool,
 }
 
 impl CellGeom {
+    pub(super) fn body_rows(&self, vt: &Term) -> usize {
+        if self.owned {
+            vt.rows()
+        } else {
+            self.shell_rows
+        }
+    }
+
     pub fn rows(&self, vt: &Term) -> Rows {
         if self.owned {
             Rows::Screen
         } else {
             Rows::Shell { rows: self.shell_rows, back: vt.view_offset() }
         }
-    }
-
-    /// The cell under `(px, py)`, clamped to the screen, and the row it is.
-    pub fn cell_at(&self, vt: &Term, px: i32, py: i32) -> (usize, usize) {
-        let col = ((px - self.x as i32).max(0) as u32 / self.adv.max(1)) as usize;
-        let row = ((py - self.y as i32).max(0) as u32 / self.lh.max(1)) as usize;
-        let max_row = if self.owned { vt.rows() } else { self.shell_rows };
-        (col.min(vt.cols() - 1), row.min(max_row.saturating_sub(1)))
-    }
-
-    pub fn pos_at(&self, vt: &Term, px: i32, py: i32) -> Pos {
-        let (col, row) = self.cell_at(vt, px, py);
-        let rows = self.rows(vt);
-        let line = match rows {
-            Rows::Screen => vt.abs_of_row(row),
-            Rows::Shell { .. } => rows.first(vt) + row as u64,
-        };
-        Pos { line, col }
-    }
-
-    pub fn inside(&self, vt: &Term, px: i32, py: i32) -> bool {
-        let w = vt.cols() as u32 * self.adv;
-        let rows = if self.owned { vt.rows() } else { self.shell_rows };
-        let h = rows as u32 * self.lh;
-        px >= self.x as i32
-            && py >= self.y as i32
-            && px < (self.x + w) as i32
-            && py < (self.y + h) as i32
     }
 }

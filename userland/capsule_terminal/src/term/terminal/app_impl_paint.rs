@@ -55,6 +55,7 @@ impl Terminal {
             y: l.body.y,
             adv: m.adv,
             lh: m.lh,
+            pad: crate::paint::TEXT_LEFT,
             shell_rows: (l.body.h / m.lh.max(1)) as usize,
             owned,
         });
