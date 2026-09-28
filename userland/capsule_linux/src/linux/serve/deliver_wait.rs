@@ -15,19 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Signals that reach a process whose threads are parked, not returning.
-//! Run after every answer: an uncaught signal's default acts at once, as
-//! Linux's does when it is sent; and a caught signal ends the wait of a
-//! thread that does not block it, with EINTR, or restarts the call under
-//! SA_RESTART where Linux restarts it.
+//! Run after every answer: a sigtimedwait takes a signal in its set; an
+//! uncaught signal's default acts at once, as Linux's does when it is sent;
+//! and a caught signal ends the wait of a thread that does not block it, with
+//! EINTR, or restarts the call under SA_RESTART where Linux restarts it.
 
 use super::deliver_interrupt::interrupt;
 use super::deliver_say::stop_unserved;
+use super::deliver_sigwait::taken_by_sigtimedwait;
 use crate::linux::call::killed;
 use crate::linux::guest::sigdefault::{default_of, Default};
 use crate::linux::guest::sigstate::bit;
 use crate::linux::guest::Guest;
 
 pub fn settle(guest: &mut Guest) {
+    taken_by_sigtimedwait(guest);
     for (tid, signo) in guest.signals.queued() {
         if guest.exited.is_some() {
             return;

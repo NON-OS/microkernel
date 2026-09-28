@@ -23,6 +23,7 @@ mod deliver_interrupt;
 mod deliver_rem;
 mod deliver_restart;
 mod deliver_say;
+mod deliver_sigwait;
 mod deliver_stack;
 mod deliver_wait;
 mod dispatch;

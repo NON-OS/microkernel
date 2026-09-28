@@ -14,16 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The timers of a process that are due: ITIMER_REAL raises SIGALRM.
+//! The timers of a process that are due: ITIMER_REAL raises SIGALRM, and a
+//! sigtimedwait whose time is up answers EAGAIN.
 
+use super::family_wait::answer;
+use crate::linux::abi::errno;
 use crate::linux::guest::siginfo::{SigInfo, SI_KERNEL};
 use crate::linux::guest::sigstate::SIGALRM;
 use crate::linux::guest::Guest;
 
-/// Every timer of `g` due by `now`, fired.
+/// Every timer of `g` due by `now`, fired, and every sigtimedwait whose time
+/// is up answered EAGAIN.
 pub fn fire(g: &mut Guest, now: u64) {
     if let Some(mut t) = g.signals.real.filter(|t| t.due <= now) {
         let _ = g.signals.raise(0, SigInfo::from(SIGALRM, SI_KERNEL, 0));
         g.signals.real = t.rearm(now).then_some(t);
+    }
+    let late: alloc::vec::Vec<u32> = g
+        .signals
+        .sigwaits
+        .iter()
+        .filter(|w| w.due.is_some_and(|d| d <= now))
+        .map(|w| w.tid)
+        .collect();
+    for tid in late {
+        g.signals.sigwaits.retain(|w| w.tid != tid);
+        answer(g, tid, errno::fail(errno::EAGAIN));
     }
 }

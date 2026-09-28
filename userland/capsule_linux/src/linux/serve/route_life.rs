@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The calls of process lifecycle and signals that can leave their caller
-//! parked: a plain exit, a new process, a wait for a child, and a signal sent
-//! where only the family can say whether anyone received it. Asked first by
-//! `dispatch`, so these are answered here whatever it holds.
+//! parked: a plain exit, a new process, a wait for a child or a signal, and a
+//! signal sent where only the family can say whether anyone received it.
+//! Asked first by `dispatch`, so these are answered here whatever it holds.
 
 use nonos_libc::ForeignFrame;
 
@@ -48,6 +48,9 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Option<Answer> {
         ns::TGKILL => call::tgkill_from(guest, tid, a[0], a[1], a[2]),
         ns::RT_SIGQUEUEINFO => call::rt_sigqueueinfo(guest, tid, a[0], a[1], a[2]),
         ns::RT_TGSIGQUEUEINFO => call::rt_tgsigqueueinfo(guest, tid, a[0], a[1], a[2], a[3]),
+        ns::PAUSE => call::pause(guest, tid),
+        ns::RT_SIGSUSPEND => call::rt_sigsuspend(guest, tid, a[0], a[1]),
+        ns::RT_SIGTIMEDWAIT => call::rt_sigtimedwait(guest, tid, a[0], a[1], a[2], a[3]),
         _ => return None,
     })
 }

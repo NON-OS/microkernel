@@ -33,9 +33,11 @@ impl Signals {
         (1..=NSIG).contains(&signum).then(|| self.actions[signum - 1])
     }
 
-    /// The nearest deadline of a timer, for the serve loop's wait to end by.
+    /// The nearest deadline of a timer or a sigtimedwait, for the serve loop's
+    /// wait to end by.
     pub fn next_due(&self) -> Option<u64> {
-        self.real.map(|t| t.due)
+        let waits = self.sigwaits.iter().filter_map(|w| w.due);
+        self.real.map(|t| t.due).into_iter().chain(waits).min()
     }
 
     /// Every signal pending for `tid` or for its process, as a mask.
