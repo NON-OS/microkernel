@@ -42,7 +42,7 @@ pub use lookup::{
 
 pub use math::{
     ct_add_overflow_u64, ct_add_u64, ct_bswap_u32, ct_bswap_u64, ct_clz_u64, ct_conditional_negate,
-    ct_mod_u64, ct_mul_u64, ct_popcount_u64, ct_sub_u64,
+    ct_mul_u64, ct_popcount_u64, ct_reduce_once_u64, ct_sub_u64,
 };
 
 pub use select::{

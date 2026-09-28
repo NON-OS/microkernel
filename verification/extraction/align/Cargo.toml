@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Extraction root for the kernel's alignment helpers. There are several
+# independent implementations of align_up and align_down and they do not agree
+# at the edges, so they are mirrored together and compared in
+# NonosExtraction.AlignRefinement. The kernel source is included with #[path],
+# never copied.
+[package]
+name = "nonos_align"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

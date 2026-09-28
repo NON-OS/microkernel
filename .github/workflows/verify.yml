@@ -6,7 +6,12 @@
 name: verify
 
 on:
+  # A pull-request branch is covered by the pull_request event alone. Firing on
+  # push as well ran every job twice per commit and the concurrency group
+  # cancelled one copy, so a green pull request read as dozens of cancelled
+  # checks. Push covers the branches that have no pull request.
   push:
+    branches: [main, develop]
   pull_request:
   workflow_dispatch:
 
@@ -149,6 +154,11 @@ jobs:
           fi
           jq -e '.proof_systems.lean_specification.sorry_count == 0' /tmp/EVIDENCE.json >/dev/null \
             || { echo "::error::a sorry is present in the Lean corpus"; exit 1; }
+      - name: Every extracted function carries a proof
+        run: |
+          set -euo pipefail
+          if [ ! -d verification/extraction ]; then exit 0; fi
+          python3 tools/ratchets/proven_functions.py --root .
       - name: Publish evidence manifest
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
@@ -456,41 +466,20 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://elan.lean-lang.org/elan-init.sh \
             | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Regenerate and check for drift
+      - name: Regenerate every crate and check for drift
         run: |
           set -euo pipefail
           if [ ! -d verification/extraction ]; then exit 0; fi
-          cd verification/extraction/caps
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_caps::capabilities::bits::has_capability' \
-            --start-from 'nonos_caps::capabilities::bits::add_capability' \
-            --start-from 'nonos_caps::capabilities::bits::remove_capability' \
-            --dest-file caps.llbc
-          mkdir -p /tmp/regen-caps
-          aeneas -backend lean caps.llbc -dest /tmp/regen-caps
-          diff -u ../lean/NonosExtraction/Caps.lean /tmp/regen-caps/Caps.lean
-          cd ../policy
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_policy::usercopy::policy::check_range' \
-            --start-from 'nonos_policy::to_pte_flags' \
-            --start-from 'nonos_policy::is_wx_violation' \
-            --dest-file policy.llbc
-          mkdir -p /tmp/regen-policy
-          aeneas -backend lean -split-files policy.llbc -dest /tmp/regen-policy
-          for f in Types.lean Funs.lean FunsExternal_Template.lean; do
-            diff -u "../lean/Policy/$f" "/tmp/regen-policy/$f"
-          done
-          cd ../irq
-          charon cargo --preset=aeneas \
-            --start-from 'nonos_irq::irq::validate::validate_msix_request' \
-            --dest-file irq.llbc
-          mkdir -p /tmp/regen-irq
-          aeneas -backend lean irq.llbc -dest /tmp/regen-irq
-          diff -u ../lean/NonosExtraction/Irq.lean /tmp/regen-irq/Irq.lean
+          python3 tools/extraction/regen.py --repo-root .
       - name: Verify the refinement theorems
         run: |
           set -euo pipefail
           if [ ! -d verification/extraction ]; then exit 0; fi
           cd verification/extraction/lean
           lake exe cache get
-          lake build
+          lake build 2>&1 | tee /tmp/extraction-build.log
+      - name: Every axiom is stated
+        run: |
+          set -euo pipefail
+          if [ ! -d verification/extraction ]; then exit 0; fi
+          python3 tools/ratchets/stated_axioms.py --log /tmp/extraction-build.log --root .

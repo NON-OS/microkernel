@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Extraction root for the constant-time comparison primitives. There are two
+# independent implementations in the tree and this crate mirrors both, so the
+# theorems in verification/extraction/lean can state what each of them computes
+# and where they disagree. The real kernel sources are included via #[path];
+# nothing is copied or retyped.
+[package]
+name = "nonos_ct"
+version = "0.2.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

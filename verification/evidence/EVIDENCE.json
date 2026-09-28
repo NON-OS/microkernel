@@ -5,34 +5,826 @@
       "Classical.choice",
       "Quot.sound"
     ],
+    "extraction_tier": {
+      "axiom_shape": "One generated axiom per theorem, named <theorem>._native.bv_decide.ax_N, whose statement is an equation Std.Tactic.BVDecide.Reflect.verifyBVExpr <expr> <cert> = true. verifyBVExpr is a function, not the axiom; the axiom asserts that evaluating it returned true.",
+      "introduced_by": "bv_decide",
+      "scope": "verification/extraction only, never the core corpus and never the release root",
+      "theorems_carrying_it": 11,
+      "what_it_trusts": "That the LRAT certificate checker, run as compiled code rather than in the Lean kernel, answered correctly. The SAT solver itself is not trusted, because its certificate is checked. This is the same class of trust as native_decide."
+    },
     "forbidden": [
       "sorryAx"
     ],
-    "note": "Every profiled Lean theorem depends on at most the three standard axioms; a sorry would surface as sorryAx and fail CI."
+    "note": "The core corpus under verification/lean depends on at most the three standard axioms, and proof-corpus-root.sh refuses to emit a root otherwise. A sorry would surface as sorryAx and fail CI."
   },
   "proof_systems": {
     "kani": {
       "harnesses": 100
     },
     "lean_extraction": {
-      "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas, then proven on the extracted definition.",
+      "bv_decide_calls": 12,
+      "bv_decide_theorems": 11,
+      "counts": {
+        "extracted": 423,
+        "proven": 421,
+        "substantive": 159,
+        "trivial": 262,
+        "unproven": 2
+      },
+      "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
       "extracted_functions": [
+        "nonos_align::boot_align_down",
+        "nonos_align::boot_align_up",
+        "nonos_align::buddy_align_up",
+        "nonos_align::layout_align_down",
+        "nonos_align::layout_align_up",
+        "nonos_align::phys_align_down",
+        "nonos_align::phys_align_up",
         "nonos_caps::capabilities::bits::add_capability",
+        "nonos_caps::capabilities::bits::fold_caps",
         "nonos_caps::capabilities::bits::has_capability",
         "nonos_caps::capabilities::bits::remove_capability",
+        "nonos_caps::capabilities::bits::select_caps",
+        "nonos_caps::capabilities::chain::constants::max_chain_depth",
+        "nonos_caps::capabilities::delegation::lifetime::delegation_expiry",
+        "nonos_caps::capabilities::resource::limits::has_at_least",
+        "nonos_caps::capabilities::resource::nonce_compose::compose",
+        "nonos_ct::crypto::util::constant_time::compare::ct_eq_32",
+        "nonos_ct::crypto::util::constant_time::compare::ct_eq_64",
+        "nonos_ct::crypto::util::constant_time::compare::ct_gt_u64",
+        "nonos_ct::crypto::util::constant_time::compare::ct_lt_u64",
+        "nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8",
+        "nonos_ct::crypto::util::constant_time::lookup::ct_lookup_u8_16",
+        "nonos_ct::crypto::util::constant_time::math::ct_add_overflow_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_add_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_bswap_u32",
+        "nonos_ct::crypto::util::constant_time::math::ct_bswap_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_clz_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_conditional_negate",
+        "nonos_ct::crypto::util::constant_time::math::ct_popcount_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_reduce_once_u64",
+        "nonos_ct::crypto::util::constant_time::math::ct_sub_u64",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_u16",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_u32",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_u64",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_u64_bit",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_u8",
+        "nonos_ct::crypto::util::constant_time::select::ct_select_usize",
+        "nonos_ct::security::crypto::constant_time::core::ct_select_u32",
+        "nonos_ct::security::crypto::constant_time::ops::ct_gt_u32",
+        "nonos_ct::security::crypto::constant_time::ops::ct_lt_u32",
+        "nonos_ct::security::crypto::constant_time::ops::ct_lt_u64",
+        "nonos_ct::security::crypto::constant_time::ops::ct_max_u32",
+        "nonos_ct::security::crypto::constant_time::ops::ct_min_u32",
+        "nonos_ed_field::ed25519_ct_eq_32",
+        "nonos_ed_field::shared_ct_eq_32",
+        "nonos_elf::elf::loader::core::parse_header::bounds::program_header_bounds",
+        "nonos_elf::elf::reloc::apply::range::in_range",
+        "nonos_elf::elf::reloc::utils::supported::is_supported",
+        "nonos_iommu::agaw_context_aw",
+        "nonos_iommu::agaw_page_table_levels",
+        "nonos_iommu::arch::x86_64::iommu::regs::cap::agaw::preferred_levels",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::context_domain",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::context_high",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::context_index",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::context_low",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::entry_address",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::is_present",
+        "nonos_iommu::arch::x86_64::iommu::tables::context::root_low",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::entry_address",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::fits_address_width",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::index_for",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::is_present",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::leaf",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::level_span",
+        "nonos_iommu::arch::x86_64::iommu::tables::sl_pte::table",
         "nonos_irq::irq::validate::validate_msix_request",
+        "nonos_paging::aarch64_leaf",
+        "nonos_paging::aarch64_table",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::address",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::is_block",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::is_executable",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::is_present",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::is_user",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::is_writable",
+        "nonos_paging::arch::paging::descriptor::aarch64::read::table_grants_user",
+        "nonos_paging::arch::paging::descriptor::x86_64::address",
+        "nonos_paging::arch::paging::descriptor::x86_64::is_block",
+        "nonos_paging::arch::paging::descriptor::x86_64::is_executable",
+        "nonos_paging::arch::paging::descriptor::x86_64::is_present",
+        "nonos_paging::arch::paging::descriptor::x86_64::is_user",
+        "nonos_paging::arch::paging::descriptor::x86_64::is_writable",
+        "nonos_paging::arch::paging::descriptor::x86_64::leaf",
+        "nonos_paging::arch::paging::descriptor::x86_64::table",
+        "nonos_paging::arch::paging::descriptor::x86_64::table_grants_user",
         "nonos_policy::is_wx_violation",
         "nonos_policy::to_pte_flags",
-        "nonos_policy::usercopy::policy::check_range"
+        "nonos_policy::usercopy::policy::check_range",
+        "nonos_rv_flags::pteflags_accessed",
+        "nonos_rv_flags::pteflags_bits",
+        "nonos_rv_flags::pteflags_dirty",
+        "nonos_rv_flags::pteflags_executable",
+        "nonos_rv_flags::pteflags_from_bits",
+        "nonos_rv_flags::pteflags_global",
+        "nonos_rv_flags::pteflags_is_executable",
+        "nonos_rv_flags::pteflags_is_leaf",
+        "nonos_rv_flags::pteflags_is_readable",
+        "nonos_rv_flags::pteflags_is_user",
+        "nonos_rv_flags::pteflags_is_valid",
+        "nonos_rv_flags::pteflags_is_writable",
+        "nonos_rv_flags::pteflags_new",
+        "nonos_rv_flags::pteflags_readable",
+        "nonos_rv_flags::pteflags_user",
+        "nonos_rv_flags::pteflags_valid",
+        "nonos_rv_flags::pteflags_writable",
+        "nonos_signal::process::signal::helpers::can_be_blocked",
+        "nonos_signal::process::signal::helpers::can_be_caught",
+        "nonos_signal::process::signal::helpers::can_be_ignored",
+        "nonos_signal::process::signal::helpers::generates_core_dump",
+        "nonos_signal::process::signal::helpers::is_fatal_by_default",
+        "nonos_signal::process::signal::helpers::is_rt_signal",
+        "nonos_signal::process::signal::helpers::is_stop_signal",
+        "nonos_signal::process::signal::helpers::is_synchronous",
+        "nonos_signal::process::signal::helpers::is_valid_signal",
+        "nonos_uefi_attrs::variableattributes_bits",
+        "nonos_uefi_attrs::variableattributes_contains",
+        "nonos_uefi_attrs::variableattributes_empty",
+        "nonos_uefi_attrs::variableattributes_from_bits",
+        "nonos_uefi_attrs::variableattributes_from_bits_truncate",
+        "nonos_uefi_attrs::variableattributes_intersection",
+        "nonos_uefi_attrs::variableattributes_is_empty",
+        "nonos_uefi_attrs::variableattributes_is_non_volatile",
+        "nonos_uefi_attrs::variableattributes_is_runtime_access",
+        "nonos_uefi_attrs::variableattributes_requires_authentication",
+        "nonos_uefi_attrs::variableattributes_union",
+        "nonos_vectors::interrupts::vectors::exception_has_error_code",
+        "nonos_vectors::interrupts::vectors::exception_is_fatal",
+        "nonos_vectors::interrupts::vectors::irq_to_vector",
+        "nonos_vectors::interrupts::vectors::is_exception",
+        "nonos_vectors::interrupts::vectors::is_irq",
+        "nonos_vectors::interrupts::vectors::is_user_allocatable",
+        "nonos_vectors::interrupts::vectors::vector_to_irq",
+        "nonos_x_addr_phys::physaddr_align_down",
+        "nonos_x_addr_phys::physaddr_align_up",
+        "nonos_x_addr_phys::physaddr_as_u64",
+        "nonos_x_addr_phys::physaddr_as_usize",
+        "nonos_x_addr_phys::physaddr_is_aligned",
+        "nonos_x_addr_phys::physaddr_is_null",
+        "nonos_x_addr_phys::physaddr_new",
+        "nonos_x_addr_phys::physaddr_zero",
+        "nonos_x_addr_virt::virtaddr_align_down",
+        "nonos_x_addr_virt::virtaddr_align_up",
+        "nonos_x_addr_virt::virtaddr_as_u64",
+        "nonos_x_addr_virt::virtaddr_as_usize",
+        "nonos_x_addr_virt::virtaddr_is_aligned",
+        "nonos_x_addr_virt::virtaddr_is_null",
+        "nonos_x_addr_virt::virtaddr_new",
+        "nonos_x_addr_virt::virtaddr_zero",
+        "nonos_x_aml_types::gpiocontroller_is_valid",
+        "nonos_x_aml_types::lpsscontroller_is_valid",
+        "nonos_x_boot_types_context::exceptioncontext_code_segment",
+        "nonos_x_boot_types_context::exceptioncontext_has_error_code",
+        "nonos_x_boot_types_context::exceptioncontext_instruction_pointer",
+        "nonos_x_boot_types_context::exceptioncontext_is_kernel_mode",
+        "nonos_x_boot_types_context::exceptioncontext_is_user_mode",
+        "nonos_x_boot_types_context::exceptioncontext_stack_pointer",
+        "nonos_x_cache_types::cachestatistics_new",
+        "nonos_x_cache_types::cachestatistics_reset",
+        "nonos_x_cap_agaw::agawlevels_context_aw",
+        "nonos_x_cap_agaw::agawlevels_page_table_levels",
+        "nonos_x_census_buf::linebuf_new",
+        "nonos_x_chain_error::chainerror_is_recoverable",
+        "nonos_x_civil_days::days_in_month",
+        "nonos_x_civil_days::days_in_year",
+        "nonos_x_civil_days::is_leap_year",
+        "nonos_x_coherency_mode::coherency_from_bool",
+        "nonos_x_coherency_mode::coherency_is_coherent",
+        "nonos_x_coherency_mode::coherency_requires_cache_maintenance",
+        "nonos_x_constant_time_aes::sbox_ct",
+        "nonos_x_constant_time_select::ct_select_u16",
+        "nonos_x_constant_time_select::ct_select_u32",
+        "nonos_x_constant_time_select::ct_select_u64",
+        "nonos_x_constant_time_select::ct_select_u64_bit",
+        "nonos_x_constant_time_select::ct_select_u8",
+        "nonos_x_constant_time_select::ct_select_usize",
+        "nonos_x_constants_helpers::align_down",
+        "nonos_x_constants_helpers::align_size",
+        "nonos_x_constants_helpers::align_up",
+        "nonos_x_context_cpu_context::cpucontext_new",
+        "nonos_x_context_types::executioncontext_is_kernel",
+        "nonos_x_context_types::executioncontext_is_process",
+        "nonos_x_context_types::processcontext_has_capability",
+        "nonos_x_context_types::processcontext_new",
+        "nonos_x_contract_args::syscallargs_arg",
+        "nonos_x_core_section::parsedsection_is_alloc",
+        "nonos_x_core_section::parsedsection_is_rela",
+        "nonos_x_core_section::parsedsection_is_strtab",
+        "nonos_x_core_section::parsedsection_is_symtab",
+        "nonos_x_cpu_msr_stats::increment_reads",
+        "nonos_x_cpu_msr_stats::increment_writes",
+        "nonos_x_cpu_msr_stats::msr_reads",
+        "nonos_x_cpu_msr_stats::msr_writes",
+        "nonos_x_data_interrupt::interruptoverride_is_active_low",
+        "nonos_x_data_interrupt::interruptoverride_is_level_triggered",
+        "nonos_x_data_interrupt::nmiconfig_applies_to_all",
+        "nonos_x_descriptor_unsupported::address",
+        "nonos_x_descriptor_unsupported::is_block",
+        "nonos_x_descriptor_unsupported::is_executable",
+        "nonos_x_descriptor_unsupported::is_present",
+        "nonos_x_descriptor_unsupported::is_user",
+        "nonos_x_descriptor_unsupported::is_writable",
+        "nonos_x_descriptor_unsupported::leaf",
+        "nonos_x_descriptor_unsupported::table",
+        "nonos_x_descriptor_unsupported::table_grants_user",
+        "nonos_x_error_fault_info::pagefaultinfo_from_fault",
+        "nonos_x_error_fault_info::pagefaultinfo_is_cow_fault",
+        "nonos_x_error_fault_info::pagefaultinfo_is_demand_fault",
+        "nonos_x_fadt_profile::pmprofile_from_u8",
+        "nonos_x_fadt_profile::pmprofile_is_mobile",
+        "nonos_x_fadt_profile::pmprofile_is_server",
+        "nonos_x_field_types::fe_one",
+        "nonos_x_field_types::fe_zero",
+        "nonos_x_gic_state::dist_base",
+        "nonos_x_gic_state::redist_base",
+        "nonos_x_gic_state::set_bases",
+        "nonos_x_hpet_registers::timer_comparator",
+        "nonos_x_hpet_registers::timer_config",
+        "nonos_x_hpet_registers::timer_fsb_route",
+        "nonos_x_idt_entry_frame::interruptframe_from_kernel",
+        "nonos_x_idt_entry_frame::interruptframe_from_user",
+        "nonos_x_idt_entry_frame::pagefaulterror_instruction_fetch",
+        "nonos_x_idt_entry_frame::pagefaulterror_protection_key",
+        "nonos_x_idt_entry_frame::pagefaulterror_protection_violation",
+        "nonos_x_idt_entry_frame::pagefaulterror_reserved_write",
+        "nonos_x_idt_entry_frame::pagefaulterror_sgx",
+        "nonos_x_idt_entry_frame::pagefaulterror_shadow_stack",
+        "nonos_x_idt_entry_frame::pagefaulterror_user",
+        "nonos_x_idt_entry_frame::pagefaulterror_write",
+        "nonos_x_iommu_protection::iommuprotection_readable",
+        "nonos_x_iommu_protection::iommuprotection_writable",
+        "nonos_x_irq_reserved::is_reserved",
+        "nonos_x_irq_reserved::reserve",
+        "nonos_x_key_management_types::keytype_key_length",
+        "nonos_x_key_management_types::keyusage_encryption",
+        "nonos_x_key_management_types::keyusage_key_exchange",
+        "nonos_x_key_management_types::keyusage_master",
+        "nonos_x_key_management_types::keyusage_signing",
+        "nonos_x_key_management_types::keyusage_verification",
+        "nonos_x_memory_sanitization_types::sanitizationlevel_from_u64",
+        "nonos_x_memory_sanitization_types::sanitizationstats_avg_bytes_per_call",
+        "nonos_x_memory_sanitization_types::sanitizationstats_get_bytes_sanitized",
+        "nonos_x_memory_sanitization_types::sanitizationstats_get_call_count",
+        "nonos_x_memory_sanitization_types::sanitizationstats_is_canary_enabled",
+        "nonos_x_memory_sanitization_types::stackcanaryconfig_get_canary",
+        "nonos_x_memory_sanitization_types::stackcanaryconfig_get_frequency",
+        "nonos_x_memory_sanitization_types::stackcanaryconfig_is_enabled",
+        "nonos_x_memory_sanitization_types::stackcanaryconfig_verify",
+        "nonos_x_memory_stats::add_used",
+        "nonos_x_memory_stats::free_mb",
+        "nonos_x_memory_stats::init",
+        "nonos_x_memory_stats::sub_used",
+        "nonos_x_memory_stats::total_bytes",
+        "nonos_x_memory_stats::total_mb",
+        "nonos_x_memory_stats::usage_percent",
+        "nonos_x_memory_stats::used_bytes",
+        "nonos_x_memory_stats::used_mb",
+        "nonos_x_microbench_sample::sample_len",
+        "nonos_x_microbench_sample::sample_max",
+        "nonos_x_microbench_sample::sample_min",
+        "nonos_x_microbench_sample::sample_new",
+        "nonos_x_microbench_sample::sample_quantile",
+        "nonos_x_mmu_mode::mmumode_levels",
+        "nonos_x_mmu_mode::mmumode_satp_mode",
+        "nonos_x_mmu_mode::mmumode_va_bits",
+        "nonos_x_multiboot_modules_acpi::acpirsdp_is_acpi2",
+        "nonos_x_multiboot_modules_acpi::acpirsdp_table_address",
+        "nonos_x_multiboot_modules_acpi::acpirsdp_verify_checksum",
+        "nonos_x_multiboot_modules_acpi::acpirsdp_verify_extended_checksum",
+        "nonos_x_multiboot_platform_types::platform_has_hw_virtualization",
+        "nonos_x_multiboot_platform_types::platform_is_qemu",
+        "nonos_x_multiboot_platform_types::platform_is_virtual",
+        "nonos_x_multiboot_platform_types::platform_supports_virtio",
+        "nonos_x_multiboot_platform_types::platform_timer_frequency",
+        "nonos_x_nonos_inbox_stats::inboxstats_new",
+        "nonos_x_nonos_inbox_stats::inboxstats_record_dequeue",
+        "nonos_x_nonos_inbox_stats::inboxstats_record_dropped",
+        "nonos_x_nonos_inbox_stats::inboxstats_record_enqueue",
+        "nonos_x_observability_policy::is_production_mode",
+        "nonos_x_observability_policy::set_production_mode",
+        "nonos_x_observability_policy::should_emit_serial",
+        "nonos_x_observability_policy::should_log_debug",
+        "nonos_x_pac_key::packey_new",
+        "nonos_x_pci_error::pcierror_is_fatal",
+        "nonos_x_pci_error::pcierror_is_recoverable",
+        "nonos_x_pci_error::pcierror_is_security_related",
+        "nonos_x_pci_types::pcidevice_bdf",
+        "nonos_x_pci_types::pcidevice_is_bridge",
+        "nonos_x_pci_types::pcidevice_is_display",
+        "nonos_x_pci_types::pcidevice_is_network",
+        "nonos_x_pci_types::pcidevice_is_storage",
+        "nonos_x_pci_types_msix::msixtableentry_new",
+        "nonos_x_pipe_buffer::pipebuffer_add_reader",
+        "nonos_x_pipe_buffer::pipebuffer_add_writer",
+        "nonos_x_pipe_buffer::pipebuffer_available_write",
+        "nonos_x_pipe_buffer::pipebuffer_has_readers",
+        "nonos_x_pipe_buffer::pipebuffer_has_writers",
+        "nonos_x_pipe_buffer::pipebuffer_is_empty",
+        "nonos_x_pipe_buffer::pipebuffer_len",
+        "nonos_x_pipe_buffer::pipebuffer_new",
+        "nonos_x_pipe_buffer::pipebuffer_remove_reader",
+        "nonos_x_pipe_buffer::pipebuffer_remove_writer",
+        "nonos_x_pipe_types::pipe_is_broken",
+        "nonos_x_pipe_types::pipe_new",
+        "nonos_x_pipe_types::pipe_pipe_id",
+        "nonos_x_pipe_types::pipe_space_available",
+        "nonos_x_plonk_types::plonkcircuit_new",
+        "nonos_x_plonk_types::plonkevaluations_new",
+        "nonos_x_process_fd_types::fdentry_is_cloexec",
+        "nonos_x_process_fd_types::fdentry_with_pipe",
+        "nonos_x_process_mmap_va::mmapva_new",
+        "nonos_x_procfs_types::procinode_for_pid",
+        "nonos_x_procfs_types::procinode_root",
+        "nonos_x_region_overlap::contains",
+        "nonos_x_region_overlap::contains_range",
+        "nonos_x_region_overlap::overlaps",
+        "nonos_x_semaphore_pure::acquire_count",
+        "nonos_x_semaphore_pure::can_acquire",
+        "nonos_x_semaphore_pure::release_count",
+        "nonos_x_seqlock_pure::bump",
+        "nonos_x_seqlock_pure::is_stable",
+        "nonos_x_seqlock_pure::read_valid",
+        "nonos_x_spectre_mitigations_cpuid::has_arch_capabilities",
+        "nonos_x_spectre_mitigations_cpuid::has_ibrs_ibpb",
+        "nonos_x_spectre_mitigations_cpuid::has_l1d_flush",
+        "nonos_x_spectre_mitigations_cpuid::has_md_clear",
+        "nonos_x_spectre_mitigations_cpuid::has_ssbd",
+        "nonos_x_spectre_mitigations_cpuid::has_stibp",
+        "nonos_x_spectre_mitigations_cpuid::is_amd",
+        "nonos_x_tables_context::context_domain",
+        "nonos_x_tables_context::context_high",
+        "nonos_x_tables_context::context_index",
+        "nonos_x_tables_context::context_low",
+        "nonos_x_tables_context::entry_address",
+        "nonos_x_tables_context::is_present",
+        "nonos_x_tables_context::root_low",
+        "nonos_x_tables_memory_desc::memorydescriptor_end_address",
+        "nonos_x_tables_memory_desc::memorydescriptor_is_runtime",
+        "nonos_x_tables_memory_desc::memorydescriptor_is_usable",
+        "nonos_x_tables_memory_desc::memorydescriptor_size_bytes",
+        "nonos_x_tables_memory_type::memorytype_is_reserved",
+        "nonos_x_tables_memory_type::memorytype_is_usable",
+        "nonos_x_tables_sl_pte::entry_address",
+        "nonos_x_tables_sl_pte::fits_address_width",
+        "nonos_x_tables_sl_pte::index_for",
+        "nonos_x_tables_sl_pte::is_present",
+        "nonos_x_tables_sl_pte::leaf",
+        "nonos_x_tables_sl_pte::level_span",
+        "nonos_x_tables_sl_pte::table",
+        "nonos_x_tables_srat_memory::sratmemoryaffinity_contains_address",
+        "nonos_x_tables_srat_memory::sratmemoryaffinity_end_address",
+        "nonos_x_tables_srat_memory::sratmemoryaffinity_is_enabled",
+        "nonos_x_tables_srat_memory::sratmemoryaffinity_is_hot_pluggable",
+        "nonos_x_tables_srat_memory::sratmemoryaffinity_is_non_volatile",
+        "nonos_x_tables_srat_other::sratgenericinitiatoraffinity_is_acpi_device",
+        "nonos_x_tables_srat_other::sratgenericinitiatoraffinity_is_enabled",
+        "nonos_x_tables_srat_other::sratgenericinitiatoraffinity_is_pci_device",
+        "nonos_x_tables_srat_other::sratgiccaffinity_is_enabled",
+        "nonos_x_tables_srat_processor::sratprocessoraffinity_is_enabled",
+        "nonos_x_tables_srat_processor::sratprocessoraffinity_proximity_domain",
+        "nonos_x_tables_srat_processor::sratx2apicaffinity_is_enabled",
+        "nonos_x_tables_time::efitime_is_valid",
+        "nonos_x_tables_time::efitime_to_unix_timestamp",
+        "nonos_x_timer_state::get_ticks",
+        "nonos_x_timer_state::increment_ticks",
+        "nonos_x_timer_state::reset_ticks",
+        "nonos_x_translation_fault::translationfault_is_access_fault",
+        "nonos_x_translation_fault::translationfault_is_permission_fault",
+        "nonos_x_translation_fault::translationfault_is_translation_fault",
+        "nonos_x_translation_fault::translationfault_level",
+        "nonos_x_types_bridge::bridgeinfo_new",
+        "nonos_x_types_direction::dmadirection_reads_from_device",
+        "nonos_x_types_direction::dmadirection_writes_to_device",
+        "nonos_x_types_firmware::firmwareentry_empty",
+        "nonos_x_types_firmware::firmwarehandoff_new",
+        "nonos_x_types_ids::domainid_as_u16",
+        "nonos_x_types_ids::domainid_new",
+        "nonos_x_types_ids::sourceid_as_u16",
+        "nonos_x_types_ids::sourceid_bus",
+        "nonos_x_types_ids::sourceid_device",
+        "nonos_x_types_ids::sourceid_function",
+        "nonos_x_types_ids::sourceid_new",
+        "nonos_x_types_percpu::percpuregion_contains",
+        "nonos_x_types_percpu::percpuregion_end",
+        "nonos_x_types_percpu::percpuregion_new",
+        "nonos_x_types_permissions::pagepermissions_device",
+        "nonos_x_types_permissions::pagepermissions_kernel_ro",
+        "nonos_x_types_permissions::pagepermissions_kernel_rw",
+        "nonos_x_types_permissions::pagepermissions_kernel_rx",
+        "nonos_x_types_rate::periodicrate_frequency_hz",
+        "nonos_x_types_rate::periodicrate_period_us",
+        "nonos_x_types_rate::periodicrate_value",
+        "nonos_x_types_region_type::regiontype_is_allocatable",
+        "nonos_x_types_region_type::regiontype_is_kernel",
+        "nonos_x_types_region_type::regiontype_is_reserved",
+        "nonos_x_types_stack::stackregion_new",
+        "nonos_x_types_stack::stackregion_per_cpu",
+        "nonos_x_types_stack::stackregion_stack_top",
+        "nonos_x_types_stack::stackregion_total_size",
+        "nonos_x_types_zone_stats::zonestats_frames_allocated",
+        "nonos_x_types_zone_stats::zonestats_free_bytes",
+        "nonos_x_types_zone_stats::zonestats_new",
+        "nonos_x_types_zone_stats::zonestats_total_bytes",
+        "nonos_x_types_zone_stats::zonestats_usage_percent",
+        "nonos_x_uefi_crc::crc32_current",
+        "nonos_x_uefi_crc::crc32_finalize",
+        "nonos_x_uefi_crc::crc32_new",
+        "nonos_x_uefi_secure_boot_status::securebootstatus_can_modify_keys",
+        "nonos_x_uefi_secure_boot_status::securebootstatus_is_fully_configured",
+        "nonos_x_utils_types::scanconfig_hidden_only",
+        "nonos_x_utils_types::scanconfig_new",
+        "nonos_x_utils_types::scanconfig_with_max_depth",
+        "nonos_x_variable_firmware::firmwareinfo_uefi_major_version",
+        "nonos_x_variable_firmware::firmwareinfo_uefi_minor_version",
+        "nonos_x_verify_caps_bits::grant_within_manifest",
+        "nonos_x_verify_caps_bits::install_caps",
+        "nonos_x_verify_caps_bits::within_ceiling",
+        "nonos_x_vga_colors::bg_color",
+        "nonos_x_vga_colors::fg_color",
+        "nonos_x_vga_colors::make_attr",
+        "nonos_x_vga_constants::colorcode_background",
+        "nonos_x_vga_constants::colorcode_foreground",
+        "nonos_x_vga_constants::colorcode_is_blinking",
+        "nonos_x_vga_constants::colorcode_value",
+        "nonos_x_vga_constants::screenchar_as_u16"
       ],
       "generated_files": [
         {
+          "path": "verification/extraction/lean/NonosExtraction/AddrPhys.lean",
+          "sha256": "191637030d078ee42ce20368f85ee4a0820c84dc5bda30555f743114074c9a35"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/AddrVirt.lean",
+          "sha256": "82394c4eb9ce6385932a13232d7d369e615b388871bdb4bd27ba0b369e0aa7c7"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Align.lean",
+          "sha256": "d99493635e8300a9d16ba0e1fb182ebce113a26a973bedc47d585a0a94221398"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/AmlTypes.lean",
+          "sha256": "a014e57a34f8cd499265c57c66991c166e3468fe9b873dbffd37c7b5ed1d1442"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/BootTypesContext.lean",
+          "sha256": "dff285e66faccf6d27727419b420219862a85d3c847566171e118fa97b4a87de"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/CacheTypes.lean",
+          "sha256": "828a4e23ee127d77a750a7bc937619aa89d55397d4e7bf123280ef574a2af172"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/CapAgaw.lean",
+          "sha256": "de2519fcebac8d84b838422cd2606952d3ed78ef08ab6b43c12d4f39ccd0c489"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/Caps.lean",
-          "sha256": "77e5bee70ae37650045a6eff1f76d2247b8d580090ff72ac0412fd6473c1dd13"
+          "sha256": "c38ce83715efe6194711645718c0e0efc2dd76a20c165fb417154f88ee98b42b"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/CensusBuf.lean",
+          "sha256": "94d4079ce47fb52abc528d686963e2de9ec1771c4047a0a5d78532d5806fca1a"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ChainError.lean",
+          "sha256": "899720591be819652c4028be25ded96994c171507bc292ff6cc271b593503aa8"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/CivilDays.lean",
+          "sha256": "1ae5a9758ad600301de328ef1f369f5afad83d000110f9a6135726be3a90869b"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/CoherencyMode.lean",
+          "sha256": "16de7ebf5a071b5e116e005d26d1c49c710ff5e6cab467de76d9a54f650d5c73"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ConstantTimeAes.lean",
+          "sha256": "79a3a4a3d7337e96ff928456f8cb84a37a30a4b065180032ee574535bc10b6e3"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ConstantTimeSelect.lean",
+          "sha256": "6e5e9b71c3ca4398bf4d4c271c70c54de9ff951974cdc606e2ec687f2ea2331e"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ConstantsHelpers.lean",
+          "sha256": "63a1c890393a43ecf0a3ad3a0bd7e7fe4930617011269b0d340a88265223ead6"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ContextCpuContext.lean",
+          "sha256": "4e069475addb8abed041f2d890c34164de9420fd6039d6e5a3a882fe2cd80e53"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ContextTypes.lean",
+          "sha256": "4474056343f1dcba4f2cecbc763108959af53055d7e7b8c7388405c328fbb3a1"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ContractArgs.lean",
+          "sha256": "4bed9eec42d47bba3f315df82678436116ab54cfc3899950c0b12d6afab0522b"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/CoreSection.lean",
+          "sha256": "92da08439bcbfa604108b7846066a860cf9a62d65470b1fed1dd2c2f7fe4ba09"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/CpuMsrStats.lean",
+          "sha256": "a0348147667fa20b6c3db4bf93053a3d8d81a014cc8cc86e3993dd4be6609cb8"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Ct.lean",
+          "sha256": "1161f0b947c15dbdd965a381ca11a8ad8f85b2d44294cad8547be6eb966c468b"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/DataInterrupt.lean",
+          "sha256": "ede84116be07f4f8b0c324d8fe332f81a2ac73936161771d97c4328c4cf538c2"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/DescriptorUnsupported.lean",
+          "sha256": "be18898e51b99c713803401525ba5fa6dae8bfb0c31e39b09deaf7e6c7712083"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/EdField.lean",
+          "sha256": "cf4ed5e0fb2906d496fccab3d78d217f123807cd518622098d16d594e1562eb6"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Elf.lean",
+          "sha256": "000aeffdabc1318190f5ebaef942f935cfa2ca92a3aa517fdfbb3d13db74c987"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ErrorFaultInfo.lean",
+          "sha256": "47b6dcda4236b9d1eaef783d73ad4fe65c82ec8af99e2ecb7738a340486c8962"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/FadtProfile.lean",
+          "sha256": "c2d7fe47e55f2be6d160e62b2d47f0dc06dc91a967b3d3a2710337bedebd1a3c"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/FieldTypes.lean",
+          "sha256": "f3a24e6058aac7d53049f06380a0e3ca5749ffc175c37dfb23936a827a3040ca"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/GicState.lean",
+          "sha256": "696cb61112130ffc79fd43316628ea4a6d10495540a1522661f103dddf8f1b67"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/HpetRegisters.lean",
+          "sha256": "0283f2752fda0b304280cd6df596450185885d4489460e70f8c4cd40a0a1d9f0"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/IdtEntryFrame.lean",
+          "sha256": "3deb7b1ef8b2f7544cb59009b112c9f038415262b4c175b282bfca5c6740ffa8"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Iommu.lean",
+          "sha256": "00bd82326b3382666b8ff8922b71a2f40f0766e9230c037796d3dc710dddb384"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/IommuProtection.lean",
+          "sha256": "02f1f92895022c6e63def5698b27f9bd1215f1f2bfee983b33d3112cdc11cfa3"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Irq.lean",
           "sha256": "9bda548e235ff0e615d704ef376481377371b395429b846c18b8fb9ecca5e2d3"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/IrqReserved.lean",
+          "sha256": "5bc7e9971cf44b89ed902df8d4976415bc54f75f6c4eee8263fdf8d3f3c4d935"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/KeyManagementTypes.lean",
+          "sha256": "8587ddeed71a3865544e596cf94a2be526ac6ba62d7104cd9c7c5758c8e3e515"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/MemorySanitizationTypes.lean",
+          "sha256": "0392e20a3056e729dbc3e29e8b580d3d6cb1657c85edabffdfcd93e354bb5692"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/MemoryStats.lean",
+          "sha256": "c006542c9339dd8abbeb5d241a7c9cab8143b59c9e5062f5d27402fd75b3b582"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/MicrobenchSample.lean",
+          "sha256": "483c8d10d906462e2329fa827a59b6edc74aa45a0756b513ba70b0d11fa20bb6"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/MmuMode.lean",
+          "sha256": "cb2daa422b2fe3887944a7d03aa9f80dd08d62fd6d159e7a91e9b8175d3f75cb"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/MultibootModulesAcpi.lean",
+          "sha256": "21c5d030b3b63cad0acc95de5579ebd3553e4c966293e62f2a7ad23817ee5d12"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/MultibootPlatformTypes.lean",
+          "sha256": "7e821ccbd0ab4de95053bde31c26afc2238dbafe7b57b93d1d13153ae0667e8b"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/MulticoreState.lean",
+          "sha256": "7b5bb16780bf5aaa4946e66cb8439f96201f012c0a8ff49aa59fb4c5acd9c09f"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/NonosInboxStats.lean",
+          "sha256": "49f1ca0637c525ceba94a59eedd1dcd7a47adf02c2dbc1de7460884f0bbeabaf"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ObservabilityPolicy.lean",
+          "sha256": "235787252988801ea1f97ae74a3e73e9831af73d0aceba358c9b968a4cf7230f"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/PacKey.lean",
+          "sha256": "396e2af119d50f37049df662cb85f04a1cafb32b51e71d7f72adf63383c46a27"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Paging.lean",
+          "sha256": "6b72a1b86d723cb9f0a4b86bc296480bfb7935181eaf856ef16c0d87852025d0"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/PciError.lean",
+          "sha256": "871d61b113bc818e455deca24ba3f91c2bb30927835c0b5ddf7b9825500fbfc7"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/PciTypes.lean",
+          "sha256": "e82aeb5ba461c520b3886d4e24f6c03c0c7351a5f0cab77af41b27f86071247c"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/PciTypesMsix.lean",
+          "sha256": "0b9c728fce8f3aeae4b45de0a852d4fe024e624ae1912befded501524de79e3e"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/PipeBuffer.lean",
+          "sha256": "02c7e85da1bc0908b20aed0643843f44fff8530e105fe5f895f48a851a893e1e"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/PipeTypes.lean",
+          "sha256": "9b84c2e927bf8c02c625e1a94909d3f065a53f88ce90ba44c54fd367cab2a415"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/PlonkTypes.lean",
+          "sha256": "041b400dd85aec92d3cbf80b8e57350ee05c97e22bf64b3e76fe52ad46e593b0"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ProcessFdTypes.lean",
+          "sha256": "18619216542697ddaf332cd2636076cb8133596b19a9da9b431cb93fa55d3162"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ProcessMmapVa.lean",
+          "sha256": "62eb483d7ddd04eec0b3b8d648b4267740a69b105b8c24f8fdbfef31e3681a84"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ProcfsTypes.lean",
+          "sha256": "9ab2cd40cdad73e06828037d6b3d9ca97077522bd4fb96bae6164fab53ad1670"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/RegionOverlap.lean",
+          "sha256": "aa76f80d1ebd105f227222b5b47532cbb984a93a9a005a708cd671a945dd196d"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/RvFlags.lean",
+          "sha256": "b78ef3c9eb7caf65b113f4e7416cafbc2b9c6a7a378cde37458f228aafdaba5a"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/SemaphorePure.lean",
+          "sha256": "c44e38d1c77974d9062ad6e4cc489ab69ccde380469af95e299d6587d1a38195"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/SeqlockPure.lean",
+          "sha256": "4bdf3bba2fa91e1c066c7e54f5d2ad476fe971b3e955f8ac1891e37843038cf3"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Signal.lean",
+          "sha256": "b40253ddc5addde3a2d67389dd9ec00910623bf27c09ec0f4eda996995b34847"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/SpectreMitigationsCpuid.lean",
+          "sha256": "6f92779ecb96ff952f32a9f18d52d244a03d6cac4928721446160b3443cca145"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TablesContext.lean",
+          "sha256": "6edde8d5d39f9bd1fa5226906b16bbb4403fd8316f151561f64f056887a04e95"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TablesMemoryDesc.lean",
+          "sha256": "ba52b4ded8009cdc12dc736439a9dd75c303dbc99585847b32de3073f4d2417e"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TablesMemoryType.lean",
+          "sha256": "d9d4846ba0753d8f1103b78e8f2bbc2e231f1b9f95a21f70e6b475f29770c47a"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TablesSlPte.lean",
+          "sha256": "8833488efa2a23804d9adabe1e9ee71e6ea223de411e879ca236d08f53fb8a65"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TablesSratMemory.lean",
+          "sha256": "b40eba527649ac9ad6a80159cd462d0f5b7159e7d8d584bfe0f06a2ebcdbaf03"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TablesSratOther.lean",
+          "sha256": "de028707b0103e7df616e4d849901d1b1db3f0b5cb2ea670139fbb3089eef860"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TablesSratProcessor.lean",
+          "sha256": "624ad5afb57a4211208fbcade15767b1a99db20a9e8db5f7f8cd61fb2d63654f"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TablesTime.lean",
+          "sha256": "29af11bfd493f588c934ebe11ed682fee112b88126a25cea1a58bcb957cbdbbb"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TimerState.lean",
+          "sha256": "164f1548850dd0b9062b1e433a467b7a7a2ad8a0d0e9fcf721552adb70884db3"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TranslationFault.lean",
+          "sha256": "d5adc30bcc1de8c3e20ce813e41d08234196febceae1a76a7524257dd7551a55"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesBridge.lean",
+          "sha256": "6f293ca2211ed084d818947ecff7587dba66660c45072da9d7084792fabc7cfa"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesDirection.lean",
+          "sha256": "199fbc13de9fd3608ca117c5af366ab4792f10eb19cfec6f99974872d2d5898c"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesFirmware.lean",
+          "sha256": "b8fbbf26d047349807ed03d5a2653b5c0cf322b8b9782a7e52f873118f713306"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesIds.lean",
+          "sha256": "bb826380b3f173d2874179efbf6f4b7eab3ebf50701581e85acd98628acb1f21"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesPercpu.lean",
+          "sha256": "79f5f9ccd39b66536eedd0271048924b34ed077d60b6d045b5f38c2a7cf9e54f"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesPermissions.lean",
+          "sha256": "3d9f0e2fb6623cfe78dad720782d07ace60de438c1974a8c904295370264318c"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesRate.lean",
+          "sha256": "390aee4637d68399fba5bbb74f5d89e288791c592078887daeca81358058925b"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesRegionType.lean",
+          "sha256": "607f6e25a8f4e16881ce7509b7abb43b37f5aa929f823a298945ffe7b05ecb6a"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesStack.lean",
+          "sha256": "569c8313d8dd35689edd45d4e421dd65b28db04022d25c7db147e5149a73851d"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesStats.lean",
+          "sha256": "e747e507a82b51a22690114a4af9e03ee5992310e25e4baf8bc5898abc57e0c3"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesZoneStats.lean",
+          "sha256": "6918fe4934ca9dcf3a888ddef692147b5fbbfccf567e8c70d26928154bcc1299"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Uefi.lean",
+          "sha256": "3c4d4e3bd07ce97e4736a45a8345af678b95d6af894f17c194dc9631986f5976"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/UefiCrc.lean",
+          "sha256": "aea2a3da6eacbf9f64ee3c5d252786ccaaecd00bb1bccad0c8cd0dd49e9d5309"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/UefiSecureBootStatus.lean",
+          "sha256": "d11cef8793cba33548af0795daac2f3616f286d1e1b125468ae0a6de792d1f60"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/UtilsTypes.lean",
+          "sha256": "82b1f58650ccf6854d84b2690bc9bb1520c63ed67df90b71ffe93ce8c1549f59"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/VariableFirmware.lean",
+          "sha256": "d2d6a16662fa8e19a6390fc4279c4271a5f43a6fc3742675b6599d1f874efe4d"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Vectors.lean",
+          "sha256": "3e34f1c55dae23203ca92470ef0ca26cf3767ce927162589cc7626a0b6f657dd"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/VerifyCapsBits.lean",
+          "sha256": "1d89d124de908e4701e5a4aaea17cd72eb1e9f43cbc479861754431a2fe7c2e0"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/VgaColors.lean",
+          "sha256": "b6caeeedba8da390db96240f80d637e1f88a9a1938410d191059b88d0b4fb3d5"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/VgaConstants.lean",
+          "sha256": "a502d776fec101fc7b5350c915f7ad9464f37c810fdf0dac174d3353ab72496a"
         },
         {
           "path": "verification/extraction/lean/Policy/Funs.lean",
@@ -49,11 +841,11 @@
       ]
     },
     "lean_specification": {
-      "axiom_profiled_theorems": 302,
+      "axiom_profiled_theorems": 623,
       "mathlib": false,
-      "modules": 163,
+      "modules": 188,
       "sorry_count": 0,
-      "theorems": 1139,
+      "theorems": 1492,
       "toolchain": "leanprover/lean4:v4.15.0"
     },
     "runnable": {

@@ -1,0 +1,21 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Extraction root for the ELF loader's bounds checks. These are the gates that
+# stand between a crafted image and the loader's reads, so they are the ones worth
+# proving over the code rather than over a model of it. Charon lowers this crate's
+# MIR to LLBC and Aeneas translates it to Lean; the kernel sources are included
+# below via #[path], never copied.
+#
+# The module paths mirror the kernel's exactly, because the included files reach
+# for `crate::elf::types` and `crate::elf::errors` and those paths have to resolve
+# to the same places here.
+[package]
+name = "nonos_elf"
+version = "0.2.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

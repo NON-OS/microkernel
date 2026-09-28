@@ -16,8 +16,15 @@ pub const fn align_up(value: usize, align: usize) -> usize {
     if align == 0 || align & (align - 1) != 0 {
         return value;
     }
+    /*
+     * The overflow arm used to return usize::MAX & !(align - 1), which is below
+     * the input for the same reason the saturating version in boot_memory was.
+     * Catching the overflow and then returning a smaller address is not better
+     * than not catching it. Return the value unchanged so the result is never
+     * below the input.
+     */
     match value.checked_add(align - 1) {
         Some(v) => v & !(align - 1),
-        None => usize::MAX & !(align - 1),
+        None => value,
     }
 }
