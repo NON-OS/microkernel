@@ -57,5 +57,9 @@ impl Socks {
         for queued in gone.pending {
             self.free(queued, true);
         }
+        self.refuse_waiting(gone.syn.into_iter());
+        for l in self.list.iter_mut().flatten() {
+            l.syn.retain(|&c| c != id);
+        }
     }
 }

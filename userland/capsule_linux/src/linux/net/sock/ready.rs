@@ -46,6 +46,10 @@ fn of(s: &Sock, room: bool) -> u16 {
     if s.listening {
         return err | if s.pending.is_empty() { 0 } else { POLLIN };
     }
+    // A connect waiting for room: SYN_SENT, neither readable nor writable.
+    if s.connecting {
+        return err;
+    }
     // Never connected, refused, or reset: Linux's TCP_CLOSE.
     if !s.connected || s.broken {
         let rd = if s.connected { POLLIN | POLLRDHUP } else { 0 };

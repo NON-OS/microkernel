@@ -40,6 +40,7 @@ mod progress;
 mod ready;
 mod recv;
 mod send;
+mod syn;
 mod table;
 mod types;
 

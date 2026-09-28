@@ -42,6 +42,7 @@ pub fn accept4(guest: &mut Guest, fd: u64, at: u64, lenp: u64, flags: u64) -> u6
             return Err(errno::EINVAL);
         }
         let child = s.pending.pop_front().ok_or(errno::EAGAIN)?;
+        t.make_room(id);
         let c = t.get_mut(child).ok_or(errno::ECONNABORTED)?;
         c.holders.push(pid);
         let from = match c.domain {

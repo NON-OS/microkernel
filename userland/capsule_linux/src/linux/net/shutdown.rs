@@ -51,9 +51,12 @@ pub fn shutdown(guest: &Guest, fd: u64, how: u64) -> u64 {
             // Shutting a listener's reading side stops it listening.
             if rd {
                 s.listening = false;
-                for queued in core::mem::take(&mut s.pending) {
-                    t.free(queued, true);
+                let (queued, waiting) =
+                    (core::mem::take(&mut s.pending), core::mem::take(&mut s.syn));
+                for q in queued {
+                    t.free(q, true);
                 }
+                t.refuse_waiting(waiting.into_iter());
             }
             return errno::ok(0);
         }

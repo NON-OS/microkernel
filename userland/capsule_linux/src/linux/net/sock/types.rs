@@ -51,6 +51,10 @@ pub struct Sock {
     pub listening: bool,
     pub backlog: usize,
     pub pending: VecDeque<u32>,
+    /// Connects the full queue turned away, oldest first (`syn`).
+    pub syn: VecDeque<u32>,
+    /// This end's connect waits in a listener's `syn` queue.
+    pub connecting: bool,
     /// The other end of a stream, until it is let go.
     pub peer: Option<u32>,
     pub connected: bool,

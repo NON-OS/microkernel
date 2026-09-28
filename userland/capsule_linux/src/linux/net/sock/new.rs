@@ -33,6 +33,8 @@ impl Sock {
             listening: false,
             backlog: 0,
             pending: VecDeque::new(),
+            syn: VecDeque::new(),
+            connecting: false,
             peer: None,
             connected: false,
             rx: VecDeque::new(),
