@@ -17,7 +17,7 @@
 //! `brk` and `munmap`.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{page_up, Guest, BRK_BASE, BRK_LIMIT};
+use crate::linux::guest::{page_up, Guest, BRK_BASE, BRK_LIMIT, PAGE};
 
 /// `brk(0)` reports the break; any other value moves it and reports where
 /// it landed, which is Linux's contract and not an error channel.
@@ -48,7 +48,8 @@ pub fn brk(guest: &mut Guest, want: u64) -> u64 {
 
 /// The pages go back to the kernel and leave the guest's region list.
 pub fn munmap(guest: &mut Guest, addr: u64, len: u64) -> u64 {
-    if len == 0 {
+    // Linux takes an address on a page boundary, and rounds only the length.
+    if len == 0 || addr % PAGE != 0 {
         return errno::fail(errno::EINVAL);
     }
     match guest.unmap(addr, len) {

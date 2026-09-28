@@ -17,7 +17,7 @@
 //! `mmap`: anonymous pages, or a private mapping of a file.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::Guest;
+use crate::linux::guest::{Guest, PAGE};
 
 use super::map_anon::{anonymous, memfd};
 use super::map_file::file;
@@ -31,7 +31,10 @@ const MAP_FIXED: u64 = 0x10;
 const MAP_FIXED_NOREPLACE: u64 = 0x10_0000;
 
 pub fn mmap(guest: &mut Guest, req: MapReq) -> u64 {
-    if req.len == 0 {
+    // Linux takes a file offset on a page boundary, and an exact address too;
+    // only a hint is rounded.
+    let exact = req.flags & (MAP_FIXED | MAP_FIXED_NOREPLACE) != 0;
+    if req.len == 0 || req.off % PAGE != 0 || (exact && req.addr % PAGE != 0) {
         return errno::fail(errno::EINVAL);
     }
     if wx_refused(req.prot) {
@@ -41,7 +44,7 @@ pub fn mmap(guest: &mut Guest, req: MapReq) -> u64 {
     // Page zero is never in the plan, and landing elsewhere would hand back
     // memory the guest did not ask for, so it is refused, as Linux refuses it
     // below mmap_min_addr.
-    if req.flags & (MAP_FIXED | MAP_FIXED_NOREPLACE) != 0 && req.addr == 0 {
+    if exact && req.addr == 0 {
         return errno::fail(errno::EPERM);
     }
     let spot = match place(guest, &req) {

@@ -17,7 +17,7 @@
 //! `mprotect`, and the rule that makes it necessary.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{span_within, Guest, USER_MAX};
+use crate::linux::guest::{span_within, Guest, PAGE, USER_MAX};
 
 use super::prot_span::protect_span;
 
@@ -32,6 +32,10 @@ pub fn wx_refused(prot: u64) -> bool {
 }
 
 pub fn mprotect(guest: &mut Guest, addr: u64, len: u64, prot: u64) -> u64 {
+    // Linux takes an address on a page boundary, and rounds only the length.
+    if addr % PAGE != 0 {
+        return errno::fail(errno::EINVAL);
+    }
     if len == 0 {
         return errno::ok(0);
     }
