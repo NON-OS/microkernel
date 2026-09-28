@@ -30,7 +30,7 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     super::tally::call();
     match frame.nr {
         nr::CLONE => clone(guest, frame),
-        nr::FORK | nr::VFORK => crate::linux::call::fork(guest),
+        nr::FORK | nr::VFORK => crate::linux::call::fork(guest, frame.pid),
         nr::EXECVE => crate::linux::call::execve(guest, frame.pid, a[0], a[1], a[2]),
         nr::WAIT4 => crate::linux::call::wait4(guest, a[0], a[1], a[2], frame.pid),
         // A thread exiting is not the process exiting.

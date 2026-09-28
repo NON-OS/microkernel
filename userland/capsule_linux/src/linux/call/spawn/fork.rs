@@ -24,8 +24,8 @@ use crate::linux::serve::Answer;
 
 use super::fork_copy::copy_spans;
 
-pub fn fork(guest: &mut Guest) -> Answer {
-    let child = mk_foreign_fork(guest.pid);
+pub fn fork(guest: &mut Guest, caller: u32) -> Answer {
+    let child = mk_foreign_fork(caller);
     if child < 0 {
         return Answer::value(errno::fail(errno::ENOMEM));
     }
@@ -35,12 +35,10 @@ pub fn fork(guest: &mut Guest) -> Answer {
     }
     /*
      * The thread pointer is a register, not memory, so copying the spans does
-     * not carry it: without this a child's first TLS access reads through a
-     * zero %fs, and musl makes one almost at once.
+     * not carry it. The kernel fork carries the forking thread's own FS to the
+     * child, which is right whichever thread forked; the personality's single
+     * fs_base is only the last thread to set one and would be wrong here.
      */
-    if guest.fs_base != 0 && nonos_libc::peer::mk_peer_tls(child, guest.fs_base) < 0 {
-        return Answer::value(errno::fail(errno::ENOMEM));
-    }
     /*
      * The child's state goes to the serve loop before the child runs, so its
      * first trap finds a guest that owns it.
