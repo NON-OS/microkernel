@@ -16,7 +16,7 @@
 //! Path family.
 
 use crate::path::eligible::excluded;
-use crate::path::{candidates, Flags, Position, Relay, Taken, Weights};
+use crate::path::{Flags, Relay, Taken};
 
 fn relay(address: [u8; 4], id: u8) -> Relay {
     Relay {
@@ -41,19 +41,6 @@ fn relay(address: [u8; 4], id: u8) -> Relay {
 
 fn taken(relay: &Relay) -> Taken {
     Taken { identity: relay.rsa_identity, address: relay.address }
-}
-
-fn flat() -> Weights {
-    Weights {
-        wgg: 10_000,
-        wgd: 10_000,
-        wmg: 10_000,
-        wmd: 10_000,
-        wme: 10_000,
-        wmm: 10_000,
-        wee: 10_000,
-        wed: 10_000,
-    }
 }
 
 #[test]

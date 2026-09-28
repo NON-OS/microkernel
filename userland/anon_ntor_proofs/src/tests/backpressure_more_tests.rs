@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Backpressure, continued.
 
-use crate::circuit::window::{STREAM_INCREMENT, STREAM_START};
+use crate::circuit::window::STREAM_INCREMENT;
 use crate::stream::{Stream, StreamStage};
 
 const HIGH_WATER: usize = STREAM_INCREMENT as usize * 498;

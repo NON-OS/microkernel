@@ -15,11 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Consensus live.
 
-use super::consensus_live_fixture::{live, weights_of};
+use super::consensus_live_fixture::live;
 use crate::directory::consensus::parse;
-use crate::path::{candidates, Position, Relay, Taken, Weights};
 use alloc::collections::BTreeSet;
-use alloc::vec::Vec;
 
 #[test]
 fn every_relay_in_a_live_consensus_reads_back() {

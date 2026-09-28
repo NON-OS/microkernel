@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Batch, continued.
 
-use crate::batch::{batch_at, batch_count, batch_entries};
+use crate::batch::{batch_at, batch_count};
 use crate::directory::consensus::Entry;
 use alloc::vec::Vec;
 
