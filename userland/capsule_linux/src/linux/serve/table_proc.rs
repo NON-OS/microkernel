@@ -38,6 +38,13 @@ pub fn proc_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
             nonos_libc::mk_yield();
             errno::ok(0)
         }
+        nr::SCHED_GETSCHEDULER => call::sched_getscheduler(guest, a[0]),
+        nr::SCHED_SETSCHEDULER => call::sched_setscheduler(guest, a[0], a[1], a[2]),
+        nr::SCHED_GETPARAM => call::sched_getparam(guest, a[0], a[1]),
+        nr::SCHED_SETPARAM => call::sched_setparam(guest, a[0], a[1]),
+        nr::SCHED_GET_PRIORITY_MAX => call::priority_bound(a[0], true),
+        nr::SCHED_GET_PRIORITY_MIN => call::priority_bound(a[0], false),
+        nr::SCHED_SETAFFINITY => call::sched_setaffinity(guest, a[0], a[1], a[2]),
         nr::GETPID => errno::ok(guest.pid as u64),
         nr::GETUID | nr::GETEUID | nr::GETGID | nr::GETEGID => errno::ok(0),
         nr::CLOCK_GETTIME => call::clock_gettime(guest, a[0], a[1]),

@@ -16,7 +16,7 @@
 
 //! Calls that name a file or a descriptor.
 
-use crate::linux::abi::{nr, nr_path as np};
+use crate::linux::abi::{errno, nr, nr_path as np};
 use crate::linux::call;
 use crate::linux::file;
 use crate::linux::file::flags;
@@ -39,6 +39,9 @@ pub fn file_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64
         nr::NEWFSTATAT => file::newfstatat(guest, a[0], a[1], a[2]),
         nr::GETDENTS64 => file::getdents64(guest, a[0], a[1], a[2]),
         nr::EPOLL_CREATE1 => file::epoll_create(guest),
+        // The size is a hint Linux ignores past checking it is positive.
+        nr::EPOLL_CREATE if a[0] as u32 as i32 <= 0 => errno::fail(errno::EINVAL),
+        nr::EPOLL_CREATE => file::epoll_create(guest),
         nr::EVENTFD2 => file::eventfd2(guest, a[0], a[1]),
         nr::EVENTFD => file::eventfd2(guest, a[0], 0),
         nr::PIPE => call::pipe2(guest, a[0], 0),

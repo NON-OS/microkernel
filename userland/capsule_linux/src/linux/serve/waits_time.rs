@@ -26,6 +26,7 @@ pub fn span(guest: &Guest, number: u64, a: &[u64; 6]) -> Result<Option<u64>, u64
         nr::POLL => Ok(int_ms(a[2])),
         np::PPOLL => spec(guest, a[2], 1_000_000_000),
         np::PSELECT6 => spec(guest, a[4], 1_000_000_000),
+        nr::EPOLL_PWAIT2 => spec(guest, a[3], 1_000_000_000),
         // A timeval: seconds and microseconds.
         np::SELECT => spec(guest, a[4], 1_000_000),
         // epoll_wait and epoll_pwait.

@@ -40,6 +40,7 @@ mod pipe_end;
 mod pipe_io;
 mod pipe_poll;
 mod pipe_read;
+mod sched;
 mod session;
 pub mod sigframe;
 mod signal;
@@ -70,6 +71,10 @@ pub use pipe_dup::{dup, dup2};
 pub use pipe_io::write as pipe_write;
 pub use pipe_poll::bits as pipe_bits;
 pub use pipe_read::read as pipe_read;
+pub use sched::{
+    priority_bound, sched_getparam, sched_getscheduler, sched_setaffinity, sched_setparam,
+    sched_setscheduler,
+};
 pub use session::{getpgid, getsid, setpgid, setsid};
 pub use signal::{rt_sigaction, rt_sigprocmask, sigaltstack};
 pub use sigreturn::rt_sigreturn;
