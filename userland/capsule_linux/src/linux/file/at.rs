@@ -23,7 +23,6 @@ use crate::linux::guest::{Guest, Kind};
 
 use super::flags::AT_FDCWD;
 use super::path::read_path;
-use super::resolve::visible;
 
 pub fn resolve_at(guest: &Guest, dirfd: u64, path: u64) -> Option<Vec<u8>> {
     let name = read_path(guest, path)?;
@@ -33,21 +32,30 @@ pub fn resolve_at(guest: &Guest, dirfd: u64, path: u64) -> Option<Vec<u8>> {
 }
 
 /*
- * The absolute name `name` gives against `dirfd`, nothing followed yet.
- * A directory descriptor keeps the path it was opened at, so a chdir made
- * since does not move what it names.
+ * The name `name` gives against `dirfd`, joined and nothing resolved yet:
+ * `..` and links are walked in order by `walk::follow`. A directory
+ * descriptor keeps the path it was opened at, so a chdir made since does
+ * not move what it names.
  */
 pub fn named_at(guest: &Guest, dirfd: u64, name: &[u8]) -> Result<Vec<u8>, i64> {
     let dirfd = super::flags::dirfd(dirfd);
     if name.first() == Some(&b'/') {
-        return Ok(visible(b"/", name));
+        return Ok(name.to_vec());
     }
     if dirfd == AT_FDCWD {
-        return Ok(visible(&guest.cwd, name));
+        return Ok(join(&guest.cwd, name));
     }
     match guest.fds.get(dirfd as usize).filter(|f| f.is_open()) {
-        Some(fd) if fd.kind == Kind::Dir => Ok(visible(&fd.path, name)),
+        Some(fd) if fd.kind == Kind::Dir => Ok(join(&fd.path, name)),
         Some(_) => Err(errno::ENOTDIR),
         None => Err(errno::EBADF),
     }
+}
+
+/* `name` under the directory `base`; an absolute `name` is itself. */
+pub fn join(base: &[u8], name: &[u8]) -> Vec<u8> {
+    if name.first() == Some(&b'/') {
+        return name.to_vec();
+    }
+    [base, b"/", name].concat()
 }

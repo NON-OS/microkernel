@@ -17,14 +17,14 @@
 /* Moving the working directory. */
 
 use crate::linux::abi::errno;
-use crate::linux::file::{follow, look, read_path, visible};
+use crate::linux::file::{follow, join, look, read_path};
 use crate::linux::guest::{Guest, Kind};
 
 pub fn chdir(guest: &mut Guest, path: u64) -> u64 {
     let Some(name) = read_path(guest, path) else {
         return errno::fail(errno::EFAULT);
     };
-    let at = follow(guest, visible(&guest.cwd, &name), true);
+    let at = follow(guest, join(&guest.cwd, &name), true);
     /* Checked before it is taken. */
     match look(&at) {
         Some((_, true)) => {

@@ -14,32 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* The name walked as open_how's rules allow. */
+/* The link at a name, if a walk can go through it. */
 
 use alloc::vec::Vec;
 
-use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::super::super::{at, path, walk};
-use super::how::open_how;
-use super::open::BENEATH;
-use super::walked::walked;
+use super::super::synth::{self, Node};
 
-pub(super) fn check(
-    guest: &Guest,
-    dirfd: u64,
-    path_ptr: u64,
-    how: u64,
-    size: u64,
-) -> Result<(Vec<u8>, u64, u64), i64> {
-    let (flags, mode, rules) = open_how(guest, how, size)?;
-    let name = path::read_path(guest, path_ptr).ok_or(errno::EFAULT)?;
-    let base = walk::follow(guest, at::named_at(guest, dirfd, b".")?, true);
-    if rules & BENEATH != 0 && name.first() == Some(&b'/') {
-        return Err(errno::EXDEV);
+/* Where the link at `at` leads, if `at` is one that can be walked through. */
+pub(super) fn link_at(guest: &Guest, at: &[u8]) -> Option<Vec<u8>> {
+    if let Some(to) = guest.links.target(at) {
+        return Some(to);
     }
-    let named = at::named_at(guest, dirfd, &name)?;
-    walked(guest, &base, &named, rules)?;
-    Ok((named, flags, mode))
+    match synth::node(at)? {
+        /* A pipe or a socket: there is nothing to walk through. */
+        Ok(Node::Link(to)) if to.first() == Some(&b'/') || !to.contains(&b':') => Some(to),
+        _ => None,
+    }
 }

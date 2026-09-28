@@ -67,6 +67,7 @@ mod walk;
 mod write;
 mod xattrs;
 
+pub use at::join;
 pub use close::close;
 pub use cstr::read_cstr;
 pub use dev_io::{read as dev_read, write as dev_write};

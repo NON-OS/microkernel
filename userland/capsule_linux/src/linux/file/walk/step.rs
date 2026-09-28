@@ -20,21 +20,25 @@ use alloc::vec::Vec;
 
 use crate::linux::guest::Guest;
 
-use super::path::made_link;
+use super::path::walk;
 
-const MAX_HOPS: usize = 16;
+/* Linux's MAXSYMLINKS: more links than this in one walk is a loop. */
+pub(super) const MAX_HOPS: usize = 40;
+
+/* One step of a walk, for a caller that limits where a walk may go. */
+pub enum Step<'a> {
+    /* The walk stands at this path. */
+    At(&'a [u8]),
+    /* The walk is about to follow the link at `at`, which leads to `to`. */
+    Link { at: &'a [u8], to: &'a [u8] },
+}
 
 /*
- * `path` with every link in it followed; its last component too when
- * `last` is set.
+ * `path` with every link in it followed, its last name too when `last` is
+ * set, and every `.` and `..` resolved. A trailing slash asks for the last
+ * name to be followed, as it does on Linux.
  */
 pub fn follow(guest: &Guest, path: Vec<u8>, last: bool) -> Vec<u8> {
-    let mut path = guest.links.follow(path, last);
-    for _ in 0..MAX_HOPS {
-        match made_link(&path, last) {
-            Some(next) => path = guest.links.follow(next, last),
-            None => break,
-        }
-    }
-    path
+    /* With no check to refuse a step, the walk always ends somewhere. */
+    walk(guest, path, last, |_| Ok(())).unwrap_or_else(|_| alloc::vec![b'/'])
 }

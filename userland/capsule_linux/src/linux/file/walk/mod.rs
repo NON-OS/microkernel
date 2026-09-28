@@ -18,13 +18,18 @@
  * Following a path through the links in it: the image's own, and the ones
  * /dev and /proc make (/proc/self, /dev/fd, /proc/<pid>/cwd, /root, /exe).
  *
- * Every result is a path of the family's own tree. /proc/<pid>/root is the
- * family's root, so nothing reached through it, or through `..` after it,
- * is outside that root; and a descriptor's link that names no path, a pipe
- * or a socket, is not followed through, as Linux cannot follow it either.
+ * The path is walked a name at a time, as Linux walks it: a link is
+ * followed where it stands, and a `..` after it goes to the parent of
+ * where the link led, not of the link. `..` at the root stays at the root,
+ * so every result is a path of the family's own tree, and /proc/<pid>/root
+ * is that root. A descriptor's link that names no path, a pipe or a
+ * socket, is not walked through, as Linux cannot walk through it either.
  */
 
+mod link;
 mod path;
+mod state;
 mod step;
 
-pub use step::follow;
+pub use path::walk;
+pub use step::{follow, Step};

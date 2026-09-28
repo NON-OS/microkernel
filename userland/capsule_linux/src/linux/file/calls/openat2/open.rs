@@ -51,19 +51,3 @@ pub fn openat2(guest: &mut Guest, dirfd: u64, path_ptr: u64, how: u64, size: u64
         Err(e) => errno::fail(e),
     }
 }
-
-/* Whether `..` in the name climbs above where it starts. */
-pub(super) fn escapes(name: &[u8]) -> bool {
-    let mut depth = 0i64;
-    for part in name.split(|b| *b == b'/') {
-        match part {
-            b"" | b"." => {}
-            b".." => depth -= 1,
-            _ => depth += 1,
-        }
-        if depth < 0 {
-            return true;
-        }
-    }
-    false
-}

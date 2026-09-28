@@ -16,51 +16,51 @@
 
 /* The walk open makes, refused at the first step the rules forbid. */
 
-use alloc::vec::Vec;
-
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::super::super::synth::{self, Node};
-use super::super::super::{mounts, resolve, walk};
+use super::super::super::walk::Step;
+use super::super::super::{mounts, walk};
 use super::open::{BENEATH, NO_MAGICLINKS, NO_SYMLINKS, NO_XDEV};
 
 /*
- * Walk the name a component at a time from where it starts, and check each
- * step against `rules`.
+ * Walk the name as open will, and refuse the first step `rules` forbid:
+ * a link at all, a /proc magic link, an absolute link or a step out of the
+ * starting directory under BENEATH, a step onto another mount.
  */
 pub(super) fn walked(guest: &Guest, base: &[u8], named: &[u8], rules: u64) -> Result<(), i64> {
     let mount = mounts::of(base).0;
-    let below = base == b"/"
-        || named.starts_with(base) && matches!(named.get(base.len()), None | Some(b'/'));
-    let (mut at, rest) = match below && base != b"/" {
-        true => (base.to_vec(), &named[base.len()..]),
-        false => (Vec::new(), named),
+    let under = |p: &[u8]| {
+        base == b"/" || p.starts_with(base) && matches!(p.get(base.len()), None | Some(b'/'))
     };
-    for part in rest.split(|b| *b == b'/').filter(|p| !p.is_empty()) {
-        at.push(b'/');
-        at.extend_from_slice(part);
-        let link = guest.links.target(&at).is_some();
-        let made = matches!(synth::node(&at), Some(Ok(Node::Link(_))));
-        let magic = made
-            && at.starts_with(b"/proc/")
-            && !at.ends_with(b"/self")
-            && !at.ends_with(b"/thread-self");
-        if (rules & NO_SYMLINKS != 0 && (link || made)) || (rules & NO_MAGICLINKS != 0 && magic) {
-            return Err(errno::ELOOP);
+    /* The walk passes base's own parents on its way down to it. */
+    let mut reached = false;
+    let step = |s: Step| {
+        match s {
+            Step::Link { at, to } => {
+                let magic = at.starts_with(b"/proc/")
+                    && !at.ends_with(b"/self")
+                    && !at.ends_with(b"/thread-self")
+                    && !at.ends_with(b"/mounts");
+                if rules & NO_SYMLINKS != 0 || (rules & NO_MAGICLINKS != 0 && magic) {
+                    return Err(errno::ELOOP);
+                }
+                /* BENEATH allows neither an absolute link nor a magic one. */
+                if rules & BENEATH != 0 && (to.first() == Some(&b'/') || magic) {
+                    return Err(errno::EXDEV);
+                }
+            }
+            Step::At(p) => {
+                reached |= under(p);
+                if reached && rules & BENEATH != 0 && !under(p) {
+                    return Err(errno::EXDEV);
+                }
+                if reached && rules & NO_XDEV != 0 && mounts::of(p).0 != mount {
+                    return Err(errno::EXDEV);
+                }
+            }
         }
-        if link || made {
-            at = walk::follow(guest, core::mem::take(&mut at), true);
-        }
-        if rules & NO_XDEV != 0 && mounts::of(&at).0 != mount {
-            return Err(errno::EXDEV);
-        }
-    }
-    let end = resolve::visible(b"/", &at);
-    let inside =
-        base == b"/" || end.starts_with(base) && matches!(end.get(base.len()), None | Some(b'/'));
-    if rules & BENEATH != 0 && !inside {
-        return Err(errno::EXDEV);
-    }
-    Ok(())
+        Ok(())
+    };
+    walk::walk(guest, named.to_vec(), true, step).map(|_| ())
 }

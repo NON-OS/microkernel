@@ -18,32 +18,42 @@
 
 use alloc::vec::Vec;
 
-use super::super::resolve::visible;
-use super::super::synth::{self, Node};
+use crate::linux::guest::Guest;
 
-/* The path with the first made link in it replaced by its target. */
-pub(super) fn made_link(path: &[u8], last: bool) -> Option<Vec<u8>> {
-    if !synth::owns(path) {
-        return None;
-    }
-    let ends = path.iter().enumerate().skip(1).filter(|(_, b)| **b == b'/').map(|(i, _)| i);
-    let whole = last.then_some(path.len());
-    for end in ends.chain(whole) {
-        let Some(Ok(Node::Link(to))) = synth::node(&path[..end]) else {
+use super::link::link_at;
+use super::state::{joined, names, Walk};
+use super::step::{Step, MAX_HOPS};
+
+/*
+ * The walk `follow` makes, with `check` asked about each step first; its
+ * refusal ends the walk.
+ */
+pub fn walk(
+    guest: &Guest,
+    path: Vec<u8>,
+    last: bool,
+    mut check: impl FnMut(Step) -> Result<(), i64>,
+) -> Result<Vec<u8>, i64> {
+    let last = last || path.last() == Some(&b'/');
+    let mut w = Walk { todo: names(&path).collect(), done: Vec::new(), hops: 0 };
+    while let Some(name) = w.todo.pop_front() {
+        if name == b".." {
+            w.up(&path);
+            check(Step::At(&joined(&w.done)))?;
+            continue;
+        }
+        w.done.push(name);
+        let at = joined(&w.done);
+        if w.todo.is_empty() && !last {
+            check(Step::At(&at))?;
+            break;
+        }
+        let Some(to) = link_at(guest, &at).filter(|_| w.hops < MAX_HOPS) else {
+            check(Step::At(&at))?;
             continue;
         };
-        /* A pipe or a socket: there is nothing to walk through. */
-        if to.first() != Some(&b'/') && to.contains(&b':') {
-            return None;
-        }
-        let dir = &path[..path[..end].iter().rposition(|b| *b == b'/').unwrap_or(0)];
-        let mut joined = match to.first() == Some(&b'/') {
-            true => Vec::new(),
-            false => [dir, b"/"].concat(),
-        };
-        joined.extend_from_slice(&to);
-        joined.extend_from_slice(&path[end..]);
-        return Some(visible(b"/", &joined));
+        check(Step::Link { at: &at, to: &to })?;
+        w.into_link(&to);
     }
-    None
+    Ok(joined(&w.done))
 }
