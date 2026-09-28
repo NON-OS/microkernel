@@ -29,9 +29,9 @@ use crate::security::nonos_trust_anchor::{
 };
 
 const SERVICE_NAME: &str = "net.anon";
-const SERVICE_PORT: u32 = 4472;
+const SERVICE_PORT: u32 = 4484;
 const REPLY_INBOX: &str = "endpoint.net.anon.reply";
-const REPLY_PORT: u32 = 4473;
+const REPLY_PORT: u32 = 4485;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
 /// The same four rights net.nym holds, for the same reasons. The kernel grants
