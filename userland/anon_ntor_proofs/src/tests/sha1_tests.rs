@@ -23,7 +23,7 @@ use alloc::vec::Vec;
 use crate::hex;
 use crate::sha1::Sha1;
 
-// FIPS 180-4, and the SHA-1 sample vectors that accompany it.
+/* FIPS 180-4, and the SHA-1 sample vectors that accompany it. */
 const VECTORS: &[(&[u8], &str)] = &[
     (b"", "da39a3ee5e6b4b0d3255bfef95601890afd80709"),
     (b"abc", "a9993e364706816aba3e25717850c26c9cd0d89d"),

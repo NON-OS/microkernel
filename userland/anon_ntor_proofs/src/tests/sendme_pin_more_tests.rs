@@ -44,8 +44,8 @@ fn later_cells_do_not_move_the_pin() {
 }
 #[test]
 fn the_next_window_pins_its_own_cell() {
-    // Picking up where the previous test left off: paid, so the pin is cleared
-    // and the increment is taken off the count.
+    /* Picking up where the previous test left off: paid, so the pin is cleared
+     * and the increment is taken off the count. */
     let mut owed: Option<[u8; 20]> = None;
     let mut delivered = CIRCUIT_INCREMENT + 37 - CIRCUIT_INCREMENT;
     assert_eq!(delivered, 37, "the surplus carries over rather than being discarded");

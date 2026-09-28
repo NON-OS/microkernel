@@ -28,12 +28,12 @@ fn a_lost_answer_is_given_again_and_the_next_number_reads_on() {
     let exit: RefCell<VecDeque<Vec<u8>>> =
         RefCell::new(VecDeque::from(vec![b"first".to_vec(), b"second".to_vec()]));
     let mut drain = || exit.borrow_mut().pop_front().unwrap_or_default();
-    // Exchange 1 is answered but the reply never reaches the caller.
+    /* Exchange 1 is answered but the reply never reaches the caller. */
     let lost = serve(pid, &numbered(1, b""), &mut drain);
     assert_eq!(lost, b"first");
-    // The caller asks exchange 1 again and gets the same bytes, not nothing.
+    /* The caller asks exchange 1 again and gets the same bytes, not nothing. */
     assert_eq!(serve(pid, &numbered(1, b""), &mut drain), b"first");
-    // Having them, it moves to exchange 2, which reads on.
+    /* Having them, it moves to exchange 2, which reads on. */
     assert_eq!(serve(pid, &numbered(2, b""), &mut drain), b"second");
     forget(pid);
 }

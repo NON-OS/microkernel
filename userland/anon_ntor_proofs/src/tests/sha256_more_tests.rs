@@ -39,7 +39,7 @@ fn a_consensus_sized_input_hashes_in_one_piece_and_in_many() {
     }
     assert_eq!(split.finish(), whole, "a split input must hash as the whole");
 
-    // And across awkward boundaries rather than exact block multiples.
+    /* And across awkward boundaries rather than exact block multiples. */
     let mut ragged = Sha256::new();
     let mut at = 0;
     for step in [1usize, 63, 64, 65, 127, 4095].iter().cycle() {

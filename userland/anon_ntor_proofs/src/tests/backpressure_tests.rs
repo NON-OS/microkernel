@@ -42,9 +42,9 @@ fn a_drained_stream_is_granted_room() {
 fn a_stream_nobody_reads_is_not_granted_room() {
     let mut stream = Stream::new(1, 7);
     stream.stage = StreamStage::Open;
-    // One increment lands exactly on the mark, which is allowed: it is what a
-    // single grant brings in, and refusing there would stall a reader keeping
-    // pace. One cell past it is the caller genuinely falling behind.
+    /* One increment lands exactly on the mark, which is allowed: it is what a
+     * single grant brings in, and refusing there would stall a reader keeping
+     * pace. One cell past it is the caller genuinely falling behind. */
     arrived(&mut stream, STREAM_INCREMENT + 1, 498);
     assert!(stream.inbound.len() > HIGH_WATER, "past the mark, not on it");
     assert!(!stream.take_sendme_due(HIGH_WATER), "no grant while the caller is behind");

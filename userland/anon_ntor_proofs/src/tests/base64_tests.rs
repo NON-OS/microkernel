@@ -18,7 +18,7 @@
 
 use crate::directory::decode;
 
-// RFC 4648 section 10.
+/* RFC 4648 section 10. */
 const RFC4648: &[(&str, &[u8])] = &[
     ("", b""),
     ("Zg==", b"f"),

@@ -22,8 +22,8 @@ fn a_float_that_does_not_fit_drops_below_the_one_before_it() {
 
 #[test]
 fn a_later_float_never_climbs_above_an_earlier_one() {
-    // c is narrow enough to fit beside a, in the gap above b, but b came
-    // first in the source, so c starts no higher than b.
+    /* c is narrow enough to fit beside a, in the gap above b, but b came
+     * first in the source, so c starts no higher than b. */
     assert!(
         y_of(PAGE, "c") >= y_of(PAGE, "b"),
         "c at {} above b at {}",

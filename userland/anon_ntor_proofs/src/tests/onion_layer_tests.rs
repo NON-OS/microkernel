@@ -30,7 +30,7 @@ fn outbound_layers_peel_in_order_and_the_digest_lands() {
     let mut payload = message(2, 1, text);
     seal(&mut client, HOPS - 1, &mut payload).expect("target hop exists");
 
-    // Each relay in turn removes exactly one layer.
+    /* Each relay in turn removes exactly one layer. */
     for hop in relays.iter_mut() {
         hop.forward.apply(&mut payload[..]);
     }

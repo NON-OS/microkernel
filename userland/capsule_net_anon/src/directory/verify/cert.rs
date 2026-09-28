@@ -65,9 +65,9 @@ pub fn parse(body: &[u8]) -> Option<AuthorityCert> {
         signing_pkcs1: signing?,
         certification: certification?,
         signed: super::span::cert_range(body)?,
-        // A certificate with no readable expiry is refused rather than treated as
-        // never expiring: the field is required, and the permissive reading of a
-        // missing one is the reading an attacker would want.
+        /* A certificate with no readable expiry is refused rather than treated as
+         * never expiring: the field is required, and the permissive reading of a
+         * missing one is the reading an attacker would want. */
         expires: expires?,
     })
 }

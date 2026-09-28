@@ -41,8 +41,8 @@ fn a_middle_survives_the_network_rule_on_a_live_consensus() {
     let (open, _) = candidates(&relays, &w, Position::Middle, &[]);
     assert!(!open.is_empty(), "the consensus offers middles at all");
 
-    // Exclude the largest network in the document, which is the worst the rule
-    // can do to the pool.
+    /* Exclude the largest network in the document, which is the worst the rule
+     * can do to the pool. */
     let worst = busiest_network(&relays);
     let taken: Vec<Taken> = relays
         .iter()

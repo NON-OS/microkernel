@@ -41,9 +41,9 @@ pub fn classify(variable: bool, command: u8, bound: bool) -> Next {
     match (variable, command) {
         (true, CELL_CERTS) => Next::Certs,
         (true, CELL_AUTH_CHALLENGE) | (true, CELL_VPADDING) | (false, CELL_PADDING) => Next::Ignore,
-        // NETINFO before a verified CERTS would finish the handshake with a
-        // peer that never proved who it is, so it is refused rather than
-        // accepted and checked afterwards.
+        /* NETINFO before a verified CERTS would finish the handshake with a
+         * peer that never proved who it is, so it is refused rather than
+         * accepted and checked afterwards. */
         (false, CELL_NETINFO) if bound => Next::Finish,
         _ => Next::Refuse,
     }

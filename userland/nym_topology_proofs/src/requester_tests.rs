@@ -28,7 +28,7 @@ fn a_requester_whose_gateway_is_not_a_listed_exit_is_dropped() {
     let ex = exits();
     let all = parse_described(DESCRIBED, |_| true);
     let kept = parse_described(DESCRIBED, |g| ex.contains(g));
-    // Four addresses parse; the fourth names a gateway outside the exit list.
+    /* Four addresses parse; the fourth names a gateway outside the exit list. */
     assert_eq!(all.len(), 4);
     assert_eq!(kept.len(), 3);
     assert!(!ex.contains(&all[3].gateway));

@@ -41,7 +41,7 @@ pub fn recv(port: u32, handle: u32, out: &mut [u8]) -> Result<usize, u16> {
     body[0..4].copy_from_slice(&handle.to_le_bytes());
     body[4..8].copy_from_slice(&(out.len() as u32).to_le_bytes());
     match call(port, OP_RECV, &body, out) {
-        // Nothing has arrived yet, which is a state and not a failure.
+        /* Nothing has arrived yet, which is a state and not a failure. */
         Err(e) if e == E_ERRNO + RX_EMPTY => Ok(0),
         other => other,
     }

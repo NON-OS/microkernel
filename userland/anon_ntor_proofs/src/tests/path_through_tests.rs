@@ -27,7 +27,7 @@ fn the_first_hop_is_the_linked_guard_for_every_roll() {
 #[test]
 fn no_later_hop_shares_the_guards_16() {
     let mut relays = pool();
-    // Same /16 as the guard: never a middle or an exit.
+    /* Same /16 as the guard: never a middle or an exit. */
     relays.push(relay([10, 5, 9, 9], 99));
     let guard = relays[4].clone();
     for seed in 0..500u64 {

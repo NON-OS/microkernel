@@ -41,7 +41,7 @@ fn circuit_tick(state: &mut Manager) {
     for index in 0..state.circuits.len() {
         let Some(digest) = state.circuits[index].owed_digest else { continue };
         let Some(target) = state.circuits[index].last_hop() else { continue };
-        // Held back on the total buffered, not per stream: see `buffered`.
+        /* Held back on the total buffered, not per stream: see `buffered`. */
         if buffered(state, state.circuits[index].id) > CIRCUIT_HIGH_WATER {
             continue;
         }

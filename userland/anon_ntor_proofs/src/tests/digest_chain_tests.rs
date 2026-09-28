@@ -30,7 +30,7 @@ fn a_skipped_cell_desynchronises_every_cell_after_it() {
         let mut payload = message(2, 1, &[round; 8]);
         seal(&mut client, 0, &mut payload).expect("target hop exists");
         if round == 1 {
-            // The guard never sees this one, so its digest does not advance.
+            /* The guard never sees this one, so its digest does not advance. */
             continue;
         }
         relays[0].forward.apply(&mut payload[..]);

@@ -5,7 +5,7 @@ use crate::directory_sync::api::base58::decode32;
 
 #[test]
 fn live_keys_decode() {
-    // Node identities from the validator's exit-gateway list, 2026-09-28.
+    /* Node identities from the validator's exit-gateway list, 2026-09-28. */
     for k in include_str!("../vectors/exits.txt").lines() {
         assert!(decode32(k.trim().as_bytes()).is_some(), "{k}");
     }
