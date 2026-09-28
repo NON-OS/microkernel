@@ -5,14 +5,16 @@
 // blocked on one pipe, poll, ppoll and select with their timeouts, a closed
 // descriptor leaving epoll, timerfd one-shot, periodic and absolute, and the
 // descriptor ioctls and an epoll list carried through fork, and the scheduler
-// calls with epoll_create and epoll_pwait2. Each part prints as it passes, so
-// a hang names the part it hung in.
+// calls with epoll_create and epoll_pwait2, and tgkill with the numbers
+// getpid and gettid give. Each part prints as it passes, so a hang names the
+// part it hung in.
 #define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
 #include <poll.h>
 #include <sched.h>
 #include <pthread.h>
+#include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -517,11 +519,34 @@ static int scheduler(void) {
     return 0;
 }
 
+static volatile sig_atomic_t usr1;
+static void on_usr1(int sig) {
+    (void)sig;
+    usr1 = 1;
+}
+
+static int thread_kill(void) {
+    struct sigaction sa;
+    memset(&sa, 0, sizeof sa);
+    sa.sa_handler = on_usr1;
+    sigaction(SIGUSR1, &sa, 0);
+    long rc = syscall(SYS_tgkill, getpid(), gettid(), SIGUSR1);
+    long miss = syscall(SYS_tgkill, getpid(), 99999, SIGUSR1) == -1 ? errno : 0;
+    getpid();
+    if (rc != 0 || !usr1 || miss != ESRCH) {
+        return fail("tgkill to the caller's own thread", rc * 10 + usr1, miss);
+    }
+    ok("tgkill", "a caught SIGUSR1 reached the thread getpid and gettid name; a stranger is errno",
+       miss);
+    return 0;
+}
+
 int main(void) {
     long t0 = now_ms();
     if (timed_futex() || broadcast() || eventfd_semaphore() || eventfd_blocking() ||
         epoll_timeout() || pipe_nonblock() || pipe_full() || edge() || two_readers() ||
-        poll_select() || close_forgets() || timers() || ioctls_fork() || scheduler()) {
+        poll_select() || close_forgets() || timers() || ioctls_fork() || scheduler() ||
+        thread_kill()) {
         return 1;
     }
     printf("[C] cwait PASS: %d parts in %ld ms\n", parts, now_ms() - t0);
