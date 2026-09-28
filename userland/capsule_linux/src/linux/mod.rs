@@ -40,6 +40,7 @@ mod settle;
 mod source;
 mod start;
 mod start_guest;
+mod terminal;
 mod unix;
 mod wayland;
 

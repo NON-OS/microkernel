@@ -34,6 +34,9 @@ const MAX_ARGS: usize = 256;
 /// built-in program would start something the person did not ask for.
 pub fn source() -> Option<Launch> {
     let store = |path: Vec<u8>, bytes, args| Launch { path, bytes, origin: Origin::Store, args };
+    if let Some(asked) = super::terminal::requested(MAX_IMAGE) {
+        return asked;
+    }
     if let Some(name) = super::request::run_request() {
         let path = super::install::recorded(choose(&name))?;
         let bytes = store_read(&key(&path), MAX_IMAGE).ok()?;
