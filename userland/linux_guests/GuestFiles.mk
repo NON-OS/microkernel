@@ -41,3 +41,22 @@ LINUX_GUEST_STORE_ENTRIES += --entry /linux/lib/libprobe_bad.so=$(LINUX_GUEST_BA
 	--entry /linux/lib/libprobe_bad.so.nonos_id_cert.bin=$(linux-guest-libprobe_CERT) \
 	--entry /linux/lib/libprobe_bad.so.manifest.bin=$(linux-guest-libprobe_MANIFEST) \
 	--entry /linux/lib/libprobe_bad.so.zk_trailer.bin=$(linux-guest-libprobe_ATTESTATION)
+
+# A Go suite image holds the wrapper, the packages NONOS_LINUX_GO_SUITE_STORE
+# names (all enrolled ones unless narrowed), each package's testdata/ at the
+# path it has on the build host, and Go's zone database, and nothing else: one
+# test binary is 4 to 15 MB against the store's 16 MiB and 128 entries
+# (tools/nonos-store-pack). Changing this list needs only the store step.
+ifeq ($(NONOS_LINUX_GO_SUITE),1)
+NONOS_LINUX_GO_SUITE_STORE ?= $(NONOS_LINUX_GO_SUITE_PKGS)
+GO_SUITE_ENTRY = --entry /linux/bin/$(1)=$(linux-guest-$(1)_BIN) \
+	--entry /linux/bin/$(1).nonos_id_cert.bin=$(linux-guest-$(1)_CERT) \
+	--entry /linux/bin/$(1).manifest.bin=$(linux-guest-$(1)_MANIFEST) \
+	--entry /linux/bin/$(1).zk_trailer.bin=$(linux-guest-$(1)_ATTESTATION)
+GO_SUITE_TESTDATA = $(foreach f,$(shell cd $(GO_ROOT)/src/$(1) && find testdata -type f 2>/dev/null | sort), \
+	--entry /linux$(GO_ROOT)/src/$(1)/$(f)=$(GO_ROOT)/src/$(1)/$(f))
+LINUX_GUEST_STORE_ENTRIES := $(call GO_SUITE_ENTRY,gostd) \
+	$(foreach p,$(NONOS_LINUX_GO_SUITE_STORE),$(call GO_SUITE_ENTRY,gs$(subst /,,$(p))) $(call GO_SUITE_TESTDATA,$(p))) \
+	--entry /linux$(GO_ROOT)/lib/time/zoneinfo.zip=$(GO_ROOT)/lib/time/zoneinfo.zip \
+	--entry /linux/etc/nonos-boot-guest=$(LINUX_GUEST_BOOT_FILE)
+endif
