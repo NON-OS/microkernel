@@ -40,7 +40,15 @@ pub fn listen(guest: &mut Guest, fd: u64, backlog: u64) -> u64 {
             (_, Domain::Unix, _) => {}
             // Linux would bind 0.0.0.0 here, which is not the family's own.
             (_, _, None) => return not_loopback("listen", Addr::default()),
-            (_, _, Some(at)) if !s.listening && t.listener(at).is_some() => {
+            // Listeners share an address only when each set SO_REUSEPORT.
+            (_, _, Some(at))
+                if !s.listening
+                    && t.iter().any(|(_, o)| {
+                        o.listening
+                            && o.local == Some(at)
+                            && !(o.opts.reuseport && s.opts.reuseport)
+                    }) =>
+            {
                 return errno::fail(errno::EADDRINUSE)
             }
             _ => {}

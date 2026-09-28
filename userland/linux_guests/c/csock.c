@@ -5,9 +5,10 @@
 // listener, end of file, EAGAIN on an empty non-blocking receive, MSG_PEEK
 // and MSG_DONTWAIT, EPIPE after the peer is gone, an accept and a receive
 // that wait for another thread, the options Go and a C server set, a
-// socket a forked child shares, and a connect a full listener holds. Each
-// part prints as it passes and every part runs, so one run names each part
-// that fails.
+// socket a forked child shares, a connect a full listener holds, the
+// options a loopback connection cannot tell apart, and listeners that share
+// a port with SO_REUSEPORT. Each part prints as it passes and every part
+// runs, so one run names each part that fails.
 #define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
@@ -109,7 +110,7 @@ int main(void) {
     int (*const part[])(void) = {
         pair_stream, pair_dgram, listen_accept, nb_connect, refused, half_close,
         epoll_listener, eof,     empty_recv,    peek,       epipe,   blocking_accept,
-        blocking_recv, options,  fork_share,     backlog, quiet_options,
+        blocking_recv, options,  fork_share,     backlog, quiet_options, reuseport,
     };
     const int count = sizeof part / sizeof part[0];
     long t0 = now_ms();

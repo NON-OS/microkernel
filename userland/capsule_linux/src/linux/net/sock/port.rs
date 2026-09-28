@@ -30,16 +30,21 @@ impl Socks {
         self.iter().find(|(_, s)| s.proto == proto && s.local == Some(at)).map(|(i, _)| i)
     }
 
-    /// The listener a connect to `at` reaches.
-    pub fn listener(&self, at: Addr) -> Option<u32> {
-        self.iter()
-            .find(|(_, s)| s.listening && s.proto == Proto::Stream && s.local == Some(at))
+    /// The listener a connect to `at` from port `from` reaches. Listeners
+    /// that share a port with SO_REUSEPORT take connections by the
+    /// connecting port, as Linux spreads them by a hash of the connection.
+    pub fn listener(&self, at: Addr, from: u16) -> Option<u32> {
+        let group: alloc::vec::Vec<u32> = self
+            .iter()
+            .filter(|(_, s)| s.listening && s.proto == Proto::Stream && s.local == Some(at))
             .map(|(i, _)| i)
+            .collect();
+        group.get(usize::from(from) % group.len().max(1)).copied()
     }
 
     /// True when binding `id` to `at` takes a port another socket holds.
-    /// Two sockets share one only when both set SO_REUSEADDR and neither
-    /// listens, as Linux allows a restarted server to rebind.
+    /// Two sockets share one when both set SO_REUSEPORT, or when both set
+    /// SO_REUSEADDR and the other does not listen, as Linux allows.
     pub fn in_use(&self, id: u32, at: Addr) -> bool {
         let Some(me) = self.get(id) else {
             return true;
@@ -47,7 +52,8 @@ impl Socks {
         self.iter().any(|(i, s)| {
             i != id
                 && s.proto == me.proto
-                && s.local.is_some_and(|l| l.port == at.port && (l.ip == at.ip))
+                && s.local == Some(at)
+                && !(s.opts.reuseport && me.opts.reuseport)
                 && (s.listening || !(s.opts.reuseaddr && me.opts.reuseaddr))
         })
     }

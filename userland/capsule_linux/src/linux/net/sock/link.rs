@@ -32,7 +32,8 @@ pub enum Link {
 impl Socks {
     /// Connect stream `id`, already bound, to the listener at `to`.
     pub fn link(&mut self, id: u32, to: Addr) -> Link {
-        match self.listener(to) {
+        let from = self.get(id).and_then(|s| s.local).map_or(0, |a| a.port);
+        match self.listener(to, from) {
             Some(l) => self.join(id, l),
             None => Link::Refused,
         }

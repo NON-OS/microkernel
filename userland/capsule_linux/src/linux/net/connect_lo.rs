@@ -40,7 +40,8 @@ pub fn loopback(id: u32, to: Addr, nonblock: bool) -> u64 {
         let linked = t.link(id, to);
         // A full listener keeps a non-blocking connect until accept makes
         // room, as Linux's SYN_SENT does.
-        if let (Link::Full, true, Some(l)) = (&linked, nonblock, t.listener(to)) {
+        let from = t.get(id).and_then(|s| s.local).map_or(0, |a| a.port);
+        if let (Link::Full, true, Some(l)) = (&linked, nonblock, t.listener(to, from)) {
             t.wait_room(id, l);
             return errno::fail(errno::EINPROGRESS);
         }
