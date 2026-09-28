@@ -30,27 +30,56 @@ const FRAME_SIZE: usize = 440;
 const UC_OFF: usize = 8;
 pub const SIGCONTEXT_OFF: usize = 40; // uc_mcontext within the ucontext
 pub const SIGMASK_OFF: usize = 296; // uc_sigmask within the ucontext
+const STACK_OFF: usize = 16; // uc_stack within the ucontext
 const INFO_OFF: usize = 312;
 const REDZONE: u64 = 128; // the System V red zone below rsp
+const SS_ONSTACK: u64 = 1;
+const SS_DISABLE: u64 = 2;
 
 fn put(buf: &mut [u8], at: usize, v: u64) {
     buf[at..at + 8].copy_from_slice(&v.to_le_bytes());
 }
 /// Where the frame lands, the bytes to write there, and the registers that
-/// enter the handler. `None` if the stack is too low to hold a frame.
+/// enter the handler. `alt` is the thread's alternate stack (base, size), and
+/// `onstack` is the handler's SA_ONSTACK. `None` if the frame does not fit.
 pub fn build(
     regs: &[u64; WORDS],
     handler: u64,
     restorer: u64,
     signum: u32,
     blocked: u64,
+    alt: Option<(u64, u64)>,
+    onstack: bool,
 ) -> Option<(u64, Vec<u8>, [u64; WORDS])> {
-    // Below the red zone, 16-aligned, then down 8 so the handler sees rsp+8
-    // aligned as a call would leave it.
-    let frame =
-        (regs[15].checked_sub(REDZONE)?.checked_sub(FRAME_SIZE as u64)? & !15u64).checked_sub(8)?;
+    let rsp = regs[15];
+    let on_alt = alt.is_some_and(|(sp, size)| rsp > sp && rsp - sp <= size);
+    // Linux's get_sigframe: below the red zone, or at the top of the
+    // alternate stack for a handler that asked for it when the thread is not
+    // already running there. Then 16-aligned and down 8, so the handler sees
+    // rsp+8 aligned as a call would leave it.
+    let top = match alt {
+        Some((sp, size)) if onstack && !on_alt => sp.checked_add(size)?,
+        _ => rsp.checked_sub(REDZONE)?,
+    };
+    let frame = (top.checked_sub(FRAME_SIZE as u64)? & !15u64).checked_sub(8)?;
+    // A frame that would run off the bottom of the alternate stack is not
+    // written over whatever lies below it.
+    if let Some((sp, _)) = alt.filter(|_| onstack) {
+        if frame <= sp {
+            return None;
+        }
+    }
     let mut buf = alloc::vec![0u8; FRAME_SIZE];
     put(&mut buf, 0, restorer);
+    // uc_stack: the alternate stack, flagged as Linux's sas_ss_flags gives it
+    // for the interrupted rsp.
+    let (ss_sp, ss_size, ss_flags) = match alt {
+        None => (0, 0, SS_DISABLE),
+        Some((sp, size)) => (sp, size, if on_alt { SS_ONSTACK } else { 0 }),
+    };
+    put(&mut buf, UC_OFF + STACK_OFF, ss_sp);
+    put(&mut buf, UC_OFF + STACK_OFF + 8, ss_flags);
+    put(&mut buf, UC_OFF + STACK_OFF + 16, ss_size);
     let mc = UC_OFF + SIGCONTEXT_OFF;
     for (i, w) in regs.iter().enumerate() {
         put(&mut buf, mc + i * 8, *w);

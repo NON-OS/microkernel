@@ -27,6 +27,8 @@ use crate::linux::guest::Guest;
 
 /// rax in the register word order.
 const RAX: usize = 13;
+/// `sa_flags`: enter the handler on the thread's alternate stack.
+const SA_ONSTACK: u64 = 0x0800_0000;
 
 /// True when a handler was entered, so the caller must not also reply.
 pub fn maybe_deliver(guest: &mut Guest, tid: u32, reply: u64) -> bool {
@@ -34,9 +36,11 @@ pub fn maybe_deliver(guest: &mut Guest, tid: u32, reply: u64) -> bool {
         return false;
     };
     let mut regs: ForeignRegs = [0; 18];
+    let alt = guest.signals.stack(tid).map(|s| (s.sp, s.size));
+    let onstack = act.flags & SA_ONSTACK != 0;
     let built = (mk_foreign_context(tid, &mut regs) == 0).then(|| {
         regs[RAX] = reply;
-        build(&regs, act.handler, act.restorer, u32::from(signum), 0)
+        build(&regs, act.handler, act.restorer, u32::from(signum), 0, alt, onstack)
     });
     let Some(Some((_, buf, enter))) = built else {
         // Could not read the thread or shape a frame: keep the signal pending.

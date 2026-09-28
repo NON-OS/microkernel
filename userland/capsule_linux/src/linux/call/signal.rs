@@ -65,11 +65,3 @@ pub fn rt_sigprocmask(guest: &Guest, old: u64) -> u64 {
     }
     errno::ok(0)
 }
-
-/// The old alternate stack reads back unset; a handler uses the own stack.
-pub fn sigaltstack(guest: &Guest, old: u64) -> u64 {
-    if old != 0 && guest.write(old, &[0u8; 24]) < 24 {
-        return errno::fail(errno::EFAULT);
-    }
-    errno::ok(0)
-}

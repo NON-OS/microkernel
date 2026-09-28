@@ -37,6 +37,7 @@ pub fn exit_thread(guest: &mut Guest, tid: u32) -> Answer {
         }
     }
     guest.threads.retain(|t| *t != tid);
+    guest.signals.set_stack(tid, None);
     let rc = mk_kill(u64::from(tid), SIGKILL);
     if rc < 0 {
         let line = alloc::format!(

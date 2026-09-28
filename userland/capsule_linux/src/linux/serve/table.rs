@@ -55,7 +55,7 @@ fn rest(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
         np::PRLIMIT64 => call::prlimit64(guest, a[1], a[2], a[3]),
         nr::RT_SIGACTION => call::rt_sigaction(guest, a[0], a[1], a[2]),
         nr::RT_SIGPROCMASK => call::rt_sigprocmask(guest, a[2]),
-        nr::SIGALTSTACK => call::sigaltstack(guest, a[1]),
+        nr::SIGALTSTACK => call::sigaltstack(guest, tid, a[0], a[1]),
         nr::RSEQ | nr::SET_ROBUST_LIST => errno::ok(0),
         nr::ARCH_PRCTL => call::arch_prctl(guest, tid, a[0], a[1]),
         nr::GETRANDOM => call::getrandom(guest, a[0], a[1], a[2]),
