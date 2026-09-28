@@ -16,6 +16,7 @@
 
 mod globals;
 mod lease;
+mod orphans;
 mod store;
 mod types;
 mod with_dhcp_and_dns_slot;
@@ -23,6 +24,7 @@ mod with_dns;
 mod with_iface;
 
 pub use lease::{lease, set_lease};
+pub use orphans::{adopt, reap};
 pub use store::store;
 pub use types::{Lease, NetState};
 pub use with_dhcp_and_dns_slot::with_dhcp_and_dns_slot;

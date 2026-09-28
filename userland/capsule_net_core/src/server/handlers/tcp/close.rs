@@ -38,7 +38,16 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     };
 
     state::with_iface(|_iface, sockets, _dev| {
-        sockets.get_mut::<tcp::Socket>(sock_handle).close();
+        let sock = sockets.get_mut::<tcp::Socket>(sock_handle);
+        // Bytes the application never read cannot be delivered now, and a
+        // graceful close would advertise a full buffer to the peer forever;
+        // TCP resets such a connection instead (RFC 2525, section 2.17).
+        if sock.recv_queue() > 0 {
+            sock.abort();
+        } else {
+            sock.close();
+        }
+        state::adopt(sock_handle);
     });
     handles::free(app_handle, sender_pid);
 

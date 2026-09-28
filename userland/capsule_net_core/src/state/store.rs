@@ -18,5 +18,6 @@ use crate::state::globals::NET;
 use crate::state::types::NetState;
 
 pub fn store(state: NetState) {
+    super::orphans::forget_all();
     *NET.lock() = Some(state);
 }
