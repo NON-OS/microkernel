@@ -17,6 +17,7 @@
 //! A hosted process: what it is, what it has open, and how this capsule
 //! reaches into it.
 
+mod blocked;
 mod event;
 mod fd;
 mod fd_dup;
@@ -43,6 +44,7 @@ mod region_find;
 mod region_mark;
 mod threads;
 
+pub use blocked::Blocked;
 pub use event::Event;
 pub use fd::Fd;
 pub use fd_kind::Kind;

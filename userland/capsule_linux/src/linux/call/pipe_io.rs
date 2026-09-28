@@ -24,6 +24,8 @@ use super::pipe_end::{end_of, other_end_open};
 /// What one pipe will hold before a writer is told to wait. Linux uses
 /// sixty-four kilobytes and programs are written around that number.
 pub(super) const CAPACITY: usize = 64 << 10;
+/// A write this size or smaller goes in whole or not at all.
+const PIPE_BUF: usize = 4096;
 
 pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     let Some((slot, writable)) = end_of(guest, fd) else {
@@ -37,8 +39,9 @@ pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
         return errno::fail(errno::EPIPE);
     }
     let room = CAPACITY.saturating_sub(guest.pipes[slot].len());
-    if room == 0 {
-        // A full pipe blocks on Linux until a reader drains it.
+    // Linux makes the writer wait here, and so does the serve loop's `waits`
+    // unless the descriptor is non-blocking.
+    if room == 0 || (len as usize <= PIPE_BUF && room < len as usize) {
         return errno::fail(errno::EAGAIN);
     }
     let take = (len as usize).min(room);

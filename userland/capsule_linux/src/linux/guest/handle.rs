@@ -80,6 +80,8 @@ pub struct Guest {
     pub pipe_wait: Option<(usize, u64, u64, u32)>,
     /// Threads parked in a sleep: the monotonic deadline, and who.
     pub sleepers: Vec<(u64, u32)>,
+    /// Calls parked until a descriptor they wait on is ready.
+    pub blocked: Vec<super::Blocked>,
     /// The image's symbolic links, read once and shared by the family.
     pub links: alloc::rc::Rc<super::Links>,
 }

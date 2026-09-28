@@ -52,6 +52,10 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
         nr::READ if crate::linux::call::is_pipe(guest, a[0]) => {
             crate::linux::call::pipe_read_or_park(guest, a[0], a[1], a[2], frame.pid)
         }
+        nr::READ | nr::WRITE if super::waits::may_wait(guest, frame.nr, a[0]) => {
+            super::waits::io(guest, frame.pid, frame.nr, a)
+        }
+        nr::EPOLL_PWAIT | np::EPOLL_WAIT => super::waits::epoll(guest, frame.pid, frame.nr, a),
         other => Answer::Reply(plain(guest, frame.pid, other, a)),
     }
 }

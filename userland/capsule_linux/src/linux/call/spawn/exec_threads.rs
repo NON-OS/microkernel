@@ -35,6 +35,7 @@ pub fn reap(guest: &mut Guest, caller: u32) {
          * is still waiting for an answer.
          */
         guest.waits.retain(|(w, _)| *w != tid);
+        guest.blocked.retain(|w| w.tid != tid);
         let _ = mk_foreign_reply(tid, errno::fail(errno::EINTR));
         let _ = mk_kill(tid as u64, SIGKILL);
     }

@@ -14,31 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Answering for a guest: the loop, and the table it answers from.
+//! A call waiting on descriptors, left parked in its trap until it can
+//! complete or its deadline passes.
 
-mod answer;
-mod deliver;
-mod dispatch;
-mod family;
-mod family_lend;
-mod family_pipes;
-mod family_reap;
-mod family_sleep;
-mod family_waits;
-mod loop_impl;
-mod pid_map;
-mod pid_ns;
-mod refused;
-mod pid_out;
-mod table;
-mod table_file;
-mod table_link;
-mod table_mem;
-mod table_net;
-mod table_proc;
-mod tally;
-mod unserved;
-mod waits;
-
-pub use answer::Answer;
-pub use loop_impl::serve;
+#[derive(Clone, Copy)]
+pub struct Blocked {
+    pub tid: u32,
+    /// The call and its arguments as the guest gave them, so the family can
+    /// try it again whenever something may have changed.
+    pub nr: u64,
+    pub args: [u64; 6],
+    /// Monotonic milliseconds after which it is answered with nothing ready.
+    /// None waits for as long as it takes.
+    pub deadline: Option<u64>,
+}

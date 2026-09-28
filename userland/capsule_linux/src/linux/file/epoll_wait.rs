@@ -24,7 +24,15 @@ use crate::linux::net::{ready, POLLERR, POLLHUP};
 
 use super::epoll::EVENT_LEN;
 
+/// The most events one call can ask for, as Linux bounds it.
+const MOST: u64 = (i32::MAX as u64) / EVENT_LEN as u64;
+
+/// Report what is ready now, never waiting; `waits` does the waiting.
 pub fn epoll_wait(guest: &mut Guest, ep: u64, out: u64, max: u64) -> u64 {
+    // maxevents is an int, and one of zero or less is refused.
+    if max == 0 || max > MOST {
+        return errno::fail(errno::EINVAL);
+    }
     let Some(list) = guest.fds.get(ep as usize).filter(|f| f.kind == Kind::Epoll) else {
         return errno::fail(errno::EBADF);
     };
@@ -50,6 +58,5 @@ pub fn epoll_wait(guest: &mut Guest, ep: u64, out: u64, max: u64) -> u64 {
     if guest.write(out, &blob) < blob.len() as i64 {
         return errno::fail(errno::EFAULT);
     }
-    let _ = EVENT_LEN;
     errno::ok(hits)
 }
