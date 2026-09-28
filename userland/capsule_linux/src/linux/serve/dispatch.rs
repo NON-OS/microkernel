@@ -34,7 +34,7 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
         nr::EXECVE => crate::linux::call::execve(guest, frame.pid, a[0], a[1], a[2]),
         nr::WAIT4 => crate::linux::call::wait4(guest, a[0], a[1], a[2], frame.pid),
         // A thread exiting is not the process exiting.
-        nr::EXIT if frame.pid != guest.pid => Answer::Reply(exit_thread(guest, frame.pid)),
+        nr::EXIT if frame.pid != guest.pid => exit_thread(guest, frame.pid),
         // Never answered: the family ends the process, so it cannot run on.
         nr::EXIT | nr::EXIT_GROUP => {
             let _ = crate::linux::call::exit(guest, a[0]);
@@ -43,7 +43,8 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
         nr::RT_SIGRETURN => crate::linux::call::rt_sigreturn(guest, frame.pid),
         nr::FUTEX => futex(guest, frame.pid, a[0], a[1], a[2]),
         // The caller's own thread, which is not always the process.
-        nr::GETTID | nr::SET_TID_ADDRESS => Answer::value(u64::from(frame.pid)),
+        nr::GETTID => Answer::value(u64::from(frame.pid)),
+        nr::SET_TID_ADDRESS => crate::linux::call::set_tid_address(guest, frame.pid, a[0]),
         nr::NANOSLEEP => crate::linux::call::nanosleep(guest, frame.pid, a[0]),
         np::CLOCK_NANOSLEEP => {
             crate::linux::call::clock_nanosleep(guest, frame.pid, a[0], a[1], a[2])

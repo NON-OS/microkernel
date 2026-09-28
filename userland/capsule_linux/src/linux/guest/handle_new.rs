@@ -33,6 +33,7 @@ impl Guest {
             pipes: Vec::new(),
             children: Vec::new(),
             threads: Vec::new(),
+            clear_tids: Vec::new(),
             waits: Vec::new(),
             signals: super::sigqueue::Signals::default(),
             display: Default::default(),

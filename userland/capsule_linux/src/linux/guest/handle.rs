@@ -35,6 +35,10 @@ pub struct Guest {
     pub children: Vec<u32>,
     /// Tids of this guest's threads, not counting itself.
     pub threads: Vec<u32>,
+    /// The word each thread asked to have cleared when it exits, from
+    /// CLONE_CHILD_CLEARTID or set_tid_address: zeroed and woken then,
+    /// which is what a joiner waits for.
+    pub clear_tids: Vec<(u32, u64)>,
     /// Threads parked in a futex wait, with the word they wait on.
     pub waits: Vec<(u32, u64)>,
     /// The display connection, when the guest has opened one.

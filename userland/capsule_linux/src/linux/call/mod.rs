@@ -56,7 +56,7 @@ pub use cwd::{chdir, fchdir, getcwd};
 pub use futex::futex;
 pub use ident::{getppid, setuid};
 pub use io::{close, read, write};
-pub use life::{exit, exit_thread};
+pub use life::{exit, exit_thread, set_tid_address};
 pub use limits::{getrlimit, prlimit64};
 pub use glibc::prctl;
 pub use glibc_sched::{clone3, getcpu, membarrier, sched_getaffinity};

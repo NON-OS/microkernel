@@ -26,6 +26,7 @@ const CLONE_VM: u64 = 0x100;
 const CLONE_THREAD: u64 = 0x10000;
 const CLONE_SETTLS: u64 = 0x80000;
 const CLONE_PARENT_SETTID: u64 = 0x10_0000;
+const CLONE_CHILD_CLEARTID: u64 = 0x20_0000;
 const CLONE_CHILD_SETTID: u64 = 0x100_0000;
 
 /// A Linux clone child resumes at the instruction after its parent's
@@ -68,6 +69,10 @@ pub fn clone(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     }
     if flags & CLONE_CHILD_SETTID != 0 {
         let _ = guest.write(a[3], &tid.to_le_bytes());
+    }
+    // Zeroed and woken when the thread exits: musl's join waits on it.
+    if flags & CLONE_CHILD_CLEARTID != 0 {
+        guest.clear_tids.push((tid, a[3]));
     }
     Answer::value(errno::ok(u64::from(tid)))
 }
