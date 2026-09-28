@@ -67,6 +67,6 @@ pub fn renameat2(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64, fl
             super::xattr_table::renamed(&from, &to);
             errno::ok(0)
         }
-        Err(_) => errno::fail(errno::EIO),
+        Err(e) => errno::fail(super::store_err::errno_of(e)),
     }
 }

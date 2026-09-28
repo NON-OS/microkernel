@@ -46,6 +46,6 @@ pub fn mknodat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
             super::modes::set(&at, mode as u32 & 0o7777 & !u32::from(guest.umask));
             errno::ok(0)
         }
-        Err(_) => errno::fail(errno::EIO),
+        Err(e) => errno::fail(super::store_err::errno_of(e)),
     }
 }

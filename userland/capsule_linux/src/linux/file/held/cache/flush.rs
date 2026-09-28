@@ -18,8 +18,6 @@
 
 use alloc::vec::Vec;
 
-use crate::linux::abi::errno;
-
 use super::super::super::{resolve, store};
 use super::table::CACHE;
 
@@ -33,7 +31,8 @@ pub fn flush(path: &[u8], keep: bool) -> Result<(), i64> {
         return Ok(());
     };
     if all[i].dirty {
-        store::write(&resolve::key(path), &all[i].data).map_err(|_| errno::EIO)?;
+        store::write(&resolve::key(path), &all[i].data)
+            .map_err(super::super::store_err::errno_of)?;
         all[i].dirty = false;
     }
     if !keep {

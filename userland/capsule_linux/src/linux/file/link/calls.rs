@@ -51,14 +51,14 @@ pub fn linkat(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64) -> u6
         return errno::fail(e);
     }
     /* The store copies what it has: the family's copy goes in first. */
-    if super::super::cache::flush(&from, true).is_err() {
-        return errno::fail(errno::EIO);
+    if let Err(e) = super::super::cache::flush(&from, true) {
+        return errno::fail(e);
     }
     let Ok(bytes) = store_read(&key(&from), MAX_LINKED) else {
         return errno::fail(errno::ENOENT);
     };
     match store_write(&key(&at), &bytes) {
         Ok(()) => errno::ok(0),
-        Err(_) => errno::fail(errno::EIO),
+        Err(e) => errno::fail(super::super::store_err::errno_of(e)),
     }
 }

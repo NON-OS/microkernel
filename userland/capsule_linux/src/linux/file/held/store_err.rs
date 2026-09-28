@@ -15,16 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * What the family holds of the files it uses: one copy of each file
- * it writes, the open file descriptions, and the modes and times it
- * set.
+ * The errno for a store request that failed, from the reason the store
+ * gave. A full store is ENOSPC and a file too large for it EFBIG, as a
+ * Linux filesystem says; a reason with no Linux name is EIO.
  */
 
-pub(super) mod cache;
-pub(super) mod desc;
-pub(super) mod modes;
-pub(super) mod rw;
-pub(super) mod store_err;
-pub(super) mod times;
+use crate::linux::abi::errno;
 
-pub use cache::flush_all;
+pub fn errno_of(reason: &str) -> i64 {
+    match reason {
+        "no space left" => errno::ENOSPC,
+        "too large" => errno::EFBIG,
+        "read-only file system" => errno::EROFS,
+        "not found" => errno::ENOENT,
+        "access denied" => errno::EACCES,
+        "already exists" => errno::EEXIST,
+        "is a directory" => errno::EISDIR,
+        "directory not empty" => errno::ENOTEMPTY,
+        _ => errno::EIO,
+    }
+}
