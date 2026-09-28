@@ -18,7 +18,6 @@
 
 extern crate alloc;
 
-use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 use nonos_tls::stream::connect_unauthenticated;
 
@@ -59,7 +58,7 @@ pub fn open(tcp_port: u32, relay: &Relay, now: u64) -> Result<Link, LinkError> {
     let version = negotiate(&body).ok_or(LinkError::Version)?;
     trace::say_num(b"link version", version as u64);
 
-    let mut link = Link { socket, stream, partial, held: VecDeque::new() };
+    let mut link = Link { socket, stream, partial };
     drain(&mut link, &leaf, relay, now)?;
     Ok(link)
 }

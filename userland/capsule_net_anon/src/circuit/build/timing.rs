@@ -22,4 +22,4 @@
  * circuit abandoned early costs three handshakes and the next attempt pays them
  * again.
  */
-pub(super) const HOP_MS: i64 = 15_000;
+pub const HOP_MS: i64 = 15_000;

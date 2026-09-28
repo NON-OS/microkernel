@@ -23,6 +23,7 @@ use alloc::vec::Vec;
 use crate::path::Relay;
 
 use super::super::hop::Hop;
+use super::pending::Pending;
 use super::stage::CircuitStage;
 
 pub struct Circuit {
@@ -50,4 +51,6 @@ pub struct Circuit {
     /// The digest to acknowledge, pinned at the cell that brought the count due.
     /// `None` when nothing is owed. Held rather than read again at send time,
     pub owed_digest: Option<[u8; 20]>,
+    /// The handshake for the next hop while one is in flight.
+    pub pending: Option<Pending>,
 }

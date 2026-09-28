@@ -28,7 +28,7 @@ const IDLE_MS: i64 = 50;
 
 /// Read whatever has arrived and route it. One cell per call keeps the serve loop
 /// responsive under a circuit that is delivering hard.
-pub fn tick(state: &mut Manager) {
+pub fn tick(state: &mut Manager, now: u64) {
     let Some(link) = state.link.as_mut() else { return };
     let frame = match link.recv(IDLE_MS) {
         Ok(Some(frame)) => frame,
@@ -48,6 +48,9 @@ pub fn tick(state: &mut Manager) {
     let Some(index) = state.circuits.iter().position(|c| c.id == cell.circuit) else {
         return;
     };
+    if state.circuits[index].stage == CircuitStage::Handshaking {
+        return super::circuit_answer::arrived(state, index, cell, now);
+    }
     if cell.command == CELL_DESTROY {
         trace::say_num(b"circuit destroyed by the far end", cell.circuit as u64);
         state.circuits[index].stage = CircuitStage::Dead;

@@ -14,16 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Putting a cell back for whoever it belongs to.
+//! The hop handshake a circuit is waiting to have answered.
 
-use crate::cell::Frame;
+use crate::ntor::Handshake;
 
-use super::session::Link;
-
-impl Link {
-    /// Put a cell back, to be returned before anything read from the stream.
-    ///
-    pub fn hold(&mut self, frame: Frame) {
-        self.held.push_back(frame);
-    }
+/// The handshake sent for the next hop, and the uptime in milliseconds by
+/// which its answer must have come.
+pub struct Pending {
+    pub handshake: Handshake,
+    pub deadline: i64,
 }

@@ -26,10 +26,10 @@ mod seal;
 mod state;
 pub mod window;
 
-pub use build::build;
+pub use build::{answer, ask_create, ask_extend, BuildError, HOP_MS};
 pub use create::client_circuit_id;
 pub use destroy::destroy;
 pub use extend::NextHop;
 pub use open::open;
 pub use seal::seal;
-pub use state::{Circuit, CircuitStage};
+pub use state::{Circuit, CircuitStage, Pending};

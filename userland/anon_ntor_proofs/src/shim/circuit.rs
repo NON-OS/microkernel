@@ -16,6 +16,12 @@
 
 //! The real per hop crypto and onion layering, included as the capsule compiles it.
 
+#[path = "circuit_build.rs"]
+pub mod build;
+
+#[path = "../../../capsule_net_anon/src/circuit/create.rs"]
+pub mod create;
+
 #[path = "../../../capsule_net_anon/src/circuit/extend/mod.rs"]
 pub mod extend;
 

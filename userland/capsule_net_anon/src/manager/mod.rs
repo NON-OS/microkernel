@@ -19,6 +19,7 @@
 mod batch;
 mod body_closed;
 mod body_step;
+mod circuit_answer;
 mod circuit_tick;
 mod dir_certs;
 mod dir_consensus;
