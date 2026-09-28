@@ -13,15 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Memory calls the Linux x86_64 table has that the first families lacked.
 
-//! The Linux contract a compiled binary was built against: its numbers, its
-//! errnos, and the names it knows them by.
-#![allow(dead_code)]
-
-pub mod errno;
-pub mod name;
-pub mod nr;
-pub mod nr_path;
-pub mod nr_high;
-pub mod nr_sched;
-pub mod nr_mem;
+pub const MSYNC: u64 = 26;
+pub const MINCORE: u64 = 27;
+pub const MLOCK: u64 = 149;
+pub const MUNLOCK: u64 = 150;
+pub const MLOCKALL: u64 = 151;
+pub const MUNLOCKALL: u64 = 152;
+pub const MLOCK2: u64 = 325;

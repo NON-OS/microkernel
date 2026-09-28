@@ -19,6 +19,7 @@
 
 pub use super::nr_high::*;
 pub use super::nr_sched::*;
+pub use super::nr_mem::*;
 
 pub const READ: u64 = 0;
 pub const WRITE: u64 = 1;

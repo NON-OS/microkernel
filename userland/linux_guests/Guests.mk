@@ -144,6 +144,13 @@ $(LINUX_GUESTS_C)/touchfork: $(LINUX_GUESTS_DIR)/c/touchfork.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,touchfork,4986,4987,$(LINUX_GUESTS_C)/touchfork))
 
+# The memory calls against Linux's answers: mmap placement, brk giving pages
+# back, unaligned addresses, mremap keeping protection and provenance, and
+# mlock, mlock2, mlockall, munlockall, msync and mincore with their errnos.
+$(LINUX_GUESTS_C)/memcalls: $(LINUX_GUESTS_DIR)/c/memcalls.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,memcalls,4988,4989,$(LINUX_GUESTS_C)/memcalls))
+
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
 # normal image, which does not set NONOS_LINUX_GUESTS, still ships them.

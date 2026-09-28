@@ -27,6 +27,12 @@ pub fn mem_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
         nr::MUNMAP => call::munmap(guest, a[0], a[1]),
         nr::MPROTECT => call::mprotect(guest, a[0], a[1], a[2]),
         nr::MREMAP => call::mremap(guest, a[0], a[1], a[2], a[3]),
+        nr::MSYNC => call::msync(guest, a[0], a[1], a[2]),
+        nr::MINCORE => call::mincore(guest, a[0], a[1], a[2]),
+        nr::MLOCK | nr::MUNLOCK => call::mlock(guest, a[0], a[1]),
+        nr::MLOCK2 => call::mlock2(guest, a[0], a[1], a[2]),
+        nr::MLOCKALL => call::mlockall(a[0]),
+        nr::MUNLOCKALL => errno::ok(0),
         // Advice, and this capsule takes none of it.
         nr::MADVISE => errno::ok(0),
         _ => return None,
