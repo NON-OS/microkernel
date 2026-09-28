@@ -21,6 +21,11 @@
 //! the System V convention, so a supervisor reads its guest's arguments
 //! without knowing anything about this kernel.
 
+/// A frame the kernel delivers to a supervisor, not a guest call: the guest
+/// thread named by `pid` ended on a signal, its `arg0` the kernel's code.
+/// No reply follows. Its value cannot collide with a syscall number.
+pub const FOREIGN_NR_DIED: u64 = u64::MAX;
+
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 pub struct ForeignFrame {

@@ -21,6 +21,7 @@ mod exec_context;
 mod exec_enter;
 mod fork;
 mod frame;
+mod notice;
 mod frame_cpu;
 mod frame_snapshot;
 mod peer_chunk;
@@ -58,6 +59,14 @@ pub use peer_protect::sys_peer_protect;
 pub use peer_tls::sys_peer_tls;
 pub use peer_unmap::sys_peer_unmap;
 pub use registry::{clear, is_foreign, supervisor_of};
+
+/// Report to its supervisor that a guest thread ended on a signal, if it is
+/// a guest at all. The supervisor's personality decides what follows.
+pub fn note_signal_death(pid: u32, code: i32) {
+    if let Some(supervisor) = registry::supervisor_of(pid) {
+        notice::post(supervisor, pid, code);
+    }
+}
 pub use signal_call::{sys_foreign_context, sys_foreign_signal};
 pub use spawn::sys_foreign_spawn;
 pub use spawn_start::sys_foreign_start;

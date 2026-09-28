@@ -18,13 +18,22 @@ use core::sync::atomic::Ordering;
 
 use crate::process::core::{clear_current_if, Pid, ProcessState, CURRENT_PID, PROCESS_TABLE};
 
-pub fn teardown(pid: Pid, exit_code: i32, _by_signal: bool) {
+pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     let pcb = match PROCESS_TABLE.find_by_pid(pid) {
         Some(p) => p,
         None => return,
     };
     if matches!(*pcb.state.lock(), ProcessState::Zombie(_) | ProcessState::Terminated(_)) {
         return;
+    }
+
+    // A guest thread ending on a signal (a fault, not its own exit) is
+    // reported to its supervisor, which owns the guest; the Linux personality
+    // ends the whole process, as Linux does. Only when the thread ends itself:
+    // a supervisor killing its guest comes through MkKill with a different
+    // current pid, and must not loop back into another notice.
+    if by_signal && crate::process::current_pid() == Some(pid) {
+        crate::process::foreign::note_signal_death(pid, exit_code);
     }
 
     crate::kernel_core::surface_registry::release_owned_by_pid(pid);
