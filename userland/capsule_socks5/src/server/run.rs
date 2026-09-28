@@ -50,11 +50,20 @@ pub fn run() -> ! {
         // the session down for what was one malformed frame. Close it
         // explicitly instead, so the caller fails fast and reconnects.
         let out = match ask(&rx[..n as usize]) {
-            Some(Ask::Stream(body)) => feed(sender, body),
-            Some(Ask::Reset) => super::feed::reset_client(sender),
-            None => super::feed::reset_client(sender),
-        }
-        .encode();
+            Some(Ask::Stream(body)) => feed(sender, body).encode(),
+            Some(Ask::Numbered(seq, body)) => match super::kept::again(sender, seq) {
+                Some(out) => out,
+                None => {
+                    let out = feed(sender, body).encode();
+                    super::kept::keep(sender, seq, &out);
+                    out
+                }
+            },
+            Some(Ask::Reset) | None => {
+                super::kept::forget(sender);
+                super::feed::reset_client(sender).encode()
+            }
+        };
         // Every request is answered, including with nothing. A caller blocks
         // on its reply, so staying silent does not mean "no data", it means
         // the caller waits out its whole timeout for an answer already known.

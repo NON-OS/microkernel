@@ -29,13 +29,17 @@ pub struct Route {
     /// The proxy has said the far end finished, so no further asking will
     /// produce anything.
     pub closed: bool,
+    /// The number of the next exchange with the proxy. It moves on only when
+    /// an exchange is answered, so one whose answer was lost is asked again
+    /// and the proxy gives back the same bytes.
+    pub seq: u32,
 }
 
 static ROUTE: Mutex<Option<Route>> = Mutex::new(None);
 
 /// Send everything through `net.socks5` from now on.
 pub fn enable(socks_port: u32) {
-    *ROUTE.lock() = Some(Route { socks_port, pending: Vec::new(), closed: false });
+    *ROUTE.lock() = Some(Route { socks_port, pending: Vec::new(), closed: false, seq: 1 });
 }
 
 /// Go back to reaching hosts directly.

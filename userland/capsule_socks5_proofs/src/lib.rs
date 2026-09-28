@@ -6,6 +6,8 @@
 pub mod conn;
 #[path = "../../capsule_socks5/src/server/inbox.rs"]
 pub mod inbox;
+#[path = "../../capsule_socks5/src/server/kept.rs"]
+pub mod kept;
 #[path = "../../capsule_socks5/src/manager/mod.rs"]
 pub mod manager;
 #[path = "../../capsule_socks5/src/server/reply.rs"]
@@ -23,6 +25,8 @@ pub mod wire;
 mod conn_tests;
 #[cfg(test)]
 mod inbox_tests;
+#[cfg(test)]
+mod kept_tests;
 #[cfg(test)]
 mod manager_tests;
 #[cfg(test)]

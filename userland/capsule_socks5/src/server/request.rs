@@ -21,6 +21,10 @@ pub const STREAM_BYTES: u8 = 0;
 /// Forget whatever conversation this caller had and start over.
 pub const STREAM_RESET: u8 = 1;
 
+/// Stream bytes carried in a numbered exchange: the marker, a u32 number
+/// (little endian), then the bytes. See `kept` for why.
+pub const STREAM_NUMBERED: u8 = 2;
+
 /// What a caller is asking for.
 pub enum Ask<'a> {
     /// Carry these bytes, or if there are none, report what has come back.
@@ -32,6 +36,9 @@ pub enum Ask<'a> {
     /// its greeting was forwarded to the exit as stream bytes. The first
     /// request of a session worked and nothing after it could.
     Reset,
+    /// Stream bytes under an exchange number, which the caller repeats when
+    /// it did not receive the answer to that exchange.
+    Numbered(u32, &'a [u8]),
 }
 
 /// Read what the caller is asking for, or `None` if it is not a shape we
@@ -45,6 +52,10 @@ pub fn ask(request: &[u8]) -> Option<Ask<'_>> {
     match request.split_first() {
         Some((&STREAM_BYTES, rest)) => Some(Ask::Stream(rest)),
         Some((&STREAM_RESET, _)) => Some(Ask::Reset),
+        Some((&STREAM_NUMBERED, rest)) if rest.len() >= 4 => {
+            let seq = u32::from_le_bytes([rest[0], rest[1], rest[2], rest[3]]);
+            Some(Ask::Numbered(seq, &rest[4..]))
+        }
         _ => None,
     }
 }
@@ -52,7 +63,7 @@ pub fn ask(request: &[u8]) -> Option<Ask<'_>> {
 /// The stream bytes of a request, for callers that only handle that shape.
 pub fn stream_bytes(request: &[u8]) -> Option<&[u8]> {
     match ask(request)? {
-        Ask::Stream(bytes) => Some(bytes),
+        Ask::Stream(bytes) | Ask::Numbered(_, bytes) => Some(bytes),
         Ask::Reset => None,
     }
 }

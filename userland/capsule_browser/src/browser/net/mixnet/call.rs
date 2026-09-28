@@ -42,10 +42,11 @@ const REPLY_MAX: usize = 36 * 1024;
 /// The proxy speaks the protocol as bytes rather than as a framed request, so
 /// nothing is wrapped here: what the browser would have written to a socket is
 /// exactly what is sent.
-pub fn exchange(socks_port: u32, data: &[u8]) -> Result<Vec<u8>, ()> {
-    // A frame with nothing but its marker is a poll. It carries no bytes for
-    // the exit, so there is nothing to wait on the network for.
-    let wait = if data.len() <= 1 { POLL_MS } else { CALL_MS };
+/// `poll` says the frame carries no bytes for the exit, so there is nothing
+/// to wait on the network for; the caller knows, since a numbered frame is
+/// never a single byte.
+pub fn exchange(socks_port: u32, data: &[u8], poll: bool) -> Result<Vec<u8>, ()> {
+    let wait = if poll { POLL_MS } else { CALL_MS };
     let mut rx = vec![0u8; REPLY_MAX];
     let n = mk_ipc_call_timeout(
         socks_port as u64,
