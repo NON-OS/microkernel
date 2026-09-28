@@ -21,8 +21,8 @@ use core::mem;
 use nonos_libc::mk_foreign_reply;
 
 use super::family::Family;
-use super::waits::attempt;
-use crate::linux::abi::nr;
+use super::waits::{attempt, expire};
+use super::waits_fds::watched;
 use crate::linux::call::now_ms;
 use crate::linux::guest::{Blocked, Guest, Kind};
 
@@ -48,7 +48,7 @@ impl Family {
             for wait in mem::take(&mut g.blocked) {
                 let value = match attempt(g, &wait) {
                     Some(v) => v,
-                    None if wait.deadline.is_some_and(|d| d <= now) => 0,
+                    None if wait.deadline.is_some_and(|d| d <= now) => expire(g, &wait),
                     None => {
                         g.blocked.push(wait);
                         continue;
@@ -72,15 +72,9 @@ impl Family {
     }
 }
 
-/// An epoll wait watching a socket or a timer.
+/// A wait watching a socket or a timer.
 fn watches_outside(guest: &Guest, wait: &Blocked) -> bool {
-    if wait.nr == nr::READ || wait.nr == nr::WRITE {
-        return false;
-    }
-    let Some(list) = guest.fds.get(wait.args[0] as usize) else {
-        return false;
-    };
-    list.watch.iter().any(|w| {
-        matches!(guest.fds.get(w.fd as usize).map(|f| f.kind), Some(Kind::Socket | Kind::Timer))
+    watched(guest, wait).into_iter().any(|fd| {
+        matches!(guest.fds.get(fd as usize).map(|f| f.kind), Some(Kind::Socket | Kind::Timer))
     })
 }

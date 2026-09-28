@@ -33,10 +33,14 @@ pub fn poll(guest: &mut Guest, at: u64, count: u64) -> u64 {
         let Some(raw) = guest.read(entry, POLLFD_LEN) else {
             return errno::fail(errno::EFAULT);
         };
-        let fd = u32::from_le_bytes([raw[0], raw[1], raw[2], raw[3]]) as u64;
+        let fd = i32::from_le_bytes([raw[0], raw[1], raw[2], raw[3]]);
         let events = u16::from_le_bytes([raw[4], raw[5]]);
+        // A negative descriptor is an entry switched off: never ready.
         // Hang-up, error and a closed descriptor are reported unasked.
-        let revents = ready(guest, fd) & (events | POLLNVAL | POLLHUP | POLLERR);
+        let revents = match u64::try_from(fd) {
+            Ok(fd) => ready(guest, fd) & (events | POLLNVAL | POLLHUP | POLLERR),
+            Err(_) => 0,
+        };
         if revents != 0 {
             hits += 1;
         }

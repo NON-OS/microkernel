@@ -14,32 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Calls that wait for a descriptor: `epoll_wait` until its timeout, and
-//! a read or write that would block on a pipe or an eventfd.
+//! Calls that wait for a descriptor: `epoll_wait`, `poll`, `ppoll`,
+//! `select` and `pselect6` until their timeout, and a read or write that
+//! would block on a pipe or an eventfd.
 //!
 //! Each is tried when it arrives. One that cannot complete is left parked
 //! in its trap, and the family tries it again after every answer and at its
 //! deadline (`family_waits`), so the other threads and processes it hosts
 //! keep being served while it waits.
 
-use crate::linux::abi::{errno, nr};
+use crate::linux::abi::{errno, nr, nr_path as np};
 use crate::linux::call::{self, now_ms};
 use crate::linux::file;
 use crate::linux::guest::{Blocked, Guest, Kind};
+use crate::linux::net;
 
 use super::answer::Answer;
+use super::waits_time::span;
 
 const CLOCK_MONOTONIC: u64 = 1;
 
-/// `epoll_wait` and `epoll_pwait`: the timeout is an int of milliseconds,
-/// and a negative one waits until something is ready.
-pub fn epoll(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
+/// The epoll, poll and select calls: each waits until something it watches
+/// is ready or its timeout passes, and a timeout of zero only looks.
+pub fn timed(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
+    let limit = match span(guest, nr, &a) {
+        Ok(limit) => limit,
+        Err(refused) => return Answer::value(refused),
+    };
     let now = now_ms(CLOCK_MONOTONIC).unwrap_or(0);
-    let deadline = u64::try_from(a[3] as u32 as i32).ok().map(|ms| now.saturating_add(ms));
+    let deadline = limit.map(|ms| now.saturating_add(ms));
     let wait = Blocked { tid, nr, args: a, deadline };
     match attempt(guest, &wait) {
         Some(v) => Answer::value(v),
-        None if deadline.is_some_and(|d| d <= now) => Answer::value(0),
+        None if deadline.is_some_and(|d| d <= now) => Answer::value(expire(guest, &wait)),
         None => park(guest, wait),
     }
 }
@@ -69,8 +76,22 @@ pub fn attempt(guest: &mut Guest, wait: &Blocked) -> Option<u64> {
     match wait.nr {
         nr::READ => Some(call::read(guest, a[0], a[1], a[2])).filter(|&v| v != again),
         nr::WRITE => Some(call::write(guest, a[0], a[1], a[2])).filter(|&v| v != again),
+        nr::POLL | np::PPOLL => Some(net::poll(guest, a[0], a[1])).filter(|&v| v != 0),
+        np::SELECT | np::PSELECT6 => {
+            Some(net::select(guest, a[0], [a[1], a[2], a[3]])).filter(|&v| v != 0)
+        }
         _ => Some(file::epoll_wait(guest, a[0], a[1], a[2])).filter(|&v| v != 0),
     }
+}
+
+/// What a wait answers when its time runs out with nothing ready: zero, and
+/// a select's sets emptied, as Linux leaves them.
+pub fn expire(guest: &mut Guest, wait: &Blocked) -> u64 {
+    let a = wait.args;
+    if matches!(wait.nr, np::SELECT | np::PSELECT6) {
+        net::select_clear(guest, a[0], [a[1], a[2], a[3]]);
+    }
+    0
 }
 
 fn park(guest: &mut Guest, wait: Blocked) -> Answer {

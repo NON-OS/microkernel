@@ -61,7 +61,9 @@ fn route(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
         nr::READ | nr::WRITE if super::waits::may_wait(guest, a[0]) => {
             super::waits::io(guest, frame.pid, frame.nr, a)
         }
-        nr::EPOLL_PWAIT | np::EPOLL_WAIT => super::waits::epoll(guest, frame.pid, frame.nr, a),
+        nr::EPOLL_PWAIT | np::EPOLL_WAIT | nr::POLL | np::PPOLL | np::SELECT | np::PSELECT6 => {
+            super::waits::timed(guest, frame.pid, frame.nr, a)
+        }
         other => Answer::Reply(plain(guest, frame.pid, other, a)),
     }
 }

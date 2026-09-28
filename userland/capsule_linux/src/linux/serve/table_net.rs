@@ -16,7 +16,7 @@
 
 //! Calls that name a socket.
 
-use crate::linux::abi::{nr, nr_path as np};
+use crate::linux::abi::nr;
 use crate::linux::call;
 use crate::linux::guest::Guest;
 use crate::linux::net;
@@ -31,9 +31,6 @@ pub fn net_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64>
         nr::CONNECT => net::connect(guest, a[0], a[1], a[2]),
         nr::SENDTO => net::sendto(guest, a[0], a[1], a[2], a[4], a[5]),
         nr::RECVFROM => net::recvfrom(guest, a[0], a[1], a[2], a[4], a[5]),
-        nr::POLL => net::poll(guest, a[0], a[1]),
-        np::SELECT | np::PSELECT6 => net::select(guest, a[0], a[1], a[2]),
-        np::PPOLL => net::poll(guest, a[0], a[1]),
         nr::SHUTDOWN => call::close(guest, a[0]),
         nr::SENDMSG => unix::sendmsg(guest, a[0], a[1]),
         nr::RECVMSG => unix::recvmsg(guest, a[0], a[1]),

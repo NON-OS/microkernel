@@ -39,6 +39,8 @@ mod table_proc;
 mod tally;
 mod unserved;
 mod waits;
+mod waits_fds;
+mod waits_time;
 
 pub use answer::Answer;
 pub use loop_impl::serve;
