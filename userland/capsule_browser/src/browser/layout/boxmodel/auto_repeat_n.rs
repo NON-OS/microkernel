@@ -30,7 +30,7 @@ pub(super) fn auto_repeat_n(style: &Computed, w: i32, items: usize) -> Option<us
         GridTrack::Fr(_) => return None,
     }
     .max(1);
-    let cap = style.grid_cols.len() as i32;
+    let cap = (style.grid_cols.len() as i32).max(1);
     let n = ((w + gap) / (floor + gap)).clamp(1, cap) as usize;
     // auto-fit drops the tracks no item lands in, so the items that do exist
     // share the whole width rather than leaving a gap at the end of the row.

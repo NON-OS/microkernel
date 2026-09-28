@@ -26,7 +26,7 @@ use super::auto_repeat_n::auto_repeat_n;
 // in-flow grid items, which only an auto-fit template needs.
 pub(super) fn track_widths(style: &Computed, w: i32, items: usize) -> Vec<(i32, i32)> {
     let n = auto_repeat_n(style, w, items)
-        .unwrap_or_else(|| (style.grid_col_n as usize).clamp(1, style.grid_cols.len()));
+        .unwrap_or_else(|| (style.grid_col_n as usize).clamp(1, style.grid_cols.len().max(1)));
     let gap = style.gap as i32;
     let mut widths: Vec<i32> = Vec::with_capacity(n);
     let mut fr_total = 0i64;

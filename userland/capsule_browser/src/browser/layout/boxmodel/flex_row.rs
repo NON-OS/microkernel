@@ -71,7 +71,7 @@ pub(super) fn flex_row(
                 Size::Auto => content_width(it, depth).min(w),
                 _ => border_box_w(&it.style, w),
             },
-            basis => basis.resolve(w).unwrap_or(0).clamp(0, w),
+            basis => basis.resolve(w).unwrap_or(0).clamp(0, w.max(0)),
         };
         margins_gaps += it.style.margin_left as i32 + it.style.margin_right as i32;
         base_sum += b;
@@ -207,10 +207,16 @@ fn flex_row_wrapped(
         let mr = it.style.margin_right as i32;
         let mt = it.style.margin_top as i32;
         let mb = it.style.margin_bottom as i32;
+        // At least MIN_ITEM_W and at most the line, and never wider than the
+        // line when the line itself is narrower than MIN_ITEM_W: clamp with
+        // those two bounds crossed panicked, and a flex container 1px wide
+        // (archwiki at every width) took the browser down.
         let iw = match it.style.width {
-            Size::Auto => content_width(it, depth).clamp(MIN_ITEM_W, w),
-            _ => border_box_w(&it.style, w).clamp(MIN_ITEM_W, w),
-        };
+            Size::Auto => content_width(it, depth),
+            _ => border_box_w(&it.style, w),
+        }
+        .max(MIN_ITEM_W)
+        .min(w.max(0));
         let adv = ml + iw + mr;
         if !first_in_line && cx + gap + adv > w {
             cy += line_h + gap;

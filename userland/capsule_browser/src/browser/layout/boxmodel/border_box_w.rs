@@ -32,7 +32,7 @@ pub(super) fn border_box_w(style: &Computed, avail: i32) -> i32 {
         // content-box; capped to the container so padding cannot overflow it,
         // which is exactly the case border-box was invented to avoid.
         Size::Pct(_) | Size::Calc(_, _) => {
-            (style.width.resolve(avail).unwrap_or(avail) + edges).clamp(0, avail)
+            (style.width.resolve(avail).unwrap_or(avail) + edges).clamp(0, avail.max(0))
         }
         // A fixed length keeps its true border-box size even past the
         // container, so an explicitly sized box is not silently shrunk.
