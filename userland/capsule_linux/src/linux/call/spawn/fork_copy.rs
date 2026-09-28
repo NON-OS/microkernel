@@ -16,19 +16,24 @@
 
 //! Copying a parent's spans into the child it just made.
 
-use crate::linux::guest::{Guest, Region};
-use nonos_libc::peer::{mk_peer_map, mk_peer_write, PEER_PROT_EXEC, PEER_PROT_WRITE};
+use crate::linux::guest::Guest;
+use nonos_libc::peer::{mk_peer_map, mk_peer_write};
 
 /// Every span, mapped into the child and then filled from the parent.
 pub(super) fn copy_spans(guest: &mut Guest, child: u32) -> bool {
     let spans = guest.regions.clone();
     for span in spans {
-        // An unbacked reservation has no frames to copy; the child reserves it
-        // the same way, and its own first access faults a page in.
+        // An unbacked reservation has no frames to copy; the child holds the
+        // same reservation, and a touch there faults in the child as here.
         if !span.backed {
             continue;
         }
-        if mk_peer_map(child, span.at, span.len, prot_of(&span)) < 0 {
+        /*
+         * The protection the span has now, PROT_NONE included: the kernel
+         * copies into a page whatever its protection, so the bytes still go
+         * in, and the child can do no more with them than the parent can.
+         */
+        if mk_peer_map(child, span.at, span.len, span.peer_prot()) < 0 {
             return false;
         }
         if !copy_one(guest, child, span.at, span.len) {
@@ -36,17 +41,6 @@ pub(super) fn copy_spans(guest: &mut Guest, child: u32) -> bool {
         }
     }
     true
-}
-
-fn prot_of(span: &Region) -> u64 {
-    let mut prot = 0;
-    if span.write {
-        prot |= PEER_PROT_WRITE;
-    }
-    if span.exec {
-        prot |= PEER_PROT_EXEC;
-    }
-    prot
 }
 
 fn copy_one(guest: &Guest, child: u32, at: u64, len: u64) -> bool {

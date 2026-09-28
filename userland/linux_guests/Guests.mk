@@ -124,6 +124,13 @@ $(LINUX_GUESTS_C)/guardpage: $(LINUX_GUESTS_DIR)/c/guardpage.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,guardpage,4980,4981,$(LINUX_GUESTS_C)/guardpage))
 
+# PROT_NONE means no access: a read or write of a PROT_NONE mmap, of a page
+# mprotect closed, and of the closed page below an opened one each fault, and
+# bytes survive a close and reopen.
+$(LINUX_GUESTS_C)/protnone: $(LINUX_GUESTS_DIR)/c/protnone.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,protnone,4982,4983,$(LINUX_GUESTS_C)/protnone))
+
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
 # normal image, which does not set NONOS_LINUX_GUESTS, still ships them.

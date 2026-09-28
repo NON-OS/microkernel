@@ -57,6 +57,6 @@ pub use layout::{
     STACK_TOP, USER_MAX,
 };
 pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
-pub use region::Region;
+pub use region::{peer_prot, Region};
 pub use timer::Timer;
 pub use watch::{Watch, EPOLLET, EPOLLONESHOT};

@@ -24,7 +24,7 @@ use super::prot_span::protect_span;
 pub const PROT_WRITE: u64 = 2;
 pub const PROT_EXEC: u64 = 4;
 /// PROT_READ, PROT_WRITE and PROT_EXEC together: any access at all.
-const PROT_ANY: u64 = 7;
+pub const PROT_ANY: u64 = 7;
 
 /// A request for both at once.
 pub fn wx_refused(prot: u64) -> bool {
@@ -69,19 +69,15 @@ pub fn mprotect(guest: &mut Guest, addr: u64, len: u64, prot: u64) -> u64 {
              * A PROT_NONE reservation has no pages for the kernel to
              * reprotect. Asking for access commits it, which is how musl makes
              * a thread stack: reserve with PROT_NONE, then mprotect the part
-             * it uses to read-write. PROT_NONE on it changes nothing.
+             * it uses to read-write. PROT_NONE on it changes nothing. The
+             * commit maps the piece with `prot` and records it.
              */
-            if prot & PROT_ANY == 0 {
-                at = upto;
-                continue;
-            }
-            if guest.commit(at, piece, prot & PROT_WRITE != 0, prot & PROT_EXEC != 0) < 0 {
+            if prot & PROT_ANY != 0
+                && guest.commit(at, piece, prot & PROT_WRITE != 0, prot & PROT_EXEC != 0) < 0
+            {
                 return errno::fail(errno::ENOMEM);
             }
-        }
-        // Every page is present now; this sets `prot` on all of them,
-        // including any the guest touched while the span was reserved.
-        if protect_span(guest, at, piece, prot) < 0 {
+        } else if protect_span(guest, at, piece, prot) < 0 {
             return errno::fail(errno::EACCES);
         }
         at = upto;

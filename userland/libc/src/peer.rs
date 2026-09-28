@@ -25,6 +25,9 @@ use crate::syscall::{
 /// Pages of a guest may be written, and may be executed.
 pub const PEER_PROT_WRITE: u64 = 1 << 0;
 pub const PEER_PROT_EXEC: u64 = 1 << 1;
+/// Pages the guest may not touch at all, their bytes kept for a later
+/// protection that opens them: PROT_NONE.
+pub const PEER_PROT_NONE: u64 = 1 << 2;
 
 /// Back a span of a guest's address space with fresh zeroed frames.
 pub fn mk_peer_map(pid: u32, addr: u64, len: u64, prot: u64) -> i64 {
