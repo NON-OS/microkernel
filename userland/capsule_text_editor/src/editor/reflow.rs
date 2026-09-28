@@ -25,6 +25,13 @@ use super::state::State;
 use crate::doc::align::Align;
 use crate::doc::paginate::paginate;
 use crate::doc::text_bridge::doc_from_text;
+/*
+ * The machine measures with the real font; host proofs, which have no font
+ * service, measure with fixed advances so the same reflow runs on both.
+ */
+#[cfg(not(target_os = "none"))]
+use crate::doc::measure::FixedMeasurer as TtfMeasurer;
+#[cfg(target_os = "none")]
 use crate::doc::ttf_measure::TtfMeasurer;
 
 impl State {

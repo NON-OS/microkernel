@@ -97,7 +97,8 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
         }
     }
     let changed = match event.code {
-        KEY_ESC => return EventOutcome::Close,
+        // Esc dismisses; it never closes the window (see `dismiss`).
+        KEY_ESC => return super::dismiss::dismiss(state),
         // Backspace and Delete remove the selection as a unit when there is one.
         KEY_BACKSPACE => state.delete_sel() || state.backspace(),
         KEY_DELETE => state.delete_sel() || state.delete_forward(),

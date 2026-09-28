@@ -97,7 +97,7 @@ impl Editor {
                 self.toolbar_action(btn);
             } else if let Some((idx, close)) = tab_hit(&self.tab_layout, x) {
                 if close {
-                    self.close_tab(idx);
+                    self.request_close(idx);
                 } else {
                     self.active = idx;
                 }

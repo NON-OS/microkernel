@@ -53,7 +53,7 @@ impl Editor {
             MenuCmd::NewTab => self.new_tab(),
             MenuCmd::CloseTab => {
                 let idx = self.active;
-                self.close_tab(idx);
+                self.request_close(idx);
             }
             MenuCmd::ToggleSidebar => {
                 self.sidebar_open = !self.sidebar_open;
