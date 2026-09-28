@@ -19,8 +19,6 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
-use super::super::rw::{write_at, MAX_IO};
-
 pub fn pread64(guest: &mut Guest, fd: u64, buf: u64, len: u64, at: u64) -> u64 {
     at_offset(guest, fd, at, |g| super::super::read::read(g, fd, buf, len))
 }
@@ -32,11 +30,8 @@ pub fn pwrite64(guest: &mut Guest, fd: u64, buf: u64, len: u64, at: u64) -> u64 
     if let Err(e) = seekable(guest, fd) {
         return e;
     }
-    let Some(bytes) = guest.read(buf, (len as usize).min(MAX_IO)) else {
-        return errno::fail(errno::EFAULT);
-    };
-    match write_at(guest, fd, at, &bytes) {
-        Ok((n, _)) => errno::ok(n as u64),
+    match super::super::write::whole(guest, fd, buf, len, at) {
+        Ok((n, _)) => errno::ok(n),
         Err(e) => errno::fail(e),
     }
 }
