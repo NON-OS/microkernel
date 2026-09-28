@@ -26,8 +26,17 @@ use crate::linux::call::{clone, exit_thread, futex};
 use crate::linux::guest::Guest;
 
 pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
-    let a = frame.args();
     super::tally::call();
+    let got = route(guest, frame);
+    // An EAGAIN re-arms the descriptor's edge-triggered epoll entries.
+    if let Answer::Reply(value) = got {
+        crate::linux::file::rearm(guest, frame.nr, frame.args()[0], value);
+    }
+    got
+}
+
+fn route(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
+    let a = frame.args();
     match frame.nr {
         nr::CLONE => clone(guest, frame),
         nr::FORK | nr::VFORK => crate::linux::call::fork(guest, frame.pid),

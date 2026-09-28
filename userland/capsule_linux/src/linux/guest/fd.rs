@@ -42,9 +42,8 @@ pub struct Fd {
     pub writable: bool,
     /// The net.sockets handle behind a socket descriptor.
     pub handle: u32,
-    /// An epoll interest list: descriptor, events, and the token the
-    /// program gets back, which is its own and never interpreted.
-    pub watch: Vec<(u64, u32, u64)>,
+    /// An epoll interest list.
+    pub watch: Vec<super::Watch>,
     /// When a timer next fires, in milliseconds of uptime.
     pub expiry: u64,
     /// Datagrams waiting to be read, oldest first, each with the address it

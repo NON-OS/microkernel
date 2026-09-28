@@ -80,7 +80,7 @@ fn watches_outside(guest: &Guest, wait: &Blocked) -> bool {
     let Some(list) = guest.fds.get(wait.args[0] as usize) else {
         return false;
     };
-    list.watch.iter().any(|&(fd, _, _)| {
-        matches!(guest.fds.get(fd as usize).map(|f| f.kind), Some(Kind::Socket | Kind::Timer))
+    list.watch.iter().any(|w| {
+        matches!(guest.fds.get(w.fd as usize).map(|f| f.kind), Some(Kind::Socket | Kind::Timer))
     })
 }

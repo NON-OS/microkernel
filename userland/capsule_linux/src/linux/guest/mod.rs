@@ -43,6 +43,7 @@ mod region_cut;
 mod region_find;
 mod region_mark;
 mod threads;
+mod watch;
 
 pub use blocked::Blocked;
 pub use event::Event;
@@ -56,3 +57,4 @@ pub use layout::{
 };
 pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
 pub use region::Region;
+pub use watch::{Watch, EPOLLET, EPOLLONESHOT};

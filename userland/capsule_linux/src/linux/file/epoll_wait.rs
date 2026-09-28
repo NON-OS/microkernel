@@ -15,11 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `epoll_wait`: which of the watched descriptors are ready now.
+//!
+//! A level-triggered entry is reported for as long as its readiness holds.
+//! An EPOLLET entry is reported when readiness rises: bits already seen at
+//! the last look are left out until they fall, or until a call on the
+//! descriptor answers EAGAIN (`epoll_arm`). An EPOLLONESHOT entry reports
+//! once and then nothing until it is modified.
 
 use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Guest, Kind};
+use crate::linux::guest::{Guest, Kind, EPOLLET, EPOLLONESHOT};
 use crate::linux::net::{ready, POLLERR, POLLHUP};
 
 use super::epoll::EVENT_LEN;
@@ -36,27 +42,31 @@ pub fn epoll_wait(guest: &mut Guest, ep: u64, out: u64, max: u64) -> u64 {
     let Some(list) = guest.fds.get(ep as usize).filter(|f| f.kind == Kind::Epoll) else {
         return errno::fail(errno::EBADF);
     };
-    let watch = list.watch.clone();
+    let mut watch = list.watch.clone();
     let mut blob: Vec<u8> = Vec::new();
     let mut hits = 0u64;
-    for (fd, wanted, data) in watch {
+    for w in watch.iter_mut().filter(|w| w.armed) {
         if hits >= max {
             break;
         }
         // Hang-up and error are reported whether they were asked for or not.
-        let live = u32::from(ready(guest, fd)) & (wanted | u32::from(POLLHUP | POLLERR));
+        let level = u32::from(ready(guest, w.fd)) & (w.events | u32::from(POLLHUP | POLLERR));
+        let live = if w.events & EPOLLET != 0 { level & !w.fired } else { level };
+        w.fired = level;
         if live == 0 {
             continue;
         }
+        w.armed = w.events & EPOLLONESHOT == 0;
         blob.extend_from_slice(&live.to_le_bytes());
-        blob.extend_from_slice(&data.to_le_bytes());
+        blob.extend_from_slice(&w.data.to_le_bytes());
         hits += 1;
     }
-    if blob.is_empty() {
-        return errno::ok(0);
-    }
-    if guest.write(out, &blob) < blob.len() as i64 {
+    if !blob.is_empty() && guest.write(out, &blob) < blob.len() as i64 {
         return errno::fail(errno::EFAULT);
+    }
+    // What was reported, and what was seen, is kept only once it is delivered.
+    if let Some(list) = guest.fds.get_mut(ep as usize) {
+        list.watch = watch;
     }
     errno::ok(hits)
 }

@@ -17,7 +17,7 @@
 //! `epoll_create1` and `epoll_ctl`: the interest list a program keeps.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Fd, Guest, Kind};
+use crate::linux::guest::{Fd, Guest, Kind, Watch};
 
 use super::slot::install;
 
@@ -36,6 +36,11 @@ pub fn epoll_create(guest: &mut Guest) -> u64 {
     }
 }
 
+/// Add, change or drop one entry, refused as Linux refuses it: a closed
+/// descriptor is EBADF, a regular file or directory EPERM (always ready, so
+/// never worth waiting on; Go's os.Open falls back to blocking reads on it),
+/// watching the list itself EINVAL, adding twice EEXIST, changing or
+/// dropping what is not there ENOENT.
 pub fn epoll_ctl(guest: &mut Guest, ep: u64, op: u64, fd: u64, event: u64) -> u64 {
     let entry = match op {
         EPOLL_CTL_DEL => None,
@@ -45,12 +50,27 @@ pub fn epoll_ctl(guest: &mut Guest, ep: u64, op: u64, fd: u64, event: u64) -> u6
         },
         _ => return errno::fail(errno::EINVAL),
     };
-    let Some(list) = guest.fds.get_mut(ep as usize).filter(|f| f.kind == Kind::Epoll) else {
+    let open = |n: u64| guest.fds.get(n as usize).is_some_and(|f| f.is_open());
+    if !open(ep) || !open(fd) {
         return errno::fail(errno::EBADF);
+    }
+    if guest.fds.get(fd as usize).is_some_and(|f| matches!(f.kind, Kind::File | Kind::Dir)) {
+        return errno::fail(errno::EPERM);
+    }
+    let Some(list) = guest.fds.get_mut(ep as usize).filter(|f| f.kind == Kind::Epoll) else {
+        return errno::fail(errno::EINVAL);
     };
-    list.watch.retain(|(f, _, _)| *f != fd);
+    let present = list.watch.iter().any(|w| w.fd == fd);
+    match op {
+        _ if fd == ep => return errno::fail(errno::EINVAL),
+        EPOLL_CTL_ADD if present => return errno::fail(errno::EEXIST),
+        EPOLL_CTL_MOD | EPOLL_CTL_DEL if !present => return errno::fail(errno::ENOENT),
+        _ => {}
+    }
+    // A change re-arms the entry: it is looked at afresh, as a new one is.
+    list.watch.retain(|w| w.fd != fd);
     if let Some((events, data)) = entry {
-        list.watch.push((fd, events, data));
+        list.watch.push(Watch::new(fd, events, data));
     }
     errno::ok(0)
 }

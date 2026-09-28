@@ -29,6 +29,7 @@ pub const GETDENTS64: u64 = 217;
 pub const WAIT4: u64 = 61;
 pub const EPOLL_CTL: u64 = 233;
 pub const DUP3: u64 = 292;
+pub const ACCEPT4: u64 = 288;
 pub const PIPE2: u64 = 293;
 pub const TIMERFD_CREATE: u64 = 283;
 pub const TIMERFD_SETTIME: u64 = 286;
