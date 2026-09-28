@@ -24,9 +24,6 @@ use super::tls_io::TcpIo;
 use crate::tcp_client;
 
 const HTTPS_PORT: u16 = 443;
-/// A node list runs to a few hundred kilobytes. This bounds what the far end
-/// can make the capsule allocate for one answer.
-const MAX_RESPONSE: usize = 512 * 1024;
 
 /// Fetch `path` from `host` over TLS and return the response body.
 ///
@@ -34,7 +31,8 @@ const MAX_RESPONSE: usize = 512 * 1024;
 /// that does not verify never sees what was being asked for. Nothing about
 /// this fetch is anonymous: it happens before there is a mixnet to be
 /// anonymous over.
-pub fn fetch_tls(tcp_port: u32, host: &str, path: &str) -> Result<Vec<u8>, u16> {
+/// `max` bounds what the far end can make the capsule allocate for one answer.
+pub fn fetch_tls(tcp_port: u32, host: &str, path: &str, max: usize) -> Result<Vec<u8>, u16> {
     crate::trace::say(b"fetch: resolving");
     let ip = resolve(host.as_bytes()).ok_or(21u16)?;
     crate::trace::say(b"fetch: connecting");
@@ -53,7 +51,7 @@ pub fn fetch_tls(tcp_port: u32, host: &str, path: &str) -> Result<Vec<u8>, u16> 
     // the value tells the two apart without a second boot.
     let now = rtc_now();
     crate::trace::say_num(b"fetch: now", now);
-    let raw = exchange(&mut io, host, request.as_bytes(), now, MAX_RESPONSE);
+    let raw = exchange(&mut io, host, request.as_bytes(), now, max);
     let stage = match &raw {
         Ok(body) => 0u64 + body.len() as u64,
         Err(nonos_tls::SessionError::Init) => 1,
