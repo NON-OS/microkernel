@@ -1,0 +1,9 @@
+Captured from the live Anyone network.
+
+relay      38.143.19.185:9001
+tls        TLSv1.3
+versions   [3, 4, 5]
+ed25519 id a3fe69338de7790bd6b08f318d31a98ec8c10255ab5c734648700dbee88db13b
+           which is what that relay's microdescriptor publishes as id ed25519
+leaf sha256 3f3c5fad4b77a9a0eaf5fa4a42ce0af0383cfafd1b4d39c3b23f6a877d3d75e9
+           which is what the type 5 certificate names as its certified key

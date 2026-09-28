@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the ntor handshake's wire strings and for the
+# relay cell crypto they key. Builds for the host and includes the real
+# capsule source through `#[path]`, so what is checked is what ships.
+#
+# The expected values are not produced by this code. They come from
+# src/test/ntor_ref.py in the anyone-protocol/ator-protocol tree, from
+# FIPS 197 for AES, and from FIPS 180 for SHA-1.
+[package]
+name = "anon_ntor_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_aes = { path = "../nonos_aes" }
