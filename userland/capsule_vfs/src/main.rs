@@ -26,7 +26,7 @@ mod store;
 
 use nonos_libc::{heap_init_sized, mk_exit};
 
-const VFS_HEAP: usize = 48 * 1024 * 1024;
+const VFS_HEAP: usize = 128 * 1024 * 1024;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
