@@ -1,7 +1,9 @@
-// net/http as Linux runs it, inside one guest: a server on 127.0.0.1:0 and a
-// client of it. Twenty GETs, each answered 200 with the path it asked for,
-// over one kept-alive connection, which the server's own count of new
-// connections shows.
+/*
+ * net/http as Linux runs it, inside one guest: a server on 127.0.0.1:0 and a
+ * client of it. Twenty GETs, each answered 200 with the path it asked for,
+ * over one kept-alive connection, which the server's own count of new
+ * connections shows.
+ */
 package main
 
 import (

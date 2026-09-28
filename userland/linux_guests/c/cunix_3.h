@@ -1,4 +1,6 @@
-// cunix: what a path leaves behind, abstract datagrams, and fork.
+/* cunix, part 3 of 4: included once, by cunix.c. */
+
+/* cunix: what a path leaves behind, abstract datagrams, and fork. */
 
 static int left_behind(void) {
     struct sockaddr_un a, g;
@@ -62,5 +64,3 @@ static int abstract_dgram(void) {
     ok("abstract_dgram", "names reported, no peer errno", nopeer);
     return 0;
 }
-
-#include "cunix_parts2.h"

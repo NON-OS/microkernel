@@ -134,29 +134,29 @@ $(eval $(call LINUX_GUEST,cwait,4978,4979,$(LINUX_GUESTS_C)/cwait))
 # listener with accept4's flags, a non-blocking connect, a refused port,
 # half-close, epoll on a listener, end of file, EAGAIN, MSG_PEEK, EPIPE, an
 # accept and a receive that wait, the options a server sets, and fork.
-$(LINUX_GUESTS_C)/csock: $(LINUX_GUESTS_DIR)/c/csock.c $(wildcard $(LINUX_GUESTS_DIR)/c/csock_parts*.h)
+$(LINUX_GUESTS_C)/csock: $(LINUX_GUESTS_DIR)/c/csock.c $(wildcard $(LINUX_GUESTS_DIR)/c/csock_*.h)
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,csock,5000,5001,$(LINUX_GUESTS_C)/csock))
 
 # Datagrams on the family's loopback: an echo, a connected socket, MSG_TRUNC,
 # a refused port, sendmmsg and recvmmsg, and no peer at all.
-$(LINUX_GUESTS_C)/cudp: $(LINUX_GUESTS_DIR)/c/cudp.c $(LINUX_GUESTS_DIR)/c/cudp_parts.h
+$(LINUX_GUESTS_C)/cudp: $(LINUX_GUESTS_DIR)/c/cudp.c $(wildcard $(LINUX_GUESTS_DIR)/c/cudp_*.h)
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cudp,5004,5005,$(LINUX_GUESTS_C)/cudp))
 
 # What a guest's sockets may reach, and what a descriptor number alone gets.
-$(LINUX_GUESTS_C)/cpolicy: $(LINUX_GUESTS_DIR)/c/cpolicy.c
+$(LINUX_GUESTS_C)/cpolicy: $(LINUX_GUESTS_DIR)/c/cpolicy.c $(wildcard $(LINUX_GUESTS_DIR)/c/cpolicy_*.h)
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cpolicy,5006,5007,$(LINUX_GUESTS_C)/cpolicy))
 
 # A guest blocked in accept with nothing happening, for the loop's wakeups.
-$(LINUX_GUESTS_C)/cidle: $(LINUX_GUESTS_DIR)/c/cidle.c
+$(LINUX_GUESTS_C)/cidle: $(LINUX_GUESTS_DIR)/c/cidle.c $(wildcard $(LINUX_GUESTS_DIR)/c/cidle_*.h)
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cidle,5008,5009,$(LINUX_GUESTS_C)/cidle))
 
 # Unix sockets with names: a path, what it leaves behind, abstract names,
 # a connected datagram socket, autobind, and a connection across fork.
-$(LINUX_GUESTS_C)/cunix: $(LINUX_GUESTS_DIR)/c/cunix.c $(wildcard $(LINUX_GUESTS_DIR)/c/cunix_parts*.h)
+$(LINUX_GUESTS_C)/cunix: $(LINUX_GUESTS_DIR)/c/cunix.c $(wildcard $(LINUX_GUESTS_DIR)/c/cunix_*.h)
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cunix,5010,5011,$(LINUX_GUESTS_C)/cunix))
 

@@ -1,4 +1,6 @@
-// cunix: a connected datagram socket, a chosen name, and fork.
+/* cunix, part 4 of 4: included once, by cunix.c. */
+
+/* cunix: a connected datagram socket, a chosen name, and fork. */
 
 static int connected_dgram(void) {
     struct sockaddr_un r, a;
@@ -7,7 +9,7 @@ static int connected_dgram(void) {
     int stranger = socket(AF_UNIX, SOCK_DGRAM, 0);
     bind(rs, (void *)&r, rl);
     bind(as, (void *)&a, al);
-    // r talks only to a: a stranger's datagram to r is refused.
+    /* r talks only to a: a stranger's datagram to r is refused. */
     connect(rs, (void *)&a, al);
     int refused = sendto(stranger, "s", 1, 0, (void *)&r, rl) < 0 ? errno : 0;
     long sent = send(rs, "to-a", 4, 0);
@@ -32,7 +34,7 @@ static int autobind(void) {
     int rc = bind(s, (void *)&a, sizeof(sa_family_t));
     getsockname(s, (void *)&b, &bl);
     close(s);
-    // Linux chooses a NUL and five hex digits.
+    /* Linux chooses a NUL and five hex digits. */
     if (rc || bl != 8 || b.sun_path[0] != 0) {
         return fail("autobind: a NUL and five hex digits", rc, bl);
     }
@@ -64,23 +66,5 @@ static int across_fork(void) {
         return fail("across_fork: the child's connection and bytes", got, status);
     }
     ok("across_fork", "bytes from the child", got);
-    return 0;
-}
-
-int main(void) {
-    int (*const part[])(void) = {path_stream,     left_behind, abstract_dgram,
-                                 connected_dgram, autobind,    across_fork};
-    const int count = sizeof part / sizeof part[0];
-    int failed = 0;
-    for (int i = 0; i < count; i++) {
-        failed += part[i]();
-    }
-    if (failed) {
-        printf("[C] cunix FAIL: %d parts failed, %d passed\n", failed, parts);
-        fflush(stdout);
-        return 1;
-    }
-    printf("[C] cunix PASS: %d parts\n", parts);
-    fflush(stdout);
     return 0;
 }
