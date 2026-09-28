@@ -102,3 +102,12 @@ impl Line {
         println(&self.buf[..self.len]);
     }
 }
+
+#[cfg(target_arch = "aarch64")]
+impl Line {
+    /// Emit the line from a path that will never return, without waiting on a
+    /// lock that may never be released. See `core::write_fatal_line`.
+    pub fn end_fatal(&self) {
+        super::core::write_fatal_line(&self.buf[..self.len]);
+    }
+}

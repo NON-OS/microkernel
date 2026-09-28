@@ -584,11 +584,22 @@ fn c_target(arch: &str) -> Option<(&'static str, &'static [&'static str])> {
 /// The user target whose capsule binaries this kernel embeds.
 ///
 /// The build system passes `NONOS_USER_TARGET` so the capsules the kernel bakes
-/// in are built for the same architecture it is. Defaults to the x86_64 user
-/// target, which is what a plain `cargo build` with no make wrapper expects.
+/// in are built for the same architecture it is. Without it the default follows
+/// the kernel's own architecture, so a plain `cargo build` of an aarch64 kernel
+/// never embeds x86_64 capsules. A value naming another architecture is refused:
+/// the kernel would load binaries its CPU cannot run.
 fn user_target() -> String {
     println!("cargo:rerun-if-env-changed=NONOS_USER_TARGET");
-    let target = env::var("NONOS_USER_TARGET").unwrap_or_else(|_| "x86_64-nonos-user".to_string());
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
+    let default = match arch.as_str() {
+        "aarch64" => "aarch64-nonos-user",
+        "riscv64" => "riscv64-nonos-user",
+        _ => "x86_64-nonos-user",
+    };
+    let target = env::var("NONOS_USER_TARGET").unwrap_or_else(|_| default.to_string());
+    if matches!(arch.as_str(), "x86_64" | "aarch64" | "riscv64") && !target.starts_with(&arch) {
+        panic!("NONOS_USER_TARGET={target} does not match the kernel architecture {arch}");
+    }
     /*
      * The embed sites are `include_bytes!`, which takes a literal, so the path
      * has to be assembled at compile time. Re-exporting the value as a rustc env

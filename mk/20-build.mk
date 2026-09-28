@@ -915,13 +915,44 @@ nonos-mk-check: nonos-mk-check-deps nonos-mk-ensure-signing-key
 # Build the aarch64 kernel. PATH puts the rustup shims first because a Homebrew
 # rustc on /usr/local/bin shadows them and then rejects the -Z flags with a
 # confusing "only accepted on the nightly compiler".
-.PHONY: nonos-mk-arm nonos-mk-arm-bench nonos-mk-bench-micro nonos-mk-arm-run nonos-mk-arm-gui nonos-mk-arm-gui-capsules nonos-mk-arm-gui-run
-nonos-mk-arm: nonos-mk-ensure-signing-key
+#
+# The compile reads only the Ed25519 seed, which build.rs uses to sign the
+# embedded manifest. Nothing here signs with ML-DSA, so the target asks for the
+# seed alone rather than minting an ML-DSA keypair it never reads. CI's
+# build-aarch64 lane runs this target, so the lane builds what a developer does.
+#
+# Each aarch64 recipe names the aarch64 user target. This makefile exports
+# x86_64-nonos-user for the whole userland pipeline, and build.rs refuses to
+# embed capsules built for another architecture than the kernel's.
+.PHONY: nonos-mk-arm nonos-mk-arm-trap-sp0 nonos-mk-arm-trap-kernel-abort nonos-mk-arm-bench nonos-mk-bench-micro nonos-mk-arm-run nonos-mk-arm-gui nonos-mk-arm-gui-capsules nonos-mk-arm-gui-run
+nonos-mk-arm: | $(SIGNING_KEY)
 	@echo "Building kernel (aarch64, microkernel-core + nonos-arch-preview)..."
-	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+	@$(SDK_FLAGS) NONOS_USER_TARGET=aarch64-nonos-user \
+		NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) PATH="$(HOME)/.cargo/bin:$$PATH" \
 		$(CARGO) build $(ARM_KERNEL_BUILD_FLAGS) \
 		--no-default-features --features microkernel-core$(_boot_comma)nonos-arch-preview
+
+# The same image with one deliberate exception compiled in, for the aarch64 boot
+# lane. Each stops at its exception by design, and scripts/check_aarch64_boot.py
+# holds the line the kernel prints for it to what the architecture defines.
+nonos-mk-arm-trap-sp0: | $(SIGNING_KEY)
+	@echo "Building kernel (aarch64, microkernel-core + nonos-trap-proof-sp0)..."
+	@$(SDK_FLAGS) NONOS_USER_TARGET=aarch64-nonos-user \
+		NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) PATH="$(HOME)/.cargo/bin:$$PATH" \
+		$(CARGO) build $(ARM_KERNEL_BUILD_FLAGS) \
+		--no-default-features \
+		--features microkernel-core$(_boot_comma)nonos-arch-preview$(_boot_comma)nonos-trap-proof-sp0
+
+nonos-mk-arm-trap-kernel-abort: | $(SIGNING_KEY)
+	@echo "Building kernel (aarch64, microkernel-core + nonos-trap-proof-kernel-abort)..."
+	@$(SDK_FLAGS) NONOS_USER_TARGET=aarch64-nonos-user \
+		NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) PATH="$(HOME)/.cargo/bin:$$PATH" \
+		$(CARGO) build $(ARM_KERNEL_BUILD_FLAGS) \
+		--no-default-features \
+		--features microkernel-core$(_boot_comma)nonos-arch-preview$(_boot_comma)nonos-trap-proof-kernel-abort
 
 # Boot the aarch64 kernel under QEMU. Every flag here is load bearing.
 #
@@ -946,7 +977,8 @@ ARM_QEMU_FLAGS := -M virt,gic-version=3 -cpu max -m 512 -nographic \
 # belong to this image and this machine, not to a marketing table.
 nonos-mk-arm-bench: nonos-mk-ensure-signing-key
 	@echo "Building kernel (aarch64, microkernel-core + nonos-bench-micro)..."
-	@$(SDK_FLAGS) NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
+	@$(SDK_FLAGS) NONOS_USER_TARGET=aarch64-nonos-user \
+		NONOS_SIGNING_KEY=$(KERNEL_SIGNING_KEY) \
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) PATH="$(HOME)/.cargo/bin:$$PATH" \
 		$(CARGO) build $(ARM_KERNEL_BUILD_FLAGS) \
 		--no-default-features \

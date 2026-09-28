@@ -18,7 +18,7 @@ use crate::arch::aarch64::boot::info::{BootInfo, MemoryType};
 use crate::arch::fdt::find::memory::{find, MemoryRange};
 use crate::arch::fdt::Fdt;
 
-pub fn populate(fdt: &Fdt, info: &mut BootInfo) -> bool {
+pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) -> bool {
     let mut ranges = [MemoryRange { base: 0, size: 0 }; 8];
     let mem_count = match find(fdt, &mut ranges) {
         Ok(n) => n,

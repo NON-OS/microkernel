@@ -16,12 +16,16 @@
 
 use crate::arch::aarch64::exceptions::frame::ExceptionFrame;
 use crate::arch::aarch64::exceptions::syndrome::ExceptionClass;
-use crate::arch::trap::contract::{FaultAccess, PageFaultInfo, TrapCause};
+use crate::arch::trap::contract::TrapCause;
 
 use super::page_fault;
 
+/// `OtherException` carries the architectural EC from ESR_EL1[31:26], not
+/// the position of its `ExceptionClass` variant, so the number printed is
+/// the one the Arm ARM tables list.
 pub(super) fn project(frame: &ExceptionFrame) -> TrapCause {
-    let ec = ExceptionClass::from(((frame.esr >> 26) & 0x3F) as u8);
+    let raw = ((frame.esr >> 26) & 0x3F) as u8;
+    let ec = ExceptionClass::from(raw);
     match ec {
         ExceptionClass::DataAbortLower | ExceptionClass::DataAbortSame => {
             TrapCause::PageFault(page_fault::decode_data(frame))
@@ -37,7 +41,7 @@ pub(super) fn project(frame: &ExceptionFrame) -> TrapCause {
         | ExceptionClass::Fp32
         | ExceptionClass::Fp64 => TrapCause::DeviceNotAvailable,
         ExceptionClass::Pac | ExceptionClass::EretEretaa | ExceptionClass::BranchTarget => {
-            TrapCause::OtherException(ec as u8)
+            TrapCause::OtherException(raw)
         }
         ExceptionClass::Unknown
         | ExceptionClass::WfeWfi
@@ -58,6 +62,6 @@ pub(super) fn project(frame: &ExceptionFrame) -> TrapCause {
         | ExceptionClass::WatchpointLower
         | ExceptionClass::WatchpointSame
         | ExceptionClass::Bkpt32
-        | ExceptionClass::Brk64 => TrapCause::OtherException(ec as u8),
+        | ExceptionClass::Brk64 => TrapCause::OtherException(raw),
     }
 }

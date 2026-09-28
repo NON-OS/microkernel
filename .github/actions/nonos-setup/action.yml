@@ -89,10 +89,10 @@ runs:
         for t in "${tgts[@]}"; do
           t="$(echo "${t}" | xargs)"
           [ -z "${t}" ] && continue
-          # x86_64-nonos is a JSON build-std target, not a rustup target.
+          # The *-nonos targets are JSON build-std targets, not rustup targets.
           # Only `rustup target add` the registered tier-2/3 targets.
           case "${t}" in
-            x86_64-nonos|x86_64-nonos-user) echo "skip rustup target add ${t} (json build-std target)"; continue ;;
+            x86_64-nonos|x86_64-nonos-user|aarch64-nonos|aarch64-nonos-user) echo "skip rustup target add ${t} (json build-std target)"; continue ;;
           esac
           echo "rustup target add ${t}"
           rustup target add "${t}"

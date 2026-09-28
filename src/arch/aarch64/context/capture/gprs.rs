@@ -17,7 +17,7 @@
 use crate::arch::aarch64::context::types::SavedUser;
 use crate::arch::aarch64::exceptions::frame::ExceptionFrame;
 
-pub fn copy(saved: &mut SavedUser, frame: &ExceptionFrame) {
+pub(super) fn copy(saved: &mut SavedUser, frame: &ExceptionFrame) {
     saved.gprs[0] = frame.x0;
     saved.gprs[1] = frame.x1;
     saved.gprs[2] = frame.x2;

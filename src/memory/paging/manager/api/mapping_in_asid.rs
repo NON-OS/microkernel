@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::globals::{PAGING_MANAGER, PAGING_STATS};
+#[cfg(not(target_arch = "x86_64"))]
+use crate::arch::run_without_interrupts as without_interrupts;
+#[cfg(target_arch = "x86_64")]
 use crate::arch::x86_64::idt::without_interrupts;
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::error::PagingResult;
