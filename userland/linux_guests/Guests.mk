@@ -101,6 +101,12 @@ $(LINUX_GUESTS_C)/threadfault: $(LINUX_GUESTS_DIR)/c/threadfault.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,threadfault,4972,4973,$(LINUX_GUESTS_C)/threadfault))
 
+# musl pthreads end to end: stacks reserved and committed by mprotect, a mutex,
+# and joins that wait on the clear-tid word each exit zeroes and wakes.
+$(LINUX_GUESTS_C)/cthreads: $(LINUX_GUESTS_DIR)/c/cthreads.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cthreads,4974,4975,$(LINUX_GUESTS_C)/cthreads))
+
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
 # normal image, which does not set NONOS_LINUX_GUESTS, still ships them.
