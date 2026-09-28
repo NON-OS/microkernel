@@ -137,8 +137,8 @@ fn linux_terminal(argv: &[u8]) -> Option<u32> {
         .collect();
     match crate::userspace::capsule_linux::spawn_terminal(argv) {
         Ok(pid) => Some(pid),
-        Err(_) => {
-            boot_log::error("linux terminal spawn failed");
+        Err(e) => {
+            boot_log::error(&alloc::format!("linux terminal spawn failed: {e:?}"));
             None
         }
     }
