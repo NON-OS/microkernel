@@ -42,6 +42,8 @@ fn args_in(ns: &PidNs, call: u64, a: &mut [u64; 6]) -> Result<(), u64> {
     let (slots, missing): (&[usize], i64) = match call {
         nr::WAIT4 => (&[0], errno::ECHILD),
         np::KILL | np::TKILL | np::GETPGID | np::GETSID => (&[0], errno::ESRCH),
+        // The thread group, then the thread: both are numbers the guest was given.
+        np::TGKILL => (&[0, 1], errno::ESRCH),
         nr::SCHED_SETPARAM
         | nr::SCHED_GETPARAM
         | nr::SCHED_SETSCHEDULER
