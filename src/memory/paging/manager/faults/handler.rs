@@ -40,8 +40,14 @@ impl PagingManager {
                 return Err(PagingError::UnhandledPageFault);
             }
             stats.record_demand_load();
-            log_demand_fill(virtual_addr, error_code);
-            return self.handle_demand_fault(virtual_addr, stats);
+            let filled = self.handle_demand_fault(virtual_addr, stats);
+            if filled.is_ok() {
+                // Named only for a fill that happened: the guards inside refuse
+                // the null page and the kernel half, and a refused fault is not
+                // a fill.
+                log_demand_fill(virtual_addr, error_code);
+            }
+            return filled;
         }
 
         Err(PagingError::UnhandledPageFault)
