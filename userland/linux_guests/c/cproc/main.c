@@ -23,6 +23,9 @@ int main(int argc, char **argv) {
     part_self();
     part_maps();
     part_system();
+    part_stat();
+    part_load();
+    part_memory();
     part_isolation();
     part_mem();
     part_facts();
