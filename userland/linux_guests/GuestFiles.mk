@@ -41,3 +41,11 @@ LINUX_GUEST_STORE_ENTRIES += --entry /linux/lib/libprobe_bad.so=$(LINUX_GUEST_BA
 	--entry /linux/lib/libprobe_bad.so.nonos_id_cert.bin=$(linux-guest-libprobe_CERT) \
 	--entry /linux/lib/libprobe_bad.so.manifest.bin=$(linux-guest-libprobe_MANIFEST) \
 	--entry /linux/lib/libprobe_bad.so.zk_trailer.bin=$(linux-guest-libprobe_ATTESTATION)
+
+# Data files from outside the tree, put in the image's Linux tree:
+# LINUX_GUEST_FILES="/usr/local/lib/python312.zip=/path/to/python312.zip"
+# puts each file at its path under /linux. Data, not programs: nothing here
+# can be run, so nothing here needs a proof.
+LINUX_GUEST_FILES ?=
+LINUX_GUEST_STORE_DEPS += $(foreach f,$(LINUX_GUEST_FILES),$(lastword $(subst =, ,$(f))))
+LINUX_GUEST_STORE_ENTRIES += $(foreach f,$(LINUX_GUEST_FILES),--entry /linux$(firstword $(subst =, ,$(f)))=$(lastword $(subst =, ,$(f))))
