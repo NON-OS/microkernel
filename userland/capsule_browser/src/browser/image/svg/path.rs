@@ -66,6 +66,11 @@ pub(super) fn parse_path(d: &str) -> Vec<Vec<[f32; 2]>> {
             b'A' => arc(&mut st, &mut tk, rel),
             b'Z' => {
                 st.close();
+                // Closepath takes no arguments, so it cannot repeat: only a
+                // command letter may follow. Left as the current command, a
+                // number after it was re-read as another Z that consumed
+                // nothing, and the walk never ended.
+                cmd = 0;
                 Some(())
             }
             _ => None,
