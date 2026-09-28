@@ -106,6 +106,8 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAppLaunch
             | MkAppInstallStatus
             | MkToolRun
+            | MkTtySet
+            | MkTtyQuery
     )
 }
 

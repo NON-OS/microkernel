@@ -66,6 +66,8 @@ pub mod stdout_write;
 pub mod store_write;
 pub mod time;
 pub mod tool_run;
+pub mod tty;
+pub mod tty_table;
 pub mod wait;
 
 pub use attest::sys_attest_status;

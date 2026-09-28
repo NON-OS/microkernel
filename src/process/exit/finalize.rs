@@ -35,6 +35,7 @@ pub(super) fn finalize_teardown(pid: Pid) {
         let _ = crate::ipc::nonos_inbox::unregister_for_pid(pid);
     }
 
+    crate::syscall::microkernel::tty_table::forget(pid);
     crate::process::clear_interrupt_context(pid);
     crate::process::clear_fpu_state(pid);
     crate::process::core::init::reparent_orphans(pid);
