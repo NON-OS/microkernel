@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
@@ -34,11 +35,15 @@ int check(const char *part, int line, int good, const char *what, long a, long b
 void done(const char *part, const char *detail);
 char *slurp(const char *path, long *n);
 long field_of(const char *text, const char *key);
+void spin_ms(long ms);
 int is_nonos(void);
 void part_dev(void);
 void part_self(void);
 void part_maps(void);
 void part_system(void);
+void part_stat(void);
+void part_load(void);
+void part_memory(void);
 void part_isolation(void);
 void part_mem(void);
 void part_facts(void);
