@@ -9,8 +9,8 @@ CAPSULE_DIR              := userland/capsule_net_anon
 CAPSULE_BIN_NAME         := net_anon
 CAPSULE_FEATURE          := nonos-capsule-net-anon
 CAPSULE_NAMESPACE        := systems.nonos.net.anon
-CAPSULE_SERVICE_ENDPOINT := service:4472:net.anon
-CAPSULE_REPLY_ENDPOINT   := reply:4473:endpoint.net.anon.reply
+CAPSULE_SERVICE_ENDPOINT := service:4484:net.anon
+CAPSULE_REPLY_ENDPOINT   := reply:4485:endpoint.net.anon.reply
 # 0x13d, named bit by bit, and every one of them is reached in the source:
 #
 #   0x001 CoreExec  run at all
