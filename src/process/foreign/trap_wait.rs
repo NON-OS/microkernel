@@ -44,7 +44,7 @@ fn settle(pid: u32, answer: Answer) -> u64 {
     match answer {
         Answer::Value(value) => value,
         Answer::Execed => {
-            super::signal_enter::forget(pid);
+            super::signal_fpu::forget(pid);
             super::exec_enter::enter(pid)
         }
         Answer::Deliver(ctx) => super::signal_enter::deliver(pid, ctx),

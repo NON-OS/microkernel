@@ -20,7 +20,7 @@ use super::marks::{any, take};
 use super::tick_frame::{to_user, to_words, WORDS};
 use crate::process::foreign::frame::{ForeignFrame, NR_INTERRUPTED};
 use crate::process::foreign::trap_table::{park, Answer};
-use crate::process::foreign::{registry, signal_enter, trap_frame, trap_wait};
+use crate::process::foreign::{registry, signal_fpu, trap_frame, trap_wait};
 
 /// Called by the timer trampoline, after the tick, for a tick that
 /// interrupted user mode. `frame` is the interrupted register file the
@@ -47,7 +47,7 @@ pub fn on_user_tick(frame: &mut [u64; WORDS]) {
     }
     crate::sched::wake_process(supervisor);
     if let Answer::Deliver(to) = trap_wait::wait_raw(pid) {
-        signal_enter::enter_fpu(pid);
+        signal_fpu::enter_fpu(pid);
         crate::arch::context::set_user_tls(to.fs_base);
         *frame = to_words(&to);
     }

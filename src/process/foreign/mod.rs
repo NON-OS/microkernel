@@ -37,6 +37,7 @@ mod registry;
 mod resume;
 mod signal_call;
 mod signal_enter;
+mod signal_fpu;
 mod signal_regs;
 mod spawn;
 mod spawn_start;
