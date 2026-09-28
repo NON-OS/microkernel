@@ -80,11 +80,12 @@ pub fn is_job_command(state: &mut State, args: &[&[u8]]) -> Verdict {
                 Verdict::Handled
             }
         },
-        // Bare-name run of a baked, attested tool (`tokei`, `grex foo`, ...): the
-        // kernel spawns it parented to this terminal and it streams its stdout
-        // through the same drain job.
+        /* A baked tool, `linux` among them, runs as a foreground program for as
+         * long as it runs: an install's drain gave up on it at 5 s. */
         name if tool::is_tool(name) => match tool::prepare(state, args) {
-            Some(job) => Verdict::Job(JobWork::InstallDrain(job)),
+            Some(pid) => {
+                Verdict::Job(JobWork::ExternalStage { pid, in_buf: Vec::new(), in_cursor: 0 })
+            }
             None => Verdict::Handled,
         },
         _ => Verdict::Instant,

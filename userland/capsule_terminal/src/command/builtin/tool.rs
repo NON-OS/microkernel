@@ -3,14 +3,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 //! Run one of the baked, attested command-line tools (grex, tokei, csview, ...)
-//! from the shell. The kernel spawns the tool parented to this terminal, so the
-//! same async drain job that streams a store install's output streams the
-//! tool's stdout here. Adding a tool is one line in `TOOLS`.
+//! from the shell. The kernel spawns the tool parented to this terminal, which
+//! drives it as any foreground program: its stdout into the block, keys to its
+//! stdin, Ctrl-C to end it, and its own exit status. Adding a tool is one line
+//! in `TOOLS`.
 
 use alloc::vec::Vec;
 use nonos_libc::mk_tool_run;
 
-use crate::command::builtin::nox::install::InstallJob;
 use crate::term::state::State;
 
 /// The installed command-line tools: what you type, and the service it runs.
@@ -48,9 +48,9 @@ pub fn is_tool(name: &[u8]) -> bool {
 }
 
 /// Spawn the baked tool named by `args[0]` with the rest as its argv, and return
-/// a drain job that streams its stdout to the terminal. `None` on a spawn error,
-/// with the reason already pushed to the scrollback.
-pub fn prepare(state: &mut State, args: &[&[u8]]) -> Option<InstallJob> {
+/// its pid. `None` on a spawn error, with the reason already pushed to the
+/// scrollback.
+pub fn prepare(state: &mut State, args: &[&[u8]]) -> Option<u32> {
     let name = args[0];
     // `is_tool` gated this call, so the lookup cannot miss. Falling back to the
     // typed name rather than unwrapping keeps a future caller that skips the
@@ -67,7 +67,7 @@ pub fn prepare(state: &mut State, args: &[&[u8]]) -> Option<InstallJob> {
         return None;
     }
     crate::jobs::tty::attach(state, rc as u32);
-    Some(InstallJob::new(rc as u32))
+    Some(rc as u32)
 }
 
 // argv as the tool sees it: argv[0] is the command name, then each argument,
