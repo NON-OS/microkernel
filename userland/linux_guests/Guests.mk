@@ -119,6 +119,12 @@ $(LINUX_GUESTS_C)/cwait: $(LINUX_GUESTS_DIR)/c/cwait.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cwait,4978,4979,$(LINUX_GUESTS_C)/cwait))
 
+# A caught signal for a thread spinning with no call: it arrives only if the
+# kernel stops the running thread for its supervisor.
+$(LINUX_GUESTS_C)/cpreempt: $(LINUX_GUESTS_DIR)/c/cpreempt.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cpreempt,4946,4947,$(LINUX_GUESTS_C)/cpreempt))
+
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
 # normal image, which does not set NONOS_LINUX_GUESTS, still ships them.
