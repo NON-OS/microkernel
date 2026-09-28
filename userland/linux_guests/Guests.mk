@@ -107,6 +107,9 @@ $(LINUX_GUESTS_C)/cthreads: $(LINUX_GUESTS_DIR)/c/cthreads.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cthreads,4974,4975,$(LINUX_GUESTS_C)/cthreads))
 
+# Process lifecycle and signals, each against Linux; see LifeGuests.mk.
+include $(LINUX_GUESTS_DIR)/LifeGuests.mk
+
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
 # normal image, which does not set NONOS_LINUX_GUESTS, still ships them.
