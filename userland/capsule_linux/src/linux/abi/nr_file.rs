@@ -21,6 +21,7 @@
 
 /* Files, their data and their locks; from syscall_64.tbl. */
 pub const SENDFILE: u64 = 40;
+pub const FLOCK: u64 = 73;
 pub const FDATASYNC: u64 = 75;
 pub const TRUNCATE: u64 = 76;
 pub const CREAT: u64 = 85;

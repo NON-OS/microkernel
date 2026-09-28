@@ -85,6 +85,7 @@ pub fn attempt(guest: &mut Guest, wait: &Blocked) -> Option<u64> {
         np::SELECT | np::PSELECT6 => {
             Some(net::select(guest, a[0], [a[1], a[2], a[3]])).filter(|&v| v != 0)
         }
+        np::FLOCK | nr::FCNTL => super::waits_lock::retry(guest, wait),
         _ => Some(file::epoll_wait(guest, a[0], a[1], a[2])).filter(|&v| v != 0),
     }
 }

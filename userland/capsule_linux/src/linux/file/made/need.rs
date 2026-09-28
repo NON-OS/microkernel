@@ -24,12 +24,12 @@ use crate::linux::guest::{Guest, Kind};
 
 /*
  * open, stat, lstat, access, execve, truncate, chdir, readlink, chmod,
- * statfs, utime, getppid, the xattr calls, the *at forms and openat2, and
- * close and the calls that close.
+ * statfs, utime, getppid, the xattr calls, the *at forms and openat2,
+ * flock and fcntl, and close and the calls that close.
  */
-const ALWAYS: [u64; 38] = [
-    2, 3, 4, 6, 21, 33, 59, 76, 80, 89, 90, 110, 132, 137, 188, 189, 190, 191, 192, 193, 194, 195,
-    196, 197, 198, 199, 235, 257, 262, 267, 268, 269, 280, 292, 332, 436, 437, 439,
+const ALWAYS: [u64; 40] = [
+    2, 3, 4, 6, 21, 33, 59, 72, 73, 76, 80, 89, 90, 110, 132, 137, 188, 189, 190, 191, 192, 193,
+    194, 195, 196, 197, 198, 199, 235, 257, 262, 267, 268, 269, 280, 292, 332, 436, 437, 439,
 ];
 
 pub fn needs_view(guest: &Guest, nr: u64, a: [u64; 6]) -> bool {

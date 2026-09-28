@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The errnos the file, lock and xattr calls answer with, beyond the ones
- * errno.rs has always held.
+ * flock and fcntl's record locks.
  */
 
-pub const ENXIO: i64 = 6;
-pub const EXDEV: i64 = 18;
-pub const EFBIG: i64 = 27;
-pub const ENOLCK: i64 = 37;
-pub const ENODATA: i64 = 61;
-pub const EOPNOTSUPP: i64 = 95;
+pub(super) mod lock;
+pub(super) mod lock_calls;
+pub(super) mod record;
+
+pub use lock_calls::{flock, WAIT as LOCK_WAIT};
+pub use record::{fcntl_lock, is_lock as is_lock_cmd};

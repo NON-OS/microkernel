@@ -62,6 +62,7 @@ mod tally;
 mod unserved;
 mod waits;
 mod waits_fds;
+mod waits_lock;
 mod waits_time;
 
 pub use answer::Answer;

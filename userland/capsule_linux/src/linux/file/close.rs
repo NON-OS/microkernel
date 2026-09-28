@@ -26,10 +26,7 @@ pub fn close(guest: &mut Guest, fd: u64) -> u64 {
     if !entry.is_open() {
         return errno::fail(errno::EBADF);
     }
-    if let Some(d) = super::desc::of(entry).filter(|d| !super::desc::held_elsewhere(guest, fd, *d))
-    {
-        super::desc::gone(d);
-    }
+    super::lock_calls::closing(guest, fd);
     let flushed = flush(guest, fd);
     /*
      * The store handle is dropped with the descriptor, which closes it on the

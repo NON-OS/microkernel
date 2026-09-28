@@ -57,6 +57,8 @@ pub fn fcntl(guest: &mut Guest, fd: u64, cmd: u64, arg: u64) -> u64 {
         F_GETFL => errno::ok(status(entry)),
         /* The lowest free number at or above `arg`: where a shell keeps one aside. */
         F_DUPFD | F_DUPFD_CLOEXEC => file::dup_from(guest, fd, arg, cmd == F_DUPFD_CLOEXEC),
+        /* The record locks; a wait among them is parked before this is reached. */
+        c if file::is_lock_cmd(c) => file::fcntl_lock(guest, fd, cmd, arg),
         _ => errno::fail(errno::EINVAL),
     }
 }

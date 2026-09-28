@@ -68,6 +68,7 @@ pub fn data_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
         np::REMOVEXATTR => xattr::by_path(guest, a[0], xattr::Op::Remove, args(a), true),
         np::LREMOVEXATTR => xattr::by_path(guest, a[0], xattr::Op::Remove, args(a), false),
         np::FREMOVEXATTR => xattr::by_fd(guest, a[0], xattr::Op::Remove, args(a)),
+        np::FLOCK => super::waits_lock::answer_now(file::flock(guest, a[0], a[1])),
         _ => return None,
     })
 }

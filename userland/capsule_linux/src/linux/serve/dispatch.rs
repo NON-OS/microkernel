@@ -21,6 +21,7 @@ use nonos_libc::ForeignFrame;
 
 use super::answer::Answer;
 use super::table::plain;
+use super::waits_lock;
 use crate::linux::abi::{nr, nr_path as np};
 use crate::linux::call::{clone, exit_thread, futex};
 use crate::linux::guest::Guest;
@@ -58,6 +59,7 @@ fn route(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
         np::CLOCK_NANOSLEEP => {
             crate::linux::call::clock_nanosleep(guest, frame.pid, a[0], a[1], a[2])
         }
+        np::FLOCK | nr::FCNTL if waits_lock::wants(frame) => waits_lock::lock(guest, frame),
         nr::READ | nr::WRITE if super::waits::may_wait(guest, frame.nr, a[0]) => {
             super::waits::io(guest, frame.pid, frame.nr, a)
         }

@@ -15,13 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The errnos the file, lock and xattr calls answer with, beyond the ones
- * errno.rs has always held.
+ * flock(2), and fcntl's record-lock commands, on the family's lock table.
+ *
+ * A lock that must wait answers `WAIT`, which the serve loop parks and
+ * tries again after every call, as it does a read on an empty pipe.
  */
 
-pub const ENXIO: i64 = 6;
-pub const EXDEV: i64 = 18;
-pub const EFBIG: i64 = 27;
-pub const ENOLCK: i64 = 37;
-pub const ENODATA: i64 = 61;
-pub const EOPNOTSUPP: i64 = 95;
+mod closing;
+mod flock;
+mod purge;
+
+pub use closing::closing;
+pub use flock::{flock, WAIT};
+pub(crate) use purge::owners_ns;
+pub use purge::purge;

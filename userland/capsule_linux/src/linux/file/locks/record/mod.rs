@@ -15,13 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The errnos the file, lock and xattr calls answer with, beyond the ones
- * errno.rs has always held.
+ * fcntl's record locks: F_GETLK, F_SETLK, F_SETLKW and their OFD forms.
+ *
+ * struct flock on x86_64: l_type and l_whence as shorts, then l_start,
+ * l_len as 64-bit offsets, then l_pid; 32 bytes.
  */
 
-pub const ENXIO: i64 = 6;
-pub const EXDEV: i64 = 18;
-pub const EFBIG: i64 = 27;
-pub const ENOLCK: i64 = 37;
-pub const ENODATA: i64 = 61;
-pub const EOPNOTSUPP: i64 = 95;
+mod cmds;
+mod fcntl;
+mod range;
+mod want;
+
+pub use cmds::is_lock;
+pub use fcntl::fcntl_lock;
