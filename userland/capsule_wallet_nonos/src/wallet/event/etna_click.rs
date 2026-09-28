@@ -44,6 +44,9 @@ pub fn etna_click(state: &mut State, x: u32, y: u32) -> EventOutcome {
     if state.view == VIEW_SHIELD {
         return crate::wallet::screen::shield::click::click(state, press);
     }
+    if state.view == VIEW_SWAP {
+        return crate::wallet::screen::swap::click::click(state, press);
+    }
     match (press, state.view) {
         (Press::Footer(0), VIEW_HOME) if !state.address_ready => super::generate::generate(state),
         (Press::Footer(1), VIEW_HOME) if !state.address_ready => {

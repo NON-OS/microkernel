@@ -27,5 +27,6 @@ mod home_pills;
 pub mod receive;
 pub mod receive_address;
 pub mod shield;
+pub mod swap;
 pub mod status;
 pub mod welcome;

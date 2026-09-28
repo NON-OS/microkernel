@@ -35,6 +35,7 @@ mod home_receive;
 pub mod key;
 mod meter;
 mod network;
+pub mod parts;
 pub mod paste;
 mod pick;
 mod proving;

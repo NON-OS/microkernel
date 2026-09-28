@@ -30,6 +30,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         match (state.view, state.address_ready) {
             (VIEW_RECEIVE, _) => crate::wallet::screen::receive::receive(state, fb),
             (VIEW_SHIELD, true) => crate::wallet::screen::shield::show::show(state, fb),
+            (VIEW_SWAP, true) => crate::wallet::screen::swap::show::show(state, fb),
             (_, true) => crate::wallet::screen::home::home(state, fb),
             (_, false) => crate::wallet::screen::welcome::welcome(state, fb),
         }
