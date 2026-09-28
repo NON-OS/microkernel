@@ -3,8 +3,9 @@
 // its wake from another thread, a non-blocking pipe and its end of file, a
 // write to a full pipe waiting for room, edge-triggered epoll, two readers
 // blocked on one pipe, poll, ppoll and select with their timeouts, a closed
-// descriptor leaving epoll, and timerfd one-shot, periodic and absolute. Each
-// part prints as it passes, so a hang names the part it hung in.
+// descriptor leaving epoll, timerfd one-shot, periodic and absolute, and the
+// descriptor ioctls and an epoll list carried through fork. Each part prints
+// as it passes, so a hang names the part it hung in.
 #define _GNU_SOURCE
 #include <errno.h>
 #include <fcntl.h>
@@ -16,7 +17,9 @@
 #include <sys/select.h>
 #include <sys/epoll.h>
 #include <sys/eventfd.h>
+#include <sys/ioctl.h>
 #include <sys/timerfd.h>
+#include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -429,11 +432,48 @@ static int timers(void) {
     return 0;
 }
 
+static int ioctls_fork(void) {
+    int p[2];
+    pipe(p);
+    write(p[1], "abc", 3);
+    int held = -1;
+    ioctl(p[0], FIONREAD, &held);
+    int one = 1;
+    ioctl(p[0], FIONBIO, &one);
+    char buf[4];
+    ssize_t got = read(p[0], buf, sizeof buf);
+    int drained = read(p[0], buf, 1) == -1 && errno == EAGAIN;
+    ioctl(p[1], FIOCLEX);
+    int cloexec = fcntl(p[1], F_GETFD) == FD_CLOEXEC;
+    if (held != 3 || got != 3 || !drained || !cloexec) {
+        return fail("descriptor ioctls", held, got * 10 + drained * 2 + cloexec);
+    }
+    int ep = epoll_create1(0);
+    struct epoll_event ev = {.events = EPOLLIN, .data.u64 = 9};
+    epoll_ctl(ep, EPOLL_CTL_ADD, p[0], &ev);
+    write(p[1], "d", 1);
+    pid_t child = fork();
+    if (child == 0) {
+        _exit(epoll_wait(ep, &ev, 1, 0) == 1 && ev.data.u64 == 9 ? 0 : 1);
+    }
+    int status = -1;
+    waitpid(child, &status, 0);
+    close(ep);
+    close(p[0]);
+    close(p[1]);
+    if (child < 0 || !WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+        return fail("epoll list through fork", child, status);
+    }
+    ok("ioctl-fork", "FIONREAD, FIONBIO, FIOCLEX, and a forked child saw the epoll list; bytes held",
+       held);
+    return 0;
+}
+
 int main(void) {
     long t0 = now_ms();
     if (timed_futex() || broadcast() || eventfd_semaphore() || eventfd_blocking() ||
         epoll_timeout() || pipe_nonblock() || pipe_full() || edge() || two_readers() ||
-        poll_select() || close_forgets() || timers()) {
+        poll_select() || close_forgets() || timers() || ioctls_fork()) {
         return 1;
     }
     printf("[C] cwait PASS: %d parts in %ld ms\n", parts, now_ms() - t0);
