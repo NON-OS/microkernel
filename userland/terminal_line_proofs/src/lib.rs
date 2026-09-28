@@ -108,6 +108,8 @@ mod quick_open_tests;
 #[cfg(test)]
 mod suggest_tests;
 #[cfg(test)]
+mod tool_tests;
+#[cfg(test)]
 mod tree_tests;
 #[cfg(test)]
 mod usage_tests;

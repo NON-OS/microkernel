@@ -14,34 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod about;
-pub mod bench;
-pub mod cap_names;
-pub mod capsules;
-pub mod clear;
-pub mod display;
-pub mod echo;
-pub mod exit_check;
-pub mod fs;
-pub mod git;
-pub mod help;
-mod help_layout;
-pub mod help_one;
-mod help_pages;
-mod help_tools;
-pub mod history_cmd;
-pub mod jobs;
-pub mod market;
-pub mod motd;
-pub mod neofetch;
-pub mod nox;
-pub mod ping;
-pub mod receipt;
-pub mod service;
-pub mod theme;
-pub mod tool;
-mod tool_list;
-mod tool_refused;
-pub mod version;
-pub mod which;
-pub mod whoami;
+//! What the terminal says when the kernel will not start a tool.
+
+use crate::term::state::State;
+
+const ERRNO_NOENT: i64 = -2;
+
+/// Which tool the kernel would not start, and why, in its own words.
+pub fn refused(state: &mut State, name: &[u8], rc: i64) {
+    let why: &[u8] = match rc {
+        ERRNO_NOENT => b": not installed in this build",
+        _ => b": the kernel refused to start it",
+    };
+    let mut line = name.to_vec();
+    line.extend_from_slice(why);
+    state.scrollback.push_error(&line);
+    state.last_status = 1;
+}
