@@ -19,6 +19,7 @@ mod broadcast;
 mod broadcast_arm;
 mod escape;
 mod etna_click;
+mod on_etna;
 mod etna_scroll;
 mod edit_amount;
 mod edit_nonce;
@@ -57,6 +58,6 @@ mod tx_freshen;
 mod unstake_flow;
 mod keep;
 
-pub use etna_click::on_etna;
+pub use on_etna::on_etna;
 pub use on_event::on_event;
 pub use probe_tick::probe_tick;

@@ -33,9 +33,14 @@ pub enum Press {
     Back,
     Dismiss,
     Footer(u8),
+    /* The Shield screens: a screen to open, an asset, a size, a field. */
+    Go(u8),
+    Asset(u8),
+    Pick(u8),
+    Field(u8),
 }
 
-const MAX: usize = 16;
+const MAX: usize = 32;
 static HITS: Mutex<([(Press, Rect); MAX], usize)> =
     Mutex::new(([(Press::Back, Rect::new(0, 0, 0, 0)); MAX], 0));
 

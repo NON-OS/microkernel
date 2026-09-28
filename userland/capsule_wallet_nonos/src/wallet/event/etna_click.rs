@@ -24,14 +24,6 @@ use nonos_app_skeleton::EventOutcome;
 use crate::wallet::screen::hits::{at, Press};
 use crate::wallet::state::{State, VIEW_HOME, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELD, VIEW_SWAP};
 
-/// Whether the screen on show is drawn on the Etna frame.
-pub fn on_etna(state: &State) -> bool {
-    state.panel == 0
-        && (state.backup_active
-            || state.view == VIEW_HOME
-            || (state.view == VIEW_RECEIVE && !state.import_active))
-}
-
 fn go(state: &mut State, view: u8) -> EventOutcome {
     state.view = view;
     state.scroll = 0;
@@ -49,6 +41,9 @@ pub fn etna_click(state: &mut State, x: u32, y: u32) -> EventOutcome {
         let _ = super::backup::confirm_backup(state);
         return go(state, VIEW_HOME);
     }
+    if state.view == VIEW_SHIELD {
+        return crate::wallet::screen::shield::click::click(state, press);
+    }
     match (press, state.view) {
         (Press::Footer(0), VIEW_HOME) if !state.address_ready => super::generate::generate(state),
         (Press::Footer(1), VIEW_HOME) if !state.address_ready => {
@@ -64,7 +59,7 @@ pub fn etna_click(state: &mut State, x: u32, y: u32) -> EventOutcome {
         (Press::Send, _) => go(state, VIEW_SEND),
         (Press::Receive, _) => go(state, VIEW_RECEIVE),
         (Press::Swap, _) => go(state, VIEW_SWAP),
-        (Press::Shield, _) => go(state, VIEW_SHIELD),
+        (Press::Shield, _) => crate::wallet::screen::shield::click::open(state),
         (Press::Settings | Press::Accounts, _) => {
             state.panel = 3;
             EventOutcome::Repaint

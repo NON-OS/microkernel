@@ -23,12 +23,15 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use crate::wallet::state::{State, VIEW_HOME};
+use crate::wallet::state::{State, VIEW_HOME, VIEW_SHIELD};
 
 pub fn escape(state: &mut State) -> EventOutcome {
     if state.panel != 0 {
         state.panel = 0;
         return EventOutcome::Repaint;
+    }
+    if state.view == VIEW_SHIELD {
+        return crate::wallet::screen::shield::click::back(state);
     }
     if state.view != VIEW_HOME {
         state.view = VIEW_HOME;

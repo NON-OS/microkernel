@@ -14,27 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod default_net;
-mod empty_rail;
-mod filter_rails;
-mod hydrate;
-mod live_view;
-mod new;
-mod rail_allowed;
-mod record_tx;
-mod restore;
-mod restore_words;
-pub mod shield_log;
-pub mod shield_ui;
-mod types;
+/*
+ * What the shield service reports back: each shielded action with where it
+ * has got to, and the proof being built now. Written by the service, read by
+ * the screens; nothing in the wallet invents an entry.
+ */
 
-pub use default_net::default_net;
-pub use hydrate::hydrate;
-pub use live_view::needs_live_data;
-pub use new::new_state;
-pub use record_tx::record_tx;
-pub use types::{
-    Rail, State, MAX_RAILS, MAX_STAKE, SEND_FIELD_AMOUNT, SEND_FIELD_NONCE, SEND_FIELD_TO,
-    VIEW_APPROVALS, VIEW_HOME, VIEW_NOX, VIEW_PROOF, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELD,
-    VIEW_SHIELDED, VIEW_SIGN, VIEW_SWAP, VIEW_UNSHIELD,
-};
+use alloc::string::String;
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Stage {
+    Proving,
+    HandedOff,
+    Settled,
+    Failed,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Kind {
+    Deposit,
+    Send,
+    Receive,
+    Withdraw,
+}
+
+pub struct Entry {
+    pub kind: Kind,
+    pub asset: u8,
+    pub amount: String,
+    pub stage: Stage,
+    pub tx: Option<[u8; 32]>,
+}
+
+pub struct Job {
+    pub kind: Kind,
+    pub elapsed_s: u32,
+    pub done: u16,
+    pub of: u16,
+    pub error: Option<&'static str>,
+}

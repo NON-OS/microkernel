@@ -14,27 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod default_net;
-mod empty_rail;
-mod filter_rails;
-mod hydrate;
-mod live_view;
-mod new;
-mod rail_allowed;
-mod record_tx;
-mod restore;
-mod restore_words;
-pub mod shield_log;
-pub mod shield_ui;
-mod types;
+/* The amount and receiver as the review tile writes them. */
 
-pub use default_net::default_net;
-pub use hydrate::hydrate;
-pub use live_view::needs_live_data;
-pub use new::new_state;
-pub use record_tx::record_tx;
-pub use types::{
-    Rail, State, MAX_RAILS, MAX_STAKE, SEND_FIELD_AMOUNT, SEND_FIELD_NONCE, SEND_FIELD_TO,
-    VIEW_APPROVALS, VIEW_HOME, VIEW_NOX, VIEW_PROOF, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELD,
-    VIEW_SHIELDED, VIEW_SIGN, VIEW_SWAP, VIEW_UNSHIELD,
-};
+use alloc::format;
+use alloc::string::String;
+
+use super::consts::ticker;
+use super::sizes::sizes;
+use crate::wallet::state::shield_ui::ShieldUi;
+
+pub fn standard(ui: &ShieldUi) -> String {
+    let all = sizes(ui.asset);
+    let s = ui.size.and_then(|i| all.get(i as usize)).map_or("", |(s, _)| s.as_str());
+    format!("{s} {}", ticker(ui.asset))
+}
+
+pub fn short(a: &str) -> String {
+    if a.len() <= 22 {
+        String::from(a)
+    } else {
+        format!("{}...{}", &a[..12], &a[a.len() - 6..])
+    }
+}

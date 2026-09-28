@@ -14,27 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod default_net;
-mod empty_rail;
-mod filter_rails;
-mod hydrate;
-mod live_view;
-mod new;
-mod rail_allowed;
-mod record_tx;
-mod restore;
-mod restore_words;
-pub mod shield_log;
-pub mod shield_ui;
-mod types;
+/* The Shield screens on the Etna frame, and the parts only they use. */
 
-pub use default_net::default_net;
-pub use hydrate::hydrate;
-pub use live_view::needs_live_data;
-pub use new::new_state;
-pub use record_tx::record_tx;
-pub use types::{
-    Rail, State, MAX_RAILS, MAX_STAKE, SEND_FIELD_AMOUNT, SEND_FIELD_NONCE, SEND_FIELD_TO,
-    VIEW_APPROVALS, VIEW_HOME, VIEW_NOX, VIEW_PROOF, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELD,
-    VIEW_SHIELDED, VIEW_SIGN, VIEW_SWAP, VIEW_UNSHIELD,
-};
+mod absent;
+mod amounts;
+mod check;
+mod chips;
+pub mod click;
+mod consts;
+mod deposit;
+mod edges;
+mod field;
+mod footer;
+mod history;
+mod history_labels;
+mod home;
+mod home_more;
+mod home_parts;
+mod home_receive;
+pub mod key;
+mod meter;
+mod network;
+pub mod paste;
+mod pick;
+mod proving;
+mod request;
+mod review;
+mod review_rows;
+mod review_text;
+mod send;
+mod send_fields;
+pub mod show;
+mod sizes;
+mod status;
+mod withdraw;

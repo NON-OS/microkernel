@@ -14,27 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod default_net;
-mod empty_rail;
-mod filter_rails;
-mod hydrate;
-mod live_view;
-mod new;
-mod rail_allowed;
-mod record_tx;
-mod restore;
-mod restore_words;
-pub mod shield_log;
-pub mod shield_ui;
-mod types;
+/*
+ * Whether the screen on show is drawn on the Etna frame. Everything else
+ * still paints the older chrome, so this decides which click handler and
+ * which painter a frame gets.
+ */
 
-pub use default_net::default_net;
-pub use hydrate::hydrate;
-pub use live_view::needs_live_data;
-pub use new::new_state;
-pub use record_tx::record_tx;
-pub use types::{
-    Rail, State, MAX_RAILS, MAX_STAKE, SEND_FIELD_AMOUNT, SEND_FIELD_NONCE, SEND_FIELD_TO,
-    VIEW_APPROVALS, VIEW_HOME, VIEW_NOX, VIEW_PROOF, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELD,
-    VIEW_SHIELDED, VIEW_SIGN, VIEW_SWAP, VIEW_UNSHIELD,
-};
+use crate::wallet::state::{State, VIEW_HOME, VIEW_RECEIVE, VIEW_SHIELD};
+
+pub fn on_etna(state: &State) -> bool {
+    state.panel == 0
+        && (state.backup_active
+            || state.view == VIEW_HOME
+            || (state.view == VIEW_SHIELD && state.address_ready)
+            || (state.view == VIEW_RECEIVE && !state.import_active))
+}

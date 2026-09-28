@@ -14,27 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod default_net;
-mod empty_rail;
-mod filter_rails;
-mod hydrate;
-mod live_view;
-mod new;
-mod rail_allowed;
-mod record_tx;
-mod restore;
-mod restore_words;
-pub mod shield_log;
-pub mod shield_ui;
-mod types;
+/* Paint whichever Shield screen is up. */
 
-pub use default_net::default_net;
-pub use hydrate::hydrate;
-pub use live_view::needs_live_data;
-pub use new::new_state;
-pub use record_tx::record_tx;
-pub use types::{
-    Rail, State, MAX_RAILS, MAX_STAKE, SEND_FIELD_AMOUNT, SEND_FIELD_NONCE, SEND_FIELD_TO,
-    VIEW_APPROVALS, VIEW_HOME, VIEW_NOX, VIEW_PROOF, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELD,
-    VIEW_SHIELDED, VIEW_SIGN, VIEW_SWAP, VIEW_UNSHIELD,
-};
+use nonos_app_skeleton::PaintBuffer;
+
+use crate::wallet::state::shield_ui::*;
+use crate::wallet::state::State;
+
+pub fn show(state: &State, fb: &mut PaintBuffer) {
+    match state.shield_ui.screen {
+        SHIELD_DEPOSIT => super::deposit::deposit(state, fb),
+        SHIELD_SEND => super::send::send(state, fb),
+        SHIELD_WITHDRAW => super::withdraw::withdraw(state, fb),
+        SHIELD_REVIEW => super::review::review(state, fb),
+        SHIELD_PROVING => super::proving::proving(state, fb),
+        SHIELD_HISTORY => super::history::history(state, fb),
+        SHIELD_NETWORK => super::network::network(state, fb),
+        _ => super::home::home(state, fb),
+    }
+}

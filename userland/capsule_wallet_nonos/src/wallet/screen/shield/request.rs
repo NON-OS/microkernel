@@ -14,27 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod default_net;
-mod empty_rail;
-mod filter_rails;
-mod hydrate;
-mod live_view;
-mod new;
-mod rail_allowed;
-mod record_tx;
-mod restore;
-mod restore_words;
-pub mod shield_log;
-pub mod shield_ui;
-mod types;
+/*
+ * The one place a Shield screen hands work to the shield service. This
+ * build of the wallet does not yet speak the service's request format, so
+ * a confirmed request is refused here with a sentence saying so, rather
+ * than shown as sent. When the format lands, it lands in this file.
+ */
 
-pub use default_net::default_net;
-pub use hydrate::hydrate;
-pub use live_view::needs_live_data;
-pub use new::new_state;
-pub use record_tx::record_tx;
-pub use types::{
-    Rail, State, MAX_RAILS, MAX_STAKE, SEND_FIELD_AMOUNT, SEND_FIELD_NONCE, SEND_FIELD_TO,
-    VIEW_APPROVALS, VIEW_HOME, VIEW_NOX, VIEW_PROOF, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELD,
-    VIEW_SHIELDED, VIEW_SIGN, VIEW_SWAP, VIEW_UNSHIELD,
-};
+use crate::wallet::state::State;
+
+const NOT_YET: &str = "The shield service answered, but this build of the wallet cannot \
+     send it requests yet. Nothing was deposited, sent or withdrawn.";
+
+pub fn submit(state: &State) -> Result<(), &'static str> {
+    if let Some(text) = super::absent::banner(state) {
+        return Err(text);
+    }
+    Err(NOT_YET)
+}
