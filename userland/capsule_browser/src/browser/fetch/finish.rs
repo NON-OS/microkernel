@@ -82,7 +82,7 @@ pub(super) fn finish(state: &mut State, raw: &[u8], suppress: bool) {
         None => {
             state.redirect_count = 0;
             state.status = alloc::format!("bad resp raw={}", raw.len());
-            state.document = Some(render_error::render_error("bad response"));
+            state.document = Some(render_error::render_error(&incomplete(raw)));
             state.box_doc = None;
             state.page_dom = None;
             state.world = None;
@@ -90,4 +90,27 @@ pub(super) fn finish(state: &mut State, raw: &[u8], suppress: bool) {
         }
     }
     state.view = View::Page;
+}
+
+/// Why a response could not be read, with the numbers that say so.
+///
+/// "bad response" alone told a reader nothing, and it covered two different
+/// things: a body that stopped short of what its headers promised, and bytes
+/// that were never an HTTP response at all.
+fn incomplete(raw: &[u8]) -> alloc::string::String {
+    let Some(sep) = raw.windows(4).position(|w| w == b"\r\n\r\n") else {
+        return alloc::format!("bad response: {} bytes and no complete header", raw.len());
+    };
+    let body = raw.len() - sep - 4;
+    let head = core::str::from_utf8(&raw[..sep]).unwrap_or("");
+    let declared = head.lines().find_map(|l| {
+        let (k, v) = l.split_once(':')?;
+        k.trim().eq_ignore_ascii_case("content-length").then(|| v.trim())
+    });
+    match declared {
+        Some(n) => {
+            alloc::format!("bad response: body {} of {} bytes the headers declared", body, n)
+        }
+        None => alloc::format!("bad response: {} header bytes, {} body bytes", sep, body),
+    }
 }
