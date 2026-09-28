@@ -16,23 +16,23 @@
 
 //! One file per family of Linux calls; declarations and re-exports only.
 
+mod clock;
 mod console;
 mod ctl;
-mod clock;
-mod epoch;
 mod cwd;
+mod epoch;
 mod futex;
 mod futex_requeue;
 mod futex_time;
+mod glibc;
+mod glibc_sched;
 mod ident;
 mod io;
-mod ioctl;
 mod io_socket;
+mod ioctl;
 mod life;
 mod limits;
 mod limits_table;
-mod glibc;
-mod glibc_sched;
 mod mem;
 mod pipe;
 mod pipe_dup;
@@ -56,16 +56,18 @@ mod uname;
 mod vector;
 mod vector_read;
 
+pub use clock::{clock_getres, clock_gettime, now_ms};
 pub use ctl::fcntl;
-pub use ioctl::ioctl;
 pub use cwd::{chdir, fchdir, getcwd};
+pub use epoch::{family_ms, mark_start};
 pub use futex::futex;
-pub use ident::{getppid, setuid};
-pub use io::{close, read, write};
-pub use life::{exit, exit_thread, set_tid_address};
-pub use limits::{getrlimit, prlimit64};
 pub use glibc::prctl;
 pub use glibc_sched::{clone3, getcpu, membarrier, sched_getaffinity};
+pub use ident::{getppid, setuid};
+pub use io::{close, read, write};
+pub use ioctl::ioctl;
+pub use life::{exit, exit_thread, set_tid_address};
+pub use limits::{getrlimit, prlimit64};
 pub use mem::{brk, mmap, mprotect, mremap, munmap, MapReq};
 pub use pipe::pipe2;
 pub use pipe_dup::{dup, dup2};
@@ -78,13 +80,11 @@ pub use sched::{
 };
 pub use session::{getpgid, getsid, setpgid, setsid};
 pub use signal::{rt_sigaction, rt_sigprocmask};
+pub use signal_send::kill;
 pub use signal_stack::sigaltstack;
 pub use sigreturn::rt_sigreturn;
-pub use signal_send::kill;
 pub use sleep::{clock_nanosleep, nanosleep};
 pub use spawn::{clone, execve, fork, reap_one, wait4};
-pub use clock::{clock_getres, clock_gettime, now_ms};
-pub use epoch::{family_ms, mark_start};
 pub use thread::{arch_prctl, getrandom};
 pub use timeops::{gettimeofday, time};
 pub use umask::{umask, DEFAULT_UMASK};
