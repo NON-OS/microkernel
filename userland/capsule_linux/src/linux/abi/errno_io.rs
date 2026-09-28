@@ -19,4 +19,5 @@
  * errno.rs has always held.
  */
 
+pub const ENXIO: i64 = 6;
 pub const EFBIG: i64 = 27;

@@ -41,7 +41,9 @@ pub(super) fn stamp(
             }
         }
         p => match resolve_at(guest, dirfd, p) {
-            Some(named) => guest.links.follow(named, flags & AT_SYMLINK_NOFOLLOW == 0),
+            Some(named) => {
+                super::super::walk::follow(guest, named, flags & AT_SYMLINK_NOFOLLOW == 0)
+            }
             None => return errno::fail(errno::EFAULT),
         },
     };
@@ -49,7 +51,9 @@ pub(super) fn stamp(
         Ok(now) => now,
         Err(e) => return errno::fail(e),
     };
-    if !super::super::cache::held(&full) && key(&full).writable().is_err() {
+    if super::super::synth::owns(&full)
+        || (!super::super::cache::held(&full) && key(&full).writable().is_err())
+    {
         return errno::fail(errno::EROFS);
     }
     let written_ms = super::super::cache::mtime(&full)

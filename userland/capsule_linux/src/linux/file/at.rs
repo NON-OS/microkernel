@@ -29,7 +29,7 @@ pub fn resolve_at(guest: &Guest, dirfd: u64, path: u64) -> Option<Vec<u8>> {
     let name = read_path(guest, path)?;
     let full = named_at(guest, dirfd, &name).ok()?;
     /* The *at calls act on the name, so its own last component is not followed. */
-    Some(guest.links.follow(full, false))
+    Some(super::walk::follow(guest, full, false))
 }
 
 /*

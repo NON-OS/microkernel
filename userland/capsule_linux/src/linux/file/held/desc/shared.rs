@@ -18,7 +18,18 @@
 
 use super::handle::of;
 
-/* Whether a descriptor of this process other than `fd` holds its description. */
+/*
+ * Whether a descriptor other than `fd` holds `fd`'s description: in this
+ * process, or, when the family's view is lent, in any process of it.
+ */
 pub fn held_elsewhere(guest: &crate::linux::guest::Guest, fd: u64, d: u32) -> bool {
-    guest.fds.iter().enumerate().any(|(i, o)| i as u64 != fd && o.is_open() && of(o) == Some(d))
+    let me = guest.pid;
+    let here = guest
+        .fds
+        .iter()
+        .enumerate()
+        .any(|(i, o)| i as u64 != fd && o.is_open() && of(o) == Some(d));
+    here || super::super::super::view::with(|v| {
+        v.procs.iter().any(|p| p.kernel != me && p.fds.iter().any(|o| o.desc == Some(d)))
+    })
 }

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The stack a Linux program wakes up on: argc, then argv, then the
 //! environment, then the auxiliary vector, each list ended by a null.
 
@@ -38,6 +37,7 @@ pub fn build(
     let mut all = argv.to_vec();
     all.extend_from_slice(envp);
     let placed = place(guest, top, &all)?;
+    crate::linux::file::record_image(guest.pid, argv, &placed.at, top);
     let random_at = (placed.floor - RANDOM_LEN) & !0x0F;
 
     let aux = pairs(image, interp_base, random_at, *placed.at.first()?);

@@ -52,7 +52,7 @@ pub(super) fn flush(guest: &Guest, fd: u64) -> Result<(), i64> {
     let Some(entry) = guest.fds.get(fd as usize) else {
         return Ok(());
     };
-    if entry.kind != Kind::File || !entry.writable {
+    if entry.kind != Kind::File || !entry.writable || super::synth::owns(&entry.path) {
         return Ok(());
     }
     let path = &entry.path;

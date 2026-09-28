@@ -39,6 +39,7 @@ pub mod flags;
 mod fsync;
 mod held;
 mod link;
+mod made;
 mod memfd;
 mod memfd_map;
 mod meta;
@@ -57,12 +58,13 @@ mod seek;
 mod slot;
 mod store;
 mod store_name;
+mod system;
 mod timerfd;
 mod timerfd_read;
 mod timerfd_spec;
+mod walk;
 mod write;
 
-pub use calls::*;
 pub use close::close;
 pub use cstr::read_cstr;
 pub use dev_io::{read as dev_read, write as dev_write};
@@ -79,7 +81,8 @@ pub use link::{linkat, symlinkat};
 pub use memfd::{ftruncate, is_memfd, memfd_create};
 pub use memfd_map::{mapped_at, set_mapped, staged};
 pub use meta::{
-    access, chmod, faccessat, fchmod, fchmodat, fstat, look, newfstatat, readlinkat, statfs, statx,
+    access, chmod, faccessat, fchmod, fchmodat, fstat, fstatfs, look, newfstatat, readlinkat,
+    statfs, statx,
 };
 pub use mknod::mknodat;
 pub use open::openat;
@@ -95,4 +98,6 @@ pub use slot::{install, MAX_FDS};
 pub use store::{read as store_read, write as store_write};
 pub use timerfd::{timerfd_create, timerfd_gettime, timerfd_settime};
 pub use timerfd_read::{bits as timer_bits, read as timerfd_read};
+pub use walk::follow;
 pub use write::write;
+pub use {calls::*, made::*, system::*};

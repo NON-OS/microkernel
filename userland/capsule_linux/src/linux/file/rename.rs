@@ -22,7 +22,7 @@ use crate::linux::guest::Guest;
 use super::at::resolve_at;
 use super::meta::look;
 use super::resolve::key;
-use super::{cache, modes, store_name};
+use super::{cache, modes, store_name, synth};
 
 pub fn rename(guest: &Guest, old: u64, new: u64) -> u64 {
     renameat2(guest, super::flags::AT_FDCWD, old, super::flags::AT_FDCWD, new, 0)
@@ -42,7 +42,7 @@ pub fn renameat2(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64, fl
     if flags & RENAME_NOREPLACE != 0 && there {
         return errno::fail(errno::EEXIST);
     }
-    if [&from, &to].iter().any(|p| key(p).writable().is_err()) {
+    if [&from, &to].iter().any(|p| synth::owns(p) || key(p).writable().is_err()) {
         return errno::fail(errno::EROFS);
     }
     if from == to {

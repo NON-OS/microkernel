@@ -33,7 +33,7 @@ pub fn fchownat(guest: &Guest, dirfd: u64, path: u64, uid: u64, gid: u64) -> u64
     let Some(at) = resolve_at(guest, dirfd, path) else {
         return errno::fail(errno::EFAULT);
     };
-    if stat::look(&guest.links.follow(at, true)).is_none() {
+    if stat::look(&super::super::walk::follow(guest, at, true)).is_none() {
         return errno::fail(errno::ENOENT);
     }
     fchown_ids(uid, gid)

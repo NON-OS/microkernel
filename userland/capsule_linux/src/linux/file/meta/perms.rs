@@ -21,14 +21,14 @@ use crate::linux::guest::{Guest, Kind};
 
 use super::super::at::resolve_at;
 use super::super::flags::AT_FDCWD;
-use super::super::{cache, modes, resolve};
+use super::super::{cache, modes, resolve, synth, walk};
 use super::stat::look;
 
 pub fn fchmodat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
     let Some(at) = resolve_at(guest, dirfd, path) else {
         return errno::fail(errno::EFAULT);
     };
-    change(&guest.links.follow(at, true), mode)
+    change(&walk::follow(guest, at, true), mode)
 }
 
 pub fn fchmod(guest: &Guest, fd: u64, mode: u64) -> u64 {
@@ -43,13 +43,13 @@ pub fn fchmod(guest: &Guest, fd: u64, mode: u64) -> u64 {
 
 /*
  * The store keeps no modes, so the family does (held/modes.rs). The shared
- * tree is read-only.
+ * tree and /dev, /proc and /sys are mounted read-only.
  */
 fn change(full: &[u8], mode: u64) -> u64 {
     if look(full).is_none() {
         return errno::fail(errno::ENOENT);
     }
-    if !cache::held(full) && resolve::key(full).writable().is_err() {
+    if synth::owns(full) || (!cache::held(full) && resolve::key(full).writable().is_err()) {
         return errno::fail(errno::EROFS);
     }
     modes::set(full, mode as u32);

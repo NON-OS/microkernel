@@ -19,8 +19,9 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::super::super::{at, cache, path, resolve};
-use super::super::node::S_IFDIR;
+use super::super::super::made::dev;
+use super::super::super::synth::{self};
+use super::super::super::{at, cache, path, resolve, walk};
 
 const X_OK: u64 = 1;
 
@@ -47,7 +48,7 @@ pub fn faccessat(guest: &Guest, dirfd: u64, path_ptr: u64, mode: u64, flags: u64
         Ok(m) => m,
         Err(e) => return errno::fail(e),
     };
-    let is_dir = m.mode & 0o170000 == S_IFDIR;
+    let is_dir = m.mode & 0o170000 == synth::S_IFDIR;
     if mode & X_OK != 0 && !is_dir && m.mode & 0o111 == 0 {
         return errno::fail(errno::EACCES);
     }
@@ -60,6 +61,10 @@ pub fn faccessat(guest: &Guest, dirfd: u64, path_ptr: u64, mode: u64, flags: u64
 fn writable(guest: &Guest, dirfd: u64, path_ptr: u64) -> bool {
     let Some(name) = path::read_path(guest, path_ptr) else { return false };
     let Ok(named) = at::named_at(guest, dirfd, &name) else { return false };
-    let full = guest.links.follow(named, true);
+    let full = walk::follow(guest, named, true);
+    if synth::owns(&full) {
+        /* A device ignores its mount's read-only flag; nothing else there is writable. */
+        return dev::at(&full).is_some();
+    }
     cache::held(&full) || resolve::key(&full).writable().is_ok()
 }

@@ -21,8 +21,9 @@
 
 mod device;
 mod fd;
+mod made;
 mod path;
 
 pub use super::statbuf::Meta;
 pub use fd::{now, of_fd};
-pub use path::{of, S_IFDIR};
+pub use path::of;

@@ -30,7 +30,7 @@ pub fn fsync(guest: &Guest, fd: u64) -> u64 {
     if !matches!(entry.kind, Kind::File | Kind::Dir) {
         return errno::fail(errno::EINVAL);
     }
-    if entry.kind == Kind::Dir {
+    if entry.kind == Kind::Dir || super::synth::owns(&entry.path) {
         return errno::ok(0);
     }
     match super::cache::flush(&entry.path, true) {

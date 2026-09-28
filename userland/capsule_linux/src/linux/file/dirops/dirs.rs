@@ -22,7 +22,7 @@ use crate::linux::guest::Guest;
 use super::super::at::resolve_at;
 use super::super::meta::look;
 use super::super::resolve::key;
-use super::super::{cache, modes, store_name};
+use super::super::{cache, modes, store_name, synth};
 
 pub fn mkdirat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
     let Some(at) = resolve_at(guest, dirfd, path) else {
@@ -31,7 +31,7 @@ pub fn mkdirat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
     if look(&at).is_some() || guest.links.target(&at).is_some() {
         return errno::fail(errno::EEXIST);
     }
-    if key(&at).writable().is_err() {
+    if synth::owns(&at) || key(&at).writable().is_err() {
         return errno::fail(errno::EROFS);
     }
     match store_name::mkdir(&key(&at)) {
@@ -59,7 +59,9 @@ pub(super) fn remove_dir(at: &[u8]) -> u64 {
     match look(at) {
         None => return errno::fail(errno::ENOENT),
         Some((_, false)) => return errno::fail(errno::ENOTDIR),
-        Some(_) if key(at).writable().is_err() => return errno::fail(errno::EROFS),
+        Some(_) if synth::owns(at) || key(at).writable().is_err() => {
+            return errno::fail(errno::EROFS)
+        }
         Some(_) if !cache::names_in(at).is_empty() => return errno::fail(errno::ENOTEMPTY),
         Some(_) => {}
     }

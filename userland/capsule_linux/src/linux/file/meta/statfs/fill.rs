@@ -14,34 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! How much room there is, in the shape `statfs` expects.
-//!
-//! The store's real usage is shared by everything on the machine: read here,
-//! it would let a guest watch a sibling write, and it sizes this install. So
-//! every guest sees the same plausible figures, and a write that does not fit
-//! still fails where it is made, with ENOSPC.
+/* struct statfs, from the mount table and the room on the mount. */
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-/// `struct statfs` on x86_64 is 120 bytes.
-const STATFS: usize = 120;
-/// The store addresses bytes, not blocks, so a block size is a fiction either
-/// way.
-const BSIZE: u64 = 1024;
-/// A 1 GiB volume, half free, on every machine.
-const BLOCKS: u64 = 1 << 20;
-const FREE: u64 = BLOCKS / 2;
+use super::super::super::mounts;
+use super::calls::{BLOCKS, BSIZE, FREE, ST_RDONLY};
 
-pub fn statfs(guest: &Guest, out: u64) -> u64 {
+const STATFS: usize = 120;
+
+/*
+ * The mount's type and flags from the family's mount table; the sizes are
+ * the ones the personality declares for every mount.
+ */
+pub(super) fn fill(guest: &Guest, path: &[u8], out: u64) -> u64 {
+    let (id, _, magic) = mounts::of(path);
+    let ro = mounts::MOUNTS.iter().find(|m| m.0 == id).is_some_and(|m| m.4.starts_with("ro"));
     let mut buf = [0u8; STATFS];
-    put(&mut buf, 0, 0x6E6F6E6F); // f_type, "nono"
-    put(&mut buf, 8, BSIZE); // f_bsize
-    put(&mut buf, 16, BLOCKS); // f_blocks
-    put(&mut buf, 24, FREE); // f_bfree
-    put(&mut buf, 32, FREE); // f_bavail
-    put(&mut buf, 56, 255); // f_namelen, the vfs path limit
-    put(&mut buf, 64, BSIZE); // f_frsize
+    put(&mut buf, 0, magic); /* f_type */
+    put(&mut buf, 8, BSIZE); /* f_bsize */
+    put(&mut buf, 16, BLOCKS); /* f_blocks */
+    put(&mut buf, 24, FREE); /* f_bfree */
+    put(&mut buf, 32, FREE); /* f_bavail */
+    put(&mut buf, 48, u64::from(id)); /* f_fsid */
+    put(&mut buf, 56, 255); /* f_namelen, the vfs path limit */
+    put(&mut buf, 64, BSIZE); /* f_frsize */
+    put(&mut buf, 72, if ro { ST_RDONLY } else { 0 }); /* f_flags */
     match guest.write(out, &buf) {
         n if n < 0 => errno::fail(errno::EFAULT),
         _ => errno::ok(0),

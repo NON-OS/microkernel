@@ -22,7 +22,7 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 use super::super::flags::{writes, O_CREAT, O_DIRECTORY, O_EXCL, O_NOFOLLOW};
-use super::super::{cache, dev, dir, regular, resolve, store};
+use super::super::{cache, dev, dir, regular, resolve, store, synth_ops, walk};
 
 /* Open the path the guest named, once made absolute. */
 pub fn open_named(guest: &mut Guest, named: Vec<u8>, flags: u64, mode: u64) -> u64 {
@@ -30,10 +30,13 @@ pub fn open_named(guest: &mut Guest, named: Vec<u8>, flags: u64, mode: u64) -> u
     if flags & O_NOFOLLOW != 0 && super::super::meta::is_link(guest, &named) {
         return errno::fail(errno::ELOOP);
     }
-    let full = guest.links.follow(named, true);
+    let full = walk::follow(guest, named, true);
     /* /dev/null and its kin are descriptors this capsule answers itself. */
     if dev::device_of(&full).is_some() {
         return dev::open_path(guest, &full, flags);
+    }
+    if let Some(got) = synth_ops::open(guest, &full, flags) {
+        return got;
     }
     let found = match cache::size(&full) {
         Some(size) => Some((size, false)),

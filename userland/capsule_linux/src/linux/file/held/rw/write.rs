@@ -19,7 +19,7 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
-use super::super::super::{cache, desc, resolve, store};
+use super::super::super::{cache, desc, resolve, store, synth_ops};
 
 /*
  * Write `bytes` at `at`, or at the end for a descriptor opened O_APPEND;
@@ -34,6 +34,9 @@ pub fn write_at(guest: &mut Guest, fd: u64, at: u64, bytes: &[u8]) -> Result<(us
         return Err(errno::EBADF);
     }
     let path = entry.path.clone();
+    if let Some(made) = synth_ops::write(&path) {
+        return made.map(|n| (n, at));
+    }
     let exists = store::stat(&resolve::key(&path)).is_ok();
     cache::hold(&path, exists)?;
     let at = if desc::appends(entry) { cache::size(&path).unwrap_or(0) } else { at };

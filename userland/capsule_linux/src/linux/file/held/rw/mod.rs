@@ -19,9 +19,9 @@
  * the p- and v- forms, sendfile and copy_file_range all come here, so a
  * file reads the same whichever call asks.
  *
- * In order: the family's copy of a file it is writing; the store, through
- * the descriptor's stream, opened again for a descriptor that dup or fork
- * made without one.
+ * In order: a made file (/dev, /proc, /sys); the family's copy of a file
+ * it is writing; the store, through the descriptor's stream, opened again
+ * for a descriptor that dup or fork made without one.
  */
 
 mod read;

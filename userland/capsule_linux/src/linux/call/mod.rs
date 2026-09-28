@@ -85,6 +85,7 @@ pub use io::{close, read, write};
 pub use life::{exit, exit_thread, killed, set_tid_address};
 pub use life_one::exit_one;
 pub use limits::{getrlimit, prlimit64};
+pub use limits_table::limit_for;
 pub use glibc::prctl;
 pub use glibc_sched::{clone3, getcpu, membarrier, sched_getaffinity};
 pub use mem::{brk, mmap, mprotect, mremap, munmap, MapReq};

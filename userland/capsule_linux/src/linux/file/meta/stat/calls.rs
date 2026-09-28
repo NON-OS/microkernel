@@ -19,7 +19,7 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::super::super::{cache, dev, resolve, store};
+use super::super::super::{cache, dev, resolve, store, synth};
 use super::super::node::{self};
 use super::at::{meta_at, write_out};
 
@@ -31,6 +31,9 @@ pub const AT_EMPTY_PATH: u64 = 0x1000;
 pub fn look(full: &[u8]) -> Option<(u64, bool)> {
     if dev::device_of(full).is_some() {
         return Some((0, false));
+    }
+    if let Some(node) = synth::node(full) {
+        return node.ok().map(|n| (0, matches!(n, synth::Node::Dir(_))));
     }
     if let Some(size) = cache::size(full) {
         return Some((size, false));

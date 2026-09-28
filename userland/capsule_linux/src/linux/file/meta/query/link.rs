@@ -16,16 +16,19 @@
 
 /* Whether a name is a link, and readlinkat. */
 
+use alloc::vec::Vec;
+
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-use super::super::super::at;
-use super::super::node::{self};
+use super::super::super::synth::{self, Node};
+use super::super::super::{at, walk};
+use super::super::node;
 
-/* Whether the name is itself a link. */
+/* Whether the name is itself a link, of the image's or a made one. */
 pub fn is_link(guest: &Guest, named: &[u8]) -> bool {
-    let full = guest.links.follow(named.to_vec(), false);
-    guest.links.target(&full).is_some()
+    let full = walk::follow(guest, named.to_vec(), false);
+    guest.links.target(&full).is_some() || matches!(synth::node(&full), Some(Ok(Node::Link(_))))
 }
 
 pub fn readlinkat(guest: &Guest, dirfd: u64, path_ptr: u64, buf: u64, len: u64) -> u64 {
@@ -35,11 +38,16 @@ pub fn readlinkat(guest: &Guest, dirfd: u64, path_ptr: u64, buf: u64, len: u64) 
     let Some(full) = at::resolve_at(guest, dirfd, path_ptr) else {
         return errno::fail(errno::EFAULT);
     };
-    let Some(to) = guest.links.target(&full) else {
-        return match node::of(guest, full, false) {
-            Ok(_) => errno::fail(errno::EINVAL),
-            Err(e) => errno::fail(e),
-        };
+    let to: Vec<u8> = match (guest.links.target(&full), synth::node(&full)) {
+        (Some(to), _) => to,
+        (None, Some(Ok(Node::Link(to)))) => to,
+        (None, Some(Err(e))) => return errno::fail(e),
+        _ => {
+            return match node::of(guest, full, false) {
+                Ok(_) => errno::fail(errno::EINVAL),
+                Err(e) => errno::fail(e),
+            };
+        }
     };
     let n = to.len().min(len as usize);
     match guest.write(buf, &to[..n]) < n as i64 {

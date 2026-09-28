@@ -20,19 +20,14 @@ use crate::linux::abi::errno;
 use crate::linux::guest::{Fd, Guest, Kind};
 
 use super::super::super::modes;
+use super::super::super::proc::{CONSOLE_IN, CONSOLE_OUT, PIPES, SOCKETS};
+use super::super::super::synth::S_IFREG;
 use super::super::statbuf::Meta;
 use super::device::device;
-use super::path::{at, of, S_IFIFO, S_IFREG, S_IFSOCK};
+use super::made::named;
+use super::path::{at, of};
 
-/*
- * What has no path, a pipe, the console, a socket or an object with no
- * file behind it, by its mode alone.
- */
-pub(super) fn kind(mode: u32) -> Meta {
-    at(b"/", mode, 0, now())
-}
-
-/* fstat: a file by its path, and the rest by kind. */
+/* fstat: a file by its path, and the rest by kind, as /proc names them. */
 pub fn of_fd(guest: &Guest, f: &Fd) -> Result<Meta, i64> {
     match f.kind {
         Kind::Free => Err(errno::EBADF),
@@ -41,12 +36,20 @@ pub fn of_fd(guest: &Guest, f: &Fd) -> Result<Meta, i64> {
             /* A file this family is making exists before the store holds it. */
             m.or_else(|_| Ok(at(&f.path, S_IFREG | modes::FILE, f.size, now())))
         }
-        /* The console is a stream with no terminal behind it, as a pipe is. */
-        Kind::Stdin | Kind::Stdout | Kind::Stderr | Kind::Pipe => Ok(kind(S_IFIFO | 0o600)),
-        Kind::Socket | Kind::Unix | Kind::Resolver => Ok(kind(S_IFSOCK | 0o777)),
+        Kind::Stdin => Ok(named(&alloc::format!("pipe:[{CONSOLE_IN}]").into_bytes(), b"/")),
+        Kind::Stdout | Kind::Stderr => {
+            Ok(named(&alloc::format!("pipe:[{CONSOLE_OUT}]").into_bytes(), b"/"))
+        }
+        Kind::Pipe => {
+            Ok(named(&alloc::format!("pipe:[{}]", PIPES + u64::from(f.handle)).into_bytes(), b"/"))
+        }
+        Kind::Socket | Kind::Unix | Kind::Resolver => Ok(named(
+            &alloc::format!("socket:[{}]", SOCKETS + u64::from(f.handle)).into_bytes(),
+            b"/",
+        )),
         Kind::Memfd => Ok(Meta { size: f.size, ..at(b"/memfd:", S_IFREG | 0o777, 0, now()) }),
         Kind::Device => device(&f.path, f.handle).ok_or(errno::EBADF),
-        Kind::Epoll | Kind::Timer | Kind::Event | Kind::Signal => Ok(kind(0o600)),
+        Kind::Epoll | Kind::Timer | Kind::Event | Kind::Signal => Ok(named(b"anon_inode:[]", b"/")),
     }
 }
 

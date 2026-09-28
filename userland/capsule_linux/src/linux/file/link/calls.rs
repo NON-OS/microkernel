@@ -46,7 +46,7 @@ pub fn linkat(guest: &Guest, olddir: u64, old: u64, newdir: u64, new: u64) -> u6
     else {
         return errno::fail(errno::EFAULT);
     };
-    let from = guest.links.follow(from, true);
+    let from = super::super::walk::follow(guest, from, true);
     if let Err(e) = free_and_writable(guest, &at) {
         return errno::fail(e);
     }

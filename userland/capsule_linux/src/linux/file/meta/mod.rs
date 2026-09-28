@@ -28,5 +28,5 @@ pub use node::{now as now_ms, of as meta_of};
 pub use perms::{chmod, fchmod, fchmodat};
 pub use query::{access, faccessat, is_link, readlinkat};
 pub use stat::{fstat, look, newfstatat};
-pub use statfs::statfs;
+pub use statfs::{fstatfs, statfs};
 pub use statx::statx;

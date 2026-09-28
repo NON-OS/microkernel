@@ -26,7 +26,7 @@ use crate::linux::abi::errno;
 use crate::linux::guest::{Fd, Guest};
 
 use super::dir_children::children;
-use super::{cache, desc, resolve, slot, store};
+use super::{cache, desc, resolve, slot, store, synth};
 
 pub fn open(guest: &mut Guest, path: Vec<u8>) -> u64 {
     let at = resolve::key(&path);
@@ -39,7 +39,12 @@ pub fn open(guest: &mut Guest, path: Vec<u8>) -> u64 {
      */
     let mut names = alloc::vec![String::from("."), String::from("..")];
     names.extend(children(at.as_bytes(), keys));
-    for name in guest.links.names_in(&path).into_iter().chain(cache::names_in(&path)) {
+    let made = if path == b"/" {
+        synth::ROOTS.iter().map(|r| String::from(*r)).collect()
+    } else {
+        Vec::new()
+    };
+    for name in guest.links.names_in(&path).into_iter().chain(cache::names_in(&path)).chain(made) {
         if !names.contains(&name) {
             names.push(name);
         }
