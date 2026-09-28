@@ -35,7 +35,13 @@ pub(super) fn sees_all() -> bool {
 
 /// `e` as the caller may see it.
 pub(super) fn visible(mut e: ProcStatEntry, caller: u32, all: bool) -> ProcStatEntry {
-    if all || e.pid == caller {
+    /*
+     * A foreign supervisor answers for the guests it hosts, and reports their
+     * times and memory to them as Linux's getrusage and /proc do; it sees
+     * those rows and no one else's.
+     */
+    let hosts = caller != 0 && crate::process::foreign::supervisor_of(e.pid) == Some(caller);
+    if all || e.pid == caller || hosts {
         return e;
     }
     e.run_ticks = 0;
