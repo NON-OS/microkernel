@@ -46,10 +46,19 @@ impl PagingManager {
             return Err(PagingError::UnhandledPageFault);
         }
 
+        // A foreign guest's pages are exactly the ones its supervisor mapped
+        // for it. Filling any other page would hand the guest memory nobody
+        // gave it: a PROT_NONE reservation, a guard page, a hole. So the fault
+        // is refused, the fault path ends the thread, and its supervisor is
+        // told and decides what that means for the guest.
+        let pid = crate::process::current_pid().unwrap_or(0);
+        if crate::process::foreign::is_foreign(pid) {
+            return Err(PagingError::UnhandledPageFault);
+        }
+
         // Charge the page against the faulting process's demand budget. A
         // runaway capsule is refused here and killed by the fault path instead
         // of exhausting physical memory.
-        let pid = crate::process::current_pid().unwrap_or(0);
         if !super::demand_cap::charge(pid) {
             return Err(PagingError::UnhandledPageFault);
         }

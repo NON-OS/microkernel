@@ -118,6 +118,11 @@ $(eval $(call LINUX_GUEST,cthreads,4974,4975,$(LINUX_GUESTS_C)/cthreads))
 $(LINUX_GUESTS_C)/cwait: $(LINUX_GUESTS_DIR)/c/cwait.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cwait,4978,4979,$(LINUX_GUESTS_C)/cwait))
+# A pthread recursing into its guard page: the process must end on SIGSEGV
+# with status 139, and the line it prints if it runs past the guard never shows.
+$(LINUX_GUESTS_C)/guardpage: $(LINUX_GUESTS_DIR)/c/guardpage.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,guardpage,4980,4981,$(LINUX_GUESTS_C)/guardpage))
 
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
