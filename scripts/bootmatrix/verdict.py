@@ -33,7 +33,9 @@ FATAL = ("[FATAL]", "[PANIC]", "[TRAP GP]", "[TRAP UD]", "[ZK-ATTEST] FAIL", "[S
 UNRESTRICTED = "DMA is unrestricted"
 REMAPPED = "[VT-D] enumerated devices identity mapped; others denied"
 AMD_VI_NAMED = "[AMD-VI] IVRS present"
-POSTURE = re.compile(r"\[IOMMU\] vendor=(\S+) enforcing=(\d)")
+# Every posture line carries the unconfined count beside enforcing=. The line
+# is printed again each time the count changes, so the last one is current.
+POSTURE = re.compile(r"\[IOMMU\] (\S+) present, enforcing=(\d), unconfined grants=(\d+)")
 # The posture each IOMMU QEMU can present must produce: (vendor, enforcing).
 EXPECTED_POSTURE = {"": ("none", "0"), "intel-iommu": ("intel-vt-d", "1"), "amd-iommu": ("amd-vi", "0")}
 SMP_PROOF = re.compile(r"\[SMP-PROOF\] cpu_count=(\d+) (PASS|UP)")
@@ -73,14 +75,16 @@ def judge(cell, text, reached, ending):
         bad.append("no [STACK-GUARD] line")
     if guards and guards.group(1) != guards.group(2):
         bad.append(f"only {guards.group(1)} of {guards.group(2)} stack guards armed")
-    posture = POSTURE.search(text)
-    if reached and not posture:
+    postures = POSTURE.findall(text)
+    if reached and not postures:
         bad.append("no [IOMMU] posture line")
-    if posture:
+    if postures:
         vendor, enforcing = EXPECTED_POSTURE[cell.iommu]
-        if posture.groups() != (vendor, enforcing):
-            bad.append(f"posture vendor={posture.group(1)} enforcing={posture.group(2)}, "
-                       f"expected vendor={vendor} enforcing={enforcing}")
+        for seen_vendor, seen_enforcing, _ in postures:
+            if (seen_vendor, seen_enforcing) != (vendor, enforcing):
+                bad.append(f"posture {seen_vendor} enforcing={seen_enforcing}, "
+                           f"expected {vendor} enforcing={enforcing}")
+                break
     if cell.iommu == "intel-iommu":
         if UNRESTRICTED in text:
             bad.append("kernel reports DMA is unrestricted with an IOMMU present")

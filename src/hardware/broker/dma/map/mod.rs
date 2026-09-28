@@ -56,6 +56,9 @@ pub fn map_for_caller(pid: u32, req: DmaMapRequest) -> Result<DmaMapResult, DmaM
         flags: req.flags,
     });
 
+    // The device is handed the host-physical address; no IOMMU domain takes
+    // part on any vendor yet, so every grant is one the posture line counts.
+    crate::memory::iommu::note_unconfined(1);
     Ok(DmaMapResult { user_va, device_addr: phys_start, length: req.length, grant_id })
 }
 

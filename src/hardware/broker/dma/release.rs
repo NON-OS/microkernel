@@ -69,6 +69,7 @@ fn teardown(g: &DmaGrant, unmap_pages: bool) {
     } else if !pool::free(g.physical_start, pages) {
         let _ = free_contiguous(g.physical_start, pages);
     }
+    crate::memory::iommu::note_unconfined_released(1);
 }
 
 // Scrub the page through the kernel direct map before returning

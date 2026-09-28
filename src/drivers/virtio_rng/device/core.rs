@@ -20,7 +20,13 @@ use crate::drivers::virtio_rng::queue::RngQueue;
 pub(in crate::drivers::virtio_rng) struct VirtioRngDevice {
     pub(super) access: AccessMode,
     pub(super) queue: RngQueue,
+    /// Regions this driver handed the device with no IOMMU domain confining
+    /// them: the virtqueue and the data buffer, once the device accepted them.
+    unconfined: u32,
 }
+
+/// The virtqueue and the data buffer.
+const DMA_REGIONS: u32 = 2;
 
 impl VirtioRngDevice {
     pub(in crate::drivers::virtio_rng) fn from_bar0(bar0: u32) -> Result<Self, &'static str> {
@@ -33,8 +39,10 @@ impl VirtioRngDevice {
             AccessMode::Mmio((bar0 & 0xFFFFFFF0) as u64)
         };
         let queue = RngQueue::new()?;
-        let mut dev = Self { access, queue };
+        let mut dev = Self { access, queue, unconfined: 0 };
         dev.init_legacy()?;
+        dev.unconfined = DMA_REGIONS;
+        crate::memory::iommu::note_unconfined(DMA_REGIONS);
         Ok(dev)
     }
 }
@@ -42,5 +50,6 @@ impl VirtioRngDevice {
 impl Drop for VirtioRngDevice {
     fn drop(&mut self) {
         self.write8(LEG_STATUS, 0);
+        crate::memory::iommu::note_unconfined_released(self.unconfined);
     }
 }
