@@ -22,5 +22,13 @@ void part_pwrite(void) {
     ERR(p, pwrite(ro, "x", 1, 0), EBADF);
     close(ro);
     close(fd);
-    done(p, "writes at the offset, leaves the file offset, fills a gap with zeros");
+    /* A file takes a whole write in one call, however large. */
+    static char big[3 << 20];
+    int w = mk("pwbig", 0);
+    CHECK(p, write(w, big, sizeof big) == sizeof big, errno, 0);
+    CHECK(p, pwrite(w, big, 2 << 20, 1 << 20) == 2 << 20, errno, 0);
+    CHECK(p, lseek(w, 0, SEEK_CUR) == sizeof big, lseek(w, 0, SEEK_CUR), 0);
+    close(w);
+    unlink(DIR "/pwbig");
+    done(p, "writes at the offset, leaves the file offset, fills a gap, takes 3 MiB whole");
 }
