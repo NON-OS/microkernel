@@ -58,3 +58,4 @@ mod sha1_tests;
 mod sha256_more_tests;
 mod sha256_tests;
 mod stream_rule_tests;
+mod stream_scope_tests;

@@ -17,6 +17,7 @@
 //! Delivered payload, and the windows it spends.
 
 use crate::circuit::window::circuit_sendme_due;
+use crate::stream::find_on;
 
 use super::super::state::Manager;
 
@@ -54,7 +55,8 @@ pub(super) fn data(state: &mut Manager, index: usize, id: u16, body: &[u8]) {
     if !body.is_empty() {
         circuit.proven = true;
     }
-    let Some(stream) = state.streams.iter_mut().find(|s| s.id == id) else {
+    let circuit_id = state.circuits[index].id;
+    let Some(stream) = find_on(&mut state.streams, circuit_id, id) else {
         return;
     };
     stream.deliver_window = stream.deliver_window.saturating_sub(1);

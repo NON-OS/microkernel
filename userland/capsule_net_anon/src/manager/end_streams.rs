@@ -14,23 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Streams over a circuit.
+//! Ending the streams of a circuit that has died.
 
-mod begin;
-mod connected;
-mod data;
-mod end;
-mod grant;
-mod ids;
-mod sendme;
-mod stage;
-pub(crate) mod table;
+use super::state::Manager;
 
-pub use begin::body as begin_body;
-pub use connected::is_valid as connected_is_valid;
-pub use data::pieces;
-pub use end::{is_clean, needs_another_exit, reason, REASON_DONE};
-pub use ids::next as next_id;
-pub use sendme::body as sendme_body;
-pub use stage::StreamStage;
-pub use table::{find_on, Stream};
+/// A circuit marked Dead carries nothing more, so every stream on it is
+/// ended with REASON_DESTROY. Left alone, a reader of one of them saw an
+/// empty stream until its own deadline instead of a closed one it could
+/// retry elsewhere.
+pub(super) fn end_streams(state: &mut Manager, index: usize) {
+    let circuit = state.circuits[index].id;
+    for stream in state.streams.iter_mut().filter(|s| s.circuit == circuit) {
+        stream.end_with_circuit();
+    }
+}

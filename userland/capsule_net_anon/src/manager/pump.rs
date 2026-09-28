@@ -51,6 +51,7 @@ pub fn tick(state: &mut Manager) {
     if cell.command == CELL_DESTROY {
         trace::say_num(b"circuit destroyed by the far end", cell.circuit as u64);
         state.circuits[index].stage = CircuitStage::Dead;
+        super::end_streams::end_streams(state, index);
         return;
     }
     if cell.command != CELL_RELAY && cell.command != CELL_RELAY_EARLY {
@@ -64,6 +65,7 @@ pub fn tick(state: &mut Manager) {
          */
         trace::say_num(b"unrecognised cell, circuit dead", cell.circuit as u64);
         state.circuits[index].stage = CircuitStage::Dead;
+        super::end_streams::end_streams(state, index);
         return;
     };
     deliver(state, index, opened.hop, &cell.payload);

@@ -44,4 +44,4 @@ pub mod table;
 pub mod grant;
 
 pub use stage::StreamStage;
-pub use table::Stream;
+pub use table::{find_on, Stream, REASON_DESTROY};

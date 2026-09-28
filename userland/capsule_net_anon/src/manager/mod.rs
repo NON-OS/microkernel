@@ -27,6 +27,7 @@ mod dir_load;
 mod dir_micro;
 mod dir_quorum;
 mod dir_tick;
+mod end_streams;
 mod guard;
 mod http;
 mod http_exchange;

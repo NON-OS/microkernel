@@ -23,7 +23,7 @@ use crate::trace;
 
 use super::super::state::Manager;
 use super::data::data;
-use super::status::{connected, ended, granted};
+use super::status::{connected, ended, granted, stream_granted};
 
 pub(crate) fn deliver(
     state: &mut Manager,
@@ -35,9 +35,12 @@ pub(crate) fn deliver(
     let Some(body) = body(payload) else { return };
     match header.command {
         RELAY_DATA => data(state, index, header.stream, body),
-        RELAY_CONNECTED => connected(state, header.stream, body),
-        RELAY_END => ended(state, header.stream, body),
-        RELAY_SENDME => granted(state, index, hop),
+        RELAY_CONNECTED => connected(state, index, header.stream, body),
+        RELAY_END => ended(state, index, header.stream, body),
+        // Stream id zero is the circuit's own window; any other id is that
+        // stream's (tor-spec 7.4).
+        RELAY_SENDME if header.stream == 0 => granted(state, index, hop),
+        RELAY_SENDME => stream_granted(state, index, header.stream),
         RELAY_TRUNCATED => truncated(state, index, body),
         _ => {}
     }
@@ -55,4 +58,5 @@ fn truncated(state: &mut Manager, index: usize, body: &[u8]) {
     let why = body.first().copied().unwrap_or(0);
     trace::say_two(b"circuit truncated", state.circuits[index].id as u64, why as u64);
     state.circuits[index].stage = CircuitStage::Dead;
+    super::super::end_streams::end_streams(state, index);
 }

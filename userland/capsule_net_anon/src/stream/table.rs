@@ -20,7 +20,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::circuit::window::STREAM_START;
+use crate::circuit::window::{STREAM_INCREMENT, STREAM_START};
 
 use super::stage::StreamStage;
 
@@ -51,4 +51,29 @@ impl Stream {
             delivered_since: 0,
         }
     }
+
+    /// The far end granted this stream another STREAM_INCREMENT cells.
+    pub fn credit_package(&mut self) {
+        self.package_window = self.package_window.saturating_add(STREAM_INCREMENT);
+    }
+
+    /// End a stream whose circuit is gone, unless it has already ended.
+    pub fn end_with_circuit(&mut self) {
+        if !matches!(self.stage, StreamStage::Ended(_)) {
+            self.stage = StreamStage::Ended(REASON_DESTROY);
+        }
+    }
+}
+
+/// The END reason a stream gets when its circuit is torn down (tor-spec 6.3).
+pub const REASON_DESTROY: u8 = 5;
+
+/// The stream `id` on circuit `circuit`, and no other.
+///
+/// Stream ids are only unique within a circuit, and a relay cell names the
+/// stream by id alone. Finding it by id alone let a cell arriving on one
+/// circuit write into, end or credit a stream carried by another: a hostile
+/// exit could inject payload into a connection it never carried.
+pub fn find_on(streams: &mut [Stream], circuit: u32, id: u16) -> Option<&mut Stream> {
+    streams.iter_mut().find(|s| s.circuit == circuit && s.id == id)
 }
