@@ -17,7 +17,7 @@
 //! `mprotect`, and the rule that makes it necessary.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{span_within, Guest, STACK_TOP};
+use crate::linux::guest::{span_within, Guest, USER_MAX};
 
 use super::prot_span::protect_span;
 
@@ -40,7 +40,7 @@ pub fn mprotect(guest: &mut Guest, addr: u64, len: u64, prot: u64) -> u64 {
      * Checked, because `len` is the guest's: `addr + len` wraps and the
      * span computed from the wrapped value comes out enormous.
      */
-    let Some((start, span)) = span_within(addr, len, STACK_TOP) else {
+    let Some((start, span)) = span_within(addr, len, USER_MAX) else {
         return errno::fail(errno::EINVAL);
     };
     /*

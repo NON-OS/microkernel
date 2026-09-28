@@ -17,7 +17,7 @@
 //! `mmap`: anonymous pages, or a private mapping of a file.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{span_within, Guest, MMAP_LIMIT, STACK_TOP};
+use crate::linux::guest::{span_within, Guest, MMAP_LIMIT, USER_MAX};
 
 use super::map_anon::{anonymous, memfd};
 use super::map_file::file;
@@ -43,7 +43,7 @@ pub fn mmap(guest: &mut Guest, req: MapReq) -> u64 {
     }
     // The ceiling differs by who chose the address.
     let (at, limit) = match req.fixed() {
-        Some(addr) => (addr, STACK_TOP),
+        Some(addr) => (addr, USER_MAX),
         None => (guest.mmap_next, MMAP_LIMIT),
     };
     let Some((at, span)) = span_within(at, req.len, limit) else {

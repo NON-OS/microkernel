@@ -19,7 +19,7 @@
 use nonos_libc::peer::{mk_peer_map, PEER_PROT_EXEC, PEER_PROT_WRITE};
 
 use super::handle::Guest;
-use super::layout::STACK_TOP;
+use super::layout::USER_MAX;
 use super::mem::{span_within, MAX_SPAN};
 use super::region::Region;
 
@@ -27,7 +27,7 @@ impl Guest {
     /// Pages covering `[addr, addr + len)`.
     pub fn map(&mut self, addr: u64, len: u64, write: bool, exec: bool) -> i64 {
         // Bounded by the top of the guest's area, which is the stack.
-        let Some((start, span)) = span_within(addr, len, STACK_TOP) else {
+        let Some((start, span)) = span_within(addr, len, USER_MAX) else {
             return -1;
         };
         let mut prot = 0;
@@ -64,7 +64,7 @@ impl Guest {
     /// Take `len` of address space at `addr` without backing it: a PROT_NONE
     /// reservation. Bytes appear, zeroed, when the guest first touches them.
     pub fn reserve(&mut self, addr: u64, len: u64) -> i64 {
-        let Some((start, span)) = span_within(addr, len, STACK_TOP) else {
+        let Some((start, span)) = span_within(addr, len, USER_MAX) else {
             return -1;
         };
         self.regions.push(Region {

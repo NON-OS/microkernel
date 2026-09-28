@@ -48,7 +48,7 @@ pub use handle::Guest;
 pub use links::Links;
 pub use layout::{
     BRK_BASE, BRK_LIMIT, EXEC_BASE, INTERP_BASE, MMAP_BASE, MMAP_LIMIT, STACK_SIZE,
-    STACK_TOP,
+    STACK_TOP, USER_MAX,
 };
 pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
 pub use region::Region;
