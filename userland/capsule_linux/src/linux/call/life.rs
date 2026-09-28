@@ -44,7 +44,7 @@ pub fn exit_thread(guest: &mut Guest, tid: u32) -> Answer {
             "[LINUX] kill refused: exited thread {tid} stays parked, errno {}\n",
             -rc
         );
-        crate::linux::start::say(line.as_bytes());
+        crate::linux::say::say(line.as_bytes());
     }
     Answer::Park
 }

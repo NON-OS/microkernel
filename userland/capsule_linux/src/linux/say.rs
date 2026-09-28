@@ -14,36 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux personality: everything this system knows about Linux, in
-//! one capsule that holds the capabilities its guests do not.
+//! What the personality says, through its debug channel: `say` for what went
+//! wrong and for what a guest prints, `note` for how a run is going.
 
-mod abi;
-mod attest;
-mod attest_local;
-mod attest_paths;
-mod attest_publisher;
-mod boot_guest;
-mod built_in;
-mod call;
-mod env;
-mod file;
-mod guest;
-mod heap;
-mod image;
-mod install;
-mod launch;
-mod net;
-mod origin;
-mod request;
-mod say;
-pub mod serve;
-mod settle;
-mod source;
-mod start;
-mod start_guest;
-mod terminal;
-mod terminal_launch;
-mod unix;
-mod wayland;
+use nonos_libc::mk_debug;
 
-pub use start::run;
+pub(super) fn say(line: &[u8]) {
+    let _ = mk_debug(line.as_ptr(), line.len());
+}
+
+/// A line about how a run is going, not about anything wrong with it. The
+/// terminal's `linux` command shows only the program's own output and what
+/// went wrong, so these stay out of it.
+pub(super) fn note(line: &[u8]) {
+    if !super::terminal::started() {
+        say(line);
+    }
+}

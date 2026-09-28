@@ -29,7 +29,7 @@ use core::sync::atomic::{AtomicU8, Ordering};
 use nonos_libc::mk_args;
 
 use super::launch::Launch;
-use crate::linux::start::say;
+use crate::linux::say::say;
 
 const MAX_ARGS: usize = 1024;
 

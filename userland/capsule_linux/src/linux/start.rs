@@ -16,8 +16,9 @@
 
 //! Bring one Linux program up and stay with it until it ends.
 
-use nonos_libc::{mk_debug, mk_exit, mk_foreign_spawn};
+use nonos_libc::{mk_exit, mk_foreign_spawn};
 
+use super::say::{note, say};
 use super::serve::serve;
 use super::source::source;
 use super::start_guest::start;
@@ -71,17 +72,4 @@ pub fn run() -> ! {
     super::file::clear_private();
     note(b"[LINUX] guest exited\n");
     mk_exit(code)
-}
-
-/// A line about how a run is going, not about anything wrong with it. The
-/// terminal's `linux` command shows only the program's own output and what
-/// went wrong, so these stay out of it.
-pub(super) fn note(line: &[u8]) {
-    if !super::terminal::started() {
-        say(line);
-    }
-}
-
-pub(super) fn say(line: &[u8]) {
-    let _ = mk_debug(line.as_ptr(), line.len());
 }

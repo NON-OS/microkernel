@@ -47,7 +47,7 @@ pub fn sigaltstack(guest: &mut Guest, tid: u32, new: u64, old: u64) -> u64 {
             return errno::fail(errno::EPERM);
         }
         if flags & SS_AUTODISARM != 0 {
-            crate::linux::start::say(b"[LINUX] unserved sigaltstack SS_AUTODISARM\n");
+            crate::linux::say::say(b"[LINUX] unserved sigaltstack SS_AUTODISARM\n");
             return errno::fail(errno::EINVAL);
         }
         match flags {

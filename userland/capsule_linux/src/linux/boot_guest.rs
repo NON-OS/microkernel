@@ -24,7 +24,7 @@
 use alloc::vec::Vec;
 
 use crate::linux::file::{key, store_read, visible};
-use crate::linux::start::say;
+use crate::linux::say::say;
 
 /// Guest-visible, so it lives under /linux like the program it names.
 const BOOT_GUEST: &[u8] = b"/etc/nonos-boot-guest";

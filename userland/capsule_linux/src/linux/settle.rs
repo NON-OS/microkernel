@@ -17,7 +17,7 @@
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::{mk_uptime_ms, mk_yield, Deadline};
 
-use super::start::say;
+use super::say::say;
 
 // The VFS always settles, loaded or given up; this bound only covers a dead one.
 const READY_MS: u64 = 300_000;
@@ -43,7 +43,7 @@ pub(super) fn wait_settled() -> bool {
     line[..PREFIX.len()].copy_from_slice(PREFIX);
     let ms = mk_uptime_ms().saturating_sub(start).max(0) as u64;
     let n = write_ms(&mut line[PREFIX.len()..], ms);
-    super::start::note(&line[..PREFIX.len() + n]);
+    super::say::note(&line[..PREFIX.len() + n]);
     true
 }
 

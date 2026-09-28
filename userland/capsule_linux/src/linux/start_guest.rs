@@ -23,7 +23,7 @@ use super::guest::{STACK_SIZE, STACK_TOP};
 use super::image;
 use super::launch::Launch;
 use super::origin::Origin;
-use super::start::say;
+use super::say::say;
 
 pub(super) fn start(guest: &mut Guest, launch: &Launch) -> Result<(), &'static [u8]> {
     let (path, bytes) = (&launch.path[..], &launch.bytes[..]);
