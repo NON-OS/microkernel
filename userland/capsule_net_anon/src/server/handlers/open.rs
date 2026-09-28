@@ -50,7 +50,7 @@ pub fn open(state: &mut Manager, body: &[u8], now: u64, tx: &mut [u8]) -> (u16, 
  * end ends up retrying a transport that is still bootstrapping and giving up on
  * one that merely has no circuit yet.
  */
-fn not_ready(state: &Manager, now: u64) -> Option<u16> {
+pub fn not_ready(state: &Manager, now: u64) -> Option<u16> {
     if state.bootstrap != Bootstrap::Ready {
         return Some(E_NO_DIRECTORY);
     }

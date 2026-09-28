@@ -14,19 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The handlers behind each operation.
+//! SOCKS5 over IPC into the Anyone network.
+//!
+//! The browser speaks RFC 1928 as bytes to this service, as it does to
+//! net.socks5 for Nym, and the frames share the service port with the API:
+//! an API request opens with the magic, a SOCKS frame with 0, 1 or 2.
+//! Names travel to the exit to resolve, so no lookup leaves this machine.
 
-mod close;
-mod closed;
-mod open;
-mod path;
-mod recv;
-mod send;
-mod status;
+mod answer;
+mod anyone;
+mod anyone_open;
+mod anyone_stream;
+mod conv;
+mod frame;
+mod front;
+mod kept;
+mod relay;
+mod rep;
+mod reply;
+mod request;
+mod stage;
+mod stages;
+mod tunnel;
+mod turn;
+mod wire;
 
-pub use close::{close_circuit, close_stream};
-pub use open::{not_ready, open};
-pub use path::circuit_path;
-pub use recv::recv;
-pub use send::send;
-pub use status::status;
+pub use answer::answer;
+pub use front::Front;
