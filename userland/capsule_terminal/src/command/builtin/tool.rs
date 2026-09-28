@@ -28,8 +28,7 @@ pub const TOOLS: &[(&[u8], &[u8])] = &[
     (b"tokei", b"tokei"),
     (b"huniq", b"huniq"),
     (b"csview", b"csview"),
-    // Not a crates.io tool: the Linux personality, which runs the Linux program
-    // named after it from the Linux tree and shows what that program prints.
+    /* Not a crates.io tool: the Linux personality, running a Linux program. */
     (b"linux", b"linux"),
 ];
 

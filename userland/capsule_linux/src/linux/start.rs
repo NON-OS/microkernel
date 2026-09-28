@@ -37,7 +37,7 @@ pub fn run() -> ! {
         mk_exit(done.map_or_else(|why| why.code(), |()| 0))
     }
     let Some(launch) = source() else {
-        // The terminal's request has already said what it looked for.
+        /* The terminal's request has already said what it looked for. */
         if !super::terminal::started() {
             say(b"[LINUX] nothing installed under that name\n");
         }
