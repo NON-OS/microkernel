@@ -18,6 +18,7 @@
 #include <sys/sysinfo.h>
 #include <sys/times.h>
 #include <sys/uio.h>
+#include <sys/vfs.h>
 #include <sys/wait.h>
 #include <sys/xattr.h>
 #include <time.h>
@@ -51,6 +52,7 @@ void part_fcntl(void);
 void part_close_range(void);
 void part_openat2(void);
 void part_sync(void);
+void part_statfs(void);
 void part_xattr(void);
 void part_usage(void);
 void part_ids(void);

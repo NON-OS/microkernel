@@ -26,6 +26,7 @@ int main(void) {
     part_close_range();
     part_openat2();
     part_sync();
+    part_statfs();
     part_xattr();
     part_usage();
     part_ids();
