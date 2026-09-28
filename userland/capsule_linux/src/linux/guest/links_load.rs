@@ -20,20 +20,26 @@ use crate::linux::file::{key, store_read, visible};
 
 use super::links::Links;
 
-const TABLE: &[u8] = b"/etc/nonos-links";
 const MAX_TABLE: u32 = 64 << 10;
 
 impl Links {
+    /// Where the image lists its links.
+    pub const TABLE: &'static [u8] = b"/etc/nonos-links";
+
+    /// The image's links, or none when the table cannot be read.
     pub fn load() -> Links {
-        let Ok(raw) = store_read(&key(TABLE), MAX_TABLE) else {
-            return Links::default();
-        };
+        Self::try_load().unwrap_or_default()
+    }
+
+    /// The image's links, or why the table could not be read.
+    pub fn try_load() -> Result<Links, &'static str> {
+        let raw = store_read(&key(Self::TABLE), MAX_TABLE)?;
         let pairs = raw.split(|b| *b == b'\n').filter_map(|line| {
             let at = line.iter().position(|b| *b == b' ')?;
             let (from, to) = (&line[..at], &line[at + 1..]);
             (from.first() == Some(&b'/') && !to.is_empty())
                 .then(|| (visible(b"/", from), to.to_vec()))
         });
-        Links(core::cell::RefCell::new(pairs.collect()))
+        Ok(Links(core::cell::RefCell::new(pairs.collect())))
     }
 }

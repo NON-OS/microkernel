@@ -84,7 +84,7 @@ pub use rename::{rename, renameat2};
 pub use resolve::{key, visible};
 pub use seek::lseek;
 pub use slot::{install, MAX_FDS};
-pub use store::{read as store_read, write as store_write};
+pub use store::{read as store_read, stat as store_stat, write as store_write};
 pub use timerfd::{timerfd_create, timerfd_gettime, timerfd_settime};
 pub use timerfd_read::{bits as timer_bits, read as timerfd_read};
 pub use write::write;

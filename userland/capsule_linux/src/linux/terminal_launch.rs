@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading the program the terminal's `linux` command names.
+//! Reading the program the terminal's `linux` command names, and saying
+//! what stopped it when it cannot be read: what the store answered, never a
+//! guess at why.
 
+use alloc::format;
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::launch::Launch;
 use super::origin::Origin;
-use crate::linux::file::{key, store_read, visible};
+use crate::linux::file::{key, store_read, store_stat, visible};
 use crate::linux::guest::Links;
 use crate::linux::start::say;
 
-pub(super) fn launch(program: &[u8], mut args: Vec<Vec<u8>>, max_image: u32) -> Option<Launch> {
+pub(super) fn launch(program: &[u8], mut args: Vec<Vec<u8>>, max: u32) -> Option<Launch> {
     if !super::settle::wait_settled() {
         say(b"[LINUX] the store never settled\n");
         return None;
@@ -33,20 +37,29 @@ pub(super) fn launch(program: &[u8], mut args: Vec<Vec<u8>>, max_image: u32) -> 
         Some(b'/') => visible(b"/", program),
         _ => visible(b"/bin", program),
     };
-    let path = Links::load().follow(named.clone(), true);
+    let links = Links::try_load();
+    let path = links.as_ref().map_or_else(|_| named.clone(), |l| l.follow(named.clone(), true));
     if path != named {
         let typed = named.rsplit(|b| *b == b'/').next().unwrap_or(&named);
         args.insert(0, typed.to_vec());
     }
-    match store_read(&key(&path), max_image) {
-        Ok(bytes) => Some(Launch { path, bytes, origin: Origin::Store, args }),
-        Err(_) => {
-            let line = alloc::format!(
-                "linux: no program {} in the Linux tree\n",
-                alloc::string::String::from_utf8_lossy(&named)
-            );
-            say(line.as_bytes());
-            None
+    let why = match store_read(&key(&path), max) {
+        Ok(bytes) => return Some(Launch { path, bytes, origin: Origin::Store, args }),
+        Err(why) => why,
+    };
+    let line = match store_stat(&key(&path)) {
+        Ok((size, _)) => {
+            format!("linux: {} is there ({size} bytes) but unread: {why}\n", text(&path))
         }
+        Err(_) => format!("linux: cannot find {} in the Linux tree\n", text(&named)),
+    };
+    say(line.as_bytes());
+    if let (Err(why), Ok(_)) = (links, store_stat(&key(Links::TABLE))) {
+        say(format!("linux: link table {} unread: {why}\n", text(Links::TABLE)).as_bytes());
     }
+    None
+}
+
+fn text(path: &[u8]) -> String {
+    String::from_utf8_lossy(path).into_owned()
 }
