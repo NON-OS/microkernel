@@ -20,9 +20,13 @@ use super::constants::EXT_SIGNATURE_ALGORITHMS;
 
 pub fn ext_sigalgs(out: &mut Vec<u8>) {
     let mut body = Vec::with_capacity(8);
-    super::push::u16(&mut body, 6);
-    super::push::u16(&mut body, 0x0804);
-    super::push::u16(&mut body, 0x0805);
+    /*
+     * Only what CertificateVerify can check: ECDSA over P-256 and P-384.
+     * Offering RSA-PSS let a server answer with a signature this client
+     * has no verifier for.
+     */
+    super::push::u16(&mut body, 4);
     super::push::u16(&mut body, 0x0403);
+    super::push::u16(&mut body, 0x0503);
     super::push::ext(out, EXT_SIGNATURE_ALGORITHMS, &body);
 }
