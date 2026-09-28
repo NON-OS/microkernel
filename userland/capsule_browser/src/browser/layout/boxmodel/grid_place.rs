@@ -70,12 +70,11 @@ fn place_for(cont: &GridSpec, item: &GridSpec, ncols: u8) -> Option<GridPlace> {
         (Some(a), Some(b)) if b > a => b - a,
         _ => 1,
     };
-    Some(GridPlace {
-        col: col.min(ncols - 1),
-        col_span: col_span.clamp(1, ncols - col),
-        row,
-        row_span,
-    })
+    // The span is bounded by the columns left after the clamped start. With
+    // the unclamped start, a line at or past the last column left 0 columns
+    // (or wrapped the u8), and clamp(1, 0) panics.
+    let col = col.min(ncols.saturating_sub(1));
+    Some(GridPlace { col, col_span: col_span.clamp(1, (ncols - col).max(1)), row, row_span })
 }
 
 // Column and row extent of a named area: the cell range where the name

@@ -40,6 +40,8 @@ mod grid_tests;
 #[cfg(test)]
 mod gzip_tests;
 #[cfg(test)]
+mod narrow_tests;
+#[cfg(test)]
 mod selector_tests;
 #[cfg(test)]
 mod sibling_tests;
