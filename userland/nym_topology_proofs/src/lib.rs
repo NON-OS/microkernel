@@ -15,3 +15,5 @@ pub mod json;
 mod base58_tests;
 #[cfg(test)]
 mod draw_tests;
+#[cfg(test)]
+mod requester_tests;

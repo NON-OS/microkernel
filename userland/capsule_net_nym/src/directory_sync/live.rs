@@ -22,7 +22,7 @@ use crate::topology::{self, Node, Role};
 
 /// The endpoint the node list is asked for. One name, rather than a frozen
 /// copy of what it answered when the image was built.
-const API_HOST: &str = "validator.nymtech.net";
+pub(super) const API_HOST: &str = "validator.nymtech.net";
 /// The skimmed active views. Nym folded mixnodes and gateways into one node
 /// type, so the older split paths answer 404. Skimmed rather than described
 /// because it carries exactly what a route needs, the address, the mix port
@@ -35,6 +35,10 @@ const EXITS_PATH: &str = "/api/v1/unstable/nym-nodes/skimmed/exit-gateways/activ
 /// enter through. A short answer is a broken answer, and installing it would
 /// replace a working table with one that cannot route.
 const MIN_PER_LAYER: usize = 1;
+
+/// A node list runs to tens of kilobytes (the skimmed views measured 21,658
+/// to 75,446 bytes on 2026-09-28). This bounds what one answer may allocate.
+const MAX_LIST: usize = 512 * 1024;
 
 /// Fetch the current node list and install it as the directory.
 ///
@@ -74,7 +78,7 @@ pub(super) fn fetch_exits(tcp_port: u32) -> Result<Vec<Node>, u16> {
 }
 
 fn fetch_role(tcp_port: u32, path: &str, role: Role) -> Result<Vec<Node>, u16> {
-    let body = fetch_tls(tcp_port, API_HOST, path)?;
+    let body = fetch_tls(tcp_port, API_HOST, path, MAX_LIST)?;
     let found = node_objects(&body, topology::NODE_CAP);
     let nodes: Vec<Node> = found.iter().filter_map(|o| parse_node(o, role)).collect();
     if nodes.is_empty() {
