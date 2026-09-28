@@ -52,3 +52,16 @@ pub(super) const RUN: Role = Role {
     // A guest's own sockets are the socket model's to grant, not this.
     extra_caps: 0,
 };
+
+/// The personality the terminal's `linux` command starts, parented to the
+/// terminal so the program's output reaches its window through the
+/// personality's mirrored stdout. One runs at a time: a second is refused its
+/// endpoint while the first holds it.
+pub(super) const TERMINAL: Role = Role {
+    name: "app.linux.term",
+    port: 5100,
+    inbox: "endpoint.app.linux.term.reply",
+    reply_port: 5101,
+    tag: b"[LINUX-TERM] elf error:",
+    extra_caps: 0,
+};

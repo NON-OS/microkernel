@@ -24,7 +24,7 @@ use alloc::vec::Vec;
 use super::embed::{
     LINUX_ATTESTATION_BYTES, LINUX_ELF, LINUX_MANIFEST_BYTES, LINUX_NONOS_ID_CERT_BYTES,
 };
-use super::roles::{Role, INSTALL, RUN};
+use super::roles::{Role, INSTALL, RUN, TERMINAL};
 use super::spawn::LINUX_CAPS;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified, SpawnError};
 use crate::security::nonos_id_cert::IdCertVerifyError;
@@ -41,6 +41,12 @@ pub fn spawn_install(package: &str, pinned: &[u8; 32]) -> Result<u32, SpawnError
 /// Spawn the personality to run the program `package` installed.
 pub fn spawn_run(package: &str) -> Result<u32, SpawnError> {
     spawn(&RUN, vec![String::from("run"), String::from(package)])
+}
+
+/// Spawn the personality for the terminal's `linux` command. `argv` is the
+/// command as typed: `linux`, the program, then its arguments.
+pub fn spawn_terminal(argv: Vec<String>) -> Result<u32, SpawnError> {
+    spawn(&TERMINAL, argv)
 }
 
 fn spawn(role: &Role, argv: Vec<String>) -> Result<u32, SpawnError> {

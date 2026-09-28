@@ -112,6 +112,9 @@ fn embedded_tools() -> Vec<ToolCapsule> {
 /// separated argument blob. Returns the tool's pid, or `None`. Tools run on
 /// demand, not at boot: a command-line tool has nothing to do until invoked.
 pub fn run_named(name: &[u8], argv: &[u8]) -> Option<u32> {
+    if name == b"tool.linux" {
+        return linux_terminal(argv);
+    }
     let tool = embedded_tools().into_iter().find(|t| t.name.as_bytes() == name)?;
     match tool.spawn_with_args(argv) {
         Ok(pid) => Some(pid),
@@ -120,4 +123,29 @@ pub fn run_named(name: &[u8], argv: &[u8]) -> Option<u32> {
             None
         }
     }
+}
+
+/// The Linux personality, for the terminal's `linux` command. The program it
+/// runs is read from the store and must carry its own proof, so naming one
+/// grants nothing an unproven binary could use.
+#[cfg(feature = "nonos-capsule-linux")]
+fn linux_terminal(argv: &[u8]) -> Option<u32> {
+    let argv = argv
+        .split(|&b| b == 0)
+        .filter(|s| !s.is_empty())
+        .map(|s| alloc::string::String::from_utf8_lossy(s).into_owned())
+        .collect();
+    match crate::userspace::capsule_linux::spawn_terminal(argv) {
+        Ok(pid) => Some(pid),
+        Err(_) => {
+            boot_log::error("linux terminal spawn failed");
+            None
+        }
+    }
+}
+
+/// A build without the personality has no `linux` to run.
+#[cfg(not(feature = "nonos-capsule-linux"))]
+fn linux_terminal(_argv: &[u8]) -> Option<u32> {
+    None
 }

@@ -25,6 +25,6 @@ mod spawn;
 mod state;
 
 pub use family::package_arg;
-pub use install::{spawn_install, spawn_run};
+pub use install::{spawn_install, spawn_run, spawn_terminal};
 pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
 pub use state::shared_state;
