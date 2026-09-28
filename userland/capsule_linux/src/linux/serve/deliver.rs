@@ -59,7 +59,8 @@ pub fn maybe_deliver(guest: &mut Guest, tid: u32, reply: u64) -> bool {
     true
 }
 
+/// A line for the log, not for the terminal's window: how a run is going.
 fn say(tid: u32, signum: u8, handler: u64) {
     let line = alloc::format!("[LINUX] signal {signum} to tid {tid}, handler {handler:#x}\n");
-    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    crate::linux::say::note(line.as_bytes());
 }
