@@ -27,4 +27,4 @@ pub(super) mod rw;
 pub(super) mod store_err;
 pub(super) mod times;
 
-pub use cache::flush_all;
+pub use cache::{bytes as cache_bytes, flush_all};

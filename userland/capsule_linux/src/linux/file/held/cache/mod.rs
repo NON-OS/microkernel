@@ -34,6 +34,6 @@ mod take;
 
 pub use change::{resize, write};
 pub use flush::{flush, flush_all};
-pub use names::{forget, growth, names_in, renamed};
+pub use names::{bytes, forget, growth, names_in, renamed};
 pub use table::{held, mtime, size};
 pub use take::{hold, read};

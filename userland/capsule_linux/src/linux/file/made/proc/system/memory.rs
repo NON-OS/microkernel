@@ -35,20 +35,28 @@ pub(super) fn cpuinfo() -> Vec<u8> {
     s.into_bytes()
 }
 
+/*
+ * The family's memory: what its processes hold resident, and the copies
+ * of files it is writing (held/cache/), which are its page cache and, as a
+ * tmpfs's pages are on Linux, its shared memory. Those copies can be put
+ * in the store, so they count as available. No swap and no block-device
+ * buffers exist.
+ */
 pub(super) fn meminfo(v: &View) -> Vec<u8> {
     let total = d::MEMORY / 1024;
-    let free = total.saturating_sub(family(v).resident_kb);
+    let cached = super::super::super::super::cache::bytes() / 1024;
+    let free = total.saturating_sub(family(v).resident_kb).saturating_sub(cached);
     let mut s = String::new();
     for (name, kb) in [
         ("MemTotal:", total),
         ("MemFree:", free),
-        ("MemAvailable:", free),
+        ("MemAvailable:", free + cached),
         ("Buffers:", 0),
-        ("Cached:", 0),
+        ("Cached:", cached),
         ("SwapCached:", 0),
         ("SwapTotal:", 0),
         ("SwapFree:", 0),
-        ("Shmem:", 0),
+        ("Shmem:", cached),
     ] {
         s += &alloc::format!("{name:<16}{kb:>8} kB\n");
     }
