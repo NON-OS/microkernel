@@ -42,6 +42,7 @@ mod region;
 mod region_cut;
 mod region_find;
 mod region_mark;
+mod region_prot;
 mod threads;
 mod timer;
 mod watch;

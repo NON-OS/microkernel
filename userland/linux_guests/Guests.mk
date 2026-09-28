@@ -131,6 +131,12 @@ $(LINUX_GUESTS_C)/protnone: $(LINUX_GUESTS_DIR)/c/protnone.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,protnone,4982,4983,$(LINUX_GUESTS_C)/protnone))
 
+# A fork after mprotect: the child gets the protection the parent has now, so
+# a write to a page the parent made read-only faults in the child.
+$(LINUX_GUESTS_C)/protfork: $(LINUX_GUESTS_DIR)/c/protfork.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,protfork,4984,4985,$(LINUX_GUESTS_C)/protfork))
+
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
 # normal image, which does not set NONOS_LINUX_GUESTS, still ships them.
