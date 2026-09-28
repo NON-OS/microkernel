@@ -34,6 +34,11 @@ pub struct Exe {
     pub args: u64,
     pub env: u64,
     pub end: u64,
+    /*
+     * The stack pointer it started with, where argc is: Linux's
+     * start_stack.
+     */
+    pub stack: u64,
     /* Family milliseconds when it started. */
     pub start_ms: u64,
 }

@@ -37,7 +37,6 @@ pub fn build(
     let mut all = argv.to_vec();
     all.extend_from_slice(envp);
     let placed = place(guest, top, &all)?;
-    crate::linux::file::record_image(guest.pid, argv, &placed.at, top);
     let random_at = (placed.floor - RANDOM_LEN) & !0x0F;
 
     let aux = pairs(image, interp_base, random_at, *placed.at.first()?);
@@ -57,6 +56,9 @@ pub fn build(
     }
     match guest.write(rsp, &blob) {
         n if n < 0 => None,
-        _ => Some(rsp),
+        _ => {
+            crate::linux::file::record_image(guest.pid, argv, &placed.at, top, rsp);
+            Some(rsp)
+        }
     }
 }
