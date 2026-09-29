@@ -21,7 +21,7 @@ use crate::command::builtin::ping::{emit_probe, PingJob};
 use crate::command::output::Output;
 
 use super::pipeline_job::PipelineJob;
-use super::table::JobProgress;
+use super::table::{JobProgress, JobRecord};
 
 // The step machine for long-running command kinds, one variant per kind,
 // each holding the progress cursor its poll body tracks. `Noop` is the
@@ -42,12 +42,12 @@ pub enum JobWork {
 // Step a job's work by one bounded slice. A cancelled job is finished
 // unconditionally, regardless of variant: the terminal reports it as
 // interrupted rather than letting the underlying poll run to completion.
-pub fn step(work: &mut JobWork, out: &mut Output<'_>, cancel: bool) -> JobProgress {
-    if cancel {
+pub fn step(job: &mut JobRecord, out: &mut Output<'_>) -> JobProgress {
+    if job.cancel {
         out.writeln(b"interrupted");
         return JobProgress::Done(130);
     }
-    match work {
+    match &mut job.work {
         JobWork::Noop => JobProgress::Done(0),
         JobWork::Ping(job) => match job.step_once() {
             None => JobProgress::Running,
@@ -58,7 +58,7 @@ pub fn step(work: &mut JobWork, out: &mut Output<'_>, cancel: bool) -> JobProgre
         },
         JobWork::InstallDrain(job) => job.step_once(out),
         JobWork::ExternalStage { pid, in_buf, in_cursor } => {
-            super::external::step_external(*pid, in_buf, in_cursor, out)
+            super::external::step_external(*pid, in_buf, in_cursor, out, job.background)
         }
         JobWork::PipelineStages(_) => JobProgress::Running,
     }

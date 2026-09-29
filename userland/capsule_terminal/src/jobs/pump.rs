@@ -51,7 +51,7 @@ fn step_job(state: &mut State, id: u32) {
     }
     if let Some(job) = state.jobs.get_mut(id) {
         let mut out = Output::new(&mut state.scrollback);
-        if let JobProgress::Done(status) = step(&mut job.work, &mut out, job.cancel) {
+        if let JobProgress::Done(status) = step(job, &mut out) {
             job.status = status;
             job.state = JobState::Done;
         }
