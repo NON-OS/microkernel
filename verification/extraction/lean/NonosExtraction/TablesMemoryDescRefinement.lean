@@ -49,10 +49,11 @@ theorem the_memorydescriptor_is_usable_wrapper_is_its_method (a : memory_desc.Me
 
 A UEFI memory descriptor counts its extent in 4 KiB pages, whatever the page size
 of the machine. The theorems below fix the arithmetic exactly: `size_bytes` is the
-page count times 4096 and aborts from 2^52 pages upward, and `end_address` is the
-exclusive end `physical_start + size`, which aborts exactly when that sum leaves
-the 64 bit range. The kernel builds with overflow checks in every profile, so an
-abort here is a controlled halt and never a wrapped length. `is_runtime` reads bit
+page count times 4096, saturated at `2^64 - 1` from 2^52 pages upward, and
+`end_address` is the exclusive end `physical_start + size`, saturated the same
+way. Neither can fail. Both used to overflow on such a descriptor, and with
+overflow checks on in every profile a firmware map with a descriptor reaching
+the top of the address space, or claiming 2^52 pages or more, halted the kernel. `is_runtime` reads bit
 63 of the attribute word and nothing else, and `is_usable` accepts exactly the
 types 1, 2, 3, 4 and 7, which are the discriminants `LoaderCode`, `LoaderData`,
 `BootServicesCode`, `BootServicesData` and `ConventionalMemory` of the kernel's
@@ -61,81 +62,52 @@ the ACPI types 9 and 10, are refused).
 
 What this cannot establish: the descriptors come from firmware, so nothing here
 says a firmware map is well formed, and no kernel caller of these methods is
-extracted (none exists in the tree at present) to show that an abort is
-unreachable in practice.
+extracted (none exists in the tree at present).
 -/
 
-private theorem u64_mul_cases (x y : Std.U64) :
-    (∃ z, x * y = ok z ∧ z.val = x.val * y.val ∧ x.val * y.val < 2 ^ 64) ∨
-    (x * y = fail .integerOverflow ∧ 2 ^ 64 ≤ x.val * y.val) := by
+private theorem u64_mul_ok (x y : Std.U64) (h : x.val * y.val < 2 ^ 64) :
+    ∃ z, x * y = ok z ∧ z.val = x.val * y.val := by
   have hm := UScalar.mul_equiv x y
   rw [show (x * y : Result Std.U64) = UScalar.mul x y from rfl]
-  cases h : UScalar.mul x y with
-  | ok z =>
-    rw [h] at hm
-    obtain ⟨hle, hv, -⟩ := hm
-    simp only [UScalar.max_UScalarTy_U64_eq, U64.max_eq] at hle
-    exact Or.inl ⟨z, rfl, hv, by omega⟩
+  cases hr : UScalar.mul x y with
+  | ok z => rw [hr] at hm; exact ⟨z, rfl, hm.2.1⟩
   | fail e =>
-    rw [h] at hm
+    rw [hr] at hm
     simp only [UScalar.max_UScalarTy_U64_eq, U64.max_eq] at hm
-    have he : e = .integerOverflow := by
-      simp only [UScalar.mul, UScalar.tryMk, Result.ofOption] at h
-      split at h <;> simp_all
-    subst he
-    exact Or.inr ⟨rfl, by omega⟩
-  | div => rw [h] at hm; exact hm.elim
+    omega
+  | div => rw [hr] at hm; exact hm.elim
 
-private theorem u64_add_cases (x y : Std.U64) :
-    (∃ z, x + y = ok z ∧ z.val = x.val + y.val ∧ x.val + y.val < 2 ^ 64) ∨
-    (x + y = fail .integerOverflow ∧ 2 ^ 64 ≤ x.val + y.val) := by
-  have hm := UScalar.add_equiv x y
-  cases h : x + y with
-  | ok z =>
-    rw [h] at hm
-    obtain ⟨hle, hv, -⟩ := hm
-    exact Or.inl ⟨z, rfl, hv, by simpa using hle⟩
-  | fail e =>
-    rw [h] at hm
-    have he : e = .integerOverflow := by
-      rw [show (x + y : Result Std.U64) = UScalar.add x y from rfl] at h
-      simp only [UScalar.add, UScalar.tryMk, Result.ofOption] at h
-      split at h <;> simp_all
-    subst he
-    simp only [UScalar.inBounds] at hm
-    exact Or.inr ⟨rfl, by simp at hm; omega⟩
-  | div => rw [h] at hm; exact hm.elim
+private theorem u64_saturating_add_val (a b : Std.U64) :
+    (core.num.U64.saturating_add a b).val = min (2 ^ 64 - 1) (a.val + b.val) := by
+  simp only [core.num.U64.saturating_add, UScalar.saturating_add, UScalar.val, UScalar.max]
+  rw [BitVec.toNat_ofNat]
+  show min (2 ^ 64 - 1) _ % 2 ^ 64 = _
+  exact Nat.mod_eq_of_lt (by omega)
 
-/-- `size_bytes` answers, and answers the page count times 4096, exactly when the
-    descriptor has fewer than 2^52 pages. A page size other than 4096 would move
-    both the value and the bound. -/
-theorem memorydescriptor_size_bytes_is_pages_of_4096_below_two_pow_52
+/-- `size_bytes` never fails. It is the page count times 4096 below 2^52 pages
+    and `2^64 - 1` from there up. A page size other than 4096 would move both the
+    value and the bound. -/
+theorem memorydescriptor_size_bytes_is_pages_of_4096_saturated
     (d : memory_desc.MemoryDescriptor) :
-    (∃ s, memorydescriptor_size_bytes d = ok s ∧ s.val = d.number_of_pages.val * 4096) ↔
-      d.number_of_pages.val < 2 ^ 52 := by
+    ∃ s, memorydescriptor_size_bytes d = ok s ∧
+      s.val = if d.number_of_pages.val < 2 ^ 52 then d.number_of_pages.val * 4096
+        else 2 ^ 64 - 1 := by
   unfold memorydescriptor_size_bytes memory_desc.MemoryDescriptor.size_bytes
-  have h4 : (4096#u64 : Std.U64).val = 4096 := rfl
-  rcases u64_mul_cases d.number_of_pages 4096#u64 with ⟨z, hz, hv, hlt⟩ | ⟨hz, hge⟩
-  · rw [hz]; rw [h4] at hv hlt
-    exact ⟨fun _ => (by omega), fun _ => ⟨z, rfl, hv⟩⟩
-  · rw [hz]; rw [h4] at hge
-    exact ⟨fun h => (by obtain ⟨_, h, _⟩ := h; cases h), fun _ => (by omega)⟩
+  have hq : (core.num.U64.MAX / 4096#u64 : Result Std.U64) = ok 0xFFFFFFFFFFFFF#u64 := by
+    unfold core.num.U64.MAX; rfl
+  simp only [hq, bind_tc_ok]
+  by_cases h : d.number_of_pages.val < 2 ^ 52
+  · have : ¬ d.number_of_pages > 0xFFFFFFFFFFFFF#u64 := by scalar_tac
+    simp only [this, ↓reduceIte, h]
+    obtain ⟨z, hz, hv⟩ := u64_mul_ok d.number_of_pages 4096#u64 (by
+      show d.number_of_pages.val * 4096 < 2 ^ 64; omega)
+    exact ⟨z, hz, hv⟩
+  · have : d.number_of_pages > 0xFFFFFFFFFFFFF#u64 := by scalar_tac
+    simp only [this, ↓reduceIte, h]
+    exact ⟨_, rfl, by unfold core.num.U64.MAX; rfl⟩
 
-/-- The other side of the same boundary: from 2^52 pages upward the product
-    overflows and the call aborts rather than returning a wrapped length. -/
-theorem memorydescriptor_size_bytes_aborts_exactly_from_two_pow_52_pages
-    (d : memory_desc.MemoryDescriptor) :
-    memorydescriptor_size_bytes d = fail .integerOverflow ↔ 2 ^ 52 ≤ d.number_of_pages.val := by
-  unfold memorydescriptor_size_bytes memory_desc.MemoryDescriptor.size_bytes
-  have h4 : (4096#u64 : Std.U64).val = 4096 := rfl
-  rcases u64_mul_cases d.number_of_pages 4096#u64 with ⟨z, hz, hv, hlt⟩ | ⟨hz, hge⟩
-  · rw [hz]; rw [h4] at hlt
-    exact ⟨fun h => (by cases h), fun _ => (by omega)⟩
-  · rw [hz]; rw [h4] at hge
-    exact ⟨fun _ => (by omega), fun _ => rfl⟩
-
-/-- The boundary itself, on concrete descriptors: 2^52 - 1 pages is the largest
-    count that fits and covers every page but the last of the 64 bit range. -/
+/-- The boundary on concrete descriptors: 2^52 - 1 pages is the largest count
+    whose size is exact, and one page more saturates instead of halting. -/
 theorem memorydescriptor_size_bytes_at_the_page_count_limit :
     memorydescriptor_size_bytes
         { memory_type := 7#u32, physical_start := 0#u64, virtual_start := 0#u64,
@@ -144,37 +116,44 @@ theorem memorydescriptor_size_bytes_at_the_page_count_limit :
     memorydescriptor_size_bytes
         { memory_type := 7#u32, physical_start := 0#u64, virtual_start := 0#u64,
           number_of_pages := 0x10000000000000#u64, «attribute» := 0#u64 } =
-      fail .integerOverflow := by
-  refine ⟨rfl, rfl⟩
+      ok 0xFFFFFFFFFFFFFFFF#u64 := by
+  constructor
+  · obtain ⟨s, hs, hv⟩ := memorydescriptor_size_bytes_is_pages_of_4096_saturated
+      { memory_type := 7#u32, physical_start := 0#u64, virtual_start := 0#u64,
+        number_of_pages := 0xFFFFFFFFFFFFF#u64, «attribute» := 0#u64 }
+    rw [hs]; congr 1; apply UScalar.eq_of_val_eq; rw [hv]; rfl
+  · obtain ⟨s, hs, hv⟩ := memorydescriptor_size_bytes_is_pages_of_4096_saturated
+      { memory_type := 7#u32, physical_start := 0#u64, virtual_start := 0#u64,
+        number_of_pages := 0x10000000000000#u64, «attribute» := 0#u64 }
+    rw [hs]; congr 1; apply UScalar.eq_of_val_eq; rw [hv]; rfl
 
-/-- `end_address` is the exclusive end of the physical range, start plus the size
-    in bytes, and it answers exactly when that sum is below 2^64. The virtual start
-    plays no part. -/
-theorem memorydescriptor_end_address_is_physical_start_plus_size
+/-- `end_address` never fails. It is the start plus the size, both as above,
+    saturated at `2^64 - 1`; the virtual start plays no part. Below 2^52 pages
+    and below the top of the address space it is the exact exclusive end. -/
+theorem memorydescriptor_end_address_is_physical_start_plus_size_saturated
     (d : memory_desc.MemoryDescriptor) :
-    (∃ e, memorydescriptor_end_address d = ok e ∧
-        e.val = d.physical_start.val + d.number_of_pages.val * 4096) ↔
-      d.physical_start.val + d.number_of_pages.val * 4096 < 2 ^ 64 := by
+    ∃ e, memorydescriptor_end_address d = ok e ∧
+      e.val = min (2 ^ 64 - 1) (d.physical_start.val +
+        if d.number_of_pages.val < 2 ^ 52 then d.number_of_pages.val * 4096
+        else 2 ^ 64 - 1) := by
   unfold memorydescriptor_end_address memory_desc.MemoryDescriptor.end_address
-    memory_desc.MemoryDescriptor.size_bytes
-  have h4 : (4096#u64 : Std.U64).val = 4096 := rfl
-  rcases u64_mul_cases d.number_of_pages 4096#u64 with ⟨z, hz, hv, hlt⟩ | ⟨hz, hge⟩
-  · rw [hz, bind_tc_ok]; rw [h4] at hv hlt
-    rcases u64_add_cases d.physical_start z with ⟨w, hw, hwv, hwlt⟩ | ⟨hw, hwge⟩
-    · rw [hw]; exact ⟨fun _ => (by omega), fun _ => ⟨w, rfl, by omega⟩⟩
-    · rw [hw]; exact ⟨fun h => (by obtain ⟨_, h, _⟩ := h; cases h), fun _ => (by omega)⟩
-  · rw [hz, bind_tc_fail]; rw [h4] at hge
-    exact ⟨fun h => (by obtain ⟨_, h, _⟩ := h; cases h), fun _ => (by omega)⟩
+  obtain ⟨s, hs, hv⟩ := memorydescriptor_size_bytes_is_pages_of_4096_saturated d
+  unfold memorydescriptor_size_bytes at hs
+  rw [hs, bind_tc_ok]
+  exact ⟨_, rfl, by rw [u64_saturating_add_val, hv]⟩
 
-/-- This records a defect. Because the end is exclusive, a descriptor that covers
-    the last page of the physical address space has an end of 2^64, which a `u64`
-    cannot hold, so `end_address` halts on a descriptor that is legal in form. -/
-theorem memorydescriptor_end_address_halts_on_the_top_page :
+/-- A descriptor that covers the last page of the physical address space, whose
+    exclusive end is 2^64, gets the saturated end `2^64 - 1`. It used to halt
+    the kernel. -/
+theorem memorydescriptor_end_address_saturates_on_the_top_page :
     memorydescriptor_end_address
       { memory_type := 7#u32, physical_start := 0xFFFFFFFFFFFFF000#u64,
         virtual_start := 0#u64, number_of_pages := 1#u64, «attribute» := 0#u64 } =
-      fail .integerOverflow := by
-  rfl
+      ok 0xFFFFFFFFFFFFFFFF#u64 := by
+  obtain ⟨e, he, hv⟩ := memorydescriptor_end_address_is_physical_start_plus_size_saturated
+    { memory_type := 7#u32, physical_start := 0xFFFFFFFFFFFFF000#u64,
+      virtual_start := 0#u64, number_of_pages := 1#u64, «attribute» := 0#u64 }
+  rw [he]; congr 1; apply UScalar.eq_of_val_eq; rw [hv]; rfl
 
 /-- `is_runtime` is bit 63 of the attribute word, `EFI_MEMORY_RUNTIME` in the UEFI
     specification, and no other bit. -/
@@ -228,11 +207,10 @@ theorem memorydescriptor_is_usable_accepts_exactly_types_1_2_3_4_7
 #print axioms NonosExtraction.TablesMemoryDesc.the_memorydescriptor_end_address_wrapper_is_its_method
 #print axioms NonosExtraction.TablesMemoryDesc.the_memorydescriptor_is_runtime_wrapper_is_its_method
 #print axioms NonosExtraction.TablesMemoryDesc.the_memorydescriptor_is_usable_wrapper_is_its_method
-#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_size_bytes_is_pages_of_4096_below_two_pow_52
-#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_size_bytes_aborts_exactly_from_two_pow_52_pages
+#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_size_bytes_is_pages_of_4096_saturated
 #print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_size_bytes_at_the_page_count_limit
-#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_end_address_is_physical_start_plus_size
-#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_end_address_halts_on_the_top_page
+#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_end_address_is_physical_start_plus_size_saturated
+#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_end_address_saturates_on_the_top_page
 #print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_is_runtime_reads_bit_63
 #print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_is_runtime_is_the_upper_half_of_attributes
 #print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_is_usable_accepts_exactly_types_1_2_3_4_7

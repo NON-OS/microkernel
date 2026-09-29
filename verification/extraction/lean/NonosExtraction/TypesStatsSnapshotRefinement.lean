@@ -38,9 +38,66 @@ theorem the_mmiostatssnapshot_new_wrapper_is_its_method :
 theorem the_mmiostatssnapshot_total_operations_wrapper_is_its_method (a : stats_snapshot.MmioStatsSnapshot) :
     mmiostatssnapshot_total_operations a = stats_snapshot.MmioStatsSnapshot.total_operations a := rfl
 
+/-! ### A fresh snapshot counts nothing, and the total saturates
+
+`new` is the snapshot the kernel reports before any region is mapped, so every
+counter in it is zero and its operation total is zero. `total_operations` adds
+the read and write counters saturating at `u64::MAX`, so it never fails: it
+returns their exact sum whenever that sum fits in a `u64` and `u64::MAX`
+otherwise. It used Rust's checked `+`, and with `overflow-checks = true` in
+every profile a sum past the limit halted the kernel.
+
+These theorems say nothing about how the counters get their values: they are
+loaded from `AtomicU64` fields in `src/memory/mmio/stats`, which bump each
+counter with a wrapping `fetch_add`, and that code is not extracted. Nor do they
+say the overflow is reachable in practice; it needs more than 2^63 recorded
+operations on at least one counter. -/
+
+/-- Every field of a fresh snapshot is zero. -/
+theorem mmiostatssnapshot_new_is_all_zero :
+    ∃ s, mmiostatssnapshot_new = ok s ∧
+      s.total_regions.val = 0 ∧ s.total_mapped_size.val = 0 ∧
+      s.read_operations.val = 0 ∧ s.write_operations.val = 0 :=
+  ⟨_, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- The total never fails and is reads plus writes, saturated at `u64::MAX`. -/
+theorem mmiostatssnapshot_total_operations_is_the_saturated_sum
+    (s : stats_snapshot.MmioStatsSnapshot) :
+    ∃ z, mmiostatssnapshot_total_operations s = ok z ∧
+      z.val = min (2 ^ 64 - 1) (s.read_operations.val + s.write_operations.val) := by
+  unfold mmiostatssnapshot_total_operations stats_snapshot.MmioStatsSnapshot.total_operations
+  refine ⟨_, rfl, ?_⟩
+  simp only [core.num.U64.saturating_add, UScalar.saturating_add, UScalar.val, UScalar.max]
+  rw [BitVec.toNat_ofNat]
+  show min (2 ^ 64 - 1) _ % 2 ^ 64 = _
+  exact Nat.mod_eq_of_lt (by omega)
+
+/-- The two functions agree on the starting point: a fresh snapshot has
+    performed zero operations. -/
+theorem a_fresh_snapshot_has_zero_mmiostatssnapshot_total_operations :
+    (do let s ← mmiostatssnapshot_new; mmiostatssnapshot_total_operations s)
+      = ok 0#u64 := by
+  obtain ⟨s, hs, -, -, hr, hw⟩ := mmiostatssnapshot_new_is_all_zero
+  rw [hs, bind_tc_ok]
+  obtain ⟨z, hz, hv⟩ := mmiostatssnapshot_total_operations_is_the_saturated_sum s
+  rw [hz]; congr 1; apply UScalar.eq_of_val_eq; rw [hv, hr, hw]; rfl
+
+/-- `u64::MAX` reads and one write, the first sum past the limit, total
+    `u64::MAX` rather than halting. -/
+theorem mmiostatssnapshot_total_operations_saturates_past_the_u64_limit :
+    mmiostatssnapshot_total_operations
+      ⟨0#usize, 0#u64, 0xFFFFFFFFFFFFFFFF#u64, 1#u64⟩ = ok 0xFFFFFFFFFFFFFFFF#u64 := by
+  obtain ⟨z, hz, hv⟩ := mmiostatssnapshot_total_operations_is_the_saturated_sum
+    ⟨0#usize, 0#u64, 0xFFFFFFFFFFFFFFFF#u64, 1#u64⟩
+  rw [hz]; congr 1; apply UScalar.eq_of_val_eq; rw [hv]; rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesStatsSnapshot.the_mmiostatssnapshot_new_wrapper_is_its_method
 #print axioms NonosExtraction.TypesStatsSnapshot.the_mmiostatssnapshot_total_operations_wrapper_is_its_method
+#print axioms NonosExtraction.TypesStatsSnapshot.mmiostatssnapshot_new_is_all_zero
+#print axioms NonosExtraction.TypesStatsSnapshot.a_fresh_snapshot_has_zero_mmiostatssnapshot_total_operations
+#print axioms NonosExtraction.TypesStatsSnapshot.mmiostatssnapshot_total_operations_is_the_saturated_sum
+#print axioms NonosExtraction.TypesStatsSnapshot.mmiostatssnapshot_total_operations_saturates_past_the_u64_limit
 
 end NonosExtraction.TypesStatsSnapshot

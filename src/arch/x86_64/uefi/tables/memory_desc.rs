@@ -40,11 +40,16 @@ impl MemoryDescriptor {
     pub const EFI_MEMORY_CPU_CRYPTO: u64 = 0x0000000000080000;
     pub const EFI_MEMORY_RUNTIME: u64 = 0x8000000000000000;
 
+    /* Saturating: the page count and start come from firmware, and an
+    overflowing descriptor must not abort the kernel. */
     pub fn size_bytes(&self) -> u64 {
+        if self.number_of_pages > u64::MAX / 4096 {
+            return u64::MAX;
+        }
         self.number_of_pages * 4096
     }
     pub fn end_address(&self) -> u64 {
-        self.physical_start + self.size_bytes()
+        self.physical_start.saturating_add(self.size_bytes())
     }
     pub fn is_runtime(&self) -> bool {
         self.attribute & Self::EFI_MEMORY_RUNTIME != 0

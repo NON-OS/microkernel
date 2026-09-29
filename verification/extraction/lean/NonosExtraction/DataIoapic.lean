@@ -23,10 +23,10 @@ structure ioapic.IoApicInfo where
   gsi_base : Std.U32
 
 /-- [nonos_x_data_ioapic::ioapic::{nonos_x_data_ioapic::ioapic::IoApicInfo}::gsi_max]:
-    Source: 'src/../../../../../src/arch/x86_64/acpi/data/ioapic.rs', lines 25:4-27:5
+    Source: 'src/../../../../../src/arch/x86_64/acpi/data/ioapic.rs', lines 26:4-28:5
     Visibility: public -/
 def ioapic.IoApicInfo.gsi_max (self : ioapic.IoApicInfo) : Result Std.U32 := do
-  self.gsi_base + 23#u32
+  ok (core.num.U32.saturating_add self.gsi_base 23#u32)
 
 /-- [nonos_x_data_ioapic::ioapicinfo_gsi_max]:
     Source: 'src/lib.rs', lines 10:0-12:1
