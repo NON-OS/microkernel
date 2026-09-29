@@ -173,6 +173,9 @@ pub mod blockfs_dir;
 // real sector constants the included source names.
 #[cfg(test)]
 mod blockfs_tree;
+// The kernel's disk plan parser.
+#[cfg(test)]
+mod data_plan;
 #[cfg(test)]
 #[path = "blockfs_tree/fs_shim.rs"]
 mod fs;

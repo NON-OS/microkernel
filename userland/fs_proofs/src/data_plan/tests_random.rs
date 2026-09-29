@@ -1,0 +1,48 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Random plans, and where the plan's own sector sits.
+
+use super::plan::parse_plan;
+use super::plan_types::{DATA_FLOOR, PLAN_LBA};
+use super::tests::DISK;
+
+#[test]
+fn the_plan_sector_lies_past_the_store_and_below_everything_it_names() {
+    /*
+     * The store starts at LBA 256 and holds at most 16 MiB: 32,768 sectors.
+     */
+    assert!(256 + 32_768 <= PLAN_LBA);
+    assert!(PLAN_LBA < DATA_FLOOR);
+}
+
+#[test]
+fn random_sectors_with_the_magic_never_panic_the_parser() {
+    let mut seed = 0x51_7cc1_b727_220a_u64;
+    for _ in 0..100_000 {
+        let mut s = [0u8; 512];
+        s[..8].copy_from_slice(b"NONOSDP1");
+        for b in s[8..40].iter_mut() {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            *b = seed as u8;
+        }
+        if let Ok(p) = parse_plan(&s, DISK) {
+            assert!(p.volume_base >= DATA_FLOOR && p.volume_base + p.volume_sectors <= DISK);
+        }
+    }
+}

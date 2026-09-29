@@ -80,7 +80,7 @@ mod write_u64;
 
 pub use alloc_block::alloc_block;
 pub use commit::commit;
-pub use constants::{MODE_DIR, MODE_FILE};
+pub use constants::{HEADER_RING_SECTORS, MODE_DIR, MODE_FILE};
 pub use create::create;
 pub use dir_link::link;
 pub use dir_list::{list, DirEntry};

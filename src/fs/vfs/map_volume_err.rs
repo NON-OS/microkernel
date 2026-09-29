@@ -26,6 +26,11 @@ pub(super) fn map_volume_err(e: VolumeError) -> VfsError {
         VolumeError::TooLargeToReadWhole(_) => {
             VfsError::FsError("file too large to read whole; read it by range")
         }
+        VolumeError::Plan(_) => VfsError::IoError("no usable disk plan"),
+        VolumeError::MachineKey(_) => VfsError::IoError("no machine key for the data volume"),
+        VolumeError::Device(_) => VfsError::IoError("block device"),
+        VolumeError::Window(_) => VfsError::IoError("data volume window"),
+        VolumeError::Unopenable => VfsError::IoError("data volume under another key"),
         VolumeError::BlockFs(BlockFsError::NotFound) => VfsError::NotFound,
         VolumeError::BlockFs(_) => VfsError::IoError("blockfs"),
     }

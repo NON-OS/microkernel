@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::plan_types::PlanError;
 use crate::fs::blockfs::BlockFsError;
+use crate::fs::cryptoblock::CryptoBlockError;
+use crate::hardware::block_device::BlockDeviceError;
 use crate::security::keyring_capsule::KeyringCapsuleError;
+use crate::security::tpm::machine_key::KeyError;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VolumeError {
@@ -25,4 +29,14 @@ pub enum VolumeError {
     /// A whole read of a file larger than `read_all` holds; its size.
     TooLargeToReadWhole(u64),
     BadKeyLength,
+    /// The disk plan is missing or names ranges it may not.
+    Plan(PlanError),
+    /// The TPM would not derive the volume key.
+    MachineKey(KeyError),
+    /// The block device refused a raw read.
+    Device(BlockDeviceError),
+    /// The window the plan names could not be set.
+    Window(CryptoBlockError),
+    /// The header ring holds sectors this key cannot open.
+    Unopenable,
 }
