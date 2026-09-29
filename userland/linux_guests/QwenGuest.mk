@@ -57,5 +57,19 @@ $(LINUX_GUESTS_C)/qwencheck: $(QWEN_SRC) $(LINUX_GUESTS_DIR)/cpp/qwencheck.h $(Q
 		$(QWEN_SRC) -o $@.full $(QWEN_LIBS) -lpthread
 	@strip -o $@ $@.full
 $(eval $(call LINUX_GUEST,qwencheck,5100,5101,$(LINUX_GUESTS_C)/qwencheck))
+
+# The conversation itself: the terminal, or with -ui window a window on the
+# desktop through the personality's display server. Same map-then-strip link.
+QWENCHAT_SRC := $(wildcard $(LINUX_GUESTS_DIR)/cpp/qwenchat*.cpp $(LINUX_GUESTS_DIR)/cpp/qwenwl_*.cpp \
+	$(LINUX_GUESTS_DIR)/cpp/qwenui_*.cpp)
+QWENCHAT_HDR := $(wildcard $(LINUX_GUESTS_DIR)/cpp/qwenchat.h $(LINUX_GUESTS_DIR)/cpp/qwenwl*.h \
+	$(LINUX_GUESTS_DIR)/cpp/qwenui.h $(LINUX_GUESTS_DIR)/cpp/qwenglyphs.h)
+$(LINUX_GUESTS_C)/qwenchat: $(QWENCHAT_SRC) $(QWENCHAT_HDR) $(QWEN_LIBS)
+	@mkdir -p $(@D)
+	@$(QWEN_ZIG)/c++ -static -O2 -g0 -mcpu=$(QWEN_CPU) -std=c++17 \
+		-I$(LLAMA_CPP_DIR)/include -I$(LLAMA_CPP_DIR)/ggml/include \
+		$(QWENCHAT_SRC) -o $@.full $(QWEN_LIBS) -lpthread
+	@strip -o $@ $@.full
+$(eval $(call LINUX_GUEST,qwenchat,5102,5103,$(LINUX_GUESTS_C)/qwenchat))
 LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/qwen-prompt.txt=$(LINUX_GUESTS_DIR)/etc/qwen-prompt.txt
 endif
