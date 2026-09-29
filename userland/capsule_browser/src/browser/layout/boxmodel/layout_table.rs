@@ -24,6 +24,7 @@ mod columns;
 mod grid;
 mod measure;
 mod place;
+mod row;
 mod rows;
 mod share;
 mod stack;

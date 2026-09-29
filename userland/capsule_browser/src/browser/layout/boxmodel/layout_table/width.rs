@@ -35,7 +35,8 @@ pub(super) struct Sized {
  * when set, else the sum of its columns' max-content widths up to
  * `avail` (CSS 2.1 17.5.2.2 shrink-to-fit), never below their
  * min-content sum. A column a cell gave a percentage takes that share
- * of the room the columns have. */
+ * of the room the columns have when there is room: the share is the width
+ * it prefers, so the columns still shrink toward their minima to fit. */
 pub(super) fn size(node: &BoxNode, g: &Grid, avail: i32, depth: u32) -> Sized {
     let s = &node.style;
     let (sp, (el, er)) = (spacing(node), edges_x(s));
@@ -48,7 +49,7 @@ pub(super) fn size(node: &BoxNode, g: &Grid, avail: i32, depth: u32) -> Sized {
     let inner = (w - gaps).max(0);
     for c in cols.iter_mut().filter(|c| c.pct > 0) {
         let want = inner.saturating_mul(c.pct.min(100) as i32) / 100;
-        (c.min, c.max, c.fixed) = (c.min.max(want), c.min.max(want), true);
+        (c.max, c.fixed) = (c.min.max(want), true);
     }
     Sized { w, ws: distribute(&cols, inner) }
 }

@@ -61,6 +61,7 @@ mod scroll_tests;
 mod selector_tests;
 mod sibling_tests;
 mod svg_paint_tests;
+mod table_pct_tests;
 mod table_tests;
 mod text_char_tests;
 mod text_em_tests;
