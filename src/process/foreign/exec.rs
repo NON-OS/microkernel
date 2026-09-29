@@ -19,9 +19,8 @@
 use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOENT, ERRNO_PERM};
 
 use super::exec_context::fresh;
-use super::peer_guard::{in_user_half, pid_arg};
-
-type Saved = Option<crate::arch::context::SavedUser>;
+use super::exec_swap::{drop_tls, swap};
+use super::peer_guard::{in_user_half, pid_arg, supervised_asid};
 
 pub fn sys_foreign_exec(pid: u64, entry: u64, rsp: u64) -> i64 {
     let Some(caller) = crate::process::current_pid() else {
@@ -46,30 +45,25 @@ pub fn sys_foreign_exec(pid: u64, entry: u64, rsp: u64) -> i64 {
     if super::trap_table::parked_nr(pid) == Some(super::frame::NR_INTERRUPTED) {
         return ERRNO_NOENT;
     }
+    /* Read while the stack is the supervisor's alone, applied once it runs. */
+    let name = supervised_asid(caller, u64::from(pid))
+        .ok()
+        .and_then(|(asid, _held)| super::guest_name::from_stack(asid, rsp));
     let Some(previous) = swap(pid, Some(fresh(entry, rsp))) else {
         return ERRNO_INVAL;
     };
     drop_tls(pid);
     // Answering is what releases the guest.
     match super::trap_reply::answer_raw(pid, super::trap_table::Answer::Execed) {
-        0 => 0,
+        0 => {
+            if let Some(name) = name {
+                super::guest_stats::rename(pid, name);
+            }
+            0
+        }
         err => {
             swap(pid, previous);
             err
         }
     }
-}
-
-/// Put a context in place and hand back the one it displaced.
-fn swap(pid: u32, ctx: Saved) -> Option<Saved> {
-    crate::process::with_process(pid, |p| {
-        core::mem::replace(&mut *p.saved_user_context.lock(), ctx)
-    })
-}
-
-/// Forget the thread pointer the replaced runtime set: the scheduler writes
-/// the control block's base on every switch, so leaving it would put the new
-/// image back on the old TLS the first time it is preempted.
-fn drop_tls(pid: u32) {
-    crate::process::with_process(pid, |pcb| pcb.set_tls_base(0));
 }

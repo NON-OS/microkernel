@@ -19,10 +19,13 @@
 mod exec;
 mod exec_context;
 mod exec_enter;
+mod exec_swap;
 mod fork;
 mod frame;
 mod frame_cpu;
 mod frame_snapshot;
+mod guest_name;
+mod guest_stats;
 mod interrupt;
 mod notice;
 mod peer_chunk;

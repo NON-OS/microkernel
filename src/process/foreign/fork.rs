@@ -38,7 +38,8 @@ pub fn sys_foreign_fork(pid: u64) -> i64 {
         // A guest that is not parked inside a syscall has no frame to copy.
         return ERRNO_NOENT;
     };
-    let child = match super::spawn::empty_guest(caller, b"fork") {
+    let comm = super::guest_stats::comm_of(parent);
+    let child = match super::spawn::empty_guest(caller, comm.as_bytes()) {
         Ok(pid) => pid,
         Err(e) => return e,
     };

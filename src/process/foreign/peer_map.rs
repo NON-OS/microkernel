@@ -51,6 +51,7 @@ pub fn sys_peer_map(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
         return ERRNO_INVAL;
     }
     let perms = perms_of(prot);
+    let mut mapped = 0;
     for i in 0..len.div_ceil(PAGE) {
         let va = VirtAddr::new(addr + i * PAGE);
         if translate_in_asid(asid, va).is_some() {
@@ -62,8 +63,11 @@ pub fn sys_peer_map(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
         crate::memory::frame_alloc::zero_frame(frame);
         if map_page_in_asid(asid, va, frame, perms).is_err() {
             let _ = crate::memory::frame_alloc::deallocate_frame(frame);
+            super::guest_stats::resident(pid as u32, mapped, 0);
             return ERRNO_NOMEM;
         }
+        mapped += 1;
     }
+    super::guest_stats::resident(pid as u32, mapped, 0);
     0
 }
