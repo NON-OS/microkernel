@@ -16,7 +16,7 @@
 
 //! Reading the disk plan, every range checked before it is believed.
 
-use super::plan_types::{Plan, PlanError, DATA_FLOOR, MAGIC, MIN_VOLUME};
+use super::plan_types::{Plan, PlanError, DATA_FLOOR, MAGIC, MAX_IMPORTS, MIN_VOLUME};
 
 fn word(sector: &[u8; 512], at: usize) -> u64 {
     let mut b = [0u8; 8];
@@ -34,15 +34,31 @@ pub fn parse_plan(sector: &[u8; 512], capacity: u64) -> Result<Plan, PlanError> 
     if sectors < MIN_VOLUME {
         return Err(PlanError::VolumeTooSmall);
     }
-    let (at, bytes) = (word(sector, 24), word(sector, 32));
-    if bytes == 0 {
-        return Ok(Plan { volume_base: base, volume_sectors: sectors, import: None });
+    let count = word(sector, 24);
+    if count > MAX_IMPORTS as u64 {
+        return Err(PlanError::BadImport);
     }
-    let import_end = within(at, bytes.div_ceil(512), capacity)?;
-    if at < volume_end && base < import_end {
-        return Err(PlanError::Overlap);
+    let mut plan = Plan {
+        volume_base: base,
+        volume_sectors: sectors,
+        imports: [(0, 0); MAX_IMPORTS],
+        count: 0,
+    };
+    let mut taken = [(base, volume_end); MAX_IMPORTS + 1];
+    for i in 0..count as usize {
+        let (at, bytes) = (word(sector, 32 + i * 16), word(sector, 40 + i * 16));
+        if bytes == 0 {
+            return Err(PlanError::BadImport);
+        }
+        let end = within(at, bytes.div_ceil(512), capacity)?;
+        if taken[..=i].iter().any(|&(s, e)| at < e && s < end) {
+            return Err(PlanError::Overlap);
+        }
+        taken[i + 1] = (at, end);
+        plan.imports[i] = (at, bytes);
+        plan.count = i + 1;
     }
-    Ok(Plan { volume_base: base, volume_sectors: sectors, import: Some((at, bytes)) })
+    Ok(plan)
 }
 
 /// The end of `[start, start + sectors)`, checked against the floor and the disk.

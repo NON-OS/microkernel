@@ -17,54 +17,58 @@
 //! A good plan, and each way a plan can be wrong, refused by name.
 
 use super::plan::parse_plan;
-use super::plan_types::{Plan, PlanError as E, DATA_FLOOR};
+use super::plan_types::{PlanError as E, DATA_FLOOR, MAX_IMPORTS};
 
 /*
- * A 2 GiB disk, in sectors.
+ * A 2 GiB disk, in sectors, and a volume of half a GiB at the floor.
  */
 pub const DISK: u64 = 4 * 1024 * 1024;
+pub const VOL: u64 = 1 << 20;
+pub const AFTER: u64 = DATA_FLOOR + VOL;
 
-pub fn plan(base: u64, sectors: u64, at: u64, bytes: u64) -> [u8; 512] {
+pub fn plan(base: u64, sectors: u64, imports: &[(u64, u64)]) -> [u8; 512] {
     let mut s = [0u8; 512];
     s[..8].copy_from_slice(b"NONOSDP1");
-    for (i, v) in [base, sectors, at, bytes].iter().enumerate() {
+    let head = [base, sectors, imports.len() as u64];
+    let words = head.iter().chain(imports.iter().flat_map(|(a, b)| [a, b]));
+    for (i, v) in words.enumerate() {
         s[8 + i * 8..16 + i * 8].copy_from_slice(&v.to_le_bytes());
     }
     s
 }
 
 #[test]
-fn a_volume_and_an_import_that_fit_side_by_side_are_read_as_written() {
-    let got = parse_plan(&plan(DATA_FLOOR, 1 << 20, DATA_FLOOR + (1 << 20), 491_400_032), DISK);
-    let want = Plan {
-        volume_base: DATA_FLOOR,
-        volume_sectors: 1 << 20,
-        import: Some((DATA_FLOOR + (1 << 20), 491_400_032)),
-    };
-    assert_eq!(got, Ok(want));
-    assert_eq!(parse_plan(&plan(DATA_FLOOR, 1 << 20, 0, 0), DISK).unwrap().import, None);
+fn a_volume_and_its_imports_that_fit_side_by_side_are_read_as_written() {
+    let two = [(AFTER, 491_400_032), (AFTER + 959_766, 689_872_288)];
+    let got = parse_plan(&plan(DATA_FLOOR, VOL, &two), DISK).unwrap();
+    assert_eq!((got.volume_base, got.volume_sectors), (DATA_FLOOR, VOL));
+    assert_eq!(got.imports(), &two);
+    assert!(parse_plan(&plan(DATA_FLOOR, VOL, &[]), DISK).unwrap().imports().is_empty());
 }
 
 #[test]
 fn each_lie_a_plan_can_tell_is_refused_by_name() {
-    assert_eq!(parse_plan(&[0u8; 512], DISK), Err(E::NoPlan));
-    assert_eq!(parse_plan(&plan(256, 1 << 20, 0, 0), DISK), Err(E::BelowFloor));
-    assert_eq!(parse_plan(&plan(DATA_FLOOR, 100, 0, 0), DISK), Err(E::VolumeTooSmall));
-    assert_eq!(parse_plan(&plan(DATA_FLOOR, DISK, 0, 0), DISK), Err(E::PastEnd));
-    assert_eq!(parse_plan(&plan(u64::MAX - 5, 1 << 20, 0, 0), DISK), Err(E::PastEnd));
-    assert_eq!(parse_plan(&plan(DATA_FLOOR, 1 << 20, 256, 512), DISK), Err(E::BelowFloor));
-    assert_eq!(parse_plan(&plan(DATA_FLOOR, 1 << 20, DISK - 1, 1024), DISK), Err(E::PastEnd));
+    let p = |b, s, i: &[(u64, u64)]| parse_plan(&plan(b, s, i), DISK).map(|_| ());
+    assert_eq!(parse_plan(&[0u8; 512], DISK).map(|_| ()), Err(E::NoPlan));
+    assert_eq!(p(256, VOL, &[]), Err(E::BelowFloor));
+    assert_eq!(p(DATA_FLOOR, 100, &[]), Err(E::VolumeTooSmall));
+    assert_eq!(p(DATA_FLOOR, DISK, &[]), Err(E::PastEnd));
+    assert_eq!(p(u64::MAX - 5, VOL, &[]), Err(E::PastEnd));
+    assert_eq!(p(DATA_FLOOR, VOL, &[(256, 512)]), Err(E::BelowFloor));
+    assert_eq!(p(DATA_FLOOR, VOL, &[(DISK - 1, 1024)]), Err(E::PastEnd));
+    assert_eq!(p(DATA_FLOOR, VOL, &[(AFTER, 0)]), Err(E::BadImport));
+    let mut s = plan(DATA_FLOOR, VOL, &[]);
+    s[24..32].copy_from_slice(&(MAX_IMPORTS as u64 + 1).to_le_bytes());
+    assert_eq!(parse_plan(&s, DISK).map(|_| ()), Err(E::BadImport));
     /*
-     * An import that starts inside the volume, and one that ends inside it.
+     * An import inside the volume, one ending inside it, and two imports
+     * sharing a sector.
      */
-    assert_eq!(parse_plan(&plan(DATA_FLOOR, 1 << 20, DATA_FLOOR + 5, 512), DISK), Err(E::Overlap));
-    let before = DATA_FLOOR + 1000;
-    assert_eq!(
-        parse_plan(&plan(before + 10, 1 << 20, DATA_FLOOR + 1000, 20 * 512), DISK),
-        Err(E::Overlap)
-    );
+    assert_eq!(p(DATA_FLOOR, VOL, &[(DATA_FLOOR + 5, 512)]), Err(E::Overlap));
+    assert_eq!(p(DATA_FLOOR + 1010, VOL, &[(DATA_FLOOR + 1000, 20 * 512)]), Err(E::Overlap));
+    assert_eq!(p(DATA_FLOOR, VOL, &[(AFTER, 1024), (AFTER + 1, 512)]), Err(E::Overlap));
     /*
-     * Touching is not sharing: an import that begins on the volume's end sector.
+     * Touching is not sharing: each range may begin on the last one's end.
      */
-    assert!(parse_plan(&plan(DATA_FLOOR, 1 << 20, DATA_FLOOR + (1 << 20), 512), DISK).is_ok());
+    assert!(p(DATA_FLOOR, VOL, &[(AFTER, 512), (AFTER + 1, 512)]).is_ok());
 }

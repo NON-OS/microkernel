@@ -17,8 +17,8 @@
 //! Random plans, and where the plan's own sector sits.
 
 use super::plan::parse_plan;
-use super::plan_types::{DATA_FLOOR, PLAN_LBA};
-use super::tests::DISK;
+use super::plan_types::{DATA_FLOOR, MAX_IMPORTS, PLAN_LBA};
+use super::tests::{plan, AFTER, DISK, VOL};
 
 #[test]
 fn the_plan_sector_lies_past_the_store_and_below_everything_it_names() {
@@ -35,14 +35,26 @@ fn random_sectors_with_the_magic_never_panic_the_parser() {
     for _ in 0..100_000 {
         let mut s = [0u8; 512];
         s[..8].copy_from_slice(b"NONOSDP1");
-        for b in s[8..40].iter_mut() {
+        for b in s[8..].iter_mut() {
             seed ^= seed << 13;
             seed ^= seed >> 7;
             seed ^= seed << 17;
             *b = seed as u8;
         }
+        /*
+         * A count the sector can hold, so the entries are read, not refused.
+         */
+        s[24..32].copy_from_slice(&(seed % (MAX_IMPORTS as u64 + 2)).to_le_bytes());
         if let Ok(p) = parse_plan(&s, DISK) {
             assert!(p.volume_base >= DATA_FLOOR && p.volume_base + p.volume_sectors <= DISK);
+            assert!(p.imports().iter().all(|&(a, b)| a >= DATA_FLOOR && b > 0));
         }
     }
+}
+
+#[test]
+fn a_full_sector_of_imports_is_read_to_the_last() {
+    let all: [(u64, u64); MAX_IMPORTS] = core::array::from_fn(|i| (AFTER + i as u64 * 8, 4096));
+    let got = parse_plan(&plan(DATA_FLOOR, VOL, &all), DISK).unwrap();
+    assert_eq!(got.imports(), &all);
 }

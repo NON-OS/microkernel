@@ -24,49 +24,35 @@
 
 use super::error::VolumeError;
 use super::hex::{as_str, hex32};
+use super::import_one::import_from;
+use super::import_record::recorded;
 use super::imported::Imported;
-use super::import_record::{record, recorded};
-use super::import_stream::stream_in;
 use super::open_machine::open_machine_volume;
 use super::plan_read::read_plan;
-use super::state::VOLUME;
-use crate::fs::blockfs::{self, FileStream, MODE_FILE};
 
-/// Import the plan's file as `name`, keeping it only if it is `want_bytes`
-/// long and its SHA-256 is `want`.
+/// Import `name` from whichever of the plan's files is `want_bytes` long and
+/// hashes to `want`. The length picks the candidates, so a wrong file is
+/// told apart before it costs a hash.
 pub fn import(name: &[u8], want: &[u8; 32], want_bytes: u64) -> Result<Imported, VolumeError> {
     open_machine_volume()?;
     if let Some(bytes) = recorded(name, want)? {
         return Ok(Imported { bytes, sha256: *want, fresh: false });
     }
-    let (at, bytes) = read_plan()?.import.ok_or(VolumeError::NoImport)?;
-    /* The wrong file is told apart by its length before it is hashed. */
-    if bytes != want_bytes {
-        crate::log::warn!(
-            "[DATA] import refused: the plan's file is {} bytes, the pin {}",
-            bytes,
-            want_bytes
-        );
-        return Err(VolumeError::DigestMismatch);
+    let plan = read_plan()?;
+    let mut refused = None;
+    for &(at, bytes) in plan.imports().iter().filter(|&&(_, b)| b == want_bytes) {
+        match import_from(name, want, at, bytes) {
+            Err(VolumeError::DigestMismatch) => refused = Some(VolumeError::DigestMismatch),
+            done => return done,
+        }
     }
-    let mut guard = VOLUME.write();
-    let state = guard.as_mut().ok_or(VolumeError::NotMounted)?;
-    let (key, mount) = (&state.key, &mut state.mount);
-    let mut stream = FileStream::new();
-    let got = stream_in(key, mount, &mut stream, at, bytes)?;
-    if &got != want {
-        let (g, w) = (hex32(&got), hex32(want));
+    if refused.is_none() {
         crate::log::warn!(
-            "[DATA] import refused: sha256 {} is not the pinned {}",
-            as_str(&g),
-            as_str(&w)
+            "[DATA] import refused: none of the plan's {} files is {} bytes, sha256 {}",
+            plan.count,
+            want_bytes,
+            as_str(&hex32(want))
         );
-        return Err(VolumeError::DigestMismatch);
     }
-    let lba = blockfs::create_path(key, mount, name, MODE_FILE).map_err(VolumeError::BlockFs)?;
-    let mut node = blockfs::read_node(key, lba).map_err(VolumeError::BlockFs)?;
-    stream.finish(key, mount, lba, &mut node).map_err(VolumeError::BlockFs)?;
-    record(key, mount, name, want)?;
-    crate::log::info!("[DATA] imported {} bytes, sha256 {}", bytes, as_str(&hex32(want)));
-    Ok(Imported { bytes, sha256: *want, fresh: true })
+    Err(refused.unwrap_or(VolumeError::NoImport))
 }
