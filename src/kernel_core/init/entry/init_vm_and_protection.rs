@@ -18,6 +18,7 @@
 //! is settled.
 
 use super::fatal::fatal;
+#[cfg(target_arch = "x86_64")]
 use crate::memory::mmu;
 
 pub(super) fn init_vm_and_protection() {
@@ -36,13 +37,17 @@ pub(super) fn init_vm_and_protection() {
     // user bit, so a supervisor access to a user page never happens. A part
     // without execute-never is fatal: that same directmap is built NX, and
     // with EFER.NXE clear the whole window stays executable.
+    #[cfg(target_arch = "x86_64")]
     if mmu::init_mmu().is_err() {
         fatal("memory: init_mmu failed", "no execute-never support");
     }
+    #[cfg(target_arch = "x86_64")]
     match mmu::protection_flags() {
         Ok(flags) => mmu::report_protection(flags),
         Err(_) => fatal("memory: protection flags unreadable", "mmu not initialised"),
     }
+    #[cfg(target_arch = "aarch64")]
+    report_el1_protection();
     arm_stack_guards();
     super::report_sections::report_kernel_sections();
 }
@@ -69,3 +74,16 @@ fn arm_stack_guards() {
 
 #[cfg(not(target_arch = "x86_64"))]
 fn arm_stack_guards() {}
+
+/*
+ * aarch64 has no control-register switch for what init_mmu turns on for x86_64:
+ * execute-never and read-only are PXN, UXN and AP[2] in every descriptor the
+ * encoder writes. PAN, the SMAP counterpart, is not set at boot, so the line says
+ * so rather than claiming a protection this kernel does not enable.
+ */
+#[cfg(target_arch = "aarch64")]
+fn report_el1_protection() {
+    crate::sys::serial::println(
+        b"[CPU-PROT] aarch64 pxn=descriptor uxn=descriptor ro=descriptor pan=off",
+    );
+}

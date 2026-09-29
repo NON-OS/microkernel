@@ -20,14 +20,18 @@ SECTIONS {
     __kernel_image_start = .;
 
     .text ALIGN(0x1000) : {
+        __kernel_text_start = .;
         *(.text._start)
         *(.text .text.*)
         *(.ltext .ltext.*)
+        __kernel_text_end = .;
     } :text
 
     .rodata ALIGN(0x1000) : {
+        __kernel_rodata_start = .;
         *(.rodata .rodata.*)
         *(.lrodata .lrodata.*)
+        __kernel_rodata_end = .;
     } :rodata
 
     /* Writable data starts on a 2MB boundary so the boot identity map, which
@@ -37,7 +41,9 @@ SECTIONS {
     __kernel_rw_start = .;
 
     .data ALIGN(0x1000) : {
+        __kernel_data_start = .;
         *(.data .data.*)
+        __kernel_data_end = .;
     } :data
 
     .nonos.manifest ALIGN(0x1000) : {
@@ -54,10 +60,12 @@ SECTIONS {
 
     .bss ALIGN(0x1000) : {
         __bss_start = .;
+        __kernel_bss_start = .;
         *(.bss .bss.*)
         *(COMMON)
         . = ALIGN(8);
         __bss_end = .;
+        __kernel_bss_end = .;
     } :data
 
     /* 2MB so the boot identity map, which uses 2MB blocks, can mark the text

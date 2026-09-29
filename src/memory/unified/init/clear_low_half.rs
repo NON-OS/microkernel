@@ -22,7 +22,15 @@ pub(super) fn clear_low_half() -> Result<(), &'static str> {
     crate::arch::x86_64::paging::clear_low_half()
 }
 
+/*
+ * Off x86_64 the kernel still executes from the boot identity map in the low
+ * half, so removing it would unmap the code running this. It is kept, and the
+ * log says so rather than the caller reporting a teardown that did not happen.
+ */
 #[cfg(not(target_arch = "x86_64"))]
 pub(super) fn clear_low_half() -> Result<(), &'static str> {
+    crate::sys::serial::println(
+        b"[VM-INIT] low half kept: the kernel still runs from the boot identity map",
+    );
     Ok(())
 }

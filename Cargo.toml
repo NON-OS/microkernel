@@ -60,6 +60,12 @@ nonos-arch-preview = []
 # no reason to spend it on, and the benchmark lane turns them on.
 nonos-bench-micro = []
 
+# aarch64 boot lane only. Each compiles one deliberate exception into the boot
+# path so the lane can assert the line the kernel prints for it. No profile
+# enables them; a kernel built with one stops at that exception by design.
+nonos-trap-proof-sp0 = []
+nonos-trap-proof-kernel-abort = []
+
 # Bootstrap. `kernel` switches malloc/free to Rust `alloc`; `standalone`
 # brings in the panic handler and global allocator.
 kernel     = []

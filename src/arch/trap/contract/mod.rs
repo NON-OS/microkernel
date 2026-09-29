@@ -24,15 +24,9 @@
 //! portable policy work to do for those. Per-arch primitives (fatal
 //! report sink and CPU halt) live behind `backend`.
 //!
-//! Current implementation status: only x86_64 is wired. aarch64 and
-//! riscv64 are structurally accounted for — the contract surface,
-//! `TrapFrame` trait, `TrapCause`, and `backend` dispatch hub are
-//! architecture-neutral, with explicit insertion points for those
-//! arches: a `backend_aarch64` / `backend_riscv64` module behind the
-//! `cfg` switch in `backend.rs`, plus a `TrapFrame` impl alongside the
-//! per-arch entry shim that performs cause projection from the
-//! arch-native status registers. None of that is implemented yet, and
-//! a build for those targets fails at `backend.rs` until it is.
+//! Each architecture supplies a backend behind the `cfg` switch in
+//! `backend.rs` and a `TrapFrame` impl beside its entry shim, which does
+//! the cause projection from the arch-native status registers.
 
 mod backend;
 #[cfg(target_arch = "aarch64")]

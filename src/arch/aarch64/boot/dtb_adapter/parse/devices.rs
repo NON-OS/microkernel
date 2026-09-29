@@ -22,7 +22,7 @@ use crate::arch::fdt::find::timer::find as find_timer;
 use crate::arch::fdt::find::uart::{find as find_uart, UartKind};
 use crate::arch::fdt::Fdt;
 
-pub fn populate(fdt: &Fdt, info: &mut BootInfo) {
+pub(super) fn populate(fdt: &Fdt, info: &mut BootInfo) {
     populate_uart(fdt, info);
     populate_gic(fdt, info);
     populate_timer(fdt, info);

@@ -48,8 +48,9 @@ no lock, no atomic and no hardware access.
 Some of what is extracted is proven wrong rather than proven right, and the file
 headers say which. `CtRefinement` proves the two constant-time comparisons
 disagreed and keeps the old shape named so the regression cannot come back;
-`PagingRefinement` proves the aarch64 table builder ignores its
-`user_accessible` argument; `VectorsRefinement` proves `irq_to_vector` fails
+`PagingRefinement` proves the aarch64 table builder honours its
+`user_accessible` argument and keeps the old shape, which ignored it, named with
+the theorem that says so; `VectorsRefinement` proves `irq_to_vector` fails
 above line 223. A refinement file that only proved agreement would be hiding
 those.
 

@@ -47,18 +47,18 @@ static IRQ_STACKS: StackBank<IrqStack, MAX_CPUS> =
 static EXCEPTION_STACKS: StackBank<ExceptionStack, MAX_CPUS> =
     StackBank::new([const { ExceptionStack::new() }; MAX_CPUS]);
 
-pub fn kernel_top(cpu_id: usize) -> Option<u64> {
+pub(super) fn kernel_top(cpu_id: usize) -> Option<u64> {
     KERNEL_STACKS.get(cpu_id).map(KernelStack::top)
 }
 
-pub fn kernel_base(cpu_id: usize) -> Option<u64> {
+pub(super) fn kernel_base(cpu_id: usize) -> Option<u64> {
     KERNEL_STACKS.get(cpu_id).map(KernelStack::base)
 }
 
-pub fn irq_top(cpu_id: usize) -> Option<u64> {
+pub(super) fn irq_top(cpu_id: usize) -> Option<u64> {
     IRQ_STACKS.get(cpu_id).map(IrqStack::top)
 }
 
-pub fn exception_top(cpu_id: usize) -> Option<u64> {
+pub(super) fn exception_top(cpu_id: usize) -> Option<u64> {
     EXCEPTION_STACKS.get(cpu_id).map(ExceptionStack::top)
 }

@@ -112,6 +112,7 @@ pub fn init_unified_vm() -> Result<(), &'static str> {
     // own text — leave it.
     if kernel_half_populated >= 2 {
         clear_low_half()?;
+        #[cfg(target_arch = "x86_64")]
         crate::sys::serial::println(b"[VM-INIT] low half cleared");
     }
 
