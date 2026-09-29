@@ -33,14 +33,29 @@ use crate::syscall::caps::current_caps_or_default;
 /// send would let a caller reach an endpoint simply by naming one that does
 /// not exist yet, and win the race when it appears.
 pub(super) fn caller_satisfies_endpoint(endpoint: u64, target: &str) -> bool {
-    let Some(required) = lookup_service(target)
-        .or_else(|| lookup_port(endpoint as u32))
-        .map(|ep| ep.caps_required)
+    let Some(required) =
+        lookup_service(target).or_else(|| lookup_port(endpoint as u32)).map(|ep| ep.caps_required)
     else {
         return false;
     };
     if required == 0 {
         return false;
     }
-    caps_to_bits(&current_caps_or_default().permissions) & required == required
+    let held = caps_to_bits(&current_caps_or_default().permissions);
+    if held & required == required {
+        return true;
+    }
+    /*
+     * Said, not only refused: a capsule that may not reach a service is told
+     * nothing more than EPERM, and this line is what shows which one.
+     */
+    let pid = crate::process::current_pid().unwrap_or(0);
+    crate::log::warn!(
+        "[CAP-DENY] pid={} ipc to {} needs caps {:#x}, holds {:#x}",
+        pid,
+        target,
+        required,
+        held
+    );
+    false
 }
