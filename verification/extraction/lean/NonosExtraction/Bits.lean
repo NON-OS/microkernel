@@ -99,4 +99,23 @@ theorem val_eq_zero_iff {ty : UScalarTy} (x : UScalar ty) :
     intro i
     rw [h i, Nat.zero_testBit]
 
+/-- Clearing the low `k` bits with `word & !(2^k - 1)` rounds the word down to a
+    multiple of `2^k`. -/
+theorem land_not_low_mask {ty : UScalarTy} (x m : UScalar ty) (k : Nat)
+    (hm : m.val = 2 ^ k - 1) :
+    (x &&& ~~~m).val = x.val / 2 ^ k * 2 ^ k := by
+  apply Nat.eq_of_testBit_eq
+  intro i
+  rw [UScalar.val_and, Nat.testBit_and, testBit_val_not, hm, Nat.testBit_two_pow_sub_one,
+    Nat.testBit_mul_two_pow, Nat.testBit_div_two_pow]
+  by_cases hik : k ≤ i
+  · have hsub : i - k + k = i := Nat.sub_add_cancel hik
+    rw [hsub]
+    by_cases hw : i < ty.numBits
+    · simp [hik, hw, Nat.not_lt.mpr hik]
+    · rw [testBit_val_high x i (Nat.not_lt.mp hw)]
+      simp
+  · have hlt : i < k := Nat.lt_of_not_le hik
+    simp [hik, hlt]
+
 end NonosExtraction.Bits
