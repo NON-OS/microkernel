@@ -2,6 +2,7 @@
 #include "qwenchat.h"
 
 #include <cstring>
+#include <thread>
 
 static void quiet(enum ggml_log_level, const char *, void *) {}
 
@@ -24,7 +25,9 @@ bool chat_open(const ChatArgs &a, Chat &c) {
     llama_context_params cp = llama_context_default_params();
     cp.n_ctx = a.n_ctx;
     cp.n_batch = a.n_ctx;
-    cp.n_threads = cp.n_threads_batch = a.threads;
+    unsigned cpus = std::thread::hardware_concurrency();
+    int threads = a.threads ? a.threads : (int)(cpus ? (cpus < 8 ? cpus : 8) : 1);
+    cp.n_threads = cp.n_threads_batch = threads;
     cp.no_perf = true;
     c.ctx = llama_init_from_model(c.model, cp);
     if (!c.ctx) return false;

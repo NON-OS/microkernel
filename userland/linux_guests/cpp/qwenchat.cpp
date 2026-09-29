@@ -18,7 +18,7 @@ bool chat_args(int argc, char **argv, ChatArgs &a) {
         else if (!strcmp(k, "-ui")) a.window = !strcmp(v, "window");
         else return false;
     }
-    return a.threads > 0 && a.threads <= 64 && a.n_ctx >= 256 && a.n_ctx <= 32768
+    return a.threads >= 0 && a.threads <= 64 && a.n_ctx >= 256 && a.n_ctx <= 32768
         && a.n_reply > 0 && a.n_reply < a.n_ctx && a.temp >= 0.0f && a.temp <= 2.0f;
 }
 

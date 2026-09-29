@@ -13,7 +13,7 @@
 
 struct ChatArgs {
     std::string model = "/models/qwen2.5-0.5b-instruct-q4_k_m.gguf";
-    int threads = 1;
+    int threads = 0; /* 0: one per CPU this process may run on, at most 8 */
     int n_ctx = 4096;
     int n_reply = 512;
     float temp = 0.7f;
