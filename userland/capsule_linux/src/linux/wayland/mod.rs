@@ -34,6 +34,7 @@ mod scene_pixels;
 mod seat;
 mod present;
 mod present_surface;
+mod present_window;
 pub mod shm;
 mod surface;
 mod xdg;
