@@ -29,6 +29,8 @@ pub mod elf;
 pub mod fd_fork;
 #[cfg(test)]
 pub mod idt_vectors;
+#[cfg(test)]
+pub mod iommu_window;
 pub mod memory;
 #[cfg(test)]
 pub mod pipe_counts;
