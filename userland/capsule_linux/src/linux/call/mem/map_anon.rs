@@ -54,6 +54,10 @@ pub fn anonymous(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     let backed = if req.prot == 0 {
         guest.reserve(at, span)
     } else {
+        /* A fixed anonymous span reads as zeros; drop frames map would keep. */
+        if req.fixed().is_some() {
+            guest.drop_frames(at, span);
+        }
         guest.map(at, span, req.prot & PROT_WRITE != 0, req.prot & PROT_EXEC != 0)
     };
     if backed < 0 {
