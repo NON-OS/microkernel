@@ -73,8 +73,11 @@ impl VariableAttributes {
     }
 
     #[inline]
+    /* Every authenticated-write flag counts, including the deprecated
+    count-based one, which firmware still reports on old variables. */
     pub const fn requires_authentication(&self) -> bool {
-        self.contains(Self::TIME_BASED_AUTHENTICATED_WRITE_ACCESS)
+        self.contains(Self::AUTHENTICATED_WRITE_ACCESS)
+            || self.contains(Self::TIME_BASED_AUTHENTICATED_WRITE_ACCESS)
             || self.contains(Self::ENHANCED_AUTHENTICATED_ACCESS)
     }
 
