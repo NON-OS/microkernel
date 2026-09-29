@@ -23,5 +23,5 @@ pub mod name;
 pub mod nr;
 pub mod nr_path;
 pub mod nr_high;
-pub mod nr_sched;
 pub mod nr_mem;
+pub mod nr_sched;

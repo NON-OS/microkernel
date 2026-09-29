@@ -141,8 +141,8 @@ static void remaps(void) {
 // it executable, it must refuse the copy mremap moved too. Host Linux allows
 // both, and the part checks only that the two answers agree.
 static void provenance(void) {
-    // This program's own file: /bin/memcalls in the store, itself on a host.
-    int fd = open("/bin/memcalls", O_RDONLY);
+    // This program's own file: /bin/memproof in the store, itself on a host.
+    int fd = open("/bin/memproof", O_RDONLY);
     if (fd < 0) {
         fd = open("/proc/self/exe", O_RDONLY);
     }

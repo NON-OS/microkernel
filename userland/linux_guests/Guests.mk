@@ -118,38 +118,25 @@ $(eval $(call LINUX_GUEST,cthreads,4974,4975,$(LINUX_GUESTS_C)/cthreads))
 $(LINUX_GUESTS_C)/cwait: $(LINUX_GUESTS_DIR)/c/cwait.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cwait,4978,4979,$(LINUX_GUESTS_C)/cwait))
-# A pthread recursing into its guard page: the process must end on SIGSEGV
-# with status 139, and the line it prints if it runs past the guard never shows.
-$(LINUX_GUESTS_C)/guardpage: $(LINUX_GUESTS_DIR)/c/guardpage.c
-	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
-$(eval $(call LINUX_GUEST,guardpage,4980,4981,$(LINUX_GUESTS_C)/guardpage))
 
-# PROT_NONE means no access: a read or write of a PROT_NONE mmap, of a page
-# mprotect closed, and of the closed page below an opened one each fault, and
-# bytes survive a close and reopen.
-$(LINUX_GUESTS_C)/protnone: $(LINUX_GUESTS_DIR)/c/protnone.c
-	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
-$(eval $(call LINUX_GUEST,protnone,4982,4983,$(LINUX_GUESTS_C)/protnone))
-
-# A fork after mprotect: the child gets the protection the parent has now, so
-# a write to a page the parent made read-only faults in the child.
-$(LINUX_GUESTS_C)/protfork: $(LINUX_GUESTS_DIR)/c/protfork.c
-	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
-$(eval $(call LINUX_GUEST,protfork,4984,4985,$(LINUX_GUESTS_C)/protfork))
-
-# Bytes written into an opened part of a reservation survive closing it and a
-# fork; a page never opened faults in the child; and MAP_FIXED over a written
-# page replaces it with zeroes.
-$(LINUX_GUESTS_C)/touchfork: $(LINUX_GUESTS_DIR)/c/touchfork.c
-	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
-$(eval $(call LINUX_GUEST,touchfork,4986,4987,$(LINUX_GUESTS_C)/touchfork))
-
-# The memory calls against Linux's answers: mmap placement, brk giving pages
-# back, unaligned addresses, mremap keeping protection and provenance, and
-# mlock, mlock2, mlockall, munlockall, msync and mincore with their errnos.
-$(LINUX_GUESTS_C)/memcalls: $(LINUX_GUESTS_DIR)/c/memcalls.c
-	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
-$(eval $(call LINUX_GUEST,memcalls,4988,4989,$(LINUX_GUESTS_C)/memcalls))
+# The memory proofs, one program whose first argument names the proof, so the
+# store carries one binary and one set of proofs for all five:
+#   guardpage  a pthread recursing into its guard page ends on SIGSEGV, 139
+#   protnone   PROT_NONE means no access, and bytes survive a close and reopen
+#   protfork   a fork after mprotect gives the child the protection set now
+#   touchfork  bytes written into a reservation survive a fork; MAP_FIXED
+#              over a written page replaces it with zeroes
+#   memcalls   mmap placement, brk, alignment, mremap, and mlock, msync and
+#              mincore, each against Linux's answer
+MEMPROOF_PARTS := guardpage protnone protfork touchfork memcalls
+$(LINUX_GUESTS_C)/memproof: $(LINUX_GUESTS_DIR)/c/memproof.c \
+		$(foreach p,$(MEMPROOF_PARTS),$(LINUX_GUESTS_DIR)/c/$(p).c)
+	@mkdir -p $(@D)/memproof.o
+	@for p in $(MEMPROOF_PARTS); do \
+		musl-gcc -O2 -c -Dmain=$${p}_main -o $(@D)/memproof.o/$$p.o $(LINUX_GUESTS_DIR)/c/$$p.c || exit 1; \
+	done
+	@musl-gcc -O2 -static -o $@ $< $(foreach p,$(MEMPROOF_PARTS),$(@D)/memproof.o/$(p).o)
+$(eval $(call LINUX_GUEST,memproof,4980,4981,$(LINUX_GUESTS_C)/memproof))
 
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
