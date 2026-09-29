@@ -45,6 +45,7 @@ pub mod write_u64;
 mod mem;
 mod tests;
 mod tests_capacity;
+mod tests_model_size;
 mod tests_edges;
 mod tests_layout;
 mod tests_reads;
