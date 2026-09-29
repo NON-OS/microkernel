@@ -30,6 +30,8 @@ pub mod elf;
 #[cfg(test)]
 pub mod fd_fork;
 #[cfg(test)]
+pub mod firmware_arith;
+#[cfg(test)]
 pub mod idt_vectors;
 #[cfg(test)]
 pub mod iommu_window;
