@@ -16,8 +16,6 @@
 
 use alloc::string::String;
 
-use crate::browser::css::BgSize;
-
 use super::super::tree::BoxNode;
 use super::ctx::Ctx;
 use super::fragment::{Content, Fragment};
@@ -41,22 +39,16 @@ impl Fragment {
             w,
             h,
             bg,
-            border: [0; 4],
-            border_color: 0,
             href,
             content,
             z: ctx.z.key,
             clip: ctx.clip,
+            clip_r: ctx.clip_r,
             fixed: ctx.fixed,
             sticky: ctx.sticky,
             alpha: ctx.alpha,
-            bg_image: None,
-            mask: false,
-            bg_size: BgSize::Auto,
-            bg_repeat: true,
-            shadow: None,
-            radius: [0; 4],
             node,
+            ..Fragment::BLANK
         }
     }
 

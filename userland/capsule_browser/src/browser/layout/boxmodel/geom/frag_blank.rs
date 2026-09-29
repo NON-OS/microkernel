@@ -14,31 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bg_image;
-mod bg_tile;
-mod blit_rows;
-mod border_corners;
-mod borders;
-mod box_fragment;
-mod box_page;
-mod bubble;
-mod canvas;
-pub mod chrome;
-mod corners;
-pub mod document;
-mod fade;
-mod fill_page;
-mod fill_rounded;
-mod grad;
-pub mod home_page;
-mod mask;
-mod page_parts;
-mod paint;
-mod paint_image;
-mod paint_text;
-mod round_clip;
-mod rows;
-mod scroll_paint;
-mod shadow;
+use crate::browser::css::BgSize;
 
-pub use paint::paint;
+use super::content::Content;
+use super::fragment::Fragment;
+use super::stack_key::LEVELS;
+
+impl Fragment {
+    /// A fragment that paints nothing, for constructors to fill in.
+    pub(crate) const BLANK: Fragment = Fragment {
+        x: 0,
+        y: 0,
+        w: 0,
+        h: 0,
+        bg: 0,
+        border: [0; 4],
+        border_color: 0,
+        href: None,
+        content: Content::None,
+        z: [0; LEVELS],
+        clip: None,
+        clip_r: [0; 4],
+        fixed: false,
+        sticky: None,
+        alpha: 255,
+        bg_image: None,
+        mask: false,
+        bg_size: BgSize::Auto,
+        bg_repeat: true,
+        shadow: None,
+        radius: [0; 4],
+        node: 0,
+    };
+}

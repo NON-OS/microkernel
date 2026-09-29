@@ -40,11 +40,15 @@ pub(super) fn box_fragment(
     let bg = super::fade::fade(f.bg, f.alpha);
     /* A masked box shows its color only through the mask. */
     if bg != 0 && !f.mask {
-        fill_rounded(fb, f.x, sy, f.w, f.h, f.radius, bg, clip);
+        for c in super::round_clip::bands(clip, f.clip_r) {
+            fill_rounded(fb, f.x, sy, f.w, f.h, f.radius, bg, c);
+        }
     }
     super::shadow::paint_shadow(fb, f, sy, clip, true);
     /* A decoded background image paints over the color and behind content. */
-    super::bg_image::paint_bg_image(state, fb, f, sy, bottom, clip);
+    for c in super::round_clip::bands(clip, f.clip_r) {
+        super::bg_image::paint_bg_image(state, fb, f, sy, bottom, c);
+    }
     super::borders::paint_borders(fb, f, sy, clip);
     /* Text and images draw clipped to the page area and the fragment clip,
      * so a run or a picture cut by the scroll edge shows its visible part. */
@@ -56,6 +60,14 @@ pub(super) fn box_fragment(
     match &f.content {
         Content::None => {}
         Content::Text { .. } => super::paint_text::paint_text(fb, f, sy, vis),
-        Content::Image { .. } => super::paint_image::paint_image(state, fb, f, sy, vis),
+        Content::Image { .. } => {
+            for c in super::round_clip::bands(clip, f.clip_r) {
+                let [x0, y0, x1, y1] = c.unwrap_or(vis);
+                let c = [x0.max(vis[0]), y0.max(vis[1]), x1.min(vis[2]), y1.min(vis[3])];
+                if c[0] < c[2] && c[1] < c[3] {
+                    super::paint_image::paint_image(state, fb, f, sy, c);
+                }
+            }
+        }
     }
 }

@@ -33,7 +33,7 @@ pub(crate) fn place_inside(n: &BoxNode, frags: &mut DisplayList, start: usize, d
     let h = (f.h - bt - s.border_bottom as i32).max(0);
     let mut inner = ctx;
     if let Some(c) = overflow_clip(s, [f.x, f.y, f.w], Some(f.h)) {
-        inner = inner.clipped(c);
+        inner = inner.clip_box(s, c, f.w);
     }
     let cb = Cb { r: [f.x + bl, f.y + bt, w, h], ctx: inner };
     let passes: &[bool] = if s.fx.transform.is_some() { &[false, true] } else { &[false] };

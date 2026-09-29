@@ -59,6 +59,7 @@ mod pos_tests;
 mod quirks_table_tests;
 mod recv_pending_tests;
 mod round2_tests;
+mod round_clip_tests;
 mod scroll_tests;
 mod selector_tests;
 mod sibling_tests;

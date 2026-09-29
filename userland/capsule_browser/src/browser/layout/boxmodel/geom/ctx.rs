@@ -23,6 +23,8 @@ use super::stack::Stack;
 pub(crate) struct Ctx {
     pub cb: Containing,
     pub clip: Option<[i32; 4]>,
+    /* Corner radii rounding `clip`, when it is a rounded box's own. */
+    pub clip_r: [u16; 4],
     pub z: Stack,
     /* True inside a position:fixed subtree; its fragments pin on scroll. */
     pub fixed: bool,
@@ -46,12 +48,17 @@ pub(crate) struct Pin {
 }
 
 impl Ctx {
-    /* Intersect the active clip with `rect` ([x0, y0, x1, y1]). */
+    /* Intersect the active clip with `rect` ([x0, y0, x1, y1]). The clip
+     * stays rounded only while it is the rounded rectangle itself. */
     pub(crate) fn clipped(mut self, rect: [i32; 4]) -> Self {
+        let was = self.clip;
         self.clip = Some(match self.clip {
             Some(c) => [c[0].max(rect[0]), c[1].max(rect[1]), c[2].min(rect[2]), c[3].min(rect[3])],
             None => rect,
         });
+        if self.clip != was {
+            self.clip_r = [0; 4];
+        }
         self
     }
 }

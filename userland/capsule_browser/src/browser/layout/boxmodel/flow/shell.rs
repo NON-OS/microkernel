@@ -52,7 +52,7 @@ pub(crate) fn open(n: &BoxNode, r: [i32; 3], frags: &mut DisplayList, ctx: Ctx) 
     let cb = Containing { w: cw, h: def_h.map(|h| (h - ey).max(0)) };
     let mut inner = Ctx { pin: None, cb, ..ctx };
     if let Some(clip) = overflow_clip(s, [x, y, w], def_h) {
-        inner = inner.clipped(clip);
+        inner = inner.clip_box(s, clip, w);
     }
     record_static(&n.children, x + el, y + et, inner);
     let slot = frags.len();

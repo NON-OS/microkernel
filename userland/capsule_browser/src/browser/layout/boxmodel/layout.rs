@@ -38,6 +38,7 @@ pub fn layout(root: &BoxNode, viewport: (u32, u32)) -> BoxDocument {
     let ctx = Ctx {
         cb: Containing { w: vp.0, h: Some(vp.1) },
         clip: None,
+        clip_r: [0; 4],
         z: Stack::ROOT,
         fixed: false,
         sticky: None,

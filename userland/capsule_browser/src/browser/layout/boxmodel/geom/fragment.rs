@@ -36,6 +36,9 @@ pub struct Fragment {
     /* Paint order key (geom::stack). */
     pub z: Key,
     pub clip: Option<[i32; 4]>,
+    /* Corner radii of the box that made the clip, when the clip is its
+     * padding box: paint rounds the clip's corners by them. */
+    pub clip_r: [u16; 4],
     /* Painted without the scroll offset when true (position:fixed). */
     pub fixed: bool,
     /* Sticky anchor (flow y, top offset) shared by the sticky subtree. */
