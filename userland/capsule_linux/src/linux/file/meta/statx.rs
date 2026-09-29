@@ -41,7 +41,10 @@ pub fn statx(guest: &Guest, dirfd: u64, path: u64, out: u64) -> u64 {
     let Some(at) = resolve_at(guest, dirfd, path) else {
         return errno::fail(errno::EFAULT);
     };
-    let Ok((size, is_dir, _, readonly)) = store::stat_full(&key(&at)) else {
+    let dev = super::super::dev::device_of(&at);
+    let Some((size, is_dir, _, readonly)) =
+        store::stat_full(&key(&at)).ok().or(dev.map(|_| (0, false, 0, false)))
+    else {
         return errno::fail(errno::ENOENT);
     };
     let mode = if is_dir { S_IFDIR } else { S_IFREG } | if readonly { 0o555 } else { 0o755 };
@@ -53,6 +56,9 @@ pub fn statx(guest: &Guest, dirfd: u64, path: u64, out: u64) -> u64 {
     buf[32..40].copy_from_slice(&inode(&at).to_le_bytes()); // stx_ino
     buf[40..48].copy_from_slice(&size.to_le_bytes()); // stx_size
     buf[48..56].copy_from_slice(&size.div_ceil(512).to_le_bytes()); // stx_blocks
+    if let Some(d) = dev {
+        super::super::dev_stat::statx_device(&mut buf, d);
+    }
     match guest.write(out, &buf) {
         n if n < 0 => errno::fail(errno::EFAULT),
         _ => errno::ok(0),

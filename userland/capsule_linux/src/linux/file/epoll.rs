@@ -54,7 +54,9 @@ pub fn epoll_ctl(guest: &mut Guest, ep: u64, op: u64, fd: u64, event: u64) -> u6
     if !open(ep) || !open(fd) {
         return errno::fail(errno::EBADF);
     }
-    if guest.fds.get(fd as usize).is_some_and(|f| matches!(f.kind, Kind::File | Kind::Dir)) {
+    let unpollable = |f: &Fd| f.kind == Kind::Device && !super::dev::polls(f.handle);
+    let refused = |f: &Fd| matches!(f.kind, Kind::File | Kind::Dir) || unpollable(f);
+    if guest.fds.get(fd as usize).is_some_and(refused) {
         return errno::fail(errno::EPERM);
     }
     let Some(list) = guest.fds.get_mut(ep as usize).filter(|f| f.kind == Kind::Epoll) else {

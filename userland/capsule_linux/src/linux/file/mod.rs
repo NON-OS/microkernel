@@ -20,6 +20,9 @@ mod at;
 mod clamp;
 pub(super) mod close;
 mod cstr;
+mod dev;
+mod dev_io;
+mod dev_stat;
 mod dir;
 mod dir_children;
 mod dirent;
@@ -59,6 +62,7 @@ mod write;
 
 pub use close::close;
 pub use cstr::read_cstr;
+pub use dev_io::{read as dev_read, write as dev_write};
 pub use dirents::getdents64;
 pub use dirops::{mkdirat, rmdir, unlinkat};
 pub use epoll::{epoll_create, epoll_ctl};

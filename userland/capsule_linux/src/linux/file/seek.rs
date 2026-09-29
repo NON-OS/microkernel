@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! `lseek`. The position is this capsule's, not the server's: a read takes
 //! a window at an offset, so the descriptor's offset is the whole of it.
 
@@ -29,6 +28,10 @@ pub fn lseek(guest: &mut Guest, fd: u64, offset: u64, whence: u64) -> u64 {
     let Some(entry) = guest.fds.get_mut(fd as usize) else {
         return errno::fail(errno::EBADF);
     };
+    /* A character device has no position to move, and Linux answers 0. */
+    if entry.kind == Kind::Device {
+        return errno::ok(0);
+    }
     if entry.kind != Kind::File {
         // A pipe or a console has no position, which Linux calls ESPIPE.
         return errno::fail(errno::ESPIPE);
