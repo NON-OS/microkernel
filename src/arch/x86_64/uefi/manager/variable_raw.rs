@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod core;
-pub mod init;
-pub mod ops;
-pub mod security;
-pub mod state;
-pub mod variable;
-pub mod variable_raw;
+extern crate alloc;
 
-pub use core::UefiManager;
-pub use state::{is_initialized, UEFI_MANAGER};
+use alloc::vec::Vec;
+
+use super::core::UefiManager;
+use crate::arch::x86_64::uefi::error::UefiError;
+use crate::arch::x86_64::uefi::types::Guid;
+
+impl UefiManager {
+    /* The data alone, for callers that read the value and not its attributes. */
+    pub(crate) fn read_variable_raw(&self, name: &str, guid: &Guid) -> Result<Vec<u8>, UefiError> {
+        self.read_variable_with_attributes(name, guid).map(|(_, data)| data)
+    }
+}
