@@ -16,34 +16,13 @@
 
 use ab_glyph::Font;
 
-use super::chrome::draw_cached;
+use super::draw::draw_text_tracked;
 use super::face::face;
 use super::readable::readable_px;
-use super::target::Target;
 
-/* Render `text` with its top-left at (x, top_y) and return the pen x after
- * the last glyph. `px` is the em size in pixels. Kerning is applied between
- * adjacent glyphs; each glyph is rasterized once and cached, then blended. */
-pub fn draw_text(
-    buf: &mut [u32],
-    stride: usize,
-    w: u32,
-    h: u32,
-    x: i32,
-    top_y: i32,
-    text: &str,
-    argb: u32,
-    px: f32,
-    mono: bool,
-) -> i32 {
-    let px = readable_px(px);
-    let Some(f) = face(mono) else { return x };
-    let mut t = Target { buf, stride, w, h };
-    draw_cached(f, &mut t, (x, top_y), text, argb, px)
-}
-
-/* Same rendering with extra advance between glyphs, for letter-spacing. */
-pub fn draw_text_tracked<F: Font>(
+/* Same rendering with a caller-provided face, so text can draw in a font
+ * loaded at runtime, such as a page's web font. */
+pub fn draw_text_with<F: Font>(
     f: &F,
     buf: &mut [u32],
     stride: usize,
@@ -54,7 +33,26 @@ pub fn draw_text_tracked<F: Font>(
     text: &str,
     argb: u32,
     px: f32,
+) -> i32 {
+    draw_text_tracked(f, buf, stride, w, h, x, top_y, text, argb, px, 0.0)
+}
+
+/* Tracked rendering with the built-in faces, the fallback while a page font
+ * is still loading. */
+pub fn draw_text_spaced(
+    buf: &mut [u32],
+    stride: usize,
+    w: u32,
+    h: u32,
+    x: i32,
+    top_y: i32,
+    text: &str,
+    argb: u32,
+    px: f32,
+    mono: bool,
     spacing: f32,
 ) -> i32 {
-    super::slant::draw_text_sheared(f, buf, stride, w, h, x, top_y, text, argb, px, spacing, 0.0)
+    let px = readable_px(px);
+    let Some(f) = face(mono) else { return x };
+    draw_text_tracked(f, buf, stride, w, h, x, top_y, text, argb, px, spacing)
 }
