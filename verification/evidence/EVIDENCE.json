@@ -1681,7 +1681,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MultibootModulesAcpi.lean",
-          "sha256": "21c5d030b3b63cad0acc95de5579ebd3553e4c966293e62f2a7ad23817ee5d12"
+          "sha256": "18c5b33209799e9cda2aa61d7aa16ecba1add5b9e08064d75056d2393292aab2"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MultibootPlatformTypes.lean",
