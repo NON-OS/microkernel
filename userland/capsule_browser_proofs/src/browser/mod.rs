@@ -34,3 +34,5 @@ pub mod fetch;
 pub mod http;
 pub mod net;
 pub use tls_proofs as tls13;
+#[path = "../../../capsule_browser/src/browser/fetch/enqueue_css/sheet.rs"]
+pub mod sheet;

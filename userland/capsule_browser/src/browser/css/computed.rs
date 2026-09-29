@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod shadow;
+pub use shadow::{Shadow, ShadowLayer, MAX_SHADOWS};
+
 pub const DEFAULT_FG: u32 = 0xFF1A_1A1A;
 pub const DEFAULT_FONT_PX: u32 = 16;
 
@@ -167,14 +170,6 @@ pub enum AutoRepeat {
 /* Inherited fields: color, bold, font_size_px, text_align, line_height_px.
  * Everything else is per-element; the cascade walk starts each element from
  * root() and copies only the inherited fields across. */
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct Shadow {
-    pub dx: i32,
-    pub dy: i32,
-    pub blur: u32,
-    pub color: u32,
-}
-
 #[derive(Clone, Copy)]
 pub struct Computed {
     pub display_none: bool,

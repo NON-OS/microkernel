@@ -21,23 +21,31 @@ use crate::browser::layout::boxmodel::Content;
 use crate::browser::state::State;
 use crate::browser::url;
 
-// Collect every image source in the current page, resolve it against the
-// page base, and queue the ones not already known for fetching.
+use super::store_hint::{BG_BOX, IMG_BOX};
+
+/* Collect every image source in the current page, resolve it against the
+ * page base, and queue the ones not already known for fetching. */
 pub fn enqueue_from_doc(state: &mut State) {
     let Some(base) = state.base.clone() else { return };
     let mut fresh: Vec<String> = Vec::new();
-    let mut hints: Vec<(String, u32, u32)> = Vec::new();
+    let mut hints: Vec<(String, u32, u32, u8)> = Vec::new();
     if let Some(doc) = state.box_doc.as_ref() {
         for f in &doc.frags {
             let (w, h) = (f.w.max(0) as u32, f.h.max(0) as u32);
             if let Content::Image { src, .. } = &f.content {
                 queue(&base, src, &state.images, &mut fresh);
-                hints.push((url::join(&base, src), w, h));
+                /* A box laid out before the natural size was known has a
+                 * stand-in size; decoding to it would blur the image once
+                 * the real box arrives, so it notes no hint. */
+                let abs = url::join(&base, src);
+                if !doc.awaits(&abs, Some(&base)) {
+                    hints.push((abs, w, h, IMG_BOX));
+                }
             }
             if let Some(src) = f.bg_image.as_deref() {
                 if !src.starts_with("linear-gradient(") && !src.starts_with("radial-gradient(") {
                     queue(&base, src, &state.images, &mut fresh);
-                    hints.push((url::join(&base, src), w, h));
+                    hints.push((url::join(&base, src), w, h, BG_BOX));
                 }
             }
         }
@@ -46,14 +54,16 @@ pub fn enqueue_from_doc(state: &mut State) {
         state.images.mark_pending(&u);
         state.image_queue.push(u);
     }
-    // Record the displayed size of every referencing box so a vector source
-    // rasterizes at the size it is drawn instead of upscaling a tiny natural.
-    for (u, w, h) in hints {
+    /* Record the displayed size of every referencing box so a vector source
+     * rasterizes at the size it is drawn instead of upscaling a tiny natural. */
+    for (u, w, h, how) in hints {
+        state.images.note_drawn_as(&u, how);
         state.images.note_hint(&u, w, h);
     }
+    super::revive::requeue_visible(state);
 }
 
-// Resolve one source against the base and add it if not already known.
+/* Resolve one source against the base and add it if not already known. */
 fn queue(base: &url::Url, src: &str, images: &super::Store, fresh: &mut Vec<String>) {
     let abs = url::join(base, src);
     if !images.contains(&abs) && !fresh.contains(&abs) {

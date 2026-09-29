@@ -17,15 +17,25 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::key::family_key;
-use super::pick_src::pick_src;
-use super::range::covers_latin;
+use super::text::BOLD_KEY;
 
-/* Every @font-face in the sheet as (family key, source url). Only formats the
- * rasterizer can load are picked; a face whose sources are all unsupported is
- * skipped and its text falls back to the built-in face. */
+mod descriptor;
+mod face;
+mod matching;
+
+use face::{face, Face};
+use matching::best;
+
+/* The faces to fetch for every @font-face in the sheet, as (slot key,
+ * source url). Text draws in two cuts per family: the regular slot takes
+ * the face CSS weight matching picks for 400, so a 500 cut serves only
+ * when no 400 one exists, and the bold slot (BOLD_KEY set) the face it
+ * picks for 700, if that face's lightest weight is 600 or more. A
+ * variable face spanning both stays out of the bold slot: its wght axis
+ * is not applied, so bold text thickens the regular cut instead. Only
+ * sources the rasterizer can load are picked. */
 pub fn collect_font_faces(css: &str) -> Vec<(u32, String)> {
-    let mut out: Vec<(u32, String, u8)> = Vec::new();
+    let mut faces: Vec<Face> = Vec::new();
     let mut rest = css;
     while let Some(pos) = rest.find("@font-face") {
         rest = &rest[pos + "@font-face".len()..];
@@ -33,41 +43,20 @@ pub fn collect_font_faces(css: &str) -> Vec<(u32, String)> {
         let Some(close) = rest[open..].find('}') else { break };
         let body = &rest[open + 1..open + close];
         rest = &rest[open + close + 1..];
-        let Some(family) = decl_value(body, "font-family") else { continue };
-        let Some(url) = decl_value(body, "src").and_then(|v| pick_src(v)) else { continue };
-        let key = family_key(family);
-        if key == 0 {
+        faces.extend(face(body));
+    }
+    let mut out = Vec::new();
+    for (i, first) in faces.iter().enumerate() {
+        if faces[..i].iter().any(|f| f.key == first.key) {
             continue;
         }
-        /* Faces split into a regular and a bold slot per family, the CSS bold
-         * threshold at 600. Within a slot a face that covers Latin beats a
-         * subset that does not, then the canonical weight beats the first. */
-        let weight = match decl_value(body, "font-weight").map(str::trim) {
-            Some("bold") => 700,
-            Some(w) => w.parse::<u16>().unwrap_or(400),
-            None => 400,
-        };
-        let bold = weight >= 600;
-        let slot_key = if bold { key | super::text::BOLD_KEY } else { key };
-        let latin = covers_latin(decl_value(body, "unicode-range"));
-        let rank = 2 * latin as u8 + (weight == if bold { 700 } else { 400 }) as u8;
-        match out.iter_mut().find(|(k, _, _)| *k == slot_key) {
-            Some(slot) if rank > slot.2 => (slot.1, slot.2) = (url, rank),
-            Some(_) => {}
-            None => out.push((slot_key, url, rank)),
+        let family: Vec<&Face> = faces.iter().filter(|f| f.key == first.key).collect();
+        if let Some(f) = best(&family, 400) {
+            out.push((first.key, f.url.clone()));
+        }
+        if let Some(f) = best(&family, 700).filter(|f| f.weight.0 >= 600) {
+            out.push((first.key | BOLD_KEY, f.url.clone()));
         }
     }
-    out.into_iter().map(|(key, url, _)| (key, url)).collect()
-}
-
-/* The value of the first `name:` declaration in a rule body. Splitting on the
- * first colon keeps urls inside the value whole. */
-fn decl_value<'a>(body: &'a str, name: &str) -> Option<&'a str> {
-    for decl in body.split(';') {
-        let Some((n, v)) = decl.split_once(':') else { continue };
-        if n.trim().eq_ignore_ascii_case(name) {
-            return Some(v.trim());
-        }
-    }
-    None
+    out
 }

@@ -34,10 +34,7 @@ pub fn relayout(state: &mut State) {
     /* An image's natural size is known once its raster has decoded; the
      * store is keyed by the absolute URL the fetch used. */
     let (images, base) = (&state.images, state.base.as_ref());
-    let natural = |src: &str| {
-        let key = base.map_or_else(|| src.into(), |b| crate::browser::url::join(b, src));
-        images.ready(&key).map(|d| (d.w, d.h))
-    };
+    let natural = |src: &str| images.natural_for(base, src);
     let s = &styled;
     let root =
         layout::boxmodel::build(dom, &s.styles, &s.bg_images, &s.grids, &s.pseudos, &natural);

@@ -15,26 +15,46 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::hex::parse_hex;
-use super::hsl_fn::parse_hsl;
 use super::named::named;
-use super::rgb_fn::parse_rgb;
 
+pub(super) mod args;
+mod by_name;
+mod color_fn;
+mod color_mix;
+mod comp;
+mod fmath;
+mod hwb;
+mod lab;
+mod media;
+mod mix_lerp;
+mod mix_method;
+mod mix_space;
+mod oklab;
+mod powers;
+pub(super) mod rgbaf;
+mod space_map;
+pub(super) mod trig;
+
+pub use media::media_query_matches;
+
+/* Deepest parenthesis nesting a colour may carry: color-mix() and
+ * light-dark() parse their arguments recursively. */
+const MAX_DEPTH: i32 = 8;
+
+/// A CSS colour as ARGB with its alpha kept: hex, rgb/hsl/hwb, lab/lch,
+/// oklab/oklch, color(), color-mix(), light-dark(), named and system
+/// colours. currentColor and anything unknown give None, which leaves the
+/// property at the value it had.
 pub fn parse_color(v: &str) -> Option<u32> {
     let s = v.trim();
     if let Some(hex) = s.strip_prefix('#') {
         return parse_hex(hex);
     }
-    let lower = s.to_ascii_lowercase();
-    if lower.starts_with("rgb") {
-        return parse_rgb(&lower);
-    }
-    if lower.starts_with("hsl") {
-        return parse_hsl(&lower);
-    }
-    // currentColor keeps the inherited value: reporting None leaves the slot
-    // untouched, which is what borders/text want.
-    if lower == "currentcolor" {
-        return None;
-    }
-    named(s)
+    let Some(open) = s.find('(') else { return named(s) };
+    let depth = s.bytes().try_fold(0i32, |d, b| {
+        let d = d + (b == b'(') as i32 - (b == b')') as i32;
+        (d <= MAX_DEPTH).then_some(d)
+    });
+    let inner = s[open + 1..].strip_suffix(')').filter(|_| depth == Some(0))?;
+    by_name::by_name(&s[..open], inner)
 }

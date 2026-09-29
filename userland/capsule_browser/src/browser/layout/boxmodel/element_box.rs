@@ -29,8 +29,9 @@ use super::walk::{ElementIn, Walk};
 use super::wrap_items::wrap_items;
 use super::wrap_mixed::wrap_mixed;
 
-/* Generic element: recurse into its children and pick a formatting context.
- * Anchors thread their href down so links survive layout. */
+/* Generic element: its children, formatting context and an anchor's href;
+ * inlined into element() so the recursion takes one stack frame a level. */
+#[inline]
 pub(super) fn element_box(
     w: &mut Walk,
     item: &ElementIn,

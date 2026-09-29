@@ -14,46 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
 use alloc::vec::Vec;
 
+use super::brush::Brush;
+use super::dash::dashed;
 use super::fill::fill_polys;
-use super::math::sqrt;
+use super::geom::{band, disc, dist, normal};
+use super::pen::Pen;
 use super::raster::Raster;
+use super::stroke_join::{cap, join};
 
 type P = [f32; 2];
 
-// Stroke polylines in device coordinates: each segment fills as a quad of
-// the stroke width, each vertex as a square patch standing in for the join
-// and cap geometry. At icon scale the difference from round joins is inside
-// the antialiasing filter.
-pub(super) fn stroke_polys(r: &mut Raster, polys: &[Vec<P>], color: u32, width: f32) {
-    let hw = (width / 2.0).max(0.35);
+/* Stroke polylines already in device space with a device-space pen: each
+ * dash of each subpath becomes a quad per segment plus its joins and caps,
+ * all wound the same way and filled once with the nonzero rule, so their
+ * union paints and overlaps never double a translucent stroke. */
+pub(super) fn stroke_polys(r: &mut Raster, polys: &[Vec<P>], brush: &Brush, pen: &Pen) {
+    let hw = (pen.width / 2.0).max(0.35);
+    let mut parts: Vec<Vec<P>> = Vec::new();
     for poly in polys {
-        for pair in poly.windows(2) {
-            let (a, b) = (pair[0], pair[1]);
-            let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
-            let len = sqrt(dx * dx + dy * dy);
-            if len < 1e-6 {
-                continue;
-            }
-            let (nx, ny) = (-dy / len * hw, dx / len * hw);
-            let quad = vec![
-                [a[0] + nx, a[1] + ny],
-                [b[0] + nx, b[1] + ny],
-                [b[0] - nx, b[1] - ny],
-                [a[0] - nx, a[1] - ny],
-            ];
-            fill_polys(r, &[quad], color, false);
+        let closed = poly.len() > 2 && dist(poly[0], poly[poly.len() - 1]) < 1e-3;
+        for line in dashed(poly, pen) {
+            outline(&line, hw, pen, closed && pen.dashes == 0, &mut parts);
         }
-        for &p in poly.iter() {
-            let patch = vec![
-                [p[0] - hw, p[1] - hw],
-                [p[0] + hw, p[1] - hw],
-                [p[0] + hw, p[1] + hw],
-                [p[0] - hw, p[1] + hw],
-            ];
-            fill_polys(r, &[patch], color, false);
+    }
+    fill_polys(r, &parts, brush, false);
+}
+
+fn outline(line: &[P], hw: f32, pen: &Pen, closed: bool, parts: &mut Vec<Vec<P>>) {
+    let mut pts: Vec<P> = Vec::with_capacity(line.len());
+    for &p in line {
+        if pts.last().is_none_or(|q| dist(*q, p) > 1e-4) {
+            pts.push(p);
         }
+    }
+    let n = pts.len();
+    if n < 2 {
+        /* A zero-length subpath still shows its round or square cap. */
+        match (pts.first(), pen.cap) {
+            (Some(&p), 1) => parts.push(disc(p, hw)),
+            (Some(&p), 2) => parts.push(band([p[0] - hw, p[1]], [p[0] + hw, p[1]], [0.0, hw])),
+            _ => {}
+        }
+        return;
+    }
+    for w in pts.windows(2) {
+        parts.push(band(w[0], w[1], normal(w[0], w[1], hw)));
+    }
+    for i in 1..n - 1 {
+        join(pts[i - 1], pts[i], pts[i + 1], hw, pen, parts);
+    }
+    if closed {
+        join(pts[n - 2], pts[0], pts[1], hw, pen, parts);
+    } else {
+        cap(pts[1], pts[0], hw, pen.cap, parts);
+        cap(pts[n - 2], pts[n - 1], hw, pen.cap, parts);
     }
 }

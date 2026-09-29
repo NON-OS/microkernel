@@ -16,8 +16,8 @@
 
 use alloc::vec::Vec;
 
-// Whitespace/comma separated float list, as used by viewBox, points and
-// transform arguments.
+/* Whitespace/comma separated float list, as used by viewBox, points and
+ * transform arguments. */
 pub(super) fn num_list(s: &str) -> Vec<f32> {
     s.split(|c: char| c.is_whitespace() || c == ',')
         .filter(|t| !t.is_empty())
@@ -25,8 +25,8 @@ pub(super) fn num_list(s: &str) -> Vec<f32> {
         .collect()
 }
 
-// A length attribute in user units; the px suffix is the only unit icons
-// carry in practice. Percentages and other units yield None.
+/* A length attribute in user units; the px suffix is the only unit icons
+ * carry in practice. Percentages and other units yield None. */
 pub(super) fn parse_len(s: &str) -> Option<f32> {
     let t = s.trim();
     let t = t.strip_suffix("px").unwrap_or(t);
@@ -36,4 +36,21 @@ pub(super) fn parse_len(s: &str) -> Option<f32> {
     } else {
         None
     }
+}
+
+/// A length in an absolute unit (px, pt, pc, in, cm, mm, or none) in px.
+pub(super) fn abs_len(s: &str) -> Option<f32> {
+    let t = s.trim();
+    let units = [
+        ("px", 1.0),
+        ("pt", 4.0 / 3.0),
+        ("pc", 16.0),
+        ("in", 96.0),
+        ("cm", 96.0 / 2.54),
+        ("mm", 96.0 / 25.4),
+    ];
+    let (num, k) =
+        units.iter().find_map(|&(u, k)| t.strip_suffix(u).map(|n| (n, k))).unwrap_or((t, 1.0));
+    let v = num.trim().parse::<f32>().ok()?;
+    (v.is_finite()).then_some(v * k)
 }

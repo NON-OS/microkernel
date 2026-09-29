@@ -26,6 +26,7 @@ nonos_toolkit = { path = "../toolkit", default-features = false }
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 nonos_inflate = { path = "../inflate" }
 nonos_base64 = { path = "../base64" }
+nonos_brotli = { path = "../nonos_brotli" }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
 
 [lints.rust]

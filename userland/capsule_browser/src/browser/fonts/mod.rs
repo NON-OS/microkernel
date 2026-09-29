@@ -19,12 +19,12 @@ mod em_units;
 mod ingest;
 mod key;
 mod pick_src;
-mod range;
 mod registry;
 mod run_face;
 mod sfnt_header;
 mod text;
 mod woff;
+mod woff2;
 
 pub use collect::collect_font_faces;
 pub use em_units::{ch_px, ex_px};

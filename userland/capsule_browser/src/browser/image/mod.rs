@@ -14,32 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* Real raster images for the document view. Sources discovered during layout
- * are fetched through the same socket state machine as pages, decoded from
- * PNG/JPEG/BMP into ARGB8888, cached, and scale-blitted into their box. */
+/* Real raster images for the document view. Sources discovered during
+ * layout are fetched through the same socket state machine as pages,
+ * decoded (PNG, JPEG, GIF, BMP, WebP, ICO, SVG) into ARGB8888 at the size
+ * they are drawn, cached under a byte budget, and scale-blitted into their
+ * box. */
 mod blit;
 mod data_uri;
 mod decode;
+mod decode_full;
 #[cfg(not(feature = "harness"))]
 mod fetch;
+mod ico;
+mod ico_dib;
 mod ingest;
+mod jpeg;
+mod plan;
+mod plan_vector;
 #[cfg(not(feature = "harness"))]
 mod queue;
+#[cfg(not(feature = "harness"))]
+mod revival;
+#[cfg(not(feature = "harness"))]
+mod revive;
+mod shrink;
 mod sniff;
 mod store;
+mod store_budget;
+mod store_entry;
+mod store_hint;
+mod store_lookup;
+mod store_natural;
 mod svg;
 mod webp;
 
 pub use blit::{blit_into, blit_rect};
 pub(crate) use data_uri::data_uri_bytes;
+#[cfg(feature = "harness")]
+pub use decode::{decode_body, natural};
 #[cfg(not(feature = "harness"))]
 pub use fetch::{follow_redirect, pump};
 pub use ingest::ingest;
+#[cfg(feature = "harness")]
+pub use ingest::{note_img_size, note_size};
 #[cfg(not(feature = "harness"))]
 pub use queue::enqueue_from_doc;
+#[cfg(not(feature = "harness"))]
+pub use revive::requeue_visible;
 pub use store::{Decoded, Store};
-
-#[cfg(feature = "harness")]
-mod note_size;
-#[cfg(feature = "harness")]
-pub use note_size::note_size;

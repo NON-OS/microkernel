@@ -23,30 +23,29 @@ pub const M_DQT: u8 = 0xDB;
 pub const M_DHT: u8 = 0xC4;
 pub const M_DRI: u8 = 0xDD;
 pub const M_SOF0: u8 = 0xC0;
+pub const M_SOF1: u8 = 0xC1;
+pub const M_SOF2: u8 = 0xC2;
 pub const M_COM: u8 = 0xFE;
 
 pub fn is_app(marker: u8) -> bool {
-    marker >= 0xE0 && marker <= 0xEF
+    (0xE0..=0xEF).contains(&marker)
 }
 
 pub fn is_rst(marker: u8) -> bool {
-    marker >= 0xD0 && marker <= 0xD7
+    (0xD0..=0xD7).contains(&marker)
 }
 
+/* SOF1 (extended sequential, Huffman) decodes as baseline and SOF2
+ * (progressive) through the coefficient decoder; lossless, hierarchical
+ * and arithmetic-coded frames are refused. */
 pub fn is_sof_unsupported(marker: u8) -> bool {
-    matches!(
-        marker,
-        0xC1 | 0xC2 | 0xC3 | 0xC5 | 0xC6 | 0xC7 | 0xC9 | 0xCA | 0xCB | 0xCD | 0xCE | 0xCF
-    )
+    matches!(marker, 0xC3 | 0xC5 | 0xC6 | 0xC7 | 0xC9 | 0xCA | 0xCB | 0xCD | 0xCE | 0xCF)
 }
 
 pub fn read_marker(buf: &[u8], pos: &mut usize) -> Result<u8, DecodeError> {
     let mut p = *pos;
     while p < buf.len() && buf[p] != 0xFF {
         p += 1;
-    }
-    if p >= buf.len() {
-        return Err(DecodeError::Truncated);
     }
     while p < buf.len() && buf[p] == 0xFF {
         p += 1;

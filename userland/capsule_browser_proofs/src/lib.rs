@@ -25,6 +25,8 @@ mod chunked_tests;
 #[cfg(test)]
 mod clone_tests;
 #[cfg(test)]
+mod color_fonts_images;
+#[cfg(test)]
 mod color_tests;
 #[cfg(test)]
 mod css_utf8_tests;

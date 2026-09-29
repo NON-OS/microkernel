@@ -19,4 +19,4 @@ mod jpeg;
 mod probe;
 mod webp;
 
-pub(super) use probe::{probe, Format};
+pub(super) use probe::{probe, Format, Probe};

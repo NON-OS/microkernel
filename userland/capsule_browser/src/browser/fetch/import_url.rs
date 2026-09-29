@@ -16,26 +16,34 @@
 
 use alloc::string::String;
 
-// Pull the target out of an @import prelude, the text sitting between the
-// @import token and its semicolon. Handles url("x"), url('x'), url(x) and the
-// bare "x" / 'x' string form, ignoring any trailing media query the prelude
-// may carry after the location.
-pub(super) fn import_url(prelude: &str) -> Option<String> {
+mod media_part;
+use media_part::media_part;
+
+/* Pull the target out of an @import prelude, the text between the @import
+ * token and its semicolon: url("x"), url('x'), url(x) or a bare "x" / 'x'
+ * string. Also returns the media query list that follows it, with any
+ * layer() or supports() condition skipped (layers do not decide loading). */
+pub(super) fn import_url(prelude: &str) -> Option<(String, &str)> {
     let p = prelude.trim();
-    if let Some(rest) = p.strip_prefix("url(") {
-        let inner = rest.split(')').next()?.trim();
+    let (target, rest) = if let Some(r) = p.strip_prefix("url(") {
+        let end = r.find(')')?;
+        let inner = r[..end].trim();
         let inner = inner
             .strip_prefix('"')
             .and_then(|s| s.strip_suffix('"'))
             .or_else(|| inner.strip_prefix('\'').and_then(|s| s.strip_suffix('\'')))
             .unwrap_or(inner);
-        return if inner.is_empty() { None } else { Some(String::from(inner)) };
-    }
-    let quote = p.as_bytes().first().copied()?;
-    if quote == b'"' || quote == b'\'' {
+        (inner, &r[end + 1..])
+    } else {
+        let quote = *p.as_bytes().first()?;
+        if quote != b'"' && quote != b'\'' {
+            return None;
+        }
         let end = p[1..].find(quote as char)?;
-        let s = &p[1..1 + end];
-        return if s.is_empty() { None } else { Some(String::from(s)) };
+        (&p[1..1 + end], &p[2 + end..])
+    };
+    if target.is_empty() {
+        return None;
     }
-    None
+    Some((String::from(target), media_part(rest)))
 }

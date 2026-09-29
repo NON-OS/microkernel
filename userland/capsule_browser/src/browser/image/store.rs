@@ -14,107 +14,62 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::cell::{Cell, RefCell};
 
-// A decoded raster: ARGB8888, row-major, top-down.
+use super::store_entry::{Entry, Status};
+use super::store_lookup::Joined;
+
+/// A decoded raster: ARGB8888, row-major, top-down.
 pub struct Decoded {
     pub w: u32,
     pub h: u32,
     pub px: Vec<u32>,
 }
 
-enum Status {
-    Pending,
-    Ready(Decoded),
-    Failed,
-}
-
-struct Entry {
-    url: String,
-    status: Status,
-    // Largest box (w, h) the page draws this image into, noted at enqueue so a
-    // vector source can rasterize at its displayed size instead of upscaling.
-    hint: (u32, u32),
-}
-
-// Ceiling on resident decoded pixels. Past this the store fails new images
-// closed rather than growing the capsule heap without bound. Kept well under
-// the process heap so a page's DOM, layout and transient fetch buffers always
-// have room; the store is also reset on navigation so a prior page's rasters
-// never squeeze out the current one.
-const BYTE_BUDGET: usize = 16 * 1024 * 1024;
-
+/// Images by absolute URL: their state, the largest box each is drawn
+/// into, the natural size once known, and the decoded rasters, held under
+/// a byte budget that evicts the least recently painted first.
 pub struct Store {
-    entries: Vec<Entry>,
-    bytes: usize,
+    pub(super) entries: BTreeMap<String, Entry>,
+    pub(super) bytes: usize,
+    pub(super) clock: Cell<u64>,
+    /* Page-relative sources already joined against the base, by source. */
+    pub(super) joined: RefCell<Joined>,
+    pub(super) natural_dirty: bool,
 }
 
 impl Store {
     pub fn new() -> Self {
-        Store { entries: Vec::new(), bytes: 0 }
+        let joined = RefCell::new(Joined::default());
+        Store {
+            entries: BTreeMap::new(),
+            bytes: 0,
+            clock: Cell::new(0),
+            joined,
+            natural_dirty: false,
+        }
     }
 
-    // Drop every cached raster and free its budget. Called on navigation so a
-    // new page starts with the full image budget available to it.
+    /// Drop every image and free the budget, as a navigation does.
     pub fn reset(&mut self) {
-        self.entries.clear();
-        self.bytes = 0;
+        *self = Store::new();
     }
 
-    // True once the url has an entry in any state, so callers do not re-queue it.
+    /// True once the url is known in any state, so layout does not queue it
+    /// again; an evicted raster comes back through requeue_visible.
     pub fn contains(&self, url: &str) -> bool {
-        self.entries.iter().any(|e| e.url == url)
+        self.entries.contains_key(url)
     }
 
-    // The decoded raster for `url`, if it finished decoding.
+    /// The decoded raster for `url`, marked as just used.
     pub fn ready(&self, url: &str) -> Option<&Decoded> {
-        self.entries.iter().find(|e| e.url == url).and_then(|e| match &e.status {
-            Status::Ready(d) => Some(d),
-            _ => None,
-        })
-    }
-
-    pub(super) fn mark_pending(&mut self, url: &str) {
-        if !self.contains(url) {
-            self.entries.push(Entry {
-                url: String::from(url),
-                status: Status::Pending,
-                hint: (0, 0),
-            });
-        }
-    }
-
-    // Grow the noted display size for `url`; the largest referencing box wins
-    // so the raster is sharp everywhere it appears.
-    pub(super) fn note_hint(&mut self, url: &str, w: u32, h: u32) {
-        if let Some(e) = self.entries.iter_mut().find(|e| e.url == url) {
-            e.hint = (e.hint.0.max(w), e.hint.1.max(h));
-        }
-    }
-
-    pub(super) fn hint(&self, url: &str) -> (u32, u32) {
-        self.entries.iter().find(|e| e.url == url).map(|e| e.hint).unwrap_or((0, 0))
-    }
-
-    pub(super) fn set_failed(&mut self, url: &str) {
-        self.set(url, Status::Failed);
-    }
-
-    pub(super) fn set_ready(&mut self, url: &str, d: Decoded) {
-        let cost = d.px.len().saturating_mul(4);
-        if self.bytes.saturating_add(cost) > BYTE_BUDGET {
-            self.set(url, Status::Failed);
-            return;
-        }
-        self.bytes += cost;
-        self.set(url, Status::Ready(d));
-    }
-
-    fn set(&mut self, url: &str, status: Status) {
-        match self.entries.iter_mut().find(|e| e.url == url) {
-            Some(e) => e.status = status,
-            None => self.entries.push(Entry { url: String::from(url), status, hint: (0, 0) }),
-        }
+        let e = self.entries.get(url)?;
+        let Status::Ready(d) = &e.status else { return None };
+        self.clock.set(self.clock.get() + 1);
+        e.used.set(self.clock.get());
+        Some(d)
     }
 }

@@ -26,7 +26,9 @@ use super::tree::{BoxKind, BoxNode};
 use super::walk::{ElementIn, Walk};
 
 /* A list item leads with its marker: the ordinal in an <ol>, a bullet
- * elsewhere, unless list-style-type: none suppressed it. */
+ * elsewhere, unless list-style-type: none suppressed it. Kept out of line
+ * so its box is not held in every level of the box-tree recursion. */
+#[inline(never)]
 pub(super) fn add_marker(
     w: &mut Walk,
     item: &ElementIn,

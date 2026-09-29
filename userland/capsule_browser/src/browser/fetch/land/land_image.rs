@@ -45,7 +45,7 @@ pub(in crate::browser::fetch) fn land_image(
     let body = resp.filter(|r| r.status == 200).map(|r| r.body).unwrap_or_default();
     crate::browser::image::ingest(&mut state.images, key, &body);
     /* A box that waited on this image's natural size lays out again. */
-    let sized = state.images.ready(key).is_some();
+    let sized = state.images.take_natural_dirty();
     if sized && state.box_doc.as_ref().is_some_and(|d| d.awaits(key, state.base.as_ref())) {
         crate::browser::event::relayout(state);
     }

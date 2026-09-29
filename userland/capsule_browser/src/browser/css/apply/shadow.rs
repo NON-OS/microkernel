@@ -14,54 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::browser::css::calc::split_top::{items, words};
 use crate::browser::css::color::parse_color;
-use crate::browser::css::computed::{Computed, Shadow};
-use crate::browser::css::parse_px::parse_px;
+use crate::browser::css::computed::{Computed, Shadow, ShadowLayer, MAX_SHADOWS};
+use crate::browser::css::parse_px::parse_len_f;
 
-// box-shadow: offset-x offset-y [blur] [spread] [color]. Inset shadows and
-// the second (inner) layer are ignored; the outer drop shadow is what carries
-// the visual weight. `none` clears it.
+/* Paint work grows with the blur radius, so larger radii are held here. */
+const MAX_BLUR_PX: f32 = 300.0;
+const MAX_OFFSET_PX: f32 = 4000.0;
+
+/* box-shadow: comma layers of `[inset] x y [blur [spread]] [color]` in any
+ * token order. The whole value replaces the previous one, inset or not;
+ * an invalid layer drops the declaration. Fully transparent layers paint
+ * nothing and are not kept; past MAX_SHADOWS the lowest layers go. */
 pub(super) fn apply_shadow(c: &mut Computed, name: &str, value: &str, fs: u32) -> bool {
     if name != "box-shadow" {
         return false;
     }
     let v = value.trim();
-    if v == "none" || v.starts_with("inset") {
-        c.shadow = if v == "none" { None } else { c.shadow };
+    if ["none", "initial", "unset"].iter().any(|k| v.eq_ignore_ascii_case(k)) {
+        c.shadow = None;
         return true;
     }
-    // Only the first shadow layer before a comma is drawn.
-    let layer = v.split(',').next().unwrap_or(v);
-    let mut nums = [0i32; 2];
-    let mut got = 0usize;
-    let mut color = 0u32;
-    let mut blur = 0u32;
-    let mut idx = 0usize;
-    for tok in layer.split_whitespace() {
-        if let Some(px) = parse_px(tok, fs).map(|p| p as i32).or_else(|| signed_px(tok, fs)) {
-            match idx {
-                0 | 1 => {
-                    nums[idx] = px;
-                    got += 1;
-                }
-                2 => blur = px.max(0) as u32,
-                _ => {}
-            }
-            idx += 1;
-        } else if let Some(rgb) = parse_color(tok) {
-            color = rgb;
+    let empty = ShadowLayer { dx: 0, dy: 0, blur: 0, spread: 0, color: 0, inset: false };
+    let mut s = Shadow { layers: [empty; MAX_SHADOWS], n: 0 };
+    for item in items(v) {
+        let Some(layer) = layer(item, fs, c.color) else { return true };
+        if layer.color >> 24 != 0 && (s.n as usize) < MAX_SHADOWS {
+            s.layers[s.n as usize] = layer;
+            s.n += 1;
         }
     }
-    if got >= 2 {
-        let color = if color != 0 { color } else { 0x6600_0000 };
-        c.shadow = Some(Shadow { dx: nums[0], dy: nums[1], blur, color });
-    }
+    c.shadow = (s.n > 0).then_some(s);
     true
 }
 
-// A length that may be negative, which the unsigned px parser rejects.
-fn signed_px(tok: &str, fs: u32) -> Option<i32> {
-    let neg = tok.starts_with('-');
-    let mag = parse_px(tok.trim_start_matches('-'), fs)? as i32;
-    Some(if neg { -mag } else { mag })
+fn layer(item: &str, fs: u32, current: u32) -> Option<ShadowLayer> {
+    let (mut len, mut n, mut color, mut inset) = ([0f32; 4], 0, None, false);
+    for w in words(item) {
+        if w.eq_ignore_ascii_case("inset") && !inset {
+            inset = true;
+        } else if let Some(px) = parse_len_f(w, fs).filter(|_| n < 4) {
+            len[n] = px;
+            n += 1;
+        } else if color.is_none() {
+            let cur = w.eq_ignore_ascii_case("currentcolor");
+            color = Some(if cur { current } else { parse_color(w)? });
+        } else {
+            return None;
+        }
+    }
+    if n < 2 || len[2] < 0.0 {
+        return None;
+    }
+    let off = |v: f32| v.clamp(-MAX_OFFSET_PX, MAX_OFFSET_PX) as i16;
+    let blur = len[2].min(MAX_BLUR_PX) as u16;
+    let color = color.unwrap_or(current);
+    Some(ShadowLayer { dx: off(len[0]), dy: off(len[1]), blur, spread: off(len[3]), color, inset })
 }

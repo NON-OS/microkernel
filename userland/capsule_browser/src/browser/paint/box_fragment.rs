@@ -33,14 +33,14 @@ pub(super) fn box_fragment(
 ) {
     let dy = TOP - state.scroll as i32;
     let clip = f.clip.map(|c| [c[0], c[1].saturating_add(dy), c[2], c[3].saturating_add(dy)]);
-    /* The drop shadow paints first so the box and its content sit over it. */
-    if let Some(s) = f.shadow.as_ref() {
-        super::shadow::paint_shadow(fb, s, f.x, sy, f.w, f.h);
-    }
+    /* Outer shadows paint first so the box sits over them; inset ones
+     * go over the background and under the borders. */
+    super::shadow::paint_shadow(fb, f, sy, clip, false);
     let bg = super::fade::fade(f.bg, f.alpha);
     if bg != 0 {
         fill_rounded(fb, f.x, sy, f.w, f.h, f.radius, bg, clip);
     }
+    super::shadow::paint_shadow(fb, f, sy, clip, true);
     /* A decoded background image paints over the color and behind content. */
     super::bg_image::paint_bg_image(state, fb, f, sy, bottom, clip);
     super::borders::paint_borders(fb, f, sy, clip);

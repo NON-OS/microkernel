@@ -108,6 +108,7 @@ name = "capsule_browser_proofs"
 version = "0.3.0"
 dependencies = [
  "nonos_app_skeleton",
+ "nonos_brotli",
  "nonos_inflate",
  "nonos_toolkit",
  "spin",
@@ -457,6 +458,10 @@ dependencies = [
  "nonos_toolkit",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_brotli"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_inflate"

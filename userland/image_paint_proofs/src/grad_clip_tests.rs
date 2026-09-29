@@ -36,7 +36,9 @@ fn a_partly_visible_box_paints_the_rows_that_show() {
 fn translucent_stops_composite_and_values_that_are_not_gradients_are_refused() {
     let full = [0, 0, 8, 8];
     let px = paint(8, 8, "linear-gradient(rgba(255, 0, 0, 0.5), rgba(255, 0, 0, 0.5))", full, full);
-    assert!(px.iter().all(|&p| p == 0xff7f_0080), "{:08x}", px[0]);
+    /* Alpha 0.5 is 128 (127.5 rounded, as CSS and Chromium do), so half red
+     * over blue is rgb(128, 0, 127). */
+    assert!(px.iter().all(|&p| p == 0xff80_007f), "{:08x}", px[0]);
     assert!(!is_gradient("url(a.png)") && is_gradient("radial-gradient(#fff, #000)"));
     let mut buf = [0u32; 4];
     let fb = &mut PaintBuffer { pixels: &mut buf, stride_words: 2, width: 2, height: 2 };

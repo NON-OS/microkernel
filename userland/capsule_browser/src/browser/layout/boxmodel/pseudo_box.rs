@@ -24,7 +24,9 @@ use super::tree::{BoxKind, BoxNode};
 use super::walk::Walk;
 
 /* Generated content wraps the real children: a ::before box leads and a
- * ::after box trails, each a text leaf styled by its own cascade. */
+ * ::after box trails, each a text leaf styled by its own cascade. Kept out
+ * of line: its boxes would otherwise sit in every level of the recursion. */
+#[inline(never)]
 pub(super) fn add_pseudos(w: &mut Walk, id: usize, link: &Option<String>, kids: &mut Vec<BoxNode>) {
     let Some((before, after)) = w.pseudos.get(id) else {
         return;

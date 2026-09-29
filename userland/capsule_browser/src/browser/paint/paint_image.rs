@@ -34,15 +34,9 @@ pub(super) fn paint_image(
     clip: Option<[i32; 4]>,
 ) {
     let Content::Image { src, alt, fit } = &f.content else { return };
-    /* The store is keyed by the absolute URL the fetch used, so resolve
-     * the fragment's src against the page base before looking it up.
-     * Without this every relative image src misses its decoded raster. */
-    let key = state
-        .base
-        .as_ref()
-        .map(|b| crate::browser::url::join(b, src))
-        .unwrap_or_else(|| src.clone());
-    if let Some(img) = state.images.ready(&key) {
+    /* The store resolves the fragment's src against the page base the way
+     * the fetch did, remembering the join, so a frame costs a lookup. */
+    if let Some(img) = state.images.ready_for(state.base.as_ref(), src) {
         crate::browser::image::blit_into(
             fb,
             img,

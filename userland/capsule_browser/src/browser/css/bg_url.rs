@@ -16,32 +16,46 @@
 
 use alloc::string::{String, ToString};
 
-// The background layer captured from a background or background-image
-// declaration: either a url() to fetch, or a gradient function kept verbatim
-// for the painter to render. Solid colors and unknown values return None.
+use super::calc::split_top::{items, words};
+
+mod shorthand;
+mod top_slash;
+
+pub(super) use shorthand::{apply_background, apply_bg_size};
+
+/* The background layer captured from a background or background-image
+ * declaration: the first comma layer (the topmost painted) that holds a
+ * url() to fetch or a gradient kept verbatim for the painter. Solid
+ * colours and unknown values give None. */
 pub(super) fn bg_url(name: &str, value: &str) -> Option<String> {
     if name != "background" && name != "background-image" {
         return None;
     }
-    if let Some(start) = value.find("url(") {
-        let rest = &value[start + 4..];
-        let end = rest.find(')')?;
-        let inner = rest[..end].trim().trim_matches('"').trim_matches('\'').trim();
-        if !inner.is_empty() && !inner.starts_with("data:") {
-            return Some(inner.to_string());
+    let layer = image_layer(value)?;
+    for w in words(layer) {
+        if starts_ci(w, "url(") {
+            let inner = w[4..].strip_suffix(')').unwrap_or(&w[4..]);
+            let inner = inner.trim().trim_matches('"').trim_matches('\'').trim();
+            return (!inner.is_empty() && !inner.starts_with("data:")).then(|| inner.to_string());
+        }
+        if is_gradient(w) {
+            return Some(w.trim().to_string());
         }
     }
-    // A gradient function is kept as-is; the painter parses and draws it.
-    if let Some(start) = value.find("linear-gradient(").or_else(|| value.find("radial-gradient(")) {
-        let rest = &value[start..];
-        let open = rest.find('(')?;
-        // matching_paren returns rest.len() for unbalanced input, so the naive
-        // `open + 1 + end + 1` can exceed rest.len() and panic on the slice
-        // (a hostile stylesheet/inline style would abort the capsule). Clamp
-        // the end to the string length.
-        let end = super::matching_paren::matching_paren(&rest[open + 1..]);
-        let stop = (open + 1 + end + 1).min(rest.len());
-        return Some(rest[..stop].trim().to_string());
-    }
     None
+}
+
+/// The first comma layer at paren depth 0 that paints an image.
+pub(super) fn image_layer(value: &str) -> Option<&str> {
+    items(value).find(|l| words(l).any(|w| is_gradient(w) || starts_ci(w, "url(")))
+}
+
+/* The painter draws linear and radial gradients; repeating ones are not
+ * captured rather than drawn as a single run. */
+fn is_gradient(w: &str) -> bool {
+    starts_ci(w, "linear-gradient(") || starts_ci(w, "radial-gradient(")
+}
+
+fn starts_ci(w: &str, p: &str) -> bool {
+    w.get(..p.len()).is_some_and(|h| h.eq_ignore_ascii_case(p))
 }

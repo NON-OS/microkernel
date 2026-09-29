@@ -19,18 +19,49 @@ use alloc::string::String;
 use crate::browser::dom::node::NodeKind;
 use crate::browser::dom::Dom;
 
+mod rule_end;
+use rule_end::rule_end;
+
+/* The page's CSS text budget, the same one fetched sheets share. */
+const MAX_PAGE_CSS: usize = 8 * 1024 * 1024;
+
+/// The text of every inline `<style>` in document order. A `media`
+/// attribute wraps the sheet in `@media <list>{...}` so the parser applies
+/// it only where the list matches, keeping its place in the cascade; a
+/// non-CSS `type` skips it. Past the page budget the text stops at the
+/// last complete rule.
 pub fn collect_css(dom: &Dom) -> String {
     let mut s = String::new();
     for n in &dom.nodes {
-        if n.kind == NodeKind::Element && n.tag == "style" {
-            for &c in &n.children {
-                if dom.nodes[c].kind == NodeKind::Text {
-                    s.push_str(&dom.nodes[c].text);
-                    s.push('\n');
-                }
+        if n.kind != NodeKind::Element || n.tag != "style" {
+            continue;
+        }
+        let ty = n.attr("type").unwrap_or("").split(';').next().unwrap_or("").trim();
+        if !ty.is_empty() && !ty.eq_ignore_ascii_case("text/css") {
+            continue;
+        }
+        let media = n.attr("media").map(str::trim).filter(|m| !m.eq_ignore_ascii_case("all"));
+        if media.is_some_and(|m| m.contains(['{', '}', ';'])) {
+            continue;
+        }
+        let mut text = String::new();
+        for &c in &n.children {
+            if dom.nodes[c].kind == NodeKind::Text {
+                text.push_str(&dom.nodes[c].text);
+                text.push('\n');
             }
         }
-        if s.len() >= 524_288 {
+        let (open, close) = match media.filter(|m| !m.is_empty()) {
+            Some(m) => (alloc::format!("@media {m}{{"), "}\n"),
+            None => (String::new(), ""),
+        };
+        let room = MAX_PAGE_CSS.saturating_sub(s.len() + open.len() + close.len());
+        let fits = text.len() <= room;
+        let body = if fits { &text[..] } else { &text[..rule_end(&text, room)] };
+        s.push_str(&open);
+        s.push_str(body);
+        s.push_str(close);
+        if !fits {
             break;
         }
     }

@@ -37,6 +37,7 @@ version = "0.1.0"
 dependencies = [
  "nonos_app_skeleton",
  "nonos_base64",
+ "nonos_brotli",
  "nonos_inflate",
  "nonos_toolkit",
  "spin",
@@ -68,6 +69,10 @@ dependencies = [
 [[package]]
 name = "nonos_base64"
 version = "0.3.0"
+
+[[package]]
+name = "nonos_brotli"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_inflate"

@@ -16,25 +16,53 @@
 
 use alloc::vec::Vec;
 
+use super::affine::Affine;
+use super::brush::{fade, Brush, Shade};
+use super::clip::clip_mask;
 use super::fill::fill_polys;
-use super::raster::Raster;
+use super::geom::{bbox, device};
+use super::grad_build::build;
+use super::group::intersect;
+use super::ink::Ink;
 use super::state::Paint;
 use super::stroke::stroke_polys;
+use super::walk::Walk;
 
 type P = [f32; 2];
 
-// Transform user-space subpaths to device space and paint fill then stroke,
-// as SVG orders them.
-pub(super) fn draw(r: &mut Raster, polys: &[Vec<P>], p: &Paint) {
-    if polys.is_empty() {
-        return;
+impl Walk<'_, '_> {
+    /// Paint user-space subpaths with `p`, fill then stroke as SVG orders
+    /// them, inside the group clip and the element's own `clip-path`. An
+    /// element whose clip reference does not resolve is not painted.
+    pub(super) fn draw(&mut self, polys: &[Vec<P>], p: &Paint, own_clip: Option<&str>) {
+        if polys.is_empty() {
+            return;
+        }
+        let b = bbox(polys);
+        let fill = p.fill.and_then(|ink| self.shade(ink, p.fill_op, b, &p.t));
+        let stroke = p.stroke.and_then(|ink| self.shade(ink, p.stroke_op, b, &p.t));
+        let group = p.clip.and_then(|i| self.masks.get(i));
+        let own = match own_clip {
+            Some(v) => match clip_mask(self.defs, v, &p.t, b, self.r) {
+                Some(m) => Some(intersect(m, group)),
+                None => return,
+            },
+            None => None,
+        };
+        let clip = own.as_ref().or(group);
+        let dev = device(polys, &p.t);
+        if let Some(shade) = fill {
+            fill_polys(self.r, &dev, &Brush { shade, clip }, p.evenodd);
+        }
+        if let Some(shade) = stroke {
+            stroke_polys(self.r, &dev, &Brush { shade, clip }, &p.pen.scaled(p.t.scale_avg()));
+        }
     }
-    let dev: Vec<Vec<P>> =
-        polys.iter().map(|sp| sp.iter().map(|&pt| p.t.apply(pt)).collect()).collect();
-    if let Some(c) = p.fill {
-        fill_polys(r, &dev, c, p.evenodd);
-    }
-    if let Some(c) = p.stroke {
-        stroke_polys(r, &dev, c, p.stroke_w * p.t.scale_avg());
+
+    fn shade(&self, ink: Ink, opacity: f32, b: [f32; 4], t: &Affine) -> Option<Shade> {
+        match ink {
+            Ink::Solid(c) => Some(Shade::Solid(fade(c, opacity))),
+            Ink::Grad(i) => build(self.defs, i, b, t, opacity).map(Shade::Grad),
+        }
     }
 }
