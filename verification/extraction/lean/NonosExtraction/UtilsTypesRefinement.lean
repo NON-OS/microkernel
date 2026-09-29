@@ -41,35 +41,42 @@ theorem the_scanconfig_with_max_depth_wrapper_is_its_method (a : types.ScanConfi
 theorem the_scanconfig_hidden_only_wrapper_is_its_method (a : types.ScanConfig) :
     scanconfig_hidden_only a = types.ScanConfig.hidden_only a := rfl
 
+theorem the_scanconfig_admits_hidden_wrapper_is_its_method (a : types.ScanConfig) (b : Bool) :
+    scanconfig_admits_hidden a b = types.ScanConfig.admits_hidden a b := rfl
+
 /-! ### The scan configuration builders
 
 `scan_with_config` in src/fs/utils/scan_config.rs skips an entry deeper than
-`max_depth` and drops a hidden file only when `include_hidden` is false, so the
-builders decide how far and how widely a scan walks. The theorems below establish
-that a fresh configuration is bounded (depth 64, 65536 files), does not follow
-symbolic links, includes hidden files and is already inside the depth clamp; that
-`with_max_depth` never fails, sets the depth to the smaller of the request and
+`max_depth` and keeps an entry only if `admits_hidden` passes it, so the builders
+decide how far and how widely a scan walks. The theorems below establish that a
+fresh configuration is bounded (depth 64, 65536 files), does not follow symbolic
+links, admits every file, hidden or not, and is already inside the depth clamp;
+that `with_max_depth` never fails, sets the depth to the smaller of the request and
 `MAX_SCAN_DEPTH` (so 65 and `usize::MAX` both give 64) and changes no other field;
-and that `hidden_only` is the identity on every configuration that already
-includes hidden files, which records a defect described on that theorem.
+and that after `hidden_only` a configuration admits exactly the hidden files.
 
-They cannot establish what `scan_with_config` does with the configuration: the
-scanner, the filesystem it walks and `is_hidden` are not extracted into this
-module. The vectors of extensions and name patterns are carried through as opaque
+`hidden_only` used to set only `include_hidden`, which every fresh configuration
+already has, so `ScanConfig::new().hidden_only()` was `ScanConfig::new()` and a
+scan built that way returned every visible file too. The configuration had no
+field that could say "hidden files only"; `only_hidden` is that field.
+
+They cannot establish what `scan_with_config` does beyond calling `admits_hidden`
+on each entry: the scanner, the filesystem it walks and `is_hidden` are not
+extracted into this module. The vectors of extensions and name patterns are carried through as opaque
 values, so nothing here says anything about their contents beyond that the
 builders leave them unchanged.
 -/
 
 /-- The default configuration is bounded in depth and file count, refuses symbolic
-links, includes hidden files and applies no sensitivity threshold, and its depth is
-a fixed point of the clamp. -/
+links, admits hidden and visible files alike and applies no sensitivity threshold,
+and its depth is a fixed point of the clamp. -/
 theorem scanconfig_new_is_bounded_and_inside_the_depth_clamp :
     ∃ c, scanconfig_new = ok c ∧ c.max_depth.val = 64 ∧ c.max_files.val = 65536 ∧
-      c.include_hidden = true ∧ c.follow_symlinks = false ∧
+      c.include_hidden = true ∧ c.only_hidden = false ∧ c.follow_symlinks = false ∧
       c.sensitivity_threshold = types.SensitivityLevel.None ∧
       scanconfig_with_max_depth c c.max_depth = ok c := by
   unfold scanconfig_new types.ScanConfig.new
-  refine ⟨_, rfl, ?_, ?_, rfl, rfl, rfl, ?_⟩
+  refine ⟨_, rfl, ?_, ?_, rfl, rfl, rfl, rfl, ?_⟩
   · unfold types.MAX_SCAN_DEPTH; rfl
   · unfold types.MAX_SCAN_FILES; rfl
   · unfold scanconfig_with_max_depth types.ScanConfig.with_max_depth
@@ -102,20 +109,37 @@ theorem scanconfig_with_max_depth_never_exceeds_the_cap
   cases h
   omega
 
-/-- This records a defect. `hidden_only` sets `include_hidden`, which every fresh
-configuration already has, and the scanner reads that field only to exclude hidden
-files when it is false. So `hidden_only` is the identity on any configuration that
-already includes hidden files, and `ScanConfig::new().hidden_only()` is
-`ScanConfig::new()`: a scan built this way still returns every non-hidden file. The
-configuration has no field that could express "hidden files only". -/
-theorem scanconfig_hidden_only_changes_no_config_that_already_includes_hidden_files
-    (c : types.ScanConfig) (h : c.include_hidden = true) :
-    scanconfig_hidden_only c = ok c ∧
-    (do let c ← scanconfig_new; scanconfig_hidden_only c) = scanconfig_new := by
-  refine ⟨?_, rfl⟩
+/-- A hidden file passes exactly when `include_hidden` is set, and a visible one
+exactly when `only_hidden` is clear, for every configuration. -/
+theorem scanconfig_admits_hidden_reads_the_two_flags (c : types.ScanConfig) (hidden : Bool) :
+    scanconfig_admits_hidden c hidden =
+      ok (if hidden then c.include_hidden else !c.only_hidden) := by
+  unfold scanconfig_admits_hidden types.ScanConfig.admits_hidden
+  cases hidden <;> simp
+
+/-- After `hidden_only`, from any configuration, a hidden file passes and a
+visible one does not, and nothing but the two hidden-file flags changes. It used
+to leave a visible file passing whenever the configuration already included
+hidden files, which every fresh one does. -/
+theorem scanconfig_hidden_only_admits_exactly_the_hidden_files (c : types.ScanConfig) :
+    ∃ c', scanconfig_hidden_only c = ok c' ∧
+      scanconfig_admits_hidden c' true = ok true ∧
+      scanconfig_admits_hidden c' false = ok false ∧
+      c' = { c with include_hidden := true, only_hidden := true } := by
   unfold scanconfig_hidden_only types.ScanConfig.hidden_only
-  cases c
-  simp_all
+  refine ⟨_, rfl, ?_, ?_, rfl⟩ <;>
+    simp [scanconfig_admits_hidden_reads_the_two_flags]
+
+/-- A fresh configuration admits every file, hidden or visible, and the same
+configuration after `hidden_only` drops the visible ones, so the builder is no
+longer the identity on it. -/
+theorem scanconfig_hidden_only_changes_the_fresh_configuration :
+    (do let c ← scanconfig_new; scanconfig_admits_hidden c false) = ok true ∧
+      (do let c ← scanconfig_new; scanconfig_admits_hidden c true) = ok true ∧
+      (do let c ← scanconfig_new
+          let c ← scanconfig_hidden_only c
+          scanconfig_admits_hidden c false) = ok false := by
+  refine ⟨rfl, rfl, rfl⟩
 
 /-! ### Axiom profile -/
 
@@ -125,6 +149,9 @@ theorem scanconfig_hidden_only_changes_no_config_that_already_includes_hidden_fi
 #print axioms NonosExtraction.UtilsTypes.scanconfig_new_is_bounded_and_inside_the_depth_clamp
 #print axioms NonosExtraction.UtilsTypes.scanconfig_with_max_depth_saturates_at_64_and_changes_nothing_else
 #print axioms NonosExtraction.UtilsTypes.scanconfig_with_max_depth_never_exceeds_the_cap
-#print axioms NonosExtraction.UtilsTypes.scanconfig_hidden_only_changes_no_config_that_already_includes_hidden_files
+#print axioms NonosExtraction.UtilsTypes.the_scanconfig_admits_hidden_wrapper_is_its_method
+#print axioms NonosExtraction.UtilsTypes.scanconfig_admits_hidden_reads_the_two_flags
+#print axioms NonosExtraction.UtilsTypes.scanconfig_hidden_only_admits_exactly_the_hidden_files
+#print axioms NonosExtraction.UtilsTypes.scanconfig_hidden_only_changes_the_fresh_configuration
 
 end NonosExtraction.UtilsTypes

@@ -19,3 +19,7 @@ pub fn scanconfig_hidden_only(this: types::ScanConfig) -> types::ScanConfig {
     this.hidden_only()
 }
 
+
+pub fn scanconfig_admits_hidden(this: types::ScanConfig, hidden: bool) -> bool {
+    this.admits_hidden(hidden)
+}

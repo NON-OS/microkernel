@@ -85,6 +85,7 @@ impl Default for FileClassification {
 #[derive(Debug, Clone)]
 pub struct ScanConfig {
     pub include_hidden: bool,
+    pub only_hidden: bool,
     pub max_depth: usize,
     pub max_files: usize,
     pub extensions: Vec<String>,
@@ -97,6 +98,7 @@ impl Default for ScanConfig {
     fn default() -> Self {
         Self {
             include_hidden: true,
+            only_hidden: false,
             max_depth: MAX_SCAN_DEPTH,
             max_files: MAX_SCAN_FILES,
             extensions: Vec::new(),
@@ -111,6 +113,7 @@ impl ScanConfig {
     pub const fn new() -> Self {
         Self {
             include_hidden: true,
+            only_hidden: false,
             max_depth: MAX_SCAN_DEPTH,
             max_files: MAX_SCAN_FILES,
             extensions: Vec::new(),
@@ -132,7 +135,19 @@ impl ScanConfig {
 
     pub fn hidden_only(mut self) -> Self {
         self.include_hidden = true;
+        self.only_hidden = true;
         self
+    }
+
+    /* Whether a file survives the hidden-file settings: a hidden file needs
+    include_hidden, and a visible one is dropped when only hidden files are
+    asked for. */
+    pub const fn admits_hidden(&self, hidden: bool) -> bool {
+        if hidden {
+            self.include_hidden
+        } else {
+            !self.only_hidden
+        }
     }
 
     pub fn sensitive_only(mut self, level: SensitivityLevel) -> Self {
