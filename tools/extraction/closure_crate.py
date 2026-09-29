@@ -21,9 +21,14 @@ bound, is refused rather than patched.
 The kernel source is still never copied: every file is included by `#[path]`,
 so the MIR Charon reads is the MIR rustc compiles for the kernel.
 
-usage: closure_crate.py SRC NAME [--max-files N]
 """
-import json, os, re, shutil, subprocess, sys
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -317,14 +322,25 @@ def write_tree(cdir, nodes):
 
 
 def main():
-    target = ROOT / sys.argv[1]
-    name = sys.argv[2]
-    max_files = 80
-    if '--max-files' in sys.argv:
-        max_files = int(sys.argv[sys.argv.index('--max-files') + 1])
+    ap = argparse.ArgumentParser(description=__doc__.split('\n', 1)[0])
+    ap.add_argument('source', help='kernel file to extract, relative to the repo root')
+    ap.add_argument('name', help='crate name: lower case, digits and underscores')
+    ap.add_argument('--max-files', type=int, default=80,
+                    help='refuse a closure that reaches more files than this')
+    opts = ap.parse_args()
+    if not re.fullmatch(r'[a-z][a-z0-9_]*', opts.name):
+        ap.error('crate name must be lower case letters, digits and underscores')
+    if opts.max_files < 1:
+        ap.error('--max-files must be at least 1')
+    target = ROOT / opts.source
+    if not target.is_file() or target.suffix != '.rs' or SRC not in target.resolve().parents:
+        ap.error('%s is not a Rust file under src/' % opts.source)
+    target = target.resolve()
+    name = opts.name
+    max_files = opts.max_files
     nodes, info = closure(target, max_files)
     if nodes is None:
-        print('skip', sys.argv[1], info); return 2
+        print('skip', opts.source, info); return 2
     cdir = TREE / name
     if cdir.exists():
         shutil.rmtree(cdir)
@@ -337,10 +353,10 @@ def main():
                    '--emit-lean', str(LEANDIR / ('%sRefinement.lean' % lean)),
                    '--repo-root', str(ROOT)], ROOT)
     if rc != 0:
-        print('skip', sys.argv[1], 'mirror'); return 2
+        print('skip', opts.source, 'mirror'); return 2
     starts = re.findall(r"--start-from '([^']+)'", out)
     if not starts:
-        print('skip', sys.argv[1], 'no forwardable functions')
+        print('skip', opts.source, 'no forwardable functions')
         shutil.rmtree(cdir); os.remove(LEANDIR / ('%sRefinement.lean' % lean)); return 2
     lib = (cdir / 'src/lib.rs').read_text()
     top = write_tree(cdir, nodes)
@@ -372,27 +388,27 @@ def main():
     rc, out = run(['cargo', 'check', '--quiet'], cdir)
     if rc != 0:
         errs = [l for l in out.splitlines() if l.startswith('error')][:3]
-        print('skip', sys.argv[1], 'cargo check', errs); return 3
+        print('skip', opts.source, 'cargo check', errs); return 3
     args = ['charon', 'cargo', '--preset=aeneas']
     for s in starts:
         args += ['--start-from', s]
     args += ['--dest-file', '%s.llbc' % name]
     rc, out = run(args, cdir)
     if rc != 0:
-        print('skip', sys.argv[1], 'charon', out.strip().splitlines()[-1:]); return 4
+        print('skip', opts.source, 'charon', out.strip().splitlines()[-1:]); return 4
     dest = Path('/tmp/tree') / name
     shutil.rmtree(dest, ignore_errors=True); dest.mkdir(parents=True)
     rc, out = run(['aeneas', '-backend', 'lean', '%s.llbc' % name, '-dest', str(dest)], cdir)
     if rc != 0:
-        print('skip', sys.argv[1], 'aeneas', out.strip().splitlines()[-1:]); return 5
+        print('skip', opts.source, 'aeneas', out.strip().splitlines()[-1:]); return 5
     produced = list(dest.glob('*.lean'))
     if not produced:
-        print('skip', sys.argv[1], 'aeneas produced nothing'); return 5
+        print('skip', opts.source, 'aeneas produced nothing'); return 5
     shutil.copy(produced[0], LEANDIR / ('%s.lean' % lean))
-    print('ok', sys.argv[1], name, len(starts), 'files=%s' % info)
+    print('ok', opts.source, name, len(starts), 'files=%s' % info)
     print(json.dumps({'name': name, 'crate': crate, 'dir': str(cdir.relative_to(ROOT)),
                       'lean': lean, 'generated': produced[0].name, 'starts': starts,
-                      'source': sys.argv[1]}))
+                      'source': opts.source}))
     return 0
 
 
