@@ -69,6 +69,7 @@ impl Family {
         let born = mem::take(&mut g.forked);
         if let Answer::Reply(value) = got {
             // A caught signal for this thread is delivered in place of the reply.
+            super::deliver_pipe::broken_pipe(g, frame.pid, frame.nr, frame.args(), value);
             let out = value_out(&mut self.ns, frame.nr, value);
             if !super::deliver::maybe_deliver(g, frame.pid, out) {
                 let _ = mk_foreign_reply(frame.pid, out);

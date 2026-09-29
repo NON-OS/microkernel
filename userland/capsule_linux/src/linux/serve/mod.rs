@@ -19,6 +19,7 @@
 mod answer;
 mod deliver;
 mod deliver_enter;
+mod deliver_pipe;
 mod deliver_interrupt;
 mod deliver_rem;
 mod deliver_restart;
