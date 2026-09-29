@@ -52,6 +52,11 @@ impl Styling<'_> {
                     self.bg = url.clone();
                 }
                 self.c.fx.mask = url.is_some();
+                self.c.fx.fade = crate::browser::layout::fade_table::fade_id(v);
+            }
+            "mask-composite" | "-webkit-mask-composite" => {
+                let first = v.split(',').next().map(str::trim);
+                self.c.fx.fade_isect = matches!(first, Some("intersect" | "source-in"));
             }
             "content" => self.content = Some(String::from(v)),
             "counter-reset" => self.counters[0] = Some(String::from(v)),

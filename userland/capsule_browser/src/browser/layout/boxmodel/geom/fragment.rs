@@ -49,6 +49,12 @@ pub struct Fragment {
      * `mask` it is a mask-image, whose alpha paints the background color. */
     pub bg_image: Option<String>,
     pub mask: bool,
+    /* On a gradient-masked box's own fragment, its mask (a css fade id)
+     * and whether the layers intersect; on everything the box painted, its
+     * node, so paint finds the mask to draw them through (0 for none). */
+    pub fade: u16,
+    pub fade_isect: bool,
+    pub fade_by: usize,
     pub bg_layer: BgLayer,
     /* drop shadow painted behind the box. */
     pub shadow: Option<Shadow>,

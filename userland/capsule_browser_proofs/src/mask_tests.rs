@@ -30,10 +30,13 @@ fn the_webkit_prefix_masks_as_well() {
 }
 
 #[test]
-fn a_gradient_mask_leaves_the_box_unmasked() {
+fn a_gradient_mask_is_kept_for_paint_outside_the_image_slot() {
     let html = "<div id=d style=\"height:9px;background:red;\
                 mask-image:linear-gradient(to bottom, #000, transparent)\"></div>";
     let p = Page::at(html, VP);
-    assert!(!p.frag("d").mask);
-    assert_eq!(p.frag("d").bg_image, None);
+    let f = p.frag("d");
+    assert!(!f.mask, "a gradient is not a url mask");
+    assert_eq!(f.bg_image, None);
+    assert_ne!(f.fade, 0, "the gradient is kept for paint");
+    assert_eq!(f.fade_by, f.node, "the box paints through its own mask");
 }

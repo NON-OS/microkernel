@@ -49,6 +49,8 @@ mod grad_fb;
 #[cfg(test)]
 mod grad_tests;
 #[cfg(test)]
+mod mask_fade_tests;
+#[cfg(test)]
 mod png_adam7_tests;
 #[cfg(test)]
 mod png_build;

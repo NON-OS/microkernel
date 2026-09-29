@@ -19,6 +19,8 @@ mod build;
 pub mod doc;
 mod emit_pre;
 mod emit_text;
+mod fade_layers;
+pub mod fade_table;
 mod heading_scale;
 #[path = "boxmodel/hit_screen.rs"]
 pub mod hit_screen;

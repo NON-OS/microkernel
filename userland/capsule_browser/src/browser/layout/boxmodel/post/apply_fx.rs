@@ -31,6 +31,7 @@ pub(crate) fn apply_fx(
     start: usize,
     base: Option<[i32; 4]>,
 ) {
+    super::apply_fade::apply_fade(s, frags, start);
     let fx = &s.fx;
     if fx.transform.is_none() && fx.clip.is_none() {
         return;

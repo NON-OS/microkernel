@@ -22,6 +22,7 @@
 mod cache;
 mod color;
 mod composite;
+mod mask_layers;
 mod paint;
 mod painter;
 mod parse;
@@ -35,6 +36,7 @@ mod stop_list;
 mod stops;
 mod trig;
 
+pub(crate) use mask_layers::{mask_layers, MaskLayer};
 pub(crate) use paint::paint_gradient;
 pub(crate) use render::put_pixel;
 pub(crate) use shape::is_gradient;

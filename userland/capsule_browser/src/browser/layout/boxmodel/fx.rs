@@ -55,10 +55,20 @@ pub struct Fx {
     /* The background image slot holds a mask-image: its alpha shows the
      * background color, which paints nowhere else. */
     pub mask: bool,
+    /* A gradient mask-image, as its id in css::fade_table (0 for none),
+     * and whether its layers intersect rather than add. */
+    pub fade: u16,
+    pub fade_isect: bool,
 }
 
 impl Fx {
     /// No transform, the default 50% 50% origin, no clip, no mask.
-    pub const NONE: Fx =
-        Fx { transform: None, origin: [(0, 500), (0, 500)], clip: None, mask: false };
+    pub const NONE: Fx = Fx {
+        transform: None,
+        origin: [(0, 500), (0, 500)],
+        clip: None,
+        mask: false,
+        fade: 0,
+        fade_isect: false,
+    };
 }

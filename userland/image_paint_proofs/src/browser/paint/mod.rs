@@ -16,3 +16,21 @@
 
 #[path = "../../../../capsule_browser/src/browser/paint/grad/mod.rs"]
 pub mod grad;
+#[path = "../../../../capsule_browser/src/browser/paint/mask_weights.rs"]
+mod mask_weights;
+
+/// Shim for the mask proofs: `n` samples of mask coverage along screen
+/// row `y` from column `x0`, for mask value `v` over a box at `o`.
+pub fn mask_row(v: &str, o: [i32; 4], isect: bool, (y, x0): (i32, i32), n: usize) -> Vec<u32> {
+    use crate::browser::layout::fade_table::{fade_id, fade_value};
+    let kept = fade_value(fade_id(v)).expect("a gradient mask");
+    let layers = grad::mask_layers(&kept, o[2], o[3]).expect("layers this painter draws");
+    let (mut m, mut tmp) = (std::vec![0u32; n], std::vec![0u32; n]);
+    mask_weights::weights(&layers, o, isect, (y, x0), &mut m, &mut tmp);
+    m
+}
+
+/// Shim: old and new mixed by coverage m.
+pub fn mix(old: u32, new: u32, m: u32) -> u32 {
+    mask_weights::mix(old, new, m)
+}
