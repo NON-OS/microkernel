@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod control;
-mod guard;
-mod landing;
-mod pad;
+pub const BTI_C: u32 = 0xD503245F;
+pub const BTI_J: u32 = 0xD503249F;
+pub const BTI_JC: u32 = 0xD50324DF;
+pub const PACIASP: u32 = 0xD503233F;
+pub const PACIBSP: u32 = 0xD503237F;
 
-pub use control::{bti_enabled, bti_supported, disable_bti, enable_bti, init_bti};
-pub use guard::BtiGuard;
-pub use landing::check_bti_landing_pad;
-pub use pad::is_bti_landing_pad;
+/* Whether an indirect branch may land on this instruction in a guarded page.
+BTI c, j and jc are landing pads, and PACIASP and PACIBSP act as BTI c. A NOP
+or a bare BTI accepts no branch type, so on a core with FEAT_BTI a branch to
+either raises a Branch Target exception. */
+pub const fn is_bti_landing_pad(instruction: u32) -> bool {
+    matches!(instruction, BTI_C | BTI_J | BTI_JC | PACIASP | PACIBSP)
+}

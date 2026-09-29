@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::pad::is_bti_landing_pad;
+
 pub fn check_bti_landing_pad(addr: u64) -> bool {
     let instruction = unsafe { *(addr as *const u32) };
-    matches!(instruction, 0xD503201F | 0xD503245F | 0xD503249F | 0xD50324DF)
+    is_bti_landing_pad(instruction)
 }
