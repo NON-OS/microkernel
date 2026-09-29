@@ -16,7 +16,7 @@
 
 //! `MkForeignExec`: the same guest, a different program.
 
-use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_PERM};
+use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOENT, ERRNO_PERM};
 
 use super::exec_context::fresh;
 use super::peer_guard::{in_user_half, pid_arg};
@@ -36,6 +36,15 @@ pub fn sys_foreign_exec(pid: u64, entry: u64, rsp: u64) -> i64 {
     }
     if rsp == 0 || !in_user_half(entry, 1) || !in_user_half(rsp, 1) {
         return ERRNO_INVAL;
+    }
+    /*
+     * A thread stopped at a tick is in no call an exec could answer: the stop
+     * takes only a handler, so the thread would run on in the old image over
+     * a context and a thread pointer already replaced. Refused as for a
+     * thread not parked at all.
+     */
+    if super::trap_table::parked_nr(pid) == Some(super::frame::NR_INTERRUPTED) {
+        return ERRNO_NOENT;
     }
     let Some(previous) = swap(pid, Some(fresh(entry, rsp))) else {
         return ERRNO_INVAL;

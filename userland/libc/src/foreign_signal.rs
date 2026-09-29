@@ -42,8 +42,10 @@ pub fn mk_foreign_signal(pid: u32, regs: &ForeignRegs, kind: u64) -> i64 {
 
 /// Stop a guest thread that is running its own code at its next timer tick,
 /// and hand it over parked, numbered `FOREIGN_NR_INTERRUPTED`, so a signal can
-/// be delivered to it. 1 says it is parked in a call already, whose answer can
-/// carry the signal; 0 says it will be stopped.
+/// be delivered to it. 1 says it is parked in a call already and is left as it
+/// is: deliver with that call's answer, or, when the answer cannot carry a
+/// handler (rt_sigreturn's), call this again once it is answered. 0 says it
+/// will be stopped.
 pub fn mk_foreign_interrupt(pid: u32) -> i64 {
     call_raw(N_MK_FOREIGN_INTERRUPT, [pid as u64, 0, 0, 0, 0, 0])
 }

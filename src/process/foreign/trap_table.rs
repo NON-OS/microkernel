@@ -59,9 +59,9 @@ pub(super) fn park(frame: ForeignFrame) -> bool {
     false
 }
 
-/// Whether `pid` is parked in a call no answer has reached yet.
-pub(super) fn is_parked(pid: u32) -> bool {
-    PARKED.lock().iter().any(|p| p.frame.pid == pid && p.answer.is_none())
+/// The call `pid` is parked in that no answer has reached yet, if any.
+pub(super) fn parked_nr(pid: u32) -> Option<u64> {
+    PARKED.lock().iter().find(|p| p.frame.pid == pid && p.answer.is_none()).map(|p| p.frame.nr)
 }
 
 /// The answer for `pid`, removing the entry once it is taken.

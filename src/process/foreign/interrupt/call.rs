@@ -16,16 +16,17 @@
 
 //! The `MkForeignInterrupt` call: a supervisor marks one of its guests.
 
-use crate::process::foreign::trap_table::is_parked;
+use crate::process::foreign::trap_table::parked_nr;
 
 /// Mark `pid`, one of the caller's guests. 1 says it is parked in a call
-/// already, whose answer can carry the handler; 0 says it is marked.
+/// already and is left unmarked: its supervisor delivers with the answer, or
+/// marks it again once it is answered; 0 says it is marked.
 pub fn sys_foreign_interrupt(pid: u64) -> i64 {
     let pid = match crate::process::foreign::signal_call::supervised(pid) {
         Ok(p) => p,
         Err(e) => return e,
     };
-    if is_parked(pid) {
+    if parked_nr(pid).is_some() {
         return 1;
     }
     super::marks::mark(pid);
