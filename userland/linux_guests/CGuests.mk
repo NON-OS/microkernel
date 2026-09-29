@@ -26,3 +26,10 @@ $(eval $(call LINUX_GUEST,cwait,4978,4979,$(LINUX_GUESTS_C)/cwait))
 $(LINUX_GUESTS_C)/cpreempt: $(LINUX_GUESTS_DIR)/c/cpreempt.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cpreempt,4946,4947,$(LINUX_GUESTS_C)/cpreempt))
+
+# Bytes through a pipe between two processes: writev and one long write
+# finish whole on a blocking pipe, readv reads them back, and a non-blocking
+# writer stops short with EAGAIN.
+$(LINUX_GUESTS_C)/cpipe: $(LINUX_GUESTS_DIR)/c/cpipe.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cpipe,4982,4983,$(LINUX_GUESTS_C)/cpipe))
