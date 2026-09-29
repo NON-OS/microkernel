@@ -22,6 +22,7 @@ use super::handle::Guest;
 use super::layout::USER_MAX;
 use super::mem::{span_within, MAX_SPAN};
 use super::region::Region;
+use super::region_cut::cut;
 
 impl Guest {
     /// Pages covering `[addr, addr + len)`.
@@ -48,8 +49,10 @@ impl Guest {
         }
         /*
          * Remembered because fork copies a guest by walking what its
-         * supervisor gave it.
+         * supervisor gave it. The newest mapping is the only record of its
+         * span, as on Linux.
          */
+        self.regions = cut(&self.regions, start, span);
         self.regions.push(Region::new(start, span, write, exec, true));
         0
     }
