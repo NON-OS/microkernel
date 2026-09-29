@@ -76,6 +76,33 @@ cannot say that a given part sets a given bit.
 - **`alloc.string.String.new`**, 2 uses. Allocation, which Aeneas models as
   opaque because the allocator is not in the extracted set.
 
+## Standard-library calls in the ELF bounds check
+
+`program_header_bounds` makes four calls Aeneas has no model for, and each is
+emitted into `Elf.lean` as an opaque axiom. They are in the profile of every
+theorem in `NonosExtraction.ElfBoundsRefinement`, because they are in the
+function's definition, 5 uses each.
+
+- **`Usize.Insts.CoreConvertTryFromU64TryFromIntError.try_from`**
+  (`nonos_elf.Usize.Insts.CoreConvertTryFromU64TryFromIntError.try_from`).
+  `usize::try_from(u64)`. Aeneas models the same conversion for other widths as
+  `core.num.tryFromUScalar`; this instance is missing from its name table.
+- **`core.result.Result.map_err`** (`nonos_elf.core.result.Result.map_err`).
+  `Result::map_err`.
+- **`core.option.Option.ok_or`** (`nonos_elf.core.option.Option.ok_or`).
+  `Option::ok_or`. The policy crate gives it its four-line definition in
+  `Policy/FunsExternal.lean`; here it stays opaque.
+- **`core.mem.size_of`** (`nonos_elf.core.mem.size_of`). The size of a type, which
+  is the compiler's layout decision.
+
+None is a proof axiom. Each declares only that a function of the given type
+exists, with no equation about what it returns. A theorem that needs the behaviour
+takes it as a named hypothesis in its own statement (`TryFromIsTheConversion`,
+`MapErrMapsTheError`, `OkOrIsTheMatch`, `ProgramHeaderIsFiftySixBytes`), so the
+dependency is visible where the theorem is used rather than only here. The bound a
+caller relies on, `accepted_table_is_inside_the_file`, takes only the weakest: that
+`ok_or` never returns a value it was not given.
+
 ## Adding one
 
 If a new axiom appears, the gate fails and the fix is to add it here with what it

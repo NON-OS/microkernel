@@ -43,7 +43,7 @@ no lock, no atomic and no hardware access.
 | `ct/` | both constant-time comparison implementations, the selectors, the lookups and the arithmetic helpers | `CtRefinement`, `CtPrimitivesRefinement` |
 | `iommu/` | the second-level page-table and context-table encodings, the indexing, and the address width the AGAW chooses | `IommuRefinement` |
 | `paging/` | both page-descriptor backends, x86_64 and aarch64, read and write | `PagingRefinement` |
-| `elf/` | the relocation range check and the relocation type allowlist | `ElfRefinement` |
+| `elf/` | the relocation range check, the relocation type allowlist and the program-header table bounds | `ElfRefinement`, `ElfBoundsRefinement` |
 
 Some of what is extracted is proven wrong rather than proven right, and the file
 headers say which. `CtRefinement` proves the two constant-time comparisons
@@ -53,18 +53,21 @@ disagreed and keeps the old shape named so the regression cannot come back;
 above line 223. A refinement file that only proved agreement would be hiding
 those.
 
-Three things are extracted and not fully proven, said here rather than left to be
-discovered. `program_header_bounds` in `elf/` is regenerated and diffed by CI, so
-a change to it shows up, but no theorem covers it: a witness needs a fifteen-field
-header and a slice, and `?` desugars into `ControlFlow` over an opaque
-`Option::ok_or`. `ct_clz_u64` is a chain of six nested selects that does not close
-by reduction, and `ct_select_usize` goes through a cast the kernel will not reduce
-past. The first is covered by
-`kernel_proofs::elf_tests::program_header_table_never_overflows_or_escapes_the_file`,
-a host test that crafts three hundred thousand headers and asserts the table
-neither overflows nor leaves the file; the other two were sampled against their
-references on twenty thousand random words with no disagreement. All three are
-tests, not proofs, and none is described as one.
+Two things are extracted and not fully proven, said here rather than left to be
+discovered. `ct_clz_u64` is a chain of six nested selects that does not close by
+reduction, and `ct_select_usize` goes through a cast the kernel will not reduce
+past. Both were sampled against their references on twenty thousand random words
+with no disagreement. That is a test, not a proof, and neither is described as one.
+
+`program_header_bounds` in `elf/` used to be a third. `ElfBoundsRefinement` proves
+that an accepted table ends inside the image, assuming only that `Option::ok_or`
+returns no value it was not given, and that on every header whose offset fits a
+`usize` the function returns the verdict of the `Nonos.ElfPhdr` model, assuming
+the documented behaviour of the four standard-library calls Aeneas leaves opaque.
+Those assumptions are hypotheses in the theorems, and the four calls are
+registered in `ASSUMPTIONS.md`. The host test
+`kernel_proofs::elf_tests::program_header_table_never_overflows_or_escapes_the_file`
+still runs.
 
 `select_caps` was written with iterator adapters, which are outside Aeneas's
 supported fragment, so it could not be extracted at all; it takes its table as an
