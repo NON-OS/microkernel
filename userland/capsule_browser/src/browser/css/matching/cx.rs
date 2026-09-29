@@ -21,19 +21,22 @@ use crate::browser::dom::Dom;
 
 use super::sibling::Siblings;
 
-/* Compound tests one match may spend before it answers no match. A :has()
+/* Steps one match may spend before it answers no match: one per compound
+ * test or node visited, and one per 16 bytes read (cost.rs). A :has()
  * scan costs about two per element it visits, so this admits one over a
  * whole document of MAX_NODES (60,000) elements, and no more. */
 pub(super) const CALL_STEPS: u32 = 131_072;
 
 /* One match in progress: the tree, its sibling table, the :scope element
- * (0 for the document element), the :has() anchor, and the steps spent. */
+ * (0 for the document element), the :has() anchor, and what it has spent:
+ * compound tests and nodes visited, and bytes read (see cost.rs). */
 pub(super) struct Cx<'a> {
     pub dom: &'a Dom,
     pub sib: &'a Siblings,
     pub scope: usize,
     pub anchor: Cell<usize>,
-    steps: Cell<u32>,
+    pub(super) steps: Cell<u32>,
+    pub(super) read: Cell<usize>,
     /* Where the last walk back through siblings stopped, as (node, index in
      * its parent's children), so a ~ scan without a table stays linear. */
     pub walked: Cell<(usize, usize)>,
@@ -42,22 +45,8 @@ pub(super) struct Cx<'a> {
 impl<'a> Cx<'a> {
     pub fn new(dom: &'a Dom, sib: &'a Siblings, scope: usize) -> Self {
         let none = Cell::new(usize::MAX);
-        Cx { dom, sib, scope, anchor: none, steps: Cell::new(0), walked: Cell::new((0, 0)) }
-    }
-
-    /* Spend one step; false once the budget is gone. */
-    pub fn tick(&self) -> bool {
-        let s = self.steps.get().saturating_add(1);
-        self.steps.set(s);
-        s <= CALL_STEPS
-    }
-
-    pub fn spent(&self) -> u32 {
-        self.steps.get()
-    }
-
-    pub fn exhausted(&self) -> bool {
-        self.steps.get() > CALL_STEPS
+        let (steps, read, walked) = (Cell::new(0), Cell::new(0), Cell::new((0, 0)));
+        Cx { dom, sib, scope, anchor: none, steps, read, walked }
     }
 
     pub fn element(&self, id: usize) -> Option<&'a Node> {

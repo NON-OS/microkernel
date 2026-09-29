@@ -17,6 +17,7 @@
 mod bloom;
 mod class;
 mod complex;
+mod cost;
 mod cx;
 mod cx_nav;
 mod dir;

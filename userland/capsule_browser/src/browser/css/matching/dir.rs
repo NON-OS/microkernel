@@ -18,6 +18,7 @@ use alloc::vec::Vec;
 
 use crate::browser::dom::node::NodeKind;
 
+use super::cost::{lookup, HOP, ITEM};
 use super::cx::Cx;
 
 /* Parent hops the direction lookup climbs; a script can build a loop. */
@@ -25,17 +26,22 @@ const MAX_HOPS: u32 = 512;
 
 /* The element's directionality (HTML 3.2.6.4): the nearest dir="ltr" or
  * dir="rtl" at or above it; dir="auto" (and a bdi without dir) takes the
- * first strong character of its text; left to right otherwise. */
+ * first strong character of its text; left to right otherwise. Each hop
+ * is paid for first; out of budget the match fails whatever this says. */
 pub(super) fn is_rtl(cx: &Cx, id: usize) -> bool {
     let mut node = id;
     for _ in 0..MAX_HOPS {
         let Some(n) = cx.dom.nodes.get(node) else { return false };
-        match n.attr("dir").map(str::to_ascii_lowercase).as_deref() {
-            Some("rtl") => return true,
-            Some("ltr") => return false,
-            Some("auto") => return first_strong_rtl(cx, node),
-            None if n.tag == "bdi" => return first_strong_rtl(cx, node),
-            _ => {}
+        if !cx.charge(HOP + lookup(n)) {
+            return false;
+        }
+        let dir = n.attr("dir");
+        let is = |v: &str| dir.is_some_and(|d| d.eq_ignore_ascii_case(v));
+        if is("rtl") || is("ltr") {
+            return is("rtl");
+        }
+        if is("auto") || (dir.is_none() && n.tag == "bdi") {
+            return first_strong_rtl(cx, node);
         }
         if node == 0 || n.parent == node {
             return false;
@@ -46,14 +52,15 @@ pub(super) fn is_rtl(cx: &Cx, id: usize) -> bool {
 }
 
 /* The first character with a strong direction in the element's text, in
- * tree order; each node visited costs a step. Hebrew, Arabic, Syriac,
+ * tree order; each node visited costs a step, and its text and child list
+ * are paid for before they are read. Hebrew, Arabic, Syriac,
  * Thaana, N'Ko and the Arabic presentation forms read right to left, any
  * other letter left to right, and text with no letter left to right. */
 fn first_strong_rtl(cx: &Cx, id: usize) -> bool {
     let mut stack: Vec<usize> = Vec::from([id]);
     while let Some(i) = stack.pop() {
         let Some(n) = cx.dom.nodes.get(i) else { continue };
-        if !cx.tick() {
+        if !cx.tick() || !cx.charge(n.text.len() + n.children.len() * ITEM) {
             return false;
         }
         if n.kind == NodeKind::Text {

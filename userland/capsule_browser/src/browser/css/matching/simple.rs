@@ -17,12 +17,14 @@
 use crate::browser::css::selector::Simple;
 
 use super::class::{classes_match, id_matches};
+use super::cost::lookup;
 use super::cx::Cx;
 use super::pseudo::pseudo_matches;
 
 /* One compound at one element: tag, id, classes, attributes, then the
  * pseudo-classes, cheapest first so most candidates fail before any
- * attribute is looked up. Only elements match. */
+ * attribute is looked up. Only elements match. Each lookup and each value
+ * test is paid for, in bytes, before it runs. */
 pub(super) fn compound(cx: &Cx, id: usize, s: &Simple) -> bool {
     let Some(node) = cx.element(id) else {
         return false;
@@ -37,8 +39,11 @@ pub(super) fn compound(cx: &Cx, id: usize, s: &Simple) -> bool {
         return false;
     }
     for (name, test) in &s.attrs {
+        if !cx.charge(lookup(node)) {
+            return false;
+        }
         match node.attr(name) {
-            Some(have) if test.matches(have) => {}
+            Some(have) if cx.charge(test.cost(have)) && test.matches(have) => {}
             _ => return false,
         }
     }

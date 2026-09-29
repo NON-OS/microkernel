@@ -44,7 +44,7 @@ pub(super) fn pseudo_matches(cx: &Cx, id: usize, p: &Pseudo) -> bool {
         Pseudo::Scope if cx.scope == 0 => is_root(cx.dom, id),
         Pseudo::Scope => cx.scope == id,
         Pseudo::AnyLink => is_link(cx.dom, id),
-        Pseudo::Lang(want) => lang_matches(cx.dom, id, want),
+        Pseudo::Lang(want) => lang_matches(cx, id, want),
         Pseudo::Dir(rtl) => is_rtl(cx, id) == *rtl,
         Pseudo::Defined => defined(cx.dom, id),
         Pseudo::Open => is_open(cx.dom, id),

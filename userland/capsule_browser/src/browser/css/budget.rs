@@ -45,11 +45,17 @@ impl MatchBudget {
      * skips author matching and keeps the inherited + UA style. */
     /* Dry also once the matcher has spent this cascade's steps. */
     pub(super) fn take(&mut self, n: usize) -> bool {
-        if self.left < n || spent().wrapping_sub(self.start) > MAX_MATCH_STEPS {
+        if self.left < n || self.spent_out() {
             self.left = 0;
             return false;
         }
         self.left -= n;
         true
+    }
+
+    /* The matcher has spent this cascade's steps. Read before every
+     * candidate too, since one candidate may spend a whole call's steps. */
+    pub(super) fn spent_out(&self) -> bool {
+        spent().wrapping_sub(self.start) > MAX_MATCH_STEPS
     }
 }

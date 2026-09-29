@@ -14,22 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::dom::Dom;
+use super::cost::{lookup, HOP};
+use super::cx::Cx;
 
 /* Parent hops the language lookup climbs; a script can build a loop. */
 const MAX_HOPS: u32 = 512;
+
+/* Splitting a tag into subtags costs about four plain byte reads a byte. */
+const SPLIT: usize = 4;
 
 /* :lang(range): the element's language, inherited from the nearest element
  * at or above it with a lang (or xml:lang) attribute, matches the range by
  * RFC 4647 extended filtering, so :lang(fr) holds for fr-CA and :lang(*-CH)
  * for de-CH. An empty lang="" means the language is unknown, which no range
- * matches; so does a document that never states one. */
-pub(super) fn lang_matches(dom: &Dom, id: usize, range: &str) -> bool {
+ * matches; so does a document that never states one. Each hop and the
+ * comparison are paid for, in bytes, before they run. */
+pub(super) fn lang_matches(cx: &Cx, id: usize, range: &str) -> bool {
     let mut node = id;
     for _ in 0..MAX_HOPS {
-        let Some(n) = dom.nodes.get(node) else { return false };
+        let Some(n) = cx.dom.nodes.get(node) else { return false };
+        if !cx.charge(HOP + 2 * lookup(n)) {
+            return false;
+        }
         if let Some(tag) = n.attr("lang").or_else(|| n.attr("xml:lang")) {
-            return !tag.is_empty() && extended(range, tag);
+            return !tag.is_empty()
+                && cx.charge(SPLIT * (tag.len() + range.len()))
+                && extended(range, tag);
         }
         if node == 0 || n.parent == node {
             return false;

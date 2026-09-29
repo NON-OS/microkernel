@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod attr;
+mod attr_match;
 mod comb;
 mod complex;
 mod hash;
