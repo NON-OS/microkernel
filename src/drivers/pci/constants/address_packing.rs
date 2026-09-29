@@ -18,7 +18,7 @@
 pub const fn pci_config_address(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
     (1u32 << 31)
         | ((bus as u32) << 16)
-        | ((device as u32) << 11)
-        | ((function as u32) << 8)
+        | (((device & 0x1F) as u32) << 11)
+        | (((function & 0x7) as u32) << 8)
         | ((offset as u32) & 0xFC)
 }
