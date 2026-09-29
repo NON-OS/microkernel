@@ -27,6 +27,9 @@ struct Entry {
 
 static FOREIGN: RwLock<Vec<Entry>> = RwLock::new(Vec::new());
 
+/* A guest ended because its supervisor did: 128 + SIGKILL, as a shell shows. */
+const ORPHAN_EXIT: i32 = 137;
+
 /// Record `pid` as foreign under `supervisor`. False if already recorded.
 pub(super) fn insert(pid: u32, supervisor: u32) -> bool {
     let mut t = FOREIGN.write();
@@ -54,10 +57,13 @@ pub(super) fn guests_of(supervisor: u32) -> Vec<u32> {
 /// Called from process teardown; a supervisor leaving takes its guests.
 pub fn clear(pid: u32) {
     let orphans = guests_of(pid);
-    // Both directions go, not just this process's own row.
+    /* Both directions go, not just this process's own row. */
     FOREIGN.write().retain(|e| e.pid != pid && e.supervisor != pid);
+    /* Every guest call is served by the supervisor, so a guest left running
+     * without it only fails: musl's _Exit looped on exit_group and exit, each
+     * now ENOSYS, and spun a CPU for good. The guests end with it. */
     for guest in orphans {
-        super::trap_reply::abandon(guest);
+        crate::process::exit::teardown(guest, ORPHAN_EXIT, true);
     }
     /*
      * A guest that died while parked leaves its frame behind, and

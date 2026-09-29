@@ -21,8 +21,8 @@ use super::registry;
 use super::trap_table::PARKED;
 use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOENT, ERRNO_PERM};
 
-// A guest whose supervisor died is not left asleep forever and is not told its
-// call succeeded.
+/* A guest whose supervisor went before its call parked is refused, not told
+ * the call succeeded; the supervisor's teardown then ends the guest. */
 pub(super) const ABANDONED: u64 = ERRNO_NOENT as u64;
 
 /// `MkForeignReply`: answer one parked guest. Refused unless the caller is
@@ -58,14 +58,4 @@ pub(super) fn answer_raw(pid: u32, value: u64) -> i64 {
 /// pid cannot collect an answer left behind by its predecessor.
 pub(super) fn forget(pid: u32) {
     PARKED.lock().retain(|p| p.frame.pid != pid);
-}
-
-/// Release every frame belonging to a guest whose supervisor has gone.
-pub(super) fn abandon(pid: u32) {
-    let mut parked = PARKED.lock();
-    for entry in parked.iter_mut().filter(|p| p.frame.pid == pid) {
-        entry.answer = Some(ABANDONED);
-    }
-    drop(parked);
-    crate::sched::wake_process(pid);
 }
