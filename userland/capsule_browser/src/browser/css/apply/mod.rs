@@ -37,6 +37,7 @@ pub(super) mod grid_names;
 mod grid_template;
 mod list;
 mod margin;
+mod object;
 mod origin;
 mod overflow;
 mod padding;

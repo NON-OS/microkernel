@@ -32,7 +32,7 @@ fn scaled_and_clipped_blits_match_the_full_box_loop() {
             {
                 let src = [0, 0, w, h];
                 let want = frame(|fb| blit_ref::draw(fb, &img, dest, src, alpha, clip));
-                let got = frame(|fb| blit_into(fb, &img, dest, ObjectFit::Fill, alpha, clip));
+                let got = frame(|fb| blit_into(fb, &img, dest, ObjectFit::FILL, alpha, clip));
                 assert_eq!(got, want, "img {w}x{h} dest {dest:?} clip {clip:?}");
             }
         }

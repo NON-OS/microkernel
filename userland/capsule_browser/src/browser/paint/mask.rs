@@ -37,5 +37,5 @@ pub(super) fn paint_mask(
     }
     let px = mask.px.iter().map(|p| (((p >> 24) * a / 255) << 24) | rgb).collect();
     let tinted = Decoded { w: mask.w, h: mask.h, px };
-    blit_rect(fb, &tinted, dest, ObjectFit::Fill, f.alpha, Some(vis));
+    blit_rect(fb, &tinted, dest, ObjectFit::FILL, f.alpha, Some(vis));
 }

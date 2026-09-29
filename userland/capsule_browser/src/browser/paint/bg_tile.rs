@@ -38,7 +38,7 @@ pub(super) fn paint_tiles(
     let mut blit =
         |rect: [i32; 4], fit: ObjectFit| blit_rect(fb, img, rect, fit, alpha, Some(clip));
     if !repeat {
-        return blit(tile, ObjectFit::Fill);
+        return blit(tile, ObjectFit::FILL);
     }
     /* The first tile at or before each clip edge, stepping from the anchor. */
     let first = |lo: i32, at: i32, step: i32| {
@@ -49,12 +49,12 @@ pub(super) fn paint_tiles(
     let rows = (clip[3] as i64 - y0 + th as i64 - 1) / th as i64;
     /* Bound the tile count so a one-pixel pattern cannot spin the painter. */
     if cols.saturating_mul(rows) > 4096 {
-        return blit([clip[0], clip[1], clip[2] - clip[0], clip[3] - clip[1]], ObjectFit::Cover);
+        return blit([clip[0], clip[1], clip[2] - clip[0], clip[3] - clip[1]], ObjectFit::COVER);
     }
     for r in 0..rows.max(0) {
         for c in 0..cols.max(0) {
             let (x, y) = (x0 + c * tw as i64, y0 + r * th as i64);
-            blit([x as i32, y as i32, tw, th], ObjectFit::Fill);
+            blit([x as i32, y as i32, tw, th], ObjectFit::FILL);
         }
     }
 }

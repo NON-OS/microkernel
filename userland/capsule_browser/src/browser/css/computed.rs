@@ -18,9 +18,11 @@ mod shadow;
 pub use shadow::{Shadow, ShadowLayer, MAX_SHADOWS};
 mod bg_layer;
 mod bg_tile_rect;
+mod object_fit;
 mod table_style;
 
 pub use bg_layer::{BgLayer, BgLen, BgSize};
+pub use object_fit::ObjectFit;
 
 pub use table_style::TableStyle;
 
@@ -52,16 +54,6 @@ pub enum WhiteSpace {
     PreWrap,
     /* Collapse spaces but keep every newline as a line break. */
     PreLine,
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum ObjectFit {
-    /* Fit the whole image inside the box, letterboxing the spare space. */
-    Contain,
-    /* Fill the box, cropping whatever overflows after covering it. */
-    Cover,
-    /* Stretch the image to the box, ignoring its aspect ratio. */
-    Fill,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -331,7 +323,7 @@ impl Computed {
             italic: false,
             text_align: TextAlign::Start,
             white_space: WhiteSpace::Normal,
-            object_fit: ObjectFit::Contain,
+            object_fit: ObjectFit::CONTAIN,
             text_transform: TextTransform::None,
             font_key: 0,
             icon_font: false,

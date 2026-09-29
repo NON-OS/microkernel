@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::browser::css::ObjectFit;
+use crate::browser::layout::boxmodel::rel;
 
-/* Where a w x h image goes in the box [x, y, box_w, box_h] under object-fit:
+/* Where a w x h image goes in the box [x, y, box_w, box_h] under object-fit
+ * and object-position:
  * the destination rect and the source rect drawn into it. None for an empty
  * image or box. */
 pub(super) fn place(
@@ -34,26 +36,28 @@ pub(super) fn place(
     let whole = [0, 0, w, h];
     Some(match fit {
         /* Whole image into the whole box, ignoring aspect ratio. */
-        ObjectFit::Fill => (dest, whole),
-        /* Whole image into a centred rect that fits inside the box. */
-        ObjectFit::Contain => {
+        ObjectFit::Fill(_) => (dest, whole),
+        /* Whole image into a rect that fits inside the box, placed by
+         * object-position in the room left over. */
+        ObjectFit::Contain(p) => {
             let (dw, dh) = if bw * ih <= bh * iw {
                 (bw as i32, ((bw * ih) / iw) as i32)
             } else {
                 (((bh * iw) / ih) as i32, bh as i32)
             };
-            ([x + (box_w - dw) / 2, y + (box_h - dh) / 2, dw, dh], whole)
+            ([x + rel(p[0], box_w - dw), y + rel(p[1], box_h - dh), dw, dh], whole)
         }
-        /* A centred crop of the image, with the box's aspect, into the box. */
-        ObjectFit::Cover => {
-            let src = if bw * ih >= bh * iw {
-                let sh = (iw * bh) / bw;
-                [0, ((ih - sh) / 2) as u32, w, (sh as u32).max(1)]
-            } else {
-                let sw = (ih * bw) / bh;
-                [((iw - sw) / 2) as u32, 0, (sw as u32).max(1), h]
-            };
-            (dest, src)
+        /* The image scaled to cover the box, placed by object-position (its
+         * overflow is negative room), and the part inside the box drawn. */
+        ObjectFit::Cover(p) => {
+            let s = (bw as f64 / iw as f64).max(bh as f64 / ih as f64);
+            let (sw, sh) = ((iw as f64 * s + 0.5) as i32, (ih as f64 * s + 0.5) as i32);
+            let (dx, dy) = (rel(p[0], box_w - sw), rel(p[1], box_h - sh));
+            let (cw, ch) =
+                (((bw as f64 / s) as u32).clamp(1, w), ((bh as f64 / s) as u32).clamp(1, h));
+            let x0 = ((-dx as f64 / s).max(0.0) as u32).min(w - cw);
+            let y0 = ((-dy as f64 / s).max(0.0) as u32).min(h - ch);
+            (dest, [x0, y0, cw, ch])
         }
     })
 }
