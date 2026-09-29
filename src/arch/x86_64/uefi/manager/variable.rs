@@ -48,8 +48,9 @@ impl UefiManager {
             )
         };
 
-        if get_status != status::EFI_BUFFER_TOO_SMALL && get_status != status::EFI_SUCCESS {
-            if get_status == status::EFI_NOT_FOUND {
+        let get_code = status::code(get_status);
+        if get_code != status::EFI_BUFFER_TOO_SMALL && get_status != status::EFI_SUCCESS {
+            if get_code == status::EFI_NOT_FOUND {
                 return Err(UefiError::VariableNotFound { name: "variable" });
             }
             return Err(UefiError::VariableReadFailed { status: get_status });
