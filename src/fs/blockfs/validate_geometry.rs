@@ -22,8 +22,13 @@ pub(crate) fn validate_geometry() -> Result<u64, BlockFsError> {
     if geometry.sector_size != crate::fs::cryptoblock::SECTOR_BYTES as u32 {
         return Err(BlockFsError::InvalidGeometry);
     }
-    if geometry.sectors <= FIRST_ALLOC_LBA + 1 {
+    /*
+     * The volume is the window the cryptoblock layer was given, not the
+     * whole device: blockfs addresses sectors inside it.
+     */
+    let sectors = crate::fs::cryptoblock::window_sectors().ok_or(BlockFsError::InvalidGeometry)?;
+    if sectors <= FIRST_ALLOC_LBA + 1 {
         return Err(BlockFsError::InvalidGeometry);
     }
-    Ok(geometry.sectors)
+    Ok(sectors)
 }

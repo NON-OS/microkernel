@@ -17,10 +17,11 @@
 use super::constants::{PLAIN_BLOCK_BYTES, SECTOR_BYTES};
 use super::map_block::map_block_error;
 use super::open::open;
+use super::window::device_lba;
 use super::CryptoBlockError;
 
 pub fn read(key: &[u8; 32], lba: u64) -> Result<[u8; PLAIN_BLOCK_BYTES], CryptoBlockError> {
     let mut sector = [0u8; SECTOR_BYTES];
-    crate::hardware::block_device::read(lba, &mut sector).map_err(map_block_error)?;
+    crate::hardware::block_device::read(device_lba(lba)?, &mut sector).map_err(map_block_error)?;
     open(key, lba, &sector)
 }
