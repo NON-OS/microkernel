@@ -47,6 +47,163 @@ theorem the_zonestats_total_bytes_wrapper_is_its_method (a : zone_stats.ZoneStat
 theorem the_zonestats_free_bytes_wrapper_is_its_method (a : zone_stats.ZoneStats) (b : Std.Usize) :
     zonestats_free_bytes a b = zone_stats.ZoneStats.free_bytes a b := rfl
 
+/-! ### Counts, percentages and byte totals
+
+`new` keeps its arguments in the order the allocator's `get_zone_stats` passes
+them, `frames_allocated` is total less free floored at zero, and
+`usage_percent` is 0 for an empty zone, the rounded down allocated share
+otherwise, never above 100 when it returns, and aborts exactly when the checked
+`allocated * 100` passes `usize::MAX`.
+
+What these cannot establish: `usize::saturating_mul` is left as an opaque
+axiom by the extraction, so nothing is proven here about the value of
+`total_bytes` or `free_bytes`, only that each applies the same product to its
+own field with the page size. Nor do they say the free count handed to `new`
+is right; `bitmap::count_free_bits` reads raw memory and is not extracted. -/
+
+/-- `new` stores its first argument as the total and its second as the free
+    count. `get_zone_stats` in the allocator passes `frame_count` then the free
+    bit count, so an exchange here would report a full zone as empty. -/
+theorem zonestats_new_keeps_total_and_free_in_their_fields (t f : Std.Usize) :
+    ∃ s, zonestats_new t f = ok s ∧ s.frames_total = t ∧ s.frames_free = f :=
+  ⟨_, rfl, rfl, rfl⟩
+
+/-- The saturating subtraction behind `zonestats_frames_allocated` is truncated
+    subtraction on the naturals. -/
+theorem the_saturating_subtraction_of_the_counts_is_truncated_subtraction (s : zone_stats.ZoneStats) :
+    (core.num.Usize.saturating_sub s.frames_total s.frames_free).val = s.frames_total.val - s.frames_free.val := by
+  simp only [core.num.Usize.saturating_sub, UScalar.saturating_sub]
+  have := s.frames_total.hBounds
+  simp only [UScalar.val, BitVec.toNat_ofNat] at *
+  rw [Nat.zero_max, Nat.mod_eq_of_lt (by omega)]
+
+/-- Allocated and free frames make up the total exactly while the free count is
+    within it. A free count above the total reads as 0 allocated, neither
+    failing nor wrapping. -/
+theorem zonestats_frames_allocated_is_total_less_free_floored_at_zero (s : zone_stats.ZoneStats) :
+    ∃ a, zonestats_frames_allocated s = ok a ∧
+      (s.frames_free.val ≤ s.frames_total.val → a.val + s.frames_free.val = s.frames_total.val) ∧
+      (s.frames_total.val ≤ s.frames_free.val → a.val = 0) := by
+  refine ⟨_, rfl, ?_⟩
+  rw [the_saturating_subtraction_of_the_counts_is_truncated_subtraction]
+  omega
+
+/-- A zone with no frames, which is what `get_zone_stats` reports before the
+    allocator is initialised, reads 0 percent used without dividing. -/
+theorem zonestats_usage_percent_of_an_empty_zone_is_zero (f : Std.Usize) :
+    zonestats_usage_percent ⟨0#usize, f⟩ = ok 0#usize := by
+  unfold zonestats_usage_percent zone_stats.ZoneStats.usage_percent
+  rw [if_pos rfl]
+
+/-- With a nonzero total and a product that fits, `zonestats_usage_percent` is
+    the allocated share rounded down, in percent. -/
+theorem zonestats_usage_percent_is_the_allocated_share_rounded_down (s : zone_stats.ZoneStats) (h0 : s.frames_total.val ≠ 0)
+    (hfit : (s.frames_total.val - s.frames_free.val) * 100 ≤ Usize.max) :
+    ∃ p, zonestats_usage_percent s = ok p ∧
+      p.val = (s.frames_total.val - s.frames_free.val) * 100 / s.frames_total.val := by
+  unfold zonestats_usage_percent zone_stats.ZoneStats.usage_percent
+  have hz : ¬ s.frames_total = 0#usize := fun h => h0 (by rw [h]; rfl)
+  rw [if_neg hz]
+  simp only [zone_stats.ZoneStats.frames_allocated, bind_tc_ok]
+  have hm := UScalar.mul_equiv (core.num.Usize.saturating_sub s.frames_total s.frames_free) 100#usize
+  have h100 : (100#usize : Std.Usize).val = 100 := rfl
+  rw [show ((core.num.Usize.saturating_sub s.frames_total s.frames_free) * 100#usize : Result Std.Usize) = UScalar.mul (core.num.Usize.saturating_sub s.frames_total s.frames_free) 100#usize from rfl]
+  cases h : UScalar.mul (core.num.Usize.saturating_sub s.frames_total s.frames_free) 100#usize with
+  | ok i1 =>
+    rw [h] at hm
+    obtain ⟨-, hv1, -⟩ := hm
+    obtain ⟨i2, h2, hv2⟩ := UScalar.div_spec i1 (y := s.frames_total) h0
+    rw [bind_tc_ok, h2]
+    refine ⟨_, rfl, ?_⟩
+    rw [hv2, hv1, h100, the_saturating_subtraction_of_the_counts_is_truncated_subtraction]
+  | fail e =>
+    rw [h] at hm
+    rw [the_saturating_subtraction_of_the_counts_is_truncated_subtraction, h100] at hm
+    rw [UScalar.max_USize_eq] at hm
+    omega
+  | div => rw [h] at hm; exact hm.elim
+
+/-- Whenever `zonestats_usage_percent` returns, it returns at most 100: the
+    saturating subtraction keeps the allocated count within the total even for
+    an inconsistent free count above it. -/
+theorem zonestats_usage_percent_is_at_most_100 (s : zone_stats.ZoneStats) (p : Std.Usize)
+    (h : zonestats_usage_percent s = ok p) : p.val ≤ 100 := by
+  by_cases h0 : s.frames_total.val = 0
+  · have hz : s.frames_total = 0#usize := UScalar.eq_of_val_eq (by rw [h0]; rfl)
+    unfold zonestats_usage_percent zone_stats.ZoneStats.usage_percent at h
+    rw [if_pos hz] at h
+    cases h
+    decide
+  · by_cases hfit : (s.frames_total.val - s.frames_free.val) * 100 ≤ Usize.max
+    · obtain ⟨q, hq, hv⟩ := zonestats_usage_percent_is_the_allocated_share_rounded_down s h0 hfit
+      rw [hq] at h
+      cases h
+      rw [hv]
+      exact Nat.div_le_of_le_mul (Nat.mul_le_mul_right 100 (Nat.sub_le _ _))
+    · exfalso
+      unfold zonestats_usage_percent zone_stats.ZoneStats.usage_percent at h
+      have hz : ¬ s.frames_total = 0#usize := fun h' => h0 (by rw [h']; rfl)
+      rw [if_neg hz] at h
+      simp only [zone_stats.ZoneStats.frames_allocated, bind_tc_ok] at h
+      have hm := UScalar.mul_equiv (core.num.Usize.saturating_sub s.frames_total s.frames_free) 100#usize
+      rw [show ((core.num.Usize.saturating_sub s.frames_total s.frames_free) * 100#usize : Result Std.Usize) = UScalar.mul (core.num.Usize.saturating_sub s.frames_total s.frames_free) 100#usize from rfl] at h
+      cases hc : UScalar.mul (core.num.Usize.saturating_sub s.frames_total s.frames_free) 100#usize with
+      | ok i1 =>
+        rw [hc] at hm
+        obtain ⟨hle, -, -⟩ := hm
+        rw [the_saturating_subtraction_of_the_counts_is_truncated_subtraction, UScalar.max_USize_eq] at hle
+        exact hfit (by simpa using hle)
+      | fail e => rw [hc] at h; cases h
+      | div => rw [hc] at hm; exact hm.elim
+
+/-- The product `allocated * 100` is checked, so `zonestats_usage_percent`
+    aborts exactly when the zone is nonempty and that product passes
+    `usize::MAX`. On a 64 bit target this needs more than 2^57 allocated frames,
+    far beyond any physical memory, so it is recorded as a boundary rather than
+    a defect. -/
+theorem zonestats_usage_percent_fails_exactly_past_the_multiplication_bound
+    (s : zone_stats.ZoneStats) :
+    zonestats_usage_percent s = fail .integerOverflow ↔
+      (s.frames_total.val ≠ 0 ∧ Usize.max < (s.frames_total.val - s.frames_free.val) * 100) := by
+  by_cases h0 : s.frames_total.val = 0
+  · have hz : s.frames_total = 0#usize := UScalar.eq_of_val_eq (by rw [h0]; rfl)
+    unfold zonestats_usage_percent zone_stats.ZoneStats.usage_percent
+    rw [if_pos hz]
+    simp [h0]
+  · unfold zonestats_usage_percent zone_stats.ZoneStats.usage_percent
+    have hz : ¬ s.frames_total = 0#usize := fun h' => h0 (by rw [h']; rfl)
+    rw [if_neg hz]
+    simp only [zone_stats.ZoneStats.frames_allocated, bind_tc_ok]
+    have hm := UScalar.mul_equiv (core.num.Usize.saturating_sub s.frames_total s.frames_free) 100#usize
+    have h100 : (100#usize : Std.Usize).val = 100 := rfl
+    rw [show ((core.num.Usize.saturating_sub s.frames_total s.frames_free) * 100#usize : Result Std.Usize) = UScalar.mul (core.num.Usize.saturating_sub s.frames_total s.frames_free) 100#usize from rfl]
+    cases h : UScalar.mul (core.num.Usize.saturating_sub s.frames_total s.frames_free) 100#usize with
+    | ok i1 =>
+      rw [h] at hm
+      obtain ⟨hle, -, -⟩ := hm
+      rw [the_saturating_subtraction_of_the_counts_is_truncated_subtraction, UScalar.max_USize_eq, h100] at hle
+      obtain ⟨i2, h2, -⟩ := UScalar.div_spec i1 (y := s.frames_total) h0
+      rw [bind_tc_ok, h2]
+      simp only [reduceCtorEq, false_iff, not_and, not_lt]
+      intro _
+      exact hle
+    | fail e =>
+      rw [h] at hm
+      rw [the_saturating_subtraction_of_the_counts_is_truncated_subtraction, UScalar.max_USize_eq, h100] at hm
+      have he : e = .integerOverflow := by
+        simp only [UScalar.mul, UScalar.tryMk, Result.ofOption] at h
+        split at h <;> simp_all
+      subst he
+      simp only [bind_tc_fail, true_iff]
+      exact ⟨h0, by omega⟩
+    | div => rw [h] at hm; exact hm.elim
+
+/-- `zonestats_free_bytes` is `zonestats_total_bytes` read from the free count:
+    both apply the same saturating product to their own field and nothing else.
+    The product itself is opaque, as the section heading says. -/
+theorem zonestats_free_bytes_is_total_bytes_with_the_counts_exchanged (t f p : Std.Usize) :
+    zonestats_free_bytes ⟨t, f⟩ p = zonestats_total_bytes ⟨f, t⟩ p := rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesZoneStats.the_zonestats_new_wrapper_is_its_method
@@ -54,5 +211,13 @@ theorem the_zonestats_free_bytes_wrapper_is_its_method (a : zone_stats.ZoneStats
 #print axioms NonosExtraction.TypesZoneStats.the_zonestats_usage_percent_wrapper_is_its_method
 #print axioms NonosExtraction.TypesZoneStats.the_zonestats_total_bytes_wrapper_is_its_method
 #print axioms NonosExtraction.TypesZoneStats.the_zonestats_free_bytes_wrapper_is_its_method
+#print axioms NonosExtraction.TypesZoneStats.zonestats_new_keeps_total_and_free_in_their_fields
+#print axioms NonosExtraction.TypesZoneStats.the_saturating_subtraction_of_the_counts_is_truncated_subtraction
+#print axioms NonosExtraction.TypesZoneStats.zonestats_frames_allocated_is_total_less_free_floored_at_zero
+#print axioms NonosExtraction.TypesZoneStats.zonestats_usage_percent_of_an_empty_zone_is_zero
+#print axioms NonosExtraction.TypesZoneStats.zonestats_usage_percent_is_the_allocated_share_rounded_down
+#print axioms NonosExtraction.TypesZoneStats.zonestats_usage_percent_is_at_most_100
+#print axioms NonosExtraction.TypesZoneStats.zonestats_usage_percent_fails_exactly_past_the_multiplication_bound
+#print axioms NonosExtraction.TypesZoneStats.zonestats_free_bytes_is_total_bytes_with_the_counts_exchanged
 
 end NonosExtraction.TypesZoneStats

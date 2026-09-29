@@ -34,10 +34,12 @@ def types.PciDevice.bdf (self : types.PciDevice) : Result Std.U16 := do
   let i ← lift (UScalar.cast .U16 self.bus)
   let i1 ← i <<< 8#i32
   let i2 ← lift (UScalar.cast .U16 self.device)
-  let i3 ← i2 <<< 3#i32
-  let i4 ← lift (i1 ||| i3)
-  let i5 ← lift (UScalar.cast .U16 self.function)
-  ok (i4 ||| i5)
+  let i3 ← lift (i2 &&& 31#u16)
+  let i4 ← i3 <<< 3#i32
+  let i5 ← lift (i1 ||| i4)
+  let i6 ← lift (UScalar.cast .U16 self.function)
+  let i7 ← lift (i6 &&& 7#u16)
+  ok (i5 ||| i7)
 
 /-- [nonos_x_pci_types::types::{nonos_x_pci_types::types::PciDevice}::is_bridge]:
     Source: 'src/../../../../../src/arch/x86_64/acpi/devices/pci/types.rs', lines 34:4-36:5

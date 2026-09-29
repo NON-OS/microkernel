@@ -28,10 +28,12 @@ defeat that, so a crate that fails to build is an error and not a skip.
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 
@@ -97,6 +99,8 @@ def main():
     ap.add_argument('--repo-root', default='.')
     ap.add_argument('--manifest', default='verification/extraction/crates.json')
     ap.add_argument('--only', help='regenerate a single crate by name')
+    ap.add_argument('--jobs', type=int, default=os.cpu_count() or 1,
+                    help='crates to regenerate at once')
     ap.add_argument('--write', action='store_true',
                     help='update the committed modules instead of diffing them')
     args = ap.parse_args()
@@ -112,8 +116,12 @@ def main():
     failures = []
     with tempfile.TemporaryDirectory(prefix='nonos-regen-') as tmp:
         work = Path(tmp)
-        for c in crates:
-            why = regen_one(root, c, work, args.write)
+        # Each crate builds in its own directory and translates into its own
+        # scratch directory, so crates are independent and run side by side;
+        # results print in manifest order.
+        with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+            results = list(pool.map(lambda c: regen_one(root, c, work, args.write), crates))
+        for c, why in zip(crates, results):
             if why:
                 failures.append((c['name'], why))
                 print('FAIL  %-34s %s' % (c['name'], why.splitlines()[0]))

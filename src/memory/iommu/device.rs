@@ -26,7 +26,7 @@ impl DeviceAddress {
     }
 
     pub const fn pci(bus: u8, device: u8, function: u8) -> Self {
-        Self(((bus as u32) << 8) | ((device as u32) << 3) | (function as u32 & 0x7))
+        Self(((bus as u32) << 8) | ((device as u32 & 0x1F) << 3) | (function as u32 & 0x7))
     }
 
     pub const fn as_u32(&self) -> u32 {

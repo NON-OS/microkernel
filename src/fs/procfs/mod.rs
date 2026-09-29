@@ -22,6 +22,7 @@ mod meminfo;
 mod mount;
 mod mounts;
 pub mod pid;
+mod pid_inode;
 mod root;
 mod self_link;
 mod stat;

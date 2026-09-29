@@ -47,6 +47,195 @@ theorem the_sample_min_wrapper_is_its_method (a : sample.Sample) :
 theorem the_sample_max_wrapper_is_its_method (a : sample.Sample) :
     sample_max a = sample.Sample.max a := rfl
 
+/-! ### What the report reads out of a run
+
+`report.rs` prints four numbers for every microbenchmark: `min`, the median
+`quantile(1, 2)`, the tail `quantile(95, 100)` and `max`. The theorems below say
+which slot of the timing array each of those reads, that the two quantiles at
+the ends of the range read the same slots as `min` and `max`, and exactly where
+`quantile` stops returning a value: a zero denominator, a product that overflows
+`usize`, or a count past the array's capacity.
+
+Every statement about a nonempty run assumes `used ≤ 1024`. That bound is kept
+by `push`, which only writes and increments while `used < CAPACITY`; `push` and
+`sort` mutate the sample in place and are not extracted, so the bound is a
+hypothesis here rather than a proven invariant, and nothing here says the slots
+are sorted when a quantile is read. The last theorem about `max` shows what the
+bound protects: one past it, the read is out of bounds and the kernel panics.
+-/
+
+/-- Reading slot `i` of a timing array inside its length returns that slot. -/
+theorem reading_a_slot_inside_the_array_returns_it {n : Std.Usize} (v : Array Std.U64 n)
+    (i : Std.Usize) (h : i.val < n.val) :
+    Array.index_usize v i = ok v.val[i.val]! := by
+  unfold Array.index_usize
+  have hl := v.property
+  simp [Array.getElem?_Usize_eq]
+  rw [List.getElem?_eq_getElem (by omega)]
+  simp
+
+/-- Reading at or past the length of a timing array is refused. -/
+theorem reading_past_the_array_is_out_of_bounds {n : Std.Usize} (v : Array Std.U64 n)
+    (i : Std.Usize) (h : n.val ≤ i.val) :
+    Array.index_usize v i = fail .arrayOutOfBounds := by
+  unfold Array.index_usize
+  have hl := v.property
+  simp [Array.getElem?_Usize_eq]
+  rw [List.getElem?_eq_none (by omega)]
+
+theorem a_positive_count_is_not_zero (s : sample.Sample) (h : 0 < s.used.val) :
+    s.used ≠ 0#usize := by
+  intro e; rw [e] at h; exact absurd h (by decide)
+
+theorem the_last_rank_of_a_nonempty_run_is_one_below_the_count (s : sample.Sample)
+    (h0 : 0 < s.used.val) :
+    ∃ i, s.used - 1#usize = ok i ∧ i.val = s.used.val - 1 := by
+  have ⟨i, hi, hiv⟩ := WP.spec_imp_exists
+    (Usize.sub_spec (x := s.used) (y := 1#usize) (by scalar_tac))
+  exact ⟨i, hi, by scalar_tac⟩
+
+/-- A sample from `sample_new` holds no timings: `sample_len` is zero, every slot
+    is zero, and `sample_min`, `sample_max` and `sample_quantile` at any fraction,
+    including a zero denominator, return zero rather than reading a slot. -/
+theorem a_new_sample_is_empty_and_every_statistic_is_zero :
+    ∃ s, sample_new = ok s ∧ s.ticks.val = List.replicate 1024 0#u64 ∧
+      sample_len s = ok 0#usize ∧ sample_min s = ok 0#u64 ∧ sample_max s = ok 0#u64 ∧
+      ∀ n d, sample_quantile s n d = ok 0#u64 :=
+  ⟨_, rfl, rfl, rfl, rfl, rfl, fun _ _ => rfl⟩
+
+/-- `sample_len` reports the count that `min` and `max` branch on: at zero both
+    return zero, and for a count `k` within capacity `min` reads slot `0` and
+    `max` reads slot `k - 1`, the last one `push` filled. -/
+theorem sample_len_is_the_count_min_and_max_read_up_to (s : sample.Sample) :
+    ∃ k, sample_len s = ok k ∧
+      (k.val = 0 → sample_min s = ok 0#u64 ∧ sample_max s = ok 0#u64) ∧
+      (0 < k.val → k.val ≤ 1024 →
+        sample_min s = ok s.ticks.val[0]! ∧ sample_max s = ok s.ticks.val[k.val - 1]!) := by
+  refine ⟨s.used, rfl, ?_, ?_⟩
+  · intro h
+    have : s.used = 0#usize := UScalar.eq_of_val_eq (by simpa using h)
+    unfold sample_min sample_max sample.Sample.min sample.Sample.max
+    simp [this]
+  · intro h0 hc
+    unfold sample_min sample_max sample.Sample.min sample.Sample.max
+    simp only [a_positive_count_is_not_zero s h0, if_false]
+    refine ⟨reading_a_slot_inside_the_array_returns_it _ _ (by simp), ?_⟩
+    obtain ⟨i, hi, hiv⟩ := the_last_rank_of_a_nonempty_run_is_one_below_the_count s h0
+    simp only [hi, bind_tc_ok]
+    rw [reading_a_slot_inside_the_array_returns_it _ _ (by simp; omega), hiv]
+
+/-- `sample_max` on a full run reads slot 1023, and with a count one past the
+    capacity it reads out of bounds. `max` itself does not check the count; it
+    relies on `push` never letting it exceed `CAPACITY`. -/
+theorem sample_max_reads_the_last_slot_and_fails_past_capacity (s : sample.Sample) :
+    (s.used.val = 1024 → sample_max s = ok s.ticks.val[1023]!) ∧
+    (1024 < s.used.val → sample_max s = fail .arrayOutOfBounds) := by
+  unfold sample_max sample.Sample.max
+  constructor
+  · intro h
+    simp only [a_positive_count_is_not_zero s (by omega), if_false]
+    obtain ⟨i, hi, hiv⟩ := the_last_rank_of_a_nonempty_run_is_one_below_the_count s (by omega)
+    simp only [hi, bind_tc_ok]
+    rw [reading_a_slot_inside_the_array_returns_it _ _ (by simp; omega), hiv, h]
+  · intro h
+    simp only [a_positive_count_is_not_zero s (by omega), if_false]
+    obtain ⟨i, hi, hiv⟩ := the_last_rank_of_a_nonempty_run_is_one_below_the_count s (by omega)
+    simp only [hi, bind_tc_ok]
+    rw [reading_past_the_array_is_out_of_bounds _ _ (by simp; omega)]
+
+/-- For a nonempty run within capacity and a fraction `n / d` no larger than one,
+    `sample_quantile` reads slot `(used - 1) * n / d`, which is always one of the
+    filled slots, provided the product `(used - 1) * n` fits in a `usize`. -/
+theorem sample_quantile_reads_the_scaled_rank_inside_the_run (s : sample.Sample)
+    (n d : Std.Usize) (h0 : 0 < s.used.val) (hc : s.used.val ≤ 1024) (hd : 0 < d.val)
+    (hnd : n.val ≤ d.val) (hm : (s.used.val - 1) * n.val ≤ Usize.max) :
+    (s.used.val - 1) * n.val / d.val < s.used.val ∧
+    sample_quantile s n d = ok s.ticks.val[(s.used.val - 1) * n.val / d.val]! := by
+  have hle : (s.used.val - 1) * n.val / d.val ≤ s.used.val - 1 := by
+    apply Nat.div_le_of_le_mul
+    rw [Nat.mul_comm d.val]
+    exact Nat.mul_le_mul_left _ hnd
+  refine ⟨by omega, ?_⟩
+  unfold sample_quantile sample.Sample.quantile
+  simp only [a_positive_count_is_not_zero s h0, if_false]
+  obtain ⟨i, hi, hiv⟩ := the_last_rank_of_a_nonempty_run_is_one_below_the_count s h0
+  simp only [hi, bind_tc_ok]
+  have ⟨j, hj, hjv⟩ := WP.spec_imp_exists (Usize.mul_spec (x := i) (y := n) (by scalar_tac))
+  simp only [hj, bind_tc_ok]
+  obtain ⟨a, ha, hav⟩ := UScalar.div_spec j (y := d) (by omega)
+  simp only [ha, bind_tc_ok]
+  rw [reading_a_slot_inside_the_array_returns_it _ _ (by simp; rw [hav, hjv, hiv]; omega),
+    hav, hjv, hiv]
+
+/-- The overflow boundary of `sample_quantile` is exact: once `(used - 1) * n`
+    exceeds `usize::MAX` the call fails with an overflow whatever the denominator,
+    even though the rank it stands for would be in range. -/
+theorem sample_quantile_overflows_exactly_past_usize_max (s : sample.Sample) (n d : Std.Usize)
+    (hm : Usize.max < (s.used.val - 1) * n.val) :
+    sample_quantile s n d = fail .integerOverflow := by
+  have h0 : 0 < s.used.val := by
+    rcases Nat.eq_zero_or_pos s.used.val with h | h
+    · rw [h] at hm; simp at hm
+    · exact h
+  unfold sample_quantile sample.Sample.quantile
+  simp only [a_positive_count_is_not_zero s h0, if_false]
+  obtain ⟨i, hi, hiv⟩ := the_last_rank_of_a_nonempty_run_is_one_below_the_count s h0
+  simp only [hi, bind_tc_ok]
+  have hb : ¬ (i.val * n.val < 2 ^ System.Platform.numBits) := by
+    have : Usize.max = 2 ^ System.Platform.numBits - 1 := by simp [Usize.max, Usize.numBits]
+    rw [hiv]; omega
+  show (UScalar.tryMk _ (i.val * n.val) >>= _) = _
+  simp [UScalar.tryMk, UScalar.tryMkOpt, UScalar.check_bounds, Result.ofOption, hb]
+
+/-- A zero denominator on a nonempty run is a division by zero, which in the
+    kernel is a panic; an empty run returns zero first and never divides. -/
+theorem sample_quantile_with_a_zero_denominator_divides_by_zero (s : sample.Sample)
+    (h0 : 0 < s.used.val) :
+    sample_quantile s 0#usize 0#usize = fail .divisionByZero := by
+  unfold sample_quantile sample.Sample.quantile
+  simp only [a_positive_count_is_not_zero s h0, if_false]
+  obtain ⟨i, hi, hiv⟩ := the_last_rank_of_a_nonempty_run_is_one_below_the_count s h0
+  simp only [hi, bind_tc_ok]
+  have ⟨j, hj, hjv⟩ := WP.spec_imp_exists
+    (Usize.mul_spec (x := i) (y := 0#usize) (by scalar_tac))
+  simp only [hj, bind_tc_ok]
+  simp [HDiv.hDiv, UScalar.div]
+
+/-- The two ends of the quantile range are the other two statistics: the fraction
+    `0 / d` is `sample_min` and the fraction `d / d` is `sample_max`, so the four
+    numbers the report prints come from one ordering of one array. -/
+theorem sample_quantile_at_zero_is_sample_min_and_at_one_is_sample_max (s : sample.Sample)
+    (d : Std.Usize) (h0 : 0 < s.used.val) (hc : s.used.val ≤ 1024) (hd : 0 < d.val)
+    (hm : (s.used.val - 1) * d.val ≤ Usize.max) :
+    sample_quantile s 0#usize d = sample_min s ∧ sample_quantile s d d = sample_max s := by
+  obtain ⟨k, hk, -, hmm⟩ := sample_len_is_the_count_min_and_max_read_up_to s
+  have hks : k = s.used := by
+    unfold sample_len sample.Sample.len at hk; exact (Result.ok.inj hk).symm
+  subst hks
+  obtain ⟨hmin, hmax⟩ := hmm h0 hc
+  obtain ⟨-, hq0⟩ := sample_quantile_reads_the_scaled_rank_inside_the_run s 0#usize d h0 hc hd
+    (by simp) (by simp)
+  obtain ⟨-, hq1⟩ := sample_quantile_reads_the_scaled_rank_inside_the_run s d d h0 hc hd
+    (le_refl _) hm
+  rw [hq0, hq1, hmin, hmax]
+  simp [Nat.mul_div_cancel _ hd]
+
+/-- The two quantiles `report.rs` prints are always in range for a run within
+    capacity: the median reads slot `(used - 1) / 2` and the tail reads slot
+    `(used - 1) * 95 / 100`, and neither can overflow, since `1023 * 95` is far
+    below `usize::MAX`. -/
+theorem the_reported_median_and_tail_quantiles_read_filled_slots (s : sample.Sample)
+    (h0 : 0 < s.used.val) (hc : s.used.val ≤ 1024) :
+    sample_quantile s 1#usize 2#usize = ok s.ticks.val[(s.used.val - 1) / 2]! ∧
+    sample_quantile s 95#usize 100#usize = ok s.ticks.val[(s.used.val - 1) * 95 / 100]! := by
+  constructor
+  · have := (sample_quantile_reads_the_scaled_rank_inside_the_run s 1#usize 2#usize h0 hc
+      (by simp) (by simp) (by simp; scalar_tac)).2
+    simpa using this
+  · have := (sample_quantile_reads_the_scaled_rank_inside_the_run s 95#usize 100#usize h0 hc
+      (by simp) (by simp) (by simp; scalar_tac)).2
+    simpa using this
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.MicrobenchSample.the_sample_new_wrapper_is_its_method
@@ -54,5 +243,17 @@ theorem the_sample_max_wrapper_is_its_method (a : sample.Sample) :
 #print axioms NonosExtraction.MicrobenchSample.the_sample_quantile_wrapper_is_its_method
 #print axioms NonosExtraction.MicrobenchSample.the_sample_min_wrapper_is_its_method
 #print axioms NonosExtraction.MicrobenchSample.the_sample_max_wrapper_is_its_method
+#print axioms NonosExtraction.MicrobenchSample.reading_a_slot_inside_the_array_returns_it
+#print axioms NonosExtraction.MicrobenchSample.reading_past_the_array_is_out_of_bounds
+#print axioms NonosExtraction.MicrobenchSample.a_positive_count_is_not_zero
+#print axioms NonosExtraction.MicrobenchSample.the_last_rank_of_a_nonempty_run_is_one_below_the_count
+#print axioms NonosExtraction.MicrobenchSample.a_new_sample_is_empty_and_every_statistic_is_zero
+#print axioms NonosExtraction.MicrobenchSample.sample_len_is_the_count_min_and_max_read_up_to
+#print axioms NonosExtraction.MicrobenchSample.sample_max_reads_the_last_slot_and_fails_past_capacity
+#print axioms NonosExtraction.MicrobenchSample.sample_quantile_reads_the_scaled_rank_inside_the_run
+#print axioms NonosExtraction.MicrobenchSample.sample_quantile_overflows_exactly_past_usize_max
+#print axioms NonosExtraction.MicrobenchSample.sample_quantile_with_a_zero_denominator_divides_by_zero
+#print axioms NonosExtraction.MicrobenchSample.sample_quantile_at_zero_is_sample_min_and_at_one_is_sample_max
+#print axioms NonosExtraction.MicrobenchSample.the_reported_median_and_tail_quantiles_read_filled_slots
 
 end NonosExtraction.MicrobenchSample

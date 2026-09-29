@@ -36,6 +36,7 @@ only place in this module that can go wrong.
 -/
 
 import NonosExtraction.Vectors
+import NonosExtraction.BootTypesContextRefinement
 
 open Aeneas Aeneas.Std Result
 open nonos_vectors
@@ -249,6 +250,57 @@ theorem hardware_vectors_carry_no_error_code :
       interrupts.vectors.exception_has_error_code 128#u8 = ok false :=
   ⟨rfl, rfl, rfl⟩
 
+/-- The IDT table is exactly the vectors for which the processor pushes an error
+    code: double fault (8), invalid TSS (10), segment not present (11),
+    stack-segment fault (12), general protection (13), page fault (14),
+    alignment check (17), control protection (21), VMM communication (29) and
+    security exception (30). Before 29 and 30 were added, an entry stub built
+    from this table would have taken the #VC or #SX error code for the return
+    address. -/
+theorem exception_has_error_code_is_exactly_the_error_code_vectors (v : Std.U8) :
+    interrupts.vectors.exception_has_error_code v =
+      ok (decide (v.val ∈ [8, 10, 11, 12, 13, 14, 17, 21, 29, 30])) := by
+  unfold interrupts.vectors.exception_has_error_code
+  split
+  all_goals first
+    | rfl
+    | (rename_i h1 h2 h3 h4 h5 h6 h7 h8 h9 h10
+       congr 1
+       symm
+       simp only [decide_eq_false_iff_not, List.mem_cons, List.not_mem_nil, or_false]
+       intro h
+       rcases h with h | h | h | h | h | h | h | h | h | h
+       · exact h1 (UScalar.eq_of_val_eq h)
+       · exact h2 (UScalar.eq_of_val_eq h)
+       · exact h3 (UScalar.eq_of_val_eq h)
+       · exact h4 (UScalar.eq_of_val_eq h)
+       · exact h5 (UScalar.eq_of_val_eq h)
+       · exact h6 (UScalar.eq_of_val_eq h)
+       · exact h7 (UScalar.eq_of_val_eq h)
+       · exact h8 (UScalar.eq_of_val_eq h)
+       · exact h9 (UScalar.eq_of_val_eq h)
+       · exact h10 (UScalar.eq_of_val_eq h))
+
+/-- The IDT table and the table the boot exception context keeps agree on every
+    vector: an exception frame whose vector word is `v` has an error code by
+    the boot table exactly when `exception_has_error_code v` says so. -/
+theorem the_idt_and_boot_error_code_tables_agree (v : Std.U8)
+    (c : nonos_x_boot_types_context.types_context.ExceptionContext)
+    (hc : c.vector.val = v.val) :
+    nonos_x_boot_types_context.exceptioncontext_has_error_code c =
+      interrupts.vectors.exception_has_error_code v := by
+  rw [NonosExtraction.BootTypesContext.has_error_code_is_exactly_the_error_code_vectors,
+    exception_has_error_code_is_exactly_the_error_code_vectors, hc]
+
+/-- #VC and #SX carry an error code; the reserved vectors either side of them,
+    22 to 28 and 31, do not. -/
+theorem vc_and_sx_carry_an_error_code :
+    interrupts.vectors.exception_has_error_code 29#u8 = ok true ∧
+      interrupts.vectors.exception_has_error_code 30#u8 = ok true ∧
+      interrupts.vectors.exception_has_error_code 28#u8 = ok false ∧
+      interrupts.vectors.exception_has_error_code 31#u8 = ok false :=
+  ⟨rfl, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.is_exception_is_total
@@ -266,5 +318,8 @@ theorem hardware_vectors_carry_no_error_code :
 #print axioms NonosExtraction.vector_to_irq_is_total_at_the_boundaries
 #print axioms NonosExtraction.double_fault_is_classified
 #print axioms NonosExtraction.page_fault_is_recoverable
+#print axioms NonosExtraction.exception_has_error_code_is_exactly_the_error_code_vectors
+#print axioms NonosExtraction.the_idt_and_boot_error_code_tables_agree
+#print axioms NonosExtraction.vc_and_sx_carry_an_error_code
 
 end NonosExtraction

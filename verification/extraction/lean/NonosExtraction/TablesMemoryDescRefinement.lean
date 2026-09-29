@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.TablesMemoryDesc
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_tables_memory_desc
@@ -44,11 +45,196 @@ theorem the_memorydescriptor_is_runtime_wrapper_is_its_method (a : memory_desc.M
 theorem the_memorydescriptor_is_usable_wrapper_is_its_method (a : memory_desc.MemoryDescriptor) :
     memorydescriptor_is_usable a = memory_desc.MemoryDescriptor.is_usable a := rfl
 
+/-! ### Page arithmetic, the runtime bit and the usable types
+
+A UEFI memory descriptor counts its extent in 4 KiB pages, whatever the page size
+of the machine. The theorems below fix the arithmetic exactly: `size_bytes` is the
+page count times 4096 and aborts from 2^52 pages upward, and `end_address` is the
+exclusive end `physical_start + size`, which aborts exactly when that sum leaves
+the 64 bit range. The kernel builds with overflow checks in every profile, so an
+abort here is a controlled halt and never a wrapped length. `is_runtime` reads bit
+63 of the attribute word and nothing else, and `is_usable` accepts exactly the
+types 1, 2, 3, 4 and 7, which are the discriminants `LoaderCode`, `LoaderData`,
+`BootServicesCode`, `BootServicesData` and `ConventionalMemory` of the kernel's
+`MemoryType` enum in memory_type.rs (so the runtime services types 5 and 6, and
+the ACPI types 9 and 10, are refused).
+
+What this cannot establish: the descriptors come from firmware, so nothing here
+says a firmware map is well formed, and no kernel caller of these methods is
+extracted (none exists in the tree at present) to show that an abort is
+unreachable in practice.
+-/
+
+private theorem u64_mul_cases (x y : Std.U64) :
+    (∃ z, x * y = ok z ∧ z.val = x.val * y.val ∧ x.val * y.val < 2 ^ 64) ∨
+    (x * y = fail .integerOverflow ∧ 2 ^ 64 ≤ x.val * y.val) := by
+  have hm := UScalar.mul_equiv x y
+  rw [show (x * y : Result Std.U64) = UScalar.mul x y from rfl]
+  cases h : UScalar.mul x y with
+  | ok z =>
+    rw [h] at hm
+    obtain ⟨hle, hv, -⟩ := hm
+    simp only [UScalar.max_UScalarTy_U64_eq, U64.max_eq] at hle
+    exact Or.inl ⟨z, rfl, hv, by omega⟩
+  | fail e =>
+    rw [h] at hm
+    simp only [UScalar.max_UScalarTy_U64_eq, U64.max_eq] at hm
+    have he : e = .integerOverflow := by
+      simp only [UScalar.mul, UScalar.tryMk, Result.ofOption] at h
+      split at h <;> simp_all
+    subst he
+    exact Or.inr ⟨rfl, by omega⟩
+  | div => rw [h] at hm; exact hm.elim
+
+private theorem u64_add_cases (x y : Std.U64) :
+    (∃ z, x + y = ok z ∧ z.val = x.val + y.val ∧ x.val + y.val < 2 ^ 64) ∨
+    (x + y = fail .integerOverflow ∧ 2 ^ 64 ≤ x.val + y.val) := by
+  have hm := UScalar.add_equiv x y
+  cases h : x + y with
+  | ok z =>
+    rw [h] at hm
+    obtain ⟨hle, hv, -⟩ := hm
+    exact Or.inl ⟨z, rfl, hv, by simpa using hle⟩
+  | fail e =>
+    rw [h] at hm
+    have he : e = .integerOverflow := by
+      rw [show (x + y : Result Std.U64) = UScalar.add x y from rfl] at h
+      simp only [UScalar.add, UScalar.tryMk, Result.ofOption] at h
+      split at h <;> simp_all
+    subst he
+    simp only [UScalar.inBounds] at hm
+    exact Or.inr ⟨rfl, by simp at hm; omega⟩
+  | div => rw [h] at hm; exact hm.elim
+
+/-- `size_bytes` answers, and answers the page count times 4096, exactly when the
+    descriptor has fewer than 2^52 pages. A page size other than 4096 would move
+    both the value and the bound. -/
+theorem memorydescriptor_size_bytes_is_pages_of_4096_below_two_pow_52
+    (d : memory_desc.MemoryDescriptor) :
+    (∃ s, memorydescriptor_size_bytes d = ok s ∧ s.val = d.number_of_pages.val * 4096) ↔
+      d.number_of_pages.val < 2 ^ 52 := by
+  unfold memorydescriptor_size_bytes memory_desc.MemoryDescriptor.size_bytes
+  have h4 : (4096#u64 : Std.U64).val = 4096 := rfl
+  rcases u64_mul_cases d.number_of_pages 4096#u64 with ⟨z, hz, hv, hlt⟩ | ⟨hz, hge⟩
+  · rw [hz]; rw [h4] at hv hlt
+    exact ⟨fun _ => (by omega), fun _ => ⟨z, rfl, hv⟩⟩
+  · rw [hz]; rw [h4] at hge
+    exact ⟨fun h => (by obtain ⟨_, h, _⟩ := h; cases h), fun _ => (by omega)⟩
+
+/-- The other side of the same boundary: from 2^52 pages upward the product
+    overflows and the call aborts rather than returning a wrapped length. -/
+theorem memorydescriptor_size_bytes_aborts_exactly_from_two_pow_52_pages
+    (d : memory_desc.MemoryDescriptor) :
+    memorydescriptor_size_bytes d = fail .integerOverflow ↔ 2 ^ 52 ≤ d.number_of_pages.val := by
+  unfold memorydescriptor_size_bytes memory_desc.MemoryDescriptor.size_bytes
+  have h4 : (4096#u64 : Std.U64).val = 4096 := rfl
+  rcases u64_mul_cases d.number_of_pages 4096#u64 with ⟨z, hz, hv, hlt⟩ | ⟨hz, hge⟩
+  · rw [hz]; rw [h4] at hlt
+    exact ⟨fun h => (by cases h), fun _ => (by omega)⟩
+  · rw [hz]; rw [h4] at hge
+    exact ⟨fun _ => (by omega), fun _ => rfl⟩
+
+/-- The boundary itself, on concrete descriptors: 2^52 - 1 pages is the largest
+    count that fits and covers every page but the last of the 64 bit range. -/
+theorem memorydescriptor_size_bytes_at_the_page_count_limit :
+    memorydescriptor_size_bytes
+        { memory_type := 7#u32, physical_start := 0#u64, virtual_start := 0#u64,
+          number_of_pages := 0xFFFFFFFFFFFFF#u64, «attribute» := 0#u64 } =
+      ok 0xFFFFFFFFFFFFF000#u64 ∧
+    memorydescriptor_size_bytes
+        { memory_type := 7#u32, physical_start := 0#u64, virtual_start := 0#u64,
+          number_of_pages := 0x10000000000000#u64, «attribute» := 0#u64 } =
+      fail .integerOverflow := by
+  refine ⟨rfl, rfl⟩
+
+/-- `end_address` is the exclusive end of the physical range, start plus the size
+    in bytes, and it answers exactly when that sum is below 2^64. The virtual start
+    plays no part. -/
+theorem memorydescriptor_end_address_is_physical_start_plus_size
+    (d : memory_desc.MemoryDescriptor) :
+    (∃ e, memorydescriptor_end_address d = ok e ∧
+        e.val = d.physical_start.val + d.number_of_pages.val * 4096) ↔
+      d.physical_start.val + d.number_of_pages.val * 4096 < 2 ^ 64 := by
+  unfold memorydescriptor_end_address memory_desc.MemoryDescriptor.end_address
+    memory_desc.MemoryDescriptor.size_bytes
+  have h4 : (4096#u64 : Std.U64).val = 4096 := rfl
+  rcases u64_mul_cases d.number_of_pages 4096#u64 with ⟨z, hz, hv, hlt⟩ | ⟨hz, hge⟩
+  · rw [hz, bind_tc_ok]; rw [h4] at hv hlt
+    rcases u64_add_cases d.physical_start z with ⟨w, hw, hwv, hwlt⟩ | ⟨hw, hwge⟩
+    · rw [hw]; exact ⟨fun _ => (by omega), fun _ => ⟨w, rfl, by omega⟩⟩
+    · rw [hw]; exact ⟨fun h => (by obtain ⟨_, h, _⟩ := h; cases h), fun _ => (by omega)⟩
+  · rw [hz, bind_tc_fail]; rw [h4] at hge
+    exact ⟨fun h => (by obtain ⟨_, h, _⟩ := h; cases h), fun _ => (by omega)⟩
+
+/-- This records a defect. Because the end is exclusive, a descriptor that covers
+    the last page of the physical address space has an end of 2^64, which a `u64`
+    cannot hold, so `end_address` halts on a descriptor that is legal in form. -/
+theorem memorydescriptor_end_address_halts_on_the_top_page :
+    memorydescriptor_end_address
+      { memory_type := 7#u32, physical_start := 0xFFFFFFFFFFFFF000#u64,
+        virtual_start := 0#u64, number_of_pages := 1#u64, «attribute» := 0#u64 } =
+      fail .integerOverflow := by
+  rfl
+
+/-- `is_runtime` is bit 63 of the attribute word, `EFI_MEMORY_RUNTIME` in the UEFI
+    specification, and no other bit. -/
+theorem memorydescriptor_is_runtime_reads_bit_63 (d : memory_desc.MemoryDescriptor) :
+    memorydescriptor_is_runtime d = ok (d.«attribute».val.testBit 63) := by
+  unfold memorydescriptor_is_runtime memory_desc.MemoryDescriptor.is_runtime
+  simp only [lift, bind_tc_ok]
+  rw [NonosExtraction.Bits.reads_bit _ _ _ 63
+    (by unfold memory_desc.MemoryDescriptor.EFI_MEMORY_RUNTIME; rfl) rfl]
+
+/-- Since bit 63 is the top bit of the word, the same test is an ordering: the
+    attribute is runtime exactly when it is at least 2^63. -/
+theorem memorydescriptor_is_runtime_is_the_upper_half_of_attributes
+    (d : memory_desc.MemoryDescriptor) :
+    memorydescriptor_is_runtime d = ok (decide (2 ^ 63 ≤ d.«attribute».val)) := by
+  rw [memorydescriptor_is_runtime_reads_bit_63, Nat.testBit_eq_decide_div_mod_eq]
+  have hb := d.«attribute».hBounds
+  simp only [UScalarTy.numBits] at hb
+  congr 1
+  by_cases h : 2 ^ 63 ≤ d.«attribute».val
+  · simp only [h, decide_true]; simp; omega
+  · simp only [h, decide_false]; simp; omega
+
+/-- `is_usable` accepts exactly the five types the kernel's `MemoryType::is_usable`
+    names, by discriminant: 1, 2, 3, 4 and 7. -/
+theorem memorydescriptor_is_usable_accepts_exactly_types_1_2_3_4_7
+    (d : memory_desc.MemoryDescriptor) :
+    memorydescriptor_is_usable d =
+      ok (decide (d.memory_type.val = 1 ∨ d.memory_type.val = 2 ∨ d.memory_type.val = 3 ∨
+          d.memory_type.val = 4 ∨ d.memory_type.val = 7)) := by
+  unfold memorydescriptor_is_usable memory_desc.MemoryDescriptor.is_usable
+  split
+  · rename_i heq; rw [heq]; rfl
+  · rename_i heq; rw [heq]; rfl
+  · rename_i heq; rw [heq]; rfl
+  · rename_i heq; rw [heq]; rfl
+  · rename_i heq; rw [heq]; rfl
+  · rename_i h7 h1 h2 h3 h4
+    have h7' : ¬ d.memory_type.val = 7 := fun h => h7 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    have h1' : ¬ d.memory_type.val = 1 := fun h => h1 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    have h2' : ¬ d.memory_type.val = 2 := fun h => h2 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    have h3' : ¬ d.memory_type.val = 3 := fun h => h3 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    have h4' : ¬ d.memory_type.val = 4 := fun h => h4 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    have : ¬ (d.memory_type.val = 1 ∨ d.memory_type.val = 2 ∨ d.memory_type.val = 3 ∨
+        d.memory_type.val = 4 ∨ d.memory_type.val = 7) := by omega
+    rw [decide_eq_false this]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TablesMemoryDesc.the_memorydescriptor_size_bytes_wrapper_is_its_method
 #print axioms NonosExtraction.TablesMemoryDesc.the_memorydescriptor_end_address_wrapper_is_its_method
 #print axioms NonosExtraction.TablesMemoryDesc.the_memorydescriptor_is_runtime_wrapper_is_its_method
 #print axioms NonosExtraction.TablesMemoryDesc.the_memorydescriptor_is_usable_wrapper_is_its_method
+#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_size_bytes_is_pages_of_4096_below_two_pow_52
+#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_size_bytes_aborts_exactly_from_two_pow_52_pages
+#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_size_bytes_at_the_page_count_limit
+#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_end_address_is_physical_start_plus_size
+#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_end_address_halts_on_the_top_page
+#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_is_runtime_reads_bit_63
+#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_is_runtime_is_the_upper_half_of_attributes
+#print axioms NonosExtraction.TablesMemoryDesc.memorydescriptor_is_usable_accepts_exactly_types_1_2_3_4_7
 
 end NonosExtraction.TablesMemoryDesc

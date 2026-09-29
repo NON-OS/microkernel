@@ -15,7 +15,7 @@ path = "src/lib.rs"
 [dependencies]
 # The attestation registry is real kernel code: its table is a spin mutex and
 # its root is a blake3 fold.
-spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "rwlock"] }
 blake3 = { version = "1.5", default-features = false }
 
 [lints.rust]

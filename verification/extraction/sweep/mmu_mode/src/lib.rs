@@ -7,7 +7,7 @@
 #[path = "../../../../../src/arch/riscv64/mmu/mode.rs"]
 pub mod mode;
 
-pub fn mmumode_satp_mode(this: mode::MmuMode) -> usize {
+pub fn mmumode_satp_mode(this: mode::MmuMode) -> Option<usize> {
     this.satp_mode()
 }
 

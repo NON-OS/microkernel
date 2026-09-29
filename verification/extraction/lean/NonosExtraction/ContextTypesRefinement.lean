@@ -21,9 +21,12 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.ContextTypes
+import Nonos.CapabilityBits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_context_types
+open Nonos.Capability (Grants Leq)
+open Nonos.CapabilityBits (capsOf)
 
 set_option linter.hashCommand false
 set_option maxRecDepth 100000
@@ -44,11 +47,140 @@ theorem the_executioncontext_is_kernel_wrapper_is_its_method (a : types.Executio
 theorem the_executioncontext_is_process_wrapper_is_its_method (a : types.ExecutionContext) :
     executioncontext_is_process a = types.ExecutionContext.is_process a := rfl
 
+/-! ### The process branch of the capability gate
+
+    `context::has_capability` answers an error when no context is installed,
+    `true` for a kernel context, and `ProcessContext::has_capability` for a
+    process. That last is `(capabilities & cap) == cap`, so a mask is held only
+    when every one of its bits is. The theorems below say that over the tier-one
+    reading of a capability word, `capsOf`, and the delegation order `Leq`.
+
+    What they do not say: which context is current. `get_current_context` reads
+    per-CPU state that is not extracted, so the dispatch in `context::capability`
+    is outside this file.
+-/
+
+/-- A process holds a mask exactly when the mask's capabilities sit below its own
+    in the delegation order: every bit the mask asks for is a bit it holds. An
+    any-bit test, the shape `capabilities::bits` uses for single capabilities,
+    would pass a two-bit mask on one held bit, and an exact-match test would
+    refuse a process that holds more than it asks for. -/
+theorem holding_a_mask_is_holding_every_bit (p : types.ProcessContext) (cap : Std.U64) :
+    ∃ b, processcontext_has_capability p cap = ok b ∧
+      (b = true ↔ Leq (capsOf cap.val) (capsOf p.capabilities.val)) := by
+  unfold processcontext_has_capability types.ProcessContext.has_capability
+  simp only [lift, bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  simp only [decide_eq_true_eq]
+  unfold Leq Grants capsOf
+  constructor
+  · intro h x hx
+    have hbit := congrArg (fun v : Std.U64 => v.val.testBit x) h
+    simp only [UScalar.val_and, Nat.testBit_and] at hbit
+    rw [hx, Bool.and_true] at hbit
+    exact hbit
+  · intro h
+    apply UScalar.eq_of_val_eq
+    rw [UScalar.val_and]
+    apply Nat.eq_of_testBit_eq
+    intro i
+    rw [Nat.testBit_and]
+    cases hc : cap.val.testBit i
+    · simp
+    · simp [h i hc]
+
+/-- For a single capability bit the gate reads exactly that bit of the word. -/
+theorem a_single_bit_is_that_bit (p : types.ProcessContext) (i : Nat) (hi : i < 64) :
+    processcontext_has_capability p ⟨BitVec.ofNat 64 (2 ^ i)⟩ =
+      ok (p.capabilities.val.testBit i) := by
+  obtain ⟨b, hb, hiff⟩ := holding_a_mask_is_holding_every_bit p ⟨BitVec.ofNat 64 (2 ^ i)⟩
+  rw [hb]
+  have hval : (⟨BitVec.ofNat 64 (2 ^ i)⟩ : Std.U64).val = 2 ^ i := by
+    simp only [UScalar.val]
+    exact Nat.mod_eq_of_lt (Nat.pow_lt_pow_right (by decide) hi)
+  rw [hval] at hiff
+  congr 1
+  cases hb' : b
+  · cases ht : p.capabilities.val.testBit i
+    · rfl
+    · exfalso
+      have : Leq (capsOf (2 ^ i)) (capsOf p.capabilities.val) := by
+        intro x hx
+        unfold Grants capsOf at *
+        rw [Nat.testBit_two_pow] at hx
+        simp only [decide_eq_true_eq] at hx
+        subst hx
+        exact ht
+      rw [hb'] at hiff
+      exact absurd (hiff.mpr this) (by simp)
+  · have := (hiff.mp (by rw [hb'])) i
+    unfold Grants capsOf at this
+    exact (this (Nat.testBit_two_pow_self)).symm
+
+/-- A process with the empty word holds only the empty mask. -/
+theorem the_empty_word_holds_only_the_empty_mask (pid : Std.U32) (root cap : Std.U64) :
+    processcontext_has_capability ⟨pid, 0#u64, root⟩ cap = ok true ↔ cap = 0#u64 := by
+  unfold processcontext_has_capability types.ProcessContext.has_capability
+  simp only [lift, bind_tc_ok, ok.injEq, decide_eq_true_eq]
+  constructor
+  · intro h
+    rw [← h]
+    apply UScalar.eq_of_val_eq
+    simp
+  · intro h
+    subst h
+    rfl
+
+/-- The fields land where they are named. The capability decision on a fresh
+    context depends only on its second argument, and the root `usercopy::walk`
+    later walks is its third; a constructor that swapped the two `u64`s would type
+    check and test a page-table address as a capability word. -/
+theorem a_new_context_keeps_its_fields (pid : Std.U32) (caps root : Std.U64) :
+    ∃ c, processcontext_new pid caps root = ok c ∧
+      c.pid = pid ∧ c.capabilities = caps ∧ c.page_table_root = root :=
+  ⟨_, rfl, rfl, rfl, rfl⟩
+
+theorem a_new_contexts_capabilities_are_its_argument (pid pid' : Std.U32)
+    (caps root root' cap : Std.U64) :
+    (do let c ← processcontext_new pid caps root; processcontext_has_capability c cap) =
+      (do let c ← processcontext_new pid' caps root'; processcontext_has_capability c cap) := by
+  rfl
+
+/-! ### Which contexts are privileged
+
+    The safety comment on `ExecutionContext` says `None` must deny everything.
+    These two predicates are how a caller asks, and neither calls `None` a kernel
+    or a process context. -/
+
+theorem only_a_kernel_context_is_kernel (e : types.ExecutionContext) :
+    executioncontext_is_kernel e = ok true ↔ ∃ m, e = .Kernel m := by
+  cases e <;> simp [executioncontext_is_kernel, types.ExecutionContext.is_kernel]
+
+theorem only_a_process_context_is_a_process (e : types.ExecutionContext) :
+    executioncontext_is_process e = ok true ↔ ∃ p, e = .Process p := by
+  cases e <;> simp [executioncontext_is_process, types.ExecutionContext.is_process]
+
+theorem no_context_is_neither :
+    executioncontext_is_kernel .None = ok false ∧
+      executioncontext_is_process .None = ok false := ⟨rfl, rfl⟩
+
+theorem no_context_is_both (e : types.ExecutionContext) :
+    ¬ (executioncontext_is_kernel e = ok true ∧ executioncontext_is_process e = ok true) := by
+  cases e <;> simp [executioncontext_is_kernel, types.ExecutionContext.is_kernel,
+    executioncontext_is_process, types.ExecutionContext.is_process]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ContextTypes.the_processcontext_new_wrapper_is_its_method
 #print axioms NonosExtraction.ContextTypes.the_processcontext_has_capability_wrapper_is_its_method
 #print axioms NonosExtraction.ContextTypes.the_executioncontext_is_kernel_wrapper_is_its_method
 #print axioms NonosExtraction.ContextTypes.the_executioncontext_is_process_wrapper_is_its_method
+
+#print axioms NonosExtraction.ContextTypes.holding_a_mask_is_holding_every_bit
+#print axioms NonosExtraction.ContextTypes.a_single_bit_is_that_bit
+#print axioms NonosExtraction.ContextTypes.the_empty_word_holds_only_the_empty_mask
+#print axioms NonosExtraction.ContextTypes.a_new_contexts_capabilities_are_its_argument
+#print axioms NonosExtraction.ContextTypes.only_a_kernel_context_is_kernel
+#print axioms NonosExtraction.ContextTypes.no_context_is_both
 
 end NonosExtraction.ContextTypes

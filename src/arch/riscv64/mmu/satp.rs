@@ -50,6 +50,7 @@ pub fn mmu_mode() -> MmuMode {
     }
 }
 
-pub fn make_satp(mode: MmuMode, asid: u16, ppn: usize) -> usize {
-    (mode.satp_mode() << 60) | ((asid as usize) << 44) | (ppn & ((1 << 44) - 1))
+pub fn make_satp(mode: MmuMode, asid: u16, ppn: usize) -> Option<usize> {
+    let mode = mode.satp_mode()?;
+    Some((mode << 60) | ((asid as usize) << 44) | (ppn & ((1 << 44) - 1)))
 }

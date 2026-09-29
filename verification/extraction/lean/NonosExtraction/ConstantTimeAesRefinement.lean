@@ -24,6 +24,7 @@ import NonosExtraction.ConstantTimeAes
 
 open Aeneas Aeneas.Std Result
 open nonos_x_constant_time_aes
+open ControlFlow
 
 set_option linter.hashCommand false
 set_option maxRecDepth 100000
@@ -35,8 +36,294 @@ namespace NonosExtraction.ConstantTimeAes
 theorem the_sbox_ct_wrapper_is_its_method (a : Std.U8) :
     sbox_ct a = aes.sbox_ct a := rfl
 
+/-! ### The table-free S-box is the kernel's S-box table
+
+`sbox_ct` computes the AES S-box without a table: it inverts in GF(2^8) as
+`x^254` through an eleven-step addition chain of shift-and-add multiplies
+reduced by 0x1B, sends 0 to 0, and applies the FIPS-197 affine map
+`b ^ rotl1 ^ rotl2 ^ rotl3 ^ rotl4 ^ 0x63`. The kernel's AES does not call it:
+`sub_bytes` and the key schedule read the 256-entry `SBOX` in
+`src/crypto/symmetric/aes/core.rs` through `ct_lookup_u8`. Two implementations
+of one fact, and the theorems below prove they agree on every byte.
+
+The route is in three steps. The extracted eight-round multiply loop is
+unrolled over its concrete range `0..8` into a pure round function. That
+function, the addition chain and the affine map are carried to their values in
+`Nat`, where every scalar operation becomes the `Nat` operation Aeneas defines
+it by. The resulting `Nat` function is then checked against the transcribed
+table at all 256 inputs by kernel evaluation. The `Nat` model forces each
+intermediate value before it is used twice, because the kernel does not share
+the value of a repeated subterm and the unforced chain costs several times as
+much.
+
+What this cannot establish: `compiler_fence` is an axiom of the extraction,
+so the theorems say only that `sbox_ct` calls it exactly once, with `SeqCst`,
+after computing its value and before returning that value. Nothing here says
+the computation is constant time; that is a property of the machine code, and
+Lean sees only values. `kernelSbox` is transcribed from the Rust source
+rather than extracted from it, since `SBOX` belongs to a crate that is not
+lowered here; a transcription error would make the agreement theorem fail, not
+pass. -/
+
+/-- `SBOX` from `src/crypto/symmetric/aes/core.rs`, entry for entry. It is the table
+    `sub_bytes` and the key schedule read through `ct_lookup_u8`. -/
+def kernelSbox : List Nat :=
+  [0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
+   0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
+   0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
+   0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75,
+   0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84,
+   0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf,
+   0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8,
+   0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2,
+   0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73,
+   0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb,
+   0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5c, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79,
+   0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08,
+   0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
+   0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
+   0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
+   0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16]
+
+/-- One round of the extracted multiply loop as a pure function of
+    `(result, aa, bb)`, written with the same scalar operations. -/
+def mulRound (s : Std.U8 × Std.U8 × Std.U8) : Std.U8 × Std.U8 × Std.U8 :=
+  let (r, a, b) := s
+  (r ^^^ (a &&& core.num.U8.wrapping_sub 0#u8 (b &&& 1#u8)),
+   ⟨a.bv <<< 1⟩ ^^^ (27#u8 &&& core.num.U8.wrapping_sub 0#u8 (⟨a.bv >>> 7⟩ &&& 1#u8)),
+   ⟨b.bv >>> 1⟩)
+
+theorem the_multiply_range_steps_once (k : Int) (hk0 : 0 ≤ k) (hk : k < 8) :
+    core.iter.range.IteratorRange.next core.iter.range.StepI32
+      { start := IScalar.ofInt k (by scalar_tac), «end» := 8#i32 } =
+      ok (some (IScalar.ofInt k (by scalar_tac)),
+        { start := IScalar.ofInt (k + 1) (by scalar_tac), «end» := 8#i32 }) := by
+  simp [core.iter.range.IteratorRange.next, core.iter.range.IScalarStep,
+    core.iter.range.IScalarStep.forward_checked, core.cmp.impls.PartialOrdI32.lt, I32.max_eq,
+    hk, show k + 1 ≤ 2147483647 by omega]
+
+theorem the_multiply_body_runs_one_round (k : Int) (hk0 : 0 ≤ k) (hk : k < 8)
+    (r a b : Std.U8) :
+    aes.gf256_mul_ct_loop.body { start := IScalar.ofInt k (by scalar_tac), «end» := 8#i32 } r a b =
+      ok (cont ({ start := IScalar.ofInt (k + 1) (by scalar_tac), «end» := 8#i32 },
+        mulRound (r, a, b))) := by
+  unfold aes.gf256_mul_ct_loop.body
+  rw [the_multiply_range_steps_once k hk0 hk]
+  rfl
+
+theorem the_multiply_body_stops_at_eight (r a b : Std.U8) :
+    aes.gf256_mul_ct_loop.body { start := 8#i32, «end» := 8#i32 } r a b = ok (done r) := by
+  unfold aes.gf256_mul_ct_loop.body
+  simp [core.iter.range.IteratorRange.next, core.iter.range.IScalarStep,
+    core.cmp.impls.PartialOrdI32.lt]
+
+/-- From iteration `k`, the loop runs exactly the remaining `8 - k` rounds. -/
+theorem the_multiply_loop_runs_the_remaining_rounds : ∀ n k : Nat, (h : k + n = 8) →
+    ∀ r a b : Std.U8,
+    aes.gf256_mul_ct_loop { start := IScalar.ofInt (k : Int) (by scalar_tac), «end» := 8#i32 }
+      r a b = ok ((mulRound^[n] (r, a, b)).1) := by
+  intro n
+  induction n with
+  | zero =>
+    intro k h r a b
+    obtain rfl : k = 8 := by omega
+    unfold aes.gf256_mul_ct_loop
+    rw [loop]
+    simp only []
+    erw [the_multiply_body_stops_at_eight]
+    rfl
+  | succ n ih =>
+    intro k h r a b
+    unfold aes.gf256_mul_ct_loop
+    rw [loop]
+    simp only []
+    rw [the_multiply_body_runs_one_round (k : Int) (by omega) (by omega)]
+    simp only []
+    have := ih (k + 1) (by omega) (mulRound (r, a, b)).1 (mulRound (r, a, b)).2.1
+      (mulRound (r, a, b)).2.2
+    unfold aes.gf256_mul_ct_loop at this
+    rw [Function.iterate_succ_apply]
+    simpa using this
+
+/-- The extracted multiply, as a pure function: eight rounds from a zero accumulator. -/
+def mulPure (a b : Std.U8) : Std.U8 :=
+  (mulRound^[8] (0#u8, a, b)).1
+
+theorem the_multiply_is_eight_rounds (a b : Std.U8) :
+    aes.gf256_mul_ct a b = ok (mulPure a b) :=
+  the_multiply_loop_runs_the_remaining_rounds 8 0 rfl 0#u8 a b
+
+/-- The extracted inversion chain, as a pure function. -/
+def invPure (x : Std.U8) : Std.U8 :=
+  if x = 0#u8 then 0#u8 else
+  let x2 := mulPure x x
+  let x3 := mulPure x2 x
+  let x6 := mulPure x3 x3
+  let x12 := mulPure x6 x6
+  let x14 := mulPure x12 x2
+  let x15 := mulPure x14 x
+  let x30 := mulPure x15 x15
+  let x60 := mulPure x30 x30
+  let x120 := mulPure x60 x60
+  let x126 := mulPure x120 x6
+  let x127 := mulPure x126 x
+  mulPure x127 x127
+
+theorem the_inversion_is_the_chain (x : Std.U8) : aes.gf256_inv_ct x = ok (invPure x) := by
+  unfold aes.gf256_inv_ct invPure
+  by_cases hx : x = 0#u8
+  · simp [hx]
+  · simp [hx, the_multiply_is_eight_rounds]
+
+/-- Evaluates `x`, then passes its value on. The kernel reduces the match only
+    once `x` is a literal, so a value bound this way is computed once however
+    often the continuation uses it. -/
+def force (x : Nat) (k : Nat → Nat) : Nat :=
+  match x with
+  | 0 => k 0
+  | n + 1 => k (n + 1)
+
+theorem forcing_a_value_is_applying_to_it (x : Nat) (k : Nat → Nat) : force x k = k x := by
+  cases x <;> rfl
+
+/-- The multiply loop over the values of its three bytes. -/
+def mulLoopN : Nat → Nat → Nat → Nat → Nat
+  | 0, r, _, _ => r
+  | n + 1, r, a, b =>
+    force (Nat.xor r (Nat.land a (Nat.mod (Nat.sub 256 (Nat.land b 1)) 256))) fun r' =>
+    force (Nat.xor (Nat.mod (Nat.shiftLeft a 1) 256)
+      (Nat.land 27 (Nat.mod (Nat.sub 256 (Nat.land (Nat.shiftRight a 7) 1)) 256))) fun a' =>
+    force (Nat.shiftRight b 1) fun b' => mulLoopN n r' a' b'
+
+def invN (x : Nat) : Nat :=
+  if x = 0 then 0 else
+  force (mulLoopN 8 0 x x) fun x2 =>
+  force (mulLoopN 8 0 x2 x) fun x3 =>
+  force (mulLoopN 8 0 x3 x3) fun x6 =>
+  force (mulLoopN 8 0 x6 x6) fun x12 =>
+  force (mulLoopN 8 0 x12 x2) fun x14 =>
+  force (mulLoopN 8 0 x14 x) fun x15 =>
+  force (mulLoopN 8 0 x15 x15) fun x30 =>
+  force (mulLoopN 8 0 x30 x30) fun x60 =>
+  force (mulLoopN 8 0 x60 x60) fun x120 =>
+  force (mulLoopN 8 0 x120 x6) fun x126 =>
+  force (mulLoopN 8 0 x126 x) fun x127 =>
+  mulLoopN 8 0 x127 x127
+
+def rotN (v k : Nat) : Nat := v <<< (k % 8) % 2 ^ 8 ||| v >>> (8 - k % 8)
+
+def sboxN (x : Nat) : Nat :=
+  force (invN x) fun inv =>
+  inv ^^^ rotN inv 1 ^^^ rotN inv 2 ^^^ rotN inv 3 ^^^ rotN inv 4 ^^^ 99
+
+/-- The value-level S-box matches the kernel table at every byte. This is the
+    only step that looks at all 256 inputs, and it closes by kernel evaluation. -/
+theorem the_value_sbox_lists_the_table : (List.range 256).map sboxN = kernelSbox := by
+  decide +kernel
+
+theorem the_value_sbox_is_the_table (n : Nat) (h : n < 256) :
+    sboxN n = kernelSbox.getD n 0 := by
+  rw [← the_value_sbox_lists_the_table]
+  simp [List.getD_eq_getElem?_getD, h]
+
+theorem a_byte_built_from_bits_has_their_value (v : BitVec 8) : (⟨v⟩ : Std.U8).val = v.toNat := rfl
+
+theorem a_byte_has_256_values : UScalar.size .U8 = 256 := by simp [U8.size, U8.numBits]
+
+theorem a_round_is_a_round_of_values (n : Nat) (r a b : Std.U8) :
+    (mulRound^[n + 1] (r, a, b)).1 = (mulRound^[n] (mulRound (r, a, b))).1 ∧
+    (mulRound (r, a, b)).1.val = r.val ^^^ a.val &&& (256 - (b.val &&& 1)) % 256 ∧
+    (mulRound (r, a, b)).2.1.val =
+      a.val <<< 1 % 256 ^^^ 27 &&& (256 - (a.val >>> 7 &&& 1)) % 256 ∧
+    (mulRound (r, a, b)).2.2.val = b.val >>> 1 := by
+  refine ⟨congrArg Prod.fst (Function.iterate_succ_apply ..), ?_, ?_, ?_⟩ <;>
+  simp only [mulRound, UScalar.val_xor, UScalar.val_and, core.num.U8.wrapping_sub,
+    UScalar.wrapping_sub_val_eq, a_byte_built_from_bits_has_their_value, BitVec.toNat_shiftLeft, BitVec.toNat_ushiftRight,
+    UScalar.bv_toNat, a_byte_has_256_values] <;> simp
+
+theorem the_rounds_are_the_value_loop : ∀ n (r a b : Std.U8),
+    (mulRound^[n] (r, a, b)).1.val = mulLoopN n r.val a.val b.val := by
+  intro n
+  induction n with
+  | zero => intro r a b; rfl
+  | succ n ih =>
+    intro r a b
+    obtain ⟨h0, h1, h2, h3⟩ := a_round_is_a_round_of_values n r a b
+    rw [h0, ih, h1, h2, h3]
+    simp only [mulLoopN, forcing_a_value_is_applying_to_it]
+    rfl
+
+theorem the_inversion_is_the_value_chain (x : Std.U8) : (invPure x).val = invN x.val := by
+  have hm : ∀ a b : Std.U8, (mulPure a b).val = mulLoopN 8 0 a.val b.val := fun a b =>
+    the_rounds_are_the_value_loop 8 0#u8 a b
+  unfold invPure invN
+  by_cases hx : x = 0#u8
+  · have : x.val = 0 := by rw [hx]; rfl
+    simp [hx]
+  · have : x.val ≠ 0 := fun h => hx (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    simp only [hx, this, if_false, forcing_a_value_is_applying_to_it, hm]
+
+theorem the_affine_map_is_the_value_map (x : Std.U8) :
+    (invPure x ^^^ core.num.U8.rotate_left (invPure x) 1#u32 ^^^
+      core.num.U8.rotate_left (invPure x) 2#u32 ^^^ core.num.U8.rotate_left (invPure x) 3#u32 ^^^
+      core.num.U8.rotate_left (invPure x) 4#u32 ^^^ 99#u8).val = sboxN x.val := by
+  simp only [UScalar.val_xor, core.num.U8.rotate_left, UScalar.rotate_left, a_byte_built_from_bits_has_their_value,
+    BitVec.toNat_rotateLeft, UScalar.bv_toNat, sboxN, forcing_a_value_is_applying_to_it,
+    the_inversion_is_the_value_chain, rotN]
+  rfl
+
+/-- `sbox_ct` is the S-box table the kernel's AES uses, at every input byte:
+    it computes `SBOX[x]`, calls `compiler_fence(SeqCst)` once, and returns what
+    it computed. A reduction constant of 0x1D instead of 0x1B, an addition chain
+    that reaches `x^253`, a dropped `^ 0x63` or a rotation the wrong way each
+    disagree with the table at some byte. -/
+theorem sbox_ct_is_the_kernel_sbox_table (x : Std.U8) :
+    sbox_ct x = (do
+      core.sync.atomic.compiler_fence core.sync.atomic.Ordering.SeqCst
+      ok ⟨BitVec.ofNat 8 (kernelSbox.getD x.val 0)⟩) := by
+  unfold sbox_ct aes.sbox_ct
+  rw [the_inversion_is_the_chain]
+  simp only [lift, bind_tc_ok]
+  congr 1
+  funext u
+  congr 1
+  apply UScalar.eq_of_val_eq
+  have hb := (invPure x ^^^ core.num.U8.rotate_left (invPure x) 1#u32 ^^^
+      core.num.U8.rotate_left (invPure x) 2#u32 ^^^ core.num.U8.rotate_left (invPure x) 3#u32 ^^^
+      core.num.U8.rotate_left (invPure x) 4#u32 ^^^ 99#u8).hBounds
+  rw [the_affine_map_is_the_value_map] at hb ⊢
+  have hr : ((⟨BitVec.ofNat 8 (kernelSbox.getD x.val 0)⟩ : Std.U8).val) =
+      kernelSbox.getD x.val 0 % 2 ^ 8 := BitVec.toNat_ofNat _ _
+  rw [hr, ← the_value_sbox_is_the_table x.val x.hBounds]
+  exact (Nat.mod_eq_of_lt (by simpa [UScalarTy.numBits] using hb)).symm
+
+/-- Zero, which has no inverse, is sent to 0 by the chain, so `sbox_ct 0` is
+    the affine constant 0x63 alone. -/
+theorem sbox_ct_sends_zero_to_0x63 :
+    sbox_ct 0#u8 = (do
+      core.sync.atomic.compiler_fence core.sync.atomic.Ordering.SeqCst
+      ok 99#u8) :=
+  sbox_ct_is_the_kernel_sbox_table 0#u8
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ConstantTimeAes.the_sbox_ct_wrapper_is_its_method
+#print axioms NonosExtraction.ConstantTimeAes.the_multiply_range_steps_once
+#print axioms NonosExtraction.ConstantTimeAes.the_multiply_body_runs_one_round
+#print axioms NonosExtraction.ConstantTimeAes.the_multiply_body_stops_at_eight
+#print axioms NonosExtraction.ConstantTimeAes.the_multiply_loop_runs_the_remaining_rounds
+#print axioms NonosExtraction.ConstantTimeAes.the_multiply_is_eight_rounds
+#print axioms NonosExtraction.ConstantTimeAes.the_inversion_is_the_chain
+#print axioms NonosExtraction.ConstantTimeAes.forcing_a_value_is_applying_to_it
+#print axioms NonosExtraction.ConstantTimeAes.the_value_sbox_lists_the_table
+#print axioms NonosExtraction.ConstantTimeAes.the_value_sbox_is_the_table
+#print axioms NonosExtraction.ConstantTimeAes.a_byte_built_from_bits_has_their_value
+#print axioms NonosExtraction.ConstantTimeAes.a_byte_has_256_values
+#print axioms NonosExtraction.ConstantTimeAes.a_round_is_a_round_of_values
+#print axioms NonosExtraction.ConstantTimeAes.the_rounds_are_the_value_loop
+#print axioms NonosExtraction.ConstantTimeAes.the_inversion_is_the_value_chain
+#print axioms NonosExtraction.ConstantTimeAes.the_affine_map_is_the_value_map
+#print axioms NonosExtraction.ConstantTimeAes.sbox_ct_is_the_kernel_sbox_table
+#print axioms NonosExtraction.ConstantTimeAes.sbox_ct_sends_zero_to_0x63
 
 end NonosExtraction.ConstantTimeAes

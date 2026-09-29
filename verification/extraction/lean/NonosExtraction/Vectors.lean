@@ -15,43 +15,43 @@ set_option maxRecDepth 2048
 namespace nonos_vectors
 
 /-- [nonos_vectors::interrupts::vectors::EXCEPTION_VECTOR_END]
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 67:0-67:40
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 69:0-69:40
     Visibility: public -/
 @[global_simps, irreducible]
 def interrupts.vectors.EXCEPTION_VECTOR_END : Std.U8 := 31#u8
 
 /-- [nonos_vectors::interrupts::vectors::IRQ_VECTOR_START]
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 68:0-68:36
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 70:0-70:36
     Visibility: public -/
 @[global_simps, irreducible]
 def interrupts.vectors.IRQ_VECTOR_START : Std.U8 := 32#u8
 
 /-- [nonos_vectors::interrupts::vectors::IRQ_VECTOR_END]
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 69:0-69:34
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 71:0-71:34
     Visibility: public -/
 @[global_simps, irreducible]
 def interrupts.vectors.IRQ_VECTOR_END : Std.U8 := 47#u8
 
 /-- [nonos_vectors::interrupts::vectors::USER_VECTOR_START]
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 70:0-70:37
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 72:0-72:37
     Visibility: public -/
 @[global_simps, irreducible]
 def interrupts.vectors.USER_VECTOR_START : Std.U8 := 48#u8
 
 /-- [nonos_vectors::interrupts::vectors::USER_VECTOR_END]
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 71:0-71:37
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 73:0-73:37
     Visibility: public -/
 @[global_simps, irreducible]
 def interrupts.vectors.USER_VECTOR_END : Std.U8 := 239#u8
 
 /-- [nonos_vectors::interrupts::vectors::is_exception]:
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 74:0-76:1
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 76:0-78:1
     Visibility: public -/
 def interrupts.vectors.is_exception (vector : Std.U8) : Result Bool := do
   ok (vector <= interrupts.vectors.EXCEPTION_VECTOR_END)
 
 /-- [nonos_vectors::interrupts::vectors::is_irq]:
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 79:0-81:1
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 81:0-83:1
     Visibility: public -/
 def interrupts.vectors.is_irq (vector : Std.U8) : Result Bool := do
   if vector >= interrupts.vectors.IRQ_VECTOR_START
@@ -59,7 +59,7 @@ def interrupts.vectors.is_irq (vector : Std.U8) : Result Bool := do
   else ok false
 
 /-- [nonos_vectors::interrupts::vectors::is_user_allocatable]:
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 84:0-86:1
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 86:0-88:1
     Visibility: public -/
 def interrupts.vectors.is_user_allocatable
   (vector : Std.U8) : Result Bool := do
@@ -68,13 +68,13 @@ def interrupts.vectors.is_user_allocatable
   else ok false
 
 /-- [nonos_vectors::interrupts::vectors::irq_to_vector]:
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 89:0-91:1
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 91:0-93:1
     Visibility: public -/
 def interrupts.vectors.irq_to_vector (irq : Std.U8) : Result Std.U8 := do
   interrupts.vectors.IRQ_VECTOR_START + irq
 
 /-- [nonos_vectors::interrupts::vectors::vector_to_irq]:
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 94:0-100:1
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 96:0-102:1
     Visibility: public -/
 def interrupts.vectors.vector_to_irq
   (vector : Std.U8) : Result (Option Std.U8) := do
@@ -85,7 +85,7 @@ def interrupts.vectors.vector_to_irq
   else ok none
 
 /-- [nonos_vectors::interrupts::vectors::exception_has_error_code]:
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 129:0-141:1
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 133:0-147:1
     Visibility: public -/
 def interrupts.vectors.exception_has_error_code
   (vector : Std.U8) : Result Bool := do
@@ -98,10 +98,12 @@ def interrupts.vectors.exception_has_error_code
   | 14#uscalar => ok true
   | 17#uscalar => ok true
   | 21#uscalar => ok true
+  | 29#uscalar => ok true
+  | 30#uscalar => ok true
   | _ => ok false
 
 /-- [nonos_vectors::interrupts::vectors::exception_is_fatal]:
-    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 143:0-152:1
+    Source: 'src/interrupts/../../../../../src/interrupts/idt/vectors.rs', lines 149:0-158:1
     Visibility: public -/
 def interrupts.vectors.exception_is_fatal (vector : Std.U8) : Result Bool := do
   match vector with

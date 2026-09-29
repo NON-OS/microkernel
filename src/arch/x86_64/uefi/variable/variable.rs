@@ -100,7 +100,7 @@ impl UefiVariable {
             return Some(String::new());
         }
 
-        if self.data.len() % 2 == 0 {
+        if self.data.len().is_multiple_of(2) {
             let chars: Vec<u16> = self
                 .data
                 .chunks(2)

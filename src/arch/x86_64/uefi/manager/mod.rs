@@ -20,6 +20,7 @@ pub mod ops;
 pub mod security;
 pub mod state;
 pub mod variable;
+pub mod variable_raw;
 
 pub use core::UefiManager;
 pub use state::{is_initialized, UEFI_MANAGER};

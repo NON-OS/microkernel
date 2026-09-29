@@ -28,7 +28,9 @@ impl NumaMemoryRegion {
         self.base.saturating_add(self.length)
     }
 
+    /* Offset from base, not a comparison with end(), which saturates and
+    would leave out the last byte of the address space. */
     pub fn contains(&self, addr: u64) -> bool {
-        addr >= self.base && addr < self.end()
+        addr >= self.base && addr - self.base < self.length
     }
 }

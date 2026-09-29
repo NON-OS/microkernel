@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.SpectreMitigationsCpuid
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_spectre_mitigations_cpuid
@@ -106,6 +107,128 @@ theorem the_six_masks_are_distinct :
     (0x20000000#u32 : Std.U32) ≠ 0x80000000#u32 := by
   refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> decide
 
+/-! ### What each probe returns, and what `is_amd` accepts
+
+    The section above fixes the masks as bitvector constants. The theorems here
+    go through the extracted probes themselves: given whatever
+    `CPUID.(EAX=7,ECX=0)` returns, each probe returns bit `k` of its `EDX` and
+    nothing else, with `k` the Intel-defined position. A probe that read the wrong
+    bit, the wrong register, the wrong leaf, or inverted the test would falsify
+    its theorem.
+
+    `is_amd` assembles the twelve-byte vendor string from `EBX`, `EDX` and `ECX`
+    of leaf 0, in that order and little-endian, and compares it with
+    `AuthenticAMD`. The theorems below run the extracted code on the register
+    values an AMD part and an Intel part report, and show it answers true for the
+    first and false for the second. A transposed register order or a wrong byte
+    order would reject the AMD values.
+
+    `__cpuid` and `__cpuid_count` are opaque to Aeneas, so every statement is
+    conditional on what the instruction returned; nothing here says what the
+    hardware reports, only what the kernel makes of it. The vendor theorems cover
+    those two register images, not every possible one. Nor do they change the
+    finding below: the probes read Intel's leaf on every vendor.
+-/
+
+/-- `has_l1d_flush` returns bit 28 of `CPUID.(EAX=7,ECX=0):EDX`, the L1D_FLUSH bit. -/
+theorem has_l1d_flush_reads_bit_28_of_leaf_7_edx (r : core.core_arch.x86.cpuid.CpuidResult)
+    (h : core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32 = ok r) :
+    has_l1d_flush = ok (r.edx.val.testBit 28) := by
+  unfold has_l1d_flush cpuid.has_l1d_flush
+  have hs : (1#u32 <<< 28#i32 : Result Std.U32) = ok 268435456#u32 := by rfl
+  rw [h, hs]
+  simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit r.edx 268435456#u32 0#u32 28 (by rfl) (by rfl)]
+
+/-- `has_md_clear` returns bit 10 of `CPUID.(EAX=7,ECX=0):EDX`, the MD_CLEAR bit. -/
+theorem has_md_clear_reads_bit_10_of_leaf_7_edx (r : core.core_arch.x86.cpuid.CpuidResult)
+    (h : core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32 = ok r) :
+    has_md_clear = ok (r.edx.val.testBit 10) := by
+  unfold has_md_clear cpuid.has_md_clear
+  have hs : (1#u32 <<< 10#i32 : Result Std.U32) = ok 1024#u32 := by rfl
+  rw [h, hs]
+  simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit r.edx 1024#u32 0#u32 10 (by rfl) (by rfl)]
+
+/-- `has_arch_capabilities` returns bit 29 of `CPUID.(EAX=7,ECX=0):EDX`, the IA32_ARCH_CAPABILITIES bit. -/
+theorem has_arch_capabilities_reads_bit_29_of_leaf_7_edx (r : core.core_arch.x86.cpuid.CpuidResult)
+    (h : core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32 = ok r) :
+    has_arch_capabilities = ok (r.edx.val.testBit 29) := by
+  unfold has_arch_capabilities cpuid.has_arch_capabilities
+  have hs : (1#u32 <<< 29#i32 : Result Std.U32) = ok 536870912#u32 := by rfl
+  rw [h, hs]
+  simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit r.edx 536870912#u32 0#u32 29 (by rfl) (by rfl)]
+
+/-- `has_ibrs_ibpb` returns bit 26 of `CPUID.(EAX=7,ECX=0):EDX`, the IBRS and IBPB bit. -/
+theorem has_ibrs_ibpb_reads_bit_26_of_leaf_7_edx (r : core.core_arch.x86.cpuid.CpuidResult)
+    (h : core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32 = ok r) :
+    has_ibrs_ibpb = ok (r.edx.val.testBit 26) := by
+  unfold has_ibrs_ibpb cpuid.has_ibrs_ibpb
+  have hs : (1#u32 <<< 26#i32 : Result Std.U32) = ok 67108864#u32 := by rfl
+  rw [h, hs]
+  simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit r.edx 67108864#u32 0#u32 26 (by rfl) (by rfl)]
+
+/-- `has_stibp` returns bit 27 of `CPUID.(EAX=7,ECX=0):EDX`, the STIBP bit. -/
+theorem has_stibp_reads_bit_27_of_leaf_7_edx (r : core.core_arch.x86.cpuid.CpuidResult)
+    (h : core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32 = ok r) :
+    has_stibp = ok (r.edx.val.testBit 27) := by
+  unfold has_stibp cpuid.has_stibp
+  have hs : (1#u32 <<< 27#i32 : Result Std.U32) = ok 134217728#u32 := by rfl
+  rw [h, hs]
+  simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit r.edx 134217728#u32 0#u32 27 (by rfl) (by rfl)]
+
+/-- `has_ssbd` returns bit 31 of `CPUID.(EAX=7,ECX=0):EDX`, the SSBD bit. -/
+theorem has_ssbd_reads_bit_31_of_leaf_7_edx (r : core.core_arch.x86.cpuid.CpuidResult)
+    (h : core.core_arch.x86.cpuid.__cpuid_count 7#u32 0#u32 = ok r) :
+    has_ssbd = ok (r.edx.val.testBit 31) := by
+  unfold has_ssbd cpuid.has_ssbd
+  have hs : (1#u32 <<< 31#i32 : Result Std.U32) = ok 2147483648#u32 := by rfl
+  rw [h, hs]
+  simp only [bind_tc_ok, lift]
+  rw [NonosExtraction.Bits.reads_bit r.edx 2147483648#u32 0#u32 31 (by rfl) (by rfl)]
+
+/-- On the leaf-0 registers an AMD processor reports (`EBX` = "Auth",
+    `EDX` = "enti", `ECX` = "cAMD"), `is_amd` answers true. -/
+theorem is_amd_accepts_authentic_amd (r : core.core_arch.x86.cpuid.CpuidResult)
+    (h : core.core_arch.x86.cpuid.__cpuid 0#u32 = ok r)
+    (hb : r.ebx = 0x68747541#u32) (hd : r.edx = 0x69746e65#u32)
+    (hc : r.ecx = 0x444d4163#u32) :
+    is_amd = ok true := by
+  unfold is_amd cpuid.is_amd
+  rw [h]
+  obtain ⟨a, b, c, d⟩ := r
+  simp only at hb hd hc
+  subst hb hd hc
+  simp [core.array.Array.index_mut, core.ops.index.IndexMutSlice,
+    core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeUsizeSlice.index_mut,
+    core.slice.Slice.copy_from_slice, core.array.equality.PartialEqArray.eq, lift,
+    core.num.U32.to_le_bytes, Array.to_slice, Array.from_slice, Array.repeat, Array.make,
+    BitVec.toLEBytes]
+  rfl
+
+/-- On the leaf-0 registers an Intel processor reports (`EBX` = "Genu",
+    `EDX` = "ineI", `ECX` = "ntel"), `is_amd` answers false, so `detect.rs` keeps
+    the Meltdown and MDS flags on Intel parts. -/
+theorem is_amd_rejects_genuine_intel (r : core.core_arch.x86.cpuid.CpuidResult)
+    (h : core.core_arch.x86.cpuid.__cpuid 0#u32 = ok r)
+    (hb : r.ebx = 0x756e6547#u32) (hd : r.edx = 0x49656e69#u32)
+    (hc : r.ecx = 0x6c65746e#u32) :
+    is_amd = ok false := by
+  unfold is_amd cpuid.is_amd
+  rw [h]
+  obtain ⟨a, b, c, d⟩ := r
+  simp only at hb hd hc
+  subst hb hd hc
+  simp [core.array.Array.index_mut, core.ops.index.IndexMutSlice,
+    core.slice.index.Slice.index_mut, core.slice.index.SliceIndexRangeUsizeSlice.index_mut,
+    core.slice.Slice.copy_from_slice, core.array.equality.PartialEqArray.eq, lift,
+    core.num.U32.to_le_bytes, Array.to_slice, Array.from_slice, Array.repeat, Array.make,
+    BitVec.toLEBytes]
+  rfl
+
 /-! ### The finding
 
     These are Intel-defined bits and this file runs on AMD too.
@@ -144,5 +267,13 @@ theorem the_six_masks_are_distinct :
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_has_md_clear_wrapper_is_its_method
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_has_arch_capabilities_wrapper_is_its_method
 #print axioms NonosExtraction.SpectreMitigationsCpuid.the_is_amd_wrapper_is_its_method
+#print axioms NonosExtraction.SpectreMitigationsCpuid.has_l1d_flush_reads_bit_28_of_leaf_7_edx
+#print axioms NonosExtraction.SpectreMitigationsCpuid.has_md_clear_reads_bit_10_of_leaf_7_edx
+#print axioms NonosExtraction.SpectreMitigationsCpuid.has_arch_capabilities_reads_bit_29_of_leaf_7_edx
+#print axioms NonosExtraction.SpectreMitigationsCpuid.has_ibrs_ibpb_reads_bit_26_of_leaf_7_edx
+#print axioms NonosExtraction.SpectreMitigationsCpuid.has_stibp_reads_bit_27_of_leaf_7_edx
+#print axioms NonosExtraction.SpectreMitigationsCpuid.has_ssbd_reads_bit_31_of_leaf_7_edx
+#print axioms NonosExtraction.SpectreMitigationsCpuid.is_amd_accepts_authentic_amd
+#print axioms NonosExtraction.SpectreMitigationsCpuid.is_amd_rejects_genuine_intel
 
 end NonosExtraction.SpectreMitigationsCpuid

@@ -28,7 +28,12 @@ use crate::arch::x86_64::uefi::types::{Guid, VariableAttributes};
 use crate::arch::x86_64::uefi::variable::{name_to_ucs2, UefiVariable};
 
 impl UefiManager {
-    pub(crate) fn read_variable_raw(&self, name: &str, guid: &Guid) -> Result<Vec<u8>, UefiError> {
+    /* The data and the attribute word firmware reports for it. */
+    pub(crate) fn read_variable_with_attributes(
+        &self,
+        name: &str,
+        guid: &Guid,
+    ) -> Result<(VariableAttributes, Vec<u8>), UefiError> {
         let rt_guard = self.runtime_services.read();
         let rt_ptr = (*rt_guard).ok_or(UefiError::RuntimeServicesNotAvailable)?;
 
@@ -48,15 +53,16 @@ impl UefiManager {
             )
         };
 
-        if get_status != status::EFI_BUFFER_TOO_SMALL && get_status != status::EFI_SUCCESS {
-            if get_status == status::EFI_NOT_FOUND {
+        let get_code = status::code(get_status);
+        if get_code != status::EFI_BUFFER_TOO_SMALL && get_status != status::EFI_SUCCESS {
+            if get_code == status::EFI_NOT_FOUND {
                 return Err(UefiError::VariableNotFound { name: "variable" });
             }
             return Err(UefiError::VariableReadFailed { status: get_status });
         }
 
         if data_size == 0 {
-            return Ok(Vec::new());
+            return Ok((VariableAttributes::from_bits_truncate(attributes), Vec::new()));
         }
 
         let mut data = vec![0u8; data_size as usize];
@@ -78,7 +84,7 @@ impl UefiManager {
         }
 
         data.truncate(data_size as usize);
-        Ok(data)
+        Ok((VariableAttributes::from_bits_truncate(attributes), data))
     }
 
     pub fn get_variable(&self, name: &str, guid: &Guid) -> Result<UefiVariable, UefiError> {
@@ -94,14 +100,9 @@ impl UefiManager {
 
         self.stats.inc_cache_misses();
 
-        match self.read_variable_raw(name, guid) {
-            Ok(data) => {
-                let var = UefiVariable::new(
-                    String::from(name),
-                    *guid,
-                    VariableAttributes::DEFAULT_NV_BS_RT,
-                    data,
-                );
+        match self.read_variable_with_attributes(name, guid) {
+            Ok((attributes, data)) => {
+                let var = UefiVariable::new(String::from(name), *guid, attributes, data);
 
                 self.variables_cache.write().insert((String::from(name), *guid), var.clone());
                 Ok(var)
