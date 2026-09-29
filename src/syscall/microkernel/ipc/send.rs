@@ -122,7 +122,9 @@ pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correla
          */
         Redirect::ToReplyInbox => match IpcMessage::new(&alloc::format!("proc.{}", pid), &target, &data) {
             Ok(msg) => {
-                let _ = nonos_inbox::try_enqueue_strict(&target, msg);
+                if nonos_inbox::try_enqueue_strict(&target, msg).is_ok() {
+                    nonos_inbox::wake_waiter(&target);
+                }
                 0
             }
             Err(_) => 0,

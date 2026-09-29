@@ -32,6 +32,7 @@ mod error;
 mod inbox;
 mod registry;
 mod stats;
+mod waiter;
 
 pub use error::{InboxError, StrictEnqueueError};
 pub use registry::{
@@ -42,3 +43,4 @@ pub use registry::{
     MAX_INBOX_CAPACITY, MIN_INBOX_CAPACITY,
 };
 pub use stats::InboxStatsSnapshot;
+pub use waiter::{unwait, wait_on, wake_waiter};
