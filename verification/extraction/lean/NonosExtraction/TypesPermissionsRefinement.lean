@@ -44,11 +44,46 @@ theorem the_pagepermissions_kernel_rx_wrapper_is_its_method :
 theorem the_pagepermissions_device_wrapper_is_its_method :
     pagepermissions_device = permissions.PagePermissions.device := rfl
 
+/-! ### The kernel's named permission sets
+
+    These four constructors are how the MMU layer names kernel mappings. The
+    paging layer has its own `PagePermissions`, a bit set with constructors of the
+    same names, and `mmu/mmu/api.rs` builds this one field by field; the two are
+    kept in step by hand, which is why the properties are stated here rather than
+    assumed. None of the four is writable and executable at once, none reaches
+    user mode, only `kernel_rx` executes and only `device` disables caching. The
+    `is_wx_violation` check and the conversion to a PTE live in another file and
+    are not extracted.
+-/
+
+def WxFree (p : permissions.PagePermissions) : Prop := ¬ (p.writable = true ∧ p.executable = true)
+
+theorem no_named_set_is_writable_and_executable :
+    (∃ p, pagepermissions_kernel_ro = ok p ∧ WxFree p ∧ p.user_accessible = false) ∧
+    (∃ p, pagepermissions_kernel_rw = ok p ∧ WxFree p ∧ p.user_accessible = false) ∧
+    (∃ p, pagepermissions_kernel_rx = ok p ∧ WxFree p ∧ p.user_accessible = false) ∧
+    (∃ p, pagepermissions_device = ok p ∧ WxFree p ∧ p.user_accessible = false) := by
+  refine ⟨⟨_, rfl, ?_, rfl⟩, ⟨_, rfl, ?_, rfl⟩, ⟨_, rfl, ?_, rfl⟩, ⟨_, rfl, ?_, rfl⟩⟩ <;>
+    simp [WxFree]
+
+theorem only_kernel_rx_executes_and_only_device_is_uncached :
+    (∃ p, pagepermissions_kernel_rx = ok p ∧ p.executable = true ∧ p.writable = false) ∧
+    (∃ p, pagepermissions_kernel_rw = ok p ∧ p.executable = false ∧ p.writable = true) ∧
+    (∃ p, pagepermissions_kernel_ro = ok p ∧ p.executable = false ∧ p.writable = false) ∧
+    (∃ p, pagepermissions_device = ok p ∧ p.cache_disabled = true ∧ p.executable = false) ∧
+    (∃ p q r, pagepermissions_kernel_ro = ok p ∧ pagepermissions_kernel_rw = ok q ∧
+      pagepermissions_kernel_rx = ok r ∧
+      p.cache_disabled = false ∧ q.cache_disabled = false ∧ r.cache_disabled = false) :=
+  ⟨⟨_, rfl, rfl, rfl⟩, ⟨_, rfl, rfl, rfl⟩, ⟨_, rfl, rfl, rfl⟩, ⟨_, rfl, rfl, rfl⟩,
+    ⟨_, _, _, rfl, rfl, rfl, rfl, rfl, rfl⟩⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesPermissions.the_pagepermissions_kernel_ro_wrapper_is_its_method
 #print axioms NonosExtraction.TypesPermissions.the_pagepermissions_kernel_rw_wrapper_is_its_method
 #print axioms NonosExtraction.TypesPermissions.the_pagepermissions_kernel_rx_wrapper_is_its_method
 #print axioms NonosExtraction.TypesPermissions.the_pagepermissions_device_wrapper_is_its_method
+#print axioms NonosExtraction.TypesPermissions.no_named_set_is_writable_and_executable
+#print axioms NonosExtraction.TypesPermissions.only_kernel_rx_executes_and_only_device_is_uncached
 
 end NonosExtraction.TypesPermissions

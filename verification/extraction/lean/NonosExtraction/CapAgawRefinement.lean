@@ -38,9 +38,46 @@ theorem the_agawlevels_page_table_levels_wrapper_is_its_method (a : agaw.AgawLev
 theorem the_agawlevels_context_aw_wrapper_is_its_method (a : agaw.AgawLevels) :
     agawlevels_context_aw a = agaw.AgawLevels.context_aw a := rfl
 
+/-! ### The two readings of an AGAW agree
+
+    `page_table_levels` is how many second-level tables the bring-up builds, and
+    `context_aw` is the AW field programmed into every context entry
+    (`bringup/run.rs`, `device/map_device.rs`). VT-d encodes AW as the level count
+    less two: 1 for a 39-bit, three-level table, 2 for 48-bit four-level, 3 for
+    57-bit five-level. If the two disagreed, hardware would walk a table of a
+    different depth from the one the kernel built, and translate through what the
+    kernel wrote as a leaf. The theorems say they agree for every AGAW and that no
+    two AGAWs share either reading. Which AGAW the capability register offers is
+    decided elsewhere and not stated here.
+-/
+
+theorem the_context_width_is_the_level_count_less_two (a : agaw.AgawLevels) :
+    ∃ l w, agawlevels_page_table_levels a = ok l ∧ agawlevels_context_aw a = ok w ∧
+      w.val + 2 = l.val := by
+  cases a <;> exact ⟨_, _, rfl, rfl, rfl⟩
+
+theorem the_vtd_width_encoding :
+    agawlevels_context_aw .Three = ok 1#u8 ∧ agawlevels_context_aw .Four = ok 2#u8 ∧
+      agawlevels_context_aw .Five = ok 3#u8 := ⟨rfl, rfl, rfl⟩
+
+theorem distinct_agaws_program_distinct_widths (a b : agaw.AgawLevels) (w : Std.U8)
+    (ha : agawlevels_context_aw a = ok w) (hb : agawlevels_context_aw b = ok w) : a = b := by
+  cases a <;> cases b <;> simp only [agawlevels_context_aw, agaw.AgawLevels.context_aw, ok.injEq] at ha hb <;>
+    first | rfl | (subst ha; have hv := congrArg UScalar.val hb; simp at hv)
+
+theorem distinct_agaws_build_distinct_depths (a b : agaw.AgawLevels) (l : Std.U8)
+    (ha : agawlevels_page_table_levels a = ok l) (hb : agawlevels_page_table_levels b = ok l) :
+    a = b := by
+  cases a <;> cases b <;> simp only [agawlevels_page_table_levels, agaw.AgawLevels.page_table_levels, ok.injEq] at ha hb <;>
+    first | rfl | (subst ha; have hv := congrArg UScalar.val hb; simp at hv)
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CapAgaw.the_agawlevels_page_table_levels_wrapper_is_its_method
 #print axioms NonosExtraction.CapAgaw.the_agawlevels_context_aw_wrapper_is_its_method
+#print axioms NonosExtraction.CapAgaw.the_context_width_is_the_level_count_less_two
+#print axioms NonosExtraction.CapAgaw.the_vtd_width_encoding
+#print axioms NonosExtraction.CapAgaw.distinct_agaws_program_distinct_widths
+#print axioms NonosExtraction.CapAgaw.distinct_agaws_build_distinct_depths
 
 end NonosExtraction.CapAgaw
