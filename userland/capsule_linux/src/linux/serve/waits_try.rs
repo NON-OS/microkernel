@@ -33,14 +33,13 @@ pub fn may_wait(guest: &Guest, nr: u64, fd: u64) -> bool {
 }
 
 /// The call's answer if it can complete now, None if it would wait.
-pub fn attempt(guest: &mut Guest, wait: &Blocked) -> Option<u64> {
+pub fn attempt(guest: &mut Guest, wait: &mut Blocked) -> Option<u64> {
     let a = wait.args;
     let again = errno::fail(errno::EAGAIN);
     match wait.nr {
         nr::READ => Some(call::read(guest, a[0], a[1], a[2])).filter(|&v| v != again),
-        nr::WRITE => Some(call::write(guest, a[0], a[1], a[2])).filter(|&v| v != again),
+        nr::WRITE | nr::WRITEV => super::waits_write::carry_on(guest, wait),
         nr::READV => Some(call::readv(guest, a[0], a[1], a[2])).filter(|&v| v != again),
-        nr::WRITEV => Some(call::writev(guest, a[0], a[1], a[2])).filter(|&v| v != again),
         nr::POLL | np::PPOLL => Some(net::poll(guest, a[0], a[1])).filter(|&v| v != 0),
         np::SELECT | np::PSELECT6 => {
             Some(net::select(guest, a[0], [a[1], a[2], a[3]])).filter(|&v| v != 0)

@@ -45,8 +45,8 @@ impl Family {
             }
             self.lend(i);
             let g = &mut self.guests[i];
-            for wait in mem::take(&mut g.blocked) {
-                let value = match attempt(g, &wait) {
+            for mut wait in mem::take(&mut g.blocked) {
+                let value = match attempt(g, &mut wait) {
                     Some(v) => v,
                     None if wait.deadline.is_some_and(|d| d <= now) => expire(g, &wait),
                     None => {

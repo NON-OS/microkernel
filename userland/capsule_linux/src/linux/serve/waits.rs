@@ -42,8 +42,8 @@ pub fn timed(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
     };
     let now = now_ms(CLOCK_MONOTONIC).unwrap_or(0);
     let deadline = limit.map(|ms| now.saturating_add(ms));
-    let wait = Blocked { tid, nr, args: a, deadline };
-    match attempt(guest, &wait) {
+    let mut wait = Blocked { tid, nr, args: a, deadline, done: 0 };
+    match attempt(guest, &mut wait) {
         Some(v) => Answer::value(v),
         None if deadline.is_some_and(|d| d <= now) => Answer::value(expire(guest, &wait)),
         None => park(guest, wait),
@@ -53,8 +53,8 @@ pub fn timed(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
 /// A read or write that answers EAGAIN waits instead, unless its descriptor
 /// is non-blocking.
 pub fn io(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
-    let wait = Blocked { tid, nr, args: a, deadline: None };
-    match attempt(guest, &wait) {
+    let mut wait = Blocked { tid, nr, args: a, deadline: None, done: 0 };
+    match attempt(guest, &mut wait) {
         Some(v) => Answer::value(v),
         None if guest.fds.get(a[0] as usize).is_some_and(|f| f.nonblock) => {
             Answer::value(errno::fail(errno::EAGAIN))

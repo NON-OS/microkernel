@@ -27,4 +27,7 @@ pub struct Blocked {
     /// Monotonic milliseconds after which it is answered with nothing ready.
     /// None waits for as long as it takes.
     pub deadline: Option<u64>,
+    /// Bytes of a write already put in: Linux answers a write to a blocking
+    /// pipe only once the whole of it is, so it waits on for the rest.
+    pub done: u64,
 }

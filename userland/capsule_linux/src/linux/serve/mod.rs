@@ -44,6 +44,7 @@ mod waits;
 mod waits_fds;
 mod waits_time;
 mod waits_try;
+mod waits_write;
 
 pub use answer::Answer;
 pub use loop_impl::serve;
