@@ -33,6 +33,8 @@ pub mod pci_address;
 #[cfg(test)]
 pub mod process;
 #[cfg(test)]
+pub mod riscv_mmu;
+#[cfg(test)]
 pub mod range_ends;
 #[cfg(test)]
 pub mod rsdp_address;
