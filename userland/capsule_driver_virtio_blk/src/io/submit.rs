@@ -39,8 +39,12 @@ pub fn submit(
     nsectors: u32,
 ) -> Result<(), BlkError> {
     queue.post_request(dir, lba, nsectors);
-    unsafe { regs.w16(LEG_QUEUE_NOTIFY, 0) }
+    // The sequence is read before the device is told, not after: a device
+    // that completes at once raises its interrupt between the two, and a
+    // snapshot taken after it waits for a second one that never comes, the
+    // whole slice long. Every request paid 100 ms that way.
     let mut seq = read_seq(irq_grant)?;
+    unsafe { regs.w16(LEG_QUEUE_NOTIFY, 0) }
     // Block on the interrupt instead of yield-polling. The old loop spun up
     // to 200k yields per request; every disk read then cycled the whole run
     // queue for the request's full latency, and on one CPU the rest of the
