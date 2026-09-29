@@ -36,6 +36,12 @@ use super::plan_read::read_plan;
 pub fn import(name: &[u8], want: &[u8; 32], want_bytes: u64) -> Result<Imported, VolumeError> {
     open_machine_volume()?;
     if let Some(bytes) = recorded(name, want)? {
+        let line = alloc::format!(
+            "[DATA] on the volume: {} bytes, sha256 {}",
+            bytes,
+            as_str(&hex32(want))
+        );
+        super::say::say(&line);
         return Ok(Imported { bytes, sha256: *want, fresh: false });
     }
     let plan = read_plan()?;

@@ -26,9 +26,11 @@
 use super::error::VolumeError;
 use super::plan_read::read_plan;
 use super::ring_blank::ring_blank;
+use super::say::say;
 use super::state::{VolumeState, VOLUME};
 use crate::fs::blockfs::{self, BlockFsError};
 use crate::security::tpm::machine_key::derive_for_kernel;
+use alloc::format;
 
 /// The kernel label the volume key is derived under.
 const KEY_LABEL: &[u8] = b"blockfs.data.v1";
@@ -52,7 +54,7 @@ pub fn open_machine_volume() -> Result<(), VolumeError> {
             let mut uuid = [0u8; 16];
             crate::crypto::rng::fill_random_bytes(&mut uuid);
             let m = blockfs::format(&key, uuid).map_err(VolumeError::BlockFs)?;
-            crate::log::info!("[DATA] formatted a volume of {} sectors", plan.volume_sectors);
+            say(&format!("[DATA] formatted a volume of {} sectors", plan.volume_sectors));
             m
         }
         Err(BlockFsError::NotFormatted) => {
@@ -63,11 +65,8 @@ pub fn open_machine_volume() -> Result<(), VolumeError> {
         }
         Err(e) => return Err(VolumeError::BlockFs(e)),
     };
-    crate::log::info!(
-        "[DATA] volume open: {} sectors at LBA {}",
-        plan.volume_sectors,
-        plan.volume_base
-    );
+    let (n, at) = (plan.volume_sectors, plan.volume_base);
+    say(&format!("[DATA] volume open: {n} sectors at LBA {at}"));
     *VOLUME.write() = Some(VolumeState { key, mount });
     Ok(())
 }

@@ -35,6 +35,7 @@ mod read_all;
 mod read_at;
 mod remove;
 mod ring_blank;
+mod say;
 mod stat;
 mod state;
 mod write;

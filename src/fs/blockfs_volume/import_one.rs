@@ -49,6 +49,7 @@ pub(super) fn import_from(
     let mut node = blockfs::read_node(key, lba).map_err(VolumeError::BlockFs)?;
     stream.finish(key, mount, lba, &mut node).map_err(VolumeError::BlockFs)?;
     record(key, mount, name, want)?;
-    crate::log::info!("[DATA] imported {} bytes, sha256 {}", bytes, as_str(&hex32(want)));
+    let line = alloc::format!("[DATA] imported {} bytes, sha256 {}", bytes, as_str(&hex32(want)));
+    super::say::say(&line);
     Ok(Imported { bytes, sha256: *want, fresh: true })
 }

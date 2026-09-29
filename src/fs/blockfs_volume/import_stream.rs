@@ -48,6 +48,7 @@ pub(super) fn stream_in(
         let part = &span[..take as usize];
         hash.update(part);
         stream.append(key, mount, part).map_err(VolumeError::BlockFs)?;
+        super::say::progress(done, done + take, bytes);
         done += take;
     }
     let mut out = [0u8; 32];
