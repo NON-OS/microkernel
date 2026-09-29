@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Why a probe did not reach a unit, in the words the console uses.
+use super::cap::{fault_recording_count, fault_recording_offset};
+use super::offsets::iotlb_offset;
 
-use super::super::probe::ProbeError;
-
-pub(super) fn reason(e: ProbeError) -> &'static [u8] {
-    match e {
-        ProbeError::NoUnits => b"no units",
-        ProbeError::MapFailed => b"register window not mappable",
-        ProbeError::NoUsableAgaw => b"no supported paging depth",
-        ProbeError::RegistersOutsideWindow => b"registers beyond the mapped window",
-    }
+/* Whether every register the kernel touches lies inside a mapped window of
+`window` bytes. The IOTLB register and the fault-recording registers sit
+where CAP and ECAP say, up to about 16 KiB into the unit, so a unit that
+places them past the window must be refused rather than accessed. */
+pub const fn registers_fit(cap: u64, ecap: u64, window: usize) -> bool {
+    let faults_end = fault_recording_offset(cap) + fault_recording_count(cap) as usize * 16;
+    iotlb_offset(ecap) + 8 <= window && faults_end <= window
 }

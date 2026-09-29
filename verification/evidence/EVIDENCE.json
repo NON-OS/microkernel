@@ -25,9 +25,9 @@
       "bv_decide_calls": 12,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 981,
-        "proven": 981,
-        "substantive": 336,
+        "extracted": 982,
+        "proven": 982,
+        "substantive": 337,
         "trivial": 645,
         "unproven": 0
       },
@@ -499,6 +499,7 @@
         "nonos_x_iommu_domain_id::domainid_new",
         "nonos_x_iommu_protection::iommuprotection_readable",
         "nonos_x_iommu_protection::iommuprotection_writable",
+        "nonos_x_iommu_regs_window::registers_fit",
         "nonos_x_irq_reserved::is_reserved",
         "nonos_x_irq_reserved::reserve",
         "nonos_x_key_management_types::keytype_key_length",
@@ -1503,6 +1504,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/IommuProtection.lean",
           "sha256": "02f1f92895022c6e63def5698b27f9bd1215f1f2bfee983b33d3112cdc11cfa3"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/IommuRegsWindow.lean",
+          "sha256": "0d4f52beac664c63dbd7aef5cd4c0299edf35e4c075991a4f097deb5b267bfb3"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Irq.lean",

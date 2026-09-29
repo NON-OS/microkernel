@@ -19,7 +19,7 @@
 
 use super::access::{RemapUnit, UNIT_WINDOW};
 use crate::arch::x86_64::acpi::parser::other::remap_unit_bases;
-use crate::arch::x86_64::iommu::regs::{cap, offsets};
+use crate::arch::x86_64::iommu::regs::{cap, offsets, window};
 use crate::memory::addr::PhysAddr;
 
 /// What one unit supports, as read from its Capability register.
@@ -44,6 +44,8 @@ pub enum ProbeError {
     MapFailed,
     /// The unit reports no supported paging depth, so it cannot translate.
     NoUsableAgaw,
+    /// CAP or ECAP places a register the kernel uses beyond the mapped window.
+    RegistersOutsideWindow,
 }
 
 /// Map the first unit DMAR reported and read its capabilities.
@@ -77,6 +79,9 @@ pub fn probe_at(base_pa: u64) -> Result<UnitInfo, ProbeError> {
     let status = unit.read32(offsets::GSTS);
 
     let levels = cap::preferred_levels(capability).ok_or(ProbeError::NoUsableAgaw)?;
+    if !window::registers_fit(capability, ecap, UNIT_WINDOW) {
+        return Err(ProbeError::RegistersOutsideWindow);
+    }
 
     Ok(UnitInfo {
         unit,
