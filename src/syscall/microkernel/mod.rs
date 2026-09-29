@@ -64,6 +64,7 @@ pub mod procstat_redact;
 pub mod spawn_instance;
 pub mod stdout_write;
 pub mod store_write;
+pub mod data;
 pub mod time;
 pub mod tool_run;
 pub mod tty;

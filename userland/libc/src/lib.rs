@@ -46,6 +46,7 @@ pub mod procstat;
 pub mod procstat_header;
 pub mod spawn_instance;
 pub mod store_write;
+pub mod data;
 pub mod surface_registry;
 mod syscall;
 pub mod time;
@@ -113,6 +114,7 @@ pub use procstat::{mk_proc_stat, ProcStatEntry, PROC_NAME_LEN};
 pub use procstat_header::ProcStatHeader;
 pub use spawn_instance::mk_spawn_instance;
 pub use store_write::mk_store_write;
+pub use data::{mk_data_import, mk_data_read, mk_data_stat};
 pub use surface_registry::{
     mk_display_vsync_wait, mk_input_event_drain, mk_input_event_post, mk_input_event_wait,
     mk_surface_attach, mk_surface_present, mk_surface_present_rect, mk_surface_register,

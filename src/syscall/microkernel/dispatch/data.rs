@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod data;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod unpack;
+use super::args::Args;
+use crate::syscall::microkernel::data::{sys_data_import, sys_data_read, sys_data_stat};
+use crate::syscall::microkernel::numbers::*;
 
-pub use route::dispatch_microkernel_syscall;
+pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
+    Some(match nr {
+        SYS_DATA_IMPORT => sys_data_import(a.a0, a.a1, a.a2),
+        SYS_DATA_STAT => sys_data_stat(a.a0, a.a1),
+        SYS_DATA_READ => sys_data_read(a.a0, a.a1, a.a2, a.a3, a.a4),
+        _ => return None,
+    })
+}

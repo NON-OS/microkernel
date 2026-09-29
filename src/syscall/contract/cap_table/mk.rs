@@ -130,6 +130,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkDebug => caps.can_debug(),
         SyscallNumber::MkStdoutWrite => caps.can_ipc(),
         SyscallNumber::MkStoreWrite => caps.can_store_write(),
+        SyscallNumber::MkDataImport => caps.can_store_write() && caps.can_open_files(),
+        SyscallNumber::MkDataStat | SyscallNumber::MkDataRead => caps.can_open_files(),
 
         /*
          * Hosting unverified code is one right, and it covers every call

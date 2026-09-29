@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::args::Args;
-use super::{capability, debug, device, dma, ipc, irq, mmio, pio, process};
+use super::{capability, data, debug, device, dma, ipc, irq, mmio, pio, process};
 
 pub fn dispatch_microkernel_syscall(
     nr: u64,
@@ -60,6 +60,9 @@ fn route_tail(nr: u64, args: Args) -> i64 {
         return result;
     }
     if let Some(result) = debug::handle(nr, args) {
+        return result;
+    }
+    if let Some(result) = data::handle(nr, args) {
         return result;
     }
     -1

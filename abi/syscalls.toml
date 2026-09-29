@@ -54,60 +54,67 @@ max_caps        = 1024
 max_devices     = 256
 
 [numbers]
-MADC = 0x4344414D
-MAEN = 0x4E45414D
-MDRC = 0x4352444D
-MDRQ = 0x5152444D
 APPS = 0x53505041
 CDAD = 0x44414443
+CDEC = 0x43454443
 CEAD = 0x44414543
+CENC = 0x434E4543
 CHKF = 0x464B4843
-CMKY = 0x594B4D43
 CHMC = 0x434D4843
+CHSH = 0x48534843
 CKEC = 0x43454B43
+CMKY = 0x594B4D43
+CRND = 0x444E5243
 CXPK = 0x4B505843
 CXSH = 0x48535843
+MADC = 0x4344414D
+MAEN = 0x4E45414D
+MAIN = 0x4E49414D
+MAIS = 0x5349414D
+MAPL = 0x4C50414D
 MAST = 0x5453414D
 MBAT = 0x5441424D
 MCLD = 0x444C434D
 MCVF = 0x4656434D
-MFTK = 0x4B54464D
-MFTW = 0x5754464D
-MGPD = 0x4450474D
-MIEW = 0x5745494D
-MISR = 0x5253494D
+MDIM = 0x4D49444D
+MDRC = 0x4352444D
+MDRD = 0x4452444D
+MDRO = 0x4F52444D
+MDRQ = 0x5152444D
+MDST = 0x5453444D
+MFCX = 0x5843464D
+MFEX = 0x5845464D
+MFFK = 0x4B46464D
+MFRP = 0x5052464D
+MFSG = 0x4753464D
 MFSP = 0x5053464D
 MFST = 0x5453464D
-MFWT = 0x5457464D
-MFRP = 0x5052464D
-MFCX = 0x5843464D
-MFSG = 0x4753464D
-MPMP = 0x504D504D
-MPCP = 0x5043504D
-MPPT = 0x5450504D
 MFTH = 0x4854464D
-MPTL = 0x4C54504D
-MFFK = 0x4B46464D
-MPUN = 0x4E55504D
-MFEX = 0x5845464D
-MLSG = 0x47534C4D
-MLVF = 0x46564C4D
-MAIN = 0x4E49414D
-MDRO = 0x4F52444D
-MLCG = 0x47434C4D
-MLCR = 0x52434C4D
-MAPL = 0x4C50414D
-MAIS = 0x5349414D
+MFTK = 0x4B54464D
+MFTW = 0x5754464D
+MFWT = 0x5457464D
+MGPD = 0x4450474D
+MIEW = 0x5745494D
 MIRW = 0x5752494D
 MIRY = 0x5952494D
+MISR = 0x5253494D
 MKAR = 0x52414B4D
 MKIL = 0x4C494B4D
+MLCG = 0x47434C4D
+MLCR = 0x52434C4D
+MLSG = 0x47534C4D
+MLVF = 0x46564C4D
 MMON = 0x4E4F4D4D
 MOUT = 0x54554F4D
+MPCP = 0x5043504D
 MPCR = 0x5243504D
 MPCW = 0x5743504D
 MPIN = 0x4E49504D
+MPMP = 0x504D504D
+MPPT = 0x5450504D
 MPST = 0x5453504D
+MPTL = 0x4C54504D
+MPUN = 0x4E55504D
 MSOW = 0x574F534D
 MSPI = 0x4950534D
 MSRD = 0x4452534D
@@ -122,10 +129,6 @@ MTSP = 0x5053544D
 MTTQ = 0x5154544D
 MTTY = 0x5954544D
 MWAT = 0x5441574D
-CRND = 0x444E5243
-CHSH = 0x48534843
-CENC = 0x434E4543
-CDEC = 0x43454443
 
 ARBT = 0x54425241
 ASDN = 0x4E445341
@@ -768,6 +771,24 @@ ret  = {type="i64"}
 nr   = 0x5256534D
 caps = ["IPC"]
 args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="usize",dir="in"},{name="port",type="u32",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MDIM]
+nr   = 0x4D49444D
+caps = ["StoreWrite", "FileSystem"]
+args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"},{name="sha256_ptr",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MDRD]
+nr   = 0x4452444D
+caps = ["FileSystem"]
+args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"},{name="offset",type="u64",dir="in"},{name="buf",type="u64",dir="out"},{name="buf_len",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MDST]
+nr   = 0x5453444D
+caps = ["FileSystem"]
+args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSWR]

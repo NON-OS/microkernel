@@ -56,6 +56,10 @@ pub const SYS_STDIN_READ: u64 = tag4(b"MSRD");
 // `Capability::Debug` still has a stdout.
 pub const SYS_STDOUT_WRITE: u64 = tag4(b"MSOW");
 pub const SYS_STORE_WRITE: u64 = tag4(b"MSWR");
+/// The data volume: a verified import, a file's size, a range of it.
+pub const SYS_DATA_IMPORT: u64 = tag4(b"MDIM");
+pub const SYS_DATA_STAT: u64 = tag4(b"MDST");
+pub const SYS_DATA_READ: u64 = tag4(b"MDRD");
 pub const SYS_ATTEST_STATUS: u64 = tag4(b"MAST");
 /// A signed attestation document, as opposed to the unsigned status above.
 pub const SYS_ATTEST_DOC: u64 = tag4(b"MADC");

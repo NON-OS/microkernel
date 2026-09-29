@@ -14,18 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod data;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod unpack;
+//! `MkDataStat(name, len)`: the size of a file on the data volume.
 
-pub use route::dispatch_microkernel_syscall;
+use super::super::errnos::{ERRNO_INVAL, ERRNO_PERM};
+use super::errno::errno;
+use super::name::copy_name;
+
+pub fn sys_data_stat(name_ptr: u64, name_len: u64) -> i64 {
+    if !crate::syscall::caps::current_caps_or_default().can_open_files() {
+        return ERRNO_PERM;
+    }
+    let (name, len) = match copy_name(name_ptr, name_len) {
+        Ok(n) => n,
+        Err(e) => return e,
+    };
+    if let Err(e) = crate::fs::blockfs_volume::open_machine_volume() {
+        return errno(e);
+    }
+    match crate::fs::blockfs_volume::stat(&name[..len]) {
+        Ok((_, true)) => ERRNO_INVAL,
+        Ok((size, false)) => size as i64,
+        Err(e) => errno(e),
+    }
+}

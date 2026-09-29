@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod args;
-mod capability;
-mod data;
-mod debug;
-mod device;
-mod dma;
-mod ipc;
-mod irq;
-mod mmio;
-mod pio;
-mod process;
-mod route;
-mod unpack;
+//! The data volume, reached by name: a verified import, a size, and a read
+//! of any range. The volume is the machine's; a capsule reaches it only
+//! with FileSystem, and brings a file in only with StoreWrite as well.
 
-pub use route::dispatch_microkernel_syscall;
+mod errno;
+mod import;
+mod name;
+mod read;
+mod stat;
+
+pub use import::sys_data_import;
+pub use read::sys_data_read;
+pub use stat::sys_data_stat;
