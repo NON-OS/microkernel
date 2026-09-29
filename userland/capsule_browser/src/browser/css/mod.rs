@@ -67,8 +67,8 @@ pub use color::parse_color;
 #[cfg(feature = "harness")]
 pub use compute::compute;
 pub use computed::{
-    Align, AutoRepeat, BgSize, Clear, Computed, Float, GridTrack, Justify, ObjectFit, Position,
-    Shadow, Size, TextAlign, TextTransform, WhiteSpace,
+    Align, AutoRepeat, BgSize, Clear, Computed, Float, GridTrack, Justify, ObjectFit, Overflow,
+    Position, Shadow, Size, TextAlign, TextTransform, WhiteSpace,
 };
 pub use grid_spec::GridSpec;
 pub use matching::{closest, matches, select, select_in};

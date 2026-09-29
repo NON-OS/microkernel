@@ -52,7 +52,7 @@ pub(in super::super) fn place(reqs: &[Req], n: usize, dense: bool) -> (Vec<Area>
             occ.mark(area(r, rs, c, cs));
         }
     }
-    place_locked(&reqs, &mut occ, &mut out, m, dense);
+    let m = place_locked(&reqs, &mut occ, &mut out, m, dense);
     let (mut cursor, mut budget) = ((0usize, 0usize), SCAN_BUDGET);
     for i in 0..reqs.len() {
         if out[i].is_none() {

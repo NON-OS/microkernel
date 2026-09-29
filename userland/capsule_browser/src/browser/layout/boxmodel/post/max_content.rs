@@ -25,9 +25,6 @@ use super::super::inline_items::InlineItem;
 use super::super::min_content_width::min_content_width;
 use super::super::tree::BoxNode;
 
-/* Wider than any line; the measuring pass must not wrap. */
-const UNWRAPPED: i32 = 1 << 20;
-
 /// The width `n` wants with nothing wrapped. A box holding a run of
 /// inline content measures its longest line the way line layout builds
 /// it, with a space before every word after the first, since the
@@ -39,7 +36,7 @@ pub(crate) fn max_content(n: &BoxNode, d: u32, ctx: Ctx) -> i32 {
         return walk;
     }
     let mut items = Vec::new();
-    collect_items(&n.children, UNWRAPPED, &mut items, d, ctx);
+    collect_items(&n.children, None, &mut items, d, ctx);
     let (mut line, mut widest) = (0i32, 0i32);
     for it in &items {
         if matches!(it, InlineItem::Break) {

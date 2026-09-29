@@ -25,8 +25,7 @@ use super::super::geom::overflow_clip::overflow_clip;
 use super::super::tree::BoxNode;
 use super::static_pos::record_static;
 
-/// A block-level container's border box and its children's context,
-/// shared by block, flex and grid containers.
+/// A block, flex or grid container's border box and its children's context.
 pub(crate) struct Shell {
     pub cx: i32,
     pub cy: i32,
@@ -34,6 +33,7 @@ pub(crate) struct Shell {
     /// Children's context: this content box, clipped by its overflow.
     pub inner: Ctx,
     def_h: Option<i32>,
+    floor: bool,
     ey: i32,
     cb_h: Option<i32>,
     slot: usize,
@@ -47,9 +47,8 @@ pub(crate) fn open(n: &BoxNode, r: [i32; 3], frags: &mut DisplayList, ctx: Ctx) 
     /* margin:auto on both sides centres a box narrower than its space. */
     let x = if s.margin_auto_x && w < avail { x + (avail - w) / 2 } else { x };
     let ((el, er), (et, eb)) = (edges_x(s), edges_y(s));
-    let cw = (w - el - er).max(0);
-    let ey = et + eb;
-    let def_h = def_h(s, ctx.pin.and_then(|p| p.h), ctx.cb.h, [w, cw, ey]);
+    let (cw, ey) = ((w - el - er).max(0), et + eb);
+    let (def_h, floor) = def_h(s, ctx.pin.and_then(|p| p.h), ctx.cb.h, [w, cw, ey]);
     let cb = Containing { w: cw, h: def_h.map(|h| (h - ey).max(0)) };
     let mut inner = Ctx { pin: None, cb, ..ctx };
     if let Some(clip) = overflow_clip(s, [x, y, w], def_h) {
@@ -58,14 +57,15 @@ pub(crate) fn open(n: &BoxNode, r: [i32; 3], frags: &mut DisplayList, ctx: Ctx) 
     record_static(&n.children, x + el, y + et, inner);
     let slot = frags.len();
     frags.push(Fragment::of_box(n, [x, y, w, 0], &ctx));
-    Shell { cx: x + el, cy: y + et, cw, inner, def_h, ey, cb_h: ctx.cb.h, slot }
+    Shell { cx: x + el, cy: y + et, cw, inner, def_h, floor, ey, cb_h: ctx.cb.h, slot }
 }
 
 impl Shell {
-    /// Settle the height (definite, else content plus edges, then clamped)
-    /// and write it into the box's fragment.
+    /// Settle the height (definite, a ratio's grown to its content, else
+    /// content plus edges; then clamped) and write it into the fragment.
     pub(crate) fn close(self, n: &BoxNode, inner_h: i32, frags: &mut DisplayList) -> i32 {
-        let h = self.def_h.unwrap_or(inner_h + self.ey);
+        let content = inner_h + self.ey;
+        let h = self.def_h.map_or(content, |d| if self.floor { d.max(content) } else { d });
         let h = min_max_h(&n.style, h, self.cb_h, self.ey);
         if let Some(f) = frags.get_mut(self.slot) {
             f.h = h;

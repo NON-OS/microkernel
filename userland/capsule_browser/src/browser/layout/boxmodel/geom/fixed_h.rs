@@ -16,6 +16,8 @@
 
 use crate::browser::css::{Computed, Size};
 
+use super::ratio_h::{content_floor, ratio_h};
+
 /* A CSS height as a border-box height: under content-box (the default) the
  * vertical padding and border `ey` go on top. A percentage needs a
  * definite containing height `cb_h`. */
@@ -30,16 +32,6 @@ fn border_box_h(s: &Computed, v: Size, cb_h: Option<i32>, ey: i32) -> Option<i32
  * box falls back to content sizing, as CSS specifies. */
 fn fixed_h(s: &Computed, cb_h: Option<i32>, ey: i32) -> Option<i32> {
     border_box_h(s, s.height, cb_h, ey)
-}
-
-/* aspect-ratio: an auto height follows the border-box width `w` (content
- * width `cw`). The ratio applies to the box box-sizing names, so a
- * content-box ratio adds the vertical edges `ey` back. */
-fn ratio_h(s: &Computed, w: i32, cw: i32, ey: i32) -> Option<i32> {
-    let r = s.aspect.filter(|r| *r > 0.0)?;
-    let base = if s.border_box { w } else { cw };
-    let h = (base as f32 / r + 0.5) as i32;
-    Some(if s.border_box { h } else { h + ey })
 }
 
 /* Clamp a border-box height `h` between min-height and max-height, both
@@ -58,9 +50,19 @@ pub(crate) fn min_max_h(s: &Computed, h: i32, cb_h: Option<i32>, ey: i32) -> i32
 /// The definite border-box height of a box `w` wide (content `cw`, vertical
 /// edges `ey`): the height its insets pinned, else its CSS height, else one
 /// its aspect-ratio gives, clamped by min-height and max-height. None when
-/// its content decides.
-pub(crate) fn def_h(s: &Computed, pin: Option<i32>, cb_h: Option<i32>, g: [i32; 3]) -> Option<i32> {
+/// its content decides. The flag is true when a ratio gave the height and
+/// the content may still grow it (see `content_floor`).
+pub(crate) fn def_h(
+    s: &Computed,
+    pin: Option<i32>,
+    cb_h: Option<i32>,
+    g: [i32; 3],
+) -> (Option<i32>, bool) {
     let [w, cw, ey] = g;
-    let h = pin.or_else(|| fixed_h(s, cb_h, ey)).or_else(|| ratio_h(s, w, cw, ey))?;
-    Some(min_max_h(s, h, cb_h, ey))
+    let set = pin.or_else(|| fixed_h(s, cb_h, ey));
+    let (h, floor) = match set {
+        Some(h) => (Some(h), false),
+        None => (ratio_h(s, w, cw, ey), content_floor(s)),
+    };
+    (h.map(|h| min_max_h(s, h, cb_h, ey)), floor && h.is_some())
 }

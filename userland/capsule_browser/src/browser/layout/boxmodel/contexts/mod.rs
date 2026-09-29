@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub(crate) mod bidi;
+pub(crate) mod bidi_l2;
 pub(crate) mod bidi_levels;
 pub(crate) mod bidi_order;
 pub(crate) mod collect_atom;

@@ -26,7 +26,7 @@ use super::super::inline_items::{InlineItem, Lead};
 use super::super::layout_box::layout_box;
 use super::super::replaced_size::replaced_size;
 use super::super::tree::{BoxKind, BoxNode};
-use super::intrinsic::intrinsic;
+use super::intrinsic::{contribution, intrinsic};
 
 /* An atomic inline on a line `content_w` px wide. An image keeps its
  * replaced size. Anything else (an inline-block, an inline flex or grid, a
@@ -61,4 +61,13 @@ pub(in super::super) fn atom(
     let pinned = Ctx { pin: Some(Pin { w: bw, h: None }), ..ctx };
     let h = layout_box(c, ml, mt, bw, &mut frags, depth, pinned);
     InlineItem::Atom { frags, w: (ml + bw + mr).max(0), h: (mt + h + mb).max(0), lead }
+}
+
+/* An atomic inline while the line has no width yet (the max-content walk
+ * of a shrink-to-fit box): its max-content contribution. A percentage of
+ * that unknown width, in its width or margins, counts as auto (CSS Sizing
+ * 3, cyclic percentages), where resolving it against an unwrapped line
+ * would make it as wide as the page. Only its advance is read. */
+pub(in super::super) fn measured(c: &BoxNode, lead: Lead, depth: u32) -> InlineItem {
+    InlineItem::Atom { frags: Vec::new(), w: contribution(c, depth).1, h: 0, lead }
 }

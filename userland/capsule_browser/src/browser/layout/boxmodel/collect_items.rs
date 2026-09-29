@@ -17,7 +17,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::contexts::collect_atom::atom;
+use super::contexts::collect_atom::{atom, measured};
 use super::contexts::inline_flow::Flow;
 use super::contexts::inline_sink::Sink;
 use super::contexts::inline_walk::walk;
@@ -27,10 +27,10 @@ use super::tree::BoxNode;
 
 /* Flatten an inline run into measured words, images, inline-block atoms
  * and hard breaks, each with the space and break opportunity before it,
- * for line layout `content_w` px wide. */
+ * for line layout `content_w` px wide, or None to measure it unwrapped. */
 pub(super) fn collect_items(
     children: &[BoxNode],
-    content_w: i32,
+    content_w: Option<i32>,
     out: &mut Vec<InlineItem>,
     depth: u32,
     ctx: Ctx,
@@ -41,7 +41,7 @@ pub(super) fn collect_items(
 
 struct Items<'a> {
     out: &'a mut Vec<InlineItem>,
-    content_w: i32,
+    content_w: Option<i32>,
     ctx: Ctx,
 }
 
@@ -53,7 +53,11 @@ impl Sink for Items<'_> {
     }
 
     fn atom(&mut self, c: &BoxNode, lead: Lead, depth: u32) {
-        self.out.push(atom(c, self.content_w, lead, depth, self.ctx));
+        let it = match self.content_w {
+            Some(w) => atom(c, w, lead, depth, self.ctx),
+            None => measured(c, lead, depth),
+        };
+        self.out.push(it);
     }
 
     /* An edge is a word with no text: it takes room and paints its box's
