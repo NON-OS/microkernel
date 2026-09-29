@@ -23,13 +23,8 @@ use crate::interrupts::disable_interrupts_guard;
 use core::sync::atomic::Ordering;
 
 pub fn sleep_until(pid: u32, wake_time_ms: u64) {
-    use crate::process::nonos_core::{ProcessState, PROCESS_TABLE};
     let _irq = disable_interrupts_guard();
-    SLEEPING_PROCESSES.write().insert(pid, wake_time_ms);
-    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        *pcb.state.lock() = ProcessState::Sleeping;
-    }
-    remove_from_run_queue(pid);
+    park(pid, wake_time_ms);
 }
 
 /// Sleep, unless a wake arrived after `token` was read. The check and the
@@ -37,14 +32,25 @@ pub fn sleep_until(pid: u32, wake_time_ms: u64) {
 /// before (bumping the generation, and this returns without sleeping) or
 /// after (finding a genuinely Sleeping process to transition). No gap.
 pub fn sleep_until_unless_woken(pid: u32, wake_time_ms: u64, token: u64) {
-    use crate::process::nonos_core::{ProcessState, PROCESS_TABLE};
     let _irq = disable_interrupts_guard();
     if wake_slot(pid).load(Ordering::Acquire) != token {
         return;
     }
-    SLEEPING_PROCESSES.write().insert(pid, wake_time_ms);
+    park(pid, wake_time_ms);
+}
+
+/*
+ * Leave the run queue, then become Sleeping, then publish the deadline. In
+ * the old order (deadline, state, queue) a wake landing between the state
+ * change and the dequeue left the task Ready but off the queue, and a tick
+ * sweep that found the deadline before the state change spent it on a task
+ * still Running. Either way the task never ran again.
+ */
+fn park(pid: u32, wake_time_ms: u64) {
+    use crate::process::nonos_core::{ProcessState, PROCESS_TABLE};
+    remove_from_run_queue(pid);
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
         *pcb.state.lock() = ProcessState::Sleeping;
     }
-    remove_from_run_queue(pid);
+    SLEEPING_PROCESSES.write().insert(pid, wake_time_ms);
 }
