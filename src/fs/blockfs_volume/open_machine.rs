@@ -25,7 +25,6 @@
 
 use super::error::VolumeError;
 use super::plan_read::read_plan;
-use super::plan_types::Plan;
 use super::ring_blank::ring_blank;
 use super::state::{VolumeState, VOLUME};
 use crate::fs::blockfs::{self, BlockFsError};
@@ -36,11 +35,11 @@ const KEY_LABEL: &[u8] = b"blockfs.data.v1";
 
 /// Open the data volume if it is not open yet. Every refusal is logged
 /// with its reason and returned; nothing is formatted over data.
-pub fn open_machine_volume() -> Result<Plan, VolumeError> {
-    let plan = read_plan()?;
+pub fn open_machine_volume() -> Result<(), VolumeError> {
     if VOLUME.read().is_some() {
-        return Ok(plan);
+        return Ok(());
     }
+    let plan = read_plan()?;
     crate::fs::cryptoblock::set_window(plan.volume_base, plan.volume_sectors)
         .map_err(VolumeError::Window)?;
     let key = derive_for_kernel(KEY_LABEL).map_err(|e| {
@@ -70,5 +69,5 @@ pub fn open_machine_volume() -> Result<Plan, VolumeError> {
         plan.volume_base
     );
     *VOLUME.write() = Some(VolumeState { key, mount });
-    Ok(plan)
+    Ok(())
 }

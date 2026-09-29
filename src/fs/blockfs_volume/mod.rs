@@ -17,6 +17,10 @@
 mod create;
 mod error;
 mod format_volume;
+mod hex;
+mod import;
+mod import_record;
+mod import_stream;
 mod key_to_array;
 mod list;
 mod mount_volume;
@@ -37,6 +41,7 @@ mod write_or_create;
 pub use create::create;
 pub use error::VolumeError;
 pub use format_volume::format_volume;
+pub use import::{import, Imported};
 pub use list::list;
 pub use mount_volume::mount_volume;
 pub use open_machine::open_machine_volume;

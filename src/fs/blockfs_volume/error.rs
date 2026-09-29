@@ -39,4 +39,10 @@ pub enum VolumeError {
     Window(CryptoBlockError),
     /// The header ring holds sectors this key cannot open.
     Unopenable,
+    /// The disk plan names no file to import.
+    NoImport,
+    /// The file to import does not hash to the digest the caller pinned.
+    DigestMismatch,
+    /// The name already holds a file verified against another digest.
+    NameTaken,
 }
