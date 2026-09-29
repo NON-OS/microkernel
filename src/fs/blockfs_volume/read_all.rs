@@ -22,18 +22,26 @@ use super::error::VolumeError;
 use super::state::VOLUME;
 use crate::fs::blockfs;
 
+/// The largest file read whole: the 64 MiB ceiling a program image has
+/// without a certificate, the largest thing a whole read serves.
+pub const WHOLE_READ_MAX: u64 = 64 * 1024 * 1024;
+
 pub fn read_all(path: &[u8]) -> Result<Vec<u8>, VolumeError> {
     let guard = VOLUME.read();
     let state = guard.as_ref().ok_or(VolumeError::NotMounted)?;
     let lba = blockfs::resolve(&state.key, &state.mount, path).map_err(VolumeError::BlockFs)?;
     let node = blockfs::read_node(&state.key, lba).map_err(VolumeError::BlockFs)?;
-    // Clamp the allocation to the largest a file can actually occupy. node.size
-    // is read verbatim from a stored inode; a corrupt or hostile value (up to
-    // u64::MAX) would otherwise force an arbitrarily large zeroed allocation and
-    // OOM the FS. A real file cannot exceed MAX_FILE_BYTES (the index holds at
-    // most MAX_PTRS block pointers), and read_file bounds the actual copy.
-    let cap = (node.size as usize).min(blockfs::MAX_FILE_BYTES);
-    let mut out = alloc::vec![0u8; cap];
+    /*
+     * node.size comes from a stored inode, so it is bounded before anything
+     * is allocated for it. A file can now reach MAX_FILE_BYTES (over 6 GB),
+     * far past what the kernel should hold at once, so a whole read has its
+     * own ceiling and a larger file is refused by name; `read_at` reads any
+     * file by range with a buffer of the caller's size.
+     */
+    if node.size > WHOLE_READ_MAX {
+        return Err(VolumeError::TooLargeToReadWhole(node.size));
+    }
+    let mut out = alloc::vec![0u8; node.size as usize];
     let n = blockfs::read_file(&state.key, &node, &mut out).map_err(VolumeError::BlockFs)?;
     out.truncate(n);
     Ok(out)

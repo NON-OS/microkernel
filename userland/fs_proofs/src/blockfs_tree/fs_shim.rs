@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,11 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::map_block::map_block_error;
-use super::write_deferred::write_deferred;
-use super::CryptoBlockError;
+//! Where `crate::fs::cryptoblock` points for the included kernel source: the
+//! real sector constants, so the tree arithmetic is the kernel's own.
 
-pub fn write(key: &[u8; 32], lba: u64, plain: &[u8]) -> Result<(), CryptoBlockError> {
-    write_deferred(key, lba, plain)?;
-    crate::hardware::block_device::flush().map_err(map_block_error)
-}
+#[path = "../../../../src/fs/cryptoblock/constants.rs"]
+pub mod cryptoblock;

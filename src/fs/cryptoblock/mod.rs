@@ -21,6 +21,7 @@ mod open;
 mod read;
 mod seal;
 mod write;
+mod write_deferred;
 
 pub use constants::{PLAIN_BLOCK_BYTES, SECTOR_BYTES};
 pub use error::CryptoBlockError;
@@ -28,3 +29,4 @@ pub use open::open;
 pub use read::read;
 pub use seal::seal;
 pub use write::write;
+pub use write_deferred::write_deferred;

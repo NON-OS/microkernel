@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,11 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::map_block::map_block_error;
-use super::write_deferred::write_deferred;
-use super::CryptoBlockError;
+//! A pointer block as bytes: FANOUT little-endian LBAs, the rest zero.
 
-pub fn write(key: &[u8; 32], lba: u64, plain: &[u8]) -> Result<(), CryptoBlockError> {
-    write_deferred(key, lba, plain)?;
-    crate::hardware::block_device::flush().map_err(map_block_error)
+use super::file_consts::{FANOUT, PTR_BYTES};
+use super::read_u64::read_u64;
+use super::tree_store::Block;
+use super::write_u64::write_u64;
+use crate::fs::cryptoblock::PLAIN_BLOCK_BYTES;
+
+pub(crate) fn encode(ptrs: &[u64; FANOUT]) -> Block {
+    let mut block = [0u8; PLAIN_BLOCK_BYTES];
+    for (i, lba) in ptrs.iter().enumerate() {
+        write_u64(&mut block, i * PTR_BYTES, *lba);
+    }
+    block
+}
+
+pub(crate) fn entry(block: &Block, i: usize) -> u64 {
+    read_u64(block, i * PTR_BYTES)
 }

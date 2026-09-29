@@ -22,5 +22,7 @@ pub enum VolumeError {
     Keyring(KeyringCapsuleError),
     BlockFs(BlockFsError),
     NotMounted,
+    /// A whole read of a file larger than `read_all` holds; its size.
+    TooLargeToReadWhole(u64),
     BadKeyLength,
 }
