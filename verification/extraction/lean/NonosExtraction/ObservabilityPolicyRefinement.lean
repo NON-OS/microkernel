@@ -44,11 +44,125 @@ theorem the_should_log_debug_wrapper_is_its_method :
 theorem the_should_emit_serial_wrapper_is_its_method :
     should_emit_serial = policy.should_emit_serial := rfl
 
+/-! ### What production mode suppresses
+
+    Both flags are atomics, and Aeneas models every atomic as opaque, so nothing
+    here says what a load returns, when a store becomes visible to another
+    processor, or that a load sees the last store. What the theorems say is what
+    each function does with whatever the loads returned: in production, debug
+    logging is off whatever the output level reads; out of production, serial
+    output is on; debug logging never happens without serial output; and turning
+    production on writes the minimal level back, while turning it off writes
+    nothing else. The statics are constructed from `true` and from the minimal
+    level, so the kernel is built to start in production, which is as far as a
+    statement about an opaque constructor goes.
+-/
+
+theorem production_never_logs_debug (h : is_production_mode = ok true) :
+    should_log_debug = ok false := by
+  unfold should_log_debug policy.should_log_debug
+  rw [show policy.is_production_mode = is_production_mode from rfl, h]
+  rfl
+
+theorem out_of_production_serial_is_on (h : is_production_mode = ok false) :
+    should_emit_serial = ok true := by
+  unfold should_emit_serial policy.should_emit_serial
+  rw [show policy.is_production_mode = is_production_mode from rfl, h]
+  rfl
+
+/-- Debug logging happens exactly out of production with the level at `Debug`
+    or above, whatever the level atomic holds. -/
+theorem debug_logging_needs_both (b : Bool) (h : should_log_debug = ok b) :
+    b = true ↔ (is_production_mode = ok false ∧
+      ∃ o m, policy.OUTPUT_MODE = ok o ∧
+        core.sync.atomic.AtomicU8Align1U8.load o .Acquire = ok m ∧ 3 ≤ m.val) := by
+  unfold should_log_debug policy.should_log_debug at h
+  rw [show policy.is_production_mode = is_production_mode from rfl] at h
+  have h3 : (3#u8 + 0#u8 : Result Std.U8) = ok 3#u8 := by rfl
+  cases hp : is_production_mode with
+  | ok p =>
+    rw [hp, bind_tc_ok] at h
+    cases p
+    · simp only [Bool.false_eq_true, ite_false] at h
+      cases ho : policy.OUTPUT_MODE with
+      | ok o =>
+        rw [ho, bind_tc_ok] at h
+        cases hm : core.sync.atomic.AtomicU8Align1U8.load o .Acquire with
+        | ok m =>
+          rw [hm, bind_tc_ok, h3, bind_tc_ok] at h
+          simp only [lift, bind_tc_ok, ok.injEq] at h
+          subst h
+          have hc : UScalar.cast UScalarTy.U8 (3#u8) = 3#u8 := by rfl
+          rw [hc]
+          constructor
+          · intro hb
+            exact ⟨rfl, o, m, rfl, hm, by simpa using hb⟩
+          · rintro ⟨-, o', m', ho', hm', hle⟩
+            cases ho'
+            rw [hm] at hm'
+            cases hm'
+            simpa using hle
+        | fail e => rw [hm] at h; simp at h
+        | div => rw [hm] at h; simp at h
+      | fail e => rw [ho] at h; simp at h
+      | div => rw [ho] at h; simp at h
+    · simp only [ite_true, ok.injEq] at h
+      subst h
+      simp
+  | fail e => rw [hp] at h; simp at h
+  | div => rw [hp] at h; simp at h
+
+/-- Debug output never goes out without serial output going out. -/
+theorem debug_logging_implies_serial (h : should_log_debug = ok true) :
+    should_emit_serial = ok true :=
+  out_of_production_serial_is_on ((debug_logging_needs_both true h).mp rfl).1
+
+/-- Turning production on writes the minimal level, 0, after the flag. -/
+theorem entering_production_resets_the_level :
+    set_production_mode true = (do
+      let a ← policy.PRODUCTION_MODE
+      core.sync.atomic.AtomicBoolAlign1U8.store a true .Release
+      let o ← policy.OUTPUT_MODE
+      core.sync.atomic.AtomicU8Align1U8.store o 0#u8 .Release) := by
+  unfold set_production_mode policy.set_production_mode
+  have h0 : (0#u8 + 0#u8 : Result Std.U8) = ok 0#u8 := by rfl
+  simp only [ite_true, h0, bind_tc_ok, lift]
+  rfl
+
+/-- Turning it off writes the flag and nothing else. -/
+theorem leaving_production_touches_only_the_flag :
+    set_production_mode false = (do
+      let a ← policy.PRODUCTION_MODE
+      core.sync.atomic.AtomicBoolAlign1U8.store a false .Release) := by
+  unfold set_production_mode policy.set_production_mode
+  simp only [Bool.false_eq_true, ite_false]
+  congr 1
+  funext a
+  cases core.sync.atomic.AtomicBoolAlign1U8.store a false .Release <;> rfl
+
+/-- The statics: the production flag is built from `true` and the level from the
+    minimal value, 0. -/
+theorem built_to_start_in_production :
+    policy.PRODUCTION_MODE = core.sync.atomic.AtomicBoolAlign1U8.new true ∧
+      policy.OUTPUT_MODE = core.sync.atomic.AtomicU8Align1U8.new 0#u8 := by
+  constructor
+  · unfold policy.PRODUCTION_MODE
+    rfl
+  · unfold policy.OUTPUT_MODE
+    rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ObservabilityPolicy.the_is_production_mode_wrapper_is_its_method
 #print axioms NonosExtraction.ObservabilityPolicy.the_set_production_mode_wrapper_is_its_method
 #print axioms NonosExtraction.ObservabilityPolicy.the_should_log_debug_wrapper_is_its_method
 #print axioms NonosExtraction.ObservabilityPolicy.the_should_emit_serial_wrapper_is_its_method
+#print axioms NonosExtraction.ObservabilityPolicy.production_never_logs_debug
+#print axioms NonosExtraction.ObservabilityPolicy.out_of_production_serial_is_on
+#print axioms NonosExtraction.ObservabilityPolicy.debug_logging_needs_both
+#print axioms NonosExtraction.ObservabilityPolicy.debug_logging_implies_serial
+#print axioms NonosExtraction.ObservabilityPolicy.entering_production_resets_the_level
+#print axioms NonosExtraction.ObservabilityPolicy.leaving_production_touches_only_the_flag
+#print axioms NonosExtraction.ObservabilityPolicy.built_to_start_in_production
 
 end NonosExtraction.ObservabilityPolicy
