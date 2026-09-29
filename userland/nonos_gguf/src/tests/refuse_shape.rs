@@ -42,7 +42,9 @@ fn a_tensor_shape_is_bounded_before_it_is_multiplied() {
         one(&[100], 12),
         Err(E::Tensor { tensor: 0, why: T::RowNotWholeBlocks { ne0: 100, block: 256 } })
     );
-    /* 2^31 cubed overflows u64; 2^31 * 16 F32 is 2^37 bytes, past 2^34. */
+    /*
+     * 2^31 cubed overflows u64; 2^31 * 16 F32 is 2^37 bytes, past 2^34.
+     */
     assert_eq!(
         one(&[1 << 31, 1 << 31, 1 << 31], 0),
         Err(E::Tensor { tensor: 0, why: T::TooLarge })

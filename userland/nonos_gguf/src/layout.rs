@@ -61,7 +61,9 @@ pub(crate) fn check_layout(
         }
     }
     for (start, end, _) in &spans {
-        /* Disjoint spans inside a file of `len` bytes sum to at most `len`. */
+        /*
+         * Disjoint spans inside a file of `len` bytes sum to at most `len`.
+         */
         covered += end - start;
     }
     Ok(covered)

@@ -31,7 +31,9 @@ pub(crate) fn skip_array<S: ReadAt>(c: &mut Cursor<'_, S>, lim: &Limits) -> Resu
         return Err(GgufError::ArrayTooLong { at, len: count });
     }
     if let Some(n) = fixed_size(item) {
-        /* count <= 2^24 and n <= 8, so the product cannot overflow. */
+        /*
+         * count <= 2^24 and n <= 8, so the product cannot overflow.
+         */
         return c.skip(count * n);
     }
     match item {

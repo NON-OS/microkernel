@@ -33,7 +33,9 @@ fn tensor_data_must_be_aligned_inside_the_file_and_unshared() {
     assert_eq!(two(0, 320, 512), Err(E::Tensor { tensor: 1, why: T::PastEnd }));
     assert_eq!(two(0, 128, 512), Err(E::Tensor { tensor: 1, why: T::Overlap }));
     assert_eq!(two(256, 0, 512), Ok(two(256, 0, 512).unwrap()));
-    /* An offset whose sum with the data start overflows u64 is past the end. */
+    /*
+     * An offset whose sum with the data start overflows u64 is past the end.
+     */
     assert_eq!(two(0, u64::MAX & !31, 512), Err(E::Tensor { tensor: 1, why: T::PastEnd }));
 }
 
