@@ -59,3 +59,16 @@ fn size_forms_resolve_against_the_box_and_the_image() {
     let centred = layer("background:url(x.png) center / contain");
     assert_eq!(centred.tile((100, 100), [0, 0, 1000, 500]), [250, 0, 500, 500]);
 }
+
+#[test]
+fn a_data_url_background_or_mask_is_kept_for_the_image_queue() {
+    let svg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E";
+    let html = format!(
+        "<div id=b style=\"height:9px;background:url(&quot;{svg}&quot;) no-repeat\"></div>\
+         <i id=m style=\"display:block;height:9px;background:red;mask-image:url({svg})\"></i>"
+    );
+    let p = Page::at(&html, VP);
+    assert_eq!(p.frag("b").bg_image.as_deref(), Some(svg));
+    assert!(p.frag("m").mask);
+    assert_eq!(p.frag("m").bg_image.as_deref(), Some(svg));
+}

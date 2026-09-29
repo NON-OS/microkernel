@@ -28,7 +28,8 @@ pub(super) use shorthand::{apply_background, apply_bg_size};
 
 /* The background layer captured from a background or background-image
  * declaration: the first comma layer (the topmost painted) that holds a
- * url() to fetch or a gradient kept verbatim for the painter. Solid
+ * url() to fetch (a data: url decodes in place) or a gradient kept
+ * verbatim for the painter. Solid
  * colours and unknown values give None. */
 pub(super) fn bg_url(name: &str, value: &str) -> Option<String> {
     if name != "background" && name != "background-image" {
@@ -39,7 +40,7 @@ pub(super) fn bg_url(name: &str, value: &str) -> Option<String> {
         if starts_ci(w, "url(") {
             let inner = w[4..].strip_suffix(')').unwrap_or(&w[4..]);
             let inner = inner.trim().trim_matches('"').trim_matches('\'').trim();
-            return (!inner.is_empty() && !inner.starts_with("data:")).then(|| inner.to_string());
+            return (!inner.is_empty()).then(|| inner.to_string());
         }
         if is_gradient(w) {
             return Some(w.trim().to_string());
