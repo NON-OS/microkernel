@@ -20,9 +20,9 @@ use super::path_curves::{arc, cubic, quad};
 use super::path_state::PathState;
 use super::path_tok::Tok;
 
-// Path data to flattened subpaths. Implicit command repetition applies, and
-// a moveto's extra pairs continue as lineto per the spec. A malformed tail
-// stops the walk; whatever parsed before it still renders.
+/* Path data to flattened subpaths. Implicit command repetition applies, and
+ * a moveto's extra pairs continue as lineto per the spec. A malformed tail
+ * stops the walk; whatever parsed before it still renders. */
 pub(super) fn parse_path(d: &str) -> Vec<Vec<[f32; 2]>> {
     let mut tk = Tok::new(d);
     let mut st = PathState::new();
@@ -36,26 +36,18 @@ pub(super) fn parse_path(d: &str) -> Vec<Vec<[f32; 2]>> {
         let rel = cmd.is_ascii_lowercase();
         let up = cmd.to_ascii_uppercase();
         let step = match up {
-            b'M' => {
-                let p = tk.xy(st.cur, rel);
-                if let Some(p) = p {
-                    st.move_to(p);
-                    // Further pairs are implicit linetos.
-                    cmd = if rel { b'l' } else { b'L' };
-                }
-                p.map(|_| ())
-            }
+            b'M' => tk.xy(st.cur, rel).map(|p| {
+                st.move_to(p);
+                /* Further pairs are implicit linetos. */
+                cmd = if rel { b'l' } else { b'L' };
+            }),
             b'L' => tk.xy(st.cur, rel).map(|p| {
                 st.sub.push(p);
                 st.cur = p;
             }),
-            b'H' => tk.num().map(|x| {
-                let p = [if rel { st.cur[0] + x } else { x }, st.cur[1]];
-                st.sub.push(p);
-                st.cur = p;
-            }),
-            b'V' => tk.num().map(|y| {
-                let p = [st.cur[0], if rel { st.cur[1] + y } else { y }];
+            b'H' | b'V' => tk.num().map(|v| {
+                let (k, mut p) = ((up == b'V') as usize, st.cur);
+                p[k] = if rel { p[k] + v } else { v };
                 st.sub.push(p);
                 st.cur = p;
             }),
@@ -66,25 +58,17 @@ pub(super) fn parse_path(d: &str) -> Vec<Vec<[f32; 2]>> {
             b'A' => arc(&mut st, &mut tk, rel),
             b'Z' => {
                 st.close();
-                // Closepath takes no arguments, so it cannot repeat: only a
-                // command letter may follow. Left as the current command, a
-                // number after it was re-read as another Z that consumed
-                // nothing, and the walk never ended.
+                /* Closepath takes no arguments, so only a command letter may
+                 * follow; a number re-read as Z consumed nothing forever. */
                 cmd = 0;
                 Some(())
             }
             _ => None,
         };
-        // Only a curve command carries its reflection anchor forward.
-        if !matches!(up, b'C' | b'S') {
-            st.last_c2 = None;
-        }
-        if !matches!(up, b'Q' | b'T') {
-            st.last_q = None;
-        }
-        if step.is_none() {
-            break;
-        }
+        /* Only a curve command carries its reflection anchor forward. */
+        st.last_c2 = st.last_c2.filter(|_| matches!(up, b'C' | b'S'));
+        st.last_q = st.last_q.filter(|_| matches!(up, b'Q' | b'T'));
+        let Some(()) = step else { break };
     }
     st.finish()
 }

@@ -14,15 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Newton's method square root; core has no intrinsic in no_std and the crate
-// avoids libm. A few iterations are exact to well under a pixel.
-pub(super) fn sqrt(x: f32) -> f32 {
-    if x <= 0.0 || !x.is_finite() {
-        return 0.0;
+/* Integer square root, floor(sqrt(v)), digit by digit: no floats (the
+ * crate has no libm and float math is slow under emulation) and exact. */
+pub(super) fn isqrt(v: u128) -> u128 {
+    let mut rem = v;
+    let mut root = 0u128;
+    let mut bit = 1u128 << 126;
+    while bit > v {
+        bit >>= 2;
     }
-    let mut y = f32::from_bits((x.to_bits() >> 1) + 0x1fc0_0000);
-    for _ in 0..4 {
-        y = 0.5 * (y + x / y);
+    while bit != 0 {
+        if rem >= root + bit {
+            rem -= root + bit;
+            root = (root >> 1) + bit;
+        } else {
+            root >>= 1;
+        }
+        bit >>= 2;
     }
-    y
+    root
 }

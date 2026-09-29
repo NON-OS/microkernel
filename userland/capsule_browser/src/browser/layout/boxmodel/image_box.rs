@@ -18,14 +18,18 @@ use crate::browser::css::Computed;
 
 const DEFAULT_IMG_W: i32 = 320;
 
-// Box for an <img>: CSS sizes win; otherwise a capped default width with a
-// 4:3 height. Natural dimensions arrive after decode and cannot drive layout.
+/* Box for an <img> or inline <svg>: CSS sizes (or the attributes standing in
+ * for them) win, zero included; otherwise a capped default width with a 4:3
+ * height. Natural dimensions arrive after decode and cannot drive layout. */
 pub(super) fn image_box(s: &Computed, content_w: i32) -> (i32, i32) {
     let max_w = content_w.max(1);
-    let w = s.width.resolve(content_w).unwrap_or_else(|| content_w.min(DEFAULT_IMG_W));
-    let w = w.clamp(1, max_w);
+    let w = match s.width.resolve(content_w) {
+        Some(w) => w.clamp(0, max_w),
+        None => content_w.min(DEFAULT_IMG_W).clamp(1, max_w),
+    };
     let h = match s.height.definite_px() {
-        Some(p) => p.max(1),
+        Some(p) => p.max(0),
+        None if w == 0 => 0,
         None => (w * 3 / 4).max(1),
     };
     (w, h)

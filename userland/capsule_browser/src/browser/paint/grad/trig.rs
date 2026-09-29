@@ -16,19 +16,41 @@
 
 const PI: f32 = core::f32::consts::PI;
 
-// Polynomial sine over a reduced range; the gradient axis only needs a couple
-// of digits, far tighter than a supersampled pixel.
-pub(super) fn sin(x: f32) -> f32 {
+/* Unit vector of a CSS gradient angle: 0deg points up and angles grow
+ * clockwise, so the vector is (sin a, -cos a). Quarter turns are exact, so
+ * "to bottom" and "to right" run straight along an axis. */
+pub(super) fn axis(deg: f32) -> (f32, f32) {
+    let d = deg % 360.0;
+    let d = if d < 0.0 { d + 360.0 } else { d };
+    if d == 0.0 {
+        (0.0, -1.0)
+    } else if d == 90.0 {
+        (1.0, 0.0)
+    } else if d == 180.0 {
+        (0.0, 1.0)
+    } else if d == 270.0 {
+        (-1.0, 0.0)
+    } else {
+        let r = d * PI / 180.0;
+        (sin(r), -sin(r + PI / 2.0))
+    }
+}
+
+/* Taylor sine through the x^9 term, on an argument first reduced to
+ * [-pi, pi] and then folded into [-pi/2, pi/2] (sin(pi - t) = sin t), where
+ * the series is good to about 4e-6. */
+fn sin(x: f32) -> f32 {
     let mut t = x % (2.0 * PI);
     if t > PI {
         t -= 2.0 * PI;
     } else if t < -PI {
         t += 2.0 * PI;
     }
+    if t > PI / 2.0 {
+        t = PI - t;
+    } else if t < -PI / 2.0 {
+        t = -PI - t;
+    }
     let t2 = t * t;
-    t * (1.0 - t2 / 6.0 * (1.0 - t2 / 20.0 * (1.0 - t2 / 42.0)))
-}
-
-pub(super) fn cos(x: f32) -> f32 {
-    sin(x + PI / 2.0)
+    t * (1.0 - t2 / 6.0 * (1.0 - t2 / 20.0 * (1.0 - t2 / 42.0 * (1.0 - t2 / 72.0))))
 }

@@ -19,11 +19,12 @@ use alloc::string::String;
 use crate::browser::dom::node::NodeKind;
 use crate::browser::dom::Dom;
 
-const MAX_DEPTH: u32 = 40;
+/* Nesting kept when serializing; deeper content is left out. */
+const MAX_DEPTH: u32 = 256;
 
-// Serialize a DOM subtree back to SVG markup so an inline <svg> can be handed
-// to the same rasterizer that decodes an <img src=*.svg>. The svg namespace
-// is asserted on the root so a fragment lifted from HTML stands alone.
+/* Serialize a DOM subtree back to SVG markup so an inline <svg> can be handed
+ * to the same rasterizer that decodes an <img src=*.svg>. The svg namespace
+ * is asserted on the root so a fragment lifted from HTML stands alone. */
 pub(super) fn serialize_svg(dom: &Dom, id: usize) -> String {
     let mut out = String::new();
     write_node(dom, id, &mut out, 0, true);

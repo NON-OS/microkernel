@@ -16,12 +16,15 @@
 
 const MAX_ATTR_PX: u32 = 4096;
 
-// Whole-pixel value of an <img> width/height attribute. Percentages and
-// malformed values yield None and the box falls back to its default size.
+/* Whole-pixel value of an <img> or <svg> width/height attribute: a plain or
+ * decimal number, optionally with a px unit, rounded. "0" is a real zero
+ * size (a hidden sprite sheet takes no room). Percentages, other units and
+ * malformed values yield None and the box falls back to its default size. */
 pub(super) fn attr_px(v: Option<&str>) -> Option<u32> {
-    let n = v?.trim().parse::<u32>().ok()?;
-    if n == 0 {
+    let t = v?.trim();
+    let n = t.strip_suffix("px").unwrap_or(t).parse::<f32>().ok()?;
+    if !n.is_finite() || n < 0.0 {
         return None;
     }
-    Some(n.min(MAX_ATTR_PX))
+    Some(((n + 0.5) as u32).min(MAX_ATTR_PX))
 }

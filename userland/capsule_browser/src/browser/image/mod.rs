@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Real raster images for the document view. Sources discovered during layout
-// are fetched through the same socket state machine as pages, decoded from
-// PNG/JPEG/BMP into ARGB8888, cached, and scale-blitted into their box.
+/* Real raster images for the document view. Sources discovered during layout
+ * are fetched through the same socket state machine as pages, decoded from
+ * PNG/JPEG/BMP into ARGB8888, cached, and scale-blitted into their box. */
 mod blit;
 mod data_uri;
 mod decode;
@@ -30,7 +30,7 @@ mod store;
 mod svg;
 mod webp;
 
-pub use blit::blit_into;
+pub use blit::{blit_into, blit_rect};
 pub(crate) use data_uri::data_uri_bytes;
 #[cfg(not(feature = "harness"))]
 pub use fetch::{follow_redirect, pump};
@@ -39,12 +39,7 @@ pub use ingest::ingest;
 pub use queue::enqueue_from_doc;
 pub use store::{Decoded, Store};
 
-// Record the box a source will be drawn into before ingest, so a vector image
-// rasterizes at its display size instead of upscaling a default raster. The
-// on-device path does this through the fetch queue; the host render harness has
-// no queue and calls this directly.
 #[cfg(feature = "harness")]
-pub fn note_size(store: &mut Store, url: &str, w: u32, h: u32) {
-    store.mark_pending(url);
-    store.note_hint(url, w, h);
-}
+mod note_size;
+#[cfg(feature = "harness")]
+pub use note_size::note_size;
