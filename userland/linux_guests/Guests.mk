@@ -142,6 +142,18 @@ $(LINUX_GUESTS_C)/gostd: $(LINUX_GUESTS_DIR)/go/std/gostd.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,gostd,5040,5041,$(LINUX_GUESTS_C)/gostd))
 $(foreach i,$(shell seq 1 $(words $(NONOS_LINUX_GO_SUITE_PKGS))),$(eval $(call LINUX_GUEST,gs$(subst /,,$(word $(i),$(NONOS_LINUX_GO_SUITE_PKGS))),$(shell expr 5040 + 2 \* $(i)),$(shell expr 5041 + 2 \* $(i)),$(GO_STD_OUT)/$(subst /,_,$(word $(i),$(NONOS_LINUX_GO_SUITE_PKGS))).test)))
+# A 12 MB program that execs itself: it runs only if the personality lets the
+# first program's bytes go once it is running. It takes the ids after the
+# packages, so the list is one shorter when it is asked for.
+ifeq ($(NONOS_LINUX_GO_SUITE_EXECBIG),1)
+GO_SUITE_EXECBIG_ID := $(shell expr 5042 + 2 \* $(words $(NONOS_LINUX_GO_SUITE_PKGS)))
+ifneq ($(shell test $(GO_SUITE_EXECBIG_ID) -le 5098 && echo ok),ok)
+$(error NONOS_LINUX_GO_SUITE_EXECBIG=1 needs a free id pair; name at most 28 packages)
+endif
+$(LINUX_GUESTS_C)/execbig: $(LINUX_GUESTS_DIR)/go/std/execbig.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,execbig,$(GO_SUITE_EXECBIG_ID),$(shell expr $(GO_SUITE_EXECBIG_ID) + 1),$(LINUX_GUESTS_C)/execbig))
+endif
 endif
 
 # The Linux-guest test store is about guests, not the desktop's media and demo
