@@ -18,7 +18,8 @@ use alloc::string::String;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use super::node::{Node, NodeKind};
+use super::node::{Node, NodeKind, Ns};
+use super::quirks::Quirks;
 
 pub struct Dom {
     pub nodes: Vec<Node>,
@@ -36,6 +37,11 @@ pub struct Dom {
     /// no size. The numbers exist in the display list already; they are
     /// copied here because that is what a script can reach.
     pub rects: Vec<[i32; 4]>,
+    /// What the parser left out, as `limits::TRUNC_*` bits: nodes past the
+    /// node cap, attributes past the budget, nesting past the depth cap.
+    pub truncated: u8,
+    /// The rendering mode the doctype selected.
+    pub quirks: Quirks,
 }
 
 impl Dom {
@@ -47,8 +53,15 @@ impl Dom {
             attrs: Vec::new(),
             parent: 0,
             children: Vec::new(),
+            ns: Ns::Html,
         };
-        Dom { nodes: vec![root], base: String::new(), rects: Vec::new() }
+        Dom {
+            nodes: vec![root],
+            base: String::new(),
+            rects: Vec::new(),
+            truncated: 0,
+            quirks: Quirks::No,
+        }
     }
 }
 

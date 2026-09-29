@@ -19,13 +19,16 @@ use crate::browser::dom;
 use super::copy_children::copy_children;
 use super::ctx::Ctx;
 
-// innerHTML setter: parse the fragment with the page parser and graft the
-// result under the target, replacing its children.
+/// innerHTML setter: parse the markup as the contents of the target, as the
+/// fragment parsing algorithm does, and graft the result under it, replacing
+/// its children. The target is the context, so "<tr><td>" set on a tbody
+/// is a row, and nothing wraps the fragment in html, head and body.
 pub(super) fn graft_html(ctx: &mut Ctx, id: usize, html: &str) {
     if id >= ctx.dom.nodes.len() {
         return;
     }
-    let frag = dom::parse(html.as_bytes());
+    let context = ctx.dom.nodes[id].context_tag();
+    let frag = dom::parse_fragment(html.as_bytes(), &context);
     ctx.dom.nodes[id].children.clear();
     copy_children(ctx.dom, &frag, 0, id, 0);
     ctx.dirty = true;
