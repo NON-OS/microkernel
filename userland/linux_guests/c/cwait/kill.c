@@ -22,18 +22,19 @@ int thread_kill(void) {
     return 0;
 }
 
-/* The raw call, so the answers are the kernel's and not musl's own checks. */
-
 static volatile sig_atomic_t usr1_other;
 static volatile int stop_yielding;
+static volatile long yield_tid, usr1_tid;
 
 static void on_usr1_other(int sig) {
     (void)sig;
+    usr1_tid = gettid();
     usr1_other = 1;
 }
 
 static void *yielder(void *arg) {
     (void)arg;
+    yield_tid = gettid();
     long start = now_ms();
     while (!usr1_other && !stop_yielding && now_ms() - start < 3000) {
         sched_yield();
@@ -54,6 +55,10 @@ int thread_signal(void) {
     pthread_join(t, 0);
     if (rc != 0 || !usr1_other) {
         return fail("pthread_kill to another thread", rc, usr1_other);
+    }
+    /* Handled on the caller's own thread would also end the yield. */
+    if (usr1_tid != yield_tid) {
+        return fail("pthread_kill handled on the wrong thread", usr1_tid, yield_tid);
     }
     ok("pthread-kill", "pthread_kill reached another thread by its pthread tid; handled",
        usr1_other);

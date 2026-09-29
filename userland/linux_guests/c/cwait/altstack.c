@@ -1,5 +1,6 @@
 #include "cwait.h"
 
+/* The raw call, so the answers are the kernel's and not musl's own checks. */
 static long altstack(const stack_t *set, stack_t *old) {
     return syscall(SYS_sigaltstack, set, old) == -1 ? -errno : 0;
 }
