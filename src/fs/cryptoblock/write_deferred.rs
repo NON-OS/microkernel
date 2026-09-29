@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::map_block::map_block_error;
-use super::write_deferred::write_deferred;
+use super::seal::seal;
 use super::CryptoBlockError;
 
-pub fn write(key: &[u8; 32], lba: u64, plain: &[u8]) -> Result<(), CryptoBlockError> {
-    write_deferred(key, lba, plain)?;
-    crate::hardware::block_device::flush().map_err(map_block_error)
+/// Seal and write one block without flushing the device. A caller writing
+/// many blocks flushes once after the last, before anything points at them.
+pub fn write_deferred(key: &[u8; 32], lba: u64, plain: &[u8]) -> Result<(), CryptoBlockError> {
+    let sector = seal(key, lba, plain)?;
+    crate::hardware::block_device::write(lba, &sector).map_err(map_block_error)
 }
