@@ -1346,6 +1346,16 @@
       ]
     },
     {
+      "name": "layout_stack_slots",
+      "crate": "nonos_x_layout_stack_slots",
+      "dir": "verification/extraction/tree/layout_stack_slots",
+      "lean": "LayoutStackSlots",
+      "generated": "LayoutStackSlots.lean",
+      "starts": [
+        "nonos_x_layout_stack_slots::stack_slot_offset"
+      ]
+    },
+    {
       "name": "keyring_capsule_types",
       "crate": "nonos_x_keyring_capsule_types",
       "dir": "verification/extraction/sweep/keyring_capsule_types",
