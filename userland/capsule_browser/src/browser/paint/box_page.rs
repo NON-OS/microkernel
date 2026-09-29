@@ -20,7 +20,6 @@ use crate::browser::layout::boxmodel::{BoxDocument, Fragment};
 use crate::browser::layout::hit_screen::frag_screen_y;
 use crate::browser::state::{State, CHROME_H};
 
-use super::box_fragment::box_fragment;
 use super::canvas::paint_canvas;
 
 pub(super) const TOP: i32 = CHROME_H as i32;
@@ -46,6 +45,6 @@ pub fn paint(state: &State, doc: &BoxDocument, fb: &mut PaintBuffer) {
                 continue;
             }
         }
-        box_fragment(state, fb, f, sy, bottom);
+        super::tinted::paint_one(state, fb, f, sy, bottom);
     }
 }

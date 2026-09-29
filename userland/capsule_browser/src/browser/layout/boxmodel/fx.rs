@@ -52,13 +52,13 @@ pub struct Fx {
     pub transform: Option<Affine>,
     pub origin: [Rel; 2],
     pub clip: Option<Clip>,
-    /* The background image slot holds a mask-image: its alpha shows the
-     * background color, which paints nowhere else. */
+    /* The background image slot holds a url mask-image (paint::mask). */
     pub mask: bool,
-    /* A gradient mask-image, as its id in css::fade_table (0 for none),
-     * and whether its layers intersect rather than add. */
+    /* Ids in layout::fade_table and filter_table (0: none) of a gradient
+     * mask-image, whose layers may intersect, and a filter's color map. */
     pub fade: u16,
     pub fade_isect: bool,
+    pub tint: u16,
 }
 
 impl Fx {
@@ -70,5 +70,6 @@ impl Fx {
         mask: false,
         fade: 0,
         fade_isect: false,
+        tint: 0,
     };
 }

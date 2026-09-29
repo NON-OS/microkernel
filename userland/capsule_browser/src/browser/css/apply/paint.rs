@@ -17,8 +17,10 @@
 use crate::browser::css::bg_url;
 use crate::browser::css::color::parse_color;
 use crate::browser::css::computed::Computed;
+use crate::browser::layout::filter_table;
 
-/* Painted appearance: background color, size and repeat here; corner radii
+/* Painted appearance: background color, size and repeat and the filter
+ * color map here; corner radii
  * in apply_radius; stacking, overflow, opacity and effects in apply_visual. */
 pub(super) fn apply_paint(c: &mut Computed, name: &str, value: &str, fs: u32) -> bool {
     match name {
@@ -32,6 +34,9 @@ pub(super) fn apply_paint(c: &mut Computed, name: &str, value: &str, fs: u32) ->
         "background" => bg_url::apply_background(c, value, fs),
         "background-size" | "mask-size" | "-webkit-mask-size" => {
             bg_url::apply_bg_size(c, value, fs)
+        }
+        "filter" | "-webkit-filter" => {
+            c.fx.tint = filter_table::tint_id(value, super::filter_parse::parse_filter)
         }
         "background-position" | "mask-position" | "-webkit-mask-position" => {
             bg_url::apply_bg_pos(c, value, fs)

@@ -42,5 +42,6 @@ mod round_clip;
 mod rows;
 mod scroll_paint;
 mod shadow;
+mod tinted;
 
 pub use paint::paint;

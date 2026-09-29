@@ -28,13 +28,13 @@ use super::super::replaced_size::replaced_size;
 use super::super::tree::{BoxKind, BoxNode};
 use super::intrinsic::{contribution, intrinsic};
 
-/* An atomic inline on a line `content_w` px wide. An image keeps its
- * replaced size. Anything else (an inline-block, an inline flex or grid, a
- * form control) takes its declared width, else shrinks to fit: its
- * max-content width, but no less than its min-content width while that
- * fits, as CSS sizes an auto-width inline-block. That border box is pinned,
- * so a percentage width is not taken again of itself, and the box is laid
- * out at the origin inside its margins for the line to move into place. */
+/* An atomic inline on a line `content_w` px wide. An image is a leaf at
+ * its replaced size, unless a filter, gradient mask or opacity needs a box
+ * for them. Anything else takes its declared width, else shrinks to fit
+ * (max-content, no less than min-content while that fits) as CSS sizes an
+ * auto-width inline-block. That border box is pinned, so a percentage width
+ * is not taken again of itself, and the box is laid out at the origin
+ * inside its margins for the line to move into place. */
 pub(in super::super) fn atom(
     c: &BoxNode,
     content_w: i32,
@@ -42,7 +42,9 @@ pub(in super::super) fn atom(
     depth: u32,
     ctx: Ctx,
 ) -> InlineItem {
-    if let BoxKind::Image { src, alt } = &c.kind {
+    let fx = &c.style.fx;
+    let effects = fx.tint != 0 || fx.fade != 0 || c.style.opacity != 255;
+    if let (BoxKind::Image { src, alt }, false) = (&c.kind, effects) {
         let (w, h) = replaced_size(c, content_w, ctx.cb.h);
         let (src, alt, href, node, fit) =
             (src.clone(), alt.clone(), c.href.clone(), c.dom_id, c.style.object_fit);

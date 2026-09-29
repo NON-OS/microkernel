@@ -55,6 +55,8 @@ pub struct Fragment {
     pub fade: u16,
     pub fade_isect: bool,
     pub fade_by: usize,
+    /* The color map of the innermost filtered box around it (0: none). */
+    pub tint: u16,
     pub bg_layer: BgLayer,
     /* drop shadow painted behind the box. */
     pub shadow: Option<Shadow>,

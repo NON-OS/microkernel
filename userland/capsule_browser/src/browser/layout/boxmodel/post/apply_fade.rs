@@ -23,6 +23,12 @@ use super::super::display_list::DisplayList;
 /// draws each of them through it. A fragment already inside an inner
 /// masked box keeps that mask alone; the outer one is not stacked on it.
 pub(crate) fn apply_fade(s: &Computed, frags: &mut DisplayList, start: usize) {
+    /* A filter's color map goes on all it painted, an inner one kept. */
+    if s.fx.tint != 0 {
+        for f in frags.iter_mut().skip(start).filter(|f| f.tint == 0) {
+            f.tint = s.fx.tint;
+        }
+    }
     if s.fx.fade == 0 {
         return;
     }

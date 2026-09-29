@@ -14,37 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::layout::boxmodel::Fragment;
-use crate::browser::layout::fade_table::fade_value;
-use crate::browser::layout::hit_screen::frag_screen_y;
+use crate::browser::layout::filter_table::{tint_of, tint_px};
 use crate::browser::state::State;
 
+use super::box_fragment::box_fragment;
 use super::box_page::TOP;
-use super::grad::mask_layers;
-use super::mask_weights::{mix, weights};
-use super::tinted::paint_one;
 
 /* How far past its rectangle a fragment's paint may reach (a shadow, a
- * glyph overhang); the blend covers it so nothing drawn escapes the mask. */
+ * glyph overhang), so all it drew goes through its filter. */
 const SPILL: i32 = 48;
 
-/// Paint `f`, drawn inside the gradient-masked box `owner`, through that
-/// mask: the pixels it can touch are kept, it paints, and each then shows
-/// the old and new mixed by the mask's coverage there. A mask this painter
-/// cannot draw leaves the fragment painted as if unmasked.
-pub(super) fn paint_masked(state: &State, fb: &mut PaintBuffer, f: &Fragment, owner: &Fragment) {
-    let (scroll, bottom) = (state.scroll as i32, fb.height as i32);
-    let sy = TOP + frag_screen_y(f.y, f.fixed, f.sticky, scroll);
-    let layers = fade_value(owner.fade).and_then(|v| mask_layers(&v, owner.w, owner.h));
-    let Some(layers) = layers.filter(|_| owner.w > 0 && owner.h > 0) else {
-        return paint_one(state, fb, f, sy, bottom);
+/// Paint `f`, and when a filtered box drew it, put what it changed through
+/// that filter's color map. A pixel it left alone keeps the backdrop, which
+/// the filter does not touch; an edge pixel it blended is mapped whole.
+pub(super) fn paint_one(state: &State, fb: &mut PaintBuffer, f: &Fragment, sy: i32, bottom: i32) {
+    let Some(m) = (f.tint != 0).then(|| tint_of(f.tint)).flatten() else {
+        return box_fragment(state, fb, f, sy, bottom);
     };
-    let oy = TOP + frag_screen_y(owner.y, owner.fixed, owner.sticky, scroll);
     let (x0, x1) = ((f.x - SPILL).max(0), (f.x + f.w + SPILL).min(fb.width as i32));
     let (y0, y1) = ((sy - SPILL).max(TOP), (sy + f.h + SPILL).min(bottom));
     if x0 >= x1 || y0 >= y1 {
@@ -56,14 +47,13 @@ pub(super) fn paint_masked(state: &State, fb: &mut PaintBuffer, f: &Fragment, ow
     for y in y0..y1 {
         old.extend_from_slice(&fb.pixels[at(y)..at(y) + cols]);
     }
-    paint_one(state, fb, f, sy, bottom);
-    let (mut m, mut tmp) = (vec![0u32; cols], vec![0u32; cols]);
-    let o = [owner.x, oy, owner.w, owner.h];
+    box_fragment(state, fb, f, sy, bottom);
     for (i, y) in (y0..y1).enumerate() {
-        weights(&layers, o, owner.fade_isect, (y, x0), &mut m, &mut tmp);
         let prev = &old[i * cols..(i + 1) * cols];
-        for ((px, &was), &k) in fb.pixels[at(y)..at(y) + cols].iter_mut().zip(prev).zip(&m) {
-            *px = mix(was, *px, k);
+        for (px, &was) in fb.pixels[at(y)..at(y) + cols].iter_mut().zip(prev) {
+            if *px != was {
+                *px = tint_px(&m, *px);
+            }
         }
     }
 }

@@ -43,6 +43,7 @@ impl Fragment {
         fade: 0,
         fade_isect: false,
         fade_by: 0,
+        tint: 0,
         bg_layer: BgLayer::INITIAL,
         shadow: None,
         radius: [0; 4],
