@@ -25,8 +25,11 @@ use super::serial::serial;
 const W: u32 = 320;
 const H: u32 = 200;
 
-/* FNV-1a of `scene()` as the float-blend toolkit (commit 0080d463f) drew it. */
-const FLOAT_BUILD: u64 = 0x67c6_aa75_9eb5_331b;
+/* FNV-1a of `scene()`. It was the float-blend toolkit's (commit 0080d463f)
+until GPOS pair kerning moved the pen between glyphs of the built-in faces;
+with that kerning turned off the scene still hashes to 0x67c6_aa75_9eb5_331b,
+so the blend and the fills are unchanged since the float build. */
+const FLOAT_BUILD: u64 = 0x25ae_e13b_2aee_14e7;
 
 /* Chrome text over a background that walks every channel value, in opaque
 and translucent colours, both built-in faces, clipped at all four edges,

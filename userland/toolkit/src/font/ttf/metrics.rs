@@ -42,7 +42,7 @@ pub fn measure_tracked<F: Font>(f: &F, text: &str, px: f32, spacing: f32) -> i32
     for ch in text.chars() {
         let g = sf.glyph_id(ch);
         if let Some(p) = prev {
-            pen += sf.kern(p, g);
+            pen += super::gpos::kern::kern_px(&sf, p, g);
         }
         pen += sf.h_advance(g) + spacing;
         prev = Some(g);

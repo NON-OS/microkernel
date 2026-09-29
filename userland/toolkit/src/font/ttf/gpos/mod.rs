@@ -13,28 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-#![cfg(test)]
 
-mod bg_shadow_tests;
-mod bg_slash_tests;
-mod color_bad_tests;
-mod color_space_tests;
-mod font_face_tests;
-mod font_src_tests;
-mod image_scale_tests;
-mod image_tests;
-mod inline_sheet_tests;
-mod jpeg_scale_tests;
-mod jpeg_tests;
-mod kern_tests;
-mod shadow_value_tests;
-mod sheet_tests;
-mod store_hint_tests;
-mod store_near_tests;
-mod store_tests;
-mod svg_box_tests;
-mod svg_paint_tests;
-mod svg_ref_tests;
-mod woff2_bad_tests;
-mod weight_tests;
-mod woff2_tests;
+/* GPOS pair kerning read straight from a face's data, for faces (most web
+ * fonts) whose kerning is not in a legacy kern table. */
+
+mod coverage;
+pub(super) mod kern;
+mod lookups;
+mod pair;
+mod read;

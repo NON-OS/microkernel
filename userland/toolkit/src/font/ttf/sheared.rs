@@ -39,7 +39,7 @@ pub(super) fn draw_sheared<F: Font>(
     for ch in text.chars() {
         let mut g: Glyph = sf.scaled_glyph(ch);
         if let Some(p) = prev {
-            pen += sf.kern(p, g.id);
+            pen += super::gpos::kern::kern_px(&sf, p, g.id);
         }
         g.position = point(pen, baseline);
         let adv = sf.h_advance(g.id);

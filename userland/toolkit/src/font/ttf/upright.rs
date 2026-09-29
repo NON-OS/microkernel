@@ -54,7 +54,7 @@ pub(super) fn draw_upright<F: Font>(
     for ch in text.chars() {
         let id = sf.glyph_id(ch);
         if let Some(p) = prev {
-            pen += sf.kern(p, id);
+            pen += super::gpos::kern::kern_px(&sf, p, id);
         }
         let adv = sf.h_advance(id);
         prev = Some(id);

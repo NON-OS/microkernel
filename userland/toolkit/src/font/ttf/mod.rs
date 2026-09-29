@@ -27,6 +27,7 @@ mod draw;
 mod evict;
 mod face;
 mod glyph;
+mod gpos;
 mod metrics;
 mod raster;
 mod rasterize;

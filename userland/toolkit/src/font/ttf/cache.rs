@@ -35,6 +35,7 @@ pub(super) fn lock() -> MutexGuard<'static, Store> {
 /// another face: the page font registry does on every navigation.
 pub fn clear_glyph_cache() {
     CACHE.lock().clear();
+    super::gpos::kern::clear();
 }
 
 /// Bytes the glyph cache holds against `GLYPH_CACHE_BUDGET`.

@@ -45,7 +45,7 @@ pub(super) fn draw_cached(
     for ch in text.chars() {
         let g = sf.scaled_glyph(ch);
         if let Some(p) = prev {
-            pen += sf.kern(p, g.id);
+            pen += super::gpos::kern::kern_px(&sf, p, g.id);
         }
         let adv = sf.h_advance(g.id);
         prev = Some(g.id);
