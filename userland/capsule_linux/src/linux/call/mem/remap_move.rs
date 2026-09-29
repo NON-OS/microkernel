@@ -29,11 +29,15 @@ pub(super) fn moved(guest: &mut Guest, old: u64, old_len: u64, new_len: u64, wri
     let Some(bytes) = guest.read(old, old_len as usize) else {
         return errno::fail(errno::EFAULT);
     };
+    let kept = guest.span_kept(old, old_len);
     // Writable while the bytes go in; the old protection after.
     if guest.map(at, span, true, false) < 0 {
         return errno::fail(errno::ENOMEM);
     }
     guest.mmap_next += span;
+    if kept {
+        guest.mark_kept(at, span);
+    }
     if guest.write(at, &bytes) < bytes.len() as i64 {
         return errno::fail(errno::EFAULT);
     }

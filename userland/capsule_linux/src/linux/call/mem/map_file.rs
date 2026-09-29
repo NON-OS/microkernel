@@ -39,6 +39,8 @@ pub fn file(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     if guest.map(at, span, true, false) < 0 {
         return errno::fail(errno::ENOMEM);
     }
+    /* Linux reloads a file's bytes after MADV_DONTNEED; this capsule cannot. */
+    guest.mark_kept(at, span);
     if let Some(Some(bytes)) = proved {
         if fill_from(guest, &bytes, req, at) < 0 {
             return errno::fail(errno::EACCES);

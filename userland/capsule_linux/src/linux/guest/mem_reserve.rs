@@ -48,7 +48,7 @@ impl Guest {
             done += take;
         }
         self.regions = cut(&self.regions, at, len);
-        self.regions.push(Region { at, len, write, exec, unproven: false, backed: true });
+        self.regions.push(Region::new(at, len, write, exec, true));
         0
     }
 
@@ -58,14 +58,7 @@ impl Guest {
         let Some((start, span)) = span_within(addr, len, USER_MAX) else {
             return -1;
         };
-        self.regions.push(Region {
-            at: start,
-            len: span,
-            write: true,
-            exec: false,
-            unproven: false,
-            backed: false,
-        });
+        self.regions.push(Region::new(start, span, true, false, false));
         0
     }
 }

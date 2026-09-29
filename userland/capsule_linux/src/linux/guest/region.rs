@@ -29,4 +29,15 @@ pub struct Region {
     /// The kernel demand-fills a page on first access, so reserving a large
     /// span and committing a little costs only what is touched; fork skips it.
     pub backed: bool,
+    /// Bytes Linux would give back after MADV_DONTNEED, not zero: a file's,
+    /// an ELF segment's or a shared mapping's. This capsule cannot give them
+    /// back, so it refuses that advice here.
+    pub kept: bool,
+}
+
+impl Region {
+    /// A span this capsule laid down, anonymous until a mark says otherwise.
+    pub fn new(at: u64, len: u64, write: bool, exec: bool, backed: bool) -> Self {
+        Self { at, len, write, exec, unproven: false, backed, kept: false }
+    }
 }

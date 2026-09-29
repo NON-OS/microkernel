@@ -22,6 +22,8 @@ use crate::linux::guest::Guest;
 use super::map_req::MapReq;
 use super::prot::{PROT_EXEC, PROT_WRITE};
 
+const MAP_SHARED: u64 = 0x01;
+
 /// A memfd has nothing to read in: it is pages, and the client is about to
 /// draw into them.
 pub fn memfd(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
@@ -29,6 +31,7 @@ pub fn memfd(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     if (out as i64) < 0 {
         return out;
     }
+    guest.mark_kept(at, span);
     crate::linux::file::set_mapped(guest, req.fd, at);
     /*
      * A descriptor this capsule staged content on, the keymap being the one
@@ -55,6 +58,10 @@ pub fn anonymous(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     };
     if backed < 0 {
         return errno::fail(errno::ENOMEM);
+    }
+    if req.flags & MAP_SHARED != 0 {
+        /* Shared pages keep their bytes after MADV_DONTNEED on Linux. */
+        guest.mark_kept(at, span);
     }
     if req.fixed().is_none() {
         guest.mmap_next += span;

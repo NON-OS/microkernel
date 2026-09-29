@@ -16,7 +16,7 @@
 
 //! Calls that shape the guest's address space.
 
-use crate::linux::abi::{errno, nr};
+use crate::linux::abi::nr;
 use crate::linux::call;
 use crate::linux::guest::Guest;
 
@@ -27,8 +27,7 @@ pub fn mem_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
         nr::MUNMAP => call::munmap(guest, a[0], a[1]),
         nr::MPROTECT => call::mprotect(guest, a[0], a[1], a[2]),
         nr::MREMAP => call::mremap(guest, a[0], a[1], a[2], a[3]),
-        // Advice, and this capsule takes none of it.
-        nr::MADVISE => errno::ok(0),
+        nr::MADVISE => call::madvise(guest, a[0], a[1], a[2]),
         _ => return None,
     })
 }

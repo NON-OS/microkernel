@@ -68,7 +68,7 @@ pub use io::{close, read, write};
 pub use ioctl::ioctl;
 pub use life::{exit, exit_thread, set_tid_address};
 pub use limits::{getrlimit, prlimit64};
-pub use mem::{brk, mmap, mprotect, mremap, munmap, MapReq};
+pub use mem::{brk, madvise, mmap, mprotect, mremap, munmap, MapReq};
 pub use pipe::pipe2;
 pub use pipe_dup::{dup, dup2};
 pub use pipe_io::write as pipe_write;

@@ -29,6 +29,18 @@ impl Guest {
         let Some((start, span)) = span_within(addr, len, USER_MAX) else {
             return -1;
         };
+        let rc = self.drop_frames(start, span);
+        if rc < 0 {
+            return rc;
+        }
+        self.regions = cut(&self.regions, start, span);
+        0
+    }
+
+    /// Take the frames under `[start, start + span)`, a page-aligned span,
+    /// back from the guest and leave its region list alone: a page not there
+    /// is skipped, and one touched again reads zero.
+    pub fn drop_frames(&self, start: u64, span: u64) -> i64 {
         let mut done = 0;
         while done < span {
             let take = (span - done).min(MAX_SPAN);
@@ -38,7 +50,6 @@ impl Guest {
             }
             done += take;
         }
-        self.regions = cut(&self.regions, start, span);
         0
     }
 }

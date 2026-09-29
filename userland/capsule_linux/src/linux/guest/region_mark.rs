@@ -32,4 +32,19 @@ impl Guest {
         let end = at.saturating_add(len);
         self.regions.iter().any(|r| r.unproven && r.at < end && at < r.at.saturating_add(r.len))
     }
+
+    /// Every region overlapping [at, at + len) holds bytes Linux would give
+    /// back after MADV_DONTNEED rather than zero.
+    pub fn mark_kept(&mut self, at: u64, len: u64) {
+        let end = at.saturating_add(len);
+        for r in self.regions.iter_mut().filter(|r| r.at < end && at < r.at.saturating_add(r.len)) {
+            r.kept = true;
+        }
+    }
+
+    /// Whether any region overlapping [at, at + len) is marked kept.
+    pub fn span_kept(&self, at: u64, len: u64) -> bool {
+        let end = at.saturating_add(len);
+        self.regions.iter().any(|r| r.kept && r.at < end && at < r.at.saturating_add(r.len))
+    }
 }

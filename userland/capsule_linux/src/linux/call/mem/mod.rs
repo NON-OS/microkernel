@@ -17,6 +17,8 @@
 //! The calls that shape a guest's address space: `mmap`, `munmap`, `brk` and
 //! `mprotect`.
 
+mod advise;
+mod advise_drop;
 mod map;
 mod map_anon;
 mod map_exec;
@@ -29,6 +31,7 @@ mod prot_span;
 mod remap;
 mod remap_move;
 
+pub use advise::madvise;
 pub use map::mmap;
 pub use map_req::MapReq;
 pub use memory::{brk, munmap};
