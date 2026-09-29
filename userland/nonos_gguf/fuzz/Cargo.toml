@@ -1,0 +1,29 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# libFuzzer target for the GGUF header reader. Run from this directory:
+#   cargo +nightly fuzz run parse
+# The in-crate tests in src/tests/robust*.rs run the same property on every
+# `cargo test`; this target searches for what they miss.
+[package]
+name = "nonos_gguf_fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+nonos_gguf = { path = ".." }
+
+[[bin]]
+name = "parse"
+path = "fuzz_targets/parse.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
