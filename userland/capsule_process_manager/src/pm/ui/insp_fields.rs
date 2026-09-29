@@ -20,7 +20,8 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::pm::format::{mem_human, pct_1dp, state_label, u32_decimal, uptime_human};
-use crate::pm::format_labels::{priority_label, share_pct};
+use crate::pm::format_labels::priority_label;
+use crate::pm::format_mem::share_1dp;
 use crate::pm::state::Row;
 use crate::pm::theme::{FOREGROUND, MUTED, TITLE};
 
@@ -55,7 +56,7 @@ pub fn block(fb: &mut PaintBuffer, x: u32, y: u32, row: &Row, ram_kb: u64) -> u3
     y = field(fb, x, y, b"CPU", &buf[..n], FOREGROUND);
     let n = mem_human(row.mem_kb, &mut buf);
     y = field(fb, x, y, b"Resident", &buf[..n], FOREGROUND);
-    let n = pct_1dp(share_pct(row.mem_kb, ram_kb), &mut buf);
+    let n = share_1dp(row.mem_kb, ram_kb, &mut buf);
     y = field(fb, x, y, b"Share of RAM", &buf[..n], FOREGROUND);
     super::insp_fields_more::block(fb, x, y, row)
 }

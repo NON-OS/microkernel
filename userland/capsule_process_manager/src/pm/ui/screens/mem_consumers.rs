@@ -16,8 +16,8 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::pm::format::{mem_human, pct_1dp};
-use crate::pm::format_labels::share_pct;
+use crate::pm::format::mem_human;
+use crate::pm::format_mem::{mapped, share_1dp};
 use crate::pm::state::{Row, State};
 use crate::pm::theme::{CARD_BG, CARD_BORDER, FOREGROUND, LABEL, MUTED, TITLE};
 
@@ -64,9 +64,8 @@ fn entry(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, row: (&Row, u64), ram_kb:
     let n = mem_human(row.mem_kb, &mut buf);
     let right = x + w.saturating_sub(PANEL_PAD);
     text::mono_right(fb, right, top, &buf[..n], LABEL, NUM_PX);
-    let n = mem_human(row.mapped_kb, &mut buf);
-    text::mono_right(fb, right.saturating_sub(VALUE_W), top, &buf[..n], MUTED, NUM_PX);
-    let n = pct_1dp(share_pct(row.mem_kb, ram_kb), &mut buf);
+    text::mono_right(fb, right.saturating_sub(VALUE_W), top, mapped(row, &mut buf), MUTED, NUM_PX);
+    let n = share_1dp(row.mem_kb, ram_kb, &mut buf);
     text::mono_right(fb, right.saturating_sub(VALUE_W * 2), top, &buf[..n], MUTED, NUM_PX);
     let bx = x + PANEL_PAD + NAME_W + BAR_GAP;
     let bw = right.saturating_sub(VALUE_W * 3 + BAR_GAP).saturating_sub(bx);

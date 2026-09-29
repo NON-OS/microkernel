@@ -19,6 +19,7 @@ mod critical;
 mod event;
 mod format;
 mod format_labels;
+mod format_mem;
 mod format_sys;
 mod manifest;
 mod security;

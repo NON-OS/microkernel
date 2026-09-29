@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Small formatters the inspector and the memory screens share: names for
-//! the kernel's codes, shares, a user/kernel split, a region count.
+//! the kernel's codes, a user/kernel split, a region count.
 
 use super::format::{pct_1dp, u32_decimal};
 
@@ -28,15 +28,6 @@ pub fn priority_label(code: u8) -> &'static [u8] {
         3 => b"high",
         4 => b"realtime",
         _ => b"?",
-    }
-}
-
-/// `kb` as a whole percentage of `total_kb`, clamped; zero of nothing is zero.
-pub fn share_pct(kb: u64, total_kb: u64) -> u8 {
-    if total_kb == 0 {
-        0
-    } else {
-        (kb.saturating_mul(100) / total_kb).min(100) as u8
     }
 }
 
