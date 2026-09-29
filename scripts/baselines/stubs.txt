@@ -166,8 +166,8 @@ userland/nonos_qjs/build.rs:23
 userland/nonos_qjs/build.rs:77
 userland/nonos_qjs/src/lib.rs:26
 userland/sdk/nonos_std/src/io/error.rs:28
-userland/toolkit/src/image/bmp.rs:27
-userland/toolkit/src/image/bmp.rs:35
+userland/toolkit/src/image/bmp/readable.rs:22
+userland/toolkit/src/image/bmp/readable.rs:26
 userland/toolkit/src/image/gif/decoder.rs:58
 userland/toolkit/src/image/gif/decoder.rs:68
 userland/toolkit/src/image/gif/decoder.rs:69
