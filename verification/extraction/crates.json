@@ -1923,6 +1923,1635 @@
       "starts": [
         "nonos_x_aarch64_fpu_context::fpsimdcontext_zeroed"
       ]
+    },
+    {
+      "name": "usercopy_walk_leaf",
+      "crate": "nonos_x_usercopy_walk_leaf",
+      "dir": "verification/extraction/tree/usercopy_walk_leaf",
+      "lean": "UsercopyWalkLeaf",
+      "generated": "UsercopyWalkLeaf.lean",
+      "starts": [
+        "nonos_x_usercopy_walk_leaf::userleaf_bytes_remaining_in_page"
+      ]
+    },
+    {
+      "name": "syscall_microkernel_battery",
+      "crate": "nonos_x_syscall_microkernel_battery",
+      "dir": "verification/extraction/tree/syscall_microkernel_battery",
+      "lean": "SyscallMicrokernelBattery",
+      "generated": "SyscallMicrokernelBattery.lean",
+      "starts": [
+        "nonos_x_syscall_microkernel_battery::sys_battery_status"
+      ]
+    },
+    {
+      "name": "syscall_microkernel_pio_unsupported",
+      "crate": "nonos_x_syscall_microkernel_pio_unsupported",
+      "dir": "verification/extraction/tree/syscall_microkernel_pio_unsupported",
+      "lean": "SyscallMicrokernelPioUnsupported",
+      "generated": "SyscallMicrokernelPioUnsupported.lean",
+      "starts": [
+        "nonos_x_syscall_microkernel_pio_unsupported::sys_pio_grant",
+        "nonos_x_syscall_microkernel_pio_unsupported::sys_pio_read",
+        "nonos_x_syscall_microkernel_pio_unsupported::sys_pio_write",
+        "nonos_x_syscall_microkernel_pio_unsupported::sys_pio_release"
+      ]
+    },
+    {
+      "name": "capabilities_chain_chain",
+      "crate": "nonos_x_capabilities_chain_chain",
+      "dir": "verification/extraction/tree/capabilities_chain_chain",
+      "lean": "CapabilitiesChainChain",
+      "generated": "CapabilitiesChainChain.lean",
+      "starts": [
+        "nonos_x_capabilities_chain_chain::capabilitychain_empty",
+        "nonos_x_capabilities_chain_chain::capabilitychain_len",
+        "nonos_x_capabilities_chain_chain::capabilitychain_is_empty",
+        "nonos_x_capabilities_chain_chain::capabilitychain_max_depth"
+      ]
+    },
+    {
+      "name": "capabilities_token_types_construct",
+      "crate": "nonos_x_capabilities_token_types_construct",
+      "dir": "verification/extraction/tree/capabilities_token_types_construct",
+      "lean": "CapabilitiesTokenTypesConstruct",
+      "generated": "CapabilitiesTokenTypesConstruct.lean",
+      "starts": [
+        "nonos_x_capabilities_token_types_construct::capabilitytoken_empty",
+        "nonos_x_capabilities_token_types_construct::capabilitytoken_system"
+      ]
+    },
+    {
+      "name": "memory_paging_constants_align_funcs",
+      "crate": "nonos_x_memory_paging_constants_align_funcs",
+      "dir": "verification/extraction/tree/memory_paging_constants_align_funcs",
+      "lean": "MemoryPagingConstantsAlignFuncs",
+      "generated": "MemoryPagingConstantsAlignFuncs.lean",
+      "starts": [
+        "nonos_x_memory_paging_constants_align_funcs::page_align_down",
+        "nonos_x_memory_paging_constants_align_funcs::page_align_up",
+        "nonos_x_memory_paging_constants_align_funcs::pages_needed"
+      ]
+    },
+    {
+      "name": "memory_paging_constants_index_funcs",
+      "crate": "nonos_x_memory_paging_constants_index_funcs",
+      "dir": "verification/extraction/tree/memory_paging_constants_index_funcs",
+      "lean": "MemoryPagingConstantsIndexFuncs",
+      "generated": "MemoryPagingConstantsIndexFuncs.lean",
+      "starts": [
+        "nonos_x_memory_paging_constants_index_funcs::pml4_index",
+        "nonos_x_memory_paging_constants_index_funcs::pdpt_index",
+        "nonos_x_memory_paging_constants_index_funcs::pd_index",
+        "nonos_x_memory_paging_constants_index_funcs::pt_index",
+        "nonos_x_memory_paging_constants_index_funcs::page_offset"
+      ]
+    },
+    {
+      "name": "memory_paging_constants_pte_funcs",
+      "crate": "nonos_x_memory_paging_constants_pte_funcs",
+      "dir": "verification/extraction/tree/memory_paging_constants_pte_funcs",
+      "lean": "MemoryPagingConstantsPteFuncs",
+      "generated": "MemoryPagingConstantsPteFuncs.lean",
+      "starts": [
+        "nonos_x_memory_paging_constants_pte_funcs::pte_is_present",
+        "nonos_x_memory_paging_constants_pte_funcs::pte_is_huge",
+        "nonos_x_memory_paging_constants_pte_funcs::pte_address",
+        "nonos_x_memory_paging_constants_pte_funcs::pte_is_writable",
+        "nonos_x_memory_paging_constants_pte_funcs::pte_is_executable",
+        "nonos_x_memory_paging_constants_pte_funcs::pte_is_user"
+      ]
+    },
+    {
+      "name": "memory_paging_error_impls_recover",
+      "crate": "nonos_x_memory_paging_error_impls_recover",
+      "dir": "verification/extraction/tree/memory_paging_error_impls_recover",
+      "lean": "MemoryPagingErrorImplsRecover",
+      "generated": "MemoryPagingErrorImplsRecover.lean",
+      "starts": [
+        "nonos_x_memory_paging_error_impls_recover::pagingerror_is_recoverable",
+        "nonos_x_memory_paging_error_impls_recover::pagingerror_is_demand_pageable"
+      ]
+    },
+    {
+      "name": "memory_paging_stats_query",
+      "crate": "nonos_x_memory_paging_stats_query",
+      "dir": "verification/extraction/tree/memory_paging_stats_query",
+      "lean": "MemoryPagingStatsQuery",
+      "generated": "MemoryPagingStatsQuery.lean",
+      "starts": [
+        "nonos_x_memory_paging_stats_query::pagingstatistics_total_mappings",
+        "nonos_x_memory_paging_stats_query::pagingstatistics_page_faults",
+        "nonos_x_memory_paging_stats_query::pagingstatistics_tlb_flushes"
+      ]
+    },
+    {
+      "name": "memory_paging_types_page_size",
+      "crate": "nonos_x_memory_paging_types_page_size",
+      "dir": "verification/extraction/tree/memory_paging_types_page_size",
+      "lean": "MemoryPagingTypesPageSize",
+      "generated": "MemoryPagingTypesPageSize.lean",
+      "starts": [
+        "nonos_x_memory_paging_types_page_size::pagesize_bytes",
+        "nonos_x_memory_paging_types_page_size::pagesize_align_mask",
+        "nonos_x_memory_paging_types_page_size::pagesize_is_aligned"
+      ]
+    },
+    {
+      "name": "paging_types_permissions_convert",
+      "crate": "nonos_x_paging_types_permissions_convert",
+      "dir": "verification/extraction/tree/paging_types_permissions_convert",
+      "lean": "PagingTypesPermissionsConvert",
+      "generated": "PagingTypesPermissionsConvert.lean",
+      "starts": [
+        "nonos_x_paging_types_permissions_convert::pagepermissions_to_pte_flags",
+        "nonos_x_paging_types_permissions_convert::pagepermissions_kernel_ro",
+        "nonos_x_paging_types_permissions_convert::pagepermissions_kernel_rw",
+        "nonos_x_paging_types_permissions_convert::pagepermissions_kernel_rx",
+        "nonos_x_paging_types_permissions_convert::pagepermissions_user_ro",
+        "nonos_x_paging_types_permissions_convert::pagepermissions_user_rw",
+        "nonos_x_paging_types_permissions_convert::pagepermissions_user_rx",
+        "nonos_x_paging_types_permissions_convert::pagepermissions_device"
+      ]
+    },
+    {
+      "name": "paging_types_permissions_flags",
+      "crate": "nonos_x_paging_types_permissions_flags",
+      "dir": "verification/extraction/tree/paging_types_permissions_flags",
+      "lean": "PagingTypesPermissionsFlags",
+      "generated": "PagingTypesPermissionsFlags.lean",
+      "starts": [
+        "nonos_x_paging_types_permissions_flags::pagepermissions_empty",
+        "nonos_x_paging_types_permissions_flags::pagepermissions_from_bits",
+        "nonos_x_paging_types_permissions_flags::pagepermissions_bits",
+        "nonos_x_paging_types_permissions_flags::pagepermissions_contains",
+        "nonos_x_paging_types_permissions_flags::pagepermissions_union",
+        "nonos_x_paging_types_permissions_flags::pagepermissions_remove",
+        "nonos_x_paging_types_permissions_flags::pagepermissions_insert",
+        "nonos_x_paging_types_permissions_flags::pagepermissions_is_wx_violation"
+      ]
+    },
+    {
+      "name": "elf_dynlink_info_state",
+      "crate": "nonos_x_elf_dynlink_info_state",
+      "dir": "verification/extraction/tree/elf_dynlink_info_state",
+      "lean": "ElfDynlinkInfoState",
+      "generated": "ElfDynlinkInfoState.lean",
+      "starts": [
+        "nonos_x_elf_dynlink_info_state::dynlinkinfo_new"
+      ]
+    },
+    {
+      "name": "elf_loader_image_dynamic",
+      "crate": "nonos_x_elf_loader_image_dynamic",
+      "dir": "verification/extraction/tree/elf_loader_image_dynamic",
+      "lean": "ElfLoaderImageDynamic",
+      "generated": "ElfLoaderImageDynamic.lean",
+      "starts": [
+        "nonos_x_elf_loader_image_dynamic::dynamicinfo_new",
+        "nonos_x_elf_loader_image_dynamic::dynamicinfo_needs_relocation",
+        "nonos_x_elf_loader_image_dynamic::dynamicinfo_needs_linking",
+        "nonos_x_elf_loader_image_dynamic::dynamicinfo_rela_count",
+        "nonos_x_elf_loader_image_dynamic::dynamicinfo_plt_rela_count"
+      ]
+    },
+    {
+      "name": "elf_stack_layout_layout_info",
+      "crate": "nonos_x_elf_stack_layout_layout_info",
+      "dir": "verification/extraction/tree/elf_stack_layout_layout_info",
+      "lean": "ElfStackLayoutLayoutInfo",
+      "generated": "ElfStackLayoutLayoutInfo.lean",
+      "starts": [
+        "nonos_x_elf_stack_layout_layout_info::stacklayout_stack_size",
+        "nonos_x_elf_stack_layout_layout_info::stacklayout_used_size",
+        "nonos_x_elf_stack_layout_layout_info::stacklayout_available_size"
+      ]
+    },
+    {
+      "name": "elf_symbol_resolver_resolved",
+      "crate": "nonos_x_elf_symbol_resolver_resolved",
+      "dir": "verification/extraction/tree/elf_symbol_resolver_resolved",
+      "lean": "ElfSymbolResolverResolved",
+      "generated": "ElfSymbolResolverResolved.lean",
+      "starts": [
+        "nonos_x_elf_symbol_resolver_resolved::resolvedsymbol_is_function",
+        "nonos_x_elf_symbol_resolver_resolved::resolvedsymbol_is_object",
+        "nonos_x_elf_symbol_resolver_resolved::resolvedsymbol_is_global",
+        "nonos_x_elf_symbol_resolver_resolved::resolvedsymbol_is_weak"
+      ]
+    },
+    {
+      "name": "security_attest_registry_entry",
+      "crate": "nonos_x_security_attest_registry_entry",
+      "dir": "verification/extraction/tree/security_attest_registry_entry",
+      "lean": "SecurityAttestRegistryEntry",
+      "generated": "SecurityAttestRegistryEntry.lean",
+      "starts": [
+        "nonos_x_security_attest_registry_entry::attestedcapsule_empty"
+      ]
+    },
+    {
+      "name": "security_boot_secure_boot_types",
+      "crate": "nonos_x_security_boot_secure_boot_types",
+      "dir": "verification/extraction/tree/security_boot_secure_boot_types",
+      "lean": "SecurityBootSecureBootTypes",
+      "generated": "SecurityBootSecureBootTypes.lean",
+      "starts": [
+        "nonos_x_security_boot_secure_boot_types::bootmeasurements_new",
+        "nonos_x_security_boot_secure_boot_types::bootmeasurements_has_initrd",
+        "nonos_x_security_boot_secure_boot_types::bootmeasurements_has_acpi",
+        "nonos_x_security_boot_secure_boot_types::bootmeasurements_is_signature_valid",
+        "nonos_x_security_boot_secure_boot_types::bootmeasurements_is_uefi_secure_boot",
+        "nonos_x_security_boot_secure_boot_types::bootmeasurements_get_boot_timestamp",
+        "nonos_x_security_boot_secure_boot_types::bootmeasurements_is_chain_verified",
+        "nonos_x_security_boot_secure_boot_types::trustedbootkeys_new",
+        "nonos_x_security_boot_secure_boot_types::trustedbootkeys_get_rotation_count",
+        "nonos_x_security_boot_secure_boot_types::trustedbootkeys_total_keys",
+        "nonos_x_security_boot_secure_boot_types::trustedkey_created_at",
+        "nonos_x_security_boot_secure_boot_types::trustedkey_expires_at",
+        "nonos_x_security_boot_secure_boot_types::trustedkey_is_production",
+        "nonos_x_security_boot_secure_boot_types::trustedkey_is_expired"
+      ]
+    },
+    {
+      "name": "security_capsule_attest_proved",
+      "crate": "nonos_x_security_capsule_attest_proved",
+      "dir": "verification/extraction/tree/security_capsule_attest_proved",
+      "lean": "SecurityCapsuleAttestProved",
+      "generated": "SecurityCapsuleAttestProved.lean",
+      "starts": [
+        "nonos_x_security_capsule_attest_proved::proved_is_vendor"
+      ]
+    },
+    {
+      "name": "security_capsule_manifest_schema_endpoint",
+      "crate": "nonos_x_security_capsule_manifest_schema_endpoint",
+      "dir": "verification/extraction/tree/security_capsule_manifest_schema_endpoint",
+      "lean": "SecurityCapsuleManifestSchemaEndpoint",
+      "generated": "SecurityCapsuleManifestSchemaEndpoint.lean",
+      "starts": [
+        "nonos_x_security_capsule_manifest_schema_endpoint::endpointkind_as_u8"
+      ]
+    },
+    {
+      "name": "scheduler_task_types_affinity",
+      "crate": "nonos_x_scheduler_task_types_affinity",
+      "dir": "verification/extraction/tree/scheduler_task_types_affinity",
+      "lean": "SchedulerTaskTypesAffinity",
+      "generated": "SchedulerTaskTypesAffinity.lean",
+      "starts": [
+        "nonos_x_scheduler_task_types_affinity::cpuaffinity_any"
+      ]
+    },
+    {
+      "name": "process_signal_set_bits",
+      "crate": "nonos_x_process_signal_set_bits",
+      "dir": "verification/extraction/tree/process_signal_set_bits",
+      "lean": "ProcessSignalSetBits",
+      "generated": "ProcessSignalSetBits.lean",
+      "starts": [
+        "nonos_x_process_signal_set_bits::signalset_empty",
+        "nonos_x_process_signal_set_bits::signalset_full",
+        "nonos_x_process_signal_set_bits::signalset_contains",
+        "nonos_x_process_signal_set_bits::signalset_is_empty",
+        "nonos_x_process_signal_set_bits::signalset_as_bits",
+        "nonos_x_process_signal_set_bits::signalset_from_bits",
+        "nonos_x_process_signal_set_bits::signalset_complement",
+        "nonos_x_process_signal_set_bits::signalset_count"
+      ]
+    },
+    {
+      "name": "process_signal_set_groups",
+      "crate": "nonos_x_process_signal_set_groups",
+      "dir": "verification/extraction/tree/process_signal_set_groups",
+      "lean": "ProcessSignalSetGroups",
+      "generated": "ProcessSignalSetGroups.lean",
+      "starts": [
+        "nonos_x_process_signal_set_groups::signalset_standard_signals",
+        "nonos_x_process_signal_set_groups::signalset_realtime_signals",
+        "nonos_x_process_signal_set_groups::signalset_uncatchable"
+      ]
+    },
+    {
+      "name": "memory_boot_memory_types_handoff",
+      "crate": "nonos_x_memory_boot_memory_types_handoff",
+      "dir": "verification/extraction/tree/memory_boot_memory_types_handoff",
+      "lean": "MemoryBootMemoryTypesHandoff",
+      "generated": "MemoryBootMemoryTypesHandoff.lean",
+      "starts": [
+        "nonos_x_memory_boot_memory_types_handoff::boothandoff_has_capsule"
+      ]
+    },
+    {
+      "name": "memory_boot_memory_types_memory_region",
+      "crate": "nonos_x_memory_boot_memory_types_memory_region",
+      "dir": "verification/extraction/tree/memory_boot_memory_types_memory_region",
+      "lean": "MemoryBootMemoryTypesMemoryRegion",
+      "generated": "MemoryBootMemoryTypesMemoryRegion.lean",
+      "starts": [
+        "nonos_x_memory_boot_memory_types_memory_region::memoryregion_size",
+        "nonos_x_memory_boot_memory_types_memory_region::memoryregion_page_count",
+        "nonos_x_memory_boot_memory_types_memory_region::memoryregion_is_available",
+        "nonos_x_memory_boot_memory_types_memory_region::memoryregion_is_empty",
+        "nonos_x_memory_boot_memory_types_memory_region::memoryregion_has_flag"
+      ]
+    },
+    {
+      "name": "memory_buddy_alloc_constants_helpers",
+      "crate": "nonos_x_memory_buddy_alloc_constants_helpers",
+      "dir": "verification/extraction/tree/memory_buddy_alloc_constants_helpers",
+      "lean": "MemoryBuddyAllocConstantsHelpers",
+      "generated": "MemoryBuddyAllocConstantsHelpers.lean",
+      "starts": [
+        "nonos_x_memory_buddy_alloc_constants_helpers::order_to_size",
+        "nonos_x_memory_buddy_alloc_constants_helpers::size_to_order",
+        "nonos_x_memory_buddy_alloc_constants_helpers::buddy_address"
+      ]
+    },
+    {
+      "name": "memory_buddy_alloc_stats_query",
+      "crate": "nonos_x_memory_buddy_alloc_stats_query",
+      "dir": "verification/extraction/tree/memory_buddy_alloc_stats_query",
+      "lean": "MemoryBuddyAllocStatsQuery",
+      "generated": "MemoryBuddyAllocStatsQuery.lean",
+      "starts": [
+        "nonos_x_memory_buddy_alloc_stats_query::allocationstatistics_total_allocated",
+        "nonos_x_memory_buddy_alloc_stats_query::allocationstatistics_peak_allocated",
+        "nonos_x_memory_buddy_alloc_stats_query::allocationstatistics_allocation_count",
+        "nonos_x_memory_buddy_alloc_stats_query::allocationstatistics_free_count"
+      ]
+    },
+    {
+      "name": "memory_buddy_alloc_stats_record",
+      "crate": "nonos_x_memory_buddy_alloc_stats_record",
+      "dir": "verification/extraction/tree/memory_buddy_alloc_stats_record",
+      "lean": "MemoryBuddyAllocStatsRecord",
+      "generated": "MemoryBuddyAllocStatsRecord.lean",
+      "starts": [
+        "nonos_x_memory_buddy_alloc_stats_record::allocationstatistics_record_allocation",
+        "nonos_x_memory_buddy_alloc_stats_record::allocationstatistics_record_deallocation"
+      ]
+    },
+    {
+      "name": "memory_dma_stats_query",
+      "crate": "nonos_x_memory_dma_stats_query",
+      "dir": "verification/extraction/tree/memory_dma_stats_query",
+      "lean": "MemoryDmaStatsQuery",
+      "generated": "MemoryDmaStatsQuery.lean",
+      "starts": [
+        "nonos_x_memory_dma_stats_query::dmastats_total_memory",
+        "nonos_x_memory_dma_stats_query::dmastats_coherent_count",
+        "nonos_x_memory_dma_stats_query::dmastats_streaming_count"
+      ]
+    },
+    {
+      "name": "memory_dma_stats_record",
+      "crate": "nonos_x_memory_dma_stats_record",
+      "dir": "verification/extraction/tree/memory_dma_stats_record",
+      "lean": "MemoryDmaStatsRecord",
+      "generated": "MemoryDmaStatsRecord.lean",
+      "starts": [
+        "nonos_x_memory_dma_stats_record::dmastats_record_coherent_alloc",
+        "nonos_x_memory_dma_stats_record::dmastats_record_coherent_free",
+        "nonos_x_memory_dma_stats_record::dmastats_record_streaming_map",
+        "nonos_x_memory_dma_stats_record::dmastats_record_streaming_unmap",
+        "nonos_x_memory_dma_stats_record::dmastats_record_bounce_usage"
+      ]
+    },
+    {
+      "name": "memory_frame_alloc_types_range",
+      "crate": "nonos_x_memory_frame_alloc_types_range",
+      "dir": "verification/extraction/tree/memory_frame_alloc_types_range",
+      "lean": "MemoryFrameAllocTypesRange",
+      "generated": "MemoryFrameAllocTypesRange.lean",
+      "starts": [
+        "nonos_x_memory_frame_alloc_types_range::framerange_frames_remaining",
+        "nonos_x_memory_frame_alloc_types_range::framerange_is_exhausted"
+      ]
+    },
+    {
+      "name": "memory_hardening_stats_record",
+      "crate": "nonos_x_memory_hardening_stats_record",
+      "dir": "verification/extraction/tree/memory_hardening_stats_record",
+      "lean": "MemoryHardeningStatsRecord",
+      "generated": "MemoryHardeningStatsRecord.lean",
+      "starts": [
+        "nonos_x_memory_hardening_stats_record::hardeningstats_increment_guard_violations",
+        "nonos_x_memory_hardening_stats_record::hardeningstats_increment_wx_violations",
+        "nonos_x_memory_hardening_stats_record::hardeningstats_increment_stack_overflows",
+        "nonos_x_memory_hardening_stats_record::hardeningstats_increment_heap_corruptions",
+        "nonos_x_memory_hardening_stats_record::hardeningstats_increment_double_frees",
+        "nonos_x_memory_hardening_stats_record::hardeningstats_increment_use_after_free"
+      ]
+    },
+    {
+      "name": "memory_hardening_stats_query",
+      "crate": "nonos_x_memory_hardening_stats_query",
+      "dir": "verification/extraction/tree/memory_hardening_stats_query",
+      "lean": "MemoryHardeningStatsQuery",
+      "generated": "MemoryHardeningStatsQuery.lean",
+      "starts": [
+        "nonos_x_memory_hardening_stats_query::hardeningstats_guard_violations",
+        "nonos_x_memory_hardening_stats_query::hardeningstats_wx_violations",
+        "nonos_x_memory_hardening_stats_query::hardeningstats_stack_overflows",
+        "nonos_x_memory_hardening_stats_query::hardeningstats_heap_corruptions",
+        "nonos_x_memory_hardening_stats_query::hardeningstats_double_frees",
+        "nonos_x_memory_hardening_stats_query::hardeningstats_use_after_free"
+      ]
+    },
+    {
+      "name": "memory_heap_types_header",
+      "crate": "nonos_x_memory_heap_types_header",
+      "dir": "verification/extraction/tree/memory_heap_types_header",
+      "lean": "MemoryHeapTypesHeader",
+      "generated": "MemoryHeapTypesHeader.lean",
+      "starts": [
+        "nonos_x_memory_heap_types_header::allocationheader_new",
+        "nonos_x_memory_heap_types_header::allocationheader_is_valid"
+      ]
+    },
+    {
+      "name": "memory_layout_manager_address",
+      "crate": "nonos_x_memory_layout_manager_address",
+      "dir": "verification/extraction/tree/memory_layout_manager_address",
+      "lean": "MemoryLayoutManagerAddress",
+      "generated": "MemoryLayoutManagerAddress.lean",
+      "starts": [
+        "nonos_x_memory_layout_manager_address::in_kernel_space",
+        "nonos_x_memory_layout_manager_address::in_user_space",
+        "nonos_x_memory_layout_manager_address::is_canonical",
+        "nonos_x_memory_layout_manager_address::selfref_l4_va"
+      ]
+    },
+    {
+      "name": "memory_layout_types_region",
+      "crate": "nonos_x_memory_layout_types_region",
+      "dir": "verification/extraction/tree/memory_layout_types_region",
+      "lean": "MemoryLayoutTypesRegion",
+      "generated": "MemoryLayoutTypesRegion.lean",
+      "starts": [
+        "nonos_x_memory_layout_types_region::region_len",
+        "nonos_x_memory_layout_types_region::region_is_empty",
+        "nonos_x_memory_layout_types_region::region_is_usable",
+        "nonos_x_memory_layout_types_region::region_start_addr",
+        "nonos_x_memory_layout_types_region::region_end_addr",
+        "nonos_x_memory_layout_types_region::region_page_count",
+        "nonos_x_memory_layout_types_region::region_contains"
+      ]
+    },
+    {
+      "name": "memory_layout_types_section",
+      "crate": "nonos_x_memory_layout_types_section",
+      "dir": "verification/extraction/tree/memory_layout_types_section",
+      "lean": "MemoryLayoutTypesSection",
+      "generated": "MemoryLayoutTypesSection.lean",
+      "starts": [
+        "nonos_x_memory_layout_types_section::section_new",
+        "nonos_x_memory_layout_types_section::section_size",
+        "nonos_x_memory_layout_types_section::section_page_count",
+        "nonos_x_memory_layout_types_section::section_is_empty",
+        "nonos_x_memory_layout_types_section::section_contains"
+      ]
+    },
+    {
+      "name": "memory_mmio_stats_query",
+      "crate": "nonos_x_memory_mmio_stats_query",
+      "dir": "verification/extraction/tree/memory_mmio_stats_query",
+      "lean": "MemoryMmioStatsQuery",
+      "generated": "MemoryMmioStatsQuery.lean",
+      "starts": [
+        "nonos_x_memory_mmio_stats_query::mmiostats_total_regions",
+        "nonos_x_memory_mmio_stats_query::mmiostats_total_mapped_size",
+        "nonos_x_memory_mmio_stats_query::mmiostats_read_operations",
+        "nonos_x_memory_mmio_stats_query::mmiostats_write_operations"
+      ]
+    },
+    {
+      "name": "memory_mmio_stats_record",
+      "crate": "nonos_x_memory_mmio_stats_record",
+      "dir": "verification/extraction/tree/memory_mmio_stats_record",
+      "lean": "MemoryMmioStatsRecord",
+      "generated": "MemoryMmioStatsRecord.lean",
+      "starts": [
+        "nonos_x_memory_mmio_stats_record::mmiostats_next_id",
+        "nonos_x_memory_mmio_stats_record::mmiostats_record_mapping",
+        "nonos_x_memory_mmio_stats_record::mmiostats_record_unmapping",
+        "nonos_x_memory_mmio_stats_record::mmiostats_record_read",
+        "nonos_x_memory_mmio_stats_record::mmiostats_record_write"
+      ]
+    },
+    {
+      "name": "memory_mmu_constants_helpers",
+      "crate": "nonos_x_memory_mmu_constants_helpers",
+      "dir": "verification/extraction/tree/memory_mmu_constants_helpers",
+      "lean": "MemoryMmuConstantsHelpers",
+      "generated": "MemoryMmuConstantsHelpers.lean",
+      "starts": [
+        "nonos_x_memory_mmu_constants_helpers::pml4_index",
+        "nonos_x_memory_mmu_constants_helpers::pdpt_index",
+        "nonos_x_memory_mmu_constants_helpers::pd_index",
+        "nonos_x_memory_mmu_constants_helpers::pt_index",
+        "nonos_x_memory_mmu_constants_helpers::pte_is_present",
+        "nonos_x_memory_mmu_constants_helpers::pte_address"
+      ]
+    },
+    {
+      "name": "memory_mmio_types_flags",
+      "crate": "nonos_x_memory_mmio_types_flags",
+      "dir": "verification/extraction/tree/memory_mmio_types_flags",
+      "lean": "MemoryMmioTypesFlags",
+      "generated": "MemoryMmioTypesFlags.lean",
+      "starts": [
+        "nonos_x_memory_mmio_types_flags::mmioflags_device",
+        "nonos_x_memory_mmio_types_flags::mmioflags_framebuffer",
+        "nonos_x_memory_mmio_types_flags::mmioflags_user_device",
+        "nonos_x_memory_mmio_types_flags::mmioflags_to_vm_flags"
+      ]
+    },
+    {
+      "name": "memory_mmu_types_permissions_impl",
+      "crate": "nonos_x_memory_mmu_types_permissions_impl",
+      "dir": "verification/extraction/tree/memory_mmu_types_permissions_impl",
+      "lean": "MemoryMmuTypesPermissionsImpl",
+      "generated": "MemoryMmuTypesPermissionsImpl.lean",
+      "starts": [
+        "nonos_x_memory_mmu_types_permissions_impl::pagepermissions_is_wx_violation"
+      ]
+    },
+    {
+      "name": "memory_mmu_types_pte_decode",
+      "crate": "nonos_x_memory_mmu_types_pte_decode",
+      "dir": "verification/extraction/tree/memory_mmu_types_pte_decode",
+      "lean": "MemoryMmuTypesPteDecode",
+      "generated": "MemoryMmuTypesPteDecode.lean",
+      "starts": [
+        "nonos_x_memory_mmu_types_pte_decode::pagetableentry_from_raw"
+      ]
+    },
+    {
+      "name": "memory_page_info_types_flags",
+      "crate": "nonos_x_memory_page_info_types_flags",
+      "dir": "verification/extraction/tree/memory_page_info_types_flags",
+      "lean": "MemoryPageInfoTypesFlags",
+      "generated": "MemoryPageInfoTypesFlags.lean",
+      "starts": [
+        "nonos_x_memory_page_info_types_flags::pageflags_from_bits",
+        "nonos_x_memory_page_info_types_flags::pageflags_bits",
+        "nonos_x_memory_page_info_types_flags::pageflags_contains",
+        "nonos_x_memory_page_info_types_flags::pageflags_union",
+        "nonos_x_memory_page_info_types_flags::pageflags_intersection",
+        "nonos_x_memory_page_info_types_flags::pageflags_difference",
+        "nonos_x_memory_page_info_types_flags::pageflags_is_empty"
+      ]
+    },
+    {
+      "name": "memory_phys_bitmap_index",
+      "crate": "nonos_x_memory_phys_bitmap_index",
+      "dir": "verification/extraction/tree/memory_phys_bitmap_index",
+      "lean": "MemoryPhysBitmapIndex",
+      "generated": "MemoryPhysBitmapIndex.lean",
+      "starts": [
+        "nonos_x_memory_phys_bitmap_index::byte_of",
+        "nonos_x_memory_phys_bitmap_index::bit_mask"
+      ]
+    },
+    {
+      "name": "memory_phys_types_frame",
+      "crate": "nonos_x_memory_phys_types_frame",
+      "dir": "verification/extraction/tree/memory_phys_types_frame",
+      "lean": "MemoryPhysTypesFrame",
+      "generated": "MemoryPhysTypesFrame.lean",
+      "starts": [
+        "nonos_x_memory_phys_types_frame::frame_new",
+        "nonos_x_memory_phys_types_frame::frame_addr",
+        "nonos_x_memory_phys_types_frame::frame_number",
+        "nonos_x_memory_phys_types_frame::frame_is_null"
+      ]
+    },
+    {
+      "name": "memory_region_stats_query",
+      "crate": "nonos_x_memory_region_stats_query",
+      "dir": "verification/extraction/tree/memory_region_stats_query",
+      "lean": "MemoryRegionStatsQuery",
+      "generated": "MemoryRegionStatsQuery.lean",
+      "starts": [
+        "nonos_x_memory_region_stats_query::regionstatistics_total_regions",
+        "nonos_x_memory_region_stats_query::regionstatistics_allocated_bytes",
+        "nonos_x_memory_region_stats_query::regionstatistics_free_bytes",
+        "nonos_x_memory_region_stats_query::regionstatistics_allocation_count",
+        "nonos_x_memory_region_stats_query::regionstatistics_deallocation_count",
+        "nonos_x_memory_region_stats_query::regionstatistics_merge_count",
+        "nonos_x_memory_region_stats_query::regionstatistics_split_count",
+        "nonos_x_memory_region_stats_query::regionstatistics_fragmentation_count"
+      ]
+    },
+    {
+      "name": "memory_region_stats_record",
+      "crate": "nonos_x_memory_region_stats_record",
+      "dir": "verification/extraction/tree/memory_region_stats_record",
+      "lean": "MemoryRegionStatsRecord",
+      "generated": "MemoryRegionStatsRecord.lean",
+      "starts": [
+        "nonos_x_memory_region_stats_record::regionstatistics_record_allocation",
+        "nonos_x_memory_region_stats_record::regionstatistics_record_deallocation",
+        "nonos_x_memory_region_stats_record::regionstatistics_record_merge",
+        "nonos_x_memory_region_stats_record::regionstatistics_record_split",
+        "nonos_x_memory_region_stats_record::regionstatistics_add_region",
+        "nonos_x_memory_region_stats_record::regionstatistics_remove_region",
+        "nonos_x_memory_region_stats_record::regionstatistics_record_fragmentation",
+        "nonos_x_memory_region_stats_record::regionstatistics_reduce_fragmentation"
+      ]
+    },
+    {
+      "name": "memory_secure_memory_error_predicates",
+      "crate": "nonos_x_memory_secure_memory_error_predicates",
+      "dir": "verification/extraction/tree/memory_secure_memory_error_predicates",
+      "lean": "MemorySecureMemoryErrorPredicates",
+      "generated": "MemorySecureMemoryErrorPredicates.lean",
+      "starts": [
+        "nonos_x_memory_secure_memory_error_predicates::securememoryerror_is_security_critical",
+        "nonos_x_memory_secure_memory_error_predicates::securememoryerror_is_internal_error",
+        "nonos_x_memory_secure_memory_error_predicates::securememoryerror_is_retriable"
+      ]
+    },
+    {
+      "name": "crypto_util_bigint_constructors",
+      "crate": "nonos_x_crypto_util_bigint_constructors",
+      "dir": "verification/extraction/tree/crypto_util_bigint_constructors",
+      "lean": "CryptoUtilBigintConstructors",
+      "generated": "CryptoUtilBigintConstructors.lean",
+      "starts": [
+        "nonos_x_crypto_util_bigint_constructors::biguint_zero",
+        "nonos_x_crypto_util_bigint_constructors::biguint_one",
+        "nonos_x_crypto_util_bigint_constructors::biguint_new",
+        "nonos_x_crypto_util_bigint_constructors::biguint_from_u64"
+      ]
+    },
+    {
+      "name": "fs_blockfs_header_lba",
+      "crate": "nonos_x_fs_blockfs_header_lba",
+      "dir": "verification/extraction/tree/fs_blockfs_header_lba",
+      "lean": "FsBlockfsHeaderLba",
+      "generated": "FsBlockfsHeaderLba.lean",
+      "starts": [
+        "nonos_x_fs_blockfs_header_lba::header_lba"
+      ]
+    },
+    {
+      "name": "fs_vfs_types",
+      "crate": "nonos_x_fs_vfs_types",
+      "dir": "verification/extraction/tree/fs_vfs_types",
+      "lean": "FsVfsTypes",
+      "generated": "FsVfsTypes.lean",
+      "starts": [
+        "nonos_x_fs_vfs_types::openflags_empty",
+        "nonos_x_fs_vfs_types::openflags_from_bits",
+        "nonos_x_fs_vfs_types::openflags_bits",
+        "nonos_x_fs_vfs_types::openflags_contains",
+        "nonos_x_fs_vfs_types::openflags_is_readable",
+        "nonos_x_fs_vfs_types::openflags_is_writable"
+      ]
+    },
+    {
+      "name": "hardware_broker_pio_absent",
+      "crate": "nonos_x_hardware_broker_pio_absent",
+      "dir": "verification/extraction/tree/hardware_broker_pio_absent",
+      "lean": "HardwareBrokerPioAbsent",
+      "generated": "HardwareBrokerPioAbsent.lean",
+      "starts": [
+        "nonos_x_hardware_broker_pio_absent::pio_release_all_for_pid",
+        "nonos_x_hardware_broker_pio_absent::pio_release_for_device"
+      ]
+    },
+    {
+      "name": "drivers_pci_stats_getters",
+      "crate": "nonos_x_drivers_pci_stats_getters",
+      "dir": "verification/extraction/tree/drivers_pci_stats_getters",
+      "lean": "DriversPciStatsGetters",
+      "generated": "DriversPciStatsGetters.lean",
+      "starts": [
+        "nonos_x_drivers_pci_stats_getters::get_total_devices",
+        "nonos_x_drivers_pci_stats_getters::get_pcie_devices",
+        "nonos_x_drivers_pci_stats_getters::get_msi_capable_devices",
+        "nonos_x_drivers_pci_stats_getters::get_msix_capable_devices"
+      ]
+    },
+    {
+      "name": "drivers_pci_stats_device_class",
+      "crate": "nonos_x_drivers_pci_stats_device_class",
+      "dir": "verification/extraction/tree/drivers_pci_stats_device_class",
+      "lean": "DriversPciStatsDeviceClass",
+      "generated": "DriversPciStatsDeviceClass.lean",
+      "starts": [
+        "nonos_x_drivers_pci_stats_device_class::deviceclassstats_new",
+        "nonos_x_drivers_pci_stats_device_class::deviceclassstats_total"
+      ]
+    },
+    {
+      "name": "drivers_pci_stats_pci_stats",
+      "crate": "nonos_x_drivers_pci_stats_pci_stats",
+      "dir": "verification/extraction/tree/drivers_pci_stats_pci_stats",
+      "lean": "DriversPciStatsPciStats",
+      "generated": "DriversPciStatsPciStats.lean",
+      "starts": [
+        "nonos_x_drivers_pci_stats_pci_stats::pcistats_new",
+        "nonos_x_drivers_pci_stats_pci_stats::pcistats_snapshot",
+        "nonos_x_drivers_pci_stats_pci_stats::pcistats_average_enumeration_time_us"
+      ]
+    },
+    {
+      "name": "drivers_pci_stats_record",
+      "crate": "nonos_x_drivers_pci_stats_record",
+      "dir": "verification/extraction/tree/drivers_pci_stats_record",
+      "lean": "DriversPciStatsRecord",
+      "generated": "DriversPciStatsRecord.lean",
+      "starts": [
+        "nonos_x_drivers_pci_stats_record::record_enumeration",
+        "nonos_x_drivers_pci_stats_record::record_config_read",
+        "nonos_x_drivers_pci_stats_record::record_config_write",
+        "nonos_x_drivers_pci_stats_record::record_config_error",
+        "nonos_x_drivers_pci_stats_record::record_interrupt",
+        "nonos_x_drivers_pci_stats_record::record_hotplug_event",
+        "nonos_x_drivers_pci_stats_record::record_power_state_change",
+        "nonos_x_drivers_pci_stats_record::record_link_state_change",
+        "nonos_x_drivers_pci_stats_record::record_error_event",
+        "nonos_x_drivers_pci_stats_record::reset_stats"
+      ]
+    },
+    {
+      "name": "drivers_pci_types_address",
+      "crate": "nonos_x_drivers_pci_types_address",
+      "dir": "verification/extraction/tree/drivers_pci_types_address",
+      "lean": "DriversPciTypesAddress",
+      "generated": "DriversPciTypesAddress.lean",
+      "starts": [
+        "nonos_x_drivers_pci_types_address::pciaddress_new",
+        "nonos_x_drivers_pci_types_address::pciaddress_from_bdf",
+        "nonos_x_drivers_pci_types_address::pciaddress_to_bdf",
+        "nonos_x_drivers_pci_types_address::pciaddress_config_address"
+      ]
+    },
+    {
+      "name": "drivers_pci_types_header",
+      "crate": "nonos_x_drivers_pci_types_header",
+      "dir": "verification/extraction/tree/drivers_pci_types_header",
+      "lean": "DriversPciTypesHeader",
+      "generated": "DriversPciTypesHeader.lean",
+      "starts": [
+        "nonos_x_drivers_pci_types_header::headertype_is_multifunction"
+      ]
+    },
+    {
+      "name": "drivers_pci_types_bar",
+      "crate": "nonos_x_drivers_pci_types_bar",
+      "dir": "verification/extraction/tree/drivers_pci_types_bar",
+      "lean": "DriversPciTypesBar",
+      "generated": "DriversPciTypesBar.lean",
+      "starts": [
+        "nonos_x_drivers_pci_types_bar::pcibar_size",
+        "nonos_x_drivers_pci_types_bar::pcibar_is_memory",
+        "nonos_x_drivers_pci_types_bar::pcibar_is_io",
+        "nonos_x_drivers_pci_types_bar::pcibar_is_64bit",
+        "nonos_x_drivers_pci_types_bar::pcibar_is_prefetchable",
+        "nonos_x_drivers_pci_types_bar::pcibar_is_present"
+      ]
+    },
+    {
+      "name": "drivers_pci_types_msi",
+      "crate": "nonos_x_drivers_pci_types_msi",
+      "dir": "verification/extraction/tree/drivers_pci_types_msi",
+      "lean": "DriversPciTypesMsi",
+      "generated": "DriversPciTypesMsi.lean",
+      "starts": [
+        "nonos_x_drivers_pci_types_msi::msiinfo_max_vectors",
+        "nonos_x_drivers_pci_types_msi::msiinfo_allocated_vectors",
+        "nonos_x_drivers_pci_types_msi::msixinfo_vector_count",
+        "nonos_x_drivers_pci_types_msi::msimessage_new",
+        "nonos_x_drivers_pci_types_msi::msimessage_for_local_apic"
+      ]
+    },
+    {
+      "name": "drivers_security_lba",
+      "crate": "nonos_x_drivers_security_lba",
+      "dir": "verification/extraction/tree/drivers_security_lba",
+      "lean": "DriversSecurityLba",
+      "generated": "DriversSecurityLba.lean",
+      "starts": [
+        "nonos_x_drivers_security_lba::is_lba_in_partition"
+      ]
+    },
+    {
+      "name": "drivers_security_pci",
+      "crate": "nonos_x_drivers_security_pci",
+      "dir": "verification/extraction/tree/drivers_security_pci",
+      "lean": "DriversSecurityPci",
+      "generated": "DriversSecurityPci.lean",
+      "starts": [
+        "nonos_x_drivers_security_pci::is_config_write_allowed",
+        "nonos_x_drivers_security_pci::is_sensitive_config_read",
+        "nonos_x_drivers_security_pci::build_config_address"
+      ]
+    },
+    {
+      "name": "asymmetric_ed25519_point_scalarmult",
+      "crate": "nonos_x_asymmetric_ed25519_point_scalarmult",
+      "dir": "verification/extraction/tree/asymmetric_ed25519_point_scalarmult",
+      "lean": "AsymmetricEd25519PointScalarmult",
+      "generated": "AsymmetricEd25519PointScalarmult.lean",
+      "starts": [
+        "nonos_x_asymmetric_ed25519_point_scalarmult::ct_byte_mask"
+      ]
+    },
+    {
+      "name": "asymmetric_ed25519_point_types",
+      "crate": "nonos_x_asymmetric_ed25519_point_types",
+      "dir": "verification/extraction/tree/asymmetric_ed25519_point_types",
+      "lean": "AsymmetricEd25519PointTypes",
+      "generated": "AsymmetricEd25519PointTypes.lean",
+      "starts": [
+        "nonos_x_asymmetric_ed25519_point_types::gep3_identity"
+      ]
+    },
+    {
+      "name": "crypto_symmetric_aes_core",
+      "crate": "nonos_x_crypto_symmetric_aes_core",
+      "dir": "verification/extraction/tree/crypto_symmetric_aes_core",
+      "lean": "CryptoSymmetricAesCore",
+      "generated": "CryptoSymmetricAesCore.lean",
+      "starts": [
+        "nonos_x_crypto_symmetric_aes_core::gf_mul"
+      ]
+    },
+    {
+      "name": "crypto_zk_kernel_field_ct",
+      "crate": "nonos_x_crypto_zk_kernel_field_ct",
+      "dir": "verification/extraction/tree/crypto_zk_kernel_field_ct",
+      "lean": "CryptoZkKernelFieldCt",
+      "generated": "CryptoZkKernelFieldCt.lean",
+      "starts": [
+        "nonos_x_crypto_zk_kernel_field_ct::fieldelement_is_zero",
+        "nonos_x_crypto_zk_kernel_field_ct::fieldelement_ct_is_zero"
+      ]
+    },
+    {
+      "name": "crypto_zk_kernel_range_types",
+      "crate": "nonos_x_crypto_zk_kernel_range_types",
+      "dir": "verification/extraction/tree/crypto_zk_kernel_range_types",
+      "lean": "CryptoZkKernelRangeTypes",
+      "generated": "CryptoZkKernelRangeTypes.lean",
+      "starts": [
+        "nonos_x_crypto_zk_kernel_range_types::bitproof_verify_structure"
+      ]
+    },
+    {
+      "name": "x86_64_acpi_data_acpi_data_new",
+      "crate": "nonos_x_x86_64_acpi_data_acpi_data_new",
+      "dir": "verification/extraction/tree/x86_64_acpi_data_acpi_data_new",
+      "lean": "X8664AcpiDataAcpiDataNew",
+      "generated": "X8664AcpiDataAcpiDataNew.lean",
+      "starts": [
+        "nonos_x_x86_64_acpi_data_acpi_data_new::acpidata_new"
+      ]
+    },
+    {
+      "name": "acpi_tables_fadt_fadt_addresses",
+      "crate": "nonos_x_acpi_tables_fadt_fadt_addresses",
+      "dir": "verification/extraction/tree/acpi_tables_fadt_fadt_addresses",
+      "lean": "AcpiTablesFadtFadtAddresses",
+      "generated": "AcpiTablesFadtFadtAddresses.lean",
+      "starts": [
+        "nonos_x_acpi_tables_fadt_fadt_addresses::fadt_dsdt_address",
+        "nonos_x_acpi_tables_fadt_fadt_addresses::fadt_firmware_control_address",
+        "nonos_x_acpi_tables_fadt_fadt_addresses::fadt_pm1a_event_address",
+        "nonos_x_acpi_tables_fadt_fadt_addresses::fadt_pm1b_event_address",
+        "nonos_x_acpi_tables_fadt_fadt_addresses::fadt_pm1a_control_address",
+        "nonos_x_acpi_tables_fadt_fadt_addresses::fadt_pm1b_control_address",
+        "nonos_x_acpi_tables_fadt_fadt_addresses::fadt_pm_timer_address",
+        "nonos_x_acpi_tables_fadt_fadt_addresses::fadt_gpe0_address",
+        "nonos_x_acpi_tables_fadt_fadt_addresses::fadt_gpe1_address"
+      ]
+    },
+    {
+      "name": "acpi_tables_fadt_fadt_boot",
+      "crate": "nonos_x_acpi_tables_fadt_fadt_boot",
+      "dir": "verification/extraction/tree/acpi_tables_fadt_fadt_boot",
+      "lean": "AcpiTablesFadtFadtBoot",
+      "generated": "AcpiTablesFadtFadtBoot.lean",
+      "starts": [
+        "nonos_x_acpi_tables_fadt_fadt_boot::fadt_has_8042",
+        "nonos_x_acpi_tables_fadt_fadt_boot::fadt_has_legacy_devices",
+        "nonos_x_acpi_tables_fadt_fadt_boot::fadt_has_vga",
+        "nonos_x_acpi_tables_fadt_fadt_boot::fadt_has_msi",
+        "nonos_x_acpi_tables_fadt_fadt_boot::fadt_has_cmos_rtc"
+      ]
+    },
+    {
+      "name": "acpi_tables_hpet_table",
+      "crate": "nonos_x_acpi_tables_hpet_table",
+      "dir": "verification/extraction/tree/acpi_tables_hpet_table",
+      "lean": "AcpiTablesHpetTable",
+      "generated": "AcpiTablesHpetTable.lean",
+      "starts": [
+        "nonos_x_acpi_tables_hpet_table::hpet_comparator_count",
+        "nonos_x_acpi_tables_hpet_table::hpet_vendor_id",
+        "nonos_x_acpi_tables_hpet_table::hpet_hardware_revision",
+        "nonos_x_acpi_tables_hpet_table::hpet_is_64bit",
+        "nonos_x_acpi_tables_hpet_table::hpet_supports_legacy_replacement",
+        "nonos_x_acpi_tables_hpet_table::hpet_address",
+        "nonos_x_acpi_tables_hpet_table::hpet_is_valid",
+        "nonos_x_acpi_tables_hpet_table::hpet_oem_attr"
+      ]
+    },
+    {
+      "name": "acpi_tables_fadt_fadt_methods",
+      "crate": "nonos_x_acpi_tables_fadt_fadt_methods",
+      "dir": "verification/extraction/tree/acpi_tables_fadt_fadt_methods",
+      "lean": "AcpiTablesFadtFadtMethods",
+      "generated": "AcpiTablesFadtFadtMethods.lean",
+      "starts": [
+        "nonos_x_acpi_tables_fadt_fadt_methods::fadt_has_reset_register",
+        "nonos_x_acpi_tables_fadt_fadt_methods::fadt_is_hw_reduced",
+        "nonos_x_acpi_tables_fadt_fadt_methods::fadt_is_pm_timer_32bit",
+        "nonos_x_acpi_tables_fadt_fadt_methods::fadt_supports_low_power_s0",
+        "nonos_x_acpi_tables_fadt_fadt_methods::fadt_sci_interrupt",
+        "nonos_x_acpi_tables_fadt_fadt_methods::fadt_c2_latency_us",
+        "nonos_x_acpi_tables_fadt_fadt_methods::fadt_c3_latency_us",
+        "nonos_x_acpi_tables_fadt_fadt_methods::fadt_supports_c2",
+        "nonos_x_acpi_tables_fadt_fadt_methods::fadt_supports_c3"
+      ]
+    },
+    {
+      "name": "acpi_tables_madt_interrupt",
+      "crate": "nonos_x_acpi_tables_madt_interrupt",
+      "dir": "verification/extraction/tree/acpi_tables_madt_interrupt",
+      "lean": "AcpiTablesMadtInterrupt",
+      "generated": "AcpiTablesMadtInterrupt.lean",
+      "starts": [
+        "nonos_x_acpi_tables_madt_interrupt::madtinterruptoverride_polarity",
+        "nonos_x_acpi_tables_madt_interrupt::madtinterruptoverride_trigger_mode",
+        "nonos_x_acpi_tables_madt_interrupt::madtinterruptoverride_is_active_low",
+        "nonos_x_acpi_tables_madt_interrupt::madtinterruptoverride_is_level_triggered",
+        "nonos_x_acpi_tables_madt_interrupt::madtinterruptoverride_is_edge_triggered",
+        "nonos_x_acpi_tables_madt_interrupt::madtinterruptoverride_is_active_high",
+        "nonos_x_acpi_tables_madt_interrupt::madtnmisource_polarity",
+        "nonos_x_acpi_tables_madt_interrupt::madtnmisource_trigger_mode"
+      ]
+    },
+    {
+      "name": "acpi_tables_madt_header",
+      "crate": "nonos_x_acpi_tables_madt_header",
+      "dir": "verification/extraction/tree/acpi_tables_madt_header",
+      "lean": "AcpiTablesMadtHeader",
+      "generated": "AcpiTablesMadtHeader.lean",
+      "starts": [
+        "nonos_x_acpi_tables_madt_header::madt_has_legacy_pics",
+        "nonos_x_acpi_tables_madt_header::madt_entries_start",
+        "nonos_x_acpi_tables_madt_header::madt_entries_length",
+        "nonos_x_acpi_tables_madt_header::madt_local_apic_addr"
+      ]
+    },
+    {
+      "name": "acpi_tables_madt_local_apic_entry",
+      "crate": "nonos_x_acpi_tables_madt_local_apic_entry",
+      "dir": "verification/extraction/tree/acpi_tables_madt_local_apic_entry",
+      "lean": "AcpiTablesMadtLocalApicEntry",
+      "generated": "AcpiTablesMadtLocalApicEntry.lean",
+      "starts": [
+        "nonos_x_acpi_tables_madt_local_apic_entry::madtlocalapic_is_enabled",
+        "nonos_x_acpi_tables_madt_local_apic_entry::madtlocalapic_is_online_capable",
+        "nonos_x_acpi_tables_madt_local_apic_entry::madtlocalapic_is_usable"
+      ]
+    },
+    {
+      "name": "acpi_tables_madt_io_apic",
+      "crate": "nonos_x_acpi_tables_madt_io_apic",
+      "dir": "verification/extraction/tree/acpi_tables_madt_io_apic",
+      "lean": "AcpiTablesMadtIoApic",
+      "generated": "AcpiTablesMadtIoApic.lean",
+      "starts": [
+        "nonos_x_acpi_tables_madt_io_apic::madtioapic_address"
+      ]
+    },
+    {
+      "name": "acpi_tables_madt_local_apic_nmi",
+      "crate": "nonos_x_acpi_tables_madt_local_apic_nmi",
+      "dir": "verification/extraction/tree/acpi_tables_madt_local_apic_nmi",
+      "lean": "AcpiTablesMadtLocalApicNmi",
+      "generated": "AcpiTablesMadtLocalApicNmi.lean",
+      "starts": [
+        "nonos_x_acpi_tables_madt_local_apic_nmi::madtlocalapicnmi_applies_to_all",
+        "nonos_x_acpi_tables_madt_local_apic_nmi::madtlocalapicnmi_polarity",
+        "nonos_x_acpi_tables_madt_local_apic_nmi::madtlocalapicnmi_trigger_mode"
+      ]
+    },
+    {
+      "name": "acpi_tables_madt_x2apic_local",
+      "crate": "nonos_x_acpi_tables_madt_x2apic_local",
+      "dir": "verification/extraction/tree/acpi_tables_madt_x2apic_local",
+      "lean": "AcpiTablesMadtX2apicLocal",
+      "generated": "AcpiTablesMadtX2apicLocal.lean",
+      "starts": [
+        "nonos_x_acpi_tables_madt_x2apic_local::madtlocalx2apic_is_enabled",
+        "nonos_x_acpi_tables_madt_x2apic_local::madtlocalx2apic_is_online_capable",
+        "nonos_x_acpi_tables_madt_x2apic_local::madtlocalx2apic_is_usable"
+      ]
+    },
+    {
+      "name": "acpi_tables_madt_x2apic_nmi",
+      "crate": "nonos_x_acpi_tables_madt_x2apic_nmi",
+      "dir": "verification/extraction/tree/acpi_tables_madt_x2apic_nmi",
+      "lean": "AcpiTablesMadtX2apicNmi",
+      "generated": "AcpiTablesMadtX2apicNmi.lean",
+      "starts": [
+        "nonos_x_acpi_tables_madt_x2apic_nmi::madtlocalx2apicnmi_applies_to_all",
+        "nonos_x_acpi_tables_madt_x2apic_nmi::madtlocalx2apicnmi_polarity",
+        "nonos_x_acpi_tables_madt_x2apic_nmi::madtlocalx2apicnmi_trigger_mode"
+      ]
+    },
+    {
+      "name": "x86_64_acpi_tables_mcfg_types",
+      "crate": "nonos_x_x86_64_acpi_tables_mcfg_types",
+      "dir": "verification/extraction/tree/x86_64_acpi_tables_mcfg_types",
+      "lean": "X8664AcpiTablesMcfgTypes",
+      "generated": "X8664AcpiTablesMcfgTypes.lean",
+      "starts": [
+        "nonos_x_x86_64_acpi_tables_mcfg_types::mcfg_entry_count",
+        "nonos_x_x86_64_acpi_tables_mcfg_types::mcfg_entries_offset",
+        "nonos_x_x86_64_acpi_tables_mcfg_types::mcfgentry_bus_count",
+        "nonos_x_x86_64_acpi_tables_mcfg_types::mcfgentry_contains_bus",
+        "nonos_x_x86_64_acpi_tables_mcfg_types::mcfgentry_memory_size"
+      ]
+    },
+    {
+      "name": "acpi_tables_sdt_generic_address",
+      "crate": "nonos_x_acpi_tables_sdt_generic_address",
+      "dir": "verification/extraction/tree/acpi_tables_sdt_generic_address",
+      "lean": "AcpiTablesSdtGenericAddress",
+      "generated": "AcpiTablesSdtGenericAddress.lean",
+      "starts": [
+        "nonos_x_acpi_tables_sdt_generic_address::genericaddress_empty",
+        "nonos_x_acpi_tables_sdt_generic_address::genericaddress_is_valid",
+        "nonos_x_acpi_tables_sdt_generic_address::genericaddress_is_memory",
+        "nonos_x_acpi_tables_sdt_generic_address::genericaddress_is_io",
+        "nonos_x_acpi_tables_sdt_generic_address::genericaddress_access_bytes"
+      ]
+    },
+    {
+      "name": "acpi_tables_slit_neighbors",
+      "crate": "nonos_x_acpi_tables_slit_neighbors",
+      "dir": "verification/extraction/tree/acpi_tables_slit_neighbors",
+      "lean": "AcpiTablesSlitNeighbors",
+      "generated": "AcpiTablesSlitNeighbors.lean",
+      "starts": [
+        "nonos_x_acpi_tables_slit_neighbors::numadistances_is_reachable"
+      ]
+    },
+    {
+      "name": "x86_64_acpi_tables_srat_types",
+      "crate": "nonos_x_x86_64_acpi_tables_srat_types",
+      "dir": "verification/extraction/tree/x86_64_acpi_tables_srat_types",
+      "lean": "X8664AcpiTablesSratTypes",
+      "generated": "X8664AcpiTablesSratTypes.lean",
+      "starts": [
+        "nonos_x_x86_64_acpi_tables_srat_types::srat_entries_offset",
+        "nonos_x_x86_64_acpi_tables_srat_types::srat_entries_length"
+      ]
+    },
+    {
+      "name": "x86_64_cpu_features_types_new",
+      "crate": "nonos_x_x86_64_cpu_features_types_new",
+      "dir": "verification/extraction/tree/x86_64_cpu_features_types_new",
+      "lean": "X8664CpuFeaturesTypesNew",
+      "generated": "X8664CpuFeaturesTypesNew.lean",
+      "starts": [
+        "nonos_x_x86_64_cpu_features_types_new::cpufeatures_new"
+      ]
+    },
+    {
+      "name": "arch_x86_64_cpu_identification_types",
+      "crate": "nonos_x_arch_x86_64_cpu_identification_types",
+      "dir": "verification/extraction/tree/arch_x86_64_cpu_identification_types",
+      "lean": "ArchX8664CpuIdentificationTypes",
+      "generated": "ArchX8664CpuIdentificationTypes.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_cpu_identification_types::cpuid_new"
+      ]
+    },
+    {
+      "name": "arch_x86_64_gdt_entry_base",
+      "crate": "nonos_x_arch_x86_64_gdt_entry_base",
+      "dir": "verification/extraction/tree/arch_x86_64_gdt_entry_base",
+      "lean": "ArchX8664GdtEntryBase",
+      "generated": "ArchX8664GdtEntryBase.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_gdt_entry_base::gdtentry_null",
+        "nonos_x_arch_x86_64_gdt_entry_base::gdtentry_new",
+        "nonos_x_arch_x86_64_gdt_entry_base::gdtentry_is_present",
+        "nonos_x_arch_x86_64_gdt_entry_base::gdtentry_dpl",
+        "nonos_x_arch_x86_64_gdt_entry_base::gdtentry_is_code",
+        "nonos_x_arch_x86_64_gdt_entry_base::gdtentry_is_long_mode"
+      ]
+    },
+    {
+      "name": "arch_x86_64_gdt_entry_presets",
+      "crate": "nonos_x_arch_x86_64_gdt_entry_presets",
+      "dir": "verification/extraction/tree/arch_x86_64_gdt_entry_presets",
+      "lean": "ArchX8664GdtEntryPresets",
+      "generated": "ArchX8664GdtEntryPresets.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_gdt_entry_presets::gdtentry_kernel_code_64",
+        "nonos_x_arch_x86_64_gdt_entry_presets::gdtentry_kernel_data",
+        "nonos_x_arch_x86_64_gdt_entry_presets::gdtentry_user_code_64",
+        "nonos_x_arch_x86_64_gdt_entry_presets::gdtentry_user_data"
+      ]
+    },
+    {
+      "name": "arch_x86_64_gdt_tss_entry",
+      "crate": "nonos_x_arch_x86_64_gdt_tss_entry",
+      "dir": "verification/extraction/tree/arch_x86_64_gdt_tss_entry",
+      "lean": "ArchX8664GdtTssEntry",
+      "generated": "ArchX8664GdtTssEntry.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_gdt_tss_entry::tssentry_empty",
+        "nonos_x_arch_x86_64_gdt_tss_entry::tssentry_new",
+        "nonos_x_arch_x86_64_gdt_tss_entry::tssentry_base",
+        "nonos_x_arch_x86_64_gdt_tss_entry::tssentry_is_busy"
+      ]
+    },
+    {
+      "name": "arch_x86_64_gdt_tss_struct",
+      "crate": "nonos_x_arch_x86_64_gdt_tss_struct",
+      "dir": "verification/extraction/tree/arch_x86_64_gdt_tss_struct",
+      "lean": "ArchX8664GdtTssStruct",
+      "generated": "ArchX8664GdtTssStruct.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_gdt_tss_struct::tss_new",
+        "nonos_x_arch_x86_64_gdt_tss_struct::tss_rsp0"
+      ]
+    },
+    {
+      "name": "arch_x86_64_idt_entry_idt",
+      "crate": "nonos_x_arch_x86_64_idt_entry_idt",
+      "dir": "verification/extraction/tree/arch_x86_64_idt_entry_idt",
+      "lean": "ArchX8664IdtEntryIdt",
+      "generated": "ArchX8664IdtEntryIdt.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_idt_entry_idt::idtentry_empty",
+        "nonos_x_arch_x86_64_idt_entry_idt::idtentry_is_present",
+        "nonos_x_arch_x86_64_idt_entry_idt::idtentry_handler",
+        "nonos_x_arch_x86_64_idt_entry_idt::idtentry_ist",
+        "nonos_x_arch_x86_64_idt_entry_idt::idtentry_dpl",
+        "nonos_x_arch_x86_64_idt_entry_idt::idtentry_is_trap"
+      ]
+    },
+    {
+      "name": "x86_64_idt_ops_stats",
+      "crate": "nonos_x_x86_64_idt_ops_stats",
+      "dir": "verification/extraction/tree/x86_64_idt_ops_stats",
+      "lean": "X8664IdtOpsStats",
+      "generated": "X8664IdtOpsStats.lean",
+      "starts": [
+        "nonos_x_x86_64_idt_ops_stats::get_vector_count"
+      ]
+    },
+    {
+      "name": "arch_x86_64_idt_table",
+      "crate": "nonos_x_arch_x86_64_idt_table",
+      "dir": "verification/extraction/tree/arch_x86_64_idt_table",
+      "lean": "ArchX8664IdtTable",
+      "generated": "ArchX8664IdtTable.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_idt_table::idt_new"
+      ]
+    },
+    {
+      "name": "interrupt_apic_idle_timer_halt_safe",
+      "crate": "nonos_x_interrupt_apic_idle_timer_halt_safe",
+      "dir": "verification/extraction/tree/interrupt_apic_idle_timer_halt_safe",
+      "lean": "InterruptApicIdleTimerHaltSafe",
+      "generated": "InterruptApicIdleTimerHaltSafe.lean",
+      "starts": [
+        "nonos_x_interrupt_apic_idle_timer_halt_safe::halt_safe"
+      ]
+    },
+    {
+      "name": "interrupt_ioapic_types_rte_ctor",
+      "crate": "nonos_x_interrupt_ioapic_types_rte_ctor",
+      "dir": "verification/extraction/tree/interrupt_ioapic_types_rte_ctor",
+      "lean": "InterruptIoapicTypesRteCtor",
+      "generated": "InterruptIoapicTypesRteCtor.lean",
+      "starts": [
+        "nonos_x_interrupt_ioapic_types_rte_ctor::rte_fixed",
+        "nonos_x_interrupt_ioapic_types_rte_ctor::rte_nmi"
+      ]
+    },
+    {
+      "name": "x86_64_iommu_types_addr",
+      "crate": "nonos_x_x86_64_iommu_types_addr",
+      "dir": "verification/extraction/tree/x86_64_iommu_types_addr",
+      "lean": "X8664IommuTypesAddr",
+      "generated": "X8664IommuTypesAddr.lean",
+      "starts": [
+        "nonos_x_x86_64_iommu_types_addr::iovirtaddr_new",
+        "nonos_x_x86_64_iommu_types_addr::iovirtaddr_as_u64",
+        "nonos_x_x86_64_iommu_types_addr::iovirtaddr_is_page_aligned"
+      ]
+    },
+    {
+      "name": "arch_x86_64_multiboot_header",
+      "crate": "nonos_x_arch_x86_64_multiboot_header",
+      "dir": "verification/extraction/tree/arch_x86_64_multiboot_header",
+      "lean": "ArchX8664MultibootHeader",
+      "generated": "ArchX8664MultibootHeader.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_multiboot_header::multiboot2header_new",
+        "nonos_x_arch_x86_64_multiboot_header::multiboot2header_verify_checksum"
+      ]
+    },
+    {
+      "name": "arch_x86_64_multiboot_modules_types",
+      "crate": "nonos_x_arch_x86_64_multiboot_modules_types",
+      "dir": "verification/extraction/tree/arch_x86_64_multiboot_modules_types",
+      "lean": "ArchX8664MultibootModulesTypes",
+      "generated": "ArchX8664MultibootModulesTypes.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_multiboot_modules_types::moduleinfo_size"
+      ]
+    },
+    {
+      "name": "arch_x86_64_multiboot_structures_header",
+      "crate": "nonos_x_arch_x86_64_multiboot_structures_header",
+      "dir": "verification/extraction/tree/arch_x86_64_multiboot_structures_header",
+      "lean": "ArchX8664MultibootStructuresHeader",
+      "generated": "ArchX8664MultibootStructuresHeader.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_multiboot_structures_header::multiboot2header_new",
+        "nonos_x_arch_x86_64_multiboot_structures_header::multiboot2header_verify_checksum"
+      ]
+    },
+    {
+      "name": "arch_x86_64_pci_stats_types",
+      "crate": "nonos_x_arch_x86_64_pci_stats_types",
+      "dir": "verification/extraction/tree/arch_x86_64_pci_stats_types",
+      "lean": "ArchX8664PciStatsTypes",
+      "generated": "ArchX8664PciStatsTypes.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_pci_stats_types::pcistats_new"
+      ]
+    },
+    {
+      "name": "arch_x86_64_serial_types",
+      "crate": "nonos_x_arch_x86_64_serial_types",
+      "dir": "verification/extraction/tree/arch_x86_64_serial_types",
+      "lean": "ArchX8664SerialTypes",
+      "generated": "ArchX8664SerialTypes.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_serial_types::baudrate_divisor",
+        "nonos_x_arch_x86_64_serial_types::baudrate_from_divisor",
+        "nonos_x_arch_x86_64_serial_types::baudrate_as_u32",
+        "nonos_x_arch_x86_64_serial_types::databits_as_u8",
+        "nonos_x_arch_x86_64_serial_types::databits_bits",
+        "nonos_x_arch_x86_64_serial_types::parity_as_u8",
+        "nonos_x_arch_x86_64_serial_types::stopbits_as_u8",
+        "nonos_x_arch_x86_64_serial_types::serialconfig_with_fifo",
+        "nonos_x_arch_x86_64_serial_types::serialconfig_with_interrupts"
+      ]
+    },
+    {
+      "name": "arch_x86_64_serial_writer",
+      "crate": "nonos_x_arch_x86_64_serial_writer",
+      "dir": "verification/extraction/tree/arch_x86_64_serial_writer",
+      "lean": "ArchX8664SerialWriter",
+      "generated": "ArchX8664SerialWriter.lean",
+      "starts": [
+        "nonos_x_arch_x86_64_serial_writer::serialwriter_new",
+        "nonos_x_arch_x86_64_serial_writer::serialwriter_for_port",
+        "nonos_x_arch_x86_64_serial_writer::serialwriter_port_index"
+      ]
+    },
+    {
+      "name": "x86_64_time_pit_channel",
+      "crate": "nonos_x_x86_64_time_pit_channel",
+      "dir": "verification/extraction/tree/x86_64_time_pit_channel",
+      "lean": "X8664TimePitChannel",
+      "generated": "X8664TimePitChannel.lean",
+      "starts": [
+        "nonos_x_x86_64_time_pit_channel::channel_data_port",
+        "nonos_x_x86_64_time_pit_channel::channel_select_bits",
+        "nonos_x_x86_64_time_pit_channel::channel_readback_bit"
+      ]
+    },
+    {
+      "name": "x86_64_time_pit_access",
+      "crate": "nonos_x_x86_64_time_pit_access",
+      "dir": "verification/extraction/tree/x86_64_time_pit_access",
+      "lean": "X8664TimePitAccess",
+      "generated": "X8664TimePitAccess.lean",
+      "starts": [
+        "nonos_x_x86_64_time_pit_access::accessmode_bits"
+      ]
+    },
+    {
+      "name": "x86_64_time_pit_conversion",
+      "crate": "nonos_x_x86_64_time_pit_conversion",
+      "dir": "verification/extraction/tree/x86_64_time_pit_conversion",
+      "lean": "X8664TimePitConversion",
+      "generated": "X8664TimePitConversion.lean",
+      "starts": [
+        "nonos_x_x86_64_time_pit_conversion::divisor_to_frequency",
+        "nonos_x_x86_64_time_pit_conversion::divisor_to_period_ns",
+        "nonos_x_x86_64_time_pit_conversion::frequency_error"
+      ]
+    },
+    {
+      "name": "x86_64_time_pit_mode",
+      "crate": "nonos_x_x86_64_time_pit_mode",
+      "dir": "verification/extraction/tree/x86_64_time_pit_mode",
+      "lean": "X8664TimePitMode",
+      "generated": "X8664TimePitMode.lean",
+      "starts": [
+        "nonos_x_x86_64_time_pit_mode::mode_bits",
+        "nonos_x_x86_64_time_pit_mode::mode_is_periodic",
+        "nonos_x_x86_64_time_pit_mode::mode_is_oneshot"
+      ]
+    },
+    {
+      "name": "time_rtc_types_alarm",
+      "crate": "nonos_x_time_rtc_types_alarm",
+      "dir": "verification/extraction/tree/time_rtc_types_alarm",
+      "lean": "TimeRtcTypesAlarm",
+      "generated": "TimeRtcTypesAlarm.lean",
+      "starts": [
+        "nonos_x_time_rtc_types_alarm::rtcalarm_new",
+        "nonos_x_time_rtc_types_alarm::rtcalarm_every_second",
+        "nonos_x_time_rtc_types_alarm::rtcalarm_every_minute",
+        "nonos_x_time_rtc_types_alarm::rtcalarm_every_hour"
+      ]
+    },
+    {
+      "name": "time_rtc_types_time",
+      "crate": "nonos_x_time_rtc_types_time",
+      "dir": "verification/extraction/tree/time_rtc_types_time",
+      "lean": "TimeRtcTypesTime",
+      "generated": "TimeRtcTypesTime.lean",
+      "starts": [
+        "nonos_x_time_rtc_types_time::rtctime_new",
+        "nonos_x_time_rtc_types_time::rtctime_to_unix_timestamp",
+        "nonos_x_time_rtc_types_time::rtctime_from_unix_timestamp",
+        "nonos_x_time_rtc_types_time::rtctime_calculate_day_of_week",
+        "nonos_x_time_rtc_types_time::rtctime_with_day_of_week",
+        "nonos_x_time_rtc_types_time::rtctime_is_leap_year",
+        "nonos_x_time_rtc_types_time::rtctime_day_of_year"
+      ]
+    },
+    {
+      "name": "x86_64_time_rtc_unix",
+      "crate": "nonos_x_x86_64_time_rtc_unix",
+      "dir": "verification/extraction/tree/x86_64_time_rtc_unix",
+      "lean": "X8664TimeRtcUnix",
+      "generated": "X8664TimeRtcUnix.lean",
+      "starts": [
+        "nonos_x_x86_64_time_rtc_unix::datetime_to_unix"
+      ]
+    },
+    {
+      "name": "x86_64_uefi_types_guid",
+      "crate": "nonos_x_x86_64_uefi_types_guid",
+      "dir": "verification/extraction/tree/x86_64_uefi_types_guid",
+      "lean": "X8664UefiTypesGuid",
+      "generated": "X8664UefiTypesGuid.lean",
+      "starts": [
+        "nonos_x_x86_64_uefi_types_guid::guid_null",
+        "nonos_x_x86_64_uefi_types_guid::guid_is_null",
+        "nonos_x_x86_64_uefi_types_guid::guid_is_hash_type",
+        "nonos_x_x86_64_uefi_types_guid::guid_is_certificate_type"
+      ]
+    },
+    {
+      "name": "x86_64_uefi_signature_types",
+      "crate": "nonos_x_x86_64_uefi_signature_types",
+      "dir": "verification/extraction/tree/x86_64_uefi_signature_types",
+      "lean": "X8664UefiSignatureTypes",
+      "generated": "X8664UefiSignatureTypes.lean",
+      "starts": [
+        "nonos_x_x86_64_uefi_signature_types::signatureentry_data_len",
+        "nonos_x_x86_64_uefi_signature_types::signatureentry_total_size",
+        "nonos_x_x86_64_uefi_signature_types::signaturelist_entry_count",
+        "nonos_x_x86_64_uefi_signature_types::signaturelist_is_empty",
+        "nonos_x_x86_64_uefi_signature_types::signaturelist_signature_size",
+        "nonos_x_x86_64_uefi_signature_types::signaturelist_total_size"
+      ]
+    },
+    {
+      "name": "x86_64_uefi_variable_iterator",
+      "crate": "nonos_x_x86_64_uefi_variable_iterator",
+      "dir": "verification/extraction/tree/x86_64_uefi_variable_iterator",
+      "lean": "X8664UefiVariableIterator",
+      "generated": "X8664UefiVariableIterator.lean",
+      "starts": [
+        "nonos_x_x86_64_uefi_variable_iterator::variableiterator_new",
+        "nonos_x_x86_64_uefi_variable_iterator::variableiterator_is_finished"
+      ]
+    },
+    {
+      "name": "x86_64_uefi_variable_variable",
+      "crate": "nonos_x_x86_64_uefi_variable_variable",
+      "dir": "verification/extraction/tree/x86_64_uefi_variable_variable",
+      "lean": "X8664UefiVariableVariable",
+      "generated": "X8664UefiVariableVariable.lean",
+      "starts": [
+        "nonos_x_x86_64_uefi_variable_variable::uefivariable_data_len",
+        "nonos_x_x86_64_uefi_variable_variable::uefivariable_is_empty",
+        "nonos_x_x86_64_uefi_variable_variable::uefivariable_is_non_volatile",
+        "nonos_x_x86_64_uefi_variable_variable::uefivariable_is_runtime_accessible",
+        "nonos_x_x86_64_uefi_variable_variable::uefivariable_as_bool"
+      ]
+    },
+    {
+      "name": "x86_64_vga_ops_lock",
+      "crate": "nonos_x_x86_64_vga_ops_lock",
+      "dir": "verification/extraction/tree/x86_64_vga_ops_lock",
+      "lean": "X8664VgaOpsLock",
+      "generated": "X8664VgaOpsLock.lean",
+      "starts": [
+        "nonos_x_x86_64_vga_ops_lock::acquire_lock",
+        "nonos_x_x86_64_vga_ops_lock::release_lock"
+      ]
+    },
+    {
+      "name": "interrupts_handlers_irq_syscall",
+      "crate": "nonos_x_interrupts_handlers_irq_syscall",
+      "dir": "verification/extraction/tree/interrupts_handlers_irq_syscall",
+      "lean": "InterruptsHandlersIrqSyscall",
+      "generated": "InterruptsHandlersIrqSyscall.lean",
+      "starts": [
+        "nonos_x_interrupts_handlers_irq_syscall::handle"
+      ]
+    },
+    {
+      "name": "interrupts_stats_query",
+      "crate": "nonos_x_interrupts_stats_query",
+      "dir": "verification/extraction/tree/interrupts_stats_query",
+      "lean": "InterruptsStatsQuery",
+      "generated": "InterruptsStatsQuery.lean",
+      "starts": [
+        "nonos_x_interrupts_stats_query::reset_stats"
+      ]
+    },
+    {
+      "name": "services_caps_types",
+      "crate": "nonos_x_services_caps_types",
+      "dir": "verification/extraction/tree/services_caps_types",
+      "lean": "ServicesCapsTypes",
+      "generated": "ServicesCapsTypes.lean",
+      "starts": [
+        "nonos_x_services_caps_types::servicecap_new",
+        "nonos_x_services_caps_types::servicecap_with_expiry",
+        "nonos_x_services_caps_types::servicecap_has",
+        "nonos_x_services_caps_types::servicecap_is_expired"
+      ]
+    },
+    {
+      "name": "services_lifecycle_state_respawn",
+      "crate": "nonos_x_services_lifecycle_state_respawn",
+      "dir": "verification/extraction/tree/services_lifecycle_state_respawn",
+      "lean": "ServicesLifecycleStateRespawn",
+      "generated": "ServicesLifecycleStateRespawn.lean",
+      "starts": [
+        "nonos_x_services_lifecycle_state_respawn::capsulestate_restart_count",
+        "nonos_x_services_lifecycle_state_respawn::capsulestate_last_exit_ms",
+        "nonos_x_services_lifecycle_state_respawn::capsulestate_record_exit",
+        "nonos_x_services_lifecycle_state_respawn::capsulestate_should_respawn",
+        "nonos_x_services_lifecycle_state_respawn::capsulestate_set_max_restarts",
+        "nonos_x_services_lifecycle_state_respawn::capsulestate_set_debounce_ms"
+      ]
+    },
+    {
+      "name": "init_spawn_plan_desktop_fleet_spawn_gui_core",
+      "crate": "nonos_x_init_spawn_plan_desktop_fleet_spawn_gui_core",
+      "dir": "verification/extraction/tree/init_spawn_plan_desktop_fleet_spawn_gui_core",
+      "lean": "InitSpawnPlanDesktopFleetSpawnGuiCore",
+      "generated": "InitSpawnPlanDesktopFleetSpawnGuiCore.lean",
+      "starts": [
+        "nonos_x_init_spawn_plan_desktop_fleet_spawn_gui_core::spawn_gui_core"
+      ]
+    },
+    {
+      "name": "arch_aarch64_fpu_slot",
+      "crate": "nonos_x_arch_aarch64_fpu_slot",
+      "dir": "verification/extraction/tree/arch_aarch64_fpu_slot",
+      "lean": "ArchAarch64FpuSlot",
+      "generated": "ArchAarch64FpuSlot.lean",
+      "starts": [
+        "nonos_x_arch_aarch64_fpu_slot::fpsimdslot_zeroed"
+      ]
+    },
+    {
+      "name": "fdt_find_timer_intid",
+      "crate": "nonos_x_fdt_find_timer_intid",
+      "dir": "verification/extraction/tree/fdt_find_timer_intid",
+      "lean": "FdtFindTimerIntid",
+      "generated": "FdtFindTimerIntid.lean",
+      "starts": [
+        "nonos_x_fdt_find_timer_intid::entry_count"
+      ]
+    },
+    {
+      "name": "riscv64_boot_hart_id_store",
+      "crate": "nonos_x_riscv64_boot_hart_id_store",
+      "dir": "verification/extraction/tree/riscv64_boot_hart_id_store",
+      "lean": "Riscv64BootHartIdStore",
+      "generated": "Riscv64BootHartIdStore.lean",
+      "starts": [
+        "nonos_x_riscv64_boot_hart_id_store::store"
+      ]
+    },
+    {
+      "name": "riscv64_cpu_caps_query",
+      "crate": "nonos_x_riscv64_cpu_caps_query",
+      "dir": "verification/extraction/tree/riscv64_cpu_caps_query",
+      "lean": "Riscv64CpuCapsQuery",
+      "generated": "Riscv64CpuCapsQuery.lean",
+      "starts": [
+        "nonos_x_riscv64_cpu_caps_query::is_configured",
+        "nonos_x_riscv64_cpu_caps_query::has_f",
+        "nonos_x_riscv64_cpu_caps_query::has_d",
+        "nonos_x_riscv64_cpu_caps_query::has_v",
+        "nonos_x_riscv64_cpu_caps_query::has_a",
+        "nonos_x_riscv64_cpu_caps_query::has_c"
+      ]
+    },
+    {
+      "name": "riscv64_cpu_extensions_query",
+      "crate": "nonos_x_riscv64_cpu_extensions_query",
+      "dir": "verification/extraction/tree/riscv64_cpu_extensions_query",
+      "lean": "Riscv64CpuExtensionsQuery",
+      "generated": "Riscv64CpuExtensionsQuery.lean",
+      "starts": [
+        "nonos_x_riscv64_cpu_extensions_query::has_vector",
+        "nonos_x_riscv64_cpu_extensions_query::has_compressed",
+        "nonos_x_riscv64_cpu_extensions_query::has_atomics",
+        "nonos_x_riscv64_cpu_extensions_query::has_float",
+        "nonos_x_riscv64_cpu_extensions_query::has_double"
+      ]
+    },
+    {
+      "name": "arch_riscv64_fpu_slot",
+      "crate": "nonos_x_arch_riscv64_fpu_slot",
+      "dir": "verification/extraction/tree/arch_riscv64_fpu_slot",
+      "lean": "ArchRiscv64FpuSlot",
+      "generated": "ArchRiscv64FpuSlot.lean",
+      "starts": [
+        "nonos_x_arch_riscv64_fpu_slot::fpslot_zeroed"
+      ]
+    },
+    {
+      "name": "riscv64_sbi_extensions_extension",
+      "crate": "nonos_x_riscv64_sbi_extensions_extension",
+      "dir": "verification/extraction/tree/riscv64_sbi_extensions_extension",
+      "lean": "Riscv64SbiExtensionsExtension",
+      "generated": "Riscv64SbiExtensionsExtension.lean",
+      "starts": [
+        "nonos_x_riscv64_sbi_extensions_extension::extension_eid"
+      ]
+    },
+    {
+      "name": "boot_handoff_types_framebuffer",
+      "crate": "nonos_x_boot_handoff_types_framebuffer",
+      "dir": "verification/extraction/tree/boot_handoff_types_framebuffer",
+      "lean": "BootHandoffTypesFramebuffer",
+      "generated": "BootHandoffTypesFramebuffer.lean",
+      "starts": [
+        "nonos_x_boot_handoff_types_framebuffer::framebufferinfo_is_valid",
+        "nonos_x_boot_handoff_types_framebuffer::framebufferinfo_bytes_per_pixel"
+      ]
+    },
+    {
+      "name": "sys_sync_semaphore_release",
+      "crate": "nonos_x_sys_sync_semaphore_release",
+      "dir": "verification/extraction/tree/sys_sync_semaphore_release",
+      "lean": "SysSyncSemaphoreRelease",
+      "generated": "SysSyncSemaphoreRelease.lean",
+      "starts": [
+        "nonos_x_sys_sync_semaphore_release::semaphore_release",
+        "nonos_x_sys_sync_semaphore_release::semaphore_available",
+        "nonos_x_sys_sync_semaphore_release::semaphore_capacity"
+      ]
+    },
+    {
+      "name": "sys_timer_tsc_convert",
+      "crate": "nonos_x_sys_timer_tsc_convert",
+      "dir": "verification/extraction/tree/sys_timer_tsc_convert",
+      "lean": "SysTimerTscConvert",
+      "generated": "SysTimerTscConvert.lean",
+      "starts": [
+        "nonos_x_sys_timer_tsc_convert::tsc_frequency",
+        "nonos_x_sys_timer_tsc_convert::ticks_to_ns",
+        "nonos_x_sys_timer_tsc_convert::ticks_to_us",
+        "nonos_x_sys_timer_tsc_convert::ticks_to_ms",
+        "nonos_x_sys_timer_tsc_convert::us_to_ticks",
+        "nonos_x_sys_timer_tsc_convert::ms_to_ticks"
+      ]
     }
   ]
 }
