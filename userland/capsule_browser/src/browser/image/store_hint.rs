@@ -33,6 +33,13 @@ impl Store {
         }
     }
 
+    /// Mark `url` as drawn on or near the screen, as the device's requeue
+    /// pass does after each layout; the host harness has no such pass.
+    #[cfg(feature = "harness")]
+    pub fn note_near(&mut self, url: &str) {
+        self.entry(url).near = true;
+    }
+
     /// Whether `url` is drawn only as box content, so vector art may be
     /// rasterized at the box's own shape.
     pub(crate) fn only_in_img_box(&self, url: &str) -> bool {

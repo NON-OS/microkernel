@@ -44,9 +44,9 @@ pub fn requeue_visible(state: &mut State) {
         }
     }
     for (url, e) in state.images.entries.iter_mut() {
+        e.near = shown.contains(url);
         let r = &mut e.revival;
-        r.near = shown.contains(url);
-        if !r.near || !matches!(e.status, Status::Evicted) {
+        if !e.near || !matches!(e.status, Status::Evicted) {
             continue;
         }
         if r.thrash {

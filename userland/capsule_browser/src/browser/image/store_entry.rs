@@ -36,6 +36,8 @@ pub(super) struct Entry {
     pub drawn_as: u8,
     /* The store clock when the raster was last painted. */
     pub used: Cell<u64>,
+    /* Its box was on or near the screen at the last layout. */
+    pub near: bool,
     #[cfg(not(feature = "harness"))]
     pub revival: super::revival::Revival,
 }
@@ -48,6 +50,7 @@ impl Store {
             natural: None,
             drawn_as: 0,
             used: Cell::new(0),
+            near: false,
             #[cfg(not(feature = "harness"))]
             revival: Default::default(),
         })

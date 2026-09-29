@@ -26,8 +26,6 @@ pub(super) const MAX_THRASH: u8 = 3;
 /// Per-image record of how it left and came back, in Entry::revival.
 #[derive(Default)]
 pub(super) struct Revival {
-    /* Its box was near the screen at the last requeue pass. */
-    pub near: bool,
     /* It was evicted while near: the screen itself outgrew the budget. */
     pub thrash: bool,
     pub refetched: u8,
@@ -38,7 +36,7 @@ impl Store {
     /// counts toward MAX_THRASH when the image comes back.
     pub(super) fn note_evicted(&mut self, url: &str) {
         if let Some(e) = self.entries.get_mut(url) {
-            e.revival.thrash = e.revival.near;
+            e.revival.thrash = e.near;
         }
     }
 }

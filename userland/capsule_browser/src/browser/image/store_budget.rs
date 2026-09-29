@@ -23,15 +23,17 @@ pub(crate) const BYTE_BUDGET: usize = 16 * 1024 * 1024;
 
 impl Store {
     /// Make room for `need` bytes of raster for `url` before it is
-    /// decoded: evict other rasters, least recently painted first, until it
-    /// fits or none is left. Returns the bytes then free.
+    /// decoded: evict other rasters until it fits or none is left, those
+    /// whose box is away from the screen first, then the least recently
+    /// painted. A burst of off-screen images decoded between two frames
+    /// then cannot push out what is on screen. Returns the bytes then free.
     pub(crate) fn room(&mut self, url: &str, need: usize) -> usize {
         while self.bytes.saturating_add(need) > BYTE_BUDGET {
             let victim = self
                 .entries
                 .iter()
                 .filter(|(k, e)| k.as_str() != url && matches!(e.status, Status::Ready(_)))
-                .min_by_key(|(_, e)| e.used.get())
+                .min_by_key(|(_, e)| (e.near, e.used.get()))
                 .map(|(k, _)| k.clone());
             let Some(v) = victim else { break };
             self.drop_raster(&v, Status::Evicted);
