@@ -26,16 +26,19 @@ use super::flags::writes;
 use super::slot::install;
 
 /// Path, major, minor. The handle of an open device is its index here.
-const DEVICES: [(&[u8], u64, u64); 5] = [
+const DEVICES: [(&[u8], u64, u64); 6] = [
     (b"/dev/null", 1, 3),
     (b"/dev/zero", 1, 5),
     (b"/dev/full", 1, 7),
     (b"/dev/random", 1, 8),
     (b"/dev/urandom", 1, 9),
+    /* NONOS's own: numbers a guest reports, said as numbers (dev_metrics.rs). */
+    (b"/dev/nonos-metrics", 10, 242),
 ];
 pub const NULL: u32 = 0;
 pub const ZERO: u32 = 1;
 pub const FULL: u32 = 2;
+pub const METRICS: u32 = 5;
 
 /// The device a guest-visible path names, if it names one.
 pub fn device_of(full: &[u8]) -> Option<u32> {
@@ -65,5 +68,5 @@ pub fn numbers(dev: u32) -> Option<(u64, u64)> {
 /// Whether epoll may watch it: null, zero and full have no poll on Linux and
 /// are refused with EPERM; the random devices can be waited on.
 pub fn polls(dev: u32) -> bool {
-    dev > FULL
+    dev > FULL && dev != METRICS
 }

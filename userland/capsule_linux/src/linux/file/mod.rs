@@ -23,6 +23,8 @@ pub(super) mod close;
 mod cstr;
 mod dev;
 mod dev_io;
+mod dev_metrics;
+pub mod dev_metrics_parse;
 mod dev_stat;
 mod dir;
 mod dir_children;

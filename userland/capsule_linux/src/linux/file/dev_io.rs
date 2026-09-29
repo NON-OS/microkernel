@@ -25,7 +25,7 @@ use alloc::vec;
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, MAX_SPAN};
 
-use super::dev::{FULL, NULL, ZERO};
+use super::dev::{FULL, METRICS, NULL, ZERO};
 
 /// Linux's random devices hand at most this much to one read.
 const RANDOM_MAX: u64 = 32 << 20;
@@ -36,7 +36,7 @@ fn device(guest: &Guest, fd: u64) -> u32 {
 
 pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     let dev = device(guest, fd);
-    if dev == NULL {
+    if dev == NULL || dev == METRICS {
         return errno::ok(0);
     }
     /* One step at a time, so a large read never holds a large buffer. */
@@ -56,9 +56,10 @@ pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     errno::ok(done)
 }
 
-pub fn write(guest: &mut Guest, fd: u64, len: u64) -> u64 {
+pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
     match device(guest, fd) {
         FULL => errno::fail(errno::ENOSPC),
+        METRICS => super::dev_metrics::report(guest, buf, len),
         _ => errno::ok(len),
     }
 }

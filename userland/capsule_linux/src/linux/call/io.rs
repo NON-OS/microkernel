@@ -37,7 +37,7 @@ pub fn write(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
         Some(Kind::Unix) => crate::linux::unix::send(guest, fd, buf, len),
         Some(Kind::Pipe) => super::pipe_write(guest, fd, buf, len),
         Some(Kind::Event) => file::event_write(guest, fd, buf, len),
-        Some(Kind::Device) => file::dev_write(guest, fd, len),
+        Some(Kind::Device) => file::dev_write(guest, fd, buf, len),
         Some(Kind::Resolver) => net::dns::query(guest, fd, buf, len, LOOPBACK_53),
         Some(Kind::Dir) => errno::fail(errno::EISDIR),
         _ => errno::fail(errno::EBADF),

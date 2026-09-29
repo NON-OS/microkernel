@@ -16,6 +16,7 @@
 
 //! Every proof, by the thing it constrains.
 
+mod metrics_parse_tests;
 mod model_name_tests;
 mod alpine_index_tests;
 mod auth_refusals;
