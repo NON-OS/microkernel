@@ -31,21 +31,22 @@ impl core::fmt::Debug for ProcessFdTable {
     }
 }
 
+impl Default for ProcessFdTable {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ProcessFdTable {
     pub fn new() -> Self {
         Self { entries: RwLock::new(BTreeMap::new()), next_fd: AtomicI32::new(STDIO_FDS) }
     }
 
+    /* The child gets every descriptor, close-on-exec ones included: that
+    flag closes a descriptor at exec, which close_cloexec does, not at fork. */
     pub fn fork(&self) -> Self {
-        let entries = self.entries.read();
-        let mut new_entries = BTreeMap::new();
-        for (&fd, entry) in entries.iter() {
-            if !entry.is_cloexec() {
-                new_entries.insert(fd, entry.clone());
-            }
-        }
         Self {
-            entries: RwLock::new(new_entries),
+            entries: RwLock::new(self.entries.read().clone()),
             next_fd: AtomicI32::new(self.next_fd.load(Ordering::Acquire)),
         }
     }
@@ -66,7 +67,7 @@ impl ProcessFdTable {
     }
 
     pub fn allocate_at(&self, fd: i32, mut entry: FdEntry) -> Option<i32> {
-        if fd < 0 || fd >= MAX_PROCESS_FDS {
+        if !(0..MAX_PROCESS_FDS).contains(&fd) {
             return None;
         }
         entry.fd = fd;
@@ -79,7 +80,7 @@ impl ProcessFdTable {
     }
 
     pub fn allocate_min(&self, mut entry: FdEntry, min_fd: i32) -> Option<i32> {
-        if min_fd < 0 || min_fd >= MAX_PROCESS_FDS {
+        if !(0..MAX_PROCESS_FDS).contains(&min_fd) {
             return None;
         }
         let mut table = self.entries.write();
@@ -166,7 +167,7 @@ impl ProcessFdTable {
     }
 
     pub fn dup2(&self, old_fd: i32, new_fd: i32) -> Option<i32> {
-        if new_fd < 0 || new_fd >= MAX_PROCESS_FDS {
+        if !(0..MAX_PROCESS_FDS).contains(&new_fd) {
             return None;
         }
         let mut table = self.entries.write();
