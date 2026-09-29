@@ -11,4 +11,6 @@ pub mod server;
 #[cfg(test)]
 mod batch_tests;
 #[cfg(test)]
+mod capacity_tests;
+#[cfg(test)]
 mod vectors;

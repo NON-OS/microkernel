@@ -21,6 +21,7 @@ pub mod capabilities;
 pub mod link_up;
 pub mod mac;
 pub mod nic_device;
+pub mod poll_window;
 pub mod read_mac;
 pub mod receive;
 pub mod rx;

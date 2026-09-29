@@ -45,38 +45,26 @@ pub fn fetch_tls(tcp_port: u32, host: &str, path: &str, max: usize) -> Result<Ve
         path, host
     );
     let mut io = TcpIo::new(tcp_port, stream);
-    // The clock the chain is judged against, as YYYYMMDDhhmmss. Zero means the
-    // wall clock was never set and every certificate reads as expired, which is
-    // indistinguishable at the error code from a genuinely bad chain; logging
-    // the value tells the two apart without a second boot.
+    /*
+     * The clock the chain is judged against, as YYYYMMDDhhmmss. Zero means the
+     * wall clock was never set and every certificate reads as expired, which
+     * is indistinguishable at the error code from a genuinely bad chain;
+     * logging the value tells the two apart without a second boot.
+     */
     let now = rtc_now();
     crate::trace::say_num(b"fetch: now", now);
     let raw = exchange(&mut io, host, request.as_bytes(), now, max);
-    let stage = match &raw {
-        Ok(body) => 0u64 + body.len() as u64,
-        Err(nonos_tls::SessionError::Init) => 1,
-        Err(nonos_tls::SessionError::Io) => 2,
-        Err(nonos_tls::SessionError::Handshake) => 3,
-        Err(nonos_tls::SessionError::Certificate) => 4,
-        Err(nonos_tls::SessionError::TooLarge) => 5,
-        Err(nonos_tls::SessionError::RetryUnsupported) => 6,
-        // The peer's own description, offset past the stage numbers above so a
-        // reader can tell an alert from a stage this client gave up at.
-        Err(nonos_tls::SessionError::PeerAlert(description)) => 100 + *description as u64,
-    };
+    let stage = super::https_stage::stage(&raw);
     crate::trace::say_two(b"fetch: ok-len-or-err", stage, io.overran() as u64);
     let _ = tcp_client::close(tcp_port, stream);
     let body = raw.map_err(|_| if io.overran() { 22u16 } else { 20u16 })?;
-    // A short answer is a redirect or an error page, not a node list, and
-    // parsing it would find no objects and report an empty directory rather
-    // than a wrong address.
-    if !status_ok(&body) {
+    /*
+     * A short answer is a redirect or an error page, not a node list, and
+     * parsing it would find no objects and report an empty directory rather
+     * than a wrong address.
+     */
+    if !super::https_stage::status_ok(&body) {
         return Err(20);
     }
     parse::body(&body)
-}
-
-/// Whether the response line says 200. Anything else is not a node list.
-fn status_ok(resp: &[u8]) -> bool {
-    resp.len() > 12 && resp.starts_with(b"HTTP/1.1 200")
 }

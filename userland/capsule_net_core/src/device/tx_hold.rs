@@ -29,7 +29,7 @@ use alloc::vec::Vec;
 use nonos_libc::mk_debug;
 use spin::Mutex;
 
-use super::budget;
+use super::poll_window;
 use super::tx;
 
 /// Frames held at most; past this the newest is dropped, and said so.
@@ -41,7 +41,7 @@ static HELD: Mutex<VecDeque<Vec<u8>>> = Mutex::new(VecDeque::new());
 /// otherwise hold it behind what is.
 pub fn send_or_hold(port: u32, frame: Vec<u8>) {
     let mut held = HELD.lock();
-    if held.is_empty() && budget::may_send() {
+    if held.is_empty() && poll_window::may_send() {
         drop(held);
         tx::send_frame(port, &frame);
         return;
@@ -58,7 +58,7 @@ pub fn send_or_hold(port: u32, frame: Vec<u8>) {
 pub fn flush(port: u32) {
     loop {
         let mut held = HELD.lock();
-        if held.is_empty() || !budget::may_send() {
+        if held.is_empty() || !poll_window::may_send() {
             return;
         }
         let frame = held.pop_front();

@@ -26,10 +26,6 @@
 //! `iface.poll()`, which issues one call per frame and would otherwise be
 //! bounded only by how much traffic the card has queued.
 
-use core::sync::atomic::{AtomicBool, AtomicI64, AtomicU32, Ordering};
-
-use nonos_libc::mk_time_millis;
-
 /// How long one driver round trip may take before it is written off.
 ///
 /// A healthy driver answers a register read in about a millisecond; this is
@@ -52,35 +48,3 @@ pub const POLL_WINDOW_MS: i64 = 8;
 /// most `DEVICE_CALL_MS` long, and this many of them keep a poll inside the
 /// client's 64 ms even when every one runs to its timeout.
 pub const TX_FLOOR: u32 = 4;
-
-static POLL_DEADLINE: AtomicI64 = AtomicI64::new(0);
-static TX_THIS_POLL: AtomicU32 = AtomicU32::new(0);
-static IN_POLL: AtomicBool = AtomicBool::new(false);
-
-/// Open a polling window. Driver traffic is only allowed inside one.
-pub fn open_poll() {
-    POLL_DEADLINE.store(mk_time_millis() + POLL_WINDOW_MS, Ordering::Relaxed);
-    TX_THIS_POLL.store(0, Ordering::Relaxed);
-    IN_POLL.store(true, Ordering::Relaxed);
-}
-
-/// Close the polling window, so nothing reaches the driver off the poll path.
-pub fn close_poll() {
-    POLL_DEADLINE.store(0, Ordering::Relaxed);
-    IN_POLL.store(false, Ordering::Relaxed);
-}
-
-/// Whether there is still budget to spend on the device this poll.
-pub fn poll_open() -> bool {
-    mk_time_millis() < POLL_DEADLINE.load(Ordering::Relaxed)
-}
-
-/// Whether a frame the stack produced may go to the card now: inside a poll,
-/// while the window is open or the poll has sent fewer than `TX_FLOOR`.
-pub fn may_send() -> bool {
-    if !IN_POLL.load(Ordering::Relaxed) {
-        return false;
-    }
-    let sent = TX_THIS_POLL.fetch_add(1, Ordering::Relaxed);
-    sent < TX_FLOOR || poll_open()
-}
