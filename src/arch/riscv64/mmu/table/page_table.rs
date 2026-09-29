@@ -82,7 +82,7 @@ impl Default for PageTable {
 }
 
 fn is_leaf_entry(entry: u64) -> bool {
-    (entry & PteFlags::V != 0) && (entry & (PteFlags::R | PteFlags::W | PteFlags::X) != 0)
+    PteFlags::from_bits(entry).is_leaf()
 }
 
 fn is_branch_entry(entry: u64) -> bool {

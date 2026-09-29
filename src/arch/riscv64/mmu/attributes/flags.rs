@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct PteFlags(u64);
 
 impl PteFlags {
@@ -70,8 +70,11 @@ impl PteFlags {
     pub fn is_valid(&self) -> bool {
         self.0 & Self::V != 0
     }
+    /* A valid entry with R or X. W without R is reserved and faults, so it
+    is neither leaf nor branch. */
     pub fn is_leaf(&self) -> bool {
-        self.0 & (Self::R | Self::W | Self::X) != 0
+        let reserved = self.0 & (Self::R | Self::W) == Self::W;
+        self.is_valid() && self.0 & (Self::R | Self::X) != 0 && !reserved
     }
     pub fn is_readable(&self) -> bool {
         self.0 & Self::R != 0
