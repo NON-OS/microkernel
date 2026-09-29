@@ -46,9 +46,9 @@ fn the_ports_of_one_host_are_separate_hosts() {
     let mut w = FakeWire::at(0);
     let mut pool = Pool::new();
     for i in 0..6 {
-        assert!(start(&mut pool, &mut w, &format!("http://10.0.2.2:8088/{i}")).is_ok());
+        assert!(start(&mut pool, &mut w, &format!("http://10.0.2.2:8000/{i}")).is_ok());
     }
-    assert!(start(&mut pool, &mut w, "http://10.0.2.2:8089/").is_ok());
+    assert!(start(&mut pool, &mut w, "http://10.0.2.2:8001/").is_ok());
 }
 
 #[test]

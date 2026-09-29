@@ -41,7 +41,7 @@ fn https_sends_its_client_hello_in_the_call_the_connect_completes() {
 #[test]
 fn http_sends_its_request_in_that_call() {
     let mut w = FakeWire::at(0);
-    let mut f = open(&mut w, url_of("http://10.0.2.2:8088/site.css"), None).expect("open");
+    let mut f = open(&mut w, url_of("http://10.0.2.2:8000/site.css"), None).expect("open");
     run(&mut w, &mut f, 30);
     w.writable = true;
     run(&mut w, &mut f, 30);
