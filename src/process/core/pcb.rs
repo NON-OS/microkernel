@@ -35,7 +35,10 @@ pub struct ProcessControlBlock {
     pub pgid: AtomicU32,
     pub sid: AtomicU32,
     pub name: Mutex<String>,
-    pub state: Mutex<ProcessState>,
+    // Taken by the IRQ path (a device interrupt wakes its waiter), so it
+    // masks interrupts while held: a kernel thread holding it with IF=1
+    // and interrupted by a wake would otherwise spin the CPU forever.
+    pub state: crate::sys::sync::IrqMutex<ProcessState>,
     pub priority: Mutex<Priority>,
     pub memory: Mutex<MemoryState>,
     pub thread_group: Option<Arc<ThreadGroup>>,
