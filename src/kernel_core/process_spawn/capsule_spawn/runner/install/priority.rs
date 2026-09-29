@@ -27,9 +27,32 @@ use crate::process::core::Priority;
 const INTERACTIVE: [&str; 4] =
     ["driver.ps2_kbd0", "input_router", "compositor", "driver.virtio_gpu0"];
 
+/*
+ * Capsules that move a frame between the card and TCP: the card drivers and
+ * the stack, which is where acknowledgements are made. They park the same way
+ * (`mk_irq_wait`, `mk_ipc_recv_from` with a timeout), so the band stays empty
+ * on an idle network. In the Normal band a wake queued behind every runnable
+ * capsule, and a capture of a 92 KB page load showed a median of 230 ms
+ * between the guest's acknowledgements, which set the pace of every
+ * slow-start round.
+ *
+ * `net.sockets` and `net.tcp` stay Normal: they wait for a connection by
+ * yielding in a loop, and two of those in this band could hold it for a whole
+ * connect timeout.
+ */
+const PACKET_PATH: [&str; 7] = [
+    "driver.virtio_net0",
+    "driver.e1000_0",
+    "driver.rtl8169_0",
+    "driver.rtl8139_0",
+    "driver.iwlwifi0",
+    "driver.rtl8821ce0",
+    "net.core",
+];
+
 /// Scheduling band a freshly installed capsule starts in.
 pub(super) fn for_capsule(name: &str) -> Priority {
-    if INTERACTIVE.contains(&name) {
+    if INTERACTIVE.contains(&name) || PACKET_PATH.contains(&name) {
         Priority::High
     } else {
         Priority::Normal
