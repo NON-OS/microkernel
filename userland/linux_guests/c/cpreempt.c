@@ -30,8 +30,8 @@ static void on_usr1(int sig) {
 static void *spin(void *arg) {
     (void)arg;
     spin_tid = syscall(SYS_gettid);
-    spinning = 1;
     __asm__ volatile("std");
+    spinning = 1;
     while (!hit) {
         spins++;
     }
