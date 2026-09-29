@@ -24,12 +24,19 @@ import NonosExtraction.NonosInboxStats
 
 open Aeneas Aeneas.Std Result
 open nonos_x_nonos_inbox_stats
-open core.sync.atomic
 
 set_option linter.hashCommand false
 set_option maxRecDepth 100000
 
 namespace NonosExtraction.NonosInboxStats
+
+/-
+The atomics are named short inside this section only. `#print axioms` prints a
+name relative to the namespaces open where it runs, so the profile below sits
+outside it, where the register can match every name in full.
+-/
+section
+open core.sync.atomic
 
 /-! ### The forwarding functions add nothing -/
 
@@ -164,6 +171,8 @@ theorem inboxstats_record_enqueue_yields_to_a_higher_peak
   unfold stats.InboxStats.record_enqueue_loop.body
   rw [if_pos (by scalar_tac), hr]
   simpa using this
+
+end
 
 /-! ### Axiom profile -/
 
