@@ -35,8 +35,95 @@ namespace NonosExtraction.MemoryConsts
 theorem the_is_user_space_wrapper_is_its_method (a : Std.U64) (b : Std.Usize) :
     is_user_space a b = consts.is_user_space a b := rfl
 
+/-! ### Which ranges count as user space
+
+`is_user_space(addr, len)` guards `sys_mmap` and `sys_munmap`: a request whose
+range fails it is refused before any page table is touched. The theorems below
+show that on a 64 bit target it accepts exactly the ranges with
+`addr + len ≤ USER_SPACE_MAX`, computed without the sum ever wrapping, and they
+fix the boundary: the canonical lower half ends at `USER_SPACE_MAX`, and a
+range that would run one byte past it is refused. A further theorem shows
+that, because `USER_SPACE_MAX` is the last user address rather than one past
+it, the topmost user page cannot be named by a page sized range, and says why
+that is kept. On a 32 bit target the cast to `usize` truncates, and nothing
+here speaks to that case. -/
+
+/-- The user space limit is the last address of the lower canonical half. -/
+theorem is_user_space_limit_is_the_top_of_the_lower_half :
+    consts.USER_SPACE_MAX.val = 2 ^ 47 - 1 := by
+  unfold consts.USER_SPACE_MAX; rfl
+
+/-- On a 64 bit target a range is user space exactly when its end,
+    `addr + len` computed in unbounded arithmetic, does not exceed
+    `USER_SPACE_MAX`; the check never fails. -/
+theorem is_user_space_holds_exactly_when_the_range_ends_below_the_limit
+    (h64 : System.Platform.numBits = 64) (addr : Std.U64) (len : Std.Usize) :
+    is_user_space addr len = ok (decide (addr.val + len.val ≤ 2 ^ 47 - 1)) := by
+  unfold is_user_space consts.is_user_space
+  have hm : consts.USER_SPACE_MAX.val = 2 ^ 47 - 1 :=
+    is_user_space_limit_is_the_top_of_the_lower_half
+  by_cases ha : addr.val ≤ 2 ^ 47 - 1
+  · have hle : addr ≤ consts.USER_SPACE_MAX := by
+      show addr.val ≤ consts.USER_SPACE_MAX.val; omega
+    simp only [hle, if_true]
+    have ⟨z, hz, hv⟩ := WP.spec_imp_exists
+      (U64.sub_spec (x := consts.USER_SPACE_MAX) (y := addr) (by scalar_tac))
+    rw [hz]
+    simp only [lift, bind_tc_ok]
+    congr 1
+    have hc : (UScalar.cast .Usize z).val = z.val := by
+      rw [UScalar.cast_val_eq]
+      simp only [UScalarTy.numBits, h64]
+      apply Nat.mod_eq_of_lt; scalar_tac
+    have hl : (len ≤ UScalar.cast .Usize z) ↔ len.val ≤ (UScalar.cast .Usize z).val :=
+      Iff.rfl
+    apply decide_eq_decide.mpr
+    rw [hl, hc, hv.1, hm]; omega
+  · have hle : ¬ (addr ≤ consts.USER_SPACE_MAX) := by
+      show ¬ (addr.val ≤ consts.USER_SPACE_MAX.val); omega
+    simp only [hle, if_false]
+    congr 1
+    symm; simp only [decide_eq_false_iff_not]; omega
+
+/-- An address past `USER_SPACE_MAX` is refused whatever the length, even an
+    empty range. -/
+theorem is_user_space_refuses_the_first_kernel_half_address (len : Std.Usize) :
+    is_user_space 140737488355328#u64 len = ok false := by
+  unfold is_user_space consts.is_user_space
+  have hle : ¬ (140737488355328#u64 ≤ consts.USER_SPACE_MAX) := by
+    unfold consts.USER_SPACE_MAX; decide
+  simp only [hle, if_false]
+
+/-- The page at `0x7FFF_FFFF_F000` lies wholly in the lower canonical half, but
+    `is_user_space` refuses the page sized range that names it, because it
+    requires `addr + len ≤ USER_SPACE_MAX` where `USER_SPACE_MAX` is the last
+    user byte rather than one past it. `sys_mmap` with a fixed address and
+    `sys_munmap` therefore reject the topmost user page. This is kept on
+    purpose: a `SYSCALL` in the last bytes of that page returns through
+    `SYSRET` to `2^47`, which is not canonical, and on Intel parts the fault is
+    taken in ring 0 with the user stack. Linux leaves the same page unmapped
+    for the same reason. -/
+theorem is_user_space_refuses_the_topmost_user_page
+    (h64 : System.Platform.numBits = 64) :
+    is_user_space 0x7FFFFFFFF000#u64 4096#usize = ok false := by
+  rw [is_user_space_holds_exactly_when_the_range_ends_below_the_limit h64]
+  rfl
+
+/-- One byte short of the end of the page is accepted, which pins the boundary
+    to exactly `USER_SPACE_MAX`. -/
+theorem is_user_space_accepts_the_topmost_page_less_its_last_byte
+    (h64 : System.Platform.numBits = 64) :
+    is_user_space 0x7FFFFFFFF000#u64 4095#usize = ok true := by
+  rw [is_user_space_holds_exactly_when_the_range_ends_below_the_limit h64]
+  rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.MemoryConsts.the_is_user_space_wrapper_is_its_method
+#print axioms NonosExtraction.MemoryConsts.is_user_space_limit_is_the_top_of_the_lower_half
+#print axioms NonosExtraction.MemoryConsts.is_user_space_holds_exactly_when_the_range_ends_below_the_limit
+#print axioms NonosExtraction.MemoryConsts.is_user_space_refuses_the_first_kernel_half_address
+#print axioms NonosExtraction.MemoryConsts.is_user_space_refuses_the_topmost_user_page
+#print axioms NonosExtraction.MemoryConsts.is_user_space_accepts_the_topmost_page_less_its_last_byte
 
 end NonosExtraction.MemoryConsts
