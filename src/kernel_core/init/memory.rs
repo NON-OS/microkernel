@@ -18,13 +18,24 @@ use crate::boot::handoff::BootHandoffV1;
 use crate::memory::addr::PhysAddr;
 use crate::sys::serial;
 
+use super::memory_span::{reserve_gaps, say_managed};
+
 pub(crate) fn init_memory(handoff: &BootHandoffV1) {
-    let (mut mem_start, mut mem_end) = (0u64, 0u64);
+    /*
+     * The allocator used to be given only the largest usable region, so a
+     * machine with its memory in several regions ran on one of them: on q35
+     * the 2 GiB below the PCI hole whatever the machine had, and a model
+     * that needed more than what was left there could not load. It now
+     * manages the span from the lowest usable frame to the highest, with
+     * every frame between regions marked in use before anything allocates.
+     */
+    let (mut mem_start, mut mem_end) = (u64::MAX, 0u64);
     unsafe {
         for (start, end) in handoff.mmap.usable_regions() {
-            if end > start && (end - start) > (mem_end - mem_start) {
-                mem_start = start;
-                mem_end = end;
+            let start = start.max(0x100000);
+            if end > start {
+                mem_start = mem_start.min(start);
+                mem_end = mem_end.max(end);
             }
         }
     }
@@ -32,21 +43,14 @@ pub(crate) fn init_memory(handoff: &BootHandoffV1) {
         mem_start = 0x100000;
         mem_end = 0x8000_0000;
     }
-    if mem_start < 0x100000 {
-        mem_start = 0x100000;
-    }
-    // On a machine with more than 4GB of RAM the largest usable region (chosen
-    // above for the general allocator) is above 4GB, so it holds no memory a
-    // 32-bit device DMA descriptor can address. Find a below-4GB usable region
-    // that does not overlap the general allocator's region and carve the low DMA
-    // pool from its start; that pool is otherwise unmanaged, so the two allocators
-    // never hand out the same frame.
-    let (dma_base, dma_pages) = find_low_dma_region(handoff, mem_start, mem_end);
-
+    mem_end = mem_end.min(crate::memory::phys::MAX_PHYSICAL_MEMORY);
     let start = PhysAddr::new(mem_start);
     let end = PhysAddr::new(mem_end);
     match crate::memory::phys::init(start, end) {
-        Ok(()) => serial::println(b"[MEM] phys init OK"),
+        Ok(()) => {
+            reserve_gaps(handoff, mem_start, mem_end);
+            say_managed(mem_start, mem_end);
+        }
         Err(_) => {
             serial::println(b"[MEM] phys init failed, using fallback");
             init_fallback();
@@ -56,6 +60,13 @@ pub(crate) fn init_memory(handoff: &BootHandoffV1) {
         serial::println(b"[MEM] CRITICAL: phys not initialized");
         init_fallback();
     }
+    /*
+     * The low DMA pool is carved from a usable region below 4 GiB, and is
+     * the pool's own: its frames are reserved so the allocator never hands
+     * the same frame out twice.
+     */
+    let (dma_base, dma_pages) = find_low_dma_region(handoff);
+    crate::memory::phys::reserve(dma_base, dma_base + dma_pages as u64 * 0x1000);
     if crate::memory::phys::is_initialized() {
         crate::hardware::broker::dma::init_display_pool();
         crate::hardware::broker::dma::init_low32_pool(dma_base, dma_pages);
@@ -68,24 +79,16 @@ const DMA_CEILING_32BIT: u64 = 0x1_0000_0000;
 /// pool, so it never collides with fixed low-memory uses.
 const DMA_POOL_MIN_BASE: u64 = 0x0100_0000; // 16MB
 
-// Pick a below-4GB usable region disjoint from `[main_start, main_end)` and return
-// the page-aligned base and page count for the DMA pool, or `(0, 0)` when the
-// general allocator already covers low memory (small machines) or none is found.
-fn find_low_dma_region(handoff: &BootHandoffV1, main_start: u64, main_end: u64) -> (u64, usize) {
+// Pick a below-4GB usable region for the DMA pool and return the page-aligned
+// base and page count, or `(0, 0)` when none has room.
+fn find_low_dma_region(handoff: &BootHandoffV1) -> (u64, usize) {
     let want_pages = crate::hardware::broker::dma::low32_capacity_pages();
     let want_bytes = (want_pages as u64) * 0x1000;
     unsafe {
         for (start, end) in handoff.mmap.usable_regions() {
-            if end <= start {
-                continue;
-            }
             let base = ((start.max(DMA_POOL_MIN_BASE)) + 0xFFF) & !0xFFF;
             let top = end.min(DMA_CEILING_32BIT);
-            if base >= top || top - base < want_bytes {
-                continue;
-            }
-            // Must not overlap the general allocator's region.
-            if base + want_bytes <= main_start || base >= main_end {
+            if base < top && top - base >= want_bytes {
                 return (base, want_pages);
             }
         }
