@@ -34,6 +34,11 @@ pub(super) fn paint_image(
     clip: Option<[i32; 4]>,
 ) {
     let Content::Image { src, alt, fit } = &f.content else { return };
+    /* A fully transparent image shows nothing, loaded or not: a hidden
+     * photo waiting on its bytes must not paint an opaque placeholder. */
+    if f.alpha == 0 {
+        return;
+    }
     /* The store resolves the fragment's src against the page base the way
      * the fetch did, remembering the join, so a frame costs a lookup. */
     if let Some(img) = state.images.ready_for(state.base.as_ref(), src) {
