@@ -42,6 +42,7 @@ mod tally;
 mod unserved;
 mod waits;
 mod waits_fds;
+mod waits_iov;
 mod waits_time;
 mod waits_try;
 mod waits_write;
