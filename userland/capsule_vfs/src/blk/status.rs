@@ -16,7 +16,9 @@
 
 // A store that fails to decode at boot used to become a silently empty
 // /capsules. The first failure's code is kept here so OP_STORE_STATUS can
-// report it; later failures never overwrite the original evidence.
+// report it; later failures never overwrite the original evidence, and a
+// later attempt that stages the whole store clears it, so a code always
+// means the store is not all there.
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use super::error::BlkError;
@@ -33,6 +35,10 @@ pub fn settle() {
 
 pub fn settled() -> bool {
     SETTLED.load(Ordering::Acquire)
+}
+
+pub fn clear() {
+    STORE_STATUS.store(0, Ordering::Relaxed);
 }
 
 pub fn record(err: &BlkError) {

@@ -45,6 +45,7 @@ impl PackageSeeder {
             Step::More => {}
             Step::Done(staged) => {
                 store.adopt_staged(staged);
+                crate::blk::status::clear();
                 self.load = None;
                 self.finish(b"[VFSD] packages staged\n");
             }
