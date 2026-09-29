@@ -45,6 +45,12 @@ pub const LINUX_CAPS: u64 = Capability::CoreExec.bit()
     | Capability::GraphicsDisplayQuery.bit()
     | Capability::GraphicsSurfaceCreate.bit()
     | Capability::ForeignExec.bit()
+    /*
+     * The data volume: read a model a guest opens under /models, and bring a
+     * model the personality pins onto it, kept only if it hashes to its pin.
+     */
+    | Capability::FileSystem.bit()
+    | Capability::StoreWrite.bit()
     | Capability::LocalSign.bit();
 
 pub fn spawn_linux_capsule() -> Result<(), SpawnError> {

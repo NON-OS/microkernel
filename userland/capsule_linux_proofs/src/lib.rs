@@ -39,6 +39,9 @@ pub mod root;
 #[path = "../../capsule_linux/src/linux/file/resolve.rs"]
 pub mod resolve;
 
+#[path = "../../capsule_linux/src/linux/file/models/name.rs"]
+pub mod model_name;
+
 #[path = "../../capsule_linux/src/linux/file/dir_children.rs"]
 pub mod dir_children;
 

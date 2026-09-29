@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
-use super::super::super::{cache, desc, resolve, store, synth_ops};
+use super::super::super::{cache, desc, models, resolve, store, synth_ops};
 
 /* The most one call moves. */
 pub const MAX_IO: usize = 1 << 20;
@@ -37,6 +37,9 @@ pub fn read_at(guest: &mut Guest, fd: u64, at: u64, len: usize) -> Result<Vec<u8
         return Err(errno::EBADF);
     }
     let len = len.min(MAX_IO);
+    if let Some(model) = models::read(&entry.path, at, len) {
+        return model;
+    }
     if let Some(made) = synth_ops::read(&entry.path, at, len) {
         return made;
     }

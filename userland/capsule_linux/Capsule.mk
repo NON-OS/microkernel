@@ -36,7 +36,7 @@ CAPSULE_REPLY_ENDPOINT   := reply:4937:endpoint.app.linux.reply
 # does not list, so without these every store install and every run of an
 # installed package was refused before the capsule started.
 CAPSULE_INSTANCE_ENDPOINTS := service:4938:app.linux.install reply:4939:endpoint.app.linux.install.reply service:4942:app.linux.run reply:4943:endpoint.app.linux.run.reply
-CAPSULE_REQUIRED_CAPS    := 0x300001939
+CAPSULE_REQUIRED_CAPS    := 0x304001979
 # Network (bit 2) is optional: only the install role asks for it, to reach a
 # package mirror through net.sockets (roles.rs). A guest runs without it.
 CAPSULE_OPTIONAL_CAPS    := 0x4

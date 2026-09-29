@@ -23,7 +23,7 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 use super::super::super::synth::{self, S_IFDIR, S_IFLNK, S_IFREG};
-use super::super::super::{cache, dev, modes, mounts, resolve, store, times, walk};
+use super::super::super::{cache, dev, models, modes, mounts, resolve, store, times, walk};
 use super::super::statbuf::inode;
 use super::super::statbuf::Meta;
 use super::device::device;
@@ -31,7 +31,6 @@ use super::fd::now;
 use super::made::made;
 
 pub const S_IFIFO: u32 = 0o010000;
-
 pub const S_IFSOCK: u32 = 0o140000;
 
 pub(super) fn at(path: &[u8], mode: u32, size: u64, mtime_ms: u64) -> Meta {
@@ -56,6 +55,9 @@ pub fn of(guest: &Guest, named: alloc::vec::Vec<u8>, follow: bool) -> Result<Met
     }
     if let Some(node) = synth::node(&full) {
         return made(&full, node?);
+    }
+    if let Some(model) = models::stat(&full) {
+        return model.map(|(mode, size)| at(&full, mode, size, now()));
     }
     if let (Some(size), Some(t)) = (cache::size(&full), cache::mtime(&full)) {
         let mode = modes::of(&full).unwrap_or(modes::FILE);
