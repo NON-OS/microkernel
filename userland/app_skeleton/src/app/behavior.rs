@@ -17,6 +17,7 @@
 use super::{AppManifest, EventOutcome};
 use crate::input::InputEvent;
 use crate::paint::PaintBuffer;
+use nonos_toolkit::decorations::Rect;
 
 pub trait App {
     fn manifest(&self) -> AppManifest;
@@ -39,6 +40,16 @@ pub trait App {
     /// stall until the next input event. Defaults to idle.
     fn busy(&self) -> bool {
         false
+    }
+
+    /// The part of the content area that changed since the last paint, in
+    /// content coordinates, or None when the whole window must be redrawn.
+    /// Called right before `paint`; an app that returns a rect promises its
+    /// next `paint` redraws every pixel inside it and touches nothing else,
+    /// so the runner skips the frame and commits only that rect. The
+    /// default keeps the whole-window repaint every app had before.
+    fn take_damage(&mut self) -> Option<Rect> {
+        None
     }
 
     /// Width in pixels of an app-owned widget hosted in the titlebar, right

@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! The positional pseudo-classes answer from a table built once per pass
 //! over the document. `select` reads that table and `matches` still walks
 //! the parent's children, so the two agreeing on every element, for every

@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::state::State;
+use crate::browser::state::{Origin, State};
 
-/// Act on a navigation a script asked for while it was running.
-///
-/// `location.assign`, `location.replace` and `location.reload` cannot take
-/// effect where they are called: the tree the script is still executing
-/// against would be torn down under it. The engine parks the address instead,
-/// and this collects it once the run is over.
-///
-/// A page already going somewhere is left alone. The reader's own click
-/// started that one, and letting a script's request overwrite it would take
-/// them somewhere they did not ask to go.
+/* Act on a navigation a script asked for while it was running.
+ *
+ * `location.assign`, `location.replace` and `location.reload` cannot take
+ * effect where they are called: the tree the script is still executing
+ * against would be torn down under it. The engine parks the address
+ * instead, and this collects it once the run is over.
+ *
+ * A page already going somewhere is left alone. The reader's own click
+ * started that one, and letting a script's request overwrite it would take
+ * them somewhere they did not ask to go. What the reader is typing in the
+ * address bar is left alone too: the bar shows the new address at commit. */
 pub fn take_script_nav(state: &mut State) {
     if state.pending_nav.is_some() {
         return;
@@ -39,6 +40,6 @@ pub fn take_script_nav(state: &mut State) {
     if next.is_empty() {
         return;
     }
-    state.address = next.clone();
     state.pending_nav = Some(next);
+    state.ui.origin = Origin::Auto;
 }

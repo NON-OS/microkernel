@@ -17,6 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::browser::layout::boxmodel::BoxDocument;
+use crate::browser::layout::hit_screen::frag_screen_y;
 use crate::browser::state::{State, CHROME_H};
 
 use super::box_fragment::box_fragment;
@@ -30,18 +31,7 @@ pub fn paint(state: &State, doc: &BoxDocument, fb: &mut PaintBuffer) {
     /* A fully transparent fragment (opacity 0, a transform that flattened
      * it, a clip-path that leaves nothing) paints nothing at all. */
     for f in doc.frags.iter().filter(|f| f.alpha != 0) {
-        /* A fixed fragment ignores the scroll offset so it pins to the
-         * viewport; a sticky subtree shifts down once the scroll passes its
-         * threshold; everything else scrolls with the page. */
-        let sy = if f.fixed {
-            f.y + TOP
-        } else {
-            let mut sy = f.y + TOP - state.scroll as i32;
-            if let Some((anchor, top)) = f.sticky {
-                sy += (state.scroll as i32 - anchor + top).max(0);
-            }
-            sy
-        };
+        let sy = TOP + frag_screen_y(f.y, f.fixed, f.sticky, state.scroll as i32);
         if sy + f.h < TOP || sy > bottom {
             continue;
         }

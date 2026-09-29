@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Proofs for the cascade, at-rules, generated content, tables, restyle
 //! cost and per-node memory.
 

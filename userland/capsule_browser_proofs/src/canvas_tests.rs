@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! The canvas under the page takes the root element's background, or
 //! body's when the root sets none (CSS Backgrounds 3 section 2.11.2), and
 //! the box it came from does not paint it a second time.

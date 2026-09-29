@@ -16,48 +16,47 @@
 
 use nonos_app_skeleton::{EventOutcome, InputEvent};
 
-use crate::browser::event::nav_history;
-use crate::browser::paint::chrome::{self, Btn};
-use crate::browser::state::{State, View};
+use crate::browser::event::{nav_history, navigate};
+use crate::browser::omnibox::{focus_after, toolbar_button_at, Btn, Change, Focus, Region};
+use crate::browser::state::State;
 
+/* A click on the toolbar, hit-tested at the width the toolbar was drawn. A
+ * button acts without taking the caret; the pill takes the keyboard and
+ * selects its text, or, already focused, moves the caret to the click. */
 pub fn on_toolbar(state: &mut State, event: InputEvent) -> EventOutcome {
-    // The menu button is right-aligned to the real surface width, which can
-    // differ from the fixed layout width, so hit-test it against the tracked
-    // viewport rather than the constant.
-    let w = if state.viewport_w > 0 {
-        state.viewport_w as i32
-    } else {
-        crate::browser::manifest::WIDTH as i32
+    let btn = toolbar_button_at(event.x, event.y, state.viewport_w);
+    let region = match btn {
+        Some(Btn::Url) => Region::Omnibox,
+        Some(_) => Region::Toolbar,
+        None => Region::Frame,
     };
-    if event.x >= w - 44 {
-        state.settings_open = !state.settings_open;
-        return EventOutcome::Repaint;
+    let (kbd, field) = focus_after(region, state.focus, state.ui.kbd);
+    match (kbd, state.ui.kbd, btn) {
+        (Focus::Omnibox, Focus::Omnibox, Some(Btn::Url)) => {
+            super::pill_caret::place_caret(state, event.x);
+            return EventOutcome::Repaint;
+        }
+        (Focus::Omnibox, Focus::Omnibox, _) => {}
+        (Focus::Omnibox, _, _) => {
+            state.focus_omnibox();
+            state.fit_text();
+        }
+        (Focus::Page, _, _) => state.focus_page(field),
     }
-    match chrome::toolbar_button_at(event.x, event.y) {
-        Some(Btn::Home) => {
-            state.view = View::Home;
-            state.address.clear();
+    match btn {
+        Some(Btn::Home) => navigate::go_home(state),
+        Some(Btn::Reload) if state.loading() => {
+            super::stop::stop(state);
             EventOutcome::Repaint
         }
-        Some(Btn::Reload) => {
-            if !state.address.is_empty() {
-                state.pending_nav = Some(state.address.clone());
-            }
-            EventOutcome::Repaint
-        }
-        Some(Btn::Url) => {
-            state.address_focused = true;
-            EventOutcome::Repaint
-        }
+        Some(Btn::Reload) => navigate::reload(state),
         Some(Btn::Back) => nav_history::nav_history(state, -1),
         Some(Btn::Forward) => nav_history::nav_history(state, 1),
         Some(Btn::Menu) => {
             state.settings_open = !state.settings_open;
+            state.mark(Change::Full);
             EventOutcome::Repaint
         }
-        None => {
-            state.address_focused = false;
-            EventOutcome::Idle
-        }
+        Some(Btn::Url) | None => EventOutcome::Idle,
     }
 }

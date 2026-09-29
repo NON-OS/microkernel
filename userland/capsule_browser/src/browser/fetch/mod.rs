@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod about_html;
 mod about_page;
 mod apply_css;
 mod budget;
+mod commit_doc;
 mod commit_html;
+mod committed;
 mod connect;
 mod constants;
 mod deadline;
@@ -27,6 +30,7 @@ mod enqueue_scripts;
 mod expire;
 mod fail;
 mod finish;
+mod incomplete;
 mod import_url;
 mod keep;
 mod land;

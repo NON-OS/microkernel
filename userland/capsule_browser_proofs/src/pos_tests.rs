@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Absolutely positioned and fixed boxes leave normal flow and are placed
 //! against their containing block: the padding box of the nearest
 //! positioned ancestor, or the viewport for a fixed box.

@@ -14,24 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::browser::omnibox::Change;
 use crate::browser::state::State;
 
 use super::relayout::relayout;
 
-// Dispatch a click on a DOM node to the page engine's listeners. Returns
-// whether any listener ran (the click is then consumed). A listener may mutate
-// the DOM through the engine's node bindings, so the page relays out when one
-// fires.
-pub fn js_click(state: &mut State, node: usize) -> bool {
-    let fired = match state.engine.as_ref() {
-        Some(engine) => engine.dispatch_event(node as i32, "click") > 0,
-        None => return false,
+/* What the page's listeners made of a click. */
+pub(super) struct ClickResult {
+    /* Some listener ran; it may have changed the DOM. */
+    pub fired: bool,
+    /* A listener called preventDefault: the click's own action is off. */
+    pub prevented: bool,
+}
+
+/* Dispatch a click on a DOM node to the page engine's listeners. A listener
+ * may mutate the DOM through the engine's node bindings, so the page relays
+ * out when one fires. A navigation a handler asked for could not be acted
+ * on while the script held the tree, so it is collected here. */
+pub(super) fn js_click(state: &mut State, node: usize) -> ClickResult {
+    let (fired, prevented) = match state.engine.as_ref() {
+        Some(engine) => {
+            let fired = engine.dispatch_event(node as i32, "click") > 0;
+            (fired, fired && engine.default_prevented())
+        }
+        None => return ClickResult { fired: false, prevented: false },
     };
     if fired {
         relayout(state);
+        state.track.laid_print = None;
+        state.mark(Change::Page);
     }
-    // A handler may have asked to go somewhere. It could not be acted on
-    // while the script still held the tree, so it is collected here.
     super::script_nav::take_script_nav(state);
-    fired
+    ClickResult { fired, prevented }
 }

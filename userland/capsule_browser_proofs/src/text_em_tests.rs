@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Text is measured and drawn at its CSS em: a font-size is the em square,
 //! not the ascent-to-descent height the rasterizer scales by, and page text
 //! has no readability floor.

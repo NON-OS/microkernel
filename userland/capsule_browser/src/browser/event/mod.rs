@@ -14,25 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod anchor;
 mod dom_print;
 mod enclosing_form;
 mod field_at;
 mod field_key;
+mod follow_link;
 mod form_fields;
+mod form_send;
 mod js_click;
 mod js_tick;
+mod link_under;
 mod nav_history;
+mod navigate;
+mod omnibox_commit;
+mod omnibox_edit;
 mod on_button;
 mod on_event;
 mod on_home_click;
 mod on_key;
+mod on_keydown;
 mod on_page_click;
 mod on_page_key;
+mod on_pointer;
 mod on_toolbar;
+mod pill_caret;
 mod relayout;
 mod script_nav;
 mod scroll_by;
+mod stop;
 mod submit_form;
+mod tab_focus;
+mod timer_gate;
 
 pub use js_tick::js_tick;
 pub use on_event::on_event;

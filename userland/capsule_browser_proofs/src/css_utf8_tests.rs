@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! A CSS value whose byte at a function-name boundary sits inside a
 //! multi-byte character. Every one of these used to slice the str at that
 //! byte and panic, which takes the whole browser down on one page.

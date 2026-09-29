@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! rem against the root's font size, font-size keywords and percentages,
 //! per-axis overflow, shrink-to-fit floats, image natural size and
 //! attribute hints, and italic text.

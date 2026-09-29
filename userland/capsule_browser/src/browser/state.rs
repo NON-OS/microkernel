@@ -17,36 +17,31 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-#[derive(Clone)]
-pub struct ProxyConfig {
-    pub host: String,
-    pub port: u16,
-}
+mod chrome;
+mod chrome_new;
+mod fit_text;
+mod loading;
+mod mark;
+mod new;
+mod types;
 
-pub enum View {
-    Home,
-    Page,
-}
+pub use chrome::{Chrome, Origin, PaintTrack};
+pub use types::{ProxyConfig, View, CHROME_H};
 
-/* Height of the browser chrome above the page, in pixels. */
-pub const CHROME_H: u32 = 80;
-
+/* Everything the browser holds: `ui` is the chrome (address bar, focus,
+ * history), `track` what changed on screen since the last paint. */
 pub struct State {
-    pub address: String,
-    pub address_focused: bool,
     pub status: String,
     pub pending_nav: Option<String>,
     pub document: Option<crate::browser::layout::doc::RenderDocument>,
     pub box_doc: Option<crate::browser::layout::boxmodel::BoxDocument>,
     pub page_dom: Option<crate::browser::dom::Dom>,
     pub world: Option<crate::browser::js::World>,
-    /* The QuickJS engine that ran this page's scripts. It keeps the page's
-     * listeners and closure state alive so later UI events dispatch into it. The
-     * engine holds a pointer into `page_dom`, which keeps its address for the
-     * page's life, so a navigation drops the engine before replacing the DOM. */
+    /* The page's QuickJS engine; it holds a pointer into `page_dom`, so a
+     * navigation drops it before replacing the DOM. */
     pub engine: Option<nonos_qjs::Engine>,
-    /* Whether the settings panel behind the menu button is open. */
     pub settings_open: bool,
+    /* The focused page form field, only while the page has the keyboard. */
     pub focus: Option<usize>,
     pub pending_post: Option<String>,
     pub scroll: u32,
@@ -55,83 +50,26 @@ pub struct State {
     pub fetch: Option<crate::browser::fetch::types::Fetch>,
     pub base: Option<crate::browser::url::Url>,
     pub redirect_count: u8,
-    pub history: Vec<String>,
-    pub hist_index: i32,
+    /* The next commit rewrites the current history entry (reload, redirect
+     * after a back/forward step) instead of adding one. */
     pub suppress_history_push: bool,
     pub retries: u8,
     pub proxy: Option<ProxyConfig>,
     pub images: crate::browser::image::Store,
     pub image_queue: Vec<String>,
-    /* Alternates the free socket between script-issued fetches and images so a
-     * page whose JS never stops requesting cannot starve image loading. */
     pub img_turn: bool,
-    /* A TLS connection held open between image fetches, so a run of same-host
-     * images pays a single handshake. */
     pub keep: Option<crate::browser::fetch::KeptConn>,
-    /* Declared @font-face sources still to fetch, and the keys ever queued so
-     * a face is fetched at most once per page. */
     pub font_queue: Vec<(u32, String)>,
     pub font_seen: Vec<u32>,
-    /* Current content width in pixels, tracked from the paint surface so the
-     * page reflows when the window resizes instead of holding a fixed width. */
+    /* Page area size, tracked from the paint surface. */
     pub viewport_w: u32,
-    /* Page height in pixels below the chrome, which vh units and fixed boxes
-     * resolve against; tracked from the paint surface like the width. */
     pub viewport_h: u32,
-    /* External stylesheets: URLs still to fetch, and the CSS text gathered so
-     * far. Applied on top of the page's inline <style> at each re-layout. */
     pub css_queue: Vec<String>,
     pub page_css: String,
-    /* External <script src> bundles still to fetch. Each is evaluated in the
-     * page engine as it arrives, in document order, so framework bundles run. */
     pub script_queue: Vec<String>,
-    /* Author rules parsed once and reused across relayouts when the CSS text
-     * is unchanged, so JS-driven relayouts skip re-parsing the whole sheet. */
     pub css_cache: Option<crate::browser::css::CssCache>,
-    /* Sub-resource fetches side by side, and connections kept between
-     * their requests; `fetch` stays the navigation's own slot. */
+    /* Sub-resource fetches side by side; `fetch` is the navigation's own. */
     pub pool: crate::browser::fetch::Pool,
-}
-
-impl State {
-    pub fn new() -> Self {
-        State {
-            address: String::new(),
-            address_focused: true,
-            status: String::from("ready"),
-            pending_nav: None,
-            document: None,
-            box_doc: None,
-            page_dom: None,
-            world: None,
-            engine: None,
-            settings_open: false,
-            script_queue: Vec::new(),
-            focus: None,
-            pending_post: None,
-            scroll: 0,
-            sockets_port: 0,
-            view: View::Home,
-            fetch: None,
-            base: None,
-            redirect_count: 0,
-            history: Vec::new(),
-            hist_index: -1,
-            suppress_history_push: false,
-            retries: 0,
-            proxy: None,
-            images: crate::browser::image::Store::new(),
-            image_queue: Vec::new(),
-            img_turn: false,
-            keep: None,
-            font_queue: Vec::new(),
-            font_seen: Vec::new(),
-            viewport_w: crate::browser::manifest::WIDTH,
-            viewport_h: crate::browser::manifest::HEIGHT - CHROME_H,
-            css_queue: Vec::new(),
-            page_css: String::new(),
-            css_cache: None,
-            pool: crate::browser::fetch::Pool::new(),
-        }
-    }
+    pub ui: Chrome,
+    pub track: PaintTrack,
 }

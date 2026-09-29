@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
-// The render engine (parse -> style -> box layout) is the part the host render
-// harness compiles standalone; everything that touches the syscall runtime,
-// the network, the compositor or the JS engine is gated out under `harness`.
+/* The render engine (parse -> style -> box layout) is the part the host render
+ * harness compiles standalone; everything that touches the syscall runtime,
+ * the network, the compositor or the JS engine is gated out under `harness`. */
 pub mod css;
 pub mod dom;
 pub mod fonts;
@@ -38,9 +36,9 @@ pub mod image;
 #[cfg(not(feature = "harness"))]
 mod js;
 #[cfg(not(feature = "harness"))]
-mod keymap;
-#[cfg(not(feature = "harness"))]
 mod net;
+#[cfg(not(feature = "harness"))]
+mod omnibox;
 #[cfg(not(feature = "harness"))]
 mod paint;
 #[cfg(not(feature = "harness"))]
@@ -52,8 +50,8 @@ mod settings;
 #[cfg(not(feature = "harness"))]
 pub mod state;
 #[cfg(not(feature = "harness"))]
-// TLS lives in the nonos_tls crate now, shared rather than copied. The
-// alias keeps every call site here reading the same as before.
+/* TLS lives in the nonos_tls crate now, shared rather than copied. The
+ * alias keeps every call site here reading the same as before. */
 pub use nonos_tls as tls13;
 
 #[cfg(not(feature = "harness"))]

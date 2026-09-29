@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Layout on boxes narrower than the smallest item. A flex line 1px wide
 //! made clamp(16, 1) panic in flex_row, which took the browser down on
 //! wiki.archlinux.org at every window width.

@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Post-layout effects and box geometry: transforms map what a box painted,
 //! clip-path cuts it to its shape's bounds, aspect-ratio sizes an auto
 //! height, and corner radii resolve per corner and by percentage.

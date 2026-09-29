@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::{String, ToString};
+use alloc::string::ToString;
 
+use crate::browser::omnibox::Change;
 use crate::browser::state::State;
 use crate::browser::url;
 
@@ -23,16 +24,27 @@ use super::enclosing_form::enclosing_form;
 use super::form_fields::form_fields;
 use super::relayout::relayout;
 
-// Submit the form enclosing `from`: run its submit listeners, gather the
-// fields, then navigate (POST body or GET query per the form's method).
+/* Submit the form enclosing `from`: run its submit listeners, gather the
+ * fields, then navigate (POST body or GET query per the form's method). A
+ * listener that calls preventDefault keeps the page where it is, which is
+ * how script-driven forms submit through fetch instead. An empty action
+ * submits to the document's own address, not to whatever is typed in the
+ * address bar. */
 pub(super) fn submit_form(state: &mut State, from: usize) {
     let Some(form) = enclosing_form(state, from) else {
         return;
     };
-    state.focus = None;
+    state.focus_page(None);
     if let Some(engine) = state.engine.as_ref() {
-        if engine.dispatch_event(form as i32, "submit") > 0 {
+        let fired = engine.dispatch_event(form as i32, "submit") > 0;
+        let prevented = fired && engine.default_prevented();
+        if fired {
             relayout(state);
+            state.track.laid_print = None;
+            state.mark(Change::Page);
+        }
+        if prevented {
+            return;
         }
     }
     let Some(dom) = state.page_dom.as_ref() else {
@@ -46,23 +58,8 @@ pub(super) fn submit_form(state: &mut State, from: usize) {
     let post = node.attr("method").is_some_and(|m| m.eq_ignore_ascii_case("post"));
     let target = match (state.base.as_ref(), action.is_empty()) {
         (Some(base), false) => url::join(base, &action),
-        (Some(_), true) => state.address.clone(),
+        (Some(_), true) => state.ui.current_url.clone(),
         (None, _) => action,
     };
-    if target.is_empty() {
-        return;
-    }
-    if post {
-        state.pending_post = Some(body);
-        state.pending_nav = Some(target);
-    } else {
-        let sep = if target.contains('?') { '&' } else { '?' };
-        let mut t = target;
-        if !body.is_empty() {
-            t.push(sep);
-            t.push_str(&body);
-        }
-        state.pending_nav = Some(t);
-    }
-    state.status = String::from("submitting form");
+    super::form_send::form_send(state, target, body, post);
 }

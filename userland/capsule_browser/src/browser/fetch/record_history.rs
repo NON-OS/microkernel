@@ -16,16 +16,17 @@
 
 use crate::browser::state::State;
 
-pub(super) fn record_history(state: &mut State, suppress: bool) {
-    if suppress {
-        return;
-    }
-    let url = state.address.clone();
+/* Record the committed document in session history: a new visit adds an
+ * entry, while a reload, a back/forward step or a redirect after one
+ * (`replace`) rewrites the current entry in place. */
+pub(super) fn record_history(state: &mut State, replace: bool) {
+    let url = state.ui.current_url.clone();
     if url.is_empty() {
         return;
     }
-    let trunc = (state.hist_index + 1).max(0) as usize;
-    state.history.truncate(trunc);
-    state.history.push(url);
-    state.hist_index = state.history.len() as i32 - 1;
+    if replace {
+        state.ui.history.replace(&url);
+    } else {
+        state.ui.history.push(&url);
+    }
 }

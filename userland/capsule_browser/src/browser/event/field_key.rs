@@ -16,9 +16,9 @@
 
 use alloc::string::{String, ToString};
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, KEY_BACKSPACE, KEY_ENTER, MOD_SHIFT};
+use nonos_app_skeleton::{EventOutcome, InputEvent, KEY_BACKSPACE, KEY_ENTER};
 
-use crate::browser::keymap::printable;
+use crate::browser::omnibox::{text_char, Change};
 use crate::browser::state::State;
 
 use super::relayout::relayout;
@@ -26,8 +26,8 @@ use super::submit_form::submit_form;
 
 const MAX_VALUE_LEN: usize = 512;
 
-// Typing into the focused field edits its value attribute, redraws, and
-// fires the input event. Enter submits (a textarea takes a newline).
+/* Typing into the focused field edits its value attribute, redraws, and
+ * fires the input event. Enter submits (a textarea takes a newline). */
 pub(super) fn field_key(state: &mut State, id: usize, event: InputEvent) -> EventOutcome {
     let is_textarea =
         state.page_dom.as_ref().and_then(|d| d.nodes.get(id)).is_some_and(|n| n.tag == "textarea");
@@ -47,8 +47,8 @@ pub(super) fn field_key(state: &mut State, id: usize, event: InputEvent) -> Even
         KEY_BACKSPACE => {
             value.pop();
         }
-        code => match printable(code, event.flags & MOD_SHIFT != 0) {
-            Some(b) if value.len() < MAX_VALUE_LEN => value.push(b as char),
+        code => match text_char(code, event.flags) {
+            Some(c) if value.len() < MAX_VALUE_LEN => value.push(c),
             _ => return EventOutcome::Idle,
         },
     }
@@ -59,5 +59,7 @@ pub(super) fn field_key(state: &mut State, id: usize, event: InputEvent) -> Even
         let _ = engine.dispatch_event(id as i32, "input");
     }
     relayout(state);
+    state.track.laid_print = None;
+    state.mark(Change::Page);
     EventOutcome::Repaint
 }

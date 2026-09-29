@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Float placement. CSS 2.1 section 9.5.1 rule 5: the outer top of a float
 //! may not be higher than the outer top of any float earlier in the source.
 

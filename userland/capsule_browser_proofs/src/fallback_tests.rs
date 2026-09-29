@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Scripts the built-in face has no glyphs for (Arabic, Hebrew, Devanagari)
 //! measure and draw in an embedded fallback face instead of .notdef boxes.
 

@@ -110,6 +110,7 @@ dependencies = [
  "nonos_app_skeleton",
  "nonos_brotli",
  "nonos_inflate",
+ "nonos_keymap",
  "nonos_toolkit",
  "spin",
  "tls_proofs",
@@ -465,6 +466,10 @@ version = "0.1.0"
 
 [[package]]
 name = "nonos_inflate"
+version = "0.3.0"
+
+[[package]]
+name = "nonos_keymap"
 version = "0.3.0"
 
 [[package]]

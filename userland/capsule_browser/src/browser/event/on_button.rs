@@ -17,16 +17,15 @@
 use nonos_app_skeleton::{EventOutcome, InputEvent};
 
 use crate::browser::event::{on_home_click, on_page_click, on_toolbar};
-use crate::browser::paint::chrome::TITLEBAR;
-use crate::browser::paint::home_page::CONTENT_TOP;
+use crate::browser::omnibox::geometry::{CONTENT_TOP, TITLEBAR};
 use crate::browser::state::{State, View};
 
 pub fn on_button(state: &mut State, event: InputEvent) -> EventOutcome {
     if event.y < TITLEBAR as i32 {
         return EventOutcome::Idle;
     }
-    // While the settings panel is open it takes every click: its buttons act,
-    // and a click anywhere else closes it.
+    /* While the settings panel is open it takes every click: its buttons act,
+     * and a click anywhere else closes it. */
     if state.settings_open {
         return crate::browser::settings::on_click(state, event.x, event.y);
     }

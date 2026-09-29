@@ -1,3 +1,4 @@
+#![cfg(test)]
 mod bidi_tests;
 mod flex_col_tests;
 mod flex_item_tests;

@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Known-answer proofs for CSS color parsing: hex (3/4/6/8 digit), rgb()/rgba(),
 //! and named colors, all resolved to 0xAARRGGBB with the alpha kept. Colors are
 //! on every page, so a wrong shorthand expansion, channel order or dropped

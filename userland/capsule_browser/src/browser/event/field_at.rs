@@ -16,7 +16,7 @@
 
 use crate::browser::dom::Dom;
 
-// What a click landed on, walking up from the hit node.
+/* What a click landed on, walking up from the hit node. */
 pub(super) enum Field {
     Edit(usize),
     Submit(usize),
@@ -32,7 +32,15 @@ pub(super) fn field_at(dom: &Dom, node: usize) -> Field {
         };
         match n.tag.as_str() {
             "textarea" => return Field::Edit(cur),
-            "button" => return Field::Submit(cur),
+            /* A button submits unless its type says otherwise: a missing or
+             * unknown type is a submit button, as HTML defines it. */
+            "button" => {
+                let ty = n.attr("type").unwrap_or("submit").to_ascii_lowercase();
+                return match ty.as_str() {
+                    "button" | "reset" | "menu" => Field::None,
+                    _ => Field::Submit(cur),
+                };
+            }
             "input" => {
                 let ty = n.attr("type").unwrap_or("text").to_ascii_lowercase();
                 return match ty.as_str() {

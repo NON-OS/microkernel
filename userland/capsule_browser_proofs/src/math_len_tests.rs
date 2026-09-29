@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Math functions (calc, min, max, clamp) in lengths, multi-value
 //! shorthands split outside parentheses, signed margins, and viewport units
 //! and media queries against the viewport the page is laid out at.

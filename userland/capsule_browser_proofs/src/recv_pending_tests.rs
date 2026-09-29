@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 /* A read that asks for more than its caller can hold keeps the rest for the
  * next read on that socket, so callers with small buffers still see every
  * byte, in order, once. */

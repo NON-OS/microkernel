@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Hostile geometry: deep nests of positioned, transformed and clipped
 //! boxes, absurd lengths and math, lay out without a panic or a hang.
 

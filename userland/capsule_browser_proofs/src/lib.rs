@@ -13,63 +13,51 @@ pub mod grid_page;
 pub mod probe;
 pub mod render;
 
-#[cfg(test)]
+mod band_tests;
+mod blit_tests;
 mod canvas_tests;
-#[cfg(test)]
 mod cascade_proofs;
-#[cfg(test)]
 mod cascade_tests;
-#[cfg(test)]
+mod chrome_hit_tests;
 mod chunked_tests;
+mod classify_tests;
 #[cfg(test)]
 mod clone_tests;
-#[cfg(test)]
 mod color_fonts_images;
-#[cfg(test)]
 mod color_tests;
-#[cfg(test)]
 mod css_utf8_tests;
+mod damage_tests;
 #[cfg(test)]
 mod dom_tests;
+mod edit_key_tests;
 #[cfg(test)]
 mod entity_tests;
-#[cfg(test)]
 mod fallback_tests;
-#[cfg(test)]
 mod fetch_proofs;
-#[cfg(test)]
 mod float_tests;
-#[cfg(test)]
+mod focus_tests;
 mod fx_tests;
-#[cfg(test)]
 mod grid_auto_tests;
-#[cfg(test)]
 mod grid_clip_tests;
-#[cfg(test)]
 mod grid_tests;
-#[cfg(test)]
 mod gzip_tests;
-#[cfg(test)]
+mod history_tests;
+mod hit_screen_tests;
 mod hostile_geom_tests;
-#[cfg(test)]
 mod layout_tests;
 #[cfg(test)]
+mod line_edit_tests;
+mod link_tests;
 mod math_len_tests;
-#[cfg(test)]
 mod narrow_tests;
-#[cfg(test)]
 mod pos_tests;
-#[cfg(test)]
 mod recv_pending_tests;
-#[cfg(test)]
 mod round2_tests;
-#[cfg(test)]
+mod scroll_tests;
 mod selector_tests;
-#[cfg(test)]
 mod sibling_tests;
-#[cfg(test)]
 mod table_tests;
-#[cfg(test)]
+mod text_char_tests;
 mod text_em_tests;
-#[cfg(test)]
+mod url_string_tests;
 mod url_tests;

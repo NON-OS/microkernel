@@ -14,42 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn printable(code: u32, shift: bool) -> Option<u8> {
-    if !(0x20..=0x7E).contains(&code) {
+/* The scheme of an absolute address: a name before a ':' that comes ahead
+ * of any '/', '?' or '#', unless a port number follows it (host:8080). */
+pub fn scheme(s: &str, stop: usize) -> Option<&str> {
+    let colon = s[..stop].find(':')?;
+    let (name, rest) = (&s[..colon], &s[colon + 1..]);
+    let ok = |c: char| c.is_ascii_alphanumeric() || matches!(c, '+' | '-' | '.');
+    if !name.starts_with(|c: char| c.is_ascii_alphabetic()) || !name.chars().all(ok) {
         return None;
     }
-    let b = code as u8;
-    if shift {
-        Some(shifted(b))
-    } else {
-        Some(b)
-    }
-}
-
-fn shifted(b: u8) -> u8 {
-    match b {
-        b'a'..=b'z' => b - 32,
-        b'1' => b'!',
-        b'2' => b'@',
-        b'3' => b'#',
-        b'4' => b'$',
-        b'5' => b'%',
-        b'6' => b'^',
-        b'7' => b'&',
-        b'8' => b'*',
-        b'9' => b'(',
-        b'0' => b')',
-        b'-' => b'_',
-        b'=' => b'+',
-        b'[' => b'{',
-        b']' => b'}',
-        b'\\' => b'|',
-        b';' => b':',
-        b'\'' => b'"',
-        b'`' => b'~',
-        b',' => b'<',
-        b'.' => b'>',
-        b'/' => b'?',
-        other => other,
-    }
+    let digits = rest.bytes().take_while(u8::is_ascii_digit).count();
+    let port = digits > 0 && matches!(rest.as_bytes().get(digits), None | Some(b'/' | b'?' | b'#'));
+    (!port).then_some(name)
 }

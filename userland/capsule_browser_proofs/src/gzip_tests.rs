@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Known-answer proofs for gzip members (RFC 1952): every member's trailer is
 //! present and its CRC32 and ISIZE match the bytes it inflated to.
 

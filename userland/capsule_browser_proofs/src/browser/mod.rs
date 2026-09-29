@@ -16,11 +16,14 @@ pub mod fonts;
 pub mod html;
 #[path = "../../../capsule_browser/src/browser/layout/mod.rs"]
 pub mod layout;
+#[path = "../../../capsule_browser/src/browser/omnibox/mod.rs"]
+pub mod omnibox;
 #[path = "../../../capsule_browser/src/browser/url/mod.rs"]
 pub mod url;
 
 /* js keeps its mirror: the interpreter modules under test are private to the
  * capsule and nothing outside the engine has cause to reach them. */
+pub mod event;
 pub mod image;
 pub mod js;
 pub mod manifest;

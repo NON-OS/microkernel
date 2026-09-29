@@ -20,6 +20,8 @@ pub mod doc;
 mod emit_pre;
 mod emit_text;
 mod heading_scale;
+#[path = "boxmodel/hit_screen.rs"]
+pub mod hit_screen;
 mod line_height;
 mod px_for;
 mod span_metrics;

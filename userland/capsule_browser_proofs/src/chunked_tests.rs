@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Known-answer proofs for HTTP chunked transfer decoding: hex chunk sizes and
 //! CRLF framing. Many real responses arrive chunked; a wrong size parse or
 //! frame skip corrupts the body.
@@ -20,6 +21,6 @@ fn decodes_chunked_bodies() {
 
 #[test]
 fn rejects_a_chunk_that_overruns_the_body() {
-    // Declares 5 bytes but only 3 are present.
+    /* Declares 5 bytes but only 3 are present. */
     assert!(decode(b"5\r\nabc\r\n0\r\n\r\n").is_none());
 }

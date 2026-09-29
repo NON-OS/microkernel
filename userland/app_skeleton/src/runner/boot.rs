@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_toolkit::decorations::DecorationHit;
+
 use crate::app::{App, AppManifest};
 use crate::discover::Peers;
 use crate::setup::{ensure_input_subscription, open_window, WindowBinding};
@@ -34,6 +36,9 @@ pub(super) struct BootedApp<A: App> {
     pub minimized: bool,
     pub saved: (u32, u32, u32, u32),
     pub drag: DragState,
+    /* Size, frame hover and maximized state of the last repaint, so a repaint
+     * that changes none of them can leave the frame as it is. */
+    pub painted: (u32, u32, DecorationHit, bool),
 }
 
 pub(super) fn boot<A: App>(
@@ -56,5 +61,6 @@ pub(super) fn boot<A: App>(
         minimized: false,
         saved: (0, 0, 0, 0),
         drag: DragState::new(),
+        painted: (0, 0, DecorationHit::None, false),
     })
 }

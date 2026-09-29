@@ -17,17 +17,26 @@
 use alloc::string::String;
 
 use crate::browser::fetch::{constants, render_error, retryable_error, security_error};
+use crate::browser::omnibox::{should_commit, Change};
 use crate::browser::state::{State, View};
 
+/* The document load failed. A transient network error retries the address
+ * that was being loaded (not whatever is typed in the address bar); any
+ * other error shows its page, under the address that failed. A failure of
+ * a load that was stopped or overtaken is dropped. */
 pub(super) fn fail(state: &mut State, msg: &str) {
+    if !should_commit(state.ui.nav_gen, state.ui.loading_gen) {
+        return;
+    }
+    let target = state.ui.last_target.clone();
     if retryable_error::retryable_error(msg)
         && !security_error::security_error(msg)
         && state.retries < constants::MAX_RETRIES
-        && !state.address.is_empty()
+        && !target.is_empty()
     {
         state.retries += 1;
         state.status = alloc::format!("retry {} - {}", state.retries, msg);
-        state.pending_nav = Some(state.address.clone());
+        state.pending_nav = Some(target);
     } else {
         state.retries = 0;
         state.status = String::from(msg);
@@ -37,5 +46,8 @@ pub(super) fn fail(state: &mut State, msg: &str) {
         state.page_dom = None;
         state.world = None;
         state.view = View::Page;
+        state.ui.current_url = target.clone();
+        state.show_url(&target);
+        state.mark(Change::Full);
     }
 }

@@ -15,26 +15,46 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::{
-    EventOutcome, InputEvent, KEY_DOWN, KEY_END, KEY_HOME, KEY_PAGE_DOWN, KEY_PAGE_UP, KEY_UP,
+    EventOutcome, InputEvent, KEY_DOWN, KEY_END, KEY_ESC, KEY_HOME, KEY_PAGE_DOWN, KEY_PAGE_UP,
+    KEY_TAB, KEY_UP, MOD_SHIFT,
 };
 
-use crate::browser::event::scroll_by;
-use crate::browser::paint::document::VIEW_H;
+use crate::browser::omnibox::{Route, ScrollAct};
 use crate::browser::state::State;
 
-pub fn on_page_key(state: &mut State, event: InputEvent) -> EventOutcome {
-    if let Some(id) = state.focus {
-        return super::field_key::field_key(state, id, event);
+/* A key while the page has the keyboard: a focused field types, scroll
+ * keys scroll, Tab walks the fields, and Esc leaves a field or stops a
+ * load. */
+pub fn on_page_key(state: &mut State, event: InputEvent, route: Route) -> EventOutcome {
+    let shift = event.flags & MOD_SHIFT != 0;
+    match (route, event.code) {
+        (_, KEY_TAB) => super::tab_focus::tab_focus(state, shift),
+        (Route::Field(_), KEY_ESC) => {
+            state.focus_page(None);
+            EventOutcome::Idle
+        }
+        (Route::Field(id), _) => super::field_key::field_key(state, id, event),
+        (Route::Scroll, code) => {
+            let act = match code {
+                KEY_UP => ScrollAct::Line(-1),
+                KEY_DOWN => ScrollAct::Line(1),
+                KEY_PAGE_UP => ScrollAct::Page(-1),
+                KEY_PAGE_DOWN => ScrollAct::Page(1),
+                0x20 if shift => ScrollAct::Page(-1),
+                0x20 => ScrollAct::Page(1),
+                KEY_HOME => ScrollAct::Home,
+                KEY_END => ScrollAct::End,
+                _ => return EventOutcome::Idle,
+            };
+            match super::scroll_by::apply_scroll(state, act) {
+                true => EventOutcome::Repaint,
+                false => EventOutcome::Idle,
+            }
+        }
+        (_, KEY_ESC) if state.loading() => {
+            super::stop::stop(state);
+            EventOutcome::Repaint
+        }
+        _ => EventOutcome::Idle,
     }
-    let page = VIEW_H as i32 - 40;
-    match event.code {
-        KEY_UP => scroll_by::scroll_by(state, -40),
-        KEY_DOWN => scroll_by::scroll_by(state, 40),
-        KEY_PAGE_UP => scroll_by::scroll_by(state, -page),
-        KEY_PAGE_DOWN | 0x20 => scroll_by::scroll_by(state, page),
-        KEY_HOME => state.scroll = 0,
-        KEY_END => scroll_by::scroll_by(state, i32::MAX),
-        _ => return EventOutcome::Idle,
-    }
-    EventOutcome::Repaint
 }

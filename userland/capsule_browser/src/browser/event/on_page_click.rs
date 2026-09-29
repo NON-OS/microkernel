@@ -16,48 +16,49 @@
 
 use nonos_app_skeleton::{EventOutcome, InputEvent};
 
-use crate::browser::paint::home_page::CONTENT_TOP;
+use crate::browser::omnibox::geometry::CONTENT_TOP;
+use crate::browser::omnibox::{focus_after, Region};
 use crate::browser::state::State;
-use crate::browser::url;
 
+use super::field_at::{field_at, Field};
+
+/* A click on the page. Script listeners see it first; only a listener that
+ * calls preventDefault stops the default action, so a page that merely
+ * listens for clicks (most of the web does) keeps working links and fields.
+ * Then a form field takes focus, a submit control submits, and a link is
+ * followed. The link is read before the listeners run, as the default
+ * action belongs to the element that was clicked. */
 pub fn on_page_click(state: &mut State, event: InputEvent) -> EventOutcome {
-    let dy = event.y - CONTENT_TOP as i32 + state.scroll as i32;
-    // Script listeners see the click first; a handled click stops here.
-    // Otherwise form fields take focus and submit controls submit.
-    state.focus = None;
-    if let Some(node) = state.box_doc.as_ref().and_then(|b| b.hit_node(event.x, dy)) {
-        if super::js_click::js_click(state, node) {
+    let y = event.y - CONTENT_TOP as i32;
+    let link = super::link_under::link_under(state, event.x, y);
+    let scroll = state.scroll as i32;
+    let node = state.box_doc.as_ref().and_then(|b| b.hit_node(event.x, y, scroll));
+    let mut field = None;
+    let mut prevented = false;
+    if let Some(node) = node {
+        let click = super::js_click::js_click(state, node);
+        prevented = click.prevented;
+        if click.fired && state.pending_nav.is_some() {
+            state.focus_page(None);
             return EventOutcome::Repaint;
         }
-        if let Some(dom) = state.page_dom.as_ref() {
-            match super::field_at::field_at(dom, node) {
-                super::field_at::Field::Edit(id) => {
-                    state.focus = Some(id);
-                    return EventOutcome::Repaint;
-                }
-                super::field_at::Field::Submit(id) => {
-                    super::submit_form::submit_form(state, id);
-                    return EventOutcome::Repaint;
-                }
-                super::field_at::Field::None => {}
+        let hit = state.page_dom.as_ref().map(|dom| field_at(dom, node));
+        match hit {
+            Some(Field::Edit(id)) if !prevented => field = Some(id),
+            Some(Field::Submit(id)) if !prevented => {
+                state.focus_page(None);
+                super::submit_form::submit_form(state, id);
+                return EventOutcome::Repaint;
             }
+            _ => {}
         }
     }
-    let hit = match state.box_doc.as_ref() {
-        Some(b) => b.link_at(event.x, dy).map(alloc::string::String::from),
-        None => state
-            .document
-            .as_ref()
-            .and_then(|d| d.link_at(event.x, dy).map(alloc::string::String::from)),
-    };
-    if let Some(href) = hit {
-        let next = match state.base.as_ref() {
-            Some(base) => url::join(base, &href),
-            None => href,
-        };
-        state.address = next.clone();
-        state.pending_nav = Some(next);
-        return EventOutcome::Repaint;
+    let (_, field) = focus_after(Region::Page, field, state.ui.kbd);
+    state.focus_page(field);
+    match link {
+        Some(href) if !prevented && field.is_none() => {
+            super::follow_link::follow_link(state, &href)
+        }
+        _ => EventOutcome::Idle,
     }
-    EventOutcome::Idle
 }

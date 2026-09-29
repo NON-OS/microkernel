@@ -28,6 +28,7 @@ mod entry;
 #[cfg(feature = "runtime")]
 mod ephemeral;
 mod fail;
+mod finish_band;
 mod fit_display;
 mod frame_finish;
 mod idle;
@@ -35,6 +36,7 @@ mod maximize;
 mod move_window;
 mod paint_frame;
 mod paint_once;
+mod paint_partial;
 mod prime_frame;
 mod refresh_input;
 mod repaint;

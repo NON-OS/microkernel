@@ -41,27 +41,3 @@ pub struct CanvasImage {
     pub size: BgSize,
     pub repeat: bool,
 }
-
-impl BoxDocument {
-    /* Fragments paint front to back, so the last hit wins. */
-    pub fn link_at(&self, x: i32, y: i32) -> Option<&str> {
-        for f in self.frags.iter().rev() {
-            if let Some(href) = f.href.as_deref() {
-                if x >= f.x && x < f.x + f.w && y >= f.y && y < f.y + f.h {
-                    return Some(href);
-                }
-            }
-        }
-        None
-    }
-
-    /* Topmost DOM node under the point, for event dispatch. */
-    pub fn hit_node(&self, x: i32, y: i32) -> Option<usize> {
-        for f in self.frags.iter().rev() {
-            if f.node != 0 && x >= f.x && x < f.x + f.w && y >= f.y && y < f.y + f.h {
-                return Some(f.node);
-            }
-        }
-        None
-    }
-}

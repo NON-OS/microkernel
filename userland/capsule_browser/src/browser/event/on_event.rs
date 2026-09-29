@@ -16,20 +16,28 @@
 
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 
-use crate::browser::event::{on_button, on_key, on_page_key, scroll_by};
-use crate::browser::state::{State, View};
+use crate::browser::omnibox::Change;
+use crate::browser::state::State;
 
+/* Route one input event. Handlers record what they changed; one that asks
+ * for a repaint without saying what changed gets the whole window, and one
+ * that recorded a change gets its repaint even when it answered Idle. */
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
-    match event.kind {
-        InputKind::ButtonDown => on_button::on_button(state, event),
-        InputKind::Wheel => {
-            scroll_by::scroll_by(state, -event.delta_y * 60);
-            EventOutcome::Repaint
-        }
-        InputKind::KeyDown if state.address_focused => on_key::on_key(state, event),
-        InputKind::KeyDown if matches!(state.view, View::Page) => {
-            on_page_key::on_page_key(state, event)
-        }
+    let before = state.track.paint_gen;
+    let out = match event.kind {
+        InputKind::ButtonDown => super::on_button::on_button(state, event),
+        InputKind::Wheel => super::scroll_by::on_wheel(state, event),
+        InputKind::KeyDown => super::on_keydown::on_keydown(state, event),
+        InputKind::PointerAbs => super::on_pointer::on_pointer(state, event),
         _ => EventOutcome::Idle,
+    };
+    let marked = state.track.paint_gen != before;
+    match out {
+        EventOutcome::Repaint if !marked => {
+            state.mark(Change::Full);
+            out
+        }
+        EventOutcome::Idle if marked => EventOutcome::Repaint,
+        _ => out,
     }
 }
