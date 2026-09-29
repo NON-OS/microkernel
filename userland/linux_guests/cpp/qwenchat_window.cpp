@@ -57,7 +57,8 @@ int chat_window(const ChatArgs &a) {
     }
     v.status = "ready";
     ui_draw(w, v), wl_present(w);
-    while (wl_poll(w, keys)) {
+    for (bool shown = w.configured; wl_poll(w, keys);) {
+        if (!shown && w.configured) shown = true, ui_draw(w, v), wl_present(w);
         if (keys.empty()) { usleep(15000); continue; }
         for (Key k : keys) {
             if (k.code == 0x0D && v.input == "/reset") chat_reset(c), ui_wipe(w, v), v.status = "forgotten";
