@@ -56,31 +56,34 @@ def virt.VirtAddr.is_null (self : virt.VirtAddr) : Result Bool := do
 def virt.VirtAddr.is_aligned
   (self : virt.VirtAddr) (align : Std.U64) : Result Bool := do
   if align != 0#u64
-  then let i ← self % align
-       ok (i = 0#u64)
+  then core.num.U64.is_multiple_of self align
   else ok false
 
 /-- [nonos_x_addr_virt::virt::{nonos_x_addr_virt::virt::VirtAddr}::align_down]:
-    Source: 'src/../../../../../src/memory/addr/virt.rs', lines 54:4-56:5
+    Source: 'src/../../../../../src/memory/addr/virt.rs', lines 57:4-62:5
     Visibility: public -/
 def virt.VirtAddr.align_down
   (self : virt.VirtAddr) (align : Std.U64) : Result virt.VirtAddr := do
-  let i ← align - 1#u64
-  let i1 ← lift (~~~ i)
-  let i2 ← lift (self &&& i1)
-  ok i2
+  if align = 0#u64
+  then ok self
+  else let i ← self % align
+       let i1 ← self - i
+       ok i1
 
 /-- [nonos_x_addr_virt::virt::{nonos_x_addr_virt::virt::VirtAddr}::align_up]:
-    Source: 'src/../../../../../src/memory/addr/virt.rs', lines 58:4-60:5
+    Source: 'src/../../../../../src/memory/addr/virt.rs', lines 66:4-76:5
     Visibility: public -/
 def virt.VirtAddr.align_up
   (self : virt.VirtAddr) (align : Std.U64) : Result virt.VirtAddr := do
-  let i ← self + align
-  let i1 ← i - 1#u64
-  let i2 ← align - 1#u64
-  let i3 ← lift (~~~ i2)
-  let i4 ← lift (i1 &&& i3)
-  ok i4
+  if align = 0#u64
+  then ok self
+  else
+    let rem ← self % align
+    if rem = 0#u64
+    then ok self
+    else let i ← align - rem
+         let i1 ← self + i
+         ok i1
 
 /-- [nonos_x_addr_virt::virtaddr_new]:
     Source: 'src/lib.rs', lines 10:0-12:1

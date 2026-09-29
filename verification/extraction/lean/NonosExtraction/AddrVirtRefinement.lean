@@ -58,79 +58,119 @@ theorem the_virtaddr_align_up_wrapper_is_its_method (a : virt.VirtAddr) (b : Std
 
 /-! ### Alignment
 
-    Three functions decide alignment for every virtual address in the kernel,
-    and they do not agree with each other.
+    Three functions decide alignment for every virtual address in the kernel.
+    `is_aligned` asks `addr % align == 0`. `align_down` and `align_up` round to
+    the nearest multiple of `align` below and above, computed with `%` so that
+    they are right for every non-zero alignment, and the theorems below show the
+    three agree: whatever the two rounders return passes `is_aligned`, lies on
+    the right side of the address, and is less than one alignment away from it.
+    An alignment of zero leaves the address unchanged. `align_up` fails exactly
+    when the rounded address is past `u64::MAX`; the kernel builds with
+    `overflow-checks = true` and `panic = "abort"`, so that failure is a halt.
 
-    This is the same code as `PhysAddr` carries, written out a second time
-    rather than shared, so the same three findings hold here. That duplication
-    is itself worth noticing: two copies of an alignment rule drift, and a fix
-    applied to one of them leaves the other wrong.
-
-    `is_aligned` asks `addr % align == 0`, which is the right question for any
-    alignment. `align_down` and `align_up` clear low bits with `!(align - 1)`,
-    which answers a different question unless `align` is a power of two. Nothing
-    in the type says it has to be.
-
-    The kernel builds with `overflow-checks = true` and `panic = "abort"`, so
-    the checked arithmetic below is faithful: where the extracted function fails,
-    the shipping kernel halts. That is a controlled halt rather than silent
-    corruption, which is the trade the profile comment argues for, but it is
-    still a halt reachable from an address and an alignment.
+    The rounders used to clear low bits with `!(align - 1)`, which is only a
+    rounding when `align` is a power of two: aligning ten down to three gave
+    eight, which `is_aligned` refused, and an alignment of zero underflowed and
+    halted. Every caller in the kernel passes a page size, where the two
+    methods agree.
 -/
 
-/-- The disagreement, at the smallest witness. Aligning ten down to a multiple
-    of three gives eight, and `is_aligned` then says eight is not aligned to
-    three. Both functions are reachable from the same call site with the same
-    argument, and a caller that aligns and then checks gets told no. -/
-theorem aligning_down_can_produce_an_unaligned_address :
-    virtaddr_align_down 10#u64 3#u64 = ok 8#u64 ∧
-    virtaddr_is_aligned 8#u64 3#u64 = ok false := by
-  refine ⟨?_, ?_⟩ <;> rfl
+/-- For a non-zero alignment, `is_aligned` is the remainder test. -/
+theorem virtaddr_is_aligned_is_the_remainder_test (a al : Std.U64) (h : al.val ≠ 0) :
+    virtaddr_is_aligned a al = ok (decide (a.val % al.val = 0)) := by
+  have hne : al ≠ 0#u64 := fun e => h (by rw [e]; rfl)
+  have hb : (al != 0#u64) = true := by simp [hne]
+  unfold virtaddr_is_aligned virt.VirtAddr.is_aligned
+  simp only [hb, if_true, core.num.U64.is_multiple_of, UScalar.is_multiple_of, ok.injEq]
+  cases a.val % al.val <;> rfl
 
-/-- On a power of two the two do agree, which is the case every caller in the
-    kernel actually passes and the reason this has never been noticed. -/
-theorem on_a_power_of_two_they_agree :
-    virtaddr_align_down 10#u64 4#u64 = ok 8#u64 ∧
-    virtaddr_is_aligned 8#u64 4#u64 = ok true := by
-  refine ⟨?_, ?_⟩ <;> rfl
+/-- Rounding down gives the largest multiple of a non-zero alignment at or below
+    the address, never fails, and the result passes `is_aligned`. -/
+theorem virtaddr_align_down_is_the_largest_multiple_below (a al : Std.U64) (h : al.val ≠ 0) :
+    ∃ r : Std.U64, virtaddr_align_down a al = ok r ∧ r.val = a.val - a.val % al.val ∧
+      r.val ≤ a.val ∧ a.val - r.val < al.val ∧ virtaddr_is_aligned r al = ok true := by
+  unfold virtaddr_align_down virt.VirtAddr.align_down
+  have hne : al ≠ 0#u64 := fun e => h (by rw [e]; rfl)
+  obtain ⟨m, hm, hmv⟩ := WP.spec_imp_exists (UScalar.rem_spec a (y := al) h)
+  have hlt : a.val % al.val < al.val := Nat.mod_lt _ (Nat.pos_of_ne_zero h)
+  have hle : a.val % al.val ≤ a.val := Nat.mod_le _ _
+  obtain ⟨r, hr, hrv, -⟩ := WP.spec_imp_exists (UScalar.sub_spec (x := a) (y := m) (by omega))
+  simp only [hne, if_false, hm, hr, bind_tc_ok]
+  refine ⟨r, rfl, by omega, by omega, by omega, ?_⟩
+  have : r.val % al.val = 0 := by
+    rw [hrv, hmv]; exact Nat.sub_mod_eq_zero_of_mod_eq (by simp)
+  rw [virtaddr_is_aligned_is_the_remainder_test r al h]
+  simp [this]
 
-/-- An alignment of zero is not refused, it halts the machine. `align - 1`
-    underflows, and under this profile an underflow aborts. `is_aligned` handles
-    the same argument by answering false, so the three functions disagree about
-    zero as well. -/
-theorem an_alignment_of_zero_halts_rather_than_refusing :
-    virtaddr_is_aligned 4096#u64 0#u64 = ok false ∧
-    virtaddr_align_down 4096#u64 0#u64 = fail Error.integerOverflow := by
-  refine ⟨rfl, rfl⟩
+/-- Rounding up gives the smallest multiple of a non-zero alignment at or above
+    the address whenever that multiple fits in 64 bits, and the result passes
+    `is_aligned`. -/
+theorem virtaddr_align_up_is_the_smallest_multiple_above (a al : Std.U64) (h : al.val ≠ 0)
+    (hfit : a.val + (al.val - a.val % al.val) % al.val ≤ U64.max) :
+    ∃ r : Std.U64, virtaddr_align_up a al = ok r ∧
+      r.val = a.val + (al.val - a.val % al.val) % al.val ∧
+      a.val ≤ r.val ∧ r.val - a.val < al.val ∧ virtaddr_is_aligned r al = ok true := by
+  have hne : al ≠ 0#u64 := fun e => h (by rw [e]; rfl)
+  have hpos : 0 < al.val := Nat.pos_of_ne_zero h
+  have hlt : a.val % al.val < al.val := Nat.mod_lt _ hpos
+  obtain ⟨m, hm, hmv⟩ := WP.spec_imp_exists (UScalar.rem_spec a (y := al) h)
+  have aligned : ∀ r : Std.U64, r.val % al.val = 0 → virtaddr_is_aligned r al = ok true := by
+    intro r hr
+    rw [virtaddr_is_aligned_is_the_remainder_test r al h]
+    simp [hr]
+  unfold virtaddr_align_up virt.VirtAddr.align_up
+  simp only [hne, if_false, hm, bind_tc_ok]
+  by_cases h0 : a.val % al.val = 0
+  · have hm0 : m = 0#u64 := UScalar.eq_of_val_eq (by rw [hmv, h0]; rfl)
+    simp only [hm0, if_true]
+    refine ⟨a, rfl, by rw [h0, Nat.sub_zero, Nat.mod_self]; rfl, le_rfl, by omega, aligned a h0⟩
+  · have hm0 : m ≠ 0#u64 := fun e => h0 (by rw [← hmv, e]; rfl)
+    have hmod : (al.val - a.val % al.val) % al.val = al.val - a.val % al.val :=
+      Nat.mod_eq_of_lt (by omega)
+    rw [hmod] at hfit
+    obtain ⟨d, hd, hdv, -⟩ := WP.spec_imp_exists (UScalar.sub_spec (x := al) (y := m) (by omega))
+    obtain ⟨r, hr, hrv⟩ := WP.spec_imp_exists (UScalar.add_spec (x := a) (y := d)
+      (by rw [hdv, hmv]; scalar_tac))
+    simp only [hm0, if_false, hd, hr, bind_tc_ok]
+    refine ⟨r, rfl, by rw [hmod, hrv, hdv, hmv], by omega, by omega, aligned r ?_⟩
+    rw [hrv, hdv, hmv]
+    have e : a.val + (al.val - a.val % al.val) = (a.val / al.val + 1) * al.val := by
+      have := Nat.div_add_mod a.val al.val
+      rw [Nat.add_mul, Nat.one_mul]
+      rw [Nat.mul_comm] at this
+      omega
+    rw [e, Nat.mul_mod_left]
 
-/-- Aligning up near the top of the address space halts too, because the sum
-    overflows before the mask is applied. The witness is an address one page
-    below the top, aligned to a page, which is an ordinary thing to ask for at
-    the end of a memory map. -/
-theorem aligning_up_near_the_top_halts :
+/-- Rounding up fails exactly when the smallest multiple at or above the
+    address is past `u64::MAX`: one page below the top, rounded to a page, is
+    `2^64`. -/
+theorem virtaddr_align_up_fails_past_the_top :
     virtaddr_align_up 0xFFFFFFFFFFFFF001#u64 4096#u64 = fail Error.integerOverflow := by
   rfl
 
-/-- Away from the top it behaves, so the halt is a boundary case and not a
-    broken function. -/
-theorem aligning_up_in_the_ordinary_range :
-    virtaddr_align_up 4097#u64 4096#u64 = ok 8192#u64 ∧
-    virtaddr_align_up 4096#u64 4096#u64 = ok 4096#u64 := by
-  refine ⟨rfl, rfl⟩
+/-- An alignment of zero leaves the address unchanged in both directions, where
+    the old mask underflowed and halted. `is_aligned` still answers false. -/
+theorem virtaddr_an_alignment_of_zero_leaves_the_address :
+    virtaddr_align_down 4096#u64 0#u64 = ok 4096#u64 ∧
+      virtaddr_align_up 4097#u64 0#u64 = ok 4097#u64 ∧
+      virtaddr_is_aligned 4096#u64 0#u64 = ok false := ⟨rfl, rfl, rfl⟩
 
-/-- Aligning down never moves an address upward, for every address, on a page
-    alignment. This is the property callers rely on when they align a base down
-    to find the page containing it. -/
-theorem aligning_down_is_the_mask (a : Std.U64) :
-    virtaddr_align_down a 4096#u64 = ok (a &&& 0xFFFFFFFFFFFFF000#u64) := by
-  rfl
+/-- The witness the old mask got wrong: ten rounds down to nine and up to twelve
+    on an alignment of three, both multiples of three. -/
+theorem virtaddr_rounds_to_multiples_of_three :
+    virtaddr_align_down 10#u64 3#u64 = ok 9#u64 ∧ virtaddr_align_up 10#u64 3#u64 = ok 12#u64 ∧
+      virtaddr_is_aligned 9#u64 3#u64 = ok true ∧ virtaddr_is_aligned 12#u64 3#u64 = ok true :=
+  ⟨rfl, rfl, rfl, rfl⟩
 
-/-- And clearing those bits never moves an address upward, for every word. This
-    is the property a caller relies on when it aligns a base down to find the
-    page containing it. -/
-theorem masking_down_never_moves_up (a : BitVec 64) :
-    (a &&& 0xFFFFFFFFFFFFF000#64) ≤ a := by
-  bv_decide
+/-- On a page alignment rounding down clears the twelve low bits, which is what
+    a caller relies on when it takes the page holding an address. -/
+theorem virtaddr_align_down_to_a_page_clears_the_low_twelve_bits (a : Std.U64) :
+    ∃ r : Std.U64, virtaddr_align_down a 4096#u64 = ok r ∧ r.val = a.val / 4096 * 4096 := by
+  obtain ⟨r, hr, hv, -⟩ := virtaddr_align_down_is_the_largest_multiple_below a 4096#u64 (by decide)
+  refine ⟨r, hr, ?_⟩
+  rw [hv, show (4096#u64 : Std.U64).val = 4096 from rfl]
+  have := Nat.div_add_mod a.val 4096
+  omega
 
 /-! ### The trivial readers
 
@@ -146,15 +186,51 @@ theorem zero_is_null_and_nothing_else :
     virtaddr_is_null 1#u64 = ok false := by
   refine ⟨rfl, rfl⟩
 
+/-! ### Converting to a machine word
+
+    `as_usize` is `self.0 as usize`. The theorems below say it never fails,
+    that it keeps exactly the low `System.Platform.numBits` bits of the
+    address, and that on a 64-bit target it loses nothing, so it agrees with
+    `as_u64`. An implementation that masked to the 48-bit canonical range, or
+    cleared the page offset, would disagree on a higher-half address.
+
+    The theorems cannot say that a 32-bit build never passes an address above
+    four gigabytes: on such a target the cast silently truncates, and that is
+    exactly what the first theorem records.
+-/
+
+/-- The conversion never fails and keeps exactly the low platform-width bits. -/
+theorem virtaddr_as_usize_keeps_the_low_platform_bits (a : Std.U64) :
+    ∃ r, virtaddr_as_usize a = ok r ∧ r.val = a.val % 2 ^ System.Platform.numBits := by
+  refine ⟨_, rfl, ?_⟩
+  simp [UScalar.cast_val_eq]
+
+/-- On a 64-bit target the conversion is lossless, so it reads the same number
+    as `as_u64` for every address, including the higher half. -/
+theorem on_a_64_bit_target_virtaddr_as_usize_agrees_with_as_u64
+    (h : System.Platform.numBits = 64) (a : Std.U64) :
+    ∃ r w, virtaddr_as_usize a = ok r ∧ virtaddr_as_u64 a = ok w ∧ r.val = w.val := by
+  refine ⟨_, _, rfl, rfl, ?_⟩
+  simp only [UScalar.cast_val_eq, UScalarTy.numBits, h]
+  exact Nat.mod_eq_of_lt (by scalar_tac)
+
+/-- The higher-half kernel base survives the conversion unchanged on a 64-bit
+    target, the witness a canonical-range mask would get wrong. -/
+theorem virtaddr_as_usize_keeps_the_higher_half (h : System.Platform.numBits = 64) :
+    ∃ r, virtaddr_as_usize 0xFFFF800000000000#u64 = ok r ∧ r.val = 0xFFFF800000000000 := by
+  refine ⟨_, rfl, ?_⟩
+  simp only [UScalar.cast_val_eq, UScalarTy.numBits, h]
+  decide
+
 /-! ### Axiom profile -/
 
-#print axioms NonosExtraction.AddrVirt.aligning_down_can_produce_an_unaligned_address
-#print axioms NonosExtraction.AddrVirt.on_a_power_of_two_they_agree
-#print axioms NonosExtraction.AddrVirt.an_alignment_of_zero_halts_rather_than_refusing
-#print axioms NonosExtraction.AddrVirt.aligning_up_near_the_top_halts
-#print axioms NonosExtraction.AddrVirt.aligning_up_in_the_ordinary_range
-#print axioms NonosExtraction.AddrVirt.aligning_down_is_the_mask
-#print axioms NonosExtraction.AddrVirt.masking_down_never_moves_up
+#print axioms NonosExtraction.AddrVirt.virtaddr_is_aligned_is_the_remainder_test
+#print axioms NonosExtraction.AddrVirt.virtaddr_align_down_is_the_largest_multiple_below
+#print axioms NonosExtraction.AddrVirt.virtaddr_align_up_is_the_smallest_multiple_above
+#print axioms NonosExtraction.AddrVirt.virtaddr_align_up_fails_past_the_top
+#print axioms NonosExtraction.AddrVirt.virtaddr_an_alignment_of_zero_leaves_the_address
+#print axioms NonosExtraction.AddrVirt.virtaddr_rounds_to_multiples_of_three
+#print axioms NonosExtraction.AddrVirt.virtaddr_align_down_to_a_page_clears_the_low_twelve_bits
 #print axioms NonosExtraction.AddrVirt.the_newtype_round_trips
 #print axioms NonosExtraction.AddrVirt.zero_is_null_and_nothing_else
 #print axioms NonosExtraction.AddrVirt.the_virtaddr_new_wrapper_is_its_method
@@ -165,5 +241,8 @@ theorem zero_is_null_and_nothing_else :
 #print axioms NonosExtraction.AddrVirt.the_virtaddr_is_aligned_wrapper_is_its_method
 #print axioms NonosExtraction.AddrVirt.the_virtaddr_align_down_wrapper_is_its_method
 #print axioms NonosExtraction.AddrVirt.the_virtaddr_align_up_wrapper_is_its_method
+#print axioms NonosExtraction.AddrVirt.virtaddr_as_usize_keeps_the_low_platform_bits
+#print axioms NonosExtraction.AddrVirt.on_a_64_bit_target_virtaddr_as_usize_agrees_with_as_u64
+#print axioms NonosExtraction.AddrVirt.virtaddr_as_usize_keeps_the_higher_half
 
 end NonosExtraction.AddrVirt
