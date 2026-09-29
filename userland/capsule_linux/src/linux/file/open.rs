@@ -22,7 +22,7 @@ use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
 use super::flags::{wants_write, AT_FDCWD, O_CLOEXEC, O_CREAT, O_DIRECTORY};
-use super::{dir, path, regular, resolve, store};
+use super::{dev, dir, path, regular, resolve, store};
 
 pub fn openat(guest: &mut Guest, dirfd: u64, path_ptr: u64, flags: u64) -> u64 {
     let Some(name) = path::read_path(guest, path_ptr) else {
@@ -34,6 +34,7 @@ pub fn openat(guest: &mut Guest, dirfd: u64, path_ptr: u64, flags: u64) -> u64 {
     };
     let full = guest.links.follow(resolve::visible(&base, &name), true);
     let got = match store::stat(&resolve::key(&full)).ok() {
+        _ if dev::device_of(&full).is_some() => dev::open_path(guest, &full, flags),
         Some((_, true)) => dir::open(guest, full),
         Some((_, false)) if flags & O_DIRECTORY != 0 => errno::fail(errno::ENOTDIR),
         Some((size, false)) => regular::open(guest, full, size, flags),

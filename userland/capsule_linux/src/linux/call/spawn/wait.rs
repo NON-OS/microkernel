@@ -14,41 +14,54 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `wait4`: a child that has ended, or a wait until one does.
+//! `wait4`: a child that has ended, or a wait until one does. The call only
+//! checks what it was asked and parks the caller; the family, which sees
+//! every process, answers it at once when a child has ended, with 0 under
+//! WNOHANG, or with ECHILD when no child fits, and otherwise when one ends.
 
 use crate::linux::abi::errno;
+use crate::linux::guest::sigwaits::{ChildWait, Which};
 use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
 
-/// Set by a caller that will not wait.
-const WNOHANG: u64 = 1;
+pub const WNOHANG: u64 = 1;
+pub const WUNTRACED: u64 = 2;
+pub const WEXITED: u64 = 4;
+pub const WCONTINUED: u64 = 8;
+pub const WNOWAIT: u64 = 0x0100_0000;
+pub const WNOTHREAD: u64 = 0x2000_0000;
+pub const WALL: u64 = 0x4000_0000;
+pub const WCLONE: u64 = 0x8000_0000;
+const WAIT4_OPTIONS: u64 = WNOHANG | WUNTRACED | WCONTINUED | WNOTHREAD | WALL | WCLONE;
 
 pub fn wait4(guest: &mut Guest, want: u64, status: u64, flags: u64, tid: u32) -> Answer {
-    if guest.children.is_empty() {
-        return Answer::value(errno::fail(errno::ECHILD));
-    }
-    if let Some(v) = reap_one(guest, want, status) {
-        return Answer::value(v);
-    }
-    // A child still running under WNOHANG is a zero, not an error.
-    if flags & WNOHANG != 0 {
-        return Answer::value(errno::ok(0));
-    }
-    guest.waiting = Some((want, status, tid));
-    Answer::Park
+    wait4_usage(guest, want, status, flags, 0, tid)
 }
 
-/// Take one ended child the caller asked about, write its status, and give
-/// the answer wait4 returns. None while no such child has ended.
-pub fn reap_one(guest: &mut Guest, want: u64, status: u64) -> Option<u64> {
-    let any = (want as i64) <= 0;
-    let at = guest.ended.iter().position(|(pid, _)| any || *pid == want as u32)?;
-    let (pid, code) = guest.ended.remove(at);
-    guest.children.retain(|p| *p != pid);
-    // An exit status sits in the second byte, as WEXITSTATUS reads it.
-    let word = ((code as u32) & 0xff) << 8;
-    if status != 0 && guest.write(status, &word.to_le_bytes()) < 4 {
-        return Some(errno::fail(errno::EFAULT));
+/// wait4 with its rusage: written as zeros, since the kernel reports no CPU
+/// time for a guest.
+pub fn wait4_usage(
+    guest: &mut Guest,
+    want: u64,
+    status: u64,
+    flags: u64,
+    rusage: u64,
+    tid: u32,
+) -> Answer {
+    if flags & !WAIT4_OPTIONS != 0 {
+        return Answer::value(errno::fail(errno::EINVAL));
     }
-    Some(errno::ok(pid as u64))
+    let which = match want as i64 as i32 {
+        -1 => Which::Any,
+        0 => Which::Group(guest.pgid),
+        p if p < 0 => Which::Group(p.unsigned_abs()),
+        p => Which::Pid(p as u32),
+    };
+    let options = flags | WEXITED;
+    park(guest, ChildWait { tid, which, options, out: status, rusage, waitid: false })
+}
+
+pub(super) fn park(guest: &mut Guest, w: ChildWait) -> Answer {
+    guest.signals.childwaits.push(w);
+    Answer::Park
 }

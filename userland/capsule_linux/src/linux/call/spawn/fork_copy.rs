@@ -16,23 +16,34 @@
 
 //! Copying a parent's spans into the child it just made.
 
-use crate::linux::guest::{Guest, Region};
+use crate::linux::guest::{Guest, Region, MAX_SPAN};
 use nonos_libc::peer::{mk_peer_map, mk_peer_write, PEER_PROT_EXEC, PEER_PROT_WRITE};
 
 /// Every span, mapped into the child and then filled from the parent.
 pub(super) fn copy_spans(guest: &mut Guest, child: u32) -> bool {
     let spans = guest.regions.clone();
     for span in spans {
-        // An unbacked reservation has no frames to copy; the child reserves it
-        // the same way, and its own first access faults a page in.
+        /*
+         * An unbacked reservation has no frames to copy; the child reserves it
+         * the same way, and its own first access faults a page in.
+         */
         if !span.backed {
             continue;
         }
-        if mk_peer_map(child, span.at, span.len, prot_of(&span)) < 0 {
-            return false;
-        }
-        if !copy_one(guest, child, span.at, span.len) {
-            return false;
+        /*
+         * The kernel maps and copies at most MAX_SPAN in one peer call, so a
+         * larger span, which a Go heap is, crosses in pieces.
+         */
+        let mut done = 0;
+        while done < span.len {
+            let take = (span.len - done).min(MAX_SPAN);
+            if mk_peer_map(child, span.at + done, take, prot_of(&span)) < 0 {
+                return false;
+            }
+            if !copy_one(guest, child, span.at + done, take) {
+                return false;
+            }
+            done += take;
         }
     }
     true

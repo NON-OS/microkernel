@@ -14,32 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Signal dispositions, recorded here and delivered on the return path in
-//! `serve::deliver`: a handler is kept with its flags, restorer and mask.
+//! Signal dispositions and masks, recorded here and acted on in
+//! `serve::deliver`: a handler is kept with its flags, restorer and mask, and
+//! each thread has the mask of signals it holds back (signal_mask).
 use crate::linux::abi::errno;
-use crate::linux::guest::sigstate::{SigAction, NSIG};
+use crate::linux::guest::sigstate::{SigAction, NSIG, SIGKILL, SIGSTOP};
 use crate::linux::guest::Guest;
 
-// SIGKILL/SIGSTOP cannot be caught; `struct sigaction` is 32 bytes.
-const SIGKILL: u64 = 9;
-const SIGSTOP: u64 = 19;
+/* `struct sigaction` is 32 bytes; a kernel sigset_t is 8. */
 const SIGACTION_LEN: usize = 32;
+pub const SIGSET_LEN: u64 = 8;
 
-pub fn rt_sigaction(guest: &mut Guest, signum: u64, act: u64, old: u64) -> u64 {
-    if signum == 0 || signum > NSIG as u64 || signum == SIGKILL || signum == SIGSTOP {
+pub fn rt_sigaction(guest: &mut Guest, signum: u64, act: u64, old: u64, size: u64) -> u64 {
+    let unchangeable = signum == u64::from(SIGKILL) || signum == u64::from(SIGSTOP);
+    if size != SIGSET_LEN || signum == 0 || signum > NSIG as u64 || (act != 0 && unchangeable) {
         return errno::fail(errno::EINVAL);
     }
     let n = signum as usize;
-    if old != 0
-        && guest.write(old, &encode(guest.signals.action(n).unwrap_or_default()))
-            < SIGACTION_LEN as i64
-    {
+    let was = guest.signals.action(n).unwrap_or_default();
+    let new = match act {
+        0 => None,
+        at => match guest.read(at, SIGACTION_LEN) {
+            Some(raw) => Some(decode(&raw)),
+            None => return errno::fail(errno::EFAULT),
+        },
+    };
+    if old != 0 && guest.write(old, &encode(was)) < SIGACTION_LEN as i64 {
         return errno::fail(errno::EFAULT);
     }
-    if act != 0 {
-        match guest.read(act, SIGACTION_LEN) {
-            Some(raw) => guest.signals.set(n, decode(&raw)),
-            None => return errno::fail(errno::EFAULT),
+    if let Some(a) = new {
+        guest.signals.set(n, a);
+        /* A signal set to be ignored is dropped where it already waits. */
+        if guest.signals.discards(n as u8) {
+            guest.signals.discard(n as u8);
         }
     }
     errno::ok(0)
@@ -56,20 +63,4 @@ fn encode(a: SigAction) -> [u8; SIGACTION_LEN] {
     b[16..24].copy_from_slice(&a.restorer.to_le_bytes());
     b[24..32].copy_from_slice(&a.mask.to_le_bytes());
     b
-}
-
-/// The old mask reads back empty: nothing is held back, delivery ignores it.
-pub fn rt_sigprocmask(guest: &Guest, old: u64) -> u64 {
-    if old != 0 && guest.write(old, &[0u8; 8]) < 8 {
-        return errno::fail(errno::EFAULT);
-    }
-    errno::ok(0)
-}
-
-/// The old alternate stack reads back unset; a handler uses the own stack.
-pub fn sigaltstack(guest: &Guest, old: u64) -> u64 {
-    if old != 0 && guest.write(old, &[0u8; 24]) < 24 {
-        return errno::fail(errno::EFAULT);
-    }
-    errno::ok(0)
 }

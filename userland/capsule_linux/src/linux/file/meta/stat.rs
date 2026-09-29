@@ -19,6 +19,7 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
+use super::super::dev::device_of;
 use super::super::flags::AT_FDCWD;
 use super::super::{path, resolve, store};
 use super::statbuf::{build, inode, STAT_LEN};
@@ -27,6 +28,7 @@ use super::statbuf::{build, inode, STAT_LEN};
 /// absent. `full` is guest-visible and is confined here.
 pub fn look(full: &[u8]) -> Option<(u64, bool)> {
     match store::stat_full(&resolve::key(full)) {
+        _ if device_of(full).is_some() => Some((0, false)),
         Ok((size, is_dir, _, _)) => Some((size, is_dir)),
         Err(_) => None,
     }
@@ -43,7 +45,8 @@ pub fn fstat(guest: &mut Guest, fd: u64, out: u64) -> u64 {
         _ => (0, false),
     };
     let ino = inode(&entry.path);
-    write_out(guest, out, size, is_dir, ino)
+    let dev = (entry.kind == Kind::Device).then_some(entry.handle);
+    write_out(guest, out, size, is_dir, ino, dev)
 }
 
 pub fn newfstatat(guest: &mut Guest, dirfd: u64, path_ptr: u64, out: u64) -> u64 {
@@ -55,13 +58,17 @@ pub fn newfstatat(guest: &mut Guest, dirfd: u64, path_ptr: u64, out: u64) -> u64
     }
     let full = guest.links.follow(resolve::visible(&guest.cwd, &name), true);
     match look(&full) {
-        Some((size, is_dir)) => write_out(guest, out, size, is_dir, inode(&full)),
+        Some((size, is_dir)) => write_out(guest, out, size, is_dir, inode(&full), device_of(&full)),
         None => errno::fail(errno::ENOENT),
     }
 }
 
-fn write_out(guest: &Guest, out: u64, size: u64, is_dir: bool, ino: u64) -> u64 {
-    if guest.write(out, &build(size, is_dir, ino)) < STAT_LEN as i64 {
+fn write_out(guest: &Guest, out: u64, size: u64, is_dir: bool, ino: u64, dev: Option<u32>) -> u64 {
+    let mut stat = build(size, is_dir, ino);
+    if let Some(d) = dev {
+        super::super::dev_stat::as_device(&mut stat, d);
+    }
+    if guest.write(out, &stat) < STAT_LEN as i64 {
         return errno::fail(errno::EFAULT);
     }
     errno::ok(0)

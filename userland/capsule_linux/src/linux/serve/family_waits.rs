@@ -56,6 +56,7 @@ impl Family {
                     }
                 };
                 // A caught signal for this thread is delivered in place of the reply.
+                super::deliver_pipe::broken_pipe(g, wait.tid, wait.nr, wait.args, value);
                 if !super::deliver::maybe_deliver(g, wait.tid, value) {
                     let _ = mk_foreign_reply(wait.tid, value);
                 }

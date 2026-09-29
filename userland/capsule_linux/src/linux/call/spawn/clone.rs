@@ -62,6 +62,7 @@ pub fn clone(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     }
     let tid = tid as u32;
     guest.threads.push(tid);
+    guest.signals.born(frame.pid, tid); /* its creator's mask, as clone gives */
     // Linux writes the new tid where the caller asked, and ignores a word it
     // cannot write; musl keeps the parent's copy as the thread's own tid.
     if flags & CLONE_PARENT_SETTID != 0 {

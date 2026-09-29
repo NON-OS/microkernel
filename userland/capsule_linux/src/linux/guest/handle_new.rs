@@ -57,7 +57,6 @@ impl Guest {
             umask: crate::linux::call::DEFAULT_UMASK,
             forked: Vec::new(),
             ended: Vec::new(),
-            waiting: None,
             sleepers: Vec::new(),
             blocked: Vec::new(),
             links: Default::default(),

@@ -14,50 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Ending what has exited, and telling each parent.
-
-use nonos_libc::{mk_foreign_reply, mk_kill};
+//! Ending what has exited, and telling each parent: the ended child waits as
+//! a zombie until it is waited for, and its exit signal, SIGCHLD unless clone
+//! named another, is raised at the parent with CLD_EXITED or CLD_KILLED. A
+//! parent that ignores SIGCHLD, or asked for SA_NOCLDWAIT, has its children
+//! reaped as they end, as Linux does.
 
 use super::family::Family;
-use crate::linux::call::reap_one;
-
-const SIGKILL: u64 = 9;
+use crate::linux::guest::siginfo::{SigInfo, CLD_EXITED, CLD_KILLED};
+use crate::linux::guest::sigstate::{SA_NOCLDWAIT, SIGCHLD};
+use crate::linux::guest::Guest;
 
 impl Family {
-    /// End every process that asked to, and tell its parent.
+    /// End every process that asked to, answer the waits and signals that
+    /// follows, and go again while that ends anything more.
     pub fn reap(&mut self) {
-        while let Some(i) = self.guests.iter().position(|g| g.exited.is_some()) {
-            let gone = self.guests.remove(i);
-            let code = gone.exited.unwrap_or(0);
-            for tid in gone.threads.iter().chain([gone.pid].iter()) {
-                let rc = mk_kill(*tid as u64, SIGKILL);
-                if rc < 0 {
-                    // Refused, it runs on after its process ended.
-                    let line = alloc::format!(
-                        "[LINUX] kill refused: pid {tid} outlives its process, errno {}\n",
-                        -rc
-                    );
-                    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
-                }
-            }
-            if gone.pid == self.root {
-                self.root_code = code;
-            }
-            let Some(p) = self.guests.iter_mut().find(|g| g.children.contains(&gone.pid)) else {
-                continue;
-            };
-            p.ended.push((gone.pid, code));
-            if let Some((want, status, tid)) = p.waiting {
-                if let Some(value) = reap_one(p, want, status) {
-                    p.waiting = None;
-                    let value = super::pid_out::value_out(
-                        &mut self.ns,
-                        crate::linux::abi::nr::WAIT4,
-                        value,
-                    );
-                    let _ = mk_foreign_reply(tid, value);
-                }
+        loop {
+            let ended = self.end_exited();
+            self.settle_child_waits();
+            self.settle_signals();
+            if !ended && !self.guests.iter().any(|g| g.exited.is_some()) {
+                return;
             }
         }
+    }
+}
+
+/// Tell `p` that `gone` ended with `status`: kept as a zombie or reaped at
+/// once, and its exit signal raised with CLD_EXITED or CLD_KILLED.
+pub fn tell_parent(p: &mut Guest, gone: &Guest, status: i32) {
+    let sig = gone.signals.exit_signal;
+    let chld = p.signals.action(SIGCHLD as usize).unwrap_or_default();
+    if sig == SIGCHLD && (chld.ignores() || chld.flags & SA_NOCLDWAIT != 0) {
+        p.children.retain(|c| *c != gone.pid);
+    } else {
+        p.ended.push((gone.pid, status));
+        p.signals.kid_groups.push((gone.pid, gone.pgid));
+    }
+    if sig != 0 {
+        let (code, value) = match status & 0x7f {
+            0 => (CLD_EXITED, (status >> 8) & 0xff),
+            s => (CLD_KILLED, s),
+        };
+        let info = SigInfo { value: value as u64, ..SigInfo::from(sig, code, gone.pid) };
+        let _ = p.signals.raise(0, info);
     }
 }

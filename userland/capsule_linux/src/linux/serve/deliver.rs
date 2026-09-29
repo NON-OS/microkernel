@@ -14,48 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Delivering a caught signal to the thread returning from a syscall. The
-//! handler is entered with the interrupted syscall's return value already in
-//! rax, so when it returns through rt_sigreturn the program sees that value.
-//! Only the trapping thread is delivered to here; a signal raised against a
-//! thread parked elsewhere waits in the queue until that thread next traps.
+//! A thread taking the signals it may take. A caught one enters its handler
+//! through Linux's rt_sigframe; an uncaught one does what its default says,
+//! and a default of ending the process ends all of it. A thread takes them
+//! when it returns from a call, with the call's value in rax (maybe_deliver);
+//! when a signal ends the wait it is parked in (deliver_wait); and when the
+//! kernel stops it running, on the registers it stopped with (deliver_on).
 
-use nonos_libc::{mk_foreign_context, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER};
+use nonos_libc::{mk_foreign_context, ForeignRegs};
 
-use crate::linux::call::sigframe::build;
+use super::deliver_enter::enter;
+use super::deliver_say::stop_unserved;
+use crate::linux::call::killed;
+use crate::linux::guest::sigdefault::{default_of, Default};
 use crate::linux::guest::Guest;
 
 /// rax in the register word order.
 const RAX: usize = 13;
 
-/// True when a handler was entered, so the caller must not also reply.
+/// True when the thread was answered, into a handler or by its process
+/// ending, so the caller must not also reply.
 pub fn maybe_deliver(guest: &mut Guest, tid: u32, reply: u64) -> bool {
-    let Some((signum, act)) = guest.signals.take_caught(tid) else {
+    if guest.signals.pending_for(tid) & !guest.signals.blocked(tid) == 0 {
         return false;
-    };
+    }
     let mut regs: ForeignRegs = [0; 18];
-    let built = (mk_foreign_context(tid, &mut regs) == 0).then(|| {
-        regs[RAX] = reply;
-        build(&regs, act.handler, act.restorer, u32::from(signum), 0)
-    });
-    let Some(Some((_, buf, enter))) = built else {
-        // Could not read the thread or shape a frame: keep the signal pending.
-        guest.signals.raise(tid, signum);
-        return false;
-    };
-    if guest.write(enter[15], &buf) < buf.len() as i64 {
-        guest.signals.raise(tid, signum);
+    if mk_foreign_context(tid, &mut regs) != 0 {
         return false;
     }
-    if mk_foreign_signal(tid, &enter, SIGNAL_DELIVER) != 0 {
-        guest.signals.raise(tid, signum);
-        return false;
-    }
-    say(tid, signum, act.handler);
-    true
+    regs[RAX] = reply;
+    deliver_on(guest, tid, regs)
 }
 
-fn say(tid: u32, signum: u8, handler: u64) {
-    let line = alloc::format!("[LINUX] signal {signum} to tid {tid}, handler {handler:#x}\n");
-    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+/// Take what `tid` may take and act on it, over `regs` as they stand. For a
+/// frame the kernel stopped while running as much as for a returning call.
+pub fn deliver_on(guest: &mut Guest, tid: u32, regs: ForeignRegs) -> bool {
+    loop {
+        let allow = !guest.signals.blocked(tid);
+        let Some(info) = guest.signals.take(tid, allow) else {
+            return false;
+        };
+        let act = guest.signals.action(info.signo as usize).unwrap_or_default();
+        if act.catches() {
+            return enter(guest, tid, &regs, info);
+        }
+        if act.ignores() {
+            continue;
+        }
+        match default_of(info.signo) {
+            Default::Terminate => {
+                killed(guest, info.signo);
+                return true;
+            }
+            Default::Stop => stop_unserved(info.signo),
+            Default::Ignore | Default::Continue => {}
+        }
+    }
 }

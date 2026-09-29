@@ -25,4 +25,5 @@ pub mod nr;
 pub mod nr_high;
 pub mod nr_path;
 pub mod nr_sched;
+pub mod nr_sig;
 pub mod nr_sock;

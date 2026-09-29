@@ -14,40 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `fork`.
-
-use nonos_libc::{mk_foreign_fork, mk_foreign_resume};
+//! `fork`: a copy of the calling process that raises SIGCHLD when it ends.
 
 use crate::linux::abi::errno;
+use crate::linux::guest::sigstate::SIGCHLD;
 use crate::linux::guest::Guest;
 use crate::linux::serve::Answer;
 
-use super::fork_copy::copy_spans;
+use super::fork_child::fork_child;
 
 pub fn fork(guest: &mut Guest, caller: u32) -> Answer {
-    let child = mk_foreign_fork(caller);
-    if child < 0 {
-        return Answer::value(errno::fail(errno::ENOMEM));
+    match fork_child(guest, caller, 0, SIGCHLD, |_| {}) {
+        Ok(child) => Answer::value(errno::ok(child as u64)),
+        Err(e) => Answer::value(e),
     }
-    let child = child as u32;
-    if !copy_spans(guest, child) {
-        return Answer::value(errno::fail(errno::ENOMEM));
-    }
-    /*
-     * The thread pointer is a register, not memory, so copying the spans does
-     * not carry it. The kernel fork carries the forking thread's own FS to the
-     * child, which is right whichever thread forked; the personality's single
-     * fs_base is only the last thread to set one and would be wrong here.
-     */
-    /*
-     * The child's state goes to the serve loop before the child runs, so its
-     * first trap finds a guest that owns it.
-     */
-    guest.forked.push(guest.fork_state(child));
-    if mk_foreign_resume(child) < 0 {
-        guest.forked.pop();
-        return Answer::value(errno::fail(errno::ENOMEM));
-    }
-    guest.children.push(child);
-    Answer::value(errno::ok(child as u64))
 }

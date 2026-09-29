@@ -25,6 +25,7 @@ use super::table_link::link_ops;
 use super::table_mem::mem_ops;
 use super::table_net::net_ops;
 use super::table_proc::proc_ops;
+use super::table_sig::sig_ops;
 
 pub fn plain(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
     if let Some(v) = file_ops(guest, tid, nr, a) {
@@ -42,6 +43,9 @@ pub fn plain(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
     if let Some(v) = proc_ops(guest, nr, a) {
         return v;
     }
+    if let Some(v) = sig_ops(guest, tid, nr, a) {
+        return v;
+    }
     rest(guest, tid, nr, a)
 }
 
@@ -53,9 +57,6 @@ fn rest(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
         np::GETRLIMIT => call::getrlimit(guest, a[0], a[1]),
         np::UMASK => call::umask(guest, a[0]),
         np::PRLIMIT64 => call::prlimit64(guest, a[1], a[2], a[3]),
-        nr::RT_SIGACTION => call::rt_sigaction(guest, a[0], a[1], a[2]),
-        nr::RT_SIGPROCMASK => call::rt_sigprocmask(guest, a[2]),
-        nr::SIGALTSTACK => call::sigaltstack(guest, a[1]),
         nr::RSEQ | nr::SET_ROBUST_LIST => errno::ok(0),
         nr::ARCH_PRCTL => call::arch_prctl(guest, tid, a[0], a[1]),
         nr::GETRANDOM => call::getrandom(guest, a[0], a[1], a[2]),

@@ -14,58 +14,47 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Signals raised against a process's threads and not yet delivered, with the
-//! disposition of each. The queue names the thread a signal is for.
+//! Signals raised against a process and not yet taken, with the disposition
+//! of each. An entry names the thread it is for, or 0 for the process as a
+//! whole, which any thread not blocking it may take, as on Linux.
 
 use alloc::vec::Vec;
 
+use super::siginfo::SigInfo;
 use super::sigstate::{SigAction, NSIG};
+use super::sigthread::ThreadSig;
+use super::sigtimer::{Itimer, PosixTimer};
+use super::sigwaits::{ChildWait, Outbound, SigWait};
+
+/// Linux's default RLIMIT_SIGPENDING for a small machine: how many queued
+/// realtime signals a process may hold before sigqueue answers EAGAIN.
+pub const QUEUE_MAX: usize = 1024;
 
 #[derive(Clone)]
 pub struct Signals {
-    actions: [SigAction; NSIG],
-    pending: Vec<(u32, u8)>,
-}
-
-impl Default for Signals {
-    fn default() -> Self {
-        Self { actions: [SigAction::default(); NSIG], pending: Vec::new() }
-    }
-}
-
-impl Signals {
-    /// Record a disposition; `signum` is 1..=NSIG.
-    pub fn set(&mut self, signum: usize, act: SigAction) {
-        if (1..=NSIG).contains(&signum) {
-            self.actions[signum - 1] = act;
-        }
-    }
-
-    pub fn action(&self, signum: usize) -> Option<SigAction> {
-        (1..=NSIG).contains(&signum).then(|| self.actions[signum - 1])
-    }
-
-    /// Queue a signal against a thread. A standard signal already pending is
-    /// not queued twice, as Linux coalesces non-realtime signals.
-    pub fn raise(&mut self, tid: u32, signum: u8) {
-        if !self.pending.iter().any(|p| *p == (tid, signum)) {
-            self.pending.push((tid, signum));
-        }
-    }
-
-    /// The next signal for `tid` its disposition catches, removed. Signals
-    /// with no handler are left for the caller to default.
-    pub fn take_caught(&mut self, tid: u32) -> Option<(u8, SigAction)> {
-        let at = self
-            .pending
-            .iter()
-            .position(|(t, s)| *t == tid && self.actions[*s as usize - 1].catches())?;
-        let signum = self.pending.remove(at).1;
-        Some((signum, self.actions[signum as usize - 1]))
-    }
-
-    /// Drop every signal pending for a thread that has gone.
-    pub fn forget(&mut self, tid: u32) {
-        self.pending.retain(|(t, _)| *t != tid);
-    }
+    pub(super) actions: [SigAction; NSIG],
+    pub(super) pending: Vec<(u32, SigInfo)>,
+    /// Each thread's mask, alternate stack and suspended mask.
+    pub(super) threads: Vec<ThreadSig>,
+    /// Signals for other processes of the family, and who sent each.
+    pub outbox: Vec<Outbound>,
+    /// ITIMER_REAL, and the POSIX timers timer_create made.
+    pub real: Option<Itimer>,
+    pub timers: Vec<PosixTimer>,
+    /// Threads parked in pause, sigsuspend or sigtimedwait.
+    pub sigwaits: Vec<SigWait>,
+    /// Threads parked in wait4 or waitid.
+    pub childwaits: Vec<ChildWait>,
+    /// Set once the leader has made a plain exit while other threads run on.
+    pub leader_gone: bool,
+    /// A vfork parent's thread, parked until this child execs or ends.
+    pub vfork: Option<u32>,
+    /// What this process raises at its parent when it ends; clone names it.
+    pub exit_signal: u8,
+    /// Children that raise something other than SIGCHLD, for __WCLONE.
+    pub clone_kids: Vec<u32>,
+    /// The process group each ended child was in, for a wait by group.
+    pub kid_groups: Vec<(u32, u32)>,
+    /// The mask of each signalfd, named by its descriptor's handle.
+    pub sigfds: Vec<u64>,
 }
