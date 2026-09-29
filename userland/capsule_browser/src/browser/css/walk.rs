@@ -21,6 +21,8 @@ mod order;
 mod pres_hints;
 mod spans;
 mod styling;
+mod svg_paint;
+mod svg_value;
 mod tree;
 mod walker;
 

@@ -59,7 +59,8 @@ pub(in crate::browser::css) fn style(
         st.c.table.valign = parent.table.valign;
     }
     st.run(&order);
-    let Styling { mut c, bg, grid, counters, .. } = st;
+    let Styling { mut c, bg, grid, counters, vars, .. } = st;
+    w.out.svg_paint[id] = super::svg_paint::svg_paint(node, &order, vars, &c);
     if node.tag == "noscript" && !w.noscript {
         c.display_none = true;
     }

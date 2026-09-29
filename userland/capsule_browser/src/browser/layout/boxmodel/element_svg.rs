@@ -58,7 +58,7 @@ pub(super) fn element_svg(
         _ => {}
     }
     let size = style.width.definite_px().zip(style.height.definite_px());
-    let src = format!("data:image/svg+xml,{}", serialize_svg(w.dom, item.ch, size));
+    let src = format!("data:image/svg+xml,{}", serialize_svg(w.dom, w.svg_paint, item.ch, size));
     let mut b = leaf(BoxKind::Image { src, alt: String::new() }, parent, link, item.ch);
     b.style = style;
     b

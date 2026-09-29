@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::boxed::Box;
 use alloc::string::String;
 
 use crate::browser::dom::Dom;
@@ -38,6 +39,7 @@ pub fn build(
     dom: &Dom,
     styles: Styles<'_>,
     bg_images: &[Option<String>],
+    svg_paint: &[Option<Box<str>>],
     grids: Grids<'_>,
     pseudos: Pseudos<'_>,
     natural: Natural<'_>,
@@ -45,7 +47,7 @@ pub fn build(
     let root_id = root_id(dom);
     let style = styles[root_id];
     let mut count = 0usize;
-    let mut w = Walk { dom, styles, bg_images, grids, pseudos, count: &mut count };
+    let mut w = Walk { dom, styles, bg_images, svg_paint, grids, pseudos, count: &mut count };
     let children = collect(&mut w, root_id, &style, &None, 0);
     let mut root = BoxNode {
         kind: BoxKind::Block,

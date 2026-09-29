@@ -42,6 +42,7 @@ pub(in crate::browser::css) struct Sheet<'a> {
 pub(in crate::browser::css) struct Out {
     pub styles: Styles,
     pub bg_images: Vec<Option<String>>,
+    pub svg_paint: Vec<Option<Box<str>>>,
     pub grids: Vec<Option<Box<GridSpec>>>,
     /* Boxed while the walk grows the list: a push or a sort moves a
      * pointer, not the style. */

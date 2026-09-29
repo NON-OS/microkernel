@@ -35,12 +35,12 @@ pub(super) use sheets::{Author, Inputs};
 pub use styles::Styles;
 
 /* The cascade output, per node: the computed style, the background image
- * (a url or a gradient, kept beside the Copy style), the named-grid data
- * (template lines and areas on containers, requested placement on
- * items), and the pseudo-elements of the elements that have any. */
+ * (a url or a gradient), the resolved SVG paint style of SVG elements, the
+ * named-grid data and the pseudo-elements of the elements that have any. */
 pub struct Styled {
     pub styles: Styles,
     pub bg_images: Vec<Option<String>>,
+    pub svg_paint: Vec<Option<Box<str>>>,
     pub grids: Vec<Option<Box<GridSpec>>>,
     pub pseudos: Pseudos,
 }
@@ -68,6 +68,7 @@ pub(super) fn cascade(dom: &Dom, input: &Inputs) -> Styled {
     Styled {
         styles: out.styles,
         bg_images: out.bg_images,
+        svg_paint: out.svg_paint,
         grids: out.grids,
         pseudos: Pseudos::from(out.pseudos),
     }

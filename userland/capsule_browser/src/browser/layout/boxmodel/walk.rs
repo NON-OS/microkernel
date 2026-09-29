@@ -36,6 +36,7 @@ pub(super) struct Walk<'a, 'b> {
     pub dom: &'a Dom,
     pub styles: Styles<'a>,
     pub bg_images: &'a [Option<String>],
+    pub svg_paint: &'a [Option<Box<str>>],
     pub grids: Grids<'a>,
     pub pseudos: Pseudos<'a>,
     pub count: &'b mut usize,

@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::format;
+mod open_tag;
+
+use alloc::boxed::Box;
 use alloc::string::String;
 
 use crate::browser::dom::node::NodeKind;
 use crate::browser::dom::Dom;
+
+use open_tag::open_tag;
 
 /* Nesting kept when serializing; deeper content is left out. */
 const MAX_DEPTH: u32 = 256;
@@ -29,17 +33,27 @@ const MAX_DEPTH: u32 = 256;
  * `size`, the viewport CSS layout gave the box, replaces the root's own
  * width and height: CSS sizes override those attributes, and the rasterizer
  * maps a missing viewBox one unit to one px of this size. */
-pub(super) fn serialize_svg(dom: &Dom, id: usize, size: Size) -> String {
+pub(super) fn serialize_svg(dom: &Dom, paint: Paint, id: usize, size: Size) -> String {
     let mut out = String::new();
-    write_node(dom, id, &mut out, 0, Some(size));
+    write_node(dom, paint, id, &mut out, 0, Some(size));
     out
 }
 
 /* A viewport size in px, when layout knows it. */
-type Size = Option<(i32, i32)>;
+pub(super) type Size = Option<(i32, i32)>;
+
+/* The cascade's resolved SVG paint style, by node id. */
+type Paint<'a> = &'a [Option<Box<str>>];
 
 /* `root` is Some for the subtree's root, holding the size it is given. */
-fn write_node(dom: &Dom, id: usize, out: &mut String, depth: u32, root: Option<Size>) {
+fn write_node(
+    dom: &Dom,
+    paint: Paint,
+    id: usize,
+    out: &mut String,
+    depth: u32,
+    root: Option<Size>,
+) {
     if depth > MAX_DEPTH {
         return;
     }
@@ -47,24 +61,10 @@ fn write_node(dom: &Dom, id: usize, out: &mut String, depth: u32, root: Option<S
     match node.kind {
         NodeKind::Text => out.push_str(node.text.trim()),
         NodeKind::Element => {
-            out.push('<');
-            out.push_str(&node.tag);
-            if root.is_some() && node.attr("xmlns").is_none() {
-                out.push_str(" xmlns=\"http://www.w3.org/2000/svg\"");
-            }
-            let sized = root.flatten();
-            if let Some((w, h)) = sized {
-                out.push_str(&format!(" width=\"{}\" height=\"{}\"", w.max(0), h.max(0)));
-            }
-            let own = |k: &str| sized.is_none() || (k != "width" && k != "height");
-            for (k, v) in node.attrs.iter().filter(|(k, _)| own(k)) {
-                for part in [" ", k, "=\"", v, "\""] {
-                    out.push_str(part);
-                }
-            }
-            out.push('>');
+            let style = paint.get(id).and_then(|p| p.as_deref());
+            open_tag(node, style, root, out);
             for &ch in &node.children {
-                write_node(dom, ch, out, depth + 1, None);
+                write_node(dom, paint, ch, out, depth + 1, None);
             }
             for part in ["</", &node.tag, ">"] {
                 out.push_str(part);

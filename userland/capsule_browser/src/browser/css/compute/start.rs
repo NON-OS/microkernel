@@ -38,8 +38,13 @@ impl Inputs<'_> {
         let body = dom.nodes.iter().find(|n| n.kind == NodeKind::Element && n.tag == "body");
         let mut grids = Vec::new();
         grids.resize_with(n, || None);
-        let out =
-            Out { styles: Styles::new(n), bg_images: vec![None; n], grids, pseudos: Vec::new() };
+        let out = Out {
+            styles: Styles::new(n),
+            bg_images: vec![None; n],
+            svg_paint: vec![None; n],
+            grids,
+            pseudos: Vec::new(),
+        };
         Walker {
             dom,
             sib,

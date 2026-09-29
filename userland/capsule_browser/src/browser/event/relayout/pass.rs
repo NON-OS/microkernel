@@ -53,7 +53,7 @@ pub(super) fn run(state: &mut State) -> bool {
     /* A natural size is known once the raster, keyed by URL, decoded. */
     let (images, base) = (&state.images, state.base.as_ref());
     let natural = |src: &str| images.natural_for(base, src);
-    let root = build(dom, &s.styles, &s.bg_images, &s.grids, &s.pseudos, &natural);
+    let root = build(dom, &s.styles, &s.bg_images, &s.svg_paint, &s.grids, &s.pseudos, &natural);
     let doc = layout(&root, viewport);
     drop(root);
     /* The rectangles just produced are what a script gets when it

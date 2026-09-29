@@ -35,7 +35,7 @@ pub fn render_full(html: &str, vp: (u32, u32), natural: Natural<'_>) -> (dom::Do
     let d = dom::parse(html.as_bytes());
     let css = collect_css(&d);
     let s = compute_cached(&d, &css, vp, &mut None);
-    let root = build(&d, &s.styles, &s.bg_images, &s.grids, &s.pseudos, natural);
+    let root = build(&d, &s.styles, &s.bg_images, &s.svg_paint, &s.grids, &s.pseudos, natural);
     let doc = layout(&root, vp);
     (d, doc)
 }
