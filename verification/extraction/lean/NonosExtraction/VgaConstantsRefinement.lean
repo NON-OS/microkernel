@@ -49,6 +49,9 @@ theorem the_colorcode_value_wrapper_is_its_method (a : constants.ColorCode) :
 theorem the_screenchar_as_u16_wrapper_is_its_method (a : constants.ScreenChar) :
     screenchar_as_u16 a = constants.ScreenChar.as_u16 a := rfl
 
+theorem the_colorcode_new_wrapper_is_its_method (a b : constants.Color) :
+    colorcode_new a b = constants.ColorCode.new a b := rfl
+
 /-! ### How an attribute byte splits, and how a cell is packed
 
 A VGA text attribute is one byte: the low nibble is the foreground (with its
@@ -59,10 +62,12 @@ with nothing counted twice or dropped, and that `as_u16` puts the attribute in
 the high byte of the cell and the character in the low byte, which is the
 layout the hardware reads at `0xB8000`.
 
-`ColorCode::new` and `with_blink` are `const fn` constructors that are not
-extracted, so the bytes they build are written out here as arithmetic
-(`bg * 16 + fg`, and `128 + bg * 16 + fg`) rather than taken from the code.
-Nothing here covers the volatile writes that put a cell in the buffer.
+`ColorCode::new` is extracted: it keeps three bits of the background, so a
+bright background is drawn dark and the cell never blinks. It used to shift the
+whole background into place, and a bright background set bit 7 and blinked on
+the dark one. `with_blink` is not extracted, so the byte it builds is written
+out here as arithmetic (`128 + bg * 16 + fg`). Nothing here covers the volatile
+writes that put a cell in the buffer.
 -/
 
 theorem shifting_a_byte_right_by_four_is_the_bitvector_shift (x : Std.U8) :
@@ -146,21 +151,31 @@ theorem the_readers_recover_the_colours_new_and_with_blink_pack
   rw [colorcode_is_blinking_is_the_top_half_of_the_byte, hc]
   cases b <;> simp <;> omega
 
-/-- This records a defect in `ColorCode::new`. It computes `bg << 4 | fg` without
-    masking the background to three bits, and `Color` has eight bright
-    backgrounds (discriminants 8 to 15). For those the byte has bit 7 set, and
-    the readers here, which treat bit 7 as blink, decode it as a blinking cell
-    on the dark background `bg - 8`. `ColorCode::new(Color::White,
-    Color::DarkGray)` is the byte `0x8F`: blinking white on black. -/
-theorem a_bright_background_from_new_decodes_as_blinking_on_the_dark_one
-    (c : constants.ColorCode) (fg bg : Nat) (hfg : fg < 16) (hbg : 8 ≤ bg) (hbg' : bg < 16)
-    (hc : c.val = bg * 16 + fg) :
-    colorcode_is_blinking c = ok true ∧
-    ∃ g, colorcode_background c = ok g ∧ g.val = bg - 8 := by
-  obtain ⟨g, hg, hgv⟩ := colorcode_background_is_bits_four_to_six c
-  refine ⟨?_, g, hg, by rw [hgv, hc]; omega⟩
-  rw [colorcode_is_blinking_is_the_top_half_of_the_byte, hc]
-  simp; omega
+/-- The index of each `Color`, its `repr(u8)` discriminant. -/
+def colorIndex : constants.Color → Nat
+  | .Black => 0 | .Blue => 1 | .Green => 2 | .Cyan => 3 | .Red => 4 | .Magenta => 5
+  | .Brown => 6 | .LightGray => 7 | .DarkGray => 8 | .LightBlue => 9 | .LightGreen => 10
+  | .LightCyan => 11 | .LightRed => 12 | .Pink => 13 | .Yellow => 14 | .White => 15
+
+/-- `ColorCode::new` builds the background's low three bits times sixteen plus
+    the foreground, for all 256 pairs of colours. -/
+theorem colorcode_new_masks_the_background_to_three_bits (f b : constants.Color) :
+    ∃ c, colorcode_new f b = ok c ∧ c.val = colorIndex b % 8 * 16 + colorIndex f := by
+  cases f <;> cases b <;> exact ⟨_, rfl, rfl⟩
+
+/-- A cell built by `new` never blinks, reads back its foreground whole and its
+    background's low three bits. `new(White, DarkGray)` is white on black, where
+    it used to be blinking white on black. -/
+theorem colorcode_new_never_blinks (f b : constants.Color) :
+    ∃ c, colorcode_new f b = ok c ∧ colorcode_is_blinking c = ok false ∧
+      (∃ g, colorcode_background c = ok g ∧ g.val = colorIndex b % 8) ∧
+      (∃ h, colorcode_foreground c = ok h ∧ h.val = colorIndex f) := by
+  obtain ⟨c, hc, hv⟩ := colorcode_new_masks_the_background_to_three_bits f b
+  have hf : colorIndex f < 16 := by cases f <;> decide
+  obtain ⟨⟨h, hh, hhv⟩, ⟨g, hg, hgv⟩, hbl⟩ :=
+    the_readers_recover_the_colours_new_and_with_blink_pack c (colorIndex f) (colorIndex b % 8)
+      hf (Nat.mod_lt _ (by decide)) false (by rw [hv]; simp)
+  exact ⟨c, hc, hbl, ⟨g, hg, hgv⟩, ⟨h, hh, hhv⟩⟩
 
 /-- `screenchar_as_u16` never fails and packs the attribute into the high byte
     and the character into the low byte, so the attribute is `w / 256`, the
@@ -207,6 +222,7 @@ theorem screenchar_as_u16_of_the_blank_cell_is_0x0720 :
 #print axioms NonosExtraction.VgaConstants.the_colorcode_is_blinking_wrapper_is_its_method
 #print axioms NonosExtraction.VgaConstants.the_colorcode_value_wrapper_is_its_method
 #print axioms NonosExtraction.VgaConstants.the_screenchar_as_u16_wrapper_is_its_method
+#print axioms NonosExtraction.VgaConstants.the_colorcode_new_wrapper_is_its_method
 #print axioms NonosExtraction.VgaConstants.shifting_a_byte_right_by_four_is_the_bitvector_shift
 #print axioms NonosExtraction.VgaConstants.shifting_a_word_left_by_eight_is_the_bitvector_shift
 #print axioms NonosExtraction.VgaConstants.colorcode_foreground_is_the_low_nibble
@@ -215,7 +231,8 @@ theorem screenchar_as_u16_of_the_blank_cell_is_0x0720 :
 #print axioms NonosExtraction.VgaConstants.colorcode_is_blinking_is_the_top_half_of_the_byte
 #print axioms NonosExtraction.VgaConstants.colorcode_value_is_blink_background_and_foreground_recombined
 #print axioms NonosExtraction.VgaConstants.the_readers_recover_the_colours_new_and_with_blink_pack
-#print axioms NonosExtraction.VgaConstants.a_bright_background_from_new_decodes_as_blinking_on_the_dark_one
+#print axioms NonosExtraction.VgaConstants.colorcode_new_masks_the_background_to_three_bits
+#print axioms NonosExtraction.VgaConstants.colorcode_new_never_blinks
 #print axioms NonosExtraction.VgaConstants.screenchar_as_u16_is_attribute_high_and_character_low
 #print axioms NonosExtraction.VgaConstants.screenchar_as_u16_of_the_blank_cell_is_0x0720
 

@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.VgaColors
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_vga_colors
@@ -41,10 +42,109 @@ theorem the_fg_color_wrapper_is_its_method (a : Std.U8) :
 theorem the_bg_color_wrapper_is_its_method (a : Std.U8) :
     bg_color a = colors.bg_color a := rfl
 
+/-! ### Packing and unpacking a text-mode attribute byte
+
+A VGA text attribute is one byte: the foreground colour in the low nibble, the
+background in bits 4 to 6, and bit 7, which the Attribute Controller shows as
+blink with its power-on setting, which nothing in the tree changes. The
+theorems below establish that `fg_color` reads exactly the low nibble, that
+`bg_color` reads exactly bits 4 to 6, and that `make_attr` never fails, keeps
+the foreground's low nibble and the background's low three bits, and never
+sets bit 7. So a foreground above 15 cannot bleed into the background, and no
+background makes the text blink.
+
+`make_attr` used to shift the whole background into the high nibble and
+`bg_color` to read bit 7 as a fourth background bit, so a bright background
+rendered as blinking text on the dark one. `arch::x86_64::vga::ColorCode`
+already read the byte this way. No kernel code calls `make_attr`, `fg_color`
+or `bg_color` today; the boot splash passes the colour constants of this module
+to its own writer.
+-/
+
+private theorem shr_u8 (x : Std.U8) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 8) :
+    ∃ z : Std.U8, x >>> k = ok z ∧ z.val = x.val / 2 ^ k.toNat := by
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftRight_IScalar_spec x k h0 (by simpa using h1))
+  exact ⟨z, hz, by rw [hv, Nat.shiftRight_eq_div_pow]⟩
+
+private theorem shl_u8 (x : Std.U8) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 8) :
+    ∃ z : Std.U8, x <<< k = ok z ∧ z.val = x.val * 2 ^ k.toNat % 2 ^ 8 := by
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftLeft_IScalar_spec x k (UScalar.size .U8) h0
+      (by simpa using h1) rfl)
+  exact ⟨z, hz, by rw [hv, Nat.shiftLeft_eq]; simp [U8.size, U8.numBits]⟩
+
+/-- The foreground is the low nibble of the attribute, all four bits of it. -/
+theorem fg_color_is_the_low_nibble (a : Std.U8) :
+    ∃ f : Std.U8, fg_color a = ok f ∧ f.val = a.val % 16 := by
+  unfold fg_color colors.fg_color
+  exact ⟨_, rfl, Bits.land_low_mask a 15#u8 4 rfl⟩
+
+/-- The background is bits 4 to 6 of the attribute; bit 7 is not read. -/
+theorem bg_color_is_bits_four_to_six (a : Std.U8) :
+    ∃ g : Std.U8, bg_color a = ok g ∧ g.val = a.val / 16 % 8 := by
+  unfold bg_color colors.bg_color
+  obtain ⟨z, hz, hv⟩ := shr_u8 a 4#i32 (by decide) (by decide)
+  simp only [hz, bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  rw [Bits.land_low_mask z 7#u8 3 rfl, hv]
+  rfl
+
+/-- The attribute `0x8F`, white with bit 7 set, decodes to background 0, as the
+    arch `ColorCode::background` does, where it used to decode to background 8. -/
+theorem bg_color_leaves_bit_seven_to_blink :
+    bg_color 0x8F#u8 = ok 0#u8 ∧ fg_color 0x8F#u8 = ok 15#u8 := by
+  constructor <;> rfl
+
+/-- `make_attr` never fails, and the byte it builds is the background's low three
+    bits times sixteen plus the foreground's low nibble; bit 7 is never set. -/
+theorem make_attr_packs_the_colour_fields (fg bg : Std.U8) :
+    ∃ a : Std.U8, make_attr fg bg = ok a ∧ a.val = bg.val % 8 * 16 + fg.val % 16 ∧
+      a.val < 128 := by
+  unfold make_attr colors.make_attr
+  have hb : (bg &&& 7#u8).val = bg.val % 8 := Bits.land_low_mask bg 7#u8 3 rfl
+  obtain ⟨z, hz, hv⟩ := shl_u8 (bg &&& 7#u8) 4#i32 (by decide) (by decide)
+  simp only [hz, bind_tc_ok, lift]
+  refine ⟨_, rfl, ?_⟩
+  rw [UScalar.val_or, Bits.land_low_mask fg 15#u8 4 rfl, hv, hb]
+  simp only [show (4#i32 : Std.I32).toNat = 4 from rfl]
+  have hsh : bg.val % 8 * 2 ^ 4 % 2 ^ 8 = (bg.val % 8) <<< 4 := by
+    rw [Nat.shiftLeft_eq]; omega
+  have hlt : fg.val % 2 ^ 4 < 2 ^ 4 := Nat.mod_lt _ (by decide)
+  rw [hsh, ← Nat.shiftLeft_add_eq_or_of_lt hlt, Nat.shiftLeft_eq]
+  omega
+
+/-- Decoding what `make_attr` built gives back the foreground's low nibble and
+    the background's low three bits: neither field reaches the other or bit 7. -/
+theorem make_attr_round_trips_through_fg_color_and_bg_color (fg bg : Std.U8) :
+    ∃ a f g : Std.U8, make_attr fg bg = ok a ∧ fg_color a = ok f ∧ bg_color a = ok g ∧
+      f.val = fg.val % 16 ∧ g.val = bg.val % 8 := by
+  obtain ⟨a, ha, hav, -⟩ := make_attr_packs_the_colour_fields fg bg
+  obtain ⟨f, hf, hfv⟩ := fg_color_is_the_low_nibble a
+  obtain ⟨g, hg, hgv⟩ := bg_color_is_bits_four_to_six a
+  refine ⟨a, f, g, ha, hf, hg, ?_, ?_⟩ <;> omega
+
+/-- For a foreground below 16 and a background below 8, the round trip is the
+    identity. -/
+theorem make_attr_then_decode_is_the_identity_on_the_fields (fg bg : Std.U8)
+    (hf : fg.val < 16) (hb : bg.val < 8) :
+    ∃ a, make_attr fg bg = ok a ∧ fg_color a = ok fg ∧ bg_color a = ok bg := by
+  obtain ⟨a, f, g, ha, hfa, hga, hfv, hgv⟩ :=
+    make_attr_round_trips_through_fg_color_and_bg_color fg bg
+  have e1 : f = fg := UScalar.eq_of_val_eq (by omega)
+  have e2 : g = bg := UScalar.eq_of_val_eq (by omega)
+  exact ⟨a, ha, e1 ▸ hfa, e2 ▸ hga⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.VgaColors.the_make_attr_wrapper_is_its_method
 #print axioms NonosExtraction.VgaColors.the_fg_color_wrapper_is_its_method
 #print axioms NonosExtraction.VgaColors.the_bg_color_wrapper_is_its_method
+#print axioms NonosExtraction.VgaColors.fg_color_is_the_low_nibble
+#print axioms NonosExtraction.VgaColors.bg_color_is_bits_four_to_six
+#print axioms NonosExtraction.VgaColors.bg_color_leaves_bit_seven_to_blink
+#print axioms NonosExtraction.VgaColors.make_attr_packs_the_colour_fields
+#print axioms NonosExtraction.VgaColors.make_attr_round_trips_through_fg_color_and_bg_color
+#print axioms NonosExtraction.VgaColors.make_attr_then_decode_is_the_identity_on_the_fields
 
 end NonosExtraction.VgaColors

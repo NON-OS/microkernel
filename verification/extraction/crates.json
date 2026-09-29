@@ -293,7 +293,8 @@
         "nonos_x_vga_constants::colorcode_background",
         "nonos_x_vga_constants::colorcode_is_blinking",
         "nonos_x_vga_constants::colorcode_value",
-        "nonos_x_vga_constants::screenchar_as_u16"
+        "nonos_x_vga_constants::screenchar_as_u16",
+        "nonos_x_vga_constants::colorcode_new"
       ]
     },
     {
