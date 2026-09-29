@@ -19,6 +19,7 @@
 //! was freed.
 
 use capsule_browser_proofs::browser::fonts::{self, family_key, TextRun};
+use nonos_toolkit::font::em::em_scale;
 use nonos_toolkit::font::ttf::{builtin_face, clear_glyph_cache, draw_text_tracked, FontRef};
 use nonos_toolkit::paint::PaintBuffer;
 
@@ -28,9 +29,10 @@ const SANS: &[u8] = include_bytes!("../../../toolkit/assets/fonts/NotoSans-Regul
 const BOLD: &[u8] = include_bytes!("../../../toolkit/assets/fonts/NotoSans-Bold.ttf");
 const TEXT: &str = "Hamburgefonstiv 0123 AVfi";
 
+/* Page text is drawn at its em, so the reference is too. */
 fn draw(f: &FontRef) -> Vec<u32> {
     let mut buf = vec![0xffff_ffffu32; 420 * 40];
-    draw_text_tracked(f, &mut buf, 420, 420, 40, 3, 5, TEXT, 0xff00_0000, 21.0, 0.0);
+    draw_text_tracked(f, &mut buf, 420, 420, 40, 3, 5, TEXT, 0xff00_0000, em_scale(f, 21.0), 0.0);
     buf
 }
 
@@ -55,7 +57,16 @@ fn page_draw(face: &[u8], len: usize) -> Vec<u32> {
     assert!(fonts::ingest_font(key, bytes));
     let mut px = vec![0xffff_ffffu32; 420 * 40];
     let mut fb = PaintBuffer { pixels: &mut px, stride_words: 420, width: 420, height: 40 };
-    let run = TextRun { key, mono: false, bold: false, x: 3, top_y: 5, px: 21.0, spacing: 0.0 };
+    let run = TextRun {
+        key,
+        mono: false,
+        bold: false,
+        italic: false,
+        x: 3,
+        top_y: 5,
+        px: 21.0,
+        spacing: 0.0,
+    };
     fonts::draw_text(&mut fb, run, TEXT, 0xff00_0000);
     px
 }

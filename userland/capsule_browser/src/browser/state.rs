@@ -28,6 +28,9 @@ pub enum View {
     Page,
 }
 
+/* Height of the browser chrome above the page, in pixels. */
+pub const CHROME_H: u32 = 80;
+
 pub struct State {
     pub address: String,
     pub address_focused: bool,
@@ -37,12 +40,12 @@ pub struct State {
     pub box_doc: Option<crate::browser::layout::boxmodel::BoxDocument>,
     pub page_dom: Option<crate::browser::dom::Dom>,
     pub world: Option<crate::browser::js::World>,
-    // The QuickJS engine that ran this page's scripts. It keeps the page's
-    // listeners and closure state alive so later UI events dispatch into it. The
-    // engine holds a pointer into `page_dom`, which keeps its address for the
-    // page's life, so a navigation drops the engine before replacing the DOM.
+    /* The QuickJS engine that ran this page's scripts. It keeps the page's
+     * listeners and closure state alive so later UI events dispatch into it. The
+     * engine holds a pointer into `page_dom`, which keeps its address for the
+     * page's life, so a navigation drops the engine before replacing the DOM. */
     pub engine: Option<nonos_qjs::Engine>,
-    // Whether the settings panel behind the menu button is open.
+    /* Whether the settings panel behind the menu button is open. */
     pub settings_open: bool,
     pub focus: Option<usize>,
     pub pending_post: Option<String>,
@@ -59,30 +62,33 @@ pub struct State {
     pub proxy: Option<ProxyConfig>,
     pub images: crate::browser::image::Store,
     pub image_queue: Vec<String>,
-    // Hops taken by the in-flight image fetch; bounds 3xx chasing.
+    /* Hops taken by the in-flight image fetch; bounds 3xx chasing. */
     pub image_redirects: u8,
-    // Alternates the free socket between script-issued fetches and images so a
-    // page whose JS never stops requesting cannot starve image loading.
+    /* Alternates the free socket between script-issued fetches and images so a
+     * page whose JS never stops requesting cannot starve image loading. */
     pub img_turn: bool,
-    // A TLS connection held open between image fetches, so a run of same-host
-    // images pays a single handshake.
+    /* A TLS connection held open between image fetches, so a run of same-host
+     * images pays a single handshake. */
     pub keep: Option<crate::browser::fetch::KeptConn>,
-    // Declared @font-face sources still to fetch, and the keys ever queued so
-    // a face is fetched at most once per page.
+    /* Declared @font-face sources still to fetch, and the keys ever queued so
+     * a face is fetched at most once per page. */
     pub font_queue: Vec<(u32, String)>,
     pub font_seen: Vec<u32>,
-    // Current content width in pixels, tracked from the paint surface so the
-    // page reflows when the window resizes instead of holding a fixed width.
+    /* Current content width in pixels, tracked from the paint surface so the
+     * page reflows when the window resizes instead of holding a fixed width. */
     pub viewport_w: u32,
-    // External stylesheets: URLs still to fetch, and the CSS text gathered so
-    // far. Applied on top of the page's inline <style> at each re-layout.
+    /* Page height in pixels below the chrome, which vh units and fixed boxes
+     * resolve against; tracked from the paint surface like the width. */
+    pub viewport_h: u32,
+    /* External stylesheets: URLs still to fetch, and the CSS text gathered so
+     * far. Applied on top of the page's inline <style> at each re-layout. */
     pub css_queue: Vec<String>,
     pub page_css: String,
-    // External <script src> bundles still to fetch. Each is evaluated in the
-    // page engine as it arrives, in document order, so framework bundles run.
+    /* External <script src> bundles still to fetch. Each is evaluated in the
+     * page engine as it arrives, in document order, so framework bundles run. */
     pub script_queue: Vec<String>,
-    // Author rules parsed once and reused across relayouts when the CSS text
-    // is unchanged, so JS-driven relayouts skip re-parsing the whole sheet.
+    /* Author rules parsed once and reused across relayouts when the CSS text
+     * is unchanged, so JS-driven relayouts skip re-parsing the whole sheet. */
     pub css_cache: Option<crate::browser::css::CssCache>,
 }
 
@@ -121,6 +127,7 @@ impl State {
             font_queue: Vec::new(),
             font_seen: Vec::new(),
             viewport_w: crate::browser::manifest::WIDTH,
+            viewport_h: crate::browser::manifest::HEIGHT - CHROME_H,
             css_queue: Vec::new(),
             page_css: String::new(),
             css_cache: None,

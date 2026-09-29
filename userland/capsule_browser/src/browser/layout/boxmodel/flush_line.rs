@@ -22,8 +22,8 @@ use super::ctx::Ctx;
 use super::display_list::{Content, DisplayList, Fragment};
 use super::inline_items::InlineItem;
 
-// Emit one finished line box at (x, top) and return the height consumed.
-// `pending` holds (line-relative x, item); `line_w` is the used width.
+/* Emit one finished line box at (x, top) and return the height consumed.
+ * `pending` holds (line-relative x, item); `line_w` is the used width. */
 pub(super) fn flush_line(
     frags: &mut DisplayList,
     pending: &mut Vec<(i32, InlineItem)>,
@@ -36,7 +36,7 @@ pub(super) fn flush_line(
     ctx: Ctx,
 ) -> i32 {
     if pending.is_empty() {
-        // Blank line from consecutive breaks still takes vertical room.
+        /* Blank line from consecutive breaks still takes vertical room. */
         return line_h;
     }
     let extra = (w - line_w).max(0);
@@ -57,71 +57,33 @@ pub(super) fn flush_line(
                 underline,
                 font,
                 spacing,
+                italic,
                 href,
                 adv,
                 node,
                 ..
             } => {
-                frags.push(Fragment {
-                    x: x + shift + ix,
-                    y: top,
-                    w: adv,
-                    h: line_h,
-                    bg,
-                    border: [0; 4],
-                    border_color: 0,
-                    href,
-                    content: Content::Text {
-                        text,
-                        color,
-                        px: px as f32,
-                        bold,
-                        mono,
-                        underline,
-                        font,
-                        spacing,
-                    },
-                    z: ctx.z,
-                    clip: ctx.clip,
-                    fixed: ctx.fixed,
-                    sticky: ctx.sticky,
-                    alpha: ctx.alpha,
-                    bg_image: None,
-                    bg_size: crate::browser::css::BgSize::Auto,
-                    bg_repeat: true,
-                    shadow: None,
-                    radius: 0,
-                    node,
-                });
+                let px = px as f32;
+                let text =
+                    Content::Text { text, color, px, bold, mono, underline, font, spacing, italic };
+                let r = [x + shift + ix, top, adv, line_h];
+                frags.push(Fragment::leaf(r, bg, text, href, node, &ctx));
             }
             InlineItem::Image { src, alt, w: iw, h: ih, href, node, fit } => {
-                frags.push(Fragment {
-                    x: x + shift + ix,
-                    y: top + (line_h - ih).max(0) / 2,
-                    w: iw,
-                    h: ih,
-                    bg: 0,
-                    border: [0; 4],
-                    border_color: 0,
+                let r = [x + shift + ix, top + (line_h - ih).max(0) / 2, iw, ih];
+                frags.push(Fragment::leaf(
+                    r,
+                    0,
+                    Content::Image { src, alt, fit },
                     href,
-                    content: Content::Image { src, alt, fit },
-                    z: ctx.z,
-                    clip: ctx.clip,
-                    fixed: ctx.fixed,
-                    sticky: ctx.sticky,
-                    alpha: ctx.alpha,
-                    bg_image: None,
-                    bg_size: crate::browser::css::BgSize::Auto,
-                    bg_repeat: true,
-                    shadow: None,
-                    radius: 0,
                     node,
-                });
+                    &ctx,
+                ));
             }
             InlineItem::Atom { frags: sub, h, .. } => {
-                // Shift the inline-block's own fragments, laid out at the
-                // origin, into its slot on the line, sitting on the line's
-                // bottom edge so it aligns with the text run.
+                /* Shift the inline-block's own fragments, laid out at the
+                 * origin, into its slot on the line, sitting on the line's
+                 * bottom edge so it aligns with the text run. */
                 let dx = x + shift + ix;
                 let dy = top + (line_h - h).max(0);
                 for mut f in sub {

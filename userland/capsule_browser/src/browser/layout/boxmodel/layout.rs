@@ -16,39 +16,45 @@
 
 use alloc::vec::Vec;
 
-use super::containing::Containing;
 use super::ctx::Ctx;
 use super::display_list::{BoxDocument, DisplayList};
+use super::geom::containing::Containing;
+use super::geom::margins::margins;
 use super::layout_box::layout_box;
+use super::post::canvas::canvas;
+use super::post::place_out::place_root;
+use super::post::unsized_imgs::unsized_imgs;
 use super::tree::BoxNode;
 
-// Lay the whole page: the root (body) box against the viewport width. The
-// viewport is the initial containing block; fragments sort by stacking z so
-// the painter and hit-testing agree on order.
-pub fn layout(root: &BoxNode, viewport_w: u32) -> BoxDocument {
+/* Lay the whole page: the root element's box against the viewport, (width,
+ * height) in px, which is also the initial containing block and the block
+ * fixed boxes pin to. The root's background becomes the canvas. Fragments
+ * sort by stacking z so the painter and hit-testing agree on order. */
+pub fn layout(root: &BoxNode, viewport: (u32, u32)) -> BoxDocument {
+    let vp = (viewport.0 as i32, viewport.1 as i32);
     let mut frags: DisplayList = Vec::new();
-    let s = &root.style;
-    let (ml, mr) = (s.margin_left as i32, s.margin_right as i32);
-    let (mt, mb) = (s.margin_top as i32, s.margin_bottom as i32);
-    let avail = (viewport_w as i32 - ml - mr).max(0);
+    let [mt, mr, mb, ml] = margins(&root.style, vp.0);
     let ctx = Ctx {
-        cb: Containing {
-            x: 0,
-            y: 0,
-            w: viewport_w as i32,
-            h: Some(crate::browser::manifest::HEIGHT as i32),
-        },
+        cb: Containing { w: vp.0, h: Some(vp.1) },
         clip: None,
         z: 0,
         fixed: false,
         sticky: None,
         alpha: 255,
+        vp,
+        pin: None,
     };
-    let h = layout_box(root, ml, mt, avail, &mut frags, 0, ctx);
+    let h = layout_box(root, ml, mt, (vp.0 - ml - mr).max(0), &mut frags, 0, ctx);
+    place_root(root, &mut frags, ctx);
+    let (canvas_bg, canvas_bg_image) = canvas(root, &mut frags);
     frags.sort_by_key(|f| f.z);
+    /* The page is as tall as the lowest thing that scrolls with it, less
+     * what an overflow clip cuts off. */
     let mut bottom = mt + h + mb;
-    for f in &frags {
-        bottom = bottom.max(f.y + f.h);
+    for f in frags.iter().filter(|f| !f.fixed) {
+        let end = f.y.saturating_add(f.h);
+        bottom = bottom.max(f.clip.map_or(end, |c| end.min(c[3])));
     }
-    BoxDocument { frags, content_h: bottom.max(0) as u32 }
+    let content_h = bottom.max(0) as u32;
+    BoxDocument { frags, content_h, canvas_bg, canvas_bg_image, unsized_imgs: unsized_imgs(root) }
 }

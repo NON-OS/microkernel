@@ -16,9 +16,12 @@
 
 mod bg_image;
 mod bg_tile;
+mod borders;
 mod box_fragment;
 mod box_page;
+mod canvas;
 pub mod chrome;
+mod corners;
 pub mod document;
 mod fade;
 mod fill_page;
@@ -26,6 +29,8 @@ mod fill_rounded;
 mod grad;
 pub mod home_page;
 mod paint;
+mod paint_image;
+mod paint_text;
 mod shadow;
 
 pub use paint::paint;

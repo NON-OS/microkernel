@@ -16,7 +16,7 @@
 
 use alloc::string::String;
 
-// One atom of an inline formatting context, pre-measured at collect time.
+/* One atom of an inline formatting context, pre-measured at collect time. */
 pub(super) enum InlineItem {
     Word {
         text: String,
@@ -28,6 +28,7 @@ pub(super) enum InlineItem {
         underline: bool,
         font: u32,
         spacing: f32,
+        italic: bool,
         href: Option<String>,
         adv: i32,
         space: i32,
@@ -43,8 +44,8 @@ pub(super) enum InlineItem {
         node: usize,
         fit: crate::browser::css::ObjectFit,
     },
-    // An inline-block, laid out in its own coordinate space at the origin; the
-    // line box places it by shifting its whole fragment run into the slot.
+    /* An inline-block, laid out in its own coordinate space at the origin; the
+     * line box places it by shifting its whole fragment run into the slot. */
     Atom {
         frags: super::display_list::DisplayList,
         w: i32,

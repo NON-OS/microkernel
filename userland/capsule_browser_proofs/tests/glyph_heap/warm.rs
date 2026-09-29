@@ -47,7 +47,16 @@ fn a_page_face_is_parsed_once_not_per_call() {
     let mut px = vec![0xffff_ffffu32; 800 * 60];
     let mut fb = PaintBuffer { pixels: &mut px, stride_words: 800, width: 800, height: 60 };
     let mut repaint = || {
-        let run = TextRun { key, mono: false, bold: false, x: 4, top_y: 6, px: 17.0, spacing: 0.0 };
+        let run = TextRun {
+            key,
+            mono: false,
+            bold: false,
+            italic: false,
+            x: 4,
+            top_y: 6,
+            px: 17.0,
+            spacing: 0.0,
+        };
         fonts::draw_text(&mut fb, run, TEXT, 0xff00_0000);
         fonts::measure_text(key, false, false, TEXT, 17.0, 0.0)
     };

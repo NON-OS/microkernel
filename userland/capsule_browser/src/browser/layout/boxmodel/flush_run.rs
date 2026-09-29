@@ -20,7 +20,7 @@ use crate::browser::css::Computed;
 
 use super::tree::{BoxKind, BoxNode};
 
-// Wrap a pending run of inline children in one anonymous block and append it.
+/* Wrap a pending run of inline children in one anonymous block and append it. */
 pub(super) fn flush_run(out: &mut Vec<BoxNode>, run: &mut Vec<BoxNode>, parent: &Computed) {
     if run.is_empty() {
         return;
@@ -33,5 +33,6 @@ pub(super) fn flush_run(out: &mut Vec<BoxNode>, run: &mut Vec<BoxNode>, parent: 
         bg_image: None,
         grid_place: None,
         children: core::mem::take(run),
+        aux: Default::default(),
     });
 }

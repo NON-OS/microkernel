@@ -18,16 +18,19 @@ use alloc::vec::Vec;
 
 use crate::browser::css::Computed;
 
+use super::abs_out_of_flow::out_of_flow;
 use super::flush_run::flush_run;
 use super::tree::BoxNode;
 
-// Rewrap a child list so every contiguous inline run sits in one anonymous
-// block and block-level children pass through in order.
+/* Rewrap a child list so every contiguous inline run sits in one anonymous
+ * block and block-level children pass through in order. An out-of-flow box
+ * passes through too: wrapped, it would make an empty in-flow block (a flex
+ * item taking a gap) around something that takes no space. */
 pub(super) fn wrap_runs(parent: &Computed, children: Vec<BoxNode>) -> Vec<BoxNode> {
     let mut out: Vec<BoxNode> = Vec::new();
     let mut run: Vec<BoxNode> = Vec::new();
     for c in children {
-        if c.kind.block_level() {
+        if c.kind.block_level() || out_of_flow(&c.style) {
             flush_run(&mut out, &mut run, parent);
             out.push(c);
         } else {

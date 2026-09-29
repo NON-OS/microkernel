@@ -17,7 +17,7 @@
 use crate::browser::css::computed::{Computed, ObjectFit, Size};
 use crate::browser::css::parse_size::parse_size;
 
-// Width and height with their min/max clamps. `none` lifts a clamp.
+/* Width and height with their min/max clamps. `none` lifts a clamp. */
 pub(super) fn apply_sizing(c: &mut Computed, name: &str, value: &str, fs: u32) -> bool {
     match name {
         "box-sizing" => match value.trim() {
@@ -67,7 +67,7 @@ pub(super) fn apply_sizing(c: &mut Computed, name: &str, value: &str, fs: u32) -
                 c.max_height = s;
             }
         }
-        _ => return false,
+        _ => return super::aspect::apply_aspect(c, name, value),
     }
     true
 }

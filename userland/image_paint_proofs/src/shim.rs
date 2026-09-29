@@ -45,6 +45,6 @@ pub fn render(html: &str, viewport_w: u32) -> BoxDocument {
     let d = dom::parse(html.as_bytes());
     let css = collect_css(&d);
     let s = compute(&d, &css);
-    let root = build(&d, &s.styles, &s.bg_images, &s.grids, &s.pseudos);
-    layout(&root, viewport_w)
+    let root = build(&d, &s.styles, &s.bg_images, &s.grids, &s.pseudos, &|_| None);
+    layout(&root, (viewport_w, 760))
 }

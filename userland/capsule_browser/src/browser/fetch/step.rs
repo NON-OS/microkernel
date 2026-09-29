@@ -27,9 +27,9 @@ pub fn step(state: &mut State) -> bool {
     let port = state.sockets_port;
     let now = rtc_packed::rtc_packed();
     {
-        // Surface page-fetch progress on the loading screen. Sub-resource
-        // fetches (stylesheets, images) are suppressed so they don't clobber
-        // the label while the page itself is already rendered.
+        /* Surface page-fetch progress on the loading screen. Sub-resource
+         * fetches (stylesheets, images) are suppressed so they don't clobber
+         * the label while the page itself is already rendered. */
         let progress =
             state.fetch.as_ref().filter(|f| !f.suppress).map(|f| {
                 alloc::format!("{} {}", super::progress::phase_label(f.phase), f.url.host)
@@ -102,21 +102,21 @@ pub fn step(state: &mut State) -> bool {
             Phase::Done => Some(job.buf.clone()),
             _ => None,
         };
-        // Keep the connection for the next same-host image when the response
-        // is intact and reusable; otherwise close it here.
+        /* Keep the connection for the next same-host image when the response
+         * is intact and reusable; otherwise close it here. */
         if !super::stash::stash(state, &mut job, raw.as_deref()) {
             let _ = net::socket_close(port, job.handle);
         }
-        // A request sent on a kept connection the server had silently dropped
-        // yields nothing; retry that image once over a fresh connection
-        // rather than recording a failure it never earned.
+        /* A request sent on a kept connection the server had silently dropped
+         * yields nothing; retry that image once over a fresh connection
+         * rather than recording a failure it never earned. */
         if matches!(job.phase, Phase::Error) && job.keep_uses > 0 {
             state.image_queue.insert(0, src);
             return true;
         }
         let resp = raw.as_deref().and_then(http::response::parse);
-        // CDNs answer image hits with 3xx routinely; chase the hop while
-        // keeping the pixels keyed to the URL the boxes reference.
+        /* CDNs answer image hits with 3xx routinely; chase the hop while
+         * keeping the pixels keyed to the URL the boxes reference. */
         if let Some(r) = resp.as_ref() {
             if matches!(r.status, 301 | 302 | 303 | 307 | 308) {
                 if let Some(loc) = r.location.as_deref() {
@@ -127,10 +127,15 @@ pub fn step(state: &mut State) -> bool {
                 }
             }
         }
-        // Route through ingest either way: a non-200 or empty body fails to
-        // decode and is recorded as such, so the box keeps its fallback look.
+        /* Route through ingest either way: a non-200 or empty body fails to
+         * decode and is recorded as such, so the box keeps its fallback look. */
         let body = resp.filter(|resp| resp.status == 200).map(|resp| resp.body).unwrap_or_default();
         crate::browser::image::ingest(&mut state.images, &src, &body);
+        /* A box that waited on this image's natural size lays out again. */
+        let sized = state.images.ready(&src).is_some();
+        if sized && state.box_doc.as_ref().is_some_and(|d| d.awaits(&src, state.base.as_ref())) {
+            crate::browser::event::relayout(state);
+        }
         return true;
     }
     let _ = net::socket_close(port, job.handle);
@@ -146,7 +151,7 @@ pub fn step(state: &mut State) -> bool {
             .filter(|r| r.status == 200)
             .map(|r| r.body)
             .unwrap_or_default();
-        // A face that parses changes every metric measured with it.
+        /* A face that parses changes every metric measured with it. */
         if crate::browser::fonts::ingest_font(job.font, body) {
             crate::browser::event::relayout(state);
         }
@@ -173,8 +178,8 @@ pub fn step(state: &mut State) -> bool {
             .filter(|r| r.status == 200)
             .map(|r| r.body)
             .unwrap_or_default();
-        // Evaluate the bundle in the page engine and lay the tree out again:
-        // a framework bundle builds its DOM here, which is the render.
+        /* Evaluate the bundle in the page engine and lay the tree out again:
+         * a framework bundle builds its DOM here, which is the render. */
         if !body.is_empty() {
             if let Some(engine) = state.engine.as_ref() {
                 let src = alloc::string::String::from_utf8_lossy(&body);
@@ -190,8 +195,8 @@ pub fn step(state: &mut State) -> bool {
             Phase::Done => Some(job.buf.clone()),
             _ => None,
         };
-        // Failed requests still call back with status 0 and an empty body
-        // so page code can branch on ok.
+        /* Failed requests still call back with status 0 and an empty body
+         * so page code can branch on ok. */
         let (status, body) = raw
             .as_deref()
             .and_then(http::response::parse)

@@ -62,7 +62,16 @@ fn a_hostile_page_face_draws_nothing_within_a_small_heap() {
     assert!(fonts::ingest_font(key, square_face(3000)));
     let mut px = vec![WHITE; 1400 * 1200];
     let mut fb = PaintBuffer { pixels: &mut px, stride_words: 1400, width: 1400, height: 1200 };
-    let run = TextRun { key, mono: false, bold: false, x: 0, top_y: 0, px: 16.0, spacing: 0.0 };
+    let run = TextRun {
+        key,
+        mono: false,
+        bold: false,
+        italic: false,
+        x: 0,
+        top_y: 0,
+        px: 16.0,
+        spacing: 0.0,
+    };
     let (_, heap) = measure(|| fonts::draw_text(&mut fb, run, "Hamburgefonstiv", 0xff00_0000));
     let peak = heap.peak;
     fonts::clear();

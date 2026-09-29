@@ -17,34 +17,38 @@
 use crate::browser::state::State;
 use crate::browser::{css, layout};
 
-// Rebuild styles, box tree and display list after a script mutation, an
-// external stylesheet arriving, or an image landing. Author CSS (fetched
-// stylesheets) cascades after the page's inline <style>.
+/* Rebuild styles, box tree and display list after a script mutation, an
+ * external stylesheet arriving, or an image landing. Author CSS (fetched
+ * stylesheets) cascades after the page's inline <style>. */
 pub fn relayout(state: &mut State) {
     let Some(dom) = state.page_dom.as_ref() else {
         return;
     };
     let mut css_text = css::collect_css(dom);
     css_text.push_str(&state.page_css);
-    let styled = css::compute_cached(dom, &css_text, &mut state.css_cache);
-    let root = layout::boxmodel::build(
-        dom,
-        &styled.styles,
-        &styled.bg_images,
-        &styled.grids,
-        &styled.pseudos,
-    );
-    let doc = layout::boxmodel::layout(&root, state.viewport_w);
-    // The rectangles just produced are what a script gets when it measures an
-    // element. Recording them here means a read after a layout sees the
-    // layout that happened rather than the one before it.
+    let viewport = (state.viewport_w, state.viewport_h);
+    let styled = css::compute_cached(dom, &css_text, viewport, &mut state.css_cache);
+    /* An image's natural size is known once its raster has decoded; the
+     * store is keyed by the absolute URL the fetch used. */
+    let (images, base) = (&state.images, state.base.as_ref());
+    let natural = |src: &str| {
+        let key = base.map_or_else(|| src.into(), |b| crate::browser::url::join(b, src));
+        images.ready(&key).map(|d| (d.w, d.h))
+    };
+    let s = &styled;
+    let root =
+        layout::boxmodel::build(dom, &s.styles, &s.bg_images, &s.grids, &s.pseudos, &natural);
+    let doc = layout::boxmodel::layout(&root, viewport);
+    /* The rectangles just produced are what a script gets when it measures an
+     * element. Recording them here means a read after a layout sees the
+     * layout that happened rather than the one before it. */
     if let Some(dom) = state.page_dom.as_mut() {
         dom.record_rects(doc.frags.iter().map(|f| (f.node, f.x, f.y, f.w, f.h)));
     }
     state.box_doc = Some(doc);
-    // Queue newly declared web fonts; each face is fetched once and text
-    // relayouts with its real metrics when it lands. A data: source, the way
-    // icon fonts ship, carries its bytes inline and installs on the spot.
+    /* Queue newly declared web fonts; each face is fetched once and text
+     * relayouts with its real metrics when it lands. A data: source, the way
+     * icon fonts ship, carries its bytes inline and installs on the spot. */
     for (key, src) in crate::browser::fonts::collect_font_faces(&css_text) {
         if state.font_seen.contains(&key) {
             continue;

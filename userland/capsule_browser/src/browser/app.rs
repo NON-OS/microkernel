@@ -39,11 +39,13 @@ impl App for Browser {
         on_event(&mut self.state, event)
     }
     fn paint(&mut self, fb: &mut PaintBuffer) {
-        // The window can be resized after the page laid out; when the surface
-        // width changes, reflow the document to the new width so it fills the
-        // window instead of leaving a fixed-width column.
-        if fb.width != 0 && fb.width != self.state.viewport_w {
-            self.state.viewport_w = fb.width;
+        /* The window can be resized after the page laid out; when the surface
+         * width or page height changes, reflow the document to the new size so
+         * it fills the window and vh units and fixed boxes track its height. */
+        let page_h = fb.height.saturating_sub(crate::browser::state::CHROME_H);
+        let size = (fb.width, page_h);
+        if fb.width != 0 && size != (self.state.viewport_w, self.state.viewport_h) {
+            (self.state.viewport_w, self.state.viewport_h) = size;
             crate::browser::event::relayout(&mut self.state);
         }
         paint(&self.state, fb);
@@ -56,10 +58,10 @@ impl App for Browser {
         50
     }
 
-    // A request on the wire, a queued navigation, or stylesheets, images or
-    // fonts still to fetch all mean the load must keep stepping. Reporting busy
-    // makes the runner yield rather than sleep, so the page advances through its
-    // fetch stages on its own instead of stalling until the pointer moves.
+    /* A request on the wire, a queued navigation, or stylesheets, images or
+     * fonts still to fetch all mean the load must keep stepping. Reporting busy
+     * makes the runner yield rather than sleep, so the page advances through its
+     * fetch stages on its own instead of stalling until the pointer moves. */
     fn busy(&self) -> bool {
         let s = &self.state;
         s.fetch.is_some()
@@ -73,10 +75,10 @@ impl App for Browser {
 
 impl Browser {
     fn tick_body(&mut self) -> bool {
-        // A pending navigation preempts any in-flight fetch. Page loads pull
-        // in stylesheets and images that keep the socket busy well after the
-        // document appears; without this the user could never navigate away
-        // from the address bar or a link while those sub-fetches ran.
+        /* A pending navigation preempts any in-flight fetch. Page loads pull
+         * in stylesheets and images that keep the socket busy well after the
+         * document appears; without this the user could never navigate away
+         * from the address bar or a link while those sub-fetches ran. */
         if self.state.pending_nav.is_some() {
             if let Some(job) = self.state.fetch.take() {
                 let _ = crate::browser::net::socket_close(self.state.sockets_port, job.handle);
@@ -99,21 +101,21 @@ impl Browser {
         if crate::browser::event::js_tick(&mut self.state) {
             return true;
         }
-        // Stylesheets stay render-blocking, so they claim the free socket first.
+        /* Stylesheets stay render-blocking, so they claim the free socket first. */
         if crate::browser::fetch::css_pump(&mut self.state) {
             return true;
         }
         if crate::browser::fetch::font_pump(&mut self.state) {
             return true;
         }
-        // External <script src> bundles load next, so a framework app runs and
-        // builds its DOM before images fill in.
+        /* External <script src> bundles load next, so a framework app runs and
+         * builds its DOM before images fill in. */
         if crate::browser::fetch::script_pump(&mut self.state) {
             return true;
         }
-        // Then alternate the socket between script-issued fetches and images.
-        // A page whose JS never stops requesting would otherwise hold the one
-        // socket forever and no image would ever load.
+        /* Then alternate the socket between script-issued fetches and images.
+         * A page whose JS never stops requesting would otherwise hold the one
+         * socket forever and no image would ever load. */
         let img_first = self.state.img_turn;
         self.state.img_turn = !self.state.img_turn;
         if img_first {

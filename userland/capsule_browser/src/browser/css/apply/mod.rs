@@ -15,20 +15,33 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod align;
+mod aspect;
 mod border;
+mod clip;
+mod clip_polygon;
 mod decl;
 mod display;
 mod flex;
 mod flex_shorthand;
 mod float;
+mod font_family;
+mod font_size;
 mod grid;
 mod list;
 mod margin;
+mod origin;
+mod overflow;
 mod padding;
 mod paint;
 mod position;
+mod radius;
 mod shadow;
 mod sizing;
 mod text;
+mod text_flow;
+mod transform;
+mod transform_fn;
+mod trig;
+mod visual;
 
 pub use decl::apply_decl;

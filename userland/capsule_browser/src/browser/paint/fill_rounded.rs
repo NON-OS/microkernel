@@ -16,35 +16,37 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use super::corners::{corners, inset};
 use super::fill_page::fill_page;
 
-// Rounded rect: one full-width band between the corner regions, then per-row
-// spans whose inset follows the corner circle.
+/* Rounded rect with a radius per corner (top-left, top-right, bottom-right,
+ * bottom-left): one full-width band between the corner rows, then per-row
+ * spans whose insets follow each corner's circle. A radius past half the
+ * shorter side shrinks to it, so a 50% radius on a square draws a circle
+ * and on a wide box a pill. */
 pub(super) fn fill_rounded(
     fb: &mut PaintBuffer,
     x: i32,
     y: i32,
     w: i32,
     h: i32,
-    radius: u32,
+    radius: [u16; 4],
     color: u32,
     clip: Option<[i32; 4]>,
 ) {
-    let r = (radius as i32).min(w / 2).min(h / 2).min(64);
-    if r <= 0 {
+    let r = corners(radius, w, h);
+    if r == [0; 4] {
         fill_page(fb, x, y, w, h, color, clip);
         return;
     }
-    fill_page(fb, x, y + r, w, h - 2 * r, color, clip);
-    for row in 0..r {
-        let dyc = (r - row - 1) as i64;
-        let rr = r as i64;
-        let mut span = 0i64;
-        while (span + 1) * (span + 1) + dyc * dyc <= rr * rr {
-            span += 1;
-        }
-        let inset = r - span as i32;
-        fill_page(fb, x + inset, y + row, w - 2 * inset, 1, color, clip);
-        fill_page(fb, x + inset, y + h - 1 - row, w - 2 * inset, 1, color, clip);
+    let (top, bot) = (r[0].max(r[1]), r[2].max(r[3]));
+    fill_page(fb, x, y + top, w, h - top - bot, color, clip);
+    for row in 0..top {
+        let (l, rr) = (inset(r[0], row), inset(r[1], row));
+        fill_page(fb, x + l, y + row, w - l - rr, 1, color, clip);
+    }
+    for row in 0..bot {
+        let (l, rr) = (inset(r[3], row), inset(r[2], row));
+        fill_page(fb, x + l, y + h - 1 - row, w - l - rr, 1, color, clip);
     }
 }

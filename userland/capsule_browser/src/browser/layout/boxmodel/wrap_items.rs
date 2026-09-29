@@ -18,13 +18,14 @@ use alloc::vec::Vec;
 
 use crate::browser::css::Computed;
 
+use super::abs_out_of_flow::out_of_flow;
 use super::tree::BoxNode;
 use super::wrap_runs::wrap_runs;
 
-// Flex containers treat every child as an item: inline runs get an anonymous
-// block each so the flex axis only ever sees block-level boxes.
+/* Flex containers treat every child as an item: inline runs get an anonymous
+ * block each so the flex axis only ever sees block-level boxes. */
 pub(super) fn wrap_items(parent: &Computed, children: Vec<BoxNode>) -> Vec<BoxNode> {
-    if children.iter().all(|c| c.kind.block_level()) {
+    if children.iter().all(|c| c.kind.block_level() || out_of_flow(&c.style)) {
         return children;
     }
     wrap_runs(parent, children)

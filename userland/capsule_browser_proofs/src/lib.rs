@@ -13,8 +13,11 @@ extern crate alloc;
 
 pub mod browser;
 pub mod grid_page;
+pub mod probe;
 pub mod render;
 
+#[cfg(test)]
+mod canvas_tests;
 #[cfg(test)]
 mod cascade_tests;
 #[cfg(test)]
@@ -30,7 +33,11 @@ mod dom_tests;
 #[cfg(test)]
 mod entity_tests;
 #[cfg(test)]
+mod fallback_tests;
+#[cfg(test)]
 mod float_tests;
+#[cfg(test)]
+mod fx_tests;
 #[cfg(test)]
 mod grid_auto_tests;
 #[cfg(test)]
@@ -40,14 +47,24 @@ mod grid_tests;
 #[cfg(test)]
 mod gzip_tests;
 #[cfg(test)]
+mod hostile_geom_tests;
+#[cfg(test)]
+mod math_len_tests;
+#[cfg(test)]
 mod narrow_tests;
 #[cfg(test)]
+mod pos_tests;
+#[cfg(test)]
 mod recv_pending_tests;
+#[cfg(test)]
+mod round2_tests;
 #[cfg(test)]
 mod selector_tests;
 #[cfg(test)]
 mod sibling_tests;
 #[cfg(test)]
 mod table_tests;
+#[cfg(test)]
+mod text_em_tests;
 #[cfg(test)]
 mod url_tests;

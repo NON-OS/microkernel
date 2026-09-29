@@ -21,17 +21,17 @@ use super::border_box_w::border_box_w;
 use super::content_width::content_width;
 use super::ctx::Ctx;
 use super::display_list::DisplayList;
-use super::image_box::image_box;
 use super::inline_items::InlineItem;
 use super::layout_box::layout_box;
+use super::replaced_size::replaced_size;
 use crate::browser::css::{Size, WhiteSpace};
 
 use super::tree::{BoxKind, BoxNode};
 
 const MAX_DEPTH: u32 = 400;
 
-// Flatten an inline subtree into measured words, images, inline-block atoms
-// and hard breaks. A stray block inside an inline run flows like its children.
+/* Flatten an inline subtree into measured words, images, inline-block atoms
+ * and hard breaks. A stray block inside an inline run flows like its children. */
 pub(super) fn collect_items(
     children: &[BoxNode],
     content_w: i32,
@@ -66,9 +66,9 @@ pub(super) fn collect_items(
                 let tt = c.style.text_transform;
                 let icon = c.style.icon_font;
                 let word = |w: &str| {
-                    // Icon-font text is a ligature name or private-use glyph we
-                    // cannot draw: map it to a symbol the built-in face has, or
-                    // emit nothing, so the icon never shows as a literal word.
+                    /* Icon-font text is a ligature name or private-use glyph we
+                     * cannot draw: map it to a symbol the built-in face has, or
+                     * emit nothing, so the icon never shows as a literal word. */
                     let text = if icon {
                         alloc::string::String::from(
                             crate::browser::css::icon_font::map_ligature(w).unwrap_or(""),
@@ -85,6 +85,7 @@ pub(super) fn collect_items(
                         underline: c.style.underline,
                         font,
                         spacing,
+                        italic: c.style.italic,
                         href: c.href.clone(),
                         adv: measure(&text).max(0),
                         space,
@@ -94,8 +95,8 @@ pub(super) fn collect_items(
                     }
                 };
                 if c.style.white_space == WhiteSpace::Pre {
-                    // Preserve each line verbatim, breaking only at newlines, so
-                    // code and pre-formatted text keep their spacing.
+                    /* Preserve each line verbatim, breaking only at newlines, so
+                     * code and pre-formatted text keep their spacing. */
                     let mut first = true;
                     for line in t.split('\n') {
                         if !first {
@@ -113,7 +114,7 @@ pub(super) fn collect_items(
                 }
             }
             BoxKind::Image { src, alt } => {
-                let (w, h) = image_box(&c.style, content_w);
+                let (w, h) = replaced_size(c, content_w, ctx.cb.h);
                 out.push(InlineItem::Image {
                     src: src.clone(),
                     alt: alt.clone(),
@@ -125,18 +126,18 @@ pub(super) fn collect_items(
                 });
             }
             BoxKind::InlineBlock => {
-                // An inline-block is an atom on the line. Give it its own
-                // width (explicit, else shrink to content) and lay its block
-                // context out at the origin; the line box shifts it into place.
+                /* An inline-block is an atom on the line. Give it its own
+                 * width (explicit, else shrink to content) and lay its block
+                 * context out at the origin; the line box shifts it into place. */
                 let bw = match c.style.width {
                     Size::Auto => content_width(c, depth + 1).clamp(1, content_w.max(1)),
                     _ => border_box_w(&c.style, content_w).clamp(1, content_w.max(1)),
                 };
                 let mut sub: DisplayList = Vec::new();
                 let h = layout_box(c, 0, 0, bw, &mut sub, depth + 1, ctx);
-                // The block may resolve wider than the hint (a min-width, an
-                // unbreakable child), so the advance is the real laid-out
-                // extent, or the next item would overlap it.
+                /* The block may resolve wider than the hint (a min-width, an
+                 * unbreakable child), so the advance is the real laid-out
+                 * extent, or the next item would overlap it. */
                 let w = sub.iter().map(|f| f.x + f.w).max().unwrap_or(bw).max(bw);
                 out.push(InlineItem::Atom { frags: sub, w, h });
             }

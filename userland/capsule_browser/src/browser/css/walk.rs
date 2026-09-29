@@ -51,7 +51,7 @@ pub(super) fn walk(
     depth: u32,
 ) {
     let node = &dom.nodes[id];
-    // Box properties reset per element; text properties carry down.
+    /* Box properties reset per element; text properties carry down. */
     let mut c = Computed::inherit_from(&inherited);
     let parent_fs = inherited.font_size_px;
     let mut bg: Option<String> = None;
@@ -74,8 +74,8 @@ pub(super) fn walk(
         if let Some(st) = node.attr("style") {
             apply_style_attr(st, &mut c, parent_fs, vars, &mut bg, &mut grid);
         }
-        // Generated content cascades against the element's final style, so
-        // the pseudo boxes inherit color and font exactly like a real child.
+        /* Generated content cascades against the element's final style, so
+         * the pseudo boxes inherit color and font exactly like a real child. */
         if let Some(p) = pseudos.as_deref_mut() {
             p[id] = (
                 pseudo_style(dom, sib, id, author, author_index, 1, &c, vars, budget),
@@ -84,6 +84,9 @@ pub(super) fn walk(
         }
     }
     styles[id] = c;
+    if depth == 0 || (depth == 1 && node.kind == NodeKind::Element) {
+        super::calc::viewport::set_root_font(c.font_px);
+    }
     bg_images[id] = bg;
     grids[id] = grid;
     if depth >= 400 {

@@ -16,17 +16,22 @@
 
 use crate::browser::css::Position;
 
+use super::abs_out_of_flow::positioned;
 use super::ctx::Ctx;
 use super::display_list::DisplayList;
+use super::flow::layout_image::layout_image;
+use super::geom::rel_offset::rel_offset;
 use super::layout_block::layout_block;
 use super::layout_flex::layout_flex;
 use super::layout_grid::layout_grid;
-use super::rel_offset::rel_offset;
+use super::post::apply_fx::apply_fx;
+use super::post::place_out::place_inside;
 use super::tree::{BoxKind, BoxNode};
 
-// Route a block-level box to its formatting context. A z-index opens a new
-// stacking level. position:relative draws the box shifted while its returned
-// flow height keeps siblings where normal flow puts them.
+/* Route a block-level box to its formatting context. position:relative
+ * draws the box shifted while its returned flow height keeps siblings where
+ * normal flow puts them. A positioned box then places the out-of-flow boxes
+ * it contains, and a transform or clip-path applies to all it painted. */
 pub(super) fn layout_box(
     node: &BoxNode,
     x: i32,
@@ -36,38 +41,34 @@ pub(super) fn layout_box(
     depth: u32,
     ctx: Ctx,
 ) -> i32 {
-    let mut ctx = ctx;
-    if node.style.z != 0 {
-        ctx.z = node.style.z;
-    }
-    // A fixed box and everything under it pins to the viewport on scroll.
-    if node.style.is_fixed {
-        ctx.fixed = true;
-    }
-    if node.style.opacity != 255 {
-        ctx.alpha = ((ctx.alpha as u16 * node.style.opacity as u16) / 255) as u8;
-    }
-    // A sticky box anchors its subtree: paint clamps everything under it by
-    // the same shift once the scroll passes the threshold.
-    if node.style.is_sticky && ctx.sticky.is_none() {
-        let top = match node.style.top {
-            crate::browser::css::Size::Px(p) => p as i32,
-            _ => 0,
-        };
-        ctx.sticky = Some((y, top));
-    }
+    let ctx = ctx.enter(&node.style, y);
     let (mut x, mut y) = (x, y);
     if node.style.position == Position::Relative {
-        let (dx, dy) = rel_offset(&node.style, ctx.cb.w);
+        let (dx, dy) = rel_offset(&node.style, ctx.cb);
         x += dx;
         y += dy;
     }
-    if node.style.is_table {
-        return super::layout_table::layout_table(node, x, y, avail, frags, depth, ctx);
+    let start = frags.len();
+    let h = route(node, x, y, avail, frags, depth, ctx);
+    if positioned(&node.style) {
+        place_inside(node, frags, start, depth, ctx);
     }
-    match node.kind {
-        BoxKind::Flex => layout_flex(node, x, y, avail, frags, depth, ctx),
-        BoxKind::Grid => layout_grid(node, x, y, avail, frags, depth, ctx),
-        _ => layout_block(node, x, y, avail, frags, depth, ctx),
+    apply_fx(&node.style, frags, start, ctx.clip);
+    h
+}
+
+fn route(n: &BoxNode, x: i32, y: i32, w: i32, f: &mut DisplayList, d: u32, ctx: Ctx) -> i32 {
+    if n.style.is_table {
+        /* A table sizes its own cells; a pinned width is its width. */
+        let w = ctx.pin.map_or(w, |p| p.w);
+        return super::layout_table::layout_table(n, x, y, w, f, d, Ctx { pin: None, ..ctx });
+    }
+    match n.kind {
+        BoxKind::Flex => layout_flex(n, x, y, w, f, d, ctx),
+        BoxKind::Grid => layout_grid(n, x, y, w, f, d, ctx),
+        /* An image laid as a box of its own, as an absolutely positioned
+         * one is, still paints its picture. */
+        BoxKind::Image { .. } => layout_image(n, x, y, w, f, ctx),
+        _ => layout_block(n, x, y, w, f, d, ctx),
     }
 }

@@ -53,7 +53,16 @@ fn clearing_the_page_fonts_empties_the_glyph_cache() {
     let (w, h) = (400u32, 60u32);
     let mut px = vec![0xffff_ffffu32; (w * h) as usize];
     let mut fb = PaintBuffer { pixels: &mut px, stride_words: w, width: w, height: h };
-    let run = TextRun { key, mono: false, bold: false, x: 2, top_y: 4, px: 18.0, spacing: 0.0 };
+    let run = TextRun {
+        key,
+        mono: false,
+        bold: false,
+        italic: false,
+        x: 2,
+        top_y: 4,
+        px: 18.0,
+        spacing: 0.0,
+    };
     fonts::draw_text(&mut fb, run, "Hamburgefonstiv", 0xff00_0000);
     assert!(glyph_cache_bytes() > 0);
     fonts::clear();

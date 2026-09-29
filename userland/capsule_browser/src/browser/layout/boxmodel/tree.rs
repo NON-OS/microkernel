@@ -19,12 +19,14 @@ use alloc::vec::Vec;
 
 use crate::browser::css::Computed;
 
+use super::geom::box_aux::BoxAux;
+
 pub enum BoxKind {
     Block,
     Inline,
-    // Inline-level on the outside, block on the inside: it sits in a line box
-    // like a word but sizes to its own width and height and lays its children
-    // in a block context.
+    /* Inline-level on the outside, block on the inside: it sits in a line box
+     * like a word but sizes to its own width and height and lays its children
+     * in a block context. */
     InlineBlock,
     Flex,
     Grid,
@@ -33,35 +35,37 @@ pub enum BoxKind {
 }
 
 impl BoxKind {
-    // Block-level boxes stack in flow and count as flex/grid items.
+    /* Block-level boxes stack in flow and count as flex/grid items. */
     pub(super) fn block_level(&self) -> bool {
         matches!(self, BoxKind::Block | BoxKind::Flex | BoxKind::Grid)
     }
 }
 
-// Resolved explicit placement of a grid item: zero-based column track and
-// row indices with spans, resolved from grid-area names and grid-column
-// lines at build time so layout needs no name tables.
+/* Resolved explicit placement of a grid item: zero-based column track and
+ * row indices with spans, resolved from grid-area names and grid-column
+ * lines at build time so layout needs no name tables. */
 #[derive(Clone, Copy)]
 pub struct GridPlace {
     pub col: u8,
     pub col_span: u8,
-    // None flows the item into the next free row.
+    /* None flows the item into the next free row. */
     pub row: Option<u8>,
     pub row_span: u8,
 }
 
-// One box in the layout tree. Text and Image boxes are leaves; href carries
-// the enclosing anchor so hit-testing survives layout, and dom_id ties the
-// box back to its DOM node for event dispatch (0 = anonymous).
+/* One box in the layout tree. Text and Image boxes are leaves; href carries
+ * the enclosing anchor so hit-testing survives layout, and dom_id ties the
+ * box back to its DOM node for event dispatch (0 = anonymous). */
 pub struct BoxNode {
     pub kind: BoxKind,
     pub style: Computed,
     pub href: Option<String>,
     pub dom_id: usize,
-    // background-image url captured from the cascade, painted behind content.
+    /* background-image url captured from the cascade, painted behind content. */
     pub bg_image: Option<String>,
-    // Explicit grid placement when this box is a grid item that asked for one.
+    /* Explicit grid placement when this box is a grid item that asked for one. */
     pub grid_place: Option<GridPlace>,
     pub children: Vec<BoxNode>,
+    /* Static position and image size hints, filled by build and layout. */
+    pub(super) aux: BoxAux,
 }

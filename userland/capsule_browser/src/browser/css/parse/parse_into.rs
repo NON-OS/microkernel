@@ -16,8 +16,8 @@
 
 use alloc::vec::Vec;
 
+use crate::browser::css::calc::viewport;
 use crate::browser::css::rule::Rule;
-use crate::browser::manifest::WIDTH;
 
 use super::decls::parse_decls;
 use super::matching_brace::matching_brace;
@@ -27,9 +27,9 @@ use super::selectors::parse_selectors;
 const MAX_RULES: usize = 4096;
 const MAX_MEDIA_DEPTH: u32 = 4;
 
-// Append the rules found in `src`. @media blocks matching the viewport
-// recurse; other at-rules skip their whole block, and statement at-rules
-// (@import;) drop off the selector head.
+/* Append the rules found in `src`. @media blocks matching the viewport
+ * recurse; other at-rules skip their whole block, and statement at-rules
+ * (@import;) drop off the selector head. */
 pub(super) fn parse_into(src: &str, rules: &mut Vec<Rule>, depth: u32) {
     let mut rest = src;
     while let Some(open) = rest.find('{') {
@@ -38,7 +38,7 @@ pub(super) fn parse_into(src: &str, rules: &mut Vec<Rule>, depth: u32) {
         let after = &rest[open + 1..];
         if let Some(cond) = head.strip_prefix("@media") {
             let end = matching_brace(after);
-            if depth < MAX_MEDIA_DEPTH && media_matches(cond, WIDTH) {
+            if depth < MAX_MEDIA_DEPTH && media_matches(cond, viewport::width()) {
                 parse_into(&after[..end], rules, depth + 1);
             }
             rest = after.get(end + 1..).unwrap_or("");

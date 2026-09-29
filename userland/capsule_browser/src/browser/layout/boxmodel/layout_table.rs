@@ -36,7 +36,7 @@ use super::min_content_width::min_content_width;
 use super::table_columns::column_widths;
 use super::tree::BoxNode;
 
-// The table box's own fragment (background, border) at the given size.
+/* The table box's own fragment (background, border) at the given size. */
 fn table_fragment(node: &BoxNode, x: i32, y: i32, w: i32, h: i32, ctx: Ctx) -> Fragment {
     let s = &node.style;
     let border_color = if s.border_color != 0 { s.border_color } else { s.color };
@@ -59,13 +59,13 @@ fn table_fragment(node: &BoxNode, x: i32, y: i32, w: i32, h: i32, ctx: Ctx) -> F
         bg_size: s.bg_size,
         bg_repeat: s.bg_repeat,
         shadow: s.shadow,
-        radius: s.radius,
+        radius: super::geom::radii::radii(s, w),
         node: node.dom_id,
     }
 }
 
-// The rows of a table: direct table-row children, plus the rows inside any
-// row-group child (tbody/thead/tfoot), one level deep.
+/* The rows of a table: direct table-row children, plus the rows inside any
+ * row-group child (tbody/thead/tfoot), one level deep. */
 fn rows(table: &BoxNode) -> Vec<&BoxNode> {
     let mut out = Vec::new();
     for child in &table.children {
@@ -82,7 +82,7 @@ fn rows(table: &BoxNode) -> Vec<&BoxNode> {
     out
 }
 
-// The cells of a row.
+/* The cells of a row. */
 fn cells(row: &BoxNode) -> impl Iterator<Item = &BoxNode> {
     row.children.iter().filter(|c| c.style.is_table_cell)
 }
@@ -105,22 +105,22 @@ pub(super) fn layout_table(
     let rows = rows(node);
     let ncols = rows.iter().map(|r| cells(r).count()).max().unwrap_or(0);
     if ncols == 0 {
-        // No table structure resolved: fall back to normal block flow so the
-        // markup is not lost.
+        /* No table structure resolved: fall back to normal block flow so the
+         * markup is not lost. */
         return super::layout_block::layout_block(node, x, y, avail, frags, depth, ctx);
     }
 
-    // Per-column min-content and max-content widths across every cell.
+    /* Per-column min-content and max-content widths across every cell. */
     let mut colmin = vec![0i32; ncols];
     let mut colmax = vec![0i32; ncols];
     for row in &rows {
         for (ci, cell) in cells(row).enumerate() {
             let mn = min_content_width(cell, depth + 1);
             let mx = match cell.style.width {
-                // Auto cells size to their real max-content (the width the cell
-                // wants when nothing wraps), not the min-content: feeding min as
-                // the max collapsed every column onto its longest word, so text
-                // over-wrapped and the whole table squeezed into a narrow strip.
+                /* Auto cells size to their real max-content (the width the cell
+                 * wants when nothing wraps), not the min-content: feeding min as
+                 * the max collapsed every column onto its longest word, so text
+                 * over-wrapped and the whole table squeezed into a narrow strip. */
                 Size::Auto => content_width(cell, depth + 1),
                 _ => border_box_w(&cell.style, content_w),
             };
@@ -130,8 +130,8 @@ pub(super) fn layout_table(
     }
     let widths = column_widths(&colmax, &colmin, content_w);
 
-    // The table box paints behind the cells; its height is patched once the
-    // rows are laid.
+    /* The table box paints behind the cells; its height is patched once the
+     * rows are laid. */
     let slot = frags.len();
     frags.push(table_fragment(node, x, y, bb_w, 0, ctx));
 
