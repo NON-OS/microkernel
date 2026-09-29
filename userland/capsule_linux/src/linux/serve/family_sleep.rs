@@ -47,8 +47,10 @@ impl Family {
         let sleeper = self
             .guests
             .iter()
-            .flat_map(|g| g.sleepers.iter().chain(g.futex_until.iter()))
-            .map(|&(d, _)| d.saturating_sub(now))
+            .flat_map(|g| g.sleepers.iter().chain(g.futex_until.iter()).map(|&(d, _)| d))
+            /* A timer or a sigtimedwait is due too. */
+            .chain(self.guests.iter().filter_map(|g| g.signals.next_due()))
+            .map(|d| d.saturating_sub(now))
             .min();
         [sleeper, self.next_wait_ms(now)].into_iter().flatten().min()
     }
