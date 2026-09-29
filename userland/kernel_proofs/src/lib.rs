@@ -26,12 +26,18 @@ pub mod bus;
 pub mod capabilities;
 pub mod elf;
 #[cfg(test)]
+pub mod fd_fork;
+#[cfg(test)]
 pub mod idt_vectors;
 pub mod memory;
+#[cfg(test)]
+pub mod pipe_counts;
 #[cfg(test)]
 pub mod pci_address;
 #[cfg(test)]
 pub mod process;
+#[cfg(test)]
+pub mod procfs_inode;
 #[cfg(test)]
 pub mod riscv_mmu;
 #[cfg(test)]
