@@ -27,6 +27,13 @@ static ANY: AtomicBool = AtomicBool::new(false);
 
 pub(super) fn mark(pid: u32) {
     let mut marked = MARKED.lock();
+    /*
+     * Asked under the lock: a teardown drops the thread's registry row before
+     * it forgets its mark, so a thread gone meanwhile is never left one.
+     */
+    if !crate::process::foreign::is_foreign(pid) {
+        return;
+    }
     if !marked.contains(&pid) {
         marked.push(pid);
     }
