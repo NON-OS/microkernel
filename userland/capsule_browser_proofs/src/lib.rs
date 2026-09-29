@@ -51,6 +51,7 @@ mod layout_tests;
 mod line_edit_tests;
 mod keyword_tests;
 mod link_tests;
+mod mask_tests;
 mod math_len_tests;
 mod narrow_tests;
 mod pos_tests;

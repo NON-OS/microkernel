@@ -52,6 +52,9 @@ pub(super) fn paint_bg_image(
     let abs = crate::browser::url::join(base, src);
     let Some(img) = state.images.ready(&abs) else { return };
     let dest = [f.x, sy, f.w.max(0), f.h.max(0)];
+    if f.mask {
+        return super::mask::paint_mask(fb, img, f, dest, vis);
+    }
     match f.bg_size {
         BgSize::Cover => blit_rect(fb, img, dest, ObjectFit::Cover, f.alpha, Some(vis)),
         BgSize::Contain => blit_rect(fb, img, dest, ObjectFit::Contain, f.alpha, Some(vis)),

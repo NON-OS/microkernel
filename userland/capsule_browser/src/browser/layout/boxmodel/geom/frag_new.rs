@@ -51,6 +51,7 @@ impl Fragment {
             sticky: ctx.sticky,
             alpha: ctx.alpha,
             bg_image: None,
+            mask: false,
             bg_size: BgSize::Auto,
             bg_repeat: true,
             shadow: None,
@@ -66,7 +67,7 @@ impl Fragment {
         let mut f = Fragment::leaf(r, s.bg, Content::None, node.href.clone(), node.dom_id, ctx);
         f.border = [s.border_top, s.border_right, s.border_bottom, s.border_left];
         f.border_color = if s.border_color != 0 { s.border_color } else { s.color };
-        f.bg_image = node.bg_image.clone();
+        (f.bg_image, f.mask) = (node.bg_image.clone(), s.fx.mask && node.bg_image.is_some());
         (f.bg_size, f.bg_repeat, f.shadow) = (s.bg_size, s.bg_repeat, s.shadow);
         (f.radius, f.z) = (radii(s, r[2]), ctx.z.decor());
         f

@@ -52,9 +52,13 @@ pub struct Fx {
     pub transform: Option<Affine>,
     pub origin: [Rel; 2],
     pub clip: Option<Clip>,
+    /* The background image slot holds a mask-image: its alpha shows the
+     * background color, which paints nowhere else. */
+    pub mask: bool,
 }
 
 impl Fx {
-    /// No transform, the default 50% 50% origin, no clip.
-    pub const NONE: Fx = Fx { transform: None, origin: [(0, 500), (0, 500)], clip: None };
+    /// No transform, the default 50% 50% origin, no clip, no mask.
+    pub const NONE: Fx =
+        Fx { transform: None, origin: [(0, 500), (0, 500)], clip: None, mask: false };
 }

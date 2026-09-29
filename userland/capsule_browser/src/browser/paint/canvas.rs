@@ -57,6 +57,7 @@ pub(super) fn paint_canvas(state: &State, doc: &BoxDocument, fb: &mut PaintBuffe
         sticky: None,
         alpha: 255,
         bg_image: Some(img.url.clone()),
+        mask: false,
         bg_size,
         bg_repeat,
         shadow: None,

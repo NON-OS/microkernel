@@ -44,6 +44,15 @@ impl Styling<'_> {
     pub(super) fn apply_value(&mut self, name: &str, v: &str) {
         match name {
             "background" | "background-image" => self.bg = bg_url(name, v),
+            "mask" | "mask-image" | "-webkit-mask" | "-webkit-mask-image" => {
+                /* A url mask takes the background image slot; a gradient
+                 * mask is not drawn, and the box paints unmasked. */
+                let url = bg_url("background-image", v).filter(|u| !u.contains("gradient("));
+                if self.c.fx.mask || url.is_some() {
+                    self.bg = url.clone();
+                }
+                self.c.fx.mask = url.is_some();
+            }
             "content" => self.content = Some(String::from(v)),
             "counter-reset" => self.counters[0] = Some(String::from(v)),
             "counter-increment" => self.counters[1] = Some(String::from(v)),

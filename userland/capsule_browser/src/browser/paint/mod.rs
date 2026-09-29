@@ -30,6 +30,7 @@ mod fill_page;
 mod fill_rounded;
 mod grad;
 pub mod home_page;
+mod mask;
 mod page_parts;
 mod paint;
 mod paint_image;

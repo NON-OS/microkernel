@@ -38,7 +38,8 @@ pub(super) fn box_fragment(
      * go over the background and under the borders. */
     super::shadow::paint_shadow(fb, f, sy, clip, false);
     let bg = super::fade::fade(f.bg, f.alpha);
-    if bg != 0 {
+    /* A masked box shows its color only through the mask. */
+    if bg != 0 && !f.mask {
         fill_rounded(fb, f.x, sy, f.w, f.h, f.radius, bg, clip);
     }
     super::shadow::paint_shadow(fb, f, sy, clip, true);

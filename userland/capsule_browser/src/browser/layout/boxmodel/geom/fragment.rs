@@ -16,30 +16,10 @@
 
 use alloc::string::String;
 
-use crate::browser::css::{BgSize, ObjectFit, Shadow};
+use crate::browser::css::{BgSize, Shadow};
 
+pub use super::content::Content;
 use super::stack_key::Key;
-
-pub enum Content {
-    None,
-    Text {
-        text: String,
-        color: u32,
-        px: f32,
-        bold: bool,
-        mono: bool,
-        underline: bool,
-        font: u32,
-        spacing: f32,
-        /* font-style italic or oblique: drawn slanted. */
-        italic: bool,
-    },
-    Image {
-        src: String,
-        alt: String,
-        fit: ObjectFit,
-    },
-}
 
 /* One painted rectangle in absolute page coordinates. Border widths run
  * top, right, bottom, left; clip is [x0, y0, x1, y1] in page coordinates. */
@@ -62,8 +42,10 @@ pub struct Fragment {
     pub sticky: Option<(i32, i32)>,
     /* Effective opacity for everything this fragment paints. */
     pub alpha: u8,
-    /* background-image url to fetch and paint behind the box content. */
+    /* background-image url to fetch and paint behind the box content; with
+     * `mask` it is a mask-image, whose alpha paints the background color. */
     pub bg_image: Option<String>,
+    pub mask: bool,
     pub bg_size: BgSize,
     pub bg_repeat: bool,
     /* drop shadow painted behind the box. */

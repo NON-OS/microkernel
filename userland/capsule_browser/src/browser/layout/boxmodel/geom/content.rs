@@ -14,24 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(crate) mod abs_out_of_flow;
-pub(crate) mod body_id;
-pub(crate) mod border_box_w;
-pub(crate) mod box_aux;
-pub(crate) mod containing;
-pub(crate) mod content;
-pub(crate) mod ctx;
-pub(crate) mod ctx_enter;
-pub(crate) mod edges_x;
-pub(crate) mod edges_y;
-pub(crate) mod fixed_h;
-pub(crate) mod frag_new;
-pub(crate) mod fragment;
-pub(crate) mod margins;
-pub(crate) mod overflow_clip;
-pub(crate) mod radii;
-pub(crate) mod ratio_h;
-pub(crate) mod rel_offset;
-pub(crate) mod shift_down;
-pub(crate) mod stack;
-mod stack_key;
+use alloc::string::String;
+
+use crate::browser::css::ObjectFit;
+
+/* What a fragment paints inside its box: nothing, a run of text, or an image. */
+pub enum Content {
+    None,
+    Text {
+        text: String,
+        color: u32,
+        px: f32,
+        bold: bool,
+        mono: bool,
+        underline: bool,
+        font: u32,
+        spacing: f32,
+        /* font-style italic or oblique: drawn slanted. */
+        italic: bool,
+    },
+    Image {
+        src: String,
+        alt: String,
+        fit: ObjectFit,
+    },
+}
