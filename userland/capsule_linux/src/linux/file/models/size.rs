@@ -25,7 +25,7 @@ use super::pinned::pin_of;
  * The file's size. A pinned model not on the volume yet is imported first,
  * and kept only if it hashes to its pin; the outcome is said by name.
  */
-pub(super) fn size_of(name: &[u8]) -> Result<u64, i64> {
+pub fn size_of(name: &[u8]) -> Result<u64, i64> {
     let got = mk_data_stat(name);
     if got >= 0 {
         return Ok(got as u64);

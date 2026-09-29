@@ -20,3 +20,5 @@
 pub mod hex;
 #[path = "../../../capsule_linux/src/linux/file/models/pinned.rs"]
 pub mod pinned;
+#[path = "../../../capsule_linux/src/linux/install/apps.rs"]
+pub mod apps;

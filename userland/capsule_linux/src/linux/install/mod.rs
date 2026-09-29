@@ -16,6 +16,9 @@
 
 //! Installing a Linux program from within the system.
 
+mod apps;
+mod apps_install;
+mod apps_run;
 mod auth;
 mod deb;
 mod download;
@@ -41,11 +44,12 @@ mod run;
 mod tar;
 mod tar_field;
 mod tar_kind;
-mod tar_pax;
 mod tar_path;
+mod tar_pax;
 mod unpacked;
 mod why;
 
-pub use program::recorded;
+pub use apps_run::launch;
 pub use family::install;
+pub use program::recorded;
 pub use why::Why;

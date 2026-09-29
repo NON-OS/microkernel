@@ -13,27 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+/* What a shipped tier starts as: its program from the store, and its arguments. */
 
-/*
- * /models: model files on the machine's data volume, read-only.
- *
- * Each name here is a file on the sealed volume, reached through the
- * kernel by name. A model the personality pins is imported the first time
- * it is opened, and kept only if its SHA-256 is the pinned one.
- */
+use alloc::vec::Vec;
 
-mod catalog;
-mod held;
-mod hex;
-mod name;
-mod open;
-mod pinned;
-mod read;
-mod size;
-mod stat;
+use super::apps::app;
+use crate::linux::file::{key, store_read};
 
-pub use held::held;
-pub use open::open;
-pub use read::read;
-pub use size::size_of as ensure;
-pub use stat::stat;
+const MAX_IMAGE: u32 = 64 << 20;
+
+/// The shipped tier `name` starts as, or None if it names none.
+pub fn launch(name: &str) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
+    let app = app(name)?;
+    let bytes = store_read(&key(app.program), MAX_IMAGE).ok()?;
+    let args = app.args.iter().map(|a| a.to_vec()).collect();
+    Some((app.program.to_vec(), bytes, args))
+}

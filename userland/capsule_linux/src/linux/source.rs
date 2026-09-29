@@ -29,13 +29,17 @@ use super::origin::Origin;
 const MAX_IMAGE: u32 = 64 << 20;
 const MAX_ARGS: usize = 256;
 
-/// The program, where it came from, and what it is given. A run of an
-/// installed package is its recorded program or nothing: falling back to the
-/// built-in program would start something the person did not ask for.
+/// The program, where it came from, and what it is given. A run starts a
+/// shipped tier, or an installed package's recorded program, or nothing:
+/// the built-in program would start something the person did not ask for.
 pub fn source() -> Option<Launch> {
     let store = |path: Vec<u8>, bytes, args| Launch { path, bytes, origin: Origin::Store, args };
     if let Some(name) = super::request::run_request() {
-        let path = super::install::recorded(choose(&name))?;
+        let pkg = choose(&name);
+        if let Some((path, bytes, args)) = super::install::launch(pkg) {
+            return Some(store(path, bytes, args));
+        }
+        let path = super::install::recorded(pkg)?;
         let bytes = store_read(&key(&path), MAX_IMAGE).ok()?;
         return Some(store(path, bytes, Vec::new()));
     }
