@@ -84,6 +84,14 @@ pub const EFI_HTTP_ERROR: u64 = 35;
 
 pub const EFI_ERROR_BIT: u64 = 1u64 << 63;
 
+/* The status with the error bit cleared, the form the constants above take.
+ * Firmware returns errors with bit 63 set, EFI_BUFFER_TOO_SMALL as
+ * 0x8000_0000_0000_0005, so a comparison against a constant goes through this. */
+#[inline]
+pub const fn code(status: u64) -> u64 {
+    status & !EFI_ERROR_BIT
+}
+
 #[inline]
 pub const fn is_error(status: u64) -> bool {
     (status & EFI_ERROR_BIT) != 0 || (status != 0 && status <= 35)
