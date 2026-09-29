@@ -6,11 +6,14 @@ use crate::help_rows::{help_tables, tool_table};
 /*
  * Every tool the terminal offers is one the kernel registers. The kernel's
  * list is generated from apps.list, so a service missing there is a name
- * that answers "not installed" in every build.
+ * that answers "not installed" in every build. `linux` is the one the kernel
+ * runs itself, the Linux personality, so it must be named in the kernel's
+ * registry instead.
  */
 #[test]
 fn every_tool_the_terminal_offers_is_registered() {
     let apps = include_str!("../../apps.list");
+    let kernel = include_str!("../../../src/userspace/tool_capsules/registry.rs");
     let registered: Vec<&str> = apps
         .lines()
         .filter(|l| !l.trim_start().starts_with('#'))
@@ -21,6 +24,10 @@ fn every_tool_the_terminal_offers_is_registered() {
     for (typed, service) in tools {
         let service = String::from_utf8(service).unwrap();
         let typed = String::from_utf8(typed).unwrap();
+        if service == "linux" {
+            assert!(kernel.contains("b\"tool.linux\""), "the kernel runs no tool.linux");
+            continue;
+        }
         assert!(
             registered.contains(&service.as_str()),
             "{typed} runs tool.{service}, which apps.list does not register"

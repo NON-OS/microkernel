@@ -17,9 +17,9 @@ use crate::term::state::State;
 ///
 /// The typed name comes first because it need not be the service's: a tool
 /// can keep the name its users have in their fingers without renaming its
-/// capsule. Every service here is one `userland/apps.list` registers, which
-/// terminal_line_proofs checks, so a name on this list always has a program
-/// behind it.
+/// capsule. Every service here is one `userland/apps.list` registers, but
+/// `linux`, which the kernel runs itself (`tool.linux`); terminal_line_proofs
+/// checks both, so a name on this list always has a program behind it.
 pub const TOOLS: &[(&[u8], &[u8])] = &[
     (b"grex", b"grex"),
     (b"dotenv-linter", b"dotenv-linter"),
