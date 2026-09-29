@@ -55,6 +55,8 @@ pub const SYS_STDIN_READ: u64 = tag4(b"MSRD");
 // writes nothing to serial. Gated on the IPC capability so a capsule without
 // `Capability::Debug` still has a stdout.
 pub const SYS_STDOUT_WRITE: u64 = tag4(b"MSOW");
+/// Output only the caller's launcher reads: never serial, whatever the caps.
+pub const SYS_PRIVATE_WRITE: u64 = tag4(b"MPVW");
 pub const SYS_STORE_WRITE: u64 = tag4(b"MSWR");
 /// The data volume: a verified import, a file's size, a range of it.
 pub const SYS_DATA_IMPORT: u64 = tag4(b"MDIM");

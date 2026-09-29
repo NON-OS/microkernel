@@ -14,17 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::args::Args;
-use crate::syscall::microkernel::data::{sys_data_import, sys_data_read, sys_data_stat};
-use crate::syscall::microkernel::numbers::*;
-use crate::syscall::microkernel::private_write::sys_private_write;
+//! Output only this process's launcher reads, never the serial log.
 
-pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
-    Some(match nr {
-        SYS_DATA_IMPORT => sys_data_import(a.a0, a.a1, a.a2),
-        SYS_DATA_STAT => sys_data_stat(a.a0, a.a1),
-        SYS_DATA_READ => sys_data_read(a.a0, a.a1, a.a2, a.a3, a.a4),
-        SYS_PRIVATE_WRITE => sys_private_write(a.a0, a.a1),
-        _ => return None,
-    })
+use crate::syscall::{call_raw, N_MK_PRIVATE_WRITE};
+
+/// Write up to 256 bytes of `buf` to this process's own output inbox and
+/// nowhere else. Returns the bytes taken, -16 (EBUSY) when the inbox is
+/// full and nothing was taken, or -19 (ENODEV) when there is no inbox.
+pub fn mk_private_write(buf: &[u8]) -> i64 {
+    call_raw(N_MK_PRIVATE_WRITE, [buf.as_ptr() as u64, buf.len() as u64, 0, 0, 0, 0])
 }

@@ -36,5 +36,6 @@ pub(crate) const N_MK_STORE_WRITE: i64 = tag4(b"MSWR");
 pub(crate) const N_MK_DATA_IMPORT: i64 = tag4(b"MDIM");
 pub(crate) const N_MK_DATA_STAT: i64 = tag4(b"MDST");
 pub(crate) const N_MK_DATA_READ: i64 = tag4(b"MDRD");
+pub(crate) const N_MK_PRIVATE_WRITE: i64 = tag4(b"MPVW");
 pub(crate) const N_MK_PCI_CONFIG_READ: i64 = tag4(b"MPCR");
 pub(crate) const N_MK_PCI_CONFIG_WRITE: i64 = tag4(b"MPCW");

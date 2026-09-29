@@ -115,6 +115,7 @@ MPPT = 0x5450504D
 MPST = 0x5453504D
 MPTL = 0x4C54504D
 MPUN = 0x4E55504D
+MPVW = 0x5756504D
 MSOW = 0x574F534D
 MSPI = 0x4950534D
 MSRD = 0x4452534D
@@ -789,6 +790,12 @@ ret  = {type="i64"}
 nr   = 0x5453444D
 caps = ["FileSystem"]
 args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MPVW]
+nr   = 0x5756504D
+caps = ["IPC"]
+args = [{name="user_ptr",type="u64",dir="in"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSWR]
