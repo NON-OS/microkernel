@@ -53,4 +53,5 @@
 //! is skipped on both entry and exit.
 
 mod handler;
+mod reclaim;
 mod send_eoi;

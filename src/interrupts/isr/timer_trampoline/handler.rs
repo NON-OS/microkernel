@@ -100,24 +100,7 @@ pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext) {
             *pcb.saved_user_context.lock() = None;
         }
     }
-    // Never reclaim while the interrupted context is a dying one: after
-    // exit_and_yield tears the current process down, CURRENT_PID is cleared
-    // and the CPU keeps looping on the dead pid's kernel stack under its
-    // CR3 until something runnable appears. Draining here in that window
-    // would free the very stack this trap frame sits on and the live page
-    // tables. The queues are retried on every tick, so reclamation happens
-    // as soon as a real context is interrupted instead.
-    /*
-     * Nor while it is kernel code: that holds plain spin locks with
-     * interrupts open (init reads the process table once a second), and the
-     * teardown takes the same table for writing with interrupts closed, a
-     * spin that never ends on the CPU that holds the read. A tick from user
-     * mode holds no kernel lock here, the rule tick.rs switches by.
-     */
-    if from_user && crate::process::current_pid().is_some() {
-        crate::process::exit::drain_pending_teardowns();
-        crate::kernel_core::process_spawn::drain_pending_kernel_stacks();
-    }
+    super::reclaim::on_tick(from_user);
     /*
      * A guest thread its supervisor asked to stop is parked here, running
      * no code, until it is answered; the frame it resumes from is this one,
