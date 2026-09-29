@@ -22,6 +22,8 @@
 extern crate alloc;
 
 pub mod arch;
+#[cfg(test)]
+pub mod bti_pad;
 pub mod bus;
 pub mod capabilities;
 pub mod elf;
