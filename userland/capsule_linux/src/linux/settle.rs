@@ -32,7 +32,7 @@ pub(super) fn wait_settled() -> bool {
     let until = Deadline::after_ms(READY_MS);
     while !matches!(vfs::store_settled(), Ok(true)) {
         if until.expired() {
-            say(b"[LINUX] boot guest unreadable: store never settled\n");
+            say(b"[LINUX] the store never settled\n");
             return false;
         }
         let _ = mk_yield();

@@ -23,30 +23,28 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::launch::Launch;
-use super::origin::Origin;
 use crate::linux::file::{key, store_read, store_stat};
 use crate::linux::guest::Links;
 use crate::linux::say::say;
 
-pub(super) fn launch(program: &[u8], mut args: Vec<Vec<u8>>, max: u32) -> Option<Launch> {
+pub(super) fn launch(program: &[u8], args: Vec<Vec<u8>>, max: u32) -> Option<Launch> {
+    /* wait_settled says so itself when the store never settles. */
     if !super::settle::wait_settled() {
-        say(b"[LINUX] the store never settled\n");
         return None;
     }
     let links = Links::try_load();
     let (named, path) = super::terminal_path::find(program, links.as_ref().ok());
-    if path != named {
-        let typed = named.rsplit(|b| *b == b'/').next().unwrap_or(&named);
-        args.insert(0, typed.to_vec());
-    }
+    /* Through a link, argv[0] is the link's name, as an execve of it gives. */
+    let argv0 = (path != named).then(|| named.clone());
     let why = match store_read(&key(&path), max) {
-        Ok(bytes) => return Some(Launch { path, bytes, origin: Origin::Store, args }),
+        Ok(bytes) => return Some(Launch { argv0, ..Launch::store(path, bytes, args) }),
         Err(why) => why,
     };
     /* A bare name was looked for along the whole PATH, not in one place. */
     let shown = if program.contains(&b'/') { named.clone() } else { program.to_vec() };
     let line = match store_stat(&key(&path)) {
-        Ok((size, _)) => {
+        Ok((_, true)) => format!("linux: {} is a directory\n", text(&path)),
+        Ok((size, false)) => {
             format!("linux: {} is there ({size} bytes) but unread: {why}\n", text(&path))
         }
         Err(_) => match nonos_app_skeleton::clients::vfs::store_status() {

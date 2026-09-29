@@ -31,5 +31,6 @@ pub(super) fn built_in() -> Launch {
         bytes: BUILT_IN.to_vec(),
         origin: Origin::BuiltIn,
         args: Vec::new(),
+        argv0: None,
     }
 }

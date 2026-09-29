@@ -19,8 +19,11 @@
 
 use nonos_libc::mk_debug;
 
+/// The kernel takes at most 256 bytes a call and drops a longer line whole.
 pub(super) fn say(line: &[u8]) {
-    let _ = mk_debug(line.as_ptr(), line.len());
+    for piece in line.chunks(256) {
+        let _ = mk_debug(piece.as_ptr(), piece.len());
+    }
 }
 
 /// A line about how a run is going, not about anything wrong with it. The

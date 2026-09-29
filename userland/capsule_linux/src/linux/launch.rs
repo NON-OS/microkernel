@@ -21,10 +21,20 @@ use alloc::vec::Vec;
 use super::origin::Origin;
 
 pub struct Launch {
-    /// The guest-visible path, which is also argv[0].
+    /// The guest-visible path, proved before it runs.
     pub path: Vec<u8>,
     pub bytes: Vec<u8>,
     pub origin: Origin,
     /// Arguments after argv[0].
     pub args: Vec<Vec<u8>>,
+    /// argv[0] when it is not `path`: the name of a link, which a multi-call
+    /// program such as busybox reads to tell which of its programs to be.
+    pub argv0: Option<Vec<u8>>,
+}
+
+impl Launch {
+    /// A program read from the store, under its own path.
+    pub fn store(path: Vec<u8>, bytes: Vec<u8>, args: Vec<Vec<u8>>) -> Self {
+        Self { path, bytes, origin: Origin::Store, args, argv0: None }
+    }
 }

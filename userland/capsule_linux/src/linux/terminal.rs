@@ -18,10 +18,10 @@
 //!
 //! The terminal starts this capsule with `linux <program> [args...]` and
 //! shows what it prints. The program is a path in the Linux tree, or a bare
-//! name looked up in /bin. A name that is a link, as busybox's applets are,
-//! runs what it links to with the typed name first, which is how a multi-call
-//! program tells which one it is. Like every program here, it must carry a
-//! proof that verifies; naming one grants nothing.
+//! name looked for along the PATH a guest starts with. A name that is a link,
+//! as busybox's applets are, runs what it links to with the link's name as
+//! argv[0], which is how a multi-call program tells which one it is. Like
+//! every program here, it must carry a proof that verifies.
 
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU8, Ordering};
@@ -31,8 +31,6 @@ use nonos_libc::mk_args;
 use super::launch::Launch;
 use crate::linux::say::say;
 
-const MAX_ARGS: usize = 1024;
-
 /// 0 not yet looked, 1 not started by the terminal, 2 started by it.
 static STARTED: AtomicU8 = AtomicU8::new(0);
 
@@ -40,13 +38,8 @@ static STARTED: AtomicU8 = AtomicU8::new(0);
 pub(super) fn started() -> bool {
     match STARTED.load(Ordering::Relaxed) {
         0 => {
-            let mut buf = [0u8; MAX_ARGS];
-            let n = mk_args(buf.as_mut_ptr(), buf.len());
-            let first = usize::try_from(n)
-                .ok()
-                .and_then(|n| buf.get(..n))
-                .and_then(|got| got.split(|b| *b == 0).find(|p| !p.is_empty()));
-            let yes = first == Some(b"linux".as_slice());
+            let got = args().unwrap_or_default();
+            let yes = got.split(|b| *b == 0).next() == Some(b"linux".as_slice());
             STARTED.store(if yes { 2 } else { 1 }, Ordering::Relaxed);
             yes
         }
@@ -57,10 +50,9 @@ pub(super) fn started() -> bool {
 /// None when the terminal did not start this capsule; otherwise what to run,
 /// or None inside when there is nothing to run, with the reason said.
 pub(super) fn requested(max_image: u32) -> Option<Option<Launch>> {
-    let mut buf = [0u8; MAX_ARGS];
-    let n = mk_args(buf.as_mut_ptr(), buf.len());
-    let got = buf.get(..usize::try_from(n).ok()?)?;
-    let mut parts = got.split(|b| *b == 0).filter(|p| !p.is_empty());
+    let got = args()?;
+    /* Every argument as typed, an empty one included. */
+    let mut parts = got.split(|b| *b == 0);
     if parts.next()? != b"linux" {
         return None;
     }
@@ -70,4 +62,13 @@ pub(super) fn requested(max_image: u32) -> Option<Option<Launch>> {
     };
     let args: Vec<Vec<u8>> = parts.map(<[u8]>::to_vec).collect();
     Some(super::terminal_launch::launch(program, args, max_image))
+}
+
+/// This capsule's arguments, NUL-separated, in a buffer the kernel sized.
+fn args() -> Option<Vec<u8>> {
+    let n = usize::try_from(mk_args(core::ptr::null_mut(), 0)).ok()?;
+    let mut buf = alloc::vec![0u8; n];
+    let got = usize::try_from(mk_args(buf.as_mut_ptr(), n)).ok()?;
+    buf.truncate(got.min(n));
+    Some(buf)
 }

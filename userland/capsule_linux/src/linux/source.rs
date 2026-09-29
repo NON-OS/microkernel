@@ -24,7 +24,6 @@ use crate::linux::file::family::choose;
 use crate::linux::file::{key, store_read, visible};
 
 use super::launch::Launch;
-use super::origin::Origin;
 
 const MAX_IMAGE: u32 = 64 << 20;
 const MAX_ARGS: usize = 256;
@@ -33,7 +32,7 @@ const MAX_ARGS: usize = 256;
 /// installed package is its recorded program or nothing: falling back to the
 /// built-in program would start something the person did not ask for.
 pub fn source() -> Option<Launch> {
-    let store = |path: Vec<u8>, bytes, args| Launch { path, bytes, origin: Origin::Store, args };
+    let store = Launch::store;
     if let Some(asked) = super::terminal::requested(MAX_IMAGE) {
         return asked;
     }
@@ -57,8 +56,8 @@ fn named() -> Option<(Vec<u8>, Vec<u8>)> {
     if n <= 0 {
         return None;
     }
-    // The first argument is the path.
-    let args = &buf[..n as usize];
+    // The first argument is the path; longer arguments are none of the image's.
+    let args = buf.get(..usize::try_from(n).ok()?)?;
     let end = args.iter().position(|b| *b == 0 || *b == b' ').unwrap_or(args.len());
     let path = args.get(..end)?;
     if path.is_empty() {
