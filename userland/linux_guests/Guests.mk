@@ -54,10 +54,12 @@ nonos-mk-check-linux-guest-$(1)-keys: \
 	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_ed25519.pub \
 	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_mldsa65.pub
 LINUX_GUEST_STORE_DEPS += $$(linux-guest-$(1)_ARTIFACTS) $$(linux-guest-$(1)_ATTESTATION)
-LINUX_GUEST_STORE_ENTRIES += --entry /linux$(or $(5),/bin/$(1))=$$(linux-guest-$(1)_BIN) \
+LINUX_GUEST_ENTRIES_$(1) := --entry /linux$(or $(5),/bin/$(1))=$$(linux-guest-$(1)_BIN) \
 	--entry /linux$(or $(5),/bin/$(1)).nonos_id_cert.bin=$$(linux-guest-$(1)_CERT) \
 	--entry /linux$(or $(5),/bin/$(1)).manifest.bin=$$(linux-guest-$(1)_MANIFEST) \
 	--entry /linux$(or $(5),/bin/$(1)).zk_trailer.bin=$$(linux-guest-$(1)_ATTESTATION)
+# Every guest, or only those LINUX_GUEST_SET names: vfs loads 16 MiB at most.
+LINUX_GUEST_STORE_ENTRIES += $$(if $$(filter $(1),$$(or $$(LINUX_GUEST_SET),$(1))),$$(LINUX_GUEST_ENTRIES_$(1)))
 endef
 
 $(eval $(call LINUX_GUEST,suite,4950,4951))
