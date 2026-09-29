@@ -16,7 +16,7 @@
 
 //! Backing a span of a guest, a megabyte at a time.
 
-use nonos_libc::peer::mk_peer_map;
+use nonos_libc::peer::{mk_peer_map, mk_peer_unmap};
 
 use super::mem::MAX_SPAN;
 
@@ -27,9 +27,24 @@ pub(super) fn map_span(pid: u32, at: u64, len: u64, prot: u64) -> i64 {
         let take = (len - done).min(MAX_SPAN);
         let rc = mk_peer_map(pid, at + done, take, prot);
         if rc < 0 {
+            /*
+             * The kernel maps page by page and stops at the first it cannot
+             * back. What it did map is given back: left, those frames stay
+             * pinned in a span the guest was told it does not have.
+             */
+            unmap_span(pid, at, done + take);
             return rc;
         }
         done += take;
     }
     0
+}
+
+fn unmap_span(pid: u32, at: u64, len: u64) {
+    let mut done = 0;
+    while done < len {
+        let take = (len - done).min(MAX_SPAN);
+        let _ = mk_peer_unmap(pid, at + done, take);
+        done += take;
+    }
 }
