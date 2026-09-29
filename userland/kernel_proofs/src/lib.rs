@@ -55,6 +55,8 @@ pub mod rsdp_address;
 pub mod syscall;
 pub mod time;
 #[cfg(test)]
+pub mod uefi_attrs;
+#[cfg(test)]
 pub mod uefi_revision;
 pub mod security;
 pub mod spec;
