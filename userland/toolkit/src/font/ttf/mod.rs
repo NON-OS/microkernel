@@ -47,7 +47,7 @@ pub use readable::MIN_UI_PX;
 pub use slant::{draw_text_sheared, OBLIQUE};
 pub use store::GLYPH_CACHE_BUDGET;
 
-pub use ab_glyph::FontRef;
+pub use ab_glyph::{FontRef, VariableFont};
 pub use draw::{draw_text, draw_text_tracked};
 pub use metrics::{
     ascent, ascent_with, line_height, line_height_with, measure, measure_spaced, measure_tracked,

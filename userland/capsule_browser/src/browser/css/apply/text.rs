@@ -34,18 +34,7 @@ pub(super) fn apply_text(
                 c.color = rgb;
             }
         }
-        /* The two cuts drawn are regular and bold: CSS matching sends 600
-         * and up to bold and everything lighter, 500 included, to regular.
-         * bolder and lighter step from the inherited cut. */
-        "font-weight" => match value.trim().to_ascii_lowercase().as_str() {
-            "normal" | "initial" | "lighter" => c.bold = false,
-            "bold" | "bolder" => c.bold = true,
-            v => {
-                if let Some(w) = v.parse::<f32>().ok().filter(|w| (1.0..=1000.0).contains(w)) {
-                    c.bold = w >= 600.0;
-                }
-            }
-        },
+        "font-weight" => super::font_family::apply_font_weight(c, value),
         "font-family" => super::font_family::apply_font_family(c, value),
         "font-style" => super::font_family::apply_font_style(c, value),
         /* em and % resolve against the parent's size, kept unrounded when

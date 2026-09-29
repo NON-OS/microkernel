@@ -35,6 +35,8 @@ pub(in crate::browser::css) struct Styling<'a> {
     /* The winning content value, for a pseudo-element. */
     pub content: Option<String>,
     pub(super) parent_fs: u32,
+    /* The parent's font key: bolder and lighter step from its weight. */
+    pub(super) parent_key: u32,
     pub(super) vars: At<'a>,
 }
 
@@ -48,6 +50,7 @@ impl<'a> Styling<'a> {
             counters: [None, None, None],
             content: None,
             parent_fs,
+            parent_key: parent.font_key,
             vars,
         }
     }

@@ -38,5 +38,6 @@ pub(super) fn table_start(c: &mut Computed, parent: &Computed, tag: &str, quirks
         (c.line_height_px, c.line_ratio) = (r.line_height_px, r.line_ratio);
         (c.font_size_px, c.font_px) = (r.font_size_px, r.font_px);
         (c.bold, c.italic) = (r.bold, r.italic);
+        c.font_key = crate::browser::fonts::weighted(c.font_key, 400);
     }
 }

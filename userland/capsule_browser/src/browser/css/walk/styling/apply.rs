@@ -62,6 +62,11 @@ impl Styling<'_> {
             "counter-reset" => self.counters[0] = Some(String::from(v)),
             "counter-increment" => self.counters[1] = Some(String::from(v)),
             "counter-set" => self.counters[2] = Some(String::from(v)),
+            /* bolder and lighter step from the parent's weight. */
+            "font-weight" => {
+                let w = crate::browser::fonts::weight_of(self.parent_key);
+                self.c.font_key = crate::browser::fonts::weighted(self.c.font_key, w);
+            }
             _ => {}
         }
         apply_decl(&mut self.c, name, v, self.parent_fs);

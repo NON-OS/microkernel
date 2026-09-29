@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::browser::css::computed::Computed;
+use crate::browser::fonts;
 
 /* The monospace generic (or an explicit mono family) switches text to
  * the fixed-pitch face. A named first family keys the custom face the
@@ -26,11 +27,37 @@ pub(super) fn apply_font_family(c: &mut Computed, value: &str) {
     let bare = first.trim_matches('"').trim_matches('\'').trim();
     let lower = bare.to_ascii_lowercase();
     c.icon_font = crate::browser::css::icon_font::is_icon_family(&lower);
-    c.font_key = match lower.as_str() {
+    let family = match lower.as_str() {
         "" | "sans-serif" | "serif" | "system-ui" | "ui-sans-serif" => 0,
         "monospace" | "ui-monospace" | "cursive" | "fantasy" => 0,
-        _ => crate::browser::fonts::family_key(bare),
+        _ => fonts::family_key(bare),
     };
+    c.font_key = fonts::weighted(family, fonts::weight_of(c.font_key));
+}
+
+/* font-weight: the number rides in the font key, where a variable face is
+ * set to it; `bold` (600 and up) picks a bold cut or thickens a face that
+ * has none. bolder and lighter step from the inherited weight. */
+pub(super) fn apply_font_weight(c: &mut Computed, value: &str) {
+    let now = fonts::weight_of(c.font_key);
+    let w = match value.trim().to_ascii_lowercase().as_str() {
+        "normal" | "initial" => 400,
+        "bold" => 700,
+        "bolder" => [(400, 400), (600, 700), (u16::MAX, 900)]
+            .iter()
+            .find(|s| now < s.0)
+            .map_or(900, |s| s.1),
+        "lighter" => [(600, 100), (800, 400), (u16::MAX, 700)]
+            .iter()
+            .find(|s| now < s.0)
+            .map_or(700, |s| s.1),
+        v => match v.parse::<f32>().ok().filter(|w| (1.0..=1000.0).contains(w)) {
+            Some(w) => w as u16,
+            None => return,
+        },
+    };
+    c.bold = w >= 600;
+    c.font_key = fonts::weighted(c.font_key, w);
 }
 
 /* font-style: italic and oblique (with or without an angle) both draw the

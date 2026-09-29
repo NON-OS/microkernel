@@ -17,11 +17,12 @@
 use nonos_toolkit::font::fallback::{fallback_face, has_glyph};
 use nonos_toolkit::font::ttf::{self, FontRef};
 
-use super::registry::with_face;
+use super::registry::{with_face, with_weighted};
 use super::text::BOLD_KEY;
 
-/* Run `f` on the run's face: the family's bold cut, its regular one, then the
- * built-in face. The flag is true when the face carries the weight itself. */
+/* Run `f` on the run's face: the family's bold cut, its regular one (set to
+ * the key's weight if variable), then the built-in face; true when it
+ * carries the weight itself. */
 pub(super) fn with_run_face<R>(
     key: u32,
     mono: bool,
@@ -33,17 +34,16 @@ pub(super) fn with_run_face<R>(
             return Some((r, true));
         }
     }
-    if let Some(r) = with_face(key, &mut f) {
-        return Some((r, false));
+    if let Some((r, own)) = with_weighted(key, &mut f) {
+        return Some((r, own && bold));
     }
     ttf::builtin_face(mono, bold).map(|face| (f(face), bold && !mono))
 }
 
-/// Call `f(face, piece, primary)` on each piece of `text` that draws in one
-/// face, in order: the run's own face `primary`, or for characters it has
-/// no glyph for, a fallback face that has one, else the built-in face. Measure and draw both walk
-/// these pieces, so their widths agree. Returns whether the run's face is a
-/// true bold cut, None when there is no face at all.
+/// Call `f(face, piece, primary)` on each piece of `text` drawn in one face:
+/// the run's face `primary`, else a fallback face with the glyph, else the
+/// built-in one. Measure and draw walk the same pieces, so widths agree.
+/// Whether the run's face carries a bold weight itself; None with no face.
 pub(super) fn with_pieces(
     key: u32,
     mono: bool,

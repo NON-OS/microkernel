@@ -35,4 +35,5 @@ mod svg_box_tests;
 mod svg_paint_tests;
 mod svg_ref_tests;
 mod woff2_bad_tests;
+mod weight_tests;
 mod woff2_tests;

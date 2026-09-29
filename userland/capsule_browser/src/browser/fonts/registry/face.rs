@@ -19,17 +19,21 @@ use core::mem::ManuallyDrop;
 
 use nonos_toolkit::font::ttf::FontRef;
 
-/* One installed page face: its font data, taken out of its Box for as long
-as the entry lives, and the face parsed over that data once, at install. A
-face borrows its data, so the pair cannot be two ordinary fields. */
+/* One installed page face: its data, out of its Box while the entry lives,
+and the face parsed over it once (a borrow, so not two plain fields). */
 pub(super) struct Face {
     pub key: u32,
-    font: ManuallyDrop<FontRef<'static>>,
-    data: *mut [u8],
+    /* The weight a variable copy was set to (0: as loaded); `wght`, its
+     * weight axis default. */
+    pub weight: u16,
+    pub wght: Option<f32>,
+    pub(super) font: ManuallyDrop<FontRef<'static>>,
+    pub(super) data: *mut [u8],
 }
 
-/* SAFETY: `data` is owned by this entry alone and is only touched in drop;
-the registry's lock guards every entry, and the capsule is single threaded. */
+/* SAFETY: `data` is owned by this entry alone, read only while it lives and
+freed in drop; the registry's lock guards every entry, and the capsule is
+single threaded. */
 unsafe impl Send for Face {}
 
 impl Face {
@@ -41,7 +45,10 @@ impl Face {
         allocated until drop frees it, after the face that borrows it. */
         let slice: &'static [u8] = unsafe { &*data };
         match FontRef::try_from_slice(slice) {
-            Ok(font) => Some(Face { key, font: ManuallyDrop::new(font), data }),
+            Ok(font) => {
+                let wght = super::face_weight::wght_default(&font);
+                Some(Face { key, weight: 0, wght, font: ManuallyDrop::new(font), data })
+            }
             Err(_) => {
                 /* SAFETY: the failed parse kept no borrow of `data`, and
                 this is the only place it is freed. */

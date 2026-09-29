@@ -17,12 +17,16 @@
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
-use nonos_toolkit::font::ttf::{self, FontRef};
+use nonos_toolkit::font::ttf;
 use spin::Mutex;
 
 mod face;
+mod face_weight;
+mod lookup;
 
 use face::Face;
+
+pub use lookup::{with_face, with_weighted};
 
 /* Loaded page fonts keyed by family hash. A global rather than a threaded
  * parameter because glyph measurement happens deep inside layout, which never
@@ -41,7 +45,9 @@ pub fn install(key: u32, bytes: Vec<u8>) -> bool {
         return false;
     }
     let mut fonts = FONTS.lock();
-    if fonts.len() >= MAX_FONTS || fonts.iter().any(|f| f.key == key) {
+    if fonts.iter().filter(|f| f.weight == 0).count() >= MAX_FONTS
+        || fonts.iter().any(|f| f.key == key)
+    {
         return false;
     }
     match Face::parse(key, Box::from(bytes)) {
@@ -60,15 +66,4 @@ pub fn clear() {
     let faces = core::mem::take(&mut *FONTS.lock());
     drop(faces);
     ttf::clear_glyph_cache();
-}
-
-/* Run `f` with the parsed face for `key`. The face borrows the registry entry
- * for the duration of the call. */
-pub fn with_face<R>(key: u32, f: impl FnOnce(&FontRef) -> R) -> Option<R> {
-    if key == 0 {
-        return None;
-    }
-    let fonts = FONTS.lock();
-    let face = fonts.iter().find(|x| x.key == key)?;
-    Some(f(face.font()))
 }
