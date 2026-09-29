@@ -21,9 +21,8 @@ use crate::browser::css::color::media_query_matches;
 use crate::browser::state::State;
 use crate::browser::url::{self, Url};
 
+use super::enqueue_css::MAX_SHEETS;
 use super::import_url::import_url;
-
-const MAX_SHEETS: usize = 16;
 
 /* Follow the @import rules of a freshly fetched stylesheet: resolve each
  * imported URL against that sheet's own address (not the page base, since

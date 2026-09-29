@@ -26,7 +26,9 @@ mod sheet;
 
 pub use sheet::sheet_applies;
 
-const MAX_SHEETS: usize = 16;
+/* Stylesheets one page may fetch, links and imports together. Their bytes
+ * are capped as a whole (MAX_PAGE_CSS); this bounds the request count. */
+pub(super) const MAX_SHEETS: usize = 64;
 
 /* Queue the href of every <link> stylesheet that applies to this page (see
  * sheet_applies: no alternate, disabled, foreign-type or non-matching media
