@@ -14,41 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod align;
-mod align_kw;
-mod aspect;
-mod border;
-mod clip;
-mod clip_polygon;
-mod decl;
-mod direction;
-mod display;
-mod flex;
-mod flex_shorthand;
-mod float;
-mod font_family;
-mod font_size;
-mod grid;
-mod grid_halves;
-pub(super) mod grid_names;
-mod grid_template;
-mod list;
-mod margin;
-mod origin;
-mod overflow;
-mod padding;
-mod paint;
-mod position;
-mod radius;
-mod shadow;
-mod sizing;
-mod text;
-mod text_flow;
-mod transform;
-mod transform_fn;
-mod trig;
-mod visual;
-mod white_space;
-mod z_index;
+use crate::browser::css::computed::Computed;
 
-pub use decl::apply_decl;
+/* Computed.z holds z-index offset by Z_SET, so 0 stays free for auto: an
+ * integer z-index, 0 included, makes a stacking context and auto does not
+ * (CSS 2.1 9.9.1). */
+const Z_SET: i32 = 1000;
+
+pub(super) fn apply_z_index(c: &mut Computed, value: &str) {
+    let v = value.trim();
+    if v.eq_ignore_ascii_case("auto") {
+        c.z = 0;
+    } else if let Ok(z) = v.parse::<i32>() {
+        c.z = Z_SET + z.clamp(-999, 999);
+    }
+}
+
+impl Computed {
+    /// z-index: None for auto, else the integer, clamped to -999..=999.
+    pub(crate) fn z_index(&self) -> Option<i32> {
+        (self.z != 0).then(|| self.z - Z_SET)
+    }
+}

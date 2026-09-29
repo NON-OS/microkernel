@@ -37,11 +37,7 @@ pub(super) fn apply_visual(c: &mut Computed, name: &str, value: &str, fs: u32) -
             "visible" => c.opacity = 255,
             _ => {}
         },
-        "z-index" => {
-            if let Ok(z) = value.trim().parse::<i32>() {
-                c.z = z.clamp(-999, 999);
-            }
-        }
+        "z-index" => super::z_index::apply_z_index(c, value),
         "transform" => {
             if let Some(t) = super::transform::parse_transform(value, fs) {
                 c.fx.transform = t;

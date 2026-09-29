@@ -18,6 +18,7 @@ use crate::image::types::{DecodeError, ImageSize};
 
 use super::le::{le_u16, le_u32};
 use super::masks::masks;
+use super::readable::readable;
 
 /* Where a BMP's pixels are and how to read them. Rows are `stride` bytes,
  * 4-byte aligned, bottom-up unless the stored height was negative. */
@@ -45,7 +46,7 @@ pub(super) fn parse(input: &[u8]) -> Result<Layout<'_>, DecodeError> {
     let data_off = le_u32(input, 10)? as usize;
     let dib = le_u32(input, 14)? as usize;
     let (bpp, compression) = (le_u16(input, 28)? as usize, le_u32(input, 30)?);
-    super::readable(dib, compression, bpp)?;
+    readable(dib, compression, bpp)?;
     let w = le_u32(input, 18)? as i32;
     let h = le_u32(input, 22)? as i32;
     if le_u16(input, 26)? != 1 {

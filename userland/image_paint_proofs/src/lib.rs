@@ -61,4 +61,10 @@ mod png_stream_tests;
 #[cfg(test)]
 mod png_suite_tests;
 #[cfg(test)]
+mod stack_tests;
+#[cfg(test)]
+mod svg_arc;
+#[cfg(test)]
+mod svg_arc_tests;
+#[cfg(test)]
 mod svg_size_tests;

@@ -20,6 +20,7 @@ use super::ctx::Ctx;
 use super::display_list::{BoxDocument, DisplayList};
 use super::geom::containing::Containing;
 use super::geom::margins::margins;
+use super::geom::stack::Stack;
 use super::layout_box::layout_box;
 use super::post::canvas::canvas;
 use super::post::place_out::place_root;
@@ -37,7 +38,7 @@ pub fn layout(root: &BoxNode, viewport: (u32, u32)) -> BoxDocument {
     let ctx = Ctx {
         cb: Containing { w: vp.0, h: Some(vp.1) },
         clip: None,
-        z: 0,
+        z: Stack::ROOT,
         fixed: false,
         sticky: None,
         alpha: 255,

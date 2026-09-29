@@ -18,6 +18,8 @@ use alloc::string::String;
 
 use crate::browser::css::{BgSize, ObjectFit, Shadow};
 
+use super::stack_key::Key;
+
 pub enum Content {
     None,
     Text {
@@ -51,7 +53,8 @@ pub struct Fragment {
     pub border_color: u32,
     pub href: Option<String>,
     pub content: Content,
-    pub z: i32,
+    /* Paint order key (geom::stack). */
+    pub z: Key,
     pub clip: Option<[i32; 4]>,
     /* Painted without the scroll offset when true (position:fixed). */
     pub fixed: bool,

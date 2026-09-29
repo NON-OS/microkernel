@@ -14,20 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::css::{Computed, Size};
+use crate::browser::css::{Computed, Position, Size};
 
 use super::ctx::Ctx;
 
 impl Ctx {
-    /// The context a box at flow y `y` with style `s` lays itself out in: a
-    /// z-index opens a stacking level, a fixed box pins its subtree to the
-    /// viewport on scroll, opacity multiplies down, and a sticky box anchors
-    /// its subtree so paint shifts the whole of it once scrolled past.
-    pub(crate) fn enter(self, s: &Computed, y: i32) -> Ctx {
+    /// The context the box at tree position `seq` and flow y `y`, with
+    /// style `s`, lays itself out in: a z-index opens a stacking context (as
+    /// opacity or a transform do, at level 0; CSS Color 3 3.2, CSS
+    /// Transforms 1), a positioned box paints in its context's positioned
+    /// layer, a fixed box pins its subtree to the viewport on scroll,
+    /// opacity multiplies down, and a sticky box anchors its subtree so
+    /// paint shifts the whole of it once scrolled past.
+    pub(crate) fn enter(self, s: &Computed, y: i32, seq: usize) -> Ctx {
         let mut ctx = self;
-        if s.z != 0 {
-            ctx.z = s.z;
-        }
+        let own = s.opacity != 255 || s.fx.transform.is_some();
+        let z = s.z_index().or(own.then_some(0));
+        ctx.z = ctx.z.enter(z, s.position != Position::Static || s.is_sticky, seq);
         ctx.fixed |= s.is_fixed;
         if s.opacity != 255 {
             ctx.alpha = ((ctx.alpha as u16 * s.opacity as u16) / 255) as u8;

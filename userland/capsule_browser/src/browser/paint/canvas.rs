@@ -51,7 +51,7 @@ pub(super) fn paint_canvas(state: &State, doc: &BoxDocument, fb: &mut PaintBuffe
         border_color: 0,
         href: None,
         content: Content::None,
-        z: 0,
+        z: [0; 8],
         clip: None,
         fixed: false,
         sticky: None,

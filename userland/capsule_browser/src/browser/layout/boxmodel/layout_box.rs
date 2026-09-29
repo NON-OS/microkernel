@@ -42,7 +42,7 @@ pub(super) fn layout_box(
     depth: u32,
     ctx: Ctx,
 ) -> i32 {
-    let ctx = ctx.enter(&node.style, y);
+    let ctx = ctx.enter(&node.style, y, node.dom_id);
     let (mut x, mut y) = (x, y);
     if node.style.position == Position::Relative {
         let (dx, dy) = rel_offset(&node.style, ctx.cb);

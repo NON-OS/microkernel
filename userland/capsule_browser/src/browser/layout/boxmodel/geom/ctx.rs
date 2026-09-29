@@ -15,14 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::containing::Containing;
+use super::stack::Stack;
 
 /* Ambient layout state a box hands to its children: the percentage bases,
- * the active clip, the stacking z and the viewport. */
+ * the active clip, the paint-order stack and the viewport. */
 #[derive(Clone, Copy)]
 pub(crate) struct Ctx {
     pub cb: Containing,
     pub clip: Option<[i32; 4]>,
-    pub z: i32,
+    pub z: Stack,
     /* True inside a position:fixed subtree; its fragments pin on scroll. */
     pub fixed: bool,
     /* Inside a sticky subtree: the sticky box's flow y and its top offset,

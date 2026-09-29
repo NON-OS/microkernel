@@ -45,7 +45,7 @@ impl Fragment {
             border_color: 0,
             href,
             content,
-            z: ctx.z,
+            z: ctx.z.key,
             clip: ctx.clip,
             fixed: ctx.fixed,
             sticky: ctx.sticky,
@@ -68,7 +68,7 @@ impl Fragment {
         f.border_color = if s.border_color != 0 { s.border_color } else { s.color };
         f.bg_image = node.bg_image.clone();
         (f.bg_size, f.bg_repeat, f.shadow) = (s.bg_size, s.bg_repeat, s.shadow);
-        f.radius = radii(s, r[2]);
+        (f.radius, f.z) = (radii(s, r[2]), ctx.z.decor());
         f
     }
 }

@@ -14,41 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod align;
-mod align_kw;
-mod aspect;
-mod border;
-mod clip;
-mod clip_polygon;
-mod decl;
-mod direction;
-mod display;
-mod flex;
-mod flex_shorthand;
-mod float;
-mod font_family;
-mod font_size;
-mod grid;
-mod grid_halves;
-pub(super) mod grid_names;
-mod grid_template;
-mod list;
-mod margin;
-mod origin;
-mod overflow;
-mod padding;
-mod paint;
-mod position;
-mod radius;
-mod shadow;
-mod sizing;
-mod text;
-mod text_flow;
-mod transform;
-mod transform_fn;
-mod trig;
-mod visual;
-mod white_space;
-mod z_index;
+mod decode;
+mod header;
+mod le;
+mod masks;
+mod readable;
 
-pub use decl::apply_decl;
+pub use decode::decode_bmp_argb8888;
+pub use header::bmp_dimensions;

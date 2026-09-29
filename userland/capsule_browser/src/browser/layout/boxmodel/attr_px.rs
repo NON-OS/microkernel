@@ -28,3 +28,14 @@ pub(super) fn attr_px(v: Option<&str>) -> Option<u32> {
     }
     Some(((n + 0.5) as u32).min(MAX_ATTR_PX))
 }
+
+/* The viewBox width and height when both are positive numbers. */
+pub(super) fn view_box(v: Option<&str>) -> Option<(f32, f32)> {
+    let mut it = v?.split(|c: char| c == ',' || c.is_ascii_whitespace()).filter(|p| !p.is_empty());
+    let mut nums = [0f32; 4];
+    for n in nums.iter_mut() {
+        *n = it.next()?.parse::<f32>().ok()?;
+    }
+    (nums[2] > 0.0 && nums[3] > 0.0 && nums[2].is_finite() && nums[3].is_finite())
+        .then_some((nums[2], nums[3]))
+}
