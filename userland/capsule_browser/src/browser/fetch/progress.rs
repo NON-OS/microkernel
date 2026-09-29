@@ -14,17 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::fetch::types::Phase;
+use alloc::string::String;
 
-// A short human label for the current fetch phase, shown on the loading
-// screen so the user sees real progress instead of a static "loading".
-pub(super) fn phase_label(phase: Phase) -> &'static str {
+use crate::browser::fetch::types::{Fetch, Phase};
+
+/// A short human label for the current fetch phase, shown on the loading
+/// screen so the reader sees real progress instead of a static "loading".
+pub fn phase_label(phase: Phase) -> &'static str {
     match phase {
-        Phase::SocksHello | Phase::SocksMethod | Phase::SocksConnect => "connecting",
-        Phase::TlsHello | Phase::TlsFlight | Phase::TlsVerify => "securing",
-        Phase::SendReq => "requesting",
-        Phase::ReadBody => "downloading",
-        Phase::Decrypt | Phase::Done => "rendering",
-        Phase::Error => "error",
+        Phase::Connecting | Phase::SocksHello | Phase::SocksMethod | Phase::SocksConnect => {
+            "Connecting to"
+        }
+        Phase::TlsHello | Phase::TlsFlight => "Securing",
+        Phase::SendReq => "Requesting",
+        Phase::ReadBody => "Downloading",
+        Phase::Decrypt | Phase::Done => "Rendering",
+        Phase::Error => "Error",
     }
+}
+
+/// The status line for a navigation in flight: the phase and the host. It
+/// changes only when the phase does, so a tick that moved nothing has
+/// nothing new to draw.
+pub fn status(f: &Fetch) -> String {
+    alloc::format!("{} {}", phase_label(f.phase), f.url.host)
 }

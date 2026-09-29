@@ -32,19 +32,5 @@ pub fn open(suite: u16, key: &[u8; 32], iv: &[u8; 12], seq: u64, record: &[u8]) 
         k.copy_from_slice(&key[..16]);
         return super::aes_gcm::open(&k, &nonce, &record[..5], &record[5..]);
     }
-    let frame = super::aad_frame::aad_frame(&record[..5], &record[5..]);
-    let mut pt = alloc::vec![0u8; len - 16];
-    let n = nonos_libc::crypto_decrypt_aad(
-        0,
-        key.as_ptr(),
-        nonce.as_ptr(),
-        frame.as_ptr(),
-        frame.len(),
-        pt.as_mut_ptr(),
-    );
-    if n == pt.len() as i64 {
-        Some(pt)
-    } else {
-        None
-    }
+    super::chacha_record::open(key, &nonce, &record[..5], &record[5..])
 }

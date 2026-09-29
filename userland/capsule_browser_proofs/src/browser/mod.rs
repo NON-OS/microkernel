@@ -17,8 +17,8 @@ pub mod layout;
 #[path = "../../../capsule_browser/src/browser/url/mod.rs"]
 pub mod url;
 
-// js keeps its mirror: the interpreter modules under test are private to the
-// capsule and nothing outside the engine has cause to reach them.
+/* js keeps its mirror: the interpreter modules under test are private to the
+ * capsule and nothing outside the engine has cause to reach them. */
 pub mod image;
 pub mod js;
 pub mod manifest;
@@ -27,3 +27,10 @@ pub mod manifest;
 pub mod chunked;
 #[path = "../../../capsule_browser/src/browser/net/recv_pending.rs"]
 pub mod recv_pending;
+
+/* The fetch machine: its socket calls behind a trait, its TLS the real one. */
+pub mod fetch;
+#[path = "../../../capsule_browser/src/browser/http/mod.rs"]
+pub mod http;
+pub mod net;
+pub use tls_proofs as tls13;

@@ -1,0 +1,34 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host stand-in for nonos_userland_libc, for the TLS proofs only. Every crypto
+# syscall and every IPC to the crypto pool that nonos_tls makes is answered by
+# the crypto capsule's own request handlers, compiled here from its source, so
+# a handshake verified on the host is verified by the code the pool runs.
+[package]
+name = "tls_proofs_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+# capsule_crypto's dependency set and features, so its handlers compile to the
+# code the capsule ships.
+[dependencies]
+blake3 = { version = "1.0", default-features = false }
+sha2 = { version = "0.10", default-features = false, features = ["force-soft", "oid"] }
+sha3 = { version = "0.10", default-features = false }
+digest = { version = "0.10", default-features = false }
+aead = { version = "0.5", default-features = false, features = ["alloc"] }
+chacha20poly1305 = { version = "0.10", default-features = false, features = ["alloc"] }
+aes-gcm = { version = "0.10", default-features = false, features = ["alloc", "aes"] }
+ed25519-dalek = { version = "2.1.1", default-features = false, features = ["alloc", "zeroize"] }
+x25519-dalek = { version = "2", default-features = false, features = ["static_secrets", "zeroize"] }
+p256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
+p384 = { version = "0.13", default-features = false, features = ["ecdsa"] }
+rsa = { version = "0.9", default-features = false, features = ["sha2"] }
+rand_chacha = { version = "0.3", default-features = false }
+rand_core = { version = "0.6", default-features = false }

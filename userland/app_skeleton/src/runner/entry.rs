@@ -16,7 +16,7 @@
 
 use alloc::vec;
 
-use nonos_libc::{heap_init, mk_exit, mk_time_millis, HeapError};
+use nonos_libc::{heap_init, mk_display_vsync_wait, mk_exit, mk_time_millis, mk_yield, HeapError};
 
 use crate::app::App;
 use crate::discover::require_peers;
@@ -38,8 +38,7 @@ pub fn run<A: App, F: Fn() -> A>(build: F) -> ! {
         Ok(p) => p,
         Err(_) => fail(2, b"[app] peers fail\n"),
     };
-    // On-demand window instances exit when closed so their RAM is zeroized and
-    // their slot is freed; base apps return to idle and can be relaunched.
+    /* An on-demand instance exits when closed; a base app returns to idle. */
     let ephemeral = is_window_instance();
     let mut request_id: u32 = 1;
     let mut rx = vec![0u8; DELIVERY_LEN.max(256)];
@@ -62,10 +61,11 @@ pub fn run<A: App, F: Fn() -> A>(build: F) -> ! {
                     repaint(&mut booted, &peers, &mut request_id);
                 }
             }
+            /* Paced as run_loop is, not spun on a CPU the network needs: busy,
+             * it yields so the next tick is prompt; idle, it sleeps to vblank. */
+            let _ = if booted.app.busy() { mk_yield() } else { mk_display_vsync_wait(0) };
         }
-        // The window was closed. An instance exits here; the kernel tears it
-        // down and zeroizes its pages, leaving no resident state and a free
-        // slot for a fresh, re-attested spawn on the next launch.
+        /* Closed: the kernel zeroizes an exiting instance and frees its slot. */
         if ephemeral {
             mk_exit(0);
         }

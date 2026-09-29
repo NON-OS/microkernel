@@ -16,11 +16,9 @@
 
 use alloc::vec::Vec;
 
-pub fn client_finished(
-    keys: &super::traffic_keys::TrafficKeys,
-    transcript: &[u8],
-) -> Option<Vec<u8>> {
-    let verify = super::finished_value::finished_value(&keys.client_secret, transcript)?;
+/// The client Finished record, given the hash of ClientHello..server Finished.
+pub fn client_finished(keys: &super::traffic_keys::TrafficKeys, th: &[u8; 32]) -> Option<Vec<u8>> {
+    let verify = super::finished_value::finished_value(&keys.client_secret, th)?;
     let mut msg = Vec::with_capacity(36);
     msg.push(20);
     super::push::u24(&mut msg, verify.len());

@@ -29,8 +29,15 @@ use super::traits::{Io, SessionError};
 /// and an empty read costs far less than the round trip being waited on.
 const QUIET_MS: i64 = 4_000;
 
-pub(super) fn read_response<S: Io>(io: &mut S, limit: usize) -> Result<Vec<u8>, SessionError> {
-    let mut buf = Vec::new();
+/// Read on from `buf`, which holds what already arrived behind the flight.
+pub(super) fn read_response<S: Io>(
+    io: &mut S,
+    mut buf: Vec<u8>,
+    limit: usize,
+) -> Result<Vec<u8>, SessionError> {
+    if buf.len() > limit {
+        return Err(SessionError::TooLarge);
+    }
     let mut chunk = [0u8; 4096];
     let mut quiet_until = mk_uptime_ms().saturating_add(QUIET_MS);
     loop {

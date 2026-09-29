@@ -20,13 +20,12 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
+use crate::handshake_state::Progress;
 use crate::session::{Io, SessionError};
 
 use super::gather::gather;
 use super::handshake_keys::handshake_keys;
 use super::settle::settle;
-use super::span::Span;
-use super::span_scan::handshake_span;
 use super::types::Stream;
 
 /// Handshake with a peer whose certificate is not expected to chain to a public
@@ -37,16 +36,17 @@ pub fn connect_unauthenticated<S: Io>(io: &mut S, sni: &[u8]) -> Result<Stream, 
 
     let mut buf: Vec<u8> = Vec::new();
     /*
-     * Once, not once per read: repeating it spends a curve operation on every
-     * empty poll of the socket.
+     * Keyed once, and each record decrypted once as it arrives: the state
+     * that finds the Finished is the one that verifies it, so the key
+     * agreement is not repeated at the end.
      */
-    let (keys, used) = handshake_keys(io, &client, &mut buf)?;
+    let mut state = handshake_keys(io, &client, &mut buf)?;
     loop {
-        match handshake_span(&keys, used, &buf) {
-            Span::Broken => return Err(SessionError::Handshake),
-            Span::Alert(description) => return Err(SessionError::PeerAlert(description)),
-            Span::Found(end) => return settle(io, &client, buf, end),
-            Span::Incomplete => gather(io, &mut buf)?,
+        match state.advance(&buf) {
+            Progress::Broken => return Err(SessionError::Handshake),
+            Progress::Alert(description) => return Err(SessionError::PeerAlert(description)),
+            Progress::Complete(end) => return settle(io, &state, buf, end),
+            Progress::Incomplete => gather(io, &mut buf)?,
         }
     }
 }

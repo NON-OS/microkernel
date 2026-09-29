@@ -17,56 +17,43 @@
 //! Host proofs for the TLS client.
 //!
 //! `nonos_tls` carried no tests at all while the browser, the anon transport,
-//! the terminal, nym and the wallet all went through it. The pure parsers are
-//! included here from the real source so they are measured rather than assumed,
-//! against a certificate and a hello shape taken off the live network.
+//! the terminal, nym and the wallet all went through it. Its whole source is
+//! included here, every module from the real file, so it is measured rather
+//! than assumed: against a certificate and a hello shape taken off the live
+//! network, the RFC 8448 handshake trace, and a re-signing gateway's chain.
 //!
-//! The signature verification itself is not reachable here: it is an IPC call to
-//! the crypto capsule, so it belongs to a boot and not to this suite. What is
-//! reachable is everything that decides *what* gets handed to it.
+//! Signatures and the X25519 agreement are IPC calls to the crypto capsule.
+//! The stand-in `nonos_libc` answers them with the capsule's own handlers, so
+//! what is verified here is verified by the pool's code.
 
-#[path = "../../nonos_tls/src/constants.rs"]
-pub mod constants;
-#[path = "../../nonos_tls/src/der_tlv.rs"]
-pub mod der_tlv;
-#[path = "../../nonos_tls/src/read.rs"]
-pub mod read;
+extern crate alloc;
 
-#[path = "../../nonos_tls/src/alert.rs"]
-pub mod alert;
-#[path = "../../nonos_tls/src/cert_at.rs"]
-pub mod cert_at;
-#[path = "../../nonos_tls/src/cert_count.rs"]
-pub mod cert_count;
-#[path = "../../nonos_tls/src/cert_dns_match.rs"]
-pub mod cert_dns_match;
-#[path = "../../nonos_tls/src/cert_ext.rs"]
-pub mod cert_ext;
-#[path = "../../nonos_tls/src/cert_ext_entry.rs"]
-pub mod cert_ext_entry;
-#[path = "../../nonos_tls/src/cert_is_ca.rs"]
-pub mod cert_is_ca;
-#[path = "../../nonos_tls/src/cert_spki.rs"]
-pub mod cert_spki;
-#[path = "../../nonos_tls/src/cert_time_value.rs"]
-pub mod cert_time_value;
-#[path = "../../nonos_tls/src/cert_valid_now.rs"]
-pub mod cert_valid_now;
-#[cfg(test)]
-#[path = "../../nonos_tls/src/handshake_step.rs"]
-pub mod handshake_step;
-#[path = "../../nonos_tls/src/hello_retry.rs"]
-pub mod hello_retry;
-#[path = "../../nonos_tls/src/hkdf_label.rs"]
-pub mod hkdf_label;
-#[path = "../../nonos_tls/src/inner_plain.rs"]
-pub mod inner_plain;
-#[path = "../../nonos_tls/src/server_hello.rs"]
-pub mod server_hello;
+include!("modules_cert.rs");
+include!("modules_handshake.rs");
+include!("modules_record.rs");
+
+/*
+ * The names nonos_tls exports at its root, exported here the same way, so a
+ * host proof of a caller can name this crate where the caller names nonos_tls.
+ */
+pub use alert::description_in_record;
+pub use alert::name as alert_name;
+pub use app_reader::AppReader;
+pub use application_plaintext::{application_plaintext, application_plaintext_cached};
+pub use application_request::application_request;
+pub use client_flight::client_flight;
+pub use handshake_alert::handshake_alert;
+pub use handshake_state::{Answer, HandshakeState, Progress, Refusal, Start};
+pub use traffic_keys::TrafficKeys;
+
+/* The stand-in C library, so a caller's proof can read the call counts. */
+pub use nonos_libc as shim;
 
 pub mod example_ca;
 pub mod example_leaf;
 pub mod relay_cert;
 
+#[cfg(test)]
+mod fixtures;
 #[cfg(test)]
 mod tests;

@@ -16,7 +16,9 @@
 
 use alloc::vec;
 
+use super::ask::{ask, Fault};
 use super::constants::{OP_RECV, SOCKETS_MAGIC};
+use super::recv_kind::Recv;
 
 const RECV_TIMEOUT_MS: u64 = 200;
 
@@ -25,31 +27,38 @@ const RECV_CHUNK: usize = 32 * 1024;
 
 /// Read into `out` from `handle`: first what an earlier read left over,
 /// then one exchange with net.sockets, whose surplus is kept for next time.
-pub fn socket_recv(sockets_port: u32, handle: u32, out: &mut [u8]) -> Result<usize, ()> {
+///
+/// net.sockets answers an empty socket with a status rather than zero bytes,
+/// so a status is `Empty`; only a reply that never came is `Lost`.
+pub fn socket_recv(sockets_port: u32, handle: u32, out: &mut [u8]) -> Recv {
     if super::mixnet::is_on() {
-        return super::mixnet::recv(out);
+        return match super::mixnet::recv(out) {
+            Ok(n) if n > 0 => Recv::Bytes(n),
+            _ => Recv::Empty,
+        };
     }
     let held = super::recv_pending::take(handle, out);
     if held > 0 {
-        return Ok(held);
+        return Recv::Bytes(held);
     }
     let mut body = [0u8; 12];
     body[0..4].copy_from_slice(&handle.to_le_bytes());
     body[4..8].copy_from_slice(&super::recv_seq::current(handle).to_le_bytes());
     body[8..12].copy_from_slice(&(RECV_CHUNK as u32).to_le_bytes());
     let mut rx = vec![0u8; RECV_CHUNK + 20];
-    let n =
-        super::call::call_t(sockets_port, SOCKETS_MAGIC, OP_RECV, &body, &mut rx, RECV_TIMEOUT_MS)?;
-    if n < 20 {
-        return Err(());
-    }
+    let n = match ask(sockets_port, SOCKETS_MAGIC, OP_RECV, &body, &mut rx, RECV_TIMEOUT_MS) {
+        Ok(n) => n,
+        Err(Fault::Lost) => return Recv::Lost,
+        Err(Fault::Status(_) | Fault::Garbled) => return Recv::Empty,
+    };
     let payload = u32::from_le_bytes([rx[16], rx[17], rx[18], rx[19]]) as usize;
     let got = &rx[20..20 + payload.min(n - 20)];
-    if !got.is_empty() {
-        super::recv_seq::answered(handle);
+    if got.is_empty() {
+        return Recv::Empty;
     }
+    super::recv_seq::answered(handle);
     let copy_len = got.len().min(out.len());
     out[..copy_len].copy_from_slice(&got[..copy_len]);
     super::recv_pending::put(handle, &got[copy_len..]);
-    Ok(copy_len)
+    Recv::Bytes(copy_len)
 }

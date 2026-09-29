@@ -14,61 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use alloc::vec::Vec;
+//! A request on a connection kept from an earlier one.
 
-use nonos_libc::mk_time_millis;
+use super::pool::Idle;
+use super::types::{Fetch, Phase};
+use super::wire::Wire;
+use crate::browser::http;
+use crate::browser::tls13;
+use crate::browser::url::Url;
 
-use crate::browser::fetch::types::{Fetch, Phase};
-use crate::browser::state::State;
-use crate::browser::url::{Scheme, Url};
-use crate::browser::{http, net, tls13};
-
-// Send an image request over the kept-alive connection when it matches the
-// target host, skipping connect and handshake entirely. Anything off about
-// the kept connection closes it and returns None, so the caller falls back
-// to a fresh connection and the worst case is exactly the old behaviour.
-pub(crate) fn try_reuse(state: &mut State, url: &Url, key: &str) -> Option<Fetch> {
-    let keep = state.keep.take()?;
-    if keep.host != url.host || keep.port != url.port || url.scheme != Scheme::Https {
-        let _ = net::socket_close(state.sockets_port, keep.handle);
+/*
+ * The spent ciphertext and plaintext are dropped first, so the fetch reads
+ * this response from the start of its buffer and the reader carries on at
+ * the record sequence the connection has reached.
+ */
+/// A GET of `url` sent on a kept connection, in this call. `None` if the
+/// connection would not take it; it is closed, and the caller opens anew.
+pub fn reuse<W: Wire>(w: &mut W, mut idle: Idle, url: Url) -> Option<Fetch> {
+    let req = http::request::build_keep_alive(&url);
+    let bytes = match idle.tls.as_mut() {
+        Some(tls) => {
+            tls.reader.compact(&mut idle.buf, idle.consumed);
+            let app = tls.server_app.as_ref();
+            app.and_then(|app| tls13::application_request(app, idle.tx_seq, req.as_bytes()))
+        }
+        None => Some(req.into_bytes()),
+    };
+    if bytes.is_none_or(|b| w.send(idle.handle, &b).is_err()) {
+        w.close(idle.handle);
         return None;
     }
-    let sealed = keep
-        .tls
-        .server_app
-        .as_ref()
-        .and_then(|app| {
-            let req = http::request::build_keep_alive(url);
-            tls13::application_request(app, keep.tx_seq, req.as_bytes())
-        })
-        .filter(|rec| net::socket_send(state.sockets_port, keep.handle, rec).is_ok());
-    if sealed.is_none() {
-        let _ = net::socket_close(state.sockets_port, keep.handle);
-        return None;
-    }
-    Some(Fetch {
-        url: url.clone(),
-        handle: keep.handle,
-        phase: Phase::ReadBody,
-        buf: keep.buf,
-        socks: Vec::new(),
-        tls: Some(keep.tls),
-        idle: 0,
-        started_ms: mk_time_millis(),
-        progress_ms: mk_time_millis(),
-        error: None,
-        tls_alert: None,
-        suppress: true,
-        image: Some(String::from(key)),
-        last_check: 0,
-        post: None,
-        js_req: false,
-        css: false,
-        rx_consumed: keep.consumed,
-        tx_seq: keep.tx_seq,
-        keep_uses: keep.used,
-        font: 0,
-        script: false,
-    })
+    let mut f = Fetch::new(url, idle.handle, Phase::ReadBody, w.now_ms());
+    f.buf = idle.buf;
+    f.tls = idle.tls;
+    f.tx_seq = idle.tx_seq;
+    f.keep_uses = idle.used;
+    f.keep = true;
+    Some(f)
 }

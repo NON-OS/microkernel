@@ -21,8 +21,8 @@ use alloc::string::String;
 use crate::browser::fetch::types::Fetch;
 use crate::browser::tls13;
 
-// The reason arrives as a byte on the wire; the sentence is a rendering of it.
-pub(super) fn reason(job: &Fetch) -> String {
+/* The reason arrives as a byte on the wire; the sentence is a rendering of it. */
+pub fn reason(job: &Fetch) -> String {
     let base = match job.error {
         Some(err) => err,
         None => "error",

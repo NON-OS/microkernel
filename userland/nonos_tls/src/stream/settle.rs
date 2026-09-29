@@ -20,21 +20,24 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::flight::ClientFlight;
+use crate::handshake_state::HandshakeState;
 use crate::session::{Io, SessionError};
 
 use super::types::Stream;
 
+/*
+ * The chain is the caller's to check, so it is not walked here; the
+ * CertificateVerify signature and the Finished MAC are. Alerts have already
+ * ended the flight before this point, so a failure here is the handshake's.
+ */
 pub(super) fn settle<S: Io>(
     io: &mut S,
-    client: &ClientFlight,
+    state: &HandshakeState,
     buf: Vec<u8>,
     end: usize,
 ) -> Result<Stream, SessionError> {
-    // Handshake is the fault only when the peer did not say what was wrong.
-    let done = crate::server_complete_unauthenticated(client, &buf[..end])
-        .ok_or_else(|| crate::handshake_fault(client, &buf[..end], SessionError::Handshake))?;
-    let record = crate::client_finished::client_finished(&done.handshake, &done.transcript)
+    let done = state.verify(&[], 0, false).ok_or(SessionError::Handshake)?;
+    let record = crate::client_finished::client_finished(&done.handshake, &done.transcript_hash)
         .ok_or(SessionError::Handshake)?;
     io.write_all(&record)?;
     Ok(Stream::new(done.app, done.certificates, buf[end..].to_vec()))

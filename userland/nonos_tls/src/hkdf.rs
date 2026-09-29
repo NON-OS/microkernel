@@ -14,38 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+//! HKDF-SHA-256, RFC 5869, computed in the caller.
 
+use super::hmac_sha256::tag;
+
+/*
+ * Each HMAC here used to be its own syscall and kernel round trip to the
+ * crypto pool: nine of them for the handshake keys and eight more for the
+ * application keys, on every attempt at a handshake.
+ */
 pub fn extract(salt: &[u8], ikm: &[u8]) -> Option<[u8; 32]> {
-    let mut out = [0u8; 32];
-    let n = nonos_libc::crypto_hmac_sha256(
-        salt.as_ptr(),
-        salt.len(),
-        ikm.as_ptr(),
-        ikm.len(),
-        out.as_mut_ptr(),
-    );
-    if n == 32 {
-        Some(out)
-    } else {
-        None
-    }
+    tag(salt, &[ikm])
 }
 
 pub fn expand(prk: &[u8; 32], info: &[u8], out: &mut [u8]) -> bool {
-    let mut prev: Vec<u8> = Vec::new();
+    let mut prev = [0u8; 32];
+    let mut have_prev = false;
     let mut done = 0usize;
     let mut counter = 1u8;
     while done < out.len() {
-        let mut data = Vec::with_capacity(prev.len() + info.len() + 1);
-        data.extend_from_slice(&prev);
-        data.extend_from_slice(info);
-        data.push(counter);
-        let Some(block) = extract(prk, &data) else { return false };
+        let previous: &[u8] = if have_prev { &prev } else { &[] };
+        let Some(block) = tag(prk, &[previous, info, &[counter]]) else { return false };
         let n = core::cmp::min(block.len(), out.len() - done);
         out[done..done + n].copy_from_slice(&block[..n]);
-        prev.clear();
-        prev.extend_from_slice(&block);
+        prev = block;
+        have_prev = true;
         done += n;
         counter = counter.wrapping_add(1);
     }

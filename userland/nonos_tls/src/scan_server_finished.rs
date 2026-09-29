@@ -20,10 +20,11 @@ use alloc::vec::Vec;
 
 use super::scan_messages::{certificate, certificate_verify, finished};
 use super::scan_messages::{CERTIFICATE, CERTIFICATE_VERIFY, FINISHED};
+use super::transcript::Transcript;
 
 pub struct ScanState<'a> {
     pub secret: &'a [u8; 32],
-    pub transcript: &'a mut Vec<u8>,
+    pub transcript: &'a mut Transcript,
     pub host: &'a [u8],
     pub now: u64,
     pub cert11: &'a mut Vec<u8>,
@@ -56,7 +57,7 @@ pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
         if kind == FINISHED {
             let ok = finished(body, state);
             if ok {
-                state.transcript.extend_from_slice(&msgs[pos..end]);
+                state.transcript.push(&msgs[pos..end]);
             }
             return ok;
         }
@@ -66,7 +67,7 @@ pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
         if kind == CERTIFICATE_VERIFY && !certificate_verify(body, state) {
             return false;
         }
-        state.transcript.extend_from_slice(&msgs[pos..end]);
+        state.transcript.push(&msgs[pos..end]);
         pos = end;
     }
     false

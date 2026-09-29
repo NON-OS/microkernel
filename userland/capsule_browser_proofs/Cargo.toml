@@ -24,6 +24,9 @@ nonos_toolkit = { path = "../toolkit", default-features = false }
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 nonos_inflate = { path = "../inflate" }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
+# The TLS client, from its real source, with the crypto pool's own handlers
+# answering its calls: the fetch machine is proven against real handshakes.
+tls_proofs = { path = "../tls_proofs" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

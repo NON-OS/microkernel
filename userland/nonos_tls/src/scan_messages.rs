@@ -18,7 +18,7 @@
 
 use super::scan_server_finished::ScanState;
 
-// Handshake message types, RFC 8446 section 4.
+/* Handshake message types, RFC 8446 section 4. */
 pub(super) const CERTIFICATE: u8 = 11;
 pub(super) const CERTIFICATE_VERIFY: u8 = 15;
 pub(super) const FINISHED: u8 = 20;
@@ -35,8 +35,12 @@ pub(super) fn certificate(body: &[u8], state: &mut ScanState) -> bool {
     true
 }
 
+/*
+ * The signature covers the transcript hash up to, not including, this
+ * message. The running hash answers that without copying the transcript.
+ */
 pub(super) fn certificate_verify(body: &[u8], state: &mut ScanState) -> bool {
-    let before = state.transcript.clone();
+    let before = state.transcript.digest();
     let Some(leaf) = super::cert_at::cert_at(state.cert11.as_slice(), 0) else {
         return false;
     };
@@ -51,5 +55,5 @@ pub(super) fn finished(body: &[u8], state: &mut ScanState) -> bool {
     if !*state.validated {
         return false;
     }
-    super::finished_verify::verify(state.secret, state.transcript, body)
+    super::finished_verify::verify(state.secret, &state.transcript.digest(), body)
 }

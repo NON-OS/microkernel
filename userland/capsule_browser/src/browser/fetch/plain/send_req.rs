@@ -15,15 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::browser::fetch::types::{Fetch, Phase};
-use crate::browser::http;
-use crate::browser::net;
+use crate::browser::fetch::wire::Wire;
 
-pub(in crate::browser::fetch) fn send_req(state_port: u32, f: &mut Fetch) {
-    let req = http::request::build(&f.url, f.post.as_deref());
-    if net::socket_send(state_port, f.handle, req.as_bytes()).is_err() {
-        f.error = Some("send failed");
-        f.phase = Phase::Error;
-        return;
+pub(in crate::browser::fetch) fn send_req<W: Wire>(w: &mut W, f: &mut Fetch) {
+    let req = super::request::request(f);
+    if w.send(f.handle, req.as_bytes()).is_err() {
+        return f.stop("send failed");
     }
     f.buf.clear();
     f.phase = Phase::ReadBody;

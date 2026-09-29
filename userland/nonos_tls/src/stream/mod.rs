@@ -20,7 +20,6 @@ mod absorb;
 mod connect;
 mod content;
 mod dispatch;
-mod finished;
 mod gather;
 mod handshake_keys;
 mod io;
@@ -28,8 +27,6 @@ mod limits;
 mod open_record;
 mod seal;
 mod settle;
-mod span;
-mod span_scan;
 mod types;
 
 pub use connect::connect_unauthenticated;

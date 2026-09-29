@@ -17,10 +17,14 @@
 //! Why the server stopped, once the handshake keys existed.
 
 use crate::flight::ClientFlight;
+use crate::handshake_state::{HandshakeState, Progress};
 
 /// The alert description in the server's encrypted flight, or `None` if it sent
-/// no alert.
+/// no alert. A caller holding a `HandshakeState` reads `alert()` instead and
+/// pays for no second key agreement.
 pub fn handshake_alert(client: &ClientFlight, bytes: &[u8]) -> Option<u8> {
-    let ctx = crate::server_keys::server_keys(client, bytes)?;
-    crate::handshake_records::alert_in_flight(&ctx.keys, ctx.used, bytes)
+    match HandshakeState::whole(client, bytes)? {
+        (_, Progress::Alert(description)) => Some(description),
+        _ => None,
+    }
 }

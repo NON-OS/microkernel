@@ -18,13 +18,16 @@ use alloc::string::String;
 
 use crate::browser::url::Url;
 
-// GET, or a form POST when a urlencoded body rides along.
+/* GET, or a form POST when a urlencoded body rides along; either asks to close. */
 pub fn build(url: &Url, post: Option<&str>) -> String {
     request(url, post, false)
 }
 
-// GET on a connection the fetch machine keeps open for the next same-host
-// request, so a run of images pays a single handshake.
+/*
+ * GET on a connection the fetch machine keeps for the next request to the
+ * same host, in the clear or over TLS: that request then skips the connect
+ * and, over TLS, the handshake.
+ */
 pub fn build_keep_alive(url: &Url) -> String {
     request(url, None, true)
 }

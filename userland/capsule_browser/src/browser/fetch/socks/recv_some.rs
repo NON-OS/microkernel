@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::fetch::types::{Fetch, Phase};
-use crate::browser::net;
+use crate::browser::fetch::types::Fetch;
+use crate::browser::fetch::wire::Wire;
+use crate::browser::net::drain::drain;
 
-pub fn recv_some(port: u32, f: &mut Fetch) {
-    let mut buf = [0u8; 64];
-    match net::socket_recv(port, f.handle, &mut buf) {
-        Ok(n) if n > 0 => f.socks.extend_from_slice(&buf[..n]),
-        _ => {
-            f.idle = f.idle.wrapping_add(1);
-            if f.idle > 80 {
-                f.error = Some("socks timed out");
-                f.phase = Phase::Error;
-            }
-        }
+/* A SOCKS reply is at most 262 bytes; nothing else arrives before it. */
+const SOCKS_CAP: usize = 512;
+const SOCKS_READ_MS: i64 = 5;
+
+/// Take what the proxy has answered so far. How long it may take to answer
+/// at all is the fetch deadline's to decide.
+pub fn recv_some<W: Wire>(w: &mut W, f: &mut Fetch) {
+    let read = drain(w, f.handle, &mut f.socks, SOCKS_CAP, SOCKS_READ_MS);
+    if read.got > 0 {
+        f.progress_ms = w.now_ms();
+        f.received += read.got;
     }
 }

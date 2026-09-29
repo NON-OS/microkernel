@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use super::flight::ClientFlight;
 use super::server_context::ServerContext;
+use super::transcript::Transcript;
 
+/*
+ * The one crypto pool round trip left in a handshake's key schedule is the
+ * X25519 agreement, which stays in the pool with the other public key
+ * operations. Everything after it is hashing and runs here.
+ */
 pub fn server_keys(client: &ClientFlight, record: &[u8]) -> Option<ServerContext> {
     let (server_hello, used) = first_handshake(record)?;
     let (suite, peer) = super::server_hello::key_share(server_hello)?;
@@ -28,11 +32,11 @@ pub fn server_keys(client: &ClientFlight, record: &[u8]) -> Option<ServerContext
     {
         return None;
     }
-    let mut transcript = Vec::with_capacity(client.handshake.len() + server_hello.len());
-    transcript.extend_from_slice(&client.handshake);
-    transcript.extend_from_slice(server_hello);
-    let keys = super::schedule::handshake_keys(&shared, &transcript, suite)?;
-    Some(ServerContext { used, keys, transcript, cert11: Vec::new(), validated: false })
+    let mut transcript = Transcript::new();
+    transcript.push(&client.handshake);
+    transcript.push(server_hello);
+    let keys = super::schedule::handshake_keys(&shared, &transcript.digest(), suite)?;
+    Some(ServerContext { used, keys, transcript })
 }
 
 fn first_handshake(record: &[u8]) -> Option<(&[u8], usize)> {

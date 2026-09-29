@@ -70,6 +70,7 @@ impl App for Browser {
             || !s.script_queue.is_empty()
             || !s.image_queue.is_empty()
             || !s.font_queue.is_empty()
+            || s.pool.busy()
     }
 }
 
@@ -79,12 +80,11 @@ impl Browser {
          * in stylesheets and images that keep the socket busy well after the
          * document appears; without this the user could never navigate away
          * from the address bar or a link while those sub-fetches ran. */
+        let mut shown = false;
         if self.state.pending_nav.is_some() {
             if let Some(job) = self.state.fetch.take() {
                 let _ = crate::browser::net::socket_close(self.state.sockets_port, job.handle);
             }
-        } else if self.state.fetch.is_some() {
-            return crate::browser::fetch::step(&mut self.state);
         }
         if let Some(target) = self.state.pending_nav.take() {
             if let Err(msg) = crate::browser::fetch::load(&mut self.state, &target) {
@@ -96,38 +96,11 @@ impl Browser {
                 self.state.world = None;
                 self.state.view = crate::browser::state::View::Page;
             }
-            return true;
+            shown = true;
         }
-        if crate::browser::event::js_tick(&mut self.state) {
-            return true;
-        }
-        /* Stylesheets stay render-blocking, so they claim the free socket first. */
-        if crate::browser::fetch::css_pump(&mut self.state) {
-            return true;
-        }
-        if crate::browser::fetch::font_pump(&mut self.state) {
-            return true;
-        }
-        /* External <script src> bundles load next, so a framework app runs and
-         * builds its DOM before images fill in. */
-        if crate::browser::fetch::script_pump(&mut self.state) {
-            return true;
-        }
-        /* Then alternate the socket between script-issued fetches and images.
-         * A page whose JS never stops requesting would otherwise hold the one
-         * socket forever and no image would ever load. */
-        let img_first = self.state.img_turn;
-        self.state.img_turn = !self.state.img_turn;
-        if img_first {
-            if crate::browser::image::pump(&mut self.state) {
-                return true;
-            }
-            crate::browser::fetch::js_pump(&mut self.state)
-        } else {
-            if crate::browser::fetch::js_pump(&mut self.state) {
-                return true;
-            }
-            crate::browser::image::pump(&mut self.state)
-        }
+        /* Every fetch steps, lands and starts here; the page's timers after. */
+        let fetched = crate::browser::fetch::tick(&mut self.state);
+        let timers = crate::browser::event::js_tick(&mut self.state);
+        shown || fetched || timers
     }
 }

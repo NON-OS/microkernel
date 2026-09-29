@@ -34,6 +34,7 @@ mod dom_tests;
 mod entity_tests;
 #[cfg(test)]
 mod fallback_tests;
+mod fetch_proofs;
 #[cfg(test)]
 mod float_tests;
 #[cfg(test)]

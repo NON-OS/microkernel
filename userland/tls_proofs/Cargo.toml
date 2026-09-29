@@ -3,8 +3,12 @@
 #
 # Host-runnable proofs for the TLS client. Builds for the host so `cargo test`
 # runs the real nonos_tls source (included via #[path]) against bytes captured
-# from a live Anyone relay. The crate had no tests of any kind before this, and
-# five capsules depend on it.
+# from a live Anyone relay, the RFC 8448 handshake trace, and the certificate
+# chain a re-signing gateway served. The crate had no tests of any kind before
+# this, and five capsules depend on it.
+#
+# nonos_libc is a host stand-in that answers every crypto call with the crypto
+# capsule's own handlers, so signatures are verified by the pool's code.
 [package]
 name = "tls_proofs"
 version = "0.1.0"
@@ -12,6 +16,12 @@ edition = "2021"
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "tls_proofs_shim", path = "shim" }
+sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
+hmac = { version = "0.12", default-features = false }
+chacha20poly1305 = { version = "0.10", default-features = false }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

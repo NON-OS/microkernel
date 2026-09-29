@@ -62,8 +62,6 @@ pub struct State {
     pub proxy: Option<ProxyConfig>,
     pub images: crate::browser::image::Store,
     pub image_queue: Vec<String>,
-    /* Hops taken by the in-flight image fetch; bounds 3xx chasing. */
-    pub image_redirects: u8,
     /* Alternates the free socket between script-issued fetches and images so a
      * page whose JS never stops requesting cannot starve image loading. */
     pub img_turn: bool,
@@ -90,6 +88,9 @@ pub struct State {
     /* Author rules parsed once and reused across relayouts when the CSS text
      * is unchanged, so JS-driven relayouts skip re-parsing the whole sheet. */
     pub css_cache: Option<crate::browser::css::CssCache>,
+    /* Sub-resource fetches side by side, and connections kept between
+     * their requests; `fetch` stays the navigation's own slot. */
+    pub pool: crate::browser::fetch::Pool,
 }
 
 impl State {
@@ -121,7 +122,6 @@ impl State {
             proxy: None,
             images: crate::browser::image::Store::new(),
             image_queue: Vec::new(),
-            image_redirects: 0,
             img_turn: false,
             keep: None,
             font_queue: Vec::new(),
@@ -131,6 +131,7 @@ impl State {
             css_queue: Vec::new(),
             page_css: String::new(),
             css_cache: None,
+            pool: crate::browser::fetch::Pool::new(),
         }
     }
 }
