@@ -19,11 +19,14 @@
 use crate::term::state::State;
 
 const ERRNO_NOENT: i64 = -2;
+const ERRNO_EXIST: i64 = -17;
 
 /// Which tool the kernel would not start, and why, in its own words.
 pub fn refused(state: &mut State, name: &[u8], rc: i64) {
     let why: &[u8] = match rc {
         ERRNO_NOENT => b": not installed in this build",
+        /* The kernel's answer when a live one holds the tool's endpoints. */
+        ERRNO_EXIST => b": one is already running",
         _ => b": the kernel refused to start it",
     };
     let mut line = name.to_vec();

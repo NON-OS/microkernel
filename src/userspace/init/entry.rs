@@ -112,7 +112,7 @@ fn run_tool_selftest() {
     ];
     for (service, argv, label) in TESTS {
         boot_log::ok("TOOL-SELFTEST run", label);
-        if crate::userspace::tool_capsules::run_named(service, argv).is_none() {
+        if crate::userspace::tool_capsules::run_named(service, argv).is_err() {
             boot_log::error("tool self-test spawn failed");
         }
         // Let the scheduler run the tool to completion before the next one, so

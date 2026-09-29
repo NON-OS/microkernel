@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT};
+use super::errnos::{ERRNO_FAULT, ERRNO_INVAL};
 use crate::usercopy::{read_user_bytes, validate_user_read};
 
 const MAX_NAME: usize = 48;
@@ -52,7 +52,7 @@ pub fn sys_tool_run(name_ptr: u64, name_len: u64, argv_ptr: u64, argv_len: u64) 
         }
     };
     match crate::userspace::tool_capsules::run_named(&name, &argv) {
-        Some(pid) => pid as i64,
-        None => ERRNO_NOENT,
+        Ok(pid) => pid as i64,
+        Err(errno) => errno,
     }
 }

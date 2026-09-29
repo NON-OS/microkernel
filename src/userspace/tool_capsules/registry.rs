@@ -109,18 +109,18 @@ fn embedded_tools() -> Vec<ToolCapsule> {
 
 /// Run the embedded tool whose service name matches `name`, parented to the
 /// caller so it can drive the tool's stdin and stdout. `argv` is the NUL
-/// separated argument blob. Returns the tool's pid, or `None`. Tools run on
+/// separated argument blob. Returns the tool's pid, or why not as an errno:
+/// ENOENT for no such tool, EEXIST for one already running. Tools run on
 /// demand, not at boot: a command-line tool has nothing to do until invoked.
-pub fn run_named(name: &[u8], argv: &[u8]) -> Option<u32> {
+pub fn run_named(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
     if name == b"tool.linux" {
         return super::linux_terminal::run(argv);
     }
-    let tool = embedded_tools().into_iter().find(|t| t.name.as_bytes() == name)?;
-    match tool.spawn_with_args(argv) {
-        Ok(pid) => Some(pid),
-        Err(_) => {
-            boot_log::error("tool capsule spawn failed");
-            None
-        }
-    }
+    let Some(tool) = embedded_tools().into_iter().find(|t| t.name.as_bytes() == name) else {
+        return Err(crate::syscall::microkernel::errnos::ERRNO_NOENT);
+    };
+    tool.spawn_with_args(argv).map_err(|e| {
+        boot_log::error("tool capsule spawn failed");
+        super::linux_terminal::spawn_errno(&e)
+    })
 }
