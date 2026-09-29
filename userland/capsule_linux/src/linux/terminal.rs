@@ -56,7 +56,7 @@ pub(super) fn requested(max_image: u32) -> Option<Option<Launch>> {
     if parts.next()? != b"linux" {
         return None;
     }
-    let Some(program) = parts.next() else {
+    let Some(program) = parts.next().filter(|p| !p.is_empty()) else {
         say(b"usage: linux <program> [arguments]\n");
         return Some(None);
     };
