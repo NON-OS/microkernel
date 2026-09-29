@@ -18,7 +18,7 @@
 
 use nonos_app_skeleton::clients::compositor::scene_submit;
 use nonos_app_skeleton::discover::lookup_port;
-use nonos_libc::{mk_surface_register, SurfaceDescriptor};
+use nonos_libc::{mk_surface_register, mk_surface_share, SurfaceDescriptor};
 
 use super::scene::Scene;
 
@@ -41,8 +41,9 @@ pub fn surface(scene: &mut Scene, width: u32, height: u32, stride: u32) -> Optio
         base_va: scene.frame_span().0,
         flags: 0,
     };
-    let handle = mk_surface_register(&desc);
-    if handle < 0 {
+    let sid = mk_surface_register(&desc);
+    let handle = if sid < 0 { sid } else { mk_surface_share(sid as u64) };
+    if handle <= 0 {
         say(alloc::format!("[WAYLAND] surface {width}x{height} refused, rc {handle}\n"));
         return None;
     }
@@ -58,8 +59,7 @@ const APP_LAYER_Z: u32 = 2;
 /// where it goes. A guest window opens centred below the top bar.
 fn place(handle: u64, width: u32, height: u32) {
     let Some(port) = lookup_port(b"compositor") else {
-        say(alloc::string::String::from("[WAYLAND] no compositor to place a window\n"));
-        return;
+        return say("[WAYLAND] no compositor to place a window\n".into());
     };
     let x = 1920u32.saturating_sub(width) / 2;
     let y = 1080u32.saturating_sub(height).saturating_sub(48) / 2 + 48;
