@@ -16,7 +16,8 @@
 
 //! Kernel broker for runtime capsule-store persistence. Fail-closed on
 //! `Capability::StoreWrite`; writes are scoped to `lba >= STORE_BASE_LBA`
-//! so blockfs's 0..256 header ring is unreachable, and bounded per call.
+//! so blockfs's 0..256 header ring is unreachable, and must end below the
+//! disk plan, so the plan and the sealed data volume past it are too.
 
 use super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 
@@ -34,6 +35,10 @@ pub fn sys_store_write(lba: u64, user_ptr: u64, len: u64) -> i64 {
     let len = len as usize;
     if len > MAX_LEN || len % SECTOR != 0 {
         return ERRNO_INVAL;
+    }
+    if lba.saturating_add((len / SECTOR) as u64) > crate::fs::blockfs_volume::PLAN_LBA {
+        crate::sys::serial::print(b"[STORE-WR] refused: past the store, into the disk plan\n");
+        return ERRNO_PERM;
     }
     if crate::usercopy::validate_user_read(user_ptr, len).is_err() {
         return ERRNO_FAULT;
