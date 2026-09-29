@@ -24,8 +24,8 @@ use crate::process::foreign::{registry, signal_fpu, trap_frame, trap_wait};
 
 /// Called by the timer trampoline, after the tick, for a tick that
 /// interrupted user mode. `frame` is the interrupted register file the
-/// trampoline restores (`tick_frame`).
-pub fn on_user_tick(frame: &mut [u64; WORDS]) {
+/// trampoline restores (`tick_frame`), `fx` the FXSAVE area it reloads.
+pub fn on_user_tick(frame: &mut [u64; WORDS], fx: *mut u8) {
     if !any() || !crate::smp::preempt_enabled() {
         return;
     }
@@ -48,6 +48,13 @@ pub fn on_user_tick(frame: &mut [u64; WORDS]) {
     crate::sched::wake_process(supervisor);
     if let Answer::Deliver(to) = trap_wait::wait_raw(pid) {
         signal_fpu::enter_fpu(pid);
+        /*
+         * SAFETY: eK@nonos.systems - `fx` is the trampoline's 16-aligned,
+         * 512-byte area on this kernel stack. It held the interrupted state,
+         * which enter_fpu has kept; the clean state goes over it, or the
+         * trampoline's reload would hand that state to the handler.
+         */
+        unsafe { core::arch::asm!("fxsave64 [{}]", in(reg) fx, options(nostack, preserves_flags)) };
         crate::arch::context::set_user_tls(to.fs_base);
         *frame = to_words(&to);
     }

@@ -22,7 +22,8 @@ use crate::process::userspace::types::UserContext;
 /// On entry, `ctx` points at a stack-resident region whose layout
 /// matches the first 160 bytes of `UserContext` (15 GPRs + iretq
 /// frame). The pointer is valid only for the duration of this call;
-/// the trampoline reuses the memory on return.
+/// the trampoline reuses the memory on return. `fx` is the 512-byte
+/// FXSAVE area the trampoline reloads the FPU from on the way out.
 ///
 /// When the trap originated from CPL=3, this function snapshots the
 /// frame onto the current PCB's `saved_user_context` so the scheduler
@@ -31,7 +32,7 @@ use crate::process::userspace::types::UserContext;
 /// later context write overwrites earlier ones, and the scheduler
 /// `take()`s the most recent one.
 #[no_mangle]
-pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext) {
+pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext, fx: *mut u8) {
     // SAFETY: eK@nonos.systems — `ctx` was produced by the trampoline
     // above and points at 160 bytes of valid stack memory laid out as
     // the leading fields of `UserContext`. We read those fields here;
@@ -101,19 +102,8 @@ pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext) {
         }
     }
     super::reclaim::on_tick(from_user);
-    /*
-     * A guest thread its supervisor asked to stop is parked here, running
-     * no code, until it is answered; the frame it resumes from is this one,
-     * which a signal answer rewrites to enter the handler.
-     */
     if from_user {
         drop(_ctx_guard);
-        let words = ctx.cast::<[u64; crate::process::foreign::TICK_FRAME_WORDS]>();
-        /*
-         * SAFETY: eK@nonos.systems - the trampoline's 160-byte frame read
-         * above, still on this thread's kernel stack and restored from on the
-         * way out; the 20 words are exactly that frame, nothing past it.
-         */
-        crate::process::foreign::on_user_tick(unsafe { &mut *words });
+        super::guest_stop::on_user_tick(ctx, fx);
     }
 }

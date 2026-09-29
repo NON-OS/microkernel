@@ -52,6 +52,7 @@
 //! runs on whatever kernel stack was already current, and `swapgs`
 //! is skipped on both entry and exit.
 
+mod guest_stop;
 mod handler;
 mod reclaim;
 mod send_eoi;
