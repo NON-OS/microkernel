@@ -31,10 +31,14 @@ impl AcpiRsdp {
         self.revision >= 2
     }
 
+    /* The XSDT address exists from revision 2; below that the bytes are
+    not covered by any checksum the RSDP carries. */
     pub fn table_address(&self) -> u64 {
-        if let Some(xsdt) = self.xsdt_address {
-            if xsdt != 0 {
-                return xsdt;
+        if self.is_acpi2() {
+            if let Some(xsdt) = self.xsdt_address {
+                if xsdt != 0 {
+                    return xsdt;
+                }
             }
         }
         self.rsdt_address as u64

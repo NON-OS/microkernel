@@ -56,12 +56,14 @@ theorem the_acpirsdp_verify_extended_checksum_wrapper_is_its_method (a : modules
     is characterised the same way for every combination of present and absent
     fields, and `table_address` for every shape of the XSDT field.
 
-    Two properties are recorded as they are, not as the ACPI parser has them.
-    `table_address` never consults the revision, so a revision 0 RSDP carrying a
-    nonzero XSDT pointer still hands that pointer out, although the extended
-    checksum that would cover it is skipped for that revision; the parser's
-    `RsdpExtended::has_xsdt` requires revision 2 first. And with revision 2 but no
-    extension fields, which is what `parse_acpi_rsdp` produces for a tag 14 RSDP
+    `table_address` hands out the XSDT pointer only from revision 2, as the
+    parser's `RsdpExtended::has_xsdt` does: below that revision the extended
+    checksum that would cover the pointer is not computed, so the pointer is
+    ignored and the RSDT address returned. It used to hand out a nonzero XSDT
+    pointer whatever the revision; `kernel_proofs` keeps a test of that case.
+
+    One property is recorded as it is, not as the ACPI parser has it. With
+    revision 2 but no extension fields, which is what `parse_acpi_rsdp` produces for a tag 14 RSDP
     or a short tag 15 one, the extended check is the ACPI 1.0 check and nothing
     more. It also never sums the three reserved bytes or checks `length`.
 
@@ -292,13 +294,27 @@ theorem without_extension_fields_acpirsdp_verify_extended_checksum_is_the_v1_che
   unfold rsdpExtensionByteSum
   simp only [hr, ↓reduceIte, hl, hx, he, Nat.add_zero]
 
-/-- A nonzero XSDT address is returned whole, all 64 bits of it. -/
+private theorem is_acpi2_true (r : modules_acpi.AcpiRsdp) (hr : 2 ≤ r.revision.val) :
+    modules_acpi.AcpiRsdp.is_acpi2 r = ok true := by
+  have := acpirsdp_is_acpi2_exactly_from_revision_two r
+  unfold acpirsdp_is_acpi2 at this
+  rw [this]; simp [hr]
+
+private theorem is_acpi2_false (r : modules_acpi.AcpiRsdp) (hr : r.revision.val < 2) :
+    modules_acpi.AcpiRsdp.is_acpi2 r = ok false := by
+  have := acpirsdp_is_acpi2_exactly_from_revision_two r
+  unfold acpirsdp_is_acpi2 at this
+  rw [this]; simp; omega
+
+/-- From revision 2, a nonzero XSDT address is returned whole, all 64 bits of
+    it. -/
 theorem acpirsdp_table_address_prefers_a_nonzero_xsdt (r : modules_acpi.AcpiRsdp) (x : Std.U64)
-    (hx : r.xsdt_address = some x) (h0 : x.val ≠ 0) :
+    (hr : 2 ≤ r.revision.val) (hx : r.xsdt_address = some x) (h0 : x.val ≠ 0) :
     acpirsdp_table_address r = ok x := by
   unfold acpirsdp_table_address modules_acpi.AcpiRsdp.table_address
   have hne : x ≠ 0#u64 := by intro h; subst h; exact h0 rfl
-  simp only [hx, bne_iff_ne, ne_eq, hne, not_false_eq_true, ↓reduceIte]
+  simp only [is_acpi2_true r hr, bind_tc_ok, ↓reduceIte, hx, bne_iff_ne, ne_eq, hne,
+    not_false_eq_true]
 
 /-- With no XSDT, or an XSDT of zero, the answer is the 32-bit RSDT address
     zero-extended: a zero XSDT is never handed out in place of an RSDT. -/
@@ -306,24 +322,49 @@ theorem acpirsdp_table_address_falls_back_to_the_rsdt (r : modules_acpi.AcpiRsdp
     (h : r.xsdt_address = none ∨ r.xsdt_address = some 0#u64) :
     ∃ v, acpirsdp_table_address r = ok v ∧ v.val = r.rsdt_address.val := by
   unfold acpirsdp_table_address modules_acpi.AcpiRsdp.table_address
-  rcases h with h | h <;>
-    simp only [h, bne_self_eq_false, Bool.false_eq_true, ↓reduceIte, ok.injEq,
-      exists_eq_left', UScalar.cast_val_eq, UScalarTy.numBits] <;> scalar_tac
+  by_cases hr : 2 ≤ r.revision.val
+  · rcases h with h | h <;>
+      simp only [is_acpi2_true r hr, bind_tc_ok, ↓reduceIte, h, bne_self_eq_false,
+        Bool.false_eq_true, ok.injEq, exists_eq_left', UScalar.cast_val_eq,
+        UScalarTy.numBits] <;> scalar_tac
+  · simp only [is_acpi2_false r (by omega), bind_tc_ok, Bool.false_eq_true, ↓reduceIte,
+      ok.injEq, exists_eq_left', UScalar.cast_val_eq, UScalarTy.numBits]
+    scalar_tac
 
-/-- This records a defect. The table address is the same whatever the revision,
-    so an ACPI 1.0 RSDP (revision 0 or 1) that carries a nonzero XSDT pointer has
-    that pointer returned, while the extended checksum that would cover it passes
-    without being computed. The ACPI parser's `RsdpExtended::has_xsdt` requires
-    revision 2 before it trusts the XSDT. -/
-theorem acpirsdp_table_address_follows_an_unchecked_xsdt_below_revision_two
-    (r : modules_acpi.AcpiRsdp) (x : Std.U64) (hr : r.revision.val < 2)
-    (hx : r.xsdt_address = some x) (h0 : x.val ≠ 0) :
-    acpirsdp_table_address r = ok x ∧ acpirsdp_verify_extended_checksum r = ok true ∧
-      ∀ k : Std.U8, acpirsdp_table_address { r with revision := k } = ok x := by
-  refine ⟨acpirsdp_table_address_prefers_a_nonzero_xsdt r x hx h0, ?_, fun k =>
-    acpirsdp_table_address_prefers_a_nonzero_xsdt _ x hx h0⟩
-  rw [acpirsdp_verify_extended_checksum_is_the_sum_of_the_present_fields]
-  simp only [show ¬ 2 ≤ r.revision.val by omega, ↓reduceIte]
+/-- Below revision 2 the answer is the RSDT address whatever the XSDT field
+    holds, so a pointer the extended checksum does not cover is never handed
+    out. -/
+theorem acpirsdp_table_address_ignores_the_xsdt_below_revision_two
+    (r : modules_acpi.AcpiRsdp) (hr : r.revision.val < 2) :
+    ∃ v, acpirsdp_table_address r = ok v ∧ v.val = r.rsdt_address.val := by
+  unfold acpirsdp_table_address modules_acpi.AcpiRsdp.table_address
+  simp only [is_acpi2_false r hr, bind_tc_ok, Bool.false_eq_true, ↓reduceIte,
+    ok.injEq, exists_eq_left', UScalar.cast_val_eq, UScalarTy.numBits]
+  scalar_tac
+
+/-- Whenever `table_address` returns anything but the RSDT address, the RSDP is
+    revision 2 or later and the value is its XSDT field, which is the case in
+    which `verify_extended_checksum` computes the extended sum. -/
+theorem acpirsdp_table_address_hands_out_the_xsdt_only_from_revision_two
+    (r : modules_acpi.AcpiRsdp) (v : Std.U64) (h : acpirsdp_table_address r = ok v)
+    (hv : v.val ≠ r.rsdt_address.val) :
+    2 ≤ r.revision.val ∧ r.xsdt_address = some v := by
+  by_cases hr : 2 ≤ r.revision.val
+  · refine ⟨hr, ?_⟩
+    cases hx : r.xsdt_address with
+    | none =>
+      obtain ⟨w, hw, hwv⟩ := acpirsdp_table_address_falls_back_to_the_rsdt r (Or.inl hx)
+      rw [hw] at h; cases h; exact absurd hwv hv
+    | some x =>
+      by_cases h0 : x.val = 0
+      · have : x = 0#u64 := UScalar.eq_of_val_eq h0
+        subst this
+        obtain ⟨w, hw, hwv⟩ := acpirsdp_table_address_falls_back_to_the_rsdt r (Or.inr hx)
+        rw [hw] at h; cases h; exact absurd hwv hv
+      · rw [acpirsdp_table_address_prefers_a_nonzero_xsdt r x hr hx h0] at h
+        cases h; rfl
+  · obtain ⟨w, hw, hwv⟩ := acpirsdp_table_address_ignores_the_xsdt_below_revision_two r (by omega)
+    rw [hw] at h; cases h; exact absurd hwv hv
 
 /-! ### Axiom profile -/
 
@@ -347,6 +388,7 @@ theorem acpirsdp_table_address_follows_an_unchecked_xsdt_below_revision_two
 #print axioms NonosExtraction.MultibootModulesAcpi.without_extension_fields_acpirsdp_verify_extended_checksum_is_the_v1_check
 #print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_prefers_a_nonzero_xsdt
 #print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_falls_back_to_the_rsdt
-#print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_follows_an_unchecked_xsdt_below_revision_two
+#print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_ignores_the_xsdt_below_revision_two
+#print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_hands_out_the_xsdt_only_from_revision_two
 
 end NonosExtraction.MultibootModulesAcpi
