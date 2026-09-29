@@ -19,7 +19,7 @@ use alloc::vec::Vec;
 use crate::command::output::Output;
 use crate::term::state::State;
 
-use super::pipeline_job::step_pipeline;
+use super::pump_pipeline::step_pipeline_job;
 use super::reap::reap;
 use super::table::{JobProgress, JobState};
 use super::work::{step, JobWork};
@@ -52,28 +52,6 @@ fn step_job(state: &mut State, id: u32) {
     if let Some(job) = state.jobs.get_mut(id) {
         let mut out = Output::new(&mut state.scrollback);
         if let JobProgress::Done(status) = step(job, &mut out) {
-            job.status = status;
-            job.state = JobState::Done;
-        }
-    }
-}
-
-// `PipelineStages` needs `&mut State` (to run non-filter stages through
-// `exec`), which `step` above does not take. The work is moved out of the
-// job record so `state` is fully free for `step_pipeline`, then moved back
-// in with the resulting status applied.
-fn step_pipeline_job(state: &mut State, id: u32) {
-    let mut work = match state.jobs.get_mut(id) {
-        Some(job) => core::mem::replace(&mut job.work, JobWork::Noop),
-        None => return,
-    };
-    let progress = match &mut work {
-        JobWork::PipelineStages(pj) => step_pipeline(pj, state),
-        _ => JobProgress::Running,
-    };
-    if let Some(job) = state.jobs.get_mut(id) {
-        job.work = work;
-        if let JobProgress::Done(status) = progress {
             job.status = status;
             job.state = JobState::Done;
         }

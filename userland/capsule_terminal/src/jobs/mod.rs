@@ -20,6 +20,7 @@ mod external;
 mod external_io;
 mod pipeline_job;
 mod pump;
+mod pump_pipeline;
 mod reap;
 mod submit;
 mod table;
