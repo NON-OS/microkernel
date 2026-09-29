@@ -1,0 +1,14 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Extraction root mirroring src/arch/aarch64/fpu/context.rs. The kernel source is included with
+# #[path], never copied, so Charon reads the MIR rustc compiles.
+[package]
+name = "nonos_x_aarch64_fpu_context"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]

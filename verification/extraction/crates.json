@@ -1250,6 +1250,679 @@
         "nonos_align::phys_align_up",
         "nonos_align::phys_align_down"
       ]
+    },
+    {
+      "name": "rtc_bcd",
+      "crate": "nonos_x_rtc_bcd",
+      "dir": "verification/extraction/sweep/rtc_bcd",
+      "lean": "RtcBcd",
+      "generated": "RtcBcd.lean",
+      "starts": [
+        "nonos_x_rtc_bcd::bcd_to_bin",
+        "nonos_x_rtc_bcd::bin_to_bcd",
+        "nonos_x_rtc_bcd::is_valid_bcd"
+      ]
+    },
+    {
+      "name": "surface_registry_ring_math",
+      "crate": "nonos_x_surface_registry_ring_math",
+      "dir": "verification/extraction/sweep/surface_registry_ring_math",
+      "lean": "SurfaceRegistryRingMath",
+      "generated": "SurfaceRegistryRingMath.lean",
+      "starts": [
+        "nonos_x_surface_registry_ring_math::wrap",
+        "nonos_x_surface_registry_ring_math::is_full"
+      ]
+    },
+    {
+      "name": "iommu_domain_id",
+      "crate": "nonos_x_iommu_domain_id",
+      "dir": "verification/extraction/sweep/iommu_domain_id",
+      "lean": "IommuDomainId",
+      "generated": "IommuDomainId.lean",
+      "starts": [
+        "nonos_x_iommu_domain_id::domainid_new",
+        "nonos_x_iommu_domain_id::domainid_as_u16"
+      ]
+    },
+    {
+      "name": "iommu_device",
+      "crate": "nonos_x_iommu_device",
+      "dir": "verification/extraction/sweep/iommu_device",
+      "lean": "IommuDevice",
+      "generated": "IommuDevice.lean",
+      "starts": [
+        "nonos_x_iommu_device::deviceaddress_new",
+        "nonos_x_iommu_device::deviceaddress_pci",
+        "nonos_x_iommu_device::deviceaddress_as_u32",
+        "nonos_x_iommu_device::deviceaddress_pci_bus",
+        "nonos_x_iommu_device::deviceaddress_pci_device",
+        "nonos_x_iommu_device::deviceaddress_pci_function"
+      ]
+    },
+    {
+      "name": "types_range",
+      "crate": "nonos_x_types_range",
+      "dir": "verification/extraction/sweep/types_range",
+      "lean": "TypesRange",
+      "generated": "TypesRange.lean",
+      "starts": [
+        "nonos_x_types_range::portrange_new",
+        "nonos_x_types_range::portrange_start",
+        "nonos_x_types_range::portrange_count",
+        "nonos_x_types_range::portrange_end",
+        "nonos_x_types_range::portrange_contains"
+      ]
+    },
+    {
+      "name": "keyring_capsule_types",
+      "crate": "nonos_x_keyring_capsule_types",
+      "dir": "verification/extraction/sweep/keyring_capsule_types",
+      "lean": "KeyringCapsuleTypes",
+      "generated": "KeyringCapsuleTypes.lean",
+      "starts": [
+        "nonos_x_keyring_capsule_types::keytype_to_u8"
+      ]
+    },
+    {
+      "name": "types_protection",
+      "crate": "nonos_x_types_protection",
+      "dir": "verification/extraction/sweep/types_protection",
+      "lean": "TypesProtection",
+      "generated": "TypesProtection.lean",
+      "starts": [
+        "nonos_x_types_protection::protectionflags_new",
+        "nonos_x_types_protection::protectionflags_is_fully_protected"
+      ]
+    },
+    {
+      "name": "types_stats_snapshot",
+      "crate": "nonos_x_types_stats_snapshot",
+      "dir": "verification/extraction/sweep/types_stats_snapshot",
+      "lean": "TypesStatsSnapshot",
+      "generated": "TypesStatsSnapshot.lean",
+      "starts": [
+        "nonos_x_types_stats_snapshot::mmiostatssnapshot_new",
+        "nonos_x_types_stats_snapshot::mmiostatssnapshot_total_operations"
+      ]
+    },
+    {
+      "name": "types_region_stats",
+      "crate": "nonos_x_types_region_stats",
+      "dir": "verification/extraction/sweep/types_region_stats",
+      "lean": "TypesRegionStats",
+      "generated": "TypesRegionStats.lean",
+      "starts": [
+        "nonos_x_types_region_stats::regionstats_free_memory"
+      ]
+    },
+    {
+      "name": "pio_types",
+      "crate": "nonos_x_pio_types",
+      "dir": "verification/extraction/sweep/pio_types",
+      "lean": "PioTypes",
+      "generated": "PioTypes.lean",
+      "starts": [
+        "nonos_x_pio_types::piowidth_bytes"
+      ]
+    },
+    {
+      "name": "registry_version",
+      "crate": "nonos_x_registry_version",
+      "dir": "verification/extraction/sweep/registry_version",
+      "lean": "RegistryVersion",
+      "generated": "RegistryVersion.lean",
+      "starts": [
+        "nonos_x_registry_version::libraryversion_new"
+      ]
+    },
+    {
+      "name": "types_device_id",
+      "crate": "nonos_x_types_device_id",
+      "dir": "verification/extraction/sweep/types_device_id",
+      "lean": "TypesDeviceId",
+      "generated": "TypesDeviceId.lean",
+      "starts": [
+        "nonos_x_types_device_id::deviceid_new",
+        "nonos_x_types_device_id::deviceid_matches"
+      ]
+    },
+    {
+      "name": "alg_id_types",
+      "crate": "nonos_x_alg_id_types",
+      "dir": "verification/extraction/sweep/alg_id_types",
+      "lean": "AlgIdTypes",
+      "generated": "AlgIdTypes.lean",
+      "starts": [
+        "nonos_x_alg_id_types::algid_as_u8"
+      ]
+    },
+    {
+      "name": "multisig_constants",
+      "crate": "nonos_x_multisig_constants",
+      "dir": "verification/extraction/sweep/multisig_constants",
+      "lean": "MultisigConstants",
+      "generated": "MultisigConstants.lean",
+      "starts": [
+        "nonos_x_multisig_constants::max_signers",
+        "nonos_x_multisig_constants::max_threshold"
+      ]
+    },
+    {
+      "name": "main_mode",
+      "crate": "nonos_x_main_mode",
+      "dir": "verification/extraction/sweep/main_mode",
+      "lean": "MainMode",
+      "generated": "MainMode.lean",
+      "starts": [
+        "nonos_x_main_mode::is_microkernel"
+      ]
+    },
+    {
+      "name": "port_stats_snapshot",
+      "crate": "nonos_x_port_stats_snapshot",
+      "dir": "verification/extraction/sweep/port_stats_snapshot",
+      "lean": "PortStatsSnapshot",
+      "generated": "PortStatsSnapshot.lean",
+      "starts": [
+        "nonos_x_port_stats_snapshot::portstatssnapshot_total_ops",
+        "nonos_x_port_stats_snapshot::portstatssnapshot_total_bytes"
+      ]
+    },
+    {
+      "name": "offsets_invalidate",
+      "crate": "nonos_x_offsets_invalidate",
+      "dir": "verification/extraction/sweep/offsets_invalidate",
+      "lean": "OffsetsInvalidate",
+      "generated": "OffsetsInvalidate.lean",
+      "starts": [
+        "nonos_x_offsets_invalidate::iva_offset",
+        "nonos_x_offsets_invalidate::iotlb_offset"
+      ]
+    },
+    {
+      "name": "offsets_fault",
+      "crate": "nonos_x_offsets_fault",
+      "dir": "verification/extraction/sweep/offsets_fault",
+      "lean": "OffsetsFault",
+      "generated": "OffsetsFault.lean",
+      "starts": [
+        "nonos_x_offsets_fault::frcd_reason",
+        "nonos_x_offsets_fault::frcd_source"
+      ]
+    },
+    {
+      "name": "cap_limits",
+      "crate": "nonos_x_cap_limits",
+      "dir": "verification/extraction/sweep/cap_limits",
+      "lean": "CapLimits",
+      "generated": "CapLimits.lean",
+      "starts": [
+        "nonos_x_cap_limits::domain_count",
+        "nonos_x_cap_limits::max_address_width"
+      ]
+    },
+    {
+      "name": "cap_fault",
+      "crate": "nonos_x_cap_fault",
+      "dir": "verification/extraction/sweep/cap_fault",
+      "lean": "CapFault",
+      "generated": "CapFault.lean",
+      "starts": [
+        "nonos_x_cap_fault::fault_recording_offset",
+        "nonos_x_cap_fault::fault_recording_count"
+      ]
+    },
+    {
+      "name": "cap_behaviour",
+      "crate": "nonos_x_cap_behaviour",
+      "dir": "verification/extraction/sweep/cap_behaviour",
+      "lean": "CapBehaviour",
+      "generated": "CapBehaviour.lean",
+      "starts": [
+        "nonos_x_cap_behaviour::requires_write_buffer_flush",
+        "nonos_x_cap_behaviour::caching_mode"
+      ]
+    },
+    {
+      "name": "apic_timer_mode",
+      "crate": "nonos_x_apic_timer_mode",
+      "dir": "verification/extraction/sweep/apic_timer_mode",
+      "lean": "ApicTimerMode",
+      "generated": "ApicTimerMode.lean",
+      "starts": [
+        "nonos_x_apic_timer_mode::divider_to_code",
+        "nonos_x_apic_timer_mode::calibrate_timer"
+      ]
+    },
+    {
+      "name": "context_rflags",
+      "crate": "nonos_x_context_rflags",
+      "dir": "verification/extraction/sweep/context_rflags",
+      "lean": "ContextRflags",
+      "generated": "ContextRflags.lean",
+      "starts": [
+        "nonos_x_context_rflags::sanitize",
+        "nonos_x_context_rflags::sanitize_user"
+      ]
+    },
+    {
+      "name": "i2c_types",
+      "crate": "nonos_x_i2c_types",
+      "dir": "verification/extraction/sweep/i2c_types",
+      "lean": "I2cTypes",
+      "generated": "I2cTypes.lean",
+      "starts": [
+        "nonos_x_i2c_types::i2chiddevice_is_touchpad",
+        "nonos_x_i2c_types::i2chiddevice_is_touchscreen"
+      ]
+    },
+    {
+      "name": "data_numa",
+      "crate": "nonos_x_data_numa",
+      "dir": "verification/extraction/sweep/data_numa",
+      "lean": "DataNuma",
+      "generated": "DataNuma.lean",
+      "starts": [
+        "nonos_x_data_numa::numamemoryregion_end",
+        "nonos_x_data_numa::numamemoryregion_contains"
+      ]
+    },
+    {
+      "name": "registers_plic",
+      "crate": "nonos_x_registers_plic",
+      "dir": "verification/extraction/sweep/registers_plic",
+      "lean": "RegistersPlic",
+      "generated": "RegistersPlic.lean",
+      "starts": [
+        "nonos_x_registers_plic::plic_new",
+        "nonos_x_registers_plic::plic_base"
+      ]
+    },
+    {
+      "name": "attributes_kind",
+      "crate": "nonos_x_attributes_kind",
+      "dir": "verification/extraction/sweep/attributes_kind",
+      "lean": "AttributesKind",
+      "generated": "AttributesKind.lean",
+      "starts": [
+        "nonos_x_attributes_kind::memorytype_attr_index",
+        "nonos_x_attributes_kind::memorytype_mair_attr"
+      ]
+    },
+    {
+      "name": "memory_consts",
+      "crate": "nonos_x_memory_consts",
+      "dir": "verification/extraction/sweep/memory_consts",
+      "lean": "MemoryConsts",
+      "generated": "MemoryConsts.lean",
+      "starts": [
+        "nonos_x_memory_consts::is_user_space"
+      ]
+    },
+    {
+      "name": "dispatch_args",
+      "crate": "nonos_x_dispatch_args",
+      "dir": "verification/extraction/sweep/dispatch_args",
+      "lean": "DispatchArgs",
+      "generated": "DispatchArgs.lean",
+      "starts": [
+        "nonos_x_dispatch_args::args_new"
+      ]
+    },
+    {
+      "name": "trampoline_per_ap",
+      "crate": "nonos_x_trampoline_per_ap",
+      "dir": "verification/extraction/sweep/trampoline_per_ap",
+      "lean": "TrampolinePerAp",
+      "generated": "TrampolinePerAp.lean",
+      "starts": [
+        "nonos_x_trampoline_per_ap::perapbootcontext_new"
+      ]
+    },
+    {
+      "name": "signal_error",
+      "crate": "nonos_x_signal_error",
+      "dir": "verification/extraction/sweep/signal_error",
+      "lean": "SignalError",
+      "generated": "SignalError.lean",
+      "starts": [
+        "nonos_x_signal_error::signalerror_as_errno"
+      ]
+    },
+    {
+      "name": "types_pte",
+      "crate": "nonos_x_types_pte",
+      "dir": "verification/extraction/sweep/types_pte",
+      "lean": "TypesPte",
+      "generated": "TypesPte.lean",
+      "starts": [
+        "nonos_x_types_pte::pagetableentry_empty"
+      ]
+    },
+    {
+      "name": "mmio_constants",
+      "crate": "nonos_x_mmio_constants",
+      "dir": "verification/extraction/sweep/mmio_constants",
+      "lean": "MmioConstants",
+      "generated": "MmioConstants.lean",
+      "starts": [
+        "nonos_x_mmio_constants::align_up"
+      ]
+    },
+    {
+      "name": "types_snapshot",
+      "crate": "nonos_x_types_snapshot",
+      "dir": "verification/extraction/sweep/types_snapshot",
+      "lean": "TypesSnapshot",
+      "generated": "TypesSnapshot.lean",
+      "starts": [
+        "nonos_x_types_snapshot::dmastatssnapshot_new"
+      ]
+    },
+    {
+      "name": "apply_range",
+      "crate": "nonos_x_apply_range",
+      "dir": "verification/extraction/sweep/apply_range",
+      "lean": "ApplyRange",
+      "generated": "ApplyRange.lean",
+      "starts": [
+        "nonos_x_apply_range::in_range"
+      ]
+    },
+    {
+      "name": "security_mmio_range",
+      "crate": "nonos_x_security_mmio_range",
+      "dir": "verification/extraction/sweep/security_mmio_range",
+      "lean": "SecurityMmioRange",
+      "generated": "SecurityMmioRange.lean",
+      "starts": [
+        "nonos_x_security_mmio_range::range_ok"
+      ]
+    },
+    {
+      "name": "constants_address_packing",
+      "crate": "nonos_x_constants_address_packing",
+      "dir": "verification/extraction/sweep/constants_address_packing",
+      "lean": "ConstantsAddressPacking",
+      "generated": "ConstantsAddressPacking.lean",
+      "starts": [
+        "nonos_x_constants_address_packing::pci_config_address"
+      ]
+    },
+    {
+      "name": "random_api_entropy_check",
+      "crate": "nonos_x_random_api_entropy_check",
+      "dir": "verification/extraction/sweep/random_api_entropy_check",
+      "lean": "RandomApiEntropyCheck",
+      "generated": "RandomApiEntropyCheck.lean",
+      "starts": [
+        "nonos_x_random_api_entropy_check::required_entropy_bytes"
+      ]
+    },
+    {
+      "name": "resource_nonce_compose",
+      "crate": "nonos_x_resource_nonce_compose",
+      "dir": "verification/extraction/sweep/resource_nonce_compose",
+      "lean": "ResourceNonceCompose",
+      "generated": "ResourceNonceCompose.lean",
+      "starts": [
+        "nonos_x_resource_nonce_compose::compose"
+      ]
+    },
+    {
+      "name": "resource_limits",
+      "crate": "nonos_x_resource_limits",
+      "dir": "verification/extraction/sweep/resource_limits",
+      "lean": "ResourceLimits",
+      "generated": "ResourceLimits.lean",
+      "starts": [
+        "nonos_x_resource_limits::has_at_least"
+      ]
+    },
+    {
+      "name": "chain_constants",
+      "crate": "nonos_x_chain_constants",
+      "dir": "verification/extraction/sweep/chain_constants",
+      "lean": "ChainConstants",
+      "generated": "ChainConstants.lean",
+      "starts": [
+        "nonos_x_chain_constants::max_chain_depth"
+      ]
+    },
+    {
+      "name": "audit_constants",
+      "crate": "nonos_x_audit_constants",
+      "dir": "verification/extraction/sweep/audit_constants",
+      "lean": "AuditConstants",
+      "generated": "AuditConstants.lean",
+      "starts": [
+        "nonos_x_audit_constants::capacity"
+      ]
+    },
+    {
+      "name": "cap_pages",
+      "crate": "nonos_x_cap_pages",
+      "dir": "verification/extraction/sweep/cap_pages",
+      "lean": "CapPages",
+      "generated": "CapPages.lean",
+      "starts": [
+        "nonos_x_cap_pages::best_leaf_level"
+      ]
+    },
+    {
+      "name": "diag_cpl",
+      "crate": "nonos_x_diag_cpl",
+      "dir": "verification/extraction/sweep/diag_cpl",
+      "lean": "DiagCpl",
+      "generated": "DiagCpl.lean",
+      "starts": [
+        "nonos_x_diag_cpl::cpl_from_cs"
+      ]
+    },
+    {
+      "name": "cpu_cache_assoc",
+      "crate": "nonos_x_cpu_cache_assoc",
+      "dir": "verification/extraction/sweep/cpu_cache_assoc",
+      "lean": "CpuCacheAssoc",
+      "generated": "CpuCacheAssoc.lean",
+      "starts": [
+        "nonos_x_cpu_cache_assoc::decode_l2_assoc"
+      ]
+    },
+    {
+      "name": "validation_simd_level",
+      "crate": "nonos_x_validation_simd_level",
+      "dir": "verification/extraction/sweep/validation_simd_level",
+      "lean": "ValidationSimdLevel",
+      "generated": "ValidationSimdLevel.lean",
+      "starts": [
+        "nonos_x_validation_simd_level::simdlevel_register_width"
+      ]
+    },
+    {
+      "name": "sdt_entry_count",
+      "crate": "nonos_x_sdt_entry_count",
+      "dir": "verification/extraction/sweep/sdt_entry_count",
+      "lean": "SdtEntryCount",
+      "generated": "SdtEntryCount.lean",
+      "starts": [
+        "nonos_x_sdt_entry_count::sdt_entry_count"
+      ]
+    },
+    {
+      "name": "hpet_protection",
+      "crate": "nonos_x_hpet_protection",
+      "dir": "verification/extraction/sweep/hpet_protection",
+      "lean": "HpetProtection",
+      "generated": "HpetProtection.lean",
+      "starts": [
+        "nonos_x_hpet_protection::pageprotection_from_u8"
+      ]
+    },
+    {
+      "name": "data_stats",
+      "crate": "nonos_x_data_stats",
+      "dir": "verification/extraction/sweep/data_stats",
+      "lean": "DataStats",
+      "generated": "DataStats.lean",
+      "starts": [
+        "nonos_x_data_stats::acpistats_new"
+      ]
+    },
+    {
+      "name": "data_processor",
+      "crate": "nonos_x_data_processor",
+      "dir": "verification/extraction/sweep/data_processor",
+      "lean": "DataProcessor",
+      "generated": "DataProcessor.lean",
+      "starts": [
+        "nonos_x_data_processor::processorinfo_new"
+      ]
+    },
+    {
+      "name": "data_ioapic",
+      "crate": "nonos_x_data_ioapic",
+      "dir": "verification/extraction/sweep/data_ioapic",
+      "lean": "DataIoapic",
+      "generated": "DataIoapic.lean",
+      "starts": [
+        "nonos_x_data_ioapic::ioapicinfo_gsi_max"
+      ]
+    },
+    {
+      "name": "walker_align",
+      "crate": "nonos_x_walker_align",
+      "dir": "verification/extraction/sweep/walker_align",
+      "lean": "WalkerAlign",
+      "generated": "WalkerAlign.lean",
+      "starts": [
+        "nonos_x_walker_align::align4"
+      ]
+    },
+    {
+      "name": "pci_info",
+      "crate": "nonos_x_pci_info",
+      "dir": "verification/extraction/sweep/pci_info",
+      "lean": "PciInfo",
+      "generated": "PciInfo.lean",
+      "starts": [
+        "nonos_x_pci_info::pcihost_has_io_window"
+      ]
+    },
+    {
+      "name": "mte_mode",
+      "crate": "nonos_x_mte_mode",
+      "dir": "verification/extraction/sweep/mte_mode",
+      "lean": "MteMode",
+      "generated": "MteMode.lean",
+      "starts": [
+        "nonos_x_mte_mode::mtemode_tcf"
+      ]
+    },
+    {
+      "name": "bti_guard",
+      "crate": "nonos_x_bti_guard",
+      "dir": "verification/extraction/sweep/bti_guard",
+      "lean": "BtiGuard",
+      "generated": "BtiGuard.lean",
+      "starts": [
+        "nonos_x_bti_guard::btiguard_instruction"
+      ]
+    },
+    {
+      "name": "redistributor_device",
+      "crate": "nonos_x_redistributor_device",
+      "dir": "verification/extraction/sweep/redistributor_device",
+      "lean": "RedistributorDevice",
+      "generated": "RedistributorDevice.lean",
+      "starts": [
+        "nonos_x_redistributor_device::gicredistributor_new"
+      ]
+    },
+    {
+      "name": "distributor_device",
+      "crate": "nonos_x_distributor_device",
+      "dir": "verification/extraction/sweep/distributor_device",
+      "lean": "DistributorDevice",
+      "generated": "DistributorDevice.lean",
+      "starts": [
+        "nonos_x_distributor_device::gicdistributor_new"
+      ]
+    },
+    {
+      "name": "region_types_stats",
+      "crate": "nonos_x_region_types_stats",
+      "dir": "verification/extraction/sweep/region_types_stats",
+      "lean": "RegionTypesStats",
+      "generated": "RegionTypesStats.lean",
+      "starts": [
+        "nonos_x_region_types_stats::regionstats_new",
+        "nonos_x_region_types_stats::regionstats_total_memory"
+      ]
+    },
+    {
+      "name": "heap_types_stats",
+      "crate": "nonos_x_heap_types_stats",
+      "dir": "verification/extraction/sweep/heap_types_stats",
+      "lean": "HeapTypesStats",
+      "generated": "HeapTypesStats.lean",
+      "starts": [
+        "nonos_x_heap_types_stats::heapstats_free_memory"
+      ]
+    },
+    {
+      "name": "buddy_types_stats",
+      "crate": "nonos_x_buddy_types_stats",
+      "dir": "verification/extraction/sweep/buddy_types_stats",
+      "lean": "BuddyTypesStats",
+      "generated": "BuddyTypesStats.lean",
+      "starts": [
+        "nonos_x_buddy_types_stats::allocstats_new",
+        "nonos_x_buddy_types_stats::allocstats_free_memory"
+      ]
+    },
+    {
+      "name": "riscv64_context_types",
+      "crate": "nonos_x_riscv64_context_types",
+      "dir": "verification/extraction/sweep/riscv64_context_types",
+      "lean": "Riscv64ContextTypes",
+      "generated": "Riscv64ContextTypes.lean",
+      "starts": [
+        "nonos_x_riscv64_context_types::userentry_zeroed",
+        "nonos_x_riscv64_context_types::saveduser_zeroed"
+      ]
+    },
+    {
+      "name": "aarch64_context_types",
+      "crate": "nonos_x_aarch64_context_types",
+      "dir": "verification/extraction/sweep/aarch64_context_types",
+      "lean": "Aarch64ContextTypes",
+      "generated": "Aarch64ContextTypes.lean",
+      "starts": [
+        "nonos_x_aarch64_context_types::userentry_zeroed",
+        "nonos_x_aarch64_context_types::saveduser_zeroed"
+      ]
+    },
+    {
+      "name": "riscv64_fpu_context",
+      "crate": "nonos_x_riscv64_fpu_context",
+      "dir": "verification/extraction/sweep/riscv64_fpu_context",
+      "lean": "Riscv64FpuContext",
+      "generated": "Riscv64FpuContext.lean",
+      "starts": [
+        "nonos_x_riscv64_fpu_context::fpcontext_zeroed"
+      ]
+    },
+    {
+      "name": "aarch64_fpu_context",
+      "crate": "nonos_x_aarch64_fpu_context",
+      "dir": "verification/extraction/sweep/aarch64_fpu_context",
+      "lean": "Aarch64FpuContext",
+      "generated": "Aarch64FpuContext.lean",
+      "starts": [
+        "nonos_x_aarch64_fpu_context::fpsimdcontext_zeroed"
+      ]
     }
   ]
 }
