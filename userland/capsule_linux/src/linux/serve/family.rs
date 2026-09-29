@@ -26,10 +26,10 @@ use core::mem;
 use nonos_libc::{mk_foreign_reply, ForeignFrame, FOREIGN_NR_DIED};
 
 use super::answer::Answer;
-use super::route_life::answer;
 use super::pid_map::frame_in;
 use super::pid_ns::PidNs;
 use super::pid_out::value_out;
+use super::route_life::answer;
 use crate::linux::guest::{Event, Guest, Timer};
 
 pub struct Family {
@@ -92,6 +92,7 @@ impl Family {
         let line =
             alloc::format!("[LINUX] guest thread {pid} ended on a signal; ending the process\n");
         crate::linux::start::say(line.as_bytes());
+        super::recent::say();
     }
 
     /// Done once nothing it hosts is left; the code is the first guest's.

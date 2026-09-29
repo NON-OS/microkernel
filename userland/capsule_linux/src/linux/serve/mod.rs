@@ -60,6 +60,7 @@ mod table_net;
 mod table_proc;
 mod table_sig;
 mod table_sys;
+mod recent;
 mod tally;
 mod unserved;
 mod waits;
