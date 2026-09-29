@@ -17,10 +17,9 @@
 extern crate alloc;
 
 use super::fd;
-use alloc::collections::BTreeSet;
-use spin::Mutex;
-
-static PIPE_FDS: Mutex<BTreeSet<i32>> = Mutex::new(BTreeSet::new());
+use super::pipe::{
+    is_pipe_end, register_pipe_end, unregister_pipe_end, PipeEnd, PipeReader, PipeWriter,
+};
 
 // `crate::network::unix::UnixSocket` lives in the legacy network tree.
 // The microkernel exposes IPC over `nonos_channel`/`nonos_inbox`; AF_UNIX
@@ -62,20 +61,20 @@ pub fn get_file_size(fd: i32) -> Result<u64, i32> {
     Ok(size)
 }
 
-pub fn register_pipe_reader<T>(_fd: i32, _reader: T) {
-    PIPE_FDS.lock().insert(_fd);
+pub fn register_pipe_reader(fd: i32, reader: PipeReader) {
+    register_pipe_end(fd, PipeEnd::Reader { _end: reader });
 }
-pub fn register_pipe_writer<T>(_fd: i32, _writer: T) {
-    PIPE_FDS.lock().insert(_fd);
+pub fn register_pipe_writer(fd: i32, writer: PipeWriter) {
+    register_pipe_end(fd, PipeEnd::Writer { _end: writer });
 }
 pub fn set_cloexec(fd: i32, cloexec: bool) {
     let _ = fd::fd_set_cloexec(fd, cloexec);
 }
 pub fn is_pipe_fd(fd: i32) -> bool {
-    PIPE_FDS.lock().contains(&fd)
+    is_pipe_end(fd)
 }
 pub fn unregister_pipe_fd(fd: i32) {
-    PIPE_FDS.lock().remove(&fd);
+    unregister_pipe_end(fd);
 }
 
 pub fn get_pipe_buffer_size(_fd: i32) -> Result<usize, i32> {

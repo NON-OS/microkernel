@@ -50,8 +50,9 @@ impl PipeWriter {
         (self.flags & 0x800) != 0
     }
 
-    pub fn close(&self) {
-        self.buffer.lock().remove_writer();
+    /* Consumes the writer so that drop is the only decrement. */
+    pub fn close(self) {
+        drop(self);
     }
 }
 

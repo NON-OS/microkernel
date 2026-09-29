@@ -24,7 +24,8 @@ beside the rest is inflating its own headline.
 
 This walks the refinement modules with comments stripped, so a function named
 only in a file header does not count as proven, and fails when the proven count
-falls below the floor or when the unproven gap grows past its ceiling.
+falls below the floor or when the unproven gap grows past its ceiling. A name
+counts only in the modules that import its own crate's generated code.
 """
 
 import argparse
@@ -34,13 +35,13 @@ import sys
 from pathlib import Path
 
 # Raise these when the numbers improve. They may never be lowered.
-FLOOR = 421
-GAP_CEILING = 2
+FLOOR = 981
+GAP_CEILING = 0
 # Functions carrying a property beyond "this wrapper is its method". That
 # wrapper theorem is real, and it is what ties a manifest entry to the method a
 # theorem talks about, but on its own it says nothing about behaviour. Counting
 # the two together would be the inflation this file exists to stop.
-SUBSTANTIVE_FLOOR = 159
+SUBSTANTIVE_FLOOR = 336
 
 PROOF_MODULES = ('CapsComplete.lean', 'Closure.lean')
 PROOF_DIRS = (
@@ -56,13 +57,21 @@ def strip_comments(src):
     return src
 
 
-def proof_text(root):
+def proof_files(root):
+    """Each refinement module's text with comments stripped."""
     out = []
     for d in PROOF_DIRS:
         for path in sorted((root / d).glob('*.lean')):
             if 'Refinement' in path.name or path.name in PROOF_MODULES:
                 out.append(strip_comments(path.read_text(errors='replace')))
-    return '\n'.join(out)
+    return out
+
+
+def imports_module(text, lean):
+    """Whether a proof file imports the generated module of this crate."""
+    if lean == 'Policy':
+        return re.search(r'^import Policy(\.\w+)*$', text, re.M) is not None
+    return re.search(r'^import NonosExtraction\.%s$' % re.escape(lean), text, re.M) is not None
 
 
 def mirrored_sources(root):
@@ -80,7 +89,9 @@ def mirrored_sources(root):
         lib = root / c['dir'] / 'src/lib.rs'
         if not lib.is_file():
             continue
-        m = re.search(r'#\[path = "([^"]+)"\]', lib.read_text())
+        text = lib.read_text()
+        m = (re.search(r'#\[path = "([^"]+)"\]', text)
+             or re.search(r'mirroring `([^`]+)`', text))
         if m:
             out.setdefault(m.group(1).split('../')[-1], []).append(c['name'])
     return {k: v for k, v in out.items() if len(v) > 1}
@@ -93,20 +104,31 @@ def classify(root):
     manifest = json.loads(
         (root / 'verification/extraction/crates.json').read_text())
     names = sorted({s for c in manifest['crates'] for s in c['starts']})
-    code = proof_text(root)
+    files = proof_files(root)
     # A wrapper theorem names the function only on its own line; a substantive
     # theorem names it somewhere else. Strip the generated wrapper block and see
     # what still mentions it.
     # Only continuation lines, never blank ones: `\s+` matches a newline, so a
     # greedy version of this ate everything after the first wrapper theorem and
     # reported every crate as wrapper-only.
-    without_wrappers = re.sub(
-        r'theorem the_\w+_wrapper_is_its_method[^\n]*\n(?:[ \t]+[^\n]*\n)*', '', code)
+    wrapper = re.compile(
+        r'theorem the_\w+_wrapper_is_its_method[^\n]*\n(?:[ \t]+[^\n]*\n)*')
+    # A name counts only in files that import its own crate's module. Leaf
+    # names repeat across crates (`new`, `is_present`, `leaf`), and matching
+    # them anywhere once counted functions no theorem mentions.
+    own = {}
+    for c in manifest['crates']:
+        mine = [t for t in files if imports_module(t, c['lean'])]
+        text = '\n'.join(mine)
+        for st in c['starts']:
+            prev = own.get(st, ('', ''))
+            own[st] = (prev[0] + '\n' + text, prev[1] + '\n' + wrapper.sub('', text))
 
     proven, bare, substantive = [], [], []
     for name in names:
         leaf = name.split('::')[-1]
         pat = r'\b%s\b' % re.escape(leaf)
+        code, without_wrappers = own.get(name, ('', ''))
         if re.search(pat, code):
             proven.append(name)
             if re.search(pat, without_wrappers):

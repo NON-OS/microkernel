@@ -21,6 +21,8 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.IdtEntryFrame
+import NonosExtraction.Bits
+import Nonos.DemandPaging
 
 open Aeneas Aeneas.Std Result
 open nonos_x_idt_entry_frame
@@ -62,6 +64,142 @@ theorem the_pagefaulterror_shadow_stack_wrapper_is_its_method (a : entry_frame.P
 theorem the_pagefaulterror_sgx_wrapper_is_its_method (a : entry_frame.PageFaultError) :
     pagefaulterror_sgx a = entry_frame.PageFaultError.sgx a := rfl
 
+/-! ### Which ring a trap came from
+
+    `from_user` and `from_kernel` read the requested privilege level, the low two
+    bits of the saved CS selector, and nothing else in the frame. Rings one and
+    two are neither, so `!from_user` is not `from_kernel`: a caller that used one
+    as the negation of the other would treat a ring-one selector as the kernel's.
+-/
+
+theorem from_user_reads_the_privilege_bits (f : entry_frame.InterruptFrame) :
+    interruptframe_from_user f = ok (decide (f.cs.val % 4 = 3)) := by
+  unfold interruptframe_from_user entry_frame.InterruptFrame.from_user
+  simp only [lift, bind_tc_ok, ok.injEq, decide_eq_decide]
+  have h : (f.cs &&& 3#u64).val = f.cs.val % 4 := Bits.land_low_mask f.cs 3#u64 2 rfl
+  constructor
+  · intro heq
+    rw [← h, heq]
+    rfl
+  · intro hv
+    exact UScalar.eq_of_val_eq (by rw [h, hv]; rfl)
+
+theorem from_kernel_reads_the_privilege_bits (f : entry_frame.InterruptFrame) :
+    interruptframe_from_kernel f = ok (decide (f.cs.val % 4 = 0)) := by
+  unfold interruptframe_from_kernel entry_frame.InterruptFrame.from_kernel
+  simp only [lift, bind_tc_ok, ok.injEq, decide_eq_decide]
+  have h : (f.cs &&& 3#u64).val = f.cs.val % 4 := Bits.land_low_mask f.cs 3#u64 2 rfl
+  constructor
+  · intro heq
+    rw [← h, heq]
+    rfl
+  · intro hv
+    exact UScalar.eq_of_val_eq (by rw [h, hv]; rfl)
+
+theorem no_frame_is_from_both (f : entry_frame.InterruptFrame) :
+    ¬ (interruptframe_from_user f = ok true ∧ interruptframe_from_kernel f = ok true) := by
+  rw [from_user_reads_the_privilege_bits, from_kernel_reads_the_privilege_bits]
+  simp only [ok.injEq, decide_eq_true_eq]
+  omega
+
+theorem rings_one_and_two_are_neither (f : entry_frame.InterruptFrame)
+    (h : f.cs.val % 4 = 1 ∨ f.cs.val % 4 = 2) :
+    interruptframe_from_user f = ok false ∧ interruptframe_from_kernel f = ok false := by
+  rw [from_user_reads_the_privilege_bits, from_kernel_reads_the_privilege_bits]
+  constructor <;> (congr 1; simp only [decide_eq_false_iff_not]; omega)
+
+/-! ### The page-fault error code
+
+    Each reader tests one bit of the hardware error code with
+    `self.0 & (1 << k) != 0`, and the bits are the ones the paging constants in
+    `memory/paging/constants/page_fault.rs` name: P 0, W/R 1, U/S 2, RSVD 3, I/D 4,
+    PK 5, SS 6, and SGX 15. `reserved_write` is RSVD, a reserved bit set in a
+    paging-structure entry, and has nothing to do with the write bit its name
+    suggests.
+-/
+
+theorem protection_violation_reads_bit_zero (e : entry_frame.PageFaultError) :
+    pagefaulterror_protection_violation e = ok ((e : Std.U64).val.testBit 0) := by
+  unfold pagefaulterror_protection_violation entry_frame.PageFaultError.protection_violation
+  have hs : (1#u64 <<< 0#i32 : Result Std.U64) = ok 1#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit e 1#u64 0#u64 0 rfl rfl]
+
+theorem write_reads_bit_one (e : entry_frame.PageFaultError) :
+    pagefaulterror_write e = ok ((e : Std.U64).val.testBit 1) := by
+  unfold pagefaulterror_write entry_frame.PageFaultError.write
+  have hs : (1#u64 <<< 1#i32 : Result Std.U64) = ok 2#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit e 2#u64 0#u64 1 rfl rfl]
+
+theorem user_reads_bit_two (e : entry_frame.PageFaultError) :
+    pagefaulterror_user e = ok ((e : Std.U64).val.testBit 2) := by
+  unfold pagefaulterror_user entry_frame.PageFaultError.user
+  have hs : (1#u64 <<< 2#i32 : Result Std.U64) = ok 4#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit e 4#u64 0#u64 2 rfl rfl]
+
+theorem reserved_write_reads_bit_three (e : entry_frame.PageFaultError) :
+    pagefaulterror_reserved_write e = ok ((e : Std.U64).val.testBit 3) := by
+  unfold pagefaulterror_reserved_write entry_frame.PageFaultError.reserved_write
+  have hs : (1#u64 <<< 3#i32 : Result Std.U64) = ok 8#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit e 8#u64 0#u64 3 rfl rfl]
+
+theorem instruction_fetch_reads_bit_four (e : entry_frame.PageFaultError) :
+    pagefaulterror_instruction_fetch e = ok ((e : Std.U64).val.testBit 4) := by
+  unfold pagefaulterror_instruction_fetch entry_frame.PageFaultError.instruction_fetch
+  have hs : (1#u64 <<< 4#i32 : Result Std.U64) = ok 16#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit e 16#u64 0#u64 4 rfl rfl]
+
+theorem protection_key_reads_bit_five (e : entry_frame.PageFaultError) :
+    pagefaulterror_protection_key e = ok ((e : Std.U64).val.testBit 5) := by
+  unfold pagefaulterror_protection_key entry_frame.PageFaultError.protection_key
+  have hs : (1#u64 <<< 5#i32 : Result Std.U64) = ok 32#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit e 32#u64 0#u64 5 rfl rfl]
+
+theorem shadow_stack_reads_bit_six (e : entry_frame.PageFaultError) :
+    pagefaulterror_shadow_stack e = ok ((e : Std.U64).val.testBit 6) := by
+  unfold pagefaulterror_shadow_stack entry_frame.PageFaultError.shadow_stack
+  have hs : (1#u64 <<< 6#i32 : Result Std.U64) = ok 64#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit e 64#u64 0#u64 6 rfl rfl]
+
+theorem sgx_reads_bit_fifteen (e : entry_frame.PageFaultError) :
+    pagefaulterror_sgx e = ok ((e : Std.U64).val.testBit 15) := by
+  unfold pagefaulterror_sgx entry_frame.PageFaultError.sgx
+  have hs : (1#u64 <<< 15#i32 : Result Std.U64) = ok 32768#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit e 32768#u64 0#u64 15 rfl rfl]
+
+/-- `reserved_write` on a plain write fault is false, and on RSVD alone is true. -/
+theorem reserved_write_is_not_the_write_bit :
+    pagefaulterror_reserved_write (2#u64 : Std.U64) = ok false ∧
+      pagefaulterror_reserved_write (8#u64 : Std.U64) = ok true := by
+  rw [reserved_write_reads_bit_three, reserved_write_reads_bit_three]
+  exact ⟨rfl, rfl⟩
+
+/-- The two bits the fault dispatcher reads, decoded here, route a fault the way
+    `Nonos.DemandPaging.route` says: only a not-present fault reaches the demand
+    path, and only a write to a present page reaches copy-on-write. -/
+theorem decoded_faults_route_as_the_model (e : entry_frame.PageFaultError) (a : Nat) :
+    ∃ p w, pagefaulterror_protection_violation e = ok p ∧ pagefaulterror_write e = ok w ∧
+      (Nonos.DemandPaging.route ⟨a, p, w⟩ = .demand ↔ (e : Std.U64).val % 2 = 0) ∧
+      (Nonos.DemandPaging.route ⟨a, p, w⟩ = .cow ↔ (e : Std.U64).val % 4 = 3) := by
+  refine ⟨_, _, protection_violation_reads_bit_zero e, write_reads_bit_one e, ?_, ?_⟩
+  · have h0 := Nat.testBit_zero (e : Std.U64).val
+    unfold Nonos.DemandPaging.route
+    cases h1 : (e : Std.U64).val.testBit 1 <;> cases hb : (e : Std.U64).val.testBit 0 <;>
+      simp_all [Nat.testBit_zero]
+  · have h0 := Nat.testBit_zero (e : Std.U64).val
+    have h1 := Nat.testBit_succ (e : Std.U64).val 0
+    have h1' := Nat.testBit_zero ((e : Std.U64).val / 2)
+    unfold Nonos.DemandPaging.route
+    cases ht1 : (e : Std.U64).val.testBit 1 <;> cases ht0 : (e : Std.U64).val.testBit 0 <;>
+      simp_all <;> omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.IdtEntryFrame.the_interruptframe_from_user_wrapper_is_its_method
@@ -74,5 +212,19 @@ theorem the_pagefaulterror_sgx_wrapper_is_its_method (a : entry_frame.PageFaultE
 #print axioms NonosExtraction.IdtEntryFrame.the_pagefaulterror_protection_key_wrapper_is_its_method
 #print axioms NonosExtraction.IdtEntryFrame.the_pagefaulterror_shadow_stack_wrapper_is_its_method
 #print axioms NonosExtraction.IdtEntryFrame.the_pagefaulterror_sgx_wrapper_is_its_method
+#print axioms NonosExtraction.IdtEntryFrame.from_user_reads_the_privilege_bits
+#print axioms NonosExtraction.IdtEntryFrame.from_kernel_reads_the_privilege_bits
+#print axioms NonosExtraction.IdtEntryFrame.no_frame_is_from_both
+#print axioms NonosExtraction.IdtEntryFrame.rings_one_and_two_are_neither
+#print axioms NonosExtraction.IdtEntryFrame.protection_violation_reads_bit_zero
+#print axioms NonosExtraction.IdtEntryFrame.write_reads_bit_one
+#print axioms NonosExtraction.IdtEntryFrame.user_reads_bit_two
+#print axioms NonosExtraction.IdtEntryFrame.reserved_write_reads_bit_three
+#print axioms NonosExtraction.IdtEntryFrame.instruction_fetch_reads_bit_four
+#print axioms NonosExtraction.IdtEntryFrame.protection_key_reads_bit_five
+#print axioms NonosExtraction.IdtEntryFrame.shadow_stack_reads_bit_six
+#print axioms NonosExtraction.IdtEntryFrame.sgx_reads_bit_fifteen
+#print axioms NonosExtraction.IdtEntryFrame.reserved_write_is_not_the_write_bit
+#print axioms NonosExtraction.IdtEntryFrame.decoded_faults_route_as_the_model
 
 end NonosExtraction.IdtEntryFrame

@@ -41,10 +41,88 @@ theorem the_crc32_finalize_wrapper_is_its_method (a : crc.Crc32) :
 theorem the_crc32_current_wrapper_is_its_method (a : crc.Crc32) :
     crc32_current a = crc.Crc32.current a := rfl
 
+/-! ### The hasher's register and its readouts
+
+`Crc32::new` must start from the all-ones register that `crc::compute` also starts
+from, and both readouts must apply the CRC-32/ISO-HDLC final xor, so that a
+streaming hasher fed nothing reports the checksum of the empty message, 0.
+The theorems below establish that, that the consuming `finalize` and the
+borrowing `current` report the same value for every register, that the readout is
+exactly the register xor `0xFFFFFFFF`, and that it is a bijection: the reported
+value determines the register, so two different registers never report the same
+checksum.
+
+They cannot establish anything about the checksum of data. `update`,
+`update_byte`, `compute` and the table built by `generate_table` are not extracted
+into this module, so nothing here says the register is advanced correctly, only
+that it is initialised and read out correctly.
+-/
+
+private theorem complement_twice_u32 (v : Std.U32) : ~~~(~~~v) = v := by
+  cases v with | mk b =>
+  show UScalar.not (UScalar.not ⟨b⟩) = ⟨b⟩
+  simp only [UScalar.not]
+  congr 1
+  exact BitVec.not_not
+
+/-- The consuming and the non-consuming readouts agree on every register, so a
+caller may peek with `current` and later `finalize` without seeing two values. -/
+theorem crc32_finalize_and_crc32_current_report_the_same_value (s : crc.Crc32) :
+    crc32_finalize s = crc32_current s := rfl
+
+/-- The final readout is the register xor `0xFFFFFFFF`, the ISO-HDLC xorout, and
+never fails. -/
+theorem crc32_finalize_is_the_register_xor_all_ones (s : crc.Crc32) :
+    crc32_finalize s = ok (s.state ^^^ 0xFFFFFFFF#u32) := by
+  unfold crc32_finalize crc.Crc32.finalize
+  congr 1
+  cases s with | mk st => cases st with | mk b =>
+  show UScalar.not ⟨b⟩ = UScalar.xor ⟨b⟩ _
+  simp only [UScalar.not, UScalar.xor]
+  congr 1
+  rw [← BitVec.xor_allOnes]
+  rfl
+
+/-- `current` reports `v` exactly when the register holds the complement of `v`:
+the readout loses no bit of the register in either direction. -/
+theorem crc32_current_reports_v_exactly_when_the_register_is_its_complement
+    (s : crc.Crc32) (v : Std.U32) :
+    crc32_current s = ok v ↔ s.state = ~~~v := by
+  unfold crc32_current crc.Crc32.current
+  constructor
+  · intro h
+    cases h
+    rw [complement_twice_u32]
+  · intro h
+    rw [h, complement_twice_u32]
+
+/-- Two hashers whose final checksums agree held the same register. -/
+theorem crc32_finalize_never_reports_two_registers_alike (s t : crc.Crc32)
+    (h : crc32_finalize s = crc32_finalize t) : s = t := by
+  unfold crc32_finalize crc.Crc32.finalize at h
+  cases s with | mk a => cases t with | mk b =>
+  have hab : ~~~a = ~~~b := by simpa using h
+  have := congrArg (fun x : Std.U32 => ~~~x) hab
+  simp only [complement_twice_u32] at this
+  rw [this]
+
+/-- A fresh hasher holds the all-ones register, the initial value `crc::compute`
+uses, and both readouts of it are 0, the CRC-32/ISO-HDLC of the empty message. -/
+theorem crc32_new_holds_all_ones_and_reads_zero :
+    crc32_new = ok ⟨0xFFFFFFFF#u32⟩ ∧
+    (do let c ← crc32_new; crc32_finalize c) = ok 0#u32 ∧
+    (do let c ← crc32_new; crc32_current c) = ok 0#u32 :=
+  ⟨rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.UefiCrc.the_crc32_new_wrapper_is_its_method
 #print axioms NonosExtraction.UefiCrc.the_crc32_finalize_wrapper_is_its_method
 #print axioms NonosExtraction.UefiCrc.the_crc32_current_wrapper_is_its_method
+#print axioms NonosExtraction.UefiCrc.crc32_finalize_and_crc32_current_report_the_same_value
+#print axioms NonosExtraction.UefiCrc.crc32_finalize_is_the_register_xor_all_ones
+#print axioms NonosExtraction.UefiCrc.crc32_current_reports_v_exactly_when_the_register_is_its_complement
+#print axioms NonosExtraction.UefiCrc.crc32_finalize_never_reports_two_registers_alike
+#print axioms NonosExtraction.UefiCrc.crc32_new_holds_all_ones_and_reads_zero
 
 end NonosExtraction.UefiCrc

@@ -38,9 +38,47 @@ theorem the_dmadirection_writes_to_device_wrapper_is_its_method (a : direction.D
 theorem the_dmadirection_reads_from_device_wrapper_is_its_method (a : direction.DmaDirection) :
     dmadirection_reads_from_device a = direction.DmaDirection.reads_from_device a := rfl
 
+/-! ### Which cache maintenance a DMA direction asks for
+
+    The streaming allocator and the aarch64 coherency backend flush the CPU's
+    writes before a transfer when `writes_to_device` holds, and invalidate before
+    the CPU reads the result when `reads_from_device` holds. A direction for which
+    both were false would get neither, and a device-to-memory transfer read
+    through a stale cache line would hand the CPU old bytes. The theorems say every
+    direction asks for at least one, each one-way direction asks for exactly its
+    own, and the bidirectional one asks for both. Whether the backend then does the
+    maintenance correctly is not extracted here.
+-/
+
+theorem every_direction_asks_for_some_maintenance (d : direction.DmaDirection) :
+    ∃ w r, dmadirection_writes_to_device d = ok w ∧ dmadirection_reads_from_device d = ok r ∧
+      (w || r) = true := by
+  cases d <;> exact ⟨_, _, rfl, rfl, rfl⟩
+
+theorem one_way_directions_ask_for_exactly_their_own :
+    (dmadirection_writes_to_device .ToDevice = ok true ∧
+      dmadirection_reads_from_device .ToDevice = ok false) ∧
+    (dmadirection_writes_to_device .FromDevice = ok false ∧
+      dmadirection_reads_from_device .FromDevice = ok true) :=
+  ⟨⟨rfl, rfl⟩, ⟨rfl, rfl⟩⟩
+
+theorem bidirectional_asks_for_both :
+    dmadirection_writes_to_device .Bidirectional = ok true ∧
+      dmadirection_reads_from_device .Bidirectional = ok true := ⟨rfl, rfl⟩
+
+theorem the_direction_is_recovered_from_its_two_answers (d e : direction.DmaDirection)
+    (hw : dmadirection_writes_to_device d = dmadirection_writes_to_device e)
+    (hr : dmadirection_reads_from_device d = dmadirection_reads_from_device e) : d = e := by
+  cases d <;> cases e <;> simp_all [dmadirection_writes_to_device, dmadirection_reads_from_device,
+    direction.DmaDirection.writes_to_device, direction.DmaDirection.reads_from_device]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesDirection.the_dmadirection_writes_to_device_wrapper_is_its_method
 #print axioms NonosExtraction.TypesDirection.the_dmadirection_reads_from_device_wrapper_is_its_method
+#print axioms NonosExtraction.TypesDirection.every_direction_asks_for_some_maintenance
+#print axioms NonosExtraction.TypesDirection.one_way_directions_ask_for_exactly_their_own
+#print axioms NonosExtraction.TypesDirection.bidirectional_asks_for_both
+#print axioms NonosExtraction.TypesDirection.the_direction_is_recovered_from_its_two_answers
 
 end NonosExtraction.TypesDirection

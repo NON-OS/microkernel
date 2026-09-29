@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.RvFlags
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_rv_flags
@@ -139,6 +140,156 @@ theorem permissions_are_reported_on_an_invalid_entry :
     pteflags_is_valid 12#u64 = ok false := by
   unfold pteflags_is_valid flags.PteFlags.is_valid flags.PteFlags.V; rfl
 
+/-! ### Each builder sets its own bit, each reader reads its own
+
+    For every word, `readable`, `global`, `accessed` and `dirty` set exactly bits
+    1, 5, 6 and 7 and keep every other bit, and `is_readable` and `is_user` read
+    bits 1 and 4, the Sv39 encoding. `from_bits` and `bits` pass the word through
+    unchanged and `new` is the empty entry.
+
+    `is_leaf` is the leaf test the RISC-V privileged specification gives: V set,
+    R or X set, and not the reserved encoding W without R, which faults and is
+    neither a leaf nor a pointer to the next level. `page_table.rs::is_leaf_entry`
+    now calls it. It used to read R, W or X and ignore V, so the entry `0x2`, R
+    with V clear, was a leaf here and invalid to the hardware, and the reserved
+    W-without-R encoding was a leaf as well; the theorems at the end are those
+    two entries now.
+-/
+
+private theorem sets_bit (f : Std.U64) (k : Nat) (hk : k < 64) (c : Std.U64) (hc : c.val = 2 ^ k) (i : Nat) :
+    (f ||| c).val.testBit i = (f.val.testBit i || decide (i = k)) := by
+  rw [UScalar.val_or, Nat.testBit_or, hc, Nat.testBit_two_pow]
+  by_cases h : i = k
+  · subst h
+    simp
+  · have h' : ¬ k = i := fun e => h e.symm
+    simp only [h, h', decide_false]
+
+theorem readable_sets_bit_one_and_keeps_the_rest (f : Std.U64) :
+    ∃ g, pteflags_readable f = ok g ∧ ∀ i, g.val.testBit i = (f.val.testBit i || decide (i = 1)) := by
+  refine ⟨f ||| 2#u64, ?_, sets_bit f 1 (by decide) 2#u64 rfl⟩
+  unfold pteflags_readable flags.PteFlags.readable flags.PteFlags.R
+  rfl
+
+theorem global_sets_bit_five_and_keeps_the_rest (f : Std.U64) :
+    ∃ g, pteflags_global f = ok g ∧ ∀ i, g.val.testBit i = (f.val.testBit i || decide (i = 5)) := by
+  refine ⟨f ||| 32#u64, ?_, sets_bit f 5 (by decide) 32#u64 rfl⟩
+  unfold pteflags_global flags.PteFlags.global flags.PteFlags.G
+  rfl
+
+theorem accessed_sets_bit_six_and_keeps_the_rest (f : Std.U64) :
+    ∃ g, pteflags_accessed f = ok g ∧ ∀ i, g.val.testBit i = (f.val.testBit i || decide (i = 6)) := by
+  refine ⟨f ||| 64#u64, ?_, sets_bit f 6 (by decide) 64#u64 rfl⟩
+  unfold pteflags_accessed flags.PteFlags.accessed flags.PteFlags.A
+  rfl
+
+theorem dirty_sets_bit_seven_and_keeps_the_rest (f : Std.U64) :
+    ∃ g, pteflags_dirty f = ok g ∧ ∀ i, g.val.testBit i = (f.val.testBit i || decide (i = 7)) := by
+  refine ⟨f ||| 128#u64, ?_, sets_bit f 7 (by decide) 128#u64 rfl⟩
+  unfold pteflags_dirty flags.PteFlags.dirty flags.PteFlags.D
+  rfl
+
+theorem is_readable_reads_bit_one (f : Std.U64) :
+    pteflags_is_readable f = ok (f.val.testBit 1) := by
+  unfold pteflags_is_readable flags.PteFlags.is_readable flags.PteFlags.R
+  have hs : (1#u64 <<< 1#i32 : Result Std.U64) = ok 2#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit f 2#u64 0#u64 1 rfl rfl]
+
+theorem is_user_reads_bit_four (f : Std.U64) :
+    pteflags_is_user f = ok (f.val.testBit 4) := by
+  unfold pteflags_is_user flags.PteFlags.is_user flags.PteFlags.U
+  have hs : (1#u64 <<< 4#i32 : Result Std.U64) = ok 16#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit f 16#u64 0#u64 4 rfl rfl]
+
+theorem the_word_passes_through (w : Std.U64) :
+    (do let f ← pteflags_from_bits w; pteflags_bits f) = ok w := rfl
+
+theorem the_new_entry_is_empty_and_not_readable :
+    pteflags_new = ok 0#u64 ∧ pteflags_is_readable 0#u64 = ok false ∧
+      pteflags_is_user 0#u64 = ok false := by
+  refine ⟨rfl, ?_, ?_⟩
+  · rw [is_readable_reads_bit_one]; rfl
+  · rw [is_user_reads_bit_four]; rfl
+
+private theorem low_nibble (f m : Std.U64) (hm : m.val < 16) :
+    (f &&& m).val = f.val % 16 &&& m.val := by
+  rw [UScalar.val_and]
+  have h15 : m.val = 15 &&& m.val :=
+    (by decide : ∀ k, k < 16 → k = 15 &&& k) m.val hm
+  calc f.val &&& m.val = f.val &&& (15 &&& m.val) := by rw [← h15]
+    _ = (f.val &&& (2 ^ 4 - 1)) &&& m.val := by rw [Nat.and_assoc]; rfl
+    _ = f.val % 16 &&& m.val := by rw [Nat.and_two_pow_sub_one_eq_mod]
+
+private theorem bne_val (x y : Std.U64) : (x != y) = decide (x.val ≠ y.val) := by
+  by_cases h : x.val = y.val
+  · have : x = y := UScalar.eq_of_val_eq h
+    subst this; simp
+  · have : x ≠ y := fun e => h (congrArg _ e)
+    simp [this, h]
+
+private theorem dec_val (x y : Std.U64) : decide (x = y) = decide (x.val = y.val) := by
+  by_cases h : x.val = y.val
+  · have : x = y := UScalar.eq_of_val_eq h
+    subst this; simp
+  · have : x ≠ y := fun e => h (congrArg _ e)
+    simp [this, h]
+
+/-- The leaf test is V, and R or X, and not W without R. -/
+theorem is_leaf_is_valid_and_r_or_x_and_not_write_only (f : Std.U64) :
+    pteflags_is_leaf f = ok (f.val.testBit 0 && (f.val.testBit 1 || f.val.testBit 3) &&
+      !(f.val.testBit 2 && !f.val.testBit 1)) := by
+  unfold pteflags_is_leaf flags.PteFlags.is_leaf flags.PteFlags.R flags.PteFlags.W
+    flags.PteFlags.X flags.PteFlags.is_valid flags.PteFlags.V
+  have h0 : (1#u64 <<< 0#i32 : Result Std.U64) = ok 1#u64 := by rfl
+  have h1 : (1#u64 <<< 1#i32 : Result Std.U64) = ok 2#u64 := by rfl
+  have h2 : (1#u64 <<< 2#i32 : Result Std.U64) = ok 4#u64 := by rfl
+  have h3 : (1#u64 <<< 3#i32 : Result Std.U64) = ok 8#u64 := by rfl
+  simp only [h0, h1, h2, h3, lift, bind_tc_ok]
+  have e6 : ((2#u64 : Std.U64) ||| 4#u64) = 6#u64 := by rfl
+  have e10 : ((2#u64 : Std.U64) ||| 8#u64) = 10#u64 := by rfl
+  rw [e6, e10, bne_val, bne_val, low_nibble f 1#u64 (by decide),
+    low_nibble f 10#u64 (by decide)]
+  simp only [decide_not, dec_val, low_nibble f 6#u64 (by decide)]
+  have t : ∀ i, i < 4 → f.val.testBit i = (f.val % 16).testBit i := by
+    intro i hi
+    rw [show (16 : Nat) = 2 ^ 4 from rfl, Nat.testBit_mod_two_pow]
+    simp [hi]
+  rw [t 0 (by decide), t 1 (by decide), t 2 (by decide), t 3 (by decide)]
+  have hn : f.val % 16 < 16 := Nat.mod_lt _ (by decide)
+  generalize f.val % 16 = n at hn ⊢
+  have v0 : (0#u64 : Std.U64).val = 0 := rfl
+  have v1 : (1#u64 : Std.U64).val = 1 := rfl
+  have v4 : (4#u64 : Std.U64).val = 4 := rfl
+  have v6 : (6#u64 : Std.U64).val = 6 := rfl
+  have v10 : (10#u64 : Std.U64).val = 10 := rfl
+  simp only [v0, v1, v4, v6, v10]
+  have key : ∀ n, n < 16 → (n.testBit 0 && (n.testBit 1 || n.testBit 3) &&
+      !(n.testBit 2 && !n.testBit 1)) =
+      (!decide (n &&& 1 = 0) && !decide (n &&& 10 = 0) && !decide (n &&& 6 = 4)) := by decide
+  rw [key n hn]
+  generalize decide (n &&& 1 = 0) = p
+  generalize decide (n &&& 10 = 0) = q
+  generalize decide (n &&& 6 = 4) = r
+  cases p <;> cases q <;> rfl
+
+/-- `0x2`, R set and V clear, is invalid to the hardware and is not a leaf. -/
+theorem an_invalid_entry_is_not_a_leaf :
+    pteflags_is_leaf 2#u64 = ok false ∧ pteflags_is_valid 2#u64 = ok false := by
+  refine ⟨by rw [is_leaf_is_valid_and_r_or_x_and_not_write_only]; rfl, ?_⟩
+  unfold pteflags_is_valid flags.PteFlags.is_valid flags.PteFlags.V
+  rfl
+
+/-- V and W without R is reserved by the RISC-V privileged specification and
+    must fault, and it is not a leaf; with R added (`0x7`) it is. X alone with V
+    (`0x9`), an execute-only page, is a leaf. -/
+theorem the_reserved_write_only_encoding_is_not_a_leaf :
+    pteflags_is_leaf 5#u64 = ok false ∧ pteflags_is_leaf 7#u64 = ok true ∧
+      pteflags_is_leaf 9#u64 = ok true ∧ pteflags_is_leaf 1#u64 = ok false := by
+  simp only [is_leaf_is_valid_and_r_or_x_and_not_write_only]
+  exact ⟨rfl, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.RvFlags.the_valid_builder_sets_bit_zero
@@ -167,5 +318,16 @@ theorem permissions_are_reported_on_an_invalid_entry :
 #print axioms NonosExtraction.RvFlags.the_pteflags_is_writable_wrapper_is_its_method
 #print axioms NonosExtraction.RvFlags.the_pteflags_is_executable_wrapper_is_its_method
 #print axioms NonosExtraction.RvFlags.the_pteflags_is_user_wrapper_is_its_method
+#print axioms NonosExtraction.RvFlags.readable_sets_bit_one_and_keeps_the_rest
+#print axioms NonosExtraction.RvFlags.global_sets_bit_five_and_keeps_the_rest
+#print axioms NonosExtraction.RvFlags.accessed_sets_bit_six_and_keeps_the_rest
+#print axioms NonosExtraction.RvFlags.dirty_sets_bit_seven_and_keeps_the_rest
+#print axioms NonosExtraction.RvFlags.is_readable_reads_bit_one
+#print axioms NonosExtraction.RvFlags.is_user_reads_bit_four
+#print axioms NonosExtraction.RvFlags.the_word_passes_through
+#print axioms NonosExtraction.RvFlags.the_new_entry_is_empty_and_not_readable
+#print axioms NonosExtraction.RvFlags.is_leaf_is_valid_and_r_or_x_and_not_write_only
+#print axioms NonosExtraction.RvFlags.an_invalid_entry_is_not_a_leaf
+#print axioms NonosExtraction.RvFlags.the_reserved_write_only_encoding_is_not_a_leaf
 
 end NonosExtraction.RvFlags

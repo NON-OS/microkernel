@@ -35,19 +35,23 @@ def modules_acpi.AcpiRsdp.is_acpi2
   ok (self.revision >= 2#u8)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::table_address]:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 34:4-41:5
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 36:4-45:5
     Visibility: public -/
 def modules_acpi.AcpiRsdp.table_address
   (self : modules_acpi.AcpiRsdp) : Result Std.U64 := do
-  match self.xsdt_address with
-  | none => ok (UScalar.cast .U64 self.rsdt_address)
-  | some xsdt =>
-    if xsdt != 0#u64
-    then ok xsdt
-    else ok (UScalar.cast .U64 self.rsdt_address)
+  let b ← modules_acpi.AcpiRsdp.is_acpi2 self
+  if b
+  then
+    match self.xsdt_address with
+    | none => ok (UScalar.cast .U64 self.rsdt_address)
+    | some xsdt =>
+      if xsdt != 0#u64
+      then ok xsdt
+      else ok (UScalar.cast .U64 self.rsdt_address)
+  else ok (UScalar.cast .U64 self.rsdt_address)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_checksum]: loop body 0:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 45:8-47:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 49:8-51:9
     Visibility: public -/
 @[rust_loop_body]
 def modules_acpi.AcpiRsdp.verify_checksum_loop0.body
@@ -62,7 +66,7 @@ def modules_acpi.AcpiRsdp.verify_checksum_loop0.body
     ok (cont (iter1, sum1))
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_checksum]: loop 0:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 45:8-47:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 49:8-51:9
     Visibility: public -/
 @[rust_loop]
 def modules_acpi.AcpiRsdp.verify_checksum_loop0
@@ -73,7 +77,7 @@ def modules_acpi.AcpiRsdp.verify_checksum_loop0
     (iter, sum)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_checksum]: loop body 1:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 49:8-51:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 53:8-55:9
     Visibility: public -/
 @[rust_loop_body]
 def modules_acpi.AcpiRsdp.verify_checksum_loop1.body
@@ -88,7 +92,7 @@ def modules_acpi.AcpiRsdp.verify_checksum_loop1.body
     ok (cont (iter1, sum1))
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_checksum]: loop 1:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 49:8-51:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 53:8-55:9
     Visibility: public -/
 @[rust_loop]
 def modules_acpi.AcpiRsdp.verify_checksum_loop1
@@ -99,7 +103,7 @@ def modules_acpi.AcpiRsdp.verify_checksum_loop1
     (iter, sum)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_checksum]: loop body 2:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 53:8-55:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 57:8-59:9
     Visibility: public -/
 @[rust_loop_body]
 def modules_acpi.AcpiRsdp.verify_checksum_loop2.body
@@ -114,7 +118,7 @@ def modules_acpi.AcpiRsdp.verify_checksum_loop2.body
     ok (cont (iter1, sum1))
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_checksum]: loop 2:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 53:8-55:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 57:8-59:9
     Visibility: public -/
 @[rust_loop]
 def modules_acpi.AcpiRsdp.verify_checksum_loop2
@@ -125,7 +129,7 @@ def modules_acpi.AcpiRsdp.verify_checksum_loop2
     (iter, sum)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_checksum]:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 43:4-57:5
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 47:4-61:5
     Visibility: public -/
 def modules_acpi.AcpiRsdp.verify_checksum
   (self : modules_acpi.AcpiRsdp) : Result Bool := do
@@ -146,7 +150,7 @@ def modules_acpi.AcpiRsdp.verify_checksum
   ok (sum4 = 0#u8)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop body 0:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 64:8-66:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 68:8-70:9
     Visibility: public -/
 @[rust_loop_body]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop0.body
@@ -161,7 +165,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop0.body
     ok (cont (iter1, sum1))
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop 0:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 64:8-66:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 68:8-70:9
     Visibility: public -/
 @[rust_loop]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop0
@@ -172,7 +176,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop0
     (iter, sum)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop body 1:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 68:8-70:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 72:8-74:9
     Visibility: public -/
 @[rust_loop_body]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop1.body
@@ -187,7 +191,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop1.body
     ok (cont (iter1, sum1))
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop 1:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 68:8-70:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 72:8-74:9
     Visibility: public -/
 @[rust_loop]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop1
@@ -198,7 +202,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop1
     (iter, sum)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop body 2:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 72:8-74:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 76:8-78:9
     Visibility: public -/
 @[rust_loop_body]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop2.body
@@ -213,7 +217,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop2.body
     ok (cont (iter1, sum1))
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop 2:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 72:8-74:9
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 76:8-78:9
     Visibility: public -/
 @[rust_loop]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop2
@@ -224,7 +228,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop2
     (iter, sum)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop body 3:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 81:12-83:13
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 85:12-87:13
     Visibility: public -/
 @[rust_loop_body]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop3.body
@@ -239,7 +243,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop3.body
     ok (cont (iter1, sum1))
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop 3:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 81:12-83:13
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 85:12-87:13
     Visibility: public -/
 @[rust_loop]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop3
@@ -250,7 +254,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop3
     (iter, sum)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop body 4:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 76:12-78:13
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 80:12-82:13
     Visibility: public -/
 @[rust_loop_body]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop4.body
@@ -265,7 +269,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop4.body
     ok (cont (iter1, sum1))
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop 4:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 76:12-78:13
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 80:12-82:13
     Visibility: public -/
 @[rust_loop]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop4
@@ -276,7 +280,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop4
     (iter, sum)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop body 5:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 81:12-83:13
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 85:12-87:13
     Visibility: public -/
 @[rust_loop_body]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop5.body
@@ -291,7 +295,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop5.body
     ok (cont (iter1, sum1))
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]: loop 5:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 81:12-83:13
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 85:12-87:13
     Visibility: public -/
 @[rust_loop]
 def modules_acpi.AcpiRsdp.verify_extended_checksum_loop5
@@ -302,7 +306,7 @@ def modules_acpi.AcpiRsdp.verify_extended_checksum_loop5
     (iter, sum)
 
 /-- [nonos_x_multiboot_modules_acpi::modules_acpi::{nonos_x_multiboot_modules_acpi::modules_acpi::AcpiRsdp}::verify_extended_checksum]:
-    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 59:4-89:5
+    Source: 'src/../../../../../src/arch/x86_64/multiboot/modules_acpi.rs', lines 63:4-93:5
     Visibility: public -/
 def modules_acpi.AcpiRsdp.verify_extended_checksum
   (self : modules_acpi.AcpiRsdp) : Result Bool := do

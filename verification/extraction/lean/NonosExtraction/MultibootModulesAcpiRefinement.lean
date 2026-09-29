@@ -44,11 +44,351 @@ theorem the_acpirsdp_verify_checksum_wrapper_is_its_method (a : modules_acpi.Acp
 theorem the_acpirsdp_verify_extended_checksum_wrapper_is_its_method (a : modules_acpi.AcpiRsdp) :
     acpirsdp_verify_extended_checksum a = modules_acpi.AcpiRsdp.verify_extended_checksum a := rfl
 
+/-! ### What the RSDP checks accept, byte for byte
+
+    The ACPI 1.0 RSDP checksum is a byte whose value makes the 20 bytes of the
+    structure sum to zero modulo 256. `Rsdp::validate_checksum` in the ACPI parser
+    reads those 20 bytes straight out of memory (8 signature bytes, the checksum,
+    6 OEM id bytes, the revision and the RSDT address in little-endian order).
+    The multiboot copy rebuilds the same sum field by field, and the theorems
+    below say that it is exactly that sum: every field is counted, each once, and
+    the RSDT address contributes its four little-endian bytes. The extended check
+    is characterised the same way for every combination of present and absent
+    fields, and `table_address` for every shape of the XSDT field.
+
+    `table_address` hands out the XSDT pointer only from revision 2, as the
+    parser's `RsdpExtended::has_xsdt` does: below that revision the extended
+    checksum that would cover the pointer is not computed, so the pointer is
+    ignored and the RSDT address returned. It used to hand out a nonzero XSDT
+    pointer whatever the revision; `kernel_proofs` keeps a test of that case.
+
+    One property is recorded as it is, not as the ACPI parser has it. With
+    revision 2 but no extension fields, which is what `parse_acpi_rsdp` produces for a tag 14 RSDP
+    or a short tag 15 one, the extended check is the ACPI 1.0 check and nothing
+    more. It also never sums the three reserved bytes or checks `length`.
+
+    These theorems are about the extracted methods only. The parser that fills
+    the structure from boot memory reads raw pointers and is not extracted, and no
+    kernel code outside the public `multiboot::acpi_rsdp` accessor calls the
+    methods today, so nothing here says the checks are applied before a pointer is
+    used.
+-/
+
+/-- The sum of a list of bytes as a natural number, with no wrapping. -/
+def byteSum (l : List Std.U8) : Nat := (l.map (·.val)).sum
+
+/-- The sum of the `k` little-endian base 256 digits of `x`. -/
+def leByteSum : Nat → Nat → Nat
+  | 0, _ => 0
+  | k + 1, x => x % 256 + leByteSum k (x / 256)
+
+/-- The unwrapped sum of the 20 bytes the ACPI 1.0 checksum covers. -/
+def rsdpV1ByteSum (r : modules_acpi.AcpiRsdp) : Nat :=
+  byteSum r.signature.val + r.checksum.val + byteSum r.oem_id.val + r.revision.val
+    + leByteSum 4 r.rsdt_address.val
+
+/-- The unwrapped sum of whichever ACPI 2.0 fields are present: the four
+    little-endian bytes of `length`, the eight of `xsdt_address`, and the extended
+    checksum byte. An absent field contributes nothing. -/
+def rsdpExtensionByteSum (r : modules_acpi.AcpiRsdp) : Nat :=
+  (match r.length with | none => 0 | some l => leByteSum 4 l.val)
+  + (match r.xsdt_address with | none => 0 | some x => leByteSum 8 x.val)
+  + (match r.extended_checksum with | none => 0 | some e => e.val)
+
+/-- One pass of the byte loop over a slice from position `i` is a wrapping fold
+    of the remaining bytes. -/
+theorem the_byte_loop_is_a_wrapping_fold (s : Slice Std.U8) : ∀ (n i : Nat) (acc : Std.U8),
+    s.length - i = n →
+    loop (fun (p : core.slice.iter.Iter Std.U8 × Std.U8) =>
+      modules_acpi.AcpiRsdp.verify_checksum_loop0.body p.1 p.2) (⟨s, i⟩, acc)
+      = ok ((s.val.drop i).foldl core.num.U8.wrapping_add acc) := by
+  intro n
+  induction n with
+  | zero =>
+    intro i acc h
+    rw [loop]
+    have hi : ¬ i < s.len.val := by simp [Slice.length] at h; scalar_tac
+    have hd : s.val.drop i = [] := by simp [Slice.length] at h; simp; scalar_tac
+    simp only [modules_acpi.AcpiRsdp.verify_checksum_loop0.body,
+      core.slice.iter.IteratorSliceIter.next, hi, _root_.dite_false, bind_tc_ok, hd]
+    rfl
+  | succ n ih =>
+    intro i acc h
+    rw [loop]
+    have hi : i < s.len.val := by simp [Slice.length] at h; scalar_tac
+    have hb : modules_acpi.AcpiRsdp.verify_checksum_loop0.body ⟨s, i⟩ acc
+        = ok (ControlFlow.cont (⟨s, i + 1⟩, core.num.U8.wrapping_add acc s[i])) := by
+      simp only [modules_acpi.AcpiRsdp.verify_checksum_loop0.body,
+        core.slice.iter.IteratorSliceIter.next, hi, _root_.dite_true, bind_tc_ok, lift]
+      rfl
+    simp only [hb]
+    rw [ih (i+1) _ (by simp [Slice.length] at h ⊢; omega)]
+    have hd : s.val.drop i = s[i] :: s.val.drop (i+1) := by
+      simp only [Slice.length] at h
+      exact List.drop_eq_getElem_cons (by scalar_tac)
+    rw [hd, List.foldl_cons]
+
+theorem the_byte_loop_folds_its_iterator (it : core.slice.iter.Iter Std.U8) (acc : Std.U8) :
+    modules_acpi.AcpiRsdp.verify_checksum_loop0 it acc
+      = ok ((it.slice.val.drop it.i).foldl core.num.U8.wrapping_add acc) :=
+  the_byte_loop_is_a_wrapping_fold it.slice _ it.i acc rfl
+
+theorem a_wrapping_fold_is_the_sum_mod_256 (l : List Std.U8) : ∀ acc : Std.U8,
+    (l.foldl core.num.U8.wrapping_add acc).val = (acc.val + byteSum l) % 256 := by
+  induction l with
+  | nil => intro acc; simp [byteSum]
+  | cons b l ih =>
+    intro acc
+    rw [List.foldl_cons, ih]
+    simp only [core.num.U8.wrapping_add, UScalar.wrapping_add_val_eq, byteSum, List.map_cons,
+      List.sum_cons]
+    simp only [UScalar.size, UScalarTy.U8_numBits_eq, Nat.reducePow]
+    omega
+
+theorem little_endian_bytes_sum_to_the_digit_sum : ∀ (k w : Nat) (b : BitVec w), w = 8 * k →
+    byteSum (b.toLEBytes.map (@UScalar.mk UScalarTy.U8)) = leByteSum k b.toNat := by
+  intro k
+  induction k with
+  | zero =>
+    intro w b hw
+    subst hw
+    simp [BitVec.toLEBytes, byteSum, leByteSum]
+  | succ k ih =>
+    intro w b hw
+    rw [BitVec.toLEBytes]
+    have hpos : w > 0 := by omega
+    simp only [hpos, ↓reduceIte, List.map_cons]
+    have := ih (w - 8) ((b >>> 8).setWidth (w - 8)) (by omega)
+    simp only [byteSum, List.map_cons, List.sum_cons] at this ⊢
+    rw [this]
+    simp only [leByteSum]
+    have hb := b.isLt
+    congr 1
+    · show (b.setWidth 8).toNat = _
+      simp [BitVec.toNat_setWidth]
+    · congr 1
+      simp only [BitVec.toNat_setWidth, BitVec.toNat_ushiftRight, Nat.shiftRight_eq_div_pow]
+      apply Nat.mod_eq_of_lt
+      have : 2 ^ w = 2 ^ (w - 8) * 256 := by
+        rw [show (256 : Nat) = 2 ^ 8 by rfl, ← Nat.pow_add]; congr 1; omega
+      rw [Nat.div_lt_iff_lt_mul (by decide)]
+      simpa [this] using hb
+
+theorem four_little_endian_bytes_sum_to_their_digits (x : Std.U32) :
+    byteSum (core.num.U32.to_le_bytes x).val = leByteSum 4 x.val :=
+  little_endian_bytes_sum_to_the_digit_sum 4 32 x.bv rfl
+
+theorem eight_little_endian_bytes_sum_to_their_digits (x : Std.U64) :
+    byteSum (core.num.U64.to_le_bytes x).val = leByteSum 8 x.val :=
+  little_endian_bytes_sum_to_the_digit_sum 8 64 x.bv rfl
+
+theorem a_wrapping_byte_add_is_addition_mod_256 (x y : Std.U8) :
+    (core.num.U8.wrapping_add x y).val = (x.val + y.val) % 256 := by
+  simp only [core.num.U8.wrapping_add, UScalar.wrapping_add_val_eq, UScalar.size,
+    UScalarTy.U8_numBits_eq, Nat.reducePow]
+
+theorem a_byte_is_zero_exactly_when_its_value_is (x : Std.U8) : x = 0#u8 ↔ x.val = 0 := by
+  constructor
+  · rintro rfl; rfl
+  · intro h; apply UScalar.eq_of_val_eq; simpa using h
+
+/-- ACPI 2.0 begins at revision 2: revisions 0 and 1 are ACPI 1.0 and every
+    revision from 2 up is ACPI 2.0 or later. -/
+theorem acpirsdp_is_acpi2_exactly_from_revision_two (r : modules_acpi.AcpiRsdp) :
+    acpirsdp_is_acpi2 r = ok (decide (2 ≤ r.revision.val)) := by
+  unfold acpirsdp_is_acpi2 modules_acpi.AcpiRsdp.is_acpi2
+  by_cases h : 2 ≤ r.revision.val
+  · have hb : r.revision ≥ 2#u8 := by scalar_tac
+    simp only [hb, h, decide_true]
+  · have hb : ¬ r.revision ≥ 2#u8 := by scalar_tac
+    simp only [hb, h, decide_false]
+
+/-- The ACPI 1.0 check is the 20-byte sum being zero modulo 256, over exactly the
+    bytes `Rsdp::validate_checksum` reads from memory. The ACPI 2.0 fields play no
+    part. -/
+theorem acpirsdp_verify_checksum_is_the_twenty_byte_sum (r : modules_acpi.AcpiRsdp) :
+    acpirsdp_verify_checksum r = ok (decide (rsdpV1ByteSum r % 256 = 0)) := by
+  have e1 : modules_acpi.AcpiRsdp.verify_checksum_loop1 =
+      modules_acpi.AcpiRsdp.verify_checksum_loop0 := rfl
+  have e2 : modules_acpi.AcpiRsdp.verify_checksum_loop2 =
+      modules_acpi.AcpiRsdp.verify_checksum_loop0 := rfl
+  have hz : (0#u8 : Std.U8).val = 0 := rfl
+  unfold acpirsdp_verify_checksum modules_acpi.AcpiRsdp.verify_checksum
+  simp only [SharedArray.Insts.CoreIterTraitsCollectIntoIteratorSharedIter.into_iter, bind_tc_ok,
+    lift, e1, e2, the_byte_loop_folds_its_iterator, List.drop_zero, ok.injEq, decide_eq_decide,
+    a_byte_is_zero_exactly_when_its_value_is, a_wrapping_fold_is_the_sum_mod_256, a_wrapping_byte_add_is_addition_mod_256,
+    four_little_endian_bytes_sum_to_their_digits, hz]
+  unfold rsdpV1ByteSum
+  omega
+
+/-- With every other field fixed, exactly one checksum byte passes: the one that
+    brings the other 19 bytes to a multiple of 256. -/
+theorem exactly_one_checksum_byte_passes_acpirsdp_verify_checksum
+    (r : modules_acpi.AcpiRsdp) (c : Std.U8) :
+    acpirsdp_verify_checksum { r with checksum := c } = ok true ↔
+      c.val = (256 - (byteSum r.signature.val + byteSum r.oem_id.val + r.revision.val
+        + leByteSum 4 r.rsdt_address.val) % 256) % 256 := by
+  rw [acpirsdp_verify_checksum_is_the_twenty_byte_sum]
+  unfold rsdpV1ByteSum
+  have hc := c.hBounds
+  simp only [ok.injEq, decide_eq_true_eq, UScalarTy.U8_numBits_eq] at hc ⊢
+  omega
+
+/-- The extended check passes unexamined whenever `is_acpi2` says the RSDP is
+    not ACPI 2.0. -/
+theorem acpirsdp_verify_extended_checksum_passes_whatever_is_not_acpi2
+    (r : modules_acpi.AcpiRsdp) (h : acpirsdp_is_acpi2 r = ok false) :
+    acpirsdp_verify_extended_checksum r = ok true := by
+  unfold acpirsdp_verify_extended_checksum modules_acpi.AcpiRsdp.verify_extended_checksum
+  unfold acpirsdp_is_acpi2 at h
+  simp only [h, bind_tc_ok, Bool.false_eq_true, ↓reduceIte]
+
+/-- From revision 2 up, the extended check is the 20-byte sum plus the bytes of
+    whichever ACPI 2.0 fields are present, zero modulo 256. Below revision 2 it
+    passes. -/
+theorem acpirsdp_verify_extended_checksum_is_the_sum_of_the_present_fields
+    (r : modules_acpi.AcpiRsdp) :
+    acpirsdp_verify_extended_checksum r =
+      ok (if 2 ≤ r.revision.val
+        then decide ((rsdpV1ByteSum r + rsdpExtensionByteSum r) % 256 = 0) else true) := by
+  have e0 : modules_acpi.AcpiRsdp.verify_extended_checksum_loop0 =
+      modules_acpi.AcpiRsdp.verify_checksum_loop0 := rfl
+  have e1 : modules_acpi.AcpiRsdp.verify_extended_checksum_loop1 =
+      modules_acpi.AcpiRsdp.verify_checksum_loop0 := rfl
+  have e2 : modules_acpi.AcpiRsdp.verify_extended_checksum_loop2 =
+      modules_acpi.AcpiRsdp.verify_checksum_loop0 := rfl
+  have e3 : modules_acpi.AcpiRsdp.verify_extended_checksum_loop3 =
+      modules_acpi.AcpiRsdp.verify_checksum_loop0 := rfl
+  have e4 : modules_acpi.AcpiRsdp.verify_extended_checksum_loop4 =
+      modules_acpi.AcpiRsdp.verify_checksum_loop0 := rfl
+  have e5 : modules_acpi.AcpiRsdp.verify_extended_checksum_loop5 =
+      modules_acpi.AcpiRsdp.verify_checksum_loop0 := rfl
+  have hz : (0#u8 : Std.U8).val = 0 := rfl
+  unfold acpirsdp_verify_extended_checksum modules_acpi.AcpiRsdp.verify_extended_checksum
+    modules_acpi.AcpiRsdp.is_acpi2
+  simp only [bind_tc_ok]
+  by_cases hr : 2 ≤ r.revision.val
+  · have hb : r.revision ≥ 2#u8 := by scalar_tac
+    simp only [hb, decide_true, ↓reduceIte, hr]
+    unfold rsdpV1ByteSum rsdpExtensionByteSum
+    rcases hl : r.length with _ | l <;> rcases hx : r.xsdt_address with _ | x <;>
+      rcases he : r.extended_checksum with _ | e <;>
+      simp only [SharedArray.Insts.CoreIterTraitsCollectIntoIteratorSharedIter.into_iter,
+        bind_tc_ok, lift, e0, e1, e2, e3, e4, e5, the_byte_loop_folds_its_iterator,
+        List.drop_zero, ok.injEq, decide_eq_decide, a_byte_is_zero_exactly_when_its_value_is,
+        a_wrapping_fold_is_the_sum_mod_256, a_wrapping_byte_add_is_addition_mod_256, four_little_endian_bytes_sum_to_their_digits,
+        eight_little_endian_bytes_sum_to_their_digits, hz] <;> omega
+  · have hb : ¬ r.revision ≥ 2#u8 := by scalar_tac
+    simp only [hb, hr, decide_false, ↓reduceIte, Bool.false_eq_true]
+
+/-- This records a defect. With revision 2 or more but none of the ACPI 2.0 fields,
+    the extended check is the ACPI 1.0 check: it verifies nothing that
+    `verify_checksum` has not, so a caller that asks for both learns no more than
+    from one. -/
+theorem without_extension_fields_acpirsdp_verify_extended_checksum_is_the_v1_check
+    (r : modules_acpi.AcpiRsdp) (hr : 2 ≤ r.revision.val) (hl : r.length = none)
+    (hx : r.xsdt_address = none) (he : r.extended_checksum = none) :
+    acpirsdp_verify_extended_checksum r = acpirsdp_verify_checksum r := by
+  rw [acpirsdp_verify_extended_checksum_is_the_sum_of_the_present_fields,
+    acpirsdp_verify_checksum_is_the_twenty_byte_sum]
+  unfold rsdpExtensionByteSum
+  simp only [hr, ↓reduceIte, hl, hx, he, Nat.add_zero]
+
+private theorem is_acpi2_true (r : modules_acpi.AcpiRsdp) (hr : 2 ≤ r.revision.val) :
+    modules_acpi.AcpiRsdp.is_acpi2 r = ok true := by
+  have := acpirsdp_is_acpi2_exactly_from_revision_two r
+  unfold acpirsdp_is_acpi2 at this
+  rw [this]; simp [hr]
+
+private theorem is_acpi2_false (r : modules_acpi.AcpiRsdp) (hr : r.revision.val < 2) :
+    modules_acpi.AcpiRsdp.is_acpi2 r = ok false := by
+  have := acpirsdp_is_acpi2_exactly_from_revision_two r
+  unfold acpirsdp_is_acpi2 at this
+  rw [this]; simp; omega
+
+/-- From revision 2, a nonzero XSDT address is returned whole, all 64 bits of
+    it. -/
+theorem acpirsdp_table_address_prefers_a_nonzero_xsdt (r : modules_acpi.AcpiRsdp) (x : Std.U64)
+    (hr : 2 ≤ r.revision.val) (hx : r.xsdt_address = some x) (h0 : x.val ≠ 0) :
+    acpirsdp_table_address r = ok x := by
+  unfold acpirsdp_table_address modules_acpi.AcpiRsdp.table_address
+  have hne : x ≠ 0#u64 := by intro h; subst h; exact h0 rfl
+  simp only [is_acpi2_true r hr, bind_tc_ok, ↓reduceIte, hx, bne_iff_ne, ne_eq, hne,
+    not_false_eq_true]
+
+/-- With no XSDT, or an XSDT of zero, the answer is the 32-bit RSDT address
+    zero-extended: a zero XSDT is never handed out in place of an RSDT. -/
+theorem acpirsdp_table_address_falls_back_to_the_rsdt (r : modules_acpi.AcpiRsdp)
+    (h : r.xsdt_address = none ∨ r.xsdt_address = some 0#u64) :
+    ∃ v, acpirsdp_table_address r = ok v ∧ v.val = r.rsdt_address.val := by
+  unfold acpirsdp_table_address modules_acpi.AcpiRsdp.table_address
+  by_cases hr : 2 ≤ r.revision.val
+  · rcases h with h | h <;>
+      simp only [is_acpi2_true r hr, bind_tc_ok, ↓reduceIte, h, bne_self_eq_false,
+        Bool.false_eq_true, ok.injEq, exists_eq_left', UScalar.cast_val_eq,
+        UScalarTy.numBits] <;> scalar_tac
+  · simp only [is_acpi2_false r (by omega), bind_tc_ok, Bool.false_eq_true, ↓reduceIte,
+      ok.injEq, exists_eq_left', UScalar.cast_val_eq, UScalarTy.numBits]
+    scalar_tac
+
+/-- Below revision 2 the answer is the RSDT address whatever the XSDT field
+    holds, so a pointer the extended checksum does not cover is never handed
+    out. -/
+theorem acpirsdp_table_address_ignores_the_xsdt_below_revision_two
+    (r : modules_acpi.AcpiRsdp) (hr : r.revision.val < 2) :
+    ∃ v, acpirsdp_table_address r = ok v ∧ v.val = r.rsdt_address.val := by
+  unfold acpirsdp_table_address modules_acpi.AcpiRsdp.table_address
+  simp only [is_acpi2_false r hr, bind_tc_ok, Bool.false_eq_true, ↓reduceIte,
+    ok.injEq, exists_eq_left', UScalar.cast_val_eq, UScalarTy.numBits]
+  scalar_tac
+
+/-- Whenever `table_address` returns anything but the RSDT address, the RSDP is
+    revision 2 or later and the value is its XSDT field, which is the case in
+    which `verify_extended_checksum` computes the extended sum. -/
+theorem acpirsdp_table_address_hands_out_the_xsdt_only_from_revision_two
+    (r : modules_acpi.AcpiRsdp) (v : Std.U64) (h : acpirsdp_table_address r = ok v)
+    (hv : v.val ≠ r.rsdt_address.val) :
+    2 ≤ r.revision.val ∧ r.xsdt_address = some v := by
+  by_cases hr : 2 ≤ r.revision.val
+  · refine ⟨hr, ?_⟩
+    cases hx : r.xsdt_address with
+    | none =>
+      obtain ⟨w, hw, hwv⟩ := acpirsdp_table_address_falls_back_to_the_rsdt r (Or.inl hx)
+      rw [hw] at h; cases h; exact absurd hwv hv
+    | some x =>
+      by_cases h0 : x.val = 0
+      · have : x = 0#u64 := UScalar.eq_of_val_eq h0
+        subst this
+        obtain ⟨w, hw, hwv⟩ := acpirsdp_table_address_falls_back_to_the_rsdt r (Or.inr hx)
+        rw [hw] at h; cases h; exact absurd hwv hv
+      · rw [acpirsdp_table_address_prefers_a_nonzero_xsdt r x hr hx h0] at h
+        cases h; rfl
+  · obtain ⟨w, hw, hwv⟩ := acpirsdp_table_address_ignores_the_xsdt_below_revision_two r (by omega)
+    rw [hw] at h; cases h; exact absurd hwv hv
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.MultibootModulesAcpi.the_acpirsdp_is_acpi2_wrapper_is_its_method
 #print axioms NonosExtraction.MultibootModulesAcpi.the_acpirsdp_table_address_wrapper_is_its_method
 #print axioms NonosExtraction.MultibootModulesAcpi.the_acpirsdp_verify_checksum_wrapper_is_its_method
 #print axioms NonosExtraction.MultibootModulesAcpi.the_acpirsdp_verify_extended_checksum_wrapper_is_its_method
+#print axioms NonosExtraction.MultibootModulesAcpi.the_byte_loop_is_a_wrapping_fold
+#print axioms NonosExtraction.MultibootModulesAcpi.the_byte_loop_folds_its_iterator
+#print axioms NonosExtraction.MultibootModulesAcpi.a_wrapping_fold_is_the_sum_mod_256
+#print axioms NonosExtraction.MultibootModulesAcpi.little_endian_bytes_sum_to_the_digit_sum
+#print axioms NonosExtraction.MultibootModulesAcpi.four_little_endian_bytes_sum_to_their_digits
+#print axioms NonosExtraction.MultibootModulesAcpi.eight_little_endian_bytes_sum_to_their_digits
+#print axioms NonosExtraction.MultibootModulesAcpi.a_wrapping_byte_add_is_addition_mod_256
+#print axioms NonosExtraction.MultibootModulesAcpi.a_byte_is_zero_exactly_when_its_value_is
+#print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_is_acpi2_exactly_from_revision_two
+#print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_verify_checksum_is_the_twenty_byte_sum
+#print axioms NonosExtraction.MultibootModulesAcpi.exactly_one_checksum_byte_passes_acpirsdp_verify_checksum
+#print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_verify_extended_checksum_passes_whatever_is_not_acpi2
+#print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_verify_extended_checksum_is_the_sum_of_the_present_fields
+#print axioms NonosExtraction.MultibootModulesAcpi.without_extension_fields_acpirsdp_verify_extended_checksum_is_the_v1_check
+#print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_prefers_a_nonzero_xsdt
+#print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_falls_back_to_the_rsdt
+#print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_ignores_the_xsdt_below_revision_two
+#print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_hands_out_the_xsdt_only_from_revision_two
 
 end NonosExtraction.MultibootModulesAcpi

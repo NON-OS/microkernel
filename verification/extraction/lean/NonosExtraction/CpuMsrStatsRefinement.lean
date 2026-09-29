@@ -44,11 +44,89 @@ theorem the_msr_reads_wrapper_is_its_method :
 theorem the_msr_writes_wrapper_is_its_method :
     msr_writes = msr_stats.msr_writes := rfl
 
+/-! ### The counters are bumped and read alike, and a bump cannot fail
+
+The read counter and the write counter are bumped by the same code: an atomic
+add of one with relaxed ordering on a counter created at zero, and read by the
+same code, a relaxed load. A bump returns as soon as the atomic add returns,
+whatever old value that add reports, so a counter at `u64::MAX` wraps instead of
+aborting the MSR access it is counting, as a checked `+= 1` would in a kernel
+built with overflow checks. A read hands back exactly what the load returned.
+
+Aeneas leaves the atomic operations and the statics opaque: the model treats
+`MSR_READS` and `MSR_WRITES` as values, not as two distinct memory cells, so
+these theorems say the code for the two counters is the same, not that the two
+counters are one object, and they say nothing about what a load returns after a
+given sequence of bumps. The call sites in `msr_core` that bump on every rdmsr
+and wrmsr are not extracted.
+-/
+
+/-- The two bumps share their step (one), their ordering (relaxed) and the
+    initial value of their counter (zero). -/
+theorem increment_reads_and_increment_writes_are_the_same_bump :
+    increment_reads = increment_writes := by
+  unfold increment_reads increment_writes msr_stats.increment_reads msr_stats.increment_writes
+    msr_stats.MSR_READS msr_stats.MSR_WRITES
+  rfl
+
+/-- The two readers load the same way from counters created alike. -/
+theorem msr_reads_and_msr_writes_are_the_same_load :
+    msr_writes = msr_reads := by
+  unfold msr_reads msr_writes msr_stats.msr_reads msr_stats.msr_writes
+    msr_stats.MSR_READS msr_stats.MSR_WRITES
+  rfl
+
+/-- A write bump succeeds whenever the atomic add of one succeeds, whatever old
+    value it reports, `u64::MAX` included: the bump adds no overflow check. -/
+theorem increment_writes_succeeds_whenever_the_atomic_add_does
+    (c : core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64))
+    (v : Std.U64) (hc : msr_stats.MSR_WRITES = ok c)
+    (hv : core.sync.atomic.AtomicU64Align8U64.fetch_add c 1#u64
+      core.sync.atomic.Ordering.Relaxed = ok v) :
+    increment_writes = ok () := by
+  unfold increment_writes msr_stats.increment_writes
+  simp only [hc, hv, bind_tc_ok]
+
+/-- The same holds for a read bump, in particular when the counter reports
+    `u64::MAX` and wraps. -/
+theorem increment_reads_does_not_fail_when_the_counter_wraps
+    (c : core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64))
+    (hc : msr_stats.MSR_READS = ok c)
+    (hv : core.sync.atomic.AtomicU64Align8U64.fetch_add c 1#u64
+      core.sync.atomic.Ordering.Relaxed = ok 18446744073709551615#u64) :
+    increment_reads = ok () := by
+  unfold increment_reads msr_stats.increment_reads
+  simp only [hc, hv, bind_tc_ok]
+
+/-- The read count reported is the loaded value, unscaled and unoffset. -/
+theorem msr_reads_returns_the_loaded_count
+    (c : core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64))
+    (v : Std.U64) (hc : msr_stats.MSR_READS = ok c)
+    (hv : core.sync.atomic.AtomicU64Align8U64.load c core.sync.atomic.Ordering.Relaxed = ok v) :
+    msr_reads = ok v := by
+  unfold msr_reads msr_stats.msr_reads
+  simp only [hc, hv, bind_tc_ok]
+
+/-- The write count reported is the loaded value, unscaled and unoffset. -/
+theorem msr_writes_returns_the_loaded_count
+    (c : core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64))
+    (v : Std.U64) (hc : msr_stats.MSR_WRITES = ok c)
+    (hv : core.sync.atomic.AtomicU64Align8U64.load c core.sync.atomic.Ordering.Relaxed = ok v) :
+    msr_writes = ok v := by
+  unfold msr_writes msr_stats.msr_writes
+  simp only [hc, hv, bind_tc_ok]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CpuMsrStats.the_increment_reads_wrapper_is_its_method
 #print axioms NonosExtraction.CpuMsrStats.the_increment_writes_wrapper_is_its_method
 #print axioms NonosExtraction.CpuMsrStats.the_msr_reads_wrapper_is_its_method
 #print axioms NonosExtraction.CpuMsrStats.the_msr_writes_wrapper_is_its_method
+#print axioms NonosExtraction.CpuMsrStats.increment_reads_and_increment_writes_are_the_same_bump
+#print axioms NonosExtraction.CpuMsrStats.msr_reads_and_msr_writes_are_the_same_load
+#print axioms NonosExtraction.CpuMsrStats.increment_writes_succeeds_whenever_the_atomic_add_does
+#print axioms NonosExtraction.CpuMsrStats.increment_reads_does_not_fail_when_the_counter_wraps
+#print axioms NonosExtraction.CpuMsrStats.msr_reads_returns_the_loaded_count
+#print axioms NonosExtraction.CpuMsrStats.msr_writes_returns_the_loaded_count
 
 end NonosExtraction.CpuMsrStats

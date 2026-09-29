@@ -163,19 +163,26 @@ def flags.PteFlags.is_valid (self : flags.PteFlags) : Result Bool := do
   ok (i1 != 0#u64)
 
 /-- [nonos_rv_flags::flags::{nonos_rv_flags::flags::PteFlags}::is_leaf]:
-    Source: 'src/../../../../src/arch/riscv64/mmu/attributes/flags.rs', lines 73:4-75:5
+    Source: 'src/../../../../src/arch/riscv64/mmu/attributes/flags.rs', lines 75:4-78:5
     Visibility: public -/
 def flags.PteFlags.is_leaf (self : flags.PteFlags) : Result Bool := do
   let i ← flags.PteFlags.R
   let i1 ← flags.PteFlags.W
   let i2 ← lift (i ||| i1)
-  let i3 ← flags.PteFlags.X
-  let i4 ← lift (i2 ||| i3)
-  let i5 ← lift (self &&& i4)
-  ok (i5 != 0#u64)
+  let i3 ← lift (self &&& i2)
+  let b ← flags.PteFlags.is_valid self
+  if b
+  then
+    let i4 ← flags.PteFlags.X
+    let i5 ← lift (i ||| i4)
+    let i6 ← lift (self &&& i5)
+    if i6 != 0#u64
+    then ok (¬ (i3 = i1))
+    else ok false
+  else ok false
 
 /-- [nonos_rv_flags::flags::{nonos_rv_flags::flags::PteFlags}::is_readable]:
-    Source: 'src/../../../../src/arch/riscv64/mmu/attributes/flags.rs', lines 76:4-78:5
+    Source: 'src/../../../../src/arch/riscv64/mmu/attributes/flags.rs', lines 79:4-81:5
     Visibility: public -/
 def flags.PteFlags.is_readable (self : flags.PteFlags) : Result Bool := do
   let i ← flags.PteFlags.R
@@ -183,7 +190,7 @@ def flags.PteFlags.is_readable (self : flags.PteFlags) : Result Bool := do
   ok (i1 != 0#u64)
 
 /-- [nonos_rv_flags::flags::{nonos_rv_flags::flags::PteFlags}::is_writable]:
-    Source: 'src/../../../../src/arch/riscv64/mmu/attributes/flags.rs', lines 79:4-81:5
+    Source: 'src/../../../../src/arch/riscv64/mmu/attributes/flags.rs', lines 82:4-84:5
     Visibility: public -/
 def flags.PteFlags.is_writable (self : flags.PteFlags) : Result Bool := do
   let i ← flags.PteFlags.W
@@ -191,7 +198,7 @@ def flags.PteFlags.is_writable (self : flags.PteFlags) : Result Bool := do
   ok (i1 != 0#u64)
 
 /-- [nonos_rv_flags::flags::{nonos_rv_flags::flags::PteFlags}::is_executable]:
-    Source: 'src/../../../../src/arch/riscv64/mmu/attributes/flags.rs', lines 82:4-84:5
+    Source: 'src/../../../../src/arch/riscv64/mmu/attributes/flags.rs', lines 85:4-87:5
     Visibility: public -/
 def flags.PteFlags.is_executable (self : flags.PteFlags) : Result Bool := do
   let i ← flags.PteFlags.X
@@ -199,7 +206,7 @@ def flags.PteFlags.is_executable (self : flags.PteFlags) : Result Bool := do
   ok (i1 != 0#u64)
 
 /-- [nonos_rv_flags::flags::{nonos_rv_flags::flags::PteFlags}::is_user]:
-    Source: 'src/../../../../src/arch/riscv64/mmu/attributes/flags.rs', lines 85:4-87:5
+    Source: 'src/../../../../src/arch/riscv64/mmu/attributes/flags.rs', lines 88:4-90:5
     Visibility: public -/
 def flags.PteFlags.is_user (self : flags.PteFlags) : Result Bool := do
   let i ← flags.PteFlags.U

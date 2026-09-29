@@ -44,11 +44,130 @@ theorem the_pipe_is_broken_wrapper_is_its_method (a : types.Pipe) :
 theorem the_pipe_space_available_wrapper_is_its_method (a : types.Pipe) :
     pipe_space_available a = types.Pipe.space_available a := rfl
 
+/-! ### What a pipe reports about itself
+
+A new pipe has the id it was created with, a zeroed buffer of exactly its
+capacity, room for its whole capacity, and is not broken. `space_available` is
+the capacity less the bytes held, subtraction checked: it returns `ok` exactly
+when the pipe does not claim to hold more than its capacity, and then the space
+and the held bytes add up to the capacity, which is what lets the writer in
+`ipc/pipe/api.rs` add `min(len, space_available)` to `bytes_available` without
+passing the capacity. `is_broken` is true exactly when the write end is closed
+and nothing is left to read; the read end plays no part.
+
+These theorems cannot establish that `bytes_available` stays at or below
+`capacity` across reads and writes: `pipe_read`, `pipe_write` and the global
+pipe table in `api.rs` sit behind a spin lock and a `BTreeMap` and are not
+extracted, so the invariant is stated here as the hypothesis the functions need.
+-/
+
+/-- The pipe `new` builds reports its own id, has a buffer of exactly
+`capacity` zero bytes, offers its whole capacity to a writer, and is not
+broken. -/
+theorem pipe_new_is_empty_open_and_sized_to_its_capacity
+    (id : Std.U32) (capacity : Std.Usize) :
+    ∃ p, pipe_new id capacity = ok p ∧
+      pipe_pipe_id p = ok id ∧
+      p.buffer.val = List.replicate capacity.val 0#u8 ∧
+      pipe_space_available p = ok capacity ∧
+      pipe_is_broken p = ok false := by
+  unfold pipe_new types.Pipe.new
+  obtain ⟨v, hv, hval, _⟩ := WP.spec_imp_exists
+    (alloc.vec.from_elem_spec core.clone.CloneU8 0#u8 capacity rfl)
+  rw [hv]
+  refine ⟨_, rfl, rfl, hval, ?_, rfl⟩
+  unfold pipe_space_available types.Pipe.space_available
+  have h := UScalar.sub_equiv capacity 0#usize
+  cases hr : (capacity - 0#usize : Result Std.Usize) with
+  | ok z =>
+    rw [hr] at h
+    have : z = capacity := UScalar.eq_of_val_eq (by simp at h; omega)
+    rw [this]
+  | fail e => rw [hr] at h; simp at h
+  | div => rw [hr] at h; exact h.elim
+
+/-- `space_available` succeeds exactly when the pipe holds no more than its
+capacity, and then the space and the held bytes sum to the capacity. -/
+theorem pipe_space_available_is_capacity_less_held_bytes
+    (p : types.Pipe) (v : Std.Usize) :
+    pipe_space_available p = ok v ↔
+      (p.bytes_available.val ≤ p.capacity.val ∧
+        v.val + p.bytes_available.val = p.capacity.val) := by
+  unfold pipe_space_available types.Pipe.space_available
+  have h := UScalar.sub_equiv p.capacity p.bytes_available
+  constructor
+  · intro hv
+    rw [hv] at h
+    omega
+  · rintro ⟨hle, hv⟩
+    cases hr : (p.capacity - p.bytes_available : Result Std.Usize) with
+    | ok z =>
+      rw [hr] at h
+      have : z = v := UScalar.eq_of_val_eq (by omega)
+      rw [this]
+    | fail e => rw [hr] at h; omega
+    | div => rw [hr] at h; exact h.elim
+
+/-- A pipe that claims more bytes than its capacity is refused by
+`space_available` rather than reported as having wrapped, enormous space. -/
+theorem pipe_space_available_refuses_an_overfull_pipe
+    (p : types.Pipe) (h : p.capacity.val < p.bytes_available.val) :
+    ∃ e, pipe_space_available p = fail e := by
+  unfold pipe_space_available types.Pipe.space_available
+  have hs := UScalar.sub_equiv p.capacity p.bytes_available
+  cases hr : (p.capacity - p.bytes_available : Result Std.Usize) with
+  | ok z => rw [hr] at hs; omega
+  | fail e => exact ⟨e, rfl⟩
+  | div => rw [hr] at hs; exact hs.elim
+
+/-- The writer's contract: any amount up to the reported space can be added to
+`bytes_available` and the pipe still holds no more than its capacity. -/
+theorem writing_up_to_pipe_space_available_never_overfills
+    (p : types.Pipe) (v : Std.Usize) (n : Nat)
+    (hv : pipe_space_available p = ok v) (hn : n ≤ v.val) :
+    p.bytes_available.val + n ≤ p.capacity.val := by
+  have := (pipe_space_available_is_capacity_less_held_bytes p v).1 hv
+  omega
+
+/-- A full pipe reports no space, which is what makes `pipe_write` return
+`EAGAIN` (or block) instead of writing. -/
+theorem pipe_space_available_is_zero_exactly_when_full
+    (p : types.Pipe) (v : Std.Usize) (hv : pipe_space_available p = ok v) :
+    v.val = 0 ↔ p.bytes_available.val = p.capacity.val := by
+  have := (pipe_space_available_is_capacity_less_held_bytes p v).1 hv
+  omega
+
+/-- A pipe is broken exactly when its writer has closed and every byte has been
+read. Closing the read end does not break a pipe, and a pipe whose writer has
+gone but which still holds data is not broken, so a reader can drain it. -/
+theorem pipe_is_broken_exactly_when_writer_closed_and_drained
+    (p : types.Pipe) :
+    pipe_is_broken p = ok true ↔
+      (p.write_closed = true ∧ p.bytes_available.val = 0) := by
+  unfold pipe_is_broken types.Pipe.is_broken
+  cases hw : p.write_closed
+  · simp
+  · simp only [if_true, ok.injEq, decide_eq_true_eq, true_and]
+    constructor
+    · intro h; rw [h]; rfl
+    · intro h; exact UScalar.eq_of_val_eq h
+
+/-- `pipe_id` reports the stored id and nothing else. -/
+theorem pipe_pipe_id_reads_the_id_field (p : types.Pipe) :
+    pipe_pipe_id p = ok p.id := rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.PipeTypes.the_pipe_new_wrapper_is_its_method
 #print axioms NonosExtraction.PipeTypes.the_pipe_pipe_id_wrapper_is_its_method
 #print axioms NonosExtraction.PipeTypes.the_pipe_is_broken_wrapper_is_its_method
 #print axioms NonosExtraction.PipeTypes.the_pipe_space_available_wrapper_is_its_method
+#print axioms NonosExtraction.PipeTypes.pipe_new_is_empty_open_and_sized_to_its_capacity
+#print axioms NonosExtraction.PipeTypes.pipe_space_available_is_capacity_less_held_bytes
+#print axioms NonosExtraction.PipeTypes.pipe_space_available_refuses_an_overfull_pipe
+#print axioms NonosExtraction.PipeTypes.writing_up_to_pipe_space_available_never_overfills
+#print axioms NonosExtraction.PipeTypes.pipe_space_available_is_zero_exactly_when_full
+#print axioms NonosExtraction.PipeTypes.pipe_is_broken_exactly_when_writer_closed_and_drained
+#print axioms NonosExtraction.PipeTypes.pipe_pipe_id_reads_the_id_field
 
 end NonosExtraction.PipeTypes

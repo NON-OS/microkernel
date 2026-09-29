@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.BootTypesContext
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_boot_types_context
@@ -50,6 +51,204 @@ theorem the_exceptioncontext_is_kernel_mode_wrapper_is_its_method (a : types_con
 theorem the_exceptioncontext_has_error_code_wrapper_is_its_method (a : types_context.ExceptionContext) :
     exceptioncontext_has_error_code a = types_context.ExceptionContext.has_error_code a := rfl
 
+/-! ### What the boot exception frame reports
+
+    `ExceptionContext` is the boot tier's picture of the frame an exception
+    stub leaves on the stack: fifteen general registers pushed by the stub, the
+    vector and error code, then the five words the processor pushes (RIP, CS,
+    RFLAGS, RSP, SS). The readers below return the saved RIP, RSP and CS words
+    and nothing else, the two privilege tests read only the requested privilege
+    level in the low two bits of CS, and `has_error_code` names exactly the ten
+    vectors for which x86 pushes an error code.
+
+    The privilege tests are checked against the selectors in
+    `arch/x86_64/gdt/constants.rs`: `SEL_KERNEL_CODE` is `0x08` and
+    `SEL_USER_CODE` is `0x20 | 3`. Rings one and two are neither user nor
+    kernel, so `!is_user_mode` is not `is_kernel_mode`.
+
+    What this section cannot establish: that the assembly stub lays the frame
+    out in this field order (the `#[repr(C)]` layout and the stub are not
+    extracted), or anything about the handlers in `interrupts/handlers`, which
+    use a different `ExceptionContext` built from `InterruptStackFrame` and are
+    outside this crate. No kernel code calls these boot methods today, so the
+    contracts below are the ones the names promise rather than ones a caller has
+    been read to rely on.
+-/
+
+/-- The instruction pointer is the saved RIP word. The fatal-trap reports print
+    an instruction pointer and a stack pointer side by side; a reader that
+    returned RSP here would type check and print the stack address as the
+    faulting instruction. -/
+theorem instruction_pointer_is_the_saved_rip (c : types_context.ExceptionContext) :
+    exceptioncontext_instruction_pointer c = ok c.rip := rfl
+
+/-- The stack pointer is the saved RSP word, the interrupted stack, and not
+    RBP, which the stub also saves and which a frame-pointer walk would read. -/
+theorem stack_pointer_is_the_saved_rsp (c : types_context.ExceptionContext) :
+    exceptioncontext_stack_pointer c = ok c.rsp := rfl
+
+/-- The code segment is the saved CS word, not SS, the other selector the
+    processor pushes. -/
+theorem code_segment_is_the_saved_cs (c : types_context.ExceptionContext) :
+    exceptioncontext_code_segment c = ok c.cs := rfl
+
+/-- The three readers see only the hardware part of the frame: overwriting every
+    register the stub pushes, together with the vector and the error code, leaves
+    all three answers unchanged. -/
+theorem the_readers_ignore_the_stub_pushed_words
+    (c : types_context.ExceptionContext)
+    (r15 r14 r13 r12 r11 r10 r9 r8 rbp rdi rsi rdx rcx rbx rax v e : Std.U64) :
+    let c' : types_context.ExceptionContext :=
+      { c with r15 := r15, r14 := r14, r13 := r13, r12 := r12, r11 := r11,
+               r10 := r10, r9 := r9, r8 := r8, rbp := rbp, rdi := rdi, rsi := rsi,
+               rdx := rdx, rcx := rcx, rbx := rbx, rax := rax, vector := v,
+               error_code := e }
+    exceptioncontext_instruction_pointer c' = exceptioncontext_instruction_pointer c ∧
+      exceptioncontext_stack_pointer c' = exceptioncontext_stack_pointer c ∧
+      exceptioncontext_code_segment c' = exceptioncontext_code_segment c :=
+  ⟨rfl, rfl, rfl⟩
+
+theorem is_user_mode_reads_the_privilege_bits (c : types_context.ExceptionContext) :
+    exceptioncontext_is_user_mode c = ok (decide (c.cs.val % 4 = 3)) := by
+  unfold exceptioncontext_is_user_mode types_context.ExceptionContext.is_user_mode
+  simp only [lift, bind_tc_ok, ok.injEq, decide_eq_decide]
+  have h : (c.cs &&& 3#u64).val = c.cs.val % 4 :=
+    NonosExtraction.Bits.land_low_mask c.cs 3#u64 2 rfl
+  constructor
+  · intro heq
+    rw [← h, heq]
+    rfl
+  · intro hv
+    exact UScalar.eq_of_val_eq (by rw [h, hv]; rfl)
+
+theorem is_kernel_mode_reads_the_privilege_bits (c : types_context.ExceptionContext) :
+    exceptioncontext_is_kernel_mode c = ok (decide (c.cs.val % 4 = 0)) := by
+  unfold exceptioncontext_is_kernel_mode types_context.ExceptionContext.is_kernel_mode
+  simp only [lift, bind_tc_ok, ok.injEq, decide_eq_decide]
+  have h : (c.cs &&& 3#u64).val = c.cs.val % 4 :=
+    NonosExtraction.Bits.land_low_mask c.cs 3#u64 2 rfl
+  constructor
+  · intro heq
+    rw [← h, heq]
+    rfl
+  · intro hv
+    exact UScalar.eq_of_val_eq (by rw [h, hv]; rfl)
+
+/-- The privilege tests and the code-segment reader agree about which word is
+    the selector: each test is a function of what `code_segment` returns. A
+    reader that returned SS, or a test that read SS, would break this. -/
+theorem the_privilege_tests_read_the_reported_code_segment
+    (c : types_context.ExceptionContext) :
+    exceptioncontext_is_user_mode c =
+        (do let cs ← exceptioncontext_code_segment c; ok (decide (cs.val % 4 = 3))) ∧
+      exceptioncontext_is_kernel_mode c =
+        (do let cs ← exceptioncontext_code_segment c; ok (decide (cs.val % 4 = 0))) := by
+  rw [is_user_mode_reads_the_privilege_bits, is_kernel_mode_reads_the_privilege_bits]
+  exact ⟨rfl, rfl⟩
+
+theorem no_context_is_both_user_and_kernel_mode (c : types_context.ExceptionContext) :
+    ¬ (exceptioncontext_is_user_mode c = ok true ∧
+        exceptioncontext_is_kernel_mode c = ok true) := by
+  rw [is_user_mode_reads_the_privilege_bits, is_kernel_mode_reads_the_privilege_bits]
+  simp only [ok.injEq, decide_eq_true_eq]
+  omega
+
+/-- A selector with requested privilege level one or two is neither user nor
+    kernel mode, so a caller that took `!is_user_mode` as kernel mode would
+    treat a ring-one selector as the kernel's. -/
+theorem rings_one_and_two_are_neither_user_nor_kernel_mode
+    (c : types_context.ExceptionContext) (h : c.cs.val % 4 = 1 ∨ c.cs.val % 4 = 2) :
+    exceptioncontext_is_user_mode c = ok false ∧
+      exceptioncontext_is_kernel_mode c = ok false := by
+  rw [is_user_mode_reads_the_privilege_bits, is_kernel_mode_reads_the_privilege_bits]
+  constructor <;> (congr 1; simp only [decide_eq_false_iff_not]; omega)
+
+/-- The kernel's own code selector, `SEL_KERNEL_CODE = 0x08`, is kernel mode and
+    not user mode, and the user code selector, `SEL_USER_CODE = 0x20 | 3`, is user
+    mode and not kernel mode. Bits above the privilege level are the descriptor
+    index and table indicator and do not enter either test, so a selector word
+    carrying garbage in its upper bits is classified by its low two bits alone. -/
+theorem the_gdt_code_selectors_classify_as_their_rings
+    (c : types_context.ExceptionContext) (hi : Nat) :
+    (c.cs.val = 4 * hi + 0x08 →
+      exceptioncontext_is_kernel_mode c = ok true ∧ exceptioncontext_is_user_mode c = ok false) ∧
+    (c.cs.val = 4 * hi + (0x20 ||| 3) →
+      exceptioncontext_is_user_mode c = ok true ∧ exceptioncontext_is_kernel_mode c = ok false) := by
+  rw [is_user_mode_reads_the_privilege_bits, is_kernel_mode_reads_the_privilege_bits]
+  refine ⟨fun h8 => ?_, fun h23 => ?_⟩
+  · rw [h8]
+    constructor <;> (congr 1; simp only [decide_eq_true_eq, decide_eq_false_iff_not]; omega)
+  · rw [h23]
+    have : (0x20 ||| 3 : Nat) = 0x23 := by decide
+    rw [this]
+    constructor <;> (congr 1; simp only [decide_eq_true_eq, decide_eq_false_iff_not]; omega)
+
+/-- `has_error_code` is true exactly on double fault (8), invalid TSS (10),
+    segment not present (11), stack-segment fault (12), general protection (13),
+    page fault (14), alignment check (17), control protection (21), VMM
+    communication (29) and security exception (30): the vectors for which the
+    processor pushes an error code. The comparison is on the full 64-bit vector
+    word, so a word such as `0x108` is not mistaken for vector 8. -/
+theorem has_error_code_is_exactly_the_error_code_vectors
+    (c : types_context.ExceptionContext) :
+    exceptioncontext_has_error_code c =
+      ok (decide (c.vector.val ∈ [8, 10, 11, 12, 13, 14, 17, 21, 29, 30])) := by
+  unfold exceptioncontext_has_error_code types_context.ExceptionContext.has_error_code
+  split
+  all_goals first
+    | (rename_i h; rw [h]; rfl)
+    | (rename_i h1 h2 h3 h4 h5 h6 h7 h8 h9 h10
+       congr 1
+       symm
+       simp only [decide_eq_false_iff_not, List.mem_cons, List.not_mem_nil, or_false]
+       intro h
+       rcases h with h | h | h | h | h | h | h | h | h | h
+       · exact h1 (UScalar.eq_of_val_eq h)
+       · exact h2 (UScalar.eq_of_val_eq h)
+       · exact h3 (UScalar.eq_of_val_eq h)
+       · exact h4 (UScalar.eq_of_val_eq h)
+       · exact h5 (UScalar.eq_of_val_eq h)
+       · exact h6 (UScalar.eq_of_val_eq h)
+       · exact h7 (UScalar.eq_of_val_eq h)
+       · exact h8 (UScalar.eq_of_val_eq h)
+       · exact h9 (UScalar.eq_of_val_eq h)
+       · exact h10 (UScalar.eq_of_val_eq h))
+
+/-- Below vector 29 the table is the classic one (double fault, invalid TSS,
+    segment not present, stack-segment fault, general protection, page fault,
+    alignment check, control protection), and 29 and 30 carry an error code.
+    `interrupts::vectors::exception_has_error_code` used to omit 29 and 30; it
+    now keeps the same table, and `the_idt_and_boot_error_code_tables_agree` in
+    `VectorsRefinement` proves the two equal on every vector. -/
+theorem has_error_code_adds_vc_and_sx_to_the_idt_table
+    (c : types_context.ExceptionContext) :
+    (c.vector.val < 29 →
+      exceptioncontext_has_error_code c =
+        ok (decide (c.vector.val ∈ [8, 10, 11, 12, 13, 14, 17, 21]))) ∧
+    (c.vector.val = 29 ∨ c.vector.val = 30 → exceptioncontext_has_error_code c = ok true) := by
+  rw [has_error_code_is_exactly_the_error_code_vectors]
+  refine ⟨fun hlt => ?_, fun h => ?_⟩
+  · congr 1
+    simp only [List.mem_cons, List.not_mem_nil, or_false, decide_eq_decide]
+    omega
+  · congr 1
+    simp only [List.mem_cons, List.not_mem_nil, or_false, decide_eq_true_eq]
+    omega
+
+/-- No hardware interrupt, the legacy syscall gate, or the spurious vector
+    carries an error code, and neither do the reserved exception vectors 9, 15,
+    22 to 28 and 31. A stub that popped an error code for these would consume a
+    word of the return frame. -/
+theorem vectors_without_an_error_code_report_none
+    (c : types_context.ExceptionContext)
+    (h : c.vector.val = 9 ∨ c.vector.val = 15 ∨ (22 ≤ c.vector.val ∧ c.vector.val ≤ 28) ∨
+      31 ≤ c.vector.val) :
+    exceptioncontext_has_error_code c = ok false := by
+  rw [has_error_code_is_exactly_the_error_code_vectors]
+  congr 1
+  simp only [List.mem_cons, List.not_mem_nil, or_false, decide_eq_false_iff_not]
+  omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.BootTypesContext.the_exceptioncontext_instruction_pointer_wrapper_is_its_method
@@ -58,5 +257,18 @@ theorem the_exceptioncontext_has_error_code_wrapper_is_its_method (a : types_con
 #print axioms NonosExtraction.BootTypesContext.the_exceptioncontext_is_user_mode_wrapper_is_its_method
 #print axioms NonosExtraction.BootTypesContext.the_exceptioncontext_is_kernel_mode_wrapper_is_its_method
 #print axioms NonosExtraction.BootTypesContext.the_exceptioncontext_has_error_code_wrapper_is_its_method
+#print axioms NonosExtraction.BootTypesContext.instruction_pointer_is_the_saved_rip
+#print axioms NonosExtraction.BootTypesContext.stack_pointer_is_the_saved_rsp
+#print axioms NonosExtraction.BootTypesContext.code_segment_is_the_saved_cs
+#print axioms NonosExtraction.BootTypesContext.the_readers_ignore_the_stub_pushed_words
+#print axioms NonosExtraction.BootTypesContext.is_user_mode_reads_the_privilege_bits
+#print axioms NonosExtraction.BootTypesContext.is_kernel_mode_reads_the_privilege_bits
+#print axioms NonosExtraction.BootTypesContext.the_privilege_tests_read_the_reported_code_segment
+#print axioms NonosExtraction.BootTypesContext.no_context_is_both_user_and_kernel_mode
+#print axioms NonosExtraction.BootTypesContext.rings_one_and_two_are_neither_user_nor_kernel_mode
+#print axioms NonosExtraction.BootTypesContext.the_gdt_code_selectors_classify_as_their_rings
+#print axioms NonosExtraction.BootTypesContext.has_error_code_is_exactly_the_error_code_vectors
+#print axioms NonosExtraction.BootTypesContext.has_error_code_adds_vc_and_sx_to_the_idt_table
+#print axioms NonosExtraction.BootTypesContext.vectors_without_an_error_code_report_none
 
 end NonosExtraction.BootTypesContext

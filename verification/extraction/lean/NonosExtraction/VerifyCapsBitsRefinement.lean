@@ -21,6 +21,9 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.VerifyCapsBits
+import NonosExtraction.Bits
+import Nonos.SpawnCaps
+import Nonos.CapabilityBits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_verify_caps_bits
@@ -41,10 +44,143 @@ theorem the_grant_within_manifest_wrapper_is_its_method (a : Std.U64) (b : Std.U
 theorem the_install_caps_wrapper_is_its_method (a : Std.U64) (b : Std.U64) (c : Std.U64) :
     install_caps a b c = caps_bits.install_caps a b c := rfl
 
+/-! ### The spawn gate is the tier-one spawn model
+
+    `Nonos.SpawnCaps` states the spawn ceiling over capability sets: a capsule
+    installs no authority its publisher's certificate does not permit, whatever
+    the grant, and the grant check only narrows. The theorems below show the
+    three extracted functions compute exactly the model's two predicates and its
+    installed set, read through `capsOf`, for every 64-bit input, so the model's
+    theorems become theorems about this code. `the_ceiling_holds_on_the_code` is
+    the one that matters, carried over from `installed_within_ceiling`.
+
+    What they do not say: that the ceiling passed in is the one the publisher's
+    certificate carries, or that the installed word reaches the PCB unchanged.
+    The header of `caps_bits.rs` says nothing narrows it on the way, and that
+    path is not extracted.
+-/
+
+open Nonos.CapabilityBits (capsOf)
+
+private theorem word_eq_zero_iff (x : Std.U64) : x = 0#u64 ↔ ∀ i, x.val.testBit i = false := by
+  rw [← Bits.val_eq_zero_iff]
+  exact ⟨fun h => by rw [h]; rfl, fun h => UScalar.eq_of_val_eq (by rw [h]; rfl)⟩
+
+private theorem high_clear (x : Std.U64) (i : Nat) (hi : ¬ i < 64) : x.val.testBit i = false :=
+  Bits.testBit_val_high x i (by simp only [UScalarTy.numBits]; omega)
+
+/-- `within_ceiling` is the model's `withinCeiling`. -/
+theorem within_ceiling_is_the_model (r o c : Std.U64) :
+    ∃ b, within_ceiling r o c = ok b ∧
+      (b = true ↔ Nonos.SpawnCaps.withinCeiling (capsOf r.val) (capsOf o.val) (capsOf c.val)) := by
+  unfold within_ceiling caps_bits.within_ceiling
+  simp only [lift, bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  rw [decide_eq_true_iff, word_eq_zero_iff]
+  simp only [UScalar.val_and, UScalar.val_or, Nat.testBit_and, Nat.testBit_or, Bits.testBit_val_not]
+  unfold Nonos.SpawnCaps.withinCeiling Nonos.SpawnCaps.Within Nonos.SpawnCaps.union capsOf
+  constructor
+  · intro h i hi
+    have hi' := h i
+    by_cases hlt : i < 64
+    · cases hc : c.val.testBit i
+      · simp only [hc, hi, hlt, UScalarTy.numBits] at hi'
+        simp at hi'
+      · rfl
+    · rw [high_clear r i hlt, high_clear o i hlt] at hi
+      simp at hi
+  · intro h i
+    cases hro : (r.val.testBit i || o.val.testBit i)
+    · simp
+    · rw [h i hro]
+      simp
+
+/-- `grant_within_manifest` is the model's `grantWithinManifest`. -/
+theorem grant_within_manifest_is_the_model (r o g : Std.U64) :
+    ∃ b, grant_within_manifest r o g = ok b ∧
+      (b = true ↔ Nonos.SpawnCaps.grantWithinManifest (capsOf r.val) (capsOf o.val) (capsOf g.val)) := by
+  unfold grant_within_manifest caps_bits.grant_within_manifest
+  simp only [lift, bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  rw [decide_eq_true_iff, word_eq_zero_iff]
+  simp only [UScalar.val_and, UScalar.val_or, Nat.testBit_and, Nat.testBit_or, Bits.testBit_val_not]
+  unfold Nonos.SpawnCaps.grantWithinManifest Nonos.SpawnCaps.Within Nonos.SpawnCaps.union capsOf
+  constructor
+  · intro h i hi
+    have hi' := h i
+    by_cases hlt : i < 64
+    · cases hro : (r.val.testBit i || o.val.testBit i)
+      · simp only [hro, hi, hlt, UScalarTy.numBits] at hi'
+        simp at hi'
+      · rfl
+    · rw [high_clear g i hlt] at hi
+      simp at hi
+  · intro h i
+    cases hg : g.val.testBit i
+    · simp
+    · rw [h i hg]
+      simp
+
+/-- `install_caps` computes the model's installed set, bit for bit. -/
+theorem install_caps_is_the_model (r o g : Std.U64) :
+    ∃ w, install_caps r o g = ok w ∧
+      capsOf w.val = Nonos.SpawnCaps.installCaps (capsOf r.val) (capsOf o.val) (capsOf g.val) := by
+  unfold install_caps caps_bits.install_caps
+  simp only [lift, bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  funext i
+  unfold capsOf Nonos.SpawnCaps.installCaps Nonos.SpawnCaps.union Nonos.SpawnCaps.inter
+  simp only [UScalar.val_and, UScalar.val_or, Nat.testBit_and, Nat.testBit_or]
+
+/-- **The spawn ceiling, on the extracted code.** When the manifest passes the
+    ceiling check, the word installed is inside the certificate's ceiling, for
+    every grant, checked or not. A gate that returned `required | optional |
+    granted`, tested `& ceiling` instead of `& !ceiling`, or dropped the optional
+    set from the ceiling check would make this false. -/
+theorem the_ceiling_holds_on_the_code (r o g c : Std.U64)
+    (hc : within_ceiling r o c = ok true) :
+    ∃ w, install_caps r o g = ok w ∧ ∀ i, w.val.testBit i = true → c.val.testBit i = true := by
+  obtain ⟨b, hb, hiff⟩ := within_ceiling_is_the_model r o c
+  rw [hc] at hb
+  cases hb
+  obtain ⟨w, hw, hmodel⟩ := install_caps_is_the_model r o g
+  refine ⟨w, hw, fun i hi => ?_⟩
+  have hin := Nonos.SpawnCaps.installed_within_ceiling _ _ (capsOf g.val) _ (hiff.mp rfl) i
+  rw [← hmodel] at hin
+  exact hin hi
+
+/-- Passing both checks bounds the grant itself by the ceiling as well. -/
+theorem both_checks_bound_the_grant (r o g c : Std.U64)
+    (hc : within_ceiling r o c = ok true) (hg : grant_within_manifest r o g = ok true) :
+    ∀ i, g.val.testBit i = true → c.val.testBit i = true := by
+  obtain ⟨b, hb, hiff⟩ := within_ceiling_is_the_model r o c
+  obtain ⟨b', hb', hiff'⟩ := grant_within_manifest_is_the_model r o g
+  rw [hc] at hb
+  rw [hg] at hb'
+  cases hb
+  cases hb'
+  exact (Nonos.SpawnCaps.authority_only_narrows _ _ _ _ (hiff.mp rfl) (hiff'.mp rfl)).1
+
+/-- Required capabilities are installed whatever the grant, which is why the
+    grant is not the bound. -/
+theorem required_capabilities_ignore_the_grant (r o g : Std.U64) :
+    ∃ w, install_caps r o g = ok w ∧ ∀ i, r.val.testBit i = true → w.val.testBit i = true := by
+  obtain ⟨w, hw, hmodel⟩ := install_caps_is_the_model r o g
+  refine ⟨w, hw, fun i hi => ?_⟩
+  have := Nonos.SpawnCaps.required_always_installed (capsOf r.val) (capsOf o.val) (capsOf g.val) i hi
+  rw [← hmodel] at this
+  exact this
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.VerifyCapsBits.the_within_ceiling_wrapper_is_its_method
 #print axioms NonosExtraction.VerifyCapsBits.the_grant_within_manifest_wrapper_is_its_method
 #print axioms NonosExtraction.VerifyCapsBits.the_install_caps_wrapper_is_its_method
+#print axioms NonosExtraction.VerifyCapsBits.within_ceiling_is_the_model
+#print axioms NonosExtraction.VerifyCapsBits.grant_within_manifest_is_the_model
+#print axioms NonosExtraction.VerifyCapsBits.install_caps_is_the_model
+#print axioms NonosExtraction.VerifyCapsBits.the_ceiling_holds_on_the_code
+#print axioms NonosExtraction.VerifyCapsBits.both_checks_bound_the_grant
+#print axioms NonosExtraction.VerifyCapsBits.required_capabilities_ignore_the_grant
 
 end NonosExtraction.VerifyCapsBits

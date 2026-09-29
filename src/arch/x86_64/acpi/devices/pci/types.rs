@@ -28,7 +28,7 @@ pub struct PciDevice {
 
 impl PciDevice {
     pub fn bdf(&self) -> u16 {
-        ((self.bus as u16) << 8) | ((self.device as u16) << 3) | (self.function as u16)
+        ((self.bus as u16) << 8) | ((self.device as u16 & 0x1F) << 3) | (self.function as u16 & 0x7)
     }
 
     pub fn is_bridge(&self) -> bool {

@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.ConstantsHelpers
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_constants_helpers
@@ -41,10 +42,225 @@ theorem the_align_down_wrapper_is_its_method (a : Std.U64) (b : Std.U64) :
 theorem the_align_size_wrapper_is_its_method (a : Std.Usize) (b : Std.Usize) :
     align_size a b = helpers.align_size a b := rfl
 
+/-! ### Rounding in the region allocator's helpers
+
+    These three are the plain-arithmetic copies in `memory/region/constants`,
+    used by `RegionManager::allocate_region`. For a power-of-two alignment
+    `2^k` they round the way their names say, and the theorems below give the
+    exact value. Unlike the boot allocator's `align_up`, which was changed to
+    `checked_add`, these add with overflow checks on, so near the top of the
+    word they abort rather than wrap or saturate: `align_up` refuses whenever
+    `value + align` passes the maximum, which includes the last aligned value
+    below the top, whose rounded result would fit. `the_top_aligned_value_aborts`
+    is that case at a witness. The region allocator has no caller outside its
+    own module today, so this is behaviour to know rather than a reachable halt.
+    An alignment of zero underflows `align - 1` and aborts as well.
+
+    What these do not cover: alignments that are not powers of two, for which
+    the mask arithmetic rounds to nothing in particular. No caller passes one.
+-/
+
+private theorem sub_one_of_pow {ty : UScalarTy} (a : UScalar ty) (k : Nat) (ha : a.val = 2 ^ k)
+    (one : UScalar ty) (h1 : one.val = 1) :
+    ∃ d, a - one = ok d ∧ d.val = 2 ^ k - 1 := by
+  have hs := UScalar.sub_equiv a one
+  cases hsub : a - one with
+  | ok d =>
+    rw [hsub] at hs
+    obtain ⟨-, hd, -⟩ := hs
+    exact ⟨d, rfl, by omega⟩
+  | fail e =>
+    rw [hsub] at hs
+    have := Nat.two_pow_pos k
+    simp only at hs
+    omega
+  | div =>
+    rw [hsub] at hs
+    exact hs.elim
+
+/-- `align_down` rounds down to a multiple of the alignment. -/
+theorem align_down_rounds_down (v a : Std.U64) (k : Nat) (ha : a.val = 2 ^ k) :
+    ∃ w, align_down v a = ok w ∧ w.val = v.val / 2 ^ k * 2 ^ k := by
+  unfold align_down helpers.align_down
+  obtain ⟨d, hd, hdv⟩ := sub_one_of_pow a k ha 1#u64 rfl
+  rw [hd]
+  simp only [bind_tc_ok, lift]
+  exact ⟨_, rfl, Bits.land_not_low_mask v d k hdv⟩
+
+/-- So the result is the largest multiple of the alignment at or below the
+    value. -/
+theorem align_down_is_the_largest_multiple_below (v a w : Std.U64) (k : Nat)
+    (ha : a.val = 2 ^ k) (h : align_down v a = ok w) :
+    w.val ≤ v.val ∧ w.val % a.val = 0 ∧ v.val < w.val + a.val := by
+  obtain ⟨w', hw', hval⟩ := align_down_rounds_down v a k ha
+  rw [hw'] at h
+  cases h
+  rw [hval, ha]
+  refine ⟨Nat.div_mul_le_self _ _, Nat.mul_mod_left _ _, ?_⟩
+  have := Nat.lt_div_mul_add (a := v.val) (Nat.two_pow_pos k)
+  omega
+
+/-- `align_up` rounds up exactly when `value + align` fits the word. -/
+theorem align_up_rounds_up (v a : Std.U64) (k : Nat) (ha : a.val = 2 ^ k)
+    (hfit : v.val + a.val ≤ U64.max) :
+    ∃ w, align_up v a = ok w ∧ w.val = (v.val + 2 ^ k - 1) / 2 ^ k * 2 ^ k := by
+  unfold align_up helpers.align_up
+  have hadd := UScalar.add_equiv v a
+  cases hs : v + a with
+  | ok s =>
+    rw [hs] at hadd
+    obtain ⟨-, hsv, -⟩ := hadd
+    rw [bind_tc_ok]
+    have hs1 := UScalar.sub_equiv s 1#u64
+    cases hm : s - 1#u64 with
+    | ok t =>
+      rw [hm] at hs1
+      obtain ⟨-, htv, -⟩ := hs1
+      rw [bind_tc_ok]
+      obtain ⟨d, hd, hdv⟩ := sub_one_of_pow a k ha 1#u64 rfl
+      rw [hd]
+      simp only [bind_tc_ok, lift]
+      refine ⟨_, rfl, ?_⟩
+      rw [Bits.land_not_low_mask t d k hdv]
+      have : t.val = v.val + 2 ^ k - 1 := by
+        have h1 : (1#u64 : Std.U64).val = 1 := rfl
+        omega
+      rw [this]
+    | fail e =>
+      rw [hm] at hs1
+      have := Nat.two_pow_pos k
+      simp only at hs1
+      have h1 : (1#u64 : Std.U64).val = 1 := rfl
+      omega
+    | div =>
+      rw [hm] at hs1
+      exact hs1.elim
+  | fail e =>
+    rw [hs] at hadd
+    simp only [UScalar.inBounds] at hadd
+    have : U64.max = 2 ^ 64 - 1 := by scalar_tac
+    simp only [UScalarTy.numBits] at hadd
+    omega
+  | div =>
+    rw [hs] at hadd
+    exact hadd.elim
+
+/-- The rounded value is the least multiple of the alignment at or above the
+    value. -/
+theorem align_up_is_the_least_multiple_above (v a w : Std.U64) (k : Nat)
+    (ha : a.val = 2 ^ k) (hfit : v.val + a.val ≤ U64.max) (h : align_up v a = ok w) :
+    v.val ≤ w.val ∧ w.val % a.val = 0 ∧ w.val < v.val + a.val := by
+  obtain ⟨w', hw', hval⟩ := align_up_rounds_up v a k ha hfit
+  rw [hw'] at h
+  cases h
+  rw [hval, ha]
+  have hp := Nat.two_pow_pos k
+  refine ⟨?_, Nat.mul_mod_left _ _, ?_⟩
+  · have := Nat.lt_div_mul_add (a := v.val + 2 ^ k - 1) hp
+    omega
+  · have := Nat.div_mul_le_self (v.val + 2 ^ k - 1) (2 ^ k)
+    omega
+
+/-- Past the top it aborts: overflow-checked `value + align` fails. -/
+theorem align_up_aborts_past_the_top (v a : Std.U64) (hover : U64.max < v.val + a.val) :
+    ∃ e, align_up v a = fail e := by
+  unfold align_up helpers.align_up
+  have hadd := UScalar.add_equiv v a
+  cases hs : v + a with
+  | ok s =>
+    rw [hs] at hadd
+    have : U64.max = 2 ^ 64 - 1 := by scalar_tac
+    simp only [UScalarTy.numBits] at hadd
+    omega
+  | fail e => exact ⟨e, rfl⟩
+  | div =>
+    rw [hs] at hadd
+    exact hadd.elim
+
+/-- The last page-aligned address, already aligned, still aborts, because the
+    addition comes before the subtraction. -/
+theorem the_top_aligned_value_aborts :
+    ∃ e, align_up 0xFFFFFFFFFFFFF000#u64 0x1000#u64 = fail e :=
+  align_up_aborts_past_the_top _ _ (by scalar_tac)
+
+/-- An alignment of zero aborts on `align - 1`. -/
+theorem a_zero_alignment_aborts (v : Std.U64) : ∃ e, align_down v 0#u64 = fail e := by
+  unfold align_down helpers.align_down
+  exact ⟨_, rfl⟩
+
+/-- `align_size` is the same rounding on `usize`, with the same refusal. -/
+theorem align_size_rounds_up (s a : Std.Usize) (k : Nat) (ha : a.val = 2 ^ k)
+    (hfit : s.val + a.val ≤ Usize.max) :
+    ∃ w, align_size s a = ok w ∧ w.val = (s.val + 2 ^ k - 1) / 2 ^ k * 2 ^ k := by
+  unfold align_size helpers.align_size
+  have hadd := UScalar.add_equiv s a
+  cases hs : s + a with
+  | ok x =>
+    rw [hs] at hadd
+    obtain ⟨-, hxv, -⟩ := hadd
+    rw [bind_tc_ok]
+    have hs1 := UScalar.sub_equiv x 1#usize
+    cases hm : x - 1#usize with
+    | ok t =>
+      rw [hm] at hs1
+      obtain ⟨-, htv, -⟩ := hs1
+      rw [bind_tc_ok]
+      obtain ⟨d, hd, hdv⟩ := sub_one_of_pow a k ha 1#usize rfl
+      rw [hd]
+      simp only [bind_tc_ok, lift]
+      refine ⟨_, rfl, ?_⟩
+      rw [Bits.land_not_low_mask t d k hdv]
+      have : t.val = s.val + 2 ^ k - 1 := by
+        have h1 : (1#usize : Std.Usize).val = 1 := rfl
+        omega
+      rw [this]
+    | fail e =>
+      rw [hm] at hs1
+      have := Nat.two_pow_pos k
+      simp only at hs1
+      have h1 : (1#usize : Std.Usize).val = 1 := rfl
+      omega
+    | div =>
+      rw [hm] at hs1
+      exact hs1.elim
+  | fail e =>
+    rw [hs] at hadd
+    simp only [UScalar.inBounds] at hadd
+    have := Usize.max_succ_eq_pow
+    simp only [UScalarTy.numBits] at hadd
+    omega
+  | div =>
+    rw [hs] at hadd
+    exact hadd.elim
+
+theorem align_size_aborts_past_the_top (s a : Std.Usize) (hover : Usize.max < s.val + a.val) :
+    ∃ e, align_size s a = fail e := by
+  unfold align_size helpers.align_size
+  have hadd := UScalar.add_equiv s a
+  cases hs : s + a with
+  | ok x =>
+    rw [hs] at hadd
+    have := Usize.max_succ_eq_pow
+    simp only [UScalarTy.numBits] at hadd
+    omega
+  | fail e => exact ⟨e, rfl⟩
+  | div =>
+    rw [hs] at hadd
+    exact hadd.elim
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ConstantsHelpers.the_align_up_wrapper_is_its_method
 #print axioms NonosExtraction.ConstantsHelpers.the_align_down_wrapper_is_its_method
 #print axioms NonosExtraction.ConstantsHelpers.the_align_size_wrapper_is_its_method
+#print axioms NonosExtraction.ConstantsHelpers.align_down_rounds_down
+#print axioms NonosExtraction.ConstantsHelpers.align_down_is_the_largest_multiple_below
+#print axioms NonosExtraction.ConstantsHelpers.align_up_rounds_up
+#print axioms NonosExtraction.ConstantsHelpers.align_up_is_the_least_multiple_above
+#print axioms NonosExtraction.ConstantsHelpers.align_up_aborts_past_the_top
+#print axioms NonosExtraction.ConstantsHelpers.the_top_aligned_value_aborts
+#print axioms NonosExtraction.ConstantsHelpers.a_zero_alignment_aborts
+#print axioms NonosExtraction.ConstantsHelpers.align_size_rounds_up
+#print axioms NonosExtraction.ConstantsHelpers.align_size_aborts_past_the_top
 
 end NonosExtraction.ConstantsHelpers
