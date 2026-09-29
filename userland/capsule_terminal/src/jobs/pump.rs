@@ -42,8 +42,8 @@ pub fn pump(state: &mut State) -> bool {
 }
 
 fn step_job(state: &mut State, id: u32) {
-    let cancel = match state.jobs.get(id) {
-        Some(job) => job.cancel,
+    let (cancel, held) = match state.jobs.get(id) {
+        Some(job) => (job.cancel, state.fg_running),
         None => return,
     };
     if !cancel && matches!(state.jobs.get(id).map(|j| &j.work), Some(JobWork::PipelineStages(_))) {
@@ -51,7 +51,7 @@ fn step_job(state: &mut State, id: u32) {
     }
     if let Some(job) = state.jobs.get_mut(id) {
         let mut out = Output::new(&mut state.scrollback);
-        if let JobProgress::Done(status) = step(job, &mut out) {
+        if let JobProgress::Done(status) = step(job, &mut out, held) {
             job.status = status;
             job.state = JobState::Done;
         }

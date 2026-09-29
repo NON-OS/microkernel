@@ -42,7 +42,7 @@ pub enum JobWork {
 // Step a job's work by one bounded slice. A cancelled job is finished
 // unconditionally, regardless of variant: the terminal reports it as
 // interrupted rather than letting the underlying poll run to completion.
-pub fn step(job: &mut JobRecord, out: &mut Output<'_>) -> JobProgress {
+pub fn step(job: &mut JobRecord, out: &mut Output<'_>, held: bool) -> JobProgress {
     if job.cancel {
         out.writeln(b"interrupted");
         return JobProgress::Done(130);
@@ -58,7 +58,7 @@ pub fn step(job: &mut JobRecord, out: &mut Output<'_>) -> JobProgress {
         },
         JobWork::InstallDrain(job) => job.step_once(out),
         JobWork::ExternalStage { pid, in_buf, in_cursor } => {
-            super::external::step_external(*pid, in_buf, in_cursor, out, job.background)
+            super::external::step_external(*pid, in_buf, in_cursor, out, job.background && held)
         }
         JobWork::PipelineStages(_) => JobProgress::Running,
     }

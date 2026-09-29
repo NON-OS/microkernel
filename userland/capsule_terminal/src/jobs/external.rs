@@ -28,7 +28,7 @@ pub fn step_external(
     in_buf: &mut Vec<u8>,
     in_cursor: &mut usize,
     out: &mut Output<'_>,
-    background: bool,
+    leave_modes: bool,
 ) -> JobProgress {
     feed_stdin(pid, in_buf, in_cursor);
     let mut buf = [0u8; 256];
@@ -52,9 +52,9 @@ pub fn step_external(
         return JobProgress::Running;
     }
     drain_remaining(pid, out, &mut buf);
-    /* The screen's modes are the foreground program's; one in the background
-     * ending leaves them to whatever holds the screen. */
-    if !background {
+    /* A background job ending while a foreground one holds the screen leaves
+     * its modes to that one; otherwise the screen is reset as ever. */
+    if !leave_modes {
         out.program_ended();
     }
     JobProgress::Done(status as i32)
