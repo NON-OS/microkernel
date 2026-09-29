@@ -30,6 +30,7 @@ pub mod rx_seq;
 pub mod rx_token;
 pub mod transmit;
 pub mod tx;
+pub mod tx_hold;
 pub mod tx_seq;
 pub mod tx_token;
 pub mod types;
