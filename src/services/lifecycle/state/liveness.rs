@@ -40,6 +40,12 @@ impl CapsuleState {
         }
         match get_process(pid) {
             Some(pcb) => {
+                /*
+                 * Interrupts off while the state lock is held: init calls
+                 * this with them open, and a tick landing here would spin in
+                 * its sleep sweep on this same lock.
+                 */
+                let _irq = crate::interrupts::disable_interrupts_guard();
                 let alive = matches!(
                     *pcb.state.lock(),
                     ProcessState::New

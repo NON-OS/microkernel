@@ -65,9 +65,10 @@ pub fn on_vector(vector: u8) {
         slot.overflow.fetch_add(1, Ordering::AcqRel);
     }
 
+    /* Try only: code this ISR interrupted may hold the waiter's state. */
     let waiter = slot.waiter.swap(0, Ordering::AcqRel);
-    if waiter != 0 {
-        crate::sched::wake_process(waiter);
+    if waiter != 0 && !crate::process::scheduler::dispatch::try_wake::try_wake_process(waiter) {
+        let _ = slot.waiter.compare_exchange(0, waiter, Ordering::AcqRel, Ordering::Relaxed);
     }
 
     crate::interrupts::apic::send_eoi();

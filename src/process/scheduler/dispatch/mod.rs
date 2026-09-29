@@ -24,6 +24,7 @@ mod run_queue;
 mod sleep;
 mod sleep_table;
 mod sweep;
+pub mod try_wake;
 mod wake;
 mod wake_gen;
 mod wakeup;
