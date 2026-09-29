@@ -37,6 +37,7 @@ where a polarity error shows.
 -/
 
 import NonosExtraction.Paging
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_paging
@@ -288,6 +289,39 @@ theorem a_table_entry_is_present :
     (do let e ← aarch64_table 0x2000#u64 false; aPresent e) = ok true := by
   refine ⟨?_, ?_⟩ <;> emit
 
+/-! ### Block entries -/
+
+/-- An x86_64 descriptor is a huge page exactly when it is present and bit 7 is
+    set. A clear present bit makes it no block whatever bit 7 holds. -/
+theorem x86_is_block_is_present_and_huge (e : Std.U64) :
+    arch.paging.descriptor.x86_64.is_block e =
+      ok (e.val.testBit 0 && e.val.testBit 7) := by
+  have hp : (1#u64 <<< 0#i32 : Result Std.U64) = ok 1#u64 := by rfl
+  have hh : (1#u64 <<< 7#i32 : Result Std.U64) = ok 128#u64 := by rfl
+  unfold arch.paging.descriptor.x86_64.is_block arch.paging.descriptor.x86_64.is_present
+    arch.paging.descriptor.flags.PRESENT arch.paging.descriptor.flags.HUGE
+  simp only [hp, hh, lift, bind_tc_ok, Bits.reads_bit e 1#u64 0#u64 0 rfl rfl,
+    Bits.reads_bit e 128#u64 0#u64 7 rfl rfl]
+  cases e.val.testBit 0 <;> rfl
+
+/-- An aarch64 descriptor is a block exactly when it is valid and bit 1, which
+    marks a table or a page, is clear. -/
+theorem aarch64_is_block_is_valid_and_not_table (e : Std.U64) :
+    arch.paging.descriptor.aarch64.read.is_block e =
+      ok (e.val.testBit 0 && !e.val.testBit 1) := by
+  have hv : (1#u64 <<< 0#i32 : Result Std.U64) = ok 1#u64 := by rfl
+  have ht : (1#u64 <<< 1#i32 : Result Std.U64) = ok 2#u64 := by rfl
+  unfold arch.paging.descriptor.aarch64.read.is_block
+    arch.paging.descriptor.aarch64.bits.VALID arch.paging.descriptor.aarch64.bits.TABLE_OR_PAGE
+  have hd : decide (e &&& 2#u64 = 0#u64) = !e.val.testBit 1 := by
+    rw [← Bits.reads_bit e 2#u64 0#u64 1 rfl rfl]
+    by_cases h : e &&& 2#u64 = 0#u64 <;> simp [h]
+  simp only [hv, ht, lift, bind_tc_ok, Bits.reads_bit e 1#u64 0#u64 0 rfl rfl]
+  cases e.val.testBit 0
+  · rfl
+  · simp only [↓reduceIte, Bool.true_and]
+    rw [← hd]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.absence_is_absence
@@ -305,5 +339,7 @@ theorem a_table_entry_is_present :
 #print axioms NonosExtraction.the_aarch64_table_ignores_the_request
 #print axioms NonosExtraction.the_backends_disagree_on_tables
 #print axioms NonosExtraction.a_table_entry_is_present
+#print axioms NonosExtraction.x86_is_block_is_present_and_huge
+#print axioms NonosExtraction.aarch64_is_block_is_valid_and_not_table
 
 end NonosExtraction

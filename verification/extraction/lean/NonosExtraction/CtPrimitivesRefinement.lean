@@ -36,14 +36,12 @@ with masks rather than branches. `the_lookup_scans_a_fixed_range` says the first
 of those about the extracted definition. It does not say the compiler kept it, and
 nothing here does.
 
-Two things are absent and should not be read as unproven-because-false.
-`ct_clz_u64` is a chain of six nested selects over `ct_is_zero_u64`, and
-`ct_select_usize` goes through a cast the kernel will not reduce past here;
-neither closes by reduction or by `simp` in this encoding. Both were checked by
-sampling against the reference operation, `ct_clz_u64` on twenty thousand random
-words and every boundary, with no disagreement. That is a differential check of
-the kind `kernel_proofs` carries, not a proof, and it is recorded as such rather
-than dressed up.
+Two functions do not close here. `ct_clz_u64` is a chain of six nested selects
+over `ct_is_zero_u64`, and `ct_select_usize` goes through a cast the kernel will
+not reduce past; neither closes by reduction or by `simp` in this encoding.
+`CtSelectClzRefinement` proves both for every input: the selectors for every
+pair of operands, and the leading-zero count given the Rust meaning of
+`wrapping_neg`, which the extraction leaves opaque.
 -/
 
 import NonosExtraction.Ct
