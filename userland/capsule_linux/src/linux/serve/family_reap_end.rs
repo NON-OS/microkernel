@@ -51,6 +51,9 @@ impl Family {
                 s => alloc::format!("[LINUX] process {shown} ended by signal {s}\n"),
             };
             let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+            if code != 0 && signo == 0 {
+                super::recent::say();
+            }
             if gone.pid == self.root {
                 self.root_code = if signo == 0 { code } else { 128 + signo };
             }

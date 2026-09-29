@@ -45,7 +45,7 @@ pub fn memfd(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
 
 pub fn anonymous(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     if !req.make_room(guest, at, span) {
-        return errno::fail(errno::ENOMEM);
+        return refused(b"no room", span);
     }
     /*
      * A PROT_NONE anonymous mapping is a reservation: the runtime that makes it
@@ -59,7 +59,15 @@ pub fn anonymous(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
         guest.map(at, span, req.prot & PROT_WRITE != 0, req.prot & PROT_EXEC != 0)
     };
     if backed < 0 {
-        return errno::fail(errno::ENOMEM);
+        return refused(b"no memory to back it", span);
     }
     errno::ok(at)
+}
+
+/* ENOMEM, said with the size it was for: a load that fails names why. */
+fn refused(why: &[u8], span: u64) -> u64 {
+    let why = core::str::from_utf8(why).unwrap_or("?");
+    let line = alloc::format!("[LINUX] mapping of {span} bytes refused: {why}\n");
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    errno::fail(errno::ENOMEM)
 }
