@@ -17,6 +17,7 @@
 use super::ioapic::IoApicInfo;
 use super::memory_desc::MemoryDescriptor;
 use super::percpu::PercpuRegion;
+use super::port_snapshot::PortStatsSnapshot;
 use super::stats_snapshot::MmioStatsSnapshot;
 
 const TOP_PAGE: u64 = 0xFFFF_FFFF_FFFF_F000;
@@ -56,4 +57,21 @@ fn counts_from_firmware_and_counters_saturate() {
     stats.read_operations = u64::MAX;
     stats.write_operations = 1;
     assert_eq!(stats.total_operations(), u64::MAX);
+}
+
+#[test]
+fn port_statistics_totals_saturate() {
+    let bytes = PortStatsSnapshot { bytes_read: u64::MAX, bytes_written: 1, ..Default::default() };
+    assert_eq!(bytes.total_bytes(), u64::MAX);
+    let ops = PortStatsSnapshot { read_ops: u64::MAX, string_write_ops: 1, ..Default::default() };
+    assert_eq!(ops.total_ops(), u64::MAX);
+    let small = PortStatsSnapshot {
+        read_ops: 1,
+        write_ops: 2,
+        string_read_ops: 3,
+        string_write_ops: 4,
+        io_delays: 100,
+        ..Default::default()
+    };
+    assert_eq!(small.total_ops(), 10);
 }
