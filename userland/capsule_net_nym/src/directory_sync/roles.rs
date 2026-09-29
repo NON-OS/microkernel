@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 
 use super::api::{node_objects, parse_node};
 use super::https::fetch_tls;
-use super::live::API_HOST;
+use super::live::{API_ADDRESSES, API_HOST};
 use crate::topology::{self, Node, Role};
 
 /// Refuse a list that cannot make a route: three mix layers, and something to
@@ -33,7 +33,7 @@ const MIN_PER_LAYER: usize = 1;
 const MAX_LIST: usize = 512 * 1024;
 
 pub(super) fn fetch_role(tcp_port: u32, path: &str, role: Role) -> Result<Vec<Node>, u16> {
-    let body = fetch_tls(tcp_port, API_HOST, path, MAX_LIST)?;
+    let body = fetch_tls(tcp_port, API_HOST, API_ADDRESSES, path, MAX_LIST)?;
     let found = node_objects(&body, topology::NODE_CAP);
     let nodes: Vec<Node> = found.iter().filter_map(|o| parse_node(o, role)).collect();
     if nodes.is_empty() {

@@ -22,6 +22,12 @@ use crate::topology::{Node, Role};
 /// The endpoint the node list is asked for. One name, rather than a frozen
 /// copy of what it answered when the image was built.
 pub(super) const API_HOST: &str = "validator.nymtech.net";
+/// Where `API_HOST` is reached, pinned so the directory fetch never asks
+/// clearnet DNS and so never names the Nym API to the local resolver.
+/// Every A record `validator.nymtech.net` answered on 2026-09-27. The name,
+/// not these addresses, is what TLS authenticates: a stale entry fails
+/// closed at the handshake rather than trusting whatever host now holds it.
+pub(super) const API_ADDRESSES: &[[u8; 4]] = &[[92, 39, 63, 14]];
 /// The skimmed active views. Nym folded mixnodes and gateways into one node
 /// type, so the older split paths answer 404. Skimmed rather than described
 /// because it carries exactly what a route needs, the address, the mix port

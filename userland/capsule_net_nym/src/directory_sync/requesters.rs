@@ -33,6 +33,7 @@ use spin::Mutex;
 use super::described::parse_described;
 use super::exit_address::ExitAddress;
 use super::https::fetch_tls;
+use super::live::{API_ADDRESSES, API_HOST};
 
 /// The validator's node self-descriptions, every node in one answer.
 const DESCRIBED_PATH: &str = "/api/v1/nym-nodes/described";
@@ -46,7 +47,7 @@ static REQUESTERS: Mutex<Vec<ExitAddress>> = Mutex::new(Vec::new());
 /// Returns how many were kept; the cache is replaced only by a non-empty
 /// answer, so a bad fetch never empties a working list.
 pub fn refresh(tcp_port: u32, is_exit: impl Fn(&[u8; 32]) -> bool) -> Result<usize, u16> {
-    let body = fetch_tls(tcp_port, super::live::API_HOST, DESCRIBED_PATH, MAX_DESCRIBED)?;
+    let body = fetch_tls(tcp_port, API_HOST, API_ADDRESSES, DESCRIBED_PATH, MAX_DESCRIBED)?;
     let found = parse_described(&body, is_exit);
     if found.is_empty() {
         return Err(13);

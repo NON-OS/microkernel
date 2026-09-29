@@ -14,57 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::format;
 use alloc::vec::Vec;
-use nonos_tls::{exchange, rtc_now};
 
-use super::http::parse;
-use super::resolve::resolve;
-use super::tls_io::TcpIo;
-use crate::tcp_client;
+use super::fetch_at::fetch_at;
+use super::lease::wait_for_lease;
 
-const HTTPS_PORT: u16 = 443;
-
-/// Fetch `path` from `host` over TLS and return the response body.
+/// Fetch `path` from `host` over TLS and return the response body, trying
+/// each of `addresses` in order until one answers.
 ///
-/// The certificate chain is checked before the request is written, so a name
-/// that does not verify never sees what was being asked for. Nothing about
-/// this fetch is anonymous: it happens before there is a mixnet to be
-/// anonymous over.
-/// `max` bounds what the far end can make the capsule allocate for one answer.
-pub fn fetch_tls(tcp_port: u32, host: &str, path: &str, max: usize) -> Result<Vec<u8>, u16> {
-    crate::trace::say(b"fetch: resolving");
-    let ip = resolve(host.as_bytes()).ok_or(21u16)?;
-    crate::trace::say(b"fetch: connecting");
-    let stream = tcp_client::connect(tcp_port, ip, HTTPS_PORT)?;
-    tcp_client::wait_established(tcp_port, stream)?;
-    crate::trace::say(b"fetch: handshaking");
-
-    let request = format!(
-        "GET {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: nonos-nym\r\nAccept: application/json\r\nConnection: close\r\n\r\n",
-        path, host
-    );
-    let mut io = TcpIo::new(tcp_port, stream);
-    /*
-     * The clock the chain is judged against, as YYYYMMDDhhmmss. Zero means the
-     * wall clock was never set and every certificate reads as expired, which
-     * is indistinguishable at the error code from a genuinely bad chain;
-     * logging the value tells the two apart without a second boot.
-     */
-    let now = rtc_now();
-    crate::trace::say_num(b"fetch: now", now);
-    let raw = exchange(&mut io, host, request.as_bytes(), now, max);
-    let stage = super::https_stage::stage(&raw);
-    crate::trace::say_two(b"fetch: ok-len-or-err", stage, io.overran() as u64);
-    let _ = tcp_client::close(tcp_port, stream);
-    let body = raw.map_err(|_| if io.overran() { 22u16 } else { 20u16 })?;
-    /*
-     * A short answer is a redirect or an error page, not a node list, and
-     * parsing it would find no objects and report an empty directory rather
-     * than a wrong address.
-     */
-    if !super::https_stage::status_ok(&body) {
-        return Err(20);
+/// The addresses only say where to connect. The certificate chain is still
+/// checked against `host`, and before the request is written, so an address
+/// that no longer belongs to `host` fails the handshake and never sees what
+/// was being asked for. No name is resolved here, so no DNS query leaves the
+/// machine. Nothing about this fetch is anonymous: it happens before there is
+/// a mixnet to be anonymous over. `max` bounds what the far end can make the
+/// capsule allocate for one answer.
+pub fn fetch_tls(
+    tcp_port: u32,
+    host: &str,
+    addresses: &[[u8; 4]],
+    path: &str,
+    max: usize,
+) -> Result<Vec<u8>, u16> {
+    wait_for_lease()?;
+    let mut last = 21u16;
+    for ip in addresses {
+        match fetch_at(tcp_port, *ip, host, path, max) {
+            Ok(body) => return Ok(body),
+            Err(code) => last = code,
+        }
     }
-    parse::body(&body)
+    Err(last)
 }
