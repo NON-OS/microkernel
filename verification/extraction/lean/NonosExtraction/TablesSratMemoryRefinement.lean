@@ -58,9 +58,9 @@ theorem the_sratmemoryaffinity_contains_address_wrapper_is_its_method (a : srat_
     readers read exactly those bits and nothing else, so a reserved bit set by
     firmware changes none of them.
 
-    `end_address` is a saturating sum. `contains_address` measures the address
-    from the base and compares that offset with the length, so for every region
-    it is membership in the tier-one interval `Nonos.Interval.mem` over
+    `end_address` is a saturating sum. `contains_address` compares with it and,
+    where that fails, measures the address from the base and compares the offset
+    with the length, so for every region it is membership in the tier-one interval `Nonos.Interval.mem` over
     `[base, base + length)`, with no clamp at the top. It used to compare with the
     saturated end, which pinned a region whose true end is `2^64` at
     `2^64 - 1` and left the last address it covers outside it; the last theorem
@@ -137,15 +137,29 @@ theorem sratmemoryaffinity_contains_address_exactly (a : srat_memory.SratMemoryA
     sratmemoryaffinity_contains_address a addr =
       ok (decide (a.base_address.val ≤ addr.val ∧
         addr.val < a.base_address.val + a.length_bytes.val)) := by
+  obtain ⟨e, he, hv⟩ := sratmemoryaffinity_end_address_is_the_saturated_sum a
+  unfold sratmemoryaffinity_end_address at he
   unfold sratmemoryaffinity_contains_address srat_memory.SratMemoryAffinity.contains_address
+  have hbb := a.base_address.hBounds
+  have hab := addr.hBounds
+  simp only [UScalarTy.U64_numBits_eq] at hbb hab
   by_cases hb : a.base_address.val ≤ addr.val
   · have : addr >= a.base_address := hb
-    obtain ⟨z, hz, hv⟩ := sub_ok addr a.base_address hb
-    simp only [this, ite_true, hz, bind_tc_ok, hb, true_and]
-    congr 1
-    simp only [decide_eq_decide]
-    show z.val < a.length_bytes.val ↔ _
-    omega
+    simp only [this, ite_true, he, bind_tc_ok]
+    by_cases hlt : addr.val < e.val
+    · have : addr < e := hlt
+      simp only [this, ite_true]
+      congr 1
+      simp only [hb, true_and]
+      rw [eq_comm, decide_eq_true_eq]
+      omega
+    · have : ¬ addr < e := hlt
+      obtain ⟨z, hz, hzv⟩ := sub_ok addr a.base_address hb
+      simp only [this, ite_false, hz, bind_tc_ok]
+      congr 1
+      simp only [decide_eq_decide, hb, true_and]
+      show z.val < a.length_bytes.val ↔ _
+      omega
   · have : ¬ (addr >= a.base_address) := hb
     simp only [this, ite_false, hb, false_and, decide_false]
 
