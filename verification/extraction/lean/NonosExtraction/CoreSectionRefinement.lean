@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.CoreSection
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_core_section
@@ -44,11 +45,140 @@ theorem the_parsedsection_is_strtab_wrapper_is_its_method (a : section.ParsedSec
 theorem the_parsedsection_is_rela_wrapper_is_its_method (a : section.ParsedSection) :
     parsedsection_is_rela a = section.ParsedSection.is_rela a := rfl
 
+/-! ### Each classifier answers exactly the gABI question it names
+
+The loader's `ParsedSection` answers four questions about a section header, and
+the theorems here pin each answer to the ELF gABI value the kernel names in
+`elf::types::constants`: `SHF_ALLOC = 1 << 1` in `shdr_flags`, and
+`SHT_SYMTAB = 2`, `SHT_STRTAB = 3`, `SHT_RELA = 4`, `SHT_REL = 9` and
+`SHT_DYNSYM = 11` in `shdr_type`. `is_alloc` reads bit 1 of the flags word and
+no other bit, so a section that is only writable or only executable is not
+allocated. The three type classifiers read the type word alone, and hit exactly
+their values: no two of them hold for one section, `SHT_REL` (whose entries have
+no addend) is never taken for `SHT_RELA`, and `is_symtab` holds for a dynamic
+symbol table as well as for the full one.
+
+That last fact is a property of the code as written, not of the gABI, and it is
+recorded as such: `ElfLoader::get_symbol_table` returns the first section for
+which `is_symtab` holds, so on an image that places `.dynsym` before `.symtab` it
+returns `.dynsym`. The loader methods that iterate over sections are not
+extracted, so the theorems below cannot state what `get_symbol_table` returns;
+they state only the predicate it filters by. The kernel literals are restated
+here as numerals because the constants module is not extracted.
+-/
+
+/-- The allocation test is bit 1 of the flags word (gABI `SHF_ALLOC`) and nothing
+    else: neither `SHF_WRITE` (bit 0), nor `SHF_EXECINSTR` (bit 2), nor any higher
+    flag bit changes the answer. -/
+theorem parsedsection_is_alloc_reads_exactly_the_shf_alloc_bit (s : section.ParsedSection) :
+    parsedsection_is_alloc s = ok (s.flags.val.testBit 1) := by
+  unfold parsedsection_is_alloc section.ParsedSection.is_alloc
+  simp only [lift, bind_tc_ok]
+  rw [Bits.reads_bit s.flags 2#u64 0#u64 1 (by rfl) (by rfl)]
+
+/-- A section flagged writable and executable but not `SHF_ALLOC` (flags `0x5`)
+    is not allocated, and the bare `SHF_ALLOC` word `0x2` is. -/
+theorem parsedsection_is_alloc_refuses_write_exec_and_accepts_alloc
+    (s : section.ParsedSection) :
+    parsedsection_is_alloc { s with flags := 5#u64 } = ok false ∧
+    parsedsection_is_alloc { s with flags := 2#u64 } = ok true := by
+  rw [parsedsection_is_alloc_reads_exactly_the_shf_alloc_bit,
+    parsedsection_is_alloc_reads_exactly_the_shf_alloc_bit]
+  have h5 : ((5 : Nat).testBit 1) = false := by decide
+  have h2 : ((2 : Nat).testBit 1) = true := by decide
+  exact ⟨congrArg ok h5, congrArg ok h2⟩
+
+/-- A section counts as a symbol table exactly when its type is `SHT_SYMTAB` (2)
+    or `SHT_DYNSYM` (11). -/
+theorem parsedsection_is_symtab_holds_exactly_for_types_two_and_eleven
+    (s : section.ParsedSection) :
+    parsedsection_is_symtab s = ok true ↔
+      (s.section_type.val = 2 ∨ s.section_type.val = 11) := by
+  unfold parsedsection_is_symtab section.ParsedSection.is_symtab
+  have h2 : s.section_type = 2#u32 ↔ s.section_type.val = 2 :=
+    ⟨fun h => by rw [h]; rfl, fun h => UScalar.eq_of_val_eq (by rw [h]; rfl)⟩
+  have h11 : s.section_type = 11#u32 ↔ s.section_type.val = 11 :=
+    ⟨fun h => by rw [h]; rfl, fun h => UScalar.eq_of_val_eq (by rw [h]; rfl)⟩
+  by_cases a : s.section_type = 2#u32
+  · simp [a]
+  · have a' : ¬ s.section_type.val = 2 := fun h => a (h2.mpr h)
+    simp only [a, if_false, a', false_or, ok.injEq, decide_eq_true_eq]
+    exact h11
+
+/-- This records a property of the code rather than of the gABI: a dynamic symbol
+    table (`SHT_DYNSYM`, 11) passes `is_symtab`, whatever its name, flags or
+    placement. `ElfLoader::get_symbol_table` filters by this predicate and takes
+    the first match, so it returns `.dynsym` whenever that section precedes
+    `.symtab`, while the separate `get_dynsym` exists for exactly that section. -/
+theorem parsedsection_is_symtab_accepts_a_dynamic_symbol_table (s : section.ParsedSection) :
+    parsedsection_is_symtab { s with section_type := 11#u32 } = ok true :=
+  (parsedsection_is_symtab_holds_exactly_for_types_two_and_eleven _).mpr (Or.inr rfl)
+
+/-- A section is a string table exactly when its type is `SHT_STRTAB` (3). -/
+theorem parsedsection_is_strtab_holds_exactly_for_type_three (s : section.ParsedSection) :
+    parsedsection_is_strtab s = ok true ↔ s.section_type.val = 3 := by
+  unfold parsedsection_is_strtab section.ParsedSection.is_strtab
+  simp only [ok.injEq, decide_eq_true_eq]
+  exact ⟨fun h => by rw [h]; rfl, fun h => UScalar.eq_of_val_eq (by rw [h]; rfl)⟩
+
+/-- The string table test reads the type word alone: two sections with the same
+    type get the same answer, whatever their names, flags, addresses or sizes. -/
+theorem parsedsection_is_strtab_depends_only_on_the_type
+    (s t : section.ParsedSection) (h : s.section_type = t.section_type) :
+    parsedsection_is_strtab s = parsedsection_is_strtab t := by
+  unfold parsedsection_is_strtab section.ParsedSection.is_strtab
+  rw [h]
+
+/-- A section is a RELA relocation table exactly when its type is `SHT_RELA` (4). -/
+theorem parsedsection_is_rela_holds_exactly_for_type_four (s : section.ParsedSection) :
+    parsedsection_is_rela s = ok true ↔ s.section_type.val = 4 := by
+  unfold parsedsection_is_rela section.ParsedSection.is_rela
+  simp only [ok.injEq, decide_eq_true_eq]
+  exact ⟨fun h => by rw [h]; rfl, fun h => UScalar.eq_of_val_eq (by rw [h]; rfl)⟩
+
+/-- An `SHT_REL` section (type 9), whose 16 byte entries carry no addend, is never
+    taken for a 24 byte `SHT_RELA` table. -/
+theorem parsedsection_is_rela_refuses_rel_sections (s : section.ParsedSection) :
+    parsedsection_is_rela { s with section_type := 9#u32 } = ok false := by
+  unfold parsedsection_is_rela section.ParsedSection.is_rela
+  rfl
+
+/-- The three type classifiers never overlap: a symbol table is neither a string
+    table nor a RELA table, and a string table is not a RELA table. -/
+theorem parsedsection_is_symtab_is_strtab_and_is_rela_are_disjoint
+    (s : section.ParsedSection) :
+    (parsedsection_is_symtab s = ok true → parsedsection_is_strtab s = ok false ∧
+        parsedsection_is_rela s = ok false) ∧
+    (parsedsection_is_strtab s = ok true → parsedsection_is_rela s = ok false) := by
+  have hs := parsedsection_is_symtab_holds_exactly_for_types_two_and_eleven s
+  have ht := parsedsection_is_strtab_holds_exactly_for_type_three s
+  have hr := parsedsection_is_rela_holds_exactly_for_type_four s
+  have bt : ∀ b : Bool, (ok b : Result Bool) = ok false ↔ ¬ (ok b : Result Bool) = ok true := by
+    intro b; cases b <;> simp
+  have et : parsedsection_is_strtab s = ok (decide (s.section_type = 3#u32)) := rfl
+  have er : parsedsection_is_rela s = ok (decide (s.section_type = 4#u32)) := rfl
+  refine ⟨fun h => ?_, fun h => ?_⟩
+  · have := hs.mp h
+    refine ⟨?_, ?_⟩
+    · rw [et, bt, ← et, ht]; omega
+    · rw [er, bt, ← er, hr]; omega
+  · have := ht.mp h
+    rw [er, bt, ← er, hr]; omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CoreSection.the_parsedsection_is_alloc_wrapper_is_its_method
 #print axioms NonosExtraction.CoreSection.the_parsedsection_is_symtab_wrapper_is_its_method
 #print axioms NonosExtraction.CoreSection.the_parsedsection_is_strtab_wrapper_is_its_method
 #print axioms NonosExtraction.CoreSection.the_parsedsection_is_rela_wrapper_is_its_method
+#print axioms NonosExtraction.CoreSection.parsedsection_is_alloc_reads_exactly_the_shf_alloc_bit
+#print axioms NonosExtraction.CoreSection.parsedsection_is_alloc_refuses_write_exec_and_accepts_alloc
+#print axioms NonosExtraction.CoreSection.parsedsection_is_symtab_holds_exactly_for_types_two_and_eleven
+#print axioms NonosExtraction.CoreSection.parsedsection_is_symtab_accepts_a_dynamic_symbol_table
+#print axioms NonosExtraction.CoreSection.parsedsection_is_strtab_holds_exactly_for_type_three
+#print axioms NonosExtraction.CoreSection.parsedsection_is_strtab_depends_only_on_the_type
+#print axioms NonosExtraction.CoreSection.parsedsection_is_rela_holds_exactly_for_type_four
+#print axioms NonosExtraction.CoreSection.parsedsection_is_rela_refuses_rel_sections
+#print axioms NonosExtraction.CoreSection.parsedsection_is_symtab_is_strtab_and_is_rela_are_disjoint
 
 end NonosExtraction.CoreSection
