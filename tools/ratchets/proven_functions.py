@@ -97,6 +97,34 @@ def mirrored_sources(root):
     return {k: v for k, v in out.items() if len(v) > 1}
 
 
+THEOREM = re.compile(r'^(?:private\s+)?theorem\s+(\S+)(.*?):=', re.S | re.M)
+RENAMING = re.compile(r'\b(\w+)\s*→\s*(\w+)')
+ALIAS = re.compile(
+    r'^(?:private\s+|noncomputable\s+)*(?:abbrev|def)\s+(\w+)([^\n]*(?:\n[ \t]+[^\n]*)*)',
+    re.M)
+
+
+def statements(text):
+    """The statements of a file's theorems, wrappers left out.
+
+    A name in a proof, an `open ... renaming` line, an `attribute` list or a
+    `#print axioms` line is not a property of the function. Six functions once
+    counted as substantive from those lines alone.
+    """
+    return [sig for name, sig in THEOREM.findall(text)
+            if not re.match(r'the_\w+_wrapper_is_its_method$', name)]
+
+
+def aliases(texts, leaf):
+    """Names a file gives the function: `open ... renaming` and `abbrev`."""
+    names = {leaf}
+    word = re.compile(r'\b%s\b' % re.escape(leaf))
+    for t in texts:
+        names.update(b for a, b in RENAMING.findall(t) if a == leaf)
+        names.update(m.group(1) for m in ALIAS.finditer(t) if word.search(m.group(2)))
+    return names
+
+
 def classify(root):
     # Read the crate manifest, not EVIDENCE.json. The evidence script calls this
     # to fill its own counts field, so reading its output here would make the
@@ -105,33 +133,25 @@ def classify(root):
         (root / 'verification/extraction/crates.json').read_text())
     names = sorted({s for c in manifest['crates'] for s in c['starts']})
     files = proof_files(root)
-    # A wrapper theorem names the function only on its own line; a substantive
-    # theorem names it somewhere else. Strip the generated wrapper block and see
-    # what still mentions it.
-    # Only continuation lines, never blank ones: `\s+` matches a newline, so a
-    # greedy version of this ate everything after the first wrapper theorem and
-    # reported every crate as wrapper-only.
-    wrapper = re.compile(
-        r'theorem the_\w+_wrapper_is_its_method[^\n]*\n(?:[ \t]+[^\n]*\n)*')
     # A name counts only in files that import its own crate's module. Leaf
     # names repeat across crates (`new`, `is_present`, `leaf`), and matching
     # them anywhere once counted functions no theorem mentions.
     own = {}
     for c in manifest['crates']:
         mine = [t for t in files if imports_module(t, c['lean'])]
-        text = '\n'.join(mine)
         for st in c['starts']:
-            prev = own.get(st, ('', ''))
-            own[st] = (prev[0] + '\n' + text, prev[1] + '\n' + wrapper.sub('', text))
+            prev = own.setdefault(st, [])
+            prev.extend(mine)
 
     proven, bare, substantive = [], [], []
     for name in names:
         leaf = name.split('::')[-1]
-        pat = r'\b%s\b' % re.escape(leaf)
-        code, without_wrappers = own.get(name, ('', ''))
-        if re.search(pat, code):
+        mine = own.get(name, [])
+        if re.search(r'\b%s\b' % re.escape(leaf), '\n'.join(mine)):
             proven.append(name)
-            if re.search(pat, without_wrappers):
+            pat = re.compile(r'\b(%s)\b' % '|'.join(
+                map(re.escape, sorted(aliases(mine, leaf)))))
+            if any(pat.search(sig) for t in mine for sig in statements(t)):
                 substantive.append(name)
         else:
             bare.append(name)
