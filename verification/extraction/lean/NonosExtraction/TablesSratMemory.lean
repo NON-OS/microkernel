@@ -88,8 +88,12 @@ def srat_memory.SratMemoryAffinity.end_address
 def srat_memory.SratMemoryAffinity.contains_address
   (self : srat_memory.SratMemoryAffinity) (addr : Std.U64) : Result Bool := do
   if addr >= self.base_address
-  then let i ← addr - self.base_address
-       ok (i < self.length_bytes)
+  then
+    let i ← srat_memory.SratMemoryAffinity.end_address self
+    if addr < i
+    then ok true
+    else let i1 ← addr - self.base_address
+         ok (i1 < self.length_bytes)
   else ok false
 
 /-- [nonos_x_tables_srat_memory::sratmemoryaffinity_is_enabled]:

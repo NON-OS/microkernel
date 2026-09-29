@@ -45,10 +45,10 @@ impl SratMemoryAffinity {
     pub fn end_address(&self) -> u64 {
         self.base_address.saturating_add(self.length_bytes)
     }
-    /* Offset from base, not a comparison with end_address(), which
-    saturates and would leave out the last byte of the address space. */
+    /* end_address() saturates, so below it the comparison is exact; the
+    offset test holds the last byte of a region that reaches 2^64. */
     pub fn contains_address(&self, addr: u64) -> bool {
         let base = self.base_address;
-        addr >= base && addr - base < self.length_bytes
+        addr >= base && (addr < self.end_address() || addr - base < self.length_bytes)
     }
 }
