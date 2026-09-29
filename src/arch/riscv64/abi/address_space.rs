@@ -16,11 +16,16 @@
 
 use crate::memory::addr::PhysAddr;
 
-use super::super::mmu::{make_satp, mmu_mode, write_satp};
+use super::super::mmu::{make_satp, write_satp, KERNEL_MMU_MODE};
 
+/* Encodes the mode the tables were built for, not the live one: a switch
+made before paging is on, or with a satp that reads as Unknown, would
+otherwise write Bare and run the target with translation off. */
 #[inline(always)]
 pub(super) unsafe fn switch(root: PhysAddr) {
-    let mode = mmu_mode();
     let ppn = (root.as_u64() as usize) >> 12;
-    write_satp(make_satp(mode, 0, ppn));
+    let Some(satp) = make_satp(KERNEL_MMU_MODE, 0, ppn) else {
+        return;
+    };
+    write_satp(satp);
 }

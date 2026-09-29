@@ -32,7 +32,7 @@ pub use attributes::{PageAttributes, PteFlags};
 pub use boot_map::init_mmu;
 pub use constants::{PAGE_SHIFT, PAGE_SIZE};
 pub use map::map_page;
-pub use mode::MmuMode;
+pub use mode::{MmuMode, KERNEL_MMU_MODE};
 pub use satp::{current_asid, current_ppn, make_satp, mmu_mode, read_satp, write_satp};
 pub use sv39::{Sv39, VA_BITS_39};
 pub use sv48::{Sv48, VA_BITS_48};

@@ -16,7 +16,7 @@
 
 use super::super::boot::info::{BootInfo, MemoryRegion, MemoryType};
 use super::branch::ensure_child;
-use super::mode::MmuMode;
+use super::mode::KERNEL_MMU_MODE;
 use super::satp::{make_satp, write_satp};
 use super::state::root_table;
 use super::sv39::{Sv39, MEGA_PAGE_SIZE};
@@ -25,7 +25,10 @@ use super::{tlb, PageAttributes};
 pub fn init_mmu(boot_info: &BootInfo) {
     unsafe {
         setup_kernel_page_tables(boot_info);
-        let satp = make_satp(MmuMode::Sv39, 0, root_table().ppn() as usize);
+        /* KERNEL_MMU_MODE is checked at compile time to have an encoding. */
+        let Some(satp) = make_satp(KERNEL_MMU_MODE, 0, root_table().ppn() as usize) else {
+            return;
+        };
         write_satp(satp);
     }
     tlb::flush_tlb_all();

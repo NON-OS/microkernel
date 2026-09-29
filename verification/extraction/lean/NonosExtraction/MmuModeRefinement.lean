@@ -41,35 +41,55 @@ theorem the_mmumode_va_bits_wrapper_is_its_method (a : mode.MmuMode) :
 theorem the_mmumode_levels_wrapper_is_its_method (a : mode.MmuMode) :
     mmumode_levels a = mode.MmuMode.levels a := rfl
 
-/-! ### The satp encoding, and where it fails open
+/-! ### The satp encoding, and why it cannot fail open
 
     `make_satp` shifts `satp_mode` into the four-bit MODE field and
     `satp.rs::mmu_mode` decodes `satp >> 60` back. For the four modes the kernel
     names, the encoding is the one the privileged specification gives (0, 8, 9,
     10), fits in four bits, and matches `levels` and `va_bits` (Sv39 has three
-    levels and 39 bits, and so on). `Unknown` encodes as 0, which is `Bare`:
-    `abi/address_space.rs::switch` re-encodes whatever `mmu_mode()` reads, so a
-    satp read back as an unnamed mode, or a switch made before paging is on,
-    writes a satp with translation off. The last theorem pins that. The CSR itself
-    is not modelled; that hardware returns only the modes it supports is a
-    property of the part, not of this code.
+    levels and 39 bits, and so on). `Unknown` has no encoding: `satp_mode`
+    returns `none`, and `make_satp` returns `None` with it, so no caller can write
+    a satp for it. It used to encode as 0, which is `Bare`, and
+    `abi/address_space.rs::switch` re-encoded whatever `mmu_mode()` read, so a
+    satp read back as an unnamed mode, or a switch made before paging was on,
+    wrote a satp with translation off. `switch` and `init_mmu` now encode
+    `KERNEL_MMU_MODE`, which is Sv39 and is checked at compile time to have an
+    encoding. The CSR itself is not modelled; that hardware returns only the
+    modes it supports is a property of the part, not of this code.
 -/
 
 theorem the_named_modes_encode_as_the_specification_says :
-    mmumode_satp_mode .Bare = ok 0#usize ∧ mmumode_satp_mode .Sv39 = ok 8#usize ∧
-      mmumode_satp_mode .Sv48 = ok 9#usize ∧ mmumode_satp_mode .Sv57 = ok 10#usize :=
+    mmumode_satp_mode .Bare = ok (some 0#usize) ∧ mmumode_satp_mode .Sv39 = ok (some 8#usize) ∧
+      mmumode_satp_mode .Sv48 = ok (some 9#usize) ∧
+      mmumode_satp_mode .Sv57 = ok (some 10#usize) :=
   ⟨rfl, rfl, rfl, rfl⟩
 
-theorem every_encoding_fits_the_mode_field (m : mode.MmuMode) :
-    ∃ s, mmumode_satp_mode m = ok s ∧ s.val < 16 := by
-  cases m <;> exact ⟨_, rfl, by decide⟩
+/-- `Unknown` has no encoding, and it is the only mode without one. -/
+theorem only_an_unknown_mode_has_no_encoding (m : mode.MmuMode) :
+    mmumode_satp_mode m = ok none ↔ m = .Unknown := by
+  cases m <;> simp [mmumode_satp_mode, mode.MmuMode.satp_mode]
 
-theorem distinct_translating_modes_encode_distinctly (a b : mode.MmuMode) (s : Std.Usize)
-    (ha : mmumode_satp_mode a = ok s) (hb : mmumode_satp_mode b = ok s)
-    (hna : a ≠ .Unknown) (hnb : b ≠ .Unknown) : a = b := by
-  cases a <;> cases b <;> simp only [mmumode_satp_mode, mode.MmuMode.satp_mode, ok.injEq] at ha hb <;>
-    first | rfl | exact absurd rfl hna | exact absurd rfl hnb |
-      (subst ha; have hv := congrArg UScalar.val hb; simp at hv)
+theorem every_encoding_fits_the_mode_field (m : mode.MmuMode) (s : Std.Usize)
+    (h : mmumode_satp_mode m = ok (some s)) : s.val < 16 := by
+  cases m <;> simp only [mmumode_satp_mode, mode.MmuMode.satp_mode, ok.injEq,
+    Option.some.injEq, reduceCtorEq] at h <;> subst h <;> decide
+
+/-- Two modes with an encoding encode distinctly, so the MODE field names the
+    mode that built the tables. -/
+theorem distinct_modes_encode_distinctly (a b : mode.MmuMode) (s : Std.Usize)
+    (ha : mmumode_satp_mode a = ok (some s)) (hb : mmumode_satp_mode b = ok (some s)) :
+    a = b := by
+  cases a <;> cases b <;> simp only [mmumode_satp_mode, mode.MmuMode.satp_mode, ok.injEq,
+    Option.some.injEq, reduceCtorEq] at ha hb <;>
+    first | rfl | (subst ha; have hv := congrArg UScalar.val hb; simp at hv)
+
+/-- Only `Bare` encodes as 0, translation off; `Unknown` no longer does. -/
+theorem only_bare_encodes_translation_off (m : mode.MmuMode) :
+    mmumode_satp_mode m = ok (some 0#usize) ↔ m = .Bare := by
+  constructor
+  · intro h
+    exact distinct_modes_encode_distinctly m .Bare 0#usize h rfl
+  · rintro rfl; rfl
 
 /-- Levels and address bits agree with the mode: nine bits of index per level
     above the twelve-bit page offset. -/
@@ -79,21 +99,16 @@ theorem levels_and_address_bits_agree (m : mode.MmuMode) (hm : m ≠ .Bare) (hu 
   · exact absurd rfl hm
   all_goals first | exact absurd rfl hu | exact ⟨_, _, rfl, rfl, rfl⟩
 
-/-- Records the fail-open case: `Unknown` encodes exactly as `Bare`, translation
-    off. -/
-theorem an_unknown_mode_encodes_as_translation_off :
-    mmumode_satp_mode .Unknown = mmumode_satp_mode .Bare ∧
-      mmumode_levels .Unknown = ok 0#usize := ⟨rfl, rfl⟩
-
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.MmuMode.the_mmumode_satp_mode_wrapper_is_its_method
 #print axioms NonosExtraction.MmuMode.the_mmumode_va_bits_wrapper_is_its_method
 #print axioms NonosExtraction.MmuMode.the_mmumode_levels_wrapper_is_its_method
 #print axioms NonosExtraction.MmuMode.the_named_modes_encode_as_the_specification_says
+#print axioms NonosExtraction.MmuMode.only_an_unknown_mode_has_no_encoding
 #print axioms NonosExtraction.MmuMode.every_encoding_fits_the_mode_field
-#print axioms NonosExtraction.MmuMode.distinct_translating_modes_encode_distinctly
+#print axioms NonosExtraction.MmuMode.distinct_modes_encode_distinctly
+#print axioms NonosExtraction.MmuMode.only_bare_encodes_translation_off
 #print axioms NonosExtraction.MmuMode.levels_and_address_bits_agree
-#print axioms NonosExtraction.MmuMode.an_unknown_mode_encodes_as_translation_off
 
 end NonosExtraction.MmuMode
