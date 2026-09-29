@@ -16,8 +16,7 @@ const OVERLAY_Z: u32 = 1;
 const FILL_ARGB: u32 = 0xFF20_3040;
 
 pub fn run() -> Result<Context, &'static str> {
-    let compositor_port = discover::lookup_compositor_port()?;
-    let router_port = discover::lookup_router_port()?;
+    let (compositor_port, router_port) = discover::wait_for_desktop()?;
     let policy_port = discover::lookup_policy_port();
     compositor::healthcheck(compositor_port, 1).map_err(|_| "compositor health failed")?;
     let di = display_info::query_display_info(compositor_port, 3)
