@@ -35,4 +35,5 @@ mod send;
 mod setsockopt;
 mod socket;
 
+pub use connect::{advance as advance_connects, waiting as connects_waiting};
 pub use dispatch::dispatch;

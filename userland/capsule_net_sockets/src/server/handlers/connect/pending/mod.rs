@@ -14,19 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::protocol::{E_BAD_ADDR, E_BAD_LEN};
-use crate::server::parse_req::Request;
-use crate::sockets::SocketKey;
+//! Stream connects that are waiting for their handshake.
 
-use super::{finish_host, parse_host, resolve_host, status_host};
+mod advance;
+mod settle;
+mod start;
+mod table;
+mod verdict;
 
-pub fn handle_host(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
-    let (handle, port, host) = match parse_host::parse(body) {
-        Some(v) => v,
-        None => return status_host::status(pid, req, E_BAD_LEN, tx),
-    };
-    let Some(ip) = resolve_host::resolve_host(host) else {
-        return status_host::status(pid, req, E_BAD_ADDR, tx);
-    };
-    finish_host::finish(pid, req, SocketKey { pid, handle }, ip, port, tx);
-}
+pub use advance::advance;
+pub use start::start;
+pub use table::waiting;

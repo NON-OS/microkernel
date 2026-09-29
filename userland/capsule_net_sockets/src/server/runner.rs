@@ -25,13 +25,21 @@ use crate::server::respond::respond;
 
 const SERVICE_INBOX: u64 = 0;
 const BUF_LEN: usize = HDR_LEN + RECV_MAX;
+/*
+ * How long to wait for a request while a connect is waiting on its handshake.
+ * Nothing tells this service when a handshake completes, so it looks again
+ * after this much quiet; with nothing pending it waits for requests alone.
+ */
+const PENDING_POLL_MS: u64 = 2;
 
 pub fn run() -> ! {
     let mut rx = vec![0u8; BUF_LEN];
     let mut tx = vec![0u8; BUF_LEN];
     loop {
         let mut sender = 0u32;
-        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), 0, &mut sender);
+        let wait = if handlers::connects_waiting() { PENDING_POLL_MS } else { 0 };
+        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait, &mut sender);
+        handlers::advance_connects(&mut tx);
         if n <= 0 || sender == 0 {
             continue;
         }

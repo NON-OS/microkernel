@@ -23,6 +23,7 @@ mod install_transport;
 mod parse_body;
 mod parse_host;
 mod parse_ipv4;
+mod pending;
 mod resolve_host;
 mod status;
 mod status_host;
@@ -30,8 +31,8 @@ mod update_datagram;
 mod update_mixnet;
 mod update_stream;
 mod update_stream_nb;
-mod wait_established;
 
 pub use handle::handle;
 pub use handle_host::handle_host;
 pub use handle_nb::handle as handle_nb;
+pub use pending::{advance, waiting};
