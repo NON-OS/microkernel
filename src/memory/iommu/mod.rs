@@ -15,14 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod backend;
+mod capabilities;
 mod device;
 mod domain;
 mod domain_id;
 mod error;
+mod posture;
 mod protection;
+mod query;
+mod unconfined;
+mod vendor;
 
+pub use capabilities::IommuCapabilities;
 pub use device::DeviceAddress;
 pub use domain::IommuDomain;
 pub use domain_id::DomainId;
 pub use error::IommuError;
+pub use posture::report_posture;
 pub use protection::IommuProtection;
+pub use query::{capabilities, select_vendor};
+pub use unconfined::{note_unconfined, note_unconfined_released, unconfined_grants};
+pub use vendor::IommuVendor;

@@ -14,5 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(test)]
+#[path = "../../../../../src/security/attest_doc/binding.rs"]
+pub mod binding;
 #[path = "../../../../../src/security/attest_doc/document.rs"]
 pub mod document;

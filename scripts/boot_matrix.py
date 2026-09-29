@@ -21,10 +21,12 @@
         --blk-img target/qemu-virtio-blk.img --repeat 5
 
 A cell passes when every one of its boots reaches readiness with nothing
-fatal in the log, all its CPUs online, and DMA restricted when an IOMMU is
-present. The exit status is the number of failing boots. `make
-nonos-mk-boot-matrix` builds the images the selected cells need and runs this;
-`--profiles` is how it asks which those are, and `--list` names every cell.
+fatal in the log, all its CPUs online, and the IOMMU posture its QEMU device
+calls for: VT-d enforcing under an intel-iommu, AMD-Vi named and refused under
+an amd-iommu, none without either. The exit status is the number of failing
+boots. `make nonos-mk-boot-matrix` builds the images the selected cells need
+and runs this; `--profiles` is how it asks which those are, and `--list`
+names every cell.
 """
 
 import sys

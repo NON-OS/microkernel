@@ -14,16 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod agaw;
-mod behaviour;
-mod extended;
-mod fault;
-mod limits;
-mod pages;
+//! A domain call on a machine with no IOMMU this kernel drives, refused by name.
 
-pub use agaw::{preferred_levels, AgawLevels};
-pub use behaviour::{caching_mode, requires_write_buffer_flush};
-pub use extended::snoop_control;
-pub use fault::{fault_recording_count, fault_recording_offset};
-pub use limits::{domain_count, max_address_width};
-pub use pages::best_leaf_level;
+use crate::memory::iommu::IommuError;
+use crate::sys::serial;
+
+pub(super) fn amd_vi(op: &'static [u8]) -> IommuError {
+    serial::print(b"[AMD-VI] refused ");
+    serial::print(op);
+    serial::println(b": no AMD-Vi backend in this kernel");
+    IommuError::AmdViNotDriven
+}
+
+pub(super) fn absent(op: &'static [u8]) -> IommuError {
+    serial::print(b"[IOMMU] refused ");
+    serial::print(op);
+    serial::println(b": no DMAR remapping unit and no IVRS table");
+    IommuError::NoIommu
+}

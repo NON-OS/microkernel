@@ -29,6 +29,8 @@ mod error;
 mod produce;
 
 pub use attest::attest;
-pub use binding::qualifying_data;
-pub use document::{AttestationDoc, DOC_MAGIC, DOC_VERSION};
+pub use binding::{qualifying_data, DmaPosture};
+pub use document::{
+    AttestationDoc, DOC_MAGIC, DOC_VERSION, IOMMU_AMD_VI, IOMMU_INTEL_VTD, IOMMU_NONE,
+};
 pub use error::AttestDocError;

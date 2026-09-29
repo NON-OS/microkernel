@@ -23,7 +23,11 @@ import os
 import platform
 import shlex
 
-IOMMU_OPTS = "intel-iommu,intremap=on,caching-mode=on"
+# The -device argument for each kind of IOMMU a cell can ask for.
+IOMMU_DEVICES = {
+    "intel-iommu": "intel-iommu,intremap=on,caching-mode=on",
+    "amd-iommu": "amd-iommu",
+}
 
 
 def accelerator(cell, requested):
@@ -56,7 +60,7 @@ def command(cell, paths, accel, serial_log, blk_copy, vars_copy):
         "-device", "virtio-blk-pci,drive=vd0",
     ]
     if cell.iommu:
-        argv += ["-device", IOMMU_OPTS]
+        argv += ["-device", IOMMU_DEVICES[cell.iommu]]
     argv += shlex.split(paths.extra)
     argv += ["-serial", f"file:{serial_log}", "-display", "none", "-no-reboot"]
     return argv
