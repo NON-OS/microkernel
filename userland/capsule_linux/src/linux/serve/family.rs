@@ -79,15 +79,13 @@ impl Family {
 
     /// A guest thread ended on a signal. On Linux that ends the thread group,
     /// so the guest exits; reap then kills its other threads and answers any
-    /// waiter. The status carries the signal in the shell's 128+signo form.
+    /// waiter. The status is Linux's wait status: the signal's number.
     fn thread_died(&mut self, pid: u32, code: i32) {
         let Some(g) = self.guests.iter_mut().find(|g| g.owns(pid)) else {
             return;
         };
         g.threads.retain(|t| *t != pid);
-        if g.exited.is_none() {
-            g.exited = Some(128 + signo_of(code));
-        }
+        crate::linux::call::killed(g, signo_of(code) as u8);
         let line =
             alloc::format!("[LINUX] guest thread {pid} ended on a signal; ending the process\n");
         crate::linux::start::say(line.as_bytes());
