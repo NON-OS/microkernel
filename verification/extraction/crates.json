@@ -1082,7 +1082,8 @@
       "generated": "VariableFirmware.lean",
       "starts": [
         "nonos_x_variable_firmware::firmwareinfo_uefi_major_version",
-        "nonos_x_variable_firmware::firmwareinfo_uefi_minor_version"
+        "nonos_x_variable_firmware::firmwareinfo_uefi_minor_version",
+        "nonos_x_variable_firmware::uefi_revision"
       ]
     },
     {
