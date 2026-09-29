@@ -40,6 +40,7 @@ mod region;
 mod region_cut;
 mod region_find;
 mod region_mark;
+mod sigpending;
 pub mod sigqueue;
 pub mod sigstack;
 pub mod sigstack_t;

@@ -55,7 +55,9 @@ impl Family {
                         crate::linux::abi::nr::WAIT4,
                         value,
                     );
-                    let _ = mk_foreign_reply(tid, value);
+                    if !super::deliver::maybe_deliver(p, tid, value) {
+                        let _ = mk_foreign_reply(tid, value);
+                    }
                 }
             }
         }

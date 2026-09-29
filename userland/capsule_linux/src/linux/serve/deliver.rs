@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Delivering a caught signal to the thread returning from a syscall. The
-//! handler is entered with the interrupted syscall's return value already in
-//! rax, so when it returns through rt_sigreturn the program sees that value.
-//! Only the trapping thread is delivered to here; a signal raised against a
-//! thread parked elsewhere waits in the queue until that thread next traps.
+//! Delivering a caught signal to a thread being answered: one returning from
+//! a syscall is entered with that call's return value in rax, so the program
+//! sees it when the handler returns through rt_sigreturn; one stopped at a
+//! tick (family_interrupt) keeps its own rax. A thread answered without a
+//! handler is marked for its next tick instead (`Guest::rearm`).
 
 use nonos_libc::{mk_foreign_context, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER};
 

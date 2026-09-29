@@ -17,7 +17,8 @@
 //! `rt_sigreturn`: a thread leaving a signal handler. Its rsp points at the
 //! ucontext the frame carried, so the saved registers are read back from
 //! there and the kernel resumes the thread into them. Nothing is replied: the
-//! thread is no longer in the syscall, it is back where the signal interrupted.
+//! thread is back where the signal interrupted, and a signal still waiting
+//! for it is taken at its next tick.
 
 use nonos_libc::{mk_foreign_context, mk_foreign_signal, ForeignRegs, SIGNAL_RETURN};
 
@@ -42,5 +43,6 @@ pub fn rt_sigreturn(guest: &Guest, tid: u32) -> Answer {
         return Answer::Park;
     };
     let _ = mk_foreign_signal(tid, &restored, SIGNAL_RETURN);
+    guest.rearm(tid);
     Answer::Park
 }

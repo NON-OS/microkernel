@@ -24,8 +24,8 @@ use super::sigstate::{SigAction, NSIG};
 
 #[derive(Clone)]
 pub struct Signals {
-    actions: [SigAction; NSIG],
-    pending: Vec<(u32, u8)>,
+    pub(super) actions: [SigAction; NSIG],
+    pub(super) pending: Vec<(u32, u8)>,
     /// Each thread's alternate signal stack (`sigstack.rs`).
     pub(super) stacks: Vec<(u32, AltStack)>,
 }

@@ -16,6 +16,8 @@
 
 //! Answering sleepers whose deadline has passed.
 
+use alloc::vec::Vec;
+
 use nonos_libc::mk_foreign_reply;
 
 use super::family::Family;
@@ -30,13 +32,15 @@ impl Family {
             return;
         };
         for g in self.guests.iter_mut() {
-            g.sleepers.retain(|&(deadline, tid)| {
-                if deadline > now {
-                    return true;
+            let due: Vec<u32> =
+                g.sleepers.iter().filter(|&&(d, _)| d <= now).map(|&(_, t)| t).collect();
+            g.sleepers.retain(|&(d, _)| d > now);
+            for tid in due {
+                // A caught signal for this thread is delivered in place of the reply.
+                if !super::deliver::maybe_deliver(g, tid, 0) {
+                    let _ = mk_foreign_reply(tid, 0);
                 }
-                let _ = mk_foreign_reply(tid, 0);
-                false
-            });
+            }
         }
     }
 

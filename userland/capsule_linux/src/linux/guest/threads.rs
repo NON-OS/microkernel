@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The guest's threads, and the ones parked on a futex.
 
 use nonos_libc::mk_foreign_reply;
@@ -51,6 +50,7 @@ impl Guest {
             self.futex_until.retain(|&(_, t)| t != tid);
             if mk_foreign_reply(tid, 0) >= 0 {
                 woken += 1;
+                self.rearm(tid);
             }
         }
         woken
