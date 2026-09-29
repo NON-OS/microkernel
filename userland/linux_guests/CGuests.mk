@@ -33,3 +33,9 @@ $(eval $(call LINUX_GUEST,cpreempt,4946,4947,$(LINUX_GUESTS_C)/cpreempt))
 $(LINUX_GUESTS_C)/cpipe: $(LINUX_GUESTS_DIR)/c/cpipe.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cpipe,4982,4983,$(LINUX_GUESTS_C)/cpipe))
+
+# madvise as Linux keeps it: MADV_DONTNEED leaves private anonymous pages
+# reading zero, a hint changes nothing, and what cannot be done is refused.
+$(LINUX_GUESTS_C)/cmadv: $(LINUX_GUESTS_DIR)/c/cmadv.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cmadv,4990,4991,$(LINUX_GUESTS_C)/cmadv))
