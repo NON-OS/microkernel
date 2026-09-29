@@ -75,4 +75,28 @@ theorem land_low_mask {ty : UScalarTy} (e m : UScalar ty) (n : Nat) (hm : m.val 
     (e &&& m).val = e.val % 2 ^ n := by
   rw [UScalar.val_and, hm, Nat.and_two_pow_sub_one_eq_mod]
 
+/-- A bit of `!word` is set exactly inside the word's width where the word's bit
+    is clear. -/
+theorem testBit_val_not {ty : UScalarTy} (x : UScalar ty) (i : Nat) :
+    (~~~x).val.testBit i = (decide (i < ty.numBits) && !x.val.testBit i) := by
+  show (~~~x.bv).toNat.testBit i = (decide (i < ty.numBits) && !x.bv.toNat.testBit i)
+  rw [BitVec.testBit_toNat, BitVec.testBit_toNat, BitVec.getLsbD_not]
+
+/-- A word's bits above its width are clear. -/
+theorem testBit_val_high {ty : UScalarTy} (x : UScalar ty) (i : Nat) (hi : ty.numBits ≤ i) :
+    x.val.testBit i = false := by
+  apply Nat.testBit_eq_false_of_lt
+  exact Nat.lt_of_lt_of_le x.bv.isLt (Nat.pow_le_pow_right (by decide) hi)
+
+/-- A word is zero exactly when none of its bits is set. -/
+theorem val_eq_zero_iff {ty : UScalarTy} (x : UScalar ty) :
+    x.val = 0 ↔ ∀ i, x.val.testBit i = false := by
+  constructor
+  · intro h i
+    rw [h, Nat.zero_testBit]
+  · intro h
+    apply Nat.eq_of_testBit_eq
+    intro i
+    rw [h i, Nat.zero_testBit]
+
 end NonosExtraction.Bits
