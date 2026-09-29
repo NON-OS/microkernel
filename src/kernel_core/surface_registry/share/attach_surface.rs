@@ -75,7 +75,7 @@ pub fn attach_surface(
     let asid = lookup_asid_for_process(receiver_pid).ok_or(RegistryError::MapFailed)?;
     let proc = current_process().ok_or(RegistryError::NoProc)?;
     let base = proc
-        .reserve_vma(frames.len().saturating_mul(4096))
+        .reserve_vma(frames.len().saturating_mul(4096), asid)
         .map_err(|_| RegistryError::MapFailed)?;
     let perms = PagePermissions::user_rw();
     for (i, frame) in frames.iter().enumerate() {
