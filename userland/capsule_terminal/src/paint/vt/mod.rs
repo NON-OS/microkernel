@@ -17,6 +17,7 @@
 //! Drawing the terminal body from the screen and its history.
 
 mod area;
+mod block;
 mod body;
 mod box_arms;
 mod box_draw;

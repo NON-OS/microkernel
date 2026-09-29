@@ -44,6 +44,9 @@ pub fn text(fb: &mut PaintBuffer, line: &Line, cell: &Cell, x: u32, y: u32, fg: 
     if super::box_draw::stroke(fb, cell.ch, x, y, m.adv, m.lh, fg) {
         return;
     }
+    if super::block::fill(fb, cell.ch, x, y, m.adv, m.lh, fg) {
+        return;
+    }
     glyph(fb, x, y, cell.ch, fg, m.px);
     if cell.attr & attr::BOLD != 0 {
         glyph(fb, x + 1, y, cell.ch, fg, m.px);
