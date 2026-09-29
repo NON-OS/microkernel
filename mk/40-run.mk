@@ -33,8 +33,8 @@ QEMU_BLK_STORE_STAMP := $(QEMU_BLK_IMG).store.stamp
 NONOS_MEDIA_DIR := media/samples
 NONOS_MEDIA_FILES := $(wildcard $(NONOS_MEDIA_DIR)/*)
 
-# The sample films fill most of the 16 MiB vfs loads. A guest-test image
-# carries its guests instead, since the store cannot hold both.
+# The sample films are 6.8 MB of the 48 MiB the vfs loads. A guest-test image
+# leaves them out, keeping that budget for its guests and outside programs.
 ifneq ($(NONOS_LINUX_GUESTS),1)
 NONOS_STORE_MEDIA_ENTRIES := \
 	--entry /Movies/big_buck_bunny.avi=$(NONOS_MEDIA_DIR)/big_buck_bunny.avi \

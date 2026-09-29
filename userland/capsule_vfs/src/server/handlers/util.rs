@@ -18,9 +18,9 @@ use crate::blk::error::BlkError;
 use crate::protocol::{EACCES, EBADF, EEXIST, EINVAL, EISDIR, ENOENT, ENOSPC, ENOTEMPTY};
 use crate::store::StoreError;
 
-// A name already in the TOC and the 16 MiB extent budget are both refusals a
-// caller can act on, so they must not collapse into the generic EINVAL that
-// every wire-level block failure maps to.
+// A name already in the TOC and the extent budget (MAX_TOTAL_BYTES) are both
+// refusals a caller can act on, so they must not collapse into the generic
+// EINVAL that every wire-level block failure maps to.
 pub(super) fn map_blk_err(e: BlkError) -> i32 {
     match e {
         BlkError::Exists => EEXIST,
