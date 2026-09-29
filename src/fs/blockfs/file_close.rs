@@ -40,7 +40,9 @@ pub(super) fn close_file(
     let index_lba = store.alloc()?;
     let mut index = [0u8; PLAIN_BLOCK_BYTES];
     index[0..8].copy_from_slice(&INDEX_MAGIC);
-    /* At most 13,179,714 data blocks: the count fits its u32. */
+    /*
+     * At most 13,179,714 data blocks: the count fits its u32.
+     */
     write_u32(&mut index, INDEX_COUNT_OFFSET, tree.data_blocks as u32);
     for (i, lba) in tree.root.iter().enumerate() {
         write_u64(&mut index, INDEX_PTR_BASE + i * PTR_BYTES, *lba);
