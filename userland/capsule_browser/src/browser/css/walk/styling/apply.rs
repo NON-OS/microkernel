@@ -37,7 +37,11 @@ impl Styling<'_> {
             },
             false => Cow::Borrowed(d.value.as_str()),
         };
-        let (name, v) = (d.name.as_str(), &*v);
+        self.apply_value(d.name.as_str(), &v);
+    }
+
+    /* Apply `v`, free of var(), as the value of property `name`. */
+    pub(super) fn apply_value(&mut self, name: &str, v: &str) {
         match name {
             "background" | "background-image" => self.bg = bg_url(name, v),
             "content" => self.content = Some(String::from(v)),

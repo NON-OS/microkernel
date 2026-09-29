@@ -15,16 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod apply;
+mod plan;
+mod run;
 
 use alloc::string::String;
 
 use crate::browser::css::computed::Computed;
-use crate::browser::css::decl::Decl;
 use crate::browser::css::grid_spec::GridSpec;
-use crate::browser::css::rule::Rule;
 use crate::browser::css::vars::At;
-
-use super::order::Order;
 
 /* One box being styled: its computed style and the values that live
  * beside it, with var() resolving through `vars`. */
@@ -52,23 +50,5 @@ impl<'a> Styling<'a> {
             parent_fs,
             vars,
         }
-    }
-
-    /* Apply `order` in two passes: font-size first, since em, ex and
-     * percentage lengths and line heights of the same box resolve
-     * against it, then every other property. Custom properties were
-     * cascaded into the scope already. */
-    pub fn run(&mut self, order: &Order) {
-        order.each(Rule::FONT_SIZE, &mut |d| {
-            if d.name == "font-size" {
-                self.apply(d)
-            }
-        });
-        let rest = |d: &Decl| d.name != "font-size" && d.flags & Decl::CUSTOM == 0;
-        order.each(0, &mut |d| {
-            if rest(d) {
-                self.apply(d)
-            }
-        });
     }
 }

@@ -17,6 +17,8 @@
 mod counters;
 mod custom;
 mod element;
+mod keyword_table;
+mod keywords;
 mod order;
 mod pres_hints;
 mod spans;
