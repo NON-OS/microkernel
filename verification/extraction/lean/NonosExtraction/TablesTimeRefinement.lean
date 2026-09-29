@@ -21,9 +21,11 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.TablesTime
+import NonosExtraction.CivilDays
 
 open Aeneas Aeneas.Std Result
 open nonos_x_tables_time
+open ControlFlow
 
 set_option linter.hashCommand false
 set_option maxRecDepth 100000
@@ -38,9 +40,731 @@ theorem the_efitime_is_valid_wrapper_is_its_method (a : time.EfiTime) :
 theorem the_efitime_to_unix_timestamp_wrapper_is_its_method (a : time.EfiTime) :
     efitime_to_unix_timestamp a = time.EfiTime.to_unix_timestamp a := rfl
 
+/-! ### Field ranges, the Gregorian year, and seconds since 1970
+
+    `efitime_is_valid` is characterised exactly: it accepts the UEFI field ranges
+    with the day bounded by the length of its month, reads the timezone as a
+    signed offset so that offsets west of Greenwich pass, and treats 2047 as the
+    unspecified sentinel. `efitime_to_unix_timestamp` is characterised on every
+    month from one to twelve and every value of the other fields: all three
+    loops are run to completion against pure day counts, the leap rule they
+    consult is proven to be the Gregorian rule and to agree with the second copy
+    in the civil clock, no step of the arithmetic overflows `i64`, and the offset
+    is subtracted at sixty seconds per minute. Anchors at the epoch, at
+    2000-03-01, before 1970 and under an offset pin the result to known values.
+
+    Two defects are fixed and their theorems restated. Years from 1900 to 1969
+    passed `efitime_is_valid`, but the only year loop ran forward from 1970 and
+    was empty for them, so they were counted as 1970 and collided with dates a
+    year later; a second loop now counts them back from the epoch. The day check
+    was a range check, so 2021-02-31 passed and was read as 2021-03-03; it now
+    asks `days_in_month`. These theorems cannot establish anything about the
+    timestamp for months 0 or 13 and above, which `efitime_is_valid` rejects, nor
+    about the firmware call in the UEFI manager that fills an `EfiTime`, which is
+    not extracted. Nothing in the kernel converts an `EfiTime` to a timestamp
+    today.
+-/
+
+/-- The leap rule inside the timestamp is the full Gregorian rule on every `u16`
+    year, including the four hundred year exception. -/
+theorem the_timestamp_leap_rule_is_gregorian (y : Std.U16) :
+    time.EfiTime.is_leap_year y =
+      ok (decide ((y.val % 4 = 0 ∧ y.val % 100 ≠ 0) ∨ y.val % 400 = 0)) := by
+  unfold time.EfiTime.is_leap_year
+  simp only [core.num.U16.is_multiple_of, UScalar.is_multiple_of, bind_tc_ok]
+  have h4 : (4#u16 : Std.U16).val = 4 := rfl
+  have h100 : (100#u16 : Std.U16).val = 100 := rfl
+  have h400 : (400#u16 : Std.U16).val = 400 := rfl
+  rw [h4, h100, h400]
+  by_cases p : y.val % 4 = 0 <;> by_cases q : y.val % 100 = 0 <;>
+    by_cases r : y.val % 400 = 0 <;> simp [p, q, r]
+
+/-- The UEFI time table and the civil clock in sys/clock/civil/days.rs keep two
+    copies of the leap rule. They agree on every year. -/
+theorem the_timestamp_leap_rule_agrees_with_the_civil_clock (y : Std.U16) :
+    time.EfiTime.is_leap_year y = nonos_x_civil_days.is_leap_year y := by
+  rw [the_timestamp_leap_rule_is_gregorian]
+  unfold nonos_x_civil_days.is_leap_year nonos_x_civil_days.days.is_leap_year
+  simp only [core.num.U16.is_multiple_of, UScalar.is_multiple_of, bind_tc_ok]
+  have h4 : (4#u16 : Std.U16).val = 4 := rfl
+  have h100 : (100#u16 : Std.U16).val = 100 := rfl
+  have h400 : (400#u16 : Std.U16).val = 400 := rfl
+  rw [h4, h100, h400]
+  by_cases a : y.val % 4 = 0 <;> by_cases b : y.val % 100 = 0 <;>
+    by_cases c : y.val % 400 = 0 <;> simp [a, b, c]
+
+/-- Checked `i64` addition succeeds with the exact sum when the sum is in range. -/
+theorem adding_i64_in_range_succeeds (x y : Std.I64) (h1 : -9223372036854775808 ≤ x.val + y.val)
+    (h2 : x.val + y.val ≤ 9223372036854775807) :
+    ∃ z : Std.I64, x + y = ok z ∧ z.val = x.val + y.val :=
+  WP.spec_imp_exists (IScalar.add_spec (by scalar_tac) (by scalar_tac))
+
+/-- Checked `i64` subtraction succeeds with the exact difference when it is in range. -/
+theorem subtracting_i64_in_range_succeeds (x y : Std.I64) (h1 : -9223372036854775808 ≤ x.val - y.val)
+    (h2 : x.val - y.val ≤ 9223372036854775807) :
+    ∃ z : Std.I64, x - y = ok z ∧ z.val = x.val - y.val :=
+  WP.spec_imp_exists (IScalar.sub_spec (by scalar_tac) (by scalar_tac))
+
+/-- Checked `i64` multiplication succeeds with the exact product when it is in range. -/
+theorem multiplying_i64_in_range_succeeds (x y : Std.I64) (h1 : -9223372036854775808 ≤ x.val * y.val)
+    (h2 : x.val * y.val ≤ 9223372036854775807) :
+    ∃ z : Std.I64, x * y = ok z ∧ z.val = x.val * y.val :=
+  WP.spec_imp_exists (IScalar.mul_spec (by scalar_tac) (by scalar_tac))
+
+theorem widening_a_u8_keeps_its_value (x : Std.U8) : (UScalar.hcast .I64 x).val = x.val := by
+  obtain ⟨z, hz, hzv⟩ := WP.spec_imp_exists (UScalar.hcast_inBounds_spec .I64 x (by scalar_tac))
+  simp only [lift, ok.injEq] at hz; rw [hz]; exact hzv
+
+theorem a_u8_is_at_most_255 (x : Std.U8) : x.val ≤ 255 := by scalar_tac
+
+theorem a_u16_is_at_most_65535 (x : Std.U16) : x.val ≤ 65535 := by scalar_tac
+
+theorem an_i16_lies_in_its_range (x : Std.I16) : -32768 ≤ x.val ∧ x.val ≤ 32767 := by scalar_tac
+
+theorem widening_a_u16_keeps_its_value (x : Std.U16) : (UScalar.hcast .I64 x).val = x.val := by
+  obtain ⟨z, hz, hzv⟩ := WP.spec_imp_exists (UScalar.hcast_inBounds_spec .I64 x (by scalar_tac))
+  simp only [lift, ok.injEq] at hz; rw [hz]; exact hzv
+
+theorem widening_an_i16_keeps_its_value (x : Std.I16) : (IScalar.cast .I64 x).val = x.val := by
+  obtain ⟨z, hz, hzv⟩ := WP.spec_imp_exists (IScalar.cast_inBounds_spec .I64 x
+    (by constructor <;> scalar_tac))
+  simp only [lift, ok.injEq] at hz; rw [hz]; exact hzv
+
+/-- A nonempty `i64` range yields its start and moves the start up by one. -/
+theorem an_i64_range_yields_its_start_and_steps_by_one (s e : Std.I64) (h : s.val < e.val) :
+    ∃ s' : Std.I64, s'.val = s.val + 1 ∧
+    core.iter.range.IteratorRange.next core.iter.range.StepI64 { start := s, «end» := e } =
+      ok (some s, { start := s', «end» := e }) := by
+  simp [core.iter.range.IteratorRange.next, core.iter.range.IScalarStep,
+    core.iter.range.IScalarStep.forward_checked, core.cmp.impls.PartialOrdI64.lt, I64.max_eq,
+    h]
+  have hs := s.hBounds
+  have he := e.hBounds
+  have hb : s.val + 1 ≤ 9223372036854775807 := by
+    simp only [IScalarTy.numBits] at he; omega
+  refine ⟨_, ?_, by rw [dif_pos hb]; rfl⟩
+  exact IScalar.ofInt_val_eq _
+
+/-- An `i64` range whose start has reached its end yields nothing. -/
+theorem an_i64_range_at_its_end_yields_nothing (s e : Std.I64) (h : e.val ≤ s.val) :
+    core.iter.range.IteratorRange.next core.iter.range.StepI64
+      { start := s, «end» := e } = ok (none, { start := s, «end» := e }) := by
+  simp [core.iter.range.IteratorRange.next, core.iter.range.IScalarStep,
+    core.cmp.impls.PartialOrdI64.lt, h]
+
+/-- The length of a Gregorian year. -/
+def yearLength (y : Nat) : Int :=
+  if (y % 4 = 0 ∧ y % 100 ≠ 0) ∨ y % 400 = 0 then 366 else 365
+
+/-- The days in the `n` years from year `a`. -/
+def daysInYearsFrom : Nat → Nat → Int
+  | _, 0 => 0
+  | a, n + 1 => yearLength a + daysInYearsFrom (a + 1) n
+
+theorem a_year_has_365_or_366_days (y : Nat) : 365 ≤ yearLength y ∧ yearLength y ≤ 366 := by
+  unfold yearLength; split <;> omega
+
+
+/-- One pass of the year loop adds 366 in a Gregorian leap year and 365 otherwise. -/
+theorem one_pass_of_the_year_loop_adds_that_years_length (s e d : Std.I64) (k : Nat) (hs : s.val = k) (hk : (k : Int) < e.val)
+    (hk16 : k ≤ 65535) (hd : 0 ≤ d.val) (hdm : d.val + 366 ≤ 9223372036854775807) :
+    ∃ s' d' : Std.I64, s'.val = k + 1 ∧ d'.val = d.val + yearLength k ∧
+    time.EfiTime.to_unix_timestamp_loop0.body { start := s, «end» := e } d =
+      ok (cont ({ start := s', «end» := e }, d')) := by
+  obtain ⟨s', hs', hn⟩ := an_i64_range_yields_its_start_and_steps_by_one s e (by omega)
+  have hu : (IScalar.hcast .U16 s).val = k := by
+    obtain ⟨u, hu, huv⟩ := WP.spec_imp_exists (IScalar.hcast_inBounds_spec .U16 s
+      (by rw [hs]; constructor <;> simp [U16.max_eq]; omega))
+    simp only [lift, ok.injEq] at hu; rw [hu]; omega
+  have hyd := a_year_has_365_or_366_days k
+  have e366 : (366#i64 : Std.I64).val = 366 := rfl
+  have e365 : (365#i64 : Std.I64).val = 365 := rfl
+  obtain ⟨z, hz, hzv⟩ := adding_i64_in_range_succeeds d
+    (if (k % 4 = 0 ∧ k % 100 ≠ 0) ∨ k % 400 = 0 then 366#i64 else 365#i64)
+    (by split <;> omega) (by split <;> omega)
+  refine ⟨s', z, by omega, ?_, ?_⟩
+  · rw [hzv]; unfold yearLength; split <;> rfl
+  · unfold time.EfiTime.to_unix_timestamp_loop0.body
+    rw [hn]
+    simp only [bind_tc_ok, lift, uncurry, the_timestamp_leap_rule_is_gregorian, hu]
+    by_cases p : (k % 4 = 0 ∧ k % 100 ≠ 0) ∨ k % 400 = 0 <;>
+      simp only [p, if_true, if_false] at hz <;> simp [p, hz]
+
+theorem the_year_loop_over_an_empty_range_adds_nothing (s e d : Std.I64) (h : e.val ≤ s.val) :
+    time.EfiTime.to_unix_timestamp_loop0 { start := s, «end» := e } d = ok d := by
+  unfold time.EfiTime.to_unix_timestamp_loop0
+  rw [loop]
+  simp only [time.EfiTime.to_unix_timestamp_loop0.body, an_i64_range_at_its_end_yields_nothing s e h, bind_tc_ok, uncurry]
+
+/-- The year loop, started at year `k` with `n` years to go, adds the lengths of
+    exactly those `n` years. -/
+theorem the_year_loop_adds_the_lengths_of_the_years_it_walks : ∀ n k : Nat, ∀ s e : Std.I64, s.val = k → (k : Int) + n = e.val →
+    k + n ≤ 65535 → ∀ d : Std.I64, 0 ≤ d.val → d.val + 366 * n ≤ 9223372036854775807 →
+    ∃ r : Std.I64, time.EfiTime.to_unix_timestamp_loop0 { start := s, «end» := e } d = ok r ∧
+      r.val = d.val + daysInYearsFrom k n := by
+  intro n
+  induction n with
+  | zero =>
+    intro k s e hs he _ d _ _
+    exact ⟨d, the_year_loop_over_an_empty_range_adds_nothing s e d (by omega), by simp [daysInYearsFrom]⟩
+  | succ n ih =>
+    intro k s e hs he hk d hd hdm
+    obtain ⟨s', d', hs', hd', hb⟩ := one_pass_of_the_year_loop_adds_that_years_length s e d k hs (by omega) (by omega) hd (by omega)
+    have hyd := a_year_has_365_or_366_days k
+    obtain ⟨r, hr, hrv⟩ := ih (k + 1) s' e (by rw [hs']; push_cast; rfl) (by push_cast; omega)
+      (by omega) d' (by omega) (by omega)
+    refine ⟨r, ?_, ?_⟩
+    · unfold time.EfiTime.to_unix_timestamp_loop0
+      rw [loop]
+      simp only []
+      rw [hb]
+      simp only []
+      unfold time.EfiTime.to_unix_timestamp_loop0 at hr
+      exact hr
+    · rw [hrv, hd']; simp only [daysInYearsFrom]; ring
+
+/-- One pass of the backward year loop takes away 366 in a Gregorian leap year
+    and 365 otherwise. -/
+theorem one_pass_of_the_backward_year_loop_takes_that_years_length (s e d : Std.I64) (k : Nat)
+    (hs : s.val = k) (hk : (k : Int) < e.val) (hk16 : k ≤ 65535) (hd : d.val ≤ 0)
+    (hdm : -9223372036854775808 ≤ d.val - 366) :
+    ∃ s' d' : Std.I64, s'.val = k + 1 ∧ d'.val = d.val - yearLength k ∧
+    time.EfiTime.to_unix_timestamp_loop1.body { start := s, «end» := e } d =
+      ok (cont ({ start := s', «end» := e }, d')) := by
+  obtain ⟨s', hs', hn⟩ := an_i64_range_yields_its_start_and_steps_by_one s e (by omega)
+  have hu : (IScalar.hcast .U16 s).val = k := by
+    obtain ⟨u, hu, huv⟩ := WP.spec_imp_exists (IScalar.hcast_inBounds_spec .U16 s
+      (by rw [hs]; constructor <;> simp [U16.max_eq]; omega))
+    simp only [lift, ok.injEq] at hu; rw [hu]; omega
+  have hyd := a_year_has_365_or_366_days k
+  have e366 : (366#i64 : Std.I64).val = 366 := rfl
+  have e365 : (365#i64 : Std.I64).val = 365 := rfl
+  obtain ⟨z, hz, hzv⟩ := subtracting_i64_in_range_succeeds d
+    (if (k % 4 = 0 ∧ k % 100 ≠ 0) ∨ k % 400 = 0 then 366#i64 else 365#i64)
+    (by split <;> omega) (by split <;> omega)
+  refine ⟨s', z, by omega, ?_, ?_⟩
+  · rw [hzv]; unfold yearLength; split <;> rfl
+  · unfold time.EfiTime.to_unix_timestamp_loop1.body
+    rw [hn]
+    simp only [bind_tc_ok, lift, uncurry, the_timestamp_leap_rule_is_gregorian, hu]
+    by_cases p : (k % 4 = 0 ∧ k % 100 ≠ 0) ∨ k % 400 = 0 <;>
+      simp only [p, if_true, if_false] at hz <;> simp [p, hz]
+
+theorem the_backward_year_loop_over_an_empty_range_takes_nothing (s e d : Std.I64)
+    (h : e.val ≤ s.val) :
+    time.EfiTime.to_unix_timestamp_loop1 { start := s, «end» := e } d = ok d := by
+  unfold time.EfiTime.to_unix_timestamp_loop1
+  rw [loop]
+  simp only [time.EfiTime.to_unix_timestamp_loop1.body,
+    an_i64_range_at_its_end_yields_nothing s e h, bind_tc_ok, uncurry]
+
+/-- The backward year loop, started at year `k` with `n` years to go, takes away
+    the lengths of exactly those `n` years. -/
+theorem the_backward_year_loop_takes_the_lengths_of_the_years_it_walks :
+    ∀ n k : Nat, ∀ s e : Std.I64, s.val = k → (k : Int) + n = e.val →
+    k + n ≤ 65535 → ∀ d : Std.I64, d.val ≤ 0 → -9223372036854775808 ≤ d.val - 366 * n →
+    ∃ r : Std.I64, time.EfiTime.to_unix_timestamp_loop1 { start := s, «end» := e } d = ok r ∧
+      r.val = d.val - daysInYearsFrom k n := by
+  intro n
+  induction n with
+  | zero =>
+    intro k s e hs he _ d _ _
+    exact ⟨d, the_backward_year_loop_over_an_empty_range_takes_nothing s e d (by omega),
+      by simp [daysInYearsFrom]⟩
+  | succ n ih =>
+    intro k s e hs he hk d hd hdm
+    obtain ⟨s', d', hs', hd', hb⟩ :=
+      one_pass_of_the_backward_year_loop_takes_that_years_length s e d k hs (by omega)
+        (by omega) hd (by omega)
+    have hyd := a_year_has_365_or_366_days k
+    obtain ⟨r, hr, hrv⟩ := ih (k + 1) s' e (by rw [hs']; push_cast; rfl) (by push_cast; omega)
+      (by omega) d' (by omega) (by omega)
+    refine ⟨r, ?_, ?_⟩
+    · unfold time.EfiTime.to_unix_timestamp_loop1
+      rw [loop]
+      simp only []
+      rw [hb]
+      simp only []
+      unfold time.EfiTime.to_unix_timestamp_loop1 at hr
+      exact hr
+    · rw [hrv, hd']; simp only [daysInYearsFrom]; ring
+
+/-- The whole days from 1970-01-01 to January 1 of year `y`: the years from 1970
+    up to `y` counted forward, or the years from `y` up to 1970 counted back.
+    One of the two walks is always empty. -/
+def daysToYear (y : Nat) : Int :=
+  daysInYearsFrom 1970 (y - 1970) - daysInYearsFrom y (1970 - y)
+
+/-- The calendar's month lengths, February common. -/
+def monthLengths : List Int := [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+/-- The Gregorian leap rule. -/
+def gregorianLeap (y : Nat) : Prop := (y % 4 = 0 ∧ y % 100 ≠ 0) ∨ y % 400 = 0
+
+instance (y : Nat) : Decidable (gregorianLeap y) := by unfold gregorianLeap; infer_instance
+
+/-- The length of month `m` of year `y`. -/
+def monthLength (y m : Nat) : Int :=
+  monthLengths[m - 1]! + (if m = 2 ∧ gregorianLeap y then 1 else 0)
+
+/-- The month table exactly as the extracted `to_unix_timestamp` builds it. -/
+abbrev daysPerMonth : Array Std.I64 12#usize := Array.make 12#usize [
+        31#i64, 28#i64, 31#i64, 30#i64, 31#i64, 30#i64, 31#i64, 31#i64, 30#i64,
+        31#i64, 30#i64, 31#i64
+        ]
+
+theorem every_month_in_the_table_has_28_to_31_days (i : Nat) (h : i < 12) :
+    28 ≤ monthLengths[i]! ∧ monthLengths[i]! ≤ 31 := by
+  have hi : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 ∨ i = 4 ∨ i = 5 ∨ i = 6 ∨ i = 7 ∨ i = 8 ∨
+    i = 9 ∨ i = 10 ∨ i = 11 := by omega
+  rcases hi with rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl <;> decide
+
+/-- The twelve month lengths the extracted code indexes are the calendar's, with
+    a 28 day February. -/
+theorem the_extracted_month_table_is_the_calendar_table (i : Nat) (h : i < 12) :
+    (daysPerMonth.val[i]'(by simp [daysPerMonth, Array.make]; omega)).val = monthLengths[i]! := by
+  have hi : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 ∨ i = 4 ∨ i = 5 ∨ i = 6 ∨ i = 7 ∨ i = 8 ∨
+    i = 9 ∨ i = 10 ∨ i = 11 := by omega
+  rcases hi with rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl <;> rfl
+
+/-- `days_in_month` gives the calendar length of every month from one to twelve,
+    with a 29 day February exactly in Gregorian leap years. -/
+theorem days_in_month_is_the_month_length (y : Std.U16) (m : Std.U8) (h1 : 1 ≤ m.val)
+    (h2 : m.val ≤ 12) :
+    ∃ x : Std.U8, time.EfiTime.days_in_month y m = ok x ∧ (x.val : Int) = monthLength y.val m.val := by
+  have hm : m.val = 1 ∨ m.val = 2 ∨ m.val = 3 ∨ m.val = 4 ∨ m.val = 5 ∨ m.val = 6 ∨
+      m.val = 7 ∨ m.val = 8 ∨ m.val = 9 ∨ m.val = 10 ∨ m.val = 11 ∨ m.val = 12 := by omega
+  unfold time.EfiTime.days_in_month
+  rcases hm with h|h|h|h|h|h|h|h|h|h|h|h
+  · obtain rfl : m = 1#u8 := UScalar.eq_of_val_eq h
+    exact ⟨_, rfl, by simp [monthLength, monthLengths]⟩
+  · obtain rfl : m = 2#u8 := UScalar.eq_of_val_eq h
+    simp only [the_timestamp_leap_rule_is_gregorian, bind_tc_ok]
+    by_cases p : gregorianLeap y.val
+    · have p' : (y.val % 4 = 0 ∧ y.val % 100 ≠ 0) ∨ y.val % 400 = 0 := p
+      refine ⟨_, by simp [p']; rfl, ?_⟩
+      simp [monthLength, monthLengths, p]
+    · have p' : ¬ ((y.val % 4 = 0 ∧ y.val % 100 ≠ 0) ∨ y.val % 400 = 0) := p
+      refine ⟨_, by simp [p']; rfl, ?_⟩
+      simp [monthLength, monthLengths, p]
+  · obtain rfl : m = 3#u8 := UScalar.eq_of_val_eq h
+    exact ⟨_, rfl, by simp [monthLength, monthLengths]⟩
+  · obtain rfl : m = 4#u8 := UScalar.eq_of_val_eq h
+    exact ⟨_, rfl, by simp [monthLength, monthLengths]⟩
+  · obtain rfl : m = 5#u8 := UScalar.eq_of_val_eq h
+    exact ⟨_, rfl, by simp [monthLength, monthLengths]⟩
+  · obtain rfl : m = 6#u8 := UScalar.eq_of_val_eq h
+    exact ⟨_, rfl, by simp [monthLength, monthLengths]⟩
+  · obtain rfl : m = 7#u8 := UScalar.eq_of_val_eq h
+    exact ⟨_, rfl, by simp [monthLength, monthLengths]⟩
+  · obtain rfl : m = 8#u8 := UScalar.eq_of_val_eq h
+    exact ⟨_, rfl, by simp [monthLength, monthLengths]⟩
+  · obtain rfl : m = 9#u8 := UScalar.eq_of_val_eq h
+    exact ⟨_, rfl, by simp [monthLength, monthLengths]⟩
+  · obtain rfl : m = 10#u8 := UScalar.eq_of_val_eq h
+    exact ⟨_, rfl, by simp [monthLength, monthLengths]⟩
+  · obtain rfl : m = 11#u8 := UScalar.eq_of_val_eq h
+    exact ⟨_, rfl, by simp [monthLength, monthLengths]⟩
+  · obtain rfl : m = 12#u8 := UScalar.eq_of_val_eq h
+    exact ⟨_, rfl, by simp [monthLength, monthLengths]⟩
+
+/-- `efitime_is_valid` holds exactly on the UEFI field ranges with the day
+    bounded by the length of its month, February having 29 days exactly in
+    Gregorian leap years. The timezone is compared as a signed `i16`, so offsets
+    west of Greenwich down to -1440 are accepted, and 2047 (unspecified) is
+    accepted on its own. -/
+theorem efitime_is_valid_is_exactly_the_uefi_calendar (t : time.EfiTime) :
+    efitime_is_valid t = ok (decide (1900 ≤ t.year.val ∧ t.year.val ≤ 9999 ∧
+      1 ≤ t.month.val ∧ t.month.val ≤ 12 ∧ 1 ≤ t.day.val ∧
+      (t.day.val : Int) ≤ monthLength t.year.val t.month.val ∧
+      t.hour.val ≤ 23 ∧ t.minute.val ≤ 59 ∧ t.second.val ≤ 59 ∧
+      t.nanosecond.val ≤ 999999999 ∧
+      (t.timezone.val = 2047 ∨ (-1440 ≤ t.timezone.val ∧ t.timezone.val ≤ 1440)))) := by
+  unfold efitime_is_valid time.EfiTime.is_valid
+  unfold time.EfiTime.TIMEZONE_UNSPECIFIED
+  have hb : ∀ (c : Prop) [Decidable c] (b : Bool),
+      (if c then ok b else ok false : Result Bool) = ok (decide c && b) := by
+    intro c _ b; by_cases h : c <;> simp [h]
+  have ht : ∀ (c : Prop) [Decidable c] (b : Bool),
+      (if c then ok true else ok b : Result Bool) = ok (decide c || b) := by
+    intro c _ b; by_cases h : c <;> simp [h]
+  by_cases hm : 1 ≤ t.month.val ∧ t.month.val ≤ 12
+  · obtain ⟨x, hx, hxv⟩ := days_in_month_is_the_month_length t.year t.month hm.1 hm.2
+    rw [hx]
+    simp only [bind_tc_ok, hb, ht, ok.injEq]
+    rw [Bool.eq_iff_iff]
+    simp only [Bool.and_eq_true, Bool.or_eq_true, decide_eq_true_eq, ge_iff_le,
+      UScalar.le_equiv, IScalar.le_equiv, IScalar.eq_equiv]
+    have key : ((t.day.val : Int) ≤ monthLength t.year.val t.month.val) ↔ t.day.val ≤ x.val := by
+      rw [← hxv]; omega
+    rw [key]
+    exact Iff.rfl
+  · have hm' : ¬ (t.month ≥ 1#u8 ∧ t.month ≤ 12#u8) := by
+      simp only [ge_iff_le, UScalar.le_equiv]; exact hm
+    by_cases h1 : t.month ≥ 1#u8
+    · have h2 : ¬ t.month ≤ 12#u8 := fun h2 => hm' ⟨h1, h2⟩
+      simp only [h1, h2, if_false, ite_self]
+      symm; simp only [ok.injEq, decide_eq_false_iff_not]; omega
+    · simp only [h1, if_false, ite_self]
+      symm; simp only [ok.injEq, decide_eq_false_iff_not]
+      simp only [ge_iff_le, UScalar.le_equiv] at h1
+      omega
+
+/-- One pass of the month loop adds the table length of that month, and one more
+    day for February of a leap year. The index `m - 1` stays inside the table for
+    months one to twelve. -/
+theorem one_pass_of_the_month_loop_adds_that_months_length (s e d yr : Std.I64) (k y : Nat) (hs : s.val = k) (hy : yr.val = y)
+    (hy16 : y ≤ 65535) (hk1 : 1 ≤ k) (hk : (k : Int) < e.val) (hk12 : k ≤ 12)
+    (hd : -9223372036854775808 ≤ d.val) (hdm : d.val + 32 ≤ 9223372036854775807) :
+    ∃ s' d' : Std.I64, s'.val = k + 1 ∧ d'.val = d.val + monthLength y k ∧
+    time.EfiTime.to_unix_timestamp_loop2.body daysPerMonth yr { start := s, «end» := e } d =
+      ok (cont ({ start := s', «end» := e }, d')) := by
+  obtain ⟨s', hs', hn⟩ := an_i64_range_yields_its_start_and_steps_by_one s e (by omega)
+  have hs'' : s'.val = k + 1 := by omega
+  have e1 : (1#i64 : Std.I64).val = 1 := rfl
+  obtain ⟨i, hi, hiv⟩ := subtracting_i64_in_range_succeeds s 1#i64 (by omega) (by omega)
+  have hiv' : i.val = (k : Int) - 1 := by omega
+  obtain ⟨j, hj, hjv⟩ := WP.spec_imp_exists (IScalar.hcast_inBounds_spec .Usize i
+    (by constructor <;> scalar_tac))
+  simp only [lift, ok.injEq] at hj
+  have hjv' : j.val = k - 1 := by omega
+  obtain ⟨x, hx, hxv⟩ := WP.spec_imp_exists (Array.index_usize_spec daysPerMonth j
+    (by simp [hjv']; omega))
+  have hxval : x.val = monthLengths[k - 1]! := by
+    subst hxv; simp only [hjv']; exact the_extracted_month_table_is_the_calendar_table (k - 1) (by omega)
+  have hmt := every_month_in_the_table_has_28_to_31_days (k - 1) (by omega)
+  obtain ⟨a, ha, hav⟩ := adding_i64_in_range_succeeds d x (by omega) (by omega)
+  unfold time.EfiTime.to_unix_timestamp_loop2.body
+  rw [hn]
+  simp only [bind_tc_ok, lift, uncurry, hi, hj, hx, ha]
+  by_cases hk2 : k = 2
+  · subst hk2
+    have hu : (IScalar.hcast .U16 yr).val = y := by
+      obtain ⟨u, hu, huv⟩ := WP.spec_imp_exists (IScalar.hcast_inBounds_spec .U16 yr
+        (by rw [hy]; constructor <;> simp [U16.max_eq]; omega))
+      simp only [lift, ok.injEq] at hu; rw [hu]; omega
+    have h2 : s = 2#i64 := IScalar.eq_of_val_eq (by rw [hs]; rfl)
+    simp only [h2, if_true, the_timestamp_leap_rule_is_gregorian, hu, bind_tc_ok]
+    by_cases p : gregorianLeap y
+    · obtain ⟨b, hb, hbv⟩ := adding_i64_in_range_succeeds a 1#i64 (by omega) (by omega)
+      refine ⟨s', b, hs'', ?_, ?_⟩
+      · rw [hbv, hav, hxval, e1]; simp only [monthLength, p, and_self, if_true]; omega
+      · have p' : (y % 4 = 0 ∧ y % 100 ≠ 0) ∨ y % 400 = 0 := p
+        simp [p', hb]
+    · refine ⟨s', a, hs'', ?_, ?_⟩
+      · rw [hav, hxval]; simp only [monthLength, p, and_false, if_false]; omega
+      · have p' : ¬ ((y % 4 = 0 ∧ y % 100 ≠ 0) ∨ y % 400 = 0) := p
+        simp [p']
+  · have hne : ¬ s = 2#i64 := by
+      intro h; have := congrArg IScalar.val h; rw [hs] at this
+      have : (k : Int) = 2 := this
+      omega
+    refine ⟨s', a, hs'', ?_, ?_⟩
+    · rw [hav, hxval]; simp only [monthLength, hk2, false_and, if_false]; omega
+    · simp only [hne, if_false]
+
+/-- The days in the `n` months from month `a` of year `y`. -/
+def daysInMonthsFrom (y : Nat) : Nat → Nat → Int
+  | _, 0 => 0
+  | a, n + 1 => monthLength y a + daysInMonthsFrom y (a + 1) n
+
+theorem a_month_has_28_to_31_days (y k : Nat) (h1 : 1 ≤ k) (h : k ≤ 12) :
+    28 ≤ monthLength y k ∧ monthLength y k ≤ 31 := by
+  have hk' : k = 1 ∨ k = 2 ∨ k = 3 ∨ k = 4 ∨ k = 5 ∨ k = 6 ∨ k = 7 ∨ k = 8 ∨ k = 9 ∨
+      k = 10 ∨ k = 11 ∨ k = 12 := by omega
+  unfold monthLength
+  rcases hk' with rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl <;>
+    simp only [monthLengths] <;> split <;>
+    first | decide | (rename_i h; exact absurd h.1 (by decide))
+
+theorem the_month_loop_over_an_empty_range_adds_nothing (s e d yr : Std.I64) (h : e.val ≤ s.val) :
+    time.EfiTime.to_unix_timestamp_loop2 { start := s, «end» := e } daysPerMonth yr d = ok d := by
+  unfold time.EfiTime.to_unix_timestamp_loop2
+  rw [loop]
+  simp only [time.EfiTime.to_unix_timestamp_loop2.body, an_i64_range_at_its_end_yields_nothing s e h, bind_tc_ok, uncurry]
+
+/-- The month loop, started at month `k` with `n` months to go, adds the lengths
+    of exactly those months in the given year. -/
+theorem the_month_loop_adds_the_lengths_of_the_months_it_walks (yr : Std.I64) (y : Nat) (hy : yr.val = y) (hy16 : y ≤ 65535) :
+    ∀ n k : Nat, ∀ s e : Std.I64, s.val = k → (k : Int) + n = e.val → 1 ≤ k → k + n ≤ 13 →
+    ∀ d : Std.I64, -9223372036854775808 ≤ d.val → d.val + 32 * n ≤ 9223372036854775807 →
+    ∃ r : Std.I64, time.EfiTime.to_unix_timestamp_loop2 { start := s, «end» := e } daysPerMonth yr d
+      = ok r ∧ r.val = d.val + daysInMonthsFrom y k n := by
+  intro n
+  induction n with
+  | zero =>
+    intro k s e hs he _ _ d _ _
+    exact ⟨d, the_month_loop_over_an_empty_range_adds_nothing s e d yr (by omega), by simp [daysInMonthsFrom]⟩
+  | succ n ih =>
+    intro k s e hs he hk1 hk d hd hdm
+    obtain ⟨s', d', hs', hd', hb⟩ := one_pass_of_the_month_loop_adds_that_months_length s e d yr k y hs hy hy16 hk1 (by omega) (by omega)
+      hd (by omega)
+    have hmd := a_month_has_28_to_31_days y k hk1 (by omega)
+    obtain ⟨r, hr, hrv⟩ := ih (k + 1) s' e (by rw [hs']; push_cast; rfl) (by push_cast; omega)
+      (by omega) (by omega) d' (by omega) (by omega)
+    refine ⟨r, ?_, ?_⟩
+    · unfold time.EfiTime.to_unix_timestamp_loop2
+      rw [loop]
+      simp only []
+      rw [hb]
+      simp only []
+      unfold time.EfiTime.to_unix_timestamp_loop2 at hr
+      exact hr
+    · rw [hrv, hd']; simp only [daysInMonthsFrom]; ring
+
+theorem the_years_walked_add_at_most_366_days_each : ∀ n a : Nat, 0 ≤ daysInYearsFrom a n ∧ daysInYearsFrom a n ≤ 366 * n := by
+  intro n; induction n with
+  | zero => intro a; simp [daysInYearsFrom]
+  | succ n ih => intro a; have := ih (a + 1); have := a_year_has_365_or_366_days a; simp only [daysInYearsFrom]; omega
+
+theorem the_months_walked_add_at_most_31_days_each (y : Nat) : ∀ n a : Nat, 1 ≤ a → a + n ≤ 13 →
+    0 ≤ daysInMonthsFrom y a n ∧ daysInMonthsFrom y a n ≤ 31 * n := by
+  intro n; induction n with
+  | zero => intro a _ _; simp [daysInMonthsFrom]
+  | succ n ih =>
+    intro a h1 h2; have := ih (a + 1) (by omega) (by omega)
+    have := a_month_has_28_to_31_days y a h1 (by omega); simp only [daysInMonthsFrom]; omega
+
+/-- For every month from one to twelve and every other field, `efitime_to_unix_timestamp`
+    succeeds and returns the whole days since 1970-01-01 (the signed days to
+    January 1 of the year, then the lengths of the months before this one, then
+    `day - 1`) in seconds, plus the time of day, minus sixty seconds per minute of
+    timezone offset unless the offset is the unspecified 2047. A year before 1970
+    counts back from the epoch, so its dates are negative. -/
+theorem efitime_to_unix_timestamp_counts_days_from_1970_and_subtracts_the_offset (t : time.EfiTime) (hm1 : 1 ≤ t.month.val) (hm : t.month.val ≤ 12) :
+    efitime_to_unix_timestamp t ⦃ r => r.val =
+      86400 * (daysToYear t.year.val + daysInMonthsFrom t.year.val 1 (t.month.val - 1)
+        + t.day.val - 1) + 3600 * t.hour.val + 60 * t.minute.val + t.second.val
+      - (if t.timezone.val = 2047 then 0 else 60 * t.timezone.val) ⦄ := by
+  unfold efitime_to_unix_timestamp time.EfiTime.to_unix_timestamp
+  have hy16 := a_u16_is_at_most_65535 t.year
+  have hyr := widening_a_u16_keeps_its_value t.year
+  have hmo := widening_a_u8_keeps_its_value t.month
+  have hdb := the_years_walked_add_at_most_366_days_each (t.year.val - 1970) 1970
+  have hmb := the_months_walked_add_at_most_31_days_each t.year.val (t.month.val - 1) 1 le_rfl (by omega)
+  obtain ⟨r0, hr0, hr0v⟩ : ∃ r0 : Std.I64, time.EfiTime.to_unix_timestamp_loop0
+      { start := 1970#i64, «end» := UScalar.hcast .I64 t.year } 0#i64 = ok r0 ∧
+      r0.val = daysInYearsFrom 1970 (t.year.val - 1970) := by
+    by_cases hy1 : 1970 ≤ t.year.val
+    · have h0 : (0#i64 : Std.I64).val = 0 := rfl
+      obtain ⟨r0, h, hv⟩ := the_year_loop_adds_the_lengths_of_the_years_it_walks (t.year.val - 1970) 1970 1970#i64
+        (UScalar.hcast .I64 t.year) rfl (by omega) (by omega) 0#i64 (by decide) (by omega)
+      exact ⟨r0, h, by rw [hv, h0]; omega⟩
+    · refine ⟨0#i64, the_year_loop_over_an_empty_range_adds_nothing _ _ _ ?_, ?_⟩
+      · have : (1970#i64 : Std.I64).val = 1970 := rfl
+        omega
+      · have : t.year.val - 1970 = 0 := by omega
+        rw [this]; rfl
+  have hbb := the_years_walked_add_at_most_366_days_each (1970 - t.year.val) t.year.val
+  obtain ⟨q0, hq0, hq0v⟩ : ∃ q0 : Std.I64, time.EfiTime.to_unix_timestamp_loop1
+      { start := UScalar.hcast .I64 t.year, «end» := 1970#i64 } r0 = ok q0 ∧
+      q0.val = daysToYear t.year.val := by
+    have e1970 : (1970#i64 : Std.I64).val = 1970 := rfl
+    by_cases hy1 : 1970 ≤ t.year.val
+    · refine ⟨r0, the_backward_year_loop_over_an_empty_range_takes_nothing _ _ _
+        (by rw [hyr]; omega), ?_⟩
+      have : 1970 - t.year.val = 0 := by omega
+      rw [hr0v, daysToYear, this]; simp [daysInYearsFrom]
+    · have hz : t.year.val - 1970 = 0 := by omega
+      have hr00 : r0.val = 0 := by rw [hr0v, hz]; rfl
+      obtain ⟨q0, h, hv⟩ := the_backward_year_loop_takes_the_lengths_of_the_years_it_walks
+        (1970 - t.year.val) t.year.val (UScalar.hcast .I64 t.year) 1970#i64 hyr
+        (by rw [e1970]; omega) (by omega) r0 (by omega) (by omega)
+      refine ⟨q0, h, ?_⟩
+      rw [hv, hr00, daysToYear, hz]; simp [daysInYearsFrom]
+  obtain ⟨r1, hr1, hr1v⟩ := the_month_loop_adds_the_lengths_of_the_months_it_walks (UScalar.hcast .I64 t.year) t.year.val (by omega) hy16
+    (t.month.val - 1) 1 1#i64 (UScalar.hcast .I64 t.month) rfl (by omega) le_rfl (by omega) q0
+    (by rw [hq0v, daysToYear]; omega) (by rw [hq0v, daysToYear]; omega)
+  have hr1' : time.EfiTime.to_unix_timestamp_loop2 { start := 1#i64, «end» := UScalar.hcast .I64 t.month }
+      (Array.make 12#usize [
+        31#i64, 28#i64, 31#i64, 30#i64, 31#i64, 30#i64, 31#i64, 31#i64, 30#i64,
+        31#i64, 30#i64, 31#i64
+        ]) (UScalar.hcast .I64 t.year) q0 = ok r1 := hr1
+  have hd := widening_a_u8_keeps_its_value t.day
+  have hh := widening_a_u8_keeps_its_value t.hour
+  have hmi := widening_a_u8_keeps_its_value t.minute
+  have hs := widening_a_u8_keeps_its_value t.second
+  have htz := widening_an_i16_keeps_its_value t.timezone
+  have hdy := a_u8_is_at_most_255 t.day
+  have hhy := a_u8_is_at_most_255 t.hour
+  have hmy := a_u8_is_at_most_255 t.minute
+  have hsy := a_u8_is_at_most_255 t.second
+  have htzb := an_i16_lies_in_its_range t.timezone
+  have hr1b : -366 * 1970 ≤ r1.val ∧ r1.val ≤ 366 * 65535 + 31 * 12 := by
+    rw [hr1v, hq0v, daysToYear]; omega
+  have e1 : (1#i64 : Std.I64).val = 1 := rfl
+  have e86400 : (86400#i64 : Std.I64).val = 86400 := rfl
+  have e3600 : (3600#i64 : Std.I64).val = 3600 := rfl
+  have e60 : (60#i64 : Std.I64).val = 60 := rfl
+  obtain ⟨i, hi, hiv⟩ := subtracting_i64_in_range_succeeds (UScalar.hcast .I64 t.day) 1#i64 (by omega) (by omega)
+  rw [e1] at hiv
+  obtain ⟨d2, hd2, hd2v⟩ := adding_i64_in_range_succeeds r1 i (by omega) (by omega)
+  obtain ⟨i1, hi1, hi1v⟩ := multiplying_i64_in_range_succeeds d2 86400#i64 (by rw [e86400]; omega) (by rw [e86400]; omega)
+  rw [e86400] at hi1v
+  obtain ⟨i3, hi3, hi3v⟩ := multiplying_i64_in_range_succeeds (UScalar.hcast .I64 t.hour) 3600#i64
+    (by rw [e3600]; omega) (by rw [e3600]; omega)
+  rw [e3600] at hi3v
+  obtain ⟨i4, hi4, hi4v⟩ := adding_i64_in_range_succeeds i1 i3 (by omega) (by omega)
+  obtain ⟨i6, hi6, hi6v⟩ := multiplying_i64_in_range_succeeds (UScalar.hcast .I64 t.minute) 60#i64
+    (by rw [e60]; omega) (by rw [e60]; omega)
+  rw [e60] at hi6v
+  obtain ⟨i7, hi7, hi7v⟩ := adding_i64_in_range_succeeds i4 i6 (by omega) (by omega)
+  obtain ⟨sc, hsc, hscv⟩ := adding_i64_in_range_succeeds i7 (UScalar.hcast .I64 t.second) (by omega) (by omega)
+  obtain ⟨i10, hi10, hi10v⟩ := multiplying_i64_in_range_succeeds (IScalar.cast .I64 t.timezone) 60#i64
+    (by rw [e60]; omega) (by rw [e60]; omega)
+  rw [e60] at hi10v
+  obtain ⟨r, hr, hrv⟩ := subtracting_i64_in_range_succeeds sc i10 (by omega) (by omega)
+  simp only [lift, bind_tc_ok, hr0, hq0, hr1', hi, hd2, hi1, hi3, hi4, hi6, hi7, hsc, hi10, hr]
+  by_cases hz : t.timezone.val = 2047
+  · have hz' : t.timezone = time.EfiTime.TIMEZONE_UNSPECIFIED := by
+      unfold time.EfiTime.TIMEZONE_UNSPECIFIED; exact IScalar.eq_of_val_eq hz
+    have hb : (t.timezone != time.EfiTime.TIMEZONE_UNSPECIFIED) = false := by
+      rw [hz']; exact bne_self_eq_false _
+    simp only [hb, Bool.false_eq_true, if_false, WP.spec_ok, if_pos hz]
+    omega
+  · have hz' : (t.timezone != time.EfiTime.TIMEZONE_UNSPECIFIED) = true := by
+      unfold time.EfiTime.TIMEZONE_UNSPECIFIED
+      simp only [bne_iff_ne, ne_eq]
+      intro h; exact hz (by rw [h]; rfl)
+    simp only [hz', if_true, WP.spec_ok, if_neg hz]
+    omega
+
+/-- A calendar date at midnight, with every padding field zero. -/
+def midnightOn (y : Std.U16) (m d : Std.U8) (tz : Std.I16) : time.EfiTime :=
+  { year := y, month := m, day := d, hour := 0#u8, minute := 0#u8, second := 0#u8,
+    pad1 := 0#u8, nanosecond := 0#u32, timezone := tz, daylight := 0#u8, pad2 := 0#u8 }
+
+/-- The offset boundaries: -1440 and 1440 are accepted, -1441 and 1441 are not,
+    and 2047 is accepted although it lies outside them. -/
+theorem efitime_is_valid_accepts_offsets_from_minus_1440_to_1440_and_2047 :
+    efitime_is_valid (midnightOn 2024#u16 6#u8 30#u8 (-1440)#i16) = ok true ∧
+    efitime_is_valid (midnightOn 2024#u16 6#u8 30#u8 (-1441)#i16) = ok false ∧
+    efitime_is_valid (midnightOn 2024#u16 6#u8 30#u8 1440#i16) = ok true ∧
+    efitime_is_valid (midnightOn 2024#u16 6#u8 30#u8 1441#i16) = ok false ∧
+    efitime_is_valid (midnightOn 2024#u16 6#u8 30#u8 2047#i16) = ok true := by
+  simp only [efitime_is_valid_is_exactly_the_uefi_calendar]
+  refine ⟨rfl, rfl, rfl, rfl, rfl⟩
+
+/-- Midnight on 1970-01-01 is second zero in UTC, and `-60 * tz` for a real
+    offset of `tz` minutes: local midnight east of Greenwich came earlier. -/
+theorem efitime_to_unix_timestamp_at_the_epoch_is_minus_the_offset (tz : Std.I16) :
+    ∃ r : Std.I64, efitime_to_unix_timestamp
+      (midnightOn 1970#u16 1#u8 1#u8 tz) = ok r ∧
+      r.val = (if tz.val = 2047 then 0 else -60 * tz.val) := by
+  obtain ⟨r, hr, hrv⟩ := WP.spec_imp_exists
+    (efitime_to_unix_timestamp_counts_days_from_1970_and_subtracts_the_offset (midnightOn 1970#u16 1#u8 1#u8 tz) (Nat.le_refl 1) (by decide : (1 : Nat) ≤ 12))
+  refine ⟨r, hr, ?_⟩
+  rw [hrv]
+  show 86400 * (daysInYearsFrom 1970 0 + daysInMonthsFrom 1970 1 0 + ((1 : Nat) : Int) - 1)
+    + 3600 * ((0 : Nat) : Int) + 60 * ((0 : Nat) : Int) + ((0 : Nat) : Int)
+    - (if tz.val = 2047 then 0 else 60 * tz.val) = _
+  simp only [daysInYearsFrom, daysInMonthsFrom]
+  split <;> omega
+
+/-- 2000-03-01 is second 951868800, which requires 2000 to be a leap year. A leap
+    rule without the four hundred year exception gives 951782400. -/
+theorem efitime_to_unix_timestamp_counts_2000_as_a_leap_year :
+    efitime_to_unix_timestamp
+      (midnightOn 2000#u16 3#u8 1#u8 2047#i16) = ok 951868800#i64 := by
+  obtain ⟨r, hr, hrv⟩ := WP.spec_imp_exists (efitime_to_unix_timestamp_counts_days_from_1970_and_subtracts_the_offset (midnightOn 2000#u16 3#u8 1#u8 2047#i16) (by decide) (by decide))
+  rw [hr]
+  congr 1
+  apply IScalar.eq_of_val_eq
+  rw [hrv]
+  rfl
+
+/-- A date before 1970 counts back from the epoch: 1969-12-31 is second -86400,
+    a day before 1970-01-01, and 1900-01-01, the earliest date
+    `efitime_is_valid` accepts, is second -2208988800. The year loop used to be
+    empty before 1970, so a pre-1970 date was counted as if it fell in 1970:
+    1969-12-31 and 1970-12-31 both mapped to second 31449600. -/
+theorem efitime_to_unix_timestamp_counts_back_before_1970 :
+    efitime_is_valid (midnightOn 1969#u16 12#u8 31#u8 2047#i16) = ok true ∧
+    efitime_to_unix_timestamp (midnightOn 1969#u16 12#u8 31#u8 2047#i16) = ok (-86400)#i64 ∧
+    efitime_to_unix_timestamp (midnightOn 1970#u16 12#u8 31#u8 2047#i16) = ok 31449600#i64 ∧
+    efitime_is_valid (midnightOn 1900#u16 1#u8 1#u8 2047#i16) = ok true ∧
+    efitime_to_unix_timestamp (midnightOn 1900#u16 1#u8 1#u8 2047#i16) = ok (-2208988800)#i64 := by
+  refine ⟨by rw [efitime_is_valid_is_exactly_the_uefi_calendar]; simp [midnightOn, monthLength, monthLengths, gregorianLeap], ?_, ?_,
+    by rw [efitime_is_valid_is_exactly_the_uefi_calendar]; simp [midnightOn, monthLength, monthLengths, gregorianLeap], ?_⟩
+  · obtain ⟨r, hr, hrv⟩ := WP.spec_imp_exists (efitime_to_unix_timestamp_counts_days_from_1970_and_subtracts_the_offset (midnightOn 1969#u16 12#u8 31#u8 2047#i16) (by decide) (by decide))
+    rw [hr]; congr 1; apply IScalar.eq_of_val_eq; rw [hrv]; decide
+  · obtain ⟨r, hr, hrv⟩ := WP.spec_imp_exists (efitime_to_unix_timestamp_counts_days_from_1970_and_subtracts_the_offset (midnightOn 1970#u16 12#u8 31#u8 2047#i16) (by decide) (by decide))
+    rw [hr]; congr 1; apply IScalar.eq_of_val_eq; rw [hrv]; decide
+  · obtain ⟨r, hr, hrv⟩ := WP.spec_imp_exists (efitime_to_unix_timestamp_counts_days_from_1970_and_subtracts_the_offset (midnightOn 1900#u16 1#u8 1#u8 2047#i16) (by decide) (by decide))
+    rw [hr]; congr 1; apply IScalar.eq_of_val_eq; rw [hrv]; decide
+
+/-- A real offset moves the result by exactly sixty seconds per minute, in the
+    direction that converts local time to UTC, against the same fields with the
+    offset unspecified. -/
+theorem efitime_to_unix_timestamp_subtracts_sixty_seconds_per_offset_minute (t : time.EfiTime) (hm1 : 1 ≤ t.month.val) (hm : t.month.val ≤ 12)
+    (htz : t.timezone.val ≠ 2047) :
+    ∃ r r' : Std.I64, efitime_to_unix_timestamp t = ok r ∧
+      efitime_to_unix_timestamp { t with timezone := 2047#i16 } = ok r' ∧
+      r.val = r'.val - 60 * t.timezone.val := by
+  obtain ⟨r, hr, hrv⟩ := WP.spec_imp_exists (efitime_to_unix_timestamp_counts_days_from_1970_and_subtracts_the_offset t hm1 hm)
+  obtain ⟨r', hr', hrv'⟩ := WP.spec_imp_exists (efitime_to_unix_timestamp_counts_days_from_1970_and_subtracts_the_offset { t with timezone := 2047#i16 } hm1 hm)
+  refine ⟨r, r', hr, hr', ?_⟩
+  rw [hrv, hrv', if_neg htz]
+  have : ((2047#i16 : Std.I16).val : Int) = 2047 := rfl
+  simp only [this, if_true]
+  omega
+
+/-- The day check follows the calendar: 2021-02-31 and 2023-02-29 are refused,
+    2024-02-29 and 2000-02-29 are accepted, and 2100-02-29 is refused because a
+    century is not a leap year unless it is a multiple of 400. The check used to
+    bound the day by 31 in every month, so 2021-02-31 passed and
+    `efitime_to_unix_timestamp` read it as 2021-03-03. -/
+theorem efitime_is_valid_refuses_days_past_the_end_of_the_month :
+    efitime_is_valid (midnightOn 2021#u16 2#u8 31#u8 2047#i16) = ok false ∧
+    efitime_is_valid (midnightOn 2023#u16 2#u8 29#u8 2047#i16) = ok false ∧
+    efitime_is_valid (midnightOn 2024#u16 2#u8 29#u8 2047#i16) = ok true ∧
+    efitime_is_valid (midnightOn 2000#u16 2#u8 29#u8 2047#i16) = ok true ∧
+    efitime_is_valid (midnightOn 2100#u16 2#u8 29#u8 2047#i16) = ok false ∧
+    efitime_is_valid (midnightOn 2024#u16 4#u8 31#u8 2047#i16) = ok false ∧
+    efitime_is_valid (midnightOn 2024#u16 12#u8 31#u8 2047#i16) = ok true := by
+  simp only [efitime_is_valid_is_exactly_the_uefi_calendar]
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> simp [midnightOn, monthLength, monthLengths, gregorianLeap]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TablesTime.the_efitime_is_valid_wrapper_is_its_method
 #print axioms NonosExtraction.TablesTime.the_efitime_to_unix_timestamp_wrapper_is_its_method
+#print axioms NonosExtraction.TablesTime.efitime_is_valid_is_exactly_the_uefi_calendar
+#print axioms NonosExtraction.TablesTime.the_timestamp_leap_rule_is_gregorian
+#print axioms NonosExtraction.TablesTime.the_timestamp_leap_rule_agrees_with_the_civil_clock
+#print axioms NonosExtraction.TablesTime.adding_i64_in_range_succeeds
+#print axioms NonosExtraction.TablesTime.subtracting_i64_in_range_succeeds
+#print axioms NonosExtraction.TablesTime.multiplying_i64_in_range_succeeds
+#print axioms NonosExtraction.TablesTime.widening_a_u8_keeps_its_value
+#print axioms NonosExtraction.TablesTime.a_u8_is_at_most_255
+#print axioms NonosExtraction.TablesTime.a_u16_is_at_most_65535
+#print axioms NonosExtraction.TablesTime.an_i16_lies_in_its_range
+#print axioms NonosExtraction.TablesTime.widening_a_u16_keeps_its_value
+#print axioms NonosExtraction.TablesTime.widening_an_i16_keeps_its_value
+#print axioms NonosExtraction.TablesTime.an_i64_range_yields_its_start_and_steps_by_one
+#print axioms NonosExtraction.TablesTime.an_i64_range_at_its_end_yields_nothing
+#print axioms NonosExtraction.TablesTime.a_year_has_365_or_366_days
+#print axioms NonosExtraction.TablesTime.one_pass_of_the_year_loop_adds_that_years_length
+#print axioms NonosExtraction.TablesTime.the_year_loop_over_an_empty_range_adds_nothing
+#print axioms NonosExtraction.TablesTime.the_year_loop_adds_the_lengths_of_the_years_it_walks
+#print axioms NonosExtraction.TablesTime.one_pass_of_the_backward_year_loop_takes_that_years_length
+#print axioms NonosExtraction.TablesTime.the_backward_year_loop_over_an_empty_range_takes_nothing
+#print axioms NonosExtraction.TablesTime.the_backward_year_loop_takes_the_lengths_of_the_years_it_walks
+#print axioms NonosExtraction.TablesTime.every_month_in_the_table_has_28_to_31_days
+#print axioms NonosExtraction.TablesTime.the_extracted_month_table_is_the_calendar_table
+#print axioms NonosExtraction.TablesTime.days_in_month_is_the_month_length
+#print axioms NonosExtraction.TablesTime.one_pass_of_the_month_loop_adds_that_months_length
+#print axioms NonosExtraction.TablesTime.a_month_has_28_to_31_days
+#print axioms NonosExtraction.TablesTime.the_month_loop_over_an_empty_range_adds_nothing
+#print axioms NonosExtraction.TablesTime.the_month_loop_adds_the_lengths_of_the_months_it_walks
+#print axioms NonosExtraction.TablesTime.the_years_walked_add_at_most_366_days_each
+#print axioms NonosExtraction.TablesTime.the_months_walked_add_at_most_31_days_each
+#print axioms NonosExtraction.TablesTime.efitime_to_unix_timestamp_counts_days_from_1970_and_subtracts_the_offset
+#print axioms NonosExtraction.TablesTime.efitime_is_valid_accepts_offsets_from_minus_1440_to_1440_and_2047
+#print axioms NonosExtraction.TablesTime.efitime_to_unix_timestamp_at_the_epoch_is_minus_the_offset
+#print axioms NonosExtraction.TablesTime.efitime_to_unix_timestamp_counts_2000_as_a_leap_year
+#print axioms NonosExtraction.TablesTime.efitime_to_unix_timestamp_counts_back_before_1970
+#print axioms NonosExtraction.TablesTime.efitime_to_unix_timestamp_subtracts_sixty_seconds_per_offset_minute
+#print axioms NonosExtraction.TablesTime.efitime_is_valid_refuses_days_past_the_end_of_the_month
 
 end NonosExtraction.TablesTime
