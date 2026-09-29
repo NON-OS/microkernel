@@ -53,11 +53,7 @@ pub(in crate::browser::css) fn style(
     };
     let scope = custom_scope(&order, scope, w.props, id);
     let mut st = Styling::new(parent, At { scope: &scope, props: w.props, id });
-    /* A row and a cell align vertically as their row group does unless
-     * they declare otherwise (vertical-align: inherit in the UA sheet). */
-    if matches!(node.tag.as_str(), "tr" | "td" | "th") {
-        st.c.table.valign = parent.table.valign;
-    }
+    super::table_start::table_start(&mut st.c, parent, &node.tag, dom.quirks);
     st.run(&order);
     let Styling { mut c, bg, grid, counters, vars, .. } = st;
     w.out.svg_paint[id] = super::svg_paint::svg_paint(node, &order, vars, &c);

@@ -25,6 +25,7 @@ mod spans;
 mod styling;
 mod svg_paint;
 mod svg_value;
+mod table_start;
 mod tree;
 mod walker;
 

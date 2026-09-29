@@ -56,6 +56,7 @@ mod mask_tests;
 mod math_len_tests;
 mod narrow_tests;
 mod pos_tests;
+mod quirks_table_tests;
 mod recv_pending_tests;
 mod round2_tests;
 mod scroll_tests;
