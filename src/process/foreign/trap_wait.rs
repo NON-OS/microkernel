@@ -47,11 +47,7 @@ fn settle(pid: u32, answer: Answer) -> u64 {
             super::signal_fpu::forget(pid);
             super::exec_enter::enter(pid)
         }
-        Answer::Deliver(ctx) => {
-            /* A mark is spent only by a handler entered, not by any answer. */
-            super::interrupt::forget(pid);
-            super::signal_enter::deliver(pid, ctx)
-        }
+        Answer::Deliver(ctx) => super::signal_enter::deliver(pid, ctx),
         Answer::Sigreturn(ctx) => super::signal_enter::sigreturn(pid, ctx),
     }
 }

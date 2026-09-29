@@ -49,6 +49,14 @@ pub(super) fn answer_raw(pid: u32, answer: Answer) -> i64 {
         return ERRNO_NOENT;
     };
     entry.answer = Some(answer);
+    /*
+     * A handler answer spends the thread's stop mark as it is posted: a mark
+     * set after this, while the thread has yet to take the answer, is for
+     * another signal and stops it at its next tick. No other answer does.
+     */
+    if matches!(answer, Answer::Deliver(_)) {
+        super::interrupt::forget(pid);
+    }
     drop(parked);
     crate::sched::wake_process(pid);
     0
