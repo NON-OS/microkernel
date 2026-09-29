@@ -547,22 +547,20 @@ theorem authentication_survives_union_but_not_intersection (a b : Std.U32) :
       attributes.VariableAttributes.ENHANCED_AUTHENTICATED_ACCESS
     rfl
 
-/-- Records what the manager's cache answers. `UefiManager::get_variable` and
-    the secure boot prefill in `manager/init.rs` read a variable's attributes
-    from `GetVariable` into a local, drop them, and cache the variable with
-    `DEFAULT_NV_BS_RT`, which the kernel defines as
-    `NON_VOLATILE | BOOTSERVICE_ACCESS | RUNTIME_ACCESS`. It is built here from
-    the extracted constants and `union`, with `BOOTSERVICE_ACCESS` written as
-    its value `2`. On that word the set is non-volatile, runtime accessible and
-    needs no authentication. The UEFI specification gives `SecureBoot` and
-    `SetupMode` boot service and runtime access only, `0x06`, which is
-    volatile, and gives `PK`, `KEK`, `db` and `dbx` those plus non-volatile and
-    time-based authenticated write, `0x27`, which needs authentication. So
-    `UefiVariable::is_non_volatile` on a cached `SecureBoot` answers `true`
-    where the word firmware reported answers `false`, and a check of
-    `requires_authentication` on a cached `PK` would answer `false` where
-    firmware's word answers `true`. -/
-theorem the_cached_attribute_word_contradicts_the_firmware_word :
+/-- Why the manager's cache has to keep the word firmware returns.
+    `DEFAULT_NV_BS_RT`, `NON_VOLATILE | BOOTSERVICE_ACCESS | RUNTIME_ACCESS`,
+    built here from the extracted constants and `union` with
+    `BOOTSERVICE_ACCESS` written as its value `2`, is non-volatile, runtime
+    accessible and needs no authentication. The UEFI specification gives
+    `SecureBoot` and `SetupMode` `0x06`, which is volatile, and gives `PK`,
+    `KEK`, `db` and `dbx` `0x27`, which needs authentication. The cache in
+    `manager/init.rs` and `UefiManager::get_variable` used to store the
+    default word for every variable, which disagrees with firmware on both
+    counts; it now stores the word `GetVariable` reports, and
+    `kernel_proofs::uefi_cache` fails against the old code. The manager is not
+    extracted, so the theorem is about the words and the tests are about the
+    cache. -/
+theorem the_default_word_contradicts_the_firmware_words :
     (do let a ← variableattributes_union attributes.VariableAttributes.NON_VOLATILE 2#u32
         let a ← variableattributes_union a attributes.VariableAttributes.RUNTIME_ACCESS
         let nv ← variableattributes_is_non_volatile a
@@ -628,6 +626,6 @@ theorem the_cached_attribute_word_contradicts_the_firmware_word :
 #print axioms NonosExtraction.Uefi.truncation_changes_no_named_predicate
 #print axioms NonosExtraction.Uefi.non_volatility_and_runtime_access_follow_union_and_intersection
 #print axioms NonosExtraction.Uefi.authentication_survives_union_but_not_intersection
-#print axioms NonosExtraction.Uefi.the_cached_attribute_word_contradicts_the_firmware_word
+#print axioms NonosExtraction.Uefi.the_default_word_contradicts_the_firmware_words
 
 end NonosExtraction.Uefi
