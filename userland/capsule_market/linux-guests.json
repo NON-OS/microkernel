@@ -1,0 +1,26 @@
+[
+  {
+    "tail": "qwen-small",
+    "name": "Qwen (small, 0.5B)",
+    "program": "target/linux-guests/c/qwenchat",
+    "text": "Qwen2.5 0.5B Instruct, running on this machine with no network. Fast on any CPU; about 0.5 GB of weights, verified against their SHA-256 when installed."
+  },
+  {
+    "tail": "qwen-medium",
+    "name": "Qwen (medium, 1.5B)",
+    "program": "target/linux-guests/c/qwenchat",
+    "text": "Qwen2.5 1.5B Instruct, running on this machine with no network. A good balance of quality and speed; about 1.1 GB of weights, verified when installed."
+  },
+  {
+    "tail": "qwen-large",
+    "name": "Qwen (large, 3B)",
+    "program": "target/linux-guests/c/qwenchat",
+    "text": "Qwen2.5 3B Instruct, running on this machine with no network. Noticeably stronger answers; about 2.1 GB of weights and 4 GB of memory."
+  },
+  {
+    "tail": "qwen-xlarge",
+    "name": "Qwen (extra large, 7B)",
+    "program": "target/linux-guests/c/qwenchat",
+    "text": "Qwen2.5 7B Instruct, running on this machine with no network. The strongest tier; about 4.7 GB of weights in two files and 8 GB of memory."
+  }
+]

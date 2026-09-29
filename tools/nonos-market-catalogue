@@ -383,6 +383,31 @@ def kali_entries(cache, names, arch, pubkey, when_ms) -> list:
     return out
 
 
+def guest_entries(listing: Path, key: str, when_ms: int) -> list:
+    """Programs the image ships, listed so a person can choose one.
+
+    Nothing is downloaded: the listing pins the program already in the
+    store by its BLAKE3, and the personality installs it from the image.
+    A program this build did not make is left out, not listed unready.
+    """
+    out = []
+    for item in json.loads(listing.read_text()):
+        program = Path(item["program"])
+        if not program.exists():
+            print(f"guest: {item['tail']}: {program} not built, not listed", file=sys.stderr)
+            continue
+        body = program.read_bytes()
+        digest = blake3(body)
+        # Tiers share a program; each still needs an id of its own.
+        capsule_id = blake3(body + b"\0" + item["tail"].encode())
+        rel = release(f"{item['tail']}@1", digest, digest, f"store:/bin/{program.name}",
+                      ["x86_64-linux"], [], "shipped in the image, pinned by BLAKE3",
+                      "nonos.operator.linux", when_ms)
+        out.append(entry(f"linux.{item['tail']}", capsule_id, item["name"], "NONOS", key,
+                         item["text"], [rel]))
+    return out
+
+
 def community_entries(where: Path) -> list:
     """Submissions, passed through as the operator validated them."""
     out = []
@@ -411,6 +436,8 @@ def main() -> int:
                     help="repeatable; a package to fetch, hash and list")
     ap.add_argument("--linux-list", type=Path,
                     help="file of package names, one per line; kali.<name> for Kali")
+    ap.add_argument("--guest-list", type=Path,
+                    help="JSON of programs the image ships, listed as linux.<tail>")
     ap.add_argument("--serial", type=int, required=True)
     ap.add_argument("--no-nonos", action="store_true")
     args = ap.parse_args()
@@ -445,6 +472,11 @@ def main() -> int:
     if kali:
         found = kali_entries(args.cache, kali, "amd64", key, when_ms)
         print(f"linux: {len(found)} of {len(kali)} Kali packages", file=sys.stderr)
+        entries += found
+
+    if args.guest_list and args.guest_list.exists():
+        found = guest_entries(args.guest_list, key, when_ms)
+        print(f"guest: {len(found)} programs the image ships", file=sys.stderr)
         entries += found
 
     if args.community.is_dir():

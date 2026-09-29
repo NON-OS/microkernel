@@ -41,6 +41,7 @@ def main():
     ap.add_argument("--seed", type=Path, required=True, help="32-byte operator seed")
     ap.add_argument("--pubkey", type=Path, required=True, help="32-byte operator key")
     ap.add_argument("--linux-list", type=Path, required=True)
+    ap.add_argument("--guest-list", type=Path)
     ap.add_argument("--serial", type=int, required=True)
     a = ap.parse_args()
     a.out.parent.mkdir(parents=True, exist_ok=True)
@@ -57,8 +58,9 @@ def main():
     # --no-nonos: every capsule this tree builds is already in the image, so
     # the baseline lists only what a user can install, and does not depend on
     # which capsules happened to be signed before this ran.
+    guests = ["--guest-list", a.guest_list] if a.guest_list else []
     run(sys.executable, tools / "nonos-market-catalogue", "--out", catalogue, "--no-nonos",
-        "--operator-pubkey", key, "--linux-list", a.linux_list, "--serial", a.serial)
+        "--operator-pubkey", key, "--linux-list", a.linux_list, "--serial", a.serial, *guests)
     run(sys.executable, tools / "nonos-market-sign-releases", "--cli", a.cli,
         "--index", catalogue, "--key-file", a.seed, "--operator-pubkey", key)
     run(a.cli, "sign", "--in", catalogue, "--key-file", a.seed, "--pubkey", key, "--out", a.out)
