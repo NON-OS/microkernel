@@ -25,10 +25,10 @@
       "bv_decide_calls": 12,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 423,
-        "proven": 423,
-        "substantive": 185,
-        "trivial": 238,
+        "extracted": 520,
+        "proven": 520,
+        "substantive": 191,
+        "trivial": 329,
         "unproven": 0
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
@@ -164,6 +164,9 @@
         "nonos_vectors::interrupts::vectors::is_irq",
         "nonos_vectors::interrupts::vectors::is_user_allocatable",
         "nonos_vectors::interrupts::vectors::vector_to_irq",
+        "nonos_x_aarch64_context_types::saveduser_zeroed",
+        "nonos_x_aarch64_context_types::userentry_zeroed",
+        "nonos_x_aarch64_fpu_context::fpsimdcontext_zeroed",
         "nonos_x_addr_phys::physaddr_align_down",
         "nonos_x_addr_phys::physaddr_align_up",
         "nonos_x_addr_phys::physaddr_as_u64",
@@ -180,19 +183,37 @@
         "nonos_x_addr_virt::virtaddr_is_null",
         "nonos_x_addr_virt::virtaddr_new",
         "nonos_x_addr_virt::virtaddr_zero",
+        "nonos_x_alg_id_types::algid_as_u8",
         "nonos_x_aml_types::gpiocontroller_is_valid",
         "nonos_x_aml_types::lpsscontroller_is_valid",
+        "nonos_x_apic_timer_mode::calibrate_timer",
+        "nonos_x_apic_timer_mode::divider_to_code",
+        "nonos_x_apply_range::in_range",
+        "nonos_x_attributes_kind::memorytype_attr_index",
+        "nonos_x_attributes_kind::memorytype_mair_attr",
+        "nonos_x_audit_constants::capacity",
         "nonos_x_boot_types_context::exceptioncontext_code_segment",
         "nonos_x_boot_types_context::exceptioncontext_has_error_code",
         "nonos_x_boot_types_context::exceptioncontext_instruction_pointer",
         "nonos_x_boot_types_context::exceptioncontext_is_kernel_mode",
         "nonos_x_boot_types_context::exceptioncontext_is_user_mode",
         "nonos_x_boot_types_context::exceptioncontext_stack_pointer",
+        "nonos_x_bti_guard::btiguard_instruction",
+        "nonos_x_buddy_types_stats::allocstats_free_memory",
+        "nonos_x_buddy_types_stats::allocstats_new",
         "nonos_x_cache_types::cachestatistics_new",
         "nonos_x_cache_types::cachestatistics_reset",
         "nonos_x_cap_agaw::agawlevels_context_aw",
         "nonos_x_cap_agaw::agawlevels_page_table_levels",
+        "nonos_x_cap_behaviour::caching_mode",
+        "nonos_x_cap_behaviour::requires_write_buffer_flush",
+        "nonos_x_cap_fault::fault_recording_count",
+        "nonos_x_cap_fault::fault_recording_offset",
+        "nonos_x_cap_limits::domain_count",
+        "nonos_x_cap_limits::max_address_width",
+        "nonos_x_cap_pages::best_leaf_level",
         "nonos_x_census_buf::linebuf_new",
+        "nonos_x_chain_constants::max_chain_depth",
         "nonos_x_chain_error::chainerror_is_recoverable",
         "nonos_x_civil_days::days_in_month",
         "nonos_x_civil_days::days_in_year",
@@ -207,10 +228,13 @@
         "nonos_x_constant_time_select::ct_select_u64_bit",
         "nonos_x_constant_time_select::ct_select_u8",
         "nonos_x_constant_time_select::ct_select_usize",
+        "nonos_x_constants_address_packing::pci_config_address",
         "nonos_x_constants_helpers::align_down",
         "nonos_x_constants_helpers::align_size",
         "nonos_x_constants_helpers::align_up",
         "nonos_x_context_cpu_context::cpucontext_new",
+        "nonos_x_context_rflags::sanitize",
+        "nonos_x_context_rflags::sanitize_user",
         "nonos_x_context_types::executioncontext_is_kernel",
         "nonos_x_context_types::executioncontext_is_process",
         "nonos_x_context_types::processcontext_has_capability",
@@ -220,6 +244,7 @@
         "nonos_x_core_section::parsedsection_is_rela",
         "nonos_x_core_section::parsedsection_is_strtab",
         "nonos_x_core_section::parsedsection_is_symtab",
+        "nonos_x_cpu_cache_assoc::decode_l2_assoc",
         "nonos_x_cpu_msr_stats::increment_reads",
         "nonos_x_cpu_msr_stats::increment_writes",
         "nonos_x_cpu_msr_stats::msr_reads",
@@ -227,6 +252,11 @@
         "nonos_x_data_interrupt::interruptoverride_is_active_low",
         "nonos_x_data_interrupt::interruptoverride_is_level_triggered",
         "nonos_x_data_interrupt::nmiconfig_applies_to_all",
+        "nonos_x_data_ioapic::ioapicinfo_gsi_max",
+        "nonos_x_data_numa::numamemoryregion_contains",
+        "nonos_x_data_numa::numamemoryregion_end",
+        "nonos_x_data_processor::processorinfo_new",
+        "nonos_x_data_stats::acpistats_new",
         "nonos_x_descriptor_unsupported::address",
         "nonos_x_descriptor_unsupported::is_block",
         "nonos_x_descriptor_unsupported::is_executable",
@@ -236,6 +266,9 @@
         "nonos_x_descriptor_unsupported::leaf",
         "nonos_x_descriptor_unsupported::table",
         "nonos_x_descriptor_unsupported::table_grants_user",
+        "nonos_x_diag_cpl::cpl_from_cs",
+        "nonos_x_dispatch_args::args_new",
+        "nonos_x_distributor_device::gicdistributor_new",
         "nonos_x_error_fault_info::pagefaultinfo_from_fault",
         "nonos_x_error_fault_info::pagefaultinfo_is_cow_fault",
         "nonos_x_error_fault_info::pagefaultinfo_is_demand_fault",
@@ -247,9 +280,13 @@
         "nonos_x_gic_state::dist_base",
         "nonos_x_gic_state::redist_base",
         "nonos_x_gic_state::set_bases",
+        "nonos_x_heap_types_stats::heapstats_free_memory",
+        "nonos_x_hpet_protection::pageprotection_from_u8",
         "nonos_x_hpet_registers::timer_comparator",
         "nonos_x_hpet_registers::timer_config",
         "nonos_x_hpet_registers::timer_fsb_route",
+        "nonos_x_i2c_types::i2chiddevice_is_touchpad",
+        "nonos_x_i2c_types::i2chiddevice_is_touchscreen",
         "nonos_x_idt_entry_frame::interruptframe_from_kernel",
         "nonos_x_idt_entry_frame::interruptframe_from_user",
         "nonos_x_idt_entry_frame::pagefaulterror_instruction_fetch",
@@ -260,6 +297,14 @@
         "nonos_x_idt_entry_frame::pagefaulterror_shadow_stack",
         "nonos_x_idt_entry_frame::pagefaulterror_user",
         "nonos_x_idt_entry_frame::pagefaulterror_write",
+        "nonos_x_iommu_device::deviceaddress_as_u32",
+        "nonos_x_iommu_device::deviceaddress_new",
+        "nonos_x_iommu_device::deviceaddress_pci",
+        "nonos_x_iommu_device::deviceaddress_pci_bus",
+        "nonos_x_iommu_device::deviceaddress_pci_device",
+        "nonos_x_iommu_device::deviceaddress_pci_function",
+        "nonos_x_iommu_domain_id::domainid_as_u16",
+        "nonos_x_iommu_domain_id::domainid_new",
         "nonos_x_iommu_protection::iommuprotection_readable",
         "nonos_x_iommu_protection::iommuprotection_writable",
         "nonos_x_irq_reserved::is_reserved",
@@ -270,6 +315,9 @@
         "nonos_x_key_management_types::keyusage_master",
         "nonos_x_key_management_types::keyusage_signing",
         "nonos_x_key_management_types::keyusage_verification",
+        "nonos_x_keyring_capsule_types::keytype_to_u8",
+        "nonos_x_main_mode::is_microkernel",
+        "nonos_x_memory_consts::is_user_space",
         "nonos_x_memory_sanitization_types::sanitizationlevel_from_u64",
         "nonos_x_memory_sanitization_types::sanitizationstats_avg_bytes_per_call",
         "nonos_x_memory_sanitization_types::sanitizationstats_get_bytes_sanitized",
@@ -293,9 +341,11 @@
         "nonos_x_microbench_sample::sample_min",
         "nonos_x_microbench_sample::sample_new",
         "nonos_x_microbench_sample::sample_quantile",
+        "nonos_x_mmio_constants::align_up",
         "nonos_x_mmu_mode::mmumode_levels",
         "nonos_x_mmu_mode::mmumode_satp_mode",
         "nonos_x_mmu_mode::mmumode_va_bits",
+        "nonos_x_mte_mode::mtemode_tcf",
         "nonos_x_multiboot_modules_acpi::acpirsdp_is_acpi2",
         "nonos_x_multiboot_modules_acpi::acpirsdp_table_address",
         "nonos_x_multiboot_modules_acpi::acpirsdp_verify_checksum",
@@ -305,6 +355,8 @@
         "nonos_x_multiboot_platform_types::platform_is_virtual",
         "nonos_x_multiboot_platform_types::platform_supports_virtio",
         "nonos_x_multiboot_platform_types::platform_timer_frequency",
+        "nonos_x_multisig_constants::max_signers",
+        "nonos_x_multisig_constants::max_threshold",
         "nonos_x_nonos_inbox_stats::inboxstats_new",
         "nonos_x_nonos_inbox_stats::inboxstats_record_dequeue",
         "nonos_x_nonos_inbox_stats::inboxstats_record_dropped",
@@ -313,16 +365,22 @@
         "nonos_x_observability_policy::set_production_mode",
         "nonos_x_observability_policy::should_emit_serial",
         "nonos_x_observability_policy::should_log_debug",
+        "nonos_x_offsets_fault::frcd_reason",
+        "nonos_x_offsets_fault::frcd_source",
+        "nonos_x_offsets_invalidate::iotlb_offset",
+        "nonos_x_offsets_invalidate::iva_offset",
         "nonos_x_pac_key::packey_new",
         "nonos_x_pci_error::pcierror_is_fatal",
         "nonos_x_pci_error::pcierror_is_recoverable",
         "nonos_x_pci_error::pcierror_is_security_related",
+        "nonos_x_pci_info::pcihost_has_io_window",
         "nonos_x_pci_types::pcidevice_bdf",
         "nonos_x_pci_types::pcidevice_is_bridge",
         "nonos_x_pci_types::pcidevice_is_display",
         "nonos_x_pci_types::pcidevice_is_network",
         "nonos_x_pci_types::pcidevice_is_storage",
         "nonos_x_pci_types_msix::msixtableentry_new",
+        "nonos_x_pio_types::piowidth_bytes",
         "nonos_x_pipe_buffer::pipebuffer_add_reader",
         "nonos_x_pipe_buffer::pipebuffer_add_writer",
         "nonos_x_pipe_buffer::pipebuffer_available_write",
@@ -339,20 +397,40 @@
         "nonos_x_pipe_types::pipe_space_available",
         "nonos_x_plonk_types::plonkcircuit_new",
         "nonos_x_plonk_types::plonkevaluations_new",
+        "nonos_x_port_stats_snapshot::portstatssnapshot_total_bytes",
+        "nonos_x_port_stats_snapshot::portstatssnapshot_total_ops",
         "nonos_x_process_fd_types::fdentry_is_cloexec",
         "nonos_x_process_fd_types::fdentry_with_pipe",
         "nonos_x_process_mmap_va::mmapva_new",
         "nonos_x_procfs_types::procinode_for_pid",
         "nonos_x_procfs_types::procinode_root",
+        "nonos_x_random_api_entropy_check::required_entropy_bytes",
+        "nonos_x_redistributor_device::gicredistributor_new",
         "nonos_x_region_overlap::contains",
         "nonos_x_region_overlap::contains_range",
         "nonos_x_region_overlap::overlaps",
+        "nonos_x_region_types_stats::regionstats_new",
+        "nonos_x_region_types_stats::regionstats_total_memory",
+        "nonos_x_registers_plic::plic_base",
+        "nonos_x_registers_plic::plic_new",
+        "nonos_x_registry_version::libraryversion_new",
+        "nonos_x_resource_limits::has_at_least",
+        "nonos_x_resource_nonce_compose::compose",
+        "nonos_x_riscv64_context_types::saveduser_zeroed",
+        "nonos_x_riscv64_context_types::userentry_zeroed",
+        "nonos_x_riscv64_fpu_context::fpcontext_zeroed",
+        "nonos_x_rtc_bcd::bcd_to_bin",
+        "nonos_x_rtc_bcd::bin_to_bcd",
+        "nonos_x_rtc_bcd::is_valid_bcd",
+        "nonos_x_sdt_entry_count::sdt_entry_count",
+        "nonos_x_security_mmio_range::range_ok",
         "nonos_x_semaphore_pure::acquire_count",
         "nonos_x_semaphore_pure::can_acquire",
         "nonos_x_semaphore_pure::release_count",
         "nonos_x_seqlock_pure::bump",
         "nonos_x_seqlock_pure::is_stable",
         "nonos_x_seqlock_pure::read_valid",
+        "nonos_x_signal_error::signalerror_as_errno",
         "nonos_x_spectre_mitigations_cpuid::has_arch_capabilities",
         "nonos_x_spectre_mitigations_cpuid::has_ibrs_ibpb",
         "nonos_x_spectre_mitigations_cpuid::has_l1d_flush",
@@ -360,6 +438,8 @@
         "nonos_x_spectre_mitigations_cpuid::has_ssbd",
         "nonos_x_spectre_mitigations_cpuid::has_stibp",
         "nonos_x_spectre_mitigations_cpuid::is_amd",
+        "nonos_x_surface_registry_ring_math::is_full",
+        "nonos_x_surface_registry_ring_math::wrap",
         "nonos_x_tables_context::context_domain",
         "nonos_x_tables_context::context_high",
         "nonos_x_tables_context::context_index",
@@ -397,11 +477,14 @@
         "nonos_x_timer_state::get_ticks",
         "nonos_x_timer_state::increment_ticks",
         "nonos_x_timer_state::reset_ticks",
+        "nonos_x_trampoline_per_ap::perapbootcontext_new",
         "nonos_x_translation_fault::translationfault_is_access_fault",
         "nonos_x_translation_fault::translationfault_is_permission_fault",
         "nonos_x_translation_fault::translationfault_is_translation_fault",
         "nonos_x_translation_fault::translationfault_level",
         "nonos_x_types_bridge::bridgeinfo_new",
+        "nonos_x_types_device_id::deviceid_matches",
+        "nonos_x_types_device_id::deviceid_new",
         "nonos_x_types_direction::dmadirection_reads_from_device",
         "nonos_x_types_direction::dmadirection_writes_to_device",
         "nonos_x_types_firmware::firmwareentry_empty",
@@ -420,16 +503,28 @@
         "nonos_x_types_permissions::pagepermissions_kernel_ro",
         "nonos_x_types_permissions::pagepermissions_kernel_rw",
         "nonos_x_types_permissions::pagepermissions_kernel_rx",
+        "nonos_x_types_protection::protectionflags_is_fully_protected",
+        "nonos_x_types_protection::protectionflags_new",
+        "nonos_x_types_pte::pagetableentry_empty",
+        "nonos_x_types_range::portrange_contains",
+        "nonos_x_types_range::portrange_count",
+        "nonos_x_types_range::portrange_end",
+        "nonos_x_types_range::portrange_new",
+        "nonos_x_types_range::portrange_start",
         "nonos_x_types_rate::periodicrate_frequency_hz",
         "nonos_x_types_rate::periodicrate_period_us",
         "nonos_x_types_rate::periodicrate_value",
+        "nonos_x_types_region_stats::regionstats_free_memory",
         "nonos_x_types_region_type::regiontype_is_allocatable",
         "nonos_x_types_region_type::regiontype_is_kernel",
         "nonos_x_types_region_type::regiontype_is_reserved",
+        "nonos_x_types_snapshot::dmastatssnapshot_new",
         "nonos_x_types_stack::stackregion_new",
         "nonos_x_types_stack::stackregion_per_cpu",
         "nonos_x_types_stack::stackregion_stack_top",
         "nonos_x_types_stack::stackregion_total_size",
+        "nonos_x_types_stats_snapshot::mmiostatssnapshot_new",
+        "nonos_x_types_stats_snapshot::mmiostatssnapshot_total_operations",
         "nonos_x_types_zone_stats::zonestats_frames_allocated",
         "nonos_x_types_zone_stats::zonestats_free_bytes",
         "nonos_x_types_zone_stats::zonestats_new",
@@ -443,6 +538,7 @@
         "nonos_x_utils_types::scanconfig_hidden_only",
         "nonos_x_utils_types::scanconfig_new",
         "nonos_x_utils_types::scanconfig_with_max_depth",
+        "nonos_x_validation_simd_level::simdlevel_register_width",
         "nonos_x_variable_firmware::firmwareinfo_uefi_major_version",
         "nonos_x_variable_firmware::firmwareinfo_uefi_minor_version",
         "nonos_x_verify_caps_bits::grant_within_manifest",
@@ -455,9 +551,18 @@
         "nonos_x_vga_constants::colorcode_foreground",
         "nonos_x_vga_constants::colorcode_is_blinking",
         "nonos_x_vga_constants::colorcode_value",
-        "nonos_x_vga_constants::screenchar_as_u16"
+        "nonos_x_vga_constants::screenchar_as_u16",
+        "nonos_x_walker_align::align4"
       ],
       "generated_files": [
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Aarch64ContextTypes.lean",
+          "sha256": "9bb50f52a3d6723b44f24269dc960eed29cc04a488ff317f03bfcfb37d412aee"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Aarch64FpuContext.lean",
+          "sha256": "fb1aaf9efa1e433d405bc0d3afc036b30476f02bb32f0ec8da8321209ba1ee81"
+        },
         {
           "path": "verification/extraction/lean/NonosExtraction/AddrPhys.lean",
           "sha256": "191637030d078ee42ce20368f85ee4a0820c84dc5bda30555f743114074c9a35"
@@ -465,6 +570,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/AddrVirt.lean",
           "sha256": "82394c4eb9ce6385932a13232d7d369e615b388871bdb4bd27ba0b369e0aa7c7"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/AlgIdTypes.lean",
+          "sha256": "6f4f866ec76c90faf350b5feaf7ba87a9ebcf918d76c3cfb89b0f1a1288b221b"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Align.lean",
@@ -475,8 +584,32 @@
           "sha256": "a014e57a34f8cd499265c57c66991c166e3468fe9b873dbffd37c7b5ed1d1442"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/ApicTimerMode.lean",
+          "sha256": "81f526bf635a7ba739784e4919d2fe793f3fc8600961aac75813d18742aea1cd"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ApplyRange.lean",
+          "sha256": "448969604284fac8bef42ad1c724c33c2489a3e9a30091f527c77d87c32d428d"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/AttributesKind.lean",
+          "sha256": "c2abd515b2d7a5be186b9d44777162cdcdf4cf0d00ae1a2b7c82069592bd7e2a"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/AuditConstants.lean",
+          "sha256": "4b5503b616754cd11ef7f9cb67d3eab90d9a45e27c1fba21b721c1b3867ecf8c"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/BootTypesContext.lean",
           "sha256": "dff285e66faccf6d27727419b420219862a85d3c847566171e118fa97b4a87de"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/BtiGuard.lean",
+          "sha256": "52d94784f24c431893ac9cdcab8a491c486b3c60ea2abb983ca2ec4deb446ab7"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/BuddyTypesStats.lean",
+          "sha256": "a40f6266ff05f6ee725d64b876a61725b31843a7467072de37b11f837d7ce79d"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CacheTypes.lean",
@@ -487,12 +620,32 @@
           "sha256": "de2519fcebac8d84b838422cd2606952d3ed78ef08ab6b43c12d4f39ccd0c489"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/CapBehaviour.lean",
+          "sha256": "3bc8cb735a27d6450fdc5723be0d7d732bc68d845bc1f7b8a376dc996df21a81"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/CapFault.lean",
+          "sha256": "4475143e4cd98bf3ada06d73ed86437e01745c7a3dacdca826b3fac5004a5682"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/CapLimits.lean",
+          "sha256": "6ffc704778c713009fcbf6113e9c4c8d2e7174922a7769a1dffe70de220942bd"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/CapPages.lean",
+          "sha256": "28e45d3f906670b0830c676b9e3d0a160921f48632b25224f967e58906bd86f7"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/Caps.lean",
           "sha256": "c38ce83715efe6194711645718c0e0efc2dd76a20c165fb417154f88ee98b42b"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CensusBuf.lean",
           "sha256": "94d4079ce47fb52abc528d686963e2de9ec1771c4047a0a5d78532d5806fca1a"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ChainConstants.lean",
+          "sha256": "2665a70275ae1725f7abc289fe895867f9ef30de47196a2d663a90762ed869ed"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ChainError.lean",
@@ -515,12 +668,20 @@
           "sha256": "6e5e9b71c3ca4398bf4d4c271c70c54de9ff951974cdc606e2ec687f2ea2331e"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/ConstantsAddressPacking.lean",
+          "sha256": "8fdb7bff26de67cba505f04154bb27a3290cdc9d06b3df573c71b56fdd1a31a3"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/ConstantsHelpers.lean",
           "sha256": "63a1c890393a43ecf0a3ad3a0bd7e7fe4930617011269b0d340a88265223ead6"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ContextCpuContext.lean",
           "sha256": "4e069475addb8abed041f2d890c34164de9420fd6039d6e5a3a882fe2cd80e53"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ContextRflags.lean",
+          "sha256": "b1013c3104f60d14952e5f90799999a24f78506ca6f95122878252c152bf922f"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ContextTypes.lean",
@@ -535,6 +696,10 @@
           "sha256": "92da08439bcbfa604108b7846066a860cf9a62d65470b1fed1dd2c2f7fe4ba09"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/CpuCacheAssoc.lean",
+          "sha256": "f5d3a0eeabeb95f93925e4c125c4b0c863ffaf93160a9e609b9a467124cd673d"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/CpuMsrStats.lean",
           "sha256": "a0348147667fa20b6c3db4bf93053a3d8d81a014cc8cc86e3993dd4be6609cb8"
         },
@@ -547,8 +712,36 @@
           "sha256": "ede84116be07f4f8b0c324d8fe332f81a2ac73936161771d97c4328c4cf538c2"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/DataIoapic.lean",
+          "sha256": "a372b5840dc6c6bbf71f9cbdefbf7050c5c35f4f00a79551b622438f33df354c"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/DataNuma.lean",
+          "sha256": "2816e37c35ed29e1762ef42fff1615c6cff182743502984f035bec3b09ecb791"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/DataProcessor.lean",
+          "sha256": "8e63a2e530e508e54cf4eeced9740621918105806ccfec24005065ef4dab0b62"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/DataStats.lean",
+          "sha256": "608fd8543314961d31947f2e9a2e5094355edbef27552fe2dd76c8ddda93365e"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/DescriptorUnsupported.lean",
           "sha256": "be18898e51b99c713803401525ba5fa6dae8bfb0c31e39b09deaf7e6c7712083"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/DiagCpl.lean",
+          "sha256": "fc0e762f5c976725db9d47a70b71774c86c1d4eb08df8fc4c83f5660b060fa22"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/DispatchArgs.lean",
+          "sha256": "bcf1815bfe4af0f5ee1a44721a8a4da5943da018a5bdd740b253fa852f2378e2"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/DistributorDevice.lean",
+          "sha256": "bb4c0e13b5c66d034151f54fd140d9d7c21ba4c33b497841f87ce8438523efad"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/EdField.lean",
@@ -575,8 +768,20 @@
           "sha256": "696cb61112130ffc79fd43316628ea4a6d10495540a1522661f103dddf8f1b67"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/HeapTypesStats.lean",
+          "sha256": "17322b2cf340f4b95ace2530b018cf557666d257e68680baeca7df1214bc8231"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/HpetProtection.lean",
+          "sha256": "41e49e91b004fb3ee5c43a553b7fd3c83dd17f5f03ec651fadb4f8d6fa3b05f1"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/HpetRegisters.lean",
           "sha256": "0283f2752fda0b304280cd6df596450185885d4489460e70f8c4cd40a0a1d9f0"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/I2cTypes.lean",
+          "sha256": "2b0d3ca0fdff99bc6c9b9375360a0586f65b0ddcc162e59711a04b0e4cb4e82d"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/IdtEntryFrame.lean",
@@ -585,6 +790,14 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/Iommu.lean",
           "sha256": "00bd82326b3382666b8ff8922b71a2f40f0766e9230c037796d3dc710dddb384"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/IommuDevice.lean",
+          "sha256": "1a09aa373e9a0e245770e8050a215c333c93d12b6f9ad1728973efe259fc5755"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/IommuDomainId.lean",
+          "sha256": "a137269ff42ac9d56a0893587d0c186595fce631997cdc0daa8a6463d92bff5e"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/IommuProtection.lean",
@@ -603,6 +816,18 @@
           "sha256": "8587ddeed71a3865544e596cf94a2be526ac6ba62d7104cd9c7c5758c8e3e515"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/KeyringCapsuleTypes.lean",
+          "sha256": "761220c82c5b047a9b214245d45531143fa85f25d5bc64d100eafead799dada9"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/MainMode.lean",
+          "sha256": "b8dcb271861e4ef6cd03912a68ae72e11810ea86d635c5695486bb0f1da350de"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/MemoryConsts.lean",
+          "sha256": "a1e6033fd387ed9e665919239a9dbd7f01fbd5ab06e9bd6c2176a2b4ff09b745"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/MemorySanitizationTypes.lean",
           "sha256": "0392e20a3056e729dbc3e29e8b580d3d6cb1657c85edabffdfcd93e354bb5692"
         },
@@ -615,8 +840,16 @@
           "sha256": "483c8d10d906462e2329fa827a59b6edc74aa45a0756b513ba70b0d11fa20bb6"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/MmioConstants.lean",
+          "sha256": "49267e8e2b9a46a21d36e88c4695e4c251a1257ea465940ce506acf8b5f59b55"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/MmuMode.lean",
           "sha256": "cb2daa422b2fe3887944a7d03aa9f80dd08d62fd6d159e7a91e9b8175d3f75cb"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/MteMode.lean",
+          "sha256": "991d26de673525b21b56079fa0e140820fd363df46d28e7833c2da9bd51c8c6c"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MultibootModulesAcpi.lean",
@@ -631,12 +864,24 @@
           "sha256": "7b5bb16780bf5aaa4946e66cb8439f96201f012c0a8ff49aa59fb4c5acd9c09f"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/MultisigConstants.lean",
+          "sha256": "9a08965b1c3a4fbe5f269a61d9065f0281e7e670c7f127f214cecb9ef7bf450d"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/NonosInboxStats.lean",
           "sha256": "49f1ca0637c525ceba94a59eedd1dcd7a47adf02c2dbc1de7460884f0bbeabaf"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ObservabilityPolicy.lean",
           "sha256": "235787252988801ea1f97ae74a3e73e9831af73d0aceba358c9b968a4cf7230f"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/OffsetsFault.lean",
+          "sha256": "415253497fa52624f9304e652dbe8c2984777bfc4042e1e70e9331141ffb58c7"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/OffsetsInvalidate.lean",
+          "sha256": "cb92716bc6ed78226881a9dfd75250ef7c380948df8159fe830c69fdd3d15875"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PacKey.lean",
@@ -651,12 +896,20 @@
           "sha256": "871d61b113bc818e455deca24ba3f91c2bb30927835c0b5ddf7b9825500fbfc7"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/PciInfo.lean",
+          "sha256": "e05c0f31006dd5d1410430199a7fbbf23f9ef0164e7616d3a6655af55f0da06b"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/PciTypes.lean",
           "sha256": "e82aeb5ba461c520b3886d4e24f6c03c0c7351a5f0cab77af41b27f86071247c"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PciTypesMsix.lean",
           "sha256": "0b9c728fce8f3aeae4b45de0a852d4fe024e624ae1912befded501524de79e3e"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/PioTypes.lean",
+          "sha256": "139e2637d148f2165b38e613c9479b8208073bdb4ddf9a66d41367dbc50d6a18"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PipeBuffer.lean",
@@ -671,6 +924,10 @@
           "sha256": "041b400dd85aec92d3cbf80b8e57350ee05c97e22bf64b3e76fe52ad46e593b0"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/PortStatsSnapshot.lean",
+          "sha256": "649250a12caa92d2d71b5625147c90b4047b04c2afd7a604fdc7b9fd524c0a22"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/ProcessFdTypes.lean",
           "sha256": "18619216542697ddaf332cd2636076cb8133596b19a9da9b431cb93fa55d3162"
         },
@@ -683,12 +940,60 @@
           "sha256": "9ab2cd40cdad73e06828037d6b3d9ca97077522bd4fb96bae6164fab53ad1670"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/RandomApiEntropyCheck.lean",
+          "sha256": "c10a375ae4c08ade17e4f393cdd3d2a86baf12a370443d64434364e066e82893"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/RedistributorDevice.lean",
+          "sha256": "49cc049ef060c3635f7648670b489d4c827cfcbc627b84dabf78eebb8c109752"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/RegionOverlap.lean",
           "sha256": "aa76f80d1ebd105f227222b5b47532cbb984a93a9a005a708cd671a945dd196d"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/RegionTypesStats.lean",
+          "sha256": "09b968dfca797194a24b909ba2544b8f8eb509a651a7240515f71a0adbfb009b"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/RegistersPlic.lean",
+          "sha256": "59f146b25c54af7b8125bbe16559718219eb37e6d097528ff6e93def6aa7101b"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/RegistryVersion.lean",
+          "sha256": "0fec1890309201631b1fdc2cc28bce2894bf420a930a8679744959d7d051a587"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ResourceLimits.lean",
+          "sha256": "07894ceb9cbf282999f1fa925dcb71330f916063dee3e23a9a8605e6bef4745a"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ResourceNonceCompose.lean",
+          "sha256": "bb13ef6e3ec53ffb754d40d130a419fe462d6f82934e65bb17e972a96570b4a3"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Riscv64ContextTypes.lean",
+          "sha256": "e9e95b10d7bdb096bf6b6b7e82cd8be240a7501941a4de785eb4f3f21e797cb4"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/Riscv64FpuContext.lean",
+          "sha256": "a77531fb26918e76430074aa9d44170123118d9aa0a42c0af2bf19840ffc0f2d"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/RtcBcd.lean",
+          "sha256": "23d74f328fe8b3e80a8f5f2fd9ee7d70a6e9076e972a8b46d194c25c66fc601c"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/RvFlags.lean",
           "sha256": "b78ef3c9eb7caf65b113f4e7416cafbc2b9c6a7a378cde37458f228aafdaba5a"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/SdtEntryCount.lean",
+          "sha256": "c7af048c30986090e17328676bb2dfde46ea9d29bd6bce10260f8a0d8ef8b4cc"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/SecurityMmioRange.lean",
+          "sha256": "c3c91279e2dbc669d16eff6ff43e3a0cf57265a117aa7c3d0fa568a33b5c7ec7"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/SemaphorePure.lean",
@@ -703,8 +1008,16 @@
           "sha256": "b40253ddc5addde3a2d67389dd9ec00910623bf27c09ec0f4eda996995b34847"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/SignalError.lean",
+          "sha256": "067f6f035a58065423831b9faef3ad85de73f309e515cdd3e6672cd00f447643"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/SpectreMitigationsCpuid.lean",
           "sha256": "6f92779ecb96ff952f32a9f18d52d244a03d6cac4928721446160b3443cca145"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/SurfaceRegistryRingMath.lean",
+          "sha256": "66026c0c0da151d38bc0cfc7d6f763b9352db324b52ab9ca9d4b1691235e112b"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TablesContext.lean",
@@ -743,12 +1056,20 @@
           "sha256": "164f1548850dd0b9062b1e433a467b7a7a2ad8a0d0e9fcf721552adb70884db3"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/TrampolinePerAp.lean",
+          "sha256": "40ba0e69a1e2210a391a87d8680006666b879a2cbd121c5c75b0f4cccc3e3747"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/TranslationFault.lean",
           "sha256": "d5adc30bcc1de8c3e20ce813e41d08234196febceae1a76a7524257dd7551a55"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesBridge.lean",
           "sha256": "6f293ca2211ed084d818947ecff7587dba66660c45072da9d7084792fabc7cfa"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesDeviceId.lean",
+          "sha256": "b61ff862ea9cbd1b89ece587271f6778dddc4e43fa307f0731d4df14ba09e111"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesDirection.lean",
@@ -771,12 +1092,32 @@
           "sha256": "3d9f0e2fb6623cfe78dad720782d07ace60de438c1974a8c904295370264318c"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/TypesProtection.lean",
+          "sha256": "5c3c260131da2a271f66d09f0f2cb1629ce4f693a324541a2a674859e4ec3882"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesPte.lean",
+          "sha256": "128fba1af11d4b9e19929ba58a32867eba65276a01dfa42f6f891de2dd296976"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesRange.lean",
+          "sha256": "623f737b31ceedb67223cee6ee3a8b9b52f258ea350c3654f088a39029f55bb2"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/TypesRate.lean",
           "sha256": "390aee4637d68399fba5bbb74f5d89e288791c592078887daeca81358058925b"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/TypesRegionStats.lean",
+          "sha256": "4150d0aede8eb82ca3b4963b89fbc9cf46671d468592fe430dc6045c58e07d0e"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/TypesRegionType.lean",
           "sha256": "607f6e25a8f4e16881ce7509b7abb43b37f5aa929f823a298945ffe7b05ecb6a"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesSnapshot.lean",
+          "sha256": "5d96c19c61244034d287e58c13dbc831d7d969a6e7602a1ff1ad66708315569f"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesStack.lean",
@@ -785,6 +1126,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesStats.lean",
           "sha256": "e747e507a82b51a22690114a4af9e03ee5992310e25e4baf8bc5898abc57e0c3"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/TypesStatsSnapshot.lean",
+          "sha256": "720c6a5db6a94fd1a9ee806d3652189b5b9ad1a9334f96999ef681438fcca1ee"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesZoneStats.lean",
@@ -807,6 +1152,10 @@
           "sha256": "82b1f58650ccf6854d84b2690bc9bb1520c63ed67df90b71ffe93ce8c1549f59"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/ValidationSimdLevel.lean",
+          "sha256": "a575d45e0ff22d4a0423ceeadf563128524affccee6b4b0337f6911a604978cb"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/VariableFirmware.lean",
           "sha256": "d2d6a16662fa8e19a6390fc4279c4271a5f43a6fc3742675b6599d1f874efe4d"
         },
@@ -825,6 +1174,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/VgaConstants.lean",
           "sha256": "a502d776fec101fc7b5350c915f7ad9464f37c810fdf0dac174d3353ab72496a"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/WalkerAlign.lean",
+          "sha256": "d526c9f08361fed4633538afa59ae9e1e5e04c8b432e943cce8811167d45418f"
         },
         {
           "path": "verification/extraction/lean/Policy/Funs.lean",

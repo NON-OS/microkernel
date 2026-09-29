@@ -34,7 +34,7 @@ import sys
 from pathlib import Path
 
 # Raise these when the numbers improve. They may never be lowered.
-FLOOR = 423
+FLOOR = 520
 GAP_CEILING = 0
 # Functions carrying a property beyond "this wrapper is its method". That
 # wrapper theorem is real, and it is what ties a manifest entry to the method a
