@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.TypesIds
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_types_ids
@@ -53,6 +54,130 @@ theorem the_sourceid_device_wrapper_is_its_method (a : ids.SourceId) :
 theorem the_sourceid_function_wrapper_is_its_method (a : ids.SourceId) :
     sourceid_function a = ids.SourceId.function a := rfl
 
+/-! ### The requester id splits into bus, device and function
+
+A PCI requester id is sixteen bits: the bus in the high byte, the device in the
+five bits below it and the function in the low three. The kernel builds one in
+`bdf_to_source_id` as `(bus << 8) | ((device & 0x1F) << 3) | (function & 0x7)`,
+and `set_context` and `clear_context` take it apart again with `bus`, `device`
+and `function` to pick the root slot and the context slot. The theorems below
+say exactly which bits each reader returns, that the three readers together
+account for every bit of the id with none read twice, and that a triple packed
+the way `bdf_to_source_id` packs it comes back unchanged. A reader that shifted
+by one bit too few, or masked one bit too many, would send a device's
+translation through another device's context entry.
+
+They also say that the two constructors keep every bit of their argument: a
+domain id above the kernel's `MAX_VTD_DOMAINS` of 256 is carried through
+`domainid_new` and `domainid_as_u16` untouched, so the bounds check in
+`create_domain`, `map_range` and the other callers is the only guard on the
+index. `bdf_to_source_id` itself and those callers are not in this crate, so the
+packing is stated here as arithmetic rather than as a call.
+-/
+
+/-- A right shift of a sixteen-bit word by a constant below sixteen succeeds and
+    divides by that power of two. -/
+private theorem shr_u16 (x : Std.U16) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 16) :
+    ∃ z : Std.U16, x >>> k = ok z ∧ z.val = x.val / 2 ^ k.toNat := by
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftRight_IScalar_spec x k h0 (by simpa using h1))
+  exact ⟨z, hz, by rw [hv, Nat.shiftRight_eq_div_pow]⟩
+
+/-- The bus is the high byte of the id: bits 8 to 15, and nothing below. -/
+theorem sourceid_bus_is_the_high_byte (s : ids.SourceId) :
+    ∃ b : Std.U8, sourceid_bus s = ok b ∧ b.val = s.val / 256 := by
+  unfold sourceid_bus ids.SourceId.bus
+  obtain ⟨z, hz, hv⟩ := shr_u16 s 8#i32 (by decide) (by decide)
+  simp only [hz, bind_tc_ok, lift]
+  refine ⟨_, rfl, ?_⟩
+  have hs := s.hBounds
+  rw [UScalar.cast_val_eq, Bits.land_low_mask z 255#u16 8 rfl, hv]
+  simp only [show (8#i32 : Std.I32).toNat = 8 from rfl]
+  simp [UScalarTy.numBits] at hs ⊢
+  omega
+
+/-- The device is bits 3 to 7 of the id: five bits, so it never exceeds 31. -/
+theorem sourceid_device_is_bits_three_to_seven (s : ids.SourceId) :
+    ∃ d : Std.U8, sourceid_device s = ok d ∧ d.val = s.val / 8 % 32 := by
+  unfold sourceid_device ids.SourceId.device
+  obtain ⟨z, hz, hv⟩ := shr_u16 s 3#i32 (by decide) (by decide)
+  simp only [hz, bind_tc_ok, lift]
+  refine ⟨_, rfl, ?_⟩
+  rw [UScalar.cast_val_eq, Bits.land_low_mask z 31#u16 5 rfl, hv]
+  simp only [show (3#i32 : Std.I32).toNat = 3 from rfl]
+  simp [UScalarTy.numBits]
+  omega
+
+/-- The function is the low three bits of the id, so it never exceeds 7. -/
+theorem sourceid_function_is_the_low_three_bits (s : ids.SourceId) :
+    ∃ f : Std.U8, sourceid_function s = ok f ∧ f.val = s.val % 8 := by
+  unfold sourceid_function ids.SourceId.function
+  simp only [bind_tc_ok, lift]
+  refine ⟨_, rfl, ?_⟩
+  rw [UScalar.cast_val_eq, Bits.land_low_mask s 7#u16 3 rfl]
+  simp [UScalarTy.numBits]
+  omega
+
+/-- The three readers partition the id: bus, device and function, weighted by
+    their positions, add back up to the raw value `sourceid_as_u16` returns. No
+    bit is lost between fields and none is counted in two. -/
+theorem bus_device_and_function_reassemble_the_id (s : ids.SourceId) :
+    ∃ b d f : Std.U8, sourceid_bus s = ok b ∧ sourceid_device s = ok d ∧
+      sourceid_function s = ok f ∧ sourceid_as_u16 s = ok s ∧
+      b.val * 256 + d.val * 8 + f.val = s.val := by
+  obtain ⟨b, hb, hbv⟩ := sourceid_bus_is_the_high_byte s
+  obtain ⟨d, hd, hdv⟩ := sourceid_device_is_bits_three_to_seven s
+  obtain ⟨f, hf, hfv⟩ := sourceid_function_is_the_low_three_bits s
+  refine ⟨b, d, f, hb, hd, hf, rfl, ?_⟩
+  have hs := s.hBounds
+  simp [UScalarTy.numBits] at hs
+  omega
+
+/-- The contract `set_context` relies on: a bus, device and function packed the
+    way `bdf_to_source_id` packs them, handed to `sourceid_new`, come back out of
+    `sourceid_bus`, `sourceid_device` and `sourceid_function` unchanged. So the
+    context entry the kernel writes for a device is the one indexed by that
+    device's own bus, device and function. -/
+theorem sourceid_new_then_readers_recover_bus_device_and_function
+    (raw : Std.U16) (b d f : Nat) (hd : d < 32) (hf : f < 8)
+    (hraw : raw.val = b * 256 + d * 8 + f) :
+    ∃ s bus dev fn, sourceid_new raw = ok s ∧ sourceid_bus s = ok bus ∧
+      sourceid_device s = ok dev ∧ sourceid_function s = ok fn ∧
+      bus.val = b ∧ dev.val = d ∧ fn.val = f := by
+  obtain ⟨bus, hb, hbv⟩ := sourceid_bus_is_the_high_byte raw
+  obtain ⟨dev, hdv, hdvv⟩ := sourceid_device_is_bits_three_to_seven raw
+  obtain ⟨fn, hfn, hfnv⟩ := sourceid_function_is_the_low_three_bits raw
+  refine ⟨raw, bus, dev, fn, rfl, hb, hdv, hfn, ?_, ?_, ?_⟩ <;> omega
+
+/-- Two concrete ids at the edges of the fields: `0xFFFF` is bus 255, device 31,
+    function 7, and `0x0100` is bus 1 with device and function zero, so the bus
+    starts exactly at bit 8. -/
+theorem sourceid_readers_at_the_field_edges :
+    sourceid_bus 0xFFFF#u16 = ok 255#u8 ∧ sourceid_device 0xFFFF#u16 = ok 31#u8 ∧
+      sourceid_function 0xFFFF#u16 = ok 7#u8 ∧
+      sourceid_bus 0x0100#u16 = ok 1#u8 ∧ sourceid_device 0x0100#u16 = ok 0#u8 ∧
+      sourceid_function 0x0100#u16 = ok 0#u8 ∧
+      sourceid_device 0x00F8#u16 = ok 31#u8 ∧ sourceid_bus 0x00F8#u16 = ok 0#u8 := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;> rfl
+
+/-- A requester id survives `sourceid_new` and `sourceid_as_u16` bit for bit, so
+    two different ids never collapse into one. -/
+theorem sourceid_as_u16_recovers_what_sourceid_new_was_given (raw : Std.U16) :
+    ∃ s, sourceid_new raw = ok s ∧ sourceid_as_u16 s = ok raw := ⟨raw, rfl, rfl⟩
+
+/-- A domain id survives `domainid_new` and `domainid_as_u16` bit for bit,
+    including values at and above `MAX_VTD_DOMAINS` (256): the type does not
+    clamp or reduce, so the callers' bounds check is what keeps the index in
+    range. -/
+theorem domainid_as_u16_recovers_what_domainid_new_was_given (id : Std.U16) :
+    ∃ d, domainid_new id = ok d ∧ domainid_as_u16 d = ok id := ⟨id, rfl, rfl⟩
+
+/-- The value past the domain table is kept as it is, not folded back into it. -/
+theorem domainid_new_keeps_ids_past_the_domain_table :
+    (do let d ← domainid_new 256#u16; domainid_as_u16 d) = ok 256#u16 ∧
+    (do let d ← domainid_new 0xFFFF#u16; domainid_as_u16 d) = ok 0xFFFF#u16 := by
+  refine ⟨?_, ?_⟩ <;> rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesIds.the_domainid_new_wrapper_is_its_method
@@ -62,5 +187,14 @@ theorem the_sourceid_function_wrapper_is_its_method (a : ids.SourceId) :
 #print axioms NonosExtraction.TypesIds.the_sourceid_bus_wrapper_is_its_method
 #print axioms NonosExtraction.TypesIds.the_sourceid_device_wrapper_is_its_method
 #print axioms NonosExtraction.TypesIds.the_sourceid_function_wrapper_is_its_method
+#print axioms NonosExtraction.TypesIds.sourceid_bus_is_the_high_byte
+#print axioms NonosExtraction.TypesIds.sourceid_device_is_bits_three_to_seven
+#print axioms NonosExtraction.TypesIds.sourceid_function_is_the_low_three_bits
+#print axioms NonosExtraction.TypesIds.bus_device_and_function_reassemble_the_id
+#print axioms NonosExtraction.TypesIds.sourceid_new_then_readers_recover_bus_device_and_function
+#print axioms NonosExtraction.TypesIds.sourceid_readers_at_the_field_edges
+#print axioms NonosExtraction.TypesIds.sourceid_as_u16_recovers_what_sourceid_new_was_given
+#print axioms NonosExtraction.TypesIds.domainid_as_u16_recovers_what_domainid_new_was_given
+#print axioms NonosExtraction.TypesIds.domainid_new_keeps_ids_past_the_domain_table
 
 end NonosExtraction.TypesIds
