@@ -25,8 +25,8 @@ use sha2::{Digest, Sha256};
 use super::error::VolumeError;
 use crate::fs::blockfs::{BlockFsMount, FileStream};
 
-/// Sectors per read: under every block driver's per-request ceiling.
-const CHUNK_SECTORS: u64 = 32;
+/// Sectors per read: every block driver's per-request ceiling.
+const CHUNK_SECTORS: u64 = 64;
 
 /// Seal `bytes` from device LBA `at` into `stream`; the SHA-256 of them.
 pub(super) fn stream_in(
@@ -37,7 +37,7 @@ pub(super) fn stream_in(
     bytes: u64,
 ) -> Result<[u8; 32], VolumeError> {
     let mut hash = Sha256::new();
-    let mut buf = [0u8; (CHUNK_SECTORS * 512) as usize];
+    let mut buf = alloc::vec![0u8; (CHUNK_SECTORS * 512) as usize];
     let mut done = 0u64;
     while done < bytes {
         let take = (bytes - done).min(CHUNK_SECTORS * 512);

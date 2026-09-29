@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::map_block::map_block_error;
 use super::seal::seal;
 use super::window::device_lba;
 use super::CryptoBlockError;
 
-/// Seal and write one block without flushing the device. A caller writing
-/// many blocks flushes once after the last, before anything points at them.
+/// Seal one block and hold it for the device, unflushed. A caller writing
+/// many blocks flushes once after the last, before anything points at them;
+/// consecutive blocks reach the device as one request.
 pub fn write_deferred(key: &[u8; 32], lba: u64, plain: &[u8]) -> Result<(), CryptoBlockError> {
     let at = device_lba(lba)?;
     let sector = seal(key, lba, plain)?;
-    crate::hardware::block_device::write(at, &sector).map_err(map_block_error)
+    super::pending::hold(at, &sector)
 }

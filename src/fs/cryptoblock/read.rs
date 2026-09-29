@@ -21,6 +21,7 @@ use super::window::device_lba;
 use super::CryptoBlockError;
 
 pub fn read(key: &[u8; 32], lba: u64) -> Result<[u8; PLAIN_BLOCK_BYTES], CryptoBlockError> {
+    super::pending::drain()?;
     let mut sector = [0u8; SECTOR_BYTES];
     crate::hardware::block_device::read(device_lba(lba)?, &mut sector).map_err(map_block_error)?;
     open(key, lba, &sector)

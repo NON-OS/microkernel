@@ -19,10 +19,14 @@
 use super::alloc_block::alloc_block;
 use super::tree_store::{Block, BlockSource, BlockStore, TreeFault};
 use super::{BlockFsError, BlockFsMount};
+use crate::fs::cryptoblock::ReadAhead;
 
-/// Reads only: a file being read allocates and writes nothing.
+/// Reads only: a file being read allocates and writes nothing. Its blocks
+/// are fetched a run at a time; the run lives only as long as this source,
+/// one read under the volume's lock, so no write can make it stale.
 pub(super) struct SealedSource<'a> {
     pub key: &'a [u8; 32],
+    pub ahead: ReadAhead,
 }
 
 /// Reads, writes and allocates, for a file being written. Writes are not
@@ -35,7 +39,7 @@ pub(super) struct SealedStore<'a> {
 impl BlockSource for SealedSource<'_> {
     type Error = BlockFsError;
     fn get(&mut self, lba: u64) -> Result<Block, BlockFsError> {
-        crate::fs::cryptoblock::read(self.key, lba).map_err(BlockFsError::CryptoBlock)
+        self.ahead.read(self.key, lba).map_err(BlockFsError::CryptoBlock)
     }
 }
 

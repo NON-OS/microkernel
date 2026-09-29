@@ -21,6 +21,7 @@ use super::tree_range::read_range;
 use super::tree_reader::TreeReader;
 use super::tree_sealed::{fault, SealedSource};
 use super::{BlockFsError, BlockFsNode};
+use crate::fs::cryptoblock::ReadAhead;
 
 /// Read a file from its start into `out`; see `read_file_at`.
 pub fn read_file(
@@ -55,7 +56,7 @@ pub fn read_file_at(
     for (i, slot) in root.iter_mut().enumerate() {
         *slot = read_u64(&index, INDEX_PTR_BASE + i * PTR_BYTES);
     }
-    let mut source = SealedSource { key };
+    let mut source = SealedSource { key, ahead: ReadAhead::new() };
     let mut reader = TreeReader::new(root);
     read_range(&mut source, &mut reader, node.size, offset, out).map_err(fault)
 }

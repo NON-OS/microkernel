@@ -20,5 +20,6 @@ use super::CryptoBlockError;
 
 pub fn write(key: &[u8; 32], lba: u64, plain: &[u8]) -> Result<(), CryptoBlockError> {
     write_deferred(key, lba, plain)?;
+    super::pending::drain()?;
     crate::hardware::block_device::flush().map_err(map_block_error)
 }
