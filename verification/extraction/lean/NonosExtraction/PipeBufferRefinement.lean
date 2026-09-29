@@ -146,10 +146,14 @@ theorem the_pipe_is_sixty_four_kilobytes :
     touches, by how much, with which ordering, and how a load is turned into a
     yes or no. What cannot be established here is the value a counter holds
     after a sequence of operations: that a fresh pipe starts with one reader and
-    one writer, that `fetch_sub` wraps at zero, and anything about concurrent
-    interleavings all live inside the opaque atomics. The callers in
-    `src/fs/pipe` (`PipeReader`, `PipeWriter`, `pipe_read`, `pipe_write`,
-    `sys_pipe2`) are not extracted either.
+    one writer, and anything about concurrent interleavings, live inside the
+    opaque atomics. What is established is that `remove_reader` and
+    `remove_writer` store the loaded count less one when it is not zero and
+    store nothing when it is, so they cannot wrap. That the load and the store
+    are not interleaved with another decrement rests on every caller holding
+    the pipe's mutex, which is not extracted. The callers in `src/fs/pipe`
+    (`PipeReader`, `PipeWriter`, the descriptor registry, `pipe_read`,
+    `pipe_write`, `sys_pipe2`) are not extracted either.
 -/
 
 /-- Inside the ring discipline, `len` is the distance from `tail` forward to
@@ -284,46 +288,57 @@ theorem writer_operations_read_only_the_writer_count
     pipebuffer_remove_writer, buffer.PipeBuffer.remove_writer,
     pipebuffer_has_writers, buffer.PipeBuffer.has_writers, h, and_self]
 
-/-- `add_reader` and `remove_reader` are one atomic step each on the same cell,
-    the reader counter, with the same delta of one and the same ordering, and
-    they discard the old value. So an add followed by a remove is meant to
-    cancel.
+private theorem pred_ok (n : Std.Usize) (h : n.val ≠ 0) :
+    ∃ i : Std.Usize, n - 1#usize = ok i ∧ i.val = n.val - 1 := by
+  have ⟨i, hi, hiv⟩ := WP.spec_imp_exists (Usize.sub_spec (x := n) (y := 1#usize) (by scalar_tac))
+  exact ⟨i, hi, by scalar_tac⟩
 
-    This also records a defect. `remove_reader` does not load the counter or
-    guard against zero before subtracting, and an atomic `fetch_sub` wraps
-    rather than trapping. `PipeReader::close` and `PipeReader::drop` both call
-    it, so closing and then dropping the last reader takes the count from one
-    through zero to `usize::MAX`, after which `has_readers` holds forever. -/
-theorem pipebuffer_remove_reader_undoes_pipebuffer_add_reader_without_a_zero_guard
-    (b : buffer.PipeBuffer) :
-    ∃ (cell : core.sync.atomic.Atomic Std.Usize
-        (core.sync.atomic.private.Align8 Std.Usize))
-      (δ : Std.Usize) (o : core.sync.atomic.Ordering),
-      δ = 1#usize ∧ cell = b.readers ∧
-      pipebuffer_add_reader b =
-        (do let _ ← core.sync.atomic.AtomicUsizeAlign8Usize.fetch_add cell δ o; ok ()) ∧
+/-- `add_reader` is one atomic add of one on the reader counter. `remove_reader`
+    loads that counter and, when it is not zero, stores it less one; when it is
+    zero it stores nothing. So the count stops at zero: closing and dropping the
+    last reader can no longer take it to `usize::MAX`, which had made
+    `has_readers` hold forever. -/
+theorem pipebuffer_remove_reader_stops_at_zero (b : buffer.PipeBuffer) (n : Std.Usize)
+    (h : core.sync.atomic.AtomicUsizeAlign8Usize.load b.readers .SeqCst = ok n) :
+    pipebuffer_add_reader b =
+      (do let _ ← core.sync.atomic.AtomicUsizeAlign8Usize.fetch_add b.readers 1#usize .SeqCst
+          ok ()) ∧
+    (n.val = 0 → pipebuffer_remove_reader b = ok ()) ∧
+    (n.val ≠ 0 → ∃ i : Std.Usize, i.val = n.val - 1 ∧
       pipebuffer_remove_reader b =
-        (do let _ ← core.sync.atomic.AtomicUsizeAlign8Usize.fetch_sub cell δ o; ok ()) :=
-  ⟨b.readers, 1#usize, .SeqCst, rfl, rfl, rfl, rfl⟩
+        core.sync.atomic.AtomicUsizeAlign8Usize.store b.readers i .SeqCst) := by
+  refine ⟨rfl, fun h0 => ?_, fun h0 => ?_⟩
+  · unfold pipebuffer_remove_reader buffer.PipeBuffer.remove_reader
+    have : ¬ n > 0#usize := by scalar_tac
+    simp only [h, bind_tc_ok, this, ↓reduceIte]
+  · obtain ⟨i, hi, hiv⟩ := pred_ok n h0
+    refine ⟨i, hiv, ?_⟩
+    unfold pipebuffer_remove_reader buffer.PipeBuffer.remove_reader
+    have : n > 0#usize := by scalar_tac
+    simp only [h, bind_tc_ok, this, ↓reduceIte, hi]
 
-/-- `add_writer` and `remove_writer` are one atomic step each on the writer
-    counter, with the same delta of one and the same ordering.
-
-    As for readers, this records a defect: `remove_writer` has no zero guard,
-    and `PipeWriter::close` followed by `PipeWriter::drop` wraps the count to
-    `usize::MAX`, after which a blocked `pipe_read` on an empty pipe waits
-    forever instead of seeing end of file. -/
-theorem pipebuffer_remove_writer_undoes_pipebuffer_add_writer_without_a_zero_guard
-    (b : buffer.PipeBuffer) :
-    ∃ (cell : core.sync.atomic.Atomic Std.Usize
-        (core.sync.atomic.private.Align8 Std.Usize))
-      (δ : Std.Usize) (o : core.sync.atomic.Ordering),
-      δ = 1#usize ∧ cell = b.writers ∧
-      pipebuffer_add_writer b =
-        (do let _ ← core.sync.atomic.AtomicUsizeAlign8Usize.fetch_add cell δ o; ok ()) ∧
+/-- The writer dual: `remove_writer` stores the loaded writer count less one
+    when it is not zero and nothing when it is. Closing and dropping the last
+    writer used to wrap the count, after which a blocked `pipe_read` on an empty
+    pipe waited forever instead of seeing end of file. -/
+theorem pipebuffer_remove_writer_stops_at_zero (b : buffer.PipeBuffer) (n : Std.Usize)
+    (h : core.sync.atomic.AtomicUsizeAlign8Usize.load b.writers .SeqCst = ok n) :
+    pipebuffer_add_writer b =
+      (do let _ ← core.sync.atomic.AtomicUsizeAlign8Usize.fetch_add b.writers 1#usize .SeqCst
+          ok ()) ∧
+    (n.val = 0 → pipebuffer_remove_writer b = ok ()) ∧
+    (n.val ≠ 0 → ∃ i : Std.Usize, i.val = n.val - 1 ∧
       pipebuffer_remove_writer b =
-        (do let _ ← core.sync.atomic.AtomicUsizeAlign8Usize.fetch_sub cell δ o; ok ()) :=
-  ⟨b.writers, 1#usize, .SeqCst, rfl, rfl, rfl, rfl⟩
+        core.sync.atomic.AtomicUsizeAlign8Usize.store b.writers i .SeqCst) := by
+  refine ⟨rfl, fun h0 => ?_, fun h0 => ?_⟩
+  · unfold pipebuffer_remove_writer buffer.PipeBuffer.remove_writer
+    have : ¬ n > 0#usize := by scalar_tac
+    simp only [h, bind_tc_ok, this, ↓reduceIte]
+  · obtain ⟨i, hi, hiv⟩ := pred_ok n h0
+    refine ⟨i, hiv, ?_⟩
+    unfold pipebuffer_remove_writer buffer.PipeBuffer.remove_writer
+    have : n > 0#usize := by scalar_tac
+    simp only [h, bind_tc_ok, this, ↓reduceIte, hi]
 
 /-! ### Axiom profile -/
 
@@ -349,7 +364,7 @@ theorem pipebuffer_remove_writer_undoes_pipebuffer_add_writer_without_a_zero_gua
 #print axioms NonosExtraction.PipeBuffer.pipebuffer_has_writers_is_the_writer_count_being_nonzero
 #print axioms NonosExtraction.PipeBuffer.reader_operations_read_only_the_reader_count
 #print axioms NonosExtraction.PipeBuffer.writer_operations_read_only_the_writer_count
-#print axioms NonosExtraction.PipeBuffer.pipebuffer_remove_reader_undoes_pipebuffer_add_reader_without_a_zero_guard
-#print axioms NonosExtraction.PipeBuffer.pipebuffer_remove_writer_undoes_pipebuffer_add_writer_without_a_zero_guard
+#print axioms NonosExtraction.PipeBuffer.pipebuffer_remove_reader_stops_at_zero
+#print axioms NonosExtraction.PipeBuffer.pipebuffer_remove_writer_stops_at_zero
 
 end NonosExtraction.PipeBuffer
