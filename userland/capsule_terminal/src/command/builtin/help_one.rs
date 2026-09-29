@@ -89,6 +89,7 @@ const USAGE: &[(&[u8], &[u8], &[u8])] = &[
     (b"ifconfig", b"ifconfig", b"interfaces, addresses and link state"),
     (b"nslookup", b"nslookup <name>", b"resolve a name through the configured resolver"),
     (b"nym", b"nym", b"mixnet client state: directory, gateway and route"),
+    (b"qwen", b"qwen [tier] [question]", b"chat with a Qwen model on this machine, offline"),
 ];
 
 /// Print one command's usage. Returns false when the name is unknown, so the
@@ -102,6 +103,11 @@ pub fn run(out: &mut Output<'_>, name: &[u8]) -> bool {
     let n = 2 + what.len().min(line.len() - 2);
     line[2..n].copy_from_slice(&what[..n - 2]);
     out.writeln(&line[..n]);
+    if name == b"qwen" {
+        for more in super::qwen::HELP {
+            out.writeln(more);
+        }
+    }
     true
 }
 

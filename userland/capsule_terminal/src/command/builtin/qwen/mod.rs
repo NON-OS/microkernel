@@ -14,35 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod about;
-pub mod bench;
-pub mod cap_names;
-pub mod capsules;
-pub mod clear;
-pub mod display;
-pub mod echo;
-pub mod exit_check;
-pub mod fs;
-pub mod git;
-pub mod help;
-mod help_layout;
-pub mod help_one;
-mod help_pages;
-mod help_tools;
-pub mod history_cmd;
-pub mod jobs;
-pub mod market;
-pub mod motd;
-pub mod neofetch;
-pub mod nox;
-pub mod ping;
-pub mod qwen;
-pub mod receipt;
-pub mod service;
-pub mod theme;
-pub mod tool;
-mod tool_list;
-mod tool_refused;
-pub mod version;
-pub mod which;
-pub mod whoami;
+//! `qwen`: talk with a Qwen model on this machine, in this tab. The kernel
+//! runs the chosen tier through the Linux personality as a child of this
+//! terminal; its output is this screen and its stdin is the keyboard.
+
+mod ask;
+mod help;
+mod refused;
+mod start;
+mod statement;
+
+pub use ask::{is_line, TIERS};
+pub use help::HELP;
+pub use start::enter;
+pub use statement::{from_args, misplaced};

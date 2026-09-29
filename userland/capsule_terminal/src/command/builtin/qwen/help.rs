@@ -14,35 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod about;
-pub mod bench;
-pub mod cap_names;
-pub mod capsules;
-pub mod clear;
-pub mod display;
-pub mod echo;
-pub mod exit_check;
-pub mod fs;
-pub mod git;
-pub mod help;
-mod help_layout;
-pub mod help_one;
-mod help_pages;
-mod help_tools;
-pub mod history_cmd;
-pub mod jobs;
-pub mod market;
-pub mod motd;
-pub mod neofetch;
-pub mod nox;
-pub mod ping;
-pub mod qwen;
-pub mod receipt;
-pub mod service;
-pub mod theme;
-pub mod tool;
-mod tool_list;
-mod tool_refused;
-pub mod version;
-pub mod which;
-pub mod whoami;
+//! What `help qwen` says under its usage line.
+
+/// The tiers, the models behind them, and the keys of a chat.
+pub const HELP: &[&[u8]] = &[
+    b"  tiers: small 0.5B (the default), medium 1.5B, large 3B, xlarge 7B",
+    b"  all Qwen2.5 Instruct Q4_K_M, run offline, each model verified by SHA-256",
+    b"  the rest of the line is the first question; it is not kept in history",
+    b"  the answer streams onto the screen as it is written",
+    b"  Enter sends a line; Ctrl-D on an empty line ends the chat, Ctrl-C kills it",
+    b"  in the chat, /reset starts over and /exit or /bye ends it",
+];

@@ -47,6 +47,15 @@ fn describe(out: &mut Output<'_>, name: &[u8]) -> bool {
     let mut line = [b' '; 120];
     let mut n = copy(&mut line, 0, name);
 
+    if name == b"qwen" {
+        n = copy(
+            &mut line,
+            n,
+            b" is a local Qwen chat, spawned as tool.qwen in the Linux personality",
+        );
+        out.writeln(&line[..n]);
+        return true;
+    }
     if let Some(service) = tool::service_for(name) {
         n = copy(&mut line, n, b" is an installed tool, spawned as capsule tool.");
         n = copy(&mut line, n, service);

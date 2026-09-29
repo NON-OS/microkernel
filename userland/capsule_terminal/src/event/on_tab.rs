@@ -18,7 +18,7 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::clients::vfs::list_paths;
 use nonos_app_skeleton::EventOutcome;
 
-use super::complete::{command_candidates, common_prefix};
+use super::complete::{command_candidates, common_prefix, word_candidates};
 use crate::term::cwd::resolve;
 use crate::term::state::State;
 
@@ -34,15 +34,18 @@ pub fn on_tab(state: &mut State) -> EventOutcome {
     // after the handful of commands whose argument is itself a command name.
     let first = line.split(|&b| b == b' ').next().unwrap_or(b"");
     let complete_command = start == 0 || super::complete::takes_command_argument(first);
-    let (cands, base): (Vec<Vec<u8>>, Vec<u8>) = if complete_command {
-        (command_candidates(word).iter().map(|c| c.to_vec()).collect(), word.to_vec())
-    } else {
-        let resolved = resolve(state.cwd.as_bytes(), word);
-        match list_paths(state.owner_pid, &resolved) {
-            Ok(paths) => (paths.iter().map(|s| s.as_bytes().to_vec()).collect(), resolved),
-            Err(_) => return EventOutcome::Repaint,
-        }
-    };
+    let (cands, base): (Vec<Vec<u8>>, Vec<u8>) =
+        if let Some(words) = word_candidates(&line[..start], word) {
+            (words.iter().map(|c| c.to_vec()).collect(), word.to_vec())
+        } else if complete_command {
+            (command_candidates(word).iter().map(|c| c.to_vec()).collect(), word.to_vec())
+        } else {
+            let resolved = resolve(state.cwd.as_bytes(), word);
+            match list_paths(state.owner_pid, &resolved) {
+                Ok(paths) => (paths.iter().map(|s| s.as_bytes().to_vec()).collect(), resolved),
+                Err(_) => return EventOutcome::Repaint,
+            }
+        };
     if cands.is_empty() {
         return EventOutcome::Repaint;
     }

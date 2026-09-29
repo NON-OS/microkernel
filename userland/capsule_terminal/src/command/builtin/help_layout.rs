@@ -37,7 +37,7 @@ pub const GROUPS: &[(&[u8], &[u8])] = &[
     (b"system", b"capsules  service  ps  kill  sys  battery  about"),
     (b"session", b"id  whoami  date  uptime"),
     (b"net", b"ping  ifconfig  nslookup  curl  nym"),
-    (b"apps", b"market  install  pkg  git  nox"),
+    (b"apps", b"market  install  pkg  git  nox  qwen"),
 ];
 
 pub const DEEPER: &[(&[u8], &[u8])] = &[

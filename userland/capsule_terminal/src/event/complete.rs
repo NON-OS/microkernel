@@ -100,6 +100,7 @@ const COMMANDS: &[&[u8]] = &[
     b"theme",
     b"tac",
     b"rev",
+    b"qwen",
 ];
 
 /// Whether the shell answers to this name, by the same table Tab completes
@@ -118,6 +119,17 @@ const TAKES_COMMAND: &[&[u8]] = &[b"help", b"commands", b"type", b"which"];
 
 pub fn takes_command_argument(first: &[u8]) -> bool {
     TAKES_COMMAND.contains(&first)
+}
+
+/// The words a command takes in place of a path, completed as the word just
+/// after it: `qwen`'s tier. `None` everywhere else.
+pub(super) fn word_candidates(before: &[u8], prefix: &[u8]) -> Option<Vec<&'static [u8]>> {
+    let mut words = before.split(|&b| b == b' ').filter(|w| !w.is_empty());
+    if words.next() != Some(&b"qwen"[..]) || words.next().is_some() {
+        return None;
+    }
+    let tiers = crate::command::builtin::qwen::TIERS.iter().copied();
+    Some(tiers.filter(|t| t.starts_with(prefix)).collect())
 }
 
 /// Every name that would run: shell commands and installed tools alike.

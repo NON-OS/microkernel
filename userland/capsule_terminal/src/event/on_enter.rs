@@ -42,7 +42,16 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
     // later would put one command on screen and another through the parser.
     let mut entered = [0u8; LINE_MAX];
     let n;
-    match crate::term::history::expand(state.line.as_bytes(), &state.history) {
+    /*
+     * A line that starts with `qwen` is a question, and a `!word` in it is
+     * part of what is asked, not a history reference.
+     */
+    let expanded = if command::builtin::qwen::is_line(state.line.as_bytes()) {
+        None
+    } else {
+        crate::term::history::expand(state.line.as_bytes(), &state.history)
+    };
+    match expanded {
         // The expansion is what gets echoed, which is the whole safety of the
         // feature: the reader sees the command that is about to run, not the
         // shorthand they typed for it.
@@ -72,10 +81,37 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
     k += copy_into(&mut echo[k..], PROMPT_BYTES);
     k += copy_into(&mut echo[k..], &entered[..n]);
     state.scrollback.push_line(&echo[..k]);
-    state.history.push(&entered[..n]);
+    /*
+     * A question to Qwen is the rest of the line as typed. It is taken
+     * before the shell splits and expands the line, which would break it at
+     * a `;` or an apostrophe, and it is sent to the program, not kept in
+     * history.
+     */
+    let outcome = if command::builtin::qwen::enter(state, &entered[..n]) {
+        command::Outcome::Repaint
+    } else {
+        state.history.push(&entered[..n]);
+        run_line(state, &entered[..n])
+    };
+    if !state.fg_running {
+        let dur = (mk_time_millis() - started).clamp(0, u32::MAX as i64) as u32;
+        state.close_block(state.last_status == 0, dur);
+    }
+    state.evict_blocks();
+    state.line.clear();
+    state.scrollback.jump_bottom();
+    match outcome {
+        command::Outcome::Exit => EventOutcome::Close,
+        command::Outcome::Repaint => EventOutcome::Repaint,
+    }
+}
+
+/// Run each statement of `line` in turn, gated by `&&` and `||`, until one
+/// starts a foreground job or asks the terminal to exit.
+fn run_line(state: &mut State, line: &[u8]) -> command::Outcome {
     let mut outcome = command::Outcome::Repaint;
     let mut prev_status: i32 = state.last_status;
-    for command::Stmt { conn, body, background } in command::split_program(&entered[..n]) {
+    for command::Stmt { conn, body, background } in command::split_program(line) {
         let go = match conn {
             command::Conn::Always => true,
             command::Conn::And => prev_status == 0,
@@ -116,17 +152,7 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
         }
         prev_status = state.last_status;
     }
-    if !state.fg_running {
-        let dur = (mk_time_millis() - started).clamp(0, u32::MAX as i64) as u32;
-        state.close_block(state.last_status == 0, dur);
-    }
-    state.evict_blocks();
-    state.line.clear();
-    state.scrollback.jump_bottom();
-    match outcome {
-        command::Outcome::Exit => EventOutcome::Close,
-        command::Outcome::Repaint => EventOutcome::Repaint,
-    }
+    outcome
 }
 
 // "[n] started" line printed when a background job is submitted; the

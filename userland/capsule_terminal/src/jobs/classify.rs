@@ -18,6 +18,7 @@ use alloc::vec::Vec;
 
 use crate::command::builtin::nox::install;
 use crate::command::builtin::ping;
+use crate::command::builtin::qwen;
 use crate::command::builtin::tool;
 use crate::command::dispatch::split_stages;
 use crate::command::output::Output;
@@ -68,6 +69,12 @@ pub fn is_job_command(state: &mut State, args: &[&[u8]]) -> Verdict {
                 state.last_status = 1;
                 Verdict::Handled
             }
+        },
+        // `qwen` after a `;`, `&&` or `||`, or from an alias: the chat starts
+        // with no question, since the parser has already taken the line apart.
+        b"qwen" => match qwen::from_args(state, args) {
+            Some(work) => Verdict::Job(work),
+            None => Verdict::Handled,
         },
         // Bare-name run of a store tool staged in the vfs (`sd a b`, ...): route
         // it through the same async installer path as `install <name>`, so the

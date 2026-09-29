@@ -84,6 +84,7 @@ pub(super) fn exec(state: &mut State, args: &[&[u8]]) -> Outcome {
             }
         }
         b"theme" | b"profile" => builtin::theme::run(state, args),
+        b"qwen" => builtin::qwen::misplaced(state),
         _ => return builtin::nox::dispatch(state, args),
     }
     Outcome::Repaint
