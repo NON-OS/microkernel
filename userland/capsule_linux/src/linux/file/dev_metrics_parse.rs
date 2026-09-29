@@ -19,7 +19,7 @@
  * Nothing else parses, so nothing else is ever printed.
  */
 
-pub const NAMES: [&str; 10] = [
+pub const NAMES: [&str; 12] = [
     "match",
     "tokens",
     "prompt_tokens",
@@ -30,6 +30,8 @@ pub const NAMES: [&str; 10] = [
     "tok_per_s_x100",
     "peak_rss_kb",
     "model_bytes",
+    "fail_stage",
+    "errno",
 ];
 pub const MAX_LINE: u64 = 512;
 const MAX_VALUE: u64 = 1_000_000_000_000_000;

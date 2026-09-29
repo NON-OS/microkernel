@@ -1,6 +1,7 @@
 /* qwenchat: the model, its context and its sampler. See qwenchat.h. */
 #include "qwenchat.h"
 
+#include <cerrno>
 #include <cstring>
 #include <thread>
 
@@ -20,7 +21,7 @@ bool chat_open(const ChatArgs &a, Chat &c) {
     mp.load_mode = LLAMA_LOAD_MODE_NONE; /* read(), never a file mapping */
     mp.lazy_mode = LLAMA_LAZY_MODE_OFF;
     c.model = llama_model_load_from_file(a.model.c_str(), mp);
-    if (!c.model) return false;
+    if (!c.model) return c.err = errno, false;
     c.vocab = llama_model_get_vocab(c.model);
     llama_context_params cp = llama_context_default_params();
     cp.n_ctx = a.n_ctx;
@@ -30,7 +31,7 @@ bool chat_open(const ChatArgs &a, Chat &c) {
     cp.n_threads = cp.n_threads_batch = threads;
     cp.no_perf = true;
     c.ctx = llama_init_from_model(c.model, cp);
-    if (!c.ctx) return false;
+    if (!c.ctx) return c.err = errno, false;
     c.smpl = llama_sampler_chain_init(llama_sampler_chain_default_params());
     if (a.temp == 0.0f) {
         llama_sampler_chain_add(c.smpl, llama_sampler_init_greedy());

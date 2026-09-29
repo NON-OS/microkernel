@@ -27,6 +27,7 @@ struct Chat {
     const llama_vocab *vocab = nullptr;
     llama_sampler *smpl = nullptr;
     int used = 0; /* positions of the KV cache in use */
+    int err = 0;  /* errno when the model or its context would not open */
 };
 
 bool chat_args(int argc, char **argv, ChatArgs &a);

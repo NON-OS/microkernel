@@ -21,7 +21,11 @@ struct Run {
     int prompt_tokens = 0;
     double load_s = 0, ttft_s = 0, decode_s = 0;
     int decodes = 0;
+    /* Which step failed, 0 for none, and errno at that moment. */
+    int stage = 0, err = 0;
 };
+
+enum Stage { LOAD = 1, TOKENIZE, CONTEXT, DECODE };
 
 enum Exit { MATCH = 0, FAILED = 1, MISMATCH = 3 };
 

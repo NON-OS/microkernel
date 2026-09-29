@@ -50,7 +50,7 @@ int chat_window(const ChatArgs &a) {
     ui_draw(w, v), wl_present(w);
     Chat c;
     if (!chat_open(a, c)) {
-        v.status = "the model could not be opened";
+        v.status = "the model could not be opened, errno " + std::to_string(c.err);
         ui_draw(w, v), wl_present(w);
         for (; wl_poll(w, keys); usleep(50000)) {}
         return 1;

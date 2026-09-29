@@ -54,7 +54,10 @@ int main(int argc, char **argv) {
     /* The prompt and the reply are wiped before the verdict is said. */
     memset(&prompt[0], 0, prompt.size());
     memset(&msg[0], 0, msg.size());
-    if (!ok) return FAILED;
+    if (!ok) {
+        report(a, r, false);
+        return FAILED;
+    }
     bool match = r.ids == a.expect;
     report(a, r, match);
     return match ? MATCH : MISMATCH;
