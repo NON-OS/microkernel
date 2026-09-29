@@ -43,6 +43,7 @@ pub fn surface(scene: &mut Scene, width: u32, height: u32, stride: u32) -> Optio
     };
     let handle = mk_surface_register(&desc);
     if handle < 0 {
+        say(alloc::format!("[WAYLAND] surface {width}x{height} refused, rc {handle}\n"));
         return None;
     }
     scene.out = Some(handle as u64);
@@ -50,18 +51,25 @@ pub fn surface(scene: &mut Scene, width: u32, height: u32, stride: u32) -> Optio
     Some(handle as u64)
 }
 
-/// The layer native app windows use. Zero is the wallpaper's, so a guest
-/// window placed there was drawn under the desktop and never seen.
+/// Native app windows' layer; 0 is the wallpaper's, under the desktop.
 const APP_LAYER_Z: u32 = 2;
 
-/// Registering a surface makes it exist; the compositor still has to be
-/// told where it goes, or it is never drawn. A guest window opens centred
-/// on a 1920x1080 desktop, below the top bar, as an app window does.
+/// Registering a surface makes it exist; the compositor still has to be told
+/// where it goes. A guest window opens centred below the top bar.
 fn place(handle: u64, width: u32, height: u32) {
     let Some(port) = lookup_port(b"compositor") else {
+        say(alloc::string::String::from("[WAYLAND] no compositor to place a window\n"));
         return;
     };
     let x = 1920u32.saturating_sub(width) / 2;
     let y = 1080u32.saturating_sub(height).saturating_sub(48) / 2 + 48;
-    let _ = scene_submit(port, 1, handle, x, y, width, height, APP_LAYER_Z);
+    let line = match scene_submit(port, 1, handle, x, y, width, height, APP_LAYER_Z) {
+        Ok(()) => alloc::format!("[WAYLAND] window {width}x{height} placed at {x},{y}\n"),
+        Err(why) => alloc::format!("[WAYLAND] window {width}x{height} not placed: {why}\n"),
+    };
+    say(line);
+}
+
+fn say(line: alloc::string::String) {
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
 }

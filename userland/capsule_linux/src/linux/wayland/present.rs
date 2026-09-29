@@ -26,6 +26,8 @@ use super::scene::Scene;
 
 pub fn present(guest: &mut Guest, buffer: u32) {
     let Some((at, width, height, stride, bytes)) = source(&guest.scene, buffer) else {
+        let line = b"[WAYLAND] commit of a buffer with no pool behind it, not shown\n";
+        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
         return;
     };
     /*

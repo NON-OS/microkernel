@@ -45,6 +45,8 @@ pub fn create_pool(guest: &mut Guest, args: &mut Args<'_>) {
         return;
     };
     let Some((at, _)) = mapped_at(guest, fd as u64) else {
+        let line = b"[WAYLAND] shm pool over a descriptor the client never mapped\n";
+        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
         /*
          * A pool over a descriptor the client never mapped has no pixels to
          * read, and reading zero would show a black window rather than say
