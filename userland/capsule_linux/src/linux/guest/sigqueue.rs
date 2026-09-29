@@ -55,4 +55,6 @@ pub struct Signals {
     pub clone_kids: Vec<u32>,
     /// The process group each ended child was in, for a wait by group.
     pub kid_groups: Vec<(u32, u32)>,
+    /// The mask of each signalfd, named by its descriptor's handle.
+    pub sigfds: Vec<u64>,
 }

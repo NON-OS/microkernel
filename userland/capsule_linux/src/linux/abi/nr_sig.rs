@@ -35,3 +35,5 @@ pub const TIMER_DELETE: u64 = 226;
 pub const TGKILL: u64 = 234;
 pub const WAITID: u64 = 247;
 pub const RT_TGSIGQUEUEINFO: u64 = 297;
+pub const SIGNALFD: u64 = 282;
+pub const SIGNALFD4: u64 = 289;

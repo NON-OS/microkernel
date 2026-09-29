@@ -54,6 +54,7 @@ pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
         Some(Kind::Pipe) => super::pipe_read(guest, fd, buf, len),
         Some(Kind::Event) => file::event_read(guest, fd, buf, len),
         Some(Kind::Device) => file::dev_read(guest, fd, buf, len),
+        Some(Kind::Signal) => super::signalfd_now(guest, fd, buf, len),
         Some(Kind::Resolver) => net::dns::answer_out(guest, fd, buf, len).0,
         Some(Kind::Dir) => errno::fail(errno::EISDIR),
         _ => errno::fail(errno::EBADF),

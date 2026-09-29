@@ -30,6 +30,8 @@ pub struct SigWait {
     pub info: u64,
     /// When sigtimedwait gives up with EAGAIN.
     pub due: Option<u64>,
+    /// For a signalfd read, how many records fit where `info` points; 0 else.
+    pub records: u64,
 }
 
 /// Which children a wait4 or waitid asks about.

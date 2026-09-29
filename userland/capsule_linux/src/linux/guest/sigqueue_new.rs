@@ -38,6 +38,7 @@ impl Default for Signals {
             exit_signal: super::sigstate::SIGCHLD,
             clone_kids: Vec::new(),
             kid_groups: Vec::new(),
+            sigfds: Vec::new(),
         }
     }
 }

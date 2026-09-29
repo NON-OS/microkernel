@@ -26,6 +26,15 @@ use crate::linux::guest::Guest;
 /// answers with that signal's number and siginfo.
 pub fn taken_by_sigtimedwait(guest: &mut Guest) {
     for w in guest.signals.sigwaits.clone().into_iter().filter(|w| w.set != 0) {
+        if w.records != 0 {
+            if let Some(n) =
+                crate::linux::call::signalfd_take(guest, w.tid, w.set, w.info, w.records)
+            {
+                guest.signals.sigwaits.retain(|x| x.tid != w.tid);
+                let _ = mk_foreign_reply(w.tid, n);
+            }
+            continue;
+        }
         let Some(info) = guest.signals.take(w.tid, w.set) else {
             continue;
         };

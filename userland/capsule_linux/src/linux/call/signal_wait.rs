@@ -27,7 +27,7 @@ use crate::linux::serve::Answer;
 pub const SIGSET_LEN: u64 = 8;
 
 pub fn pause(guest: &mut Guest, tid: u32) -> Answer {
-    guest.signals.sigwaits.push(SigWait { tid, set: 0, info: 0, due: None });
+    guest.signals.sigwaits.push(SigWait { tid, set: 0, info: 0, due: None, records: 0 });
     Answer::Park
 }
 

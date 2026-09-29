@@ -60,8 +60,15 @@ fn first(guest: &mut Guest, frame: &ForeignFrame) -> Option<Answer> {
         ns::RT_SIGQUEUEINFO => call::rt_sigqueueinfo(guest, tid, a[0], a[1], a[2]),
         ns::RT_TGSIGQUEUEINFO => call::rt_tgsigqueueinfo(guest, tid, a[0], a[1], a[2], a[3]),
         ns::PAUSE => call::pause(guest, tid),
+        ns::SIGNALFD4 => Answer::value(call::signalfd4(guest, a[0], a[1], a[2], a[3])),
+        ns::SIGNALFD => Answer::value(call::signalfd4(guest, a[0], a[1], a[2], 0)),
+        nr::READ if signalfd(guest, a[0]) => call::signalfd_read(guest, tid, a[0], a[1], a[2]),
         ns::RT_SIGSUSPEND => call::rt_sigsuspend(guest, tid, a[0], a[1]),
         ns::RT_SIGTIMEDWAIT => call::rt_sigtimedwait(guest, tid, a[0], a[1], a[2], a[3]),
         _ => return None,
     })
+}
+
+fn signalfd(guest: &Guest, fd: u64) -> bool {
+    guest.fds.get(fd as usize).is_some_and(|f| f.kind == crate::linux::guest::Kind::Signal)
 }

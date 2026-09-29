@@ -46,4 +46,6 @@ pub enum Kind {
     Event,
     /// A character device this capsule answers: /dev/null and its kin.
     Device,
+    /// A signalfd: signals of a mask, read as records.
+    Signal,
 }

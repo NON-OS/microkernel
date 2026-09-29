@@ -59,7 +59,7 @@ pub fn rt_sigtimedwait(
     if due.is_some_and(|d| now_ms(CLOCK_MONOTONIC).is_some_and(|now| d <= now)) {
         return Answer::value(errno::fail(errno::EAGAIN));
     }
-    guest.signals.sigwaits.push(SigWait { tid, set: want, info, due });
+    guest.signals.sigwaits.push(SigWait { tid, set: want, info, due, records: 0 });
     Answer::Park
 }
 

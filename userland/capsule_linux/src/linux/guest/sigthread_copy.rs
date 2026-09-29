@@ -25,7 +25,9 @@ impl Signals {
     /// A forked child: the dispositions, and the forking thread's mask and
     /// alternate stack for its one thread. Nothing pending, no timers.
     pub fn forked(&self, caller: u32, child: u32) -> Signals {
-        let mut s = Signals { actions: self.actions, ..Signals::default() };
+        /* A signalfd is a descriptor, and the child holds a copy of each. */
+        let sigfds = self.sigfds.clone();
+        let mut s = Signals { actions: self.actions, sigfds, ..Signals::default() };
         let mine = self.threads.iter().find(|t| t.tid == caller).copied();
         let mut t = mine.unwrap_or(ThreadSig::new(child, 0));
         t.tid = child;
