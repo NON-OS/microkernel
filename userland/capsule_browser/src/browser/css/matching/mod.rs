@@ -41,6 +41,7 @@ mod misc;
 mod nth_of;
 mod positions;
 mod pseudo;
+mod pseudo_hits;
 mod select;
 mod select_id;
 mod selector;
@@ -56,6 +57,7 @@ mod tree_walk;
 mod user;
 
 pub use matches::{closest, matches};
+pub(super) use pseudo_hits::pseudo_hits;
 pub use select::{select, select_in};
 pub use selector::matches_selector;
 pub use sibling::Siblings;

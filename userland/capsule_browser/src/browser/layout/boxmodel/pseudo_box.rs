@@ -41,6 +41,6 @@ pub(super) fn add_pseudos(w: &mut Walk, id: usize, link: &Option<String>, kids: 
 
 fn pseudo(p: &PseudoText, link: &Option<String>, id: usize) -> BoxNode {
     let mut node = leaf(BoxKind::Text(p.text.clone()), &p.style, link, id);
-    node.style = p.style;
+    node.style = *p.style;
     node
 }

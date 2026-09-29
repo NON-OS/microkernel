@@ -27,6 +27,9 @@ pub fn relayout(state: &mut State) {
     let mut css_text = css::collect_css(dom);
     css_text.push_str(&state.page_css);
     let viewport = (state.viewport_w, state.viewport_h);
+    /* Free the old layout first so it never sits beside the new one's styles
+     * and box tree; nothing paints until this returns. */
+    state.box_doc = None;
     let styled = css::compute_cached(dom, &css_text, viewport, &mut state.css_cache);
     /* An image's natural size is known once its raster has decoded; the
      * store is keyed by the absolute URL the fetch used. */
@@ -39,6 +42,7 @@ pub fn relayout(state: &mut State) {
     let root =
         layout::boxmodel::build(dom, &s.styles, &s.bg_images, &s.grids, &s.pseudos, &natural);
     let doc = layout::boxmodel::layout(&root, viewport);
+    drop((root, styled));
     /* The rectangles just produced are what a script gets when it measures an
      * element. Recording them here means a read after a layout sees the
      * layout that happened rather than the one before it. */

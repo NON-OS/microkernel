@@ -14,26 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+/* The cascade keeps one ::before/::after slot for every DOM node, and almost
+ * all of them are empty. An empty slot must stay pointer-sized: at 1.3 KB it
+ * held 14 MiB for an 11k-node page and ran the browser out of heap. */
 
-extern crate alloc;
+use capsule_browser_proofs::browser::css::PseudoText;
 
-mod browser;
-mod qjs_bridge;
-mod qjs_dom;
-
-use nonos_app_skeleton::run;
-
-/* The browser holds a page DOM, a box tree, decoded rasters and transient
- * fetch buffers at once, so it claims a larger heap than the 16 MiB shared
- * default before the skeleton initialises. A failure here is non-fatal: the
- * skeleton's own init then falls back to the default size. Laying out the
- * 695 KB Wikipedia "Operating system" article peaks at 41 MiB on its own. */
-const BROWSER_HEAP: usize = 96 * 1024 * 1024;
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    let _ = nonos_libc::heap_init_sized(BROWSER_HEAP);
-    run(browser::Browser::new)
+#[test]
+fn an_empty_pseudo_slot_costs_no_more_than_64_bytes() {
+    let slot = core::mem::size_of::<(Option<PseudoText>, Option<PseudoText>)>();
+    assert!(slot <= 64, "empty pseudo slot is {slot} bytes");
 }

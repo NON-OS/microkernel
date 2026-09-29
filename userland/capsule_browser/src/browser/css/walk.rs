@@ -26,7 +26,7 @@ use super::budget::MatchBudget;
 use super::computed::Computed;
 use super::grid_spec::GridSpec;
 use super::matching::Siblings;
-use super::pseudo_style::{pseudo_style, PseudoText};
+use super::pseudo_style::{pseudo_pair, PseudoText};
 use super::rule::Rule;
 use super::rule_index::RuleIndex;
 
@@ -77,10 +77,7 @@ pub(super) fn walk(
         /* Generated content cascades against the element's final style, so
          * the pseudo boxes inherit color and font exactly like a real child. */
         if let Some(p) = pseudos.as_deref_mut() {
-            p[id] = (
-                pseudo_style(dom, sib, id, author, author_index, 1, &c, vars, budget),
-                pseudo_style(dom, sib, id, author, author_index, 2, &c, vars, budget),
-            );
+            p[id] = pseudo_pair(dom, sib, id, (author, author_index), &c, vars, budget);
         }
     }
     styles[id] = c;
