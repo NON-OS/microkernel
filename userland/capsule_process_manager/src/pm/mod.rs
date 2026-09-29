@@ -18,6 +18,7 @@ mod app;
 mod critical;
 mod event;
 mod format;
+mod format_caps;
 mod format_labels;
 mod format_mem;
 mod format_sys;

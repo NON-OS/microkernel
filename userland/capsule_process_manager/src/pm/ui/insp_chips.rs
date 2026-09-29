@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::pm::format::CAP_TABLE;
+use crate::pm::format_caps::CAP_TABLE;
 use crate::pm::theme::MUTED;
 
 use super::insp_chip::{chip, chip_w, more, more_w};
