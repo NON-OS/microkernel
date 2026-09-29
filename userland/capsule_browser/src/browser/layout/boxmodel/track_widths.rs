@@ -16,53 +16,49 @@
 
 use alloc::vec::Vec;
 
-use crate::browser::css::{Computed, GridTrack};
+use crate::browser::css::Justify;
 
-use super::auto_repeat_n::auto_repeat_n;
+use super::contexts::flex_main::main_offsets;
+use super::contexts::track_grow::grow;
+use super::contexts::track_size::{Claim, Track};
 
-// Resolve the column tracks into (x offset, width) pairs within `w`. Fixed
-// tracks take their size, fractions split what remains after the gaps. A
-// grid with no template gets one full-width column. `items` is the number of
-// in-flow grid items, which only an auto-fit template needs.
-pub(super) fn track_widths(style: &Computed, w: i32, items: usize) -> Vec<(i32, i32)> {
-    let n = auto_repeat_n(style, w, items)
-        .unwrap_or_else(|| (style.grid_col_n as usize).clamp(1, style.grid_cols.len().max(1)));
-    let gap = style.gap as i32;
-    let mut widths: Vec<i32> = Vec::with_capacity(n);
-    let mut fr_total = 0i64;
-    let mut fixed = gap * (n as i32 - 1);
-    for i in 0..n {
-        let track = if style.grid_col_n == 0 { GridTrack::Fr(1) } else { style.grid_cols[i] };
-        match track {
-            GridTrack::Px(p) => {
-                let px = (p as i32).min(w);
-                widths.push(px);
-                fixed += px;
-            }
-            GridTrack::Pct(p) => {
-                let px = w.saturating_mul(p.min(100) as i32) / 100;
-                widths.push(px);
-                fixed += px;
-            }
-            GridTrack::Fr(f) => {
-                widths.push(-(f.max(1) as i32));
-                fr_total += f.max(1) as i64;
-            }
+/* Size `tracks` for items' `claims` in `size` px (None: indefinite) with
+ * `gap` between tracks. A span-1 item sizes a content track directly; a
+ * spanning item that needs more than its content tracks give spreads the
+ * rest over them. Free space then grows tracks (track_grow.rs). Returns
+ * each track's (offset, size), placed by justify-content, and the length. */
+pub(super) fn size_tracks(
+    mut t: Vec<Track>,
+    claims: &[Claim],
+    size: Option<i32>,
+    gap: i32,
+    j: Justify,
+) -> (Vec<(i32, i32)>, i32) {
+    for &(c, span, mn, mx) in claims.iter().filter(|c| c.1 > 1) {
+        let range = c.min(t.len())..(c + span).min(t.len());
+        let content: Vec<usize> = range.clone().filter(|&i| t[i].fr == 0 && t[i].auto).collect();
+        let gaps = gap.saturating_mul(range.len() as i32 - 1);
+        let have = |f: fn(&Track) -> i32| {
+            t[range.clone()].iter().fold(gaps, |a, x| a.saturating_add(f(x)))
+        };
+        let (need_min, need_max) = (mn - have(|x| x.base), mx - have(|x| x.limit));
+        for &i in &content {
+            t[i].base += need_min.max(0) / content.len() as i32;
+            t[i].limit = (t[i].limit + need_max.max(0) / content.len() as i32).max(t[i].base);
         }
     }
-    let free = (w - fixed).max(0) as i64;
-    for wd in widths.iter_mut() {
-        if *wd < 0 {
-            let f = (-*wd) as i64;
-            *wd = ((free * f) / fr_total.max(1)) as i32;
-        }
+    let gaps = gap.saturating_mul(t.len() as i32 - 1);
+    let used = t.iter().fold(gaps, |a, x| a.saturating_add(x.base));
+    let left = match size {
+        Some(s) => grow(&mut t, s.saturating_sub(used), j == Justify::Start),
+        None => grow(&mut t, 0, false),
+    };
+    let (mut at, step, _) = main_offsets(left, t.len() as i32, 0, gap, j);
+    let mut out: Vec<(i32, i32)> = Vec::with_capacity(t.len());
+    for x in &t {
+        out.push((at, x.base));
+        at = at.saturating_add(x.base).saturating_add(step);
     }
-    let mut out: Vec<(i32, i32)> = Vec::with_capacity(n);
-    let mut x = 0i32;
-    for wd in widths {
-        let wd = wd.max(1);
-        out.push((x, wd));
-        x += wd + gap;
-    }
-    out
+    let len = out.last().map_or(0, |&(x, w)| x.saturating_add(w));
+    (out, len)
 }

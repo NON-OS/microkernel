@@ -16,24 +16,25 @@
 
 use crate::browser::css::{AutoRepeat, Computed, GridTrack};
 
-// How many times an auto-fill or auto-fit track repeats across `w`. Each
-// repetition costs its floor plus a gap, and the last one needs no gap after
-// it, so the count is (w + gap) / (floor + gap). None when the container is
-// not an auto-repeat grid, or when the floor is a fraction, which gives no
-// width to divide by and is not a valid auto-repeat track.
+use super::contexts::grid_occupy::MAX_COLS;
+
+/* How many times an auto-fill or auto-fit track repeats across `w`. Each
+ * repetition costs its floor plus a gap, and the last needs no gap after
+ * it, so the count is (w + gap) / (floor + gap). None when the container
+ * is not an auto-repeat grid, or when the floor is not a definite length,
+ * which gives no width to divide by and is not a valid auto-repeat. */
 pub(super) fn auto_repeat_n(style: &Computed, w: i32, items: usize) -> Option<usize> {
     let mode = style.grid_auto?;
-    let gap = style.gap as i32;
+    let gap = style.column_gap as i32;
     let floor = match style.grid_auto_min {
         GridTrack::Px(p) => p as i32,
-        GridTrack::Pct(p) => w.saturating_mul(p.min(100) as i32) / 100,
-        GridTrack::Fr(_) => return None,
+        GridTrack::Pct(p) => (w as i64 * p as i64 / 10_000) as i32,
+        _ => return None,
     }
     .max(1);
-    let cap = (style.grid_cols.len() as i32).max(1);
-    let n = ((w + gap) / (floor + gap)).clamp(1, cap) as usize;
-    // auto-fit drops the tracks no item lands in, so the items that do exist
-    // share the whole width rather than leaving a gap at the end of the row.
+    let n = (w.saturating_add(gap) / floor.saturating_add(gap)).clamp(1, MAX_COLS as i32) as usize;
+    /* auto-fit drops the tracks no item lands in, so the items that do
+     * exist share the whole width rather than leaving a gap at the end. */
     Some(match mode {
         AutoRepeat::Fit => n.min(items.max(1)),
         AutoRepeat::Fill => n,

@@ -16,13 +16,17 @@
 
 use alloc::vec::Vec;
 
-use crate::browser::css::Computed;
+use crate::browser::css::{Computed, WhiteSpace};
 
 use super::tree::{BoxKind, BoxNode};
 
-/* Wrap a pending run of inline children in one anonymous block and append it. */
+/* Wrap a pending run of inline children in one anonymous block and append
+ * it. A run of nothing but collapsible white space makes no box: between
+ * blocks, or as a flex or grid item, that space collapses away. */
+#[inline(never)]
 pub(super) fn flush_run(out: &mut Vec<BoxNode>, run: &mut Vec<BoxNode>, parent: &Computed) {
-    if run.is_empty() {
+    if run.iter().all(collapsible) {
+        run.clear();
         return;
     }
     out.push(BoxNode {
@@ -35,4 +39,11 @@ pub(super) fn flush_run(out: &mut Vec<BoxNode>, run: &mut Vec<BoxNode>, parent: 
         children: core::mem::take(run),
         aux: Default::default(),
     });
+}
+
+/* A text box holding only white space that its white-space mode collapses. */
+fn collapsible(c: &BoxNode) -> bool {
+    let collapses = matches!(c.style.white_space, WhiteSpace::Normal | WhiteSpace::Nowrap);
+    let blank = |t: &str| t.bytes().all(|b| matches!(b, b' ' | b'\t' | b'\n' | b'\r' | b'\x0C'));
+    matches!(&c.kind, BoxKind::Text(t) if collapses && t != "\n" && blank(t))
 }

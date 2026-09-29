@@ -16,17 +16,24 @@
 
 use alloc::vec::Vec;
 
-use crate::browser::css::{Computed, WhiteSpace};
+use crate::browser::css::Computed;
 
 use super::collect_items::collect_items;
+use super::contexts::line_box::LineBox;
 use super::ctx::Ctx;
 use super::display_list::DisplayList;
-use super::flush_line::flush_line;
+use super::flush_line::Place;
 use super::inline_items::InlineItem;
 use super::tree::BoxNode;
 
-// Lay an inline formatting context into line boxes at (x, y), wrapping at w.
-// Returns the height consumed.
+/* Lay an inline formatting context into line boxes at (x, y), `w` wide,
+ * and return the height used. A line breaks only where an item allows it:
+ * at a wrapping space, around an atom, after a hyphen or slash. An item
+ * that does not fit and cannot start a line breaks it at the last chance
+ * before it, the rest carried over, so a word split across elements
+ * ("micro<b>kernel</b>") moves as one; with no chance the line overflows,
+ * as CSS lets it. Out of line: nested blocks do not pay for its frame. */
+#[inline(never)]
 pub(super) fn layout_inline(
     children: &[BoxNode],
     x: i32,
@@ -41,38 +48,28 @@ pub(super) fn layout_inline(
     if items.is_empty() {
         return 0;
     }
-    let base_lh = container.line_height() as i32;
-    let align = container.text_align;
-    // white-space: nowrap keeps the run on one line; only an explicit break
-    // ends it. The box's own overflow then clips what runs past its edge.
-    let nowrap = matches!(container.white_space, WhiteSpace::Nowrap);
-    let mut pending: Vec<(i32, InlineItem)> = Vec::new();
-    let mut cx = 0i32;
-    let mut line_h = 0i32;
+    let place = Place::new(container, x, w, ctx);
+    let mut line = LineBox::new(container.line_height() as i32);
     let mut cy = 0i32;
     for item in items {
         if matches!(item, InlineItem::Break) {
-            cy +=
-                flush_line(frags, &mut pending, x, y + cy, w, line_h.max(base_lh), cx, align, ctx);
-            cx = 0;
-            line_h = 0;
+            cy += line.flush(frags, &place, y + cy);
             continue;
         }
-        let adv = item.advance_w();
-        let gap = if cx == 0 { 0 } else { item.space_w() };
-        if !nowrap && cx > 0 && cx + gap + adv > w {
-            cy +=
-                flush_line(frags, &mut pending, x, y + cy, w, line_h.max(base_lh), cx, align, ctx);
-            cx = 0;
-            line_h = 0;
+        let lead = item.lead();
+        let gap = if line.is_empty() { 0 } else { lead.space };
+        if !line.is_empty() && line.w + gap + item.advance_w() > w {
+            if lead.brk {
+                cy += line.flush(frags, &place, y + cy);
+            } else if let Some(tail) = line.take_tail() {
+                cy += line.flush(frags, &place, y + cy);
+                tail.into_iter().for_each(|it| line.push(it));
+            }
         }
-        let gap = if cx == 0 { 0 } else { item.space_w() };
-        line_h = line_h.max(item.item_h());
-        pending.push((cx + gap, item));
-        cx += gap + adv;
+        line.push(item);
     }
-    if !pending.is_empty() {
-        cy += flush_line(frags, &mut pending, x, y + cy, w, line_h.max(base_lh), cx, align, ctx);
+    if !line.is_empty() {
+        cy += line.flush(frags, &place, y + cy);
     }
     cy
 }

@@ -14,63 +14,62 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::css::computed::{GridTrack, MAX_GRID_COLS};
+use crate::browser::css::computed::GridTrack;
 
 use super::matching_paren::matching_paren;
 use super::one_track::one_track;
 
-// grid-template-columns track list: lengths, percentages, Nfr, auto,
-// minmax(a, b) and repeat(n, track). Tracks past the cap drop; a list with
-// no parseable track is rejected.
-pub(super) fn parse_grid_tracks(value: &str, em: u32) -> Option<([GridTrack; MAX_GRID_COLS], u8)> {
-    let mut cols = [GridTrack::Fr(1); MAX_GRID_COLS];
-    let mut n = 0usize;
-    let mut rest = value.trim();
-    while !rest.is_empty() && n < MAX_GRID_COLS {
-        rest = rest.trim_start();
-        // Named line groups ([full-start left-sidebar-start]) sit between
-        // tracks; grid_lines records them, the track list skips them.
-        if let Some(after) = rest.strip_prefix('[') {
-            let close = after.find(']').map(|i| i + 1).unwrap_or(after.len());
-            rest = after.get(close..).unwrap_or("");
-            continue;
-        }
-        let low = rest.to_ascii_lowercase();
-        if low.starts_with("repeat(") {
-            let after = &rest[7..];
-            let close = matching_paren(after);
-            if let Some(body) = after.get(..close) {
-                if let Some(comma) = body.find(',') {
-                    if let Some(track) = one_track(&body[comma + 1..], em) {
-                        let count =
-                            body[..comma].trim().parse::<usize>().unwrap_or(0).min(MAX_GRID_COLS);
-                        for _ in 0..count {
-                            if n >= MAX_GRID_COLS {
-                                break;
-                            }
-                            cols[n] = track;
-                            n += 1;
-                        }
-                    }
-                }
+/* A grid-template-columns or grid-template-rows track list: lengths,
+ * percentages, fractions, the content keywords, minmax() and repeat(n, ...)
+ * of one or more tracks. Tracks past the cap of N drop; a list with no
+ * track at all is rejected. A repeat() inside a repeat() is not CSS and is
+ * skipped, which also bounds the recursion to one level. */
+pub(super) fn parse_grid_tracks<const N: usize>(
+    value: &str,
+    em: u32,
+) -> Option<([GridTrack; N], u8)> {
+    let (mut out, mut n, mut rest) = ([GridTrack::Auto; N], 0usize, value.trim());
+    while !rest.is_empty() && n < N {
+        let (tok, next) = next_token(rest);
+        rest = next;
+        let mut push = |t: GridTrack| {
+            if n < N {
+                (out[n], n) = (t, n + 1);
             }
-            rest = after.get(close + 1..).unwrap_or("");
-            continue;
-        }
-        // minmax carries a comma and spaces, so it spans to its close paren.
-        let end = if low.starts_with("minmax(") {
-            (7 + matching_paren(&rest[7..]) + 1).min(rest.len())
-        } else {
-            rest.find(char::is_whitespace).unwrap_or(rest.len())
         };
-        if let Some(track) = one_track(&rest[..end], em) {
-            cols[n] = track;
-            n += 1;
+        if starts(tok, "repeat(") {
+            let body = tok.get(7..tok.len().saturating_sub(1)).unwrap_or("");
+            let (count, list) = body.split_once(',').unwrap_or(("0", ""));
+            let count = count.trim().parse::<usize>().unwrap_or(0).min(N);
+            let nested = list.as_bytes().windows(7).any(|w| w.eq_ignore_ascii_case(b"repeat("));
+            if let Some((inner, k)) = (!nested).then(|| parse_grid_tracks::<N>(list, em)).flatten()
+            {
+                let k = k as usize;
+                inner.iter().take(k).cycle().take(count * k).for_each(|t| push(*t));
+            }
+        } else if let Some(track) = one_track(tok, em) {
+            push(track);
         }
-        rest = rest.get(end..).unwrap_or("");
     }
-    if n == 0 {
-        return None;
+    (n > 0).then_some((out, n as u8))
+}
+
+fn starts(s: &str, p: &str) -> bool {
+    s.len() >= p.len() && s.as_bytes()[..p.len()].eq_ignore_ascii_case(p.as_bytes())
+}
+
+/* The next track token and the text after it. A [named line] group is
+ * skipped (grid_lines records it); a function runs to its close paren. */
+fn next_token(rest: &str) -> (&str, &str) {
+    let rest = rest.trim_start();
+    if let Some(after) = rest.strip_prefix('[') {
+        let close = after.find(']').map_or(after.len(), |i| i + 1);
+        return ("", after.get(close..).unwrap_or(""));
     }
-    Some((cols, n as u8))
+    let func = starts(rest, "repeat(") || starts(rest, "minmax(") || starts(rest, "fit-content(");
+    let end = match (func, rest.find('(')) {
+        (true, Some(o)) => (o + 1 + matching_paren(&rest[o + 1..]) + 1).min(rest.len()),
+        _ => rest.find(char::is_whitespace).unwrap_or(rest.len()),
+    };
+    (&rest[..end], &rest[end..])
 }

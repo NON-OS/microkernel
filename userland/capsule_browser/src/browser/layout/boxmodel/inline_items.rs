@@ -16,24 +16,19 @@
 
 use alloc::string::String;
 
-/* One atom of an inline formatting context, pre-measured at collect time. */
+pub(super) use super::contexts::inline_parts::{Ink, Lead};
+use super::display_list::DisplayList;
+
+/* One atom of an inline formatting context, measured at collect time. */
 pub(super) enum InlineItem {
     Word {
         text: String,
-        px: u32,
-        color: u32,
-        bg: u32,
-        bold: bool,
-        mono: bool,
-        underline: bool,
-        font: u32,
-        spacing: f32,
-        italic: bool,
+        ink: Ink,
         href: Option<String>,
         adv: i32,
-        space: i32,
         line_h: i32,
         node: usize,
+        lead: Lead,
     },
     Image {
         src: String,
@@ -43,40 +38,15 @@ pub(super) enum InlineItem {
         href: Option<String>,
         node: usize,
         fit: crate::browser::css::ObjectFit,
+        lead: Lead,
     },
-    /* An inline-block, laid out in its own coordinate space at the origin; the
-     * line box places it by shifting its whole fragment run into the slot. */
+    /* An inline-block or form control laid out at the origin; the line box
+     * shifts its whole fragment run into the slot. */
     Atom {
-        frags: super::display_list::DisplayList,
+        frags: DisplayList,
         w: i32,
         h: i32,
+        lead: Lead,
     },
     Break,
-}
-
-impl InlineItem {
-    pub(super) fn advance_w(&self) -> i32 {
-        match self {
-            InlineItem::Word { adv, .. } => *adv,
-            InlineItem::Image { w, .. } => *w,
-            InlineItem::Atom { w, .. } => *w,
-            InlineItem::Break => 0,
-        }
-    }
-
-    pub(super) fn item_h(&self) -> i32 {
-        match self {
-            InlineItem::Word { line_h, .. } => *line_h,
-            InlineItem::Image { h, .. } => *h,
-            InlineItem::Atom { h, .. } => *h,
-            InlineItem::Break => 0,
-        }
-    }
-
-    pub(super) fn space_w(&self) -> i32 {
-        match self {
-            InlineItem::Word { space, .. } => *space,
-            _ => 0,
-        }
-    }
 }

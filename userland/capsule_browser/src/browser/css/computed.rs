@@ -37,6 +37,11 @@ pub enum WhiteSpace {
     Pre,
     /* Collapse whitespace but never wrap. */
     Nowrap,
+    /* Preserve spaces and newlines, and wrap at spaces as normal text does
+     * (pre-wrap and break-spaces). */
+    PreWrap,
+    /* Collapse spaces but keep every newline as a line break. */
+    PreLine,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -54,6 +59,10 @@ pub enum TextAlign {
     Left,
     Center,
     Right,
+    /* The logical edges: left and right in left-to-right text, the other
+     * way round when the direction is rtl. start is the initial value. */
+    Start,
+    End,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -81,6 +90,8 @@ pub enum Justify {
     End,
     Between,
     Around,
+    /* space-evenly: equal space before, between and after the items. */
+    Evenly,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -125,16 +136,23 @@ pub enum Clear {
     Both,
 }
 
-/* One grid column track: a length, a percentage of the row, or a fraction
- * of the leftover space. */
+/* One grid track: a length, a percentage of the grid's size in hundredths
+ * of a percent, a fraction of the leftover space in hundredths of an fr,
+ * or sized by its items' content (auto, min-content, max-content). Four
+ * bytes, so the column and row templates stay small in every style. */
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GridTrack {
-    Px(u32),
+    Px(u16),
     Pct(u16),
     Fr(u16),
+    Auto,
+    MinContent,
+    MaxContent,
 }
 
-pub const MAX_GRID_COLS: usize = 8;
+pub const MAX_GRID_COLS: usize = 12;
+/* Explicit row tracks kept from grid-template-rows; later ones drop. */
+pub const MAX_GRID_ROWS: usize = 8;
 
 /* repeat(auto-fill | auto-fit, ...): how many times the track repeats depends
  * on the container width, which the cascade does not know, so it records the
@@ -238,8 +256,19 @@ pub struct Computed {
     pub flex_col: bool,
     pub justify: Justify,
     pub align: Align,
-    pub gap: u32,
+    /* The space between rows (row-gap) and between columns (column-gap) of
+     * a grid, and between flex lines and flex items. */
+    pub row_gap: u32,
+    pub column_gap: u32,
+    /* justify-items, and this item's justify-self and align-self; None is
+     * normal or auto, which a grid item takes as stretch and a flex item as
+     * its container's align-items. */
+    pub justify_items: Option<Align>,
+    pub justify_self: Option<Align>,
+    pub align_self: Option<Align>,
+    /* flex-grow and flex-shrink in hundredths, so 0.5 keeps its weight. */
     pub flex_grow: u32,
+    pub flex_shrink: u32,
     /* flex-basis: the main-size base before grow/shrink. Auto means size to
      * content or the width property, as CSS specifies. */
     pub flex_basis: Size,
@@ -280,8 +309,19 @@ pub struct Computed {
      * grid_cols then holds that one track and grid_auto_min its floor. */
     pub grid_auto: Option<AutoRepeat>,
     pub grid_auto_min: GridTrack,
+    /* grid-template-rows, and the size of the implicit rows and columns
+     * that grid-auto-rows and grid-auto-columns give. */
+    pub grid_rows: [GridTrack; MAX_GRID_ROWS],
+    pub grid_row_n: u8,
+    pub grid_auto_rows: GridTrack,
+    pub grid_auto_cols: GridTrack,
+    /* grid-auto-flow: column fills columns first; dense backfills holes. */
+    pub grid_flow_col: bool,
+    pub grid_dense: bool,
     /* list-style-type: none suppresses the marker on li boxes; inherited. */
     pub list_none: bool,
+    /* direction: rtl, from the property or a dir attribute; inherited. */
+    pub rtl: bool,
 }
 
 impl Computed {
@@ -296,7 +336,7 @@ impl Computed {
             font_px: DEFAULT_FONT_PX as f32,
             em_parent: DEFAULT_FONT_PX as f32,
             italic: false,
-            text_align: TextAlign::Left,
+            text_align: TextAlign::Start,
             white_space: WhiteSpace::Normal,
             object_fit: ObjectFit::Contain,
             text_transform: TextTransform::None,
@@ -343,8 +383,13 @@ impl Computed {
             flex_col: false,
             justify: Justify::Start,
             align: Align::Stretch,
-            gap: 0,
+            row_gap: 0,
+            column_gap: 0,
+            justify_items: None,
+            justify_self: None,
+            align_self: None,
             flex_grow: 0,
+            flex_shrink: 100,
             flex_basis: Size::Auto,
             position: Position::Static,
             float: Float::None,
@@ -364,11 +409,18 @@ impl Computed {
             shadow: None,
             is_grid: false,
             is_contents: false,
-            grid_cols: [GridTrack::Fr(1); MAX_GRID_COLS],
+            grid_cols: [GridTrack::Auto; MAX_GRID_COLS],
             grid_col_n: 0,
             grid_auto: None,
             grid_auto_min: GridTrack::Px(0),
+            grid_rows: [GridTrack::Auto; MAX_GRID_ROWS],
+            grid_row_n: 0,
+            grid_auto_rows: GridTrack::Auto,
+            grid_auto_cols: GridTrack::Auto,
+            grid_flow_col: false,
+            grid_dense: false,
             list_none: false,
+            rtl: false,
         }
     }
 
@@ -389,6 +441,7 @@ impl Computed {
         c.line_height_px = parent.line_height_px;
         c.line_ratio = parent.line_ratio;
         c.list_none = parent.list_none;
+        c.rtl = parent.rtl;
         c.text_transform = parent.text_transform;
         c.font_key = parent.font_key;
         c.icon_font = parent.icon_font;

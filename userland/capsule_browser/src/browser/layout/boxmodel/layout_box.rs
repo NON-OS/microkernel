@@ -17,6 +17,7 @@
 use crate::browser::css::Position;
 
 use super::abs_out_of_flow::positioned;
+use super::box_kind::inner;
 use super::ctx::Ctx;
 use super::display_list::DisplayList;
 use super::flow::layout_image::layout_image;
@@ -63,7 +64,7 @@ fn route(n: &BoxNode, x: i32, y: i32, w: i32, f: &mut DisplayList, d: u32, ctx: 
         let w = ctx.pin.map_or(w, |p| p.w);
         return super::layout_table::layout_table(n, x, y, w, f, d, Ctx { pin: None, ..ctx });
     }
-    match n.kind {
+    match inner(n) {
         BoxKind::Flex => layout_flex(n, x, y, w, f, d, ctx),
         BoxKind::Grid => layout_grid(n, x, y, w, f, d, ctx),
         /* An image laid as a box of its own, as an absolutely positioned

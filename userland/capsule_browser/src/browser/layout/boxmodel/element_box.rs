@@ -18,7 +18,7 @@ use alloc::string::{String, ToString};
 
 use crate::browser::css::Computed;
 
-use super::box_kind::box_kind;
+use super::box_kind::{box_kind, makes_items};
 use super::collect::collect;
 use super::grid_place::resolve_grid_places;
 use super::leaf::leaf;
@@ -44,9 +44,7 @@ pub(super) fn element_box(
     } else {
         link.clone()
     };
-    let (dom, styles, bgs, grids, pseudos) = (w.dom, w.styles, w.bg_images, w.grids, w.pseudos);
-    let mut kids =
-        collect(dom, item.ch, &style, styles, bgs, grids, pseudos, &link, depth + 1, w.count);
+    let mut kids = collect(w, item.ch, &style, &link, depth + 1);
     /* An edited textarea renders its value, which typing keeps current. */
     if tag == "textarea" {
         if let Some(v) = item.c.attr("value") {
@@ -59,13 +57,13 @@ pub(super) fn element_box(
     add_marker(w, item, &style, &mut kids);
     let kind = box_kind(&style);
     let mut kids = match kind {
-        BoxKind::Flex | BoxKind::Grid => wrap_items(&style, kids),
+        _ if makes_items(&kind, &style) => wrap_items(&style, kids),
         /* An inline-block runs a block context inside: wrap it like a block. */
         BoxKind::Block | BoxKind::InlineBlock => wrap_mixed(&style, kids),
         _ => kids,
     };
     /* Grid items' named or numeric positions resolve while names are known. */
-    if matches!(kind, BoxKind::Grid) {
+    if makes_items(&kind, &style) && style.is_grid {
         resolve_grid_places(w, item.ch, &style, &mut kids);
     }
     let bg_image = w.bg_images.get(item.ch).cloned().flatten();

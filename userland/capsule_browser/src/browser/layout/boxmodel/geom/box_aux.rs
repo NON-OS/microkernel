@@ -30,4 +30,6 @@ pub(crate) struct BoxAux {
     /* The width and height attributes of an <img>: presentational hints for
      * its size, and together its aspect ratio before the image arrives. */
     pub(crate) attr: [Option<u32>; 2],
+    /* Min-content and max-content widths, measured once per layout pass. */
+    pub(crate) intrinsic: super::super::contexts::intrinsic_memo::IntrinsicMemo,
 }

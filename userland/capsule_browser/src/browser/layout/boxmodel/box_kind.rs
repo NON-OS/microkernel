@@ -14,24 +14,58 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::css::Computed;
+use crate::browser::css::{Computed, Float};
 
 use super::abs_out_of_flow::out_of_flow;
-use super::tree::BoxKind;
+use super::tree::{BoxKind, BoxNode};
 
-/* The formatting context an element's box runs. An absolutely positioned
- * or fixed box is blockified, as CSS requires: it never sits in an inline
- * run, and the positioned ancestor that contains it places it. */
+/* The formatting context an element's box runs. inline-flex and
+ * inline-grid are inline-level: an InlineBlock atom on the line whose
+ * inside is a flex or grid context (layout_box routes it by is_flex and
+ * is_grid). An absolutely positioned, fixed or floated box is blockified,
+ * as CSS requires: it never sits in an inline run. */
 pub(super) fn box_kind(style: &Computed) -> BoxKind {
-    if style.is_grid {
+    let blockified = style.is_block || out_of_flow(style) || style.float != Float::None;
+    if style.is_grid && blockified {
         BoxKind::Grid
-    } else if style.is_flex {
+    } else if style.is_flex && blockified {
         BoxKind::Flex
-    } else if style.is_block || out_of_flow(style) {
+    } else if style.is_grid || style.is_flex || style.is_inline_block {
+        if blockified {
+            BoxKind::Block
+        } else {
+            BoxKind::InlineBlock
+        }
+    } else if blockified {
         BoxKind::Block
-    } else if style.is_inline_block {
-        BoxKind::InlineBlock
     } else {
         BoxKind::Inline
+    }
+}
+
+/* A box whose children are flex or grid items: a flex or grid container,
+ * or an inline-flex or inline-grid atom. */
+pub(super) fn makes_items(kind: &BoxKind, style: &Computed) -> bool {
+    match kind {
+        BoxKind::Flex | BoxKind::Grid => true,
+        BoxKind::InlineBlock => style.is_flex || style.is_grid,
+        _ => false,
+    }
+}
+
+/* Whether a container's child takes part in its flex or grid layout: an
+ * in-flow block-level box or an image (text runs were wrapped as blocks
+ * when the tree was built). */
+pub(super) fn is_item(c: &BoxNode) -> bool {
+    !out_of_flow(&c.style) && (c.kind.block_level() || matches!(c.kind, BoxKind::Image { .. }))
+}
+
+/* The formatting context a box runs inside: an inline-flex or inline-grid
+ * atom runs flex or grid as a block-level container does. */
+pub(super) fn inner(n: &BoxNode) -> &BoxKind {
+    match n.kind {
+        BoxKind::InlineBlock if n.style.is_flex => &BoxKind::Flex,
+        BoxKind::InlineBlock if n.style.is_grid => &BoxKind::Grid,
+        _ => &n.kind,
     }
 }

@@ -41,16 +41,17 @@ impl BoxKind {
     }
 }
 
-/* Resolved explicit placement of a grid item: zero-based column track and
- * row indices with spans, resolved from grid-area names and grid-column
- * lines at build time so layout needs no name tables. */
+/* The explicit placement a grid item asked for, as grid lines: 1-based, a
+ * negative line counting back from the end of the explicit grid, 0 where
+ * that side is auto, with the span that applies when a side is auto. Line
+ * and area names are turned into numbers at build, while the name tables
+ * are at hand; layout, which knows the track counts, does the rest. */
 #[derive(Clone, Copy)]
 pub struct GridPlace {
-    pub col: u8,
-    pub col_span: u8,
-    /* None flows the item into the next free row. */
-    pub row: Option<u8>,
-    pub row_span: u8,
+    pub col: [i16; 2],
+    pub row: [i16; 2],
+    pub col_span: u16,
+    pub row_span: u16,
 }
 
 /* One box in the layout tree. Text and Image boxes are leaves; href carries

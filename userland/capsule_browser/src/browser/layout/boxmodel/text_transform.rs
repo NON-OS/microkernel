@@ -18,20 +18,26 @@ use alloc::string::{String, ToString};
 
 use crate::browser::css::TextTransform;
 
-// Apply a text-transform to one word before it is measured and drawn, so the
-// glyphs the layout sizes match the ones painted. Capitalize upper-cases the
-// first character of the word and leaves the rest untouched.
-pub(super) fn transform(w: &str, mode: TextTransform) -> String {
+/* The text a source word paints, so the glyphs layout measures are the
+ * ones drawn: text-transform applied (capitalize only where a word starts,
+ * not where an element boundary splits one), or for an icon-font word, the
+ * symbol its ligature name stands for, else nothing, since the icon face
+ * itself is not loaded and the name must not show as a literal word. */
+pub(super) fn transform(w: &str, mode: TextTransform, word_start: bool, icon: bool) -> String {
+    if icon {
+        return String::from(crate::browser::css::icon_font::map_ligature(w).unwrap_or(""));
+    }
     match mode {
         TextTransform::None => w.to_string(),
         TextTransform::Upper => w.to_uppercase(),
         TextTransform::Lower => w.to_lowercase(),
-        TextTransform::Capitalize => {
+        TextTransform::Capitalize if word_start => {
             let mut chars = w.chars();
             match chars.next() {
                 Some(first) => first.to_uppercase().chain(chars).collect(),
                 None => String::new(),
             }
         }
+        TextTransform::Capitalize => w.to_string(),
     }
 }

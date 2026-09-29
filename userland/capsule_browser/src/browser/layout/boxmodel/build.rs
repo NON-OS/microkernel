@@ -23,6 +23,7 @@ use super::collect::collect;
 use super::geom::body_id::{body_id, root_id};
 use super::post::propagate::{fill_natural, propagate};
 use super::tree::{BoxKind, BoxNode};
+use super::walk::Walk;
 use super::wrap_mixed::wrap_mixed;
 
 /// An image's natural size (width, height) in px by its src, when known.
@@ -45,8 +46,8 @@ pub fn build(
     let root_id = root_id(dom);
     let style = styles.get(root_id).copied().unwrap_or_else(Computed::root);
     let mut count = 0usize;
-    let children =
-        collect(dom, root_id, &style, styles, bg_images, grids, pseudos, &None, 0, &mut count);
+    let mut w = Walk { dom, styles, bg_images, grids, pseudos, count: &mut count };
+    let children = collect(&mut w, root_id, &style, &None, 0);
     let mut root = BoxNode {
         kind: BoxKind::Block,
         style,

@@ -17,102 +17,47 @@
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
 
+use super::apply::grid_names::template_names;
 use super::grid_spec::GridSpec;
 
-// Capture the named-grid declarations into the per-node side spec. Runs
-// beside the normal property apply, so cascade order (later wins) holds.
+/* Capture the named-grid and placement declarations into the per-node
+ * side spec. Runs beside the normal property apply for every declaration,
+ * so cascade order (later wins) holds; anything not grid- leaves at once. */
 pub(super) fn grid_decl(spec: &mut Option<GridSpec>, name: &str, value: &str, em: u32) {
+    if !name.starts_with("grid") || template_names(spec, name, value, em) {
+        return;
+    }
+    let parts: Vec<&str> = value.split('/').map(str::trim).take(5).collect();
+    let one = |i: usize| parts.get(i).filter(|p| !p.is_empty()).map(|p| p.to_string());
     match name {
-        "grid-template-columns" => {
-            let lines = super::grid_lines::col_line_names(value, em);
-            if !lines.is_empty() {
-                ensure(spec).col_lines = lines;
-            }
-        }
-        "grid-template-areas" => {
-            let rows = area_rows(value);
-            if !rows.is_empty() {
-                ensure(spec).areas = rows;
-            }
-        }
+        "grid-area" if parts.len() > 4 => {}
         "grid-area" => {
-            let parts: Vec<&str> = value.split('/').map(str::trim).collect();
-            match parts.as_slice() {
-                [one] => {
-                    if !one.is_empty() && one.parse::<i16>().is_err() {
-                        ensure(spec).area = Some(one.to_string());
-                    }
-                }
-                // row-start / col-start [/ row-end / col-end]
-                [r, c] => {
-                    let s = ensure(spec);
-                    s.row_start = r.parse::<i16>().ok();
-                    s.col_start = Some((*c).to_string());
-                }
-                [r0, c0, r1, c1] => {
-                    let s = ensure(spec);
-                    s.row_start = r0.parse::<i16>().ok();
-                    s.col_start = Some((*c0).to_string());
-                    s.row_end = r1.parse::<i16>().ok();
-                    s.col_end = Some((*c1).to_string());
-                }
-                _ => {}
+            /* A lone name is the area; with slashes, each part is a line and
+             * an omitted end repeats a named start, as CSS defines. */
+            let s = GridSpec::ensure(spec);
+            let named = |p: &Option<String>| p.clone().filter(|v| GridSpec::is_ident(v));
+            (s.area, s.row_start, s.col_start) = (None, one(0), one(1));
+            if parts.len() == 1 && s.row_start.as_deref().is_some_and(GridSpec::is_ident) {
+                (s.area, s.row_start) = (s.row_start.take(), None);
+            }
+            s.row_end = one(2).or_else(|| named(&s.row_start));
+            s.col_end = one(3).or_else(|| named(&s.col_start));
+        }
+        "grid-column" | "grid-row" if parts.len() > 2 => {}
+        "grid-column" | "grid-row" => {
+            let (s, end) = (
+                GridSpec::ensure(spec),
+                one(1).or_else(|| one(0).filter(|v| GridSpec::is_ident(v))),
+            );
+            match name {
+                "grid-column" => (s.col_start, s.col_end) = (one(0), end),
+                _ => (s.row_start, s.row_end) = (one(0), end),
             }
         }
-        "grid-column" => {
-            let mut it = value.split('/').map(str::trim);
-            if let Some(a) = it.next() {
-                if !a.is_empty() {
-                    let s = ensure(spec);
-                    s.col_start = Some(a.to_string());
-                    s.col_end = it.next().filter(|b| !b.is_empty()).map(|b| b.to_string());
-                }
-            }
-        }
-        "grid-column-start" => ensure(spec).col_start = Some(value.trim().to_string()),
-        "grid-column-end" => ensure(spec).col_end = Some(value.trim().to_string()),
-        "grid-row" => {
-            let mut it = value.split('/').map(str::trim);
-            if let Some(a) = it.next() {
-                if let Ok(r) = a.parse::<i16>() {
-                    let s = ensure(spec);
-                    s.row_start = Some(r);
-                    s.row_end = it.next().and_then(|b| b.parse::<i16>().ok());
-                }
-            }
-        }
-        "grid-row-start" => {
-            if let Ok(r) = value.trim().parse::<i16>() {
-                ensure(spec).row_start = Some(r);
-            }
-        }
-        "grid-row-end" => {
-            if let Ok(r) = value.trim().parse::<i16>() {
-                ensure(spec).row_end = Some(r);
-            }
-        }
+        "grid-column-start" => GridSpec::ensure(spec).col_start = one(0),
+        "grid-column-end" => GridSpec::ensure(spec).col_end = one(0),
+        "grid-row-start" => GridSpec::ensure(spec).row_start = one(0),
+        "grid-row-end" => GridSpec::ensure(spec).row_end = one(0),
         _ => {}
     }
-}
-
-fn ensure(spec: &mut Option<GridSpec>) -> &mut GridSpec {
-    spec.get_or_insert_with(GridSpec::default)
-}
-
-// The quoted rows of a grid-template-areas value, each split into cell
-// tokens. Rows are capped so a hostile sheet cannot balloon the table.
-fn area_rows(value: &str) -> Vec<Vec<String>> {
-    let mut rows: Vec<Vec<String>> = Vec::new();
-    let mut rest = value;
-    while rows.len() < 16 {
-        let Some(open) = rest.find('"') else { break };
-        let Some(len) = rest[open + 1..].find('"') else { break };
-        let row = &rest[open + 1..open + 1 + len];
-        let cells: Vec<String> = row.split_whitespace().take(32).map(|c| c.to_string()).collect();
-        if !cells.is_empty() {
-            rows.push(cells);
-        }
-        rest = &rest[open + len + 2..];
-    }
-    rows
 }
