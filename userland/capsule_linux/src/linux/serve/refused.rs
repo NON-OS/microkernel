@@ -36,6 +36,10 @@ const REFUSED: &[(u64, i64, &str)] = &[
     (425, errno::ENOSYS, "io_uring_setup: a second call path around the gate"),
     (426, errno::ENOSYS, "io_uring_enter: a second call path around the gate"),
     (427, errno::ENOSYS, "io_uring_register: a second call path around the gate"),
+    (253, errno::ENOSYS, "inotify_init: the store sends no change events to watch"),
+    (294, errno::ENOSYS, "inotify_init1: the store sends no change events to watch"),
+    (254, errno::ENOSYS, "inotify_add_watch: the store sends no change events to watch"),
+    (255, errno::ENOSYS, "inotify_rm_watch: the store sends no change events to watch"),
 ];
 
 /// The errno for a call refused on purpose, after saying why; None otherwise.

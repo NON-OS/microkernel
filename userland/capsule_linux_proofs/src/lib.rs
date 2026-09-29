@@ -45,7 +45,7 @@ pub mod dir_children;
 #[path = "../../capsule_linux/src/linux/file/dirent.rs"]
 pub mod dirent;
 
-#[path = "../../capsule_linux/src/linux/file/meta/statbuf.rs"]
+#[path = "../../capsule_linux/src/linux/file/meta/statbuf/mod.rs"]
 pub mod statbuf;
 
 #[path = "../../capsule_linux/src/linux/net/host_body.rs"]

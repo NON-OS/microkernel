@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The filesystem a guest sees.
+/* The filesystem a guest sees. */
 
 mod at;
+mod calls;
 mod clamp;
 pub(super) mod close;
 mod cstr;
@@ -36,7 +37,10 @@ mod eventfd_io;
 pub mod family;
 pub mod flags;
 mod fsync;
+mod held;
 mod link;
+mod locks;
+mod made;
 mod memfd;
 mod memfd_map;
 mod meta;
@@ -55,11 +59,15 @@ mod seek;
 mod slot;
 mod store;
 mod store_name;
+mod system;
 mod timerfd;
 mod timerfd_read;
 mod timerfd_spec;
+mod walk;
 mod write;
+mod xattrs;
 
+pub use at::join;
 pub use close::close;
 pub use cstr::read_cstr;
 pub use dev_io::{read as dev_read, write as dev_write};
@@ -70,25 +78,28 @@ pub use epoll_arm::rearm;
 pub use epoll_wait::epoll_wait;
 pub use eventfd::{bits as event_bits, eventfd2};
 pub use eventfd_io::{read as event_read, write as event_write};
-pub use fsync::fsync;
+pub use fsync::{fsync, sync, syncfs};
 pub use link::{linkat, symlinkat};
-pub use memfd::{ftruncate, is_memfd, memfd_create};
+pub use memfd::{is_memfd, memfd_create};
 pub use memfd_map::{mapped_at, set_mapped, staged};
 pub use meta::{
-    access, chmod, faccessat, fchmod, fchmodat, fstat, look, newfstatat, readlinkat, statfs, statx,
+    access, chmod, faccessat, fchmod, fchmodat, fstat, fstatfs, look, newfstatat, readlinkat,
+    statfs, statx,
 };
 pub use mknod::mknodat;
 pub use open::openat;
-pub use owner::{fchown_ids, fchownat, utimensat};
+pub use owner::{fchown_ids, fchownat, utimensat, utimes};
 pub use path::read_path;
-pub use pread::pread64;
+pub use pread::{pread64, preadv, pwrite64, pwritev};
 pub use private::{allow_shared_writes, clear as clear_private, prepare as prepare_private};
 pub use read::read;
-pub use rename::{rename, renameat2};
+pub use rename::renameat2;
 pub use resolve::{key, visible};
 pub use seek::lseek;
 pub use slot::{install, MAX_FDS};
 pub use store::{read as store_read, write as store_write};
 pub use timerfd::{timerfd_create, timerfd_gettime, timerfd_settime};
 pub use timerfd_read::{bits as timer_bits, read as timerfd_read};
+pub use walk::follow;
 pub use write::write;
+pub use {calls::*, held::*, locks::*, made::*, system::*, xattrs::*};

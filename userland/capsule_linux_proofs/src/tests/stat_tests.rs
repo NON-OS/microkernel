@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/* The struct a libc reads out of fstat. */
 
-//! The struct a libc reads out of fstat.
-
-use crate::statbuf::{build, S_IFDIR, S_IFREG, STAT_LEN};
+use crate::statbuf::{blocks, build, inode, Meta, STAT_LEN};
 
 fn u32_at(b: &[u8], at: usize) -> u32 {
     u32::from_le_bytes(b[at..at + 4].try_into().unwrap())
@@ -27,46 +26,48 @@ fn u64_at(b: &[u8], at: usize) -> u64 {
     u64::from_le_bytes(b[at..at + 8].try_into().unwrap())
 }
 
-/// Offsets are the x86_64 layout: nlink at 16, mode at 24, size at 48, blksize
-/// at 56, blocks at 64.
+fn file() -> Meta {
+    let (mode, size, ino, nlink, rdev, dev) = (0o100640, 5000, 0xdead_beef, 2, 0x0103, 9);
+    Meta { mode, size, ino, nlink, rdev, dev, mtime_ms: 1_234_567, atime_ms: 7_000_001 }
+}
+
+/*
+ * x86_64: dev 0, ino 8, nlink 16, mode 24, uid/gid 28/32, rdev 40, size 48, blksize 56, blocks 64.
+ */
 #[test]
-fn a_regular_file_lands_in_the_right_fields() {
-    let s = build(4096, false, 7);
+fn each_field_lands_where_x86_64_linux_has_it() {
+    let s = build(&file());
     assert_eq!(s.len(), STAT_LEN);
-    assert_eq!(u64_at(&s, 16), 1);
-    assert_eq!(u32_at(&s, 24), S_IFREG | 0o644);
-    assert_eq!(u64_at(&s, 48), 4096);
+    assert_eq!(u64_at(&s, 0), 9);
+    assert_eq!(u64_at(&s, 8), 0xdead_beef);
+    assert_eq!(u64_at(&s, 16), 2);
+    assert_eq!(u32_at(&s, 24), 0o100640);
+    assert_eq!((u32_at(&s, 28), u32_at(&s, 32)), (0, 0), "owner and group are root");
+    assert_eq!(u64_at(&s, 40), 0x0103);
+    assert_eq!(u64_at(&s, 48), 5000);
     assert_eq!(u64_at(&s, 56), 4096);
-    assert_eq!(u64_at(&s, 64), 8);
+    assert_eq!(u64_at(&s, 64), 16);
 }
 
+/* atime at 72, mtime at 88 and ctime at 104, each seconds then nanoseconds. */
 #[test]
-fn a_directory_says_so_in_the_mode() {
-    let s = build(0, true, 7);
-    assert_eq!(u32_at(&s, 24), S_IFDIR | 0o755);
-    assert_eq!(u64_at(&s, 48), 0);
+fn times_are_split_into_seconds_and_nanoseconds() {
+    let s = build(&file());
+    assert_eq!((u64_at(&s, 72), u64_at(&s, 80)), (7000, 1_000_000));
+    assert_eq!((u64_at(&s, 88), u64_at(&s, 96)), (1234, 567_000_000));
+    assert_eq!((u64_at(&s, 104), u64_at(&s, 112)), (1234, 567_000_000));
 }
 
+/* tmpfs counts whole pages, in 512-byte units. */
 #[test]
-fn block_count_rounds_up_to_the_next_five_hundred_and_twelve() {
-    assert_eq!(u64_at(&build(1, false, 7), 64), 1);
-    assert_eq!(u64_at(&build(512, false, 7), 64), 1);
-    assert_eq!(u64_at(&build(513, false, 7), 64), 2);
+fn blocks_are_whole_pages() {
+    assert_eq!([blocks(0), blocks(1), blocks(4096), blocks(4097)], [0, 8, 8, 16]);
 }
 
+/* Every file once reported inode 0, and musl's loader took two libraries for one file. */
 #[test]
-fn everything_unknown_is_left_at_zero() {
-    let s = build(10, false, 7);
-    // st_ino at 8 is known now: `the_inode_given_is_the_inode_reported`.
-    for at in [0, 40, 72, 88, 104] {
-        assert_eq!(u64_at(&s, at), 0, "offset {at} should be untouched");
-    }
-}
-
-#[test]
-fn the_inode_given_is_the_inode_reported() {
-    // st_ino sits after st_dev, at byte 8. Every file used to report 0, and
-    // musl's loader took two libraries with one inode for the same file.
-    assert_eq!(u64_at(&build(10, false, 0xdead_beef), 8), 0xdead_beef);
-    assert_ne!(u64_at(&build(10, false, 1), 8), u64_at(&build(10, false, 2), 8));
+fn an_inode_is_never_zero_and_differs_by_path() {
+    assert_ne!(inode(b"/lib/a.so"), inode(b"/lib/b.so"));
+    assert_eq!(inode(b"/"), inode(b"/"));
+    assert_ne!(inode(b""), 0);
 }

@@ -14,30 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Directory open. The listing is snapshotted here, which is all POSIX
-//! promises a directory stream.
+/*
+ * Directory open. The listing is snapshotted here, which is all POSIX
+ * promises a directory stream.
+ */
 
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{Fd, Guest};
 
 use super::dir_children::children;
-use super::{resolve, slot, store};
+use super::{cache, desc, resolve, slot, store, synth};
 
 pub fn open(guest: &mut Guest, path: Vec<u8>) -> u64 {
     let at = resolve::key(&path);
     let Ok(keys) = store::list(&at) else {
         return errno::fail(errno::EACCES);
     };
-    // Cut against the store key, not against the path the guest named.
-    let mut names = children(at.as_bytes(), keys);
-    for link in guest.links.names_in(&path) {
-        if !names.contains(&link) {
-            names.push(link);
+    /*
+     * Cut against the store key, not against the path the guest named.
+     * Every Linux directory lists itself and its parent first.
+     */
+    let mut names = alloc::vec![String::from("."), String::from("..")];
+    names.extend(children(at.as_bytes(), keys));
+    let made = if path == b"/" {
+        synth::ROOTS.iter().map(|r| String::from(*r)).collect()
+    } else {
+        Vec::new()
+    };
+    for name in guest.links.names_in(&path).into_iter().chain(cache::names_in(&path)).chain(made) {
+        if !names.contains(&name) {
+            names.push(name);
         }
     }
-    match slot::install(guest, Fd::dir(path, names)) {
+    let mut fd = Fd::dir(path, names);
+    fd.handle = desc::fresh(false, false);
+    match slot::install(guest, fd) {
         Some(n) => errno::ok(n),
         None => errno::fail(errno::EMFILE),
     }

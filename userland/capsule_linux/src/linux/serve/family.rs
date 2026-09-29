@@ -63,7 +63,9 @@ impl Family {
             return;
         };
         self.lend(i);
+        self.lend_view(i, &frame);
         let got = answer(&mut self.guests[i], &frame);
+        self.take_view();
         self.take_back(i);
         let g = &mut self.guests[i];
         let born = mem::take(&mut g.forked);

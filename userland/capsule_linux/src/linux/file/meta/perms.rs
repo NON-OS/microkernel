@@ -14,28 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Mode bits, and whether a path can be reached.
+/* Mode bits, and whether a path can be reached. */
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
 use super::super::at::resolve_at;
 use super::super::flags::AT_FDCWD;
-use super::super::resolve::key;
-use super::super::{store, store_name};
+use super::super::{cache, modes, resolve, synth, walk};
+use super::stat::look;
 
 pub fn fchmodat(guest: &Guest, dirfd: u64, path: u64, mode: u64) -> u64 {
     let Some(at) = resolve_at(guest, dirfd, path) else {
         return errno::fail(errno::EFAULT);
     };
-    match store_name::chmod(&key(&at), mode as u16) {
-        Ok(()) => errno::ok(0),
-        Err(_) => errno::fail(errno::ENOENT),
-    }
+    change(&walk::follow(guest, at, true), mode)
 }
 
-/// `fchmod` names the file by a descriptor the guest already holds, so
-/// the path comes from the descriptor rather than from the caller.
 pub fn fchmod(guest: &Guest, fd: u64, mode: u64) -> u64 {
     let Some(entry) = guest.fds.get(fd as usize).filter(|f| f.is_open()) else {
         return errno::fail(errno::EBADF);
@@ -43,21 +38,22 @@ pub fn fchmod(guest: &Guest, fd: u64, mode: u64) -> u64 {
     if entry.kind != Kind::File && entry.kind != Kind::Dir {
         return errno::fail(errno::EINVAL);
     }
-    match store_name::chmod(&key(&entry.path), mode as u16) {
-        Ok(()) => errno::ok(0),
-        Err(_) => errno::fail(errno::ENOENT),
-    }
+    change(&entry.path.clone(), mode)
 }
 
-/// `faccessat`: does the path exist and is it reachable.
-pub fn faccessat(guest: &Guest, dirfd: u64, path: u64) -> u64 {
-    let Some(at) = resolve_at(guest, dirfd, path) else {
-        return errno::fail(errno::EFAULT);
-    };
-    match store::stat(&key(&at)) {
-        Ok(_) => errno::ok(0),
-        Err(_) => errno::fail(errno::ENOENT),
+/*
+ * The store keeps no modes, so the family does (held/modes.rs). The shared
+ * tree and /dev, /proc and /sys are mounted read-only.
+ */
+fn change(full: &[u8], mode: u64) -> u64 {
+    if look(full).is_none() {
+        return errno::fail(errno::ENOENT);
     }
+    if synth::owns(full) || (!cache::held(full) && resolve::key(full).writable().is_err()) {
+        return errno::fail(errno::EROFS);
+    }
+    modes::set(full, mode as u32);
+    errno::ok(0)
 }
 
 pub fn chmod(guest: &Guest, path: u64, mode: u64) -> u64 {

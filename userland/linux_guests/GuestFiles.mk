@@ -73,3 +73,30 @@ LINUX_GUEST_STORE_ENTRIES := $(call GO_SUITE_ENTRY,gostd) \
 	--entry /linux/etc/nonos-boot-guest=$(LINUX_GUEST_BOOT_FILE) \
 	$(if $(filter execbig,$(NONOS_LINUX_GO_SUITE_STORE)),$(call GO_SUITE_ENTRY,execbig))
 endif
+
+# bbsuite: busybox runs 40 and more applets from a script, and what it prints
+# must equal what the same busybox printed on the host through the same links
+# (sh/bbsuite-host.sh). Plain data files: the programs are busybox's own.
+LINUX_GUEST_BB := $(TARGET_DIR)/linux-guests/bbsuite.expect
+$(LINUX_GUEST_BB): $(LINUX_GUESTS_DIR)/sh/bbsuite-body.sh $(LINUX_GUESTS_DIR)/sh/bbsuite-host.sh \
+		userland/capsule_linux/guests/busybox.elf
+	@mkdir -p $(@D) && sh $(LINUX_GUESTS_DIR)/sh/bbsuite-host.sh \
+		userland/capsule_linux/guests/busybox.elf $(LINUX_GUESTS_DIR)/sh/bbsuite-body.sh > $@
+LINUX_GUEST_STORE_DEPS += $(LINUX_GUEST_BB)
+LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/bbsuite.expect=$(LINUX_GUEST_BB) \
+	--entry /linux/etc/bbsuite.sh=$(LINUX_GUESTS_DIR)/sh/bbsuite.sh \
+	--entry /linux/etc/bbsuite-body.sh=$(LINUX_GUESTS_DIR)/sh/bbsuite-body.sh
+
+# The users and groups an Alpine tree names, so ls and ps print root as root.
+LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/passwd=$(LINUX_GUESTS_DIR)/etc/passwd \
+	--entry /linux/etc/group=$(LINUX_GUESTS_DIR)/etc/group
+
+# The build host's facts, which cproc checks no /proc or /sys file names:
+# its CPU model, its boot id and its name.
+LINUX_GUEST_HOST_FACTS := $(TARGET_DIR)/linux-guests/cproc-host
+.PHONY: $(LINUX_GUEST_HOST_FACTS)
+$(LINUX_GUEST_HOST_FACTS):
+	@mkdir -p $(@D) && { grep -m1 'model name' /proc/cpuinfo | sed 's/.*: //'; \
+		cat /proc/sys/kernel/random/boot_id; hostname; } > $@
+LINUX_GUEST_STORE_DEPS += $(LINUX_GUEST_HOST_FACTS)
+LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/cproc-host=$(LINUX_GUEST_HOST_FACTS)

@@ -19,9 +19,11 @@
 #![allow(dead_code)]
 
 pub mod errno;
+pub mod errno_io;
 pub mod errno_sock;
 pub mod name;
 pub mod nr;
+pub mod nr_file;
 pub mod nr_high;
 pub mod nr_mem;
 pub mod nr_path;

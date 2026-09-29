@@ -17,6 +17,7 @@
 //! Syscall numbers for the path, time and process calls, transcribed from the
 //! x86_64 table.
 
+pub use super::nr_file::*;
 pub const CHDIR: u64 = 80;
 pub const FCHDIR: u64 = 81;
 pub const RENAME: u64 = 82;
