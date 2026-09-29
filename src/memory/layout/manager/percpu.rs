@@ -16,6 +16,7 @@
 
 use super::super::constants::*;
 use super::super::types::*;
+use super::stack_slots::stack_slot_offset;
 use super::state::kernel_sections;
 use alloc::vec::Vec;
 
@@ -24,17 +25,15 @@ pub fn get_all_stack_regions() -> Vec<StackRegion> {
     for cpu_id in 0..MAX_CPUS {
         let stack_base = PERCPU_BASE.saturating_add((cpu_id as u64).saturating_mul(PERCPU_STRIDE));
         regions.push(StackRegion {
-            base: stack_base,
+            base: stack_base.saturating_add(stack_slot_offset(0)),
             size: KSTACK_SIZE,
             guard_size: GUARD_PAGES * PAGE_SIZE,
             cpu_id: Some(cpu_id),
             thread_id: None,
         });
         for ist_num in 0..IST_STACKS_PER_CPU {
-            let ist_offset = (KSTACK_SIZE as u64)
-                .saturating_add((ist_num as u64).saturating_mul(IST_STACK_SIZE as u64));
             regions.push(StackRegion {
-                base: stack_base.saturating_add(ist_offset),
+                base: stack_base.saturating_add(stack_slot_offset(ist_num + 1)),
                 size: IST_STACK_SIZE,
                 guard_size: GUARD_PAGES * PAGE_SIZE,
                 cpu_id: Some(cpu_id),

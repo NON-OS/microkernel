@@ -25,9 +25,9 @@
       "bv_decide_calls": 12,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 983,
-        "proven": 983,
-        "substantive": 339,
+        "extracted": 984,
+        "proven": 984,
+        "substantive": 340,
         "trivial": 644,
         "unproven": 0
       },
@@ -510,6 +510,7 @@
         "nonos_x_key_management_types::keyusage_signing",
         "nonos_x_key_management_types::keyusage_verification",
         "nonos_x_keyring_capsule_types::keytype_to_u8",
+        "nonos_x_layout_stack_slots::stack_slot_offset",
         "nonos_x_main_mode::is_microkernel",
         "nonos_x_memory_boot_memory_types_handoff::boothandoff_has_capsule",
         "nonos_x_memory_boot_memory_types_memory_region::memoryregion_has_flag",
@@ -1529,6 +1530,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/KeyringCapsuleTypes.lean",
           "sha256": "761220c82c5b047a9b214245d45531143fa85f25d5bc64d100eafead799dada9"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/LayoutStackSlots.lean",
+          "sha256": "814b39fc0db41b43ab789a6d4002c92878b784331406cdb1cf93b4158b5b892a"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MainMode.lean",
