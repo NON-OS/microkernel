@@ -14,12 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn status_code(line: &str) -> Option<u16> {
-    let mut parts = line.split_whitespace();
-    let version = parts.next()?;
-    if version != "HTTP/1.0" && version != "HTTP/1.1" {
+use super::bytes::is_ows;
+
+/* The status line (RFC 9112 4): HTTP/1.0 or HTTP/1.1, whitespace, a
+three-digit code from 100 to 599, then an optional reason phrase.
+Returns the code and whether the version is HTTP/1.0. */
+pub fn status_code(line: &[u8]) -> Option<(u16, bool)> {
+    let http10 = match line.get(..8)? {
+        b"HTTP/1.0" => true,
+        b"HTTP/1.1" => false,
+        _ => return None,
+    };
+    let rest = &line[8..];
+    let skip = rest.iter().take_while(|&&c| is_ows(c)).count();
+    if skip == 0 {
         return None;
     }
-    let status = parts.next()?.parse::<u16>().ok()?;
-    (100..=599).contains(&status).then_some(status)
+    let rest = &rest[skip..];
+    let digits = rest.get(..3)?;
+    if !digits.iter().all(u8::is_ascii_digit) || rest.get(3).is_some_and(|&c| !is_ows(c)) {
+        return None;
+    }
+    let code = digits.iter().fold(0u16, |v, &d| v * 10 + u16::from(d - b'0'));
+    (100..=599).contains(&code).then_some((code, http10))
 }

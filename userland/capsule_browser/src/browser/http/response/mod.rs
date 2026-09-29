@@ -14,20 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod content_encoding;
+mod block;
+mod bytes;
+pub mod charset;
+mod codings;
 mod content_length;
 mod decode_body;
+mod fields;
 mod frame_len;
 mod has_headers;
-mod header_line;
-mod header_value;
+mod head;
+mod head_fields;
+mod head_types;
 mod is_complete;
+mod kind;
+mod location;
+mod mime;
 mod parse;
 mod status_code;
 mod types;
+mod undo_coding;
 
 pub use frame_len::frame_len;
-pub use has_headers::has_headers;
+pub use has_headers::{has_headers, wants_close};
 pub use is_complete::is_complete;
 pub use parse::parse;
 pub use types::{ContentKind, Response};

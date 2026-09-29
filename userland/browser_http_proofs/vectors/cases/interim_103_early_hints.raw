@@ -1,0 +1,7 @@
+HTTP/1.1 103 Early Hints
+Link: </s.css>; rel=preload; as=style
+
+HTTP/1.1 200 OK
+Content-Length: 47
+
+<!doctype html><title>t</title><p>café ok</p>

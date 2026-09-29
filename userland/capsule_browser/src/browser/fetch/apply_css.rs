@@ -14,32 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod css_cut;
+mod css_fold;
+
 use crate::browser::http::response::parse;
 use crate::browser::state::State;
 use crate::browser::url::Url;
 
 use super::enqueue_imports::enqueue_imports;
 
-const MAX_PAGE_CSS: usize = 2_097_152;
-
-// Fold a completed stylesheet fetch into the page and re-lay-out. The body
-// (when a 200) cascades after inline <style>; a failed or empty sheet still
-// triggers the relayout so the render-blocking hold in finish resolves once
-// every queued sheet has been attempted. `raw` is None when the fetch failed;
-// `sheet` is the fetched URL so its @import targets resolve against it.
+/* Folds a finished stylesheet fetch into the page. The body (when a 200)
+cascades after inline <style>; `raw` is None when the fetch failed, and
+`sheet` is the fetched URL so its @import targets resolve against it.
+The page is laid out again once, after the last queued sheet, fetched
+or failed, which is also when the render-blocking hold in finish ends. */
 pub(super) fn apply_css(state: &mut State, raw: Option<&[u8]>, sheet: Option<&Url>) {
-    if let Some(raw) = raw {
-        let body = parse(raw).filter(|r| r.status == 200).map(|r| r.body).unwrap_or_default();
-        if !body.is_empty() {
-            let text = alloc::string::String::from_utf8_lossy(&body);
-            if let Some(sheet) = sheet {
-                enqueue_imports(state, &text, sheet);
-            }
-            if state.page_css.len() + text.len() <= MAX_PAGE_CSS {
-                state.page_css.push('\n');
-                state.page_css.push_str(&text);
-            }
+    let body = raw.and_then(parse).filter(|r| r.status == 200).map(|r| r.body).unwrap_or_default();
+    let text = alloc::string::String::from_utf8_lossy(&body);
+    if !text.is_empty() {
+        if let Some(sheet) = sheet {
+            enqueue_imports(state, &text, sheet);
         }
     }
-    crate::browser::event::relayout(state);
+    let text = (!text.is_empty()).then_some(&*text);
+    if css_fold::sheet_done(&mut state.page_css, &state.css_queue, text) {
+        crate::browser::event::relayout(state);
+    }
 }

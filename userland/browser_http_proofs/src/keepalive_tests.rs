@@ -14,16 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn content_encoding(value: &str) -> Option<&'static str> {
-    let lower = value.trim().to_ascii_lowercase();
-    let mut out = "";
-    for token in lower.split(',').map(str::trim).filter(|s| !s.is_empty()) {
-        match token {
-            "identity" => {}
-            "gzip" | "x-gzip" => out = "gzip",
-            "deflate" if out.is_empty() => out = "deflate",
-            _ => return None,
-        }
-    }
-    Some(out)
+//! Whether a finished response leaves its connection open for the next.
+
+use crate::browser::http::response::wants_close;
+use crate::vectors::response;
+
+#[test]
+fn http10_and_connection_close_do_not_keep_the_connection() {
+    let keep = response(&["HTTP/1.1 200 OK", "Content-Length: 0"], b"");
+    let close =
+        response(&["HTTP/1.1 200 OK", "Connection: keep-alive, Close", "Content-Length: 0"], b"");
+    let old = response(&["HTTP/1.0 200 OK", "Content-Length: 0"], b"");
+    let old_keep =
+        response(&["HTTP/1.0 200 OK", "Connection: keep-alive", "Content-Length: 0"], b"");
+    assert_eq!(
+        [&keep, &close, &old, &old_keep].map(|r| wants_close(r)),
+        [false, true, true, false]
+    );
 }

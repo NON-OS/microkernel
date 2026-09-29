@@ -14,49 +14,44 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The gzip member header, and where its deflate stream starts.
+//! The gzip member header (RFC 1952 2.3), and where its deflate stream starts.
 
-/// Offset of the first deflate byte, or `None` when this is not a
-/// member header.
-pub(super) fn body_at(d: &[u8]) -> Option<usize> {
-    if d.len() < 18 || d[0] != 0x1f || d[1] != 0x8b || d[2] != 8 {
-        return None;
+use super::types::End;
+
+const MAGIC: [u8; 3] = [0x1f, 0x8b, 8];
+const FHCRC: u8 = 2;
+const FEXTRA: u8 = 4;
+const FNAME: u8 = 8;
+const FCOMMENT: u8 = 16;
+const RESERVED: u8 = 0xe0;
+
+/// Offset of the first deflate byte. `Truncated` when the input ends
+/// inside a header that is valid so far, `Corrupt` when it is no header.
+pub(super) fn body_at(d: &[u8]) -> Result<usize, End> {
+    let n = d.len().min(3);
+    if d[..n] != MAGIC[..n] {
+        return Err(End::Corrupt);
+    }
+    let &flg = d.get(3).ok_or(End::Truncated)?;
+    if flg & RESERVED != 0 {
+        return Err(End::Corrupt);
     }
     let mut p = 10usize;
-    skip_extra(d, &mut p)?;
-    skip_name(d, &mut p)?;
-    skip_comment(d, &mut p)?;
-    if d[3] & 2 != 0 {
-        p = p.checked_add(2)?;
+    if flg & FEXTRA != 0 {
+        let x = d.get(p..p + 2).ok_or(End::Truncated)?;
+        p += 2 + usize::from(u16::from_le_bytes([x[0], x[1]]));
     }
-    (p < d.len()).then_some(p)
-}
-
-fn skip_extra(d: &[u8], p: &mut usize) -> Option<()> {
-    if d[3] & 4 == 0 {
-        return Some(());
+    for flag in [FNAME, FCOMMENT] {
+        if flg & flag != 0 {
+            let zero = d.get(p..).and_then(|r| r.iter().position(|&c| c == 0));
+            p += zero.ok_or(End::Truncated)? + 1;
+        }
     }
-    let xlen = *d.get(*p)? as usize | ((*d.get(*p + 1)? as usize) << 8);
-    *p = p.checked_add(2)?.checked_add(xlen)?;
-    (*p < d.len()).then_some(())
-}
-
-fn skip_name(d: &[u8], p: &mut usize) -> Option<()> {
-    if d[3] & 8 == 0 {
-        return Some(());
+    if flg & FHCRC != 0 {
+        p += 2;
     }
-    while *d.get(*p)? != 0 {
-        *p = p.checked_add(1)?;
+    if p >= d.len() {
+        return Err(End::Truncated);
     }
-    p.checked_add(1).map(|n| *p = n)
-}
-
-fn skip_comment(d: &[u8], p: &mut usize) -> Option<()> {
-    if d[3] & 16 == 0 {
-        return Some(());
-    }
-    while *d.get(*p)? != 0 {
-        *p = p.checked_add(1)?;
-    }
-    p.checked_add(1).map(|n| *p = n)
+    Ok(p)
 }

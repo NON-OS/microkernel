@@ -13,58 +13,51 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 //! gzip, including the concatenated members RFC 1952 allows.
 
 use alloc::vec::Vec;
 
-use super::crc32::crc32;
-use super::gzip_header::body_at;
-use super::inflate_raw::inflate_counted;
+use super::gzip_member::member;
 use super::tables::MAX_OUT;
-
-/// A member ends with a CRC32 and an ISIZE.
-const TRAILER: usize = 8;
+use super::types::{End, Inflated};
 
 /// Enough for a distribution index in several parts.
 const MAX_MEMBERS: usize = 64;
 
-/// Every member, concatenated. Bytes after a verified member that do not
-/// decode as another member are trailing garbage, and end the stream.
+/// Every member, concatenated, or `None` unless all of them decode and
+/// check. Bytes after a verified member that do not start another member
+/// are trailing garbage, and end the stream.
 pub fn gunzip(data: &[u8]) -> Option<Vec<u8>> {
-    let (mut out, mut at) = verified(data)?;
-    for _ in 1..MAX_MEMBERS {
-        let rest = data.get(at..)?;
-        if rest.is_empty() {
-            return Some(out);
+    gunzip_partial(data, MAX_OUT).complete()
+}
+
+/// Decodes members until the input ends, a member fails, or the output
+/// reaches `cap`. A corrupt member after the first is trailing garbage.
+pub fn gunzip_partial(data: &[u8], cap: usize) -> Inflated {
+    let mut all = Inflated { out: Vec::new(), end: End::Complete, used: 0 };
+    for n in 0..MAX_MEMBERS {
+        let rest = &data[all.used..];
+        if n > 0 && rest.is_empty() {
+            return all;
         }
-        let Some((mut part, end)) = inflated(rest) else {
-            return Some(out);
-        };
-        checked(rest, &part, end)?;
-        if out.len().checked_add(part.len())? > MAX_OUT {
-            return None;
+        let m = member(rest, cap - all.out.len());
+        if n > 0 && m.end == End::Corrupt && m.out.is_empty() {
+            return all;
         }
-        out.append(&mut part);
-        at = at.checked_add(end)?.checked_add(TRAILER)?;
+        if all.out.is_empty() {
+            all.out = m.out;
+        } else {
+            all.out.extend_from_slice(&m.out);
+        }
+        all.used += m.used;
+        if m.end != End::Complete {
+            all.end = m.end;
+            return all;
+        }
     }
-    (at == data.len()).then_some(out)
-}
-
-fn verified(d: &[u8]) -> Option<(Vec<u8>, usize)> {
-    let (out, end) = inflated(d)?;
-    checked(d, &out, end)?;
-    Some((out, end.checked_add(TRAILER)?))
-}
-
-/// The member's output, and the offset of its trailer.
-fn inflated(d: &[u8]) -> Option<(Vec<u8>, usize)> {
-    let start = body_at(d)?;
-    let (out, used) = inflate_counted(d.get(start..)?)?;
-    Some((out, start.checked_add(used)?))
-}
-
-fn checked(d: &[u8], out: &[u8], end: usize) -> Option<()> {
-    let t = d.get(end..end.checked_add(TRAILER)?)?;
-    let word = |i: usize| u32::from_le_bytes([t[i], t[i + 1], t[i + 2], t[i + 3]]);
-    (word(0) == crc32(out) && word(4) == out.len() as u32).then_some(())
+    if all.used != data.len() {
+        all.end = End::Corrupt;
+    }
+    all
 }

@@ -14,6 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn find_crlf(b: &[u8]) -> Option<usize> {
-    b.windows(2).position(|w| w == b"\r\n")
+use super::encoding::Encoding;
+use super::label::encoding;
+
+/* The encoding a stylesheet declares (CSS Syntax 3.2): its first 1024
+bytes start with exactly `@charset "`, a label, then `";`. UTF-16
+there means UTF-8. */
+pub fn css_charset(b: &[u8]) -> Option<Encoding> {
+    let rest = b.strip_prefix(b"@charset \"")?;
+    let end = rest.iter().take(1024 - 11).position(|&c| c == b'"' || c == b';')?;
+    if rest.get(end..end + 2) != Some(b"\";") {
+        return None;
+    }
+    encoding(&rest[..end]).map(Encoding::ascii_compatible)
 }

@@ -14,6 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn valid(line: &str) -> bool {
-    !line.starts_with(' ') && !line.starts_with('\t')
+//! The Adler-32 of RFC 1950 section 8.
+
+const BASE: u32 = 65521;
+
+/// Bytes summed before a reduction: the largest n with
+/// 255 n (n + 1) / 2 + (n + 1) (BASE - 1) below 2^32.
+const NMAX: usize = 5552;
+
+pub(super) fn adler32(data: &[u8]) -> u32 {
+    let (mut a, mut b) = (1u32, 0u32);
+    for block in data.chunks(NMAX) {
+        for &x in block {
+            a += u32::from(x);
+            b += a;
+        }
+        a %= BASE;
+        b %= BASE;
+    }
+    b << 16 | a
 }

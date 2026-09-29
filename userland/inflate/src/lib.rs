@@ -18,19 +18,34 @@
 
 extern crate alloc;
 
+mod adler32;
+mod align;
 mod bits;
 mod codes;
+mod copy;
+mod copy_words;
 mod crc32;
 mod dynamic;
+mod emit;
+mod fast;
 mod fixed;
 mod gzip;
 mod gzip_header;
+mod gzip_member;
 mod huff;
+mod huff_build;
+mod huff_fill;
+mod huff_sub;
 mod inflate_raw;
+mod meta;
+mod out;
 mod stored;
 mod tables;
+mod types;
 mod zlib;
 
-pub use gzip::gunzip;
-pub use inflate_raw::inflate;
-pub use zlib::zlib;
+pub use gzip::{gunzip, gunzip_partial};
+pub use inflate_raw::{inflate, raw_partial};
+pub use tables::MAX_OUT;
+pub use types::{End, Inflated};
+pub use zlib::{zlib, zlib_partial};

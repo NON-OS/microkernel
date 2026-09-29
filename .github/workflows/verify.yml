@@ -351,6 +351,7 @@ jobs:
           - theme_proofs
           - tls_proofs
           - audio_proto_proofs
+          - browser_http_proofs
           - capsule_crypto_proofs
           - aes_proofs
           - anon_ntor_proofs

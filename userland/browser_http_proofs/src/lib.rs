@@ -14,10 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn header_value<'a>(line: &'a str, name: &str) -> Option<&'a str> {
-    let (k, v) = line.split_once(':')?;
-    if !k.trim().eq_ignore_ascii_case(name) {
-        return None;
-    }
-    Some(v.trim())
-}
+//! Host proofs for the browser's HTTP response path, text decoding, inflate
+//! and stylesheet folding, run against the capsule's own source.
+
+extern crate alloc;
+
+pub mod browser;
+
+#[cfg(test)]
+mod bits;
+#[cfg(test)]
+mod cases_tests;
+#[cfg(test)]
+mod charset_tests;
+#[cfg(test)]
+mod chunked_tests;
+#[cfg(test)]
+mod css_fold_tests;
+#[cfg(test)]
+mod framing_tests;
+#[cfg(test)]
+mod inflate_tests;
+#[cfg(test)]
+mod keepalive_tests;
+#[cfg(test)]
+mod partial_tests;
+#[cfg(test)]
+mod prescan_tests;
+#[cfg(test)]
+mod sniff_tests;
+#[cfg(test)]
+mod vectors;

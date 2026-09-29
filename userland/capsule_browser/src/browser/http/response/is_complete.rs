@@ -14,35 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::browser::http::chunked;
+
+use super::head::{scan, Framing, Scan};
+
+/* True once no further byte can change what parse makes of `raw`: the
+final response's body is all there, or its head is one no body can
+repair. A close-delimited body is never known to be complete here. */
 pub fn is_complete(raw: &[u8]) -> bool {
-    let Some(sep) = raw.windows(4).position(|w| w == b"\r\n\r\n") else {
-        return false;
+    let h = match scan(raw) {
+        Scan::More => return false,
+        Scan::Bad => return true,
+        Scan::Head(h) => h,
     };
-    let Ok(head) = core::str::from_utf8(&raw[..sep]) else {
-        return false;
-    };
-    let body_len = raw.len() - sep - 4;
-    let mut content_len = None;
-    let mut chunked = false;
-    for line in head.lines().skip(1) {
-        if !super::header_line::valid(line) {
-            return false;
-        }
-        let lower = line.to_ascii_lowercase();
-        if let Some(v) = lower.strip_prefix("content-length:") {
-            let Ok(n) = v.trim().parse::<usize>() else { return false };
-            if content_len.is_some_and(|old| old != n) {
-                return false;
-            }
-            content_len = Some(n);
-        }
-        if lower.starts_with("transfer-encoding:") && lower.contains("chunked") {
-            chunked = true;
-        }
-    }
-    if chunked {
-        crate::browser::http::chunked::complete(&raw[sep + 4..])
-    } else {
-        content_len.is_some_and(|n| body_len >= n)
+    let body = &raw[h.body_at..];
+    match h.framing {
+        Framing::Empty => true,
+        Framing::Length(n) => body.len() as u64 >= n,
+        Framing::Chunked => chunked::complete(body),
+        Framing::Close => false,
     }
 }
