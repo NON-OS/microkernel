@@ -34,13 +34,13 @@ import sys
 from pathlib import Path
 
 # Raise these when the numbers improve. They may never be lowered.
-FLOOR = 421
-GAP_CEILING = 2
+FLOOR = 422
+GAP_CEILING = 1
 # Functions carrying a property beyond "this wrapper is its method". That
 # wrapper theorem is real, and it is what ties a manifest entry to the method a
 # theorem talks about, but on its own it says nothing about behaviour. Counting
 # the two together would be the inflation this file exists to stop.
-SUBSTANTIVE_FLOOR = 159
+SUBSTANTIVE_FLOOR = 160
 
 PROOF_MODULES = ('CapsComplete.lean', 'Closure.lean')
 PROOF_DIRS = (
