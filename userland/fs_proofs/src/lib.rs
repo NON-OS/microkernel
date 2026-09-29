@@ -169,6 +169,14 @@ mod vfs_path_tests;
 // The kernel directory-record layout: entry offsets, name matching, chaining.
 pub mod blockfs_dir;
 
+// The kernel's file index trees, with `crate::fs::cryptoblock` pointed at the
+// real sector constants the included source names.
+#[cfg(test)]
+mod blockfs_tree;
+#[cfg(test)]
+#[path = "blockfs_tree/fs_shim.rs"]
+mod fs;
+
 #[cfg(test)]
 mod store_patch_tests;
 #[cfg(test)]

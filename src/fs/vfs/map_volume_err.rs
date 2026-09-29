@@ -23,6 +23,9 @@ pub(super) fn map_volume_err(e: VolumeError) -> VfsError {
         VolumeError::NotMounted => VfsError::NotInitialized,
         VolumeError::BadKeyLength => VfsError::IoError("blockfs key length"),
         VolumeError::Keyring(_) => VfsError::IoError("keyring unavailable"),
+        VolumeError::TooLargeToReadWhole(_) => {
+            VfsError::FsError("file too large to read whole; read it by range")
+        }
         VolumeError::BlockFs(BlockFsError::NotFound) => VfsError::NotFound,
         VolumeError::BlockFs(_) => VfsError::IoError("blockfs"),
     }

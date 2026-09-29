@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,15 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::fs::blockfs::BlockFsError;
-use crate::security::keyring_capsule::KeyringCapsuleError;
+//! Where `crate::fs::cryptoblock` points for the included kernel source: the
+//! real sector constants, so the tree arithmetic is the kernel's own.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum VolumeError {
-    Keyring(KeyringCapsuleError),
-    BlockFs(BlockFsError),
-    NotMounted,
-    /// A whole read of a file larger than `read_all` holds; its size.
-    TooLargeToReadWhole(u64),
-    BadKeyLength,
-}
+#[path = "../../../../src/fs/cryptoblock/constants.rs"]
+pub mod cryptoblock;

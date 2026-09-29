@@ -34,7 +34,7 @@ pub use format_volume::format_volume;
 pub use list::list;
 pub use mount_volume::mount_volume;
 pub use read::read;
-pub use read_all::read_all;
+pub use read_all::{read_all, WHOLE_READ_MAX};
 pub use remove::remove;
 pub use stat::stat;
 pub use write::write;

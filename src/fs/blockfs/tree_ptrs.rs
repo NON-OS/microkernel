@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,15 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::fs::blockfs::BlockFsError;
-use crate::security::keyring_capsule::KeyringCapsuleError;
+//! A pointer block as bytes: FANOUT little-endian LBAs, the rest zero.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum VolumeError {
-    Keyring(KeyringCapsuleError),
-    BlockFs(BlockFsError),
-    NotMounted,
-    /// A whole read of a file larger than `read_all` holds; its size.
-    TooLargeToReadWhole(u64),
-    BadKeyLength,
+use super::file_consts::{FANOUT, PTR_BYTES};
+use super::read_u64::read_u64;
+use super::tree_store::Block;
+use super::write_u64::write_u64;
+use crate::fs::cryptoblock::PLAIN_BLOCK_BYTES;
+
+pub(crate) fn encode(ptrs: &[u64; FANOUT]) -> Block {
+    let mut block = [0u8; PLAIN_BLOCK_BYTES];
+    for (i, lba) in ptrs.iter().enumerate() {
+        write_u64(&mut block, i * PTR_BYTES, *lba);
+    }
+    block
+}
+
+pub(crate) fn entry(block: &Block, i: usize) -> u64 {
+    read_u64(block, i * PTR_BYTES)
 }
