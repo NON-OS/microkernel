@@ -25,18 +25,22 @@ use crate::linux::guest::{Guest, Region};
 /// Zeroes written a piece at a time.
 const CHUNK: usize = 64 << 10;
 
-/// The pieces of the guest's regions covering [at, end), or None when a page
-/// of it is not mapped, which Linux answers with ENOMEM.
-pub(super) fn parts(guest: &Guest, at: u64, end: u64) -> Option<Vec<Region>> {
-    let mut out = Vec::new();
-    let mut reach = at;
+/// The pieces of the guest's regions within [at, end), and whether any page
+/// of it is not mapped, which Linux answers with ENOMEM once it has applied
+/// the advice to the pages that are.
+pub(super) fn parts(guest: &Guest, at: u64, end: u64) -> (Vec<Region>, bool) {
+    let (mut out, mut hole, mut reach) = (Vec::new(), false, at);
     while reach < end {
-        let r = guest.regions.iter().find(|r| r.at <= reach && reach < r.at + r.len)?;
+        let Some(r) = guest.regions.iter().find(|r| r.at <= reach && reach < r.at + r.len) else {
+            hole = true;
+            reach = guest.regions.iter().map(|r| r.at).filter(|&s| s > reach).min().unwrap_or(end);
+            continue;
+        };
         let stop = (r.at + r.len).min(end);
         out.push(Region { at: reach, len: stop - reach, ..*r });
         reach = stop;
     }
-    Some(out)
+    (out, hole)
 }
 
 /// What Linux would reload rather than zero, a file's bytes or a shared

@@ -35,8 +35,8 @@ const REFUSED: [u64; 3] = [9, 10, 18];
 const PRIVILEGED: [u64; 2] = [100, 101];
 
 /// In Linux's order: unknown advice or a misaligned address is EINVAL, an
-/// empty span is 0, privileged advice EPERM, a span with a page not mapped
-/// ENOMEM, and then the advice itself.
+/// empty span is 0, privileged advice EPERM; then the advice, on the pages
+/// that are mapped, and ENOMEM after it when some page of the span is not.
 pub fn madvise(guest: &mut Guest, addr: u64, len: u64, advice: u64) -> u64 {
     let dontneed = advice == DONTNEED || advice == DONTNEED_LOCKED;
     let known = dontneed || [&HINTS[..], &REFUSED, &PRIVILEGED].iter().any(|s| s.contains(&advice));
@@ -50,12 +50,14 @@ pub fn madvise(guest: &mut Guest, addr: u64, len: u64, advice: u64) -> u64 {
     if PRIVILEGED.contains(&advice) {
         return errno::fail(errno::EPERM);
     }
-    let Some(parts) = parts(guest, addr, end) else {
-        return errno::fail(errno::ENOMEM);
-    };
-    match advice {
+    let (parts, hole) = parts(guest, addr, end);
+    let done = match advice {
         a if REFUSED.contains(&a) => errno::fail(errno::EINVAL),
         _ if dontneed => drop_pages(guest, &parts),
         _ => errno::ok(0),
+    };
+    if hole && done == errno::ok(0) {
+        return errno::fail(errno::ENOMEM);
     }
+    done
 }
