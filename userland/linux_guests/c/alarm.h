@@ -13,4 +13,5 @@ long ms_since(struct timespec *t0);
 void catch(int sig, void (*fn)(int));
 void signal_waits(void);
 void posix_timer(void);
+void signal_fd(void);
 int verdict(void);

@@ -2,8 +2,8 @@
  * Signals that arrive while a thread waits, and the calls that wait for them.
  * alarm(1) then sleep(10): on Linux SIGALRM ends the sleep early with its
  * handler run, well under two seconds in. Then setitimer and getitimer with
- * pause; the signal waits and POSIX timers follow in alarm_wait.c. Every part
- * prints its line.
+ * pause; the signal waits, POSIX timers and signalfd follow in their own
+ * files. Every part prints its line.
  */
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -11,7 +11,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include "alarm.h"
-
 volatile sig_atomic_t alarms;
 static int failed, parts;
 
@@ -71,5 +70,6 @@ int main(void) {
     part(alarm(0) == 0, "alarm(0) with nothing armed answers 0", 0);
     signal_waits();
     posix_timer();
+    signal_fd();
     return verdict();
 }
