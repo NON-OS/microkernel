@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod band_wake;
 pub mod proc_ticks;
 mod state;
 mod switch;
@@ -22,6 +23,7 @@ mod tick;
 mod yield_body;
 mod yield_impl;
 
+pub(crate) use band_wake::note_ready;
 pub(crate) use state::SCHEDULER_STATS;
 pub use state::{clear_reschedule, need_reschedule};
 pub use state::{set_reschedule, set_time_slice, spend_time_slice, time_slice, DEFAULT_TIME_SLICE};
