@@ -25,6 +25,14 @@ use super::trap_wait::wait_for_answer;
 /// The kernel's answer to a syscall number it does not know, made by the
 /// supervisor rather than by the kernel.
 pub fn redirect(nr: u64, args: [u64; 6], frame: &[u64; FRAME_WORDS]) -> Option<u64> {
+    /*
+     * The numbers this kernel hands a supervisor for its own reasons, a death
+     * and a tick stop, are no syscall's: a guest naming one gets ENOSYS, as
+     * for any number nobody serves, not a stop its supervisor answers 0.
+     */
+    if nr >= super::frame::NR_INTERRUPTED {
+        return None;
+    }
     let pid = crate::process::current_pid()?;
     let supervisor = registry::supervisor_of(pid)?;
     /*
