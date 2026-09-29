@@ -25,6 +25,8 @@ pub mod arch;
 pub mod bus;
 pub mod capabilities;
 pub mod elf;
+#[cfg(test)]
+pub mod idt_vectors;
 pub mod memory;
 #[cfg(test)]
 pub mod pci_address;
