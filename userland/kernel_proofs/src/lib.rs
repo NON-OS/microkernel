@@ -21,6 +21,8 @@
 
 extern crate alloc;
 
+#[cfg(test)]
+pub mod addr_align;
 pub mod arch;
 #[cfg(test)]
 pub mod bti_pad;
