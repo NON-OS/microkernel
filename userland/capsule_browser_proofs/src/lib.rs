@@ -16,6 +16,7 @@ pub mod render;
 mod band_tests;
 mod atom_clip_tests;
 mod blit_tests;
+mod block_in_inline_tests;
 mod canvas_tests;
 mod cascade_proofs;
 mod cascade_tests;

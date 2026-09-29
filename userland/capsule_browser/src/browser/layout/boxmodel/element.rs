@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod replaced;
+mod split_inline;
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -25,6 +26,7 @@ use super::element_box::element_box;
 use super::tree::BoxNode;
 use super::walk::{ElementIn, Walk};
 use replaced::replaced;
+use split_inline::push_split;
 
 /* Per-tag dispatch for one element child: non-rendered subtrees drop,
  * <br>, <img> and form fields are leaves, everything else recurses. */
@@ -51,6 +53,7 @@ pub(super) fn element(
     }
     *w.count += 1;
     if !replaced(w, item, parent, link, style, out) {
-        out.push(element_box(w, item, *style, link, depth));
+        let in_items = parent.is_flex || parent.is_grid;
+        push_split(element_box(w, item, *style, link, depth), in_items, out);
     }
 }
