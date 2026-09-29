@@ -22,6 +22,7 @@ pub mod debug;
 pub mod device;
 pub mod divide;
 pub mod double_fault;
+mod fault_address;
 pub mod floating_point;
 pub mod gpf;
 pub mod machine_check;
