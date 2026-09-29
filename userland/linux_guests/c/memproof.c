@@ -13,6 +13,7 @@ int protnone_main(void);
 int protfork_main(void);
 int touchfork_main(void);
 int memcalls_main(void);
+int escape_main(void);
 
 static const struct {
     const char *name;
@@ -23,6 +24,7 @@ static const struct {
     { "protfork", protfork_main },
     { "touchfork", touchfork_main },
     { "memcalls", memcalls_main },
+    { "escape", escape_main },
 };
 
 int main(int argc, char **argv) {
@@ -31,7 +33,7 @@ int main(int argc, char **argv) {
             return proofs[i].run();
         }
     }
-    fputs("[C] memproof FAIL: name a proof: guardpage protnone protfork touchfork memcalls\n",
+    fputs("[C] memproof FAIL: name a proof: guardpage protnone protfork touchfork memcalls escape\n",
           stdout);
     return 2;
 }

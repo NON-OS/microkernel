@@ -128,11 +128,11 @@ $(eval $(call LINUX_GUEST,cwait,4978,4979,$(LINUX_GUESTS_C)/cwait))
 #              over a written page replaces it with zeroes
 #   memcalls   mmap placement, brk, alignment, mremap, and mlock, msync and
 #              mincore, each against Linux's answer
-MEMPROOF_PARTS := guardpage protnone protfork touchfork memcalls
+MEMPROOF_PARTS := guardpage protnone protfork touchfork memcalls escape
 # Files the proofs share, built as they are: no main of their own.
-MEMPROOF_SHARED := memproof_run memcalls_map memcalls_remap memcalls_lock
+MEMPROOF_SHARED := memproof_run memcalls_map memcalls_remap memcalls_lock escape_map escape_exec
 MEMPROOF_SRCS := $(foreach p,memproof $(MEMPROOF_PARTS) $(MEMPROOF_SHARED),\
-	$(LINUX_GUESTS_DIR)/c/$(p).c) $(LINUX_GUESTS_DIR)/c/memproof.h $(LINUX_GUESTS_DIR)/c/memcalls.h
+	$(LINUX_GUESTS_DIR)/c/$(p).c) $(LINUX_GUESTS_DIR)/c/memproof.h $(LINUX_GUESTS_DIR)/c/memcalls.h $(LINUX_GUESTS_DIR)/c/escape.h
 $(LINUX_GUESTS_C)/memproof: $(MEMPROOF_SRCS)
 	@mkdir -p $(@D)/memproof.o
 	@for p in $(MEMPROOF_PARTS); do \
