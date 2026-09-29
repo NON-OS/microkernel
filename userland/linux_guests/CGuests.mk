@@ -39,3 +39,10 @@ $(eval $(call LINUX_GUEST,cpipe,4982,4983,$(LINUX_GUESTS_C)/cpipe))
 $(LINUX_GUESTS_C)/cmadv: $(LINUX_GUESTS_DIR)/c/cmadv.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cmadv,4990,4991,$(LINUX_GUESTS_C)/cmadv))
+
+# A caught signal for a thread that was parked, not running: woken from a
+# futex, at the end of a sleep, or just after a handler returns, and then
+# spinning with no call, it must still be delivered.
+$(LINUX_GUESTS_C)/csig: $(LINUX_GUESTS_DIR)/c/csig.c
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,csig,4984,4985,$(LINUX_GUESTS_C)/csig))
