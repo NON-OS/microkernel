@@ -38,9 +38,76 @@ theorem the_portstatssnapshot_total_ops_wrapper_is_its_method (a : stats_snapsho
 theorem the_portstatssnapshot_total_bytes_wrapper_is_its_method (a : stats_snapshot.PortStatsSnapshot) :
     portstatssnapshot_total_bytes a = stats_snapshot.PortStatsSnapshot.total_bytes a := rfl
 
+/-! ### What the totals add up
+
+`total_bytes` and `total_ops` are the two figures a port statistics report
+reads off a snapshot, and `PortStats::total_ops`, which `PortManager` reports,
+takes a snapshot and asks it. The theorems below say which fields each one
+sums: bytes read and written for the first, the four operation counters for
+the second, and never `io_delays`. Both saturate at `u64::MAX` and never fail.
+Saturating each partial sum gives the saturated whole, because every field is
+unsigned and a partial sum never exceeds the whole.
+
+They used to add with `+`. The kernel is built with `overflow-checks = true`
+in every profile, so a sum past `u64::MAX` panicked, and the counters wrap in
+`fetch_add`, so a snapshot can hold any values at all.
+
+Nothing here reaches `PortStats`, the live atomic counters a snapshot is copied
+from, or the `fetch_add` calls that bump them: those are atomics Aeneas leaves
+opaque.
+-/
+
+private theorem sat (x y : Std.U64) :
+    (core.num.U64.saturating_add x y).val = min (2 ^ 64 - 1) (x.val + y.val) := by
+  simp only [core.num.U64.saturating_add, UScalar.saturating_add, UScalar.val, UScalar.max]
+  rw [BitVec.toNat_ofNat]
+  show min (2 ^ 64 - 1) _ % 2 ^ 64 = _
+  exact Nat.mod_eq_of_lt (by omega)
+
+/-- The byte total never fails and is bytes read plus bytes written, and
+    nothing else in the snapshot, saturated at `u64::MAX`. -/
+theorem portstatssnapshot_total_bytes_is_the_saturated_read_plus_written
+    (s : stats_snapshot.PortStatsSnapshot) :
+    ∃ v : Std.U64, portstatssnapshot_total_bytes s = ok v ∧
+      v.val = min (2 ^ 64 - 1) (s.bytes_read.val + s.bytes_written.val) := by
+  unfold portstatssnapshot_total_bytes stats_snapshot.PortStatsSnapshot.total_bytes
+  exact ⟨_, rfl, sat _ _⟩
+
+/-- The operation total never fails and counts plain reads, plain writes,
+    string reads and string writes, once each, saturated at `u64::MAX`. I/O
+    delays are not operations and are not counted. -/
+theorem portstatssnapshot_total_ops_counts_four_kinds_and_not_delays
+    (s : stats_snapshot.PortStatsSnapshot) :
+    ∃ v : Std.U64, portstatssnapshot_total_ops s = ok v ∧
+      v.val = min (2 ^ 64 - 1) (s.read_ops.val + s.write_ops.val + s.string_read_ops.val
+        + s.string_write_ops.val) := by
+  unfold portstatssnapshot_total_ops stats_snapshot.PortStatsSnapshot.total_ops
+  simp only [lift, bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  rw [sat, sat, sat]
+  omega
+
+/-- The first sums past the limit saturate instead of halting: `u64::MAX` bytes
+    read and one written, and `u64::MAX` reads and one string write. -/
+theorem portstatssnapshot_totals_saturate_past_the_u64_limit :
+    portstatssnapshot_total_bytes ⟨0xFFFFFFFFFFFFFFFF#u64, 1#u64, 0#u64, 0#u64, 0#u64, 0#u64, 0#u64⟩
+        = ok 0xFFFFFFFFFFFFFFFF#u64 ∧
+      portstatssnapshot_total_ops ⟨0#u64, 0#u64, 0xFFFFFFFFFFFFFFFF#u64, 0#u64, 0#u64, 1#u64, 0#u64⟩
+        = ok 0xFFFFFFFFFFFFFFFF#u64 := by
+  refine ⟨?_, ?_⟩
+  · obtain ⟨v, hv, hvv⟩ := portstatssnapshot_total_bytes_is_the_saturated_read_plus_written
+      ⟨0xFFFFFFFFFFFFFFFF#u64, 1#u64, 0#u64, 0#u64, 0#u64, 0#u64, 0#u64⟩
+    rw [hv]; congr 1; apply UScalar.eq_of_val_eq; rw [hvv]; rfl
+  · obtain ⟨v, hv, hvv⟩ := portstatssnapshot_total_ops_counts_four_kinds_and_not_delays
+      ⟨0#u64, 0#u64, 0xFFFFFFFFFFFFFFFF#u64, 0#u64, 0#u64, 1#u64, 0#u64⟩
+    rw [hv]; congr 1; apply UScalar.eq_of_val_eq; rw [hvv]; rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.PortStatsSnapshot.the_portstatssnapshot_total_ops_wrapper_is_its_method
 #print axioms NonosExtraction.PortStatsSnapshot.the_portstatssnapshot_total_bytes_wrapper_is_its_method
+#print axioms NonosExtraction.PortStatsSnapshot.portstatssnapshot_total_bytes_is_the_saturated_read_plus_written
+#print axioms NonosExtraction.PortStatsSnapshot.portstatssnapshot_total_ops_counts_four_kinds_and_not_delays
+#print axioms NonosExtraction.PortStatsSnapshot.portstatssnapshot_totals_saturate_past_the_u64_limit
 
 end NonosExtraction.PortStatsSnapshot
