@@ -25,7 +25,12 @@ use super::launch::Launch;
 use super::origin::Origin;
 use super::start::say;
 
-pub(super) fn start(guest: &mut Guest, launch: &Launch) -> Result<(), &'static [u8]> {
+/*
+ * The launch is taken, not borrowed: once the program is mapped its bytes are
+ * never read again, and kept they would hold up to 16 MiB of the heap that
+ * every later execve reads its own program into. They go when this returns.
+ */
+pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u8]> {
     let (path, bytes) = (&launch.path[..], &launch.bytes[..]);
     if let Err(why) = prove(path, bytes, &launch.origin) {
         say(b"[LINUX] refused: ");
