@@ -46,8 +46,11 @@ pub fn sys_peer_map(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
             continue;
         }
         let Some(frame) = crate::memory::frame_alloc::allocate_frame() else {
-            /* Out of frames is said once per refused call, with the numbers. */
-            crate::log::warn!(
+            /*
+             * Out of frames is said once per refused call, with the numbers,
+             * on the serial console: warnings reach only the screen by then.
+             */
+            let line = alloc::format!(
                 "[PEER] pid {} got {} of {} pages at {:#x}; {} frames free",
                 pid,
                 i,
@@ -55,6 +58,7 @@ pub fn sys_peer_map(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
                 addr,
                 crate::memory::frame_alloc::total_free_frames()
             );
+            crate::sys::serial::println(line.as_bytes());
             return ERRNO_NOMEM;
         };
         crate::memory::frame_alloc::zero_frame(frame);
