@@ -17,11 +17,11 @@
 /*
  * Arithmetic on firmware-supplied values must not overflow.
  *
- * The kernel's UEFI memory descriptor, per-CPU region, I/O APIC entry and MMIO
- * statistics snapshot are included by path. Each added or multiplied values
- * that firmware or a wrapping counter controls with an overflow-checked
- * operator, which aborts the kernel, or in this release build wraps. The
- * checks below fail against that code.
+ * The kernel's UEFI memory descriptor, per-CPU region, I/O APIC entry, and
+ * MMIO and port statistics snapshots are included by path. Each added or
+ * multiplied values that firmware or a wrapping counter controls with an
+ * overflow-checked operator, which aborts the kernel, or in this release build
+ * wraps. The checks below fail against that code.
  */
 
 #[path = "../../../../src/arch/x86_64/acpi/data/ioapic.rs"]
@@ -32,4 +32,6 @@ pub mod memory_desc;
 pub mod percpu;
 #[path = "../../../../src/memory/mmio/types/stats_snapshot.rs"]
 pub mod stats_snapshot;
+#[path = "../../../../src/arch/x86_64/port/stats_snapshot.rs"]
+pub mod port_snapshot;
 mod tests;
