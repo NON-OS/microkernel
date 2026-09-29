@@ -80,7 +80,9 @@ def mirrored_sources(root):
         lib = root / c['dir'] / 'src/lib.rs'
         if not lib.is_file():
             continue
-        m = re.search(r'#\[path = "([^"]+)"\]', lib.read_text())
+        text = lib.read_text()
+        m = (re.search(r'#\[path = "([^"]+)"\]', text)
+             or re.search(r'mirroring `([^`]+)`', text))
         if m:
             out.setdefault(m.group(1).split('../')[-1], []).append(c['name'])
     return {k: v for k, v in out.items() if len(v) > 1}

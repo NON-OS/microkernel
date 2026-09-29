@@ -47,6 +47,102 @@ theorem the_portrange_end_wrapper_is_its_method (a : range.PortRange) :
 theorem the_portrange_contains_wrapper_is_its_method (a : range.PortRange) (b : Std.U16) :
     portrange_contains a b = range.PortRange.contains a b := rfl
 
+/-! ### What a port range covers
+
+    A `PortRange` is a start port and a count. `end` is the start plus the count,
+    saturated at `0xFFFF` rather than wrapped, and `contains` is the half-open test
+    `start <= port < end`. The theorems below fix that arithmetic exactly: the
+    accessors return what the constructor was given, `end` is the saturated sum,
+    and `contains` holds precisely on the half-open interval up to the saturated
+    end. For a range that does not reach the top of the port space that interval is
+    `start` up to `start + count`, which is what `PortManager::is_reserved` and
+    `reserve_range` assume when they test membership and overlap.
+
+    The saturation has a consequence the half-open test does not absorb. Because
+    `end` can never exceed `0xFFFF` and the test is strict, port `0xFFFF` is in no
+    range at all, and a range asked to cover it (for example `new(0xFFFF, 1)`)
+    covers nothing. `port_0xffff_is_in_no_range` records that edge as the code
+    has it.
+
+    These theorems are about `PortRange` alone. The reservation table that holds
+    ranges sits behind an `RwLock` in a static, which is not extracted, so what the
+    manager does with a range is argued from its source and not proven here.
+-/
+
+/-- The accessors return what the constructor stored, in the right fields. -/
+theorem portrange_start_and_portrange_count_return_what_portrange_new_was_given
+    (s c : Std.U16) :
+    (do let r ← portrange_new s c; portrange_start r) = ok s ∧
+    (do let r ← portrange_new s c; portrange_count r) = ok c := ⟨rfl, rfl⟩
+
+private theorem u16_saturating_add_val (a b : Std.U16) :
+    (core.num.U16.saturating_add a b).val = min (a.val + b.val) 65535 := by
+  simp only [core.num.U16.saturating_add, UScalar.saturating_add,
+    UScalar.max_UScalarTy_U16_eq, U16.max, UScalar.val, BitVec.toNat_ofNat, U16.numBits]
+  have := a.hBounds; have := b.hBounds
+  simp only [UScalar.val, UScalarTy.numBits] at *
+  omega
+
+/-- `end` is the start plus the count, clamped at the largest port. -/
+theorem portrange_end_is_the_saturated_sum (p : range.PortRange) :
+    ∃ e, portrange_end p = ok e ∧ e.val = min (p.start.val + p.count.val) 65535 :=
+  ⟨_, rfl, u16_saturating_add_val _ _⟩
+
+/-- At the top of the port space `end` clamps instead of wrapping: sixteen ports
+    from `0xFFF0` end at `0xFFFF`, not at `0`. A wrapping sum would make the range
+    empty and every overlap test against it false. -/
+theorem portrange_end_clamps_rather_than_wraps :
+    portrange_end ⟨0xFFF0#u16, 16#u16⟩ = ok 0xFFFF#u16 := by
+  obtain ⟨e, he, hv⟩ := portrange_end_is_the_saturated_sum ⟨0xFFF0#u16, 16#u16⟩
+  rw [he]
+  congr 1
+  apply UScalar.eq_of_val_eq
+  rw [hv]
+  rfl
+
+/-- `contains` is membership in the half-open interval from the start to the
+    saturated end. -/
+theorem portrange_contains_is_the_half_open_interval (p : range.PortRange) (port : Std.U16) :
+    portrange_contains p port =
+      ok (decide (p.start.val ≤ port.val ∧
+        port.val < min (p.start.val + p.count.val) 65535)) := by
+  unfold portrange_contains range.PortRange.contains range.PortRange.end
+  have h := u16_saturating_add_val p.start p.count
+  by_cases hs : p.start.val ≤ port.val
+  · have : port ≥ p.start := hs
+    simp only [this, if_true, bind_tc_ok]
+    congr 1
+    simp only [decide_eq_decide, hs, true_and]
+    show port.val < _ ↔ _
+    rw [h]
+  · have : ¬ port ≥ p.start := hs
+    simp only [this, if_false, hs, false_and, decide_false]
+
+/-- For a range that stays below the top port, `contains` is exactly
+    `start <= port < start + count`: the count ports from the start, and no
+    others. This is the reading the port manager's reservation checks rely on. -/
+theorem portrange_contains_is_start_to_start_plus_count_below_the_top
+    (s c port : Std.U16) (h : s.val + c.val ≤ 65535) :
+    (do let r ← portrange_new s c; portrange_contains r port) =
+      ok (decide (s.val ≤ port.val ∧ port.val < s.val + c.val)) := by
+  show portrange_contains ⟨s, c⟩ port = _
+  rw [portrange_contains_is_the_half_open_interval]
+  simp only [Nat.min_eq_left h]
+
+/-- Records a defect in the code as written: port `0xFFFF` is contained in no
+    range, whatever its start and count, because `end` saturates at `0xFFFF` and
+    the upper bound is strict. So `reserve_range(0xFFFF, 1)` stores a range that
+    `is_reserved(0xFFFF)` does not see, and that overlaps nothing, so it can be
+    reserved again. -/
+theorem port_0xffff_is_in_no_range (p : range.PortRange) :
+    portrange_contains p 0xFFFF#u16 = ok false := by
+  rw [portrange_contains_is_the_half_open_interval]
+  congr 1
+  have : (0xFFFF#u16 : Std.U16).val = 65535 := rfl
+  simp only [this, decide_eq_false_iff_not, not_and, Nat.not_lt]
+  intro _
+  exact Nat.min_le_right _ _
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesRange.the_portrange_new_wrapper_is_its_method
@@ -54,5 +150,11 @@ theorem the_portrange_contains_wrapper_is_its_method (a : range.PortRange) (b : 
 #print axioms NonosExtraction.TypesRange.the_portrange_count_wrapper_is_its_method
 #print axioms NonosExtraction.TypesRange.the_portrange_end_wrapper_is_its_method
 #print axioms NonosExtraction.TypesRange.the_portrange_contains_wrapper_is_its_method
+#print axioms NonosExtraction.TypesRange.portrange_start_and_portrange_count_return_what_portrange_new_was_given
+#print axioms NonosExtraction.TypesRange.portrange_end_is_the_saturated_sum
+#print axioms NonosExtraction.TypesRange.portrange_end_clamps_rather_than_wraps
+#print axioms NonosExtraction.TypesRange.portrange_contains_is_the_half_open_interval
+#print axioms NonosExtraction.TypesRange.portrange_contains_is_start_to_start_plus_count_below_the_top
+#print axioms NonosExtraction.TypesRange.port_0xffff_is_in_no_range
 
 end NonosExtraction.TypesRange

@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.TablesSratOther
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_tables_srat_other
@@ -44,11 +45,115 @@ theorem the_sratgenericinitiatoraffinity_is_acpi_device_wrapper_is_its_method (a
 theorem the_sratgenericinitiatoraffinity_is_pci_device_wrapper_is_its_method (a : srat_other.SratGenericInitiatorAffinity) :
     sratgenericinitiatoraffinity_is_pci_device a = srat_other.SratGenericInitiatorAffinity.is_pci_device a := rfl
 
+/-! ### Which bit is Enabled and which handle types are which
+
+The Enabled readers of both SRAT entry kinds read bit 0 of the flags word and
+nothing else, and the two separate copies of the `ENABLED` constant agree, so a
+GICC entry and a Generic Initiator entry with the same flags word are enabled
+together. The handle type readers decode type 0 as ACPI and type 1 as PCI, never
+both, and leave the reserved types 2 to 255 as neither, so a reserved handle is
+not read as a PCI segment, bus, device and function.
+
+These are statements about one entry value. They cannot establish that the entry
+was read from a well formed SRAT, that its `length` matches its kind, or that a
+caller consults `is_enabled` before using the entry: no kernel caller of these
+readers is extracted.
+-/
+
+/-- The GICC Enabled reader is bit 0 of the flags word. -/
+theorem sratgiccaffinity_is_enabled_reads_bit_zero (a : srat_other.SratGiccAffinity) :
+    sratgiccaffinity_is_enabled a = ok (a.flags.val.testBit 0) := by
+  unfold sratgiccaffinity_is_enabled srat_other.SratGiccAffinity.is_enabled
+    srat_other.SratGiccAffinity.ENABLED
+  have hs : (1#u32 <<< 0#i32 : Result Std.U32) = ok 1#u32 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit a.flags 1#u32 0#u32 0 rfl rfl]
+
+/-- The Generic Initiator Enabled reader is bit 0 of its flags word. -/
+theorem sratgenericinitiatoraffinity_is_enabled_reads_bit_zero
+    (g : srat_other.SratGenericInitiatorAffinity) :
+    sratgenericinitiatoraffinity_is_enabled g = ok (g.flags.val.testBit 0) := by
+  unfold sratgenericinitiatoraffinity_is_enabled srat_other.SratGenericInitiatorAffinity.is_enabled
+    srat_other.SratGenericInitiatorAffinity.ENABLED
+  have hs : (1#u32 <<< 0#i32 : Result Std.U32) = ok 1#u32 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit g.flags 1#u32 0#u32 0 rfl rfl]
+
+/-- The two copies of the Enabled test agree on every flags word. -/
+theorem sratgenericinitiatoraffinity_is_enabled_agrees_with_sratgiccaffinity_is_enabled
+    (g : srat_other.SratGenericInitiatorAffinity) (c : srat_other.SratGiccAffinity)
+    (h : g.flags = c.flags) :
+    sratgenericinitiatoraffinity_is_enabled g = sratgiccaffinity_is_enabled c := by
+  rw [sratgenericinitiatoraffinity_is_enabled_reads_bit_zero,
+    sratgiccaffinity_is_enabled_reads_bit_zero, h]
+
+/-- Every flag bit but bit 0 set, with bit 0 clear, reads as disabled; bit 0 alone
+    reads as enabled. The reserved bits 1 to 31 do not enable an entry. -/
+theorem sratgiccaffinity_is_enabled_ignores_the_reserved_flag_bits
+    (a : srat_other.SratGiccAffinity) :
+    sratgiccaffinity_is_enabled { a with flags := 4294967294#u32 } = ok false ∧
+      sratgiccaffinity_is_enabled { a with flags := 1#u32 } = ok true := by
+  rw [sratgiccaffinity_is_enabled_reads_bit_zero, sratgiccaffinity_is_enabled_reads_bit_zero]
+  have h0 : (4294967294#u32 : Std.U32).val = 4294967294 := rfl
+  have h1 : (1#u32 : Std.U32).val = 1 := rfl
+  dsimp only
+  rw [h0, h1]
+  exact ⟨rfl, rfl⟩
+
+/-- Handle type 0 and only handle type 0 is an ACPI device. -/
+theorem sratgenericinitiatoraffinity_is_acpi_device_is_type_zero
+    (g : srat_other.SratGenericInitiatorAffinity) :
+    sratgenericinitiatoraffinity_is_acpi_device g = ok (decide (g.device_handle_type.val = 0)) := by
+  unfold sratgenericinitiatoraffinity_is_acpi_device
+    srat_other.SratGenericInitiatorAffinity.is_acpi_device
+    srat_other.SratGenericInitiatorAffinity.HANDLE_TYPE_ACPI
+  congr 1
+  apply decide_eq_decide.mpr
+  constructor
+  · intro h; rw [h]; rfl
+  · intro h; exact UScalar.eq_of_val_eq h
+
+/-- Handle type 1 and only handle type 1 is a PCI device. -/
+theorem sratgenericinitiatoraffinity_is_pci_device_is_type_one
+    (g : srat_other.SratGenericInitiatorAffinity) :
+    sratgenericinitiatoraffinity_is_pci_device g = ok (decide (g.device_handle_type.val = 1)) := by
+  unfold sratgenericinitiatoraffinity_is_pci_device
+    srat_other.SratGenericInitiatorAffinity.is_pci_device
+    srat_other.SratGenericInitiatorAffinity.HANDLE_TYPE_PCI
+  congr 1
+  apply decide_eq_decide.mpr
+  constructor
+  · intro h; rw [h]; rfl
+  · intro h; exact UScalar.eq_of_val_eq h
+
+/-- No entry is both an ACPI device and a PCI device, and the reserved handle
+    types 2 to 255 are neither. -/
+theorem sratgenericinitiatoraffinity_is_acpi_device_and_is_pci_device_are_exclusive
+    (g : srat_other.SratGenericInitiatorAffinity) :
+    (∃ x y, sratgenericinitiatoraffinity_is_acpi_device g = ok x ∧
+      sratgenericinitiatoraffinity_is_pci_device g = ok y ∧ ¬(x = true ∧ y = true)) ∧
+    (2 ≤ g.device_handle_type.val →
+      sratgenericinitiatoraffinity_is_acpi_device g = ok false ∧
+        sratgenericinitiatoraffinity_is_pci_device g = ok false) := by
+  rw [sratgenericinitiatoraffinity_is_acpi_device_is_type_zero,
+    sratgenericinitiatoraffinity_is_pci_device_is_type_one]
+  refine ⟨⟨_, _, rfl, rfl, ?_⟩, ?_⟩
+  · simp only [decide_eq_true_eq]; omega
+  · intro h
+    refine ⟨?_, ?_⟩ <;> congr 1 <;> simp only [decide_eq_false_iff_not] <;> omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TablesSratOther.the_sratgiccaffinity_is_enabled_wrapper_is_its_method
 #print axioms NonosExtraction.TablesSratOther.the_sratgenericinitiatoraffinity_is_enabled_wrapper_is_its_method
 #print axioms NonosExtraction.TablesSratOther.the_sratgenericinitiatoraffinity_is_acpi_device_wrapper_is_its_method
 #print axioms NonosExtraction.TablesSratOther.the_sratgenericinitiatoraffinity_is_pci_device_wrapper_is_its_method
+#print axioms NonosExtraction.TablesSratOther.sratgiccaffinity_is_enabled_reads_bit_zero
+#print axioms NonosExtraction.TablesSratOther.sratgenericinitiatoraffinity_is_enabled_reads_bit_zero
+#print axioms NonosExtraction.TablesSratOther.sratgenericinitiatoraffinity_is_enabled_agrees_with_sratgiccaffinity_is_enabled
+#print axioms NonosExtraction.TablesSratOther.sratgiccaffinity_is_enabled_ignores_the_reserved_flag_bits
+#print axioms NonosExtraction.TablesSratOther.sratgenericinitiatoraffinity_is_acpi_device_is_type_zero
+#print axioms NonosExtraction.TablesSratOther.sratgenericinitiatoraffinity_is_pci_device_is_type_one
+#print axioms NonosExtraction.TablesSratOther.sratgenericinitiatoraffinity_is_acpi_device_and_is_pci_device_are_exclusive
 
 end NonosExtraction.TablesSratOther

@@ -41,10 +41,75 @@ theorem the_regiontype_is_kernel_wrapper_is_its_method (a : region_type.RegionTy
 theorem the_regiontype_is_reserved_wrapper_is_its_method (a : region_type.RegionType) :
     regiontype_is_reserved a = region_type.RegionType.is_reserved a := rfl
 
+/-! ### Which memory regions may be allocated, belong to the kernel or are reserved
+
+`RegionType` labels a physical memory region, and `MemoryRegion::is_available`
+in `src/memory/boot_memory/types/memory_region.rs` answers with
+`is_allocatable`, so this one method decides which boot regions the frame
+allocator may hand out. The theorems below characterise all three classifiers
+exactly, so moving any variant into or out of any of them breaks one. They show
+that only `Available` is allocatable, and so that no kernel image, stack, heap,
+firmware, bootloader or guard region is ever reported as free; that nothing is
+both kernel owned and reserved; and they make visible that `User`, `Mmio`,
+`Dma` and `Shared` regions fall in none of the three classes.
+
+What they cannot establish is how the boot memory map assigns these labels, or
+what the allocator does with the answer: `MemoryRegion` and its callers are not
+part of this extraction.
+-/
+
+/-- Only an `Available` region is allocatable. -/
+theorem regiontype_is_allocatable_exactly (r : region_type.RegionType) :
+    regiontype_is_allocatable r = ok true ↔ r = .Available := by
+  cases r <;> simp [regiontype_is_allocatable, region_type.RegionType.is_allocatable]
+
+/-- The kernel regions are exactly the kernel image, the kernel stack and the
+kernel heap. -/
+theorem regiontype_is_kernel_exactly (r : region_type.RegionType) :
+    regiontype_is_kernel r = ok true ↔ (r = .Kernel ∨ r = .Stack ∨ r = .Heap) := by
+  cases r <;> simp [regiontype_is_kernel, region_type.RegionType.is_kernel]
+
+/-- The reserved regions are exactly `Reserved`, firmware, bootloader and guard
+regions. -/
+theorem regiontype_is_reserved_exactly (r : region_type.RegionType) :
+    regiontype_is_reserved r = ok true ↔
+      (r = .Reserved ∨ r = .Firmware ∨ r = .Bootloader ∨ r = .Guard) := by
+  cases r <;> simp [regiontype_is_reserved, region_type.RegionType.is_reserved]
+
+/-- A region the allocator may hand out is neither kernel owned nor reserved,
+so `is_allocatable` never offers memory that `is_kernel` or `is_reserved`
+protects. -/
+theorem an_allocatable_region_is_neither_kernel_nor_reserved (r : region_type.RegionType)
+    (h : regiontype_is_allocatable r = ok true) :
+    regiontype_is_kernel r = ok false ∧ regiontype_is_reserved r = ok false := by
+  cases r <;> simp_all [regiontype_is_allocatable, regiontype_is_kernel,
+    regiontype_is_reserved, region_type.RegionType.is_allocatable,
+    region_type.RegionType.is_kernel, region_type.RegionType.is_reserved]
+
+/-- No region is both kernel owned and reserved. -/
+theorem a_kernel_region_is_never_reserved (r : region_type.RegionType)
+    (h : regiontype_is_kernel r = ok true) : regiontype_is_reserved r = ok false := by
+  cases r <;> simp_all [regiontype_is_kernel, regiontype_is_reserved,
+    region_type.RegionType.is_kernel, region_type.RegionType.is_reserved]
+
+/-- User, MMIO, DMA and shared regions are in none of the three classes: they
+are not allocatable, not kernel owned and not reserved. -/
+theorem user_mmio_dma_and_shared_regions_are_unclassified (r : region_type.RegionType)
+    (hr : r = .User ∨ r = .Mmio ∨ r = .Dma ∨ r = .Shared) :
+    regiontype_is_allocatable r = ok false ∧ regiontype_is_kernel r = ok false ∧
+      regiontype_is_reserved r = ok false := by
+  rcases hr with rfl | rfl | rfl | rfl <;> exact ⟨rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesRegionType.the_regiontype_is_allocatable_wrapper_is_its_method
 #print axioms NonosExtraction.TypesRegionType.the_regiontype_is_kernel_wrapper_is_its_method
 #print axioms NonosExtraction.TypesRegionType.the_regiontype_is_reserved_wrapper_is_its_method
+#print axioms NonosExtraction.TypesRegionType.regiontype_is_allocatable_exactly
+#print axioms NonosExtraction.TypesRegionType.regiontype_is_kernel_exactly
+#print axioms NonosExtraction.TypesRegionType.regiontype_is_reserved_exactly
+#print axioms NonosExtraction.TypesRegionType.an_allocatable_region_is_neither_kernel_nor_reserved
+#print axioms NonosExtraction.TypesRegionType.a_kernel_region_is_never_reserved
+#print axioms NonosExtraction.TypesRegionType.user_mmio_dma_and_shared_regions_are_unclassified
 
 end NonosExtraction.TypesRegionType

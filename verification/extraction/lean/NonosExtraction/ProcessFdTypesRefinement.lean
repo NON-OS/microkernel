@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.ProcessFdTypes
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_process_fd_types
@@ -38,9 +39,71 @@ theorem the_fdentry_with_pipe_wrapper_is_its_method (a : Std.Usize) (b : Bool) :
 theorem the_fdentry_is_cloexec_wrapper_is_its_method (a : fd_types.FdEntry) :
     fdentry_is_cloexec a = fd_types.FdEntry.is_cloexec a := rfl
 
+/-! ### Close-on-exec is bit zero, and a fresh pipe end is one end without it
+
+`fdentry_is_cloexec` reads exactly bit zero of the descriptor flags, so
+`ProcessFdTable::set_cloexec`, which ORs `FD_CLOEXEC` in or masks it out, is
+read back faithfully whatever else the flags word holds. `fdentry_with_pipe`
+builds an unallocated entry that is exactly one end of the named pipe and that
+starts without close-on-exec, so `get_fd`, which fills in only the descriptor
+number, hands out an entry that survives exec.
+
+These theorems speak about a single entry. The descriptor table that holds the
+entries sits behind a lock and a `BTreeMap` that are not extracted, so what
+`fork`, `close_cloexec` and `set_cloexec` do with the table is outside them;
+only the per-entry decision they each consult is established here.
+-/
+
+/-- The close-on-exec test reads bit zero of the flags and nothing else. -/
+theorem fdentry_is_cloexec_reads_bit_zero_of_the_flags (e : fd_types.FdEntry) :
+    fdentry_is_cloexec e = ok (e.flags.val.testBit 0) := by
+  unfold fdentry_is_cloexec fd_types.FdEntry.is_cloexec
+  simp only [lift, bind_tc_ok]
+  rw [Bits.reads_bit e.flags fd_types.FD_CLOEXEC 0#u32 0 (by unfold fd_types.FD_CLOEXEC; rfl) rfl]
+
+/-- Setting the flag the way `set_cloexec(fd, true)` does makes the entry
+    close-on-exec, and clearing it the way `set_cloexec(fd, false)` does makes
+    it not, whatever the other flag bits are. -/
+theorem fdentry_is_cloexec_reads_back_what_set_cloexec_writes (e : fd_types.FdEntry) :
+    fdentry_is_cloexec { e with flags := e.flags ||| fd_types.FD_CLOEXEC } = ok true ∧
+    fdentry_is_cloexec { e with flags := e.flags &&& ~~~fd_types.FD_CLOEXEC } = ok false := by
+  have hc : fd_types.FD_CLOEXEC.val = 1 := by unfold fd_types.FD_CLOEXEC; rfl
+  refine ⟨?_, ?_⟩
+  · rw [fdentry_is_cloexec_reads_bit_zero_of_the_flags]
+    simp only [UScalar.val_or, Nat.testBit_or, hc]
+    simp
+  · rw [fdentry_is_cloexec_reads_bit_zero_of_the_flags]
+    simp only [UScalar.val_and, Nat.testBit_and, Bits.testBit_val_not, hc]
+    simp
+
+/-- Other flag bits do not make an entry close-on-exec: a flags word of `2`
+    reads as not close-on-exec, so the test is not `flags != 0`. -/
+theorem fdentry_is_cloexec_ignores_bit_one (e : fd_types.FdEntry) :
+    fdentry_is_cloexec { e with flags := 2#u32 } = ok false := by
+  rw [fdentry_is_cloexec_reads_bit_zero_of_the_flags]
+  show ok ((2#u32 : Std.U32).val.testBit 0) = ok false
+  exact congrArg ok (by decide)
+
+/-- A pipe entry is exactly the requested end of the named pipe, is not yet
+    bound to a descriptor number, and is not close-on-exec. -/
+theorem fdentry_with_pipe_is_one_end_without_cloexec (id : Std.Usize) (r : Bool) :
+    ∃ e, fdentry_with_pipe id r = ok e ∧
+      (e.is_read_end ^^ e.is_write_end) = true ∧ e.is_read_end = r ∧
+      e.internal_id = id ∧ e.fd_type = fd_types.FdType.Pipe ∧ e.fd = (-1)#i32 ∧
+      e.status_flags = 0#u32 ∧ fdentry_is_cloexec e = ok false := by
+  refine ⟨_, rfl, ?_⟩
+  cases r <;> refine ⟨rfl, rfl, rfl, rfl, rfl, rfl, ?_⟩ <;>
+    (rw [fdentry_is_cloexec_reads_bit_zero_of_the_flags]
+     show ok ((0#u32 : Std.U32).val.testBit 0) = ok false
+     exact congrArg ok (by decide))
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ProcessFdTypes.the_fdentry_with_pipe_wrapper_is_its_method
 #print axioms NonosExtraction.ProcessFdTypes.the_fdentry_is_cloexec_wrapper_is_its_method
+#print axioms NonosExtraction.ProcessFdTypes.fdentry_is_cloexec_reads_bit_zero_of_the_flags
+#print axioms NonosExtraction.ProcessFdTypes.fdentry_is_cloexec_reads_back_what_set_cloexec_writes
+#print axioms NonosExtraction.ProcessFdTypes.fdentry_is_cloexec_ignores_bit_one
+#print axioms NonosExtraction.ProcessFdTypes.fdentry_with_pipe_is_one_end_without_cloexec
 
 end NonosExtraction.ProcessFdTypes
