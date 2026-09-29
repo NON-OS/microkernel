@@ -26,8 +26,10 @@ use super::tree::{BoxKind, BoxNode};
 use super::walk::{ElementIn, Walk};
 
 /* A list item leads with its marker: the ordinal in an <ol>, a bullet
- * elsewhere, unless list-style-type: none suppressed it. A ::marker rule
- * styles it (colour, font, size) and its content replaces the text. */
+ * elsewhere, unless list-style-type: none suppressed it. An li displayed
+ * inline, inline-block, flex or grid is no list item and has none. A
+ * ::marker rule styles it (colour, font, size) and its content replaces
+ * the text. */
 #[inline(never)]
 pub(super) fn add_marker(
     w: &mut Walk,
@@ -35,7 +37,8 @@ pub(super) fn add_marker(
     style: &Computed,
     kids: &mut Vec<BoxNode>,
 ) {
-    if item.c.tag != "li" || style.list_none {
+    let list_item = style.is_block && !style.is_flex && !style.is_grid;
+    if item.c.tag != "li" || style.list_none || !list_item {
         return;
     }
     let styled = w.pseudos[item.ch].iter().find(|p| p.kind == PseudoText::MARKER);
