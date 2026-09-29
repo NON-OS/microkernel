@@ -46,6 +46,15 @@ pub fn sys_peer_map(pid: u64, addr: u64, len: u64, prot: u64) -> i64 {
             continue;
         }
         let Some(frame) = crate::memory::frame_alloc::allocate_frame() else {
+            /* Out of frames is said once per refused call, with the numbers. */
+            crate::log::warn!(
+                "[PEER] pid {} got {} of {} pages at {:#x}; {} frames free",
+                pid,
+                i,
+                len.div_ceil(PAGE),
+                addr,
+                crate::memory::frame_alloc::total_free_frames()
+            );
             return ERRNO_NOMEM;
         };
         crate::memory::frame_alloc::zero_frame(frame);
