@@ -61,7 +61,7 @@ pub fn run() -> Result<Driver, &'static str> {
     )?;
     let regs = register_grant.regs();
     step("bring-up");
-    let init = match bring_up(regs, queue_dma.device_addr, Queue::max_supported_size()) {
+    let init = match bring_up(regs, queue_dma.device_addr, Queue::max_supported_size(), msix) {
         Ok(init) => init,
         Err(e) => {
             dma::rollback::data(

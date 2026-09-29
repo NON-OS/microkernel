@@ -26,6 +26,7 @@ mod queue;
 mod regs;
 mod server;
 mod setup;
+mod vectors;
 use nonos_libc::{heap_init, mk_debug, mk_exit, mk_yield, Deadline};
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {

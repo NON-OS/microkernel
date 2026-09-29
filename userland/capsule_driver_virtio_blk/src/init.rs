@@ -22,7 +22,12 @@ const VIRTIO_BLK_F_FLUSH: u32 = 1 << 9;
 pub struct InitOut {
     pub queue_size: u16,
 }
-pub fn bring_up(regs: Regs, queue_phys: u64, max_queue_size: u16) -> Result<InitOut, &'static str> {
+pub fn bring_up(
+    regs: Regs,
+    queue_phys: u64,
+    max_queue_size: u16,
+    msix: bool,
+) -> Result<InitOut, &'static str> {
     unsafe {
         regs.w8(LEG_STATUS, 0);
         regs.w8(LEG_STATUS, STATUS_ACKNOWLEDGE);
@@ -47,6 +52,9 @@ pub fn bring_up(regs: Regs, queue_phys: u64, max_queue_size: u16) -> Result<Init
         if qmax < 3 || qmax > max_queue_size {
             regs.w8(LEG_STATUS, regs.r8(LEG_STATUS) | STATUS_FAILED);
             return Err("virtio-blk: unsupported requestq size");
+        }
+        if msix {
+            super::vectors::assign(regs);
         }
         let pfn = (queue_phys >> 12) as u32;
         regs.w32(LEG_QUEUE_PFN, pfn);
