@@ -43,7 +43,8 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let mut buf = [0u8; 12];
     let n = u32_decimal(row.caps.count_ones(), &mut buf);
     y = insp_fields::field(fb, left, y, b"Authority", &buf[..n], TITLE);
-    insp_chips::paint(fb, left, y, w, row.caps);
+    let (_, actions, _, _) = super::insp_geom::btn(fb.width, fb.height, 0);
+    insp_chips::paint(fb, left, y, w, actions.saturating_sub(INSP_SECTION_GAP), row.caps);
     insp_actions::paint(fb, crate::pm::critical::is_critical(row.name()));
 }
 
