@@ -36,6 +36,34 @@ structure time.EfiTime where
 @[global_simps, irreducible]
 def time.EfiTime.TIMEZONE_UNSPECIFIED : Std.I16 := 2047#i16
 
+/-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::is_leap_year]:
+    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 104:4-106:5 -/
+def time.EfiTime.is_leap_year (year : Std.U16) : Result Bool := do
+  let b ← core.num.U16.is_multiple_of year 4#u16
+  if b
+  then
+    let b1 ← core.num.U16.is_multiple_of year 100#u16
+    if b1
+    then core.num.U16.is_multiple_of year 400#u16
+    else ok true
+  else core.num.U16.is_multiple_of year 400#u16
+
+/-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::days_in_month]:
+    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 90:4-102:5 -/
+def time.EfiTime.days_in_month
+  (year : Std.U16) (month : Std.U8) : Result Std.U8 := do
+  match month with
+  | 2#uscalar =>
+    let b ← time.EfiTime.is_leap_year year
+    if b
+    then ok 29#u8
+    else ok 28#u8
+  | 4#uscalar => ok 30#u8
+  | 6#uscalar => ok 30#u8
+  | 9#uscalar => ok 30#u8
+  | 11#uscalar => ok 30#u8
+  | _ => ok 31#u8
+
 /-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::is_valid]:
     Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 38:4-51:5
     Visibility: public -/
@@ -50,7 +78,8 @@ def time.EfiTime.is_valid (self : time.EfiTime) : Result Bool := do
         then
           if self.day >= 1#u8
           then
-            if self.day <= 31#u8
+            let i ← time.EfiTime.days_in_month self.year self.month
+            if self.day <= i
             then
               if self.hour <= 23#u8
               then
@@ -76,18 +105,6 @@ def time.EfiTime.is_valid (self : time.EfiTime) : Result Bool := do
       else ok false
     else ok false
   else ok false
-
-/-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::is_leap_year]:
-    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 85:4-87:5 -/
-def time.EfiTime.is_leap_year (year : Std.U16) : Result Bool := do
-  let b ← core.num.U16.is_multiple_of year 4#u16
-  if b
-  then
-    let b1 ← core.num.U16.is_multiple_of year 100#u16
-    if b1
-    then core.num.U16.is_multiple_of year 400#u16
-    else ok true
-  else core.num.U16.is_multiple_of year 400#u16
 
 /-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::to_unix_timestamp]: loop body 0:
     Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 62:8-64:9
@@ -122,10 +139,42 @@ def time.EfiTime.to_unix_timestamp_loop0
     (iter, days)
 
 /-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::to_unix_timestamp]: loop body 1:
-    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 66:8-71:9
+    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 66:8-68:9
     Visibility: public -/
 @[rust_loop_body]
 def time.EfiTime.to_unix_timestamp_loop1.body
+  (iter : core.ops.range.Range Std.I64) (days : Std.I64) :
+  Result (ControlFlow ((core.ops.range.Range Std.I64) × Std.I64) Std.I64)
+  := do
+  let (o, iter1) ←
+    core.iter.range.IteratorRange.next core.iter.range.StepI64 iter
+  match o with
+  | none => ok (done days)
+  | some y =>
+    let i ← lift (IScalar.hcast .U16 y)
+    let b ← time.EfiTime.is_leap_year i
+    let i1 ← if b
+               then ok 366#i64
+               else ok 365#i64
+    let days1 ← days - i1
+    ok (cont (iter1, days1))
+
+/-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::to_unix_timestamp]: loop 1:
+    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 66:8-68:9
+    Visibility: public -/
+@[rust_loop]
+def time.EfiTime.to_unix_timestamp_loop1
+  (iter : core.ops.range.Range Std.I64) (days : Std.I64) : Result Std.I64 := do
+  loop
+    (fun (iter1, days1) => time.EfiTime.to_unix_timestamp_loop1.body iter1
+      days1)
+    (iter, days)
+
+/-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::to_unix_timestamp]: loop body 2:
+    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 70:8-75:9
+    Visibility: public -/
+@[rust_loop_body]
+def time.EfiTime.to_unix_timestamp_loop2.body
   (days_per_month : Array Std.I64 12#usize) (year : Std.I64)
   (iter : core.ops.range.Range Std.I64) (days : Std.I64) :
   Result (ControlFlow ((core.ops.range.Range Std.I64) × Std.I64) Std.I64)
@@ -149,22 +198,22 @@ def time.EfiTime.to_unix_timestamp_loop1.body
       else ok (cont (iter1, days1))
     else ok (cont (iter1, days1))
 
-/-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::to_unix_timestamp]: loop 1:
-    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 66:8-71:9
+/-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::to_unix_timestamp]: loop 2:
+    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 70:8-75:9
     Visibility: public -/
 @[rust_loop]
-def time.EfiTime.to_unix_timestamp_loop1
+def time.EfiTime.to_unix_timestamp_loop2
   (iter : core.ops.range.Range Std.I64)
   (days_per_month : Array Std.I64 12#usize) (year : Std.I64) (days : Std.I64) :
   Result Std.I64
   := do
   loop
-    (fun (iter1, days1) => time.EfiTime.to_unix_timestamp_loop1.body
+    (fun (iter1, days1) => time.EfiTime.to_unix_timestamp_loop2.body
       days_per_month year iter1 days1)
     (iter, days)
 
 /-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::to_unix_timestamp]:
-    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 53:4-83:5
+    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 53:4-87:5
     Visibility: public -/
 def time.EfiTime.to_unix_timestamp (self : time.EfiTime) : Result Std.I64 := do
   let year ← lift (UScalar.hcast .I64 self.year)
@@ -174,14 +223,17 @@ def time.EfiTime.to_unix_timestamp (self : time.EfiTime) : Result Std.I64 := do
     time.EfiTime.to_unix_timestamp_loop0 { start := 1970#i64, «end» := year }
       0#i64
   let days1 ←
-    time.EfiTime.to_unix_timestamp_loop1 { start := 1#i64, «end» := month }
+    time.EfiTime.to_unix_timestamp_loop1 { start := year, «end» := 1970#i64 }
+      days
+  let days2 ←
+    time.EfiTime.to_unix_timestamp_loop2 { start := 1#i64, «end» := month }
       (Array.make 12#usize [
         31#i64, 28#i64, 31#i64, 30#i64, 31#i64, 30#i64, 31#i64, 31#i64, 30#i64,
         31#i64, 30#i64, 31#i64
-        ]) year days
+        ]) year days1
   let i ← day - 1#i64
-  let days2 ← days1 + i
-  let i1 ← days2 * 86400#i64
+  let days3 ← days2 + i
+  let i1 ← days3 * 86400#i64
   let i2 ← lift (UScalar.hcast .I64 self.hour)
   let i3 ← i2 * 3600#i64
   let i4 ← i1 + i3
