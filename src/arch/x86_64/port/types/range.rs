@@ -37,11 +37,14 @@ impl PortRange {
         self.start.saturating_add(self.count)
     }
 
+    /* Offset from start, not a comparison with end(): end() saturates at
+    0xFFFF, so a range reaching the top would never hold port 0xFFFF. */
     pub const fn contains(&self, port: u16) -> bool {
-        port >= self.start && port < self.end()
+        port >= self.start && port - self.start < self.count
     }
 
     pub const fn overlaps(&self, other: &PortRange) -> bool {
-        self.start < other.end() && other.start < self.end()
+        let (a, b) = (self.start as u32, other.start as u32);
+        a < b + other.count as u32 && b < a + self.count as u32
     }
 }

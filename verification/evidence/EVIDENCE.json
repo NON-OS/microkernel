@@ -25,10 +25,10 @@
       "bv_decide_calls": 12,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 979,
-        "proven": 979,
-        "substantive": 332,
-        "trivial": 647,
+        "extracted": 980,
+        "proven": 980,
+        "substantive": 335,
+        "trivial": 645,
         "unproven": 0
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
@@ -925,6 +925,7 @@
         "nonos_x_types_range::portrange_count",
         "nonos_x_types_range::portrange_end",
         "nonos_x_types_range::portrange_new",
+        "nonos_x_types_range::portrange_overlaps",
         "nonos_x_types_range::portrange_start",
         "nonos_x_types_rate::periodicrate_frequency_hz",
         "nonos_x_types_rate::periodicrate_period_us",
@@ -1324,7 +1325,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DataNuma.lean",
-          "sha256": "2816e37c35ed29e1762ef42fff1615c6cff182743502984f035bec3b09ecb791"
+          "sha256": "935151c0cbf7c867b0054d1c1163dbae2f4535bc9d2773b13822b5b97477e789"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DataProcessor.lean",
@@ -1940,7 +1941,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TablesSratMemory.lean",
-          "sha256": "b40eba527649ac9ad6a80159cd462d0f5b7159e7d8d584bfe0f06a2ebcdbaf03"
+          "sha256": "4ecd66408c1af5b0e04da85013609cd4a66eb356f881b5618914064a18bc553d"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TablesSratOther.lean",
@@ -2012,7 +2013,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesRange.lean",
-          "sha256": "623f737b31ceedb67223cee6ee3a8b9b52f258ea350c3654f088a39029f55bb2"
+          "sha256": "3c0202b34f0072acf1fef84ee9dd8470357050224d995acc42c191e45a08312f"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesRate.lean",

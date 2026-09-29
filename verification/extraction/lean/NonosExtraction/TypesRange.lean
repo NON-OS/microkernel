@@ -47,13 +47,29 @@ def range.PortRange.end (self : range.PortRange) : Result Std.U16 := do
   ok (core.num.U16.saturating_add self.start self.count)
 
 /-- [nonos_x_types_range::range::{nonos_x_types_range::range::PortRange}::contains]:
-    Source: 'src/../../../../../src/arch/x86_64/port/types/range.rs', lines 40:4-42:5
+    Source: 'src/../../../../../src/arch/x86_64/port/types/range.rs', lines 42:4-44:5
     Visibility: public -/
 def range.PortRange.contains
   (self : range.PortRange) (port : Std.U16) : Result Bool := do
   if port >= self.start
-  then let i ← range.PortRange.end self
-       ok (port < i)
+  then let i ← port - self.start
+       ok (i < self.count)
+  else ok false
+
+/-- [nonos_x_types_range::range::{nonos_x_types_range::range::PortRange}::overlaps]:
+    Source: 'src/../../../../../src/arch/x86_64/port/types/range.rs', lines 46:4-49:5
+    Visibility: public -/
+def range.PortRange.overlaps
+  (self : range.PortRange) (other : range.PortRange) : Result Bool := do
+  let a ← lift (UScalar.cast .U32 self.start)
+  let b ← lift (UScalar.cast .U32 other.start)
+  let i ← lift (UScalar.cast .U32 other.count)
+  let i1 ← b + i
+  if a < i1
+  then
+    let i2 ← lift (UScalar.cast .U32 self.count)
+    let i3 ← a + i2
+    ok (b < i3)
   else ok false
 
 /-- [nonos_x_types_range::portrange_new]:
@@ -87,5 +103,12 @@ def portrange_end (this : range.PortRange) : Result Std.U16 := do
 def portrange_contains
   (this : range.PortRange) (port : Std.U16) : Result Bool := do
   range.PortRange.contains this port
+
+/-- [nonos_x_types_range::portrange_overlaps]:
+    Source: 'src/lib.rs', lines 31:0-33:1
+    Visibility: public -/
+def portrange_overlaps
+  (this : range.PortRange) (other : range.PortRange) : Result Bool := do
+  range.PortRange.overlaps this other
 
 end nonos_x_types_range

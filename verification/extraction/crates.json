@@ -1311,7 +1311,8 @@
         "nonos_x_types_range::portrange_start",
         "nonos_x_types_range::portrange_count",
         "nonos_x_types_range::portrange_end",
-        "nonos_x_types_range::portrange_contains"
+        "nonos_x_types_range::portrange_contains",
+        "nonos_x_types_range::portrange_overlaps"
       ]
     },
     {

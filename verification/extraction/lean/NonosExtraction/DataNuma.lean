@@ -32,13 +32,13 @@ def numa.NumaMemoryRegion.end
   ok (core.num.U64.saturating_add self.base self.length)
 
 /-- [nonos_x_data_numa::numa::{nonos_x_data_numa::numa::NumaMemoryRegion}::contains]:
-    Source: 'src/../../../../../src/arch/x86_64/acpi/data/numa.rs', lines 31:4-33:5
+    Source: 'src/../../../../../src/arch/x86_64/acpi/data/numa.rs', lines 33:4-35:5
     Visibility: public -/
 def numa.NumaMemoryRegion.contains
   (self : numa.NumaMemoryRegion) (addr : Std.U64) : Result Bool := do
   if addr >= self.base
-  then let i ← numa.NumaMemoryRegion.end self
-       ok (addr < i)
+  then let i ← addr - self.base
+       ok (i < self.length)
   else ok false
 
 /-- [nonos_x_data_numa::numamemoryregion_end]:
