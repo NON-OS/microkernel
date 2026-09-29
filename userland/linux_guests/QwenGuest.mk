@@ -46,15 +46,29 @@ $(QWEN_LIBS) &: $(QWEN_ZIG)/.done
 		-DLLAMA_BUILD_SERVER=OFF -DLLAMA_BUILD_APP=OFF > $(QWEN_BUILD).log
 	@cmake --build $(QWEN_BUILD) -j4 --target llama >> $(QWEN_BUILD).log
 
+# zig's strnlen reads up to its bound, not the terminator, and printf asks
+# for INT_MAX: a string at the end of a mapping reads the next page. Each
+# guest links page-safe replacements; qwenlibc-check proves the difference.
+QWEN_LIBC := $(LINUX_GUESTS_C)/qwenlibc.o
+$(QWEN_LIBC): $(LINUX_GUESTS_DIR)/cpp/qwenlibc.c $(QWEN_ZIG)/.done
+	@mkdir -p $(@D)
+	@$(QWEN_ZIG)/cc -c -O2 -mcpu=$(QWEN_CPU) -std=c11 -fno-builtin $< -o $@
+
+.PHONY: nonos-mk-qwenlibc-check
+nonos-mk-qwenlibc-check: $(QWEN_LIBC)
+	@$(QWEN_ZIG)/cc -static -O2 -mcpu=$(QWEN_CPU) -fno-builtin \
+		$(LINUX_GUESTS_DIR)/cpp/qwenlibc_check.c $(QWEN_LIBC) -o $(TARGET_DIR)/qwenlibc-check
+	@$(TARGET_DIR)/qwenlibc-check
+
 QWEN_SRC := $(addprefix $(LINUX_GUESTS_DIR)/cpp/,qwencheck.cpp qwencheck_run.cpp qwencheck_report.cpp)
-$(LINUX_GUESTS_C)/qwencheck: $(QWEN_SRC) $(LINUX_GUESTS_DIR)/cpp/qwencheck.h $(QWEN_LIBS)
+$(LINUX_GUESTS_C)/qwencheck: $(QWEN_SRC) $(LINUX_GUESTS_DIR)/cpp/qwencheck.h $(QWEN_LIBS) $(QWEN_LIBC)
 	@mkdir -p $(@D)
 	@# Linked once with its symbol table, kept beside it as the map a stuck
 	@# guest's instruction pointer is read against; the store gets a copy
 	@# stripped of it, the same code at the same addresses.
 	@$(QWEN_ZIG)/c++ -static -O2 -g0 -mcpu=$(QWEN_CPU) -std=c++17 \
 		-I$(LLAMA_CPP_DIR)/include -I$(LLAMA_CPP_DIR)/ggml/include \
-		$(QWEN_SRC) -o $@.full $(QWEN_LIBS) -lpthread
+		$(QWEN_SRC) $(QWEN_LIBC) -o $@.full $(QWEN_LIBS) -lpthread
 	@strip -o $@ $@.full
 $(eval $(call LINUX_GUEST,qwencheck,5100,5101,$(LINUX_GUESTS_C)/qwencheck))
 
@@ -64,11 +78,11 @@ QWENCHAT_SRC := $(wildcard $(LINUX_GUESTS_DIR)/cpp/qwenchat*.cpp $(LINUX_GUESTS_
 	$(LINUX_GUESTS_DIR)/cpp/qwenui_*.cpp)
 QWENCHAT_HDR := $(wildcard $(LINUX_GUESTS_DIR)/cpp/qwenchat.h $(LINUX_GUESTS_DIR)/cpp/qwenwl*.h \
 	$(LINUX_GUESTS_DIR)/cpp/qwenui.h $(LINUX_GUESTS_DIR)/cpp/qwenglyphs.h)
-$(LINUX_GUESTS_C)/qwenchat: $(QWENCHAT_SRC) $(QWENCHAT_HDR) $(QWEN_LIBS)
+$(LINUX_GUESTS_C)/qwenchat: $(QWENCHAT_SRC) $(QWENCHAT_HDR) $(QWEN_LIBS) $(QWEN_LIBC)
 	@mkdir -p $(@D)
 	@$(QWEN_ZIG)/c++ -static -O2 -g0 -mcpu=$(QWEN_CPU) -std=c++17 \
 		-I$(LLAMA_CPP_DIR)/include -I$(LLAMA_CPP_DIR)/ggml/include \
-		$(QWENCHAT_SRC) -o $@.full $(QWEN_LIBS) -lpthread
+		$(QWENCHAT_SRC) $(QWEN_LIBC) -o $@.full $(QWEN_LIBS) -lpthread
 	@strip -o $@ $@.full
 $(eval $(call LINUX_GUEST,qwenchat,5102,5103,$(LINUX_GUESTS_C)/qwenchat))
 LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/qwen-prompt.txt=$(LINUX_GUESTS_DIR)/etc/qwen-prompt.txt
