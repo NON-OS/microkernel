@@ -27,3 +27,7 @@ pub fn portrange_contains(this: range::PortRange, port: u16) -> bool {
     this.contains(port)
 }
 
+
+pub fn portrange_overlaps(this: range::PortRange, other: range::PortRange) -> bool {
+    this.overlaps(&other)
+}

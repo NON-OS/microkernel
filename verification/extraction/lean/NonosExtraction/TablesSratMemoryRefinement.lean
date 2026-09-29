@@ -58,13 +58,13 @@ theorem the_sratmemoryaffinity_contains_address_wrapper_is_its_method (a : srat_
     readers read exactly those bits and nothing else, so a reserved bit set by
     firmware changes none of them.
 
-    `end_address` is a saturating sum, and `contains_address` is the half open
-    range from the base up to that end. For every region that stops short of the
-    top of the address space this is membership in the tier-one interval
-    `Nonos.Interval.mem` over `[base, base + length)`. At the top the saturation
-    costs a byte: a region whose true end is `2^64` has its end pinned to
-    `2^64 - 1`, so the last address it covers is reported outside it. The last
-    theorem records that edge.
+    `end_address` is a saturating sum. `contains_address` measures the address
+    from the base and compares that offset with the length, so for every region
+    it is membership in the tier-one interval `Nonos.Interval.mem` over
+    `[base, base + length)`, with no clamp at the top. It used to compare with the
+    saturated end, which pinned a region whose true end is `2^64` at
+    `2^64 - 1` and left the last address it covers outside it; the last theorem
+    is that edge now.
 
     What these cannot establish: that the bytes behind the entry are a SRAT
     memory affinity structure. The parser reads it with a volatile pointer read
@@ -122,39 +122,54 @@ theorem sratmemoryaffinity_end_address_is_never_below_the_base
   simp only [UScalarTy.U64_numBits_eq] at this
   omega
 
-/-- `contains_address` is the half open range from the base to whatever
-    `end_address` answers, so the two methods agree about where a region stops. -/
-theorem sratmemoryaffinity_contains_address_stops_at_end_address
-    (a : srat_memory.SratMemoryAffinity) (addr e : Std.U64)
-    (he : sratmemoryaffinity_end_address a = ok e) :
-    sratmemoryaffinity_contains_address a addr =
-      ok (decide (a.base_address.val ≤ addr.val ∧ addr.val < e.val)) := by
-  unfold sratmemoryaffinity_contains_address srat_memory.SratMemoryAffinity.contains_address
-  unfold sratmemoryaffinity_end_address at he
-  by_cases hb : a.base_address.val ≤ addr.val
-  · have : addr >= a.base_address := hb
-    simp only [this, ite_true, he, bind_tc_ok, hb, true_and]
-    rfl
-  · have : ¬ (addr >= a.base_address) := hb
-    simp only [this, ite_false, hb, false_and, decide_false]
+private theorem sub_ok (x y : Std.U64) (h : y.val ≤ x.val) :
+    ∃ z : Std.U64, x - y = ok z ∧ z.val = x.val - y.val := by
+  have e := UScalar.sub_equiv x y
+  cases hr : (x - y : Result Std.U64) with
+  | ok z => rw [hr] at e; exact ⟨z, rfl, by omega⟩
+  | fail _ => rw [hr] at e; simp at e; omega
+  | div => rw [hr] at e; exact e.elim
 
+/-- `contains_address` is `base <= addr < base + length` on the true sum, for
+    every region. -/
 theorem sratmemoryaffinity_contains_address_exactly (a : srat_memory.SratMemoryAffinity)
     (addr : Std.U64) :
     sratmemoryaffinity_contains_address a addr =
       ok (decide (a.base_address.val ≤ addr.val ∧
-        addr.val < min (2 ^ 64 - 1) (a.base_address.val + a.length_bytes.val))) := by
-  obtain ⟨e, he, hv⟩ := sratmemoryaffinity_end_address_is_the_saturated_sum a
-  rw [sratmemoryaffinity_contains_address_stops_at_end_address a addr e he, hv]
+        addr.val < a.base_address.val + a.length_bytes.val)) := by
+  unfold sratmemoryaffinity_contains_address srat_memory.SratMemoryAffinity.contains_address
+  by_cases hb : a.base_address.val ≤ addr.val
+  · have : addr >= a.base_address := hb
+    obtain ⟨z, hz, hv⟩ := sub_ok addr a.base_address hb
+    simp only [this, ite_true, hz, bind_tc_ok, hb, true_and]
+    congr 1
+    simp only [decide_eq_decide]
+    show z.val < a.length_bytes.val ↔ _
+    omega
+  · have : ¬ (addr >= a.base_address) := hb
+    simp only [this, ite_false, hb, false_and, decide_false]
 
-/-- For a region that ends below the top of the address space, containment is
-    membership in the tier-one interval `[base, base + length)`. -/
+/-- Containment is membership in the tier-one interval `[base, base + length)`,
+    for every region, including one that reaches the top of the address space. -/
 theorem sratmemoryaffinity_contains_address_is_interval_membership
-    (a : srat_memory.SratMemoryAffinity) (addr : Std.U64)
-    (h : a.base_address.val + a.length_bytes.val < 2 ^ 64) :
+    (a : srat_memory.SratMemoryAffinity) (addr : Std.U64) :
     sratmemoryaffinity_contains_address a addr =
       ok (decide (mem ⟨a.base_address.val, a.base_address.val + a.length_bytes.val⟩ addr.val)) := by
   rw [sratmemoryaffinity_contains_address_exactly]
-  unfold mem
+  rfl
+
+/-- Below the top of the address space `contains_address` stops where
+    `end_address` says the region ends, so the two methods agree there. -/
+theorem sratmemoryaffinity_contains_address_stops_at_end_address
+    (a : srat_memory.SratMemoryAffinity) (addr e : Std.U64)
+    (he : sratmemoryaffinity_end_address a = ok e)
+    (h : a.base_address.val + a.length_bytes.val < 2 ^ 64) :
+    sratmemoryaffinity_contains_address a addr =
+      ok (decide (a.base_address.val ≤ addr.val ∧ addr.val < e.val)) := by
+  obtain ⟨e', he', hv⟩ := sratmemoryaffinity_end_address_is_the_saturated_sum a
+  rw [he] at he'
+  cases he'
+  rw [sratmemoryaffinity_contains_address_exactly, hv]
   have hm : min (2 ^ 64 - 1) (a.base_address.val + a.length_bytes.val) =
       a.base_address.val + a.length_bytes.val := by omega
   rw [hm]
@@ -167,23 +182,17 @@ theorem an_empty_region_fails_sratmemoryaffinity_contains_address
   congr 1
   simp only [Nat.add_zero, decide_eq_false_iff_not, not_and, Nat.not_lt]
   intro hb
-  have := a.base_address.hBounds
-  simp only [UScalarTy.U64_numBits_eq] at this
-  omega
+  exact hb
 
-/-- This records a defect. The last page of the address space, as a region
-    `[2^64 - 4096, 2^64)`, holds the address `2^64 - 1`, but the saturated end is
-    `2^64 - 1` itself and the strict comparison leaves that address out. -/
-theorem sratmemoryaffinity_contains_address_misses_the_last_byte_of_the_address_space :
+/-- The last page of the address space, as a region `[2^64 - 4096, 2^64)`,
+    holds the address `2^64 - 1`. With the saturated end the strict comparison
+    left that address out. -/
+theorem sratmemoryaffinity_contains_address_holds_the_last_byte_of_the_address_space :
     sratmemoryaffinity_contains_address
       ⟨1#u8, 40#u8, 0#u32, 0#u16, 0xFFFFFFFFFFFFF000#u64, 0x1000#u64, 0#u32, 1#u32, 0#u64⟩
-      0xFFFFFFFFFFFFFFFF#u64 = ok false ∧
-    mem ⟨0xFFFFFFFFFFFFF000, 0xFFFFFFFFFFFFF000 + 0x1000⟩ 0xFFFFFFFFFFFFFFFF := by
-  refine ⟨?_, ?_⟩
-  · rw [sratmemoryaffinity_contains_address_exactly]
-    congr 1
-  · unfold mem
-    decide
+      0xFFFFFFFFFFFFFFFF#u64 = ok true := by
+  rw [sratmemoryaffinity_contains_address_exactly]
+  rfl
 
 /-! ### Axiom profile -/
 
@@ -200,6 +209,6 @@ theorem sratmemoryaffinity_contains_address_misses_the_last_byte_of_the_address_
 #print axioms NonosExtraction.TablesSratMemory.sratmemoryaffinity_contains_address_exactly
 #print axioms NonosExtraction.TablesSratMemory.sratmemoryaffinity_contains_address_is_interval_membership
 #print axioms NonosExtraction.TablesSratMemory.an_empty_region_fails_sratmemoryaffinity_contains_address
-#print axioms NonosExtraction.TablesSratMemory.sratmemoryaffinity_contains_address_misses_the_last_byte_of_the_address_space
+#print axioms NonosExtraction.TablesSratMemory.sratmemoryaffinity_contains_address_holds_the_last_byte_of_the_address_space
 
 end NonosExtraction.TablesSratMemory
