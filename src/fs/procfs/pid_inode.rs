@@ -14,32 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cpuinfo;
-mod filesystems;
-mod inode;
-mod loadavg;
-mod meminfo;
-mod mount;
-mod mounts;
-pub mod pid;
-mod pid_inode;
-mod root;
-mod self_link;
-mod stat;
-mod types;
-mod uptime;
-mod version;
-
-pub use cpuinfo::*;
-pub use filesystems::*;
-pub use inode::*;
-pub use loadavg::*;
-pub use meminfo::*;
-pub use mount::*;
-pub use mounts::*;
-pub use root::*;
-pub use self_link::*;
-pub use stat::*;
-pub use types::*;
-pub use uptime::*;
-pub use version::*;
+/* A pid directory's inode is pid * 1000 + 100. A negative pid has none: cast
+to u64 it would overflow the product. */
+pub(crate) fn pid_dir_inode(pid: i32) -> Option<u64> {
+    if pid < 0 {
+        return None;
+    }
+    Some(pid as u64 * 1000 + 100)
+}

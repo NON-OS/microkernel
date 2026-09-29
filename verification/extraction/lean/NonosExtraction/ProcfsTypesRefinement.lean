@@ -53,9 +53,10 @@ They cannot establish anything about the subpath's contents: `String::new` is
 left opaque by the extraction, so every statement is conditional on the
 constructor returning `ok`, and the characterisation in terms of the root is how
 the opaque call is shared rather than assumed. They say nothing about the inode
-numbers callers choose. `lookup_root` passes `pid as u64 * 1000 + 100`, which
-is not extracted, so its overflow on a negative pid and its collisions with the
-fixed root entries are outside these statements.
+numbers callers choose. `lookup_root` and `procfs_readdir` take them from
+`pid_dir_inode`, which refuses a negative pid instead of overflowing on it;
+`NonosExtraction.ProcfsPidInode` proves that. Collisions with the fixed root
+entries are outside these statements.
 -/
 
 /-- The root is inode 1, a directory, and carries no pid, which is exactly what

@@ -1316,6 +1316,16 @@
       ]
     },
     {
+      "name": "procfs_pid_inode",
+      "crate": "nonos_x_procfs_pid_inode",
+      "dir": "verification/extraction/sweep/procfs_pid_inode",
+      "lean": "ProcfsPidInode",
+      "generated": "ProcfsPidInode.lean",
+      "starts": [
+        "nonos_x_procfs_pid_inode::pid_dir_inode"
+      ]
+    },
+    {
       "name": "keyring_capsule_types",
       "crate": "nonos_x_keyring_capsule_types",
       "dir": "verification/extraction/sweep/keyring_capsule_types",
