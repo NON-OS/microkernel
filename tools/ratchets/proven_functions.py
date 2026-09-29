@@ -25,7 +25,9 @@ beside the rest is inflating its own headline.
 This walks the refinement modules with comments stripped, so a function named
 only in a file header does not count as proven, and fails when the proven count
 falls below the floor or when the unproven gap grows past its ceiling. A name
-counts only in the modules that import its own crate's generated code.
+counts only in the modules that import its own crate's generated code, and a
+function counts as substantive only when a theorem statement names it or a name
+the file gives it.
 """
 
 import argparse
