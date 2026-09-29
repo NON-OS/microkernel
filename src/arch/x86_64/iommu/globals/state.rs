@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU8, AtomicU64};
+use core::sync::atomic::{AtomicBool, AtomicU64, AtomicU8};
 use spin::Mutex;
 
 use super::super::types::{DomainId, SourceId, MAX_VTD_DOMAINS};
@@ -55,6 +55,7 @@ pub(crate) static DMAR_PRESENT: AtomicBool = AtomicBool::new(false);
 /// being confined by it, which is a different and much stronger claim.
 pub(crate) static ENFORCING: AtomicBool = AtomicBool::new(false);
 pub(crate) static PAGE_LEVELS: AtomicU8 = AtomicU8::new(0);
+pub(crate) static SNOOP_CONTROL: AtomicBool = AtomicBool::new(false);
 /// Physical address of the one root table every unit is pointed at, or zero
 /// before it exists. Shared rather than per-unit: a device appears behind
 /// exactly one unit, so one table indexed by bus and function describes them

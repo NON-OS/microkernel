@@ -16,7 +16,7 @@
 
 use super::validate_range::validate_range;
 use crate::arch::x86_64::iommu::globals::state::STATE;
-use crate::arch::x86_64::iommu::globals::{is_enforcing, page_levels};
+use crate::arch::x86_64::iommu::globals::{is_enforcing, page_levels, snoop_control};
 use crate::arch::x86_64::iommu::tables::frame::entries_mut;
 use crate::arch::x86_64::iommu::tables::sl_pte::{is_present, leaf};
 use crate::arch::x86_64::iommu::tables::walk::walk_create;
@@ -69,7 +69,7 @@ pub fn map_range(
         let offset = (page * PAGE_SIZE_4K) as u64;
         let slot = walk_create(root, iova + offset, levels)?;
         entries_mut(slot.table_phys)?[slot.index] =
-            leaf(phys + offset, flags.read, flags.write, flags.snoop);
+            leaf(phys + offset, flags.read, flags.write, flags.snoop && snoop_control());
     }
     Ok(())
 }

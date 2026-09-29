@@ -55,6 +55,16 @@ QEMU_IOMMU_SERIAL_LOG ?= $(TARGET_DIR)/qemu-iommu-serial.log
 # Options for the intel-iommu device the IOMMU lane adds; a knob like the
 # others so the lane can be driven from the command line.
 QEMU_IOMMU_OPTS ?= intremap=on,caching-mode=on
+# A virtio device uses the vIOMMU only with iommu_platform=on, and only then is
+# VIRTIO_F_ACCESS_PLATFORM offered. Without it the device addresses memory
+# physically and the lane tests nothing about it. disable-legacy=on because a
+# legacy driver cannot take bit 33: it fails to bind instead of bypassing.
+QEMU_IOMMU_VIRTIO ?= iommu_platform=on,disable-legacy=on
+_iv := $(_boot_comma)$(QEMU_IOMMU_VIRTIO)$(_boot_comma)
+iommu_virtio = $(foreach d,virtio-blk-pci virtio-net-pci virtio-rng-pci virtio-vga virtio-vga-gl,\
+	$(eval _iommu_args := $(patsubst $(d),$(d)$(_boot_comma)$(QEMU_IOMMU_VIRTIO),\
+	$(subst $(d)$(_boot_comma),$(d)$(_iv),$(_iommu_args)))))$(_iommu_args)
+iommu_virtio_args = $(eval _iommu_args := $(subst virtio-vga$(_boot_comma)disable-modern=on,virtio-vga,$(1)))$(call iommu_virtio)
 QEMU_BLK_IMG := $(TARGET_DIR)/qemu-virtio-blk.img
 QEMU_OVMF_VARS_RW := $(TARGET_DIR)/qemu-OVMF_VARS.fd
 QEMU_BLK := -drive "file=$(QEMU_BLK_IMG),if=none,id=vd0,format=raw" -device virtio-blk-pci,drive=vd0

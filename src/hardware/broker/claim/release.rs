@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use super::state::CLAIMS;
 use super::types::ClaimError;
 
@@ -27,6 +29,8 @@ pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     }
     let epoch = claims[idx].epoch;
     claims.remove(idx);
+    drop(claims);
+    super::quiesce::stop_bus_master(device_id);
     Ok(epoch)
 }
 
@@ -35,7 +39,12 @@ pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
 // number of claims revoked.
 pub fn release_all_for_pid(pid: u32) -> usize {
     let mut claims = CLAIMS.lock();
-    let before = claims.len();
+    let held: alloc::vec::Vec<u64> =
+        claims.iter().filter(|c| c.pid == pid).map(|c| c.device_id).collect();
     claims.retain(|c| c.pid != pid);
-    before - claims.len()
+    drop(claims);
+    for device_id in &held {
+        super::quiesce::stop_bus_master(*device_id);
+    }
+    held.len()
 }

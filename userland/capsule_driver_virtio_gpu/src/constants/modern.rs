@@ -28,3 +28,6 @@ pub const MOD_QUEUE_DEVICE: usize = 0x30;
 pub const FEATURE_PAGE_LOW: u32 = 0;
 pub const FEATURE_PAGE_HIGH: u32 = 1;
 pub const VIRTIO_F_VERSION_1_HIGH: u32 = 1;
+// Bit 33: the device's DMA goes through the platform IOMMU. Offered only
+// when the machine puts the device behind one (QEMU's iommu_platform=on).
+pub const VIRTIO_F_ACCESS_PLATFORM_HIGH: u32 = 1 << 1;
