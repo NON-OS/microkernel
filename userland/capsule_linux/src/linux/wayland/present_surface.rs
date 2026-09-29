@@ -37,8 +37,8 @@ pub fn surface(scene: &mut Scene, width: u32, height: u32, stride: u32) -> Optio
         height,
         stride,
         format: FORMAT_ARGB8888,
-        byte_len: scene.pixels.len() as u64,
-        base_va: scene.pixels.as_ptr() as u64,
+        byte_len: scene.frame_span().1,
+        base_va: scene.frame_span().0,
         flags: 0,
     };
     let handle = mk_surface_register(&desc);

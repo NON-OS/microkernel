@@ -30,6 +30,7 @@ mod ops;
 mod keymap;
 mod keymap_file;
 mod scene;
+mod scene_pixels;
 mod seat;
 mod present;
 mod present_surface;

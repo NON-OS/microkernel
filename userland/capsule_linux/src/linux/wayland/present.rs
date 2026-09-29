@@ -34,16 +34,13 @@ pub fn present(guest: &mut Guest, buffer: u32) {
      * The descriptor handed to the kernel holds this buffer's address, so it
      * is allocated once and written in place afterwards.
      */
-    if guest.scene.pixels.len() < bytes {
-        if guest.scene.out.is_some() {
-            return;
-        }
-        guest.scene.pixels.resize(bytes, 0);
+    if !guest.scene.frame_room(bytes) {
+        return;
     }
     let Some(src) = guest.read(at, bytes) else {
         return;
     };
-    guest.scene.pixels[..bytes].copy_from_slice(&src);
+    guest.scene.frame(bytes).copy_from_slice(&src);
     // Presented by the compositor, as every other app's window is; the
     // personality holds no GfxPresent and needs none.
     if surface(&mut guest.scene, width, height, stride).is_some() {
