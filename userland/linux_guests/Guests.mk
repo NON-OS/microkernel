@@ -188,6 +188,9 @@ $(LINUX_GUESTS_C)/memproof: $(MEMPROOF_SRCS)
 		$(foreach p,$(MEMPROOF_PARTS) $(MEMPROOF_SHARED),$(@D)/memproof.o/$(p).o)
 $(eval $(call LINUX_GUEST,memproof,4980,4981,$(LINUX_GUESTS_C)/memproof))
 
+# Go's own standard-library tests as guests, opt in (GoSuite.mk).
+include $(LINUX_GUESTS_DIR)/GoSuite.mk
+
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
 # normal image, which does not set NONOS_LINUX_GUESTS, still ships them.

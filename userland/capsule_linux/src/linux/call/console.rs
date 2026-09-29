@@ -23,8 +23,17 @@ use crate::linux::guest::Guest;
 /// Cap on one transfer, matching the kernel's own peer-copy ceiling.
 const MAX_IO: u64 = 1 << 20;
 
+/* The longest line the kernel's debug channel takes; it refuses a longer one
+ * whole (src/syscall/microkernel/debug.rs MAX_LEN). */
+const MAX_LINE: usize = 256;
+
 /// A guest's console output, carried to the host's log. The bytes are the
 /// guest's and are never interpreted, only forwarded.
+/*
+ * Forwarded in pieces the kernel takes. The count returned is what was
+ * carried: a write the log refuses part way is a short write, as Linux
+ * reports one, never a claimed success.
+ */
 pub(super) fn console(guest: &Guest, buf: u64, len: u64) -> u64 {
     if len == 0 {
         return errno::ok(0);
@@ -33,7 +42,16 @@ pub(super) fn console(guest: &Guest, buf: u64, len: u64) -> u64 {
     let Some(bytes) = guest.read(buf, take as usize) else {
         return errno::fail(errno::EFAULT);
     };
-    let _ = nonos_libc::mk_debug(bytes.as_ptr(), bytes.len());
-    errno::ok(take)
+    let mut done = 0;
+    for piece in bytes.chunks(MAX_LINE) {
+        if nonos_libc::mk_debug(piece.as_ptr(), piece.len()) < 0 {
+            break;
+        }
+        done += piece.len();
+    }
+    match done {
+        0 => errno::fail(errno::EIO),
+        n => errno::ok(n as u64),
+    }
 }
 

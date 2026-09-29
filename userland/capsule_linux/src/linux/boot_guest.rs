@@ -54,7 +54,13 @@ fn read_when_ready() -> Option<Vec<u8>> {
     if !super::settle::wait_settled() {
         return None;
     }
-    match store_read(&key(BOOT_GUEST), MAX_NAME) {
+    /* One byte past the limit is asked for: the store cuts a longer file
+     * short without saying so, and a cut line is an argument never given. */
+    match store_read(&key(BOOT_GUEST), MAX_NAME + 1) {
+        Ok(named) if named.len() > MAX_NAME as usize => {
+            say(b"[LINUX] boot guest refused: its file is over 1024 bytes\n");
+            None
+        }
         Ok(named) => Some(named),
         Err("vfs open failed") => None,
         Err(_) => {
