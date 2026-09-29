@@ -156,14 +156,16 @@ theorem runtime_access_is_bit_two (a : Std.U32) :
   unfold isRuntimeAccess holds attributes.VariableAttributes.RUNTIME_ACCESS
   simp only [Std.lift, bind_tc_ok]
 
-/-- Authentication is required when either authenticated-write flag is present,
-    and the witnesses cover each one alone, both together, and neither. -/
-theorem authentication_is_either_flag :
-    needsAuth 0x20#u32 = ok true ∧ needsAuth 0x80#u32 = ok true ∧
-    needsAuth 0xA0#u32 = ok true ∧ needsAuth 0x00#u32 = ok false ∧
-    needsAuth 0x5F#u32 = ok false := by
-  refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;>
-    (unfold needsAuth holds attributes.VariableAttributes.TIME_BASED_AUTHENTICATED_WRITE_ACCESS
+/-- Authentication is required when any authenticated-write flag is present,
+    and the witnesses cover each one alone, all together, and none: `0x4F`
+    carries every other defined flag. -/
+theorem authentication_is_any_authenticated_flag :
+    needsAuth 0x10#u32 = ok true ∧ needsAuth 0x20#u32 = ok true ∧
+    needsAuth 0x80#u32 = ok true ∧ needsAuth 0xB0#u32 = ok true ∧
+    needsAuth 0x00#u32 = ok false ∧ needsAuth 0x4F#u32 = ok false := by
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
+    (unfold needsAuth holds attributes.VariableAttributes.AUTHENTICATED_WRITE_ACCESS
+       attributes.VariableAttributes.TIME_BASED_AUTHENTICATED_WRITE_ACCESS
        attributes.VariableAttributes.ENHANCED_AUTHENTICATED_ACCESS
      simp only [Std.lift, bind_tc_ok]
      rfl)
@@ -339,31 +341,35 @@ theorem runtime_access_is_bit_two_of_the_word (a : Std.U32) :
   simp only [Std.lift, bind_tc_ok]
   rw [Bits.reads_bit_eq a 4#u32 2 rfl]
 
-/-- Authentication is required exactly when bit 5
-    (`TIME_BASED_AUTHENTICATED_WRITE_ACCESS`) or bit 7
-    (`ENHANCED_AUTHENTICATED_ACCESS`) is set, for every word. This replaces the
-    five witnesses of `authentication_is_either_flag` with the closed form. -/
-theorem authentication_is_bit_five_or_bit_seven (a : Std.U32) :
+/-- Authentication is required exactly when bit 4
+    (`AUTHENTICATED_WRITE_ACCESS`), bit 5 (`TIME_BASED_AUTHENTICATED_WRITE_ACCESS`)
+    or bit 7 (`ENHANCED_AUTHENTICATED_ACCESS`) is set, for every word. This
+    replaces the witnesses of `authentication_is_any_authenticated_flag` with the
+    closed form. -/
+theorem authentication_is_bit_four_five_or_seven (a : Std.U32) :
     variableattributes_requires_authentication a =
-      ok (a.val.testBit 5 || a.val.testBit 7) := by
+      ok (a.val.testBit 4 || a.val.testBit 5 || a.val.testBit 7) := by
   unfold variableattributes_requires_authentication needsAuth holds
+    attributes.VariableAttributes.AUTHENTICATED_WRITE_ACCESS
     attributes.VariableAttributes.TIME_BASED_AUTHENTICATED_WRITE_ACCESS
     attributes.VariableAttributes.ENHANCED_AUTHENTICATED_ACCESS
   simp only [Std.lift, bind_tc_ok]
-  rw [Bits.reads_bit_eq a 32#u32 5 rfl, Bits.reads_bit_eq a 128#u32 7 rfl]
-  cases a.val.testBit 5 <;> rfl
+  rw [Bits.reads_bit_eq a 16#u32 4 rfl, Bits.reads_bit_eq a 32#u32 5 rfl,
+    Bits.reads_bit_eq a 128#u32 7 rfl]
+  cases a.val.testBit 4 <;> cases a.val.testBit 5 <;> rfl
 
-/-- Records a gap, or at least a choice that should be visible. The older
-    counter-based flag, `AUTHENTICATED_WRITE_ACCESS` (bit 4, `0x10`), is not
-    counted: a set carrying only it is answered as needing no authentication,
-    while the same set with bit 5 added is answered as needing it. UEFI 2.3.1
-    deprecates that flag, so this may be intended, but firmware can still report
-    it on an existing variable. No kernel caller asks `requires_authentication`
-    today. -/
-theorem the_counter_based_authenticated_write_flag_is_not_counted :
-    variableattributes_requires_authentication 0x10#u32 = ok false ∧
+/-- The older count-based flag, `AUTHENTICATED_WRITE_ACCESS` (bit 4, `0x10`),
+    counts on its own. It used not to: a set carrying only it was answered as
+    needing no authentication, while the same set with bit 5 added was answered
+    as needing it. UEFI 2.3.1 deprecates the flag, but firmware still reports it
+    on variables written before, and a write to one still has to carry an
+    authentication descriptor. `kernel_proofs::uefi_attrs` fails against the
+    old code. -/
+theorem the_count_based_authenticated_write_flag_counts :
+    variableattributes_requires_authentication 0x10#u32 = ok true ∧
     variableattributes_requires_authentication 0x30#u32 = ok true := by
   unfold variableattributes_requires_authentication needsAuth holds
+    attributes.VariableAttributes.AUTHENTICATED_WRITE_ACCESS
     attributes.VariableAttributes.TIME_BASED_AUTHENTICATED_WRITE_ACCESS
     attributes.VariableAttributes.ENHANCED_AUTHENTICATED_ACCESS
   exact ⟨rfl, rfl⟩
@@ -400,7 +406,7 @@ theorem the_empty_set_is_the_identity_for_union_and_holds_no_flag (a : Std.U32) 
         variableattributes_requires_authentication e) = ok false := by
   unfold variableattributes_empty none' variableattributes_union join
   simp only [Std.lift, bind_tc_ok, non_volatility_is_bit_zero_of_the_word,
-    runtime_access_is_bit_two_of_the_word, authentication_is_bit_five_or_bit_seven]
+    runtime_access_is_bit_two_of_the_word, authentication_is_bit_four_five_or_seven]
   refine ⟨?_, rfl, rfl, rfl, rfl⟩
   congr 1
   apply UScalar.eq_of_val_eq
@@ -488,7 +494,7 @@ theorem truncation_changes_no_named_predicate (w : Std.U32) :
   have hw : (w &&& 255#u32).val = w.val % 2 ^ 8 := Bits.land_low_mask w 255#u32 8 rfl
   unfold variableattributes_from_bits_truncate ofBitsTruncated
   simp only [Std.lift, bind_tc_ok, non_volatility_is_bit_zero_of_the_word,
-    runtime_access_is_bit_two_of_the_word, authentication_is_bit_five_or_bit_seven, hw,
+    runtime_access_is_bit_two_of_the_word, authentication_is_bit_four_five_or_seven, hw,
     Nat.testBit_mod_two_pow]
   simp
 
@@ -536,13 +542,14 @@ theorem authentication_survives_union_but_not_intersection (a b : Std.U32) :
           variableattributes_requires_authentication m) = ok false) := by
   refine ⟨?_, ?_, ?_, ?_⟩
   · unfold variableattributes_union join
-    simp only [Std.lift, bind_tc_ok, authentication_is_bit_five_or_bit_seven, UScalar.val_or,
+    simp only [Std.lift, bind_tc_ok, authentication_is_bit_four_five_or_seven, UScalar.val_or,
       Nat.testBit_or, ok.injEq]
-    cases a.val.testBit 5 <;> cases b.val.testBit 5 <;> cases a.val.testBit 7 <;>
-      cases b.val.testBit 7 <;> rfl
+    cases a.val.testBit 4 <;> cases b.val.testBit 4 <;> cases a.val.testBit 5 <;>
+      cases b.val.testBit 5 <;> cases a.val.testBit 7 <;> cases b.val.testBit 7 <;> rfl
   all_goals
     try unfold variableattributes_intersection meet
     unfold variableattributes_requires_authentication needsAuth holds
+      attributes.VariableAttributes.AUTHENTICATED_WRITE_ACCESS
       attributes.VariableAttributes.TIME_BASED_AUTHENTICATED_WRITE_ACCESS
       attributes.VariableAttributes.ENHANCED_AUTHENTICATED_ACCESS
     rfl
@@ -573,6 +580,7 @@ theorem the_default_word_contradicts_the_firmware_words :
     variableattributes_is_runtime_access isRuntimeAccess
     variableattributes_requires_authentication needsAuth holds
     attributes.VariableAttributes.NON_VOLATILE attributes.VariableAttributes.RUNTIME_ACCESS
+    attributes.VariableAttributes.AUTHENTICATED_WRITE_ACCESS
     attributes.VariableAttributes.TIME_BASED_AUTHENTICATED_WRITE_ACCESS
     attributes.VariableAttributes.ENHANCED_AUTHENTICATED_ACCESS
   exact ⟨rfl, rfl, rfl⟩
@@ -606,7 +614,7 @@ theorem the_default_word_contradicts_the_firmware_words :
 #print axioms NonosExtraction.Uefi.from_bits_admits_undefined_flags
 #print axioms NonosExtraction.Uefi.non_volatile_is_bit_zero
 #print axioms NonosExtraction.Uefi.runtime_access_is_bit_two
-#print axioms NonosExtraction.Uefi.authentication_is_either_flag
+#print axioms NonosExtraction.Uefi.authentication_is_any_authenticated_flag
 #print axioms NonosExtraction.Uefi.words_are_equal_when_their_bits_are
 #print axioms NonosExtraction.Uefi.carrying_a_mask_is_carrying_its_bits
 #print axioms NonosExtraction.Uefi.holding_a_set_is_holding_each_of_its_bits
@@ -615,8 +623,8 @@ theorem the_default_word_contradicts_the_firmware_words :
 #print axioms NonosExtraction.Uefi.the_intersection_contains_exactly_what_both_contain
 #print axioms NonosExtraction.Uefi.non_volatility_is_bit_zero_of_the_word
 #print axioms NonosExtraction.Uefi.runtime_access_is_bit_two_of_the_word
-#print axioms NonosExtraction.Uefi.authentication_is_bit_five_or_bit_seven
-#print axioms NonosExtraction.Uefi.the_counter_based_authenticated_write_flag_is_not_counted
+#print axioms NonosExtraction.Uefi.authentication_is_bit_four_five_or_seven
+#print axioms NonosExtraction.Uefi.the_count_based_authenticated_write_flag_counts
 #print axioms NonosExtraction.Uefi.a_set_is_empty_exactly_when_every_set_contains_it
 #print axioms NonosExtraction.Uefi.the_empty_set_is_the_identity_for_union_and_holds_no_flag
 #print axioms NonosExtraction.Uefi.an_empty_set_reaches_firmware_as_the_zero_word

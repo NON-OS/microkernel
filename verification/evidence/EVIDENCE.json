@@ -2071,7 +2071,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Uefi.lean",
-          "sha256": "3c4d4e3bd07ce97e4736a45a8345af678b95d6af894f17c194dc9631986f5976"
+          "sha256": "8ddb4d5a32899cf1611e54199040f527efda60caf94a03109587c6f8a94c361c"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/UefiCrc.lean",
