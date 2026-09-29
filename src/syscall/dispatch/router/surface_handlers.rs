@@ -16,9 +16,10 @@
 
 use alloc::vec::Vec;
 
+use crate::kernel_core::surface_registry::pin::drop_attach::drop_attach;
 use crate::kernel_core::surface_registry::{
-    attach_map, attach_surface, lookup_attached_va, lookup_owned, register_surface,
-    release_surface, share_surface, wait_for_vsync, SurfaceDescriptor,
+    attach_map, attach_surface, lookup_attached_va, lookup_owned, register_surface, share_surface,
+    wait_for_vsync, SurfaceDescriptor,
 };
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::manager::api::translate_address;
@@ -182,8 +183,7 @@ pub(super) fn do_release(handle: u64) -> SyscallResult {
     if attach_map::lookup(pid, handle).is_none() {
         return errno(EPERM);
     }
-    attach_map::forget(pid, handle);
-    match release_surface(handle) {
+    match drop_attach(pid, handle) {
         Ok(n) => SyscallResult::success_audited(n as i64),
         Err(e) => errno(map_err(e)),
     }

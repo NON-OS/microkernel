@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_surface;
-mod descriptor;
-mod existing;
-mod map_frames;
-mod share_surface;
-
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+mod claim_owned;
+pub mod drop_attach;
+mod frames_of;
+pub mod gate;
+pub mod held;
+pub mod orphans;
+mod unmap_receiver;
+mod window;

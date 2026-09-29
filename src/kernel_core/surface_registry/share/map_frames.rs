@@ -14,11 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_surface;
-mod descriptor;
-mod existing;
-mod map_frames;
-mod share_surface;
+use crate::kernel_core::surface_registry::types::RegistryError;
+use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::paging::manager::api::map_page_in_asid;
+use crate::memory::paging::types::PagePermissions;
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+/* Map `frames` user read-write at consecutive pages from `base` in `asid`. */
+pub(super) fn map_frames(
+    asid: u32,
+    base: VirtAddr,
+    frames: &[PhysAddr],
+) -> Result<(), RegistryError> {
+    let perms = PagePermissions::user_rw();
+    for (i, frame) in frames.iter().enumerate() {
+        let va = VirtAddr::new(base.as_u64() + (i as u64) * 4096);
+        map_page_in_asid(asid, va, *frame, perms).map_err(|_| RegistryError::MapFailed)?;
+    }
+    Ok(())
+}

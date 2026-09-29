@@ -27,6 +27,7 @@ pub fn teardown(pid: Pid, exit_code: i32, _by_signal: bool) {
         return;
     }
 
+    crate::kernel_core::surface_registry::pin::orphans::abandon_owner(pid);
     crate::kernel_core::surface_registry::release_owned_by_pid(pid);
     crate::kernel_core::surface_registry::attach_map::forget_pid(pid);
     let current = CURRENT_PID.load(Ordering::Acquire) == pid;

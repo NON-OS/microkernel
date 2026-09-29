@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_surface;
-mod descriptor;
-mod existing;
-mod map_frames;
-mod share_surface;
+use spin::Mutex;
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+/*
+ * Orders attaching a surface against pinning, unmapping and freeing its
+ * frames. An attach holds it from the slot check until its mapping is
+ * recorded, so every other holder of the gate either sees that record or
+ * has already emptied the slot, which makes the attach fail.
+ */
+pub static GATE: Mutex<()> = Mutex::new(());

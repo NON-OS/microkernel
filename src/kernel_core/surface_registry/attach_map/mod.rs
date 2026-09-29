@@ -19,6 +19,7 @@ mod forget_handle;
 mod forget_pid;
 mod lookup;
 mod record;
+pub mod snapshot;
 mod state;
 
 pub use forget::forget;

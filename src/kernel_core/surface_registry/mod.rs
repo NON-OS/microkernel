@@ -19,6 +19,7 @@ mod dump;
 #[cfg(feature = "input-probe-inject")]
 pub mod inject;
 pub mod input_ring;
+pub mod pin;
 pub mod release;
 mod ring_math;
 pub mod share;

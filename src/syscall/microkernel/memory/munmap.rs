@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::kernel_core::surface_registry::pin::held::Held;
 use crate::memory::paging::unmap_page;
 use crate::memory::VirtAddr;
 use crate::process::current_pid;
@@ -37,17 +38,28 @@ pub fn sys_munmap(addr: u64, length: usize) -> i64 {
         return ERRNO_INVAL;
     }
     let pages = ((length + PAGE_SIZE - 1) / PAGE_SIZE) as u64;
+    /*
+     * Frames of a surface another process still maps are not ours to free:
+     * freeing them let the allocator reuse a frame that process kept
+     * writing pixels into. They go to the surface registry instead.
+     */
+    let pid = current_pid().unwrap_or(0);
+    let mut held = Held::collect(pid, addr, pages * PAGE_SIZE as u64);
     for i in 0..pages as usize {
         let va = VirtAddr::new(addr + (i * PAGE_SIZE) as u64);
         if let Ok(phys) = unmap_page(va) {
+            if held.holds(va.as_u64(), phys) {
+                continue;
+            }
             if crate::memory::frame_alloc::deallocate_frame(phys).is_err() {
                 crate::sys::serial::println(b"[MUNMAP] frame_release_failed");
             }
         }
     }
+    held.settle();
     if !release_va(addr, pages) {
         crate::sys::serial::println(b"[MUNMAP] release_va_failed");
     }
-    record_munmap(current_pid().unwrap_or(0), length, addr);
+    record_munmap(pid, length, addr);
     0
 }

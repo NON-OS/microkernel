@@ -14,11 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_surface;
-mod descriptor;
-mod existing;
-mod map_frames;
-mod share_surface;
+use crate::kernel_core::surface_registry::attach_map;
+use crate::kernel_core::surface_registry::release_surface;
+use crate::kernel_core::surface_registry::types::{RegistryError, SurfaceHandle};
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+use super::orphans::reclaim;
+use super::unmap_receiver::unmap_receiver;
+
+/*
+ * `pid` drops its attach of `handle`: its view of the frames, then its
+ * attach record, then its reference. Orphaned frames no other process maps
+ * any more are freed afterwards.
+ */
+pub fn drop_attach(pid: u32, handle: SurfaceHandle) -> Result<u32, RegistryError> {
+    unmap_receiver(pid, handle);
+    attach_map::forget(pid, handle);
+    let result = release_surface(handle);
+    reclaim();
+    result
+}

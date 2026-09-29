@@ -14,11 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_surface;
-mod descriptor;
-mod existing;
-mod map_frames;
-mod share_surface;
+use alloc::vec::Vec;
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+use crate::kernel_core::surface_registry::types::SurfaceHandle;
+use crate::memory::addr::PhysAddr;
+
+/* A surface window inside a range that is being unmapped. */
+pub(super) struct Window {
+    pub base: u64,
+    /* The surface's frame list, by page index from `base`. */
+    pub frames: Vec<PhysAddr>,
+    /* Owner and handle when the owner unmaps a window others still map. */
+    pub orphan: Option<(u32, SurfaceHandle)>,
+    /* Frames of an orphaned window whose PTE was really removed. */
+    pub unmapped: Vec<PhysAddr>,
+}
+
+impl Window {
+    pub(super) fn held(base: u64, frames: Vec<PhysAddr>) -> Self {
+        Self { base, frames, orphan: None, unmapped: Vec::new() }
+    }
+}

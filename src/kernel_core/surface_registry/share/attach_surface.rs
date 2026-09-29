@@ -18,8 +18,7 @@ use crate::kernel_core::surface_registry::table::SLOTS;
 use crate::kernel_core::surface_registry::types::{
     decode_handle, RegistryError, SurfaceDescriptor, SurfaceHandle,
 };
-use crate::memory::paging::manager::api::{lookup_asid_for_process, map_page_in_asid};
-use crate::memory::paging::types::PagePermissions;
+use crate::memory::paging::manager::api::lookup_asid_for_process;
 use crate::process::current_process;
 
 pub fn attach_surface(
@@ -27,11 +26,10 @@ pub fn attach_surface(
     handle: SurfaceHandle,
     out_desc: &mut SurfaceDescriptor,
 ) -> Result<u64, RegistryError> {
-    if let Some((base_va, byte_len)) = super::super::attach_map::lookup(receiver_pid, handle) {
-        *out_desc = super::descriptor::descriptor(handle)?;
-        out_desc.base_va = base_va;
-        out_desc.byte_len = byte_len;
-        return Ok(base_va);
+    /* Held until the mapping is recorded; see `pin::gate`. */
+    let _gate = crate::smp::lock_responsive(&super::super::pin::gate::GATE);
+    if let Some(done) = super::existing::existing(receiver_pid, handle, out_desc) {
+        return done;
     }
     let (idx, epoch) = decode_handle(handle);
     // A self-attach (the owner attaching its own surface) needs no new
@@ -46,6 +44,10 @@ pub fn attach_surface(
         if slot.epoch != epoch {
             #[cfg(feature = "dbg-ring")]
             crate::log::dbg_ring::dbg_emit_2u64(0x5546_0001, handle, slot.epoch as u64);
+            return Err(RegistryError::BadHandle);
+        }
+        /* The owner unmapped it: its frames may be freed or reused. */
+        if slot.frames.is_empty() {
             return Err(RegistryError::BadHandle);
         }
         if slot.owner_pid == receiver_pid && slot.owner_base_va != 0 {
@@ -77,11 +79,7 @@ pub fn attach_surface(
     let base = proc
         .reserve_vma(frames.len().saturating_mul(4096), asid)
         .map_err(|_| RegistryError::MapFailed)?;
-    let perms = PagePermissions::user_rw();
-    for (i, frame) in frames.iter().enumerate() {
-        let va = crate::memory::addr::VirtAddr::new(base.as_u64() + (i as u64) * 4096);
-        map_page_in_asid(asid, va, *frame, perms).map_err(|_| RegistryError::MapFailed)?;
-    }
+    super::map_frames::map_frames(asid, base, &frames)?;
     desc.base_va = base.as_u64();
     *out_desc = desc;
     super::super::attach_map::record(receiver_pid, handle, base.as_u64(), out_desc.byte_len);

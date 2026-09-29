@@ -14,11 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod attach_surface;
-mod descriptor;
-mod existing;
-mod map_frames;
-mod share_surface;
+use alloc::vec::Vec;
 
-pub use attach_surface::attach_surface;
-pub use share_surface::share_surface;
+use crate::kernel_core::surface_registry::attach_map::state::ATTACHES;
+use crate::kernel_core::surface_registry::types::SurfaceHandle;
+
+/* True when a process other than `owner` holds an attach record for `handle`. */
+pub fn has_foreign_holder(handle: SurfaceHandle, owner: u32) -> bool {
+    ATTACHES.lock().iter().any(|r| r.handle == handle && r.pid != owner)
+}
+
+/* (handle, base_va) of every attach record held by `pid`. */
+pub fn records_of(pid: u32) -> Vec<(SurfaceHandle, u64)> {
+    ATTACHES.lock().iter().filter(|r| r.pid == pid).map(|r| (r.handle, r.base_va)).collect()
+}
