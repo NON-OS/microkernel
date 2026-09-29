@@ -27,8 +27,8 @@
       "counts": {
         "extracted": 984,
         "proven": 984,
-        "substantive": 341,
-        "trivial": 643,
+        "substantive": 347,
+        "trivial": 637,
         "unproven": 0
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
@@ -1329,7 +1329,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DataIoapic.lean",
-          "sha256": "a372b5840dc6c6bbf71f9cbdefbf7050c5c35f4f00a79551b622438f33df354c"
+          "sha256": "eb49e459e9b9c104eda3f3b72161ecc4bd4c62e6248382295df076ffadf81fa3"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DataNuma.lean",
@@ -1949,7 +1949,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TablesMemoryDesc.lean",
-          "sha256": "ba52b4ded8009cdc12dc736439a9dd75c303dbc99585847b32de3073f4d2417e"
+          "sha256": "1cf7075b0e35ffe6e637e9c8a413ce11b0bc3714d1915b4d4d41fd06f8864829"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TablesMemoryType.lean",
@@ -2017,7 +2017,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesPercpu.lean",
-          "sha256": "79f5f9ccd39b66536eedd0271048924b34ed077d60b6d045b5f38c2a7cf9e54f"
+          "sha256": "c676a1852430c05067b0bcfcc5b158e36642c394dbc27518c54ed913368dc8cc"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesPermissions.lean",
@@ -2061,7 +2061,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesStatsSnapshot.lean",
-          "sha256": "720c6a5db6a94fd1a9ee806d3652189b5b9ad1a9334f96999ef681438fcca1ee"
+          "sha256": "cd103ef20447825347b40fcbfe2139bbfbd399c966e5e06fbdf785b9f4624cf6"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesZoneStats.lean",

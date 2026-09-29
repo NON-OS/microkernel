@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.TypesPercpu
+import Nonos.Interval
 
 open Aeneas Aeneas.Std Result
 open nonos_x_types_percpu
@@ -41,10 +42,113 @@ theorem the_percpuregion_end_wrapper_is_its_method (a : percpu.PercpuRegion) :
 theorem the_percpuregion_contains_wrapper_is_its_method (a : percpu.PercpuRegion) (b : Std.U64) :
     percpuregion_contains a b = percpu.PercpuRegion.contains a b := rfl
 
+/-! ### Where a per CPU region ends, and which addresses it holds
+
+`new` stores its three arguments in their own fields. `end` is `base + size`
+saturated at `2^64 - 1`, so it never fails. `contains` measures the address from
+the base and compares the offset with the size, so it is membership in the half
+open interval `[base, base + size)` of `Nonos.Interval` for every region, the
+base held for a non-empty region and the end not.
+
+Both used to compute `base + size` with overflow checks: for a region flush
+against the top of the address space, `end` aborted and `contains` aborted on
+every address at or above the base. The last page can now be asked whether it
+holds its own base, and it does.
+
+These theorems cannot see the callers, `get_percpu_regions` and
+`get_percpu_region_for` in `layout/manager/percpu.rs`, which are not extracted,
+nor the constants they read. The last theorem restates the region those callers
+build for a CPU below `MAX_CPUS = 64`, with `PERCPU_BASE = 0xFFFF_FFC0_0000_0000`
+and `PERCPU_STRIDE = 0x100_0000` copied from `layout/constants`, and shows that
+it has an end and that neighbouring CPUs' regions meet without a gap.
+-/
+
+open Nonos.Interval (Iv mem)
+
+instance (a : Iv) (x : Nat) : Decidable (mem a x) := inferInstanceAs (Decidable (_ ∧ _))
+
+/-- A fresh region keeps each argument in its own field. -/
+theorem percpuregion_new_keeps_each_argument_in_its_field
+    (b : Std.U64) (s : Std.Usize) (c : Std.U32) :
+    ∃ r, percpuregion_new b s c = ok r ∧ r.base = b ∧ r.size = s ∧ r.cpu_id = c :=
+  ⟨_, rfl, rfl, rfl, rfl⟩
+
+private theorem u64_saturating_add_val (a b : Std.U64) :
+    (core.num.U64.saturating_add a b).val = min (2 ^ 64 - 1) (a.val + b.val) := by
+  simp only [core.num.U64.saturating_add, UScalar.saturating_add, UScalar.val, UScalar.max]
+  rw [BitVec.toNat_ofNat]
+  show min (2 ^ 64 - 1) _ % 2 ^ 64 = _
+  exact Nat.mod_eq_of_lt (by omega)
+
+/-- `end` never fails and is `base + size`, saturated at `2^64 - 1`. -/
+theorem percpuregion_end_is_the_saturated_sum (r : percpu.PercpuRegion) :
+    ∃ e, percpuregion_end r = ok e ∧ e.val = min (2 ^ 64 - 1) (r.base.val + r.size.val) := by
+  unfold percpuregion_end percpu.PercpuRegion.end
+  simp only [lift, bind_tc_ok]
+  have hc : (UScalar.cast .U64 r.size : Std.U64).val = r.size.val := by simp
+  exact ⟨_, rfl, by rw [u64_saturating_add_val, hc]⟩
+
+/-- `contains` is membership in `[base, base + size)`, for every region. -/
+theorem percpuregion_contains_is_interval_membership
+    (r : percpu.PercpuRegion) (x : Std.U64) :
+    percpuregion_contains r x =
+      ok (decide (mem ⟨r.base.val, r.base.val + r.size.val⟩ x.val)) := by
+  unfold percpuregion_contains percpu.PercpuRegion.contains mem
+  have hc : (UScalar.cast .U64 r.size : Std.U64).val = r.size.val := by simp
+  split_ifs with hb
+  · have hle : r.base.val ≤ x.val := hb
+    have e := UScalar.sub_equiv x r.base
+    cases hs : (x - r.base : Result Std.U64) with
+    | ok z =>
+      rw [hs] at e
+      simp only [lift, bind_tc_ok, ok.injEq, decide_eq_decide]
+      show z.val < (UScalar.cast .U64 r.size : Std.U64).val ↔ _
+      rw [hc]; omega
+    | fail _ => rw [hs] at e; simp at e; omega
+    | div => rw [hs] at e; exact e.elim
+  · simp only [ok.injEq]
+    symm
+    simp only [decide_eq_false_iff_not, not_and]
+    intro h1
+    scalar_tac
+
+/-- The last page of the address space, `[0xFFFF_FFFF_FFFF_F000, 2^64)`, holds its
+own base and its last byte; its end saturates at `2^64 - 1`. -/
+theorem percpuregion_contains_the_base_and_last_byte_of_the_last_page :
+    percpuregion_contains ⟨0xFFFFFFFFFFFFF000#u64, 0x1000#usize, 0#u32⟩
+        0xFFFFFFFFFFFFF000#u64 = ok true ∧
+      percpuregion_contains ⟨0xFFFFFFFFFFFFF000#u64, 0x1000#usize, 0#u32⟩
+        0xFFFFFFFFFFFFFFFF#u64 = ok true := by
+  simp only [percpuregion_contains_is_interval_membership, mem, ok.injEq, decide_eq_true_eq]
+  constructor <;> simp
+
+/-- The region the layout manager builds for a CPU `c` below `MAX_CPUS = 64`,
+based at `PERCPU_BASE + c * PERCPU_STRIDE` and `PERCPU_STRIDE` bytes long, has
+an end, that end is the next CPU's base, and the region holds its own base. -/
+theorem percpuregion_end_of_a_kernel_cpu_region_is_the_next_cpus_base
+    (b : Std.U64) (c : Std.U32) (hc : c.val < 64)
+    (hb : b.val = 0xFFFFFFC000000000 + c.val * 0x1000000) :
+    (∃ e, percpuregion_end ⟨b, 0x1000000#usize, c⟩ = ok e ∧
+        e.val = 0xFFFFFFC000000000 + (c.val + 1) * 0x1000000) ∧
+      percpuregion_contains ⟨b, 0x1000000#usize, c⟩ b = ok true := by
+  refine ⟨?_, ?_⟩
+  · obtain ⟨e, he, hv⟩ := percpuregion_end_is_the_saturated_sum ⟨b, 0x1000000#usize, c⟩
+    refine ⟨e, he, ?_⟩
+    simp at hv
+    omega
+  · rw [percpuregion_contains_is_interval_membership]
+    simp only [mem, ok.injEq, decide_eq_true_eq]
+    simp
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesPercpu.the_percpuregion_new_wrapper_is_its_method
 #print axioms NonosExtraction.TypesPercpu.the_percpuregion_end_wrapper_is_its_method
 #print axioms NonosExtraction.TypesPercpu.the_percpuregion_contains_wrapper_is_its_method
+#print axioms NonosExtraction.TypesPercpu.percpuregion_new_keeps_each_argument_in_its_field
+#print axioms NonosExtraction.TypesPercpu.percpuregion_end_is_the_saturated_sum
+#print axioms NonosExtraction.TypesPercpu.percpuregion_contains_is_interval_membership
+#print axioms NonosExtraction.TypesPercpu.percpuregion_contains_the_base_and_last_byte_of_the_last_page
+#print axioms NonosExtraction.TypesPercpu.percpuregion_end_of_a_kernel_cpu_region_is_the_next_cpus_base
 
 end NonosExtraction.TypesPercpu
