@@ -17,9 +17,10 @@
 mod firmware;
 mod iterator;
 mod utils;
-mod variable;
+#[path = "variable.rs"]
+mod entry;
 
 pub use firmware::FirmwareInfo;
 pub use iterator::VariableIterator;
 pub use utils::{name_to_ucs2, ucs2_to_string};
-pub use variable::UefiVariable;
+pub use entry::UefiVariable;

@@ -16,9 +16,10 @@
 
 use core::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 #[repr(u32)]
 pub enum ResetType {
+    #[default]
     Cold = 0,
     Warm = 1,
     Shutdown = 2,
@@ -57,12 +58,6 @@ impl ResetType {
             Self::Shutdown => "System power off",
             Self::PlatformSpecific => "Platform-specific reset",
         }
-    }
-}
-
-impl Default for ResetType {
-    fn default() -> Self {
-        Self::Cold
     }
 }
 
