@@ -27,8 +27,10 @@ int timers(void) {
     close(tf);
     tf = timerfd_create(CLOCK_MONOTONIC, 0);
     struct itimerspec once = {{0, 0}, {0, 100 * 1000000}};
-    timerfd_settime(tf, 0, &once, 0);
+    /* Each wait is timed from before its timer is armed, not after the calls
+     * that follow, which can take tens of ms when the machine is busy. */
     long t0 = now_ms();
+    timerfd_settime(tf, 0, &once, 0);
     got = read(tf, &n, 8);
     long waited = now_ms() - t0;
     if (got != 8 || n != 1 || waited < 90) {
@@ -36,6 +38,7 @@ int timers(void) {
     }
     struct timespec at;
     clock_gettime(CLOCK_MONOTONIC, &at);
+    t0 = at.tv_sec * 1000 + at.tv_nsec / 1000000;
     at.tv_nsec += 100 * 1000000;
     if (at.tv_nsec >= 1000000000) {
         at.tv_sec++;
@@ -46,7 +49,6 @@ int timers(void) {
     int ep = epoll_create1(0);
     struct epoll_event ev = {.events = EPOLLIN, .data.u64 = 3};
     epoll_ctl(ep, EPOLL_CTL_ADD, tf, &ev);
-    t0 = now_ms();
     int ready = epoll_wait(ep, &ev, 1, -1);
     long absolute = now_ms() - t0;
     close(ep);
