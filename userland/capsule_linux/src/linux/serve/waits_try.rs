@@ -22,12 +22,12 @@ use crate::linux::file;
 use crate::linux::guest::{Blocked, Guest, Kind};
 use crate::linux::net;
 
-/// True for the reads and writes that can wait: a pipe or an eventfd, and
-/// a read of a timer.
+/// True for the reads and writes that can wait, vectored or not: a pipe or
+/// an eventfd, and a read of a timer.
 pub fn may_wait(guest: &Guest, nr: u64, fd: u64) -> bool {
     match guest.fds.get(fd as usize).map(|f| f.kind) {
         Some(Kind::Event | Kind::Pipe) => true,
-        Some(Kind::Timer) => nr == nr::READ,
+        Some(Kind::Timer) => matches!(nr, nr::READ | nr::READV),
         _ => false,
     }
 }
@@ -39,6 +39,8 @@ pub fn attempt(guest: &mut Guest, wait: &Blocked) -> Option<u64> {
     match wait.nr {
         nr::READ => Some(call::read(guest, a[0], a[1], a[2])).filter(|&v| v != again),
         nr::WRITE => Some(call::write(guest, a[0], a[1], a[2])).filter(|&v| v != again),
+        nr::READV => Some(call::readv(guest, a[0], a[1], a[2])).filter(|&v| v != again),
+        nr::WRITEV => Some(call::writev(guest, a[0], a[1], a[2])).filter(|&v| v != again),
         nr::POLL | np::PPOLL => Some(net::poll(guest, a[0], a[1])).filter(|&v| v != 0),
         np::SELECT | np::PSELECT6 => {
             Some(net::select(guest, a[0], [a[1], a[2], a[3]])).filter(|&v| v != 0)
