@@ -16,12 +16,14 @@
 
 mod buffer;
 mod reader;
+mod registry;
 mod splice_support;
 mod syscall;
 mod writer;
 
 pub use buffer::*;
 pub use reader::*;
+pub use registry::*;
 pub use splice_support::*;
 pub use syscall::*;
 pub use writer::*;

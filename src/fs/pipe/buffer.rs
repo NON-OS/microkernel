@@ -30,6 +30,12 @@ pub struct PipeBuffer {
     writers: AtomicUsize,
 }
 
+impl Default for PipeBuffer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PipeBuffer {
     pub fn new() -> Self {
         Self {
@@ -54,9 +60,8 @@ impl PipeBuffer {
             return Err(-11);
         }
         let to_write = buf.len().min(available);
-        for i in 0..to_write {
-            let idx = (head + i) % self.capacity;
-            self.data[idx] = buf[i];
+        for (i, &byte) in buf.iter().take(to_write).enumerate() {
+            self.data[(head + i) % self.capacity] = byte;
         }
         self.head.store((head + to_write) % self.capacity, Ordering::SeqCst);
         Ok(to_write)
@@ -73,9 +78,8 @@ impl PipeBuffer {
             return Err(-11);
         }
         let to_read = buf.len().min(available);
-        for i in 0..to_read {
-            let idx = (tail + i) % self.capacity;
-            buf[i] = self.data[idx];
+        for (i, slot) in buf.iter_mut().take(to_read).enumerate() {
+            *slot = self.data[(tail + i) % self.capacity];
         }
         self.tail.store((tail + to_read) % self.capacity, Ordering::SeqCst);
         Ok(to_read)
@@ -100,14 +104,22 @@ impl PipeBuffer {
     pub fn add_reader(&self) {
         self.readers.fetch_add(1, Ordering::SeqCst);
     }
+    /* Stops at zero instead of wrapping to usize::MAX. Every caller holds the
+    pipe's mutex, so the load and the store do not race. */
     pub fn remove_reader(&self) {
-        self.readers.fetch_sub(1, Ordering::SeqCst);
+        let n = self.readers.load(Ordering::SeqCst);
+        if n > 0 {
+            self.readers.store(n - 1, Ordering::SeqCst);
+        }
     }
     pub fn add_writer(&self) {
         self.writers.fetch_add(1, Ordering::SeqCst);
     }
     pub fn remove_writer(&self) {
-        self.writers.fetch_sub(1, Ordering::SeqCst);
+        let n = self.writers.load(Ordering::SeqCst);
+        if n > 0 {
+            self.writers.store(n - 1, Ordering::SeqCst);
+        }
     }
     pub fn has_readers(&self) -> bool {
         self.readers.load(Ordering::SeqCst) > 0

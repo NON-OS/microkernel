@@ -65,6 +65,17 @@ axiom core.sync.atomic.AtomicUsizeAlign8Usize.load
   core.sync.atomic.Atomic Std.Usize (core.sync.atomic.private.Align8 Std.Usize)
     → core.sync.atomic.Ordering → Result Std.Usize
 
+/-- [core::sync::atomic::{core::sync::atomic::Atomic<usize, core::sync::atomic::private::Align8<usize>>}::store]:
+    Source: '/rustc/library/core/src/sync/atomic.rs', lines 2896:12-2896:64
+    Name pattern: [core::sync::atomic::{core::sync::atomic::Atomic<usize, core::sync::atomic::private::Align8<usize>>}::store]
+    Visibility: public -/
+@[rust_fun
+  "core::sync::atomic::{core::sync::atomic::Atomic<usize, core::sync::atomic::private::Align8<usize>>}::store"]
+axiom core.sync.atomic.AtomicUsizeAlign8Usize.store
+  :
+  core.sync.atomic.Atomic Std.Usize (core.sync.atomic.private.Align8 Std.Usize)
+    → Std.Usize → core.sync.atomic.Ordering → Result Unit
+
 /-- [core::sync::atomic::{core::sync::atomic::Atomic<usize, core::sync::atomic::private::Align8<usize>>}::fetch_add]:
     Source: '/rustc/library/core/src/sync/atomic.rs', lines 3160:12-3160:81
     Name pattern: [core::sync::atomic::{core::sync::atomic::Atomic<usize, core::sync::atomic::private::Align8<usize>>}::fetch_add]
@@ -72,17 +83,6 @@ axiom core.sync.atomic.AtomicUsizeAlign8Usize.load
 @[rust_fun
   "core::sync::atomic::{core::sync::atomic::Atomic<usize, core::sync::atomic::private::Align8<usize>>}::fetch_add"]
 axiom core.sync.atomic.AtomicUsizeAlign8Usize.fetch_add
-  :
-  core.sync.atomic.Atomic Std.Usize (core.sync.atomic.private.Align8 Std.Usize)
-    → Std.Usize → core.sync.atomic.Ordering → Result Std.Usize
-
-/-- [core::sync::atomic::{core::sync::atomic::Atomic<usize, core::sync::atomic::private::Align8<usize>>}::fetch_sub]:
-    Source: '/rustc/library/core/src/sync/atomic.rs', lines 3191:12-3191:81
-    Name pattern: [core::sync::atomic::{core::sync::atomic::Atomic<usize, core::sync::atomic::private::Align8<usize>>}::fetch_sub]
-    Visibility: public -/
-@[rust_fun
-  "core::sync::atomic::{core::sync::atomic::Atomic<usize, core::sync::atomic::private::Align8<usize>>}::fetch_sub"]
-axiom core.sync.atomic.AtomicUsizeAlign8Usize.fetch_sub
   :
   core.sync.atomic.Atomic Std.Usize (core.sync.atomic.private.Align8 Std.Usize)
     → Std.Usize → core.sync.atomic.Ordering → Result Std.Usize
@@ -109,7 +109,7 @@ structure buffer.PipeBuffer where
     Std.Usize)
 
 /-- [nonos_x_pipe_buffer::buffer::{nonos_x_pipe_buffer::buffer::PipeBuffer}::new]:
-    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 34:4-43:5
+    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 40:4-49:5
     Visibility: public -/
 def buffer.PipeBuffer.new : Result buffer.PipeBuffer := do
   let v ← alloc.vec.from_elem core.clone.CloneU8 0#u8 buffer.PIPE_BUF_SIZE
@@ -126,7 +126,7 @@ def buffer.PipeBuffer.new : Result buffer.PipeBuffer := do
     }
 
 /-- [nonos_x_pipe_buffer::buffer::{nonos_x_pipe_buffer::buffer::PipeBuffer}::len]:
-    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 84:4-92:5
+    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 88:4-96:5
     Visibility: public -/
 def buffer.PipeBuffer.len (self : buffer.PipeBuffer) : Result Std.Usize := do
   let head ←
@@ -141,14 +141,14 @@ def buffer.PipeBuffer.len (self : buffer.PipeBuffer) : Result Std.Usize := do
        i + head
 
 /-- [nonos_x_pipe_buffer::buffer::{nonos_x_pipe_buffer::buffer::PipeBuffer}::is_empty]:
-    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 94:4-96:5
+    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 98:4-100:5
     Visibility: public -/
 def buffer.PipeBuffer.is_empty (self : buffer.PipeBuffer) : Result Bool := do
   let i ← buffer.PipeBuffer.len self
   ok (i = 0#usize)
 
 /-- [nonos_x_pipe_buffer::buffer::{nonos_x_pipe_buffer::buffer::PipeBuffer}::available_write]:
-    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 97:4-99:5
+    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 101:4-103:5
     Visibility: public -/
 def buffer.PipeBuffer.available_write
   (self : buffer.PipeBuffer) : Result Std.Usize := do
@@ -157,7 +157,7 @@ def buffer.PipeBuffer.available_write
   i1 - 1#usize
 
 /-- [nonos_x_pipe_buffer::buffer::{nonos_x_pipe_buffer::buffer::PipeBuffer}::add_reader]:
-    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 100:4-102:5
+    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 104:4-106:5
     Visibility: public -/
 def buffer.PipeBuffer.add_reader (self : buffer.PipeBuffer) : Result Unit := do
   let _ ←
@@ -166,17 +166,22 @@ def buffer.PipeBuffer.add_reader (self : buffer.PipeBuffer) : Result Unit := do
   ok ()
 
 /-- [nonos_x_pipe_buffer::buffer::{nonos_x_pipe_buffer::buffer::PipeBuffer}::remove_reader]:
-    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 103:4-105:5
+    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 109:4-114:5
     Visibility: public -/
 def buffer.PipeBuffer.remove_reader
   (self : buffer.PipeBuffer) : Result Unit := do
-  let _ ←
-    core.sync.atomic.AtomicUsizeAlign8Usize.fetch_sub self.readers 1#usize
+  let n ←
+    core.sync.atomic.AtomicUsizeAlign8Usize.load self.readers
       core.sync.atomic.Ordering.SeqCst
-  ok ()
+  if n > 0#usize
+  then
+    let i ← n - 1#usize
+    core.sync.atomic.AtomicUsizeAlign8Usize.store self.readers i
+      core.sync.atomic.Ordering.SeqCst
+  else ok ()
 
 /-- [nonos_x_pipe_buffer::buffer::{nonos_x_pipe_buffer::buffer::PipeBuffer}::add_writer]:
-    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 106:4-108:5
+    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 115:4-117:5
     Visibility: public -/
 def buffer.PipeBuffer.add_writer (self : buffer.PipeBuffer) : Result Unit := do
   let _ ←
@@ -185,17 +190,22 @@ def buffer.PipeBuffer.add_writer (self : buffer.PipeBuffer) : Result Unit := do
   ok ()
 
 /-- [nonos_x_pipe_buffer::buffer::{nonos_x_pipe_buffer::buffer::PipeBuffer}::remove_writer]:
-    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 109:4-111:5
+    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 118:4-123:5
     Visibility: public -/
 def buffer.PipeBuffer.remove_writer
   (self : buffer.PipeBuffer) : Result Unit := do
-  let _ ←
-    core.sync.atomic.AtomicUsizeAlign8Usize.fetch_sub self.writers 1#usize
+  let n ←
+    core.sync.atomic.AtomicUsizeAlign8Usize.load self.writers
       core.sync.atomic.Ordering.SeqCst
-  ok ()
+  if n > 0#usize
+  then
+    let i ← n - 1#usize
+    core.sync.atomic.AtomicUsizeAlign8Usize.store self.writers i
+      core.sync.atomic.Ordering.SeqCst
+  else ok ()
 
 /-- [nonos_x_pipe_buffer::buffer::{nonos_x_pipe_buffer::buffer::PipeBuffer}::has_readers]:
-    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 112:4-114:5
+    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 124:4-126:5
     Visibility: public -/
 def buffer.PipeBuffer.has_readers
   (self : buffer.PipeBuffer) : Result Bool := do
@@ -205,7 +215,7 @@ def buffer.PipeBuffer.has_readers
   ok (i > 0#usize)
 
 /-- [nonos_x_pipe_buffer::buffer::{nonos_x_pipe_buffer::buffer::PipeBuffer}::has_writers]:
-    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 115:4-117:5
+    Source: 'src/../../../../../src/fs/pipe/buffer.rs', lines 127:4-129:5
     Visibility: public -/
 def buffer.PipeBuffer.has_writers
   (self : buffer.PipeBuffer) : Result Bool := do
