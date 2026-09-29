@@ -37,12 +37,13 @@ def iommu_device.DeviceAddress.pci
   let i ← lift (UScalar.cast .U32 bus)
   let i1 ← i <<< 8#i32
   let i2 ← lift (UScalar.cast .U32 device)
-  let i3 ← i2 <<< 3#i32
-  let i4 ← lift (i1 ||| i3)
-  let i5 ← lift (UScalar.cast .U32 function)
-  let i6 ← lift (i5 &&& 7#u32)
-  let i7 ← lift (i4 ||| i6)
-  ok i7
+  let i3 ← lift (i2 &&& 31#u32)
+  let i4 ← i3 <<< 3#i32
+  let i5 ← lift (i1 ||| i4)
+  let i6 ← lift (UScalar.cast .U32 function)
+  let i7 ← lift (i6 &&& 7#u32)
+  let i8 ← lift (i5 ||| i7)
+  ok i8
 
 /-- [nonos_x_iommu_device::iommu_device::{nonos_x_iommu_device::iommu_device::DeviceAddress}::as_u32]:
     Source: 'src/../../../../../src/memory/iommu/device.rs', lines 32:4-34:5

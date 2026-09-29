@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.PciTypes
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_pci_types
@@ -57,9 +58,11 @@ theorem the_pcidevice_is_display_wrapper_is_its_method (a : types.PciDevice) :
     same address. `enumerate_pci_devices` only ever builds such addresses: it
     walks devices `0..32` and functions `0..8`.
 
-    The fields are `u8` and nothing masks them, so an out-of-range device or
-    function is not refused: it spills into the field above. The last theorems
-    of the first group record that, with two different addresses that collide.
+    The fields are `u8`, so `bdf` masks the device to five bits and the function
+    to three before packing them. An out-of-range device or function is reduced
+    to its field and never reaches the field above: the high byte is the bus for
+    every address. Before the masks, device 32 on bus 0 and device 0 on bus 1
+    shared a word; `kernel_proofs` keeps a test of that case.
 
     The four class predicates compare the base class byte with the PCI class
     codes, which are also the values of `CLASS_MASS_STORAGE`, `CLASS_NETWORK`,
@@ -77,31 +80,48 @@ private theorem shifting_a_u16 (x : Std.U16) (k : Std.I32) (h0 : 0 ≤ k.val) (h
     (UScalar.ShiftLeft_IScalar_spec x k (2 ^ 16) h0 (by simpa using hk) (by simp [U16.size, U16.numBits]))
   exact ⟨z, hz, hv⟩
 
-/-- Without any assumption on the fields, `bdf` never fails and ORs the shifted
-    bus, the shifted device and the function together. -/
-theorem pcidevice_bdf_ors_the_shifted_fields (d : types.PciDevice) :
+/-- Without any assumption on the fields, `bdf` never fails and returns the bus
+    times 256 plus the device reduced to five bits times 8 plus the function
+    reduced to three bits. -/
+theorem pcidevice_bdf_masks_device_and_function (d : types.PciDevice) :
     ∃ v, pcidevice_bdf d = ok v ∧
-      v.val = (d.bus.val <<< 8 ||| d.device.val <<< 3) ||| d.function.val := by
+      v.val = d.bus.val * 256 + d.device.val % 32 * 8 + d.function.val % 8 := by
   unfold pcidevice_bdf types.PciDevice.bdf
   simp only [lift, bind_tc_ok]
-  obtain ⟨z1, h1, v1⟩ := shifting_a_u16 (UScalar.cast .U16 d.bus) 8#i32 (by decide) (by decide)
-  obtain ⟨z2, h2, v2⟩ := shifting_a_u16 (UScalar.cast .U16 d.device) 3#i32 (by decide) (by decide)
-  rw [h1]; simp only [bind_tc_ok]; rw [h2]; simp only [bind_tc_ok]
-  refine ⟨_, rfl, ?_⟩
-  simp only [UScalar.val_or, v1, v2, UScalar.cast_val_eq]
   have hb := d.bus.hBounds
   have hd := d.device.hBounds
   have hf := d.function.hBounds
+  simp only [UScalarTy.U8_numBits_eq] at hb hd hf
+  obtain ⟨z1, h1, v1⟩ := shifting_a_u16 (UScalar.cast .U16 d.bus) 8#i32 (by decide) (by decide)
+  obtain ⟨z2, h2, v2⟩ :=
+    shifting_a_u16 (UScalar.cast .U16 d.device &&& 31#u16) 3#i32 (by decide) (by decide)
+  rw [h1]; simp only [bind_tc_ok]; rw [h2]; simp only [bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
   have e8 : I32.toNat 8#i32 = 8 := by decide
   have e3 : I32.toNat 3#i32 = 3 := by decide
   have en : UScalarTy.U16.numBits = 16 := rfl
-  simp only [UScalarTy.U8_numBits_eq] at hb hd hf
-  rw [e8, e3, en, Nat.shiftLeft_eq, Nat.shiftLeft_eq, Nat.shiftLeft_eq, Nat.shiftLeft_eq]
+  rw [Bits.land_low_mask _ 31#u16 5 rfl, UScalar.cast_val_eq] at v2
+  rw [UScalar.cast_val_eq] at v1
+  simp only [UScalar.val_or, v1, v2, Bits.land_low_mask _ 7#u16 3 rfl, UScalar.cast_val_eq]
+  rw [e8, e3, en, Nat.shiftLeft_eq, Nat.shiftLeft_eq]
   rw [Nat.mod_eq_of_lt (by omega : d.bus.val < 2 ^ 16),
     Nat.mod_eq_of_lt (by omega : d.device.val < 2 ^ 16),
     Nat.mod_eq_of_lt (by omega : d.function.val < 2 ^ 16),
     Nat.mod_eq_of_lt (by omega : d.bus.val * 2 ^ 8 < 2 ^ 16),
-    Nat.mod_eq_of_lt (by omega : d.device.val * 2 ^ 3 < 2 ^ 16)]
+    Nat.mod_eq_of_lt (by omega : d.device.val % 2 ^ 5 * 2 ^ 3 < 2 ^ 16)]
+  have k1 : d.bus.val * 2 ^ 8 ||| d.device.val % 2 ^ 5 * 2 ^ 3
+      = d.bus.val * 2 ^ 8 + d.device.val % 2 ^ 5 * 2 ^ 3 := by
+    rw [← Nat.shiftLeft_eq d.bus.val 8]
+    exact (Nat.shiftLeft_add_eq_or_of_lt (by omega) _).symm
+  have k2 : (d.bus.val * 2 ^ 8 + d.device.val % 2 ^ 5 * 2 ^ 3) ||| d.function.val % 2 ^ 3
+      = (d.bus.val * 2 ^ 8 + d.device.val % 2 ^ 5 * 2 ^ 3) + d.function.val % 2 ^ 3 := by
+    have : d.bus.val * 2 ^ 8 + d.device.val % 2 ^ 5 * 2 ^ 3
+        = (d.bus.val * 32 + d.device.val % 32) <<< 3 := by
+      rw [Nat.shiftLeft_eq]; omega
+    rw [this]
+    exact (Nat.shiftLeft_add_eq_or_of_lt (by omega) _).symm
+  rw [k1, k2]
+  omega
 
 /-- For an in-range address the word is the routing id `bus * 256 + device * 8 +
     function`. A device shift of 4, or a bus shift of 7, would type check and
@@ -110,12 +130,15 @@ theorem pcidevice_bdf_is_the_routing_id (d : types.PciDevice)
     (hd : d.device.val < 32) (hf : d.function.val < 8) :
     ∃ v, pcidevice_bdf d = ok v ∧
       v.val = d.bus.val * 256 + d.device.val * 8 + d.function.val := by
-  obtain ⟨v, hv, hval⟩ := pcidevice_bdf_ors_the_shifted_fields d
-  refine ⟨v, hv, ?_⟩
-  rw [hval, Nat.lor_assoc, ← Nat.shiftLeft_add_eq_or_of_lt (by omega : d.function.val < 2 ^ 3),
-    ← Nat.shiftLeft_add_eq_or_of_lt (by rw [Nat.shiftLeft_eq]; omega : d.device.val <<< 3 + d.function.val < 2 ^ 8),
-    Nat.shiftLeft_eq, Nat.shiftLeft_eq]
-  omega
+  obtain ⟨v, hv, hval⟩ := pcidevice_bdf_masks_device_and_function d
+  exact ⟨v, hv, by rw [hval, Nat.mod_eq_of_lt hd, Nat.mod_eq_of_lt hf]⟩
+
+/-- For every address, in range or not, the high byte of the word is the bus:
+    no device or function number can move the word onto another bus. -/
+theorem pcidevice_bdf_high_byte_is_the_bus (d : types.PciDevice) :
+    ∃ v, pcidevice_bdf d = ok v ∧ v.val / 256 = d.bus.val := by
+  obtain ⟨v, hv, hval⟩ := pcidevice_bdf_masks_device_and_function d
+  exact ⟨v, hv, by omega⟩
 
 /-- The three fields read back out of the word of an in-range address. -/
 theorem pcidevice_bdf_decodes_to_its_fields (d : types.PciDevice)
@@ -139,20 +162,15 @@ theorem pcidevice_bdf_separates_in_range_addresses (d e : types.PciDevice)
   exact ⟨UScalar.eq_of_val_eq (by omega), UScalar.eq_of_val_eq (by omega),
     UScalar.eq_of_val_eq (by omega)⟩
 
-/-- This records a defect. Device 32 on bus 0 and device 0 on bus 1 get the same
-    word, because the device number is not masked to five bits before it is
-    shifted into place. -/
-theorem pcidevice_bdf_lets_device_32_collide_with_the_next_bus :
-    pcidevice_bdf ⟨0#u16, 0#u8, 32#u8, 0#u8, 0#u16, 0#u16, 0#u8, 0#u8⟩ = ok 256#u16 ∧
-    pcidevice_bdf ⟨0#u16, 1#u8, 0#u8, 0#u8, 0#u16, 0#u16, 0#u8, 0#u8⟩ = ok 256#u16 :=
-  ⟨rfl, rfl⟩
-
-/-- This records the same defect one field lower: function 8 of device 0 has the
-    word of function 0 of device 1. -/
-theorem pcidevice_bdf_lets_function_8_collide_with_the_next_device :
-    pcidevice_bdf ⟨0#u16, 0#u8, 0#u8, 8#u8, 0#u16, 0#u16, 0#u8, 0#u8⟩ = ok 8#u16 ∧
+/-- Device 32 on bus 0 is reduced to device 0 on bus 0, not to device 0 on bus
+    1, and function 8 of device 0 is reduced to function 0 of device 0, not to
+    device 1. -/
+theorem pcidevice_bdf_reduces_device_32_and_function_8_within_their_fields :
+    pcidevice_bdf ⟨0#u16, 0#u8, 32#u8, 0#u8, 0#u16, 0#u16, 0#u8, 0#u8⟩ = ok 0#u16 ∧
+    pcidevice_bdf ⟨0#u16, 1#u8, 0#u8, 0#u8, 0#u16, 0#u16, 0#u8, 0#u8⟩ = ok 256#u16 ∧
+    pcidevice_bdf ⟨0#u16, 0#u8, 0#u8, 8#u8, 0#u16, 0#u16, 0#u8, 0#u8⟩ = ok 0#u16 ∧
     pcidevice_bdf ⟨0#u16, 0#u8, 1#u8, 0#u8, 0#u16, 0#u16, 0#u8, 0#u8⟩ = ok 8#u16 :=
-  ⟨rfl, rfl⟩
+  ⟨rfl, rfl, rfl, rfl⟩
 
 /-- A bridge is base class `0x06`, `CLASS_BRIDGE`. The subclass (host, ISA,
     PCI to PCI and the rest) does not matter. -/
@@ -205,12 +223,12 @@ theorem no_device_passes_two_of_the_pcidevice_class_predicates (d : types.PciDev
 #print axioms NonosExtraction.PciTypes.the_pcidevice_is_network_wrapper_is_its_method
 #print axioms NonosExtraction.PciTypes.the_pcidevice_is_display_wrapper_is_its_method
 
-#print axioms NonosExtraction.PciTypes.pcidevice_bdf_ors_the_shifted_fields
+#print axioms NonosExtraction.PciTypes.pcidevice_bdf_masks_device_and_function
 #print axioms NonosExtraction.PciTypes.pcidevice_bdf_is_the_routing_id
+#print axioms NonosExtraction.PciTypes.pcidevice_bdf_high_byte_is_the_bus
 #print axioms NonosExtraction.PciTypes.pcidevice_bdf_decodes_to_its_fields
 #print axioms NonosExtraction.PciTypes.pcidevice_bdf_separates_in_range_addresses
-#print axioms NonosExtraction.PciTypes.pcidevice_bdf_lets_device_32_collide_with_the_next_bus
-#print axioms NonosExtraction.PciTypes.pcidevice_bdf_lets_function_8_collide_with_the_next_device
+#print axioms NonosExtraction.PciTypes.pcidevice_bdf_reduces_device_32_and_function_8_within_their_fields
 #print axioms NonosExtraction.PciTypes.pcidevice_is_bridge_is_class_0x06
 #print axioms NonosExtraction.PciTypes.pcidevice_is_storage_is_class_0x01
 #print axioms NonosExtraction.PciTypes.pcidevice_is_network_is_class_0x02
