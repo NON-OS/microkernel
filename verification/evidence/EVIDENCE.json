@@ -26,10 +26,10 @@
       "bv_decide_theorems": 11,
       "counts": {
         "extracted": 423,
-        "proven": 422,
-        "substantive": 160,
+        "proven": 423,
+        "substantive": 161,
         "trivial": 262,
-        "unproven": 1
+        "unproven": 0
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
       "extracted_functions": [
