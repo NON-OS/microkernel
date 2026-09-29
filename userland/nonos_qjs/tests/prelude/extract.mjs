@@ -2,12 +2,24 @@
 // Pull the prelude out of the C source it ships in, so these checks run the
 // text the engine actually evaluates rather than a copy that drifts from it.
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 const START = 'static const char *PRELUDE =';
 
+/* The source as the compiler reads it: each #include "..." of a file next
+ * to it replaced by that file's lines, so a prelude kept in pieces reads
+ * as one. System headers (<...>) and files not beside it are left alone. */
+function sourceLines(path) {
+  return readFileSync(path, 'utf8').split('\n').flatMap(l => {
+    const inc = l.trim().match(/^#include "([^"]+)"$/);
+    const file = inc && join(dirname(path), inc[1]);
+    return file && existsSync(file) ? sourceLines(file) : [l];
+  });
+}
+
 export function extractPrelude(cPath) {
-  const lines = readFileSync(cPath, 'utf8').split('\n');
+  const lines = sourceLines(cPath);
   const at = lines.findIndex(l => l.startsWith(START));
   if (at < 0) throw new Error(`no prelude in ${cPath}`);
 
