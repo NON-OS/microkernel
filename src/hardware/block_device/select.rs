@@ -22,7 +22,8 @@ static SELECTED: Once<Backend> = Once::new();
 
 pub fn selected() -> Backend {
     *SELECTED.call_once(|| {
-        if matches!(crate::hardware::nvme_capsule::capacity(), Ok(s) if s > 0) {
+        if matches!(crate::hardware::nvme_capsule::capacity(), Ok(s) if s > 0) && nvme_sectors_fit()
+        {
             return Backend::Nvme;
         }
         if matches!(crate::hardware::ahci_capsule::capacity(), Ok(s) if s > 0) {
@@ -30,4 +31,21 @@ pub fn selected() -> Backend {
         }
         Backend::VirtioBlk
     })
+}
+
+/// Every caller addresses 512-byte sectors. A namespace formatted with
+/// larger blocks would read eight times the bytes asked for at eight times
+/// the offset, so it is passed over by name rather than misaddressed.
+fn nvme_sectors_fit() -> bool {
+    match crate::hardware::nvme_capsule::identify_namespace() {
+        Ok(ns) if ns.lba_size != 512 => {
+            crate::log::warn!(
+                "[BLOCK] NVMe namespace {} uses {}-byte blocks; only 512 is addressed, not used",
+                ns.nsid,
+                ns.lba_size
+            );
+            false
+        }
+        _ => true,
+    }
 }
