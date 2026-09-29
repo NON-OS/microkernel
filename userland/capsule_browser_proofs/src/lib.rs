@@ -14,6 +14,7 @@ pub mod probe;
 pub mod render;
 
 mod band_tests;
+mod atom_clip_tests;
 mod blit_tests;
 mod canvas_tests;
 mod cascade_proofs;

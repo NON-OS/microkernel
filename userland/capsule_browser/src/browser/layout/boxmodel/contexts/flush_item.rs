@@ -16,6 +16,7 @@
 
 use super::super::ctx::Ctx;
 use super::super::display_list::{Content, DisplayList, Fragment};
+use super::super::geom::shift_down::move_clip;
 use super::super::inline_items::InlineItem;
 
 /* Emit one line item with its slot at `r` ([x, line top, line height]).
@@ -63,7 +64,7 @@ pub(in super::super) fn flush_item(
             for mut f in sub {
                 (f.x, f.y) = (f.x + dx, f.y + dy);
                 if let Some(c) = f.clip.as_mut() {
-                    *c = [c[0] + dx, c[1] + dy, c[2] + dx, c[3] + dy];
+                    move_clip(c, (dx, dy), ctx.clip);
                 }
                 frags.push(f);
             }

@@ -40,19 +40,30 @@ pub(crate) fn shift_down(
     if dy == 0 {
         return;
     }
-    let (top, bottom) = match base {
-        Some(c) => (c[1], c[3]),
-        None => (i32::MIN, i32::MAX),
-    };
     for f in frags.iter_mut().take(b).skip(a) {
         f.y += dy;
         if let Some(c) = f.clip.as_mut() {
-            if c[1] > top {
-                c[1] += dy;
-            }
-            if c[3] < bottom {
-                c[3] += dy;
-            }
+            move_clip(c, (0, dy), base);
         }
+    }
+}
+
+/// Move clip `c` of content laid out `d` away from its final place while
+/// clip `base` was in force: its own edges move; an edge it took from `base`
+/// is in page coordinates already and stays, as does an open edge.
+pub(crate) fn move_clip(c: &mut [i32; 4], d: (i32, i32), base: Option<[i32; 4]>) {
+    let b = base.unwrap_or([i32::MIN, i32::MIN, i32::MAX, i32::MAX]);
+    let own = [c[0] > b[0], c[1] > b[1], c[2] < b[2], c[3] < b[3]];
+    for (i, edge) in c.iter_mut().enumerate().filter(|(i, _)| own[*i]) {
+        *edge = move_edge(*edge, if i % 2 == 0 { d.0 } else { d.1 });
+    }
+}
+
+/// Clip edge `edge` moved by `d`. An open edge (i32::MIN or MAX: that axis
+/// is not clipped) stays open instead of wrapping into an empty clip.
+pub(crate) fn move_edge(edge: i32, d: i32) -> i32 {
+    match edge {
+        i32::MIN | i32::MAX => edge,
+        _ => edge.saturating_add(d),
     }
 }
