@@ -40,7 +40,7 @@ CAPSULE_REQUIRED_CAPS    := 0x304001979
 # Network (bit 2) is optional: only the install role asks for it, to reach a
 # package mirror through net.sockets (roles.rs). A guest runs without it.
 CAPSULE_OPTIONAL_CAPS    := 0x4
-CAPSULE_CAPS_CEILING     := 0x30000193D
+CAPSULE_CAPS_CEILING     := 0x30400197D
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_linux
 
 include nonos-mk/capsule.mk
