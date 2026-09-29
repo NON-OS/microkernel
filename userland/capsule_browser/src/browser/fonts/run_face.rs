@@ -41,7 +41,7 @@ pub(super) fn with_run_face<R>(
 
 /// Call `f(face, piece, primary)` on each piece of `text` that draws in one
 /// face, in order: the run's own face `primary`, or for characters it has
-/// no glyph for, the fallback face that has one. Measure and draw both walk
+/// no glyph for, a fallback face that has one, else the built-in face. Measure and draw both walk
 /// these pieces, so their widths agree. Returns whether the run's face is a
 /// true bold cut, None when there is no face at all.
 pub(super) fn with_pieces(
@@ -52,7 +52,10 @@ pub(super) fn with_pieces(
     mut f: impl FnMut(&FontRef, &str, &FontRef),
 ) -> Option<bool> {
     let walk = |primary: &FontRef| {
-        let face_of = |ch: char| fallback_face(ch).filter(|_| !has_glyph(primary, ch));
+        let face_of = |ch: char| match has_glyph(primary, ch) {
+            true => None,
+            false => fallback_face(ch).or(ttf::builtin_face(mono, bold)),
+        };
         let mut start = 0;
         let mut cur: Option<&FontRef> = None;
         for (i, ch) in text.char_indices() {

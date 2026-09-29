@@ -28,9 +28,8 @@ use super::sfnt::square_face;
 const HEAP: usize = 4 << 20;
 const WHITE: u32 = 0xffff_ffff;
 
-/* Draw `text` at 16 px into a white w x h surface with a face that is only
-borrowed here, so the cache is emptied first: returns inked pixels and the
-heap peak of the draw. */
+/* Draw `text` at 16 px into a white w x h surface with a face borrowed here,
+the cache emptied first: returns inked pixels and the heap peak of the draw. */
 fn draw(face: &[u8], (w, h): (u32, u32), text: &str) -> (usize, usize) {
     clear_glyph_cache();
     let f = FontRef::try_from_slice(face).expect("the square face parses");
@@ -55,26 +54,22 @@ fn the_cap_and_the_surface_bound_what_draws_and_allocates() {
     }
 }
 
+/* The hostile face maps no character, so all of them fall back: the run inks
+what the built-in face inks, none of the oversized square, in a small heap. */
 #[test]
-fn a_hostile_page_face_draws_nothing_within_a_small_heap() {
+fn a_hostile_page_face_draws_none_of_its_glyphs_within_a_small_heap() {
     let _one = serial();
-    let key = family_key("Proof Hostile");
-    assert!(fonts::ingest_font(key, square_face(3000)));
-    let mut px = vec![WHITE; 1400 * 1200];
-    let mut fb = PaintBuffer { pixels: &mut px, stride_words: 1400, width: 1400, height: 1200 };
-    let run = TextRun {
-        key,
-        mono: false,
-        bold: false,
-        italic: false,
-        x: 0,
-        top_y: 0,
-        px: 16.0,
-        spacing: 0.0,
+    let hostile = family_key("Proof Hostile");
+    assert!(fonts::ingest_font(hostile, square_face(3000)));
+    let ink = |key| {
+        let mut px = vec![WHITE; 1400 * 1200];
+        let mut fb = PaintBuffer { pixels: &mut px, stride_words: 1400, width: 1400, height: 1200 };
+        let (bold, italic, spacing) = (false, false, 0.0);
+        let run = TextRun { key, mono: false, bold, italic, x: 0, top_y: 40, px: 16.0, spacing };
+        let (_, heap) = measure(|| fonts::draw_text(&mut fb, run, "Hamburgefonstiv", 0xff00_0000));
+        (px.iter().filter(|&&p| p != WHITE).count(), heap.peak)
     };
-    let (_, heap) = measure(|| fonts::draw_text(&mut fb, run, "Hamburgefonstiv", 0xff00_0000));
-    let peak = heap.peak;
+    let ((page, peak), (builtin, _)) = (ink(hostile), ink(0));
     fonts::clear();
-    assert!(peak <= HEAP, "the page face peaked at {peak} heap bytes");
-    assert!(px.iter().all(|&p| p == WHITE), "the page face drew");
+    assert!(peak <= HEAP && builtin > 0 && page == builtin, "peak {peak}, ink {page} vs {builtin}");
 }

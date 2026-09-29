@@ -19,6 +19,7 @@ mod em_units;
 mod ingest;
 mod key;
 mod pick_src;
+mod range;
 mod registry;
 mod run_face;
 mod sfnt_header;

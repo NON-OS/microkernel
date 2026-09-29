@@ -19,12 +19,13 @@ use alloc::vec::Vec;
 
 use super::key::family_key;
 use super::pick_src::pick_src;
+use super::range::covers_latin;
 
-// Every @font-face in the sheet as (family key, source url). Only formats the
-// rasterizer can load are picked; a face whose sources are all unsupported is
-// skipped and its text falls back to the built-in face.
+/* Every @font-face in the sheet as (family key, source url). Only formats the
+ * rasterizer can load are picked; a face whose sources are all unsupported is
+ * skipped and its text falls back to the built-in face. */
 pub fn collect_font_faces(css: &str) -> Vec<(u32, String)> {
-    let mut out: Vec<(u32, String)> = Vec::new();
+    let mut out: Vec<(u32, String, u8)> = Vec::new();
     let mut rest = css;
     while let Some(pos) = rest.find("@font-face") {
         rest = &rest[pos + "@font-face".len()..];
@@ -38,9 +39,9 @@ pub fn collect_font_faces(css: &str) -> Vec<(u32, String)> {
         if key == 0 {
             continue;
         }
-        // Faces split into a regular and a bold slot per family, the CSS bold
-        // threshold at 600. Within a slot the canonical weight wins over
-        // whichever the sheet declared first.
+        /* Faces split into a regular and a bold slot per family, the CSS bold
+         * threshold at 600. Within a slot a face that covers Latin beats a
+         * subset that does not, then the canonical weight beats the first. */
         let weight = match decl_value(body, "font-weight").map(str::trim) {
             Some("bold") => 700,
             Some(w) => w.parse::<u16>().unwrap_or(400),
@@ -48,18 +49,19 @@ pub fn collect_font_faces(css: &str) -> Vec<(u32, String)> {
         };
         let bold = weight >= 600;
         let slot_key = if bold { key | super::text::BOLD_KEY } else { key };
-        let canonical = weight == if bold { 700 } else { 400 };
-        match out.iter_mut().find(|(k, _)| *k == slot_key) {
-            Some(slot) if canonical => slot.1 = url,
+        let latin = covers_latin(decl_value(body, "unicode-range"));
+        let rank = 2 * latin as u8 + (weight == if bold { 700 } else { 400 }) as u8;
+        match out.iter_mut().find(|(k, _, _)| *k == slot_key) {
+            Some(slot) if rank > slot.2 => (slot.1, slot.2) = (url, rank),
             Some(_) => {}
-            None => out.push((slot_key, url)),
+            None => out.push((slot_key, url, rank)),
         }
     }
-    out
+    out.into_iter().map(|(key, url, _)| (key, url)).collect()
 }
 
-// The value of the first `name:` declaration in a rule body. Splitting on the
-// first colon keeps urls inside the value whole.
+/* The value of the first `name:` declaration in a rule body. Splitting on the
+ * first colon keeps urls inside the value whole. */
 fn decl_value<'a>(body: &'a str, name: &str) -> Option<&'a str> {
     for decl in body.split(';') {
         let Some((n, v)) = decl.split_once(':') else { continue };
