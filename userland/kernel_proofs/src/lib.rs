@@ -33,6 +33,8 @@ pub mod fd_fork;
 pub mod idt_vectors;
 #[cfg(test)]
 pub mod iommu_window;
+#[cfg(test)]
+pub mod layout_slots;
 pub mod memory;
 #[cfg(test)]
 pub mod pipe_counts;
