@@ -16,11 +16,12 @@
 
 extern crate alloc;
 
+use crate::fs::procfs::pid_inode::PID_INODE_SHIFT;
 use crate::fs::procfs::types::ProcEntry;
 use alloc::vec::Vec;
 
 pub fn pid_entries(pid: i32) -> Vec<ProcEntry> {
-    let base = (pid as u64) << 20;
+    let base = (pid as u64) << PID_INODE_SHIFT;
     alloc::vec![
         ProcEntry::file("status", base | 1),
         ProcEntry::file("stat", base | 2),

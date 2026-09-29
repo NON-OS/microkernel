@@ -14,16 +14,19 @@ set_option maxRecDepth 2048
 
 namespace nonos_x_procfs_pid_inode
 
+/-- [nonos_x_procfs_pid_inode::pid_inode::PID_INODE_SHIFT]
+    Source: 'src/../../../../../src/fs/procfs/pid_inode.rs', lines 21:0-21:43 -/
+@[global_simps, irreducible] def pid_inode.PID_INODE_SHIFT : Std.U32 := 20#u32
+
 /-- [nonos_x_procfs_pid_inode::pid_inode::pid_dir_inode]:
-    Source: 'src/../../../../../src/fs/procfs/pid_inode.rs', lines 19:0-24:1 -/
+    Source: 'src/../../../../../src/fs/procfs/pid_inode.rs', lines 23:0-28:1 -/
 def pid_inode.pid_dir_inode (pid : Std.I32) : Result (Option Std.U64) := do
-  if pid < 0#i32
+  if pid <= 0#i32
   then ok none
   else
     let i ← lift (IScalar.hcast .U64 pid)
-    let i1 ← i * 1000#u64
-    let i2 ← i1 + 100#u64
-    ok (some i2)
+    let i1 ← i <<< pid_inode.PID_INODE_SHIFT
+    ok (some i1)
 
 /-- [nonos_x_procfs_pid_inode::pid_dir_inode]:
     Source: 'src/lib.rs', lines 11:0-13:1
