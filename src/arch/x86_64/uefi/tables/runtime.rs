@@ -42,7 +42,8 @@ pub struct RuntimeServices {
 }
 
 impl RuntimeServices {
-    // SAFETY: Caller must ensure ptr points to valid RuntimeServices table
+    /** # Safety
+     * The caller must ensure `ptr` is null or points to a valid RuntimeServices table. */
     pub unsafe fn validate(ptr: *const Self) -> Result<(), UefiError> {
         if ptr.is_null() {
             return Err(UefiError::NullPointer { context: "runtime_services" });

@@ -37,7 +37,8 @@ impl TableHeader {
         Ok(())
     }
 
-    // SAFETY: Caller must ensure the raw pointer points to valid memory of at least header_size bytes
+    /** # Safety
+     * The caller must ensure `base` points to at least `header_size` readable bytes. */
     pub unsafe fn verify_crc(&self, base: *const u8) -> Result<(), UefiError> {
         if self.header_size < Self::SIZE as u32 {
             return Err(UefiError::InvalidParameter { param: "header_size" });
