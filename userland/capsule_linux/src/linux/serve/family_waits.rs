@@ -21,8 +21,8 @@ use core::mem;
 use nonos_libc::mk_foreign_reply;
 
 use super::family::Family;
-use super::waits::{attempt, expire};
 use super::waits_fds::watched;
+use super::waits_try::{attempt, expire};
 use crate::linux::call::now_ms;
 use crate::linux::guest::Kind;
 

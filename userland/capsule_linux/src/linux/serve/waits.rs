@@ -23,14 +23,13 @@
 //! deadline (`family_waits`), so the other threads and processes it hosts
 //! keep being served while it waits.
 
-use crate::linux::abi::{errno, nr, nr_path as np};
-use crate::linux::call::{self, now_ms};
-use crate::linux::file;
-use crate::linux::guest::{Blocked, Guest, Kind};
-use crate::linux::net;
+use crate::linux::abi::errno;
+use crate::linux::call::now_ms;
+use crate::linux::guest::{Blocked, Guest};
 
 use super::answer::Answer;
 use super::waits_time::span;
+use super::waits_try::{attempt, expire};
 
 const CLOCK_MONOTONIC: u64 = 1;
 
@@ -51,16 +50,6 @@ pub fn timed(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
     }
 }
 
-/// True for the reads and writes that can wait: a pipe or an eventfd, and
-/// a read of a timer.
-pub fn may_wait(guest: &Guest, nr: u64, fd: u64) -> bool {
-    match guest.fds.get(fd as usize).map(|f| f.kind) {
-        Some(Kind::Event | Kind::Pipe) => true,
-        Some(Kind::Timer) => nr == nr::READ,
-        _ => false,
-    }
-}
-
 /// A read or write that answers EAGAIN waits instead, unless its descriptor
 /// is non-blocking.
 pub fn io(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
@@ -72,31 +61,6 @@ pub fn io(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Answer {
         }
         None => park(guest, wait),
     }
-}
-
-/// The call's answer if it can complete now, None if it would wait.
-pub fn attempt(guest: &mut Guest, wait: &Blocked) -> Option<u64> {
-    let a = wait.args;
-    let again = errno::fail(errno::EAGAIN);
-    match wait.nr {
-        nr::READ => Some(call::read(guest, a[0], a[1], a[2])).filter(|&v| v != again),
-        nr::WRITE => Some(call::write(guest, a[0], a[1], a[2])).filter(|&v| v != again),
-        nr::POLL | np::PPOLL => Some(net::poll(guest, a[0], a[1])).filter(|&v| v != 0),
-        np::SELECT | np::PSELECT6 => {
-            Some(net::select(guest, a[0], [a[1], a[2], a[3]])).filter(|&v| v != 0)
-        }
-        _ => Some(file::epoll_wait(guest, a[0], a[1], a[2])).filter(|&v| v != 0),
-    }
-}
-
-/// What a wait answers when its time runs out with nothing ready: zero, and
-/// a select's sets emptied, as Linux leaves them.
-pub fn expire(guest: &mut Guest, wait: &Blocked) -> u64 {
-    let a = wait.args;
-    if matches!(wait.nr, np::SELECT | np::PSELECT6) {
-        net::select_clear(guest, a[0], [a[1], a[2], a[3]]);
-    }
-    0
 }
 
 fn park(guest: &mut Guest, wait: Blocked) -> Answer {
