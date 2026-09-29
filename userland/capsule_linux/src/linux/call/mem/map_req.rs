@@ -17,6 +17,10 @@
 
 //! What a guest asked `mmap` for, in one value.
 
+use crate::linux::guest::Guest;
+
+const MAP_FIXED: u64 = 0x10;
+
 pub struct MapReq {
     pub addr: u64,
     pub len: u64,
@@ -31,12 +35,11 @@ impl MapReq {
         MapReq { addr: a[0], len: a[1], prot: a[2], flags: a[3], fd: a[4], off: a[5] }
     }
 
-    /// The address the guest named, or nothing when it left the choice
-    /// to this capsule, which is the case the mapping cursor advances on.
-    pub fn fixed(&self) -> Option<u64> {
-        match self.addr {
-            0 => None,
-            addr => Some(crate::linux::guest::page_down(addr)),
-        }
+    /// Make room for a MAP_FIXED mapping at `[at, at + span)`. Linux replaces
+    /// whatever was there: the old pages go and the new mapping starts from
+    /// zeroes with its own protection. Called just before the new pages go in,
+    /// so a mapping refused earlier leaves the old one where it was.
+    pub fn make_room(&self, guest: &mut Guest, at: u64, span: u64) -> bool {
+        self.flags & MAP_FIXED == 0 || guest.unmap(at, span) >= 0
     }
 }

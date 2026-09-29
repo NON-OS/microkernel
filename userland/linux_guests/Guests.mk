@@ -162,6 +162,32 @@ $(LINUX_GUESTS_C)/cunix: $(LINUX_GUESTS_DIR)/c/cunix.c $(wildcard $(LINUX_GUESTS
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cunix,5010,5011,$(LINUX_GUESTS_C)/cunix))
 
+# The memory proofs, one program whose first argument names the proof, so the
+# store carries one binary and one set of proofs for all five:
+#   guardpage  a pthread recursing into its guard page ends on SIGSEGV, 139
+#   protnone   PROT_NONE means no access, and bytes survive a close and reopen
+#   protfork   a fork after mprotect gives the child the protection set now
+#   touchfork  bytes written into a reservation survive a fork; MAP_FIXED
+#              over a written page replaces it with zeroes
+#   memcalls   mmap placement, brk, alignment, mremap, and mlock, msync and
+#              mincore, each against Linux's answer
+MEMPROOF_PARTS := guardpage protnone protfork touchfork memcalls escape
+# Files the proofs share, built as they are: no main of their own.
+MEMPROOF_SHARED := memproof_run memcalls_map memcalls_remap memcalls_lock escape_map escape_exec
+MEMPROOF_SRCS := $(foreach p,memproof $(MEMPROOF_PARTS) $(MEMPROOF_SHARED),\
+	$(LINUX_GUESTS_DIR)/c/$(p).c) $(LINUX_GUESTS_DIR)/c/memproof.h $(LINUX_GUESTS_DIR)/c/memcalls.h $(LINUX_GUESTS_DIR)/c/escape.h
+$(LINUX_GUESTS_C)/memproof: $(MEMPROOF_SRCS)
+	@mkdir -p $(@D)/memproof.o
+	@for p in $(MEMPROOF_PARTS); do \
+		musl-gcc -O2 -c -Dmain=$${p}_main -o $(@D)/memproof.o/$$p.o $(LINUX_GUESTS_DIR)/c/$$p.c || exit 1; \
+	done
+	@for p in $(MEMPROOF_SHARED); do \
+		musl-gcc -O2 -c -o $(@D)/memproof.o/$$p.o $(LINUX_GUESTS_DIR)/c/$$p.c || exit 1; \
+	done
+	@musl-gcc -O2 -static -o $@ $(LINUX_GUESTS_DIR)/c/memproof.c \
+		$(foreach p,$(MEMPROOF_PARTS) $(MEMPROOF_SHARED),$(@D)/memproof.o/$(p).o)
+$(eval $(call LINUX_GUEST,memproof,4980,4981,$(LINUX_GUESTS_C)/memproof))
+
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the
 # normal image, which does not set NONOS_LINUX_GUESTS, still ships them.

@@ -36,7 +36,7 @@ pub fn file(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     if let Some(None) = proved {
         return errno::fail(errno::EPERM);
     }
-    if guest.map(at, span, true, false) < 0 {
+    if !req.make_room(guest, at, span) || guest.map(at, span, true, false) < 0 {
         return errno::fail(errno::ENOMEM);
     }
     if let Some(Some(bytes)) = proved {
@@ -48,7 +48,7 @@ pub fn file(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     if fill_read(guest, req, at) < 0 {
         return errno::fail(errno::EACCES);
     }
-    // Not proved, since nothing asked to run it: it stays that way.
+    /* Not proved, since nothing asked to run it: it stays that way. */
     guest.mark_unproven(at, span);
     finish(guest, req, at, span)
 }
@@ -56,9 +56,6 @@ pub fn file(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
 fn finish(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     if protect_span(guest, at, span, req.prot) < 0 {
         return errno::fail(errno::EACCES);
-    }
-    if req.fixed().is_none() {
-        guest.mmap_next += span;
     }
     errno::ok(at)
 }

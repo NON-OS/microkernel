@@ -21,11 +21,13 @@ use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_PERM};
 
 pub(super) const PAGE: u64 = 4096;
 
-// One call maps or copies at most this much, so a guest image crosses in
-// bounded pieces and no single call holds the processor.
+/*
+ * One call maps or copies at most this much, so a guest image crosses in
+ * bounded pieces and no single call holds the processor.
+ */
 pub(super) const MAX_SPAN: u64 = 1 << 20;
 
-// The first address of the kernel half.
+/* The first address of the kernel half. */
 pub(super) const USER_VA_END: u64 = 0x0000_8000_0000_0000;
 
 /// True when `[addr, addr + len)` lies wholly in the guest's own half.
@@ -38,6 +40,12 @@ pub(super) fn in_user_half(addr: u64, len: u64) -> bool {
 
 pub const PROT_WRITE: u64 = 1 << 0;
 pub const PROT_EXEC: u64 = 1 << 1;
+/*
+ * No access from the guest at all. The page stays present with the user bit
+ * clear, so every guest access faults and the frame keeps its bytes for a
+ * later protection that allows access, as Linux keeps them.
+ */
+pub(super) const PROT_NONE: u64 = 1 << 2;
 
 
 /// The pid a syscall argument names. Refused rather than truncated: `as u32`

@@ -17,29 +17,26 @@
 //! `mremap` when the block cannot grow where it is: moved to fresh pages.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{span_within, Guest, MMAP_LIMIT};
+use crate::linux::guest::{Guest, Region};
 
-const PROT_READ: u64 = 1;
+use super::map_free::free_span;
 
-// A fresh span at the mapping cursor, the old bytes copied in, the old span gone.
-pub(super) fn moved(guest: &mut Guest, old: u64, old_len: u64, new_len: u64, write: bool) -> u64 {
-    let Some((at, span)) = span_within(guest.mmap_next, new_len, MMAP_LIMIT) else {
-        return errno::fail(errno::ENOMEM);
+/// A fresh span at the mapping cursor held like the old one, with the old
+/// protection, backing and provenance; the old bytes copied in; the old span
+/// gone. A move that fails part way leaves nothing new behind.
+pub(super) fn moved(guest: &mut Guest, old: u64, old_len: u64, new_len: u64, like: &Region) -> u64 {
+    let (at, span) = match free_span(guest, new_len) {
+        Ok(got) => got,
+        Err(e) => return errno::fail(e),
     };
-    let Some(bytes) = guest.read(old, old_len as usize) else {
-        return errno::fail(errno::EFAULT);
-    };
-    // Writable while the bytes go in; the old protection after.
-    if guest.map(at, span, true, false) < 0 {
+    if guest.map_like(at, span, like) < 0 {
         return errno::fail(errno::ENOMEM);
     }
-    guest.mmap_next += span;
-    if guest.write(at, &bytes) < bytes.len() as i64 {
+    if like.backed && !guest.copy_within(old, at, old_len) {
+        let _ = guest.unmap(at, span);
         return errno::fail(errno::EFAULT);
-    }
-    if !write {
-        let _ = super::prot::mprotect(guest, at, span, PROT_READ);
     }
     let _ = guest.unmap(old, old_len);
+    guest.mmap_next = at + span;
     errno::ok(at)
 }

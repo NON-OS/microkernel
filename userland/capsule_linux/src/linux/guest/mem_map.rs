@@ -16,36 +16,23 @@
 
 //! Backing a span of a guest with pages.
 
-use nonos_libc::peer::{mk_peer_map, PEER_PROT_EXEC, PEER_PROT_WRITE};
-
 use super::handle::Guest;
 use super::layout::USER_MAX;
-use super::mem::{span_within, MAX_SPAN};
-use super::region::Region;
+use super::mem::span_within;
+use super::mem_span::map_span;
+use super::region::{peer_prot, Region};
 use super::region_cut::cut;
 
 impl Guest {
     /// Pages covering `[addr, addr + len)`.
     pub fn map(&mut self, addr: u64, len: u64, write: bool, exec: bool) -> i64 {
-        // Bounded by the top of the guest's area, which is the stack.
+        /* Bounded by the top of the guest's area, which is the stack. */
         let Some((start, span)) = span_within(addr, len, USER_MAX) else {
             return -1;
         };
-        let mut prot = 0;
-        if write {
-            prot |= PEER_PROT_WRITE;
-        }
-        if exec {
-            prot |= PEER_PROT_EXEC;
-        }
-        let mut done = 0;
-        while done < span {
-            let take = (span - done).min(MAX_SPAN);
-            let rc = mk_peer_map(self.pid, start + done, take, prot);
-            if rc < 0 {
-                return rc;
-            }
-            done += take;
+        let rc = map_span(self.pid, start, span, peer_prot(write, exec, true));
+        if rc < 0 {
+            return rc;
         }
         /*
          * Remembered because fork copies a guest by walking what its
@@ -56,6 +43,7 @@ impl Guest {
             len: span,
             write,
             exec,
+            access: true,
             unproven: false,
             backed: true,
         });
@@ -63,45 +51,24 @@ impl Guest {
     }
 
     /// Back `[at, at + len)` of a reservation with the given protection, the
-    /// commit a fixed mmap makes. Pages the guest has not touched get zeroed
-    /// frames; pages it has touched keep their contents, since peer_map skips
-    /// a page that is already there. The span is then recorded as backed, in
-    /// place of the reservation it came from, so fork copies it.
+    /// commit an mprotect that asks for access makes. The kernel fills no page
+    /// a guest touches on its own, so every page here is new and zeroed. The
+    /// span is then recorded as backed, in place of the reservation it came
+    /// from, so fork copies it.
     pub fn commit(&mut self, at: u64, len: u64, write: bool, exec: bool) -> i64 {
-        let mut prot = 0;
-        if write {
-            prot |= PEER_PROT_WRITE;
-        }
-        if exec {
-            prot |= PEER_PROT_EXEC;
-        }
-        let mut done = 0;
-        while done < len {
-            let take = (len - done).min(MAX_SPAN);
-            let rc = mk_peer_map(self.pid, at + done, take, prot);
-            if rc < 0 {
-                return rc;
-            }
-            done += take;
+        let rc = map_span(self.pid, at, len, peer_prot(write, exec, true));
+        if rc < 0 {
+            return rc;
         }
         self.regions = cut(&self.regions, at, len);
-        self.regions.push(Region { at, len, write, exec, unproven: false, backed: true });
-        0
-    }
-
-    /// Take `len` of address space at `addr` without backing it: a PROT_NONE
-    /// reservation. Bytes appear, zeroed, when the guest first touches them.
-    pub fn reserve(&mut self, addr: u64, len: u64) -> i64 {
-        let Some((start, span)) = span_within(addr, len, USER_MAX) else {
-            return -1;
-        };
         self.regions.push(Region {
-            at: start,
-            len: span,
-            write: true,
-            exec: false,
+            at,
+            len,
+            write,
+            exec,
+            access: true,
             unproven: false,
-            backed: false,
+            backed: true,
         });
         0
     }

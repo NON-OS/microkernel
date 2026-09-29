@@ -34,7 +34,7 @@ mod limits;
 mod limits_table;
 mod glibc;
 mod glibc_sched;
-mod mem;
+pub mod mem;
 mod pipe;
 mod pipe_dup;
 mod pipe_end;

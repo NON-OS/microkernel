@@ -13,9 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Memory calls the Linux x86_64 table has that the first families lacked.
 
-mod cow;
-mod demand;
-mod demand_cap;
-mod demand_refuse;
-mod handler;
+pub const MSYNC: u64 = 26;
+pub const MINCORE: u64 = 27;
+pub const MLOCK: u64 = 149;
+pub const MUNLOCK: u64 = 150;
+pub const MLOCKALL: u64 = 151;
+pub const MUNLOCKALL: u64 = 152;
+pub const MLOCK2: u64 = 325;

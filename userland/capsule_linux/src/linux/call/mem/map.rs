@@ -17,50 +17,43 @@
 //! `mmap`: anonymous pages, or a private mapping of a file.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{span_within, Guest, MMAP_LIMIT, USER_MAX};
+use crate::linux::guest::{Guest, PAGE};
 
-use super::map_anon::{anonymous, memfd};
-use super::map_file::file;
+use super::map_place::place;
 use super::map_req::MapReq;
 use super::prot::wx_refused;
 
-const MAP_SHARED: u64 = 0x01;
-const MAP_ANONYMOUS: u64 = 0x20;
 const MAP_FIXED: u64 = 0x10;
+const MAP_FIXED_NOREPLACE: u64 = 0x10_0000;
 
 pub fn mmap(guest: &mut Guest, req: MapReq) -> u64 {
-    if req.len == 0 {
+    /*
+     * Linux takes a file offset on a page boundary, and an exact address too;
+     * only a hint is rounded.
+     */
+    let exact = req.flags & (MAP_FIXED | MAP_FIXED_NOREPLACE) != 0;
+    if req.len == 0 || req.off % PAGE != 0 || (exact && req.addr % PAGE != 0) {
         return errno::fail(errno::EINVAL);
     }
     if wx_refused(req.prot) {
         return errno::fail(errno::EPERM);
     }
-    // MAP_FIXED is the exact address or failure. Page zero is never in the
-    // plan, and landing elsewhere would hand back memory the guest did not
-    // ask for, so it is refused, as Linux refuses it below mmap_min_addr.
-    if req.flags & MAP_FIXED != 0 && req.addr == 0 {
+    /*
+     * MAP_FIXED and MAP_FIXED_NOREPLACE are the exact address or failure.
+     * Page zero is never in the plan, and landing elsewhere would hand back
+     * memory the guest did not ask for, so it is refused, as Linux refuses it
+     * below mmap_min_addr.
+     */
+    if exact && req.addr == 0 {
         return errno::fail(errno::EPERM);
     }
-    // The ceiling differs by who chose the address.
-    let (at, limit) = match req.fixed() {
-        Some(addr) => (addr, USER_MAX),
-        None => (guest.mmap_next, MMAP_LIMIT),
+    let spot = match place(guest, &req) {
+        Ok(spot) => spot,
+        Err(e) => return errno::fail(e),
     };
-    let Some((at, span)) = span_within(at, req.len, limit) else {
-        return errno::fail(errno::ENOMEM);
-    };
-    if req.flags & MAP_ANONYMOUS != 0 {
-        return anonymous(guest, &req, at, span);
+    let out = super::map_kind::map_at(guest, &req, spot.at, spot.span);
+    if spot.from_cursor && (out as i64) >= 0 {
+        guest.mmap_next = spot.at + spot.span;
     }
-    if crate::linux::file::is_memfd(guest, req.fd) {
-        return memfd(guest, &req, at, span);
-    }
-    if req.flags & MAP_SHARED != 0 {
-        /*
-         * Sharing a file between processes needs frames that two address
-         * spaces both point at, which no peer call offers.
-         */
-        return errno::fail(errno::ENOSYS);
-    }
-    file(guest, &req, at, span)
+    out
 }

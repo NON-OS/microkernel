@@ -14,8 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cow;
-mod demand;
-mod demand_cap;
-mod demand_refuse;
-mod handler;
+//! Backing a span of a guest, a megabyte at a time.
+
+use nonos_libc::peer::mk_peer_map;
+
+use super::mem::MAX_SPAN;
+
+/// `MkPeerMap` over a span, a megabyte at a time.
+pub(super) fn map_span(pid: u32, at: u64, len: u64, prot: u64) -> i64 {
+    let mut done = 0;
+    while done < len {
+        let take = (len - done).min(MAX_SPAN);
+        let rc = mk_peer_map(pid, at + done, take, prot);
+        if rc < 0 {
+            return rc;
+        }
+        done += take;
+    }
+    0
+}

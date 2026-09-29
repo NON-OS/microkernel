@@ -49,12 +49,16 @@ mod links_list;
 mod links_load;
 mod mem;
 mod mem_copy;
+mod mem_like;
 mod mem_map;
+mod mem_reserve;
+mod mem_span;
 mod mem_unmap;
 mod region;
 mod region_cut;
 mod region_find;
 mod region_mark;
+mod region_prot;
 mod threads;
 mod timer;
 mod watch;
@@ -70,6 +74,6 @@ pub use layout::{
     STACK_TOP, USER_MAX,
 };
 pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
-pub use region::Region;
+pub use region::{peer_prot, Region};
 pub use timer::Timer;
 pub use watch::{Watch, EPOLLET, EPOLLONESHOT};
