@@ -26,13 +26,18 @@ to pass here; the 7B tier is two files, both passed.
 
     nonos-data-plan.py IMAGE --volume-sectors N [--import FILE]... [--fresh]
 
+IMAGE is a raw image file or a whole disk; a disk is never resized, and a
+plan that does not fit on it is refused before anything is written.
+
 --fresh zeroes the volume's 256-sector header ring, so the next boot formats
 a new volume instead of opening the last one.
 """
 
 import argparse
 import os
+import stat
 import struct
+import sys
 
 SECTOR = 512
 PLAN_LBA = 65_536
@@ -61,7 +66,13 @@ def main():
     plan = b"NONOSDP1" + struct.pack("<3Q", base, a.volume_sectors, len(entries))
     plan += b"".join(struct.pack("<2Q", lba, size) for _, lba, size in entries)
     with open(a.image, "r+b") as img:
-        if os.path.getsize(a.image) < end * SECTOR:
+        # A disk is sized by seeking to its end and cannot grow; an image
+        # file grows sparsely to hold the plan.
+        size = img.seek(0, os.SEEK_END)
+        if stat.S_ISBLK(os.fstat(img.fileno()).st_mode):
+            if size < end * SECTOR:
+                sys.exit(f"{a.image}: {size} bytes, the plan needs {end * SECTOR}")
+        elif size < end * SECTOR:
             img.truncate(end * SECTOR)
         img.seek(PLAN_LBA * SECTOR)
         img.write(plan.ljust(SECTOR, b"\0"))
