@@ -59,7 +59,12 @@ GO_SUITE_ENTRY = --entry /linux/bin/$(1)=$(linux-guest-$(1)_BIN) \
 # in it. NONOS_LINUX_GO_SUITE_SOURCES=0 leaves them out for a package whose
 # testdata alone nearly fills the 128 entries (runtime).
 NONOS_LINUX_GO_SUITE_SOURCES ?= 1
-GO_SUITE_SOURCES = $(if $(filter 1,$(NONOS_LINUX_GO_SUITE_SOURCES)),$(notdir $(wildcard $(GO_ROOT)/src/$(1)/*_test.go)))
+GO_SUITE_SOURCES = $(if $(filter 1,$(NONOS_LINUX_GO_SUITE_SOURCES)),$(call GO_SUITE_GO,$(1)))
+# Every .go file where they fit, since a test may glob or read the package's
+# other sources (io/fs TestGlob reads glob.go); otherwise only *_test.go (os
+# and syscall have 153 and 298 files against the 128 entries).
+GO_SUITE_ALL = $(notdir $(wildcard $(GO_ROOT)/src/$(1)/*.go))
+GO_SUITE_GO = $(if $(word 100,$(GO_SUITE_ALL)),$(notdir $(wildcard $(GO_ROOT)/src/$(1)/*_test.go)),$(GO_SUITE_ALL))
 GO_SUITE_TESTDATA = $(foreach f,$(shell cd $(GO_ROOT)/src/$(1) && find testdata -type f 2>/dev/null | sort) $(GO_SUITE_SOURCES), \
 	--entry /linux$(GO_ROOT)/src/$(1)/$(f)=$(GO_ROOT)/src/$(1)/$(f))
 LINUX_GUEST_STORE_ENTRIES := $(call GO_SUITE_ENTRY,gostd) \
