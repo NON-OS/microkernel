@@ -39,7 +39,12 @@ pub(in crate::hardware::broker) fn attach(pid: u32, device_id: u64) -> Result<()
                 all.len() - 1
             }
             // The posture on most hardware: said per claim, not only at boot.
-            Err(IommuError::NotInitialized | IommuError::NotSupported) => {
+            Err(
+                IommuError::NotInitialized
+                | IommuError::NotSupported
+                | IommuError::NoIommu
+                | IommuError::AmdViNotDriven,
+            ) => {
                 say(b"unconfined: no remapping unit in service, reaches all memory", pid, address);
                 return Ok(());
             }
