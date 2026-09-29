@@ -26,6 +26,8 @@ pub mod arch;
 pub mod bti_pad;
 pub mod bus;
 pub mod capabilities;
+#[cfg(test)]
+pub mod efi_time;
 pub mod elf;
 #[cfg(test)]
 pub mod fd_fork;
