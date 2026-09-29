@@ -27,7 +27,9 @@ use crate::linux::unix::{self, is_unix};
 pub fn net_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64> {
     let _ = tid;
     Some(match nr {
-        nr::SOCKET => net::socket(guest, a[0], a[1], a[2]),
+        nr::SOCKET => {
+            net::refuse_socket(a[0]).unwrap_or_else(|| net::socket(guest, a[0], a[1], a[2]))
+        }
         nr::SOCKETPAIR => net::socketpair(guest, a[0], a[1], a[2], a[3]),
         nr::CONNECT if is_unix(guest, a[0]) => unix::connect(guest, a[0], a[1], a[2]),
         nr::CONNECT => net::connect(guest, a[0], a[1], a[2]),

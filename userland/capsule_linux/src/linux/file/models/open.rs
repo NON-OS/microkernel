@@ -21,6 +21,7 @@ use crate::linux::guest::{Fd, Guest};
 
 use super::super::flags::{wants_read, O_CREAT};
 use super::super::{desc, slot};
+use super::held::{held, hold};
 use super::name::{owns, volume_name, ROOT};
 use super::size::size_of;
 
@@ -36,6 +37,12 @@ pub fn open(guest: &mut Guest, path: &[u8], flags: u64) -> Option<u64> {
     if flags & 3 != 0 || flags & O_CREAT != 0 {
         return Some(errno::fail(errno::EROFS));
     }
+    /* A family with an internet socket open may not take a model. */
+    if !held() && crate::linux::net::any_inet() {
+        let line: &[u8] = b"[LINUX] refused a model: this family holds an internet socket\n";
+        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+        return Some(errno::fail(errno::EACCES));
+    }
     let size = match size_of(name) {
         Ok(size) => size,
         Err(e) => return Some(errno::fail(e)),
@@ -43,7 +50,10 @@ pub fn open(guest: &mut Guest, path: &[u8], flags: u64) -> Option<u64> {
     let mut fd = Fd::file(path.to_vec(), size, None, false);
     fd.handle = desc::fresh(false, wants_read(flags));
     Some(match slot::install(guest, fd) {
-        Some(n) => errno::ok(n),
+        Some(n) => {
+            hold();
+            errno::ok(n)
+        }
         None => errno::fail(errno::EMFILE),
     })
 }

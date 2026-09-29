@@ -45,6 +45,7 @@ mod msg_hdr;
 mod msg_recv;
 mod name;
 mod named;
+mod offline;
 mod ops;
 mod opt;
 mod pair;
@@ -70,3 +71,4 @@ mod xfer_in;
 mod xfer_out;
 
 pub use api::*;
+pub use offline::{any_inet, refuse_socket};

@@ -22,6 +22,7 @@
  * it is opened, and kept only if its SHA-256 is the pinned one.
  */
 
+mod held;
 mod name;
 mod open;
 mod pinned;
@@ -29,6 +30,7 @@ mod read;
 mod size;
 mod stat;
 
+pub use held::held;
 pub use open::open;
 pub use read::read;
 pub use stat::stat;

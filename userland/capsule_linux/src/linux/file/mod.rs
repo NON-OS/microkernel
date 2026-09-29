@@ -45,7 +45,7 @@ mod memfd;
 mod memfd_map;
 mod meta;
 mod mknod;
-mod models;
+pub mod models;
 mod open;
 mod owner;
 mod path;

@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-//! A guest's console output, carried to the host's log.
+//! A guest's console output, carried to the host's log, or only to its
+//! launcher once the family holds a model.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
@@ -39,15 +40,27 @@ pub(super) fn console(guest: &Guest, buf: u64, len: u64) -> u64 {
         return errno::ok(0);
     }
     let take = len.min(MAX_IO);
-    let Some(bytes) = guest.read(buf, take as usize) else {
+    let Some(mut bytes) = guest.read(buf, take as usize) else {
         return errno::fail(errno::EFAULT);
     };
+    /*
+     * A family holding a model writes what a model is shown and says; that
+     * goes to the launcher's inbox only, and this copy is zeroed after.
+     */
+    let private = crate::linux::file::models::held();
     let mut done = 0;
     for piece in bytes.chunks(MAX_LINE) {
-        if nonos_libc::mk_debug(piece.as_ptr(), piece.len()) < 0 {
+        let took = match private {
+            true => nonos_libc::mk_private_write(piece),
+            false => nonos_libc::mk_debug(piece.as_ptr(), piece.len()) as i64,
+        };
+        if took < 0 {
             break;
         }
         done += piece.len();
+    }
+    if private {
+        bytes.fill(0);
     }
     match done {
         0 => errno::fail(errno::EIO),
