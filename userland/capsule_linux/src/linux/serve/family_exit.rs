@@ -27,8 +27,9 @@ use crate::linux::file;
 
 impl Family {
     /*
-     * A process about to exit: what it used goes to its parent's
-     * RUSAGE_CHILDREN once waited for, its POSIX locks go, and every file
+     * A process about to exit: what it used, with all that the children it
+     * waited for used, goes to its parent's RUSAGE_CHILDREN once waited
+     * for, as Linux adds them; its POSIX locks go, and every file
      * the family is writing reaches the store, as the exit's closes would.
      */
     pub(super) fn note_exit(&self, i: usize, frame: &ForeignFrame) {
@@ -43,6 +44,8 @@ impl Family {
         let kids = file::cpu::children(g.pid, |c| !g.children.contains(&c));
         used.user += kids.user;
         used.system += kids.system;
+        used.faults += kids.faults;
+        used.switches += kids.switches;
         file::cpu::ended(g.pid, parent, used);
         file::locks_exiting(g.pid);
         let _ = file::flush_all();
