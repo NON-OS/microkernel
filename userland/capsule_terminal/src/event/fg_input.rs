@@ -18,7 +18,7 @@
 
 use nonos_vt::{MouseMode, Term};
 
-use crate::jobs::JobWork;
+use crate::jobs::{JobWork, EOT};
 use crate::term::state::State;
 
 pub fn reads_raw(vt: &Term) -> bool {
@@ -30,10 +30,17 @@ pub fn reads_raw(vt: &Term) -> bool {
 pub fn send(state: &mut State, bytes: &[u8]) -> bool {
     let Some(id) = state.jobs.foreground() else { return false };
     match state.jobs.get_mut(id).map(|j| &mut j.work) {
-        Some(JobWork::ExternalStage { in_buf, .. }) => {
-            in_buf.extend_from_slice(bytes);
-            true
-        }
+        Some(JobWork::ExternalStage { stdin, .. }) => stdin.push(bytes),
+        _ => false,
+    }
+}
+
+/// Ctrl+D on an empty line: end the foreground program's input, when it is
+/// one that hears a lone 0x04 as the end. False when it is not.
+pub(super) fn end_input(state: &mut State) -> bool {
+    let Some(id) = state.jobs.foreground() else { return false };
+    match state.jobs.get_mut(id).map(|j| &mut j.work) {
+        Some(JobWork::ExternalStage { stdin, .. }) if stdin.hears_eot => stdin.push(&[EOT]),
         _ => false,
     }
 }

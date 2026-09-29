@@ -14,22 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use nonos_libc::{mk_proc_output, mk_wait};
 
+use super::external_io::{drain_remaining, TICK_BUDGET};
+use super::stdin_queue::StdinQueue;
 use crate::command::output::Output;
-use super::external_io::{drain_remaining, feed_stdin, TICK_BUDGET};
 use crate::jobs::JobProgress;
 
 const ERRNO_TIMEDOUT: i64 = -110;
-pub fn step_external(
-    pid: u32,
-    in_buf: &mut Vec<u8>,
-    in_cursor: &mut usize,
-    out: &mut Output<'_>,
-) -> JobProgress {
-    feed_stdin(pid, in_buf, in_cursor);
+pub fn step_external(pid: u32, stdin: &mut StdinQueue, out: &mut Output<'_>) -> JobProgress {
+    stdin.feed(pid);
     let mut buf = [0u8; 256];
     let mut taken = 0;
     while taken < TICK_BUDGET {
@@ -45,7 +39,10 @@ pub fn step_external(
      * What the program asked the terminal (its cursor position, its
      * identity) is answered on its stdin, as a tty answers.
      */
-    in_buf.extend_from_slice(&out.take_replies());
+    let replies = out.take_replies();
+    if !replies.is_empty() {
+        let _ = stdin.push(&replies);
+    }
     let status = mk_wait(pid as u64, 0);
     if status == ERRNO_TIMEDOUT {
         return JobProgress::Running;

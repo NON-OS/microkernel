@@ -21,7 +21,7 @@ use nonos_app_skeleton::EventOutcome;
 use nonos_vt::input::{Key, Mods};
 
 use super::cooked::Effect;
-use super::fg_input::send;
+use super::fg_input::{end_input, send};
 use super::interrupt::interrupt;
 use crate::term::state::State;
 
@@ -35,10 +35,15 @@ pub(super) fn cooked(state: &mut State, key: Key, m: Mods) -> EventOutcome {
             'w' => state.cooked.kill_word(&mut fx),
             'd' if state.cooked.line.is_empty() => {
                 /*
-                 * There is no end-of-input for a NONOS program's stdin yet;
-                 * saying so beats a key that silently does nothing.
+                 * A program run through the Linux personality hears a lone
+                 * 0x04 as end of input. A NONOS program has no end-of-input
+                 * on its stdin yet; saying so beats a key that silently does
+                 * nothing.
                  */
-                fx.echo.extend_from_slice(b"^D (end of input is not delivered to this program)\n");
+                if !end_input(state) {
+                    fx.echo
+                        .extend_from_slice(b"^D (end of input is not delivered to this program)\n");
+                }
             }
             _ => return EventOutcome::Idle,
         },

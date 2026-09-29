@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use crate::command::builtin::nox::install::InstallJob;
 use crate::command::builtin::ping::{emit_probe, PingJob};
 use crate::command::output::Output;
 
 use super::pipeline_job::PipelineJob;
+use super::stdin_queue::StdinQueue;
 use super::table::JobProgress;
 
 // The step machine for long-running command kinds, one variant per kind,
@@ -36,7 +35,7 @@ pub enum JobWork {
     Ping(PingJob),
     InstallDrain(InstallJob),
     PipelineStages(PipelineJob),
-    ExternalStage { pid: u32, in_buf: Vec<u8>, in_cursor: usize },
+    ExternalStage { pid: u32, stdin: StdinQueue },
 }
 
 // Step a job's work by one bounded slice. A cancelled job is finished
@@ -44,6 +43,16 @@ pub enum JobWork {
 // interrupted rather than letting the underlying poll run to completion.
 pub fn step(work: &mut JobWork, out: &mut Output<'_>, cancel: bool) -> JobProgress {
     if cancel {
+        /*
+         * A program stopped by Ctrl+C never gets to undo the screen modes it
+         * set, the alternate screen, a hidden cursor, a colour left on: it
+         * ends here the way a program that exits on its own ends. What it
+         * wrote after the key is dropped, as a tty drops it on an interrupt.
+         */
+        if let JobWork::ExternalStage { pid, .. } = work {
+            super::external_io::discard_output(*pid);
+            out.program_ended();
+        }
         out.writeln(b"interrupted");
         return JobProgress::Done(130);
     }
@@ -57,9 +66,7 @@ pub fn step(work: &mut JobWork, out: &mut Output<'_>, cancel: bool) -> JobProgre
             }
         },
         JobWork::InstallDrain(job) => job.step_once(out),
-        JobWork::ExternalStage { pid, in_buf, in_cursor } => {
-            super::external::step_external(*pid, in_buf, in_cursor, out)
-        }
+        JobWork::ExternalStage { pid, stdin } => super::external::step_external(*pid, stdin, out),
         JobWork::PipelineStages(_) => JobProgress::Running,
     }
 }
