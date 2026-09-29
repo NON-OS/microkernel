@@ -17,7 +17,11 @@
 pub(in crate::userspace::init::spawn_plan) fn spawn() {
     super::spawn_core::spawn_core();
     super::spawn_legacy_stack::spawn_legacy_stack();
+    // Both onion transports register before the SOCKS front end, which resolves
+    // whichever one it is told to use and would otherwise spin on a service that
+    // has not appeared yet.
     super::spawn_nym::spawn_nym();
+    super::spawn_anon::spawn_anon();
     super::spawn_sockets::spawn_sockets();
     // After net.nym: the SOCKS front end resolves it at startup and would
     // otherwise spin waiting for a service that has not registered yet.
