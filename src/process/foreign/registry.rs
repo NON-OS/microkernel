@@ -20,6 +20,8 @@ use alloc::vec::Vec;
 
 use spin::RwLock;
 
+use crate::process::signal::constants::SIGKILL;
+
 struct Entry {
     pid: u32,
     supervisor: u32,
@@ -57,7 +59,9 @@ pub fn clear(pid: u32) {
     // Both directions go, not just this process's own row.
     FOREIGN.write().retain(|e| e.pid != pid && e.supervisor != pid);
     for guest in orphans {
-        super::trap_reply::abandon(guest);
+        /* As its supervisor's MkKill would: only released from its call, a
+         * guest spun on in its own code, or looped on exit, unanswered. */
+        crate::process::exit::teardown(guest, 128 + i32::from(SIGKILL), true);
     }
     /*
      * A guest that died while parked leaves its frame behind, and

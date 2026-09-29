@@ -60,13 +60,3 @@ pub(super) fn forget(pid: u32) {
     PARKED.lock().retain(|p| p.frame.pid != pid);
     super::signal_fpu::forget(pid);
 }
-
-/// Release every frame belonging to a guest whose supervisor has gone.
-pub(super) fn abandon(pid: u32) {
-    let mut parked = PARKED.lock();
-    for entry in parked.iter_mut().filter(|p| p.frame.pid == pid) {
-        entry.answer = Some(Answer::Value(ABANDONED));
-    }
-    drop(parked);
-    crate::sched::wake_process(pid);
-}
