@@ -126,6 +126,8 @@ $(eval $(call LINUX_GUEST,cthreads,4974,4975,$(LINUX_GUESTS_C)/cthreads))
 
 # Process lifecycle and signals, each against Linux; see LifeGuests.mk.
 include $(LINUX_GUESTS_DIR)/LifeGuests.mk
+# Qwen, pinned by the personality, checked token for token; see QwenGuest.mk.
+include $(LINUX_GUESTS_DIR)/QwenGuest.mk
 # Waiting as Linux waits: futex timeouts and requeue, eventfd, epoll_wait's
 # timeout and wake, a non-blocking pipe, a full pipe, and edge-triggered epoll.
 $(LINUX_GUESTS_C)/cwait: $(LINUX_GUESTS_DIR)/c/cwait.c
