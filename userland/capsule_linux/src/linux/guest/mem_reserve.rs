@@ -47,8 +47,9 @@ impl Guest {
             }
             done += take;
         }
+        let kept = self.span_kept(at, len);
         self.regions = cut(&self.regions, at, len);
-        self.regions.push(Region::new(at, len, write, exec, true));
+        self.regions.push(Region { kept, ..Region::new(at, len, write, exec, true) });
         0
     }
 

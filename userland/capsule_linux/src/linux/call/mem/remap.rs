@@ -52,6 +52,9 @@ pub fn mremap(guest: &mut Guest, old: u64, old_len: u64, new_len: u64, flags: u6
         && guest.map(tail, grow, r.write, false) >= 0
     {
         guest.mmap_next = guest.mmap_next.max(tail + grow);
+        if guest.span_kept(old, old_len) {
+            guest.mark_kept(tail, grow);
+        }
         return errno::ok(old);
     }
     if flags & MAYMOVE == 0 {
