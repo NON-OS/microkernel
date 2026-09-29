@@ -16,18 +16,17 @@
 
 //! Backing a span of a guest with pages.
 
-use nonos_libc::peer::mk_peer_map;
-
 use super::handle::Guest;
 use super::layout::USER_MAX;
-use super::mem::{span_within, MAX_SPAN};
+use super::mem::span_within;
+use super::mem_span::map_span;
 use super::region::{peer_prot, Region};
 use super::region_cut::cut;
 
 impl Guest {
     /// Pages covering `[addr, addr + len)`.
     pub fn map(&mut self, addr: u64, len: u64, write: bool, exec: bool) -> i64 {
-        // Bounded by the top of the guest's area, which is the stack.
+        /* Bounded by the top of the guest's area, which is the stack. */
         let Some((start, span)) = span_within(addr, len, USER_MAX) else {
             return -1;
         };
@@ -73,37 +72,4 @@ impl Guest {
         });
         0
     }
-
-    /// Take `len` of address space at `addr` without backing it: a PROT_NONE
-    /// reservation. No page exists until a commit maps one; a touch before
-    /// that is a fault, as it is on Linux.
-    pub fn reserve(&mut self, addr: u64, len: u64) -> i64 {
-        let Some((start, span)) = span_within(addr, len, USER_MAX) else {
-            return -1;
-        };
-        self.regions.push(Region {
-            at: start,
-            len: span,
-            write: false,
-            exec: false,
-            access: false,
-            unproven: false,
-            backed: false,
-        });
-        0
-    }
-}
-
-/// `MkPeerMap` over a span, a megabyte at a time.
-pub(super) fn map_span(pid: u32, at: u64, len: u64, prot: u64) -> i64 {
-    let mut done = 0;
-    while done < len {
-        let take = (len - done).min(MAX_SPAN);
-        let rc = mk_peer_map(pid, at + done, take, prot);
-        if rc < 0 {
-            return rc;
-        }
-        done += take;
-    }
-    0
 }

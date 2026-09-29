@@ -33,7 +33,7 @@ mod limits;
 mod limits_table;
 mod glibc;
 mod glibc_sched;
-mod mem;
+pub mod mem;
 mod pipe;
 mod pipe_dup;
 mod pipe_end;
@@ -65,9 +65,7 @@ pub use life::{exit, exit_thread, set_tid_address};
 pub use limits::{getrlimit, prlimit64};
 pub use glibc::prctl;
 pub use glibc_sched::{clone3, getcpu, membarrier, sched_getaffinity};
-pub use mem::{
-    brk, mincore, mlock, mlock2, mlockall, mmap, mprotect, mremap, msync, munmap, MapReq,
-};
+pub use mem::{brk, mmap, mprotect, mremap, munmap, MapReq};
 pub use pipe::pipe2;
 pub use pipe_dup::{dup, dup2};
 pub use pipe_io::write as pipe_write;

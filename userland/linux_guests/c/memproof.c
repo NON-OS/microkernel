@@ -1,8 +1,10 @@
-// The memory proofs as one program, so the test store carries one binary and
-// one set of proofs for all of them instead of one per proof: the store has a
-// fixed load budget and each proof set is most of a guest's size there. The
-// first argument names the proof; each is its own file, built with its main
-// renamed, and runs exactly as it would as a program of its own.
+/*
+ * The memory proofs as one program, so the test store carries one binary and
+ * one set of proofs for all of them instead of one per proof: the store has a
+ * fixed load budget and each proof set is most of a guest's size there. The
+ * first argument names the proof; each is its own file, built with its main
+ * renamed, and runs exactly as it would as a program of its own.
+ */
 #include <stdio.h>
 #include <string.h>
 

@@ -129,13 +129,20 @@ $(eval $(call LINUX_GUEST,cwait,4978,4979,$(LINUX_GUESTS_C)/cwait))
 #   memcalls   mmap placement, brk, alignment, mremap, and mlock, msync and
 #              mincore, each against Linux's answer
 MEMPROOF_PARTS := guardpage protnone protfork touchfork memcalls
-$(LINUX_GUESTS_C)/memproof: $(LINUX_GUESTS_DIR)/c/memproof.c \
-		$(foreach p,$(MEMPROOF_PARTS),$(LINUX_GUESTS_DIR)/c/$(p).c)
+# Files the proofs share, built as they are: no main of their own.
+MEMPROOF_SHARED := memproof_run memcalls_map memcalls_remap memcalls_lock
+MEMPROOF_SRCS := $(foreach p,memproof $(MEMPROOF_PARTS) $(MEMPROOF_SHARED),\
+	$(LINUX_GUESTS_DIR)/c/$(p).c) $(LINUX_GUESTS_DIR)/c/memproof.h $(LINUX_GUESTS_DIR)/c/memcalls.h
+$(LINUX_GUESTS_C)/memproof: $(MEMPROOF_SRCS)
 	@mkdir -p $(@D)/memproof.o
 	@for p in $(MEMPROOF_PARTS); do \
 		musl-gcc -O2 -c -Dmain=$${p}_main -o $(@D)/memproof.o/$$p.o $(LINUX_GUESTS_DIR)/c/$$p.c || exit 1; \
 	done
-	@musl-gcc -O2 -static -o $@ $< $(foreach p,$(MEMPROOF_PARTS),$(@D)/memproof.o/$(p).o)
+	@for p in $(MEMPROOF_SHARED); do \
+		musl-gcc -O2 -c -o $(@D)/memproof.o/$$p.o $(LINUX_GUESTS_DIR)/c/$$p.c || exit 1; \
+	done
+	@musl-gcc -O2 -static -o $@ $(LINUX_GUESTS_DIR)/c/memproof.c \
+		$(foreach p,$(MEMPROOF_PARTS) $(MEMPROOF_SHARED),$(@D)/memproof.o/$(p).o)
 $(eval $(call LINUX_GUEST,memproof,4980,4981,$(LINUX_GUESTS_C)/memproof))
 
 # The Linux-guest test store is about guests, not the desktop's media and demo

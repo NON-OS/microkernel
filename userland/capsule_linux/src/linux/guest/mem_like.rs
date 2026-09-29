@@ -19,7 +19,7 @@
 
 use super::handle::Guest;
 use super::mem::MAX_SPAN;
-use super::mem_map::map_span;
+use super::mem_span::map_span;
 use super::region::Region;
 
 impl Guest {

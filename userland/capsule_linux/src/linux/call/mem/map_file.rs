@@ -48,7 +48,7 @@ pub fn file(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     if fill_read(guest, req, at) < 0 {
         return errno::fail(errno::EACCES);
     }
-    // Not proved, since nothing asked to run it: it stays that way.
+    /* Not proved, since nothing asked to run it: it stays that way. */
     guest.mark_unproven(at, span);
     finish(guest, req, at, span)
 }

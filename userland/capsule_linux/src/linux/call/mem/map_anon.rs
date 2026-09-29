@@ -47,10 +47,12 @@ pub fn anonymous(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     if !req.make_room(guest, at, span) {
         return errno::fail(errno::ENOMEM);
     }
-    // A PROT_NONE anonymous mapping is a reservation: the runtime that makes it
-    // (Go's, for one) commits a fraction of it later with a fixed RW mapping.
-    // Backing the whole span here would spend real frames on address space no
-    // one may touch, so reserve it; a commit maps the part that is opened.
+    /*
+     * A PROT_NONE anonymous mapping is a reservation: the runtime that makes it
+     * (Go's, for one) commits a fraction of it later with a fixed RW mapping.
+     * Backing the whole span here would spend real frames on address space no
+     * one may touch, so reserve it; a commit maps the part that is opened.
+     */
     let backed = if req.prot == 0 {
         guest.reserve(at, span)
     } else {

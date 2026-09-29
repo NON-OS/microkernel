@@ -23,8 +23,10 @@ use nonos_libc::peer::{mk_peer_map, mk_peer_write};
 pub(super) fn copy_spans(guest: &mut Guest, child: u32) -> bool {
     let spans = guest.regions.clone();
     for span in spans {
-        // An unbacked reservation has no frames to copy; the child holds the
-        // same reservation, and a touch there faults in the child as here.
+        /*
+         * An unbacked reservation has no frames to copy; the child holds the
+         * same reservation, and a touch there faults in the child as here.
+         */
         if !span.backed {
             continue;
         }

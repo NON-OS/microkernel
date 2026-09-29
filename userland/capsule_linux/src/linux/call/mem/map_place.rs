@@ -21,7 +21,7 @@
 //! laid over an old one would hand back the old pages.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{page_up, span_within, Guest, MMAP_LIMIT, USER_MAX};
+use crate::linux::guest::{page_up, span_within, Guest, USER_MAX};
 
 use super::map_req::MapReq;
 
@@ -45,7 +45,7 @@ pub fn place(guest: &Guest, req: &MapReq) -> Result<Place, i64> {
         }
         return Ok(exact((at, span)));
     }
-    // Linux rounds a hint up to a page.
+    /* Linux rounds a hint up to a page. */
     if req.addr != 0 {
         if let Some(got) = span_within(page_up(req.addr), req.len, USER_MAX) {
             if !guest.overlaps(got.0, got.1) {
@@ -53,26 +53,6 @@ pub fn place(guest: &Guest, req: &MapReq) -> Result<Place, i64> {
             }
         }
     }
-    let (at, span) = free_span(guest, req.len)?;
+    let (at, span) = super::map_free::free_span(guest, req.len)?;
     Ok(Place { at, span, from_cursor: true })
-}
-
-/// The first span of `len` at or above the mapping cursor that meets
-/// nothing the guest holds.
-pub fn free_span(guest: &Guest, len: u64) -> Result<(u64, u64), i64> {
-    let mut at = guest.mmap_next;
-    loop {
-        let (start, span) = span_within(at, len, MMAP_LIMIT).ok_or(errno::ENOMEM)?;
-        let end = start + span;
-        let past = guest
-            .regions
-            .iter()
-            .filter(|r| r.at < end && start < r.at.saturating_add(r.len))
-            .map(|r| r.at.saturating_add(r.len))
-            .max();
-        match past {
-            None => return Ok((start, span)),
-            Some(next) => at = page_up(next),
-        }
-    }
 }

@@ -36,7 +36,7 @@ pub fn msync(guest: &Guest, addr: u64, len: u64, flags: u64) -> u64 {
     let Some(end) = addr.checked_add(page_up(len)).filter(|_| len <= u64::MAX - PAGE) else {
         return errno::fail(errno::ENOMEM);
     };
-    // Linux reports a span with a page nothing maps as ENOMEM.
+    /* Linux reports a span with a page nothing maps as ENOMEM. */
     if end > addr && guest.mapped_from(addr) < end - addr {
         return errno::fail(errno::ENOMEM);
     }

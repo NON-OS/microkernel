@@ -1,10 +1,12 @@
-// A pthread recurses until it walks off the bottom of its stack. musl reserves
-// each thread stack with PROT_NONE and opens all but the lowest part with
-// mprotect, so the part it leaves closed is the guard. On Linux the first touch
-// of the guard is SIGSEGV, which ends the whole process with status 139. The
-// recursion stops by itself 64 KiB below the guard, so a guard that guards
-// nothing prints the FAIL line with how far it ran; no PASS line exists, since
-// the only correct outcome is that the process does not get to print one.
+/*
+ * A pthread recurses until it walks off the bottom of its stack. musl reserves
+ * each thread stack with PROT_NONE and opens all but the lowest part with
+ * mprotect, so the part it leaves closed is the guard. On Linux the first touch
+ * of the guard is SIGSEGV, which ends the whole process with status 139. The
+ * recursion stops by itself 64 KiB below the guard, so a guard that guards
+ * nothing prints the FAIL line with how far it ran; no PASS line exists, since
+ * the only correct outcome is that the process does not get to print one.
+ */
 #define _GNU_SOURCE
 #include <pthread.h>
 #include <stdint.h>
@@ -12,15 +14,13 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "memproof.h"
+
 #define FRAME 1024
 #define PAST (64 * 1024)
 
 static uintptr_t lo;
 static uintptr_t deepest;
-
-static void say(const char *s) {
-    write(1, s, strlen(s));
-}
 
 static unsigned dive(unsigned depth) {
     volatile char frame[FRAME];

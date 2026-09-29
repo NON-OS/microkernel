@@ -23,13 +23,17 @@ mod map_anon;
 mod map_exec;
 mod map_file;
 mod map_fill;
+mod map_free;
+mod map_kind;
 mod map_place;
 mod map_req;
 mod memory;
 mod prot;
 mod prot_span;
+mod prot_walk;
 mod remap;
 mod remap_move;
+mod remap_one;
 mod resident;
 mod sync;
 

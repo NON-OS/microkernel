@@ -19,7 +19,7 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Region};
 
-use super::map_place::free_span;
+use super::map_free::free_span;
 
 /// A fresh span at the mapping cursor held like the old one, with the old
 /// protection, backing and provenance; the old bytes copied in; the old span

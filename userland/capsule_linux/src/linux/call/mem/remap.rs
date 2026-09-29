@@ -18,12 +18,12 @@
 //! or move with MREMAP_MAYMOVE. glibc's realloc of a large block is this.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{page_up, span_within, Guest, Region, PAGE, USER_MAX};
+use crate::linux::guest::{page_up, span_within, Guest, PAGE, USER_MAX};
 
 const MAYMOVE: u64 = 1;
 
 pub fn mremap(guest: &mut Guest, old: u64, old_len: u64, new_len: u64, flags: u64) -> u64 {
-    // MREMAP_FIXED and DONTUNMAP choose the destination; neither is offered.
+    /* MREMAP_FIXED and DONTUNMAP choose the destination; neither is offered. */
     if flags & !MAYMOVE != 0 || old % PAGE != 0 || old_len == 0 || new_len == 0 {
         return errno::fail(errno::EINVAL);
     }
@@ -31,11 +31,11 @@ pub fn mremap(guest: &mut Guest, old: u64, old_len: u64, new_len: u64, flags: u6
     let Some(r) = guest.regions.iter().find(|r| r.at <= old && old < r.at + r.len).copied() else {
         return errno::fail(errno::EFAULT);
     };
-    // Linux moves one mapping at a time: the old span must lie inside one.
-    if !one_mapping(guest, old, old_len, &r) {
+    /* Linux moves one mapping at a time: the old span must lie inside one. */
+    if !super::remap_one::one_mapping(guest, old, old_len, &r) {
         return errno::fail(errno::EFAULT);
     }
-    // Code was proved where it was mapped; a moved copy would not be.
+    /* Code was proved where it was mapped; a moved copy would not be. */
     if r.exec {
         return errno::fail(errno::EPERM);
     }
@@ -47,7 +47,7 @@ pub fn mremap(guest: &mut Guest, old: u64, old_len: u64, new_len: u64, flags: u6
     }
     let tail = old + old_len;
     let grow = new_len - old_len;
-    // The grown part is the same mapping: its protection, its backing.
+    /* The grown part is the same mapping: its protection, its backing. */
     if !guest.overlaps(tail, grow)
         && span_within(tail, grow, USER_MAX).is_some()
         && guest.map_like(tail, grow, &r) >= 0
@@ -58,23 +58,4 @@ pub fn mremap(guest: &mut Guest, old: u64, old_len: u64, new_len: u64, flags: u6
         return errno::fail(errno::ENOMEM);
     }
     super::remap_move::moved(guest, old, old_len, new_len, &r)
-}
-
-/// Every page of `[at, at + len)` is held with the same protection, backing
-/// and provenance as `like`, which is what Linux keeps as one mapping.
-fn one_mapping(guest: &Guest, at: u64, len: u64, like: &Region) -> bool {
-    let end = at + len;
-    let mut reach = at;
-    while reach < end {
-        let Some(r) = guest.regions.iter().find(|r| r.at <= reach && reach < r.at + r.len) else {
-            return false;
-        };
-        let same = (r.write, r.exec, r.access, r.backed, r.unproven)
-            == (like.write, like.exec, like.access, like.backed, like.unproven);
-        if !same {
-            return false;
-        }
-        reach = r.at + r.len;
-    }
-    true
 }

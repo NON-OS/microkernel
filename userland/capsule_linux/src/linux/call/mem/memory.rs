@@ -29,16 +29,18 @@ pub fn brk(guest: &mut Guest, want: u64) -> u64 {
     if want == 0 || want < BRK_BASE || want > BRK_LIMIT {
         return errno::ok(guest.brk);
     }
-    // Whole pages: the page the old break sits in is already held.
+    /* Whole pages: the page the old break sits in is already held. */
     let (old, top) = (page_up(guest.brk), page_up(want));
     if top > old {
-        // Linux refuses a break that would run into a mapping.
+        /* Linux refuses a break that would run into a mapping. */
         if guest.overlaps(old, top - old) || guest.map(old, top - old, true, false) < 0 {
             return errno::ok(guest.brk);
         }
     }
-    // A lower break gives the pages above it back, so growing again reads
-    // zeroes, as on Linux.
+    /*
+     * A lower break gives the pages above it back, so growing again reads
+     * zeroes, as on Linux.
+     */
     if top < old && guest.unmap(top, old - top) < 0 {
         return errno::ok(guest.brk);
     }
@@ -48,7 +50,7 @@ pub fn brk(guest: &mut Guest, want: u64) -> u64 {
 
 /// The pages go back to the kernel and leave the guest's region list.
 pub fn munmap(guest: &mut Guest, addr: u64, len: u64) -> u64 {
-    // Linux takes an address on a page boundary, and rounds only the length.
+    /* Linux takes an address on a page boundary, and rounds only the length. */
     if len == 0 || addr % PAGE != 0 {
         return errno::fail(errno::EINVAL);
     }
