@@ -25,9 +25,9 @@
       "bv_decide_calls": 12,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 980,
-        "proven": 980,
-        "substantive": 335,
+        "extracted": 981,
+        "proven": 981,
+        "substantive": 336,
         "trivial": 645,
         "unproven": 0
       },
@@ -751,6 +751,7 @@
         "nonos_x_process_signal_set_groups::signalset_realtime_signals",
         "nonos_x_process_signal_set_groups::signalset_standard_signals",
         "nonos_x_process_signal_set_groups::signalset_uncatchable",
+        "nonos_x_procfs_pid_inode::pid_dir_inode",
         "nonos_x_procfs_types::procinode_for_pid",
         "nonos_x_procfs_types::procinode_root",
         "nonos_x_random_api_entropy_check::required_entropy_bytes",
@@ -1778,6 +1779,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/ProcessSignalSetGroups.lean",
           "sha256": "11494ebf22027d81548698e85134d1e1806f51501c7ce6dc800254aa343e13b5"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/ProcfsPidInode.lean",
+          "sha256": "1b18d3829f705cbfa486457ec1265632285ab7f63a553f23d5f13869635417d4"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ProcfsTypes.lean",

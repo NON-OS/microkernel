@@ -17,6 +17,7 @@
 extern crate alloc;
 
 use super::pid::pid_entries;
+use super::pid_inode::pid_dir_inode;
 use super::root::procfs_root_entries;
 use super::types::{ProcEntry, ProcEntryType, ProcInode};
 use alloc::string::String;
@@ -41,8 +42,9 @@ fn lookup_root(name: &str) -> Option<ProcInode> {
             subpath: String::from("self"),
         });
     }
-    if let Ok(pid) = name.parse::<i32>() {
-        return Some(ProcInode::for_pid(pid as u64 * 1000 + 100, pid));
+    if name.bytes().all(|b| b.is_ascii_digit()) {
+        let pid = name.parse::<i32>().ok()?;
+        return Some(ProcInode::for_pid(pid_dir_inode(pid)?, pid));
     }
     let entries = procfs_root_entries();
     entries.iter().find(|e| e.name == name).map(|e| ProcInode::new_file(e.inode, &e.name))
@@ -63,7 +65,9 @@ pub fn procfs_readdir(inode: &ProcInode) -> Vec<ProcEntry> {
         let mut entries = procfs_root_entries();
         entries.insert(0, ProcEntry::symlink("self", 2));
         for pid in get_active_pids() {
-            entries.push(ProcEntry::directory(&alloc::format!("{}", pid), pid as u64 * 1000 + 100));
+            if let Some(ino) = pid_dir_inode(pid) {
+                entries.push(ProcEntry::directory(&alloc::format!("{}", pid), ino));
+            }
         }
         return entries;
     }
