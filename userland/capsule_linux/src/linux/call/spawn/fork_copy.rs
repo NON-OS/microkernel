@@ -16,7 +16,7 @@
 
 //! Copying a parent's spans into the child it just made.
 
-use crate::linux::guest::{Guest, Region};
+use crate::linux::guest::{Guest, Region, MAX_SPAN};
 use nonos_libc::peer::{mk_peer_map, mk_peer_write, PEER_PROT_EXEC, PEER_PROT_WRITE};
 
 /// Every span, mapped into the child and then filled from the parent.
@@ -28,11 +28,19 @@ pub(super) fn copy_spans(guest: &mut Guest, child: u32) -> bool {
         if !span.backed {
             continue;
         }
-        if mk_peer_map(child, span.at, span.len, prot_of(&span)) < 0 {
-            return false;
-        }
-        if !copy_one(guest, child, span.at, span.len) {
-            return false;
+        /*
+         * A piece at a time: the kernel takes at most MAX_SPAN a call, and a
+         * region past it, a megabyte of static buffer for one, failed the
+         * whole fork.
+         */
+        let mut done = 0;
+        while done < span.len {
+            let (at, take) = (span.at + done, (span.len - done).min(MAX_SPAN));
+            if mk_peer_map(child, at, take, prot_of(&span)) < 0 || !copy_one(guest, child, at, take)
+            {
+                return false;
+            }
+            done += take;
         }
     }
     true
