@@ -43,8 +43,9 @@ pub(super) fn boot_guest(max_image: u32) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8
     }
     let args = lines.map(|l| l.to_vec()).collect();
     let at = visible(b"/", path);
-    let bytes = store_read(&key(&at), max_image).ok()?;
-    Some((at, bytes, args))
+    let bytes = store_read(&key(&at), max_image)
+        .map_err(|why| say(alloc::format!("[LINUX] boot guest unreadable: {why}\n").as_bytes()));
+    Some((at, bytes.ok()?, args))
 }
 
 // The file's bytes, or None once a settled store says it has none. Until the
