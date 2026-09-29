@@ -214,13 +214,12 @@ theorem has_error_code_is_exactly_the_error_code_vectors
        · exact h9 (UScalar.eq_of_val_eq h)
        · exact h10 (UScalar.eq_of_val_eq h))
 
-/-- Below vector 29 this table is the one `interrupts::vectors::exception_has_error_code`
-    keeps (double fault, invalid TSS, segment not present, stack-segment fault,
-    general protection, page fault, alignment check, control protection), and it
-    adds 29 and 30. The two tables therefore disagree on exactly those vectors.
-    This theorem records that disagreement: the boot table is the one that matches
-    the architecture, since #VC and #SX both push an error code, and the IDT
-    table in `interrupts/idt/vectors.rs` omits them. -/
+/-- Below vector 29 the table is the classic one (double fault, invalid TSS,
+    segment not present, stack-segment fault, general protection, page fault,
+    alignment check, control protection), and 29 and 30 carry an error code.
+    `interrupts::vectors::exception_has_error_code` used to omit 29 and 30; it
+    now keeps the same table, and `the_idt_and_boot_error_code_tables_agree` in
+    `VectorsRefinement` proves the two equal on every vector. -/
 theorem has_error_code_adds_vc_and_sx_to_the_idt_table
     (c : types_context.ExceptionContext) :
     (c.vector.val < 29 →
