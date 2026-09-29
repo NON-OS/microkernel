@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.CapFault
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_cap_fault
@@ -38,9 +39,126 @@ theorem the_fault_recording_offset_wrapper_is_its_method (a : Std.U64) :
 theorem the_fault_recording_count_wrapper_is_its_method (a : Std.U64) :
     fault_recording_count a = fault.fault_recording_count a := rfl
 
+/-! ### Where the fault records are and how many there are
+
+`drain_faults` walks `index` over `0..fault_recording_count(cap)`, and
+`take_fault` reads the record at `fault_recording_offset(cap) + index * 16`
+(its high half eight bytes further on). The theorems below say that
+`fault_recording_offset` is exactly the ten-bit FRO field (bits 24 to 33) times
+sixteen, that `fault_recording_count` is exactly the eight-bit NFR field (bits 40
+to 47) plus one, and that neither ever fails: the multiply cannot overflow a
+`usize` and the increment cannot overflow a `u16`, so no capability word the
+hardware reports makes either reader panic. The count is never zero, so a unit
+with records is always drained, and it never exceeds 256.
+
+They also say where that leaves the reads. `RemapUnit` maps a 4096 byte
+register window, and an FRO field of 256 or more already places the first
+record at or past its end, with the last record a unit may describe well
+beyond it. The readers do not bound the fields, so the bound has to come from
+a caller. It used to come only from a `debug_assert!` in the accessors, which
+release builds do not carry; `probe_at` now refuses a unit whose records do
+not fit through `registers_fit`, proven in `NonosExtraction.IommuRegsWindow`,
+and the accessors assert the bound in every build.
+
+`take_fault`, `drain_faults` and the MMIO accessors are not in this crate, so
+the loop bound and the address arithmetic of the callers are not established
+here; the window size is the kernel constant `UNIT_WINDOW`, restated as 4096.
+-/
+
+/-- A right shift of a 64-bit word by a constant below 64 succeeds and divides
+    by that power of two. -/
+private theorem shr_u64 (x : Std.U64) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 64) :
+    ∃ z : Std.U64, x >>> k = ok z ∧ z.val = x.val / 2 ^ k.toNat := by
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftRight_IScalar_spec x k h0 (by simpa using h1))
+  exact ⟨z, hz, by rw [hv, Nat.shiftRight_eq_div_pow]⟩
+
+/-- The register offset is the FRO field, bits 24 to 33, counted in sixteen
+    byte units, and computing it never overflows. -/
+theorem fault_recording_offset_is_sixteen_times_bits_twenty_four_to_thirty_three
+    (cap : Std.U64) :
+    ∃ o : Std.Usize, fault_recording_offset cap = ok o ∧
+      o.val = cap.val / 2 ^ 24 % 1024 * 16 := by
+  unfold fault_recording_offset fault.fault_recording_offset
+  obtain ⟨z, hz, hv⟩ := shr_u64 cap 24#i32 (by decide) (by decide)
+  simp only [hz, bind_tc_ok, lift]
+  have hf : (UScalar.cast .Usize (z &&& 1023#u64)).val = cap.val / 2 ^ 24 % 1024 := by
+    rw [UScalar.cast_val_eq, Bits.land_low_mask z 1023#u64 10 rfl, hv]
+    simp only [show (24#i32 : Std.I32).toNat = 24 from rfl]
+    have h1 : cap.val / 2 ^ 24 % 2 ^ 10 < 2 ^ 10 := Nat.mod_lt _ (by decide)
+    have h2 : (2:Nat) ^ 10 ≤ 2 ^ UScalarTy.Usize.numBits := by
+      simp only [UScalarTy.numBits]
+      cases System.Platform.numBits_eq <;> simp [*]
+    rw [Nat.mod_eq_of_lt (by omega)]
+    rfl
+  obtain ⟨o, ho, hov⟩ := WP.spec_imp_exists
+    (Usize.mul_spec (x := UScalar.cast .Usize (z &&& 1023#u64)) (y := 16#usize)
+      (by rw [hf]; scalar_tac))
+  exact ⟨o, ho, by rw [hov, hf]; rfl⟩
+
+/-- The record count is the NFR field, bits 40 to 47, plus one, and the
+    increment never overflows. -/
+theorem fault_recording_count_is_bits_forty_to_forty_seven_plus_one (cap : Std.U64) :
+    ∃ n : Std.U16, fault_recording_count cap = ok n ∧
+      n.val = cap.val / 2 ^ 40 % 256 + 1 := by
+  unfold fault_recording_count fault.fault_recording_count
+  obtain ⟨z, hz, hv⟩ := shr_u64 cap 40#i32 (by decide) (by decide)
+  simp only [hz, bind_tc_ok, lift]
+  have hf : (UScalar.cast .U16 (z &&& 255#u64)).val = cap.val / 2 ^ 40 % 256 := by
+    rw [UScalar.cast_val_eq, Bits.land_low_mask z 255#u64 8 rfl, hv]
+    simp only [show (40#i32 : Std.I32).toNat = 40 from rfl]
+    simp [UScalarTy.numBits]
+    omega
+  obtain ⟨n, hn, hnv⟩ := WP.spec_imp_exists
+    (U16.add_spec (x := UScalar.cast .U16 (z &&& 255#u64)) (y := 1#u16)
+      (by rw [hf]; scalar_tac))
+  exact ⟨n, hn, by rw [hnv, hf]; rfl⟩
+
+/-- `drain_faults` always visits at least one record and never more than 256,
+    whatever capability word the unit reports. -/
+theorem fault_recording_count_is_between_one_and_two_hundred_fifty_six (cap : Std.U64) :
+    ∃ n : Std.U16, fault_recording_count cap = ok n ∧ 1 ≤ n.val ∧ n.val ≤ 256 := by
+  obtain ⟨n, hn, hv⟩ := fault_recording_count_is_bits_forty_to_forty_seven_plus_one cap
+  exact ⟨n, hn, by omega, by omega⟩
+
+/-- The first fault record lies at or past the end of the 4096 byte register
+    window that `probe_at` maps (`UNIT_WINDOW`) exactly when the FRO field is
+    256 or more. `fault_recording_offset` does not refuse such a field;
+    `registers_fit` in `probe_at` does, and before it did the only bound was a
+    `debug_assert!` in `RemapUnit::read64`. -/
+theorem fault_recording_offset_leaves_the_register_window_once_fro_reaches_256
+    (cap : Std.U64) (o : Std.Usize) (h : fault_recording_offset cap = ok o) :
+    4096 ≤ o.val ↔ 256 ≤ cap.val / 2 ^ 24 % 1024 := by
+  obtain ⟨o', ho', hv⟩ :=
+    fault_recording_offset_is_sixteen_times_bits_twenty_four_to_thirty_three cap
+  rw [h] at ho'
+  cases ho'
+  omega
+
+/-- A concrete word. A capability word with every FRO and NFR bit set
+    (`0xFF03FF000000`) puts the first record at byte 16368 and describes 256 of
+    them, so the last high half `take_fault` would read is at byte
+    16368 + 255 * 16 + 8 = 20456, about four pages past the end of the mapped
+    window. `registers_fit` refuses this word. -/
+theorem fault_recording_offset_and_count_of_a_full_field_word :
+    fault_recording_offset 0xFF03FF000000#u64 = ok 16368#usize ∧
+      fault_recording_count 0xFF03FF000000#u64 = ok 256#u16 := by
+  obtain ⟨o, ho, hov⟩ :=
+    fault_recording_offset_is_sixteen_times_bits_twenty_four_to_thirty_three 0xFF03FF000000#u64
+  obtain ⟨n, hn, hnv⟩ :=
+    fault_recording_count_is_bits_forty_to_forty_seven_plus_one 0xFF03FF000000#u64
+  refine ⟨?_, ?_⟩
+  · rw [ho]; congr 1; apply UScalar.eq_of_val_eq; rw [hov]; decide
+  · rw [hn]; congr 1; apply UScalar.eq_of_val_eq; rw [hnv]; decide
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CapFault.the_fault_recording_offset_wrapper_is_its_method
 #print axioms NonosExtraction.CapFault.the_fault_recording_count_wrapper_is_its_method
+#print axioms NonosExtraction.CapFault.fault_recording_offset_is_sixteen_times_bits_twenty_four_to_thirty_three
+#print axioms NonosExtraction.CapFault.fault_recording_count_is_bits_forty_to_forty_seven_plus_one
+#print axioms NonosExtraction.CapFault.fault_recording_count_is_between_one_and_two_hundred_fifty_six
+#print axioms NonosExtraction.CapFault.fault_recording_offset_leaves_the_register_window_once_fro_reaches_256
+#print axioms NonosExtraction.CapFault.fault_recording_offset_and_count_of_a_full_field_word
 
 end NonosExtraction.CapFault
