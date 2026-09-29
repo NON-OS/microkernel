@@ -14,27 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const UEFI_REVISION_2_0: u32 = 0x00020000;
+/* The UEFI specification packs a revision as the major version in the upper
+sixteen bits and, in the lower sixteen, the minor version times ten plus the
+patch digit: 2.3.1 is (2 << 16) | 31 and 2.10 is (2 << 16) | 100. */
+pub const fn uefi_revision(major: u16, minor: u16, patch: u16) -> u32 {
+    ((major as u32) << 16) | (minor as u32 * 10 + patch as u32)
+}
 
-pub const UEFI_REVISION_2_1: u32 = 0x00020100;
+pub const UEFI_REVISION_2_0: u32 = uefi_revision(2, 0, 0);
 
-pub const UEFI_REVISION_2_3: u32 = 0x00020300;
+pub const UEFI_REVISION_2_1: u32 = uefi_revision(2, 1, 0);
 
-pub const UEFI_REVISION_2_3_1: u32 = 0x0002001F;
+pub const UEFI_REVISION_2_3: u32 = uefi_revision(2, 3, 0);
 
-pub const UEFI_REVISION_2_4: u32 = 0x00020400;
+pub const UEFI_REVISION_2_3_1: u32 = uefi_revision(2, 3, 1);
 
-pub const UEFI_REVISION_2_5: u32 = 0x00020500;
+pub const UEFI_REVISION_2_4: u32 = uefi_revision(2, 4, 0);
 
-pub const UEFI_REVISION_2_6: u32 = 0x00020600;
+pub const UEFI_REVISION_2_5: u32 = uefi_revision(2, 5, 0);
 
-pub const UEFI_REVISION_2_7: u32 = 0x00020700;
+pub const UEFI_REVISION_2_6: u32 = uefi_revision(2, 6, 0);
 
-pub const UEFI_REVISION_2_8: u32 = 0x00020800;
+pub const UEFI_REVISION_2_7: u32 = uefi_revision(2, 7, 0);
 
-pub const UEFI_REVISION_2_9: u32 = 0x00020900;
+pub const UEFI_REVISION_2_8: u32 = uefi_revision(2, 8, 0);
 
-pub const UEFI_REVISION_2_10: u32 = 0x00020A00;
+pub const UEFI_REVISION_2_9: u32 = uefi_revision(2, 9, 0);
+
+pub const UEFI_REVISION_2_10: u32 = uefi_revision(2, 10, 0);
 
 pub const RESET_TYPE_COLD: u32 = 0;
 

@@ -21,6 +21,7 @@ use core::sync::atomic::Ordering;
 
 use super::core::UefiManager;
 use super::state::INITIALIZED;
+use crate::arch::x86_64::uefi::constants::UEFI_REVISION_2_8;
 use crate::arch::x86_64::uefi::error::UefiError;
 use crate::arch::x86_64::uefi::tables::RuntimeServices;
 use crate::arch::x86_64::uefi::types::Guid;
@@ -70,7 +71,7 @@ impl UefiManager {
 
         info.vendor = String::from("NONOS UEFI");
         info.version = String::from("2.8");
-        info.revision = 0x00020008;
+        info.revision = UEFI_REVISION_2_8;
         info.firmware_revision = 0x00010000;
 
         *self.firmware_info.write() = info;
