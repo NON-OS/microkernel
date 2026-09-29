@@ -17,8 +17,8 @@
 //! Delivering a caught signal to a thread being answered: one returning from
 //! a syscall is entered with that call's return value in rax, so the program
 //! sees it when the handler returns through rt_sigreturn; one stopped at a
-//! tick (family_interrupt) keeps its own rax. A thread answered without a
-//! handler is marked for its next tick instead (`Guest::rearm`).
+//! tick (family_interrupt) keeps its own rax. One woken by a futex or back
+//! from rt_sigreturn is marked for its next tick instead (`Guest::rearm`).
 
 use nonos_libc::{mk_foreign_context, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER};
 
