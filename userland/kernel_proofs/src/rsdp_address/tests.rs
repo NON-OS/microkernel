@@ -26,6 +26,7 @@ fn rsdp(revision: u8, xsdt: Option<u64>) -> AcpiRsdp {
         length: None,
         xsdt_address: xsdt,
         extended_checksum: None,
+        reserved: None,
     }
 }
 
@@ -36,4 +37,36 @@ fn xsdt_is_used_only_from_revision_two() {
     assert_eq!(rsdp(2, Some(0xDEAD_0000)).table_address(), 0xDEAD_0000);
     assert_eq!(rsdp(2, Some(0)).table_address(), 0x000E_0000);
     assert_eq!(rsdp(2, None).table_address(), 0x000E_0000);
+}
+
+fn byte_sum(bytes: &[u8]) -> u8 {
+    bytes.iter().fold(0u8, |a, &b| a.wrapping_add(b))
+}
+
+fn with_extension(mut r: AcpiRsdp, length: u32, reserved: [u8; 3]) -> AcpiRsdp {
+    let xsdt = r.xsdt_address.unwrap_or(0);
+    let sum = byte_sum(&r.signature)
+        .wrapping_add(r.checksum)
+        .wrapping_add(byte_sum(&r.oem_id))
+        .wrapping_add(r.revision)
+        .wrapping_add(byte_sum(&r.rsdt_address.to_le_bytes()))
+        .wrapping_add(byte_sum(&length.to_le_bytes()))
+        .wrapping_add(byte_sum(&xsdt.to_le_bytes()))
+        .wrapping_add(byte_sum(&reserved));
+    r.length = Some(length);
+    r.reserved = Some(reserved);
+    r.extended_checksum = Some(0u8.wrapping_sub(sum));
+    r
+}
+
+#[test]
+fn extended_checksum_needs_every_acpi2_field_and_the_reserved_bytes() {
+    assert!(!rsdp(2, None).verify_extended_checksum());
+    let good = with_extension(rsdp(2, Some(0xDEAD_0000)), 36, [1, 2, 3]);
+    assert!(good.verify_extended_checksum());
+    let mut tampered = good.clone();
+    tampered.reserved = Some([1, 2, 4]);
+    assert!(!tampered.verify_extended_checksum());
+    assert!(!with_extension(rsdp(2, Some(0xDEAD_0000)), 20, [0; 3]).verify_extended_checksum());
+    assert!(rsdp(1, None).verify_extended_checksum());
 }

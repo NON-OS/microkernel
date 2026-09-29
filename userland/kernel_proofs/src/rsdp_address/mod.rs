@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * An RSDP below revision 2 must not hand out its XSDT field.
+ * An RSDP below revision 2 must not hand out its XSDT field, and a revision 2
+ * one must pass the full 36-byte checksum.
  *
  * The kernel's multiboot AcpiRsdp is included by path. table_address returned
  * a nonzero XSDT pointer whatever the revision, although below revision 2 the
- * extended checksum that would cover it is never computed. The check below
- * fails against that code.
+ * extended checksum that would cover it is never computed, and the extended
+ * check passed a revision 2 RSDP with no extended fields and never summed the
+ * reserved bytes. The checks below fail against that code.
  */
 
 #[path = "../../../../src/arch/x86_64/multiboot/modules_acpi.rs"]
