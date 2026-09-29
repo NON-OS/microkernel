@@ -49,9 +49,13 @@ $(QWEN_LIBS) &: $(QWEN_ZIG)/.done
 QWEN_SRC := $(addprefix $(LINUX_GUESTS_DIR)/cpp/,qwencheck.cpp qwencheck_run.cpp qwencheck_report.cpp)
 $(LINUX_GUESTS_C)/qwencheck: $(QWEN_SRC) $(LINUX_GUESTS_DIR)/cpp/qwencheck.h $(QWEN_LIBS)
 	@mkdir -p $(@D)
-	@$(QWEN_ZIG)/c++ -static -O2 -g0 -s -mcpu=$(QWEN_CPU) -std=c++17 \
+	@# Linked once with its symbol table, kept beside it as the map a stuck
+	@# guest's instruction pointer is read against; the store gets a copy
+	@# stripped of it, the same code at the same addresses.
+	@$(QWEN_ZIG)/c++ -static -O2 -g0 -mcpu=$(QWEN_CPU) -std=c++17 \
 		-I$(LLAMA_CPP_DIR)/include -I$(LLAMA_CPP_DIR)/ggml/include \
-		$(QWEN_SRC) -o $@ $(QWEN_LIBS) -lpthread
+		$(QWEN_SRC) -o $@.full $(QWEN_LIBS) -lpthread
+	@strip -o $@ $@.full
 $(eval $(call LINUX_GUEST,qwencheck,5100,5101,$(LINUX_GUESTS_C)/qwencheck))
 LINUX_GUEST_STORE_ENTRIES += --entry /linux/etc/qwen-prompt.txt=$(LINUX_GUESTS_DIR)/etc/qwen-prompt.txt
 endif
