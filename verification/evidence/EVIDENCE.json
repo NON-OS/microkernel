@@ -22,13 +22,13 @@
       "harnesses": 100
     },
     "lean_extraction": {
-      "bv_decide_calls": 12,
+      "bv_decide_calls": 10,
       "bv_decide_theorems": 11,
       "counts": {
         "extracted": 987,
         "proven": 987,
-        "substantive": 367,
-        "trivial": 620,
+        "substantive": 369,
+        "trivial": 618,
         "unproven": 0
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
@@ -1084,11 +1084,11 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AddrPhys.lean",
-          "sha256": "191637030d078ee42ce20368f85ee4a0820c84dc5bda30555f743114074c9a35"
+          "sha256": "69ff673d65e46d6e83e9e7c6ff3a2a47c98faf05ef77309955d1826c510cdd71"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AddrVirt.lean",
-          "sha256": "82394c4eb9ce6385932a13232d7d369e615b388871bdb4bd27ba0b369e0aa7c7"
+          "sha256": "8ac98e783cbe35ec4767210bde3cf32d1a1b9f92b1fea37f11d3021aa9e6947b"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AlgIdTypes.lean",
@@ -1576,7 +1576,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MemoryFrameAllocTypesRange.lean",
-          "sha256": "09fb2a54448b7d8f042ff8099b7ce9b5de45e2b053064a02556d43d877651ffd"
+          "sha256": "e5572454abcc09ae8ddeebb6fb540dbda0f85f414967bc50c53caf25e26fcd85"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MemoryHardeningStatsQuery.lean",

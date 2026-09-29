@@ -37,18 +37,21 @@ structure memory.frame_alloc.types.range.FrameRange where
 def memory.frame_alloc.constants.FRAME_SIZE : Std.U64 := 4096#u64
 
 /-- [nonos_x_memory_frame_alloc_types_range::memory::addr::phys::{nonos_x_memory_frame_alloc_types_range::memory::addr::phys::PhysAddr}::align_up]:
-    Source: 'src/memory/addr/../../../../../../../src/memory/addr/phys.rs', lines 50:4-52:5
+    Source: 'src/memory/addr/../../../../../../../src/memory/addr/phys.rs', lines 58:4-68:5
     Visibility: public -/
 def memory.addr.phys.PhysAddr.align_up
   (self : memory.addr.phys.PhysAddr) (align : Std.U64) :
   Result memory.addr.phys.PhysAddr
   := do
-  let i ← self + align
-  let i1 ← i - 1#u64
-  let i2 ← align - 1#u64
-  let i3 ← lift (~~~ i2)
-  let i4 ← lift (i1 &&& i3)
-  ok i4
+  if align = 0#u64
+  then ok self
+  else
+    let rem ← self % align
+    if rem = 0#u64
+    then ok self
+    else let i ← align - rem
+         let i1 ← self + i
+         ok i1
 
 /-- [nonos_x_memory_frame_alloc_types_range::memory::addr::phys::{nonos_x_memory_frame_alloc_types_range::memory::addr::phys::PhysAddr}::as_u64]:
     Source: 'src/memory/addr/../../../../../../../src/memory/addr/phys.rs', lines 30:4-32:5
