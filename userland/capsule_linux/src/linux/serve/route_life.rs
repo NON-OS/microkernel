@@ -17,7 +17,7 @@
 //! The calls of process lifecycle and signals that can leave their caller
 //! parked: a plain exit, a new process, a wait for a child or a signal, and a
 //! signal sent where only the family can say whether anyone received it.
-//! Asked first by `dispatch`, so these are answered here whatever it holds.
+//! Asked before `dispatch`, so these are answered here whatever it holds.
 
 use nonos_libc::ForeignFrame;
 
@@ -30,7 +30,18 @@ use crate::linux::guest::Guest;
 /// clone's CLONE_THREAD: without it, clone makes a process.
 const CLONE_THREAD: u64 = 0x10000;
 
-pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Option<Answer> {
+/// One trap answered: here when it is one of these calls, else by dispatch.
+pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
+    match first(guest, frame) {
+        Some(got) => {
+            super::tally::call();
+            got
+        }
+        None => super::dispatch::answer(guest, frame),
+    }
+}
+
+fn first(guest: &mut Guest, frame: &ForeignFrame) -> Option<Answer> {
     let (a, tid) = (frame.args(), frame.pid);
     Some(match frame.nr {
         nr::EXIT => call::exit_one(guest, tid, a[0]),

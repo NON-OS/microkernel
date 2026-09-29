@@ -26,7 +26,7 @@ use core::mem;
 use nonos_libc::{mk_foreign_reply, ForeignFrame, FOREIGN_NR_DIED};
 
 use super::answer::Answer;
-use super::dispatch::answer;
+use super::route_life::answer;
 use super::pid_map::frame_in;
 use super::pid_ns::PidNs;
 use super::pid_out::value_out;
