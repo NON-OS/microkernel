@@ -35,7 +35,7 @@ no lock, no atomic and no hardware access.
 
 | crate | what it carries | proven in |
 | --- | --- | --- |
-| `caps/` | capability bit operations and `Capability::bit`, the resolver `select_caps`, the folder `fold_caps`, the delegation expiry meet, the quota comparison, the resource nonce composition, the chain depth bound | `Refinement`, `CapsComplete`, `CapsCoreRefinement` |
+| `caps/` | capability bit operations and `Capability::bit`, the resolver `select_caps`, the folder `fold_caps`, the delegation expiry meet, the quota comparison, the resource nonce composition, the chain depth bound | `Refinement`, `CapsComplete`, `CapsFoldRefinement`, `CapsCoreRefinement` |
 | `policy/` | the user-copy range policy `check_range` with the exact error variant on every rejecting path, and the page-permission encoding `to_pte_flags` and `is_wx_violation` | `PolicyRefinement` |
 | `irq/` | the MSI-X bind validator | `IrqRefinement` |
 | `vectors/` | the interrupt vector classification and the two conversions between a line and a vector | `VectorsRefinement` |
