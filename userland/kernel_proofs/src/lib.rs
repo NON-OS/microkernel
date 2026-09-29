@@ -54,6 +54,8 @@ mod registry_set_tests;
 #[cfg(test)]
 mod syscall_tests;
 #[cfg(test)]
+mod uefi_cache;
+#[cfg(test)]
 mod refinement_tests;
 #[cfg(test)]
 mod usercopy_tests;
