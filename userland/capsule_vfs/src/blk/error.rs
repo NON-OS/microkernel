@@ -30,4 +30,6 @@ pub enum BlkError {
     Inval,
     BadContainer,
     Exists,
+    /// An entry's bytes do not fit in the heap: the store is refused whole.
+    NoMemory,
 }

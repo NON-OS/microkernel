@@ -19,15 +19,26 @@
 use alloc::vec;
 
 use super::super::client::read_blocks;
+use super::super::error::BlkError;
 use super::super::store::{finish_entry, sector_span};
 use super::super::wire::{MAX_READ_BYTES, SECTOR_SIZE};
 use super::types::Load;
 
 impl Load {
     /// Read one chunk of the current entry, finishing it when complete.
-    pub(super) fn read_chunk(&mut self) -> Result<(), super::super::error::BlkError> {
+    pub(super) fn read_chunk(&mut self) -> Result<(), BlkError> {
         let entry = &self.toc[self.idx];
         let done = self.data.len() as u64;
+        if done == 0 && entry.len > 0 {
+            /*
+             * Sized once for the whole entry. Grown by doubling, each step
+             * held the old buffer and one twice its size at once, so an entry
+             * over 32 MiB wanted a free 64 MiB block beside its 32 MiB one,
+             * and every finished entry kept up to twice its length.
+             */
+            let len = usize::try_from(entry.len).map_err(|_| BlkError::NoMemory)?;
+            self.data.try_reserve_exact(len).map_err(|_| BlkError::NoMemory)?;
+        }
         if done >= entry.len {
             let entry = self.toc[self.idx].clone();
             let data = core::mem::take(&mut self.data);

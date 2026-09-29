@@ -55,5 +55,6 @@ fn code(err: &BlkError) -> u32 {
         BlkError::Inval => 8,
         BlkError::BadContainer => 9,
         BlkError::Exists => 10,
+        BlkError::NoMemory => 11,
     }
 }
