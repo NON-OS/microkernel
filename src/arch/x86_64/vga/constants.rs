@@ -82,12 +82,15 @@ impl Color {
 pub struct ColorCode(u8);
 
 impl ColorCode {
+    /* Bit 7 is blink, which the attribute controller enables by default, so
+    the background keeps three bits: a bright background is drawn dark rather
+    than blinking. */
     pub const fn new(foreground: Color, background: Color) -> Self {
-        Self((background as u8) << 4 | (foreground as u8))
+        Self(((background as u8) & 0x07) << 4 | (foreground as u8))
     }
 
     pub const fn with_blink(foreground: Color, background: Color) -> Self {
-        Self(0x80 | (background as u8) << 4 | (foreground as u8))
+        Self(0x80 | ((background as u8) & 0x07) << 4 | (foreground as u8))
     }
 
     pub const fn foreground(self) -> u8 {

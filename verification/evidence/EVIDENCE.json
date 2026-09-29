@@ -25,10 +25,10 @@
       "bv_decide_calls": 12,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 984,
-        "proven": 984,
-        "substantive": 347,
-        "trivial": 637,
+        "extracted": 985,
+        "proven": 985,
+        "substantive": 351,
+        "trivial": 634,
         "unproven": 0
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
@@ -971,6 +971,7 @@
         "nonos_x_vga_constants::colorcode_background",
         "nonos_x_vga_constants::colorcode_foreground",
         "nonos_x_vga_constants::colorcode_is_blinking",
+        "nonos_x_vga_constants::colorcode_new",
         "nonos_x_vga_constants::colorcode_value",
         "nonos_x_vga_constants::screenchar_as_u16",
         "nonos_x_walker_align::align4",
@@ -2105,11 +2106,11 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/VgaColors.lean",
-          "sha256": "b6caeeedba8da390db96240f80d637e1f88a9a1938410d191059b88d0b4fb3d5"
+          "sha256": "64ee712b4328f6f3366634e6827056373e6158a5e8792808edb81e6002fa76c5"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/VgaConstants.lean",
-          "sha256": "a502d776fec101fc7b5350c915f7ad9464f37c810fdf0dac174d3353ab72496a"
+          "sha256": "cc45dffa5fea2c817b952096b041f8980cd126755998232e7f9d9e9f7b2a85b2"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/WalkerAlign.lean",
