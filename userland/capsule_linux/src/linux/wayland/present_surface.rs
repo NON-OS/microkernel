@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Registering the NONOS surface the pixels land on.
 
 use nonos_app_skeleton::clients::compositor::scene_submit;
@@ -51,11 +50,18 @@ pub fn surface(scene: &mut Scene, width: u32, height: u32, stride: u32) -> Optio
     Some(handle as u64)
 }
 
+/// The layer native app windows use. Zero is the wallpaper's, so a guest
+/// window placed there was drawn under the desktop and never seen.
+const APP_LAYER_Z: u32 = 2;
+
 /// Registering a surface makes it exist; the compositor still has to be
-/// told where it goes, or it is never drawn.
+/// told where it goes, or it is never drawn. A guest window opens centred
+/// on a 1920x1080 desktop, below the top bar, as an app window does.
 fn place(handle: u64, width: u32, height: u32) {
     let Some(port) = lookup_port(b"compositor") else {
         return;
     };
-    let _ = scene_submit(port, 1, handle, 0, 0, width, height, 0);
+    let x = 1920u32.saturating_sub(width) / 2;
+    let y = 1080u32.saturating_sub(height).saturating_sub(48) / 2 + 48;
+    let _ = scene_submit(port, 1, handle, x, y, width, height, APP_LAYER_Z);
 }
