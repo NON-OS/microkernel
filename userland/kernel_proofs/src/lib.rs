@@ -49,6 +49,8 @@ pub mod procfs_inode;
 #[cfg(test)]
 pub mod riscv_mmu;
 #[cfg(test)]
+pub mod scan_hidden;
+#[cfg(test)]
 pub mod range_ends;
 #[cfg(test)]
 pub mod rsdp_address;
