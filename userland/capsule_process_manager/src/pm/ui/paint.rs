@@ -39,7 +39,7 @@ pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
     chrome::page_head(fb, state, &buf[..n]);
     state.fb_w = w;
     state.fb_h = h;
-    state.visible = hit::rows_visible(state.screen, rect.h);
+    state.visible = hit::rows_visible(state.screen, &rect);
     state.alert_visible = screens::sec_geom::visible(rect.h);
     screen(state, fb, &rect);
     if state.screen.has_inspector() {

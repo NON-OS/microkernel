@@ -16,7 +16,7 @@
 
 use crate::pm::state::{Filter, Screen, State};
 
-use super::table_geom::{Col, COLS_FULL, COLS_OVERVIEW};
+use super::table_geom::{Col, COLS_FULL};
 use super::{chips, chrome, insp_geom, nav_geom, search};
 
 #[path = "hit_pane.rs"]
@@ -67,7 +67,7 @@ pub fn at(state: &State, w: u32, h: u32, x: i32, y: i32) -> Option<Target> {
         return None;
     }
     match state.screen {
-        Screen::Overview => hit_pane::table(state, &r, &COLS_OVERVIEW, x, y),
+        Screen::Overview => hit_pane::overview(state, &r, x, y),
         Screen::Processes => hit_pane::table(state, &r, &COLS_FULL, x, y),
         Screen::Authority => hit_pane::matrix(state, &r, x, y),
         Screen::Security => hit_pane::finding(state, &r, y),

@@ -18,21 +18,29 @@ use crate::pm::state::{Screen, State};
 
 use super::super::chrome::Rect;
 use super::super::matrix_geom;
-use super::super::screens::sec_geom;
-use super::super::table_geom::{self, Col};
+use super::super::screens::{overview, sec_geom};
+use super::super::table_geom::{self, Col, COLS_OVERVIEW};
 use super::Target;
 
 // How many rows of the active list fit the pane. Navigation clamps against this,
 // so it has to come from whichever geometry module actually drew the rows.
-pub fn rows_visible(screen: Screen, pane_h: u32) -> usize {
+pub fn rows_visible(screen: Screen, pane: &Rect) -> usize {
     match screen {
-        Screen::Authority => matrix_geom::visible_rows(pane_h),
-        _ => table_geom::visible_rows(pane_h),
+        Screen::Authority => matrix_geom::visible_rows(pane.h),
+        Screen::Overview => table_geom::visible_rows(overview::table_rect(pane).h),
+        _ => table_geom::visible_rows(pane.h),
     }
 }
 
 // The header band sorts, the body selects. Both tests read the same table-local
 // origin, which is why a click just under the header cannot resolve as a sort.
+/* Overview's table starts below its cards: the click comes off that offset
+ * before the table sees it, as the painter added it before drawing. */
+pub fn overview(state: &State, r: &Rect, x: i32, y: i32) -> Option<Target> {
+    let t = overview::table_rect(r);
+    table(state, &t, &COLS_OVERVIEW, x, y - (t.y - r.y) as i32)
+}
+
 pub fn table(state: &State, r: &Rect, cols: &[Col], x: i32, y: i32) -> Option<Target> {
     if table_geom::in_head(y) {
         return table_geom::sort_at_x(cols, r.w, x).map(Target::Sort);
