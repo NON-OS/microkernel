@@ -32,6 +32,10 @@ pub mod memory;
 pub mod pci_address;
 #[cfg(test)]
 pub mod process;
+#[cfg(test)]
+pub mod range_ends;
+#[cfg(test)]
+pub mod rsdp_address;
 pub mod syscall;
 pub mod time;
 pub mod security;
