@@ -31,6 +31,6 @@ mod tick;
 mod tick_frame;
 
 pub use call::sys_foreign_interrupt;
-pub(super) use marks::{forget, on_call};
+pub(super) use marks::forget;
 pub use tick::on_user_tick;
 pub use tick_frame::WORDS as TICK_FRAME_WORDS;

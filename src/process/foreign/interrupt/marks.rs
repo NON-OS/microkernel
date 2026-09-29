@@ -40,15 +40,6 @@ pub(in crate::process::foreign) fn forget(pid: u32) {
     ANY.store(!marked.is_empty(), Ordering::Release);
 }
 
-/// A marked thread that makes a call needs no tick to stop it: the answer to
-/// that call carries what it was marked for. Left in place, the mark would
-/// stop the thread once more at a later tick for nothing.
-pub(in crate::process::foreign) fn on_call(pid: u32) {
-    if ANY.load(Ordering::Acquire) {
-        forget(pid);
-    }
-}
-
 /// Whether any thread is marked, for the tick's one-load test.
 pub(super) fn any() -> bool {
     ANY.load(Ordering::Acquire)
