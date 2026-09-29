@@ -16,7 +16,9 @@
 
 use nonos_toolkit::decorations::Rect;
 
+use crate::browser::omnibox::geometry::{band_commit, Rect as Area, BUBBLE_BAND};
 use crate::browser::omnibox::{rect_of, Damage};
+use crate::browser::paint::band_rows;
 use crate::browser::state::{State, CHROME_H};
 
 /* Hand the runner the rect this repaint must cover, and remember which
@@ -24,17 +26,28 @@ use crate::browser::state::{State, CHROME_H};
  * size not yet known, an empty rect or the settings panel open (it
  * overlays the page) draws everything. */
 pub(super) fn take(state: &mut State) -> Option<Rect> {
-    let t = &mut state.track;
-    let mut parts = core::mem::take(&mut t.damage);
-    t.painted_gen = t.paint_gen;
+    let mut parts = core::mem::take(&mut state.track.damage);
+    state.track.painted_gen = state.track.paint_gen;
     if parts.is_empty() || state.settings_open || state.viewport_w == 0 {
         parts = Damage::FULL;
     }
-    let r = rect_of(parts, state.viewport_w, state.viewport_h + CHROME_H);
+    let (w, h) = (state.viewport_w, state.viewport_h + CHROME_H);
+    let r = rect_of(parts, w, h).map(|r| match parts.has(Damage::BUBBLE) {
+        true => r.union(bubble_paint(state, w, h)),
+        false => r,
+    });
     let Some(r) = r.filter(|r| r.w != 0 && r.h != 0) else {
-        t.painting = Damage::FULL;
+        state.track.painting = Damage::FULL;
         return None;
     };
-    t.painting = parts;
+    state.track.painting = parts;
     Some(Rect { x: r.x, y: r.y, w: r.w, h: r.h })
+}
+
+/* What the bubble repaint draws: its band grown over the boxes crossing
+ * it, or the whole page when the band cannot be painted alone. The commit
+ * covers it all, so no pixel it draws is left out of the screen. */
+fn bubble_paint(state: &State, w: u32, h: u32) -> Area {
+    let view_h = h.saturating_sub(CHROME_H) as i32;
+    band_commit(band_rows(state, view_h - BUBBLE_BAND as i32, view_h, view_h), w, h)
 }

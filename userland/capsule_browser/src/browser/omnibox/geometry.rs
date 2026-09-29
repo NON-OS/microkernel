@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::areas::{bubble_band, page_rect};
+pub use super::areas::{band_commit, bubble_band, page_rect};
 pub use super::rect::Rect;
 
 /* Where the chrome sits inside the browser's content area, in pixels. The

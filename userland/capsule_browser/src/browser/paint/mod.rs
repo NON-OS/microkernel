@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod band;
 mod bg_image;
 mod bg_tile;
 mod blit_rows;
@@ -44,4 +45,5 @@ mod scroll_paint;
 mod shadow;
 mod tinted;
 
+pub(crate) use band::band_rows;
 pub use paint::paint;

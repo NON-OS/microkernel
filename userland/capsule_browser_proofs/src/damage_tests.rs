@@ -28,3 +28,19 @@ fn parts_combine_and_full_means_whole_window() {
     d.add(bits(Change::Full));
     assert_eq!(rect_of(d, 1336, 700), None);
 }
+
+#[test]
+fn a_bubble_repaint_commits_every_row_it_draws() {
+    use crate::browser::omnibox::geometry::band_commit;
+    /* The band grown over a picture crossing it: rows 300..676 of the view. */
+    assert_eq!(
+        band_commit(Some((300, 676)), 1336, 700),
+        Rect { x: 0, y: CONTENT_TOP + 300, w: 1336, h: 376 }
+    );
+    /* A page the band cannot be painted alone in repaints, and commits, whole. */
+    assert_eq!(
+        band_commit(None, 1336, 700),
+        Rect { x: 0, y: CONTENT_TOP, w: 1336, h: 700 - CONTENT_TOP }
+    );
+    assert_eq!(band_commit(Some((-5, 20)), 1336, 700).y, CONTENT_TOP, "clamped to the view");
+}

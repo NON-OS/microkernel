@@ -27,3 +27,16 @@ pub fn bubble_band(width: u32, height: u32) -> Rect {
     let y = height.saturating_sub(BUBBLE_BAND).max(CONTENT_TOP);
     Rect { x: 0, y, w: width, h: height.saturating_sub(y) }
 }
+
+/// What a bubble repaint draws, for its commit to cover: viewport rows
+/// `band` (from the page painter's band_rows) below the toolbar, or the
+/// whole page when the band could not be painted alone (None).
+pub fn band_commit(band: Option<(i32, i32)>, width: u32, height: u32) -> Rect {
+    match band {
+        Some((a, b)) => {
+            let (a, b) = (a.max(0) as u32, b.max(0) as u32);
+            Rect { x: 0, y: CONTENT_TOP + a, w: width, h: b.saturating_sub(a) }
+        }
+        None => page_rect(width, height),
+    }
+}
