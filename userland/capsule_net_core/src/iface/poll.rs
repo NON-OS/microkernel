@@ -23,6 +23,7 @@ use crate::state;
 
 pub fn pump() {
     budget::open_poll();
+    crate::device::rx_batch::begin_poll();
     state::with_iface(|iface, sockets, device| {
         let now = Instant::from_millis(mk_time_millis());
         iface.poll(now, device, sockets);

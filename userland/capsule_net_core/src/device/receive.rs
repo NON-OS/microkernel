@@ -17,8 +17,13 @@
 use crate::device::budget;
 use crate::device::rx;
 use crate::device::types::{NicRxToken, NicTxToken};
+use crate::device::{rx_batch, rx_probe};
 
 pub fn receive(port: u32) -> Option<(NicRxToken, NicTxToken)> {
+    if rx_probe::serves(port) {
+        let frame = rx_batch::next(port)?;
+        return Some((NicRxToken(frame), NicTxToken { port }));
+    }
     if !budget::poll_open() {
         return None;
     }

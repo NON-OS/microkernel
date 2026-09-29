@@ -14,17 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::{MAC_LEN, MAX_ETHERNET_FRAME};
+//! Sending a status-zero reply whose body does not fit the fixed buffer.
 
-pub const STATUS_LEN: usize = 4;
+extern crate alloc;
 
-pub const MAX_TX_PAYLOAD_BYTES: u32 = MAX_ETHERNET_FRAME as u32;
-pub const MAC_ADDRESS_PAYLOAD_LEN: usize = MAC_LEN;
-pub const LINK_STATUS_PAYLOAD_LEN: usize = 1;
+use alloc::vec;
 
-pub const RX_PAYLOAD_PREFIX_LEN: usize = 4;
-/// Frames one batch carries at most: most of the 64 slot ring, so the
-/// device keeps buffers to fill while the batch is on its way.
-pub const BATCH_MAX_FRAMES: usize = 44;
-/// Frame bytes one batch carries at most, prefixes included.
-pub const BATCH_MAX_BYTES: usize = 64 * 1024;
+use crate::protocol::{encode_response_header, write_status, Request, RESP_HDR_LEN, STATUS_LEN};
+use crate::server::error::reply;
+
+/// Reply to `pid` with status 0 followed by `body`.
+pub fn send(pid: u32, req: &Request, body: &[u8]) -> bool {
+    let mut out = vec![0u8; RESP_HDR_LEN + STATUS_LEN + body.len()];
+    encode_response_header(&mut out, req, (STATUS_LEN + body.len()) as u32);
+    write_status(&mut out[RESP_HDR_LEN..], 0);
+    out[RESP_HDR_LEN + STATUS_LEN..].copy_from_slice(body);
+    reply(pid, &out, out.len())
+}

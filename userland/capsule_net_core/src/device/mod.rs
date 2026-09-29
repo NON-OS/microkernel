@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod batch_call;
+pub mod batch_frames;
 pub mod budget;
 pub mod capabilities;
 pub mod link_up;
@@ -22,6 +24,8 @@ pub mod nic_device;
 pub mod read_mac;
 pub mod receive;
 pub mod rx;
+pub mod rx_batch;
+pub mod rx_probe;
 pub mod rx_seq;
 pub mod rx_token;
 pub mod transmit;
