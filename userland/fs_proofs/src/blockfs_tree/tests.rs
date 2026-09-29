@@ -30,7 +30,9 @@ fn each_block_is_placed_where_the_boundaries_say() {
     assert_eq!(at(113), Some((54, 1, [59, 0, 0, 0])));
     assert_eq!(at(114), Some((55, 2, [0, 0, 0, 0])));
     assert_eq!(at(3713), Some((55, 2, [59, 59, 0, 0])));
-    /* Paths that read differently backwards: the top level's index leads. */
+    /*
+     * Paths that read differently backwards: the top level's index leads.
+     */
     assert_eq!(at(114 + 2 * 60 + 5), Some((55, 2, [2, 5, 0, 0])));
     assert_eq!(at(3714 + 3600 + 2 * 60 + 3), Some((56, 3, [1, 2, 3, 0])));
     assert_eq!(at(3714), Some((56, 3, [0, 0, 0, 0])));

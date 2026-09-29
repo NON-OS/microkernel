@@ -46,4 +46,5 @@ mod mem;
 mod tests;
 mod tests_capacity;
 mod tests_edges;
+mod tests_layout;
 mod tests_reads;
