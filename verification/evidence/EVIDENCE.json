@@ -25,10 +25,10 @@
       "bv_decide_calls": 12,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 982,
-        "proven": 982,
-        "substantive": 337,
-        "trivial": 645,
+        "extracted": 983,
+        "proven": 983,
+        "substantive": 339,
+        "trivial": 644,
         "unproven": 0
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
@@ -309,6 +309,7 @@
         "nonos_x_boot_types_context::exceptioncontext_is_user_mode",
         "nonos_x_boot_types_context::exceptioncontext_stack_pointer",
         "nonos_x_bti_guard::btiguard_instruction",
+        "nonos_x_bti_pad::is_bti_landing_pad",
         "nonos_x_buddy_types_stats::allocstats_free_memory",
         "nonos_x_buddy_types_stats::allocstats_new",
         "nonos_x_cache_types::cachestatistics_new",
@@ -1192,6 +1193,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/BtiGuard.lean",
           "sha256": "52d94784f24c431893ac9cdcab8a491c486b3c60ea2abb983ca2ec4deb446ab7"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/BtiPad.lean",
+          "sha256": "b1f2127c0b52e374e65bc6c33266df11030f7961728eb465972b102d55526e28"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/BuddyTypesStats.lean",

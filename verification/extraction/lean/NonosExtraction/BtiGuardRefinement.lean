@@ -35,8 +35,62 @@ namespace NonosExtraction.BtiGuard
 theorem the_btiguard_instruction_wrapper_is_its_method (a : guard.BtiGuard) :
     btiguard_instruction a = guard.BtiGuard.instruction a := rfl
 
+/-! ### The encodings of the landing pads
+
+    Each guard is emitted as an A64 hint instruction: the word
+    `0xD503201F ||| (imm << 5)` for a seven-bit immediate. The hint space is
+    architecturally a NOP on a core without FEAT_BTI, which is what lets the same
+    image run on cores with and without branch target identification. `C`, `J`
+    and `Jc` are BTI, hint 32, with the two target bits 6..7 equal to the
+    `repr(u8)` discriminant (1 accepts calls, 2 accepts jumps, 3 accepts both),
+    and `None` is hint 0, the plain NOP rather than a bare BTI (`0xD503241F`).
+    `BtiPadRefinement` relates these words to the landing-pad check: every guard
+    but `None` is a landing pad. These theorems cannot say whether the kernel places these words at
+    the targets of its indirect branches, or anything about the guarded page
+    attribute; neither is extracted.
+-/
+
+/-- The `repr(u8)` discriminant of each guard, as written in `guard.rs`. -/
+def btiGuardDiscriminant : guard.BtiGuard → Nat
+  | .None => 0
+  | .C => 1
+  | .J => 2
+  | .Jc => 3
+
+/-- Every guard lies in the hint space, so it executes as a NOP on a core
+    without branch target identification. -/
+theorem every_btiguard_instruction_is_a_hint (g : guard.BtiGuard) :
+    ∃ w, btiguard_instruction g = ok w ∧ w.val &&& 0xFFFFF01F = 0xD503201F := by
+  cases g <;> exact ⟨_, rfl, by decide⟩
+
+/-- A guarding variant is BTI with its discriminant in the target field; `None`
+    is the NOP, hint 0. -/
+theorem btiguard_instruction_is_bti_with_the_discriminant_as_targets (g : guard.BtiGuard) :
+    ∃ w, btiguard_instruction g = ok w ∧
+      w.val = (if btiGuardDiscriminant g = 0 then 0xD503201F
+               else 0xD503241F ||| (btiGuardDiscriminant g <<< 6)) := by
+  cases g <;> exact ⟨_, rfl, by decide⟩
+
+/-- `Jc` accepts both kinds of branch: its word is the union of the `C` and `J`
+    words. -/
+theorem btiguard_instruction_jc_is_c_and_j_together :
+    ∃ c j jc, btiguard_instruction .C = ok c ∧ btiguard_instruction .J = ok j ∧
+      btiguard_instruction .Jc = ok jc ∧ jc.val = c.val ||| j.val :=
+  ⟨_, _, _, rfl, rfl, rfl, by decide⟩
+
+/-- Distinct guards are distinct words, so no guard is emitted as another's
+    landing pad. -/
+theorem btiguard_instruction_tells_guards_apart (a b : guard.BtiGuard)
+    (h : btiguard_instruction a = btiguard_instruction b) : a = b := by
+  cases a <;> cases b <;> simp_all [btiguard_instruction, guard.BtiGuard.instruction]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.BtiGuard.the_btiguard_instruction_wrapper_is_its_method
+
+#print axioms NonosExtraction.BtiGuard.every_btiguard_instruction_is_a_hint
+#print axioms NonosExtraction.BtiGuard.btiguard_instruction_is_bti_with_the_discriminant_as_targets
+#print axioms NonosExtraction.BtiGuard.btiguard_instruction_jc_is_c_and_j_together
+#print axioms NonosExtraction.BtiGuard.btiguard_instruction_tells_guards_apart
 
 end NonosExtraction.BtiGuard

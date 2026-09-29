@@ -1336,6 +1336,16 @@
       ]
     },
     {
+      "name": "bti_pad",
+      "crate": "nonos_x_bti_pad",
+      "dir": "verification/extraction/sweep/bti_pad",
+      "lean": "BtiPad",
+      "generated": "BtiPad.lean",
+      "starts": [
+        "nonos_x_bti_pad::is_bti_landing_pad"
+      ]
+    },
+    {
       "name": "keyring_capsule_types",
       "crate": "nonos_x_keyring_capsule_types",
       "dir": "verification/extraction/sweep/keyring_capsule_types",
