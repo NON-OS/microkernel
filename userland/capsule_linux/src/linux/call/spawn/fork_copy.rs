@@ -16,7 +16,7 @@
 
 //! Copying a parent's spans into the child it just made.
 
-use crate::linux::guest::Guest;
+use crate::linux::guest::{Guest, MAX_SPAN};
 use nonos_libc::peer::{mk_peer_map, mk_peer_write};
 
 /// Every span, mapped into the child and then filled from the parent.
@@ -31,15 +31,22 @@ pub(super) fn copy_spans(guest: &mut Guest, child: u32) -> bool {
             continue;
         }
         /*
-         * The protection the span has now, PROT_NONE included: the kernel
+         * The kernel maps and copies at most MAX_SPAN in one peer call, so a
+         * larger span, which a Go heap is, crosses in pieces. Each piece gets
+         * the protection the span has now, PROT_NONE included: the kernel
          * copies into a page whatever its protection, so the bytes still go
          * in, and the child can do no more with them than the parent can.
          */
-        if mk_peer_map(child, span.at, span.len, span.peer_prot()) < 0 {
-            return false;
-        }
-        if !copy_one(guest, child, span.at, span.len) {
-            return false;
+        let mut done = 0;
+        while done < span.len {
+            let take = (span.len - done).min(MAX_SPAN);
+            if mk_peer_map(child, span.at + done, take, span.peer_prot()) < 0 {
+                return false;
+            }
+            if !copy_one(guest, child, span.at + done, take) {
+                return false;
+            }
+            done += take;
         }
     }
     true

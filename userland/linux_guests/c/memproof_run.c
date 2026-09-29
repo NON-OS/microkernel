@@ -28,6 +28,10 @@ void part_line(const char *proof, const char *name, int ok, const char *detail) 
 void part(const char *proof, const char *name, void (*fn)(void), int must_fault) {
     char detail[64];
     pid_t c = fork();
+    if (c < 0) {
+        part_line(proof, name, 0, "fork failed");
+        return;
+    }
     if (c == 0) {
         fn();
         _exit(0);

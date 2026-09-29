@@ -56,5 +56,13 @@ int main(void) {
     part(me, "middle page R, child writes the middle", write_it, 1);
     p = m + 2 * PG;
     part(me, "middle page R, child writes the last", write_it, 0);
+    /* Larger than the kernel's 1 MiB per peer call, so fork copies it in pieces. */
+    long big = 2 * 1024 * 1024;
+    p = mmap(0, big, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    p += big - PG;
+    p[0] = 0x5a;
+    part(me, "2 MiB RW, child reads the last page", read_it, 0);
+    mprotect((void *)(p - big + PG), big, PROT_NONE);
+    part(me, "2 MiB RW to NONE, child reads the last page", read_it, 1);
     return finish(me);
 }
