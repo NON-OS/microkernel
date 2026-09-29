@@ -19,7 +19,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::fonts::{draw_text, family_key, ingest_font, measure_text, TextRun};
+use crate::browser::fonts::{draw_text, family_key, ingest_font, measure_text, TextRun, NO_CLIP};
 
 /// A font file from fixtures/fonts.
 pub(super) fn font(file: &str) -> Vec<u8> {
@@ -35,7 +35,7 @@ fn ink(key: u32, mono: bool) -> Vec<u32> {
     let mut fb = PaintBuffer { pixels: &mut px, stride_words: 900, width: 900, height: 60 };
     let (x, top_y, px_size, spacing) = (4, 8, 19.0, 0.0);
     let (bold, italic) = (false, false);
-    let run = TextRun { key, mono, bold, italic, x, top_y, px: px_size, spacing };
+    let run = TextRun { key, mono, bold, italic, x, top_y, px: px_size, spacing, clip: NO_CLIP };
     draw_text(&mut fb, run, TEXT, 0xff20_3040);
     px
 }

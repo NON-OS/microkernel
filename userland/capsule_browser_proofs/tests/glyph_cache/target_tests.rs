@@ -33,8 +33,13 @@ fn blit_equals_blending_each_sample_at_every_offset() {
             let mut a = vec![0xff20_4060u32; stride * (h as usize - 1) + 5];
             let mut b = a.clone();
             let (bx, by) = (ox + r.min_x, oy + r.min_y);
-            Target { buf: &mut a, stride, w, h }.blit(&r, bx, by, 0xc0ff_8000);
-            let mut t = Target { buf: &mut b, stride, w, h };
+            Target { buf: &mut a, stride, w, h, clip: [0, 0, w as i64, h as i64] }.blit(
+                &r,
+                bx,
+                by,
+                0xc0ff_8000,
+            );
+            let mut t = Target { buf: &mut b, stride, w, h, clip: [0, 0, w as i64, h as i64] };
             for y in 0..r.h {
                 for x in 0..r.w {
                     let cov = r.cov[(y * r.w + x) as usize];
@@ -49,9 +54,12 @@ fn blit_equals_blending_each_sample_at_every_offset() {
 #[test]
 fn the_glyph_limit_is_the_cap_or_the_surface() {
     let mut small = vec![0u32; 4];
-    assert_eq!(Target { buf: &mut small, stride: 2, w: 2, h: 2 }.glyph_limit(), 4);
+    assert_eq!(
+        Target { buf: &mut small, stride: 2, w: 2, h: 2, clip: [0, 0, 2, 2] }.glyph_limit(),
+        4
+    );
     let mut none: Vec<u32> = Vec::new();
-    let huge = Target { buf: &mut none, stride: 4096, w: 4096, h: 4096 };
+    let huge = Target { buf: &mut none, stride: 4096, w: 4096, h: 4096, clip: [0; 4] };
     assert_eq!(huge.glyph_limit(), MAX_GLYPH_AREA);
     assert_eq!(sample().area(), 20);
 }

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod collect;
+mod draw_text;
 mod em_units;
 mod ingest;
 mod key;
@@ -27,8 +28,9 @@ mod woff;
 mod woff2;
 
 pub use collect::collect_font_faces;
+pub use draw_text::draw_text;
 pub use em_units::{ch_px, ex_px};
 pub use ingest::ingest_font;
 pub use key::family_key;
 pub use registry::{clear, with_face};
-pub use text::{content_height, draw_text, measure_text, TextRun};
+pub use text::{content_height, measure_text, TextRun, NO_CLIP};

@@ -16,6 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::browser::fonts::NO_CLIP;
 use crate::browser::layout::boxmodel::{Content, Fragment};
 use crate::browser::state::State;
 
@@ -44,19 +45,16 @@ pub(super) fn box_fragment(
     /* A decoded background image paints over the color and behind content. */
     super::bg_image::paint_bg_image(state, fb, f, sy, bottom, clip);
     super::borders::paint_borders(fb, f, sy, clip);
-    /* Text and images draw only when their box sits fully inside the page
-     * area and clip; the framebuffer has no clip for glyph or raster runs. */
-    if sy < TOP || sy + f.h > bottom {
+    /* Text and images draw clipped to the page area and the fragment clip,
+     * so a run or a picture cut by the scroll edge shows its visible part. */
+    let [x0, y0, x1, y1] = clip.unwrap_or(NO_CLIP);
+    let vis = [x0, y0.max(TOP), x1, y1.min(bottom)];
+    if vis[1] >= vis[3] || vis[0] >= vis[2] || sy >= vis[3] || sy + f.h <= vis[1] {
         return;
-    }
-    if let Some(c) = clip {
-        if f.x < c[0] || f.x + f.w > c[2] || sy < c[1] || sy + f.h > c[3] {
-            return;
-        }
     }
     match &f.content {
         Content::None => {}
-        Content::Text { .. } => super::paint_text::paint_text(fb, f, sy, clip),
-        Content::Image { .. } => super::paint_image::paint_image(state, fb, f, sy, clip),
+        Content::Text { .. } => super::paint_text::paint_text(fb, f, sy, vis),
+        Content::Image { .. } => super::paint_image::paint_image(state, fb, f, sy, vis),
     }
 }

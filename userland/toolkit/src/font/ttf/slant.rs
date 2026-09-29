@@ -46,7 +46,7 @@ pub fn draw_text_sheared<F: Font>(
     spacing: f32,
     slant: f32,
 ) -> i32 {
-    let mut t = Target { buf, stride, w, h };
+    let mut t = Target { buf, stride, w, h, clip: [0, 0, w as i64, h as i64] };
     if slant == 0.0 {
         return draw_upright(f, &mut t, (x, top_y), text, argb, px, spacing);
     }

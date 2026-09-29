@@ -17,7 +17,9 @@
 /* A site that splits a family into unicode-range subsets must get the Latin
  * one, and Latin text in a page face with no Latin glyphs must still draw. */
 
-use capsule_browser_proofs::browser::fonts::{self, collect_font_faces, family_key, TextRun};
+use capsule_browser_proofs::browser::fonts::{
+    self, collect_font_faces, family_key, TextRun, NO_CLIP,
+};
 use nonos_toolkit::font::fallback::has_glyph;
 use nonos_toolkit::font::ttf::FontRef;
 use nonos_toolkit::paint::PaintBuffer;
@@ -62,6 +64,7 @@ fn latin_text_in_a_face_without_latin_still_draws() {
         top_y: 5,
         px: 21.0,
         spacing: 0.0,
+        clip: NO_CLIP,
     };
     fonts::draw_text(&mut fb, run, "Hamburgefonstiv", 0xff00_0000);
     let ink = px.iter().filter(|&&p| p != 0xffff_ffff).count();

@@ -15,10 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Faces that agree on glyph ids, sizes and metrics never share a cached
-//! raster: a regular and a bold cut, and a page face loaded after another
-//! was freed.
+//! raster: a regular and a bold cut, and a page face loaded after one freed.
 
-use capsule_browser_proofs::browser::fonts::{self, family_key, TextRun};
+use capsule_browser_proofs::browser::fonts::{self, family_key, TextRun, NO_CLIP};
 use nonos_toolkit::font::em::em_scale;
 use nonos_toolkit::font::ttf::{builtin_face, clear_glyph_cache, draw_text_tracked, FontRef};
 use nonos_toolkit::paint::PaintBuffer;
@@ -57,16 +56,8 @@ fn page_draw(face: &[u8], len: usize) -> Vec<u32> {
     assert!(fonts::ingest_font(key, bytes));
     let mut px = vec![0xffff_ffffu32; 420 * 40];
     let mut fb = PaintBuffer { pixels: &mut px, stride_words: 420, width: 420, height: 40 };
-    let run = TextRun {
-        key,
-        mono: false,
-        bold: false,
-        italic: false,
-        x: 3,
-        top_y: 5,
-        px: 21.0,
-        spacing: 0.0,
-    };
+    let (mono, bold, italic, spacing, clip) = (false, false, false, 0.0, NO_CLIP);
+    let run = TextRun { key, mono, bold, italic, x: 3, top_y: 5, px: 21.0, spacing, clip };
     fonts::draw_text(&mut fb, run, TEXT, 0xff00_0000);
     px
 }

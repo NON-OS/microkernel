@@ -17,7 +17,7 @@
 //! A face whose glyphs span more pixels than MAX_GLYPH_AREA, or than the
 //! surface, draws them as missing glyphs, without allocating for them.
 
-use capsule_browser_proofs::browser::fonts::{self, family_key, TextRun};
+use capsule_browser_proofs::browser::fonts::{self, family_key, TextRun, NO_CLIP};
 use nonos_toolkit::font::ttf::{clear_glyph_cache, draw_text_tracked, FontRef};
 use nonos_toolkit::paint::PaintBuffer;
 
@@ -64,8 +64,8 @@ fn a_hostile_page_face_draws_none_of_its_glyphs_within_a_small_heap() {
     let ink = |key| {
         let mut px = vec![WHITE; 1400 * 1200];
         let mut fb = PaintBuffer { pixels: &mut px, stride_words: 1400, width: 1400, height: 1200 };
-        let (bold, italic, spacing) = (false, false, 0.0);
-        let run = TextRun { key, mono: false, bold, italic, x: 0, top_y: 40, px: 16.0, spacing };
+        let (mono, bold, italic, spacing, clip) = (false, false, false, 0.0, NO_CLIP);
+        let run = TextRun { key, mono, bold, italic, x: 0, top_y: 40, px: 16.0, spacing, clip };
         let (_, heap) = measure(|| fonts::draw_text(&mut fb, run, "Hamburgefonstiv", 0xff00_0000));
         (px.iter().filter(|&&p| p != WHITE).count(), heap.peak)
     };

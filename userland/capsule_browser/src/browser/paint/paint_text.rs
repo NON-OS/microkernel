@@ -19,13 +19,12 @@ use nonos_app_skeleton::PaintBuffer;
 use crate::browser::fonts::{content_height, draw_text, TextRun};
 use crate::browser::layout::boxmodel::{Content, Fragment};
 
-use super::box_page::TOP;
 use super::fill_page::fill_page;
 
 /* A text fragment on screen row `sy`. The font's content area (ascent to
  * descent at the true em size) sits centred in the line box, the half
  * leading above and below it, which puts the baseline where CSS does. */
-pub(super) fn paint_text(fb: &mut PaintBuffer, f: &Fragment, sy: i32, clip: Option<[i32; 4]>) {
+pub(super) fn paint_text(fb: &mut PaintBuffer, f: &Fragment, sy: i32, clip: [i32; 4]) {
     let Content::Text { text, color, px, bold, mono, underline, font, spacing, italic } =
         &f.content
     else {
@@ -34,12 +33,9 @@ pub(super) fn paint_text(fb: &mut PaintBuffer, f: &Fragment, sy: i32, clip: Opti
     let color = super::fade::fade(*color, f.alpha);
     let area = content_height(*font, *mono, *bold, *px);
     /* Half the leading above; a line box shorter than the content area
-     * makes it negative, and the glyphs overhang the box equally. Glyphs
-     * may not reach up into the browser chrome, which is painted already. */
+     * makes it negative, and the glyphs overhang the box equally. `clip`
+     * keeps them out of the browser chrome, which is painted already. */
     let ty = sy + (f.h - (area + 0.5) as i32) / 2;
-    if ty < TOP {
-        return;
-    }
     let run = |x: i32| TextRun {
         key: *font,
         mono: *mono,
@@ -49,6 +45,7 @@ pub(super) fn paint_text(fb: &mut PaintBuffer, f: &Fragment, sy: i32, clip: Opti
         top_y: ty,
         px: *px,
         spacing: *spacing,
+        clip,
     };
     /* A true bold cut needs no thickening; the fake second pass only
      * remains for faces that never shipped one, the mono cut mostly. */
@@ -57,6 +54,6 @@ pub(super) fn paint_text(fb: &mut PaintBuffer, f: &Fragment, sy: i32, clip: Opti
         draw_text(fb, run(f.x + 1), text, color);
     }
     if *underline {
-        fill_page(fb, f.x, sy + f.h - 2, f.w, 1, color, clip);
+        fill_page(fb, f.x, sy + f.h - 2, f.w, 1, color, Some(clip));
     }
 }

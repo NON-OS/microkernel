@@ -31,7 +31,7 @@ pub(super) fn paint_image(
     fb: &mut PaintBuffer,
     f: &Fragment,
     sy: i32,
-    clip: Option<[i32; 4]>,
+    vis: [i32; 4],
 ) {
     let Content::Image { src, alt, fit } = &f.content else { return };
     /* A fully transparent image shows nothing, loaded or not: a hidden
@@ -48,16 +48,18 @@ pub(super) fn paint_image(
             [f.x.max(0) as u32, sy.max(0) as u32, f.w.max(0) as u32, f.h.max(0) as u32],
             *fit,
             f.alpha,
-            clip,
+            Some(vis),
         );
     } else {
+        let clip = Some(vis);
         fill_page(fb, f.x, sy, f.w, f.h, IMG_BG, clip);
         fill_page(fb, f.x, sy, f.w, 1, IMG_EDGE, clip);
         fill_page(fb, f.x, sy + f.h - 1, f.w, 1, IMG_EDGE, clip);
         fill_page(fb, f.x, sy, 1, f.h, IMG_EDGE, clip);
         fill_page(fb, f.x + f.w - 1, sy, 1, f.h, IMG_EDGE, clip);
         let label = if alt.is_empty() { "image" } else { alt.as_str() };
-        if f.h >= 24 && f.w >= 48 {
+        /* The label has no clip of its own: it shows only where it fits. */
+        if f.h >= 24 && f.w >= 48 && vis[0] <= f.x && vis[1] <= sy && sy + 24 <= vis[3] {
             fb.text_ttf(f.x + 8, sy + 6, label, IMG_EDGE, 14.0);
         }
     }

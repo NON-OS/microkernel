@@ -24,18 +24,20 @@ pub(super) struct Target<'a> {
     pub stride: usize,
     pub w: u32,
     pub h: u32,
+    /* Drawable [x0, y0, x1, y1] inside the surface; coverage outside drops. */
+    pub clip: [i64; 4],
 }
 
 impl Target<'_> {
-    /* The largest glyph box drawn here: the fixed cap, or the surface's own
-    area when that is smaller. */
+    /* The largest glyph box drawn: the cap, or the surface's area if less. */
     pub fn glyph_limit(&self) -> u64 {
         MAX_GLYPH_AREA.min(self.w as u64 * self.h as u64)
     }
 
     /* Blend one coverage sample at (x, y); off-surface samples are dropped. */
     pub fn blend(&mut self, x: i32, y: i32, argb: u32, cov: u8) {
-        if cov == 0 || x < 0 || y < 0 || x >= self.w as i32 || y >= self.h as i32 {
+        let ([x0, y0, x1, y1], (x, y)) = (self.clip, (x as i64, y as i64));
+        if cov == 0 || x < x0 || y < y0 || x >= x1 || y >= y1 {
             return;
         }
         if let Some(p) = self.buf.get_mut(y as usize * self.stride + x as usize) {
@@ -43,11 +45,10 @@ impl Target<'_> {
         }
     }
 
-    /* Blend a raster whose top-left pixel lands at (ox, oy). The box is
-    clipped to the surface once, then each row is a slice walk. */
+    /* Blend a raster at (ox, oy), clipped once, then row by row. */
     pub fn blit(&mut self, r: &Raster, ox: i32, oy: i32, argb: u32) {
-        let (x0, x1) = span(ox, r.w, self.w);
-        let (y0, y1) = span(oy, r.h, self.h);
+        let (x0, x1) = span(ox, r.w, self.clip[0], self.clip[2]);
+        let (y0, y1) = span(oy, r.h, self.clip[1], self.clip[3]);
         if x0 == x1 {
             return;
         }
@@ -66,9 +67,9 @@ impl Target<'_> {
     }
 }
 
-/* The part of [at, at + len) inside [0, limit), empty when none is. */
-fn span(at: i32, len: u32, limit: u32) -> (i64, i64) {
-    let lo = (at as i64).max(0);
-    let hi = (at as i64 + len as i64).min(limit as i64);
+/* The part of [at, at + len) inside [lo, hi), empty when none is. */
+fn span(at: i32, len: u32, lo: i64, hi: i64) -> (i64, i64) {
+    let lo = (at as i64).max(lo);
+    let hi = (at as i64 + len as i64).min(hi);
     (lo, hi.max(lo))
 }

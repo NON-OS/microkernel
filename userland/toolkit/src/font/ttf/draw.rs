@@ -38,7 +38,7 @@ pub fn draw_text(
 ) -> i32 {
     let px = readable_px(px);
     let Some(f) = face(mono) else { return x };
-    let mut t = Target { buf, stride, w, h };
+    let mut t = Target { buf, stride, w, h, clip: [0, 0, w as i64, h as i64] };
     draw_cached(f, &mut t, (x, top_y), text, argb, px)
 }
 

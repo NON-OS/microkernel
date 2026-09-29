@@ -17,7 +17,7 @@
 //! The glyph cache's byte budget under real page text, and the page font
 //! registry emptying it on navigation.
 
-use capsule_browser_proofs::browser::fonts::{self, family_key, TextRun};
+use capsule_browser_proofs::browser::fonts::{self, family_key, TextRun, NO_CLIP};
 use nonos_toolkit::font::ttf::GLYPH_CACHE_BUDGET;
 use nonos_toolkit::font::ttf::{builtin_face, draw_text_tracked, glyph_cache_bytes};
 use nonos_toolkit::paint::PaintBuffer;
@@ -62,6 +62,7 @@ fn clearing_the_page_fonts_empties_the_glyph_cache() {
         top_y: 4,
         px: 18.0,
         spacing: 0.0,
+        clip: NO_CLIP,
     };
     fonts::draw_text(&mut fb, run, "Hamburgefonstiv", 0xff00_0000);
     assert!(glyph_cache_bytes() > 0);

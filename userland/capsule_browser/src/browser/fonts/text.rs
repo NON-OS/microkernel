@@ -14,15 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::font::em::em_scale;
-use nonos_toolkit::font::ttf::{self, FontRef, OBLIQUE};
+use nonos_toolkit::font::ttf;
 
 use super::run_face::{with_pieces, with_run_face};
 
 /* Bold cuts store under the family key with this bit set, so one registry
  * holds both weights without a second key namespace. */
 pub const BOLD_KEY: u32 = 1 << 31;
+
+/* A TextRun clip that cuts nothing. */
+pub const NO_CLIP: [i32; 4] = [i32::MIN, i32::MIN, i32::MAX, i32::MAX];
 
 /* One text run's face and geometry, grouped so calls stay readable. */
 pub struct TextRun {
@@ -35,6 +37,8 @@ pub struct TextRun {
     pub top_y: i32,
     pub px: f32,
     pub spacing: f32,
+    /* Screen [x0, y0, x1, y1] the glyphs may cover; the rest is cut. */
+    pub clip: [i32; 4],
 }
 
 /* Advance width at a font-size of `px`, the CSS em. Page text keeps its
@@ -52,24 +56,4 @@ pub fn measure_text(key: u32, mono: bool, bold: bool, text: &str, px: f32, spaci
  * line's half-leading is split around. */
 pub fn content_height(key: u32, mono: bool, bold: bool, px: f32) -> f32 {
     with_run_face(key, mono, bold, |f| em_scale(f, px)).map_or(px, |(h, _)| h)
-}
-
-/* Draw the run with the resolved faces. Returns true when a true bold cut
- * was used, so the caller knows the fake thickening is not needed. A piece
- * in a fallback face shares the run's baseline. */
-pub fn draw_text(fb: &mut PaintBuffer, run: TextRun, text: &str, argb: u32) -> bool {
-    let stride = fb.stride_words as usize;
-    let (w, h) = (fb.width, fb.height);
-    let TextRun { key, mono, bold, italic, x, top_y, px, spacing } = run;
-    let slant = if italic { OBLIQUE } else { 0.0 };
-    let mut pen = x;
-    let paint = |f: &FontRef, piece: &str, primary: &FontRef| {
-        let scale = em_scale(f, px);
-        let lift = ttf::ascent_with(primary, em_scale(primary, px)) - ttf::ascent_with(f, scale);
-        let y = top_y + lift;
-        pen = ttf::draw_text_sheared(
-            f, fb.pixels, stride, w, h, pen, y, piece, argb, scale, spacing, slant,
-        );
-    };
-    with_pieces(key, mono, bold, text, paint).unwrap_or(false)
 }

@@ -5,7 +5,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::fonts::{draw_text, measure_text, TextRun};
+use crate::browser::fonts::{draw_text, measure_text, TextRun, NO_CLIP};
 
 /* A private-use code point: no face has a glyph, so it measures .notdef. */
 const NOTDEF: &str = "\u{E000}";
@@ -22,6 +22,7 @@ fn ink(text: &str) -> Vec<u32> {
         top_y: 4,
         px: 24.0,
         spacing: 0.0,
+        clip: NO_CLIP,
     };
     draw_text(&mut fb, run, text, 0xffff_ffff);
     px

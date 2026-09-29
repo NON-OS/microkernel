@@ -22,6 +22,7 @@
 mod blend;
 mod cache;
 mod chrome;
+mod clipped;
 mod draw;
 mod evict;
 mod face;
@@ -39,6 +40,7 @@ mod upright;
 mod variants;
 
 pub use cache::{clear_glyph_cache, glyph_cache_bytes};
+pub use clipped::draw_text_clipped;
 pub use face::builtin_face;
 pub use raster::MAX_GLYPH_AREA;
 pub use readable::MIN_UI_PX;

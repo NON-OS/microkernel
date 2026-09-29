@@ -17,7 +17,7 @@
 //! Repainting text already on screen touches no heap: glyphs come from the
 //! cache, and a page face was parsed once when it was installed.
 
-use capsule_browser_proofs::browser::fonts::{self, family_key, TextRun};
+use capsule_browser_proofs::browser::fonts::{self, family_key, TextRun, NO_CLIP};
 use nonos_toolkit::font::ttf::{builtin_face, draw_text_tracked};
 use nonos_toolkit::paint::PaintBuffer;
 
@@ -56,6 +56,7 @@ fn a_page_face_is_parsed_once_not_per_call() {
             top_y: 6,
             px: 17.0,
             spacing: 0.0,
+            clip: NO_CLIP,
         };
         fonts::draw_text(&mut fb, run, TEXT, 0xff00_0000);
         fonts::measure_text(key, false, false, TEXT, 17.0, 0.0)
