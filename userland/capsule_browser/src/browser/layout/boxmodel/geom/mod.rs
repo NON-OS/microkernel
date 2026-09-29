@@ -34,6 +34,7 @@ pub(crate) mod overflow_clip;
 pub(crate) mod radii;
 pub(crate) mod ratio_h;
 pub(crate) mod rel_offset;
+pub(crate) mod replaced_clamp;
 pub(crate) mod shift_down;
 pub(crate) mod stack;
 mod stack_key;

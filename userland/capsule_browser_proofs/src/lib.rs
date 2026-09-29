@@ -55,6 +55,7 @@ mod marker_tests;
 mod bg_layer_tests;
 mod mask_tests;
 mod math_len_tests;
+mod replaced_clamp_tests;
 mod narrow_tests;
 mod pos_tests;
 mod quirks_table_tests;

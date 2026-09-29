@@ -16,6 +16,7 @@
 
 use crate::browser::css::Size;
 
+use super::geom::replaced_clamp::clamp_replaced;
 use super::image_box::image_box;
 use super::tree::BoxNode;
 
@@ -25,7 +26,8 @@ use super::tree::BoxNode;
 /// natural one, else the attributes' w/h, else aspect-ratio), and with no
 /// side given at all the natural size stands. A width that CSS did not set
 /// stays within max-width and `avail`, the height following it by the
-/// ratio. With neither a size nor a ratio known, the default image box.
+/// ratio, and min/max sizes then bound it (geom::replaced_clamp). With
+/// neither a size nor a ratio known, the default image box.
 pub(super) fn replaced_size(n: &BoxNode, avail: i32, cb_h: Option<i32>) -> (i32, i32) {
     let s = &n.style;
     let [aw, ah] = n.aux.attr.map(|a| a.map(|v| v as i32));
@@ -38,7 +40,8 @@ pub(super) fn replaced_size(n: &BoxNode, avail: i32, cb_h: Option<i32>) -> (i32,
     let w = css_w.or(aw);
     let h = css_h.or(if ratio.is_some() { None } else { ah });
     let by = |v: i32, k: f32| (v as f32 * k + 0.5) as i32;
-    let (mut w, derived_h, mut h) = match (w, h, ratio, nat) {
+    let w_set = w.is_some();
+    let (w, derived_h, h) = match (w, h, ratio, nat) {
         (Some(w), Some(h), _, _) => (w, false, h),
         (Some(w), None, Some(r), _) => (w, true, by(w, 1.0 / r)),
         (None, Some(h), Some(r), _) => (by(h, r), false, h),
@@ -49,15 +52,8 @@ pub(super) fn replaced_size(n: &BoxNode, avail: i32, cb_h: Option<i32>) -> (i32,
             (w, h.is_none(), h.or(r.map(|r| by(w, 1.0 / r))).unwrap_or(fh))
         }
     };
-    if css_w.is_none() {
-        let cap = s.max_width.resolve(avail).map_or(avail, |m| m.min(avail)).max(0);
-        if w > cap {
-            if let (Some(r), true) = (ratio, derived_h) {
-                h = by(cap, 1.0 / r);
-            }
-            w = cap;
-        }
-    }
+    let set = (w_set, !derived_h);
+    let (w, h) = clamp_replaced(s, (w, h), set, ratio, (avail, cb_h));
     (w.max(0), h.max(0))
 }
 
