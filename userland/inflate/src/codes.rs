@@ -18,9 +18,11 @@ use alloc::vec::Vec;
 
 use super::bits::Bits;
 use super::huff::{decode, Huff};
-use super::tables::{DBASE, DEXT, LBASE, LEXT, MAX_OUT};
+use super::tables::{DBASE, DEXT, LBASE, LEXT};
 
-pub fn codes(b: &mut Bits, out: &mut Vec<u8>, lit: &Huff, dist: &Huff) -> Option<()> {
+/// `limit` bounds the output as it grows, so a small stream that expands
+/// without end stops at the bound instead of exhausting memory.
+pub fn codes(b: &mut Bits, out: &mut Vec<u8>, lit: &Huff, dist: &Huff, limit: usize) -> Option<()> {
     loop {
         let sym = decode(b, lit)?;
         if sym == 256 {
@@ -29,15 +31,15 @@ pub fn codes(b: &mut Bits, out: &mut Vec<u8>, lit: &Huff, dist: &Huff) -> Option
         if sym < 256 {
             out.push(sym as u8);
         } else {
-            copy_match(b, out, sym, dist)?;
+            copy_match(b, out, sym, dist, limit)?;
         }
-        if out.len() > MAX_OUT {
+        if out.len() > limit {
             return None;
         }
     }
 }
 
-fn copy_match(b: &mut Bits, out: &mut Vec<u8>, sym: u16, dist: &Huff) -> Option<()> {
+fn copy_match(b: &mut Bits, out: &mut Vec<u8>, sym: u16, dist: &Huff, limit: usize) -> Option<()> {
     let s = (sym - 257) as usize;
     if s >= 29 {
         return None;
@@ -48,7 +50,7 @@ fn copy_match(b: &mut Bits, out: &mut Vec<u8>, sym: u16, dist: &Huff) -> Option<
         return None;
     }
     let dist_v = DBASE[dsym] as usize + b.bits(DEXT[dsym] as u32)? as usize;
-    if dist_v == 0 || dist_v > out.len() || out.len().checked_add(len)? > MAX_OUT {
+    if dist_v == 0 || dist_v > out.len() || out.len().checked_add(len)? > limit {
         return None;
     }
     let start = out.len() - dist_v;

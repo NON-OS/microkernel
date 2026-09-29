@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod app;
+pub mod etna;
 mod event;
 mod hex;
 mod ipc;
@@ -26,6 +27,7 @@ pub mod paint;
 pub mod vault;
 mod pool;
 mod rpc;
+pub mod screen;
 mod shield;
 mod state;
 mod swap;

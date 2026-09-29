@@ -65,4 +65,6 @@ pub fn clear(pid: u32) {
      * an answer meant for a process that no longer exists.
      */
     super::trap_reply::forget(pid);
+    super::trap_frame::drop_frame(pid);
+    super::notice::forget_supervisor(pid);
 }

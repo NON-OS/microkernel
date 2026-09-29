@@ -19,29 +19,34 @@ use alloc::vec::Vec;
 
 use super::crc32::crc32;
 use super::gzip_header::body_at;
-use super::inflate_raw::inflate_counted;
+use super::inflate_raw::inflate_counted_within;
 use super::tables::MAX_OUT;
 
 /// A member ends with a CRC32 and an ISIZE.
 const TRAILER: usize = 8;
 
 /// Enough for a distribution index in several parts.
-const MAX_MEMBERS: usize = 64;
+pub(super) const MAX_MEMBERS: usize = 64;
 
 /// Every member, concatenated. Bytes after a verified member that do not
 /// decode as another member are trailing garbage, and end the stream.
 pub fn gunzip(data: &[u8]) -> Option<Vec<u8>> {
-    let (mut out, mut at) = verified(data)?;
+    gunzip_within(data, MAX_OUT)
+}
+
+/// The same, with the caller's bound on the whole output.
+pub fn gunzip_within(data: &[u8], limit: usize) -> Option<Vec<u8>> {
+    let (mut out, mut at) = verified(data, limit)?;
     for _ in 1..MAX_MEMBERS {
         let rest = data.get(at..)?;
         if rest.is_empty() {
             return Some(out);
         }
-        let Some((mut part, end)) = inflated(rest) else {
+        let Some((mut part, end)) = inflated(rest, limit) else {
             return Some(out);
         };
         checked(rest, &part, end)?;
-        if out.len().checked_add(part.len())? > MAX_OUT {
+        if out.len().checked_add(part.len())? > limit {
             return None;
         }
         out.append(&mut part);
@@ -50,16 +55,16 @@ pub fn gunzip(data: &[u8]) -> Option<Vec<u8>> {
     (at == data.len()).then_some(out)
 }
 
-fn verified(d: &[u8]) -> Option<(Vec<u8>, usize)> {
-    let (out, end) = inflated(d)?;
+pub(super) fn verified(d: &[u8], limit: usize) -> Option<(Vec<u8>, usize)> {
+    let (out, end) = inflated(d, limit)?;
     checked(d, &out, end)?;
     Some((out, end.checked_add(TRAILER)?))
 }
 
 /// The member's output, and the offset of its trailer.
-fn inflated(d: &[u8]) -> Option<(Vec<u8>, usize)> {
+fn inflated(d: &[u8], limit: usize) -> Option<(Vec<u8>, usize)> {
     let start = body_at(d)?;
-    let (out, used) = inflate_counted(d.get(start..)?)?;
+    let (out, used) = inflate_counted_within(d.get(start..)?, limit)?;
     Some((out, start.checked_add(used)?))
 }
 

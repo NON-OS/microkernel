@@ -21,12 +21,16 @@ mod map;
 mod map_anon;
 mod map_exec;
 mod map_file;
+mod map_fill;
 mod map_req;
 mod memory;
 mod prot;
 mod prot_span;
+mod remap;
+mod remap_move;
 
 pub use map::mmap;
 pub use map_req::MapReq;
 pub use memory::{brk, munmap};
 pub use prot::mprotect;
+pub use remap::mremap;

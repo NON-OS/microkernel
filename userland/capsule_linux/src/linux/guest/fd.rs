@@ -42,17 +42,16 @@ pub struct Fd {
     pub writable: bool,
     /// The net.sockets handle behind a socket descriptor.
     pub handle: u32,
-    /// An epoll interest list: descriptor, events, and the token the
-    /// program gets back, which is its own and never interpreted.
-    pub watch: Vec<(u64, u32, u64)>,
-    /// When a timer next fires, in milliseconds of uptime.
-    pub expiry: u64,
+    /// An epoll interest list.
+    pub watch: Vec<super::Watch>,
     /// Datagrams waiting to be read, oldest first, each with the address it
     /// should appear to come from.
     pub replies: Vec<(Vec<u8>, [u8; 6])>,
     /// Closed by exec rather than carried into the new program. A shell
     /// leaves its own descriptors set this way before it runs a command.
     pub cloexec: bool,
+    /// O_NONBLOCK: a call that would wait is answered EAGAIN instead.
+    pub nonblock: bool,
 }
 
 impl Fd {

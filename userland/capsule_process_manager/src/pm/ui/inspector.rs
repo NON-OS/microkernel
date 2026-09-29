@@ -44,7 +44,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let n = u32_decimal(row.caps.count_ones(), &mut buf);
     y = insp_fields::field(fb, left, y, b"Authority", &buf[..n], TITLE);
     insp_chips::paint(fb, left, y, w, row.caps);
-    insp_actions::paint(fb);
+    insp_actions::paint(fb, crate::pm::critical::is_critical(row.name()));
 }
 
 fn heading(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, row: &Row) -> u32 {

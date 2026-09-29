@@ -55,7 +55,9 @@ pub fn open(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
     let create = flags & O_CREATE != 0;
     let truncate = flags & O_TRUNC != 0;
     let append = flags & O_APPEND != 0;
-    let path = normalize(path);
+    let Some(path) = normalize(path) else {
+        return encode_response(OP_OPEN, req.flags, req.request_id, EINVAL, &[]);
+    };
     // The signed artifacts under /capsules open read-only: a write intent is
     // refused up front, and the handle itself carries no write permission.
     let read_only = is_read_only(&path);

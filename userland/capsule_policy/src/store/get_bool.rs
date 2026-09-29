@@ -40,6 +40,7 @@ pub fn get(field: Field) -> Option<bool> {
         Field::WifiAskToJoin => s.wifi_ask_to_join,
         Field::AlertSounds => s.alert_sounds,
         Field::StartupChime => s.startup_chime,
+        Field::Persistent => s.persistent,
         Field::KernelAslr => s.kernel_aslr,
         Field::KernelStackGuard => s.kernel_stack_guard,
         Field::KernelNxBit => s.kernel_nx_bit,

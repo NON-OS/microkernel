@@ -38,7 +38,7 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
             None => return reply_status(tx, req, E_NODATA),
         };
     let publisher_ok = accepted.publisher_signature_verified(entry_index, release_index);
-    let verdict = evaluate(accepted.signature_verified, release, publisher_ok);
+    let verdict = evaluate(accepted.signature_verified, listing_id, release, publisher_ok);
     let slot = match body_slot(tx, READINESS_LEN) {
         Some(s) => s,
         None => return reply_status(tx, req, E_INVAL),
@@ -49,5 +49,6 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
     slot[3] = verdict.publisher_signature_present as u8;
     slot[4] = verdict.validation_passed as u8;
     slot[5] = verdict.arch_match as u8;
+    slot[6] = verdict.attestation_present as u8;
     reply_with_body(tx, req, READINESS_LEN);
 }

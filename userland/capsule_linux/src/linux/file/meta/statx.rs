@@ -22,16 +22,17 @@ use crate::linux::guest::Guest;
 use super::super::at::resolve_at;
 use super::super::resolve::key;
 use super::super::store;
+use super::statbuf::inode;
 
 /// `struct statx` is 256 bytes.
 const STATX: usize = 256;
 
-/// The bits for the fields the store can answer: type, mode, size and
-/// mtime. Nothing else is claimed.
+/// The bits for the fields answered: type, mode, inode and size. Times are
+/// not claimed; a real mtime on a shared file would date its install.
 const STATX_TYPE: u32 = 0x0001;
 const STATX_MODE: u32 = 0x0002;
 const STATX_SIZE: u32 = 0x0200;
-const STATX_MTIME: u32 = 0x0020;
+const STATX_INO: u32 = 0x0100;
 
 const S_IFDIR: u16 = 0o040_000;
 const S_IFREG: u16 = 0o100_000;
@@ -40,18 +41,18 @@ pub fn statx(guest: &Guest, dirfd: u64, path: u64, out: u64) -> u64 {
     let Some(at) = resolve_at(guest, dirfd, path) else {
         return errno::fail(errno::EFAULT);
     };
-    let Ok((size, is_dir, mtime, readonly)) = store::stat_full(&key(&at)) else {
+    let Ok((size, is_dir, _, readonly)) = store::stat_full(&key(&at)) else {
         return errno::fail(errno::ENOENT);
     };
     let mode = if is_dir { S_IFDIR } else { S_IFREG } | if readonly { 0o555 } else { 0o755 };
 
     let mut buf = [0u8; STATX];
-    buf[0..4].copy_from_slice(&(STATX_TYPE | STATX_MODE | STATX_SIZE | STATX_MTIME).to_le_bytes());
+    buf[0..4].copy_from_slice(&(STATX_TYPE | STATX_MODE | STATX_INO | STATX_SIZE).to_le_bytes());
     buf[4..8].copy_from_slice(&4096u32.to_le_bytes()); // stx_blksize
     buf[28..30].copy_from_slice(&mode.to_le_bytes()); // stx_mode
+    buf[32..40].copy_from_slice(&inode(&at).to_le_bytes()); // stx_ino
     buf[40..48].copy_from_slice(&size.to_le_bytes()); // stx_size
     buf[48..56].copy_from_slice(&size.div_ceil(512).to_le_bytes()); // stx_blocks
-    buf[96..104].copy_from_slice(&(mtime / 1000).to_le_bytes()); // stx_mtime.sec
     match guest.write(out, &buf) {
         n if n < 0 => errno::fail(errno::EFAULT),
         _ => errno::ok(0),

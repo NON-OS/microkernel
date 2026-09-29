@@ -25,6 +25,7 @@ mod acpi_i2c;
 // mod census;
 mod claim;
 mod class;
+mod confine;
 mod device;
 pub mod dma;
 mod grant;

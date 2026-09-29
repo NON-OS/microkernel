@@ -116,6 +116,8 @@ pub enum SyscallNumber {
     MkForeignStart = tag4(b"MFST"),
     MkForeignWait = tag4(b"MFWT"),
     MkForeignReply = tag4(b"MFRP"),
+    MkForeignContext = tag4(b"MFCX"),
+    MkForeignSignal = tag4(b"MFSG"),
     MkPeerMap = tag4(b"MPMP"),
     MkPeerCopy = tag4(b"MPCP"),
     MkPeerProtect = tag4(b"MPPT"),
@@ -128,4 +130,8 @@ pub enum SyscallNumber {
     MkLocalVerify = tag4(b"MLVF"),
     MkAppInstall = tag4(b"MAIN"),
     MkDevRootLocal = tag4(b"MDRO"),
+    MkLocalConsent = tag4(b"MLCG"),
+    MkLocalRestore = tag4(b"MLCR"),
+    MkAppLaunch = tag4(b"MAPL"),
+    MkAppInstallStatus = tag4(b"MAIS"),
 }

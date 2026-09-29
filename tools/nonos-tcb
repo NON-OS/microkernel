@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Count what runs in ring 0, and refuse to let it grow.
+
+"Small TCB" is the claim the design rests on, and nothing measured it. A
+count of the source tree says little: it holds three architectures, test
+modules and whole subsystems no profile compiles. What the kernel actually
+is comes from the compiler, so the files counted here are the ones rustc's
+dep-info for the kernel library says it read. A file inside that set is
+counted whole, including anything a `cfg` removes from it, so the number is
+an upper bound at file granularity.
+
+Generated files, `include_bytes!` payloads and path crates such as
+nonos-stark are left out: the count is non-comment Rust under src/.
+"""
+
+import argparse
+import sys
+from collections import Counter
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "ratchets"))
+import budget  # noqa: E402
+from kernel_files import DEPS, kernel_files  # noqa: E402
+from ring0 import code_lines  # noqa: E402
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("--root", type=Path, default=Path("."), help="repository root")
+    ap.add_argument("--depinfo", type=Path, help="kernel library dep-info (.d); default: newest")
+    ap.add_argument("--target-deps", type=Path, default=DEPS)
+    ap.add_argument("--baseline", type=Path, help="fail when the count exceeds this file's number")
+    ap.add_argument("--by-module", action="store_true", help="print the count per top-level module")
+    a = ap.parse_args()
+
+    root = a.root.resolve()
+    depinfo, files = kernel_files(root, a.depinfo, a.target_deps)
+    if not files:
+        return 2
+
+    per = Counter()
+    for f in files:
+        rel = f.relative_to(root / "src")
+        per[rel.parts[0] if len(rel.parts) > 1 else "(root)"] += code_lines(f)
+    total = sum(per.values())
+
+    print(f"[tcb] {len(files)} files, {total} lines of ring 0 code ({depinfo.name})")
+    if a.by_module:
+        for name, n in per.most_common():
+            print(f"[tcb]   {name:24} {n:7}")
+
+    if a.baseline:
+        return budget.held("tcb", total, a.baseline, grows_ok=False)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

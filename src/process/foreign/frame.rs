@@ -23,6 +23,10 @@
 //! an unserviceable call came from.
 
 /// Wire layout shared with userspace. Appended to, never reordered.
+/// Delivered to a supervisor, not a guest: the thread `pid` ended on a
+/// signal. Matches `nonos_libc::FOREIGN_NR_DIED`; no syscall uses it.
+pub(super) const NR_DIED: u64 = u64::MAX;
+
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 pub struct ForeignFrame {

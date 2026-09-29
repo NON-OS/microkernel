@@ -17,22 +17,32 @@
 //! The filesystem a guest sees.
 
 mod at;
+mod clamp;
 pub(super) mod close;
 mod cstr;
 mod dir;
+mod dir_children;
 mod dirent;
 mod dirents;
 mod dirops;
 mod epoll;
+mod epoll_arm;
 mod epoll_wait;
+mod eventfd;
+mod eventfd_io;
+pub mod family;
 pub mod flags;
 mod fsync;
+mod link;
 mod memfd;
 mod memfd_map;
 mod meta;
+mod mknod;
 mod open;
+mod owner;
 mod path;
 mod pread;
+mod private;
 mod read;
 mod regular;
 mod rename;
@@ -44,6 +54,7 @@ mod store;
 mod store_name;
 mod timerfd;
 mod timerfd_read;
+mod timerfd_spec;
 mod write;
 
 pub use close::close;
@@ -51,22 +62,29 @@ pub use cstr::read_cstr;
 pub use dirents::getdents64;
 pub use dirops::{mkdirat, rmdir, unlinkat};
 pub use epoll::{epoll_create, epoll_ctl};
+pub use epoll_arm::rearm;
 pub use epoll_wait::epoll_wait;
+pub use eventfd::{bits as event_bits, eventfd2};
+pub use eventfd_io::{read as event_read, write as event_write};
 pub use fsync::fsync;
+pub use link::{linkat, symlinkat};
 pub use memfd::{ftruncate, is_memfd, memfd_create};
 pub use memfd_map::{mapped_at, set_mapped, staged};
 pub use meta::{
-    access, chmod, faccessat, fchmod, fchmodat, fstat, look, newfstatat, readlink, statfs, statx,
+    access, chmod, faccessat, fchmod, fchmodat, fstat, look, newfstatat, readlinkat, statfs, statx,
 };
+pub use mknod::mknodat;
 pub use open::openat;
+pub use owner::{fchown_ids, fchownat, utimensat};
 pub use path::read_path;
 pub use pread::pread64;
+pub use private::{allow_shared_writes, clear as clear_private, prepare as prepare_private};
 pub use read::read;
-pub use rename::rename;
+pub use rename::{rename, renameat2};
 pub use resolve::{key, visible};
 pub use seek::lseek;
 pub use slot::{install, MAX_FDS};
 pub use store::{read as store_read, write as store_write};
-pub use timerfd::{timerfd_create, timerfd_settime};
-pub use timerfd_read::read as timerfd_read;
+pub use timerfd::{timerfd_create, timerfd_gettime, timerfd_settime};
+pub use timerfd_read::{bits as timer_bits, read as timerfd_read};
 pub use write::write;

@@ -14,37 +14,91 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `timerfd_create`, `timerfd_settime`, and reading one.
+//! `timerfd_create`, `timerfd_settime` and `timerfd_gettime`, as Linux
+//! defines them: a timer on a named clock, one-shot or periodic, set
+//! relative to now or to an absolute time on its clock.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Fd, Guest, Kind};
+use crate::linux::call::now_ms;
+use crate::linux::guest::{Fd, Guest, Kind, Timer};
 
+use super::flags::{O_CLOEXEC, O_NONBLOCK};
 use super::slot::install;
+use super::timerfd_spec::{read_spec, write_spec};
 
-/// `struct itimerspec`: interval seconds and nanoseconds, then the
-/// value's seconds and nanoseconds. Four eight byte fields.
-const ITIMERSPEC_LEN: usize = 32;
+const CLOCK_MONOTONIC: u64 = 1;
+/// REALTIME, MONOTONIC, BOOTTIME, REALTIME_ALARM, BOOTTIME_ALARM.
+const CLOCKS: [u64; 5] = [0, 1, 7, 8, 9];
+const TFD_TIMER_ABSTIME: u64 = 1;
+const TFD_TIMER_CANCEL_ON_SET: u64 = 2;
 
-pub fn timerfd_create(guest: &mut Guest) -> u64 {
-    match install(guest, Fd::empty(Kind::Timer)) {
+pub fn timerfd_create(guest: &mut Guest, clock: u64, flags: u64) -> u64 {
+    if !CLOCKS.contains(&clock) || flags & !(O_NONBLOCK | O_CLOEXEC) != 0 {
+        return errno::fail(errno::EINVAL);
+    }
+    let slot = guest.timers.len();
+    guest.timers.push(Timer { clock, ..Timer::default() });
+    let mut fd = Fd::empty(Kind::Timer);
+    fd.handle = slot as u32;
+    fd.nonblock = flags & O_NONBLOCK != 0;
+    fd.cloexec = flags & O_CLOEXEC != 0;
+    match install(guest, fd) {
         Some(n) => errno::ok(n),
         None => errno::fail(errno::EMFILE),
     }
 }
 
-pub fn timerfd_settime(guest: &mut Guest, fd: u64, spec: u64) -> u64 {
-    let Some(raw) = guest.read(spec, ITIMERSPEC_LEN) else {
-        return errno::fail(errno::EFAULT);
+/// Arm or disarm, writing the previous setting to `old` when it is named.
+pub fn timerfd_settime(guest: &mut Guest, fd: u64, flags: u64, new: u64, old: u64) -> u64 {
+    let Some(slot) = slot_of(guest, fd) else {
+        return errno::fail(errno::EBADF);
     };
-    let secs = u64::from_le_bytes(raw[16..24].try_into().unwrap_or([0; 8]));
-    let nanos = u64::from_le_bytes(raw[24..32].try_into().unwrap_or([0; 8]));
-    let delay = secs * 1000 + nanos / 1_000_000;
-    let now = nonos_libc::mk_uptime_ms().max(0) as u64;
-    match guest.fds.get_mut(fd as usize).filter(|f| f.kind == Kind::Timer) {
-        Some(entry) => {
-            entry.expiry = if delay == 0 { 0 } else { now + delay };
-            errno::ok(0)
-        }
-        None => errno::fail(errno::EBADF),
+    if flags & !(TFD_TIMER_ABSTIME | TFD_TIMER_CANCEL_ON_SET) != 0 {
+        return errno::fail(errno::EINVAL);
     }
+    let (every, value) = match read_spec(guest, new) {
+        Ok(pair) => pair,
+        Err(refused) => return refused,
+    };
+    if old != 0 && write_spec(guest, old, current(guest, slot)) < 0 {
+        return errno::fail(errno::EFAULT);
+    }
+    let now = now_ms(CLOCK_MONOTONIC).unwrap_or(0);
+    let timer = &mut guest.timers[slot];
+    timer.every = every;
+    timer.due = match (value, flags & TFD_TIMER_ABSTIME != 0) {
+        (0, _) => 0,
+        (span, false) => now.saturating_add(span),
+        // An absolute time is a distance from now on the timer's own clock.
+        (at, true) => {
+            let on_clock = now_ms(timer.clock).unwrap_or(now);
+            now.saturating_add(at.saturating_sub(on_clock)).max(1)
+        }
+    };
+    errno::ok(0)
+}
+
+pub fn timerfd_gettime(guest: &mut Guest, fd: u64, out: u64) -> u64 {
+    let Some(slot) = slot_of(guest, fd) else {
+        return errno::fail(errno::EBADF);
+    };
+    match write_spec(guest, out, current(guest, slot)) < 0 {
+        true => errno::fail(errno::EFAULT),
+        false => errno::ok(0),
+    }
+}
+
+/// The interval, and what is left before the next firing.
+fn current(guest: &Guest, slot: usize) -> (u64, u64) {
+    let now = now_ms(CLOCK_MONOTONIC).unwrap_or(0);
+    let timer = guest.timers[slot];
+    let left = if timer.due == 0 { 0 } else { timer.due.saturating_sub(now).max(1) };
+    (timer.every, left)
+}
+
+/// The timer `fd` names, if it is a timerfd.
+pub fn slot_of(guest: &Guest, fd: u64) -> Option<usize> {
+    let entry = guest.fds.get(fd as usize).filter(|f| f.kind == Kind::Timer)?;
+    let slot = entry.handle as usize;
+    (slot < guest.timers.len()).then_some(slot)
 }

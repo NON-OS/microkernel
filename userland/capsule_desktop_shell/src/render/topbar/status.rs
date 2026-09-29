@@ -40,7 +40,7 @@ pub(super) fn status(ctx: &Context) {
     let blen = battery::label(&mut bbuf);
     let btext = &bbuf[..blen];
     let mut sbuf = [b'-'; STAMP_LEN];
-    let stamped = stamp(&mut sbuf, ctx.clock_24h);
+    let stamped = stamp(&mut sbuf, ctx.clock_24h, ctx.tz_hours);
     let when: &[u8] = if stamped { &sbuf } else { b"--:--" };
 
     let has_notify = ctx.last_notify_level.is_some();

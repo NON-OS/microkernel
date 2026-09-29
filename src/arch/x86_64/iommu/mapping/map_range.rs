@@ -14,15 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::commit::commit;
+use super::domain_root::domain_root;
 use super::validate_range::validate_range;
 use crate::arch::x86_64::iommu::globals::state::STATE;
 use crate::arch::x86_64::iommu::globals::{is_enforcing, page_levels, snoop_control};
 use crate::arch::x86_64::iommu::tables::frame::entries_mut;
 use crate::arch::x86_64::iommu::tables::sl_pte::{is_present, leaf};
+use crate::arch::x86_64::iommu::tables::touched::Touched;
 use crate::arch::x86_64::iommu::tables::walk::walk_create;
-use crate::arch::x86_64::iommu::types::{
-    DomainId, IommuPageFlags, VtdError, MAX_VTD_DOMAINS, PAGE_SIZE_4K,
-};
+use crate::arch::x86_64::iommu::types::{DomainId, IommuPageFlags, VtdError, PAGE_SIZE_4K};
 
 pub fn map_range(
     domain: DomainId,
@@ -44,16 +45,9 @@ pub fn map_range(
         return Err(VtdError::NoPermissionsRequested);
     }
     let levels = page_levels().ok_or(VtdError::DepthUnknown)?;
-    let index = domain.as_u16() as usize;
-    if index >= MAX_VTD_DOMAINS {
-        return Err(VtdError::DomainNotFound);
-    }
 
     let state = STATE.lock();
-    if !state.domains[index].used {
-        return Err(VtdError::DomainNotFound);
-    }
-    let root = state.domains[index].root;
+    let root = domain_root(&state, domain)?;
     if iova + size as u64 > 1u64 << (12 + 9 * levels as u32) {
         return Err(VtdError::RangeOutOfBounds);
     }
@@ -65,11 +59,13 @@ pub fn map_range(
             return Err(VtdError::RangeAlreadyMapped);
         }
     }
+    let mut touched = Touched::default();
     for page in 0..pages {
         let offset = (page * PAGE_SIZE_4K) as u64;
         let slot = walk_create(root, iova + offset, levels)?;
         entries_mut(slot.table_phys)?[slot.index] =
             leaf(phys + offset, flags.read, flags.write, flags.snoop && snoop_control());
+        touched.note(slot.table_phys);
     }
-    Ok(())
+    commit(touched)
 }

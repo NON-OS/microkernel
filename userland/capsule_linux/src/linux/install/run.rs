@@ -22,52 +22,49 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_debug;
 
-use super::download::download;
+use super::fetch::fetch;
 use super::index_load::load_index;
 use super::place::unpack;
-use super::provenance::Provenance;
 
-pub(super) const HOST: &str = "dl-cdn.alpinelinux.org";
-pub(super) const PORT: u16 = 80;
 pub(super) const RELEASE: &str = "v3.20";
 pub(super) const ARCH: &str = "x86_64";
 pub(super) const BRANCHES: [&str; 2] = ["main", "community"];
 
-/// Rounds of resolution. A closure that has not settled by now is a
-/// dependency cycle the index cannot satisfy, and looping would hide it.
-const ROUNDS: usize = 12;
-
-pub fn install(name: &str) -> bool {
+/// Alpine's install; `family::install` sends the other families elsewhere.
+pub fn install(name: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
     let Some(index) = load_index() else {
         say(b"[LINUX] no package index\n");
-        return false;
+        return Err(super::Why::Index);
     };
+    let max = super::limit::max_packages();
     let mut wanted: Vec<String> = vec![String::from(name)];
     let mut done: Vec<String> = Vec::new();
-    for _ in 0..ROUNDS {
-        let Some(next) = wanted.pop() else {
-            return true;
+    while let Some(next) = wanted.pop() {
+        let found = match next.strip_prefix("so:") {
+            Some(lib) => index.by_lib(lib),
+            None => index.by_name(&next),
         };
-        if done.contains(&next) {
+        let Some(pkg) = found else {
+            say(b"[LINUX] nothing provides it\n");
+            return Err(super::Why::NotProvided);
+        };
+        if done.contains(&pkg.name) {
             continue;
         }
-        let Some(pkg) = index.by_name(&next).or_else(|| index.by_lib(&next)) else {
-            say(b"[LINUX] nothing provides it\n");
-            return false;
-        };
-        let apk = download(&pkg.name, &pkg.version);
-        if apk.is_empty() {
-            say(b"[LINUX] package would not download\n");
-            return false;
+        if done.len() == max {
+            let line = alloc::format!("[LINUX] refused: closure passes {max} packages\n");
+            say(line.as_bytes());
+            return Err(super::Why::TooLarge);
         }
-        /*
-         * Nothing says these are the bytes the distribution
-         * published: see `provenance`.
-         */
-        unpack(&apk, Provenance::Unauthenticated);
-        done.push(next);
+        let Some(files) = fetch(pkg, (pkg.name == name).then_some(pin)) else {
+            return Err(super::Why::Package);
+        };
+        say(b"[LINUX] provenance Verified: index signature and checksums match\n");
+        unpack(&files, (pkg.name == name).then_some(name));
+        done.push(pkg.name.clone());
+        wanted.extend(pkg.depends.iter().cloned());
     }
-    true
+    Ok(())
 }
 
 fn say(line: &[u8]) {

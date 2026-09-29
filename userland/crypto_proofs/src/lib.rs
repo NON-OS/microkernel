@@ -25,6 +25,7 @@ extern crate alloc;
 // primitives expect from their parent module.
 pub mod crypto;
 pub mod hash;
+pub mod security;
 
 #[cfg(test)]
 mod aesgcm_tests;

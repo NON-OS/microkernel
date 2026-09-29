@@ -61,11 +61,14 @@ impl Table {
         self.roots.iter().all(|s| s.used)
     }
 
+    pub(super) fn remove(&mut self, root: &[u8; 32]) {
+        for slot in self.roots.iter_mut().filter(|s| s.used && &s.root == root) {
+            *slot = DevRoot { root: [0u8; 32], used: false };
+        }
+    }
+
     pub fn find(&self, root: &[u8; 32]) -> Option<u8> {
-        self.roots
-            .iter()
-            .position(|s| s.used && &s.root == root)
-            .map(|i| i as u8)
+        self.roots.iter().position(|s| s.used && &s.root == root).map(|i| i as u8)
     }
 }
 

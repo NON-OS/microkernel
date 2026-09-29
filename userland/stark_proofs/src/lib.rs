@@ -15,6 +15,10 @@ mod barycentric_tests;
 #[cfg(test)]
 mod enroll_batch_tests;
 #[cfg(test)]
+mod private_leaf_forgery_tests;
+#[cfg(test)]
+mod public_leaf_tests;
+#[cfg(test)]
 mod field_ext_tests;
 #[cfg(test)]
 mod field_tests;

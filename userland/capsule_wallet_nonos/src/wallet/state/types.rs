@@ -84,6 +84,8 @@ pub struct State {
     pub fee_ready: bool,
     pub fee_wei: u64,
     pub view: u8,
+    /// How far an Etna screen has scrolled, reset when the view changes.
+    pub scroll: u32,
     pub send_focus: u8,
     pub send_to_hex: [u8; 40],
     pub send_to_len: usize,

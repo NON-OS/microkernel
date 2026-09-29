@@ -16,6 +16,9 @@
 
 //! Getting the client's pixels onto a NONOS surface.
 
+use nonos_app_skeleton::clients::compositor::damage_commit;
+use nonos_app_skeleton::discover::lookup_port;
+
 use crate::linux::guest::Guest;
 
 use super::present_surface::surface;
@@ -39,8 +42,12 @@ pub fn present(guest: &mut Guest, buffer: u32) {
         return;
     };
     guest.scene.pixels[..bytes].copy_from_slice(&src);
-    if let Some(handle) = surface(&mut guest.scene, width, height, stride) {
-        let _ = nonos_libc::mk_surface_present_rect(handle, 0, 0, width, height);
+    // Presented by the compositor, as every other app's window is; the
+    // personality holds no GfxPresent and needs none.
+    if surface(&mut guest.scene, width, height, stride).is_some() {
+        if let Some(port) = lookup_port(b"compositor") {
+            let _ = damage_commit(port, guest.scene.next_serial(), 0, 0, width, height);
+        }
     }
 }
 

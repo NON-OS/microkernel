@@ -31,6 +31,7 @@ pub fn release(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
     claims.remove(idx);
     drop(claims);
     super::quiesce::stop_bus_master(device_id);
+    crate::hardware::broker::confine::detach(pid, device_id);
     Ok(epoch)
 }
 
@@ -46,5 +47,6 @@ pub fn release_all_for_pid(pid: u32) -> usize {
     for device_id in &held {
         super::quiesce::stop_bus_master(*device_id);
     }
+    crate::hardware::broker::confine::detach_all(pid);
     held.len()
 }

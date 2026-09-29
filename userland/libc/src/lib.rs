@@ -28,6 +28,7 @@ pub mod crypto;
 pub mod debug;
 pub mod foreign;
 pub mod foreign_frame;
+pub mod foreign_signal;
 pub mod graphics;
 #[cfg(feature = "heap")]
 pub mod heap;
@@ -76,14 +77,22 @@ pub use crypto::{
     MACHINE_KEY_NO_TPM, MACHINE_KEY_WRONG_STATE,
 };
 pub use debug::mk_debug;
-pub use consent::{mk_dev_root_confirm, mk_dev_root_local};
+pub use consent::{
+    mk_dev_root_confirm, mk_dev_root_local, mk_local_consent_grant, mk_local_consent_revoke,
+    mk_local_restore,
+};
 pub use foreign::{
     mk_foreign_exec, mk_foreign_fork, mk_foreign_reply, mk_foreign_resume, mk_foreign_spawn,
     mk_foreign_start, mk_foreign_thread, mk_foreign_wait,
 };
-pub use foreign_frame::ForeignFrame;
+pub use foreign_frame::{ForeignFrame, FOREIGN_NR_DIED};
+pub use foreign_signal::{
+    mk_foreign_context, mk_foreign_signal, ForeignRegs, SIGNAL_DELIVER, SIGNAL_RETURN,
+};
 pub use graphics::nonos_display_dimensions;
-pub use local_sign::{mk_app_install, mk_local_sign, mk_local_sign_len, mk_local_verify};
+pub use local_sign::{
+    mk_app_install, mk_app_install_status, mk_app_launch, mk_local_sign, mk_local_sign_len, mk_local_verify,
+};
 #[cfg(feature = "heap")]
 pub use heap::{init as heap_init, init_sized as heap_init_sized, HeapError};
 pub use install_source::{

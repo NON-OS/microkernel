@@ -27,8 +27,8 @@ mod stats;
 mod tlb_ops;
 
 pub use address_space::{
-    cleanup_address_space, create_address_space, get_process_cr3, lookup_asid_for_process,
-    switch_address_space, switch_to_process_address_space,
+    cleanup_address_space, create_address_space, get_process_cr3, hand_over_address_space,
+    lookup_asid_for_process, switch_address_space, switch_to_process_address_space,
 };
 pub use faults::handle_page_fault;
 pub use init::{init, is_initialized};

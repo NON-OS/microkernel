@@ -85,7 +85,7 @@ fn verify_kernel_stark_self_attestation(
     parsed: &crate::image_format::ParsedImage<'_>,
     result: &mut CryptoVerifyResult,
 ) {
-    const MAGIC: &[u8; 8] = b"NZKSTRK1";
+    const MAGIC: &[u8; 8] = b"NZKSTRK2";
     let Some(trailer) = parsed.proof_bytes else {
         log_info("kernel_verify", "no STARK self-attestation trailer present");
         return;

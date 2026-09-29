@@ -20,18 +20,15 @@
 //!   * `MkDeviceRelease` — drains every grant tied to the device
 //!   * process exit — drains every grant the dying pid owns
 //!
-//! Revocation order: scrub the buffer, unmap user pages (when the
-//! holder's CR3 is active so the unmap is in-context), free the
-//! physical frame back to the allocator. The cross-pid teardown
-//! path skips the unmap because dereferencing a foreign address
-//! space would walk the wrong page tables; the AS reaper drops
-//! those PTEs wholesale.
+//! Revocation order: unmap user pages (when the holder's CR3 is
+//! active), take the grant from the device's domain, scrub, free.
+//! The cross-pid path skips the user unmap because a foreign address
+//! space would walk the wrong page tables; the AS reaper drops those.
 
 use super::pool;
 use super::records;
 use super::types::{DmaError, DmaGrant};
 use crate::memory::addr::VirtAddr;
-use crate::memory::layout::DIRECTMAP_BASE;
 use crate::memory::phys::free_contiguous;
 
 const PAGE_SIZE: u64 = 4096;
@@ -59,33 +56,23 @@ pub fn release_all_for_pid(pid: u32, unmap_pages: bool) -> usize {
 }
 
 fn teardown(g: &DmaGrant, unmap_pages: bool) {
-    scrub_buffer(g.physical_start, g.length);
     if unmap_pages {
         let _ = crate::memory::paging::unmap_user_dma(VirtAddr::new(g.user_va), g.length as usize);
     }
+    // The device loses the grant before anyone else can gain the frames. If
+    // its domain will not give it up, the frames are leaked, never reused.
+    if !super::super::confine::unmap(g.pid, g.device_addr, g.length, g.confined) {
+        crate::sys::serial::println(b"[DMA] grant still reachable by its device; frames quarantined");
+        return;
+    }
+    super::scrub::scrub(g.physical_start, g.length);
     let pages = (g.length / PAGE_SIZE) as usize;
     if pool::low32_owns(g.physical_start) {
         pool::low32_free(g.physical_start, pages);
     } else if !pool::free(g.physical_start, pages) {
         let _ = free_contiguous(g.physical_start, pages);
     }
-    crate::memory::iommu::note_unconfined_released(1);
-}
-
-// Scrub the page through the kernel direct map before returning
-// the frame to the global allocator. The next consumer of this
-// frame must not see whatever the previous holder left there.
-//
-// SAFETY: eK@nonos.systems — `physical_start` came from
-// `allocate_frame` and is only ever referenced through the broker
-// grant table. The grant is removed from the records before this
-// runs, so no other path can race on the same VA.
-fn scrub_buffer(physical_start: u64, length: u64) {
-    let kva = (DIRECTMAP_BASE + physical_start) as *mut u64;
-    let words = (length / 8) as usize;
-    unsafe {
-        for i in 0..words {
-            core::ptr::write_volatile(kva.add(i), 0);
-        }
+    if !g.confined {
+        crate::memory::iommu::note_unconfined_released(1);
     }
 }

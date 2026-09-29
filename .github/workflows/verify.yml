@@ -120,6 +120,18 @@ jobs:
         run: python3 scripts/check_service_caps.py
       - name: Attestation parameters live in one place
         run: python3 scripts/check_attest_params.py
+      - name: Every assumption the security rests on is registered
+        run: python3 tools/nonos-assumptions
+      - name: No new control that exists and does not run
+        run: python3 scripts/check_unenforced.py && python3 scripts/check_unenforced.py --self-test
+      - name: Linux syscall coverage does not fall
+        run: python3 tools/nonos-linux-coverage --baseline scripts/baselines/linux-syscalls.txt
+      - name: Wayland coverage does not fall
+        run: python3 tools/nonos-wayland-coverage --baseline scripts/baselines/wayland-globals.txt
+      - name: Every served Linux call says what it discloses
+        run: python3 tools/ratchets/disclosure.py
+      - name: Every mutant still removes the control it names
+        run: python3 tools/nonos-mutant --check
 
   # The committed verification/evidence/EVIDENCE.json is a machine-readable inventory of
   # everything NONOS proves. Regenerate it from the source tree and fail if it
@@ -353,6 +365,8 @@ jobs:
           - audio_proto_proofs
           - capsule_crypto_proofs
           - aes_proofs
+          - capsule_linux_proofs
+          - market_proofs
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2
         with:

@@ -21,15 +21,9 @@ use crate::settings::schema::rows::{Block, Pill, Row};
 pub const WIFI: &[Block] = &[
     Block {
         title: "Wi-Fi",
-        note: Some("Power the wireless radio on or off."),
+        note: Some("Off stops every scan and join from this machine."),
         pill: Pill::Radio,
         rows: &[Row::Field(Field::WifiRadio)],
     },
     Block { title: "Networks", note: None, pill: Pill::None, rows: &[Row::Networks] },
-    Block {
-        title: "Behaviour",
-        note: None,
-        pill: Pill::None,
-        rows: &[Row::Field(Field::WifiAskToJoin), Row::Field(Field::WifiAutoconnect)],
-    },
 ];

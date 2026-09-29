@@ -59,7 +59,20 @@ pub fn on_timer_interrupt() {
 
     hooks::invoke_hook();
 
-    if crate::sched::scheduler::preemption::need_reschedule() {
+    /*
+     * Only a tick that interrupted user mode may switch. Kernel code here
+     * holds plain spin locks with interrupts open, and a switch taken inside
+     * one hands the CPU to a task whose resume takes the same lock: on one
+     * processor that spin never ends, as runG7 hung in the paging manager.
+     * A kernel path waits by yielding, which picks up the pending request.
+     */
+    let from_user = crate::smp::percpu::current()
+        .tick_from_user
+        .load(core::sync::atomic::Ordering::Relaxed);
+    if from_user
+        && crate::smp::preempt_enabled()
+        && crate::sched::scheduler::preemption::need_reschedule()
+    {
         crate::sched::scheduler::preemption::clear_reschedule();
         if crate::process::scheduler::contract::switch(
             crate::process::scheduler::contract::SwitchIntent::Preempt,

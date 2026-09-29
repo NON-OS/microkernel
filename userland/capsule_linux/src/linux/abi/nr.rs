@@ -18,6 +18,7 @@
 //! Linux x86_64 syscall numbers, by family.
 
 pub use super::nr_high::*;
+pub use super::nr_sched::*;
 
 pub const READ: u64 = 0;
 pub const WRITE: u64 = 1;
@@ -34,6 +35,7 @@ pub const MUNMAP: u64 = 11;
 pub const BRK: u64 = 12;
 pub const RT_SIGACTION: u64 = 13;
 pub const RT_SIGPROCMASK: u64 = 14;
+pub const RT_SIGRETURN: u64 = 15;
 pub const IOCTL: u64 = 16;
 pub const PREAD64: u64 = 17;
 pub const PWRITE64: u64 = 18;
@@ -48,6 +50,7 @@ pub const NANOSLEEP: u64 = 35;
 pub const GETPID: u64 = 39;
 pub const SOCKET: u64 = 41;
 pub const CONNECT: u64 = 42;
+pub const ACCEPT: u64 = 43;
 pub const SENDTO: u64 = 44;
 pub const RECVFROM: u64 = 45;
 pub const SENDMSG: u64 = 46;

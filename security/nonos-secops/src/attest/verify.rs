@@ -16,24 +16,11 @@
 
 //! Verify a kernel self-attestation exactly as the bootloader does before jump.
 
-use super::constants::{DEPTH, EXTRA_BLOWUP_BITS, GRIND_BITS, LOG_ROUNDS, N_QUERIES};
+use super::constants::DEPTH;
 use super::context::kernel_context;
-use nonos_stark::air::{verify_membership_trailer, Poseidon, RATE};
-use nonos_stark::field::Fp;
+use nonos_stark::air::verify_public_trailer;
 
 /// Verify a trailer against an enrolled root, the boot-side check byte for byte.
 pub fn verify_kernel_attestation(root: &[u8; 32], kernel_bytes: &[u8], trailer: &[u8]) -> bool {
-    let hasher = Poseidon::new(LOG_ROUNDS, [Fp::ZERO; RATE]);
-    verify_membership_trailer(
-        &hasher,
-        LOG_ROUNDS,
-        *root,
-        kernel_bytes,
-        DEPTH,
-        trailer,
-        &kernel_context(kernel_bytes),
-        N_QUERIES,
-        GRIND_BITS,
-        EXTRA_BLOWUP_BITS,
-    )
+    verify_public_trailer(root, DEPTH, kernel_bytes, trailer, &kernel_context(kernel_bytes))
 }

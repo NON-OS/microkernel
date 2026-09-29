@@ -25,7 +25,9 @@ use super::strings::{bounded_bytes, bounded_count, bounded_string};
 use crate::limits::{MAX_ENTRIES, MAX_INDEX_BLOB, MAX_PUBLISHER, MAX_SIGNATURE};
 use crate::types::{MarketplaceEntry, MarketplaceIndex};
 
-const SUPPORTED_SCHEMA: u32 = 1;
+// 2: every release carries the hash of the zk trailer binding its own
+// measurement to the enrolled set, and the publisher signature covers it.
+const SUPPORTED_SCHEMA: u32 = 2;
 
 pub struct DecodedIndex<'a> {
     pub index: MarketplaceIndex,

@@ -17,14 +17,30 @@
 //! Answering for a guest: the loop, and the table it answers from.
 
 mod answer;
+mod deliver;
 mod dispatch;
+mod family;
+mod family_futex;
+mod family_lend;
+mod family_reap;
+mod family_sleep;
+mod family_waits;
 mod loop_impl;
+mod pid_map;
+mod pid_ns;
+mod refused;
+mod pid_out;
 mod table;
 mod table_file;
+mod table_link;
 mod table_mem;
 mod table_net;
 mod table_proc;
+mod tally;
 mod unserved;
+mod waits;
+mod waits_fds;
+mod waits_time;
 
 pub use answer::Answer;
 pub use loop_impl::serve;

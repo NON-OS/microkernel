@@ -22,4 +22,11 @@ pub struct Region {
     pub len: u64,
     pub write: bool,
     pub exec: bool,
+    /// File bytes mapped without exec, so never proved: mprotect may not
+    /// make them executable later.
+    pub unproven: bool,
+    /// False for a PROT_NONE reservation: address space taken, no frames yet.
+    /// The kernel demand-fills a page on first access, so reserving a large
+    /// span and committing a little costs only what is touched; fork skips it.
+    pub backed: bool,
 }

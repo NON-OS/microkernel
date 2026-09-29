@@ -44,6 +44,7 @@ fn icon_bytes(icon: LauncherIcon) -> &'static [u8] {
         LauncherIcon::Calculator => IconId::Calc,
         LauncherIcon::Clock => IconId::Clock,
         LauncherIcon::Snake => IconId::Snake,
+        LauncherIcon::Store => IconId::Store,
         LauncherIcon::Wallet => IconId::Wallet,
         LauncherIcon::Browser => IconId::Browser,
         LauncherIcon::ImageViewer => IconId::ImageViewer,

@@ -64,8 +64,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_hash"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_hd"
 version = "0.3.0"
+dependencies = [
+ "nonos_hash",
+]
 
 [[package]]
 name = "nonos_qr"
@@ -107,7 +114,9 @@ dependencies = [
  "nonos_qr",
  "nonos_seal",
  "nonos_tls",
+ "nonos_toolkit",
  "nonos_userland_libc",
+ "spin",
 ]
 
 [[package]]

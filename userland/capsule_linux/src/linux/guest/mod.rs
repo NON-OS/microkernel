@@ -17,14 +17,23 @@
 //! A hosted process: what it is, what it has open, and how this capsule
 //! reaches into it.
 
+mod blocked;
+mod event;
 mod fd;
 mod fd_dup;
 mod fd_empty;
 mod fd_kind;
 mod fd_make;
+mod fork_state;
 mod handle;
 mod handle_new;
+pub mod sigqueue;
+pub mod sigstate;
 mod layout;
+mod links;
+mod links_add;
+mod links_list;
+mod links_load;
 mod mem;
 mod mem_copy;
 mod mem_map;
@@ -32,14 +41,22 @@ mod mem_unmap;
 mod region;
 mod region_cut;
 mod region_find;
+mod region_mark;
 mod threads;
+mod timer;
+mod watch;
 
+pub use blocked::Blocked;
+pub use event::Event;
 pub use fd::Fd;
 pub use fd_kind::Kind;
 pub use handle::Guest;
+pub use links::Links;
 pub use layout::{
     BRK_BASE, BRK_LIMIT, EXEC_BASE, INTERP_BASE, MMAP_BASE, MMAP_LIMIT, STACK_SIZE,
-    STACK_TOP,
+    STACK_TOP, USER_MAX,
 };
 pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
 pub use region::Region;
+pub use timer::Timer;
+pub use watch::{Watch, EPOLLET, EPOLLONESHOT};

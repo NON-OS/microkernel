@@ -21,12 +21,16 @@ use crate::linux::call;
 use crate::linux::guest::Guest;
 
 use super::table_file::file_ops;
+use super::table_link::link_ops;
 use super::table_mem::mem_ops;
 use super::table_net::net_ops;
 use super::table_proc::proc_ops;
 
 pub fn plain(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
     if let Some(v) = file_ops(guest, tid, nr, a) {
+        return v;
+    }
+    if let Some(v) = link_ops(guest, nr, a) {
         return v;
     }
     if let Some(v) = net_ops(guest, tid, nr, a) {
@@ -43,7 +47,7 @@ pub fn plain(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
 
 fn rest(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
     match nr {
-        nr::IOCTL => call::ioctl(guest, a[0], a[1]),
+        nr::IOCTL => call::ioctl(guest, a[0], a[1], a[2]),
         nr::FCNTL => call::fcntl(guest, a[0], a[1], a[2]),
         nr::UNAME => call::uname(guest, a[0]),
         np::GETRLIMIT => call::getrlimit(guest, a[0], a[1]),
@@ -55,7 +59,12 @@ fn rest(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> u64 {
         nr::RSEQ | nr::SET_ROBUST_LIST => errno::ok(0),
         nr::ARCH_PRCTL => call::arch_prctl(guest, tid, a[0], a[1]),
         nr::GETRANDOM => call::getrandom(guest, a[0], a[1], a[2]),
+        nr::PRCTL => call::prctl(guest, tid, a[0], a[1]),
+        nr::SCHED_GETAFFINITY => call::sched_getaffinity(guest, a[1], a[2]),
+        nr::GETCPU => call::getcpu(guest, a[0], a[1]),
+        nr::MEMBARRIER => call::membarrier(a[0]),
+        nr::CLONE3 => call::clone3(),
         nr::EXIT | nr::EXIT_GROUP => call::exit(guest, a[0]),
-        other => super::unserved::unserved(other),
+        other => super::refused::refused(other).unwrap_or_else(|| super::unserved::unserved(other)),
     }
 }

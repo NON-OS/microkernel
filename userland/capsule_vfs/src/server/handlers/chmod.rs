@@ -40,7 +40,9 @@ pub fn chmod(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Err(_) => return encode_response(OP_CHMOD, req.flags, req.request_id, EINVAL, &[]),
     };
     let mode = u16::from_le_bytes([rest[1 + len], rest[1 + len + 1]]);
-    let path = normalize(path);
+    let Some(path) = normalize(path) else {
+        return encode_response(OP_CHMOD, req.flags, req.request_id, EINVAL, &[]);
+    };
     if is_read_only(&path) {
         return encode_response(OP_CHMOD, req.flags, req.request_id, EACCES, &[]);
     }

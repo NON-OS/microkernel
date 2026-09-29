@@ -43,7 +43,7 @@ fn walking_by_reclen_reaches_every_name() {
     let mut seen = Vec::new();
     while at < out.len() {
         let reclen = u16::from_le_bytes([out[at + 16], out[at + 17]]) as usize;
-        assert!(reclen >= HEADER + 1 && at + reclen <= out.len());
+        assert!(reclen > HEADER && at + reclen <= out.len());
         let body = &out[at + 19..at + reclen];
         let end = body.iter().position(|b| *b == 0).unwrap();
         seen.push(String::from_utf8(body[..end].to_vec()).unwrap());

@@ -23,7 +23,7 @@ mod teardown;
 
 pub use exit_and_yield::exit_and_yield;
 pub(crate) use pending::drain as drain_pending_teardowns;
-pub(crate) use reap_log::{reap_exit_status, reap_exit_status_for};
+pub(crate) use reap_log::{peek_exit_status, reap_exit_status, reap_exit_status_for};
 pub use teardown::teardown;
 
 /// Drop everything a freshly allocated pid would inherit from a dead one.

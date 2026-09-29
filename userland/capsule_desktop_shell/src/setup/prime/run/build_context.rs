@@ -42,6 +42,7 @@ pub fn build_context(peers: &Peers, overlay: &Overlay) -> Context {
         toast_layer_live: false,
         net_was_online: false,
         clock_24h: true,
+        tz_hours: 0,
         policy_port: 0,
         next_request_id: 2,
         desktop_items: alloc::vec::Vec::new(),

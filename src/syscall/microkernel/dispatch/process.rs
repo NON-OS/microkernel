@@ -16,10 +16,13 @@
 
 use super::args::Args;
 use crate::process::foreign::{
-    sys_foreign_exec, sys_foreign_fork, sys_foreign_reply, sys_foreign_spawn, sys_foreign_start,
-    sys_foreign_thread, sys_foreign_wait, sys_peer_copy, sys_peer_map, sys_peer_protect,
-    sys_peer_tls, sys_peer_unmap,
+    sys_foreign_context, sys_foreign_exec, sys_foreign_fork, sys_foreign_reply, sys_foreign_signal,
+    sys_foreign_spawn, sys_foreign_start, sys_foreign_thread, sys_foreign_wait, sys_peer_copy,
+    sys_peer_map, sys_peer_protect, sys_peer_tls, sys_peer_unmap,
 };
+use crate::syscall::microkernel::app_install::sys_app_install;
+use crate::syscall::microkernel::app_install_status::sys_app_install_status;
+use crate::syscall::microkernel::app_launch::sys_app_launch;
 use crate::syscall::microkernel::attest::sys_attest_status;
 use crate::syscall::microkernel::attest_doc::sys_attest_doc;
 use crate::syscall::microkernel::attest_entries::sys_attest_entries;
@@ -27,13 +30,13 @@ use crate::syscall::microkernel::battery::sys_battery_status;
 use crate::syscall::microkernel::capsule_load::sys_capsule_load;
 use crate::syscall::microkernel::capsule_verify::sys_capsule_verify;
 use crate::syscall::microkernel::enrol_dev_root::{sys_dev_root_confirm, sys_dev_root_request};
+use crate::syscall::microkernel::enrol_local_root::sys_dev_root_local;
 use crate::syscall::microkernel::futex::{sys_futex_wait, sys_futex_wake};
 use crate::syscall::microkernel::install_source::sys_install_source;
-use crate::syscall::microkernel::local_sign::sys_local_sign;
-use crate::syscall::microkernel::app_install::sys_app_install;
-use crate::syscall::microkernel::enrol_local_root::sys_dev_root_local;
-use crate::syscall::microkernel::local_verify::sys_local_verify;
 use crate::syscall::microkernel::kill::sys_kill;
+use crate::syscall::microkernel::local_consent::{sys_local_consent, sys_local_restore};
+use crate::syscall::microkernel::local_sign::sys_local_sign;
+use crate::syscall::microkernel::local_verify::sys_local_verify;
 use crate::syscall::microkernel::memory::{sys_mmap, sys_munmap};
 use crate::syscall::microkernel::numbers::*;
 use crate::syscall::microkernel::proc_output::sys_proc_output;
@@ -87,18 +90,24 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_FOREIGN_START => sys_foreign_start(a.a0, a.a1, a.a2),
         SYS_FOREIGN_WAIT => sys_foreign_wait(a.a0, a.a1, a.a2),
         SYS_FOREIGN_REPLY => sys_foreign_reply(a.a0, a.a1),
+        SYS_FOREIGN_CONTEXT => sys_foreign_context(a.a0, a.a1),
+        SYS_FOREIGN_SIGNAL => sys_foreign_signal(a.a0, a.a1, a.a2),
         SYS_PEER_MAP => sys_peer_map(a.a0, a.a1, a.a2, a.a3),
         SYS_PEER_COPY => sys_peer_copy(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_PEER_PROTECT => sys_peer_protect(a.a0, a.a1, a.a2, a.a3),
-        SYS_FOREIGN_THREAD => sys_foreign_thread(a.a0, a.a1, a.a2, a.a3),
+        SYS_FOREIGN_THREAD => sys_foreign_thread(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_PEER_TLS => sys_peer_tls(a.a0, a.a1),
         SYS_FOREIGN_FORK => sys_foreign_fork(a.a0),
         SYS_PEER_UNMAP => sys_peer_unmap(a.a0, a.a1, a.a2),
         SYS_FOREIGN_EXEC => sys_foreign_exec(a.a0, a.a1, a.a2),
         SYS_LOCAL_SIGN => sys_local_sign(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_LOCAL_VERIFY => sys_local_verify(a.a0, a.a1, a.a2, a.a3, a.a4),
-        SYS_APP_INSTALL => sys_app_install(a.a0, a.a1),
+        SYS_APP_INSTALL => sys_app_install(a.a0, a.a1, a.a2, a.a3),
         SYS_DEV_ROOT_LOCAL => sys_dev_root_local(),
+        SYS_LOCAL_CONSENT => sys_local_consent(a.a0, a.a1),
+        SYS_LOCAL_RESTORE => sys_local_restore(a.a0),
+        SYS_APP_LAUNCH => sys_app_launch(a.a0, a.a1),
+        SYS_APP_INSTALL_STATUS => sys_app_install_status(a.a0, a.a1),
         SYS_DEV_ROOT_REQUEST => sys_dev_root_request(a.a0),
         SYS_DEV_ROOT_CONFIRM => sys_dev_root_confirm(a.a0),
         SYS_SPAWN_INSTANCE => sys_spawn_instance(a.a0, a.a1),

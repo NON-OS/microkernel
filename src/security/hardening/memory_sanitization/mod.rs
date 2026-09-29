@@ -18,7 +18,6 @@ pub mod api;
 pub mod canary;
 pub mod containers;
 pub mod erase;
-pub mod guard;
 mod kernel_stacks;
 pub mod primitives;
 #[cfg(target_arch = "x86_64")]
@@ -37,5 +36,4 @@ pub use erase::{
     dod_5220_erase, gutmann_erase, paranoid_erase, sanitize, sanitize_slice, secure_zero,
     secure_zero_slice,
 };
-pub use guard::{allocate_with_guards, free_with_guards, GuardPage};
 pub use types::{SanitizationLevel, SanitizationStats, StackCanaryConfig};

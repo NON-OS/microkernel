@@ -14,6 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(not(feature = "microkernel-setup-wizard"))]
 pub(in crate::userspace::init) fn spawn_apps() {
     super::apps::spawn();
 }
+
+/// With first-boot setup the apps wait for the desktop that follows it.
+/// Spawned beside setup they found no shell and exited, and they took the
+/// keyboard focus setup needed on the way.
+#[cfg(feature = "microkernel-setup-wizard")]
+pub(in crate::userspace::init) fn spawn_apps() {}

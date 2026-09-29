@@ -89,6 +89,17 @@ pub(crate) extern "C" fn timer_trap_handler(ctx: *mut UserContext) {
     send_eoi();
     crate::process::accounting::set_tick_origin(from_user);
     timer::on_timer_interrupt();
+    /*
+     * Back here means this frame, not the snapshot, is what resumes: either
+     * no switch happened or the task came back on its kernel context. A
+     * snapshot left behind would later resume the task at this old rip, so a
+     * guest parked in a syscall woke inside code it had already left.
+     */
+    if from_user {
+        if let Some(pcb) = crate::process::current_process() {
+            *pcb.saved_user_context.lock() = None;
+        }
+    }
     // Never reclaim while the interrupted context is a dying one: after
     // exit_and_yield tears the current process down, CURRENT_PID is cleared
     // and the CPU keeps looping on the dead pid's kernel stack under its

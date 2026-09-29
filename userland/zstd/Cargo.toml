@@ -1,0 +1,13 @@
+[package]
+name = "nonos_zstd"
+version = "0.1.0"
+edition = "2021"
+authors = ["NONOS Contributors"]
+license = "AGPL-3.0"
+description = "Zstandard (RFC 8878) decoding for NONOS userland"
+
+[lib]
+name = "nonos_zstd"
+path = "src/lib.rs"
+
+[dependencies]

@@ -1,0 +1,28 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+
+//! Work a capsule asks the Linux personality to do, performed by init: an
+//! install once the market vouches for it, or a run of what was installed.
+
+mod queue;
+mod service;
+mod status;
+mod why;
+
+pub(crate) use queue::{has_pending, request_install, request_run};
+pub(crate) use service::service;
+pub(crate) use status::{get as install_stage, Stage};

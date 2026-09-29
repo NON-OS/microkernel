@@ -30,6 +30,11 @@ pub fn claim(pid: u32, device_id: u64) -> Result<u64, ClaimError> {
         claims.push(Claim { pid, device_id, epoch });
         epoch
     };
+    // Confined before it is powered, so the device never runs unconfined.
+    if crate::hardware::broker::confine::attach(pid, device_id).is_err() {
+        CLAIMS.lock().retain(|c| !(c.pid == pid && c.device_id == device_id));
+        return Err(ClaimError::Unconfined);
+    }
     // Bring the device to power state D0 before its driver maps MMIO. Done
     // outside the claims lock: it touches config space and settles for a moment.
     crate::hardware::broker::power::power_on_device(device_id);

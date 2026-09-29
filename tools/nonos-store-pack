@@ -40,6 +40,12 @@ def parse_entries(specs):
             entries.append((raw, f.read()))
     return entries
 
+# userland/capsule_vfs/src/blk/store_header.rs MAX_ENTRIES and
+# store_toc.rs MAX_TOTAL_BYTES.
+MAX_ENTRIES = 128
+MAX_PAYLOAD = 16 * 1024 * 1024
+
+
 def main():
     ap = argparse.ArgumentParser(description="pack the NONOS capsule store into a disk image")
     ap.add_argument("--image", required=True)
@@ -51,6 +57,13 @@ def main():
     if not os.path.isfile(args.image):
         die("image not found: %s" % args.image)
     base, entries = args.lba * SEC, parse_entries(args.entry)
+    # vfs refuses a whole store over either limit, and the only symptom at boot
+    # is an empty tree, so an image it would refuse is not written at all.
+    payload = sum(len(data) for _, data in entries)
+    if len(entries) > MAX_ENTRIES:
+        die("%d entries; vfs reads at most %d" % (len(entries), MAX_ENTRIES))
+    if payload > MAX_PAYLOAD:
+        die("%d payload bytes; vfs loads at most %d" % (payload, MAX_PAYLOAD))
     offs, cur = [], align(HDR + TOC * len(entries))
     for _, data in entries:
         offs.append(cur)

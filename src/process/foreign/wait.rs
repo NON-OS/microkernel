@@ -39,8 +39,8 @@ pub fn sys_foreign_wait(out_ptr: u64, out_len: u64, timeout_ms: u64) -> i64 {
     }
     let start = crate::time::timestamp_millis();
     loop {
-        if let Some(frame) = trap_claim::claim_next(caller) {
-            return deliver(out_ptr, frame, size);
+        if let Some(frame) = next_delivery(caller) {
+            return deliver_or_repost(caller, out_ptr, frame, size);
         }
         let waited = crate::time::timestamp_millis().saturating_sub(start);
         if timeout_ms > 0 && waited >= timeout_ms {
@@ -48,8 +48,8 @@ pub fn sys_foreign_wait(out_ptr: u64, out_len: u64, timeout_ms: u64) -> i64 {
         }
         let deadline = if timeout_ms == 0 { u64::MAX } else { start.saturating_add(timeout_ms) };
         let token = crate::sched::wake_token(caller);
-        if let Some(frame) = trap_claim::claim_next(caller) {
-            return deliver(out_ptr, frame, size);
+        if let Some(frame) = next_delivery(caller) {
+            return deliver_or_repost(caller, out_ptr, frame, size);
         }
         crate::sched::sleep_until_unless_woken(caller, deadline, token);
         crate::sched::yield_now();
@@ -58,6 +58,26 @@ pub fn sys_foreign_wait(out_ptr: u64, out_len: u64, timeout_ms: u64) -> i64 {
 
 /// Hand one claimed frame over, or give it back when the supervisor's buffer
 /// will not take it.
+// A claimed guest call if one is waiting, else a one-shot death notice built
+// into a frame the supervisor recognises by its nr.
+fn next_delivery(caller: u32) -> Option<ForeignFrame> {
+    if let Some(frame) = trap_claim::claim_next(caller) {
+        return Some(frame);
+    }
+    let (pid, code) = super::notice::take(caller)?;
+    Some(ForeignFrame::new(pid, super::frame::NR_DIED, [code as u64, 0, 0, 0, 0, 0], 0))
+}
+
+// A death notice is not in the parked table, so a failed write cannot be
+// recovered by unclaiming it; re-post it so the death is not lost to a hang.
+fn deliver_or_repost(caller: u32, out_ptr: u64, frame: ForeignFrame, size: usize) -> i64 {
+    let rc = deliver(out_ptr, frame, size);
+    if rc < 0 && frame.nr == super::frame::NR_DIED {
+        super::notice::post(caller, frame.pid, frame.arg0 as i32);
+    }
+    rc
+}
+
 fn deliver(out_ptr: u64, frame: ForeignFrame, size: usize) -> i64 {
     if write_user_value(out_ptr, &frame).is_err() {
         trap_claim::unclaim(frame.pid);

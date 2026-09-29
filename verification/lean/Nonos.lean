@@ -119,6 +119,7 @@ import Nonos.Spinlock
 import Nonos.StackSetup
 import Nonos.Stark.AssociationSet
 import Nonos.Stark.Attest
+import Nonos.Stark.T2
 import Nonos.Stark.AttestSoundness
 import Nonos.Stark.Blinding
 import Nonos.Stark.BootChain

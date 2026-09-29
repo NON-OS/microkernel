@@ -56,14 +56,9 @@ pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
 }
 
 fn by_host(handle: u32, host: &[u8], port: u16) -> u64 {
-    if host.len() > u8::MAX as usize {
+    let Some(body) = super::host_body::host_body(handle, port, host) else {
         return errno::fail(errno::EINVAL);
-    }
-    let mut body = Vec::with_capacity(7 + host.len());
-    body.extend_from_slice(&handle.to_le_bytes());
-    body.extend_from_slice(&port.to_le_bytes());
-    body.push(host.len() as u8);
-    body.extend_from_slice(host);
+    };
     match call(OP_CONNECT_HOST, &body, 0) {
         Some((0, _)) => errno::ok(0),
         Some(_) => errno::fail(errno::ECONNREFUSED),

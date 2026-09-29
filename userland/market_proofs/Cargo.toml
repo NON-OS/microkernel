@@ -1,0 +1,18 @@
+# NØNOS userland: market_proofs
+#
+# Host proofs for the market capsule's install readiness gate. The shipped
+# source is included through #[path], so a proof here constrains the code
+# that runs and not a copy of it.
+
+[package]
+name = "nonos_market_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_marketplace_abi = { path = "../marketplace_abi" }

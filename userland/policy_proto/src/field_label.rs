@@ -51,6 +51,7 @@ pub fn label_of(field: Field) -> &'static [u8] {
         Field::AudioBalance => b"Balance",
         Field::AlertSounds => b"Alert sounds",
         Field::StartupChime => b"Startup chime",
+        Field::Persistent => b"Keep data across reboots",
         Field::KernelAslr => b"Kernel ASLR",
         Field::KernelStackGuard => b"Stack guard pages",
         Field::KernelNxBit => b"NX bit enforcement",

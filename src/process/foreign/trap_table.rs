@@ -24,10 +24,21 @@ use spin::Mutex;
 use super::frame::ForeignFrame;
 use super::registry;
 
+/// What wakes a parked guest. Exec is its own case, not a reserved value:
+/// every u64 is some syscall's honest answer, and u64::MAX is -EPERM. A
+/// signal is a whole context: a handler to enter, or the frame it returns to.
+#[derive(Clone, Copy)]
+pub(super) enum Answer {
+    Value(u64),
+    Execed,
+    Deliver(crate::arch::context::SavedUser),
+    Sigreturn(crate::arch::context::SavedUser),
+}
+
 pub(super) struct Parked {
     pub frame: ForeignFrame,
     /// Set by the supervisor's reply, read by the guest on wake.
-    pub answer: Option<u64>,
+    pub answer: Option<Answer>,
     /// Taken by the first supervisor wait that claims it.
     pub claimed: bool,
 }
@@ -49,7 +60,7 @@ pub(super) fn park(frame: ForeignFrame) -> bool {
 }
 
 /// The answer for `pid`, removing the entry once it is taken.
-pub(super) fn take_answer(pid: u32) -> Option<u64> {
+pub(super) fn take_answer(pid: u32) -> Option<Answer> {
     let mut parked = PARKED.lock();
     let at = parked.iter().position(|p| p.frame.pid == pid)?;
     let value = parked[at].answer?;

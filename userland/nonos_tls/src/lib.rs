@@ -117,6 +117,7 @@ pub use client_flight::client_flight;
 pub use handshake_alert::handshake_alert;
 pub use handshake_fault::handshake_fault;
 pub use rtc_now::rtc_now;
+pub use verify_rsa::verify_rsa;
 pub use server_complete::{server_complete, server_complete_unauthenticated, ServerComplete};
 pub use server_finished_flight_ready::server_finished_flight_ready;
 pub use session::{exchange, Io, SessionError};

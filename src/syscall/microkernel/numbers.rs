@@ -74,6 +74,10 @@ pub const SYS_FOREIGN_START: u64 = tag4(b"MFST");
 pub const SYS_FOREIGN_WAIT: u64 = tag4(b"MFWT");
 /// Answer one parked guest with the value its `rax` receives.
 pub const SYS_FOREIGN_REPLY: u64 = tag4(b"MFRP");
+/// Copy a parked guest's registers out, in `struct sigcontext` order.
+pub const SYS_FOREIGN_CONTEXT: u64 = tag4(b"MFCX");
+/// Answer a parked guest with a context: a signal handler, or its return.
+pub const SYS_FOREIGN_SIGNAL: u64 = tag4(b"MFSG");
 /// Back a span of a guest's address space with fresh frames.
 pub const SYS_PEER_MAP: u64 = tag4(b"MPMP");
 /// Copy bytes between the caller and a guest it supervises.
@@ -98,6 +102,14 @@ pub const SYS_LOCAL_VERIFY: u64 = tag4(b"MLVF");
 pub const SYS_APP_INSTALL: u64 = tag4(b"MAIN");
 /// Ask to enrol this machine's own build root.
 pub const SYS_DEV_ROOT_LOCAL: u64 = tag4(b"MDRO");
+/// Grant or withdraw consent to run what this machine installs.
+pub const SYS_LOCAL_CONSENT: u64 = tag4(b"MLCG");
+/// Restore that consent, at setup, from the token a grant returned.
+pub const SYS_LOCAL_RESTORE: u64 = tag4(b"MLCR");
+/// Start the program a distribution package installed.
+pub const SYS_APP_LAUNCH: u64 = tag4(b"MAPL");
+/// Where an asked-for install stands.
+pub const SYS_APP_INSTALL_STATUS: u64 = tag4(b"MAIS");
 /// Ask to enrol a signing root so software built here runs here. Prints a
 /// confirmation code; enrols nothing on its own.
 pub const SYS_DEV_ROOT_REQUEST: u64 = tag4(b"MDRQ");

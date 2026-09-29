@@ -56,5 +56,8 @@ pub unsafe fn enable_sse_avx() -> Result<(), BootError> {
     enable_sse()?;
     enable_avx()?;
     enable_avx512()?;
+    // SAFETY: eK@nonos.systems - boot CPU, after its components are enabled
+    // and before any thread exists, which is `record_boot`'s contract.
+    unsafe { crate::arch::x86_64::cpu::xstate::record_boot() };
     Ok(())
 }

@@ -76,7 +76,8 @@ pub(super) fn exec(state: &mut State, args: &[&[u8]]) -> Outcome {
             let mut out = Output::new(&mut state.scrollback);
             match args.get(1) {
                 Some(name) => {
-                    let ok = builtin::help_one::run(&mut out, name);
+                    let ok = builtin::help::topic(&mut out, name)
+                        || builtin::help_one::run(&mut out, name);
                     state.last_status = i32::from(!ok);
                 }
                 None => builtin::help::run(&mut out),

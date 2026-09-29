@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The shipped source, included and exercised.
 
 extern crate alloc;
@@ -25,8 +24,23 @@ pub mod wire;
 #[path = "../../capsule_linux/src/linux/wayland/args.rs"]
 pub mod args;
 
+mod host_doubles;
+pub use host_doubles::{clamp, private};
+
+#[path = "../../../src/userspace/capsule_linux/family.rs"]
+pub mod listing_family;
+
+#[path = "../../capsule_linux/src/linux/file/family.rs"]
+pub mod family;
+
+#[path = "../../capsule_linux/src/linux/file/root.rs"]
+pub mod root;
+
 #[path = "../../capsule_linux/src/linux/file/resolve.rs"]
 pub mod resolve;
+
+#[path = "../../capsule_linux/src/linux/file/dir_children.rs"]
+pub mod dir_children;
 
 #[path = "../../capsule_linux/src/linux/file/dirent.rs"]
 pub mod dirent;
@@ -34,9 +48,25 @@ pub mod dirent;
 #[path = "../../capsule_linux/src/linux/file/meta/statbuf.rs"]
 pub mod statbuf;
 
+#[path = "../../capsule_linux/src/linux/net/host_body.rs"]
+pub mod host_body;
+
+// net.sockets' own reader for a connect-by-host body, mounted at the crate
+// paths it names, so the capsule's encoder is held to the real parser.
+#[path = "../../capsule_net_sockets/src/protocol/errno.rs"]
+pub mod protocol;
+pub mod server;
+
+#[path = "../../capsule_linux/src/linux/net/route.rs"]
+pub mod route;
+
+#[path = "../../capsule_linux/src/linux/call/sigframe.rs"]
+pub mod sigframe;
+
 #[path = "../../capsule_linux/src/linux/call/spawn/exec_shebang.rs"]
 pub mod exec_shebang;
 
+#[cfg(test)]
 pub mod image;
 
 /// The installer's parsers, which read bytes fetched off a network.

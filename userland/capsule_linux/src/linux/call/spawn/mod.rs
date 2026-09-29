@@ -31,4 +31,4 @@ mod wait;
 pub use clone::clone;
 pub use exec::execve;
 pub use fork::fork;
-pub use wait::wait4;
+pub use wait::{reap_one, wait4};

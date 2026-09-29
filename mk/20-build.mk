@@ -559,6 +559,7 @@ include userland/toolkit/Capsule.mk
 include userland/capsule_about/Capsule.mk
 include userland/capsule_install/Capsule.mk
 include userland/tool_install/Capsule.mk
+include userland/capsule_app_store/Capsule.mk
 include userland/capsule_linux/Capsule.mk
 include userland/capsule_hello/Capsule.mk
 include userland/capsule_gui_demo/Capsule.mk
@@ -618,6 +619,11 @@ include userland/capsule_wallpaper/Capsule.mk
 include userland/capsule_attest/Capsule.mk
 include userland/capsule_power/Capsule.mk
 
+# Hostile Linux guests, enrolled beside the capsules, for test images only.
+ifeq ($(NONOS_LINUX_GUESTS),1)
+include userland/linux_guests/Guests.mk
+endif
+
 # Orchestration helper: union of every verified capsule's artifact
 # triple. Smoke and test targets that need proof_io plus another
 # capsule depend on `$(proof-io_ARTIFACTS)` directly.
@@ -632,7 +638,7 @@ $(ZK_CAPSULE_LABELS): $(NONOS_VERIFIED_CAPSULE_MKS) Makefile
 
 # Capsule attestation policy, transparent post-quantum STARK. The enrollment
 # produces the policy root over the actual capsule measurements and every
-# capsule's NZKSTRK1 trailer together, each re-checked against the exact
+# capsule's NZKSTRK2 trailer together, each re-checked against the exact
 # spawn-gate parse before it is written. The nonos-mk/capsule.mk companion
 # depends each trailer on this rule, so building any capsule's artifacts
 # triggers the single enrollment. This replaces the curve enrolled-secret
@@ -794,6 +800,21 @@ $(MARKETPLACE_INDEX_TOOL):
 
 nonos-mk-marketplace-index-tool: $(MARKETPLACE_INDEX_TOOL)
 
+# The catalogue the market capsule embeds. Signed and verified here when the
+# operator seed is present; empty otherwise, which the capsule reads as no
+# baseline. The serial is the commit time, so a later build never publishes
+# an index older than one already installed.
+MARKET_OPERATOR_SEED := .keys/marketplace_operator_ed25519.seed
+MARKET_OPERATOR_PUB  := .keys/marketplace_operator_ed25519.pub
+MARKET_LINUX_LIST    := userland/capsule_market/linux-packages.txt
+MARKET_INDEX_BIN     := $(TARGET_DIR)/market/index.bin
+
+$(MARKET_INDEX_BIN): $(MARKETPLACE_INDEX_TOOL) $(MARKET_OPERATOR_PUB) $(MARKET_LINUX_LIST) \
+		tools/nonos-market-index tools/nonos-market-catalogue $(wildcard $(MARKET_OPERATOR_SEED))
+	@$(NONOS_PYTHON) tools/nonos-market-index --out $@ --cli $(MARKETPLACE_INDEX_TOOL) \
+		--seed $(MARKET_OPERATOR_SEED) --pubkey $(MARKET_OPERATOR_PUB) \
+		--linux-list $(MARKET_LINUX_LIST) --serial $$(git log -1 --format=%ct)
+
 # Generate the four signed fixtures the kernel-side market smoke
 # embeds. Depends on the host marketplace-index CLI. The trusted
 # seed is `0x42`-repeated-32 (publicly known); the matching
@@ -851,6 +872,7 @@ define nonos_kernel_build
 		RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		$(CARGO) build $(KERNEL_BUILD_FLAGS) \
 		--no-default-features --features $(2)
+	@$(NONOS_PYTHON) scripts/check_unenforced.py --list
 endef
 
 # Kernel ELF artefact rule, no-features default (resolves to
@@ -1034,7 +1056,7 @@ nonos-mk-run-from-config: $(QEMU_BLK_IMG) $(QEMU_OVMF_VARS_RW)
 	@test -f $(ESP_DIR)/EFI/nonos/kernel.bin || { echo "no image; run 'make from-config' first"; exit 1; }
 	@mkdir -p $(dir $(QEMU_SERIAL_LOG))
 	@echo "Booting the from-config image in QEMU (serial log: $(QEMU_SERIAL_LOG))..."
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
@@ -1176,8 +1198,8 @@ DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
 		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid \
 		net-core net-sockets net-nym socks5 policy wallpaper_catalog \
 		installer input-router compositor wm desktop-shell image-codec \
-		clipboard login wallpaper toolkit about install install-cli boot-splash calculator \
-		clipboard login wallpaper toolkit about linux boot-splash calculator \
+		clipboard login wallpaper toolkit about install install-cli linux boot-splash \
+		calculator market app_store setup-wizard \
 		browser wallet-nonos terminal file-manager text-editor \
 		settings process-manager attest power \
 		audio driver-hda audio_player video-player
@@ -1197,10 +1219,18 @@ DESKTOP_GUI_CAPSULE_ARTIFACTS := $(DESKTOP_BASE_CAPSULE_ARTIFACTS) \
 		$(DESKTOP_STD_TOOL_ARTIFACTS) \
 		$(ZK_POLICY_ROOT)
 
+# A Linux-guest test image boots unattended, and first-boot setup waits for
+# keys nobody presses. Under the setup profile the apps, the Linux personality
+# among them, spawn only once setup exits, so that image would never start its
+# guest. It builds the desktop profile without first-boot setup instead.
 nonos-mk-desktop-gui-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
-	$(call nonos_kernel_build,microkernel-desktop-gui + nonos-stark-attest,microkernel-desktop-gui$(_boot_comma)nonos-stark-attest)
+ifeq ($(NONOS_LINUX_GUESTS),1)
+	$(call nonos_kernel_build,microkernel-desktop-gui + nonos-stark-attest (unattended guest test),microkernel-desktop-gui$(_boot_comma)nonos-stark-attest)
+else
+	$(call nonos_kernel_build,microkernel-setup-wizard + nonos-stark-attest,microkernel-setup-wizard$(_boot_comma)nonos-stark-attest)
+endif
 
 # nonos-mk-install-prod: the desktop profile with the NVMe driver capsule in
 # it. The desktop cut leaves NVMe out because a driver whose hardware is absent
@@ -1256,6 +1286,9 @@ nonos-mk-arm-gui: nonos-mk-check-deps nonos-mk-ensure-signing-key
 		--no-default-features \
 		--features microkernel-desktop-base$(_boot_comma)nonos-arch-preview$(_boot_comma)nonos-stark-attest
 
+# The image that ships runs every core it finds. Real machines have several,
+# and a race only one core hides is still a race; the four-cpu QEMU lane
+# (nonos-mk-run-smp-serial-log) is where it shows first.
 # nonos-mk-zerostate: the canonical NONOS image. The whole ZeroState system in
 # one build: every capsule and driver, the transparent STARK spawn gate
 # enforced, dual Ed25519 + ML-DSA-65 signing, the anti-rollback index bound into
@@ -1266,7 +1299,7 @@ nonos-mk-zerostate: nonos-mk-all-capsules-attested \
 		$(driver-iwlwifi_ARTIFACTS) $(driver-rtl8821ce_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key
-	$(call nonos_kernel_build,zerostate: microkernel-full-gui + nonos-stark-attest,microkernel-full-gui$(_boot_comma)nonos-stark-attest)
+	$(call nonos_kernel_build,zerostate: microkernel-full-gui + nonos-stark-attest + nonos-smp,microkernel-full-gui$(_boot_comma)nonos-stark-attest$(_boot_comma)nonos-smp)
 
 nonos-mk-input-probe-inject-prod: $(proof-io_ARTIFACTS) \
 		$(driver-ps2-input_ARTIFACTS) $(driver-virtio-gpu_ARTIFACTS) \

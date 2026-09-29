@@ -35,5 +35,8 @@ pub fn chime() {
     if get_bool(port, Field::StartupChime) != Some(true) {
         return;
     }
-    super::play::play(CHIME_HZ, CHIME_MS, super::alert::GAIN);
+    super::levels::follow(port);
+    if let Some(gain) = super::levels::gain() {
+        super::play::play(CHIME_HZ, CHIME_MS, gain);
+    }
 }

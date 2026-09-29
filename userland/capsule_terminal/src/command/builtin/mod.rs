@@ -26,6 +26,8 @@ pub mod fs;
 pub mod git;
 pub mod help;
 pub mod help_one;
+mod help_pages;
+mod help_tools;
 pub mod history_cmd;
 pub mod jobs;
 pub mod market;

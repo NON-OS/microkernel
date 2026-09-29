@@ -16,7 +16,8 @@
 
 use nonos_app_skeleton::{EventOutcome, KEY_DOWN, KEY_ENTER, KEY_ESC, KEY_TAB, KEY_UP};
 
-use crate::settings::state::refresh_wifi::{connect_selected, run_wifi_scan};
+use crate::settings::state::refresh_wifi::run_wifi_scan;
+use crate::settings::state::wifi_join::connect_selected;
 use crate::settings::state::State;
 
 use super::next_section::{next_section, prev_section};

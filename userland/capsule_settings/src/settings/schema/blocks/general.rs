@@ -19,26 +19,16 @@ use nonos_policy_proto::Field;
 use crate::settings::schema::rows::{Block, Pill, Row};
 
 pub const GENERAL: &[Block] = &[
+    Block { title: "Device", note: None, pill: Pill::None, rows: &[Row::Field(Field::Hostname)] },
     Block {
-        title: "Device",
+        title: "Date and time",
         note: None,
         pill: Pill::None,
-        rows: &[Row::Field(Field::Hostname), Row::Field(Field::DomainName)],
-    },
-    Block {
-        title: "Language and region",
-        note: None,
-        pill: Pill::None,
-        rows: &[
-            Row::Field(Field::Language),
-            Row::Field(Field::KeyboardLayout),
-            Row::Field(Field::Timezone),
-            Row::Field(Field::ClockFormat24),
-        ],
+        rows: &[Row::Field(Field::Timezone), Row::Field(Field::ClockFormat24)],
     },
     Block {
         title: "Notifications",
-        note: Some("Let capsules post toasts to the desktop shell."),
+        note: None,
         pill: Pill::None,
         rows: &[Row::Field(Field::NotificationsEnabled)],
     },

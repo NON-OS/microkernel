@@ -24,21 +24,27 @@ use super::root::Key;
 type Fail = &'static str;
 
 pub fn mkdir(at: &Key) -> Result<(), Fail> {
+    at.writable()?;
     vfs::mkdir(mk_getpid(), at.as_bytes())
 }
 
 pub fn rmdir(at: &Key) -> Result<(), Fail> {
+    at.writable()?;
     vfs::rmdir(mk_getpid(), at.as_bytes(), false)
 }
 
 pub fn unlink(at: &Key) -> Result<(), Fail> {
+    at.writable()?;
     vfs::unlink(mk_getpid(), at.as_bytes())
 }
 
 pub fn rename(from: &Key, to: &Key) -> Result<(), Fail> {
+    from.writable()?;
+    to.writable()?;
     vfs::rename(mk_getpid(), from.as_bytes(), to.as_bytes())
 }
 
 pub fn chmod(at: &Key, mode: u16) -> Result<(), Fail> {
+    at.writable()?;
     vfs::chmod(mk_getpid(), at.as_bytes(), mode)
 }

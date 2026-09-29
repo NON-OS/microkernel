@@ -64,7 +64,9 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
          */
         SyscallNumber::MkDevRootRequest
         | SyscallNumber::MkDevRootConfirm
-        | SyscallNumber::MkDevRootLocal => caps.can_enrol_dev_root(),
+        | SyscallNumber::MkDevRootLocal
+        | SyscallNumber::MkLocalConsent
+        | SyscallNumber::MkLocalRestore => caps.can_enrol_dev_root(),
 
         SyscallNumber::MkTimeAdjust => caps.can_set_time(),
 
@@ -138,6 +140,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkForeignStart
         | SyscallNumber::MkForeignWait
         | SyscallNumber::MkForeignReply
+        | SyscallNumber::MkForeignContext
+        | SyscallNumber::MkForeignSignal
         | SyscallNumber::MkPeerMap
         | SyscallNumber::MkPeerCopy
         | SyscallNumber::MkPeerProtect
@@ -161,7 +165,9 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         /*
          * The right to ask, which is not the right to host.
          */
-        SyscallNumber::MkAppInstall => caps.can_app_install(),
+        SyscallNumber::MkAppInstall
+        | SyscallNumber::MkAppLaunch
+        | SyscallNumber::MkAppInstallStatus => caps.can_app_install(),
 
         SyscallNumber::MkSurfaceRegister
         | SyscallNumber::MkSurfaceShare

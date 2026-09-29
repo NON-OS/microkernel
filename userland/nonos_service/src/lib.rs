@@ -19,5 +19,5 @@
 mod lookup;
 mod register;
 
-pub use lookup::lookup;
+pub use lookup::{lookup, owner};
 pub use register::register;

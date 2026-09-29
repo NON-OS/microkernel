@@ -31,3 +31,11 @@ pub(super) fn install(pages: u64, length: u64, phys_start: u64) -> Result<u64, D
     }
     Ok(user_va.as_u64())
 }
+
+// Undo `install` for a grant that failed later; the VA slot stays leaked, as above.
+pub(super) fn uninstall(user_va: u64, length: u64) {
+    let _ = crate::memory::paging::unmap_user_dma(
+        crate::memory::addr::VirtAddr::new(user_va),
+        length as usize,
+    );
+}

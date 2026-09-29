@@ -23,10 +23,6 @@ use super::peer_guard::{in_user_half, pid_arg};
 
 type Saved = Option<crate::arch::context::SavedUser>;
 
-/// What a parked guest receives when its supervisor has replaced the program
-/// under it.
-pub(super) const EXECED: u64 = u64::MAX;
-
 pub fn sys_foreign_exec(pid: u64, entry: u64, rsp: u64) -> i64 {
     let Some(caller) = crate::process::current_pid() else {
         return ERRNO_INVAL;
@@ -46,7 +42,7 @@ pub fn sys_foreign_exec(pid: u64, entry: u64, rsp: u64) -> i64 {
     };
     drop_tls(pid);
     // Answering is what releases the guest.
-    match super::trap_reply::answer_raw(pid, EXECED) {
+    match super::trap_reply::answer_raw(pid, super::trap_table::Answer::Execed) {
         0 => 0,
         err => {
             swap(pid, previous);

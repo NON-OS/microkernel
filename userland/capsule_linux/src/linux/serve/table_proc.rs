@@ -23,6 +23,7 @@ use crate::linux::guest::Guest;
 pub fn proc_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
     Some(match nr {
         np::KILL | np::TKILL => call::kill(guest, a[0], a[1]),
+        np::TGKILL => call::kill(guest, a[1], a[2]),
         np::GETPPID => call::getppid(guest),
         np::SETPGID => call::setpgid(guest, a[0], a[1]),
         np::GETPGRP | np::GETPGID => call::getpgid(guest),
@@ -31,13 +32,20 @@ pub fn proc_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
         np::SETUID | np::SETGID => call::setuid(a[0]),
         np::TIME => call::time(guest, a[0]),
         np::GETTIMEOFDAY => call::gettimeofday(guest, a[0]),
-        np::NANOSLEEP | np::CLOCK_NANOSLEEP => call::nanosleep(guest, a[0]),
+        nr::CLOCK_GETRES => call::clock_getres(guest, a[0], a[1]),
         // A guest yielding is the personality yielding: one slot.
         np::SCHED_YIELD => {
             nonos_libc::mk_yield();
             errno::ok(0)
         }
-        nr::SET_TID_ADDRESS | nr::GETTID | nr::GETPID => errno::ok(guest.pid as u64),
+        nr::SCHED_GETSCHEDULER => call::sched_getscheduler(guest, a[0]),
+        nr::SCHED_SETSCHEDULER => call::sched_setscheduler(guest, a[0], a[1], a[2]),
+        nr::SCHED_GETPARAM => call::sched_getparam(guest, a[0], a[1]),
+        nr::SCHED_SETPARAM => call::sched_setparam(guest, a[0], a[1]),
+        nr::SCHED_GET_PRIORITY_MAX => call::priority_bound(a[0], true),
+        nr::SCHED_GET_PRIORITY_MIN => call::priority_bound(a[0], false),
+        nr::SCHED_SETAFFINITY => call::sched_setaffinity(guest, a[0], a[1], a[2]),
+        nr::GETPID => errno::ok(guest.pid as u64),
         nr::GETUID | nr::GETEUID | nr::GETGID | nr::GETEGID => errno::ok(0),
         nr::CLOCK_GETTIME => call::clock_gettime(guest, a[0], a[1]),
         _ => return None,

@@ -19,6 +19,7 @@ mod map;
 mod pool;
 mod records;
 mod release;
+mod scrub;
 mod types;
 mod va;
 

@@ -19,8 +19,9 @@ use crate::drivers::pci::config::ConfigSpace;
 /*
  * Stop a released device from mastering the bus. A driver turns Bus Master
  * Enable on through the config-write allowlist, and nothing turned it off:
- * a device whose driver exited kept its DMA running, reaching all of
- * memory. This write is what stops it.
+ * a device whose driver exited kept its DMA running. With an IOMMU the
+ * detach that follows denies it; without one, which is most machines, this
+ * write is the only thing that stops it reaching all of memory.
  */
 pub(super) fn stop_bus_master(device_id: u64) {
     let Some(handle) = crate::hardware::broker::pci_index::lookup(device_id) else {

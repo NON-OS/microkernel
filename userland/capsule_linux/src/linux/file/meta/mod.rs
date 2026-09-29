@@ -24,7 +24,7 @@ mod statfs;
 mod statx;
 
 pub use perms::{chmod, faccessat, fchmod, fchmodat};
-pub use query::{access, readlink};
+pub use query::{access, readlinkat};
 pub use stat::{fstat, look, newfstatat};
 pub use statfs::statfs;
 pub use statx::statx;

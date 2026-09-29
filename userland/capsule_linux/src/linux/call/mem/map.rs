@@ -17,7 +17,7 @@
 //! `mmap`: anonymous pages, or a private mapping of a file.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{span_within, Guest, MMAP_LIMIT, STACK_TOP};
+use crate::linux::guest::{span_within, Guest, MMAP_LIMIT, USER_MAX};
 
 use super::map_anon::{anonymous, memfd};
 use super::map_file::file;
@@ -26,6 +26,7 @@ use super::prot::wx_refused;
 
 const MAP_SHARED: u64 = 0x01;
 const MAP_ANONYMOUS: u64 = 0x20;
+const MAP_FIXED: u64 = 0x10;
 
 pub fn mmap(guest: &mut Guest, req: MapReq) -> u64 {
     if req.len == 0 {
@@ -34,9 +35,15 @@ pub fn mmap(guest: &mut Guest, req: MapReq) -> u64 {
     if wx_refused(req.prot) {
         return errno::fail(errno::EPERM);
     }
+    // MAP_FIXED is the exact address or failure. Page zero is never in the
+    // plan, and landing elsewhere would hand back memory the guest did not
+    // ask for, so it is refused, as Linux refuses it below mmap_min_addr.
+    if req.flags & MAP_FIXED != 0 && req.addr == 0 {
+        return errno::fail(errno::EPERM);
+    }
     // The ceiling differs by who chose the address.
     let (at, limit) = match req.fixed() {
-        Some(addr) => (addr, STACK_TOP),
+        Some(addr) => (addr, USER_MAX),
         None => (guest.mmap_next, MMAP_LIMIT),
     };
     let Some((at, span)) = span_within(at, req.len, limit) else {

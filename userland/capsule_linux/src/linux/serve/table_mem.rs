@@ -26,6 +26,7 @@ pub fn mem_ops(guest: &mut Guest, nr: u64, a: [u64; 6]) -> Option<u64> {
         nr::MMAP => call::mmap(guest, call::MapReq::from_args(a)),
         nr::MUNMAP => call::munmap(guest, a[0], a[1]),
         nr::MPROTECT => call::mprotect(guest, a[0], a[1], a[2]),
+        nr::MREMAP => call::mremap(guest, a[0], a[1], a[2], a[3]),
         // Advice, and this capsule takes none of it.
         nr::MADVISE => errno::ok(0),
         _ => return None,

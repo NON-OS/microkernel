@@ -27,20 +27,26 @@ pub fn access(guest: &Guest, path_ptr: u64) -> u64 {
     let Some(name) = path::read_path(guest, path_ptr) else {
         return errno::fail(errno::EFAULT);
     };
-    let full = resolve::visible(&guest.cwd, &name);
+    let full = guest.links.follow(resolve::visible(&guest.cwd, &name), true);
     match stat::look(&full) {
         Some(_) => errno::ok(0),
         None => errno::fail(errno::ENOENT),
     }
 }
 
-/// The store holds no symbolic links, so a path that exists is not one and a
-/// path that does not exist is absent.
-pub fn readlink(guest: &Guest, path_ptr: u64) -> u64 {
-    let Some(name) = path::read_path(guest, path_ptr) else {
+/// A link's target, from the family's table. A path that exists and is not a
+/// link is EINVAL, as Linux answers. `readlink` is this at AT_FDCWD.
+pub fn readlinkat(guest: &Guest, dirfd: u64, path_ptr: u64, buf: u64, len: u64) -> u64 {
+    let Some(full) = super::super::at::resolve_at(guest, dirfd, path_ptr) else {
         return errno::fail(errno::EFAULT);
     };
-    let full = resolve::visible(&guest.cwd, &name);
+    if let Some(to) = guest.links.target(&full) {
+        let n = to.len().min(len as usize);
+        return match guest.write(buf, &to[..n]) < n as i64 {
+            true => errno::fail(errno::EFAULT),
+            false => errno::ok(n as u64),
+        };
+    }
     match stat::look(&full) {
         Some(_) => errno::fail(errno::EINVAL),
         None => errno::fail(errno::ENOENT),

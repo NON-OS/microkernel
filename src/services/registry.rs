@@ -22,12 +22,15 @@ mod adopt;
 mod auth;
 mod endpoint;
 mod error;
+mod peers;
+mod peers_check;
 mod policy;
 mod reserved;
 
 pub(crate) use adopt::adopt_endpoint;
 pub use endpoint::ServiceEndpoint;
 pub use error::RegError;
+pub use peers_check::{caller_may_reach, caller_may_reach_pid};
 pub use policy::required_caps;
 pub(crate) use reserved::{is_reserved_service, is_runtime_registrable};
 

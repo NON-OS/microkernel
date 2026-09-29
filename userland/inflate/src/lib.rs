@@ -27,10 +27,12 @@ mod gzip;
 mod gzip_header;
 mod huff;
 mod inflate_raw;
+mod members;
 mod stored;
 mod tables;
 mod zlib;
 
-pub use gzip::gunzip;
+pub use gzip::{gunzip, gunzip_within};
 pub use inflate_raw::inflate;
+pub use members::{members, members_within, Member};
 pub use zlib::zlib;

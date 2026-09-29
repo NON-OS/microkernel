@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod access;
+mod alarm_scan;
 mod build_pcb;
 mod claim;
 mod create;
+mod current_pid;
 mod inherit;
 mod ops;
 mod pid_alloc;
@@ -24,6 +27,7 @@ mod thread_spawn;
 mod types;
 
 pub(crate) use create::create_process_with_parent;
+pub(crate) use inherit::AMBIENT_CAPS;
 pub use claim::{claim_new, release_new};
 pub use create::{create_process, create_process_with_mem};
 pub use thread_spawn::{admit_thread, spawn_thread, spawn_thread_in, spawn_thread_parked};

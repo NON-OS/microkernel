@@ -16,6 +16,7 @@
 
 mod generate;
 mod init;
+mod reseed;
 mod seed;
 mod state;
 

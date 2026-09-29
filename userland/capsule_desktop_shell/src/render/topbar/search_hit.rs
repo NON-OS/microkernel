@@ -27,7 +27,7 @@ pub fn search_hit(ctx: &Context, px: u32, py: u32) -> bool {
     let mut bbuf = [0u8; 4];
     let blen = battery::label(&mut bbuf);
     let mut sbuf = [b'-'; STAMP_LEN];
-    let stamped = stamp(&mut sbuf, ctx.clock_24h);
+    let stamped = stamp(&mut sbuf, ctx.clock_24h, ctx.tz_hours);
     let when: &[u8] = if stamped { &sbuf } else { b"--:--" };
 
     match search_box(ctx, &bbuf[..blen], when) {

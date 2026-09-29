@@ -54,9 +54,12 @@ pub fn mk_foreign_exec(pid: u32, entry: u64, rsp: u64) -> i64 {
 }
 
 /// A thread in a guest, sharing its address space. `tls` is the FS base
-/// it wakes with, which a C runtime reads before anything else.
-pub fn mk_foreign_thread(pid: u32, entry: u64, rsp: u64, tls: u64) -> i64 {
-    call_raw(N_MK_FOREIGN_THREAD, [pid as u64, entry, rsp, tls, 0, 0])
+/// it wakes with, which a C runtime reads before anything else. `from` is
+/// the guest thread parked in the call that asked for it, whose registers the
+/// new thread starts on, as a Linux clone child does; zero starts it on fresh
+/// ones.
+pub fn mk_foreign_thread(pid: u32, entry: u64, rsp: u64, tls: u64, from: u32) -> i64 {
+    call_raw(N_MK_FOREIGN_THREAD, [pid as u64, entry, rsp, tls, from as u64, 0])
 }
 
 /// Block until a guest of this process makes a call the kernel refuses,

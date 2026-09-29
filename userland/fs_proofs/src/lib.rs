@@ -84,7 +84,7 @@ pub fn map_store_err(err: store::StoreError) -> i32 {
 
 // Public surface so the included production functions are part of this crate's
 // API and exercised as such, not flagged unused outside the test build.
-pub fn normalize(path: &str) -> String {
+pub fn normalize(path: &str) -> Option<String> {
     vfs_path::normalize(path)
 }
 pub fn normalize_to_buffer(src: &[u8], out: &mut [u8]) -> usize {

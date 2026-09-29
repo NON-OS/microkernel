@@ -70,6 +70,7 @@ pub fn bind(guest: &mut Guest, args: &mut Args<'_>) {
          */
         Object::Shm => crate::linux::wayland::shm::formats(guest, id),
         Object::Seat => seat_caps(guest, id),
+        Object::Output => super::output::announce(guest, id),
         _ => {}
     }
 }

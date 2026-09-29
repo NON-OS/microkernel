@@ -41,7 +41,9 @@ pub fn store_remove(req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Ok(s) => s,
         Err(_) => return encode_response(OP_STORE_REMOVE, req.flags, req.request_id, EINVAL, &[]),
     };
-    let path = normalize(path);
+    let Some(path) = normalize(path) else {
+        return encode_response(OP_STORE_REMOVE, req.flags, req.request_id, EINVAL, &[]);
+    };
     match crate::blk::store_remove::remove(&path) {
         Ok(()) => encode_response(OP_STORE_REMOVE, req.flags, req.request_id, 0, &[]),
         Err(_) => encode_response(OP_STORE_REMOVE, req.flags, req.request_id, EINVAL, &[]),

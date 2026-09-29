@@ -26,6 +26,7 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
         InputKind::KeyDown if event.code == KEY_ESC => EventOutcome::Close,
         InputKind::KeyDown => super::on_key::on_key(state, event.code),
         InputKind::ButtonDown => super::on_pointer::on_pointer(state, event.x, event.y),
+        InputKind::Wheel => super::etna_scroll::scroll(state, event.delta_y),
         _ => EventOutcome::Idle,
     }
 }

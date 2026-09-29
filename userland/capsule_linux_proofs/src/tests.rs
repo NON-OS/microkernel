@@ -14,14 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Every proof, by the thing it constrains.
 
+mod alpine_index_tests;
+mod auth_refusals;
+mod auth_tests;
+mod deb_chain_tests;
+mod deb_file_tests;
+mod deb_path_tests;
+mod dir_children_tests;
 mod dirent_tests;
 mod elf_tests;
 mod exec_shebang_tests;
+mod family_tests;
+mod host_body_tests;
+mod http_reply_tests;
+mod inflate_bound_tests;
+mod index_tests;
+mod kali_anchor_tests;
+mod key_tests;
+mod listing_family_tests;
+mod mutation;
+mod mutation_tests;
+mod pacman_desc_tests;
+mod pacman_rsa_tests;
 mod resolve_tests;
+mod route_tests;
+mod sigframe_tests;
+mod service;
 mod stack_words_tests;
 mod stat_tests;
+mod tar_link_tests;
 mod tar_tests;
 mod wire_tests;

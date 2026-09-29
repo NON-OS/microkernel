@@ -2,7 +2,7 @@ use crate::render::{self, widgets::rows};
 use crate::server::step::{default_key, list_nav, Outcome};
 use crate::state::Context;
 
-const MODES: &[&[u8]] = &[b"Amnesic (RAM only)", b"Persistent encrypted store"];
+const MODES: &[&[u8]] = &[b"Amnesic (RAM only)", b"Persistent store (not encrypted)"];
 
 pub fn draw(ctx: &Context) {
     render::frame(ctx, b"Persistence", b"Keep data across reboots?", b"ENTER NEXT  ESC BACK");

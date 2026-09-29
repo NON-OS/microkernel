@@ -24,7 +24,7 @@ pub fn chdir(guest: &mut Guest, path: u64) -> u64 {
     let Some(name) = read_path(guest, path) else {
         return errno::fail(errno::EFAULT);
     };
-    let at = visible(&guest.cwd, &name);
+    let at = guest.links.follow(visible(&guest.cwd, &name), true);
     // Checked before it is taken.
     match look(&at) {
         Some(_) => {

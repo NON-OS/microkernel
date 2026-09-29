@@ -38,6 +38,7 @@ mod surface;
 mod xdg;
 mod state;
 mod out;
+mod output;
 mod registry;
 mod route;
 mod serve;

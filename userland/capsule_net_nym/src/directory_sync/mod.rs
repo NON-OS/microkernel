@@ -23,6 +23,7 @@ mod https;
 mod keep;
 mod lease;
 mod live;
+mod pinned;
 mod plain;
 mod source;
 mod stages;

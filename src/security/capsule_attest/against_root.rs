@@ -16,37 +16,43 @@
 
 use super::error::AttestError;
 
-/// The two proof shapes, told apart by their own first eight bytes.
-const STARK_MAGIC: &[u8; 8] = b"NZKSTRK1";
-
-/// Verify a capsule's proof against one specific root.
-pub(super) fn verify(
+/// Verify a capsule's proof against the vendor's root.
+///
+/// A kernel built for STARK attestation accepts only a STARK here, whatever
+/// the trailer says it is: letting the trailer choose would let a prover pick
+/// the weaker verifier for the root everything shipped is measured under.
+pub(super) fn vendor(
     trailer: &[u8],
     elf: &[u8],
     granted_caps: u64,
     root: &[u8; 32],
 ) -> Result<[u8; 32], AttestError> {
-    if trailer.len() >= 8 && &trailer[0..8] == STARK_MAGIC {
-        return stark(trailer, elf, granted_caps, root);
+    #[cfg(feature = "nonos-stark-attest")]
+    {
+        super::stark::verify_against(trailer, elf, granted_caps, root)
+    }
+    #[cfg(not(feature = "nonos-stark-attest"))]
+    {
+        super::against_pedersen::verify(trailer, elf, granted_caps, root)
+    }
+}
+
+/// Verify against a root a human enrolled on this machine. Here the trailer's
+/// magic picks the verifier: a local root's leaf is a commitment to a secret
+/// only this kernel holds, so the Pedersen proof it mints is sound for it.
+pub(super) fn enrolled(
+    trailer: &[u8],
+    elf: &[u8],
+    granted_caps: u64,
+    root: &[u8; 32],
+) -> Result<[u8; 32], AttestError> {
+    /*
+     * A build without the STARK verifier has no reader for that magic; the
+     * Pedersen parser refuses it as malformed, which is the right answer.
+     */
+    #[cfg(feature = "nonos-stark-attest")]
+    if trailer.starts_with(super::stark::MAGIC) {
+        return super::stark::verify_against(trailer, elf, granted_caps, root);
     }
     super::against_pedersen::verify(trailer, elf, granted_caps, root)
 }
-
-#[cfg(feature = "nonos-stark-attest")]
-fn stark(
-    trailer: &[u8],
-    elf: &[u8],
-    granted_caps: u64,
-    root: &[u8; 32],
-) -> Result<[u8; 32], AttestError> {
-    super::stark::verify_against(trailer, elf, granted_caps, root)
-}
-
-/// A build without the STARK verifier cannot check a STARK trailer, and saying
-/// so is the only safe answer: the alternative is falling through to the other
-/// parser, which would refuse for the wrong reason.
-#[cfg(not(feature = "nonos-stark-attest"))]
-fn stark(_: &[u8], _: &[u8], _: u64, _: &[u8; 32]) -> Result<[u8; 32], AttestError> {
-    Err(AttestError::Rejected)
-}
-

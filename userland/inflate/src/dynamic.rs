@@ -21,7 +21,7 @@ use super::codes::codes;
 use super::huff::{build, decode};
 use super::tables::{MAX_OUT, ORDER};
 
-pub fn dynamic(b: &mut Bits, out: &mut Vec<u8>) -> Option<()> {
+pub fn dynamic(b: &mut Bits, out: &mut Vec<u8>, limit: usize) -> Option<()> {
     let hlit = b.bits(5)? as usize + 257;
     let hdist = b.bits(5)? as usize + 1;
     let hclen = b.bits(4)? as usize + 4;
@@ -40,7 +40,7 @@ pub fn dynamic(b: &mut Bits, out: &mut Vec<u8>) -> Option<()> {
     }
     let lit = build(&lengths[..hlit]);
     let dist = build(&lengths[hlit..hlit + hdist]);
-    codes(b, out, &lit, &dist)
+    codes(b, out, &lit, &dist, limit)
 }
 
 fn push_lengths(sym: u16, b: &mut Bits, lengths: &mut Vec<u8>, limit: usize) -> Option<()> {

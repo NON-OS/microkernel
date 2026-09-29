@@ -38,7 +38,9 @@ pub fn mkdir(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Ok(s) => s,
         Err(_) => return encode_response(OP_MKDIR, req.flags, req.request_id, EINVAL, &[]),
     };
-    let path = normalize(path);
+    let Some(path) = normalize(path) else {
+        return encode_response(OP_MKDIR, req.flags, req.request_id, EINVAL, &[]);
+    };
     if is_read_only(&path) {
         return encode_response(OP_MKDIR, req.flags, req.request_id, EACCES, &[]);
     }

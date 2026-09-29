@@ -44,6 +44,8 @@ pub struct Context {
     pub toast_layer_live: bool,
     pub net_was_online: bool,
     pub clock_24h: bool,
+    // Whole hours east of UTC, from the Timezone setting.
+    pub tz_hours: i8,
     pub policy_port: u32,
     pub next_request_id: u32,
     /// Entries at the VFS root, shown as icons on the desktop. Loaded lazily

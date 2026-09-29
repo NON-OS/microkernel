@@ -20,23 +20,32 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_args;
 
+use crate::linux::file::family::choose;
 use crate::linux::file::{key, store_read, visible};
 
+use super::launch::Launch;
 use super::origin::Origin;
-
-/// The built-in program: Alpine's static busybox, embedded so a machine with
-/// nothing in the store still runs a real Linux binary.
-static BUILT_IN: &[u8] = include_bytes!("../../guests/busybox.elf");
 
 const MAX_IMAGE: u32 = 64 << 20;
 const MAX_ARGS: usize = 256;
 
-/// The program's path, its bytes, and where they came from.
-pub fn source() -> (Vec<u8>, Vec<u8>, Origin) {
-    match named() {
-        Some((path, bytes)) => (path, bytes, Origin::Store),
-        None => (b"/bin/busybox".to_vec(), BUILT_IN.to_vec(), Origin::BuiltIn),
+/// The program, where it came from, and what it is given. A run of an
+/// installed package is its recorded program or nothing: falling back to the
+/// built-in program would start something the person did not ask for.
+pub fn source() -> Option<Launch> {
+    let store = |path: Vec<u8>, bytes, args| Launch { path, bytes, origin: Origin::Store, args };
+    if let Some(name) = super::request::run_request() {
+        let path = super::install::recorded(choose(&name))?;
+        let bytes = store_read(&key(&path), MAX_IMAGE).ok()?;
+        return Some(store(path, bytes, Vec::new()));
     }
+    if let Some((path, bytes)) = named() {
+        return Some(store(path, bytes, Vec::new()));
+    }
+    if let Some((path, bytes, args)) = super::boot_guest::boot_guest(MAX_IMAGE) {
+        return Some(store(path, bytes, args));
+    }
+    Some(super::built_in::built_in())
 }
 
 fn named() -> Option<(Vec<u8>, Vec<u8>)> {

@@ -18,6 +18,7 @@
 
 mod alert;
 mod chime;
+mod levels;
 mod play;
 
 pub use alert::{mark, service};

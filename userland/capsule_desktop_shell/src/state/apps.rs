@@ -25,6 +25,7 @@ pub enum LauncherIcon {
     Calculator,
     Clock,
     Snake,
+    Store,
     Wallet,
     Browser,
     ImageViewer,
@@ -39,7 +40,7 @@ pub struct LauncherApp {
     pub service: &'static [u8],
 }
 
-pub const LAUNCHER_APPS: [LauncherApp; 13] = [
+pub const LAUNCHER_APPS: [LauncherApp; 14] = [
     LauncherApp { icon: LauncherIcon::Terminal, label: b"Terminal", service: b"app.terminal" },
     LauncherApp { icon: LauncherIcon::FileManager, label: b"Files", service: b"app.file_manager" },
     LauncherApp { icon: LauncherIcon::TextEditor, label: b"Editor", service: b"app.text_editor" },
@@ -50,6 +51,7 @@ pub const LAUNCHER_APPS: [LauncherApp; 13] = [
         service: b"app.process_manager",
     },
     LauncherApp { icon: LauncherIcon::About, label: b"About", service: b"app.about" },
+    LauncherApp { icon: LauncherIcon::Store, label: b"Marketplace", service: b"app.store" },
     LauncherApp {
         icon: LauncherIcon::Calculator,
         label: b"Calculator",

@@ -50,6 +50,7 @@ pub(super) fn read(r: &mut Reader<'_>) -> Result<CapsuleRelease, DecodeError> {
         required_capabilities.push(bounded_string(r, MAX_PUBLISHER)?);
     }
 
+    let zk_trailer_hash = r.fixed::<32>()?;
     let validation = decode_validation::read(r)?;
 
     Ok(CapsuleRelease {
@@ -61,6 +62,7 @@ pub(super) fn read(r: &mut Reader<'_>) -> Result<CapsuleRelease, DecodeError> {
         supported_arches,
         kernel_abi_min,
         required_capabilities,
+        zk_trailer_hash,
         validation,
     })
 }

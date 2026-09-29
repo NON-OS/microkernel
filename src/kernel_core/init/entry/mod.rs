@@ -23,6 +23,7 @@ mod init_boot_entropy;
 mod init_core_services;
 mod init_dma_protection;
 mod init_runtime;
+mod init_extended_state;
 mod init_vm_and_protection;
 mod microkernel_init;
 mod microkernel_main;

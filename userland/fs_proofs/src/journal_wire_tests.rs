@@ -73,7 +73,7 @@ fn journal_list_reply_body_round_trips() {
 #[test]
 fn a_name_too_long_for_the_prefix_is_skipped_not_truncated() {
     let mut s = Store::new();
-    let long = crate::vfs_path::normalize(&"a".repeat(255));
+    let long = crate::vfs_path::normalize(&"a".repeat(255)).unwrap_or_default();
     assert_eq!(long.len(), 256, "normalize prepends a slash, pushing 255 to 256");
     s.journal_touch(&long);
     s.journal_touch("/after");

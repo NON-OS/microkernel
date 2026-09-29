@@ -56,9 +56,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "nonos_app_skeleton"
+version = "0.3.0"
+dependencies = [
+ "nonos_toolkit",
+ "nonos_userland_libc",
+]
+
+[[package]]
 name = "nonos_capsule_setup_wizard"
 version = "0.3.0"
 dependencies = [
+ "nonos_app_skeleton",
  "nonos_policy_proto",
  "nonos_toolkit",
  "nonos_userland_libc",

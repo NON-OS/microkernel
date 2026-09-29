@@ -88,7 +88,7 @@ jobs:
 
       # Build the flashable image. This drives, in order: build and sign every
       # capsule, enroll the whole set under one STARK policy root and emit each
-      # NZKSTRK1 trailer, build and dual-sign the kernel, enroll the kernel and
+      # NZKSTRK2 trailer, build and dual-sign the kernel, enroll the kernel and
       # embed its STARK self-attestation trailer, build the bootloader with the
       # stark-kernel-attest check and the enrolled kernel root, and package the
       # GPT/FAT32 image.

@@ -44,13 +44,20 @@ pub fn sys_foreign_fork(pid: u64) -> i64 {
     };
     let mut frame = state;
     frame.rax = 0;
+    // The thread pointer is a register the frame does not carry, so the child
+    // takes its forking thread's, read from that thread's PCB. Without this a
+    // fork from a thread that set its own FS would give the child a zero one.
+    let parent_tls = crate::process::with_process(parent, |pcb| pcb.get_tls_base()).unwrap_or(0);
     crate::process::with_process(child, |pcb| {
         *pcb.saved_user_context.lock() = Some(frame);
+        if parent_tls != 0 {
+            pcb.set_tls_base(parent_tls);
+        }
         *pcb.state.lock() = ProcessState::New;
     });
     child as i64
 }
 
 fn saved_state(pid: u32) -> Option<crate::arch::context::SavedUser> {
-    crate::process::with_process(pid, |pcb| *pcb.saved_user_context.lock()).flatten()
+    super::trap_frame::parked_frame(pid)
 }

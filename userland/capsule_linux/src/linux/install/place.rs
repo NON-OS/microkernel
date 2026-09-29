@@ -15,22 +15,45 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //! Putting a package's files into the store, under the Linux root.
 
-use nonos_inflate::gunzip;
 use nonos_libc::mk_debug;
 
-use super::place_entry::one;
-use super::provenance::Provenance;
-use super::tar::entries;
+use super::auth::Verified;
+use alloc::vec::Vec;
 
-/// Unpack `apk` into the store and report how many files landed.
-pub fn unpack(apk: &[u8], from: Provenance) -> usize {
-    let Some(raw) = gunzip(apk) else {
-        say(b"[LINUX] package is not readable\n");
-        return 0;
-    };
-    entries(&raw).iter().filter(|entry| one(entry, from)).count()
-}
+use super::place_entry::{allowed, one};
+use super::program::record;
+use super::tar::{walk, Kind};
+use crate::linux::file::visible;
 
-fn say(line: &[u8]) {
+/// Unpack a package's authenticated files into the store and report how
+/// many landed. `chosen` names the package the person asked for, whose
+/// program is recorded so it can be started later.
+pub fn unpack(files: &Verified, chosen: Option<&str>) -> usize {
+    if let Some(name) = chosen {
+        record(name, files);
+    }
+    let archive = walk(files.files());
+    let mut landed = 0usize;
+    let mut links: Vec<(Vec<u8>, Vec<u8>)> = Vec::new();
+    for entry in &archive.entries {
+        match &entry.kind {
+            Kind::File => landed += usize::from(one(entry)),
+            Kind::Symlink(to) if allowed(&entry.name) => {
+                links.push((visible(b"/", &entry.name), to.clone()));
+            }
+            // A hard link names another member, so its target is absolute.
+            Kind::Hardlink(to) if allowed(&entry.name) => {
+                links.push((visible(b"/", &entry.name), visible(b"/", to)));
+            }
+            // Directories are implied by the paths under them.
+            _ => {}
+        }
+    }
+    let linked = super::place_links::record(&links);
+    super::place_report::say(landed, links.len(), linked, archive.dropped);
+    // Nothing persists unless asked, and never in plaintext. The store at
+    // rest is not encrypted, so an install lives until the next reboot.
+    let line = b"[LINUX] unserved persist: install kept in RAM, store at rest unencrypted\n";
     let _ = mk_debug(line.as_ptr(), line.len());
+    landed
 }

@@ -23,6 +23,7 @@
 //!
 //! Nothing here enrols. Minting a proof is not consent.
 
+mod consent;
 mod error;
 mod identity;
 mod sign;
@@ -30,5 +31,6 @@ mod trailer;
 mod tree;
 
 pub use error::LocalBuildError;
+pub use consent::token as consent_token;
 pub use identity::root;
 pub use sign::sign;

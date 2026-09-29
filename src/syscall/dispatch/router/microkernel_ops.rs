@@ -87,6 +87,8 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkForeignStart
             | MkForeignWait
             | MkForeignReply
+            | MkForeignContext
+            | MkForeignSignal
             | MkPeerMap
             | MkPeerCopy
             | MkPeerProtect
@@ -99,6 +101,10 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkLocalVerify
             | MkAppInstall
             | MkDevRootLocal
+            | MkLocalConsent
+            | MkLocalRestore
+            | MkAppLaunch
+            | MkAppInstallStatus
             | MkToolRun
     )
 }

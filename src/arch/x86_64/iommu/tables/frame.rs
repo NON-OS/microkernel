@@ -27,6 +27,7 @@ use super::sl_pte::ENTRIES;
 pub fn allocate_table() -> Result<u64, VtdError> {
     let phys = allocate_frame().ok_or(VtdError::PageTableExhausted)?;
     entries_mut(phys.as_u64())?.fill(0);
+    super::publish::publish(phys.as_u64());
     Ok(phys.as_u64())
 }
 

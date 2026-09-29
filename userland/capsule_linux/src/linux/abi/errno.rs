@@ -39,6 +39,7 @@ pub const ENFILE: i64 = 23;
 pub const EMFILE: i64 = 24;
 pub const ENOTTY: i64 = 25;
 pub const ESPIPE: i64 = 29;
+pub const EROFS: i64 = 30;
 pub const EPIPE: i64 = 32;
 pub const ERANGE: i64 = 34;
 pub const ELOOP: i64 = 40;
@@ -49,6 +50,7 @@ pub const ENOTCONN: i64 = 107;
 pub const ENOTSOCK: i64 = 88;
 pub const ENOTSUP: i64 = 95;
 pub const EAFNOSUPPORT: i64 = 97;
+pub const ETIMEDOUT: i64 = 110;
 pub const ECONNREFUSED: i64 = 111;
 pub const EINPROGRESS: i64 = 115;
 

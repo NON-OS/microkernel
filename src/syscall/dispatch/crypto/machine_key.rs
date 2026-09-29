@@ -18,13 +18,12 @@
 //!
 //! The caller names the key with a label and gets the same bytes back every
 //! boot on this machine, and different bytes on any other machine or under any
-//! other kernel. Nothing is stored anywhere to make that so. The volume store
-//! wraps its volume key under one of these; the wallet wraps its seed under
-//! another. Neither could persist anything across a reboot before this.
+//! other kernel. Nothing is stored anywhere to make that so. Labels the kernel
+//! keeps for itself are refused here.
 
 use crate::capabilities::Capability;
 use crate::security::tpm::error::TpmError;
-use crate::security::tpm::machine_key::{derive, KeyError, LABEL_MAX};
+use crate::security::tpm::machine_key::{derive, is_user_label, KeyError, LABEL_MAX};
 use crate::syscall::dispatch::require_capability;
 use crate::syscall::SyscallResult;
 
@@ -45,6 +44,9 @@ pub fn handle_machine_key(label_ptr: u64, label_len: u64, out_ptr: u64) -> Sysca
         Ok(v) => v,
         Err(e) => return e,
     };
+    if !is_user_label(&label) {
+        return crate::syscall::dispatch::errno(22);
+    }
     match derive(&label) {
         Ok(mut key) => {
             let written = copy::write(out_ptr, &key);
@@ -58,10 +60,8 @@ pub fn handle_machine_key(label_ptr: u64, label_len: u64, out_ptr: u64) -> Sysca
     }
 }
 
-/// The errno says which of three very different things went wrong: no TPM to
-/// ask, a TPM that refused because the machine is not in the state the key
-/// belongs to, or a transport fault. A caller unlocking a volume shows the
-/// user a different sentence for each.
+/// No TPM, a TPM refusing because the machine is not in the key's state, or a
+/// transport fault: a caller unlocking a volume says a different thing for each.
 fn errno_for(e: KeyError) -> i32 {
     match e {
         KeyError::Tpm(TpmError::NotPresent) => 19,

@@ -61,5 +61,4 @@ pub(crate) static SNOOP_CONTROL: AtomicBool = AtomicBool::new(false);
 /// exactly one unit, so one table indexed by bus and function describes them
 /// all, and a single table is one thing to invalidate.
 pub(crate) static ROOT_TABLE: AtomicU64 = AtomicU64::new(0);
-pub(crate) static NEXT_DOMAIN_ID: AtomicU64 = AtomicU64::new(FIRST_DYNAMIC_DOMAIN_ID);
 pub(crate) static STATE: Mutex<VtdState> = Mutex::new(VtdState::new());

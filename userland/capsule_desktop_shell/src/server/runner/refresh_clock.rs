@@ -19,16 +19,20 @@ use nonos_libc::mk_time_millis;
 use crate::compositor_client::push_damage_commit;
 use crate::render::layout::menubar_height;
 use crate::render::paint_chrome;
-use crate::state::indicators::{net, policy};
+use crate::state::indicators::{net, notify_gate, policy};
 use crate::state::{Context, NotifyLevel};
 
 pub(super) fn refresh_clock(ctx: &mut Context) {
     if let Some(v) = policy::clock_24h(&mut ctx.policy_port) {
         ctx.clock_24h = v;
     }
+    notify_gate::follow(ctx.policy_port);
+    if let Some(v) = policy::timezone(ctx.policy_port) {
+        ctx.tz_hours = v;
+    }
     crate::sound::service();
     let net_now = net::online();
-    if net_now && !ctx.net_was_online {
+    if net_now && !ctx.net_was_online && notify_gate::shows(NotifyLevel::Info) {
         ctx.toasts.push(b"network connected", NotifyLevel::Info, mk_time_millis());
     }
     ctx.net_was_online = net_now;

@@ -32,7 +32,9 @@ pub fn apply(ctx: &mut Context, index: u8) -> bool {
         Some(image) => image,
         None => return false,
     };
-    paint_image(ctx, &img);
+    if !paint_image(ctx, &img) {
+        return false;
+    }
     let rid = ctx.issue_request_id();
     let _ = push_damage_commit(ctx.compositor_port, rid, 0, 0, ctx.width, ctx.height);
     true

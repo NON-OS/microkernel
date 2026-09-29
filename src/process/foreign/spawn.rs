@@ -57,14 +57,16 @@ pub(super) fn empty_guest(supervisor: u32, name: &[u8]) -> Result<u32, i64> {
     if allocate_kernel_stack(pid).is_err() {
         return Err(ERRNO_NOMEM);
     }
-    /*
-     * Every process is born with its parent's capabilities bounded by the
-     * ambient set, which for a guest of this capsule means core exec, IPC and
-     * memory.
-     */
+    // Born with the ambient set, core exec, IPC and memory; a guest holds none.
     if crate::process::caps::install_spawn(pid, 0).is_none() {
         return Err(ERRNO_PERM);
     }
+    // Read back rather than assumed, so the log states what the guest holds.
+    crate::sys::serial::print(b"[FOREIGN] guest pid=");
+    crate::sys::serial::print_hex(pid as u64);
+    crate::sys::serial::print(b" caps=");
+    crate::sys::serial::print_hex(crate::process::caps::bits(pid).unwrap_or(u64::MAX));
+    crate::sys::serial::println(b"");
     if !super::registry::insert(pid, supervisor) {
         return Err(ERRNO_EXIST);
     }

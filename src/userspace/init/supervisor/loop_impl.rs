@@ -48,7 +48,8 @@ pub(crate) fn init_loop() -> ! {
         // the single CPU, so a dock click never opened its second window. Raise
         // to Normal while there is queued window work and drop back to Low when
         // idle, so the drain runs promptly without making an idle init costly.
-        let want = crate::userspace::init::instance_spawns_pending();
+        let want = crate::userspace::init::instance_spawns_pending()
+            || crate::userspace::init::installs_pending();
         if want != boosted {
             set_init_priority(if want { Priority::Normal } else { Priority::Low });
             boosted = want;
@@ -80,15 +81,7 @@ fn park() {
     crate::sched::yield_now();
 }
 
-// Set init's own scheduling priority. Mirrors `lower_init_priority` in entry.rs;
-// used to lift the drain out of starvation while there is a window to open, then
-// return to Low when the queue is empty.
+// Set init's priority through the one setter that holds the lock with irqs off.
 fn set_init_priority(p: Priority) {
-    use crate::process::core::{CURRENT_PID, PROCESS_TABLE};
-    use core::sync::atomic::Ordering;
-    let pid = CURRENT_PID.load(Ordering::Relaxed);
-    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        let _irq = crate::interrupts::disable_interrupts_guard();
-        *pcb.priority.lock() = p;
-    }
+    super::super::set_init_priority(p);
 }

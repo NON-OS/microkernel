@@ -48,10 +48,19 @@ impl Guest {
                 continue;
             }
             let (tid, _) = self.waits.remove(i);
+            self.futex_until.retain(|&(_, t)| t != tid);
             if mk_foreign_reply(tid, 0) >= 0 {
                 woken += 1;
             }
         }
         woken
+    }
+
+    /// Drop every wait `tid` is parked in, for a thread that is being ended:
+    /// a wait left behind could later take what a live thread waits for.
+    pub fn forget_waits(&mut self, tid: u32) {
+        self.waits.retain(|&(w, _)| w != tid);
+        self.futex_until.retain(|&(_, t)| t != tid);
+        self.blocked.retain(|w| w.tid != tid);
     }
 }

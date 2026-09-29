@@ -23,16 +23,12 @@ pub const SOUND: &[Block] = &[
         title: "Output",
         note: None,
         pill: Pill::None,
-        rows: &[
-            Row::Field(Field::SoundEnabled),
-            Row::Field(Field::Volume),
-            Row::Field(Field::AudioBalance),
-        ],
+        rows: &[Row::Field(Field::SoundEnabled), Row::Field(Field::Volume)],
     },
     Block {
         title: "Alerts",
         note: None,
         pill: Pill::None,
-        rows: &[Row::Field(Field::AlertSounds), Row::Field(Field::StartupChime)],
+        rows: &[Row::Field(Field::AlertSounds)],
     },
 ];

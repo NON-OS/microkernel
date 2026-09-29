@@ -19,14 +19,14 @@
 use nonos_libc::peer::mk_peer_unmap;
 
 use super::handle::Guest;
-use super::layout::STACK_TOP;
+use super::layout::USER_MAX;
 use super::mem::{span_within, MAX_SPAN};
 use super::region_cut::cut;
 
 impl Guest {
     /// Return `[addr, addr + len)` to the kernel.
     pub fn unmap(&mut self, addr: u64, len: u64) -> i64 {
-        let Some((start, span)) = span_within(addr, len, STACK_TOP) else {
+        let Some((start, span)) = span_within(addr, len, USER_MAX) else {
             return -1;
         };
         let mut done = 0;

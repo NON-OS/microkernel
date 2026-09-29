@@ -19,14 +19,7 @@ use crate::state::Context;
 use super::blit_argb::blit_argb;
 use super::decode_jpeg::DecodedImage;
 
-pub fn paint_image(ctx: &Context, img: &DecodedImage) {
-    blit_argb(
-        ctx.backing_va,
-        ctx.stride,
-        ctx.width,
-        ctx.height,
-        &img.pixels,
-        img.width,
-        img.height,
-    );
+// False when the image or the surface is malformed; the surface is then unchanged.
+pub fn paint_image(ctx: &Context, img: &DecodedImage) -> bool {
+    blit_argb(ctx.backing_va, ctx.stride, ctx.width, ctx.height, &img.pixels, img.width, img.height)
 }

@@ -43,6 +43,11 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
+    if !crate::state::indicators::notify_gate::shows(level) {
+        // Accepted and dropped: the sender learns nothing about the setting.
+        let _ = respond::status(sender_pid, req, 0, tx);
+        return;
+    }
     ctx.last_notify_level = Some(level);
     let text_end = (8 + body_len as usize).min(body.len());
     ctx.toasts.push(&body[8..text_end], level, mk_time_millis());

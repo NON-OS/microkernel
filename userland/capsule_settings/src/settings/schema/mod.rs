@@ -18,6 +18,7 @@ pub mod all_fields;
 pub mod blocks;
 pub mod blocks_for;
 pub mod coverage;
+mod coverage_listed;
 pub mod read_only;
 pub mod rows;
 pub mod section_fields;

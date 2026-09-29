@@ -23,6 +23,9 @@ use super::poll_socket::socket_bits;
 const POLLIN: u16 = 0x001;
 const POLLOUT: u16 = 0x004;
 const POLLNVAL: u16 = 0x020;
+/// Reported whether asked for or not, by poll and by epoll alike.
+pub const POLLERR: u16 = 0x008;
+pub const POLLHUP: u16 = 0x010;
 
 /// What `fd` can do right now, in poll's bits.
 pub fn ready(guest: &Guest, fd: u64) -> u16 {
@@ -32,18 +35,11 @@ pub fn ready(guest: &Guest, fd: u64) -> u16 {
             Some(handle) => socket_bits(handle),
             None => POLLNVAL,
         },
-        Some(Kind::Timer) => timer_bits(guest, fd),
+        Some(Kind::Timer) => crate::linux::file::timer_bits(guest, fd),
+        Some(Kind::Pipe) => crate::linux::call::pipe_bits(guest, fd),
+        Some(Kind::Event) => crate::linux::file::event_bits(guest, fd),
         Some(Kind::Resolver) => resolver_bits(guest, fd),
         Some(_) => POLLIN | POLLOUT,
-    }
-}
-
-/// A timer is readable once it has fired and never writable.
-fn timer_bits(guest: &Guest, fd: u64) -> u16 {
-    let now = nonos_libc::mk_uptime_ms().max(0) as u64;
-    match guest.fds.get(fd as usize) {
-        Some(e) if e.expiry != 0 && now >= e.expiry => POLLIN,
-        _ => 0,
     }
 }
 

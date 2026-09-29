@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::pm::theme::{DANGER, DANGER_TINT, TITLE};
+use crate::pm::theme::{DANGER, DANGER_TINT, MUTED, SIDEBAR_LINE, TITLE};
 
 use super::insp_geom::btn;
 use super::metrics::{BODY_PX, INSP_BTN_RADIUS};
@@ -25,9 +25,24 @@ use super::text;
 // End Process asks the kernel nicely; Force Quit is the loud one, so it takes a
 // tinted ground under the same danger outline rather than a second solid fill
 // that would read as the safer of the two.
-pub fn paint(fb: &mut PaintBuffer) {
+// A process this monitor will not end gets no button that looks as if it
+// would: both are quiet outlines saying so, and kill_selected still refuses.
+pub fn paint(fb: &mut PaintBuffer, protected: bool) {
+    if protected {
+        quiet(fb, 0, b"Protected");
+        quiet(fb, 1, b"Cannot be ended here");
+        return;
+    }
     button(fb, 0, b"End Process", DANGER, TITLE);
     button(fb, 1, b"Force Quit", DANGER_TINT, DANGER);
+}
+
+fn quiet(fb: &mut PaintBuffer, index: usize, label: &[u8]) {
+    let (x, y, w, h) = btn(fb.width, fb.height, index);
+    fb.stroke_round(x, y, w, h, INSP_BTN_RADIUS, 1, SIDEBAR_LINE);
+    let top = text::centred_top(y, h, BODY_PX);
+    let cx = x + w.saturating_sub(text::width(fb, label, BODY_PX)) / 2;
+    text::left(fb, cx, top, label, MUTED, BODY_PX);
 }
 
 // DANGER_TINT carries alpha and fill_round blends, which is what makes the

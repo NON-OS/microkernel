@@ -20,13 +20,15 @@ use alloc::format;
 use alloc::vec::Vec;
 
 use super::http::get;
-use super::run::{ARCH, BRANCHES, HOST, PORT, RELEASE};
+use super::mirror::mirror;
+use super::run::{ARCH, BRANCHES, RELEASE};
 
 /// Either branch may hold it, and the index does not say which.
 pub(super) fn download(name: &str, version: &str) -> Vec<u8> {
     for branch in BRANCHES {
         let path = format!("/alpine/{RELEASE}/{branch}/{ARCH}/{name}-{version}.apk");
-        if let Some(bytes) = get(HOST, PORT, &path) {
+        let (ip, port) = mirror();
+        if let Some(bytes) = get(ip, port, &path) {
             return bytes;
         }
     }

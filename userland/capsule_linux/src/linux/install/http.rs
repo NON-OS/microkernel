@@ -16,46 +16,48 @@
 
 //! A GET, over the socket service this capsule already uses.
 
+use alloc::format;
 use alloc::vec::Vec;
-use alloc::{format, string::String};
 
-use crate::linux::net::raw::{connect_host, open_stream};
-use crate::linux::net::raw_io::{close, recv_all, send_all};
+use super::http_reply::{body, complete};
+use super::mirror::HOST_LINE;
+use crate::linux::net::raw::{connect_host, open_stream_to};
+use crate::linux::net::raw_io::{close, recv_until, send_all};
 
 /// Enough for the largest package index; a reply beyond it is refused
 /// rather than truncated into a half-parsed index.
 const MAX_BODY: usize = 64 << 20;
+/// How long a mirror may go silent: one fetching upstream before it answers
+/// sends nothing for a while, and a slow link for longer under emulation.
+const IDLE_MS: u64 = 120_000;
 
-pub fn get(host: &str, port: u16, path: &str) -> Option<Vec<u8>> {
-    let handle = open_stream()?;
-    if connect_host(handle, host, port).is_none() {
+/// A GET to Alpine's mirror.
+pub fn get(ip: &str, port: u16, path: &str) -> Option<Vec<u8>> {
+    get_as(ip, port, HOST_LINE, path)
+}
+
+/// A GET to `ip`, which must be a dotted IPv4 address: a name here would be
+/// resolved by the socket service, in the clear. `host` is only the Host line.
+pub fn get_as(ip: &str, port: u16, host: &str, path: &str) -> Option<Vec<u8>> {
+    if ip.split('.').filter(|o| o.parse::<u8>().is_ok()).count() != 4 {
+        return None;
+    }
+    let handle = open_stream_to(ip)?;
+    if connect_host(handle, ip, port).is_none() {
         close(handle);
         return None;
     }
     let req = format!(
         "GET {path} HTTP/1.1\r\nHost: {host}\r\nUser-Agent: nonos\r\nConnection: close\r\n\r\n"
     );
-    if send_all(handle, req.as_bytes()).is_none() {
-        close(handle);
-        return None;
-    }
-    let raw = recv_all(handle, MAX_BODY);
+    let sent = send_all(handle, req.as_bytes());
+    let raw = sent.and_then(|()| recv_until(handle, MAX_BODY, &complete, IDLE_MS));
     close(handle);
-    body(&raw?)
-}
-
-/// The bytes after the header block. A reply whose status is not 200 is
-/// nothing: an error page parsed as a package is the worst outcome here.
-fn body(raw: &[u8]) -> Option<Vec<u8>> {
-    let head_end = find(raw, b"\r\n\r\n")? + 4;
-    let head = String::from_utf8_lossy(&raw[..head_end]);
-    let first = head.lines().next()?;
-    if !first.contains(" 200 ") {
-        return None;
-    }
-    Some(raw[head_end..].to_vec())
-}
-
-fn find(hay: &[u8], needle: &[u8]) -> Option<usize> {
-    hay.windows(needle.len()).position(|w| w == needle)
+    let got = raw.and_then(body);
+    let line = match &got {
+        Some(b) => format!("[LINUX] mirror {ip}: {path}, {} bytes\n", b.len()),
+        None => format!("[LINUX] mirror {ip}: GET {path} gave no whole 200 reply\n"),
+    };
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    got
 }

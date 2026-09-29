@@ -21,7 +21,7 @@ use super::ipc::{hydrate, lookup_policy_port};
 use super::manifest::manifest;
 use super::paint::paint;
 use super::section::Section;
-use super::state::refresh_wifi::refresh_wifi_status;
+use super::state::wifi_enter::refresh_wifi_status;
 use super::state::{state_new, State};
 use super::ui::search_field;
 
@@ -87,11 +87,11 @@ impl App for Settings {
         paint(&self.state, fb);
     }
 
-    // While the Wi-Fi panel is open, re-poll net_core every tick so a lease that
-    // binds a few seconds after connecting shows its address without the user
-    // having to trigger another scan.
+    // While the Wi-Fi or Network page is open, re-poll net_core every tick so a
+    // lease that binds a few seconds after connecting shows its address without
+    // the user having to trigger another scan.
     fn on_tick(&mut self) -> bool {
-        if self.state.section == Section::Wifi {
+        if matches!(self.state.section, Section::Wifi | Section::Network) {
             refresh_wifi_status(&mut self.state);
             return true;
         }

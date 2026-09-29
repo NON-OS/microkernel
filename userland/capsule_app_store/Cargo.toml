@@ -1,0 +1,43 @@
+# NONOS userland: capsule_app_store
+# eK@nonos.systems
+#
+# The marketplace window. Reads the catalogue the market capsule serves
+# over `market.index`, groups it by the three namespaces the operator
+# signs (NONOS capsules, Linux packages, community submissions), and for
+# the selected listing shows every install gate with its own verdict so a
+# refusal names what refused rather than greying out a button.
+#
+# Holds no install logic and no payment logic: this displays the index
+# authority's answers and does not form its own.
+
+[package]
+name = "nonos_app_store"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS marketplace window"
+
+build = "build.rs"
+
+[[bin]]
+name = "app_store"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_app_skeleton = { path = "../app_skeleton" }
+nonos_toolkit = { path = "../toolkit", default-features = false }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
