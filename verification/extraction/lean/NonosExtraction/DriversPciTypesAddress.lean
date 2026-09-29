@@ -25,15 +25,17 @@ def drivers.pci.constants.address_packing.pci_config_address
   let i1 ← lift (UScalar.cast .U32 bus)
   let i2 ← i1 <<< 16#i32
   let i3 ← lift (i ||| i2)
-  let i4 ← lift (UScalar.cast .U32 device)
-  let i5 ← i4 <<< 11#i32
-  let i6 ← lift (i3 ||| i5)
-  let i7 ← lift (UScalar.cast .U32 function)
-  let i8 ← i7 <<< 8#i32
-  let i9 ← lift (i6 ||| i8)
-  let i10 ← lift (UScalar.cast .U32 offset)
-  let i11 ← lift (i10 &&& 252#u32)
-  ok (i9 ||| i11)
+  let i4 ← lift (device &&& 31#u8)
+  let i5 ← lift (UScalar.cast .U32 i4)
+  let i6 ← i5 <<< 11#i32
+  let i7 ← lift (i3 ||| i6)
+  let i8 ← lift (function &&& 7#u8)
+  let i9 ← lift (UScalar.cast .U32 i8)
+  let i10 ← i9 <<< 8#i32
+  let i11 ← lift (i7 ||| i10)
+  let i12 ← lift (UScalar.cast .U32 offset)
+  let i13 ← lift (i12 &&& 252#u32)
+  ok (i11 ||| i13)
 
 /-- [nonos_x_drivers_pci_types_address::drivers::pci::types::address::PciAddress]
     Source: 'src/drivers/pci/types/../../../../../../../../src/drivers/pci/types/address.rs', lines 21:0-25:1

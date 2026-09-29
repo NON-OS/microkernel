@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.ConstantsAddressPacking
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_constants_address_packing
@@ -35,8 +36,169 @@ namespace NonosExtraction.ConstantsAddressPacking
 theorem the_pci_config_address_wrapper_is_its_method (a : Std.U8) (b : Std.U8) (c : Std.U8) (d : Std.U8) :
     pci_config_address a b c d = address_packing.pci_config_address a b c d := rfl
 
+/-! ### The configuration mechanism #1 address word
+
+    `PciAddress::config_address` passes its bus, device and function to
+    `pci_config_address`, and the result is written to port 0xCF8. The theorems
+    below say what word comes out: the enable bit 31 is always set, the offset is
+    rounded down to a dword, and the word is `0x80000000 + (bus * 256 +
+    device % 32 * 8 + function % 8) * 256 + offset / 4 * 4`, from which each
+    field reads back. The device is masked to five bits and the function to
+    three, so the bus field holds the bus for every input. Before the masks, a device of 32 or more spilled into the bus
+    field and a function of 8 or more into the device field, so device 32 on bus
+    0 read or wrote the configuration space of device 0 on bus 1. They cannot
+    establish anything about the port I/O that follows, which is not extracted
+    here.
+-/
+
+private theorem shl_u32 (x : Std.U32) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 32) :
+    ∃ z : Std.U32, x <<< k = ok z ∧ z.val = x.val * 2 ^ k.toNat % 2 ^ 32 := by
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftLeft_IScalar_spec x k (UScalar.size .U32) h0
+      (by simpa using h1) rfl)
+  exact ⟨z, hz, by rw [hv, Nat.shiftLeft_eq]; simp [U32.size, U32.numBits]⟩
+
+private theorem low_byte_dword_aligned (n : Nat) (h : n < 256) : n &&& 252 = n / 4 * 4 := by
+  apply Nat.eq_of_testBit_eq
+  intro i
+  rw [Nat.testBit_and, show n / 4 * 4 = n / 2 ^ 2 * 2 ^ 2 from rfl, Nat.testBit_mul_two_pow,
+    Nat.testBit_div_two_pow]
+  by_cases hi : i < 8
+  · have : i = 0 ∨ i = 1 ∨ i = 2 ∨ i = 3 ∨ i = 4 ∨ i = 5 ∨ i = 6 ∨ i = 7 := by omega
+    rcases this with h | h | h | h | h | h | h | h <;> subst h <;>
+      first | (cases n.testBit _ <;> decide) | (rw [show Nat.testBit 252 _ = false from rfl]; simp)
+  · have hp : 256 ≤ 2 ^ i := Nat.pow_le_pow_right (n := 2) (by decide) (by omega : 8 ≤ i)
+    have h1 : n.testBit i = false := Nat.testBit_eq_false_of_lt (by omega)
+    have h2 : Nat.testBit 252 i = false := Nat.testBit_eq_false_of_lt (by omega)
+    have e : i - 2 + 2 = i := by omega
+    rw [e, h1, h2]
+    simp
+
+/-- Without any assumption on the fields, the word is the enable bit ORed with
+    the shifted bus, the device reduced to five bits, the function reduced to
+    three, and the offset with its low two bits cleared. -/
+theorem pci_config_address_ors_the_shifted_fields (b d f o : Std.U8) :
+    ∃ v : Std.U32, pci_config_address b d f o = ok v ∧
+      v.val = 2 ^ 31 ||| b.val * 2 ^ 16 ||| d.val % 32 * 2 ^ 11 ||| f.val % 8 * 2 ^ 8 |||
+        o.val / 4 * 4 := by
+  unfold pci_config_address address_packing.pci_config_address
+  have hb := b.hBounds
+  have hd := d.hBounds
+  have hf := f.hBounds
+  have ho := o.hBounds
+  simp [UScalarTy.numBits] at hb hd hf ho
+  have h31 : (1#u32 <<< 31#i32 : Result Std.U32) = ok 2147483648#u32 := by rfl
+  obtain ⟨z1, hz1, hv1⟩ := shl_u32 (UScalar.cast .U32 b) 16#i32 (by decide) (by decide)
+  obtain ⟨z2, hz2, hv2⟩ :=
+    shl_u32 (UScalar.cast .U32 (d &&& 31#u8)) 11#i32 (by decide) (by decide)
+  obtain ⟨z3, hz3, hv3⟩ :=
+    shl_u32 (UScalar.cast .U32 (f &&& 7#u8)) 8#i32 (by decide) (by decide)
+  have hdm : (d &&& 31#u8).val = d.val % 32 := Bits.land_low_mask d 31#u8 5 rfl
+  have hfm : (f &&& 7#u8).val = f.val % 8 := Bits.land_low_mask f 7#u8 3 rfl
+  simp only [h31, lift, bind_tc_ok, hz1, hz2, hz3]
+  refine ⟨_, rfl, ?_⟩
+  simp only [show (16#i32 : Std.I32).toNat = 16 from rfl, show (11#i32 : Std.I32).toNat = 11 from rfl,
+    show (8#i32 : Std.I32).toNat = 8 from rfl, UScalar.cast_val_eq, UScalarTy.numBits] at hv1 hv2 hv3
+  rw [hdm] at hv2
+  rw [hfm] at hv3
+  rw [Nat.mod_eq_of_lt (by omega : b.val < 2 ^ 32)] at hv1
+  rw [Nat.mod_eq_of_lt (by omega : d.val % 32 < 2 ^ 32)] at hv2
+  rw [Nat.mod_eq_of_lt (by omega : f.val % 8 < 2 ^ 32)] at hv3
+  rw [Nat.mod_eq_of_lt (by omega)] at hv1 hv2 hv3
+  simp only [UScalar.val_or, UScalar.val_and, hv1, hv2, hv3, UScalar.cast_val_eq, UScalarTy.numBits]
+  rw [Nat.mod_eq_of_lt (by omega : o.val < 2 ^ 32), show (252#u32 : Std.U32).val = 252 from rfl,
+    low_byte_dword_aligned o.val ho]
+  rfl
+
+/-- For every input the word is the enable bit, the routing id
+    `bus * 256 + device % 32 * 8 + function % 8` in bits 8 to 23, and the
+    dword-aligned offset. A device shift of 12, a bus shift of 15 or an offset
+    mask of 0xFF would each break this. -/
+theorem pci_config_address_is_enable_routing_id_and_dword_offset (b d f o : Std.U8) :
+    ∃ v : Std.U32, pci_config_address b d f o = ok v ∧
+      v.val = 2 ^ 31 + (b.val * 256 + d.val % 32 * 8 + f.val % 8) * 256 + o.val / 4 * 4 := by
+  obtain ⟨v, hv, hval⟩ := pci_config_address_ors_the_shifted_fields b d f o
+  refine ⟨v, hv, ?_⟩
+  have hb := b.hBounds
+  have ho := o.hBounds
+  simp [UScalarTy.numBits] at hb ho
+  rw [hval, Nat.lor_assoc, Nat.lor_assoc, Nat.lor_assoc]
+  have e1 : f.val % 8 * 2 ^ 8 ||| o.val / 4 * 4 = f.val % 8 * 2 ^ 8 + o.val / 4 * 4 := by
+    rw [← Nat.shiftLeft_eq, Nat.shiftLeft_add_eq_or_of_lt (by omega)]
+  have e2 : d.val % 32 * 2 ^ 11 ||| (f.val % 8 * 2 ^ 8 + o.val / 4 * 4) =
+      d.val % 32 * 2 ^ 11 + (f.val % 8 * 2 ^ 8 + o.val / 4 * 4) := by
+    rw [← Nat.shiftLeft_eq, Nat.shiftLeft_add_eq_or_of_lt (by omega)]
+  have e3 : b.val * 2 ^ 16 ||| (d.val % 32 * 2 ^ 11 + (f.val % 8 * 2 ^ 8 + o.val / 4 * 4)) =
+      b.val * 2 ^ 16 + (d.val % 32 * 2 ^ 11 + (f.val % 8 * 2 ^ 8 + o.val / 4 * 4)) := by
+    rw [← Nat.shiftLeft_eq, Nat.shiftLeft_add_eq_or_of_lt (by omega)]
+  have e4 : 2 ^ 31 ||| (b.val * 2 ^ 16 + (d.val % 32 * 2 ^ 11 + (f.val % 8 * 2 ^ 8 + o.val / 4 * 4))) =
+      2 ^ 31 + (b.val * 2 ^ 16 + (d.val % 32 * 2 ^ 11 + (f.val % 8 * 2 ^ 8 + o.val / 4 * 4))) := by
+    have := Nat.shiftLeft_add_eq_or_of_lt (a := 1) (i := 31)
+      (b := b.val * 2 ^ 16 + (d.val % 32 * 2 ^ 11 + (f.val % 8 * 2 ^ 8 + o.val / 4 * 4))) (by omega)
+    rw [Nat.shiftLeft_eq, Nat.one_mul] at this
+    exact this.symm
+  rw [e1, e2, e3, e4]
+  omega
+
+/-- The fields read back out of the word for every input: bit 31 is set, the
+    bus is bits 16 to 23, the device reduced to five bits is bits 11 to 15, the
+    function reduced to three is bits 8 to 10, and bits 0 and 1 are clear, as
+    the 0xCF8 register requires. The bus field is the bus whatever device and
+    function are passed. -/
+theorem pci_config_address_decodes_to_its_fields (b d f o : Std.U8) :
+    ∃ v : Std.U32, pci_config_address b d f o = ok v ∧
+      v.val / 2 ^ 31 = 1 ∧ v.val / 2 ^ 16 % 256 = b.val ∧ v.val / 2 ^ 11 % 32 = d.val % 32 ∧
+      v.val / 2 ^ 8 % 8 = f.val % 8 ∧ v.val % 256 = o.val / 4 * 4 ∧ v.val % 4 = 0 := by
+  obtain ⟨v, hv, hval⟩ := pci_config_address_is_enable_routing_id_and_dword_offset b d f o
+  have hb := b.hBounds
+  have ho := o.hBounds
+  simp [UScalarTy.numBits] at hb ho
+  exact ⟨v, hv, by omega, by omega, by omega, by omega, by omega, by omega⟩
+
+/-- Offsets within one dword name the same register: the low two offset bits are
+    dropped rather than carried into the function field. -/
+theorem pci_config_address_ignores_the_low_offset_bits (b d f o : Std.U8) :
+    pci_config_address b d f o = pci_config_address b d f (o &&& 252#u8) := by
+  obtain ⟨v, hv, hval⟩ := pci_config_address_ors_the_shifted_fields b d f o
+  obtain ⟨w, hw, hwal⟩ := pci_config_address_ors_the_shifted_fields b d f (o &&& 252#u8)
+  rw [hv, hw]
+  congr 1
+  apply UScalar.eq_of_val_eq
+  rw [hval, hwal]
+  have ho := o.hBounds
+  simp [UScalarTy.numBits] at ho
+  have : (o &&& 252#u8).val = o.val / 4 * 4 := by
+    rw [UScalar.val_and]; exact low_byte_dword_aligned o.val ho
+  rw [this]
+  congr 1
+  omega
+
+/-- Device 32 on bus 0 is reduced to device 0 on bus 0, not device 0 on bus 1,
+    and function 8 of device 0 to function 0 of device 0, not device 1. -/
+theorem pci_config_address_keeps_an_out_of_range_device_on_its_bus :
+    pci_config_address 0#u8 32#u8 0#u8 0#u8 = pci_config_address 0#u8 0#u8 0#u8 0#u8 ∧
+      pci_config_address 0#u8 0#u8 8#u8 0#u8 = pci_config_address 0#u8 0#u8 0#u8 0#u8 ∧
+      pci_config_address 0#u8 32#u8 0#u8 0#u8 ≠ pci_config_address 1#u8 0#u8 0#u8 0#u8 := by
+  obtain ⟨v1, h1, e1⟩ := pci_config_address_is_enable_routing_id_and_dword_offset 0#u8 32#u8 0#u8 0#u8
+  obtain ⟨v2, h2, e2⟩ := pci_config_address_is_enable_routing_id_and_dword_offset 0#u8 0#u8 0#u8 0#u8
+  obtain ⟨v3, h3, e3⟩ := pci_config_address_is_enable_routing_id_and_dword_offset 0#u8 0#u8 8#u8 0#u8
+  obtain ⟨v4, h4, e4⟩ := pci_config_address_is_enable_routing_id_and_dword_offset 1#u8 0#u8 0#u8 0#u8
+  rw [h1, h2, h3, h4]
+  refine ⟨?_, ?_, ?_⟩
+  · congr 1; apply UScalar.eq_of_val_eq; rw [e1, e2]; rfl
+  · congr 1; apply UScalar.eq_of_val_eq; rw [e3, e2]; rfl
+  · intro h
+    have := congrArg UScalar.val (ok.inj h)
+    rw [e1, e4] at this
+    exact absurd this (by decide)
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ConstantsAddressPacking.the_pci_config_address_wrapper_is_its_method
+#print axioms NonosExtraction.ConstantsAddressPacking.pci_config_address_ors_the_shifted_fields
+#print axioms NonosExtraction.ConstantsAddressPacking.pci_config_address_is_enable_routing_id_and_dword_offset
+#print axioms NonosExtraction.ConstantsAddressPacking.pci_config_address_decodes_to_its_fields
+#print axioms NonosExtraction.ConstantsAddressPacking.pci_config_address_ignores_the_low_offset_bits
+#print axioms NonosExtraction.ConstantsAddressPacking.pci_config_address_keeps_an_out_of_range_device_on_its_bus
 
 end NonosExtraction.ConstantsAddressPacking

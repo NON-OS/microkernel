@@ -27,8 +27,8 @@
       "counts": {
         "extracted": 984,
         "proven": 984,
-        "substantive": 340,
-        "trivial": 644,
+        "substantive": 341,
+        "trivial": 643,
         "unproven": 0
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
@@ -1269,7 +1269,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ConstantsAddressPacking.lean",
-          "sha256": "8fdb7bff26de67cba505f04154bb27a3290cdc9d06b3df573c71b56fdd1a31a3"
+          "sha256": "dd509f54fa2d55c61dcc6c7bc4bb81799ed627abd67ffca4d42fb9acfd080fa6"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ConstantsHelpers.lean",
@@ -1377,7 +1377,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DriversPciTypesAddress.lean",
-          "sha256": "f4565651c4310b386ba6455cb3d88bba07272d7d02871ac5c2abb2c9f89bb251"
+          "sha256": "c6bdc627e9dddb07b641acc59d1ecd6bdde8990da87e75542f2e3b5765459977"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DriversPciTypesBar.lean",
