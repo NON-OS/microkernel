@@ -17,6 +17,7 @@
 mod bg_image;
 mod bg_tile;
 mod blit_rows;
+mod border_corners;
 mod borders;
 mod box_fragment;
 mod box_page;

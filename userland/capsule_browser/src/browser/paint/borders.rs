@@ -22,7 +22,7 @@ use super::corners::corners;
 use super::fill_page::fill_page;
 
 /* A fragment's border edges on screen row `sy`, each shortened by the
- * corner radius at either end. */
+ * corner radius at either end, then the rounded corners between them. */
 pub(super) fn paint_borders(fb: &mut PaintBuffer, f: &Fragment, sy: i32, clip: Option<[i32; 4]>) {
     let edge = super::fade::fade(f.border_color, f.alpha);
     let [tl, tr, br, bl] = corners(f.radius, f.w, f.h);
@@ -39,4 +39,5 @@ pub(super) fn paint_borders(fb: &mut PaintBuffer, f: &Fragment, sy: i32, clip: O
     if brw > 0 {
         fill_page(fb, f.x + f.w - brw, sy + tr, brw, f.h - tr - br, edge, clip);
     }
+    super::border_corners::paint_corner_arcs(fb, f, sy, edge, clip);
 }
