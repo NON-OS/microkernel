@@ -25,9 +25,9 @@
       "bv_decide_calls": 12,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 986,
-        "proven": 986,
-        "substantive": 354,
+        "extracted": 987,
+        "proven": 987,
+        "substantive": 355,
         "trivial": 632,
         "unproven": 0
       },
@@ -956,6 +956,7 @@
         "nonos_x_uefi_secure_boot_status::securebootstatus_can_modify_keys",
         "nonos_x_uefi_secure_boot_status::securebootstatus_is_fully_configured",
         "nonos_x_usercopy_walk_leaf::userleaf_bytes_remaining_in_page",
+        "nonos_x_utils_types::scanconfig_admits_hidden",
         "nonos_x_utils_types::scanconfig_hidden_only",
         "nonos_x_utils_types::scanconfig_new",
         "nonos_x_utils_types::scanconfig_with_max_depth",
@@ -2087,7 +2088,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/UtilsTypes.lean",
-          "sha256": "82b1f58650ccf6854d84b2690bc9bb1520c63ed67df90b71ffe93ce8c1549f59"
+          "sha256": "5e1dc7a46a080d7949e29b3164f40e389ac4afb4e6fb57c9b79e90bc909f7ca9"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ValidationSimdLevel.lean",

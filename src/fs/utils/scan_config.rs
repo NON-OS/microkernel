@@ -67,8 +67,7 @@ pub fn scan_with_config(dir_path: &str, config: &ScanConfig) -> UtilsResult<Vec<
             continue;
         }
 
-        let is_hidden_file = is_hidden(&path);
-        if !config.include_hidden && is_hidden_file {
+        if !config.admits_hidden(is_hidden(&path)) {
             continue;
         }
 

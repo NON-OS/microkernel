@@ -306,7 +306,8 @@
       "starts": [
         "nonos_x_utils_types::scanconfig_new",
         "nonos_x_utils_types::scanconfig_with_max_depth",
-        "nonos_x_utils_types::scanconfig_hidden_only"
+        "nonos_x_utils_types::scanconfig_hidden_only",
+        "nonos_x_utils_types::scanconfig_admits_hidden"
       ]
     },
     {
