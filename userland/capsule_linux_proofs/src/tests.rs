@@ -41,6 +41,7 @@ mod pacman_rsa_tests;
 mod resolve_tests;
 mod route_tests;
 mod sigframe_alt_tests;
+mod sigframe_entry_tests;
 mod sigframe_layout_tests;
 mod sigframe_tests;
 mod service;

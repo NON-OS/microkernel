@@ -41,10 +41,11 @@ pub(super) fn place(rsp: u64, alt: Option<(u64, u64)>, onstack: bool) -> Option<
     };
     let frame = (top.checked_sub(FRAME_SIZE as u64)? & !15u64).checked_sub(8)?;
     /*
-     * A frame that would run off the bottom of the alternate stack is not
-     * written over whatever lies below it.
+     * A frame that would run off the bottom of the alternate stack, whether
+     * the handler enters it or the thread is on it already, is not written
+     * over whatever lies below it.
      */
-    if let Some((sp, _)) = alt.filter(|_| onstack) {
+    if let Some((sp, _)) = alt.filter(|_| onstack || on_alt(alt, rsp)) {
         if frame <= sp {
             return None;
         }

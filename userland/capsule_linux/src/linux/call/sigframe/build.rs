@@ -22,6 +22,9 @@ use super::layout::{put, FRAME_SIZE, INFO_OFF, SIGCONTEXT_OFF, SIGMASK_OFF, STAC
 use super::layout::{SS_DISABLE, SS_ONSTACK, WORDS};
 use super::place::{on_alt, place};
 
+/// rflags' direction flag.
+const DF: u64 = 0x400;
+
 /// Where the frame lands, the bytes to write there, and the registers that
 /// enter the handler. `alt` is the thread's alternate stack (base, size), and
 /// `onstack` is the handler's SA_ONSTACK. `None` if the frame does not fit.
@@ -58,7 +61,8 @@ pub fn build(
 
 /// The handler's registers: rdi the signal, rsi the siginfo, rdx the
 /// ucontext, rsp the frame and rip the handler. rflags is the interrupted
-/// one, which the kernel masks; rax stays 0, and no vector register is set.
+/// one with DF clear, as the System V ABI and Linux's handle_signal enter a
+/// function; the kernel masks the rest. rax stays 0, no vector register set.
 fn entry(regs: &[u64; WORDS], frame: u64, handler: u64, signum: u32) -> [u64; WORDS] {
     let mut out = [0u64; WORDS];
     out[8] = u64::from(signum);
@@ -66,6 +70,6 @@ fn entry(regs: &[u64; WORDS], frame: u64, handler: u64, signum: u32) -> [u64; WO
     out[12] = frame + UC_OFF as u64;
     out[15] = frame;
     out[16] = handler;
-    out[17] = regs[17];
+    out[17] = regs[17] & !DF;
     out
 }
