@@ -27,7 +27,7 @@ const MOST: u64 = 256;
 pub fn watched(guest: &Guest, wait: &Blocked) -> Vec<u64> {
     let a = wait.args;
     match wait.nr {
-        nr::READ | nr::WRITE => alloc::vec![a[0]],
+        nr::READ | nr::WRITE | nr::READV | nr::WRITEV => alloc::vec![a[0]],
         nr::POLL | np::PPOLL => (0..a[1].min(MOST))
             .filter_map(|i| guest.read(a[0] + i * 8, 4))
             .map(|raw| u64::from(u32::from_le_bytes([raw[0], raw[1], raw[2], raw[3]])))
