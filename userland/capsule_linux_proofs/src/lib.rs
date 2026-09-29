@@ -45,6 +45,8 @@ pub mod model_name;
 #[path = "../../capsule_linux/src/linux/file/dev_metrics_parse.rs"]
 pub mod metrics_parse;
 
+pub mod pinned;
+
 #[path = "../../capsule_linux/src/linux/file/dir_children.rs"]
 pub mod dir_children;
 

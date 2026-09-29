@@ -32,6 +32,11 @@ pub fn read(path: &[u8], offset: u64, len: usize) -> Option<Result<Vec<u8>, i64>
     if !owns(path) {
         return None;
     }
+    if path == super::catalog::TIERS {
+        let all = super::catalog::text();
+        let from = (offset as usize).min(all.len());
+        return Some(Ok(all[from..(from + len).min(all.len())].to_vec()));
+    }
     let Some(name) = volume_name(path) else {
         return Some(Err(errno::EISDIR));
     };

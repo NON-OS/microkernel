@@ -14,25 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * /models: model files on the machine's data volume, read-only.
- *
- * Each name here is a file on the sealed volume, reached through the
- * kernel by name. A model the personality pins is imported the first time
- * it is opened, and kept only if its SHA-256 is the pinned one.
- */
+//! What an import brought onto the volume.
 
-mod catalog;
-mod held;
-mod hex;
-mod name;
-mod open;
-mod pinned;
-mod read;
-mod size;
-mod stat;
-
-pub use held::held;
-pub use open::open;
-pub use read::read;
-pub use stat::stat;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Imported {
+    pub bytes: u64,
+    pub sha256: [u8; 32],
+    /// False when an earlier boot had already imported and verified it.
+    pub fresh: bool,
+}

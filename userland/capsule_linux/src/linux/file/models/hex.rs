@@ -14,25 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * /models: model files on the machine's data volume, read-only.
- *
- * Each name here is a file on the sealed volume, reached through the
- * kernel by name. A model the personality pins is imported the first time
- * it is opened, and kept only if its SHA-256 is the pinned one.
- */
+/* A 64-digit hex digest as its 32 bytes, at compile time. */
 
-mod catalog;
-mod held;
-mod hex;
-mod name;
-mod open;
-mod pinned;
-mod read;
-mod size;
-mod stat;
-
-pub use held::held;
-pub use open::open;
-pub use read::read;
-pub use stat::stat;
+pub const fn hex32(h: &[u8; 64]) -> [u8; 32] {
+    const fn nib(c: u8) -> u8 {
+        match c {
+            b'0'..=b'9' => c - b'0',
+            b'a'..=b'f' => c - b'a' + 10,
+            _ => panic!("a pinned digest is lowercase hex"),
+        }
+    }
+    let mut out = [0u8; 32];
+    let mut i = 0;
+    while i < 32 {
+        out[i] = nib(h[2 * i]) << 4 | nib(h[2 * i + 1]);
+        i += 1;
+    }
+    out
+}

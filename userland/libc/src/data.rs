@@ -19,11 +19,12 @@
 
 use crate::syscall::{call_raw, N_MK_DATA_IMPORT, N_MK_DATA_READ, N_MK_DATA_STAT};
 
-/// Import the disk plan's file as `name`, kept only if its SHA-256 is
-/// `sha256`. Needs StoreWrite and FileSystem. Returns its size.
-pub fn mk_data_import(name: &[u8], sha256: &[u8; 32]) -> i64 {
+/// Import the disk plan's file as `name`, kept only if it is `bytes` long
+/// and its SHA-256 is `sha256`. Needs StoreWrite and FileSystem. Returns its
+/// size.
+pub fn mk_data_import(name: &[u8], sha256: &[u8; 32], bytes: u64) -> i64 {
     let (p, n) = (name.as_ptr() as u64, name.len() as u64);
-    call_raw(N_MK_DATA_IMPORT, [p, n, sha256.as_ptr() as u64, 0, 0, 0])
+    call_raw(N_MK_DATA_IMPORT, [p, n, sha256.as_ptr() as u64, bytes, 0, 0])
 }
 
 /// The size of `name`. Needs FileSystem.

@@ -24,6 +24,7 @@
 
 use super::error::VolumeError;
 use super::hex::{as_str, hex32};
+use super::imported::Imported;
 use super::import_record::{record, recorded};
 use super::import_stream::stream_in;
 use super::open_machine::open_machine_volume;
@@ -31,21 +32,23 @@ use super::plan_read::read_plan;
 use super::state::VOLUME;
 use crate::fs::blockfs::{self, FileStream, MODE_FILE};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Imported {
-    pub bytes: u64,
-    pub sha256: [u8; 32],
-    /// False when an earlier boot had already imported and verified it.
-    pub fresh: bool,
-}
-
-/// Import the plan's file as `name`, keeping it only if its SHA-256 is `want`.
-pub fn import(name: &[u8], want: &[u8; 32]) -> Result<Imported, VolumeError> {
+/// Import the plan's file as `name`, keeping it only if it is `want_bytes`
+/// long and its SHA-256 is `want`.
+pub fn import(name: &[u8], want: &[u8; 32], want_bytes: u64) -> Result<Imported, VolumeError> {
     open_machine_volume()?;
     if let Some(bytes) = recorded(name, want)? {
         return Ok(Imported { bytes, sha256: *want, fresh: false });
     }
     let (at, bytes) = read_plan()?.import.ok_or(VolumeError::NoImport)?;
+    /* The wrong file is told apart by its length before it is hashed. */
+    if bytes != want_bytes {
+        crate::log::warn!(
+            "[DATA] import refused: the plan's file is {} bytes, the pin {}",
+            bytes,
+            want_bytes
+        );
+        return Err(VolumeError::DigestMismatch);
+    }
     let mut guard = VOLUME.write();
     let state = guard.as_mut().ok_or(VolumeError::NotMounted)?;
     let (key, mount) = (&state.key, &mut state.mount);

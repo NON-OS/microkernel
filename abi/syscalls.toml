@@ -777,7 +777,7 @@ ret  = {type="i64"}
 [desc.MDIM]
 nr   = 0x4D49444D
 caps = ["StoreWrite", "FileSystem"]
-args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"},{name="sha256_ptr",type="u64",dir="in"}]
+args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"},{name="sha256_ptr",type="u64",dir="in"},{name="bytes",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MDRD]

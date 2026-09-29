@@ -34,7 +34,7 @@ pub(super) fn size_of(name: &[u8]) -> Result<u64, i64> {
         Some(pin) if got == -errno::ENOENT => pin,
         _ => return Err(-got),
     };
-    let done = mk_data_import(name, pin);
+    let done = mk_data_import(name, &pin.sha256, pin.bytes);
     let line = match done {
         n if n >= 0 => alloc::format!("[LINUX] model imported and verified: {n} bytes\n"),
         e => alloc::format!("[LINUX] model import refused, errno {}\n", -e),

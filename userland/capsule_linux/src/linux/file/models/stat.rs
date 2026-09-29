@@ -34,6 +34,9 @@ pub fn stat(path: &[u8]) -> Option<Result<(u32, u64), i64>> {
     if path == ROOT {
         return Some(Ok((S_IFDIR | 0o555, 0)));
     }
+    if path == super::catalog::TIERS {
+        return Some(Ok((S_IFREG | 0o444, super::catalog::text().len() as u64)));
+    }
     let Some(name) = volume_name(path) else {
         return Some(Err(crate::linux::abi::errno::ENOENT));
     };

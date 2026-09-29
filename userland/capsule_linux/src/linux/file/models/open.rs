@@ -22,7 +22,7 @@ use crate::linux::guest::{Fd, Guest};
 use super::super::flags::{wants_read, O_CREAT};
 use super::super::{desc, slot};
 use super::held::{held, hold};
-use super::name::{owns, volume_name, ROOT};
+use super::name::{owns, volume_name};
 use super::size::size_of;
 
 /* Open `path`, already followed, if it is under /models; None if it is not. */
@@ -30,8 +30,11 @@ pub fn open(guest: &mut Guest, path: &[u8], flags: u64) -> Option<u64> {
     if !owns(path) {
         return None;
     }
+    if let Some(got) = super::catalog::open(guest, path, flags) {
+        return Some(got);
+    }
     let Some(name) = volume_name(path) else {
-        return Some(errno::fail(if path == ROOT { errno::EACCES } else { errno::ENOENT }));
+        return Some(errno::fail(errno::ENOENT));
     };
     /* O_WRONLY, O_RDWR or O_CREAT: the volume takes files only by import. */
     if flags & 3 != 0 || flags & O_CREAT != 0 {

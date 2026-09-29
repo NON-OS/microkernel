@@ -21,7 +21,7 @@ use crate::syscall::microkernel::private_write::sys_private_write;
 
 pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
     Some(match nr {
-        SYS_DATA_IMPORT => sys_data_import(a.a0, a.a1, a.a2),
+        SYS_DATA_IMPORT => sys_data_import(a.a0, a.a1, a.a2, a.a3),
         SYS_DATA_STAT => sys_data_stat(a.a0, a.a1),
         SYS_DATA_READ => sys_data_read(a.a0, a.a1, a.a2, a.a3, a.a4),
         SYS_PRIVATE_WRITE => sys_private_write(a.a0, a.a1),

@@ -15,30 +15,56 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * The models this personality vouches for: a name and the SHA-256 the
- * file must have. The table is part of the signed personality, so its
- * measurement covers every digest here; the disk only says where the bytes
- * wait.
+ * The models this personality vouches for, by tier: a name, its length and
+ * the SHA-256 the file must have. The table is part of the signed
+ * personality, so its measurement covers every digest here; the disk only
+ * says where the bytes wait. All are Qwen2.5-Instruct at Q4_K_M, from the
+ * Qwen/Qwen2.5-*-Instruct-GGUF repositories on Hugging Face, each digest the
+ * one its LFS pointer names. The 7B model comes as two files, both pinned.
  */
 
+use super::hex::hex32;
+
 pub struct Pinned {
+    pub tier: &'static str,
     pub name: &'static [u8],
+    pub bytes: u64,
     pub sha256: [u8; 32],
 }
 
-/*
- * Qwen2.5-0.5B-Instruct, Q4_K_M, from Qwen/Qwen2.5-0.5B-Instruct-GGUF on
- * Hugging Face: 491,400,032 bytes, the digest its LFS pointer names.
- */
-pub const PINNED: &[Pinned] = &[Pinned {
-    name: b"/qwen2.5-0.5b-instruct-q4_k_m.gguf",
-    sha256: [
-        0x74, 0xa4, 0xda, 0x8c, 0x9f, 0xdb, 0xcd, 0x15, 0xbd, 0x1f, 0x6d, 0x01, 0xd6, 0x21, 0x41,
-        0x0d, 0x31, 0xc6, 0xfc, 0x00, 0x98, 0x6f, 0x5e, 0xb6, 0x87, 0x82, 0x4e, 0x7b, 0x93, 0xd7,
-        0xa9, 0xdb,
-    ],
-}];
+pub const PINNED: &[Pinned] = &[
+    Pinned {
+        tier: "small",
+        name: b"/qwen2.5-0.5b-instruct-q4_k_m.gguf",
+        bytes: 491_400_032,
+        sha256: hex32(b"74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"),
+    },
+    Pinned {
+        tier: "medium",
+        name: b"/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+        bytes: 1_117_320_736,
+        sha256: hex32(b"6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e"),
+    },
+    Pinned {
+        tier: "large",
+        name: b"/qwen2.5-3b-instruct-q4_k_m.gguf",
+        bytes: 2_104_932_768,
+        sha256: hex32(b"626b4a6678b86442240e33df819e00132d3ba7dddfe1cdc4fbb18e0a9615c62d"),
+    },
+    Pinned {
+        tier: "xlarge",
+        name: b"/qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf",
+        bytes: 3_993_201_344,
+        sha256: hex32(b"dfce12e3862a5283ccfb88221b48480e58745165de856439950d0f22590580db"),
+    },
+    Pinned {
+        tier: "xlarge",
+        name: b"/qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf",
+        bytes: 689_872_288,
+        sha256: hex32(b"539cf93f78e887edea1c04e2d7d8cdaca9d01dae9c9025bcb8accbe29df3d72a"),
+    },
+];
 
-pub fn pin_of(name: &[u8]) -> Option<&'static [u8; 32]> {
-    PINNED.iter().find(|p| p.name == name).map(|p| &p.sha256)
+pub fn pin_of(name: &[u8]) -> Option<&'static Pinned> {
+    PINNED.iter().find(|p| p.name == name)
 }

@@ -14,25 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * /models: model files on the machine's data volume, read-only.
- *
- * Each name here is a file on the sealed volume, reached through the
- * kernel by name. A model the personality pins is imported the first time
- * it is opened, and kept only if its SHA-256 is the pinned one.
- */
+//! The personality's pinned models, assembled for the host.
 
-mod catalog;
-mod held;
-mod hex;
-mod name;
-mod open;
-mod pinned;
-mod read;
-mod size;
-mod stat;
-
-pub use held::held;
-pub use open::open;
-pub use read::read;
-pub use stat::stat;
+#[path = "../../../capsule_linux/src/linux/file/models/hex.rs"]
+pub mod hex;
+#[path = "../../../capsule_linux/src/linux/file/models/pinned.rs"]
+pub mod pinned;

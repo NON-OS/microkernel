@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `MkDataImport(name, len, sha256)`: bring the disk plan's file onto the
-//! volume as `name`, kept only if its SHA-256 is the 32 bytes the caller
-//! pins. Returns the file's size.
+//! `MkDataImport(name, len, sha256, bytes)`: bring the disk plan's file onto
+//! the volume as `name`, kept only if it is `bytes` long and its SHA-256 is
+//! the 32 bytes the caller pins. Returns the file's size.
 
 use super::super::errnos::{ERRNO_FAULT, ERRNO_PERM};
 use super::errno::errno;
 use super::name::copy_name;
 
-pub fn sys_data_import(name_ptr: u64, name_len: u64, digest_ptr: u64) -> i64 {
+pub fn sys_data_import(name_ptr: u64, name_len: u64, digest_ptr: u64, bytes: u64) -> i64 {
     let caps = crate::syscall::caps::current_caps_or_default();
     if !(caps.can_store_write() && caps.can_open_files()) {
         return ERRNO_PERM;
@@ -35,7 +35,7 @@ pub fn sys_data_import(name_ptr: u64, name_len: u64, digest_ptr: u64) -> i64 {
     if digest_ptr == 0 || crate::usercopy::copy_from_user(digest_ptr, &mut want).is_err() {
         return ERRNO_FAULT;
     }
-    match crate::fs::blockfs_volume::import(&name[..len], &want) {
+    match crate::fs::blockfs_volume::import(&name[..len], &want, bytes) {
         Ok(done) => done.bytes as i64,
         Err(e) => errno(e),
     }
