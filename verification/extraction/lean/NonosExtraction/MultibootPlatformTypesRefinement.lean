@@ -47,6 +47,74 @@ theorem the_platform_supports_virtio_wrapper_is_its_method (a : platform_types.P
 theorem the_platform_timer_frequency_wrapper_is_its_method (a : platform_types.Platform) :
     platform_timer_frequency a = platform_types.Platform.timer_frequency a := rfl
 
+/-! ### What each platform is taken to be
+
+The predicates on `Platform` are finite tables, so each is pinned down exactly
+below, and the tables are checked against one another: every platform that
+supports virtio is QEMU or plain KVM, every platform with hardware
+virtualization is a guest, and the 1000 Hz tick is never given to a guest that
+runs without hardware virtualization. `is_virtual` is the complement of bare
+metal, so a platform the detector cannot name (`UnknownVm`) still counts as
+virtual.
+
+These theorems cannot say that a platform is detected correctly: the CPUID and
+firmware probes in `platform_detect.rs` are not extracted, and none of these
+predicates has a caller in the kernel at present, so no caller contract is
+stated. They also say nothing about whether a given hypervisor really offers
+virtio or hardware virtualization; they fix what the kernel believes. -/
+
+/-- Only bare metal is reported as not virtual. A detector that falls back to
+    `UnknownVm` therefore still yields a virtual platform. -/
+theorem platform_is_virtual_is_false_exactly_on_bare_metal (p : platform_types.Platform) :
+    platform_is_virtual p = ok false ↔ p = .BareMetal := by
+  cases p <;> simp [platform_is_virtual, platform_types.Platform.is_virtual]
+
+theorem platform_is_qemu_names_exactly_the_two_qemu_platforms (p : platform_types.Platform) :
+    platform_is_qemu p = ok true ↔ (p = .QemuTcg ∨ p = .QemuKvm) := by
+  cases p <;> simp [platform_is_qemu, platform_types.Platform.is_qemu]
+
+/-- The virtio table agrees with the QEMU table: virtio is claimed for both QEMU
+    platforms and for plain KVM, and for nothing else. -/
+theorem platform_supports_virtio_is_qemu_or_plain_kvm (p : platform_types.Platform) :
+    platform_supports_virtio p = ok true ↔ (platform_is_qemu p = ok true ∨ p = .Kvm) := by
+  cases p <;> simp [platform_supports_virtio, platform_types.Platform.supports_virtio,
+    platform_is_qemu, platform_types.Platform.is_qemu]
+
+theorem platform_has_hw_virtualization_only_under_a_hypervisor (p : platform_types.Platform)
+    (h : platform_has_hw_virtualization p = ok true) : platform_is_virtual p = ok true := by
+  cases p <;> simp_all [platform_has_hw_virtualization,
+    platform_types.Platform.has_hw_virtualization, platform_is_virtual,
+    platform_types.Platform.is_virtual]
+
+theorem platform_has_hw_virtualization_names_exactly_five_hypervisors
+    (p : platform_types.Platform) :
+    platform_has_hw_virtualization p = ok true ↔
+      (p = .QemuKvm ∨ p = .Kvm ∨ p = .HyperV ∨ p = .Vmware ∨ p = .Xen) := by
+  cases p <;> simp [platform_has_hw_virtualization, platform_types.Platform.has_hw_virtualization]
+
+/-- The tick rate takes only two values, 100 Hz and 1000 Hz. -/
+theorem platform_timer_frequency_is_100_or_1000 (p : platform_types.Platform) :
+    platform_timer_frequency p = ok 100#u32 ∨ platform_timer_frequency p = ok 1000#u32 := by
+  cases p <;> simp [platform_timer_frequency, platform_types.Platform.timer_frequency]
+
+/-- The fast tick goes to QEMU with KVM, plain KVM, Hyper-V and bare metal.
+    VMware and Xen have hardware virtualization and still get 100 Hz. -/
+theorem platform_timer_frequency_is_1000_exactly_on_four_platforms
+    (p : platform_types.Platform) :
+    platform_timer_frequency p = ok 1000#u32 ↔
+      (p = .QemuKvm ∨ p = .Kvm ∨ p = .HyperV ∨ p = .BareMetal) := by
+  cases p <;> simp [platform_timer_frequency, platform_types.Platform.timer_frequency]
+
+/-- A guest without hardware virtualization, which is emulated or of unknown
+    kind, gets the slow 100 Hz tick. -/
+theorem platform_timer_frequency_is_100_on_a_guest_without_hw_virtualization
+    (p : platform_types.Platform)
+    (hv : platform_is_virtual p = ok true) (hw : platform_has_hw_virtualization p = ok false) :
+    platform_timer_frequency p = ok 100#u32 := by
+  cases p <;> simp_all [platform_timer_frequency, platform_types.Platform.timer_frequency,
+    platform_is_virtual, platform_types.Platform.is_virtual, platform_has_hw_virtualization,
+    platform_types.Platform.has_hw_virtualization]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.MultibootPlatformTypes.the_platform_is_virtual_wrapper_is_its_method
@@ -54,5 +122,13 @@ theorem the_platform_timer_frequency_wrapper_is_its_method (a : platform_types.P
 #print axioms NonosExtraction.MultibootPlatformTypes.the_platform_has_hw_virtualization_wrapper_is_its_method
 #print axioms NonosExtraction.MultibootPlatformTypes.the_platform_supports_virtio_wrapper_is_its_method
 #print axioms NonosExtraction.MultibootPlatformTypes.the_platform_timer_frequency_wrapper_is_its_method
+#print axioms NonosExtraction.MultibootPlatformTypes.platform_is_virtual_is_false_exactly_on_bare_metal
+#print axioms NonosExtraction.MultibootPlatformTypes.platform_is_qemu_names_exactly_the_two_qemu_platforms
+#print axioms NonosExtraction.MultibootPlatformTypes.platform_supports_virtio_is_qemu_or_plain_kvm
+#print axioms NonosExtraction.MultibootPlatformTypes.platform_has_hw_virtualization_only_under_a_hypervisor
+#print axioms NonosExtraction.MultibootPlatformTypes.platform_has_hw_virtualization_names_exactly_five_hypervisors
+#print axioms NonosExtraction.MultibootPlatformTypes.platform_timer_frequency_is_100_or_1000
+#print axioms NonosExtraction.MultibootPlatformTypes.platform_timer_frequency_is_1000_exactly_on_four_platforms
+#print axioms NonosExtraction.MultibootPlatformTypes.platform_timer_frequency_is_100_on_a_guest_without_hw_virtualization
 
 end NonosExtraction.MultibootPlatformTypes

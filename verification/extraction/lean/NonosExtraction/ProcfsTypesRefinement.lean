@@ -38,9 +38,76 @@ theorem the_procinode_root_wrapper_is_its_method :
 theorem the_procinode_for_pid_wrapper_is_its_method (a : Std.U64) (b : Std.I32) :
     procinode_for_pid a b = types.ProcInode.for_pid a b := rfl
 
+/-! ### The root and the pid directories as the dispatcher sees them
+
+`procfs_lookup` and `procfs_readdir` in `src/fs/procfs/inode.rs` decide what an
+inode is by two fields alone: an inode numbered 1 is the `/proc` root, and any
+other inode whose `pid` is `some p` is the directory of process `p`. The
+theorems below establish that the root constructor produces exactly the inode
+the dispatcher tests for, that the pid constructor keeps the inode number it is
+given and tags the pid it is given, and that a pid directory is the root with
+those two fields replaced, so the two succeed together and agree on the entry
+type and the (empty) subpath.
+
+They cannot establish anything about the subpath's contents: `String::new` is
+left opaque by the extraction, so every statement is conditional on the
+constructor returning `ok`, and the characterisation in terms of the root is how
+the opaque call is shared rather than assumed. They say nothing about the inode
+numbers callers choose. `lookup_root` passes `pid as u64 * 1000 + 100`, which
+is not extracted, so its overflow on a negative pid and its collisions with the
+fixed root entries are outside these statements.
+-/
+
+/-- The root is inode 1, a directory, and carries no pid, which is exactly what
+`procfs_lookup` and `procfs_readdir` test (`ino == 1`) before looking at `pid`. -/
+theorem procinode_root_is_the_inode_the_dispatcher_routes_on (r : types.ProcInode)
+    (h : procinode_root = ok r) :
+    r.ino = 1#u64 ∧ r.entry_type = types.ProcEntryType.Directory ∧ r.pid = none := by
+  unfold procinode_root types.ProcInode.root at h
+  cases hs : alloc.string.String.new with
+  | ok s => rw [hs] at h; simp at h; subst h; simp
+  | fail e => rw [hs] at h; simp at h
+  | div => rw [hs] at h; simp at h
+
+/-- A pid directory keeps the inode number its caller chose, is tagged with the
+pid it was built for (so `procfs_lookup` routes its children to
+`lookup_pid_entry` for that process), and is a directory. -/
+theorem procinode_for_pid_keeps_the_inode_and_tags_the_pid (i : Std.U64) (p : Std.I32)
+    (r : types.ProcInode) (h : procinode_for_pid i p = ok r) :
+    r.ino = i ∧ r.pid = some p ∧ r.entry_type = types.ProcEntryType.Directory := by
+  unfold procinode_for_pid types.ProcInode.for_pid at h
+  cases hs : alloc.string.String.new with
+  | ok s => rw [hs] at h; simp at h; subst h; simp
+  | fail e => rw [hs] at h; simp at h
+  | div => rw [hs] at h; simp at h
+
+/-- A pid directory is the root with its inode number and pid replaced and
+nothing else changed: the two constructors fail together (they share the one
+opaque allocation) and agree on the entry type and the subpath. -/
+theorem a_pid_directory_is_the_root_with_its_inode_and_pid_replaced
+    (i : Std.U64) (p : Std.I32) :
+    procinode_for_pid i p =
+      (do let q ← procinode_root; ok { q with ino := i, pid := some p }) := by
+  unfold procinode_for_pid types.ProcInode.for_pid procinode_root types.ProcInode.root
+  cases alloc.string.String.new <;> rfl
+
+/-- The root and every pid directory are told apart by their `pid` field, so a
+dispatcher that has already failed the inode test can never mistake a process
+directory for the root or the root for a process directory. -/
+theorem procinode_for_pid_is_never_the_root_by_pid (i : Std.U64) (p : Std.I32)
+    (q r : types.ProcInode) (hq : procinode_root = ok q)
+    (hr : procinode_for_pid i p = ok r) : q.pid ≠ r.pid := by
+  rw [(procinode_root_is_the_inode_the_dispatcher_routes_on q hq).2.2,
+    (procinode_for_pid_keeps_the_inode_and_tags_the_pid i p r hr).2.1]
+  simp
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ProcfsTypes.the_procinode_root_wrapper_is_its_method
 #print axioms NonosExtraction.ProcfsTypes.the_procinode_for_pid_wrapper_is_its_method
+#print axioms NonosExtraction.ProcfsTypes.procinode_root_is_the_inode_the_dispatcher_routes_on
+#print axioms NonosExtraction.ProcfsTypes.procinode_for_pid_keeps_the_inode_and_tags_the_pid
+#print axioms NonosExtraction.ProcfsTypes.a_pid_directory_is_the_root_with_its_inode_and_pid_replaced
+#print axioms NonosExtraction.ProcfsTypes.procinode_for_pid_is_never_the_root_by_pid
 
 end NonosExtraction.ProcfsTypes

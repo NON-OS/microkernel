@@ -35,8 +35,73 @@ namespace NonosExtraction.ProcessMmapVa
 theorem the_mmapva_new_wrapper_is_its_method :
     mmapva_new = mmap_va.MmapVa.new := rfl
 
+/-! ### The allocator starts empty, page aligned, and clear of the PIE window
+
+`mmapva_new` is the state every process control block is built with
+(`build_pcb` stores it behind the process's `mmap_va` lock), and
+`reserve_va` and `release_va` then act on it. The theorems below establish
+that this starting state already satisfies what those operations assume: the
+bump cursor is page aligned, it lies above the highest byte an ASLR
+randomised PIE base can take, it lies strictly below `USER_MMAP_END` with a
+fixed amount of room, and neither the free list nor the allocated list holds
+a range.
+
+The ELF constants are not in this crate, so they appear here as numerals:
+`DEFAULT_PIE_BASE` is `0x40_0000` (src/elf/loader/core/loader/state.rs) and
+`EXEC_RANDOMIZATION_RANGE` is `0x4000_0000` (src/elf/aslr/manager/constants.rs).
+`random_offset` returns a value modulo its range, so the largest randomised
+base is `(0x40_0000 + 0x3FFF_FFFF) & !0xFFF = 0x403F_F000`. Nothing here
+establishes that a loaded image stays below `USER_MMAP_BASE`: that depends on
+the image size, which the loader does not cap, and on `reserve` and `release`,
+which are not extracted.
+-/
+
+/-- The starting state is page aligned, sits at or above the end of the PIE
+load window `[0x40_0000, 0x4040_0000)`, sits strictly below `USER_MMAP_END`,
+and owns no range. The former base `0x4000_0000`, which the source records as
+the value that let the heap map over a capsule, fails the second conjunct. -/
+theorem mmapva_new_starts_aligned_above_the_pie_window_and_empty :
+    ∀ m, mmapva_new = ok m →
+      m.bump.val % 4096 = 0 ∧ 0x4040_0000 ≤ m.bump.val ∧
+      m.bump.val < 0x7000_0000_0000 ∧
+      m.free.val = [] ∧ m.allocated.val = [] := by
+  intro m h
+  unfold mmapva_new mmap_va.MmapVa.new at h
+  cases h
+  unfold mmap_va.USER_MMAP_BASE
+  refine ⟨by decide, by decide, by decide, rfl, rfl⟩
+
+/-- Between the highest randomised PIE base `0x403F_F000` and the starting
+bump cursor lie exactly `0x3FC0_1000` bytes, so a PIE image whose load span
+exceeds that reaches the anonymous mmap window. -/
+theorem mmapva_new_leaves_this_much_room_above_the_highest_pie_base :
+    ∀ m, mmapva_new = ok m →
+      m.bump.val = ((0x40_0000 + (0x4000_0000 - 1)) / 4096 * 4096) + 0x3FC0_1000 := by
+  intro m h
+  unfold mmapva_new mmap_va.MmapVa.new at h
+  cases h
+  unfold mmap_va.USER_MMAP_BASE
+  decide
+
+/-- The first bump reservation of `n` pages passes `take_from_bump`'s
+`end > USER_MMAP_END` refusal exactly when `n` is at most `0x6_FFF8_0000`
+pages: the cursor starts with `0x6FFF_8000_0000` bytes of room. -/
+theorem mmapva_new_admits_exactly_this_many_bump_pages :
+    ∀ m, mmapva_new = ok m → ∀ n : Nat,
+      (m.bump.val + n * 4096 ≤ 0x7000_0000_0000 ↔ n ≤ 0x6_FFF8_0000) := by
+  intro m h n
+  unfold mmapva_new mmap_va.MmapVa.new at h
+  cases h
+  unfold mmap_va.USER_MMAP_BASE
+  simp only [UScalar.val]
+  have : (2147483648#u64 : Std.U64).bv.toNat = 0x8000_0000 := by decide
+  omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ProcessMmapVa.the_mmapva_new_wrapper_is_its_method
+#print axioms NonosExtraction.ProcessMmapVa.mmapva_new_starts_aligned_above_the_pie_window_and_empty
+#print axioms NonosExtraction.ProcessMmapVa.mmapva_new_leaves_this_much_room_above_the_highest_pie_base
+#print axioms NonosExtraction.ProcessMmapVa.mmapva_new_admits_exactly_this_many_bump_pages
 
 end NonosExtraction.ProcessMmapVa

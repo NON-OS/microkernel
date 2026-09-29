@@ -47,6 +47,156 @@ theorem the_pcidevice_is_network_wrapper_is_its_method (a : types.PciDevice) :
 theorem the_pcidevice_is_display_wrapper_is_its_method (a : types.PciDevice) :
     pcidevice_is_display a = types.PciDevice.is_display a := rfl
 
+/-! ### The bus, device, function word and the class predicates
+
+    `bdf` packs a PCI address into the conventional sixteen bit routing id: the
+    bus in the high byte, the device in bits 3 to 7 and the function in bits 0
+    to 2. For every in-range address, a device below 32 and a function below 8,
+    the word is exactly `bus * 256 + device * 8 + function`, the three fields
+    read back out of it, and two addresses share a word only when they are the
+    same address. `enumerate_pci_devices` only ever builds such addresses: it
+    walks devices `0..32` and functions `0..8`.
+
+    The fields are `u8` and nothing masks them, so an out-of-range device or
+    function is not refused: it spills into the field above. The last theorems
+    of the first group record that, with two different addresses that collide.
+
+    The four class predicates compare the base class byte with the PCI class
+    codes, which are also the values of `CLASS_MASS_STORAGE`, `CLASS_NETWORK`,
+    `CLASS_DISPLAY` and `CLASS_BRIDGE` in `drivers::pci::constants::classes`.
+    They look at nothing else, and no device satisfies two of them.
+
+    What these cannot establish: that the fields came from configuration space.
+    `probe_device` fills them with volatile reads of ECAM memory, which is not
+    extracted, and no kernel code calls `bdf` on this type today.
+-/
+
+private theorem shifting_a_u16 (x : Std.U16) (k : Std.I32) (h0 : 0 ≤ k.val) (hk : k.val < 16) :
+    ∃ z, (x <<< k : Result Std.U16) = ok z ∧ z.val = (x.val <<< k.toNat) % 2 ^ 16 := by
+  obtain ⟨z, hz, hv, _⟩ := (WP.spec_equiv_exists _ _).mp
+    (UScalar.ShiftLeft_IScalar_spec x k (2 ^ 16) h0 (by simpa using hk) (by simp [U16.size, U16.numBits]))
+  exact ⟨z, hz, hv⟩
+
+/-- Without any assumption on the fields, `bdf` never fails and ORs the shifted
+    bus, the shifted device and the function together. -/
+theorem pcidevice_bdf_ors_the_shifted_fields (d : types.PciDevice) :
+    ∃ v, pcidevice_bdf d = ok v ∧
+      v.val = (d.bus.val <<< 8 ||| d.device.val <<< 3) ||| d.function.val := by
+  unfold pcidevice_bdf types.PciDevice.bdf
+  simp only [lift, bind_tc_ok]
+  obtain ⟨z1, h1, v1⟩ := shifting_a_u16 (UScalar.cast .U16 d.bus) 8#i32 (by decide) (by decide)
+  obtain ⟨z2, h2, v2⟩ := shifting_a_u16 (UScalar.cast .U16 d.device) 3#i32 (by decide) (by decide)
+  rw [h1]; simp only [bind_tc_ok]; rw [h2]; simp only [bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  simp only [UScalar.val_or, v1, v2, UScalar.cast_val_eq]
+  have hb := d.bus.hBounds
+  have hd := d.device.hBounds
+  have hf := d.function.hBounds
+  have e8 : I32.toNat 8#i32 = 8 := by decide
+  have e3 : I32.toNat 3#i32 = 3 := by decide
+  have en : UScalarTy.U16.numBits = 16 := rfl
+  simp only [UScalarTy.U8_numBits_eq] at hb hd hf
+  rw [e8, e3, en, Nat.shiftLeft_eq, Nat.shiftLeft_eq, Nat.shiftLeft_eq, Nat.shiftLeft_eq]
+  rw [Nat.mod_eq_of_lt (by omega : d.bus.val < 2 ^ 16),
+    Nat.mod_eq_of_lt (by omega : d.device.val < 2 ^ 16),
+    Nat.mod_eq_of_lt (by omega : d.function.val < 2 ^ 16),
+    Nat.mod_eq_of_lt (by omega : d.bus.val * 2 ^ 8 < 2 ^ 16),
+    Nat.mod_eq_of_lt (by omega : d.device.val * 2 ^ 3 < 2 ^ 16)]
+
+/-- For an in-range address the word is the routing id `bus * 256 + device * 8 +
+    function`. A device shift of 4, or a bus shift of 7, would type check and
+    route every device to the wrong function. -/
+theorem pcidevice_bdf_is_the_routing_id (d : types.PciDevice)
+    (hd : d.device.val < 32) (hf : d.function.val < 8) :
+    ∃ v, pcidevice_bdf d = ok v ∧
+      v.val = d.bus.val * 256 + d.device.val * 8 + d.function.val := by
+  obtain ⟨v, hv, hval⟩ := pcidevice_bdf_ors_the_shifted_fields d
+  refine ⟨v, hv, ?_⟩
+  rw [hval, Nat.lor_assoc, ← Nat.shiftLeft_add_eq_or_of_lt (by omega : d.function.val < 2 ^ 3),
+    ← Nat.shiftLeft_add_eq_or_of_lt (by rw [Nat.shiftLeft_eq]; omega : d.device.val <<< 3 + d.function.val < 2 ^ 8),
+    Nat.shiftLeft_eq, Nat.shiftLeft_eq]
+  omega
+
+/-- The three fields read back out of the word of an in-range address. -/
+theorem pcidevice_bdf_decodes_to_its_fields (d : types.PciDevice)
+    (hd : d.device.val < 32) (hf : d.function.val < 8) :
+    ∃ v, pcidevice_bdf d = ok v ∧
+      v.val / 256 = d.bus.val ∧ v.val / 8 % 32 = d.device.val ∧ v.val % 8 = d.function.val := by
+  obtain ⟨v, hv, hval⟩ := pcidevice_bdf_is_the_routing_id d hd hf
+  exact ⟨v, hv, by omega, by omega, by omega⟩
+
+/-- Two in-range addresses share a word only when they are the same address, so
+    the word can key a table of devices within one segment. -/
+theorem pcidevice_bdf_separates_in_range_addresses (d e : types.PciDevice)
+    (hd : d.device.val < 32) (hf : d.function.val < 8)
+    (he : e.device.val < 32) (hg : e.function.val < 8)
+    (h : pcidevice_bdf d = pcidevice_bdf e) :
+    d.bus = e.bus ∧ d.device = e.device ∧ d.function = e.function := by
+  obtain ⟨v, hv, h1, h2, h3⟩ := pcidevice_bdf_decodes_to_its_fields d hd hf
+  obtain ⟨w, hw, k1, k2, k3⟩ := pcidevice_bdf_decodes_to_its_fields e he hg
+  rw [hv, hw] at h
+  cases h
+  exact ⟨UScalar.eq_of_val_eq (by omega), UScalar.eq_of_val_eq (by omega),
+    UScalar.eq_of_val_eq (by omega)⟩
+
+/-- This records a defect. Device 32 on bus 0 and device 0 on bus 1 get the same
+    word, because the device number is not masked to five bits before it is
+    shifted into place. -/
+theorem pcidevice_bdf_lets_device_32_collide_with_the_next_bus :
+    pcidevice_bdf ⟨0#u16, 0#u8, 32#u8, 0#u8, 0#u16, 0#u16, 0#u8, 0#u8⟩ = ok 256#u16 ∧
+    pcidevice_bdf ⟨0#u16, 1#u8, 0#u8, 0#u8, 0#u16, 0#u16, 0#u8, 0#u8⟩ = ok 256#u16 :=
+  ⟨rfl, rfl⟩
+
+/-- This records the same defect one field lower: function 8 of device 0 has the
+    word of function 0 of device 1. -/
+theorem pcidevice_bdf_lets_function_8_collide_with_the_next_device :
+    pcidevice_bdf ⟨0#u16, 0#u8, 0#u8, 8#u8, 0#u16, 0#u16, 0#u8, 0#u8⟩ = ok 8#u16 ∧
+    pcidevice_bdf ⟨0#u16, 0#u8, 1#u8, 0#u8, 0#u16, 0#u16, 0#u8, 0#u8⟩ = ok 8#u16 :=
+  ⟨rfl, rfl⟩
+
+/-- A bridge is base class `0x06`, `CLASS_BRIDGE`. The subclass (host, ISA,
+    PCI to PCI and the rest) does not matter. -/
+theorem pcidevice_is_bridge_is_class_0x06 (d : types.PciDevice) :
+    pcidevice_is_bridge d = ok (decide (d.«class».val = 0x06)) := by
+  unfold pcidevice_is_bridge types.PciDevice.is_bridge
+  congr 1
+  exact decide_eq_decide.mpr ⟨fun h => by rw [h]; rfl, fun h => UScalar.eq_of_val_eq h⟩
+
+/-- A storage controller is base class `0x01`, `CLASS_MASS_STORAGE`. -/
+theorem pcidevice_is_storage_is_class_0x01 (d : types.PciDevice) :
+    pcidevice_is_storage d = ok (decide (d.«class».val = 0x01)) := by
+  unfold pcidevice_is_storage types.PciDevice.is_storage
+  congr 1
+  exact decide_eq_decide.mpr ⟨fun h => by rw [h]; rfl, fun h => UScalar.eq_of_val_eq h⟩
+
+/-- A network controller is base class `0x02`, `CLASS_NETWORK`. -/
+theorem pcidevice_is_network_is_class_0x02 (d : types.PciDevice) :
+    pcidevice_is_network d = ok (decide (d.«class».val = 0x02)) := by
+  unfold pcidevice_is_network types.PciDevice.is_network
+  congr 1
+  exact decide_eq_decide.mpr ⟨fun h => by rw [h]; rfl, fun h => UScalar.eq_of_val_eq h⟩
+
+/-- A display controller is base class `0x03`, `CLASS_DISPLAY`. -/
+theorem pcidevice_is_display_is_class_0x03 (d : types.PciDevice) :
+    pcidevice_is_display d = ok (decide (d.«class».val = 0x03)) := by
+  unfold pcidevice_is_display types.PciDevice.is_display
+  congr 1
+  exact decide_eq_decide.mpr ⟨fun h => by rw [h]; rfl, fun h => UScalar.eq_of_val_eq h⟩
+
+/-- No device is two of bridge, storage, network and display, so a caller that
+    dispatches on these in any order reaches the same driver. -/
+theorem no_device_passes_two_of_the_pcidevice_class_predicates (d : types.PciDevice) :
+    ¬ (pcidevice_is_bridge d = ok true ∧ pcidevice_is_storage d = ok true) ∧
+    ¬ (pcidevice_is_bridge d = ok true ∧ pcidevice_is_network d = ok true) ∧
+    ¬ (pcidevice_is_bridge d = ok true ∧ pcidevice_is_display d = ok true) ∧
+    ¬ (pcidevice_is_storage d = ok true ∧ pcidevice_is_network d = ok true) ∧
+    ¬ (pcidevice_is_storage d = ok true ∧ pcidevice_is_display d = ok true) ∧
+    ¬ (pcidevice_is_network d = ok true ∧ pcidevice_is_display d = ok true) := by
+  simp only [pcidevice_is_bridge_is_class_0x06, pcidevice_is_storage_is_class_0x01,
+    pcidevice_is_network_is_class_0x02, pcidevice_is_display_is_class_0x03, ok.injEq,
+    decide_eq_true_eq]
+  omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.PciTypes.the_pcidevice_bdf_wrapper_is_its_method
@@ -54,5 +204,17 @@ theorem the_pcidevice_is_display_wrapper_is_its_method (a : types.PciDevice) :
 #print axioms NonosExtraction.PciTypes.the_pcidevice_is_storage_wrapper_is_its_method
 #print axioms NonosExtraction.PciTypes.the_pcidevice_is_network_wrapper_is_its_method
 #print axioms NonosExtraction.PciTypes.the_pcidevice_is_display_wrapper_is_its_method
+
+#print axioms NonosExtraction.PciTypes.pcidevice_bdf_ors_the_shifted_fields
+#print axioms NonosExtraction.PciTypes.pcidevice_bdf_is_the_routing_id
+#print axioms NonosExtraction.PciTypes.pcidevice_bdf_decodes_to_its_fields
+#print axioms NonosExtraction.PciTypes.pcidevice_bdf_separates_in_range_addresses
+#print axioms NonosExtraction.PciTypes.pcidevice_bdf_lets_device_32_collide_with_the_next_bus
+#print axioms NonosExtraction.PciTypes.pcidevice_bdf_lets_function_8_collide_with_the_next_device
+#print axioms NonosExtraction.PciTypes.pcidevice_is_bridge_is_class_0x06
+#print axioms NonosExtraction.PciTypes.pcidevice_is_storage_is_class_0x01
+#print axioms NonosExtraction.PciTypes.pcidevice_is_network_is_class_0x02
+#print axioms NonosExtraction.PciTypes.pcidevice_is_display_is_class_0x03
+#print axioms NonosExtraction.PciTypes.no_device_passes_two_of_the_pcidevice_class_predicates
 
 end NonosExtraction.PciTypes
