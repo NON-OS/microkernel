@@ -36,6 +36,7 @@ int main(void) {
     int p[2];
     if (pipe(p)) return fail("pipe", errno, 0);
     pid_t child = fork();
+    if (child < 0) return fail("fork", errno, 0);
     if (child == 0) {
         close(p[0]);
         struct iovec v[3] = {{out, 1000}, {out + 1000, 300000}, {out + 301000, BIG - 301000}};
