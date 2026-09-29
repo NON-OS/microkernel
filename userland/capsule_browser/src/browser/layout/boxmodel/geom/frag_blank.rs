@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::css::BgSize;
+use crate::browser::css::BgLayer;
 
 use super::content::Content;
 use super::fragment::Fragment;
@@ -40,8 +40,7 @@ impl Fragment {
         alpha: 255,
         bg_image: None,
         mask: false,
-        bg_size: BgSize::Auto,
-        bg_repeat: true,
+        bg_layer: BgLayer::INITIAL,
         shadow: None,
         radius: [0; 4],
         node: 0,

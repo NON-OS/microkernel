@@ -18,9 +18,12 @@ use alloc::string::{String, ToString};
 
 use super::calc::split_top::{items, words};
 
+mod pos_parts;
 mod shorthand;
+mod size_parts;
 mod top_slash;
 
+pub(super) use pos_parts::apply_bg_pos;
 pub(super) use shorthand::{apply_background, apply_bg_size};
 
 /* The background layer captured from a background or background-image

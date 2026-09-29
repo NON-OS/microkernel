@@ -60,7 +60,7 @@ impl Fragment {
         f.border = [s.border_top, s.border_right, s.border_bottom, s.border_left];
         f.border_color = if s.border_color != 0 { s.border_color } else { s.color };
         (f.bg_image, f.mask) = (node.bg_image.clone(), s.fx.mask && node.bg_image.is_some());
-        (f.bg_size, f.bg_repeat, f.shadow) = (s.bg_size, s.bg_repeat, s.shadow);
+        (f.bg_layer, f.shadow) = (s.bg_layer, s.shadow);
         (f.radius, f.z) = (radii(s, r[2]), ctx.z.decor());
         f
     }

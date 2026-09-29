@@ -27,7 +27,6 @@ pub(crate) fn canvas(root: &BoxNode, frags: &mut DisplayList) -> (u32, Option<Ca
         f.bg = 0;
         f.bg_image = None;
     }
-    let image =
-        root.bg_image.clone().map(|url| CanvasImage { url, size: s.bg_size, repeat: s.bg_repeat });
+    let image = root.bg_image.clone().map(|url| CanvasImage { url, layer: s.bg_layer });
     (s.bg, image)
 }

@@ -33,8 +33,11 @@ pub(super) fn apply_paint(c: &mut Computed, name: &str, value: &str, fs: u32) ->
         "background-size" | "mask-size" | "-webkit-mask-size" => {
             bg_url::apply_bg_size(c, value, fs)
         }
+        "background-position" | "mask-position" | "-webkit-mask-position" => {
+            bg_url::apply_bg_pos(c, value, fs)
+        }
         "background-repeat" | "mask-repeat" | "-webkit-mask-repeat" => {
-            c.bg_repeat = !value.split(',').next().unwrap_or("").contains("no-repeat");
+            c.bg_layer.repeat = !value.split(',').next().unwrap_or("").contains("no-repeat");
         }
         _ if name.ends_with("radius") => return super::radius::apply_radius(c, name, value, fs),
         _ => return super::visual::apply_visual(c, name, value, fs),

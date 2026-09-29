@@ -16,14 +16,14 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::css::{BgSize, ObjectFit};
+use crate::browser::css::ObjectFit;
 use crate::browser::image::{blit_rect, Decoded};
 use crate::browser::layout::boxmodel::Fragment;
 
-/* A mask-image: the decoded mask's alpha, placed as a background image is
- * (cover, contain, or stretched over the box otherwise), shows the box's
- * background color, which paints nowhere else. The tinted copy is the size
- * of the decoded mask, which the store sized to the box. */
+/* A url mask-image: the decoded mask's alpha, stretched over the tile
+ * that mask-size and mask-position placed (`dest`), shows the box's
+ * background color, which paints nowhere else. The tinted copy is the
+ * size of the decoded mask, which the store sized to the box. */
 pub(super) fn paint_mask(
     fb: &mut PaintBuffer,
     mask: &Decoded,
@@ -37,10 +37,5 @@ pub(super) fn paint_mask(
     }
     let px = mask.px.iter().map(|p| (((p >> 24) * a / 255) << 24) | rgb).collect();
     let tinted = Decoded { w: mask.w, h: mask.h, px };
-    let fit = match f.bg_size {
-        BgSize::Cover => ObjectFit::Cover,
-        BgSize::Contain => ObjectFit::Contain,
-        BgSize::Auto | BgSize::Px(_) => ObjectFit::Fill,
-    };
-    blit_rect(fb, &tinted, dest, fit, f.alpha, Some(vis));
+    blit_rect(fb, &tinted, dest, ObjectFit::Fill, f.alpha, Some(vis));
 }

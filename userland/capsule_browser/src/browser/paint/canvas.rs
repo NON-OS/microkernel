@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::layout::boxmodel::{BoxDocument, Content, Fragment};
+use crate::browser::layout::boxmodel::{BoxDocument, Fragment};
 use crate::browser::state::State;
 
 use super::box_page::TOP;
@@ -40,30 +40,13 @@ pub(super) fn paint_canvas(state: &State, doc: &BoxDocument, fb: &mut PaintBuffe
         fill_page(fb, 0, TOP, w, h, doc.canvas_bg, None);
     }
     let Some(img) = doc.canvas_bg_image.as_ref() else { return };
-    let (bg_size, bg_repeat) = (img.size, img.repeat);
     let f = Fragment {
-        x: 0,
         y: state.scroll as i32,
         w,
         h,
-        bg: 0,
-        border: [0; 4],
-        border_color: 0,
-        href: None,
-        content: Content::None,
-        z: [0; 8],
-        clip: None,
-        clip_r: [0; 4],
-        fixed: false,
-        sticky: None,
-        alpha: 255,
         bg_image: Some(img.url.clone()),
-        mask: false,
-        bg_size,
-        bg_repeat,
-        shadow: None,
-        radius: [0; 4],
-        node: 0,
+        bg_layer: img.layer,
+        ..Fragment::BLANK
     };
     super::bg_image::paint_bg_image(state, fb, &f, TOP, TOP + h, None);
 }

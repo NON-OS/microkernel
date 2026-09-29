@@ -36,7 +36,7 @@ pub(crate) fn propagate(root: &mut BoxNode, body_id: usize) {
     if !root_bg {
         root.style.bg = core::mem::take(&mut body.style.bg);
         root.bg_image = body.bg_image.take();
-        (root.style.bg_size, root.style.bg_repeat) = (body.style.bg_size, body.style.bg_repeat);
+        root.style.bg_layer = body.style.bg_layer;
     }
     if !root_overflow {
         body.style.give_overflow_to_viewport();

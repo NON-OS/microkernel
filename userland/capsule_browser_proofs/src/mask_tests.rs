@@ -4,7 +4,6 @@
 //! it a mask, so paint shows the background color only through its alpha;
 //! a gradient mask is not drawn and leaves the box as it was.
 
-use crate::browser::css::BgSize;
 use crate::probe::Page;
 
 const VP: (u32, u32) = (800, 600);
@@ -19,7 +18,8 @@ fn a_url_mask_marks_the_box_and_keeps_its_color_and_size() {
     assert!(f.mask);
     assert_eq!(f.bg_image.as_deref(), Some("/icons/chevron.svg"));
     assert_eq!(f.bg & 0xff_ffff, 0x12_3456);
-    assert!(matches!(f.bg_size, BgSize::Cover));
+    /* Cover: an 8x4 mask scaled by 4 to cover the 16px box, at 0 0. */
+    assert_eq!(f.bg_layer.tile((8, 4), [0, 0, 16, 16]), [0, 0, 32, 16]);
 }
 
 #[test]

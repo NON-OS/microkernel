@@ -17,7 +17,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::browser::css::BgSize;
+use crate::browser::css::BgLayer;
 
 pub use super::geom::fragment::{Content, Fragment};
 
@@ -38,6 +38,5 @@ pub struct BoxDocument {
 /* A background image the canvas tiles, taken from the root or body. */
 pub struct CanvasImage {
     pub url: String,
-    pub size: BgSize,
-    pub repeat: bool,
+    pub layer: BgLayer,
 }

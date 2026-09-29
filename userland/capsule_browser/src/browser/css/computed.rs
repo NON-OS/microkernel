@@ -16,7 +16,11 @@
 
 mod shadow;
 pub use shadow::{Shadow, ShadowLayer, MAX_SHADOWS};
+mod bg_layer;
+mod bg_tile_rect;
 mod table_style;
+
+pub use bg_layer::{BgLayer, BgLen, BgSize};
 
 pub use table_style::TableStyle;
 
@@ -77,16 +81,6 @@ pub enum TextTransform {
     Upper,
     Lower,
     Capitalize,
-}
-
-/* background-size for the box's image layer. Auto keeps the natural size and
- * tiles per background-repeat; a length scales the tile width keeping aspect. */
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum BgSize {
-    Auto,
-    Cover,
-    Contain,
-    Px(u16),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -198,8 +192,7 @@ pub struct Computed {
      * Awesome) whose face we do not load. Ligature names like "arrow_forward"
      * are mapped to a Unicode glyph so the icon reads as a symbol, not a word. */
     pub icon_font: bool,
-    pub bg_size: BgSize,
-    pub bg_repeat: bool,
+    pub bg_layer: BgLayer,
     /* Element opacity 0..255; multiplies down the subtree at layout. */
     pub opacity: u8,
     /* Extra advance in px between glyphs, letter-spacing; inherited, may be
@@ -342,8 +335,7 @@ impl Computed {
             text_transform: TextTransform::None,
             font_key: 0,
             icon_font: false,
-            bg_size: BgSize::Auto,
-            bg_repeat: true,
+            bg_layer: BgLayer::INITIAL,
             opacity: 255,
             letter_spacing: 0.0,
             underline: false,

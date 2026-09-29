@@ -52,6 +52,7 @@ mod line_edit_tests;
 mod keyword_tests;
 mod link_tests;
 mod marker_tests;
+mod bg_layer_tests;
 mod mask_tests;
 mod math_len_tests;
 mod narrow_tests;

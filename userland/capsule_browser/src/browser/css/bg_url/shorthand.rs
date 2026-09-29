@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec::Vec;
+
 use crate::browser::css::calc::split_top::{items, words};
 use crate::browser::css::color::parse_color;
-use crate::browser::css::computed::{BgSize, Computed};
-use crate::browser::css::parse_px::parse_px;
+use crate::browser::css::computed::{BgLayer, Computed};
 
 use super::top_slash::top_slash;
 
@@ -44,25 +45,25 @@ pub(in crate::browser::css) fn apply_background(c: &mut Computed, value: &str, f
         })
         .unwrap_or(0);
     let layer = super::image_layer(v).unwrap_or(last);
-    c.bg_size = BgSize::Auto;
-    if let Some(at) = top_slash(layer) {
+    c.bg_layer = BgLayer::INITIAL;
+    let slash = top_slash(layer);
+    if let Some(at) = slash {
         apply_bg_size(c, &layer[at + 1..], fs);
     }
-    c.bg_repeat = !words(layer).any(|w| w.eq_ignore_ascii_case("no-repeat"));
+    /* The position is the run of position words, before the size if any. */
+    let head = &layer[..slash.unwrap_or(layer.len())];
+    let ws: Vec<&str> =
+        words(head).filter(|w| super::pos_parts::bg_pos(&[w], fs).is_some()).collect();
+    if let Some(p) = super::pos_parts::bg_pos(&ws, fs) {
+        c.bg_layer.pos = p;
+    }
+    c.bg_layer.repeat = !words(layer).any(|w| w.eq_ignore_ascii_case("no-repeat"));
 }
 
-/// The first layer of a background-size list: cover, contain, auto, or a
-/// length that scales the tile width with the aspect kept.
+/// The first layer of a background-size list; an invalid value changes
+/// nothing.
 pub(in crate::browser::css) fn apply_bg_size(c: &mut Computed, value: &str, fs: u32) {
-    let first = items(value).next().unwrap_or("");
-    let head = words(first).next().unwrap_or("");
-    c.bg_size = match head.to_ascii_lowercase().as_str() {
-        "cover" => BgSize::Cover,
-        "contain" => BgSize::Contain,
-        "auto" | "" => BgSize::Auto,
-        _ => match parse_px(head, fs) {
-            Some(px) if px > 0 => BgSize::Px(px.min(u16::MAX as u32) as u16),
-            _ => return,
-        },
-    };
+    if let Some(s) = super::size_parts::bg_size(value, fs) {
+        c.bg_layer.size = s;
+    }
 }

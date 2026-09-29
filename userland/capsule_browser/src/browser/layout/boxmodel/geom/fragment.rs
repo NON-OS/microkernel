@@ -16,7 +16,7 @@
 
 use alloc::string::String;
 
-use crate::browser::css::{BgSize, Shadow};
+use crate::browser::css::{BgLayer, Shadow};
 
 pub use super::content::Content;
 use super::stack_key::Key;
@@ -49,8 +49,7 @@ pub struct Fragment {
      * `mask` it is a mask-image, whose alpha paints the background color. */
     pub bg_image: Option<String>,
     pub mask: bool,
-    pub bg_size: BgSize,
-    pub bg_repeat: bool,
+    pub bg_layer: BgLayer,
     /* drop shadow painted behind the box. */
     pub shadow: Option<Shadow>,
     /* Corner radii in px: top-left, top-right, bottom-right, bottom-left. */

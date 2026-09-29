@@ -16,8 +16,6 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::css::{BgSize, ObjectFit};
-use crate::browser::image::blit_rect;
 use crate::browser::layout::boxmodel::Fragment;
 use crate::browser::state::State;
 
@@ -51,13 +49,11 @@ pub(super) fn paint_bg_image(
     let Some(base) = state.base.as_ref() else { return };
     let abs = crate::browser::url::join(base, src);
     let Some(img) = state.images.ready(&abs) else { return };
-    let dest = [f.x, sy, f.w.max(0), f.h.max(0)];
+    /* Sized from the natural size: the raster may be decoded smaller. */
+    let nat = state.images.natural(&abs).unwrap_or((img.w, img.h));
+    let tile = f.bg_layer.tile(nat, [f.x, sy, f.w.max(0), f.h.max(0)]);
     if f.mask {
-        return super::mask::paint_mask(fb, img, f, dest, vis);
+        return super::mask::paint_mask(fb, img, f, tile, vis);
     }
-    match f.bg_size {
-        BgSize::Cover => blit_rect(fb, img, dest, ObjectFit::Cover, f.alpha, Some(vis)),
-        BgSize::Contain => blit_rect(fb, img, dest, ObjectFit::Contain, f.alpha, Some(vis)),
-        BgSize::Auto | BgSize::Px(_) => super::bg_tile::paint_tiles(fb, img, f, dest, vis),
-    }
+    super::bg_tile::paint_tiles(fb, img, f.alpha, (tile, f.bg_layer.repeat), vis);
 }
