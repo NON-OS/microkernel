@@ -1326,6 +1326,16 @@
       ]
     },
     {
+      "name": "iommu_regs_window",
+      "crate": "nonos_x_iommu_regs_window",
+      "dir": "verification/extraction/tree/iommu_regs_window",
+      "lean": "IommuRegsWindow",
+      "generated": "IommuRegsWindow.lean",
+      "starts": [
+        "nonos_x_iommu_regs_window::registers_fit"
+      ]
+    },
+    {
       "name": "keyring_capsule_types",
       "crate": "nonos_x_keyring_capsule_types",
       "dir": "verification/extraction/sweep/keyring_capsule_types",

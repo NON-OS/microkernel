@@ -23,5 +23,6 @@ pub(super) fn reason(e: ProbeError) -> &'static [u8] {
         ProbeError::NoUnits => b"no units",
         ProbeError::MapFailed => b"register window not mappable",
         ProbeError::NoUsableAgaw => b"no supported paging depth",
+        ProbeError::RegistersOutsideWindow => b"registers beyond the mapped window",
     }
 }
