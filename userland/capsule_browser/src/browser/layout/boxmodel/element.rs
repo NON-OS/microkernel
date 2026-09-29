@@ -16,6 +16,7 @@
 
 mod replaced;
 mod split_inline;
+mod split_pieces;
 
 use alloc::string::String;
 use alloc::vec::Vec;

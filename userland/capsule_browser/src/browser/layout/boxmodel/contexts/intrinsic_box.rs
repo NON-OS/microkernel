@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 
-use crate::browser::css::GridTrack;
+use crate::browser::css::{Float, GridTrack};
 
 use super::super::abs_out_of_flow::out_of_flow;
 use super::super::tree::BoxNode;
@@ -27,13 +27,18 @@ fn items(n: &BoxNode, depth: u32) -> impl Iterator<Item = (i32, i32)> + '_ {
     n.children.iter().filter(|c| !out_of_flow(&c.style)).map(move |c| contribution(c, depth + 1))
 }
 
-/* Stacked children (block flow, a flex column): the widest of each. */
+/* Stacked children: the widest; a row of floats adds up side by side. */
 pub(in super::super) fn stack(n: &BoxNode, depth: u32) -> (i32, i32) {
-    items(n, depth).fold((0, 0), |(a, b), (x, y)| (a.max(x), b.max(y)))
+    let (mut min, mut max, mut run) = (0i32, 0i32, 0i32);
+    for c in n.children.iter().filter(|c| !out_of_flow(&c.style)) {
+        let (a, b) = contribution(c, depth + 1);
+        run = if c.style.float == Float::None { 0 } else { run.saturating_add(b) };
+        (min, max) = (min.max(a), max.max(b).max(run));
+    }
+    (min, max)
 }
 
-/* A flex row puts its items side by side with the column gap between
- * them; wrapping, it can be as narrow as its widest item. */
+/* A flex row: items side by side with gaps; wrapping, its widest item. */
 pub(in super::super) fn flex_row(n: &BoxNode, depth: u32) -> (i32, i32) {
     let (mut min, mut max, mut count) = (0i32, 0i32, 0i32);
     for (a, b) in items(n, depth) {
