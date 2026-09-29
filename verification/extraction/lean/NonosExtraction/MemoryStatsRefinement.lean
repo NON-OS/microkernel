@@ -59,6 +59,256 @@ theorem the_free_mb_wrapper_is_its_method :
 theorem the_usage_percent_wrapper_is_its_method :
     usage_percent = stats.usage_percent := rfl
 
+/-! ### What the readings report, and what the writers touch
+
+    Both counters are atomics, and Aeneas models every atomic as opaque, so
+    nothing here says what a load returns, that a load sees an earlier `init`,
+    `add_used` or `sub_used`, or anything about ordering between processors. In
+    particular it cannot say that `fetch_add` and `fetch_sub` wrap at the ends of
+    the word, which they do on the machine whatever the overflow setting, so a
+    `sub_used` larger than the counter leaves it at 2^64 less the excess rather
+    than at 0. The two statics are also built by the same opaque call, `new(0)`,
+    so the translation cannot tell them apart. No proof below uses that: every
+    theorem about a reading is stated for whatever the used and total loads
+    returned, separately, as they would on the machine.
+
+    What the theorems do say is this. Each writer is one atomic operation on its
+    argument, unscaled and with no arithmetic of its own, on the atomic its reader
+    loads. `used_mb` and `total_mb` are their byte readings rounded down to whole
+    mebibytes (2^20, not 10^6), and fail only if the load does. `free_mb` is the
+    saturating difference, so with `used_mb` it makes up `total_mb`, and it is 0
+    rather than an underflow when used exceeds total. `usage_percent` is 0 on an
+    empty total without dividing, and is a rounded down percentage while used is
+    within total and at most `u64::MAX / 100`.
+
+    Outside that, `usage_percent` has two defects, and the theorems that record
+    them say so. The product `used * 100` is checked and the kernel builds with
+    overflow checks, so a used reading above `u64::MAX / 100` aborts, and a counter
+    wrapped by `sub_used` is far above it. Below that bound the quotient is cast to
+    `u8`, which keeps it modulo 256 instead of clamping it at 100. Nothing in the
+    kernel calls these functions today, so no caller yet depends on either.
+-/
+
+/-- `init` is one sequentially consistent store of its argument, unscaled and
+    with no arithmetic that could fail, into the atomic that `total_bytes` loads. -/
+theorem init_stores_its_argument_in_the_counter_total_bytes_reads
+    (a : core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64))
+    (ha : stats.TOTAL_BYTES = ok a) (t : Std.U64) :
+    init t = core.sync.atomic.AtomicU64Align8U64.store a t .SeqCst ∧
+      total_bytes = core.sync.atomic.AtomicU64Align8U64.load a .Relaxed := by
+  constructor
+  · unfold init stats.init
+    rw [ha, bind_tc_ok]
+  · unfold total_bytes stats.total_bytes
+    rw [ha, bind_tc_ok]
+
+/-- `add_used` is one relaxed `fetch_add` of its argument on the atomic that
+    `used_bytes` loads. The previous value is dropped and there is no checked
+    arithmetic, so the call has no failure of its own for any byte count,
+    `u64::MAX` included; what happens at the top of the word is the atomic's
+    business, and it wraps. -/
+theorem add_used_adds_its_argument_to_the_counter_used_bytes_reads
+    (a : core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64))
+    (ha : stats.USED_BYTES = ok a) (b : Std.U64) :
+    add_used b = (do
+        let _ ← core.sync.atomic.AtomicU64Align8U64.fetch_add a b .Relaxed
+        ok ()) ∧
+      used_bytes = core.sync.atomic.AtomicU64Align8U64.load a .Relaxed := by
+  constructor
+  · unfold add_used stats.add_used
+    rw [ha, bind_tc_ok]
+  · unfold used_bytes stats.used_bytes
+    rw [ha, bind_tc_ok]
+
+/-- `sub_used` is the same with `fetch_sub`. Nothing refuses a release larger than
+    the counter: the call has no failure of its own, and on the machine the
+    counter wraps around below 0. The last theorem follows the reading that a
+    release of one byte too many leaves. -/
+theorem sub_used_subtracts_its_argument_from_the_counter_used_bytes_reads
+    (a : core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64))
+    (ha : stats.USED_BYTES = ok a) (b : Std.U64) :
+    sub_used b = (do
+        let _ ← core.sync.atomic.AtomicU64Align8U64.fetch_sub a b .Relaxed
+        ok ()) ∧
+      used_bytes = core.sync.atomic.AtomicU64Align8U64.load a .Relaxed := by
+  constructor
+  · unfold sub_used stats.sub_used
+    rw [ha, bind_tc_ok]
+  · unfold used_bytes stats.used_bytes
+    rw [ha, bind_tc_ok]
+
+/-- `used_mb` is the used reading rounded down to whole mebibytes. The constant
+    `1024 * 1024` is 2^20 and does not overflow, and it is not zero, so `used_mb`
+    fails only if the load does. -/
+theorem used_mb_is_used_bytes_in_whole_mebibytes (u : Std.U64) (hu : used_bytes = ok u) :
+    ∃ m, used_mb = ok m ∧ m.val = u.val / 2 ^ 20 := by
+  unfold used_mb stats.used_mb
+  have hk : (1024#u64 * 1024#u64 : Result Std.U64) = ok 1048576#u64 := by rfl
+  rw [show stats.used_bytes = used_bytes from rfl, hu, bind_tc_ok, hk, bind_tc_ok]
+  obtain ⟨z, hz, hv⟩ := UScalar.div_spec u (y := 1048576#u64) (by simp)
+  exact ⟨z, hz, by rw [hv]; rfl⟩
+
+/-- `total_mb` is the total reading rounded down to whole mebibytes, and fails
+    only if the load does. -/
+theorem total_mb_is_total_bytes_in_whole_mebibytes (t : Std.U64) (ht : total_bytes = ok t) :
+    ∃ m, total_mb = ok m ∧ m.val = t.val / 2 ^ 20 := by
+  unfold total_mb stats.total_mb
+  have hk : (1024#u64 * 1024#u64 : Result Std.U64) = ok 1048576#u64 := by rfl
+  rw [show stats.total_bytes = total_bytes from rfl, ht, bind_tc_ok, hk, bind_tc_ok]
+  obtain ⟨z, hz, hv⟩ := UScalar.div_spec t (y := 1048576#u64) (by simp)
+  exact ⟨z, hz, by rw [hv]; rfl⟩
+
+/-- `free_mb` and `used_mb` make up `total_mb` exactly while used is within
+    total. Past it `free_mb` is 0, neither failing nor wrapping. -/
+theorem free_mb_and_used_mb_make_up_total_mb (T U : Std.U64)
+    (hT : total_mb = ok T) (hU : used_mb = ok U) :
+    ∃ F, free_mb = ok F ∧ (U.val ≤ T.val → F.val + U.val = T.val) ∧
+      (T.val ≤ U.val → F.val = 0) := by
+  unfold free_mb stats.free_mb
+  rw [show stats.total_mb = total_mb from rfl, hT, bind_tc_ok,
+    show stats.used_mb = used_mb from rfl, hU, bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  have hv : (core.num.U64.saturating_sub T U).val = T.val - U.val := by
+    simp only [core.num.U64.saturating_sub, UScalar.saturating_sub]
+    have := T.hBounds
+    simp only [UScalar.val, BitVec.toNat_ofNat] at *
+    rw [Nat.zero_max, Nat.mod_eq_of_lt (by omega)]
+  rw [hv]
+  omega
+
+/-- In bytes, `free_mb` is the difference of the two readings, each rounded down
+    first. That is not the free bytes rounded down: a total of 2 MiB with one
+    byte used reports 2 MiB free, where the free bytes make up one whole MiB. -/
+theorem free_mb_is_the_difference_of_the_rounded_down_readings (t u : Std.U64)
+    (ht : total_bytes = ok t) (hu : used_bytes = ok u) :
+    ∃ F, free_mb = ok F ∧ F.val = t.val / 2 ^ 20 - u.val / 2 ^ 20 := by
+  obtain ⟨T, hT, hTv⟩ := total_mb_is_total_bytes_in_whole_mebibytes t ht
+  obtain ⟨U, hU, hUv⟩ := used_mb_is_used_bytes_in_whole_mebibytes u hu
+  obtain ⟨F, hF, h1, h2⟩ := free_mb_and_used_mb_make_up_total_mb T U hT hU
+  refine ⟨F, hF, ?_⟩
+  rw [← hTv, ← hUv]
+  omega
+
+/-- With the total reading 0, as before `init` or after `init(0)`,
+    `usage_percent` is 0: it neither divides nor reads the used counter. -/
+theorem usage_percent_is_zero_while_total_bytes_reads_zero (ht : total_bytes = ok 0#u64) :
+    usage_percent = ok 0#u8 := by
+  unfold usage_percent stats.usage_percent
+  rw [show stats.total_bytes = total_bytes from rfl, ht, bind_tc_ok, if_pos rfl]
+
+/-- This records a defect. Whenever the product fits, `usage_percent` is the
+    rounded down percentage reduced modulo 256, because the `as u8` cast
+    truncates rather than clamping: 300 bytes used of 100 reads 44, and 256 of
+    100 reads 0. -/
+theorem usage_percent_is_the_ratio_reduced_modulo_256 (t u : Std.U64)
+    (ht : total_bytes = ok t) (hu : used_bytes = ok u) (h0 : t.val ≠ 0)
+    (hfit : u.val ≤ 184467440737095516) :
+    ∃ p, usage_percent = ok p ∧ p.val = u.val * 100 / t.val % 256 := by
+  unfold usage_percent stats.usage_percent
+  rw [show stats.total_bytes = total_bytes from rfl, ht, bind_tc_ok,
+    if_neg (fun h => h0 (by rw [h]; rfl)),
+    show stats.used_bytes = used_bytes from rfl, hu, bind_tc_ok]
+  have hm := UScalar.mul_equiv u 100#u64
+  have h100 : (100#u64 : Std.U64).val = 100 := rfl
+  rw [show (u * 100#u64 : Result Std.U64) = UScalar.mul u 100#u64 from rfl]
+  cases h : UScalar.mul u 100#u64 with
+  | ok i1 =>
+    rw [h] at hm
+    obtain ⟨-, hv1, -⟩ := hm
+    obtain ⟨i2, h2, hv2⟩ := UScalar.div_spec i1 (y := t) h0
+    rw [bind_tc_ok, h2, bind_tc_ok]
+    refine ⟨_, rfl, ?_⟩
+    rw [UScalar.cast_val_eq, hv2, hv1, h100]
+    rfl
+  | fail e =>
+    rw [h] at hm
+    simp only [UScalar.max_UScalarTy_U64_eq, U64.max_eq, h100] at hm
+    omega
+  | div => rw [h] at hm; exact hm.elim
+
+/-- While used is within total and the product fits, `usage_percent` is the
+    percentage rounded down, and so at most 100. Past the total the reading climbs
+    above 100 up to 255 and then wraps, as the theorem before records. -/
+theorem usage_percent_is_a_rounded_down_percentage_while_used_is_within_total
+    (t u : Std.U64) (ht : total_bytes = ok t) (hu : used_bytes = ok u)
+    (h0 : t.val ≠ 0) (hle : u.val ≤ t.val) (hfit : u.val ≤ 184467440737095516) :
+    ∃ p, usage_percent = ok p ∧ p.val ≤ 100 ∧
+      p.val * t.val ≤ u.val * 100 ∧ u.val * 100 < (p.val + 1) * t.val := by
+  obtain ⟨p, hp, hv⟩ := usage_percent_is_the_ratio_reduced_modulo_256 t u ht hu h0 hfit
+  refine ⟨p, hp, ?_⟩
+  have hpos : 0 < t.val := Nat.pos_of_ne_zero h0
+  have hq : u.val * 100 / t.val ≤ 100 :=
+    Nat.div_le_of_le_mul (Nat.mul_le_mul_right 100 hle)
+  rw [Nat.mod_eq_of_lt (by omega)] at hv
+  rw [hv]
+  exact ⟨hq, Nat.div_mul_le_self _ _, (Nat.div_lt_iff_lt_mul hpos).mp (Nat.lt_succ_self _)⟩
+
+/-- This records a defect. The product `used * 100` is checked, so with a nonzero
+    total `usage_percent` aborts exactly when the used reading passes
+    184467440737095516, which is `u64::MAX / 100`. The kernel builds with
+    overflow checks in every profile, so this is a panic, not a wrapped figure. -/
+theorem usage_percent_aborts_exactly_past_the_multiplication_bound (t u : Std.U64)
+    (ht : total_bytes = ok t) (hu : used_bytes = ok u) :
+    usage_percent = fail .integerOverflow ↔ (t.val ≠ 0 ∧ 184467440737095516 < u.val) := by
+  unfold usage_percent stats.usage_percent
+  rw [show stats.total_bytes = total_bytes from rfl, ht, bind_tc_ok]
+  by_cases hz : t = 0#u64
+  · rw [if_pos hz]
+    subst hz
+    simp
+  · have h0 : t.val ≠ 0 := fun h => hz (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    rw [if_neg hz, show stats.used_bytes = used_bytes from rfl, hu, bind_tc_ok]
+    have hm := UScalar.mul_equiv u 100#u64
+    have h100 : (100#u64 : Std.U64).val = 100 := rfl
+    rw [show (u * 100#u64 : Result Std.U64) = UScalar.mul u 100#u64 from rfl]
+    cases h : UScalar.mul u 100#u64 with
+    | ok i1 =>
+      rw [h] at hm
+      obtain ⟨hle, -, -⟩ := hm
+      simp only [UScalar.max_UScalarTy_U64_eq, U64.max_eq, h100] at hle
+      obtain ⟨i2, h2, -⟩ := UScalar.div_spec i1 (y := t) h0
+      rw [bind_tc_ok, h2, bind_tc_ok]
+      simp only [reduceCtorEq, false_iff, not_and, not_lt]
+      intro _
+      omega
+    | fail e =>
+      rw [h] at hm
+      simp only [UScalar.max_UScalarTy_U64_eq, U64.max_eq, h100] at hm
+      have he : e = .integerOverflow := by
+        simp only [UScalar.mul, UScalar.tryMk, Result.ofOption] at h
+        split at h <;> simp_all
+      subst he
+      simp only [bind_tc_fail, true_iff]
+      exact ⟨h0, by omega⟩
+    | div => rw [h] at hm; exact hm.elim
+
+/-- This records where the defects meet. A used counter at `u64::MAX`, which a
+    `sub_used` of one byte more than the counter holds leaves behind on the
+    machine, reads as 2^44 - 1 MiB used and 0 MiB free, and makes
+    `usage_percent` abort for any nonzero total. -/
+theorem a_used_counter_wrapped_to_u64_max_reads_full_and_aborts_usage_percent
+    (t : Std.U64) (hu : used_bytes = ok 18446744073709551615#u64)
+    (ht : total_bytes = ok t) (h0 : t.val ≠ 0) :
+    used_mb = ok 17592186044415#u64 ∧ free_mb = ok 0#u64 ∧
+      usage_percent = fail .integerOverflow := by
+  have hmax : (18446744073709551615#u64 : Std.U64).val = 18446744073709551615 := rfl
+  refine ⟨?_, ?_, ?_⟩
+  · obtain ⟨m, hm, hv⟩ := used_mb_is_used_bytes_in_whole_mebibytes _ hu
+    rw [hm]
+    congr 1
+    apply UScalar.eq_of_val_eq
+    rw [hv, hmax]
+    rfl
+  · obtain ⟨F, hF, hv⟩ := free_mb_is_the_difference_of_the_rounded_down_readings t _ ht hu
+    rw [hF]
+    congr 1
+    apply UScalar.eq_of_val_eq
+    have ht' : t.val ≤ 18446744073709551615 := by scalar_tac
+    rw [hv, hmax, Nat.sub_eq_zero_of_le (Nat.div_le_div_right ht')]
+    rfl
+  · rw [usage_percent_aborts_exactly_past_the_multiplication_bound t _ ht hu, hmax]
+    exact ⟨h0, by decide⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.MemoryStats.the_init_wrapper_is_its_method
@@ -70,5 +320,17 @@ theorem the_usage_percent_wrapper_is_its_method :
 #print axioms NonosExtraction.MemoryStats.the_total_mb_wrapper_is_its_method
 #print axioms NonosExtraction.MemoryStats.the_free_mb_wrapper_is_its_method
 #print axioms NonosExtraction.MemoryStats.the_usage_percent_wrapper_is_its_method
+#print axioms NonosExtraction.MemoryStats.init_stores_its_argument_in_the_counter_total_bytes_reads
+#print axioms NonosExtraction.MemoryStats.add_used_adds_its_argument_to_the_counter_used_bytes_reads
+#print axioms NonosExtraction.MemoryStats.sub_used_subtracts_its_argument_from_the_counter_used_bytes_reads
+#print axioms NonosExtraction.MemoryStats.used_mb_is_used_bytes_in_whole_mebibytes
+#print axioms NonosExtraction.MemoryStats.total_mb_is_total_bytes_in_whole_mebibytes
+#print axioms NonosExtraction.MemoryStats.free_mb_and_used_mb_make_up_total_mb
+#print axioms NonosExtraction.MemoryStats.free_mb_is_the_difference_of_the_rounded_down_readings
+#print axioms NonosExtraction.MemoryStats.usage_percent_is_zero_while_total_bytes_reads_zero
+#print axioms NonosExtraction.MemoryStats.usage_percent_is_the_ratio_reduced_modulo_256
+#print axioms NonosExtraction.MemoryStats.usage_percent_is_a_rounded_down_percentage_while_used_is_within_total
+#print axioms NonosExtraction.MemoryStats.usage_percent_aborts_exactly_past_the_multiplication_bound
+#print axioms NonosExtraction.MemoryStats.a_used_counter_wrapped_to_u64_max_reads_full_and_aborts_usage_percent
 
 end NonosExtraction.MemoryStats
