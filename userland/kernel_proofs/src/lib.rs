@@ -58,6 +58,8 @@ pub mod security;
 pub mod spec;
 pub mod sys;
 pub mod usercopy;
+#[cfg(test)]
+pub mod vga_attr;
 
 #[cfg(test)]
 mod align_tests;
