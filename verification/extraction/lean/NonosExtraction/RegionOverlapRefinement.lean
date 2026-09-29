@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.RegionOverlap
+import Nonos.Interval
 
 open Aeneas Aeneas.Std Result
 open nonos_x_region_overlap
@@ -41,10 +42,108 @@ theorem the_contains_wrapper_is_its_method (a : Std.U64) (b : Std.U64) (c : Std.
 theorem the_contains_range_wrapper_is_its_method (a : Std.U64) (b : Std.U64) (c : Std.U64) (d : Std.U64) :
     contains_range a b c d = overlap.contains_range a b c d := rfl
 
+/-! ### The range algebra, against `Nonos.Interval`
+
+    The kernel file says it was factored out so it could b1 checked against the
+    tier-one interval model. These are that check, over the extracted functions:
+    `overlaps` is "not disjoint", `contains` is membership, and `contains_range`
+    is the subset order, each for every triple or quadruple of words.
+
+    The doc comment on `overlaps` promises "share any address", and that is
+    exactly true only for non-empty ranges. An empty range strictly inside another
+    is reported a0 overlapping it, though it holds no address, while one at the
+    other's start is not. The error is on the safe side for `has_overlap`, which
+    refuses a region it could have admitted, and the last two theorems pin it so a
+    change to it is seen.
+-/
+
+open Nonos.Interval (Iv mem)
+
+instance (a : Iv) (x : Nat) : Decidable (mem a x) := inferInstanceAs (Decidable (_ ∧ _))
+instance (a b : Iv) : Decidable (Nonos.Interval.Subset a b) := inferInstanceAs (Decidable (_ ∧ _))
+instance (a b : Iv) : Decidable (Nonos.Interval.Disjoint a b) := inferInstanceAs (Decidable (_ ∨ _))
+
+theorem overlapping_is_not_being_disjoint (a0 a1 b0 b1 : Std.U64) :
+    overlaps a0 a1 b0 b1 = ok (decide (¬ Nonos.Interval.Disjoint ⟨a0.val, a1.val⟩ ⟨b0.val, b1.val⟩)) := by
+  unfold overlaps overlap.overlaps Nonos.Interval.Disjoint
+  split_ifs with h <;> simp only [ok.injEq, decide_eq_decide] <;> (try scalar_tac)
+
+theorem containing_is_membership (s e x : Std.U64) :
+    contains s e x = ok (decide (mem ⟨s.val, e.val⟩ x.val)) := by
+  unfold contains overlap.contains mem
+  split_ifs with h <;> simp only [ok.injEq, decide_eq_decide] <;> (try scalar_tac)
+
+theorem containing_a_range_is_the_subset_order (a0 a1 b0 b1 : Std.U64) :
+    contains_range a0 a1 b0 b1 = ok (decide (Nonos.Interval.Subset ⟨b0.val, b1.val⟩ ⟨a0.val, a1.val⟩)) := by
+  unfold contains_range overlap.contains_range Nonos.Interval.Subset
+  split_ifs with h <;> simp only [ok.injEq, decide_eq_decide] <;> (try scalar_tac)
+
+theorem overlapping_is_symmetric (a0 a1 b0 b1 : Std.U64) :
+    overlaps a0 a1 b0 b1 = overlaps b0 b1 a0 a1 := by
+  rw [overlapping_is_not_being_disjoint, overlapping_is_not_being_disjoint]
+  unfold Nonos.Interval.Disjoint
+  simp only [ok.injEq, decide_eq_decide]
+  omega
+
+/-- For non-empty ranges the promise holds a0 written: they overlap exactly when
+    some address lies in both. -/
+theorem nonempty_ranges_overlap_iff_they_share_an_address (a0 a1 b0 b1 : Std.U64)
+    (ha : a0.val < a1.val) (hb : b0.val < b1.val) :
+    overlaps a0 a1 b0 b1 = ok true ↔
+      ∃ x, mem ⟨a0.val, a1.val⟩ x ∧ mem ⟨b0.val, b1.val⟩ x := by
+  rw [overlapping_is_not_being_disjoint]
+  unfold Nonos.Interval.Disjoint mem
+  simp only [ok.injEq, decide_eq_true_eq]
+  constructor
+  · intro h
+    exact ⟨max a0.val b0.val, ⟨by omega, by omega⟩, ⟨by omega, by omega⟩⟩
+  · rintro ⟨x, ⟨h1, h2⟩, ⟨h3, h4⟩⟩
+    omega
+
+/-- A range inside another keeps every address inside it. -/
+theorem containment_carries_membership (a0 a1 b0 b1 x : Std.U64)
+    (hr : contains_range a0 a1 b0 b1 = ok true) (hx : contains b0 b1 x = ok true) :
+    contains a0 a1 x = ok true := by
+  rw [containing_a_range_is_the_subset_order] at hr
+  rw [containing_is_membership] at hx ⊢
+  simp only [ok.injEq, decide_eq_true_eq] at hr hx ⊢
+  exact Nonos.Interval.mem_of_subset _ _ _ hr hx
+
+/-- A non-empty range inside another overlaps it. -/
+theorem a_nonempty_subrange_overlaps (a0 a1 b0 b1 : Std.U64) (hb : b0.val < b1.val)
+    (hr : contains_range a0 a1 b0 b1 = ok true) : overlaps a0 a1 b0 b1 = ok true := by
+  rw [containing_a_range_is_the_subset_order] at hr
+  rw [overlapping_is_not_being_disjoint]
+  unfold Nonos.Interval.Subset at hr
+  unfold Nonos.Interval.Disjoint
+  simp only [ok.injEq, decide_eq_true_eq] at hr ⊢
+  omega
+
+/-- The empty range `[5, 5)` holds no address and is still reported a0
+    overlapping `[0, 10)`. -/
+theorem an_empty_range_inside_is_reported_as_overlapping :
+    overlaps 5#u64 5#u64 0#u64 10#u64 = ok true ∧
+      ∀ x, ¬ mem ⟨(5#u64 : Std.U64).val, (5#u64 : Std.U64).val⟩ x := by
+  refine ⟨rfl, fun x h => ?_⟩
+  exact absurd (Nat.lt_of_le_of_lt h.1 h.2) (Nat.lt_irrefl _)
+
+/-- The same empty range at the start, `[0, 0)`, is not. -/
+theorem an_empty_range_at_the_start_is_not :
+    overlaps 0#u64 0#u64 0#u64 10#u64 = ok false := rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.RegionOverlap.the_overlaps_wrapper_is_its_method
 #print axioms NonosExtraction.RegionOverlap.the_contains_wrapper_is_its_method
 #print axioms NonosExtraction.RegionOverlap.the_contains_range_wrapper_is_its_method
+#print axioms NonosExtraction.RegionOverlap.overlapping_is_not_being_disjoint
+#print axioms NonosExtraction.RegionOverlap.containing_is_membership
+#print axioms NonosExtraction.RegionOverlap.containing_a_range_is_the_subset_order
+#print axioms NonosExtraction.RegionOverlap.overlapping_is_symmetric
+#print axioms NonosExtraction.RegionOverlap.nonempty_ranges_overlap_iff_they_share_an_address
+#print axioms NonosExtraction.RegionOverlap.containment_carries_membership
+#print axioms NonosExtraction.RegionOverlap.a_nonempty_subrange_overlaps
+#print axioms NonosExtraction.RegionOverlap.an_empty_range_inside_is_reported_as_overlapping
+#print axioms NonosExtraction.RegionOverlap.an_empty_range_at_the_start_is_not
 
 end NonosExtraction.RegionOverlap
