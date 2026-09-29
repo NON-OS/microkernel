@@ -54,10 +54,7 @@ fn revisions_order_as_versions() {
 
 #[test]
 fn the_firmware_record_reads_2_8_back() {
-    let info = FirmwareInfo {
-        revision: UEFI_REVISION_2_8,
-        ..FirmwareInfo::default()
-    };
+    let info = FirmwareInfo { revision: UEFI_REVISION_2_8, ..FirmwareInfo::default() };
     assert_eq!(info.uefi_major_version(), 2);
     assert_eq!(info.uefi_minor_version(), 80);
 }
