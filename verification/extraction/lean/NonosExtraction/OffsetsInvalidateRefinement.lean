@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.OffsetsInvalidate
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_offsets_invalidate
@@ -38,9 +39,110 @@ theorem the_iva_offset_wrapper_is_its_method (a : Std.U64) :
 theorem the_iotlb_offset_wrapper_is_its_method (a : Std.U64) :
     iotlb_offset a = invalidate.iotlb_offset a := rfl
 
+/-! ### Where the IOTLB registers are, and whether they are in the mapped page
+
+VT-d does not fix the offset of the IOTLB invalidation registers: the ECAP
+register carries it in its IRO field, bits 8 to 17, in 16-byte units.
+`iva_offset` decodes that field and `iotlb_offset` is the IOTLB register eight
+bytes above it, which `invalidate_iotlb_global` writes and then polls. The
+theorems below say exactly which ECAP bits are read and how they are scaled,
+that neither function can overflow for any ECAP value, and that the IOTLB
+register is always the eight bytes after the IVA register.
+
+They also relate these offsets to the register window. The kernel maps one
+4 KiB page per remapping unit (`UNIT_WINDOW` in `unit/access.rs`, used by
+`probe`). A ten-bit IRO field can place the IOTLB register as far as 16376
+bytes in, and it lies inside the page exactly when the field is at most 255.
+The offsets themselves are not bounded, so the bound has to be enforced by a
+caller. It used not to be: `RemapUnit::read64` and `write64` checked
+`offset + 8 <= UNIT_WINDOW` only with `debug_assert!`, and nothing between
+`probe` and `invalidate_iotlb_global` compared the decoded offset with the
+window, so an ECAP with a larger IRO sent a release build's volatile write
+outside the mapping. `probe_at` now refuses such a unit through
+`registers_fit`, proven in `NonosExtraction.IommuRegsWindow`, and the accessors
+assert the bound in every build. The `RemapUnit` accessors, the mapping, and
+the MMIO accesses are not in this crate; the window size is restated here as
+the literal 4096.
+-/
+
+/-- A right shift of a 64-bit word by a constant below 64 succeeds and divides
+    by that power of two. -/
+private theorem shr_u64 (x : Std.U64) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 64) :
+    ∃ z : Std.U64, x >>> k = ok z ∧ z.val = x.val / 2 ^ k.toNat := by
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftRight_IScalar_spec x k h0 (by simpa using h1))
+  exact ⟨z, hz, by rw [hv, Nat.shiftRight_eq_div_pow]⟩
+
+/-- The IVA register offset is the ten-bit IRO field, ECAP bits 8 to 17, times
+    16. It never fails, whatever ECAP holds. -/
+theorem iva_offset_is_the_iro_field_in_sixteen_byte_units (ecap : Std.U64) :
+    ∃ v : Std.Usize, iva_offset ecap = ok v ∧ v.val = ecap.val / 2 ^ 8 % 1024 * 16 := by
+  unfold iva_offset invalidate.iva_offset
+  obtain ⟨z, hz, hv⟩ := shr_u64 ecap 8#i32 (by decide) (by decide)
+  simp only [hz, bind_tc_ok, lift]
+  have hm : (z &&& 1023#u64).val = ecap.val / 2 ^ 8 % 1024 := by
+    rw [Bits.land_low_mask z 1023#u64 10 rfl, hv]
+    rfl
+  have hc : (UScalar.cast .Usize (z &&& 1023#u64)).val = ecap.val / 2 ^ 8 % 1024 := by
+    rw [UScalar.cast_val_eq, hm]
+    have : ecap.val / 2 ^ 8 % 1024 < 1024 := Nat.mod_lt _ (by decide)
+    apply Nat.mod_eq_of_lt
+    have := Usize.numBits_eq
+    rcases System.Platform.numBits_eq with h | h <;> simp_all [UScalarTy.numBits] <;> omega
+  obtain ⟨w, hw, hwv, -⟩ := WP.spec_imp_exists
+    (Usize.mul_bv_spec (x := UScalar.cast .Usize (z &&& 1023#u64)) (y := 16#usize)
+      (by rw [hc]; have := Nat.mod_lt (ecap.val / 2 ^ 8) (show 1024 > 0 by decide); scalar_tac))
+  exact ⟨w, hw, by rw [hwv, hc]; rfl⟩
+
+/-- The IOTLB register is the eight bytes after the IVA register, for every
+    ECAP, and the addition never overflows. -/
+theorem iotlb_offset_is_eight_past_iva_offset (ecap : Std.U64) :
+    ∃ v w : Std.Usize, iva_offset ecap = ok v ∧ iotlb_offset ecap = ok w ∧
+      w.val = v.val + 8 := by
+  obtain ⟨v, hv, hvv⟩ := iva_offset_is_the_iro_field_in_sixteen_byte_units ecap
+  have hlt : v.val ≤ 16368 := by
+    have := Nat.mod_lt (ecap.val / 2 ^ 8) (show 1024 > 0 by decide)
+    omega
+  obtain ⟨w, hw, hwv, -⟩ := WP.spec_imp_exists
+    (Usize.add_bv_spec (x := v) (y := 8#usize) (by scalar_tac))
+  refine ⟨v, w, hv, ?_, by rw [hwv]; rfl⟩
+  unfold iotlb_offset invalidate.iotlb_offset
+  rw [show invalidate.iva_offset ecap = ok v from hv, bind_tc_ok, hw]
+
+/-- The IOTLB register fits inside the one 4 KiB page the kernel maps for a
+    unit exactly when the IRO field is at most 255. `iotlb_offset` does not
+    bound the field to the window; `registers_fit` in `probe_at` does, so a
+    unit outside this range is never brought up. -/
+theorem iotlb_offset_is_inside_the_unit_window_only_for_small_iro (ecap : Std.U64) :
+    ∃ w : Std.Usize, iotlb_offset ecap = ok w ∧
+      (w.val + 8 ≤ 4096 ↔ ecap.val / 2 ^ 8 % 1024 ≤ 255) := by
+  obtain ⟨v, w, hv, hw, hwv⟩ := iotlb_offset_is_eight_past_iva_offset ecap
+  obtain ⟨v', hv', hvv⟩ := iva_offset_is_the_iro_field_in_sixteen_byte_units ecap
+  rw [hv] at hv'
+  cases hv'
+  exact ⟨w, hw, by omega⟩
+
+/-- A concrete ECAP whose IRO field is 256: the IOTLB register lands at byte
+    4104, past the end of the 4096-byte window. -/
+theorem iotlb_offset_of_iro_256_is_past_the_unit_window :
+    ∃ w : Std.Usize, iotlb_offset 65536#u64 = ok w ∧ w.val = 4104 ∧ 4096 < w.val + 8 := by
+  obtain ⟨w, hw, hi⟩ := iotlb_offset_is_inside_the_unit_window_only_for_small_iro 65536#u64
+  obtain ⟨v, w', hv, hw', hwv⟩ := iotlb_offset_is_eight_past_iva_offset 65536#u64
+  obtain ⟨v', hv', hvv⟩ := iva_offset_is_the_iro_field_in_sixteen_byte_units 65536#u64
+  rw [hv] at hv'
+  cases hv'
+  rw [hw] at hw'
+  cases hw'
+  have : v.val = 4096 := by rw [hvv]; rfl
+  exact ⟨w, hw, by omega, by omega⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.OffsetsInvalidate.the_iva_offset_wrapper_is_its_method
 #print axioms NonosExtraction.OffsetsInvalidate.the_iotlb_offset_wrapper_is_its_method
+#print axioms NonosExtraction.OffsetsInvalidate.iva_offset_is_the_iro_field_in_sixteen_byte_units
+#print axioms NonosExtraction.OffsetsInvalidate.iotlb_offset_is_eight_past_iva_offset
+#print axioms NonosExtraction.OffsetsInvalidate.iotlb_offset_is_inside_the_unit_window_only_for_small_iro
+#print axioms NonosExtraction.OffsetsInvalidate.iotlb_offset_of_iro_256_is_past_the_unit_window
 
 end NonosExtraction.OffsetsInvalidate
