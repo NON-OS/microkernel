@@ -20,7 +20,9 @@ use core::sync::atomic::Ordering;
 
 use super::super::types::{Pid, Priority, ProcessState};
 use super::build_pcb::build_pcb;
-use super::types::{allocate_tid, CURRENT_PID, PROCESS_TABLE};
+use super::current_pid::CURRENT_PID;
+use super::pid::allocate_tid;
+use super::types::PROCESS_TABLE;
 
 /// Create a schedulable thread inside the current process, running.
 pub fn spawn_thread(entry: u64, stack: u64) -> Result<Pid, &'static str> {
