@@ -32,7 +32,7 @@ pub(in super::super) struct Lead {
 /* The style a word paints with, as its fragment carries it. */
 #[derive(Clone, Copy)]
 pub(in super::super) struct Ink {
-    pub px: u32,
+    pub px: f32,
     pub color: u32,
     pub bg: u32,
     pub bold: bool,
@@ -46,7 +46,7 @@ pub(in super::super) struct Ink {
 impl Ink {
     /* The paint style of text in `s`, over background `bg`. */
     pub(in super::super) fn of(s: &Computed, bg: u32, underline: bool) -> Ink {
-        let (px, color, bold, mono, font) = (s.font_size_px, s.color, s.bold, s.mono, s.font_key);
+        let (px, color, bold, mono, font) = (s.font_px, s.color, s.bold, s.mono, s.font_key);
         let (spacing, italic) = (s.letter_spacing, s.italic);
         Ink { px, color, bg, bold, mono, underline, font, spacing, italic }
     }

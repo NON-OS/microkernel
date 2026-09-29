@@ -19,10 +19,8 @@ fn nth_child_arguments_near_i32_limits_do_not_overflow() {
     assert_eq!(css::select(&d, "li:nth-child(-n-2147483647)", usize::MAX).len(), 0);
     assert_eq!(css::select(&d, "li:nth-child(-n+2147483647)", usize::MAX).len(), 2);
     assert_eq!(css::select(&d, "li:nth-child(99999999999999n-99999999999)", usize::MAX).len(), 0);
-    assert_eq!(
-        css::compute(&d, "li:nth-child(-n-2147483647){color:red}").styles.len(),
-        d.nodes.len()
-    );
+    let styled = css::compute(&d, "li:nth-child(-n-2147483647){color:red}");
+    assert!((0..d.nodes.len()).all(|i| styled.styles[i].color != 0xffff_0000));
 }
 
 #[test]

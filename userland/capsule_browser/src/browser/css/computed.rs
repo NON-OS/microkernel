@@ -16,6 +16,9 @@
 
 mod shadow;
 pub use shadow::{Shadow, ShadowLayer, MAX_SHADOWS};
+mod table_style;
+
+pub use table_style::TableStyle;
 
 pub const DEFAULT_FG: u32 = 0xFF1A_1A1A;
 pub const DEFAULT_FONT_PX: u32 = 16;
@@ -317,6 +320,8 @@ pub struct Computed {
     pub list_none: bool,
     /* direction: rtl, from the property or a dir attribute; inherited. */
     pub rtl: bool,
+    /* The table model's properties and attributes. */
+    pub table: TableStyle,
 }
 
 impl Computed {
@@ -416,6 +421,7 @@ impl Computed {
             grid_dense: false,
             list_none: false,
             rtl: false,
+            table: TableStyle::INITIAL,
         }
     }
 
@@ -441,6 +447,7 @@ impl Computed {
         c.font_key = parent.font_key;
         c.icon_font = parent.icon_font;
         c.letter_spacing = parent.letter_spacing;
+        c.table = parent.table.inherit();
         c
     }
 

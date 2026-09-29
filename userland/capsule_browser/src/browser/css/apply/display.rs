@@ -14,74 +14,52 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod table_props;
+
 use crate::browser::css::computed::Computed;
 
-// The display property routes a box to its formatting context.
+/* Box roles a display value sets: block-level, flex, grid, inline-block,
+ * table, table row, table cell. */
+type Role = (bool, bool, bool, bool, bool, bool, bool);
+
+/* The display property routes a box to its formatting context. A later
+ * display value replaces an earlier one whole, none included, so
+ * display:none in one rule and display:block in a more specific one
+ * shows the box. An unknown value is invalid and changes nothing. */
 pub(super) fn apply_display(c: &mut Computed, name: &str, value: &str) -> bool {
     if name != "display" {
-        return false;
+        return table_props::apply_table(c, name, value);
     }
-    // Any later concrete display value overrides an earlier contents.
-    if value.trim() != "contents" {
-        c.is_contents = false;
-    }
-    match value.trim() {
-        "none" => c.display_none = true,
-        // The element generates no box; its children join the parent's
-        // formatting context directly.
-        "contents" => c.is_contents = true,
-        "block" | "list-item" => {
-            c.is_block = true;
-            c.is_flex = false;
-            c.is_grid = false;
+    let v = value.trim().to_ascii_lowercase();
+    let role: Role = match v.as_str() {
+        "none" | "table-column" | "table-column-group" => {
+            c.display_none = true;
+            return true;
         }
-        "table" | "inline-table" => {
-            c.is_block = true;
-            c.is_flex = false;
-            c.is_grid = false;
-            c.is_table = true;
+        "contents" => {
+            (c.display_none, c.is_contents) = (false, true);
+            return true;
         }
-        "table-row" | "table-row-group" | "table-header-group" | "table-footer-group" => {
-            c.is_block = true;
-            c.is_table_row = value.trim() == "table-row";
+        "block" | "list-item" | "flow-root" | "table-caption" | "-webkit-box" | "run-in" => {
+            (true, false, false, false, false, false, false)
         }
-        "table-cell" => {
-            c.is_block = true;
-            c.is_table_cell = true;
+        "flex" | "-webkit-flex" => (true, true, false, false, false, false, false),
+        "inline-flex" | "-webkit-inline-flex" => (false, true, false, false, false, false, false),
+        "grid" => (true, false, true, false, false, false, false),
+        "inline-grid" => (false, false, true, false, false, false, false),
+        "inline" | "ruby" | "inline-list-item" => (false, false, false, false, false, false, false),
+        "inline-block" => (false, false, false, true, false, false, false),
+        "table" | "inline-table" => (true, false, false, false, true, false, false),
+        "table-row" => (true, false, false, false, false, true, false),
+        "table-row-group" | "table-header-group" | "table-footer-group" => {
+            (true, false, false, false, false, false, false)
         }
-        "flex" => {
-            c.is_block = true;
-            c.is_flex = true;
-            c.is_grid = false;
-        }
-        "inline-flex" => {
-            c.is_block = false;
-            c.is_flex = true;
-            c.is_grid = false;
-        }
-        "grid" => {
-            c.is_block = true;
-            c.is_flex = false;
-            c.is_grid = true;
-        }
-        "inline-grid" => {
-            c.is_block = false;
-            c.is_flex = false;
-            c.is_grid = true;
-        }
-        "inline" => {
-            c.is_block = false;
-            c.is_flex = false;
-            c.is_grid = false;
-            c.is_inline_block = false;
-        }
-        "inline-block" => {
-            c.is_block = false;
-            c.is_flex = false;
-            c.is_grid = false;
-            c.is_inline_block = true;
-        }
-        _ => {}
-    }
+        "table-cell" => (true, false, false, false, false, false, true),
+        _ => return true,
+    };
+    (c.display_none, c.is_contents) = (false, false);
+    (c.is_block, c.is_flex, c.is_grid, c.is_inline_block) = (role.0, role.1, role.2, role.3);
+    (c.is_table, c.is_table_row, c.is_table_cell) = (role.4, role.5, role.6);
+    c.table.caption = v == "table-caption";
     true
 }

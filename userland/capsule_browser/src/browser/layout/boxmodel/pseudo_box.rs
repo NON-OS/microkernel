@@ -14,35 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod node;
+
 use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::browser::css::PseudoText;
 
-use super::leaf::leaf;
-use super::tree::{BoxKind, BoxNode};
+use super::tree::BoxNode;
 use super::walk::Walk;
+use node::pseudo_box;
 
-/* Generated content wraps the real children: a ::before box leads and a
- * ::after box trails, each a text leaf styled by its own cascade. Kept out
- * of line: its boxes would otherwise sit in every level of the recursion. */
+/* Generated content wraps the real children: a ::before box leads and an
+ * ::after box trails. Out of line, so the boxes it builds take no room in
+ * each frame of the recursive tree build. */
 #[inline(never)]
 pub(super) fn add_pseudos(w: &mut Walk, id: usize, link: &Option<String>, kids: &mut Vec<BoxNode>) {
-    let Some((before, after)) = w.pseudos.get(id) else {
-        return;
-    };
-    if let Some(b) = before {
+    let host = &w.styles[id];
+    let blockify = host.is_flex || host.is_grid;
+    for p in &w.pseudos[id] {
+        let (Some(text), first) = (&p.text, p.kind == PseudoText::BEFORE) else { continue };
+        if !matches!(p.kind, PseudoText::BEFORE | PseudoText::AFTER) {
+            continue;
+        }
+        let Some(node) = pseudo_box(p, text, link, (id, blockify)) else { continue };
         *w.count += 1;
-        kids.insert(0, pseudo(b, link, id));
+        if first {
+            kids.insert(0, node);
+        } else {
+            kids.push(node);
+        }
     }
-    if let Some(a) = after {
-        *w.count += 1;
-        kids.push(pseudo(a, link, id));
-    }
-}
-
-fn pseudo(p: &PseudoText, link: &Option<String>, id: usize) -> BoxNode {
-    let mut node = leaf(BoxKind::Text(p.text.clone()), &p.style, link, id);
-    node.style = *p.style;
-    node
 }

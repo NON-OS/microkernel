@@ -30,5 +30,5 @@ pub use collect::collect_font_faces;
 pub use em_units::{ch_px, ex_px};
 pub use ingest::ingest_font;
 pub use key::family_key;
-pub use registry::clear;
+pub use registry::{clear, with_face};
 pub use text::{content_height, draw_text, measure_text, TextRun};

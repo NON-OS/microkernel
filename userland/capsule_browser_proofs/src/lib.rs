@@ -3,12 +3,9 @@
  * gate, not this one. Vendoring it under -D warnings would make a lint in a
  * file this crate does not own fail the proof run, so the three that reach
  * across the boundary are allowed here and nowhere else. */
-#![allow(clippy::redundant_closure)]
-#![allow(clippy::manual_is_multiple_of)]
-#![allow(clippy::too_many_arguments)]
-//! Host proofs for the browser engine. Real engine source is included via
-//! #[path] under a module tree mirroring the capsule's paths (real directories
-//! so the relative includes resolve), so the files compile unchanged.
+#![allow(clippy::redundant_closure, clippy::manual_is_multiple_of, clippy::too_many_arguments)]
+//! Host proofs for the browser engine: its real source is included by #[path]
+//! under a tree mirroring the capsule's paths, so the files compile unchanged.
 extern crate alloc;
 
 pub mod browser;
@@ -18,6 +15,8 @@ pub mod render;
 
 #[cfg(test)]
 mod canvas_tests;
+#[cfg(test)]
+mod cascade_proofs;
 #[cfg(test)]
 mod cascade_tests;
 #[cfg(test)]
@@ -36,6 +35,7 @@ mod dom_tests;
 mod entity_tests;
 #[cfg(test)]
 mod fallback_tests;
+#[cfg(test)]
 mod fetch_proofs;
 #[cfg(test)]
 mod float_tests;

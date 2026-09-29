@@ -27,7 +27,7 @@ use super::tree::BoxNode;
 use super::walk::{ElementIn, Walk};
 
 pub(super) const MAX_DEPTH: u32 = 400;
-pub(super) const MAX_BOXES: usize = 20_000;
+const MAX_BOXES: usize = 20_000;
 
 /* Build the box children of node `id`, recursing into elements. Text goes
  * through the white-space policy; elements through the per-tag
@@ -54,10 +54,8 @@ pub(super) fn collect(
             /* display: contents makes no box: the element's children join
              * this run directly (grid shells rely on this). The style is
              * borrowed, not copied, to keep this recursive frame small. */
-            NodeKind::Element
-                if styles.get(ch).is_some_and(|s| s.is_contents && !s.display_none) =>
-            {
-                let spliced = collect(w, ch, styles.get(ch).unwrap_or(parent), link, depth + 1);
+            NodeKind::Element if styles[ch].is_contents && !styles[ch].display_none => {
+                let spliced = collect(w, ch, &styles[ch], link, depth + 1);
                 out.extend(spliced);
             }
             NodeKind::Element => {

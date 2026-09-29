@@ -5,9 +5,11 @@
 
 use capsule_browser_proofs::browser::css::parse::parse;
 
-/* Whether the rule inside `@media <cond>` is kept. */
+/* Whether the rule inside `@media <cond>` is kept. The parse also records
+ * the condition's verdict as a rule with no selectors, which a resize
+ * re-checks, so only a rule with selectors counts. */
 fn applies(cond: &str) -> bool {
-    parse(&format!("@media {cond} {{.a{{color:red}}}}")).len() == 1
+    parse(&format!("@media {cond} {{.a{{color:red}}}}")).iter().any(|r| !r.selectors.is_empty())
 }
 
 #[test]

@@ -14,61 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod api;
+mod append;
+mod flips;
+mod parsed;
+mod policy;
+mod query;
+mod text;
+
 use alloc::vec::Vec;
 
 use crate::browser::dom::Dom;
 
-use super::compute::{cascade, compute};
-use super::parse::parse;
+use super::compute::{cascade, Author, Inputs, Styled};
 use super::rule::Rule;
+use super::rule_index::RuleIndex;
+use text::TextKey;
 
-/* Parsed author rules kept alive between relayouts, tagged with a cheap
- * signature of the CSS text they came from and the viewport the parse ran
- * at: @media blocks are chosen while parsing, so a resize has to re-parse.
- * JS-driven relayouts reuse the parse instead of re-parsing the whole sheet. */
+/* Parsed sheets kept between relayouts, and the last cascade. The rules
+ * are tagged with the CSS text they came from and the viewport the parse
+ * ran at (@media blocks are chosen while parsing); a sheet appended to
+ * that text is parsed alone and joins them. The last styles are kept
+ * with the document fingerprint and viewport they were computed for, so
+ * a relayout that cannot change a style reuses them. */
 pub struct CssCache {
-    len: usize,
-    hash: u64,
+    text: TextKey,
     viewport: (u32, u32),
-    rules: Vec<Rule>,
+    ua: (Vec<Rule>, RuleIndex),
+    author: Author,
+    memo: Option<Memo>,
+    /* Fingerprint and viewport of the last layout. */
+    laid: Option<(u64, (u32, u32))>,
+    /* The <noscript> policy's inputs: QuickJS on, and whether the page's
+     * scripts ran without failing, None when that is not known. */
+    js: (bool, Option<bool>),
+}
+
+/* One cascade's result and what it was computed from. */
+struct Memo {
+    print: u64,
+    viewport: (u32, u32),
+    js: (bool, Option<bool>),
+    styled: Styled,
 }
 
 /* Cascade with a persistent parse cache at the page viewport `viewport`
  * (width, height in px), which vw/vh units and @media features resolve
- * against. Re-parses only when the CSS text (length or content hash) or the
- * viewport changed; otherwise the cached rules are reused. The index build
- * still runs per call since it depends on the current tree, but it is cheap
- * next to parsing. */
+ * against. The parse is reused while the CSS text and viewport stand. */
 pub fn compute_cached(
     dom: &Dom,
     author_css: &str,
     viewport: (u32, u32),
     cache: &mut Option<CssCache>,
-) -> super::compute::Styled {
+) -> Styled {
     let _held = super::calc::viewport::enter(viewport.0, viewport.1);
-    let len = author_css.len();
-    let hash = fnv1a(author_css.as_bytes());
-    let fresh =
-        matches!(cache, Some(c) if c.len == len && c.hash == hash && c.viewport == viewport);
-    if !fresh {
-        *cache = Some(CssCache { len, hash, viewport, rules: parse(author_css) });
-    }
-    let rules: &[Rule] = match cache {
-        Some(c) => &c.rules,
-        /* Parse should have populated the cache above; fall back to the plain
-         * path rather than trusting an empty cache. */
-        None => return compute(dom, author_css),
-    };
-    cascade(dom, rules)
-}
-
-/* FNV-1a over the CSS bytes. Paired with the length it makes a same-length
- * content change invalidate the cache, so a stale parse cannot be reused. */
-fn fnv1a(bytes: &[u8]) -> u64 {
-    let mut h = 0xcbf2_9ce4_8422_2325u64;
-    for &b in bytes {
-        h ^= b as u64;
-        h = h.wrapping_mul(0x0000_0100_0000_01b3);
-    }
-    h
+    let c = parsed::ensure(cache, author_css, viewport);
+    cascade(dom, &Inputs { ua: (&c.ua.0, &c.ua.1), author: &c.author, js: c.js })
 }

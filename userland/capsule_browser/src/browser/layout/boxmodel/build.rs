@@ -16,14 +16,13 @@
 
 use alloc::string::String;
 
-use crate::browser::css::{Computed, GridSpec, PseudoText};
 use crate::browser::dom::Dom;
 
 use super::collect::collect;
 use super::geom::body_id::{body_id, root_id};
 use super::post::propagate::{fill_natural, propagate};
 use super::tree::{BoxKind, BoxNode};
-use super::walk::Walk;
+use super::walk::{Grids, Pseudos, Styles, Walk};
 use super::wrap_mixed::wrap_mixed;
 
 /// An image's natural size (width, height) in px by its src, when known.
@@ -37,14 +36,14 @@ pub type Natural<'a> = &'a dyn Fn(&str) -> Option<(u32, u32)>;
  * image learns its natural size from `natural`. */
 pub fn build(
     dom: &Dom,
-    styles: &[Computed],
+    styles: Styles<'_>,
     bg_images: &[Option<String>],
-    grids: &[Option<GridSpec>],
-    pseudos: &[(Option<PseudoText>, Option<PseudoText>)],
+    grids: Grids<'_>,
+    pseudos: Pseudos<'_>,
     natural: Natural<'_>,
 ) -> BoxNode {
     let root_id = root_id(dom);
-    let style = styles.get(root_id).copied().unwrap_or_else(Computed::root);
+    let style = styles[root_id];
     let mut count = 0usize;
     let mut w = Walk { dom, styles, bg_images, grids, pseudos, count: &mut count };
     let children = collect(&mut w, root_id, &style, &None, 0);

@@ -8,6 +8,8 @@
 pub mod css;
 #[path = "../../../capsule_browser/src/browser/dom/mod.rs"]
 pub mod dom;
+#[path = "../../../capsule_browser/src/browser/event/dom_print.rs"]
+pub mod dom_print;
 #[path = "../../../capsule_browser/src/browser/fonts/mod.rs"]
 pub mod fonts;
 #[path = "../../../capsule_browser/src/browser/html/mod.rs"]

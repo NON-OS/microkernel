@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Commit a freshly homed HTML DOM: run its scripts through QuickJS, retain the
-//! engine for event dispatch, and lay the mutated tree out.
+//! Commit a freshly homed HTML DOM: run its scripts through QuickJS, retain
+//! the engine for event dispatch, queue its stylesheets, and lay the mutated
+//! tree out unless a stylesheet is still to come.
 
 use crate::browser::event::relayout;
 use crate::browser::js::World;
@@ -29,9 +30,9 @@ use crate::browser::url::join;
 /// before replacing the DOM. The inert tree-walk world is set so the timer and
 /// script-fetch pumps have something to read while the engine owns page state.
 pub fn commit_html(state: &mut State) {
-    // The document has to know where it came from before a script runs.
-    // `location` is read during setup on most pages, and a relative href
-    // resolved against the wrong address points somewhere else entirely.
+    /* The document has to know where it came from before a script runs.
+     * `location` is read during setup on most pages, and a relative href
+     * resolved against the wrong address points somewhere else entirely. */
     let base = state.base.as_ref().map(|u| join(u, "")).unwrap_or_default();
     let engine = match state.page_dom.as_mut() {
         Some(dom) => {
@@ -42,5 +43,11 @@ pub fn commit_html(state: &mut State) {
     };
     state.engine = engine;
     state.world = Some(World::empty());
-    relayout(state);
+    /* Stylesheets are render-blocking: while one is queued, the layout
+     * waits for it rather than being made and thrown away. Queueing is
+     * idempotent, so a caller that queues again adds nothing. */
+    super::enqueue_css::enqueue_css(state);
+    if state.css_queue.is_empty() {
+        relayout(state);
+    }
 }

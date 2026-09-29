@@ -18,7 +18,7 @@ use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::browser::css::Computed;
+use crate::browser::css::{Computed, PseudoText};
 
 use super::abs_out_of_flow::out_of_flow;
 use super::leaf::leaf;
@@ -26,8 +26,8 @@ use super::tree::{BoxKind, BoxNode};
 use super::walk::{ElementIn, Walk};
 
 /* A list item leads with its marker: the ordinal in an <ol>, a bullet
- * elsewhere, unless list-style-type: none suppressed it. Kept out of line
- * so its box is not held in every level of the box-tree recursion. */
+ * elsewhere, unless list-style-type: none suppressed it. A ::marker rule
+ * styles it (colour, font, size) and its content replaces the text. */
 #[inline(never)]
 pub(super) fn add_marker(
     w: &mut Walk,
@@ -38,13 +38,18 @@ pub(super) fn add_marker(
     if item.c.tag != "li" || style.list_none {
         return;
     }
-    let marker = if item.parent_tag == "ol" {
-        format!("{}. ", item.ordinal)
-    } else {
-        String::from("\u{2022} ")
+    let styled = w.pseudos[item.ch].iter().find(|p| p.kind == PseudoText::MARKER);
+    let marker = match styled.and_then(|p| p.text.clone()) {
+        Some(text) => text,
+        None if item.parent_tag == "ol" => format!("{}. ", item.ordinal),
+        None => String::from("\u{2022} "),
     };
     *w.count += 1;
-    attach_marker(kids, leaf(BoxKind::Text(marker), style, &None, item.ch));
+    let mut node = leaf(BoxKind::Text(marker), style, &None, item.ch);
+    if let Some(p) = styled {
+        node.style = p.style;
+    }
+    attach_marker(kids, node);
 }
 
 /* The marker belongs on the list item's first line. As a sibling of a

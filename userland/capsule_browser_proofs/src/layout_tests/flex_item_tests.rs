@@ -29,7 +29,7 @@ fn inline_flex_is_content_plus_padding_on_its_line() {
         VP,
     );
     let pill = p.rect("pill");
-    let (how, works, tail) = (p.word("How"), p.word(" works"), p.word("tail"));
+    let (how, works, tail) = (p.word("How"), p.word("works"), p.word("tail"));
     let content = works.x + works.w - how.x;
     assert_eq!(pill[2], content + 52, "pill {pill:?} content {content}");
     assert_eq!(how.x, pill[0] + 26, "text starts inside the left padding");

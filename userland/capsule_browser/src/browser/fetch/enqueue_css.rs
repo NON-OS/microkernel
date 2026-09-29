@@ -17,6 +17,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use crate::browser::css::CssCache;
 use crate::browser::dom::node::NodeKind;
 use crate::browser::state::State;
 use crate::browser::url;
@@ -29,8 +30,9 @@ const MAX_SHEETS: usize = 16;
 
 /* Queue the href of every <link> stylesheet that applies to this page (see
  * sheet_applies: no alternate, disabled, foreign-type or non-matching media
- * sheets), resolved against the page base, for fetching. The page renders
- * first with inline <style> only; these arrive after and restyle it. */
+ * sheets, and none inside a <noscript> whose content does not render),
+ * resolved against the page base, for fetching. The page renders first with
+ * inline <style> only; these arrive after and restyle it. */
 pub fn enqueue_css(state: &mut State) {
     let Some(base) = state.base.clone() else { return };
     let Some(dom) = state.page_dom.as_ref() else { return };
@@ -40,7 +42,8 @@ pub fn enqueue_css(state: &mut State) {
         if node.kind != NodeKind::Element || node.tag != "link" {
             continue;
         }
-        if !sheet_applies(|k| node.attr(k), viewport) {
+        let noscript_ok = CssCache::sheet_loads(dom, node.parent, state.engine.is_some());
+        if !sheet_applies(|k| node.attr(k), viewport) || !noscript_ok {
             continue;
         }
         let Some(href) = node.attr("href") else { continue };

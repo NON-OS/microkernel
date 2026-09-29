@@ -33,7 +33,7 @@ std::thread_local!(pub(crate) static MEASURES: core::cell::Cell<usize> = const {
 pub(in super::super) fn measure(s: &Computed, w: &str) -> i32 {
     #[cfg(feature = "harness")]
     MEASURES.with(|m| m.set(m.get() + 1));
-    let px = s.font_size_px as f32;
+    let px = s.font_px;
     crate::browser::fonts::measure_text(s.font_key, s.mono, s.bold, w, px, s.letter_spacing)
 }
 

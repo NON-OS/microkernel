@@ -14,78 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod layer_tree;
+mod layers;
+mod noscript;
+mod pseudos;
+mod sheets;
+mod start;
+mod styles;
+
+use alloc::boxed::Box;
 use alloc::string::String;
-use alloc::vec;
 use alloc::vec::Vec;
 
 use crate::browser::dom::Dom;
 
-use super::computed::Computed;
-use super::matching::Siblings;
-use super::parse::parse;
-use super::pseudo_style::PseudoText;
-use super::rule::Rule;
-use super::rule_index::RuleIndex;
-use super::ua::ua_rules;
-use super::vars::collect_vars;
-use super::walk::walk;
+use super::grid_spec::GridSpec;
+pub(super) use noscript::shows as noscript_shows;
+pub use pseudos::Pseudos;
+pub(super) use sheets::{Author, Inputs};
+pub use styles::Styles;
 
-// The cascade output: a computed style per node, and the background image url
-// per node so the layout can attach it without carrying a string in the Copy
-// style struct.
+/* The cascade output, per node: the computed style, the background image
+ * (a url or a gradient, kept beside the Copy style), the named-grid data
+ * (template lines and areas on containers, requested placement on
+ * items), and the pseudo-elements of the elements that have any. */
 pub struct Styled {
-    pub styles: Vec<Computed>,
+    pub styles: Styles,
     pub bg_images: Vec<Option<String>>,
-    // Named-grid data per node: template lines and areas on containers,
-    // requested placement on items.
-    pub grids: Vec<Option<super::grid_spec::GridSpec>>,
-    // Generated content per node: the cascaded ::before and ::after boxes.
-    pub pseudos: Vec<(Option<PseudoText>, Option<PseudoText>)>,
+    pub grids: Vec<Option<Box<GridSpec>>>,
+    pub pseudos: Pseudos,
 }
 
+/* Parse `author_css` and cascade it over `dom`: the direct path the
+ * render harness uses; the capsule goes through CssCache. */
+#[cfg(feature = "harness")]
 pub fn compute(dom: &Dom, author_css: &str) -> Styled {
-    let author = parse(author_css);
-    cascade(dom, &author)
+    let ua = super::ua::ua_rules();
+    let ua_index = super::rule_index::RuleIndex::build(&ua, false);
+    let author = Author::new(super::parse::parse(author_css));
+    cascade(dom, &Inputs { ua: (&ua, &ua_index), author: &author, js: (true, None) })
 }
 
-// Cascade an already-parsed author rule set over the tree. Shared by the
-// uncached path and the cached relayout path. Author matching runs under a
-// work budget enforced per candidate test, so a hostile sheet degrades from
-// the document tail instead of losing rules everywhere.
-pub(super) fn cascade(dom: &Dom, author: &[Rule]) -> Styled {
-    let ua = ua_rules();
-    let mut budget = super::budget::MatchBudget::new();
-    // Custom properties resolve against a global token table before any
-    // per-element parse sees the substituted value.
-    let vars = collect_vars(&ua, author, dom);
-    let ua_index = RuleIndex::build(&ua);
-    let author_index = RuleIndex::build(author);
-    let n = dom.nodes.len();
-    let mut styles = vec![Computed::root(); n];
-    let mut bg_images = vec![None; n];
-    let mut grids: Vec<Option<super::grid_spec::GridSpec>> = Vec::new();
-    grids.resize_with(n, || None);
-    let mut pseudos: Vec<(Option<PseudoText>, Option<PseudoText>)> = Vec::new();
-    pseudos.resize_with(n, || (None, None));
-    // Pseudo cascading only runs when the sheet declares any pseudo rules.
-    let has_pseudos = author.iter().any(|r| r.selectors.iter().any(|s| s.element != 0));
-    let sib = Siblings::table(dom);
-    walk(
-        dom,
-        &sib,
-        0,
-        Computed::root(),
-        &ua,
-        &ua_index,
-        author,
-        &author_index,
-        &vars,
-        &mut styles,
-        &mut bg_images,
-        &mut grids,
-        if has_pseudos { Some(&mut pseudos) } else { None },
-        &mut budget,
-        0,
-    );
-    Styled { styles, bg_images, grids, pseudos }
+/* Cascade parsed sheets over the tree. Author matching runs under a work
+ * budget, so a hostile sheet degrades styling from the end of the
+ * document instead of stalling the page. */
+pub(super) fn cascade(dom: &Dom, input: &Inputs) -> Styled {
+    let sib = super::matching::Siblings::table(dom);
+    let mut w = input.walker(dom, &sib, noscript::shows(dom, input.js));
+    let root = super::vars::VarScope::root();
+    let top = super::computed::Computed::root();
+    super::walk::walk(&mut w, 0, (&top, 0, &root), 0);
+    let out = w.out;
+    Styled {
+        styles: out.styles,
+        bg_images: out.bg_images,
+        grids: out.grids,
+        pseudos: Pseudos::from(out.pseudos),
+    }
 }

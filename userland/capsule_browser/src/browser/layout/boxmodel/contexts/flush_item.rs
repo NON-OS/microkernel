@@ -44,8 +44,7 @@ pub(in super::super) fn flush_item(
                 true => (x - lead.space, adv + lead.space, [" ", &text].concat()),
                 false => (x, adv, text),
             };
-            let (px, color, bold, mono, font) =
-                (ink.px as f32, ink.color, ink.bold, ink.mono, ink.font);
+            let (px, color, bold, mono, font) = (ink.px, ink.color, ink.bold, ink.mono, ink.font);
             let (underline, spacing, italic) = (ink.underline, ink.spacing, ink.italic);
             let text =
                 Content::Text { text, color, px, bold, mono, underline, font, spacing, italic };

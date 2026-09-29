@@ -33,5 +33,8 @@ pub fn media_query_matches(query: &str, w: u32, h: u32) -> bool {
     }
     let _held = crate::browser::css::calc::viewport::enter(w, h);
     let sheet = format!("@media {q}{{a{{color:red}}}}");
-    !crate::browser::css::parse::parse(&sheet).is_empty()
+    /* The parse records a verdict rule for every condition; the query holds
+     * when the style rule inside it survived. */
+    let rules = crate::browser::css::parse::parse(&sheet);
+    rules.iter().any(|r| r.flags & crate::browser::css::rule::Rule::COND == 0)
 }

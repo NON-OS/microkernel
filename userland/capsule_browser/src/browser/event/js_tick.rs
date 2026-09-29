@@ -20,26 +20,28 @@ use crate::browser::state::State;
 use super::relayout::relayout;
 use super::script_nav::take_script_nav;
 
-// One app tick for the page's timers. Returns whether anything ran and the
-// screen needs repainting.
+/* One app tick for the page's timers. Returns whether the screen needs
+ * repainting: a timer changed the display list, or asked to navigate.
+ * Timers that ran and changed nothing (an animation loop, a poll) cost a
+ * fingerprint of the document and report false, so the tick goes on to
+ * the fetch pumps instead of stalling the load behind them. */
 pub fn js_tick(state: &mut State) -> bool {
-    // The page's own timers, in the engine that ran its scripts. Nothing was
-    // draining this queue, so every callback a page deferred sat in it: the
-    // work a page does after its first paint never happened at all.
+    /* The page's own timers, in the engine that ran its scripts. */
     let ran = match state.engine.as_ref() {
         Some(engine) => engine.flush_timers(nonos_libc::mk_uptime_ms() as u64) > 0,
         None => false,
     };
+    let mut changed = false;
     if ran {
-        relayout(state);
+        changed = relayout(state);
         take_script_nav(state);
     }
-    let (fired, dirty) = match (state.page_dom.as_mut(), state.world.as_mut()) {
-        (Some(dom), Some(world)) => js::pump_timers(dom, world),
-        _ => return ran,
+    let dirty = match (state.page_dom.as_mut(), state.world.as_mut()) {
+        (Some(dom), Some(world)) => js::pump_timers(dom, world).1,
+        _ => false,
     };
     if dirty {
-        relayout(state);
+        changed |= relayout(state);
     }
-    fired || ran
+    changed || state.pending_nav.is_some()
 }

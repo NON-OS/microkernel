@@ -14,48 +14,59 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod at_rule;
+mod block;
+mod container;
+mod cost;
+mod cx;
+mod element;
+mod layer;
+mod nesting;
+mod ops;
+mod property;
+pub(super) mod scan;
+mod scope;
+mod select;
+mod supports;
+mod verdict;
+
 use alloc::vec::Vec;
 
-use crate::browser::css::calc::viewport;
-use crate::browser::css::rule::Rule;
-
-use super::decls::parse_decls;
+use super::decls::parse_decl;
 use super::matching_brace::matching_brace;
-use super::media_matches::media_matches;
-use super::selectors::parse_selectors;
+use block::{block, flush, Parent};
+pub(super) use cx::Cx;
+use scan::item_end;
 
-const MAX_RULES: usize = 4096;
-const MAX_MEDIA_DEPTH: u32 = 4;
+/* Nesting of style rules and conditional blocks followed; deeper blocks
+ * are skipped whole, which bounds the parser's recursion. */
+const MAX_DEPTH: u32 = 16;
 
-/* Append the rules found in `src`. @media blocks matching the viewport
- * recurse; other at-rules skip their whole block, and statement at-rules
- * (@import;) drop off the selector head. */
-pub(super) fn parse_into(src: &str, rules: &mut Vec<Rule>, depth: u32) {
-    let mut rest = src;
-    while let Some(open) = rest.find('{') {
-        let head = rest[..open].trim();
-        let head = head.rsplit(';').next().unwrap_or("").trim();
-        let after = &rest[open + 1..];
-        if let Some(cond) = head.strip_prefix("@media") {
-            let end = matching_brace(after);
-            if depth < MAX_MEDIA_DEPTH && media_matches(cond, viewport::width()) {
-                parse_into(&after[..end], rules, depth + 1);
-            }
-            rest = after.get(end + 1..).unwrap_or("");
-        } else if head.starts_with('@') {
-            let end = matching_brace(after);
-            rest = after.get(end + 1..).unwrap_or("");
-        } else {
-            let close = after.find('}').unwrap_or(after.len());
-            let selectors = parse_selectors(head);
-            let decls = parse_decls(&after[..close]);
-            if !selectors.is_empty() && !decls.is_empty() {
-                rules.push(Rule { selectors, decls });
-            }
-            rest = after.get(close + 1..).unwrap_or("");
-        }
-        if rules.len() >= MAX_RULES {
+/* Append the rules of `src`: a whole sheet at top level, or the block of a
+ * style rule (`parent`) holding declarations, nested rules and nested
+ * conditional at-rules. Each item ends at a top-level ';' or block. */
+pub(super) fn parse_into(src: &str, cx: &mut Cx, depth: u32, parent: Option<&Parent>) {
+    let (mut rest, mut own) = (src, Vec::new());
+    while !cx.full() {
+        rest = rest.trim_start();
+        if rest.is_empty() {
             break;
         }
+        let stop = item_end(rest, parent.is_some());
+        let (head, tail) = (rest[..stop].trim(), &rest[stop..]);
+        if let Some(open) = tail.strip_prefix('{') {
+            let end = matching_brace(open);
+            rest = open.get(end + 1..).unwrap_or("");
+            flush(&mut own, parent, cx);
+            block(head, &open[..end], cx, depth, parent);
+            continue;
+        }
+        rest = tail.get(1..).unwrap_or("");
+        if head.starts_with('@') {
+            at_rule::statement(head, cx);
+        } else if let Some(d) = parent.and(parse_decl(head)) {
+            own.push(d);
+        }
     }
+    flush(&mut own, parent, cx);
 }

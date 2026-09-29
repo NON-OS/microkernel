@@ -33,14 +33,14 @@ pub(super) fn resolve_grid_places(
     kids: &mut [BoxNode],
 ) {
     let empty = GridSpec::default();
-    let cont = w.grids.get(container_id).and_then(|s| s.as_ref()).unwrap_or(&empty);
+    let cont = w.grids.get(container_id).and_then(|s| s.as_deref()).unwrap_or(&empty);
     let area_cols = cont.areas.iter().map(|r| r.len()).max().unwrap_or(0);
     /* An auto-repeat template's column count is known only at layout. */
     let cols = style.grid_auto.is_none().then(|| (style.grid_col_n as usize).max(area_cols));
     let rows = Some((style.grid_row_n as usize).max(cont.areas.len()));
     for kid in kids.iter_mut().filter(|k| k.dom_id != 0) {
         let Some(item) =
-            w.grids.get(kid.dom_id).and_then(|s| s.as_ref()).filter(|i| i.places_item())
+            w.grids.get(kid.dom_id).and_then(|s| s.as_deref()).filter(|i| i.places_item())
         else {
             continue;
         };
