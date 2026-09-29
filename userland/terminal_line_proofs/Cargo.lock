@@ -3,5 +3,12 @@
 version = 4
 
 [[package]]
+name = "nonos_vt"
+version = "0.1.0"
+
+[[package]]
 name = "terminal_line_proofs"
 version = "0.1.0"
+dependencies = [
+ "nonos_vt",
+]

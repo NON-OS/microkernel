@@ -39,6 +39,7 @@ pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
     let argv = argv_blob(stem, &args[1..]);
     match call_installer(stem, &argv) {
         Ok(pid) => {
+            crate::jobs::tty::attach(state, pid);
             let work = JobWork::ExternalStage { pid, in_buf: Vec::new(), in_cursor: 0 };
             let _ = submit(state, stem, false, work);
             state.fg_running = true;

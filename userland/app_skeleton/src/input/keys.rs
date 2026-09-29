@@ -29,4 +29,8 @@ pub const KEY_HOME: u32 = 0x1205;
 pub const KEY_END: u32 = 0x1206;
 pub const KEY_PAGE_UP: u32 = 0x1207;
 pub const KEY_PAGE_DOWN: u32 = 0x1208;
+pub const KEY_INSERT: u32 = 0x1209;
 pub const KEY_DELETE: u32 = 0x120A;
+/// F1; F2 to F12 follow in order.
+pub const KEY_F1: u32 = 0x1101;
+pub const KEY_F12: u32 = 0x110C;

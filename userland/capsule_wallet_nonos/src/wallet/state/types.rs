@@ -229,4 +229,8 @@ pub struct State {
     /// Starts `Unknown` and is only ever set from a real lookup, so the
     /// shielded screens cannot enable themselves by default.
     pub shield: crate::wallet::shield::probe::Shield,
+    /* The Shield screens: which is up and what was picked on it. */
+    pub shield_ui: super::shield_ui::ShieldUi,
+    /* The Swap screen's no-price banner, dismissed until the amount changes. */
+    pub swap_note_hidden: bool,
 }

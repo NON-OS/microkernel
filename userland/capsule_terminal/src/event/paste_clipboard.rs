@@ -16,11 +16,11 @@
 
 use nonos_app_skeleton::{clipboard_paste, EventOutcome};
 
-use crate::term::dimensions::COLS;
+use crate::term::dimensions::LINE_MAX;
 use crate::term::state::State;
 
 pub fn paste_clipboard(state: &mut State) -> EventOutcome {
-    let mut buf = [0u8; COLS];
+    let mut buf = [0u8; LINE_MAX];
     let n = match clipboard_paste(&mut buf) {
         Ok(n) => n.min(buf.len()),
         Err(_) => return EventOutcome::Idle,
@@ -45,7 +45,7 @@ pub fn paste_clipboard(state: &mut State) -> EventOutcome {
             changed = true;
         }
     }
-    // The input line holds COLS bytes, so anything longer cannot fit. Say so
+    // The input line holds LINE_MAX bytes, so anything longer cannot fit. Say so
     // instead of leaving a silently shortened command on the prompt.
     if multiline {
         state.scrollback.push_line(b"paste: first line only");

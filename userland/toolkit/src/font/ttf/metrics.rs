@@ -24,9 +24,7 @@ use super::readable::readable_px;
 // the readable floor, the same clamp draw_text applies, so measured runs match
 // what is painted.
 pub fn measure(text: &str, px: f32, mono: bool) -> i32 {
-    let px = readable_px(px);
-    let Some(f) = face(mono) else { return 0 };
-    measure_with(f, text, px)
+    super::fallback::measure(text, px, mono)
 }
 
 // Same measurement with a caller-provided face, matching draw_text_with.

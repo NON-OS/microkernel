@@ -327,6 +327,11 @@ $(NONOS_STD_PAL_STAMP): $(NONOS_STD_PAL_SRCS) | $(TARGET_DIR)/.nonos-toolchain.s
 	@echo "Applying NONOS std platform layer to rust-src..."
 	@PATH="$(HOME)/.cargo/bin:$$PATH" RUSTUP_TOOLCHAIN=$(TOOLCHAIN) \
 		toolchain/nonos-std/apply.sh
+	@# -Zbuild-std fingerprints the sysroot crates by version, not by their
+	@# sources, so a target dir that built std before the layer changed keeps
+	@# linking the old std and the tool ships without the new behaviour. The
+	@# layer just changed, so every such cache is stale: drop them.
+	@rm -rf userland/upstream-src/*/target userland/capsule_std_proof/target
 	@mkdir -p $(TARGET_DIR)
 	@touch $@
 

@@ -18,11 +18,15 @@
 //! status line, balances and the table of what can be pressed.
 
 pub mod amounts;
+pub mod backup;
+pub mod backup_words;
 pub mod hits;
 pub mod home;
 mod home_actions;
 mod home_pills;
 pub mod receive;
 pub mod receive_address;
+pub mod shield;
+pub mod swap;
 pub mod status;
 pub mod welcome;

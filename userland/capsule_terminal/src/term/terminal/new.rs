@@ -41,6 +41,8 @@ impl Terminal {
             rail_scroll: 0,
             layout: None,
             palette: Palette::new(),
+            cells: None,
+            ptr: Default::default(),
         }
     }
 }

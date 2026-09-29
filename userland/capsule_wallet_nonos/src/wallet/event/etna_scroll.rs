@@ -18,7 +18,7 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use super::etna_click::on_etna;
+use super::on_etna::on_etna;
 use crate::wallet::screen::hits::limit;
 use crate::wallet::state::State;
 

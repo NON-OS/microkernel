@@ -114,6 +114,8 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MAPL", SyscallNumber::MkAppLaunch, "MkAppLaunch"),
     e(b"MAIS", SyscallNumber::MkAppInstallStatus, "MkAppInstallStatus"),
     e(b"MTRN", SyscallNumber::MkToolRun, "MkToolRun"),
+    e(b"MTTY", SyscallNumber::MkTtySet, "MkTtySet"),
+    e(b"MTTQ", SyscallNumber::MkTtyQuery, "MkTtyQuery"),
     e(b"MSOW", SyscallNumber::MkStdoutWrite, "MkStdoutWrite"),
     e(b"MSWR", SyscallNumber::MkStoreWrite, "MkStoreWrite"),
     e(b"MCVF", SyscallNumber::MkCapsuleVerify, "MkCapsuleVerify"),

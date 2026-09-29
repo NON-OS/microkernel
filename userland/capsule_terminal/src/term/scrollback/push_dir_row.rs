@@ -30,9 +30,9 @@ impl Scrollback {
             self.push_line(&joined);
             return;
         }
-        self.grid.feed(plain);
-        self.grid.feed(b"\x1b[94m");
-        self.grid.feed(name);
-        self.grid.feed(b"\x1b[0m\n");
+        self.feed_raw(plain);
+        self.feed_raw(b"\x1b[94m");
+        self.feed_raw(name);
+        self.feed_raw(b"\x1b[0m\n");
     }
 }

@@ -21,7 +21,7 @@ use crate::command;
 use crate::jobs;
 use crate::term::context::context_line;
 use crate::term::cwd::home_var;
-use crate::term::dimensions::COLS;
+use crate::term::dimensions::LINE_MAX;
 use crate::term::identity::{hostname, USER};
 use crate::term::prompt::PROMPT_BYTES;
 use crate::term::state::State;
@@ -34,20 +34,20 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
     state.fresh = false;
     let started = mk_time_millis();
     state.open_block(crate::term::rtc::rtc_hms());
-    let mut ctx = [0u8; COLS];
+    let mut ctx = [0u8; LINE_MAX];
     let cn = context_line(USER, hostname(), state.cwd.as_bytes(), home_var(state), &mut ctx);
     state.scrollback.push_line(&ctx[..cn]);
     // A `!` form is resolved before anything else sees the line, so what is
     // echoed, recorded in history and run are all the same text. Expanding
     // later would put one command on screen and another through the parser.
-    let mut entered = [0u8; COLS];
+    let mut entered = [0u8; LINE_MAX];
     let n;
     match crate::term::history::expand(state.line.as_bytes(), &state.history) {
         // The expansion is what gets echoed, which is the whole safety of the
         // feature: the reader sees the command that is about to run, not the
         // shorthand they typed for it.
         Some(Ok(line)) => {
-            n = line.len().min(COLS);
+            n = line.len().min(LINE_MAX);
             entered[..n].copy_from_slice(&line[..n]);
         }
         Some(Err(_)) => {
@@ -67,7 +67,7 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
             entered[..n].copy_from_slice(body);
         }
     }
-    let mut echo = [0u8; COLS + 8];
+    let mut echo = [0u8; LINE_MAX + 8];
     let mut k = 0;
     k += copy_into(&mut echo[k..], PROMPT_BYTES);
     k += copy_into(&mut echo[k..], &entered[..n]);

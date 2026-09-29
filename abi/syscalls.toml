@@ -41,6 +41,7 @@ ENODEV       = -19
 ENOTDIR      = -20
 EISDIR       = -21
 EINVAL       = -22
+ENOTTY       = -25
 ETXTBSY      = -26
 ERANGE       = -34
 ENOSYS       = -38
@@ -118,6 +119,8 @@ MTMS = 0x534D544D
 MTRN = 0x4E52544D
 MTRT = 0x5452544D
 MTSP = 0x5053544D
+MTTQ = 0x5154544D
+MTTY = 0x5954544D
 MWAT = 0x5441574D
 CRND = 0x444E5243
 CHSH = 0x48534843
@@ -801,6 +804,18 @@ ret  = {type="i64"}
 nr   = 0x5053544D
 caps = ["IPC"]
 args = [{name="entry",type="u64",dir="in"},{name="stack",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MTTQ]
+nr   = 0x5154544D
+caps = ["valid_token"]
+args = [{name="fd",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MTTY]
+nr   = 0x5954544D
+caps = ["IPC"]
+args = [{name="pid",type="u64",dir="in"},{name="streams",type="u64",dir="in"},{name="cols",type="u64",dir="in"},{name="rows",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MWAT]

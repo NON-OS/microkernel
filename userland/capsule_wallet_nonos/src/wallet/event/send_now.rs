@@ -54,8 +54,8 @@ fn sign_nox(state: &mut State) {
         return;
     }
     // Fresh nonce and fee at send time, or refuse rather than sign a bad tx.
-    if !super::tx_freshen::freshen_nonce_and_fee(state) {
-        state.status = b"cannot reach network for nonce and fee, try again";
+    if let Err(why) = super::tx_freshen::freshen_nonce_and_fee(state) {
+        state.status = why;
         return;
     }
     let raw = sign_nox_transfer(

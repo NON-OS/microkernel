@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::Line;
-use crate::term::dimensions::COLS;
+use crate::term::dimensions::LINE_MAX;
 
 impl Line {
     pub fn insert(&mut self, byte: u8) -> bool {
-        if self.len >= COLS {
+        if self.len >= LINE_MAX {
             return false;
         }
         if self.cursor < self.len {
