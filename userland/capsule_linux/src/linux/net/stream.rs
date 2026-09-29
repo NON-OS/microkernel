@@ -14,51 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! Bytes on and off a connected socket.
+//! Bytes on a stream that reaches outside the family, through net.sockets.
 
 use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
-use crate::linux::guest::Guest;
 
 use super::call::call;
 use super::ops::{OP_CLOSE, OP_RECV, OP_SEND};
 
-/// One transfer. The server's reply buffer is the ceiling, not this.
-const MAX_IO: u64 = 32 << 10;
+/// The most net.sockets carries in one call.
+pub const MAX_IO: usize = 32 << 10;
 
-pub fn send(guest: &Guest, handle: u32, buf: u64, len: u64) -> u64 {
-    let take = len.min(MAX_IO);
-    let Some(bytes) = guest.read(buf, take as usize) else {
-        return errno::fail(errno::EFAULT);
-    };
+pub fn send_bytes(handle: u32, bytes: &[u8]) -> u64 {
     let mut body = Vec::with_capacity(4 + bytes.len());
     body.extend_from_slice(&handle.to_le_bytes());
-    body.extend_from_slice(&bytes);
+    body.extend_from_slice(bytes);
     match call(OP_SEND, &body, 0) {
-        Some((0, _)) => errno::ok(take),
+        Some((0, _)) => errno::ok(bytes.len() as u64),
         Some(_) => errno::fail(errno::EPIPE),
         None => errno::fail(errno::EIO),
     }
 }
 
-pub fn recv(guest: &Guest, handle: u32, buf: u64, len: u64) -> u64 {
-    let want = len.min(MAX_IO) as usize;
-    let Some((status, bytes)) = call(OP_RECV, &handle.to_le_bytes(), want) else {
-        return errno::fail(errno::EIO);
+/// Up to `want` bytes. net.sockets answers the same for a quiet stream, a
+/// closed one and a reset one, so any refusal reads as ECONNRESET.
+pub fn recv_bytes(handle: u32, want: usize) -> Result<Vec<u8>, u64> {
+    let want = want.min(MAX_IO);
+    let Some((status, mut bytes)) = call(OP_RECV, &handle.to_le_bytes(), want) else {
+        return Err(errno::fail(errno::EIO));
     };
     if status != 0 {
-        return errno::fail(errno::ECONNRESET);
+        return Err(errno::fail(errno::ECONNRESET));
     }
-    if bytes.is_empty() {
-        return errno::ok(0);
-    }
-    let n = bytes.len().min(want);
-    if guest.write(buf, &bytes[..n]) < n as i64 {
-        return errno::fail(errno::EFAULT);
-    }
-    errno::ok(n as u64)
+    bytes.truncate(want);
+    Ok(bytes)
 }
 
 pub fn close(handle: u32) {

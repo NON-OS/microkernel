@@ -14,16 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The descriptor a program opens to reach its nameserver.
+//! The options `opt_more` keeps, with Linux's starting values.
 
-use crate::linux::abi::errno;
-use crate::linux::guest::{Fd, Guest};
+#[derive(Clone, Copy)]
+pub struct More {
+    pub tos: u32,
+    pub ttl: u32,
+    pub priority: u32,
+    pub user_timeout: u32,
+    pub quickack: bool,
+    pub fastopen: u32,
+}
 
-/// It looks like a datagram socket and holds no handle: there is
-/// nothing on the other side of it, which is the point.
-pub fn open(guest: &mut Guest) -> u64 {
-    match crate::linux::file::install(guest, Fd::resolver()) {
-        Some(n) => errno::ok(n),
-        None => errno::fail(errno::EMFILE),
+impl Default for More {
+    fn default() -> More {
+        More { tos: 0, ttl: 64, priority: 0, user_timeout: 0, quickack: true, fastopen: 0 }
     }
 }

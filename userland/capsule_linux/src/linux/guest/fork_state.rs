@@ -46,6 +46,7 @@ impl Guest {
         g.sid = self.sid;
         g.umask = self.umask;
         g.links = self.links.clone();
+        self.sockets.fork(child, &self.fds);
         g
     }
 }

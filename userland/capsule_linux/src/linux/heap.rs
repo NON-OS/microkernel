@@ -21,8 +21,13 @@ use nonos_libc::{heap_init, heap_init_sized, mk_args};
 
 /// An install holds a distribution's index while it resolves a closure.
 /// Kali's main is 21 MB fetched and 85 MB inflated, parsed into records
-/// beside it; Alpine's is a few. A run takes the default.
+/// beside it; Alpine's is a few.
 const INSTALL_HEAP: usize = 320 << 20;
+
+/// A run holds the program it loads, read whole from the store, beside the
+/// family's own state. A 6 MB Go program outgrew the 16 MiB default while it
+/// was read; this is the most a program may be (`source::MAX_IMAGE`).
+const RUN_HEAP: usize = 64 << 20;
 
 pub fn init() {
     let mut buf = [0u8; 256];
@@ -35,6 +40,8 @@ pub fn init() {
         // it is read, with that reason, instead of here without one.
         let line = b"[LINUX] no room for a large index, installing in the default heap\n";
         let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    } else if heap_init_sized(RUN_HEAP).is_ok() {
+        return;
     }
     let _ = heap_init();
 }

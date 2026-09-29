@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! Unix domain sockets, both ends inside this capsule.
+//! The display connection: a Unix socket whose far end is this capsule.
+//! Every other Unix socket is the family's own (`net::sock`).
 
 mod conn;
 mod give;
@@ -29,8 +29,9 @@ mod sock;
 mod sock_io;
 
 pub use conn::Conn;
-pub use sock::is_unix;
+pub use path::is_display;
 pub use recvmsg::recvmsg;
 pub use sendmsg::sendmsg;
-pub use sock::{connect, socket};
+pub use sock::connect;
+pub use sock::is_unix;
 pub use sock_io::{recv, send};

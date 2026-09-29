@@ -14,54 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `connect`, for a socket the guest opened here.
-
-use alloc::vec::Vec;
+//! `connect`. On 127.0.0.0/8 the family links the two ends in the caller's
+//! own call, as Linux's loopback does, and a non-blocking socket answers
+//! EINPROGRESS all the same; anywhere else a stream goes over the mixnet.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
-use super::addr::inet;
-use super::call::call;
-use super::dns::host_for;
-use super::ops::{OP_CONNECT, OP_CONNECT_HOST};
+use super::fd::{nonblock, sock_of};
+use super::sock::{self, Domain, Proto};
+use super::sockaddr::{self, is_loopback, AF_INET};
 
 pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
-    /*
-     * A program may connect its nameserver socket before writing to
-     * it. There is nothing to reach: this capsule is the nameserver.
-     */
+    /* This capsule is the nameserver, so its socket has nothing to reach. */
     if guest.fds.get(fd as usize).is_some_and(|f| f.kind == Kind::Resolver) {
         return errno::ok(0);
     }
-    let Some(handle) = guest.socket_handle(fd) else {
-        return errno::fail(errno::ENOTSOCK);
+    let id = match sock_of(guest, fd) {
+        Ok(id) => id,
+        Err(e) => return e,
     };
-    let Some((port, ip)) = inet(guest, at, len) else {
-        return errno::fail(errno::EAFNOSUPPORT);
+    let (family, to) = match sockaddr::read(guest, at, len) {
+        Ok(v) => v,
+        Err(e) => return e,
     };
-    // An address this capsule invented for a name goes back to being the name.
-    if let Some(host) = host_for(guest, ip) {
-        return by_host(handle, &host, port);
-    }
-    let mut body = Vec::with_capacity(10);
-    body.extend_from_slice(&handle.to_le_bytes());
-    body.extend_from_slice(&ip);
-    body.extend_from_slice(&port.to_le_bytes());
-    match call(OP_CONNECT, &body, 0) {
-        Some((0, _)) => errno::ok(0),
-        Some(_) => errno::fail(errno::ECONNREFUSED),
-        None => errno::fail(errno::EIO),
-    }
-}
-
-fn by_host(handle: u32, host: &[u8], port: u16) -> u64 {
-    let Some(body) = super::host_body::host_body(handle, port, host) else {
-        return errno::fail(errno::EINVAL);
+    let Some((proto, domain)) = sock::with(|t| t.get(id).map(|s| (s.proto, s.domain))) else {
+        return errno::fail(errno::EBADF);
     };
-    match call(OP_CONNECT_HOST, &body, 0) {
-        Some((0, _)) => errno::ok(0),
-        Some(_) => errno::fail(errno::ECONNREFUSED),
-        None => errno::fail(errno::EIO),
+    match (proto, domain) {
+        (_, Domain::Unix) => super::named::connect(guest, fd, id, proto, at, len),
+        (Proto::Dgram, _) => super::connect_dgram::connect(guest, fd, id, family, to),
+        _ if family != AF_INET => errno::fail(errno::EAFNOSUPPORT),
+        _ if is_loopback(to.ip) => super::connect_lo::loopback(id, to, nonblock(guest, fd)),
+        _ => super::connect_out::connect(guest, id, to),
     }
 }

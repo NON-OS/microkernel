@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Linux x86_64 syscall numbers, by family.
 
 pub use super::nr_high::*;
 pub use super::nr_sched::*;
+pub use super::nr_sock::*;
 
 pub const READ: u64 = 0;
 pub const WRITE: u64 = 1;

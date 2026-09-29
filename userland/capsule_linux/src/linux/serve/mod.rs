@@ -28,8 +28,8 @@ mod family_waits;
 mod loop_impl;
 mod pid_map;
 mod pid_ns;
-mod refused;
 mod pid_out;
+mod refused;
 mod table;
 mod table_file;
 mod table_link;
@@ -40,6 +40,8 @@ mod tally;
 mod unserved;
 mod waits;
 mod waits_fds;
+mod waits_sock;
+mod waits_sock_kind;
 mod waits_time;
 
 pub use answer::Answer;

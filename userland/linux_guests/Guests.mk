@@ -34,6 +34,12 @@ $(NONOS_BAKED_TRUST_DIR)/keys/guest_%_publisher_mldsa65.pub: | $(CAPSULE_SIGN_BI
 # name, service port, reply port[, prebuilt ELF[, guest path]]. The enrolled
 # copy is named guest_<name>, so its certificate and trailer cannot collide
 # with a capsule's. The guest path defaults to /bin/<name>.
+# Every guest is built, signed and proven, but the store the vfs loads holds
+# at most 16 MiB, which the whole set outgrows. LINUX_GUEST_STORE_ONLY, when
+# set, names the guests the store carries, for example
+#   make LINUX_GUEST_STORE_ONLY="busybox csock" LINUX_GUEST_BOOT_ARGS=... \
+#        target/qemu-virtio-blk.img.store.stamp
+# and unset it carries them all, as before.
 define LINUX_GUEST
 CAPSULE_SLUG             := linux-guest-$(1)
 CAPSULE_HANDLE           := linux.guest.$(1)
@@ -54,10 +60,12 @@ nonos-mk-check-linux-guest-$(1)-keys: \
 	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_ed25519.pub \
 	$(NONOS_BAKED_TRUST_DIR)/keys/guest_$(1)_publisher_mldsa65.pub
 LINUX_GUEST_STORE_DEPS += $$(linux-guest-$(1)_ARTIFACTS) $$(linux-guest-$(1)_ATTESTATION)
+ifneq ($(if $(LINUX_GUEST_STORE_ONLY),$(filter $(1),$(LINUX_GUEST_STORE_ONLY)),all),)
 LINUX_GUEST_STORE_ENTRIES += --entry /linux$(or $(5),/bin/$(1))=$$(linux-guest-$(1)_BIN) \
 	--entry /linux$(or $(5),/bin/$(1)).nonos_id_cert.bin=$$(linux-guest-$(1)_CERT) \
 	--entry /linux$(or $(5),/bin/$(1)).manifest.bin=$$(linux-guest-$(1)_MANIFEST) \
 	--entry /linux$(or $(5),/bin/$(1)).zk_trailer.bin=$$(linux-guest-$(1)_ATTESTATION)
+endif
 endef
 
 $(eval $(call LINUX_GUEST,suite,4950,4951))
@@ -99,6 +107,9 @@ $(eval $(call LINUX_GUEST,gopoll,4976,4977,$(GO_OUT)/poll))
 # A goroutine spinning with no call, which only a signal to its running
 # thread can move off the one CPU the guest has.
 $(eval $(call LINUX_GUEST,gopreempt,4944,4945,$(GO_OUT)/preempt))
+# net/http inside one guest: a server on 127.0.0.1:0 and its client, twenty
+# GETs over one kept-alive connection.
+$(eval $(call LINUX_GUEST,gohttp,5002,5003,$(GO_OUT)/http))
 
 # A C guest that faults in a worker thread while main joins: it proves the
 # whole process ends, as on Linux, and that musl threads run. Static, so no
@@ -118,6 +129,36 @@ $(eval $(call LINUX_GUEST,cthreads,4974,4975,$(LINUX_GUESTS_C)/cthreads))
 $(LINUX_GUESTS_C)/cwait: $(LINUX_GUESTS_DIR)/c/cwait.c
 	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
 $(eval $(call LINUX_GUEST,cwait,4978,4979,$(LINUX_GUESTS_C)/cwait))
+
+# Sockets as Linux has them, on the family's own loopback: socketpair, a
+# listener with accept4's flags, a non-blocking connect, a refused port,
+# half-close, epoll on a listener, end of file, EAGAIN, MSG_PEEK, EPIPE, an
+# accept and a receive that wait, the options a server sets, and fork.
+$(LINUX_GUESTS_C)/csock: $(LINUX_GUESTS_DIR)/c/csock.c $(wildcard $(LINUX_GUESTS_DIR)/c/csock_*.h)
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,csock,5000,5001,$(LINUX_GUESTS_C)/csock))
+
+# Datagrams on the family's loopback: an echo, a connected socket, MSG_TRUNC,
+# a refused port, sendmmsg and recvmmsg, and no peer at all.
+$(LINUX_GUESTS_C)/cudp: $(LINUX_GUESTS_DIR)/c/cudp.c $(wildcard $(LINUX_GUESTS_DIR)/c/cudp_*.h)
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cudp,5004,5005,$(LINUX_GUESTS_C)/cudp))
+
+# What a guest's sockets may reach, and what a descriptor number alone gets.
+$(LINUX_GUESTS_C)/cpolicy: $(LINUX_GUESTS_DIR)/c/cpolicy.c $(wildcard $(LINUX_GUESTS_DIR)/c/cpolicy_*.h)
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cpolicy,5006,5007,$(LINUX_GUESTS_C)/cpolicy))
+
+# A guest blocked in accept with nothing happening, for the loop's wakeups.
+$(LINUX_GUESTS_C)/cidle: $(LINUX_GUESTS_DIR)/c/cidle.c $(wildcard $(LINUX_GUESTS_DIR)/c/cidle_*.h)
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cidle,5008,5009,$(LINUX_GUESTS_C)/cidle))
+
+# Unix sockets with names: a path, what it leaves behind, abstract names,
+# a connected datagram socket, autobind, and a connection across fork.
+$(LINUX_GUESTS_C)/cunix: $(LINUX_GUESTS_DIR)/c/cunix.c $(wildcard $(LINUX_GUESTS_DIR)/c/cunix_*.h)
+	@mkdir -p $(@D) && musl-gcc -O2 -static -o $@ $<
+$(eval $(call LINUX_GUEST,cunix,5010,5011,$(LINUX_GUESTS_C)/cunix))
 
 # The Linux-guest test store is about guests, not the desktop's media and demo
 # capsules. Drop both so the signed guest set fits the vfs load budget; the

@@ -79,6 +79,7 @@ pub fn attempt(guest: &mut Guest, wait: &Blocked) -> Option<u64> {
     let a = wait.args;
     let again = errno::fail(errno::EAGAIN);
     match wait.nr {
+        n if super::waits_sock::takes(guest, n, a[0]) => super::waits_sock::attempt(guest, wait),
         nr::READ => Some(call::read(guest, a[0], a[1], a[2])).filter(|&v| v != again),
         nr::WRITE => Some(call::write(guest, a[0], a[1], a[2])).filter(|&v| v != again),
         nr::POLL | np::PPOLL => Some(net::poll(guest, a[0], a[1])).filter(|&v| v != 0),

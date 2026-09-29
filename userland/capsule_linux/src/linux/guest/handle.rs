@@ -86,4 +86,6 @@ pub struct Guest {
     pub blocked: Vec<super::Blocked>,
     /// The image's symbolic links, read once and shared by the family.
     pub links: alloc::rc::Rc<super::Links>,
+    /// Lets go of this process's family sockets when it is dropped (net::sock).
+    pub sockets: crate::linux::net::sock::Holder,
 }

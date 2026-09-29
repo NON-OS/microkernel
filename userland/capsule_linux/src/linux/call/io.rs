@@ -59,8 +59,6 @@ pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
 }
 
 pub fn close(guest: &mut Guest, fd: u64) -> u64 {
-    if let Some(h) = guest.socket_handle(fd) {
-        net::close(h);
-    }
+    net::close(guest, fd);
     file::close(guest, fd)
 }
