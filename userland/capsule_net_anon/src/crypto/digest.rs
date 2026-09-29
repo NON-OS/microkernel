@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Hashing and signature checking, both through the crypto pool.
+//! Hashing through the crypto pool, and signature checking in this capsule.
 
-use nonos_libc::{crypto_ed25519_verify, crypto_hash};
+use nonos_ed25519::{verify, Signature};
+use nonos_libc::crypto_hash;
 
 use super::CryptoError;
 
@@ -35,6 +36,10 @@ pub fn sha256(data: &[u8]) -> Result<[u8; 32], CryptoError> {
 
 /// Verify an Ed25519 signature. Used on the relay's link certificates and on
 /// the identity certificate that binds them to the relay's long term key.
+/*
+ * A library call, as the market's is: the kernel keeps ed25519 for the boot
+ * chain only and offers no syscall for it.
+ */
 pub fn ed25519_verify(public: &[u8; 32], message: &[u8], signature: &[u8; 64]) -> bool {
-    crypto_ed25519_verify(public.as_ptr(), signature.as_ptr(), message.as_ptr(), message.len()) == 0
+    verify(public, message, &Signature::from_bytes(signature))
 }

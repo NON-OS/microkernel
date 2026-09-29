@@ -22,6 +22,7 @@ path = "src/main.rs"
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_inflate = { path = "../inflate" }
 nonos_aes = { path = "../nonos_aes" }
+nonos_ed25519 = { path = "../nonos_ed25519" }
 nonos_tls = { path = "../nonos_tls" }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
 

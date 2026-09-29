@@ -29,11 +29,24 @@ name = "nonos_capsule_net_anon"
 version = "0.1.0"
 dependencies = [
  "nonos_aes",
+ "nonos_ed25519",
  "nonos_inflate",
  "nonos_tls",
  "nonos_userland_libc",
  "spin",
 ]
+
+[[package]]
+name = "nonos_ed25519"
+version = "0.1.0"
+dependencies = [
+ "nonos_hash",
+ "spin",
+]
+
+[[package]]
+name = "nonos_hash"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_inflate"
