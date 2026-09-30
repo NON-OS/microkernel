@@ -18,6 +18,7 @@ use crate::boot::handoff::BootHandoffV1;
 use crate::memory::addr::PhysAddr;
 use crate::sys::serial;
 
+use super::low_dma::find_low_dma_region;
 use super::memory_span::{reserve_gaps, say_managed};
 
 pub(crate) fn init_memory(handoff: &BootHandoffV1) {
@@ -71,29 +72,6 @@ pub(crate) fn init_memory(handoff: &BootHandoffV1) {
         crate::hardware::broker::dma::init_display_pool();
         crate::hardware::broker::dma::init_low32_pool(dma_base, dma_pages);
     }
-}
-
-/// The top a 32-bit DMA address can name.
-const DMA_CEILING_32BIT: u64 = 0x1_0000_0000;
-/// Skip the lowest memory (legacy/real-mode/SMP-trampoline area) when siting the
-/// pool, so it never collides with fixed low-memory uses.
-const DMA_POOL_MIN_BASE: u64 = 0x0100_0000; // 16MB
-
-// Pick a below-4GB usable region for the DMA pool and return the page-aligned
-// base and page count, or `(0, 0)` when none has room.
-fn find_low_dma_region(handoff: &BootHandoffV1) -> (u64, usize) {
-    let want_pages = crate::hardware::broker::dma::low32_capacity_pages();
-    let want_bytes = (want_pages as u64) * 0x1000;
-    unsafe {
-        for (start, end) in handoff.mmap.usable_regions() {
-            let base = ((start.max(DMA_POOL_MIN_BASE)) + 0xFFF) & !0xFFF;
-            let top = end.min(DMA_CEILING_32BIT);
-            if base < top && top - base >= want_bytes {
-                return (base, want_pages);
-            }
-        }
-    }
-    (0, 0)
 }
 
 fn init_fallback() {

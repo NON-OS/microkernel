@@ -20,7 +20,10 @@ mod platform;
 mod start_secondary;
 
 #[cfg(target_arch = "x86_64")]
+mod low_dma;
+#[cfg(target_arch = "x86_64")]
 pub(crate) mod memory;
+#[cfg(target_arch = "x86_64")]
 mod memory_span;
 
 pub use entry::{microkernel_init, microkernel_main};

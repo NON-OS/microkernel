@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
 use super::super::super::spec::SpawnError;
 use super::params::InstallParams;
 use crate::capabilities::Capability;
@@ -26,10 +24,6 @@ use crate::kernel_core::process_spawn::{
 use crate::process::core::inbox_name::InboxName;
 use crate::process::core::{create_process_with_parent, ProcessState};
 use crate::services::registry::{adopt_endpoint, register_endpoint, required_caps};
-use alloc::format;
-
-/// Messages a capsule's stdin inbox holds before its parent is told EBUSY.
-const STDIN_CAPACITY: usize = 64;
 
 pub(crate) fn run(params: &InstallParams<'_>) -> Result<u32, SpawnError> {
     super::trace::trace(params.name, b"install enter");
@@ -45,10 +39,8 @@ pub(crate) fn run(params: &InstallParams<'_>) -> Result<u32, SpawnError> {
         return Err(SpawnError::InboxName);
     }
     nonos_inbox::register_or_get_bootstrap_inbox(params.reply_inbox);
-    register_endpoint(params.reply_inbox, params.reply_port, 0, 0).map_err(|_| {
-        crate::sys::bench::mark_named(b"capsule_endpoint_collision", params.name.as_bytes());
-        SpawnError::EndpointCollision
-    })?;
+    register_endpoint(params.reply_inbox, params.reply_port, 0, 0)
+        .map_err(|_| super::trace::collided(params.name))?;
     let pid = create_process_with_parent(
         params.name,
         ProcessState::Ready,
@@ -70,15 +62,7 @@ pub(crate) fn run(params: &InstallParams<'_>) -> Result<u32, SpawnError> {
      */
     adopt_endpoint(params.reply_inbox, pid, Capability::IPC.bit())
         .map_err(|_| SpawnError::EndpointCollision)?;
-    nonos_inbox::register_inbox(&format!("proc.{}", pid), pid)
-        .map_err(|_| SpawnError::ProcessCreation)?;
-    /*
-     * What its parent feeds it (MkProcInput), drained with MkStdinRead. It
-     * goes with `proc.<pid>` when the process is torn down. Small: every
-     * capsule has one, and a parent refused by a full one feeds it later.
-     */
-    nonos_inbox::register_inbox_with_capacity(&format!("stdin.{}", pid), pid, STDIN_CAPACITY)
-        .map_err(|_| SpawnError::ProcessCreation)?;
+    super::own_inboxes::register(pid)?;
     let entry = super::load_elf_into_pid::load_elf_into_pid(params.elf, pid, params.debug_tag)?;
     let caps = params.caps_bits;
     super::install_caps::install_caps(pid, caps)?;
@@ -86,10 +70,8 @@ pub(crate) fn run(params: &InstallParams<'_>) -> Result<u32, SpawnError> {
     let user_rsp = allocate_user_stack(pid).map_err(|_| SpawnError::AddressSpace)?;
     setup_initial_user_context(pid, entry, user_rsp).map_err(|_| SpawnError::AddressSpace)?;
     let service_caps = required_caps(params.name, Capability::IPC.bit());
-    register_endpoint(params.name, params.service_port, pid, service_caps).map_err(|_| {
-        crate::sys::bench::mark_named(b"capsule_endpoint_collision", params.name.as_bytes());
-        SpawnError::EndpointCollision
-    })?;
+    register_endpoint(params.name, params.service_port, pid, service_caps)
+        .map_err(|_| super::trace::collided(params.name))?;
     super::spawn_log::emit(params.name, pid, caps, entry);
     /*
      * Nothing below can fail. A terminal's run of the Linux personality gets
