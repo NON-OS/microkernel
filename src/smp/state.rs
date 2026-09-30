@@ -16,7 +16,7 @@
 
 use super::constants::MAX_CPUS;
 use super::types::CpuDescriptor;
-use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicUsize, Ordering};
 
 pub(crate) static CPU_DESCRIPTORS: [CpuDescriptor; MAX_CPUS] = {
     const INIT: CpuDescriptor = CpuDescriptor::new();
