@@ -29,6 +29,7 @@ pub(super) mod proc;
 pub(super) mod synth;
 pub(super) mod synth_ops;
 pub(super) mod sys;
+mod sys_cpu;
 pub(super) mod view;
 
 pub use exe::{of as exe_of, Exe};

@@ -22,4 +22,6 @@
 pub mod cpu;
 pub mod declared;
 pub mod load;
+pub mod machine;
+mod machine_header;
 pub(super) mod space;

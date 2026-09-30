@@ -16,7 +16,7 @@
 
 /* The three averages, decayed as Linux decays them. */
 
-use super::super::declared::{CPUS, HZ};
+use super::super::declared::HZ;
 use super::state::LOAD;
 
 const FIXED_1: u64 = 1 << 11;
@@ -39,7 +39,8 @@ pub fn averages(now_ms: u64, live: u64) -> [u64; 3] {
     let periods = now_ms.saturating_sub(s.at_ms) / PERIOD_MS;
     if periods > 0 {
         let span = periods * PERIOD_MS * HZ / 1000;
-        let share = (ran.saturating_sub(s.ran) * FIXED_1 / span).min(FIXED_1 * CPUS);
+        let share = (ran.saturating_sub(s.ran) * FIXED_1 / span)
+            .min(FIXED_1 * super::super::machine::cpus());
         for (avg, exp) in s.avg.iter_mut().zip(EXP) {
             for _ in 0..periods.min(SETTLED) {
                 *avg = decay(*avg, exp, share);

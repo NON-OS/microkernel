@@ -20,26 +20,29 @@ use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
 /*
- * One CPU, always. The core count is a fingerprint (section 8: a guest must
- * not identify the machine), the same reason the fingerprint suite refuses
- * the host's pid count. A thread pool sized from this runs, only narrower.
+ * One CPU, unless the family is a shipped tier, which is told the CPUs the
+ * machine has online (file::machine). The core count is otherwise a
+ * fingerprint (section 8: a guest must not identify the machine), the same
+ * reason the fingerprint suite refuses the host's pid count. A thread pool
+ * sized from one runs, only narrower.
  */
-const CPUS: usize = 1;
-
 pub fn sched_getaffinity(guest: &Guest, size: u64, mask: u64) -> u64 {
-    let bytes = CPUS.div_ceil(64) * 8;
+    let cpus = crate::linux::file::machine::cpus() as usize;
+    let bytes = cpus.div_ceil(64) * 8;
     if (size as usize) < bytes || size % 8 != 0 {
         return errno::fail(errno::EINVAL);
     }
-    let mut out = [0u8; 8];
-    out[0] = 1;
-    match guest.write(mask, &out[..bytes]) == bytes as i64 {
+    let mut out = alloc::vec![0u8; bytes];
+    for cpu in 0..cpus {
+        out[cpu / 8] |= 1 << (cpu % 8);
+    }
+    match guest.write(mask, &out) == bytes as i64 {
         true => errno::ok(bytes as u64),
         false => errno::fail(errno::EFAULT),
     }
 }
 
-/// `getcpu`: the one CPU and node that affinity reports.
+/// `getcpu`: the first CPU and node that affinity reports.
 pub fn getcpu(guest: &Guest, cpu: u64, node: u64) -> u64 {
     for at in [cpu, node] {
         if at != 0 && guest.write(at, &0u32.to_le_bytes()) != 4 {

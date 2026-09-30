@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use crate::linux::call::family_ms;
 
 use super::super::super::super::cpu::Usage;
-use super::super::super::super::declared::{self as d, HZ};
+use super::super::super::super::declared::HZ;
 use super::super::super::view::View;
 use super::files::family;
 use super::time::last;
@@ -39,9 +39,12 @@ pub(super) fn stat(v: &View) -> Vec<u8> {
     let wall = u64::try_from(nonos_libc::mk_time_millis()).unwrap_or(0);
     let btime = wall.saturating_sub(family_ms()) / 1000;
     let running = v.procs.iter().filter(|p| !p.sleeping).count();
-    /* The one CPU is the whole machine, so it and the total are the same line. */
+    /*
+     * Each CPU's line is the family's whole count: the kernel does not say
+     * which CPU ran which tick, and one CPU is all most families are told.
+     */
     let mut s = alloc::format!("cpu  {cpu}\n");
-    for n in 0..d::CPUS {
+    for n in 0..crate::linux::file::machine::cpus() {
         s += &alloc::format!("cpu{n} {cpu}\n");
     }
     s += &alloc::format!("intr 0\nctxt {}\nbtime {btime}\n", u.switches);

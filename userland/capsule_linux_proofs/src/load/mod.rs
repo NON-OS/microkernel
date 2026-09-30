@@ -24,3 +24,13 @@ pub mod declared;
 
 #[path = "../../../capsule_linux/src/linux/file/system/load/mod.rs"]
 pub mod load;
+
+/*
+ * A host double for the sibling `machine`, which asks the kernel: a family
+ * that is not a tier is told the declared count, and so is this one.
+ */
+pub mod machine {
+    pub fn cpus() -> u64 {
+        super::declared::CPUS
+    }
+}

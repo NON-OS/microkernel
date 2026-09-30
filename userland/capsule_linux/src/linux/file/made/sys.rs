@@ -17,20 +17,29 @@
 /*
  * /sys: only what programs are known to read, and nothing else.
  *
- * Go reads the huge-page size at start to size its heap arenas; musl reads
- * nothing here. Every other path answers ENOENT, which is what a program
- * meets on a Linux with no sysfs mounted, and which every sysfs reader
- * already handles.
+ * Go reads the huge-page size at start to size its heap arenas; C runtimes
+ * and thread pools read which CPUs are online (`sys_cpu`). Every other
+ * path answers ENOENT, which is what a program meets on a Linux with no
+ * sysfs mounted, and which every sysfs reader already handles.
  */
 
 use alloc::vec::Vec;
 
 use super::super::declared;
 use super::synth::{num, Node};
+use super::sys_cpu;
 
 const THP: [&[u8]; 4] = [b"kernel", b"mm", b"transparent_hugepage", b"hpage_pmd_size"];
 
 pub fn node(rest: &[&[u8]]) -> Option<Node> {
+    match rest.split_first() {
+        None => Some(Node::Dir(alloc::vec![b"devices".to_vec(), THP[0].to_vec()])),
+        Some((&b"devices", more)) => sys_cpu::node(more),
+        Some(_) => huge_page(rest),
+    }
+}
+
+fn huge_page(rest: &[&[u8]]) -> Option<Node> {
     if rest.len() > THP.len() || rest.iter().zip(THP.iter()).any(|(a, b)| a != b) {
         return None;
     }
@@ -42,9 +51,10 @@ pub fn node(rest: &[&[u8]]) -> Option<Node> {
 
 pub fn content(path: &[u8]) -> Option<Vec<u8>> {
     let want = b"/sys/kernel/mm/transparent_hugepage/hpage_pmd_size";
-    (path == want).then(|| {
-        let mut out = num(declared::HPAGE_PMD);
-        out.push(b'\n');
-        out
-    })
+    if path != want {
+        return sys_cpu::content(path);
+    }
+    let mut out = num(declared::HPAGE_PMD);
+    out.push(b'\n');
+    Some(out)
 }

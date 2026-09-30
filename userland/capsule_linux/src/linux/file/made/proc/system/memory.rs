@@ -26,7 +26,7 @@ use super::files::family;
 /* The x86-64 baseline every x86_64 Linux program may assume, and no more. */
 pub(super) fn cpuinfo() -> Vec<u8> {
     let mut s = String::new();
-    for n in 0..d::CPUS {
+    for n in 0..crate::linux::file::machine::cpus() {
         s += &alloc::format!(
             "processor\t: {n}\nvendor_id\t: NONOS\nmodel name\t: NONOS virtual CPU\n"
         );
@@ -40,12 +40,17 @@ pub(super) fn cpuinfo() -> Vec<u8> {
  * of files it is writing (held/cache/), which are its page cache and, as a
  * tmpfs's pages are on Linux, its shared memory. Those copies can be put
  * in the store, so they count as available. No swap and no block-device
- * buffers exist.
+ * buffers exist. A tier's total and free are the machine's (file::machine).
  */
 pub(super) fn meminfo(v: &View) -> Vec<u8> {
-    let total = d::MEMORY / 1024;
     let cached = super::super::super::super::cache::bytes() / 1024;
-    let free = total.saturating_sub(family(v).resident_kb).saturating_sub(cached);
+    let (total, free) = match crate::linux::file::machine::memory() {
+        Some((total, free)) => (total / 1024, free / 1024),
+        None => {
+            let total = d::MEMORY / 1024;
+            (total, total.saturating_sub(family(v).resident_kb).saturating_sub(cached))
+        }
+    };
     let mut s = String::new();
     for (name, kb) in [
         ("MemTotal:", total),
