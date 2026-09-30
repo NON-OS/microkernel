@@ -24,6 +24,7 @@ pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, tx: &mut [u8]) {
     body[18..20].copy_from_slice(&driver.queue_size.to_le_bytes());
     body[20..24].copy_from_slice(&driver.host_features.to_le_bytes());
     body[24..32].copy_from_slice(&driver.mmio_grant.to_le_bytes());
-    body[32..40].copy_from_slice(&driver.irq_grant.to_le_bytes());
+    // Interrupt grant: always 0, the driver binds none (see `setup::pci`).
+    body[32..40].copy_from_slice(&0u64.to_le_bytes());
     respond::payload(sender_pid, req, crate::protocol::CONTROLLER_INFO_LEN, tx);
 }

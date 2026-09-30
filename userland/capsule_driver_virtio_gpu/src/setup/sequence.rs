@@ -13,29 +13,24 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::{claim, create_primary, dma, edid, irq, mmio, pci, probe_3d, scanouts};
+use super::{claim, create_primary, dma, edid, mmio, pci, probe_3d, scanouts};
 use crate::device::virtqueue::QueueLayout;
 use crate::device::ControlQueue;
 use crate::discover::find_virtio_gpu;
 use crate::driver::Driver;
 use crate::init::bring_up;
 use crate::state::{FenceCounter, ResourceTable, ScanoutTable};
-use nonos_libc::mk_irq_ack;
 pub fn run() -> Result<Driver, &'static str> {
     let dev = find_virtio_gpu();
     let dev = dev.ok_or("virtio-gpu: device not found")?;
     let claim_epoch = claim::claim(dev.device_id)?;
-    pci::enable_bus_master(dev.device_id, claim_epoch)?;
+    // No interrupt is bound: the driver polls, and `pci::enable` takes the
+    // device off its legacy line so it cannot hold a shared line up.
+    pci::enable(dev.device_id, claim_epoch)?;
     let registers = mmio::grant(dev, claim_epoch)?;
-    let irq = irq::bind(dev, claim_epoch, registers)?;
-    let queue = dma::map_queue(dev.device_id, claim_epoch, registers, &irq)?;
+    let queue = dma::map_queue(dev.device_id, claim_epoch, registers)?;
     let init = bring_up(registers.regs(dev.pci_device), queue.device_addr, dev.pci_device)?;
     let regs = init.regs;
-    if irq.grant_id != 0 {
-        if mk_irq_ack(irq.grant_id) < 0 {
-            return Err("virtio-gpu: irq ack failed");
-        }
-    }
     let layout = QueueLayout::new(init.queue_size, queue.user_va, queue.device_addr)?;
     let control_queue = ControlQueue::new(layout, regs);
     let scanouts = ScanoutTable::new();
@@ -60,7 +55,6 @@ pub fn run() -> Result<Driver, &'static str> {
         pci_device: dev.pci_device,
         claim_epoch,
         mmio_grant: registers.grant_id(),
-        irq_grant: irq.grant_id,
         queue_grant: queue.grant_id,
         queue_user_va: queue.user_va,
         queue_device_addr: queue.device_addr,
