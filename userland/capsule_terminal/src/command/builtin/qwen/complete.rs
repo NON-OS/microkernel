@@ -14,11 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! What Tab offers after `qwen`: `window` and every tier; after
+//! `qwen window`, every tier.
+
 use alloc::vec::Vec;
 
-/// The words a command takes in place of a path, completed as the word just
-/// after it: `qwen`'s tier or `window`, and the tier after `qwen window`.
-/// `None` everywhere else.
-pub(super) fn word_candidates(before: &[u8], prefix: &[u8]) -> Option<Vec<&'static [u8]>> {
-    crate::command::builtin::qwen::complete_words(before, prefix)
+use super::tiers::TIERS;
+use super::window::WORD;
+
+/// The words that complete `prefix` when `before` is the line up to it,
+/// or `None` when `before` is neither `qwen` nor `qwen window`.
+pub fn words(before: &[u8], prefix: &[u8]) -> Option<Vec<&'static [u8]>> {
+    let typed: Vec<&[u8]> = before.split(|&b| b == b' ').filter(|w| !w.is_empty()).collect();
+    let window: &[&'static [u8]] = match typed[..] {
+        [b"qwen"] => &[WORD],
+        [b"qwen", w] if w == WORD => &[],
+        _ => return None,
+    };
+    let offered = window.iter().chain(TIERS).copied();
+    Some(offered.filter(|w| w.starts_with(prefix)).collect())
 }

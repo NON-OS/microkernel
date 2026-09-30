@@ -23,9 +23,9 @@ use crate::term::util::format_u64;
 
 /// errno, its name, and what it means for a Qwen run.
 const REASONS: &[(i64, &[u8], &[u8])] = &[
-    (-2, b"ENOENT", b"this system has no Qwen model for this tier"),
+    (-2, b"ENOENT", b"this system was built without the Linux personality that runs Qwen"),
     (-22, b"EINVAL", b"the kernel does not know this tier"),
-    (-16, b"EBUSY", b"every place for a Qwen chat is taken; end a running one first"),
+    (-16, b"EBUSY", b"every place for a Qwen chat is taken; end or close a running one first"),
     (-28, b"ENOSPC", b"no room to start another program"),
     (-12, b"ENOMEM", b"not enough memory to load the model"),
     (-11, b"EAGAIN", b"the system is busy; try again"),
@@ -34,7 +34,8 @@ const REASONS: &[(i64, &[u8], &[u8])] = &[
     (-38, b"ENOSYS", b"this kernel cannot start programs by name"),
 ];
 
-/// "qwen <tier>: <why> (<errno>)" on screen, and a failed status.
+/// "qwen <tier>: <why> (<errno>)" on screen, and a failed status. For a
+/// window, `tier` is "window <tier>".
 pub fn refused(state: &mut State, tier: &[u8], rc: i64) {
     let mut line = Vec::with_capacity(96);
     line.extend_from_slice(b"qwen ");

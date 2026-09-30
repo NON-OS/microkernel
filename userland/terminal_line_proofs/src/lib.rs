@@ -9,15 +9,7 @@ extern crate alloc;
 /// The capsule's own module layout, mirrored so its sources compile unchanged.
 /// Everything under here is either the real file or the one constant the
 /// capsule reads from its own dimensions.
-pub mod term {
-    pub mod dimensions {
-        pub const COLS: usize = 96;
-        pub const LINE_MAX: usize = 1024;
-    }
-    pub mod util {
-        pub use crate::fmt_u64::format_u64;
-    }
-}
+pub mod term;
 
 // Declared at the crate root: a `#[path]` inside nested inline modules
 // resolves against the directory those modules imply, not against this file.
@@ -30,6 +22,9 @@ pub mod flags_inner;
 pub mod command {
     pub use crate::flags_inner as flags;
 }
+
+/// `qwen`'s pure parts and their proofs.
+pub mod qwen;
 
 /// The pipeline text filters. `pub(super)` in the capsule, which resolves to
 /// crate-visible here, so the tests can reach them.

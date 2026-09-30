@@ -29,4 +29,7 @@ pub const HELP: &[&[u8]] = &[
     b"  the answer streams onto the screen as it is written",
     b"  Enter sends a line; Ctrl-D on an empty line ends the chat, Ctrl-C kills it",
     b"  in the chat, /reset starts over and /exit or /bye ends it",
+    b"  qwen window [tier] opens the chat in its own desktop window instead;",
+    b"    the prompt comes back at once, and the conversation stays in the window",
+    b"  to ask a question that starts with the word window, name a tier first",
 ];

@@ -16,17 +16,24 @@
 
 //! `qwen` reached through the shell's parser: after `;`, `&&` or `||`, from
 //! an alias, or in a pipe or a redirect. The parser has already split and
-//! expanded whatever followed it, so only the command and a tier are taken
-//! this way; a question is refused rather than sent changed.
+//! expanded whatever followed it, so only the command and a tier, or
+//! `window` and a tier, are taken this way; a question is refused rather
+//! than sent changed.
 
 use super::tiers::TIERS;
+use super::window::{Window, WORD};
 use crate::jobs::JobWork;
 use crate::term::state::State;
 
-/// `qwen` or `qwen <tier>` as a parsed statement. `None`, with the reason on
+/// `qwen`, `qwen <tier>` or `qwen window [tier]` as a parsed statement.
+/// `None`, for a window once it is asked for, and with the reason on
 /// screen, for anything else or when the kernel refuses.
 pub fn from_args(state: &mut State, args: &[&[u8]]) -> Option<JobWork> {
     let tier = match args {
+        [_, word, rest @ ..] if *word == WORD => {
+            super::open::ask(state, window(rest));
+            return None;
+        }
         [_] => Some(TIERS[0]),
         [_, word] => TIERS.iter().copied().find(|t| t == word),
         _ => None,
@@ -37,6 +44,17 @@ pub fn from_args(state: &mut State, args: &[&[u8]]) -> Option<JobWork> {
             misplaced(state);
             None
         }
+    }
+}
+
+/// What followed `qwen window` in a statement: nothing, or one tier word.
+fn window<'a>(rest: &[&'a [u8]]) -> Window<'a> {
+    match rest {
+        [] => Window::Open(TIERS[0]),
+        [word] => {
+            TIERS.iter().copied().find(|t| t == word).map_or(Window::NotATier(word), Window::Open)
+        }
+        [word, ..] => Window::NotATier(word),
     }
 }
 

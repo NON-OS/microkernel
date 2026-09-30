@@ -14,39 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Starting Qwen from a line that begins with `qwen`. The question travels
-//! on the program's stdin as its first line; it is never an argument, never
-//! the job's name and never history, which keep only `qwen` and the tier.
+//! Starting Qwen on this terminal. The question travels on the program's
+//! stdin as its first line; it is never an argument, never the job's name
+//! and never history, which keep only `qwen` and the tier.
 
 use alloc::vec::Vec;
 
-use nonos_libc::{mk_time_millis, mk_tool_run};
+use nonos_libc::mk_tool_run;
 
-use super::ask::parse;
-use crate::command::output::Output;
-use crate::jobs::{submit, JobWork, StdinQueue};
+use crate::jobs::{JobWork, StdinQueue};
 use crate::term::state::State;
-
-/// Run `line` when it is a `qwen` line. False, with nothing done, when not.
-pub fn enter(state: &mut State, line: &[u8]) -> bool {
-    let Some(ask) = parse(line) else { return false };
-    let recorded = ask.recorded();
-    state.history.push(&recorded);
-    state.last_status = 0;
-    if ask.tier.is_none() && matches!(ask.question, b"-h" | b"--help") {
-        let _ = crate::command::builtin::help_one::run(
-            &mut Output::new(&mut state.scrollback),
-            b"qwen",
-        );
-        return true;
-    }
-    if let Some(work) = spawn(state, ask.tier(), ask.question) {
-        let _ = submit(state, &recorded, false, work);
-        state.fg_running = true;
-        state.fg_started_ms = mk_time_millis();
-    }
-    true
-}
 
 /// Start `tier` as this terminal's child, attached to its screen, with
 /// `question` (if any) queued as its first line. `None`, with the reason on
