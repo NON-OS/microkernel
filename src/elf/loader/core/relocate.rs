@@ -85,6 +85,12 @@ pub(in crate::elf::loader::core) fn apply_relative_relocations(
     let file_off = vaddr_to_file_offset(elf_data, header, ph_count, rela_vaddr)?;
     let mut at = 0usize;
     while at + RELA_ENTRY <= rela_size as usize && file_off + at + RELA_ENTRY <= elf_data.len() {
+        /*
+         * One entry per pass, and a large image has tens of thousands, all
+         * with interrupts masked. The translation below is taken after this
+         * point, so none is carried across it.
+         */
+        crate::smp::serve_shootdowns();
         let entry = file_off + at;
         let r_offset = rd_u64(elf_data, entry);
         let r_info = rd_u64(elf_data, entry + 8);
