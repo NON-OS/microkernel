@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
+mod epoch;
 mod error;
 mod map_block;
 mod open;
@@ -27,6 +28,7 @@ mod write;
 mod write_deferred;
 
 pub use constants::{PLAIN_BLOCK_BYTES, SECTOR_BYTES};
+pub use epoch::epoch;
 pub use error::CryptoBlockError;
 pub use open::open;
 pub use read::read;

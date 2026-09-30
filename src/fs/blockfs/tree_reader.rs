@@ -50,7 +50,7 @@ impl TreeReader {
                 return Err(TreeFault::Hole);
             }
             if self.held[level].0 != ptr {
-                let block = s.get(ptr).map_err(TreeFault::Store)?;
+                let block = s.get_pointer(ptr).map_err(TreeFault::Store)?;
                 self.held[level] = (ptr, block);
             }
             ptr = entry(&self.held[level].1, place.path[level]);

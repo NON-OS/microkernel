@@ -21,6 +21,8 @@
 //! here an in-memory one stands in for the sealed disk and every boundary of
 //! the index is written and read back exactly as ring 0 does it.
 
+#[path = "../../../../src/fs/blockfs/file_cache.rs"]
+pub mod file_cache;
 #[path = "../../../../src/fs/blockfs/file_consts.rs"]
 pub mod file_consts;
 #[path = "../../../../src/fs/blockfs/index_block.rs"]
@@ -46,10 +48,18 @@ pub mod write_u32;
 #[path = "../../../../src/fs/blockfs/write_u64.rs"]
 pub mod write_u64;
 
+mod before;
+mod cached;
 mod deep_file;
+mod disk;
 mod mem;
+mod numbered_file;
 mod packed;
+mod run;
 mod tests;
+mod tests_cache;
+mod tests_cache_id;
+mod tests_cache_stale;
 mod tests_capacity;
 mod tests_deep;
 mod tests_edges;

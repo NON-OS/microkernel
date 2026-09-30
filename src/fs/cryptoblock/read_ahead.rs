@@ -37,14 +37,18 @@ impl ReadAhead {
         ReadAhead { start: 0, sealed: Vec::new() }
     }
 
+    /// Whether the run fetched last holds the sector at `lba`.
+    pub fn holds(&self, lba: u64) -> bool {
+        lba >= self.start && lba - self.start < (self.sealed.len() / SECTOR_BYTES) as u64
+    }
+
     /// The block at `lba`, fetching it and the run after it on a miss.
     pub fn read(
         &mut self,
         key: &[u8; 32],
         lba: u64,
     ) -> Result<[u8; PLAIN_BLOCK_BYTES], CryptoBlockError> {
-        let held = (self.sealed.len() / SECTOR_BYTES) as u64;
-        if lba < self.start || lba >= self.start + held {
+        if !self.holds(lba) {
             self.fetch(lba)?;
         }
         let at = (lba - self.start) as usize * SECTOR_BYTES;

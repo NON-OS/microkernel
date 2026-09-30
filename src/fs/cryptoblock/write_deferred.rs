@@ -24,5 +24,11 @@ use super::CryptoBlockError;
 pub fn write_deferred(key: &[u8; 32], lba: u64, plain: &[u8]) -> Result<(), CryptoBlockError> {
     let at = device_lba(lba)?;
     let sector = seal(key, lba, plain)?;
-    super::pending::hold(at, &sector)
+    let held = super::pending::hold(at, &sector);
+    /*
+     * Advanced even when refused: a failed send may have reached the disk
+     * in part.
+     */
+    super::epoch::advance();
+    held
 }

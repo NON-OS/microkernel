@@ -21,16 +21,16 @@ use super::tree_store::{Block, BlockSource, BlockStore, TreeFault};
 use super::{BlockFsError, BlockFsMount};
 use crate::fs::cryptoblock::ReadAhead;
 
-/// Reads only: a file being read allocates and writes nothing. Its blocks
-/// are fetched a run at a time; the run lives only as long as this source,
-/// one read under the volume's lock, so no write can make it stale.
+/// Reads only. Data blocks come a run at a time, into a run the read cache
+/// may keep for the file's next read; pointer blocks come one by one unless
+/// the run holds them, so the run is not thrown away for them.
 pub(super) struct SealedSource<'a> {
     pub key: &'a [u8; 32],
-    pub ahead: ReadAhead,
+    pub ahead: &'a mut ReadAhead,
 }
 
-/// Reads, writes and allocates, for a file being written. Writes are not
-/// flushed one by one; the commit that follows the last of them flushes.
+/// Reads, writes and allocates, for a file being written; the commit after
+/// the last write flushes them all.
 pub(super) struct SealedStore<'a> {
     pub key: &'a [u8; 32],
     pub mount: &'a mut BlockFsMount,
@@ -40,6 +40,12 @@ impl BlockSource for SealedSource<'_> {
     type Error = BlockFsError;
     fn get(&mut self, lba: u64) -> Result<Block, BlockFsError> {
         self.ahead.read(self.key, lba).map_err(BlockFsError::CryptoBlock)
+    }
+    fn get_pointer(&mut self, lba: u64) -> Result<Block, BlockFsError> {
+        if self.ahead.holds(lba) {
+            return self.get(lba);
+        }
+        crate::fs::cryptoblock::read(self.key, lba).map_err(BlockFsError::CryptoBlock)
     }
 }
 

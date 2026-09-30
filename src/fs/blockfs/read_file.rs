@@ -46,7 +46,8 @@ pub fn read_file_at(
     match read_index(key, node)? {
         Index::Flat(index) => read_flat(key, node, &index, offset, out),
         Index::Tree(root) => {
-            let mut source = SealedSource { key, ahead: ReadAhead::new() };
+            let mut ahead = ReadAhead::new();
+            let mut source = SealedSource { key, ahead: &mut ahead };
             let mut reader = TreeReader::new(root);
             read_range(&mut source, &mut reader, node.size, offset, out).map_err(fault)
         }

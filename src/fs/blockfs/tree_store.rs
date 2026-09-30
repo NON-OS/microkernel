@@ -26,6 +26,11 @@ pub(crate) type Block = [u8; PLAIN_BLOCK_BYTES];
 pub(crate) trait BlockSource {
     type Error;
     fn get(&mut self, lba: u64) -> Result<Block, Self::Error>;
+    /// A pointer block. The sealed disk reads one on its own, so that the
+    /// run of data blocks it fetched ahead is not thrown away for it.
+    fn get_pointer(&mut self, lba: u64) -> Result<Block, Self::Error> {
+        self.get(lba)
+    }
 }
 
 /// Blocks allocated and written, as well as read.

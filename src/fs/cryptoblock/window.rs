@@ -38,6 +38,7 @@ pub fn set_window(base: u64, sectors: u64) -> Result<(), CryptoBlockError> {
     SECTORS.store(0, Ordering::SeqCst);
     BASE.store(base, Ordering::SeqCst);
     SECTORS.store(sectors, Ordering::SeqCst);
+    super::epoch::advance();
     Ok(())
 }
 
