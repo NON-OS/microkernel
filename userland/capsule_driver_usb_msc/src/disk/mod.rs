@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod accept_csw;
-pub mod block;
-mod block_rw;
-pub mod build_capacity;
-pub mod build_inquiry;
-pub mod build_read;
-pub mod build_request_sense;
-pub mod build_tur;
-pub mod build_write;
-pub mod decode_capacity;
-pub mod decode_inquiry;
-pub mod decode_sense;
-pub mod get_state;
-pub mod health;
-pub mod probe_config;
+//! The bound device: BOT transport, recovery, and the SCSI commands the
+//! kernel's block client needs.
+
+mod bot;
+mod data_phase;
+mod ready;
+mod recover;
+mod scsi_io;
+mod types;
+
+pub use ready::{capacity, sync_cache, unit_ready};
+pub use scsi_io::{read, write};
+pub use types::Disk;

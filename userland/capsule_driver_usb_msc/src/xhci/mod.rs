@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod accept_csw;
-pub mod block;
-mod block_rw;
-pub mod build_capacity;
-pub mod build_inquiry;
-pub mod build_read;
-pub mod build_request_sense;
-pub mod build_tur;
-pub mod build_write;
-pub mod decode_capacity;
-pub mod decode_inquiry;
-pub mod decode_sense;
-pub mod get_state;
-pub mod health;
-pub mod probe_config;
+//! The client side of driver.xhci0 this class driver uses: find the ports,
+//! address the device, and move BOT traffic over its bulk pipes.
+
+mod bulk;
+mod call;
+mod control;
+mod lookup;
+mod port;
+mod slot;
+mod wire;
+
+pub use bulk::{bulk_in, bulk_out, configure_bulk, reset_bulk};
+pub use control::{config_descriptor, control_no_data};
+pub use lookup::lookup;
+pub use port::{connected_ports, Port};
+pub use slot::{address_device, disable_slot, enable_slot};
+pub use wire::{BULK_MAX, E_BUSY, E_PIPE, PORT_CLAIMED, PORT_FREE};

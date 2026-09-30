@@ -15,11 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::*;
+use crate::scan::Medium;
 use crate::server::{handlers, respond};
 use crate::state::State;
 
-pub(super) fn dispatch(state: &mut State, sender: u32, req: Request, body: &[u8], tx: &mut [u8]) {
+pub(super) fn dispatch(
+    state: &mut State,
+    medium: &Medium,
+    sender: u32,
+    req: Request,
+    body: &[u8],
+    tx: &mut [u8],
+) {
     match req.op {
+        OP_BLK_CAPACITY | OP_BLK_READ | OP_BLK_WRITE | OP_BLK_FLUSH => {
+            handlers::block::handle(state, medium, sender, &req, body, tx)
+        }
         OP_HEALTHCHECK if body.is_empty() => handlers::health::handle(sender, &req, tx),
         OP_PROBE_CONFIG => handlers::probe_config::handle(state, sender, &req, body, tx),
         OP_BUILD_INQUIRY if body.is_empty() => {

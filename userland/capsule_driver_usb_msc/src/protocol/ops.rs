@@ -27,3 +27,9 @@ pub const OP_BUILD_REQUEST_SENSE: u16 = 0x000A;
 pub const OP_DECODE_INQUIRY: u16 = 0x000B;
 pub const OP_DECODE_CAPACITY: u16 = 0x000C;
 pub const OP_DECODE_SENSE: u16 = 0x000D;
+/// The block surface the kernel's USB mass-storage client uses: whole
+/// 512-byte sectors of the one device this driver bound.
+pub const OP_BLK_CAPACITY: u16 = 0x0020;
+pub const OP_BLK_READ: u16 = 0x0021;
+pub const OP_BLK_WRITE: u16 = 0x0022;
+pub const OP_BLK_FLUSH: u16 = 0x0023;

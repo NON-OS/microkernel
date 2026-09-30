@@ -14,18 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod accept_csw;
-pub mod block;
-mod block_rw;
-pub mod build_capacity;
-pub mod build_inquiry;
-pub mod build_read;
-pub mod build_request_sense;
-pub mod build_tur;
-pub mod build_write;
-pub mod decode_capacity;
-pub mod decode_inquiry;
-pub mod decode_sense;
-pub mod get_state;
-pub mod health;
-pub mod probe_config;
+//! Finding driver.xhci0.
+
+use nonos_libc::mk_service_lookup;
+
+const SERVICE_NAME: &str = "driver.xhci0";
+
+pub fn lookup() -> Option<u32> {
+    let (mut port, mut pid) = (0u32, 0u32);
+    let rc = mk_service_lookup(SERVICE_NAME.as_ptr(), SERVICE_NAME.len(), &mut port, &mut pid);
+    (rc == 0).then_some(port)
+}

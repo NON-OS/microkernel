@@ -14,18 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod accept_csw;
-pub mod block;
-mod block_rw;
-pub mod build_capacity;
-pub mod build_inquiry;
-pub mod build_read;
-pub mod build_request_sense;
-pub mod build_tur;
-pub mod build_write;
-pub mod decode_capacity;
-pub mod decode_inquiry;
-pub mod decode_sense;
-pub mod get_state;
-pub mod health;
-pub mod probe_config;
+//! Finding the one mass-storage device this driver serves.
+
+mod medium;
+mod pass;
+mod probe;
+mod scanner;
+
+pub use medium::Medium;
+pub use scanner::Scanner;
