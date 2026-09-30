@@ -112,3 +112,44 @@ memfd_create | a descriptor number | its own table
 statx | as stat | as stat
 rseq | 0 | a constant
 faccessat2 | as access | as open
+pwrite64 | nothing back but a count | as write
+preadv | bytes of its own files, as read | as read
+pwritev | nothing back but a count | as write
+preadv2 | as preadv | as read
+pwritev2 | as pwritev | as write
+sendfile | a count of bytes moved between its own descriptors | its own data
+copy_file_range | a count of bytes copied between its own files | its own data
+truncate | success or refusal on a path | as open
+fallocate | success or refusal on its own file | its own state
+fadvise64 | nothing | none
+close_range | nothing | none
+creat | as open | as open
+openat2 | as open, and whether a walk left the directory it named | the walk is of the guest's own tree
+sync | nothing | none
+syncfs | nothing | none
+fdatasync | whether its own writes reached the store | its own data
+flock | whether another process of the family holds a lock on a file | only the family's own locks are seen
+setxattr | success or refusal of an attribute on its own file | its own state
+lsetxattr | as setxattr | its own state
+fsetxattr | as setxattr | its own state
+getxattr | an attribute the family set on a file | only what the family itself set
+lgetxattr | as getxattr | only what the family itself set
+fgetxattr | as getxattr | only what the family itself set
+listxattr | the names of the attributes the family set | only what the family itself set
+llistxattr | as listxattr | only what the family itself set
+flistxattr | as listxattr | only what the family itself set
+removexattr | success or refusal | its own state
+lremovexattr | as removexattr | its own state
+fremovexattr | as removexattr | its own state
+sysinfo | the family's uptime, its memory limit and what it holds, its own load, one CPU | declared figures and the family's own measurements; nothing of the machine
+getrusage | its own threads' CPU ticks, switches, faults and resident size, and those of children it waited for | the kernel's counts of the family's own threads only
+times | its own and its waited children's CPU ticks, and ticks since the family started | its own threads only
+getgroups | no supplementary groups | a fixed identity, the same on every install
+setgroups | refusal | the identity cannot change
+getresuid | 0, 0, 0 | a fixed identity, the same on every install
+getresgid | 0, 0, 0 | a fixed identity, the same on every install
+setresuid | success only for the identity already held | the identity cannot change
+setresgid | success only for the identity already held | the identity cannot change
+getpriority | the nice value set for a process of the family | its own state; no process outside the family is named
+setpriority | success or refusal of a nice value for a process of the family | its own state; no process outside the family is named
+personality | PER_LINUX, the only persona served | the same on every install
