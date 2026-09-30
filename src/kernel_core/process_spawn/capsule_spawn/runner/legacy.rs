@@ -18,6 +18,7 @@ use super::super::spec::{CapsuleSpec, SpawnError};
 use super::install::{install, InstallParams};
 
 pub fn spawn(spec: &CapsuleSpec) -> Result<u32, SpawnError> {
+    super::profile_gate::check(spec.name)?;
     install(&InstallParams {
         name: spec.name,
         service_port: spec.service_port,

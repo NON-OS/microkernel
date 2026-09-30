@@ -32,5 +32,7 @@ pub const ERRNO_INVAL: i64 = -22;
 pub const ERRNO_NOTTY: i64 = -25;
 pub const ERRNO_NOSYS: i64 = -38;
 pub const ERRNO_NOTSUP: i64 = -95;
+/* The boot profile runs no network: Air-Gapped, Safe Mode or Recovery. */
+pub const ERRNO_NETDOWN: i64 = -100;
 pub const ERRNO_TIMEDOUT: i64 = -110;
 pub const ERRNO_STALE: i64 = -116;

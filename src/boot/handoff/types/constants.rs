@@ -47,13 +47,18 @@ pub mod flags {
      * kernel as for a Standard boot, and init starts the installer first.
      */
     pub const INSTALL_REQUESTED: u64 = 1 << 11;
+    /* The boot profile chosen in the menu; Standard sets none. */
+    pub const PROFILE_HARDENED: u64 = 1 << 12;
+    pub const PROFILE_SAFE: u64 = 1 << 13;
+    pub const PROFILE_AIR_GAPPED: u64 = 1 << 14;
+    pub const PROFILE_RECOVERY: u64 = 1 << 15;
 
     pub fn flag_names(flags: u64) -> &'static [&'static str] {
-        const NAMES: [&str; 12] = [
+        const NAMES: [&str; 16] = [
             "W^X", "NXE", "SMEP", "SMAP", "UMIP", "IDMAP", "FB", "ACPI", "TPM", "SECBOOT", "ZK",
-            "INSTALL",
+            "INSTALL", "HARDENED", "SAFE", "AIRGAP", "RECOVERY",
         ];
-        &NAMES[..(64 - flags.leading_zeros() as usize).min(12)]
+        &NAMES[..(64 - flags.leading_zeros() as usize).min(16)]
     }
 }
 

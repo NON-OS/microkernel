@@ -17,8 +17,7 @@
 /* Running the model fetcher for the caller, as a tool capsule runs: through
  * the verified path, parented to the caller so it drains the fetcher's
  * output and can stop it, with `argv` (NUL-separated words) as its argv.
- * Its capability set is its Capsule.mk's: CoreExec, Network, IPC, Memory,
- * Crypto and StreamImport. No FileSystem, so it reads nothing on the volume. */
+ * Its caps are its Capsule.mk's; no FileSystem, so it reads nothing on disk. */
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -27,7 +26,7 @@ use super::embed::{ATTESTATION, CERT, ELF, MANIFEST};
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
 use crate::security::nonos_trust_anchor::{decode, BAKED_TRUST_ANCHOR_POLICY};
-use crate::syscall::microkernel::errnos::{ERRNO_NOENT, ERRNO_PERM};
+use crate::syscall::microkernel::errnos::{ERRNO_NETDOWN, ERRNO_NOENT, ERRNO_PERM};
 
 /* The name `MkToolRun` takes for it. */
 pub(crate) const TOOL: &[u8] = b"tool.model-fetch";
@@ -39,11 +38,15 @@ const CAPS: u64 = Capability::CoreExec.bit()
     | Capability::Crypto.bit()
     | Capability::StreamImport.bit();
 
-/* The fetcher's pid; ENOENT in an image built without it, EPERM when its
- * signed artifacts do not verify, EBUSY while another fetcher runs. */
+/* The fetcher's pid; ENOENT if not built in, ENETDOWN on a no-network boot,
+ * EPERM when its signed artifacts do not verify, EBUSY while one runs. */
 pub(crate) fn run_for_caller(argv: &[u8]) -> Result<u32, i64> {
     if ELF.is_empty() {
         return Err(ERRNO_NOENT);
+    }
+    /* The boot profile runs no network; say that, not that the caller lacks it. */
+    if !crate::boot::handoff::boot_profile().network() {
+        return Err(ERRNO_NETDOWN);
     }
     /* Only a caller that holds the network and the files itself, as the Terminal does. */
     let caller = crate::syscall::caps::current_caps_or_default();
@@ -65,11 +68,8 @@ pub(crate) fn run_for_caller(argv: &[u8]) -> Result<u32, i64> {
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &anchor, None).map_err(super::refusal::errno)?;
-    let words: Vec<String> = argv
-        .split(|&b| b == 0)
-        .filter(|w| !w.is_empty())
-        .map(|w| String::from_utf8_lossy(w).into_owned())
-        .collect();
+    let words = argv.split(|&b| b == 0).filter(|w| !w.is_empty());
+    let words: Vec<String> = words.map(|w| String::from_utf8_lossy(w).into_owned()).collect();
     crate::process::with_process(pid, |pcb| *pcb.argv.lock() = words);
     Ok(pid)
 }

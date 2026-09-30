@@ -71,6 +71,7 @@ fn spawn_error_name(e: SpawnError) -> &'static [u8] {
         SpawnError::NonosIdCertRejected(_) => b"CertRejected",
         SpawnError::ManifestRejected(_) => b"ManifestRejected",
         SpawnError::AttestationRejected => b"AttestationRejected",
+        SpawnError::ProfileRefused => b"ProfileRefused",
     }
 }
 

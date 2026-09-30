@@ -17,7 +17,7 @@
 /* Why the fetcher did not start, as the errno the Terminal names. */
 
 use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
-use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_NOMEM, ERRNO_PERM};
+use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_NETDOWN, ERRNO_NOMEM, ERRNO_PERM};
 
 pub(super) fn errno(e: SpawnError) -> i64 {
     match e {
@@ -26,6 +26,7 @@ pub(super) fn errno(e: SpawnError) -> i64 {
          * `qwen get` or `qwen tiers`.
          */
         SpawnError::EndpointCollision => ERRNO_BUSY,
+        SpawnError::ProfileRefused => ERRNO_NETDOWN,
         SpawnError::NonosIdCertRejected(_)
         | SpawnError::ManifestRejected(_)
         | SpawnError::AttestationRejected => ERRNO_PERM,

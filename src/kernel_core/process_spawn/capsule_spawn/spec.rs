@@ -72,6 +72,8 @@ pub enum SpawnError {
     NonosIdCertRejected(IdCertVerifyError),
     ManifestRejected(ManifestVerifyError),
     AttestationRejected,
+    /* The boot profile chosen in the menu does not run this capsule. */
+    ProfileRefused,
 }
 
 impl From<IdCertVerifyError> for SpawnError {

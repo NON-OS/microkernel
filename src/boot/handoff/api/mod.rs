@@ -17,10 +17,12 @@
 mod cleanup;
 mod error;
 mod init;
+mod profile;
 mod query;
 mod security;
 
 pub use cleanup::wipe_boot_seed;
 pub use error::{FbGeometryReason, HandoffError};
 pub use init::init_handoff;
+pub use profile::{boot_profile, BootProfile};
 pub use query::{get_handoff, install_requested, is_initialized, total_memory};
