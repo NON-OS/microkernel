@@ -32,14 +32,23 @@ mod tx;
 
 use nonos_libc::{heap_init, mk_exit, mk_time_millis, mk_yield};
 
-// Bounded probe: exit cleanly if no virtio-net appears, instead of spinning
-// forever on hardware that has none (real machines use their physical NIC).
+// Bounded retry for a device that is present but fails a setup step.
 const PROBE_DEADLINE_MS: i64 = 10_000;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
+    }
+
+    /*
+     * The broker lists every PCI function before the first capsule starts, so
+     * a machine without a virtio-net has none to wait for. Retrying discovery
+     * here spun for ten seconds of boot while net_core's link probes to this
+     * name went unanswered; leave the way the wired drivers do (2, absent).
+     */
+    if discover::find_virtio_net().is_none() {
+        mk_exit(2);
     }
 
     let start = mk_time_millis();
