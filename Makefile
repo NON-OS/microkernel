@@ -18,17 +18,18 @@
 #     make doctor       check this host has what the build and boot need
 #     make clean        remove build artefacts    (fmt to format the tree)
 #
-# The build is split by concern into mk/*.mk, with per-capsule rules in
-# userland/*/Capsule.mk. The nonos-mk-* targets those define are the internals
-# CI drives; they all still work, they are just not the surface. This file is
-# the curated top over them and defines nothing a person has to memorise.
+# The build is split by concern into mk/*.mk (config, qemu, build, market,
+# image, run, ci), with per-capsule rules in userland/*/Capsule.mk. The
+# nonos-mk-* targets those define are the internals CI drives; they all still
+# work, they are just not the surface. This file is the curated top over them
+# and defines nothing a person has to memorise.
 
 # Per-user build configuration from `make menuconfig`. Optional: the leading
 # dash keeps an absent file from being an error, so a fresh checkout builds.
 -include .nonos-config
 
-# Build concerns, included in numeric order (config, qemu, build, image, run,
-# ci) so immediate `:=` assignments resolve exactly as in a single file.
+# Build concerns, included in numeric order (config, qemu, build, market,
+# image, run, ci) so immediate `:=` assignments resolve exactly as in a single file.
 include $(sort $(wildcard mk/*.mk))
 
 # `make` with no target builds the shipping image, never nothing.
