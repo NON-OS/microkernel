@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_irq_ack, mk_yield};
+use nonos_libc::mk_yield;
 
 use crate::constants::{LEG_QUEUE_NOTIFY, MIN_ETHERNET_FRAME, Q_TX, VIRTIO_NET_HDR_LEN};
 use crate::queue::TxQueue;
@@ -24,11 +24,10 @@ const MAX_YIELDS: u32 = 200_000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TxError {
-    IrqAck,
     Timeout,
 }
 
-pub fn send(regs: Regs, tx: &mut TxQueue, irq_grant: u64, frame: &[u8]) -> Result<(), TxError> {
+pub fn send(regs: Regs, tx: &mut TxQueue, frame: &[u8]) -> Result<(), TxError> {
     let eth_len = if frame.len() < MIN_ETHERNET_FRAME {
         MIN_ETHERNET_FRAME
     } else {
@@ -69,8 +68,5 @@ pub fn send(regs: Regs, tx: &mut TxQueue, irq_grant: u64, frame: &[u8]) -> Resul
         tries = tries.wrapping_add(1);
     }
     tx.last_used = target;
-    if mk_irq_ack(irq_grant) < 0 {
-        return Err(TxError::IrqAck);
-    }
     Ok(())
 }

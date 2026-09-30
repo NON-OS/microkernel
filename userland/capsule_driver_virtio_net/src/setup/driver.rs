@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_dma_unmap, mk_irq_unbind};
+use nonos_libc::{mk_device_release, mk_dma_unmap};
 
 use super::registers::RegisterGrant;
 use crate::constants::MAC_LEN;
@@ -24,7 +24,6 @@ use crate::regs::Regs;
 pub struct Driver {
     pub device_id: u64,
     pub register: RegisterGrant,
-    pub irq_grant: u64,
     pub rx_queue_grant: u64,
     pub rx_buffer_grant: u64,
     pub tx_queue_grant: u64,
@@ -43,14 +42,12 @@ impl Driver {
         let tx_queue = mk_dma_unmap(self.tx_queue_grant);
         let rx_buffer = mk_dma_unmap(self.rx_buffer_grant);
         let rx_queue = mk_dma_unmap(self.rx_queue_grant);
-        let irq = mk_irq_unbind(self.irq_grant);
         let register = self.register.release();
         let device = mk_device_release(self.device_id);
         tx_buffer >= 0
             && tx_queue >= 0
             && rx_buffer >= 0
             && rx_queue >= 0
-            && irq >= 0
             && register
             && device >= 0
     }

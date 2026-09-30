@@ -30,7 +30,7 @@ pub fn handle(sender_pid: u32, driver: &mut Driver, req: &Request, body: &[u8], 
     if body.len() as u32 > MAX_TX_PAYLOAD_BYTES {
         return reply_with_status(sender_pid, tx, req, E_MSGSIZE);
     }
-    match send(driver.regs, &mut driver.tx, driver.irq_grant, body) {
+    match send(driver.regs, &mut driver.tx, body) {
         Ok(()) => reply_with_status(sender_pid, tx, req, 0),
         Err(_) => reply_with_status(sender_pid, tx, req, E_IO),
     }
