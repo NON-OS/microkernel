@@ -16,28 +16,56 @@
 
 use core::sync::atomic::Ordering;
 
+use super::handle::serve_for;
 use super::report::report_stuck;
-use super::request::{REQ_PENDING_ACKS, SHOOTDOWN_TIMEOUT_FALLBACK_TICKS, SHOOTDOWN_TIMEOUT_MS};
+use super::request::{
+    REQ_PENDING_ACKS, SHOOTDOWN_TIMEOUT_FALLBACK_TICKS, SHOOTDOWN_TIMEOUT_MS,
+    SHOOTDOWN_WARN_FALLBACK_TICKS, SHOOTDOWN_WARN_MS,
+};
 
-fn shootdown_timeout_ticks() -> u64 {
-    let ticks = crate::sys::timer::tsc::tsc_frequency() / 1000 * SHOOTDOWN_TIMEOUT_MS;
-    if ticks == 0 {
-        return SHOOTDOWN_TIMEOUT_FALLBACK_TICKS;
+/// `ms` as counter ticks, or `fallback` when the counter is not calibrated.
+fn budget(ms: u64, fallback: u64) -> u64 {
+    match crate::sys::timer::tsc::tsc_frequency() / 1000 * ms {
+        0 => fallback,
+        ticks => ticks,
     }
-    ticks
 }
 
 pub(super) fn wait_for_acks() {
-    let budget = shootdown_timeout_ticks();
-    let deadline = read_tsc().wrapping_add(budget);
+    let start = read_tsc();
+    let warn_at = start.wrapping_add(budget(SHOOTDOWN_WARN_MS, SHOOTDOWN_WARN_FALLBACK_TICKS));
+    let deadline =
+        start.wrapping_add(budget(SHOOTDOWN_TIMEOUT_MS, SHOOTDOWN_TIMEOUT_FALLBACK_TICKS));
+    let mut warned = false;
+    let me = crate::smp::percpu::current();
     while REQ_PENDING_ACKS.load(Ordering::Acquire) > 0 {
-        if read_tsc() > deadline {
+        /*
+         * Keep answering while waiting. `SHOOTDOWN_LOCK` admits one round at
+         * a time and a round never targets its originator, so nothing should
+         * be marked for this cpu now; but a waiter that stops listening is
+         * exactly how two cpus end up waiting on each other, so the wait never
+         * relies on that. The pending flag makes a spurious call a no-op.
+         */
+        serve_for(me);
+        let now = read_tsc();
+        if !warned && now > warn_at {
+            warned = true;
+            let outstanding = REQ_PENDING_ACKS.load(Ordering::Acquire);
+            if outstanding != 0 {
+                let mut line = crate::sys::serial::Line::new();
+                line.str(b"[SMP] tlb shootdown slow: acks outstanding=").dec(outstanding as u64);
+                line.str(b" after ms=").dec(SHOOTDOWN_WARN_MS);
+                line.end();
+            }
+        }
+        if now > deadline {
             let outstanding = REQ_PENDING_ACKS.load(Ordering::Acquire);
             if outstanding == 0 {
                 return;
             }
             let mut line = crate::sys::serial::Line::new();
             line.str(b"[FATAL] TLB shootdown timeout outstanding=").dec(outstanding as u64);
+            line.str(b" ms=").dec(SHOOTDOWN_TIMEOUT_MS);
             line.end();
             report_stuck();
             crate::smp::send_panic_ipi();

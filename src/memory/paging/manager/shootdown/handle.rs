@@ -28,7 +28,22 @@ use crate::memory::paging::tlb;
 /// way: it is what says the round applies to us, and clearing it before the
 /// ack means neither path can acknowledge twice.
 pub fn handle_shootdown_ipi() {
-    let me = crate::smp::percpu::current();
+    serve_for(crate::smp::percpu::current());
+}
+
+/// Whether any round is waiting for acknowledgements.
+///
+/// A poll that sees `false` may skip resolving its cpu: a round arms its ack
+/// count before it marks any target, so a cpu marked for a round the poll
+/// missed is found by the next poll, and the vector covers the rest.
+#[inline]
+pub fn shootdown_in_flight() -> bool {
+    REQ_PENDING_ACKS.load(Ordering::Acquire) != 0
+}
+
+/// `handle_shootdown_ipi` for a cpu already resolved, so a loop that polls
+/// does not pay the interrupt-controller read that names the cpu every time.
+pub(super) fn serve_for(me: &crate::smp::percpu::PerCpuData) {
     if me.tlb_flush_pending.swap(0, Ordering::AcqRel) == 0 {
         return;
     }

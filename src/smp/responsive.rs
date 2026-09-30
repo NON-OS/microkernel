@@ -36,7 +36,7 @@
 
 use spin::{Mutex, MutexGuard};
 
-use crate::memory::paging::manager::handle_shootdown_ipi;
+use crate::memory::paging::manager::{handle_shootdown_ipi, shootdown_in_flight};
 use crate::smp::cpus_online;
 
 /// Acquire `lock`, servicing TLB shootdowns while it is contended.
@@ -70,9 +70,27 @@ pub fn serve_shootdowns() {
     /*
      * Nothing can be pending on a uniprocessor, and resolving the current
      * CPU costs an interrupt-controller read, so the common case pays only
-     * the compare.
+     * the compare. On more than one CPU the same read is skipped while no
+     * round is in flight, which is nearly always, so a loop can afford to
+     * call this once per page.
      */
-    if cpus_online() > 1 {
+    if cpus_online() > 1 && shootdown_in_flight() {
         handle_shootdown_ipi();
+    }
+}
+
+/// The most work, in bytes, a masked loop does between two serve points.
+pub const SERVE_UNIT: usize = 64 * 1024;
+
+/// Hand `data` to `step` in pieces of at most [`SERVE_UNIT`] bytes, answering
+/// any TLB shootdown between pieces. For hashing and other pure computation
+/// over kernel buffers: nothing is held across the serve point but `data`,
+/// which is kernel memory and is not touched by a user page-table change.
+pub fn in_serve_units(data: &[u8], mut step: impl FnMut(&[u8])) {
+    for (i, piece) in data.chunks(SERVE_UNIT).enumerate() {
+        if i != 0 {
+            serve_shootdowns();
+        }
+        step(piece);
     }
 }

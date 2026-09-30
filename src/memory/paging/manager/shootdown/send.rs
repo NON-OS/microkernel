@@ -38,6 +38,13 @@ pub(super) fn mark_and_send(selected: &[u64]) {
             continue;
         };
         d.tlb_flush_pending.store(1, Ordering::Release);
+        /*
+         * An x2APIC ICR write is a WRMSR, which does not wait for earlier
+         * stores to drain. Without a full fence the vector can arrive before
+         * the mark is visible, the handler finds nothing pending, and a cpu
+         * idling with interrupts on never looks again.
+         */
+        core::sync::atomic::fence(Ordering::SeqCst);
         let _ = crate::arch::interrupt_controller::send_ipi(d.apic_id, Ipi::TlbShootdown);
     }
 }

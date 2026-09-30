@@ -19,10 +19,11 @@
 //! the paging manager. Always issues the local `invlpg` first; on
 //! multi-CPU runtime it then IPIs the peer CPUs running the same
 //! asid (or every online CPU for a kernel-half flush). On single-CPU
-//! runtime the broadcast block is skipped. Timeout policy is fail-
-//! hard: a stale TLB entry would back freed DMA or MMIO, so an ack
-//! that does not arrive inside the shootdown budget (`shootdown_timeout_ticks`)
-//! triggers a panic-IPI broadcast and halts the originator.
+//! runtime the broadcast block is skipped. An ack later than
+//! `SHOOTDOWN_WARN_MS` is reported and waited for; timeout policy past
+//! `SHOOTDOWN_TIMEOUT_MS` is fail-hard: a stale TLB entry would back
+//! freed DMA or MMIO, so an ack that never arrives triggers a panic-IPI
+//! broadcast and halts the originator.
 
 mod broadcast;
 mod flush;
@@ -34,5 +35,5 @@ mod send;
 mod wait;
 
 pub use flush::{flush_tlb_all_smp, flush_tlb_one_smp, flush_tlb_range_smp};
-pub use handle::handle_shootdown_ipi;
+pub use handle::{handle_shootdown_ipi, shootdown_in_flight};
 pub use request::ASID_KERNEL;

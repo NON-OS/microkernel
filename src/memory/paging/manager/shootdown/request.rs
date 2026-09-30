@@ -22,16 +22,25 @@ use spin::Mutex;
 /// because the kernel half is shared across every address space.
 pub const ASID_KERNEL: u32 = 0;
 
-/// Target bound on cross-CPU wait, in wall-clock milliseconds, converted to
-/// ticks against the calibrated counter frequency by `shootdown_timeout_ticks`.
-/// Far longer than any healthy `invlpg` cycle even under a descheduled peer
-/// vCPU. Tuned upwards is fine; tuned to "wait forever" is forbidden.
-pub(super) const SHOOTDOWN_TIMEOUT_MS: u64 = 50;
+/// Hard bound on the cross-CPU wait, in wall-clock milliseconds, converted to
+/// ticks against the calibrated counter frequency by `wait::budget`. A healthy
+/// ack takes microseconds, but a peer vCPU descheduled by its host, or one
+/// finishing a stretch of work between two serve points under emulation, can
+/// take tens of milliseconds, and halting the machine over a slow peer is
+/// worse than waiting for it. Tuned upwards is fine; tuned to "wait forever"
+/// is forbidden, because a peer that never answers is a real defect.
+pub(super) const SHOOTDOWN_TIMEOUT_MS: u64 = 2000;
+
+/// An ack later than this is reported, once per round, and waited for.
+pub(super) const SHOOTDOWN_WARN_MS: u64 = 50;
 
 /// Tick budget used when the computed budget comes back `0` (uncalibrated,
 /// or a frequency too low to clear one millisecond at this resolution). At
-/// least 50ms on any CPU up to 5 GHz.
-pub(super) const SHOOTDOWN_TIMEOUT_FALLBACK_TICKS: u64 = 250_000_000;
+/// least 2000ms on any CPU up to 5 GHz.
+pub(super) const SHOOTDOWN_TIMEOUT_FALLBACK_TICKS: u64 = 10_000_000_000;
+
+/// The same for the warning: at least 50ms on any CPU up to 5 GHz.
+pub(super) const SHOOTDOWN_WARN_FALLBACK_TICKS: u64 = 250_000_000;
 
 pub(super) static SHOOTDOWN_LOCK: Mutex<()> = Mutex::new(());
 pub(super) static REQ_VA: AtomicU64 = AtomicU64::new(0);

@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
-use super::handle::handle_shootdown_ipi;
+use super::handle::serve_for;
 use super::request::{REQ_PAGES, REQ_PENDING_ACKS, REQ_VA, SHOOTDOWN_LOCK};
 use super::select::select;
 use super::send::mark_and_send;
@@ -24,6 +24,19 @@ use super::wait::wait_for_acks;
 use crate::memory::addr::VirtAddr;
 
 pub(super) fn broadcast(va: VirtAddr, page_count: u32, asid: u32) {
+    /*
+     * The whole round runs masked. A holder of `SHOOTDOWN_LOCK` that took an
+     * interrupt could be switched away, or could reach a flush from the
+     * handler, and every other cpu, this one's next thread included, would
+     * spin on the lock with interrupts masked waiting for a round that no
+     * longer runs. The wait itself serves this cpu's own requests by hand,
+     * so masking costs it nothing it needs to hear.
+     */
+    crate::arch::run_without_interrupts(|| round(va, page_count, asid))
+}
+
+fn round(va: VirtAddr, page_count: u32, asid: u32) {
+    let me = crate::smp::percpu::current();
     // Serve any round already in flight while waiting for our turn. Page-table
     // mutation sites reach here with interrupts masked, so a cpu that simply
     // blocked on the lock could not answer the holder's IPI, and the two would
@@ -32,7 +45,7 @@ pub(super) fn broadcast(va: VirtAddr, page_count: u32, asid: u32) {
         if let Some(guard) = SHOOTDOWN_LOCK.try_lock() {
             break guard;
         }
-        handle_shootdown_ipi();
+        serve_for(me);
         core::hint::spin_loop();
     };
 
