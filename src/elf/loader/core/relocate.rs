@@ -40,16 +40,9 @@ const RELA_ENTRY: usize = 24;
 const RELA_WRITE_SIZE: u64 = 8;
 
 fn rd_u64(bytes: &[u8], off: usize) -> u64 {
-    u64::from_le_bytes([
-        bytes[off],
-        bytes[off + 1],
-        bytes[off + 2],
-        bytes[off + 3],
-        bytes[off + 4],
-        bytes[off + 5],
-        bytes[off + 6],
-        bytes[off + 7],
-    ])
+    let mut b = [0u8; 8];
+    b.copy_from_slice(&bytes[off..off + 8]);
+    u64::from_le_bytes(b)
 }
 
 pub(in crate::elf::loader::core) fn apply_relative_relocations(
