@@ -14,13 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The install: find the disk by its word, confirm, write in steps with a
-//! line every ten percent, read back, print the receipt, restart if asked.
+//! The install: find the disk by its word, load the image and what this
+//! boot carries, plan the whole disk, show it and confirm, write, read back,
+//! print the receipt, restart if asked. The plan comes first, so a disk too
+//! small is refused before a word is typed and what is written was shown.
 
 use nonos_blk_client::scan;
-use nonos_disk::Plan;
+use nonos_disk::{gather, Plan, ENTROPY_BYTES};
 use nonos_libc::{crypto_random, mk_admin_reboot};
 
+use super::carry::StdVfs;
 use super::confirm::confirm;
 use super::receipt::print_receipt;
 use super::source::Image;
@@ -35,9 +38,6 @@ pub fn run(word: &str, yes: bool, reboot: bool) -> i32 {
         eprintln!("install: that disk has no working driver");
         return 2;
     };
-    if !confirm(d, word, yes) {
-        return 0;
-    }
     let image = match Image::load() {
         Ok(i) => i,
         Err(e) => {
@@ -45,18 +45,23 @@ pub fn run(word: &str, yes: bool, reboot: bool) -> i32 {
             return 3;
         }
     };
-    let mut entropy = [0u8; 36];
+    let carried = gather(&mut StdVfs);
+    let mut entropy = [0u8; ENTROPY_BYTES];
     if crypto_random(entropy.as_mut_ptr(), entropy.len()) < 0 {
         eprintln!("install: the kernel gave no entropy for the disk identifiers");
         return 3;
     }
-    let plan = match Plan::new(device.sectors, &image.as_disk_image(), entropy) {
+    let store = carried.store.clone();
+    let plan = match Plan::new(device.sectors, &image.as_disk_image(), store, entropy) {
         Ok(p) => p,
         Err(e) => {
-            eprintln!("install: {e:?}");
+            eprintln!("install: {e}; nothing written");
             return 3;
         }
     };
+    if !confirm(d, &plan, &carried, word, yes) {
+        return 0;
+    }
     let (receipt, verified) = match super::run::write_and_verify(device, plan) {
         Ok(r) => r,
         Err(code) => return code,

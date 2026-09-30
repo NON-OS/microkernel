@@ -74,6 +74,14 @@ dependencies = [
 [[package]]
 name = "nonos_disk"
 version = "0.1.0"
+dependencies = [
+ "nonos_disk_map",
+ "nonos_policy_proto",
+]
+
+[[package]]
+name = "nonos_disk_map"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_install"
@@ -82,9 +90,14 @@ dependencies = [
  "nonos_app_skeleton",
  "nonos_blk_client",
  "nonos_disk",
+ "nonos_disk_map",
  "nonos_toolkit",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_policy_proto"
+version = "0.3.0"
 
 [[package]]
 name = "nonos_toolkit"

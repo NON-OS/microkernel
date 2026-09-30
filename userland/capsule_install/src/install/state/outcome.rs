@@ -25,6 +25,8 @@ pub struct Outcome {
     pub partition_guid: [u8; 36],
     pub bytes_written: u64,
     pub bytes_verified: u64,
+    /// Files in the new disk's store.
+    pub store_files: usize,
     pub seconds: u64,
     pub error: Option<String>,
 }

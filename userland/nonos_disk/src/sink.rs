@@ -16,9 +16,8 @@
 
 //! Where the sectors go.
 
-/// Every layout in this crate is in 512-byte sectors. A 4K-native disk still
-/// presents 512-byte logical sectors to the drivers this runs over.
-pub const SECTOR_SIZE: usize = 512;
+/// Every layout in this crate is in 512-byte sectors, the disk map's unit.
+pub use nonos_disk_map::SECTOR_SIZE;
 
 /// A transfer the device refused. The value is the driver's own status,
 /// carried through untouched so the receipt can show it.

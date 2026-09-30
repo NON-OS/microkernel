@@ -28,9 +28,10 @@ use crate::install::ui::widgets::{card, kv};
 use crate::install::ui::wrap::{paragraph, Ink};
 use crate::install::ui::{text, theme};
 
-const INTRO: &str = "NØNOS runs from memory and keeps nothing on disk. Installing puts the \
-image you are running now onto a drive in this computer so it can boot without the stick. \
-The drive you choose is erased. Nothing else on the computer is touched.";
+const INTRO: &str = "Installing puts the image you are running now onto a drive in this \
+computer, with a store for what this boot carries over and an encrypted data volume, so it \
+boots without the stick and keeps what you save. The drive you choose is erased. Nothing \
+else on the computer is touched.";
 
 pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     let mut y = paragraph(fb, b.x, b.y, b.w, INTRO, Ink::body(theme::FOREGROUND));

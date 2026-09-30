@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Why it stopped, in the words the writer gave, and what state the disk is
-//! in. A write that stopped before the table left a disk with no partition
-//! table, which firmware reads as empty; a read-back that failed left a
-//! complete disk whose contents cannot be trusted. Both are said.
+//! in. A write that stopped before the table was complete left a disk that
+//! must not be booted; a read-back that failed left a complete disk whose
+//! contents cannot be trusted. Both are said.
 
 use nonos_app_skeleton::PaintBuffer;
 
@@ -45,7 +45,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
         let state_line = if table_written {
             "The disk has a complete table but its contents did not read back as written. Do not boot it."
         } else {
-            "The disk has no partition table. Firmware will treat it as empty."
+            "The write stopped before the partition table was complete. Do not boot this disk."
         };
         y = paragraph(fb, b.x, y, b.w, state_line, Ink::body(theme::MUTED));
         let progress = alloc::format!("{} written before it stopped", bytes(o.bytes_written));

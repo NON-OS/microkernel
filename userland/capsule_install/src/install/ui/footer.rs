@@ -22,6 +22,7 @@ use nonos_app_skeleton::PaintBuffer;
 use super::metrics::{FOOTER_H, PAD, SMALL_PX};
 use super::text::{right, top_of};
 use super::{text, theme};
+use crate::install::event::stoppable;
 use crate::install::state::{Screen, State};
 
 pub fn paint(fb: &mut PaintBuffer, state: &State, w: u32, h: u32) {
@@ -32,8 +33,14 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, w: u32, h: u32) {
         Screen::Welcome if state.image.is_some() => ("Esc  close", "Enter  choose a disk"),
         Screen::Welcome => ("Esc  close", ""),
         Screen::Disks => ("Esc  back", "Up/Down  select    Enter  continue"),
-        Screen::Confirm => ("Esc  back", "type the word, then Enter"),
-        Screen::Writing => ("Esc  stop (disk left without a table)", "do not power off"),
+        Screen::Confirm if matches!(state.prepared, Some(Ok(_))) => {
+            ("Esc  back", "type the word, then Enter")
+        }
+        Screen::Confirm => ("Esc  back", ""),
+        Screen::Writing if stoppable(state) => {
+            ("Esc  stop (disk left without a table)", "do not power off")
+        }
+        Screen::Writing => ("", "writing the partition table; do not power off"),
         Screen::Verifying => ("", "do not power off"),
         Screen::Done => ("Esc  close", "Enter  restart now"),
         Screen::Failed => ("Esc  close", "Enter  choose another disk"),

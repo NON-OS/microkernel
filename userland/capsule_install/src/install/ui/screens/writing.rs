@@ -36,7 +36,7 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     let what = if verifying {
         "Reading every sector back and comparing it with what was sent."
     } else {
-        "Writing the bootloader and the kernel image to the disk."
+        "Writing the boot partition, the store, the disk plan and the table."
     };
     text::line(fb, b.x, b.y, what, theme::FOREGROUND, BODY_PX);
 

@@ -1,8 +1,10 @@
-# install capsule. The desktop installer: writes the running image to a disk
-# the user names and reads it back. Needs the graphics pair to open a window,
+# install capsule. The desktop installer: writes a whole NONOS disk to a disk
+# the user names (the running image, a store with what this boot carries, the
+# disk plan) and reads it back. Needs the graphics pair to open a window,
 # DeviceEnum to list disks and to read the boot image through the kernel,
 # Crypto for the GUIDs it mints, AttestRead to show what this boot verified,
-# Admin for the reboot at the end.
+# Admin for the reboot at the end. What it carries it reads from the vfs over
+# IPC, like any app.
 
 CAPSULE_SLUG             := install
 CAPSULE_HANDLE           := app.install

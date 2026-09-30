@@ -20,6 +20,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::outcome::Outcome;
+use super::prepared::Prepared;
 use super::screen::Screen;
 use crate::install::job::Job;
 use crate::install::source::{Boot, Image};
@@ -34,6 +35,9 @@ pub struct State {
     pub typed: Vec<u8>,
     pub image: Option<Image>,
     pub boot: Boot,
+    /// The plan for the chosen disk, made when it was chosen, or why there
+    /// is none.
+    pub prepared: Option<Result<Prepared, String>>,
     pub job: Option<Job>,
     pub outcome: Option<Outcome>,
     /// Why the image or the disk list is unavailable, when it is.
@@ -54,6 +58,7 @@ impl State {
             typed: Vec::new(),
             image,
             boot,
+            prepared: None,
             job: None,
             outcome: None,
             notice,

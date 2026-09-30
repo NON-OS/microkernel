@@ -38,18 +38,19 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
         BODY_PX,
     );
 
-    let inner = card(fb, b.x, b.y + LINE_H + 12, b.w, 6 * LINE_H + 40, "receipt");
+    let inner = card(fb, b.x, b.y + LINE_H + 12, b.w, 7 * LINE_H + 40, "receipt");
     let (x, w) = (b.x + 16, b.w - 32);
     let mut r = kv(fb, x, inner, w, "written", &bytes(o.bytes_written), false);
     r = kv(fb, x, r, w, "read back", &bytes(o.bytes_verified), false);
     r = kv(fb, x, r, w, "write time", &alloc::format!("{} s", o.seconds), false);
+    r = kv(fb, x, r, w, "store", &alloc::format!("{} files", o.store_files), false);
     r = kv(fb, x, r, w, "kernel measurement", &hex_prefix(&state.boot.kernel_blake3), true);
     let disk = core::str::from_utf8(&o.disk_guid).unwrap_or("");
     let part = core::str::from_utf8(&o.partition_guid).unwrap_or("");
     r = kv(fb, x, r, w, "disk", disk, true);
-    kv(fb, x, r, w, "partition", part, true);
+    kv(fb, x, r, w, "boot partition", part, true);
 
-    let y = b.y + 7 * LINE_H + 76;
+    let y = b.y + 8 * LINE_H + 76;
     text::line(
         fb,
         b.x,

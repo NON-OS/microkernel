@@ -25,7 +25,7 @@ use crate::install::ui::{text, theme};
 /// What erasing this particular disk destroys, in the colour of the loss.
 pub fn warn(fb: &mut PaintBuffer, x: u32, y: u32, contents: Contents) {
     let (line, colour) = match contents {
-        Contents::Nonos => ("holds NØNOS already; it will be replaced", theme::WARN),
+        Contents::Nonos => ("holds NØNOS; its store and data volume are lost", theme::WARN),
         Contents::OtherGpt | Contents::Mbr => {
             ("holds another system; all of it is erased", theme::DANGER)
         }

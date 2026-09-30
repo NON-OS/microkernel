@@ -18,8 +18,10 @@
 
 mod machine;
 mod outcome;
+mod prepared;
 mod screen;
 
 pub use machine::State;
 pub use outcome::Outcome;
+pub use prepared::Prepared;
 pub use screen::Screen;

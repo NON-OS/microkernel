@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Sizes, in pixels. The window is dialog-shaped and sits where the
-//! compositor's 1440x900 default puts a centred 760x540 panel; the frame
-//! fits it to a smaller display.
+//! compositor's 1440x900 default puts a centred 760x640 panel, tall enough
+//! for every row the confirm screen shows; the frame fits it to a smaller
+//! display.
 
 pub const WIN_W: u32 = 760;
-pub const WIN_H: u32 = 540;
+pub const WIN_H: u32 = 640;
 pub const WIN_X: u32 = 340;
-pub const WIN_Y: u32 = 160;
+pub const WIN_Y: u32 = 130;
 
 pub const HEADER_H: u32 = 64;
 pub const FOOTER_H: u32 = 44;

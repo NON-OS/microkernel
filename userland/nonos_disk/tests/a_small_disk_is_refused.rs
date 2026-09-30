@@ -14,29 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A disk that cannot hold the table and the image is refused before a
-//! byte is written, and the refusal says how big it was and how big it had
-//! to be. A disk large enough for the image but too small to stay FAT32
-//! is refused by the geometry, also before a byte lands in the table.
+//! A disk below the minimum is refused before a byte is written, and the
+//! refusal says how big it was and how big it had to be: 2113 MiB for any
+//! image that fits the one-GiB ESP, in words both installers print. A disk
+//! of exactly the minimum installs.
 
-mod common;
+#[path = "common/entropy.rs"]
+mod entropy;
+#[path = "common/files.rs"]
+mod files;
+#[path = "common/mem_disk.rs"]
+mod mem_disk;
 
-use nonos_disk::{install, WriteError};
+use nonos_disk::{install, StoreImage, WriteError, MIN_DISK_SECTORS};
 
 #[test]
 fn a_small_disk_is_refused() {
-    let f = common::files();
-    let image = common::image(&f);
-
-    let mut tiny = common::MemDisk::new(8);
-    let r = install(&mut tiny, &image, common::ENTROPY, &mut |_| {});
-    assert!(matches!(r, Err(WriteError::DiskTooSmall { total_sectors: 16384, .. })), "{r:?}");
-    assert!(tiny.bytes.iter().all(|&b| b == 0), "nothing was written");
-
-    // 30 MiB holds the ~10 MiB test image plus slack, but even one-sector
-    // clusters give under 65525 of them: FAT16 territory, refused.
-    let mut small = common::MemDisk::new(30);
-    let r = install(&mut small, &image, common::ENTROPY, &mut |_| {});
-    assert!(matches!(r, Err(WriteError::Volume(_))), "{r:?}");
-    assert_eq!(&small.bytes[512..520], &[0u8; 8], "no primary header was written");
+    let f = files::files();
+    let image = files::image(&f);
+    for total in [16_384, MIN_DISK_SECTORS - 2048, MIN_DISK_SECTORS - 1] {
+        let mut disk = mem_disk::MemDisk::new(total);
+        let r = install(&mut disk, &image, StoreImage::empty(), entropy::ENTROPY, &mut |_| {});
+        let needed_sectors = MIN_DISK_SECTORS;
+        assert_eq!(
+            r.err(),
+            Some(WriteError::DiskTooSmall { total_sectors: total, needed_sectors })
+        );
+        assert!(disk.written.is_empty(), "nothing was written to {total} sectors");
+    }
+    let refusal =
+        WriteError::DiskTooSmall { total_sectors: 16_384, needed_sectors: MIN_DISK_SECTORS };
+    let words = "the disk holds 8.4 MB; NONOS needs a disk of at least 2.2 GB (2113 MiB)";
+    assert_eq!(refusal.to_string(), words);
+    let mut disk = mem_disk::MemDisk::new(MIN_DISK_SECTORS);
+    let r = install(&mut disk, &image, StoreImage::empty(), entropy::ENTROPY, &mut |_| {});
+    assert!(r.is_ok(), "{r:?}");
 }

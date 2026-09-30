@@ -14,32 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! After the last job: the partition table, then the flush, then the
-//! receipt. The table goes down only once every byte of the volume has,
-//! so a disk that lost power mid-install has no table naming a partition
-//! whose contents never arrived.
+//! After the last job, which is the primary GPT header: the flush, then the
+//! receipt. The receipt keeps every job but the wipe, so the read-back
+//! compares every sector that stays written against the bytes that were
+//! sent.
 
 use super::progress::Progress;
 use super::step::Session;
-use crate::gpt::write_table;
 use crate::sink::BlockSink;
 use crate::writer::{Receipt, WriteError};
 
 impl<'a> Session<'a> {
     pub(super) fn finish(&mut self, sink: &mut dyn BlockSink) -> Result<Progress<'a>, WriteError> {
-        if !self.table_written {
-            write_table(sink, &self.plan.layout, self.plan.disk_guid, self.plan.partition_guid)?;
-            self.table_written = true;
-            return Ok(Progress::TableWritten);
-        }
         sink.flush()?;
+        let kept = self.kept_from.min(self.jobs.len());
         Ok(Progress::Done(Receipt {
-            disk_guid: self.plan.disk_guid,
-            partition_guid: self.plan.partition_guid,
+            disk_guid: self.plan.ids.disk,
+            partitions: self.plan.ids.partitions,
             layout: self.plan.layout,
             geometry: self.plan.geometry,
             bytes_written: self.done,
+            store_files: self.plan.store.files,
             files: self.plan.file_runs(),
+            written: self.jobs.split_off(kept),
         }))
     }
 }

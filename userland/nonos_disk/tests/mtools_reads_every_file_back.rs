@@ -16,20 +16,24 @@
 
 //! An independent FAT implementation reads the volume: mtools, the same
 //! tool the USB image build uses to write one. Every file comes back byte
-//! for byte through a reader that shares no code with this writer.
+//! for byte through a reader that shares no code with this writer, from
+//! the ESP at the end of a disk of the minimum size, saved as a sparse file.
 
-mod common;
+#[path = "common/entropy.rs"]
+mod entropy;
+#[path = "common/files.rs"]
+mod files;
+#[path = "common/mem_disk.rs"]
+mod mem_disk;
 
+use std::io::{Seek, SeekFrom, Write};
 use std::process::Command;
 
-use nonos_disk::install;
+use nonos_disk::{install, StoreImage, MIN_DISK_SECTORS, SECTOR_SIZE};
 
-fn mtype(img: &str, path: &str) -> Vec<u8> {
-    let out = Command::new("mtype")
-        .args(["-i", &format!("{img}@@1M"), path])
-        .output()
-        .expect("mtype runs");
-    assert!(out.status.success(), "mtype {path}: {}", String::from_utf8_lossy(&out.stderr));
+fn run(tool: &str, img: &str, args: &[&str]) -> Vec<u8> {
+    let out = Command::new(tool).args(["-i", img]).args(args).output().expect("mtools runs");
+    assert!(out.status.success(), "{tool} {args:?}: {}", String::from_utf8_lossy(&out.stderr));
     out.stdout
 }
 
@@ -39,26 +43,30 @@ fn mtools_reads_every_file_back() {
         eprintln!("mtools not installed; skipping");
         return;
     }
-    let f = common::files();
-    let mut disk = common::MemDisk::new(320);
-    install(&mut disk, &common::image(&f), common::ENTROPY, &mut |_| {}).unwrap();
+    let f = files::files();
+    let mut disk = mem_disk::MemDisk::new(MIN_DISK_SECTORS);
+    let (image, store) = (files::image(&f), StoreImage::empty());
+    let r = install(&mut disk, &image, store, entropy::ENTROPY, &mut |_| {}).unwrap();
     let dir = std::env::temp_dir().join(format!("nonos_disk_{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
-    let img = dir.join("disk.img");
-    std::fs::write(&img, &disk.bytes).unwrap();
-    let img = img.to_str().unwrap();
+    let path = dir.join("disk.img");
+    let mut file = std::fs::File::create(&path).unwrap();
+    file.set_len(MIN_DISK_SECTORS * SECTOR_SIZE as u64).unwrap();
+    for (lba, sector) in &disk.written {
+        file.seek(SeekFrom::Start(lba * SECTOR_SIZE as u64)).unwrap();
+        file.write_all(sector).unwrap();
+    }
+    let img = format!("{}@@{}", path.display(), r.layout.esp.first * SECTOR_SIZE as u64);
 
-    assert_eq!(mtype(img, "::/EFI/BOOT/BOOTX64.EFI"), f.boot_efi);
-    assert_eq!(mtype(img, "::/EFI/nonos/kernel.bin"), f.kernel_bin);
-    assert_eq!(mtype(img, "::/EFI/nonos/boot.cfg"), f.boot_cfg);
-    assert_eq!(mtype(img, "::/startup.nsh"), nonos_disk::STARTUP_NSH);
-
-    // The listing shows the names as written, lowercase where the image
-    // spells them lowercase, and nothing else in the root.
-    let out =
-        Command::new("mdir").args(["-i", &format!("{img}@@1M"), "-b", "::/"]).output().unwrap();
-    let listing = String::from_utf8_lossy(&out.stdout);
-    assert!(listing.contains("::/EFI/"), "{listing}");
-    assert!(listing.contains("::/startup.nsh"), "{listing}");
+    assert_eq!(run("mtype", &img, &["::/EFI/BOOT/BOOTX64.EFI"]), f.boot_efi);
+    assert_eq!(run("mtype", &img, &["::/EFI/nonos/kernel.bin"]), f.kernel_bin);
+    assert_eq!(run("mtype", &img, &["::/EFI/nonos/boot.cfg"]), f.boot_cfg);
+    assert_eq!(run("mtype", &img, &["::/startup.nsh"]), nonos_disk::STARTUP_NSH);
+    /*
+     * The listing shows the names as written, lowercase where the image
+     * spells them lowercase, and nothing else in the root.
+     */
+    let listing = String::from_utf8_lossy(&run("mdir", &img, &["-b", "::/"])).into_owned();
+    assert!(listing.contains("::/EFI/") && listing.contains("::/startup.nsh"), "{listing}");
     std::fs::remove_dir_all(&dir).unwrap();
 }

@@ -21,4 +21,5 @@ mod cancel;
 mod confirm;
 mod router;
 
+pub use cancel::stoppable;
 pub use router::on_event;

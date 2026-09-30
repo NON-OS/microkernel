@@ -23,9 +23,9 @@ use crate::install::state::{Outcome, Screen, State};
 
 pub fn finish(state: &mut State, error: Option<String>) {
     let Some(job) = state.job.take() else { return };
-    let (disk_guid, partition_guid, bytes_written) = match &job.receipt {
-        Some(r) => (r.disk_guid.text(), r.partition_guid.text(), r.bytes_written),
-        None => ([b'-'; 36], [b'-'; 36], job.done),
+    let (disk_guid, partition_guid, bytes_written, store_files) = match &job.receipt {
+        Some(r) => (r.disk_guid.text(), r.esp_guid().text(), r.bytes_written, r.store_files),
+        None => ([b'-'; 36], [b'-'; 36], job.done, 0),
     };
     state.screen = if error.is_some() { Screen::Failed } else { Screen::Done };
     state.outcome = Some(Outcome {
@@ -33,6 +33,7 @@ pub fn finish(state: &mut State, error: Option<String>) {
         partition_guid,
         bytes_written,
         bytes_verified: job.done,
+        store_files,
         seconds: job.write_seconds,
         error,
     });

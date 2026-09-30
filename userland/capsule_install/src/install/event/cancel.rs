@@ -20,11 +20,17 @@ use alloc::string::String;
 
 use nonos_app_skeleton::EventOutcome;
 
+use crate::install::job::Phase;
 use crate::install::state::{Outcome, Screen, State};
 
-/// Stopping a write is safe at any point: the partition table goes down
-/// last, so a disk abandoned here has no table and firmware reads it as
-/// empty. The read-back cannot be stopped; there is nothing to save by it.
+/// Whether a stop now leaves the disk with no table: until the first byte
+/// of the new table, since the old tables were wiped first. The read-back
+/// cannot be stopped; there is nothing to save by it.
+pub fn stoppable(state: &State) -> bool {
+    matches!(state.job.as_ref().map(|j| &j.phase), Some(Phase::Writing(s)) if s.stoppable())
+}
+
+/// Stop the write, leaving a disk that firmware reads as unpartitioned.
 pub fn cancel(state: &mut State) -> EventOutcome {
     state.job = None;
     state.outcome = Some(Outcome {
@@ -32,6 +38,7 @@ pub fn cancel(state: &mut State) -> EventOutcome {
         partition_guid: [b'-'; 36],
         bytes_written: 0,
         bytes_verified: 0,
+        store_files: 0,
         seconds: 0,
         error: Some(String::from("stopped by you before the table was written")),
     });

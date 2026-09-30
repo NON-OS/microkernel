@@ -19,7 +19,7 @@
 //! partition tool would recognise. Said beside the disk so a person
 //! erasing it knows what they are erasing.
 
-use nonos_disk::PARTITION_NAME;
+use nonos_disk::written_by_nonos;
 
 use crate::device::BlockDevice;
 
@@ -40,16 +40,7 @@ impl Contents {
         }
         let (mbr, gpt, entry) = (&head[..512], &head[512..1024], &head[1024..1152]);
         if &gpt[0..8] == b"EFI PART" {
-            let mut name = [0u8; 36];
-            for (i, ch) in entry[56..128].chunks(2).enumerate() {
-                name[i] = if ch[1] == 0 { ch[0] } else { b'?' };
-            }
-            let len = name.iter().position(|&b| b == 0).unwrap_or(36);
-            return if &name[..len] == PARTITION_NAME.as_bytes() {
-                Contents::Nonos
-            } else {
-                Contents::OtherGpt
-            };
+            return if written_by_nonos(entry) { Contents::Nonos } else { Contents::OtherGpt };
         }
         if mbr[510] == 0x55 && mbr[511] == 0xAA && mbr[446..510].iter().any(|&b| b != 0) {
             return Contents::Mbr;

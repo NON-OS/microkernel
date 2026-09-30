@@ -14,55 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The job queue for a plan: the volume in the order it lands.
+//! The job queue for a plan, in the order it lands:
+//!
+//! 1. the old tables and the kernel's markers wiped: a write that stops
+//!    before 4 leaves nothing the kernel reads as NONOS, and one that stops
+//!    before 6 leaves no partition table, old or new;
+//! 2. the ESP's volume, every byte;
+//! 3. the data volume's header ring and the key header, zeroed;
+//! 4. the store, its header sector last;
+//! 5. the disk plan;
+//! 6. the partition table, backup first, primary header last.
+//!
+//! The read-back covers 2 to 6. The wipe is overwritten by what follows it.
 
 use alloc::vec::Vec;
 
+use nonos_disk_map::{PLAN_LBA, STORE_BASE_LBA};
+
 use super::job::Job;
 use super::plan::Plan;
-use crate::fat32::{build_fat, build_reserved, encode_dir, Content, FAT_COUNT, RESERVED_SECTORS};
-use crate::sink::SECTOR_SIZE;
+use super::queue_esp::esp_jobs;
+use super::queue_state::state_jobs;
+use crate::gpt::table;
 
-/// Reserved area, both FATs, every directory, every file: the volume in
-/// the order it lands. Directory names that cannot be spelled are caught
-/// here, before any write.
-pub fn queue<'a>(plan: &Plan<'a>) -> Vec<Job<'a>> {
-    let first = plan.layout.esp_first_lba;
-    let geo = &plan.geometry;
+pub struct Queue<'a> {
+    pub jobs: Vec<Job<'a>>,
+    /// The first job the read-back covers.
+    pub kept_from: usize,
+    /// The first job of the partition table.
+    pub table_from: usize,
+}
+
+pub fn queue<'a>(plan: &Plan<'a>) -> Queue<'a> {
+    let layout = &plan.layout;
     let mut jobs = Vec::new();
-    let used = plan.placed.data_clusters_needed;
-    jobs.push(Job::owned(first, build_reserved(geo, first, used, plan.volume_id)));
-    let fat = build_fat(geo, &plan.placed.runs);
-    for i in 0..FAT_COUNT as u64 {
-        let lba = first + RESERVED_SECTORS as u64 + i * geo.fat_sectors as u64;
-        jobs.push(Job::owned(lba, fat.clone()));
+    for (lba, sectors) in
+        [(0, 2), (layout.backup_header_lba, 1), (STORE_BASE_LBA, 1), (PLAN_LBA, 1)]
+    {
+        jobs.push(Job::owned(lba, alloc::vec![0u8; sectors * crate::sink::SECTOR_SIZE]));
     }
-    for (i, run) in plan.placed.runs.iter().enumerate() {
-        if run.clusters == 0 {
-            continue;
-        }
-        let lba = plan.run_lba(run.first_cluster);
-        let run_bytes = run.clusters as usize * geo.cluster_bytes();
-        match &run.content {
-            Content::Dir(_) => {
-                let mut bytes = encode_dir(i, &plan.placed.runs).unwrap_or_default();
-                bytes.resize(run_bytes, 0);
-                jobs.push(Job::owned(lba, bytes));
-            }
-            Content::File(data) => {
-                let whole = data.len() / SECTOR_SIZE * SECTOR_SIZE;
-                if whole > 0 {
-                    jobs.push(Job::borrowed(lba, &data[..whole]));
-                }
-                // A file that fills its clusters exactly has no tail, and a
-                // driver refuses an empty write.
-                if run_bytes > whole {
-                    let mut tail = alloc::vec![0u8; run_bytes - whole];
-                    tail[..data.len() - whole].copy_from_slice(&data[whole..]);
-                    jobs.push(Job::owned(lba + (whole / SECTOR_SIZE) as u64, tail));
-                }
-            }
-        }
+    let kept_from = jobs.len();
+    esp_jobs(plan, &mut jobs);
+    state_jobs(plan, &mut jobs);
+    let table_from = jobs.len();
+    for (lba, bytes) in table(layout, plan.ids.disk, &plan.ids.partitions) {
+        jobs.push(Job::shared(lba, bytes));
     }
-    jobs
+    Queue { jobs, kept_from, table_from }
 }

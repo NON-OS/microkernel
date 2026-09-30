@@ -18,7 +18,9 @@
 //! reaches nothing outside.
 
 pub mod confirm;
+mod confirm_rows;
 mod confirm_warn;
+mod confirm_word;
 mod disk_row;
 pub mod disks;
 pub mod done;

@@ -20,8 +20,9 @@
 //! could do to a half-written disk except wait.
 
 use super::after::on_after_key;
-use super::cancel::cancel;
+use super::cancel::{cancel, stoppable};
 use super::confirm::on_confirm_key;
+use crate::install::job::prepare;
 use crate::install::state::{Screen, State};
 use nonos_app_skeleton::{
     EventOutcome, InputEvent, InputKind, KEY_DOWN, KEY_ENTER, KEY_ESC, KEY_UP,
@@ -55,13 +56,14 @@ pub fn on_event(state: &mut State, e: InputEvent) -> EventOutcome {
             }
             KEY_ENTER if state.selected_disk().is_some_and(|d| d.device.is_some()) => {
                 state.typed.clear();
+                prepare(state);
                 state.screen = Screen::Confirm;
                 EventOutcome::Repaint
             }
             _ => EventOutcome::Idle,
         },
         Screen::Confirm => on_confirm_key(state, e.code),
-        Screen::Writing if e.code == KEY_ESC => cancel(state),
+        Screen::Writing if e.code == KEY_ESC && stoppable(state) => cancel(state),
         Screen::Writing | Screen::Verifying => EventOutcome::Idle,
         Screen::Done | Screen::Failed => on_after_key(state, e.code),
     }

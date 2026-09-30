@@ -16,58 +16,24 @@
 
 //! One tick: one budget of the current phase. The write hands over to the
 //! read-back when the receipt arrives; the read-back hands over to the done
-//! screen when the last file matches. Either hands over to the failed
+//! screen when the last sector matches. Either hands over to the failed
 //! screen on the first error, with the disk left exactly as far as it got.
 
-use nonos_disk::{Progress, Verifier};
 use nonos_libc::mk_time_millis;
 
+use super::advance::{advance, Advanced};
 use super::finish::finish;
-use super::start::describe;
-use super::work::{Job, Phase};
 use crate::install::state::{Screen, State};
 
 /// True when something on screen changed.
 pub fn tick(state: &mut State) -> bool {
     let Some(job) = state.job.as_mut() else { return false };
     let now = mk_time_millis().max(0) as u64;
-    let result = match &mut job.phase {
-        Phase::Writing(session) => match session.step(&mut job.sink, Job::BUDGET) {
-            Ok(Progress::Writing { done, .. }) => {
-                job.done = done;
-                Ok(None)
-            }
-            Ok(Progress::TableWritten) => Ok(None),
-            Ok(Progress::Done(receipt)) => {
-                job.write_seconds = now.saturating_sub(job.started_ms) / 1000;
-                let verifier = Verifier::new(&receipt);
-                job.total = verifier.total_bytes();
-                job.done = 0;
-                job.receipt = Some(receipt);
-                job.phase = Phase::Verifying(verifier);
-                state.screen = Screen::Verifying;
-                Ok(None)
-            }
-            Err(e) => Err(e),
-        },
-        Phase::Verifying(verifier) => match verifier.step(&mut job.sink, Job::BUDGET) {
-            Ok(true) => {
-                job.done = verifier.checked;
-                Ok(None)
-            }
-            Ok(false) => Ok(Some(())),
-            Err(e) => Err(e),
-        },
-    };
-    match result {
-        Ok(None) => true,
-        Ok(Some(())) => {
-            finish(state, None);
-            true
-        }
-        Err(e) => {
-            finish(state, Some(describe(e)));
-            true
-        }
+    match advance(job, now) {
+        Ok(Advanced::Step) => {}
+        Ok(Advanced::Verifying) => state.screen = Screen::Verifying,
+        Ok(Advanced::Done) => finish(state, None),
+        Err(why) => finish(state, Some(why)),
     }
+    true
 }

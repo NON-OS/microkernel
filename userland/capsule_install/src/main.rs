@@ -22,14 +22,17 @@ extern crate alloc;
 mod install;
 
 use nonos_app_skeleton::run;
+use nonos_disk_map::MAX_TOTAL_BYTES;
 use nonos_libc::{
     heap_init_sized, mk_install_source_size, INSTALL_SOURCE_KERNEL_IMAGE,
     INSTALL_SOURCE_LOADER_IMAGE,
 };
 
 /// Room beyond the image copy for the window, the fonts, the disk writer's
-/// chunks and the read-back buffers.
-const HEADROOM: usize = 32 * 1024 * 1024;
+/// chunks and the read-back buffers, and for what the install carries: the
+/// store as it grows, the program being read into it and one read buffer,
+/// each at most the bytes vfs loads.
+const HEADROOM: usize = 32 * 1024 * 1024 + 3 * MAX_TOTAL_BYTES as usize;
 const MIB: usize = 1024 * 1024;
 
 /// The heap this capsule needs: the running image is copied into it once,
