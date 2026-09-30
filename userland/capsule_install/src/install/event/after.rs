@@ -22,11 +22,14 @@ use nonos_app_skeleton::{EventOutcome, KEY_ENTER, KEY_ESC};
 use nonos_libc::mk_admin_reboot;
 
 use super::router::back;
+use crate::install::full::active;
 use crate::install::state::{Screen, State};
 
 pub fn on_after_key(state: &mut State, code: u32) -> EventOutcome {
     match state.screen {
         Screen::Done => match code {
+            /* Full screen, nothing runs after this but the new disk. */
+            KEY_ESC if active() => EventOutcome::Idle,
             KEY_ESC => EventOutcome::Close,
             KEY_ENTER => {
                 mk_admin_reboot();

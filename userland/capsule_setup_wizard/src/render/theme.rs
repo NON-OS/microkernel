@@ -23,5 +23,6 @@ pub const STEP_LABELS: &[&[u8]] = &[
     b"Qwen model",
     b"Apps",
     b"Installed software",
+    b"Computer name",
     b"Review",
 ];

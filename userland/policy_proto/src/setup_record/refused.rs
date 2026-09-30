@@ -17,6 +17,8 @@ pub enum Refused {
     Name,
     /* A tier that is no tier's name, or bytes past its end. */
     Tier,
+    /* A computer name the kernel would not take, or bytes past its end. */
+    Host,
 }
 
 impl Refused {
@@ -27,6 +29,7 @@ impl Refused {
             Refused::Timezone => "time zone",
             Refused::Name => "name",
             Refused::Tier => "qwen tier",
+            Refused::Host => "computer name",
         }
     }
 }

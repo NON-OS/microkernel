@@ -19,7 +19,7 @@
  * then zeros to the end of the field. Copy, so a record stays plain data.
  */
 
-use super::rules::{NAME_MAX, TIER_MAX};
+use super::rules::{HOST_MAX, NAME_MAX, TIER_MAX};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct Kept<const N: usize> {
@@ -31,6 +31,8 @@ pub struct Kept<const N: usize> {
 pub type Name = Kept<NAME_MAX>;
 /* A kept Qwen tier, held to `tier_ok` wherever one is made. */
 pub type Tier = Kept<TIER_MAX>;
+/* A kept computer name, held to `host_ok` wherever one is made. */
+pub type Host = Kept<HOST_MAX>;
 
 impl<const N: usize> Kept<N> {
     pub const EMPTY: Self = Self { bytes: [0; N], len: 0 };

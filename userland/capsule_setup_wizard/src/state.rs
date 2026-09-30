@@ -17,6 +17,7 @@ pub struct Context {
     pub install_boot: bool,
     /* The account name typed on the name step. */
     pub name: crate::name::NameState,
+    pub host: crate::host::HostState,
     pub wall_sel: u8,
     /// 1 when installed programs may run. Starts at what an earlier boot
     /// decided, so setup shows the standing choice rather than asking again.
@@ -58,6 +59,7 @@ impl Context {
             mode_sel: if install_boot { crate::render::screens::mode::INSTALL } else { 0 },
             install_boot,
             name: crate::name::NameState::new(),
+            host: crate::host::HostState::new(),
             wall_sel: 0,
             local_sel: 0,
             local_was: false,

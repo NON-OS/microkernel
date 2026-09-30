@@ -43,6 +43,12 @@ pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
         w: w.saturating_sub(2 * PAD),
         h: h.saturating_sub(HEADER_H + FOOTER_H + PAD),
     };
+    screen(state, fb, body);
+    footer::paint(fb, state, w, h);
+}
+
+/* The screen's own body, the same in a window and full screen. */
+pub(super) fn screen(state: &State, fb: &mut PaintBuffer, body: Body) {
     match state.screen {
         Screen::Welcome => screens::welcome::paint(state, fb, body),
         Screen::Disks => screens::disks::paint(state, fb, body),
@@ -51,5 +57,4 @@ pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
         Screen::Done => screens::done::paint(state, fb, body),
         Screen::Failed => screens::failed::paint(state, fb, body),
     }
-    footer::paint(fb, state, w, h);
 }

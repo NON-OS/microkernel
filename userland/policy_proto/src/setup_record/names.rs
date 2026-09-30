@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Making a kept name or tier from what setup holds, held to the same rules
+ * Making a kept name, tier or computer name from what setup holds, held to the same rules
  * a record read back is.
  */
 
-use super::kept::{Name, Tier};
-use super::rules::{name_ok, tier_ok};
+use super::kept::{Host, Name, Tier};
+use super::rules::{host_ok, name_ok, tier_ok};
 
 impl Name {
     /* `None` for a name setup's name step would not take. */
@@ -33,5 +33,12 @@ impl Tier {
     /* `None` for anything that is not a tier's name. */
     pub fn new(s: &[u8]) -> Option<Self> {
         Self::from_ok(s, tier_ok)
+    }
+}
+
+impl Host {
+    /* `None` for a computer name the kernel would not take. */
+    pub fn new(s: &[u8]) -> Option<Self> {
+        Self::from_ok(s, host_ok)
     }
 }

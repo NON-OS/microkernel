@@ -29,7 +29,8 @@ pub const APPEARANCE: u8 = 6;
 pub const QWEN: u8 = 7;
 pub const APPS: u8 = 8;
 pub const LOCAL_SOFTWARE: u8 = 9;
-pub const REVIEW: u8 = 10;
-pub const DONE: u8 = 11;
+pub const HOST: u8 = 10;
+pub const REVIEW: u8 = 11;
+pub const DONE: u8 = 12;
 
 const _: () = assert!(crate::render::theme::STEP_LABELS.len() == DONE as usize);

@@ -18,6 +18,7 @@
 
 mod attest;
 mod load;
+mod tpm;
 
 pub use attest::Boot;
 pub use load::Image;

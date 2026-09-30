@@ -36,7 +36,7 @@ else on the computer is touched.";
 pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     let mut y = paragraph(fb, b.x, b.y, b.w, INTRO, Ink::body(theme::FOREGROUND));
     y += 12;
-    let inner = card(fb, b.x, y, b.w, 5 * LINE_H + 40, "what will be written");
+    let inner = card(fb, b.x, y, b.w, 6 * LINE_H + 40, "what will be written, and this machine");
     let x = b.x + 16;
     let w = b.w - 32;
     match &state.image {
@@ -46,7 +46,8 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
             r = kv(fb, x, r, w, "kernel measurement", &hex_prefix(&state.boot.kernel_blake3), true);
             r = kv(fb, x, r, w, "boot verdict", state.boot.verdict(), false);
             let sb = if state.boot.secure_boot { "on" } else { "off" };
-            kv(fb, x, r, w, "firmware secure boot", sb, false);
+            r = kv(fb, x, r, w, "firmware secure boot", sb, false);
+            kv(fb, x, r, w, "TPM", state.boot.tpm.text(), false);
         }
         None => {
             let why = state.notice.as_deref().unwrap_or("the image is not available");

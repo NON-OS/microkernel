@@ -17,8 +17,8 @@
 /*
  * Starting the desktop once first-boot setup has ended. On an install boot
  * setup runs first and its answer decides: Install (or no answer at all,
- * since the boot menu asked for it) hands over to the installer ahead of
- * the apps; Amnesic is respected and the desktop starts without one.
+ * since the boot menu asked for it) hands the whole screen to the installer
+ * and starts no desktop; Amnesic is respected and the desktop starts.
  */
 
 use crate::userspace::capsule_setup_wizard::{ended, Ended};

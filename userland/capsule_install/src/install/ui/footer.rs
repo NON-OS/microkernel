@@ -14,37 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The keys that do something on this screen, and nothing else: a person
-//! should never have to guess what Enter does on an installer.
+/* The footer: the keys this screen takes, from `hints`, one set on each side. */
 
 use nonos_app_skeleton::PaintBuffer;
 
+use super::hints::hints;
 use super::metrics::{FOOTER_H, PAD, SMALL_PX};
 use super::text::{right, top_of};
 use super::{text, theme};
-use crate::install::event::stoppable;
 use crate::install::state::{Screen, State};
 
 pub fn paint(fb: &mut PaintBuffer, state: &State, w: u32, h: u32) {
     let y = h - FOOTER_H;
     fb.fill_rect(0, y, w, 1, theme::RULE);
     let top = top_of(y, FOOTER_H, SMALL_PX);
-    let (left, right_hint) = match state.screen {
-        Screen::Welcome if state.image.is_some() => ("Esc  close", "Enter  choose a disk"),
-        Screen::Welcome => ("Esc  close", ""),
-        Screen::Disks => ("Esc  back", "Up/Down  select    Enter  continue"),
-        Screen::Confirm if matches!(state.prepared, Some(Ok(_))) => {
-            ("Esc  back", "type the word, then Enter")
-        }
-        Screen::Confirm => ("Esc  back", ""),
-        Screen::Writing if stoppable(state) => {
-            ("Esc  stop (disk left without a table)", "do not power off")
-        }
-        Screen::Writing => ("", "writing the partition table; do not power off"),
-        Screen::Verifying => ("", "do not power off"),
-        Screen::Done => ("Esc  close", "Enter  restart now"),
-        Screen::Failed => ("Esc  close", "Enter  choose another disk"),
-    };
+    let (left, right_hint) = hints(state);
     text::line(fb, PAD, top, left, theme::MUTED, SMALL_PX);
     let colour = if matches!(state.screen, Screen::Writing | Screen::Verifying) {
         theme::WARN

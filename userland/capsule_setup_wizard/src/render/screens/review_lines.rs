@@ -56,13 +56,13 @@ pub fn local_line(ctx: &Context) -> &'static [u8] {
 }
 
 /*
- * keep::save keeps these three with the keyboard, time zone and wallpaper, so
+ * keep::save keeps these with the keyboard, time zone and wallpaper, so
  * they are kept exactly when the mode line says the answers are.
  */
 pub fn name_line(ctx: &Context) -> &'static [u8] {
     match (mode::keeps(ctx), crate::keep::store_ready()) {
-        (false, _) => b"Name, Qwen model and apps: amnesic, for this boot only.",
-        (true, true) => b"Name, Qwen model and apps: kept with the other answers.",
-        (true, false) => b"Name, Qwen model and apps: kept on the disk the installer writes.",
+        (false, _) => b"Names, Qwen model and apps: amnesic, for this boot only.",
+        (true, true) => b"Names, Qwen model and apps: kept with the other answers.",
+        (true, false) => b"Names, Qwen model and apps: kept on the disk the installer writes.",
     }
 }

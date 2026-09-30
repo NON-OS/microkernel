@@ -20,11 +20,12 @@
 
 use super::answers::Answers;
 use super::kept::Kept;
-use super::layout::{ANSWERS_LEN, ANSWERS_V1_LEN, ANSWERS_V2_LEN, APPS_AT, NAME_AT, TIER_AT};
-use super::layout::{MAGIC_V1, MAGIC_V2, MAGIC_V3};
+use super::layout::{ANSWERS_LEN, ANSWERS_V1_LEN, ANSWERS_V2_LEN, ANSWERS_V3_LEN};
+use super::layout::{APPS_AT, HOST_AT, NAME_AT, TIER_AT};
+use super::layout::{MAGIC_V1, MAGIC_V2, MAGIC_V3, MAGIC_V4};
 use super::record::Record;
 use super::refused::Refused;
-use super::rules::{name_ok, tier_ok};
+use super::rules::{host_ok, name_ok, tier_ok};
 
 /* The answers in `raw`, of any version, or why they were refused. */
 pub fn check(raw: &[u8]) -> Result<Answers, Refused> {
@@ -47,8 +48,12 @@ pub fn check_record(raw: &[u8]) -> Result<Record, Refused> {
     };
     let answers =
         Answers { keyboard_layout: raw[4], timezone, wallpaper: raw[6], username, qwen_tier };
-    let apps_off = if version == 3 { raw[APPS_AT] } else { 0 };
-    Ok(Record { answers, apps_off })
+    let apps_off = if version >= 3 { raw[APPS_AT] } else { 0 };
+    let hostname = match version {
+        4 => Kept::take(&raw[HOST_AT..], host_ok).ok_or(Refused::Host)?,
+        _ => Kept::EMPTY,
+    };
+    Ok(Record { answers, apps_off, hostname })
 }
 
 /* Each version has its own length and its own magic. */
@@ -56,8 +61,9 @@ fn version(raw: &[u8]) -> Result<u8, Refused> {
     match raw.len() {
         ANSWERS_V1_LEN if raw[..4] == MAGIC_V1 => Ok(1),
         ANSWERS_V2_LEN if raw[..4] == MAGIC_V2 => Ok(2),
-        ANSWERS_LEN if raw[..4] == MAGIC_V3 => Ok(3),
-        ANSWERS_V1_LEN | ANSWERS_V2_LEN | ANSWERS_LEN => Err(Refused::Magic),
+        ANSWERS_V3_LEN if raw[..4] == MAGIC_V3 => Ok(3),
+        ANSWERS_LEN if raw[..4] == MAGIC_V4 => Ok(4),
+        ANSWERS_V1_LEN | ANSWERS_V2_LEN | ANSWERS_V3_LEN | ANSWERS_LEN => Err(Refused::Magic),
         _ => Err(Refused::Length),
     }
 }

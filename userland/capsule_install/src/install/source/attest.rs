@@ -20,12 +20,15 @@
 
 use nonos_libc::{mk_attest_status, AttestStatus};
 
+use super::tpm::Tpm;
+
 pub struct Boot {
     pub available: bool,
     pub signature_ok: bool,
     pub secure_boot: bool,
     pub attested: bool,
     pub kernel_blake3: [u8; 32],
+    pub tpm: Tpm,
 }
 
 impl Boot {
@@ -38,6 +41,7 @@ impl Boot {
             secure_boot: s.secure_boot != 0,
             attested: s.zk_attestation_ok != 0,
             kernel_blake3: s.kernel_blake3,
+            tpm: Tpm::read(),
         }
     }
 

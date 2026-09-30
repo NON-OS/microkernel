@@ -2,6 +2,7 @@ pub mod appearance;
 mod apps;
 mod commit;
 mod dispatch;
+mod host;
 pub mod keyboard;
 pub mod local_software;
 pub mod mode;

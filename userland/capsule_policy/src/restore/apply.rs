@@ -40,6 +40,11 @@ pub(super) fn apply(record: Record) {
     if set_i8::set(Field::Timezone, answers.timezone) {
         push::on_i8_set(Field::Timezone, answers.timezone);
     }
+    /* Empty before version 4 and when none was typed: the system's name stands. */
+    let host = record.hostname.as_bytes();
+    if !host.is_empty() && set_str::set(Field::Hostname, host) {
+        push::on_string_set(Field::Hostname, host);
+    }
     say(b"[POLICY] restored the answers setup kept on an earlier boot\n");
 }
 

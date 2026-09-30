@@ -27,16 +27,17 @@ pub fn draw(ctx: &Context) {
         Some(tier) => cat(&mut qwen, &[crate::qwen::label(tier), b" (", tier, b")"]),
         None => b"None for now",
     };
-    let names: [&[u8]; 6] = [
+    let names: [&[u8]; 7] = [
         keyboard::label(ctx.kbd_sel),
         name,
+        ctx.host.shown(),
         &tz[..tz_len],
         net,
         appearance::name(ctx.wall_sel),
         qwen,
     ];
-    let heads: [&[u8]; 6] =
-        [b"Keyboard", b"Name", b"Time zone", b"Network", b"Wallpaper", b"Qwen model"];
+    let heads: [&[u8]; 7] =
+        [b"Keyboard", b"Name", b"Computer", b"Time zone", b"Network", b"Wallpaper", b"Qwen model"];
     for (i, (head, name)) in heads.iter().zip(names.iter()).enumerate() {
         let y = 110 + 20 * i as u32;
         lines::text(buf, spx, w, h, x, y, &[head], FG);
@@ -50,7 +51,7 @@ pub fn draw(ctx: &Context) {
         name_line(ctx),
         crate::apps::said(ctx, &mut apps),
     ];
-    lines::text(buf, spx, w, h, x, 250, &said, FG);
+    lines::text(buf, spx, w, h, x, 260, &said, FG);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {

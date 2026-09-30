@@ -91,6 +91,7 @@ dependencies = [
  "nonos_blk_client",
  "nonos_disk",
  "nonos_disk_map",
+ "nonos_policy_proto",
  "nonos_toolkit",
  "nonos_userland_libc",
 ]

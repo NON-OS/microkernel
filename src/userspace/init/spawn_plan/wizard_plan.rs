@@ -22,7 +22,6 @@
  */
 
 use crate::userspace::capsule_setup_wizard as wiz;
-use crate::userspace::init::{request_instance, PendingApp};
 
 #[cfg(not(feature = "microkernel-input-probe"))]
 pub(in crate::userspace::init) fn spawn_desktop() {
@@ -35,30 +34,13 @@ pub(in crate::userspace::init) fn spawn_desktop() {
     );
 }
 
-/*
- * An install boot whose setup chose Install, or ended without a choice: the
- * installer is a window, so it needs the window manager and the shell that
- * hands it its first frame; those start here and no app does until it has
- * closed. Setup has kept its answers, which the installer carries to the
- * disk it writes. Init performs the queued spawn on its next loop pass.
- */
-pub(in crate::userspace::init) fn spawn_installer_first() {
-    super::desktop_fleet::spawn_rest();
-    let line: &[u8] = if request_instance(PendingApp::Install) {
-        b"[INIT] install boot: installer queued before the apps\n"
-    } else {
-        b"[INIT] install boot: the spawn queue is full\n"
-    };
-    crate::sys::serial::print(line);
-}
-
 pub(in crate::userspace::init) fn spawn_post_wizard() {
     super::desktop_fleet::spawn_rest();
     spawn_after_first();
 }
 
 /* The market and the apps, once setup or the installer has ended. */
-pub(in crate::userspace::init) fn spawn_after_first() {
+fn spawn_after_first() {
     super::core::spawn_market();
     super::apps::spawn();
 }

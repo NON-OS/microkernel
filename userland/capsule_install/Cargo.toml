@@ -31,6 +31,7 @@ nonos_toolkit = { path = "../toolkit", default-features = false }
 nonos_disk = { path = "../nonos_disk" }
 nonos_disk_map = { path = "../nonos_disk_map" }
 nonos_blk_client = { path = "../nonos_blk_client" }
+nonos_policy_proto = { path = "../policy_proto" }
 
 [profile.release]
 panic = "abort"

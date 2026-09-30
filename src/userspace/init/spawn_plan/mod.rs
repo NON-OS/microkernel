@@ -42,6 +42,8 @@ mod drivers_virtio_io;
 mod drivers_wifi;
 #[cfg(feature = "microkernel-input-probe")]
 mod input_probe_fleet;
+#[cfg(feature = "microkernel-setup-wizard")]
+mod install_first;
 mod network;
 mod orchestrator;
 mod services_audio;
@@ -57,9 +59,9 @@ pub(super) use orchestrator::{
     spawn_vfs,
 };
 
+#[cfg(feature = "microkernel-setup-wizard")]
+pub(super) use install_first::spawn_installer_first;
 #[cfg(all(feature = "microkernel-setup-wizard", not(feature = "microkernel-input-probe")))]
 pub(super) use wizard_plan::spawn_desktop;
 #[cfg(feature = "microkernel-setup-wizard")]
-pub(super) use wizard_plan::{
-    spawn_after_first, spawn_installer_first, spawn_market, spawn_post_wizard,
-};
+pub(super) use wizard_plan::{spawn_market, spawn_post_wizard};

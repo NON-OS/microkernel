@@ -20,6 +20,10 @@ pub fn commit(ctx: &mut Context) {
         let _ = policy::set_str(p, Field::Username as u32, ctx.name.typed());
         let _ = policy::set_str(p, Field::QwenTier as u32, ctx.qwen.chosen().unwrap_or(b""));
         let _ = policy::set_u8(p, Field::AppsOff as u32, ctx.apps_off);
+        /* The kernel takes no empty hostname, so empty sends nothing. */
+        if !ctx.host.typed().is_empty() {
+            let _ = policy::set_str(p, Field::Hostname as u32, ctx.host.typed());
+        }
         let _ = policy::set_bool(p, Field::Persistent as u32, keep);
     }
     crate::consent::apply(ctx.local_sel == 1, ctx.local_was, keep);

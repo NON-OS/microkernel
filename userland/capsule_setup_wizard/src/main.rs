@@ -6,6 +6,7 @@ extern crate alloc;
 mod apps;
 mod clients;
 mod consent;
+mod host;
 mod keep;
 mod name;
 mod network;

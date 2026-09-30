@@ -10,7 +10,7 @@
 
 use nonos_policy_proto::apps::{BROWSER, LINUX, MEDIA};
 use nonos_policy_proto::setup_record::{check, check_record, Answers, Name, Record, Refused, Tier};
-use nonos_policy_proto::setup_record::{ANSWERS_LEN, ANSWERS_V1_LEN, ANSWERS_V2_LEN};
+use nonos_policy_proto::setup_record::{Host, ANSWERS_LEN, ANSWERS_V1_LEN, ANSWERS_V2_LEN};
 
 fn kept() -> Answers {
     Answers {
@@ -24,9 +24,9 @@ fn kept() -> Answers {
 
 #[test]
 fn apps_turned_off_round_trip() {
-    let r = Record { answers: kept(), apps_off: BROWSER | MEDIA | LINUX };
+    let r = Record { answers: kept(), apps_off: BROWSER | MEDIA | LINUX, hostname: Host::EMPTY };
     let raw = r.encode();
-    assert_eq!((raw.len(), &raw[..4]), (ANSWERS_LEN, &b"NSA3"[..]));
+    assert_eq!((raw.len(), &raw[..4]), (ANSWERS_LEN, &b"NSA4"[..]));
     assert_eq!(Record::decode(&raw), Some(r));
     assert_eq!(check(&raw), Ok(kept()), "the answers read alone as before");
 }
@@ -35,7 +35,10 @@ fn apps_turned_off_round_trip() {
 fn a_version_2_record_reads_with_every_app_on() {
     let raw = kept().encode();
     assert_eq!((raw.len(), &raw[..4]), (ANSWERS_V2_LEN, &b"NSA2"[..]));
-    assert_eq!(check_record(&raw), Ok(Record { answers: kept(), apps_off: 0 }));
+    assert_eq!(
+        check_record(&raw),
+        Ok(Record { answers: kept(), apps_off: 0, hostname: Host::EMPTY })
+    );
 }
 
 #[test]
@@ -47,7 +50,7 @@ fn a_version_1_record_reads_with_every_app_on() {
 
 #[test]
 fn every_version_must_carry_its_own_magic() {
-    let mut v3 = Record { answers: kept(), apps_off: 1 }.encode();
+    let mut v3 = Record { answers: kept(), apps_off: 1, hostname: Host::EMPTY }.encode_v3();
     v3[3] = b'2';
     assert_eq!(check_record(&v3), Err(Refused::Magic));
     let mut v2 = kept().encode();
@@ -58,7 +61,7 @@ fn every_version_must_carry_its_own_magic() {
 
 #[test]
 fn the_apps_byte_does_not_spill_into_the_tier() {
-    let mut raw = Record { answers: kept(), apps_off: 0xFF }.encode();
+    let mut raw = Record { answers: kept(), apps_off: 0xFF, hostname: Host::EMPTY }.encode();
     assert_eq!(check_record(&raw).unwrap().answers.qwen_tier.as_bytes(), b"small");
     raw[ANSWERS_V2_LEN - 1] = b'x';
     assert_eq!(check_record(&raw), Err(Refused::Tier), "bytes past the tier's end");

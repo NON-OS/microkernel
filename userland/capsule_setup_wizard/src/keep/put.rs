@@ -18,7 +18,7 @@
 
 use nonos_app_skeleton::clients::vfs;
 use nonos_policy_proto::setup_record::{Record, ANSWERS_LEN, ANSWERS_PATH};
-use nonos_policy_proto::setup_record::{ANSWERS_V1_LEN, ANSWERS_V2_LEN};
+use nonos_policy_proto::setup_record::{ANSWERS_V1_LEN, ANSWERS_V2_LEN, ANSWERS_V3_LEN};
 
 use crate::server::say::say;
 
@@ -33,6 +33,7 @@ pub(super) fn put_answers(pid: u32, record: &Record) -> Result<(), &'static str>
     match old {
         ANSWERS_V1_LEN => put(pid, ANSWERS_PATH, &record.answers.encode_v1())?,
         ANSWERS_V2_LEN => put(pid, ANSWERS_PATH, &record.answers.encode())?,
+        ANSWERS_V3_LEN => put(pid, ANSWERS_PATH, &record.encode_v3())?,
         _ => return put(pid, ANSWERS_PATH, &record.encode()),
     }
     say(b"[SETUP] an older record is in the store: what it cannot hold is not kept\n");

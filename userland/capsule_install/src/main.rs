@@ -54,5 +54,9 @@ pub unsafe extern "C" fn _start() -> ! {
     if let Some(bytes) = heap_bytes() {
         let _ = heap_init_sized(bytes);
     }
+    /* An install boot with no desktop: the installer is the whole screen. */
+    if install::full::wanted() {
+        install::full::run()
+    }
     run(install::Install::new)
 }
