@@ -52,26 +52,3 @@ pub(super) const RUN: Role = Role {
     // A guest's own sockets are the socket model's to grant, not this.
     extra_caps: 0,
 };
-
-/// A terminal's own run of a Qwen tier, one role per slot. Each has the
-/// endpoints the manifest declares for it, so two terminals each hold a run
-/// and neither collides with the store's `app.linux.run`. Nothing beyond
-/// LINUX_CAPS: the run reads its model and talks to its terminal, no more.
-pub(super) const TERMINAL: [Role; 2] = [
-    Role {
-        name: "app.linux.term.1",
-        port: 4946,
-        inbox: "endpoint.app.linux.term.1.reply",
-        reply_port: 4947,
-        tag: b"[LINUX-TERM] elf error:",
-        extra_caps: 0,
-    },
-    Role {
-        name: "app.linux.term.2",
-        port: 4948,
-        inbox: "endpoint.app.linux.term.2.reply",
-        reply_port: 4949,
-        tag: b"[LINUX-TERM] elf error:",
-        extra_caps: 0,
-    },
-];

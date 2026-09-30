@@ -18,7 +18,7 @@
 //! caller's terminal. Neither the tier word nor the request is logged.
 
 use super::super::install::spawn_role;
-use super::super::roles::TERMINAL;
+use super::roles::TERMINAL;
 use super::{slots, tier};
 use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 use crate::process::signal::SIGKILL;

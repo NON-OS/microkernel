@@ -21,7 +21,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::super::roles::TERMINAL;
+use super::roles::TERMINAL;
 use crate::sys::sync::IrqMutex;
 
 pub(super) enum Slot {

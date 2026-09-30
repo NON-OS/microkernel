@@ -16,7 +16,7 @@
 //! The spawn path's hand-off to a terminal run: its run request goes to the
 //! process, and it is recorded as a private run, before it first runs.
 
-use super::super::roles::TERMINAL;
+use super::roles::TERMINAL;
 
 /// Called by the spawn path for every capsule, after the last step that can
 /// fail and before the process is queued to run. For the terminal-run role
