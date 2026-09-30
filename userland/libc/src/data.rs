@@ -32,9 +32,18 @@ pub fn mk_data_stat(name: &[u8]) -> i64 {
     call_raw(N_MK_DATA_STAT, [name.as_ptr() as u64, name.len() as u64, 0, 0, 0, 0])
 }
 
-/// Read up to `buf.len()` bytes of `name` from `offset`, at most 1 MiB.
+/// Read up to `buf.len()` bytes of `name` from `offset`, at most 4 MiB.
 /// Needs FileSystem. Returns the bytes read, 0 at the end.
 pub fn mk_data_read(name: &[u8], offset: u64, buf: &mut [u8]) -> i64 {
     let (p, n) = (name.as_ptr() as u64, name.len() as u64);
     call_raw(N_MK_DATA_READ, [p, n, offset, buf.as_mut_ptr() as u64, buf.len() as u64, 0])
+}
+
+/// Read up to `len` bytes of `name` from `offset`, at most 4 MiB, straight
+/// into the guest `pid` the caller supervises, at `addr` in that guest.
+/// Needs FileSystem. Returns the bytes read, 0 at the end; EFAULT when the
+/// guest has no page at `addr`, EPERM when `pid` is not the caller's guest.
+pub fn mk_data_read_peer(name: &[u8], offset: u64, pid: u32, addr: u64, len: u64) -> i64 {
+    let (p, n) = (name.as_ptr() as u64, name.len() as u64);
+    call_raw(N_MK_DATA_READ, [p, n, offset, addr, len, pid as u64])
 }

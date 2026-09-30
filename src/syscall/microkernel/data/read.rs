@@ -14,22 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `MkDataRead(name, len, offset, buf, buf_len)`: read a range of a file on
-//! the data volume into the caller's buffer, at most 4 MiB a call. Returns
-//! the bytes read, 0 at the file's end.
+//! `MkDataRead(name, len, offset, buf, buf_len, peer)`: read a range of a
+//! file on the data volume, at most 4 MiB a call. Returns the bytes read, 0
+//! at the file's end.
 //!
-//! The bytes pass through a bounce buffer on the kernel heap, taken without
-//! panicking: a heap that cannot spare it refuses the call with ENOMEM.
+//! With `peer` 0 the bytes go to the caller's buffer (`read_bounce`);
+//! otherwise `buf` is an address in the guest `peer`, which the caller
+//! supervises (`read_peer`).
 
-use alloc::vec::Vec;
-
-use super::super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOMEM, ERRNO_PERM};
+use super::super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 use super::errno::errno;
 use super::name::copy_name;
 
 const MAX_READ: u64 = 4 << 20;
 
-pub fn sys_data_read(name_ptr: u64, name_len: u64, offset: u64, buf: u64, buf_len: u64) -> i64 {
+pub fn sys_data_read(
+    name_ptr: u64,
+    name_len: u64,
+    offset: u64,
+    buf: u64,
+    buf_len: u64,
+    peer: u64,
+) -> i64 {
     if !crate::syscall::caps::current_caps_or_default().can_open_files() {
         return ERRNO_PERM;
     }
@@ -40,34 +46,14 @@ pub fn sys_data_read(name_ptr: u64, name_len: u64, offset: u64, buf: u64, buf_le
     if buf == 0 || buf_len == 0 || buf_len > MAX_READ {
         return ERRNO_INVAL;
     }
-    if crate::usercopy::validate_user_write(buf, buf_len as usize).is_err() {
+    if peer == 0 && crate::usercopy::validate_user_write(buf, buf_len as usize).is_err() {
         return ERRNO_FAULT;
     }
     if let Err(e) = crate::fs::blockfs_volume::open_machine_volume() {
         return errno(e);
     }
-    let mut bounce = Vec::new();
-    if bounce.try_reserve_exact(buf_len as usize).is_err() {
-        crate::log::warn!("[DATA] read refused: no {} bytes of heap to bounce it", buf_len);
-        return ERRNO_NOMEM;
+    if peer != 0 {
+        return super::read_peer::read_into_guest(&name[..len], offset, peer, buf, buf_len);
     }
-    /*
-     * Zeroed a serve unit at a time: the whole call runs with interrupts
-     * masked, and 4 MiB of stores in one stretch is long enough under
-     * emulation to hold up another cpu's TLB shootdown. The volume read
-     * serves once per sector and the copy out once per unit.
-     */
-    while bounce.len() < buf_len as usize {
-        crate::smp::serve_shootdowns();
-        let step = (buf_len as usize - bounce.len()).min(crate::smp::SERVE_UNIT);
-        bounce.resize(bounce.len() + step, 0u8);
-    }
-    let n = match crate::fs::blockfs_volume::read_at(&name[..len], offset, &mut bounce) {
-        Ok(n) => n,
-        Err(e) => return errno(e),
-    };
-    if crate::usercopy::copy_to_user(buf, &bounce[..n]).is_err() {
-        return ERRNO_FAULT;
-    }
-    n as i64
+    super::read_bounce::read_to_caller(&name[..len], offset, buf, buf_len)
 }
