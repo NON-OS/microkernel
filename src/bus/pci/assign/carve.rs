@@ -24,7 +24,7 @@
 /// Kept pure and separate from the window state so the alignment and bounds
 /// arguments can be proven rather than argued: see the `pci_window` harnesses
 /// in `userland/kernel_proofs`.
-pub fn carve(cursor: u64, limit: u64, size: u64) -> Option<(u64, u64)> {
+pub(crate) fn carve(cursor: u64, limit: u64, size: u64) -> Option<(u64, u64)> {
     if size == 0 || !size.is_power_of_two() {
         return None;
     }

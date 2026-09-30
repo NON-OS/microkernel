@@ -16,8 +16,6 @@
 
 use core::sync::atomic::{AtomicBool, AtomicU32};
 
-pub(super) const PCI_CONFIG_ADDRESS: u16 = 0x0CF8;
-pub(super) const PCI_CONFIG_DATA: u16 = 0x0CFC;
 pub(super) const MAX_DEVICES: usize = 64;
 
 pub(super) static PCI_INIT: AtomicBool = AtomicBool::new(false);
