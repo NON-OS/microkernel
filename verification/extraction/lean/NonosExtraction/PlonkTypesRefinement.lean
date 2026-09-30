@@ -38,9 +38,38 @@ theorem the_plonkevaluations_new_wrapper_is_its_method :
 theorem the_plonkcircuit_new_wrapper_is_its_method :
     plonkcircuit_new = types.PlonkCircuit.new := rfl
 
+/-! ### Fresh values start empty
+
+    `PlonkCircuit::new` is where `plonk_prove` starts before adding its one
+    multiplication gate, so a fresh circuit must have no gates and no public
+    inputs, or the proof would describe a circuit larger than the one built.
+    `PlonkEvaluations::new` is the scratch value that proof deserialisation
+    overwrites field by field, and every one of its six evaluations is the
+    all-zero 32 byte string, so a field the parser failed to fill would read as
+    zero rather than as stale data. These theorems cannot establish anything
+    about `add_mul_gate`, the prover or the parser, which are not extracted, nor
+    that zero is a meaningful field element to the verifier.
+-/
+
+/-- A fresh circuit has no gates and no public inputs. -/
+theorem plonkcircuit_new_has_no_gates_and_no_public_inputs :
+    ∃ c, plonkcircuit_new = ok c ∧ c.num_gates.val = 0 ∧ c.public_inputs.val = [] := by
+  refine ⟨_, rfl, ?_, ?_⟩ <;> rfl
+
+/-- Each of the six fresh evaluations is exactly thirty-two zero bytes. -/
+theorem plonkevaluations_new_is_zero_in_every_field :
+    ∃ e, plonkevaluations_new = ok e ∧
+      e.a.val = List.replicate 32 0#u8 ∧ e.b.val = List.replicate 32 0#u8 ∧
+      e.c.val = List.replicate 32 0#u8 ∧ e.z_omega.val = List.replicate 32 0#u8 ∧
+      e.s_sigma1.val = List.replicate 32 0#u8 ∧ e.s_sigma2.val = List.replicate 32 0#u8 := by
+  refine ⟨_, rfl, ?_⟩
+  simp
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.PlonkTypes.the_plonkevaluations_new_wrapper_is_its_method
 #print axioms NonosExtraction.PlonkTypes.the_plonkcircuit_new_wrapper_is_its_method
+#print axioms NonosExtraction.PlonkTypes.plonkcircuit_new_has_no_gates_and_no_public_inputs
+#print axioms NonosExtraction.PlonkTypes.plonkevaluations_new_is_zero_in_every_field
 
 end NonosExtraction.PlonkTypes

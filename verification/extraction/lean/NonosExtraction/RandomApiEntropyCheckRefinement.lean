@@ -35,8 +35,70 @@ namespace NonosExtraction.RandomApiEntropyCheck
 theorem the_required_entropy_bytes_wrapper_is_its_method (a : Std.Usize) :
     required_entropy_bytes a = entropy_check.required_entropy_bytes a := rfl
 
+/-! ### Bytes needed to hold a number of bits
+
+    `get_bytes_checked` refuses a buffer shorter than
+    `required_entropy_bytes(min_entropy)`. The theorems below say the function
+    never fails on any `usize`, including `usize::MAX` where a careless
+    `(bits + 7) / 8` would overflow, that it returns exactly the ceiling of
+    `bits / 8`, and so that the byte count is always enough to carry the bits
+    asked for and never one byte more than needed. They cannot establish that the
+    bytes `fill_random_bytes` then writes carry that much entropy; the generator
+    is not extracted here.
+-/
+
+/-- The result is `ceil(bits / 8)`, for every `usize`. -/
+theorem required_entropy_bytes_is_the_ceiling_of_bits_over_eight (bits : Std.Usize) :
+    ∃ n : Std.Usize, required_entropy_bytes bits = ok n ∧ n.val = (bits.val + 7) / 8 := by
+  unfold required_entropy_bytes entropy_check.required_entropy_bytes
+  obtain ⟨q, hq, hqv⟩ := UScalar.div_spec bits (y := 8#usize) (by simp)
+  obtain ⟨r, hr, hrv⟩ := WP.spec_imp_exists (UScalar.rem_spec bits (y := 8#usize) (by simp))
+  have e8 : (8#usize : Std.Usize).val = 8 := rfl
+  rw [e8] at hqv hrv
+  rw [hr]
+  simp only [bind_tc_ok]
+  split
+  · rename_i heq
+    have h0 : r.val = 0 := by rw [heq]; rfl
+    exact ⟨q, hq, by omega⟩
+  · rename_i hne
+    have h0 : r.val ≠ 0 := fun h => hne (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    rw [hq]
+    simp only [bind_tc_ok]
+    have hb := bits.hBounds
+    obtain ⟨n, hn, hnv⟩ := WP.spec_imp_exists
+      (Usize.add_spec (x := q) (y := 1#usize) (by
+        have : (1#usize : Std.Usize).val = 1 := rfl
+        rw [this, hqv]; scalar_tac))
+    refine ⟨n, hn, ?_⟩
+    rw [hnv, hqv]
+    have : (1#usize : Std.Usize).val = 1 := rfl
+    rw [this]
+    omega
+
+/-- The caller's contract: a buffer of the returned length holds every bit asked
+    for, and one byte fewer would not. -/
+theorem required_entropy_bytes_is_enough_and_no_more (bits : Std.Usize) :
+    ∃ n : Std.Usize, required_entropy_bytes bits = ok n ∧
+      bits.val ≤ 8 * n.val ∧ 8 * n.val < bits.val + 8 := by
+  obtain ⟨n, hn, hv⟩ := required_entropy_bytes_is_the_ceiling_of_bits_over_eight bits
+  exact ⟨n, hn, by omega, by omega⟩
+
+/-- A request for 256 bits needs 32 bytes, 257 bits need 33, and no bits need no
+    bytes. -/
+theorem required_entropy_bytes_at_a_byte_boundary :
+    required_entropy_bytes 256#usize = ok 32#usize ∧
+      required_entropy_bytes 257#usize = ok 33#usize ∧
+      required_entropy_bytes 0#usize = ok 0#usize := by
+  refine ⟨?_, ?_, ?_⟩ <;>
+    (obtain ⟨n, hn, hv⟩ := required_entropy_bytes_is_the_ceiling_of_bits_over_eight _
+     rw [hn]; congr 1; apply UScalar.eq_of_val_eq; rw [hv]; rfl)
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.RandomApiEntropyCheck.the_required_entropy_bytes_wrapper_is_its_method
+#print axioms NonosExtraction.RandomApiEntropyCheck.required_entropy_bytes_is_the_ceiling_of_bits_over_eight
+#print axioms NonosExtraction.RandomApiEntropyCheck.required_entropy_bytes_is_enough_and_no_more
+#print axioms NonosExtraction.RandomApiEntropyCheck.required_entropy_bytes_at_a_byte_boundary
 
 end NonosExtraction.RandomApiEntropyCheck

@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.MultisigConstants
+import Nonos.MultiSig
 
 open Aeneas Aeneas.Std Result
 open nonos_x_multisig_constants
@@ -38,9 +39,68 @@ theorem the_max_signers_wrapper_is_its_method :
 theorem the_max_threshold_wrapper_is_its_method :
     max_threshold = constants.max_threshold := rfl
 
+/-! ### The signer cap is sixteen and the threshold cap is the same bound
+
+`max_signers` reports the cap that `validate_params` in
+`src/capabilities/multisig/create.rs` enforces on the number of authorized
+signers, and `max_threshold` reports the largest threshold a token may carry.
+The two agree, and both are sixteen. Read against the tier-one model of
+`validate_params` in `Nonos.MultiSig`, with the extracted cap plugged in, a
+config of sixteen signers is accepted while seventeen are refused as too many,
+a sixteen of sixteen token is accepted, and every accepted threshold is at most
+`max_threshold`, so the advertised threshold cap is a true bound on what the
+kernel will create.
+
+These theorems rely on `validate_params` reading the same `MAX_SIGNERS` that is
+extracted here; `create.rs` itself is not extracted (it allocates), so that link
+is by the shared `use super::constants::MAX_SIGNERS` import, not by proof. -/
+
+/-- The signer cap is sixteen. -/
+theorem max_signers_is_sixteen : ∃ n, max_signers = ok n ∧ n.val = 16 := by
+  refine ⟨constants.MAX_SIGNERS, rfl, ?_⟩
+  unfold constants.MAX_SIGNERS
+  rfl
+
+/-- The threshold cap and the signer cap are the same number. -/
+theorem max_threshold_is_max_signers : max_threshold = max_signers := by
+  unfold max_threshold max_signers constants.max_threshold constants.max_signers
+  unfold constants.MAX_THRESHOLD
+  rfl
+
+/-- At the extracted cap, sixteen signers pass `validate_params` and seventeen
+    are refused as too many. -/
+theorem max_signers_is_the_exact_boundary_of_validate_params (n : Std.Usize)
+    (h : max_signers = ok n) :
+    Nonos.MultiSig.validateParams 1 16 n.val = .ok ∧
+    Nonos.MultiSig.validateParams 1 17 n.val = .tooManySigners := by
+  obtain ⟨m, hm, h16⟩ := max_signers_is_sixteen
+  rw [hm] at h
+  cases h
+  rw [h16]
+  decide
+
+/-- Every threshold that `validate_params` accepts under the extracted signer
+    cap is at most `max_threshold`, and `max_threshold` itself is accepted with
+    that many signers. -/
+theorem max_threshold_bounds_every_accepted_threshold (t : Std.Usize)
+    (h : max_threshold = ok t) :
+    (∀ k n, Nonos.MultiSig.validateParams k n (t.val) = .ok → k ≤ t.val) ∧
+    Nonos.MultiSig.validateParams t.val t.val t.val = .ok := by
+  rw [max_threshold_is_max_signers] at h
+  obtain ⟨m, hm, h16⟩ := max_signers_is_sixteen
+  rw [hm] at h
+  cases h
+  refine ⟨fun k n hv => ?_, by rw [h16]; decide⟩
+  have := Nonos.MultiSig.valid_config k n _ hv
+  omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.MultisigConstants.the_max_signers_wrapper_is_its_method
 #print axioms NonosExtraction.MultisigConstants.the_max_threshold_wrapper_is_its_method
+#print axioms NonosExtraction.MultisigConstants.max_signers_is_sixteen
+#print axioms NonosExtraction.MultisigConstants.max_threshold_is_max_signers
+#print axioms NonosExtraction.MultisigConstants.max_signers_is_the_exact_boundary_of_validate_params
+#print axioms NonosExtraction.MultisigConstants.max_threshold_bounds_every_accepted_threshold
 
 end NonosExtraction.MultisigConstants

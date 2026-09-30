@@ -35,8 +35,27 @@ namespace NonosExtraction.TypesSnapshot
 theorem the_dmastatssnapshot_new_wrapper_is_its_method :
     dmastatssnapshot_new = snapshot.DmaStatsSnapshot.new := rfl
 
+/-! ### A fresh snapshot reports no DMA activity
+
+The theorem below shows that `dmastatssnapshot_new` never fails and reports
+zero for every counter: no coherent allocations, no streaming mappings, no
+bounce-buffer use, no DMA memory and no operations. The live snapshot the
+kernel returns from `get_stats` is read from atomic counters instead, which
+Aeneas leaves opaque, so nothing here speaks to it.
+-/
+
+/-- Every counter of a fresh snapshot is zero, so their sum is zero. A version
+    that seeded any counter with a non-zero value would report DMA activity
+    that never happened. -/
+theorem dmastatssnapshot_new_reports_no_activity :
+    ∃ s, dmastatssnapshot_new = ok s ∧
+      s.coherent_allocations.val + s.streaming_mappings.val +
+        s.bounce_buffer_usage.val + s.total_dma_memory.val + s.dma_operations.val = 0 :=
+  ⟨_, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesSnapshot.the_dmastatssnapshot_new_wrapper_is_its_method
+#print axioms NonosExtraction.TypesSnapshot.dmastatssnapshot_new_reports_no_activity
 
 end NonosExtraction.TypesSnapshot

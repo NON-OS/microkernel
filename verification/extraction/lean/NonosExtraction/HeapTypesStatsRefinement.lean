@@ -35,8 +35,57 @@ namespace NonosExtraction.HeapTypesStats
 theorem the_heapstats_free_memory_wrapper_is_its_method (a : stats.HeapStats) :
     heapstats_free_memory a = stats.HeapStats.free_memory a := rfl
 
+/-! ### Free heap memory saturates at zero
+
+    `free_memory` is the truncated difference of the heap size and the current
+    usage: it never fails, it adds back to the heap size whenever usage fits, and
+    it reports zero rather than a wrapped count when usage has reached or passed
+    the size. That last case is reachable: `record_deallocation` in
+    `heap/types/statistics.rs` lowers `current_usage` with a wrapping
+    `fetch_sub`, so an unmatched free leaves a huge usage behind. The theorems
+    cannot say anything about how `get_stats` samples the atomic counters, which
+    are loaded one at a time and are not extracted.
+-/
+
+/-- The free count is the natural-number truncated difference, and the call
+    never takes the overflow-failing path. -/
+theorem heapstats_free_memory_is_the_truncated_difference (s : stats.HeapStats) :
+    ∃ r, heapstats_free_memory s = ok r ∧
+      r.val = s.total_size.val - s.current_usage.val := by
+  unfold heapstats_free_memory stats.HeapStats.free_memory
+  split
+  · next hlt =>
+    have hle : s.current_usage.val ≤ s.total_size.val := by scalar_tac
+    obtain ⟨z, hz, hv, -⟩ := WP.spec_imp_exists
+      (UScalar.sub_spec (x := s.total_size) (y := s.current_usage) hle)
+    exact ⟨z, hz, hv⟩
+  · next hge =>
+    exact ⟨0#usize, rfl, by simp; scalar_tac⟩
+
+/-- While usage fits in the heap, free memory and usage add up to the heap size. -/
+theorem heapstats_free_memory_and_usage_fill_the_heap (s : stats.HeapStats)
+    (h : s.current_usage.val ≤ s.total_size.val) :
+    ∃ r, heapstats_free_memory s = ok r ∧
+      r.val + s.current_usage.val = s.total_size.val := by
+  obtain ⟨r, hr, hv⟩ := heapstats_free_memory_is_the_truncated_difference s
+  exact ⟨r, hr, by omega⟩
+
+/-- Usage at or past the heap size, as after an unmatched free wraps the counter,
+    reports no free memory. -/
+theorem heapstats_free_memory_is_zero_once_usage_reaches_the_size (s : stats.HeapStats)
+    (h : s.total_size.val ≤ s.current_usage.val) :
+    heapstats_free_memory s = ok 0#usize := by
+  obtain ⟨r, hr, hv⟩ := heapstats_free_memory_is_the_truncated_difference s
+  rw [hr]
+  congr 1
+  exact UScalar.eq_of_val_eq (by simp; omega)
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.HeapTypesStats.the_heapstats_free_memory_wrapper_is_its_method
+
+#print axioms NonosExtraction.HeapTypesStats.heapstats_free_memory_is_the_truncated_difference
+#print axioms NonosExtraction.HeapTypesStats.heapstats_free_memory_and_usage_fill_the_heap
+#print axioms NonosExtraction.HeapTypesStats.heapstats_free_memory_is_zero_once_usage_reaches_the_size
 
 end NonosExtraction.HeapTypesStats
