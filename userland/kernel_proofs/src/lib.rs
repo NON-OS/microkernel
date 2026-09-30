@@ -38,6 +38,8 @@ pub mod firmware_arith;
 #[cfg(test)]
 pub mod idt_vectors;
 #[cfg(test)]
+pub mod iommu_access;
+#[cfg(test)]
 pub mod iommu_window;
 #[cfg(test)]
 pub mod layout_slots;
