@@ -30,9 +30,13 @@ mod ephemeral;
 mod fail;
 mod fit_display;
 mod frame_finish;
+#[cfg(feature = "runtime")]
+mod frame_loop;
 mod idle;
 mod maximize;
 mod move_window;
+#[cfg(feature = "runtime")]
+mod pace;
 mod paint_frame;
 mod paint_once;
 mod prime_frame;

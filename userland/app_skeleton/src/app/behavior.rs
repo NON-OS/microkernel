@@ -36,7 +36,9 @@ pub trait App {
     /// promptly. When true the runner yields cooperatively between frames
     /// instead of sleeping to the next vblank, so the work advances even where
     /// the scheduler's periodic wake is unreliable and a frame would otherwise
-    /// stall until the next input event. Defaults to idle.
+    /// stall until the next input event. Under `run`, which otherwise blocks
+    /// on its inbox until the next tick, it caps each wait at a millisecond.
+    /// Defaults to idle.
     fn busy(&self) -> bool {
         false
     }

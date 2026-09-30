@@ -16,7 +16,7 @@
 
 use alloc::vec;
 
-use nonos_libc::{heap_init, mk_exit, mk_time_millis, HeapError};
+use nonos_libc::{heap_init, mk_exit, HeapError};
 
 use crate::app::App;
 use crate::discover::require_peers;
@@ -25,9 +25,8 @@ use super::boot::boot;
 use super::dispatch::DELIVERY_LEN;
 use super::ephemeral::is_window_instance;
 use super::fail::fail;
+use super::frame_loop::frame_loop;
 use super::idle;
-use super::repaint::repaint;
-use super::service_frame::service_frame;
 
 pub fn run<A: App, F: Fn() -> A>(build: F) -> ! {
     match heap_init() {
@@ -50,19 +49,7 @@ pub fn run<A: App, F: Fn() -> A>(build: F) -> ! {
             Ok(b) => b,
             Err(_) => continue,
         };
-        let mut last_tick_ms: i64 = 0;
-        loop {
-            if service_frame(&mut booted, &mut rx, &peers, &mut request_id) {
-                break;
-            }
-            let now = mk_time_millis();
-            if now.wrapping_sub(last_tick_ms) >= booted.app.tick_interval_ms() {
-                last_tick_ms = now;
-                if booted.app.on_tick() && !booted.minimized {
-                    repaint(&mut booted, &peers, &mut request_id);
-                }
-            }
-        }
+        frame_loop(&mut booted, &mut rx, &peers, &mut request_id);
         // The window was closed. An instance exits here; the kernel tears it
         // down and zeroizes its pages, leaving no resident state and a free
         // slot for a fresh, re-attested spawn on the next launch.

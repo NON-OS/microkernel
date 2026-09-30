@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_libc::mk_uptime_ms;
+
 use crate::app::App;
 use crate::discover::Peers;
 use crate::setup::ensure_input_subscription;
 
 use super::boot::BootedApp;
 
-// Frames between unconditional re-subscribe heartbeats. At one service frame
-// per vsync this is on the order of two seconds, cheap enough to run forever
-// and short enough that input recovers quickly.
-const RESUBSCRIBE_FRAMES: u32 = 120;
+// Milliseconds between unconditional re-subscribe heartbeats: cheap enough to
+// run forever and short enough that input recovers quickly. Measured in time,
+// not frames, because a paced frame loop may sleep a long while between frames.
+const RESUBSCRIBE_MS: i64 = 2000;
 
 pub(super) fn refresh_input<A: App>(
     booted: &mut BootedApp<A>,
@@ -34,10 +36,19 @@ pub(super) fn refresh_input<A: App>(
     // first attempt. The input router can drop a subscription out from under
     // us (dead-pid purge, router restart, table churn); without a periodic
     // re-assert the app would go input-deaf for the rest of the session.
-    booted.input_beat = booted.input_beat.wrapping_add(1);
-    let heartbeat_due = booted.input_beat % RESUBSCRIBE_FRAMES == 0;
-    if !booted.input_ready || heartbeat_due {
+    let now = mk_uptime_ms();
+    if !booted.input_ready || beat_left(booted, now) == 0 {
         booted.input_ready =
             ensure_input_subscription(peers.input_router, &booted.manifest, request_id);
+        booted.input_beat_ms = now;
     }
+}
+
+/// Milliseconds until the next heartbeat is due; zero when it is due now.
+pub(super) fn beat_left<A: App>(booted: &BootedApp<A>, now: i64) -> i64 {
+    let since = now.saturating_sub(booted.input_beat_ms);
+    if since < 0 {
+        return 0;
+    }
+    RESUBSCRIBE_MS.saturating_sub(since).max(0)
 }

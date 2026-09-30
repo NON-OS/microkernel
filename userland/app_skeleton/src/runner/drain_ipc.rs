@@ -25,6 +25,14 @@ use super::{click_focus, decorations, dispatch::parse_delivery};
 const SERVICE_INBOX: u64 = 0;
 const RECV_NOWAIT: u64 = 1;
 
+/// A message a paced wait already received, left in the first `len` bytes of
+/// the receive buffer; the next drain handles it before reading the inbox.
+#[derive(Clone, Copy)]
+pub(super) struct Held {
+    pub len: usize,
+    pub sender: u32,
+}
+
 #[derive(Default)]
 pub(super) struct DrainResult {
     pub repaint: bool,
@@ -40,6 +48,7 @@ pub(super) struct DrainResult {
 pub(super) fn drain<A: App>(
     app: &mut A,
     drag_state: &mut DragState,
+    held: &mut Option<Held>,
     rx: &mut [u8],
     width: u32,
     height: u32,
@@ -56,8 +65,15 @@ pub(super) fn drain<A: App>(
     let mut resize_to = None;
     loop {
         let mut sender = 0u32;
-        let n =
-            mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), RECV_NOWAIT, &mut sender);
+        let n = match held.take() {
+            Some(h) => {
+                sender = h.sender;
+                h.len as i64
+            }
+            None => {
+                mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), RECV_NOWAIT, &mut sender)
+            }
+        };
         if n <= 0 {
             return DrainResult { repaint, restore, move_to, resize_to, ..Default::default() };
         }

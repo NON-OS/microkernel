@@ -43,6 +43,7 @@ pub(super) fn service_frame<A: App>(
     let result = drain(
         &mut booted.app,
         &mut booted.drag,
+        &mut booted.held,
         rx,
         booted.binding.width,
         booted.binding.height,
