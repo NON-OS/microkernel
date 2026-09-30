@@ -27,6 +27,11 @@ pub(super) type Held = MutexGuard<'static, ()>;
 
 /// Take it. Only `peer_guard::supervised_asid` calls this, and it hands
 /// the result back beside the asid so the two cannot be separated.
+///
+/// The holder maps and unmaps in the guest's tables, and each change waits
+/// for every CPU running the guest to acknowledge a TLB shootdown. Peer calls
+/// arrive as system calls, with interrupts masked, so a CPU waiting here
+/// answers shootdowns while it spins or the two would wait on each other.
 pub(super) fn take() -> Held {
-    ADDRESS_SPACE.lock()
+    crate::smp::lock_responsive(&ADDRESS_SPACE)
 }
