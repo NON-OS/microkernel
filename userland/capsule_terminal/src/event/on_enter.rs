@@ -18,7 +18,6 @@ use nonos_app_skeleton::EventOutcome;
 use nonos_libc::mk_time_millis;
 
 use crate::command;
-use crate::jobs;
 use crate::term::context::context_line;
 use crate::term::cwd::home_var;
 use crate::term::dimensions::LINE_MAX;
@@ -26,6 +25,8 @@ use crate::term::identity::{hostname, USER};
 use crate::term::prompt::PROMPT_BYTES;
 use crate::term::state::State;
 use crate::term::util::{copy_into, format_u64};
+
+use super::run_line::run_line;
 
 pub fn on_enter(state: &mut State) -> EventOutcome {
     // Running a line ends any search that found it. The match is already on
@@ -106,59 +107,10 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
     }
 }
 
-/// Run each statement of `line` in turn, gated by `&&` and `||`, until one
-/// starts a foreground job or asks the terminal to exit.
-fn run_line(state: &mut State, line: &[u8]) -> command::Outcome {
-    let mut outcome = command::Outcome::Repaint;
-    let mut prev_status: i32 = state.last_status;
-    for command::Stmt { conn, body, background } in command::split_program(line) {
-        let go = match conn {
-            command::Conn::Always => true,
-            command::Conn::And => prev_status == 0,
-            command::Conn::Or => prev_status != 0,
-        };
-        if !go {
-            continue;
-        }
-        let aliased = command::alias_expand(body, &state.aliases);
-        let expanded = command::expand(&aliased, &state.vars, prev_status);
-        state.last_status = 0;
-        let argv = command::parse(&expanded);
-        let args = &argv.argv[..argv.argc];
-        match jobs::is_job_command(state, args) {
-            jobs::Verdict::Job(work) => {
-                let id = jobs::submit(state, body, background, work);
-                if background {
-                    print_started(state, id);
-                    prev_status = state.last_status;
-                    continue;
-                }
-                state.fg_running = true;
-                state.fg_started_ms = mk_time_millis();
-                break;
-            }
-            jobs::Verdict::Handled => {
-                prev_status = state.last_status;
-                continue;
-            }
-            jobs::Verdict::Instant => {}
-        }
-        if let command::Outcome::Exit = command::run(state, &argv) {
-            outcome = command::Outcome::Exit;
-            break;
-        }
-        if state.fg_running {
-            break;
-        }
-        prev_status = state.last_status;
-    }
-    outcome
-}
-
 // "[n] started" line printed when a background job is submitted; the
 // job's own output streams into the scrollback as Task 13's on_tick pump
 // steps it.
-fn print_started(state: &mut State, id: u32) {
+pub(super) fn print_started(state: &mut State, id: u32) {
     let mut num = [0u8; 20];
     let nk = format_u64(id as u64, &mut num);
     let mut msg = [0u8; 32];

@@ -14,36 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod about;
-pub mod bench;
-pub mod cap_names;
-pub mod capsules;
-pub mod clear;
-pub mod display;
-pub mod echo;
-pub mod exit_check;
-pub mod fs;
-pub mod git;
-pub mod help;
-mod help_layout;
-pub mod help_one;
-mod help_pages;
-mod help_tools;
-mod help_unknown;
-pub mod history_cmd;
-pub mod jobs;
-pub mod market;
-pub mod motd;
-pub mod neofetch;
-pub mod nox;
-pub mod ping;
-pub mod qwen;
-pub mod receipt;
-pub mod service;
-pub mod theme;
-pub mod tool;
-mod tool_list;
-mod tool_refused;
-pub mod version;
-pub mod which;
-pub mod whoami;
+//! Closing a tab, or the whole window, and hanging up the programs in it.
+
+use nonos_app_skeleton::EventOutcome;
+
+use super::types::Terminal;
+
+impl Terminal {
+    pub(super) fn close_tab(&mut self) -> EventOutcome {
+        crate::jobs::hang_up(self.cur_ref());
+        if self.tabs.len() <= 1 {
+            return EventOutcome::Close;
+        }
+        self.tabs.remove(self.active);
+        if self.active >= self.tabs.len() {
+            self.active = self.tabs.len() - 1;
+        }
+        EventOutcome::Repaint
+    }
+
+    /// The window is closing: every tab's programs end with it.
+    pub(super) fn hang_up_all(&self) {
+        for tab in &self.tabs {
+            crate::jobs::hang_up(tab);
+        }
+    }
+}

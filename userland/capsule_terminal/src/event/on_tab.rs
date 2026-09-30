@@ -18,7 +18,8 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::clients::vfs::list_paths;
 use nonos_app_skeleton::EventOutcome;
 
-use super::complete::{command_candidates, common_prefix, word_candidates};
+use super::complete::{command_candidates, common_prefix};
+use super::word_candidates::word_candidates;
 use crate::term::cwd::resolve;
 use crate::term::state::State;
 

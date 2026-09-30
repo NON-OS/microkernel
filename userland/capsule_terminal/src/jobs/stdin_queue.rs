@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a running program has been sent and has not yet taken, kept as the
-//! whole messages the kernel hands it one read at a time. Each line typed is
-//! its own message, and so is the lone 0x04 that ends input: merged into the
-//! line before it, the end of input would read as one more character.
+//! Input sent to a running program and not yet taken, as whole messages the
+//! kernel hands it one read at a time. Each typed line is its own message, and
+//! so is the lone 0x04 ending input, which merged into a line reads as a character.
 
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
 use nonos_libc::mk_proc_input;
 
-/// The largest message: what the reading side takes in one read.
-pub const MESSAGE_MAX: usize = 4096;
+use super::stdin_cut::cut_at;
+
 /// End of transmission: sent alone, the program's input is over.
 pub const EOT: u8 = 0x04;
 /// Held and not yet taken. Past this, input is refused, not queued.
@@ -73,14 +72,4 @@ impl StdinQueue {
             self.pending.pop_front();
         }
     }
-}
-
-/// Where the next message ends: the whole rest, or `MESSAGE_MAX` moved back
-/// off at most three UTF-8 continuation bytes, so it always moves forward.
-fn cut_at(rest: &[u8]) -> usize {
-    let mut cut = rest.len().min(MESSAGE_MAX);
-    while cut < rest.len() && cut > MESSAGE_MAX - 3 && rest[cut] & 0xC0 == 0x80 {
-        cut -= 1;
-    }
-    cut
 }

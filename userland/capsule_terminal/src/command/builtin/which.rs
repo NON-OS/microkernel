@@ -46,35 +46,21 @@ pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) -> bool {
 fn describe(out: &mut Output<'_>, name: &[u8]) -> bool {
     let mut line = [b' '; 120];
     let mut n = copy(&mut line, 0, name);
-
-    if name == b"qwen" {
-        n = copy(
-            &mut line,
-            n,
-            b" is a local Qwen chat, spawned as tool.qwen in the Linux personality",
-        );
-        out.writeln(&line[..n]);
-        return true;
-    }
-    if let Some(service) = tool::service_for(name) {
+    let (what, found): (&[u8], bool) = if name == b"qwen" {
+        (b" is a local Qwen chat, spawned as tool.qwen in the Linux personality", true)
+    } else if let Some(service) = tool::service_for(name) {
         n = copy(&mut line, n, b" is an installed tool, spawned as capsule tool.");
-        n = copy(&mut line, n, service);
-        out.writeln(&line[..n]);
-        return true;
-    }
-    if is_store_tool(name) {
-        n = copy(&mut line, n, b" is a tool loaded from the package store");
-        out.writeln(&line[..n]);
-        return true;
-    }
-    if is_command_name(name) {
-        n = copy(&mut line, n, b" is built into the shell");
-        out.writeln(&line[..n]);
-        return true;
-    }
-    n = copy(&mut line, n, b" not found");
+        (service, true)
+    } else if is_store_tool(name) {
+        (b" is a tool loaded from the package store", true)
+    } else if is_command_name(name) {
+        (b" is built into the shell", true)
+    } else {
+        (b" not found", false)
+    };
+    n = copy(&mut line, n, what);
     out.writeln(&line[..n]);
-    false
+    found
 }
 
 /// Append into a fixed line, stopping at its end rather than wrapping. A name

@@ -41,9 +41,11 @@ mod on_up;
 mod paste_clipboard;
 mod paste_program;
 mod readline;
+mod run_line;
 pub(crate) mod search;
 pub(crate) mod search_edit;
 mod search_place;
+mod word_candidates;
 
 pub use fg_input::send as send_to_program;
 pub use on_enter::on_enter;

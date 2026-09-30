@@ -19,8 +19,7 @@ use crate::command::builtin;
 use crate::command::output::Output;
 use crate::term::state::State;
 
-// Run a single resolved command (already stripped of any redirect). The
-// caller handles exit detection and output redirection.
+/// Run one resolved command; the caller strips redirects and detects exit.
 pub(super) fn exec(state: &mut State, args: &[&[u8]]) -> Outcome {
     if args.is_empty() {
         return Outcome::Repaint;

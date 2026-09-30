@@ -14,36 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod about;
-pub mod bench;
-pub mod cap_names;
-pub mod capsules;
-pub mod clear;
-pub mod display;
-pub mod echo;
-pub mod exit_check;
-pub mod fs;
-pub mod git;
-pub mod help;
-mod help_layout;
-pub mod help_one;
-mod help_pages;
-mod help_tools;
-mod help_unknown;
-pub mod history_cmd;
-pub mod jobs;
-pub mod market;
-pub mod motd;
-pub mod neofetch;
-pub mod nox;
-pub mod ping;
-pub mod qwen;
-pub mod receipt;
-pub mod service;
-pub mod theme;
-pub mod tool;
-mod tool_list;
-mod tool_refused;
-pub mod version;
-pub mod which;
-pub mod whoami;
+use alloc::vec::Vec;
+
+/// The words a command takes in place of a path, completed as the word just
+/// after it: `qwen`'s tier. `None` everywhere else.
+pub(super) fn word_candidates(before: &[u8], prefix: &[u8]) -> Option<Vec<&'static [u8]>> {
+    let mut words = before.split(|&b| b == b' ').filter(|w| !w.is_empty());
+    if words.next() != Some(&b"qwen"[..]) || words.next().is_some() {
+        return None;
+    }
+    let tiers = crate::command::builtin::qwen::TIERS.iter().copied();
+    Some(tiers.filter(|t| t.starts_with(prefix)).collect())
+}

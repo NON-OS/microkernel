@@ -14,17 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use crate::command::builtin::nox::install;
 use crate::command::builtin::ping;
 use crate::command::builtin::qwen;
 use crate::command::builtin::tool;
-use crate::command::dispatch::split_stages;
 use crate::command::output::Output;
 use crate::term::state::State;
 
 use super::pipeline_job::PipelineJob;
+use super::pipeline_stages::{is_plain, pipeline_stages};
 use super::work::JobWork;
 
 // `Instant` statements run through the untouched synchronous dispatch;
@@ -70,8 +68,10 @@ pub fn is_job_command(state: &mut State, args: &[&[u8]]) -> Verdict {
                 Verdict::Handled
             }
         },
-        // `qwen` after a `;`, `&&` or `||`, or from an alias: the chat starts
-        // with no question, since the parser has already taken the line apart.
+        /*
+         * `qwen` after a `;`, `&&` or `||`, or from an alias: the chat starts
+         * with no question, since the parser has already taken the line apart.
+         */
         b"qwen" => match qwen::from_args(state, args) {
             Some(work) => Verdict::Job(work),
             None => Verdict::Handled,
@@ -106,35 +106,4 @@ const STORE_TOOLS: &[&[u8]] = &[b"sd", b"tokio-smoke", b"std_proof"];
 /// dispatcher uses, so what `type` reports is what would run.
 pub fn is_store_tool(name: &[u8]) -> bool {
     STORE_TOOLS.contains(&name)
-}
-
-fn is_plain(args: &[&[u8]]) -> bool {
-    !args.iter().any(|a| matches!(*a, b"|" | b">" | b">>" | b"<"))
-}
-
-// A pure pipeline (no redirects) whose stages include a long command
-// becomes owned, parsed stages for a `PipelineStages` job. Anything with a
-// redirect, or a pipeline with no long stage, returns `None` so the caller
-// falls back to `Verdict::Instant`.
-fn pipeline_stages(args: &[&[u8]]) -> Option<Vec<Vec<Vec<u8>>>> {
-    if args.iter().any(|a| matches!(*a, b">" | b">>" | b"<")) {
-        return None;
-    }
-    if !args.iter().any(|a| *a == b"|") {
-        return None;
-    }
-    let segments = split_stages(args);
-    if !segments.iter().any(|seg| is_long_stage(seg)) {
-        return None;
-    }
-    let mut stages: Vec<Vec<Vec<u8>>> = Vec::new();
-    for seg in &segments {
-        let tokens: Vec<Vec<u8>> = seg.iter().map(|tok| tok.to_vec()).collect();
-        stages.push(tokens);
-    }
-    Some(stages)
-}
-
-fn is_long_stage(seg: &[&[u8]]) -> bool {
-    matches!(seg.first().copied(), Some(b"ping") | Some(b"install"))
 }

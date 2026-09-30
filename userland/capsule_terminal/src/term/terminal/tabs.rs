@@ -62,25 +62,6 @@ impl Terminal {
         }
     }
 
-    pub(super) fn close_tab(&mut self) -> EventOutcome {
-        crate::jobs::hang_up(self.cur_ref());
-        if self.tabs.len() <= 1 {
-            return EventOutcome::Close;
-        }
-        self.tabs.remove(self.active);
-        if self.active >= self.tabs.len() {
-            self.active = self.tabs.len() - 1;
-        }
-        EventOutcome::Repaint
-    }
-
-    /// The window is closing: every tab's programs end with it.
-    pub(super) fn hang_up_all(&self) {
-        for tab in &self.tabs {
-            crate::jobs::hang_up(tab);
-        }
-    }
-
     fn switch(&mut self, delta: i32) {
         let n = self.tabs.len() as i32;
         self.active = (((self.active as i32 + delta) % n + n) % n) as usize;
