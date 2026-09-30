@@ -13,6 +13,14 @@ fn mode_line(ctx: &Context) -> &'static [u8] {
     }
 }
 
+fn net_line(ctx: &Context) -> &'static [u8] {
+    match (ctx.net.joined.is_some(), ctx.net.remember && mode::keeps(ctx)) {
+        (false, _) => b"Wi-Fi: none joined.",
+        (true, true) => b"Wi-Fi: joined, remembered sealed with the TPM key.",
+        (true, false) => b"Wi-Fi: joined for this boot only; nothing is kept.",
+    }
+}
+
 fn local_line(ctx: &Context) -> &'static [u8] {
     /*
      * Named here too, since this commit is what grants or revokes it.
@@ -36,15 +44,16 @@ pub fn draw(ctx: &Context) {
     let (buf, x) = (render::buffer(ctx), render::content_x(w));
     let mut tz = [0u8; 6];
     let tz_len = timezone::label(ctx.tz_off, &mut tz);
-    let names: [&[u8]; 3] =
-        [keyboard::label(ctx.kbd_sel), &tz[..tz_len], appearance::name(ctx.wall_sel)];
-    let heads: [&[u8]; 3] = [b"Keyboard", b"Time zone", b"Wallpaper"];
+    let net: &[u8] = ctx.net.joined.as_ref().map_or(b"None", |n| n.ssid());
+    let names: [&[u8]; 4] =
+        [keyboard::label(ctx.kbd_sel), &tz[..tz_len], net, appearance::name(ctx.wall_sel)];
+    let heads: [&[u8]; 4] = [b"Keyboard", b"Time zone", b"Network", b"Wallpaper"];
     for (i, (head, name)) in heads.iter().zip(names.iter()).enumerate() {
         let y = 110 + 20 * i as u32;
         lines::text(buf, spx, w, h, x, y, &[head], FG);
         lines::text(buf, spx, w, h, x + 100, y, &[name], FG);
     }
-    lines::text(buf, spx, w, h, x, 190, &[mode_line(ctx), local_line(ctx)], FG);
+    lines::text(buf, spx, w, h, x, 210, &[mode_line(ctx), local_line(ctx), net_line(ctx)], FG);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {

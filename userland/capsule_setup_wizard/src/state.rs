@@ -20,6 +20,7 @@ pub struct Context {
     pub local_was: bool,
     /// The disk was still loading when setup asked, so it asks again.
     pub local_pending: bool,
+    pub net: crate::network::NetState,
 }
 
 impl Context {
@@ -48,6 +49,7 @@ impl Context {
             local_sel: 0,
             local_was: false,
             local_pending: false,
+            net: crate::network::NetState::new(),
         }
     }
 }

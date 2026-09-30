@@ -50,6 +50,7 @@ pub fn spawn_setup_wizard_capsule() -> Result<(), SpawnError> {
         requested_caps: Capability::CoreExec.bit()
             | Capability::IPC.bit()
             | Capability::Memory.bit()
+            | Capability::Crypto.bit()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit()
             | Capability::EnrolDevRoot.bit()

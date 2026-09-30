@@ -20,7 +20,7 @@ use crate::consent::{self, Restore};
 use crate::state::Context;
 
 /// The step that asks. Past it, what the person chose stands.
-const LOCAL_STEP: u8 = 5;
+const LOCAL_STEP: u8 = 6;
 
 /// Ask the disk once. True when the answer changed what is on screen.
 pub fn poll(ctx: &mut Context) -> bool {

@@ -16,6 +16,7 @@ pub const STEP_LABELS: &[&[u8]] = &[
     b"Keyboard",
     b"Time zone",
     b"Mode",
+    b"Network",
     b"Privacy",
     b"Appearance",
     b"Installed software",

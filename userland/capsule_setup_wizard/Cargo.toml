@@ -15,6 +15,7 @@ nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 nonos_policy_proto = { path = "../policy_proto" }
 nonos_policy_client = { path = "../policy_client" }
 nonos_keymap = { path = "../nonos_keymap" }
+nonos_wifi_client = { path = "../nonos_wifi_client" }
 
 [features]
 default = []

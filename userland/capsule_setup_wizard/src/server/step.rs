@@ -1,4 +1,6 @@
-pub const DONE: u8 = 7;
+pub const DONE: u8 = 8;
+/// The network step, right after the mode step.
+pub const NETWORK_STEP: u8 = 3;
 
 pub const K_ENTER: u32 = 0x0D;
 pub const K_ENTER_LF: u32 = 0x0A;

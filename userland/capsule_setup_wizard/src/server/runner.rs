@@ -10,12 +10,6 @@ use crate::state::Context;
 use super::say::say;
 use super::step::{self, DONE};
 
-/// How long to wait for input before asking for the keyboard again.
-const GRAB_RETRY_MS: u64 = 100;
-
-/// How often to ask whether the disk has loaded consent from an earlier boot.
-const RESTORE_RETRY_MS: u64 = 500;
-
 pub fn run(mut ctx: Context) -> ! {
     if input_router::subscribe(ctx.router_port, 1).is_err() {
         say(b"[SETUP] the input router refused the subscription\n");
@@ -38,14 +32,10 @@ pub fn run(mut ctx: Context) -> ! {
                 say(b"[SETUP] keyboard held\n");
             }
         }
-        let wait = match (held, ctx.local_pending) {
-            (false, _) => GRAB_RETRY_MS,
-            (true, true) => RESTORE_RETRY_MS,
-            (true, false) => 0,
-        };
+        let wait = super::wait::wait_ms(&ctx, held);
         let mut sender = 0u32;
         let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx.len(), wait, &mut sender);
-        if ctx.local_pending && super::restore_poll::poll(&mut ctx) {
+        if super::wait::tick(&mut ctx) {
             redraw(&ctx);
         }
         if n <= 0 {

@@ -1,9 +1,10 @@
 # setup_wizard capsule. First-boot setup wizard: attaches a fullscreen
 # compositor surface, grabs the keyboard, walks the user through setup
-# (keyboard, time zone, mode, wallpaper), then exits so the kernel brings
-# up the desktop. Same leaf-renderer capset as input_probe (no SurfaceMap/Present),
-# plus EnrolDevRoot: setup is where a person lets this machine run what it
-# installs, and no app window holds that right.
+# (keyboard, time zone, mode, network, wallpaper), then exits so the kernel
+# brings up the desktop. Same leaf-renderer capset as input_probe (no
+# SurfaceMap/Present), plus EnrolDevRoot: setup is where a person lets this
+# machine run what it installs, and no app window holds that right. Plus
+# Crypto: the TPM-derived key that seals a Wi-Fi network setup remembers.
 
 CAPSULE_SLUG             := setup-wizard
 CAPSULE_HANDLE           := app.setup_wizard
@@ -14,7 +15,7 @@ CAPSULE_FEATURE          := nonos-capsule-setup-wizard
 CAPSULE_NAMESPACE        := systems.nonos.app.setup_wizard
 CAPSULE_SERVICE_ENDPOINT := service:4794:app.setup_wizard
 CAPSULE_REPLY_ENDPOINT   := reply:4795:endpoint.app.setup_wizard.reply
-CAPSULE_REQUIRED_CAPS    := 0x8001919
+CAPSULE_REQUIRED_CAPS    := 0x8001939
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_setup_wizard
 
 include nonos-mk/capsule.mk

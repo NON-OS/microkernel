@@ -9,7 +9,7 @@ use super::{appearance, keyboard, mode};
  * Persistent is written before anything is kept: vfs asks the policy store
  * for it on every persist and refuses one on an amnesic boot.
  */
-pub fn commit(ctx: &Context) {
+pub fn commit(ctx: &mut Context) {
     let keep = mode::keeps(ctx);
     let p = ctx.policy_port;
     if p != 0 {
@@ -22,4 +22,5 @@ pub fn commit(ctx: &Context) {
     if keep {
         crate::keep::save(ctx);
     }
+    crate::network::keep(ctx);
 }

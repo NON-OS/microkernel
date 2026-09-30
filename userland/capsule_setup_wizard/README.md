@@ -21,8 +21,9 @@ setup_wizard -> compositor
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS := 0x8001919`: CoreExec, IPC, Memory, Debug,
-GraphicsDisplayQuery, GraphicsSurfaceCreate, and EnrolDevRoot. It has no
+`CAPSULE_REQUIRED_CAPS := 0x8001939`: CoreExec, IPC, Memory, Crypto, Debug,
+GraphicsDisplayQuery, GraphicsSurfaceCreate, and EnrolDevRoot. Crypto derives
+the TPM key that seals a Wi-Fi network setup is asked to remember. It has no
 filesystem, network, store-write, hardware, DMA, PIO, or IRQ authority.
 
 ## Persistence
@@ -31,3 +32,6 @@ In amnesic mode nothing is written. In install mode the answers and a
 setup-done marker go to `/nonos/setup/` through vfs and are persisted to the
 store; the policy capsule restores them at boot and the wizard then exits
 without drawing. See `docs/userland/setup-wizard/`.
+A Wi-Fi network joined on the network step is remembered only when asked and
+only in install mode, sealed under a TPM-derived key in `/nonos/wifi/saved`;
+see `docs/subsystems/networking/wifi/joining.md`.
