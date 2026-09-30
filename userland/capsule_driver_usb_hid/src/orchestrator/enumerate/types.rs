@@ -16,6 +16,16 @@
 
 use crate::descriptors::HidKind;
 
+/// What trying one port came to.
+pub enum Outcome {
+    Bound,
+    /// Not a HID device; its slot was given back.
+    NotHid,
+    /// Another class driver is addressing the port.
+    Busy,
+    Failed,
+}
+
 pub struct HidEndpoint {
     pub port: u32,
     pub slot: u8,

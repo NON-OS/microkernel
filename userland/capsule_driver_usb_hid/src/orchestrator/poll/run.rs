@@ -24,7 +24,8 @@ use super::drain_endpoints::drain_endpoints;
 use super::refresh_endpoints::refresh_endpoints;
 
 pub fn run(xhci_port: u32) -> ! {
-    let mut eps = enumerate(xhci_port);
+    let mut tries = [0u8; 256];
+    let (mut eps, mut open) = enumerate(xhci_port, &mut tries);
     let mut state = State::new();
     let mut buf = [0u8; HID_REPORT_MAX];
     let mut rx = alloc::vec![0u8; HDR_LEN + IPC_PAYLOAD_MAX];
@@ -40,11 +41,15 @@ pub fn run(xhci_port: u32) -> ! {
         let _ = pump_once(&mut state, &mut rx, &mut tx);
         if drain_endpoints(&mut state, &eps, &mut buf) {
             idle_polls = 0;
-        } else if eps.is_empty() {
+        } else {
             idle_polls = idle_polls.saturating_add(1);
         }
-        if eps.is_empty() && idle_polls >= RESCAN_INTERVAL {
-            refresh_endpoints(xhci_port, &mut eps);
+        /*
+         * A port another class driver was classifying is looked at again
+         * once it lets the port go.
+         */
+        if (eps.is_empty() || open) && idle_polls >= RESCAN_INTERVAL {
+            open = refresh_endpoints(xhci_port, &mut eps, &mut tries);
             idle_polls = 0;
         }
     }

@@ -14,18 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use crate::xhci::call::call;
+use crate::xhci::wire::{HDR_LEN, OP_DISABLE_SLOT, STATUS_LEN};
 
-use crate::orchestrator::enumerate::{enumerate, HidEndpoint};
-
-/// Look again at the ports still open, adding what binds to `eps`. Returns
-/// whether a port is still open.
-pub(super) fn refresh_endpoints(
-    xhci_port: u32,
-    eps: &mut Vec<HidEndpoint>,
-    tries: &mut [u8; 256],
-) -> bool {
-    let (found, open) = enumerate(xhci_port, tries);
-    eps.extend(found);
-    open
+/// Give back a slot this driver will not keep, so the port is free for the
+/// class driver its device belongs to. A refusal leaves the slot allocated
+/// in the controller driver; there is nothing further to do from here.
+pub fn disable_slot(xhci_port: u32, slot: u8) {
+    let mut resp = [0u8; HDR_LEN + STATUS_LEN];
+    let _ = call(xhci_port, OP_DISABLE_SLOT, &[slot], &mut resp);
 }

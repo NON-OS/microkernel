@@ -19,19 +19,38 @@ use alloc::vec::Vec;
 use crate::xhci::{port_status, PortSnapshot};
 
 use super::configure_port::configure_port;
-use super::constants::{MAX_PORTS, PORTSC_CONNECTED};
-use super::types::HidEndpoint;
+use super::constants::{MAX_PORTS, PORTSC_CONNECTED, PORT_CLAIMED, PORT_FREE, TRIES};
+use super::types::{HidEndpoint, Outcome};
 
-pub fn enumerate(xhci_port: u32) -> Vec<HidEndpoint> {
-    let mut snapshots = [PortSnapshot { port_id: 0, portsc_raw: 0 }; MAX_PORTS];
+/// Bind the HID devices on ports no class driver holds. `tries` counts, per
+/// port, the tries that came to nothing, and a port is decided once it
+/// reaches `TRIES`. Returns the new endpoints and whether a port is still
+/// open: held by another class driver for now, or not yet decided.
+pub fn enumerate(xhci_port: u32, tries: &mut [u8; 256]) -> (Vec<HidEndpoint>, bool) {
+    let empty = PortSnapshot { port_id: 0, owner: 0, portsc_raw: 0 };
+    let mut snapshots = [empty; MAX_PORTS];
     let Ok(count) = port_status(xhci_port, &mut snapshots) else {
-        return Vec::new();
+        return (Vec::new(), true);
     };
-    let mut out = Vec::new();
+    let (mut out, mut open) = (Vec::new(), false);
     for snap in snapshots.iter().take(count).copied() {
-        if snap.portsc_raw & PORTSC_CONNECTED != 0 {
-            configure_port(xhci_port, snap, &mut out);
+        let tried = &mut tries[snap.port_id as usize];
+        let connected = snap.portsc_raw & PORTSC_CONNECTED != 0;
+        if !connected || *tried >= TRIES || snap.owner == PORT_CLAIMED {
+            continue;
+        }
+        if snap.owner != PORT_FREE {
+            open = true;
+            continue;
+        }
+        match configure_port(xhci_port, snap, &mut out) {
+            Outcome::Bound | Outcome::NotHid => *tried = TRIES,
+            Outcome::Busy => open = true,
+            Outcome::Failed => {
+                *tried += 1;
+                open |= *tried < TRIES;
+            }
         }
     }
-    out
+    (out, open)
 }

@@ -17,3 +17,8 @@
 pub(super) const DESC_LEN: u16 = 64;
 pub(super) const MAX_PORTS: usize = 255;
 pub(super) const PORTSC_CONNECTED: u32 = 1;
+/// A port's owner byte in the controller driver's port status.
+pub(super) const PORT_FREE: u8 = 0;
+pub(super) const PORT_CLAIMED: u8 = 2;
+/// Tries of one port that come to nothing before it is left alone.
+pub(super) const TRIES: u8 = 3;

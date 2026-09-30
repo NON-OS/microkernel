@@ -16,44 +16,29 @@
 
 use alloc::vec::Vec;
 
-use crate::descriptors::hid_bindings;
-use crate::xhci::{
-    address_device, control_transfer, enable_slot, get_config_descriptor, PortSnapshot,
-};
+use crate::xhci::{disable_slot, enable_slot, PortSnapshot};
 
-use super::super::binding::configure_binding;
-use super::constants::DESC_LEN;
-use super::types::HidEndpoint;
+use super::bind::bind;
+use super::types::{HidEndpoint, Outcome};
 
-pub(super) fn configure_port(xhci_port: u32, snap: PortSnapshot, out: &mut Vec<HidEndpoint>) {
+/// Address the device on `snap`'s port and bind its HID interfaces. A
+/// device this driver does not bind has its slot given back, so the class
+/// driver it belongs to can address it.
+pub(super) fn configure_port(
+    xhci_port: u32,
+    snap: PortSnapshot,
+    out: &mut Vec<HidEndpoint>,
+) -> Outcome {
     let Ok(slot) = enable_slot(xhci_port) else {
-        return;
+        return Outcome::Failed;
     };
-    let Ok(dev) = address_device(xhci_port, slot, snap.port_id) else {
-        return;
-    };
-    if dev.slot_id != slot
-        || dev.port_id != snap.port_id
-        || dev.speed == 0
-        || dev.max_packet_size == 0
-    {
-        return;
+    let before = out.len();
+    let outcome = bind(xhci_port, slot, snap, out);
+    if out.len() == before {
+        disable_slot(xhci_port, slot);
     }
-    let mut desc = [0u8; DESC_LEN as usize];
-    let Ok(len) = get_config_descriptor(xhci_port, slot, DESC_LEN, &mut desc) else {
-        return;
-    };
-    let Ok(bindings) = hid_bindings(&desc[..len]) else {
-        return;
-    };
-    if bindings.is_empty() {
-        return;
-    }
-    let mut dummy = [0u8; 0];
-    if control_transfer(xhci_port, slot, 0x00, 0x09, 1, 0, 0, &mut dummy).is_err() {
-        return;
-    }
-    for binding in bindings {
-        configure_binding(xhci_port, slot, binding, out);
+    match outcome {
+        Outcome::Bound if out.len() == before => Outcome::Failed,
+        other => other,
     }
 }

@@ -15,12 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const E_AGAIN: i32 = -11;
+pub const E_BUSY: i32 = -16;
 pub const HDR_LEN: usize = 20;
 pub const MAGIC: u32 = 0x4E58_4843;
 pub const OP_ADDRESS_DEVICE: u16 = 0x0006;
 pub const OP_ALLOC_TRANSFER_RING: u16 = 0x0009;
 pub const OP_CONTROL_TRANSFER: u16 = 0x000B;
 pub const OP_ENABLE_SLOT: u16 = 0x0004;
+pub const OP_DISABLE_SLOT: u16 = 0x0005;
 pub const OP_GET_CONFIG_DESCRIPTOR: u16 = 0x0008;
 pub const OP_INTERRUPT_IN: u16 = 0x000E;
 pub const OP_PORT_STATUS: u16 = 0x0003;

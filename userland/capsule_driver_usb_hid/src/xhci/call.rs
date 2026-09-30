@@ -24,6 +24,8 @@ pub enum XhciClientError {
     SendFailed,
     BadResponse,
     BufferTooSmall,
+    /// Another class driver holds the port.
+    Busy,
 }
 
 pub fn call(
