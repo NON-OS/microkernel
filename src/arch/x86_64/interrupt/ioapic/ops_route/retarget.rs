@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::error::{IoApicError, IoApicResult};
-use super::super::mmio::{redtbl_read, redtbl_write};
+use super::super::mmio::redtbl_update;
 use super::super::ops_helpers::locate;
 
 pub fn retarget(gsi: u32, dest_apic_id: u32) -> IoApicResult<()> {
@@ -29,10 +29,9 @@ pub fn retarget(gsi: u32, dest_apic_id: u32) -> IoApicResult<()> {
         );
     }
     unsafe {
-        let (low, mut high) = redtbl_read(chip.mmio, idx);
-        high &= !(0xFF << 24);
-        high |= (dest_apic_id & 0xFF) << 24;
-        redtbl_write(chip.mmio, idx, low, high);
+        redtbl_update(chip.mmio, idx, |low, high| {
+            (low, (high & !(0xFF << 24)) | ((dest_apic_id & 0xFF) << 24))
+        });
     }
     Ok(())
 }
