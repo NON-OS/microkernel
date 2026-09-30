@@ -20,9 +20,9 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use nonos_disk_map::digest16;
 use nonos_libc::mk_debug;
 
-use super::digest::digest16;
 use super::error::BlkError;
 use super::store_toc::TocEntry;
 use super::wire::SECTOR_SIZE;
@@ -32,10 +32,11 @@ pub struct StoreEntry {
     pub data: Vec<u8>,
 }
 
-// Hand-synced with the `--lba` flag mk/40-run.mk passes to nonos-store-pack.
-// 256 keeps the container clear of blockfs's header ring, which rewrites
-// LBA (generation % 256) on every commit and lands on 0 at generation 0.
-pub(super) const STORE_BASE_LBA: u64 = 256;
+/*
+ * The disk map's, which mk/40-run.mk also passes to nonos-store-pack as
+ * `--lba` and the installer writes the store at.
+ */
+pub(super) use nonos_disk_map::STORE_BASE_LBA;
 
 /// Verify a payload and turn it into a staged entry.
 ///

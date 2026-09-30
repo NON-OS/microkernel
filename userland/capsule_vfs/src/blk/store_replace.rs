@@ -34,7 +34,8 @@
 //! part of the entry this path does not rewrite, and the rule about what may
 //! be replaced at all stays in `store_rules`.
 
-use super::digest::digest16;
+use nonos_disk_map::digest16;
+
 use super::error::BlkError;
 use super::store_free::free_extent;
 use super::store_entry::patch_entry;

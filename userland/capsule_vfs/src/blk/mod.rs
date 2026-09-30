@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod client;
-mod digest;
 pub(crate) mod error;
 pub mod load;
 pub(crate) mod status;

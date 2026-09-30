@@ -3,12 +3,5 @@
 version = 4
 
 [[package]]
-name = "fs_proofs"
-version = "0.3.0"
-dependencies = [
- "nonos_disk_map",
-]
-
-[[package]]
 name = "nonos_disk_map"
 version = "0.1.0"

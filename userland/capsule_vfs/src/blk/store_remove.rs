@@ -20,14 +20,14 @@
 use alloc::vec;
 use alloc::vec::Vec;
 
+use nonos_disk_map::STORE_BASE_LBA;
+
 use super::client::{capacity, read_blocks};
 use super::error::BlkError;
 use super::store_header::{entry_count, ENTRY_LEN, HEADER_LEN};
 use super::store_toc::decode;
 use super::store_write::commit;
 use super::wire::SECTOR_SIZE;
-
-const STORE_BASE_LBA: u64 = 256;
 
 pub fn remove(name: &str) -> Result<(), BlkError> {
     let mut head = [0u8; SECTOR_SIZE];

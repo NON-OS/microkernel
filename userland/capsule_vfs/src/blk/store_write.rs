@@ -17,16 +17,15 @@
 //! Appends a named payload to the on-disk NONOSTR1 store, committing sector 0 last.
 use alloc::vec;
 
+use nonos_disk_map::{digest16, STORE_BASE_LBA, TOC_SPAN};
 use nonos_libc::mk_store_write;
 
 use super::client::{capacity, read_blocks};
-use super::digest::digest16;
 use super::error::BlkError;
 use super::store_header::{entry_count, ENTRY_LEN, HEADER_LEN, MAX_ENTRIES};
 use super::store_toc::{decode, valid_name, TocEntry, MAX_TOTAL_BYTES, NAME_LEN};
 use super::wire::SECTOR_SIZE;
 
-const STORE_BASE_LBA: u64 = 256;
 const MAX_WRITE_BYTES: usize = 8192;
 
 pub fn append(name: &str, data: &[u8]) -> Result<(), BlkError> {
@@ -37,7 +36,7 @@ pub fn append(name: &str, data: &[u8]) -> Result<(), BlkError> {
     read_blocks(STORE_BASE_LBA, &mut toc)?;
     let capacity_bytes = capacity()?.checked_mul(SECTOR_SIZE as u64).ok_or(BlkError::BadLength)?;
     let region_len = sector_span(HEADER_LEN + ENTRY_LEN * (count + 1));
-    let reserved = sector_span(HEADER_LEN + ENTRY_LEN * MAX_ENTRIES);
+    let reserved = TOC_SPAN;
     let mut next_off = STORE_BASE_LBA * SECTOR_SIZE as u64 + reserved as u64;
     let mut committed = 0u64;
     let entries = decode(&toc, count, capacity_bytes)?;

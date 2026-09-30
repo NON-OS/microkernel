@@ -25,8 +25,7 @@ use super::error::BlkError;
 use super::store_header::{le_u64, ENTRY_LEN, HEADER_LEN};
 use super::wire::SECTOR_SIZE;
 
-pub(super) const NAME_LEN: usize = 96;
-pub(super) const MAX_TOTAL_BYTES: u64 = 16 * 1024 * 1024;
+pub(super) use nonos_disk_map::{valid_name, MAX_TOTAL_BYTES, NAME_LEN};
 
 #[derive(Clone)]
 pub struct TocEntry {
@@ -66,13 +65,4 @@ fn decode_name(field: &[u8]) -> Result<String, BlkError> {
         return Err(BlkError::BadContainer);
     }
     Ok(String::from(name))
-}
-
-// The single acceptance predicate for a TOC name, shared with the appender so a
-// name that writes cannot be a name that later fails to decode: one such entry
-// makes `decode` reject the whole table and takes every installed app with it.
-// The NUL and length bounds are implied for a name `decode_name` just carved
-// out of a fixed NUL-padded field, and are what the writer actually needs.
-pub(super) fn valid_name(name: &str) -> bool {
-    !name.is_empty() && name.is_ascii() && name.len() <= NAME_LEN && !name.as_bytes().contains(&0)
 }

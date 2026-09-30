@@ -24,10 +24,15 @@ dependencies = [
 name = "nonos_capsule_vfs"
 version = "0.3.0"
 dependencies = [
+ "nonos_disk_map",
  "nonos_policy_client",
  "nonos_policy_proto",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_disk_map"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_policy_client"

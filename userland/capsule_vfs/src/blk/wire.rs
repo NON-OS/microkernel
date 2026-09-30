@@ -16,10 +16,11 @@
 
 //! Sizes the package store is read and written in, and where it ends.
 
-pub const SECTOR_SIZE: usize = 512;
+/// The disk plan's sector is `STORE_END_LBA`. The kernel reads and writes
+/// the store only below it, so the store ends there whatever the size of the
+/// disk.
+pub use nonos_disk_map::{SECTOR_SIZE, STORE_END_LBA};
+
 /// The kernel's store read takes at most sixty-four sectors a call.
 pub const MAX_SECTORS_PER_REQUEST: usize = 64;
 pub const MAX_READ_BYTES: usize = SECTOR_SIZE * MAX_SECTORS_PER_REQUEST;
-/// The disk plan's sector. The kernel reads and writes the store only below
-/// it, so the store ends there whatever the size of the disk.
-pub const STORE_END_LBA: u64 = 65_536;

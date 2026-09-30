@@ -13,6 +13,9 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+# The store's layout and container format, which the included vfs source
+# takes from this crate.
+nonos_disk_map = { path = "../nonos_disk_map" }
 
 # `kani` is set by the Kani model checker, not by rustc; declare it so ordinary
 # builds do not warn on the cfg-gated proof harnesses.
