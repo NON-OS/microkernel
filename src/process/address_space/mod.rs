@@ -19,7 +19,6 @@ mod fork;
 pub mod lifecycle;
 mod ops;
 mod pcid;
-mod pcid_features;
 mod pte;
 mod tlb;
 mod types;
