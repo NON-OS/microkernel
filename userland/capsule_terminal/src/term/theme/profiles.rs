@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The four profiles. Meaning colours come from the system's canonical eight
-//! on the dark grounds; the light ground darkens the same hues rather than
-//! inventing new ones, because a pale accent on white carries no signal.
+//! on the dark grounds. The light one is macOS Terminal's Basic, near black on
+//! pure white, and darkens the same hues, as a pale accent on white carries no signal.
 
 use super::types::Theme;
 
@@ -45,15 +45,15 @@ pub const DIM: Theme = Theme {
 };
 
 pub const LIGHT: Theme = Theme {
-    bg: 0xFFF2_F4F7,
-    fg: 0xFF15_181C,
+    bg: 0xFFFF_FFFF,
+    fg: 0xFF1D_1D1F,
     accent: 0xFF0E_7A70,
     path: 0xFF15_694A,
     dim: 0xFF6A_727C,
     ok: 0xFF12_784A,
     err: 0xFFB0_1218,
     run: 0xFF8A_9099,
-    chrome_edge: 0xFFD8_DDE4,
+    chrome_edge: 0xFFD9_D9D9,
 };
 
 pub const ABYSS: Theme = Theme {

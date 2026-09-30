@@ -14,13 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cache;
-mod choose;
-mod fetch;
-mod host;
-mod sanitize;
-mod user;
-mod wire;
+use crate::term::context::context_line;
+use crate::term::cwd::home_var;
+use crate::term::dimensions::LINE_MAX;
+use crate::term::identity::{hostname, username};
+use crate::term::state::State;
 
-pub use host::hostname;
-pub use user::username;
+/* Room for `user@host path % ` ahead of the longest command. */
+const HEAD_MAX: usize = 256;
+
+/*
+ * Open the block with the line that ran: the prompt as it stood and `cmd`
+ * after it, so the scrollback reads the way the input line did.
+ */
+pub(super) fn echo_line(state: &mut State, cmd: &[u8]) {
+    let mut line = [0u8; LINE_MAX + HEAD_MAX];
+    let (cwd, home) = (state.cwd.as_bytes(), home_var(state));
+    let n = context_line(username(), hostname(), cwd, home, cmd, &mut line);
+    state.scrollback.push_line(&line[..n]);
+}

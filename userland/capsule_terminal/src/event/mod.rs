@@ -21,6 +21,7 @@ pub(crate) mod complete;
 pub(crate) mod cooked;
 mod cooked_kill;
 mod copy_line;
+mod echo_line;
 mod fg_cooked;
 mod fg_input;
 mod fg_keys;

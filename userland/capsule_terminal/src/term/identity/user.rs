@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cache;
-mod choose;
-mod fetch;
-mod host;
-mod sanitize;
-mod user;
-mod wire;
+use nonos_policy_proto::Field;
 
-pub use host::hostname;
-pub use user::username;
+use super::cache::Cached;
+use super::choose::{choose, USER_FALLBACK};
+use super::sanitize::user_len;
+
+static USER: Cached = Cached::new(Field::Username, user_len);
+
+/* The name the person gave at setup or in Settings, asked for once per capsule. */
+pub fn username() -> &'static [u8] {
+    choose(USER.get(), USER_FALLBACK)
+}

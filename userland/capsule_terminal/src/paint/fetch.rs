@@ -23,6 +23,7 @@ use nonos_libc::mk_time_millis;
 use super::fetch_banner::draw_banner;
 use super::fetch_palette::draw_palette;
 use super::fetch_uptime::uptime_str;
+use super::user_host::draw_fetch_id;
 use crate::term::state::State;
 use crate::term::theme::types::Theme;
 
@@ -46,15 +47,7 @@ pub fn draw_fetch(state: &State, fb: &mut PaintBuffer, x: u32, body_y: u32, righ
     let _ = fb.text_ttf(ix, after + 4, "ZeroState Cryptographic OS", t.dim, 14.0);
 
     let mut y = after + 34;
-    let _ = fb.text_ttf_mono(ix, y, "nonos", t.accent, INFO_PX);
-    let mut host = [0u8; 40];
-    host[0] = b'@';
-    let hn = crate::term::identity::hostname();
-    let hl = hn.len().min(host.len() - 1);
-    host[1..1 + hl].copy_from_slice(&hn[..hl]);
-    let at = core::str::from_utf8(&host[..1 + hl]).unwrap_or("@");
-    let gap = fb.measure_ttf_mono("nonos", INFO_PX);
-    let _ = fb.text_ttf_mono(ix + gap, y, at, t.dim, INFO_PX);
+    draw_fetch_id(fb, ix, y, INFO_PX, t);
     y += 8;
     fb.fill_rect(ix as u32, (y + 8) as u32, (edge - ix).clamp(0, RULE_W) as u32, 1, t.dim);
     y += 24;

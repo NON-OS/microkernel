@@ -65,6 +65,7 @@ pub mod tab_pill;
 pub mod tokens;
 mod tool_icon;
 pub mod toolbar;
+mod user_host;
 mod vt;
 
 pub use compose::paint_tabs;

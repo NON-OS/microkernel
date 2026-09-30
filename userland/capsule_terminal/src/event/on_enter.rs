@@ -18,14 +18,11 @@ use nonos_app_skeleton::EventOutcome;
 use nonos_libc::mk_time_millis;
 
 use crate::command;
-use crate::term::context::context_line;
-use crate::term::cwd::home_var;
 use crate::term::dimensions::LINE_MAX;
-use crate::term::identity::{hostname, USER};
-use crate::term::prompt::PROMPT_BYTES;
 use crate::term::state::State;
 use crate::term::util::{copy_into, format_u64};
 
+use super::echo_line::echo_line;
 use super::run_line::run_line;
 
 pub fn on_enter(state: &mut State) -> EventOutcome {
@@ -35,14 +32,13 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
     state.fresh = false;
     let started = mk_time_millis();
     state.open_block(crate::term::rtc::rtc_hms());
-    let mut ctx = [0u8; LINE_MAX];
-    let cn = context_line(USER, hostname(), state.cwd.as_bytes(), home_var(state), &mut ctx);
-    state.scrollback.push_line(&ctx[..cn]);
     // A `!` form is resolved before anything else sees the line, so what is
     // echoed, recorded in history and run are all the same text. Expanding
     // later would put one command on screen and another through the parser.
     let mut entered = [0u8; LINE_MAX];
-    let n;
+    let typed = state.line.as_bytes();
+    let mut n = typed.len().min(LINE_MAX);
+    entered[..n].copy_from_slice(&typed[..n]);
     /*
      * A line that starts with `qwen` is a question, and a `!word` in it is
      * part of what is asked, not a history reference.
@@ -64,6 +60,7 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
             // Naming an entry that is not there runs nothing. Silently
             // dropping the `!` would run the rest of the line, which is how
             // history expansion earns its reputation.
+            echo_line(state, &entered[..n]);
             state.scrollback.push_line(b"no matching history entry");
             state.line.clear();
             state.history.reset_cursor();
@@ -71,17 +68,9 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
             state.scrollback.jump_bottom();
             return EventOutcome::Repaint;
         }
-        None => {
-            let body = state.line.as_bytes();
-            n = body.len();
-            entered[..n].copy_from_slice(body);
-        }
+        None => {}
     }
-    let mut echo = [0u8; LINE_MAX + 8];
-    let mut k = 0;
-    k += copy_into(&mut echo[k..], PROMPT_BYTES);
-    k += copy_into(&mut echo[k..], &entered[..n]);
-    state.scrollback.push_line(&echo[..k]);
+    echo_line(state, &entered[..n]);
     /*
      * A question to Qwen is the rest of the line as typed. It is taken
      * before the shell splits and expands the line, which would break it at

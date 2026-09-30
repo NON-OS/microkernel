@@ -15,8 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::command::output::Output;
+use crate::term::identity::username;
 
+/* The name first and bare, as `whoami` prints it anywhere, then the capsule. */
 pub fn run(out: &mut Output<'_>, _argv: &[&[u8]]) {
+    out.writeln(username());
     out.writeln(b"  capsule: app.terminal");
     out.writeln(b"  namespace: systems.nonos.app.terminal0");
     out.writeln(b"  cpl: 3 (user)");

@@ -43,9 +43,9 @@ pub fn draw_input_line(state: &State, fb: &mut PaintBuffer, r: Rect, m: Metrics,
     fb.fill_rect(bar_x, bar_y, 2, m.lh + 4, t.accent);
     // Character cells that fit between the left inset and an equal right margin.
     let total_cells = (r.w.saturating_sub(TEXT_LEFT * 2) / adv) as usize;
-    // Prompt is glyph + path + trailing space; cap the path to a third of the
-    // line so a deep cwd never starves the area left to type in.
-    let prompt_cells = draw_prompt(state, fb, ox, y, adv, px, total_cells / 3, t);
+    // Prompt is user@host, path, mark and a space; cap it to half the line so
+    // a deep cwd never starves the area left to type in.
+    let prompt_cells = draw_prompt(state, fb, ox, y, adv, px, total_cells / 2, t);
     // Horizontal scroll: slide a body_cells-wide window so the cursor is always
     // on screen, showing the start of the line whenever it fits.
     let body = state.line.as_bytes();

@@ -50,24 +50,26 @@ mod term {
         mod choose;
         mod sanitize;
         mod wire;
-        pub use choose::{choose, HOST_FALLBACK, USER};
-        pub use sanitize::hostname_len;
+        pub use choose::{choose, HOST_FALLBACK, USER_FALLBACK};
+        pub use sanitize::{hostname_len, user_len};
         pub use wire::{decode_str, request, REQ_LEN};
     }
 
     pub mod context;
+    pub mod prompt;
 }
 
 use nonos_policy_proto::{Header, E_OK, HDR_LEN, KIND_STR, OP_GET};
 use term::context::context_line;
 use term::cwd::{shorten, strip_home, HOME};
-use term::identity::{choose, decode_str, hostname_len, request, HOST_FALLBACK, REQ_LEN, USER};
+use term::identity::{choose, decode_str, hostname_len, request, user_len};
+use term::identity::{HOST_FALLBACK, REQ_LEN, USER_FALLBACK as USER};
 
 const HOSTNAME: u32 = 0x0301;
 
 fn line(host: &[u8], cwd: &[u8], home: &[u8]) -> String {
     let mut out = [0u8; 96];
-    let n = context_line(USER, host, cwd, home, &mut out);
+    let n = context_line(USER, host, cwd, home, b"ls", &mut out);
     String::from_utf8(out[..n].to_vec()).unwrap()
 }
 
@@ -81,25 +83,25 @@ fn reply(op: u16, field: u32, kind: u8, status: u16, body: &[u8]) -> Vec<u8> {
 
 #[test]
 fn the_context_line_reads_as_the_mockup_does() {
-    assert_eq!(line(b"station", b"/workspace", b"/"), "nonos@station:/workspace");
-    assert_eq!(line(b"station", b"/home/n/workspace", b"/home/n"), "nonos@station:~/workspace");
+    assert_eq!(line(b"station", b"/workspace", b"/"), "nonos@station /workspace % ls");
+    assert_eq!(line(b"station", b"/home/n/work", b"/home/n"), "nonos@station ~/work % ls");
 }
 
 #[test]
 fn the_home_directory_itself_is_a_bare_tilde() {
-    assert_eq!(line(b"h", b"/home/n", b"/home/n"), "nonos@h:~");
+    assert_eq!(line(b"h", b"/home/n", b"/home/n"), "nonos@h ~ % ls");
 }
 
 #[test]
 fn a_path_that_merely_starts_with_home_is_not_shortened() {
-    assert_eq!(line(b"h", b"/homework", b"/home"), "nonos@h:/homework");
+    assert_eq!(line(b"h", b"/homework", b"/home"), "nonos@h /homework % ls");
     assert_eq!(strip_home(b"/homework", b"/home"), None);
 }
 
 #[test]
 fn root_and_an_unset_home_shorten_nothing() {
-    assert_eq!(line(b"h", b"/a", b"/"), "nonos@h:/a");
-    assert_eq!(line(b"h", b"/a", b""), "nonos@h:/a");
+    assert_eq!(line(b"h", b"/a", b"/"), "nonos@h /a % ls");
+    assert_eq!(line(b"h", b"/a", b""), "nonos@h /a % ls");
     assert_eq!(strip_home(b"/a", b""), None);
     assert_eq!(strip_home(b"/a", b"/"), None);
 }
@@ -108,16 +110,17 @@ fn root_and_an_unset_home_shorten_nothing() {
 fn a_line_longer_than_the_grid_is_cut_rather_than_overrunning() {
     let cwd = vec![b'x'; 200];
     let mut out = [0u8; 96];
-    let n = context_line(USER, b"station", &cwd, b"", &mut out);
+    let n = context_line(USER, b"station", &cwd, b"", b"ls", &mut out);
     assert_eq!(n, 96);
-    assert!(out.starts_with(b"nonos@station:xxx"));
+    assert!(out.starts_with(b"nonos@station xxx"));
 }
 
 #[test]
 fn an_unreachable_policy_falls_back_without_claiming_a_configured_name() {
-    assert_eq!(choose(b""), HOST_FALLBACK);
+    assert_eq!(choose(b"", HOST_FALLBACK), HOST_FALLBACK);
     assert_eq!(HOST_FALLBACK, b"nonos");
-    assert_eq!(choose(b"station"), b"station");
+    assert_eq!(choose(b"station", HOST_FALLBACK), b"station");
+    assert_eq!(choose(b"", USER), b"nonos");
 }
 
 #[test]
@@ -134,6 +137,7 @@ fn a_hostname_carrying_anything_a_hostname_cannot_is_cut_there() {
     assert_eq!(hostname_len(b"st ation"), 2);
     assert_eq!(hostname_len(b"st\nation"), 2);
     assert_eq!(hostname_len(b"\x1b[31m"), 0);
+    assert_eq!((hostname_len(b"e_k"), user_len(b"e_k"), user_len(b"e k")), (1, 3, 1));
 }
 
 #[test]
@@ -176,18 +180,14 @@ fn home_is_the_users_directory() {
 
 #[test]
 fn the_prompt_shows_a_bare_tilde_in_the_home_itself() {
-    let mut out = [0u8; 128];
-    let n = context_line(USER, b"station", HOME, HOME, &mut out);
-    assert_eq!(&out[..n], b"nonos@station:~");
+    assert_eq!(line(b"station", HOME, HOME), "nonos@station ~ % ls");
 }
 
 #[test]
 fn the_prompt_shows_the_folder_under_the_tilde() {
     let mut cwd = Vec::from(HOME);
     cwd.extend_from_slice(b"/workspace");
-    let mut out = [0u8; 128];
-    let n = context_line(USER, b"station", &cwd, HOME, &mut out);
-    assert_eq!(&out[..n], b"nonos@station:~/workspace");
+    assert_eq!(line(b"station", &cwd, HOME), "nonos@station ~/workspace % ls");
 }
 
 #[test]

@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use nonos_libc::mk_time_millis;
 
 use crate::command::output::Output;
-use crate::term::identity::{hostname, USER};
+use crate::term::identity::{hostname, username};
 use crate::term::state::State;
 use crate::term::util::{copy_into, format_u64};
 
@@ -57,7 +57,7 @@ fn uptime(state: &State, buf: &mut [u8]) -> usize {
 
 fn info(kernel: &[u8], up: &[u8]) -> Vec<Vec<u8>> {
     let mut head = Vec::with_capacity(32);
-    head.extend_from_slice(USER);
+    head.extend_from_slice(username());
     head.push(b'@');
     head.extend_from_slice(hostname());
     let mut rule = Vec::with_capacity(head.len());
