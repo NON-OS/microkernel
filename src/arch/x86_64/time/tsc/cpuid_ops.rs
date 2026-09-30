@@ -16,9 +16,11 @@
 
 pub fn cpuid(leaf: u32, subleaf: u32) -> (u32, u32, u32, u32) {
     let (eax, rbx, ecx, edx): (u32, u64, u32, u32);
-    // SAFETY: CPUID touches no memory. RBX is restored by the exchange, which
-    // stays correct when the compiler picks RBX as the output; a push/pop
-    // pair would then overwrite the result with the caller's RBX.
+    /*
+     * SAFETY: CPUID touches no memory. RBX is restored by the exchange, which
+     * stays correct when the compiler picks RBX as the output; a push/pop
+     * pair would then overwrite the result with the caller's RBX.
+     */
     unsafe {
         core::arch::asm!(
             "mov {0}, rbx", "cpuid", "xchg {0}, rbx",

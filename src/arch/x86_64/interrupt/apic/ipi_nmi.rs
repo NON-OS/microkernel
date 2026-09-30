@@ -28,6 +28,8 @@ use super::mmio::mmio_w32;
 use super::state::*;
 use core::sync::atomic::Ordering;
 
+/// Delivery mode 100b in ICR bits 10:8.
+const ICR_DELIV_NMI: u64 = 0x4 << 8;
 const ICR_NMI: u64 = ICR_DELIV_NMI | ICR_LEVEL_ASSERT | ICR_TRIG_EDGE;
 
 /// Raise an NMI on the cpu with `apic_id`. `false` means the local APIC is
