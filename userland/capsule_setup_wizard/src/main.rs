@@ -30,6 +30,11 @@ pub unsafe extern "C" fn _start() -> ! {
          */
         let _ = consent::restore();
         keep::wait_for_policy();
+        /* On an install boot the installer carries those kept answers. */
+        if setup::machine::install_boot() {
+            say(b"[SETUP] kept from an earlier boot; opening the installer\n");
+            mk_exit(render::screens::mode::EXIT_INSTALLER);
+        }
         say(b"[SETUP] kept from an earlier boot; starting the desktop\n");
         mk_exit(0);
     }

@@ -13,6 +13,8 @@ pub struct Context {
     pub tz_off: i8,
     /// Row on the mode screen: amnesic, USB live, or install.
     pub mode_sel: u8,
+    /* The boot menu asked to install, so the mode screen starts on Install. */
+    pub install_boot: bool,
     /* The account name typed on the name step. */
     pub name: crate::name::NameState,
     pub wall_sel: u8,
@@ -37,6 +39,7 @@ impl Context {
         router_port: u32,
         policy_port: u32,
     ) -> Self {
+        let install_boot = crate::setup::machine::install_boot();
         Self {
             base,
             width,
@@ -48,7 +51,8 @@ impl Context {
             step: 0,
             kbd_sel: 0,
             tz_off: 0,
-            mode_sel: 0,
+            mode_sel: if install_boot { crate::render::screens::mode::INSTALL } else { 0 },
+            install_boot,
             name: crate::name::NameState::new(),
             wall_sel: 0,
             local_sel: 0,

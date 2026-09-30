@@ -41,7 +41,8 @@ pub struct ProcStatHeader {
     pub interrupts: u64,
     pub faults: u64,
     pub cpus_online: u32,
-    pub _pad: u32,
+    /* How this boot was started; BOOT_INSTALL_REQUESTED and nothing else. */
+    pub boot_flags: u32,
     /// Busy ticks split by where they landed; idle ticks are neither.
     pub user_ticks: u64,
     pub kernel_ticks: u64,
@@ -52,3 +53,9 @@ pub struct ProcStatHeader {
 }
 
 pub const PROC_STAT_VERSION: u32 = 3;
+
+/*
+ * The boot menu's "Install NONOS" entry started this boot. The word was
+ * padding written as zero before, so an older kernel reads as a plain boot.
+ */
+pub const BOOT_INSTALL_REQUESTED: u32 = 1;

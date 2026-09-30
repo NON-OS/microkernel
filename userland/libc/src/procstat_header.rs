@@ -38,10 +38,14 @@ pub struct ProcStatHeader {
     pub interrupts: u64,
     pub faults: u64,
     pub cpus_online: u32,
-    pub _pad: u32,
+    /* How this boot was started: BOOT_INSTALL_REQUESTED, or 0. */
+    pub boot_flags: u32,
     pub user_ticks: u64,
     pub kernel_ticks: u64,
     pub largest_free_kb: u64,
     pub heap_peak_kb: u64,
     pub heap_allocs: u64,
 }
+
+/* The boot menu's "Install NONOS" entry started this boot. */
+pub const BOOT_INSTALL_REQUESTED: u32 = 1;

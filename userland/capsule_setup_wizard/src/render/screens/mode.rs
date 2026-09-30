@@ -10,7 +10,7 @@ pub const INSTALL: u8 = 2;
 /// What setup's exit status asks of the kernel: start the desktop, and for
 /// 3 open the installer beside it.
 const EXIT_DESKTOP: i32 = 0;
-const EXIT_INSTALLER: i32 = 3;
+pub const EXIT_INSTALLER: i32 = 3;
 
 const MODES: &[&[u8]] =
     &[b"Amnesic (default)", b"USB live (unavailable)", b"Install to this computer"];
@@ -46,7 +46,12 @@ pub fn exit_code(ctx: &Context) -> i32 {
 }
 
 pub fn draw(ctx: &Context) {
-    render::frame(ctx, b"Mode", b"Where this machine keeps what you do", b"ENTER NEXT  ESC BACK");
+    let sub: &[u8] = if ctx.install_boot {
+        b"You chose Install NONOS at boot; Amnesic installs nothing"
+    } else {
+        b"Where this machine keeps what you do"
+    };
+    render::frame(ctx, b"Mode", sub, b"ENTER NEXT  ESC BACK");
     let spx = ctx.stride as usize / 4;
     let (w, h) = (ctx.width, ctx.height);
     let (buf, x) = (render::buffer(ctx), render::content_x(w));

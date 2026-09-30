@@ -1,5 +1,6 @@
 mod discover;
 mod fill;
+pub mod machine;
 
 use nonos_libc::{
     mk_mmap, mk_surface_register, mk_surface_release, mk_surface_share, SurfaceDescriptor,

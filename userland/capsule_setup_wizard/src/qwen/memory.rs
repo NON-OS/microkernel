@@ -16,22 +16,11 @@
 
 /*
  * This machine's memory, as the kernel counts it for the Terminal and the
- * process manager: the header of a process listing that asks for one entry.
+ * process manager.
  */
-
-use core::mem::size_of;
-
-use nonos_libc::{mk_proc_stat, ProcStatEntry, ProcStatHeader};
-
-const LEN: usize = size_of::<ProcStatHeader>() + size_of::<ProcStatEntry>();
 
 /* Bytes, or None when the kernel would not say. */
 pub fn memory() -> Option<u64> {
-    let mut buf = [0u8; LEN];
-    if mk_proc_stat(buf.as_mut_ptr(), 1) < 0 {
-        return None;
-    }
-    /* The buffer holds a whole header at its start, read unaligned. */
-    let header = unsafe { core::ptr::read_unaligned(buf.as_ptr() as *const ProcStatHeader) };
+    let header = crate::setup::machine::header()?;
     (header.mem_total_kb > 0).then(|| header.mem_total_kb * 1024)
 }

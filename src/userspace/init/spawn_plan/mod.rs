@@ -60,4 +60,6 @@ pub(super) use orchestrator::{
 #[cfg(all(feature = "microkernel-setup-wizard", not(feature = "microkernel-input-probe")))]
 pub(super) use wizard_plan::spawn_desktop;
 #[cfg(feature = "microkernel-setup-wizard")]
-pub(super) use wizard_plan::{spawn_after_first, spawn_market, spawn_post_wizard};
+pub(super) use wizard_plan::{
+    spawn_after_first, spawn_installer_first, spawn_market, spawn_post_wizard,
+};

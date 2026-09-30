@@ -17,7 +17,7 @@
 //! Filling the `ProcStatHeader` from the accounting totals, the allocators
 //! and the scheduler, at the moment of the call.
 
-use super::procstat_header::{ProcStatHeader, PROC_STAT_VERSION};
+use super::procstat_header::{ProcStatHeader, BOOT_INSTALL_REQUESTED, PROC_STAT_VERSION};
 use crate::process::accounting;
 
 pub(super) fn header_for(count: u32, now_ms: u64) -> ProcStatHeader {
@@ -41,7 +41,11 @@ pub(super) fn header_for(count: u32, now_ms: u64) -> ProcStatHeader {
         interrupts: totals.interrupts,
         faults: totals.faults,
         cpus_online: crate::smp::cpus_online() as u32,
-        _pad: 0,
+        boot_flags: if crate::boot::handoff::install_requested() {
+            BOOT_INSTALL_REQUESTED
+        } else {
+            0
+        },
         user_ticks: totals.user_ticks,
         kernel_ticks: totals.kernel_ticks,
         largest_free_kb: crate::memory::phys::allocator::phys_largest_free_run() as u64 * 4,

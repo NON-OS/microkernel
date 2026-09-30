@@ -24,6 +24,8 @@ use crate::process::{get_process, ProcessState};
 
 /// The status setup exits with when the person chose to install NONOS.
 const EXIT_INSTALLER: i32 = 3;
+/* The status of a setup the person finished with another mode. */
+const EXIT_DESKTOP: i32 = 0;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Ended {
@@ -31,10 +33,11 @@ pub enum Ended {
     Desktop,
     /// Start the desktop and open the installer.
     Installer,
+    /* Setup never started, failed, or its status is gone: nobody chose. */
+    Unfinished,
 }
 
-/// `None` while setup runs. A setup that never started, or whose status is
-/// gone, asks for the desktop alone.
+/// `None` while setup runs.
 pub fn ended() -> Option<Ended> {
     if super::shared_state().is_alive() {
         return None;
@@ -47,5 +50,10 @@ pub fn ended() -> Option<Ended> {
         },
         None => crate::process::exit::peek_exit_status(pid),
     };
-    Some(if pid != 0 && code == Some(EXIT_INSTALLER) { Ended::Installer } else { Ended::Desktop })
+    Some(match (pid, code) {
+        (0, _) => Ended::Unfinished,
+        (_, Some(EXIT_INSTALLER)) => Ended::Installer,
+        (_, Some(EXIT_DESKTOP)) => Ended::Desktop,
+        _ => Ended::Unfinished,
+    })
 }

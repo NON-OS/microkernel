@@ -8,12 +8,12 @@ use super::review_lines::{local_line, mode_line, name_line, net_line};
 use super::{appearance, keyboard, timezone};
 
 pub fn draw(ctx: &Context) {
-    render::frame(
-        ctx,
-        b"Review",
-        b"ENTER applies these and starts the desktop",
-        b"ENTER FINISH  ESC BACK",
-    );
+    let then: &[u8] = if super::mode::keeps(ctx) {
+        b"ENTER applies these and opens the installer"
+    } else {
+        b"ENTER applies these and starts the desktop"
+    };
+    render::frame(ctx, b"Review", then, b"ENTER FINISH  ESC BACK");
     let spx = ctx.stride as usize / 4;
     let (w, h) = (ctx.width, ctx.height);
     let (buf, x) = (render::buffer(ctx), render::content_x(w));

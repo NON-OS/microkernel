@@ -16,7 +16,9 @@
 
 /*
  * The lines under the review table: what the mode keeps, what may run,
- * the Wi-Fi network, and whether the name and Qwen model are kept.
+ * the Wi-Fi network, and whether the name and Qwen model are kept. With no
+ * store this boot the answers still reach the vfs, and the installer
+ * carries them from there to the disk it writes.
  */
 
 use crate::state::Context;
@@ -25,9 +27,12 @@ use super::mode;
 
 pub fn mode_line(ctx: &Context) -> &'static [u8] {
     match (mode::keeps(ctx), crate::keep::store_ready()) {
+        (false, _) if ctx.install_boot => {
+            b"Mode: amnesic. No install this boot; the desktop starts."
+        }
         (false, _) => b"Mode: amnesic. Nothing is kept; setup runs again next boot.",
         (true, true) => b"Mode: install. Answers kept, then the installer opens.",
-        (true, false) => b"Mode: install. No NONOS store this boot: nothing is kept.",
+        (true, false) => b"Mode: install. No store here; the installer carries them.",
     }
 }
 
@@ -58,6 +63,6 @@ pub fn name_line(ctx: &Context) -> &'static [u8] {
     match (mode::keeps(ctx), crate::keep::store_ready()) {
         (false, _) => b"Name and Qwen model: amnesic, for this boot only.",
         (true, true) => b"Name and Qwen model: kept with the other answers.",
-        (true, false) => b"Name and Qwen model: no NONOS store, for this boot only.",
+        (true, false) => b"Name and Qwen model: kept on the disk the installer writes.",
     }
 }

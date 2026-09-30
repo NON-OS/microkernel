@@ -16,8 +16,8 @@
 
 /*
  * The boot plan of an image with first-boot setup: the compositor and input
- * router come up, then one thing runs on them before any desktop app. That is
- * setup, or, when the boot menu asked for "Install NONOS", the installer.
+ * router come up, then setup runs on them before any desktop app, on an
+ * install boot too, where it opens with "Install to this computer" chosen.
  * The rest follows once it is done (see supervisor::after_setup).
  */
 
@@ -27,10 +27,6 @@ use crate::userspace::init::{request_instance, PendingApp};
 #[cfg(not(feature = "microkernel-input-probe"))]
 pub(in crate::userspace::init) fn spawn_desktop() {
     super::desktop_fleet::spawn_gui_core();
-    if crate::boot::handoff::install_requested() {
-        spawn_installer_first();
-        return;
-    }
     super::boot::capsule(
         "SETUP-WIZARD",
         "setup_wizard",
@@ -40,18 +36,18 @@ pub(in crate::userspace::init) fn spawn_desktop() {
 }
 
 /*
- * The installer is a window, so it needs the window manager and the shell
- * that hands it its first frame; those start here and nothing else does.
- * Setup is skipped: the disk the installer writes runs setup on its own
- * first boot. Init performs the queued spawn on its first loop pass.
+ * An install boot whose setup chose Install, or ended without a choice: the
+ * installer is a window, so it needs the window manager and the shell that
+ * hands it its first frame; those start here and no app does until it has
+ * closed. Setup has kept its answers, which the installer carries to the
+ * disk it writes. Init performs the queued spawn on its next loop pass.
  */
-#[cfg(not(feature = "microkernel-input-probe"))]
-fn spawn_installer_first() {
+pub(in crate::userspace::init) fn spawn_installer_first() {
     super::desktop_fleet::spawn_rest();
     let line: &[u8] = if request_instance(PendingApp::Install) {
-        b"[INIT] boot menu asked to install NONOS; installer queued before the apps\n"
+        b"[INIT] install boot: installer queued before the apps\n"
     } else {
-        b"[INIT] boot menu asked to install NONOS; the spawn queue is full\n"
+        b"[INIT] install boot: the spawn queue is full\n"
     };
     crate::sys::serial::print(line);
 }
