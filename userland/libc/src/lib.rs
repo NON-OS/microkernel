@@ -76,7 +76,9 @@ pub use crypto::{
     crypto_x25519_public, crypto_x25519_shared, machine_key, MACHINE_KEY_LABEL_MAX,
     MACHINE_KEY_NO_TPM, MACHINE_KEY_WRONG_STATE,
 };
-pub use data::{mk_data_import, mk_data_read, mk_data_read_peer, mk_data_stat};
+pub use data::{
+    mk_data_import, mk_data_read, mk_data_read_peer, mk_data_stat, mk_data_volume_passphrase,
+};
 pub use debug::mk_debug;
 pub use foreign::{
     mk_foreign_exec, mk_foreign_reply, mk_foreign_resume, mk_foreign_spawn, mk_foreign_start,

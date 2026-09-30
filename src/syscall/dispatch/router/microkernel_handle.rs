@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The kernel's disk plan parser, assembled for the host. The plan is one
-//! plain sector anyone with the disk can write, so every way it can lie is
-//! tried here against the shipping source, with the key header that sits
-//! beside it and the seal on the volume key it carries.
+//! Handing a microkernel syscall to its numeric dispatcher.
 
-#[path = "../../../../src/fs/blockfs_volume/key_header.rs"]
-pub mod key_header;
-#[path = "../../../../src/fs/blockfs_volume/key_seal.rs"]
-pub mod key_seal;
-#[path = "../../../../src/fs/blockfs_volume/plan.rs"]
-pub mod plan;
-#[path = "../../../../src/fs/blockfs_volume/plan_types.rs"]
-pub mod plan_types;
+use crate::syscall::microkernel::dispatch_microkernel_syscall;
+use crate::syscall::{numbers::SyscallNumber, SyscallResult};
 
-mod tests;
-mod tests_key;
-mod tests_random;
+pub(super) fn handle(
+    nr: SyscallNumber,
+    a0: u64,
+    a1: u64,
+    a2: u64,
+    a3: u64,
+    a4: u64,
+    a5: u64,
+) -> SyscallResult {
+    let value = dispatch_microkernel_syscall(nr as u64, a0, a1, a2, a3, a4, a5);
+    SyscallResult { value, capability_consumed: false, audit_required: true }
+}

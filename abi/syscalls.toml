@@ -1,9 +1,7 @@
-# Each [desc.TAG] block publishes the gate the kernel applies to that call.
-# `caps = [...]` means all of the listed capabilities: a token needs every one.
-# `caps_any = [...]` means any one of them is enough. A block carries one field
-# or the other, never both. `caps = ["valid_token"]` means any valid token.
-# scripts/check_syscall_caps.py compares each block against the kernel's cap
-# table and fails on any difference, so a gate here is what the kernel enforces.
+# Each [desc.TAG] block publishes the gate the kernel applies to that call:
+# `caps = [...]` needs every listed capability, `caps_any = [...]` any one, and
+# a block carries one or the other; `caps = ["valid_token"]` is any valid token.
+# scripts/check_syscall_caps.py fails on any difference from the kernel's table.
 
 version = 3
 abi = "nonos-sys-v1"
@@ -77,6 +75,7 @@ MBAT = 0x5441424D
 MCLD = 0x444C434D
 MCVF = 0x4656434D
 MDIM = 0x4D49444D
+MDPW = 0x5750444D
 MDRC = 0x4352444D
 MDRD = 0x4452444D
 MDRO = 0x4F52444D
@@ -167,7 +166,6 @@ MPRD = 0x4452504D
 MPWR = 0x5257504D
 MPRL = 0x4C52504D
 MDBG = 0x4742444D
-
 MSRG = 0x4752534D
 MSSH = 0x4853534D
 MSAT = 0x5441534D
@@ -780,13 +778,16 @@ nr   = 0x4D49444D
 caps = ["StoreWrite", "FileSystem"]
 args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"},{name="sha256_ptr",type="u64",dir="in"},{name="bytes",type="u64",dir="in"}]
 ret  = {type="i64"}
-
+[desc.MDPW]
+nr   = 0x5750444D
+caps = ["StoreWrite", "FileSystem"]
+args = [{name="create",type="u64",dir="in"},{name="passphrase_ptr",type="u64",dir="in"},{name="passphrase_len",type="u64",dir="in"}]
+ret  = {type="i64"}
 [desc.MDRD]
 nr   = 0x4452444D
 caps = ["FileSystem"]
 args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"},{name="offset",type="u64",dir="in"},{name="buf",type="u64",dir="out"},{name="buf_len",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MDST]
 nr   = 0x5453444D
 caps = ["FileSystem"]
@@ -804,7 +805,6 @@ nr   = 0x5252534D
 caps = ["StoreWrite"]
 args = [{name="lba",type="u64",dir="in"},{name="user_ptr",type="u64",dir="out"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MSWR]
 nr   = 0x5257534D
 caps = ["StoreWrite"]

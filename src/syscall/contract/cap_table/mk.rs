@@ -44,9 +44,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
 
         /*
          * The entries name every running capsule with its measurement and
-         * its capability mask. That is the machine's inventory, so reading it
-         * takes a capability of its own rather than any valid token; the
-         * programs that render a receipt hold it.
+         * capability mask, the machine's inventory, so reading them takes a
+         * capability of its own, which the programs that render a receipt hold.
          */
         SyscallNumber::MkAttestEntries => caps.can_attest_read(),
         /*
@@ -131,6 +130,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkStdoutWrite | SyscallNumber::MkPrivateWrite => caps.can_ipc(),
         SyscallNumber::MkStoreWrite | SyscallNumber::MkStoreRead => caps.can_store_write(),
         SyscallNumber::MkDataImport => caps.can_store_write() && caps.can_open_files(),
+        SyscallNumber::MkDataPassphrase => caps.can_store_write() && caps.can_open_files(),
         SyscallNumber::MkDataStat | SyscallNumber::MkDataRead => caps.can_open_files(),
 
         /*

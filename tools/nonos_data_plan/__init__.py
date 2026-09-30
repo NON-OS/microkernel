@@ -29,6 +29,9 @@ to pass here; the 7B tier is two files, both passed.
 IMAGE is a raw image file or a whole disk; a disk is never resized, and a
 plan that does not fit on it is refused before anything is written.
 
---fresh zeroes the volume's 256-sector header ring, so the next boot formats
-a new volume instead of opening the last one.
+--fresh zeroes the volume's 256-sector header ring and the key header, the
+sector after the plan that says whether a TPM or a passphrase keys the
+volume (src/fs/blockfs_volume/key_header.rs), so the next boot formats a new
+volume, keyed anew, instead of opening the last one. Without --fresh the key
+header is left alone: a passphrase volume's salt and sealed key live there.
 """

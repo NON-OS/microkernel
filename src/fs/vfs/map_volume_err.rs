@@ -34,6 +34,11 @@ pub(super) fn map_volume_err(e: VolumeError) -> VfsError {
         VolumeError::DigestMismatch => VfsError::IoError("import does not match its pinned digest"),
         VolumeError::NameTaken => VfsError::AlreadyExists,
         VolumeError::Unopenable => VfsError::IoError("data volume under another key"),
+        VolumeError::NeedsPassphrase | VolumeError::WrongPassphrase => VfsError::PermissionDenied,
+        VolumeError::NotPassphraseKeyed => VfsError::NotFound,
+        VolumeError::UnknownKeying => VfsError::IoError("key header of an unknown kind"),
+        VolumeError::AlreadyOpen | VolumeError::VolumeExists => VfsError::AlreadyExists,
+        VolumeError::Stretch(_) => VfsError::IoError("passphrase stretch refused"),
         VolumeError::BlockFs(BlockFsError::NotFound) => VfsError::NotFound,
         VolumeError::BlockFs(_) => VfsError::IoError("blockfs"),
     }

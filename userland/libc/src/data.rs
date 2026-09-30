@@ -17,7 +17,9 @@
 //! The machine's data volume, by name. A name is a slash and 1 to 63 of
 //! [A-Za-z0-9._-]. Each call returns a count or a negative errno.
 
-use crate::syscall::{call_raw, N_MK_DATA_IMPORT, N_MK_DATA_READ, N_MK_DATA_STAT};
+use crate::syscall::{
+    call_raw, N_MK_DATA_IMPORT, N_MK_DATA_PASSPHRASE, N_MK_DATA_READ, N_MK_DATA_STAT,
+};
 
 /// Import the disk plan's file as `name`, kept only if it is `bytes` long
 /// and its SHA-256 is `sha256`. Needs StoreWrite and FileSystem. Returns its
@@ -46,4 +48,16 @@ pub fn mk_data_read(name: &[u8], offset: u64, buf: &mut [u8]) -> i64 {
 pub fn mk_data_read_peer(name: &[u8], offset: u64, pid: u32, addr: u64, len: u64) -> i64 {
     let (p, n) = (name.as_ptr() as u64, name.len() as u64);
     call_raw(N_MK_DATA_READ, [p, n, offset, addr, len, pid as u64])
+}
+
+/// Key the data volume with `passphrase`: `create` makes a new volume over
+/// a header ring never written (at least 8 bytes), otherwise the volume a
+/// passphrase keys is opened. At most 256 bytes; the kernel wipes its copy.
+/// Needs StoreWrite and FileSystem. Returns 0, or EACCES for a wrong
+/// passphrase, ENOENT when no passphrase keys the volume, EEXIST when a
+/// create finds a volume, EBUSY when one is open, EAGAIN while the kernel
+/// has not chosen a disk yet.
+pub fn mk_data_volume_passphrase(create: bool, passphrase: &[u8]) -> i64 {
+    let (p, n) = (passphrase.as_ptr() as u64, passphrase.len() as u64);
+    call_raw(N_MK_DATA_PASSPHRASE, [create as u64, p, n, 0, 0, 0])
 }

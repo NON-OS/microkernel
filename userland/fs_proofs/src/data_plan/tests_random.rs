@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Random plans, and where the plan's own sector sits.
+//! Random plans, and where the plan's own sector and the key header sit.
 
+use super::key_header::KEY_LBA;
 use super::plan::parse_plan;
-use super::plan_types::{DATA_FLOOR, MAX_IMPORTS, PLAN_LBA};
+use super::plan_types::{PlanError, DATA_FLOOR, MAX_IMPORTS, PLAN_LBA};
 use super::tests::{plan, AFTER, DISK, VOL};
 
 #[test]
@@ -27,6 +28,14 @@ fn the_plan_sector_lies_past_the_store_and_below_everything_it_names() {
      */
     assert!(256 + 32_768 <= PLAN_LBA);
     assert!(PLAN_LBA < DATA_FLOOR);
+}
+
+#[test]
+fn the_key_header_lies_after_the_plan_where_no_plan_range_may_reach() {
+    assert!(PLAN_LBA < KEY_LBA && KEY_LBA < DATA_FLOOR);
+    let below = Err(PlanError::BelowFloor);
+    assert_eq!(parse_plan(&plan(KEY_LBA, VOL, &[]), DISK), below);
+    assert_eq!(parse_plan(&plan(DATA_FLOOR, VOL, &[(KEY_LBA, 512)]), DISK), below);
 }
 
 #[test]

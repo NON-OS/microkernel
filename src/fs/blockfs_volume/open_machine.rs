@@ -19,18 +19,17 @@
 //! The volume's key is derived from the TPM under a kernel label, so it is
 //! never stored: this machine in this boot state gets the same key every
 //! time, and any other machine or boot state gets another. The volume lies
-//! where the disk plan says. It is formatted only when its header ring is
-//! blank: a ring that holds sectors this key cannot open is someone's data
-//! under another key or boot state, and is left alone.
+//! where the disk plan says. A volume whose key header says a passphrase
+//! keys it is left for `passphrase_volume`; the TPM is not asked.
 
 use super::error::VolumeError;
+use super::key_header::Keyed;
+use super::key_header_io::read_key_header;
+use super::mount_or_format::mount_or_format;
+use super::opened::install;
 use super::plan_read::read_plan;
-use super::ring_blank::ring_blank;
-use super::say::say;
-use super::state::{VolumeState, VOLUME};
-use crate::fs::blockfs::{self, BlockFsError};
+use super::state::VOLUME;
 use crate::security::tpm::machine_key::derive_for_kernel;
-use alloc::format;
 
 /// The kernel label the volume key is derived under.
 const KEY_LABEL: &[u8] = b"blockfs.data.v1";
@@ -44,29 +43,15 @@ pub fn open_machine_volume() -> Result<(), VolumeError> {
     let plan = read_plan()?;
     crate::fs::cryptoblock::set_window(plan.volume_base, plan.volume_sectors)
         .map_err(VolumeError::Window)?;
+    if let Some(Keyed::Passphrase(_)) = read_key_header()? {
+        crate::log::warn!("[DATA] the volume is keyed by a passphrase; it waits for one");
+        return Err(VolumeError::NeedsPassphrase);
+    }
     let key = derive_for_kernel(KEY_LABEL).map_err(|e| {
         crate::log::warn!("[DATA] no machine key ({:?}); the data volume stays closed", e);
         VolumeError::MachineKey(e)
     })?;
-    let mount = match blockfs::mount(&key) {
-        Ok(m) => m,
-        Err(BlockFsError::NotFormatted) if ring_blank(plan.volume_base)? => {
-            let mut uuid = [0u8; 16];
-            crate::crypto::rng::fill_random_bytes(&mut uuid);
-            let m = blockfs::format(&key, uuid).map_err(VolumeError::BlockFs)?;
-            say(&format!("[DATA] formatted a volume of {} sectors", plan.volume_sectors));
-            m
-        }
-        Err(BlockFsError::NotFormatted) => {
-            crate::log::warn!(
-                "[DATA] the volume holds data this key cannot open; not formatting over it"
-            );
-            return Err(VolumeError::Unopenable);
-        }
-        Err(e) => return Err(VolumeError::BlockFs(e)),
-    };
-    let (n, at) = (plan.volume_sectors, plan.volume_base);
-    say(&format!("[DATA] volume open: {n} sectors at LBA {at}"));
-    *VOLUME.write() = Some(VolumeState { key, mount });
+    let mount = mount_or_format(&key, &plan, &Keyed::Tpm)?;
+    install(&plan, key, mount);
     Ok(())
 }

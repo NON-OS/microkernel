@@ -16,16 +16,19 @@
 
 //! The data volume, reached by name: a verified import, a size, and a read
 //! of any range. The volume is the machine's; a capsule reaches it only
-//! with FileSystem, and brings a file in only with StoreWrite as well.
+//! with FileSystem, and brings a file in, or keys the volume with a
+//! passphrase, only with StoreWrite as well.
 
 mod errno;
 mod import;
 mod name;
+mod passphrase;
 mod read;
 mod read_bounce;
 mod read_peer;
 mod stat;
 
 pub use import::sys_data_import;
+pub use passphrase::sys_data_passphrase;
 pub use read::sys_data_read;
 pub use stat::sys_data_stat;

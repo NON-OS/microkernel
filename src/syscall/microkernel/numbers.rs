@@ -51,18 +51,18 @@ pub const SYS_PROC_STAT: u64 = tag4(b"MPST");
 pub const SYS_PROC_OUTPUT: u64 = tag4(b"MOUT");
 pub const SYS_PROC_INPUT: u64 = tag4(b"MPIN");
 pub const SYS_STDIN_READ: u64 = tag4(b"MSRD");
-/// Program stdout: the caller's own `proc.<pid>` inbox, never serial. Gated on IPC,
-/// so a capsule without `Capability::Debug` still has a stdout.
+/// Program stdout: the caller's own `proc.<pid>` inbox, never serial; needs only IPC.
 pub const SYS_STDOUT_WRITE: u64 = tag4(b"MSOW");
 /// Output only the caller's launcher reads: never serial, whatever the caps.
 pub const SYS_PRIVATE_WRITE: u64 = tag4(b"MPVW");
 /// The package store's sectors, written and read on the disk the block layer chose.
 pub const SYS_STORE_WRITE: u64 = tag4(b"MSWR");
 pub const SYS_STORE_READ: u64 = tag4(b"MSRR");
-/// The data volume: a verified import, a file's size, a range of it.
+/// The data volume: a verified import, a file's size, a range of it, a passphrase.
 pub const SYS_DATA_IMPORT: u64 = tag4(b"MDIM");
 pub const SYS_DATA_STAT: u64 = tag4(b"MDST");
 pub const SYS_DATA_READ: u64 = tag4(b"MDRD");
+pub const SYS_DATA_PASSPHRASE: u64 = tag4(b"MDPW");
 pub const SYS_ATTEST_STATUS: u64 = tag4(b"MAST");
 /// A signed attestation document, as opposed to the unsigned status above.
 pub const SYS_ATTEST_DOC: u64 = tag4(b"MADC");

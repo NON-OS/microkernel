@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::plan_types::PlanError;
+use crate::crypto::util::argon2::Argon2Error;
 use crate::fs::blockfs::BlockFsError;
 use crate::fs::cryptoblock::CryptoBlockError;
 use crate::hardware::block_device::BlockDeviceError;
@@ -45,4 +46,18 @@ pub enum VolumeError {
     DigestMismatch,
     /// The name already holds a file verified against another digest.
     NameTaken,
+    /// The key header says a passphrase keys the volume; the TPM is not asked.
+    NeedsPassphrase,
+    /// The passphrase does not open the volume key. Nothing was written.
+    WrongPassphrase,
+    /// A passphrase was offered for a volume no passphrase keys.
+    NotPassphraseKeyed,
+    /// The key header names a way of keying this kernel does not know.
+    UnknownKeying,
+    /// A volume is open already; it is not keyed again.
+    AlreadyOpen,
+    /// A volume exists; creating one would format over it.
+    VolumeExists,
+    /// Argon2id refused its parameters or found no memory.
+    Stretch(Argon2Error),
 }

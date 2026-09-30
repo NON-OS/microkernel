@@ -21,12 +21,15 @@ import sys
 
 SECTOR = 512
 PLAN_LBA = 65_536
+# The key header, the sector after the plan: how the volume key is reached.
+KEY_LBA = PLAN_LBA + 1
 RING = 256
 
 
 def write(image, plan, entries, end, base, fresh):
     """Put `plan` at PLAN_LBA and each import at its LBA; with `fresh`, zero
-    the volume's header ring at `base`. `end` is the first sector past it all."""
+    the volume's header ring at `base` and the key header at KEY_LBA. `end`
+    is the first sector past it all."""
     with open(image, "r+b") as img:
         # A disk is sized by seeking to its end and cannot grow; an image
         # file grows sparsely to hold the plan.
@@ -41,6 +44,8 @@ def write(image, plan, entries, end, base, fresh):
         if fresh:
             img.seek(base * SECTOR)
             img.write(b"\0" * RING * SECTOR)
+            img.seek(KEY_LBA * SECTOR)
+            img.write(b"\0" * SECTOR)
         for path, lba, _ in entries:
             img.seek(lba * SECTOR)
             with open(path, "rb") as src:

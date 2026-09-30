@@ -14,20 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The kernel's disk plan parser, assembled for the host. The plan is one
-//! plain sector anyone with the disk can write, so every way it can lie is
-//! tried here against the shipping source, with the key header that sits
-//! beside it and the seal on the volume key it carries.
+//! Keeping an opened volume for the boot.
 
-#[path = "../../../../src/fs/blockfs_volume/key_header.rs"]
-pub mod key_header;
-#[path = "../../../../src/fs/blockfs_volume/key_seal.rs"]
-pub mod key_seal;
-#[path = "../../../../src/fs/blockfs_volume/plan.rs"]
-pub mod plan;
-#[path = "../../../../src/fs/blockfs_volume/plan_types.rs"]
-pub mod plan_types;
+use super::plan_types::Plan;
+use super::say::say;
+use super::state::{VolumeState, VOLUME};
+use crate::fs::blockfs::BlockFsMount;
+use alloc::format;
 
-mod tests;
-mod tests_key;
-mod tests_random;
+/// Keep `mount` under `key` as the open volume, and say where it lies.
+pub(super) fn install(plan: &Plan, key: [u8; 32], mount: BlockFsMount) {
+    let (n, at) = (plan.volume_sectors, plan.volume_base);
+    say(&format!("[DATA] volume open: {n} sectors at LBA {at}"));
+    *VOLUME.write() = Some(VolumeState { key, mount });
+}
