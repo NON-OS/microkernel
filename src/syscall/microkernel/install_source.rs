@@ -31,6 +31,9 @@ use super::{install_source_modules, install_source_window};
 /// Module kinds the bootloader records, shared with its `Module::kind`.
 pub const KIND_LOADER_IMAGE: u32 = 1;
 pub const KIND_KERNEL_IMAGE: u32 = 2;
+/* Not an image but a small record: the partition the loader was read
+ * from, so the installer can leave the boot stick off its list. */
+pub const KIND_BOOT_MEDIA: u32 = crate::boot::handoff::types::MODULE_KIND_BOOT_MEDIA;
 
 /// `kind`, `offset` into that image, destination and its length. Returns the
 /// bytes written, zero at the end of the image, so a caller learns the size

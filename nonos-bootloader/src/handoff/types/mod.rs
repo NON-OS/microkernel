@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod boot_media;
 mod constants;
 mod crypto;
 mod framebuffer;
@@ -23,6 +24,7 @@ mod memory;
 mod security;
 mod system;
 
+pub use boot_media::{BootMedia, BOOT_MEDIA_LEN};
 pub use constants::{flags, HANDOFF_MAGIC, HANDOFF_VERSION};
 pub use crypto::CryptoHandoff;
 pub use framebuffer::FramebufferInfo;
@@ -31,6 +33,6 @@ pub use install::InstallHandoff;
 pub use memory::MemoryMap;
 pub use security::{Measurements, RngSeed, ZkAttestation};
 pub use system::{
-    AcpiInfo, Module, Modules, SmbiosInfo, Timing, MODULE_KIND_KERNEL_IMAGE,
-    MODULE_KIND_LOADER_IMAGE,
+    AcpiInfo, Module, Modules, SmbiosInfo, Timing, MODULE_KIND_BOOT_MEDIA,
+    MODULE_KIND_KERNEL_IMAGE, MODULE_KIND_LOADER_IMAGE,
 };

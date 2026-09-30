@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The two regions the installer writes to a disk, recorded for the kernel.
+//! The two regions the installer writes to a disk, and the partition the
+//! loader came from, recorded for the kernel.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use nonos_boot::handoff::types::{
-    InstallHandoff, Module, MODULE_KIND_KERNEL_IMAGE, MODULE_KIND_LOADER_IMAGE,
+    InstallHandoff, Module, BOOT_MEDIA_LEN, MODULE_KIND_BOOT_MEDIA, MODULE_KIND_KERNEL_IMAGE,
+    MODULE_KIND_LOADER_IMAGE,
 };
-use nonos_boot::loader::file::load_file_from_esp;
+use nonos_boot::loader::file::{boot_partition, load_file_from_esp};
 use nonos_boot::menu::BootIntent;
 use uefi::prelude::*;
 
@@ -45,8 +48,22 @@ pub fn install_source(
         Err(_) => Module::default(),
     };
     InstallHandoff {
-        source: [loader, region(kernel_data, MODULE_KIND_KERNEL_IMAGE)],
+        source: [loader, region(kernel_data, MODULE_KIND_KERNEL_IMAGE), boot_media(st)],
         requested: intent == BootIntent::Install,
+    }
+}
+
+/* Leaked into loader memory like the loader file, so it outlives boot
+ * services; a zero region when the firmware named no partition. */
+fn boot_media(st: &SystemTable<Boot>) -> Module {
+    match boot_partition(st.boot_services()) {
+        Some(record) => Module {
+            base: Box::leak(Box::new(record)) as *const _ as u64,
+            size: BOOT_MEDIA_LEN as u64,
+            kind: MODULE_KIND_BOOT_MEDIA,
+            reserved: 0,
+        },
+        None => Module::default(),
     }
 }
 

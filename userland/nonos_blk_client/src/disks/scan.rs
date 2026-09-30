@@ -22,6 +22,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use super::booted::Booted;
 use super::contents::Contents;
 use crate::device::{discover, BlockDevice, Identity};
 use crate::driver::Driver;
@@ -35,11 +36,15 @@ pub struct Disk {
     pub fault: Option<String>,
 }
 
+/* The disk the machine booted from is left off: erasing it is never what
+ * a person choosing a disk to install onto means. */
 pub fn scan() -> Vec<Disk> {
+    let booted = Booted::ask();
     let mut out = Vec::new();
     for found in discover() {
         let driver = found.driver;
         match found.device {
+            Ok(device) if booted.is(&device) => {}
             Ok(device) => out.push(Disk {
                 driver,
                 device: Some(device),

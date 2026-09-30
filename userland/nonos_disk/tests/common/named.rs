@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The disks a person can choose from, as both the window and the command
-//! line show them: one description per device, what it holds now, what it
-//! calls itself, and the word that confirms it.
+/*
+ * Whether a disk is the boot media by the loader's record alone, with no
+ * loader bytes to fall back on.
+ */
 
-mod booted;
-mod contents;
-mod describe;
-mod scan;
+use nonos_disk::{is_boot_media, BootEvidence, BootPartition};
 
-pub use contents::Contents;
-pub use scan::{scan, Disk};
+use crate::mem_disk::MemDisk;
+
+pub fn named(disk: &mut MemDisk, partition: BootPartition) -> bool {
+    let ev = BootEvidence { partition: Some(partition), loader_size: 0, loader_head: &[] };
+    is_boot_media(disk, &ev)
+}

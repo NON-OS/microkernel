@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The module array the handoff points at: the loader image and the kernel
-//! image file, for the installer. Written into the loader-data page
+//! The module array the handoff points at: the loader image, the kernel
+//! image file and the boot partition's record, for the installer. Written into the loader-data page
 //! allocated for it, so it outlives boot services like the handoff itself.
 
 use super::params::HandoffInitParams;

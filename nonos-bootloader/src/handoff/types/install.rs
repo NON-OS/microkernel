@@ -20,13 +20,14 @@ use super::system::Module;
 /*
  * What the loader leaves for an install: the loader image and the kernel
  * image file it verified (the two regions an installer writes to a disk),
- * and whether the person chose "Install NONOS" in the boot menu. The
+ * the partition the loader was read from (so the installer can leave that
+ * disk out), and whether the person chose "Install NONOS" in the boot menu. The
  * regions reach the kernel as the handoff's module table, the request as
  * `flags::INSTALL_REQUESTED` in the handoff's flags.
  */
 #[derive(Copy, Clone, Default)]
 pub struct InstallHandoff {
-    pub source: [Module; 2],
+    pub source: [Module; 3],
     pub requested: bool,
 }
 

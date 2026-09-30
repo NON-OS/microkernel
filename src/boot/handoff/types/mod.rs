@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod boot_media;
 pub mod constants;
 pub mod firmware;
 pub mod framebuffer;
@@ -22,6 +23,7 @@ pub mod info;
 pub mod memory;
 pub mod security;
 
+pub use boot_media::{BootMedia, BOOT_MEDIA_LEN, MODULE_KIND_BOOT_MEDIA};
 pub use constants::{flags, pixel_format, HANDOFF_MAGIC, HANDOFF_VERSION};
 pub use constants::{truncate_cmdline, validate_cmdline_len};
 pub use firmware::{FirmwareEntry, FirmwareHandoff, FirmwareType, MAX_FIRMWARE_ENTRIES};

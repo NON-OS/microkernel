@@ -38,6 +38,7 @@
 
 extern crate alloc;
 
+mod boot_media;
 mod carry;
 mod crc32;
 mod describe;
@@ -52,6 +53,10 @@ mod sink;
 mod store;
 mod writer;
 
+pub use boot_media::{
+    is_boot_media, BootEvidence, BootPartition, BOOT_MEDIA_LEN, SIGNATURE_GUID, SIGNATURE_MBR,
+    TABLE_GPT, TABLE_MBR,
+};
 pub use carry::{gather, Carried, CarrySource};
 pub use describe::{describe, size_text, Row};
 pub use fat32::{Geometry, Node, PlanError, WriteVolumeError};
