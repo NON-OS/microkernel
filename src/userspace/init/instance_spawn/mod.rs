@@ -31,6 +31,7 @@
 //! shell stable.
 
 mod boot_frame;
+mod named;
 mod priority;
 mod queue;
 mod request;

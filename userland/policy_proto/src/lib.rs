@@ -16,6 +16,7 @@
 
 #![no_std]
 
+pub mod apps;
 pub mod category;
 pub mod cursor_size_labels;
 pub mod enum_label;

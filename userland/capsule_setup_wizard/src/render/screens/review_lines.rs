@@ -16,7 +16,7 @@
 
 /*
  * The lines under the review table: what the mode keeps, what may run,
- * the Wi-Fi network, and whether the name and Qwen model are kept. With no
+ * the Wi-Fi network, and whether the name, Qwen model and apps are kept. With no
  * store this boot the answers still reach the vfs, and the installer
  * carries them from there to the disk it writes.
  */
@@ -56,13 +56,13 @@ pub fn local_line(ctx: &Context) -> &'static [u8] {
 }
 
 /*
- * keep::save keeps these two with the keyboard, time zone and wallpaper, so
+ * keep::save keeps these three with the keyboard, time zone and wallpaper, so
  * they are kept exactly when the mode line says the answers are.
  */
 pub fn name_line(ctx: &Context) -> &'static [u8] {
     match (mode::keeps(ctx), crate::keep::store_ready()) {
-        (false, _) => b"Name and Qwen model: amnesic, for this boot only.",
-        (true, true) => b"Name and Qwen model: kept with the other answers.",
-        (true, false) => b"Name and Qwen model: kept on the disk the installer writes.",
+        (false, _) => b"Name, Qwen model and apps: amnesic, for this boot only.",
+        (true, true) => b"Name, Qwen model and apps: kept with the other answers.",
+        (true, false) => b"Name, Qwen model and apps: kept on the disk the installer writes.",
     }
 }

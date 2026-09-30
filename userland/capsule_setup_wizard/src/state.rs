@@ -27,6 +27,10 @@ pub struct Context {
     pub net: crate::network::NetState,
     /* This machine's memory and the Qwen tier chosen by fit to it. */
     pub qwen: crate::qwen::QwenState,
+    /* The app switches this image carries, those turned off, and the row. */
+    pub apps_present: u8,
+    pub apps_off: u8,
+    pub apps_sel: u8,
 }
 
 impl Context {
@@ -60,6 +64,9 @@ impl Context {
             local_pending: false,
             net: crate::network::NetState::new(),
             qwen: crate::qwen::QwenState::read(),
+            apps_present: crate::apps::present(),
+            apps_off: 0,
+            apps_sel: 0,
         }
     }
 }

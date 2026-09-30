@@ -31,9 +31,11 @@ pub(super) fn poll() -> bool {
     if super::after_install::handed_over() {
         return super::after_install::poll();
     }
-    let Some(end) = ended() else {
+    let Some((end, apps_off)) = ended() else {
         return false;
     };
+    /* Before any app spawns, so none the person turned off ever does. */
+    super::super::app_choice::choose(apps_off);
     if crate::boot::handoff::install_requested() {
         return after_install_boot(end);
     }

@@ -18,7 +18,7 @@
 
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
-use nonos_policy_proto::setup_record::{Answers, Name, Tier, DONE, DONE_PATH, SETUP_DIR};
+use nonos_policy_proto::setup_record::{Answers, Name, Record, Tier, DONE, DONE_PATH, SETUP_DIR};
 
 use super::put::{put, put_answers};
 
@@ -40,7 +40,8 @@ pub fn save(ctx: &Context) {
     let pid = mk_getpid();
     let _ = vfs::mkdir(pid, b"/nonos");
     let _ = vfs::mkdir(pid, SETUP_DIR);
-    match put_answers(pid, &answers).and_then(|()| put(pid, DONE_PATH, &DONE)) {
+    let record = Record { answers, apps_off: ctx.apps_off };
+    match put_answers(pid, &record).and_then(|()| put(pid, DONE_PATH, &DONE)) {
         Ok(()) => say(b"[SETUP] answers kept; the next boot skips setup\n"),
         Err(why) => {
             say(b"[SETUP] answers not kept, setup runs again next boot: ");

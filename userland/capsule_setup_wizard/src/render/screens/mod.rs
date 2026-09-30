@@ -1,4 +1,5 @@
 pub mod appearance;
+mod apps;
 mod commit;
 mod dispatch;
 pub mod keyboard;

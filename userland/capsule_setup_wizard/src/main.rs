@@ -3,6 +3,7 @@
 
 extern crate alloc;
 
+mod apps;
 mod clients;
 mod consent;
 mod keep;
@@ -17,13 +18,14 @@ mod state;
 mod text;
 
 use nonos_libc::{heap_init, mk_debug, mk_exit};
+use nonos_policy_proto::apps::exit_status;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    if keep::already_done() {
+    if let Some(apps_off) = keep::already_done() {
         /*
          * An earlier boot finished setup and kept its answers. Consent is
          * restored here because this boot shows no setup to restore it in.
@@ -33,10 +35,10 @@ pub unsafe extern "C" fn _start() -> ! {
         /* On an install boot the installer carries those kept answers. */
         if setup::machine::install_boot() {
             say(b"[SETUP] kept from an earlier boot; opening the installer\n");
-            mk_exit(render::screens::mode::EXIT_INSTALLER);
+            mk_exit(exit_status(render::screens::mode::EXIT_INSTALLER, apps_off));
         }
         say(b"[SETUP] kept from an earlier boot; starting the desktop\n");
-        mk_exit(0);
+        mk_exit(exit_status(0, apps_off));
     }
     let ctx = match setup::run() {
         Ok(ctx) => ctx,

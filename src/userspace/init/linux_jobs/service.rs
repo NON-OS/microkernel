@@ -32,6 +32,10 @@ pub(crate) fn service() {
 }
 
 fn install(listing: &str, release: &str) {
+    if super::super::app_choice::linux_off() {
+        super::status::set(listing, Stage::Refused);
+        return println(b"[LINUX-INSTALL] Linux turned off at setup, refused");
+    }
     let Some(name) = listing.strip_prefix("linux.").and_then(package_arg) else { return };
     /*
      * The store showed the listing as ready, and that was its word. The

@@ -83,7 +83,7 @@ pub fn paint_bottom_taskbar(ctx: &Context) {
         } else if open {
             palette::TILE_OPEN
         } else {
-            palette::TILE_FILL
+            crate::apps_off::idle_fill(app.service)
         };
         let tile = Rect { x, y: box_top, width: taskbar_entry_w(), height: box_h };
         let edge = if active || pulsing { palette::LINE_HARD } else { palette::LINE_SOFT };

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod app_choice;
 mod capsule_boot;
 mod entry;
 mod instance_spawn;
@@ -31,3 +32,5 @@ pub(crate) use linux_jobs::service as service_installs;
 pub(crate) use instance_spawn::has_pending as instance_spawns_pending;
 pub(crate) use instance_spawn::service as service_instance_spawns;
 pub use instance_spawn::{request as request_instance, PendingApp};
+pub(crate) use app_choice::{off as apps_off, tool_off as app_tool_off};
+pub(crate) use app_choice::{window_off as app_window_off, PRESENT as APPS_PRESENT};

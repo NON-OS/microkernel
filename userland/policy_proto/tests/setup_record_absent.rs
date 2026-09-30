@@ -20,7 +20,7 @@
  */
 
 use nonos_policy_proto::setup_record::{check, Answers, Name, Refused, Tier};
-use nonos_policy_proto::setup_record::{ANSWERS_LEN, ANSWERS_V1_LEN};
+use nonos_policy_proto::setup_record::{ANSWERS_LEN, ANSWERS_V1_LEN, ANSWERS_V2_LEN};
 
 fn kept(name: &[u8], tier: &[u8]) -> Answers {
     Answers {
@@ -32,7 +32,7 @@ fn kept(name: &[u8], tier: &[u8]) -> Answers {
     }
 }
 
-fn raw() -> [u8; ANSWERS_LEN] {
+fn raw() -> [u8; ANSWERS_V2_LEN] {
     kept(b"ada", b"small").encode()
 }
 
@@ -49,8 +49,8 @@ fn magic_must_match_its_version_length() {
     raw[3] = b'1';
     assert_eq!(check(&raw), Err(Refused::Magic));
     assert_eq!(check(&b"NSA2\x02\xfb\x03"[..]), Err(Refused::Magic));
-    raw.push(0);
-    assert_eq!(check(&raw), Err(Refused::Length));
+    raw.extend([0, 0]);
+    assert_eq!(check(&raw), Err(Refused::Length), "no version is this long");
 }
 
 #[test]

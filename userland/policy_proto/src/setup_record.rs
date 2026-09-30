@@ -26,10 +26,16 @@ mod check;
 mod kept;
 mod layout;
 mod names;
+mod older;
+mod record;
+mod refused;
 mod rules;
 
 pub use answers::Answers;
-pub use check::{check, Refused};
+pub use check::{check, check_record};
 pub use kept::{Kept, Name, Tier};
-pub use layout::{is_done, ANSWERS_LEN, ANSWERS_PATH, ANSWERS_V1_LEN, DONE, DONE_PATH, SETUP_DIR};
+pub use layout::{is_done, ANSWERS_LEN, ANSWERS_PATH, ANSWERS_V1_LEN, ANSWERS_V2_LEN};
+pub use layout::{DONE, DONE_PATH, SETUP_DIR};
+pub use record::Record;
+pub use refused::Refused;
 pub use rules::{name_ok, tier_ok, NAME_MAX, TIER_MAX};

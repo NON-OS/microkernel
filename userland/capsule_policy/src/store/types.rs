@@ -52,6 +52,8 @@ pub struct Store {
     pub alert_sounds: bool,
     pub startup_chime: bool,
     pub persistent: bool,
+    /* The apps first-boot setup turned off, as nonos_policy_proto::apps. */
+    pub apps_off: u8,
     pub kernel_aslr: bool,
     pub kernel_stack_guard: bool,
     pub kernel_nx_bit: bool,

@@ -18,7 +18,7 @@
 
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::{mk_getpid, mk_yield, Deadline};
-use nonos_policy_proto::setup_record::{is_done, Answers, ANSWERS_LEN, ANSWERS_PATH};
+use nonos_policy_proto::setup_record::{is_done, Record, ANSWERS_LEN, ANSWERS_PATH};
 use nonos_policy_proto::setup_record::{DONE, DONE_PATH};
 use nonos_policy_proto::Field;
 
@@ -30,20 +30,23 @@ const STORE_WAIT_MS: u64 = 30_000;
 /// How long to wait for the policy service to take the answers back.
 const POLICY_WAIT_MS: u64 = 5_000;
 
-/// True when an earlier boot kept both the answers and the marker.
-pub fn already_done() -> bool {
+/*
+ * The apps turned off, when an earlier boot kept both the answers and the
+ * marker; every app on for a record kept before setup asked.
+ */
+pub fn already_done() -> Option<u8> {
     let until = Deadline::after_ms(STORE_WAIT_MS);
     while vfs::store_settled() != Ok(true) {
         if until.expired() {
             say(b"[SETUP] the store did not load in time; asking again\n");
-            return false;
+            return None;
         }
         let _ = mk_yield();
     }
     let pid = mk_getpid();
     let done = vfs::read_file(pid, DONE_PATH, DONE.len() as u32).is_ok_and(|raw| is_done(&raw));
     let raw = vfs::read_file(pid, ANSWERS_PATH, ANSWERS_LEN as u32);
-    done && raw.ok().and_then(|raw| Answers::decode(&raw)).is_some()
+    raw.ok().and_then(|raw| Record::decode(&raw)).filter(|_| done).map(|r| r.apps_off)
 }
 
 /// Wait until the policy service has restored the kept answers, so the

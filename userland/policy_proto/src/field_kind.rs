@@ -31,7 +31,8 @@ pub fn kind_of(field: Field) -> u8 {
         | Field::Wallpaper
         | Field::ProxyMode
         | Field::Volume
-        | Field::AudioBalance => KIND_U8,
+        | Field::AudioBalance
+        | Field::AppsOff => KIND_U8,
         Field::Timezone => KIND_I8,
         Field::Hostname | Field::DomainName | Field::Username | Field::QwenTier => KIND_STR,
         _ => KIND_BOOL,

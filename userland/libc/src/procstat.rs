@@ -25,7 +25,7 @@ use crate::syscall::{call_raw, N_MK_PROC_STAT};
 pub const PROC_NAME_LEN: usize = 24;
 
 /// The header layout this crate was built for.
-pub const PROC_STAT_VERSION: u32 = 3;
+pub const PROC_STAT_VERSION: u32 = 4;
 
 /// state: 0 new, 1 ready, 2 running, 3 sleeping, 4 stopped, 5 zombie,
 /// 6 terminated. priority: 0 idle, 1 low, 2 normal, 3 high, 4 realtime.

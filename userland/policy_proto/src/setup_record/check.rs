@@ -20,54 +20,44 @@
 
 use super::answers::Answers;
 use super::kept::Kept;
-use super::layout::{ANSWERS_LEN, ANSWERS_V1_LEN, MAGIC_V1, MAGIC_V2, NAME_AT, TIER_AT};
+use super::layout::{ANSWERS_LEN, ANSWERS_V1_LEN, ANSWERS_V2_LEN, APPS_AT, NAME_AT, TIER_AT};
+use super::layout::{MAGIC_V1, MAGIC_V2, MAGIC_V3};
+use super::record::Record;
+use super::refused::Refused;
 use super::rules::{name_ok, tier_ok};
 
-/* Why a record was refused, so a log can say which part was wrong. */
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Refused {
-    /* Neither version's length. */
-    Length,
-    /* A length that fits, without that version's magic: zeros included. */
-    Magic,
-    /* A time zone setup does not offer. */
-    Timezone,
-    /* A name setup's name step would not take, or bytes past its end. */
-    Name,
-    /* A tier that is no tier's name, or bytes past its end. */
-    Tier,
-}
-
-impl Refused {
-    pub fn name(self) -> &'static str {
-        match self {
-            Refused::Length => "length",
-            Refused::Magic => "magic",
-            Refused::Timezone => "time zone",
-            Refused::Name => "name",
-            Refused::Tier => "qwen tier",
-        }
-    }
-}
-
-/* The answers in `raw`, of either version, or why they were refused. */
+/* The answers in `raw`, of any version, or why they were refused. */
 pub fn check(raw: &[u8]) -> Result<Answers, Refused> {
-    let v2 = match raw.len() {
-        ANSWERS_V1_LEN if raw[..4] == MAGIC_V1 => false,
-        ANSWERS_LEN if raw[..4] == MAGIC_V2 => true,
-        ANSWERS_V1_LEN | ANSWERS_LEN => return Err(Refused::Magic),
-        _ => return Err(Refused::Length),
-    };
+    check_record(raw).map(|r| r.answers)
+}
+
+/* The whole record in `raw`: every app on in version 1 and 2. */
+pub fn check_record(raw: &[u8]) -> Result<Record, Refused> {
+    let version = version(raw)?;
     let timezone = raw[5] as i8;
     if !(-12..=14).contains(&timezone) {
         return Err(Refused::Timezone);
     }
-    let (username, qwen_tier) = match v2 {
-        false => (Kept::EMPTY, Kept::EMPTY),
-        true => (
+    let (username, qwen_tier) = match version {
+        1 => (Kept::EMPTY, Kept::EMPTY),
+        _ => (
             Kept::take(&raw[NAME_AT..TIER_AT], name_ok).ok_or(Refused::Name)?,
-            Kept::take(&raw[TIER_AT..], tier_ok).ok_or(Refused::Tier)?,
+            Kept::take(&raw[TIER_AT..ANSWERS_V2_LEN], tier_ok).ok_or(Refused::Tier)?,
         ),
     };
-    Ok(Answers { keyboard_layout: raw[4], timezone, wallpaper: raw[6], username, qwen_tier })
+    let answers =
+        Answers { keyboard_layout: raw[4], timezone, wallpaper: raw[6], username, qwen_tier };
+    let apps_off = if version == 3 { raw[APPS_AT] } else { 0 };
+    Ok(Record { answers, apps_off })
+}
+
+/* Each version has its own length and its own magic. */
+fn version(raw: &[u8]) -> Result<u8, Refused> {
+    match raw.len() {
+        ANSWERS_V1_LEN if raw[..4] == MAGIC_V1 => Ok(1),
+        ANSWERS_V2_LEN if raw[..4] == MAGIC_V2 => Ok(2),
+        ANSWERS_LEN if raw[..4] == MAGIC_V3 => Ok(3),
+        ANSWERS_V1_LEN | ANSWERS_V2_LEN | ANSWERS_LEN => Err(Refused::Magic),
+        _ => Err(Refused::Length),
+    }
 }

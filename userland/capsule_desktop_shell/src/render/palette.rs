@@ -40,6 +40,8 @@ pub const TILE_ACTIVE: u32 = 0x2E22_C3F0;
 pub const TILE_PULSE: u32 = 0x2EE8_B75C;
 pub const TILE_OPEN: u32 = 0x1A22_C3F0;
 pub const TILE_FILL: u32 = 0x1222_C3F0;
+/* An app turned off at first-boot setup: grey, where the others are tinted. */
+pub const TILE_OFF: u32 = 0x0A4C_5D68;
 
 pub const R_TILE: u32 = 8;
 pub const R_CARD: u32 = 12;

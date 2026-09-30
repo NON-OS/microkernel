@@ -19,7 +19,7 @@
  */
 
 use super::kept::{Name, Tier};
-use super::layout::{ANSWERS_LEN, ANSWERS_V1_LEN, MAGIC_V1, MAGIC_V2, NAME_AT, TIER_AT};
+use super::layout::{ANSWERS_V1_LEN, ANSWERS_V2_LEN, MAGIC_V2, NAME_AT, TIER_AT};
 
 /* The policy fields setup restores on a later boot. */
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -34,9 +34,12 @@ pub struct Answers {
 }
 
 impl Answers {
-    /* The current version, the one setup writes. */
-    pub fn encode(&self) -> [u8; ANSWERS_LEN] {
-        let mut out = [0u8; ANSWERS_LEN];
+    /*
+     * Version 2: the answers alone. Setup writes a `Record`, version 3, which
+     * carries the apps it turned off beside these.
+     */
+    pub fn encode(&self) -> [u8; ANSWERS_V2_LEN] {
+        let mut out = [0u8; ANSWERS_V2_LEN];
         out[..ANSWERS_V1_LEN].copy_from_slice(&self.encode_v1());
         out[..4].copy_from_slice(&MAGIC_V2);
         self.username.put(&mut out[NAME_AT..TIER_AT]);
@@ -45,23 +48,9 @@ impl Answers {
     }
 
     /*
-     * Version 1, without the name and the tier. The store replaces a record
-     * only with one of the same length, so this is what may still go where
-     * an earlier build left a version 1 record.
-     */
-    pub fn encode_v1(&self) -> [u8; ANSWERS_V1_LEN] {
-        let mut out = [0u8; ANSWERS_V1_LEN];
-        out[..4].copy_from_slice(&MAGIC_V1);
-        out[4] = self.keyboard_layout;
-        out[5] = self.timezone as u8;
-        out[6] = self.wallpaper;
-        out
-    }
-
-    /*
-     * `None` for anything but a record `encode` or `encode_v1` wrote.
-     * Zeros, which is how the store withdraws a record, have no magic and
-     * so read as absent. `check` says why a record was refused.
+     * `None` for anything but a record of a version this reads. Zeros, which
+     * is how the store withdraws a record, have no magic and so read as
+     * absent. `check` says why a record was refused.
      */
     pub fn decode(raw: &[u8]) -> Option<Answers> {
         super::check::check(raw).ok()

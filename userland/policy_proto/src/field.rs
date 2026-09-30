@@ -51,6 +51,7 @@ pub enum Field {
     AlertSounds = 0x0120,
     StartupChime = 0x0121,
     Persistent = 0x0122,
+    AppsOff = 0x0123,
     KernelAslr = 0x0201,
     KernelStackGuard = 0x0202,
     KernelNxBit = 0x0203,

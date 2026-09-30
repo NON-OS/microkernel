@@ -20,7 +20,7 @@
  */
 
 use nonos_policy_proto::setup_record::{Answers, Name, Tier};
-use nonos_policy_proto::setup_record::{ANSWERS_LEN, ANSWERS_V1_LEN};
+use nonos_policy_proto::setup_record::{ANSWERS_V1_LEN, ANSWERS_V2_LEN};
 
 fn kept(name: &[u8], tier: &[u8]) -> Answers {
     Answers {
@@ -33,10 +33,10 @@ fn kept(name: &[u8], tier: &[u8]) -> Answers {
 }
 
 #[test]
-fn the_current_version_keeps_name_and_tier() {
+fn version_2_keeps_name_and_tier() {
     let a = kept(b"ada_l-1", b"qwen3-1.7b");
     let raw = a.encode();
-    assert_eq!(raw.len(), ANSWERS_LEN);
+    assert_eq!(raw.len(), ANSWERS_V2_LEN);
     assert_eq!(&raw[..4], b"NSA2");
     assert_eq!(Answers::decode(&raw), Some(a));
     assert_eq!(Answers::decode(&raw).unwrap().username.as_bytes(), b"ada_l-1");

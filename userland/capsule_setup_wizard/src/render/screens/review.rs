@@ -42,7 +42,14 @@ pub fn draw(ctx: &Context) {
         lines::text(buf, spx, w, h, x, y, &[head], FG);
         lines::text(buf, spx, w, h, x + 110, y, &[name], FG);
     }
-    let said = [mode_line(ctx), local_line(ctx), net_line(ctx), name_line(ctx)];
+    let mut apps = [0u8; 96];
+    let said = [
+        mode_line(ctx),
+        local_line(ctx),
+        net_line(ctx),
+        name_line(ctx),
+        crate::apps::said(ctx, &mut apps),
+    ];
     lines::text(buf, spx, w, h, x, 250, &said, FG);
 }
 

@@ -16,6 +16,7 @@
 
 use nonos_libc::mk_time_millis;
 
+use crate::apps_off::toast_failed;
 use crate::render::layout::{
     bottom_dock_rect, dock_box_inset, dock_gap, dock_pad, launchpad_slot_x, taskbar_entry_w,
 };
@@ -57,9 +58,7 @@ pub fn handle(ctx: &mut Context, x: u32, y: u32) {
                     ctx.toasts.push(b"window limit reached, focusing", NotifyLevel::Warn, now);
                     mark_taskbar_launch(&mut ctx.taskbar, index, now);
                 }
-                LaunchOutcome::Failed => {
-                    ctx.toasts.push(b"could not open window", NotifyLevel::Error, now);
-                }
+                LaunchOutcome::Failed => toast_failed(ctx, app.service, now),
             }
             refresh_taskbar(ctx);
             return;

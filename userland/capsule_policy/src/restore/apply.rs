@@ -17,7 +17,7 @@
 //! Putting kept answers back into the store.
 
 use nonos_libc::mk_debug;
-use nonos_policy_proto::setup_record::Answers;
+use nonos_policy_proto::setup_record::Record;
 use nonos_policy_proto::Field;
 
 use crate::push;
@@ -27,8 +27,11 @@ use crate::store::{set_bool, set_i8, set_str, set_u8};
  * Persistent goes back on first: the answers were only kept because setup
  * chose a mode that keeps state, and vfs asks this field before every write.
  */
-pub(super) fn apply(answers: Answers) {
+pub(super) fn apply(record: Record) {
+    let answers = record.answers;
     let _ = set_bool::set(Field::Persistent, true);
+    /* Zero, every app on, in a record kept before setup asked. */
+    let _ = set_u8::set(Field::AppsOff, record.apps_off);
     let _ = set_u8::set(Field::KeyboardLayout, answers.keyboard_layout);
     let _ = set_u8::set(Field::Wallpaper, answers.wallpaper);
     /* Empty in a version 1 record, which leaves each unset as setup would. */

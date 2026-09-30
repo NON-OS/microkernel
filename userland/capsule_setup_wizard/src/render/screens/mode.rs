@@ -7,10 +7,13 @@ use crate::state::Context;
 pub const USB_LIVE: u8 = 1;
 pub const INSTALL: u8 = 2;
 
-/// What setup's exit status asks of the kernel: start the desktop, and for
-/// 3 open the installer beside it.
-const EXIT_DESKTOP: i32 = 0;
-pub const EXIT_INSTALLER: i32 = 3;
+/*
+ * What setup's exit status asks of the kernel in its low byte: start the
+ * desktop, and for 3 open the installer beside it. The apps turned off ride
+ * in the byte above (nonos_policy_proto::apps::exit_status).
+ */
+const EXIT_DESKTOP: u8 = 0;
+pub const EXIT_INSTALLER: u8 = 3;
 
 const MODES: &[&[u8]] =
     &[b"Amnesic (default)", b"USB live (unavailable)", b"Install to this computer"];
@@ -23,10 +26,10 @@ const WHY: [&[&[u8]]; 3] = [
         b"virtio disk today, and has no passphrase-keyed volume.",
     ],
     &[
-        b"Keeps your name, keyboard, time zone, wallpaper and Qwen model",
-        b"answers in the store on this boot's NONOS disk, so setup does",
-        b"not run again, then opens the installer. The installer writes",
-        b"this boot image and a new store to a disk you name. That store",
+        b"Keeps your name, keyboard, time zone, wallpaper, Qwen model and",
+        b"apps in the store on this boot's NONOS disk, so setup does not",
+        b"run again, then opens the installer. The installer writes this",
+        b"boot image and a new store to a disk you name. That store",
         b"carries those answers and signed programs, so setup does not",
         b"run there either.",
     ],
@@ -38,11 +41,8 @@ pub fn keeps(ctx: &Context) -> bool {
 }
 
 pub fn exit_code(ctx: &Context) -> i32 {
-    if ctx.mode_sel == INSTALL {
-        EXIT_INSTALLER
-    } else {
-        EXIT_DESKTOP
-    }
+    let what = if ctx.mode_sel == INSTALL { EXIT_INSTALLER } else { EXIT_DESKTOP };
+    nonos_policy_proto::apps::exit_status(what, ctx.apps_off)
 }
 
 pub fn draw(ctx: &Context) {

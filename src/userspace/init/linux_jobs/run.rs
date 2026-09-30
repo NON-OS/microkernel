@@ -22,9 +22,10 @@ use crate::userspace::capsule_linux::spawn_run;
 /// Start `package`'s program. A quiet run is said without its package: a
 /// shipped tier a terminal asked for is named nowhere on the log.
 pub(super) fn run(package: &str, quiet: bool) {
-    let said: &[u8] = match spawn_run(package) {
-        Ok(_) => b"[LINUX-RUN] started ",
-        Err(_) => b"[LINUX-RUN] refused ",
+    let said: &[u8] = match super::super::app_choice::linux_off() {
+        true => b"[LINUX-RUN] Linux turned off at setup, not started: ",
+        false if spawn_run(package).is_ok() => b"[LINUX-RUN] started ",
+        false => b"[LINUX-RUN] refused ",
     };
     print(said);
     println(if quiet { b"a Qwen window" } else { package.as_bytes() });

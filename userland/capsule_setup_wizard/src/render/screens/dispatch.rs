@@ -1,11 +1,13 @@
 use crate::server::order::{
-    APPEARANCE, KEYBOARD, LOCAL_SOFTWARE, MODE, NAME, NETWORK, PRIVACY, QWEN, REVIEW, TIME_ZONE,
+    APPEARANCE, APPS, KEYBOARD, LOCAL_SOFTWARE, MODE, NAME, NETWORK, PRIVACY, QWEN, REVIEW,
+    TIME_ZONE,
 };
 use crate::server::step::{default_key, Outcome};
 use crate::state::Context;
 
 use super::{
-    appearance, keyboard, local_software, mode, name, network, privacy, qwen, review, timezone,
+    appearance, apps, keyboard, local_software, mode, name, network, privacy, qwen, review,
+    timezone,
 };
 
 pub fn draw(ctx: &Context) {
@@ -18,6 +20,7 @@ pub fn draw(ctx: &Context) {
         PRIVACY => privacy::draw(ctx),
         APPEARANCE => appearance::draw(ctx),
         QWEN => qwen::draw(ctx),
+        APPS => apps::draw(ctx),
         LOCAL_SOFTWARE => local_software::draw(ctx),
         REVIEW => review::draw(ctx),
         _ => crate::render::frame(ctx, b"Setup", b"", b"ENTER NEXT  ESC BACK"),
@@ -34,6 +37,7 @@ pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {
         PRIVACY => privacy::on_key(ctx, code),
         APPEARANCE => appearance::on_key(ctx, code),
         QWEN => qwen::on_key(ctx, code),
+        APPS => apps::on_key(ctx, code),
         LOCAL_SOFTWARE => local_software::on_key(ctx, code),
         REVIEW => review::on_key(ctx, code),
         _ => default_key(code),

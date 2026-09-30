@@ -19,6 +19,7 @@
  *
  * Version 1 holds keyboard, time zone and wallpaper. Version 2 adds the name
  * and the Qwen tier, each as a length byte and a field padded with zeros.
+ * Version 3 adds one byte: the apps turned off, as crate::apps has them.
  */
 
 use super::rules::{NAME_MAX, TIER_MAX};
@@ -31,13 +32,16 @@ pub const DONE: [u8; 4] = *b"NSD1";
 
 pub(super) const MAGIC_V1: [u8; 4] = *b"NSA1";
 pub(super) const MAGIC_V2: [u8; 4] = *b"NSA2";
+pub(super) const MAGIC_V3: [u8; 4] = *b"NSA3";
 
 /* Magic, keyboard, time zone, wallpaper. */
 pub const ANSWERS_V1_LEN: usize = 7;
 pub(super) const NAME_AT: usize = ANSWERS_V1_LEN;
 pub(super) const TIER_AT: usize = NAME_AT + 1 + NAME_MAX;
+pub const ANSWERS_V2_LEN: usize = TIER_AT + 1 + TIER_MAX;
+pub(super) const APPS_AT: usize = ANSWERS_V2_LEN;
 /* The version setup writes now, and the most a reader need ask vfs for. */
-pub const ANSWERS_LEN: usize = TIER_AT + 1 + TIER_MAX;
+pub const ANSWERS_LEN: usize = APPS_AT + 1;
 
 /* Whether `raw` is the marker setup writes once it has kept its answers. */
 pub fn is_done(raw: &[u8]) -> bool {

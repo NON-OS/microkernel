@@ -22,7 +22,7 @@
 //! request; init performs the spawn in its own context and the window
 //! appears a tick later. See `userspace::init::instance_spawn`.
 
-use super::errnos::{ERRNO_BUSY, ERRNO_INVAL, ERRNO_NOENT};
+use super::errnos::{ERRNO_ACCES, ERRNO_BUSY, ERRNO_INVAL, ERRNO_NOENT};
 use crate::usercopy::{read_user_bytes, validate_user_read};
 
 // Handle names are short; cap the copy so a bad length can never over-read.
@@ -52,27 +52,19 @@ pub fn sys_spawn_instance(name_ptr: u64, name_len: u64) -> i64 {
     result
 }
 
-// Map a handle to an app that declares instance endpoints, and queue it.
-// An unknown handle is rejected; a full queue asks the caller to retry.
+/*
+ * Map a handle to an app that declares instance endpoints, and queue it.
+ * An unknown handle is rejected, and so is an app the person turned off at
+ * setup; a full queue asks the caller to retry.
+ */
 fn queue_by_name(name: &str) -> i64 {
-    use crate::userspace::init::{request_instance, PendingApp};
-    let app = match name {
-        "app.terminal" => PendingApp::Terminal,
-        "app.browser" => PendingApp::Browser,
-        "app.text_editor" => PendingApp::TextEditor,
-        "app.settings" => PendingApp::Settings,
-        "app.calculator" => PendingApp::Calculator,
-        "app.clock" => PendingApp::Clock,
-        "app.about" => PendingApp::About,
-        "app.snake" => PendingApp::Snake,
-        "app.nonos_wallet" => PendingApp::WalletNonos,
-        "app.file_manager" => PendingApp::FileManager,
-        "app.process_manager" => PendingApp::ProcessManager,
-        "app.audio_player" => PendingApp::AudioPlayer,
-        "app.video_player" => PendingApp::VideoPlayer,
-        "app.install" => PendingApp::Install,
-        _ => return ERRNO_NOENT,
+    use crate::userspace::init::{app_window_off, request_instance, PendingApp};
+    let Some(app) = PendingApp::named(name) else {
+        return ERRNO_NOENT;
     };
+    if app_window_off(app) {
+        return ERRNO_ACCES;
+    }
     if request_instance(app) {
         0
     } else {

@@ -23,5 +23,10 @@ pub(super) fn capsule(
     spawn_fn: fn() -> Result<(), SpawnError>,
     state_fn: fn() -> &'static CapsuleState,
 ) {
+    /* An app the person turned off at setup; nothing else is ever withheld. */
+    if super::super::app_choice::capsule_off(name) {
+        crate::sys::boot_log::ok(prefix, "turned off at setup, not spawned");
+        return;
+    }
     super::super::capsule_boot::boot(prefix, name, spawn_fn, state_fn);
 }

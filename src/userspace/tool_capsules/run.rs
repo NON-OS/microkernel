@@ -27,6 +27,10 @@ pub fn run_named(name: &[u8], argv: &[u8]) -> Option<u32> {
 /// `capsule_linux::run_qwen_for_caller` refused with. A queued window run
 /// is `Ok(0)`: init starts it later, so there is no pid to give.
 pub fn run_for_caller(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
+    /* Qwen and its fetcher need the Linux personality, which setup may turn off. */
+    if crate::userspace::init::app_tool_off(name) {
+        return Err(crate::syscall::microkernel::errnos::ERRNO_ACCES);
+    }
     if name == super::model_fetch::TOOL {
         return super::model_fetch::run_for_caller(argv);
     }

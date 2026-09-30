@@ -17,25 +17,27 @@
 /* Writing one kept file, and the answers record in whichever version fits. */
 
 use nonos_app_skeleton::clients::vfs;
-use nonos_policy_proto::setup_record::{Answers, ANSWERS_LEN, ANSWERS_PATH, ANSWERS_V1_LEN};
+use nonos_policy_proto::setup_record::{Record, ANSWERS_LEN, ANSWERS_PATH};
+use nonos_policy_proto::setup_record::{ANSWERS_V1_LEN, ANSWERS_V2_LEN};
 
 use crate::server::say::say;
 
 /*
  * The store replaces a record only with one of the same length, so where an
- * earlier build left a version 1 record the current one would be refused.
- * Version 1 is kept there instead, without the name and the Qwen model, and
- * this boot's copy, which the installer carries to a new disk, holds them.
+ * earlier build left an older record the current one would be refused. That
+ * version is kept there instead, holding what it can, and this boot's copy,
+ * which the installer carries to a new disk, holds everything.
  */
-pub(super) fn put_answers(pid: u32, answers: &Answers) -> Result<(), &'static str> {
-    let old = vfs::read_file(pid, ANSWERS_PATH, ANSWERS_LEN as u32);
-    if !old.is_ok_and(|raw| raw.len() == ANSWERS_V1_LEN) {
-        return put(pid, ANSWERS_PATH, &answers.encode());
+pub(super) fn put_answers(pid: u32, record: &Record) -> Result<(), &'static str> {
+    let old = vfs::read_file(pid, ANSWERS_PATH, ANSWERS_LEN as u32).map_or(0, |raw| raw.len());
+    match old {
+        ANSWERS_V1_LEN => put(pid, ANSWERS_PATH, &record.answers.encode_v1())?,
+        ANSWERS_V2_LEN => put(pid, ANSWERS_PATH, &record.answers.encode())?,
+        _ => return put(pid, ANSWERS_PATH, &record.encode()),
     }
-    put(pid, ANSWERS_PATH, &answers.encode_v1())?;
-    say(b"[SETUP] an older record is in the store: name and Qwen model not kept\n");
+    say(b"[SETUP] an older record is in the store: what it cannot hold is not kept\n");
     let _ = vfs::unlink(pid, ANSWERS_PATH);
-    vfs::write_file(pid, ANSWERS_PATH, &answers.encode())
+    vfs::write_file(pid, ANSWERS_PATH, &record.encode())
 }
 
 /*

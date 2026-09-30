@@ -19,12 +19,12 @@
  * and the refusal names the part that was wrong.
  */
 
-use nonos_policy_proto::setup_record::{check, Answers, Name, Refused, Tier};
+use nonos_policy_proto::setup_record::{check, Answers, Name, Refused, Tier, ANSWERS_V2_LEN};
 
 const NAME_AT: usize = 7;
 const TIER_AT: usize = NAME_AT + 1 + 32;
 
-fn raw() -> [u8; 65] {
+fn raw() -> [u8; ANSWERS_V2_LEN] {
     let a = Answers {
         keyboard_layout: 0,
         timezone: 1,

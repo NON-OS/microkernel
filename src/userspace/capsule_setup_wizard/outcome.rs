@@ -37,8 +37,12 @@ pub enum Ended {
     Unfinished,
 }
 
-/// `None` while setup runs.
-pub fn ended() -> Option<Ended> {
+/*
+ * `None` while setup runs. The status's low byte says what setup asked for,
+ * and the byte above it the apps the person turned off:
+ * none for a setup that did not finish, so every app starts.
+ */
+pub fn ended() -> Option<(Ended, u8)> {
     if super::shared_state().is_alive() {
         return None;
     }
@@ -50,10 +54,20 @@ pub fn ended() -> Option<Ended> {
         },
         None => crate::process::exit::peek_exit_status(pid),
     };
-    Some(match (pid, code) {
-        (0, _) => Ended::Unfinished,
-        (_, Some(EXIT_INSTALLER)) => Ended::Installer,
-        (_, Some(EXIT_DESKTOP)) => Ended::Desktop,
-        _ => Ended::Unfinished,
+    Some(match code.filter(|_| pid != 0).and_then(parts) {
+        Some((EXIT_INSTALLER, off)) => (Ended::Installer, off),
+        Some((EXIT_DESKTOP, off)) => (Ended::Desktop, off),
+        _ => (Ended::Unfinished, 0),
     })
+}
+
+/*
+ * The kernel's reading of nonos_policy_proto::apps::exit_parts: a status
+ * with bits above the apps byte, or a negative one, is not one setup wrote.
+ */
+fn parts(status: i32) -> Option<(i32, u8)> {
+    if !(0..1 << 16).contains(&status) {
+        return None;
+    }
+    Some((status & 0xFF, (status >> 8) as u8))
 }

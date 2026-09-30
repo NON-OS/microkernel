@@ -50,9 +50,12 @@ pub struct ProcStatHeader {
     pub largest_free_kb: u64,
     pub heap_peak_kb: u64,
     pub heap_allocs: u64,
+    /* The app switches this kernel carries, and those setup turned off. */
+    pub apps_present: u32,
+    pub apps_off: u32,
 }
 
-pub const PROC_STAT_VERSION: u32 = 3;
+pub const PROC_STAT_VERSION: u32 = 4;
 
 /*
  * The boot menu's "Install NONOS" entry started this boot. The word was
