@@ -28,6 +28,7 @@ struct Entry {
 static FOREIGN: RwLock<Vec<Entry>> = RwLock::new(Vec::new());
 
 /// Record `pid` as foreign under `supervisor`. False if already recorded.
+/// Guests are recorded through `enrol`, which also checks the supervisor.
 pub(super) fn insert(pid: u32, supervisor: u32) -> bool {
     let mut t = FOREIGN.write();
     if t.iter().any(|e| e.pid == pid) {
@@ -50,21 +51,12 @@ pub(super) fn guests_of(supervisor: u32) -> Vec<u32> {
     FOREIGN.read().iter().filter(|e| e.supervisor == supervisor).map(|e| e.pid).collect()
 }
 
-/// Drop `pid` from the table, whether it was a guest or a supervisor.
-/// Called from process teardown; a supervisor leaving takes its guests.
-pub fn clear(pid: u32) {
-    let orphans = guests_of(pid);
-    // Both directions go, not just this process's own row.
+/// Drop the row of `pid` as a guest only.
+pub(super) fn remove(pid: u32) {
+    FOREIGN.write().retain(|e| e.pid != pid);
+}
+
+/// Drop every row naming `pid`, as a guest or as a supervisor.
+pub(super) fn drop_rows(pid: u32) {
     FOREIGN.write().retain(|e| e.pid != pid && e.supervisor != pid);
-    for guest in orphans {
-        super::trap_reply::abandon(guest);
-    }
-    /*
-     * A guest that died while parked leaves its frame behind, and
-     * `take_answer` finds a frame by pid alone, so a reused pid would collect
-     * an answer meant for a process that no longer exists.
-     */
-    super::trap_reply::forget(pid);
-    super::trap_frame::drop_frame(pid);
-    super::notice::forget_supervisor(pid);
 }

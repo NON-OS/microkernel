@@ -16,14 +16,16 @@
 
 //! Hosting code the kernel does not trust and does not understand.
 
+mod clear;
+mod enrol;
 mod exec;
 mod exec_context;
 mod exec_enter;
 mod fork;
 mod frame;
-mod notice;
 mod frame_cpu;
 mod frame_snapshot;
+mod notice;
 mod peer_chunk;
 mod peer_copy;
 mod peer_guard;
@@ -49,6 +51,7 @@ mod trap_table;
 mod trap_wait;
 mod wait;
 
+pub use clear::clear;
 pub use exec::sys_foreign_exec;
 pub use fork::sys_foreign_fork;
 pub use frame::ForeignFrame;
@@ -58,7 +61,7 @@ pub use peer_map::sys_peer_map;
 pub use peer_protect::sys_peer_protect;
 pub use peer_tls::sys_peer_tls;
 pub use peer_unmap::sys_peer_unmap;
-pub use registry::{clear, is_foreign, supervisor_of};
+pub use registry::{is_foreign, supervisor_of};
 
 /// Report to its supervisor that a guest thread ended on a signal, if it is
 /// a guest at all. The supervisor's personality decides what follows.

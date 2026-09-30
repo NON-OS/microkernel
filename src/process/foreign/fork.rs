@@ -66,7 +66,11 @@ pub fn sys_foreign_fork(pid: u64, rsp: u64) -> i64 {
         if parent_tls != 0 {
             pcb.set_tls_base(parent_tls);
         }
-        *pcb.state.lock() = ProcessState::New;
+        // Not over a zombie: its supervisor may have been killed meanwhile.
+        let mut state = pcb.state.lock();
+        if !matches!(*state, ProcessState::Zombie(_) | ProcessState::Terminated(_)) {
+            *state = ProcessState::New;
+        }
     });
     child as i64
 }

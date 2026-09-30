@@ -83,7 +83,7 @@ pub fn sys_foreign_thread(pid: u64, entry: u64, rsp: u64, tls: u64, from: u64) -
             *pcb.saved_user_context.lock() = Some(regs);
         });
     }
-    if !super::registry::insert(tid, caller) {
+    if !super::enrol::enrol(tid, caller) {
         crate::process::exit::teardown(tid, ERRNO_NOMEM as i32, false);
         return ERRNO_NOMEM;
     }

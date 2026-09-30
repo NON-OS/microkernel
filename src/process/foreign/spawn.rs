@@ -49,7 +49,7 @@ pub fn sys_foreign_spawn(name_ptr: u64, name_len: u64) -> i64 {
     }
 }
 
-/// The one place a guest comes into being.
+/// The one place a guest comes into being; one it cannot record, it ends.
 pub(super) fn empty_guest(supervisor: u32, name: &[u8]) -> Result<u32, i64> {
     let tag = format!("foreign:{}", core::str::from_utf8(name).unwrap_or("guest"));
     let pid = create_process_with_parent(&tag, ProcessState::New, Priority::Normal, 0, None)
@@ -67,7 +67,8 @@ pub(super) fn empty_guest(supervisor: u32, name: &[u8]) -> Result<u32, i64> {
     crate::sys::serial::print(b" caps=");
     crate::sys::serial::print_hex(crate::process::caps::bits(pid).unwrap_or(u64::MAX));
     crate::sys::serial::println(b"");
-    if !super::registry::insert(pid, supervisor) {
+    if !super::enrol::enrol(pid, supervisor) {
+        crate::process::exit::teardown(pid, ERRNO_EXIST as i32, false);
         return Err(ERRNO_EXIST);
     }
     Ok(pid)
