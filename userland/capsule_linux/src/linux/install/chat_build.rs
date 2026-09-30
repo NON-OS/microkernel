@@ -37,12 +37,12 @@ pub fn choices(program: &'static [u8]) -> Vec<(&'static [u8], &'static [u8])> {
         return out;
     }
     if super::tcg::under_tcg() {
-        out.push((CHAT_PLAIN, &b"[LINUX] QEMU software CPU: running the plain x86-64 build\n"[..]));
+        out.push((CHAT_PLAIN, &b"qwen: QEMU software CPU, running the plain x86-64 build\n"[..]));
     }
     if super::isa::runs_v3() {
         out.push((CHAT, &b""[..]));
     } else {
-        out.push((CHAT_V2, &b"[LINUX] no AVX2 on this CPU: running the x86-64-v2 build\n"[..]));
+        out.push((CHAT_V2, &b"qwen: no AVX2 on this CPU, running the x86-64-v2 build\n"[..]));
     }
     out
 }
