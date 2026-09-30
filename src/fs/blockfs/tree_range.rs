@@ -18,7 +18,7 @@
 
 use super::file_consts::DATA_BYTES;
 use super::tree_reader::TreeReader;
-use super::tree_store::{BlockSource, TreeFault};
+use super::tree_store::{Block, BlockSource, TreeFault};
 
 /// Copy the file's bytes from `offset` into `out`, stopping at `size`.
 /// Returns how many were copied; nothing past `size` is ever read.
@@ -38,10 +38,18 @@ pub(crate) fn read_range<S: BlockSource>(
         let n = pos / DATA_BYTES as u64;
         let within = (pos % DATA_BYTES as u64) as usize;
         let lba = reader.data_lba(s, n)?;
-        let block = s.get(lba).map_err(TreeFault::Store)?;
         let take = ((DATA_BYTES - within) as u64).min(end - pos) as usize;
         let at = (pos - offset) as usize;
-        out[at..at + take].copy_from_slice(&block[within..within + take]);
+        /*
+         * A whole block (which starts at 0 within it, since `take` stops at
+         * the block's end) is opened in place; a part goes through a copy.
+         */
+        if let Ok(whole) = <&mut Block>::try_from(&mut out[at..at + take]) {
+            s.get_into(lba, whole).map_err(TreeFault::Store)?;
+        } else {
+            let block = s.get(lba).map_err(TreeFault::Store)?;
+            out[at..at + take].copy_from_slice(&block[within..within + take]);
+        }
         pos += take as u64;
     }
     Ok((end - offset) as usize)

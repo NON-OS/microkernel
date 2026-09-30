@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,27 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod epoch;
-mod error;
-mod map_block;
-mod open;
-mod pending;
-mod read;
-mod read_ahead;
-mod seal;
-mod sector_open;
-mod window;
-mod write;
-mod write_deferred;
+//! Where `crate::crypto` points for the included kernel source: the
+//! kernel's own ChaCha20-Poly1305 and constant-time helpers, so a sector
+//! opened here is opened by the code ring 0 runs, and sealed by it too.
 
-pub use constants::{PLAIN_BLOCK_BYTES, SECTOR_BYTES};
-pub use epoch::epoch;
-pub use error::CryptoBlockError;
-pub use open::{open, open_into};
-pub use read::read;
-pub use read_ahead::ReadAhead;
-pub use seal::seal;
-pub use window::{set_window, window_sectors};
-pub use write::write;
-pub use write_deferred::write_deferred;
+#[path = "../../../src/crypto/symmetric/chacha20poly1305/mod.rs"]
+pub mod chacha20poly1305;
+#[path = "../../../src/crypto/util/constant_time/mod.rs"]
+pub mod constant_time;

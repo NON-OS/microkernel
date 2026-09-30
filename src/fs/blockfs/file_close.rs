@@ -18,10 +18,10 @@
 
 use super::commit::commit;
 use super::index_block::encode;
-use super::tree_sealed::{fault, SealedStore};
 use super::tree_store::BlockStore;
 use super::tree_writer::TreeWriter;
 use super::write_node::write_node;
+use super::{error::fault, tree_sealed::SealedStore};
 use super::{BlockFsError, BlockFsMount, BlockFsNode};
 
 pub(super) fn close_file(

@@ -57,6 +57,7 @@ mod numbered_file;
 mod packed;
 mod packed_run;
 mod run;
+mod sector_open;
 mod tests;
 mod tests_cache;
 mod tests_cache_id;

@@ -17,9 +17,9 @@
 //! The index trees on the real disk: every block sealed to its own LBA.
 
 use super::alloc_block::alloc_block;
-use super::tree_store::{Block, BlockSource, BlockStore, TreeFault};
+use super::tree_store::{Block, BlockSource, BlockStore};
 use super::{BlockFsError, BlockFsMount};
-use crate::fs::cryptoblock::ReadAhead;
+use crate::fs::cryptoblock::{ReadAhead, PLAIN_BLOCK_BYTES};
 
 /// Reads only. Data blocks come a run at a time, into a run the read cache
 /// may keep for the file's next read; pointer blocks come one by one unless
@@ -39,7 +39,12 @@ pub(super) struct SealedStore<'a> {
 impl BlockSource for SealedSource<'_> {
     type Error = BlockFsError;
     fn get(&mut self, lba: u64) -> Result<Block, BlockFsError> {
-        self.ahead.read(self.key, lba).map_err(BlockFsError::CryptoBlock)
+        let mut block = [0u8; PLAIN_BLOCK_BYTES];
+        self.get_into(lba, &mut block)?;
+        Ok(block)
+    }
+    fn get_into(&mut self, lba: u64, out: &mut Block) -> Result<(), BlockFsError> {
+        self.ahead.read_into(self.key, lba, out).map_err(BlockFsError::CryptoBlock)
     }
     fn get_pointer(&mut self, lba: u64) -> Result<Block, BlockFsError> {
         if self.ahead.holds(lba) {
@@ -63,14 +68,5 @@ impl BlockStore for SealedStore<'_> {
     fn put(&mut self, lba: u64, block: &Block) -> Result<(), BlockFsError> {
         crate::fs::cryptoblock::write_deferred(self.key, lba, block)
             .map_err(BlockFsError::CryptoBlock)
-    }
-}
-
-/// A tree fault in the filesystem's terms.
-pub(super) fn fault(f: TreeFault<BlockFsError>) -> BlockFsError {
-    match f {
-        TreeFault::Store(e) => e,
-        TreeFault::TooLarge => BlockFsError::OutOfSpace,
-        TreeFault::Hole => BlockFsError::InvalidRecord,
     }
 }

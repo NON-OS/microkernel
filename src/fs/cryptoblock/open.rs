@@ -14,15 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{AAD_PREFIX, NONCE_BYTES, PLAIN_BLOCK_BYTES, SECTOR_BYTES};
+//! Opening a sealed sector: into a block returned, or into one the caller
+//! holds, such as its place in a larger read.
+
+use super::constants::{PLAIN_BLOCK_BYTES, SECTOR_BYTES};
+use super::sector_open::open_sealed;
 use super::CryptoBlockError;
-use crate::crypto::chacha20poly1305::aead_decrypt;
 
 pub fn open(
     key: &[u8; 32],
     lba: u64,
     sector: &[u8; SECTOR_BYTES],
 ) -> Result<[u8; PLAIN_BLOCK_BYTES], CryptoBlockError> {
+    let mut out = [0u8; PLAIN_BLOCK_BYTES];
+    open_into(key, lba, sector, &mut out)?;
+    Ok(out)
+}
+
+/// Open the sector sealed at `lba` into `out`. Nothing is written to `out`
+/// unless the sector's tag matches.
+pub fn open_into(
+    key: &[u8; 32],
+    lba: u64,
+    sector: &[u8; SECTOR_BYTES],
+    out: &mut [u8; PLAIN_BLOCK_BYTES],
+) -> Result<(), CryptoBlockError> {
     /*
      * One sector is the unit of work of every volume read and write, which
      * run inside system calls with interrupts masked and can span thousands
@@ -30,17 +46,9 @@ pub fn open(
      * hand, so nothing translated from user memory is held across it.
      */
     crate::smp::serve_shootdowns();
-    let mut nonce = [0u8; NONCE_BYTES];
-    nonce.copy_from_slice(&sector[..NONCE_BYTES]);
-    let mut aad = [0u8; 24];
-    aad[..16].copy_from_slice(AAD_PREFIX);
-    aad[16..].copy_from_slice(&lba.to_le_bytes());
-    let plain = aead_decrypt(key, &nonce, &aad, &sector[NONCE_BYTES..])
-        .map_err(|_| CryptoBlockError::AuthenticationFailed)?;
-    if plain.len() != PLAIN_BLOCK_BYTES {
-        return Err(CryptoBlockError::InvalidLength);
+    if open_sealed(key, lba, sector, out) {
+        Ok(())
+    } else {
+        Err(CryptoBlockError::AuthenticationFailed)
     }
-    let mut out = [0u8; PLAIN_BLOCK_BYTES];
-    out.copy_from_slice(&plain);
-    Ok(out)
 }

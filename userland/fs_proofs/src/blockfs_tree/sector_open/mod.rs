@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,27 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod epoch;
-mod error;
-mod map_block;
-mod open;
-mod pending;
-mod read;
-mod read_ahead;
-mod seal;
-mod sector_open;
-mod window;
-mod write;
-mod write_deferred;
+//! Opening a sealed sector with no heap, and a range read that opens whole
+//! blocks in place.
+//!
+//! The sector opener is the shipping kernel file, included by `#[path]`,
+//! checked against sectors sealed by the kernel's own `aead_encrypt`.
 
-pub use constants::{PLAIN_BLOCK_BYTES, SECTOR_BYTES};
-pub use epoch::epoch;
-pub use error::CryptoBlockError;
-pub use open::{open, open_into};
-pub use read::read;
-pub use read_ahead::ReadAhead;
-pub use seal::seal;
-pub use window::{set_window, window_sectors};
-pub use write::write;
-pub use write_deferred::write_deferred;
+#[path = "../../../../../src/fs/cryptoblock/constants.rs"]
+pub mod constants;
+#[path = "../../../../../src/fs/cryptoblock/sector_open.rs"]
+pub mod sector_open;
+
+mod in_place_store;
+mod seal_fixture;
+mod tests;
+mod tests_in_place;
+mod tests_refused;

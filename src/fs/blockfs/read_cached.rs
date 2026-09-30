@@ -27,7 +27,7 @@ use super::read_file::read_index;
 use super::read_file_flat::read_flat;
 use super::tree_range::read_range;
 use super::tree_reader::TreeReader;
-use super::tree_sealed::{fault, SealedSource};
+use super::{error::fault, tree_sealed::SealedSource};
 use super::{BlockFsError, BlockFsMount, BlockFsNode};
 use crate::fs::cryptoblock::ReadAhead;
 

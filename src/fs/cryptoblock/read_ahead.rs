@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 
 use super::constants::{PLAIN_BLOCK_BYTES, SECTOR_BYTES};
 use super::map_block::map_block_error;
-use super::open::open;
+use super::open::open_into;
 use super::pending::{drain, RUN_SECTORS};
 use super::window::{device_lba, window_sectors};
 use super::CryptoBlockError;
@@ -42,19 +42,20 @@ impl ReadAhead {
         lba >= self.start && lba - self.start < (self.sealed.len() / SECTOR_BYTES) as u64
     }
 
-    /// The block at `lba`, fetching it and the run after it on a miss.
-    pub fn read(
+    /// The block at `lba` opened into `out`; a miss fetches the run from it.
+    pub fn read_into(
         &mut self,
         key: &[u8; 32],
         lba: u64,
-    ) -> Result<[u8; PLAIN_BLOCK_BYTES], CryptoBlockError> {
+        out: &mut [u8; PLAIN_BLOCK_BYTES],
+    ) -> Result<(), CryptoBlockError> {
         if !self.holds(lba) {
             self.fetch(lba)?;
         }
         let at = (lba - self.start) as usize * SECTOR_BYTES;
-        let mut sector = [0u8; SECTOR_BYTES];
-        sector.copy_from_slice(&self.sealed[at..at + SECTOR_BYTES]);
-        open(key, lba, &sector)
+        let sector = <&[u8; SECTOR_BYTES]>::try_from(&self.sealed[at..at + SECTOR_BYTES])
+            .map_err(|_| CryptoBlockError::InvalidLength)?;
+        open_into(key, lba, sector, out)
     }
 
     fn fetch(&mut self, lba: u64) -> Result<(), CryptoBlockError> {
@@ -64,8 +65,7 @@ impl ReadAhead {
         let count = left.min(RUN_SECTORS as u64) as usize;
         self.sealed.clear();
         self.sealed.resize(count * SECTOR_BYTES, 0);
-        let got = crate::hardware::block_device::read(at, &mut self.sealed);
-        if let Err(e) = got {
+        if let Err(e) = crate::hardware::block_device::read(at, &mut self.sealed) {
             self.sealed.clear();
             return Err(map_block_error(e));
         }

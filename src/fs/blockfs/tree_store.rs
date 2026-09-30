@@ -26,6 +26,12 @@ pub(crate) type Block = [u8; PLAIN_BLOCK_BYTES];
 pub(crate) trait BlockSource {
     type Error;
     fn get(&mut self, lba: u64) -> Result<Block, Self::Error>;
+    /// The block at `lba` into `out`. A source that opens blocks in place
+    /// overrides it, so a whole block of a range lands where it is wanted.
+    fn get_into(&mut self, lba: u64, out: &mut Block) -> Result<(), Self::Error> {
+        *out = self.get(lba)?;
+        Ok(())
+    }
     /// A pointer block. The sealed disk reads one on its own, so that the
     /// run of data blocks it fetched ahead is not thrown away for it.
     fn get_pointer(&mut self, lba: u64) -> Result<Block, Self::Error> {

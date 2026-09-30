@@ -16,9 +16,9 @@
 
 use super::file_close::close_file;
 use super::file_consts::{DATA_BYTES, MAX_FILE_BYTES};
-use super::tree_sealed::{fault, SealedStore};
 use super::tree_store::BlockStore;
 use super::tree_writer::TreeWriter;
+use super::{error::fault, tree_sealed::SealedStore};
 use super::{BlockFsError, BlockFsMount, BlockFsNode};
 use crate::fs::cryptoblock::PLAIN_BLOCK_BYTES;
 

@@ -154,9 +154,9 @@ mod search_wire_tests;
 #[cfg(test)]
 mod sidecar_tests;
 #[cfg(test)]
-mod store_tests;
-#[cfg(test)]
 mod store_owner_tests;
+#[cfg(test)]
+mod store_tests;
 #[cfg(test)]
 mod tags_blob_tests;
 #[cfg(test)]
@@ -169,8 +169,8 @@ mod vfs_path_tests;
 // The kernel directory-record layout: entry offsets, name matching, chaining.
 pub mod blockfs_dir;
 
-// The kernel's file index trees, with `crate::fs::cryptoblock` pointed at the
-// real sector constants the included source names.
+pub mod crypto;
+// The kernel's file index trees, `crate::fs::cryptoblock` its real sector constants.
 #[cfg(test)]
 mod blockfs_tree;
 // The kernel's disk plan parser.

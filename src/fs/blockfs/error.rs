@@ -17,6 +17,8 @@
 use crate::fs::cryptoblock::CryptoBlockError;
 use crate::hardware::block_device::BlockDeviceError;
 
+use super::tree_store::TreeFault;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BlockFsError {
     BlockDevice(BlockDeviceError),
@@ -29,4 +31,13 @@ pub enum BlockFsError {
     OutOfSpace,
     NotFound,
     NotFormatted,
+}
+
+/// A tree fault in the filesystem's terms.
+pub(super) fn fault(f: TreeFault<BlockFsError>) -> BlockFsError {
+    match f {
+        TreeFault::Store(e) => e,
+        TreeFault::TooLarge => BlockFsError::OutOfSpace,
+        TreeFault::Hole => BlockFsError::InvalidRecord,
+    }
 }
