@@ -22,7 +22,12 @@ use super::select::selected;
 use super::BlockDeviceError;
 
 pub fn capacity() -> Result<u64, BlockDeviceError> {
-    match selected() {
+    capacity_on(selected()?)
+}
+
+/// The size of one named backend's disk, for the probe that picks the backend.
+pub(super) fn capacity_on(backend: Backend) -> Result<u64, BlockDeviceError> {
+    match backend {
         Backend::VirtioBlk => {
             crate::hardware::virtio_blk_capsule::capacity().map_err(map_virtio_error)
         }

@@ -14,38 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Which disk the block layer reads and writes: the one NONOS lives on.
+//!
+//! A machine may carry the firmware's boot disk on AHCI next to the data disk
+//! on NVMe, or an installer's blank target next to the disk it boots from. A
+//! disk that merely answers is not the one to write, so each backend is asked
+//! in turn whether its disk carries the store header or the disk plan, and the
+//! first that does is kept for the boot. Nothing is kept before that: a driver
+//! still starting, or a caller without the rights to ask, is asked again.
+
+use core::sync::atomic::{AtomicBool, Ordering};
+
 use spin::Once;
 
 use super::backend::Backend;
+use super::identify::{identify, Found};
+use super::BlockDeviceError;
 
 static SELECTED: Once<Backend> = Once::new();
+static TOLD_NONE: AtomicBool = AtomicBool::new(false);
 
-pub fn selected() -> Backend {
-    *SELECTED.call_once(|| {
-        if matches!(crate::hardware::nvme_capsule::capacity(), Ok(s) if s > 0) && nvme_sectors_fit()
-        {
-            return Backend::Nvme;
+/// Asked in this order, so a machine with an NVMe data disk and a SATA boot
+/// disk settles on the NVMe one without reading the other.
+const ORDER: [Backend; 3] = [Backend::Nvme, Backend::Ahci, Backend::VirtioBlk];
+
+pub fn selected() -> Result<Backend, BlockDeviceError> {
+    if let Some(&backend) = SELECTED.get() {
+        return Ok(backend);
+    }
+    for backend in ORDER {
+        match identify(backend) {
+            Found::Layout => return Ok(*SELECTED.call_once(|| announce(backend))),
+            Found::Absent => {}
+            /*
+             * A backend that could not be asked is not passed over: the disk
+             * behind it may be the right one, and settling on a later disk
+             * now would split reads and writes across two disks.
+             */
+            Found::Refused(e) => return Err(e),
         }
-        if matches!(crate::hardware::ahci_capsule::capacity(), Ok(s) if s > 0) {
-            return Backend::Ahci;
-        }
-        Backend::VirtioBlk
-    })
+    }
+    if !TOLD_NONE.swap(true, Ordering::Relaxed) {
+        crate::log::warn!(
+            "[BLOCK] no disk carries the NONOS store or disk plan; block I/O refused"
+        );
+    }
+    Err(BlockDeviceError::Dead)
 }
 
-/// Every caller addresses 512-byte sectors. A namespace formatted with
-/// larger blocks would read eight times the bytes asked for at eight times
-/// the offset, so it is passed over by name rather than misaddressed.
-fn nvme_sectors_fit() -> bool {
-    match crate::hardware::nvme_capsule::identify_namespace() {
-        Ok(ns) if ns.lba_size != 512 => {
-            crate::log::warn!(
-                "[BLOCK] NVMe namespace {} uses {}-byte blocks; only 512 is addressed, not used",
-                ns.nsid,
-                ns.lba_size
-            );
-            false
-        }
-        _ => true,
-    }
+fn announce(backend: Backend) -> Backend {
+    let line = match backend {
+        Backend::Nvme => "[BLOCK] NONOS disk on NVMe (driver.nvme0)",
+        Backend::Ahci => "[BLOCK] NONOS disk on SATA (driver.ahci0)",
+        Backend::VirtioBlk => "[BLOCK] NONOS disk on virtio-blk (driver.virtio_blk0)",
+    };
+    crate::sys::serial::println(line.as_bytes());
+    crate::log::info!("{}", line);
+    backend
 }

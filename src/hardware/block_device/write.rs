@@ -22,7 +22,7 @@ use super::select::selected;
 use super::BlockDeviceError;
 
 pub fn write(lba: u64, data: &[u8]) -> Result<(), BlockDeviceError> {
-    match selected() {
+    match selected()? {
         Backend::VirtioBlk => {
             crate::hardware::virtio_blk_capsule::write_blocks(lba, data).map_err(map_virtio_error)
         }

@@ -22,7 +22,7 @@ use super::select::selected;
 use super::BlockDeviceError;
 
 pub fn flush() -> Result<(), BlockDeviceError> {
-    match selected() {
+    match selected()? {
         Backend::VirtioBlk => {
             crate::hardware::virtio_blk_capsule::flush().map_err(map_virtio_error)
         }

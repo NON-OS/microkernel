@@ -22,7 +22,12 @@ use super::select::selected;
 use super::BlockDeviceError;
 
 pub fn read(lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
-    match selected() {
+    read_on(selected()?, lba, out)
+}
+
+/// A read from one named backend, for the probe that picks the backend.
+pub(super) fn read_on(backend: Backend, lba: u64, out: &mut [u8]) -> Result<(), BlockDeviceError> {
+    match backend {
         Backend::VirtioBlk => {
             crate::hardware::virtio_blk_capsule::read_blocks(lba, out).map_err(map_virtio_error)
         }

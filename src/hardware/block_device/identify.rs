@@ -1,0 +1,75 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Whether one backend's disk is the NONOS disk.
+
+use super::backend::Backend;
+use super::capacity::capacity_on;
+use super::nvme_fit::nvme_sectors_fit;
+use super::read::read_on;
+use super::BlockDeviceError;
+use crate::fs::blockfs_volume::PLAN_LBA;
+
+/// The package store's first sector and header magic, as vfs writes them.
+const STORE_LBA: u64 = 256;
+const STORE_MAGIC: &[u8; 8] = b"NONOSTR1";
+/// The disk plan's magic, as `blockfs_volume` reads it at `PLAN_LBA`.
+const PLAN_MAGIC: &[u8; 8] = b"NONOSDP1";
+
+pub(super) enum Found {
+    /// The disk carries the store header or the disk plan.
+    Layout,
+    /// No driver, no disk, or a disk without either structure.
+    Absent,
+    /// The backend could not be asked now; the answer may differ later.
+    Refused(BlockDeviceError),
+}
+
+pub(super) fn identify(backend: Backend) -> Found {
+    let sectors = match capacity_on(backend) {
+        Ok(s) => s,
+        Err(e) => return classify(e),
+    };
+    if sectors <= STORE_LBA || (backend == Backend::Nvme && !nvme_sectors_fit()) {
+        return Found::Absent;
+    }
+    match has_magic(backend, STORE_LBA, STORE_MAGIC) {
+        Found::Absent if sectors > PLAN_LBA => has_magic(backend, PLAN_LBA, PLAN_MAGIC),
+        other => other,
+    }
+}
+
+fn has_magic(backend: Backend, lba: u64, magic: &[u8; 8]) -> Found {
+    let mut sector = [0u8; 512];
+    match read_on(backend, lba, &mut sector) {
+        Ok(()) if &sector[..8] == magic => Found::Layout,
+        Ok(()) => Found::Absent,
+        Err(e) => classify(e),
+    }
+}
+
+/// A stopped driver or a disk that cannot serve the sector is not this disk;
+/// a refused caller or a lost reply says nothing about the disk.
+fn classify(e: BlockDeviceError) -> Found {
+    match e {
+        BlockDeviceError::Stale
+        | BlockDeviceError::AccessDenied
+        | BlockDeviceError::NoCallerPid
+        | BlockDeviceError::TransportFailure
+        | BlockDeviceError::ProtocolMismatch => Found::Refused(e),
+        _ => Found::Absent,
+    }
+}
