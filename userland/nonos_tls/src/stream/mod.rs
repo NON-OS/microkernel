@@ -32,5 +32,5 @@ mod span;
 mod span_scan;
 mod types;
 
-pub use connect::connect_unauthenticated;
+pub use connect::{connect, connect_unauthenticated};
 pub use types::Stream;
