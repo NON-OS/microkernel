@@ -17,6 +17,7 @@
 //! Talking to the market capsule.
 
 mod detail;
+mod failure;
 mod list;
 mod ready;
 mod release;

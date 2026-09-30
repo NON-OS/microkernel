@@ -16,6 +16,7 @@
 //! The catalogue, as a column of cards.
 
 use nonos_app_skeleton::PaintBuffer;
+use nonos_toolkit::font::ttf::line_height;
 
 use crate::store::state::State;
 use crate::store::theme::MUTED;
@@ -27,7 +28,10 @@ use super::text;
 pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, rows: usize) {
     let visible = state.visible();
     if visible.is_empty() {
-        text::line(fb, x, y as i32 + 10, empty_because(state), MUTED, BODY_PX);
+        let step = line_height(BODY_PX).max(1);
+        for (i, said) in empty_because(state).split(|&b| b == b'\n').enumerate() {
+            text::line(fb, x, y as i32 + 10 + i as i32 * step, said, MUTED, BODY_PX);
+        }
         return;
     }
     for slot in 0..rows {
@@ -38,9 +42,9 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32, rows: 
     }
 }
 
-/// Why there is nothing to show.
-fn empty_because(state: &State) -> &'static [u8] {
-    match (state.trouble, state.listings.is_empty()) {
+/// Why there is nothing to show, one line per `\n`.
+fn empty_because(state: &State) -> &[u8] {
+    match (state.trouble.as_deref(), state.listings.is_empty()) {
         (Some(why), _) => why,
         (None, true) => b"the catalogue is empty",
         (None, false) if !state.search.text().is_empty() => b"nothing matches that",

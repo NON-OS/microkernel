@@ -20,21 +20,26 @@ use alloc::vec::Vec;
 
 use crate::store::listing::Listing;
 
-use super::wire::call;
+use super::failure::Failure;
+use super::wire::exchange;
 
 const OP_LIST_APPS: u16 = 2;
 
-pub fn fetch(port: u32, request_id: u32) -> Option<Vec<Listing>> {
-    let body = call(port, OP_LIST_APPS, request_id, &[])?;
+/// Every listing, or why there are none to show.
+pub fn fetch(port: u32, request_id: u32) -> Result<Vec<Listing>, Failure> {
+    parse(&exchange(port, OP_LIST_APPS, request_id, &[])?).ok_or(Failure::Malformed)
+}
+
+fn parse(body: &[u8]) -> Option<Vec<Listing>> {
     let count = u32::from_le_bytes(body.get(..4)?.try_into().ok()?) as usize;
     let mut at = 4;
     let mut out = Vec::with_capacity(count.min(1024));
     for _ in 0..count {
-        let (id, next) = lp(&body, at)?;
+        let (id, next) = lp(body, at)?;
         at = next;
         let measurement: [u8; 32] = body.get(at..at + 32)?.try_into().ok()?;
         at += 32;
-        let (name, next) = lp(&body, at)?;
+        let (name, next) = lp(body, at)?;
         at = next;
         let ready = *body.get(at)? != 0;
         at += 1;

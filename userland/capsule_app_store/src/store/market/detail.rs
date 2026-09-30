@@ -18,7 +18,7 @@
 
 use alloc::vec::Vec;
 
-use super::wire::call;
+use super::wire::exchange;
 
 const OP_GET_APP: u16 = 3;
 
@@ -31,7 +31,7 @@ pub fn fetch(port: u32, request_id: u32, listing: &[u8]) -> Option<Detail> {
     let mut body = Vec::with_capacity(4 + listing.len());
     body.extend_from_slice(&(listing.len() as u32).to_le_bytes());
     body.extend_from_slice(listing);
-    let out = call(port, OP_GET_APP, request_id, &body)?;
+    let out = exchange(port, OP_GET_APP, request_id, &body).ok()?;
 
     // listing_id, capsule_id, name, publisher, pubkey, description, count
     let (_, at) = lp(&out, 0)?;

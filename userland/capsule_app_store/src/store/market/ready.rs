@@ -16,7 +16,7 @@
 
 //! Why a listing cannot be installed.
 
-use super::wire::call;
+use super::wire::exchange;
 
 const OP_INSTALL_READY: u16 = 5;
 
@@ -42,7 +42,7 @@ pub fn fetch(port: u32, request_id: u32, listing: &[u8], release: &[u8]) -> Opti
     body.extend_from_slice(listing);
     body.extend_from_slice(&(release.len() as u32).to_le_bytes());
     body.extend_from_slice(release);
-    let out = call(port, OP_INSTALL_READY, request_id, &body)?;
+    let out = exchange(port, OP_INSTALL_READY, request_id, &body).ok()?;
     // Seven bytes: the verdict then one per gate.
     if out.len() < 1 + GATES.len() {
         return None;

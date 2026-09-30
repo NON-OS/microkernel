@@ -21,6 +21,8 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_ipc_call_timeout;
 
+use super::failure::Failure;
+
 const MAGIC: u32 = 0x4E4D_4B54;
 const VERSION: u16 = 1;
 pub const HDR_LEN: usize = 20;
@@ -34,9 +36,10 @@ const RX_CAP: usize = 96 << 10;
 /// service that has stopped answering does not freeze a repaint.
 const TIMEOUT_MS: u64 = 1500;
 
-pub fn call(port: u32, op: u16, request_id: u32, body: &[u8]) -> Option<Vec<u8>> {
+/// The reply's body after its status word, or why there is none.
+pub fn exchange(port: u32, op: u16, request_id: u32, body: &[u8]) -> Result<Vec<u8>, Failure> {
     if port == 0 {
-        return None;
+        return Err(Failure::NoReply);
     }
     let mut tx = Vec::with_capacity(HDR_LEN + body.len());
     tx.extend_from_slice(&MAGIC.to_le_bytes());
@@ -51,17 +54,16 @@ pub fn call(port: u32, op: u16, request_id: u32, body: &[u8]) -> Option<Vec<u8>>
     let mut rx = vec![0u8; RX_CAP];
     let rc =
         mk_ipc_call_timeout(port as u64, tx.as_ptr(), tx.len(), rx.as_mut_ptr(), rx.len(), TIMEOUT_MS);
-    let got = usize::try_from(rc).ok()?;
-    if got < HDR_LEN + STATUS_LEN {
-        return None;
-    }
-    let status = i32::from_le_bytes(rx.get(HDR_LEN..HDR_LEN + STATUS_LEN)?.try_into().ok()?);
-    if status != 0 {
-        return None;
+    let got = usize::try_from(rc).map_err(|_| Failure::NoReply)?;
+    let word = rx.get(HDR_LEN..HDR_LEN + STATUS_LEN).filter(|_| got >= HDR_LEN + STATUS_LEN);
+    match word.and_then(|w| w.try_into().ok()).map(i32::from_le_bytes) {
+        Some(0) => {}
+        Some(status) => return Err(Failure::Status(status)),
+        None => return Err(Failure::NoReply),
     }
     /*
      * The status word is part of the body on this protocol, and every reader
      * here wants what follows it.
      */
-    Some(rx.get(HDR_LEN + STATUS_LEN..got)?.to_vec())
+    Ok(rx.get(HDR_LEN + STATUS_LEN..got).ok_or(Failure::NoReply)?.to_vec())
 }

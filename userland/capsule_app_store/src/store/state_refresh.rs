@@ -25,11 +25,11 @@ impl State {
         let port = market::port();
         if port == 0 {
             self.listings.clear();
-            self.trouble = Some(b"market service has not announced itself");
+            self.trouble = Some(b"market service has not announced itself".to_vec());
             return;
         }
         match market::list_apps(port, market::next_id()) {
-            Some(found) => {
+            Ok(found) => {
                 self.listings = found;
                 self.trouble = None;
                 // One installed earlier in this session reads as installed.
@@ -37,11 +37,12 @@ impl State {
             }
             /*
              * The call failed, which is not the same as the catalogue being
-             * empty and must not be reported as it.
+             * empty and must not be reported as it; what the market answered,
+             * if it answered, says which failure it was.
              */
-            None => {
+            Err(why) => {
                 self.listings.clear();
-                self.trouble = Some(b"market did not answer");
+                self.trouble = Some(why.catalogue_trouble());
             }
         }
         self.cursor = 0;

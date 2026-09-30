@@ -19,7 +19,7 @@
 
 use alloc::vec::Vec;
 
-use super::wire::call;
+use super::wire::exchange;
 
 const OP_GET_RELEASE: u16 = 4;
 
@@ -35,7 +35,7 @@ pub fn fetch(port: u32, request_id: u32, listing: &[u8]) -> Option<Release> {
     body.extend_from_slice(&(listing.len() as u32).to_le_bytes());
     body.extend_from_slice(listing);
     body.extend_from_slice(&0u32.to_le_bytes());
-    let out = call(port, OP_GET_RELEASE, request_id, &body)?;
+    let out = exchange(port, OP_GET_RELEASE, request_id, &body).ok()?;
     // release_id, manifest, package, url, signature, arches, abi, caps, status, note
     let (version, at) = lp(&out, 0)?;
     // The url is provenance the installer checks; the store does not show it.

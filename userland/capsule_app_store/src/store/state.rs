@@ -31,8 +31,8 @@ pub struct State {
     pub rows: usize,
     pub fb_w: u32,
     pub fb_h: u32,
-    /// Set when the catalogue could not be read.
-    pub trouble: Option<&'static [u8]>,
+    /// Set when the catalogue could not be read: why, one line per `\n`.
+    pub trouble: Option<Vec<u8>>,
     pub ready: Option<market::Readiness>,
     /// What the last install request was answered with, shown until the next
     /// one.
