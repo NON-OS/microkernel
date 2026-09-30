@@ -20,19 +20,17 @@ use crate::queue::{RxRing, TxRing};
 use crate::regs::Regs;
 
 use super::driver::Driver;
-use super::{claim, dma, irq, mmio, pci};
+use super::{claim, dma, mmio, pci};
 
 pub fn run() -> Result<Driver, &'static str> {
     let dev = find_rtl8169().ok_or("no rtl8169 device")?;
     let claim_epoch = claim::claim(dev.device_id)?;
     pci::enable_bus_master(dev, claim_epoch)?;
     let mmio = mmio::map(dev, claim_epoch)?;
-    let irq = irq::bind(dev, claim_epoch, &mmio)?;
-    let (rx_ring, rx_buf, tx_ring, tx_buf) = dma::map_all(dev.device_id, claim_epoch, &mmio, &irq)?;
+    let (rx_ring, rx_buf, tx_ring, tx_buf) = dma::map_all(dev.device_id, claim_epoch, &mmio)?;
     Ok(Driver {
         device_id: dev.device_id,
         mmio_grant: mmio.grant_id,
-        irq_grant: irq.grant_id,
         rx_ring_grant: rx_ring.grant_id,
         rx_buffer_grant: rx_buf.grant_id,
         tx_ring_grant: tx_ring.grant_id,

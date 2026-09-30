@@ -16,49 +16,46 @@
 
 use core::sync::atomic::{compiler_fence, Ordering};
 
-use super::poll_done::poll_done;
 use crate::constants::queue::TX_DESC_COUNT;
-use crate::constants::regs::{
-    DESC_EOR, DESC_FS, DESC_LS, DESC_OWN, ISR_ENABLED, ISR_TER, REG_ISR, REG_TX_POLL, TX_POLL_HPQ,
-};
+use crate::constants::regs::{DESC_EOR, DESC_FS, DESC_LS, DESC_OWN, REG_TX_POLL, TX_POLL_NPQ};
+use crate::constants::MIN_WIRE_FRAME;
 use crate::queue::desc::{desc, desc_mut, Descriptor};
 use crate::setup::Driver;
 
-pub fn send(driver: &mut Driver, frame: &[u8]) -> Result<(), &'static str> {
+/// Whether the part still owns the next slot, so a frame has nowhere to go.
+pub fn busy(driver: &Driver) -> bool {
+    (unsafe { desc(driver.tx.desc_va, driver.tx.cur) }.opts1 & DESC_OWN) != 0
+}
+
+/*
+ * Hand one frame to the part and answer once it is queued. The cursor moves
+ * on the moment OWN goes over: the part walks the ring with a pointer of its
+ * own and moves past the slot when it finishes, so a cursor held back on a
+ * TX error or a slow completion (link still negotiating, PAUSE frames) was
+ * one slot behind the part for good, and every later send saw "busy".
+ * The caller checks `busy` first; OWN still set on the next slot is a full
+ * ring.
+ */
+pub fn send(driver: &mut Driver, frame: &[u8]) {
     let idx = driver.tx.cur;
-    if (unsafe { desc(driver.tx.desc_va, idx) }.opts1 & DESC_OWN) != 0 {
-        return Err("rtl8169 tx descriptor busy");
-    }
+    let wire = frame.len().max(MIN_WIRE_FRAME);
     unsafe {
-        core::ptr::copy_nonoverlapping(
-            frame.as_ptr(),
-            driver.tx.buffer_va(idx) as *mut u8,
-            frame.len(),
-        );
+        let dst = driver.tx.buffer_va(idx) as *mut u8;
+        core::ptr::copy_nonoverlapping(frame.as_ptr(), dst, frame.len());
+        core::ptr::write_bytes(dst.add(frame.len()), 0, wire - frame.len());
     }
     compiler_fence(Ordering::Release);
     let eor = if idx == TX_DESC_COUNT - 1 { DESC_EOR } else { 0 };
     let addr = driver.tx.buffer_da(idx);
     let d = Descriptor {
-        opts1: DESC_OWN | DESC_FS | DESC_LS | eor | frame.len() as u32,
+        opts1: DESC_OWN | DESC_FS | DESC_LS | eor | wire as u32,
         opts2: 0,
         addr_lo: addr as u32,
         addr_hi: (addr >> 32) as u32,
     };
     unsafe {
         desc_mut(driver.tx.desc_va, idx, d);
-        driver.regs.w8(REG_TX_POLL, TX_POLL_HPQ);
-    }
-    poll_done(driver, idx)?;
-    let isr = unsafe { driver.regs.r16(REG_ISR) };
-    if isr != 0 {
-        unsafe {
-            driver.regs.w16(REG_ISR, isr & ISR_ENABLED);
-        }
-    }
-    if (isr & ISR_TER) != 0 {
-        return Err("rtl8169 tx interrupt error");
+        driver.regs.w8(REG_TX_POLL, TX_POLL_NPQ);
     }
     driver.tx.cur = (idx + 1) % TX_DESC_COUNT;
-    Ok(())
 }

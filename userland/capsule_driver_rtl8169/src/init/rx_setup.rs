@@ -42,6 +42,12 @@ pub fn program(regs: &Regs, rx: &RxRing) {
         regs.w16(REG_RMS, BUFFER_SIZE as u16);
         regs.w32(REG_RXDESC_ADDR_LO, rx.desc_da as u32);
         regs.w32(REG_RXDESC_ADDR_HI, (rx.desc_da >> 32) as u32);
+    }
+}
+
+/// RxConfig, written once the receiver is enabled (see `run`).
+pub fn configure(regs: &Regs) {
+    unsafe {
         regs.w32(
             REG_RX_CONFIG,
             RX_CONFIG_ACCEPT_PHYS
