@@ -63,11 +63,18 @@ pub extern "C" fn mk_irq_poll(grant_id: u64, out: *mut IrqPollOut) -> i64 {
     call_raw(N_MK_IRQ_POLL, [grant_id, out as u64, 0, 0, 0, 0])
 }
 
+/// Returned by `mk_irq_wait` when the wait slept out its whole timeout
+/// and the seq never moved.
+pub const MK_IRQ_WAIT_TIMED_OUT: i64 = 1;
+
 // Blocks until any IRQ delivery moves the seq past `last_seq`, the
 // timeout lapses (0 = kernel default), or an unrelated wake lands —
 // spurious returns are expected, callers loop. `grant_id` 0 waits
 // on every grant this capsule owns; `out_seq` receives the value to
-// pass back as the next `last_seq`.
+// pass back as the next `last_seq`. Returns a negative errno on
+// failure, `MK_IRQ_WAIT_TIMED_OUT` when the full timeout lapsed with
+// the seq unmoved, and 0 for every other return (the seq moved, or an
+// early wake). Test for `< 0` to catch errors only.
 #[no_mangle]
 pub extern "C" fn mk_irq_wait(
     grant_id: u64,

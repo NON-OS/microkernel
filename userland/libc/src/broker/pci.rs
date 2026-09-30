@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `MkPciConfigWrite`. Cap requirement: `Driver`. The kernel only
-//! accepts a write into the PCI Command register's Bus Master
-//! Enable bit, or into the device's MSI-X Message Control register's
-//! Function Mask and Enable bits. Every other offset and every
+//! `MkPciConfigWrite`. Cap requirement: `Driver`, and the caller must
+//! hold the device's claim at the current epoch. The kernel only
+//! accepts a write into the PCI Command register's Memory Space, Bus
+//! Master Enable and Interrupt Disable bits, or into the device's MSI-X
+//! Message Control register's Function Mask and Enable bits. Every other offset and every
 //! other bit pattern is rejected; the constants below are the only
 //! values a capsule can usefully pass.
 
@@ -26,6 +27,11 @@ use crate::syscall::{call_raw, N_MK_PCI_CONFIG_READ, N_MK_PCI_CONFIG_WRITE};
 pub const MK_PCI_CFG_COMMAND: u32 = 0x04;
 pub const MK_PCI_CMD_MEMORY_SPACE: u16 = 1 << 1;
 pub const MK_PCI_CMD_BUS_MASTER: u16 = 1 << 2;
+/// Interrupt Disable: the device stops driving its legacy INTx pin. A
+/// driver that polls instead of waiting on the line sets it, so the
+/// device cannot hold a shared level-triggered line up with an interrupt
+/// status nobody reads. MSI and MSI-X delivery are unaffected.
+pub const MK_PCI_CMD_INTX_DISABLE: u16 = 1 << 10;
 pub const MK_PCI_MSIX_CTRL_FUNCTION_MASK: u16 = 1 << 14;
 pub const MK_PCI_MSIX_CTRL_ENABLE: u16 = 1 << 15;
 
