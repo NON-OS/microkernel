@@ -14,38 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::error::PageAllocResult;
+use super::super::constants::ZERO_PATTERN;
+use super::super::error::{PageAllocError, PageAllocResult};
 use super::super::types::{PageAllocatorStats, PageInfo};
-use super::globals::{ALLOCATOR_STATS, PAGE_ALLOCATOR};
+use super::globals::{with_allocator, ALLOCATOR_STATS};
+use super::mapping::{allocate_virtual_pages, free_virtual_pages, get_physical_address};
 use crate::memory::addr::VirtAddr;
 use crate::memory::{buddy_alloc, layout};
 use core::sync::atomic::Ordering;
 
 pub fn init() -> PageAllocResult<()> {
-    buddy_alloc::init().map_err(|_| super::super::error::PageAllocError::MappingFailed)?;
-    PAGE_ALLOCATOR.lock().init()
+    buddy_alloc::init().map_err(|_| PageAllocError::MappingFailed)?;
+    with_allocator(|a| a.init())
 }
 pub fn allocate_page() -> PageAllocResult<VirtAddr> {
-    PAGE_ALLOCATOR.lock().allocate_page(layout::PAGE_SIZE)
+    allocate_sized(layout::PAGE_SIZE)
 }
 pub fn allocate_pages(count: usize) -> PageAllocResult<VirtAddr> {
     // checked_mul so an oversized count returns InvalidSize instead of
     // overflowing (and aborting under release overflow-checks) before the
     // allocator's own size ceiling is even consulted.
-    let size = count
-        .checked_mul(layout::PAGE_SIZE)
-        .ok_or(super::super::error::PageAllocError::InvalidSize)?;
-    PAGE_ALLOCATOR.lock().allocate_page(size)
+    let size = count.checked_mul(layout::PAGE_SIZE).ok_or(PageAllocError::InvalidSize)?;
+    allocate_sized(size)
 }
+/// Map fresh pages, then track them. The allocator lock is held only to
+/// admit and to record, never across the mapping (see `alloc`).
 pub fn allocate_sized(size: usize) -> PageAllocResult<VirtAddr> {
-    PAGE_ALLOCATOR.lock().allocate_page(size)
+    let page_count = with_allocator(|a| a.admit(size))?;
+    let total_size = page_count * layout::PAGE_SIZE;
+    let va = allocate_virtual_pages(page_count)?;
+    let recorded = get_physical_address(va).and_then(|pa| {
+        // SAFETY: eK@nonos.systems - `va` is `total_size` bytes this call
+        // mapped writable a moment ago and nobody else has been given yet.
+        unsafe { core::ptr::write_bytes(va.as_mut_ptr::<u8>(), ZERO_PATTERN, total_size) };
+        with_allocator(|a| a.record(va, pa, total_size))
+    });
+    if let Err(e) = recorded {
+        let _ = free_virtual_pages(va, page_count);
+        return Err(e);
+    }
+    Ok(va)
 }
+/// Stop tracking the allocation at `va`, then scrub and unmap it outside the
+/// allocator lock. Called from the timer tick for kernel stacks.
 pub fn deallocate_page(va: VirtAddr) -> PageAllocResult<()> {
-    PAGE_ALLOCATOR.lock().deallocate_page(va)
+    let page = with_allocator(|a| a.take(va))?;
+    // SAFETY: eK@nonos.systems - the record said `page.size` bytes at `va`
+    // are ours and mapped; taking it out means nobody else frees them.
+    unsafe { core::ptr::write_bytes(va.as_mut_ptr::<u8>(), ZERO_PATTERN, page.size) };
+    free_virtual_pages(va, page.size / layout::PAGE_SIZE)?;
+    ALLOCATOR_STATS.record_deallocation(page.size);
+    Ok(())
 }
 
 pub fn get_page_info(va: VirtAddr) -> Option<PageInfo> {
-    PAGE_ALLOCATOR.lock().get_page_info(va).map(|p| PageInfo {
+    with_allocator(|a| a.get_page_info(va).copied()).map(|p| PageInfo {
         page_id: p.page_id,
         virtual_addr: p.virtual_addr,
         physical_addr: p.physical_addr,
@@ -55,10 +78,10 @@ pub fn get_page_info(va: VirtAddr) -> Option<PageInfo> {
 }
 
 pub fn get_stats() -> PageAllocatorStats {
-    PAGE_ALLOCATOR.lock().get_allocator_stats()
+    with_allocator(|a| a.get_allocator_stats())
 }
 pub fn is_allocated(va: VirtAddr) -> bool {
-    PAGE_ALLOCATOR.lock().get_page_info(va).is_some()
+    with_allocator(|a| a.get_page_info(va).is_some())
 }
 pub fn get_allocation_count() -> usize {
     ALLOCATOR_STATS.active_pages.load(Ordering::Relaxed)
@@ -70,5 +93,5 @@ pub fn get_peak_pages() -> usize {
     ALLOCATOR_STATS.peak_pages.load(Ordering::Relaxed)
 }
 pub fn is_initialized() -> bool {
-    PAGE_ALLOCATOR.lock().initialized
+    with_allocator(|a| a.initialized)
 }
