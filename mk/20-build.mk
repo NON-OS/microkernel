@@ -521,9 +521,8 @@ endif
 
 nonos-mk-trust-policy: $(NONOS_TRUST_ANCHOR_POLICY_BIN)
 
-# Per-capsule build, cert, and manifest rules live in each
-# `userland/<capsule>/Capsule.mk`. Including the file pulls the
-# capsule's metadata into scope and fires `nonos-mk/capsule.mk`
+# Per-capsule build, cert, and manifest rules live in each `userland/<capsule>/Capsule.mk`.
+# Including the file pulls the capsule's metadata into scope and fires `nonos-mk/capsule.mk`
 # which materialises the standard target set:
 #   nonos-mk-<slug>           build the userland ELF
 #   nonos-mk-<slug>-sign      sign cert + manifest
@@ -564,6 +563,7 @@ include userland/toolkit/Capsule.mk
 include userland/capsule_about/Capsule.mk
 include userland/capsule_install/Capsule.mk
 include userland/tool_install/Capsule.mk
+include userland/capsule_model_fetch/Capsule.mk
 include userland/capsule_app_store/Capsule.mk
 include userland/capsule_linux/Capsule.mk
 include userland/capsule_hello/Capsule.mk
@@ -1191,7 +1191,7 @@ DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
 		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid driver-usb-msc \
 		net-core net-sockets net-nym socks5 policy wallpaper_catalog \
 		installer input-router compositor wm desktop-shell image-codec \
-		clipboard login wallpaper toolkit about install install-cli linux boot-splash \
+		clipboard login wallpaper toolkit about install install-cli model-fetch linux boot-splash \
 		calculator market app_store setup-wizard \
 		browser wallet-nonos terminal file-manager text-editor \
 		settings process-manager attest power \

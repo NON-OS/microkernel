@@ -1,0 +1,44 @@
+# NONOS userland: capsule_model_fetch
+# eK@nonos.systems
+#
+# `qwen get` and `qwen tiers` in the Terminal. Downloads the Qwen tiers a
+# person picks, as the signed model catalogue lists them (none in a build
+# without the operator key), from the NONOS model repository when the build
+# named one, else from Hugging Face, over the network the machine
+# runs (the Nym mixnet, the Anyone onion network, or direct), and feeds each
+# file to the kernel, which seals it into the data volume and keeps it only if
+# its SHA-256 is the signed pin. It holds network sockets and the right to
+# feed the volume, and never sees a conversation.
+
+[package]
+name = "nonos_capsule_model_fetch"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS model fetcher: Qwen tiers from the signed model catalogue"
+
+[[bin]]
+name = "model-fetch"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_cap = { package = "nonos-cap", path = "../nonos_cap" }
+nonos_ed25519 = { path = "../nonos_ed25519" }
+nonos_http = { path = "../nonos_http" }
+nonos_socket = { path = "../nonos_socket" }
+nonos_tls = { path = "../nonos_tls" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true

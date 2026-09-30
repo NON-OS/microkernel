@@ -1,0 +1,20 @@
+# NONOS userland: model_fetch_proofs
+#
+# Host proofs for the model fetcher's catalogue reader. The shipped sources
+# (the reader and the pins it checks against) are included through #[path],
+# and the catalogue they read is written by the host tool that builds the
+# real one, tools/nonos-qwen-tier.py, so a proof here holds the two sides of
+# the format to each other and not to a copy of either.
+
+[package]
+name = "nonos_model_fetch_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_ed25519 = { path = "../nonos_ed25519" }

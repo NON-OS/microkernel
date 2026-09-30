@@ -83,9 +83,8 @@ capsule-serial-debug = []
 # Runtime subsystem.
 sched = []
 
-# Userland capsule embeds. Each `nonos-capsule-*` feature embeds the
-# named capsule binary and arms the kernel-side spawner. Every name
-# below maps 1:1 to a capsule directory under `userland/`.
+# Userland capsule embeds. Each `nonos-capsule-*` feature embeds the named capsule binary and
+# arms the kernel-side spawner; every name below maps 1:1 to a capsule directory under `userland/`.
 nonos-capsule-proof-io          = []
 nonos-capsule-std-proof         = []
 nonos-capsule-ripgrep           = []
@@ -119,6 +118,7 @@ nonos-capsule-video-player      = []
 nonos-capsule-about             = []
 nonos-capsule-install           = []
 nonos-capsule-install-cli       = []
+nonos-capsule-model-fetch       = []
 nonos-capsule-app-store         = []
 nonos-capsule-audio-player      = []
 nonos-capsule-hello             = []
@@ -565,7 +565,7 @@ microkernel-desktop-base = [
   "nonos-capsule-toolkit",
   "nonos-capsule-about",
   "nonos-capsule-install",
-  "nonos-capsule-install-cli",
+  "nonos-capsule-install-cli", "nonos-capsule-model-fetch",
   "nonos-capsule-app-store",
   "nonos-capsule-market",
   "nonos-capsule-linux",
