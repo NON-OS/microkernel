@@ -23,6 +23,9 @@ use crate::userspace::init::{request_instance, PendingApp};
 /// When setup asked for the installer, it is queued to open once the desktop
 /// is up; init drains that queue on the same loop.
 pub(super) fn poll() -> bool {
+    if crate::boot::handoff::install_requested() {
+        return super::after_install::poll();
+    }
     let Some(end) = ended() else {
         return false;
     };

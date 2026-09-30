@@ -17,11 +17,13 @@
 mod draw;
 mod font;
 mod init;
+mod notice_screen;
 mod output;
 mod panic_screen;
 mod render;
 mod state;
 
 pub use init::{disable_display, init_after_fb};
+pub use notice_screen::show_notice;
 pub use output::{error, info, ok, stage, warn};
 pub use panic_screen::show as panic_screen;

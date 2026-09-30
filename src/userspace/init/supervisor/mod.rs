@@ -18,6 +18,8 @@
 // registry; capsules that exited are observed `Dead` on the next IPC.
 
 #[cfg(feature = "microkernel-setup-wizard")]
+mod after_install;
+#[cfg(feature = "microkernel-setup-wizard")]
 mod after_setup;
 mod loop_impl;
 

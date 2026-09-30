@@ -23,4 +23,4 @@ mod security;
 pub use cleanup::wipe_boot_seed;
 pub use error::{FbGeometryReason, HandoffError};
 pub use init::init_handoff;
-pub use query::{get_handoff, is_initialized, total_memory};
+pub use query::{get_handoff, install_requested, is_initialized, total_memory};

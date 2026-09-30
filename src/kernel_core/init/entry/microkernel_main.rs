@@ -21,6 +21,7 @@ use core::sync::atomic::Ordering;
 
 pub fn microkernel_main() -> ! {
     crate::sys::bench::mark(b"microkernel_main_start");
+    super::install_refusal::refuse_install_without_installer();
     // bring-up diagnostics silenced:
     // log_acpi_touchpad_onscreen();
     // crate::hardware::broker::device_census();

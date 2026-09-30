@@ -43,7 +43,7 @@ pub fn show(file: &str, line: u32) {
     draw_text(fb, 24, 76, b"details on the serial console", HINT_COLOR);
 }
 
-fn draw_text(fb: &KernelFramebuffer, x0: u32, y: u32, text: &[u8], color: u32) -> u32 {
+pub(super) fn draw_text(fb: &KernelFramebuffer, x0: u32, y: u32, text: &[u8], color: u32) -> u32 {
     let mut x = x0;
     for &b in text {
         if x + 8 >= fb.width {

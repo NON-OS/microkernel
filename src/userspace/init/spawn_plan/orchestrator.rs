@@ -53,25 +53,6 @@ pub(in crate::userspace::init) fn spawn_desktop() {
     super::input_probe_fleet::spawn();
 }
 
-#[cfg(all(feature = "microkernel-setup-wizard", not(feature = "microkernel-input-probe")))]
-pub(in crate::userspace::init) fn spawn_desktop() {
-    use crate::userspace::capsule_setup_wizard as wiz;
-    super::desktop_fleet::spawn_gui_core();
-    super::boot::capsule(
-        "SETUP-WIZARD",
-        "setup_wizard",
-        wiz::spawn_setup_wizard_capsule,
-        wiz::shared_state,
-    );
-}
-
-#[cfg(feature = "microkernel-setup-wizard")]
-pub(in crate::userspace::init) fn spawn_post_wizard() {
-    super::desktop_fleet::spawn_rest();
-    super::core::spawn_market();
-    super::apps::spawn();
-}
-
 #[cfg(all(not(feature = "microkernel-input-probe"), not(feature = "microkernel-setup-wizard")))]
 pub(in crate::userspace::init) fn spawn_desktop() {
     super::desktop_fleet::spawn();
@@ -81,5 +62,3 @@ pub(in crate::userspace::init) fn spawn_desktop() {
 pub(in crate::userspace::init) fn spawn_market() {
     super::core::spawn_market();
 }
-#[cfg(feature = "microkernel-setup-wizard")]
-pub(in crate::userspace::init) fn spawn_market() {}

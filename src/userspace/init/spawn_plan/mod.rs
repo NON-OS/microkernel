@@ -45,11 +45,19 @@ mod input_probe_fleet;
 mod network;
 mod orchestrator;
 mod services_audio;
+#[cfg(feature = "microkernel-setup-wizard")]
+mod wizard_plan;
 pub(super) use app_orchestrator::spawn_apps;
+#[cfg(any(feature = "microkernel-input-probe", not(feature = "microkernel-setup-wizard")))]
+pub(super) use orchestrator::spawn_desktop;
+#[cfg(not(feature = "microkernel-setup-wizard"))]
+pub(super) use orchestrator::spawn_market;
 pub(super) use orchestrator::{
-    spawn_core_after_ramfs, spawn_desktop, spawn_display_core, spawn_drivers, spawn_market,
-    spawn_network, spawn_ramfs, spawn_vfs,
+    spawn_core_after_ramfs, spawn_display_core, spawn_drivers, spawn_network, spawn_ramfs,
+    spawn_vfs,
 };
 
+#[cfg(all(feature = "microkernel-setup-wizard", not(feature = "microkernel-input-probe")))]
+pub(super) use wizard_plan::spawn_desktop;
 #[cfg(feature = "microkernel-setup-wizard")]
-pub(super) use orchestrator::spawn_post_wizard;
+pub(super) use wizard_plan::{spawn_after_first, spawn_market, spawn_post_wizard};
