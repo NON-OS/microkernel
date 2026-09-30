@@ -62,9 +62,7 @@ pub fn launch_first(ctx: &mut Context) {
 
 fn launch(ctx: &mut Context, t: Target) {
     match t {
-        Target::App(a) => {
-            let _ = launcher_request::request(&LAUNCHER_APPS[a]);
-        }
+        Target::App(a) => crate::apps_off::open(ctx, LAUNCHER_APPS[a].service),
         Target::Tool(_) => {
             // A tool is a command-line program: it runs in the terminal,
             // where the kernel spawns it parented to the shell so its output

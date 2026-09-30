@@ -28,22 +28,22 @@ pub(super) fn activate(ctx: &mut Context, title: usize, row: usize) {
     match (title, row) {
         (0, 0) => front_window(ctx),
         (0, 1) | (2, 0) => launchpad::open(ctx),
-        (0, 2) | (4, 0) => launch(b"app.about"),
+        (0, 2) | (4, 0) => launch(ctx, b"app.about"),
         (1, 0) => desktop::create_entry(ctx, false),
         (1, 1) => desktop::create_entry(ctx, true),
-        (1, 2) => launch(b"app.file_manager"),
+        (1, 2) => launch(ctx, b"app.file_manager"),
         (2, 1) => show_dock(ctx),
         (2, 2) => refresh_desktop(ctx),
-        (3, 0) => launch(b"app.terminal"),
-        (3, 1) => launch(b"app.browser"),
-        (3, 2) => launch(b"app.settings"),
-        (4, 1) => launch(b"app.process_manager"),
+        (3, 0) => launch(ctx, b"app.terminal"),
+        (3, 1) => launch(ctx, b"app.browser"),
+        (3, 2) => launch(ctx, b"app.settings"),
+        (4, 1) => launch(ctx, b"app.process_manager"),
         _ => {}
     }
 }
 
-fn launch(service: &[u8]) {
-    let _ = launcher_request::request_service(service);
+fn launch(ctx: &mut Context, service: &[u8]) {
+    crate::apps_off::open(ctx, service);
 }
 
 fn front_window(ctx: &mut Context) {

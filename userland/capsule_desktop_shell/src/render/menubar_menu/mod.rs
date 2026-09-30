@@ -20,6 +20,7 @@
 mod hit;
 mod items;
 mod metrics;
+mod off_rows;
 mod origin;
 mod paint;
 

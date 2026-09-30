@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::draw_app_glyph;
 use super::layout::{
     bottom_dock_rect, dock_box_inset, dock_divider_w, dock_gap, dock_pad, launchpad_slot_x,
     taskbar_entry_w, Rect,
@@ -83,7 +82,7 @@ pub fn paint_bottom_taskbar(ctx: &Context) {
         } else if open {
             palette::TILE_OPEN
         } else {
-            crate::apps_off::idle_fill(app.service)
+            super::off_tile::idle_fill(app.service)
         };
         let tile = Rect { x, y: box_top, width: taskbar_entry_w(), height: box_h };
         let edge = if active || pulsing { palette::LINE_HARD } else { palette::LINE_SOFT };
@@ -91,7 +90,7 @@ pub fn paint_bottom_taskbar(ctx: &Context) {
         if open || active || pulsing {
             running_dot(ctx, x + taskbar_entry_w() / 2, active);
         }
-        draw_app_glyph(ctx, x, box_top, app.icon, icon_size());
+        super::off_tile::dock_glyph(ctx, x, box_top, app, icon_size());
         x += taskbar_entry_w() + dock_gap();
     }
     draw_divider(ctx, box_top, box_h);

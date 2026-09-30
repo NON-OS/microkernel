@@ -42,7 +42,7 @@ pub fn handle(ctx: &mut Context, x: u32, y: u32) {
             let outcome = if running {
                 launcher_request::focus_service(app.service)
             } else {
-                launcher_request::request(app)
+                crate::apps_off::request(app)
             };
             // Surface the result on screen: with no serial port a dock click is
             // otherwise silent, so a toast says which branch it took.

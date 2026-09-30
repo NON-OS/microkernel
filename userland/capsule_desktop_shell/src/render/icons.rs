@@ -18,7 +18,7 @@ use crate::state::apps::LauncherIcon;
 use crate::state::Context;
 use nonos_toolkit::icons::{mask, IconId};
 
-mod badge;
+pub(super) mod badge;
 mod nonos_logo;
 
 const CYAN: u32 = crate::render::palette::ACCENT;
@@ -27,13 +27,7 @@ pub fn draw_app_icon(ctx: &Context, x: u32, y: u32, icon: LauncherIcon, size: u3
     badge::badge(ctx, x, y, size, icon_bytes(icon), CYAN);
 }
 
-/// The same app mark with no tile behind it, for callers that paint their own
-/// cell (the dock).
-pub fn draw_app_glyph(ctx: &Context, x: u32, y: u32, icon: LauncherIcon, size: u32) {
-    badge::glyph(ctx, x, y, size, icon_bytes(icon), CYAN);
-}
-
-fn icon_bytes(icon: LauncherIcon) -> &'static [u8] {
+pub(super) fn icon_bytes(icon: LauncherIcon) -> &'static [u8] {
     mask(match icon {
         LauncherIcon::Terminal => IconId::Terminal,
         LauncherIcon::FileManager => IconId::Files,
