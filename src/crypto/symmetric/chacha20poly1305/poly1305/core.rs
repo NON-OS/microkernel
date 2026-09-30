@@ -14,122 +14,53 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Key setup and the block loop, after poly1305-donna-64: three limbs,
+//! products in u128, no branch or index that depends on key or data.
+
 use super::types::Poly1305;
+
+pub(super) const M44: u64 = 0xfff_ffff_ffff;
+pub(super) const M42: u64 = 0x3ff_ffff_ffff;
+/// The 2^128 bit every full 16-byte block carries, as seen from limb 2.
+pub(super) const HIBIT: u64 = 1 << 40;
+
+#[inline(always)]
+fn mul(a: u64, b: u64) -> u128 {
+    a as u128 * b as u128
+}
 
 impl Poly1305 {
     pub(crate) fn new(key: &[u8; 32]) -> Self {
-        let mut r = [0u8; 16];
-        r.copy_from_slice(&key[0..16]);
-
-        r[3] &= 0x0f;
-        r[7] &= 0x0f;
-        r[11] &= 0x0f;
-        r[15] &= 0x0f;
-        r[4] &= 0xfc;
-        r[8] &= 0xfc;
-        r[12] &= 0xfc;
-
-        let t0 = u32::from_le_bytes([r[0], r[1], r[2], r[3]]);
-        let t1 = u32::from_le_bytes([r[4], r[5], r[6], r[7]]);
-        let t2 = u32::from_le_bytes([r[8], r[9], r[10], r[11]]);
-        let t3 = u32::from_le_bytes([r[12], r[13], r[14], r[15]]);
-
-        let r0 = t0 & 0x3ffffff;
-        let r1 = ((t0 >> 26) | (t1 << 6)) & 0x3ffffff;
-        let r2 = ((t1 >> 20) | (t2 << 12)) & 0x3ffffff;
-        let r3 = ((t2 >> 14) | (t3 << 18)) & 0x3ffffff;
-        let r4 = t3 >> 8;
-
-        let s1 = r1 * 5;
-        let s2 = r2 * 5;
-        let s3 = r3 * 5;
-        let s4 = r4 * 5;
-
-        let mut s = [0u8; 16];
-        s.copy_from_slice(&key[16..32]);
-
-        Self {
-            h0: 0,
-            h1: 0,
-            h2: 0,
-            h3: 0,
-            h4: 0,
-            r0,
-            r1,
-            r2,
-            r3,
-            r4,
-            s1,
-            s2,
-            s3,
-            s4,
-            s,
-            buffer: [0u8; 16],
-            buffer_len: 0,
-        }
+        let halves = key.as_chunks::<16>().0;
+        let t = u128::from_le_bytes(halves[0]);
+        let (t0, t1) = (t as u64, (t >> 64) as u64);
+        let r0 = t0 & 0xffc_0fff_ffff;
+        let r1 = ((t0 >> 44) | (t1 << 20)) & 0xfff_ffc0_ffff;
+        let r2 = (t1 >> 24) & 0x00f_ffff_fc0f;
+        let p = u128::from_le_bytes(halves[1]);
+        let pad = [p as u64, (p >> 64) as u64];
+        Self { h: [0; 3], r: [r0, r1, r2], pad, buffer: [0; 16], buffer_len: 0 }
     }
 
-    pub(super) fn block(&mut self, msg: &[u8], hibit: u32) {
-        let t0 = u32::from_le_bytes([msg[0], msg[1], msg[2], msg[3]]);
-        let t1 = u32::from_le_bytes([msg[4], msg[5], msg[6], msg[7]]);
-        let t2 = u32::from_le_bytes([msg[8], msg[9], msg[10], msg[11]]);
-        let t3 = u32::from_le_bytes([msg[12], msg[13], msg[14], msg[15]]);
-
-        self.h0 = self.h0.wrapping_add(t0 & 0x3ffffff);
-        self.h1 = self.h1.wrapping_add(((t0 >> 26) | (t1 << 6)) & 0x3ffffff);
-        self.h2 = self.h2.wrapping_add(((t1 >> 20) | (t2 << 12)) & 0x3ffffff);
-        self.h3 = self.h3.wrapping_add(((t2 >> 14) | (t3 << 18)) & 0x3ffffff);
-        self.h4 = self.h4.wrapping_add((t3 >> 8) | hibit);
-
-        let d0 = (self.h0 as u64) * (self.r0 as u64)
-            + (self.h1 as u64) * (self.s4 as u64)
-            + (self.h2 as u64) * (self.s3 as u64)
-            + (self.h3 as u64) * (self.s2 as u64)
-            + (self.h4 as u64) * (self.s1 as u64);
-
-        let d1 = (self.h0 as u64) * (self.r1 as u64)
-            + (self.h1 as u64) * (self.r0 as u64)
-            + (self.h2 as u64) * (self.s4 as u64)
-            + (self.h3 as u64) * (self.s3 as u64)
-            + (self.h4 as u64) * (self.s2 as u64);
-
-        let d2 = (self.h0 as u64) * (self.r2 as u64)
-            + (self.h1 as u64) * (self.r1 as u64)
-            + (self.h2 as u64) * (self.r0 as u64)
-            + (self.h3 as u64) * (self.s4 as u64)
-            + (self.h4 as u64) * (self.s3 as u64);
-
-        let d3 = (self.h0 as u64) * (self.r3 as u64)
-            + (self.h1 as u64) * (self.r2 as u64)
-            + (self.h2 as u64) * (self.r1 as u64)
-            + (self.h3 as u64) * (self.r0 as u64)
-            + (self.h4 as u64) * (self.s4 as u64);
-
-        let d4 = (self.h0 as u64) * (self.r4 as u64)
-            + (self.h1 as u64) * (self.r3 as u64)
-            + (self.h2 as u64) * (self.r2 as u64)
-            + (self.h3 as u64) * (self.r1 as u64)
-            + (self.h4 as u64) * (self.r0 as u64);
-
-        let mut c: u32;
-        c = (d0 >> 26) as u32;
-        self.h0 = (d0 as u32) & 0x3ffffff;
-        let d1 = d1 + c as u64;
-        c = (d1 >> 26) as u32;
-        self.h1 = (d1 as u32) & 0x3ffffff;
-        let d2 = d2 + c as u64;
-        c = (d2 >> 26) as u32;
-        self.h2 = (d2 as u32) & 0x3ffffff;
-        let d3 = d3 + c as u64;
-        c = (d3 >> 26) as u32;
-        self.h3 = (d3 as u32) & 0x3ffffff;
-        let d4 = d4 + c as u64;
-        c = (d4 >> 26) as u32;
-        self.h4 = (d4 as u32) & 0x3ffffff;
-
-        self.h0 = self.h0.wrapping_add(c * 5);
-        c = self.h0 >> 26;
-        self.h0 &= 0x3ffffff;
-        self.h1 = self.h1.wrapping_add(c);
+    /// Absorbs each 16-byte block of `msg`, `hibit` set above its top byte.
+    pub(super) fn blocks(&mut self, msg: &[[u8; 16]], hibit: u64) {
+        let [r0, r1, r2] = self.r;
+        let (s1, s2) = (r1 * 20, r2 * 20);
+        let [mut h0, mut h1, mut h2] = self.h;
+        for m in msg {
+            let t = u128::from_le_bytes(*m);
+            let (t0, t1) = (t as u64, (t >> 64) as u64);
+            h0 += t0 & M44;
+            h1 += ((t0 >> 44) | (t1 << 20)) & M44;
+            h2 += ((t1 >> 24) & M42) | hibit;
+            let d0 = mul(h0, r0) + mul(h1, s2) + mul(h2, s1);
+            let d1 = mul(h0, r1) + mul(h1, r0) + mul(h2, s2) + (d0 >> 44);
+            let d2 = mul(h0, r2) + mul(h1, r1) + mul(h2, r0) + (d1 >> 44);
+            h0 = (d0 as u64 & M44) + (d2 >> 42) as u64 * 5;
+            h1 = (d1 as u64 & M44) + (h0 >> 44);
+            h2 = d2 as u64 & M42;
+            h0 &= M44;
+        }
+        self.h = [h0, h1, h2];
     }
 }
