@@ -21,3 +21,5 @@ mod rx_setup;
 mod tx_setup;
 
 pub use run::bring_up;
+pub use rx_setup::restart as restart_rx;
+pub use tx_setup::TCR;

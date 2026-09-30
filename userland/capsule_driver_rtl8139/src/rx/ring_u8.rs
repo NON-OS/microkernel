@@ -14,8 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::dma::RX_BUF_DATA_BYTES;
+use crate::constants::dma::RX_BUF_BYTES;
 
+/*
+ * Linear, not modulo the ring. RCR.WRAP is set, so a frame that crosses the
+ * end of the ring is written on past it into the slack after, not back at
+ * the start: taking its tail from offset 0 handed up stale bytes once a lap.
+ * Offsets stay below the allocation (the header is inside the ring and the
+ * frame is length-checked first), and anything that would not reads as zero.
+ */
 pub(super) fn ring_u8(base: u64, off: usize) -> u8 {
-    unsafe { core::ptr::read_volatile((base + (off % RX_BUF_DATA_BYTES) as u64) as *const u8) }
+    if off >= RX_BUF_BYTES {
+        return 0;
+    }
+    unsafe { core::ptr::read_volatile((base + off as u64) as *const u8) }
 }

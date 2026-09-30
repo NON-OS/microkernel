@@ -50,9 +50,12 @@ pub fn spawn_driver_rtl8139_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
+            // The station address is drawn rather than read out of the IDR,
+            // and CryptoRandom is gated on this capability. The draw fails
+            // closed, so without it the card never comes up.
+            | Capability::Crypto.bit()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
-            | Capability::Irq.bit()
             | Capability::Dma.bit()
             | Capability::Pio.bit(),
         debug_tag: b"[DRIVER-RTL8139] load_elf_executable error:",

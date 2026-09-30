@@ -18,11 +18,19 @@ use crate::constants::dma::{TX_SLOT_BYTES, TX_SLOT_COUNT};
 use crate::constants::regs::{REG_TCR, REG_TXADDR0, TCR_MXDMA_UNLIMITED};
 use crate::setup::Driver;
 
+/// Transmit configuration, written once the transmitter is enabled (see `run`).
+pub const TCR: u32 = TCR_MXDMA_UNLIMITED;
+
 pub fn program(driver: &mut Driver) -> Result<(), &'static str> {
     for idx in 0..TX_SLOT_COUNT {
         let addr = driver.tx_device_addr + (idx * TX_SLOT_BYTES) as u64;
         driver.pio.w32(REG_TXADDR0 + (idx as u16 * 4), addr as u32)?;
     }
     driver.tx_cur = 0;
-    driver.pio.w32(REG_TCR, TCR_MXDMA_UNLIMITED)
+    driver.tx_dirty = 0;
+    Ok(())
+}
+
+pub fn configure(driver: &Driver) -> Result<(), &'static str> {
+    driver.pio.w32(REG_TCR, TCR)
 }
