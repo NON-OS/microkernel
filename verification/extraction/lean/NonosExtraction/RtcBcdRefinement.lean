@@ -41,10 +41,188 @@ theorem the_bin_to_bcd_wrapper_is_its_method (a : Std.U8) :
 theorem the_is_valid_bcd_wrapper_is_its_method (a : Std.U8) :
     is_valid_bcd a = rtc_bcd.is_valid_bcd a := rfl
 
+/-! ### Nibbles, round trips and the edge of two decimal digits
+
+The RTC keeps its time registers in packed BCD unless status register B says
+binary, and `read_rtc`, `write_rtc` and the alarm code convert every field with
+these three functions. The theorems below give each function an exact value on
+every byte, and from those values they establish what the callers rely on:
+`bcd_to_bin` reads the high nibble as tens and the low nibble as units and
+cannot overflow on any byte the hardware returns (a garbled `0xFF` reads as
+165, not a panic); `bin_to_bcd` inverts it on `0..=99` and produces a byte that
+`is_valid_bcd` accepts; `is_valid_bcd` accepts exactly the bytes whose two
+nibbles are decimal digits, and on those `bcd_to_bin` followed by `bin_to_bcd`
+gives the byte back. The boundary is stated too: from 100 on `bin_to_bcd`
+produces bytes that are not BCD, and from 160 on the tens digit is shifted off
+the top of the byte.
+
+Nothing here establishes that the values a caller passes are in range. That is
+the job of `RtcTime::validate` and of the CMOS itself, and neither is extracted
+in this crate; the port I/O in `cmos_read` and `cmos_write` is outside the
+extraction altogether.
+-/
+
+private theorem shr_u8 (x : Std.U8) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 8) :
+    ∃ z : Std.U8, x >>> k = ok z ∧ z.val = x.val / 2 ^ k.toNat := by
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftRight_IScalar_spec x k h0 (by simpa using h1))
+  exact ⟨z, hz, by rw [hv, Nat.shiftRight_eq_div_pow]⟩
+
+private theorem shl_u8 (x : Std.U8) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 8) :
+    ∃ z : Std.U8, x <<< k = ok z ∧ z.val = x.val * 2 ^ k.toNat % 256 := by
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftLeft_IScalar_spec x k (UScalar.size .U8) h0
+      (by simpa using h1) rfl)
+  exact ⟨z, hz, by rw [hv, Nat.shiftLeft_eq]; simp [U8.size, U8.numBits]⟩
+
+/-- `bcd_to_bin` succeeds on every byte, and its value is the high nibble times
+    ten plus the low nibble. The largest value, 165 at `0xFF`, is below 256, so
+    the multiplication and the addition that Rust checks can never trap. -/
+theorem bcd_to_bin_is_tens_nibble_times_ten_plus_units_nibble (b : Std.U8) :
+    ∃ r : Std.U8, bcd_to_bin b = ok r ∧ r.val = b.val / 16 * 10 + b.val % 16 := by
+  unfold bcd_to_bin rtc_bcd.bcd_to_bin
+  obtain ⟨i, hi, hiv⟩ := shr_u8 b 4#i32 (by decide) (by decide)
+  have hb := b.hBounds
+  simp only [UScalarTy.numBits] at hb
+  have hmax : UScalar.max .U8 = 255 := by simp [U8.max, U8.numBits]
+  have hiv' : i.val = b.val / 16 := by simpa using hiv
+  have hten : (10#u8 : Std.U8).val = 10 := rfl
+  have ⟨j, hj, hjv⟩ := WP.spec_imp_exists
+    (UScalar.mul_spec (x := i) (y := 10#u8) (by rw [hmax, hten, hiv']; omega))
+  have hand : (b &&& 15#u8).val = b.val % 16 := by
+    rw [UScalar.val_and]
+    exact Nat.and_two_pow_sub_one_eq_mod b.val 4
+  have ⟨k, hk, hkv⟩ := WP.spec_imp_exists
+    (UScalar.add_spec (x := j) (y := b &&& 15#u8) (by rw [hmax, hjv, hten, hiv', hand]; omega))
+  simp only [hi, hj, hk, bind_tc_ok, lift]
+  refine ⟨k, rfl, ?_⟩
+  rw [hkv, hjv, hten, hiv', hand]
+
+/-- `bin_to_bcd` succeeds on every byte, and its value is the tens digit
+    shifted into the high nibble, reduced modulo 256, with the units digit
+    or-ed into the low nibble. The reduction is where bytes from 160 up lose
+    their tens digit. -/
+theorem bin_to_bcd_packs_tens_over_units (b : Std.U8) :
+    ∃ r : Std.U8, bin_to_bcd b = ok r ∧ r.val = b.val / 10 * 16 % 256 ||| b.val % 10 := by
+  unfold bin_to_bcd rtc_bcd.bin_to_bcd
+  have ⟨i, hi, hiv⟩ := UScalar.div_spec b (y := 10#u8) (by decide)
+  obtain ⟨j, hj, hjv⟩ := shl_u8 i 4#i32 (by decide) (by decide)
+  have ⟨k, hk, hkv⟩ := WP.spec_imp_exists (UScalar.rem_spec b (y := 10#u8) (by decide))
+  simp only [hi, hj, hk, bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  rw [UScalar.val_or, hjv, hkv, hiv]
+  simp
+
+/-- `is_valid_bcd` accepts exactly the bytes whose low nibble and high nibble
+    are both at most nine. -/
+theorem is_valid_bcd_accepts_exactly_two_decimal_nibbles (b : Std.U8) :
+    is_valid_bcd b = ok (decide (b.val % 16 ≤ 9 ∧ b.val / 16 ≤ 9)) := by
+  unfold is_valid_bcd rtc_bcd.is_valid_bcd
+  have hb := b.hBounds
+  simp only [UScalarTy.numBits] at hb
+  have hand : (b &&& 15#u8).val = b.val % 16 := by
+    rw [UScalar.val_and]
+    exact Nat.and_two_pow_sub_one_eq_mod b.val 4
+  obtain ⟨i, hi, hiv⟩ := shr_u8 b 4#i32 (by decide) (by decide)
+  have hiv' : i.val = b.val / 16 := by simpa using hiv
+  have hand2 : (i &&& 15#u8).val = b.val / 16 := by
+    rw [UScalar.val_and, hiv']
+    rw [show (15#u8 : Std.U8).val = 2 ^ 4 - 1 from rfl, Nat.and_two_pow_sub_one_eq_mod]
+    omega
+  simp only [lift, bind_tc_ok, hi]
+  by_cases h : b.val % 16 ≤ 9
+  · have h' : (b &&& 15#u8) ≤ 9#u8 := by
+      show (b &&& 15#u8).val ≤ (9#u8 : Std.U8).val
+      rw [hand]; simpa using h
+    rw [if_pos h']
+    congr 1
+    apply decide_eq_decide.mpr
+    show (i &&& 15#u8).val ≤ (9#u8 : Std.U8).val ↔ _
+    rw [hand2]; simp [h]
+  · have h' : ¬ (b &&& 15#u8) ≤ 9#u8 := by
+      show ¬ (b &&& 15#u8).val ≤ (9#u8 : Std.U8).val
+      rw [hand]; simpa using h
+    rw [if_neg h']
+    simp [h]
+
+/-- On every two digit number, `bin_to_bcd` then `bcd_to_bin` returns the
+    number, and the intermediate byte is one `is_valid_bcd` accepts. This is
+    the agreement `write_rtc` and `read_rtc` rely on for a value to survive a
+    trip through the CMOS. -/
+theorem bin_to_bcd_then_bcd_to_bin_is_identity_below_one_hundred (b : Std.U8)
+    (h : b.val < 100) :
+    ∃ r : Std.U8, bin_to_bcd b = ok r ∧ is_valid_bcd r = ok true ∧ bcd_to_bin r = ok b := by
+  obtain ⟨r, hr, hrv⟩ := bin_to_bcd_packs_tens_over_units b
+  obtain ⟨s, hs, hsv⟩ := bcd_to_bin_is_tens_nibble_times_ten_plus_units_nibble r
+  refine ⟨r, hr, ?_, ?_⟩
+  · rw [is_valid_bcd_accepts_exactly_two_decimal_nibbles, hrv]
+    have key : ∀ n, n < 100 →
+        ((n / 10 * 16 % 256 ||| n % 10) % 16 ≤ 9 ∧ (n / 10 * 16 % 256 ||| n % 10) / 16 ≤ 9) := by
+      decide
+    simp [key b.val h]
+  · rw [hs]
+    congr 1
+    apply UScalar.eq_of_val_eq
+    rw [hsv, hrv]
+    have key : ∀ n, n < 100 →
+        (n / 10 * 16 % 256 ||| n % 10) / 16 * 10 + (n / 10 * 16 % 256 ||| n % 10) % 16 = n := by
+      decide
+    exact key b.val h
+
+/-- On every byte `is_valid_bcd` accepts, `bcd_to_bin` then `bin_to_bcd`
+    returns the byte, so a valid register value is read back to the same
+    number it will be written as. -/
+theorem bcd_to_bin_then_bin_to_bcd_is_identity_on_valid_bcd (b : Std.U8)
+    (h : is_valid_bcd b = ok true) :
+    ∃ r : Std.U8, bcd_to_bin b = ok r ∧ r.val < 100 ∧ bin_to_bcd r = ok b := by
+  rw [is_valid_bcd_accepts_exactly_two_decimal_nibbles] at h
+  have hv : b.val % 16 ≤ 9 ∧ b.val / 16 ≤ 9 := by simpa using h
+  have hb := b.hBounds
+  simp only [UScalarTy.numBits] at hb
+  obtain ⟨r, hr, hrv⟩ := bcd_to_bin_is_tens_nibble_times_ten_plus_units_nibble b
+  obtain ⟨s, hs, hsv⟩ := bin_to_bcd_packs_tens_over_units r
+  refine ⟨r, hr, by omega, ?_⟩
+  rw [hs]
+  congr 1
+  apply UScalar.eq_of_val_eq
+  rw [hsv, hrv]
+  have key : ∀ n, n < 256 → n % 16 ≤ 9 → n / 16 ≤ 9 →
+      ((n / 16 * 10 + n % 16) / 10 * 16 % 256 ||| (n / 16 * 10 + n % 16) % 10) = n := by
+    decide
+  exact key b.val hb hv.1 hv.2
+
+/-- One hundred is where the encoding stops: `bin_to_bcd 100` is `0xA0`, whose
+    high nibble is ten, and `is_valid_bcd` refuses it. Every value a caller
+    passes must be at most 99. -/
+theorem bin_to_bcd_of_one_hundred_is_not_bcd :
+    bin_to_bcd 100#u8 = ok 0xA0#u8 ∧ is_valid_bcd 0xA0#u8 = ok false := by
+  obtain ⟨r, hr, hrv⟩ := bin_to_bcd_packs_tens_over_units 100#u8
+  refine ⟨?_, ?_⟩
+  · rw [hr]; congr 1; apply UScalar.eq_of_val_eq; rw [hrv]; decide
+  · rw [is_valid_bcd_accepts_exactly_two_decimal_nibbles]; simp
+
+/-- From 160 the tens digit no longer fits in the high nibble and is shifted
+    out of the byte: `bin_to_bcd 160` is `0x00`, the same byte as
+    `bin_to_bcd 0`. The shift wraps rather than traps. -/
+theorem bin_to_bcd_of_one_hundred_sixty_wraps_to_zero :
+    bin_to_bcd 160#u8 = ok 0#u8 ∧ bin_to_bcd 0#u8 = ok 0#u8 := by
+  obtain ⟨r, hr, hrv⟩ := bin_to_bcd_packs_tens_over_units 160#u8
+  obtain ⟨s, hs, hsv⟩ := bin_to_bcd_packs_tens_over_units 0#u8
+  refine ⟨?_, ?_⟩
+  · rw [hr]; congr 1; apply UScalar.eq_of_val_eq; rw [hrv]; decide
+  · rw [hs]; congr 1; apply UScalar.eq_of_val_eq; rw [hsv]; decide
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.RtcBcd.the_bcd_to_bin_wrapper_is_its_method
 #print axioms NonosExtraction.RtcBcd.the_bin_to_bcd_wrapper_is_its_method
 #print axioms NonosExtraction.RtcBcd.the_is_valid_bcd_wrapper_is_its_method
+#print axioms NonosExtraction.RtcBcd.bcd_to_bin_is_tens_nibble_times_ten_plus_units_nibble
+#print axioms NonosExtraction.RtcBcd.bin_to_bcd_packs_tens_over_units
+#print axioms NonosExtraction.RtcBcd.is_valid_bcd_accepts_exactly_two_decimal_nibbles
+#print axioms NonosExtraction.RtcBcd.bin_to_bcd_then_bcd_to_bin_is_identity_below_one_hundred
+#print axioms NonosExtraction.RtcBcd.bcd_to_bin_then_bin_to_bcd_is_identity_on_valid_bcd
+#print axioms NonosExtraction.RtcBcd.bin_to_bcd_of_one_hundred_is_not_bcd
+#print axioms NonosExtraction.RtcBcd.bin_to_bcd_of_one_hundred_sixty_wraps_to_zero
 
 end NonosExtraction.RtcBcd

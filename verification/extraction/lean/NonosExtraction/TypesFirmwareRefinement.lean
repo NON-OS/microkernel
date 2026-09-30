@@ -38,9 +38,56 @@ theorem the_firmwareentry_empty_wrapper_is_its_method :
 theorem the_firmwarehandoff_new_wrapper_is_its_method :
     firmwarehandoff_new = firmware.FirmwareHandoff.new := rfl
 
+/-! ### An empty table has no entries in use and no image in any slot
+
+The bootloader hands the kernel a `FirmwareHandoff` whose `count` says how many
+of its `MAX_FIRMWARE_ENTRIES` (64) slots are filled, and `get_firmware` scans
+`entries[0..count]` for a matching `fw_type`. The theorems below establish that
+`firmwareentry_empty` is an entry of type `Unknown` pointing at address zero
+with size zero, and that `firmwarehandoff_new` returns a table with `count`
+zero, 64 slots, and every one of those slots such an entry. So a table built
+by `new` answers no lookup, and a slot read past `count` names no image.
+
+They cannot establish anything about a table the bootloader filled: that
+`count` stays at most 64 after entries are added, and the scan in
+`get_firmware`, are not in this crate. Nor do they say that an `Unknown` entry
+is all zero bytes in memory, because the `repr(C)` layout and the enum
+discriminant are not part of the extracted model.
+-/
+
+/-- The empty entry is of type `Unknown`, points at address zero and has size
+    zero, and its reserved word is zero. -/
+theorem firmwareentry_empty_is_unknown_at_address_zero_with_size_zero :
+    ∃ e, firmwareentry_empty = ok e ∧ e.fw_type = firmware.FirmwareType.Unknown ∧
+      e.ptr.val = 0 ∧ e.size.val = 0 ∧ e.reserved.val = 0 := by
+  exact ⟨_, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- A new table has no entries in use, so a scan of `entries[0..count]`
+    touches no slot and every slot index below `count` is in bounds. -/
+theorem firmwarehandoff_new_has_no_entries_in_use :
+    ∃ h, firmwarehandoff_new = ok h ∧ h.count.val = 0 ∧ h.count.val ≤ h.entries.val.length := by
+  exact ⟨_, rfl, rfl, Nat.zero_le _⟩
+
+/-- Every one of the 64 slots of a new table is an `Unknown` entry at address
+    zero with size zero, the entry `firmwareentry_empty` returns. -/
+theorem firmwarehandoff_new_fills_all_sixty_four_slots_with_the_empty_entry :
+    ∃ h e, firmwarehandoff_new = ok h ∧ firmwareentry_empty = ok e ∧
+      h.entries.val.length = 64 ∧
+      ∀ i < 64, h.entries.val[i]? = some e ∧
+        e.fw_type = firmware.FirmwareType.Unknown ∧ e.ptr.val = 0 ∧ e.size.val = 0 := by
+  refine ⟨_, _, rfl, rfl, ?_, ?_⟩
+  · exact List.length_replicate
+  · intro i hi
+    refine ⟨?_, rfl, rfl, rfl⟩
+    show (List.replicate 64 _)[i]? = _
+    rw [List.getElem?_replicate, if_pos hi]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesFirmware.the_firmwareentry_empty_wrapper_is_its_method
 #print axioms NonosExtraction.TypesFirmware.the_firmwarehandoff_new_wrapper_is_its_method
+#print axioms NonosExtraction.TypesFirmware.firmwareentry_empty_is_unknown_at_address_zero_with_size_zero
+#print axioms NonosExtraction.TypesFirmware.firmwarehandoff_new_has_no_entries_in_use
+#print axioms NonosExtraction.TypesFirmware.firmwarehandoff_new_fills_all_sixty_four_slots_with_the_empty_entry
 
 end NonosExtraction.TypesFirmware

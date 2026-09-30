@@ -41,10 +41,94 @@ theorem the_pmprofile_is_server_wrapper_is_its_method (a : profile.PmProfile) :
 theorem the_pmprofile_is_mobile_wrapper_is_its_method (a : profile.PmProfile) :
     pmprofile_is_mobile a = profile.PmProfile.is_mobile a := rfl
 
+/-! ### Decoding the FADT preferred power management profile
+
+`Fadt::pm_profile` hands the raw `preferred_pm_profile` byte to `from_u8`, and the
+kernel's `power_query::is_server` and `is_mobile` ask the decoded profile. The
+theorems below establish that `from_u8` inverts the `repr(u8)` discriminants the
+enum declares (the ACPI numbering), that every byte past 8 (reserved by ACPI) reads
+as `Unspecified`, that no profile is both a server and a mobile system, and, going
+from the raw byte, exactly which bytes make the kernel report a server (4, 5 and 7)
+and which a mobile system (2 and 8).
+
+They cannot establish that the firmware's byte is truthful, and they do not reach
+the parser's table lookup or the `unwrap_or(false)` in `power_query`, which are not
+extracted; a missing FADT and a reserved byte both end up reported as neither.
+-/
+
+/-- Every byte a profile's own discriminant can take decodes back to that profile:
+`from_u8` agrees with the numbering the `repr(u8)` enum declares. -/
+theorem pmprofile_from_u8_inverts_the_declared_discriminants (p : profile.PmProfile) :
+    pmprofile_from_u8 (read_discriminant p) = ok p := by
+  cases p <;> rfl
+
+/-- Bytes 9 to 255 are reserved by ACPI and decode as `Unspecified`, the same as 0. -/
+theorem pmprofile_from_u8_reads_a_reserved_byte_as_unspecified (v : Std.U8)
+    (h : 8 < v.val) : pmprofile_from_u8 v = ok profile.PmProfile.Unspecified := by
+  unfold pmprofile_from_u8 profile.PmProfile.from_u8
+  split <;> first | rfl | exact absurd h (by decide)
+
+private theorem small_byte_cases (v : Std.U8) (h : v.val ≤ 8) :
+    v = 0#u8 ∨ v = 1#u8 ∨ v = 2#u8 ∨ v = 3#u8 ∨ v = 4#u8 ∨ v = 5#u8 ∨ v = 6#u8 ∨
+      v = 7#u8 ∨ v = 8#u8 := by
+  have : v.val = 0 ∨ v.val = 1 ∨ v.val = 2 ∨ v.val = 3 ∨ v.val = 4 ∨ v.val = 5 ∨
+      v.val = 6 ∨ v.val = 7 ∨ v.val = 8 := by omega
+  rcases this with e | e | e | e | e | e | e | e | e
+  · exact Or.inl (UScalar.eq_of_val_eq (by rw [e]; rfl))
+  · exact Or.inr <| Or.inl (UScalar.eq_of_val_eq (by rw [e]; rfl))
+  · exact Or.inr <| Or.inr <| Or.inl (UScalar.eq_of_val_eq (by rw [e]; rfl))
+  · exact Or.inr <| Or.inr <| Or.inr <| Or.inl (UScalar.eq_of_val_eq (by rw [e]; rfl))
+  · exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inl (UScalar.eq_of_val_eq (by rw [e]; rfl))
+  · exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inl
+      (UScalar.eq_of_val_eq (by rw [e]; rfl))
+  · exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inl
+      (UScalar.eq_of_val_eq (by rw [e]; rfl))
+  · exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inl
+      (UScalar.eq_of_val_eq (by rw [e]; rfl))
+  · exact Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr <| Or.inr
+      (UScalar.eq_of_val_eq (by rw [e]; rfl))
+
+/-- No decoded profile is both a server and a mobile system, so the kernel never
+reports a machine as both. -/
+theorem pmprofile_is_server_and_pmprofile_is_mobile_are_exclusive (p : profile.PmProfile) :
+    ¬ (pmprofile_is_server p = ok true ∧ pmprofile_is_mobile p = ok true) := by
+  cases p <;> simp [pmprofile_is_server, pmprofile_is_mobile, profile.PmProfile.is_server,
+    profile.PmProfile.is_mobile]
+
+/-- Read from the raw FADT byte, the kernel reports a server for exactly the ACPI
+values 4 (enterprise server), 5 (SOHO server) and 7 (performance server). The
+appliance PC at 6 and every reserved byte are not servers. -/
+theorem a_fadt_byte_makes_pmprofile_is_server_true_exactly_at_4_5_and_7 (v : Std.U8) :
+    (do let p ← pmprofile_from_u8 v; pmprofile_is_server p) =
+      ok (decide (v.val = 4 ∨ v.val = 5 ∨ v.val = 7)) := by
+  by_cases h : 8 < v.val
+  · rw [pmprofile_from_u8_reads_a_reserved_byte_as_unspecified v h, bind_tc_ok]
+    have : ¬ (v.val = 4 ∨ v.val = 5 ∨ v.val = 7) := by omega
+    simp only [this, decide_false]; rfl
+  · rcases small_byte_cases v (by omega) with e | e | e | e | e | e | e | e | e <;>
+      (subst e; rfl)
+
+/-- Read from the raw FADT byte, the kernel reports a mobile system for exactly the
+ACPI values 2 (mobile) and 8 (tablet). -/
+theorem a_fadt_byte_makes_pmprofile_is_mobile_true_exactly_at_2_and_8 (v : Std.U8) :
+    (do let p ← pmprofile_from_u8 v; pmprofile_is_mobile p) =
+      ok (decide (v.val = 2 ∨ v.val = 8)) := by
+  by_cases h : 8 < v.val
+  · rw [pmprofile_from_u8_reads_a_reserved_byte_as_unspecified v h, bind_tc_ok]
+    have : ¬ (v.val = 2 ∨ v.val = 8) := by omega
+    simp only [this, decide_false]; rfl
+  · rcases small_byte_cases v (by omega) with e | e | e | e | e | e | e | e | e <;>
+      (subst e; rfl)
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.FadtProfile.the_pmprofile_from_u8_wrapper_is_its_method
 #print axioms NonosExtraction.FadtProfile.the_pmprofile_is_server_wrapper_is_its_method
 #print axioms NonosExtraction.FadtProfile.the_pmprofile_is_mobile_wrapper_is_its_method
+#print axioms NonosExtraction.FadtProfile.pmprofile_from_u8_inverts_the_declared_discriminants
+#print axioms NonosExtraction.FadtProfile.pmprofile_from_u8_reads_a_reserved_byte_as_unspecified
+#print axioms NonosExtraction.FadtProfile.pmprofile_is_server_and_pmprofile_is_mobile_are_exclusive
+#print axioms NonosExtraction.FadtProfile.a_fadt_byte_makes_pmprofile_is_server_true_exactly_at_4_5_and_7
+#print axioms NonosExtraction.FadtProfile.a_fadt_byte_makes_pmprofile_is_mobile_true_exactly_at_2_and_8
 
 end NonosExtraction.FadtProfile
