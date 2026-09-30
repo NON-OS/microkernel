@@ -34,7 +34,10 @@ pub fn size_of(name: &[u8]) -> Result<u64, i64> {
         Some(pin) if got == -errno::ENOENT => pin,
         _ => return Err(-got),
     };
+    // Minutes for a large model: the person at a terminal is told why.
+    super::first_use::before(name, pin.bytes);
     let done = mk_data_import(name, &pin.sha256, pin.bytes);
+    super::first_use::after(done);
     let line = match done {
         n if n >= 0 => alloc::format!("[LINUX] model imported and verified: {n} bytes\n"),
         e => alloc::format!("[LINUX] model import refused, errno {}\n", -e),

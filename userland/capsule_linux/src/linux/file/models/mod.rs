@@ -23,6 +23,7 @@
  */
 
 mod catalog;
+mod first_use;
 mod held;
 mod hex;
 mod name;
