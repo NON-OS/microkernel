@@ -35,8 +35,60 @@ namespace NonosExtraction.Riscv64FpuContext
 theorem the_fpcontext_zeroed_wrapper_is_its_method :
     fpcontext_zeroed = context.FpContext.zeroed := rfl
 
+/-! ### A zeroed save area is a safe first state on riscv64
+
+A task's first floating-point state is whatever `riscv64_fpu_restore` loads
+from `FpContext::zeroed` when the lazy-enable path first grants the task the
+FPU, so the value that function returns is the register file every fresh task
+begins with. The theorems below establish that no `f` register and no padding
+word carries a value, so nothing an earlier task left can reach a new one
+through this area, and that `fcsr` selects round to nearest, ties to even, with
+no accrued exception flag set.
+
+The rounding point matters because not every `frm` value is legal: 5 and 6 are
+reserved and 7 (dynamic) is invalid in the register itself, and any
+floating-point instruction that uses dynamic rounding raises an illegal
+instruction exception while `frm` holds one of them. Zero is the valid mode
+0b000. Unlike x86_64 `MXCSR`, `fcsr` has no trap enables, so there is no
+polarity question of the kind `Nonos.FpuState` records.
+
+These are statements about the value the kernel builds, not about the machine.
+The restore itself is assembly outside the extraction, the byte offsets it uses
+(`256` for `fcsr`) depend on the `repr(C)` layout that Aeneas does not model,
+and `FpSlot::zeroed` and `try_enable_for_current_task`, which reach this
+function, are not extracted.
+-/
+
+/-- Read one bit of a 32-bit control word. -/
+def fcsrBit (w : Std.U32) (i : Nat) : Bool := w.val.testBit i
+
+/-- The zeroed area leaves every `f` register and the padding word at zero, so
+    a fresh task observes nothing of the task that used the FPU before it. -/
+theorem fpcontext_zeroed_leaves_no_register_value :
+    ∃ c, fpcontext_zeroed = ok c ∧
+      (∀ x ∈ c.f.val, x = 0#u64) ∧ c._pad = 0#u32 := by
+  refine ⟨_, rfl, ?_, rfl⟩
+  intro x hx
+  rw [Array.repeat_val] at hx
+  exact List.eq_of_mem_replicate hx
+
+/-- The zeroed `fcsr` has rounding mode field `frm` (bits 5 to 7) equal to 0,
+    round to nearest with ties to even, which is a legal static mode, and
+    none of the accrued flags `NX`, `UF`, `OF`, `DZ`, `NV` (bits 0 to 4) set.
+    A fresh task therefore rounds the IEEE 754 default way and does not start
+    with a condition it never raised. -/
+theorem fpcontext_zeroed_rounds_to_nearest_even_with_no_flag :
+    ∃ c, fpcontext_zeroed = ok c ∧
+      c.fcsr.val / 2 ^ 5 % 8 = 0 ∧
+      ∀ i ∈ [0, 1, 2, 3, 4], fcsrBit c.fcsr i = false := by
+  refine ⟨_, rfl, ?_⟩
+  unfold fcsrBit
+  decide
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.Riscv64FpuContext.the_fpcontext_zeroed_wrapper_is_its_method
+#print axioms NonosExtraction.Riscv64FpuContext.fpcontext_zeroed_leaves_no_register_value
+#print axioms NonosExtraction.Riscv64FpuContext.fpcontext_zeroed_rounds_to_nearest_even_with_no_flag
 
 end NonosExtraction.Riscv64FpuContext

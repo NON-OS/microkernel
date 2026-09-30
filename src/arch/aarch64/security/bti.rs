@@ -17,7 +17,9 @@
 mod control;
 mod guard;
 mod landing;
+mod pad;
 
 pub use control::{bti_enabled, bti_supported, disable_bti, enable_bti, init_bti};
 pub use guard::BtiGuard;
 pub use landing::check_bti_landing_pad;
+pub use pad::is_bti_landing_pad;

@@ -35,8 +35,39 @@ namespace NonosExtraction.PacKey
 theorem the_packey_new_wrapper_is_its_method (a : Std.U64) (b : Std.U64) :
     packey_new a b = key.PacKey.new a b := rfl
 
+/-! ### A key keeps its halves where they were given
+
+`keygen.rs` builds every pointer-authentication key as
+`PacKey::new(read_rndr(), read_rndr())` and `pac_apply` later loads `lo` and
+`hi` into the `*KEYLO_EL1` and `*KEYHI_EL1` registers. These theorems establish
+that the constructor stores each argument in its own field, so the two halves
+are neither swapped nor collapsed into one, and that distinct argument pairs
+always give distinct keys (no entropy from either draw is dropped).
+
+They cannot establish anything about the randomness itself: `read_rndr`, the
+system register writes and `from_bytes` are not in this crate.
+-/
+
+/-- The low half is `lo` and the high half is `hi`, and construction always
+    succeeds. -/
+theorem packey_new_stores_lo_in_lo_and_hi_in_hi (lo hi : Std.U64) :
+    packey_new lo hi = ok { lo := lo, hi := hi } := by
+  unfold packey_new key.PacKey.new
+  rfl
+
+/-- Two keys built by `packey_new` are equal only when both halves were equal,
+    so a key depends on every bit of both arguments. -/
+theorem packey_new_keeps_every_bit_of_both_halves (a b c d : Std.U64)
+    (h : packey_new a b = packey_new c d) : a = c ∧ b = d := by
+  rw [packey_new_stores_lo_in_lo_and_hi_in_hi, packey_new_stores_lo_in_lo_and_hi_in_hi] at h
+  cases h
+  exact ⟨rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.PacKey.the_packey_new_wrapper_is_its_method
+
+#print axioms NonosExtraction.PacKey.packey_new_stores_lo_in_lo_and_hi_in_hi
+#print axioms NonosExtraction.PacKey.packey_new_keeps_every_bit_of_both_halves
 
 end NonosExtraction.PacKey

@@ -35,8 +35,48 @@ namespace NonosExtraction.TypesRegionStats
 theorem the_regionstats_free_memory_wrapper_is_its_method (a : region_stats.RegionStats) :
     regionstats_free_memory a = region_stats.RegionStats.free_memory a := rfl
 
+/-! ### Free memory is a saturating difference
+
+`free_memory` reports available memory less allocated memory, and reports zero
+instead of failing when more is allocated than is available. The theorems below
+fix the value on both sides of that comparison, show the query never fails on
+any statistics record, and show the equal case lands on zero. They say nothing
+about whether the counters in a record were filled consistently; the code that
+accumulates them walks the boot memory map and is not extracted. -/
+
+/-- Free memory is the plain difference when available memory exceeds allocated
+    memory, and zero otherwise; the query never fails. -/
+theorem regionstats_free_memory_is_the_saturating_difference
+    (s : region_stats.RegionStats) :
+    ∃ r, regionstats_free_memory s = ok r ∧
+      r.val = if s.allocated_memory.val < s.available_memory.val
+              then s.available_memory.val - s.allocated_memory.val else 0 := by
+  unfold regionstats_free_memory region_stats.RegionStats.free_memory
+  by_cases h : s.allocated_memory.val < s.available_memory.val
+  · have hgt : s.available_memory > s.allocated_memory := h
+    simp only [hgt, if_true, h]
+    have ⟨z, hz, hv⟩ := WP.spec_imp_exists
+      (U64.sub_spec (x := s.available_memory) (y := s.allocated_memory) (by scalar_tac))
+    exact ⟨z, hz, hv.1⟩
+  · have hgt : ¬ (s.available_memory > s.allocated_memory) := h
+    simp only [hgt, if_false, h]
+    exact ⟨_, rfl, rfl⟩
+
+/-- Over-committed statistics, where more is allocated than is available,
+    report zero free memory rather than wrapping to a huge value. -/
+theorem regionstats_free_memory_is_zero_when_allocation_meets_availability
+    (s : region_stats.RegionStats)
+    (h : s.available_memory.val ≤ s.allocated_memory.val) :
+    regionstats_free_memory s = ok 0#u64 := by
+  unfold regionstats_free_memory region_stats.RegionStats.free_memory
+  have hgt : ¬ (s.available_memory > s.allocated_memory) := by
+    show ¬ (s.allocated_memory.val < s.available_memory.val); omega
+  simp only [hgt, if_false]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesRegionStats.the_regionstats_free_memory_wrapper_is_its_method
+#print axioms NonosExtraction.TypesRegionStats.regionstats_free_memory_is_the_saturating_difference
+#print axioms NonosExtraction.TypesRegionStats.regionstats_free_memory_is_zero_when_allocation_meets_availability
 
 end NonosExtraction.TypesRegionStats

@@ -41,10 +41,72 @@ theorem the_increment_ticks_wrapper_is_its_method :
 theorem the_reset_ticks_wrapper_is_its_method :
     reset_ticks = state.reset_ticks := rfl
 
+/-! ### What the clock operations do with the tick counter
+
+The tick counter is one `AtomicU64` static, and Aeneas leaves the atomic
+operations opaque: `new`, `load`, `fetch_add` and `store` are axioms with no
+behaviour attached. The theorems below therefore say what each operation asks
+of the atomic and what it does with the answer. `get_ticks` returns the
+relaxed load unchanged, with no unit conversion or offset. `increment_ticks`
+adds exactly one and fails only if the atomic itself fails, whatever old value
+comes back, so a counter at `u64::MAX` wraps in the timer interrupt rather than
+panicking there. `reset_ticks` stores exactly the value the static is created
+with.
+
+What they cannot establish: that the atomic read-modify-write is indivisible,
+that a relaxed load observes the latest increment, or anything about the
+interrupt path in `interrupts/timer/tick.rs` that calls these functions, none of
+which is extracted. They also cannot square `reset_ticks` with the tier-one
+model in `Nonos.Timer`, where the clock only ever advances: after a reset the
+next `get_ticks` would read zero. Nothing in the tree calls `reset_ticks` today
+(it is only re-exported from `interrupts`).
+-/
+
+/-- The clock read is one relaxed load of the tick counter, returned as it is. -/
+theorem get_ticks_returns_the_relaxed_load_unchanged
+    (c : core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64))
+    (v : Std.U64) (hc : state.TICK_COUNT = ok c)
+    (hv : core.sync.atomic.AtomicU64Align8U64.load c core.sync.atomic.Ordering.Relaxed = ok v) :
+    get_ticks = ok v := by
+  unfold get_ticks state.get_ticks
+  simp only [hc, bind_tc_ok, hv]
+
+/-- The increment asks the atomic to add exactly one, and succeeds exactly when
+    that `fetch_add` succeeds. The old value it returns plays no part, so there
+    is no overflow check that could fail in interrupt context: a counter at
+    `u64::MAX` wraps rather than panicking. -/
+theorem increment_ticks_succeeds_exactly_when_adding_one_succeeds
+    (c : core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64))
+    (hc : state.TICK_COUNT = ok c) :
+    increment_ticks = ok () ↔
+      ∃ v, core.sync.atomic.AtomicU64Align8U64.fetch_add c 1#u64
+        core.sync.atomic.Ordering.Relaxed = ok v := by
+  unfold increment_ticks state.increment_ticks
+  simp only [hc, bind_tc_ok]
+  cases h : core.sync.atomic.AtomicU64Align8U64.fetch_add c 1#u64
+      core.sync.atomic.Ordering.Relaxed with
+  | ok v => simp
+  | fail e => simp
+  | div => simp
+
+/-- The reset stores the same value the tick counter is created with, so after
+    a reset the counter is back at its boot value (zero). -/
+theorem reset_ticks_stores_the_value_the_counter_starts_with :
+    ∃ z : Std.U64, z.val = 0 ∧ state.TICK_COUNT = core.sync.atomic.AtomicU64Align8U64.new z ∧
+      reset_ticks = (do
+        let c ← state.TICK_COUNT
+        core.sync.atomic.AtomicU64Align8U64.store c z core.sync.atomic.Ordering.Relaxed) := by
+  refine ⟨0#u64, rfl, ?_, rfl⟩
+  unfold state.TICK_COUNT
+  rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TimerState.the_get_ticks_wrapper_is_its_method
 #print axioms NonosExtraction.TimerState.the_increment_ticks_wrapper_is_its_method
 #print axioms NonosExtraction.TimerState.the_reset_ticks_wrapper_is_its_method
+#print axioms NonosExtraction.TimerState.get_ticks_returns_the_relaxed_load_unchanged
+#print axioms NonosExtraction.TimerState.increment_ticks_succeeds_exactly_when_adding_one_succeeds
+#print axioms NonosExtraction.TimerState.reset_ticks_stores_the_value_the_counter_starts_with
 
 end NonosExtraction.TimerState

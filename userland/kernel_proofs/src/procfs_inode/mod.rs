@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * A procfs pid directory must not take its inode from a negative pid.
+ * A procfs pid directory's inode must be no other inode.
  *
- * The kernel's pid_dir_inode is included by path. lookup_root used to compute
- * pid as u64 * 1000 + 100 on any parsed i32, so the name -1 overflowed. The
- * check below does not build against that code, which had no such function.
+ * The kernel's pid_dir_inode is included by path. The directory inode was
+ * pid * 1000 + 100: the name -1 overflowed it, pid 0 got the root sys entry's
+ * inode, and pid 131072 got pid 125's task entry inode. The checks below fail
+ * against that numbering.
  */
 
 #[path = "../../../../src/fs/procfs/pid_inode.rs"]

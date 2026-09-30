@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.CapPages
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_cap_pages
@@ -35,8 +36,58 @@ namespace NonosExtraction.CapPages
 theorem the_best_leaf_level_wrapper_is_its_method (a : Std.U64) :
     best_leaf_level a = pages.best_leaf_level a := rfl
 
+/-! ### Which leaf size the capability word selects
+
+    `best_leaf_level` reads two bits of the VT-d capability register: SLLPS bit 1
+    (register bit 35, 1 GiB leaves) and SLLPS bit 0 (register bit 34, 2 MiB
+    leaves). The theorems below say exactly which bit decides each answer, that
+    the 1 GiB bit wins when both are set, that no other bit of the word matters,
+    and that the answer always lies in the range `map_identity` accepts for every
+    depth `preferred_levels` can pick (three, four or five levels), so the
+    identity domain's `leaf_level == 0 || leaf_level > levels` refusal never fires
+    on this value. They cannot establish that the hardware reports SLLPS
+    truthfully, nor anything about `map_identity` itself, which is not extracted
+    here.
+-/
+
+/-- The level is 3 exactly when bit 35 is set, 2 when only bit 34 is set, and 1
+    otherwise. -/
+theorem best_leaf_level_reads_bits_thirty_five_then_thirty_four (cap : Std.U64) :
+    best_leaf_level cap =
+      ok (if cap.val.testBit 35 then 3#u8 else if cap.val.testBit 34 then 2#u8 else 1#u8) := by
+  unfold best_leaf_level pages.best_leaf_level
+  have h1 : pages.SLLPS_1GB = ok 34359738368#u64 := by unfold pages.SLLPS_1GB; rfl
+  have h2 : pages.SLLPS_2MB = ok 17179869184#u64 := by unfold pages.SLLPS_2MB; rfl
+  simp only [h1, h2, lift, bind_tc_ok]
+  rw [Bits.reads_bit cap 34359738368#u64 0#u64 35 rfl rfl,
+    Bits.reads_bit cap 17179869184#u64 0#u64 34 rfl rfl]
+  cases cap.val.testBit 35 <;> cases cap.val.testBit 34 <;> rfl
+
+/-- The level is never 0 and never above 3, the shallowest depth a unit can be
+    driven at, so it always passes the leaf level check in `map_identity`. -/
+theorem best_leaf_level_is_between_one_and_three (cap : Std.U64) :
+    ∃ l : Std.U8, best_leaf_level cap = ok l ∧ 1 ≤ l.val ∧ l.val ≤ 3 := by
+  rw [best_leaf_level_reads_bits_thirty_five_then_thirty_four]
+  refine ⟨_, rfl, ?_⟩
+  cases cap.val.testBit 35 <;> cases cap.val.testBit 34 <;> decide
+
+/-- A unit advertising both leaf sizes gets 1 GiB leaves, and one advertising
+    neither gets 4 KiB leaves; bits outside 34 and 35 are ignored. -/
+theorem best_leaf_level_on_the_two_capability_bits :
+    best_leaf_level 0#u64 = ok 1#u8 ∧
+      best_leaf_level 17179869184#u64 = ok 2#u8 ∧
+      best_leaf_level 34359738368#u64 = ok 3#u8 ∧
+      best_leaf_level 51539607552#u64 = ok 3#u8 ∧
+      best_leaf_level 17179869183#u64 = ok 1#u8 ∧
+      best_leaf_level 68719476736#u64 = ok 1#u8 := by
+  simp only [best_leaf_level_reads_bits_thirty_five_then_thirty_four]
+  exact ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CapPages.the_best_leaf_level_wrapper_is_its_method
+#print axioms NonosExtraction.CapPages.best_leaf_level_reads_bits_thirty_five_then_thirty_four
+#print axioms NonosExtraction.CapPages.best_leaf_level_is_between_one_and_three
+#print axioms NonosExtraction.CapPages.best_leaf_level_on_the_two_capability_bits
 
 end NonosExtraction.CapPages

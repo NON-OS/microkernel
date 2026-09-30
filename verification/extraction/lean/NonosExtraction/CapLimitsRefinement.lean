@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.CapLimits
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_cap_limits
@@ -38,9 +39,103 @@ theorem the_domain_count_wrapper_is_its_method (a : Std.U64) :
 theorem the_max_address_width_wrapper_is_its_method (a : Std.U64) :
     max_address_width a = limits.max_address_width a := rfl
 
+/-! ### What the limit readers decode from the Capability register
+
+`probe_at` stores `max_address_width` and `domain_count` in `UnitInfo`. The
+theorems below say that `domain_count` is exactly `2^(4 + 2 * ND)` for the ND
+field in bits 0 to 2 and 0 for the reserved ND of 7, that the largest count it
+can report is 65536, so every domain id below it fits the kernel's sixteen-bit
+`DomainId`, and that it is zero only for the reserved encoding. They say that
+`max_address_width` is exactly the MGAW field in bits 16 to 21 plus one, since
+the field stores the width less one, and that it lies between 1 and 64. None of
+the readers ever fails: the shift, the multiply and the increment stay in range
+for every capability word.
+
+How the kernel uses the count and the width after probing (the domain table's
+size, the paging depth it picks) is decided outside this crate, so those
+contracts are not established here.
+-/
+
+/-- A right shift of a 64-bit word by a constant below 64 succeeds and divides
+    by that power of two. -/
+private theorem shr_u64 (x : Std.U64) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 64) :
+    ∃ z : Std.U64, x >>> k = ok z ∧ z.val = x.val / 2 ^ k.toNat := by
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftRight_IScalar_spec x k h0 (by simpa using h1))
+  exact ⟨z, hz, by rw [hv, Nat.shiftRight_eq_div_pow]⟩
+
+/-- The domain count as the kernel promises it: `2^(4 + 2 * ND)` for the ND
+    field in bits 0 to 2, and 0 for the reserved ND of 7. It never fails. -/
+theorem domain_count_is_two_to_the_four_plus_twice_nd_and_zero_when_reserved
+    (cap : Std.U64) :
+    ∃ d : Std.U32, domain_count cap = ok d ∧
+      d.val = if cap.val % 8 = 7 then 0 else 2 ^ (4 + 2 * (cap.val % 8)) := by
+  unfold domain_count limits.domain_count
+  simp only [bind_tc_ok, lift]
+  have hf : (UScalar.cast .U32 (cap &&& 7#u64)).val = cap.val % 8 := by
+    rw [UScalar.cast_val_eq, Bits.land_low_mask cap 7#u64 3 rfl]
+    simp [UScalarTy.numBits]
+    omega
+  generalize UScalar.cast .U32 (cap &&& 7#u64) = nd at hf
+  have hlt : cap.val % 8 < 8 := Nat.mod_lt _ (by decide)
+  rw [← hf]
+  obtain ⟨bv⟩ := nd
+  have e : bv = BitVec.ofNat 32 bv.toNat := by simp
+  have hv : bv.toNat < 8 := by
+    have : (⟨bv⟩ : Std.U32).val = bv.toNat := rfl
+    omega
+  rcases (by omega : bv.toNat = 0 ∨ bv.toNat = 1 ∨ bv.toNat = 2 ∨ bv.toNat = 3 ∨
+      bv.toNat = 4 ∨ bv.toNat = 5 ∨ bv.toNat = 6 ∨ bv.toNat = 7)
+    with h | h | h | h | h | h | h | h <;> rw [h] at e <;> subst e <;> exact ⟨_, rfl, rfl⟩
+
+/-- Every count the unit can advertise is at most 65536, reached at ND = 6, so
+    each domain id below it fits the sixteen-bit domain id the context entries
+    carry, and a count is zero only for the reserved ND. -/
+theorem domain_count_is_at_most_sixty_five_thousand_five_hundred_thirty_six
+    (cap : Std.U64) :
+    ∃ d : Std.U32, domain_count cap = ok d ∧ d.val ≤ 65536 ∧
+      (d.val = 0 ↔ cap.val % 8 = 7) := by
+  obtain ⟨d, hd, hv⟩ :=
+    domain_count_is_two_to_the_four_plus_twice_nd_and_zero_when_reserved cap
+  refine ⟨d, hd, ?_⟩
+  rw [hv]
+  have hlt : cap.val % 8 < 8 := Nat.mod_lt _ (by decide)
+  rcases (by omega : cap.val % 8 = 0 ∨ cap.val % 8 = 1 ∨ cap.val % 8 = 2 ∨
+      cap.val % 8 = 3 ∨ cap.val % 8 = 4 ∨ cap.val % 8 = 5 ∨ cap.val % 8 = 6 ∨
+      cap.val % 8 = 7) with h | h | h | h | h | h | h | h <;> rw [h] <;> decide
+
+/-- The address width is the MGAW field, bits 16 to 21, plus one: the field
+    stores the width less one. The increment never overflows a `u8`. -/
+theorem max_address_width_is_bits_sixteen_to_twenty_one_plus_one (cap : Std.U64) :
+    ∃ w : Std.U8, max_address_width cap = ok w ∧
+      w.val = cap.val / 2 ^ 16 % 64 + 1 := by
+  unfold max_address_width limits.max_address_width
+  obtain ⟨z, hz, hv⟩ := shr_u64 cap 16#i32 (by decide) (by decide)
+  simp only [hz, bind_tc_ok, lift]
+  have hf : (UScalar.cast .U8 (z &&& 63#u64)).val = cap.val / 2 ^ 16 % 64 := by
+    rw [UScalar.cast_val_eq, Bits.land_low_mask z 63#u64 6 rfl, hv]
+    simp only [show (16#i32 : Std.I32).toNat = 16 from rfl]
+    simp [UScalarTy.numBits]
+    omega
+  obtain ⟨w, hw, hwv⟩ := WP.spec_imp_exists
+    (U8.add_spec (x := UScalar.cast .U8 (z &&& 63#u64)) (y := 1#u8)
+      (by rw [hf]; scalar_tac))
+  exact ⟨w, hw, by rw [hwv, hf]; rfl⟩
+
+/-- The reported width is never zero and never above 64 bits, whatever the
+    capability word says. -/
+theorem max_address_width_is_between_one_and_sixty_four (cap : Std.U64) :
+    ∃ w : Std.U8, max_address_width cap = ok w ∧ 1 ≤ w.val ∧ w.val ≤ 64 := by
+  obtain ⟨w, hw, hv⟩ := max_address_width_is_bits_sixteen_to_twenty_one_plus_one cap
+  exact ⟨w, hw, by omega, by omega⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CapLimits.the_domain_count_wrapper_is_its_method
 #print axioms NonosExtraction.CapLimits.the_max_address_width_wrapper_is_its_method
+#print axioms NonosExtraction.CapLimits.domain_count_is_two_to_the_four_plus_twice_nd_and_zero_when_reserved
+#print axioms NonosExtraction.CapLimits.domain_count_is_at_most_sixty_five_thousand_five_hundred_thirty_six
+#print axioms NonosExtraction.CapLimits.max_address_width_is_bits_sixteen_to_twenty_one_plus_one
+#print axioms NonosExtraction.CapLimits.max_address_width_is_between_one_and_sixty_four
 
 end NonosExtraction.CapLimits

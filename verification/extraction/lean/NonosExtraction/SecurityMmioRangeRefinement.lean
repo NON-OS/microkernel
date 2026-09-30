@@ -35,8 +35,86 @@ namespace NonosExtraction.SecurityMmioRange
 theorem the_range_ok_wrapper_is_its_method (a : Std.Usize) (b : Std.Usize) :
     range_ok a b = mmio_range.range_ok a b := rfl
 
+/-! ### The admitted windows are exactly the non-empty ones that fit
+
+`range_ok` is the arithmetic `validate_mmio_region` applies first, before it
+checks page alignment and the MMIO address bands. The theorems below give its
+exact answer for every base and size, show that it agrees with the window
+reading of the tier-one model `Nonos.Mmio` (an admitted window holds its own
+base and every address it holds lies below `usize::MAX`), and record the edge at
+the top of the address space: a window whose last byte is `usize::MAX` itself
+is refused, because its one-past-the-end address does not fit in a `usize`.
+They say nothing about the alignment and band checks that follow in
+`validate_mmio_region`, which is not extracted, nor about whether the device
+behind an admitted window exists.
+-/
+
+/-- `range_ok` never fails, and it answers `true` exactly when the size is
+    non-zero and `base + size` does not exceed `usize::MAX`. A version that
+    dropped the zero-size test would admit empty windows, and one that treated
+    an overflowing `checked_add` as success would admit a wrapping window. -/
+theorem range_ok_is_nonempty_and_does_not_overflow (base size : Std.Usize) :
+    range_ok base size =
+      ok (decide (0 < size.val ∧ base.val + size.val ≤ Usize.max)) := by
+  unfold range_ok mmio_range.range_ok
+  split
+  · rename_i h
+    have h0 : size.val = 0 := by rw [h]; rfl
+    simp [h0]
+  · rename_i h
+    have h0 : size.val ≠ 0 := by
+      intro hv; apply h; exact UScalar.eq_of_val_eq (by simpa using hv)
+    simp only [lift, bind_tc_ok]
+    have ha := Usize.checked_add_bv_spec base size
+    cases hc : Usize.checked_add base size with
+    | none =>
+      rw [hc] at ha
+      simp only [ok.injEq, Bool.false_eq, decide_eq_false_iff_not, not_and, not_le]
+      intro _; exact ha
+    | some e =>
+      rw [hc] at ha
+      obtain ⟨hle, hv, _⟩ := ha
+      simp only [ok.injEq, gt_iff_lt, decide_eq_decide]
+      constructor
+      · intro _; exact ⟨by omega, hle⟩
+      · intro _; show base.val < e.val; omega
+
+/-- Agreement with the tier-one model. `Nonos.Mmio.contains` says a window
+    holds `addr` when `base ≤ addr < base + size`; that predicate is written out
+    here because the model is not built for this tier. `range_ok` admits a
+    window exactly when the window holds its own base (so it is not empty) and
+    every address it holds lies strictly below `usize::MAX`. -/
+theorem range_ok_admits_the_model_windows_that_fit (base size : Std.Usize) :
+    range_ok base size = ok true ↔
+      (base.val < base.val + size.val ∧
+        ∀ addr, base.val ≤ addr ∧ addr < base.val + size.val → addr < Usize.max) := by
+  rw [range_ok_is_nonempty_and_does_not_overflow]
+  simp only [ok.injEq, decide_eq_true_eq]
+  constructor
+  · rintro ⟨h0, hle⟩
+    exact ⟨by omega, fun addr ⟨_, h⟩ => by omega⟩
+  · rintro ⟨h0, hall⟩
+    refine ⟨by omega, ?_⟩
+    have := hall (base.val + size.val - 1) ⟨by omega, by omega⟩
+    omega
+
+/-- The edge at the top of the address space. A window whose end is
+    exactly one past `usize::MAX`, so that its last byte is the highest address,
+    is refused: `checked_add` overflows and `range_ok` answers `false`. This is
+    conservative rather than unsafe, and the kernel's MMIO bands do not reach
+    that address. -/
+theorem range_ok_refuses_a_window_ending_at_the_top_of_memory (base size : Std.Usize)
+    (htop : base.val + size.val = Usize.max + 1) :
+    range_ok base size = ok false := by
+  rw [range_ok_is_nonempty_and_does_not_overflow]
+  simp only [ok.injEq, decide_eq_false_iff_not, not_and, not_le]
+  intro _; omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.SecurityMmioRange.the_range_ok_wrapper_is_its_method
+#print axioms NonosExtraction.SecurityMmioRange.range_ok_is_nonempty_and_does_not_overflow
+#print axioms NonosExtraction.SecurityMmioRange.range_ok_admits_the_model_windows_that_fit
+#print axioms NonosExtraction.SecurityMmioRange.range_ok_refuses_a_window_ending_at_the_top_of_memory
 
 end NonosExtraction.SecurityMmioRange

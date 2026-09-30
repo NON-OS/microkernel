@@ -27,6 +27,9 @@ pub struct RemapUnit {
 /// Register window of a unit, per the spec.
 pub const UNIT_WINDOW: usize = 4096;
 
+/* Each accessor bounds the offset by subtracting from the window rather than
+adding to the offset, so no offset, however large, can wrap past the check. */
+
 impl RemapUnit {
     /// # Safety
     /// `base_va` must be a live mapping of `UNIT_WINDOW` uncached bytes over
@@ -40,14 +43,14 @@ impl RemapUnit {
     }
 
     pub fn read32(&self, offset: usize) -> u32 {
-        debug_assert!(offset + 4 <= UNIT_WINDOW);
+        assert!(offset <= UNIT_WINDOW - 4);
         // SAFETY: offset is inside the mapped register window this value
         // promises, and the registers are uncached device memory.
         unsafe { core::ptr::read_volatile((self.base_va as usize + offset) as *const u32) }
     }
 
     pub fn read64(&self, offset: usize) -> u64 {
-        debug_assert!(offset + 8 <= UNIT_WINDOW);
+        assert!(offset <= UNIT_WINDOW - 8);
         // SAFETY: as read32.
         unsafe { core::ptr::read_volatile((self.base_va as usize + offset) as *const u64) }
     }
@@ -56,7 +59,7 @@ impl RemapUnit {
     /// Writing a remapping register changes how devices reach memory. The
     /// caller owns the sequencing the spec requires around the register.
     pub unsafe fn write32(&self, offset: usize, value: u32) {
-        debug_assert!(offset + 4 <= UNIT_WINDOW);
+        assert!(offset <= UNIT_WINDOW - 4);
         // SAFETY: offset is inside the mapped window; the caller owns meaning.
         unsafe { core::ptr::write_volatile((self.base_va as usize + offset) as *mut u32, value) }
     }
@@ -64,7 +67,7 @@ impl RemapUnit {
     /// # Safety
     /// As `write32`.
     pub unsafe fn write64(&self, offset: usize, value: u64) {
-        debug_assert!(offset + 8 <= UNIT_WINDOW);
+        assert!(offset <= UNIT_WINDOW - 8);
         // SAFETY: offset is inside the mapped window; the caller owns meaning.
         unsafe { core::ptr::write_volatile((self.base_va as usize + offset) as *mut u64, value) }
     }

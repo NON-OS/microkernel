@@ -26,10 +26,14 @@ pub struct PortStatsSnapshot {
 }
 
 impl PortStatsSnapshot {
+    /* The counters wrap on their own; their sums saturate rather than abort. */
     pub const fn total_ops(&self) -> u64 {
-        self.read_ops + self.write_ops + self.string_read_ops + self.string_write_ops
+        self.read_ops
+            .saturating_add(self.write_ops)
+            .saturating_add(self.string_read_ops)
+            .saturating_add(self.string_write_ops)
     }
     pub const fn total_bytes(&self) -> u64 {
-        self.bytes_read + self.bytes_written
+        self.bytes_read.saturating_add(self.bytes_written)
     }
 }

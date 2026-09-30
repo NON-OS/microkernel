@@ -22,7 +22,8 @@ pub struct IoApicInfo {
 }
 
 impl IoApicInfo {
+    /* gsi_base comes from the MADT unchecked; saturate rather than abort. */
     pub fn gsi_max(&self) -> u32 {
-        self.gsi_base + 23
+        self.gsi_base.saturating_add(23)
     }
 }

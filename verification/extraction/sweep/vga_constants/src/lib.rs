@@ -27,3 +27,7 @@ pub fn screenchar_as_u16(this: constants::ScreenChar) -> u16 {
     this.as_u16()
 }
 
+
+pub fn colorcode_new(foreground: constants::Color, background: constants::Color) -> constants::ColorCode {
+    constants::ColorCode::new(foreground, background)
+}

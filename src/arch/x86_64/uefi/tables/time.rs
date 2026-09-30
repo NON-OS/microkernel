@@ -41,7 +41,7 @@ impl EfiTime {
             && self.month >= 1
             && self.month <= 12
             && self.day >= 1
-            && self.day <= 31
+            && self.day <= Self::days_in_month(self.year, self.month)
             && self.hour <= 23
             && self.minute <= 59
             && self.second <= 59
@@ -63,6 +63,10 @@ impl EfiTime {
             days += if Self::is_leap_year(y as u16) { 366 } else { 365 };
         }
 
+        for y in year..1970 {
+            days -= if Self::is_leap_year(y as u16) { 366 } else { 365 };
+        }
+
         for m in 1..month {
             days += days_per_month[(m - 1) as usize];
             if m == 2 && Self::is_leap_year(year as u16) {
@@ -79,6 +83,21 @@ impl EfiTime {
             seconds - (self.timezone as i64 * 60)
         } else {
             seconds
+        }
+    }
+
+    /* Only asked for months 1 to 12, which is_valid checks first. */
+    fn days_in_month(year: u16, month: u8) -> u8 {
+        match month {
+            2 => {
+                if Self::is_leap_year(year) {
+                    29
+                } else {
+                    28
+                }
+            }
+            4 | 6 | 9 | 11 => 30,
+            _ => 31,
         }
     }
 

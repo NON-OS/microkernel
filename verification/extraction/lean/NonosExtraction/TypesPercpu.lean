@@ -36,16 +36,18 @@ def percpu.PercpuRegion.new
     Visibility: public -/
 def percpu.PercpuRegion.end (self : percpu.PercpuRegion) : Result Std.U64 := do
   let i ← lift (UScalar.cast .U64 self.size)
-  self.base + i
+  ok (core.num.U64.saturating_add self.base i)
 
 /-- [nonos_x_types_percpu::percpu::{nonos_x_types_percpu::percpu::PercpuRegion}::contains]:
-    Source: 'src/../../../../../src/memory/layout/types/percpu.rs', lines 35:4-37:5
+    Source: 'src/../../../../../src/memory/layout/types/percpu.rs', lines 37:4-39:5
     Visibility: public -/
 def percpu.PercpuRegion.contains
   (self : percpu.PercpuRegion) (addr : Std.U64) : Result Bool := do
   if addr >= self.base
-  then let i ← percpu.PercpuRegion.end self
-       ok (addr < i)
+  then
+    let i ← addr - self.base
+    let i1 ← lift (UScalar.cast .U64 self.size)
+    ok (i < i1)
   else ok false
 
 /-- [nonos_x_types_percpu::percpuregion_new]:

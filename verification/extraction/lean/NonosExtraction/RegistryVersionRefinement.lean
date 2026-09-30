@@ -35,8 +35,24 @@ namespace NonosExtraction.RegistryVersion
 theorem the_libraryversion_new_wrapper_is_its_method (a : Std.U32) (b : Std.U32) (c : Std.U32) :
     libraryversion_new a b c = version.LibraryVersion.new a b c := rfl
 
+/-! ### A version stores its three parts in order
+
+`LibraryVersion::new` builds a version from major, minor and patch numbers. The
+theorem below shows each argument lands in its own field, so a constructor that
+swapped any two parts, which would silently reorder version comparisons, is
+ruled out. It says nothing about the comparison methods on `LibraryVersion`,
+which this crate does not extract. -/
+
+/-- Construction never fails and each part is stored in the field of its name. -/
+theorem libraryversion_new_keeps_major_minor_and_patch_in_place
+    (major minor patch : Std.U32) :
+    ∃ v, libraryversion_new major minor patch = ok v ∧
+      v.major = major ∧ v.minor = minor ∧ v.patch = patch :=
+  ⟨_, rfl, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.RegistryVersion.the_libraryversion_new_wrapper_is_its_method
+#print axioms NonosExtraction.RegistryVersion.libraryversion_new_keeps_major_minor_and_patch_in_place
 
 end NonosExtraction.RegistryVersion

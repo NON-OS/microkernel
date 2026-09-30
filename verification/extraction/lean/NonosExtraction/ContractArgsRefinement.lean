@@ -35,8 +35,46 @@ namespace NonosExtraction.ContractArgs
 theorem the_syscallargs_arg_wrapper_is_its_method (a : args.SyscallArgs) (b : Std.Usize) :
     syscallargs_arg a b = args.SyscallArgs.arg a b := rfl
 
+/-! ### An argument read is the register at that index, or a refusal
+
+`SyscallArgs` holds the six argument registers in the order the per-arch shim
+extracted them, and handlers read them by position. These theorems establish
+that `arg i` answers with exactly the `i`th stored register for every index
+below six, and that every index from six upward is refused with an
+out-of-bounds failure (the Rust bounds-check panic) rather than answered with
+some other register or a default.
+
+They cannot establish that the shim stored the registers in the calling
+convention's order, nor that no handler asks for an index past five: the shims
+and handlers are not extracted.
+-/
+
+/-- Below six, `syscallargs_arg` reads the register at exactly that position. -/
+theorem syscallargs_arg_reads_the_register_at_its_index
+    (a : args.SyscallArgs) (i : Std.Usize) (h : i.val < 6) :
+    syscallargs_arg a i = ok (a.val[i.val]!) := by
+  unfold syscallargs_arg args.SyscallArgs.arg
+  have hl : a.val.length = 6 := by simp [a.property]
+  obtain ⟨x, hx, hv⟩ := WP.spec_imp_exists (Array.index_usize_spec a i (by simp [hl, h]))
+  rw [hx, hv]
+  simp [List.getElem!_eq_getElem?_getD, List.getElem?_eq_getElem (by omega : i.val < a.val.length)]
+
+/-- From six upward, `syscallargs_arg` fails with an out-of-bounds error. -/
+theorem syscallargs_arg_refuses_every_index_from_six
+    (a : args.SyscallArgs) (i : Std.Usize) (h : 6 ≤ i.val) :
+    syscallargs_arg a i = fail .arrayOutOfBounds := by
+  unfold syscallargs_arg args.SyscallArgs.arg Array.index_usize
+  have hl : a.val.length = 6 := by simp [a.property]
+  have hn : a[i]? = none := by
+    simp [hl]
+    omega
+  rw [hn]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ContractArgs.the_syscallargs_arg_wrapper_is_its_method
+
+#print axioms NonosExtraction.ContractArgs.syscallargs_arg_reads_the_register_at_its_index
+#print axioms NonosExtraction.ContractArgs.syscallargs_arg_refuses_every_index_from_six
 
 end NonosExtraction.ContractArgs

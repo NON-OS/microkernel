@@ -28,11 +28,13 @@ impl PercpuRegion {
 
     #[inline]
     pub const fn end(&self) -> u64 {
-        self.base + self.size as u64
+        self.base.saturating_add(self.size as u64)
     }
 
     #[inline]
+    /* Offset from base, so a region flush against the top of the address
+    space neither overflows nor loses its last byte. */
     pub const fn contains(&self, addr: u64) -> bool {
-        addr >= self.base && addr < self.end()
+        addr >= self.base && addr - self.base < self.size as u64
     }
 }

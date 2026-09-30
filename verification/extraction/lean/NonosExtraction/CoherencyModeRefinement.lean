@@ -41,10 +41,62 @@ theorem the_coherency_is_coherent_wrapper_is_its_method (a : mode.Coherency) :
 theorem the_coherency_requires_cache_maintenance_wrapper_is_its_method (a : mode.Coherency) :
     coherency_requires_cache_maintenance a = mode.Coherency.requires_cache_maintenance a := rfl
 
+/-! ### Coherency is one bit, and maintenance is its negation
+
+`from_bool` and `is_coherent` are inverse to each other: the flag a DMA region
+records is the flag read back, and a mode is coherent exactly when it is
+`Coherent`. `requires_cache_maintenance` is the negation of `is_coherent` on
+both modes, so exactly one of the two answers holds and there is no mode that
+is neither coherent nor maintained.
+
+The contract the aarch64 backend relies on follows. `sync_for_device` and
+`sync_for_cpu` in `coherency/backend_aarch64/sync.rs` clean or invalidate the
+cache only when `requires_cache_maintenance` holds, and the allocators in
+`dma/allocator/buffer.rs` and `buffer_iommu.rs` build the mode with
+`from_bool(region.coherent)`. A region not marked coherent therefore always gets
+cache maintenance, and a coherent one never does. The backends, the allocators
+and the barriers they issue are not extracted, so these theorems cannot show
+that the maintenance itself is correct, only which regions ask for it.
+-/
+
+/-- Reading back the mode built from a flag returns the flag. -/
+theorem coherency_is_coherent_reads_back_coherency_from_bool (b : Bool) :
+    (coherency_from_bool b >>= coherency_is_coherent) = ok b := by
+  cases b <;> rfl
+
+/-- A mode is coherent exactly when it is `Coherent`. -/
+theorem coherency_is_coherent_holds_only_for_coherent (c : mode.Coherency) :
+    coherency_is_coherent c = ok true ↔ c = .Coherent := by
+  cases c <;> simp [coherency_is_coherent, mode.Coherency.is_coherent]
+
+/-- Building from the flag of a mode rebuilds that mode, so `from_bool` reaches
+both modes and loses nothing. -/
+theorem coherency_from_bool_rebuilds_the_mode_it_is_read_from (c : mode.Coherency) :
+    (coherency_is_coherent c >>= coherency_from_bool) = ok c := by
+  cases c <;> rfl
+
+/-- Cache maintenance is required exactly when the mode is not coherent. -/
+theorem coherency_requires_cache_maintenance_is_not_coherency_is_coherent
+    (c : mode.Coherency) :
+    coherency_requires_cache_maintenance c = (coherency_is_coherent c >>= fun b => ok (!b)) := by
+  cases c <;> rfl
+
+/-- The caller contract: a DMA region whose `coherent` flag is `b` requires cache
+maintenance exactly when `b` is false. -/
+theorem coherency_requires_cache_maintenance_of_coherency_from_bool_is_its_negation
+    (b : Bool) :
+    (coherency_from_bool b >>= coherency_requires_cache_maintenance) = ok (!b) := by
+  cases b <;> rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CoherencyMode.the_coherency_from_bool_wrapper_is_its_method
 #print axioms NonosExtraction.CoherencyMode.the_coherency_is_coherent_wrapper_is_its_method
 #print axioms NonosExtraction.CoherencyMode.the_coherency_requires_cache_maintenance_wrapper_is_its_method
+#print axioms NonosExtraction.CoherencyMode.coherency_is_coherent_reads_back_coherency_from_bool
+#print axioms NonosExtraction.CoherencyMode.coherency_is_coherent_holds_only_for_coherent
+#print axioms NonosExtraction.CoherencyMode.coherency_from_bool_rebuilds_the_mode_it_is_read_from
+#print axioms NonosExtraction.CoherencyMode.coherency_requires_cache_maintenance_is_not_coherency_is_coherent
+#print axioms NonosExtraction.CoherencyMode.coherency_requires_cache_maintenance_of_coherency_from_bool_is_its_negation
 
 end NonosExtraction.CoherencyMode

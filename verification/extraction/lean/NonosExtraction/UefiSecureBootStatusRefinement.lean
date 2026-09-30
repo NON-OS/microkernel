@@ -38,9 +38,85 @@ theorem the_securebootstatus_is_fully_configured_wrapper_is_its_method (a : secu
 theorem the_securebootstatus_can_modify_keys_wrapper_is_its_method (a : secure_boot_status.SecureBootStatus) :
     securebootstatus_can_modify_keys a = secure_boot_status.SecureBootStatus.can_modify_keys a := rfl
 
+/-! ### What fully configured requires, and what key modification reads
+
+    `securebootstatus_is_fully_configured` holds exactly when secure boot is
+    enabled and the platform key, the key exchange key and the signature
+    database are all present. Each of the four is necessary on its own: a status
+    missing any one of them is refused whatever the other fields hold. The
+    revocation database is not among them, and neither are the entry counts, so
+    a status with no `dbx` and an empty `db` still reports fully configured.
+    `securebootstatus_can_modify_keys` is the setup mode flag and nothing else:
+    it does not look at whether secure boot is enabled or a platform key is
+    present. The two can both hold, so the status type itself does not encode
+    the UEFI rule that a platform in setup mode has no platform key; that rule
+    lives in whatever fills the fields. These theorems cannot establish anything
+    about secure_boot_ops::get_status, which reads the fields from firmware
+    variables through the UEFI manager and is not extracted.
+-/
+
+/-- Fully configured is the conjunction of enabled, PK, KEK and db, independent
+    of setup mode, dbx and the entry counts. -/
+theorem securebootstatus_is_fully_configured_is_enabled_with_pk_kek_and_db
+    (s : secure_boot_status.SecureBootStatus) :
+    securebootstatus_is_fully_configured s =
+      ok (s.enabled && s.has_pk && s.has_kek && s.has_db) := by
+  unfold securebootstatus_is_fully_configured
+    secure_boot_status.SecureBootStatus.is_fully_configured
+  cases s.enabled <;> cases s.has_pk <;> cases s.has_kek <;> simp
+
+/-- Dropping any one of the four requirements makes the status not fully
+    configured, so none of the checks is redundant. -/
+theorem securebootstatus_is_fully_configured_needs_each_of_the_four
+    (s : secure_boot_status.SecureBootStatus)
+    (h : s.enabled = false ∨ s.has_pk = false ∨ s.has_kek = false ∨ s.has_db = false) :
+    securebootstatus_is_fully_configured s = ok false := by
+  rw [securebootstatus_is_fully_configured_is_enabled_with_pk_kek_and_db]
+  rcases h with h | h | h | h <;> simp [h]
+
+/-- A status with no revocation database and no signature entries still reports
+    fully configured. -/
+theorem securebootstatus_is_fully_configured_ignores_dbx_and_entry_counts :
+    securebootstatus_is_fully_configured
+      { enabled := true, setup_mode := false, has_pk := true, has_kek := true,
+        has_db := true, has_dbx := false, db_entry_count := 0#usize,
+        dbx_entry_count := 0#usize } = ok true := rfl
+
+/-- Key modification is permitted exactly in setup mode, whatever else the
+    status says. -/
+theorem securebootstatus_can_modify_keys_is_setup_mode
+    (s : secure_boot_status.SecureBootStatus) :
+    securebootstatus_can_modify_keys s = ok s.setup_mode := rfl
+
+/-- A status can report both fully configured and key modification permitted:
+    the type does not exclude setup mode alongside a platform key. -/
+theorem securebootstatus_can_modify_keys_while_fully_configured :
+    ∃ s : secure_boot_status.SecureBootStatus,
+      securebootstatus_is_fully_configured s = ok true ∧
+      securebootstatus_can_modify_keys s = ok true :=
+  ⟨{ enabled := true, setup_mode := true, has_pk := true, has_kek := true,
+      has_db := true, has_dbx := true, db_entry_count := 1#usize,
+      dbx_entry_count := 1#usize }, rfl, rfl⟩
+
+/-- The kernel's default status (secure boot off, setup mode on, no keys) is not
+    fully configured and permits key modification. -/
+theorem the_default_status_is_not_fully_configured_and_securebootstatus_can_modify_keys :
+    let d : secure_boot_status.SecureBootStatus :=
+      { enabled := false, setup_mode := true, has_pk := false, has_kek := false,
+        has_db := false, has_dbx := false, db_entry_count := 0#usize,
+        dbx_entry_count := 0#usize }
+    securebootstatus_is_fully_configured d = ok false ∧
+      securebootstatus_can_modify_keys d = ok true := ⟨rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.UefiSecureBootStatus.the_securebootstatus_is_fully_configured_wrapper_is_its_method
 #print axioms NonosExtraction.UefiSecureBootStatus.the_securebootstatus_can_modify_keys_wrapper_is_its_method
+#print axioms NonosExtraction.UefiSecureBootStatus.securebootstatus_is_fully_configured_is_enabled_with_pk_kek_and_db
+#print axioms NonosExtraction.UefiSecureBootStatus.securebootstatus_is_fully_configured_needs_each_of_the_four
+#print axioms NonosExtraction.UefiSecureBootStatus.securebootstatus_is_fully_configured_ignores_dbx_and_entry_counts
+#print axioms NonosExtraction.UefiSecureBootStatus.securebootstatus_can_modify_keys_is_setup_mode
+#print axioms NonosExtraction.UefiSecureBootStatus.securebootstatus_can_modify_keys_while_fully_configured
+#print axioms NonosExtraction.UefiSecureBootStatus.the_default_status_is_not_fully_configured_and_securebootstatus_can_modify_keys
 
 end NonosExtraction.UefiSecureBootStatus

@@ -17,12 +17,20 @@
 use super::pid_inode::pid_dir_inode;
 
 #[test]
-fn negative_pids_have_no_directory_inode() {
+fn only_pids_from_one_have_a_directory_inode() {
     assert_eq!(pid_dir_inode(-1), None);
     assert_eq!(pid_dir_inode(i32::MIN), None);
-    assert_eq!(pid_dir_inode(0), Some(100));
-    assert_eq!(pid_dir_inode(i32::MAX), Some(2_147_483_647_100));
-    for pid in 0..2048 {
-        assert_eq!(pid_dir_inode(pid), Some(pid as u64 * 1000 + 100));
+    assert_eq!(pid_dir_inode(0), None);
+    assert_eq!(pid_dir_inode(1), Some(1 << 20));
+    assert_eq!(pid_dir_inode(i32::MAX), Some((i32::MAX as u64) << 20));
+}
+
+#[test]
+fn directory_inodes_miss_root_and_entry_inodes() {
+    for pid in 1..4096 {
+        let ino = pid_dir_inode(pid).expect("inode");
+        assert!(ino >= 1 << 20, "pid {pid} reaches the root entries");
+        assert_eq!(ino & 0xF_FFFF, 0, "pid {pid} shares an entry's low bits");
     }
+    assert_ne!(pid_dir_inode(131072), Some((125 << 20) | 100));
 }

@@ -38,9 +38,48 @@ theorem the_protectionflags_new_wrapper_is_its_method :
 theorem the_protectionflags_is_fully_protected_wrapper_is_its_method (a : protection.ProtectionFlags) :
     protectionflags_is_fully_protected a = protection.ProtectionFlags.is_fully_protected a := rfl
 
+/-! ### Full protection is the four mandatory features, and bring-up starts with none
+
+    The kernel file promises that a caller gating on these flags never gets a
+    false yes. These theorems establish that `protectionflags_new` claims none of
+    the five features, so an MMU read before bring-up is not fully protected;
+    that `protectionflags_is_fully_protected` is true exactly when SMEP, SMAP, NX
+    and WP are all set, so clearing any one of them makes it false; and that
+    UMIP, which the source marks best-effort, does not affect the answer either
+    way. They cannot establish that the fields reflect the control registers,
+    since the register reads that set them and the mutex around them are not
+    extracted.
+-/
+
+theorem protectionflags_new_claims_no_protection :
+    protectionflags_new = ok (protection.ProtectionFlags.mk
+      (smep_enabled := false) (smap_enabled := false) (nx_enabled := false)
+      (wp_enabled := false) (umip_enabled := false)) := rfl
+
+theorem protectionflags_new_is_not_fully_protected :
+    (do let f ← protectionflags_new; protectionflags_is_fully_protected f) = ok false := rfl
+
+theorem protectionflags_is_fully_protected_exactly_when_smep_smap_nx_and_wp_are_set
+    (f : protection.ProtectionFlags) :
+    protectionflags_is_fully_protected f =
+      ok (f.smep_enabled && f.smap_enabled && f.nx_enabled && f.wp_enabled) := by
+  unfold protectionflags_is_fully_protected protection.ProtectionFlags.is_fully_protected
+  cases f.smep_enabled <;> cases f.smap_enabled <;> cases f.nx_enabled <;> rfl
+
+/-- UMIP is tracked but not required: setting or clearing it never changes
+    whether the flags count as fully protected. -/
+theorem protectionflags_is_fully_protected_ignores_umip (f : protection.ProtectionFlags) (u : Bool) :
+    protectionflags_is_fully_protected { f with umip_enabled := u } =
+      protectionflags_is_fully_protected f := by
+  simp only [protectionflags_is_fully_protected_exactly_when_smep_smap_nx_and_wp_are_set]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesProtection.the_protectionflags_new_wrapper_is_its_method
 #print axioms NonosExtraction.TypesProtection.the_protectionflags_is_fully_protected_wrapper_is_its_method
+#print axioms NonosExtraction.TypesProtection.protectionflags_new_claims_no_protection
+#print axioms NonosExtraction.TypesProtection.protectionflags_new_is_not_fully_protected
+#print axioms NonosExtraction.TypesProtection.protectionflags_is_fully_protected_exactly_when_smep_smap_nx_and_wp_are_set
+#print axioms NonosExtraction.TypesProtection.protectionflags_is_fully_protected_ignores_umip
 
 end NonosExtraction.TypesProtection

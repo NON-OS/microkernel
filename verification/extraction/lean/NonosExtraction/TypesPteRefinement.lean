@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.TypesPte
+import NonosExtraction.MemoryMmuTypesPteDecode
 
 open Aeneas Aeneas.Std Result
 open nonos_x_types_pte
@@ -35,8 +36,58 @@ namespace NonosExtraction.TypesPte
 theorem the_pagetableentry_empty_wrapper_is_its_method :
     pagetableentry_empty = pte.PageTableEntry.empty := rfl
 
+/-! ### The empty entry is the decoding of a zero word
+
+`PageTable::new` fills all 512 slots of a fresh table with
+`PageTableEntry::empty()`. The theorems below show that `pagetableentry_empty`
+never fails and agrees field by field with what the kernel's own decoder,
+`PageTableEntry::from_raw`, reads from the zero word the hardware sees in an
+untouched slot, and that the entry is therefore not present, grants no write
+or user access, and names physical frame zero. They do not cover the encoder
+`to_raw`, which is not extracted, nor the separate raw-word `PageTableEntry`
+of the process address space.
+-/
+
+/-- Agreement with the decoder: every field of `pagetableentry_empty` equals
+    the field `pagetableentry_from_raw` decodes from `0`. A version of `empty`
+    that set any flag, or any non-zero address, would disagree with what the
+    hardware reads from a cleared slot. -/
+theorem pagetableentry_empty_is_the_decoding_of_zero :
+    ∃ e d, pagetableentry_empty = ok e ∧
+      nonos_x_memory_mmu_types_pte_decode.pagetableentry_from_raw 0#u64 = ok d ∧
+      e.present = d.present ∧ e.writable = d.writable ∧
+      e.user_accessible = d.user_accessible ∧ e.write_through = d.write_through ∧
+      e.cache_disabled = d.cache_disabled ∧ e.accessed = d.accessed ∧
+      e.dirty = d.dirty ∧ e.huge_page = d.huge_page ∧ e.global = d.global ∧
+      e.no_execute = d.no_execute ∧ e.physical_address = d.physical_address := by
+  open nonos_x_memory_mmu_types_pte_decode in
+  have hd : pagetableentry_from_raw 0#u64 =
+      ok { present := false, writable := false, user_accessible := false,
+           write_through := false, cache_disabled := false, accessed := false,
+           dirty := false, huge_page := false, global := false, no_execute := false,
+           physical_address := 0#u64 } := by
+    unfold pagetableentry_from_raw memory.mmu.types.pte_decode.PageTableEntry.from_raw
+    unfold memory.mmu.constants.pte.PTE_PRESENT memory.mmu.constants.pte.PTE_WRITABLE
+      memory.mmu.constants.pte.PTE_USER memory.mmu.constants.pte.PTE_WRITE_THROUGH
+      memory.mmu.constants.pte.PTE_CACHE_DISABLE memory.mmu.constants.pte.PTE_ACCESSED
+      memory.mmu.constants.pte.PTE_DIRTY memory.mmu.constants.pte.PTE_HUGE_PAGE
+      memory.mmu.constants.pte.PTE_GLOBAL memory.mmu.constants.pte.PTE_NO_EXECUTE
+      memory.mmu.constants.pte.PTE_ADDR_MASK
+    rfl
+  exact ⟨_, _, rfl, hd, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- The empty entry maps nothing: it is not present, not writable, not
+    reachable from user mode, and names physical frame zero. -/
+theorem pagetableentry_empty_maps_nothing :
+    ∃ e, pagetableentry_empty = ok e ∧
+      e.present = false ∧ e.writable = false ∧ e.user_accessible = false ∧
+      e.physical_address.val = 0 :=
+  ⟨_, rfl, rfl, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesPte.the_pagetableentry_empty_wrapper_is_its_method
+#print axioms NonosExtraction.TypesPte.pagetableentry_empty_is_the_decoding_of_zero
+#print axioms NonosExtraction.TypesPte.pagetableentry_empty_maps_nothing
 
 end NonosExtraction.TypesPte

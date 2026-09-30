@@ -34,8 +34,11 @@ reaches through the scalar and `Result` encoding the extraction produces.
 
 The last group is about the level arithmetic, which is partial. `index_for` and
 `level_span` both compute `level - 1` and shift by it, so level zero underflows:
-`the_span_fails_at_level_zero` is that failure, as the overflow it really is. The
-shift also passes the word width at level seven, which is not proven here.
+`the_span_fails_at_level_zero` and `the_index_fails_at_level_zero` are that
+failure, as the overflow it really is. For levels one to six the index is the
+nine-bit slice of the address above that level's shift; at level seven the shift
+passes the word width, which is not stated here. `fits_address_width` is exact
+for every width, the top one included.
 
 Rather than clamp, which would replace a loud failure with a wrong index,
 `the_producer_keeps_the_indexing_total` proves the precondition holds. The only
@@ -45,6 +48,7 @@ because of what can reach it, and that is a theorem rather than an argument.
 -/
 
 import NonosExtraction.Iommu
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_iommu
@@ -276,6 +280,68 @@ theorem the_producer_keeps_the_indexing_total (l : Agaw) :
 theorem the_span_fails_at_level_zero : slSpan 0#u8 = fail Error.integerOverflow := by
   rfl
 
+/-- For levels one to six, `index_for` is the nine bits of the address above that
+    level's shift, `12 + 9 * (level - 1)`: bits 12 to 20 at level one, 21 to 29
+    at level two, and so on. The walk uses it to pick the entry at each level. -/
+theorem sl_index_for_is_the_nine_bit_slice (addr : Std.U64) (level : Std.U8)
+    (h1 : 1 ≤ level.val) (h6 : level.val ≤ 6) :
+    ∃ i : Std.Usize, arch.x86_64.iommu.tables.sl_pte.index_for addr level = ok i ∧
+      i.val = addr.val / 2 ^ (12 + 9 * (level.val - 1)) % 512 := by
+  unfold arch.x86_64.iommu.tables.sl_pte.index_for arch.x86_64.iommu.tables.sl_pte.LEVEL_SHIFT
+    arch.x86_64.iommu.tables.sl_pte.PAGE_SHIFT arch.x86_64.iommu.tables.sl_pte.ENTRIES
+  have hc : (UScalar.cast .U32 level).val = level.val := by
+    rw [UScalar.cast_val_eq]; have := level.hBounds; simp at this ⊢; omega
+  simp only [lift, bind_tc_ok]
+  have ⟨a, ha, hav⟩ := WP.spec_imp_exists
+    (U32.sub_spec (x := UScalar.cast .U32 level) (y := 1#u32) (by scalar_tac))
+  simp only [ha, bind_tc_ok]
+  have ⟨b, hb, hbv⟩ := WP.spec_imp_exists (U32.mul_spec (x := 9#u32) (y := a) (by scalar_tac))
+  simp only [hb, bind_tc_ok]
+  have ⟨s, hs, hsv⟩ := WP.spec_imp_exists (U32.add_spec (x := 12#u32) (y := b) (by scalar_tac))
+  simp only [hs, bind_tc_ok]
+  obtain ⟨r, hr, hrv, -⟩ := WP.spec_imp_exists
+    (UScalar.ShiftRight_spec addr s (by simp; scalar_tac))
+  simp only [hr, bind_tc_ok]
+  have ⟨m, hm, hmv⟩ := WP.spec_imp_exists (Usize.sub_spec (x := 512#usize) (y := 1#usize) (by scalar_tac))
+  simp only [hm]
+  refine ⟨_, rfl, ?_⟩
+  have hm511 : m.val = 2 ^ 9 - 1 := by scalar_tac
+  rw [Bits.land_low_mask _ m 9 hm511, UScalar.cast_val_eq, hrv, Nat.shiftRight_eq_div_pow]
+  have hsv' : s.val = 12 + 9 * (level.val - 1) := by scalar_tac
+  rw [hsv']
+  have hw : 9 ≤ UScalarTy.Usize.numBits := by
+    simp [UScalarTy.numBits]; have := System.Platform.numBits_eq; omega
+  rw [Nat.mod_mod_of_dvd _ (Nat.pow_dvd_pow 2 hw)]
+
+theorem the_index_fails_at_level_zero (addr : Std.U64) :
+    arch.x86_64.iommu.tables.sl_pte.index_for addr 0#u8 = fail Error.integerOverflow := by
+  rfl
+
+/-- The width check is exact: an address fits a width below 64 exactly when it is
+    below `2 ^ width`, and every address fits a width of 64 or more. -/
+theorem sl_fits_address_width_is_below_two_to_the_width (addr : Std.U64) (w : Std.U8) :
+    arch.x86_64.iommu.tables.sl_pte.fits_address_width addr w =
+      ok (decide (64 ≤ w.val ∨ addr.val < 2 ^ w.val)) := by
+  unfold arch.x86_64.iommu.tables.sl_pte.fits_address_width
+  by_cases h : 64 ≤ w.val
+  · have : w >= 64#u8 := by scalar_tac
+    simp [this, h]
+  · have : ¬ w >= 64#u8 := by scalar_tac
+    simp only [this, ↓reduceIte]
+    have ⟨z, hz, hv, _⟩ := (WP.spec_equiv_exists _ _).mp
+      (UScalar.ShiftLeft_spec (1#u64) w (2 ^ 64) (by simp; omega) (by simp [U64.size, U64.numBits]))
+    simp only [hz, bind_tc_ok]
+    have hzv : z.val = 2 ^ w.val := by
+      rw [hv]; simp only [UScalar.val, Nat.shiftLeft_eq]
+      have hw : w.val < 64 := by omega
+      have hp : 2 ^ w.val < 2 ^ 64 := Nat.pow_lt_pow_right (by decide) hw
+      simp only [show (1#u64 : Std.U64).bv.toNat = 1 from rfl, Nat.one_mul]
+      exact Nat.mod_eq_of_lt hp
+    congr 1
+    simp only [h, false_or, decide_eq_decide]
+    show addr.val < z.val ↔ _
+    rw [hzv]
+
 theorem the_depth_is_three_four_or_five (l : Agaw) :
     agaw_page_table_levels l = ok 3#u8 ∨ agaw_page_table_levels l = ok 4#u8 ∨
       agaw_page_table_levels l = ok 5#u8 := by
@@ -311,6 +377,9 @@ theorem the_context_width_fits_its_field (l : Agaw) :
 #print axioms NonosExtraction.the_domain_id_round_trips
 #print axioms NonosExtraction.out_of_range_device_numbers_alias
 #print axioms NonosExtraction.the_span_fails_at_level_zero
+#print axioms NonosExtraction.sl_index_for_is_the_nine_bit_slice
+#print axioms NonosExtraction.the_index_fails_at_level_zero
+#print axioms NonosExtraction.sl_fits_address_width_is_below_two_to_the_width
 #print axioms NonosExtraction.a_snooped_leaf_sets_bit_eleven
 #print axioms NonosExtraction.an_unsnooped_leaf_leaves_bit_eleven_clear
 #print axioms NonosExtraction.snoop_is_the_only_difference

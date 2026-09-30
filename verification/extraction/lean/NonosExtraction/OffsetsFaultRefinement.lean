@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.OffsetsFault
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_offsets_fault
@@ -38,9 +39,85 @@ theorem the_frcd_reason_wrapper_is_its_method (a : Std.U64) :
 theorem the_frcd_source_wrapper_is_its_method (a : Std.U64) :
     frcd_source a = fault.frcd_source a := rfl
 
+/-! ### Which bits of a fault record each reader returns
+
+`take_fault` reads the high half of a VT-d fault recording register once and
+builds a `FaultRecord` from it: the requester that faulted from `frcd_source`,
+the reason code from `frcd_reason`, and the fault and read flags from the
+`FRCD_FAULT` and `FRCD_TYPE_READ` masks (bits 63 and 62). The theorems below say
+that `frcd_source` is exactly bits 0 to 15 of the word and `frcd_reason` is
+exactly bits 32 to 39, and that neither ever fails. They then state the
+agreement a caller relies on: for a word laid out as the specification lays
+it out (source id in the low sixteen bits, reason at bit 32, the fault bit set
+and the type bit either way), the two readers give back the source and the
+reason that were put there. A reader that shifted by 24, or kept only seven
+bits of the reason, or whose field overlapped the flag bits, would report the
+wrong device or the wrong cause.
+
+`take_fault` itself, the MMIO reads through `RemapUnit`, and
+`cap::fault_recording_offset` are not in this crate, so which register the word
+comes from is not established here, and the flag masks are kernel constants the
+extraction does not carry: the round trip states their bit positions directly.
+-/
+
+/-- A right shift of a 64-bit word by a constant below 64 succeeds and divides
+    by that power of two. -/
+private theorem shr_u64 (x : Std.U64) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 64) :
+    ∃ z : Std.U64, x >>> k = ok z ∧ z.val = x.val / 2 ^ k.toNat := by
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftRight_IScalar_spec x k h0 (by simpa using h1))
+  exact ⟨z, hz, by rw [hv, Nat.shiftRight_eq_div_pow]⟩
+
+/-- The reason code is bits 32 to 39 of the record's high word. -/
+theorem frcd_reason_is_bits_thirty_two_to_thirty_nine (high : Std.U64) :
+    ∃ r : Std.U8, frcd_reason high = ok r ∧ r.val = high.val / 2 ^ 32 % 256 := by
+  unfold frcd_reason fault.frcd_reason
+  obtain ⟨z, hz, hv⟩ := shr_u64 high 32#i32 (by decide) (by decide)
+  simp only [hz, bind_tc_ok, lift]
+  refine ⟨_, rfl, ?_⟩
+  rw [UScalar.cast_val_eq, Bits.land_low_mask z 255#u64 8 rfl, hv]
+  simp only [show (32#i32 : Std.I32).toNat = 32 from rfl]
+  simp [UScalarTy.numBits]
+
+/-- The source id is the low sixteen bits of the record's high word. -/
+theorem frcd_source_is_the_low_sixteen_bits (high : Std.U64) :
+    ∃ s : Std.U16, frcd_source high = ok s ∧ s.val = high.val % 65536 := by
+  unfold frcd_source fault.frcd_source
+  simp only [bind_tc_ok, lift]
+  refine ⟨_, rfl, ?_⟩
+  rw [UScalar.cast_val_eq, Bits.land_low_mask high 65535#u64 16 rfl]
+  simp [UScalarTy.numBits]
+
+/-- A record laid out as the hardware lays it out reads back as the source and
+    reason it carries, whatever the read flag says. The fault and type bits do
+    not leak into either field. -/
+theorem frcd_source_and_frcd_reason_read_back_a_recorded_fault
+    (sid : Std.U16) (reason : Std.U8) (read : Bool) (high : Std.U64)
+    (h : high.val = 2 ^ 63 + (if read then 2 ^ 62 else 0) + reason.val * 2 ^ 32 + sid.val) :
+    frcd_source high = ok sid ∧ frcd_reason high = ok reason := by
+  have hs := sid.hBounds
+  have hr := reason.hBounds
+  simp [UScalarTy.numBits] at hs hr
+  obtain ⟨s, hs1, hsv⟩ := frcd_source_is_the_low_sixteen_bits high
+  obtain ⟨r, hr1, hrv⟩ := frcd_reason_is_bits_thirty_two_to_thirty_nine high
+  refine ⟨?_, ?_⟩
+  · rw [hs1]
+    congr 1
+    apply UScalar.eq_of_val_eq
+    rw [hsv, h]
+    cases read <;> simp <;> omega
+  · rw [hr1]
+    congr 1
+    apply UScalar.eq_of_val_eq
+    rw [hrv, h]
+    cases read <;> simp <;> omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.OffsetsFault.the_frcd_reason_wrapper_is_its_method
 #print axioms NonosExtraction.OffsetsFault.the_frcd_source_wrapper_is_its_method
+#print axioms NonosExtraction.OffsetsFault.frcd_reason_is_bits_thirty_two_to_thirty_nine
+#print axioms NonosExtraction.OffsetsFault.frcd_source_is_the_low_sixteen_bits
+#print axioms NonosExtraction.OffsetsFault.frcd_source_and_frcd_reason_read_back_a_recorded_fault
 
 end NonosExtraction.OffsetsFault
