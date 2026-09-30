@@ -19,9 +19,8 @@ use alloc::vec::Vec;
 use super::open::{open, Opened};
 use super::probe::probe;
 use crate::choose::Candidate;
-use crate::constants::PORT_KIND_SATA;
 use crate::discover::Found;
-use crate::engine::{init_port, Port};
+use crate::engine::{init_port, may_be_disk, Port};
 use crate::error::AhciError;
 
 /// A port that came up, kept running until the choice is made.
@@ -38,9 +37,10 @@ pub(super) struct Walk {
     pub first_error: Option<AhciError>,
 }
 
-/// Open every controller in `found` and bring up every present SATA port on
-/// each, reading the probe sectors of each disk. `Candidate::controller` is
-/// the controller's index in `opened`.
+/// Open every controller in `found` and bring up every port on each whose link
+/// is up and whose signature names no other device kind; init_port keeps only
+/// an ATA disk. The probe sectors of each disk are read. `Candidate::controller`
+/// is the controller's index in `opened`.
 pub(super) fn walk(found: &[Found]) -> Walk {
     let mut w = Walk { opened: Vec::new(), probed: Vec::new(), first_error: None };
     for dev in found {
@@ -52,7 +52,7 @@ pub(super) fn walk(found: &[Found]) -> Walk {
             }
         };
         let controller = w.opened.len();
-        for p in ctl.ports.iter().filter(|p| p.present == 1 && p.kind == PORT_KIND_SATA) {
+        for p in ctl.ports.iter().filter(|p| p.present == 1 && may_be_disk(p.sig)) {
             let Ok(mut port) = init_port(dev.device_id, ctl.epoch, ctl.regs, p.index) else {
                 continue;
             };

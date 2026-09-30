@@ -69,17 +69,17 @@ and are revoked by kernel teardown.
 
 ## Runtime lifecycle
 
-The capsule opens every AHCI controller the device list reports, brings up each
-present SATA port, and reads (never writes) LBA 256 and 65536 for the NONOS store
-and plan magics. It serves the first disk carrying either, else the first port
-that came up, parks the rest, releases the other controllers, then serves IPC.
+The capsule opens and resets every AHCI controller the device list reports,
+brings up each port with a link, keeps those whose signature after link-up is an
+ATA disk, and reads (never writes) LBA 256 and 65536 for the NONOS store and plan
+magics. It serves the first disk carrying either, else the first that came up.
 
 ## Failure model
 
 A controller whose claim, bus-master enable, or MMIO map fails is skipped;
-startup fails only when no controller opens. A port whose link, DMA, or ATA
-identify fails is stopped and skipped. Runtime requests return protocol errors
-rather than touching ports that were not discovered.
+startup fails only when no controller opens. A port whose link, DMA, signature,
+or ATA identify fails is stopped; unserved ports are parked, other controllers
+released. Requests never touch a port that is not the one served.
 
 ## Current implemented surface
 

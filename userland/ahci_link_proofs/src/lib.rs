@@ -10,4 +10,6 @@ pub mod engine;
 #[cfg(test)]
 mod choose_tests;
 #[cfg(test)]
+mod sig_tests;
+#[cfg(test)]
 mod tests;

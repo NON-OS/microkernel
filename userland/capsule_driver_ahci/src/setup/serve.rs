@@ -18,6 +18,7 @@ use alloc::vec::Vec;
 
 use super::walk::Walk;
 use crate::choose::{choose, Candidate};
+use crate::controller::scan_ports;
 use crate::engine::park;
 use crate::setup::Driver;
 
@@ -38,5 +39,10 @@ pub(super) fn serve(mut w: Walk) -> Option<Driver> {
     }
     let ctl = w.opened.swap_remove(keep);
     drop(w.opened);
-    Some(Driver { handles: ctl.handles, regs: ctl.regs, info: ctl.info, ports: ctl.ports, block })
+    /*
+     * The walk scanned before any port had FIS receive on, when PxSIG still
+     * read 0xFFFFFFFF; scan again so port_list reports what the ports are now.
+     */
+    let ports = scan_ports(ctl.regs, ctl.info.pi, ctl.info.port_count);
+    Some(Driver { handles: ctl.handles, regs: ctl.regs, info: ctl.info, ports, block })
 }

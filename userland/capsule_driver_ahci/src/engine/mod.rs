@@ -36,6 +36,7 @@ mod transfer;
 
 pub use flush::flush;
 pub use init::init_port;
+pub use link::may_be_disk;
 pub use park::park;
 pub use port::Port;
 pub use transfer::transfer;

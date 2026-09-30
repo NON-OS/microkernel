@@ -17,8 +17,8 @@
 use super::port::Port;
 use super::region::DmaRegion;
 use crate::constants::ata::{DATA_BUF_BYTES, STRUCT_REGION_BYTES};
-use crate::constants::regs::{PORT_BASE, PORT_STRIDE};
-use crate::error::AhciResult;
+use crate::constants::regs::{PORT_BASE, PORT_SIG, PORT_STRIDE};
+use crate::error::{AhciError, AhciResult};
 use crate::regs::Regs;
 
 pub fn init_port(device_id: u64, claim_epoch: u64, regs: Regs, index: u8) -> AhciResult<Port> {
@@ -43,6 +43,15 @@ pub fn init_port(device_id: u64, claim_epoch: u64, regs: Regs, index: u8) -> Ahc
     if let Err(e) = super::link::link_up(regs, base) {
         super::stop::stop(regs, base);
         return Err(e);
+    }
+    /*
+     * With the link up and the device ready, its D2H FIS has arrived and
+     * PxSIG names the device. Only an ATA disk is served: an ATAPI drive
+     * answers IDENTIFY PACKET DEVICE, and the other kinds no IDENTIFY at all.
+     */
+    if !super::link::is_ata_disk(unsafe { regs.r32(base + PORT_SIG) }) {
+        super::stop::stop(regs, base);
+        return Err(AhciError::DeviceNotFound);
     }
     super::start::start(regs, base);
     let mut port = Port { clb, ctba, _fb: fb, data, base, capacity_sectors: 0 };
