@@ -57,7 +57,7 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     super::postmortem::retain(pid, pcb.parent_pid());
     crate::sched::remove_from_run_queue(pid);
     clear_current_if(pid);
-    stop_elsewhere(pid);
+    super::stop_elsewhere::stop_elsewhere(pid);
     crate::process::scheduler::preemption::proc_ticks::clear(pid);
     crate::process::accounting::clear(pid);
     crate::process::foreign::clear(pid);
@@ -68,20 +68,4 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
      * zombie already, so a run's own teardown cannot come back here for it.
      */
     crate::userspace::capsule_linux::end_terminal_runs_of(pid);
-}
-
-/*
- * Killed while another CPU runs it: that CPU would go on running its user
- * code, and holding its stack and tables, until its next tick. The IPI
- * raises that CPU's reschedule flag, and ends its halt if it waits in a
- * yield; the scheduler there then switches away from a zombie rather than
- * back into it (see `preempt_current_process` and `perform_yield_inline`).
- */
-fn stop_elsewhere(pid: Pid) {
-    let Some(cpu) = crate::process::scheduler::selection::cpu_running(pid) else {
-        return;
-    };
-    if cpu != crate::smp::cpu_id() {
-        crate::smp::send_reschedule_ipi(cpu);
-    }
 }

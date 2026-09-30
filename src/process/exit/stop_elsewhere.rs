@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod exit_and_yield;
-mod finalize;
-mod park;
-mod pending;
-pub mod postmortem;
-mod purge;
-mod reap_log;
-mod stop_elsewhere;
-mod teardown;
+use crate::process::core::Pid;
 
-pub use exit_and_yield::exit_and_yield;
-pub(crate) use park::park as park_dead;
-pub(crate) use pending::drain as drain_pending_teardowns;
-pub(crate) use purge::purge_for_new_pid;
-pub(crate) use reap_log::{peek_exit_status, reap_exit_status, reap_exit_status_for};
-pub use teardown::teardown;
+/*
+ * Killed while another CPU runs it: that CPU would go on running its user
+ * code, and holding its stack and tables, until its next tick. The IPI
+ * raises that CPU's reschedule flag, and ends its halt if it waits in a
+ * yield; the scheduler there then switches away from a zombie rather than
+ * back into it (see `preempt_current_process` and `perform_yield_inline`).
+ */
+pub(super) fn stop_elsewhere(pid: Pid) {
+    let Some(cpu) = crate::process::scheduler::selection::cpu_running(pid) else {
+        return;
+    };
+    if cpu != crate::smp::cpu_id() {
+        crate::smp::send_reschedule_ipi(cpu);
+    }
+}

@@ -42,7 +42,7 @@ pub fn sys_foreign_fork(pid: u64, rsp: u64) -> i64 {
     if super::registry::supervisor_of(parent) != Some(caller) {
         return ERRNO_PERM;
     }
-    let Some(state) = super::trap_frame::parked_frame(parent) else {
+    let Some(mut frame) = super::trap_frame::parked_frame(parent) else {
         /* A guest that is not parked inside a syscall has no frame to copy. */
         return ERRNO_NOENT;
     };
@@ -50,7 +50,6 @@ pub fn sys_foreign_fork(pid: u64, rsp: u64) -> i64 {
         Ok(pid) => pid,
         Err(e) => return e,
     };
-    let mut frame = state;
     frame.rax = 0;
     if rsp != 0 {
         frame.rsp = rsp;
@@ -63,10 +62,10 @@ pub fn sys_foreign_fork(pid: u64, rsp: u64) -> i64 {
     let parent_tls = crate::process::with_process(parent, |pcb| pcb.get_tls_base()).unwrap_or(0);
     crate::process::with_process(child, |pcb| {
         *pcb.saved_user_context.lock() = Some(frame);
-        if parent_tls != 0 {
-            pcb.set_tls_base(parent_tls);
-        }
-        // Not over a zombie: its supervisor may have been killed meanwhile.
+        pcb.set_tls_base(parent_tls);
+        /*
+         * Not over a zombie: its supervisor may have been killed meanwhile.
+         */
         let mut state = pcb.state.lock();
         if !matches!(*state, ProcessState::Zombie(_) | ProcessState::Terminated(_)) {
             *state = ProcessState::New;

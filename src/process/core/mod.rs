@@ -22,6 +22,8 @@ pub mod pcb;
 mod pcb_memory;
 mod pcb_memory_share;
 mod pcb_ops;
+mod pcb_vma_cut;
+mod pcb_vmas;
 pub mod suspend;
 pub mod table;
 pub mod thread_group;

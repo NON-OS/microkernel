@@ -35,14 +35,18 @@ pub(crate) fn park(pid: Pid) -> ! {
     clear_current_if(pid);
     leave_address_space();
     loop {
-        // Published before the queue is read, so a wake sent after the
-        // read finds it, stays pending while interrupts are masked, and
-        // ends the halt at once.
+        /*
+         * Published before the queue is read, so a wake sent after the
+         * read finds it, stays pending while interrupts are masked, and
+         * ends the halt at once.
+         */
         mark_idle(true);
         if let Some(next) = select_next_process() {
             mark_idle(false);
             switch_to_process(next);
-            // Refused: this CPU waits after all.
+            /*
+             * Refused: this CPU waits after all.
+             */
             mark_idle(true);
         }
         crate::process::accounting::idle_enter();
@@ -52,8 +56,10 @@ pub(crate) fn park(pid: Pid) -> ! {
     }
 }
 
-// A CPU that makes a process runnable wakes only a CPU marked idle. The
-// single-CPU image has no one to send the wake and keeps its old behaviour.
+/*
+ * A CPU that makes a process runnable wakes only a CPU marked idle. The
+ * single-CPU image has no one to send the wake and keeps its old behaviour.
+ */
 fn mark_idle(idle: bool) {
     if cfg!(feature = "nonos-smp") {
         crate::smp::current_cpu().idle.store(idle, Ordering::SeqCst);

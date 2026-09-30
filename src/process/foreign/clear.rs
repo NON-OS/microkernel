@@ -33,10 +33,14 @@ pub fn clear(pid: u32) {
     for &guest in &orphans {
         crate::process::exit::teardown(guest, GUEST_END_CODE, true);
     }
-    // Both directions go, not just this process's own row.
+    /*
+     * Both directions go, not just this process's own row.
+     */
     super::registry::drop_rows(pid);
     for guest in orphans {
-        // A guest already gone from the process table skipped its teardown.
+        /*
+         * A guest already gone from the process table skipped its teardown.
+         */
         super::trap_reply::forget(guest);
         super::trap_frame::drop_frame(guest);
     }
@@ -50,5 +54,7 @@ pub fn clear(pid: u32) {
     super::notice::forget_supervisor(pid);
 }
 
-// What a guest ended with its supervisor reads as: killed, as by SIGKILL.
+/*
+ * What a guest ended with its supervisor reads as: killed, as by SIGKILL.
+ */
 const GUEST_END_CODE: i32 = 128 + crate::process::signal::SIGKILL as i32;

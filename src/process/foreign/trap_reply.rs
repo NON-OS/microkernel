@@ -21,8 +21,10 @@ use super::registry;
 use super::trap_table::{Answer, PARKED};
 use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOENT, ERRNO_PERM};
 
-// A guest that trapped just as it lost its supervisor is not left asleep
-// forever and is not told its call succeeded.
+/*
+ * A guest that trapped just as it lost its supervisor is not left asleep
+ * forever and is not told its call succeeded.
+ */
 pub(super) const ABANDONED: u64 = ERRNO_NOENT as u64;
 
 /// `MkForeignReply`: answer one parked guest. Refused unless the caller is

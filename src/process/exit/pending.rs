@@ -39,7 +39,9 @@ pub(crate) fn drain() {
             if q.is_empty() {
                 return;
             }
-            // Pairs with the fence in the switch: see `switch_to_process`.
+            /*
+             * Pairs with the fence in the switch: see `switch_to_process`.
+             */
             fence(Ordering::SeqCst);
             let mut ready = Vec::new();
             q.retain(|&pid| {

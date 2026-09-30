@@ -38,6 +38,7 @@ mod peer_unmap;
 mod registry;
 mod resume;
 mod signal_call;
+mod signal_death;
 mod signal_enter;
 mod signal_regs;
 mod spawn;
@@ -65,14 +66,8 @@ pub use peer_tls::sys_peer_tls;
 pub use peer_unmap::sys_peer_unmap;
 pub use registry::{is_foreign, supervisor_of};
 
-/// Report to its supervisor that a guest thread ended on a signal, if it is
-/// a guest at all. The supervisor's personality decides what follows.
-pub fn note_signal_death(pid: u32, code: i32) {
-    if let Some(supervisor) = registry::supervisor_of(pid) {
-        notice::post(supervisor, pid, code);
-    }
-}
 pub use signal_call::{sys_foreign_context, sys_foreign_signal};
+pub use signal_death::note_signal_death;
 pub use spawn::sys_foreign_spawn;
 pub use spawn_start::sys_foreign_start;
 pub use thread::sys_foreign_thread;

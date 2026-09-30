@@ -36,7 +36,6 @@ pub fn isolate_process(pid: Pid) -> Result<(), &'static str> {
     }
 
     let isolation = IsolationFlags::default();
-
     const NETWORK_CAP: u64 = 1 << 10;
     const RAW_DISK_CAP: u64 = 1 << 11;
     const IPC_ADMIN_CAP: u64 = 1 << 12;
@@ -55,7 +54,6 @@ pub fn isolate_process(pid: Pid) -> Result<(), &'static str> {
     for vma in &vmas {
         mark_vma_isolated(vma)?;
     }
-
     crate::log_info!("Process {} isolated: capabilities reduced", pid);
     Ok(())
 }
