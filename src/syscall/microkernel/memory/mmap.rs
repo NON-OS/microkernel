@@ -57,12 +57,19 @@ pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
     // caller's own address space. Allocator-chosen ranges are always fresh.
     if !allocator_owned {
         for i in 0..pages as usize {
+            crate::smp::serve_shootdowns();
             if crate::memory::paging::is_mapped(VirtAddr::new(base + (i * PAGE_SIZE) as u64)) {
                 return ERRNO_INVAL;
             }
         }
     }
     for i in 0..pages as usize {
+        /*
+         * Up to a gigabyte mapped and zeroed with interrupts masked. Answer
+         * TLB shootdowns once per page; the frames here come from the
+         * allocator, not from a user translation, so none is at stake.
+         */
+        crate::smp::serve_shootdowns();
         let va = VirtAddr::new(base + (i * PAGE_SIZE) as u64);
         let frame = match crate::memory::frame_alloc::allocate_frame() {
             Some(pa) => pa,

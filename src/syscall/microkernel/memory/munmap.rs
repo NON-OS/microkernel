@@ -38,6 +38,12 @@ pub fn sys_munmap(addr: u64, length: usize) -> i64 {
     }
     let pages = ((length + PAGE_SIZE - 1) / PAGE_SIZE) as u64;
     for i in 0..pages as usize {
+        /*
+         * Up to a gigabyte unmapped with interrupts masked. Answer TLB
+         * shootdowns between pages; each page's frame is freed before the
+         * next serve point, so no translation is carried across one.
+         */
+        crate::smp::serve_shootdowns();
         let va = VirtAddr::new(addr + (i * PAGE_SIZE) as u64);
         if let Ok(phys) = unmap_page(va) {
             if crate::memory::frame_alloc::deallocate_frame(phys).is_err() {
