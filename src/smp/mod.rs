@@ -55,5 +55,5 @@ pub use ap::*;
 pub use init::*;
 pub use ipi_handler::*;
 pub use preempt::*;
-pub use responsive::lock_responsive;
+pub use responsive::{lock_responsive, serve_shootdowns};
 pub use stats::*;

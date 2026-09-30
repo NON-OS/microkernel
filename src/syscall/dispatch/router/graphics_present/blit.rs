@@ -76,6 +76,13 @@ pub(super) fn blit(
     let src_stride = fb_w * bytes_per_pixel;
     let dst_stride = fb_stride_bytes;
     for row in 0..rect_h {
+        /*
+         * The whole blit runs with interrupts masked, and a full frame is
+         * megabytes. Answer any TLB shootdown once per row, so a present on
+         * this CPU cannot hold another CPU's page-table change past its
+         * deadline.
+         */
+        crate::smp::serve_shootdowns();
         let src_row_off = ((rect_y + row) * src_stride) + (rect_x * bytes_per_pixel);
         let dst_row_off = ((rect_y + row) * dst_stride) + (rect_x * bytes_per_pixel);
         let mut copied = 0usize;

@@ -50,14 +50,29 @@ pub fn lock_responsive<T>(lock: &Mutex<T>) -> MutexGuard<'_, T> {
         if let Some(guard) = lock.try_lock() {
             return guard;
         }
-        /*
-         * Nothing can be pending on a uniprocessor, and resolving the current
-         * CPU costs an interrupt-controller read, so the common case pays
-         * only the compare.
-         */
-        if cpus_online() > 1 {
-            handle_shootdown_ipi();
-        }
+        serve_shootdowns();
         core::hint::spin_loop();
+    }
+}
+
+/// Answer a TLB shootdown aimed at this CPU, if one is waiting.
+///
+/// Every system call runs with interrupts masked (SFMASK clears IF), so a
+/// call that does a long stretch of work without taking a lock never hears
+/// the shootdown vector either. A full-screen present is one: a 1920x1080
+/// blit moves 8 MiB with interrupts off, which under emulation outlasts the
+/// shootdown budget, and the originator halted the machine while the
+/// presenting CPU was still copying. Such loops call this between units of
+/// work. Answering early is always safe: the flush only drops translations,
+/// and the pending flag makes a later delivery of the vector a no-op.
+#[inline]
+pub fn serve_shootdowns() {
+    /*
+     * Nothing can be pending on a uniprocessor, and resolving the current
+     * CPU costs an interrupt-controller read, so the common case pays only
+     * the compare.
+     */
+    if cpus_online() > 1 {
+        handle_shootdown_ipi();
     }
 }
