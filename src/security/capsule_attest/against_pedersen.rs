@@ -21,18 +21,6 @@ use super::layout::POLICY_EPOCH;
 use super::trailer::parse;
 use crate::crypto::zk_kernel::verify_enrolled;
 
-/// `verify_digest` for an image not yet measured. The kernel measures once,
-/// in `measure`, and calls `verify_digest`; the proofs drive this entry.
-#[cfg_attr(not(test), allow(dead_code))]
-pub(super) fn verify(
-    trailer: &[u8],
-    elf: &[u8],
-    granted_caps: u64,
-    root: &[u8; 32],
-) -> Result<[u8; 32], AttestError> {
-    verify_digest(trailer, blake3::hash(elf).as_bytes(), granted_caps, root)
-}
-
 /// Verify the trailer against `root` for the image whose BLAKE3 digest is
 /// `digest`.
 pub(super) fn verify_digest(

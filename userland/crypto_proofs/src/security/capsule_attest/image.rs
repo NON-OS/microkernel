@@ -14,7 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The spawn gate's local-root path, mounted from the kernel.
+//! The image-taking entry the proofs drive. The kernel measures an image once
+//! (`capsule_attest::measure`) and hands only the digest to
+//! `against_pedersen::verify_digest`; the proofs start from the image, so
+//! they take the same BLAKE3 digest here.
 
-#[cfg(test)]
-pub mod capsule_attest;
+use super::against_pedersen::verify_digest;
+use super::error::AttestError;
+
+pub(super) fn verify(
+    trailer: &[u8],
+    elf: &[u8],
+    granted_caps: u64,
+    root: &[u8; 32],
+) -> Result<[u8; 32], AttestError> {
+    verify_digest(trailer, blake3::hash(elf).as_bytes(), granted_caps, root)
+}

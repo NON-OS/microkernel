@@ -16,8 +16,8 @@
 
 //! What a local trailer must not verify for.
 
+use super::image::verify;
 use super::local_root_tests::{minted, ELF};
-use super::against_pedersen::verify;
 
 #[test]
 fn it_does_not_verify_for_another_image_or_other_capabilities() {

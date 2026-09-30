@@ -29,6 +29,8 @@ pub mod trailer;
 pub mod against_pedersen;
 
 #[cfg(test)]
+mod image;
+#[cfg(test)]
 mod local_root_refusals;
 #[cfg(test)]
 mod local_root_tests;

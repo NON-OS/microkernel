@@ -19,7 +19,7 @@
 //! kernel's own files; only the context is restated here, and a mismatch
 //! would fail the first test.
 
-use super::against_pedersen::verify;
+use super::image::verify;
 use crate::crypto::zk_kernel::{prove_enrolled, PedersenCommitment};
 
 #[path = "../../../../../src/security/local_build/tree.rs"]
@@ -42,8 +42,8 @@ fn ctx(elf: &[u8], caps: u64) -> [u8; 48] {
 pub(super) fn minted(secret: u8, elf: &[u8], caps: u64) -> ([u8; 32], alloc::vec::Vec<u8>) {
     let (x, r) = ([secret; 32], [secret ^ 0x5a; 32]);
     let root = tree::root_for(&PedersenCommitment::commit(&x, &r).commitment);
-    let proof = prove_enrolled(&x, &r, 0, &tree::empty_siblings(), &root, &ctx(elf, caps))
-        .expect("proof");
+    let proof =
+        prove_enrolled(&x, &r, 0, &tree::empty_siblings(), &root, &ctx(elf, caps)).expect("proof");
     (root, mint::encode(&proof).expect("trailer"))
 }
 
