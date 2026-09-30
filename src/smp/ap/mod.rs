@@ -16,5 +16,6 @@
 
 mod entry;
 mod idle;
+mod user_setup;
 
 pub use entry::ap_entry;

@@ -65,6 +65,10 @@ pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
     // first timer tick. `load` only writes IDTR against the BSP.s table.
     crate::interrupts::idt::load_idt();
 
+    // The syscall registers and CR4/CR0/EFER are per CPU. Set here, with
+    // interrupts still masked; the result is reported once they are open.
+    let user = super::user_setup::prepare();
+
     // The BSP registered the IRQ-0 handler; each AP arms its own LAPIC timer.
     crate::arch::x86_64::interrupt::apic::preemption::install_on_ap();
 
@@ -114,6 +118,7 @@ pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
      */
     crate::sys::apic::report_local_timer(cpu_id);
     CPU_DESCRIPTORS[cpu_id as usize].set_stage(crate::smp::Stage::Reported);
+    super::user_setup::finish(cpu_id, user);
 
     ap_idle_loop(cpu_id);
 }
