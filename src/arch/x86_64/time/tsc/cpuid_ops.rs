@@ -15,14 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub fn cpuid(leaf: u32, subleaf: u32) -> (u32, u32, u32, u32) {
-    let (eax, ebx, ecx, edx): (u32, u32, u32, u32);
+    let (eax, rbx, ecx, edx): (u32, u64, u32, u32);
+    // SAFETY: CPUID touches no memory. RBX is restored by the exchange, which
+    // stays correct when the compiler picks RBX as the output; a push/pop
+    // pair would then overwrite the result with the caller's RBX.
     unsafe {
         core::arch::asm!(
-            "push rbx", "cpuid", "mov {0:e}, ebx", "pop rbx",
-            out(reg) ebx, inout("eax") leaf => eax, inout("ecx") subleaf => ecx, out("edx") edx, options(preserves_flags)
+            "mov {0}, rbx", "cpuid", "xchg {0}, rbx",
+            out(reg) rbx, inout("eax") leaf => eax, inout("ecx") subleaf => ecx, out("edx") edx,
+            options(nostack, preserves_flags)
         );
     }
-    (eax, ebx, ecx, edx)
+    (eax, rbx as u32, ecx, edx)
 }
 
 pub fn cpuid_max_leaf() -> u32 {
