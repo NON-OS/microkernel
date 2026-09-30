@@ -35,8 +35,43 @@ namespace NonosExtraction.MteMode
 theorem the_mtemode_tcf_wrapper_is_its_method (a : mode.MteMode) :
     mtemode_tcf a = mode.MteMode.tcf a := rfl
 
+/-! ### What the tag check fault field can hold
+
+    `set_mte_mode` in `security/mte/control.rs` clears the two-bit fields at
+    SCTLR_EL1 bits 40..41 (TCF) and 38..39 (TCF0) and ors `tcf() << 40` and
+    `tcf() << 38` into them. That is only sound if `tcf` never exceeds two bits: a
+    value of four or more would spill out of TCF0 into TCF, or out of TCF into
+    bit 42 and above. The theorems below establish that bound, that zero (no tag
+    checking) is produced by `Disabled` and by nothing else, and that the four
+    modes select four distinct fields. They cannot establish anything about the
+    register write itself, which is inline assembly behind a CPU feature test
+    and is not extracted.
+-/
+
+/-- Every mode fits in the two-bit TCF field, so shifting it to bit 40 or bit 38
+    touches only the bits `set_mte_mode` cleared. -/
+theorem mtemode_tcf_fits_the_two_bit_field (m : mode.MteMode) :
+    ∃ t, mtemode_tcf m = ok t ∧ t.val < 4 := by
+  cases m <;> exact ⟨_, rfl, by decide⟩
+
+/-- Tag checking is off exactly for `Disabled`: no enabled mode is silently
+    encoded as "tag check faults ignored". -/
+theorem mtemode_tcf_is_zero_only_when_disabled (m : mode.MteMode) :
+    mtemode_tcf m = ok 0#u64 ↔ m = mode.MteMode.Disabled := by
+  cases m <;> simp [mtemode_tcf, mode.MteMode.tcf]
+
+/-- The four modes program four different fields, so asking for one mode never
+    yields another's behaviour. -/
+theorem mtemode_tcf_tells_every_mode_apart (a b : mode.MteMode)
+    (h : mtemode_tcf a = mtemode_tcf b) : a = b := by
+  cases a <;> cases b <;> simp_all [mtemode_tcf, mode.MteMode.tcf]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.MteMode.the_mtemode_tcf_wrapper_is_its_method
+
+#print axioms NonosExtraction.MteMode.mtemode_tcf_fits_the_two_bit_field
+#print axioms NonosExtraction.MteMode.mtemode_tcf_is_zero_only_when_disabled
+#print axioms NonosExtraction.MteMode.mtemode_tcf_tells_every_mode_apart
 
 end NonosExtraction.MteMode

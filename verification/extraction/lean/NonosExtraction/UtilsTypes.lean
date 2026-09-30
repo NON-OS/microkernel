@@ -37,10 +37,11 @@ inductive types.SensitivityLevel where
 | Critical : types.SensitivityLevel
 
 /-- [nonos_x_utils_types::types::ScanConfig]
-    Source: 'src/../../../../../src/fs/utils/types.rs', lines 86:0-94:1
+    Source: 'src/../../../../../src/fs/utils/types.rs', lines 86:0-95:1
     Visibility: public -/
 structure types.ScanConfig where
   include_hidden : Bool
+  only_hidden : Bool
   max_depth : Std.Usize
   max_files : Std.Usize
   extensions : alloc.vec.Vec String
@@ -49,12 +50,13 @@ structure types.ScanConfig where
   follow_symlinks : Bool
 
 /-- [nonos_x_utils_types::types::{nonos_x_utils_types::types::ScanConfig}::new]:
-    Source: 'src/../../../../../src/fs/utils/types.rs', lines 111:4-121:5
+    Source: 'src/../../../../../src/fs/utils/types.rs', lines 113:4-124:5
     Visibility: public -/
 def types.ScanConfig.new : Result types.ScanConfig := do
   ok
     {
       include_hidden := true,
+      only_hidden := false,
       max_depth := types.MAX_SCAN_DEPTH,
       max_files := types.MAX_SCAN_FILES,
       extensions := (alloc.vec.Vec.new String),
@@ -64,7 +66,7 @@ def types.ScanConfig.new : Result types.ScanConfig := do
     }
 
 /-- [nonos_x_utils_types::types::{nonos_x_utils_types::types::ScanConfig}::with_max_depth]:
-    Source: 'src/../../../../../src/fs/utils/types.rs', lines 123:4-126:5
+    Source: 'src/../../../../../src/fs/utils/types.rs', lines 126:4-129:5
     Visibility: public -/
 def types.ScanConfig.with_max_depth
   (self : types.ScanConfig) (depth : Std.Usize) : Result types.ScanConfig := do
@@ -72,11 +74,20 @@ def types.ScanConfig.with_max_depth
   ok { self with max_depth := i }
 
 /-- [nonos_x_utils_types::types::{nonos_x_utils_types::types::ScanConfig}::hidden_only]:
-    Source: 'src/../../../../../src/fs/utils/types.rs', lines 133:4-136:5
+    Source: 'src/../../../../../src/fs/utils/types.rs', lines 136:4-140:5
     Visibility: public -/
 def types.ScanConfig.hidden_only
   (self : types.ScanConfig) : Result types.ScanConfig := do
-  ok { self with include_hidden := true }
+  ok { self with include_hidden := true, only_hidden := true }
+
+/-- [nonos_x_utils_types::types::{nonos_x_utils_types::types::ScanConfig}::admits_hidden]:
+    Source: 'src/../../../../../src/fs/utils/types.rs', lines 145:4-151:5
+    Visibility: public -/
+def types.ScanConfig.admits_hidden
+  (self : types.ScanConfig) (hidden : Bool) : Result Bool := do
+  if hidden
+  then ok self.include_hidden
+  else ok (¬ self.only_hidden)
 
 /-- [nonos_x_utils_types::scanconfig_new]:
     Source: 'src/lib.rs', lines 10:0-12:1
@@ -97,5 +108,12 @@ def scanconfig_with_max_depth
 def scanconfig_hidden_only
   (this : types.ScanConfig) : Result types.ScanConfig := do
   types.ScanConfig.hidden_only this
+
+/-- [nonos_x_utils_types::scanconfig_admits_hidden]:
+    Source: 'src/lib.rs', lines 23:0-25:1
+    Visibility: public -/
+def scanconfig_admits_hidden
+  (this : types.ScanConfig) (hidden : Bool) : Result Bool := do
+  types.ScanConfig.admits_hidden this hidden
 
 end nonos_x_utils_types

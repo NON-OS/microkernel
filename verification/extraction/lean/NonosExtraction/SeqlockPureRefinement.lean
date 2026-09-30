@@ -21,8 +21,9 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.SeqlockPure
+import Nonos.Seqlock
 
-open Aeneas Aeneas.Std Result
+open Aeneas Aeneas.Std Result WP
 open nonos_x_seqlock_pure
 
 set_option linter.hashCommand false
@@ -41,10 +42,147 @@ theorem the_bump_wrapper_is_its_method (a : Std.U32) :
 theorem the_read_valid_wrapper_is_its_method (a : Std.U32) (b : Std.U32) :
     read_valid a b = pure.read_valid a b := rfl
 
+/-! ### The sequence discipline against the tier-one seqlock model
+
+The theorems below tie the three sequence computations to `Nonos.Seqlock`, the
+hand-written model whose consistency argument the tier-one proofs make. The
+stability test reads the low bit of the counter, which is the model's `stable`.
+The writer's step is the model's `writeBegin` taken modulo `2^32`, and it wraps
+the largest counter to zero. Because `2^32` is even, that wrap does not disturb
+the parity alternation: every step flips stability, so the store `write.rs`
+makes on entry is odd and the store on exit is even again, for every starting
+counter including the last two. The reader's test is exactly the model's
+`readAccepts`, and a reader whose two samples straddle a single writer step
+always rejects.
+
+These are statements about the counter arithmetic only. The atomic loads and
+stores, the fences that order them against the copy of the protected value,
+and the requirement that writers are serialised are outside the extracted code,
+so nothing here says the orderings are strong enough. The counter is 32 bits,
+so a reader that sleeps across exactly `2^31` complete writes sees the same
+even value on both sides and accepts; that limit is inherent to the width and
+is not refuted here.
+-/
+
+/-- The stability test reads the parity of the counter. -/
+theorem is_stable_reads_the_parity_of_the_counter (s : Std.U32) :
+    is_stable s = ok (decide (s.val % 2 = 0)) := by
+  unfold is_stable pure.is_stable
+  obtain ⟨z, hz, hv⟩ := spec_imp_exists (U32.rem_spec s (y := 2#u32) (by decide))
+  rw [hz]
+  simp only [bind_tc_ok]
+  congr 2
+  have : (2#u32).val = 2 := rfl
+  rw [this] at hv
+  apply propext
+  constructor
+  · intro h; rw [← hv, h]; rfl
+  · intro h; exact UScalar.eq_of_val_eq (by rw [hv, h]; rfl)
+
+/-- The stability test is the model's `stable`. -/
+theorem is_stable_is_the_models_stability (s : Std.U32) :
+    ∃ b, is_stable s = ok b ∧ (b = true ↔ Nonos.Seqlock.stable ⟨s.val⟩) := by
+  refine ⟨_, is_stable_reads_the_parity_of_the_counter s, ?_⟩
+  simp [Nonos.Seqlock.stable]
+
+/-- The writer's step is the model's `writeBegin` (equally its `writeEnd`)
+    reduced modulo `2^32`. -/
+theorem bump_is_the_models_write_step_modulo_the_word (s : Std.U32) :
+    ∃ r, bump s = ok r ∧ r.val = (Nonos.Seqlock.writeBegin ⟨s.val⟩).seq % 2 ^ 32 := by
+  refine ⟨_, rfl, ?_⟩
+  simp only [Nonos.Seqlock.writeBegin, core.num.U32.wrapping_add,
+    UScalar.wrapping_add_val_eq, UScalar.size, UScalarTy.U32_numBits_eq]
+  simp
+
+/-- At the top of the counter the writer's step wraps to zero rather than
+    failing or sticking. -/
+theorem bump_wraps_the_largest_counter_to_zero :
+    bump 4294967295#u32 = ok 0#u32 := rfl
+
+/-- Every writer step flips stability, including the step that wraps. So the
+    first store in `SeqLock::write` is odd exactly when the counter it started
+    from was even, and the second store restores the starting parity. -/
+theorem bump_flips_stability_even_across_the_wrap (s : Std.U32) :
+    ∃ r, bump s = ok r ∧ is_stable r = ok (!decide (s.val % 2 = 0)) := by
+  obtain ⟨r, hr, hv⟩ := bump_is_the_models_write_step_modulo_the_word s
+  refine ⟨r, hr, ?_⟩
+  rw [is_stable_reads_the_parity_of_the_counter]
+  simp only [Nonos.Seqlock.writeBegin] at hv
+  have hs := s.hBounds
+  simp only [UScalarTy.U32_numBits_eq] at hs
+  congr 1
+  by_cases h : s.val % 2 = 0 <;> simp [h] <;> omega
+
+/-- A complete write, begin and end, returns a stable counter to a stable
+    counter that differs from where it started. -/
+theorem two_bumps_return_a_stable_counter_to_stability (s : Std.U32)
+    (h : is_stable s = ok true) :
+    ∃ m e, bump s = ok m ∧ is_stable m = ok false ∧ bump m = ok e ∧ is_stable e = ok true ∧
+      e ≠ s := by
+  rw [is_stable_reads_the_parity_of_the_counter] at h
+  have h0 : s.val % 2 = 0 := by simpa using h
+  obtain ⟨m, hm, hmst⟩ := bump_flips_stability_even_across_the_wrap s
+  obtain ⟨e, he, hest⟩ := bump_flips_stability_even_across_the_wrap m
+  obtain ⟨_, hm', hmv⟩ := bump_is_the_models_write_step_modulo_the_word s
+  obtain ⟨_, he', hev⟩ := bump_is_the_models_write_step_modulo_the_word m
+  rw [hm] at hm'; cases hm'
+  rw [he] at he'; cases he'
+  simp only [Nonos.Seqlock.writeBegin] at hmv hev
+  have hs := s.hBounds
+  simp only [UScalarTy.U32_numBits_eq] at hs
+  refine ⟨m, e, hm, by simpa [h0] using hmst, he, ?_, ?_⟩
+  · rw [hest]
+    have : m.val % 2 = 1 := by omega
+    simp [this]
+  · intro hes
+    have : e.val = s.val := by rw [hes]
+    omega
+
+/-- The reader's acceptance test is the model's `readAccepts`: the two samples
+    agree and the first is even. -/
+theorem read_valid_is_the_models_acceptance (before after : Std.U32) :
+    ∃ b, read_valid before after = ok b ∧
+      (b = true ↔ Nonos.Seqlock.readAccepts before.val after.val) := by
+  unfold read_valid pure.read_valid Nonos.Seqlock.readAccepts
+  split
+  · rename_i h
+    subst h
+    refine ⟨_, is_stable_reads_the_parity_of_the_counter before, ?_⟩
+    simp
+  · rename_i h
+    refine ⟨false, rfl, ?_⟩
+    simp only [Bool.false_eq_true, false_iff, not_and]
+    intro hv
+    exact absurd (UScalar.eq_of_val_eq hv) h
+
+/-- A reader whose first sample is taken before a writer step and whose second
+    is taken after it rejects the read, whatever the counter was. -/
+theorem read_valid_rejects_samples_straddling_a_bump (s : Std.U32) :
+    ∃ r, bump s = ok r ∧ read_valid s r = ok false := by
+  obtain ⟨r, hr, hv⟩ := bump_is_the_models_write_step_modulo_the_word s
+  refine ⟨r, hr, ?_⟩
+  simp only [Nonos.Seqlock.writeBegin] at hv
+  have hne : s ≠ r := by
+    intro h
+    have : s.val = r.val := by rw [h]
+    have hs := s.hBounds
+    simp only [UScalarTy.U32_numBits_eq] at hs
+    omega
+  unfold read_valid pure.read_valid
+  simp [hne]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.SeqlockPure.the_is_stable_wrapper_is_its_method
 #print axioms NonosExtraction.SeqlockPure.the_bump_wrapper_is_its_method
 #print axioms NonosExtraction.SeqlockPure.the_read_valid_wrapper_is_its_method
+#print axioms NonosExtraction.SeqlockPure.is_stable_reads_the_parity_of_the_counter
+#print axioms NonosExtraction.SeqlockPure.is_stable_is_the_models_stability
+#print axioms NonosExtraction.SeqlockPure.bump_is_the_models_write_step_modulo_the_word
+#print axioms NonosExtraction.SeqlockPure.bump_wraps_the_largest_counter_to_zero
+#print axioms NonosExtraction.SeqlockPure.bump_flips_stability_even_across_the_wrap
+#print axioms NonosExtraction.SeqlockPure.two_bumps_return_a_stable_counter_to_stability
+#print axioms NonosExtraction.SeqlockPure.read_valid_is_the_models_acceptance
+#print axioms NonosExtraction.SeqlockPure.read_valid_rejects_samples_straddling_a_bump
 
 end NonosExtraction.SeqlockPure

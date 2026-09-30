@@ -63,10 +63,7 @@ impl PortStats {
     }
 
     pub fn total_ops(&self) -> u64 {
-        self.read_ops.load(Ordering::Relaxed)
-            + self.write_ops.load(Ordering::Relaxed)
-            + self.string_read_ops.load(Ordering::Relaxed)
-            + self.string_write_ops.load(Ordering::Relaxed)
+        self.snapshot().total_ops()
     }
 }
 

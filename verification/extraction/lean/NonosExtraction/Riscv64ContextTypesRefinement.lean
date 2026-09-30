@@ -38,9 +38,65 @@ theorem the_userentry_zeroed_wrapper_is_its_method :
 theorem the_saveduser_zeroed_wrapper_is_its_method :
     saveduser_zeroed = types.SavedUser.zeroed := rfl
 
+/-! ### Zeroed contexts carry nothing and cannot be entered
+
+`save_user_frame` starts from `SavedUser::zeroed` and then writes all 31
+general registers, `sepc`, `sstatus` and the kernel stack, so any slot the
+copy missed would hold the zero from `zeroed` rather than a stale value.
+`enter_user` refuses a `UserEntry` whose `entry` or `user_sp` is zero or whose
+`kernel_sp` is zero, and `riscv64_enter_user` loads `args[0..8]` into `a0` to
+`a7` at `sret`. The theorems below establish that every register slot and
+every argument of the zeroed records is zero, and that a zeroed `UserEntry`
+has exactly the zero entry point, user stack and kernel stack that the entry
+guard refuses. Its `sstatus` is zero, so `SPP` is clear, but so is `SPIE`: it
+is not `SSTATUS_USER_INITIAL`. They cannot establish that `enter_user`,
+`gprs::copy` or the assembly behave as described: those are not extracted,
+and the guard's conditions are read from the kernel source. -/
+
+/-- A zeroed saved user context holds zero in all 31 general register slots
+and in `sepc`, `sstatus` and `kernel_sp`, so nothing from an earlier context
+survives into a fresh one. -/
+theorem saveduser_zeroed_holds_no_register :
+    ∃ s, saveduser_zeroed = ok s ∧
+      s.gprs.val = List.replicate 31 0#u64 ∧
+      s.sepc = 0#u64 ∧ s.sstatus = 0#u64 ∧ s.kernel_sp = 0#u64 :=
+  ⟨_, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- Read slot by slot: each of the 31 general register slots of a zeroed saved
+context, the slots `gprs::copy` writes as `ra` through `t6`, reads zero. -/
+theorem saveduser_zeroed_reads_zero_in_every_gpr_slot :
+    ∃ s, saveduser_zeroed = ok s ∧ s.gprs.val.length = 31 ∧
+      ∀ i, i < 31 → s.gprs.val[i]! = 0#u64 := by
+  refine ⟨_, rfl, rfl, ?_⟩
+  intro i hi
+  show (List.replicate 31 0#u64)[i]! = 0#u64
+  rw [getElem!_pos (List.replicate 31 0#u64) i (by simp; omega)]
+  exact List.getElem_replicate _
+
+/-- A zeroed user entry has entry point, user stack and kernel stack all zero,
+each of which the `enter_user` guard refuses, so a caller that forgets to fill
+one of them is turned away rather than sent to address zero. Its `sstatus` is
+zero, so the supervisor previous privilege bit (bit 8) is clear. -/
+theorem userentry_zeroed_is_what_the_entry_guard_refuses :
+    ∃ u, userentry_zeroed = ok u ∧
+      u.entry.val = 0 ∧ u.user_sp.val = 0 ∧ u.kernel_sp.val = 0 ∧
+      u.sstatus.val = 0 ∧ u.sstatus.val.testBit 8 = false :=
+  ⟨_, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- A zeroed user entry passes zero in all eight argument registers `a0` to
+`a7`, so no kernel value reaches user mode through them. -/
+theorem userentry_zeroed_passes_zero_in_every_argument :
+    ∃ u, userentry_zeroed = ok u ∧
+      u.args.val = List.replicate 8 0#u64 ∧ u.args.val.length = 8 :=
+  ⟨_, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.Riscv64ContextTypes.the_userentry_zeroed_wrapper_is_its_method
 #print axioms NonosExtraction.Riscv64ContextTypes.the_saveduser_zeroed_wrapper_is_its_method
+#print axioms NonosExtraction.Riscv64ContextTypes.saveduser_zeroed_holds_no_register
+#print axioms NonosExtraction.Riscv64ContextTypes.saveduser_zeroed_reads_zero_in_every_gpr_slot
+#print axioms NonosExtraction.Riscv64ContextTypes.userentry_zeroed_is_what_the_entry_guard_refuses
+#print axioms NonosExtraction.Riscv64ContextTypes.userentry_zeroed_passes_zero_in_every_argument
 
 end NonosExtraction.Riscv64ContextTypes

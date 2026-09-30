@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.WalkerAlign
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_walker_align
@@ -35,8 +36,60 @@ namespace NonosExtraction.WalkerAlign
 theorem the_align4_wrapper_is_its_method (a : Std.Usize) :
     align4 a = align.align4 a := rfl
 
+/-! ### Rounding a cursor up to the next four byte boundary
+
+    The flattened device tree walker advances its cursor with `align4` after a
+    node name and after a property's data, and the format pads both to four
+    bytes. These theorems say that `align4` returns the least multiple of four
+    at or above its argument whenever `n + 3` fits in a `usize`, and that it
+    halts with an overflow, rather than wrapping to a small cursor, exactly when
+    it does not. They cannot say that the walker's cursor stays inside the
+    structure block: the walker is not extracted, and its bounds checks happen
+    before the call. -/
+
+/-- Below the top of the word, `align4` is the ceiling of `n` to a multiple of
+    four: `(n + 3) / 4 * 4`, which is at least `n`, less than `n + 4`, and
+    divisible by four. -/
+theorem align4_rounds_up_to_the_next_multiple_of_four (n : Std.Usize)
+    (h : n.val + 3 ≤ Usize.max) :
+    ∃ r, align4 n = ok r ∧ r.val = (n.val + 3) / 4 * 4 ∧
+      r.val % 4 = 0 ∧ n.val ≤ r.val ∧ r.val < n.val + 4 := by
+  unfold align4 align.align4
+  have he := UScalar.add_equiv n 3#usize
+  cases hz : n + 3#usize with
+  | ok z =>
+    rw [hz] at he
+    obtain ⟨_, hzv, _⟩ := he
+    simp only [lift, bind_tc_ok]
+    have hr : (z &&& ~~~3#usize).val = (n.val + 3) / 4 * 4 := by
+      rw [Bits.land_not_low_mask z 3#usize 2 (by rfl), hzv]
+      rfl
+    refine ⟨_, rfl, hr, ?_, ?_, ?_⟩ <;> rw [hr] <;> omega
+  | fail e =>
+    rw [hz] at he
+    simp [UScalar.inBounds] at he
+    scalar_tac
+  | div => rw [hz] at he; exact he.elim
+
+/-- In the last three values of the word there is no multiple of four at or
+    above the input that the word can hold, and `align4` halts on the addition
+    instead of returning a masked sum near zero. -/
+theorem align4_halts_exactly_when_rounding_leaves_the_word (n : Std.Usize)
+    (h : Usize.max < n.val + 3) :
+    align4 n = fail .integerOverflow := by
+  unfold align4 align.align4
+  have hf : n + 3#usize = fail .integerOverflow := by
+    show UScalar.tryMk _ _ = _
+    simp only [UScalar.tryMk, UScalar.tryMkOpt]
+    rw [dif_neg (by scalar_tac)]
+    rfl
+  rw [hf]
+  rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.WalkerAlign.the_align4_wrapper_is_its_method
+#print axioms NonosExtraction.WalkerAlign.align4_rounds_up_to_the_next_multiple_of_four
+#print axioms NonosExtraction.WalkerAlign.align4_halts_exactly_when_rounding_leaves_the_word
 
 end NonosExtraction.WalkerAlign

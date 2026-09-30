@@ -31,8 +31,10 @@ pub const PINK: u8 = 0x0D;
 pub const YELLOW: u8 = 0x0E;
 pub const WHITE: u8 = 0x0F;
 
+/* Bit 7 is blink with the attribute controller's default setting, so the
+background is three bits, as ColorCode reads it. */
 pub const fn make_attr(fg: u8, bg: u8) -> u8 {
-    (bg << 4) | (fg & 0x0F)
+    ((bg & 0x07) << 4) | (fg & 0x0F)
 }
 
 pub const fn fg_color(attr: u8) -> u8 {
@@ -40,5 +42,5 @@ pub const fn fg_color(attr: u8) -> u8 {
 }
 
 pub const fn bg_color(attr: u8) -> u8 {
-    (attr >> 4) & 0x0F
+    (attr >> 4) & 0x07
 }

@@ -21,6 +21,8 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.ContextRflags
+import NonosExtraction.Bits
+import Nonos.Rflags
 
 open Aeneas Aeneas.Std Result
 open nonos_x_context_rflags
@@ -38,9 +40,116 @@ theorem the_sanitize_wrapper_is_its_method (a : Std.U64) :
 theorem the_sanitize_user_wrapper_is_its_method (a : Std.U64) :
     sanitize_user a = context_rflags.sanitize_user a := rfl
 
+/-! ### The sanitizer clears exactly the privileged positions
+
+`Nonos.Rflags` states, as a list of bit positions, which RFLAGS bits a
+restored context must not choose for itself, and proves its copy of the mask
+literal is exactly those positions. The theorems below close the loop on the
+extracted code: bit by bit, across all 64 bits, `sanitize` keeps a saved bit
+exactly when its position is not on that list, forces the reserved bit 1 on,
+and leaves IF as saved; `sanitize_user` is the same with IF forced on. So a
+typo in the mask literal of `rflags.rs`, a dropped `!`, or a sanitizer that
+touched IF would each break a theorem here, and the positions are checked
+against the independent list rather than against the literal itself.
+
+What this cannot establish is that every restore path calls these functions.
+`validate_resume.rs` and `sanitize_rflags.rs` do, but neither caller is
+extracted, and neither is the `iretq` or `sysretq` that consumes the result.
+-/
+
+private theorem the_extracted_constants_are_the_model_positions :
+    ∀ i < 64, Nat.testBit 2061568 i = Nonos.Rflags.privilegedBits.contains i ∧
+      Nat.testBit 2 i = (i == 1) ∧ Nat.testBit 512 i = (i == 9) := by
+  have h : (List.range 64).all (fun i =>
+      Nat.testBit 2061568 i == Nonos.Rflags.privilegedBits.contains i &&
+        Nat.testBit 2 i == (i == 1) && Nat.testBit 512 i == (i == 9)) = true := by
+    decide
+  intro i hi
+  simpa using List.all_eq_true.mp h i (List.mem_range.mpr hi)
+
+private theorem small_constant_has_no_high_bits (c i : Nat) (hc : c < 2 ^ 64) (hi : ¬ i < 64) :
+    Nat.testBit c i = false :=
+  Nat.testBit_eq_false_of_lt
+    (Nat.lt_of_lt_of_le hc (Nat.pow_le_pow_right (by decide) (by omega)))
+
+/-- Bit `i` of the sanitized flags is set exactly when `i` is the reserved bit
+    1, or the saved flags had it set and `i` is not one of the privileged
+    positions TF, DF, IOPL, NT, RF, VM, AC, VIF, VIP that `Nonos.Rflags` lists.
+    Nothing above bit 63 is set, and the function never fails. -/
+theorem sanitize_keeps_exactly_the_bits_outside_the_privileged_positions (r : Std.U64) :
+    ∃ s, sanitize r = ok s ∧ ∀ i, s.val.testBit i =
+      (decide (i < 64) &&
+        ((i == 1) || (r.val.testBit i && !Nonos.Rflags.privilegedBits.contains i))) := by
+  unfold sanitize context_rflags.sanitize
+  simp only [lift, bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  intro i
+  rw [UScalar.val_or, Nat.testBit_or, UScalar.val_and, Nat.testBit_and,
+    NonosExtraction.Bits.testBit_val_not]
+  unfold context_rflags.RFLAGS_PRIVILEGED_MASK context_rflags.RFLAGS_RESERVED_SET
+  have hm : (2061568#u64).val = 2061568 := rfl
+  have hr : (2#u64).val = 2 := rfl
+  have hw : UScalarTy.U64.numBits = 64 := rfl
+  rw [hm, hr, hw]
+  by_cases hi : i < 64
+  · obtain ⟨h1, h2, -⟩ := the_extracted_constants_are_the_model_positions i hi
+    rw [h1, h2]
+    cases r.val.testBit i <;> cases Nonos.Rflags.privilegedBits.contains i <;>
+      simp [hi, Bool.or_comm]
+  · have h1 : r.val.testBit i = false :=
+      NonosExtraction.Bits.testBit_val_high r i (by simp at hi ⊢; omega)
+    have h2 := small_constant_has_no_high_bits 2 i (by decide) hi
+    simp [h1, h2, hi]
+
+/-- `sanitize_user` is `sanitize` with IF (bit 9) also forced on: every other
+    bit is decided exactly as `sanitize` decides it. -/
+theorem sanitize_user_is_sanitize_with_interrupts_forced_on (r : Std.U64) :
+    ∃ s, sanitize_user r = ok s ∧ ∀ i, s.val.testBit i =
+      (decide (i < 64) && ((i == 1) || (i == 9) ||
+        (r.val.testBit i && !Nonos.Rflags.privilegedBits.contains i))) := by
+  obtain ⟨s, hs, hbits⟩ := sanitize_keeps_exactly_the_bits_outside_the_privileged_positions r
+  have hs' : context_rflags.sanitize r = ok s := hs
+  unfold sanitize_user context_rflags.sanitize_user
+  rw [hs']
+  simp only [bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  intro i
+  unfold context_rflags.RFLAGS_IF
+  have hf : (512#u64).val = 512 := rfl
+  rw [UScalar.val_or, Nat.testBit_or, hbits, hf]
+  by_cases hi : i < 64
+  · obtain ⟨-, -, h3⟩ := the_extracted_constants_are_the_model_positions i hi
+    rw [h3]
+    cases r.val.testBit i <;> cases Nonos.Rflags.privilegedBits.contains i <;>
+      cases (i == 1) <;> cases (i == 9) <;> simp [hi]
+  · have h3 := small_constant_has_no_high_bits 512 i (by decide) hi
+    simp [h3, hi]
+
+/-- Whatever a process left in its saved flags, the user-mode resume runs with
+    IOPL 0 (bits 12 and 13 clear), interrupts on, and the reserved bit set. An
+    IOPL of 3 here would give the process every I/O port. -/
+theorem sanitize_user_resumes_with_iopl_zero_and_interrupts_on (r : Std.U64) :
+    ∃ s, sanitize_user r = ok s ∧ s.val.testBit 12 = false ∧ s.val.testBit 13 = false ∧
+      s.val.testBit 9 = true ∧ s.val.testBit 1 = true := by
+  obtain ⟨s, hs, hbits⟩ := sanitize_user_is_sanitize_with_interrupts_forced_on r
+  refine ⟨s, hs, ?_, ?_, ?_, ?_⟩ <;> rw [hbits] <;> cases r.val.testBit _ <;> decide
+
+/-- The kernel-continuation path relies on `sanitize` leaving IF exactly as
+    saved: a yield taken with interrupts off must resume with them off, or the
+    timer can fire while a scheduler lock is held. IOPL is still cleared. -/
+theorem sanitize_leaves_if_as_saved_and_clears_iopl (r : Std.U64) :
+    ∃ s, sanitize r = ok s ∧ s.val.testBit 9 = r.val.testBit 9 ∧
+      s.val.testBit 12 = false ∧ s.val.testBit 13 = false := by
+  obtain ⟨s, hs, hbits⟩ := sanitize_keeps_exactly_the_bits_outside_the_privileged_positions r
+  refine ⟨s, hs, ?_, ?_, ?_⟩ <;> rw [hbits] <;> cases r.val.testBit _ <;> decide
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ContextRflags.the_sanitize_wrapper_is_its_method
 #print axioms NonosExtraction.ContextRflags.the_sanitize_user_wrapper_is_its_method
+#print axioms NonosExtraction.ContextRflags.sanitize_keeps_exactly_the_bits_outside_the_privileged_positions
+#print axioms NonosExtraction.ContextRflags.sanitize_user_is_sanitize_with_interrupts_forced_on
+#print axioms NonosExtraction.ContextRflags.sanitize_user_resumes_with_iopl_zero_and_interrupts_on
+#print axioms NonosExtraction.ContextRflags.sanitize_leaves_if_as_saved_and_clears_iopl
 
 end NonosExtraction.ContextRflags

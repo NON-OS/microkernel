@@ -14,21 +14,59 @@ set_option maxRecDepth 2048
 
 namespace nonos_x_vga_constants
 
+/-- [nonos_x_vga_constants::constants::Color]
+    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 38:0-55:1
+    Visibility: public -/
+@[discriminant u8]
+inductive constants.Color where
+| Black : constants.Color
+| Blue : constants.Color
+| Green : constants.Color
+| Cyan : constants.Color
+| Red : constants.Color
+| Magenta : constants.Color
+| Brown : constants.Color
+| LightGray : constants.Color
+| DarkGray : constants.Color
+| LightBlue : constants.Color
+| LightGreen : constants.Color
+| LightCyan : constants.Color
+| LightRed : constants.Color
+| Pink : constants.Color
+| Yellow : constants.Color
+| White : constants.Color
+
 /-- [nonos_x_vga_constants::constants::ColorCode]
     Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 82:0-82:25
     Visibility: public -/
 @[reducible]
 def constants.ColorCode := Std.U8
 
+/-- [nonos_x_vga_constants::constants::{nonos_x_vga_constants::constants::ColorCode}::new]:
+    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 88:4-90:5
+    Visibility: public -/
+def constants.ColorCode.new
+  (foreground : constants.Color) (background : constants.Color) :
+  Result constants.ColorCode
+  := do
+  let background1 := read_discriminant background
+  let i ← lift (UScalar.cast .U8 background1)
+  let i1 ← lift (i &&& 7#u8)
+  let i2 ← i1 <<< 4#i32
+  let foreground1 := read_discriminant foreground
+  let i3 ← lift (UScalar.cast .U8 foreground1)
+  let i4 ← lift (i2 ||| i3)
+  ok i4
+
 /-- [nonos_x_vga_constants::constants::{nonos_x_vga_constants::constants::ColorCode}::foreground]:
-    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 93:4-95:5
+    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 96:4-98:5
     Visibility: public -/
 def constants.ColorCode.foreground
   (self : constants.ColorCode) : Result Std.U8 := do
   ok (self &&& 15#u8)
 
 /-- [nonos_x_vga_constants::constants::{nonos_x_vga_constants::constants::ColorCode}::background]:
-    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 97:4-99:5
+    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 100:4-102:5
     Visibility: public -/
 def constants.ColorCode.background
   (self : constants.ColorCode) : Result Std.U8 := do
@@ -36,7 +74,7 @@ def constants.ColorCode.background
   ok (i &&& 7#u8)
 
 /-- [nonos_x_vga_constants::constants::{nonos_x_vga_constants::constants::ColorCode}::is_blinking]:
-    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 101:4-103:5
+    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 104:4-106:5
     Visibility: public -/
 def constants.ColorCode.is_blinking
   (self : constants.ColorCode) : Result Bool := do
@@ -44,21 +82,21 @@ def constants.ColorCode.is_blinking
   ok (i != 0#u8)
 
 /-- [nonos_x_vga_constants::constants::{nonos_x_vga_constants::constants::ColorCode}::value]:
-    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 105:4-107:5
+    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 108:4-110:5
     Visibility: public -/
 def constants.ColorCode.value
   (self : constants.ColorCode) : Result Std.U8 := do
   ok self
 
 /-- [nonos_x_vga_constants::constants::ScreenChar]
-    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 118:0-121:1
+    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 121:0-124:1
     Visibility: public -/
 structure constants.ScreenChar where
   character : Std.U8
   color : constants.ColorCode
 
 /-- [nonos_x_vga_constants::constants::{nonos_x_vga_constants::constants::ScreenChar}::as_u16]:
-    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 132:4-134:5
+    Source: 'src/../../../../../src/arch/x86_64/vga/constants.rs', lines 135:4-137:5
     Visibility: public -/
 def constants.ScreenChar.as_u16
   (self : constants.ScreenChar) : Result Std.U16 := do
@@ -97,5 +135,14 @@ def colorcode_value (this : constants.ColorCode) : Result Std.U8 := do
     Visibility: public -/
 def screenchar_as_u16 (this : constants.ScreenChar) : Result Std.U16 := do
   constants.ScreenChar.as_u16 this
+
+/-- [nonos_x_vga_constants::colorcode_new]:
+    Source: 'src/lib.rs', lines 31:0-33:1
+    Visibility: public -/
+def colorcode_new
+  (foreground : constants.Color) (background : constants.Color) :
+  Result constants.ColorCode
+  := do
+  constants.ColorCode.new foreground background
 
 end nonos_x_vga_constants

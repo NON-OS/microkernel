@@ -32,22 +32,25 @@ def memory_desc.MemoryDescriptor.EFI_MEMORY_RUNTIME : Std.U64 :=
   9223372036854775808#u64
 
 /-- [nonos_x_tables_memory_desc::memory_desc::{nonos_x_tables_memory_desc::memory_desc::MemoryDescriptor}::size_bytes]:
-    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/memory_desc.rs', lines 43:4-45:5
+    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/memory_desc.rs', lines 45:4-50:5
     Visibility: public -/
 def memory_desc.MemoryDescriptor.size_bytes
   (self : memory_desc.MemoryDescriptor) : Result Std.U64 := do
-  self.number_of_pages * 4096#u64
+  let i ← core.num.U64.MAX / 4096#u64
+  if self.number_of_pages > i
+  then ok core.num.U64.MAX
+  else self.number_of_pages * 4096#u64
 
 /-- [nonos_x_tables_memory_desc::memory_desc::{nonos_x_tables_memory_desc::memory_desc::MemoryDescriptor}::end_address]:
-    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/memory_desc.rs', lines 46:4-48:5
+    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/memory_desc.rs', lines 51:4-53:5
     Visibility: public -/
 def memory_desc.MemoryDescriptor.end_address
   (self : memory_desc.MemoryDescriptor) : Result Std.U64 := do
   let i ← memory_desc.MemoryDescriptor.size_bytes self
-  self.physical_start + i
+  ok (core.num.U64.saturating_add self.physical_start i)
 
 /-- [nonos_x_tables_memory_desc::memory_desc::{nonos_x_tables_memory_desc::memory_desc::MemoryDescriptor}::is_runtime]:
-    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/memory_desc.rs', lines 49:4-51:5
+    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/memory_desc.rs', lines 54:4-56:5
     Visibility: public -/
 def memory_desc.MemoryDescriptor.is_runtime
   (self : memory_desc.MemoryDescriptor) : Result Bool := do
@@ -57,7 +60,7 @@ def memory_desc.MemoryDescriptor.is_runtime
   ok (i != 0#u64)
 
 /-- [nonos_x_tables_memory_desc::memory_desc::{nonos_x_tables_memory_desc::memory_desc::MemoryDescriptor}::is_usable]:
-    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/memory_desc.rs', lines 52:4-54:5
+    Source: 'src/../../../../../src/arch/x86_64/uefi/tables/memory_desc.rs', lines 57:4-59:5
     Visibility: public -/
 def memory_desc.MemoryDescriptor.is_usable
   (self : memory_desc.MemoryDescriptor) : Result Bool := do

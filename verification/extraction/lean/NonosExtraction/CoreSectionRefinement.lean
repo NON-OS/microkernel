@@ -55,15 +55,15 @@ the theorems here pin each answer to the ELF gABI value the kernel names in
 no other bit, so a section that is only writable or only executable is not
 allocated. The three type classifiers read the type word alone, and hit exactly
 their values: no two of them hold for one section, `SHT_REL` (whose entries have
-no addend) is never taken for `SHT_RELA`, and `is_symtab` holds for a dynamic
-symbol table as well as for the full one.
+no addend) is never taken for `SHT_RELA`, and `is_symtab` holds for the full
+symbol table only, not for the dynamic one.
 
-That last fact is a property of the code as written, not of the gABI, and it is
-recorded as such: `ElfLoader::get_symbol_table` returns the first section for
-which `is_symtab` holds, so on an image that places `.dynsym` before `.symtab` it
-returns `.dynsym`. The loader methods that iterate over sections are not
-extracted, so the theorems below cannot state what `get_symbol_table` returns;
-they state only the predicate it filters by. The kernel literals are restated
+`is_symtab` used to accept `SHT_DYNSYM` as well, so `ElfLoader::get_symbol_table`,
+which returns the first section for which it holds, returned `.dynsym` on an
+image that places it before `.symtab`; `get_dynsym` exists for that section. The
+loader methods that iterate over sections are not extracted, so the theorems
+below cannot state what `get_symbol_table` returns; they state only the
+predicate it filters by. The kernel literals are restated
 here as numerals because the constants module is not extracted.
 -/
 
@@ -88,31 +88,23 @@ theorem parsedsection_is_alloc_refuses_write_exec_and_accepts_alloc
   have h2 : ((2 : Nat).testBit 1) = true := by decide
   exact ⟨congrArg ok h5, congrArg ok h2⟩
 
-/-- A section counts as a symbol table exactly when its type is `SHT_SYMTAB` (2)
-    or `SHT_DYNSYM` (11). -/
-theorem parsedsection_is_symtab_holds_exactly_for_types_two_and_eleven
+/-- A section counts as a symbol table exactly when its type is `SHT_SYMTAB`
+    (2). -/
+theorem parsedsection_is_symtab_holds_exactly_for_type_two
     (s : section.ParsedSection) :
-    parsedsection_is_symtab s = ok true ↔
-      (s.section_type.val = 2 ∨ s.section_type.val = 11) := by
+    parsedsection_is_symtab s = ok true ↔ s.section_type.val = 2 := by
   unfold parsedsection_is_symtab section.ParsedSection.is_symtab
   have h2 : s.section_type = 2#u32 ↔ s.section_type.val = 2 :=
     ⟨fun h => by rw [h]; rfl, fun h => UScalar.eq_of_val_eq (by rw [h]; rfl)⟩
-  have h11 : s.section_type = 11#u32 ↔ s.section_type.val = 11 :=
-    ⟨fun h => by rw [h]; rfl, fun h => UScalar.eq_of_val_eq (by rw [h]; rfl)⟩
-  by_cases a : s.section_type = 2#u32
-  · simp [a]
-  · have a' : ¬ s.section_type.val = 2 := fun h => a (h2.mpr h)
-    simp only [a, if_false, a', false_or, ok.injEq, decide_eq_true_eq]
-    exact h11
+  simp only [ok.injEq, decide_eq_true_eq]
+  exact h2
 
-/-- This records a property of the code rather than of the gABI: a dynamic symbol
-    table (`SHT_DYNSYM`, 11) passes `is_symtab`, whatever its name, flags or
-    placement. `ElfLoader::get_symbol_table` filters by this predicate and takes
-    the first match, so it returns `.dynsym` whenever that section precedes
-    `.symtab`, while the separate `get_dynsym` exists for exactly that section. -/
-theorem parsedsection_is_symtab_accepts_a_dynamic_symbol_table (s : section.ParsedSection) :
-    parsedsection_is_symtab { s with section_type := 11#u32 } = ok true :=
-  (parsedsection_is_symtab_holds_exactly_for_types_two_and_eleven _).mpr (Or.inr rfl)
+/-- A dynamic symbol table (`SHT_DYNSYM`, 11) does not pass `is_symtab`, whatever
+    its name, flags or placement. It used to. -/
+theorem parsedsection_is_symtab_refuses_a_dynamic_symbol_table (s : section.ParsedSection) :
+    parsedsection_is_symtab { s with section_type := 11#u32 } = ok false := by
+  unfold parsedsection_is_symtab section.ParsedSection.is_symtab
+  rfl
 
 /-- A section is a string table exactly when its type is `SHT_STRTAB` (3). -/
 theorem parsedsection_is_strtab_holds_exactly_for_type_three (s : section.ParsedSection) :
@@ -150,7 +142,7 @@ theorem parsedsection_is_symtab_is_strtab_and_is_rela_are_disjoint
     (parsedsection_is_symtab s = ok true → parsedsection_is_strtab s = ok false ∧
         parsedsection_is_rela s = ok false) ∧
     (parsedsection_is_strtab s = ok true → parsedsection_is_rela s = ok false) := by
-  have hs := parsedsection_is_symtab_holds_exactly_for_types_two_and_eleven s
+  have hs := parsedsection_is_symtab_holds_exactly_for_type_two s
   have ht := parsedsection_is_strtab_holds_exactly_for_type_three s
   have hr := parsedsection_is_rela_holds_exactly_for_type_four s
   have bt : ∀ b : Bool, (ok b : Result Bool) = ok false ↔ ¬ (ok b : Result Bool) = ok true := by
@@ -173,8 +165,8 @@ theorem parsedsection_is_symtab_is_strtab_and_is_rela_are_disjoint
 #print axioms NonosExtraction.CoreSection.the_parsedsection_is_rela_wrapper_is_its_method
 #print axioms NonosExtraction.CoreSection.parsedsection_is_alloc_reads_exactly_the_shf_alloc_bit
 #print axioms NonosExtraction.CoreSection.parsedsection_is_alloc_refuses_write_exec_and_accepts_alloc
-#print axioms NonosExtraction.CoreSection.parsedsection_is_symtab_holds_exactly_for_types_two_and_eleven
-#print axioms NonosExtraction.CoreSection.parsedsection_is_symtab_accepts_a_dynamic_symbol_table
+#print axioms NonosExtraction.CoreSection.parsedsection_is_symtab_holds_exactly_for_type_two
+#print axioms NonosExtraction.CoreSection.parsedsection_is_symtab_refuses_a_dynamic_symbol_table
 #print axioms NonosExtraction.CoreSection.parsedsection_is_strtab_holds_exactly_for_type_three
 #print axioms NonosExtraction.CoreSection.parsedsection_is_strtab_depends_only_on_the_type
 #print axioms NonosExtraction.CoreSection.parsedsection_is_rela_holds_exactly_for_type_four

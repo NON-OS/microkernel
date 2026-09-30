@@ -15,25 +15,26 @@ set_option maxRecDepth 2048
 namespace nonos_x_vga_colors
 
 /-- [nonos_x_vga_colors::colors::make_attr]:
-    Source: 'src/../../../../../src/boot/vga/colors.rs', lines 34:0-36:1
+    Source: 'src/../../../../../src/boot/vga/colors.rs', lines 36:0-38:1
     Visibility: public -/
 def colors.make_attr (fg : Std.U8) (bg : Std.U8) : Result Std.U8 := do
-  let i ← bg <<< 4#i32
-  let i1 ← lift (fg &&& 15#u8)
-  ok (i ||| i1)
+  let i ← lift (bg &&& 7#u8)
+  let i1 ← i <<< 4#i32
+  let i2 ← lift (fg &&& 15#u8)
+  ok (i1 ||| i2)
 
 /-- [nonos_x_vga_colors::colors::fg_color]:
-    Source: 'src/../../../../../src/boot/vga/colors.rs', lines 38:0-40:1
+    Source: 'src/../../../../../src/boot/vga/colors.rs', lines 40:0-42:1
     Visibility: public -/
 def colors.fg_color (attr : Std.U8) : Result Std.U8 := do
   ok (attr &&& 15#u8)
 
 /-- [nonos_x_vga_colors::colors::bg_color]:
-    Source: 'src/../../../../../src/boot/vga/colors.rs', lines 42:0-44:1
+    Source: 'src/../../../../../src/boot/vga/colors.rs', lines 44:0-46:1
     Visibility: public -/
 def colors.bg_color (attr : Std.U8) : Result Std.U8 := do
   let i ← attr >>> 4#i32
-  ok (i &&& 15#u8)
+  ok (i &&& 7#u8)
 
 /-- [nonos_x_vga_colors::make_attr]:
     Source: 'src/lib.rs', lines 10:0-12:1

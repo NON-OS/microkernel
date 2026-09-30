@@ -87,13 +87,15 @@ impl MultibootManager {
             let revision = *rsdp_ptr.add(15);
             let rsdt_address = core::ptr::read_unaligned(rsdp_ptr.add(16) as *const u32);
 
-            let (length, xsdt_address, extended_checksum) = if is_new && rsdp_size >= 36 {
+            let (length, xsdt_address, extended_checksum, reserved) = if is_new && rsdp_size >= 36 {
                 let length = core::ptr::read_unaligned(rsdp_ptr.add(20) as *const u32);
                 let xsdt_address = core::ptr::read_unaligned(rsdp_ptr.add(24) as *const u64);
                 let extended_checksum = *rsdp_ptr.add(32);
-                (Some(length), Some(xsdt_address), Some(extended_checksum))
+                let mut reserved = [0u8; 3];
+                reserved.copy_from_slice(slice::from_raw_parts(rsdp_ptr.add(33), 3));
+                (Some(length), Some(xsdt_address), Some(extended_checksum), Some(reserved))
             } else {
-                (None, None, None)
+                (None, None, None, None)
             };
 
             Ok(AcpiRsdp {
@@ -105,6 +107,7 @@ impl MultibootManager {
                 length,
                 xsdt_address,
                 extended_checksum,
+                reserved,
             })
         }
     }

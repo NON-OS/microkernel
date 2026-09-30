@@ -27,20 +27,20 @@ structure stats_snapshot.PortStatsSnapshot where
   io_delays : Std.U64
 
 /-- [nonos_x_port_stats_snapshot::stats_snapshot::{nonos_x_port_stats_snapshot::stats_snapshot::PortStatsSnapshot}::total_ops]:
-    Source: 'src/../../../../../src/arch/x86_64/port/stats_snapshot.rs', lines 29:4-31:5
+    Source: 'src/../../../../../src/arch/x86_64/port/stats_snapshot.rs', lines 30:4-35:5
     Visibility: public -/
 def stats_snapshot.PortStatsSnapshot.total_ops
   (self : stats_snapshot.PortStatsSnapshot) : Result Std.U64 := do
-  let i ← self.read_ops + self.write_ops
-  let i1 ← i + self.string_read_ops
-  i1 + self.string_write_ops
+  let i ← lift (core.num.U64.saturating_add self.read_ops self.write_ops)
+  let i1 ← lift (core.num.U64.saturating_add i self.string_read_ops)
+  ok (core.num.U64.saturating_add i1 self.string_write_ops)
 
 /-- [nonos_x_port_stats_snapshot::stats_snapshot::{nonos_x_port_stats_snapshot::stats_snapshot::PortStatsSnapshot}::total_bytes]:
-    Source: 'src/../../../../../src/arch/x86_64/port/stats_snapshot.rs', lines 32:4-34:5
+    Source: 'src/../../../../../src/arch/x86_64/port/stats_snapshot.rs', lines 36:4-38:5
     Visibility: public -/
 def stats_snapshot.PortStatsSnapshot.total_bytes
   (self : stats_snapshot.PortStatsSnapshot) : Result Std.U64 := do
-  self.bytes_read + self.bytes_written
+  ok (core.num.U64.saturating_add self.bytes_read self.bytes_written)
 
 /-- [nonos_x_port_stats_snapshot::portstatssnapshot_total_ops]:
     Source: 'src/lib.rs', lines 10:0-12:1

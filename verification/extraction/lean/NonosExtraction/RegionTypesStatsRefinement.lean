@@ -38,9 +38,110 @@ theorem the_regionstats_new_wrapper_is_its_method :
 theorem the_regionstats_total_memory_wrapper_is_its_method (a : stats.RegionStats) :
     regionstats_total_memory a = stats.RegionStats.total_memory a := rfl
 
+/-! ### A fresh record counts nothing, and total memory is the exact sum
+
+`get_total_memory` in the region manager reports `total_memory` of the live
+statistics, so the value is only meaningful if it is the allocated bytes plus
+the free bytes with nothing dropped. The theorems below establish that
+`new` starts every counter at zero, that `total_memory` returns exactly
+`allocated_bytes + free_bytes` whenever that sum fits in 64 bits, and that a
+sum past `2^64` is refused rather than reported as a small wrapped total.
+They cannot establish that the manager keeps `allocated_bytes` and
+`free_bytes` consistent with the regions it holds: the manager, its lock and
+its static statistics are not extracted. The refusal is the checked
+arithmetic Aeneas models; a kernel built without overflow checks would wrap
+instead. -/
+
+/-- Every counter of a fresh statistics record is zero, not only the byte
+totals, so no region, allocation, merge, split or fragment is counted before
+the manager records one. -/
+theorem regionstats_new_counts_nothing :
+    regionstats_new = ok
+      { total_regions := 0#usize, free_regions := 0#usize,
+        allocated_bytes := 0#u64, free_bytes := 0#u64,
+        allocation_count := 0#u64, deallocation_count := 0#u64,
+        merge_count := 0#u64, split_count := 0#u64,
+        fragment_count := 0#usize, largest_free_block := 0#u64 } := rfl
+
+/-- `total_memory` returns exactly `allocated_bytes + free_bytes` when that
+sum fits in 64 bits, and only then. -/
+theorem regionstats_total_memory_is_allocated_plus_free_when_it_fits
+    (s : stats.RegionStats) (v : Std.U64) :
+    regionstats_total_memory s = ok v ↔
+      (s.allocated_bytes.val + s.free_bytes.val ≤ U64.max ∧
+        v.val = s.allocated_bytes.val + s.free_bytes.val) := by
+  unfold regionstats_total_memory stats.RegionStats.total_memory
+  have h := UScalar.add_equiv s.allocated_bytes s.free_bytes
+  constructor
+  · intro hv
+    rw [hv] at h
+    simp only [U64.max_eq] at *
+    obtain ⟨h1, h2, _⟩ := h
+    simp [UScalarTy.numBits] at h1
+    omega
+  · rintro ⟨hle, hv⟩
+    cases hr : (s.allocated_bytes + s.free_bytes : Result Std.U64) with
+    | ok z =>
+      rw [hr] at h
+      obtain ⟨_, h2, _⟩ := h
+      have : z = v := UScalar.eq_of_val_eq (by omega)
+      rw [this]
+    | fail e =>
+      rw [hr] at h
+      simp [UScalar.inBounds, UScalarTy.numBits] at h
+      simp only [U64.max_eq] at hle
+      omega
+    | div => rw [hr] at h; exact h.elim
+
+/-- A total that would pass `2^64` is refused with an overflow, never
+reported as the wrapped remainder. -/
+theorem regionstats_total_memory_refuses_a_sum_past_u64_max
+    (s : stats.RegionStats) (h : U64.max < s.allocated_bytes.val + s.free_bytes.val) :
+    regionstats_total_memory s = fail .integerOverflow := by
+  unfold regionstats_total_memory stats.RegionStats.total_memory
+  have ha := UScalar.add_equiv s.allocated_bytes s.free_bytes
+  cases hr : (s.allocated_bytes + s.free_bytes : Result Std.U64) with
+  | ok z =>
+    rw [hr] at ha
+    simp only [U64.max_eq] at h
+    simp [UScalarTy.numBits] at ha
+    omega
+  | fail e =>
+    have : e = .integerOverflow := by
+      revert hr
+      simp only [HAdd.hAdd, UScalar.add, UScalar.tryMk, UScalar.tryMkOpt]
+      split <;> simp_all
+    rw [this]
+  | div => rw [hr] at ha; exact ha.elim
+
+/-- The boundary: all of memory allocated with one free byte on top overflows,
+while the same total with the last byte taken back fits exactly. -/
+theorem regionstats_total_memory_at_the_u64_boundary (s : stats.RegionStats) :
+    regionstats_total_memory
+      { s with allocated_bytes := 0xFFFFFFFFFFFFFFFF#u64, free_bytes := 1#u64 } = fail .integerOverflow ∧
+    regionstats_total_memory
+      { s with allocated_bytes := 0xFFFFFFFFFFFFFFFE#u64, free_bytes := 1#u64 } = ok 0xFFFFFFFFFFFFFFFF#u64 := by
+  refine ⟨regionstats_total_memory_refuses_a_sum_past_u64_max _ (by
+    simp only [U64.max_eq]; simp), ?_⟩
+  exact (regionstats_total_memory_is_allocated_plus_free_when_it_fits _ _).2
+    (by simp only [U64.max_eq]; simp)
+
+/-- A fresh record reports zero total memory. -/
+theorem regionstats_total_memory_of_new_is_zero :
+    (do let s ← regionstats_new; regionstats_total_memory s) = ok 0#u64 := by
+  rw [regionstats_new_counts_nothing]
+  simp only [bind_tc_ok]
+  exact (regionstats_total_memory_is_allocated_plus_free_when_it_fits _ _).2
+    (by simp only [U64.max_eq]; simp)
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.RegionTypesStats.the_regionstats_new_wrapper_is_its_method
 #print axioms NonosExtraction.RegionTypesStats.the_regionstats_total_memory_wrapper_is_its_method
+#print axioms NonosExtraction.RegionTypesStats.regionstats_new_counts_nothing
+#print axioms NonosExtraction.RegionTypesStats.regionstats_total_memory_is_allocated_plus_free_when_it_fits
+#print axioms NonosExtraction.RegionTypesStats.regionstats_total_memory_refuses_a_sum_past_u64_max
+#print axioms NonosExtraction.RegionTypesStats.regionstats_total_memory_at_the_u64_boundary
+#print axioms NonosExtraction.RegionTypesStats.regionstats_total_memory_of_new_is_zero
 
 end NonosExtraction.RegionTypesStats

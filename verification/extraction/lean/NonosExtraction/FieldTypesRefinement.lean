@@ -38,9 +38,78 @@ theorem the_fe_zero_wrapper_is_its_method :
 theorem the_fe_one_wrapper_is_its_method :
     fe_one = types.Fe.one := rfl
 
+/-! ### Zero and one are the field's zero and one
+
+A field element is ten signed limbs in radix 2^25.5: limb `i` carries weight
+`2^w` where `w` runs 0, 26, 51, 77, 102, 128, 153, 179, 204, 230, the alternation
+of twenty-six and twenty-five bit limbs that the carry chains in `fe_mul`,
+`fe_sq` and `fe_tobytes` shift by. `feValue` below is that reading of the limbs as
+an integer, written here from the carry chains rather than from `Fe::zero` or
+`Fe::one`. The theorems show that `fe_zero` and `fe_one` produce exactly the limbs
+expected, that under the radix reading they denote 0 and 1 (so the identity point
+built from them, `(0, 1, 1, 0)`, is the identity), and that neither can fail.
+
+They cannot establish anything about arithmetic on these elements: `fe_add`,
+`fe_mul` and the rest are not in this extraction, so that 0 and 1 are neutral for
+them is a consequence of the representation, not something proven here.
+-/
+
+/-- The bit position of each limb: twenty-six and twenty-five bits in turn. -/
+def limbWeights : List Nat := [0, 26, 51, 77, 102, 128, 153, 179, 204, 230]
+
+/-- The integer a field element denotes, before reduction modulo `2^255 - 19`. -/
+def feValue (f : types.Fe) : Int :=
+  ((f.val.zip limbWeights).map fun p => p.1.val * (2 : Int) ^ p.2).sum
+
+/-- `fe_zero` is ten zero limbs. -/
+theorem fe_zero_is_ten_zero_limbs :
+    ∃ a, fe_zero = ok a ∧ a.val = List.replicate 10 0#i32 := by
+  exact ⟨_, rfl, rfl⟩
+
+/-- `fe_one` is a one in the lowest limb and zero in the other nine. -/
+theorem fe_one_is_one_in_the_lowest_limb :
+    ∃ a, fe_one = ok a ∧ a.val = 1#i32 :: List.replicate 9 0#i32 := by
+  exact ⟨_, rfl, rfl⟩
+
+/-- Under the radix reading, `fe_zero` denotes zero. -/
+theorem fe_zero_denotes_zero : ∃ a, fe_zero = ok a ∧ feValue a = 0 := by
+  obtain ⟨a, ha, hv⟩ := fe_zero_is_ten_zero_limbs
+  refine ⟨a, ha, ?_⟩
+  unfold feValue
+  rw [hv]
+  decide
+
+/-- Under the radix reading, `fe_one` denotes one. A one in any other limb would
+    denote a power of two of at least 2^26. -/
+theorem fe_one_denotes_one : ∃ a, fe_one = ok a ∧ feValue a = 1 := by
+  obtain ⟨a, ha, hv⟩ := fe_one_is_one_in_the_lowest_limb
+  refine ⟨a, ha, ?_⟩
+  unfold feValue
+  rw [hv]
+  decide
+
+/-- `fe_zero` and `fe_one` are different elements. -/
+theorem fe_zero_and_fe_one_differ (z o : types.Fe) (hz : fe_zero = ok z) (ho : fe_one = ok o) :
+    z ≠ o := by
+  obtain ⟨a, ha, hv⟩ := fe_zero_denotes_zero
+  obtain ⟨b, hb, hw⟩ := fe_one_denotes_one
+  rw [hz] at ha
+  rw [ho] at hb
+  cases ha
+  cases hb
+  intro h
+  rw [h] at hv
+  rw [hv] at hw
+  exact absurd hw (by decide)
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.FieldTypes.the_fe_zero_wrapper_is_its_method
 #print axioms NonosExtraction.FieldTypes.the_fe_one_wrapper_is_its_method
+#print axioms NonosExtraction.FieldTypes.fe_zero_is_ten_zero_limbs
+#print axioms NonosExtraction.FieldTypes.fe_one_is_one_in_the_lowest_limb
+#print axioms NonosExtraction.FieldTypes.fe_zero_denotes_zero
+#print axioms NonosExtraction.FieldTypes.fe_one_denotes_one
+#print axioms NonosExtraction.FieldTypes.fe_zero_and_fe_one_differ
 
 end NonosExtraction.FieldTypes

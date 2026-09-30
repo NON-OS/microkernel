@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.TypesStack
+import NonosExtraction.LayoutStackSlotsRefinement
 
 open Aeneas Aeneas.Std Result
 open nonos_x_types_stack
@@ -55,7 +56,7 @@ never reported as a wrapped small number. The guard never enters `stack_top`.
 These theorems are about the five functions as extracted. They cannot see the
 callers that build regions, `get_all_stack_regions` in
 `layout/manager/percpu.rs` and `get_guard_regions` in
-`safety/manager/guards.rs`, which are not extracted; the last theorem records
+`safety/manager/guards.rs`, which are not extracted; the last two theorems say
 what `stack_top` implies for the layout those callers produce.
 -/
 
@@ -202,19 +203,44 @@ theorem stackregion_total_size_refuses_a_footprint_past_usize_max
   | fail e => exact ⟨e, rfl⟩
   | div => rw [hr] at ha; exact ha.elim
 
-/-- Records a layout defect that `stack_top` makes visible. `get_all_stack_regions`
-places each CPU's first IST stack at `stack_base + KSTACK_SIZE` (64 KiB), with a
-one page guard, and `get_guard_regions` takes a region's upper guard to start at
-its `stack_top`. For every per CPU kernel stack built that way, the top is exactly
-the base of the IST stack above it, so the kernel stack's upper guard page is the
-IST stack's first page and there is no unmapped page between the two. -/
-theorem stackregion_stack_top_of_a_kernel_stack_is_the_next_ist_base
+/-- A per CPU kernel stack, 64 KiB with a one page guard, tops out exactly
+64 KiB above its base, and `get_guard_regions` takes its upper guard to start
+there. -/
+theorem stackregion_stack_top_of_a_kernel_stack_is_its_base_plus_64_kib
     (b : Std.U64) (c : Std.U32) (hb : b.val + 0x10000 ≤ U64.max) :
     ∃ k t, stackregion_per_cpu b 0x10000#usize 0x1000#usize c = ok k ∧
       stackregion_stack_top k = ok t ∧ t.val = b.val + 0x10000 := by
   obtain ⟨t, ht, hv⟩ := stackregion_stack_top_succeeds_when_it_fits
     ⟨b, 0x10000#usize, 0x1000#usize, some c, none⟩ (by simpa using hb)
   exact ⟨_, t, rfl, ht, by simpa using hv⟩
+
+/-- The kernel stack's upper guard page is unmapped: with the kernel stack at
+slot 0 of a CPU's stack area and the first IST stack at slot 1, as
+`get_all_stack_regions` places them through `stack_slot_offset`, the kernel
+stack's top lies exactly one page below the IST stack's base. The layout used
+to put the first IST stack at `stack_base + KSTACK_SIZE`, which is the kernel
+stack's top, so the page `get_guard_regions` treated as the kernel stack's
+upper guard was the IST stack's first page. -/
+theorem a_kernel_stack_ends_one_guard_page_below_the_first_ist_stack
+    (area : Std.U64) (c : Std.U32) (ha : area.val + 73728 ≤ U64.max) :
+    ∃ o0 o1 : Std.U64,
+      nonos_x_layout_stack_slots.stack_slot_offset 0#usize = ok o0 ∧
+      nonos_x_layout_stack_slots.stack_slot_offset 1#usize = ok o1 ∧
+      ∀ b : Std.U64, b.val = area.val + o0.val →
+        ∃ k t, stackregion_per_cpu b 0x10000#usize 0x1000#usize c = ok k ∧
+          stackregion_stack_top k = ok t ∧ t.val + 4096 = area.val + o1.val := by
+  obtain ⟨o0, h0, hv0⟩ := WP.spec_imp_exists
+    (NonosExtraction.LayoutStackSlots.stack_slot_offset_spec 0#usize (by decide))
+  obtain ⟨o1, h1, hv1⟩ := WP.spec_imp_exists
+    (NonosExtraction.LayoutStackSlots.stack_slot_offset_spec 1#usize (by decide))
+  have e0 : (0#usize : Std.Usize).val = 0 := rfl
+  have e1 : (1#usize : Std.Usize).val = 1 := rfl
+  rw [e0, if_pos rfl] at hv0
+  rw [e1, if_neg (by decide)] at hv1
+  refine ⟨o0, o1, h0, h1, fun b hb => ?_⟩
+  obtain ⟨k, t, hk, ht, htv⟩ :=
+    stackregion_stack_top_of_a_kernel_stack_is_its_base_plus_64_kib b c (by omega)
+  exact ⟨k, t, hk, ht, by omega⟩
 
 /-! ### Axiom profile -/
 
@@ -230,6 +256,7 @@ theorem stackregion_stack_top_of_a_kernel_stack_is_the_next_ist_base
 #print axioms NonosExtraction.TypesStack.stackregion_stack_top_refuses_a_stack_ending_at_two_to_the_64
 #print axioms NonosExtraction.TypesStack.stackregion_total_size_is_size_plus_one_guard_when_it_fits
 #print axioms NonosExtraction.TypesStack.stackregion_total_size_refuses_a_footprint_past_usize_max
-#print axioms NonosExtraction.TypesStack.stackregion_stack_top_of_a_kernel_stack_is_the_next_ist_base
+#print axioms NonosExtraction.TypesStack.stackregion_stack_top_of_a_kernel_stack_is_its_base_plus_64_kib
+#print axioms NonosExtraction.TypesStack.a_kernel_stack_ends_one_guard_page_below_the_first_ist_stack
 
 end NonosExtraction.TypesStack

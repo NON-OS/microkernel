@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::address_packing::pci_config_address;
 use super::device::DeviceAddress;
 use super::types::PciDevice;
 
@@ -54,4 +55,17 @@ fn bdf_high_byte_is_the_bus() {
         }
     }
     assert_ne!(pci(0, 0, 8).bdf(), pci(0, 1, 0).bdf());
+}
+
+#[test]
+fn config_address_bus_field_is_the_bus() {
+    for device in 0..=u8::MAX {
+        for function in 0..=u8::MAX {
+            let word = pci_config_address(3, device, function, 0x40);
+            assert_eq!((word >> 16) & 0xFF, 3, "device {device} function {function}");
+            assert_eq!((word >> 11) & 0x1F, u32::from(device & 0x1F));
+            assert_eq!((word >> 8) & 0x7, u32::from(function & 0x7));
+        }
+    }
+    assert_ne!(pci_config_address(0, 32, 0, 0), pci_config_address(1, 0, 0, 0));
 }

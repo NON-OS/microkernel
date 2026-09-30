@@ -35,8 +35,48 @@ namespace NonosExtraction.DataIoapic
 theorem the_ioapicinfo_gsi_max_wrapper_is_its_method (a : ioapic.IoApicInfo) :
     ioapicinfo_gsi_max a = ioapic.IoApicInfo.gsi_max a := rfl
 
+/-! ### The last interrupt line of an I/O APIC
+
+    `gsi_max` names the last global system interrupt of a chip as its base plus
+    twenty three, which assumes the twenty four redirection entries of the
+    common part. The base is copied from the firmware's MADT entry unchecked,
+    and the sum used to overflow for a base in the top twenty three values of a
+    `u32`, which halted the kernel with overflow checks on. It now saturates at
+    `u32::MAX`: these theorems say it never fails, returns the base plus twenty
+    three whenever that fits and `u32::MAX` otherwise. They cannot say that twenty four is the
+    chip's real entry count: the interrupt tier reads that from the version
+    register instead, and no caller of `gsi_max` exists under `src/` today. -/
+
+/-- `gsi_max` never fails and is the base plus twenty three, saturated at
+    `u32::MAX`. -/
+theorem ioapicinfo_gsi_max_is_the_base_plus_twenty_three_saturated (i : ioapic.IoApicInfo) :
+    ∃ r, ioapicinfo_gsi_max i = ok r ∧ r.val = min (2 ^ 32 - 1) (i.gsi_base.val + 23) := by
+  unfold ioapicinfo_gsi_max ioapic.IoApicInfo.gsi_max
+  refine ⟨_, rfl, ?_⟩
+  simp only [core.num.U32.saturating_add, UScalar.saturating_add, UScalar.val, UScalar.max]
+  rw [BitVec.toNat_ofNat]
+  show min (2 ^ 32 - 1) _ % 2 ^ 32 = _
+  exact Nat.mod_eq_of_lt (by omega)
+
+/-- A base up to `0xFFFFFFE8` gives the line twenty three above it. -/
+theorem ioapicinfo_gsi_max_is_the_base_plus_twenty_three (i : ioapic.IoApicInfo)
+    (h : i.gsi_base.val ≤ 0xFFFFFFE8) :
+    ∃ r, ioapicinfo_gsi_max i = ok r ∧ r.val = i.gsi_base.val + 23 := by
+  obtain ⟨r, hr, hv⟩ := ioapicinfo_gsi_max_is_the_base_plus_twenty_three_saturated i
+  exact ⟨r, hr, by omega⟩
+
+/-- A base above `0xFFFFFFE8` gives `u32::MAX` rather than halting. -/
+theorem ioapicinfo_gsi_max_saturates_on_a_base_in_the_top_twenty_three
+    (i : ioapic.IoApicInfo) (h : 0xFFFFFFE8 < i.gsi_base.val) :
+    ∃ r, ioapicinfo_gsi_max i = ok r ∧ r.val = 2 ^ 32 - 1 := by
+  obtain ⟨r, hr, hv⟩ := ioapicinfo_gsi_max_is_the_base_plus_twenty_three_saturated i
+  exact ⟨r, hr, by omega⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.DataIoapic.the_ioapicinfo_gsi_max_wrapper_is_its_method
+#print axioms NonosExtraction.DataIoapic.ioapicinfo_gsi_max_is_the_base_plus_twenty_three_saturated
+#print axioms NonosExtraction.DataIoapic.ioapicinfo_gsi_max_is_the_base_plus_twenty_three
+#print axioms NonosExtraction.DataIoapic.ioapicinfo_gsi_max_saturates_on_a_base_in_the_top_twenty_three
 
 end NonosExtraction.DataIoapic

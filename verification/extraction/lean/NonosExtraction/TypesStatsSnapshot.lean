@@ -37,11 +37,11 @@ def stats_snapshot.MmioStatsSnapshot.new
     }
 
 /-- [nonos_x_types_stats_snapshot::stats_snapshot::{nonos_x_types_stats_snapshot::stats_snapshot::MmioStatsSnapshot}::total_operations]:
-    Source: 'src/../../../../../src/memory/mmio/types/stats_snapshot.rs', lines 30:4-32:5
+    Source: 'src/../../../../../src/memory/mmio/types/stats_snapshot.rs', lines 31:4-33:5
     Visibility: public -/
 def stats_snapshot.MmioStatsSnapshot.total_operations
   (self : stats_snapshot.MmioStatsSnapshot) : Result Std.U64 := do
-  self.read_operations + self.write_operations
+  ok (core.num.U64.saturating_add self.read_operations self.write_operations)
 
 /-- [nonos_x_types_stats_snapshot::mmiostatssnapshot_new]:
     Source: 'src/lib.rs', lines 10:0-12:1

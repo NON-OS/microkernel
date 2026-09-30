@@ -19,6 +19,7 @@ mod align;
 mod kaslr_ops;
 mod percpu;
 mod regions;
+mod stack_slots;
 mod state;
 
 pub use address::{in_kernel_space, in_user_space, is_canonical, range, selfref_l4_va};

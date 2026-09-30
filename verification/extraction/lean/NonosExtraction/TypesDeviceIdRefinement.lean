@@ -38,9 +38,69 @@ theorem the_deviceid_new_wrapper_is_its_method (a : Std.U16) (b : Std.U16) :
 theorem the_deviceid_matches_wrapper_is_its_method (a : types_device_id.DeviceId) (b : Std.U16) (c : Std.U16) :
     deviceid_matches a b c = types_device_id.DeviceId.matches a b c := rfl
 
+/-! ### A PCI identity matches on vendor and device alone
+
+`matches` is how the PCI layer asks whether a probed function is a given part:
+it accepts exactly when both the vendor and the device ID agree, and it ignores
+the subsystem IDs and the revision, so two boards built on the same chip match
+the same query. `new` builds an identity from a vendor and device pair with the
+subsystem IDs and revision zeroed, and an identity built by `new` matches the
+pair it was built from and no other; in particular the `0xFFFF, 0xFFFF`
+placeholder that `src/drivers/pci/types/device.rs` installs for a slot with no
+function answers to the all-ones query and to nothing else.
+
+These theorems cannot say that a probed identity was read from the right
+configuration space offsets: `src/drivers/pci/manager/probe.rs` builds the
+struct from port reads that are not extracted. -/
+
+/-- `matches` holds exactly when vendor and device both agree. -/
+theorem deviceid_matches_iff_vendor_and_device_agree
+    (d : types_device_id.DeviceId) (v dev : Std.U16) :
+    deviceid_matches d v dev = ok (decide (d.vendor_id = v ∧ d.device_id = dev)) := by
+  unfold deviceid_matches types_device_id.DeviceId.matches
+  by_cases hv : d.vendor_id = v <;> by_cases hd : d.device_id = dev <;> simp [hv, hd]
+
+/-- The subsystem IDs and the revision play no part in a match. -/
+theorem deviceid_matches_ignores_subsystem_and_revision
+    (d : types_device_id.DeviceId) (sv s : Std.U16) (r : Std.U8) (v dev : Std.U16) :
+    deviceid_matches { d with subsystem_vendor_id := sv, subsystem_id := s, revision := r } v dev
+      = deviceid_matches d v dev := by
+  rfl
+
+/-- `new` keeps the two IDs it was given and zeroes the rest. -/
+theorem deviceid_new_keeps_the_pair_and_zeroes_the_rest (v dev : Std.U16) :
+    ∃ d, deviceid_new v dev = ok d ∧ d.vendor_id = v ∧ d.device_id = dev ∧
+      d.subsystem_vendor_id.val = 0 ∧ d.subsystem_id.val = 0 ∧ d.revision.val = 0 :=
+  ⟨_, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- The two functions agree: an identity built by `deviceid_new` matches a
+    query exactly when the query names the pair it was built from. -/
+theorem deviceid_new_matches_exactly_its_own_pair (v dev v' dev' : Std.U16) :
+    (do let d ← deviceid_new v dev; deviceid_matches d v' dev')
+      = ok (decide (v = v' ∧ dev = dev')) := by
+  simp only [deviceid_new, types_device_id.DeviceId.new, bind_tc_ok]
+  exact deviceid_matches_iff_vendor_and_device_agree _ v' dev'
+
+/-- The empty slot placeholder answers the all-ones query and only that one. -/
+theorem the_empty_slot_placeholder_deviceid_matches_only_all_ones (v' dev' : Std.U16) :
+    (do let d ← deviceid_new 0xFFFF#u16 0xFFFF#u16; deviceid_matches d v' dev')
+      = ok (decide (v'.val = 0xFFFF ∧ dev'.val = 0xFFFF)) := by
+  rw [deviceid_new_matches_exactly_its_own_pair]
+  congr 1
+  apply decide_eq_decide.mpr
+  constructor
+  · rintro ⟨h1, h2⟩; subst h1; subst h2; exact ⟨rfl, rfl⟩
+  · rintro ⟨h1, h2⟩
+    exact ⟨UScalar.eq_of_val_eq (by simp [h1]), UScalar.eq_of_val_eq (by simp [h2])⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesDeviceId.the_deviceid_new_wrapper_is_its_method
 #print axioms NonosExtraction.TypesDeviceId.the_deviceid_matches_wrapper_is_its_method
+#print axioms NonosExtraction.TypesDeviceId.deviceid_matches_iff_vendor_and_device_agree
+#print axioms NonosExtraction.TypesDeviceId.deviceid_matches_ignores_subsystem_and_revision
+#print axioms NonosExtraction.TypesDeviceId.deviceid_new_keeps_the_pair_and_zeroes_the_rest
+#print axioms NonosExtraction.TypesDeviceId.deviceid_new_matches_exactly_its_own_pair
+#print axioms NonosExtraction.TypesDeviceId.the_empty_slot_placeholder_deviceid_matches_only_all_ones
 
 end NonosExtraction.TypesDeviceId

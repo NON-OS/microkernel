@@ -27,7 +27,8 @@ impl MmioStatsSnapshot {
         Self { total_regions: 0, total_mapped_size: 0, read_operations: 0, write_operations: 0 }
     }
 
+    /* The counters wrap on their own; their sum saturates rather than abort. */
     pub const fn total_operations(&self) -> u64 {
-        self.read_operations + self.write_operations
+        self.read_operations.saturating_add(self.write_operations)
     }
 }

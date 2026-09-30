@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.SurfaceRegistryRingMath
+import Nonos.Ring
 
 open Aeneas Aeneas.Std Result
 open nonos_x_surface_registry_ring_math
@@ -38,9 +39,120 @@ theorem the_wrap_wrapper_is_its_method (a : Std.Usize) (b : Std.Usize) :
 theorem the_is_full_wrapper_is_its_method (a : Std.Usize) (b : Std.Usize) (c : Std.Usize) :
     is_full a b c = ring_math.is_full a b c := rfl
 
+/-! ### Advancing a position, and when the ring is full
+
+    `wrap` is `(pos + 1) % cap` and returns exactly that for every position below
+    the largest word and every non-zero capacity. It fails in exactly two ways,
+    both panics in the kernel: a zero capacity is a division by zero, and the
+    largest word overflows on the increment rather than wrapping to zero. For a
+    position already inside the buffer, which is how the post and drain sites
+    call it with `INPUT_RING_CAP`, the result is again an index inside the buffer:
+    one more, or zero after the last slot.
+
+    `is_full` is then checked against `Nonos.Ring`. With head and tail inside the
+    buffer, the number of queued events is `head - tail` read modulo the
+    capacity, and `is_full` answers true exactly when that number is one less
+    than the capacity, which is the point at which the model ring of capacity
+    `cap - 1` refuses a push. So the ring stores at most `cap - 1` events, as the
+    kernel file says. These theorems say nothing about the lock, the buffer
+    writes or the atomic counters in `post_input` and `drain`, which are not
+    extracted, and `post_input` repeats the comparison inline rather than calling
+    `is_full`, so its agreement with `is_full` rests on reading the source.
+-/
+
+theorem wrap_advances_a_position_by_one_modulo_the_capacity (pos cap : Std.Usize)
+    (hp : pos.val < Usize.max) (hc : 0 < cap.val) :
+    ∃ w : Std.Usize, wrap pos cap = ok w ∧ w.val = (pos.val + 1) % cap.val := by
+  unfold wrap ring_math.wrap
+  have ⟨i, hi, hiv⟩ := WP.spec_imp_exists
+    (Usize.add_spec (x := pos) (y := 1#usize) (by scalar_tac))
+  simp only [hi, bind_tc_ok]
+  have ⟨j, hj, hjv⟩ := WP.spec_imp_exists (Usize.rem_spec i (y := cap) (by omega))
+  refine ⟨j, hj, ?_⟩
+  rw [hjv, hiv]; rfl
+
+/-- The increment is checked: at the largest word `wrap` overflows instead of
+    wrapping to zero, whatever the capacity. -/
+theorem wrap_at_the_largest_word_overflows_rather_than_wrapping (pos cap : Std.Usize)
+    (hp : pos.val = Usize.max) :
+    wrap pos cap = fail .integerOverflow := by
+  unfold wrap ring_math.wrap
+  have hb : ¬ (pos.val + 1 < 2 ^ System.Platform.numBits) := by
+    have : Usize.max = 2 ^ System.Platform.numBits - 1 := by simp [Usize.max, Usize.numBits]
+    have := Nat.two_pow_pos System.Platform.numBits
+    omega
+  show (UScalar.tryMk _ (pos.val + (1#usize : Std.Usize).val) >>= _) = _
+  simp [UScalar.tryMk, UScalar.tryMkOpt, UScalar.check_bounds, Result.ofOption, hb]
+
+/-- A ring of capacity zero is refused by a division by zero, not given index zero. -/
+theorem wrap_with_a_zero_capacity_divides_by_zero (pos : Std.Usize)
+    (hp : pos.val < Usize.max) :
+    wrap pos 0#usize = fail .divisionByZero := by
+  unfold wrap ring_math.wrap
+  have ⟨i, hi, hiv⟩ := WP.spec_imp_exists
+    (Usize.add_spec (x := pos) (y := 1#usize) (by scalar_tac))
+  simp only [hi, bind_tc_ok]
+  simp [HMod.hMod, UScalar.rem]
+
+/-- The contract the post and drain sites rely on when they index `ring.buf`
+    with the result: from a slot inside the buffer, `wrap` lands on a slot inside
+    the buffer, the next one, or slot zero after the last. -/
+theorem wrap_keeps_an_index_in_the_buffer_and_returns_to_zero_after_the_last_slot
+    (pos cap : Std.Usize) (hp : pos.val < cap.val) :
+    ∃ w : Std.Usize, wrap pos cap = ok w ∧ w.val < cap.val ∧
+      w.val = if pos.val + 1 = cap.val then 0 else pos.val + 1 := by
+  have hmax : pos.val < Usize.max := by scalar_tac
+  obtain ⟨w, hw, hwv⟩ := wrap_advances_a_position_by_one_modulo_the_capacity pos cap hmax (by omega)
+  refine ⟨w, hw, ?_, ?_⟩
+  · rw [hwv]; exact Nat.mod_lt _ (by omega)
+  · rw [hwv]
+    split
+    · next h => rw [h, Nat.mod_self]
+    · exact Nat.mod_eq_of_lt (by omega)
+
+/-- With head and tail inside the buffer, `is_full` is true exactly when the
+    queued count (`head - tail` modulo the capacity) is one below the capacity,
+    and that is exactly when the `Nonos.Ring` model of capacity `cap - 1`, holding
+    that count, refuses a push. -/
+theorem is_full_exactly_when_the_ring_holds_one_less_than_its_capacity
+    (head tail cap : Std.Usize) (hh : head.val < cap.val) (ht : tail.val < cap.val) :
+    ∃ b, is_full head tail cap = ok b ∧
+      (b = true ↔ (if tail.val ≤ head.val then head.val - tail.val
+                   else head.val + cap.val - tail.val) = cap.val - 1) ∧
+      (b = true ↔
+        let r : Nonos.Ring.Ring := ⟨if tail.val ≤ head.val then head.val - tail.val
+                   else head.val + cap.val - tail.val, cap.val - 1⟩
+        Nonos.Ring.push r = r) := by
+  obtain ⟨w, hw, hlt, hwv⟩ :=
+    wrap_keeps_an_index_in_the_buffer_and_returns_to_zero_after_the_last_slot head cap hh
+  unfold is_full ring_math.is_full
+  rw [show ring_math.wrap head cap = wrap head cap from rfl, hw, bind_tc_ok]
+  have hle : (if tail.val ≤ head.val then head.val - tail.val
+      else head.val + cap.val - tail.val) ≤ cap.val - 1 := by split <;> omega
+  have key : (w = tail) ↔ (if tail.val ≤ head.val then head.val - tail.val
+      else head.val + cap.val - tail.val) = cap.val - 1 := by
+    constructor
+    · intro h; subst h; split <;> split at hwv <;> omega
+    · intro h; apply UScalar.eq_of_val_eq; split at h <;> split at hwv <;> omega
+  refine ⟨_, rfl, by simpa using key, ?_⟩
+  generalize (if tail.val ≤ head.val then head.val - tail.val
+      else head.val + cap.val - tail.val) = occ at key hle ⊢
+  simp only [decide_eq_true_eq, Nonos.Ring.push, key]
+  constructor
+  · intro h; rw [if_neg (by omega)]
+  · intro h
+    split at h
+    · simp only [Nonos.Ring.Ring.mk.injEq] at h; omega
+    · omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.SurfaceRegistryRingMath.the_wrap_wrapper_is_its_method
 #print axioms NonosExtraction.SurfaceRegistryRingMath.the_is_full_wrapper_is_its_method
+#print axioms NonosExtraction.SurfaceRegistryRingMath.wrap_advances_a_position_by_one_modulo_the_capacity
+#print axioms NonosExtraction.SurfaceRegistryRingMath.wrap_at_the_largest_word_overflows_rather_than_wrapping
+#print axioms NonosExtraction.SurfaceRegistryRingMath.wrap_with_a_zero_capacity_divides_by_zero
+#print axioms NonosExtraction.SurfaceRegistryRingMath.wrap_keeps_an_index_in_the_buffer_and_returns_to_zero_after_the_last_slot
+#print axioms NonosExtraction.SurfaceRegistryRingMath.is_full_exactly_when_the_ring_holds_one_less_than_its_capacity
 
 end NonosExtraction.SurfaceRegistryRingMath

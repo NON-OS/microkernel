@@ -35,8 +35,38 @@ namespace NonosExtraction.PioTypes
 theorem the_piowidth_bytes_wrapper_is_its_method (a : types.PioWidth) :
     piowidth_bytes a = types.PioWidth.bytes a := rfl
 
+/-! ### A port width is its size in bytes
+
+`bytes` is the discriminant of `PioWidth` read as a `u16`, and the broker uses it
+as the number of bytes one port access moves. The theorems below fix it to 1, 2
+and 4 for the three widths, agreeing with the byte values `from_byte` accepts
+(`from_byte` itself is not extracted, so the agreement is with its source), and
+show that distinct widths never report the same size. They cannot establish
+anything about the port instructions that consume the size, which are inline
+assembly outside the extraction. -/
+
+/-- Byte, word and doubleword accesses move one, two and four bytes. -/
+theorem piowidth_bytes_is_the_access_size :
+    piowidth_bytes .U8 = ok 1#u16 ∧ piowidth_bytes .U16 = ok 2#u16 ∧
+      piowidth_bytes .U32 = ok 4#u16 := by
+  refine ⟨rfl, rfl, rfl⟩
+
+/-- Every width is a power of two no larger than four, so an access of that
+    size never straddles a naturally aligned doubleword. -/
+theorem piowidth_bytes_is_a_power_of_two_at_most_four (w : types.PioWidth) :
+    ∃ r, piowidth_bytes w = ok r ∧ (r.val = 1 ∨ r.val = 2 ∨ r.val = 4) := by
+  cases w <;> exact ⟨_, rfl, by decide⟩
+
+/-- The size identifies the width. -/
+theorem piowidth_bytes_is_injective (a b : types.PioWidth)
+    (h : piowidth_bytes a = piowidth_bytes b) : a = b := by
+  cases a <;> cases b <;> first | rfl | (simp [piowidth_bytes, types.PioWidth.bytes, types.PioWidth.read_discriminant] at h)
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.PioTypes.the_piowidth_bytes_wrapper_is_its_method
+#print axioms NonosExtraction.PioTypes.piowidth_bytes_is_the_access_size
+#print axioms NonosExtraction.PioTypes.piowidth_bytes_is_a_power_of_two_at_most_four
+#print axioms NonosExtraction.PioTypes.piowidth_bytes_is_injective
 
 end NonosExtraction.PioTypes

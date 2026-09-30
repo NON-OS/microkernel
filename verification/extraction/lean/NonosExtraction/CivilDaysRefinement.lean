@@ -41,10 +41,109 @@ theorem the_days_in_month_wrapper_is_its_method (a : Std.U16) (b : Std.U8) :
 theorem the_days_in_year_wrapper_is_its_method (a : Std.U16) :
     days_in_year a = days.days_in_year a := rfl
 
+/-! ### The Gregorian calendar, and months that add up to the year
+
+    `is_leap_year` is the full Gregorian rule on every `u16` year: divisible by
+    four and not by one hundred, or divisible by four hundred. The century clause
+    is the one the kernel comment warns a naive rule drops, and 1900, 2000 and
+    2100 are pinned below so that dropping either exception is visible.
+    `days_in_year` is 366 exactly in those years and 365 otherwise, and repeats
+    every four hundred years. `days_in_month` is zero exactly outside months one
+    to twelve, and the twelve months it returns add up to `days_in_year`, which is
+    what lets the month loop in civil::time::from_unix, run on a remainder smaller
+    than `days_in_year`, stop at or before December. These theorems cannot
+    establish anything about the loops themselves: civil::time and the RTC
+    calendar in arch/x86_64/time/rtc are not extracted here.
+-/
+
+theorem is_leap_year_is_the_gregorian_rule (y : Std.U16) :
+    is_leap_year y =
+      ok (decide ((y.val % 4 = 0 ∧ y.val % 100 ≠ 0) ∨ y.val % 400 = 0)) := by
+  unfold is_leap_year days.is_leap_year
+  simp only [core.num.U16.is_multiple_of, UScalar.is_multiple_of, bind_tc_ok]
+  have h4 : (4#u16 : Std.U16).val = 4 := rfl
+  have h100 : (100#u16 : Std.U16).val = 100 := rfl
+  have h400 : (400#u16 : Std.U16).val = 400 := rfl
+  rw [h4, h100, h400]
+  by_cases a : y.val % 4 = 0 <;> by_cases b : y.val % 100 = 0 <;>
+    by_cases c : y.val % 400 = 0 <;> simp [a, b, c]
+
+/-- The century years: 1900 and 2100 are common, 2000 is leap, and so is 2024. -/
+theorem days_in_year_at_the_century_boundaries :
+    days_in_year 1900#u16 = ok 365#u16 ∧ days_in_year 2000#u16 = ok 366#u16 ∧
+    days_in_year 2100#u16 = ok 365#u16 ∧ days_in_year 2024#u16 = ok 366#u16 ∧
+    days_in_year 2023#u16 = ok 365#u16 := by
+  unfold days_in_year days.days_in_year
+  simp only [← the_is_leap_year_wrapper_is_its_method, is_leap_year_is_the_gregorian_rule,
+    bind_tc_ok]
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> rfl
+
+theorem days_in_year_is_366_exactly_in_leap_years (y : Std.U16) :
+    days_in_year y = ok (if (y.val % 4 = 0 ∧ y.val % 100 ≠ 0) ∨ y.val % 400 = 0
+      then 366#u16 else 365#u16) := by
+  unfold days_in_year days.days_in_year
+  simp only [← the_is_leap_year_wrapper_is_its_method, is_leap_year_is_the_gregorian_rule,
+    bind_tc_ok]
+  by_cases h : (y.val % 4 = 0 ∧ y.val % 100 ≠ 0) ∨ y.val % 400 = 0 <;> simp [h]
+
+/-- The calendar repeats every four hundred years (as far as `u16` reaches). -/
+theorem days_in_year_repeats_every_four_hundred_years (y z : Std.U16)
+    (h : z.val = y.val + 400) : days_in_year z = days_in_year y := by
+  rw [days_in_year_is_366_exactly_in_leap_years, days_in_year_is_366_exactly_in_leap_years]
+  have e : ((z.val % 4 = 0 ∧ z.val % 100 ≠ 0) ∨ z.val % 400 = 0) ↔
+      ((y.val % 4 = 0 ∧ y.val % 100 ≠ 0) ∨ y.val % 400 = 0) := by
+    rw [h]; omega
+  simp only [e]
+
+/-- A month number outside 1 to 12 gets zero days, and only such a number does:
+    a fallback of 31 would make month 13 look valid. -/
+theorem days_in_month_is_zero_exactly_outside_one_to_twelve (y : Std.U16) (m : Std.U8) :
+    days_in_month y m = ok 0#u8 ↔ ¬ (1 ≤ m.val ∧ m.val ≤ 12) := by
+  unfold days_in_month days.days_in_month
+  simp only [← the_is_leap_year_wrapper_is_its_method, is_leap_year_is_the_gregorian_rule,
+    bind_tc_ok]
+  split
+  case h_13 h1 h3 h5 h7 h8 h10 h12 h4 h6 h9 h11 h2 =>
+    have ne : ∀ (c : Std.U8) (k : Nat), c.val = k → (m = c → False) → m.val ≠ k :=
+      fun c k hc hne he => hne (UScalar.eq_of_val_eq (he.trans hc.symm))
+    have := ne _ 1 rfl h1; have := ne _ 2 rfl h2; have := ne _ 3 rfl h3
+    have := ne _ 4 rfl h4; have := ne _ 5 rfl h5; have := ne _ 6 rfl h6
+    have := ne _ 7 rfl h7; have := ne _ 8 rfl h8; have := ne _ 9 rfl h9
+    have := ne _ 10 rfl h10; have := ne _ 11 rfl h11; have := ne _ 12 rfl h12
+    simp only [true_iff]
+    omega
+  case h_12 =>
+    split <;> simp only [ok.injEq] <;> decide
+  all_goals simp only [ok.injEq]; decide
+
+/-- The twelve months add up to the year: 366 days in a Gregorian leap year and
+    365 otherwise, so February carries the whole leap rule. -/
+theorem days_in_month_twelve_months_add_up_to_days_in_year (y : Std.U16) :
+    ∃ ds n, [1#u8, 2#u8, 3#u8, 4#u8, 5#u8, 6#u8, 7#u8, 8#u8, 9#u8, 10#u8, 11#u8, 12#u8].mapM
+        (days_in_month y) = ok ds ∧
+      days_in_year y = ok n ∧ (ds.map (·.val)).sum = n.val := by
+  have hl := is_leap_year_is_the_gregorian_rule y
+  rw [days_in_year_is_366_exactly_in_leap_years]
+  unfold days_in_month days.days_in_month
+  simp only [← the_is_leap_year_wrapper_is_its_method]
+  by_cases h : (y.val % 4 = 0 ∧ y.val % 100 ≠ 0) ∨ y.val % 400 = 0
+  · rw [decide_eq_true h] at hl
+    simp only [hl, h, if_true]
+    exact ⟨_, _, rfl, rfl, rfl⟩
+  · rw [decide_eq_false h] at hl
+    simp only [hl, h, if_false]
+    exact ⟨_, _, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CivilDays.the_is_leap_year_wrapper_is_its_method
 #print axioms NonosExtraction.CivilDays.the_days_in_month_wrapper_is_its_method
 #print axioms NonosExtraction.CivilDays.the_days_in_year_wrapper_is_its_method
+#print axioms NonosExtraction.CivilDays.is_leap_year_is_the_gregorian_rule
+#print axioms NonosExtraction.CivilDays.days_in_year_at_the_century_boundaries
+#print axioms NonosExtraction.CivilDays.days_in_year_is_366_exactly_in_leap_years
+#print axioms NonosExtraction.CivilDays.days_in_year_repeats_every_four_hundred_years
+#print axioms NonosExtraction.CivilDays.days_in_month_is_zero_exactly_outside_one_to_twelve
+#print axioms NonosExtraction.CivilDays.days_in_month_twelve_months_add_up_to_days_in_year
 
 end NonosExtraction.CivilDays

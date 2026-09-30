@@ -35,8 +35,43 @@ namespace NonosExtraction.PciInfo
 theorem the_pcihost_has_io_window_wrapper_is_its_method (a : info.PciHost) :
     pcihost_has_io_window a = info.PciHost.has_io_window a := rfl
 
+/-! ### When the host bridge has an I/O window
+
+    `has_io_window` is decided by the size of the window alone. The boot path in
+    `arch/aarch64/boot/pci_windows.rs` makes the same decision with
+    `io_size > 0` before it maps the window, and the theorem below proves the two
+    tests agree on every host, including one whose window starts at CPU address
+    zero or port zero. The theorems cannot say whether the device tree parser
+    filled `io_size` correctly; `take_io_window` reads raw device tree bytes and
+    is not extracted.
+-/
+
+/-- The window exists exactly when its size is positive, whatever its base and
+    port offset are; this is the test the boot path uses. -/
+theorem pcihost_has_io_window_is_a_positive_io_size (h : info.PciHost) :
+    pcihost_has_io_window h = ok (decide (0 < h.io_size.val)) := by
+  unfold pcihost_has_io_window info.PciHost.has_io_window
+  congr 1
+  by_cases h0 : h.io_size.val = 0
+  · have : h.io_size = 0#u64 := UScalar.eq_of_val_eq (by simp [h0])
+    simp [this]
+  · have : h.io_size ≠ 0#u64 := fun e => h0 (by simp [e])
+    rw [bne_iff_ne.mpr this]
+    simp
+    omega
+
+/-- The boundary: a one-byte window at address zero counts, and an all-zero host
+    (the `Default` one, what the parser starts from) has none. -/
+theorem pcihost_has_io_window_at_the_boundary :
+    pcihost_has_io_window ⟨0#u64, 0#u64, 0#u64, 1#u64, 0#u64⟩ = ok true ∧
+    pcihost_has_io_window ⟨0#u64, 0#u64, 0#u64, 0#u64, 0#u64⟩ = ok false := by
+  constructor <;> rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.PciInfo.the_pcihost_has_io_window_wrapper_is_its_method
+
+#print axioms NonosExtraction.PciInfo.pcihost_has_io_window_is_a_positive_io_size
+#print axioms NonosExtraction.PciInfo.pcihost_has_io_window_at_the_boundary
 
 end NonosExtraction.PciInfo

@@ -35,8 +35,28 @@ namespace NonosExtraction.DataProcessor
 theorem the_processorinfo_new_wrapper_is_its_method (a : Std.U32) (b : Std.U32) (c : Bool) (d : Bool) :
     processorinfo_new a b c d = processor.ProcessorInfo.new a b c d := rfl
 
+/-! ### A processor record keeps its identifiers apart
+
+    The MADT parsers build one `ProcessorInfo` per usable local APIC entry,
+    passing the APIC id first and the ACPI processor UID second, and the SRAT
+    parser later finds the record by its APIC id to fill in the proximity
+    domain. This theorem says that each argument lands in its own field, that
+    the two identifiers are not swapped, and that the proximity domain starts at
+    zero until SRAT sets it. It cannot say anything about the parsers, which are
+    not extracted. -/
+
+/-- Each argument is stored in the field of the same name, and the proximity
+    domain is zero. -/
+theorem processorinfo_new_stores_each_identifier_in_its_own_field
+    (apic uid : Std.U32) (x2 en : Bool) :
+    ∃ p, processorinfo_new apic uid x2 en = ok p ∧
+      p.apic_id = apic ∧ p.processor_uid = uid ∧ p.proximity_domain.val = 0 ∧
+      p.is_x2apic = x2 ∧ p.enabled = en :=
+  ⟨_, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.DataProcessor.the_processorinfo_new_wrapper_is_its_method
+#print axioms NonosExtraction.DataProcessor.processorinfo_new_stores_each_identifier_in_its_own_field
 
 end NonosExtraction.DataProcessor

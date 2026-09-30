@@ -24,6 +24,7 @@ pub struct AcpiRsdp {
     pub length: Option<u32>,
     pub xsdt_address: Option<u64>,
     pub extended_checksum: Option<u8>,
+    pub reserved: Option<[u8; 3]>,
 }
 
 impl AcpiRsdp {
@@ -60,9 +61,22 @@ impl AcpiRsdp {
         sum == 0
     }
 
+    /* An ACPI 2.0 RSDP passes only with all its extended fields present, a
+    length of exactly 36, and those 36 bytes summing to zero, reserved bytes
+    included. The extended checksum covers the length the table declares, and
+    only 36 bytes are kept, so a longer declaration could hide unchecked bytes.
+    Below revision 2 there is no extended checksum to check. */
     pub fn verify_extended_checksum(&self) -> bool {
         if !self.is_acpi2() {
             return true;
+        }
+        let (Some(len), Some(xsdt), Some(ext), Some(reserved)) =
+            (self.length, self.xsdt_address, self.extended_checksum, self.reserved)
+        else {
+            return false;
+        };
+        if len != 36 {
+            return false;
         }
         let mut sum: u8 = 0;
         for &b in &self.signature {
@@ -76,18 +90,15 @@ impl AcpiRsdp {
         for &b in &self.rsdt_address.to_le_bytes() {
             sum = sum.wrapping_add(b);
         }
-        if let Some(len) = self.length {
-            for &b in &len.to_le_bytes() {
-                sum = sum.wrapping_add(b);
-            }
+        for &b in &len.to_le_bytes() {
+            sum = sum.wrapping_add(b);
         }
-        if let Some(xsdt) = self.xsdt_address {
-            for &b in &xsdt.to_le_bytes() {
-                sum = sum.wrapping_add(b);
-            }
+        for &b in &xsdt.to_le_bytes() {
+            sum = sum.wrapping_add(b);
         }
-        if let Some(ext) = self.extended_checksum {
-            sum = sum.wrapping_add(ext);
+        sum = sum.wrapping_add(ext);
+        for &b in &reserved {
+            sum = sum.wrapping_add(b);
         }
         sum == 0
     }

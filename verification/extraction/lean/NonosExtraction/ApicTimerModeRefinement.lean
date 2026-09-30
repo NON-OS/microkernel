@@ -38,9 +38,174 @@ theorem the_divider_to_code_wrapper_is_its_method (a : Std.U8) :
 theorem the_calibrate_timer_wrapper_is_its_method (a : Std.U32) :
     calibrate_timer a = timer_mode.calibrate_timer a := rfl
 
+/-! ### The divide code and the initial count
+
+`divider_to_code` produces the value `timer_enable` and `timer_oneshot` write to
+the local APIC Divide Configuration Register. The Intel SDM (Vol. 3A, 11.5.4)
+defines that register by bits 0, 1 and 3, with bit 2 reserved: reading those
+three bits as `b3 b1 b0`, the timer divides the bus clock by `2^((b3b1b0 + 1)
+mod 8)`. `sdmDivisor` restates that decoding independently of the match table,
+and the theorems below show every supported divisor encodes to a code that the
+hardware decodes back to the same divisor, that no code sets a reserved bit,
+and that an unsupported divisor falls back to divide by 16.
+
+`calibrate_timer` gives the initial count `timer_enable` programs for a
+requested rate. The theorems pin it exactly, then draw out what the caller
+relies on: it never fails (the divisor is clamped to at least 1), the count is
+never below 50000, so the timer is never programmed with 0 (which stops it) or
+with a period short enough to storm the core, a faster rate never gets a longer
+count, and the floor takes over from exactly 200 kHz upward. Whether 10000000
+ticks is one second on a given machine depends on the bus clock and divider,
+which nothing here models; the MMIO and MSR writes are not extracted.
+-/
+
+/-- The divisor the local APIC applies for a Divide Configuration Register value,
+    read from bits 0, 1 and 3 as the SDM specifies. -/
+def sdmDivisor (c : Nat) : Nat := 2 ^ ((c % 4 + c / 8 % 2 * 4 + 1) % 8)
+
+/-- Every divisor the hardware supports encodes to a code the hardware decodes
+    back to that divisor. -/
+theorem divider_to_code_encodes_each_supported_divisor_as_the_sdm_reads_it (d : Std.U8)
+    (h : d.val ∈ [1, 2, 4, 8, 16, 32, 64, 128]) :
+    ∃ c, divider_to_code d = ok c ∧ sdmDivisor c.val = d.val := by
+  unfold divider_to_code timer_mode.divider_to_code
+  split
+  all_goals first
+    | exact ⟨_, rfl, by decide⟩
+    | skip
+  rename_i h1 h2 h3 h4 h5 h6 h7 h8
+  exfalso
+  simp at h
+  rcases h with h | h | h | h | h | h | h | h
+  all_goals first
+    | exact h1 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    | exact h2 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    | exact h3 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    | exact h4 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    | exact h5 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    | exact h6 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    | exact h7 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    | exact h8 (UScalar.eq_of_val_eq (by rw [h]; rfl))
+
+/-- An unsupported divisor is not refused: it is programmed as divide by 16,
+    the same code the table gives for 16 itself. -/
+theorem divider_to_code_falls_back_to_divide_by_16 (d : Std.U8)
+    (h : d.val ∉ [1, 2, 4, 8, 16, 32, 64, 128]) :
+    divider_to_code d = ok 3#u32 ∧ divider_to_code 16#u8 = ok 3#u32 := by
+  refine ⟨?_, rfl⟩
+  unfold divider_to_code timer_mode.divider_to_code
+  split
+  all_goals first
+    | (exfalso; apply h; decide)
+    | rfl
+
+/-- No code sets bit 2 or anything above bit 3, the reserved bits of the Divide
+    Configuration Register, whatever divisor is asked for. -/
+theorem divider_to_code_never_sets_a_reserved_bit (d : Std.U8) :
+    ∃ c, divider_to_code d = ok c ∧ c.val < 16 ∧ c.val.testBit 2 = false := by
+  unfold divider_to_code timer_mode.divider_to_code
+  split <;> exact ⟨_, rfl, by decide, by decide⟩
+
+/-- The initial count as a function of the requested rate, over the naturals. -/
+def calibrateModel (hz : Nat) : Nat :=
+  if hz < 1000 then 10000000 else max (10000000 / (hz / 1000)) 50000
+
+private theorem max_val (x y : Std.U32) :
+    (core.cmp.impls.OrdU32.max x y).val = max x.val y.val := by
+  simp only [core.cmp.impls.OrdU32.max]
+  split <;> rename_i h <;> simp only [UScalar.lt_equiv] at h <;> omega
+
+/-- `calibrate_timer` never fails and computes `calibrateModel` exactly: below
+    1 kHz the count is 10000000, and from 1 kHz up it is 10000000 divided by
+    the rate in whole kilohertz, but never below 50000. -/
+theorem calibrate_timer_is_ten_million_over_the_rate_in_khz (hz : Std.U32) :
+    ∃ c, calibrate_timer hz = ok c ∧ c.val = calibrateModel hz.val := by
+  unfold calibrate_timer timer_mode.calibrate_timer calibrateModel
+  split
+  · rename_i hge
+    have hge' : 1000 ≤ hz.val := by simpa using hge
+    obtain ⟨i, hi, hiv⟩ := UScalar.div_spec hz (y := 1000#u32) (by simp)
+    rw [hi, bind_tc_ok]
+    simp only [lift, bind_tc_ok]
+    have hj : (core.cmp.impls.OrdU32.max i 1#u32).val = hz.val / 1000 := by
+      rw [max_val, hiv]
+      have : 1 ≤ hz.val / 1000 := by omega
+      simp; omega
+    obtain ⟨q, hq, hqv⟩ :=
+      UScalar.div_spec 10000000#u32 (y := core.cmp.impls.OrdU32.max i 1#u32) (by omega)
+    rw [hq, bind_tc_ok]
+    refine ⟨_, rfl, ?_⟩
+    rw [max_val, hqv, hj]
+    simp [Nat.not_lt.mpr hge']
+  · rename_i hlt
+    have hlt' : hz.val < 1000 := by simp at hlt; omega
+    refine ⟨_, rfl, ?_⟩
+    rw [max_val]
+    simp [hlt']
+
+/-- The count `timer_enable` writes is never 0 and never below 50000, and never
+    above 10000000, for every 32-bit rate including 0. -/
+theorem calibrate_timer_stays_between_50000_and_10000000 (hz : Std.U32) :
+    ∃ c, calibrate_timer hz = ok c ∧ 50000 ≤ c.val ∧ c.val ≤ 10000000 := by
+  obtain ⟨c, hc, hv⟩ := calibrate_timer_is_ten_million_over_the_rate_in_khz hz
+  refine ⟨c, hc, ?_⟩
+  rw [hv]
+  unfold calibrateModel
+  split
+  · omega
+  · have := Nat.div_le_self 10000000 (hz.val / 1000)
+    omega
+
+/-- A faster requested rate never gets a longer initial count. -/
+theorem calibrate_timer_does_not_lengthen_the_period_as_the_rate_rises
+    (hz₁ hz₂ : Std.U32) (h : hz₁.val ≤ hz₂.val) :
+    ∃ c₁ c₂, calibrate_timer hz₁ = ok c₁ ∧ calibrate_timer hz₂ = ok c₂ ∧ c₂.val ≤ c₁.val := by
+  obtain ⟨c₁, h₁, v₁⟩ := calibrate_timer_is_ten_million_over_the_rate_in_khz hz₁
+  obtain ⟨c₂, h₂, v₂⟩ := calibrate_timer_is_ten_million_over_the_rate_in_khz hz₂
+  refine ⟨c₁, c₂, h₁, h₂, ?_⟩
+  rw [v₁, v₂]
+  unfold calibrateModel
+  have hd := Nat.div_le_self 10000000 (hz₂.val / 1000)
+  split <;> split
+  · omega
+  · omega
+  · omega
+  · have hk : hz₁.val / 1000 ≤ hz₂.val / 1000 := Nat.div_le_div_right h
+    have hpos : 0 < hz₁.val / 1000 := by omega
+    have := Nat.div_le_div_left hk hpos (a := 10000000)
+    omega
+
+/-- The 50000 floor is reached exactly at 200 kHz: at 200000 Hz and above the
+    count is exactly 50000, and at every rate below it the count is larger. -/
+theorem calibrate_timer_hits_its_floor_exactly_from_200_khz (hz : Std.U32) :
+    ∃ c, calibrate_timer hz = ok c ∧ (c.val = 50000 ↔ 200000 ≤ hz.val) := by
+  obtain ⟨c, hc, hv⟩ := calibrate_timer_is_ten_million_over_the_rate_in_khz hz
+  refine ⟨c, hc, ?_⟩
+  rw [hv]
+  unfold calibrateModel
+  split
+  · omega
+  · rename_i hge
+    by_cases hk : 200 ≤ hz.val / 1000
+    · have := Nat.div_le_div_left hk (by decide : 0 < 200) (a := 10000000)
+      have h2 : (10000000 : Nat) / 200 = 50000 := by decide
+      omega
+    · have hk' : hz.val / 1000 ≤ 199 := by omega
+      have hpos : 0 < hz.val / 1000 := by omega
+      have := Nat.div_le_div_left hk' hpos (a := 10000000)
+      have h2 : (10000000 : Nat) / 199 = 50251 := by decide
+      omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ApicTimerMode.the_divider_to_code_wrapper_is_its_method
 #print axioms NonosExtraction.ApicTimerMode.the_calibrate_timer_wrapper_is_its_method
+#print axioms NonosExtraction.ApicTimerMode.divider_to_code_encodes_each_supported_divisor_as_the_sdm_reads_it
+#print axioms NonosExtraction.ApicTimerMode.divider_to_code_falls_back_to_divide_by_16
+#print axioms NonosExtraction.ApicTimerMode.divider_to_code_never_sets_a_reserved_bit
+#print axioms NonosExtraction.ApicTimerMode.calibrate_timer_is_ten_million_over_the_rate_in_khz
+#print axioms NonosExtraction.ApicTimerMode.calibrate_timer_stays_between_50000_and_10000000
+#print axioms NonosExtraction.ApicTimerMode.calibrate_timer_does_not_lengthen_the_period_as_the_rate_rises
+#print axioms NonosExtraction.ApicTimerMode.calibrate_timer_hits_its_floor_exactly_from_200_khz
 
 end NonosExtraction.ApicTimerMode

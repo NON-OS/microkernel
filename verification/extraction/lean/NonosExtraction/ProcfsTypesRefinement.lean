@@ -54,9 +54,9 @@ left opaque by the extraction, so every statement is conditional on the
 constructor returning `ok`, and the characterisation in terms of the root is how
 the opaque call is shared rather than assumed. They say nothing about the inode
 numbers callers choose. `lookup_root` and `procfs_readdir` take them from
-`pid_dir_inode`, which refuses a negative pid instead of overflowing on it;
-`NonosExtraction.ProcfsPidInode` proves that. Collisions with the fixed root
-entries are outside these statements.
+`pid_dir_inode`, which numbers pid `p` as `p << 20` from pid 1 up;
+`NonosExtraction.ProcfsPidInode` proves those numbers miss the root entries and
+every pid entry.
 -/
 
 /-- The root is inode 1, a directory, and carries no pid, which is exactly what

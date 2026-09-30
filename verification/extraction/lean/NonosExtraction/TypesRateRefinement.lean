@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.TypesRate
+import Nonos.TimerLiveness
 
 open Aeneas Aeneas.Std Result
 open nonos_x_types_rate
@@ -41,10 +42,88 @@ theorem the_periodicrate_frequency_hz_wrapper_is_its_method (a : rate.PeriodicRa
 theorem the_periodicrate_period_us_wrapper_is_its_method (a : rate.PeriodicRate) :
     periodicrate_period_us a = rate.PeriodicRate.period_us a := rfl
 
+/-! ### The rate code, its frequency and its period
+
+    `value` is the code `set_periodic_rate` ORs into the low nibble of CMOS status
+    register A, after clearing that nibble with `RATE_MASK` (0x0F). Every code is
+    below 16, so the write never reaches the divider bits above it, and no two
+    rates share a code, so the code read back names the rate that was set.
+
+    `frequency_hz` agrees with the MC146818 divider chain: code `k` from 3 to 15
+    gives `32768 >> (k - 1)` hertz, and codes 1 and 2 repeat codes 8 and 9 (256
+    and 128 hertz), the aliasing the hardware documents. `period_us` is a million
+    over that frequency, rounded down, for every rate, so the two tables cannot
+    drift apart. The 128 hertz period is the one the tier-one liveness model
+    takes as its heartbeat.
+
+    What these cannot establish: that the port writes in `set_periodic_rate`
+    reach the device, or that `RTC_STATE` records the rate the device runs at.
+    The caller is not extracted, and the lock and CMOS accesses are opaque.
+-/
+
+/-- The rate a register code selects, read the other way. -/
+def rateOfCode : Nat → rate.PeriodicRate
+  | 1 => .Hz256 | 2 => .Hz128 | 3 => .Hz8192 | 4 => .Hz4096 | 5 => .Hz2048
+  | 6 => .Hz1024 | 7 => .Hz512 | 8 => .Hz256_2 | 9 => .Hz128_2 | 10 => .Hz64
+  | 11 => .Hz32 | 12 => .Hz16 | 13 => .Hz8 | 14 => .Hz4 | 15 => .Hz2 | _ => .Disabled
+
+/-- The output of the MC146818 periodic divider for a rate code, in hertz. -/
+def dividerHz (k : Nat) : Nat :=
+  if k = 0 then 0 else if k ≤ 2 then 32768 >>> (k + 6) else 32768 >>> (k - 1)
+
+/-- The code `set_periodic_rate` writes stays inside the four bits `RATE_MASK`
+    clears. -/
+theorem periodicrate_value_fits_under_the_rate_mask (r : rate.PeriodicRate) :
+    ∃ v : Std.U8, periodicrate_value r = ok v ∧ v.val < 16 := by
+  cases r <;> exact ⟨_, rfl, by decide⟩
+
+/-- Each rate writes the code the datasheet gives it, 0 for disabled through 15
+    for two hertz. -/
+theorem periodicrate_value_is_the_datasheet_code (r : rate.PeriodicRate) :
+    ∃ v : Std.U8, periodicrate_value r = ok v ∧ rateOfCode v.val = r := by
+  cases r <;> exact ⟨_, rfl, rfl⟩
+
+theorem periodicrate_value_is_injective (a b : rate.PeriodicRate) (v : Std.U8)
+    (ha : periodicrate_value a = ok v) (hb : periodicrate_value b = ok v) : a = b := by
+  obtain ⟨va, hva, ea⟩ := periodicrate_value_is_the_datasheet_code a
+  obtain ⟨vb, hvb, eb⟩ := periodicrate_value_is_the_datasheet_code b
+  rw [hva, ok.injEq] at ha
+  rw [hvb, ok.injEq] at hb
+  subst ha hb
+  rw [← ea, ← eb]
+
+theorem periodicrate_frequency_hz_is_the_divider_output (r : rate.PeriodicRate) :
+    ∃ v f, periodicrate_value r = ok v ∧ periodicrate_frequency_hz r = ok f ∧
+      f.val = dividerHz v.val := by
+  cases r <;> exact ⟨_, _, rfl, rfl, by decide⟩
+
+/-- Zero hertz is exactly the disabled rate: every other code ticks. -/
+theorem periodicrate_frequency_hz_is_zero_only_when_disabled (r : rate.PeriodicRate) :
+    ∃ f, periodicrate_frequency_hz r = ok f ∧ (f.val = 0 ↔ r = .Disabled) := by
+  cases r <;> exact ⟨_, rfl, by simp⟩
+
+theorem periodicrate_period_us_is_a_million_over_the_frequency (r : rate.PeriodicRate) :
+    ∃ f p, periodicrate_frequency_hz r = ok f ∧ periodicrate_period_us r = ok p ∧
+      p.val = 1000000 / f.val := by
+  cases r <;> exact ⟨_, _, rfl, rfl, by decide⟩
+
+/-- Both 128 hertz codes give the heartbeat period `Nonos.TimerLiveness` assumes. -/
+theorem periodicrate_period_us_at_128_hz_is_the_liveness_heartbeat :
+    periodicrate_period_us .Hz128 = ok ⟨Nonos.TimerLiveness.rtcHeartbeat.period⟩ ∧
+      periodicrate_period_us .Hz128_2 = ok ⟨Nonos.TimerLiveness.rtcHeartbeat.period⟩ := by
+  exact ⟨rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesRate.the_periodicrate_value_wrapper_is_its_method
 #print axioms NonosExtraction.TypesRate.the_periodicrate_frequency_hz_wrapper_is_its_method
 #print axioms NonosExtraction.TypesRate.the_periodicrate_period_us_wrapper_is_its_method
+#print axioms NonosExtraction.TypesRate.periodicrate_value_fits_under_the_rate_mask
+#print axioms NonosExtraction.TypesRate.periodicrate_value_is_the_datasheet_code
+#print axioms NonosExtraction.TypesRate.periodicrate_value_is_injective
+#print axioms NonosExtraction.TypesRate.periodicrate_frequency_hz_is_the_divider_output
+#print axioms NonosExtraction.TypesRate.periodicrate_frequency_hz_is_zero_only_when_disabled
+#print axioms NonosExtraction.TypesRate.periodicrate_period_us_is_a_million_over_the_frequency
+#print axioms NonosExtraction.TypesRate.periodicrate_period_us_at_128_hz_is_the_liveness_heartbeat
 
 end NonosExtraction.TypesRate

@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.TablesSratProcessor
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_tables_srat_processor
@@ -41,10 +42,153 @@ theorem the_sratprocessoraffinity_is_enabled_wrapper_is_its_method (a : srat_pro
 theorem the_sratx2apicaffinity_is_enabled_wrapper_is_its_method (a : srat_processor.SratX2ApicAffinity) :
     sratx2apicaffinity_is_enabled a = srat_processor.SratX2ApicAffinity.is_enabled a := rfl
 
+/-! ### The enabled flag and the proximity domain
+
+    Both SRAT processor entries test `flags & (1 << 0) != 0`, which is bit 0 of
+    the flags word and no other bit: an entry with only reserved flag bits set is
+    disabled, as ACPI requires, and the legacy APIC entry and the x2APIC entry
+    agree on every flags word. `parse_processor_affinity` skips an entry this
+    test calls disabled.
+
+    `proximity_domain` reassembles the 32-bit domain from the low byte and the
+    three high bytes in little-endian order, each byte in its own eight bits, so
+    it never fails and different byte sequences give different domains. That is
+    the value `parse_processor_affinity` stores into the processor record.
+
+    What these cannot establish: that the entry was read from a well-formed
+    table (the volatile read and the length check in the parser are not
+    extracted), or that the domain names a memory affinity entry that exists.
+-/
+
+private theorem shl_u32 (x : Std.U32) (k : Std.I32) (h0 : 0 ≤ k.val) (h1 : k.val < 32) :
+    ∃ z : Std.U32, x <<< k = ok z ∧ z.val = x.val * 2 ^ k.toNat % 2 ^ 32 := by
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftLeft_IScalar_spec x k (UScalar.size .U32) h0
+      (by simpa using h1) rfl)
+  exact ⟨z, hz, by rw [hv, Nat.shiftLeft_eq]; simp [U32.size, U32.numBits]⟩
+
+theorem sratprocessoraffinity_is_enabled_reads_bit_zero
+    (s : srat_processor.SratProcessorAffinity) :
+    sratprocessoraffinity_is_enabled s = ok (s.flags.val.testBit 0) := by
+  unfold sratprocessoraffinity_is_enabled srat_processor.SratProcessorAffinity.is_enabled
+  have hs : srat_processor.SratProcessorAffinity.ENABLED = ok 1#u32 := by
+    unfold srat_processor.SratProcessorAffinity.ENABLED; rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit s.flags 1#u32 0#u32 0 rfl rfl]
+
+theorem sratx2apicaffinity_is_enabled_reads_bit_zero
+    (x : srat_processor.SratX2ApicAffinity) :
+    sratx2apicaffinity_is_enabled x = ok (x.flags.val.testBit 0) := by
+  unfold sratx2apicaffinity_is_enabled srat_processor.SratX2ApicAffinity.is_enabled
+  have hs : srat_processor.SratX2ApicAffinity.ENABLED = ok 1#u32 := by
+    unfold srat_processor.SratX2ApicAffinity.ENABLED; rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit x.flags 1#u32 0#u32 0 rfl rfl]
+
+/-- The legacy and x2APIC entries decide enablement identically from the same
+    flags word. -/
+theorem sratprocessoraffinity_is_enabled_agrees_with_sratx2apicaffinity_is_enabled
+    (s : srat_processor.SratProcessorAffinity) (x : srat_processor.SratX2ApicAffinity)
+    (h : s.flags = x.flags) :
+    sratprocessoraffinity_is_enabled s = sratx2apicaffinity_is_enabled x := by
+  rw [sratprocessoraffinity_is_enabled_reads_bit_zero,
+    sratx2apicaffinity_is_enabled_reads_bit_zero, h]
+
+/-- A flags word with every bit set except bit 0 is a disabled entry, for both
+    entry kinds: no reserved bit can enable a processor. -/
+theorem reserved_flag_bits_do_not_enable_sratprocessoraffinity_is_enabled
+    (s : srat_processor.SratProcessorAffinity) (x : srat_processor.SratX2ApicAffinity)
+    (hs : s.flags = 4294967294#u32) (hx : x.flags = 4294967294#u32) :
+    sratprocessoraffinity_is_enabled s = ok false ∧
+      sratx2apicaffinity_is_enabled x = ok false := by
+  rw [sratprocessoraffinity_is_enabled_reads_bit_zero,
+    sratx2apicaffinity_is_enabled_reads_bit_zero, hs, hx]
+  exact ⟨rfl, rfl⟩
+
+/-- The domain is the low byte plus the three high bytes at weights 2^8, 2^16
+    and 2^24: the ACPI little-endian layout, with nothing lost or overlapped. -/
+theorem sratprocessoraffinity_proximity_domain_is_the_little_endian_word
+    (s : srat_processor.SratProcessorAffinity) (h0 h1 h2 : Std.U8)
+    (hh : s.proximity_domain_high.val = [h0, h1, h2]) :
+    ∃ r, sratprocessoraffinity_proximity_domain s = ok r ∧
+      r.val = s.proximity_domain_low.val + 2 ^ 8 * h0.val + 2 ^ 16 * h1.val +
+        2 ^ 24 * h2.val := by
+  unfold sratprocessoraffinity_proximity_domain
+    srat_processor.SratProcessorAffinity.proximity_domain
+  have hl := s.proximity_domain_low.hBounds
+  have hb0 := h0.hBounds
+  have hb1 := h1.hBounds
+  have hb2 := h2.hBounds
+  simp [UScalarTy.numBits] at hl hb0 hb1 hb2
+  have e0 : Array.index_usize s.proximity_domain_high 0#usize = ok h0 := by
+    simp [Array.index_usize, hh]
+  have e1 : Array.index_usize s.proximity_domain_high 1#usize = ok h1 := by
+    simp [Array.index_usize, hh]
+  have e2 : Array.index_usize s.proximity_domain_high 2#usize = ok h2 := by
+    simp [Array.index_usize, hh]
+  obtain ⟨z1, hz1, hv1⟩ := shl_u32 (UScalar.cast .U32 h0) 8#i32 (by decide) (by decide)
+  obtain ⟨z2, hz2, hv2⟩ := shl_u32 (UScalar.cast .U32 h1) 16#i32 (by decide) (by decide)
+  obtain ⟨z3, hz3, hv3⟩ := shl_u32 (UScalar.cast .U32 h2) 24#i32 (by decide) (by decide)
+  simp only [lift, bind_tc_ok, e0, e1, e2, hz1, hz2, hz3]
+  refine ⟨_, rfl, ?_⟩
+  simp only [show (8#i32 : Std.I32).toNat = 8 from rfl, show (16#i32 : Std.I32).toNat = 16 from rfl,
+    show (24#i32 : Std.I32).toNat = 24 from rfl, UScalar.cast_val_eq, UScalarTy.numBits]
+    at hv1 hv2 hv3
+  rw [Nat.mod_eq_of_lt (by omega : h0.val < 2 ^ 32)] at hv1
+  rw [Nat.mod_eq_of_lt (by omega : h1.val < 2 ^ 32)] at hv2
+  rw [Nat.mod_eq_of_lt (by omega : h2.val < 2 ^ 32)] at hv3
+  rw [Nat.mod_eq_of_lt (by omega)] at hv1 hv2 hv3
+  simp only [UScalar.val_or, UScalar.cast_val_eq, UScalarTy.numBits, hv1, hv2, hv3]
+  rw [Nat.mod_eq_of_lt (by omega : s.proximity_domain_low.val < 2 ^ 32)]
+  -- Each OR adds a byte above every bit already set, so it is an addition.
+  have c1 : s.proximity_domain_low.val ||| h0.val * 2 ^ 8 =
+      s.proximity_domain_low.val + h0.val * 2 ^ 8 := by
+    rw [Nat.lor_comm, ← Nat.shiftLeft_eq, ← Nat.shiftLeft_add_eq_or_of_lt (by omega),
+      Nat.shiftLeft_eq, Nat.add_comm]
+  have c2 : (s.proximity_domain_low.val + h0.val * 2 ^ 8) ||| h1.val * 2 ^ 16 =
+      s.proximity_domain_low.val + h0.val * 2 ^ 8 + h1.val * 2 ^ 16 := by
+    rw [Nat.lor_comm, ← Nat.shiftLeft_eq, ← Nat.shiftLeft_add_eq_or_of_lt (by omega),
+      Nat.shiftLeft_eq, Nat.add_comm]
+  have c3 : (s.proximity_domain_low.val + h0.val * 2 ^ 8 + h1.val * 2 ^ 16) |||
+      h2.val * 2 ^ 24 =
+      s.proximity_domain_low.val + h0.val * 2 ^ 8 + h1.val * 2 ^ 16 + h2.val * 2 ^ 24 := by
+    rw [Nat.lor_comm, ← Nat.shiftLeft_eq, ← Nat.shiftLeft_add_eq_or_of_lt (by omega),
+      Nat.shiftLeft_eq, Nat.add_comm]
+  rw [c1, c2, c3]
+  omega
+
+/-- Two entries whose domain bytes differ get different domains, so no two NUMA
+    nodes are merged by the decode. -/
+theorem sratprocessoraffinity_proximity_domain_separates_different_bytes
+    (s t : srat_processor.SratProcessorAffinity) (a0 a1 a2 b0 b1 b2 : Std.U8)
+    (hs : s.proximity_domain_high.val = [a0, a1, a2])
+    (ht : t.proximity_domain_high.val = [b0, b1, b2])
+    (hne : (s.proximity_domain_low.val, a0.val, a1.val, a2.val) ≠
+      (t.proximity_domain_low.val, b0.val, b1.val, b2.val)) :
+    sratprocessoraffinity_proximity_domain s ≠ sratprocessoraffinity_proximity_domain t := by
+  obtain ⟨r, hr, hrv⟩ := sratprocessoraffinity_proximity_domain_is_the_little_endian_word s a0 a1 a2 hs
+  obtain ⟨q, hq, hqv⟩ := sratprocessoraffinity_proximity_domain_is_the_little_endian_word t b0 b1 b2 ht
+  rw [hr, hq]
+  intro heq
+  apply hne
+  have hv : r.val = q.val := by rw [ok.injEq] at heq; rw [heq]
+  have := s.proximity_domain_low.hBounds; have := t.proximity_domain_low.hBounds
+  have := a0.hBounds; have := a1.hBounds; have := a2.hBounds
+  have := b0.hBounds; have := b1.hBounds; have := b2.hBounds
+  simp only [UScalarTy.numBits] at *
+  simp only [Prod.mk.injEq]
+  omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TablesSratProcessor.the_sratprocessoraffinity_proximity_domain_wrapper_is_its_method
 #print axioms NonosExtraction.TablesSratProcessor.the_sratprocessoraffinity_is_enabled_wrapper_is_its_method
 #print axioms NonosExtraction.TablesSratProcessor.the_sratx2apicaffinity_is_enabled_wrapper_is_its_method
+#print axioms NonosExtraction.TablesSratProcessor.sratprocessoraffinity_is_enabled_reads_bit_zero
+#print axioms NonosExtraction.TablesSratProcessor.sratx2apicaffinity_is_enabled_reads_bit_zero
+#print axioms NonosExtraction.TablesSratProcessor.sratprocessoraffinity_is_enabled_agrees_with_sratx2apicaffinity_is_enabled
+#print axioms NonosExtraction.TablesSratProcessor.reserved_flag_bits_do_not_enable_sratprocessoraffinity_is_enabled
+#print axioms NonosExtraction.TablesSratProcessor.sratprocessoraffinity_proximity_domain_is_the_little_endian_word
+#print axioms NonosExtraction.TablesSratProcessor.sratprocessoraffinity_proximity_domain_separates_different_bytes
 
 end NonosExtraction.TablesSratProcessor

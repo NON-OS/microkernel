@@ -36,6 +36,14 @@ def attributes.VariableAttributes.RUNTIME_ACCESS
   : attributes.VariableAttributes :=
   4#u32
 
+/-- [nonos_uefi_attrs::attributes::{nonos_uefi_attrs::attributes::VariableAttributes}::AUTHENTICATED_WRITE_ACCESS]
+    Source: 'src/../../../../src/arch/x86_64/uefi/types/attributes.rs', lines 28:4-28:66
+    Visibility: public -/
+@[global_simps, irreducible]
+def attributes.VariableAttributes.AUTHENTICATED_WRITE_ACCESS
+  : attributes.VariableAttributes :=
+  16#u32
+
 /-- [nonos_uefi_attrs::attributes::{nonos_uefi_attrs::attributes::VariableAttributes}::TIME_BASED_AUTHENTICATED_WRITE_ACCESS]
     Source: 'src/../../../../src/arch/x86_64/uefi/types/attributes.rs', lines 29:4-29:77
     Visibility: public -/
@@ -116,21 +124,27 @@ def attributes.VariableAttributes.is_runtime_access
     attributes.VariableAttributes.RUNTIME_ACCESS
 
 /-- [nonos_uefi_attrs::attributes::{nonos_uefi_attrs::attributes::VariableAttributes}::requires_authentication]:
-    Source: 'src/../../../../src/arch/x86_64/uefi/types/attributes.rs', lines 76:4-79:5
+    Source: 'src/../../../../src/arch/x86_64/uefi/types/attributes.rs', lines 78:4-82:5
     Visibility: public -/
 def attributes.VariableAttributes.requires_authentication
   (self : attributes.VariableAttributes) : Result Bool := do
   let b ←
     attributes.VariableAttributes.contains self
-      attributes.VariableAttributes.TIME_BASED_AUTHENTICATED_WRITE_ACCESS
+      attributes.VariableAttributes.AUTHENTICATED_WRITE_ACCESS
   if b
   then ok true
   else
-    attributes.VariableAttributes.contains self
-      attributes.VariableAttributes.ENHANCED_AUTHENTICATED_ACCESS
+    let b1 ←
+      attributes.VariableAttributes.contains self
+        attributes.VariableAttributes.TIME_BASED_AUTHENTICATED_WRITE_ACCESS
+    if b1
+    then ok true
+    else
+      attributes.VariableAttributes.contains self
+        attributes.VariableAttributes.ENHANCED_AUTHENTICATED_ACCESS
 
 /-- [nonos_uefi_attrs::attributes::{nonos_uefi_attrs::attributes::VariableAttributes}::intersection]:
-    Source: 'src/../../../../src/arch/x86_64/uefi/types/attributes.rs', lines 106:4-108:5
+    Source: 'src/../../../../src/arch/x86_64/uefi/types/attributes.rs', lines 109:4-111:5
     Visibility: public -/
 def attributes.VariableAttributes.intersection
   (self : attributes.VariableAttributes)
@@ -141,7 +155,7 @@ def attributes.VariableAttributes.intersection
   ok i
 
 /-- [nonos_uefi_attrs::attributes::{nonos_uefi_attrs::attributes::VariableAttributes}::union]:
-    Source: 'src/../../../../src/arch/x86_64/uefi/types/attributes.rs', lines 111:4-113:5
+    Source: 'src/../../../../src/arch/x86_64/uefi/types/attributes.rs', lines 114:4-116:5
     Visibility: public -/
 def attributes.VariableAttributes.union
   (self : attributes.VariableAttributes)

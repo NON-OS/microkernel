@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.ContextCpuContext
+import Nonos.Rflags
 
 open Aeneas Aeneas.Std Result
 open nonos_x_context_cpu_context
@@ -35,8 +36,43 @@ namespace NonosExtraction.ContextCpuContext
 theorem the_cpucontext_new_wrapper_is_its_method :
     cpucontext_new = cpu_context.CpuContext.new := rfl
 
+/-! ### A fresh context carries nothing and grants nothing
+
+`CpuContext::new` is the saved state a thread starts from before
+`prepare_kernel_entry` or `prepare_user_entry` fills in its entry point and
+stack. These theorems establish that every one of the eleven saved registers
+starts at zero, so nothing leaks from whatever occupied the memory before, and
+that the starting RFLAGS carries no bit the tier-one `Nonos.Rflags` model
+calls privileged (IOPL is 0; TF, NT, VM and AC are clear) and has IF off.
+
+They cannot establish what the entry preparation later writes, nor that the
+restore path sanitizes RFLAGS: those functions are not in this crate. The
+starting RFLAGS also lacks the reserved bit 1, which `sanitize` restores on the
+way out.
+-/
+
+/-- All eleven saved registers of a new context are zero. -/
+theorem cpucontext_new_zeroes_every_saved_register :
+    ∃ c, cpucontext_new = ok c ∧
+      [c.r15, c.r14, c.r13, c.r12, c.rbx, c.rbp, c.rip, c.rsp, c.rflags, c.cs, c.ss].all
+        (fun r => r.val == 0) = true := by
+  unfold cpucontext_new cpu_context.CpuContext.new
+  exact ⟨_, rfl, by decide⟩
+
+/-- The RFLAGS a new context starts from has no privileged bit and no IF, as
+    `Nonos.Rflags` defines them. -/
+theorem cpucontext_new_starts_with_no_privileged_flag_and_interrupts_off :
+    ∃ c, cpucontext_new = ok c ∧
+      c.rflags.val &&& Nonos.Rflags.privilegedMask = 0 ∧
+      Nonos.Rflags.bit c.rflags.val 9 = false := by
+  unfold cpucontext_new cpu_context.CpuContext.new
+  exact ⟨_, rfl, by decide, by decide⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ContextCpuContext.the_cpucontext_new_wrapper_is_its_method
+
+#print axioms NonosExtraction.ContextCpuContext.cpucontext_new_zeroes_every_saved_register
+#print axioms NonosExtraction.ContextCpuContext.cpucontext_new_starts_with_no_privileged_flag_and_interrupts_off
 
 end NonosExtraction.ContextCpuContext

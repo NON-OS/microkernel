@@ -41,10 +41,74 @@ theorem the_dist_base_wrapper_is_its_method :
 theorem the_redist_base_wrapper_is_its_method :
     redist_base = state.redist_base := rfl
 
+/-! ### Which cell each accessor touches, with which ordering
+
+`set_bases` is called once from `gic::api::init` with the distributor and
+redistributor bases from the firmware, and every later interrupt enable or
+disable builds a `Gic` from `dist_base()` and `redist_base()`. The theorems below
+establish the shape of that handoff on the extracted code: `set_bases` stores its
+first argument, unchanged, into the distributor cell and then its second argument
+into the redistributor cell, both with `Release`; each reader is a single
+`Acquire` load of its own cell; and both cells are created holding zero, the value
+a reader sees before `set_bases` has run.
+
+Aeneas leaves `AtomicU64::new`, `load` and `store` opaque and threads no memory
+through `Result`, so nothing here can establish that a load returns what an
+earlier store wrote, that the `Release`/`Acquire` pair orders the stores before a
+reader's later device accesses, or even that the two statics are distinct
+objects: in this model both are the value `AtomicU64::new(0)` and cannot be told
+apart. What the theorems pin down is the program text the memory model acts on:
+which argument goes to which cell, in which order, and with which orderings. -/
+
+/-- `set_bases` publishes the distributor base first and the redistributor base
+    second, each as given and each with a `Release` store. -/
+theorem set_bases_stores_each_base_into_its_own_cell_with_release (dist redist : Std.U64) :
+    set_bases dist redist = (do
+      let a ← state.DIST_BASE
+      core.sync.atomic.AtomicU64Align8U64.store a dist core.sync.atomic.Ordering.Release
+      let b ← state.REDIST_BASE
+      core.sync.atomic.AtomicU64Align8U64.store b redist core.sync.atomic.Ordering.Release) := by
+  unfold set_bases state.set_bases
+  rfl
+
+/-- `dist_base` is one `Acquire` load of the distributor cell, the ordering that
+    pairs with the `Release` store in `set_bases`. -/
+theorem dist_base_is_an_acquire_load_of_the_distributor_cell :
+    dist_base = (do
+      let a ← state.DIST_BASE
+      core.sync.atomic.AtomicU64Align8U64.load a core.sync.atomic.Ordering.Acquire) := by
+  unfold dist_base state.dist_base
+  rfl
+
+/-- `redist_base` is one `Acquire` load of the redistributor cell. -/
+theorem redist_base_is_an_acquire_load_of_the_redistributor_cell :
+    redist_base = (do
+      let a ← state.REDIST_BASE
+      core.sync.atomic.AtomicU64Align8U64.load a core.sync.atomic.Ordering.Acquire) := by
+  unfold redist_base state.redist_base
+  rfl
+
+/-- Before `set_bases` has run, `dist_base` and `redist_base` read cells that were
+    created holding zero, so an uninitialised controller is seen at base zero
+    rather than at some leftover address. -/
+theorem dist_base_and_redist_base_read_cells_created_at_zero :
+    dist_base = (do
+      let a ← core.sync.atomic.AtomicU64Align8U64.new 0#u64
+      core.sync.atomic.AtomicU64Align8U64.load a core.sync.atomic.Ordering.Acquire) ∧
+    redist_base = (do
+      let a ← core.sync.atomic.AtomicU64Align8U64.new 0#u64
+      core.sync.atomic.AtomicU64Align8U64.load a core.sync.atomic.Ordering.Acquire) := by
+  unfold dist_base state.dist_base redist_base state.redist_base state.DIST_BASE state.REDIST_BASE
+  exact ⟨rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.GicState.the_set_bases_wrapper_is_its_method
 #print axioms NonosExtraction.GicState.the_dist_base_wrapper_is_its_method
 #print axioms NonosExtraction.GicState.the_redist_base_wrapper_is_its_method
+#print axioms NonosExtraction.GicState.set_bases_stores_each_base_into_its_own_cell_with_release
+#print axioms NonosExtraction.GicState.dist_base_is_an_acquire_load_of_the_distributor_cell
+#print axioms NonosExtraction.GicState.redist_base_is_an_acquire_load_of_the_redistributor_cell
+#print axioms NonosExtraction.GicState.dist_base_and_redist_base_read_cells_created_at_zero
 
 end NonosExtraction.GicState
