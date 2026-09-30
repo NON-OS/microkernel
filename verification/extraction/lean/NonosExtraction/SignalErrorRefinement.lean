@@ -35,8 +35,61 @@ namespace NonosExtraction.SignalError
 theorem the_signalerror_as_errno_wrapper_is_its_method (a : error.SignalError) :
     signalerror_as_errno a = error.SignalError.as_errno a := rfl
 
+/-! ### Every signal error is a negative POSIX code, and only synonyms collide
+
+`as_errno` is how a signal failure leaves the kernel as a syscall return value.
+The theorems below show that every variant maps to a negative number in the
+range a caller reads as an error (`-4095` to `-1`), that each value is the
+negated POSIX constant the kernel defines in
+`src/syscall/types/errnos/posix.rs` and `src/syscall/types/errnos/net.rs`, and
+exactly which variants share a code: `InvalidSignal` with `InvalidHandler`
+(both `EINVAL`) and `QueueFull` with `Again` (both `EAGAIN`), and no others, so
+a caller that sees a code can tell every other pair of failures apart. They do
+not establish which kernel path raises which variant; no caller of `as_errno`
+is extracted.
+-/
+
+/-- Every signal error leaves as a negative code of at most 4095 in magnitude,
+    the range a syscall caller reads as failure. A variant mapped to its
+    positive POSIX number, or to zero, would read as success. -/
+theorem signalerror_as_errno_is_a_negative_errno (e : error.SignalError) :
+    ∃ v : Std.I32, signalerror_as_errno e = ok v ∧ -4095 ≤ v.val ∧ v.val < 0 := by
+  cases e <;> exact ⟨_, rfl, by decide, by decide⟩
+
+/-- Each variant is the negation of the kernel's POSIX constant for it:
+    `EINVAL = 22`, `EPERM = 1`, `ESRCH = 3`, `EAGAIN = 11`, `EINTR = 4`,
+    `ETIMEDOUT = 110`, `ENOMEM = 12` and `EFAULT = 14`. `PermissionDenied` is
+    `EPERM`, not `EACCES`, and `BadAddress` is `EFAULT`. -/
+theorem signalerror_as_errno_negates_the_posix_constants :
+    signalerror_as_errno .InvalidSignal = ok (-22)#i32 ∧
+    signalerror_as_errno .InvalidHandler = ok (-22)#i32 ∧
+    signalerror_as_errno .PermissionDenied = ok (-1)#i32 ∧
+    signalerror_as_errno .ProcessNotFound = ok (-3)#i32 ∧
+    signalerror_as_errno .QueueFull = ok (-11)#i32 ∧
+    signalerror_as_errno .Interrupted = ok (-4)#i32 ∧
+    signalerror_as_errno .Timeout = ok (-110)#i32 ∧
+    signalerror_as_errno .NoMemory = ok (-12)#i32 ∧
+    signalerror_as_errno .BadAddress = ok (-14)#i32 ∧
+    signalerror_as_errno .Again = ok (-11)#i32 := by
+  refine ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- Two signal errors share a code exactly when they are the same variant or
+    one of the two synonym pairs: `InvalidSignal` and `InvalidHandler`, or
+    `QueueFull` and `Again`. Any other collision would lose information a
+    caller needs to tell failures apart. -/
+theorem signalerror_as_errno_collides_only_on_synonyms (a b : error.SignalError) :
+    signalerror_as_errno a = signalerror_as_errno b ↔
+      (a = b ∨
+        ((a = .InvalidSignal ∨ a = .InvalidHandler) ∧
+          (b = .InvalidSignal ∨ b = .InvalidHandler)) ∨
+        ((a = .QueueFull ∨ a = .Again) ∧ (b = .QueueFull ∨ b = .Again))) := by
+  cases a <;> cases b <;> simp [signalerror_as_errno, error.SignalError.as_errno]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.SignalError.the_signalerror_as_errno_wrapper_is_its_method
+#print axioms NonosExtraction.SignalError.signalerror_as_errno_is_a_negative_errno
+#print axioms NonosExtraction.SignalError.signalerror_as_errno_negates_the_posix_constants
+#print axioms NonosExtraction.SignalError.signalerror_as_errno_collides_only_on_synonyms
 
 end NonosExtraction.SignalError

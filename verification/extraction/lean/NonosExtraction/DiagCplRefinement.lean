@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.DiagCpl
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_diag_cpl
@@ -35,8 +36,47 @@ namespace NonosExtraction.DiagCpl
 theorem the_cpl_from_cs_wrapper_is_its_method (a : Std.U64) :
     cpl_from_cs a = cpl.cpl_from_cs a := rfl
 
+/-! ### The privilege level read from a code selector
+
+    `cpl_from_cs` keeps the requested privilege level, the low two bits of the
+    saved CS selector, and discards the descriptor index and table indicator
+    above them. The theorems below say it reads exactly those two bits, that it
+    never exceeds 3, and so that `dump_trap`'s `b'0' + cpl` is always one of the
+    digits `0` to `3` and cannot overflow a byte. They cannot establish that the
+    frame `dump_trap` receives carries the selector the processor pushed; that
+    function and the interrupt frame type are not extracted here.
+-/
+
+/-- The level is the selector modulo 4: the RPL field and nothing else. -/
+theorem cpl_from_cs_is_the_low_two_bits (cs : Std.U64) :
+    ∃ l : Std.U8, cpl_from_cs cs = ok l ∧ l.val = cs.val % 4 := by
+  unfold cpl_from_cs cpl.cpl_from_cs
+  simp only [lift, bind_tc_ok]
+  refine ⟨_, rfl, ?_⟩
+  have h : (cs &&& 3#u64).val = cs.val % 4 := Bits.land_low_mask cs 3#u64 2 rfl
+  rw [UScalar.cast_val_eq, h]
+  simp only [UScalarTy.numBits]
+  omega
+
+/-- The digit `dump_trap` prints is `'0' + cpl`, which stays within `'0'..'3'`,
+    so the byte addition in the caller never overflows. -/
+theorem cpl_from_cs_prints_as_one_ascii_digit (cs : Std.U64) :
+    ∃ l : Std.U8, cpl_from_cs cs = ok l ∧ l.val ≤ 3 ∧ 48 + l.val < 256 := by
+  obtain ⟨l, hl, hv⟩ := cpl_from_cs_is_the_low_two_bits cs
+  exact ⟨l, hl, by omega, by omega⟩
+
+/-- A kernel selector (0x08) is ring 0 and the usual user code selector (0x23,
+    GDT index 4 with RPL 3) is ring 3: the index bits do not leak into the level. -/
+theorem cpl_from_cs_on_kernel_and_user_selectors :
+    cpl_from_cs 8#u64 = ok 0#u8 ∧ cpl_from_cs 35#u64 = ok 3#u8 ∧
+      cpl_from_cs 43#u64 = ok 3#u8 := by
+  exact ⟨rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.DiagCpl.the_cpl_from_cs_wrapper_is_its_method
+#print axioms NonosExtraction.DiagCpl.cpl_from_cs_is_the_low_two_bits
+#print axioms NonosExtraction.DiagCpl.cpl_from_cs_prints_as_one_ascii_digit
+#print axioms NonosExtraction.DiagCpl.cpl_from_cs_on_kernel_and_user_selectors
 
 end NonosExtraction.DiagCpl

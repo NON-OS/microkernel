@@ -21,6 +21,8 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.ErrorFaultInfo
+import NonosExtraction.Bits
+import Nonos.DemandPaging
 
 open Aeneas Aeneas.Std Result
 open nonos_x_error_fault_info
@@ -41,10 +43,90 @@ theorem the_pagefaultinfo_is_cow_fault_wrapper_is_its_method (a : fault_info.Pag
 theorem the_pagefaultinfo_is_demand_fault_wrapper_is_its_method (a : fault_info.PageFaultInfo) :
     pagefaultinfo_is_demand_fault a = fault_info.PageFaultInfo.is_demand_fault a := rfl
 
+/-! ### Decoding the hardware error code, and agreeing with the dispatch model
+
+    `from_fault` keeps the faulting address and the raw error code, and sets each
+    flag from exactly one bit of the code: present from bit 0 (PF_PRESENT), write
+    from bit 1 (PF_WRITE), user from bit 2 (PF_USER), and instruction fetch from
+    bit 4 (PF_INSTRUCTION); bit 3 (reserved write) is read by none of them. The
+    two classifiers then agree with `Nonos.DemandPaging.route`, the tier-one model
+    of the dispatch in faults/handler.rs: a decoded fault is a copy-on-write fault
+    exactly when the model routes it to copy-on-write, and a demand fault exactly
+    when the model routes it to the demand path, so the two are never both true.
+    These theorems cannot establish that the handler actually consults these
+    classifiers, nor that the error code it passes is the one the processor
+    pushed: the interrupt entry and the handler are not extracted.
+-/
+
+/-- Each flag is one bit of the error code, and the address and code are kept. -/
+theorem pagefaultinfo_from_fault_reads_one_bit_per_flag (a e : Std.U64) :
+    pagefaultinfo_from_fault a e = ok
+      { address := a, error_code := e,
+        is_write := e.val.testBit 1, is_user := e.val.testBit 2,
+        is_instruction_fetch := e.val.testBit 4,
+        page_was_present := e.val.testBit 0 } := by
+  unfold pagefaultinfo_from_fault fault_info.PageFaultInfo.from_fault
+  simp only [lift, bind_tc_ok]
+  rw [Bits.reads_bit e 2#u64 0#u64 1 rfl rfl, Bits.reads_bit e 4#u64 0#u64 2 rfl rfl,
+    Bits.reads_bit e 16#u64 0#u64 4 rfl rfl, Bits.reads_bit e 1#u64 0#u64 0 rfl rfl]
+
+/-- The fault the dispatch model sees for a decoded error code. -/
+def modelFault (a e : Std.U64) : Nonos.DemandPaging.Fault :=
+  ⟨a.val, e.val.testBit 0, e.val.testBit 1⟩
+
+/-- A decoded fault is a copy-on-write fault exactly when the dispatch model
+    routes it to copy-on-write: a write (bit 1) on a present page (bit 0). -/
+theorem pagefaultinfo_is_cow_fault_agrees_with_the_dispatch_model (a e : Std.U64) :
+    (do let i ← pagefaultinfo_from_fault a e; pagefaultinfo_is_cow_fault i) = ok true ↔
+      Nonos.DemandPaging.route (modelFault a e) = .cow := by
+  rw [pagefaultinfo_from_fault_reads_one_bit_per_flag]
+  simp only [bind_tc_ok, pagefaultinfo_is_cow_fault, fault_info.PageFaultInfo.is_cow_fault,
+    modelFault, Nonos.DemandPaging.route]
+  by_cases h0 : e.val.testBit 0 = true <;> by_cases h1 : e.val.testBit 1 = true <;> simp [h0, h1]
+
+/-- A decoded fault is a demand fault exactly when the dispatch model routes it
+    to the demand path: the page was not present (bit 0 clear), whatever the
+    other bits say. -/
+theorem pagefaultinfo_is_demand_fault_agrees_with_the_dispatch_model (a e : Std.U64) :
+    (do let i ← pagefaultinfo_from_fault a e; pagefaultinfo_is_demand_fault i) = ok true ↔
+      Nonos.DemandPaging.route (modelFault a e) = .demand := by
+  rw [pagefaultinfo_from_fault_reads_one_bit_per_flag]
+  simp only [bind_tc_ok, pagefaultinfo_is_demand_fault,
+    fault_info.PageFaultInfo.is_demand_fault, modelFault, Nonos.DemandPaging.route]
+  by_cases h0 : e.val.testBit 0 = true <;> by_cases h1 : e.val.testBit 1 = true <;> simp [h0, h1]
+
+/-- No fault record, decoded or not, is both a copy-on-write fault and a demand
+    fault, so the handler can never send one fault down both paths. -/
+theorem pagefaultinfo_is_cow_fault_and_pagefaultinfo_is_demand_fault_exclude
+    (i : fault_info.PageFaultInfo) :
+    ¬ (pagefaultinfo_is_cow_fault i = ok true ∧ pagefaultinfo_is_demand_fault i = ok true) := by
+  unfold pagefaultinfo_is_cow_fault fault_info.PageFaultInfo.is_cow_fault
+    pagefaultinfo_is_demand_fault fault_info.PageFaultInfo.is_demand_fault
+  cases i.page_was_present <;> simp
+
+/-- A write to a present page decoded from the real code (0x3, and 0x7 from
+    user mode) is copy-on-write, while a user write to a missing page (0x6) is a
+    demand fault; the instruction-fetch bit alone (0x10) is a demand fault. -/
+theorem pagefaultinfo_from_fault_classifies_typical_codes (a : Std.U64) :
+    (do let i ← pagefaultinfo_from_fault a 3#u64; pagefaultinfo_is_cow_fault i) = ok true ∧
+    (do let i ← pagefaultinfo_from_fault a 7#u64; pagefaultinfo_is_cow_fault i) = ok true ∧
+    (do let i ← pagefaultinfo_from_fault a 6#u64; pagefaultinfo_is_demand_fault i) = ok true ∧
+    (do let i ← pagefaultinfo_from_fault a 6#u64; pagefaultinfo_is_cow_fault i) = ok false ∧
+    (do let i ← pagefaultinfo_from_fault a 16#u64; pagefaultinfo_is_demand_fault i) = ok true := by
+  simp only [pagefaultinfo_from_fault_reads_one_bit_per_flag, bind_tc_ok,
+    pagefaultinfo_is_cow_fault, fault_info.PageFaultInfo.is_cow_fault,
+    pagefaultinfo_is_demand_fault, fault_info.PageFaultInfo.is_demand_fault]
+  refine ⟨?_, ?_, ?_, ?_, ?_⟩ <;> rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ErrorFaultInfo.the_pagefaultinfo_from_fault_wrapper_is_its_method
 #print axioms NonosExtraction.ErrorFaultInfo.the_pagefaultinfo_is_cow_fault_wrapper_is_its_method
 #print axioms NonosExtraction.ErrorFaultInfo.the_pagefaultinfo_is_demand_fault_wrapper_is_its_method
+#print axioms NonosExtraction.ErrorFaultInfo.pagefaultinfo_from_fault_reads_one_bit_per_flag
+#print axioms NonosExtraction.ErrorFaultInfo.pagefaultinfo_is_cow_fault_agrees_with_the_dispatch_model
+#print axioms NonosExtraction.ErrorFaultInfo.pagefaultinfo_is_demand_fault_agrees_with_the_dispatch_model
+#print axioms NonosExtraction.ErrorFaultInfo.pagefaultinfo_is_cow_fault_and_pagefaultinfo_is_demand_fault_exclude
+#print axioms NonosExtraction.ErrorFaultInfo.pagefaultinfo_from_fault_classifies_typical_codes
 
 end NonosExtraction.ErrorFaultInfo
