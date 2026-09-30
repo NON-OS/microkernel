@@ -38,16 +38,23 @@ pub fn source() -> Option<Launch> {
          */
         super::console::enter(mode);
         let pkg = choose(&name);
-        if let Some((path, bytes, args)) = super::install::launch(pkg, mode) {
-            crate::linux::file::machine::show();
-            return Some(store(path, bytes, args));
+        match super::install::launch(pkg, mode) {
+            Some(Ok((path, bytes, args))) => {
+                crate::linux::file::machine::show();
+                return Some(store(path, bytes, args));
+            }
+            Some(Err(why)) => {
+                return refused(b"linux: this tier's program could not be read: ", why)
+            }
+            None => {}
         }
         let Some(path) = super::install::recorded(pkg) else {
-            super::console::say(b"linux: nothing installed under that name\n");
-            return None;
+            return refused(b"linux: nothing installed under that name", "");
         };
-        let bytes = store_read(&key(&path), MAX_IMAGE).ok()?;
-        return Some(store(path, bytes, Vec::new()));
+        return match store_read(&key(&path), MAX_IMAGE) {
+            Ok(bytes) => Some(store(path, bytes, Vec::new())),
+            Err(why) => refused(b"linux: the installed program could not be read: ", why),
+        };
     }
     if let Some((path, bytes)) = named(MAX_IMAGE) {
         return Some(store(path, bytes, Vec::new()));
@@ -56,4 +63,12 @@ pub fn source() -> Option<Launch> {
         return Some(store(path, bytes, args));
     }
     Some(super::built_in::built_in())
+}
+
+/// Say why nothing starts, once, and start nothing.
+fn refused(what: &[u8], why: &str) -> Option<Launch> {
+    super::console::say(what);
+    super::console::say(why.as_bytes());
+    super::console::say(b"\n");
+    None
 }

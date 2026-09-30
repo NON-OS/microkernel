@@ -25,17 +25,28 @@ use crate::linux::run_mode::Mode;
 
 const MAX_IMAGE: u32 = 64 << 20;
 
-/// The shipped tier `name` starts as in `mode`, or None if it names none.
-pub fn launch(name: &str, mode: Mode) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
+/// What a shipped tier starts as: the path its program was read from, the
+/// program's bytes and its arguments.
+pub type TierStart = (Vec<u8>, Vec<u8>, Vec<Vec<u8>>);
+
+/// The shipped tier `name` as it starts in `mode`: None when `name` is no
+/// shipped tier, and the store's reason when it is one but no build of its
+/// program could be read.
+pub fn launch(name: &str, mode: Mode) -> Option<Result<TierStart, &'static str>> {
     let app = app(name)?;
-    for (program, why) in super::chat_build::choices(app.program) {
-        let Ok(bytes) = store_read(&key(program), MAX_IMAGE) else {
-            continue;
+    let mut why = "no build of it is in the package store";
+    for (program, said) in super::chat_build::choices(app.program) {
+        let bytes = match store_read(&key(program), MAX_IMAGE) {
+            Ok(bytes) => bytes,
+            Err(e) => {
+                why = e;
+                continue;
+            }
         };
-        if !why.is_empty() {
-            crate::linux::start::say(why);
+        if !said.is_empty() {
+            crate::linux::start::say(said);
         }
-        return Some((program.to_vec(), bytes, mode.tier_args(app.args)));
+        return Some(Ok((program.to_vec(), bytes, mode.tier_args(app.args))));
     }
-    None
+    Some(Err(why))
 }

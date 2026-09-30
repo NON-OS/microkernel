@@ -36,10 +36,10 @@ pub fn run() -> ! {
         say(if done.is_ok() { b"[LINUX] installed\n" } else { b"[LINUX] install failed\n" });
         mk_exit(done.map_or_else(|why| why.code(), |()| 0))
     }
-    let Some(launch) = source() else {
-        say(b"[LINUX] nothing installed under that name\n");
-        mk_exit(1)
-    };
+    /*
+     * source() has said why when it starts nothing.
+     */
+    let Some(launch) = source() else { mk_exit(1) };
     let pid = mk_foreign_spawn(b"linux");
     if pid < 0 {
         say(b"[LINUX] no guest, errno ");
