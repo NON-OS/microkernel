@@ -24,7 +24,7 @@ use super::super::super::proc::{CONSOLE_IN, CONSOLE_OUT, PIPES, SOCKETS};
 use super::super::super::synth::S_IFREG;
 use super::super::statbuf::Meta;
 use super::device::device;
-use super::made::named;
+use super::made::{named, tty};
 use super::path::{at, of};
 
 /* fstat: a file by its path, and the rest by kind, as /proc names them. */
@@ -36,6 +36,7 @@ pub fn of_fd(guest: &Guest, f: &Fd) -> Result<Meta, i64> {
             /* A file this family is making exists before the store holds it. */
             m.or_else(|_| Ok(at(&f.path, S_IFREG | modes::FILE, f.size, now())))
         }
+        Kind::Stdin | Kind::Stdout | Kind::Stderr if crate::linux::console::attached() => Ok(tty()),
         Kind::Stdin => Ok(named(&alloc::format!("pipe:[{CONSOLE_IN}]").into_bytes(), b"/")),
         Kind::Stdout | Kind::Stderr => {
             Ok(named(&alloc::format!("pipe:[{CONSOLE_OUT}]").into_bytes(), b"/"))

@@ -14,20 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a shipped tier starts as: its program from the store, and its
-//! arguments for the way it was asked to run.
+//! What the terminal's input queue holds and gives: pieces of bytes and
+//! ends of file, and what one read takes. Pure, like the queue.
 
 use alloc::vec::Vec;
 
-use super::apps::app;
-use crate::linux::file::{key, store_read};
-use crate::linux::run_mode::Mode;
+/// A message that is exactly this one byte is an end of file (Ctrl-D).
+pub const EOF: u8 = 0x04;
+/// The most kept unread; past it the terminal's inbox holds the rest.
+pub const MOST: usize = 64 << 10;
 
-const MAX_IMAGE: u32 = 64 << 20;
+pub enum Piece {
+    /// Bytes, and how many of them a read has taken already.
+    Bytes(Vec<u8>, usize),
+    Eof,
+}
 
-/// The shipped tier `name` starts as in `mode`, or None if it names none.
-pub fn launch(name: &str, mode: Mode) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
-    let app = app(name)?;
-    let bytes = store_read(&key(app.program), MAX_IMAGE).ok()?;
-    Some((app.program.to_vec(), bytes, mode.tier_args(app.args)))
+/// What one read takes.
+#[derive(PartialEq, Eq, Debug)]
+pub enum Taken {
+    Bytes(Vec<u8>),
+    Eof,
+    Empty,
 }

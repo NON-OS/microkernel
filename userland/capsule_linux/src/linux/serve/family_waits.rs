@@ -14,23 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Settling the calls parked in `waits`.
+//! Settling the calls parked in `waits`; when to look again is
+//! `family_waits_next`.
 
 use core::mem;
 
 use nonos_libc::mk_foreign_reply;
 
 use super::family::Family;
-use super::waits::{attempt, expire};
-use super::waits_fds::watched;
+use super::waits::expire;
+use super::waits_try::attempt;
 use crate::linux::call::now_ms;
-use crate::linux::guest::Kind;
-use crate::linux::net::outside;
 
 const CLOCK_MONOTONIC: u64 = 1;
-/// How often a wait on a stream net.sockets holds is looked at again; a family
-/// socket changes only in an answer. A timer is looked at when it fires.
-const TICK_MS: u64 = 10;
 
 impl Family {
     /// Try every parked call again: answer the ones that can complete now,
@@ -63,34 +59,5 @@ impl Family {
             }
             self.take_back(i);
         }
-    }
-
-    /// Milliseconds until a parked call is due to be looked at again: its
-    /// deadline, a timer it watches firing, or the next look at a socket.
-    pub(super) fn next_wait_ms(&self, now: u64) -> Option<u64> {
-        let mut soonest: Option<u64> = None;
-        let mut keep = |at: u64| soonest = Some(soonest.map_or(at, |s| s.min(at)));
-        for g in self.guests.iter() {
-            for wait in g.blocked.iter() {
-                if let Some(d) = wait.deadline {
-                    keep(d.saturating_sub(now));
-                }
-                super::waits_sock::ticks(g, wait).then(|| keep(TICK_MS));
-                for fd in watched(g, wait) {
-                    match g.fds.get(fd as usize) {
-                        Some(f) if f.kind == Kind::Socket && outside(f.handle) => keep(TICK_MS),
-                        Some(f) if f.kind == Kind::Timer => {
-                            // One that has already fired was seen by the last look.
-                            let due = self.timers.get(f.handle as usize).map_or(0, |t| t.due);
-                            if due > now {
-                                keep(due - now);
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        }
-        soonest
     }
 }

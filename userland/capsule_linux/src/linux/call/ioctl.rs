@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `ioctl`: the requests that are about a descriptor rather than a device.
-//! There is no terminal or device behind any descriptor here, so anything
-//! else is ENOTTY, which is also how a program learns it is not on a tty.
+//! A console on a terminal answers the terminal's own (`ioctl_tty`);
+//! anything else is ENOTTY, which is how a program learns it is not on one.
 
 use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
@@ -27,6 +27,9 @@ const FIONCLEX: u64 = 0x5450;
 const FIOCLEX: u64 = 0x5451;
 
 pub fn ioctl(guest: &mut Guest, fd: u64, request: u64, arg: u64) -> u64 {
+    if let Some(answer) = super::ioctl_tty::tty(guest, fd, request, arg) {
+        return answer;
+    }
     let Some(entry) = guest.fds.get_mut(fd as usize).filter(|e| e.is_open()) else {
         return errno::fail(errno::EBADF);
     };

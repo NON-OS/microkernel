@@ -56,3 +56,12 @@ pub(super) fn named(to: &[u8], path: &[u8]) -> Meta {
         _ => Meta { ino: 0, ..at(path, 0o600, 0, t) },
     }
 }
+
+/*
+ * A console on a terminal, as Linux's first pseudo-terminal: a character
+ * device (major 136, minor 0) that its owner reads and writes.
+ */
+pub(super) fn tty() -> Meta {
+    let rdev = 136 << 8;
+    Meta { rdev, ..at(b"/dev/pts/0", S_IFCHR | 0o620, 0, now()) }
+}

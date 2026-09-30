@@ -21,8 +21,7 @@ use nonos_libc::ForeignFrame;
 
 use super::answer::Answer;
 use super::table::plain;
-use super::waits_lock;
-use super::waits_sock;
+use super::{waits_lock, waits_sock, waits_try};
 use crate::linux::abi::{nr, nr_path as np};
 use crate::linux::call::{clone, exit_thread, futex};
 use crate::linux::guest::Guest;
@@ -63,9 +62,7 @@ fn route(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
         }
         n if waits_sock::takes(guest, n, a[0]) => waits_sock::io(guest, frame.pid, n, a),
         np::FLOCK | nr::FCNTL if waits_lock::wants(frame) => waits_lock::lock(guest, frame),
-        nr::READ | nr::WRITE if super::waits::may_wait(guest, frame.nr, a[0]) => {
-            super::waits::io(guest, frame.pid, frame.nr, a)
-        }
+        n if waits_try::may_wait(guest, n, a[0]) => waits_try::io(guest, frame.pid, n, a),
         nr::EPOLL_PWAIT
         | nr::EPOLL_PWAIT2
         | np::EPOLL_WAIT

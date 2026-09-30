@@ -40,6 +40,7 @@ pub fn ready(guest: &Guest, fd: u64) -> u16 {
         Some(Kind::Event) => crate::linux::file::event_bits(guest, fd),
         Some(Kind::Signal) => crate::linux::call::signalfd_bits(guest, fd),
         Some(Kind::Resolver) => resolver_bits(guest, fd),
+        Some(Kind::Stdin) => crate::linux::console::bits(),
         Some(_) => POLLIN | POLLOUT,
     }
 }

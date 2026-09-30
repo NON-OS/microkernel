@@ -43,6 +43,7 @@ mod family_wait;
 mod family_wait_report;
 mod family_wait_try;
 mod family_waits;
+mod family_waits_next;
 mod loop_impl;
 mod pid_map;
 mod pid_ns;
@@ -69,7 +70,6 @@ mod waits_lock;
 mod waits_sock;
 mod waits_sock_kind;
 mod waits_time;
-
-pub use answer::Answer;
-pub use loop_impl::serve;
+mod waits_try;
 pub use pid_space::{inward as kernel_pid, outward as guest_pid};
+pub use {answer::Answer, loop_impl::serve};

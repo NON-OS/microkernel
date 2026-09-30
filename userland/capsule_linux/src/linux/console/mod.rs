@@ -14,20 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a shipped tier starts as: its program from the store, and its
-//! arguments for the way it was asked to run.
+//! The terminal a family may run on: what it typed, its settings and its
+//! size. A run started with `cli` is on one from the start; any other is
+//! on one once the kernel says a stream of the personality reaches a
+//! terminal. What is typed and what is printed are the person's own, so
+//! nothing here ever reaches a log.
 
-use alloc::vec::Vec;
+mod input;
+mod input_ready;
+mod queue;
+mod queue_piece;
+mod queue_take;
+mod say;
+mod state;
+mod termios;
+mod tty;
+mod wipe;
 
-use super::apps::app;
-use crate::linux::file::{key, store_read};
-use crate::linux::run_mode::Mode;
-
-const MAX_IMAGE: u32 = 64 << 20;
-
-/// The shipped tier `name` starts as in `mode`, or None if it names none.
-pub fn launch(name: &str, mode: Mode) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
-    let app = app(name)?;
-    let bytes = store_read(&key(app.program), MAX_IMAGE).ok()?;
-    Some((app.program.to_vec(), bytes, mode.tier_args(app.args)))
-}
+pub use input::read;
+pub use input_ready::{bits, queued};
+pub use say::say;
+pub use state::{attached, enter, flush};
+pub use termios::{set_termios, termios};
+pub use tty::{private, size};
+pub use wipe::wipe;

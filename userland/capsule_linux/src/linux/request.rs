@@ -20,6 +20,8 @@ use alloc::string::String;
 
 use nonos_libc::mk_args;
 
+use super::run_mode::{parse, Mode};
+
 /// Matches the buffer the program path is read into.
 const MAX_ARGS: usize = 256;
 
@@ -49,14 +51,10 @@ pub fn install_request() -> Option<(String, [u8; 32])> {
     Some((String::from(core::str::from_utf8(name).ok()?), pin))
 }
 
-/// `run <name>` asks this capsule to start what package `name` installed.
-pub fn run_request() -> Option<String> {
+/// `run <name> [cli]` asks this capsule to start what package `name`
+/// installed, in its window or, with `cli`, on the terminal that asked.
+pub fn run_request() -> Option<(String, Mode)> {
     let mut buf = [0u8; MAX_ARGS];
     let n = mk_args(buf.as_mut_ptr(), buf.len());
-    let mut parts = buf.get(..usize::try_from(n).ok()?)?.split(|b| *b == 0);
-    if parts.next()? != b"run" {
-        return None;
-    }
-    let name = parts.next().filter(|s| !s.is_empty())?;
-    Some(String::from(core::str::from_utf8(name).ok()?))
+    parse(buf.get(..usize::try_from(n).ok()?)?)
 }

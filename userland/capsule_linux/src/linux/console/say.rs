@@ -14,20 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a shipped tier starts as: its program from the store, and its
-//! arguments for the way it was asked to run.
+//! A line the personality itself says to the person at the terminal, never
+//! to a log. Said only on a terminal; it is never anything a guest was told
+//! or said, only numbers and names this capsule chose.
 
-use alloc::vec::Vec;
+use nonos_libc::mk_private_write;
 
-use super::apps::app;
-use crate::linux::file::{key, store_read};
-use crate::linux::run_mode::Mode;
+use super::state::attached;
 
-const MAX_IMAGE: u32 = 64 << 20;
+/// The most the kernel takes in one private write.
+const PIECE: usize = 256;
 
-/// The shipped tier `name` starts as in `mode`, or None if it names none.
-pub fn launch(name: &str, mode: Mode) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
-    let app = app(name)?;
-    let bytes = store_read(&key(app.program), MAX_IMAGE).ok()?;
-    Some((app.program.to_vec(), bytes, mode.tier_args(app.args)))
+pub fn say(line: &[u8]) {
+    if !attached() {
+        return;
+    }
+    for piece in line.chunks(PIECE) {
+        if mk_private_write(piece) < 0 {
+            return;
+        }
+    }
 }

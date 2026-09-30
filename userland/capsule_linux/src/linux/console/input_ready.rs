@@ -14,20 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a shipped tier starts as: its program from the store, and its
-//! arguments for the way it was asked to run.
+//! Whether a read of the console's input would wait, and how much it would
+//! find: poll, select, epoll and FIONREAD, each looking at the inbox first.
 
-use alloc::vec::Vec;
+use super::input::pull;
+use super::state::{attached, with};
 
-use super::apps::app;
-use crate::linux::file::{key, store_read};
-use crate::linux::run_mode::Mode;
+const POLLIN: u16 = 0x001;
+const POLLOUT: u16 = 0x004;
 
-const MAX_IMAGE: u32 = 64 << 20;
+/// The console input's poll bits: readable once a read would not wait.
+pub fn bits() -> u16 {
+    if !attached() {
+        return POLLIN | POLLOUT;
+    }
+    pull();
+    match with(|c| c.queue.ready()) {
+        true => POLLIN | POLLOUT,
+        false => POLLOUT,
+    }
+}
 
-/// The shipped tier `name` starts as in `mode`, or None if it names none.
-pub fn launch(name: &str, mode: Mode) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
-    let app = app(name)?;
-    let bytes = store_read(&key(app.program), MAX_IMAGE).ok()?;
-    Some((app.program.to_vec(), bytes, mode.tier_args(app.args)))
+/// Bytes a read would find now, as FIONREAD counts them.
+pub fn queued() -> u64 {
+    pull();
+    with(|c| c.queue.queued() as u64)
 }

@@ -47,6 +47,11 @@ pub mod metrics_parse;
 
 pub mod pinned;
 
+#[path = "../../capsule_linux/src/linux/run_mode.rs"]
+pub mod run_mode;
+
+pub mod console;
+
 #[path = "../../capsule_linux/src/linux/file/dir_children.rs"]
 pub mod dir_children;
 

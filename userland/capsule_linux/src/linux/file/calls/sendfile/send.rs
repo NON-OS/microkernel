@@ -40,9 +40,10 @@ pub fn sendfile(guest: &mut Guest, out: u64, input: u64, offset: u64, count: u64
             desc::set_pos(&mut g.fds[out as usize], end);
             Ok(n)
         }
-        _ => {
-            let _ = nonos_libc::mk_debug(bytes.as_ptr(), bytes.len());
-            Ok(bytes.len())
-        }
+        // The console, by the path write takes: private when it is.
+        _ => match crate::linux::call::console_carry(bytes) as i64 {
+            e if e < 0 => Err(-e),
+            n => Ok(n as usize),
+        },
     })
 }

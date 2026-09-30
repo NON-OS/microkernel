@@ -14,20 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a shipped tier starts as: its program from the store, and its
-//! arguments for the way it was asked to run.
+//! What the family's terminal means for its output, and how large it is.
 
-use alloc::vec::Vec;
+use nonos_libc::mk_tty_query;
 
-use super::apps::app;
-use crate::linux::file::{key, store_read};
-use crate::linux::run_mode::Mode;
+use super::state::attached;
 
-const MAX_IMAGE: u32 = 64 << 20;
+/// True when what the family prints goes only to its launcher: it holds a
+/// model, or it is on a terminal.
+pub fn private() -> bool {
+    crate::linux::file::models::held() || attached()
+}
 
-/// The shipped tier `name` starts as in `mode`, or None if it names none.
-pub fn launch(name: &str, mode: Mode) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
-    let app = app(name)?;
-    let bytes = store_read(&key(app.program), MAX_IMAGE).ok()?;
-    Some((app.program.to_vec(), bytes, mode.tier_args(app.args)))
+/// The terminal's size as `(rows, cols)`, or 24 by 80 when it gives none.
+pub fn size() -> (u16, u16) {
+    let got = [0, 1, 2].into_iter().find_map(mk_tty_query);
+    match got {
+        Some((cols, rows)) if cols > 0 && rows > 0 => (rows, cols),
+        _ => (24, 80),
+    }
 }

@@ -44,14 +44,16 @@ pub(super) fn move_bytes(
         Ok(None) => desc::pos(&guest.fds[input as usize]),
         Err(e) => return e,
     };
-    let bytes = match read_at(guest, input, at, (count as usize).min(MAX_IO)) {
+    let mut bytes = match read_at(guest, input, at, (count as usize).min(MAX_IO)) {
         Ok(bytes) => bytes,
         Err(e) => return errno::fail(e),
     };
     if bytes.is_empty() {
         return errno::ok(0);
     }
-    let n = match put(guest, &bytes) {
+    let sent = put(guest, &bytes);
+    crate::linux::console::wipe(&mut bytes);
+    let n = match sent {
         Ok(n) => n,
         Err(e) => return errno::fail(e),
     };

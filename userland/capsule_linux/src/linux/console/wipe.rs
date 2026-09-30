@@ -14,20 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a shipped tier starts as: its program from the store, and its
-//! arguments for the way it was asked to run.
+//! Zeroing what the person typed or was shown, before its memory is let go.
 
-use alloc::vec::Vec;
+use core::sync::atomic::{compiler_fence, Ordering};
 
-use super::apps::app;
-use crate::linux::file::{key, store_read};
-use crate::linux::run_mode::Mode;
-
-const MAX_IMAGE: u32 = 64 << 20;
-
-/// The shipped tier `name` starts as in `mode`, or None if it names none.
-pub fn launch(name: &str, mode: Mode) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
-    let app = app(name)?;
-    let bytes = store_read(&key(app.program), MAX_IMAGE).ok()?;
-    Some((app.program.to_vec(), bytes, mode.tier_args(app.args)))
+/// Zero `bytes` in a way the compiler keeps, before they are let go.
+pub fn wipe(bytes: &mut [u8]) {
+    for b in bytes.iter_mut() {
+        // SAFETY: `b` is a valid, aligned, exclusive reference to one byte.
+        unsafe { core::ptr::write_volatile(b, 0) };
+    }
+    compiler_fence(Ordering::SeqCst);
 }

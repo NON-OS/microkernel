@@ -17,8 +17,9 @@
  * The last calls a family made, said when a guest dies on a signal, so a
  * crash names what the program was doing rather than only that it ended.
  * Only numbers are kept, never bytes of the guest's memory. A family that
- * holds a model shows results only for the calls that lay out memory,
- * which are addresses and lengths, not anything the model was told.
+ * holds a model or is on a terminal shows results only for the calls that
+ * lay out memory, which are addresses and lengths, not anything the model
+ * was told or the person typed.
  */
 
 use alloc::string::String;
@@ -48,7 +49,7 @@ fn lays_out_memory(number: u64) -> bool {
 
 /// `[LINUX] last calls: 9(0)=0x100000000 12 ...`, oldest first.
 pub fn say() {
-    let held = crate::linux::file::models::held();
+    let held = crate::linux::console::private();
     let mut line = String::from("[LINUX] last calls:");
     for i in 0..KEEP {
         let at = (NEXT.load(Relaxed) + i) % KEEP * 3;

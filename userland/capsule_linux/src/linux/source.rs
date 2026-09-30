@@ -18,58 +18,40 @@
 
 use alloc::vec::Vec;
 
-use nonos_libc::mk_args;
-
 use crate::linux::file::family::choose;
-use crate::linux::file::{key, store_read, visible};
+use crate::linux::file::{key, store_read};
 
 use super::launch::Launch;
 use super::origin::Origin;
+use super::source_named::named;
 
 const MAX_IMAGE: u32 = 64 << 20;
-const MAX_ARGS: usize = 256;
 
 /// The program, where it came from, and what it is given. A run starts a
 /// shipped tier, or an installed package's recorded program, or nothing:
 /// the built-in program would start something the person did not ask for.
 pub fn source() -> Option<Launch> {
     let store = |path: Vec<u8>, bytes, args| Launch { path, bytes, origin: Origin::Store, args };
-    if let Some(name) = super::request::run_request() {
+    if let Some((name, mode)) = super::request::run_request() {
+        // Before the guest's first byte, so a terminal run is private from it.
+        super::console::enter(mode);
         let pkg = choose(&name);
-        if let Some((path, bytes, args)) = super::install::launch(pkg) {
+        if let Some((path, bytes, args)) = super::install::launch(pkg, mode) {
+            crate::linux::file::machine::show();
             return Some(store(path, bytes, args));
         }
-        let path = super::install::recorded(pkg)?;
+        let Some(path) = super::install::recorded(pkg) else {
+            super::console::say(b"linux: nothing installed under that name\n");
+            return None;
+        };
         let bytes = store_read(&key(&path), MAX_IMAGE).ok()?;
         return Some(store(path, bytes, Vec::new()));
     }
-    if let Some((path, bytes)) = named() {
+    if let Some((path, bytes)) = named(MAX_IMAGE) {
         return Some(store(path, bytes, Vec::new()));
     }
     if let Some((path, bytes, args)) = super::boot_guest::boot_guest(MAX_IMAGE) {
         return Some(store(path, bytes, args));
     }
     Some(super::built_in::built_in())
-}
-
-fn named() -> Option<(Vec<u8>, Vec<u8>)> {
-    let mut buf = [0u8; MAX_ARGS];
-    let n = mk_args(buf.as_mut_ptr(), buf.len());
-    if n <= 0 {
-        return None;
-    }
-    // The first argument is the path.
-    let args = &buf[..n as usize];
-    let end = args.iter().position(|b| *b == 0 || *b == b' ').unwrap_or(args.len());
-    let path = args.get(..end)?;
-    if path.is_empty() {
-        return None;
-    }
-    /*
-     * The argument is not a guest's, but the program it names is a
-     * Linux one and lives where Linux programs live.
-     */
-    let at = visible(b"/", path);
-    let bytes = store_read(&key(&at), MAX_IMAGE).ok()?;
-    Some((at, bytes))
 }
