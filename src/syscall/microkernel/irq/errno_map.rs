@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::hardware::broker::IrqBindError;
+use crate::hardware::broker::{IrqBindError, IrqError};
 use crate::syscall::microkernel::errnos::{
     ERRNO_BUSY, ERRNO_INVAL, ERRNO_NODEV, ERRNO_NOMEM, ERRNO_NOTSUP, ERRNO_PERM, ERRNO_STALE,
 };
@@ -37,5 +37,14 @@ pub(super) fn bind_errno(e: IrqBindError) -> i64 {
         IrqBindError::NoVector => ERRNO_NOMEM,
         IrqBindError::UnsupportedFlags => ERRNO_NOTSUP,
         IrqBindError::MsixProgramFailed | IrqBindError::PlatformError => ERRNO_NODEV,
+    }
+}
+
+/// The errno for a refused wait on a grant.
+pub(super) fn grant_errno(e: IrqError) -> i64 {
+    match e {
+        IrqError::NotHolder => ERRNO_PERM,
+        IrqError::UnknownGrant => ERRNO_INVAL,
+        IrqError::PlatformError => ERRNO_NODEV,
     }
 }

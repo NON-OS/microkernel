@@ -20,33 +20,14 @@
 // any other wake lands (IPC sends wake the pid too) — spurious
 // returns are part of the contract, callers re-issue the wait.
 // `out_ptr` receives the seq to pass back as the next `last_seq`.
-//
-// Return value: a negative errno on failure; `IRQ_WAIT_TIMED_OUT` (1)
-// when the whole timeout lapsed and the seq never moved; 0 otherwise
-// (the seq moved, or another wake cut the sleep short). The timeout is
-// positive on purpose: a caller that only tests for a negative errno
-// keeps treating it as an ordinary return, and a caller that spends a
-// time budget can tell a slept-out slice from an early wake.
 
 use core::mem::size_of;
 
-use crate::hardware::broker::IrqError;
 use crate::process::current_pid;
-use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
+use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_PERM};
 use crate::usercopy::{validate_user_write, write_user_value};
 
 const DEFAULT_WAIT_MS: u64 = 100;
-
-/// Returned when the wait slept out its whole timeout with the seq unmoved.
-const IRQ_WAIT_TIMED_OUT: i64 = 1;
-
-fn errno_for(e: IrqError) -> i64 {
-    match e {
-        IrqError::NotHolder => ERRNO_PERM,
-        IrqError::UnknownGrant => ERRNO_INVAL,
-        IrqError::PlatformError => ERRNO_NODEV,
-    }
-}
 
 pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64) -> i64 {
     let pid = match current_pid() {
@@ -65,7 +46,7 @@ pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64)
     let token = crate::sched::wake_token(pid);
     let armed = match crate::hardware::broker::irq_wait_arm(pid, grant_id) {
         Ok(s) => s,
-        Err(e) => return errno_for(e),
+        Err(e) => return super::errno_map::grant_errno(e),
     };
     let mut deadline = None;
     if armed == last_seq {
@@ -82,13 +63,5 @@ pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64)
     if write_user_value(out_ptr, &current).is_err() {
         return ERRNO_FAULT;
     }
-    // Timed out only when the caller really slept its deadline out and
-    // nothing arrived: an early wake (IPC, a stray wake) and a seq that
-    // moved during or before the sleep both stay 0.
-    match deadline {
-        Some(at) if current == last_seq && crate::time::timestamp_millis() >= at => {
-            IRQ_WAIT_TIMED_OUT
-        }
-        _ => 0,
-    }
+    super::timeout::verdict(deadline, current, last_seq)
 }
