@@ -27,12 +27,15 @@ const CMD_CONNECT: u8 = 1;
 const ATYP_IPV4: u8 = 1;
 const ATYP_DOMAIN: u8 = 3;
 
+/// The host to reach, its port, and the bytes the request took.
+type Request = (Vec<u8>, u16, usize);
+
 /// A CONNECT request at the front of `buf`, as (host, port, bytes taken).
 /// `None` while incomplete; `Err(rep)` for a request this front refuses,
 /// with the reply code to refuse it with. Names are handed to the exit to
 /// resolve, so no lookup happens on this machine. IPv6 is refused: an exit
 /// is asked for it by name or not at all.
-pub fn connect(buf: &[u8]) -> Option<Result<(Vec<u8>, u16, usize), u8>> {
+pub fn connect(buf: &[u8]) -> Option<Result<Request, u8>> {
     if buf.len() < 4 {
         return None;
     }

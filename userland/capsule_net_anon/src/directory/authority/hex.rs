@@ -37,8 +37,7 @@ const fn nibble(byte: u8) -> u8 {
     let value = VALUE[byte as usize];
     let refuse = [0u8; 1];
     /* Zero for a digit, one for anything else, and one is out of range. */
-    refuse[(value >> 7) as usize];
-    value & 0x0f
+    (value & 0x0f) | refuse[(value >> 7) as usize]
 }
 
 /// The value of each hex digit in the low nibble, with the high bit set on every

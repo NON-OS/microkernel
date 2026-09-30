@@ -61,8 +61,8 @@ fn the_padding_boundary() {
         assert_eq!(streamed.finish(), digest(&input), "{len} bytes");
     }
     assert_eq!(
-        hex(&digest(&vec![b'x'; 56])[..8]),
-        hex(&digest(&vec![b'x'; 56])[..8]),
+        hex(&digest(&[b'x'; 56])[..8]),
+        hex(&digest(&[b'x'; 56])[..8]),
         "stable across calls"
     );
 }
