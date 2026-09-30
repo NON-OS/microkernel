@@ -18,7 +18,7 @@
 //! exact third word "cli" runs on the terminal, and there the chat keeps
 //! its model and loses its window.
 
-use crate::pinned::apps::APPS;
+use crate::pinned::apps::all;
 use crate::run_mode::{parse, Mode};
 
 #[test]
@@ -37,7 +37,7 @@ fn a_run_request_names_its_package_and_mode() {
 
 #[test]
 fn a_tier_on_the_terminal_keeps_its_model_and_drops_its_window() {
-    for app in APPS {
+    for app in all() {
         let window = Mode::Window.tier_args(app.args);
         assert_eq!(window, app.args.iter().map(|a| a.to_vec()).collect::<Vec<_>>());
         let cli = Mode::Cli.tier_args(app.args);

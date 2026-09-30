@@ -15,11 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 /*
  * Programs this personality ships, installed by name with nothing to
- * download: one per Qwen tier. The table is part of the signed personality,
- * so the program, its arguments and the model files it needs are covered by
- * the personality's measurement; the market only says which one a person
- * chose. A tier runs the chat window on its model.
+ * download: one per Qwen tier. The tables are part of the signed
+ * personality, so the program, its arguments and the model files it needs
+ * are covered by the personality's measurement; the market only says which
+ * one a person chose. A tier runs the chat window on its model; a model in
+ * parts is opened by its first, and the program finds the rest by their
+ * split names. The tables sit beside this file, one a family.
  */
+
+use super::apps_coder::CODER;
+use super::apps_qwen25::QWEN25;
+use super::apps_qwen3::QWEN3;
 
 pub struct App {
     pub name: &'static str,
@@ -32,43 +38,32 @@ pub struct App {
     pub models: &'static [&'static [u8]],
 }
 
-const CHAT: &[u8] = b"/bin/qwenchat";
+pub const CHAT: &[u8] = b"/bin/qwenchat";
 
-pub const APPS: &[App] = &[
-    App {
-        name: "qwen-small",
-        program: CHAT,
-        args: &[b"-ui", b"window", b"-m", b"/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"],
-        models: &[b"/qwen2.5-0.5b-instruct-q4_k_m.gguf"],
-    },
-    App {
-        name: "qwen-medium",
-        program: CHAT,
-        args: &[b"-ui", b"window", b"-m", b"/models/qwen2.5-1.5b-instruct-q4_k_m.gguf"],
-        models: &[b"/qwen2.5-1.5b-instruct-q4_k_m.gguf"],
-    },
-    App {
-        name: "qwen-large",
-        program: CHAT,
-        args: &[b"-ui", b"window", b"-m", b"/models/qwen2.5-3b-instruct-q4_k_m.gguf"],
-        models: &[b"/qwen2.5-3b-instruct-q4_k_m.gguf"],
-    },
-    App {
-        name: "qwen-xlarge",
-        program: CHAT,
-        args: &[
-            b"-ui",
-            b"window",
-            b"-m",
-            b"/models/qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf",
-        ],
-        models: &[
-            b"/qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf",
-            b"/qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf",
-        ],
-    },
-];
+/*
+ * The tier named `name`, running the chat window on the model whose first
+ * file is `first`, needing every file listed.
+ */
+macro_rules! tier {
+    ($name:literal, $first:literal $(, $rest:literal)* $(,)?) => {
+        super::apps::App {
+            name: $name,
+            program: super::apps::CHAT,
+            args: &[b"-ui", b"window", b"-m", concat!("/models", $first).as_bytes()],
+            models: &[$first.as_bytes() $(, $rest.as_bytes())*],
+        }
+    };
+}
+pub(super) use tier;
+
+/* Every table, smallest family first. */
+pub const FAMILIES: &[&[App]] = &[QWEN25, QWEN3, CODER];
+
+/* Every shipped tier, family by family. */
+pub fn all() -> impl Iterator<Item = &'static App> {
+    FAMILIES.iter().flat_map(|f| f.iter())
+}
 
 pub fn app(name: &str) -> Option<&'static App> {
-    APPS.iter().find(|a| a.name == name)
+    all().find(|a| a.name == name)
 }

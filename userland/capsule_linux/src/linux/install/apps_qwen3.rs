@@ -14,45 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Installing a Linux program from within the system.
+//! The shipped tiers of Qwen3, 0.6B to 32B, and 30B-A3B, a mixture of experts.
 
-mod apps;
-mod apps_coder;
-mod apps_install;
-mod apps_qwen25;
-mod apps_qwen3;
-mod apps_run;
-mod auth;
-mod deb;
-mod download;
-mod enrol;
-mod family;
-mod fetch;
-mod hex;
-mod http;
-mod http_reply;
-mod index;
-mod index_load;
-mod limit;
-mod mirror;
-mod pacman;
-mod pgp;
-mod pkg;
-mod place;
-mod place_entry;
-mod place_links;
-mod place_report;
-mod program;
-mod run;
-mod tar;
-mod tar_field;
-mod tar_kind;
-mod tar_path;
-mod tar_pax;
-mod unpacked;
-mod why;
+use super::apps::{tier, App};
 
-pub use apps_run::launch;
-pub use family::install;
-pub use program::recorded;
-pub use why::Why;
+pub const QWEN3: &[App] = &[
+    tier!("qwen-qwen3-0.6b", "/Qwen3-0.6B-Q8_0.gguf"),
+    tier!("qwen-qwen3-1.7b", "/Qwen3-1.7B-Q8_0.gguf"),
+    tier!("qwen-qwen3-4b", "/Qwen3-4B-Q4_K_M.gguf"),
+    tier!("qwen-qwen3-8b", "/Qwen3-8B-Q4_K_M.gguf"),
+    tier!("qwen-qwen3-14b", "/Qwen3-14B-Q4_K_M.gguf"),
+    tier!("qwen-qwen3-30b-a3b", "/Qwen3-30B-A3B-Q4_K_M.gguf"),
+    tier!("qwen-qwen3-32b", "/Qwen3-32B-Q4_K_M.gguf"),
+];

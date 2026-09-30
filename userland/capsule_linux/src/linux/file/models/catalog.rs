@@ -31,14 +31,14 @@ use crate::linux::guest::{Fd, Guest};
 use super::super::flags::{wants_read, O_CREAT};
 use super::super::{desc, slot};
 use super::name::ROOT;
-use super::pinned::PINNED;
+use super::pinned::all;
 
 pub const TIERS: &[u8] = b"/models/tiers";
 
 /* "small qwen2.5-0.5b-instruct-q4_k_m.gguf 491400032 74a4...", a line each. */
 pub fn text() -> Vec<u8> {
     let mut out = String::new();
-    for p in PINNED {
+    for p in all() {
         let name = core::str::from_utf8(&p.name[1..]).unwrap_or("?");
         let _ = write!(out, "{} {} {} ", p.tier, name, p.bytes);
         for b in p.sha256 {
@@ -53,7 +53,7 @@ pub fn text() -> Vec<u8> {
 pub fn open(guest: &mut Guest, path: &[u8], flags: u64) -> Option<u64> {
     let fd = if path == ROOT {
         let mut names: Vec<String> = [".", "..", "tiers"].map(String::from).to_vec();
-        names.extend(PINNED.iter().filter_map(|p| String::from_utf8(p.name[1..].to_vec()).ok()));
+        names.extend(all().filter_map(|p| String::from_utf8(p.name[1..].to_vec()).ok()));
         let mut fd = Fd::dir(path.to_vec(), names);
         fd.handle = desc::fresh(false, false);
         fd

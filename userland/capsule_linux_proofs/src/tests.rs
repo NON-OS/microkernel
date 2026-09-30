@@ -18,6 +18,7 @@
 
 mod metrics_parse_tests;
 mod model_name_tests;
+mod pinned_published;
 mod pinned_tests;
 mod apps_tests;
 mod console_tests;

@@ -16,32 +16,43 @@
 //! The shipped tiers: each runs the chat window on its own first model, and
 //! every model file a tier needs is one the personality pins.
 
-use crate::pinned::apps::APPS;
-use crate::pinned::pinned::PINNED;
+use super::pinned_tests::TIERS;
+use crate::pinned::apps::{all as apps, app};
+use crate::pinned::pinned::all as pins;
 
 #[test]
 fn every_tier_needs_only_pinned_files_and_opens_its_first() {
-    assert_eq!(APPS.len(), 4);
-    for app in APPS {
+    assert_eq!(apps().count(), TIERS.len());
+    for tier in TIERS {
+        assert!(app(&alloc::format!("qwen-{tier}")).is_some(), "{tier}");
+    }
+    for app in apps() {
         assert_eq!(app.program, b"/bin/qwenchat", "{}", app.name);
         assert!(!app.models.is_empty(), "{}", app.name);
         for m in app.models {
-            assert!(PINNED.iter().any(|p| p.name == *m), "{} needs an unpinned file", app.name);
+            assert!(pins().any(|p| p.name == *m), "{} needs an unpinned file", app.name);
         }
         let at = app.args.iter().position(|a| *a == b"-m").expect("names its model");
         let model = [&b"/models"[..], app.models[0]].concat();
         assert_eq!(app.args[at + 1], &model[..], "{}", app.name);
         assert!(app.args.windows(2).any(|w| w == [&b"-ui"[..], &b"window"[..]]));
+        /* Parts in order, all of them, so the first finds the rest. */
+        let n = app.models.len();
+        for (k, m) in app.models.iter().enumerate().filter(|_| n > 1) {
+            let part = alloc::format!("-{:05}-of-{n:05}.gguf", k + 1);
+            assert!(m.ends_with(part.as_bytes()), "{}", app.name);
+        }
     }
 }
 
 #[test]
 fn every_pinned_file_belongs_to_a_tier_and_names_are_distinct() {
-    for p in PINNED {
-        assert!(APPS.iter().any(|a| a.models.contains(&p.name)), "orphan pin");
+    for p in pins() {
+        let owner = apps().find(|a| a.models.contains(&p.name)).expect("orphan pin");
+        assert_eq!(owner.name.strip_prefix("qwen-"), Some(p.tier), "{:?}", p.name);
     }
-    for (i, a) in APPS.iter().enumerate() {
-        assert!(APPS[i + 1..].iter().all(|b| b.name != a.name));
+    for (i, a) in apps().enumerate() {
+        assert!(apps().skip(i + 1).all(|b| b.name != a.name));
         assert!(a.name.starts_with("qwen-") && !a.name.contains(':'));
     }
 }

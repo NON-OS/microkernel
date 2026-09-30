@@ -14,40 +14,62 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The model table: each digest the published one, each name one a guest
-//! can open, and every tier there.
+//! The model tables: each digest the published one, each name one a guest
+//! can open and the volume can hold, and every tier there.
 
+use super::pinned_published::PUBLISHED;
 use crate::model_name::volume_name;
-use crate::pinned::pinned::PINNED;
+use crate::pinned::pinned::{all, pin_of};
 
-const PUBLISHED: [(&str, u64, &str); 5] = [
-    ("qwen2.5-0.5b-instruct-q4_k_m.gguf", 491_400_032, "74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db"),
-    ("qwen2.5-1.5b-instruct-q4_k_m.gguf", 1_117_320_736, "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e"),
-    ("qwen2.5-3b-instruct-q4_k_m.gguf", 2_104_932_768, "626b4a6678b86442240e33df819e00132d3ba7dddfe1cdc4fbb18e0a9615c62d"),
-    ("qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf", 3_993_201_344, "dfce12e3862a5283ccfb88221b48480e58745165de856439950d0f22590580db"),
-    ("qwen2.5-7b-instruct-q4_k_m-00002-of-00002.gguf", 689_872_288, "539cf93f78e887edea1c04e2d7d8cdaca9d01dae9c9025bcb8accbe29df3d72a"),
+/* The volume's name field, in bytes, and its largest file. */
+const NAME_BYTES: usize = 56;
+const MAX_FILE_BYTES: u64 = 382_737_381_576;
+
+pub const TIERS: [&str; 17] = [
+    "small",
+    "medium",
+    "large",
+    "xlarge",
+    "xxl",
+    "max",
+    "qwen3-0.6b",
+    "qwen3-1.7b",
+    "qwen3-4b",
+    "qwen3-8b",
+    "qwen3-14b",
+    "qwen3-30b-a3b",
+    "qwen3-32b",
+    "coder-1.5b",
+    "coder-7b",
+    "coder-14b",
+    "coder-32b",
 ];
 
 #[test]
 fn every_pin_is_the_published_file_byte_for_byte() {
-    assert_eq!(PINNED.len(), PUBLISHED.len());
-    for (p, (name, bytes, hex)) in PINNED.iter().zip(PUBLISHED) {
+    assert_eq!(all().count(), PUBLISHED.len());
+    for (p, (tier, name, bytes, hex)) in all().zip(PUBLISHED) {
+        assert_eq!(p.tier, tier, "{name}");
         assert_eq!(&p.name[1..], name.as_bytes());
-        assert_eq!(p.bytes, bytes);
-        let got: alloc::string::String = p.sha256.iter().map(|b| alloc::format!("{b:02x}")).collect();
-        assert_eq!(got, hex);
+        assert_eq!(p.bytes, bytes, "{name}");
+        let got: alloc::string::String =
+            p.sha256.iter().map(|b| alloc::format!("{b:02x}")).collect();
+        assert_eq!(got, hex, "{name}");
     }
 }
 
 #[test]
 fn every_pinned_name_is_one_a_guest_can_open_and_every_tier_is_there() {
-    for p in PINNED {
+    for (i, p) in all().enumerate() {
         let path = [&b"/models"[..], p.name].concat();
         assert_eq!(volume_name(&path), Some(p.name));
-        /* The largest file the volume holds is 6,378,981,576 bytes. */
-        assert!(p.bytes > 0 && p.bytes < 6_378_981_576);
+        assert!(p.name.len() <= NAME_BYTES, "{:?}", p.name);
+        assert!(p.bytes > 0 && p.bytes <= MAX_FILE_BYTES);
+        assert!(all().skip(i + 1).all(|q| q.name != p.name), "pinned twice");
+        assert!(core::ptr::eq(pin_of(p.name).unwrap(), p));
     }
-    for tier in ["small", "medium", "large", "xlarge"] {
-        assert!(PINNED.iter().any(|p| p.tier == tier), "{tier}");
+    for tier in TIERS {
+        assert!(all().any(|p| p.tier == tier), "{tier}");
     }
+    assert!(all().all(|p| TIERS.contains(&p.tier)), "a tier outside the list");
 }
