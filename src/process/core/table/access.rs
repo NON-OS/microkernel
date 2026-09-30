@@ -41,9 +41,6 @@ impl ProcessTable {
     pub fn get_children_of(&self, parent_pid: Pid) -> Vec<Arc<ProcessControlBlock>> {
         self.inner.read().iter().filter(|p| p.parent_pid() == parent_pid).cloned().collect()
     }
-    pub fn has_children(&self, pid: Pid) -> bool {
-        self.inner.read().iter().any(|p| p.parent_pid() == pid)
-    }
     pub fn get_process(&self, pid: Pid) -> Option<Arc<ProcessControlBlock>> {
         self.find_by_pid(pid)
     }

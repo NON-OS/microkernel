@@ -57,7 +57,7 @@ pub fn report_cpu(cpu: u32, flags: &MmuResult<ProtectionFlags>) {
             l.str(b" wp=").dec(f.wp_enabled as u64);
         }
         Err(_) => {
-            l.str(b" FAIL no-execute unsupported");
+            l.str(b" FAIL no-execute absent");
         }
     }
     l.end();
