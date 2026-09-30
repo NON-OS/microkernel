@@ -33,6 +33,7 @@ mod http;
 mod http_reply;
 mod index;
 mod index_load;
+mod isa;
 mod limit;
 mod mirror;
 mod pacman;

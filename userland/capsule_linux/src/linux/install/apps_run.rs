@@ -28,6 +28,10 @@ const MAX_IMAGE: u32 = 64 << 20;
 /// The shipped tier `name` starts as in `mode`, or None if it names none.
 pub fn launch(name: &str, mode: Mode) -> Option<(Vec<u8>, Vec<u8>, Vec<Vec<u8>>)> {
     let app = app(name)?;
-    let bytes = store_read(&key(app.program), MAX_IMAGE).ok()?;
-    Some((app.program.to_vec(), bytes, mode.tier_args(app.args)))
+    let program = super::isa::for_this_cpu(app.program);
+    if program != app.program {
+        crate::linux::start::say(b"[LINUX] no AVX2 on this CPU: running the x86-64-v2 build\n");
+    }
+    let bytes = store_read(&key(program), MAX_IMAGE).ok()?;
+    Some((program.to_vec(), bytes, mode.tier_args(app.args)))
 }
