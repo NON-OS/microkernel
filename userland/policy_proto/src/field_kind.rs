@@ -33,7 +33,7 @@ pub fn kind_of(field: Field) -> u8 {
         | Field::Volume
         | Field::AudioBalance => KIND_U8,
         Field::Timezone => KIND_I8,
-        Field::Hostname | Field::DomainName => KIND_STR,
+        Field::Hostname | Field::DomainName | Field::Username | Field::QwenTier => KIND_STR,
         _ => KIND_BOOL,
     }
 }

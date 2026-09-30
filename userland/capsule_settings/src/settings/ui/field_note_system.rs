@@ -20,6 +20,8 @@ pub fn note(field: Field) -> Option<&'static str> {
     Some(match field {
         Field::KernelPreempt => "End a program's turn on the timer, so none can hold the CPU.",
         Field::Hostname => "Shown in the terminal. Never sent on a network.",
+        Field::Username => "Shown in the terminal as your name. Never sent on a network.",
+        Field::QwenTier => "The model qwen runs when no tier is named.",
         _ => return None,
     })
 }

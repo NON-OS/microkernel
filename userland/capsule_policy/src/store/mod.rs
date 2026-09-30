@@ -25,6 +25,7 @@ pub mod set_str;
 pub mod set_u8;
 pub mod state;
 pub mod str_validate;
+pub mod string_field;
 pub mod types;
 
 pub use types::STRING_CAP;

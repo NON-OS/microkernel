@@ -22,7 +22,9 @@ use nonos_policy_proto::Field;
  * `coverage.rs` holds this list and the screens to each other.
  */
 pub const ALL_FIELDS: &[Field] = &[
+    Field::Username,             /* terminal prompt and whoami */
     Field::Hostname,             // terminal prompt and identity
+    Field::QwenTier,             /* qwen's default model */
     Field::Timezone,             // shell menubar clock
     Field::ClockFormat24,        // shell menubar clock
     Field::NotificationsEnabled, // shell notify handler

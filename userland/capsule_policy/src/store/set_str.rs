@@ -33,6 +33,8 @@ pub fn set(field: Field, bytes: &[u8]) -> bool {
     match field {
         Field::Hostname => s.hostname = sf,
         Field::DomainName => s.domainname = sf,
+        Field::Username => s.username = sf,
+        Field::QwenTier => s.qwen_tier = sf,
         _ => return false,
     }
     true

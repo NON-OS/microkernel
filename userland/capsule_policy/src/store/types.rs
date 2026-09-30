@@ -14,13 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const STRING_CAP: usize = 64;
-
-#[derive(Clone, Copy)]
-pub struct StringField {
-    pub bytes: [u8; STRING_CAP],
-    pub len: usize,
-}
+pub use super::string_field::{StringField, STRING_CAP};
 
 #[derive(Clone, Copy)]
 pub struct Store {
@@ -72,4 +66,6 @@ pub struct Store {
     pub kernel_seccomp: bool,
     pub hostname: StringField,
     pub domainname: StringField,
+    pub username: StringField,
+    pub qwen_tier: StringField,
 }

@@ -66,6 +66,8 @@ pub fn decode(id: u32) -> Option<Field> {
         0x020C => Field::KernelSeccomp,
         0x0301 => Field::Hostname,
         0x0302 => Field::DomainName,
+        0x0303 => Field::Username,
+        0x0304 => Field::QwenTier,
         _ => return None,
     })
 }

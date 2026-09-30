@@ -14,31 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::Field;
+use super::field::Field;
+use super::limits::STR_MAX;
 
-use crate::settings::schema::rows::{Block, Pill, Row};
-
-pub const GENERAL: &[Block] = &[
-    Block {
-        title: "Device",
-        note: None,
-        pill: Pill::None,
-        rows: &[
-            Row::Field(Field::Username),
-            Row::Field(Field::Hostname),
-            Row::Field(Field::QwenTier),
-        ],
-    },
-    Block {
-        title: "Date and time",
-        note: None,
-        pill: Pill::None,
-        rows: &[Row::Field(Field::Timezone), Row::Field(Field::ClockFormat24)],
-    },
-    Block {
-        title: "Notifications",
-        note: None,
-        pill: Pill::None,
-        rows: &[Row::Field(Field::NotificationsEnabled)],
-    },
-];
+/*
+ * The longest value a string field takes, in bytes. A name shown in a prompt
+ * and a tier name are kept short; the rest may use the whole wire limit.
+ */
+pub fn str_max_of(field: Field) -> usize {
+    match field {
+        Field::Username => 32,
+        Field::QwenTier => 24,
+        _ => STR_MAX,
+    }
+}

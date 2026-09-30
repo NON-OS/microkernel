@@ -69,5 +69,7 @@ pub const fn store() -> Store {
         kernel_seccomp: true,
         hostname: default_hostname(),
         domainname: empty_string(),
+        username: empty_string(),
+        qwen_tier: empty_string(),
     }
 }

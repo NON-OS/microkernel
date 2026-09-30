@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::{Field, E_BAD_LEN, E_INVAL, KIND_STR, OP_SET, STR_MAX};
 use crate::push;
 use crate::store::set_str;
+use nonos_policy_proto::{str_max_of, Field, E_BAD_LEN, E_INVAL, KIND_STR, OP_SET};
 
 use super::super::respond;
 
 pub fn handle(pid: u32, field: Field, payload: &[u8]) {
-    if payload.len() > STR_MAX {
+    if payload.len() > str_max_of(field) {
         respond::err(pid, OP_SET, field as u32, KIND_STR, E_BAD_LEN);
         return;
     }

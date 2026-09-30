@@ -66,5 +66,7 @@ pub fn label_of(field: Field) -> &'static [u8] {
         Field::KernelSeccomp => b"Seccomp syscall filter",
         Field::Hostname => b"Hostname",
         Field::DomainName => b"Domain name",
+        Field::Username => b"Your name",
+        Field::QwenTier => b"Qwen model",
     }
 }

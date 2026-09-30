@@ -65,4 +65,6 @@ pub enum Field {
     KernelSeccomp = 0x020C,
     Hostname = 0x0301,
     DomainName = 0x0302,
+    Username = 0x0303,
+    QwenTier = 0x0304,
 }

@@ -14,31 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::Field;
+pub const STRING_CAP: usize = 64;
 
-use crate::settings::schema::rows::{Block, Pill, Row};
-
-pub const GENERAL: &[Block] = &[
-    Block {
-        title: "Device",
-        note: None,
-        pill: Pill::None,
-        rows: &[
-            Row::Field(Field::Username),
-            Row::Field(Field::Hostname),
-            Row::Field(Field::QwenTier),
-        ],
-    },
-    Block {
-        title: "Date and time",
-        note: None,
-        pill: Pill::None,
-        rows: &[Row::Field(Field::Timezone), Row::Field(Field::ClockFormat24)],
-    },
-    Block {
-        title: "Notifications",
-        note: None,
-        pill: Pill::None,
-        rows: &[Row::Field(Field::NotificationsEnabled)],
-    },
-];
+#[derive(Clone, Copy)]
+pub struct StringField {
+    pub bytes: [u8; STRING_CAP],
+    pub len: usize,
+}
