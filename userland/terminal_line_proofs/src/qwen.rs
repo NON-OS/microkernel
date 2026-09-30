@@ -16,6 +16,16 @@ pub mod tiers;
 #[path = "../../capsule_terminal/src/command/builtin/qwen/window.rs"]
 pub mod window;
 
+/*
+ * The host has no policy server: `chosen` is `pick` of what an unset or
+ * unreachable policy answers, which is nothing.
+ */
+pub mod chosen {
+    pub fn chosen() -> &'static [u8] {
+        super::tiers::pick(b"")
+    }
+}
+
 #[path = "../../capsule_terminal/src/term/util/is_space.rs"]
 pub mod space;
 
@@ -34,3 +44,7 @@ mod tests;
 #[cfg(test)]
 #[path = "qwen_fetch_tests.rs"]
 mod fetch_tests;
+
+#[cfg(test)]
+#[path = "qwen_pick_tests.rs"]
+mod pick_tests;

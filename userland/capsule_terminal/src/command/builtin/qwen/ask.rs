@@ -21,7 +21,7 @@
 
 use alloc::vec::Vec;
 
-use super::tiers::TIERS;
+use super::{chosen::chosen, tiers::TIERS};
 use crate::term::util::is_space;
 
 pub struct Ask<'a> {
@@ -33,7 +33,7 @@ pub struct Ask<'a> {
 
 impl Ask<'_> {
     pub fn tier(&self) -> &'static [u8] {
-        self.tier.unwrap_or(TIERS[0])
+        self.tier.unwrap_or_else(chosen)
     }
 
     /// What history and the job list keep: the command and the tier as

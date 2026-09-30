@@ -21,6 +21,7 @@
 //! `qwen get TIER...` downloads tiers and `qwen tiers` lists them.
 
 mod ask;
+mod chosen;
 mod complete;
 mod enter;
 mod fetch;

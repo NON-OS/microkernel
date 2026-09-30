@@ -37,3 +37,8 @@ pub const TIERS: &[&[u8]] = &[
     b"coder-14b",
     b"coder-32b",
 ];
+
+/* The tier policy names in `want`, or the first when it names none this terminal knows. */
+pub fn pick(want: &[u8]) -> &'static [u8] {
+    TIERS.iter().copied().find(|t| *t == want).unwrap_or(TIERS[0])
+}

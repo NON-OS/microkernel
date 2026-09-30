@@ -21,6 +21,7 @@
 use alloc::vec::Vec;
 
 use super::ask::Ask;
+use super::chosen::chosen;
 use super::tiers::TIERS;
 use crate::term::util::is_space;
 
@@ -48,7 +49,7 @@ pub fn parse<'a>(ask: &Ask<'a>) -> Option<Window<'a>> {
     let start = rest.iter().position(|&b| !is_space(b)).unwrap_or(rest.len());
     let word = &rest[start..];
     if word.is_empty() {
-        return Some(Window::Open(TIERS[0]));
+        return Some(Window::Open(chosen()));
     }
     Some(TIERS.iter().copied().find(|t| *t == word).map_or(Window::NotATier(word), Window::Open))
 }

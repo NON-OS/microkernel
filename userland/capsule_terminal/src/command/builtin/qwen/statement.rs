@@ -20,6 +20,7 @@
 //! and a tier, `get` and tiers, or `tiers` are taken this way; a question
 //! is refused rather than sent changed.
 
+use super::chosen::chosen;
 use super::fetch_words::{Fetch, GET, LIST};
 use super::tiers::TIERS;
 use super::window::{Window, WORD};
@@ -39,7 +40,7 @@ pub fn from_args(state: &mut State, args: &[&[u8]]) -> Option<JobWork> {
             return super::fetch::start(state, &Fetch::Get(rest.to_vec()));
         }
         [_, word] if *word == LIST => return super::fetch::start(state, &Fetch::List),
-        [_] => Some(TIERS[0]),
+        [_] => Some(chosen()),
         [_, word] => TIERS.iter().copied().find(|t| t == word),
         _ => None,
     };
@@ -55,7 +56,7 @@ pub fn from_args(state: &mut State, args: &[&[u8]]) -> Option<JobWork> {
 /// What followed `qwen window` in a statement: nothing, or one tier word.
 fn window<'a>(rest: &[&'a [u8]]) -> Window<'a> {
     match rest {
-        [] => Window::Open(TIERS[0]),
+        [] => Window::Open(chosen()),
         [word] => {
             TIERS.iter().copied().find(|t| t == word).map_or(Window::NotATier(word), Window::Open)
         }

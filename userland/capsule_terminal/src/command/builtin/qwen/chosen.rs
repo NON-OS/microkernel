@@ -14,14 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cache;
-mod choose;
-mod fetch;
-mod host;
-mod sanitize;
-mod user;
-mod wire;
+/*
+ * The tier `qwen` runs when none is named: the one chosen at setup or in
+ * Settings when it is a tier this terminal knows, else the first.
+ */
 
-pub use cache::Cached;
-pub use host::hostname;
-pub use user::username;
+use nonos_policy_proto::Field;
+
+use super::tiers::pick;
+use crate::term::identity::Cached;
+
+static CHOSEN: Cached = Cached::new(Field::QwenTier, tier_len);
+
+/* A tier word is lowercase letters, digits, `.` and `-`; anything else ends it. */
+fn tier_len(b: &[u8]) -> usize {
+    let word = |c: &u8| c.is_ascii_lowercase() || c.is_ascii_digit() || *c == b'.' || *c == b'-';
+    b.iter().position(|c| !word(c)).unwrap_or(b.len())
+}
+
+pub fn chosen() -> &'static [u8] {
+    pick(CHOSEN.get())
+}

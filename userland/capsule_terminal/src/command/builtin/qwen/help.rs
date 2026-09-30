@@ -18,8 +18,9 @@
 
 /* The tiers, the models behind them, getting them, and the keys of a chat. */
 pub const HELP: &[&[u8]] = &[
-    b"  tiers, all offline, each model file verified by SHA-256:",
-    b"    Qwen2.5: small 0.5B (default), medium 1.5B, large 3B, xlarge 7B, xxl 14B, max 32B",
+    b"  tiers, all offline, each model file verified by SHA-256; with none named,",
+    b"  qwen runs the one chosen at setup or in Settings, else small:",
+    b"    Qwen2.5: small 0.5B, medium 1.5B, large 3B, xlarge 7B, xxl 14B, max 32B",
     b"    Qwen3: qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-14b, qwen3-32b,",
     b"      qwen3-30b-a3b (MoE, 3B active, fast on a CPU)",
     b"    Coder: coder-1.5b, coder-7b, coder-14b, coder-32b",
