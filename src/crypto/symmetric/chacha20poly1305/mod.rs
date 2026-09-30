@@ -16,6 +16,7 @@
 
 mod aead;
 mod chacha20;
+mod chacha_core;
 mod poly1305;
 
 pub use aead::{aead_decrypt, aead_decrypt_in_place, aead_encrypt, aead_encrypt_in_place};
