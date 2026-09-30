@@ -35,8 +35,41 @@ namespace NonosExtraction.ChainError
 theorem the_chainerror_is_recoverable_wrapper_is_its_method (a : error.ChainError) :
     chainerror_is_recoverable a = error.ChainError.is_recoverable a := rfl
 
+/-! ### Only expiry and absence are worth retrying
+
+A capability-chain check that fails with a recoverable error invites the caller
+to refresh and try again; one that fails with an unrecoverable error means the
+chain itself is bad. These theorems establish that `is_recoverable` answers for
+every error, answers `true` exactly for `ExpiredToken` and
+`CapabilityNotFound`, and so never reports a forged signature (`InvalidToken`),
+a broken delegation link, an over-deep chain or an empty chain as retryable.
+
+They cannot establish that the verifier raises the right variant for a given
+chain: the verifier is not in this crate.
+-/
+
+/-- `chainerror_is_recoverable` always answers, and answers `true` exactly for
+    an expired token or a missing capability. -/
+theorem chainerror_is_recoverable_exactly_for_expiry_and_absence (e : error.ChainError) :
+    ∃ b, chainerror_is_recoverable e = ok b ∧
+      (b = true ↔ ((∃ i, e = .ExpiredToken i) ∨ e = .CapabilityNotFound)) := by
+  unfold chainerror_is_recoverable error.ChainError.is_recoverable
+  cases e <;> simp
+
+/-- No integrity failure is ever reported as retryable by
+    `chainerror_is_recoverable`. -/
+theorem chainerror_is_recoverable_refuses_every_integrity_failure (i d m : Std.Usize) :
+    chainerror_is_recoverable (.InvalidToken i) = ok false ∧
+    chainerror_is_recoverable (.BrokenLink i) = ok false ∧
+    chainerror_is_recoverable (.TooDeep d m) = ok false ∧
+    chainerror_is_recoverable .EmptyChain = ok false :=
+  ⟨rfl, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ChainError.the_chainerror_is_recoverable_wrapper_is_its_method
+
+#print axioms NonosExtraction.ChainError.chainerror_is_recoverable_exactly_for_expiry_and_absence
+#print axioms NonosExtraction.ChainError.chainerror_is_recoverable_refuses_every_integrity_failure
 
 end NonosExtraction.ChainError

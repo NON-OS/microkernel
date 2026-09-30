@@ -21,8 +21,9 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.SemaphorePure
+import Nonos.Semaphore
 
-open Aeneas Aeneas.Std Result
+open Aeneas Aeneas.Std Result WP
 open nonos_x_semaphore_pure
 
 set_option linter.hashCommand false
@@ -41,10 +42,111 @@ theorem the_acquire_count_wrapper_is_its_method (a : Std.Usize) :
 theorem the_release_count_wrapper_is_its_method (a : Std.Usize) (b : Std.Usize) :
     release_count a b = pure.release_count a b := rfl
 
+/-! ### Permit arithmetic against the tier-one semaphore model
+
+The theorems below tie the three permit computations to `Nonos.Semaphore`, the
+hand-written model whose invariants the tier-one proofs establish. The
+availability test is exactly the model's `canAcquire`. Taking a permit agrees
+with the model's `acquire` whenever a permit exists, and at the one input where
+the model's natural subtraction saturates to zero the code aborts with an
+integer overflow instead of wrapping to the largest count. The availability
+test is exactly the guard that keeps a caller away from that abort. Returning a
+permit agrees with the model's `release` for every pair of machine words,
+including counts already above the ceiling and the largest `usize`, so it never
+overflows and never leaves the count above the capacity. A matched acquire and
+release restores the count.
+
+These are statements about the arithmetic only. The compare-exchange loops in
+`acquire.rs` and `release.rs` that apply it to an atomic counter, and the
+scheduler calls that park and wake waiters, are not extracted, so nothing here
+says the loop retries correctly or that a waiter is ever woken.
+-/
+
+/-- The availability test reads the count as the model does: a permit can be
+    taken exactly when the count is positive. -/
+theorem can_acquire_is_the_models_availability_test (c : Std.Usize) (cap : Nat) :
+    ∃ b, can_acquire c = ok b ∧ (b = true ↔ Nonos.Semaphore.canAcquire ⟨c.val, cap⟩) := by
+  refine ⟨_, rfl, ?_⟩
+  simp [Nonos.Semaphore.canAcquire]
+
+/-- Taking a permit from a positive count agrees with the model and lowers the
+    count by exactly one. -/
+theorem acquire_count_refines_the_model_when_a_permit_exists (c : Std.Usize) (cap : Nat)
+    (h : 0 < c.val) :
+    ∃ r, acquire_count c = ok r ∧ r.val = (Nonos.Semaphore.acquire ⟨c.val, cap⟩).count ∧
+      r.val + 1 = c.val := by
+  unfold acquire_count pure.acquire_count
+  obtain ⟨z, hz, hv⟩ := spec_imp_exists (Usize.sub_spec (x := c) (y := 1#usize) (by simp; omega))
+  refine ⟨z, hz, ?_, ?_⟩ <;> simp [Nonos.Semaphore.acquire] at hv ⊢ <;> omega
+
+/-- On an empty semaphore the code aborts rather than agreeing with the model,
+    whose `acquire` saturates the count at zero. A wrapping subtraction would
+    instead hand back `usize::MAX` permits. -/
+theorem acquire_count_aborts_on_an_empty_semaphore :
+    acquire_count 0#usize = fail .integerOverflow := rfl
+
+/-- The availability test is exactly the precondition of taking a permit: when
+    it answers yes the subtraction succeeds, and when it answers no the
+    subtraction would abort. This is the contract `try_acquire` relies on when
+    it calls `acquire_count` only after `can_acquire`. -/
+theorem can_acquire_guards_acquire_count_exactly (c : Std.Usize) :
+    (can_acquire c = ok true → ∃ r, acquire_count c = ok r ∧ r.val + 1 = c.val) ∧
+    (can_acquire c = ok false → acquire_count c = fail .integerOverflow) := by
+  constructor
+  · intro hc
+    have h : 0 < c.val := by
+      simpa [can_acquire, pure.can_acquire] using hc
+    obtain ⟨r, hr, _, hv⟩ := acquire_count_refines_the_model_when_a_permit_exists c 0 h
+    exact ⟨r, hr, hv⟩
+  · intro hc
+    have h : c.val = 0 := by
+      simpa [can_acquire, pure.can_acquire] using hc
+    have : c = 0#usize := UScalar.eq_of_val_eq (by simp [h])
+    subst this
+    rfl
+
+/-- Returning a permit agrees with the model's saturating `release` for every
+    count and capacity, never overflows, and never leaves more permits than the
+    capacity, even when the count starts above the capacity or at `usize::MAX`. -/
+theorem release_count_refines_the_model_and_respects_the_ceiling (c cap : Std.Usize) :
+    ∃ r, release_count c cap = ok r ∧
+      r.val = (Nonos.Semaphore.release ⟨c.val, cap.val⟩).count ∧ r.val ≤ cap.val := by
+  unfold release_count pure.release_count
+  simp only [Nonos.Semaphore.release]
+  split
+  · rename_i h
+    refine ⟨cap, rfl, ?_, le_refl _⟩
+    have : cap.val ≤ c.val := h
+    omega
+  · rename_i h
+    have : c.val < cap.val := by simpa using h
+    obtain ⟨z, hz, hv⟩ := spec_imp_exists (Usize.add_spec (x := c) (y := 1#usize) (by scalar_tac))
+    refine ⟨z, hz, ?_, ?_⟩ <;> simp at hv <;> omega
+
+/-- A permit taken and then returned leaves the count where it was, for any
+    count that is positive and within the capacity. -/
+theorem release_count_undoes_acquire_count (c cap : Std.Usize)
+    (h : 0 < c.val) (hv : c.val ≤ cap.val) :
+    ∃ r, acquire_count c = ok r ∧ release_count r cap = ok c := by
+  obtain ⟨r, hr, _, hr1⟩ := acquire_count_refines_the_model_when_a_permit_exists c 0 h
+  obtain ⟨s, hs, hs1, _⟩ := release_count_refines_the_model_and_respects_the_ceiling r cap
+  refine ⟨r, hr, ?_⟩
+  rw [hs]
+  congr 1
+  apply UScalar.eq_of_val_eq
+  simp only [Nonos.Semaphore.release] at hs1
+  omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.SemaphorePure.the_can_acquire_wrapper_is_its_method
 #print axioms NonosExtraction.SemaphorePure.the_acquire_count_wrapper_is_its_method
 #print axioms NonosExtraction.SemaphorePure.the_release_count_wrapper_is_its_method
+#print axioms NonosExtraction.SemaphorePure.can_acquire_is_the_models_availability_test
+#print axioms NonosExtraction.SemaphorePure.acquire_count_refines_the_model_when_a_permit_exists
+#print axioms NonosExtraction.SemaphorePure.acquire_count_aborts_on_an_empty_semaphore
+#print axioms NonosExtraction.SemaphorePure.can_acquire_guards_acquire_count_exactly
+#print axioms NonosExtraction.SemaphorePure.release_count_refines_the_model_and_respects_the_ceiling
+#print axioms NonosExtraction.SemaphorePure.release_count_undoes_acquire_count
 
 end NonosExtraction.SemaphorePure

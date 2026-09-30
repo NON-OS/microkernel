@@ -35,8 +35,36 @@ namespace NonosExtraction.AlgIdTypes
 theorem the_algid_as_u8_wrapper_is_its_method (a : types.AlgId) :
     algid_as_u8 a = types.AlgId.as_u8 a := rfl
 
+/-! ### Algorithm identifiers are their wire bytes
+
+`as_u8` is the byte that names a signature algorithm on the wire. The theorems
+below fix it to 0x01 through 0x04 for Ed25519, ML-DSA-44, ML-DSA-65 and ML-DSA-87,
+the same bytes `from_u8` matches in the kernel source (`from_u8` is not
+extracted, so that agreement is with its source), show that zero is never
+produced, and show that two algorithms never share a byte, so a signature
+tagged by one can never be read as another. -/
+
+/-- Each algorithm encodes as the byte `from_u8` decodes back to it. -/
+theorem algid_as_u8_is_the_wire_byte :
+    algid_as_u8 .Ed25519 = ok 1#u8 ∧ algid_as_u8 .MlDsa44 = ok 2#u8 ∧
+      algid_as_u8 .MlDsa65 = ok 3#u8 ∧ algid_as_u8 .MlDsa87 = ok 4#u8 :=
+  ⟨rfl, rfl, rfl, rfl⟩
+
+/-- Every encoding lies in 1 to 4, so a zeroed tag is never a valid algorithm. -/
+theorem algid_as_u8_lies_between_one_and_four (a : types.AlgId) :
+    ∃ r, algid_as_u8 a = ok r ∧ 1 ≤ r.val ∧ r.val ≤ 4 := by
+  cases a <;> exact ⟨_, rfl, by decide, by decide⟩
+
+/-- Distinct algorithms have distinct encodings. -/
+theorem algid_as_u8_is_injective (a b : types.AlgId)
+    (h : algid_as_u8 a = algid_as_u8 b) : a = b := by
+  cases a <;> cases b <;> first | rfl | (simp [algid_as_u8, types.AlgId.as_u8, types.AlgId.read_discriminant] at h)
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.AlgIdTypes.the_algid_as_u8_wrapper_is_its_method
+#print axioms NonosExtraction.AlgIdTypes.algid_as_u8_is_the_wire_byte
+#print axioms NonosExtraction.AlgIdTypes.algid_as_u8_lies_between_one_and_four
+#print axioms NonosExtraction.AlgIdTypes.algid_as_u8_is_injective
 
 end NonosExtraction.AlgIdTypes
