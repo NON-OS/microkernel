@@ -33,7 +33,9 @@ const MAX_IMAGE: u32 = 64 << 20;
 pub fn source() -> Option<Launch> {
     let store = |path: Vec<u8>, bytes, args| Launch { path, bytes, origin: Origin::Store, args };
     if let Some((name, mode)) = super::request::run_request() {
-        // Before the guest's first byte, so a terminal run is private from it.
+        /*
+         * Before the guest's first byte, so a terminal run is private from it.
+         */
         super::console::enter(mode);
         let pkg = choose(&name);
         if let Some((path, bytes, args)) = super::install::launch(pkg, mode) {

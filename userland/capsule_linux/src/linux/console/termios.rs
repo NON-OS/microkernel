@@ -46,8 +46,10 @@ const fn cooked() -> Termios {
         t[i * 4 + 3] = b[3];
         i += 1;
     }
-    // VINTR ^C, VQUIT ^\, VERASE DEL, VKILL ^U, VEOF ^D, VTIME 0, VMIN 1, VSWTC,
-    // then VSTART, VSTOP, VSUSP, VEOL, VREPRINT, VDISCARD, VWERASE, VLNEXT.
+    /*
+     * VINTR ^C, VQUIT ^\, VERASE DEL, VKILL ^U, VEOF ^D, VTIME 0, VMIN 1, VSWTC,
+     * then VSTART, VSTOP, VSUSP, VEOL, VREPRINT, VDISCARD, VWERASE, VLNEXT.
+     */
     let cc: [u8; 17] =
         [3, 0x1c, 0x7f, 0x15, 4, 0, 1, 0, 0x11, 0x13, 0x1a, 0, 0x12, 0xf, 0x17, 0x16, 0];
     let mut k = 0;

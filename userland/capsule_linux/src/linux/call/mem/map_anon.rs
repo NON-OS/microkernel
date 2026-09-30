@@ -64,7 +64,9 @@ pub fn anonymous(guest: &mut Guest, req: &MapReq, at: u64, span: u64) -> u64 {
     errno::ok(at)
 }
 
-/* ENOMEM, said with the size it was for: a load that fails names why. */
+/*
+ * ENOMEM, said with the size it was for: a load that fails names why.
+ */
 fn refused(why: &[u8], span: u64) -> u64 {
     let why = core::str::from_utf8(why).unwrap_or("?");
     let line = alloc::format!("[LINUX] mapping of {span} bytes refused: {why}\n");

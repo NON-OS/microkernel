@@ -21,7 +21,9 @@
 use crate::linux::file::family::{chosen, Family};
 
 pub fn install(pkg: &str, pin: &[u8; 32]) -> Result<(), super::Why> {
-    /* A tier the personality ships is installed from the image, not a mirror. */
+    /*
+     * A tier the personality ships is installed from the image, not a mirror.
+     */
     if let Some(app) = super::apps::app(pkg) {
         return super::apps_install::install(app, pin);
     }

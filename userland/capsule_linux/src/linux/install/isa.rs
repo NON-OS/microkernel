@@ -39,8 +39,10 @@ pub fn for_this_cpu(program: &'static [u8]) -> &'static [u8] {
 /// Whether every x86-64-v3 feature is present and the OS saves the YMM
 /// registers, without which AVX faults even on a CPU that has it.
 pub fn runs_v3() -> bool {
-    // SAFETY: CPUID exists on every x86-64 CPU; XGETBV runs only once
-    // CPUID says the OS enabled it (OSXSAVE).
+    /*
+     * SAFETY: CPUID exists on every x86-64 CPU; XGETBV runs only once
+     * CPUID says the OS enabled it (OSXSAVE).
+     */
     unsafe {
         if __cpuid(0).eax < 7 {
             return false;

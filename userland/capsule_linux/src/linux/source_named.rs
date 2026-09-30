@@ -31,7 +31,9 @@ pub fn named(max_image: u32) -> Option<(Vec<u8>, Vec<u8>)> {
     if n <= 0 {
         return None;
     }
-    // The first argument is the path.
+    /*
+     * The first argument is the path.
+     */
     let args = buf.get(..n as usize)?;
     let end = args.iter().position(|b| *b == 0 || *b == b' ').unwrap_or(args.len());
     let path = args.get(..end)?;

@@ -57,7 +57,9 @@ pub(super) fn tty(guest: &Guest, fd: u64, request: u64, arg: u64) -> Option<u64>
             }
             None => errno::fail(errno::EFAULT),
         },
-        // The caller's own group: whoever asks is in the foreground.
+        /*
+         * The caller's own group: whoever asks is in the foreground.
+         */
         TIOCGPGRP => put(&guest.pgid.to_le_bytes()),
         TIOCGWINSZ => {
             let (rows, cols) = console::size();

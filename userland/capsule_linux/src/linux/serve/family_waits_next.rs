@@ -48,7 +48,9 @@ impl Family {
                             keep(TICK_MS)
                         }
                         Some(f) if f.kind == Kind::Timer => {
-                            // One that has already fired was seen by the last look.
+                            /*
+                             * One that has already fired was seen by the last look.
+                             */
                             let due = self.timers.get(f.handle as usize).map_or(0, |t| t.due);
                             if due > now {
                                 keep(due - now);

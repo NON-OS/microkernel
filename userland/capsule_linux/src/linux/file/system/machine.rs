@@ -49,7 +49,9 @@ pub fn cpus() -> u64 {
     if known != 0 {
         return known;
     }
-    // The count does not change once the machine is up, so it is asked once.
+    /*
+     * The count does not change once the machine is up, so it is asked once.
+     */
     let n = header().map_or(0, |h| u64::from(h.cpus_online)).clamp(1, MOST_CPUS);
     CPUS.store(n, Ordering::Relaxed);
     n

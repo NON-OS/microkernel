@@ -95,9 +95,7 @@ pub use glibc_sched::{clone3, getcpu, membarrier, sched_getaffinity};
 pub use mem::{brk, mmap, mprotect, mremap, munmap, MapReq};
 pub use pipe::pipe2;
 pub use pipe_dup::{dup, dup2};
-pub use pipe_io::write as pipe_write;
 pub use pipe_poll::bits as pipe_bits;
-pub use pipe_read::read as pipe_read;
 pub use sched::{
     priority_bound, sched_getparam, sched_getscheduler, sched_setaffinity, sched_setparam,
     sched_setscheduler,

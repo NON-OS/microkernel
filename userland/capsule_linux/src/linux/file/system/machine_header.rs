@@ -28,8 +28,10 @@ pub(super) fn header() -> Option<ProcStatHeader> {
     if mk_proc_stat(buf.as_mut_ptr(), 1) < 0 {
         return None;
     }
-    // SAFETY: `buf` holds a whole header, and every bit pattern is a valid
-    // ProcStatHeader, which is plain integers.
+    /*
+     * SAFETY: `buf` holds a whole header, and every bit pattern is a valid
+     * ProcStatHeader, which is plain integers.
+     */
     let h: ProcStatHeader = unsafe { core::ptr::read_unaligned(buf.as_ptr().cast()) };
     (h.version >= PROC_STAT_VERSION && h.mem_total_kb > 0).then_some(h)
 }

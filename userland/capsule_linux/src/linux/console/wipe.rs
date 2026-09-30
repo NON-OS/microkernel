@@ -21,7 +21,9 @@ use core::sync::atomic::{compiler_fence, Ordering};
 /// Zero `bytes` in a way the compiler keeps, before they are let go.
 pub fn wipe(bytes: &mut [u8]) {
     for b in bytes.iter_mut() {
-        // SAFETY: `b` is a valid, aligned, exclusive reference to one byte.
+        /*
+         * SAFETY: `b` is a valid, aligned, exclusive reference to one byte.
+         */
         unsafe { core::ptr::write_volatile(b, 0) };
     }
     compiler_fence(Ordering::SeqCst);

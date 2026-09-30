@@ -38,13 +38,18 @@ pub fn sysinfo(guest: &Guest, out: u64) -> u64 {
         put(8 + i * 8, avg << 5); /* loads, from Linux's 11 bits to sysinfo's 16 */
     }
     let cached = file::cache_bytes();
-    // A tier is told the machine's memory (file::machine); others their own.
+    /*
+     * A tier is told the machine's memory (file::machine); others their own.
+     */
     let (total, free) = file::machine::memory().unwrap_or((
         declared::MEMORY,
         declared::MEMORY.saturating_sub(resident).saturating_sub(cached),
     ));
-    put(32, total); // totalram
-    put(40, free); // freeram
+    /*
+     * totalram, then freeram.
+     */
+    put(32, total);
+    put(40, free);
     put(48, cached); /* sharedram, the family's copies of tmpfs files */
     b[80..82].copy_from_slice(&(threads.min(u16::MAX as usize) as u16).to_le_bytes()); /* procs */
     b[104..108].copy_from_slice(&1u32.to_le_bytes()); /* mem_unit */
