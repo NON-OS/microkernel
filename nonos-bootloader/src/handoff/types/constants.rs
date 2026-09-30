@@ -35,4 +35,14 @@ pub mod flags {
      * boot; the kernel starts its installer before any desktop app.
      */
     pub const INSTALL_REQUESTED: u64 = 1 << 11;
+    /*
+     * The boot profile chosen in the menu, one bit each; Standard sets none.
+     * The kernel acts on them: Air-Gapped, Safe Mode and Recovery start no
+     * network driver or service, Safe Mode starts no audio and no optional
+     * app, Recovery skips setup. Hardened is the stricter check done here.
+     */
+    pub const PROFILE_HARDENED: u64 = 1 << 12;
+    pub const PROFILE_SAFE: u64 = 1 << 13;
+    pub const PROFILE_AIR_GAPPED: u64 = 1 << 14;
+    pub const PROFILE_RECOVERY: u64 = 1 << 15;
 }

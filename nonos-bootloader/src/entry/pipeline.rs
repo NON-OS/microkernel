@@ -48,7 +48,8 @@ pub fn run_verified_boot(
     );
     let kernel_image = run_elf_parse(&mut st, &kernel_data, &crypto_result, gop);
     commit_rollback(&mut st, &kernel_data, mode, gop);
-    let install = install_source(&st, &kernel_data, intent);
+    let mut install = install_source(&st, &kernel_data, intent);
+    install.profile = mode.handoff_flag();
     let params = handoff_params(&security, &crypto_result, zk_result, install);
     run_handoff_prepare(st, &kernel_image, params, gop);
 }

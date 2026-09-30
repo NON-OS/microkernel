@@ -50,6 +50,7 @@ pub fn install_source(
     InstallHandoff {
         source: [loader, region(kernel_data, MODULE_KIND_KERNEL_IMAGE), boot_media(st)],
         requested: intent == BootIntent::Install,
+        profile: 0,
     }
 }
 

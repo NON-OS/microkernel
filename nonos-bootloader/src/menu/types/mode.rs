@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::handoff::types::flags;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SecurityMode {
     Development,
@@ -41,43 +43,24 @@ impl SecurityMode {
             Self::Development => "Unsigned kernel allowed, all security checks disabled",
             Self::Standard => "Signed kernel required, standard security enforced",
             Self::Hardened => "Full verification chain required, maximum security",
-            Self::SafeMode => "Minimal drivers, reduced features, diagnostic mode",
-            Self::NetworkIsolated => "Network stack disabled, air-gapped operation",
-            Self::Recovery => "Recovery environment for system repair",
+            Self::SafeMode => "No network, no audio, no optional apps: to find what fails",
+            Self::NetworkIsolated => {
+                "No network driver or service starts; nothing can reach a network"
+            }
+            Self::Recovery => "No network, setup skipped: a Terminal and Files to repair",
         }
     }
     pub const fn requires_signature(&self) -> bool {
         !matches!(self, Self::Development)
     }
-    pub const fn requires_secure_boot(&self) -> bool {
-        matches!(self, Self::Hardened | Self::NetworkIsolated)
-    }
-    pub const fn requires_tpm(&self) -> bool {
-        matches!(self, Self::Hardened | Self::NetworkIsolated)
-    }
-    pub const fn network_enabled(&self) -> bool {
-        !matches!(self, Self::NetworkIsolated)
-    }
-    pub const fn minimal_drivers(&self) -> bool {
-        matches!(self, Self::SafeMode | Self::Recovery)
-    }
-    pub const fn boot_flags(&self) -> u32 {
-        let mut f = 0u32;
-        if self.network_enabled() {
-            f |= 0x01;
+    /* The handoff flag that tells the kernel which profile to run. */
+    pub const fn handoff_flag(&self) -> u64 {
+        match self {
+            Self::Development | Self::Standard => 0,
+            Self::Hardened => flags::PROFILE_HARDENED,
+            Self::SafeMode => flags::PROFILE_SAFE,
+            Self::NetworkIsolated => flags::PROFILE_AIR_GAPPED,
+            Self::Recovery => flags::PROFILE_RECOVERY,
         }
-        if !self.minimal_drivers() {
-            f |= 0x02;
-        }
-        if self.requires_signature() {
-            f |= 0x04;
-        }
-        if self.requires_secure_boot() {
-            f |= 0x08;
-        }
-        if self.requires_tpm() {
-            f |= 0x10;
-        }
-        f
     }
 }

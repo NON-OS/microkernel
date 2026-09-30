@@ -31,9 +31,7 @@ pub fn require_runtime_source(
     if proof_source_is_sidecar(source) {
         return None;
     }
-    if matches!(mode, SecurityMode::Hardened | SecurityMode::NetworkIsolated)
-        && has_pending_challenge(st)
-    {
+    if mode == SecurityMode::Hardened && has_pending_challenge(st) {
         write_zk_challenge(st, kh);
         return Some(handle_runtime_required(st, gop, mode));
     }

@@ -23,21 +23,20 @@ use super::system::Module;
  * the partition the loader was read from (so the installer can leave that
  * disk out), and whether the person chose "Install NONOS" in the boot menu. The
  * regions reach the kernel as the handoff's module table, the request as
- * `flags::INSTALL_REQUESTED` in the handoff's flags.
+ * `flags::INSTALL_REQUESTED` in the handoff's flags. The boot profile the
+ * menu resolved to rides beside it as its `flags::PROFILE_*` bit.
  */
 #[derive(Copy, Clone, Default)]
 pub struct InstallHandoff {
     pub source: [Module; 3],
     pub requested: bool,
+    pub profile: u64,
 }
 
 impl InstallHandoff {
-    /* The handoff flag bit this request sets, or none. */
+    /* The handoff flag bits the menu's choice sets, or none. */
     pub const fn handoff_flag(&self) -> u64 {
-        if self.requested {
-            flags::INSTALL_REQUESTED
-        } else {
-            0
-        }
+        let install = if self.requested { flags::INSTALL_REQUESTED } else { 0 };
+        install | self.profile
     }
 }
