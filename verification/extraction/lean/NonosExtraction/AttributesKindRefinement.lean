@@ -38,9 +38,102 @@ theorem the_memorytype_attr_index_wrapper_is_its_method (a : kind.MemoryType) :
 theorem the_memorytype_mair_attr_wrapper_is_its_method (a : kind.MemoryType) :
     memorytype_mair_attr a = kind.MemoryType.mair_attr a := rfl
 
+/-! ### Descriptor slots and MAIR_EL1 bytes agree
+
+    A page descriptor names its memory type by the slot `attr_index` returns, and
+    `control::mair` builds MAIR_EL1 by placing each type's `mair_attr` byte at
+    that slot. `mairFold` below is that loop over `MemoryType::ALL`, computed on
+    unbounded naturals. The theorems show that every slot fits the three bit
+    `AttrIndx` field and one of the eight register bytes, that no two types
+    share a slot, that reading the assembled register back at a type's slot
+    gives exactly that type's byte, that the one unclaimed slot reads as
+    Device-nGnRnE, and that each byte is a well formed MAIR encoding of the kind
+    its name says.
+
+    `mair_value`, `MemoryType::ALL` and the `msr` that writes the register are
+    not in the extracted crate, so `mairFold` is a transcription of the loop
+    rather than the loop itself, and its list is copied from `ALL` by hand.
+-/
+
+/-- The memory types in the order `MemoryType::ALL` lists them. -/
+def allTypes : List kind.MemoryType :=
+  [.DeviceNGnRnE, .DeviceNGnRE, .DeviceNGRE, .DeviceGRE, .NormalNC, .NormalWT, .NormalWB]
+
+/-- One type's contribution to MAIR_EL1: its attribute byte shifted to its slot. -/
+def slotByte (t : kind.MemoryType) : Nat :=
+  match memorytype_attr_index t, memorytype_mair_attr t with
+  | ok i, ok m => m.val <<< (i.val * 8)
+  | _, _ => 0
+
+/-- The register `control::mair` assembles, as an OR over every type. -/
+def mairFold : Nat := allTypes.foldl (fun acc t => acc ||| slotByte t) 0
+
+/-- Which types the kernel means as Device memory. -/
+def isDevice : kind.MemoryType → Bool
+  | .DeviceNGnRnE | .DeviceNGnRE | .DeviceNGRE | .DeviceGRE => true
+  | _ => false
+
+/-- Every slot is below eight, so `attr_index << 2` stays inside `AttrIndx[2:0]`
+    (descriptor bits 2 to 4) and `attr_index * 8` names a byte of the 64 bit
+    register. A slot of eight would spill into the NS bit of every descriptor. -/
+theorem memorytype_attr_index_fits_attrindx (t : kind.MemoryType) :
+    ∃ i, memorytype_attr_index t = ok i ∧ i.val < 8 := by
+  cases t <;> exact ⟨_, rfl, by decide⟩
+
+/-- No two memory types share a slot. Two types in one slot would leave one of
+    them mapped with the other's caching rules. -/
+theorem memorytype_attr_index_is_injective (a b : kind.MemoryType) (i : Std.U64)
+    (ha : memorytype_attr_index a = ok i) (hb : memorytype_attr_index b = ok i) :
+    a = b := by
+  cases a <;> cases b <;>
+    simp only [memorytype_attr_index, kind.MemoryType.attr_index, ok.injEq] at ha hb <;>
+    subst ha <;> first | rfl |
+      (have := congrArg (fun x : Std.U64 => x.val) hb; simp at this)
+
+/-- Reading the assembled register at a type's slot gives that type's byte, so
+    the index a descriptor carries and the meaning MAIR_EL1 gives it agree. The
+    assembled value also fits in 64 bits, so the unbounded fold is the same
+    number the kernel's `u64` loop produces. -/
+theorem memorytype_mair_attr_is_the_byte_at_memorytype_attr_index
+    (t : kind.MemoryType) (i : Std.U64) (m : Std.U8)
+    (hi : memorytype_attr_index t = ok i) (hm : memorytype_mair_attr t = ok m) :
+    (mairFold >>> (i.val * 8)) % 256 = m.val ∧ mairFold < 2 ^ 64 := by
+  cases t <;>
+    simp only [memorytype_attr_index, kind.MemoryType.attr_index,
+      memorytype_mair_attr, kind.MemoryType.mair_attr, ok.injEq] at hi hm <;>
+    subst hi hm <;> decide
+
+/-- The slot no type claims holds zero, which MAIR reads as Device-nGnRnE, the
+    strictest type, as the comment on `mair_value` intends. -/
+theorem the_slot_no_memorytype_attr_index_names_reads_as_device_ngnrne :
+    (∀ t i, memorytype_attr_index t = ok i → i.val ≠ 7) ∧ (mairFold >>> 56) % 256 = 0 := by
+  refine ⟨?_, by decide⟩
+  intro t i h
+  cases t <;> simp only [memorytype_attr_index, kind.MemoryType.attr_index, ok.injEq] at h <;>
+    subst h <;> decide
+
+/-- Each byte is a legal MAIR encoding of the kind its name says. A Device byte
+    has a zero high nibble and the form `0b0000dd00`, since a non-zero low pair
+    is UNPREDICTABLE. A Normal byte has a non-zero inner nibble (an inner nibble
+    of zero under a non-zero outer one is UNPREDICTABLE) and the same policy
+    inside and out. -/
+theorem memorytype_mair_attr_encodes_device_and_normal_memory
+    (t : kind.MemoryType) (m : Std.U8) (h : memorytype_mair_attr t = ok m) :
+    (isDevice t = true ↔ m.val / 16 = 0) ∧
+    (isDevice t = true → m.val % 4 = 0) ∧
+    (isDevice t = false → m.val % 16 ≠ 0 ∧ m.val / 16 = m.val % 16) := by
+  cases t <;>
+    simp only [memorytype_mair_attr, kind.MemoryType.mair_attr, ok.injEq] at h <;>
+    subst h <;> decide
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.AttributesKind.the_memorytype_attr_index_wrapper_is_its_method
 #print axioms NonosExtraction.AttributesKind.the_memorytype_mair_attr_wrapper_is_its_method
+#print axioms NonosExtraction.AttributesKind.memorytype_attr_index_fits_attrindx
+#print axioms NonosExtraction.AttributesKind.memorytype_attr_index_is_injective
+#print axioms NonosExtraction.AttributesKind.memorytype_mair_attr_is_the_byte_at_memorytype_attr_index
+#print axioms NonosExtraction.AttributesKind.the_slot_no_memorytype_attr_index_names_reads_as_device_ngnrne
+#print axioms NonosExtraction.AttributesKind.memorytype_mair_attr_encodes_device_and_normal_memory
 
 end NonosExtraction.AttributesKind

@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.CapBehaviour
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_cap_behaviour
@@ -38,9 +39,54 @@ theorem the_requires_write_buffer_flush_wrapper_is_its_method (a : Std.U64) :
 theorem the_caching_mode_wrapper_is_its_method (a : Std.U64) :
     caching_mode a = behaviour.caching_mode a := rfl
 
+/-! ### Which capability bit each behaviour reader returns
+
+`probe_at` stores both readers in `UnitInfo` from the Capability register.
+The theorems below say that `requires_write_buffer_flush` is exactly bit 4 of
+the word (RWBF) and `caching_mode` is exactly bit 7 (CM), as the VT-d
+specification places them, and that neither fails. They then state that the
+two are independent readers: a word carrying only the CM bit reports caching
+mode without asking for a write buffer flush, and a word carrying only RWBF
+does the reverse. A reader that tested the wrong bit, or both readers that
+tested the same one, would have a unit that caches not-present entries go
+without the invalidation it needs.
+
+Whether the kernel acts on either flag after a table write is decided in
+`probe_at` and its callers, which are not in this crate, so that obligation is
+not established here.
+-/
+
+/-- The write buffer flush requirement is bit 4 of the capability word. -/
+theorem requires_write_buffer_flush_reads_bit_four (cap : Std.U64) :
+    requires_write_buffer_flush cap = ok (cap.val.testBit 4) := by
+  unfold requires_write_buffer_flush behaviour.requires_write_buffer_flush
+  have hs : (1#u64 <<< 4#i32 : Result Std.U64) = ok 16#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit cap 16#u64 0#u64 4 rfl rfl]
+
+/-- Caching mode is bit 7 of the capability word. -/
+theorem caching_mode_reads_bit_seven (cap : Std.U64) :
+    caching_mode cap = ok (cap.val.testBit 7) := by
+  unfold caching_mode behaviour.caching_mode
+  have hs : (1#u64 <<< 7#i32 : Result Std.U64) = ok 128#u64 := by rfl
+  simp only [hs, lift, bind_tc_ok]
+  rw [Bits.reads_bit cap 128#u64 0#u64 7 rfl rfl]
+
+/-- The two flags are separate bits: CM alone (`0x80`) is caching mode without
+    a flush requirement, and RWBF alone (`0x10`) is the reverse. -/
+theorem caching_mode_and_requires_write_buffer_flush_read_different_bits :
+    caching_mode 0x80#u64 = ok true ∧ requires_write_buffer_flush 0x80#u64 = ok false ∧
+      caching_mode 0x10#u64 = ok false ∧ requires_write_buffer_flush 0x10#u64 = ok true := by
+  rw [caching_mode_reads_bit_seven, caching_mode_reads_bit_seven,
+    requires_write_buffer_flush_reads_bit_four, requires_write_buffer_flush_reads_bit_four]
+  exact ⟨rfl, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CapBehaviour.the_requires_write_buffer_flush_wrapper_is_its_method
 #print axioms NonosExtraction.CapBehaviour.the_caching_mode_wrapper_is_its_method
+#print axioms NonosExtraction.CapBehaviour.requires_write_buffer_flush_reads_bit_four
+#print axioms NonosExtraction.CapBehaviour.caching_mode_reads_bit_seven
+#print axioms NonosExtraction.CapBehaviour.caching_mode_and_requires_write_buffer_flush_read_different_bits
 
 end NonosExtraction.CapBehaviour
