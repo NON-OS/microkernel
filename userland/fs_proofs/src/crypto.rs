@@ -15,16 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Where `crate::crypto` points for the included kernel source: the
-//! kernel's own ChaCha20-Poly1305 and constant-time helpers, so a sector
+//! kernel's own ChaCha20-Poly1305, constant-time helpers and Argon2, so a sector
 //! opened here is opened by the code ring 0 runs, and sealed by it too.
 
+#[path = "../../../src/crypto/util/argon2/mod.rs"]
+pub mod argon2;
 #[path = "../../../src/crypto/symmetric/chacha20poly1305/mod.rs"]
 pub mod chacha20poly1305;
 #[path = "../../../src/crypto/util/constant_time/mod.rs"]
 pub mod constant_time;
 
+/// The kernel reaches Argon2 as `crypto::util::argon2`.
+pub mod util {
+    pub use super::argon2;
+}
+
 #[cfg(test)]
 mod aead_vectors;
+#[cfg(test)]
+mod argon2_vectors;
 #[cfg(test)]
 mod chacha_diff;
 #[cfg(test)]

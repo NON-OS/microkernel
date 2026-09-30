@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod argon2;
-pub mod bigint;
-pub mod constant_time;
-pub mod entropy;
-pub mod hmac;
-pub mod misc;
-pub mod rng;
+//! Wiping words that held password-derived state.
+
+/// Zero `words` with stores the compiler may not drop.
+pub(super) fn wipe(words: &mut [u64]) {
+    for w in words.iter_mut() {
+        /*
+         * SAFETY: `w` is a valid, aligned and exclusive reference.
+         */
+        unsafe { core::ptr::write_volatile(w, 0) };
+    }
+}

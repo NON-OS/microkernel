@@ -14,10 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod argon2;
-pub mod bigint;
-pub mod constant_time;
-pub mod entropy;
-pub mod hmac;
-pub mod misc;
-pub mod rng;
+//! Argon2id as a password KDF.
+
+use super::derive::argon2;
+use super::ends::Inputs;
+use super::params::{Argon2Error, Params};
+
+/// Argon2id with no secret and no associated data: the password KDF.
+pub fn argon2id(
+    password: &[u8],
+    salt: &[u8],
+    params: Params,
+    out: &mut [u8],
+    between: &mut dyn FnMut(),
+) -> Result<(), Argon2Error> {
+    let inputs = Inputs { password, salt, secret: &[], ad: &[], y: 2 };
+    argon2(&inputs, params, out, between)
+}

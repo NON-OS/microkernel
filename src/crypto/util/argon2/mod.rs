@@ -14,10 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod argon2;
-pub mod bigint;
-pub mod constant_time;
-pub mod entropy;
-pub mod hmac;
-pub mod misc;
-pub mod rng;
+//! Argon2id, RFC 9106, with the BLAKE2b of RFC 7693 it is built on: the
+//! key-stretching function for a passphrase-keyed data volume.
+
+mod address;
+mod argon2id;
+mod blake2b;
+mod blake2b_compress;
+mod blake2b_consts;
+mod block;
+mod derive;
+mod ends;
+mod fill;
+mod hprime;
+mod index;
+mod memory;
+mod params;
+mod segment;
+mod wipe;
+
+pub use argon2id::argon2id;
+pub use derive::argon2;
+pub use ends::Inputs;
+pub use params::{Argon2Error, Params, MAX_M_KIB, MAX_P, MAX_T, RECOMMENDED};
