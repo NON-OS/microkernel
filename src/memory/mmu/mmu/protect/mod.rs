@@ -26,7 +26,9 @@ mod cr0;
 mod cr4;
 #[cfg(target_arch = "x86_64")]
 mod efer;
+mod per_cpu;
 mod report;
 
 pub(super) use apply::apply;
+pub use per_cpu::{apply_this_cpu, matches_boot, report_cpu};
 pub use report::report;
