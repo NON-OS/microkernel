@@ -67,23 +67,29 @@ impl ArchOps for X86_64 {
         // Read the local APIC id from CPUID leaf 1, EBX[31:24].
         // This matches the value the platform IRQ controller uses to
         // route IPIs and is the canonical CPU identifier on x86_64.
-        let apic_id: u32;
+        //
+        // CPUID writes RBX, which the compiler reserves and will not name
+        // as an operand, so the value leaves through a scratch register and
+        // RBX is restored with an exchange. The scratch register may itself
+        // be RBX: the exchange is then a no-op and the result stays there,
+        // which is correct because the operand is an output. A push/pop pair
+        // is not: when RBX is picked as the output, the pop overwrites the
+        // result with the caller's RBX, and a CPU reads a stack address as
+        // its APIC id.
+        let ebx: u64;
         unsafe {
             asm!(
-                "push rbx",
-                "mov eax, 1",
+                "mov {0}, rbx",
                 "cpuid",
-                "shr ebx, 24",
-                "mov {0:e}, ebx",
-                "pop rbx",
-                out(reg) apic_id,
-                out("eax") _,
-                out("ecx") _,
+                "xchg {0}, rbx",
+                out(reg) ebx,
+                inout("eax") 1u32 => _,
+                inout("ecx") 0u32 => _,
                 out("edx") _,
-                options(nomem, preserves_flags),
+                options(nomem, nostack, preserves_flags),
             );
         }
-        apic_id
+        (ebx as u32) >> 24
     }
 
     #[inline(always)]
