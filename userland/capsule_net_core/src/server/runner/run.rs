@@ -52,6 +52,7 @@ pub fn run() -> ! {
         }
         if now.wrapping_sub(last_reeval) >= REEVAL_INTERVAL_MS {
             crate::setup::reevaluate();
+            crate::autojoin::tick(now);
             last_reeval = now;
         }
         let mut sender_pid = 0u32;
