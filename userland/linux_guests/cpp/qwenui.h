@@ -25,3 +25,8 @@ void ui_fill(Wl &w, int x, int y, int width, int height, uint32_t color);
 std::vector<std::string> ui_wrap(const std::string &s, size_t cols);
 /* Wipe what was said, the draft and the pixels that showed them. */
 void ui_wipe(Wl &w, View &v);
+
+struct ChatArgs;
+struct Chat;
+/* One key in the chat window; false once the person asks to close it. */
+bool window_key(const ChatArgs &a, Chat &c, Wl &w, View &v, Key k);

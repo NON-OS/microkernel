@@ -59,5 +59,5 @@ void ui_draw(Wl &w, const View &v) {
     if (cells(shown) + 1 > cols + 4) shown = "> ..." + shown.substr(shown.size() - (cols - 2));
     ui_text(w, PAD + 12, by + 9, shown + "_", INK);
     ui_text(w, PAD, w.h - FOOT + 4,
-            "Enter sends   Esc clears the line   /reset forgets   nothing leaves this machine", DIM);
+            "Enter sends   Esc clears   /reset forgets   /bye closes   nothing leaves this machine", DIM);
 }
