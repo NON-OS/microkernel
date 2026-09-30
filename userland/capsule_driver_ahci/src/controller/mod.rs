@@ -18,9 +18,11 @@ mod enable;
 mod info;
 mod port_info;
 mod scan_ports;
+mod settle;
 mod signature;
 
 pub use enable::enable_ahci;
 pub use info::ControllerInfo;
 pub use port_info::PortInfo;
 pub use scan_ports::scan_ports;
+pub use settle::settle_links;

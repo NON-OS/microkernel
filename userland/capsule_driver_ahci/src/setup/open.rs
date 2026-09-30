@@ -18,7 +18,7 @@ use nonos_libc::mk_device_release;
 
 use super::{claim, irq, mmio, pci};
 use crate::constants::MAX_PORTS;
-use crate::controller::{enable_ahci, scan_ports, ControllerInfo, PortInfo};
+use crate::controller::{enable_ahci, scan_ports, settle_links, ControllerInfo, PortInfo};
 use crate::discover::Found;
 use crate::error::AhciResult;
 use crate::handles::BrokerHandles;
@@ -49,6 +49,7 @@ pub(super) fn open(dev: Found) -> AhciResult<Opened> {
 
     enable_ahci(regs);
     let info = ControllerInfo::read(regs);
+    settle_links(regs, info.pi, info.port_count);
     let ports = scan_ports(regs, info.pi, info.port_count);
     Ok(Opened { epoch, handles, regs, info, ports })
 }
