@@ -14,24 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::error::ManifestVerifyError;
-use super::super::schema::CapsuleManifest;
-use crate::crypto::hash::blake3::Hasher;
+//! The measurement a capsule is attested under: the BLAKE3 digest of its ELF.
+//!
+//! Taken once per spawn, before any root is tried, so a capsule that falls
+//! through to the enrolled roots is not hashed again for each of them. An
+//! image is megabytes and a spawn from a system call runs with interrupts
+//! masked, so the digest is taken a serve unit at a time, answering TLB
+//! shootdowns in between. The pieces are fed to one hasher in order, so the
+//! digest is exactly `blake3::hash(elf)`.
 
-pub(super) fn check(manifest: &CapsuleManifest, payload: &[u8]) -> Result<(), ManifestVerifyError> {
-    /*
-     * The payload is the capsule's whole image, megabytes, and a spawn from
-     * a system call runs with interrupts masked. Hash it a serve unit at a
-     * time, answering TLB shootdowns in between; one hasher fed in order
-     * gives exactly the one-shot digest.
-     */
-    let mut hasher = Hasher::new();
-    crate::smp::in_serve_units(payload, |piece| {
+pub(super) fn measure(elf: &[u8]) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new();
+    crate::smp::in_serve_units(elf, |piece| {
         hasher.update(piece);
     });
-    let computed = hasher.finalize();
-    if computed != manifest.payload_hash {
-        return Err(ManifestVerifyError::PayloadHashMismatch);
-    }
-    Ok(())
+    *hasher.finalize().as_bytes()
 }

@@ -23,17 +23,17 @@ use super::error::AttestError;
 /// the weaker verifier for the root everything shipped is measured under.
 pub(super) fn vendor(
     trailer: &[u8],
-    elf: &[u8],
+    digest: &[u8; 32],
     granted_caps: u64,
     root: &[u8; 32],
 ) -> Result<[u8; 32], AttestError> {
     #[cfg(feature = "nonos-stark-attest")]
     {
-        super::stark::verify_against(trailer, elf, granted_caps, root)
+        super::stark::verify_against(trailer, digest, granted_caps, root)
     }
     #[cfg(not(feature = "nonos-stark-attest"))]
     {
-        super::against_pedersen::verify(trailer, elf, granted_caps, root)
+        super::against_pedersen::verify_digest(trailer, digest, granted_caps, root)
     }
 }
 
@@ -42,7 +42,7 @@ pub(super) fn vendor(
 /// only this kernel holds, so the Pedersen proof it mints is sound for it.
 pub(super) fn enrolled(
     trailer: &[u8],
-    elf: &[u8],
+    digest: &[u8; 32],
     granted_caps: u64,
     root: &[u8; 32],
 ) -> Result<[u8; 32], AttestError> {
@@ -52,7 +52,7 @@ pub(super) fn enrolled(
      */
     #[cfg(feature = "nonos-stark-attest")]
     if trailer.starts_with(super::stark::MAGIC) {
-        return super::stark::verify_against(trailer, elf, granted_caps, root);
+        return super::stark::verify_against(trailer, digest, granted_caps, root);
     }
-    super::against_pedersen::verify(trailer, elf, granted_caps, root)
+    super::against_pedersen::verify_digest(trailer, digest, granted_caps, root)
 }

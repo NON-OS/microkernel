@@ -22,12 +22,12 @@
 
 use super::error::AttestError;
 use super::layout::{POLICY_EPOCH, POLICY_TREE_DEPTH};
-use crate::crypto::stark::air::{verify_public_trailer, PUBLIC_TRAILER_MAGIC};
+use crate::crypto::stark::air::{verify_public_trailer_digest, PUBLIC_TRAILER_MAGIC};
 
 pub(super) const MAGIC: &[u8; 8] = PUBLIC_TRAILER_MAGIC;
 
-/// Verify a capsule's attestation against `policy`, bound to its measurement,
-/// its granted capabilities and the epoch.
+/// Verify a capsule's attestation against `policy`, bound to its measurement
+/// `digest` (see `measure`), its granted capabilities and the epoch.
 ///
 /// The root is a parameter rather than a lookup, so a capsule built on this
 /// machine clears exactly the bar a shipped one does. Only whose tree it is
@@ -35,19 +35,19 @@ pub(super) const MAGIC: &[u8; 8] = PUBLIC_TRAILER_MAGIC;
 #[must_use = "a capsule must not be spawned unless its attestation verifies"]
 pub(super) fn verify_against(
     trailer: &[u8],
-    elf: &[u8],
+    digest: &[u8; 32],
     granted_caps: u64,
     policy: &[u8; 32],
 ) -> Result<[u8; 32], AttestError> {
     if !trailer.starts_with(MAGIC) {
         return Err(AttestError::Malformed);
     }
-    let capsule_hash = *blake3::hash(elf).as_bytes();
+    let capsule_hash = *digest;
     let mut ctx = [0u8; 48];
     ctx[..32].copy_from_slice(&capsule_hash);
     ctx[32..40].copy_from_slice(&granted_caps.to_be_bytes());
     ctx[40..48].copy_from_slice(&POLICY_EPOCH.to_be_bytes());
-    if verify_public_trailer(policy, POLICY_TREE_DEPTH, elf, trailer, &ctx) {
+    if verify_public_trailer_digest(policy, POLICY_TREE_DEPTH, digest, trailer, &ctx) {
         Ok(capsule_hash)
     } else {
         Err(AttestError::Rejected)

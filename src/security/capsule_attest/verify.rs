@@ -36,13 +36,15 @@ pub fn verify_capsule_attestation(
     granted_caps: u64,
 ) -> Result<Proved, AttestError> {
     let vendor = super::policy_root::root().ok_or(AttestError::RootUnavailable)?;
-    if let Ok(measurement) = super::against_root::vendor(trailer, elf, granted_caps, &vendor) {
+    let digest = super::measure::measure(elf);
+    if let Ok(measurement) = super::against_root::vendor(trailer, &digest, granted_caps, &vendor) {
         return Ok(Proved { measurement, authority: Authority::Vendor });
     }
 
     let (roots, n) = enrolled_roots();
     for root in roots.iter().take(n) {
-        if let Ok(measurement) = super::against_root::enrolled(trailer, elf, granted_caps, root) {
+        if let Ok(measurement) = super::against_root::enrolled(trailer, &digest, granted_caps, root)
+        {
             // The slot is looked up rather than inferred from the loop index,
             // so the reported authority is the table's answer and cannot drift
             // from it if the table is reordered.
