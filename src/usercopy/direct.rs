@@ -53,10 +53,11 @@ where
     while cursor < len {
         /*
          * A copy runs with interrupts masked and can be megabytes, so it
-         * answers TLB shootdowns as it goes, once per `SERVE_UNIT`. An ack
-         * lets the other cpu free the frames it unmapped, so this is the one
-         * point where no leaf is held: the last was used up by `step`, and
-         * the next is walked afresh from the page tables after it.
+         * answers TLB shootdowns once per `SERVE_UNIT`, and each piece is
+         * capped at one unit so a 2 MiB or 1 GiB leaf is still translated
+         * afresh per unit. An ack lets the other cpu free the frames it
+         * unmapped, so no leaf is held here: the last was used up by `step`,
+         * and the next is walked afresh from the page tables after it.
          */
         if since_serve >= SERVE_UNIT {
             crate::smp::serve_shootdowns();
@@ -65,10 +66,6 @@ where
         let va = user_ptr.checked_add(cursor as u64).ok_or(UsercopyError::AddressOverflow)?;
         let leaf = translate(va)?;
         let remaining = leaf.bytes_remaining_in_page() as usize;
-        /*
-         * Capped so a 2 MiB or 1 GiB leaf is still copied in serve units,
-         * each translated afresh.
-         */
         let n = remaining.min(len - cursor).min(SERVE_UNIT);
         step(&leaf, cursor, n);
         cursor += n;
