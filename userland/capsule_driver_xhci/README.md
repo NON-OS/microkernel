@@ -40,12 +40,12 @@ class behavior. It grants resources and revokes them.
 |---|---|---|
 | `OP_HEALTHCHECK` | server liveness | status word |
 | `OP_CONTROLLER_STATUS` | controller register/ring/slot state | 56-byte status |
-| `OP_PORT_STATUS` | port state list | count plus 8-byte entries |
-| `OP_ENABLE_SLOT` | issue xHCI Enable Slot command | status plus slot id |
-| `OP_DISABLE_SLOT` | issue xHCI Disable Slot command | status word |
-| `OP_ADDRESS_DEVICE` | reset a root port and issue Address Device | slot, port, speed, EP0 MPS |
-| `OP_GET_DEVICE_DESCRIPTOR` | run EP0 GET_DESCRIPTOR(Device) | 18-byte device descriptor |
-| `OP_GET_CONFIG_DESCRIPTOR` | run EP0 GET_DESCRIPTOR(Configuration) | bounded raw config bytes |
+| `OP_PORT_STATUS` | port state list; byte 1 says 0 free, 1 addressed, 2 claimed | count plus 8-byte entries |
+| `OP_ENABLE_SLOT` / `OP_DISABLE_SLOT` | issue xHCI Enable / Disable Slot | slot id / status word |
+| `OP_ADDRESS_DEVICE` | reset a free root port and issue Address Device; `E_BUSY` if held | slot, port, speed, EP0 MPS |
+| `OP_GET_DEVICE_DESCRIPTOR` / `OP_GET_CONFIG_DESCRIPTOR` | run EP0 GET_DESCRIPTOR | raw descriptor bytes |
+| `OP_CONFIGURE_BULK` / `OP_RESET_BULK` | add a bulk IN and OUT pair; recover one after a STALL | DCIs / status word |
+| `OP_BULK_OUT` / `OP_BULK_IN` | one transfer of up to 4096 bytes; a STALL replies `E_PIPE` | bytes moved, IN data |
 
 ## Authority
 

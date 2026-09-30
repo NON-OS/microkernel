@@ -46,6 +46,7 @@ pub fn wait_transfer_completion(
             continue;
         }
         if event.get_pointer() & !0xF != issued_phys & !0xF {
+            evt_ring.park(event);
             continue;
         }
         return complete(event.completion_code());

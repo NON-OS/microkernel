@@ -27,15 +27,28 @@ pub fn scan(
     length: u16,
     _max_spins: u32,
 ) -> XhciResult<IntrPoll> {
+    if let Some(event) = evt_ring.take_parked(res.int_armed.unwrap_or(0)) {
+        res.int_armed = None;
+        return Ok(IntrPoll::Complete(transferred(&event, length)));
+    }
     if !evt_ring.has_event() {
         return Ok(IntrPoll::Pending);
     }
     let event = evt_ring.current_trb();
-    if !matches_armed(&event, res.int_armed.unwrap_or(0)) {
+    let armed = matches_armed(&event, res.int_armed.unwrap_or(0));
+    if !armed && event.get_type() != TRB_TYPE_TRANSFER_EVENT {
         return Ok(IntrPoll::Pending);
     }
     evt_ring.advance();
     erdp_program(intr_base, evt_ring.current_dequeue_phys(), true, 0);
+    if !armed {
+        /*
+         * Another endpoint's completion: kept for its own poll, so it
+         * neither blocks this one nor is lost.
+         */
+        evt_ring.park(event);
+        return Ok(IntrPoll::Pending);
+    }
     res.int_armed = None;
     Ok(IntrPoll::Complete(transferred(&event, length)))
 }

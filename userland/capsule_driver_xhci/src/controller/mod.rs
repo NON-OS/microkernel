@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod ack_irq;
+mod bulk;
 mod dcbaa_slot;
 mod drain_events;
 mod get_config_descriptor;
@@ -43,6 +44,7 @@ mod wait_command_completion;
 mod wait_hc_running;
 mod wait_transfer_completion;
 pub use ack_irq::ack_irq;
+pub use bulk::{bulk_transfer, reset_bulk_endpoint, write_bulk_input, BulkEndpoint, BulkPipes};
 pub use dcbaa_slot::{clear_dcbaa_slot, set_dcbaa_slot};
 pub use drain_events::drain_events;
 pub use get_config_descriptor::{get_config_descriptor, CONFIG_DESCRIPTOR_MAX};

@@ -31,6 +31,7 @@ pub struct SlotResources {
     pub int_buf: Option<DmaRegion>,
     pub int_dci: u8,
     pub int_armed: Option<u64>,
+    pub bulk: Option<crate::controller::BulkPipes>,
 }
 impl SlotResources {
     pub fn allocate(
@@ -66,6 +67,7 @@ impl SlotResources {
             int_buf: None,
             int_dci: 0,
             int_armed: None,
+            bulk: None,
         })
     }
 }

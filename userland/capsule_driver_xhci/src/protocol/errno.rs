@@ -17,3 +17,5 @@ pub const E_INVAL: i32 = -22;
 pub const E_IO: i32 = -5;
 pub const E_NODEV: i32 = -19;
 pub const E_AGAIN: i32 = -11;
+pub const E_BUSY: i32 = -16;
+pub const E_PIPE: i32 = -32;

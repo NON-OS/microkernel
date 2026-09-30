@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::protocol::{
-    decode_request, E_INVAL, HDR_LEN, MAX_PORTS_REPORTED, MAX_REQUEST_PAYLOAD_LEN,
-    PORT_ENTRY_BYTES, PORT_STATUS_HEADER_BYTES, RESP_HDR_LEN, STATUS_LEN,
+    decode_request, BULK_HEADER_LEN, BULK_MAX, E_INVAL, HDR_LEN, MAX_PORTS_REPORTED,
+    MAX_REQUEST_PAYLOAD_LEN, PORT_ENTRY_BYTES, PORT_STATUS_HEADER_BYTES, RESP_HDR_LEN, STATUS_LEN,
 };
 use crate::server::context::Context;
 use crate::server::dispatch::dispatch;
@@ -24,8 +24,10 @@ use crate::server::service_interrupts::service_interrupts;
 use crate::setup::Driver;
 use alloc::vec;
 use nonos_libc::mk_ipc_recv_from;
-const TX_LEN: usize =
+const PORTS_REPLY: usize =
     RESP_HDR_LEN + STATUS_LEN + PORT_STATUS_HEADER_BYTES + MAX_PORTS_REPORTED * PORT_ENTRY_BYTES;
+const BULK_REPLY: usize = RESP_HDR_LEN + STATUS_LEN + BULK_HEADER_LEN + BULK_MAX;
+const TX_LEN: usize = if PORTS_REPLY > BULK_REPLY { PORTS_REPLY } else { BULK_REPLY };
 pub fn run(driver: Driver) -> ! {
     let mut rx = vec![0u8; HDR_LEN + MAX_REQUEST_PAYLOAD_LEN];
     let mut tx = vec![0u8; TX_LEN];

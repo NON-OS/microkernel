@@ -13,31 +13,33 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Waiting for one bulk TRB's transfer event. Events for other TRBs that
+//! arrive first are parked for their own waiters.
 use nonos_libc::Deadline;
 
-use crate::constants::{CC_SUCCESS, TRB_TYPE_CMD_COMPLETION_EVENT, TRB_TYPE_TRANSFER_EVENT};
+use crate::constants::TRB_TYPE_TRANSFER_EVENT;
 use crate::controller::park::{park_step, SPIN_BUDGET};
 use crate::error::{XhciError, XhciResult};
 use crate::regs::runtime::erdp_program;
 use crate::rings::event::EventRing;
-
-const COMPLETION_TIMEOUT_MS: u64 = 1_000;
-
-#[derive(Clone, Copy)]
-pub struct CommandCompletion {
-    pub slot_id: u8,
-}
-pub fn wait_command_completion(
+use crate::trb::Trb;
+/// A USB stick answers a 4 KiB transfer in milliseconds; five seconds
+/// covers a device that is still spinning up or flushing its cache.
+const BULK_TIMEOUT_MS: u64 = 5_000;
+pub(super) fn wait_bulk(
     intr_base: u64,
     issued_phys: u64,
     evt_ring: &mut EventRing,
-) -> XhciResult<CommandCompletion> {
-    let deadline = Deadline::after_ms(COMPLETION_TIMEOUT_MS);
+) -> XhciResult<Trb> {
+    if let Some(event) = evt_ring.take_parked(issued_phys) {
+        return Ok(event);
+    }
+    let deadline = Deadline::after_ms(BULK_TIMEOUT_MS);
     let mut spins = 0u32;
     loop {
         spins = spins.saturating_add(1);
         if spins > SPIN_BUDGET && deadline.expired() {
-            return Err(XhciError::CommandCompletionTimeout);
+            return Err(XhciError::TransferCompletionTimeout);
         }
         if !evt_ring.has_event() {
             park_step(spins);
@@ -46,20 +48,12 @@ pub fn wait_command_completion(
         let event = evt_ring.current_trb();
         evt_ring.advance();
         erdp_program(intr_base, evt_ring.current_dequeue_phys(), true, 0);
-        if event.get_type() == TRB_TYPE_TRANSFER_EVENT {
-            evt_ring.park(event);
+        if event.get_type() != TRB_TYPE_TRANSFER_EVENT {
             continue;
         }
-        if event.get_type() != TRB_TYPE_CMD_COMPLETION_EVENT {
-            continue;
+        if event.get_pointer() & !0xF == issued_phys & !0xF {
+            return Ok(event);
         }
-        if event.get_pointer() & !0xF != issued_phys & !0xF {
-            continue;
-        }
-        let cc = event.completion_code();
-        if cc != CC_SUCCESS {
-            return Err(XhciError::CommandCompletionFailed(cc));
-        }
-        return Ok(CommandCompletion { slot_id: event.slot_id() });
+        evt_ring.park(event);
     }
 }

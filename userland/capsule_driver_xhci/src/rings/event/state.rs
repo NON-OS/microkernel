@@ -16,6 +16,9 @@
 use crate::constants::{EVENT_RING_SEGMENT_TRBS, TRB_BYTES};
 use crate::dma::{DmaPool, DmaRegion};
 use crate::error::XhciResult;
+use crate::trb::Trb;
+/// Transfer events kept for the endpoint that did not wait for them.
+pub(super) const PARKED: usize = 8;
 const ERST_ENTRY_BYTES: u64 = 16;
 pub struct EventRing {
     pub(super) segment: DmaRegion,
@@ -23,6 +26,7 @@ pub struct EventRing {
     pub(super) consumer_cycle: u8,
     pub(super) dequeue_index: usize,
     pub(super) drained_total: u64,
+    pub(super) parked: [Option<Trb>; PARKED],
 }
 impl EventRing {
     pub fn new(pool: &DmaPool) -> XhciResult<Self> {
@@ -39,6 +43,13 @@ impl EventRing {
             core::ptr::write_volatile(erst_va.add(2), EVENT_RING_SEGMENT_TRBS as u32);
             core::ptr::write_volatile(erst_va.add(3), 0);
         }
-        Ok(Self { segment, erst, consumer_cycle: 1, dequeue_index: 0, drained_total: 0 })
+        Ok(Self {
+            segment,
+            erst,
+            consumer_cycle: 1,
+            dequeue_index: 0,
+            drained_total: 0,
+            parked: [None; PARKED],
+        })
     }
 }

@@ -13,9 +13,11 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod dci;
-mod resources;
-mod table;
-pub use dci::dci_from_ep_address;
-pub use resources::SlotResources;
-pub use table::{SlotTable, PORT_FREE};
+use super::state::TransferRing;
+use crate::constants::TRB_BYTES;
+impl TransferRing {
+    /// Where the next TRB will be written.
+    pub fn enqueue_phys(&self) -> u64 {
+        self.region.phys() + (self.enqueue_index as u64) * (TRB_BYTES as u64)
+    }
+}

@@ -13,9 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod dci;
-mod resources;
-mod table;
-pub use dci::dci_from_ep_address;
-pub use resources::SlotResources;
-pub use table::{SlotTable, PORT_FREE};
+mod commands;
+mod input;
+mod pipes;
+mod recover;
+mod transfer;
+mod wait;
+pub use input::{write_bulk_input, BulkEndpoint};
+pub use pipes::BulkPipes;
+pub use recover::reset_bulk_endpoint;
+pub use transfer::bulk_transfer;

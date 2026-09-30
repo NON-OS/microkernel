@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::address_flow::{address_after_reset, port_speed, slot_ready};
 use crate::controller::reset_port;
-use crate::protocol::{Request, ADDRESS_DEVICE_REQUEST_LEN, E_INVAL, E_IO, E_NODEV};
+use crate::protocol::{Request, ADDRESS_DEVICE_REQUEST_LEN, E_BUSY, E_INVAL, E_IO, E_NODEV};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
+use crate::slots::PORT_FREE;
 pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != ADDRESS_DEVICE_REQUEST_LEN {
         reply_with_status(tx, req, E_INVAL);
@@ -27,6 +28,10 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     let port_id = body[1];
     if !slot_ready(ctx, slot_id, port_id) {
         reply_with_status(tx, req, E_INVAL);
+        return;
+    }
+    if ctx.driver.slots.port_state(port_id) != PORT_FREE {
+        reply_with_status(tx, req, E_BUSY);
         return;
     }
     let portsc = match reset_port(ctx.driver.layout.op_base, port_id) {

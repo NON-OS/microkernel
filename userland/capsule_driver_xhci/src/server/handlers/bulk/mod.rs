@@ -13,9 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod dci;
-mod resources;
-mod table;
-pub use dci::dci_from_ep_address;
-pub use resources::SlotResources;
-pub use table::{SlotTable, PORT_FREE};
+//! Bulk endpoints for a mass-storage class driver: configure them, move
+//! data through them, and recover one that stalled.
+mod configure;
+mod reply;
+mod reset;
+mod run;
+mod transfer;
+pub use configure::configure;
+pub use reset::reset;
+pub use transfer::{transfer_in, transfer_out};

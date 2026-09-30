@@ -18,7 +18,7 @@ pub const CONTROLLER_STATUS_PAYLOAD_LEN: usize = 56;
 pub const PORT_ENTRY_BYTES: usize = 8;
 pub const MAX_PORTS_REPORTED: usize = 255;
 pub const PORT_STATUS_HEADER_BYTES: usize = 4;
-pub const MAX_REQUEST_PAYLOAD_LEN: usize = 10;
+pub const MAX_REQUEST_PAYLOAD_LEN: usize = BULK_HEADER_LEN + BULK_MAX;
 pub const SLOT_ENABLE_PAYLOAD_LEN: usize = 4;
 pub const SLOT_DISABLE_PAYLOAD_LEN: usize = 1;
 pub const ADDRESS_DEVICE_REQUEST_LEN: usize = 2;
@@ -34,3 +34,8 @@ pub const ALLOC_TRANSFER_RING_REPLY_LEN: usize = 4;
 pub const INTERRUPT_IN_REQUEST_LEN: usize = 4;
 pub const INTERRUPT_IN_REPLY_PREFIX: usize = 2;
 pub const HID_REPORT_MAX: usize = 8;
+/// One bulk transfer moves at most one page: the slot's DMA buffer.
+pub const BULK_MAX: usize = 4096;
+pub const BULK_HEADER_LEN: usize = 4;
+pub const CONFIGURE_BULK_REQUEST_LEN: usize = 8;
+pub const RESET_BULK_REQUEST_LEN: usize = 2;
