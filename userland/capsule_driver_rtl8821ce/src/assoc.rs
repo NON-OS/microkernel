@@ -58,7 +58,7 @@ pub trait Radio {
 /// How a join attempt ended.
 pub enum Outcome {
     /// Associated: the pairwise and group keys and the AP to install them for.
-    Joined { bssid: [u8; 6], channel: u8, ptk: [u8; 16], gtk: [u8; 16] },
+    Joined { bssid: [u8; 6], channel: u8, ptk: [u8; 16], gtk: [u8; 16], gtk_id: u8 },
     /// The association was refused or the handshake broke.
     Refused,
     /// The AP stopped responding before the join completed.
@@ -351,7 +351,7 @@ fn report(mlme: &Mlme, outcome: Outcome, c: Counters) -> Report {
 
 // Pull the negotiated keys out of a connected machine.
 fn finish(mlme: &Mlme) -> Outcome {
-    let (Some(tk), Some(gtk)) = (mlme.tk(), mlme.gtk()) else {
+    let (Some(tk), Some(gtk), Some(gtk_id)) = (mlme.tk(), mlme.gtk(), mlme.gtk_id()) else {
         return Outcome::Refused;
     };
     let mut ptk = [0u8; 16];
@@ -361,5 +361,5 @@ fn finish(mlme: &Mlme) -> Outcome {
     }
     ptk.copy_from_slice(&tk[..16]);
     group.copy_from_slice(&gtk[..16]);
-    Outcome::Joined { bssid: mlme.bssid(), channel: mlme.channel(), ptk, gtk: group }
+    Outcome::Joined { bssid: mlme.bssid(), channel: mlme.channel(), ptk, gtk: group, gtk_id }
 }

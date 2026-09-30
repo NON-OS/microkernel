@@ -34,9 +34,10 @@ use crate::status;
 use super::radio::read_mac;
 use super::{SCAN_CHANNELS, SCAN_FRAME_MAX};
 
-/// The pairwise and group key slots a connection installs into the CAM.
+/// The pairwise key's index. The group key goes in the slot its own index
+/// names: with the engine looking group-addressed frames up by the CCMP
+/// KeyID, a fixed slot 1 went dark after the AP's first rekey moved it to 2.
 const PAIRWISE_KEY_ID: u8 = 0;
-const GROUP_KEY_ID: u8 = 1;
 /// Receive passes to spend joining before giving up. The driver's clock is not
 /// reliable in this capsule (all its other timeouts are poll counts), so the
 /// join is bounded in passes. Large enough to cover authentication, association
@@ -142,11 +143,11 @@ pub(super) fn connect(
         report.state,
     );
     let code = match report.outcome {
-        Outcome::Joined { bssid, channel, ptk, gtk } => {
+        Outcome::Joined { bssid, channel, ptk, gtk, gtk_id } => {
             set_rf(regs, channel, Bw::W20);
             if !keys.install_ptk(&ptk, PAIRWISE_KEY_ID, &bssid) {
                 -3
-            } else if !keys.install_gtk(&gtk, GROUP_KEY_ID) {
+            } else if !keys.install_gtk(&gtk, gtk_id) {
                 -4
             } else {
                 // The keys are in the CAM, so turn the sec engine on for receive
@@ -157,7 +158,7 @@ pub(super) fn connect(
                 // but unencrypted and the access point dropped them.
                 crate::sec::enable_sec_engine(regs);
                 link.associate(bssid, ptk);
-                *session = Some(Session { bssid, key_id: PAIRWISE_KEY_ID, gtk_id: GROUP_KEY_ID });
+                *session = Some(Session { bssid, key_id: PAIRWISE_KEY_ID, gtk_id });
                 status::debug(b"[rtl8821ce] connect: associated\n");
                 0
             }

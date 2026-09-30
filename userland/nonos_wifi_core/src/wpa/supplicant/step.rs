@@ -117,14 +117,19 @@ impl Supplicant {
         let Some(len) = aes_unwrap(&self.kek(), wrapped, &mut plain) else {
             return false;
         };
-        find_gtk(&plain[..len], &mut self.gtk).map(|n| self.gtk_len = n).is_some()
+        find_gtk(&plain[..len], &mut self.gtk)
+            .map(|(n, id)| {
+                self.gtk_len = n;
+                self.gtk_id = id;
+            })
+            .is_some()
     }
 }
 
-// Scan an unwrapped key-data buffer for the GTK KDE and copy the key out.
-// KDE: 0xDD, length, 00 0F AC (RSN OUI), 0x01 (GTK), key-id byte, reserved,
-// then the group key.
-fn find_gtk(data: &[u8], out: &mut [u8; 32]) -> Option<usize> {
+// Scan an unwrapped key-data buffer for the GTK KDE and copy the key out,
+// returning its length and index. KDE: 0xDD, length, 00 0F AC (RSN OUI),
+// 0x01 (GTK), key-id byte (index in bits 0-1), reserved, then the group key.
+fn find_gtk(data: &[u8], out: &mut [u8; 32]) -> Option<(usize, u8)> {
     let mut i = 0usize;
     while i + 2 <= data.len() {
         let tag = data[i];
@@ -143,7 +148,7 @@ fn find_gtk(data: &[u8], out: &mut [u8; 32]) -> Option<usize> {
                 return None;
             }
             out[..gtk.len()].copy_from_slice(gtk);
-            return Some(gtk.len());
+            return Some((gtk.len(), data[i + 6] & 0x03));
         }
         if tag == 0x00 {
             break; // padding
