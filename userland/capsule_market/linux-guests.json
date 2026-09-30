@@ -1,104 +1,36 @@
 [
-  {
-    "tail": "qwen-small",
-    "name": "Qwen (small, 0.5B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen2.5 0.5B Instruct, running on this machine with no network. Fast on any CPU; about 0.5 GB of weights, verified against their SHA-256 when installed."
-  },
-  {
-    "tail": "qwen-medium",
-    "name": "Qwen (medium, 1.5B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen2.5 1.5B Instruct, running on this machine with no network. A good balance of quality and speed; about 1.1 GB of weights, verified when installed."
-  },
-  {
-    "tail": "qwen-large",
-    "name": "Qwen (large, 3B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen2.5 3B Instruct, running on this machine with no network. Noticeably stronger answers; about 2.1 GB of weights and 4 GB of memory."
-  },
-  {
-    "tail": "qwen-xlarge",
-    "name": "Qwen (extra large, 7B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen2.5 7B Instruct, running on this machine with no network. Strong all-round answers; about 4.7 GB of weights in two files and 8 GB of memory."
-  },
-  {
-    "tail": "qwen-xxl",
-    "name": "Qwen (xxl, 14B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen2.5 14B Instruct, running on this machine with no network. Much stronger reasoning and writing; about 9.0 GB of weights in three files and 11 GB of memory."
-  },
-  {
-    "tail": "qwen-max",
-    "name": "Qwen (max, 32B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen2.5 32B Instruct, running on this machine with no network. The largest Qwen2.5 tier; about 19.9 GB of weights in five files and 22 GB of memory. Slow on a CPU."
-  },
-  {
-    "tail": "qwen-qwen3-0.6b",
-    "name": "Qwen3 (0.6B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen3 0.6B, running on this machine with no network. The smallest Qwen3, fast on any CPU; about 0.6 GB of weights and 2 GB of memory."
-  },
-  {
-    "tail": "qwen-qwen3-1.7b",
-    "name": "Qwen3 (1.7B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen3 1.7B, running on this machine with no network. Quick and capable for its size; about 1.8 GB of weights and 3 GB of memory."
-  },
-  {
-    "tail": "qwen-qwen3-4b",
-    "name": "Qwen3 (4B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen3 4B, running on this machine with no network. A strong everyday model; about 2.5 GB of weights and 4 GB of memory."
-  },
-  {
-    "tail": "qwen-qwen3-8b",
-    "name": "Qwen3 (8B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen3 8B, running on this machine with no network. Noticeably stronger answers; about 5.0 GB of weights and 7 GB of memory."
-  },
-  {
-    "tail": "qwen-qwen3-14b",
-    "name": "Qwen3 (14B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen3 14B, running on this machine with no network. About 9.0 GB of weights and 11 GB of memory."
-  },
-  {
-    "tail": "qwen-qwen3-30b-a3b",
-    "name": "Qwen3 (30B-A3B, MoE)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen3 30B-A3B, a mixture of experts with 3B active per token, running on this machine with no network. Answers far faster on a CPU than its size suggests; about 18.6 GB of weights and 20 GB of memory."
-  },
-  {
-    "tail": "qwen-qwen3-32b",
-    "name": "Qwen3 (32B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen3 32B, running on this machine with no network. The strongest Qwen3 tier; about 19.8 GB of weights and 22 GB of memory. Slow on a CPU."
-  },
-  {
-    "tail": "qwen-coder-1.5b",
-    "name": "Qwen Coder (1.5B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen2.5-Coder 1.5B Instruct, running on this machine with no network. Tuned for code; about 1.1 GB of weights and 3 GB of memory."
-  },
-  {
-    "tail": "qwen-coder-7b",
-    "name": "Qwen Coder (7B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen2.5-Coder 7B Instruct, running on this machine with no network. Tuned for code; about 4.7 GB of weights in two files and 7 GB of memory."
-  },
-  {
-    "tail": "qwen-coder-14b",
-    "name": "Qwen Coder (14B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen2.5-Coder 14B Instruct, running on this machine with no network. Tuned for code; about 9.0 GB of weights in two files and 11 GB of memory."
-  },
-  {
-    "tail": "qwen-coder-32b",
-    "name": "Qwen Coder (32B)",
-    "program": "target/linux-guests/c/qwenchat",
-    "text": "Qwen2.5-Coder 32B Instruct, running on this machine with no network. The strongest code tier; about 19.9 GB of weights in three files and 22 GB of memory. Slow on a CPU."
-  }
+  {"tail": "qwen-small", "name": "Qwen (small, 0.5B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen2.5 0.5B Instruct, running on this machine with no network. Fast on any CPU; about 0.5 GB of weights, verified against their SHA-256 when installed."},
+  {"tail": "qwen-medium", "name": "Qwen (medium, 1.5B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen2.5 1.5B Instruct, running on this machine with no network. A good balance of quality and speed; about 1.1 GB of weights, verified when installed."},
+  {"tail": "qwen-large", "name": "Qwen (large, 3B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen2.5 3B Instruct, running on this machine with no network. Noticeably stronger answers; about 2.1 GB of weights and 4 GB of memory."},
+  {"tail": "qwen-xlarge", "name": "Qwen (extra large, 7B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen2.5 7B Instruct, running on this machine with no network. Strong all-round answers; about 4.7 GB of weights in two files and 8 GB of memory."},
+  {"tail": "qwen-xxl", "name": "Qwen (xxl, 14B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen2.5 14B Instruct, running on this machine with no network. Much stronger reasoning and writing; about 9.0 GB of weights in three files and 11 GB of memory."},
+  {"tail": "qwen-max", "name": "Qwen (max, 32B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen2.5 32B Instruct, running on this machine with no network. The largest Qwen2.5 tier; about 19.9 GB of weights in five files and 22 GB of memory. Slow on a CPU."},
+  {"tail": "qwen-qwen3-0.6b", "name": "Qwen3 (0.6B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen3 0.6B, running on this machine with no network. The smallest Qwen3, fast on any CPU; about 0.6 GB of weights and 2 GB of memory."},
+  {"tail": "qwen-qwen3-1.7b", "name": "Qwen3 (1.7B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen3 1.7B, running on this machine with no network. Quick and capable for its size; about 1.8 GB of weights and 3 GB of memory."},
+  {"tail": "qwen-qwen3-4b", "name": "Qwen3 (4B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen3 4B, running on this machine with no network. A strong everyday model; about 2.5 GB of weights and 4 GB of memory."},
+  {"tail": "qwen-qwen3-8b", "name": "Qwen3 (8B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen3 8B, running on this machine with no network. Noticeably stronger answers; about 5.0 GB of weights and 7 GB of memory."},
+  {"tail": "qwen-qwen3-14b", "name": "Qwen3 (14B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen3 14B, running on this machine with no network. About 9.0 GB of weights and 11 GB of memory."},
+  {"tail": "qwen-qwen3-30b-a3b", "name": "Qwen3 (30B-A3B, MoE)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen3 30B-A3B, a mixture of experts with 3B active per token, running on this machine with no network. Answers far faster on a CPU than its size suggests; about 18.6 GB of weights and 20 GB of memory."},
+  {"tail": "qwen-qwen3-32b", "name": "Qwen3 (32B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen3 32B, running on this machine with no network. The strongest Qwen3 tier; about 19.8 GB of weights and 22 GB of memory. Slow on a CPU."},
+  {"tail": "qwen-coder-1.5b", "name": "Qwen Coder (1.5B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen2.5-Coder 1.5B Instruct, running on this machine with no network. Tuned for code; about 1.1 GB of weights and 3 GB of memory."},
+  {"tail": "qwen-coder-7b", "name": "Qwen Coder (7B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen2.5-Coder 7B Instruct, running on this machine with no network. Tuned for code; about 4.7 GB of weights in two files and 7 GB of memory."},
+  {"tail": "qwen-coder-14b", "name": "Qwen Coder (14B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen2.5-Coder 14B Instruct, running on this machine with no network. Tuned for code; about 9.0 GB of weights in two files and 11 GB of memory."},
+  {"tail": "qwen-coder-32b", "name": "Qwen Coder (32B)", "program": "target/linux-guests/c/qwenchat",
+   "text": "Qwen2.5-Coder 32B Instruct, running on this machine with no network. The strongest code tier; about 19.9 GB of weights in three files and 22 GB of memory. Slow on a CPU."}
 ]
