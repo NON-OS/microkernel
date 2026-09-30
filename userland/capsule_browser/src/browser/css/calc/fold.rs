@@ -30,7 +30,7 @@ pub(super) fn min_max(op: MathOp, args: &[V]) -> Option<V> {
     for a in args {
         match *a {
             V::Num(n) => num = Some(num.map_or(n, |m| pick(m, n))),
-            V::Len { px, pml } if pml == 0.0 => plain = Some(plain.map_or(px, |q| pick(q, px))),
+            V::Len { px, pml: 0.0 } => plain = Some(plain.map_or(px, |q| pick(q, px))),
             V::Len { px, pml } => push(&mut out, (lin(px)?, lin(pml)?))?,
             V::Math(m) if m.op == op => {
                 for arg in &m.args[..m.n as usize] {

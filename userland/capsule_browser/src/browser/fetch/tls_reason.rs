@@ -23,10 +23,7 @@ use crate::browser::tls13;
 
 /* The reason arrives as a byte on the wire; the sentence is a rendering of it. */
 pub fn reason(job: &Fetch) -> String {
-    let base = match job.error {
-        Some(err) => err,
-        None => "error",
-    };
+    let base = job.error.unwrap_or("error");
     match job.tls_alert {
         Some(description) => alloc::format!("{base}: {}", tls13::alert_name(description)),
         None => String::from(base),

@@ -43,8 +43,7 @@ pub(super) fn read_gradient<'a>(
 ) -> Gradient<'a> {
     let mut g = Gradient { radial, attrs, stops: Vec::new() };
     let mut pos = body;
-    while !closed {
-        let Some((tag, next)) = next_tag(doc, pos) else { break };
+    while let Some((tag, next)) = next_tag(doc, pos).filter(|_| !closed) {
         pos = next;
         if tag.closing && tag.name.ends_with("Gradient") {
             break;

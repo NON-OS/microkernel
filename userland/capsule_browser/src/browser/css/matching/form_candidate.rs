@@ -29,8 +29,8 @@ pub(super) fn control(cx: &Cx, id: usize) -> bool {
     let candidate = match n.tag.as_str() {
         "input" => {
             let kind = input_kind(n);
-            !matches!(kind, "hidden" | "reset" | "button")
-                && !(typed(kind) && n.attr("readonly").is_some())
+            !(matches!(kind, "hidden" | "reset" | "button")
+                || (typed(kind) && n.attr("readonly").is_some()))
         }
         "textarea" => n.attr("readonly").is_none(),
         "select" => true,

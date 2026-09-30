@@ -27,9 +27,9 @@ pub(super) fn pred4(mode: u8, t: &[u8; 9], l: &[u8; 4]) -> [u8; 16] {
     let mut put = |c: usize, r: usize, v: u8| o[r * 4 + c] = v;
     match mode {
         1 => {
-            for r in 0..4 {
+            for (r, &lr) in l.iter().enumerate() {
                 for c in 0..4 {
-                    put(c, r, (l[r] as i32 + a(c) as i32 - x as i32).clamp(0, 255) as u8);
+                    put(c, r, (lr as i32 + a(c) as i32 - x as i32).clamp(0, 255) as u8);
                 }
             }
         }

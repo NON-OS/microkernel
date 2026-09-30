@@ -50,8 +50,8 @@ pub(super) fn decode(flags: &[u8], data: &mut Cursor) -> Option<Vec<Point>> {
                 (sign(t, dx), sign(t >> 1, 1 + ((k & 0x0c) << 2) + (b(0) & 0x0f)))
             }
             84..=119 => {
-                let k = t - 84;
-                (sign(t, 1 + ((k / 12) << 8) + b(0)), sign(t >> 1, 1 + ((k % 12 >> 2) << 8) + b(1)))
+                let (k, m) = (t - 84, (t - 84) % 12);
+                (sign(t, 1 + ((k / 12) << 8) + b(0)), sign(t >> 1, 1 + ((m >> 2) << 8) + b(1)))
             }
             120..=123 => {
                 (sign(t, (b(0) << 4) + (b(1) >> 4)), sign(t >> 1, ((b(1) & 15) << 8) + b(2)))

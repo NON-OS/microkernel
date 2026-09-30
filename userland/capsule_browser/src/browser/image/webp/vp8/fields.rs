@@ -62,7 +62,7 @@ pub(super) fn quantizers(br: &mut Bools, seg: Segmented) -> [[i32; 6]; 4] {
             dc(q + d[0], 127),
             ac(q),
             dc(q + d[1], 127) * 2,
-            (ac(q + d[2]) * 101_581 >> 16).max(8),
+            ((ac(q + d[2]) * 101_581) >> 16).max(8),
             dc(q + d[3], 117),
             ac(q + d[4]),
         ]

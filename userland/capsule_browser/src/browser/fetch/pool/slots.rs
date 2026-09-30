@@ -24,6 +24,7 @@ use alloc::vec::Vec;
 use super::idle::Idle;
 use crate::browser::fetch::types::Fetch;
 
+#[derive(Default)]
 pub struct Pool {
     pub live: Vec<Fetch>,
     pub idle: Vec<Idle>,

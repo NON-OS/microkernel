@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use super::affine::Affine;
@@ -62,7 +63,7 @@ impl Walk<'_, '_> {
     fn shade(&self, ink: Ink, opacity: f32, b: [f32; 4], t: &Affine) -> Option<Shade> {
         match ink {
             Ink::Solid(c) => Some(Shade::Solid(fade(c, opacity))),
-            Ink::Grad(i) => build(self.defs, i, b, t, opacity).map(Shade::Grad),
+            Ink::Grad(i) => build(self.defs, i, b, t, opacity).map(|g| Shade::Grad(Box::new(g))),
         }
     }
 }

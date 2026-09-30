@@ -18,7 +18,7 @@
 
 use nonos_libc::mk_debug;
 
-use super::wire::{Resolved, Wire};
+use super::wire::{Refused, Resolved, Wire};
 use crate::browser::net::{self, Recv, Source};
 
 /// net.sockets, on the service port it answers at.
@@ -41,8 +41,8 @@ impl Wire for NetWire {
     fn mixnet(&self) -> bool {
         net::mixnet::is_on()
     }
-    fn open(&mut self) -> Result<u32, ()> {
-        net::socket_open(self.0)
+    fn open(&mut self) -> Result<u32, Refused> {
+        net::socket_open(self.0).map_err(|()| Refused)
     }
     fn cached(&self, host: &str) -> Option<[u8; 4]> {
         net::cached(host)
@@ -50,17 +50,17 @@ impl Wire for NetWire {
     fn resolve(&mut self, host: &str) -> Resolved {
         net::resolve(host)
     }
-    fn connect_nb(&mut self, handle: u32, ip: [u8; 4], port: u16) -> Result<(), ()> {
-        net::socket_connect_nb(self.0, handle, ip, port)
+    fn connect_nb(&mut self, handle: u32, ip: [u8; 4], port: u16) -> Result<(), Refused> {
+        net::socket_connect_nb(self.0, handle, ip, port).map_err(|()| Refused)
     }
-    fn connect_host(&mut self, handle: u32, host: &str, port: u16) -> Result<(), ()> {
-        net::socket_connect_host(self.0, handle, host, port)
+    fn connect_host(&mut self, handle: u32, host: &str, port: u16) -> Result<(), Refused> {
+        net::socket_connect_host(self.0, handle, host, port).map_err(|()| Refused)
     }
-    fn poll(&mut self, handle: u32) -> Result<u8, ()> {
-        net::socket_poll(self.0, handle)
+    fn poll(&mut self, handle: u32) -> Result<u8, Refused> {
+        net::socket_poll(self.0, handle).map_err(|()| Refused)
     }
-    fn send(&mut self, handle: u32, bytes: &[u8]) -> Result<(), ()> {
-        net::socket_send(self.0, handle, bytes)
+    fn send(&mut self, handle: u32, bytes: &[u8]) -> Result<(), Refused> {
+        net::socket_send(self.0, handle, bytes).map_err(|()| Refused)
     }
     fn close(&mut self, handle: u32) {
         let _ = net::socket_close(self.0, handle);

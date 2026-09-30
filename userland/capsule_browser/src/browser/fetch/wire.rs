@@ -37,22 +37,26 @@ pub enum Resolved {
     Unavailable,
 }
 
+/// A socket call the network service refused or could not carry out.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct Refused;
+
 pub trait Wire: Source {
     /// The wall clock certificates are judged against, as YYYYMMDDhhmmss.
     fn rtc_now(&self) -> u64;
     /// Whether every connection rides the one mixnet conversation.
     fn mixnet(&self) -> bool;
-    fn open(&mut self) -> Result<u32, ()>;
+    fn open(&mut self) -> Result<u32, Refused>;
     /// An address already known for `host`, found without asking anyone.
     fn cached(&self, host: &str) -> Option<[u8; 4]>;
     /// Ask the resolver; this may wait for its answer.
     fn resolve(&mut self, host: &str) -> Resolved;
     /// Start connecting and return at once.
-    fn connect_nb(&mut self, handle: u32, ip: [u8; 4], port: u16) -> Result<(), ()>;
+    fn connect_nb(&mut self, handle: u32, ip: [u8; 4], port: u16) -> Result<(), Refused>;
     /// Resolve and connect in one call that waits for the handshake.
-    fn connect_host(&mut self, handle: u32, host: &str, port: u16) -> Result<(), ()>;
-    fn poll(&mut self, handle: u32) -> Result<u8, ()>;
-    fn send(&mut self, handle: u32, bytes: &[u8]) -> Result<(), ()>;
+    fn connect_host(&mut self, handle: u32, host: &str, port: u16) -> Result<(), Refused>;
+    fn poll(&mut self, handle: u32) -> Result<u8, Refused>;
+    fn send(&mut self, handle: u32, bytes: &[u8]) -> Result<(), Refused>;
     fn close(&mut self, handle: u32);
     /// One line for the debug console.
     fn trace(&mut self, line: &[u8]);

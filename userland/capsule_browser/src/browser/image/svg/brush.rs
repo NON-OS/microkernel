@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::boxed::Box;
+
 use super::grad_paint::GradPaint;
 use super::raster::Raster;
 
 /// What a fill or stroke lays down: one colour or a gradient.
 pub(super) enum Shade {
     Solid(u32),
-    Grad(GradPaint),
+    Grad(Box<GradPaint>),
 }
 
 /// A shade and the clip coverage it is confined to.

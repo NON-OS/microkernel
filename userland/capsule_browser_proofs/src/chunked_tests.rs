@@ -4,7 +4,7 @@
 //! CRLF framing. Many real responses arrive chunked; a wrong size parse or
 //! frame skip corrupts the body.
 
-use crate::browser::chunked::decode;
+use crate::browser::http::chunked::decode;
 
 fn dec(s: &[u8]) -> alloc::vec::Vec<u8> {
     decode(s).unwrap_or_else(|| panic!("decode {s:?}"))

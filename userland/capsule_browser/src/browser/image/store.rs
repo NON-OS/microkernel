@@ -32,6 +32,7 @@ pub struct Decoded {
 /// Images by absolute URL: their state, the largest box each is drawn
 /// into, the natural size once known, and the decoded rasters, held under
 /// a byte budget that evicts the least recently painted first.
+#[derive(Default)]
 pub struct Store {
     pub(super) entries: BTreeMap<String, Entry>,
     pub(super) bytes: usize,
@@ -43,14 +44,7 @@ pub struct Store {
 
 impl Store {
     pub fn new() -> Self {
-        let joined = RefCell::new(Joined::default());
-        Store {
-            entries: BTreeMap::new(),
-            bytes: 0,
-            clock: Cell::new(0),
-            joined,
-            natural_dirty: false,
-        }
+        Self::default()
     }
 
     /// Drop every image and free the budget, as a navigation does.

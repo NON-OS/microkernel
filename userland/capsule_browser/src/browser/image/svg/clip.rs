@@ -51,8 +51,7 @@ pub(super) fn clip_mask(
     let base = t.then(&unit).then(&own);
     let mut mask = Raster::like(like)?;
     let brush = Brush { shade: Shade::Solid(0xffff_ffff), clip: None };
-    while !tag.self_closing {
-        let Some((child, next)) = next_tag(defs.doc, pos) else { break };
+    while let Some((child, next)) = next_tag(defs.doc, pos).filter(|_| !tag.self_closing) {
         pos = next;
         if child.closing {
             if child.name == "clipPath" {

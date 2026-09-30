@@ -30,18 +30,18 @@ pub(super) fn chroma(
     let mut any = false;
     for (plane, base) in [(0, 256), (1, 320)] {
         let (t, l) = if plane == 0 { (&mut top.u, &mut left.u) } else { (&mut top.v, &mut left.v) };
-        for y in 0..2 {
-            for x in 0..2 {
+        for (y, ly) in l.iter_mut().enumerate() {
+            for (x, tx) in t.iter_mut().enumerate() {
                 let at = base + (y * 2 + x) * 16;
                 let nz = block_tokens(
                     br,
                     probs,
-                    (2, t[x] as usize + l[y] as usize),
+                    (2, *tx as usize + *ly as usize),
                     q,
                     0,
                     &mut c[at..at + 16],
                 );
-                (t[x], l[y]) = (nz > 0, nz > 0);
+                (*tx, *ly) = (nz > 0, nz > 0);
                 any |= nz > 1 || c[at] != 0;
             }
         }

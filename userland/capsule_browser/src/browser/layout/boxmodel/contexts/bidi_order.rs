@@ -31,12 +31,12 @@ use super::bidi_levels::levels;
 pub(in super::super) fn visual(items: Vec<(i32, InlineItem)>, rtl: bool) -> Vec<(i32, InlineItem)> {
     let lv = levels(&items, rtl as u8);
     let seq: Vec<u8> =
-        (0..(2 * lv.len()).saturating_sub(1)).map(|j| lv[j / 2].min(lv[(j + 1) / 2])).collect();
+        (0..(2 * lv.len()).saturating_sub(1)).map(|j| lv[j / 2].min(lv[j.div_ceil(2)])).collect();
     let sp: Vec<i32> = items.iter().map(|(_, it)| it.space_w()).collect();
     let mut slots: Vec<Option<InlineItem>> = items.into_iter().map(|(_, it)| Some(it)).collect();
     let (mut x, mut out) = (0i32, Vec::with_capacity(slots.len()));
     for j in order(&seq) {
-        let i = (j + 1) / 2;
+        let i = j.div_ceil(2);
         if j % 2 == 1 {
             x += sp[i];
             continue;

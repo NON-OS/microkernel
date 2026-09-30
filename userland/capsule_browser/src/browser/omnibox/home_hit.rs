@@ -29,7 +29,7 @@ pub fn shortcut_at(x: i32, y: i32, width: u32, count: u32) -> Option<usize> {
         return None;
     }
     let (xu, yu) = (x as u32, y as u32);
-    if yu < BADGE_Y || yu >= BADGE_Y + BADGE {
+    if !(BADGE_Y..BADGE_Y + BADGE).contains(&yu) {
         return None;
     }
     (0..count)

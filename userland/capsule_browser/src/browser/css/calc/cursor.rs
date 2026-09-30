@@ -38,5 +38,5 @@ impl P<'_> {
 /// whole px (or per-mille), None past the 16-bit range an argument keeps.
 pub(super) fn lin(v: f32) -> Option<i16> {
     let half = if v < 0.0 { -0.5 } else { 0.5 };
-    (v.is_finite() && v.abs() <= i16::MAX as f32).then(|| (v + half) as i16)
+    (v.is_finite() && v.abs() <= i16::MAX as f32).then_some((v + half) as i16)
 }

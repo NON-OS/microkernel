@@ -33,7 +33,7 @@ pub fn open<W: Wire>(
     url: Url,
     proxy: Option<(&str, u16)>,
 ) -> Result<Fetch, &'static str> {
-    let handle = w.open().map_err(|()| "socket failed")?;
+    let handle = w.open().map_err(|_| "socket failed")?;
     let now = w.now_ms();
     let socks = proxy.is_some() || w.mixnet();
     let then = match (socks, url.scheme) {

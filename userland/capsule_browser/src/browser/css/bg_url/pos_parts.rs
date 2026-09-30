@@ -58,7 +58,7 @@ fn tok(w: &str, fs: u32) -> Option<(Axis, Rel)> {
         "bottom" => (Axis::Y, (0, 1000)),
         "center" => (Axis::Any, (0, 500)),
         _ => match eval_value(w, fs as f32)? {
-            V::Num(n) if n == 0.0 => (Axis::Any, (0, 0)),
+            V::Num(0.0) => (Axis::Any, (0, 0)),
             V::Len { px, pml } => (Axis::Any, (px as i32, pml as i32)),
             _ => return None,
         },

@@ -50,7 +50,7 @@ pub(super) fn font_size(value: &str, parent: f32) -> Option<f32> {
         parent * 1.2
     } else {
         match eval_value(v, parent)? {
-            V::Num(n) if n == 0.0 => 0.0,
+            V::Num(0.0) => 0.0,
             V::Num(_) => return None,
             V::Len { px, pml } => px + parent * pml / 1000.0,
             V::Math(m) => m.resolve(parent as i32) as f32,

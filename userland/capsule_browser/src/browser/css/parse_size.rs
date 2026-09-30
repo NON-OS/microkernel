@@ -39,7 +39,7 @@ pub(super) fn parse_offset(value: &str, em_base: u32) -> Option<Size> {
         return Some(Size::Auto);
     }
     let (px, pml) = match eval_value(v, em_base as f32)? {
-        V::Num(n) if n == 0.0 => return Some(Size::Px(0)),
+        V::Num(0.0) => return Some(Size::Px(0)),
         V::Num(_) => return None,
         V::Math(m) => return Some(Size::Math(m)),
         V::Len { px, pml } => (px, pml),

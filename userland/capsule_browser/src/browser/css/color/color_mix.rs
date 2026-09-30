@@ -38,7 +38,7 @@ pub(super) fn parse_color_mix(inner: &str) -> Option<u32> {
         (Some(x), Some(y)) => (x, y),
     };
     let sum = p1 + p2;
-    if !(sum > 0.0) {
+    if sum <= 0.0 || sum.is_nan() {
         return None;
     }
     let mut out = lerp(space, way, c1, c2, p2 / sum);

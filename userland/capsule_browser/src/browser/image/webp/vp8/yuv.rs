@@ -34,7 +34,7 @@ pub(super) fn emit(
          * the lower row of a pair. */
         let (near, far, lower) = match r {
             0 => (0, 0, false),
-            _ if r % 2 == 1 => ((r - 1) / 2, ((r + 1) / 2).min(last_uv), false),
+            _ if r % 2 == 1 => ((r - 1) / 2, r.div_ceil(2).min(last_uv), false),
             _ => (r / 2, r / 2 - 1, true),
         };
         let (top, cur) = if lower { (far, near) } else { (near, far) };

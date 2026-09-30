@@ -43,7 +43,7 @@ pub(super) fn closed(css: &str) -> bool {
     let mut last = b'}';
     while i < b.len() {
         let c = b[i];
-        if !comment && !c.is_ascii_whitespace() && !(c == b'/' && b.get(i + 1) == Some(&b'*')) {
+        if !(comment || c.is_ascii_whitespace() || (c == b'/' && b.get(i + 1) == Some(&b'*'))) {
             last = c;
         }
         if comment {

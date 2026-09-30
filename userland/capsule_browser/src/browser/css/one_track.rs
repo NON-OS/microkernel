@@ -53,5 +53,5 @@ pub(super) fn one_track(tok: &str, em: u32) -> Option<GridTrack> {
 /* A number from 0 to 100 as hundredths, rounded. */
 fn hundredths(num: &str) -> Option<u16> {
     let f = num.trim().parse::<f32>().ok()?;
-    (f.is_finite() && (0.0..=100.0).contains(&f)).then(|| (f * 100.0 + 0.5) as u16)
+    (f.is_finite() && (0.0..=100.0).contains(&f)).then_some((f * 100.0 + 0.5) as u16)
 }

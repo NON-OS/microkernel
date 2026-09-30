@@ -17,7 +17,7 @@
 //! The fake socket's side of the fetch machine's calls.
 
 use super::fetch_wire::FakeWire;
-use crate::browser::fetch::wire::{Resolved, Wire};
+use crate::browser::fetch::wire::{Refused, Resolved, Wire};
 
 impl FakeWire {
     /// Everything sent on `handle`, in order.
@@ -33,7 +33,7 @@ impl Wire for FakeWire {
     fn mixnet(&self) -> bool {
         self.mixnet
     }
-    fn open(&mut self) -> Result<u32, ()> {
+    fn open(&mut self) -> Result<u32, Refused> {
         self.next += 1;
         self.opened.push(self.next);
         Ok(self.next)
@@ -48,19 +48,19 @@ impl Wire for FakeWire {
             None => Resolved::Unknown,
         }
     }
-    fn connect_nb(&mut self, handle: u32, ip: [u8; 4], port: u16) -> Result<(), ()> {
+    fn connect_nb(&mut self, handle: u32, ip: [u8; 4], port: u16) -> Result<(), Refused> {
         self.connects.push((handle, ip, port));
         Ok(())
     }
-    fn connect_host(&mut self, handle: u32, host: &str, _port: u16) -> Result<(), ()> {
+    fn connect_host(&mut self, handle: u32, host: &str, _port: u16) -> Result<(), Refused> {
         self.waited.push((handle, String::from(host)));
         Ok(())
     }
-    fn poll(&mut self, _handle: u32) -> Result<u8, ()> {
+    fn poll(&mut self, _handle: u32) -> Result<u8, Refused> {
         self.polls += 1;
         Ok(if self.writable { 2 } else { 0 })
     }
-    fn send(&mut self, handle: u32, bytes: &[u8]) -> Result<(), ()> {
+    fn send(&mut self, handle: u32, bytes: &[u8]) -> Result<(), Refused> {
         self.sent.push((handle, bytes.to_vec()));
         Ok(())
     }

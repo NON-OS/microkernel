@@ -36,7 +36,7 @@ pub(in crate::browser::fetch) fn connect<W: Wire>(w: &mut W, f: &mut Fetch) {
     match w.poll(f.handle) {
         Ok(bits) if bits & WRITABLE != 0 => connected(f),
         Ok(_) => {}
-        Err(()) => f.stop("connect failed"),
+        Err(_) => f.stop("connect failed"),
     }
 }
 

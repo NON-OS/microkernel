@@ -26,7 +26,7 @@ pub(super) const MAX_LEN_PX: f32 = 100_000.0;
 /// written without a unit. Anything else is rejected.
 pub(super) fn parse_len_f(value: &str, em_base: u32) -> Option<f32> {
     match eval_value(value, em_base as f32)? {
-        V::Num(n) if n == 0.0 => Some(0.0),
+        V::Num(0.0) => Some(0.0),
         V::Len { px, pml } if pml == 0.0 && px.is_finite() && px.abs() <= MAX_LEN_PX => Some(px),
         _ => None,
     }
@@ -37,7 +37,7 @@ pub(super) fn parse_len_f(value: &str, em_base: u32) -> Option<f32> {
 /// viewport the cascade published. A negative length is rejected.
 pub(super) fn parse_px(value: &str, em_base: u32) -> Option<u32> {
     let px = parse_len_f(value, em_base)?;
-    (px >= 0.0).then(|| (px + 0.5) as u32)
+    (px >= 0.0).then_some((px + 0.5) as u32)
 }
 
 /// A signed margin: px, and per-mille of the containing block's width for
@@ -45,7 +45,7 @@ pub(super) fn parse_px(value: &str, em_base: u32) -> Option<u32> {
 /// comparison involving a percentage has no single such pair and drops.
 pub(super) fn parse_margin(value: &str, em_base: u32) -> Option<(i32, i32)> {
     let (px, pml) = match eval_value(value, em_base as f32)? {
-        V::Num(n) if n == 0.0 => (0.0, 0.0),
+        V::Num(0.0) => (0.0, 0.0),
         V::Len { px, pml } => (px, pml),
         _ => return None,
     };
