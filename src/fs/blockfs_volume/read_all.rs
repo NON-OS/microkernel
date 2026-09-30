@@ -41,7 +41,17 @@ pub fn read_all(path: &[u8]) -> Result<Vec<u8>, VolumeError> {
     if node.size > WHOLE_READ_MAX {
         return Err(VolumeError::TooLargeToReadWhole(node.size));
     }
-    let mut out = alloc::vec![0u8; node.size as usize];
+    /*
+     * Zeroed a serve unit at a time, answering TLB shootdowns in between:
+     * this runs inside a system call with interrupts masked, and 64 MiB of
+     * stores in one stretch holds up another cpu's page-table change.
+     */
+    let mut out = Vec::with_capacity(node.size as usize);
+    while out.len() < node.size as usize {
+        crate::smp::serve_shootdowns();
+        let step = (node.size as usize - out.len()).min(crate::smp::SERVE_UNIT);
+        out.resize(out.len() + step, 0u8);
+    }
     let n = blockfs::read_file(&state.key, &node, &mut out).map_err(VolumeError::BlockFs)?;
     out.truncate(n);
     Ok(out)

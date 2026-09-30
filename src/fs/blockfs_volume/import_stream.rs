@@ -40,6 +40,12 @@ pub(super) fn stream_in(
     let mut buf = alloc::vec![0u8; (CHUNK_SECTORS * 512) as usize];
     let mut done = 0u64;
     while done < bytes {
+        /*
+         * An import is hundreds of megabytes hashed and sealed inside one
+         * system call with interrupts masked. Every sealed sector answers
+         * TLB shootdowns, and so does each chunk, before its hash.
+         */
+        crate::smp::serve_shootdowns();
         let take = (bytes - done).min(CHUNK_SECTORS * 512);
         let sectors = take.div_ceil(512);
         let lba = at + done / 512;

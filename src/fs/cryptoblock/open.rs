@@ -23,6 +23,13 @@ pub fn open(
     lba: u64,
     sector: &[u8; SECTOR_BYTES],
 ) -> Result<[u8; PLAIN_BLOCK_BYTES], CryptoBlockError> {
+    /*
+     * One sector is the unit of work of every volume read and write, which
+     * run inside system calls with interrupts masked and can span thousands
+     * of sectors. Answer any TLB shootdown here; only kernel buffers are in
+     * hand, so nothing translated from user memory is held across it.
+     */
+    crate::smp::serve_shootdowns();
     let mut nonce = [0u8; NONCE_BYTES];
     nonce.copy_from_slice(&sector[..NONCE_BYTES]);
     let mut aad = [0u8; 24];

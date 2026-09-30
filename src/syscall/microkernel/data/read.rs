@@ -51,7 +51,17 @@ pub fn sys_data_read(name_ptr: u64, name_len: u64, offset: u64, buf: u64, buf_le
         crate::log::warn!("[DATA] read refused: no {} bytes of heap to bounce it", buf_len);
         return ERRNO_NOMEM;
     }
-    bounce.resize(buf_len as usize, 0u8);
+    /*
+     * Zeroed a serve unit at a time: the whole call runs with interrupts
+     * masked, and 4 MiB of stores in one stretch is long enough under
+     * emulation to hold up another cpu's TLB shootdown. The volume read
+     * serves once per sector and the copy out once per unit.
+     */
+    while bounce.len() < buf_len as usize {
+        crate::smp::serve_shootdowns();
+        let step = (buf_len as usize - bounce.len()).min(crate::smp::SERVE_UNIT);
+        bounce.resize(bounce.len() + step, 0u8);
+    }
     let n = match crate::fs::blockfs_volume::read_at(&name[..len], offset, &mut bounce) {
         Ok(n) => n,
         Err(e) => return errno(e),
