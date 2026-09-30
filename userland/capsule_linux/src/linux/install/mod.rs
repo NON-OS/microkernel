@@ -23,6 +23,7 @@ mod apps_qwen25;
 mod apps_qwen3;
 mod apps_run;
 mod auth;
+mod chat_build;
 mod deb;
 mod download;
 mod enrol;
@@ -50,6 +51,7 @@ mod tar_field;
 mod tar_kind;
 mod tar_path;
 mod tar_pax;
+mod tcg;
 mod unpacked;
 mod why;
 

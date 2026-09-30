@@ -14,27 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Which build of the chat program this CPU can run.
-//!
-//! The shipped program is built for x86-64-v3 (AVX2, FMA, F16C, BMI1/2,
-//! LZCNT, MOVBE), which a CPU without them stops on an invalid opcode. A
-//! second build for x86-64-v2 ships beside it, and a tier starts it when
-//! this CPU, or the kernel's saved register state, lacks any of those.
+//! Whether this CPU can run the x86-64-v3 build of the chat program.
 
 use core::arch::x86_64::{__cpuid, __cpuid_count, _xgetbv};
-
-/// The v2 build's path, beside the v3 one.
-pub const CHAT_V2: &[u8] = b"/bin/qwenchat-x86_64_v2";
-
-/// `program`, or the v2 build when `program` is the v3 chat program and
-/// this CPU cannot run it.
-pub fn for_this_cpu(program: &'static [u8]) -> &'static [u8] {
-    if program == b"/bin/qwenchat" && !runs_v3() {
-        CHAT_V2
-    } else {
-        program
-    }
-}
 
 /// Whether every x86-64-v3 feature is present and the OS saves the YMM
 /// registers, without which AVX faults even on a CPU that has it.
