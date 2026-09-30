@@ -25,6 +25,7 @@ mod init_xapic;
 pub mod ipi;
 mod ipi_ap;
 mod ipi_basic;
+mod ipi_nmi;
 pub mod mmio;
 pub mod ops;
 mod ops_core;
@@ -41,7 +42,7 @@ pub use constants::{VEC_ERROR, VEC_SPURIOUS, VEC_THERMAL, VEC_TIMER};
 pub use error::{ApicError, ApicResult};
 pub use init::{init, init_apic};
 pub use init_ap::init_ap_lapic;
-pub use ipi::{ipi_all, ipi_one, ipi_others, ipi_self, start_ap};
+pub use ipi::{ipi_all, ipi_one, ipi_others, ipi_self, nmi_one, nmi_others, start_ap};
 pub use ops::{eoi, get_tpr, id, max_lvt, send_eoi, set_tpr, status, version, ApicStatus};
 pub use state::{
     has_tsc_deadline, has_x2apic, has_xapic, is_initialized, is_x2apic, supports_tsc_deadline,

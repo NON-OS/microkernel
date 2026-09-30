@@ -16,3 +16,4 @@
 
 pub use super::ipi_ap::start_ap;
 pub use super::ipi_basic::{ipi_all, ipi_one, ipi_others, ipi_self};
+pub use super::ipi_nmi::{nmi_one, nmi_others};

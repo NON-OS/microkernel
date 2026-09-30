@@ -59,6 +59,7 @@ pub const LVT_TIMER_PERIODIC: u32 = 1 << 17;
 pub const LVT_TIMER_TSC_DEADLINE: u32 = 2 << 17;
 
 pub const ICR_DELIV_FIXED: u64 = 0x0 << 8;
+pub const ICR_DELIV_NMI: u64 = 0x4 << 8;
 pub const ICR_DELIV_SIPI: u64 = 0x6 << 8;
 pub const ICR_DELIV_INIT: u64 = 0x5 << 8;
 pub const ICR_DST_PHYSICAL: u64 = 0 << 11;
