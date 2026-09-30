@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.DataInterrupt
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_data_interrupt
@@ -41,10 +42,136 @@ theorem the_interruptoverride_is_level_triggered_wrapper_is_its_method (a : inte
 theorem the_nmiconfig_applies_to_all_wrapper_is_its_method (a : interrupt.NmiConfig) :
     nmiconfig_applies_to_all a = interrupt.NmiConfig.applies_to_all a := rfl
 
+/-! ### The flag readers agree with the MADT encoding they are decoded from
+
+The parser fills `polarity` with `flags & 0x3` and `trigger_mode` with
+`(flags & 0xC) >> 2` of the raw MPS INTI flags word of an interrupt source
+override, and ACPI encodes active low as `11b` in bits 1:0 and level triggered
+as `11b` in bits 3:2. The theorems below establish that, fed a field decoded the
+parser's way, each reader answers exactly whether both bits of its field are set
+in the raw word, so the conforming (`00b`), the opposite (`01b`) and the reserved
+(`10b`) encodings all read as false. They also establish that `applies_to_all`
+agrees with both MADT sources of an NMI entry: the legacy 8-bit processor id,
+whose broadcast value `0xFF` the parser widens to `u32::MAX`, and the x2APIC
+32-bit uid, whose broadcast value is `0xFFFFFFFF`.
+
+The parser itself reads the entry through a volatile pointer read and is not
+extracted, so the decoding is stated as a hypothesis on the field's value rather
+than proven of the parser; what is proven is that the readers are right for the
+values that decoding produces. -/
+
+/-- The polarity field as the parser decodes it, `(flags & 0x3) as u8`, reads as
+    active low exactly when bits 0 and 1 of the raw flags word are both set. -/
+theorem interruptoverride_is_active_low_reads_both_polarity_bits
+    (flags : Std.U16) (src tm : Std.U8) (gsi : Std.U32) :
+    interruptoverride_is_active_low ⟨src, gsi, UScalar.cast .U8 (flags &&& 3#u16), tm⟩
+      = ok (flags.val.testBit 0 && flags.val.testBit 1) := by
+  unfold interruptoverride_is_active_low interrupt.InterruptOverride.is_active_low
+  have hv : (UScalar.cast .U8 (flags &&& 3#u16)).val = flags.val % 4 := by
+    rw [UScalar.cast_val_eq, Bits.land_low_mask flags 3#u16 2 rfl]
+    simp; omega
+  have h0 : flags.val.testBit 0 = decide (flags.val % 2 = 1) := by
+    simp [Nat.testBit, Nat.shiftRight_eq_div_pow, Nat.one_and_eq_mod_two]; rfl
+  have h1 : flags.val.testBit 1 = decide (flags.val / 2 % 2 = 1) := by
+    simp [Nat.testBit, Nat.shiftRight_eq_div_pow, Nat.one_and_eq_mod_two]; rfl
+  rw [h0, h1]
+  congr 1
+  by_cases h : flags.val % 4 = 3
+  · have : UScalar.cast .U8 (flags &&& 3#u16) = 3#u8 := UScalar.eq_of_val_eq (by rw [hv, h]; rfl)
+    rw [this]; simp; omega
+  · have : UScalar.cast .U8 (flags &&& 3#u16) ≠ 3#u8 := by
+      intro he; have := congrArg UScalar.val he; rw [hv] at this; exact h this
+    simp only [this, decide_false]
+    symm; simp; omega
+
+/-- A trigger field holding the value the parser decodes, `((flags & 0xC) >> 2)`,
+    reads as level triggered exactly when bits 2 and 3 of the raw flags word are
+    both set, whatever the polarity bits hold. -/
+theorem interruptoverride_is_level_triggered_reads_both_trigger_bits
+    (flags : Std.U16) (src pol tm : Std.U8) (gsi : Std.U32)
+    (htm : tm.val = flags.val / 4 % 4) :
+    interruptoverride_is_level_triggered ⟨src, gsi, pol, tm⟩
+      = ok (flags.val.testBit 2 && flags.val.testBit 3) := by
+  unfold interruptoverride_is_level_triggered interrupt.InterruptOverride.is_level_triggered
+  have h2 : flags.val.testBit 2 = decide (flags.val / 4 % 2 = 1) := by
+    simp [Nat.testBit, Nat.shiftRight_eq_div_pow, Nat.one_and_eq_mod_two]; rfl
+  have h3 : flags.val.testBit 3 = decide (flags.val / 8 % 2 = 1) := by
+    simp [Nat.testBit, Nat.shiftRight_eq_div_pow, Nat.one_and_eq_mod_two]; rfl
+  rw [h2, h3]
+  congr 1
+  by_cases h : tm.val = 3
+  · have : tm = 3#u8 := UScalar.eq_of_val_eq (by rw [h]; rfl)
+    rw [this]; simp; omega
+  · have : tm ≠ 3#u8 := by
+      intro he; exact h (by rw [he]; rfl)
+    simp only [this, decide_false]
+    symm; simp; omega
+
+/-- Only the `11b` encoding of either field is honoured: conforming (`0`), the
+    opposite sense (`1`) and reserved (`2`) all read as false, for polarity and
+    for trigger alike. -/
+theorem only_the_eleven_encoding_is_active_low_or_level
+    (src : Std.U8) (gsi : Std.U32) (v : Std.U8) (hv : v.val ≤ 2) :
+    interruptoverride_is_active_low ⟨src, gsi, v, v⟩ = ok false ∧
+    interruptoverride_is_level_triggered ⟨src, gsi, v, v⟩ = ok false ∧
+    interruptoverride_is_active_low ⟨src, gsi, 3#u8, v⟩ = ok true ∧
+    interruptoverride_is_level_triggered ⟨src, gsi, v, 3#u8⟩ = ok true := by
+  have hne : v ≠ 3#u8 := by
+    intro he; have := congrArg UScalar.val he; simp at this; omega
+  simp [interruptoverride_is_active_low, interrupt.InterruptOverride.is_active_low,
+    interruptoverride_is_level_triggered, interrupt.InterruptOverride.is_level_triggered, hne]
+
+/-- An NMI entry built the way `parse_local_apic_nmi` builds it from a legacy
+    8-bit processor id (`0xFF` widened to `u32::MAX`, anything else zero
+    extended) applies to all processors exactly when the id is `0xFF`, which is
+    `MadtLocalApicNmi::ALL_PROCESSORS`. -/
+theorem nmiconfig_applies_to_all_agrees_with_the_legacy_broadcast_id
+    (id lint : Std.U8) (flags : Std.U16) :
+    nmiconfig_applies_to_all
+        ⟨if id = 255#u8 then core.num.U32.MAX else UScalar.cast .U32 id, lint, flags⟩
+      = ok (decide (id.val = 255)) := by
+  unfold nmiconfig_applies_to_all interrupt.NmiConfig.applies_to_all
+  have hmax : core.num.U32.MAX.val = 4294967295 := by rfl
+  by_cases h : id = 255#u8
+  · have : id.val = 255 := by rw [h]; rfl
+    simp [h]
+  · have hlt : id.val < 255 := by
+      have := id.hBounds
+      have : id.val ≠ 255 := fun hv => h (UScalar.eq_of_val_eq (by rw [hv]; rfl))
+      simp at *; omega
+    have hne : UScalar.cast .U32 id ≠ core.num.U32.MAX := by
+      intro he
+      have := congrArg UScalar.val he
+      rw [UScalar.cast_val_eq, hmax] at this
+      simp at this
+      omega
+    simp only [h, if_false, hne, decide_false]
+    congr 1; symm; simp; omega
+
+/-- An NMI entry carrying a 32-bit x2APIC uid applies to all processors exactly
+    when the uid is `0xFFFFFFFF`, which is `MadtLocalX2ApicNmi::ALL_PROCESSORS`;
+    the legacy value `0xFF` in particular names processor 255 and nothing more. -/
+theorem nmiconfig_applies_to_all_agrees_with_the_x2apic_broadcast_uid
+    (uid : Std.U32) (lint : Std.U8) (flags : Std.U16) :
+    nmiconfig_applies_to_all ⟨uid, lint, flags⟩ = ok (decide (uid.val = 4294967295)) := by
+  unfold nmiconfig_applies_to_all interrupt.NmiConfig.applies_to_all
+  congr 1
+  by_cases h : uid.val = 4294967295
+  · have : uid = core.num.U32.MAX := UScalar.eq_of_val_eq (by rw [h]; rfl)
+    rw [decide_eq_true this, decide_eq_true h]
+  · have : uid ≠ core.num.U32.MAX := by
+      intro he; exact h (by rw [he]; rfl)
+    simp [this, h]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.DataInterrupt.the_interruptoverride_is_active_low_wrapper_is_its_method
 #print axioms NonosExtraction.DataInterrupt.the_interruptoverride_is_level_triggered_wrapper_is_its_method
 #print axioms NonosExtraction.DataInterrupt.the_nmiconfig_applies_to_all_wrapper_is_its_method
+#print axioms NonosExtraction.DataInterrupt.interruptoverride_is_active_low_reads_both_polarity_bits
+#print axioms NonosExtraction.DataInterrupt.interruptoverride_is_level_triggered_reads_both_trigger_bits
+#print axioms NonosExtraction.DataInterrupt.only_the_eleven_encoding_is_active_low_or_level
+#print axioms NonosExtraction.DataInterrupt.nmiconfig_applies_to_all_agrees_with_the_legacy_broadcast_id
+#print axioms NonosExtraction.DataInterrupt.nmiconfig_applies_to_all_agrees_with_the_x2apic_broadcast_uid
 
 end NonosExtraction.DataInterrupt

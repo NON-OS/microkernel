@@ -35,8 +35,34 @@ namespace NonosExtraction.TypesBridge
 theorem the_bridgeinfo_new_wrapper_is_its_method :
     bridgeinfo_new = bridge.BridgeInfo.new := rfl
 
+/-! ### What the default bridge describes
+
+    `BridgeInfo::new` (and `Default`) is the all-zero record. The theorem below
+    reads that as a PCI-to-PCI bridge description: its bridge control word sets
+    no bit (no secondary bus reset, no VGA forwarding, no ISA mode), it claims
+    only bus zero on every side, and each of its three windows is the inclusive
+    range from zero to zero. Under the PCI convention a window is disabled only
+    when its base exceeds its limit, so these windows are not disabled windows;
+    they are one-unit windows at address zero. The record is also not in the
+    image of the register decoder in `config/bridge.rs`, whose `memory_window`
+    always sets the low twenty bits of the limit. No kernel code currently
+    constructs a `BridgeInfo`, so there is no caller whose contract this can be
+    checked against.
+-/
+
+/-- The default bridge sets no control bit, claims only bus zero, and has every
+    window with base at most limit; its memory limit is not a decoded value. -/
+theorem bridgeinfo_new_claims_bus_zero_and_forwards_nothing_extra :
+    ∃ b, bridgeinfo_new = ok b ∧ b.bridge_control.val = 0 ∧
+      b.primary_bus.val = 0 ∧ b.secondary_bus.val = 0 ∧ b.subordinate_bus.val = 0 ∧
+      b.io_base.val ≤ b.io_limit.val ∧ b.memory_base.val ≤ b.memory_limit.val ∧
+      b.prefetch_base.val ≤ b.prefetch_limit.val ∧
+      b.memory_limit.val % 0x100000 ≠ 0xFFFFF := by
+  refine ⟨_, rfl, rfl, rfl, rfl, rfl, ?_, ?_, ?_, ?_⟩ <;> decide
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesBridge.the_bridgeinfo_new_wrapper_is_its_method
+#print axioms NonosExtraction.TypesBridge.bridgeinfo_new_claims_bus_zero_and_forwards_nothing_extra
 
 end NonosExtraction.TypesBridge
