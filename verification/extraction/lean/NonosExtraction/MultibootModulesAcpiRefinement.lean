@@ -63,12 +63,14 @@ theorem the_acpirsdp_verify_extended_checksum_wrapper_is_its_method (a : modules
     pointer whatever the revision; `kernel_proofs` keeps a test of that case.
 
     From revision 2 the extended check passes only when every ACPI 2.0 field is
-    present, `length` is at least 36 and all 36 bytes, the three reserved ones
-    included, sum to zero, as the parser's `RsdpExtended::validate_extended_checksum`
-    requires. It used to pass a revision 2 RSDP with no extended fields as the
-    ACPI 1.0 check alone, which is what `parse_acpi_rsdp` produces for a tag 14
-    RSDP or a short tag 15 one, and it never summed the reserved bytes or
-    checked `length`.
+    present, `length` is exactly 36 and all 36 bytes, the three reserved ones
+    included, sum to zero. The extended checksum covers as many bytes as
+    `length` declares, and the structure keeps 36, so a longer declaration is
+    refused rather than leaving bytes unchecked. It used to pass a revision 2
+    RSDP with no extended fields as the ACPI 1.0 check alone, which is what
+    `parse_acpi_rsdp` produces for a tag 14 RSDP or a short tag 15 one, it never
+    summed the reserved bytes or checked `length`, and for a while after that it
+    accepted any `length` of 36 or more.
 
     These theorems are about the extracted methods only. The parser that fills
     the structure from boot memory reads raw pointers and is not extracted, and no
@@ -91,12 +93,12 @@ def rsdpV1ByteSum (r : modules_acpi.AcpiRsdp) : Nat :=
     + leByteSum 4 r.rsdt_address.val
 
 /-- The extended check the kernel should make: every ACPI 2.0 field present, a
-    length of at least 36, and the 36 bytes, reserved ones included, summing to
+    length of exactly 36, and the 36 bytes, reserved ones included, summing to
     zero modulo 256. -/
 def rsdpExtendedCheck (r : modules_acpi.AcpiRsdp) : Bool :=
   match r.length, r.xsdt_address, r.extended_checksum, r.reserved with
   | some l, some x, some e, some res =>
-    decide (36 ≤ l.val ∧ (rsdpV1ByteSum r + leByteSum 4 l.val + leByteSum 8 x.val + e.val
+    decide (l.val = 36 ∧ (rsdpV1ByteSum r + leByteSum 4 l.val + leByteSum 8 x.val + e.val
       + byteSum res.val) % 256 = 0)
   | _, _, _, _ => false
 
@@ -249,7 +251,7 @@ theorem acpirsdp_verify_extended_checksum_passes_whatever_is_not_acpi2
   simp only [h, bind_tc_ok, Bool.false_eq_true, ↓reduceIte]
 
 /-- From revision 2 up, the extended check is `rsdpExtendedCheck`: all ACPI 2.0
-    fields present, a length of at least 36, and the 36 bytes summing to zero.
+    fields present, a length of exactly 36, and the 36 bytes summing to zero.
     Below revision 2 it passes, as there is nothing extended to check. -/
 theorem acpirsdp_verify_extended_checksum_is_the_full_36_byte_check
     (r : modules_acpi.AcpiRsdp) :
@@ -278,19 +280,23 @@ theorem acpirsdp_verify_extended_checksum_is_the_full_36_byte_check
     rcases hl : r.length with _ | l <;> rcases hx : r.xsdt_address with _ | x <;>
       rcases he : r.extended_checksum with _ | e <;> rcases hres : r.reserved with _ | res <;>
       try rfl
-    by_cases h36 : l.val < 36
-    · have : l < 36#u32 := h36
-      simp only [this, ↓reduceIte]
-      congr 1
-      simp only [Bool.false_eq, decide_eq_false_iff_not, not_and]
-      intro h; omega
-    · have : ¬ l < 36#u32 := h36
-      simp only [this, ↓reduceIte, SharedArray.Insts.CoreIterTraitsCollectIntoIteratorSharedIter.into_iter,
+    by_cases h36 : l.val = 36
+    · have hl36 : (l != 36#u32) = false := by
+        have : l = 36#u32 := UScalar.eq_of_val_eq h36
+        simp [this]
+      simp only [hl36, Bool.false_eq_true, ↓reduceIte, SharedArray.Insts.CoreIterTraitsCollectIntoIteratorSharedIter.into_iter,
         bind_tc_ok, lift, e0, e1, e2, e3, e4, e5, the_byte_loop_folds_its_iterator,
         List.drop_zero, ok.injEq, decide_eq_decide, a_byte_is_zero_exactly_when_its_value_is,
         a_wrapping_fold_is_the_sum_mod_256, a_wrapping_byte_add_is_addition_mod_256,
         four_little_endian_bytes_sum_to_their_digits, eight_little_endian_bytes_sum_to_their_digits, hz]
       omega
+    · have hl36 : (l != 36#u32) = true := by
+        simp only [bne_iff_ne, ne_eq]
+        intro e; exact h36 (by rw [e]; rfl)
+      simp only [hl36, ↓reduceIte]
+      congr 1
+      simp only [Bool.false_eq, decide_eq_false_iff_not, not_and]
+      intro h; exact absurd h h36
   · have hb : ¬ r.revision ≥ 2#u8 := by scalar_tac
     simp only [hb, hr, decide_false, ↓reduceIte, Bool.false_eq_true]
 
@@ -304,18 +310,20 @@ theorem an_acpi2_rsdp_without_its_extended_fields_fails
   rw [acpirsdp_verify_extended_checksum_is_the_full_36_byte_check]
   simp only [hr, ↓reduceIte]
   unfold rsdpExtendedCheck
-  rcases h with h | h | h | h <;> simp [h] <;> split <;> simp_all
+  rcases h with h | h | h | h <;> simp [h]
 
-/-- A length below 36 fails it too, whatever the bytes sum to. -/
-theorem an_acpi2_rsdp_shorter_than_36_bytes_fails
+/-- Any length other than 36 fails it too, whatever the bytes sum to: a shorter
+    table cannot hold the fields, and a longer one would carry bytes past the
+    36 the structure keeps, which the checksum would then not cover. -/
+theorem an_acpi2_rsdp_whose_length_is_not_36_fails
     (r : modules_acpi.AcpiRsdp) (l : Std.U32) (hr : 2 ≤ r.revision.val)
-    (hl : r.length = some l) (h36 : l.val < 36) :
+    (hl : r.length = some l) (h36 : l.val ≠ 36) :
     acpirsdp_verify_extended_checksum r = ok false := by
   rw [acpirsdp_verify_extended_checksum_is_the_full_36_byte_check]
   simp only [hr, ↓reduceIte]
   unfold rsdpExtendedCheck
   rw [hl]
-  split <;> simp_all <;> omega
+  split <;> simp_all
 
 private theorem is_acpi2_true (r : modules_acpi.AcpiRsdp) (hr : 2 ≤ r.revision.val) :
     modules_acpi.AcpiRsdp.is_acpi2 r = ok true := by
@@ -409,7 +417,7 @@ theorem acpirsdp_table_address_hands_out_the_xsdt_only_from_revision_two
 #print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_verify_extended_checksum_passes_whatever_is_not_acpi2
 #print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_verify_extended_checksum_is_the_full_36_byte_check
 #print axioms NonosExtraction.MultibootModulesAcpi.an_acpi2_rsdp_without_its_extended_fields_fails
-#print axioms NonosExtraction.MultibootModulesAcpi.an_acpi2_rsdp_shorter_than_36_bytes_fails
+#print axioms NonosExtraction.MultibootModulesAcpi.an_acpi2_rsdp_whose_length_is_not_36_fails
 #print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_prefers_a_nonzero_xsdt
 #print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_falls_back_to_the_rsdt
 #print axioms NonosExtraction.MultibootModulesAcpi.acpirsdp_table_address_ignores_the_xsdt_below_revision_two

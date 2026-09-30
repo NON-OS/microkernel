@@ -61,9 +61,11 @@ impl AcpiRsdp {
         sum == 0
     }
 
-    /* An ACPI 2.0 RSDP passes only with all its extended fields present,
-    a length of at least 36, and its 36 bytes summing to zero, reserved bytes
-    included. Below revision 2 there is no extended checksum to check. */
+    /* An ACPI 2.0 RSDP passes only with all its extended fields present, a
+    length of exactly 36, and those 36 bytes summing to zero, reserved bytes
+    included. The extended checksum covers the length the table declares, and
+    only 36 bytes are kept, so a longer declaration could hide unchecked bytes.
+    Below revision 2 there is no extended checksum to check. */
     pub fn verify_extended_checksum(&self) -> bool {
         if !self.is_acpi2() {
             return true;
@@ -73,7 +75,7 @@ impl AcpiRsdp {
         else {
             return false;
         };
-        if len < 36 {
+        if len != 36 {
             return false;
         }
         let mut sum: u8 = 0;
