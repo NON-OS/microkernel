@@ -29,4 +29,10 @@ pub mod flags {
     pub const TPM_MEASURED: u64 = 1 << 8;
     pub const SECURE_BOOT: u64 = 1 << 9;
     pub const ZK_ATTESTED: u64 = 1 << 10;
+    /*
+     * The person chose "Install NONOS" in the boot menu. Set only after the
+     * kernel passed the same signature and attestation checks as a Standard
+     * boot; the kernel starts its installer before any desktop app.
+     */
+    pub const INSTALL_REQUESTED: u64 = 1 << 11;
 }

@@ -29,6 +29,7 @@ pub struct BootHandoffV1 {
     pub magic: u32,
     pub version: u16,
     pub size: u16,
+    /* Bits from `constants::flags`, including INSTALL_REQUESTED (1 << 11). */
     pub flags: u64,
     pub entry_point: u64,
     pub fb: FramebufferInfo,

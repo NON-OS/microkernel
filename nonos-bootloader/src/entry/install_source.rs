@@ -18,8 +18,11 @@
 
 use alloc::vec::Vec;
 
-use nonos_boot::handoff::types::{Module, MODULE_KIND_KERNEL_IMAGE, MODULE_KIND_LOADER_IMAGE};
+use nonos_boot::handoff::types::{
+    InstallHandoff, Module, MODULE_KIND_KERNEL_IMAGE, MODULE_KIND_LOADER_IMAGE,
+};
 use nonos_boot::loader::file::load_file_from_esp;
+use nonos_boot::menu::BootIntent;
 use uefi::prelude::*;
 
 /*
@@ -32,12 +35,19 @@ use uefi::prelude::*;
  * whose file cannot be found records a zero region, and the installer then
  * says so instead of writing a disk with no bootloader on it.
  */
-pub fn install_source(st: &SystemTable<Boot>, kernel_data: &[u8]) -> [Module; 2] {
+pub fn install_source(
+    st: &SystemTable<Boot>,
+    kernel_data: &[u8],
+    intent: BootIntent,
+) -> InstallHandoff {
     let loader = match load_file_from_esp(st, uefi::cstr16!("\\EFI\\BOOT\\BOOTX64.EFI")) {
         Ok(bytes) => region(Vec::leak(bytes), MODULE_KIND_LOADER_IMAGE),
         Err(_) => Module::default(),
     };
-    [loader, region(kernel_data, MODULE_KIND_KERNEL_IMAGE)]
+    InstallHandoff {
+        source: [loader, region(kernel_data, MODULE_KIND_KERNEL_IMAGE)],
+        requested: intent == BootIntent::Install,
+    }
 }
 
 fn region(bytes: &[u8], kind: u32) -> Module {

@@ -14,23 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod crypto;
-mod framebuffer;
-mod handoff;
-mod install;
-mod memory;
-mod security;
-mod system;
+use super::action::MenuAction;
 
-pub use constants::{flags, HANDOFF_MAGIC, HANDOFF_VERSION};
-pub use crypto::CryptoHandoff;
-pub use framebuffer::FramebufferInfo;
-pub use handoff::BootHandoffV1;
-pub use install::InstallHandoff;
-pub use memory::MemoryMap;
-pub use security::{Measurements, RngSeed, ZkAttestation};
-pub use system::{
-    AcpiInfo, Module, Modules, SmbiosInfo, Timing, MODULE_KIND_KERNEL_IMAGE,
-    MODULE_KIND_LOADER_IMAGE,
-};
+/*
+ * What the person asked the verified kernel to do once it runs. It is kept
+ * apart from SecurityMode on purpose: installing changes what the kernel
+ * starts first, never how the kernel is checked, so an install boot goes
+ * through exactly the signature, attestation and rollback checks of the
+ * security mode it was resolved to.
+ */
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum BootIntent {
+    #[default]
+    Run,
+    Install,
+}
+
+impl BootIntent {
+    pub const fn of(action: MenuAction) -> Self {
+        match action {
+            MenuAction::Install => Self::Install,
+            _ => Self::Run,
+        }
+    }
+}

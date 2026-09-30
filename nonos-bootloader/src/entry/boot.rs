@@ -32,8 +32,8 @@ pub fn boot_entry(_handle: Handle, mut st: SystemTable<Boot>) -> Status {
     let dev_mode = dev_override(&mut st);
     let security = run_security_checks(&mut st, gop);
     let hw = run_hardware_discovery(&mut st, gop);
-    let security_mode = match select_security_mode(&mut st, dev_mode, &security, &hw) {
-        Ok(mode) => mode,
+    let (security_mode, intent) = match select_security_mode(&mut st, dev_mode, &security, &hw) {
+        Ok(choice) => choice,
         Err(status) => return status,
     };
     enforce_policy(&security, &mut st, gop, security_mode);
@@ -42,5 +42,5 @@ pub fn boot_entry(_handle: Handle, mut st: SystemTable<Boot>) -> Status {
         draw_status_line(security.secure_boot_enabled, security.measured_boot_active, false);
     }
     initialize_zk_replay_protection(&st);
-    run_verified_boot(st, gop, security, security_mode);
+    run_verified_boot(st, gop, security, security_mode, intent);
 }

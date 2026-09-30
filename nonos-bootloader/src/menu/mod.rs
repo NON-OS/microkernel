@@ -18,4 +18,4 @@ mod dev_check;
 mod types;
 
 pub use dev_check::check_dev_key_held;
-pub use types::{MenuAction, SecurityMode};
+pub use types::{BootIntent, MenuAction, SecurityMode};

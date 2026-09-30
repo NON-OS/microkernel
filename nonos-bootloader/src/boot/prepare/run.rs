@@ -49,7 +49,7 @@ pub fn run_handoff_prepare(
     let (crypto_handoff, firmware_handoff) = (build_crypto_handoff(&p), get_firmware_handoff());
     let _quote = generate_boot_attestation(&rng_seed, gop);
     if gop {
-        show_handoff_status(&rng_seed);
+        show_handoff_status();
     }
     update_stage(STAGE_HANDOFF, StageStatus::Success);
     update_stage(STAGE_COMPLETE, StageStatus::Success);
@@ -69,6 +69,6 @@ pub fn run_handoff_prepare(
         firmware_handoff,
         rng_seed,
         p.tpm_measured,
-        p.install_source,
+        p.install,
     );
 }

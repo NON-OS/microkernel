@@ -1,0 +1,42 @@
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::constants::flags;
+use super::system::Module;
+
+/*
+ * What the loader leaves for an install: the loader image and the kernel
+ * image file it verified (the two regions an installer writes to a disk),
+ * and whether the person chose "Install NONOS" in the boot menu. The
+ * regions reach the kernel as the handoff's module table, the request as
+ * `flags::INSTALL_REQUESTED` in the handoff's flags.
+ */
+#[derive(Copy, Clone, Default)]
+pub struct InstallHandoff {
+    pub source: [Module; 2],
+    pub requested: bool,
+}
+
+impl InstallHandoff {
+    /* The handoff flag bit this request sets, or none. */
+    pub const fn handoff_flag(&self) -> u64 {
+        if self.requested {
+            flags::INSTALL_REQUESTED
+        } else {
+            0
+        }
+    }
+}

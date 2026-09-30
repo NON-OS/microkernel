@@ -20,9 +20,15 @@ use crate::menu::{MenuAction, SecurityMode};
 // timeout selection. Development is intentionally absent: an unsigned,
 // unattested boot is only reachable through the explicit dev override,
 // never from this menu.
-pub(super) const ENTRIES: [MenuAction; 6] = [
+/*
+ * Install NONOS sits after Standard so the default index does not move. It
+ * boots this same signed kernel through the same checks, the way a recovery
+ * or setup entry on an installer disk does.
+ */
+pub(super) const ENTRIES: [MenuAction; 7] = [
     MenuAction::Boot(SecurityMode::Hardened),
     MenuAction::Boot(SecurityMode::Standard),
+    MenuAction::Install,
     MenuAction::SafeMode,
     MenuAction::NetworkIsolated,
     MenuAction::Recovery,

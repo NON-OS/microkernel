@@ -16,13 +16,13 @@
 
 use super::install_source::install_source;
 use nonos_boot::boot::prepare::HandoffParams;
-use nonos_boot::handoff::types::Module;
 use nonos_boot::boot::{
     attest_kernel, commit_rollback, run_crypto_verification, run_elf_parse, run_handoff_prepare,
     run_kernel_load,
 };
+use nonos_boot::handoff::types::InstallHandoff;
 use nonos_boot::kernel_verify::CryptoVerifyResult;
-use nonos_boot::menu::SecurityMode;
+use nonos_boot::menu::{BootIntent, SecurityMode};
 use nonos_boot::security::SecurityContext;
 use nonos_boot::zk::BootAttestationResult;
 use uefi::prelude::*;
@@ -32,6 +32,7 @@ pub fn run_verified_boot(
     gop: bool,
     security: SecurityContext,
     mode: SecurityMode,
+    intent: BootIntent,
 ) -> ! {
     let kernel_data = run_kernel_load(&mut st, gop);
     let (crypto_result, mut crypto_state) =
@@ -47,8 +48,8 @@ pub fn run_verified_boot(
     );
     let kernel_image = run_elf_parse(&mut st, &kernel_data, &crypto_result, gop);
     commit_rollback(&mut st, &kernel_data, mode, gop);
-    let install_source = install_source(&st, &kernel_data);
-    let params = handoff_params(&security, &crypto_result, zk_result, install_source);
+    let install = install_source(&st, &kernel_data, intent);
+    let params = handoff_params(&security, &crypto_result, zk_result, install);
     run_handoff_prepare(st, &kernel_image, params, gop);
 }
 
@@ -56,7 +57,7 @@ fn handoff_params(
     security: &SecurityContext,
     crypto: &CryptoVerifyResult,
     zk_result: BootAttestationResult,
-    install_source: [Module; 2],
+    install: InstallHandoff,
 ) -> HandoffParams {
     HandoffParams {
         signature_valid: crypto.signature_valid,
@@ -64,6 +65,6 @@ fn handoff_params(
         kernel_hash: crypto.kernel_hash_full,
         zk_result,
         tpm_measured: security.measured_boot_active,
-        install_source,
+        install,
     }
 }

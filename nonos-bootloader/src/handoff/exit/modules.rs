@@ -31,7 +31,7 @@ use crate::handoff::types::{BootHandoffV1, Module};
 pub unsafe fn init_modules(bh_ptr: *mut BootHandoffV1, p: &HandoffInitParams) {
     let slots = p.modules_addr as *mut Module;
     let mut count = 0u32;
-    for m in p.install_source.iter().filter(|m| m.size > 0) {
+    for m in p.install.source.iter().filter(|m| m.size > 0) {
         core::ptr::write(slots.add(count as usize), *m);
         count += 1;
     }

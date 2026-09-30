@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::entries::ENTRIES;
 use super::footer::draw_footer;
 use super::header::draw_header;
 use super::list::draw_list;
@@ -27,9 +28,10 @@ pub(super) fn render(sel: usize, remaining_s: u32, sec: &SecurityContext) {
     fill_atmosphere();
 
     // Vertically center the title + list + status as one block.
-    let title_y = h.saturating_sub(360) / 2 + 24;
+    let rows = ENTRIES.len() as u32 * 50;
+    let title_y = h.saturating_sub(60 + rows) / 2 + 24;
     let list_top = title_y + 116;
-    let status_y = list_top + 6 * 50 + 30;
+    let status_y = list_top + rows + 30;
 
     draw_header(w, title_y);
     draw_list(w, list_top, sel);
