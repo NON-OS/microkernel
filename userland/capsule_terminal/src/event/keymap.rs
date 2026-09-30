@@ -28,9 +28,16 @@ pub fn mods(flags: u16) -> Mods {
     Mods { shift: flags & MOD_SHIFT != 0, alt: flags & MOD_ALT != 0, ctrl: flags & MOD_CTRL != 0 }
 }
 
+/// The input driver's codes for the modifier and lock keys themselves
+/// (ctrl, shift, alt, meta, caps, num and scroll lock). Their press only
+/// changes the flags of the keys that follow; read as characters they
+/// printed as boxes in a program's line.
+const MODIFIER_KEYS: core::ops::RangeInclusive<u32> = 0x1001..=0x100B;
+
 pub fn key_of(event: &InputEvent) -> Option<(Key, Mods)> {
     let m = mods(event.flags);
     let key = match event.code {
+        c if MODIFIER_KEYS.contains(&c) => return None,
         KEY_ENTER => Key::Enter,
         KEY_TAB => Key::Tab,
         KEY_BACKSPACE | 0x7F => Key::Backspace,
