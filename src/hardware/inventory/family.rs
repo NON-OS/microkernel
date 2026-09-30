@@ -24,6 +24,7 @@ pub enum HardwareFamily {
     NetworkE1000,
     NetworkRtl8139,
     NetworkRtl8169,
+    NetworkRtl8821ce,
     NetworkIwlwifi,
     DisplayGopFramebuffer,
     DisplayVirtioGpu,

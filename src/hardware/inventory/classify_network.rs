@@ -22,6 +22,7 @@ pub(super) fn classify_network(subclass: u8, vendor: u16, device: u16) -> Hardwa
         0x8086 if subclass == 0x80 => HardwareFamily::NetworkIwlwifi,
         0x8086 => HardwareFamily::NetworkE1000,
         0x10ec if device == 0x8139 => HardwareFamily::NetworkRtl8139,
+        0x10ec if device == 0xc821 => HardwareFamily::NetworkRtl8821ce,
         0x10ec => HardwareFamily::NetworkRtl8169,
         _ => HardwareFamily::Unknown,
     }
