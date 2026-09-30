@@ -77,8 +77,6 @@ fn blk_errors_map_to_expected_errnos() {
     assert_eq!(map_blk_err(BlkError::NoService), EINVAL);
     assert_eq!(map_blk_err(BlkError::Transport(-11)), EINVAL);
     assert_eq!(map_blk_err(BlkError::ShortReply(3)), EINVAL);
-    assert_eq!(map_blk_err(BlkError::BadHeader), EINVAL);
-    assert_eq!(map_blk_err(BlkError::IdMismatch), EINVAL);
     assert_eq!(map_blk_err(BlkError::Status(-6)), EINVAL);
     assert_eq!(map_blk_err(BlkError::Inval), EINVAL);
     assert_eq!(map_blk_err(BlkError::BadContainer), EINVAL);

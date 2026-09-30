@@ -14,8 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{call_raw, N_MK_STORE_WRITE};
+//! The package store's sectors, on the disk the kernel keeps NONOS on.
 
+use crate::syscall::{call_raw, N_MK_STORE_READ, N_MK_STORE_WRITE};
+
+/// Read `len` bytes (whole sectors, at most 32 KiB) from `lba` into `buf`.
+/// Returns the bytes read, or a negative errno.
+pub fn mk_store_read(lba: u64, buf: *mut u8, len: usize) -> i64 {
+    if buf.is_null() || len == 0 {
+        return -22;
+    }
+    call_raw(N_MK_STORE_READ, [lba, buf as u64, len as u64, 0, 0, 0])
+}
+
+/// Write `len` bytes (whole sectors) from `buf` at `lba`.
+/// Returns the bytes written, or a negative errno.
 pub fn mk_store_write(lba: u64, buf: *const u8, len: usize) -> i64 {
     if buf.is_null() || len == 0 {
         return -22;

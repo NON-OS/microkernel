@@ -51,13 +51,14 @@ pub const SYS_PROC_STAT: u64 = tag4(b"MPST");
 pub const SYS_PROC_OUTPUT: u64 = tag4(b"MOUT");
 pub const SYS_PROC_INPUT: u64 = tag4(b"MPIN");
 pub const SYS_STDIN_READ: u64 = tag4(b"MSRD");
-// Program stdout: mirrors bytes into the caller's own `proc.<pid>` inbox and
-// writes nothing to serial. Gated on the IPC capability so a capsule without
-// `Capability::Debug` still has a stdout.
+/// Program stdout: the caller's own `proc.<pid>` inbox, never serial. Gated on IPC,
+/// so a capsule without `Capability::Debug` still has a stdout.
 pub const SYS_STDOUT_WRITE: u64 = tag4(b"MSOW");
 /// Output only the caller's launcher reads: never serial, whatever the caps.
 pub const SYS_PRIVATE_WRITE: u64 = tag4(b"MPVW");
+/// The package store's sectors, written and read on the disk the block layer chose.
 pub const SYS_STORE_WRITE: u64 = tag4(b"MSWR");
+pub const SYS_STORE_READ: u64 = tag4(b"MSRR");
 /// The data volume: a verified import, a file's size, a range of it.
 pub const SYS_DATA_IMPORT: u64 = tag4(b"MDIM");
 pub const SYS_DATA_STAT: u64 = tag4(b"MDST");
@@ -143,12 +144,11 @@ pub const SYS_PIO_RELEASE: u64 = tag4(b"MPRL");
 pub const SYS_MK_DEBUG: u64 = tag4(b"MDBG");
 pub const SYS_PCI_CONFIG_READ: u64 = tag4(b"MPCR");
 pub const SYS_PCI_CONFIG_WRITE: u64 = tag4(b"MPCW");
-// Spawn another window instance of an embedded, attested app capsule
-// (terminal or browser). Gated on the SpawnWindow capability.
+/// Spawn another window instance of an embedded, attested app capsule
+/// (terminal or browser). Gated on the SpawnWindow capability.
 pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
-
-// Run a baked, attested command-line tool by name, parented to the caller so
-// it can drive the tool's stdin and stdout. Gated on the IPC capability.
+/// Run a baked, attested command-line tool by name, parented to the caller so
+/// it can drive the tool's stdin and stdout. Gated on the IPC capability.
 pub const SYS_TOOL_RUN: u64 = tag4(b"MTRN");
 pub const SYS_TTY_SET: u64 = tag4(b"MTTY");
 pub const SYS_TTY_QUERY: u64 = tag4(b"MTTQ");

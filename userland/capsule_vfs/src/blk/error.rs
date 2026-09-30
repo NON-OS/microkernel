@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Why a block request did not produce usable sector bytes. Transport carries
-// the raw syscall return (a timeout and a refused send are both negative and
-// worth telling apart), Status carries the driver's own errno so an E_NXIO is
-// never mistaken for a wire fault.
+/*
+ * Why a block request did not produce usable sector bytes. Transport carries
+ * the raw syscall return of a store write, or a store read that timed out;
+ * Status carries the errno a store read was refused with, so a device fault
+ * is never mistaken for a lost reply.
+ */
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BlkError {
     NoService,
     Transport(i64),
     ShortReply(usize),
-    BadHeader,
-    IdMismatch,
     BadLength,
     Status(i32),
     Inval,

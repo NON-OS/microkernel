@@ -33,6 +33,7 @@ pub(crate) const N_MK_PIO_WRITE: i64 = tag4(b"MPWR");
 pub(crate) const N_MK_PIO_RELEASE: i64 = tag4(b"MPRL");
 pub(crate) const N_MK_DEBUG: i64 = tag4(b"MDBG");
 pub(crate) const N_MK_STORE_WRITE: i64 = tag4(b"MSWR");
+pub(crate) const N_MK_STORE_READ: i64 = tag4(b"MSRR");
 pub(crate) const N_MK_DATA_IMPORT: i64 = tag4(b"MDIM");
 pub(crate) const N_MK_DATA_STAT: i64 = tag4(b"MDST");
 pub(crate) const N_MK_DATA_READ: i64 = tag4(b"MDRD");

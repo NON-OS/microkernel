@@ -119,6 +119,7 @@ MPVW = 0x5756504D
 MSOW = 0x574F534D
 MSPI = 0x4950534D
 MSRD = 0x4452534D
+MSRR = 0x5252534D
 MSTB = 0x4254534D
 MSVR = 0x5256534D
 MSWR = 0x5257534D
@@ -796,6 +797,12 @@ ret  = {type="i64"}
 nr   = 0x5756504D
 caps = ["IPC"]
 args = [{name="user_ptr",type="u64",dir="in"},{name="len",type="u64",dir="in"}]
+ret  = {type="i64"}
+
+[desc.MSRR]
+nr   = 0x5252534D
+caps = ["StoreWrite"]
+args = [{name="lba",type="u64",dir="in"},{name="user_ptr",type="u64",dir="out"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
 
 [desc.MSWR]

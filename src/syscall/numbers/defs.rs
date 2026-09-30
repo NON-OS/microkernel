@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Active NØNOS syscall ABI. Discriminants are 4-byte ASCII tags
-// packed little-endian via `tag4`; the registry in
-// `crate::syscall::abi::REGISTRY` is the source of truth.
+//! The active NONOS syscall ABI. Discriminants are 4-byte ASCII tags packed little-endian
+//! by `tag4`; the registry in `crate::syscall::abi::REGISTRY` is the source of truth.
 
 use crate::syscall::abi::tag4;
 
@@ -74,6 +73,7 @@ pub enum SyscallNumber {
     MkStdoutWrite = tag4(b"MSOW"),
     MkPrivateWrite = tag4(b"MPVW"),
     MkStoreWrite = tag4(b"MSWR"),
+    MkStoreRead = tag4(b"MSRR"),
     MkDataImport = tag4(b"MDIM"),
     MkDataStat = tag4(b"MDST"),
     MkDataRead = tag4(b"MDRD"),

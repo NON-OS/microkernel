@@ -35,8 +35,6 @@ use crate::syscall::microkernel::futex::{sys_futex_wait, sys_futex_wake};
 use crate::syscall::microkernel::install_source::sys_install_source;
 use crate::syscall::microkernel::kill::sys_kill;
 use crate::syscall::microkernel::local_consent::{sys_local_consent, sys_local_restore};
-use crate::syscall::microkernel::local_sign::sys_local_sign;
-use crate::syscall::microkernel::local_verify::sys_local_verify;
 use crate::syscall::microkernel::memory::{sys_mmap, sys_munmap};
 use crate::syscall::microkernel::numbers::*;
 use crate::syscall::microkernel::proc_output::sys_proc_output;
@@ -47,13 +45,14 @@ use crate::syscall::microkernel::process::{
 use crate::syscall::microkernel::procstat::sys_proc_stat;
 use crate::syscall::microkernel::spawn_instance::sys_spawn_instance;
 use crate::syscall::microkernel::stdout_write::sys_stdout_write;
-use crate::syscall::microkernel::store_write::sys_store_write;
 use crate::syscall::microkernel::time::{
     sys_time_adjust, sys_time_millis, sys_time_monotonic, sys_time_rtc,
 };
 use crate::syscall::microkernel::tool_run::sys_tool_run;
 use crate::syscall::microkernel::tty::{sys_tty_query, sys_tty_set};
 use crate::syscall::microkernel::wait::sys_wait;
+use crate::syscall::microkernel::{local_sign::sys_local_sign, local_verify::sys_local_verify};
+use crate::syscall::microkernel::{store_read::sys_store_read, store_write::sys_store_write};
 
 pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
     Some(match nr {
@@ -83,6 +82,7 @@ pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
         SYS_STDIN_READ => sys_stdin_read(a.a0, a.a1 as usize),
         SYS_STDOUT_WRITE => sys_stdout_write(a.a0, a.a1),
         SYS_STORE_WRITE => sys_store_write(a.a0, a.a1, a.a2),
+        SYS_STORE_READ => sys_store_read(a.a0, a.a1, a.a2),
         SYS_ATTEST_STATUS => sys_attest_status(a.a0),
         SYS_ATTEST_DOC => sys_attest_doc(a.a0, a.a1, a.a2),
         SYS_ATTEST_ENTRIES => sys_attest_entries(a.a0, a.a1),

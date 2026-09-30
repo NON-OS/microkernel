@@ -48,8 +48,6 @@ fn code(err: &BlkError) -> u32 {
         BlkError::NoService => 1,
         BlkError::Transport(_) => 2,
         BlkError::ShortReply(_) => 3,
-        BlkError::BadHeader => 4,
-        BlkError::IdMismatch => 5,
         BlkError::BadLength => 6,
         BlkError::Status(_) => 7,
         BlkError::Inval => 8,

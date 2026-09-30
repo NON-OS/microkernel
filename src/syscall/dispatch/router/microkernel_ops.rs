@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::syscall::microkernel::dispatch_microkernel_syscall;
 use crate::syscall::{numbers::SyscallNumber, SyscallResult};
 
 pub(super) fn matches(nr: SyscallNumber) -> bool {
@@ -83,6 +84,7 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkStdoutWrite
             | MkPrivateWrite
             | MkStoreWrite
+            | MkStoreRead
             | MkDataImport
             | MkDataStat
             | MkDataRead
@@ -124,8 +126,6 @@ pub(super) fn handle(
     a4: u64,
     a5: u64,
 ) -> SyscallResult {
-    let value = crate::syscall::microkernel::dispatch_microkernel_syscall(
-        nr as u64, a0, a1, a2, a3, a4, a5,
-    );
+    let value = dispatch_microkernel_syscall(nr as u64, a0, a1, a2, a3, a4, a5);
     SyscallResult { value, capability_consumed: false, audit_required: true }
 }
