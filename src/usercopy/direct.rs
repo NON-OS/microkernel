@@ -20,6 +20,7 @@
 use super::error::UsercopyError;
 use super::walk::{translate_read, translate_write, UserLeaf};
 use crate::memory::layout::DIRECTMAP_BASE;
+use crate::smp::SERVE_UNIT;
 
 pub(super) fn copy_from_user_directmap(user_ptr: u64, dst: &mut [u8]) -> Result<(), UsercopyError> {
     transfer(user_ptr, dst.len(), translate_read, |leaf, off, n| {
@@ -48,13 +49,30 @@ where
     S: FnMut(&UserLeaf, usize, usize),
 {
     let mut cursor = 0usize;
+    let mut since_serve = 0usize;
     while cursor < len {
+        /*
+         * A copy runs with interrupts masked and can be megabytes, so it
+         * answers TLB shootdowns as it goes, once per `SERVE_UNIT`. An ack
+         * lets the other cpu free the frames it unmapped, so this is the one
+         * point where no leaf is held: the last was used up by `step`, and
+         * the next is walked afresh from the page tables after it.
+         */
+        if since_serve >= SERVE_UNIT {
+            crate::smp::serve_shootdowns();
+            since_serve = 0;
+        }
         let va = user_ptr.checked_add(cursor as u64).ok_or(UsercopyError::AddressOverflow)?;
         let leaf = translate(va)?;
         let remaining = leaf.bytes_remaining_in_page() as usize;
-        let n = remaining.min(len - cursor);
+        /*
+         * Capped so a 2 MiB or 1 GiB leaf is still copied in serve units,
+         * each translated afresh.
+         */
+        let n = remaining.min(len - cursor).min(SERVE_UNIT);
         step(&leaf, cursor, n);
         cursor += n;
+        since_serve += n;
     }
     Ok(())
 }

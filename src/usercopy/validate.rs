@@ -37,6 +37,11 @@ fn validate(addr: u64, len: usize, need_write: bool) -> Result<(), UsercopyError
     };
     let mut page = range.start_page;
     while page <= range.end_page {
+        /*
+         * Up to thousands of walks with interrupts masked; nothing is held
+         * across the serve point, since a walk's result is only a verdict.
+         */
+        crate::smp::serve_shootdowns();
         if need_write {
             translate_write(page)?;
         } else {
