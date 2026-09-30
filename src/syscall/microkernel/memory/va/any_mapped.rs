@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod any_mapped;
-mod release_va;
-mod reserve_va;
-mod rollback_mapped_pages;
+use crate::memory::VirtAddr;
 
-pub(super) use any_mapped::any_mapped;
-pub(super) use release_va::release_va;
-pub(super) use reserve_va::reserve_va;
-pub(super) use rollback_mapped_pages::rollback_mapped_pages;
+use super::super::consts::PAGE_SIZE;
+
+/// Whether any of the `pages` pages from `base` is mapped already. A range
+/// can be a gigabyte, walked with interrupts masked, so TLB shootdowns are
+/// answered between pages; a walk's answer holds no translation across one.
+pub(crate) fn any_mapped(base: u64, pages: u64) -> bool {
+    (0..pages as usize).any(|i| {
+        crate::smp::serve_shootdowns();
+        crate::memory::paging::is_mapped(VirtAddr::new(base + (i * PAGE_SIZE) as u64))
+    })
+}

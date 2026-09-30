@@ -21,7 +21,7 @@ use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOMEM, ERRNO_PERM};
 
 use super::accounting::record_mmap;
 use super::consts::{is_user_space, MAX_MMAP_SIZE, PAGE_SIZE, PROT_EXEC, PROT_WRITE};
-use super::va::{release_va, reserve_va, rollback_mapped_pages};
+use super::va::{any_mapped, release_va, reserve_va, rollback_mapped_pages};
 pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
     let pid = current_pid().unwrap_or(0);
     if length == 0 || length > MAX_MMAP_SIZE {
@@ -55,19 +55,12 @@ pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
     // Refuse to map over an already-present page in the fixed-address case:
     // overwriting the PTE would orphan the previous frame and corrupt the
     // caller's own address space. Allocator-chosen ranges are always fresh.
-    if !allocator_owned {
-        for i in 0..pages as usize {
-            crate::smp::serve_shootdowns();
-            if crate::memory::paging::is_mapped(VirtAddr::new(base + (i * PAGE_SIZE) as u64)) {
-                return ERRNO_INVAL;
-            }
-        }
+    if !allocator_owned && any_mapped(base, pages) {
+        return ERRNO_INVAL;
     }
     for i in 0..pages as usize {
         /*
-         * Up to a gigabyte mapped and zeroed with interrupts masked. Answer
-         * TLB shootdowns once per page; the frames here come from the
-         * allocator, not from a user translation, so none is at stake.
+         * Up to a gigabyte mapped with interrupts masked: serve TLB shootdowns.
          */
         crate::smp::serve_shootdowns();
         let va = VirtAddr::new(base + (i * PAGE_SIZE) as u64);
