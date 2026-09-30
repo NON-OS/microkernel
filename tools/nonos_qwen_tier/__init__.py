@@ -13,21 +13,26 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""Put a Qwen tier on a NONOS disk: fetch it, check it, lay it out.
+"""Put a Qwen tier on a NONOS disk, or into the NONOS model repository.
 
     nonos-qwen-tier.py list
     nonos-qwen-tier.py fetch TIER... --dir DIR
     nonos-qwen-tier.py plan TIER... --dir DIR --image IMAGE [--fresh]
+    nonos-qwen-tier.py catalogue --out FILE [--nonos-mirror BASE] [--serial N]
+    nonos-qwen-tier.py mirror (TIER... | --all) --dir DIR --nonos-mirror BASE
+    nonos-qwen-tier.py show FILE
 
 The tiers, their files, lengths and SHA-256 digests are read from the
 signed personality's tables (pinned.rs and the pinned_*.rs beside it, one
-a family), so this tool and the kernel can never disagree on what a tier
+a family), so this tool and the system can never disagree on what a tier
 is. Each file comes from the Qwen team's Hugging Face repository for its
-model: Qwen/Qwen2.5-<size>-Instruct-GGUF, Qwen/Qwen2.5-Coder-<size>-
-Instruct-GGUF or Qwen/Qwen3-<size>-GGUF. fetch runs on any machine with a
-network and resumes a cut download; plan checks every file against its pin
-before writing a byte, sizes the data volume to hold all the tiers asked
-for, and hands the layout to nonos-data-plan.py. NONOS itself never downloads a
-model: the disk carries the files, and the first boot seals and verifies
-them into the encrypted volume.
+model. fetch resumes a cut download; plan checks every file against its pin
+and hands the layout to nonos-data-plan.py, and the first boot seals the
+files into the encrypted volume. catalogue writes the model repository's
+catalogue, every tier and every part, signed with the marketplace operator
+key (--seed, --pubkey); it names the NONOS repository first when given its
+base as --nonos-mirror, laid out as BASE/TIER/FILE, then the upstream file.
+mirror fetches the tiers into DIR in that layout, checked, with the signed
+catalogue beside them, ready to upload. On a running NONOS, `qwen get` in
+the Terminal downloads a tier through the model fetcher capsule.
 """

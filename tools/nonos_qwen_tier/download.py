@@ -13,7 +13,8 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-"""Fetch a pinned file from the Qwen team's Hugging Face repository."""
+"""Fetch a pinned file from the Qwen team's Hugging Face repository, or
+from another source serving the same bytes."""
 
 import os
 import re
@@ -41,20 +42,23 @@ def url(name):
     return HF.format(repo(name), name)
 
 
-def fetch(name, size, digest, into):
+def fetch(name, size, digest, into, source=None):
+    """`name` into the directory `into`, from `source` or its upstream URL."""
+    os.makedirs(into, exist_ok=True)
     path, part = os.path.join(into, name), os.path.join(into, name + ".part")
     if check(path, size, digest):
         return print(f"{name}: present and verified")
     have = os.path.getsize(part) if os.path.exists(part) else 0
-    req = urllib.request.Request(url(name))
-    if have:
-        req.add_header("Range", f"bytes={have}-")
-    with urllib.request.urlopen(req) as r:
-        # A server that ignores the range sends the whole file again.
-        have = have if r.status == 206 else 0
-        with open(part, "ab" if have else "wb") as f:
-            copy(r, f, name, size)
-    print()
+    if have < size:
+        req = urllib.request.Request(source or url(name))
+        if have:
+            req.add_header("Range", f"bytes={have}-")
+        with urllib.request.urlopen(req) as r:
+            # A server that ignores the range sends the whole file again.
+            have = have if r.status == 206 else 0
+            with open(part, "ab" if have else "wb") as f:
+                copy(r, f, name, size)
+        print()
     if not check(part, size, digest):
         os.remove(part)
         sys.exit(f"{name}: length or SHA-256 differs from the pin; removed")
