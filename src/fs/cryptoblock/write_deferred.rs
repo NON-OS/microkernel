@@ -32,3 +32,11 @@ pub fn write_deferred(key: &[u8; 32], lba: u64, plain: &[u8]) -> Result<(), Cryp
     super::epoch::advance();
     held
 }
+
+/*
+ * Send every sector held for the device now, so a refusal reaches the
+ * caller that sealed them, never whichever caller writes or reads next.
+ */
+pub fn flush_held() -> Result<(), CryptoBlockError> {
+    super::pending::drain()
+}

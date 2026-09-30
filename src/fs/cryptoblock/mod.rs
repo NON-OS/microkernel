@@ -37,4 +37,4 @@ pub use read_ahead::ReadAhead;
 pub use seal::seal;
 pub use window::{set_window, window_sectors};
 pub use write::write;
-pub use write_deferred::write_deferred;
+pub use write_deferred::{flush_held, write_deferred};
