@@ -17,7 +17,7 @@
 use super::cpu::{current_cpu, get_cpu};
 use super::state::CPUS_ONLINE;
 use super::types::CpuState;
-use crate::arch::interrupt_controller::{broadcast_ipi, send_ipi, Ipi};
+use crate::arch::interrupt_controller::{send_ipi, Ipi};
 use core::sync::atomic::Ordering;
 
 pub fn send_reschedule_ipi(cpu_id: usize) {
@@ -48,20 +48,6 @@ pub fn wake_idle_cpu() {
             return;
         }
     }
-}
-
-/// Stop every other cpu for a fatal halt.
-///
-/// On the multi-core image this is an NMI: the panic vector waits for its
-/// target to unmask interrupts, and a cpu spinning masked on a lock the
-/// halting cpu holds never does, so "halt the machine" left it running. The
-/// vector remains the fallback when no NMI could be sent, and is what the
-/// single-cpu image sends, where there is nobody to reach either way.
-pub fn send_panic_ipi() {
-    if cfg!(feature = "nonos-smp") && super::nmi::halt_others() {
-        return;
-    }
-    let _ = broadcast_ipi(Ipi::Panic);
 }
 
 pub fn handle_panic_ipi() -> ! {

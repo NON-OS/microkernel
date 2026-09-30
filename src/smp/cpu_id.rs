@@ -38,7 +38,7 @@ use super::state::CPU_COUNT;
 pub fn cpu_id() -> usize {
     match resolve() {
         Ok(index) => index,
-        Err(apic_id) => unregistered(apic_id),
+        Err(apic_id) => super::cpu_unregistered::unregistered(apic_id),
     }
 }
 
@@ -69,12 +69,7 @@ fn resolve() -> Result<usize, u32> {
     Err(apic_id)
 }
 
-/// A CPU the descriptor table does not know about has no per-CPU block, no
-/// current-process slot and no time slice. There is no index it can be given
-/// that is not a guess, so it stops here instead of running as another CPU.
-fn unregistered(apic_id: u32) -> ! {
-    crate::sys::serial::print(b"[SMP] FATAL unregistered CPU, APIC id ");
-    crate::sys::serial::print_dec(apic_id as u64);
-    crate::sys::serial::println(b"");
-    crate::arch::halt_loop()
+/// [`cpu_id`] as the `u32` the interrupt layer takes.
+pub fn current_cpu_id() -> u32 {
+    cpu_id() as u32
 }

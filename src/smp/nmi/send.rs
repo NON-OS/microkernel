@@ -28,9 +28,9 @@ pub(super) static HALT_ALL: AtomicBool = AtomicBool::new(false);
 pub(super) static KICKED: [AtomicBool; MAX_CPUS] = [const { AtomicBool::new(false) }; MAX_CPUS];
 
 /// Send cpu `cpu` (at `apic_id`) an NMI on behalf of the round in flight.
-/// `false` means nothing could be sent.
+/// `false` means nothing could be sent, as always on the single-core image:
+/// only the multi-core image's NMI handler knows what a kick is.
 pub(crate) fn kick(cpu: usize, apic_id: u32) -> bool {
-    // Only the multi-core image's NMI handler knows what a kick is.
     if !cfg!(feature = "nonos-smp") {
         return false;
     }
@@ -38,7 +38,9 @@ pub(crate) fn kick(cpu: usize, apic_id: u32) -> bool {
         return false;
     };
     flag.store(true, Ordering::Release);
-    // As for the vector: the ICR write must not overtake the flag.
+    /*
+     * As for the vector: the ICR write must not overtake the flag.
+     */
     fence(Ordering::SeqCst);
     send_one(apic_id)
 }

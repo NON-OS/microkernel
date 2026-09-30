@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::idle::ap_idle_loop;
-use crate::smp::state::{AP_STARTUP_BARRIER, CPUS_ONLINE, CPU_DESCRIPTORS};
-use crate::smp::types::CpuState;
-use core::sync::atomic::Ordering;
+use crate::smp::state::CPU_DESCRIPTORS;
 
 /// Entered from the trampoline once this AP is in long mode on its own stack.
 ///
@@ -65,8 +63,10 @@ pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
     // first timer tick. `load` only writes IDTR against the BSP.s table.
     crate::interrupts::idt::load_idt();
 
-    // The syscall registers and CR4/CR0/EFER are per CPU. Set here, with
-    // interrupts still masked; the result is reported once they are open.
+    /*
+     * The syscall registers and CR4/CR0/EFER are per CPU. Set here, with
+     * interrupts still masked; the result is reported once they are open.
+     */
     let user = super::user_setup::prepare();
 
     // The BSP registered the IRQ-0 handler; each AP arms its own LAPIC timer.
@@ -81,26 +81,7 @@ pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
     }
     CPU_DESCRIPTORS[cpu_id as usize].set_stage(crate::smp::Stage::InterruptsOn);
 
-    /*
-     * Online is published after `sti`, not before, because Online is what
-     * makes this CPU a target. `shootdown::broadcast` selects targets with
-     * `cpu_is_online` and then waits for each to acknowledge by interrupt.
-     * Declaring Online while interrupts are still masked offers the rest of
-     * the machine a CPU that is required to answer and cannot.
-     *
-     * The window is not theoretical and it is not wide by accident. The boot
-     * CPU's `wait_online` returns the moment it sees this flag, and the next
-     * thing it does is map the following AP's stack, which flushes, which
-     * broadcasts. The target is whichever AP just set this.
-     *
-     * It stayed hidden because the population was published as a count by the
-     * boot CPU after every AP had started, so `cpus_online()` read 1 for the
-     * whole of bring-up and every one of these shootdowns was skipped.
-     */
-    CPU_DESCRIPTORS[cpu_id as usize].set_state(CpuState::Online);
-    CPU_DESCRIPTORS[cpu_id as usize].set_stage(crate::smp::Stage::Online);
-    CPUS_ONLINE.fetch_add(1, Ordering::AcqRel);
-    AP_STARTUP_BARRIER.fetch_add(1, Ordering::Release);
+    super::online::publish(cpu_id);
 
     /*
      * Read the part back rather than trust the write above. An AP parked in

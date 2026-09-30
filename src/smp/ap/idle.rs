@@ -14,22 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::scheduler::dispatch::runnable_process_count;
-use crate::process::scheduler::preemption::{clear_reschedule, need_reschedule};
-use crate::process::scheduler::selection::{select_next_process, switch_to_process};
+use super::idle_steps::{halt_once, take_work};
 use crate::smp::state::CPU_DESCRIPTORS;
 use core::sync::atomic::Ordering;
 
 /// Where an AP lives when it has nothing to run, and where it takes its
-/// first process from.
-///
-/// It takes one the way the boot CPU leaves an exiting process: claim a pid
-/// off the shared run queue and switch to it, which sets this CPU's TSS stack,
-/// per-CPU kernel stack, current pid and address space. That switch does not
-/// return, and from then on this CPU schedules the way the boot CPU does, by
-/// preemption and yield from inside whatever it is running. This used to
-/// enter `sched::schedule`, which runs only the kernel task queues, so an AP
-/// never ran a single user process.
+/// first process from (see `take_work`).
 ///
 /// The halt decision is made against the run queue itself, not the reschedule
 /// flag alone. A CPU that enqueues work may not know this one is idle and may
@@ -41,19 +31,23 @@ pub(super) fn ap_idle_loop(cpu_id: u32) -> ! {
     cpu.set_stage(crate::smp::Stage::IdleLoop);
     let runs_user = super::user_setup::is_ready(cpu_id);
     loop {
-        // Interrupts off across the test, so work appearing between the test
-        // and the halt cannot be missed.
-        // SAFETY: eK@nonos.systems - masking interrupts on this CPU only. The
-        // window is closed again by the wait below on every path.
+        /*
+         * Interrupts off across the test, so work appearing between the test
+         * and the halt cannot be missed.
+         * SAFETY: eK@nonos.systems - masking interrupts on this CPU only. The
+         * window is closed again by the wait below on every path.
+         */
         unsafe {
             core::arch::asm!("cli", options(nostack, nomem));
         }
 
-        // Idle is published before the queue is read. A CPU that enqueues
-        // after the read then sees the mark and sends the wake, which stays
-        // pending across the masked window and ends the halt at once. A CPU
-        // that may not run user code never claims to be idle: the wake goes
-        // to one idle CPU only, and it would be spent on this one.
+        /*
+         * Idle is published before the queue is read. A CPU that enqueues
+         * after the read then sees the mark and sends the wake, which stays
+         * pending across the masked window and ends the halt at once. A CPU
+         * that may not run user code never claims to be idle: the wake goes
+         * to one idle CPU only, and it would be spent on this one.
+         */
         cpu.idle.store(runs_user, Ordering::SeqCst);
 
         // Set before the queue is consulted. Consulting it takes a lock with
@@ -61,25 +55,9 @@ pub(super) fn ap_idle_loop(cpu_id: u32) -> ! {
         // anything outside it being able to tell.
         cpu.set_stage(crate::smp::Stage::IdleCheckingQueue);
 
-        if runs_user && (need_reschedule() || runnable_process_count() > 0) {
-            clear_reschedule();
-            cpu.set_stage(crate::smp::Stage::EnteringScheduler);
-            if let Some(next) = select_next_process() {
-                cpu.idle.store(false, Ordering::SeqCst);
-                // Returns only when the arch layer refused the pid, which it
-                // has already marked so it is not picked again.
-                switch_to_process(next);
-                continue;
-            }
+        if runs_user && take_work(cpu) {
+            continue;
         }
-
-        cpu.set_stage(crate::smp::Stage::IdleLoop);
-        crate::process::accounting::idle_enter();
-        // Opens interrupts for the halt and masks them again after it.
-        crate::arch::idle::wait_for_interrupt();
-        crate::process::accounting::idle_leave();
-
-        cpu.idle.store(false, Ordering::Relaxed);
-        cpu.idle_cycles.fetch_add(1, Ordering::Relaxed);
+        halt_once(cpu);
     }
 }

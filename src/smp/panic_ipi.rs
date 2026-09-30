@@ -14,10 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod entry;
-mod idle;
-mod idle_steps;
-mod online;
-mod user_setup;
+use crate::arch::interrupt_controller::{broadcast_ipi, Ipi};
 
-pub use entry::ap_entry;
+/// Stop every other cpu for a fatal halt.
+///
+/// On the multi-core image this is an NMI: the panic vector waits for its
+/// target to unmask interrupts, and a cpu spinning masked on a lock the
+/// halting cpu holds never does, so "halt the machine" left it running. The
+/// vector remains the fallback when no NMI could be sent, and is what the
+/// single-cpu image sends, where there is nobody to reach either way.
+pub fn send_panic_ipi() {
+    if cfg!(feature = "nonos-smp") && super::nmi::halt_others() {
+        return;
+    }
+    let _ = broadcast_ipi(Ipi::Panic);
+}
