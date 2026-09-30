@@ -33,9 +33,19 @@ pub fn on_timer_interrupt() {
     crate::smp::percpu::current()
         .last_tick_tsc
         .store(crate::arch::read_time_counter(), core::sync::atomic::Ordering::Relaxed);
-    state::increment_ticks();
-    if option_env!("NONOS_FBCONSOLE").is_some() {
-        super::heartbeat::on_tick(state::get_ticks());
+    /*
+     * Every CPU takes this interrupt, each from its own LAPIC timer, but the
+     * tick count is the machine's clock: counted on all of them it ran as
+     * many times fast as there were CPUs online. So only the boot CPU counts,
+     * and only it runs the work paced by that count. The rest of this handler
+     * is per CPU: its time slice, its sleepers sweep and its preemption.
+     */
+    let counts = crate::smp::cpu_id() == 0;
+    if counts {
+        state::increment_ticks();
+        if option_env!("NONOS_FBCONSOLE").is_some() {
+            super::heartbeat::on_tick(state::get_ticks());
+        }
     }
     crate::sched::tick();
     #[cfg(feature = "input-probe-inject")]
@@ -46,18 +56,20 @@ pub fn on_timer_interrupt() {
     // timers via IPC.
     crate::sched::scheduler::process::check_sleeping_processes();
 
-    if state::get_ticks() % 10 == 0 {
-        crate::process::alarm::tick();
+    if counts {
+        if state::get_ticks() % 10 == 0 {
+            crate::process::alarm::tick();
+        }
+
+        if state::get_ticks() % LOAD_SAMPLE_TICKS == 0 {
+            crate::fs::procfs::update_load_averages();
+        }
+
+        #[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
+        crate::arch::x86_64::iommu::unit::fault::poll_faults(state::get_ticks());
+
+        hooks::invoke_hook();
     }
-
-    if state::get_ticks() % LOAD_SAMPLE_TICKS == 0 {
-        crate::fs::procfs::update_load_averages();
-    }
-
-    #[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
-    crate::arch::x86_64::iommu::unit::fault::poll_faults(state::get_ticks());
-
-    hooks::invoke_hook();
 
     /*
      * Only a tick that interrupted user mode may switch. Kernel code here
@@ -66,9 +78,8 @@ pub fn on_timer_interrupt() {
      * processor that spin never ends, as runG7 hung in the paging manager.
      * A kernel path waits by yielding, which picks up the pending request.
      */
-    let from_user = crate::smp::percpu::current()
-        .tick_from_user
-        .load(core::sync::atomic::Ordering::Relaxed);
+    let from_user =
+        crate::smp::percpu::current().tick_from_user.load(core::sync::atomic::Ordering::Relaxed);
     if from_user
         && crate::smp::preempt_enabled()
         && crate::sched::scheduler::preemption::need_reschedule()
