@@ -16,7 +16,7 @@
 //! The shipped tiers: each runs the chat window on its own first model, and
 //! every model file a tier needs is one the personality pins.
 
-use super::pinned_tests::TIERS;
+use super::pinned_published::TIERS;
 use crate::pinned::apps::{all as apps, app};
 use crate::pinned::pinned::all as pins;
 
@@ -36,7 +36,9 @@ fn every_tier_needs_only_pinned_files_and_opens_its_first() {
         let model = [&b"/models"[..], app.models[0]].concat();
         assert_eq!(app.args[at + 1], &model[..], "{}", app.name);
         assert!(app.args.windows(2).any(|w| w == [&b"-ui"[..], &b"window"[..]]));
-        /* Parts in order, all of them, so the first finds the rest. */
+        /*
+         * Parts in order, all of them, so the first finds the rest.
+         */
         let n = app.models.len();
         for (k, m) in app.models.iter().enumerate().filter(|_| n > 1) {
             let part = alloc::format!("-{:05}-of-{n:05}.gguf", k + 1);

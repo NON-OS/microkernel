@@ -45,13 +45,6 @@ pub mod model_name;
 #[path = "../../capsule_linux/src/linux/file/dev_metrics_parse.rs"]
 pub mod metrics_parse;
 
-pub mod pinned;
-
-#[path = "../../capsule_linux/src/linux/run_mode.rs"]
-pub mod run_mode;
-
-pub mod console;
-
 #[path = "../../capsule_linux/src/linux/file/dir_children.rs"]
 pub mod dir_children;
 
@@ -76,6 +69,8 @@ pub mod server;
 pub mod route;
 
 pub mod calls;
+pub mod console;
+pub mod pinned;
 pub use calls::{exec_shebang, sigframe, sigframe_build, sigframe_read, sigtimer};
 
 #[cfg(test)]

@@ -50,3 +50,24 @@ pub const PUBLISHED: [(&str, &str, u64, &str); 28] = [
     ("coder-32b", "qwen2.5-coder-32b-instruct-q4_k_m-00002-of-00003.gguf", 7_943_826_304, "de1e27aa436e0856582eed095418fd3db8538b0d5d6e71b6362208b3a7f6d16f"),
     ("coder-32b", "qwen2.5-coder-32b-instruct-q4_k_m-00003-of-00003.gguf", 3_917_389_312, "4d893bec57ae6b2c898c0f2f0f9804a5d855dc7091255b76f3671cb8787919fe"),
 ];
+
+/// Every tier the tables ship, in the same order.
+pub const TIERS: [&str; 17] = [
+    "small",
+    "medium",
+    "large",
+    "xlarge",
+    "xxl",
+    "max",
+    "qwen3-0.6b",
+    "qwen3-1.7b",
+    "qwen3-4b",
+    "qwen3-8b",
+    "qwen3-14b",
+    "qwen3-30b-a3b",
+    "qwen3-32b",
+    "coder-1.5b",
+    "coder-7b",
+    "coder-14b",
+    "coder-32b",
+];

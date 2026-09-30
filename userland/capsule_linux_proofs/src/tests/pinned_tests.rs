@@ -17,33 +17,15 @@
 //! The model tables: each digest the published one, each name one a guest
 //! can open and the volume can hold, and every tier there.
 
-use super::pinned_published::PUBLISHED;
+use super::pinned_published::{PUBLISHED, TIERS};
 use crate::model_name::volume_name;
 use crate::pinned::pinned::{all, pin_of};
 
-/* The volume's name field, in bytes, and its largest file. */
+/*
+ * The volume's name field, in bytes, and its largest file.
+ */
 const NAME_BYTES: usize = 56;
 const MAX_FILE_BYTES: u64 = 382_737_381_576;
-
-pub const TIERS: [&str; 17] = [
-    "small",
-    "medium",
-    "large",
-    "xlarge",
-    "xxl",
-    "max",
-    "qwen3-0.6b",
-    "qwen3-1.7b",
-    "qwen3-4b",
-    "qwen3-8b",
-    "qwen3-14b",
-    "qwen3-30b-a3b",
-    "qwen3-32b",
-    "coder-1.5b",
-    "coder-7b",
-    "coder-14b",
-    "coder-32b",
-];
 
 #[test]
 fn every_pin_is_the_published_file_byte_for_byte() {

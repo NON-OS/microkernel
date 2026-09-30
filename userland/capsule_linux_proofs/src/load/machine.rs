@@ -14,17 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The console's input queue, mounted as the capsule's own modules so each
-//! finds the others where it does in the capsule, and the run request's
-//! parser, which decides whether a run starts on a terminal.
+//! A host double for the sibling `machine`, which asks the kernel: a family
+//! that is not a tier is told the declared count, and so is this one.
 
-#[path = "../../../capsule_linux/src/linux/console/queue.rs"]
-pub mod queue;
-#[path = "../../../capsule_linux/src/linux/console/queue_piece.rs"]
-pub mod queue_piece;
-#[path = "../../../capsule_linux/src/linux/console/queue_take.rs"]
-pub mod queue_take;
-#[path = "../../../capsule_linux/src/linux/console/wipe.rs"]
-pub mod wipe;
-#[path = "../../../capsule_linux/src/linux/run_mode.rs"]
-pub mod run_mode;
+pub fn cpus() -> u64 {
+    super::declared::CPUS
+}

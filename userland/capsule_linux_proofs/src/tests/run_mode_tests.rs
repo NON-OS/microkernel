@@ -19,7 +19,7 @@
 //! its model and loses its window.
 
 use crate::pinned::apps::all;
-use crate::run_mode::{parse, Mode};
+use crate::console::run_mode::{parse, Mode};
 
 #[test]
 fn a_run_request_names_its_package_and_mode() {
@@ -52,6 +52,8 @@ fn only_the_ui_flag_and_its_word_are_dropped() {
     let args: [&[u8]; 5] = [b"-t", b"4", b"-ui", b"window", b"-v"];
     let cli = Mode::Cli.tier_args(&args);
     assert_eq!(cli, [b"-t".to_vec(), b"4".to_vec(), b"-v".to_vec()]);
-    // A trailing flag with no word after it is still dropped, alone.
+    /*
+     * A trailing flag with no word after it is still dropped, alone.
+     */
     assert_eq!(Mode::Cli.tier_args(&[b"-m", b"x", b"-ui"]), [b"-m".to_vec(), b"x".to_vec()]);
 }
