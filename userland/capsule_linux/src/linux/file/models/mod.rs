@@ -23,6 +23,7 @@
  */
 
 mod catalog;
+mod direct;
 mod first_use;
 mod held;
 mod hex;
@@ -37,6 +38,7 @@ mod read;
 mod size;
 mod stat;
 
+pub use direct::read_into;
 pub use held::held;
 pub use open::open;
 pub use read::read;
