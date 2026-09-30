@@ -17,5 +17,7 @@ mod error;
 mod read_seq;
 mod rearm;
 mod submit;
+mod wait_slice;
+mod wait_used;
 pub use error::BlkError;
 pub use submit::submit;
