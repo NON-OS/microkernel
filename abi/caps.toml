@@ -37,12 +37,12 @@ APP_INSTALL             = 0x0000_0000_4000_0000
 ATTEST_READ             = 0x0000_0000_8000_0000
 FOREIGN_EXEC            = 0x0000_0001_0000_0000
 LOCAL_SIGN              = 0x0000_0002_0000_0000
+STREAM_IMPORT           = 0x0000_0004_0000_0000
 
 # Named bundles, each the set a class of capsule is actually spawned with in
 # this tree. They named LOG, YIELD, TIME and KSTAT until now, which are not
-# capabilities: logging, yielding, reading the clock and reading the process
-# table are ungated, so those four rights had no bits and the groups described
-# a model the kernel had stopped enforcing.
+# capabilities: logging, yielding, reading the clock and the process table are
+# ungated, so those had no bits and the groups described an unenforced model.
 #
 # A group is policy rather than something derivable from the enum, so these
 # stay hand written. What keeps them honest is that each is the mask of a real

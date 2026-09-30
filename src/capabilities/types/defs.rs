@@ -40,14 +40,11 @@ capability_table! {
     DeviceEnum = 1 << 15,
     /// Claim and release a device through the broker.
     Driver = 1 << 16,
-    /// Map a slice of a claimed device's BAR into the holder's own
-    /// address space.
+    /// Map a slice of a claimed device's BAR into the holder's own address space.
     Mmio = 1 << 17,
-    /// Bind a claimed device's interrupt to a kernel-delivered
-    /// notification slot.
+    /// Bind a claimed device's interrupt to a kernel-delivered notification slot.
     Irq = 1 << 18,
-    /// Receive a DMA-coherent buffer a claimed device may read or
-    /// write through.
+    /// Receive a DMA-coherent buffer a claimed device may read or write through.
     Dma = 1 << 19,
     /// Mint a PIO grant against a port BAR and run kernel-mediated
     /// `in` and `out` on its ports.
@@ -80,4 +77,7 @@ capability_table! {
     ForeignExec = 1 << 32,
     /// Mint a proof that this machine agreed to run bytes it installed itself.
     LocalSign = 1 << 33,
+    /// Stream a file into the data volume, kept only if it hashes to the digest
+    /// named when the stream began. Nothing on the volume is read back through it.
+    StreamImport = 1 << 34,
 }

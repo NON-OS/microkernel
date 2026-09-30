@@ -63,3 +63,5 @@ pub const CAP_ATTEST_READ: u64 = 2147483648;
 pub const CAP_FOREIGN_EXEC: u64 = 4294967296;
 /// Mint a proof that this machine agreed to run bytes it installed itself.
 pub const CAP_LOCAL_SIGN: u64 = 8589934592;
+/// Stream a pinned file into the data volume. Held by the model fetcher alone.
+pub const CAP_STREAM_IMPORT: u64 = 17179869184;

@@ -47,4 +47,9 @@ impl CapabilityToken {
     pub fn can_foreign_exec(&self) -> bool {
         self.grants(Capability::ForeignExec) && self.is_valid()
     }
+    /// The right to stream a pinned file into the data volume, and no other.
+    #[inline]
+    pub fn can_stream_import(&self) -> bool {
+        self.grants(Capability::StreamImport) && self.is_valid()
+    }
 }
