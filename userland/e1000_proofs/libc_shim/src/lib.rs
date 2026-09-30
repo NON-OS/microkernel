@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The five things the included driver files take from `nonos_libc`.
+//! The things the included driver files take from `nonos_libc`.
 //!
 //! `crypto_random` is the one that matters. The station address is drawn
 //! from it, and the driver's promise is that when there is no entropy the
@@ -23,6 +23,23 @@
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, MutexGuard};
+use std::time::{Duration, Instant};
+
+/// A deadline on the host clock, with the capsule's API. The reset holds the
+/// part for the milliseconds the 8254x manual asks, and the tests wait them.
+pub struct Deadline {
+    end: Instant,
+}
+
+impl Deadline {
+    pub fn after_ms(timeout_ms: u64) -> Self {
+        Self { end: Instant::now() + Duration::from_millis(timeout_ms) }
+    }
+
+    pub fn expired(&self) -> bool {
+        Instant::now() >= self.end
+    }
+}
 
 static ENTROPY: AtomicBool = AtomicBool::new(true);
 static TURN: Mutex<()> = Mutex::new(());

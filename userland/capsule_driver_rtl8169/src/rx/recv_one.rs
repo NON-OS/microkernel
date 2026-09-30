@@ -16,8 +16,6 @@
 
 use core::sync::atomic::{compiler_fence, Ordering};
 
-use nonos_libc::mk_irq_ack;
-
 use super::rearm::rearm;
 use crate::constants::queue::{BUFFER_SIZE, RX_DESC_COUNT};
 use crate::constants::regs::{
@@ -35,14 +33,12 @@ pub fn recv_one(driver: &mut Driver, out: &mut [u8]) -> Result<Option<usize>, &'
         }
     }
     if (isr & ISR_RER) != 0 {
-        let _ = mk_irq_ack(driver.irq_grant);
         return Err("rtl8169 rx interrupt error");
     }
     compiler_fence(Ordering::Acquire);
     let idx = driver.rx.cur;
     let d = unsafe { desc(driver.rx.desc_va, idx) };
     if (d.opts1 & DESC_OWN) != 0 {
-        let _ = mk_irq_ack(driver.irq_grant);
         return Ok(None);
     }
     let len = (d.opts1 & DESC_LEN_MASK) as usize;
@@ -52,8 +48,10 @@ pub fn recv_one(driver: &mut Driver, out: &mut [u8]) -> Result<Option<usize>, &'
         || len - 4 > MAX_ETHERNET_FRAME
         || len - 4 > out.len()
     {
+        // The part has already moved past this slot; staying on it left the
+        // cursor one behind the part until the whole ring had filled again.
         rearm(driver, idx);
-        let _ = mk_irq_ack(driver.irq_grant);
+        driver.rx.cur = (idx + 1) % RX_DESC_COUNT;
         return Err("rtl8169 rx descriptor error");
     }
     let frame_len = len - 4;
@@ -66,6 +64,5 @@ pub fn recv_one(driver: &mut Driver, out: &mut [u8]) -> Result<Option<usize>, &'
     }
     rearm(driver, idx);
     driver.rx.cur = (idx + 1) % RX_DESC_COUNT;
-    let _ = mk_irq_ack(driver.irq_grant);
     Ok(Some(frame_len))
 }

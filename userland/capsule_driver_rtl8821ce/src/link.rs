@@ -38,7 +38,7 @@ use crate::regs::Mmio;
 use crate::rx::ring::{RxState, RX_BUF_STRIDE, RX_DESC_COUNT};
 use crate::rx::{poll_one, program as rx_program};
 use crate::sec::{clear_cam, write_cam, Key, CAM_AES};
-use crate::tx::desc::{FrameMeta, DESC_RATE_6M, SEC_TYPE_CCMP};
+use crate::tx::desc::{FrameMeta, DESC_RATE_6M};
 use crate::tx::regs::QSEL_BE;
 use crate::tx::ring::{TxState, TX_DESC_COUNT};
 use crate::tx::{enqueue, program as tx_program};
@@ -308,13 +308,11 @@ impl<M: Mmio, D: DmaMem, RB: RxBuffers> LinkPort for RtlLink<M, D, RB> {
         // never registers one after association), so a rate-controlled data frame
         // is dropped before it reaches the air; a fixed rate transmits, exactly as
         // the fixed-rate handshake frames already do.
-        let meta = FrameMeta {
-            qsel: QSEL_BE,
-            bmc: false,
-            rate: Some(DESC_RATE_6M),
-            seq,
-            sec_type: SEC_TYPE_CCMP,
-        };
+        // No security type: `tx_frame` has already encrypted the frame in
+        // software (header, CCMP header, MIC). A descriptor tagged CCMP asks
+        // the MAC to encrypt it again, as rtw88 does only for frames with a
+        // hardware key, and the AP then fails the MIC on every data frame.
+        let meta = FrameMeta { qsel: QSEL_BE, bmc: false, rate: Some(DESC_RATE_6M), seq, sec_type: 0 };
         let ok =
             enqueue(&self.mmio, &self.tx_ring, &self.tx_buffers, &mut self.tx_state, &mpdu, &meta);
         if ok {

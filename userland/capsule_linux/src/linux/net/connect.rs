@@ -24,7 +24,7 @@ use crate::linux::guest::{Guest, Kind};
 use super::addr::inet;
 use super::call::call;
 use super::dns::host_for;
-use super::ops::{OP_CONNECT, OP_CONNECT_HOST};
+use super::ops::{NET_E_NO_TRANSPORT, OP_CONNECT, OP_CONNECT_HOST};
 
 pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
     /*
@@ -48,19 +48,25 @@ pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
     body.extend_from_slice(&handle.to_le_bytes());
     body.extend_from_slice(&ip);
     body.extend_from_slice(&port.to_le_bytes());
-    match call(OP_CONNECT, &body, 0) {
-        Some((0, _)) => errno::ok(0),
-        Some(_) => errno::fail(errno::ECONNREFUSED),
-        None => errno::fail(errno::EIO),
-    }
+    outcome(call(OP_CONNECT, &body, 0))
 }
 
 fn by_host(handle: u32, host: &[u8], port: u16) -> u64 {
     let Some(body) = super::host_body::host_body(handle, port, host) else {
         return errno::fail(errno::EINVAL);
     };
-    match call(OP_CONNECT_HOST, &body, 0) {
+    outcome(call(OP_CONNECT_HOST, &body, 0))
+}
+
+/*
+ * What a connect reply means to the guest. No transport is a mixnet holding
+ * no gateway: there is no route out, which a tool has to read as unreachable
+ * and not as a peer that answered and refused.
+ */
+fn outcome(reply: Option<(u16, Vec<u8>)>) -> u64 {
+    match reply {
         Some((0, _)) => errno::ok(0),
+        Some((NET_E_NO_TRANSPORT, _)) => errno::fail(errno::ENETUNREACH),
         Some(_) => errno::fail(errno::ECONNREFUSED),
         None => errno::fail(errno::EIO),
     }

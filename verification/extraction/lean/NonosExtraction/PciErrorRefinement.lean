@@ -41,10 +41,93 @@ theorem the_pcierror_is_security_related_wrapper_is_its_method (a : error.PciErr
 theorem the_pcierror_is_recoverable_wrapper_is_its_method (a : error.PciError) :
     pcierror_is_recoverable a = error.PciError.is_recoverable a := rfl
 
+/-! ### Which PCI errors are fatal, retryable or a security event
+
+`PciError` carries three classifiers that a driver consults when an operation
+fails: `is_fatal` (stop using the device or bus), `is_recoverable` (the caller
+may fall back or retry) and `is_security_related` (log or escalate a policy
+denial). The theorems below characterise each one exactly, over every payload
+of every variant, so moving a single variant into or out of any classifier
+breaks one of them. They also show that each classifier is total and that no
+error has two dispositions: nothing fatal is retried, nothing retried is a
+security denial, and no security denial is reported as fatal.
+
+What they cannot establish is how drivers act on the answers. No kernel caller
+of these methods is extracted (a search of `src/` finds none outside the
+defining file), so these are statements about the classification alone, not
+about any retry loop or audit path that might consult it.
+-/
+
+/-- The fatal errors are exactly a root complex failure, a bridge configuration
+failure, a PCIe link down and an internal error with any message. -/
+theorem pcierror_is_fatal_exactly (e : error.PciError) :
+    pcierror_is_fatal e = ok true ↔
+      (e = .RootComplexError ∨ e = .BridgeConfigFailed ∨ e = .PcieLinkDown ∨
+        ∃ s, e = .InternalError s) := by
+  cases e <;> simp [pcierror_is_fatal, error.PciError.is_fatal]
+
+/-- The recoverable errors are exactly a missing device, a missing capability,
+missing MSI or MSI-X support and an absent BAR, whatever their payloads. -/
+theorem pcierror_is_recoverable_exactly (e : error.PciError) :
+    pcierror_is_recoverable e = ok true ↔
+      (e = .DeviceNotFound ∨ (∃ c, e = .CapabilityNotFound c) ∨
+        e = .MsiNotSupported ∨ e = .MsixNotSupported ∨ ∃ b, e = .BarNotPresent b) := by
+  cases e <;> simp [pcierror_is_recoverable, error.PciError.is_recoverable]
+
+/-- The security-related errors are exactly a protected register, any security
+violation, a BAR overlapping a protected region, a blocked or disallowed device,
+any ACS violation and a DMA protection failure, whatever their payloads. -/
+theorem pcierror_is_security_related_exactly (e : error.PciError) :
+    pcierror_is_security_related e = ok true ↔
+      ((∃ o, e = .ProtectedRegister o) ∨ (∃ v, e = .SecurityViolation v) ∨
+        (∃ a r, e = .BarOverlapsProtected a r) ∨ (∃ v d, e = .DeviceBlocked v d) ∨
+        (∃ v d, e = .DeviceNotAllowed v d) ∨ (∃ a, e = .AcsViolation a) ∨
+        e = .DmaProtectionFailed) := by
+  cases e <;> simp [pcierror_is_security_related, error.PciError.is_security_related]
+
+/-- Each classifier answers for every error; none of them fails. -/
+theorem pcierror_classifiers_never_fail (e : error.PciError) :
+    (∃ b, pcierror_is_fatal e = ok b) ∧ (∃ b, pcierror_is_recoverable e = ok b) ∧
+      (∃ b, pcierror_is_security_related e = ok b) := by
+  cases e <;> simp [pcierror_is_fatal, pcierror_is_recoverable,
+    pcierror_is_security_related, error.PciError.is_fatal,
+    error.PciError.is_recoverable, error.PciError.is_security_related]
+
+/-- A fatal error is never offered for retry: `pcierror_is_fatal` and
+`pcierror_is_recoverable` are never both true. -/
+theorem a_fatal_pci_error_is_never_recoverable (e : error.PciError)
+    (h : pcierror_is_fatal e = ok true) : pcierror_is_recoverable e = ok false := by
+  cases e <;> simp_all [pcierror_is_fatal, pcierror_is_recoverable,
+    error.PciError.is_fatal, error.PciError.is_recoverable]
+
+/-- A security denial is never offered for retry, so a retry loop cannot keep
+knocking on a blocked device: `pcierror_is_security_related` and
+`pcierror_is_recoverable` are never both true. -/
+theorem a_security_pci_error_is_never_recoverable (e : error.PciError)
+    (h : pcierror_is_security_related e = ok true) :
+    pcierror_is_recoverable e = ok false := by
+  cases e <;> simp_all [pcierror_is_security_related, pcierror_is_recoverable,
+    error.PciError.is_security_related, error.PciError.is_recoverable]
+
+/-- A security denial is never classed as a fatal hardware failure:
+`pcierror_is_security_related` and `pcierror_is_fatal` are never both true. -/
+theorem a_security_pci_error_is_never_fatal (e : error.PciError)
+    (h : pcierror_is_security_related e = ok true) :
+    pcierror_is_fatal e = ok false := by
+  cases e <;> simp_all [pcierror_is_security_related, pcierror_is_fatal,
+    error.PciError.is_security_related, error.PciError.is_fatal]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.PciError.the_pcierror_is_fatal_wrapper_is_its_method
 #print axioms NonosExtraction.PciError.the_pcierror_is_security_related_wrapper_is_its_method
 #print axioms NonosExtraction.PciError.the_pcierror_is_recoverable_wrapper_is_its_method
+#print axioms NonosExtraction.PciError.pcierror_is_fatal_exactly
+#print axioms NonosExtraction.PciError.pcierror_is_recoverable_exactly
+#print axioms NonosExtraction.PciError.pcierror_is_security_related_exactly
+#print axioms NonosExtraction.PciError.pcierror_classifiers_never_fail
+#print axioms NonosExtraction.PciError.a_fatal_pci_error_is_never_recoverable
+#print axioms NonosExtraction.PciError.a_security_pci_error_is_never_recoverable
+#print axioms NonosExtraction.PciError.a_security_pci_error_is_never_fatal
 
 end NonosExtraction.PciError

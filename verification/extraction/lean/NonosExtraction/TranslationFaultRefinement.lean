@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.TranslationFault
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_translation_fault
@@ -44,11 +45,160 @@ theorem the_translationfault_is_permission_fault_wrapper_is_its_method (a : faul
 theorem the_translationfault_level_wrapper_is_its_method (a : fault.TranslationFault) :
     translationfault_level a = fault.TranslationFault.level a := rfl
 
+/-! ### The three fault classes and the level, read off the status code
+
+The status code is the six bit fault status field that `parse_par` copies out of
+PAR_EL1 (`(par >> 1) & 0x3F`). Its top four bits name a class and its low two bits
+name the translation table level, as in the ARM FSC encoding: `0b0001LL` is a
+translation fault, `0b0010LL` an access flag fault and `0b0011LL` a permission
+fault. The theorems below state each class reader exactly as a range of the low
+six bits, whatever the two bits above them hold, so a reader that masked too few
+bits (and accepted an external abort on a table walk as a translation fault) or
+compared against the wrong class fails here. They also prove that no status is in
+two classes, and that class and level together give back the status code.
+
+Two edges are recorded as the code behaves. The level zero access flag and
+permission codes `0x08` and `0x0C` are classified here, while the syndrome
+decoder `FaultStatusCode::from` has no arm for either and returns `Unknown`. The
+level minus one translation fault `0x2B`, which exists only with FEAT_LPA2, is not
+a translation fault here and reads as level 3. The kernel does not enable
+FEAT_LPA2, so neither edge is reachable on the hardware it configures.
+
+What these theorems cannot establish: the PAR_EL1 read in `translate` is inline
+assembly and is not extracted, `parse_par` itself is not in the extracted crate,
+and the separate copy of the translation fault test in the page fault decoder
+(`exceptions/contract/page_fault.rs`) is not extracted either, so its agreement
+with the reader here is by inspection of the identical mask and constant.
+-/
+
+private theorem land_sixty : ∀ n, n < 256 → n &&& 60 = n % 64 - n % 4 := by decide
+
+private theorem class_bits_val (t : fault.TranslationFault) :
+    (t.fault_status &&& 60#u8).val = t.fault_status.val % 64 - t.fault_status.val % 4 := by
+  rw [UScalar.val_and]
+  exact land_sixty _ (by have := t.fault_status.hBounds; scalar_tac)
+
+private theorem class_bits_eq_iff (t : fault.TranslationFault) (c : Std.U8) :
+    ((t.fault_status &&& 60#u8) = c) ↔
+      t.fault_status.val % 64 - t.fault_status.val % 4 = c.val := by
+  rw [← class_bits_val]
+  constructor
+  · intro h; rw [h]
+  · intro h; exact UScalar.eq_of_val_eq h
+
+/-- A translation fault is exactly a status whose low six bits are `0x04` to `0x07`,
+    translation faults at levels 0 to 3. Bits 6 and 7 play no part. -/
+theorem translationfault_is_translation_fault_is_codes_four_to_seven (t : fault.TranslationFault) :
+    translationfault_is_translation_fault t =
+      ok (decide (4 ≤ t.fault_status.val % 64 ∧ t.fault_status.val % 64 ≤ 7)) := by
+  unfold translationfault_is_translation_fault fault.TranslationFault.is_translation_fault
+  simp only [lift, bind_tc_ok]
+  congr 1
+  apply decide_eq_decide.mpr
+  rw [class_bits_eq_iff]
+  simp
+  omega
+
+/-- An access flag fault is exactly a status whose low six bits are `0x08` to `0x0B`. -/
+theorem translationfault_is_access_fault_is_codes_eight_to_eleven (t : fault.TranslationFault) :
+    translationfault_is_access_fault t =
+      ok (decide (8 ≤ t.fault_status.val % 64 ∧ t.fault_status.val % 64 ≤ 11)) := by
+  unfold translationfault_is_access_fault fault.TranslationFault.is_access_fault
+  simp only [lift, bind_tc_ok]
+  congr 1
+  apply decide_eq_decide.mpr
+  rw [class_bits_eq_iff]
+  simp
+  omega
+
+/-- A permission fault is exactly a status whose low six bits are `0x0C` to `0x0F`,
+    so a parity error on a table walk (`0x1C`), an alignment fault (`0x21`) and a
+    TLB conflict (`0x30`) are not permission faults. -/
+theorem translationfault_is_permission_fault_is_codes_twelve_to_fifteen (t : fault.TranslationFault) :
+    translationfault_is_permission_fault t =
+      ok (decide (12 ≤ t.fault_status.val % 64 ∧ t.fault_status.val % 64 ≤ 15)) := by
+  unfold translationfault_is_permission_fault fault.TranslationFault.is_permission_fault
+  simp only [lift, bind_tc_ok]
+  congr 1
+  apply decide_eq_decide.mpr
+  rw [class_bits_eq_iff]
+  simp
+  omega
+
+/-- The level is the low two bits of the status, so it is always below 4. -/
+theorem translationfault_level_is_the_low_two_bits (t : fault.TranslationFault) :
+    ∃ l, translationfault_level t = ok l ∧ l.val = t.fault_status.val % 4 ∧ l.val < 4 := by
+  refine ⟨t.fault_status &&& 3#u8, rfl, ?_, ?_⟩
+  · exact Bits.land_low_mask _ _ 2 (by rfl)
+  · rw [Bits.land_low_mask _ _ 2 (by rfl)]; omega
+
+/-- No status is in two of the three classes. -/
+theorem no_status_is_two_of_translation_access_and_permission (t : fault.TranslationFault) :
+    ¬ (translationfault_is_translation_fault t = ok true ∧ translationfault_is_access_fault t = ok true) ∧
+    ¬ (translationfault_is_access_fault t = ok true ∧ translationfault_is_permission_fault t = ok true) ∧
+    ¬ (translationfault_is_translation_fault t = ok true ∧ translationfault_is_permission_fault t = ok true) := by
+  rw [translationfault_is_translation_fault_is_codes_four_to_seven,
+    translationfault_is_access_fault_is_codes_eight_to_eleven,
+    translationfault_is_permission_fault_is_codes_twelve_to_fifteen]
+  simp only [ok.injEq, decide_eq_true_eq]
+  omega
+
+/-- The class and the level together give back the low six bits of the status:
+    a translation fault at level `l` is code `4 + l`, an access flag fault `8 + l`
+    and a permission fault `12 + l`. -/
+theorem class_and_translationfault_level_give_back_the_status (t : fault.TranslationFault) (l : Std.U8)
+    (hl : translationfault_level t = ok l) :
+    (translationfault_is_translation_fault t = ok true → t.fault_status.val % 64 = 4 + l.val) ∧
+    (translationfault_is_access_fault t = ok true → t.fault_status.val % 64 = 8 + l.val) ∧
+    (translationfault_is_permission_fault t = ok true → t.fault_status.val % 64 = 12 + l.val) := by
+  obtain ⟨l', hl', hv, _⟩ := translationfault_level_is_the_low_two_bits t
+  rw [hl] at hl'
+  cases hl'
+  rw [translationfault_is_translation_fault_is_codes_four_to_seven,
+    translationfault_is_access_fault_is_codes_eight_to_eleven,
+    translationfault_is_permission_fault_is_codes_twelve_to_fifteen]
+  simp only [ok.injEq, decide_eq_true_eq]
+  omega
+
+/-- Records a disagreement between two decoders of one field. The level zero
+    access flag code `0x08` and permission code `0x0C` are classified here, as
+    level 0 faults, while `FaultStatusCode::from` in the syndrome decoder maps
+    both to `Unknown`. Both codes are reserved without FEAT_LPA2. -/
+theorem translationfault_is_access_fault_and_is_permission_fault_accept_level_zero
+    (a b : fault.TranslationFault) (ha : a.fault_status = 8#u8) (hb : b.fault_status = 12#u8) :
+    translationfault_is_access_fault a = ok true ∧ translationfault_level a = ok 0#u8 ∧
+    translationfault_is_permission_fault b = ok true ∧ translationfault_level b = ok 0#u8 := by
+  unfold translationfault_is_access_fault fault.TranslationFault.is_access_fault
+    translationfault_is_permission_fault fault.TranslationFault.is_permission_fault
+    translationfault_level fault.TranslationFault.level
+  rw [ha, hb]
+  refine ⟨rfl, rfl, rfl, rfl⟩
+
+/-- Records how the level minus one translation fault of FEAT_LPA2, code `0x2B`, is
+    read: it is not a translation fault, and its level reads as 3. The page fault
+    decoder uses the same test and would report such a fault as present. The kernel
+    does not enable FEAT_LPA2, so the code does not arise. -/
+theorem translationfault_is_translation_fault_rejects_the_level_minus_one_code
+    (t : fault.TranslationFault) (h : t.fault_status = 43#u8) :
+    translationfault_is_translation_fault t = ok false ∧ translationfault_level t = ok 3#u8 := by
+  unfold translationfault_is_translation_fault fault.TranslationFault.is_translation_fault
+    translationfault_level fault.TranslationFault.level
+  rw [h]
+  refine ⟨rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TranslationFault.the_translationfault_is_translation_fault_wrapper_is_its_method
 #print axioms NonosExtraction.TranslationFault.the_translationfault_is_access_fault_wrapper_is_its_method
 #print axioms NonosExtraction.TranslationFault.the_translationfault_is_permission_fault_wrapper_is_its_method
 #print axioms NonosExtraction.TranslationFault.the_translationfault_level_wrapper_is_its_method
+#print axioms NonosExtraction.TranslationFault.translationfault_is_translation_fault_is_codes_four_to_seven
+#print axioms NonosExtraction.TranslationFault.translationfault_is_access_fault_is_codes_eight_to_eleven
+#print axioms NonosExtraction.TranslationFault.translationfault_is_permission_fault_is_codes_twelve_to_fifteen
+#print axioms NonosExtraction.TranslationFault.translationfault_level_is_the_low_two_bits
+#print axioms NonosExtraction.TranslationFault.no_status_is_two_of_translation_access_and_permission
+#print axioms NonosExtraction.TranslationFault.class_and_translationfault_level_give_back_the_status
+#print axioms NonosExtraction.TranslationFault.translationfault_is_access_fault_and_is_permission_fault_accept_level_zero
+#print axioms NonosExtraction.TranslationFault.translationfault_is_translation_fault_rejects_the_level_minus_one_code
 
 end NonosExtraction.TranslationFault

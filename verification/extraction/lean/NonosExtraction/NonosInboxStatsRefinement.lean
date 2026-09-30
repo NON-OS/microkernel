@@ -30,6 +30,14 @@ set_option maxRecDepth 100000
 
 namespace NonosExtraction.NonosInboxStats
 
+/-
+The atomics are named short inside this section only. `#print axioms` prints a
+name relative to the namespaces open where it runs, so the profile below sits
+outside it, where the register can match every name in full.
+-/
+section
+open core.sync.atomic
+
 /-! ### The forwarding functions add nothing -/
 
 theorem the_inboxstats_new_wrapper_is_its_method :
@@ -44,11 +52,141 @@ theorem the_inboxstats_record_dequeue_wrapper_is_its_method (a : stats.InboxStat
 theorem the_inboxstats_record_dropped_wrapper_is_its_method (a : stats.InboxStats) :
     inboxstats_record_dropped a = stats.InboxStats.record_dropped a := rfl
 
+/-! ### Counters, and the peak that only rises
+
+Every counter is an atomic, and Aeneas leaves the atomic operations opaque, so
+nothing here can say what value a counter holds after a call. What the extracted
+code does fix is which atomic each operation touches, with what argument, and
+when the peak loop stops. The theorems below establish that a fresh record builds
+every counter and the peak from zero, that `record_dequeue` and `record_dropped`
+are one increment by one applied to their own counters, that `record_enqueue`
+counts one enqueue and makes no attempt to store a peak when the queue is no
+longer than the peak it read, and that the peak loop, when it does store,
+compares against the peak it read and writes the current size, stopping as soon
+as either its own store lands or another processor has already raised the peak
+to at least the current size.
+
+What they cannot establish: the memory ordering (all operations are `Relaxed`,
+and the model has no notion of interleaving), that `compare_exchange_weak`
+eventually succeeds, so termination of the loop under contention, or that the
+counters never wrap. The `timeouts` counter has no recording method in this
+module.
+-/
+
+/-- A fresh record builds every counter from `AtomicU64::new(0)` and the peak from
+    `AtomicUsize::new(0)`, and succeeds exactly when those constructors do. -/
+theorem inboxstats_new_starts_every_counter_at_zero (s : stats.InboxStats) :
+    inboxstats_new = ok s ↔
+      ∃ z zu, AtomicU64Align8U64.new 0#u64 = ok z ∧
+        AtomicUsizeAlign8Usize.new 0#usize = ok zu ∧
+        s.enqueued = z ∧ s.dequeued = z ∧ s.dropped_full = z ∧ s.timeouts = z ∧
+        s.peak_size = zu := by
+  unfold inboxstats_new stats.InboxStats.new
+  cases h1 : AtomicU64Align8U64.new 0#u64 with
+  | ok z =>
+    cases h2 : AtomicUsizeAlign8Usize.new 0#usize with
+    | ok zu =>
+      simp only [bind_tc_ok, ok.injEq]
+      constructor
+      · rintro rfl; exact ⟨z, zu, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+      · rintro ⟨z', zu', hz, hzu, h3, h4, h5, h6, h7⟩
+        cases hz; cases hzu
+        cases s; simp_all
+    | fail e => simp
+    | div => simp
+  | fail e => simp
+  | div => simp
+
+/-- `record_dequeue` is one relaxed `fetch_add` of one on the dequeued counter, with
+    the previous value discarded. -/
+theorem inboxstats_record_dequeue_adds_one_to_dequeued (s : stats.InboxStats) :
+    inboxstats_record_dequeue s =
+      (do let _ ← AtomicU64Align8U64.fetch_add s.dequeued 1#u64 Ordering.Relaxed; ok ()) :=
+  rfl
+
+/-- `record_dequeue` reads no field but its own counter: two records that share a
+    dequeued counter behave identically, whatever their other counters are. -/
+theorem inboxstats_record_dequeue_touches_only_dequeued (s t : stats.InboxStats)
+    (h : s.dequeued = t.dequeued) :
+    inboxstats_record_dequeue s = inboxstats_record_dequeue t := by
+  unfold inboxstats_record_dequeue stats.InboxStats.record_dequeue
+  rw [h]
+
+/-- The two plain counters agree: `record_dropped` is exactly `record_dequeue`
+    performed on the dropped counter instead. -/
+theorem inboxstats_record_dropped_is_record_dequeue_on_the_dropped_counter
+    (s : stats.InboxStats) :
+    inboxstats_record_dropped s =
+      inboxstats_record_dequeue { s with dequeued := s.dropped_full } :=
+  rfl
+
+/-- When the current size does not exceed the peak in hand, the peak loop finishes
+    at once without a compare and exchange. -/
+theorem inboxstats_record_enqueue_stores_no_peak_at_or_below_it
+    (a : Atomic Std.Usize (private.Align8 Std.Usize)) (c p : Std.Usize) (h : c.val ≤ p.val) :
+    stats.InboxStats.record_enqueue_loop a c p = ok () := by
+  unfold stats.InboxStats.record_enqueue_loop
+  rw [loop]
+  unfold stats.InboxStats.record_enqueue_loop.body
+  rw [if_neg (by scalar_tac)]
+
+/-- The contract `Inbox::try_enqueue` relies on for an ordinary enqueue: if the peak read
+    back is at least the queue length, `record_enqueue` is one increment of the
+    enqueued counter and nothing more. -/
+theorem inboxstats_record_enqueue_below_the_peak_only_counts (s : stats.InboxStats)
+    (c p : Std.Usize)
+    (hl : AtomicUsizeAlign8Usize.load s.peak_size Ordering.Relaxed = ok p) (h : c.val ≤ p.val) :
+    inboxstats_record_enqueue s c =
+      (do let _ ← AtomicU64Align8U64.fetch_add s.enqueued 1#u64 Ordering.Relaxed; ok ()) := by
+  unfold inboxstats_record_enqueue stats.InboxStats.record_enqueue
+  cases AtomicU64Align8U64.fetch_add s.enqueued 1#u64 Ordering.Relaxed with
+  | ok _ => simp only [bind_tc_ok, hl, inboxstats_record_enqueue_stores_no_peak_at_or_below_it _ _ _ h]
+  | fail _ => rfl
+  | div => rfl
+
+/-- Above the peak, the loop compares against the peak it read and writes the
+    current size, and a successful exchange ends it. -/
+theorem inboxstats_record_enqueue_stops_once_its_exchange_lands
+    (a : Atomic Std.Usize (private.Align8 Std.Usize)) (c p q : Std.Usize) (hcp : p.val < c.val)
+    (hr : AtomicUsizeAlign8Usize.compare_exchange_weak a p c Ordering.Relaxed Ordering.Relaxed
+      = ok (core.result.Result.Ok q)) :
+    stats.InboxStats.record_enqueue_loop a c p = ok () := by
+  unfold stats.InboxStats.record_enqueue_loop
+  rw [loop]
+  unfold stats.InboxStats.record_enqueue_loop.body
+  rw [if_pos (by scalar_tac), hr]
+  rfl
+
+/-- A failed exchange retries with the peak the exchange observed, not the stale
+    one: when another processor has already raised the peak to at least the current
+    size, the loop ends without storing. -/
+theorem inboxstats_record_enqueue_yields_to_a_higher_peak
+    (a : Atomic Std.Usize (private.Align8 Std.Usize)) (c p q : Std.Usize) (hcp : p.val < c.val)
+    (hr : AtomicUsizeAlign8Usize.compare_exchange_weak a p c Ordering.Relaxed Ordering.Relaxed
+      = ok (core.result.Result.Err q)) (hq : c.val ≤ q.val) :
+    stats.InboxStats.record_enqueue_loop a c p = ok () := by
+  have := inboxstats_record_enqueue_stores_no_peak_at_or_below_it a c q hq
+  unfold stats.InboxStats.record_enqueue_loop at this ⊢
+  rw [loop]
+  unfold stats.InboxStats.record_enqueue_loop.body
+  rw [if_pos (by scalar_tac), hr]
+  simpa using this
+
+end
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.NonosInboxStats.the_inboxstats_new_wrapper_is_its_method
 #print axioms NonosExtraction.NonosInboxStats.the_inboxstats_record_enqueue_wrapper_is_its_method
 #print axioms NonosExtraction.NonosInboxStats.the_inboxstats_record_dequeue_wrapper_is_its_method
 #print axioms NonosExtraction.NonosInboxStats.the_inboxstats_record_dropped_wrapper_is_its_method
+#print axioms NonosExtraction.NonosInboxStats.inboxstats_new_starts_every_counter_at_zero
+#print axioms NonosExtraction.NonosInboxStats.inboxstats_record_dequeue_adds_one_to_dequeued
+#print axioms NonosExtraction.NonosInboxStats.inboxstats_record_dequeue_touches_only_dequeued
+#print axioms NonosExtraction.NonosInboxStats.inboxstats_record_dropped_is_record_dequeue_on_the_dropped_counter
+#print axioms NonosExtraction.NonosInboxStats.inboxstats_record_enqueue_stores_no_peak_at_or_below_it
+#print axioms NonosExtraction.NonosInboxStats.inboxstats_record_enqueue_below_the_peak_only_counts
+#print axioms NonosExtraction.NonosInboxStats.inboxstats_record_enqueue_stops_once_its_exchange_lands
+#print axioms NonosExtraction.NonosInboxStats.inboxstats_record_enqueue_yields_to_a_higher_peak
 
 end NonosExtraction.NonosInboxStats

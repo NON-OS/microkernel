@@ -80,16 +80,14 @@ def time.EfiTime.is_valid (self : time.EfiTime) : Result Bool := do
 /-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::is_leap_year]:
     Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 85:4-87:5 -/
 def time.EfiTime.is_leap_year (year : Std.U16) : Result Bool := do
-  let i ← year % 4#u16
-  if i = 0#u16
+  let b ← core.num.U16.is_multiple_of year 4#u16
+  if b
   then
-    let i1 ← year % 100#u16
-    if i1 != 0#u16
-    then ok true
-    else let i2 ← year % 400#u16
-         ok (i2 = 0#u16)
-  else let i1 ← year % 400#u16
-       ok (i1 = 0#u16)
+    let b1 ← core.num.U16.is_multiple_of year 100#u16
+    if b1
+    then core.num.U16.is_multiple_of year 400#u16
+    else ok true
+  else core.num.U16.is_multiple_of year 400#u16
 
 /-- [nonos_x_tables_time::time::{nonos_x_tables_time::time::EfiTime}::to_unix_timestamp]: loop body 0:
     Source: 'src/../../../../../src/arch/x86_64/uefi/tables/time.rs', lines 62:8-64:9

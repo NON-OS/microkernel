@@ -52,7 +52,6 @@ impl Memory {
         Driver {
             device_id: 1,
             mmio_grant: 2,
-            irq_grant: 3,
             rx_ring_grant: 4,
             rx_buffer_grant: 5,
             tx_ring_grant: 6,

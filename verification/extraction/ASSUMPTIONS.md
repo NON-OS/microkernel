@@ -76,6 +76,64 @@ cannot say that a given part sets a given bit.
 - **`alloc.string.String.new`**, 2 uses. Allocation, which Aeneas models as
   opaque because the allocator is not in the extracted set.
 
+- **`core.num.U16.wrapping_neg`**, 2 uses. Wrapping negation of a 16-bit word.
+- **`core.num.U64.count_ones`**, 1 use. Population count.
+- **`core.num.Usize.div_ceil`**, 1 use. Division rounding up.
+- **`core.option.Option.map`**, 1 use, **`core.result.Result.is_err`**, 1 use,
+  and **`core.slice.Slice.first`**, 2 uses. Library combinators Aeneas has no
+  model for in these crates.
+- **`core.ops.range.Range.Insts.CoreIterTraitsIteratorIterator.collect`**, 1
+  use. Collecting a range into a container.
+- **`alloc.vec.Vec.is_empty`**, 5 uses.
+- **`alloc.collections.btree.map.BTreeMap`**, 4 uses, with
+  **`alloc.collections.btree.map.BTreeMapKVGlobal.new`**, 2 uses, and
+  **`alloc.collections.btree.map.BTreeMapKVGlobal.Insts.CoreDefaultDefault.default`**,
+  1 use. The map type and its constructors, opaque for the same reason as
+  `String::new`: the allocator is not in the extracted set.
+
+Each only declares that the function exists, with no equation about what it
+returns, so a theorem that reaches one says nothing about that call's result.
+
+## Kernel code left opaque
+
+**`memory.addr.phys.PhysAddr.Insts.CoreCmpPartialOrdPhysAddr.ge`**, 2 uses.
+This one is not the standard library. It is the kernel's own `>=` on `PhysAddr`,
+which the extraction of `memory::frame_alloc::types::range` did not bring in, so
+Aeneas declared it without a body.
+
+It is in the profile of two theorems only, and both are wrapper theorems:
+`the_framerange_frames_remaining_wrapper_is_its_method` and
+`the_framerange_is_exhausted_wrapper_is_its_method`. No property about the order
+of physical addresses rests on it, and none is claimed. `frames_remaining` and
+`is_exhausted` stay counted as trivial until the comparison is extracted.
+
+## Standard-library calls in the ELF bounds check
+
+`program_header_bounds` makes four calls Aeneas has no model for, and each is
+emitted into `Elf.lean` as an opaque axiom. They are in the profile of every
+theorem in `NonosExtraction.ElfBoundsRefinement`, because they are in the
+function's definition, 5 uses each.
+
+- **`Usize.Insts.CoreConvertTryFromU64TryFromIntError.try_from`**
+  (`nonos_elf.Usize.Insts.CoreConvertTryFromU64TryFromIntError.try_from`).
+  `usize::try_from(u64)`. Aeneas models the same conversion for other widths as
+  `core.num.tryFromUScalar`; this instance is missing from its name table.
+- **`core.result.Result.map_err`** (`nonos_elf.core.result.Result.map_err`).
+  `Result::map_err`.
+- **`core.option.Option.ok_or`** (`nonos_elf.core.option.Option.ok_or`).
+  `Option::ok_or`. The policy crate gives it its four-line definition in
+  `Policy/FunsExternal.lean`; here it stays opaque.
+- **`core.mem.size_of`** (`nonos_elf.core.mem.size_of`). The size of a type, which
+  is the compiler's layout decision.
+
+None is a proof axiom. Each declares only that a function of the given type
+exists, with no equation about what it returns. A theorem that needs the behaviour
+takes it as a named hypothesis in its own statement (`TryFromIsTheConversion`,
+`MapErrMapsTheError`, `OkOrIsTheMatch`, `ProgramHeaderIsFiftySixBytes`), so the
+dependency is visible where the theorem is used rather than only here. The bound a
+caller relies on, `accepted_table_is_inside_the_file`, takes only the weakest: that
+`ok_or` never returns a value it was not given.
+
 ## Adding one
 
 If a new axiom appears, the gate fails and the fix is to add it here with what it

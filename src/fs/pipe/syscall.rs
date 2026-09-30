@@ -48,7 +48,11 @@ pub fn sys_pipe2(pipefd: u64, flags: u32) -> Result<i64, i32> {
     }
     let fds = [read_fd, write_fd];
     let fds_bytes: [u8; 8] = unsafe { core::mem::transmute::<[i32; 2], [u8; 8]>(fds) };
-    copy_to_user(pipefd, &fds_bytes)?;
+    if let Err(e) = copy_to_user(pipefd, &fds_bytes) {
+        crate::fs::unregister_pipe_fd(read_fd);
+        crate::fs::unregister_pipe_fd(write_fd);
+        return Err(e.into());
+    }
     Ok(0)
 }
 

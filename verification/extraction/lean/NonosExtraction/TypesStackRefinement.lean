@@ -44,11 +44,192 @@ theorem the_stackregion_total_size_wrapper_is_its_method (a : stack.StackRegion)
 theorem the_stackregion_stack_top_wrapper_is_its_method (a : stack.StackRegion) :
     stackregion_stack_top a = stack.StackRegion.stack_top a := rfl
 
+/-! ### Where a stack region ends, and what it refuses
+
+`new` and `per_cpu` build the same region apart from the CPU tag, and neither
+moves or swaps the three numbers it is given. `stack_top` is `base + size` and
+`total_size` is `size + guard_size`, both overflow checked: a region whose top or
+whose footprint has no representable value is refused with an integer overflow,
+never reported as a wrapped small number. The guard never enters `stack_top`.
+
+These theorems are about the five functions as extracted. They cannot see the
+callers that build regions, `get_all_stack_regions` in
+`layout/manager/percpu.rs` and `get_guard_regions` in
+`safety/manager/guards.rs`, which are not extracted; the last theorem records
+what `stack_top` implies for the layout those callers produce.
+-/
+
+/-- A fresh region keeps each argument in its own field and is owned by no CPU
+and no thread. -/
+theorem stackregion_new_keeps_its_arguments_and_is_unowned
+    (b : Std.U64) (s g : Std.Usize) :
+    ∃ r, stackregion_new b s g = ok r ∧ r.base = b ∧ r.size = s ∧
+      r.guard_size = g ∧ r.cpu_id = none ∧ r.thread_id = none :=
+  ⟨_, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- `per_cpu` is `new` with the CPU tag set, and agrees with it on every other
+field, so a per CPU stack is not placed or sized differently from a plain one. -/
+theorem stackregion_per_cpu_is_stackregion_new_tagged_with_its_cpu
+    (b : Std.U64) (s g : Std.Usize) (c : Std.U32) :
+    ∃ r, stackregion_new b s g = ok r ∧
+      stackregion_per_cpu b s g c = ok { r with cpu_id := some c } :=
+  ⟨_, rfl, rfl⟩
+
+/-- `stack_top` returns exactly `base + size` when that sum fits in 64 bits,
+and the guard size plays no part. -/
+theorem stackregion_stack_top_is_base_plus_size_when_it_fits
+    (r : stack.StackRegion) (v : Std.U64) :
+    stackregion_stack_top r = ok v ↔
+      (r.base.val + r.size.val ≤ U64.max ∧ v.val = r.base.val + r.size.val) := by
+  unfold stackregion_stack_top stack.StackRegion.stack_top
+  simp only [lift, bind_tc_ok]
+  have hc : (UScalar.cast .U64 r.size : Std.U64).val = r.size.val := by simp
+  have h := UScalar.add_equiv r.base (UScalar.cast .U64 r.size : Std.U64)
+  rw [hc] at h
+  constructor
+  · intro hv
+    rw [hv] at h
+    simp only [U64.max_eq] at *
+    obtain ⟨h1, h2, _⟩ := h
+    simp [UScalarTy.numBits] at h1
+    omega
+  · rintro ⟨hle, hv⟩
+    cases hr : (r.base + (UScalar.cast .U64 r.size : Std.U64) : Result Std.U64) with
+    | ok z =>
+      rw [hr] at h
+      obtain ⟨_, h2, _⟩ := h
+      have : z = v := UScalar.eq_of_val_eq (by omega)
+      rw [this]
+    | fail e =>
+      rw [hr] at h
+      simp [UScalar.inBounds, UScalarTy.numBits] at h
+      simp only [U64.max_eq] at hle
+      omega
+    | div => rw [hr] at h; exact h.elim
+
+/-- A region whose top fits in 64 bits always has one. -/
+theorem stackregion_stack_top_succeeds_when_it_fits
+    (r : stack.StackRegion) (h : r.base.val + r.size.val ≤ U64.max) :
+    ∃ t, stackregion_stack_top r = ok t ∧ t.val = r.base.val + r.size.val := by
+  unfold stackregion_stack_top stack.StackRegion.stack_top
+  simp only [lift, bind_tc_ok]
+  have hc : (UScalar.cast .U64 r.size : Std.U64).val = r.size.val := by simp
+  have ha := UScalar.add_equiv r.base (UScalar.cast .U64 r.size : Std.U64)
+  rw [hc] at ha
+  cases hr : (r.base + (UScalar.cast .U64 r.size : Std.U64) : Result Std.U64) with
+  | ok z => rw [hr] at ha; exact ⟨z, rfl, ha.2.1⟩
+  | fail e =>
+    rw [hr] at ha
+    simp [UScalar.inBounds, UScalarTy.numBits] at ha
+    simp only [U64.max_eq] at h
+    omega
+  | div => rw [hr] at ha; exact ha.elim
+
+/-- A region whose top would pass `2^64` is refused rather than wrapped. -/
+theorem stackregion_stack_top_refuses_a_top_past_the_address_space
+    (r : stack.StackRegion) (h : U64.max < r.base.val + r.size.val) :
+    stackregion_stack_top r = fail .integerOverflow := by
+  unfold stackregion_stack_top stack.StackRegion.stack_top
+  simp only [lift, bind_tc_ok]
+  have hc : (UScalar.cast .U64 r.size : Std.U64).val = r.size.val := by simp
+  have ha := UScalar.add_equiv r.base (UScalar.cast .U64 r.size : Std.U64)
+  rw [hc] at ha
+  cases hr : (r.base + (UScalar.cast .U64 r.size : Std.U64) : Result Std.U64) with
+  | ok z =>
+    rw [hr] at ha
+    simp only [U64.max_eq] at h
+    simp [UScalarTy.numBits] at ha
+    omega
+  | fail e =>
+    have : e = .integerOverflow := by
+      revert hr
+      simp only [HAdd.hAdd, UScalar.add, UScalar.tryMk, UScalar.tryMkOpt]
+      split <;> simp_all
+    rw [this]
+  | div => rw [hr] at ha; exact ha.elim
+
+/-- A 64 KiB stack flush against the top of the address space has no
+representable top and is refused, not reported as top 0. -/
+theorem stackregion_stack_top_refuses_a_stack_ending_at_two_to_the_64 :
+    stackregion_stack_top
+      ⟨0xFFFFFFFFFFFF0000#u64, 0x10000#usize, 0x1000#usize, none, none⟩ =
+      fail .integerOverflow :=
+  stackregion_stack_top_refuses_a_top_past_the_address_space _ (by
+    simp only [U64.max_eq]; simp)
+
+/-- `total_size` returns exactly `size + guard_size` when the sum fits in a
+`usize`, so a returned footprint is never smaller than the stack it covers. -/
+theorem stackregion_total_size_is_size_plus_one_guard_when_it_fits
+    (r : stack.StackRegion) (v : Std.Usize) :
+    stackregion_total_size r = ok v ↔
+      (r.size.val + r.guard_size.val ≤ Usize.max ∧
+        v.val = r.size.val + r.guard_size.val) := by
+  unfold stackregion_total_size stack.StackRegion.total_size
+  have h := UScalar.add_equiv r.size r.guard_size
+  have hm : Usize.max = 2 ^ UScalarTy.Usize.numBits - 1 := by
+    simp [Usize.max, UScalarTy.numBits, Usize.numBits]
+  have hp : 0 < 2 ^ UScalarTy.Usize.numBits := Nat.two_pow_pos _
+  constructor
+  · intro hv
+    rw [hv] at h
+    obtain ⟨h1, h2, _⟩ := h
+    omega
+  · rintro ⟨hle, hv⟩
+    cases hr : (r.size + r.guard_size : Result Std.Usize) with
+    | ok z =>
+      rw [hr] at h
+      obtain ⟨_, h2, _⟩ := h
+      have : z = v := UScalar.eq_of_val_eq (by omega)
+      rw [this]
+    | fail e =>
+      rw [hr] at h
+      simp [UScalar.inBounds] at h
+      have hn : UScalarTy.Usize.numBits = System.Platform.numBits := rfl
+      rw [hn] at hm hp
+      omega
+    | div => rw [hr] at h; exact h.elim
+
+/-- A footprint that would pass the top of `usize` is refused. -/
+theorem stackregion_total_size_refuses_a_footprint_past_usize_max
+    (r : stack.StackRegion) (h : Usize.max < r.size.val + r.guard_size.val) :
+    ∃ e, stackregion_total_size r = fail e := by
+  unfold stackregion_total_size stack.StackRegion.total_size
+  have ha := UScalar.add_equiv r.size r.guard_size
+  have hm : Usize.max = 2 ^ UScalarTy.Usize.numBits - 1 := by
+    simp [Usize.max, UScalarTy.numBits, Usize.numBits]
+  cases hr : (r.size + r.guard_size : Result Std.Usize) with
+  | ok z => rw [hr] at ha; omega
+  | fail e => exact ⟨e, rfl⟩
+  | div => rw [hr] at ha; exact ha.elim
+
+/-- Records a layout defect that `stack_top` makes visible. `get_all_stack_regions`
+places each CPU's first IST stack at `stack_base + KSTACK_SIZE` (64 KiB), with a
+one page guard, and `get_guard_regions` takes a region's upper guard to start at
+its `stack_top`. For every per CPU kernel stack built that way, the top is exactly
+the base of the IST stack above it, so the kernel stack's upper guard page is the
+IST stack's first page and there is no unmapped page between the two. -/
+theorem stackregion_stack_top_of_a_kernel_stack_is_the_next_ist_base
+    (b : Std.U64) (c : Std.U32) (hb : b.val + 0x10000 ≤ U64.max) :
+    ∃ k t, stackregion_per_cpu b 0x10000#usize 0x1000#usize c = ok k ∧
+      stackregion_stack_top k = ok t ∧ t.val = b.val + 0x10000 := by
+  obtain ⟨t, ht, hv⟩ := stackregion_stack_top_succeeds_when_it_fits
+    ⟨b, 0x10000#usize, 0x1000#usize, some c, none⟩ (by simpa using hb)
+  exact ⟨_, t, rfl, ht, by simpa using hv⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TypesStack.the_stackregion_new_wrapper_is_its_method
 #print axioms NonosExtraction.TypesStack.the_stackregion_per_cpu_wrapper_is_its_method
 #print axioms NonosExtraction.TypesStack.the_stackregion_total_size_wrapper_is_its_method
 #print axioms NonosExtraction.TypesStack.the_stackregion_stack_top_wrapper_is_its_method
+#print axioms NonosExtraction.TypesStack.stackregion_new_keeps_its_arguments_and_is_unowned
+#print axioms NonosExtraction.TypesStack.stackregion_per_cpu_is_stackregion_new_tagged_with_its_cpu
+#print axioms NonosExtraction.TypesStack.stackregion_stack_top_is_base_plus_size_when_it_fits
+#print axioms NonosExtraction.TypesStack.stackregion_stack_top_succeeds_when_it_fits
+#print axioms NonosExtraction.TypesStack.stackregion_stack_top_refuses_a_top_past_the_address_space
+#print axioms NonosExtraction.TypesStack.stackregion_stack_top_refuses_a_stack_ending_at_two_to_the_64
+#print axioms NonosExtraction.TypesStack.stackregion_total_size_is_size_plus_one_guard_when_it_fits
+#print axioms NonosExtraction.TypesStack.stackregion_total_size_refuses_a_footprint_past_usize_max
+#print axioms NonosExtraction.TypesStack.stackregion_stack_top_of_a_kernel_stack_is_the_next_ist_base
 
 end NonosExtraction.TypesStack

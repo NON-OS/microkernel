@@ -50,6 +50,114 @@ theorem the_keyusage_key_exchange_wrapper_is_its_method :
 theorem the_keyusage_master_wrapper_is_its_method :
     keyusage_master = types.KeyUsage.master := rfl
 
+/-! ### Key sizes against the kernel's crypto constants, and what each usage preset grants
+
+`key_length` is the only size the key manager consults: `generate_key` and
+`derive_key` allocate exactly that many bytes, and `import_key` refuses material
+of any other length. The first theorems tie the four post-quantum sizes to the
+constants the kernel's own ML-KEM and ML-DSA code uses under the default
+features (`src/crypto/pqc/kyber.rs` for ML-KEM-768,
+`src/crypto/pqc/ml_dsa_65/constants.rs` for ML-DSA-65), and the classical sizes,
+the master key's included, to the 32-byte `[u8; 32]` master slot in `store.rs`.
+They then bound every size by what `derive_key` can produce: it counts HMAC
+blocks with a `u8` starting at 1, so it can fill at most `255 * 32` bytes, and
+`generate_key` treats all-zero material as a failed draw, so an empty key would
+always be refused.
+
+The usage theorems state which preset carries which permission, that
+`export_key` (which reads only `usage.exportable`) can release a key only when
+its preset is `verification`, and that no exportable preset also carries a
+secret-key capability.
+
+The constants are restated here as numbers because the crypto modules are not
+extracted; a change under a non-default feature (`mlkem512`, `mlkem1024`,
+`mldsa2`, `mldsa5`) would make the kernel constants differ from these sizes and
+nothing here would notice. The key store, its locks and atomics, the RNG and the
+HMAC are not extracted, so nothing below speaks about the material itself.
+-/
+
+/-- `PUBLICKEY_BYTES` in `src/crypto/pqc/kyber.rs` under the default ML-KEM-768 feature. -/
+def kyberPublicKeyBytes : Nat := 1184
+/-- `SECRETKEY_BYTES` in `src/crypto/pqc/kyber.rs` under the default ML-KEM-768 feature. -/
+def kyberSecretKeyBytes : Nat := 2400
+/-- `PUBLICKEY_BYTES` in `src/crypto/pqc/ml_dsa_65/constants.rs` under the default feature. -/
+def mlDsaPublicKeyBytes : Nat := 1952
+/-- `SECRETKEY_BYTES` in `src/crypto/pqc/ml_dsa_65/constants.rs` under the default feature. -/
+def mlDsaSecretKeyBytes : Nat := 4032
+/-- The length of the key store's `master_key: Option<[u8; 32]>` in `store.rs`. -/
+def masterSlotBytes : Nat := 32
+
+/-- An ML-KEM encapsulation key is the size of a Kyber public key and a
+decapsulation key the size of a Kyber secret key, not the other way round. -/
+theorem ml_kem_key_lengths_are_the_kyber_public_and_secret_key_sizes :
+    (∃ n, keytype_key_length .MlKemEncap = ok n ∧ n.val = kyberPublicKeyBytes) ∧
+    (∃ n, keytype_key_length .MlKemDecap = ok n ∧ n.val = kyberSecretKeyBytes) :=
+  ⟨⟨_, rfl, rfl⟩, ⟨_, rfl, rfl⟩⟩
+
+/-- An ML-DSA signing key is the size of an ML-DSA-65 secret key and a
+verification key the size of its public key. -/
+theorem ml_dsa_key_lengths_are_the_ml_dsa_65_public_and_secret_key_sizes :
+    (∃ n, keytype_key_length .MlDsaSign = ok n ∧ n.val = mlDsaSecretKeyBytes) ∧
+    (∃ n, keytype_key_length .MlDsaVerify = ok n ∧ n.val = mlDsaPublicKeyBytes) :=
+  ⟨⟨_, rfl, rfl⟩, ⟨_, rfl, rfl⟩⟩
+
+/-- Every key type that is not post-quantum, the master key among them, is as
+long as the store's 32-byte master slot. -/
+theorem every_classical_keytype_key_length_is_the_master_slot_size (k : types.KeyType)
+    (h : k ≠ .MlKemEncap ∧ k ≠ .MlKemDecap ∧ k ≠ .MlDsaSign ∧ k ≠ .MlDsaVerify) :
+    ∃ n, keytype_key_length k = ok n ∧ n.val = masterSlotBytes := by
+  obtain ⟨h1, h2, h3, h4⟩ := h
+  cases k <;> first
+    | exact absurd rfl h1 | exact absurd rfl h2 | exact absurd rfl h3 | exact absurd rfl h4
+    | exact ⟨_, rfl, rfl⟩
+
+/-- Every key length is nonzero, so `generate_key`'s all-zero check can succeed,
+and at most `255 * 32`, so the `u8` block counter in `derive_key` never runs out
+before the key is filled. -/
+theorem every_keytype_key_length_is_nonzero_and_within_the_derivation_counter
+    (k : types.KeyType) :
+    ∃ n, keytype_key_length k = ok n ∧ 0 < n.val ∧ n.val ≤ 255 * 32 := by
+  cases k <;> exact ⟨_, rfl, by decide, by decide⟩
+
+/-- Each preset carries the permission it is named for. -/
+theorem each_keyusage_preset_grants_its_named_permission :
+    (∃ u, keyusage_signing = ok u ∧ u.sign = true) ∧
+    (∃ u, keyusage_verification = ok u ∧ u.verify = true) ∧
+    (∃ u, keyusage_encryption = ok u ∧ u.encrypt = true ∧ u.decrypt = true) ∧
+    (∃ u, keyusage_key_exchange = ok u ∧ u.derive = true) ∧
+    (∃ u, keyusage_master = ok u ∧ u.derive = true) :=
+  ⟨⟨_, rfl, rfl⟩, ⟨_, rfl, rfl⟩, ⟨_, rfl, rfl, rfl⟩, ⟨_, rfl, rfl⟩, ⟨_, rfl, rfl⟩⟩
+
+/-- `export_key` refuses unless `usage.exportable` holds, so a key created with
+a preset can leave the store only if that preset is `verification`: signing,
+encryption, key-exchange and master keys are all refused. -/
+theorem only_keyusage_verification_is_exportable :
+    (∃ u, keyusage_verification = ok u ∧ u.exportable = true) ∧
+    (∃ u, keyusage_signing = ok u ∧ u.exportable = false) ∧
+    (∃ u, keyusage_encryption = ok u ∧ u.exportable = false) ∧
+    (∃ u, keyusage_key_exchange = ok u ∧ u.exportable = false) ∧
+    (∃ u, keyusage_master = ok u ∧ u.exportable = false) :=
+  ⟨⟨_, rfl, rfl⟩, ⟨_, rfl, rfl⟩, ⟨_, rfl, rfl⟩, ⟨_, rfl, rfl⟩, ⟨_, rfl, rfl⟩⟩
+
+/-- No preset that may be exported also allows signing, decrypting or deriving,
+the operations that need secret material. -/
+theorem no_exportable_keyusage_preset_carries_a_secret_key_permission (u : types.KeyUsage)
+    (hu : keyusage_signing = ok u ∨ keyusage_verification = ok u ∨
+      keyusage_encryption = ok u ∨ keyusage_key_exchange = ok u ∨ keyusage_master = ok u)
+    (he : u.exportable = true) :
+    u.sign = false ∧ u.decrypt = false ∧ u.derive = false := by
+  simp only [keyusage_signing, keyusage_verification, keyusage_encryption,
+    keyusage_key_exchange, keyusage_master, types.KeyUsage.signing,
+    types.KeyUsage.verification, types.KeyUsage.encryption,
+    types.KeyUsage.key_exchange, types.KeyUsage.master, ok.injEq] at hu
+  rcases hu with rfl | rfl | rfl | rfl | rfl <;> simp_all
+
+/-- The master preset is the key-exchange preset field for field, so a
+`KeyUsage` value alone cannot tell a master key from a key-exchange key; the
+kernel keeps the master key apart in its own `master_key` slot instead. -/
+theorem keyusage_master_is_keyusage_key_exchange :
+    keyusage_master = keyusage_key_exchange := rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.KeyManagementTypes.the_keytype_key_length_wrapper_is_its_method
@@ -58,5 +166,13 @@ theorem the_keyusage_master_wrapper_is_its_method :
 #print axioms NonosExtraction.KeyManagementTypes.the_keyusage_encryption_wrapper_is_its_method
 #print axioms NonosExtraction.KeyManagementTypes.the_keyusage_key_exchange_wrapper_is_its_method
 #print axioms NonosExtraction.KeyManagementTypes.the_keyusage_master_wrapper_is_its_method
+#print axioms NonosExtraction.KeyManagementTypes.ml_kem_key_lengths_are_the_kyber_public_and_secret_key_sizes
+#print axioms NonosExtraction.KeyManagementTypes.ml_dsa_key_lengths_are_the_ml_dsa_65_public_and_secret_key_sizes
+#print axioms NonosExtraction.KeyManagementTypes.every_classical_keytype_key_length_is_the_master_slot_size
+#print axioms NonosExtraction.KeyManagementTypes.every_keytype_key_length_is_nonzero_and_within_the_derivation_counter
+#print axioms NonosExtraction.KeyManagementTypes.each_keyusage_preset_grants_its_named_permission
+#print axioms NonosExtraction.KeyManagementTypes.only_keyusage_verification_is_exportable
+#print axioms NonosExtraction.KeyManagementTypes.no_exportable_keyusage_preset_carries_a_secret_key_permission
+#print axioms NonosExtraction.KeyManagementTypes.keyusage_master_is_keyusage_key_exchange
 
 end NonosExtraction.KeyManagementTypes

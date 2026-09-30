@@ -21,3 +21,5 @@
 mod netif_tests;
 #[cfg(test)]
 mod station_tests;
+#[cfg(test)]
+mod supplicant_tests;

@@ -41,10 +41,90 @@ theorem the_scanconfig_with_max_depth_wrapper_is_its_method (a : types.ScanConfi
 theorem the_scanconfig_hidden_only_wrapper_is_its_method (a : types.ScanConfig) :
     scanconfig_hidden_only a = types.ScanConfig.hidden_only a := rfl
 
+/-! ### The scan configuration builders
+
+`scan_with_config` in src/fs/utils/scan_config.rs skips an entry deeper than
+`max_depth` and drops a hidden file only when `include_hidden` is false, so the
+builders decide how far and how widely a scan walks. The theorems below establish
+that a fresh configuration is bounded (depth 64, 65536 files), does not follow
+symbolic links, includes hidden files and is already inside the depth clamp; that
+`with_max_depth` never fails, sets the depth to the smaller of the request and
+`MAX_SCAN_DEPTH` (so 65 and `usize::MAX` both give 64) and changes no other field;
+and that `hidden_only` is the identity on every configuration that already
+includes hidden files, which records a defect described on that theorem.
+
+They cannot establish what `scan_with_config` does with the configuration: the
+scanner, the filesystem it walks and `is_hidden` are not extracted into this
+module. The vectors of extensions and name patterns are carried through as opaque
+values, so nothing here says anything about their contents beyond that the
+builders leave them unchanged.
+-/
+
+/-- The default configuration is bounded in depth and file count, refuses symbolic
+links, includes hidden files and applies no sensitivity threshold, and its depth is
+a fixed point of the clamp. -/
+theorem scanconfig_new_is_bounded_and_inside_the_depth_clamp :
+    ∃ c, scanconfig_new = ok c ∧ c.max_depth.val = 64 ∧ c.max_files.val = 65536 ∧
+      c.include_hidden = true ∧ c.follow_symlinks = false ∧
+      c.sensitivity_threshold = types.SensitivityLevel.None ∧
+      scanconfig_with_max_depth c c.max_depth = ok c := by
+  unfold scanconfig_new types.ScanConfig.new
+  refine ⟨_, rfl, ?_, ?_, rfl, rfl, rfl, ?_⟩
+  · unfold types.MAX_SCAN_DEPTH; rfl
+  · unfold types.MAX_SCAN_FILES; rfl
+  · unfold scanconfig_with_max_depth types.ScanConfig.with_max_depth
+    simp only [lift, bind_tc_ok]
+    unfold types.MAX_SCAN_DEPTH
+    rfl
+
+/-- `with_max_depth` never fails, saturates the requested depth at
+`MAX_SCAN_DEPTH` rather than wrapping or refusing it, and leaves every other field
+of the configuration as it was. -/
+theorem scanconfig_with_max_depth_saturates_at_64_and_changes_nothing_else
+    (c : types.ScanConfig) (d : Std.Usize) :
+    ∃ c', scanconfig_with_max_depth c d = ok c' ∧
+      c'.max_depth.val = min d.val 64 ∧
+      c' = { c with max_depth := c'.max_depth } := by
+  unfold scanconfig_with_max_depth types.ScanConfig.with_max_depth
+  simp only [lift, bind_tc_ok]
+  refine ⟨_, rfl, ?_, rfl⟩
+  rw [core.cmp.impls.OrdUsize.min_val]
+  unfold types.MAX_SCAN_DEPTH
+  simp
+
+/-- Whatever depth is requested, the configuration never permits a walk deeper
+than 64 levels. -/
+theorem scanconfig_with_max_depth_never_exceeds_the_cap
+    (c c' : types.ScanConfig) (d : Std.Usize)
+    (h : scanconfig_with_max_depth c d = ok c') : c'.max_depth.val ≤ 64 := by
+  obtain ⟨c'', h1, h2, _⟩ := scanconfig_with_max_depth_saturates_at_64_and_changes_nothing_else c d
+  rw [h1] at h
+  cases h
+  omega
+
+/-- This records a defect. `hidden_only` sets `include_hidden`, which every fresh
+configuration already has, and the scanner reads that field only to exclude hidden
+files when it is false. So `hidden_only` is the identity on any configuration that
+already includes hidden files, and `ScanConfig::new().hidden_only()` is
+`ScanConfig::new()`: a scan built this way still returns every non-hidden file. The
+configuration has no field that could express "hidden files only". -/
+theorem scanconfig_hidden_only_changes_no_config_that_already_includes_hidden_files
+    (c : types.ScanConfig) (h : c.include_hidden = true) :
+    scanconfig_hidden_only c = ok c ∧
+    (do let c ← scanconfig_new; scanconfig_hidden_only c) = scanconfig_new := by
+  refine ⟨?_, rfl⟩
+  unfold scanconfig_hidden_only types.ScanConfig.hidden_only
+  cases c
+  simp_all
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.UtilsTypes.the_scanconfig_new_wrapper_is_its_method
 #print axioms NonosExtraction.UtilsTypes.the_scanconfig_with_max_depth_wrapper_is_its_method
 #print axioms NonosExtraction.UtilsTypes.the_scanconfig_hidden_only_wrapper_is_its_method
+#print axioms NonosExtraction.UtilsTypes.scanconfig_new_is_bounded_and_inside_the_depth_clamp
+#print axioms NonosExtraction.UtilsTypes.scanconfig_with_max_depth_saturates_at_64_and_changes_nothing_else
+#print axioms NonosExtraction.UtilsTypes.scanconfig_with_max_depth_never_exceeds_the_cap
+#print axioms NonosExtraction.UtilsTypes.scanconfig_hidden_only_changes_no_config_that_already_includes_hidden_files
 
 end NonosExtraction.UtilsTypes

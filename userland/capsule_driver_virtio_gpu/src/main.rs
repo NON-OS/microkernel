@@ -31,16 +31,20 @@ use nonos_libc::{heap_init, mk_exit, mk_service_register, mk_time_millis, mk_yie
 
 const SERVICE_NAME: &[u8] = b"driver.virtio_gpu0";
 const SERVICE_PORT: u32 = 4226;
-// Give the device a bounded window to appear, then exit cleanly. On hardware
-// with no virtio-gpu (real hardware presents through the GOP framebuffer) it would
-// otherwise retry forever; degrading to a clean exit frees the slot and lets
-// the compositor fall back.
+// Bounded retry for a device that is present but fails a setup step; a clean
+// exit after it frees the slot and lets the compositor fall back to GOP.
 const PROBE_DEADLINE_MS: i64 = 10_000;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
+    }
+    // The broker lists every PCI function before the first capsule starts, so
+    // with no virtio-gpu the retry below only spun through ten seconds of boot
+    // on real hardware. Leave at once (2, absent); the compositor takes GOP.
+    if discover::find_virtio_gpu().is_none() {
+        mk_exit(2);
     }
     let start = mk_time_millis();
     let driver = loop {

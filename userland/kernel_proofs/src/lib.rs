@@ -25,9 +25,25 @@ pub mod arch;
 pub mod bus;
 pub mod capabilities;
 pub mod elf;
+#[cfg(test)]
+pub mod fd_fork;
+#[cfg(test)]
+pub mod idt_vectors;
 pub mod memory;
 #[cfg(test)]
+pub mod pipe_counts;
+#[cfg(test)]
+pub mod pci_address;
+#[cfg(test)]
 pub mod process;
+#[cfg(test)]
+pub mod procfs_inode;
+#[cfg(test)]
+pub mod riscv_mmu;
+#[cfg(test)]
+pub mod range_ends;
+#[cfg(test)]
+pub mod rsdp_address;
 pub mod syscall;
 pub mod time;
 pub mod security;
@@ -55,6 +71,8 @@ mod registry_fold_tests;
 mod registry_set_tests;
 #[cfg(test)]
 mod syscall_tests;
+#[cfg(test)]
+mod uefi_cache;
 #[cfg(test)]
 mod refinement_tests;
 #[cfg(test)]

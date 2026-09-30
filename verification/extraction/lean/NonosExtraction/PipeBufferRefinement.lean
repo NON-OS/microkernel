@@ -128,6 +128,218 @@ theorem the_pipe_is_sixty_four_kilobytes :
     buffer.PIPE_BUF_SIZE = 65536#usize := by
   unfold buffer.PIPE_BUF_SIZE; rfl
 
+/-! ### Occupancy, a fresh pipe, and the endpoint counters
+
+    `len` is proven to be the ring distance from `tail` to `head` whenever both
+    lie inside the ring: it cannot overflow, it stays strictly below
+    `capacity`, advancing `tail` by it lands on `head` (the step `read` takes
+    when it drains everything), and it agrees with `available_write` in the
+    sense that the two, plus the reserved slot, add up to `capacity`.
+
+    `new` is proven to back the ring with exactly `capacity` zero bytes, so
+    every index `(head + i) % capacity` that `read` and `write` compute is in
+    bounds, and to start `head` and `tail` from one value, so a fresh pipe is
+    empty whatever that value reads as.
+
+    The reader and writer counters are atomics, and Aeneas leaves every atomic
+    operation opaque. What can be established is which cell each operation
+    touches, by how much, with which ordering, and how a load is turned into a
+    yes or no. What cannot be established here is the value a counter holds
+    after a sequence of operations: that a fresh pipe starts with one reader and
+    one writer, and anything about concurrent interleavings, live inside the
+    opaque atomics. What is established is that `remove_reader` and
+    `remove_writer` store the loaded count less one when it is not zero and
+    store nothing when it is, so they cannot wrap. That the load and the store
+    are not interleaved with another decrement rests on every caller holding
+    the pipe's mutex, which is not extracted. The callers in `src/fs/pipe`
+    (`PipeReader`, `PipeWriter`, the descriptor registry, `pipe_read`,
+    `pipe_write`, `sys_pipe2`) are not extracted either.
+-/
+
+/-- Inside the ring discipline, `len` is the distance from `tail` forward to
+    `head`. It returns without overflow, it is strictly below `capacity`, adding
+    it to `tail` gives `head` either directly or after one wrap, and it and
+    `available_write` together with the one reserved slot account for the whole
+    capacity. The last clause is the agreement between the two extracted
+    occupancy functions. -/
+theorem pipebuffer_len_is_the_ring_distance_and_complements_available_write
+    (b : buffer.PipeBuffer) (h t : Std.Usize)
+    (hh : core.sync.atomic.AtomicUsizeAlign8Usize.load b.head .SeqCst = ok h)
+    (ht : core.sync.atomic.AtomicUsizeAlign8Usize.load b.tail .SeqCst = ok t)
+    (hhc : h.val < b.capacity.val) (htc : t.val < b.capacity.val) :
+    ∃ l a, pipebuffer_len b = ok l ∧ pipebuffer_available_write b = ok a ∧
+      l.val < b.capacity.val ∧
+      (t.val + l.val = h.val ∨ t.val + l.val = h.val + b.capacity.val) ∧
+      l.val + a.val + 1 = b.capacity.val := by
+  unfold pipebuffer_len pipebuffer_available_write buffer.PipeBuffer.available_write
+    buffer.PipeBuffer.len
+  simp only [hh, ht, bind_tc_ok]
+  split
+  · have ⟨l, hl, hlv⟩ := WP.spec_imp_exists
+      (Usize.sub_spec (x := h) (y := t) (by scalar_tac))
+    simp only [hl, bind_tc_ok]
+    have ⟨i, hi, hiv⟩ := WP.spec_imp_exists
+      (Usize.sub_spec (x := b.capacity) (y := l) (by scalar_tac))
+    simp only [hi, bind_tc_ok]
+    have ⟨a, ha, hav⟩ := WP.spec_imp_exists
+      (Usize.sub_spec (x := i) (y := 1#usize) (by scalar_tac))
+    refine ⟨l, a, rfl, ha, ?_, ?_, ?_⟩ <;> scalar_tac
+  · have ⟨j, hj, hjv⟩ := WP.spec_imp_exists
+      (Usize.sub_spec (x := b.capacity) (y := t) (by scalar_tac))
+    simp only [hj, bind_tc_ok]
+    have ⟨l, hl, hlv⟩ := WP.spec_imp_exists
+      (Usize.add_spec (x := j) (y := h) (by scalar_tac))
+    simp only [hl, bind_tc_ok]
+    have ⟨i, hi, hiv⟩ := WP.spec_imp_exists
+      (Usize.sub_spec (x := b.capacity) (y := l) (by scalar_tac))
+    simp only [hi, bind_tc_ok]
+    have ⟨a, ha, hav⟩ := WP.spec_imp_exists
+      (Usize.sub_spec (x := i) (y := 1#usize) (by scalar_tac))
+    refine ⟨l, a, rfl, ha, ?_, ?_, ?_⟩ <;> scalar_tac
+
+/-- A pipe that `new` returns has a capacity of sixty four kilobytes, a backing
+    vector of exactly that many bytes, all of them zero, so no index reduced
+    modulo `capacity` falls outside it and no stale data is readable. Its `head`
+    and `tail` are the same cell, and its reader and writer counters are built
+    from the same initial value. -/
+theorem pipebuffer_new_builds_a_zeroed_ring_of_its_own_capacity
+    (b : buffer.PipeBuffer) (hb : pipebuffer_new = ok b) :
+    b.capacity.val = 65536 ∧ b.data.length = b.capacity.val ∧
+    b.data.val = List.replicate 65536 0#u8 ∧ b.head = b.tail ∧
+    b.readers = b.writers := by
+  unfold pipebuffer_new buffer.PipeBuffer.new at hb
+  have ⟨v, hv, hvl, hvlen⟩ := WP.spec_imp_exists
+    (alloc.vec.from_elem_spec core.clone.CloneU8 0#u8 buffer.PIPE_BUF_SIZE (by rfl))
+  have hc : buffer.PIPE_BUF_SIZE = 65536#usize := by unfold buffer.PIPE_BUF_SIZE; rfl
+  rw [hv] at hb
+  simp only [bind_tc_ok] at hb
+  cases h0 : core.sync.atomic.AtomicUsizeAlign8Usize.new 0#usize <;> rw [h0] at hb <;>
+    simp only [bind_tc_ok, bind_tc_fail, bind_tc_div, reduceCtorEq] at hb
+  cases h1 : core.sync.atomic.AtomicUsizeAlign8Usize.new 1#usize <;> rw [h1] at hb <;>
+    simp only [bind_tc_ok, bind_tc_fail, bind_tc_div, reduceCtorEq] at hb
+  cases hb
+  rw [hc] at hvl hvlen
+  exact ⟨by rw [hc]; rfl, by rw [hc]; exact hvlen, hvl, rfl, rfl⟩
+
+/-- A fresh pipe is empty: whatever its shared `head` and `tail` cell loads as,
+    `len` answers zero. -/
+theorem pipebuffer_new_is_empty_by_pipebuffer_len
+    (b : buffer.PipeBuffer) (hb : pipebuffer_new = ok b) (x : Std.Usize)
+    (hx : core.sync.atomic.AtomicUsizeAlign8Usize.load b.head .SeqCst = ok x) :
+    pipebuffer_len b = ok 0#usize := by
+  have ⟨_, _, _, hht, _⟩ := pipebuffer_new_builds_a_zeroed_ring_of_its_own_capacity b hb
+  have ht : core.sync.atomic.AtomicUsizeAlign8Usize.load b.tail .SeqCst = ok x := by
+    rw [← hht]; exact hx
+  unfold pipebuffer_len buffer.PipeBuffer.len
+  simp only [hx, ht, bind_tc_ok, ge_iff_le, le_refl, ↓reduceIte]
+  have ⟨l, hl, hlv⟩ := WP.spec_imp_exists (Usize.sub_spec (x := x) (y := x) (by scalar_tac))
+  rw [hl]
+  congr 1
+  apply UScalar.eq_of_val_eq
+  scalar_tac
+
+/-- `has_readers` is exactly "the reader count is not zero". A single remaining
+    reader counts: `pipe_write` keeps a blocked writer waiting while this holds,
+    and `PipeWriter::poll` raises its error bit when it does not. -/
+theorem pipebuffer_has_readers_is_the_reader_count_being_nonzero
+    (b : buffer.PipeBuffer) (n : Std.Usize)
+    (h : core.sync.atomic.AtomicUsizeAlign8Usize.load b.readers .SeqCst = ok n) :
+    pipebuffer_has_readers b = ok (decide (n.val ≠ 0)) := by
+  unfold pipebuffer_has_readers buffer.PipeBuffer.has_readers
+  simp only [h, bind_tc_ok]
+  congr 1
+  apply decide_eq_decide.mpr
+  constructor <;> intro _ <;> scalar_tac
+
+/-- `has_writers` is exactly "the writer count is not zero". `pipe_read` treats a
+    false answer on an empty pipe as end of file and a true one as a reason to
+    wait. -/
+theorem pipebuffer_has_writers_is_the_writer_count_being_nonzero
+    (b : buffer.PipeBuffer) (n : Std.Usize)
+    (h : core.sync.atomic.AtomicUsizeAlign8Usize.load b.writers .SeqCst = ok n) :
+    pipebuffer_has_writers b = ok (decide (n.val ≠ 0)) := by
+  unfold pipebuffer_has_writers buffer.PipeBuffer.has_writers
+  simp only [h, bind_tc_ok]
+  congr 1
+  apply decide_eq_decide.mpr
+  constructor <;> intro _ <;> scalar_tac
+
+/-- Every reader operation depends on the reader counter alone: two buffers that
+    share it give the same answer to `add_reader`, `remove_reader` and
+    `has_readers`, whatever their writers, ring positions or data. So no reader
+    operation touches the writer counter. -/
+theorem reader_operations_read_only_the_reader_count
+    (b b' : buffer.PipeBuffer) (h : b.readers = b'.readers) :
+    pipebuffer_add_reader b = pipebuffer_add_reader b' ∧
+    pipebuffer_remove_reader b = pipebuffer_remove_reader b' ∧
+    pipebuffer_has_readers b = pipebuffer_has_readers b' := by
+  simp only [pipebuffer_add_reader, buffer.PipeBuffer.add_reader,
+    pipebuffer_remove_reader, buffer.PipeBuffer.remove_reader,
+    pipebuffer_has_readers, buffer.PipeBuffer.has_readers, h, and_self]
+
+/-- Every writer operation depends on the writer counter alone, the dual of the
+    reader statement. Together they say the two counters are never confused. -/
+theorem writer_operations_read_only_the_writer_count
+    (b b' : buffer.PipeBuffer) (h : b.writers = b'.writers) :
+    pipebuffer_add_writer b = pipebuffer_add_writer b' ∧
+    pipebuffer_remove_writer b = pipebuffer_remove_writer b' ∧
+    pipebuffer_has_writers b = pipebuffer_has_writers b' := by
+  simp only [pipebuffer_add_writer, buffer.PipeBuffer.add_writer,
+    pipebuffer_remove_writer, buffer.PipeBuffer.remove_writer,
+    pipebuffer_has_writers, buffer.PipeBuffer.has_writers, h, and_self]
+
+private theorem pred_ok (n : Std.Usize) (h : n.val ≠ 0) :
+    ∃ i : Std.Usize, n - 1#usize = ok i ∧ i.val = n.val - 1 := by
+  have ⟨i, hi, hiv⟩ := WP.spec_imp_exists (Usize.sub_spec (x := n) (y := 1#usize) (by scalar_tac))
+  exact ⟨i, hi, by scalar_tac⟩
+
+/-- `add_reader` is one atomic add of one on the reader counter. `remove_reader`
+    loads that counter and, when it is not zero, stores it less one; when it is
+    zero it stores nothing. So the count stops at zero: closing and dropping the
+    last reader can no longer take it to `usize::MAX`, which had made
+    `has_readers` hold forever. -/
+theorem pipebuffer_remove_reader_stops_at_zero (b : buffer.PipeBuffer) (n : Std.Usize)
+    (h : core.sync.atomic.AtomicUsizeAlign8Usize.load b.readers .SeqCst = ok n) :
+    pipebuffer_add_reader b =
+      (do let _ ← core.sync.atomic.AtomicUsizeAlign8Usize.fetch_add b.readers 1#usize .SeqCst
+          ok ()) ∧
+    (n.val = 0 → pipebuffer_remove_reader b = ok ()) ∧
+    (n.val ≠ 0 → ∃ i : Std.Usize, i.val = n.val - 1 ∧
+      pipebuffer_remove_reader b =
+        core.sync.atomic.AtomicUsizeAlign8Usize.store b.readers i .SeqCst) := by
+  refine ⟨rfl, fun h0 => ?_, fun h0 => ?_⟩
+  · unfold pipebuffer_remove_reader buffer.PipeBuffer.remove_reader
+    have : ¬ n > 0#usize := by scalar_tac
+    simp only [h, bind_tc_ok, this, ↓reduceIte]
+  · obtain ⟨i, hi, hiv⟩ := pred_ok n h0
+    refine ⟨i, hiv, ?_⟩
+    unfold pipebuffer_remove_reader buffer.PipeBuffer.remove_reader
+    have : n > 0#usize := by scalar_tac
+    simp only [h, bind_tc_ok, this, ↓reduceIte, hi]
+
+/-- The writer dual: `remove_writer` stores the loaded writer count less one
+    when it is not zero and nothing when it is. Closing and dropping the last
+    writer used to wrap the count, after which a blocked `pipe_read` on an empty
+    pipe waited forever instead of seeing end of file. -/
+theorem pipebuffer_remove_writer_stops_at_zero (b : buffer.PipeBuffer) (n : Std.Usize)
+    (h : core.sync.atomic.AtomicUsizeAlign8Usize.load b.writers .SeqCst = ok n) :
+    pipebuffer_add_writer b =
+      (do let _ ← core.sync.atomic.AtomicUsizeAlign8Usize.fetch_add b.writers 1#usize .SeqCst
+          ok ()) ∧
+    (n.val = 0 → pipebuffer_remove_writer b = ok ()) ∧
+    (n.val ≠ 0 → ∃ i : Std.Usize, i.val = n.val - 1 ∧
+      pipebuffer_remove_writer b =
+        core.sync.atomic.AtomicUsizeAlign8Usize.store b.writers i .SeqCst) := by
+  refine ⟨rfl, fun h0 => ?_, fun h0 => ?_⟩
+  · unfold pipebuffer_remove_writer buffer.PipeBuffer.remove_writer
+    have : ¬ n > 0#usize := by scalar_tac
+    simp only [h, bind_tc_ok, this, ↓reduceIte]
+  · obtain ⟨i, hi, hiv⟩ := pred_ok n h0
+    refine ⟨i, hiv, ?_⟩
+    unfold pipebuffer_remove_writer buffer.PipeBuffer.remove_writer
+    have : n > 0#usize := by scalar_tac
+    simp only [h, bind_tc_ok, this, ↓reduceIte, hi]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.PipeBuffer.available_is_capacity_less_length_less_one
@@ -145,5 +357,14 @@ theorem the_pipe_is_sixty_four_kilobytes :
 #print axioms NonosExtraction.PipeBuffer.the_pipebuffer_remove_writer_wrapper_is_its_method
 #print axioms NonosExtraction.PipeBuffer.the_pipebuffer_has_readers_wrapper_is_its_method
 #print axioms NonosExtraction.PipeBuffer.the_pipebuffer_has_writers_wrapper_is_its_method
+#print axioms NonosExtraction.PipeBuffer.pipebuffer_len_is_the_ring_distance_and_complements_available_write
+#print axioms NonosExtraction.PipeBuffer.pipebuffer_new_builds_a_zeroed_ring_of_its_own_capacity
+#print axioms NonosExtraction.PipeBuffer.pipebuffer_new_is_empty_by_pipebuffer_len
+#print axioms NonosExtraction.PipeBuffer.pipebuffer_has_readers_is_the_reader_count_being_nonzero
+#print axioms NonosExtraction.PipeBuffer.pipebuffer_has_writers_is_the_writer_count_being_nonzero
+#print axioms NonosExtraction.PipeBuffer.reader_operations_read_only_the_reader_count
+#print axioms NonosExtraction.PipeBuffer.writer_operations_read_only_the_writer_count
+#print axioms NonosExtraction.PipeBuffer.pipebuffer_remove_reader_stops_at_zero
+#print axioms NonosExtraction.PipeBuffer.pipebuffer_remove_writer_stops_at_zero
 
 end NonosExtraction.PipeBuffer

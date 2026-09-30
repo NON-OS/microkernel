@@ -8,8 +8,9 @@
 
 use crate::constants::{
     ALL_INTS_MASK, APM_POLL_ITERS, CSR_FH_INT_STATUS, CSR_GP_CNTRL, CSR_HW_REV, CSR_INT,
-    CSR_INT_COALESCING, CSR_INT_MASK, GP_CNTRL_INIT_DONE, GP_CNTRL_MAC_ACCESS_REQ,
-    GP_CNTRL_MAC_CLOCK_READY, GP_CNTRL_XTAL_ON, INT_COALESCING_TIMEOUT, INT_MASK_DISABLED,
+    CSR_INT_COALESCING, CSR_INT_MASK, GP_CNTRL_HW_RF_KILL_SW, GP_CNTRL_INIT_DONE,
+    GP_CNTRL_MAC_ACCESS_REQ, GP_CNTRL_MAC_CLOCK_READY, GP_CNTRL_XTAL_ON, INT_COALESCING_TIMEOUT,
+    INT_MASK_DISABLED,
 };
 use crate::regs::Regs;
 
@@ -34,6 +35,8 @@ pub fn bring_up(regs: Regs) -> Result<InitState, &'static str> {
     Ok(InitState {
         hw_rev: regs.read32(CSR_HW_REV),
         gp_cntrl,
-        rf_kill: gp_cntrl & GP_CNTRL_INIT_DONE == 0,
+        // INIT_DONE is the bit this function just set, so it said nothing
+        // about the airplane-mode switch; this is the bit that does.
+        rf_kill: gp_cntrl & GP_CNTRL_HW_RF_KILL_SW == 0,
     })
 }

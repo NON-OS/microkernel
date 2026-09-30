@@ -23,7 +23,7 @@ use super::core::UefiManager;
 use super::state::INITIALIZED;
 use crate::arch::x86_64::uefi::error::UefiError;
 use crate::arch::x86_64::uefi::tables::RuntimeServices;
-use crate::arch::x86_64::uefi::types::{Guid, VariableAttributes};
+use crate::arch::x86_64::uefi::types::Guid;
 use crate::arch::x86_64::uefi::variable::{FirmwareInfo, UefiVariable};
 
 impl UefiManager {
@@ -87,13 +87,8 @@ impl UefiManager {
         ];
 
         for (name, guid) in &vars {
-            if let Ok(data) = self.read_variable_raw(name, guid) {
-                let var = UefiVariable::new(
-                    String::from(*name),
-                    *guid,
-                    VariableAttributes::DEFAULT_NV_BS_RT,
-                    data,
-                );
+            if let Ok((attributes, data)) = self.read_variable_with_attributes(name, guid) {
+                let var = UefiVariable::new(String::from(*name), *guid, attributes, data);
                 self.variables_cache.write().insert((String::from(*name), *guid), var);
             }
         }

@@ -26,18 +26,19 @@ inductive mode.MmuMode where
 | Unknown : mode.MmuMode
 
 /-- [nonos_x_mmu_mode::mode::{nonos_x_mmu_mode::mode::MmuMode}::satp_mode]:
-    Source: 'src/../../../../../src/arch/riscv64/mmu/mode.rs', lines 27:4-35:5
+    Source: 'src/../../../../../src/arch/riscv64/mmu/mode.rs', lines 32:4-40:5
     Visibility: public -/
-def mode.MmuMode.satp_mode (self : mode.MmuMode) : Result Std.Usize := do
+def mode.MmuMode.satp_mode
+  (self : mode.MmuMode) : Result (Option Std.Usize) := do
   match self with
-  | mode.MmuMode.Bare => ok 0#usize
-  | mode.MmuMode.Sv39 => ok 8#usize
-  | mode.MmuMode.Sv48 => ok 9#usize
-  | mode.MmuMode.Sv57 => ok 10#usize
-  | mode.MmuMode.Unknown => ok 0#usize
+  | mode.MmuMode.Bare => ok (some 0#usize)
+  | mode.MmuMode.Sv39 => ok (some 8#usize)
+  | mode.MmuMode.Sv48 => ok (some 9#usize)
+  | mode.MmuMode.Sv57 => ok (some 10#usize)
+  | mode.MmuMode.Unknown => ok none
 
 /-- [nonos_x_mmu_mode::mode::{nonos_x_mmu_mode::mode::MmuMode}::va_bits]:
-    Source: 'src/../../../../../src/arch/riscv64/mmu/mode.rs', lines 37:4-45:5
+    Source: 'src/../../../../../src/arch/riscv64/mmu/mode.rs', lines 42:4-50:5
     Visibility: public -/
 def mode.MmuMode.va_bits (self : mode.MmuMode) : Result Std.Usize := do
   match self with
@@ -48,7 +49,7 @@ def mode.MmuMode.va_bits (self : mode.MmuMode) : Result Std.Usize := do
   | mode.MmuMode.Unknown => ok 0#usize
 
 /-- [nonos_x_mmu_mode::mode::{nonos_x_mmu_mode::mode::MmuMode}::levels]:
-    Source: 'src/../../../../../src/arch/riscv64/mmu/mode.rs', lines 47:4-55:5
+    Source: 'src/../../../../../src/arch/riscv64/mmu/mode.rs', lines 52:4-60:5
     Visibility: public -/
 def mode.MmuMode.levels (self : mode.MmuMode) : Result Std.Usize := do
   match self with
@@ -61,7 +62,7 @@ def mode.MmuMode.levels (self : mode.MmuMode) : Result Std.Usize := do
 /-- [nonos_x_mmu_mode::mmumode_satp_mode]:
     Source: 'src/lib.rs', lines 10:0-12:1
     Visibility: public -/
-def mmumode_satp_mode (this : mode.MmuMode) : Result Std.Usize := do
+def mmumode_satp_mode (this : mode.MmuMode) : Result (Option Std.Usize) := do
   mode.MmuMode.satp_mode this
 
 /-- [nonos_x_mmu_mode::mmumode_va_bits]:

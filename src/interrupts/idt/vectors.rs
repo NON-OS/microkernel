@@ -36,6 +36,8 @@ pub const VECTOR_MACHINE_CHECK: u8 = 18;
 pub const VECTOR_SIMD_FLOATING_POINT: u8 = 19;
 pub const VECTOR_VIRTUALIZATION: u8 = 20;
 pub const VECTOR_CONTROL_PROTECTION: u8 = 21;
+pub const VECTOR_VMM_COMMUNICATION: u8 = 29;
+pub const VECTOR_SECURITY: u8 = 30;
 
 pub const VECTOR_TIMER: u8 = 32;
 pub const VECTOR_KEYBOARD: u8 = 33;
@@ -122,6 +124,8 @@ pub const fn exception_name(vector: u8) -> &'static str {
         VECTOR_SIMD_FLOATING_POINT => "SIMD Floating-Point Exception",
         VECTOR_VIRTUALIZATION => "Virtualization Exception",
         VECTOR_CONTROL_PROTECTION => "Control Protection Exception",
+        VECTOR_VMM_COMMUNICATION => "VMM Communication Exception",
+        VECTOR_SECURITY => "Security Exception",
         _ => "Reserved",
     }
 }
@@ -137,6 +141,8 @@ pub const fn exception_has_error_code(vector: u8) -> bool {
             | VECTOR_PAGE_FAULT
             | VECTOR_ALIGNMENT_CHECK
             | VECTOR_CONTROL_PROTECTION
+            | VECTOR_VMM_COMMUNICATION
+            | VECTOR_SECURITY
     )
 }
 

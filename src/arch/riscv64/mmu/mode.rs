@@ -23,14 +23,19 @@ pub enum MmuMode {
     Unknown,
 }
 
+/* The mode the kernel builds every page table for. */
+pub const KERNEL_MMU_MODE: MmuMode = MmuMode::Sv39;
+const _: () = assert!(KERNEL_MMU_MODE.satp_mode().is_some());
+
 impl MmuMode {
-    pub fn satp_mode(&self) -> usize {
+    /* None for Unknown: encoding it as 0 would turn translation off. */
+    pub const fn satp_mode(&self) -> Option<usize> {
         match self {
-            MmuMode::Bare => 0,
-            MmuMode::Sv39 => 8,
-            MmuMode::Sv48 => 9,
-            MmuMode::Sv57 => 10,
-            MmuMode::Unknown => 0,
+            MmuMode::Bare => Some(0),
+            MmuMode::Sv39 => Some(8),
+            MmuMode::Sv48 => Some(9),
+            MmuMode::Sv57 => Some(10),
+            MmuMode::Unknown => None,
         }
     }
 

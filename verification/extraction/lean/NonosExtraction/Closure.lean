@@ -16,8 +16,8 @@ were extracted and carried no theorem at all. A manifest that counts those
 alongside the rest is inflating its own number.
 
 This file exists so the two sets agree. Five of the six are closed here. The
-sixth, `program_header_bounds`, is named at the end with the reason it is not,
-because a note is better than a theorem that proves nothing.
+sixth, `program_header_bounds`, is closed in `ElfBoundsRefinement`, because its
+theorems carry four opaque standard-library calls this file's profile does not.
 
 `ct_lt_u32` is the one that matters. It is the function whose defect started the
 whole constant-time pass, and until now it was covered only at witnesses while
@@ -167,14 +167,12 @@ theorem the_ordinary_signals_do_not_dump :
     dumpsCore 15#u8 = ok false ∧ dumpsCore 17#u8 = ok false := by
   refine ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
 
-/-! ### Still not proven
+/-! ### The sixth
 
-    `program_header_bounds` is extracted and diffed by CI and carries no theorem.
-    A witness needs a fifteen-field header and a slice, and `?` desugars into
-    `ControlFlow` over Aeneas's opaque `Option::ok_or`. The property it should
-    carry is stated over a model in `Nonos.ElfPhdr`, and on the code it is a host
-    test rather than a proof. That is one function, and it is named here so the
-    gap is counted rather than forgotten.
+    `program_header_bounds` is proven in `ElfBoundsRefinement`, against the model
+    in `Nonos.ElfPhdr`, with the documented behaviour of the four opaque
+    standard-library calls it makes stated as hypotheses in the theorems that need
+    it.
 -/
 
 /-! ### Axiom profile -/

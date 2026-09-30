@@ -52,7 +52,7 @@ impl UefiError {
     }
 
     pub fn from_efi_status(efi_status: u64) -> Option<Self> {
-        match efi_status {
+        match status::code(efi_status) {
             status::EFI_SUCCESS => None,
             status::EFI_NOT_FOUND => Some(UefiError::VariableNotFound { name: "unknown" }),
             status::EFI_ACCESS_DENIED => Some(UefiError::AccessDenied),

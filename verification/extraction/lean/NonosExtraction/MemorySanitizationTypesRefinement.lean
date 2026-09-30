@@ -59,6 +59,174 @@ theorem the_sanitizationstats_is_canary_enabled_wrapper_is_its_method (a : types
 theorem the_sanitizationstats_avg_bytes_per_call_wrapper_is_its_method (a : types.SanitizationStats) :
     sanitizationstats_avg_bytes_per_call a = types.SanitizationStats.avg_bytes_per_call a := rfl
 
+/-! ### What the level decoder, the canary check and the statistics report
+
+`sanitize()` in erase.rs and `get_level()` in api.rs decode the `SANITIZATION_LEVEL`
+atomic with `sanitizationlevel_from_u64`, and `set_level()` writes it as `level as u64`.
+The theorems below show that the decoder inverts the enum's `repr(u8)` discriminant,
+that only a stored zero turns wiping off, and that any value past the last level
+falls back to `Standard` rather than `None`. The canary check is shown to accept exactly
+the configured canary when enabled, to agree with the XOR comparison that
+`verify_stack_canary` in canary.rs performs, and to accept every value exactly when the
+enabled flag reads false. The average is shown never to fail and to be the Nat quotient
+of the two counters the getters report, with zero calls giving zero.
+
+The atomics themselves, the random canary that `init_stack_canary` stores, and the
+counters `fetch_add` accumulates are not extracted, so nothing here says the stored level
+is ever in range, that the canary is unpredictable, or that the counters do not wrap.
+-/
+
+/-- The decoder in closed form: 0, 1, 3 and 4 name their levels and every other value,
+    2 included, is `Standard`. -/
+theorem sanitizationlevel_from_u64_in_closed_form (v : Std.U64) :
+    sanitizationlevel_from_u64 v =
+      ok (if v.val = 0 then .None else if v.val = 1 then .Basic
+          else if v.val = 3 then .Paranoid else if v.val = 4 then .Gutmann else .Standard) := by
+  unfold sanitizationlevel_from_u64 types.SanitizationLevel.from_u64
+  split
+  all_goals first
+    | rfl
+    | (rename_i h0 h1 h2 h3 h4
+       have e0 : v.val ≠ 0 := fun e => h0 (UScalar.eq_of_val_eq (by rw [e]; rfl))
+       have e1 : v.val ≠ 1 := fun e => h1 (UScalar.eq_of_val_eq (by rw [e]; rfl))
+       have e3 : v.val ≠ 3 := fun e => h3 (UScalar.eq_of_val_eq (by rw [e]; rfl))
+       have e4 : v.val ≠ 4 := fun e => h4 (UScalar.eq_of_val_eq (by rw [e]; rfl))
+       simp [e0, e1, e3, e4])
+
+/-- Storing a level as its discriminant and decoding it gives the level back, so
+    `set_level` followed by `get_level` is the identity. -/
+theorem sanitizationlevel_from_u64_inverts_the_stored_discriminant
+    (l : types.SanitizationLevel) (v : Std.U64)
+    (h : v.val = (types.SanitizationLevel.read_discriminant l).val) :
+    sanitizationlevel_from_u64 v = ok l := by
+  rw [sanitizationlevel_from_u64_in_closed_form, h]
+  cases l <;> rfl
+
+/-- Only a stored zero decodes to `None`, the level at which `sanitize()` wipes nothing. -/
+theorem sanitizationlevel_from_u64_turns_wiping_off_only_for_zero (v : Std.U64) :
+    sanitizationlevel_from_u64 v = ok types.SanitizationLevel.None ↔ v.val = 0 := by
+  rw [sanitizationlevel_from_u64_in_closed_form]
+  by_cases h0 : v.val = 0 <;> simp only [h0, ite_true, ite_false, ok.injEq]
+  by_cases h1 : v.val = 1 <;> simp only [h1, ite_true, ite_false, reduceCtorEq]
+  by_cases h3 : v.val = 3 <;> simp only [h3, ite_true, ite_false, reduceCtorEq]
+  by_cases h4 : v.val = 4 <;> simp only [h4, ite_true, ite_false, reduceCtorEq]
+
+/-- A corrupt stored level past the last variant decodes to `Standard`, the default
+    level, rather than to anything weaker. -/
+theorem sanitizationlevel_from_u64_falls_back_to_standard_past_gutmann (v : Std.U64)
+    (h : 4 < v.val) :
+    sanitizationlevel_from_u64 v = ok types.SanitizationLevel.Standard := by
+  rw [sanitizationlevel_from_u64_in_closed_form]
+  have h0 : v.val ≠ 0 := by omega
+  have h1 : v.val ≠ 1 := by omega
+  have h3 : v.val ≠ 3 := by omega
+  have h4 : v.val ≠ 4 := by omega
+  simp [h0, h1, h3, h4]
+
+/-- The average never fails, the zero guard removing the division by zero, and it is
+    the Nat quotient of the two counters (so zero calls give zero). -/
+theorem sanitizationstats_avg_bytes_per_call_is_the_total_quotient
+    (s : types.SanitizationStats) :
+    ∃ a, sanitizationstats_avg_bytes_per_call s = ok a ∧
+      a.val = s.bytes_sanitized.val / s.sanitization_calls.val := by
+  unfold sanitizationstats_avg_bytes_per_call types.SanitizationStats.avg_bytes_per_call
+  split
+  · rename_i h
+    refine ⟨_, rfl, ?_⟩
+    simp_all
+  · rename_i h
+    have hc : s.sanitization_calls.val ≠ 0 := by
+      intro h0
+      exact h (UScalar.eq_of_val_eq (by simp [h0]))
+    obtain ⟨q, hq, hq2⟩ := UScalar.div_spec s.bytes_sanitized hc
+    exact ⟨q, hq, hq2⟩
+
+/-- The average agrees with the two getters: it is the quotient of the reported byte
+    total by the reported call count. -/
+theorem sanitizationstats_avg_bytes_per_call_divides_the_reported_counters
+    (s : types.SanitizationStats) (b c : Std.Usize)
+    (hb : sanitizationstats_get_bytes_sanitized s = ok b)
+    (hc : sanitizationstats_get_call_count s = ok c) :
+    ∃ a, sanitizationstats_avg_bytes_per_call s = ok a ∧ a.val = b.val / c.val := by
+  simp only [sanitizationstats_get_bytes_sanitized, types.SanitizationStats.get_bytes_sanitized,
+    sanitizationstats_get_call_count, types.SanitizationStats.get_call_count, ok.injEq] at hb hc
+  subst hb hc
+  exact sanitizationstats_avg_bytes_per_call_is_the_total_quotient s
+
+/-- The canary flag in a statistics snapshot is reported as stored, in both directions
+    and whatever the counters and level are. -/
+theorem sanitizationstats_is_canary_enabled_reports_the_stored_flag
+    (b c : Std.Usize) (l : types.SanitizationLevel) (e : Bool) :
+    sanitizationstats_is_canary_enabled ⟨b, c, l, e⟩ = ok e := rfl
+
+/-- The frequency is reported unclamped and whatever the enabled flag and canary are. -/
+theorem stackcanaryconfig_get_frequency_reports_the_stored_frequency
+    (e : Bool) (k : Std.U64) (f : Std.U32) :
+    stackcanaryconfig_get_frequency ⟨e, k, f⟩ = ok f := rfl
+
+/-- With protection on, `verify` agrees with `verify_stack_canary` in canary.rs, which
+    accepts a value when its XOR with the expected canary is zero. -/
+theorem stackcanaryconfig_verify_agrees_with_the_xor_check_when_enabled
+    (c : types.StackCanaryConfig) (v : Std.U64) (h : c.enabled = true) :
+    stackcanaryconfig_verify c v = ok (decide ((v ^^^ c.canary_value) = 0#u64)) := by
+  unfold stackcanaryconfig_verify types.StackCanaryConfig.verify
+  simp only [h, ite_true]
+  congr 1
+  apply decide_eq_decide.mpr
+  constructor
+  · intro hv
+    subst hv
+    apply UScalar.eq_of_val_eq
+    simp [UScalar.val_xor]
+  · intro hx
+    apply UScalar.eq_of_val_eq
+    have := congrArg UScalar.val hx
+    rw [UScalar.val_xor] at this
+    simpa using this
+
+/-- With protection off, `verify` accepts every value: the check is fail-open by design. -/
+theorem stackcanaryconfig_verify_accepts_everything_when_disabled
+    (c : types.StackCanaryConfig) (v : Std.U64) (h : c.enabled = false) :
+    stackcanaryconfig_verify c v = ok true := by
+  unfold stackcanaryconfig_verify types.StackCanaryConfig.verify
+  simp [h]
+
+/-- With protection on, the canary the getter reports is the one value `verify` accepts. -/
+theorem stackcanaryconfig_get_canary_is_the_only_value_verify_accepts
+    (c : types.StackCanaryConfig) (v : Std.U64) (h : c.enabled = true) :
+    stackcanaryconfig_verify c v = ok true ↔ stackcanaryconfig_get_canary c = ok v := by
+  unfold stackcanaryconfig_verify types.StackCanaryConfig.verify
+    stackcanaryconfig_get_canary types.StackCanaryConfig.get_canary
+  simp only [h, ite_true, ok.injEq, decide_eq_true_eq]
+  exact ⟨fun e => e.symm, fun e => e.symm⟩
+
+/-- The enabled getter reads false exactly when `verify` accepts every value, so a
+    caller that sees protection reported is never running a fail-open check. -/
+theorem stackcanaryconfig_is_enabled_is_false_exactly_when_verify_is_fail_open
+    (c : types.StackCanaryConfig) :
+    stackcanaryconfig_is_enabled c = ok false ↔
+      ∀ v : Std.U64, stackcanaryconfig_verify c v = ok true := by
+  unfold stackcanaryconfig_is_enabled types.StackCanaryConfig.is_enabled
+  cases he : c.enabled
+  · simp only [true_iff]
+    intro v
+    exact stackcanaryconfig_verify_accepts_everything_when_disabled c v he
+  · simp only [ok.injEq, Bool.true_eq_false, false_iff, not_forall]
+    by_cases hk : c.canary_value.val = 0
+    · refine ⟨1#u64, ?_⟩
+      rw [stackcanaryconfig_get_canary_is_the_only_value_verify_accepts c _ he]
+      unfold stackcanaryconfig_get_canary types.StackCanaryConfig.get_canary
+      intro e
+      have := congrArg UScalar.val (ok.inj e)
+      rw [hk] at this
+      exact absurd this (by decide)
+    · refine ⟨0#u64, ?_⟩
+      rw [stackcanaryconfig_get_canary_is_the_only_value_verify_accepts c _ he]
+      unfold stackcanaryconfig_get_canary types.StackCanaryConfig.get_canary
+      intro e
+      have := congrArg UScalar.val (ok.inj e)
+      exact hk this
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.MemorySanitizationTypes.the_sanitizationlevel_from_u64_wrapper_is_its_method
@@ -70,5 +238,17 @@ theorem the_sanitizationstats_avg_bytes_per_call_wrapper_is_its_method (a : type
 #print axioms NonosExtraction.MemorySanitizationTypes.the_sanitizationstats_get_call_count_wrapper_is_its_method
 #print axioms NonosExtraction.MemorySanitizationTypes.the_sanitizationstats_is_canary_enabled_wrapper_is_its_method
 #print axioms NonosExtraction.MemorySanitizationTypes.the_sanitizationstats_avg_bytes_per_call_wrapper_is_its_method
+#print axioms NonosExtraction.MemorySanitizationTypes.sanitizationlevel_from_u64_in_closed_form
+#print axioms NonosExtraction.MemorySanitizationTypes.sanitizationlevel_from_u64_inverts_the_stored_discriminant
+#print axioms NonosExtraction.MemorySanitizationTypes.sanitizationlevel_from_u64_turns_wiping_off_only_for_zero
+#print axioms NonosExtraction.MemorySanitizationTypes.sanitizationlevel_from_u64_falls_back_to_standard_past_gutmann
+#print axioms NonosExtraction.MemorySanitizationTypes.sanitizationstats_avg_bytes_per_call_is_the_total_quotient
+#print axioms NonosExtraction.MemorySanitizationTypes.sanitizationstats_avg_bytes_per_call_divides_the_reported_counters
+#print axioms NonosExtraction.MemorySanitizationTypes.sanitizationstats_is_canary_enabled_reports_the_stored_flag
+#print axioms NonosExtraction.MemorySanitizationTypes.stackcanaryconfig_get_frequency_reports_the_stored_frequency
+#print axioms NonosExtraction.MemorySanitizationTypes.stackcanaryconfig_verify_agrees_with_the_xor_check_when_enabled
+#print axioms NonosExtraction.MemorySanitizationTypes.stackcanaryconfig_verify_accepts_everything_when_disabled
+#print axioms NonosExtraction.MemorySanitizationTypes.stackcanaryconfig_get_canary_is_the_only_value_verify_accepts
+#print axioms NonosExtraction.MemorySanitizationTypes.stackcanaryconfig_is_enabled_is_false_exactly_when_verify_is_fail_open
 
 end NonosExtraction.MemorySanitizationTypes

@@ -69,7 +69,7 @@ pub fn bound_port() -> u32 {
 // position in the WiFi-then-wired order, so a change logs once, not per tick.
 static PROBE_SEEN: [AtomicU32; 8] = [const { AtomicU32::new(0) }; 8];
 
-fn discover_nic() -> Option<u32> {
+fn discover_nic() -> Option<(u32, &'static str)> {
     let count = WIFI_NICS.len() + WIRED_NICS.len();
     let start = PROBE_CURSOR.load(Ordering::Relaxed);
     let mut probes = 0usize;
@@ -85,7 +85,7 @@ fn discover_nic() -> Option<u32> {
         match device::link_up(port) {
             Some(true) => {
                 PROBE_CURSOR.store(idx, Ordering::Relaxed);
-                return Some(port);
+                return Some((port, name));
             }
             verdict => {
                 let code = if verdict.is_none() { 2 } else { 1 };
@@ -136,7 +136,7 @@ fn probe_log(name: &str, verdict: Option<bool>) {
 /// or the bound link drops. A no-op once bound to the best link, so it is cheap to
 /// call on a timer from the server loop.
 pub fn reevaluate() {
-    let Some(best) = discover_nic() else {
+    let Some((best, name)) = discover_nic() else {
         return;
     };
     if best == BOUND_PORT.load(Ordering::Acquire) {
@@ -155,9 +155,22 @@ pub fn reevaluate() {
     };
     state::store(net_state);
     BOUND_PORT.store(best, Ordering::Release);
-    bind_log(b"[NET-CORE] bind: interface up");
+    bind_up_log(name);
 }
 
 fn bind_log(msg: &[u8]) {
     let _ = nonos_libc::mk_debug(msg.as_ptr(), msg.len());
+}
+
+// Which NIC the stack bound. With a wired port and a WiFi link both present
+// the choice is the first thing to know, and "interface up" alone does not
+// say it.
+fn bind_up_log(name: &str) {
+    let mut line = [0u8; 96];
+    let tag: &[u8] = b"[NET-CORE] bind: interface up on ";
+    let n = tag.len();
+    line[..n].copy_from_slice(tag);
+    let m = name.len().min(line.len() - n);
+    line[n..n + m].copy_from_slice(&name.as_bytes()[..m]);
+    bind_log(&line[..n + m]);
 }

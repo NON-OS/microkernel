@@ -14,15 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{
-    mk_device_release, mk_dma_unmap, mk_irq_unbind, mk_pio_release, IrqBindOut, PioGrantOut,
-};
+use nonos_libc::{mk_device_release, mk_dma_unmap, mk_pio_release, PioGrantOut};
 
-pub fn after_irq(device_id: u64, pio: &PioGrantOut, irq: &IrqBindOut, dma_grants: &[u64]) {
+pub fn after_pio(device_id: u64, pio: &PioGrantOut, dma_grants: &[u64]) {
     for grant in dma_grants {
         let _ = mk_dma_unmap(*grant);
     }
-    let _ = mk_irq_unbind(irq.grant_id);
     let _ = mk_pio_release(pio.grant_id);
     let _ = mk_device_release(device_id);
 }

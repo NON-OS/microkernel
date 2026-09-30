@@ -35,6 +35,12 @@ pub fn program(regs: &Regs, tx: &TxRing) {
     unsafe {
         regs.w32(REG_TXDESC_ADDR_LO, tx.desc_da as u32);
         regs.w32(REG_TXDESC_ADDR_HI, (tx.desc_da >> 32) as u32);
+    }
+}
+
+/// TxConfig, written once the transmitter is enabled (see `run`).
+pub fn configure(regs: &Regs) {
+    unsafe {
         regs.w32(REG_TX_CONFIG, TX_CONFIG_IFG | TX_CONFIG_DMA);
     }
 }

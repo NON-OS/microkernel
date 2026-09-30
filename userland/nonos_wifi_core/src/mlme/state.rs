@@ -105,6 +105,11 @@ impl Mlme {
         self.supplicant.as_ref().filter(|_| self.state == MlmeState::Connected).map(|s| s.gtk())
     }
 
+    /// The group key's index, valid once Connected.
+    pub fn gtk_id(&self) -> Option<u8> {
+        self.supplicant.as_ref().filter(|_| self.state == MlmeState::Connected).map(|s| s.gtk_id())
+    }
+
     /// The station MAC and the joined AP's BSSID, needed by the data path to
     /// address encrypted frames. Meaningful once a BSS has been selected.
     pub fn our_mac(&self) -> [u8; 6] {

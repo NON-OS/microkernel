@@ -25,7 +25,6 @@ const PCI_SUBCLASS_ETHERNET: u8 = 0x00;
 #[derive(Clone, Copy)]
 pub struct Found {
     pub device_id: u64,
-    pub irq_line: u8,
     pub bar0_size: u64,
 }
 
@@ -40,14 +39,17 @@ pub fn find_e1000() -> Option<Found> {
         if !is_match(r) {
             continue;
         }
-        if r.irq_pin == 0 || r.irq_line == 0xFF || r.bar_count == 0 {
+        // Interrupt routing is not asked for: the driver polls. UEFI firmware
+        // often leaves Interrupt Line at 0xFF, and filtering on it skipped a
+        // working NIC on exactly the machines this driver is for.
+        if r.bar_count == 0 {
             continue;
         }
         let bar0 = r.bars[0];
         if bar0.kind != BAR_KIND_MMIO || bar0.size == 0 {
             continue;
         }
-        return Some(Found { device_id: r.device_id, irq_line: r.irq_line, bar0_size: bar0.size });
+        return Some(Found { device_id: r.device_id, bar0_size: bar0.size });
     }
     None
 }

@@ -49,6 +49,8 @@ pub struct Supplicant {
     /// Group temporal key, unwrapped from message 3.
     pub(super) gtk: [u8; 32],
     pub(super) gtk_len: usize,
+    /// The group key's index from its KDE.
+    pub(super) gtk_id: u8,
 }
 
 impl Supplicant {
@@ -65,6 +67,7 @@ impl Supplicant {
             ptk: [0u8; 48],
             gtk: [0u8; 32],
             gtk_len: 0,
+            gtk_id: 0,
         }
     }
 
@@ -80,6 +83,13 @@ impl Supplicant {
     /// The group temporal key, valid once Connected.
     pub fn gtk(&self) -> &[u8] {
         &self.gtk[..self.gtk_len]
+    }
+
+    /// The group key's index (1-3), valid once Connected. Group-addressed
+    /// frames name their key by it, and an AP moves it between 1 and 2 on
+    /// every rekey, so it has to be installed where the AP says.
+    pub fn gtk_id(&self) -> u8 {
+        self.gtk_id
     }
 
     // KCK: signs EAPOL MICs. KEK: unwraps the group key. Both are slices of the
