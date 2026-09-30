@@ -890,7 +890,7 @@ sha3             = { version = "0.10",  default-features = false, optional = tru
 # Portable only: the SSE and AVX assembly would use vector registers in the
 # kernel, which runs before a thread's are saved.
 blake3 = { version = "1.0",  default-features = false, features = ["pure"] }
-sha2   = { version = "0.10", default-features = false, features = ["force-soft"] }
+sha2   = { version = "0.10", default-features = false, features = ["force-soft", "compress"] }
 
 # Core utilities used in the kernel tree.
 bitflags = { version = "2.4", default-features = false }

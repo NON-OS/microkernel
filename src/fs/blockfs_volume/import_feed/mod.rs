@@ -14,27 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The data volume, reached by name: a verified import, a size, and a read
-//! of any range. The volume is the machine's; a capsule reaches it only
-//! with FileSystem, and brings a file in, or keys the volume with a
-//! passphrase, only with StoreWrite as well. A file fed in chunk by chunk
-//! takes StreamImport alone, which grants no read.
+/*
+ * An import fed by its caller, chunk by chunk, instead of read from the
+ * disk plan: the kernel seals and hashes each chunk as it arrives, so the
+ * file is never whole in memory, and links it under its name only when the
+ * SHA-256 of everything sealed is the digest named at the start. Progress
+ * is marked on the volume, so a cut stream goes on where it stopped.
+ */
 
-mod errno;
-mod feed;
-mod feed_begin;
-mod feed_errno;
-mod import;
-mod name;
-mod passphrase;
-mod read;
-mod read_bounce;
-mod read_peer;
-mod stat;
+mod begin;
+mod error;
+mod finish;
+mod hash;
+mod hash_save;
+mod link;
+mod live;
+mod mark;
+mod mark_codec;
+mod owner;
+mod pause;
+mod reread;
+mod resume;
+mod write;
 
-pub use feed::sys_data_feed;
-pub use feed_begin::sys_data_feed_begin;
-pub use import::sys_data_import;
-pub use passphrase::sys_data_passphrase;
-pub use read::sys_data_read;
-pub use stat::sys_data_stat;
+pub use begin::{stream_begin, Begun};
+pub use error::StreamError;
+pub use finish::stream_finish;
+pub use write::stream_write;

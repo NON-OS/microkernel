@@ -18,6 +18,7 @@
 
 use super::error::VolumeError;
 use super::hex::{as_str, hex32};
+use super::import_guard::is_kept;
 use super::import_record::record;
 use super::import_stream::stream_in;
 use super::imported::Imported;
@@ -30,6 +31,10 @@ pub(super) fn import_from(
     at: u64,
     bytes: u64,
 ) -> Result<Imported, VolumeError> {
+    /* A record or a mark is the kernel's own, never a file brought in. */
+    if is_kept(name) {
+        return Err(VolumeError::ImportOnly);
+    }
     let mut guard = VOLUME.write();
     let state = guard.as_mut().ok_or(VolumeError::NotMounted)?;
     let (key, mount) = (&state.key, &mut state.mount);

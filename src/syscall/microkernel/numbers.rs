@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Microkernel syscall ABI tags. Mirrors `SyscallNumber::Mk*`
-//! discriminants so the numeric router has a fixed local set.
+//! Microkernel syscall ABI tags, mirroring `SyscallNumber::Mk*` for the numeric router.
 
 use crate::syscall::abi::tag4;
 
@@ -63,6 +62,9 @@ pub const SYS_DATA_IMPORT: u64 = tag4(b"MDIM");
 pub const SYS_DATA_STAT: u64 = tag4(b"MDST");
 pub const SYS_DATA_READ: u64 = tag4(b"MDRD");
 pub const SYS_DATA_PASSPHRASE: u64 = tag4(b"MDPW");
+/// An import fed chunk by chunk, by the one capsule holding StreamImport.
+pub const SYS_DATA_FEED_BEGIN: u64 = tag4(b"MDFB");
+pub const SYS_DATA_FEED: u64 = tag4(b"MDFD");
 pub const SYS_ATTEST_STATUS: u64 = tag4(b"MAST");
 /// A signed attestation document, as opposed to the unsigned status above.
 pub const SYS_ATTEST_DOC: u64 = tag4(b"MADC");
@@ -71,13 +73,11 @@ pub const SYS_ATTEST_DOC: u64 = tag4(b"MADC");
 pub const SYS_ATTEST_ENTRIES: u64 = tag4(b"MAEN");
 /// A chunk of the image this machine booted, for the installer to write.
 pub const SYS_INSTALL_SOURCE: u64 = tag4(b"MISR");
-/// Create a process with no capabilities, supervised by the caller, to
-/// host code the kernel has not verified and does not interpret.
+/// A process with no capabilities, supervised by the caller, for code never verified.
 pub const SYS_FOREIGN_SPAWN: u64 = tag4(b"MFSP");
 /// Give such a process an entry point and make it runnable.
 pub const SYS_FOREIGN_START: u64 = tag4(b"MFST");
-/// Wait for one of the caller's guests to issue a syscall this kernel
-/// refuses, and take its register frame.
+/// Wait for a guest of the caller's to make a refused syscall; take its registers.
 pub const SYS_FOREIGN_WAIT: u64 = tag4(b"MFWT");
 /// Answer one parked guest with the value its `rax` receives.
 pub const SYS_FOREIGN_REPLY: u64 = tag4(b"MFRP");

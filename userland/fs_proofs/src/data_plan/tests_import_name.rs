@@ -19,7 +19,7 @@
  * where it looks for the record that makes a file the import's.
  */
 
-use super::import_name::{is_kept, record_of, trimmed};
+use super::import_name::{is_kept, mark_of, record_of, trimmed};
 
 #[test]
 fn records_and_marks_are_kept_however_they_are_spelled() {
@@ -50,6 +50,12 @@ fn the_record_sits_beside_the_name_the_volume_resolves() {
     assert_eq!(record_of(b"/qwen.gguf//"), b"/qwen.gguf.sha256");
     assert_eq!(record_of(b"//qwen.gguf"), b"//qwen.gguf.sha256");
     assert_eq!(record_of(b"dir/qwen.gguf/"), b"dir/qwen.gguf.sha256");
+}
+
+#[test]
+fn the_mark_sits_beside_the_name_the_volume_resolves() {
+    assert_eq!(mark_of(b"/qwen.gguf//"), b"/qwen.gguf.partial");
+    assert!(is_kept(&mark_of(b"/qwen.gguf")));
 }
 
 #[test]

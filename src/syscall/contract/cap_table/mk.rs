@@ -105,9 +105,8 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         | SyscallNumber::MkServiceLookup
         | SyscallNumber::MkServiceRegister => caps.can_ipc(),
         /*
-         * The handlers ask for Admin again and refuse to grant a bit the
-         * caller lacks. The table asks first, so a capsule without Admin is
-         * turned away before the handler runs.
+         * The handlers ask for Admin again and refuse a bit the caller lacks;
+         * the table asks first, so a capsule without Admin never reaches them.
          */
         SyscallNumber::MkCapGrant | SyscallNumber::MkCapRevoke => caps.can_admin(),
 
@@ -132,6 +131,7 @@ pub(super) fn check(caps: &CapabilityToken, number: SyscallNumber) -> Option<boo
         SyscallNumber::MkDataImport => caps.can_store_write() && caps.can_open_files(),
         SyscallNumber::MkDataPassphrase => caps.can_store_write() && caps.can_open_files(),
         SyscallNumber::MkDataStat | SyscallNumber::MkDataRead => caps.can_open_files(),
+        SyscallNumber::MkDataFeedBegin | SyscallNumber::MkDataFeed => caps.can_stream_import(),
 
         /*
          * Hosting unverified code is one right, and it covers every call

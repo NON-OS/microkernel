@@ -74,6 +74,8 @@ MAST = 0x5453414D
 MBAT = 0x5441424D
 MCLD = 0x444C434D
 MCVF = 0x4656434D
+MDFB = 0x4246444D
+MDFD = 0x4446444D
 MDIM = 0x4D49444D
 MDPW = 0x5750444D
 MDRC = 0x4352444D
@@ -793,6 +795,16 @@ nr   = 0x5453444D
 caps = ["FileSystem"]
 args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"}]
 ret  = {type="i64"}
+[desc.MDFB]
+nr   = 0x4246444D
+caps = ["StreamImport"]
+args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"},{name="sha256_ptr",type="u64",dir="in"},{name="bytes",type="u64",dir="in"},{name="probe",type="u64",dir="in"}]
+ret  = {type="i64"}
+[desc.MDFD]
+nr   = 0x4446444D
+caps = ["StreamImport"]
+args = [{name="buf_ptr",type="u64",dir="in"},{name="buf_len",type="u64",dir="in"},{name="end",type="u64",dir="in"}]
+ret  = {type="i64"}
 
 [desc.MPVW]
 nr   = 0x5756504D
@@ -810,73 +822,61 @@ nr   = 0x5257534D
 caps = ["StoreWrite"]
 args = [{name="lba",type="u64",dir="in"},{name="user_ptr",type="u64",dir="in"},{name="len",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MTAD]
 nr   = 0x4441544D
 caps = ["TimeSet"]
 args = [{name="correct_ms",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MTMS]
 nr   = 0x534D544D
 caps = ["valid_token"]
 args = []
 ret  = {type="i64"}
-
 [desc.MTRN]
 nr   = 0x4E52544D
 caps = ["IPC"]
 args = [{name="name_ptr",type="u64",dir="in"},{name="name_len",type="u64",dir="in"},{name="argv_ptr",type="u64",dir="in"},{name="argv_len",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MTRT]
 nr   = 0x5452544D
 caps = ["valid_token"]
 args = [{name="out_ptr",type="u64",dir="out"}]
 ret  = {type="i64"}
-
 [desc.MTSP]
 nr   = 0x5053544D
 caps = ["IPC"]
 args = [{name="entry",type="u64",dir="in"},{name="stack",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MTTQ]
 nr   = 0x5154544D
 caps = ["valid_token"]
 args = [{name="fd",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MTTY]
 nr   = 0x5954544D
 caps = ["IPC"]
 args = [{name="pid",type="u64",dir="in"},{name="streams",type="u64",dir="in"},{name="cols",type="u64",dir="in"},{name="rows",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MWAT]
 nr   = 0x5441574D
 caps = ["IPC"]
 args = [{name="pid",type="u64",dir="in"},{name="timeout_ms",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MADC]
 nr   = 0x4344414D
 caps = ["valid_token"]
 args = [{name="challenge_ptr",type="u64",dir="in"},{name="out_ptr",type="u64",dir="out"},{name="out_len",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MAEN]
 nr   = 0x4E45414D
 caps = ["AttestRead"]
 args = [{name="out_ptr",type="u64",dir="out"},{name="out_len",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MDRC]
 nr   = 0x4352444D
 caps = ["EnrolDevRoot"]
 args = [{name="answer",type="u64",dir="in"}]
 ret  = {type="i64"}
-
 [desc.MDRQ]
 nr   = 0x5152444D
 caps = ["EnrolDevRoot"]

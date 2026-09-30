@@ -14,27 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The data volume, reached by name: a verified import, a size, and a read
-//! of any range. The volume is the machine's; a capsule reaches it only
-//! with FileSystem, and brings a file in, or keys the volume with a
-//! passphrase, only with StoreWrite as well. A file fed in chunk by chunk
-//! takes StreamImport alone, which grants no read.
+/*
+ * Whether a stream's owner still runs. A stream whose owner is gone is
+ * taken over by the next process that begins one, from where it was left.
+ */
 
-mod errno;
-mod feed;
-mod feed_begin;
-mod feed_errno;
-mod import;
-mod name;
-mod passphrase;
-mod read;
-mod read_bounce;
-mod read_peer;
-mod stat;
+use crate::process::ProcessState;
 
-pub use feed::sys_data_feed;
-pub use feed_begin::sys_data_feed_begin;
-pub use import::sys_data_import;
-pub use passphrase::sys_data_passphrase;
-pub use read::sys_data_read;
-pub use stat::sys_data_stat;
+pub(super) fn alive(pid: u32) -> bool {
+    crate::process::get_process(pid).is_some_and(|p| {
+        !matches!(*p.state.lock(), ProcessState::Zombie(_) | ProcessState::Terminated(_))
+    })
+}

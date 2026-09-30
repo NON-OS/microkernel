@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::numbers::SyscallNumber;
-
 pub(super) use super::microkernel_handle::handle;
-
+use crate::syscall::numbers::SyscallNumber;
 pub(super) fn matches(nr: SyscallNumber) -> bool {
     use SyscallNumber::*;
     matches!(
@@ -90,6 +88,8 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkDataStat
             | MkDataRead
             | MkDataPassphrase
+            | MkDataFeedBegin
+            | MkDataFeed
             | MkSpawnInstance
             | MkForeignSpawn
             | MkForeignStart

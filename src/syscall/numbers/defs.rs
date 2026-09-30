@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The NONOS syscall ABI: 4-byte ASCII tags packed by `tag4`; `abi::REGISTRY` is the truth.
-
 use crate::syscall::abi::tag4;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u64)]
 pub enum SyscallNumber {
@@ -77,6 +75,8 @@ pub enum SyscallNumber {
     MkDataStat = tag4(b"MDST"),
     MkDataRead = tag4(b"MDRD"),
     MkDataPassphrase = tag4(b"MDPW"),
+    MkDataFeedBegin = tag4(b"MDFB"),
+    MkDataFeed = tag4(b"MDFD"),
     MkAttestStatus = tag4(b"MAST"),
     MkAttestDoc = tag4(b"MADC"),
     MkAttestEntries = tag4(b"MAEN"),

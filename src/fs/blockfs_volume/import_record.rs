@@ -26,21 +26,22 @@ use crate::fs::blockfs::{self, BlockFsError, BlockFsMount, MODE_FILE};
 const SUFFIX: &[u8] = b".sha256";
 const NAME_MAX: usize = 96;
 
-fn record_name(name: &[u8]) -> Result<([u8; NAME_MAX], usize), VolumeError> {
-    let len = name.len() + SUFFIX.len();
+/// `name` with `suffix` after it: the name of a file kept beside it.
+pub(super) fn suffixed(name: &[u8], suffix: &[u8]) -> Result<([u8; NAME_MAX], usize), VolumeError> {
+    let len = name.len() + suffix.len();
     if name.is_empty() || len > NAME_MAX {
         return Err(VolumeError::BlockFs(BlockFsError::InvalidName));
     }
     let mut out = [0u8; NAME_MAX];
     out[..name.len()].copy_from_slice(name);
-    out[name.len()..len].copy_from_slice(SUFFIX);
+    out[name.len()..len].copy_from_slice(suffix);
     Ok((out, len))
 }
 
 /// The file's size when `name` was imported and verified as `want` before.
 /// A name that holds another digest is taken, not overwritten.
 pub(super) fn recorded(name: &[u8], want: &[u8; 32]) -> Result<Option<u64>, VolumeError> {
-    let (rec, len) = record_name(name)?;
+    let (rec, len) = suffixed(name, SUFFIX)?;
     let guard = VOLUME.read();
     let s = guard.as_ref().ok_or(VolumeError::NotMounted)?;
     let mut got = [0u8; 32];
@@ -62,7 +63,7 @@ pub(super) fn record(
     name: &[u8],
     want: &[u8; 32],
 ) -> Result<(), VolumeError> {
-    let (rec, len) = record_name(name)?;
+    let (rec, len) = suffixed(name, SUFFIX)?;
     let lba =
         blockfs::create_path(key, mount, &rec[..len], MODE_FILE).map_err(VolumeError::BlockFs)?;
     let mut node = blockfs::read_node(key, lba).map_err(VolumeError::BlockFs)?;

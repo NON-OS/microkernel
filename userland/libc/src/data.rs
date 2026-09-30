@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The machine's data volume, by name. A name is a slash and 1 to 63 of
-//! [A-Za-z0-9._-]. Each call returns a count or a negative errno.
+//! The machine's data volume, by names of a slash and 1 to 63 [A-Za-z0-9._-]; errnos negative.
 
 use crate::syscall::{
-    call_raw, N_MK_DATA_IMPORT, N_MK_DATA_PASSPHRASE, N_MK_DATA_READ, N_MK_DATA_STAT,
+    call_raw, N_MK_DATA_FEED, N_MK_DATA_FEED_BEGIN, N_MK_DATA_IMPORT, N_MK_DATA_PASSPHRASE,
+    N_MK_DATA_READ, N_MK_DATA_STAT,
 };
 
 /// Import the disk plan's file as `name`, kept only if it is `bytes` long
-/// and its SHA-256 is `sha256`. Needs StoreWrite and FileSystem. Returns its
-/// size.
+/// and its SHA-256 is `sha256`. Needs StoreWrite and FileSystem. Its size.
 pub fn mk_data_import(name: &[u8], sha256: &[u8; 32], bytes: u64) -> i64 {
     let (p, n) = (name.as_ptr() as u64, name.len() as u64);
     call_raw(N_MK_DATA_IMPORT, [p, n, sha256.as_ptr() as u64, bytes, 0, 0])
@@ -34,30 +33,43 @@ pub fn mk_data_stat(name: &[u8]) -> i64 {
     call_raw(N_MK_DATA_STAT, [name.as_ptr() as u64, name.len() as u64, 0, 0, 0, 0])
 }
 
-/// Read up to `buf.len()` bytes of `name` from `offset`, at most 4 MiB.
-/// Needs FileSystem. Returns the bytes read, 0 at the end.
+/// Read up to `buf.len()` bytes, at most 4 MiB, of `name` from `offset`.
+/// Needs FileSystem. The bytes read, 0 at the end.
 pub fn mk_data_read(name: &[u8], offset: u64, buf: &mut [u8]) -> i64 {
     let (p, n) = (name.as_ptr() as u64, name.len() as u64);
     call_raw(N_MK_DATA_READ, [p, n, offset, buf.as_mut_ptr() as u64, buf.len() as u64, 0])
 }
 
-/// Read up to `len` bytes of `name` from `offset`, at most 4 MiB, straight
-/// into the guest `pid` the caller supervises, at `addr` in that guest.
-/// Needs FileSystem. Returns the bytes read, 0 at the end; EFAULT when the
-/// guest has no page at `addr`, EPERM when `pid` is not the caller's guest.
+/// `mk_data_read` into the guest `pid` the caller supervises, at `addr` there;
+/// EFAULT when the guest has no page at `addr`, EPERM when `pid` is not its guest.
 pub fn mk_data_read_peer(name: &[u8], offset: u64, pid: u32, addr: u64, len: u64) -> i64 {
     let (p, n) = (name.as_ptr() as u64, name.len() as u64);
     call_raw(N_MK_DATA_READ, [p, n, offset, addr, len, pid as u64])
 }
 
-/// Key the data volume with `passphrase`: `create` makes a new volume over
-/// a header ring never written (at least 8 bytes), otherwise the volume a
-/// passphrase keys is opened. At most 256 bytes; the kernel wipes its copy.
-/// Needs StoreWrite and FileSystem. Returns 0, or EACCES for a wrong
-/// passphrase, ENOENT when no passphrase keys the volume, EEXIST when a
-/// create finds a volume, EBUSY when one is open, EAGAIN while the kernel
-/// has not chosen a disk yet.
+/// Key the data volume with `passphrase`, 1 to 256 bytes (8 to `create` one over a ring never
+/// written). Needs StoreWrite and FileSystem. 0; EACCES wrong, ENOENT not passphrase keyed,
+/// EEXIST create over a volume, EBUSY one open, EAGAIN no disk chosen yet.
 pub fn mk_data_volume_passphrase(create: bool, passphrase: &[u8]) -> i64 {
     let (p, n) = (passphrase.as_ptr() as u64, passphrase.len() as u64);
     call_raw(N_MK_DATA_PASSPHRASE, [create as u64, p, n, 0, 0, 0])
+}
+
+/// Begin feeding `name`, `bytes` long with SHA-256 `sha256`, or take up its
+/// stream where it stopped; `probe` only says where it would start. Needs
+/// StreamImport. The byte to feed from; EALREADY once imported and verified.
+pub fn mk_data_feed_begin(name: &[u8], sha256: &[u8; 32], bytes: u64, probe: bool) -> i64 {
+    let (p, n) = (name.as_ptr() as u64, name.len() as u64);
+    call_raw(N_MK_DATA_FEED_BEGIN, [p, n, sha256.as_ptr() as u64, bytes, probe as u64, 0])
+}
+
+/// Seal `chunk`, at most 1 MiB, after what the caller's stream holds; how far it has come.
+pub fn mk_data_feed(chunk: &[u8]) -> i64 {
+    call_raw(N_MK_DATA_FEED, [chunk.as_ptr() as u64, chunk.len() as u64, 0, 0, 0, 0])
+}
+
+/// End the caller's stream: `keep` puts it down, mark saved, and says where;
+/// else the file is linked only if whole with its SHA-256 (its size; EBADMSG).
+pub fn mk_data_feed_end(keep: bool) -> i64 {
+    call_raw(N_MK_DATA_FEED, [0, 0, if keep { 2 } else { 1 }, 0, 0, 0])
 }

@@ -33,7 +33,7 @@ pub(super) fn trimmed(path: &[u8]) -> &[u8] {
 }
 
 /* Whether `path` names a record or a mark. */
-pub(super) fn is_kept(path: &[u8]) -> bool {
+pub(in super::super) fn is_kept(path: &[u8]) -> bool {
     let name = trimmed(path);
     name.ends_with(RECORD) || name.ends_with(MARK)
 }
@@ -41,4 +41,9 @@ pub(super) fn is_kept(path: &[u8]) -> bool {
 /* Where the record for the file at `path` would be. */
 pub(super) fn record_of(path: &[u8]) -> Vec<u8> {
     [trimmed(path), RECORD].concat()
+}
+
+/* Where the mark of a stream coming to `path` would be. */
+pub(super) fn mark_of(path: &[u8]) -> Vec<u8> {
+    [trimmed(path), MARK].concat()
 }

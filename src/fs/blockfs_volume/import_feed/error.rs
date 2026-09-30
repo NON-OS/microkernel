@@ -14,27 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The data volume, reached by name: a verified import, a size, and a read
-//! of any range. The volume is the machine's; a capsule reaches it only
-//! with FileSystem, and brings a file in, or keys the volume with a
-//! passphrase, only with StoreWrite as well. A file fed in chunk by chunk
-//! takes StreamImport alone, which grants no read.
+/* Why a streamed import refused a step. */
 
-mod errno;
-mod feed;
-mod feed_begin;
-mod feed_errno;
-mod import;
-mod name;
-mod passphrase;
-mod read;
-mod read_bounce;
-mod read_peer;
-mod stat;
+use super::super::error::VolumeError;
 
-pub use feed::sys_data_feed;
-pub use feed_begin::sys_data_feed_begin;
-pub use import::sys_data_import;
-pub use passphrase::sys_data_passphrase;
-pub use read::sys_data_read;
-pub use stat::sys_data_stat;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StreamError {
+    /* The volume, or the disk under it, refused. */
+    Volume(VolumeError),
+    /* Another running process holds the stream. */
+    Busy,
+    /* This process has no stream begun. */
+    NotBegun,
+    /* More bytes than the length named at the start. */
+    Overrun,
+    /* Finished before every byte arrived; the stream is kept. */
+    Short,
+    /* The volume has no room for the bytes still to come. */
+    NoRoom,
+}
+
+impl From<VolumeError> for StreamError {
+    fn from(e: VolumeError) -> Self {
+        StreamError::Volume(e)
+    }
+}
