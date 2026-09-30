@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Asid-scoped TLB shootdown for every page-table mutation site in
 //! the paging manager. Always issues the local `invlpg` first; on
 //! multi-CPU runtime it then IPIs the peer CPUs running the same
@@ -24,6 +23,12 @@
 //! `SHOOTDOWN_TIMEOUT_MS` is fail-hard: a stale TLB entry would back
 //! freed DMA or MMIO, so an ack that never arrives triggers a panic-IPI
 //! broadcast and halts the originator.
+//!
+//! Only a change to a present entry reaches here. Installing over an absent
+//! entry invalidates locally and sends nothing (see
+//! `PendingFlush::after_install`), and every mutation site hands its flush
+//! back to be committed after `PAGING_MANAGER` is released, so no cpu waits
+//! for acknowledgements while holding the manager lock.
 
 mod broadcast;
 mod flush;

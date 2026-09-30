@@ -17,6 +17,7 @@
 use crate::memory::addr::VirtAddr;
 
 use super::super::core::PagingManager;
+use super::super::pending_flush::PendingFlush;
 use crate::memory::paging::constants::PAGE_SIZE_4K;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::stats::PagingStatistics;
@@ -28,7 +29,7 @@ impl PagingManager {
         &mut self,
         virtual_addr: VirtAddr,
         stats: &PagingStatistics,
-    ) -> PagingResult<()> {
+    ) -> PagingResult<PendingFlush> {
         let pid = crate::process::current_pid().unwrap_or(0);
         if super::demand_refuse::refused(virtual_addr.as_u64(), pid) {
             return Err(PagingError::UnhandledPageFault);
@@ -44,7 +45,7 @@ impl PagingManager {
          * and the fill below; present means the faulting access is retried.
          */
         if self.leaf_entry(virtual_addr).is_ok() {
-            return Ok(());
+            return Ok(PendingFlush::none());
         }
 
         /*
@@ -64,8 +65,8 @@ impl PagingManager {
         }
 
         let permissions = PagePermissions::READ | PagePermissions::WRITE | PagePermissions::USER;
-        self.map_page(virtual_addr, new_frame, permissions, PageSize::Size4KiB, stats)?;
-
-        Ok(())
+        // The entry is absent (checked above, under the lock), so the install
+        // owes no remote flush.
+        self.map_page(virtual_addr, new_frame, permissions, PageSize::Size4KiB, stats)
     }
 }

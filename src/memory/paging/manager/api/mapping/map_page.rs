@@ -31,7 +31,7 @@ pub fn map_page(
     // held would try to call switch_to_process_address_space from
     // preempt_current_process and re-enter the same spin::Mutex,
     // deadlocking the CPU.
-    without_interrupts(|| {
+    let flush = without_interrupts(|| {
         lock_responsive(&PAGING_MANAGER).map_page(
             virtual_addr,
             physical_addr,
@@ -39,5 +39,9 @@ pub fn map_page(
             PageSize::Size4KiB,
             &PAGING_STATS,
         )
-    })
+    })?;
+    // After the lock, so no cpu waits on the manager while this one waits on
+    // the acknowledgements. A leaf that was absent owes nothing remote.
+    flush.commit();
+    Ok(())
 }

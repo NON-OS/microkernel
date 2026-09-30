@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
-use super::super::shootdown::{flush_tlb_one_smp, ASID_KERNEL};
+use super::super::pending_flush::PendingFlush;
+use super::super::shootdown::ASID_KERNEL;
 use super::super::tlb_scope::is_kernel_half;
 use super::tables::table_at;
 use crate::memory::addr::{PhysAddr, VirtAddr};
@@ -27,7 +28,7 @@ impl PagingManager {
         &self,
         asid: u32,
         va: VirtAddr,
-    ) -> PagingResult<PhysAddr> {
+    ) -> PagingResult<(PhysAddr, PendingFlush)> {
         let address_space =
             self.address_spaces.get(&asid).ok_or(PagingError::AddressSpaceNotFound)?;
         let cr3 = address_space.cr3_value;
@@ -64,10 +65,10 @@ impl PagingManager {
          * frame this returns, so a core still running the guest reads and
          * writes it after the allocator has handed it to somebody else, one
          * process silently editing another's memory with nothing in either of
-         * them wrong.
+         * them wrong. Owed, not paid: the api entry commits it after the
+         * manager lock is released and before it hands the frame back.
          */
         let scope = if is_kernel_half(va) { ASID_KERNEL } else { asid };
-        flush_tlb_one_smp(va, scope);
-        Ok(pa)
+        Ok((pa, PendingFlush::one_local_now(va, scope)))
     }
 }

@@ -17,17 +17,18 @@
 use crate::memory::addr::VirtAddr;
 
 use super::super::core::PagingManager;
+use super::super::pending_flush::PendingFlush;
 use crate::memory::paging::constants::*;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::stats::PagingStatistics;
 
 impl PagingManager {
-    pub fn handle_page_fault(
+    pub(in crate::memory::paging::manager) fn handle_page_fault(
         &mut self,
         virtual_addr: VirtAddr,
         error_code: u64,
         stats: &PagingStatistics,
-    ) -> PagingResult<()> {
+    ) -> PagingResult<PendingFlush> {
         stats.record_page_fault();
 
         if error_code & PF_WRITE != 0 && error_code & PF_PRESENT != 0 {

@@ -17,18 +17,19 @@
 use crate::memory::addr::VirtAddr;
 
 use super::super::core::PagingManager;
+use super::super::pending_flush::PendingFlush;
 use crate::memory::paging::constants::page_align_down;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::stats::PagingStatistics;
 use crate::memory::paging::types::{get_timestamp, PagePermissions};
 
 impl PagingManager {
-    pub fn update_page_flags(
+    pub(in crate::memory::paging::manager) fn update_page_flags(
         &mut self,
         virtual_addr: VirtAddr,
         new_permissions: PagePermissions,
         stats: &PagingStatistics,
-    ) -> PagingResult<()> {
+    ) -> PagingResult<PendingFlush> {
         if new_permissions.is_wx_violation() {
             return Err(PagingError::WXViolation);
         }
@@ -41,10 +42,10 @@ impl PagingManager {
         mapping.last_accessed = get_timestamp();
 
         let pte_flags = new_permissions.to_pte_flags();
-        self.update_pte(virtual_addr, pte_flags)?;
+        let flush = self.update_pte(virtual_addr, pte_flags)?;
 
         stats.record_modification();
 
-        Ok(())
+        Ok(flush)
     }
 }
