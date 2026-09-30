@@ -34,7 +34,7 @@ pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
         reply_with_status(tx, req, E_MSGSIZE);
         return;
     }
-    let n = match fill(driver.regs, &mut driver.queue, driver.irq_grant) {
+    let n = match fill(driver.regs, &mut driver.queue) {
         Ok(n) => n,
         Err(_) => {
             reply_with_status(tx, req, E_IO);

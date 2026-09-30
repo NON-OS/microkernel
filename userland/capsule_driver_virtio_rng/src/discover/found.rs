@@ -16,7 +16,6 @@
 #[derive(Debug, Clone, Copy)]
 pub struct Found {
     pub device_id: u64,
-    pub irq_line: u8,
     pub register_bar: u8,
     pub register_kind: u8,
     pub register_size: u64,

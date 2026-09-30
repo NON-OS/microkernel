@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_irq_ack;
-
 use super::driver::Driver;
 use super::{claim, dma, irq, registers};
 use crate::constants::ENTROPY_BUF_LEN;
@@ -28,13 +26,12 @@ pub fn run() -> Result<Driver, &'static str> {
 
     let claim_epoch = claim::claim(dev.device_id)?;
 
+    irq::disable_intx(dev.device_id, claim_epoch)?;
+
     let register_grant = registers::grant(dev, claim_epoch)?;
 
-    let irq_grant = irq::bind(dev, claim_epoch, register_grant)?;
-
-    let queue_dma = dma::map_queue(dev.device_id, claim_epoch, register_grant, &irq_grant)?;
-    let buf_dma =
-        dma::map_buffer(dev.device_id, claim_epoch, register_grant, &irq_grant, &queue_dma)?;
+    let queue_dma = dma::map_queue(dev.device_id, claim_epoch, register_grant)?;
+    let buf_dma = dma::map_buffer(dev.device_id, claim_epoch, register_grant, &queue_dma)?;
 
     let regs = register_grant.regs();
     let queue_size = bring_up(regs, queue_dma.device_addr, Queue::queue_size())?;
@@ -47,13 +44,10 @@ pub fn run() -> Result<Driver, &'static str> {
         queue_size,
     );
 
-    let _ = mk_irq_ack(irq_grant.grant_id);
-
     Ok(Driver {
         device_id: dev.device_id,
         claim_epoch,
         register_grant,
-        irq_grant: irq_grant.grant_id,
         queue_grant: queue_dma.grant_id,
         buf_grant: buf_dma.grant_id,
         queue,

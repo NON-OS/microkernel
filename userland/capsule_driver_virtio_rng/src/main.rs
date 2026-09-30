@@ -56,7 +56,7 @@ pub unsafe extern "C" fn _start() -> ! {
         }
     };
 
-    match crate::fill::fill(driver.regs, &mut driver.queue, driver.irq_grant) {
+    match crate::fill::fill(driver.regs, &mut driver.queue) {
         Ok(n) => {
             let bytes = driver.queue.buffer(n);
             let mut nz = 0usize;

@@ -28,13 +28,14 @@ pub fn find_virtio_rng() -> Option<Found> {
     }
     let count = core::cmp::min(n as usize, MAX_DEVICES);
     for r in &buf[..count] {
-        if !is_match(r) || r.irq_pin == 0 || r.irq_line == 0xFF {
+        // Identity only: the driver binds no interrupt (see `setup::irq`),
+        // so an unrouted legacy line does not make the device unusable.
+        if !is_match(r) {
             continue;
         }
         if let Some((idx, kind, size)) = first_register_bar(r) {
             return Some(Found {
                 device_id: r.device_id,
-                irq_line: r.irq_line,
                 register_bar: idx,
                 register_kind: kind,
                 register_size: size,
