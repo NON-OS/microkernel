@@ -35,6 +35,7 @@ pub(super) fn map_volume_err(e: VolumeError) -> VfsError {
         VolumeError::NameTaken => VfsError::AlreadyExists,
         VolumeError::Unopenable => VfsError::IoError("data volume under another key"),
         VolumeError::NeedsPassphrase | VolumeError::WrongPassphrase => VfsError::PermissionDenied,
+        VolumeError::ImportOnly => VfsError::PermissionDenied,
         VolumeError::NotPassphraseKeyed => VfsError::NotFound,
         VolumeError::UnknownKeying => VfsError::IoError("key header of an unknown kind"),
         VolumeError::AlreadyOpen | VolumeError::VolumeExists => VfsError::AlreadyExists,

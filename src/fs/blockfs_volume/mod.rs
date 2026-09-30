@@ -19,6 +19,7 @@ mod error;
 mod format_volume;
 mod hex;
 mod import;
+mod import_guard;
 mod import_one;
 mod import_record;
 mod import_stream;

@@ -19,6 +19,8 @@
 //! tried here against the shipping source, with the key header that sits
 //! beside it and the seal on the volume key it carries.
 
+#[path = "../../../../src/fs/blockfs_volume/import_guard/name.rs"]
+pub mod import_name;
 #[path = "../../../../src/fs/blockfs_volume/key_header.rs"]
 pub mod key_header;
 #[path = "../../../../src/fs/blockfs_volume/key_seal.rs"]
@@ -29,5 +31,6 @@ pub mod plan;
 pub mod plan_types;
 
 mod tests;
+mod tests_import_name;
 mod tests_key;
 mod tests_random;

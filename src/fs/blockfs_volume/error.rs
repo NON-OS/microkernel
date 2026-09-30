@@ -60,4 +60,6 @@ pub enum VolumeError {
     VolumeExists,
     /// Argon2id refused its parameters or found no memory.
     Stretch(Argon2Error),
+    /* A record, a mark, or a file with a record: an import's alone to write. */
+    ImportOnly,
 }

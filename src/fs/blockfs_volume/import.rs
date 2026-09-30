@@ -44,6 +44,11 @@ pub fn import(name: &[u8], want: &[u8; 32], want_bytes: u64) -> Result<Imported,
         super::say::say(&line);
         return Ok(Imported { bytes, sha256: *want, fresh: false });
     }
+    /* A file under the name with no record: taken, and nothing vouches for it. */
+    if super::stat::stat(name).is_ok() {
+        crate::log::warn!("[DATA] import refused: the name holds a file no record vouches for");
+        return Err(VolumeError::NameTaken);
+    }
     let plan = read_plan()?;
     let mut refused = None;
     for &(at, bytes) in plan.imports().iter().filter(|&&(_, b)| b == want_bytes) {
