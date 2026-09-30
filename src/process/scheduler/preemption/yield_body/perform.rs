@@ -16,7 +16,7 @@
 
 use super::super::super::dispatch::add_to_run_queue;
 use super::super::super::selection::{
-    adopt_current, release_leaving, select_next_process, switch_to_process,
+    adopt_current, is_dead, release_leaving, select_next_process, switch_to_process,
 };
 use super::super::save_syscall_user_rsp;
 use super::super::state::set_time_slice;
@@ -60,11 +60,22 @@ pub(crate) fn perform_yield_inline() {
     set_time_slice(0);
 
     loop {
+        /*
+         * Killed from another CPU while it waited here, or its successor was
+         * refused: it must not return to the call that yielded. It waits the
+         * way an exiting process does, off its tables.
+         */
+        if is_dead(pid) {
+            crate::process::exit::park_dead(pid);
+        }
         if let Some(next) = select_next_process() {
             if next != pid {
                 crate::process::accounting::bump(next, crate::process::accounting::Kind::Switch);
                 crate::process::accounting::bump_total(crate::process::accounting::Total::Switches);
                 switch_to_process(next);
+                if is_dead(pid) {
+                    continue;
+                }
             } else if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
                 let mut state = pcb.state.lock();
                 if matches!(*state, ProcessState::Ready) {

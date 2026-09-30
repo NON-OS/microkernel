@@ -47,4 +47,14 @@ pub fn tick() {
     if realtime::has_realtime_tasks() {
         set_reschedule();
     }
+    // Killed from another CPU while it ran here: switch away at this tick
+    // rather than resume it. Asked only of a tick that interrupted user mode,
+    // the only kind that switches, when this CPU holds no kernel lock.
+    let pid = crate::process::CURRENT_PID.load(Ordering::Relaxed);
+    if pid != 0
+        && crate::smp::percpu::current().tick_from_user.load(Ordering::Relaxed)
+        && super::super::selection::is_dead(pid)
+    {
+        set_reschedule();
+    }
 }

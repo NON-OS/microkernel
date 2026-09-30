@@ -18,16 +18,28 @@
 // `arch::<arch>::context::switch`; this file is the call site so the
 // scheduler core stays arch-neutral.
 
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::sync::atomic::{fence, AtomicBool, Ordering};
 
 use crate::smp::MAX_CPUS;
 
 /// Switch this CPU to `pid`, which the caller has claimed. Does not return
-/// when the switch happens. When it returns, the arch layer refused before
-/// loading anything, and this CPU is still on the stack and address space it
-/// was on, so the bookkeeping made for the switch is put back.
+/// when the switch happens. When it returns, `pid` was found dead or the arch
+/// layer refused before loading anything, and this CPU is still on the stack
+/// and address space it was on, so the bookkeeping made for the switch is put
+/// back.
 pub(crate) fn switch_to_process(pid: u32) {
     let undo = super::on_cpu_switch::enter(pid);
+    /*
+     * Killed by another CPU after the claim picked it: the reaper may have
+     * looked for a CPU holding it before `enter` named this one, and freed
+     * its stack or tables. Asked after `enter`, so either the reaper saw
+     * this CPU or this check sees the process dead.
+     */
+    fence(Ordering::SeqCst);
+    if super::dead::is_dead(pid) {
+        super::on_cpu_switch::undo(undo);
+        return;
+    }
     let asid_before = super::thread_asid::publish(pid);
     announce(pid);
     crate::arch::context::switch_to_user_pcb(pid);

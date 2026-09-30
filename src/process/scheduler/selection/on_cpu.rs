@@ -69,3 +69,12 @@ pub fn cpu_holding(pid: u32) -> Option<usize> {
     }
     (0..crate::smp::cpu_count().min(MAX_CPUS)).find(|&cpu| named_by(cpu, pid))
 }
+
+/// The CPU that has `pid` as its own, if any: the one to tell when `pid` is
+/// killed, as a CPU only leaving it is off it by its next tick anyway.
+pub fn cpu_running(pid: u32) -> Option<usize> {
+    if !TRACKED || pid == 0 {
+        return None;
+    }
+    (0..crate::smp::cpu_count().min(MAX_CPUS)).find(|&cpu| OWNED[cpu].load(Ordering::SeqCst) == pid)
+}

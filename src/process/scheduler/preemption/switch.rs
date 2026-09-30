@@ -16,7 +16,7 @@
 
 use super::super::dispatch::add_to_run_queue;
 use super::super::selection::{
-    adopt_current, release_leaving, select_next_process, switch_to_process,
+    adopt_current, is_dead, release_leaving, select_next_process, switch_to_process,
 };
 use super::save_syscall_user_rsp;
 use super::state::SCHEDULER_STATS;
@@ -88,5 +88,13 @@ pub(crate) fn preempt_current_process() {
                 }
             }
         }
+    }
+    /*
+     * Killed from another CPU while it ran here, and nothing else ran
+     * instead: returning would resume its user code. It waits for other work
+     * the way an exiting process does, off its tables.
+     */
+    if is_dead(curr_pid) {
+        crate::process::exit::park_dead(curr_pid);
     }
 }

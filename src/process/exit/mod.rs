@@ -16,12 +16,14 @@
 
 mod exit_and_yield;
 mod finalize;
+mod park;
 mod pending;
 pub mod postmortem;
 mod reap_log;
 mod teardown;
 
 pub use exit_and_yield::exit_and_yield;
+pub(crate) use park::park as park_dead;
 pub(crate) use pending::drain as drain_pending_teardowns;
 pub(crate) use reap_log::{peek_exit_status, reap_exit_status, reap_exit_status_for};
 pub use teardown::teardown;
