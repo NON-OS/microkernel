@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Pure validator for `MkPciConfigWrite`. The whole authority lives
-//! in this function: only PCI Command bits 1 (Memory Space), 2 (Bus
+//! here and in `command`: only PCI Command bits 1 (Memory Space), 2 (Bus
 //! Master Enable) and 10 (Interrupt Disable) and the MSI-X Message
 //! Control register's Function Mask + Enable bits may flip; the
 //! caller (`write::write`, through `ownership::resolve`) has already
@@ -24,30 +24,13 @@
 //! interrupt line, IDs, status, expansion ROM, capability pointer
 //! mutation, PCIe / AER) is rejected before it reaches the bus.
 
-use crate::drivers::pci::constants::{
-    CFG_COMMAND, CMD_BUS_MASTER, CMD_INTERRUPT_DISABLE, CMD_MEMORY_SPACE, MSIX_CTRL_ENABLE,
-    MSIX_CTRL_FUNCTION_MASK,
-};
+use crate::drivers::pci::constants::{CFG_COMMAND, MSIX_CTRL_ENABLE, MSIX_CTRL_FUNCTION_MASK};
 use crate::drivers::pci::types::MsixInfo;
 
+use super::command::validate_command;
 use super::types::{PciWriteError, PciWriteRequest, WriteAction};
 
 const MSIX_CONTROL_WRITABLE: u16 = MSIX_CTRL_ENABLE | MSIX_CTRL_FUNCTION_MASK;
-
-// The only PCI Command bits a driver capsule may flip: Bus Master (for DMA)
-// and Memory Space (so its MMIO BAR is decoded). Firmware often leaves
-// Memory Space clear on an LPSS controller it did not use, and then every
-// MMIO register access silently drops, so a driver must be able to assert
-// it. No other command bit apart from Interrupt Disable below (I/O space,
-// SERR, parity, etc.) is writable through this path.
-//
-// Interrupt Disable lets a driver that polls its device silence the
-// device's legacy INTx pin. A level-triggered line is shared on real
-// chipsets and on QEMU's q35: a device whose driver never reads its
-// interrupt status holds the line up, and every other device on it then
-// sees a storm of deliveries for interrupts it never raised. The bit
-// only quiets the claimed device itself; MSI and MSI-X are unaffected.
-const COMMAND_WRITABLE: u16 = CMD_BUS_MASTER | CMD_MEMORY_SPACE | CMD_INTERRUPT_DISABLE;
 
 pub fn validate(
     req: &PciWriteRequest,
@@ -64,14 +47,6 @@ pub fn validate(
         }
     }
     Err(PciWriteError::OffsetNotAllowed)
-}
-
-fn validate_command(new: u16, current: u16) -> Result<WriteAction, PciWriteError> {
-    let desired = if new & !COMMAND_WRITABLE == 0 { current | new } else { new };
-    if (desired ^ current) & !COMMAND_WRITABLE != 0 {
-        return Err(PciWriteError::BitsNotAllowed);
-    }
-    Ok(WriteAction::Command(desired))
 }
 
 fn validate_msix_control(

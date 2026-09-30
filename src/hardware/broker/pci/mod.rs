@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod allowlist;
+mod command;
 pub mod ownership;
 mod read;
 mod types;
