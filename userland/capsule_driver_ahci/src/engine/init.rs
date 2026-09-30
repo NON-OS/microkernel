@@ -28,10 +28,27 @@ pub fn init_port(device_id: u64, claim_epoch: u64, regs: Regs, index: u8) -> Ahc
     let data = DmaRegion::map(device_id, claim_epoch, DATA_BUF_BYTES)?;
     let base = PORT_BASE + index as u32 * PORT_STRIDE;
     super::stop::stop(regs, base);
-    super::program::program(regs, base, clb.device_addr(), fb.device_addr(), ctba.device_addr(), clb.user_va());
-    super::link::link_up(regs, base)?;
+    super::program::program(
+        regs,
+        base,
+        clb.device_addr(),
+        fb.device_addr(),
+        ctba.device_addr(),
+        clb.user_va(),
+    );
+    /*
+     * program() set FRE with the FIS region's address; stop the port before
+     * a failure drops the regions, so the HBA never DMAs into freed memory.
+     */
+    if let Err(e) = super::link::link_up(regs, base) {
+        super::stop::stop(regs, base);
+        return Err(e);
+    }
     super::start::start(regs, base);
     let mut port = Port { clb, ctba, _fb: fb, data, base, capacity_sectors: 0 };
-    super::identify::identify(&mut port, regs)?;
+    if let Err(e) = super::identify::identify(&mut port, regs) {
+        super::park::park(port, regs);
+        return Err(e);
+    }
     Ok(port)
 }

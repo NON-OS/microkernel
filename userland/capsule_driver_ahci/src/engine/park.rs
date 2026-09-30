@@ -14,27 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod build;
-mod cmd_header;
-mod cmd_table;
-mod fis;
-mod flush;
-mod identify;
-mod init;
-mod issue;
-mod link;
-mod park;
-mod port;
-mod prdt;
-mod prdt_write;
-mod program;
-mod recover;
-mod region;
-mod start;
-mod stop;
-mod transfer;
+use super::port::Port;
+use crate::constants::regs::{PORT_IE, PORT_IS};
+use crate::regs::Regs;
 
-pub use flush::flush;
-pub use init::init_port;
-pub use port::Port;
-pub use transfer::transfer;
+/// Hand a port back: stop its command engine and FIS receive so the HBA no
+/// longer DMAs into the port's regions, mask and clear its interrupts, then
+/// drop the port, which unmaps its DMA regions. Used for every port the
+/// driver brought up but does not serve.
+pub fn park(port: Port, regs: Regs) {
+    super::stop::stop(regs, port.base);
+    unsafe {
+        regs.w32(port.base + PORT_IE, 0);
+        regs.w32(port.base + PORT_IS, regs.r32(port.base + PORT_IS));
+    }
+    drop(port);
+}

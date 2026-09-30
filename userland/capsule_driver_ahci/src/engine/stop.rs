@@ -22,12 +22,25 @@ pub(super) fn stop(regs: Regs, base: u32) {
     unsafe {
         let cmd = regs.r32(base + PORT_CMD);
         regs.w32(base + PORT_CMD, cmd & !CMD_ST);
+        /*
+         * CR clears once the command list engine stops. FR cannot clear while
+         * FRE is still set, so it is waited for only after FRE is cleared.
+         */
         let mut spin = 0u32;
-        while regs.r32(base + PORT_CMD) & (CMD_FR | CMD_CR) != 0 && spin < COMPLETION_POLL_LIMIT {
+        while regs.r32(base + PORT_CMD) & CMD_CR != 0 && spin < COMPLETION_POLL_LIMIT {
             spin += 1;
             core::hint::spin_loop();
         }
         let cmd = regs.r32(base + PORT_CMD);
         regs.w32(base + PORT_CMD, cmd & !CMD_FRE);
+        /*
+         * FR clears once the HBA stops writing received FISes; until then the
+         * FIS region must stay mapped (AHCI 1.3.1, PxCMD.FR).
+         */
+        spin = 0;
+        while regs.r32(base + PORT_CMD) & CMD_FR != 0 && spin < COMPLETION_POLL_LIMIT {
+            spin += 1;
+            core::hint::spin_loop();
+        }
     }
 }
