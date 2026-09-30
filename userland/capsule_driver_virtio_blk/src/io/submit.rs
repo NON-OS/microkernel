@@ -40,14 +40,21 @@ pub fn submit(
     nsectors: u32,
 ) -> Result<(), BlkError> {
     queue.post_request(dir, lba, nsectors);
-    // The line must be down and unmasked before the device is told, or its
-    // completion raises no interrupt to wait for (see `rearm`).
-    rearm(regs, irq_grant)?;
     // The sequence is read before the device is told, not after: a device
     // that completes at once raises its interrupt between the two, and a
     // snapshot taken after it waits for a second one that never comes, the
     // whole slice long. Every request paid 100 ms that way.
     let mut seq = read_seq(irq_grant)?;
+    // Then the line is lowered and unmasked, still before the device is
+    // told, or its completion raises no interrupt to wait for (see `rearm`).
+    // The snapshot must come first. The line can be shared (on QEMU's q35
+    // the display controller sits on it with its status never read), so the
+    // unmask can fire at once and the kernel masks the line again. Counted after
+    // the snapshot, that interrupt ends the first wait below and the loop
+    // unmasks again; counted inside it, as it was when the unmask came
+    // first, it left the line masked with the completion still to come, and
+    // on several CPUs about every other request slept out its whole slice.
+    rearm(regs, irq_grant)?;
     unsafe { regs.w16(LEG_QUEUE_NOTIFY, 0) }
     // Block on the interrupt instead of yield-polling. The old loop spun up
     // to 200k yields per request; every disk read then cycled the whole run
@@ -76,7 +83,9 @@ pub fn submit(
         let mut out_seq: u64 = 0;
         if mk_irq_wait(irq_grant, seq, WAIT_SLICE_MS, &mut out_seq) >= 0 {
             // An interrupt with the request still pending (a late one from
-            // the previous request) left the line masked: rearm it. The
+            // the previous request, or another device on the line) left the
+            // line masked: rearm it. `out_seq` was read before the rearm, so
+            // an interrupt the unmask lets through ends the next wait. The
             // used-ring check at the top of the loop comes after the rearm,
             // so a completion the status read swallowed is still seen.
             if out_seq != seq {
