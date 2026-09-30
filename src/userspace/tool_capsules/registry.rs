@@ -8,6 +8,7 @@
 
 extern crate alloc;
 
+#[cfg(feature = "nonos-tool-capsules")]
 use alloc::vec;
 use alloc::vec::Vec;
 

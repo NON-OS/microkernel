@@ -16,12 +16,14 @@
 
 use super::desktop_enabled::desktop_enabled;
 use super::spawn_boot_splash::spawn_boot_splash;
+#[cfg(all(not(feature = "microkernel-input-probe"), not(feature = "microkernel-setup-wizard")))]
 use super::spawn_gui_core::spawn_gui_core;
 use super::spawn_shell::spawn_shell;
 use super::spawn_wallpaper::spawn_wallpaper;
 use super::spawn_wallpaper_catalog::spawn_wallpaper_catalog;
 use super::spawn_wm::spawn_wm;
 
+#[cfg(all(not(feature = "microkernel-input-probe"), not(feature = "microkernel-setup-wizard")))]
 pub(crate) fn spawn() {
     if !desktop_enabled() {
         return;
@@ -32,6 +34,7 @@ pub(crate) fn spawn() {
 
 /// Everything after the compositor and input router. Setup runs on those two,
 /// so the desktop that follows it must not spawn them a second time.
+#[cfg(any(feature = "microkernel-setup-wizard", not(feature = "microkernel-input-probe")))]
 pub(crate) fn spawn_rest() {
     if !desktop_enabled() {
         return;
