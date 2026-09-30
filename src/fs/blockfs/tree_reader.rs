@@ -19,20 +19,20 @@
 //! One pointer block per level is kept, so a file read from start to end
 //! reads each pointer block once and every other step is a data block.
 
-use super::file_consts::{LEVELS, MAX_PTRS};
+use super::file_consts::{LEVELS, ROOTS};
 use super::tree_ptrs::entry;
 use super::tree_shape::locate;
 use super::tree_store::{Block, BlockSource, TreeFault};
 use crate::fs::cryptoblock::PLAIN_BLOCK_BYTES;
 
 pub(crate) struct TreeReader {
-    root: [u64; MAX_PTRS],
+    root: [u64; ROOTS],
     /// The last pointer block read at each level, and its address; 0 is none.
     held: [(u64, Block); LEVELS],
 }
 
 impl TreeReader {
-    pub(crate) fn new(root: [u64; MAX_PTRS]) -> Self {
+    pub(crate) fn new(root: [u64; ROOTS]) -> Self {
         TreeReader { root, held: [(0, [0u8; PLAIN_BLOCK_BYTES]); LEVELS] }
     }
 

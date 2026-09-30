@@ -25,20 +25,27 @@ use super::tree_shape::locate;
 #[test]
 fn each_block_is_placed_where_the_boundaries_say() {
     let at = |n: u64| locate(n).map(|p| (p.slot, p.depth, p.path));
-    assert_eq!(at(53), Some((53, 0, [0, 0, 0, 0])));
-    assert_eq!(at(54), Some((54, 1, [0, 0, 0, 0])));
-    assert_eq!(at(113), Some((54, 1, [59, 0, 0, 0])));
-    assert_eq!(at(114), Some((55, 2, [0, 0, 0, 0])));
-    assert_eq!(at(3713), Some((55, 2, [59, 59, 0, 0])));
+    assert_eq!(at(53), Some((53, 0, [0, 0, 0, 0, 0])));
+    assert_eq!(at(54), Some((54, 1, [0, 0, 0, 0, 0])));
+    assert_eq!(at(113), Some((54, 1, [59, 0, 0, 0, 0])));
+    assert_eq!(at(114), Some((55, 2, [0, 0, 0, 0, 0])));
+    assert_eq!(at(3713), Some((55, 2, [59, 59, 0, 0, 0])));
     /*
      * Paths that read differently backwards: the top level's index leads.
      */
-    assert_eq!(at(114 + 2 * 60 + 5), Some((55, 2, [2, 5, 0, 0])));
-    assert_eq!(at(3714 + 3600 + 2 * 60 + 3), Some((56, 3, [1, 2, 3, 0])));
-    assert_eq!(at(3714), Some((56, 3, [0, 0, 0, 0])));
-    assert_eq!(at(219_713), Some((56, 3, [59, 59, 59, 0])));
-    assert_eq!(at(219_714), Some((57, 4, [0, 0, 0, 0])));
-    assert_eq!(at(MAX_FILE_BLOCKS - 1), Some((57, 4, [59, 59, 59, 59])));
+    assert_eq!(at(114 + 2 * 60 + 5), Some((55, 2, [2, 5, 0, 0, 0])));
+    assert_eq!(at(3714 + 3600 + 2 * 60 + 3), Some((56, 3, [1, 2, 3, 0, 0])));
+    assert_eq!(at(3714), Some((56, 3, [0, 0, 0, 0, 0])));
+    assert_eq!(at(219_713), Some((56, 3, [59, 59, 59, 0, 0])));
+    assert_eq!(at(219_714), Some((57, 4, [0, 0, 0, 0, 0])));
+    assert_eq!(at(FOUR_LEVEL_BLOCKS - 1), Some((57, 4, [59, 59, 59, 59, 0])));
+    /*
+     * The fifth tree's root is the last of the file's roots, kept in the
+     * index block's header rather than in a slot.
+     */
+    assert_eq!(at(FOUR_LEVEL_BLOCKS), Some((58, 5, [0, 0, 0, 0, 0])));
+    assert_eq!(at(FOUR_LEVEL_BLOCKS + 60 * 60 + 7), Some((58, 5, [0, 0, 1, 0, 7])));
+    assert_eq!(at(MAX_FILE_BLOCKS - 1), Some((58, 5, [59, 59, 59, 59, 59])));
     assert_eq!(at(MAX_FILE_BLOCKS), None);
 }
 

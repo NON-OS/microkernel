@@ -19,12 +19,12 @@
 //! end, and its address goes one level up, the top one's into its root slot.
 //! Memory stays at LEVELS pointer blocks whatever the file's size.
 
-use super::file_consts::{FANOUT, LEVELS, MAX_PTRS};
+use super::file_consts::{FANOUT, LEVELS, ROOTS};
 use super::tree_shape::{locate, Place};
 use super::tree_store::{BlockStore, TreeFault};
 
 pub(crate) struct TreeWriter {
-    pub root: [u64; MAX_PTRS],
+    pub root: [u64; ROOTS],
     /// Data blocks placed so far.
     pub data_blocks: u64,
     /// Pointer blocks written so far.
@@ -38,7 +38,7 @@ pub(crate) struct TreeWriter {
 impl TreeWriter {
     pub(crate) fn new() -> Self {
         TreeWriter {
-            root: [0; MAX_PTRS],
+            root: [0; ROOTS],
             data_blocks: 0,
             pointer_blocks: 0,
             pending: [[0; FANOUT]; LEVELS],

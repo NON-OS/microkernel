@@ -41,6 +41,7 @@ mod file_stream;
 mod file_stream_seal;
 mod format;
 mod header_lba;
+mod index_block;
 mod mount;
 mod new_superblock;
 mod node_types;

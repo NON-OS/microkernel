@@ -16,11 +16,11 @@
 
 //! The whole index walked, with a store that keeps nothing.
 
-use super::file_consts::MAX_FILE_BLOCKS;
+use super::file_consts::{MAX_FILE_BLOCKS, ROOTS};
 use super::tree_store::{Block, BlockSource, BlockStore, TreeFault};
 use super::tree_writer::TreeWriter;
 
-/// Allocates and forgets: enough to walk the whole index without 6 GB.
+/// Allocates and forgets: enough to walk the whole index without 380 GB.
 struct Null(u64);
 impl BlockSource for Null {
     type Error = ();
@@ -47,8 +47,12 @@ fn the_index_takes_exactly_its_largest_file_and_refuses_one_block_more() {
     assert_eq!(tree.push(&mut null, 1), Err(TreeFault::TooLarge));
     tree.finish(&mut null).unwrap();
     /*
-     * Every pointer block of all four trees, full, and written once:
-     * single 1, double 60 + 1, triple 3600 + 60 + 1, quadruple 216000 + 3600 + 60 + 1.
+     * Every pointer block of all five trees, full, and written once:
+     * single 1, double 60 + 1, triple 3600 + 60 + 1, quadruple
+     * 216000 + 3600 + 60 + 1, quintuple 12960000 + 216000 + 3600 + 60 + 1.
      */
-    assert_eq!(tree.pointer_blocks, 1 + (60 + 1) + (3600 + 60 + 1) + (216_000 + 3600 + 60 + 1));
+    let quadruple = 216_000 + 3600 + 60 + 1;
+    let quintuple = 12_960_000 + quadruple;
+    assert_eq!(tree.pointer_blocks, 1 + (60 + 1) + (3600 + 60 + 1) + quadruple + quintuple);
+    assert_ne!(tree.root[ROOTS - 1], 0);
 }

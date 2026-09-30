@@ -23,6 +23,8 @@
 
 #[path = "../../../../src/fs/blockfs/file_consts.rs"]
 pub mod file_consts;
+#[path = "../../../../src/fs/blockfs/index_block.rs"]
+pub mod index_block;
 #[path = "../../../../src/fs/blockfs/read_u64.rs"]
 pub mod read_u64;
 #[path = "../../../../src/fs/blockfs/tree_ptrs.rs"]
@@ -39,13 +41,19 @@ pub mod tree_store;
 pub mod tree_writer;
 #[path = "../../../../src/fs/blockfs/tree_writer_end.rs"]
 pub mod tree_writer_end;
+#[path = "../../../../src/fs/blockfs/write_u32.rs"]
+pub mod write_u32;
 #[path = "../../../../src/fs/blockfs/write_u64.rs"]
 pub mod write_u64;
 
+mod deep_file;
 mod mem;
+mod packed;
 mod tests;
 mod tests_capacity;
-mod tests_model_size;
+mod tests_deep;
 mod tests_edges;
+mod tests_index;
 mod tests_layout;
+mod tests_model_size;
 mod tests_reads;

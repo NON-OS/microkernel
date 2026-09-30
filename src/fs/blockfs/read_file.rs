@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::file_consts::{INDEX_MAGIC, INDEX_MAGIC_FLAT, INDEX_PTR_BASE, MAX_PTRS, PTR_BYTES};
+use super::index_block::{decode, Index};
 use super::read_file_flat::read_flat;
-use super::read_u64::read_u64;
 use super::tree_range::read_range;
 use super::tree_reader::TreeReader;
 use super::tree_sealed::{fault, SealedSource};
@@ -44,19 +43,19 @@ pub fn read_file_at(
     if node.first_record_lba == 0 || node.size == 0 {
         return Ok(0);
     }
+    match read_index(key, node)? {
+        Index::Flat(index) => read_flat(key, node, &index, offset, out),
+        Index::Tree(root) => {
+            let mut source = SealedSource { key, ahead: ReadAhead::new() };
+            let mut reader = TreeReader::new(root);
+            read_range(&mut source, &mut reader, node.size, offset, out).map_err(fault)
+        }
+    }
+}
+
+/// The file's index block, opened and read in whichever layout it has.
+pub(super) fn read_index(key: &[u8; 32], node: &BlockFsNode) -> Result<Index, BlockFsError> {
     let index = crate::fs::cryptoblock::read(key, node.first_record_lba)
         .map_err(BlockFsError::CryptoBlock)?;
-    if index[0..8] == INDEX_MAGIC_FLAT[..] {
-        return read_flat(key, node, &index, offset, out);
-    }
-    if index[0..8] != INDEX_MAGIC[..] {
-        return Err(BlockFsError::InvalidRecord);
-    }
-    let mut root = [0u64; MAX_PTRS];
-    for (i, slot) in root.iter_mut().enumerate() {
-        *slot = read_u64(&index, INDEX_PTR_BASE + i * PTR_BYTES);
-    }
-    let mut source = SealedSource { key, ahead: ReadAhead::new() };
-    let mut reader = TreeReader::new(root);
-    read_range(&mut source, &mut reader, node.size, offset, out).map_err(fault)
+    decode(&index).ok_or(BlockFsError::InvalidRecord)
 }

@@ -16,7 +16,7 @@
 
 //! Stores for the tree tests: one keeping every block, one keeping none.
 
-use super::file_consts::{DATA_BYTES, MAX_PTRS};
+use super::file_consts::{DATA_BYTES, ROOTS};
 use super::tree_store::{Block, BlockSource, BlockStore};
 use super::tree_writer::TreeWriter;
 
@@ -53,8 +53,13 @@ pub fn byte_at(i: u64) -> u8 {
     (i.wrapping_mul(2_654_435_761) >> 13) as u8
 }
 
+/// The bytes a data block never written holds at `lba`.
+pub fn numbered(lba: u64) -> Block {
+    core::array::from_fn(|k| byte_at(lba * DATA_BYTES as u64 + k as u64))
+}
+
 /// Write a file of `size` bytes as the kernel does: fill, seal, hang.
-pub fn write_file(mem: &mut Mem, size: u64) -> ([u64; MAX_PTRS], TreeWriter) {
+pub fn write_file(mem: &mut Mem, size: u64) -> ([u64; ROOTS], TreeWriter) {
     let mut tree = TreeWriter::new();
     let mut at = 0u64;
     while at < size {
