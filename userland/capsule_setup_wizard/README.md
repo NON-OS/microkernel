@@ -18,6 +18,7 @@ setup_wizard -> compositor
 - `MkIpcRecv` receives setup input events.
 - `MkSurfaceRegister` and `MkSurfaceShare` own the setup surface.
 - `MkExit` ends the wizard: 3 asks the kernel to open the installer, 0 does not.
+- `MkProcStat` reads this machine's memory, which the Qwen step fits tiers to.
 
 ## Authority
 
@@ -32,6 +33,8 @@ In amnesic mode nothing is written. In install mode the answers and a
 setup-done marker go to `/nonos/setup/` through vfs and are persisted to the
 store; the policy capsule restores them at boot and the wizard then exits
 without drawing. See `docs/userland/setup-wizard/`.
+The name and Qwen tier go to the policy service for the current boot only,
+in every mode: the kept record holds the keyboard, time zone and wallpaper.
 A Wi-Fi network joined on the network step is remembered only when asked and
 only in install mode, sealed under a TPM-derived key in `/nonos/wifi/saved`;
 see `docs/subsystems/networking/wifi/joining.md`.

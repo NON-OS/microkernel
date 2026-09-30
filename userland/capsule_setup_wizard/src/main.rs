@@ -6,12 +6,15 @@ extern crate alloc;
 mod clients;
 mod consent;
 mod keep;
+mod name;
 mod network;
 mod protocol;
+mod qwen;
 mod render;
 mod server;
 mod setup;
 mod state;
+mod text;
 
 use nonos_libc::{heap_init, mk_debug, mk_exit};
 

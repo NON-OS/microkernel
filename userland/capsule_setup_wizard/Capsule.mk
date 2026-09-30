@@ -1,10 +1,11 @@
 # setup_wizard capsule. First-boot setup wizard: attaches a fullscreen
 # compositor surface, grabs the keyboard, walks the user through setup
-# (keyboard, time zone, mode, network, wallpaper), then exits so the kernel
-# brings up the desktop. Same leaf-renderer capset as input_probe (no
-# SurfaceMap/Present), plus EnrolDevRoot: setup is where a person lets this
-# machine run what it installs, and no app window holds that right. Plus
-# Crypto: the TPM-derived key that seals a Wi-Fi network setup remembers.
+# (keyboard, name, time zone, mode, network, wallpaper, Qwen model), then
+# exits so the kernel brings up the desktop. Same leaf-renderer capset as
+# input_probe (no SurfaceMap/Present), plus EnrolDevRoot: setup is where a
+# person lets this machine run what it installs, and no app window holds
+# that right. Plus Crypto: the TPM-derived key that seals a Wi-Fi network
+# setup remembers.
 
 CAPSULE_SLUG             := setup-wizard
 CAPSULE_HANDLE           := app.setup_wizard
@@ -17,5 +18,8 @@ CAPSULE_SERVICE_ENDPOINT := service:4794:app.setup_wizard
 CAPSULE_REPLY_ENDPOINT   := reply:4795:endpoint.app.setup_wizard.reply
 CAPSULE_REQUIRED_CAPS    := 0x8001939
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_setup_wizard
+# build.rs reads the Qwen pins, so a changed pin rebuilds setup.
+CAPSULE_EXTRA_DEPS       := $(CAPSULE_DIR)/build.rs \
+                            $(wildcard userland/capsule_linux/src/linux/file/models/pinned*.rs)
 
 include nonos-mk/capsule.mk

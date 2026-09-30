@@ -6,6 +6,7 @@ use nonos_wifi_client::{join_text, DriverStage};
 use crate::network::{wired_present, NetState};
 use crate::render::screens::mode;
 use crate::render::theme::{FG, HINT};
+use crate::render::widgets::text::cat;
 use crate::state::Context;
 
 pub fn describe(ctx: &Context, say: &mut impl FnMut(&[u8], u32)) {
@@ -57,14 +58,4 @@ fn remember_line<'a>(n: &NetState, line: &'a mut [u8; 96]) -> &'a [u8] {
         (false, Some(e)) => cat(line, &[b"Cannot remember it: ", e.text().as_bytes()]),
         (false, None) => b"[ ] Remember this network (R)",
     }
-}
-
-fn cat<'a>(out: &'a mut [u8; 96], parts: &[&[u8]]) -> &'a [u8] {
-    let mut len = 0;
-    for p in parts {
-        let take = p.len().min(out.len() - len);
-        out[len..len + take].copy_from_slice(&p[..take]);
-        len += take;
-    }
-    &out[..len]
 }

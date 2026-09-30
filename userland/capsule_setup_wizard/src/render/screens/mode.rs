@@ -23,10 +23,12 @@ const WHY: [&[&[u8]]; 3] = [
         b"virtio disk today, and has no passphrase-keyed volume.",
     ],
     &[
-        b"Keeps these answers in the store on this boot's NONOS disk,",
-        b"so setup does not run again, then opens the installer.",
-        b"The installer copies this boot image (loader, kernel, boot",
-        b"config) to a disk you name. It does not copy these answers.",
+        b"Keeps the keyboard, time zone and wallpaper answers in the",
+        b"store on this boot's NONOS disk, so setup does not run again,",
+        b"then opens the installer. The installer writes this boot image",
+        b"and a new store to a disk you name. That store carries those",
+        b"answers and signed programs, so setup does not run there either.",
+        b"Your name and the Qwen model are kept for this boot only.",
     ],
 ];
 

@@ -7,8 +7,9 @@ use crate::protocol::{parse_delivery, DELIVERY_LEN};
 use crate::render::screens;
 use crate::state::Context;
 
+use super::order::DONE;
 use super::say::say;
-use super::step::{self, DONE};
+use super::step;
 
 pub fn run(mut ctx: Context) -> ! {
     if input_router::subscribe(ctx.router_port, 1).is_err() {

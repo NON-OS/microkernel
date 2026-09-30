@@ -14,11 +14,13 @@ pub const DOT_TODO: u32 = 0xFF32_4054;
 
 pub const STEP_LABELS: &[&[u8]] = &[
     b"Keyboard",
+    b"Your name",
     b"Time zone",
     b"Mode",
     b"Network",
     b"Privacy",
     b"Appearance",
+    b"Qwen model",
     b"Installed software",
     b"Review",
 ];

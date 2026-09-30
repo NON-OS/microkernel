@@ -13,6 +13,8 @@ pub struct Context {
     pub tz_off: i8,
     /// Row on the mode screen: amnesic, USB live, or install.
     pub mode_sel: u8,
+    /* The account name typed on the name step. */
+    pub name: crate::name::NameState,
     pub wall_sel: u8,
     /// 1 when installed programs may run. Starts at what an earlier boot
     /// decided, so setup shows the standing choice rather than asking again.
@@ -21,6 +23,8 @@ pub struct Context {
     /// The disk was still loading when setup asked, so it asks again.
     pub local_pending: bool,
     pub net: crate::network::NetState,
+    /* This machine's memory and the Qwen tier chosen by fit to it. */
+    pub qwen: crate::qwen::QwenState,
 }
 
 impl Context {
@@ -45,11 +49,13 @@ impl Context {
             kbd_sel: 0,
             tz_off: 0,
             mode_sel: 0,
+            name: crate::name::NameState::new(),
             wall_sel: 0,
             local_sel: 0,
             local_was: false,
             local_pending: false,
             net: crate::network::NetState::new(),
+            qwen: crate::qwen::QwenState::read(),
         }
     }
 }

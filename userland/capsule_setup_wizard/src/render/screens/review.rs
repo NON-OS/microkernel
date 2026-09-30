@@ -1,36 +1,11 @@
+use crate::render;
 use crate::render::theme::FG;
-use crate::render::{self, widgets::lines};
+use crate::render::widgets::{lines, text::cat};
 use crate::server::step::{default_key, Outcome, K_ENTER, K_ENTER_LF};
 use crate::state::Context;
 
-use super::{appearance, keyboard, mode, timezone};
-
-fn mode_line(ctx: &Context) -> &'static [u8] {
-    match (mode::keeps(ctx), crate::keep::store_ready()) {
-        (false, _) => b"Mode: amnesic. Nothing is kept; setup runs again next boot.",
-        (true, true) => b"Mode: install. Answers kept, then the installer opens.",
-        (true, false) => b"Mode: install. No NONOS store this boot: nothing is kept.",
-    }
-}
-
-fn net_line(ctx: &Context) -> &'static [u8] {
-    match (ctx.net.joined.is_some(), ctx.net.remember && mode::keeps(ctx)) {
-        (false, _) => b"Wi-Fi: none joined.",
-        (true, true) => b"Wi-Fi: joined, remembered sealed with the TPM key.",
-        (true, false) => b"Wi-Fi: joined for this boot only; nothing is kept.",
-    }
-}
-
-fn local_line(ctx: &Context) -> &'static [u8] {
-    /*
-     * Named here too, since this commit is what grants or revokes it.
-     */
-    match (ctx.local_sel, mode::keeps(ctx)) {
-        (1, true) => b"Installed software may run",
-        (1, false) => b"Installed software may run, this boot",
-        _ => b"Only NONOS software runs",
-    }
-}
+use super::review_lines::{local_line, mode_line, net_line, THIS_BOOT};
+use super::{appearance, keyboard, timezone};
 
 pub fn draw(ctx: &Context) {
     render::frame(
@@ -45,15 +20,30 @@ pub fn draw(ctx: &Context) {
     let mut tz = [0u8; 6];
     let tz_len = timezone::label(ctx.tz_off, &mut tz);
     let net: &[u8] = ctx.net.joined.as_ref().map_or(b"None", |n| n.ssid());
-    let names: [&[u8]; 4] =
-        [keyboard::label(ctx.kbd_sel), &tz[..tz_len], net, appearance::name(ctx.wall_sel)];
-    let heads: [&[u8]; 4] = [b"Keyboard", b"Time zone", b"Network", b"Wallpaper"];
+    let (mut name, mut qwen) = ([0u8; 64], [0u8; 64]);
+    let empty: &[u8] = if ctx.name.len == 0 { b" (left empty)" } else { b"" };
+    let name = cat(&mut name, &[ctx.name.shown(), empty]);
+    let qwen: &[u8] = match ctx.qwen.chosen() {
+        Some(tier) => cat(&mut qwen, &[crate::qwen::label(tier), b" (", tier, b")"]),
+        None => b"None for now",
+    };
+    let names: [&[u8]; 6] = [
+        keyboard::label(ctx.kbd_sel),
+        name,
+        &tz[..tz_len],
+        net,
+        appearance::name(ctx.wall_sel),
+        qwen,
+    ];
+    let heads: [&[u8]; 6] =
+        [b"Keyboard", b"Name", b"Time zone", b"Network", b"Wallpaper", b"Qwen model"];
     for (i, (head, name)) in heads.iter().zip(names.iter()).enumerate() {
         let y = 110 + 20 * i as u32;
         lines::text(buf, spx, w, h, x, y, &[head], FG);
-        lines::text(buf, spx, w, h, x + 100, y, &[name], FG);
+        lines::text(buf, spx, w, h, x + 110, y, &[name], FG);
     }
-    lines::text(buf, spx, w, h, x, 210, &[mode_line(ctx), local_line(ctx), net_line(ctx)], FG);
+    let said = [mode_line(ctx), local_line(ctx), net_line(ctx), THIS_BOOT];
+    lines::text(buf, spx, w, h, x, 250, &said, FG);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {

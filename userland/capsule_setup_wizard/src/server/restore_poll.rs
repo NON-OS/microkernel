@@ -17,10 +17,8 @@
 //! Picking up consent given on an earlier boot, once the disk has loaded.
 
 use crate::consent::{self, Restore};
+use crate::server::order::LOCAL_SOFTWARE;
 use crate::state::Context;
-
-/// The step that asks. Past it, what the person chose stands.
-const LOCAL_STEP: u8 = 6;
 
 /// Ask the disk once. True when the answer changed what is on screen.
 pub fn poll(ctx: &mut Context) -> bool {
@@ -35,7 +33,8 @@ pub fn poll(ctx: &mut Context) -> bool {
             if was {
                 super::say::say(b"[SETUP] consent restored from an earlier boot\n");
             }
-            if was && ctx.step < LOCAL_STEP {
+            /* Past the step that asks, what the person chose stands. */
+            if was && ctx.step < LOCAL_SOFTWARE {
                 ctx.local_sel = 1;
             }
             was

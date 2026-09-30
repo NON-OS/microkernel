@@ -7,7 +7,7 @@
 use nonos_libc::mk_time_millis;
 use nonos_wifi_client::{find, DriverStage};
 
-use crate::server::step::NETWORK_STEP;
+use crate::server::order::NETWORK;
 use crate::state::Context;
 
 const POLL_MS: i64 = 2_000;
@@ -32,7 +32,7 @@ pub fn poll(ctx: &mut Context) -> bool {
 }
 
 fn refreshing(ctx: &Context) -> bool {
-    ctx.step == NETWORK_STEP && !ctx.net.typing && ctx.net.joined.is_none()
+    ctx.step == NETWORK && !ctx.net.typing && ctx.net.joined.is_none()
 }
 
 /// Find the driver, read its stage and, once it is ready, the networks.
