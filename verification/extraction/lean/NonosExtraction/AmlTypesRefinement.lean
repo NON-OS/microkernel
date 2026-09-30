@@ -38,9 +38,106 @@ theorem the_lpsscontroller_is_valid_wrapper_is_its_method (a : types.LpssControl
 theorem the_gpiocontroller_is_valid_wrapper_is_its_method (a : types.GpioController) :
     gpiocontroller_is_valid a = types.GpioController.is_valid a := rfl
 
+/-! ### A controller is kept only with a usable MMIO window
+
+    `enumerate_i2c_controllers` and `enumerate_gpio_controllers` push a
+    controller onto their result exactly when `is_valid` holds, and the drivers
+    that follow map the window it names. The theorems below establish that
+    `is_valid` holds exactly when both the MMIO base and the MMIO size are
+    nonzero, that a zero base or a zero size is refused whatever the other
+    field says, that the smallest nonzero window is accepted, and that the
+    interrupt and identity fields play no part. The GPIO size is a 64 bit field,
+    and a window whose size has only bits above the low 32 set is still
+    accepted, so the check does not truncate. They cannot establish that the
+    window is backed by real device memory, nor anything about the AML parsing
+    that fills these fields, which is not extracted.
+-/
+
+/-- The I2C controller check is the conjunction of a nonzero base and a nonzero
+size. -/
+theorem lpsscontroller_is_valid_iff_base_and_size_are_nonzero (c : types.LpssController) :
+    lpsscontroller_is_valid c = ok (decide (c.mmio_base.val ≠ 0 ∧ c.mmio_size.val ≠ 0)) := by
+  unfold lpsscontroller_is_valid types.LpssController.is_valid
+  by_cases hb : c.mmio_base = 0#u64
+  · simp [hb]
+  · have hbv : c.mmio_base.val ≠ 0 := fun h => hb (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    by_cases hs : c.mmio_size = 0#u32
+    · simp [hb, hs]
+    · have hsv : c.mmio_size.val ≠ 0 := fun h => hs (UScalar.eq_of_val_eq (by rw [h]; rfl))
+      simp [hb, hs, hbv, hsv]
+
+/-- The GPIO controller check is the conjunction of a nonzero base and a nonzero
+size. -/
+theorem gpiocontroller_is_valid_iff_base_and_size_are_nonzero (c : types.GpioController) :
+    gpiocontroller_is_valid c = ok (decide (c.mmio_base.val ≠ 0 ∧ c.mmio_size.val ≠ 0)) := by
+  unfold gpiocontroller_is_valid types.GpioController.is_valid
+  by_cases hb : c.mmio_base = 0#u64
+  · simp [hb]
+  · have hbv : c.mmio_base.val ≠ 0 := fun h => hb (UScalar.eq_of_val_eq (by rw [h]; rfl))
+    by_cases hs : c.mmio_size = 0#u64
+    · simp [hb, hs]
+    · have hsv : c.mmio_size.val ≠ 0 := fun h => hs (UScalar.eq_of_val_eq (by rw [h]; rfl))
+      simp [hb, hs, hbv, hsv]
+
+/-- A zero-length I2C window is refused even at a nonzero base. -/
+theorem lpsscontroller_is_valid_refuses_a_zero_size (c : types.LpssController)
+    (hs : c.mmio_size = 0#u32) : lpsscontroller_is_valid c = ok false := by
+  rw [lpsscontroller_is_valid_iff_base_and_size_are_nonzero, hs]
+  simp
+
+/-- An I2C window at base zero is refused whatever its size. -/
+theorem lpsscontroller_is_valid_refuses_a_zero_base (c : types.LpssController)
+    (hb : c.mmio_base = 0#u64) : lpsscontroller_is_valid c = ok false := by
+  rw [lpsscontroller_is_valid_iff_base_and_size_are_nonzero, hb]
+  simp
+
+/-- A zero-length GPIO window is refused even at a nonzero base. -/
+theorem gpiocontroller_is_valid_refuses_a_zero_size (c : types.GpioController)
+    (hs : c.mmio_size = 0#u64) : gpiocontroller_is_valid c = ok false := by
+  rw [gpiocontroller_is_valid_iff_base_and_size_are_nonzero, hs]
+  simp
+
+/-- A GPIO window at base zero is refused whatever its size. -/
+theorem gpiocontroller_is_valid_refuses_a_zero_base (c : types.GpioController)
+    (hb : c.mmio_base = 0#u64) : gpiocontroller_is_valid c = ok false := by
+  rw [gpiocontroller_is_valid_iff_base_and_size_are_nonzero, hb]
+  simp
+
+/-- The smallest nonzero I2C window, one byte at address one, is accepted. -/
+theorem lpsscontroller_is_valid_accepts_the_smallest_window
+    (c : types.LpssController) (hb : c.mmio_base = 1#u64) (hs : c.mmio_size = 1#u32) :
+    lpsscontroller_is_valid c = ok true := by
+  rw [lpsscontroller_is_valid_iff_base_and_size_are_nonzero, hb, hs]
+  simp
+
+/-- The interrupt fields do not enter into the I2C check: a controller without
+an interrupt is kept or dropped exactly as the same window with one. -/
+theorem lpsscontroller_is_valid_ignores_the_interrupt (c : types.LpssController)
+    (b : Bool) (q : Std.U32) :
+    lpsscontroller_is_valid { c with has_irq := b, irq := q } = lpsscontroller_is_valid c := by
+  rw [lpsscontroller_is_valid_iff_base_and_size_are_nonzero,
+    lpsscontroller_is_valid_iff_base_and_size_are_nonzero]
+
+/-- A GPIO window whose size is exactly 2^32 has a zero low word and is still
+accepted: the 64 bit size is compared whole, not truncated. -/
+theorem gpiocontroller_is_valid_does_not_truncate_the_size (c : types.GpioController)
+    (hb : c.mmio_base = 1#u64) (hs : c.mmio_size.val = 2 ^ 32) :
+    gpiocontroller_is_valid c = ok true := by
+  rw [gpiocontroller_is_valid_iff_base_and_size_are_nonzero, hb, hs]
+  simp
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.AmlTypes.the_lpsscontroller_is_valid_wrapper_is_its_method
 #print axioms NonosExtraction.AmlTypes.the_gpiocontroller_is_valid_wrapper_is_its_method
+#print axioms NonosExtraction.AmlTypes.lpsscontroller_is_valid_iff_base_and_size_are_nonzero
+#print axioms NonosExtraction.AmlTypes.gpiocontroller_is_valid_iff_base_and_size_are_nonzero
+#print axioms NonosExtraction.AmlTypes.lpsscontroller_is_valid_refuses_a_zero_size
+#print axioms NonosExtraction.AmlTypes.lpsscontroller_is_valid_refuses_a_zero_base
+#print axioms NonosExtraction.AmlTypes.gpiocontroller_is_valid_refuses_a_zero_size
+#print axioms NonosExtraction.AmlTypes.gpiocontroller_is_valid_refuses_a_zero_base
+#print axioms NonosExtraction.AmlTypes.lpsscontroller_is_valid_accepts_the_smallest_window
+#print axioms NonosExtraction.AmlTypes.lpsscontroller_is_valid_ignores_the_interrupt
+#print axioms NonosExtraction.AmlTypes.gpiocontroller_is_valid_does_not_truncate_the_size
 
 end NonosExtraction.AmlTypes

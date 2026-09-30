@@ -35,8 +35,20 @@ namespace NonosExtraction.MainMode
 theorem the_is_microkernel_wrapper_is_its_method :
     is_microkernel = mode.is_microkernel := rfl
 
+/-! ### The kernel always boots as a microkernel
+
+`is_microkernel` answers whether the boot path runs in microkernel mode. The
+theorem below shows it answers yes, without failing, which agrees with
+`get_boot_mode` in the same source file returning `BootMode::Microkernel`, the
+only variant of that enum (`get_boot_mode` is not extracted, so the agreement is
+with its source). -/
+
+/-- The mode query answers true. -/
+theorem is_microkernel_answers_true : is_microkernel = ok true := rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.MainMode.the_is_microkernel_wrapper_is_its_method
+#print axioms NonosExtraction.MainMode.is_microkernel_answers_true
 
 end NonosExtraction.MainMode

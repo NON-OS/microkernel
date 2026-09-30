@@ -35,8 +35,25 @@ namespace NonosExtraction.DataStats
 theorem the_acpistats_new_wrapper_is_its_method :
     acpistats_new = stats.AcpiStats.new := rfl
 
+/-! ### The ACPI statistics start from zero
+
+    The parser's `STATS` static is initialised with `AcpiStats::new()` and every
+    field is then only incremented as tables are found. This theorem says that
+    each of the seven counters starts at zero, so each later reading is a count
+    of events rather than an offset from some initial value. It cannot say
+    anything about the static or the lock around it, which Aeneas leaves opaque. -/
+
+/-- Every counter of a new `AcpiStats` is zero. -/
+theorem acpistats_new_starts_every_counter_at_zero :
+    ∃ s, acpistats_new = ok s ∧
+      s.tables_found.val = 0 ∧ s.processors_found.val = 0 ∧ s.ioapics_found.val = 0 ∧
+      s.overrides_found.val = 0 ∧ s.numa_nodes.val = 0 ∧ s.pcie_segments.val = 0 ∧
+      s.parse_errors.val = 0 :=
+  ⟨_, rfl, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.DataStats.the_acpistats_new_wrapper_is_its_method
+#print axioms NonosExtraction.DataStats.acpistats_new_starts_every_counter_at_zero
 
 end NonosExtraction.DataStats

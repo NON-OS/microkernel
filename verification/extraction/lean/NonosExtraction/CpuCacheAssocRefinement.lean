@@ -35,8 +35,76 @@ namespace NonosExtraction.CpuCacheAssoc
 theorem the_decode_l2_assoc_wrapper_is_its_method (a : Std.U8) :
     decode_l2_assoc a = cache_assoc.decode_l2_assoc a := rfl
 
+/-! ### Decoding the extended-leaf associativity field
+
+    `detect_extended` takes the four-bit field `(reg >> 12) & 0xF` from CPUID leaf
+    0x80000006 ECX (L2) and EDX (L3) and hands it to `decode_l2_assoc`. The
+    theorems below say that every even encoding from 2 to 14 decodes to
+    `2^(e/2)` ways, that 11 and 13 decode to the non-power-of-two 48 and 96 ways,
+    and exactly which encodings read as zero: 0 (cache disabled), the encodings
+    3, 5, 7 and 9, 15 (fully associative) and every byte above 15, which the
+    caller's mask never produces. A zero therefore does not tell a disabled cache
+    from a fully associative one, and newer processors that define 3 and 5 as
+    three-way and six-way, or 9 as "see leaf 0x8000001D", are also reported as
+    zero. They cannot establish what `cpuid` returns; the instruction and the
+    `CacheInfo` record are not extracted here.
+-/
+
+private theorem small_byte_cases (v : Std.U8) (h : v.val < 16) :
+    v = 0#u8 ∨ v = 1#u8 ∨ v = 2#u8 ∨ v = 3#u8 ∨ v = 4#u8 ∨ v = 5#u8 ∨ v = 6#u8 ∨
+      v = 7#u8 ∨ v = 8#u8 ∨ v = 9#u8 ∨ v = 10#u8 ∨ v = 11#u8 ∨ v = 12#u8 ∨
+      v = 13#u8 ∨ v = 14#u8 ∨ v = 15#u8 := by
+  have : v.val = 0 ∨ v.val = 1 ∨ v.val = 2 ∨ v.val = 3 ∨ v.val = 4 ∨ v.val = 5 ∨
+      v.val = 6 ∨ v.val = 7 ∨ v.val = 8 ∨ v.val = 9 ∨ v.val = 10 ∨ v.val = 11 ∨
+      v.val = 12 ∨ v.val = 13 ∨ v.val = 14 ∨ v.val = 15 := by omega
+  rcases this with h | h | h | h | h | h | h | h | h | h | h | h | h | h | h | h <;>
+    simp only [UScalar.eq_equiv, h] <;> decide
+
+/-- Every even encoding from 2 to 14 is a power-of-two way count, `2^(e/2)`. -/
+theorem decode_l2_assoc_reads_an_even_encoding_as_a_power_of_two (e : Std.U8)
+    (h2 : 2 ≤ e.val) (h14 : e.val ≤ 14) (heven : e.val % 2 = 0) :
+    ∃ w : Std.U16, decode_l2_assoc e = ok w ∧ w.val = 2 ^ (e.val / 2) := by
+  rcases small_byte_cases e (by omega) with
+    h | h | h | h | h | h | h | h | h | h | h | h | h | h | h | h <;> subst h <;>
+    first
+    | exact ⟨_, rfl, rfl⟩
+    | exact absurd heven (by decide)
+    | exact absurd h2 (by decide)
+
+/-- The two encodings that are not powers of two are 48 and 96 ways. -/
+theorem decode_l2_assoc_reads_eleven_and_thirteen_as_48_and_96 :
+    decode_l2_assoc 11#u8 = ok 48#u16 ∧ decode_l2_assoc 13#u8 = ok 96#u16 ∧
+      decode_l2_assoc 1#u8 = ok 1#u16 := by
+  exact ⟨rfl, rfl, rfl⟩
+
+/-- A byte above 15 cannot come from the caller's four-bit mask and decodes to
+    zero rather than failing. -/
+theorem decode_l2_assoc_reads_a_byte_above_fifteen_as_zero (e : Std.U8) (h : 15 < e.val) :
+    decode_l2_assoc e = ok 0#u16 := by
+  unfold decode_l2_assoc cache_assoc.decode_l2_assoc
+  split <;> first | rfl | exact absurd h (by decide)
+
+/-- Within the four-bit field, zero is reported exactly for 0, 3, 5, 7, 9 and 15:
+    a disabled cache, the encodings this table leaves undefined, and a fully
+    associative cache all read alike. -/
+theorem decode_l2_assoc_is_zero_exactly_on_these_encodings (e : Std.U8) (h : e.val < 16) :
+    decode_l2_assoc e = ok 0#u16 ↔
+      (e.val = 0 ∨ e.val = 3 ∨ e.val = 5 ∨ e.val = 7 ∨ e.val = 9 ∨ e.val = 15) := by
+  rcases small_byte_cases e h with
+    h | h | h | h | h | h | h | h | h | h | h | h | h | h | h | h <;> subst h <;>
+    first
+    | exact ⟨fun _ => by decide, fun _ => rfl⟩
+    | exact ⟨fun hh => by
+          have hv := congrArg (fun r : Result Std.U16 => match r with | ok w => w.val | _ => 0) hh
+          revert hv; decide,
+        fun hp => absurd hp (by decide)⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CpuCacheAssoc.the_decode_l2_assoc_wrapper_is_its_method
+#print axioms NonosExtraction.CpuCacheAssoc.decode_l2_assoc_reads_an_even_encoding_as_a_power_of_two
+#print axioms NonosExtraction.CpuCacheAssoc.decode_l2_assoc_reads_eleven_and_thirteen_as_48_and_96
+#print axioms NonosExtraction.CpuCacheAssoc.decode_l2_assoc_reads_a_byte_above_fifteen_as_zero
+#print axioms NonosExtraction.CpuCacheAssoc.decode_l2_assoc_is_zero_exactly_on_these_encodings
 
 end NonosExtraction.CpuCacheAssoc

@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.TablesMemoryType
+import NonosExtraction.TablesMemoryDesc
 
 open Aeneas Aeneas.Std Result
 open nonos_x_tables_memory_type
@@ -38,9 +39,85 @@ theorem the_memorytype_is_usable_wrapper_is_its_method (a : memory_type.MemoryTy
 theorem the_memorytype_is_reserved_wrapper_is_its_method (a : memory_type.MemoryType) :
     memorytype_is_reserved a = memory_type.MemoryType.is_reserved a := rfl
 
+/-! ### Usable and reserved memory, and the raw-descriptor copy
+
+    The kernel classifies UEFI memory twice: once on the `MemoryType` enum here,
+    and once on the raw `u32` type field of a memory descriptor in
+    tables/memory_desc.rs. `memorytype_is_usable` agrees with
+    `memorydescriptor_is_usable` on every one of the seventeen types, read
+    through the enum's `u32` discriminant, so neither copy can hand runtime
+    services, ACPI, MMIO, persistent or unaccepted memory to an allocator that
+    the other would refuse. The usable types are exactly the loader, boot
+    services and conventional types. `memorytype_is_reserved` never overlaps
+    `memorytype_is_usable`, but the two do not cover the enum: nine types are
+    neither, among them `MemoryMappedIOPortSpace` (while `MemoryMappedIO` is
+    reserved) and `ACPIMemoryNVS`, which firmware requires the operating system
+    to preserve. Reading "not reserved" as "free to use" is therefore wrong, and
+    `memorytype_is_usable` is the only safe test. These theorems cannot establish
+    anything about the memory map walk that consumes them, which is not
+    extracted, nor about descriptors whose raw type is 17 or above, which have no
+    enum value.
+-/
+
+open nonos_x_tables_memory_desc in
+/-- The enum classifier and the raw descriptor classifier give the same answer
+    for every memory type, whatever the other descriptor fields hold. -/
+theorem memorytype_is_usable_agrees_with_the_descriptor_copy
+    (t : memory_type.MemoryType) (d : memory_desc.MemoryDescriptor)
+    (h : d.memory_type = memory_type.MemoryType.read_discriminant t) :
+    memorytype_is_usable t = memorydescriptor_is_usable d := by
+  obtain ⟨ty, _, _, _, _⟩ := d
+  cases h
+  cases t <;> rfl
+
+/-- Exactly five types are usable: loader code and data, boot services code and
+    data, and conventional memory. -/
+theorem memorytype_is_usable_exactly_for_loader_boot_services_and_conventional
+    (t : memory_type.MemoryType) :
+    (memorytype_is_usable t = ok true ↔ t = .LoaderCode ∨ t = .LoaderData ∨
+      t = .BootServicesCode ∨ t = .BootServicesData ∨ t = .ConventionalMemory) ∧
+    (memorytype_is_usable t = ok false ↔ ¬ (t = .LoaderCode ∨ t = .LoaderData ∨
+      t = .BootServicesCode ∨ t = .BootServicesData ∨ t = .ConventionalMemory)) := by
+  cases t <;> simp [memorytype_is_usable, memory_type.MemoryType.is_usable]
+
+/-- No type is both usable and reserved. -/
+theorem memorytype_is_reserved_never_overlaps_memorytype_is_usable
+    (t : memory_type.MemoryType) :
+    ¬ (memorytype_is_usable t = ok true ∧ memorytype_is_reserved t = ok true) := by
+  cases t <;> simp [memorytype_is_usable, memory_type.MemoryType.is_usable,
+    memorytype_is_reserved, memory_type.MemoryType.is_reserved]
+
+/-- Exactly three types are reserved: the reserved type, unusable memory and
+    memory-mapped I/O. -/
+theorem memorytype_is_reserved_exactly_for_reserved_unusable_and_mmio
+    (t : memory_type.MemoryType) :
+    (memorytype_is_reserved t = ok true ↔ t = .ReservedMemoryType ∨
+      t = .UnusableMemory ∨ t = .MemoryMappedIO) ∧
+    (memorytype_is_reserved t = ok false ↔ ¬ (t = .ReservedMemoryType ∨
+      t = .UnusableMemory ∨ t = .MemoryMappedIO)) := by
+  cases t <;> simp [memorytype_is_reserved, memory_type.MemoryType.is_reserved]
+
+/-- Nine types are neither usable nor reserved, so "not reserved" does not mean
+    usable. This records a latent hazard rather than a present defect: nothing
+    in the kernel calls `is_reserved` today, but a caller that allocated from
+    every type it does not report reserved would reuse port-space MMIO, ACPI
+    NVS, runtime services, PAL code, persistent and unaccepted memory. -/
+theorem memorytype_is_reserved_is_false_on_nine_types_that_are_not_usable :
+    ∀ t ∈ [memory_type.MemoryType.RuntimeServicesCode, .RuntimeServicesData,
+      .ACPIReclaimMemory, .ACPIMemoryNVS, .MemoryMappedIOPortSpace, .PalCode,
+      .PersistentMemory, .UnacceptedMemoryType, .MaxMemoryType],
+      memorytype_is_reserved t = ok false ∧ memorytype_is_usable t = ok false := by
+  simp [memorytype_is_usable, memory_type.MemoryType.is_usable,
+    memorytype_is_reserved, memory_type.MemoryType.is_reserved]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TablesMemoryType.the_memorytype_is_usable_wrapper_is_its_method
 #print axioms NonosExtraction.TablesMemoryType.the_memorytype_is_reserved_wrapper_is_its_method
+#print axioms NonosExtraction.TablesMemoryType.memorytype_is_usable_agrees_with_the_descriptor_copy
+#print axioms NonosExtraction.TablesMemoryType.memorytype_is_usable_exactly_for_loader_boot_services_and_conventional
+#print axioms NonosExtraction.TablesMemoryType.memorytype_is_reserved_never_overlaps_memorytype_is_usable
+#print axioms NonosExtraction.TablesMemoryType.memorytype_is_reserved_exactly_for_reserved_unusable_and_mmio
+#print axioms NonosExtraction.TablesMemoryType.memorytype_is_reserved_is_false_on_nine_types_that_are_not_usable
 
 end NonosExtraction.TablesMemoryType
