@@ -27,8 +27,14 @@ use crate::memory::paging::tlb;
 /// spinning for the lock in `broadcast`. The pending flag makes it safe either
 /// way: it is what says the round applies to us, and clearing it before the
 /// ack means neither path can acknowledge twice.
+///
+/// Never halts: a CPU that cannot name itself (not yet registered) returns
+/// without serving. It was not among the round's targets, which are chosen
+/// from registered CPUs, so no acknowledgement is owed.
 pub fn handle_shootdown_ipi() {
-    serve_for(crate::smp::percpu::current());
+    if let Some(me) = crate::smp::percpu::try_current() {
+        serve_for(me);
+    }
 }
 
 /// Whether any round is waiting for acknowledgements.

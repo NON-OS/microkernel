@@ -89,6 +89,12 @@ pub fn current() -> &'static PerCpuData {
     unsafe { &PERCPU_DATA[cpu_id()] }
 }
 
+/// [`current`] without the halt: `None` on a CPU not yet registered.
+#[inline]
+pub fn try_current() -> Option<&'static PerCpuData> {
+    get(crate::smp::cpu_id::try_cpu_id()?)
+}
+
 #[inline]
 pub unsafe fn current_mut() -> &'static mut PerCpuData {
     // SAFETY: Caller ensures exclusive access
