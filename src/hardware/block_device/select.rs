@@ -55,9 +55,9 @@ pub fn selected() -> Result<Backend, BlockDeviceError> {
         }
     }
     if !TOLD_NONE.swap(true, Ordering::Relaxed) {
-        crate::log::warn!(
-            "[BLOCK] no disk carries the NONOS store or disk plan; block I/O refused"
-        );
+        let line = "[BLOCK] no disk carries the NONOS store or disk plan yet; block I/O refused";
+        crate::sys::serial::println(line.as_bytes());
+        crate::log::warn!("{}", line);
     }
     Err(BlockDeviceError::Dead)
 }
