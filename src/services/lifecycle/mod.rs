@@ -32,6 +32,7 @@ mod reply_wait;
 mod state;
 pub mod supervisor;
 pub mod transport;
+mod waiting;
 
 pub use registry::{register, tick, Capsule};
 pub use state::CapsuleState;

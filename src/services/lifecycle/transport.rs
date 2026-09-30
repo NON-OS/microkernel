@@ -120,12 +120,7 @@ pub fn decode_v1_response<'a>(
     if buf.len() < total || (payload_len as usize) < 4 {
         return None;
     }
-    let status = i32::from_le_bytes([
-        buf[FRAME_HDR_LEN],
-        buf[FRAME_HDR_LEN + 1],
-        buf[FRAME_HDR_LEN + 2],
-        buf[FRAME_HDR_LEN + 3],
-    ]);
+    let status = i32::from_le_bytes(buf[FRAME_HDR_LEN..FRAME_HDR_LEN + 4].try_into().ok()?);
     let body = &buf[FRAME_HDR_LEN + 4..total];
     Some(DecodedResponse { op, request_id, status, body })
 }
@@ -184,9 +179,8 @@ pub fn round_trip(
             return Err(TransportError::TransportFailure);
         }
     }
-
     let started_ms = crate::time::timestamp_millis();
-    let _waiting = Waiting::on(reply_inbox);
+    let _waiting = super::waiting::Waiting::on(reply_inbox);
     for round in 0..RECV_YIELDS {
         if !state.is_alive() {
             return Err(TransportError::Dead);
@@ -210,23 +204,4 @@ pub fn round_trip(
         }
     }
     Err(TransportError::TransportFailure)
-}
-
-/// This caller named as the one waiting on a reply inbox, for as long as it
-/// waits, so the reply wakes it instead of the next tick.
-struct Waiting<'a>(&'a str);
-
-impl<'a> Waiting<'a> {
-    fn on(inbox: &'a str) -> Self {
-        if let Some(pid) = crate::process::current_pid() {
-            nonos_inbox::wait_on(inbox, pid);
-        }
-        Waiting(inbox)
-    }
-}
-
-impl Drop for Waiting<'_> {
-    fn drop(&mut self) {
-        nonos_inbox::unwait(self.0);
-    }
 }
