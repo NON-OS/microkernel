@@ -73,8 +73,8 @@ def main():
     if seen != size:
         print(f"staged-kernel: {a.staged} was packed from a different link.")
         print(f"  it stops matching {a.elf} at byte {seen} of {size}.")
-        print("  build the kernel and pack the ESP as separate make invocations;")
-        print("  as two goals on one line they race under -j.")
+        print("  the kernel was relinked after this image was signed; once the kernel")
+        print("  build has finished, run `make nonos-mk-esp` on its own to pack it again.")
         return 1
 
     trailer = a.staged.stat().st_size - size
