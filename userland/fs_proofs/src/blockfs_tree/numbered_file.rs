@@ -21,8 +21,13 @@ use super::disk::Disk;
 use super::file_consts::DATA_BYTES;
 use super::index_block::encode;
 use super::mem::byte_at;
-use super::tree_store::BlockStore;
+use super::tree_store::{Block, BlockStore};
 use super::tree_writer::TreeWriter;
+
+/// The bytes a data block never written holds at `lba`.
+pub fn numbered(lba: u64) -> Block {
+    core::array::from_fn(|k| byte_at(lba * DATA_BYTES as u64 + k as u64))
+}
 
 /// Where a file's node and index block lie, and its size.
 #[derive(Clone, Copy)]

@@ -20,7 +20,7 @@
 
 use std::collections::HashMap;
 
-use super::mem::numbered;
+use super::numbered_file::numbered;
 use super::tree_store::{Block, BlockSource, BlockStore};
 
 #[derive(Default)]

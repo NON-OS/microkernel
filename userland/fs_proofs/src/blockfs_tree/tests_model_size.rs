@@ -61,7 +61,9 @@ fn every_block_of_a_491_mb_file_reads_back_where_it_was_written() {
     for (n, want) in written.iter().enumerate() {
         assert_eq!(reader.data_lba(&mut store, n as u64), Ok(*want), "block {n}");
     }
-    /* And backwards, as a reader seeking to earlier tensors does. */
+    /*
+     * And backwards, as a reader seeking to earlier tensors does.
+     */
     let mut reader = TreeReader::new(tree.root);
     for n in (0..blocks).rev().step_by(9973) {
         assert_eq!(reader.data_lba(&mut store, n), Ok(written[n as usize]), "block {n}");

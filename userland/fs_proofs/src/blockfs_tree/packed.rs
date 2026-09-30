@@ -21,33 +21,17 @@
 
 use std::collections::HashMap;
 
-use super::file_consts::FANOUT;
-use super::mem::numbered;
-use super::tree_ptrs::{encode, entry};
+use super::numbered_file::numbered;
+use super::packed_run::{pack, unpack, Run};
 use super::tree_store::{Block, BlockSource, BlockStore};
 
 /// The LBA of data block 0.
 pub const DATA: u64 = 1 << 40;
 
-type Run = (u64, u64, u8);
-
 #[derive(Default)]
 pub struct Packed {
     runs: Vec<Run>,
     whole: HashMap<u64, Block>,
-}
-
-fn unpack(&(first, step, count): &Run) -> Block {
-    let mut ptrs = [0u64; FANOUT];
-    for (i, p) in ptrs[..count as usize].iter_mut().enumerate() {
-        *p = first.wrapping_add(step.wrapping_mul(i as u64));
-    }
-    encode(&ptrs)
-}
-
-fn pack(b: &Block) -> Run {
-    let count = (0..FANOUT).take_while(|&i| entry(b, i) != 0).count() as u8;
-    (entry(b, 0), entry(b, 1).wrapping_sub(entry(b, 0)), count)
 }
 
 impl BlockSource for Packed {

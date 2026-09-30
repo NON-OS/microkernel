@@ -55,6 +55,7 @@ mod disk;
 mod mem;
 mod numbered_file;
 mod packed;
+mod packed_run;
 mod run;
 mod tests;
 mod tests_cache;
