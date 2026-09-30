@@ -19,8 +19,17 @@
 //! terminal) feeds one message to a running child capsule's
 //! `stdin.<pid>` inbox; the child drains it with `MkStdinRead`. Same
 //! inbox-naming convention and parent gate as `sys_proc_output`.
+//!
+//! The inbox is a byte stream in the order it was fed: a read with a buffer
+//! shorter than the next message takes what fits and leaves the rest first
+//! in line, so nothing is dropped. The buffer is checked writable before
+//! anything is taken; only one unmapped between that check and the copy
+//! loses what was taken, and the read then says EFAULT. The kernel's
+//! copies of stdin bytes are zeroed once handed on, since they can be what
+//! a person typed.
 
 use super::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT, ERRNO_PERM};
+use crate::ipc::nonos_inbox::StrictEnqueueError;
 use crate::process::{current_pid, get_parent_pid};
 
 pub fn sys_proc_input(pid: u64, buf_ptr: u64, buf_len: usize) -> i64 {
@@ -48,15 +57,19 @@ pub fn sys_proc_input(pid: u64, buf_ptr: u64, buf_len: usize) -> i64 {
     }
     let name = alloc::format!("stdin.{}", target);
     let from = alloc::format!("proc.{}", caller);
-    let msg = match crate::ipc::nonos_channel::IpcMessage::new(&from, &name, &data) {
-        Ok(m) => m,
-        Err(_) => return ERRNO_INVAL,
+    let msg = crate::ipc::nonos_channel::IpcMessage::new(&from, &name, &data);
+    let len = data.len() as i64;
+    crate::crypto::secure_zero(&mut data);
+    let Ok(msg) = msg else {
+        return ERRNO_INVAL;
     };
     match crate::ipc::nonos_inbox::try_enqueue_strict(&name, msg) {
-        Ok(()) => data.len() as i64,
-        Err(crate::ipc::nonos_inbox::StrictEnqueueError::MissingInbox)
-        | Err(crate::ipc::nonos_inbox::StrictEnqueueError::DeadOwner) => ERRNO_NOENT,
-        Err(crate::ipc::nonos_inbox::StrictEnqueueError::QueueFull(_)) => ERRNO_BUSY,
+        Ok(()) => len,
+        Err(StrictEnqueueError::MissingInbox) | Err(StrictEnqueueError::DeadOwner) => ERRNO_NOENT,
+        Err(StrictEnqueueError::QueueFull(mut refused)) => {
+            crate::crypto::secure_zero(&mut refused.data);
+            ERRNO_BUSY
+        }
     }
 }
 
@@ -68,13 +81,18 @@ pub fn sys_stdin_read(buf_ptr: u64, buf_len: usize) -> i64 {
     if caller == 0 {
         return ERRNO_PERM;
     }
-    let name = alloc::format!("stdin.{}", caller);
-    let Some(msg) = crate::ipc::nonos_inbox::try_dequeue_existing(&name) else {
-        return 0;
-    };
-    let n = msg.data.len().min(buf_len);
-    if crate::usercopy::copy_to_user(buf_ptr, &msg.data[..n]).is_err() {
+    if crate::usercopy::validate_user_write(buf_ptr, buf_len).is_err() {
         return ERRNO_FAULT;
     }
-    n as i64
+    let name = alloc::format!("stdin.{}", caller);
+    let Some(mut bytes) = crate::ipc::nonos_inbox::take_front(&name, buf_len) else {
+        return 0;
+    };
+    let copied = crate::usercopy::copy_to_user(buf_ptr, &bytes);
+    let n = bytes.len() as i64;
+    crate::crypto::secure_zero(&mut bytes);
+    match copied {
+        Ok(_) => n,
+        Err(_) => ERRNO_FAULT,
+    }
 }
