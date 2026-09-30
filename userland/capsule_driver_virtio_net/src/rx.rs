@@ -20,6 +20,8 @@
 
 
 
+use core::sync::atomic::{fence, Ordering};
+
 use crate::constants::{RING_SLOTS, VIRTIO_NET_HDR_LEN};
 use crate::queue::RxQueue;
 
@@ -39,6 +41,8 @@ pub unsafe fn take_one(rx: &mut RxQueue) -> Option<Frame<'static>> {
     if used == rx.last_used {
         return None;
     }
+    // The element and the frame are only valid once the index is seen.
+    fence(Ordering::Acquire);
     let ring_pos = rx.last_used % RING_SLOTS;
     let (desc_id, used_len) = rx.used_elem_at(ring_pos);
 
