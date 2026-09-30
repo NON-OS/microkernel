@@ -25,7 +25,7 @@ use sha2::{Digest, Sha256};
  * for the application keys. A running state answers each of those by copying
  * a hundred bytes of hash state, however long the certificate chain was.
  */
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Transcript {
     hash: Sha256,
 }

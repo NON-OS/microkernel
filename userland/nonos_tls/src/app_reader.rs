@@ -29,6 +29,7 @@ use super::traffic_keys::TrafficKeys;
  * only the records that completed since the last call.
  */
 /// The server's application records, opened in order as they complete.
+#[derive(Default)]
 pub struct AppReader {
     pub(crate) cursor: usize,
     pub(crate) seq: u64,

@@ -16,6 +16,7 @@
 
 //! Keying the handshake from the ServerHello, once.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use super::types::{HandshakeState, Start};
@@ -43,7 +44,7 @@ impl HandshakeState {
             return Start::Retry;
         }
         match crate::server_keys::server_keys(client, flight) {
-            Some(ctx) => Start::Ready(HandshakeState {
+            Some(ctx) => Start::Ready(Box::new(HandshakeState {
                 keys: ctx.keys,
                 transcript: ctx.transcript,
                 cursor: ctx.used,
@@ -53,7 +54,7 @@ impl HandshakeState {
                 end: None,
                 alert: None,
                 broken: false,
-            }),
+            })),
             None => Start::Unusable,
         }
     }

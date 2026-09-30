@@ -29,7 +29,7 @@ impl HandshakeState {
         match HandshakeState::begin(client, flight) {
             Start::Ready(mut state) => {
                 let progress = state.advance(flight);
-                Some((state, progress))
+                Some((*state, progress))
             }
             Start::Waiting | Start::Alert(_) | Start::Retry | Start::Unusable => None,
         }

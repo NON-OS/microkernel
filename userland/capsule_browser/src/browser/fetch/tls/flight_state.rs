@@ -40,7 +40,7 @@ pub(super) fn judge(tls: &mut TlsCtx) -> Flight {
     if tls.hs.is_none() {
         match HandshakeState::begin(&tls.cf, &tls.flight) {
             Start::Waiting => return Flight::Waiting,
-            Start::Ready(state) => tls.hs = Some(state),
+            Start::Ready(state) => tls.hs = Some(*state),
             Start::Alert(description) => return Flight::Refused(Some(description)),
             Start::Retry | Start::Unusable => return Flight::Failed,
         }

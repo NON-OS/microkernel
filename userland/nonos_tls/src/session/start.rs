@@ -28,7 +28,7 @@ pub(crate) fn start(
 ) -> Result<Option<HandshakeState>, SessionError> {
     match HandshakeState::begin(client, flight) {
         Start::Waiting => Ok(None),
-        Start::Ready(state) => Ok(Some(state)),
+        Start::Ready(state) => Ok(Some(*state)),
         Start::Alert(description) => Err(SessionError::PeerAlert(description)),
         /*
          * This client offers x25519 alone, so there is no other share to

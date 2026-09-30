@@ -39,7 +39,7 @@ pub fn coalesced() -> Vec<u8> {
 /// The state keyed from the ServerHello at the front of `flight`.
 pub fn keyed(flight: &[u8]) -> HandshakeState {
     match HandshakeState::begin(&client(), flight) {
-        Start::Ready(state) => state,
+        Start::Ready(state) => *state,
         _ => panic!("the trace's ServerHello keys the handshake"),
     }
 }

@@ -16,6 +16,7 @@
 
 //! One connection's handshake, from the ServerHello on.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use crate::traffic_keys::TrafficKeys;
@@ -62,7 +63,7 @@ pub enum Progress {
 pub enum Start {
     /// The ServerHello record is not whole yet.
     Waiting,
-    Ready(HandshakeState),
+    Ready(Box<HandshakeState>),
     /// The server refused in the clear, before any ServerHello.
     Alert(u8),
     /// The server asked for a second ClientHello with another key share.
