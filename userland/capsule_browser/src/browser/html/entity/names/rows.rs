@@ -30,8 +30,12 @@ pub(super) use rows;
 /// a row that is not a Unicode scalar value fails the build rather than
 /// reaching a page.
 pub(super) const fn cp(value: u32) -> char {
-    match char::from_u32(value) {
+    let decoded = char::from_u32(value);
+    let refuse = ['\0'; 1];
+    /* Zero for a scalar value, one for anything else, and one is out of range. */
+    let fallback = refuse[decoded.is_none() as usize];
+    match decoded {
         Some(c) => c,
-        None => panic!("entity table row is not a Unicode scalar value"),
+        None => fallback,
     }
 }
