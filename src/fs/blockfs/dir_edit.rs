@@ -21,7 +21,6 @@
 //! both bugs in the caller, and doing something reasonable with them would
 //! hide the bug in a filesystem that cannot report it later.
 
-use super::dir_block::name;
 use super::dir_block_header::{count, has_room, set_count};
 use super::dir_consts::{ENTRY_BYTES, NAME_BYTES, REC_ENTRY_BASE};
 use super::write_u64::write_u64;
@@ -62,10 +61,4 @@ pub(super) fn remove(block: &mut [u8], i: usize) -> bool {
     }
     set_count(block, n - 1);
     true
-}
-
-/// Whether `i` names something. Used by proofs and by callers that want the
-/// name back after an edit without recomputing the offset.
-pub(super) fn entry_name(block: &[u8], i: usize) -> &[u8] {
-    name(block, i)
 }
