@@ -21,7 +21,7 @@ use crate::constants::{
 };
 use crate::queue::{Direction, Queue};
 use crate::regs::Regs;
-use nonos_libc::mk_irq_wait;
+use nonos_libc::{mk_irq_wait, MK_IRQ_WAIT_TIMED_OUT};
 
 /// Per-wait slice and the whole-request budget. The budget is counted in
 /// slices actually spent, wait or not: a shared interrupt line that keeps
@@ -62,8 +62,10 @@ pub fn submit(
     // system paid for each sector. Sliced waits keep the same total budget
     // and the used-ring check on every wake covers a completion whose
     // interrupt was suppressed or already consumed.
-    // Two bounds, each safe alone. Timed-out waits count toward the time
-    // budget, so an idle device gets the full five seconds. Every pass counts
+    // Two bounds, each safe alone. Waits that sleep out their whole slice
+    // (the kernel says so with `MK_IRQ_WAIT_TIMED_OUT`) count toward the
+    // time budget, so an idle device gets the full five seconds and no
+    // more. Every pass counts
     // toward the iteration guard, so a shared line whose sequence keeps
     // advancing cannot hold the loop open forever, and a healthy request
     // finishes thousands of iterations under it.
@@ -80,25 +82,34 @@ pub fn submit(
             queue.last_used = queue.used_idx();
             return Err(BlkError::Timeout);
         }
-        let mut out_seq: u64 = 0;
-        if mk_irq_wait(irq_grant, seq, WAIT_SLICE_MS, &mut out_seq) >= 0 {
-            // An interrupt with the request still pending (a late one from
-            // the previous request, or another device on the line) left the
-            // line masked: rearm it. `out_seq` was read before the rearm, so
-            // an interrupt the unmask lets through ends the next wait. The
-            // used-ring check at the top of the loop comes after the rearm,
-            // so a completion the status read swallowed is still seen.
-            if out_seq != seq {
-                rearm(regs, irq_grant)?;
-            }
-            seq = out_seq;
-        } else {
+        let mut out_seq: u64 = seq;
+        let rc = mk_irq_wait(irq_grant, seq, WAIT_SLICE_MS, &mut out_seq);
+        if rc < 0 {
+            queue.last_used = queue.used_idx();
+            return Err(BlkError::Io);
+        }
+        if rc == MK_IRQ_WAIT_TIMED_OUT {
+            // The whole slice passed with no interrupt. Before the kernel
+            // told a timeout apart from a wake this branch was never taken
+            // and only the pass guard bounded a dead device, at 5000
+            // slices (over eight minutes) instead of five seconds.
             timed_out_slices = timed_out_slices.wrapping_add(1);
             if timed_out_slices > MAX_SLICES {
                 queue.last_used = queue.used_idx();
                 return Err(BlkError::Timeout);
             }
+            continue;
         }
+        // An interrupt with the request still pending (a late one from
+        // the previous request, or another device on the line) left the
+        // line masked: rearm it. `out_seq` was read before the rearm, so
+        // an interrupt the unmask lets through ends the next wait. The
+        // used-ring check at the top of the loop comes after the rearm,
+        // so a completion the status read swallowed is still seen.
+        if out_seq != seq {
+            rearm(regs, irq_grant)?;
+        }
+        seq = out_seq;
     }
     let status = queue.status_byte();
     rearm(regs, irq_grant)?;
