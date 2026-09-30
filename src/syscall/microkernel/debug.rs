@@ -28,7 +28,11 @@
 //! marker strings, and silently rewriting them would defeat the
 //! purpose of having the channel.
 
+mod proc_mirror;
+
 use super::errnos::{ERRNO_FAULT, ERRNO_INVAL};
+
+pub(super) use proc_mirror::mirror_to_proc_inbox;
 
 const MAX_LEN: usize = 256;
 
@@ -68,27 +72,7 @@ pub fn sys_mk_debug(user_ptr: u64, len: u64) -> i64 {
     // the framebuffer. Uncomment to bring the on-screen capsule trace back for a
     // headless bring-up.
     /* crate::sys::boot_log::capsule_screen(&buf[..len]); */
-    mirror_to_proc_inbox(&buf[..len]);
+    proc_mirror::mirror_to_proc_inbox(&buf[..len]);
     buf[..len].fill(0);
     len as i64
-}
-
-// Mirror the line into the calling process's own `proc.<pid>` inbox so a
-// launcher (the terminal) can drain a child capsule's stdout into its
-// window. Best effort: a missing or full inbox is ignored, and serial
-// above stays the source of truth for trust logs.
-pub(super) fn mirror_to_proc_inbox(bytes: &[u8]) {
-    let Some(pid) = crate::process::current_pid() else {
-        return;
-    };
-    let name = alloc::format!("proc.{}", pid);
-    // Skip the copy when the inbox is missing or already full. Nothing is
-    // draining most capsules, so their inbox fills once and then every later
-    // line is dropped here without building a message.
-    if !crate::ipc::nonos_inbox::exists(&name) || crate::ipc::nonos_inbox::is_full(&name) {
-        return;
-    }
-    if let Ok(msg) = crate::ipc::nonos_channel::IpcMessage::new(&name, &name, bytes) {
-        let _ = crate::ipc::nonos_inbox::try_enqueue_strict(&name, msg);
-    }
 }
