@@ -70,3 +70,11 @@ fn extended_checksum_needs_every_acpi2_field_and_the_reserved_bytes() {
     assert!(!with_extension(rsdp(2, Some(0xDEAD_0000)), 20, [0; 3]).verify_extended_checksum());
     assert!(rsdp(1, None).verify_extended_checksum());
 }
+
+#[test]
+fn a_declared_length_other_than_36_is_refused() {
+    for length in [37u32, 40, 4096, u32::MAX] {
+        let longer = with_extension(rsdp(2, Some(0xDEAD_0000)), length, [0; 3]);
+        assert!(!longer.verify_extended_checksum(), "length {length}");
+    }
+}
