@@ -12,18 +12,17 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use super::spec::ToolCapsule;
-use crate::sys::boot_log;
 
 /// Every embedded tool capsule, generated from `userland/apps.list`. Off the
 /// `nonos-tool-capsules` feature (core builds that do not cross-compile the
 /// tool binaries) the list is empty, so nothing is `include_bytes`d.
 #[cfg(not(feature = "nonos-tool-capsules"))]
-fn embedded_tools() -> Vec<ToolCapsule> {
+pub(super) fn embedded_tools() -> Vec<ToolCapsule> {
     Vec::new()
 }
 
 #[cfg(feature = "nonos-tool-capsules")]
-fn embedded_tools() -> Vec<ToolCapsule> {
+pub(super) fn embedded_tools() -> Vec<ToolCapsule> {
     vec![
         // nonos-app:begin (generated; do not edit by hand)
         tool_capsule!(
@@ -105,34 +104,4 @@ fn embedded_tools() -> Vec<ToolCapsule> {
             crate::userspace::capsule_install::CLI_CAPS
         ),
     ]
-}
-
-/// The name a terminal starts a Qwen tier by. It names no embedded tool: it
-/// is the Linux personality, run as the caller's child on its terminal.
-const QWEN_TOOL: &[u8] = b"tool.qwen";
-
-/// Run the embedded tool whose service name matches `name`, parented to the
-/// caller so it can drive the tool's stdin and stdout. `argv` is the NUL
-/// separated argument blob. Returns the tool's pid, or `None`. Tools run on
-/// demand, not at boot: a command-line tool has nothing to do until invoked.
-/// `tool.qwen` is the one name that is not an embedded tool: `argv` is then
-/// the tier word, and `run_for_caller` says why a refused run was refused.
-pub fn run_named(name: &[u8], argv: &[u8]) -> Option<u32> {
-    run_for_caller(name, argv).ok()
-}
-
-/// `run_named`, with the refusal as a negative errno: ENOENT for a name
-/// nothing answers to, and for `tool.qwen` whatever
-/// `capsule_linux::run_tier_for_caller` refused with.
-pub fn run_for_caller(name: &[u8], argv: &[u8]) -> Result<u32, i64> {
-    if name == QWEN_TOOL {
-        return crate::userspace::capsule_linux::run_tier_for_caller(argv);
-    }
-    let Some(tool) = embedded_tools().into_iter().find(|t| t.name.as_bytes() == name) else {
-        return Err(crate::syscall::microkernel::errnos::ERRNO_NOENT);
-    };
-    tool.spawn_with_args(argv).map_err(|_| {
-        boot_log::error("tool capsule spawn failed");
-        crate::syscall::microkernel::errnos::ERRNO_NOENT
-    })
 }

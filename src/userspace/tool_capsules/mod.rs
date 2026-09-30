@@ -12,6 +12,7 @@
 #[macro_use]
 mod embed_macro;
 mod registry;
+mod run;
 mod spec;
 
-pub use registry::{run_for_caller, run_named};
+pub use run::{run_for_caller, run_named};
