@@ -19,7 +19,7 @@
 //! expanded whatever followed it, so only the command and a tier are taken
 //! this way; a question is refused rather than sent changed.
 
-use super::ask::TIERS;
+use super::tiers::TIERS;
 use crate::jobs::JobWork;
 use crate::term::state::State;
 

@@ -18,8 +18,13 @@
 
 /// The tiers, the models behind them, and the keys of a chat.
 pub const HELP: &[&[u8]] = &[
-    b"  tiers: small 0.5B (the default), medium 1.5B, large 3B, xlarge 7B",
-    b"  all Qwen2.5 Instruct Q4_K_M, run offline, each model verified by SHA-256",
+    b"  tiers, all offline, each model file verified by SHA-256:",
+    b"    Qwen2.5: small 0.5B (default), medium 1.5B, large 3B, xlarge 7B, xxl 14B, max 32B",
+    b"    Qwen3: qwen3-0.6b, qwen3-1.7b, qwen3-4b, qwen3-8b, qwen3-14b, qwen3-32b,",
+    b"      qwen3-30b-a3b (MoE, 3B active, fast on a CPU)",
+    b"    Coder: coder-1.5b, coder-7b, coder-14b, coder-32b",
+    b"  a bigger tier needs more memory: roughly its file size plus 1-2 GB",
+    b"  a tier is first placed on the disk with tools/nonos-qwen-tier.py",
     b"  the rest of the line is the first question; it is not kept in history",
     b"  the answer streams onto the screen as it is written",
     b"  Enter sends a line; Ctrl-D on an empty line ends the chat, Ctrl-C kills it",

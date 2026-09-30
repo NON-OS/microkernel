@@ -21,10 +21,8 @@
 
 use alloc::vec::Vec;
 
+use super::tiers::TIERS;
 use crate::term::util::is_space;
-
-/// The tiers the kernel runs, smallest first. With none named, the first.
-pub const TIERS: &[&[u8]] = &[b"small", b"medium", b"large", b"xlarge"];
 
 pub struct Ask<'a> {
     /// The tier word, when one was typed.

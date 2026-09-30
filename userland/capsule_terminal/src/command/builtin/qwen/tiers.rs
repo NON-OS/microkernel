@@ -14,19 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! `qwen`: talk with a Qwen model on this machine, in this tab. The kernel
-//! runs the chosen tier through the Linux personality as a child of this
-//! terminal; its output is this screen and its stdin is the keyboard.
+//! The tier words `qwen` takes, as the kernel's allowlist has them.
 
-mod ask;
-mod help;
-mod refused;
-mod start;
-mod statement;
-mod tiers;
-
-pub use ask::is_line;
-pub use help::HELP;
-pub use start::enter;
-pub use statement::{from_args, misplaced};
-pub use tiers::TIERS;
+/// The tiers the kernel runs, by family and smallest first within each.
+/// With none named, the first: Qwen2.5 0.5B.
+pub const TIERS: &[&[u8]] = &[
+    b"small",
+    b"medium",
+    b"large",
+    b"xlarge",
+    b"xxl",
+    b"max",
+    b"qwen3-0.6b",
+    b"qwen3-1.7b",
+    b"qwen3-4b",
+    b"qwen3-8b",
+    b"qwen3-14b",
+    b"qwen3-30b-a3b",
+    b"qwen3-32b",
+    b"coder-1.5b",
+    b"coder-7b",
+    b"coder-14b",
+    b"coder-32b",
+];
