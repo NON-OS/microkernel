@@ -22,8 +22,8 @@ void report(const Args &a, const Run &r, bool match) {
                      (long)(r.load_s * 1000), (long)(r.ttft_s * 1000), (long)(r.decode_s * 1000),
                      (long)(tps * 100), ru.ru_maxrss);
     /* A failed run says which step failed and errno then, numbers only. */
-    if (r.stage) n = snprintf(line, sizeof line, "match=0 fail_stage=%d errno=%d load_ms=%ld\n",
-                              r.stage, r.err, (long)(r.load_s * 1000));
+    if (r.stage) n = snprintf(line, sizeof line, "match=0 fail_stage=%d errno=%d load_ms=%ld model_bytes=%lld\n",
+                              r.stage, r.err, (long)(r.load_s * 1000), r.model_bytes);
     int fd = open("/dev/nonos-metrics", O_WRONLY);
     if (fd < 0 || n <= 0 || n >= (int)sizeof line) return;
     (void)!write(fd, line, (size_t)n);

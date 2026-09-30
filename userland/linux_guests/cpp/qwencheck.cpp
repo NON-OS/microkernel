@@ -1,6 +1,8 @@
 /* qwencheck: arguments, the prompt, and the verdict. See qwencheck.h. */
 #include "qwencheck.h"
+#include "qwenmem.h"
 
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -50,14 +52,18 @@ int main(int argc, char **argv) {
     std::string prompt = "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n"
                          "<|im_start|>user\n" + msg + "<|im_end|>\n<|im_start|>assistant\n";
     Run r;
-    bool ok = generate(a, prompt, r);
+    /* Planned for the prompt's bytes, more than its tokens, and the reply. */
+    MemPlan plan;
+    const int ctx = (int)(prompt.size() < 4096 ? prompt.size() : 4096) + a.n_predict;
+    const bool fits = mem_plan(a.model.c_str(), ctx, 512, plan);
+    r.model_bytes = plan.weights;
+    if (!fits || plan.free < 0) puts((fits ? mem_unknown : mem_short)(a.model.c_str(), plan).c_str());
+    if (!fits) r.stage = MEMORY, r.err = ENOMEM;
+    bool ok = fits && generate(a, prompt, r);
     /* The prompt and the reply are wiped before the verdict is said. */
     memset(&prompt[0], 0, prompt.size());
     memset(&msg[0], 0, msg.size());
-    if (!ok) {
-        report(a, r, false);
-        return FAILED;
-    }
+    if (!ok) return report(a, r, false), r.stage == MEMORY ? NO_MEMORY : FAILED;
     bool match = r.ids == a.expect;
     report(a, r, match);
     return match ? MATCH : MISMATCH;

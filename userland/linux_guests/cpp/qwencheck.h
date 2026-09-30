@@ -23,11 +23,13 @@ struct Run {
     int decodes = 0;
     /* Which step failed, 0 for none, and errno at that moment. */
     int stage = 0, err = 0;
+    long long model_bytes = 0; /* the model's files, all their parts */
 };
 
-enum Stage { LOAD = 1, TOKENIZE, CONTEXT, DECODE };
+/* MEMORY: the model and its cache would not fit, so it was not loaded. */
+enum Stage { LOAD = 1, TOKENIZE, CONTEXT, DECODE, MEMORY };
 
-enum Exit { MATCH = 0, FAILED = 1, MISMATCH = 3 };
+enum Exit { MATCH = 0, FAILED = 1, MISMATCH = 3, NO_MEMORY = 4 };
 
 bool parse_args(int argc, char **argv, Args &a);
 bool generate(const Args &a, const std::string &prompt, Run &r);

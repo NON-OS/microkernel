@@ -2,16 +2,17 @@
 #include "qwenchat.h"
 #include "qwenui.h"
 
+#include <cerrno>
 #include <chrono>
 #include <cstdio>
 #include <unistd.h>
 
 struct Live { Wl *w; View *v; };
 
-/* Each piece lands in the reply and is shown at once; pings are answered. */
-static void to_window(void *to, const char *piece, size_t n) {
+/* Each piece is shown at once, thinking aloud never; pings are answered. */
+static void to_window(void *to, const char *piece, size_t n, bool thought) {
     Live *l = (Live *)to;
-    l->v->said.back().text.append(piece, n);
+    if (!thought) l->v->said.back().text.append(piece, n);
     std::vector<Key> ignored;
     wl_poll(*l->w, ignored);
     ui_draw(*l->w, *l->v), wl_present(*l->w);
@@ -24,9 +25,8 @@ static double now_s() {
 
 static bool answer(const ChatArgs &a, Chat &c, Wl &w, View &v) {
     std::string said = v.input + "\n";
-    v.said.push_back({true, v.input});
+    v.said.push_back({true, v.input}), v.said.push_back({false, ""});
     v.input.clear();
-    v.said.push_back({false, ""});
     v.status = "thinking";
     ui_draw(w, v), wl_present(w);
     Live live = {&w, &v};
@@ -50,12 +50,12 @@ int chat_window(const ChatArgs &a) {
     ui_draw(w, v), wl_present(w);
     Chat c;
     if (!chat_open(a, c)) {
-        v.status = "the model could not be opened, errno " + std::to_string(c.err);
+        v.status = chat_failure(a, c);
         ui_draw(w, v), wl_present(w);
         for (; wl_poll(w, keys); usleep(50000)) {}
-        return 1;
+        return c.err == ENOMEM ? 4 : 1;
     }
-    v.status = "ready";
+    v.status = c.mem.free < 0 ? "ready, free memory unknown" : "ready";
     ui_draw(w, v), wl_present(w);
     for (bool shown = w.configured; wl_poll(w, keys);) {
         if (!shown && w.configured) shown = true, ui_draw(w, v), wl_present(w);
@@ -70,7 +70,6 @@ int chat_window(const ChatArgs &a) {
         keys.clear();
         ui_draw(w, v), wl_present(w);
     }
-    ui_wipe(w, v);
-    chat_close(c);
+    ui_wipe(w, v), chat_close(c);
     return 0;
 }

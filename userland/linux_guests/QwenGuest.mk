@@ -60,8 +60,13 @@ nonos-mk-qwenlibc-check: $(QWEN_LIBC)
 		$(LINUX_GUESTS_DIR)/cpp/qwenlibc_check.c $(QWEN_LIBC) -o $(TARGET_DIR)/qwenlibc-check
 	@$(TARGET_DIR)/qwenlibc-check
 
-QWEN_SRC := $(addprefix $(LINUX_GUESTS_DIR)/cpp/,qwencheck.cpp qwencheck_run.cpp qwencheck_report.cpp)
-$(LINUX_GUESTS_C)/qwencheck: $(QWEN_SRC) $(LINUX_GUESTS_DIR)/cpp/qwencheck.h $(QWEN_LIBS) $(QWEN_LIBC)
+# Both guests share the compute threads and the memory check.
+QWEN_SHARED := $(addprefix $(LINUX_GUESTS_DIR)/cpp/,qwenpool.cpp qwenmem.cpp qwenmem_file.cpp)
+QWEN_SHARED_HDR := $(addprefix $(LINUX_GUESTS_DIR)/cpp/,qwenpool.h qwenmem.h qwenmem_file.h)
+QWEN_SRC := $(addprefix $(LINUX_GUESTS_DIR)/cpp/,qwencheck.cpp qwencheck_run.cpp qwencheck_report.cpp) \
+	$(QWEN_SHARED)
+$(LINUX_GUESTS_C)/qwencheck: $(QWEN_SRC) $(LINUX_GUESTS_DIR)/cpp/qwencheck.h $(QWEN_SHARED_HDR) $(QWEN_LIBS) \
+		$(QWEN_LIBC)
 	@mkdir -p $(@D)
 	@# Linked once with its symbol table, kept beside it as the map a stuck
 	@# guest's instruction pointer is read against; the store gets a copy
@@ -75,9 +80,9 @@ $(eval $(call LINUX_GUEST,qwencheck,5100,5101,$(LINUX_GUESTS_C)/qwencheck))
 # The conversation itself: the terminal, or with -ui window a window on the
 # desktop through the personality's display server. Same map-then-strip link.
 QWENCHAT_SRC := $(wildcard $(LINUX_GUESTS_DIR)/cpp/qwenchat*.cpp $(LINUX_GUESTS_DIR)/cpp/qwenwl_*.cpp \
-	$(LINUX_GUESTS_DIR)/cpp/qwenui_*.cpp)
+	$(LINUX_GUESTS_DIR)/cpp/qwenui_*.cpp) $(QWEN_SHARED)
 QWENCHAT_HDR := $(wildcard $(LINUX_GUESTS_DIR)/cpp/qwenchat.h $(LINUX_GUESTS_DIR)/cpp/qwenwl*.h \
-	$(LINUX_GUESTS_DIR)/cpp/qwenui.h $(LINUX_GUESTS_DIR)/cpp/qwenglyphs.h)
+	$(LINUX_GUESTS_DIR)/cpp/qwenui.h $(LINUX_GUESTS_DIR)/cpp/qwenglyphs.h) $(QWEN_SHARED_HDR)
 $(LINUX_GUESTS_C)/qwenchat: $(QWENCHAT_SRC) $(QWENCHAT_HDR) $(QWEN_LIBS) $(QWEN_LIBC)
 	@mkdir -p $(@D)
 	@$(QWEN_ZIG)/c++ -static -O2 -g0 -mcpu=$(QWEN_CPU) -std=c++17 \

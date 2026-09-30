@@ -4,6 +4,7 @@
 #include <cerrno>
 #include <chrono>
 #include "llama.h"
+#include "qwenpool.h"
 
 static void quiet(enum ggml_log_level, const char *, void *) {}
 
@@ -36,11 +37,13 @@ bool generate(const Args &a, const std::string &prompt, Run &r) {
     r.prompt_tokens = n;
     llama_context_params cp = llama_context_default_params();
     cp.n_ctx = n + a.n_predict; /* the KV cache holds this prompt and reply, no more */
-    cp.n_batch = n;
+    /* The prompt in one graph up to 512 tokens, and one row of logits out. */
+    cp.n_batch = n, cp.n_ubatch = n < 512 ? n : 512, cp.n_outputs_max = 1;
     cp.n_threads = cp.n_threads_batch = a.threads;
     cp.no_perf = true;
     llama_context *ctx = llama_init_from_model(model, cp);
     if (!ctx) return failed(r, CONTEXT);
+    ggml_threadpool_t pool = pool_open(ctx, a.threads);
     llama_sampler *smpl = llama_sampler_chain_init(llama_sampler_chain_default_params());
     llama_sampler_chain_add(smpl, llama_sampler_init_greedy());
     const double t_loaded = now_s();
@@ -62,6 +65,7 @@ bool generate(const Args &a, const std::string &prompt, Run &r) {
     r.decode_s = t_end - t_first;
     llama_sampler_free(smpl);
     llama_free(ctx); /* the KV cache and its prompt go with the context */
+    pool_close(pool);
     llama_model_free(model);
     llama_backend_free();
     return true;
