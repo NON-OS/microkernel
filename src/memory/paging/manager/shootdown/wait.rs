@@ -17,12 +17,11 @@
 use core::sync::atomic::Ordering;
 
 use super::handle::serve_for;
-use super::nudge::nudge_outstanding;
-use super::report::report_stuck;
 use super::request::{
     REQ_PENDING_ACKS, SHOOTDOWN_TIMEOUT_FALLBACK_TICKS, SHOOTDOWN_TIMEOUT_MS,
     SHOOTDOWN_WARN_FALLBACK_TICKS, SHOOTDOWN_WARN_MS,
 };
+use super::slow::{fail_timed_out, warn_slow};
 
 /// `ms` as counter ticks, or `fallback` when the counter is not calibrated.
 fn budget(ms: u64, fallback: u64) -> u64 {
@@ -51,30 +50,14 @@ pub(super) fn wait_for_acks() {
         let now = read_tsc();
         if !warned && now > warn_at {
             warned = true;
-            let outstanding = REQ_PENDING_ACKS.load(Ordering::Acquire);
-            if outstanding != 0 {
-                // The vector has had its chance; whoever still owes is
-                // probably masked, so the round goes again as an NMI.
-                let nudged = nudge_outstanding();
-                let mut line = crate::sys::serial::Line::new();
-                line.str(b"[SMP] tlb shootdown slow: acks outstanding=").dec(outstanding as u64);
-                line.str(b" after ms=").dec(SHOOTDOWN_WARN_MS);
-                line.str(b" nmi sent=").dec(nudged as u64);
-                line.end();
-            }
+            warn_slow();
         }
         if now > deadline {
             let outstanding = REQ_PENDING_ACKS.load(Ordering::Acquire);
             if outstanding == 0 {
                 return;
             }
-            let mut line = crate::sys::serial::Line::new();
-            line.str(b"[FATAL] TLB shootdown timeout outstanding=").dec(outstanding as u64);
-            line.str(b" ms=").dec(SHOOTDOWN_TIMEOUT_MS);
-            line.end();
-            report_stuck();
-            crate::smp::send_panic_ipi();
-            crate::arch::halt_loop();
+            fail_timed_out(outstanding);
         }
         core::hint::spin_loop();
     }

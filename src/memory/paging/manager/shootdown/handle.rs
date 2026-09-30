@@ -67,8 +67,7 @@ pub(super) fn serve_for(me: &crate::smp::percpu::PerCpuData) -> bool {
     } else {
         let base = VirtAddr::new(REQ_VA.load(Ordering::Acquire));
         for i in 0..pages as usize {
-            let va = VirtAddr::new(base.as_u64() + (i * PAGE_SIZE_4K) as u64);
-            tlb::invalidate_page(va);
+            tlb::invalidate_page(VirtAddr::new(base.as_u64() + (i * PAGE_SIZE_4K) as u64));
         }
     }
     REQ_PENDING_ACKS.fetch_sub(1, Ordering::Release);

@@ -40,7 +40,9 @@ pub fn map_page_in_asid(
             &PAGING_STATS,
         )
     })?;
-    // After the lock; a leaf that was absent owes nothing remote.
+    /*
+     * After the lock; a leaf that was absent owes nothing remote.
+     */
     flush.commit();
     Ok(())
 }
@@ -59,7 +61,9 @@ pub fn unmap_page_in_asid(
             &PAGING_STATS,
         )
     })?;
-    // Before the frame goes back to the caller, which may free it.
+    /*
+     * Before the frame goes back to the caller, which may free it.
+     */
     flush.commit();
     Ok(frame)
 }

@@ -20,6 +20,7 @@ mod core;
 mod faults;
 mod mapping;
 mod pending_flush;
+mod pending_flush_install;
 mod protection;
 mod query;
 pub mod shootdown;

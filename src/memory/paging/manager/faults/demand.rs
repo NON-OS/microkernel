@@ -65,8 +65,10 @@ impl PagingManager {
         }
 
         let permissions = PagePermissions::READ | PagePermissions::WRITE | PagePermissions::USER;
-        // The entry is absent (checked above, under the lock), so the install
-        // owes no remote flush.
+        /*
+         * The entry is absent (checked above, under the lock), so the install
+         * owes no remote flush.
+         */
         self.map_page(virtual_addr, new_frame, permissions, PageSize::Size4KiB, stats)
     }
 }

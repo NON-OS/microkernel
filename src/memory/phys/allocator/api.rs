@@ -18,12 +18,12 @@ use super::super::error::PhysAllocResult;
 use super::super::types::{AllocFlags, AllocatorState, Frame, ZoneStats};
 use super::{
     allocate_contiguous, allocate_frame, deallocate_frame, free_contiguous, get_zone_stats,
-    init_with_bitmap, largest_free_run, managed_range, reserve_range, total_memory,
+    init_with_bitmap, largest_free_run, managed_range, total_memory,
 };
 use crate::memory::addr::PhysAddr;
 use spin::Mutex;
 
-static ALLOCATOR: Mutex<AllocatorState> = Mutex::new(AllocatorState::new());
+pub(super) static ALLOCATOR: Mutex<AllocatorState> = Mutex::new(AllocatorState::new());
 
 pub fn phys_init_with_bitmap(
     managed_start: PhysAddr,
@@ -41,11 +41,6 @@ pub fn phys_init(managed_start: PhysAddr, managed_end: PhysAddr) -> PhysAllocRes
     let mut v = alloc::vec::Vec::new();
     v.resize(bytes, 0u8);
     phys_init_with_bitmap(managed_start, managed_end, v.leak().as_mut_ptr(), bytes)
-}
-
-/// Frames in `[start, end)` are never handed out.
-pub fn phys_reserve(start: u64, end: u64) {
-    reserve_range(&mut ALLOCATOR.lock(), start, end)
 }
 
 pub fn phys_allocate_frame(flags: AllocFlags) -> Option<Frame> {

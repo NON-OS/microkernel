@@ -21,12 +21,11 @@ use super::request::{REQ_PAGES, REQ_PENDING_ACKS, REQ_VA};
 /// What every CPU looked like when the round gave up, printed before the halt.
 /// A timeout says only that an ack did not arrive; which cpu owed it, whether
 /// it was marked, and whether it is idle or in a handler separate "the IPI was
-/// never delivered" from "the cpu was in no position to run it".
+/// never delivered" from "the cpu was in no position to run it". The head
+/// line's va and pages (0 for a whole flush) name the change that waited.
 pub(super) fn report_stuck() {
     let mut head = crate::sys::serial::Line::new();
     head.str(b"[SMP] acks outstanding=").dec(REQ_PENDING_ACKS.load(Ordering::Acquire) as u64);
-    // What the round was for: a kernel-half or a user address, one page or a
-    // whole flush (pages=0), which names the kind of change that waited.
     head.str(b" va=").hex(REQ_VA.load(Ordering::Acquire));
     head.str(b" pages=").dec(REQ_PAGES.load(Ordering::Acquire) as u64);
     head.end();

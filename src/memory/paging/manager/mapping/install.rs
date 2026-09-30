@@ -60,8 +60,10 @@ impl PagingManager {
             l1[l1_idx] = descriptor::leaf(pa.as_u64(), flags);
             pte_is_present(old)
         };
-        // Paid by the caller once the manager lock is released; nothing
-        // remote is owed when the entry was absent (`after_install`).
+        /*
+         * Paid by the caller once the manager lock is released; nothing
+         * remote is owed when the entry was absent (`after_install`).
+         */
         let asid = mutation_asid(va, Some(crate::smp::percpu::active_asid()));
         Ok(PendingFlush::after_install(va, asid, replaced))
     }

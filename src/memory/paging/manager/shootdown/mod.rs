@@ -40,6 +40,7 @@ mod report;
 mod request;
 mod select;
 mod send;
+mod slow;
 mod wait;
 
 pub use flush::{flush_tlb_all_smp, flush_tlb_one_smp, flush_tlb_range_smp};

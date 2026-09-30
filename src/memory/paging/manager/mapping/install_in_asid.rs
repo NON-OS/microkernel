@@ -62,8 +62,10 @@ impl PagingManager {
             pte_is_present(old)
         };
 
-        // Scoped by the asid that changed, and owed whether or not this cpu
-        // is running it; nothing remote is owed when the entry was absent.
+        /*
+         * Scoped by the asid that changed, and owed whether or not this cpu
+         * is running it; nothing remote is owed when the entry was absent.
+         */
         let scope = if is_kernel_half(va) { ASID_KERNEL } else { asid };
         Ok(PendingFlush::after_install(va, scope, replaced))
     }

@@ -18,6 +18,7 @@ mod bitmap;
 pub mod constants;
 pub mod error;
 mod types;
+mod usage;
 
 pub use allocator::{
     phys_alloc as alloc, phys_alloc_contiguous as alloc_contiguous,
@@ -30,9 +31,7 @@ pub use allocator::{
     phys_total_memory as total_memory, phys_zone_stats as zone_stats,
 };
 
-pub fn free_memory() -> u64 {
-    total_memory().saturating_sub((total_free_frames() as u64) * 4096)
-}
 pub use constants::*;
 pub use error::{PhysAllocError, PhysAllocResult};
 pub use types::{AllocFlags, AllocatorState, Frame, PhysFrame, ZoneStats};
+pub use usage::free_memory;

@@ -40,3 +40,8 @@ pub fn reserve_range(state: &mut AllocatorState, start: u64, end: u64) {
         let _ = bitmap::set_bit_range(state.bitmap_ptr, from, count.min(state.frame_count - from));
     }
 }
+
+/// Frames in `[start, end)` are never handed out.
+pub fn phys_reserve(start: u64, end: u64) {
+    reserve_range(&mut super::api::ALLOCATOR.lock(), start, end)
+}

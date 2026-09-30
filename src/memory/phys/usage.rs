@@ -14,21 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::globals::{PAGING_MANAGER, PAGING_STATS};
-use crate::memory::addr::VirtAddr;
-use crate::memory::paging::error::PagingResult;
-use crate::smp::lock_responsive;
+use super::{total_free_frames, total_memory};
 
-pub fn handle_page_fault(virtual_addr: VirtAddr, error_code: u64) -> PagingResult<()> {
-    let flush = lock_responsive(&PAGING_MANAGER).handle_page_fault(
-        virtual_addr,
-        error_code,
-        &PAGING_STATS,
-    )?;
-    /*
-     * After the lock: a copy-on-write resolution replaces a present entry and
-     * owes a remote flush; a demand fill owes none.
-     */
-    flush.commit();
-    Ok(())
+/// Total managed bytes less free bytes: the bytes in use, whatever the name
+/// says.
+pub fn free_memory() -> u64 {
+    total_memory().saturating_sub((total_free_frames() as u64) * 4096)
 }

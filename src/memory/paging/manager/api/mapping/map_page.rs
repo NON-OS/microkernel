@@ -40,8 +40,10 @@ pub fn map_page(
             &PAGING_STATS,
         )
     })?;
-    // After the lock, so no cpu waits on the manager while this one waits on
-    // the acknowledgements. A leaf that was absent owes nothing remote.
+    /*
+     * After the lock, so no cpu waits on the manager while this one waits on
+     * the acknowledgements. A leaf that was absent owes nothing remote.
+     */
     flush.commit();
     Ok(())
 }
