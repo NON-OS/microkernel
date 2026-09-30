@@ -35,7 +35,7 @@ void ui_text(Wl &w, int x, int y, const std::string &s, uint32_t color) {
             if (py < 0 || py >= w.h) continue;
             for (int k = 0; k < CELL_W; k++) {
                 int px = x + k;
-                unsigned a = GLYPHS[c - FIRST][j][k];
+                unsigned a = glyph_alpha(c - FIRST, j, k);
                 if (a && px >= 0 && px < w.w) w.px[py * w.w + px] = blend(w.px[py * w.w + px], color, a);
             }
         }
