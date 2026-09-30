@@ -40,15 +40,31 @@ impl PhysAddr {
     }
 
     pub const fn is_aligned(self, align: u64) -> bool {
-        align != 0 && self.0 % align == 0
+        align != 0 && self.0.is_multiple_of(align)
     }
 
+    /* Rounds to a multiple of any non-zero alignment, not only a power of
+    two, so the result always passes is_aligned. An alignment of zero leaves
+    the address unchanged. */
     pub const fn align_down(self, align: u64) -> Self {
-        Self(self.0 & !(align - 1))
+        if align == 0 {
+            return self;
+        }
+        Self(self.0 - self.0 % align)
     }
 
+    /* As align_down, rounding up. It overflows only when the rounded address
+    is past u64::MAX. */
     pub const fn align_up(self, align: u64) -> Self {
-        Self((self.0 + align - 1) & !(align - 1))
+        if align == 0 {
+            return self;
+        }
+        let rem = self.0 % align;
+        if rem == 0 {
+            self
+        } else {
+            Self(self.0 + (align - rem))
+        }
     }
 }
 

@@ -35,8 +35,82 @@ namespace NonosExtraction.SdtEntryCount
 theorem the_sdt_entry_count_wrapper_is_its_method (a : Std.Usize) (b : Std.Usize) (c : Std.Usize) :
     sdt_entry_count a b c = entry_count.sdt_entry_count a b c := rfl
 
+/-! ### How many entries follow a table header
+
+    The RSDT, XSDT and MCFG parsers loop `for i in 0..sdt_entry_count(..)` and
+    read entry `i` at the header size plus `i` entry sizes. These theorems say
+    that the count is the number of whole entries in the bytes after the header,
+    that every counted entry lies inside the table's stated length, that no
+    whole entry is left out, and that a length shorter than the header gives no
+    entries instead of a wrapped, enormous count. They cannot say that the
+    stated length matches the memory actually mapped: that comes from firmware
+    and the parsers are not extracted. -/
+
+/-- With a nonzero entry size the count is the bytes after the header, divided
+    down to whole entries, and the subtraction stops at zero. -/
+theorem sdt_entry_count_is_the_whole_entries_after_the_header (len hdr es : Std.Usize)
+    (hes : es.val ≠ 0) :
+    ∃ r, sdt_entry_count len hdr es = ok r ∧ r.val = (len.val - hdr.val) / es.val := by
+  unfold sdt_entry_count entry_count.sdt_entry_count
+  have hne : ¬ es = 0#usize := fun h => hes (by rw [h]; rfl)
+  simp only [hne, if_false, lift, bind_tc_ok]
+  have hv : (core.num.Usize.saturating_sub len hdr).val = len.val - hdr.val := by
+    simp only [core.num.Usize.saturating_sub, UScalar.saturating_sub]
+    have := len.hBounds
+    simp only [UScalar.val, BitVec.toNat_ofNat] at *
+    rw [Nat.zero_max, Nat.mod_eq_of_lt (by omega)]
+  obtain ⟨z, hz, hzv⟩ := UScalar.div_spec (core.num.Usize.saturating_sub len hdr) (y := es) hes
+  exact ⟨z, hz, by rw [hzv, hv]⟩
+
+/-- The contract the table loops rely on: either there are no entries, or the
+    last counted entry ends at or before the table's length; and one more entry
+    would not fit, so no entry the table holds is skipped. -/
+theorem sdt_entry_count_covers_the_table_and_never_reads_past_it (len hdr es : Std.Usize)
+    (hes : es.val ≠ 0) :
+    ∃ r, sdt_entry_count len hdr es = ok r ∧
+      (r.val = 0 ∨ hdr.val + r.val * es.val ≤ len.val) ∧
+      len.val < hdr.val + (r.val + 1) * es.val := by
+  obtain ⟨r, hr, hrv⟩ := sdt_entry_count_is_the_whole_entries_after_the_header len hdr es hes
+  refine ⟨r, hr, ?_, ?_⟩
+  · rw [hrv]
+    by_cases hl : hdr.val ≤ len.val
+    · right
+      have := Nat.div_mul_le_self (len.val - hdr.val) es.val
+      omega
+    · left
+      rw [Nat.sub_eq_zero_of_le (by omega)]
+      simp
+  · rw [hrv]
+    have := Nat.lt_div_mul_add (a := len.val - hdr.val) (Nat.pos_of_ne_zero hes)
+    rw [Nat.add_mul, Nat.one_mul]
+    omega
+
+/-- The three edges at the RSDT's thirty six byte header and four byte entries:
+    fourteen bytes after the header hold three entries and a two byte tail that
+    is ignored; a stated length of twenty, shorter than the header, holds none;
+    and an entry size of zero is refused with a count of zero rather than a
+    division by zero. -/
+theorem sdt_entry_count_at_the_edges_of_an_rsdt :
+    sdt_entry_count 50#usize 36#usize 4#usize = ok 3#usize ∧
+    sdt_entry_count 20#usize 36#usize 4#usize = ok 0#usize ∧
+    sdt_entry_count 4096#usize 36#usize 0#usize = ok 0#usize := by
+  refine ⟨?_, ?_, rfl⟩
+  · obtain ⟨r, hr, hrv⟩ :=
+      sdt_entry_count_is_the_whole_entries_after_the_header 50#usize 36#usize 4#usize (by decide)
+    rw [hr]
+    congr 1
+    exact UScalar.eq_of_val_eq (by rw [hrv]; rfl)
+  · obtain ⟨r, hr, hrv⟩ :=
+      sdt_entry_count_is_the_whole_entries_after_the_header 20#usize 36#usize 4#usize (by decide)
+    rw [hr]
+    congr 1
+    exact UScalar.eq_of_val_eq (by rw [hrv]; rfl)
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.SdtEntryCount.the_sdt_entry_count_wrapper_is_its_method
+#print axioms NonosExtraction.SdtEntryCount.sdt_entry_count_is_the_whole_entries_after_the_header
+#print axioms NonosExtraction.SdtEntryCount.sdt_entry_count_covers_the_table_and_never_reads_past_it
+#print axioms NonosExtraction.SdtEntryCount.sdt_entry_count_at_the_edges_of_an_rsdt
 
 end NonosExtraction.SdtEntryCount

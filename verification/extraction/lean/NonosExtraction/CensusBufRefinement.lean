@@ -35,8 +35,28 @@ namespace NonosExtraction.CensusBuf
 theorem the_linebuf_new_wrapper_is_its_method :
     linebuf_new = buf.LineBuf.new := rfl
 
+/-! ### A new line buffer is empty and in bounds
+
+    `put`, `hex` and `dec` write `data[len]` only while `len < 100`, and
+    `as_str` slices `data[..len]`. Both rely on `len` never exceeding the
+    storage, and a fresh buffer is expected to start with nothing in it. The
+    theorem below says `new` establishes that: the length is zero, strictly
+    below the storage length of 100, and every byte is zero. The writers and
+    `as_str` are not extracted, so the invariant is shown to hold at birth, not
+    to be preserved.
+-/
+
+/-- A new buffer has length zero, room for all 100 bytes, and zeroed storage,
+    so its first `put` writes `data[0]` and its `as_str` is the empty string. -/
+theorem linebuf_new_is_empty_with_zeroed_storage :
+    ∃ b, linebuf_new = ok b ∧ b.len.val = 0 ∧
+      b.data.val = List.replicate 100 0#u8 ∧ b.len.val < b.data.val.length := by
+  refine ⟨_, rfl, rfl, rfl, ?_⟩
+  decide
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CensusBuf.the_linebuf_new_wrapper_is_its_method
+#print axioms NonosExtraction.CensusBuf.linebuf_new_is_empty_with_zeroed_storage
 
 end NonosExtraction.CensusBuf

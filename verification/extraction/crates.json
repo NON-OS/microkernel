@@ -293,7 +293,8 @@
         "nonos_x_vga_constants::colorcode_background",
         "nonos_x_vga_constants::colorcode_is_blinking",
         "nonos_x_vga_constants::colorcode_value",
-        "nonos_x_vga_constants::screenchar_as_u16"
+        "nonos_x_vga_constants::screenchar_as_u16",
+        "nonos_x_vga_constants::colorcode_new"
       ]
     },
     {
@@ -305,7 +306,8 @@
       "starts": [
         "nonos_x_utils_types::scanconfig_new",
         "nonos_x_utils_types::scanconfig_with_max_depth",
-        "nonos_x_utils_types::scanconfig_hidden_only"
+        "nonos_x_utils_types::scanconfig_hidden_only",
+        "nonos_x_utils_types::scanconfig_admits_hidden"
       ]
     },
     {
@@ -1081,7 +1083,8 @@
       "generated": "VariableFirmware.lean",
       "starts": [
         "nonos_x_variable_firmware::firmwareinfo_uefi_major_version",
-        "nonos_x_variable_firmware::firmwareinfo_uefi_minor_version"
+        "nonos_x_variable_firmware::firmwareinfo_uefi_minor_version",
+        "nonos_x_variable_firmware::uefi_revision"
       ]
     },
     {
@@ -1323,6 +1326,36 @@
       "generated": "ProcfsPidInode.lean",
       "starts": [
         "nonos_x_procfs_pid_inode::pid_dir_inode"
+      ]
+    },
+    {
+      "name": "iommu_regs_window",
+      "crate": "nonos_x_iommu_regs_window",
+      "dir": "verification/extraction/tree/iommu_regs_window",
+      "lean": "IommuRegsWindow",
+      "generated": "IommuRegsWindow.lean",
+      "starts": [
+        "nonos_x_iommu_regs_window::registers_fit"
+      ]
+    },
+    {
+      "name": "bti_pad",
+      "crate": "nonos_x_bti_pad",
+      "dir": "verification/extraction/sweep/bti_pad",
+      "lean": "BtiPad",
+      "generated": "BtiPad.lean",
+      "starts": [
+        "nonos_x_bti_pad::is_bti_landing_pad"
+      ]
+    },
+    {
+      "name": "layout_stack_slots",
+      "crate": "nonos_x_layout_stack_slots",
+      "dir": "verification/extraction/tree/layout_stack_slots",
+      "lean": "LayoutStackSlots",
+      "generated": "LayoutStackSlots.lean",
+      "starts": [
+        "nonos_x_layout_stack_slots::stack_slot_offset"
       ]
     },
     {

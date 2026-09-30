@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/* A pid directory's inode is pid * 1000 + 100. A negative pid has none: cast
-to u64 it would overflow the product. */
+/* Every inode under a pid directory is (pid << PID_INODE_SHIFT) | k: the
+directory itself is k = 0 and its entries k = 1 to 103. Root entries sit below
+1 << PID_INODE_SHIFT. Only pids from 1 have a directory, so none of these
+numbers is the root's, a root entry's or another pid's. */
+pub(crate) const PID_INODE_SHIFT: u32 = 20;
+
 pub(crate) fn pid_dir_inode(pid: i32) -> Option<u64> {
-    if pid < 0 {
+    if pid <= 0 {
         return None;
     }
-    Some(pid as u64 * 1000 + 100)
+    Some((pid as u64) << PID_INODE_SHIFT)
 }

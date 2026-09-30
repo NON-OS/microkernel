@@ -38,9 +38,158 @@ theorem the_firmwareinfo_uefi_major_version_wrapper_is_its_method (a : firmware.
 theorem the_firmwareinfo_uefi_minor_version_wrapper_is_its_method (a : firmware.FirmwareInfo) :
     firmwareinfo_uefi_minor_version a = firmware.FirmwareInfo.uefi_minor_version a := rfl
 
+theorem the_uefi_revision_wrapper_is_its_function (a b c : Std.U16) :
+    uefi_revision a b c = revisions.uefi_revision a b c := rfl
+
+/-! ### Major and minor are the two halves of the revision
+
+UEFI packs a revision into one `u32` with the major version in the upper sixteen
+bits and, in the lower sixteen, the minor version times ten plus a patch digit:
+2.3.1 is `0x0002001F` and 2.8 is `0x00020050`. The theorems below show that
+`uefi_major_version` reads exactly the upper half, `uefi_minor_version` exactly the
+lower half, that neither can fail, and that the two together give back every bit of
+the revision: nothing is lost and nothing is read twice.
+
+`uefi_revision` builds a revision from its parts and every `UEFI_REVISION_*`
+constant is defined through it. The theorems show it never fails, that it lays out
+major, minor and patch as the specification does whenever the tens-and-units field
+fits sixteen bits (for every version UEFI has published), and that the readers
+above give back the major and the tens-and-units field it packed. The constants
+used to disagree: `UEFI_REVISION_2_8` was `0x00020800`, minor 2048 to these
+readers, `detect_firmware_info` stored `0x00020008`, minor eight, and only
+`UEFI_REVISION_2_3_1` had the specification's `0x0002001F`, so a comparison of a
+firmware's real revision with the constants would have called 2.8 firmware older
+than 2.3.1. `detect_firmware_info` now stores `UEFI_REVISION_2_8`.
+
+What these theorems cannot establish: that the Rust constants are the calls they
+are written as (Charon does not extract an unused constant, so that step is read
+off the source), or what a firmware put in its own header, which is not read here.
+-/
+
+/-- The major version is the upper sixteen bits of the revision, and reading it
+    cannot fail. -/
+theorem firmwareinfo_uefi_major_version_is_the_upper_half (f : firmware.FirmwareInfo) :
+    ∃ m, firmwareinfo_uefi_major_version f = ok m ∧ m.val = f.revision.val / 65536 := by
+  unfold firmwareinfo_uefi_major_version firmware.FirmwareInfo.uefi_major_version
+  obtain ⟨z, hz, hv, -⟩ := WP.spec_imp_exists
+    (U32.ShiftRight_IScalar_spec (x := f.revision) (y := 16#i32) (by decide) (by decide))
+  rw [hz]
+  refine ⟨_, rfl, ?_⟩
+  have hb : f.revision.val < 2 ^ 32 := by scalar_tac
+  rw [UScalar.cast_val_eq, hv]
+  simp only [UScalarTy.numBits, Nat.shiftRight_eq_div_pow]
+  have : (16#i32 : Std.I32).toNat = 16 := rfl
+  rw [this]
+  omega
+
+/-- The minor version is the lower sixteen bits of the revision, and reading it
+    cannot fail. -/
+theorem firmwareinfo_uefi_minor_version_is_the_lower_half (f : firmware.FirmwareInfo) :
+    ∃ m, firmwareinfo_uefi_minor_version f = ok m ∧ m.val = f.revision.val % 65536 := by
+  unfold firmwareinfo_uefi_minor_version firmware.FirmwareInfo.uefi_minor_version
+  refine ⟨_, rfl, ?_⟩
+  rw [UScalar.cast_val_eq]
+  rfl
+
+/-- Major and minor together are the whole revision: `major * 65536 + minor` gives
+    back the field, so two distinct revisions never report the same pair. -/
+theorem firmwareinfo_uefi_major_and_minor_version_rebuild_the_revision
+    (f : firmware.FirmwareInfo) (major minor : Std.U16)
+    (hM : firmwareinfo_uefi_major_version f = ok major)
+    (hm : firmwareinfo_uefi_minor_version f = ok minor) :
+    major.val * 65536 + minor.val = f.revision.val := by
+  obtain ⟨M, hM', hMv⟩ := firmwareinfo_uefi_major_version_is_the_upper_half f
+  obtain ⟨m, hm', hmv⟩ := firmwareinfo_uefi_minor_version_is_the_lower_half f
+  rw [hM] at hM'
+  rw [hm] at hm'
+  cases hM'
+  cases hm'
+  omega
+
+/-- `uefi_revision` never fails: the minor times ten plus the patch is at most
+    `65535 * 10 + 65535`, far inside a `u32`. The result is the major shifted
+    into the upper half, ORed with the tens-and-units field. -/
+theorem uefi_revision_ors_the_major_over_the_minor_field (M m p : Std.U16) :
+    ∃ r : Std.U32, uefi_revision M m p = ok r ∧
+      r.val = M.val * 2 ^ 16 ||| (m.val * 10 + p.val) := by
+  unfold uefi_revision revisions.uefi_revision
+  have hM := M.hBounds
+  have hm := m.hBounds
+  have hp := p.hBounds
+  simp [UScalarTy.numBits] at hM hm hp
+  obtain ⟨z1, hz1, hv1, -⟩ := WP.spec_imp_exists
+    (UScalar.ShiftLeft_IScalar_spec (UScalar.cast .U32 M) 16#i32 (UScalar.size .U32)
+      (by decide) (by decide) rfl)
+  obtain ⟨z2, hz2, hv2⟩ := WP.spec_imp_exists
+    (UScalar.mul_spec (x := UScalar.cast .U32 m) (y := 10#u32)
+      (by simp [UScalarTy.numBits]; scalar_tac))
+  obtain ⟨z3, hz3, hv3⟩ := WP.spec_imp_exists
+    (UScalar.add_spec (x := z2) (y := UScalar.cast .U32 p)
+      (by simp [UScalarTy.numBits] at hv2 ⊢; scalar_tac))
+  simp only [lift, bind_tc_ok, hz1, hz2, hz3]
+  refine ⟨_, rfl, ?_⟩
+  simp only [UScalar.cast_val_eq, UScalarTy.numBits, show (16#i32 : Std.I32).toNat = 16 from rfl]
+    at hv1 hv2 hv3
+  rw [UScalar.val_or, hv1, hv3, hv2, Nat.shiftLeft_eq]
+  simp only [UScalar.size, UScalarTy.numBits]
+  rw [Nat.mod_eq_of_lt (by omega : M.val < 2 ^ 32), Nat.mod_eq_of_lt (by omega : m.val < 2 ^ 32),
+    Nat.mod_eq_of_lt (by omega : p.val < 2 ^ 32), Nat.mod_eq_of_lt (by omega)]
+  rfl
+
+/-- Whenever the tens-and-units field fits sixteen bits, the revision is
+    `major * 65536 + minor * 10 + patch`, the specification's packing. -/
+theorem uefi_revision_is_the_specification_packing (M m p : Std.U16)
+    (h : m.val * 10 + p.val < 2 ^ 16) :
+    ∃ r : Std.U32, uefi_revision M m p = ok r ∧
+      r.val = M.val * 65536 + (m.val * 10 + p.val) := by
+  obtain ⟨r, hr, hv⟩ := uefi_revision_ors_the_major_over_the_minor_field M m p
+  refine ⟨r, hr, ?_⟩
+  rw [hv, ← Nat.shiftLeft_eq, ← Nat.shiftLeft_add_eq_or_of_lt h, Nat.shiftLeft_eq]
+
+/-- The readers give back what `uefi_revision` packed: a firmware record holding
+    the revision built from major `M`, minor `m` and patch `p` reports major `M`
+    and minor field `m * 10 + p`. -/
+theorem uefi_revision_reads_back_through_the_firmware_record (M m p : Std.U16)
+    (h : m.val * 10 + p.val < 2 ^ 16) (r : Std.U32) (hr : uefi_revision M m p = ok r)
+    (f : firmware.FirmwareInfo) (hf : f.revision = r) :
+    (∃ x, firmwareinfo_uefi_major_version f = ok x ∧ x.val = M.val) ∧
+      (∃ x, firmwareinfo_uefi_minor_version f = ok x ∧ x.val = m.val * 10 + p.val) := by
+  obtain ⟨r', hr', hv⟩ := uefi_revision_is_the_specification_packing M m p h
+  rw [hr] at hr'
+  cases hr'
+  obtain ⟨X, hX, hXv⟩ := firmwareinfo_uefi_major_version_is_the_upper_half f
+  obtain ⟨x, hx, hxv⟩ := firmwareinfo_uefi_minor_version_is_the_lower_half f
+  rw [hf, hv] at hXv hxv
+  have hM := M.hBounds
+  simp [UScalarTy.numBits] at hM
+  exact ⟨⟨X, hX, by omega⟩, ⟨x, hx, by omega⟩⟩
+
+/-- The values the constants take: 2.3.1 is `0x0002001F`, 2.8 is `0x00020050` and
+    2.10 is `0x00020064`. The old `UEFI_REVISION_2_8`, `0x00020800`, and the
+    `0x00020008` `detect_firmware_info` stored are neither of them. -/
+theorem the_revision_constants_take_the_specification_values :
+    uefi_revision 2#u16 3#u16 1#u16 = ok 0x0002001F#u32 ∧
+      uefi_revision 2#u16 8#u16 0#u16 = ok 0x00020050#u32 ∧
+      uefi_revision 2#u16 10#u16 0#u16 = ok 0x00020064#u32 := by
+  refine ⟨?_, ?_, ?_⟩
+  · obtain ⟨r, hr, hv⟩ := uefi_revision_is_the_specification_packing 2#u16 3#u16 1#u16 (by decide)
+    rw [hr]; congr 1; exact UScalar.eq_of_val_eq (by rw [hv]; rfl)
+  · obtain ⟨r, hr, hv⟩ := uefi_revision_is_the_specification_packing 2#u16 8#u16 0#u16 (by decide)
+    rw [hr]; congr 1; exact UScalar.eq_of_val_eq (by rw [hv]; rfl)
+  · obtain ⟨r, hr, hv⟩ := uefi_revision_is_the_specification_packing 2#u16 10#u16 0#u16 (by decide)
+    rw [hr]; congr 1; exact UScalar.eq_of_val_eq (by rw [hv]; rfl)
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.VariableFirmware.the_firmwareinfo_uefi_major_version_wrapper_is_its_method
 #print axioms NonosExtraction.VariableFirmware.the_firmwareinfo_uefi_minor_version_wrapper_is_its_method
+#print axioms NonosExtraction.VariableFirmware.firmwareinfo_uefi_major_version_is_the_upper_half
+#print axioms NonosExtraction.VariableFirmware.firmwareinfo_uefi_minor_version_is_the_lower_half
+#print axioms NonosExtraction.VariableFirmware.firmwareinfo_uefi_major_and_minor_version_rebuild_the_revision
+#print axioms NonosExtraction.VariableFirmware.the_uefi_revision_wrapper_is_its_function
+#print axioms NonosExtraction.VariableFirmware.uefi_revision_ors_the_major_over_the_minor_field
+#print axioms NonosExtraction.VariableFirmware.uefi_revision_is_the_specification_packing
+#print axioms NonosExtraction.VariableFirmware.uefi_revision_reads_back_through_the_firmware_record
+#print axioms NonosExtraction.VariableFirmware.the_revision_constants_take_the_specification_values
 
 end NonosExtraction.VariableFirmware

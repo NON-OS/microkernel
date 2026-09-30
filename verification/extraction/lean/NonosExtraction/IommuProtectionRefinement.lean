@@ -38,9 +38,59 @@ theorem the_iommuprotection_readable_wrapper_is_its_method (a : protection.Iommu
 theorem the_iommuprotection_writable_wrapper_is_its_method (a : protection.IommuProtection) :
     iommuprotection_writable a = protection.IommuProtection.writable a := rfl
 
+/-! ### The accessors report the permissions the backend programs
+
+    The VT-d backend's `map` builds its page flags from `protection.read` and
+    `protection.write` directly, while policy code asks `readable()` and
+    `writable()`. The theorems below establish that the two accessors agree
+    with the fields the backend reads, that each reads its own field and not
+    the other, so the pair of answers determines the protection completely,
+    and that the read-only shape of `IommuProtection::READ` is readable and not
+    writable while a write-only protection is writable and not readable. They
+    cannot establish that the hardware honours those flags, and the `READ` and
+    `READ_WRITE` constants and the backend itself are not extracted.
+-/
+
+/-- Each accessor returns exactly the field the backend turns into a page flag. -/
+theorem iommuprotection_readable_and_writable_are_the_backend_flags
+    (p : protection.IommuProtection) :
+    iommuprotection_readable p = ok p.read ∧ iommuprotection_writable p = ok p.write :=
+  ⟨rfl, rfl⟩
+
+/-- Two protections that answer both accessors alike are the same protection:
+neither accessor reads the other's field. -/
+theorem iommuprotection_readable_and_writable_determine_the_protection
+    (p q : protection.IommuProtection)
+    (hr : iommuprotection_readable p = iommuprotection_readable q)
+    (hw : iommuprotection_writable p = iommuprotection_writable q) : p = q := by
+  obtain ⟨pr, pw⟩ := p
+  obtain ⟨qr, qw⟩ := q
+  simp only [iommuprotection_readable, protection.IommuProtection.readable,
+    iommuprotection_writable, protection.IommuProtection.writable, ok.injEq] at hr hw
+  subst hr hw
+  rfl
+
+/-- The read-only shape of `IommuProtection::READ` grants reads and refuses
+writes. -/
+theorem a_read_only_protection_is_iommuprotection_readable_but_not_iommuprotection_writable :
+    iommuprotection_readable { read := true, write := false } = ok true ∧
+      iommuprotection_writable { read := true, write := false } = ok false :=
+  ⟨rfl, rfl⟩
+
+/-- A write-only protection grants writes and refuses reads: writability does
+not imply readability in this type. -/
+theorem a_write_only_protection_is_iommuprotection_writable_but_not_iommuprotection_readable :
+    iommuprotection_writable { read := false, write := true } = ok true ∧
+      iommuprotection_readable { read := false, write := true } = ok false :=
+  ⟨rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.IommuProtection.the_iommuprotection_readable_wrapper_is_its_method
 #print axioms NonosExtraction.IommuProtection.the_iommuprotection_writable_wrapper_is_its_method
+#print axioms NonosExtraction.IommuProtection.iommuprotection_readable_and_writable_are_the_backend_flags
+#print axioms NonosExtraction.IommuProtection.iommuprotection_readable_and_writable_determine_the_protection
+#print axioms NonosExtraction.IommuProtection.a_read_only_protection_is_iommuprotection_readable_but_not_iommuprotection_writable
+#print axioms NonosExtraction.IommuProtection.a_write_only_protection_is_iommuprotection_writable_but_not_iommuprotection_readable
 
 end NonosExtraction.IommuProtection

@@ -14,6 +14,19 @@ set_option maxRecDepth 2048
 
 namespace nonos_x_variable_firmware
 
+/-- [nonos_x_variable_firmware::revisions::uefi_revision]:
+    Source: 'src/../../../../../src/arch/x86_64/uefi/constants/revisions.rs', lines 20:0-22:1
+    Visibility: public -/
+def revisions.uefi_revision
+  (major : Std.U16) (minor : Std.U16) (patch : Std.U16) : Result Std.U32 := do
+  let i ← lift (UScalar.cast .U32 major)
+  let i1 ← i <<< 16#i32
+  let i2 ← lift (UScalar.cast .U32 minor)
+  let i3 ← i2 * 10#u32
+  let i4 ← lift (UScalar.cast .U32 patch)
+  let i5 ← i3 + i4
+  ok (i1 ||| i5)
+
 /-- [nonos_x_variable_firmware::firmware::FirmwareInfo]
     Source: 'src/../../../../../src/arch/x86_64/uefi/variable/firmware.rs', lines 22:0-31:1
     Visibility: public -/
@@ -43,17 +56,24 @@ def firmware.FirmwareInfo.uefi_minor_version
   ok (UScalar.cast .U16 self.revision)
 
 /-- [nonos_x_variable_firmware::firmwareinfo_uefi_major_version]:
-    Source: 'src/lib.rs', lines 10:0-12:1
+    Source: 'src/lib.rs', lines 14:0-16:1
     Visibility: public -/
 def firmwareinfo_uefi_major_version
   (this : firmware.FirmwareInfo) : Result Std.U16 := do
   firmware.FirmwareInfo.uefi_major_version this
 
 /-- [nonos_x_variable_firmware::firmwareinfo_uefi_minor_version]:
-    Source: 'src/lib.rs', lines 14:0-16:1
+    Source: 'src/lib.rs', lines 18:0-20:1
     Visibility: public -/
 def firmwareinfo_uefi_minor_version
   (this : firmware.FirmwareInfo) : Result Std.U16 := do
   firmware.FirmwareInfo.uefi_minor_version this
+
+/-- [nonos_x_variable_firmware::uefi_revision]:
+    Source: 'src/lib.rs', lines 23:0-25:1
+    Visibility: public -/
+def uefi_revision
+  (major : Std.U16) (minor : Std.U16) (patch : Std.U16) : Result Std.U32 := do
+  revisions.uefi_revision major minor patch
 
 end nonos_x_variable_firmware

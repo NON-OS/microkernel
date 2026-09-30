@@ -32,8 +32,11 @@ impl ParsedSection {
     pub fn is_alloc(&self) -> bool {
         self.flags & 0x2 != 0
     }
+    /* SHT_SYMTAB only. The dynamic symbol table, SHT_DYNSYM, has its own
+    query, and matching it here made get_symbol_table return .dynsym on an
+    image that places it first. */
     pub fn is_symtab(&self) -> bool {
-        self.section_type == 2 || self.section_type == 11
+        self.section_type == 2
     }
     pub fn is_strtab(&self) -> bool {
         self.section_type == 3

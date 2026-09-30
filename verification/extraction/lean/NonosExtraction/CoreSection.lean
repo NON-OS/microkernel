@@ -38,23 +38,21 @@ def section.ParsedSection.is_alloc
   ok (i != 0#u64)
 
 /-- [nonos_x_core_section::section::{nonos_x_core_section::section::ParsedSection}::is_symtab]:
-    Source: 'src/../../../../../src/elf/loader/core/section.rs', lines 35:4-37:5
+    Source: 'src/../../../../../src/elf/loader/core/section.rs', lines 38:4-40:5
     Visibility: public -/
 def section.ParsedSection.is_symtab
   (self : section.ParsedSection) : Result Bool := do
-  if self.section_type = 2#u32
-  then ok true
-  else ok (self.section_type = 11#u32)
+  ok (self.section_type = 2#u32)
 
 /-- [nonos_x_core_section::section::{nonos_x_core_section::section::ParsedSection}::is_strtab]:
-    Source: 'src/../../../../../src/elf/loader/core/section.rs', lines 38:4-40:5
+    Source: 'src/../../../../../src/elf/loader/core/section.rs', lines 41:4-43:5
     Visibility: public -/
 def section.ParsedSection.is_strtab
   (self : section.ParsedSection) : Result Bool := do
   ok (self.section_type = 3#u32)
 
 /-- [nonos_x_core_section::section::{nonos_x_core_section::section::ParsedSection}::is_rela]:
-    Source: 'src/../../../../../src/elf/loader/core/section.rs', lines 41:4-43:5
+    Source: 'src/../../../../../src/elf/loader/core/section.rs', lines 44:4-46:5
     Visibility: public -/
 def section.ParsedSection.is_rela
   (self : section.ParsedSection) : Result Bool := do

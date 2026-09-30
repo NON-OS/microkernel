@@ -21,14 +21,28 @@
 
 extern crate alloc;
 
+#[cfg(test)]
+pub mod addr_align;
 pub mod arch;
+#[cfg(test)]
+pub mod bti_pad;
 pub mod bus;
 pub mod capabilities;
+#[cfg(test)]
+pub mod efi_time;
 pub mod elf;
 #[cfg(test)]
 pub mod fd_fork;
 #[cfg(test)]
+pub mod firmware_arith;
+#[cfg(test)]
 pub mod idt_vectors;
+#[cfg(test)]
+pub mod iommu_access;
+#[cfg(test)]
+pub mod iommu_window;
+#[cfg(test)]
+pub mod layout_slots;
 pub mod memory;
 #[cfg(test)]
 pub mod pipe_counts;
@@ -41,20 +55,30 @@ pub mod procfs_inode;
 #[cfg(test)]
 pub mod riscv_mmu;
 #[cfg(test)]
+pub mod scan_hidden;
+#[cfg(test)]
 pub mod range_ends;
 #[cfg(test)]
 pub mod rsdp_address;
 pub mod syscall;
 pub mod time;
+#[cfg(test)]
+pub mod uefi_attrs;
+#[cfg(test)]
+pub mod uefi_revision;
 pub mod security;
 pub mod spec;
 pub mod sys;
 pub mod usercopy;
+#[cfg(test)]
+pub mod vga_attr;
 
 #[cfg(test)]
 mod align_tests;
 #[cfg(test)]
 mod authorization_tests;
+#[cfg(test)]
+mod elf_section_tests;
 #[cfg(test)]
 mod elf_tests;
 #[cfg(test)]

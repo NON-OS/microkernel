@@ -35,8 +35,41 @@ namespace NonosExtraction.DispatchArgs
 theorem the_args_new_wrapper_is_its_method (a : Std.U64) (b : Std.U64) (c : Std.U64) (d : Std.U64) (e : Std.U64) (f : Std.U64) :
     args_new a b c d e f = args.Args.new a b c d e f := rfl
 
+/-! ### Each syscall argument lands in its own slot
+
+`dispatch_microkernel_syscall` hands its six raw argument registers to
+`Args::new` in order and routes the result to every syscall handler, which
+reads `args.a0` through `args.a5` by position. The theorems below show that
+`args_new` never fails, puts the argument at position `i` in field `ai` (no
+two are swapped or duplicated), and so loses no argument: two calls that
+build the same `Args` were given the same six values. They say nothing about
+the register-to-argument mapping of the architecture entry paths, which are
+not extracted.
+-/
+
+/-- `args_new` puts each argument in the field of the same position. A version
+    that swapped two registers would hand a handler its length as its
+    pointer. -/
+theorem args_new_keeps_every_argument_in_its_slot
+    (a0 a1 a2 a3 a4 a5 : Std.U64) :
+    ∃ r, args_new a0 a1 a2 a3 a4 a5 = ok r ∧
+      r.a0 = a0 ∧ r.a1 = a1 ∧ r.a2 = a2 ∧ r.a3 = a3 ∧ r.a4 = a4 ∧ r.a5 = a5 :=
+  ⟨_, rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- `args_new` loses no argument: equal results come only from equal inputs.
+    A version that filled one field from a neighbouring argument would map two
+    different register sets to the same `Args`. -/
+theorem args_new_loses_no_argument
+    (a0 a1 a2 a3 a4 a5 b0 b1 b2 b3 b4 b5 : Std.U64)
+    (h : args_new a0 a1 a2 a3 a4 a5 = args_new b0 b1 b2 b3 b4 b5) :
+    a0 = b0 ∧ a1 = b1 ∧ a2 = b2 ∧ a3 = b3 ∧ a4 = b4 ∧ a5 = b5 := by
+  simp only [args_new, args.Args.new, ok.injEq, args.Args.mk.injEq] at h
+  exact h
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.DispatchArgs.the_args_new_wrapper_is_its_method
+#print axioms NonosExtraction.DispatchArgs.args_new_keeps_every_argument_in_its_slot
+#print axioms NonosExtraction.DispatchArgs.args_new_loses_no_argument
 
 end NonosExtraction.DispatchArgs

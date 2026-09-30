@@ -38,9 +38,60 @@ theorem the_cachestatistics_new_wrapper_is_its_method :
 theorem the_cachestatistics_reset_wrapper_is_its_method (a : types.CacheStatistics) :
     cachestatistics_reset a = types.CacheStatistics.reset a := rfl
 
+/-! ### Counters start at zero and reset to zero
+
+`CACHE_STATS` is built by `CacheStatistics::new`, and the cache code reads
+`hits` and `misses` back to compute a hit ratio, so every counter has to start
+from zero and `reset` has to return every counter there. The theorems below
+establish that each of the four fields `cachestatistics_new` returns is an
+atomic built from zero (no field is built from another value or left out), and
+that `cachestatistics_reset` stores zero with relaxed ordering into `hits`,
+`misses`, `evictions` and `writebacks`, each exactly once and in that order,
+and does nothing else.
+
+What they cannot establish is what those atomics hold. Aeneas leaves
+`AtomicU64::new` and `AtomicU64::store` opaque, so nothing here says that a
+load after the store returns zero, and the concurrency of a relaxed store
+racing a `fetch_add` from another core is outside the model. The static
+`CACHE_STATS` itself is not extracted.
+-/
+
+/-- Every counter `cachestatistics_new` returns is the atomic that
+    `AtomicU64::new(0)` returns. -/
+theorem every_counter_of_cachestatistics_new_is_built_from_zero
+    (s : types.CacheStatistics) (h : cachestatistics_new = ok s) :
+    core.sync.atomic.AtomicU64Align8U64.new 0#u64 = ok s.hits ∧
+    core.sync.atomic.AtomicU64Align8U64.new 0#u64 = ok s.misses ∧
+    core.sync.atomic.AtomicU64Align8U64.new 0#u64 = ok s.evictions ∧
+    core.sync.atomic.AtomicU64Align8U64.new 0#u64 = ok s.writebacks := by
+  unfold cachestatistics_new types.CacheStatistics.new at h
+  cases hn : core.sync.atomic.AtomicU64Align8U64.new 0#u64 with
+  | ok a =>
+    rw [hn] at h
+    simp only [bind_tc_ok, ok.injEq] at h
+    subst h
+    exact ⟨rfl, rfl, rfl, rfl⟩
+  | fail e => rw [hn] at h; cases h
+  | div => rw [hn] at h; cases h
+
+/-- `cachestatistics_reset` is the relaxed store of zero into each of the four
+    counters in turn, one store per counter, and nothing more. -/
+theorem cachestatistics_reset_stores_zero_relaxed_into_each_counter_once
+    (s : types.CacheStatistics) :
+    cachestatistics_reset s =
+      [s.hits, s.misses, s.evictions, s.writebacks].forM
+        (fun a => core.sync.atomic.AtomicU64Align8U64.store a 0#u64
+          core.sync.atomic.Ordering.Relaxed) := by
+  unfold cachestatistics_reset types.CacheStatistics.reset
+  simp only [List.forM]
+  cases core.sync.atomic.AtomicU64Align8U64.store s.writebacks 0#u64
+    core.sync.atomic.Ordering.Relaxed <;> rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.CacheTypes.the_cachestatistics_new_wrapper_is_its_method
 #print axioms NonosExtraction.CacheTypes.the_cachestatistics_reset_wrapper_is_its_method
+#print axioms NonosExtraction.CacheTypes.every_counter_of_cachestatistics_new_is_built_from_zero
+#print axioms NonosExtraction.CacheTypes.cachestatistics_reset_stores_zero_relaxed_into_each_counter_once
 
 end NonosExtraction.CacheTypes

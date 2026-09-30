@@ -22,13 +22,13 @@
       "harnesses": 100
     },
     "lean_extraction": {
-      "bv_decide_calls": 12,
+      "bv_decide_calls": 10,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 981,
-        "proven": 981,
-        "substantive": 336,
-        "trivial": 645,
+        "extracted": 987,
+        "proven": 987,
+        "substantive": 494,
+        "trivial": 493,
         "unproven": 0
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
@@ -309,6 +309,7 @@
         "nonos_x_boot_types_context::exceptioncontext_is_user_mode",
         "nonos_x_boot_types_context::exceptioncontext_stack_pointer",
         "nonos_x_bti_guard::btiguard_instruction",
+        "nonos_x_bti_pad::is_bti_landing_pad",
         "nonos_x_buddy_types_stats::allocstats_free_memory",
         "nonos_x_buddy_types_stats::allocstats_new",
         "nonos_x_cache_types::cachestatistics_new",
@@ -499,6 +500,7 @@
         "nonos_x_iommu_domain_id::domainid_new",
         "nonos_x_iommu_protection::iommuprotection_readable",
         "nonos_x_iommu_protection::iommuprotection_writable",
+        "nonos_x_iommu_regs_window::registers_fit",
         "nonos_x_irq_reserved::is_reserved",
         "nonos_x_irq_reserved::reserve",
         "nonos_x_key_management_types::keytype_key_length",
@@ -508,6 +510,7 @@
         "nonos_x_key_management_types::keyusage_signing",
         "nonos_x_key_management_types::keyusage_verification",
         "nonos_x_keyring_capsule_types::keytype_to_u8",
+        "nonos_x_layout_stack_slots::stack_slot_offset",
         "nonos_x_main_mode::is_microkernel",
         "nonos_x_memory_boot_memory_types_handoff::boothandoff_has_capsule",
         "nonos_x_memory_boot_memory_types_memory_region::memoryregion_has_flag",
@@ -953,12 +956,14 @@
         "nonos_x_uefi_secure_boot_status::securebootstatus_can_modify_keys",
         "nonos_x_uefi_secure_boot_status::securebootstatus_is_fully_configured",
         "nonos_x_usercopy_walk_leaf::userleaf_bytes_remaining_in_page",
+        "nonos_x_utils_types::scanconfig_admits_hidden",
         "nonos_x_utils_types::scanconfig_hidden_only",
         "nonos_x_utils_types::scanconfig_new",
         "nonos_x_utils_types::scanconfig_with_max_depth",
         "nonos_x_validation_simd_level::simdlevel_register_width",
         "nonos_x_variable_firmware::firmwareinfo_uefi_major_version",
         "nonos_x_variable_firmware::firmwareinfo_uefi_minor_version",
+        "nonos_x_variable_firmware::uefi_revision",
         "nonos_x_verify_caps_bits::grant_within_manifest",
         "nonos_x_verify_caps_bits::install_caps",
         "nonos_x_verify_caps_bits::within_ceiling",
@@ -968,6 +973,7 @@
         "nonos_x_vga_constants::colorcode_background",
         "nonos_x_vga_constants::colorcode_foreground",
         "nonos_x_vga_constants::colorcode_is_blinking",
+        "nonos_x_vga_constants::colorcode_new",
         "nonos_x_vga_constants::colorcode_value",
         "nonos_x_vga_constants::screenchar_as_u16",
         "nonos_x_walker_align::align4",
@@ -1078,11 +1084,11 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AddrPhys.lean",
-          "sha256": "191637030d078ee42ce20368f85ee4a0820c84dc5bda30555f743114074c9a35"
+          "sha256": "69ff673d65e46d6e83e9e7c6ff3a2a47c98faf05ef77309955d1826c510cdd71"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AddrVirt.lean",
-          "sha256": "82394c4eb9ce6385932a13232d7d369e615b388871bdb4bd27ba0b369e0aa7c7"
+          "sha256": "8ac98e783cbe35ec4767210bde3cf32d1a1b9f92b1fea37f11d3021aa9e6947b"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AlgIdTypes.lean",
@@ -1193,6 +1199,10 @@
           "sha256": "52d94784f24c431893ac9cdcab8a491c486b3c60ea2abb983ca2ec4deb446ab7"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/BtiPad.lean",
+          "sha256": "b1f2127c0b52e374e65bc6c33266df11030f7961728eb465972b102d55526e28"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/BuddyTypesStats.lean",
           "sha256": "a40f6266ff05f6ee725d64b876a61725b31843a7467072de37b11f837d7ce79d"
         },
@@ -1262,7 +1272,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ConstantsAddressPacking.lean",
-          "sha256": "8fdb7bff26de67cba505f04154bb27a3290cdc9d06b3df573c71b56fdd1a31a3"
+          "sha256": "dd509f54fa2d55c61dcc6c7bc4bb81799ed627abd67ffca4d42fb9acfd080fa6"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ConstantsHelpers.lean",
@@ -1286,7 +1296,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CoreSection.lean",
-          "sha256": "92da08439bcbfa604108b7846066a860cf9a62d65470b1fed1dd2c2f7fe4ba09"
+          "sha256": "a1e2015514cda8d342f4667c68c9d846bfb1ca9fa8c627b8493fd4107b459aee"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CpuCacheAssoc.lean",
@@ -1322,7 +1332,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DataIoapic.lean",
-          "sha256": "a372b5840dc6c6bbf71f9cbdefbf7050c5c35f4f00a79551b622438f33df354c"
+          "sha256": "eb49e459e9b9c104eda3f3b72161ecc4bd4c62e6248382295df076ffadf81fa3"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DataNuma.lean",
@@ -1370,7 +1380,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DriversPciTypesAddress.lean",
-          "sha256": "f4565651c4310b386ba6455cb3d88bba07272d7d02871ac5c2abb2c9f89bb251"
+          "sha256": "c6bdc627e9dddb07b641acc59d1ecd6bdde8990da87e75542f2e3b5765459977"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/DriversPciTypesBar.lean",
@@ -1505,6 +1515,10 @@
           "sha256": "02f1f92895022c6e63def5698b27f9bd1215f1f2bfee983b33d3112cdc11cfa3"
         },
         {
+          "path": "verification/extraction/lean/NonosExtraction/IommuRegsWindow.lean",
+          "sha256": "0d4f52beac664c63dbd7aef5cd4c0299edf35e4c075991a4f097deb5b267bfb3"
+        },
+        {
           "path": "verification/extraction/lean/NonosExtraction/Irq.lean",
           "sha256": "9bda548e235ff0e615d704ef376481377371b395429b846c18b8fb9ecca5e2d3"
         },
@@ -1519,6 +1533,10 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/KeyringCapsuleTypes.lean",
           "sha256": "761220c82c5b047a9b214245d45531143fa85f25d5bc64d100eafead799dada9"
+        },
+        {
+          "path": "verification/extraction/lean/NonosExtraction/LayoutStackSlots.lean",
+          "sha256": "814b39fc0db41b43ab789a6d4002c92878b784331406cdb1cf93b4158b5b892a"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MainMode.lean",
@@ -1558,7 +1576,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MemoryFrameAllocTypesRange.lean",
-          "sha256": "09fb2a54448b7d8f042ff8099b7ce9b5de45e2b053064a02556d43d877651ffd"
+          "sha256": "e5572454abcc09ae8ddeebb6fb540dbda0f85f414967bc50c53caf25e26fcd85"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MemoryHardeningStatsQuery.lean",
@@ -1682,7 +1700,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MultibootModulesAcpi.lean",
-          "sha256": "18c5b33209799e9cda2aa61d7aa16ecba1add5b9e08064d75056d2393292aab2"
+          "sha256": "a0e69803064e24a2cc7b03eb8efb633fd202cac12dab784cefe52031695dcafb"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/MultibootPlatformTypes.lean",
@@ -1762,7 +1780,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PortStatsSnapshot.lean",
-          "sha256": "649250a12caa92d2d71b5625147c90b4047b04c2afd7a604fdc7b9fd524c0a22"
+          "sha256": "0e25c2d2140672606ada02104bed8aa7297a5bad5f3b46d52827c01923653751"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ProcessFdTypes.lean",
@@ -1782,7 +1800,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ProcfsPidInode.lean",
-          "sha256": "1b18d3829f705cbfa486457ec1265632285ab7f63a553f23d5f13869635417d4"
+          "sha256": "b872c0503448db4f3e44748d25714235f6b7f89d623580ba3c539a22d8f0370d"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ProcfsTypes.lean",
@@ -1934,7 +1952,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TablesMemoryDesc.lean",
-          "sha256": "ba52b4ded8009cdc12dc736439a9dd75c303dbc99585847b32de3073f4d2417e"
+          "sha256": "1cf7075b0e35ffe6e637e9c8a413ce11b0bc3714d1915b4d4d41fd06f8864829"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TablesMemoryType.lean",
@@ -1958,7 +1976,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TablesTime.lean",
-          "sha256": "0c74834df2271ea9a25fd60f1647b65a4277c22feb3aa773f2a33804889baae7"
+          "sha256": "3bed7773eaa0b16ecb336f8723f782690e797f52affcb9373d8884e17c42dd7d"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TimeRtcTypesAlarm.lean",
@@ -2002,7 +2020,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesPercpu.lean",
-          "sha256": "79f5f9ccd39b66536eedd0271048924b34ed077d60b6d045b5f38c2a7cf9e54f"
+          "sha256": "c676a1852430c05067b0bcfcc5b158e36642c394dbc27518c54ed913368dc8cc"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesPermissions.lean",
@@ -2046,7 +2064,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesStatsSnapshot.lean",
-          "sha256": "720c6a5db6a94fd1a9ee806d3652189b5b9ad1a9334f96999ef681438fcca1ee"
+          "sha256": "cd103ef20447825347b40fcbfe2139bbfbd399c966e5e06fbdf785b9f4624cf6"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TypesZoneStats.lean",
@@ -2054,7 +2072,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Uefi.lean",
-          "sha256": "3c4d4e3bd07ce97e4736a45a8345af678b95d6af894f17c194dc9631986f5976"
+          "sha256": "8ddb4d5a32899cf1611e54199040f527efda60caf94a03109587c6f8a94c361c"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/UefiCrc.lean",
@@ -2070,7 +2088,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/UtilsTypes.lean",
-          "sha256": "82b1f58650ccf6854d84b2690bc9bb1520c63ed67df90b71ffe93ce8c1549f59"
+          "sha256": "5e1dc7a46a080d7949e29b3164f40e389ac4afb4e6fb57c9b79e90bc909f7ca9"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ValidationSimdLevel.lean",
@@ -2078,7 +2096,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/VariableFirmware.lean",
-          "sha256": "d2d6a16662fa8e19a6390fc4279c4271a5f43a6fc3742675b6599d1f874efe4d"
+          "sha256": "dc73f6d2b67752567b83468863e53443866041ff09f745bef59932adafc7825c"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Vectors.lean",
@@ -2090,11 +2108,11 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/VgaColors.lean",
-          "sha256": "b6caeeedba8da390db96240f80d637e1f88a9a1938410d191059b88d0b4fb3d5"
+          "sha256": "64ee712b4328f6f3366634e6827056373e6158a5e8792808edb81e6002fa76c5"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/VgaConstants.lean",
-          "sha256": "a502d776fec101fc7b5350c915f7ad9464f37c810fdf0dac174d3353ab72496a"
+          "sha256": "cc45dffa5fea2c817b952096b041f8980cd126755998232e7f9d9e9f7b2a85b2"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/WalkerAlign.lean",

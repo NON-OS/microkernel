@@ -17,12 +17,14 @@
 /*
  * PCI requester ids must keep device and function inside their fields.
  *
- * Both kernel encoders are included by path: the IOMMU DeviceAddress and the
- * ACPI PciDevice. Neither masked the device to five bits, so device 32 on bus
+ * The kernel encoders are included by path: the IOMMU DeviceAddress, the
+ * ACPI PciDevice and the 0xCF8 configuration address. Neither masked the device to five bits, so device 32 on bus
  * 0 packed as device 0 on bus 1 and named another device's DMA context; bdf
  * did not mask the function either. The checks below fail against that code.
  */
 
+#[path = "../../../../src/drivers/pci/constants/address_packing.rs"]
+pub mod address_packing;
 #[path = "../../../../src/memory/iommu/device.rs"]
 pub mod device;
 #[path = "../../../../src/arch/x86_64/acpi/devices/pci/types.rs"]

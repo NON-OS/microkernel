@@ -38,9 +38,89 @@ theorem the_allocstats_new_wrapper_is_its_method :
 theorem the_allocstats_free_memory_wrapper_is_its_method (a : stats.AllocStats) (b : Std.U64) :
     allocstats_free_memory a b = stats.AllocStats.free_memory a b := rfl
 
+/-! ### Free memory is a saturating difference that never fails
+
+`free_memory` takes the total the caller supplies and subtracts what the
+allocator has handed out, clamping at zero when the books show more
+allocated than the total (the same saturating reading `phys::free_memory`
+uses for physical frames). The theorems below establish that it never
+fails for any record and any total, that the result is exactly the natural
+number difference truncated at zero, that it is zero at and below the
+allocated amount, and that a fresh record, which `new` starts with every
+counter at zero, reports the whole total as free. They cannot establish that
+`total_allocated` tracks the ranges the allocator actually holds: the buddy
+allocator state and its lock are not extracted. -/
+
+/-- Every counter of a fresh allocator statistics record is zero. -/
+theorem allocstats_new_counts_nothing :
+    allocstats_new = ok
+      { total_allocated := 0#u64, peak_allocated := 0#u64,
+        allocation_count := 0#usize, free_count := 0#usize,
+        active_ranges := 0#usize } := rfl
+
+/-- `free_memory` always returns, and what it returns is `total` minus
+`total_allocated` truncated at zero: the saturating subtraction, with no
+underflow and no wrap. -/
+theorem allocstats_free_memory_is_the_saturating_difference
+    (s : stats.AllocStats) (total : Std.U64) :
+    ∃ r, allocstats_free_memory s total = ok r ∧
+      r.val = total.val - s.total_allocated.val := by
+  unfold allocstats_free_memory stats.AllocStats.free_memory
+  by_cases hgt : total > s.total_allocated
+  · simp only [hgt, if_true]
+    have hle : s.total_allocated.val ≤ total.val := by
+      have : s.total_allocated.val < total.val := hgt
+      omega
+    have hs := UScalar.sub_equiv total s.total_allocated
+    cases hr : (total - s.total_allocated : Result Std.U64) with
+    | ok z => rw [hr] at hs; exact ⟨z, rfl, by omega⟩
+    | fail e => rw [hr] at hs; omega
+    | div => rw [hr] at hs; exact hs.elim
+  · simp only [hgt, if_false]
+    have : ¬ s.total_allocated.val < total.val := hgt
+    exact ⟨0#u64, rfl, by simp; omega⟩
+
+/-- With nothing allocated beyond the total, the free amount plus the
+allocated amount is the total, so no byte is lost or invented. -/
+theorem allocstats_free_memory_plus_allocated_is_the_total
+    (s : stats.AllocStats) (total : Std.U64)
+    (h : s.total_allocated.val ≤ total.val) :
+    ∃ r, allocstats_free_memory s total = ok r ∧
+      r.val + s.total_allocated.val = total.val := by
+  obtain ⟨r, hr, hv⟩ := allocstats_free_memory_is_the_saturating_difference s total
+  exact ⟨r, hr, by omega⟩
+
+/-- When the books show at least the whole total allocated (including exactly
+the total), `free_memory` reports zero rather than failing or wrapping to a
+huge value. -/
+theorem allocstats_free_memory_is_zero_when_allocated_reaches_the_total
+    (s : stats.AllocStats) (total : Std.U64)
+    (h : total.val ≤ s.total_allocated.val) :
+    allocstats_free_memory s total = ok 0#u64 := by
+  obtain ⟨r, hr, hv⟩ := allocstats_free_memory_is_the_saturating_difference s total
+  have : r = 0#u64 := UScalar.eq_of_val_eq (by simp; omega)
+  rw [hr, this]
+
+/-- A fresh record reports the entire total as free. -/
+theorem allocstats_free_memory_of_new_is_the_total (total : Std.U64) :
+    (do let s ← allocstats_new; allocstats_free_memory s total) = ok total := by
+  rw [allocstats_new_counts_nothing]
+  simp only [bind_tc_ok]
+  obtain ⟨r, hr, hv⟩ := allocstats_free_memory_is_the_saturating_difference
+    { total_allocated := 0#u64, peak_allocated := 0#u64,
+      allocation_count := 0#usize, free_count := 0#usize,
+      active_ranges := 0#usize } total
+  have : r = total := UScalar.eq_of_val_eq (by simp at hv; omega)
+  rw [hr, this]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.BuddyTypesStats.the_allocstats_new_wrapper_is_its_method
 #print axioms NonosExtraction.BuddyTypesStats.the_allocstats_free_memory_wrapper_is_its_method
+#print axioms NonosExtraction.BuddyTypesStats.allocstats_new_counts_nothing
+#print axioms NonosExtraction.BuddyTypesStats.allocstats_free_memory_is_the_saturating_difference
+#print axioms NonosExtraction.BuddyTypesStats.allocstats_free_memory_plus_allocated_is_the_total
+#print axioms NonosExtraction.BuddyTypesStats.allocstats_free_memory_is_zero_when_allocated_reaches_the_total
+#print axioms NonosExtraction.BuddyTypesStats.allocstats_free_memory_of_new_is_the_total
 
 end NonosExtraction.BuddyTypesStats

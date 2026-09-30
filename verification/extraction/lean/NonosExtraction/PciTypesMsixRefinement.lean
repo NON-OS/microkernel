@@ -35,8 +35,52 @@ namespace NonosExtraction.PciTypesMsix
 theorem the_msixtableentry_new_wrapper_is_its_method (a : Std.U64) (b : Std.U32) :
     msixtableentry_new a b = types_msix.MsixTableEntry.new a b := rfl
 
+/-! ### An MSI-X entry is the address split in two, unmasked
+
+The MSI-X table entry layout in the PCI specification holds the 64-bit message
+address as a low and a high dword. These theorems establish that
+`MsixTableEntry::new` splits the address losslessly (high times 2^32 plus low
+is the address, for every address), that the low dword is the address modulo
+2^32 and the high dword its upper half, that the data word is stored
+unchanged, and that the vector control word is zero, so bit 0 (`MASKED`) is
+clear and the entry is live as soon as it is written.
+
+They cannot establish that the address is a valid LAPIC message address, nor
+anything about the MMIO writes that place the entry in the table: those are
+not in this crate.
+-/
+
+/-- The two address dwords of `msixtableentry_new` put back together give the
+    address, the data is kept, and the entry starts unmasked. -/
+theorem msixtableentry_new_splits_the_address_losslessly_and_starts_unmasked
+    (addr : Std.U64) (data : Std.U32) :
+    ∃ e, msixtableentry_new addr data = ok e ∧
+      e.message_addr_low.val = addr.val % 2 ^ 32 ∧
+      e.message_addr_high.val = addr.val / 2 ^ 32 ∧
+      e.message_addr_high.val * 2 ^ 32 + e.message_addr_low.val = addr.val ∧
+      e.message_data = data ∧
+      e.vector_control.val % 2 = 0 := by
+  unfold msixtableentry_new types_msix.MsixTableEntry.new
+  obtain ⟨z, hz, hv, -⟩ :=
+    WP.spec_imp_exists (UScalar.ShiftRight_IScalar_spec addr 32#i32 (by decide) (by decide))
+  simp only [lift, bind_tc_ok, hz]
+  have hb := addr.hBounds
+  have hzv : z.val = addr.val / 2 ^ 32 := by
+    rw [hv, Nat.shiftRight_eq_div_pow]; rfl
+  have hlo : (UScalar.cast .U32 addr).val = addr.val % 2 ^ 32 := by
+    simp [UScalar.cast_val_eq, UScalarTy.numBits]
+  have hhi : (UScalar.cast .U32 z).val = addr.val / 2 ^ 32 := by
+    simp only [UScalar.cast_val_eq, UScalarTy.numBits, hzv]
+    simp [UScalarTy.numBits] at hb
+    omega
+  refine ⟨_, rfl, hlo, hhi, ?_, rfl, rfl⟩
+  simp only [hlo, hhi]
+  omega
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.PciTypesMsix.the_msixtableentry_new_wrapper_is_its_method
+
+#print axioms NonosExtraction.PciTypesMsix.msixtableentry_new_splits_the_address_losslessly_and_starts_unmasked
 
 end NonosExtraction.PciTypesMsix

@@ -35,8 +35,62 @@ namespace NonosExtraction.KeyringCapsuleTypes
 theorem the_keytype_to_u8_wrapper_is_its_method (a : types.KeyType) :
     keytype_to_u8 a = types.KeyType.to_u8 a := rfl
 
+/-! ### A key type's wire code is its declared discriminant
+
+`store_key` in `client/store.rs` sends `key_type.to_u8()` to the keyring capsule,
+and the capsule decodes it with `KeyType::from_u8`. These theorems establish
+that `to_u8` produces exactly the discriminants 0 to 7 that `types.rs`
+declares, in declaration order, that it always answers, that no two key types
+share a code, and that `from_u8` (restated below from `types.rs`, since it is
+not extracted) inverts it, so a key stored as one type is never read back as
+another.
+
+They cannot establish that the capsule on the far side of the channel uses the
+same table: its decoder is restated here, not extracted.
+-/
+
+/-- `KeyType::from_u8` as `types.rs` writes it. -/
+def keyTypeFromU8 : Nat → Option types.KeyType
+  | 0 => some .Symmetric
+  | 1 => some .PrivateKey
+  | 2 => some .PublicKey
+  | 3 => some .HmacSecret
+  | 4 => some .DerivedKey
+  | 5 => some .SessionKey
+  | 6 => some .MasterKey
+  | 7 => some .SigningKey
+  | _ => none
+
+/-- The code `keytype_to_u8` produces for each key type, in declaration order. -/
+theorem keytype_to_u8_is_the_declared_discriminant :
+    keytype_to_u8 .Symmetric = ok 0#u8 ∧ keytype_to_u8 .PrivateKey = ok 1#u8 ∧
+    keytype_to_u8 .PublicKey = ok 2#u8 ∧ keytype_to_u8 .HmacSecret = ok 3#u8 ∧
+    keytype_to_u8 .DerivedKey = ok 4#u8 ∧ keytype_to_u8 .SessionKey = ok 5#u8 ∧
+    keytype_to_u8 .MasterKey = ok 6#u8 ∧ keytype_to_u8 .SigningKey = ok 7#u8 := by
+  unfold keytype_to_u8 types.KeyType.to_u8
+  refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩ <;>
+    simp [types.KeyType.read_discriminant] <;> rfl
+
+/-- Decoding the code `keytype_to_u8` produces gives back the same key type, so
+    no two key types share a code and every code is below 8. -/
+theorem keytype_to_u8_round_trips_through_from_u8 (t : types.KeyType) :
+    ∃ v, keytype_to_u8 t = ok v ∧ v.val < 8 ∧ keyTypeFromU8 v.val = some t := by
+  obtain ⟨h0, h1, h2, h3, h4, h5, h6, h7⟩ := keytype_to_u8_is_the_declared_discriminant
+  cases t
+  · exact ⟨_, h0, by decide, rfl⟩
+  · exact ⟨_, h1, by decide, rfl⟩
+  · exact ⟨_, h2, by decide, rfl⟩
+  · exact ⟨_, h3, by decide, rfl⟩
+  · exact ⟨_, h4, by decide, rfl⟩
+  · exact ⟨_, h5, by decide, rfl⟩
+  · exact ⟨_, h6, by decide, rfl⟩
+  · exact ⟨_, h7, by decide, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.KeyringCapsuleTypes.the_keytype_to_u8_wrapper_is_its_method
+
+#print axioms NonosExtraction.KeyringCapsuleTypes.keytype_to_u8_is_the_declared_discriminant
+#print axioms NonosExtraction.KeyringCapsuleTypes.keytype_to_u8_round_trips_through_from_u8
 
 end NonosExtraction.KeyringCapsuleTypes

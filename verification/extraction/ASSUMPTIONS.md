@@ -77,6 +77,10 @@ cannot say that a given part sets a given bit.
   opaque because the allocator is not in the extracted set.
 
 - **`core.num.U16.wrapping_neg`**, 2 uses. Wrapping negation of a 16-bit word.
+- **`core.num.U64.wrapping_neg`**, 1 use. Wrapping negation of a 64-bit
+  word, in `ct_is_zero_u64`. The theorem that reads it,
+  `ct_is_zero_u64_is_one_exactly_at_zero`, takes the model `-x` modulo `2^64`
+  as a stated hypothesis rather than relying on the axiom.
 - **`core.num.U64.count_ones`**, 1 use. Population count.
 - **`core.num.Usize.div_ceil`**, 1 use. Division rounding up.
 - **`core.option.Option.map`**, 1 use, **`core.result.Result.is_err`**, 1 use,

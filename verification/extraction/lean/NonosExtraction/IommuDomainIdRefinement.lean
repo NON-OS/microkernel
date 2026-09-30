@@ -38,9 +38,38 @@ theorem the_domainid_new_wrapper_is_its_method (a : Std.U16) :
 theorem the_domainid_as_u16_wrapper_is_its_method (a : domain_id.DomainId) :
     domainid_as_u16 a = domain_id.DomainId.as_u16 a := rfl
 
+/-! ### A domain carries the number it was made from
+
+    `DomainId` is a newtype over `u16`, and every IOMMU backend call rebuilds the
+    hardware domain from `as_u16`. These theorems establish that `as_u16` returns
+    exactly the number `new` was given, for all 65536 values including zero (the
+    kernel domain) and the largest, so the domain torn down or mapped is the one
+    allocated, and that distinct numbers give distinct domains. They cannot
+    establish anything about the `raw_id as u16` truncation in the backend that
+    produces the number, which is not extracted.
+-/
+
+theorem domainid_as_u16_returns_the_number_domainid_new_was_given (id : Std.U16) :
+    (do let d ← domainid_new id; domainid_as_u16 d) = ok id := rfl
+
+theorem domainid_as_u16_of_the_largest_and_the_kernel_domain_survive :
+    (do let d ← domainid_new 65535#u16; domainid_as_u16 d) = ok 65535#u16 ∧
+    (do let d ← domainid_new 0#u16; domainid_as_u16 d) = ok 0#u16 := ⟨rfl, rfl⟩
+
+/-- Two domains made from different numbers are different domains, and two
+    domains that report the same number are the same domain. -/
+theorem domainid_new_and_domainid_as_u16_are_injective (a b : Std.U16) (x y : domain_id.DomainId) :
+    (domainid_new a = domainid_new b → a = b) ∧
+    (domainid_as_u16 x = domainid_as_u16 y → x = y) := by
+  unfold domainid_new domain_id.DomainId.new domainid_as_u16 domain_id.DomainId.as_u16
+  exact ⟨fun h => ok.inj h, fun h => ok.inj h⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.IommuDomainId.the_domainid_new_wrapper_is_its_method
 #print axioms NonosExtraction.IommuDomainId.the_domainid_as_u16_wrapper_is_its_method
+#print axioms NonosExtraction.IommuDomainId.domainid_as_u16_returns_the_number_domainid_new_was_given
+#print axioms NonosExtraction.IommuDomainId.domainid_as_u16_of_the_largest_and_the_kernel_domain_survive
+#print axioms NonosExtraction.IommuDomainId.domainid_new_and_domainid_as_u16_are_injective
 
 end NonosExtraction.IommuDomainId
