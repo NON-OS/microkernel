@@ -14,26 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod classify;
-mod classify_display;
-mod classify_network;
-mod classify_serial_bus;
-mod classify_storage;
-mod driver;
-mod family;
-mod missing;
-mod present;
-mod record;
-mod scan;
-mod state;
-mod support;
+//! Storage drivers start only for a controller the machine has.
+//!
+//! Every storage driver is in the image, because which disk a machine keeps
+//! NONOS on is not known when the image is built. A driver without its
+//! controller is still refused by name rather than started: the virtio-blk
+//! driver polls for its device without end, and each spawn costs an
+//! attestation the boot waits for.
 
-pub use classify::classify_family;
-pub use driver::family_driver;
-pub use family::HardwareFamily;
-pub use missing::missing_path;
-pub use present::present;
-pub use record::InventoryRecord;
-pub use scan::scan;
-pub use state::SupportState;
-pub use support::support_state;
+use crate::hardware::inventory::{present as has, HardwareFamily};
+use crate::sys::boot_log;
+
+pub(super) fn present(prefix: &str, family: HardwareFamily) -> bool {
+    if has(family) {
+        return true;
+    }
+    boot_log::ok(prefix, "no controller present, not spawned");
+    false
+}

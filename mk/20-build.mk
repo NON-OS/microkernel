@@ -742,6 +742,7 @@ NONOS_DESKTOP_GUI_CAPSULE_CHECKS = \
 	$(ramfs_VERIFY) $(keyring_VERIFY) \
 	$(entropy_VERIFY) $(crypto_VERIFY) $(vfs_VERIFY) \
 	$(driver-virtio-rng_VERIFY) $(driver-virtio-blk_VERIFY) \
+	$(driver-nvme_VERIFY) $(driver-ahci_VERIFY) \
 	$(driver-virtio-gpu_VERIFY) $(driver-virtio-net_VERIFY) \
 	$(driver-ps2-input_VERIFY) $(driver-xhci_VERIFY) \
 	$(driver-usb-hid_VERIFY) \
@@ -1185,7 +1186,8 @@ DESKTOP_STD_TOOL_ARTIFACTS := $(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) \
 # `_ARTIFACTS` includes its STARK attestation trailer, and generating one
 # enrols every capsule in the policy root, tool capsules included.
 DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
-		driver-virtio-rng driver-virtio-blk driver-virtio-gpu \
+		driver-virtio-rng driver-virtio-blk driver-nvme driver-ahci \
+		driver-virtio-gpu \
 		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid \
 		net-core net-sockets net-nym socks5 policy wallpaper_catalog \
 		installer input-router compositor wm desktop-shell image-codec \
@@ -1223,10 +1225,11 @@ else
 	$(call nonos_kernel_build,microkernel-setup-wizard + nonos-stark-attest,microkernel-setup-wizard$(_boot_comma)nonos-stark-attest)
 endif
 
-# nonos-mk-install-prod: the desktop profile with the NVMe driver capsule in
-# it. The desktop cut leaves NVMe out because a driver whose hardware is absent
-# blocks on spawn; the install lane presents an NVMe target to QEMU, so the
-# driver has a device and the installer has a disk that is not the store.
+# nonos-mk-install-prod: the desktop profile for the install lane, which
+# presents an NVMe target to QEMU so the installer has a disk that is not the
+# store. The desktop profile carries the NVMe and AHCI drivers itself, since a
+# machine may keep NONOS on either; init starts each only when its controller
+# is present, so a driver without hardware no longer blocks on spawn.
 nonos-mk-install-prod: $(DESKTOP_GUI_CAPSULE_ARTIFACTS) $(driver-nvme_ARTIFACTS) \
 		nonos-mk-verify-desktop-gui-capsules \
 		nonos-mk-check-deps nonos-mk-ensure-signing-key

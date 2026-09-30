@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(any(feature = "nonos-capsule-driver-ahci", feature = "nonos-capsule-driver-nvme"))]
+use crate::hardware::inventory::HardwareFamily;
+
 pub(super) fn spawn() {
     spawn_ahci();
     spawn_hda();
@@ -23,6 +26,9 @@ pub(super) fn spawn() {
 #[cfg(feature = "nonos-capsule-driver-ahci")]
 fn spawn_ahci() {
     use crate::hardware::ahci_capsule as c;
+    if !super::storage_present::present("DRIVER-AHCI", HardwareFamily::StorageAhci) {
+        return;
+    }
     super::boot::capsule(
         "DRIVER-AHCI",
         "driver_ahci",
@@ -46,6 +52,9 @@ fn spawn_hda() {}
 #[cfg(feature = "nonos-capsule-driver-nvme")]
 fn spawn_nvme() {
     use crate::hardware::nvme_capsule as c;
+    if !super::storage_present::present("DRIVER-NVME", HardwareFamily::StorageNvme) {
+        return;
+    }
     super::boot::capsule(
         "DRIVER-NVME",
         "driver_nvme",

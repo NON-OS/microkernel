@@ -541,6 +541,8 @@ microkernel-desktop-base = [
   "nonos-capsule-installer",
   "nonos-capsule-driver-virtio-rng",
   "nonos-capsule-driver-virtio-blk",
+  "nonos-capsule-driver-nvme",
+  "nonos-capsule-driver-ahci",
   "nonos-capsule-driver-virtio-gpu",
   "nonos-capsule-driver-virtio-net",
   "nonos-capsule-driver-ps2-input",
