@@ -30,6 +30,8 @@ use crate::state::Context;
 // spending a full-screen transfer and flush more than once a second at idle,
 // which was a steady drain even on a desktop nobody was touching.
 const HEAL_INTERVAL_FRAMES: u32 = 240;
+/// How often a GOP-mode compositor asks whether the gfx driver is up yet.
+const VIRTIO_PROBE_FRAMES: u32 = 32;
 
 pub fn run(mut ctx: Context) -> ! {
     let mut rx = [0u8; HDR_LEN + IPC_PAYLOAD_MAX];
@@ -38,6 +40,9 @@ pub fn run(mut ctx: Context) -> ! {
     loop {
         drain_ipc(&mut ctx, &mut rx, &mut tx);
         frame = frame.wrapping_add(1);
+        if ctx.gop_mode && frame % VIRTIO_PROBE_FRAMES == 0 {
+            let _ = crate::setup::upgrade_to_virtio(&mut ctx);
+        }
         if frame % HEAL_INTERVAL_FRAMES == 0 {
             ctx.damage.mark_full(ctx.width, ctx.height);
         }

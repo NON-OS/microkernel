@@ -18,6 +18,8 @@ mod discover;
 mod prime;
 mod prime_gop;
 mod prime_once;
+mod upgrade;
 
 pub use prime::run_virtio;
 pub use prime_gop::run_gop_once as run_gop;
+pub use upgrade::upgrade_to_virtio;
