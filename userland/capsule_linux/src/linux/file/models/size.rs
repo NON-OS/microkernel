@@ -20,18 +20,20 @@ use crate::linux::abi::errno;
 use nonos_libc::{mk_data_import, mk_data_stat};
 
 use super::pinned::pin_of;
+use super::verified::{held_to, verified};
 
 /*
  * The file's size. A pinned model not on the volume yet is imported first,
- * and kept only if it hashes to its pin; the outcome is said by name.
+ * and kept only if it hashes to its pin; the outcome is said by name. One
+ * that is there already is opened only if the kernel's import record of it
+ * is its pin, digest and length.
  */
 pub fn size_of(name: &[u8]) -> Result<u64, i64> {
     let got = mk_data_stat(name);
-    if got >= 0 {
-        return Ok(got as u64);
-    }
     let pin = match pin_of(name) {
+        Some(pin) if got >= 0 => return verified(pin),
         Some(pin) if got == -errno::ENOENT => pin,
+        None if got >= 0 => return Ok(got as u64),
         _ => return Err(-got),
     };
     // Minutes for a large model: the person at a terminal is told why.
@@ -50,6 +52,6 @@ pub fn size_of(name: &[u8]) -> Result<u64, i64> {
     if done < 0 {
         Err(-done)
     } else {
-        Ok(done as u64)
+        held_to(pin, done)
     }
 }

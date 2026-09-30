@@ -37,6 +37,7 @@ mod pinned_qwen3;
 mod read;
 mod size;
 mod stat;
+mod verified;
 
 pub use direct::read_into;
 pub use held::held;
