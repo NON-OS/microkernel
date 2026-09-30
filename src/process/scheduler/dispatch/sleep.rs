@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::preemption::SCHEDULER_STATS;
-use super::run_queue::{add_to_run_queue, remove_from_run_queue};
+use super::run_queue::add_to_run_queue;
 use crate::interrupts::disable_interrupts_guard;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::Ordering;
@@ -25,7 +25,7 @@ use core::sync::atomic::Ordering;
 // holds interrupts off while it has the lock, or a tick landing mid-update would
 // spin on a lock the interrupted code cannot release. The sweep itself already
 // runs with interrupts off, so its guards are simply no-ops.
-static SLEEPING_PROCESSES: spin::RwLock<BTreeMap<u32, u64>> = spin::RwLock::new(BTreeMap::new());
+pub(super) static SLEEPING_PROCESSES: spin::RwLock<BTreeMap<u32, u64>> = spin::RwLock::new(BTreeMap::new());
 
 // One counter per pid, bumped by every wake whether or not it transitions the
 // process. A wake aimed at a Running target must not strip a sleep deadline,
@@ -47,7 +47,7 @@ const WAKE_SLOT_INIT: core::sync::atomic::AtomicU64 = core::sync::atomic::Atomic
 static WAKE_GENERATION: [core::sync::atomic::AtomicU64; WAKE_SLOTS] =
     [WAKE_SLOT_INIT; WAKE_SLOTS];
 
-fn wake_slot(pid: u32) -> &'static core::sync::atomic::AtomicU64 {
+pub(super) fn wake_slot(pid: u32) -> &'static core::sync::atomic::AtomicU64 {
     &WAKE_GENERATION[pid as usize % WAKE_SLOTS]
 }
 
@@ -58,7 +58,7 @@ pub fn wake_token(pid: u32) -> u64 {
 }
 
 pub fn sleep_until(pid: u32, wake_time_ms: u64) {
-    enter_sleep(pid, wake_time_ms, None);
+    super::sleep_enter::enter_sleep(pid, wake_time_ms, None);
 }
 
 /// Sleep, unless a wake arrived after `token` was read. The check and the
@@ -68,42 +68,7 @@ pub fn sleep_until(pid: u32, wake_time_ms: u64) {
 /// (finding a genuinely Sleeping process to transition). No gap, on any
 /// number of CPUs.
 pub fn sleep_until_unless_woken(pid: u32, wake_time_ms: u64, token: u64) {
-    enter_sleep(pid, wake_time_ms, Some(token));
-}
-
-/*
- * The state and the deadline change together, under the state lock, and
- * wake_process strips the deadline under that same lock. Interrupts off
- * alone made this atomic only on one CPU. With the tick sweep and the
- * wakers running on other CPUs, two orders stranded a sleeper for good:
- * the sweep took a deadline that had just been inserted, found the
- * process still Running and woke nothing, and the process then went
- * Sleeping with no deadline left; or a waker transitioned the process,
- * dropped the lock, the process ran and slept again, and the waker's late
- * remove took the new deadline. Either way the process slept until an
- * explicit wake that for a timed wait never comes: the input router
- * parked like this in a 1 ms receive and drained no input again.
- * Lock order is state lock, then the sleep table; the sweep never holds
- * the table while it takes a state lock. The insert may allocate, which
- * is safe here: the heap lock is a leaf taken with interrupts off.
- */
-fn enter_sleep(pid: u32, wake_time_ms: u64, token: Option<u64>) {
-    use crate::process::nonos_core::{ProcessState, PROCESS_TABLE};
-    let _irq = disable_interrupts_guard();
-    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        let mut state = pcb.state.lock();
-        if token.is_some_and(|t| wake_slot(pid).load(Ordering::Acquire) != t) {
-            return;
-        }
-        *state = ProcessState::Sleeping;
-        SLEEPING_PROCESSES.write().insert(pid, wake_time_ms);
-    } else {
-        if token.is_some_and(|t| wake_slot(pid).load(Ordering::Acquire) != t) {
-            return;
-        }
-        SLEEPING_PROCESSES.write().insert(pid, wake_time_ms);
-    }
-    remove_from_run_queue(pid);
+    super::sleep_enter::enter_sleep(pid, wake_time_ms, Some(token));
 }
 
 pub fn wake_process(pid: u32) {
@@ -115,14 +80,16 @@ pub fn wake_process(pid: u32) {
         let mut state = pcb.state.lock();
         if *state == ProcessState::Sleeping {
             *state = ProcessState::Ready;
-            // Only a wake that actually transitioned the process may strip
-            // its sleep deadline: a wake landing on a Running/Ready target
-            // must not destroy the timeout of a sleep the target is about to
-            // enter (or re-enter), or that sleep becomes unwakeable by the
-            // tick sweep. The generation bump above is what tells that
-            // target the wake happened. The strip happens under the state
-            // lock so it can only ever take the deadline of the sleep it
-            // ended, never one the process entered after it.
+            /*
+             * Only a wake that actually transitioned the process may strip
+             * its sleep deadline: a wake landing on a Running/Ready target
+             * must not destroy the timeout of a sleep the target is about to
+             * enter (or re-enter), or that sleep becomes unwakeable by the
+             * tick sweep. The generation bump above is what tells that
+             * target the wake happened. The strip happens under the state
+             * lock so it can only ever take the deadline of the sleep it
+             * ended, never one the process entered after it.
+             */
             SLEEPING_PROCESSES.write().remove(&pid);
             woke = true;
         }

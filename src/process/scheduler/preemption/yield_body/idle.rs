@@ -33,9 +33,11 @@ pub(super) fn idle_until_interrupt() {
     crate::process::accounting::idle_leave();
 }
 
-// A CPU that makes a process runnable sends a wake only to a CPU marked idle.
-// Unmarked, a CPU waiting here heard of new work at its next tick at best.
-// The single-CPU image has no one to send it and keeps its old behaviour.
+/*
+ * A CPU that makes a process runnable sends a wake only to a CPU marked idle.
+ * Unmarked, a CPU waiting here heard of new work at its next tick at best.
+ * The single-CPU image has no one to send it and keeps its old behaviour.
+ */
 fn mark_idle(idle: bool) {
     if cfg!(feature = "nonos-smp") {
         crate::smp::current_cpu().idle.store(idle, core::sync::atomic::Ordering::SeqCst);

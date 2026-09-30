@@ -45,7 +45,9 @@ pub(crate) fn leave_address_space() {
         return;
     }
     let kernel = crate::memory::paging::constants::KERNEL_ASID;
-    // Recorded only once the kernel's tables are loaded, never before.
+    /*
+     * Recorded only once the kernel's tables are loaded, never before.
+     */
     if crate::memory::paging::manager::switch_address_space(kernel).is_ok() {
         SPACE_LEFT[me].store(owned, Ordering::SeqCst);
     }
@@ -59,7 +61,9 @@ pub fn cpu_on_tables(pid: u32) -> Option<usize> {
         return None;
     }
     (0..crate::smp::cpu_count().min(MAX_CPUS)).find(|&cpu| {
-        // Same order as `on_cpu::named_by`: OWNED before LEAVING.
+        /*
+         * Same order as `on_cpu::named_by`: OWNED before LEAVING.
+         */
         let owned = OWNED[cpu].load(Ordering::SeqCst) == pid;
         let leaving = LEAVING[cpu].load(Ordering::SeqCst) == pid;
         leaving || (owned && SPACE_LEFT[cpu].load(Ordering::SeqCst) != pid)

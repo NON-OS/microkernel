@@ -35,7 +35,7 @@ pub fn select_next_process() -> Option<u32> {
     const CLAIM_ATTEMPTS: usize = 8;
     for _ in 0..CLAIM_ATTEMPTS {
         let (pid, band) = pick()?;
-        if claim(pid) {
+        if super::claim::claim(pid) {
             if let Some(idx) = band {
                 LAST_PER_BAND[idx].store(pid, Ordering::Relaxed);
             }
@@ -44,24 +44,6 @@ pub fn select_next_process() -> Option<u32> {
         }
     }
     None
-}
-
-/// Take `pid` from `Ready` to `Running` under the state lock, reporting
-/// whether this caller made the transition. A pid another CPU is still
-/// running on, or still leaving, is `Ready` only on paper: its stack is in
-/// use, so it is refused until that CPU is off it (see `on_cpu`).
-fn claim(pid: u32) -> bool {
-    use crate::process::nonos_core::{ProcessState, PROCESS_TABLE};
-    let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) else {
-        return false;
-    };
-    let mut state = pcb.state.lock();
-    if *state == ProcessState::Ready && !held_elsewhere(pid) {
-        *state = ProcessState::Running;
-        true
-    } else {
-        false
-    }
 }
 
 /// The candidate and, if it came from a priority band, that band's index. The
@@ -91,8 +73,10 @@ fn select_by_priority(pids: &[u32], last: u32, current: u32, prio: Priority) -> 
     let mut after: Option<u32> = None;
     let mut lowest: Option<u32> = None;
     for &pid in pids.iter() {
-        // Skipped rather than left to the claim to refuse: a pick that always
-        // lands on the same held pid would use up every claim attempt on it.
+        /*
+         * Skipped rather than left to the claim to refuse: a pick that always
+         * lands on the same held pid would use up every claim attempt on it.
+         */
         if pid == current || held_elsewhere(pid) {
             continue;
         }

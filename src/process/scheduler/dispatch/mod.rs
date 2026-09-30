@@ -20,6 +20,7 @@
 
 mod run_queue;
 mod sleep;
+mod sleep_enter;
 mod wakeup;
 
 pub use run_queue::{

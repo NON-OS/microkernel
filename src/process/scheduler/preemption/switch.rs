@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::dispatch::add_to_run_queue;
 use super::super::selection::{
     adopt_current, is_dead, release_leaving, select_next_process, switch_to_process,
 };
+use super::hand_off::{count_switch, requeue, run_on};
 use super::save_syscall_user_rsp;
 use super::state::SCHEDULER_STATS;
 use core::sync::atomic::{AtomicU32, Ordering};
@@ -36,7 +36,7 @@ fn trace(label: &[u8], pid: u32) {
 
 #[inline(never)]
 pub(crate) fn preempt_current_process() {
-    use crate::process::nonos_core::{current_pid, save_fpu_state, ProcessState, PROCESS_TABLE};
+    use crate::process::nonos_core::{current_pid, save_fpu_state};
 
     let curr_pid = match current_pid() {
         Some(pid) => pid,
@@ -50,7 +50,9 @@ pub(crate) fn preempt_current_process() {
     let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
     unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
     if crate::sched::Context::was_just_restored() {
-        // Resumed, possibly on another CPU: that CPU is off the stack it left.
+        /*
+         * Resumed, possibly on another CPU: that CPU is off the stack it left.
+         */
         release_leaving();
         trace(b"restored", curr_pid);
         return;
@@ -58,36 +60,17 @@ pub(crate) fn preempt_current_process() {
 
     save_syscall_user_rsp(curr_pid);
     crate::process::nonos_core::save_interrupt_context(curr_pid, ctx);
-    let runnable = if let Some(pcb) = PROCESS_TABLE.find_by_pid(curr_pid) {
-        let mut state = pcb.state.lock();
-        if matches!(*state, ProcessState::Running) {
-            *state = ProcessState::Ready;
-        }
-        matches!(*state, ProcessState::Ready)
-    } else {
-        false
-    };
-    if runnable {
-        add_to_run_queue(curr_pid);
-    }
+    requeue(curr_pid);
 
     match select_next_process() {
         Some(next) if next != curr_pid => {
             SCHEDULER_STATS.context_switches.fetch_add(1, Ordering::Relaxed);
             SCHEDULER_STATS.preemptions.fetch_add(1, Ordering::Relaxed);
-            crate::process::accounting::bump(next, crate::process::accounting::Kind::Switch);
-            crate::process::accounting::bump_total(crate::process::accounting::Total::Switches);
+            count_switch(next);
             trace(b"switch away", curr_pid);
             switch_to_process(next);
         }
-        _ => {
-            if let Some(pcb) = PROCESS_TABLE.find_by_pid(curr_pid) {
-                let mut state = pcb.state.lock();
-                if matches!(*state, ProcessState::Ready) {
-                    *state = ProcessState::Running;
-                }
-            }
-        }
+        _ => run_on(curr_pid),
     }
     /*
      * Killed from another CPU while it ran here, and nothing else ran

@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod hand_off;
-pub mod proc_ticks;
-mod state;
-mod switch;
-mod syscall_rsp;
-mod tick;
-mod yield_body;
-mod yield_impl;
+use super::on_cpu::held_elsewhere;
 
-pub(crate) use state::SCHEDULER_STATS;
-pub use state::{clear_reschedule, need_reschedule};
-pub use state::{set_reschedule, set_time_slice, spend_time_slice, time_slice, DEFAULT_TIME_SLICE};
-pub(crate) use switch::preempt_current_process;
-pub(crate) use syscall_rsp::save_syscall_user_rsp;
-pub use tick::tick;
-pub(crate) use yield_body::perform_yield_inline;
-pub use yield_impl::yield_now;
+/// Take `pid` from `Ready` to `Running` under the state lock, reporting
+/// whether this caller made the transition. A pid another CPU is still
+/// running on, or still leaving, is `Ready` only on paper: its stack is in
+/// use, so it is refused until that CPU is off it (see `on_cpu`).
+pub(super) fn claim(pid: u32) -> bool {
+    use crate::process::nonos_core::{ProcessState, PROCESS_TABLE};
+    let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) else {
+        return false;
+    };
+    let mut state = pcb.state.lock();
+    if *state == ProcessState::Ready && !held_elsewhere(pid) {
+        *state = ProcessState::Running;
+        true
+    } else {
+        false
+    }
+}

@@ -40,15 +40,19 @@ pub(crate) fn wake_for(pid: u32) {
         crate::smp::wake_idle_cpu();
         return;
     }
-    // Pairs with the fence in `release_leaving`: either this reads the slot
-    // still naming the pid, or that CPU reads the queue already holding it.
-    fence(Ordering::SeqCst);
     let me = this_cpu();
     let cpus = crate::smp::cpu_count().min(MAX_CPUS);
-    // OWNED before LEAVING, as in `on_cpu::named_by`.
+    /*
+     * Pairs with the fence in `release_leaving`: either this reads the slot
+     * still naming the pid, or that CPU reads the queue already holding it.
+     * OWNED is read before LEAVING, as in `on_cpu::named_by`.
+     */
+    fence(Ordering::SeqCst);
     if let Some(cpu) = (0..cpus).find(|&cpu| OWNED[cpu].load(Ordering::SeqCst) == pid) {
-        // This CPU, owning it, is the one queueing it: it is yielding or
-        // being preempted and reaches the pick itself.
+        /*
+         * This CPU, owning it, is the one queueing it: it is yielding or
+         * being preempted and reaches the pick itself.
+         */
         if cpu != me {
             crate::smp::send_reschedule_ipi(cpu);
         }

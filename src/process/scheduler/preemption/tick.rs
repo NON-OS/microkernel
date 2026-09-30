@@ -20,10 +20,12 @@ use super::state::{set_reschedule, spend_time_slice, SCHEDULER_STATS};
 use core::sync::atomic::Ordering;
 
 pub fn tick() {
-    // A tick is taken with interrupts open, which no switch path allows, so
-    // any switch this CPU started has finished: it is off the stack it left.
-    // The first process is started by hand rather than switched to, and is
-    // adopted here the first time it is interrupted.
+    /*
+     * A tick is taken with interrupts open, which no switch path allows, so
+     * any switch this CPU started has finished: it is off the stack it left.
+     * The first process is started by hand rather than switched to, and is
+     * adopted here the first time it is interrupted.
+     */
     super::super::selection::release_leaving();
     super::super::selection::adopt_current(crate::process::CURRENT_PID.load(Ordering::Relaxed));
     // A halted processor belongs to nobody: the tick that wakes it is idle
@@ -47,9 +49,11 @@ pub fn tick() {
     if realtime::has_realtime_tasks() {
         set_reschedule();
     }
-    // Killed from another CPU while it ran here: switch away at this tick
-    // rather than resume it. Asked only of a tick that interrupted user mode,
-    // the only kind that switches, when this CPU holds no kernel lock.
+    /*
+     * Killed from another CPU while it ran here: switch away at this tick
+     * rather than resume it. Asked only of a tick that interrupted user mode,
+     * the only kind that switches, when this CPU holds no kernel lock.
+     */
     let pid = crate::process::CURRENT_PID.load(Ordering::Relaxed);
     if pid != 0
         && crate::smp::percpu::current().tick_from_user.load(Ordering::Relaxed)

@@ -43,8 +43,10 @@ pub(crate) fn enter(next: u32) -> Undo {
         }
         OWNED[me].store(next, Ordering::SeqCst);
     }
-    // Cleared even when `next` is the pid owned: a recycled pid's tables are
-    // about to be loaded, and the record would hide them.
+    /*
+     * Cleared even when `next` is the pid owned: a recycled pid's tables are
+     * about to be loaded, and the record would hide them.
+     */
     if space != 0 {
         SPACE_LEFT[me].store(0, Ordering::SeqCst);
     }
@@ -60,30 +62,4 @@ pub(crate) fn undo(prev: Undo) {
     OWNED[me].store(prev.owned, Ordering::SeqCst);
     LEAVING[me].store(prev.leaving, Ordering::SeqCst);
     SPACE_LEFT[me].store(prev.space, Ordering::SeqCst);
-}
-
-/// This CPU is off the stack it was leaving.
-pub(crate) fn release_leaving() {
-    if !TRACKED {
-        return;
-    }
-    let slot = &LEAVING[this_cpu()];
-    let left = slot.load(Ordering::Relaxed);
-    if left != 0 {
-        slot.store(0, Ordering::SeqCst);
-        // A waker that found the pid still named here woke nobody for it.
-        super::on_cpu_wake::left_claimable(left);
-    }
-}
-
-/// Adopt `pid` as this CPU's own when it runs one no switch recorded: the
-/// first process, which the boot path starts by hand.
-pub(crate) fn adopt_current(pid: u32) {
-    if !TRACKED || pid == 0 {
-        return;
-    }
-    let slot = &OWNED[this_cpu()];
-    if slot.load(Ordering::Relaxed) == 0 {
-        slot.store(pid, Ordering::SeqCst);
-    }
 }

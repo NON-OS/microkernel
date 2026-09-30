@@ -47,8 +47,10 @@ pub(super) fn this_cpu() -> usize {
     crate::smp::cpu_id() % MAX_CPUS
 }
 
-fn named_by(cpu: usize, pid: u32) -> bool {
-    // OWNED first: see the module comment for why the order matters.
+pub(super) fn named_by(cpu: usize, pid: u32) -> bool {
+    /*
+     * OWNED first: see the module comment for why the order matters.
+     */
     OWNED[cpu].load(Ordering::SeqCst) == pid || LEAVING[cpu].load(Ordering::SeqCst) == pid
 }
 
@@ -59,22 +61,4 @@ pub(crate) fn held_elsewhere(pid: u32) -> bool {
     }
     let me = this_cpu();
     (0..crate::smp::cpu_count().min(MAX_CPUS)).any(|cpu| cpu != me && named_by(cpu, pid))
-}
-
-/// The CPU running `pid` or still on its stack, if any. For teardown paths
-/// that must not free a stack or a page table a CPU is still using.
-pub fn cpu_holding(pid: u32) -> Option<usize> {
-    if !TRACKED || pid == 0 {
-        return None;
-    }
-    (0..crate::smp::cpu_count().min(MAX_CPUS)).find(|&cpu| named_by(cpu, pid))
-}
-
-/// The CPU that has `pid` as its own, if any: the one to tell when `pid` is
-/// killed, as a CPU only leaving it is off it by its next tick anyway.
-pub fn cpu_running(pid: u32) -> Option<usize> {
-    if !TRACKED || pid == 0 {
-        return None;
-    }
-    (0..crate::smp::cpu_count().min(MAX_CPUS)).find(|&cpu| OWNED[cpu].load(Ordering::SeqCst) == pid)
 }
