@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Wi-Fi control protocol the Settings panel speaks, distinct from net_core's
-//! link protocol and tagged with its own magic so the two never collide. Status
-//! and scan are answered instantly; connect runs the whole join.
+//! The Wi-Fi control protocol setup, Settings and net_core speak through
+//! `nonos_wifi_client`, distinct from net_core's link protocol and tagged with
+//! its own magic so the two never collide. Status, link and scan are answered
+//! instantly; connect runs the whole join.
+
+mod link_op;
+mod status_op;
 
 use crate::status;
 
@@ -37,6 +41,8 @@ const OP_DISCONNECT: u16 = 2;
 const OP_SCAN: u16 = 3;
 /// Report how far bring-up got, so the panel can show it on a serial-less machine.
 const OP_STATUS: u16 = 4;
+/// Whether the radio is associated, and with which network.
+const OP_LINK: u16 = 5;
 
 /// Handle one control request. Returns the reply length, or `None` if it is not a
 /// well-formed control frame (so net_core traffic is never misread as control).
@@ -59,46 +65,13 @@ pub(super) fn control(
     out[6..10].copy_from_slice(&rid.to_le_bytes());
 
     match op {
-        OP_STATUS => status_reply(stage, radio, out),
+        OP_STATUS => status_op::status_reply(stage, radio, out),
+        OP_LINK => link_op::link_reply(radio, session.as_ref(), out),
         OP_SCAN => scan_reply(radio, scanner, out),
         OP_CONNECT => connect_reply(body, radio, session, out),
         OP_DISCONNECT => disconnect_reply(radio, session, out),
         _ => code_reply(-1, out),
     }
-}
-
-// The bring-up stage byte, then the data-path counts as five LE u32s: TX
-// enqueued, TX dropped, RX frames the ring returned, RX frames parsed to
-// Ethernet, and net_core link-protocol requests answered. netif=0 means the
-// stack never reached the radio; TX=0 with netif>0 means it probed but never
-// bound; RX-ring without RX-eth means frames arrive but never decrypt.
-fn status_reply(stage: Stage, radio: &Radio, out: &mut [u8]) -> Option<usize> {
-    out[WIFI_HDR] = stage as u8;
-    let stats = match radio {
-        Radio::Up(up) => up.link.stats(),
-        Radio::Down => crate::link::LinkStats::default(),
-    };
-    out[WIFI_HDR + 1..WIFI_HDR + 5].copy_from_slice(&stats.tx_ok.to_le_bytes());
-    out[WIFI_HDR + 5..WIFI_HDR + 9].copy_from_slice(&stats.tx_drop.to_le_bytes());
-    out[WIFI_HDR + 9..WIFI_HDR + 13].copy_from_slice(&stats.rx_ring.to_le_bytes());
-    out[WIFI_HDR + 13..WIFI_HDR + 17].copy_from_slice(&stats.rx_eth.to_le_bytes());
-    out[WIFI_HDR + 17..WIFI_HDR + 21].copy_from_slice(&stats.netif_reqs.to_le_bytes());
-    out[WIFI_HDR + 21..WIFI_HDR + 25].copy_from_slice(&stats.rx_err.to_le_bytes());
-    // Then the efuse registers as the last stalled read left them. A bring-up that
-    // stops at the efuse says nothing about why on a machine with no serial
-    // console; these three separate a dead register window from a live one whose
-    // efuse controller is never clocked.
-    let (ctl, addr, ldo) = crate::efuse::diag();
-    out[WIFI_HDR + 25..WIFI_HDR + 29].copy_from_slice(&ctl.to_le_bytes());
-    out[WIFI_HDR + 29..WIFI_HDR + 33].copy_from_slice(&addr.to_le_bytes());
-    out[WIFI_HDR + 33..WIFI_HDR + 37].copy_from_slice(&ldo.to_le_bytes());
-    // And which BAR the window came from. rtw88 hardcodes bar_id 2 for this chip
-    // while this driver takes the first MMIO BAR the broker reports, so an index
-    // other than 2 means the registers are being read somewhere they do not live.
-    let (bar, va) = crate::setup::window();
-    out[WIFI_HDR + 37..WIFI_HDR + 41].copy_from_slice(&bar.to_le_bytes());
-    out[WIFI_HDR + 41..WIFI_HDR + 45].copy_from_slice(&va.to_le_bytes());
-    Some(WIFI_HDR + 45)
 }
 
 // The scan is answered instantly from the background scanner's running picture.
@@ -133,6 +106,13 @@ fn connect_reply(
     session: &mut Option<Session>,
     out: &mut [u8],
 ) -> Option<usize> {
+    /*
+     * A join while associated first leaves the current network, so its keys
+     * are cleared from the CAM rather than left beside the new ones.
+     */
+    if let (Radio::Up(up), true) = (&mut *radio, session.is_some()) {
+        disconnect(&mut up.link, &mut up.keys, session);
+    }
     let r = match radio {
         Radio::Up(up) => connect(body, &mut up.link, &mut up.keys, &up.regs, session),
         Radio::Down => ConnectResult {

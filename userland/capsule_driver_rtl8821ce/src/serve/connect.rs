@@ -20,19 +20,23 @@
 //! path encrypts from them. A disconnect drops the association and clears the keys.
 
 use nonos_libc::crypto_random;
-use nonos_wifi_core::dot11::parse::parse_beacon;
 use nonos_wifi_core::key::KeyStore;
 
 use crate::assoc::{self, Outcome};
-use crate::constants::regs::{NETTYPE_MASK, NETTYPE_SHIFT, NET_TYPE_LINKED, REG_BSSID, REG_CR};
 use crate::fw::dma::Grant;
 use crate::link::{RtlKeys, RtlLink};
 use crate::phy::channel::{set_rf, Bw};
-use crate::regs::{Mmio, Regs};
+use crate::regs::Regs;
 use crate::status;
 
+mod hunt;
+mod media;
+
+use hunt::find_beacon;
+use media::set_media_connected;
+
 use super::radio::read_mac;
-use super::{SCAN_CHANNELS, SCAN_FRAME_MAX};
+use super::SCAN_FRAME_MAX;
 
 /// The pairwise and group key slots a connection installs into the CAM.
 const PAIRWISE_KEY_ID: u8 = 0;
@@ -43,16 +47,16 @@ const GROUP_KEY_ID: u8 = 1;
 /// and the four-way handshake with the association driver's retransmits, while
 /// still returning well within the panel's connect IPC timeout.
 const JOIN_BUDGET: u32 = 3_000_000;
-/// Receive passes to dwell on each channel while hunting the target's beacon.
-/// Long enough that a beacon (sent about every 100 ms) lands while tuned there.
-const BEACON_HUNT_DWELL: u32 = 400_000;
 
-/// What the current association installed, so a disconnect clears exactly it.
+/// What the current association installed, so a disconnect clears exactly it,
+/// and the network's name, which the link op reports.
 #[derive(Clone, Copy)]
 pub(super) struct Session {
-    bssid: [u8; 6],
+    pub(super) bssid: [u8; 6],
     key_id: u8,
     gtk_id: u8,
+    pub(super) ssid: [u8; 32],
+    pub(super) ssid_len: u8,
 }
 
 /// A connection attempt's result: the status code, and the handshake progress
@@ -157,7 +161,15 @@ pub(super) fn connect(
                 // but unencrypted and the access point dropped them.
                 crate::sec::enable_sec_engine(regs);
                 link.associate(bssid, ptk);
-                *session = Some(Session { bssid, key_id: PAIRWISE_KEY_ID, gtk_id: GROUP_KEY_ID });
+                let (mut name, len) = ([0u8; 32], ssid.len().min(32));
+                name[..len].copy_from_slice(&ssid[..len]);
+                *session = Some(Session {
+                    bssid,
+                    key_id: PAIRWISE_KEY_ID,
+                    gtk_id: GROUP_KEY_ID,
+                    ssid: name,
+                    ssid_len: len as u8,
+                });
                 status::debug(b"[rtl8821ce] connect: associated\n");
                 0
             }
@@ -213,61 +225,4 @@ fn parse_connect(body: &[u8]) -> Option<(&[u8], &[u8])> {
     let pass_len = *body.get(pass_off)? as usize;
     let pass = body.get(pass_off + 1..pass_off + 1 + pass_len)?;
     Some((ssid, pass))
-}
-
-// Hunt the channels for a beacon matching `ssid`, copying the raw frame into `out`
-// and returning its length and the channel it was heard on. The join needs the
-// real beacon (not the scan summary) because the state machine reads the BSSID,
-// channel and RSN element straight out of it.
-// Put the MAC into infrastructure "linked" mode for one BSS so the receiver
-// accepts the access point's unicast data frames (the EAPOL handshake) addressed
-// to us. Writes the BSSID register and sets the network-type field of REG_CR to
-// managed/linked, preserving the TX/RX engine enables in that register's low
-// bytes. Mirrors rtw88's PORT_SET_BSSID + PORT_SET_NET_TYPE(RTW_NET_MGD_LINKED).
-fn set_media_connected(regs: &Regs, bssid: &[u8; 6]) {
-    let lo = u32::from_le_bytes([bssid[0], bssid[1], bssid[2], bssid[3]]);
-    let hi = u16::from_le_bytes([bssid[4], bssid[5]]);
-    regs.write32(REG_BSSID, lo);
-    regs.write16(REG_BSSID + 4, hi);
-
-    // Set the network type to managed/linked so the hardware accepts the access
-    // point's unicast data frames. This alone gave the most data reception on
-    // hardware; enabling the security engine here made the chip try to decrypt
-    // every frame and drop what it could not (no key exists yet during the
-    // handshake), so it is left off until keys are installed.
-    let cr = regs.read32(REG_CR);
-    regs.write32(REG_CR, (cr & !NETTYPE_MASK) | (NET_TYPE_LINKED << NETTYPE_SHIFT));
-}
-
-// Returns the matched beacon (length and channel) if found, together with the
-// number of beacons of ANY network heard during the hunt. That count turns a
-// bare "not found" into a diagnosis: zero means the radio heard nothing at all
-// on any channel (a receive-path or tuning problem), non-zero means beacons are
-// arriving but the target's was not among them (wrong SSID or it was off-air).
-fn find_beacon(
-    link: &mut RtlLink<Regs, Grant, Grant>,
-    regs: &Regs,
-    ssid: &[u8],
-    out: &mut [u8; SCAN_FRAME_MAX],
-) -> (Option<(usize, u8)>, u32) {
-    let mut frame = [0u8; SCAN_FRAME_MAX];
-    let mut beacons = 0u32;
-    for &ch in &SCAN_CHANNELS {
-        set_rf(regs, ch, Bw::W20);
-        for _ in 0..BEACON_HUNT_DWELL {
-            let Some(n) = link.poll_raw(&mut frame) else {
-                continue;
-            };
-            if let Some(info) = parse_beacon(&frame[..n]) {
-                beacons += 1;
-                if info.ssid == ssid {
-                    let channel =
-                        if info.channel >= 1 && info.channel <= 14 { info.channel } else { ch };
-                    out[..n].copy_from_slice(&frame[..n]);
-                    return (Some((n, channel)), beacons);
-                }
-            }
-        }
-    }
-    (None, beacons)
 }
