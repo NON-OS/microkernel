@@ -30,7 +30,7 @@ const REASONS: &[(i64, &[u8], &[u8])] = &[
     (-12, b"ENOMEM", b"not enough memory to load the model"),
     (-11, b"EAGAIN", b"the system is busy; try again"),
     (-1, b"EPERM", b"this terminal may not start it"),
-    (-13, b"EACCES", b"this terminal may not start it"),
+    (-13, b"EACCES", b"Linux and Qwen are off for this boot, at setup or by Safe Mode or Recovery"),
     (-38, b"ENOSYS", b"this kernel cannot start programs by name"),
 ];
 

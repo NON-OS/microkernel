@@ -41,6 +41,9 @@ pub fn describe(ctx: &Context, say: &mut impl FnMut(&[u8], u32)) {
 
 fn driver_line<'a>(n: &NetState, line: &'a mut [u8; 96]) -> &'a [u8] {
     let Some(d) = n.driver else {
+        if crate::setup::machine::network_off_boot() {
+            return b"This boot runs no network: the boot menu chose it.";
+        }
         return b"No Wi-Fi driver is running on this machine.";
     };
     let tail: &[u8] = match n.stage {

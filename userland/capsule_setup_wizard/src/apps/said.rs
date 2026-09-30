@@ -19,6 +19,12 @@ pub fn said<'a>(ctx: &Context, out: &'a mut [u8; 96]) -> &'a [u8] {
     if ctx.apps_present == 0 {
         return b"Apps: this image carries none that can be turned off.";
     }
+    if crate::setup::machine::safe_boot() {
+        return b"Apps: Safe Mode starts none of them this boot.";
+    }
+    if off_bits == 0 && crate::setup::machine::network_off_boot() {
+        return b"Apps: all on; this boot keeps Browser and App store off.";
+    }
     if off_bits == 0 {
         return b"Apps: every app listed is on.";
     }

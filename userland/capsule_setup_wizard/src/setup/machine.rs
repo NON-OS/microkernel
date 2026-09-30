@@ -22,7 +22,9 @@
 
 use core::mem::size_of;
 
-use nonos_libc::procstat_header::BOOT_INSTALL_REQUESTED;
+use nonos_libc::procstat_header::{
+    BOOT_INSTALL_REQUESTED, BOOT_PROFILE_AIR_GAPPED, BOOT_PROFILE_RECOVERY, BOOT_PROFILE_SAFE,
+};
 use nonos_libc::{mk_proc_stat, ProcStatEntry, ProcStatHeader};
 
 const LEN: usize = size_of::<ProcStatHeader>() + size_of::<ProcStatEntry>();
@@ -40,4 +42,15 @@ pub fn header() -> Option<ProcStatHeader> {
 /* The boot menu's "Install NONOS" entry started this boot. */
 pub fn install_boot() -> bool {
     header().is_some_and(|h| h.boot_flags & BOOT_INSTALL_REQUESTED != 0)
+}
+
+/* Air-Gapped, Safe Mode or Recovery: the kernel starts no network at all. */
+pub fn network_off_boot() -> bool {
+    let off = BOOT_PROFILE_AIR_GAPPED | BOOT_PROFILE_SAFE | BOOT_PROFILE_RECOVERY;
+    header().is_some_and(|h| h.boot_flags & off != 0)
+}
+
+/* Safe Mode: no optional app starts, whatever the Apps step says. */
+pub fn safe_boot() -> bool {
+    header().is_some_and(|h| h.boot_flags & BOOT_PROFILE_SAFE != 0)
 }

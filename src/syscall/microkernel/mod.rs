@@ -55,6 +55,7 @@ pub mod proc_output;
 pub mod proc_stdin;
 pub mod process;
 pub mod procstat;
+mod procstat_boot;
 pub mod procstat_codes;
 pub mod procstat_entry;
 pub mod procstat_fill;

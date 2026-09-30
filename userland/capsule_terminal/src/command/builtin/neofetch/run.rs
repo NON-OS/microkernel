@@ -67,7 +67,7 @@ fn info(kernel: &[u8], up: &[u8]) -> Vec<Vec<u8>> {
         rule,
         Vec::from(&b"ZeroState Cryptographic OS"[..]),
         Vec::new(),
-        row("os", b"NONOS RAM-resident"),
+        row("os", crate::paint::fetch_boot::os_line().as_bytes()),
         row("kernel", kernel),
         row("shell", b"nox   (type 'help')"),
         row("trust", b"Ed25519 + ML-DSA-65"),

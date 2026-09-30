@@ -34,6 +34,8 @@ const REASONS: &[(i64, &[u8], &[u8])] = &[
     (-16, b"EBUSY", b"another qwen get or qwen tiers is running; let it end or stop it"),
     (-12, b"ENOMEM", b"no room to start the model fetcher"),
     (-38, b"ENOSYS", b"this kernel cannot start programs by name"),
+    (-13, b"EACCES", b"Linux and Qwen are off for this boot, at setup or by Safe Mode or Recovery"),
+    (-100, b"ENETDOWN", b"this boot runs no network (Air-Gapped, Safe Mode or Recovery)"),
 ];
 
 /* Run `fetch`; history keeps only its checked words, never the line as typed. */

@@ -38,7 +38,7 @@ pub struct ProcStatHeader {
     pub interrupts: u64,
     pub faults: u64,
     pub cpus_online: u32,
-    /* How this boot was started: BOOT_INSTALL_REQUESTED, or 0. */
+    /* How this boot was started: BOOT_INSTALL_REQUESTED and a BOOT_PROFILE_* bit. */
     pub boot_flags: u32,
     pub user_ticks: u64,
     pub kernel_ticks: u64,
@@ -55,3 +55,8 @@ pub struct ProcStatHeader {
 
 /* The boot menu's "Install NONOS" entry started this boot. */
 pub const BOOT_INSTALL_REQUESTED: u32 = 1;
+/* The boot profile chosen in the menu; Standard sets none. */
+pub const BOOT_PROFILE_HARDENED: u32 = 1 << 1;
+pub const BOOT_PROFILE_SAFE: u32 = 1 << 2;
+pub const BOOT_PROFILE_AIR_GAPPED: u32 = 1 << 3;
+pub const BOOT_PROFILE_RECOVERY: u32 = 1 << 4;

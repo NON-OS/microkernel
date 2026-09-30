@@ -22,6 +22,7 @@ mod draw_cursor;
 mod draw_input_line;
 mod fetch;
 pub(crate) mod fetch_banner;
+pub(crate) mod fetch_boot;
 mod fetch_palette;
 mod fetch_uptime;
 mod fetch_version;

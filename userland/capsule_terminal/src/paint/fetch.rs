@@ -52,7 +52,7 @@ pub fn draw_fetch(state: &State, fb: &mut PaintBuffer, x: u32, body_y: u32, righ
     fb.fill_rect(ix as u32, (y + 8) as u32, (edge - ix).clamp(0, RULE_W) as u32, 1, t.dim);
     y += 24;
 
-    row(fb, ix, y, "os", "NONOS RAM-resident", t);
+    row(fb, ix, y, "os", super::fetch_boot::os_line(), t);
     y += ROW;
     let mut kb = [0u8; 48];
     let kn = super::fetch_version::kernel_line(&mut kb);

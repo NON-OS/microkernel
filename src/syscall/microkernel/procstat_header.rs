@@ -41,7 +41,7 @@ pub struct ProcStatHeader {
     pub interrupts: u64,
     pub faults: u64,
     pub cpus_online: u32,
-    /* How this boot was started; BOOT_INSTALL_REQUESTED and nothing else. */
+    /* How this boot was started: BOOT_INSTALL_REQUESTED and a BOOT_PROFILE_* bit. */
     pub boot_flags: u32,
     /// Busy ticks split by where they landed; idle ticks are neither.
     pub user_ticks: u64,
@@ -62,3 +62,8 @@ pub const PROC_STAT_VERSION: u32 = 4;
  * padding written as zero before, so an older kernel reads as a plain boot.
  */
 pub const BOOT_INSTALL_REQUESTED: u32 = 1;
+/* The boot profile chosen in the menu; Standard sets none. */
+pub const BOOT_PROFILE_HARDENED: u32 = 1 << 1;
+pub const BOOT_PROFILE_SAFE: u32 = 1 << 2;
+pub const BOOT_PROFILE_AIR_GAPPED: u32 = 1 << 3;
+pub const BOOT_PROFILE_RECOVERY: u32 = 1 << 4;
