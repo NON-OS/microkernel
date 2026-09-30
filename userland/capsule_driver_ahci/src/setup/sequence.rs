@@ -14,33 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{block_port, claim, irq, mmio, pci};
-use crate::controller::{enable_ahci, scan_ports, ControllerInfo};
+use super::serve::serve;
+use super::walk::walk;
 use crate::discover::find_ahci;
 use crate::error::{AhciError, AhciResult};
-use crate::handles::BrokerHandles;
-use crate::regs::Regs;
 use crate::setup::Driver;
-use nonos_libc::mk_device_release;
 
+/// Walk every AHCI controller and every present SATA port on each, then serve
+/// the one disk that carries NONOS (or the blank-target fallback). Fails only
+/// when no controller could be opened.
 pub fn run() -> AhciResult<Driver> {
-    let dev = find_ahci().ok_or(AhciError::DeviceNotFound)?;
-    let claim_epoch = claim::claim(dev.device_id)?;
-    if let Err(e) = pci::enable_bus_master(dev.device_id, claim_epoch) {
-        let _ = mk_device_release(dev.device_id);
-        return Err(e);
+    let found = find_ahci();
+    if found.is_empty() {
+        return Err(AhciError::DeviceNotFound);
     }
-
-    let mmio = mmio::map(dev.device_id, claim_epoch, dev.abar_size)?;
-    let irq = irq::bind(dev, claim_epoch);
-
-    let handles = BrokerHandles::new(dev.device_id, mmio.grant_id, mmio.user_va, irq.grant_id);
-    let regs = Regs::new(handles.mmio_user_va());
-
-    enable_ahci(regs);
-    let info = ControllerInfo::read(regs);
-    let ports = scan_ports(regs, info.pi, info.port_count);
-    let block = block_port::bring_up(dev.device_id, claim_epoch, regs, &ports);
-
-    Ok(Driver { handles, regs, info, ports, block })
+    let w = walk(&found);
+    let first_error = w.first_error;
+    serve(w).ok_or(first_error.unwrap_or(AhciError::DeviceNotFound))
 }

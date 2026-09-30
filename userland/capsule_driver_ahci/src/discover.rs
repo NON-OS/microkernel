@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::vec::Vec;
+
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
 
 use crate::constants::{AHCI_ABAR_BAR, CLASS_BLOCK};
@@ -31,22 +33,23 @@ pub struct Found {
     pub abar_size: u64,
 }
 
-pub fn find_ahci() -> Option<Found> {
+/// Every AHCI controller the device list reports, in device list order. The
+/// driver walks all of them: the NONOS disk need not sit on the first one.
+pub fn find_ahci() -> Vec<Found> {
     let mut buf = [DeviceRecord::empty(); MAX_DEVICES];
     let n = mk_device_list(CLASS_BLOCK, buf.as_mut_ptr(), MAX_DEVICES as u64);
     if n <= 0 {
-        return None;
+        return Vec::new();
     }
-    for r in &buf[..core::cmp::min(n as usize, MAX_DEVICES)] {
-        if is_candidate(r) {
-            return Some(Found {
-                device_id: r.device_id,
-                irq_line: r.irq_line,
-                abar_size: r.bars[AHCI_ABAR_BAR as usize].size,
-            });
-        }
-    }
-    None
+    buf[..core::cmp::min(n as usize, MAX_DEVICES)]
+        .iter()
+        .filter(|r| is_candidate(r))
+        .map(|r| Found {
+            device_id: r.device_id,
+            irq_line: r.irq_line,
+            abar_size: r.bars[AHCI_ABAR_BAR as usize].size,
+        })
+        .collect()
 }
 
 fn is_candidate(r: &DeviceRecord) -> bool {

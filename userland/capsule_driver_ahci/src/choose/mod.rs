@@ -14,23 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::PORT_KIND_SATA;
-use crate::controller::PortInfo;
-use crate::engine::{init_port, Port};
-use crate::regs::Regs;
+//! Which SATA port the driver serves, decided without touching hardware so the
+//! host proof crate can run the same source.
 
-pub(super) fn bring_up(
-    device_id: u64,
-    claim_epoch: u64,
-    regs: Regs,
-    ports: &[PortInfo],
-) -> Option<Port> {
-    for p in ports {
-        if p.present == 1 && p.kind == PORT_KIND_SATA {
-            if let Ok(port) = init_port(device_id, claim_epoch, regs, p.index) {
-                return Some(port);
-            }
-        }
-    }
-    None
-}
+mod candidate;
+mod layout;
+mod pick;
+
+pub use candidate::Candidate;
+pub use layout::{holds, starts_with_magic, PLAN_LBA, PLAN_MAGIC, STORE_LBA, STORE_MAGIC};
+pub use pick::choose;

@@ -19,6 +19,7 @@
 
 extern crate alloc;
 
+mod choose;
 mod constants;
 mod controller;
 mod discover;

@@ -69,16 +69,16 @@ and are revoked by kernel teardown.
 
 ## Runtime lifecycle
 
-The capsule discovers one AHCI controller, claims it, maps ABAR, binds the
-controller interrupt, enables AHCI mode, identifies the first usable SATA port,
-allocates command/data DMA, and then serves IPC. Shutdown releases DMA, IRQ,
-ABAR, and the device claim.
+The capsule opens every AHCI controller the device list reports, brings up each
+present SATA port, and reads (never writes) LBA 256 and 65536 for the NONOS store
+and plan magics. It serves the first disk carrying either, else the first port
+that came up, parks the rest, releases the other controllers, then serves IPC.
 
 ## Failure model
 
-Discovery, claim, MMIO map, IRQ bind, AHCI-mode enable, DMA allocation, ATA
-identify, and command setup are hard setup barriers. Any failure aborts startup
-and rolls back prior broker grants. Runtime requests return protocol errors
+A controller whose claim, bus-master enable, or MMIO map fails is skipped;
+startup fails only when no controller opens. A port whose link, DMA, or ATA
+identify fails is stopped and skipped. Runtime requests return protocol errors
 rather than touching ports that were not discovered.
 
 ## Current implemented surface
@@ -123,8 +123,8 @@ owns only the broker records and address-space mappings.
 
 ## Release target
 
-The next AHCI target is broader validation: NCQ where supported, multi-port
-selection, timeout recovery, device reset, and repeated real-controller boot
+The next AHCI target is broader validation: NCQ where supported, serving more
+than one disk, timeout recovery, device reset, and repeated real-controller boot
 evidence. It remains a driver only: partitions, filesystems, encryption, and
 cache policy stay in separate storage capsules.
 
@@ -144,7 +144,7 @@ controller boot dossier.
 
 ## Explicit non-goals today
 
-No NCQ, multi-port policy, partition parsing, filesystem, encryption policy,
+No NCQ, multi-disk serving, partition parsing, filesystem, encryption policy,
 or disk cache lives in this capsule.
 
 ## Verification
