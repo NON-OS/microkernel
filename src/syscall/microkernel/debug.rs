@@ -19,7 +19,8 @@
 //! `Capability::Debug` token; this layer only validates the user
 //! buffer and writes it through. A caller whose output is private (a
 //! terminal's run of the Linux personality, or a guest it hosts) is never
-//! written to serial; its line goes only to its own `proc.<pid>` inbox.
+//! written anywhere: its diagnostics are neither serial's nor the person's
+//! screen, which gets only what the program writes to its console.
 //!
 //! The line is bounded to `MAX_LEN` bytes after which the syscall
 //! returns `-EINVAL`. Empty calls are also rejected. Non-printable
@@ -49,14 +50,16 @@ pub fn sys_mk_debug(user_ptr: u64, len: u64) -> i64 {
     }
     /*
      * A terminal's run of the Linux personality, or a guest it hosts, has
-     * someone's private text in its output: its lines go to its own inbox
-     * only, never the serial console.
+     * someone's private text in its output, and its own diagnostics would
+     * only clutter the conversation on their screen: its lines are dropped.
      */
     let private =
         crate::process::current_pid().is_some_and(crate::userspace::capsule_linux::is_private_run);
-    if !private {
-        crate::sys::serial::print(&buf[..len]);
+    if private {
+        buf[..len].fill(0);
+        return len as i64;
     }
+    crate::sys::serial::print(&buf[..len]);
     // Mirror to the on-screen log too: a capsule reporting its bring-up on a
     // machine with no serial port is otherwise invisible. No-op unless the
     // framebuffer console is enabled (NONOS_FBCONSOLE=1 bring-up build).
