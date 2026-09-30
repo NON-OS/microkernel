@@ -18,10 +18,9 @@ use spin::Mutex;
 
 use super::mint::mint;
 
-pub struct LocalIdentity {
+pub(super) struct LocalIdentity {
     pub secret: [u8; 32],
     pub blinding: [u8; 32],
-    pub commitment: [u8; 32],
     pub root: [u8; 32],
     /// Derived from the machine key, so the same on every boot of this
     /// machine running this kernel. False when there is no TPM to ask.

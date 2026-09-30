@@ -41,5 +41,5 @@ pub(super) fn mint() -> Option<LocalIdentity> {
     };
     let commitment = PedersenCommitment::commit(&secret, &blinding).commitment;
     let root = root_for(&commitment);
-    Some(LocalIdentity { secret, blinding, commitment, root, persistent })
+    Some(LocalIdentity { secret, blinding, root, persistent })
 }

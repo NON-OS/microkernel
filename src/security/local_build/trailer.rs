@@ -32,7 +32,7 @@ pub(super) const TRAILER_LEN: usize =
 /// that looks identical to a proof that was simply wrong.
 ///
 /// `None` rather than a blob the parser will reject.
-pub fn encode(proof: &EnrolledSecretProof) -> Option<Vec<u8>> {
+pub(super) fn encode(proof: &EnrolledSecretProof) -> Option<Vec<u8>> {
     if proof.siblings.len() != POLICY_TREE_DEPTH || proof.directions.len() != POLICY_TREE_DEPTH {
         return None;
     }
