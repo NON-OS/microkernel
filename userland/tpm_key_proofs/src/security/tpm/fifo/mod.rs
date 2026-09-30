@@ -44,6 +44,8 @@ mod model_io;
 #[cfg(test)]
 mod model_sts;
 #[cfg(test)]
+mod qemu_tests;
+#[cfg(test)]
 mod recv_fail_tests;
 #[cfg(test)]
 mod send_fail_tests;
