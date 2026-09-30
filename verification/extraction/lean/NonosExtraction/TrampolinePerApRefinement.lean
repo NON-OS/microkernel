@@ -35,8 +35,42 @@ namespace NonosExtraction.TrampolinePerAp
 theorem the_perapbootcontext_new_wrapper_is_its_method (a : Std.U64) (b : Std.U64) (c : Std.U64) (d : Std.U32) :
     perapbootcontext_new a b c d = per_ap.PerApBootContext.new a b c d := rfl
 
+/-! ### The boot context carries each value to its own field
+
+`ap_unit` builds one `PerApBootContext` per application processor from the
+page-table root, the processor's stack top, the Rust entry point and its CPU
+number, and the trampoline reads these back at fixed offsets. The theorems
+below show that `perapbootcontext_new` never fails and stores each argument in
+the field of the same name, so the page-table root, stack and entry point
+cannot be exchanged, and that it loses no argument. They cannot establish the
+`#[repr(C)]` byte layout the assembly trampoline depends on, nor the
+narrowing of the CPU number to `u32` that the caller performs; neither is
+visible in the extracted code.
+-/
+
+/-- `perapbootcontext_new` stores each argument in its own field. A version
+    that exchanged `pml4_phys` and `stack_top` would load a stack address into
+    `CR3` on the new processor. -/
+theorem perapbootcontext_new_keeps_every_field
+    (pml4 stack entry : Std.U64) (cpu : Std.U32) :
+    ∃ c, perapbootcontext_new pml4 stack entry cpu = ok c ∧
+      c.pml4_phys = pml4 ∧ c.stack_top = stack ∧ c.entry_ptr = entry ∧ c.cpu_id = cpu :=
+  ⟨_, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- `perapbootcontext_new` loses no argument: two processors given different
+    stacks, roots, entry points or CPU numbers receive different contexts. -/
+theorem perapbootcontext_new_loses_no_argument
+    (p s e p' s' e' : Std.U64) (c c' : Std.U32)
+    (h : perapbootcontext_new p s e c = perapbootcontext_new p' s' e' c') :
+    p = p' ∧ s = s' ∧ e = e' ∧ c = c' := by
+  simp only [perapbootcontext_new, per_ap.PerApBootContext.new, ok.injEq,
+    per_ap.PerApBootContext.mk.injEq] at h
+  exact h
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.TrampolinePerAp.the_perapbootcontext_new_wrapper_is_its_method
+#print axioms NonosExtraction.TrampolinePerAp.perapbootcontext_new_keeps_every_field
+#print axioms NonosExtraction.TrampolinePerAp.perapbootcontext_new_loses_no_argument
 
 end NonosExtraction.TrampolinePerAp

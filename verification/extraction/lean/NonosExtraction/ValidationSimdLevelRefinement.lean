@@ -35,8 +35,50 @@ namespace NonosExtraction.ValidationSimdLevel
 theorem the_simdlevel_register_width_wrapper_is_its_method (a : simd_level.SimdLevel) :
     simdlevel_register_width a = simd_level.SimdLevel.register_width a := rfl
 
+/-! ### Register width follows the SIMD level order
+
+    `SimdLevel` derives `PartialOrd` and `Ord` from its declared discriminants
+    (`None = 0` up to `Avx512 = 9`), and `highest_level` in `simd_types.rs` picks
+    the greatest level a processor supports. The theorems below say that
+    `register_width` agrees with that order: a higher level never has narrower
+    registers, only `None` has width zero, and the widths are the architectural
+    ones (128 bits for every SSE generation, 256 for AVX and AVX2, 512 for
+    AVX-512). They cannot establish that the CPUID probing behind
+    `highest_level` is correct; it is not extracted here.
+-/
+
+/-- A level at or above another in the declared order has registers at least as
+    wide, so comparing levels and comparing widths never disagree in direction. -/
+theorem simdlevel_register_width_is_monotone_in_the_declared_order
+    (a b : simd_level.SimdLevel)
+    (h : (simd_level.SimdLevel.read_discriminant a).val ≤
+      (simd_level.SimdLevel.read_discriminant b).val) :
+    ∃ wa wb : Std.Usize, simdlevel_register_width a = ok wa ∧
+      simdlevel_register_width b = ok wb ∧ wa.val ≤ wb.val := by
+  cases a <;> cases b <;> first
+    | exact ⟨_, _, rfl, rfl, by decide⟩
+    | (simp [simd_level.SimdLevel.read_discriminant] at h)
+
+/-- Only the absence of SIMD reports zero width. -/
+theorem simdlevel_register_width_is_zero_only_without_simd (a : simd_level.SimdLevel) :
+    simdlevel_register_width a = ok 0#usize ↔ a = simd_level.SimdLevel.None := by
+  cases a <;> simp [simdlevel_register_width, simd_level.SimdLevel.register_width]
+
+/-- The widths are the architectural register sizes: XMM for every SSE level,
+    YMM for AVX and AVX2, ZMM for AVX-512. -/
+theorem simdlevel_register_width_is_the_architectural_register_size :
+    simdlevel_register_width .Sse = ok 128#usize ∧
+      simdlevel_register_width .Sse42 = ok 128#usize ∧
+      simdlevel_register_width .Avx = ok 256#usize ∧
+      simdlevel_register_width .Avx2 = ok 256#usize ∧
+      simdlevel_register_width .Avx512 = ok 512#usize := by
+  exact ⟨rfl, rfl, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.ValidationSimdLevel.the_simdlevel_register_width_wrapper_is_its_method
+#print axioms NonosExtraction.ValidationSimdLevel.simdlevel_register_width_is_monotone_in_the_declared_order
+#print axioms NonosExtraction.ValidationSimdLevel.simdlevel_register_width_is_zero_only_without_simd
+#print axioms NonosExtraction.ValidationSimdLevel.simdlevel_register_width_is_the_architectural_register_size
 
 end NonosExtraction.ValidationSimdLevel

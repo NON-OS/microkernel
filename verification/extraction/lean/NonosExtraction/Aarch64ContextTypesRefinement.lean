@@ -38,9 +38,48 @@ theorem the_userentry_zeroed_wrapper_is_its_method :
 theorem the_saveduser_zeroed_wrapper_is_its_method :
     saveduser_zeroed = types.SavedUser.zeroed := rfl
 
+/-! ### A fresh context carries nothing from the kernel
+
+    `save_user_frame` starts from `SavedUser::zeroed` and then overwrites the
+    registers it knows about: `gprs::copy` fills `x0` through `x30`, and the
+    four special registers are assigned from the exception frame. The theorems
+    below say the starting record is zero in every slot, so a slot the copy
+    missed would hold zero rather than stale kernel data, and that the register
+    array has exactly the 31 slots `x0..x30` the copy writes.
+
+    For `UserEntry`, the zeroed record is the one `enter_user` must refuse: its
+    entry point, user stack and kernel stack are all zero, and each of those is
+    one of the checks in `enter_user`. Its `spsr` is zero, which is the value
+    the kernel names `SPSR_EL0T_INITIAL`. `enter_user`, the assembly it jumps
+    to and the process table are not extracted, so these theorems cannot show
+    that the refusal happens, only that the zeroed record is the input it is
+    written to refuse.
+-/
+
+/-- Every slot of a zeroed saved context is zero, and the register array is
+    exactly 31 words long, one for each of `x0` through `x30`. -/
+theorem saveduser_zeroed_holds_zero_in_every_register :
+    ∃ s, saveduser_zeroed = ok s ∧
+      s.gprs.val = List.replicate 31 0#u64 ∧
+      s.sp_el0.val = 0 ∧ s.elr_el1.val = 0 ∧
+      s.spsr_el1.val = 0 ∧ s.kernel_sp.val = 0 := by
+  exact ⟨_, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
+/-- A zeroed entry record names no entry point, no user stack and no kernel
+    stack, so it fails the first check of `enter_user`. Its `spsr` is the
+    kernel's `SPSR_EL0T_INITIAL` (zero: EL0t with no exception masked) and all
+    eight argument registers are zero. -/
+theorem userentry_zeroed_is_an_entry_enter_user_refuses :
+    ∃ e, userentry_zeroed = ok e ∧
+      e.entry.val = 0 ∧ e.user_sp.val = 0 ∧ e.kernel_sp.val = 0 ∧
+      e.spsr.val = 0 ∧ e.args.val = List.replicate 8 0#u64 := by
+  exact ⟨_, rfl, rfl, rfl, rfl, rfl, rfl⟩
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.Aarch64ContextTypes.the_userentry_zeroed_wrapper_is_its_method
 #print axioms NonosExtraction.Aarch64ContextTypes.the_saveduser_zeroed_wrapper_is_its_method
+#print axioms NonosExtraction.Aarch64ContextTypes.saveduser_zeroed_holds_zero_in_every_register
+#print axioms NonosExtraction.Aarch64ContextTypes.userentry_zeroed_is_an_entry_enter_user_refuses
 
 end NonosExtraction.Aarch64ContextTypes

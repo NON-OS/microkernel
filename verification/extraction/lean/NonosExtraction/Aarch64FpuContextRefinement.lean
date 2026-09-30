@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.Aarch64FpuContext
+import Nonos.FpuState
 
 open Aeneas Aeneas.Std Result
 open nonos_x_aarch64_fpu_context
@@ -35,8 +36,104 @@ namespace NonosExtraction.Aarch64FpuContext
 theorem the_fpsimdcontext_zeroed_wrapper_is_its_method :
     fpsimdcontext_zeroed = context.FpSimdContext.zeroed := rfl
 
+/-! ### A zeroed save area is a safe first state on aarch64
+
+A task's first FP/SIMD state is whatever `aarch64_fpu_restore` loads from
+`FpSimdContext::zeroed`, so the value that function returns is the register file
+every fresh task begins with. The theorems below establish three things about
+it. No vector register and no padding word carries a value, so nothing left by
+an earlier task can reach a new one through this area. `FPSR` holds no
+cumulative exception flag and no saturation flag, so a task does not start with
+conditions it never raised. And `FPCR` enables no exception trap, rounds to
+nearest, and keeps flush-to-zero, default-NaN and alternative half precision
+off.
+
+The third point is the one that went wrong on x86_64, and the comparison is made
+against the tier-one model `Nonos.FpuState`. `MXCSR` masks exceptions with set
+bits, so a zeroed word traps on all six conditions. `FPCR` enables traps with
+set bits (`IOE`, `DZE`, `OFE`, `UFE`, `IXE` at bits 8 to 12, `IDE` at bit 15),
+so the same zero traps on none of them, and on aarch64 the zeroed area needs no
+correction.
+
+These are statements about the value the kernel builds, not about the machine.
+The restore itself is assembly outside the extraction, the byte offsets it uses
+(`0x200` for `FPSR`, `0x204` for `FPCR`) depend on the `repr(C)` layout that
+Aeneas does not model, and `FpSimdSlot::zeroed` and the lazy-enable path that
+call this function are not extracted.
+-/
+
+/-- Where `FPCR` keeps the trap enable for each condition `Nonos.FpuState`
+    names. The input-denormal enable `IDE` is bit 15, apart from the other five
+    at bits 8 to 12. -/
+def fpcrTrapEnableIndex : Nonos.FpuState.Exc → Nat
+  | .invalid => 8
+  | .divideByZero => 9
+  | .overflow => 10
+  | .underflow => 11
+  | .precision => 12
+  | .denormal => 15
+
+/-- The zeroed area leaves every vector register and both padding words at
+    zero, so a fresh task observes nothing of the task that used the FPU
+    before it. -/
+theorem fpsimdcontext_zeroed_leaves_no_register_value :
+    ∃ c, fpsimdcontext_zeroed = ok c ∧
+      (∀ x ∈ c.q.val, x = 0#u128) ∧ (∀ w ∈ c._pad.val, w = 0#u32) := by
+  refine ⟨_, rfl, ?_, ?_⟩
+  · intro x hx
+    rw [Array.repeat_val] at hx
+    exact List.eq_of_mem_replicate hx
+  · intro w hw
+    rw [Array.repeat_val] at hw
+    exact List.eq_of_mem_replicate hw
+
+/-- For every condition the x86_64 model tracks, a zeroed `MXCSR` traps and the
+    zeroed `FPCR` this function returns does not. The polarity of the two
+    control registers is opposite, so the zero that was the x86_64 defect is
+    the correct aarch64 reset. -/
+theorem fpsimdcontext_zeroed_enables_no_trap_where_a_zero_mxcsr_traps :
+    ∃ c, fpsimdcontext_zeroed = ok c ∧
+      ∀ e ∈ Nonos.FpuState.every,
+        Nonos.FpuState.Traps Nonos.FpuState.mxcsrZero e ∧
+          ¬ Nonos.FpuState.bitSet c.fpcr.val (fpcrTrapEnableIndex e) := by
+  refine ⟨_, rfl, ?_⟩
+  intro e he
+  refine ⟨?_, ?_⟩
+  · unfold Nonos.FpuState.Traps
+    exact Nonos.FpuState.zero_unmasks_everything e he
+  · cases e <;> (unfold Nonos.FpuState.bitSet fpcrTrapEnableIndex; decide)
+
+/-- The zeroed `FPCR` selects round to nearest (`RMode`, bits 22 and 23, reads
+    zero) and leaves flush-to-zero (bit 24), default NaN (bit 25), alternative
+    half precision (bit 26) and half-precision flush-to-zero (bit 19) off, so
+    arithmetic in a fresh task gives IEEE 754 default results. -/
+theorem fpsimdcontext_zeroed_rounds_to_nearest_with_ieee_defaults :
+    ∃ c, fpsimdcontext_zeroed = ok c ∧
+      c.fpcr.val / 2 ^ 22 % 4 = 0 ∧
+      ¬ Nonos.FpuState.bitSet c.fpcr.val 24 ∧
+      ¬ Nonos.FpuState.bitSet c.fpcr.val 25 ∧
+      ¬ Nonos.FpuState.bitSet c.fpcr.val 26 ∧
+      ¬ Nonos.FpuState.bitSet c.fpcr.val 19 := by
+  refine ⟨_, rfl, ?_⟩
+  unfold Nonos.FpuState.bitSet
+  decide
+
+/-- The zeroed `FPSR` has no cumulative exception flag set (`IOC`, `DZC`,
+    `OFC`, `UFC`, `IXC` at bits 0 to 4, `IDC` at bit 7) and no saturation flag
+    (`QC`, bit 27), so a fresh task does not see a condition it never raised. -/
+theorem fpsimdcontext_zeroed_starts_with_no_status_flag :
+    ∃ c, fpsimdcontext_zeroed = ok c ∧
+      ∀ i ∈ [0, 1, 2, 3, 4, 7, 27], ¬ Nonos.FpuState.bitSet c.fpsr.val i := by
+  refine ⟨_, rfl, ?_⟩
+  unfold Nonos.FpuState.bitSet
+  decide
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.Aarch64FpuContext.the_fpsimdcontext_zeroed_wrapper_is_its_method
+#print axioms NonosExtraction.Aarch64FpuContext.fpsimdcontext_zeroed_leaves_no_register_value
+#print axioms NonosExtraction.Aarch64FpuContext.fpsimdcontext_zeroed_enables_no_trap_where_a_zero_mxcsr_traps
+#print axioms NonosExtraction.Aarch64FpuContext.fpsimdcontext_zeroed_rounds_to_nearest_with_ieee_defaults
+#print axioms NonosExtraction.Aarch64FpuContext.fpsimdcontext_zeroed_starts_with_no_status_flag
 
 end NonosExtraction.Aarch64FpuContext
