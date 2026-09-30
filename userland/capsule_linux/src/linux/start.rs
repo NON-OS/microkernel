@@ -16,16 +16,17 @@
 
 //! Bring one Linux program up and stay with it until it ends.
 
-use nonos_libc::{mk_debug, mk_exit, mk_foreign_spawn};
+use nonos_libc::{mk_exit, mk_foreign_spawn};
 
 use super::serve::serve;
 use super::source::source;
 use super::start_guest::start;
+pub(super) use super::start_say::{routine, say};
 use super::{file::family::choose, guest::Guest};
 
 pub fn run() -> ! {
     super::heap::init();
-    say(b"[LINUX] personality up\n");
+    routine(b"[LINUX] personality up\n");
     if let Some((name, pin)) = super::request::install_request() {
         say(b"[LINUX] installing\n");
         let pkg = choose(&name);
@@ -56,7 +57,7 @@ pub fn run() -> ! {
     guest.links = alloc::rc::Rc::new(super::guest::Links::load());
     let code = match start(&mut guest, launch) {
         Ok(()) => {
-            say(b"[LINUX] guest running\n");
+            routine(b"[LINUX] guest running\n");
             serve(guest)
         }
         Err(step) => {
@@ -66,10 +67,6 @@ pub fn run() -> ! {
         }
     };
     super::file::clear_private();
-    say(b"[LINUX] guest exited\n");
+    routine(b"[LINUX] guest exited\n");
     mk_exit(code)
-}
-
-pub(super) fn say(line: &[u8]) {
-    let _ = mk_debug(line.as_ptr(), line.len());
 }

@@ -37,6 +37,6 @@ pub(super) fn hold() {
     if !HELD.swap(true, Ordering::SeqCst) {
         let line: &[u8] =
             b"[LINUX] family holds a model: console private, no network (net.sockets refused)\n";
-        let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+        crate::linux::start::routine(line);
     }
 }

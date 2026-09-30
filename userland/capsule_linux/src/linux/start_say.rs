@@ -14,37 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The Linux personality: everything this system knows about Linux, in
-//! one capsule that holds the capabilities its guests do not.
+//! What the personality says about a run, and when it keeps quiet.
 
-mod abi;
-mod attest;
-mod attest_local;
-mod attest_paths;
-mod attest_publisher;
-mod boot_guest;
-mod built_in;
-mod call;
-mod console;
-mod env;
-mod file;
-mod guest;
-mod heap;
-mod image;
-mod install;
-mod launch;
-mod net;
-mod origin;
-mod request;
-mod run_mode;
-pub mod serve;
-mod settle;
-mod source;
-mod source_named;
-mod start;
-mod start_guest;
-mod start_say;
-mod unix;
-mod wayland;
+use nonos_libc::mk_debug;
 
-pub use start::run;
+pub(crate) fn say(line: &[u8]) {
+    let _ = mk_debug(line.as_ptr(), line.len());
+}
+
+/// A line that only narrates a healthy run. A terminal's run shows the
+/// person what went wrong, not the personality's own progress.
+pub(crate) fn routine(line: &[u8]) {
+    let cli = matches!(super::request::run_request(), Some((_, super::run_mode::Mode::Cli)));
+    if !cli && !super::console::private() {
+        say(line);
+    }
+}

@@ -42,7 +42,11 @@ pub fn size_of(name: &[u8]) -> Result<u64, i64> {
         n if n >= 0 => alloc::format!("[LINUX] model imported and verified: {n} bytes\n"),
         e => alloc::format!("[LINUX] model import refused, errno {}\n", -e),
     };
-    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+    if done < 0 {
+        crate::linux::start::say(line.as_bytes());
+    } else {
+        crate::linux::start::routine(line.as_bytes());
+    }
     if done < 0 {
         Err(-done)
     } else {
