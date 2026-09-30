@@ -29,11 +29,13 @@ pub fn find_virtio_net() -> Option<Found> {
     }
     let count = core::cmp::min(n as usize, MAX_DEVICES);
     for r in &buf[..count] {
-        // Match on identity and a usable register BAR only. Legacy INTx
-        // routing (irq_pin / irq_line) is not required: q35 firmware often
-        // leaves irq_line at 0xFF, and the driver binds no interrupt at all
-        // (see `setup::irq`). Filtering on those fields here once discarded
-        // usable NICs, which left setup looping forever on q35.
+        /*
+         * Match on identity and a usable register BAR only. Legacy INTx
+         * routing (irq_pin / irq_line) is not required: q35 firmware often
+         * leaves irq_line at 0xFF, and the driver binds no interrupt at all
+         * (see `setup::irq`). Filtering on those fields here once discarded
+         * usable NICs, which left setup looping forever on q35.
+         */
         if !is_match(r) {
             continue;
         }

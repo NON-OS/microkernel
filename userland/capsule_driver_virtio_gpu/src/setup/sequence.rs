@@ -24,8 +24,10 @@ pub fn run() -> Result<Driver, &'static str> {
     let dev = find_virtio_gpu();
     let dev = dev.ok_or("virtio-gpu: device not found")?;
     let claim_epoch = claim::claim(dev.device_id)?;
-    // No interrupt is bound: the driver polls, and `pci::enable` takes the
-    // device off its legacy line so it cannot hold a shared line up.
+    /*
+     * No interrupt is bound: the driver polls, and `pci::enable` takes the
+     * device off its legacy line so it cannot hold a shared line up.
+     */
     pci::enable(dev.device_id, claim_epoch)?;
     let registers = mmio::grant(dev, claim_epoch)?;
     let queue = dma::map_queue(dev.device_id, claim_epoch, registers)?;

@@ -36,8 +36,10 @@ pub fn run() -> Result<Driver, &'static str> {
     stage("[net-setup] negotiate");
     let negotiated = negotiate(regs)?;
     let status_supported = config::feature_enabled(negotiated, VIRTIO_NET_F_STATUS);
-    // No MSI-X is enabled (nothing is bound), so the legacy device-specific
-    // config starts right at the MAC, not four bytes further on.
+    /*
+     * No MSI-X is enabled (nothing is bound), so the legacy device-specific
+     * config starts right at the MAC, not four bytes further on.
+     */
     let config_base = LEG_MAC;
     let mac = config::read_mac(regs, negotiated, config_base);
     stage("[net-setup] queues");
