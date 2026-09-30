@@ -14,13 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::hooks;
-use super::state;
-
-// The EWMA decay constants in the load-average module assume a five-second
-// sampling period; the LAPIC preemption timer runs at 100 Hz.
-const LOAD_SAMPLE_TICKS: u64 = 500;
-
 pub fn on_timer_interrupt() {
     /*
      * Per-CPU evidence that this CPU takes interrupts at all. The tick counter
@@ -34,18 +27,11 @@ pub fn on_timer_interrupt() {
         .last_tick_tsc
         .store(crate::arch::read_time_counter(), core::sync::atomic::Ordering::Relaxed);
     /*
-     * Every CPU takes this interrupt, each from its own LAPIC timer, but the
-     * tick count is the machine's clock: counted on all of them it ran as
-     * many times fast as there were CPUs online. So only the boot CPU counts,
-     * and only it runs the work paced by that count. The rest of this handler
-     * is per CPU: its time slice, its sleepers sweep and its preemption.
+     * Only the boot CPU keeps the machine's clock; see `clock`.
      */
     let counts = crate::smp::cpu_id() == 0;
     if counts {
-        state::increment_ticks();
-        if option_env!("NONOS_FBCONSOLE").is_some() {
-            super::heartbeat::on_tick(state::get_ticks());
-        }
+        super::clock::advance();
     }
     crate::sched::tick();
     #[cfg(feature = "input-probe-inject")]
@@ -57,18 +43,7 @@ pub fn on_timer_interrupt() {
     crate::sched::scheduler::process::check_sleeping_processes();
 
     if counts {
-        if state::get_ticks() % 10 == 0 {
-            crate::process::alarm::tick();
-        }
-
-        if state::get_ticks() % LOAD_SAMPLE_TICKS == 0 {
-            crate::fs::procfs::update_load_averages();
-        }
-
-        #[cfg(all(target_arch = "x86_64", feature = "nonos-arch-iommu"))]
-        crate::arch::x86_64::iommu::unit::fault::poll_faults(state::get_ticks());
-
-        hooks::invoke_hook();
+        super::clock::paced_work();
     }
 
     /*
