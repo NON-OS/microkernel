@@ -13,15 +13,4 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-"""Launcher; the implementation lives in tools/nonos_qwen_tier/."""
-
-import os
-import sys
-
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-
-from nonos_qwen_tier.__main__ import main
-
-if __name__ == "__main__":
-    main()
+"""Pieces of tools/nonos-market-catalogue, kept in files of their own."""

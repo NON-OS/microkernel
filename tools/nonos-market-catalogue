@@ -49,6 +49,12 @@ import time
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from nonos_market_catalogue.digest import blake3  # noqa: E402
+from nonos_market_catalogue.guests import guest_entries  # noqa: E402
+from nonos_market_catalogue.records import entry, release  # noqa: E402
+
 MIRROR = "https://dl-cdn.alpinelinux.org/alpine"
 BRANCHES = ("main", "community")
 # Listing namespaces a distribution other than Alpine publishes under. The
@@ -95,66 +101,6 @@ NOT_APPS = (
     "image_codec",
     "audio_server",
 )
-
-FREE = {"kind": "free", "amount_atomic": "0", "period_seconds": 0}
-NOX = {"symbol": "NOX", "decimals": 18, "chain_id": 1, "contract_address": ""}
-
-
-def blake3(data: bytes) -> str:
-    """BLAKE3-256, the hash every other artifact in this tree is named by.
-
-    b3sum is what the signing tools use, so the digest in a listing is
-    the same one a person gets checking the artifact by hand.
-    """
-    try:
-        done = subprocess.run(
-            ["b3sum", "--no-names", "--raw"],
-            input=data, stdout=subprocess.PIPE, check=True,
-        )
-    except FileNotFoundError:
-        sys.exit("b3sum not found: install it, or the digests would be guesses")
-    return done.stdout[:32].hex()
-
-
-def validation(note: str, validator: str, when_ms: int) -> dict:
-    return {
-        "status": "validated",
-        "note": note,
-        "validator_id": validator,
-        "validated_at_ms": when_ms,
-    }
-
-
-def release(rid, manifest, package, url, arches, caps, note, validator,
-             when_ms, trailer=""):
-    return {
-        "release_id": rid,
-        "manifest_hash": manifest,
-        "package_hash": package,
-        "package_url": url,
-        "publisher_signature": "",
-        "supported_arches": arches,
-        "kernel_abi_min": 1,
-        "required_capabilities": caps,
-        "zk_trailer_hash": trailer,
-        "validation": validation(note, validator, when_ms),
-    }
-
-
-def entry(listing, capsule_id, name, publisher, pubkey, text, releases):
-    return {
-        "listing_id": listing,
-        "capsule_id": capsule_id,
-        "name": name,
-        "publisher_name": publisher,
-        "publisher_pubkey": pubkey,
-        "publisher_eth_address": "00" * 20,
-        "description": text,
-        "price": FREE,
-        "token": NOX,
-        "releases": releases,
-    }
-
 
 def is_app(slug: str) -> bool:
     return not any(slug == n or slug.startswith(n) for n in NOT_APPS)
@@ -380,31 +326,6 @@ def kali_entries(cache, names, arch, pubkey, when_ms) -> list:
                       linux_trailer(cache, Path(rec["Filename"]).name))
         out.append(entry(f"linux.kali.{name}", digest, name, "Linux", pubkey,
                          text, [rel]))
-    return out
-
-
-def guest_entries(listing: Path, key: str, when_ms: int) -> list:
-    """Programs the image ships, listed so a person can choose one.
-
-    Nothing is downloaded: the listing pins the program already in the
-    store by its BLAKE3, and the personality installs it from the image.
-    A program this build did not make is left out, not listed unready.
-    """
-    out = []
-    for item in json.loads(listing.read_text()):
-        program = Path(item["program"])
-        if not program.exists():
-            print(f"guest: {item['tail']}: {program} not built, not listed", file=sys.stderr)
-            continue
-        body = program.read_bytes()
-        digest = blake3(body)
-        # Tiers share a program; each still needs an id of its own.
-        capsule_id = blake3(body + b"\0" + item["tail"].encode())
-        rel = release(f"{item['tail']}@1", digest, digest, f"store:/bin/{program.name}",
-                      ["x86_64-linux"], [], "shipped in the image, pinned by BLAKE3",
-                      "nonos.operator.linux", when_ms)
-        out.append(entry(f"linux.{item['tail']}", capsule_id, item["name"], "NONOS", key,
-                         item["text"], [rel]))
     return out
 
 

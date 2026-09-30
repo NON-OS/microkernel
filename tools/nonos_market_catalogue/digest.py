@@ -13,15 +13,23 @@
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""The digest every listing names its bytes by."""
 
-"""Launcher; the implementation lives in tools/nonos_qwen_tier/."""
-
-import os
+import subprocess
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from nonos_qwen_tier.__main__ import main
+def blake3(data: bytes) -> str:
+    """BLAKE3-256, the hash every other artifact in this tree is named by.
 
-if __name__ == "__main__":
-    main()
+    b3sum is what the signing tools use, so the digest in a listing is
+    the same one a person gets checking the artifact by hand.
+    """
+    try:
+        done = subprocess.run(
+            ["b3sum", "--no-names", "--raw"],
+            input=data, stdout=subprocess.PIPE, check=True,
+        )
+    except FileNotFoundError:
+        sys.exit("b3sum not found: install it, or the digests would be guesses")
+    return done.stdout[:32].hex()
