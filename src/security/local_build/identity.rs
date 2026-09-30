@@ -16,11 +16,7 @@
 
 use spin::Mutex;
 
-use crate::crypto::rng::get_random_bytes_secure;
-use crate::crypto::zk_kernel::PedersenCommitment;
-use crate::security::tpm::machine_key::derive_for_kernel;
-
-use super::tree::root_for;
+use super::mint::mint;
 
 pub struct LocalIdentity {
     pub secret: [u8; 32],
@@ -33,27 +29,6 @@ pub struct LocalIdentity {
 }
 
 static IDENTITY: Mutex<Option<LocalIdentity>> = Mutex::new(None);
-
-/*
- * The machine key when there is one, so a person consents once per machine.
- * Without a TPM a random identity for this boot is the honest fallback, never
- * a fixed one: a guessable secret is a tree anyone can mint proofs against.
- */
-fn mint() -> Option<LocalIdentity> {
-    let (secret, blinding, persistent) = match (
-        derive_for_kernel(b"local_build/secret"),
-        derive_for_kernel(b"local_build/blinding"),
-    ) {
-        (Ok(s), Ok(b)) => (s, b, true),
-        _ => {
-            crate::sys::serial::println(b"[LOCAL-BUILD] no machine key; identity lasts this boot");
-            (get_random_bytes_secure().ok()?, get_random_bytes_secure().ok()?, false)
-        }
-    };
-    let commitment = PedersenCommitment::commit(&secret, &blinding).commitment;
-    let root = root_for(&commitment);
-    Some(LocalIdentity { secret, blinding, commitment, root, persistent })
-}
 
 /// The root to enrol so this machine will run what it builds.
 pub fn root() -> Option<[u8; 32]> {
