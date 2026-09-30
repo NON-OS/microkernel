@@ -14,11 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! End-to-end broker handshake: discover -> claim -> MMIO -> IRQ
-//! -> RX ring DMA -> RX buffer DMA -> TX ring DMA -> TX buffer
-//! DMA. Returns a `Driver` with all grants taken and ring states
-//! initialised; the hardware bring-up step in `init` programs the
-//! device against those rings.
+//! End-to-end broker handshake: discover -> claim -> MMIO -> RX ring
+//! DMA -> RX buffer DMA -> TX ring DMA -> TX buffer DMA. Returns a
+//! `Driver` with all grants taken and ring states initialised; the
+//! hardware bring-up step in `init` programs the device against those
+//! rings.
+//!
+//! No interrupt line is bound. The driver polls and never sets IMS, and a
+//! bound INTx line is masked until acked: holding one it never services
+//! starved any other device sharing that line, and a failed bind (line
+//! already held, or reserved) took down a NIC that needed no interrupt.
 
 use crate::constants::MAC_LEN;
 use crate::discover::find_e1000;
@@ -26,19 +31,17 @@ use crate::queue::{RxRing, TxRing};
 use crate::regs::Regs;
 
 use super::driver::Driver;
-use super::{claim, dma, irq, mmio};
+use super::{claim, dma, mmio};
 
 pub fn run() -> Result<Driver, &'static str> {
     let dev = find_e1000().ok_or("no e1000 device")?;
     let claim_epoch = claim::claim(dev.device_id)?;
     let mmio_grant = mmio::map(dev, claim_epoch)?;
-    let irq_grant = irq::bind(dev, claim_epoch, &mmio_grant)?;
     let (rx_ring, rx_buf, tx_ring, tx_buf) =
-        dma::map_rings_and_buffers(dev.device_id, claim_epoch, &mmio_grant, &irq_grant)?;
+        dma::map_rings_and_buffers(dev.device_id, claim_epoch, &mmio_grant)?;
     Ok(Driver {
         device_id: dev.device_id,
         mmio_grant: mmio_grant.grant_id,
-        irq_grant: irq_grant.grant_id,
         rx_ring_grant: rx_ring.grant_id,
         rx_buffer_grant: rx_buf.grant_id,
         tx_ring_grant: tx_ring.grant_id,

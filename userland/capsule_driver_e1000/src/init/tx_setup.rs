@@ -19,6 +19,8 @@
 //! (`0x00602008`), and enables the transmitter via TCTL with the
 //! pad-short-packet bit and a 16-retry collision threshold.
 
+use core::sync::atomic::{fence, Ordering};
+
 use crate::constants::queue::{TX_DESC_COUNT, TX_RING_BYTES};
 use crate::constants::regs::{
     REG_TCTL, REG_TDBAH, REG_TDBAL, REG_TDH, REG_TDLEN, REG_TDT, REG_TIPG,
@@ -39,6 +41,8 @@ pub fn program(regs: &Regs, tx: &TxRing, ring_phys: u64) {
         for i in 0..TX_DESC_COUNT {
             *descs.add(i) = TxDesc::default();
         }
+        // The ring was written with plain stores; the part reads it from here on.
+        fence(Ordering::Release);
         regs.w32(REG_TDBAL, (ring_phys & 0xFFFF_FFFF) as u32);
         regs.w32(REG_TDBAH, (ring_phys >> 32) as u32);
         regs.w32(REG_TDLEN, TX_RING_BYTES as u32);

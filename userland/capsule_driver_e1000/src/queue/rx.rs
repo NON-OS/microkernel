@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::sync::atomic::{fence, Ordering};
+
 use crate::constants::queue::{RX_BUFFER_LEN, RX_DESC_COUNT, RX_STATUS_DD, RX_STATUS_EOP};
 use crate::constants::MAX_ETHERNET_FRAME;
 
@@ -60,6 +62,8 @@ impl RxRing {
         if status & RX_STATUS_DD == 0 {
             return None;
         }
+        // Length, errors and the frame are only the part's once DD is seen.
+        fence(Ordering::Acquire);
         let errors = unsafe { read_volatile(addr_of!((*desc).errors)) };
         let len = unsafe { read_volatile(addr_of!((*desc).length)) };
         let idx = self.head;

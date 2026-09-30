@@ -14,21 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_ipc_send;
+use core::sync::atomic::{fence, Ordering};
 
 use crate::constants::regs::REG_RDT;
 use crate::protocol::{
-    encode_response_header, write_status, Request, E_AGAIN, E_IO, KERNEL_REPLY_ENDPOINT,
-    RESP_HDR_LEN, RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
+    encode_response_header, write_status, Request, E_AGAIN, E_IO, RESP_HDR_LEN,
+    RX_PAYLOAD_PREFIX_LEN, STATUS_LEN,
 };
-use crate::server::error::reply_with_status;
+use crate::server::error::{reply, reply_with_status};
 use crate::setup::Driver;
 
-pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
+pub fn handle(sender: u32, driver: &mut Driver, req: &Request, tx: &mut [u8]) {
     let (idx, len) = match driver.rx.consume() {
         Some(p) => p,
         None => {
-            reply_with_status(tx, req, E_AGAIN);
+            reply_with_status(sender, tx, req, E_AGAIN);
             return;
         }
     };
@@ -36,7 +36,7 @@ pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
         unsafe {
             driver.regs.w32(REG_RDT, idx as u32);
         }
-        reply_with_status(tx, req, E_IO);
+        reply_with_status(sender, tx, req, E_IO);
         return;
     }
     let body_len = RX_PAYLOAD_PREFIX_LEN + len as usize;
@@ -55,8 +55,10 @@ pub fn handle(driver: &mut Driver, req: &Request, tx: &mut [u8]) {
     unsafe {
         core::ptr::copy_nonoverlapping(src, tx[body_off..].as_mut_ptr(), n);
     }
+    // The copy out of the buffer ends before the part may write it again.
+    fence(Ordering::Release);
     unsafe {
         driver.regs.w32(REG_RDT, idx as u32);
     }
-    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), prefix_off + body_len);
+    reply(sender, tx, prefix_off + body_len);
 }

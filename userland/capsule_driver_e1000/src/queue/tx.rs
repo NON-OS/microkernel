@@ -15,9 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! TX ring state. `post` programs the next descriptor with
-//! `EOP|IFCS|RS` and bumps the tail; `done(idx)` polls the
-//! per-slot DD bit so the server loop knows the descriptor and
-//! its buffer can be reused.
+//! `EOP|IFCS|RS` and bumps the tail; `reclaim` walks `clean` forward
+//! over descriptors the part has marked DD, and `full` refuses a post
+//! that would land on one it still owns.
+//!
+//! The part holds descriptors it cannot send: with the link down it stops
+//! DMA and sets no DD, so a slot is only reusable once `reclaim` has seen
+//! it done. One slot always stays empty, or a full ring would move TDT
+//! onto TDH, which the part reads as an empty one.
+
+use core::sync::atomic::{fence, Ordering};
 
 use crate::constants::queue::{
     TX_BUFFER_LEN, TX_CMD_EOP, TX_CMD_IFCS, TX_CMD_RS, TX_DESC_COUNT, TX_STATUS_DD,
@@ -31,6 +38,8 @@ pub struct TxRing {
     pub buffer_user_va: u64,
     pub buffer_device_addr: u64,
     pub tail: u16,
+    /// Oldest descriptor not yet seen done; `clean == tail` is an empty ring.
+    pub clean: u16,
 }
 
 /*
@@ -41,7 +50,7 @@ pub struct TxRing {
  */
 impl TxRing {
     pub fn new(ring_user_va: u64, buffer_user_va: u64, buffer_device_addr: u64) -> Self {
-        Self { ring_user_va, buffer_user_va, buffer_device_addr, tail: 0 }
+        Self { ring_user_va, buffer_user_va, buffer_device_addr, tail: 0, clean: 0 }
     }
 
     /// # Safety
@@ -78,6 +87,20 @@ impl TxRing {
     }
 
     pub fn done(&self, idx: u16) -> bool {
-        unsafe { read_volatile(addr_of!((*self.descriptor(idx)).status)) & TX_STATUS_DD != 0 }
+        let dd = unsafe { read_volatile(addr_of!((*self.descriptor(idx)).status)) } & TX_STATUS_DD;
+        fence(Ordering::Acquire);
+        dd != 0
+    }
+
+    /// Advance `clean` over every descriptor the part has finished, in order.
+    pub fn reclaim(&mut self) {
+        while self.clean != self.tail && self.done(self.clean) {
+            self.clean = (self.clean + 1) % (TX_DESC_COUNT as u16);
+        }
+    }
+
+    /// Whether posting one more descriptor would reach one the part still owns.
+    pub fn full(&self) -> bool {
+        (self.tail + 1) % (TX_DESC_COUNT as u16) == self.clean
     }
 }
