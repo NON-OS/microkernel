@@ -41,7 +41,7 @@ mod services_audio;
     feature = "nonos-capsule-driver-nvme",
     feature = "nonos-capsule-driver-virtio-blk"
 ))]
-mod storage_present;
+mod device_present;
 pub(super) use app_orchestrator::spawn_apps;
 pub(super) use orchestrator::{
     spawn_core_after_ramfs, spawn_desktop, spawn_display_core, spawn_drivers, spawn_market,

@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Storage drivers start only for a controller the machine has.
+//! Device drivers start only for hardware the machine has.
 //!
 //! Every storage driver is in the image, because which disk a machine keeps
-//! NONOS on is not known when the image is built. A driver without its
-//! controller is still refused by name rather than started: the virtio-blk
-//! driver polls for its device without end, and each spawn costs an
-//! attestation the boot waits for.
+//! NONOS on is not known when the image is built, and the network driver is
+//! in it for the machines that have its device. A driver without its device
+//! is refused by name rather than started: the virtio drivers poll for their
+//! device without end, and each spawn costs an attestation the boot waits
+//! for.
 
 use crate::hardware::inventory::{present as has, HardwareFamily};
 use crate::sys::boot_log;

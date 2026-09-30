@@ -36,7 +36,7 @@ fn spawn_rng() {}
 fn spawn_blk() {
     use crate::hardware::inventory::HardwareFamily;
     use crate::hardware::virtio_blk_capsule as c;
-    if !super::storage_present::present("DRIVER-VIRTIO-BLK", HardwareFamily::StorageVirtioBlk) {
+    if !super::device_present::present("DRIVER-VIRTIO-BLK", HardwareFamily::StorageVirtioBlk) {
         return;
     }
     super::boot::capsule(

@@ -26,7 +26,7 @@ pub(super) fn spawn() {
 #[cfg(feature = "nonos-capsule-driver-ahci")]
 fn spawn_ahci() {
     use crate::hardware::ahci_capsule as c;
-    if !super::storage_present::present("DRIVER-AHCI", HardwareFamily::StorageAhci) {
+    if !super::device_present::present("DRIVER-AHCI", HardwareFamily::StorageAhci) {
         return;
     }
     super::boot::capsule(
@@ -52,7 +52,7 @@ fn spawn_hda() {}
 #[cfg(feature = "nonos-capsule-driver-nvme")]
 fn spawn_nvme() {
     use crate::hardware::nvme_capsule as c;
-    if !super::storage_present::present("DRIVER-NVME", HardwareFamily::StorageNvme) {
+    if !super::device_present::present("DRIVER-NVME", HardwareFamily::StorageNvme) {
         return;
     }
     super::boot::capsule(
