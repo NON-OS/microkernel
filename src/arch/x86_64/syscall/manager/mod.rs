@@ -18,4 +18,4 @@ pub mod entry;
 mod init;
 pub mod signal_return;
 
-pub use init::init;
+pub use init::{init, init_ap};

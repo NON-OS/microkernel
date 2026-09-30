@@ -23,6 +23,7 @@ use crate::arch::x86_64::gdt::constants::{
 use crate::arch::x86_64::syscall::msr;
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
+static BOOT_CPU_PROGRAMMED: AtomicBool = AtomicBool::new(false);
 
 // Programs LSTAR/STAR/SFMASK and enables EFER.SCE so the `syscall`
 // instruction at CPL=3 enters `syscall_entry_asm` at CPL=0.
@@ -35,6 +36,24 @@ pub fn init() -> Result<(), &'static str> {
     if INITIALIZED.swap(true, Ordering::SeqCst) {
         return Err("syscall already initialized");
     }
+    program_this_cpu()?;
+    BOOT_CPU_PROGRAMMED.store(true, Ordering::SeqCst);
+    Ok(())
+}
+
+/// The same registers on an application processor. They are per CPU, and one
+/// that never had them programmed took the first `syscall` from user mode as
+/// an invalid opcode. Refused until the boot CPU has run `init`, so the checks
+/// there have passed once before any other CPU relies on the same encoding.
+pub fn init_ap() -> Result<(), &'static str> {
+    if !BOOT_CPU_PROGRAMMED.load(Ordering::SeqCst) {
+        return Err("syscall not initialized on the boot cpu");
+    }
+    program_this_cpu()
+}
+
+/// Write the syscall registers of the calling CPU and read STAR back.
+fn program_this_cpu() -> Result<(), &'static str> {
     msr::setup_star(SEL_KERNEL_CODE_RAW, SEL_USER_DATA_RAW)?;
     msr::setup_lstar(syscall_entry_asm as *const () as u64);
     msr::setup_fmask();
@@ -52,6 +71,9 @@ pub fn init() -> Result<(), &'static str> {
         || sysret_ss != SEL_USER_DATA
     {
         return Err("STAR encoding produces wrong SYSCALL/SYSRET selectors");
+    }
+    if !msr::is_sce_enabled() {
+        return Err("EFER.SCE did not stay set");
     }
     Ok(())
 }
