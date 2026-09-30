@@ -33,6 +33,19 @@ pub enum NmiSource {
 }
 
 pub fn handle(frame: InterruptStackFrame) {
+    /*
+     * The kernel's own NMIs first: a fatal halt of the machine, or a TLB
+     * shootdown round re-sent to a cpu that did not take the vector. That
+     * step is NMI-safe; what follows logs, and is reached for an NMI nothing
+     * in the kernel sent, or when a hardware cause is latched in port B
+     * alongside ours, so a coincident parity or channel check is not lost.
+     */
+    if cfg!(feature = "nonos-smp")
+        && crate::smp::nmi::on_nmi()
+        && matches!(identify_nmi_source(), NmiSource::Unknown)
+    {
+        return;
+    }
     let ctx = ExceptionContext::from_frame(&frame);
     log_exception("NMI", &ctx);
 

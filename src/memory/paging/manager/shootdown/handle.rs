@@ -31,9 +31,17 @@ use crate::memory::paging::tlb;
 /// Never halts: a CPU that cannot name itself (not yet registered) returns
 /// without serving. It was not among the round's targets, which are chosen
 /// from registered CPUs, so no acknowledgement is owed.
-pub fn handle_shootdown_ipi() {
-    if let Some(me) = crate::smp::percpu::try_current() {
-        serve_for(me);
+///
+/// Also the first thing the NMI handler runs, so it stays NMI-safe: the cpu is
+/// named by its APIC id (cpuid and a scan of atomics), never through GS, which
+/// an NMI in the kernel-entry window finds still holding the user base; it
+/// takes no lock, allocates nothing and prints nothing. Interrupting itself is
+/// harmless, since whichever call clears the pending flag is the one that acks.
+/// Returns whether this call acknowledged a round.
+pub fn handle_shootdown_ipi() -> bool {
+    match crate::smp::percpu::try_current() {
+        Some(me) => serve_for(me),
+        None => false,
     }
 }
 
@@ -49,9 +57,9 @@ pub fn shootdown_in_flight() -> bool {
 
 /// `handle_shootdown_ipi` for a cpu already resolved, so a loop that polls
 /// does not pay the interrupt-controller read that names the cpu every time.
-pub(super) fn serve_for(me: &crate::smp::percpu::PerCpuData) {
+pub(super) fn serve_for(me: &crate::smp::percpu::PerCpuData) -> bool {
     if me.tlb_flush_pending.swap(0, Ordering::AcqRel) == 0 {
-        return;
+        return false;
     }
     let pages = REQ_PAGES.load(Ordering::Acquire);
     if pages == 0 {
@@ -64,4 +72,5 @@ pub(super) fn serve_for(me: &crate::smp::percpu::PerCpuData) {
         }
     }
     REQ_PENDING_ACKS.fetch_sub(1, Ordering::Release);
+    true
 }

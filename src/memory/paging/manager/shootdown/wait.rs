@@ -17,6 +17,7 @@
 use core::sync::atomic::Ordering;
 
 use super::handle::serve_for;
+use super::nudge::nudge_outstanding;
 use super::report::report_stuck;
 use super::request::{
     REQ_PENDING_ACKS, SHOOTDOWN_TIMEOUT_FALLBACK_TICKS, SHOOTDOWN_TIMEOUT_MS,
@@ -52,9 +53,13 @@ pub(super) fn wait_for_acks() {
             warned = true;
             let outstanding = REQ_PENDING_ACKS.load(Ordering::Acquire);
             if outstanding != 0 {
+                // The vector has had its chance; whoever still owes is
+                // probably masked, so the round goes again as an NMI.
+                let nudged = nudge_outstanding();
                 let mut line = crate::sys::serial::Line::new();
                 line.str(b"[SMP] tlb shootdown slow: acks outstanding=").dec(outstanding as u64);
                 line.str(b" after ms=").dec(SHOOTDOWN_WARN_MS);
+                line.str(b" nmi sent=").dec(nudged as u64);
                 line.end();
             }
         }

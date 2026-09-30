@@ -19,10 +19,12 @@
 //! multi-CPU runtime it then IPIs the peer CPUs running the same
 //! asid (or every online CPU for a kernel-half flush). On single-CPU
 //! runtime the broadcast block is skipped. An ack later than
-//! `SHOOTDOWN_WARN_MS` is reported and waited for; timeout policy past
+//! `SHOOTDOWN_WARN_MS` is reported, the round is re-sent as an NMI to the
+//! cpus still owing it (a target spinning with interrupts masked never takes
+//! the vector), and it is waited for; timeout policy past
 //! `SHOOTDOWN_TIMEOUT_MS` is fail-hard: a stale TLB entry would back
-//! freed DMA or MMIO, so an ack that never arrives triggers a panic-IPI
-//! broadcast and halts the originator.
+//! freed DMA or MMIO, so an ack that never arrives stops every other cpu
+//! with the panic NMI and halts the originator.
 //!
 //! Only a change to a present entry reaches here. Installing over an absent
 //! entry invalidates locally and sends nothing (see
@@ -33,6 +35,7 @@
 mod broadcast;
 mod flush;
 mod handle;
+mod nudge;
 mod report;
 mod request;
 mod select;

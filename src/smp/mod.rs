@@ -32,6 +32,7 @@ mod stats;
 mod types;
 
 pub mod ipi;
+pub mod nmi;
 pub mod percpu;
 pub mod topology;
 #[cfg(target_arch = "x86_64")]
