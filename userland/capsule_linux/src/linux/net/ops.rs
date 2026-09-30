@@ -27,6 +27,12 @@ pub const OP_POLL: u16 = 13;
 /// The socket kinds the server offers: 1 stream, 2 datagram, 3 mixnet.
 pub const KIND_MIXNET: u16 = 3;
 
+/// net.sockets' status for "connect had no transport to give the socket": the
+/// mixnet holds no gateway, so there is no route out, not a peer that refused.
+/// Kept in sync with E_NO_TRANSPORT in
+/// userland/capsule_net_sockets/src/protocol/errno.rs.
+pub const NET_E_NO_TRANSPORT: u16 = 6;
+
 /// The address family the server takes. It is not AF_INET: the number
 /// is the server's own and the two only look alike.
 pub const DOMAIN: u16 = 4;
