@@ -74,7 +74,7 @@ fn exec_process_inner(
     }
 
     {
-        let mut mem = current.memory.lock();
+        let mut mem = current.memory_state();
         let total_pages: u64 =
             mem.vmas.iter().map(|vma| (vma.end.as_u64() - vma.start.as_u64()) / 4096).sum();
         mem.vmas.clear();
@@ -178,7 +178,7 @@ pub fn set_root(path: &str) -> Result<(), &'static str> {
 
 pub fn update_memory_usage(process_id: u64, delta: i64) {
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(process_id as u32) {
-        let memory = pcb.memory.lock();
+        let memory = pcb.memory_state();
         let pages = ((delta.unsigned_abs() + 4095) / 4096) as u64;
 
         if delta > 0 {

@@ -42,7 +42,7 @@ pub fn map_user_stack(
     // The page at `bottom - 4096` is left unmapped as a guard.
     // A stack overflow that touches it faults through the trap policy
     // as SIGSEGV.
-    let mut mem = pcb.memory.lock();
+    let mut mem = pcb.memory_state();
     mem.vmas.push(Vma {
         start: VirtAddr::new(bottom),
         end: top,
@@ -52,7 +52,7 @@ pub fn map_user_stack(
 }
 
 pub fn record_segments(pcb: &Arc<ProcessControlBlock>, segments: &[LoadedSegment]) {
-    let mut mem = pcb.memory.lock();
+    let mut mem = pcb.memory_state();
     for seg in segments {
         let start = seg.vaddr;
         let end = VirtAddr::new(seg.vaddr.as_u64() + seg.size as u64);

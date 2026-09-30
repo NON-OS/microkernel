@@ -31,7 +31,7 @@ impl ProcessControlBlock {
         }
         let pages = (length + 4095) / 4096;
         let map_flags = flags::PRESENT | flags::USER | flags::WRITABLE;
-        let mut mem = self.memory.lock();
+        let mut mem = self.memory_state();
         let upper_bound: u64 = 0x0000_FFFF_FFFF_F000;
         let mut candidate = align_up(mem.next_va, 0x1000);
         let va = loop {

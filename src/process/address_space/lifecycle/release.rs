@@ -20,7 +20,7 @@ use core::sync::atomic::Ordering;
 use crate::process::core::ProcessControlBlock;
 
 pub fn release(pcb: &Arc<ProcessControlBlock>) {
-    let mut mem = pcb.memory.lock();
+    let mut mem = pcb.memory_state();
     mem.vmas.clear();
     mem.resident_pages.store(0, Ordering::Release);
     drop(mem);

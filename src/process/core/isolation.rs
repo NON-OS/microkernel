@@ -47,11 +47,13 @@ pub fn isolate_process(pid: Pid) -> Result<(), &'static str> {
 
     PROCESS_ISOLATION.write().insert(pid, isolation);
 
-    {
-        let mem = pcb.memory.lock();
-        for vma in &mem.vmas {
-            mark_vma_isolated(vma)?;
-        }
+    /*
+     * Copied out first: each page's new flags reach the other CPUs as a TLB
+     * shootdown, and none may be waited for while the VMA lock is held.
+     */
+    let vmas = pcb.memory_state().vmas.clone();
+    for vma in &vmas {
+        mark_vma_isolated(vma)?;
     }
 
     crate::log_info!("Process {} isolated: capabilities reduced", pid);

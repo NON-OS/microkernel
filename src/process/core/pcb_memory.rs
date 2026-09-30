@@ -16,12 +16,27 @@
 
 use crate::arch::paging::descriptor::flags;
 use crate::memory::addr::{PhysAddr, VirtAddr};
+use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
+use spin::MutexGuard;
 
 use super::pcb::ProcessControlBlock;
-use super::types::{align_up, overlaps, Vma};
+use super::types::{align_up, overlaps, MemoryState, Vma};
 
 impl ProcessControlBlock {
+    /// The address-space bookkeeping, taken without going deaf to TLB
+    /// shootdowns.
+    ///
+    /// Every system call runs with interrupts masked, so a CPU spinning here
+    /// with `lock()` could not acknowledge a shootdown aimed at the address
+    /// space it is running, and a holder waiting on that acknowledgement
+    /// would never release. Nothing may change a page table while holding
+    /// this guard either; `mmap` and `munmap` below map and unmap with it
+    /// dropped.
+    pub fn memory_state(&self) -> MutexGuard<'_, MemoryState> {
+        crate::smp::lock_responsive(&self.memory)
+    }
+
     pub fn mmap(
         &self,
         hint: Option<VirtAddr>,
@@ -35,30 +50,48 @@ impl ProcessControlBlock {
         let map_flags =
             flags::PRESENT | flags::USER | (flags & (flags::WRITABLE | flags::NO_EXECUTE));
 
-        let mut mem = self.memory.lock();
-
-        let va = match hint {
-            Some(h) if (h.as_u64() & 0xFFF) == 0 && !overlaps(&mem.vmas, h, length) => h,
-            _ => {
-                let mut candidate = align_up(mem.next_va, 0x1000);
-                let upper_bound: u64 = 0x0000_FFFF_FFFF_F000;
-                loop {
-                    if candidate > upper_bound {
-                        return Err("ENOMEM");
+        /*
+         * The span is claimed as a VMA before any page is mapped, so a second
+         * caller cannot pick the same addresses while the lock is dropped for
+         * the mapping, and withdrawn again if the mapping fails.
+         */
+        let va = {
+            let mut mem = self.memory_state();
+            let va = match hint {
+                Some(h) if (h.as_u64() & 0xFFF) == 0 && !overlaps(&mem.vmas, h, length) => h,
+                _ => {
+                    let mut candidate = align_up(mem.next_va, 0x1000);
+                    let upper_bound: u64 = 0x0000_FFFF_FFFF_F000;
+                    loop {
+                        if candidate > upper_bound {
+                            return Err("ENOMEM");
+                        }
+                        let cand = VirtAddr::new(candidate);
+                        if !overlaps(&mem.vmas, cand, length) {
+                            break cand;
+                        }
+                        candidate = align_up(candidate + length as u64, 0x1000);
                     }
-                    let cand = VirtAddr::new(candidate);
-                    if !overlaps(&mem.vmas, cand, length) {
-                        break cand;
-                    }
-                    candidate = align_up(candidate + length as u64, 0x1000);
                 }
-            }
+            };
+            mem.vmas.push(Vma {
+                start: va,
+                end: VirtAddr::new(va.as_u64() + length as u64),
+                flags: map_flags,
+            });
+            mem.resident_pages.fetch_add(pages as u64, Ordering::Relaxed);
+            va
         };
 
         let mut allocated_pages: usize = 0;
 
         let result = (|| -> Result<(), &'static str> {
             for i in 0..pages {
+                /*
+                 * Masked for the whole span; answer shootdowns once per page.
+                 * No translation is carried across this point.
+                 */
+                crate::smp::serve_shootdowns();
                 let page_va = VirtAddr::new(va.as_u64() + (i as u64) * 4096);
                 let phys = allocate_physical_page().ok_or("ENOMEM")?;
                 map_page_to_phys(page_va, phys, map_flags).map_err(|_| "EIO")?;
@@ -76,15 +109,13 @@ impl ProcessControlBlock {
                 let page_va = VirtAddr::new(va.as_u64() + (i as u64) * 4096);
                 let _ = unmap_range(page_va, 4096);
             }
+            let mut mem = self.memory_state();
+            mem.vmas.retain(|v| v.start != va);
+            mem.resident_pages.fetch_sub(pages as u64, Ordering::Relaxed);
             return result.map(|_| va);
         }
 
-        mem.vmas.push(Vma {
-            start: va,
-            end: VirtAddr::new(va.as_u64() + length as u64),
-            flags: map_flags,
-        });
-        mem.resident_pages.fetch_add(pages as u64, Ordering::Relaxed);
+        let mut mem = self.memory_state();
         mem.next_va = align_up(va.as_u64() + length as u64, 0x1000);
         Ok(va)
     }
@@ -95,23 +126,40 @@ impl ProcessControlBlock {
         }
         let end = addr.as_u64().checked_add(length as u64).ok_or("EINVAL")?;
 
-        let mut mem = self.memory.lock();
+        /*
+         * The VMAs are cut under the lock and the pages are unmapped after it
+         * is dropped. `unmap_range` waits for every CPU running this address
+         * space to acknowledge a shootdown, and one of them may be spinning
+         * for this very lock.
+         */
+        let mut outcome = Ok(());
+        for (start, len) in self.cut_vmas(addr.as_u64(), end) {
+            if unmap_range(VirtAddr::new(start), len).is_err() {
+                outcome = Err("EIO");
+            }
+        }
+        outcome
+    }
+
+    /// Remove `[addr, end)` from the VMA list and return the spans it covered.
+    fn cut_vmas(&self, addr: u64, end: u64) -> Vec<(u64, usize)> {
+        let mut spans = Vec::new();
+        let mut mem = self.memory_state();
         let mut i = 0usize;
         while i < mem.vmas.len() {
             let v = &mem.vmas[i];
             let vs = v.start.as_u64();
             let ve = v.end.as_u64();
 
-            if end <= vs || addr.as_u64() >= ve {
+            if end <= vs || addr >= ve {
                 i += 1;
                 continue;
             }
 
-            let unmap_start = addr.as_u64().max(vs);
+            let unmap_start = addr.max(vs);
             let unmap_end = end.min(ve);
             let unmap_len = (unmap_end - unmap_start) as usize;
-
-            unmap_range(VirtAddr::new(unmap_start), unmap_len).map_err(|_| "EIO")?;
+            spans.push((unmap_start, unmap_len));
             mem.resident_pages.fetch_sub(((unmap_len + 4095) / 4096) as u64, Ordering::Relaxed);
 
             if unmap_start == vs && unmap_end == ve {
@@ -130,8 +178,7 @@ impl ProcessControlBlock {
                 i += 1;
             }
         }
-
-        Ok(())
+        spans
     }
 }
 
