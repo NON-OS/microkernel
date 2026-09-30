@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod error;
 mod read_seq;
+mod rearm;
 mod submit;
 pub use error::BlkError;
 pub use submit::submit;

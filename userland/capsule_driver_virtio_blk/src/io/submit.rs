@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::error::BlkError;
 use super::read_seq::read_seq;
+use super::rearm::rearm;
 use crate::constants::{
     LEG_QUEUE_NOTIFY, VIRTIO_BLK_S_IOERR, VIRTIO_BLK_S_OK, VIRTIO_BLK_S_UNSUPP,
 };
 use crate::queue::{Direction, Queue};
 use crate::regs::Regs;
-use nonos_libc::{mk_irq_ack, mk_irq_wait};
+use nonos_libc::mk_irq_wait;
 
 /// Per-wait slice and the whole-request budget. The budget is counted in
 /// slices actually spent, wait or not: a shared interrupt line that keeps
@@ -39,6 +40,9 @@ pub fn submit(
     nsectors: u32,
 ) -> Result<(), BlkError> {
     queue.post_request(dir, lba, nsectors);
+    // The line must be down and unmasked before the device is told, or its
+    // completion raises no interrupt to wait for (see `rearm`).
+    rearm(regs, irq_grant)?;
     // The sequence is read before the device is told, not after: a device
     // that completes at once raises its interrupt between the two, and a
     // snapshot taken after it waits for a second one that never comes, the
@@ -71,6 +75,13 @@ pub fn submit(
         }
         let mut out_seq: u64 = 0;
         if mk_irq_wait(irq_grant, seq, WAIT_SLICE_MS, &mut out_seq) >= 0 {
+            // An interrupt with the request still pending (a late one from
+            // the previous request) left the line masked: rearm it. The
+            // used-ring check at the top of the loop comes after the rearm,
+            // so a completion the status read swallowed is still seen.
+            if out_seq != seq {
+                rearm(regs, irq_grant)?;
+            }
             seq = out_seq;
         } else {
             timed_out_slices = timed_out_slices.wrapping_add(1);
@@ -81,9 +92,7 @@ pub fn submit(
         }
     }
     let status = queue.status_byte();
-    if mk_irq_ack(irq_grant) < 0 {
-        return Err(BlkError::Io);
-    }
+    rearm(regs, irq_grant)?;
     match status {
         VIRTIO_BLK_S_OK => Ok(()),
         VIRTIO_BLK_S_IOERR => Err(BlkError::Io),
