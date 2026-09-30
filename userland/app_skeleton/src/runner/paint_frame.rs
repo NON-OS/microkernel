@@ -16,13 +16,12 @@
 
 use alloc::vec::Vec;
 
-use nonos_toolkit::decorations::{accessory_rect, content_rect, draw_frame, DecorationHit};
+use nonos_toolkit::decorations::DecorationHit;
 
 use crate::app::{App, AppManifest};
-use crate::paint::PaintBuffer;
 use crate::setup::WindowBinding;
 
-use super::frame_finish::finish;
+use super::paint_draw::draw;
 
 /*
  * The compositor reads the shared surface whenever it composites, on another
@@ -52,29 +51,4 @@ pub(super) fn paint<A: App>(
     back.resize(words, 0);
     draw(app, manifest, binding, &mut back, hover, maximized);
     surface.copy_from_slice(&back);
-}
-
-fn draw<A: App>(
-    app: &mut A,
-    manifest: &AppManifest,
-    binding: &WindowBinding,
-    pixels: &mut [u32],
-    hover: DecorationHit,
-    maximized: bool,
-) {
-    let mut fb = PaintBuffer {
-        pixels,
-        stride_words: binding.stride_words,
-        width: binding.width,
-        height: binding.height,
-    };
-    let lit = hover != DecorationHit::None && hover != DecorationHit::Titlebar;
-    let accessory_w = app.titlebar_accessory_w();
-    draw_frame(&mut fb, maximized, manifest.title, lit, accessory_w);
-    if let Some(a) = accessory_rect(binding.width, binding.height, maximized, accessory_w) {
-        app.paint_accessory(&mut fb.sub(a.x, a.y, a.w, a.h));
-    }
-    let c = content_rect(binding.width, binding.height, maximized);
-    app.paint(&mut fb.sub(c.x, c.y, c.w, c.h));
-    finish(&mut fb, maximized);
 }

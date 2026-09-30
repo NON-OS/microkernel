@@ -14,24 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_ipc_recv_from;
-
 use crate::app::{App, EventOutcome};
 
 use super::control::{handle_control, ControlOutcome};
 use super::drag::{self, DragState, PointerAction};
+use super::held::{next_message, Held};
 use super::{click_focus, decorations, dispatch::parse_delivery};
-
-const SERVICE_INBOX: u64 = 0;
-const RECV_NOWAIT: u64 = 1;
-
-/// A message a paced wait already received, left in the first `len` bytes of
-/// the receive buffer; the next drain handles it before reading the inbox.
-#[derive(Clone, Copy)]
-pub(super) struct Held {
-    pub len: usize,
-    pub sender: u32,
-}
 
 #[derive(Default)]
 pub(super) struct DrainResult {
@@ -65,15 +53,7 @@ pub(super) fn drain<A: App>(
     let mut resize_to = None;
     loop {
         let mut sender = 0u32;
-        let n = match held.take() {
-            Some(h) => {
-                sender = h.sender;
-                h.len as i64
-            }
-            None => {
-                mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), RECV_NOWAIT, &mut sender)
-            }
-        };
+        let n = next_message(held, rx, &mut sender);
         if n <= 0 {
             return DrainResult { repaint, restore, move_to, resize_to, ..Default::default() };
         }

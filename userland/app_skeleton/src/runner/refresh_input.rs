@@ -22,9 +22,11 @@ use crate::setup::ensure_input_subscription;
 
 use super::boot::BootedApp;
 
-// Milliseconds between unconditional re-subscribe heartbeats: cheap enough to
-// run forever and short enough that input recovers quickly. Measured in time,
-// not frames, because a paced frame loop may sleep a long while between frames.
+/*
+ * Milliseconds between unconditional re-subscribe heartbeats: cheap enough to
+ * run forever and short enough that input recovers quickly. Measured in time,
+ * not frames, because a paced frame loop may sleep a long while between frames.
+ */
 const RESUBSCRIBE_MS: i64 = 2000;
 
 pub(super) fn refresh_input<A: App>(

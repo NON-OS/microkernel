@@ -35,7 +35,9 @@ pub(super) fn frame_loop<A: App>(
     peers: &Peers,
     request_id: &mut u32,
 ) {
-    // None ticks on the first frame, as the old zero start time did.
+    /*
+     * None ticks on the first frame, as the old zero start time did.
+     */
     let mut last_tick: Option<i64> = None;
     loop {
         if service_frame(booted, rx, peers, request_id) {

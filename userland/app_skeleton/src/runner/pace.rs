@@ -22,7 +22,7 @@
 
 use nonos_libc::{mk_display_vsync_wait, mk_ipc_recv_from, mk_yield};
 
-use super::drain_ipc::Held;
+use super::held::Held;
 
 const SERVICE_INBOX: u64 = 0;
 const ETIMEDOUT: i64 = -110;

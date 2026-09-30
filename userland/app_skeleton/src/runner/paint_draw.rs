@@ -1,0 +1,49 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use nonos_toolkit::decorations::{accessory_rect, content_rect, draw_frame, DecorationHit};
+
+use crate::app::{App, AppManifest};
+use crate::paint::PaintBuffer;
+use crate::setup::WindowBinding;
+
+use super::frame_finish::finish;
+
+/// Draw the whole window, frame and content, into `pixels`.
+pub(super) fn draw<A: App>(
+    app: &mut A,
+    manifest: &AppManifest,
+    binding: &WindowBinding,
+    pixels: &mut [u32],
+    hover: DecorationHit,
+    maximized: bool,
+) {
+    let mut fb = PaintBuffer {
+        pixels,
+        stride_words: binding.stride_words,
+        width: binding.width,
+        height: binding.height,
+    };
+    let lit = hover != DecorationHit::None && hover != DecorationHit::Titlebar;
+    let accessory_w = app.titlebar_accessory_w();
+    draw_frame(&mut fb, maximized, manifest.title, lit, accessory_w);
+    if let Some(a) = accessory_rect(binding.width, binding.height, maximized, accessory_w) {
+        app.paint_accessory(&mut fb.sub(a.x, a.y, a.w, a.h));
+    }
+    let c = content_rect(binding.width, binding.height, maximized);
+    app.paint(&mut fb.sub(c.x, c.y, c.w, c.h));
+    finish(&mut fb, maximized);
+}

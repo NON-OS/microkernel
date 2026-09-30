@@ -14,43 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod boot;
-pub mod chrome;
-mod click_focus;
-mod control;
-mod decorations;
-mod dispatch;
-mod drag;
-mod drain_ipc;
-mod ensure_primed;
-#[cfg(feature = "runtime")]
-mod entry;
-#[cfg(feature = "runtime")]
-mod ephemeral;
-mod fail;
-mod fit_display;
-mod frame_finish;
-#[cfg(feature = "runtime")]
-mod frame_loop;
-mod held;
-mod idle;
-mod maximize;
-mod move_window;
-#[cfg(feature = "runtime")]
-mod pace;
-mod paint_draw;
-mod paint_frame;
-mod paint_once;
-mod prime_frame;
-mod refresh_input;
-mod repaint;
-mod request_id;
-mod resize_window;
-mod restore;
-mod run_loop;
-mod service_frame;
-mod teardown;
+use crate::app::App;
+use crate::clients::compositor;
+use crate::discover::Peers;
 
-#[cfg(feature = "runtime")]
-pub use entry::run;
-pub use run_loop::run_loop;
+use super::boot::BootedApp;
+use super::repaint::repaint;
+use super::request_id::next;
+
+const APP_LAYER_Z: u32 = 2;
+
+/// Put a minimized window back in the scene where it was and repaint it.
+pub(super) fn restore<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_id: &mut u32) {
+    let _ = compositor::scene_submit(
+        peers.compositor,
+        next(request_id),
+        booted.binding.surface_handle,
+        booted.binding.x,
+        booted.binding.y,
+        booted.binding.width,
+        booted.binding.height,
+        APP_LAYER_Z,
+    );
+    booted.minimized = false;
+    repaint(booted, peers, request_id);
+}
