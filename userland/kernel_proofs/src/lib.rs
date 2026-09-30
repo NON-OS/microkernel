@@ -28,11 +28,11 @@ pub mod elf;
 pub mod memory;
 #[cfg(test)]
 pub mod process;
-pub mod syscall;
-pub mod time;
 pub mod security;
 pub mod spec;
 pub mod sys;
+pub mod syscall;
+pub mod time;
 pub mod usercopy;
 
 #[cfg(test)]
@@ -40,23 +40,27 @@ mod align_tests;
 #[cfg(test)]
 mod authorization_tests;
 #[cfg(test)]
-mod ipc_peers_tests;
-#[cfg(test)]
 mod elf_tests;
 #[cfg(test)]
 mod inbox_name_tests;
 #[cfg(test)]
+mod ipc_peers_tests;
+#[cfg(test)]
 mod permissions_tests;
 #[cfg(test)]
-mod registry_support;
+mod refinement_tests;
 #[cfg(test)]
 mod registry_fold_tests;
 #[cfg(test)]
 mod registry_set_tests;
 #[cfg(test)]
+mod registry_support;
+#[cfg(test)]
 mod syscall_tests;
 #[cfg(test)]
-mod refinement_tests;
+mod usable_span_frame_tests;
+#[cfg(test)]
+mod usable_span_tests;
 #[cfg(test)]
 mod usercopy_tests;
 

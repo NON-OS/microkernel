@@ -20,22 +20,16 @@
 use crate::boot::handoff::BootHandoffV1;
 use crate::sys::serial;
 
-/// Mark in use every frame of `[span_start, span_end)` that no usable
-/// region covers: holes, MMIO windows, firmware and the loader's own data.
-pub(super) fn reserve_gaps(handoff: &BootHandoffV1, span_start: u64, span_end: u64) {
+/*
+ * Mark in use every frame of the managed span that no usable region covers:
+ * holes, MMIO windows, firmware and the loader's own data. What the regions
+ * cover is the RAM every total-memory figure reports, not the span.
+ */
+pub(super) fn reserve_gaps(handoff: &BootHandoffV1) {
     let mut usable: alloc::vec::Vec<(u64, u64)> =
         unsafe { handoff.mmap.usable_regions().collect() };
     usable.sort_unstable();
-    let mut at = span_start;
-    for (start, end) in usable {
-        if start > at {
-            crate::memory::phys::reserve(at, start.min(span_end));
-        }
-        at = at.max(end);
-    }
-    if at < span_end {
-        crate::memory::phys::reserve(at, span_end);
-    }
+    crate::memory::phys::keep_usable(&usable);
 }
 
 /// `[MEM] 3967 MiB free to allocate, in a span of 0x100000..0x180000000`.

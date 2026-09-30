@@ -49,7 +49,7 @@ pub(crate) fn init_memory(handoff: &BootHandoffV1) {
     let end = PhysAddr::new(mem_end);
     match crate::memory::phys::init(start, end) {
         Ok(()) => {
-            reserve_gaps(handoff, mem_start, mem_end);
+            reserve_gaps(handoff);
             say_managed(mem_start, mem_end);
         }
         Err(_) => {

@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{total_free_frames, total_memory};
+use super::{total_free_frames, PAGE_SIZE_U64};
 
-/// Total managed bytes less free bytes: the bytes in use, whatever the name
-/// says.
+/*
+ * Bytes of RAM free to allocate. This used to return the managed span less
+ * the free bytes, which is what is in use plus every hole in the span, and
+ * /proc/meminfo printed that as MemFree.
+ */
 pub fn free_memory() -> u64 {
-    total_memory().saturating_sub((total_free_frames() as u64) * 4096)
+    (total_free_frames() as u64).saturating_mul(PAGE_SIZE_U64)
 }

@@ -17,6 +17,7 @@
 use super::super::bitmap;
 use super::super::constants::PAGE_SIZE_U64;
 use super::super::types::AllocatorState;
+use super::super::usable_span::walk_usable;
 
 /// Mark every frame that overlaps `[start, end)` and lies in the managed
 /// span as in use. Frames outside the span are not the allocator's anyway.
@@ -44,4 +45,21 @@ pub fn reserve_range(state: &mut AllocatorState, start: u64, end: u64) {
 /// Frames in `[start, end)` are never handed out.
 pub fn phys_reserve(start: u64, end: u64) {
     reserve_range(&mut super::api::ALLOCATOR.lock(), start, end)
+}
+
+/*
+ * Reserve every frame of the managed span that no usable region of the boot
+ * map covers, and count the rest as the machine's RAM, before anything is
+ * allocated or reserved for the kernel's own use. `sorted` is the map's
+ * usable regions, ordered by start.
+ */
+pub fn phys_keep_usable(sorted: &[(u64, u64)]) {
+    let mut guard = super::api::ALLOCATOR.lock();
+    let state = &mut *guard;
+    if !state.is_initialized() {
+        return;
+    }
+    let (start, end) = super::managed_range(state);
+    let bytes = walk_usable(sorted, start, end, |a, b| reserve_range(state, a, b));
+    state.usable_frames = ((bytes / PAGE_SIZE_U64) as usize).min(state.frame_count);
 }

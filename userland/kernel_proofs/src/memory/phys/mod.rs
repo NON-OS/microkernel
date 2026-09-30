@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Mirrors the kernel `crate::memory` parent for the included paging source.
-pub mod align;
-pub mod paging;
-pub mod phys;
+/* Mirrors the kernel `crate::memory::phys` parent for the included span walk. */
+#[path = "../../../../../src/memory/phys/constants/mod.rs"]
+pub mod constants;
+
+#[path = "../../../../../src/memory/phys/usable_span.rs"]
+pub mod usable_span;

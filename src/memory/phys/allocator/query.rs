@@ -12,7 +12,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::bitmap;
-use super::super::constants::{PAGE_SIZE, PAGE_SIZE_U64};
+use super::super::constants::PAGE_SIZE_U64;
 use super::super::types::{AllocatorState, ZoneStats};
 
 pub fn get_zone_stats(state: &AllocatorState) -> ZoneStats {
@@ -20,7 +20,7 @@ pub fn get_zone_stats(state: &AllocatorState) -> ZoneStats {
         return ZoneStats::new(0, 0);
     }
     let free = unsafe { bitmap::count_free_bits(state.bitmap_ptr, state.frame_count) };
-    ZoneStats::new(state.frame_count, free)
+    ZoneStats::new(state.usable_frames, free)
 }
 
 pub fn managed_range(state: &AllocatorState) -> (u64, u64) {
@@ -30,8 +30,9 @@ pub fn managed_range(state: &AllocatorState) -> (u64, u64) {
     (start, end)
 }
 
+/* Bytes of usable RAM, which is not the span: holes in it are no memory. */
 pub fn total_memory(state: &AllocatorState) -> u64 {
-    (state.frame_count as u64).saturating_mul(PAGE_SIZE as u64)
+    (state.usable_frames as u64).saturating_mul(PAGE_SIZE_U64)
 }
 
 pub fn largest_free_run(state: &AllocatorState) -> usize {
