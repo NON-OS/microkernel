@@ -34,11 +34,19 @@ nanosleep | elapsed time at 1 ms, on the family's clock | the family's clock sta
 getpid | the family's own number for the process | family numbering hides the machine's process count
 socket | a descriptor number | its own table
 connect | success or refusal; names resolve to addresses invented here | no DNS leaves the machine; the remote sees the network service's egress, not this machine
+accept | a descriptor number and the address of a peer in its own family | its own table; the peer is one of its own processes
 sendto | a count | as write
-recvfrom | bytes the remote sent | the guest asked for them
-sendmsg | a count, on the display socket | the family's own display
-recvmsg | display events for its own surfaces | input only while focused, through the router
+recvfrom | bytes and the sender's address, from its own family or the remote it connected to | the guest asked for them; a family address is 127.0.0.0/8 or a name the family bound
+sendmsg | a count | as write
+recvmsg | bytes and the sender's address, or display events for its own surfaces | as recvfrom; display input only while focused, through the router
 shutdown | nothing | none
+bind | success or refusal; anything outside 127.0.0.0/8 is refused | the ports are the family's own; nothing is bound on the machine's network
+listen | success or refusal | its own state
+getsockname | the address it bound, or one chosen here on 127.0.0.0/8 | its own state
+getpeername | the address of a peer in its own family, or the remote it connected to | its own processes, or the address it named
+socketpair | two descriptor numbers | its own table
+setsockopt | success or refusal of an option kept on its own socket | its own state
+getsockopt | options it set, Linux's defaults for the rest, and its socket's pending error | its own state; the defaults are Linux's constants, not the machine's
 clone | a thread number in the family's numbering | as getpid
 fork | a child number in the family's numbering | as getpid
 vfork | as fork | as getpid
@@ -103,10 +111,13 @@ set_robust_list | 0 | a constant
 epoll_pwait | as epoll_wait | as poll
 timerfd_create | a descriptor number | its own table
 timerfd_settime | expirations on the family's clock | as nanosleep
+accept4 | as accept | as accept
 epoll_create1 | a descriptor number | its own table
 dup3 | a descriptor number | its own table
 pipe2 | as pipe | its own table
+recvmmsg | as recvmsg | as recvmsg
 prlimit64 | fixed limits; changes refused | constants
+sendmmsg | as sendmsg | as sendmsg
 getrandom | bytes from the kernel's generator, up to 256 a call | fresh per call and never shared between guests
 memfd_create | a descriptor number | its own table
 statx | as stat | as stat
