@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::dispatch::add_to_run_queue;
-use super::super::selection::{select_next_process, switch_to_process};
+use super::super::selection::{
+    adopt_current, release_leaving, select_next_process, switch_to_process,
+};
 use super::save_syscall_user_rsp;
 use super::state::SCHEDULER_STATS;
 use core::sync::atomic::{AtomicU32, Ordering};
@@ -41,12 +43,15 @@ pub(crate) fn preempt_current_process() {
         None => return,
     };
     trace(b"enter", curr_pid);
+    adopt_current(curr_pid);
 
     save_fpu_state(curr_pid);
     crate::sched::Context::clear_restored_flag();
     let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
     unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
     if crate::sched::Context::was_just_restored() {
+        // Resumed, possibly on another CPU: that CPU is off the stack it left.
+        release_leaving();
         trace(b"restored", curr_pid);
         return;
     }

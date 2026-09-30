@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod on_cpu;
+mod on_cpu_switch;
 mod select;
 mod switching;
+mod thread_asid;
 
+pub use on_cpu::cpu_holding;
+pub(crate) use on_cpu_switch::{adopt_current, release_leaving};
 pub use select::{select_next_process, LAST_SCHEDULED_PID};
 pub(crate) use switching::switch_to_process;

@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::super::dispatch::add_to_run_queue;
-use super::super::super::selection::{select_next_process, switch_to_process};
+use super::super::super::selection::{
+    adopt_current, release_leaving, select_next_process, switch_to_process,
+};
 use super::super::save_syscall_user_rsp;
 use super::super::state::set_time_slice;
 use super::idle::idle_until_interrupt;
@@ -27,11 +29,14 @@ pub(crate) fn perform_yield_inline() {
     use crate::process::nonos_core::{current_pid, ProcessState, PROCESS_TABLE};
 
     let Some(pid) = current_pid() else { return };
+    adopt_current(pid);
 
     let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
     crate::sched::Context::clear_restored_flag();
     unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
     if crate::sched::Context::was_just_restored() {
+        // Resumed, possibly on another CPU: that CPU is off the stack it left.
+        release_leaving();
         return;
     }
 

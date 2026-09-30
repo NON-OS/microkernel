@@ -27,6 +27,17 @@ pub(super) fn idle_until_interrupt() {
     // it was charged to whichever process yielded last, and an idle desktop
     // read as a third of the processor spent in init.
     crate::process::accounting::idle_enter();
+    mark_idle(true);
     crate::arch::idle::wait_for_interrupt();
+    mark_idle(false);
     crate::process::accounting::idle_leave();
+}
+
+// A CPU that makes a process runnable sends a wake only to a CPU marked idle.
+// Unmarked, a CPU waiting here heard of new work at its next tick at best.
+// The single-CPU image has no one to send it and keeps its old behaviour.
+fn mark_idle(idle: bool) {
+    if cfg!(feature = "nonos-smp") {
+        crate::smp::current_cpu().idle.store(idle, core::sync::atomic::Ordering::SeqCst);
+    }
 }

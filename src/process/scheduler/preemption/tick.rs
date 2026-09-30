@@ -20,6 +20,12 @@ use super::state::{set_reschedule, spend_time_slice, SCHEDULER_STATS};
 use core::sync::atomic::Ordering;
 
 pub fn tick() {
+    // A tick is taken with interrupts open, which no switch path allows, so
+    // any switch this CPU started has finished: it is off the stack it left.
+    // The first process is started by hand rather than switched to, and is
+    // adopted here the first time it is interrupted.
+    super::super::selection::release_leaving();
+    super::super::selection::adopt_current(crate::process::CURRENT_PID.load(Ordering::Relaxed));
     // A halted processor belongs to nobody: the tick that wakes it is idle
     // time, not the last process's.
     if crate::process::accounting::is_idle() {
