@@ -16,10 +16,11 @@
 
 //! `qwen` reached through the shell's parser: after `;`, `&&` or `||`, from
 //! an alias, or in a pipe or a redirect. The parser has already split and
-//! expanded whatever followed it, so only the command and a tier, or
-//! `window` and a tier, are taken this way; a question is refused rather
-//! than sent changed.
+//! expanded whatever followed it, so only the command and a tier, `window`
+//! and a tier, `get` and tiers, or `tiers` are taken this way; a question
+//! is refused rather than sent changed.
 
+use super::fetch_words::{Fetch, GET, LIST};
 use super::tiers::TIERS;
 use super::window::{Window, WORD};
 use crate::jobs::JobWork;
@@ -34,6 +35,10 @@ pub fn from_args(state: &mut State, args: &[&[u8]]) -> Option<JobWork> {
             super::open::ask(state, window(rest));
             return None;
         }
+        [_, word, rest @ ..] if *word == GET => {
+            return super::fetch::start(state, &Fetch::Get(rest.to_vec()));
+        }
+        [_, word] if *word == LIST => return super::fetch::start(state, &Fetch::List),
         [_] => Some(TIERS[0]),
         [_, word] => TIERS.iter().copied().find(|t| t == word),
         _ => None,

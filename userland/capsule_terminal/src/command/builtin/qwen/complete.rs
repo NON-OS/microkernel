@@ -14,21 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What Tab offers after `qwen`: `window` and every tier; after
-//! `qwen window`, every tier.
+//! What Tab offers after `qwen`: `window`, `get`, `tiers` and every tier;
+//! after `qwen window`, every tier; after `qwen get`, every tier again.
 
 use alloc::vec::Vec;
 
+use super::fetch_words::{GET, LIST};
 use super::tiers::TIERS;
 use super::window::WORD;
 
 /// The words that complete `prefix` when `before` is the line up to it,
-/// or `None` when `before` is neither `qwen` nor `qwen window`.
+/// or `None` when `before` is not `qwen`, `qwen window` or `qwen get ...`.
 pub fn words(before: &[u8], prefix: &[u8]) -> Option<Vec<&'static [u8]>> {
     let typed: Vec<&[u8]> = before.split(|&b| b == b' ').filter(|w| !w.is_empty()).collect();
     let window: &[&'static [u8]] = match typed[..] {
-        [b"qwen"] => &[WORD],
+        [b"qwen"] => &[WORD, GET, LIST],
         [b"qwen", w] if w == WORD => &[],
+        [b"qwen", w, ..] if w == GET => &[],
         _ => return None,
     };
     let offered = window.iter().chain(TIERS).copied();

@@ -51,8 +51,8 @@ fn the_kernel_gets_the_word_a_nul_and_a_tier_it_allows() {
 #[test]
 fn tab_offers_window_and_tiers_after_qwen_and_tiers_after_window() {
     let after_qwen = words(b"qwen ", b"").unwrap();
-    assert_eq!(after_qwen[0], WORD);
-    assert_eq!(&after_qwen[1..], TIERS);
+    assert_eq!(after_qwen[..3], [WORD, b"get", b"tiers"]);
+    assert_eq!(&after_qwen[3..], TIERS);
     assert_eq!(words(b"qwen ", b"wi").unwrap(), [WORD]);
     assert_eq!(words(b"qwen window ", b"").unwrap(), TIERS);
     assert_eq!(words(b"qwen window ", b"coder-1").unwrap(), [&b"coder-1.5b"[..], b"coder-14b"]);

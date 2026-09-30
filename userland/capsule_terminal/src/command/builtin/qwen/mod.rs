@@ -17,11 +17,15 @@
 //! `qwen`: talk with a Qwen model on this machine, in this tab. The kernel
 //! runs the chosen tier through the Linux personality as a child of this
 //! terminal; its output is this screen and its stdin is the keyboard.
-//! `qwen window [tier]` instead opens the tier in its own desktop window.
+//! `qwen window [tier]` instead opens the tier in its own desktop window;
+//! `qwen get TIER...` downloads tiers and `qwen tiers` lists them.
 
 mod ask;
 mod complete;
 mod enter;
+mod fetch;
+mod fetch_check;
+mod fetch_words;
 mod help;
 mod open;
 mod refused;

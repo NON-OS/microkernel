@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A line that begins with `qwen`: a window asked for, help, or a chat on
-//! this terminal.
+//! A line that begins with `qwen`: a window asked for, tiers to download or
+//! list, help, or a chat on this terminal.
 
 use nonos_libc::mk_time_millis;
 
@@ -29,6 +29,10 @@ pub fn enter(state: &mut State, line: &[u8]) -> bool {
     let Some(ask) = parse(line) else { return false };
     if let Some(window) = super::window::parse(&ask) {
         super::open::open(state, ask.question, window);
+        return true;
+    }
+    if let Some(fetch) = super::fetch_words::parse(&ask) {
+        super::fetch::enter(state, fetch);
         return true;
     }
     let recorded = ask.recorded();
