@@ -15,18 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Starting the desktop once first-boot setup has ended. On an install boot
- * setup runs first and its answer decides: Install (or no answer at all,
- * since the boot menu asked for it) hands the whole screen to the installer
- * and starts no desktop; Amnesic is respected and the desktop starts.
+ * Starting the desktop once first-boot setup has ended. Setup's answer
+ * decides: Install hands the whole screen to the installer and starts no
+ * desktop, on any boot. On an install boot, where the boot menu asked for
+ * the installer, no answer at all does the same; Amnesic is respected and
+ * the desktop starts.
  */
 
 use crate::userspace::capsule_setup_wizard::{ended, Ended};
-use crate::userspace::init::{request_instance, PendingApp};
 
 /// True once setup has ended and the desktop has been started behind it.
-/// When setup asked for the installer, it is queued to open once the desktop
-/// is up; init drains that queue on the same loop.
 pub(super) fn poll() -> bool {
     if super::after_install::handed_over() {
         return super::after_install::poll();
@@ -36,27 +34,15 @@ pub(super) fn poll() -> bool {
     };
     /* Before any app spawns, so none the person turned off ever does. */
     super::super::app_choice::choose(apps_off);
-    if crate::boot::handoff::install_requested() {
-        return after_install_boot(end);
+    let install = match end {
+        Ended::Installer => true,
+        Ended::Unfinished => crate::boot::handoff::install_requested(),
+        Ended::Desktop => false,
+    };
+    if install {
+        super::after_install::hand_over();
+        return false;
     }
     super::super::spawn_plan::spawn_post_wizard();
-    if end == Ended::Installer {
-        let line: &[u8] = if request_instance(PendingApp::Install) {
-            b"[INIT] setup asked for the installer; queued\n"
-        } else {
-            b"[INIT] setup asked for the installer; the queue is full\n"
-        };
-        crate::sys::serial::print(line);
-    }
     true
-}
-
-fn after_install_boot(end: Ended) -> bool {
-    if end == Ended::Desktop {
-        super::super::spawn_plan::spawn_post_wizard();
-        crate::sys::serial::print(b"[INIT] install boot, setup chose not to install; desktop\n");
-        return true;
-    }
-    super::after_install::hand_over();
-    false
 }

@@ -4,34 +4,25 @@
  */
 
 /*
- * Whether this installer owns the screen. It does on an install boot that
- * has no window manager: init starts none there until the installer has
+ * Whether this installer owns the screen. It does when no window manager
+ * runs: init starts the installer ahead of the desktop when setup chose
+ * Install or the boot menu asked for it, and starts no desktop until it has
  * ended. Launched from a desktop it is a window, as before.
  */
 
-use core::mem::size_of;
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use nonos_app_skeleton::clients::vfs;
 use nonos_app_skeleton::discover::lookup_port;
-use nonos_libc::procstat_header::BOOT_INSTALL_REQUESTED;
-use nonos_libc::{mk_getpid, mk_proc_stat, ProcStatEntry, ProcStatHeader};
+use nonos_libc::mk_getpid;
 use nonos_policy_proto::setup_record::ANSWERS_PATH;
 
 static FULL: AtomicBool = AtomicBool::new(false);
 static SETUP_KEPT: AtomicBool = AtomicBool::new(false);
 
-const LEN: usize = size_of::<ProcStatHeader>() + size_of::<ProcStatEntry>();
-
-/* The boot menu's "Install NONOS" started this boot, and no desktop runs. */
+/* No desktop runs, so nothing but the installer is on screen. */
 pub fn wanted() -> bool {
-    let mut buf = [0u8; LEN];
-    if mk_proc_stat(buf.as_mut_ptr(), 1) < 0 {
-        return false;
-    }
-    /* The buffer holds a whole header at its start, read unaligned. */
-    let h = unsafe { core::ptr::read_unaligned(buf.as_ptr() as *const ProcStatHeader) };
-    h.boot_flags & BOOT_INSTALL_REQUESTED != 0 && lookup_port(b"wm").is_none()
+    lookup_port(b"wm").is_none()
 }
 
 pub fn active() -> bool {

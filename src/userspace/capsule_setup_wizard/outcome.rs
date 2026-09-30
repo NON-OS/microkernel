@@ -31,7 +31,7 @@ const EXIT_DESKTOP: i32 = 0;
 pub enum Ended {
     /// Start the desktop.
     Desktop,
-    /// Start the desktop and open the installer.
+    /// Start the installer full screen; the desktop only if it ends without a restart.
     Installer,
     /* Setup never started, failed, or its status is gone: nobody chose. */
     Unfinished,
