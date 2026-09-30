@@ -1,54 +1,55 @@
-use nonos_policy_proto::Field;
-
-use crate::clients::policy;
-use crate::render;
+use crate::render::theme::FG;
+use crate::render::{self, widgets::lines};
 use crate::server::step::{default_key, Outcome, K_ENTER, K_ENTER_LF};
 use crate::state::Context;
 
-pub fn draw(ctx: &Context) {
-    render::frame(ctx, b"Review", b"Confirm and finish setup", b"ENTER FINISH  ESC BACK");
-    let spx = ctx.stride as usize / 4;
-    let (w, h) = (ctx.width, ctx.height);
-    let buf = render::buffer(ctx);
-    // Named here too, since this commit is what grants or revokes it.
-    let local: &[u8] = match (ctx.local_sel, ctx.persist_sel) {
-        (1, 1) => b"Installed software may run",
-        (1, _) => b"Installed software may run, this boot",
-        _ => b"Only NONOS software runs",
-    };
-    let lines: [(&[u8], bool); 4] = [
-        (b"Identity keys", ctx.keys_done),
-        (b"Passphrase set", ctx.pass_len > 0),
-        (b"Layout and wallpaper chosen", true),
-        (local, true),
-    ];
-    render::widgets::progress::busy(buf, spx, w, h, render::content_x(w), 120, &lines, 0);
+use super::{appearance, keyboard, mode, timezone};
+
+fn mode_line(ctx: &Context) -> &'static [u8] {
+    match (mode::keeps(ctx), crate::keep::store_ready()) {
+        (false, _) => b"Mode: amnesic. Nothing is kept; setup runs again next boot.",
+        (true, true) => b"Mode: install. Answers kept, then the installer opens.",
+        (true, false) => b"Mode: install. No NONOS store this boot: nothing is kept.",
+    }
 }
 
-fn commit(ctx: &Context) {
-    let p = ctx.policy_port;
-    if p == 0 {
-        return;
+fn local_line(ctx: &Context) -> &'static [u8] {
+    /*
+     * Named here too, since this commit is what grants or revokes it.
+     */
+    match (ctx.local_sel, mode::keeps(ctx)) {
+        (1, true) => b"Installed software may run",
+        (1, false) => b"Installed software may run, this boot",
+        _ => b"Only NONOS software runs",
     }
-    let _ = policy::set_u8(p, Field::Language as u32, ctx.lang_sel);
-    let _ = policy::set_u8(p, Field::KeyboardLayout as u32, ctx.kbd_sel);
-    let _ = policy::set_i8(p, Field::Timezone as u32, ctx.tz_off);
-    let _ = policy::set_u8(p, Field::Wallpaper as u32, super::appearance::wallpaper(ctx.wall_sel));
-    let _ = policy::set_bool(p, Field::AnonymousMode as u32, ctx.net_sel == 0);
-    let _ = policy::set_bool(p, Field::WifiAutoconnect as u32, ctx.net_sel == 1);
-    let _ = policy::set_bool(p, Field::AutoWipe as u32, ctx.privacy & 0b010 != 0);
-    let _ = policy::set_bool(p, Field::NymEnabled as u32, ctx.privacy & 0b001 != 0);
-    let _ = policy::set_bool(p, Field::Persistent as u32, ctx.persist_sel == 1);
-    let _ = policy::set_bool(p, Field::SystemKeysGenerated as u32, ctx.keys_done);
-    crate::consent::apply(ctx.local_sel == 1, ctx.local_was, ctx.persist_sel == 1);
-    if ctx.host_len > 0 {
-        let _ = policy::set_str(p, Field::Hostname as u32, &ctx.host_buf[..ctx.host_len]);
+}
+
+pub fn draw(ctx: &Context) {
+    render::frame(
+        ctx,
+        b"Review",
+        b"ENTER applies these and starts the desktop",
+        b"ENTER FINISH  ESC BACK",
+    );
+    let spx = ctx.stride as usize / 4;
+    let (w, h) = (ctx.width, ctx.height);
+    let (buf, x) = (render::buffer(ctx), render::content_x(w));
+    let mut tz = [0u8; 6];
+    let tz_len = timezone::label(ctx.tz_off, &mut tz);
+    let names: [&[u8]; 3] =
+        [keyboard::label(ctx.kbd_sel), &tz[..tz_len], appearance::name(ctx.wall_sel)];
+    let heads: [&[u8]; 3] = [b"Keyboard", b"Time zone", b"Wallpaper"];
+    for (i, (head, name)) in heads.iter().zip(names.iter()).enumerate() {
+        let y = 110 + 20 * i as u32;
+        lines::text(buf, spx, w, h, x, y, &[head], FG);
+        lines::text(buf, spx, w, h, x + 100, y, &[name], FG);
     }
+    lines::text(buf, spx, w, h, x, 190, &[mode_line(ctx), local_line(ctx)], FG);
 }
 
 pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {
     if code == K_ENTER || code == K_ENTER_LF {
-        commit(ctx);
+        super::commit::commit(ctx);
         return Outcome::Advance;
     }
     default_key(code)

@@ -24,6 +24,7 @@ pub fn run(endpoint: u64) -> ! {
     let mut buf = [0u8; IPC_PAYLOAD_MAX];
     let mut sender: u32 = 0;
     loop {
+        crate::restore::tick();
         let n = recv::poll(endpoint, &mut buf, &mut sender as *mut u32);
         if n <= 0 {
             mk_yield();

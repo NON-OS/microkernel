@@ -13,13 +13,9 @@ pub const DOT_CUR: u32 = FG;
 pub const DOT_TODO: u32 = 0xFF32_4054;
 
 pub const STEP_LABELS: &[&[u8]] = &[
-    b"Language",
     b"Keyboard",
-    b"Identity keys",
-    b"Passphrase",
-    b"Persistence",
-    b"Network",
-    b"Admin",
+    b"Time zone",
+    b"Mode",
     b"Privacy",
     b"Appearance",
     b"Installed software",

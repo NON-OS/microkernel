@@ -14,25 +14,20 @@ setup_wizard -> compositor
 
 ## Microkernel contract
 
-- `MkIpcCall` talks to compositor, input-router, and policy services.
+- `MkIpcCall` talks to compositor, input-router, policy, and vfs services.
 - `MkIpcRecv` receives setup input events.
-- `MkSurfaceRegister`, `MkSurfaceAttach`, and `MkSurfacePresent` own the
-  setup surface.
-- `MkExit` terminates the wizard after completion or failure.
+- `MkSurfaceRegister` and `MkSurfaceShare` own the setup surface.
+- `MkExit` ends the wizard: 3 asks the kernel to open the installer, 0 does not.
 
 ## Authority
 
-`CAPSULE_REQUIRED_CAPS := 0x1819`: CoreExec, IPC, Memory,
-GraphicsDisplayQuery, and GraphicsSurfaceCreate. The wizard has no ambient
-filesystem, network, hardware broker, DMA, PIO, IRQ, crypto, admin, or debug
-authority.
+`CAPSULE_REQUIRED_CAPS := 0x8001919`: CoreExec, IPC, Memory, Debug,
+GraphicsDisplayQuery, GraphicsSurfaceCreate, and EnrolDevRoot. It has no
+filesystem, network, store-write, hardware, DMA, PIO, or IRQ authority.
 
 ## Persistence
 
-The wizard itself does not persist state. Any durable setup choice must pass
-through the policy capsule and its manifest/capability checks.
-
-## Evidence Status
-
-Partially proven. The source contract is now documented; a full claim requires
-the setup-wizard boot flow and policy handoff harness to pass.
+In amnesic mode nothing is written. In install mode the answers and a
+setup-done marker go to `/nonos/setup/` through vfs and are persisted to the
+store; the policy capsule restores them at boot and the wizard then exits
+without drawing. See `docs/userland/setup-wizard/`.

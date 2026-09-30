@@ -5,6 +5,7 @@ extern crate alloc;
 
 mod clients;
 mod consent;
+mod keep;
 mod protocol;
 mod render;
 mod server;
@@ -18,11 +19,23 @@ pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
+    if keep::already_done() {
+        /*
+         * An earlier boot finished setup and kept its answers. Consent is
+         * restored here because this boot shows no setup to restore it in.
+         */
+        let _ = consent::restore();
+        keep::wait_for_policy();
+        say(b"[SETUP] kept from an earlier boot; starting the desktop\n");
+        mk_exit(0);
+    }
     let ctx = match setup::run() {
         Ok(ctx) => ctx,
         Err(why) => {
-            // Setup ending is what starts the rest of the desktop, so a setup
-            // that cannot run says why before the desktop comes up without it.
+            /*
+             * Setup ending is what starts the rest of the desktop, so a setup
+             * that cannot run says why before the desktop comes up without it.
+             */
             say(b"[SETUP] not started: ");
             say(why.as_bytes());
             say(b"; the desktop starts without first-boot setup\n");

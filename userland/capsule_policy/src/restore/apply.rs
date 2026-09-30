@@ -1,0 +1,42 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Putting kept answers back into the store.
+
+use nonos_libc::mk_debug;
+use nonos_policy_proto::setup_record::Answers;
+use nonos_policy_proto::Field;
+
+use crate::push;
+use crate::store::{set_bool, set_i8, set_u8};
+
+/*
+ * Persistent goes back on first: the answers were only kept because setup
+ * chose a mode that keeps state, and vfs asks this field before every write.
+ */
+pub(super) fn apply(answers: Answers) {
+    let _ = set_bool::set(Field::Persistent, true);
+    let _ = set_u8::set(Field::KeyboardLayout, answers.keyboard_layout);
+    let _ = set_u8::set(Field::Wallpaper, answers.wallpaper);
+    if set_i8::set(Field::Timezone, answers.timezone) {
+        push::on_i8_set(Field::Timezone, answers.timezone);
+    }
+    say(b"[POLICY] restored the answers setup kept on an earlier boot\n");
+}
+
+pub(super) fn say(line: &[u8]) {
+    let _ = mk_debug(line.as_ptr(), line.len());
+}

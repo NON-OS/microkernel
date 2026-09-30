@@ -1,44 +1,31 @@
-use crate::render::{self, widgets::toggles};
+use crate::render::theme::FG;
+use crate::render::{self, widgets::lines};
 use crate::server::step::{default_key, Outcome};
 use crate::state::Context;
 
-const ITEMS: &[&[u8]] =
-    &[b"MAC address randomization", b"Secure-wipe RAM on shutdown", b"Telemetry"];
-
-fn focus(ctx: &Context) -> usize {
-    (ctx.privacy >> 8) as usize % ITEMS.len()
-}
+/*
+ * Nothing here is a switch, because nothing reads one: each line says what
+ * the code does on every boot, whatever setup is told.
+ */
+const FACTS: &[&[u8]] = &[
+    b"Network addresses: the e1000, RTL8169 and RTL8821CE drivers",
+    b"transmit from a random MAC drawn at each start, never the",
+    b"factory one.",
+    b"",
+    b"Shutdown and reboot wipe process memory, kernel stacks and",
+    b"held keys before the machine powers off or restarts.",
+    b"",
+    b"Telemetry: NONOS has none, so there is no switch for it.",
+];
 
 pub fn draw(ctx: &Context) {
-    render::frame(
-        ctx,
-        b"Privacy & hardening",
-        b"SPACE toggles, j/k moves",
-        b"ENTER NEXT  ESC BACK",
-    );
+    render::frame(ctx, b"Privacy", b"What NONOS does without being asked", b"ENTER NEXT  ESC BACK");
     let spx = ctx.stride as usize / 4;
     let (w, h) = (ctx.width, ctx.height);
     let buf = render::buffer(ctx);
-    toggles::list(buf, spx, w, h, render::content_x(w), 110, ITEMS, ctx.privacy & 0xFF, focus(ctx));
+    lines::text(buf, spx, w, h, render::content_x(w), 110, FACTS, FG);
 }
 
-pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {
-    let f = focus(ctx);
-    match code {
-        0x20 => {
-            ctx.privacy ^= 1 << f;
-            Outcome::Stay
-        }
-        0x6B => {
-            let nf = (f + ITEMS.len() - 1) % ITEMS.len();
-            ctx.privacy = (ctx.privacy & 0xFF) | ((nf as u16) << 8);
-            Outcome::Stay
-        }
-        0x6A => {
-            let nf = (f + 1) % ITEMS.len();
-            ctx.privacy = (ctx.privacy & 0xFF) | ((nf as u16) << 8);
-            Outcome::Stay
-        }
-        _ => default_key(code),
-    }
+pub fn on_key(_ctx: &mut Context, code: u32) -> Outcome {
+    default_key(code)
 }

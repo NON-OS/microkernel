@@ -1,9 +1,8 @@
-pub const DONE: u8 = 11;
+pub const DONE: u8 = 7;
 
 pub const K_ENTER: u32 = 0x0D;
 pub const K_ENTER_LF: u32 = 0x0A;
 pub const K_ESC: u32 = 0x1B;
-pub const K_BACKSPACE: u32 = 0x08;
 
 pub enum Outcome {
     Advance,

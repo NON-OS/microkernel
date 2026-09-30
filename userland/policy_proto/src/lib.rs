@@ -36,6 +36,7 @@ pub mod limits;
 pub mod ops;
 pub mod proxy_mode_labels;
 pub mod service;
+pub mod setup_record;
 pub mod theme_labels;
 pub mod wallpaper_labels;
 

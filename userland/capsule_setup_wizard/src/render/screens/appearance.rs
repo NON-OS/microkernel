@@ -2,13 +2,19 @@ use crate::render::{self, widgets::rows};
 use crate::server::step::{default_key, list_nav, Outcome};
 use crate::state::Context;
 
-// Names shown in the list, and the wallpaper catalog index each one sets.
+/*
+ * Names shown in the list, and the wallpaper catalog index each one sets.
+ */
 const WALLS: &[&[u8]] = &[b"Circuit", b"Emblem", b"Halo", b"Grid", b"Tiles", b"Lattice"];
 const CATALOG: [u8; 6] = [55, 13, 20, 27, 33, 60];
 
-// The catalog index for the chosen row; the first row is the system default.
+/// The catalog index for the chosen row; the first row is the system default.
 pub fn wallpaper(sel: u8) -> u8 {
     CATALOG.get(sel as usize).copied().unwrap_or(CATALOG[0])
+}
+
+pub fn name(sel: u8) -> &'static [u8] {
+    WALLS.get(sel as usize).copied().unwrap_or(WALLS[0])
 }
 
 pub fn draw(ctx: &Context) {

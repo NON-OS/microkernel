@@ -61,7 +61,7 @@ pub fn run(mut ctx: Context) -> ! {
         ctx.step = step::apply(ctx.step, outcome);
         if ctx.step >= DONE {
             let _ = compositor::push_scene_remove(ctx.compositor_port, 3);
-            mk_exit(0);
+            mk_exit(screens::mode::exit_code(&ctx));
         }
         redraw(&ctx);
     }

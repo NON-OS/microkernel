@@ -1,7 +1,7 @@
 # setup_wizard capsule. First-boot setup wizard: attaches a fullscreen
 # compositor surface, grabs the keyboard, walks the user through setup
-# (keys/passphrase/wallpaper), then exits so the kernel brings up the
-# desktop. Same leaf-renderer capset as input_probe (no SurfaceMap/Present),
+# (keyboard, time zone, mode, wallpaper), then exits so the kernel brings
+# up the desktop. Same leaf-renderer capset as input_probe (no SurfaceMap/Present),
 # plus EnrolDevRoot: setup is where a person lets this machine run what it
 # installs, and no app window holds that right.
 

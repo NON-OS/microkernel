@@ -14,27 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+//! Setup's answers across boots: kept in the vfs store when the chosen mode
+//! keeps state, and read back so a later boot skips setup.
 
-extern crate alloc;
-
-mod bootstrap;
-mod push;
-mod restore;
-mod server;
+mod save;
+mod skip;
 mod store;
 
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-    if !bootstrap::register() {
-        mk_exit(2);
-    }
-    push::seed_kernel();
-    server::run(bootstrap::SERVICE_PORT as u64);
-}
+pub use save::save;
+pub use skip::{already_done, wait_for_policy};
+pub use store::store_ready;

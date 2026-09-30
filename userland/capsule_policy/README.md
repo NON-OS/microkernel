@@ -45,4 +45,7 @@ PIO, filesystem, network, display, or focus-routing authority.
 
 The policy table lives in capsule memory and is seeded from the bootstrap
 defaults on every boot. Values set at runtime do not persist across a
-reboot.
+reboot, with one exception: when first-boot setup chose a mode that keeps
+state, it kept its answers in the vfs store, and `src/restore/` reads them
+back through vfs once the store has loaded and sets `Persistent`, the
+keyboard layout, the wallpaper, and the time zone from them.

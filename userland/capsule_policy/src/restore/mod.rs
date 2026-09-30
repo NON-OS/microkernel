@@ -14,27 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+//! Restoring what first-boot setup kept on an earlier boot.
 
-extern crate alloc;
+mod apply;
+mod tick;
 
-mod bootstrap;
-mod push;
-mod restore;
-mod server;
-mod store;
-
-use nonos_libc::{heap_init, mk_exit};
-
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
-    }
-    if !bootstrap::register() {
-        mk_exit(2);
-    }
-    push::seed_kernel();
-    server::run(bootstrap::SERVICE_PORT as u64);
-}
+pub use tick::tick;
