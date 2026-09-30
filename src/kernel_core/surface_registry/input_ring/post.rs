@@ -16,6 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
+use super::super::ring_math;
 use super::super::types::{InputEvent, RegistryError, INPUT_RING_CAP};
 use super::ring::{DIAG, DROPPED, FIRST_INPUT_POST, KIND_DIAG_BASE, RING, SEQ, WAITER};
 
@@ -29,14 +30,13 @@ pub fn post_input(ev: InputEvent) -> Result<(), RegistryError> {
     }
     {
         let mut ring = RING.lock();
-        let next = super::super::ring_math::wrap(ring.head, INPUT_RING_CAP);
-        if next == ring.tail {
+        if ring_math::is_full(ring.head, ring.tail, INPUT_RING_CAP) {
             DROPPED.fetch_add(1, Ordering::Relaxed);
             return Err(RegistryError::OutOfSlots);
         }
         let head = ring.head;
         ring.buf[head] = ev;
-        ring.head = next;
+        ring.head = ring_math::wrap(head, INPUT_RING_CAP);
     }
     SEQ.fetch_add(1, Ordering::Release);
     crate::sys::bench::mark_once(&FIRST_INPUT_POST, b"input_post_first");
