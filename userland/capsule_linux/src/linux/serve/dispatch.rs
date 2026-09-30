@@ -31,7 +31,7 @@ pub fn answer(guest: &mut Guest, frame: &ForeignFrame) -> Answer {
     let got = route(guest, frame);
     // An EAGAIN re-arms the descriptor's edge-triggered epoll entries.
     if let Answer::Reply(value) = got {
-        super::recent::note(frame.nr, frame.args()[0], value);
+        crate::linux::recent::note(frame.nr, frame.args()[0], value);
         crate::linux::file::rearm(guest, frame.nr, frame.args()[0], value);
     }
     got

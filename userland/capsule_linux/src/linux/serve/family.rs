@@ -89,10 +89,7 @@ impl Family {
         };
         g.threads.retain(|t| *t != pid);
         crate::linux::call::killed(g, signo_of(code) as u8);
-        let line =
-            alloc::format!("[LINUX] guest thread {pid} ended on a signal; ending the process\n");
-        crate::linux::start::say(line.as_bytes());
-        super::recent::say();
+        crate::linux::recent_say::died(pid);
     }
 
     /// Done once nothing it hosts is left; the code is the first guest's.

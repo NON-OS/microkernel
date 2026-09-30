@@ -35,6 +35,8 @@ mod install;
 mod launch;
 mod net;
 mod origin;
+mod recent;
+mod recent_say;
 mod request;
 mod run_mode;
 pub mod serve;

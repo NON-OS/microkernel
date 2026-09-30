@@ -13,35 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 /*
- * The last calls a family made, said when a guest dies on a signal, so a
- * crash names what the program was doing rather than only that it ended.
- * Only numbers are kept, never bytes of the guest's memory. A family that
- * holds a model or is on a terminal shows results only for the calls that
- * lay out memory, which are addresses and lengths, not anything the model
- * was told or the person typed.
+ * Saying the ring `recent` keeps: after a guest thread's death on a signal,
+ * and after a process that exited with a nonzero status.
  */
 
 use alloc::string::String;
 use core::fmt::Write;
-use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering::Relaxed};
+use core::sync::atomic::Ordering::Relaxed;
 
+use super::recent::{CALLS, KEEP, NEXT};
 use crate::linux::abi::{nr, nr_high};
-
-const KEEP: usize = 16;
-
-/* Number, first argument and result of each call, in a ring. */
-static CALLS: [AtomicU64; KEEP * 3] = [const { AtomicU64::new(u64::MAX) }; KEEP * 3];
-static NEXT: AtomicUsize = AtomicUsize::new(0);
-
-/// Note one answered call: its number, first argument and result.
-pub fn note(number: u64, arg0: u64, result: u64) {
-    let at = NEXT.load(Relaxed);
-    for (i, v) in [number, arg0, result].into_iter().enumerate() {
-        CALLS[at * 3 + i].store(v, Relaxed);
-    }
-    NEXT.store((at + 1) % KEEP, Relaxed);
-}
 
 fn lays_out_memory(number: u64) -> bool {
     matches!(number, nr::MMAP | nr::MPROTECT | nr::MUNMAP | nr::BRK | nr_high::MREMAP)
@@ -64,4 +47,11 @@ pub fn say() {
     }
     line.push('\n');
     crate::linux::start::say(line.as_bytes());
+}
+
+/// A guest thread ended on a signal: that, then the calls before it.
+pub fn died(pid: u32) {
+    let line = alloc::format!("[LINUX] guest thread {pid} ended on a signal; ending the process\n");
+    crate::linux::start::say(line.as_bytes());
+    say();
 }
