@@ -27,8 +27,10 @@ mod call;
 mod get;
 mod lookup;
 mod status;
+mod watch;
 
 pub use call::{call, Reply};
 pub use get::{get_bool, get_i8, get_str, get_u8};
 pub use lookup::lookup;
 pub use status::status;
+pub use watch::Watch;
