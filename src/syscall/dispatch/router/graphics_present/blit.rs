@@ -77,10 +77,7 @@ pub(super) fn blit(
     let dst_stride = fb_stride_bytes;
     for row in 0..rect_h {
         /*
-         * The whole blit runs with interrupts masked, and a full frame is
-         * megabytes. Answer any TLB shootdown once per row, so a present on
-         * this CPU cannot hold another CPU's page-table change past its
-         * deadline.
+         * Interrupts stay masked for a whole frame: answer TLB shootdowns per row.
          */
         crate::smp::serve_shootdowns();
         let src_row_off = ((rect_y + row) * src_stride) + (rect_x * bytes_per_pixel);
@@ -107,23 +104,7 @@ pub(super) fn blit(
             // SAFETY: the rectangle was clamped to the framebuffer above, and
             // `dst_off + chunk` stays inside the row, so every store lands in
             // the mapped framebuffer.
-            let dst_ptr = unsafe { dst.add(dst_off) };
-            // Whole pixels: the framebuffer is write-combining, so the store
-            // count is the cost and byte-wise was four times as many. Falls
-            // back if a firmware stride leaves the destination unaligned.
-            if (dst_ptr as usize) % 4 == 0 && chunk % 4 == 0 {
-                for (i, px) in bounce.0[..chunk].chunks_exact(4).enumerate() {
-                    let word = u32::from_ne_bytes([px[0], px[1], px[2], px[3]]);
-                    // SAFETY: `dst_ptr` is 4-byte aligned on this branch and
-                    // `i < chunk / 4`, so the write is in bounds and aligned.
-                    unsafe { core::ptr::write_volatile((dst_ptr as *mut u32).add(i), word) };
-                }
-            } else {
-                for (i, &b) in bounce.0[..chunk].iter().enumerate() {
-                    // SAFETY: `i < chunk` and the row was bounds checked.
-                    unsafe { core::ptr::write_volatile(dst_ptr.add(i), b) };
-                }
-            }
+            unsafe { super::store::store(dst.add(dst_off), &bounce.0[..chunk]) };
             copied += chunk;
         }
     }
