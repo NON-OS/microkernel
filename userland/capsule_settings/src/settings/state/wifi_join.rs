@@ -15,48 +15,61 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_policy_proto::Field;
-
-use crate::wifi::connect_network;
+use nonos_wifi_client::wipe;
 
 use super::cache::FieldValue;
 use super::cached_value::cached_value;
-use super::edit_buffer::EditBuffer;
 use super::state::{State, WifiConnect};
+use super::wifi_enter::refresh_wifi_status;
+use super::wifi_remember::keep_joined;
 
-/// Begin or complete a connection to the selected network. A secured network
-/// first opens the passphrase editor; the second call (or an open network on the
-/// first) sends the driver the SSID and passphrase and runs the whole join, which
-/// blocks for a few seconds. The result is recorded for the panel.
+/// Begin or complete a join of the highlighted network. A secured network
+/// first opens the passphrase editor; the second call (or an open network on
+/// the first) runs the whole join, which blocks for a few seconds. The
+/// passphrase is wiped once the join (and any remembering) is done.
 pub fn connect_selected(state: &mut State) {
-    if state.wifi_network_count == 0 || !radio_on(state) {
+    let Some(driver) = state.wifi.driver else { return };
+    if state.wifi_cursor >= state.wifi_network_count || !radio_on(state) {
         return;
     }
-    let idx = state.wifi_cursor.min(state.wifi_network_count - 1);
-    let secured = state.wifi_networks[idx].secured;
-    // A secured network needs a passphrase: open the editor on the first Enter.
-    if secured && !state.wifi_pass_active {
+    let net = state.wifi_networks[state.wifi_cursor];
+    if net.secured && !state.wifi_pass_active {
+        clear_passphrase(state);
         state.wifi_pass_active = true;
-        state.wifi_pass = EditBuffer::empty();
         return;
     }
-    // The passphrase is in (or the network is open): join now. The driver call
-    // blocks for the length of the handshake, and the key handler returns Repaint
-    // straight after, so the outcome is painted the same frame the join finishes.
-    let idx = state.wifi_cursor.min(state.wifi_network_count - 1);
-    let mut ssid = [0u8; 32];
-    let slen = {
-        let s = state.wifi_networks[idx].ssid();
-        let n = s.len().min(32);
-        ssid[..n].copy_from_slice(&s[..n]);
-        n
-    };
-    let result = connect_network(&ssid[..slen], state.wifi_pass.as_slice());
+    state.wifi.notice = None;
+    let mut pass = state.wifi_pass;
+    clear_passphrase(state);
+    let result = driver.connect(net.ssid(), pass.as_slice());
     state.wifi_connect =
         if result.code == 0 { WifiConnect::Connected } else { WifiConnect::Failed(result) };
+    if result.code == 0 {
+        keep_joined(state, net.ssid(), pass.as_slice());
+    }
+    wipe(&mut pass.bytes);
+    refresh_wifi_status(state);
+}
+
+/// Close the passphrase editor and wipe what was typed.
+pub fn clear_passphrase(state: &mut State) {
+    wipe(&mut state.wifi_pass.bytes);
+    state.wifi_pass.len = 0;
     state.wifi_pass_active = false;
 }
 
-// Off only when the store says so; an unread value does not block the radio.
+/// Leave the network the radio is associated with and clear its keys.
+pub fn leave(state: &mut State) {
+    if let Some(driver) = state.wifi.driver {
+        driver.disconnect();
+    }
+    state.wifi_connect = WifiConnect::Idle;
+    refresh_wifi_status(state);
+}
+
+/*
+ * Off only when the store says so; an unread value does not block the radio.
+ */
 pub(super) fn radio_on(state: &State) -> bool {
     !matches!(cached_value(state, Field::WifiRadio), FieldValue::Bool(false))
 }

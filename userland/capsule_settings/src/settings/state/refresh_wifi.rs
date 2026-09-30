@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::wifi::{scan_networks, DriverStage, ScanOutcome};
+use crate::wifi::{DriverStage, ScanOutcome, ScanStats};
 
-use super::state::{State, WifiConnect, WifiScan};
+use super::state::{State, WifiScan};
 use super::wifi_enter::refresh_wifi_status;
 use super::wifi_join::radio_on;
 
@@ -39,12 +39,15 @@ pub fn run_wifi_scan(state: &mut State) {
     // Once connected, a channel scan would retune the radio off the live link and
     // drop the connection (and net_core's traffic), so refreshing the status is
     // all a connected panel does; the scan is only for finding networks to join.
-    if state.wifi_connect == WifiConnect::Connected {
+    if state.wifi.joined().is_some() {
         return;
     }
     match state.wifi_stage {
         Some(DriverStage::Ready) => {
-            let (count, outcome, stats) = scan_networks(&mut state.wifi_networks);
+            let (count, outcome, stats) = match state.wifi.driver {
+                Some(d) => d.scan(&mut state.wifi_networks),
+                None => (0, ScanOutcome::NoService, ScanStats::default()),
+            };
             // Strongest signal first, so the most reachable networks head the list
             // once the driver reports real RSSI.
             state.wifi_networks[..count].sort_unstable_by(|a, b| b.signal.cmp(&a.signal));

@@ -19,6 +19,7 @@ use crate::settings::state::State;
 
 use super::build_info::{ARCHITECTURE, GIT_SHA, TOOLCHAIN, VERSION};
 use super::live_net::{adapter, addr, link_state};
+use super::live_wifi::{join, link, remember};
 use super::valbuf::ValBuf;
 
 /// Format one live row's value, and the tone it should read in.
@@ -35,6 +36,9 @@ pub fn resolve(state: &State, live: Live) -> (ValBuf, Tone) {
         Live::Toolchain => text(&mut b, TOOLCHAIN),
         Live::Architecture => text(&mut b, ARCHITECTURE),
         Live::StorageService => text(&mut b, "Not exported"),
+        Live::WifiLink => link(&mut b, state),
+        Live::WifiJoin => join(&mut b, state),
+        Live::WifiRemember => remember(&mut b, state),
     };
     (b, tone)
 }

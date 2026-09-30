@@ -29,6 +29,9 @@ pub enum Live {
     Toolchain,
     Architecture,
     StorageService,
+    WifiLink,
+    WifiJoin,
+    WifiRemember,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -53,6 +56,7 @@ pub enum Row {
     Field(Field),
     Live(&'static str, Live),
     Networks,
+    Saved,
 }
 
 #[derive(Clone, Copy)]

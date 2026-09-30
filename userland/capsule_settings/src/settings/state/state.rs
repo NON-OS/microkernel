@@ -16,37 +16,19 @@
 
 use crate::settings::schema::ALL_FIELDS;
 use crate::settings::section::{Section, SECTION_COUNT};
-use crate::wifi::{
-    ConnectResult, DataPath, DriverStage, NetStatus, ScanNetwork, ScanOutcome, ScanStats,
-    WifiInterface,
-};
+use crate::wifi::{DataPath, DriverStage, NetStatus, ScanNetwork, ScanStats, WifiInterface};
 
 use super::cache::FieldValue;
 use super::edit_buffer::EditBuffer;
 use super::status::Status;
+use super::wifi_extra::WifiExtra;
+pub use super::wifi_kinds::{WifiConnect, WifiScan};
 
 pub const FIELD_SLOTS: usize = ALL_FIELDS.len();
 /// The most WiFi adapters the panel lists at once.
 pub const WIFI_MAX: usize = 8;
 /// The most networks the panel shows from one scan.
 pub const WIFI_NET_MAX: usize = 16;
-
-/// Where the Wi-Fi panel stands with the driver: it has not scanned yet, the last
-/// scan resolved to one of the driver outcomes.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum WifiScan {
-    Idle,
-    Done(ScanOutcome),
-}
-
-/// Where a connection attempt stands. `Failed` carries the driver's status code
-/// so the panel can say why.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum WifiConnect {
-    Idle,
-    Connected,
-    Failed(ConnectResult),
-}
 
 pub struct State {
     pub policy_port: u32,
@@ -93,6 +75,8 @@ pub struct State {
     /// What net_core reports: down, bound-but-no-address, or a bound lease. Splits
     /// "the stack never started" from "started but got no address".
     pub wifi_net: NetStatus,
+    /// The driver found, its link, and the saved networks by name.
+    pub wifi: WifiExtra,
     /// Window size as of the last paint. The window is resizable, so layout and
     /// hit tests read this rather than the manifest's starting size: against
     /// the constants, clicks below the original height were treated as the

@@ -28,6 +28,7 @@ pub mod on_event_wifi;
 pub mod on_pointer;
 pub mod on_search_key;
 pub mod on_search_pointer;
+pub mod on_wifi_passphrase;
 pub mod pointer_row;
 pub mod push_text_char;
 pub mod report;

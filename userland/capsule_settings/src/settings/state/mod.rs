@@ -36,7 +36,11 @@ pub mod store_value;
 pub mod track_scroll;
 pub mod view_h;
 pub mod wifi_enter;
+pub mod wifi_extra;
 pub mod wifi_join;
+pub mod wifi_kinds;
+pub mod wifi_remember;
+pub mod wifi_saved;
 
 pub use cache::FieldValue;
 pub use cached_value::cached_value;

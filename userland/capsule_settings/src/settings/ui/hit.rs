@@ -51,6 +51,9 @@ pub fn at(state: &State, x: i32, y: i32, scroll: u32, view_w: u32) -> Hit {
                 index += 1;
             }
             Item::Network(i) if inside => hit = Hit::Network(i),
+            Item::Saved(i) if inside && i < state.wifi.saved_count => {
+                hit = Hit::Network(state.wifi_network_count + i)
+            }
             _ => {}
         }
     });

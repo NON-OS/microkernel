@@ -25,6 +25,7 @@ use super::metrics::PANE_PAD_X;
 use super::net_rows;
 use super::page_head;
 use super::row;
+use super::saved_rows;
 use super::walk::{walk, Item};
 
 /// Paints the section pane into `fb`, which is the window minus the sidebar.
@@ -62,6 +63,10 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
             Item::CardHead(bi) => card::paint_head(fb, state, &blocks[bi], card_x, sy, card_w),
             Item::Network(i) => {
                 net_rows::paint(fb, state, i, card_x, card_w, sy, h);
+                row::hairline(fb, card_x, card_w, sy, h);
+            }
+            Item::Saved(i) => {
+                saved_rows::paint(fb, state, i, card_x, card_w, sy, h);
                 row::hairline(fb, card_x, card_w, sy, h);
             }
             Item::Row(..) => {}

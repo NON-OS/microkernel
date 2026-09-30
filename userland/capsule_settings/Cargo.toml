@@ -24,6 +24,7 @@ nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
 nonos_policy_proto = { path = "../policy_proto" }
 nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_wifi_client = { path = "../nonos_wifi_client" }
 
 [profile.release]
 panic = "abort"

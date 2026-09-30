@@ -39,11 +39,18 @@ pub fn network_rows(state: &State) -> usize {
     state.wifi_network_count.max(1)
 }
 
+/// The saved networks, or one row saying there are none or why they could
+/// not be read.
+pub fn saved_rows(state: &State) -> usize {
+    state.wifi.saved_count.max(1)
+}
+
 pub fn block_h(state: &State, b: &Block) -> u32 {
     let mut h = head_h(b);
     for r in b.rows {
         h += match r {
             Row::Networks => ROW_H * network_rows(state) as u32,
+            Row::Saved => ROW_H * saved_rows(state) as u32,
             other => row_h(other),
         };
     }

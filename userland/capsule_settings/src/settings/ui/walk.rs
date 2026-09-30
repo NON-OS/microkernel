@@ -19,7 +19,7 @@ use crate::settings::schema::rows::Row;
 use crate::settings::state::State;
 
 use super::metrics::{CARD_GAP, HEAD_H, PANE_PAD_TOP, ROW_H};
-use super::walk_metrics::{block_h, head_h, network_rows, row_h};
+use super::walk_metrics::{block_h, head_h, network_rows, row_h, saved_rows};
 
 #[derive(Clone, Copy)]
 pub enum Item {
@@ -28,6 +28,7 @@ pub enum Item {
     CardHead(usize),
     Row(usize, usize),
     Network(usize),
+    Saved(usize),
 }
 
 /// The one place section geometry is defined. The painter and the hit test both
@@ -46,6 +47,12 @@ pub fn walk<F: FnMut(u32, u32, Item)>(state: &State, mut f: F) {
                 Row::Networks => {
                     for i in 0..network_rows(state) {
                         f(ry, ROW_H, Item::Network(i));
+                        ry += ROW_H;
+                    }
+                }
+                Row::Saved => {
+                    for i in 0..saved_rows(state) {
+                        f(ry, ROW_H, Item::Saved(i));
                         ry += ROW_H;
                     }
                 }

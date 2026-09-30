@@ -13,6 +13,7 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+nonos_seal = { path = "../nonos_seal" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

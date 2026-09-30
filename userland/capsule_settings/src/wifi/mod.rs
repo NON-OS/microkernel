@@ -14,28 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The WiFi settings panel. The active tab lists the wireless adapters the
-//! broker discovered (`adapters`, `interface`) and the networks a scan found
-//! (`network`, `wire`, `scan_client`). The scan client also joins a network and
-//! reads the driver's data-path counts (`datapath`); `lease` reads the address
-//! net_core bound. The panel shows the networks, the connection, and its address.
+//! The WiFi settings panel's own pieces. The driver client, the scan result
+//! and the saved networks live in `nonos_wifi_client`, shared with first-boot
+//! setup and net_core. Here: the wireless adapters the broker discovered
+//! (`adapters`, `interface`), the RTL8821CE's data-path counters (`datapath`),
+//! and the address net_core bound (`lease`, `net_status`).
 
 mod adapters;
 mod datapath;
 mod interface;
 mod lease;
 mod net_status;
-mod network;
-mod scan_client;
-mod wire;
 
 pub use adapters::scan_adapters;
 pub use datapath::{driver_datapath, DataPath};
 pub use interface::WifiInterface;
 pub use lease::{Lease, NetStatus};
 pub use net_status::net_status;
-pub use network::ScanNetwork;
-pub use scan_client::{
-    connect_network, driver_stage, scan_networks, ConnectResult, DriverStage, ScanOutcome,
-    ScanStats,
-};
+pub use nonos_wifi_client::{ConnectResult, DriverStage, ScanNetwork, ScanOutcome, ScanStats};

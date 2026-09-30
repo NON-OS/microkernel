@@ -14,6 +14,17 @@ pub mod interface;
 /// it calls the broker; the logic it drives (`interface::discover`) is proven.
 pub mod wifi;
 
+/// The saved-network record from `nonos_wifi_client`: its slots, its
+/// encoding and its sealing, driven with keys the tests choose. The vfs and
+/// TPM halves are left out; they are syscalls.
+#[cfg(test)]
+mod saved;
+#[cfg(test)]
+use wifi::network;
+#[cfg(test)]
+#[path = "../../nonos_wifi_client/src/wipe.rs"]
+mod wipe;
+
 #[cfg(test)]
 mod interface_tests;
 #[cfg(test)]

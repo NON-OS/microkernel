@@ -34,6 +34,13 @@ const SERVICE_PORT: u32 = 4728;
 const REPLY_INBOX: &str = "endpoint.app.settings.reply";
 const REPLY_PORT: u32 = 4729;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
+/// Crypto derives the TPM key that seals saved Wi-Fi networks.
+const SETTINGS_CAPS: u64 = Capability::CoreExec.bit()
+    | Capability::IPC.bit()
+    | Capability::Memory.bit()
+    | Capability::Crypto.bit()
+    | Capability::GraphicsDisplayQuery.bit()
+    | Capability::GraphicsSurfaceCreate.bit();
 
 // Extra window endpoints, each declared in the signed manifest. Ordered, so the
 // lowest-numbered free one is taken.
@@ -61,11 +68,7 @@ pub fn spawn_settings_instance() -> Result<u32, SpawnError> {
         manifest: SETTINGS_MANIFEST_BYTES,
         attestation: SETTINGS_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
-            | Capability::Memory.bit()
-            | Capability::GraphicsDisplayQuery.bit()
-            | Capability::GraphicsSurfaceCreate.bit(),
+        requested_caps: SETTINGS_CAPS,
         instances: SETTINGS_INSTANCES,
         debug_tag: b"[SETTINGS-INSTANCE] elf error:",
     })
@@ -84,11 +87,7 @@ pub fn spawn_settings_capsule() -> Result<(), SpawnError> {
         manifest_bytes: SETTINGS_MANIFEST_BYTES,
         attestation_trailer: SETTINGS_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
-            | Capability::Memory.bit()
-            | Capability::GraphicsDisplayQuery.bit()
-            | Capability::GraphicsSurfaceCreate.bit(),
+        requested_caps: SETTINGS_CAPS,
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

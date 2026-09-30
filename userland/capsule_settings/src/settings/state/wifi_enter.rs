@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::wifi::{driver_datapath, driver_stage, net_status, scan_adapters};
+use nonos_wifi_client::{find, keeps_state};
+
+use crate::wifi::{driver_datapath, net_status, scan_adapters};
 
 use super::state::State;
+use super::wifi_saved::refresh_saved;
 
 /// Re-enumerate the wireless adapters into the WiFi panel state and keep the
 /// selection cursor inside the new list.
@@ -36,13 +39,20 @@ pub fn enter_wifi(state: &mut State) {
     state.editing = false;
     refresh_wifi(state);
     refresh_wifi_status(state);
+    refresh_saved(state);
 }
 
-/// Refresh the driver bring-up stage, the data-path frame counts and net_core's
-/// lease without touching the radio, so the connected view (address, counters)
+/// Refresh which driver runs, its bring-up stage and link, whether this boot
+/// keeps state, the data-path frame counts and net_core's lease without
+/// touching the radio, so the connected view (address, counters)
 /// stays current on a live link that a channel scan would otherwise drop.
 pub fn refresh_wifi_status(state: &mut State) {
-    state.wifi_stage = driver_stage();
+    let driver = find();
+    state.wifi.driver = driver;
+    state.wifi_stage = driver.and_then(|d| d.stage());
+    state.wifi.link = driver.and_then(|d| d.link());
+    state.wifi.keeps = keeps_state();
+    state.wifi.remember &= state.wifi.keeps;
     state.wifi_datapath = driver_datapath();
     state.wifi_net = net_status();
 }

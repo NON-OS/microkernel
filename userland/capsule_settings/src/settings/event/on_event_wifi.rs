@@ -17,21 +17,22 @@
 use nonos_app_skeleton::{EventOutcome, KEY_DOWN, KEY_ENTER, KEY_ESC, KEY_TAB, KEY_UP};
 
 use crate::settings::state::refresh_wifi::run_wifi_scan;
-use crate::settings::state::wifi_join::connect_selected;
+use crate::settings::state::wifi_join::{connect_selected, leave};
+use crate::settings::state::wifi_remember::toggle_remember;
+use crate::settings::state::wifi_saved::forget_selected;
 use crate::settings::state::State;
 
 use super::next_section::{next_section, prev_section};
+use super::on_wifi_passphrase::on_passphrase_key;
 
 const KEY_SPACE: u32 = 0x20;
-const KEY_BACKSPACE: u32 = 0x08;
-const KEY_DELETE: u32 = 0x7F;
 
 /// Key handling while the Wi-Fi tab is active. With the passphrase editor open,
 /// keys type the password, Enter joins and Escape cancels. Otherwise the arrows
-/// move through the networks, Enter connects to the selected one (opening the
-/// passphrase editor first for a secured network), Space rescans, and Tab or the
-/// brackets cycle back to the policy tabs. A scan or a join blocks for a few
-/// seconds while the radio works.
+/// move through the scanned and then the saved networks, Enter or Space scans,
+/// C joins the highlighted network (opening the passphrase editor first for a
+/// secured one), D leaves the network, R turns remembering on or off, F forgets
+/// the highlighted saved network, and Tab or the brackets cycle the tabs.
 pub(super) fn on_event_wifi(state: &mut State, code: u32) -> EventOutcome {
     if state.wifi_pass_active {
         return on_passphrase_key(state, code);
@@ -46,7 +47,7 @@ pub(super) fn on_event_wifi(state: &mut State, code: u32) -> EventOutcome {
             EventOutcome::Repaint
         }
         KEY_DOWN => {
-            if state.wifi_cursor + 1 < state.wifi_network_count {
+            if state.wifi_cursor + 1 < state.wifi_network_count + state.wifi.saved_count {
                 state.wifi_cursor += 1;
             }
             EventOutcome::Repaint
@@ -56,32 +57,14 @@ pub(super) fn on_event_wifi(state: &mut State, code: u32) -> EventOutcome {
         // A dedicated key connects to the highlighted network, so scanning and
         // joining never fight over the same key.
         c if c == b'c' as u32 || c == b'C' as u32 => repaint_after(state, connect_selected),
+        c if c == b'd' as u32 || c == b'D' as u32 => repaint_after(state, leave),
+        c if c == b'r' as u32 || c == b'R' as u32 => repaint_after(state, toggle_remember),
+        c if c == b'f' as u32 || c == b'F' as u32 => repaint_after(state, forget_selected),
         _ => EventOutcome::Idle,
     }
 }
 
-// While the passphrase editor is open: type printable characters, delete with
-// backspace, join on Enter, cancel on Escape.
-fn on_passphrase_key(state: &mut State, code: u32) -> EventOutcome {
-    match code {
-        KEY_ESC => {
-            state.wifi_pass_active = false;
-            EventOutcome::Repaint
-        }
-        KEY_ENTER => repaint_after(state, connect_selected),
-        KEY_BACKSPACE | KEY_DELETE => {
-            state.wifi_pass.pop();
-            EventOutcome::Repaint
-        }
-        c @ 0x20..=0x7E => {
-            state.wifi_pass.push(c as u8);
-            EventOutcome::Repaint
-        }
-        _ => EventOutcome::Idle,
-    }
-}
-
-fn repaint_after(state: &mut State, f: fn(&mut State)) -> EventOutcome {
+pub(super) fn repaint_after(state: &mut State, f: fn(&mut State)) -> EventOutcome {
     f(state);
     EventOutcome::Repaint
 }

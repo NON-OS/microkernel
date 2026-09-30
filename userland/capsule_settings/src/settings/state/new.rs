@@ -22,6 +22,7 @@ use crate::settings::section::{Section, SECTION_COUNT};
 
 use super::state::{State, WifiConnect, WifiScan, FIELD_SLOTS, WIFI_MAX, WIFI_NET_MAX};
 use super::status::Status;
+use super::wifi_extra::WifiExtra;
 
 pub fn new() -> State {
     State {
@@ -51,6 +52,7 @@ pub fn new() -> State {
         wifi_connect: WifiConnect::Idle,
         wifi_datapath: None,
         wifi_net: NetStatus::NoService,
+        wifi: WifiExtra::new(),
         win_w: crate::settings::manifest::WIDTH,
         win_h: crate::settings::manifest::HEIGHT,
     }

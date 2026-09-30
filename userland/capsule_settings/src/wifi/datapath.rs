@@ -18,14 +18,8 @@
 //! stuck DHCP: no TX means net_core handed nothing down, RX frames without parsed
 //! frames means the AP replies but the frames never decrypt.
 
-use core::ptr;
+use nonos_wifi_client::{find, OP_STATUS, WIFI_HDR};
 
-use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup};
-
-const DRIVER_SERVICE: &[u8] = b"driver.rtl8821ce0";
-const WIFI_MAGIC: u32 = 0x5749_4649;
-const OP_STATUS: u16 = 4;
-const WIFI_HDR: usize = 10;
 const STATUS_TIMEOUT_MS: u64 = 500;
 
 /// The driver's TX and RX frame counts since bring-up, plus the number of
@@ -52,31 +46,13 @@ pub struct DataPath {
     pub window_va: u32,
 }
 
-/// Query the driver for its data-path counts. `None` when the driver service is
-/// absent or does not answer with the counters.
+/// Query the driver for its data-path counts. `None` when no Wi-Fi driver is
+/// registered or it does not answer with the counters (the iwlwifi driver
+/// answers the status op with its stage alone).
 pub fn driver_datapath() -> Option<DataPath> {
-    let mut port: u32 = 0;
-    let rc = mk_service_lookup(
-        DRIVER_SERVICE.as_ptr(),
-        DRIVER_SERVICE.len(),
-        &mut port as *mut u32,
-        ptr::null_mut(),
-    );
-    if rc != 0 || port == 0 {
-        return None;
-    }
-    let mut req = [0u8; WIFI_HDR];
-    req[0..4].copy_from_slice(&WIFI_MAGIC.to_le_bytes());
-    req[4..6].copy_from_slice(&OP_STATUS.to_le_bytes());
+    let driver = find()?;
     let mut resp = [0u8; WIFI_HDR + 45];
-    let n = mk_ipc_call_timeout(
-        port as u64,
-        req.as_ptr(),
-        req.len(),
-        resp.as_mut_ptr(),
-        resp.len(),
-        STATUS_TIMEOUT_MS,
-    );
+    let n = driver.request(OP_STATUS, &[], &mut resp, STATUS_TIMEOUT_MS)? as i64;
     if n < (WIFI_HDR + 25) as i64 {
         return None;
     }

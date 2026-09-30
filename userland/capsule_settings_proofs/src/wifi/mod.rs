@@ -3,12 +3,12 @@
 //! machine) under one module so their `super::` references resolve exactly as in
 //! the capsule, while the proofs drive them against synthetic inputs.
 
-#[path = "../../../capsule_settings/src/wifi/network.rs"]
+#[path = "../../../nonos_wifi_client/src/network.rs"]
 pub mod network;
 // The connect state machine drives the connect-request encoder, which is
 // test-only in the capsule, so the panel proofs compile it under test too.
 #[cfg(test)]
 #[path = "../../../capsule_settings/src/wifi/panel.rs"]
 pub mod panel;
-#[path = "../../../capsule_settings/src/wifi/wire.rs"]
+#[path = "../../../nonos_wifi_client/src/wire.rs"]
 pub mod wire;

@@ -4,4 +4,11 @@ version = 4
 
 [[package]]
 name = "capsule_settings_proofs"
-version = "0.1.0"
+version = "0.3.0"
+dependencies = [
+ "nonos_seal",
+]
+
+[[package]]
+name = "nonos_seal"
+version = "0.3.0"

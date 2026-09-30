@@ -16,7 +16,7 @@
 
 use nonos_policy_proto::Field;
 
-use crate::settings::schema::rows::{Block, Pill, Row};
+use crate::settings::schema::rows::{Block, Live, Pill, Row};
 
 pub const WIFI: &[Block] = &[
     Block {
@@ -25,5 +25,22 @@ pub const WIFI: &[Block] = &[
         pill: Pill::Radio,
         rows: &[Row::Field(Field::WifiRadio)],
     },
-    Block { title: "Networks", note: None, pill: Pill::None, rows: &[Row::Networks] },
+    Block {
+        title: "Connection",
+        note: Some("WPA2-Personal or open. WPA3 (SAE) cannot be joined."),
+        pill: Pill::None,
+        rows: &[Row::Live("Status", Live::WifiLink), Row::Live("Last join", Live::WifiJoin)],
+    },
+    Block {
+        title: "Networks",
+        note: Some("Enter scans. C joins the highlighted one, D leaves."),
+        pill: Pill::None,
+        rows: &[Row::Networks],
+    },
+    Block {
+        title: "Saved networks",
+        note: Some("Sealed with the TPM key. R remembers joins, F forgets."),
+        pill: Pill::None,
+        rows: &[Row::Live("Remember networks I join", Live::WifiRemember), Row::Saved],
+    },
 ];
