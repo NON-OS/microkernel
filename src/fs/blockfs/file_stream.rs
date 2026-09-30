@@ -17,6 +17,8 @@
 //! Writing a file in pieces of any size, so a file far larger than memory
 //! never has to be held whole: bytes are sealed into blocks as they fill.
 
+mod state;
+
 use super::file_consts::{DATA_BYTES, MAX_FILE_BYTES};
 use super::tree_store::Block;
 use super::tree_writer::TreeWriter;
