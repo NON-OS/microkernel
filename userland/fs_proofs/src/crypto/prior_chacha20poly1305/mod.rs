@@ -14,24 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where `crate::crypto` points for the included kernel source: the
-//! kernel's own ChaCha20-Poly1305 and constant-time helpers, so a sector
-//! opened here is opened by the code ring 0 runs, and sealed by it too.
+//! The kernel's ChaCha20-Poly1305 as it stood before the 64-bit Poly1305
+//! and the register-held ChaCha20 state (git HEAD 2489b7041,
+//! src/crypto/symmetric/chacha20poly1305/), kept here only as the
+//! reference the differential tests compare the shipping code against.
+//! Same arithmetic, reflowed to fit the file limit.
 
-#[path = "../../../src/crypto/symmetric/chacha20poly1305/mod.rs"]
-pub mod chacha20poly1305;
-#[path = "../../../src/crypto/util/constant_time/mod.rs"]
-pub mod constant_time;
+mod aead;
+mod chacha20;
+mod poly_block;
+mod poly_final;
+mod poly_new;
+mod poly_update;
 
-#[cfg(test)]
-mod aead_vectors;
-#[cfg(test)]
-mod chacha_diff;
-#[cfg(test)]
-mod chacha_vectors;
-#[cfg(test)]
-mod poly_saturated_diff;
-#[cfg(test)]
-mod prior_chacha20poly1305;
-#[cfg(test)]
-mod test_input;
+pub use aead::{aead_encrypt, poly1305_mac};
+pub use chacha20::chacha20_block;
