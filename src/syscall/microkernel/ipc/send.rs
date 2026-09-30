@@ -16,8 +16,6 @@
 
 extern crate alloc;
 
-use core::sync::atomic::{AtomicU32, Ordering};
-
 use crate::ipc::kernel_ipc::kernel_route_ipc_corr;
 use crate::ipc::nonos_channel::IpcMessage;
 use crate::ipc::nonos_inbox;
@@ -26,26 +24,7 @@ use crate::process::current_pid;
 use crate::services::registry::{lookup_port, lookup_service};
 use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 
-static SEND_TRACE_COUNT: AtomicU32 = AtomicU32::new(0);
-
-fn is_traced(pid: u32) -> bool {
-    matches!(pid, 0x18 | 0x1a | 0x1b)
-}
-
-fn trace(pid: u32, endpoint: u64, target: &str, len: usize) {
-    if !is_traced(pid) || SEND_TRACE_COUNT.fetch_add(1, Ordering::Relaxed) >= 48 {
-        return;
-    }
-    crate::sys::serial::trace(b"[IPC-SEND] pid=");
-    crate::sys::serial::trace_hex(pid as u64);
-    crate::sys::serial::trace(b" ep=");
-    crate::sys::serial::trace_hex(endpoint);
-    crate::sys::serial::trace(b" len=");
-    crate::sys::serial::trace_dec(len as u64);
-    crate::sys::serial::trace(b" target=");
-    crate::sys::serial::trace(target.as_bytes());
-    crate::sys::serial::traceln(b"");
-}
+use super::send_trace::trace;
 
 pub fn sys_ipc_send(endpoint: u64, buf: u64, len: usize) -> i64 {
     let rc = send_with_correlation(endpoint, buf, len, 0);
@@ -120,15 +99,14 @@ pub(super) fn send_with_correlation(endpoint: u64, buf: u64, len: usize, correla
          * request and self-mails a core to death; that is the loop the old drop
          * guarded, and dropping instead stranded every kernel round trip.
          */
-        Redirect::ToReplyInbox => match IpcMessage::new(&alloc::format!("proc.{}", pid), &target, &data) {
-            Ok(msg) => {
+        Redirect::ToReplyInbox => {
+            if let Ok(msg) = IpcMessage::new(&alloc::format!("proc.{}", pid), &target, &data) {
                 if nonos_inbox::try_enqueue_strict(&target, msg).is_ok() {
                     nonos_inbox::wake_waiter(&target);
                 }
-                0
             }
-            Err(_) => 0,
-        },
+            0
+        }
         /*
          * Any other send goes to its addressed target with its own correlation
          * (0 for sys_ipc_send, all a forged reply injection can carry).
