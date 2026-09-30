@@ -53,10 +53,16 @@ pub const CSR_INT_MASK: usize = 0x00C;
 pub const CSR_FH_INT_STATUS: usize = 0x010;
 pub const CSR_GP_CNTRL: usize = 0x024;
 pub const CSR_HW_REV: usize = 0x028;
-pub const GP_CNTRL_MAC_CLOCK_READY: u32 = 0x0000_0002;
+// The CSR_GP_CNTRL layout of Linux iwl_csr_v1, which covers every family
+// probed here up to AX210. Bit 1 is undefined there: polling it for the MAC
+// clock timed out on every card, so setup never got past this register.
+// Bz-family parts (BE200) use the v2 layout, which is not implemented.
+pub const GP_CNTRL_MAC_CLOCK_READY: u32 = 0x0000_0001;
 pub const GP_CNTRL_INIT_DONE: u32 = 0x0000_0004;
 pub const GP_CNTRL_MAC_ACCESS_REQ: u32 = 0x0000_0008;
 pub const GP_CNTRL_XTAL_ON: u32 = 0x0000_0400;
+/// Set while the hardware RF-kill switch lets the radio on.
+pub const GP_CNTRL_HW_RF_KILL_SW: u32 = 0x0800_0000;
 pub const ALL_INTS_MASK: u32 = 0xFFFF_FFFF;
 pub const INT_MASK_DISABLED: u32 = 0;
 pub const INT_COALESCING_TIMEOUT: u32 = 64;
@@ -66,7 +72,8 @@ pub const ALIVE_POLL_ITERS: usize = 2_000_000;
 pub const IWL_FW_MAGIC: u32 = 0x0A4C_5749;
 pub const FW_API_VERSION_MASK: u32 = 0xFFFF;
 pub const MIN_FW_API_VERSION: u16 = 22;
-pub const MAX_FW_API_VERSION: u16 = 77;
+/// The newest image bundled (so-a0-gf-a0-86); 77 refused it outright.
+pub const MAX_FW_API_VERSION: u16 = 86;
 
 // Host-command / transmit-queue interface. Once the firmware is alive, the
 // driver hands it commands through a TFD ring per transmit queue. The

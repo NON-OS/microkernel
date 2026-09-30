@@ -22,6 +22,8 @@ pub mod constants;
 pub mod load;
 #[path = "../../capsule_driver_iwlwifi/src/regs.rs"]
 pub mod regs;
+#[path = "../../capsule_driver_iwlwifi/src/firmware/tlv.rs"]
+pub mod tlv;
 
 // The 802.11 frame layer: pure IEEE encoding, no hardware, so it is checked
 // exactly rather than modeled. `src/dot11/mod.rs` pulls in the real files.
@@ -91,3 +93,5 @@ mod gen3_image_tests;
 mod gen3_tests;
 #[cfg(test)]
 mod prph_scratch_tests;
+#[cfg(test)]
+mod blob_scan_tests;
