@@ -606,15 +606,13 @@ microkernel-desktop-gui-async-gate = [
   "nonos-capsule-tokio-smoke",
 ]
 
-# Full desktop image. The desktop-gui set plus every production hardware
-# driver capsule (storage, NIC, audio, USB MSC, I2C HID) and the market,
-# setup-wizard, and input-proof capsules. Excludes only the input-probe
-# injection harness, which exists to fake input during tests. Every
-# capsule here is already in the verified-capsule policy root.
+# Full desktop image, what `make` and `make qemu` build. The desktop-gui set
+# plus every production hardware driver capsule, the market and input-proof
+# capsules, and first-boot setup, which runs before the desktop starts. Only
+# the input-probe injection harness, which fakes input for tests, is left
+# out. Every capsule here is already in the verified-capsule policy root.
 microkernel-full-gui = [
   "microkernel-desktop-gui",
-  "nonos-capsule-driver-ahci",
-  "nonos-capsule-driver-nvme",
   "nonos-capsule-driver-e1000",
   "nonos-capsule-driver-rtl8139",
   "nonos-capsule-driver-rtl8169",
@@ -625,7 +623,7 @@ microkernel-full-gui = [
   "nonos-capsule-driver-i2c-pci",
   "nonos-capsule-driver-i2c-hid",
   "nonos-capsule-market",
-  "nonos-capsule-setup-wizard",
+  "microkernel-setup-wizard",
   "nonos-capsule-input-proof",
   "nonos-capsule-hello",
 ]

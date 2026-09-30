@@ -164,12 +164,12 @@ nonos-mk-swtpm-start: nonos-mk-swtpm-stop
 	@$(SWTPM) socket --tpm2 --tpmstate dir="$(SWTPM_STATE)" --ctrl type=unixio,path="$(SWTPM_SOCK)" --flags startup-clear --daemon
 	@while [ ! -S "$(SWTPM_SOCK)" ]; do perl -e 'select(undef,undef,undef,0.1)'; done
 
-nonos-mk-run-wizard: nonos-mk-setup-wizard-esp $(QEMU_BLK_IMG) $(QEMU_OVMF_VARS_RW)
-	@echo "Booting NONOS (first-boot setup wizard) in QEMU..."
-	@echo "  Network: $(QEMU_NET_DESC)"
-	@echo "  Drive it with the host keyboard; Quit: Ctrl+A then X"
+nonos-mk-run-wizard: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW)
+	$(call nonos_kernel_and_esp,nonos-mk-desktop-gui-prod)
+	@echo "Booting NONOS (first-boot setup; skipped once a boot kept its answers)..."
+	@echo "  Network: $(QEMU_NET_DESC); quit: Ctrl+A then X"
 	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
-		-drive "format=raw,file=fat:rw:$(TARGET_DIR)/esp-setup-wizard" \
+		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
