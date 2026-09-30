@@ -19,7 +19,7 @@ use super::super::types::Pid;
 use alloc::{sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU32, Ordering};
 
-pub use super::current_pid::CurrentPid;
+use super::current_pid::CurrentPid;
 use spin::RwLock;
 
 #[derive(Default)]

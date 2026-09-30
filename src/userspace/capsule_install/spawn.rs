@@ -51,7 +51,7 @@ pub const CLI_CAPS: u64 = Capability::CoreExec.bit()
     | Capability::DeviceEnum.bit()
     | Capability::AttestRead.bit();
 
-pub fn spawn_install_capsule() -> Result<u32, SpawnError> {
+pub(super) fn spawn_install_capsule() -> Result<u32, SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
         .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
     let spec = CapsuleSpecVerified {

@@ -21,7 +21,7 @@ use crate::arch::context::SavedUser;
 use crate::process::userspace::{USER_CS, USER_DS};
 
 /// r8..r15, rdi, rsi, rbp, rbx, rdx, rax, rcx, rsp, rip, rflags.
-pub const WORDS: usize = 18;
+pub(super) const WORDS: usize = 18;
 
 const USER_VA_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
 // CF PF AF ZF SF DF OF are the program's. IF and the reserved bit 1 are forced
@@ -29,7 +29,7 @@ const USER_VA_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
 const USER_FLAGS: u64 = 0x0CD5;
 const FORCED_FLAGS: u64 = 0x202;
 
-pub fn to_words(c: &SavedUser) -> [u64; WORDS] {
+pub(super) fn to_words(c: &SavedUser) -> [u64; WORDS] {
     [
         c.r8, c.r9, c.r10, c.r11, c.r12, c.r13, c.r14, c.r15, c.rdi, c.rsi, c.rbp, c.rbx, c.rdx,
         c.rax, c.rcx, c.rsp, c.rip, c.rflags,
@@ -38,7 +38,7 @@ pub fn to_words(c: &SavedUser) -> [u64; WORDS] {
 
 /// A context the guest may resume into, or None. Selectors and the TLS base
 /// come from the kernel, never from the supervisor.
-pub fn from_words(w: &[u64; WORDS], fs_base: u64) -> Option<SavedUser> {
+pub(super) fn from_words(w: &[u64; WORDS], fs_base: u64) -> Option<SavedUser> {
     let (rsp, rip) = (w[15], w[16]);
     if rip > USER_VA_MAX || rsp > USER_VA_MAX || rsp == 0 {
         return None;

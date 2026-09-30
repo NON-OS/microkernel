@@ -31,11 +31,11 @@ const PEERS: &[(&str, &[&str])] = &[
 ];
 
 /// The list a capsule is held to, or None when it is not held to one.
-pub fn peers_of(caller: &str) -> Option<&'static [&'static str]> {
+pub(crate) fn peers_of(caller: &str) -> Option<&'static [&'static str]> {
     PEERS.iter().find(|(name, _)| *name == caller).map(|(_, peers)| *peers)
 }
 
 /// Whether `caller` may send to the endpoint called `target`.
-pub fn may_reach(caller: &str, target: &str) -> bool {
+pub(crate) fn may_reach(caller: &str, target: &str) -> bool {
     peers_of(caller).is_none_or(|peers| peers.contains(&target))
 }

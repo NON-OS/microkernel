@@ -28,7 +28,7 @@ extern "C" {
     /// # Safety
     /// `ptr` must be valid for writes of `len` bytes. The routine writes
     /// exactly that range and touches no other memory.
-    pub fn nonos_scrub_bytes(ptr: *mut u8, len: usize);
+    pub(super) fn nonos_scrub_bytes(ptr: *mut u8, len: usize);
 }
 
 #[cfg(test)]

@@ -29,7 +29,7 @@ use super::types::Capability;
 /// fragment Aeneas translates, so the version that shipped could not be proven
 /// about at all.
 #[inline]
-pub fn fold_caps(table: &[Capability], bits: u64) -> u64 {
+pub(crate) fn fold_caps(table: &[Capability], bits: u64) -> u64 {
     let mut acc = bits;
     let mut i = 0;
     while i < table.len() {
@@ -47,7 +47,7 @@ pub fn fold_caps(table: &[Capability], bits: u64) -> u64 {
 /// `granting_resolves` in `verification/extraction/lean/NonosExtraction` is the
 /// theorem that rules that out, and it is stated about this function.
 #[inline]
-pub fn select_caps(table: &[Capability], bits: u64) -> Vec<Capability> {
+pub(crate) fn select_caps(table: &[Capability], bits: u64) -> Vec<Capability> {
     let mut out = Vec::new();
     let mut i = 0;
     while i < table.len() {

@@ -18,7 +18,7 @@
 
 /// The user stack pointer.
 #[inline]
-pub fn user_rsp() -> u64 {
+pub(super) fn user_rsp() -> u64 {
     let rsp: u64;
     /*
      * SAFETY: eK@nonos.systems - reads `user_stack_saved` in PerCpuData

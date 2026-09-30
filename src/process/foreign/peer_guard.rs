@@ -38,8 +38,8 @@ pub(super) fn in_user_half(addr: u64, len: u64) -> bool {
     }
 }
 
-pub const PROT_WRITE: u64 = 1 << 0;
-pub const PROT_EXEC: u64 = 1 << 1;
+pub(super) const PROT_WRITE: u64 = 1 << 0;
+pub(super) const PROT_EXEC: u64 = 1 << 1;
 /*
  * No access from the guest at all. The page stays present with the user bit
  * clear, so every guest access faults and the frame keeps its bytes for a

@@ -39,7 +39,7 @@ impl AllocationHeader {
 /// Where the data starts in a block aligned to `align`: past the header,
 /// rounded up so the data itself has the caller's alignment. The header sits
 /// directly before the data either way, where free and verify look for it.
-pub const fn data_offset(align: usize) -> usize {
+pub(crate) const fn data_offset(align: usize) -> usize {
     let header = core::mem::size_of::<AllocationHeader>();
     (header + align - 1) & !(align - 1)
 }
