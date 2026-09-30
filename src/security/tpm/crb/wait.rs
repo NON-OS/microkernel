@@ -21,7 +21,7 @@ use super::regs::{
     COMPLETE_SPINS, READY_SPINS, TPM_CRB_CTRL_START, TPM_CRB_CTRL_STS, TPM_CRB_START_GO,
     TPM_CRB_STS_TPM_IDLE,
 };
-use super::window::read32;
+use crate::security::tpm::mmio::read32;
 use crate::security::tpm::error::TpmError;
 
 pub(super) fn wait_ready() -> Result<(), TpmError> {

@@ -18,15 +18,15 @@ use super::regs::{
     READY_SPINS, TPM_INTERFACE_ID, TPM_INTF_TYPE_CRB, TPM_INTF_TYPE_MASK, TPM_LOC_CTRL,
     TPM_LOC_CTRL_RELINQUISH, TPM_LOC_CTRL_REQUEST, TPM_LOC_STS, TPM_LOC_STS_GRANTED,
 };
-use super::window::{init_window, read32, write32};
 use crate::security::tpm::error::TpmError;
+use crate::security::tpm::mmio::{init_window, read32, write32};
 
 /// Map the window and confirm a CRB part is behind it.
 ///
-/// Refusing a FIFO part is not a limitation to work around: the two register
-/// files overlap, so driving a FIFO part through CRB offsets writes command
-/// bytes into control registers and produces a garbled response rather than an
-/// error.
+/// The transport already chose CRB; this re-reads the identity because the
+/// two register files overlap, and driving a FIFO part through CRB offsets
+/// writes command bytes into control registers and produces a garbled
+/// response rather than an error.
 pub(super) fn probe() -> Result<(), TpmError> {
     init_window()?;
     let intf = read32(TPM_INTERFACE_ID)?;

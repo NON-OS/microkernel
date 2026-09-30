@@ -20,7 +20,7 @@ use super::buffer::command_buffer;
 use super::regs::{TPM_CRB_CTRL_REQ, TPM_CRB_CTRL_START, TPM_CRB_REQ_COMMAND_READY, TPM_CRB_START_GO};
 use super::wait::{wait_complete, wait_ready};
 use super::response::read_response;
-use super::window::write32;
+use crate::security::tpm::mmio::write32;
 use crate::security::tpm::error::TpmError;
 
 /// Run one command and copy the response back.

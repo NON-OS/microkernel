@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Command Response Buffer transport, at runtime.
+//! The TPM register window, shared by both interfaces.
 //!
-//! Every firmware TPM presents this interface: Intel PTT, AMD fTPM and QEMU's
-//! `tpm-crb` all do. The part publishes a buffer in memory and a doorbell
-//! rather than accepting bytes through a port.
+//! CRB and FIFO parts decode the same 0xFED40000 range, one locality per
+//! 4 KiB page, so there is one uncached mapping of it and each driver reads
+//! its own register file through it. Mapping the range twice would create
+//! two aliases of the same device memory for no gain.
 
-mod buffer;
-mod exec;
-mod locality;
-mod regs;
-mod response;
-mod transact;
-mod wait;
+mod access;
+mod map;
 
-pub(in crate::security::tpm) use transact::transact;
+pub(in crate::security::tpm) use access::{read32, read8, write32, write8};
+pub(in crate::security::tpm) use map::{init_window, TPM_MMIO_BASE};

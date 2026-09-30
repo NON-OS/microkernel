@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) const TPM_MMIO_BASE: u64 = 0xFED4_0000;
-pub(super) const TPM_MMIO_SIZE: usize = 0x5000;
-
 /// Interface identity. The low nibble says which register file the part
 /// presents; a CRB part reads back zero at the FIFO identity offset, so
 /// identity must come from whichever file is actually there.

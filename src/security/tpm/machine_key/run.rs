@@ -25,7 +25,7 @@ use core::ops::Deref;
 
 use super::error::KeyError;
 use crate::security::hardening::memory_sanitization::secure_zero_slice;
-use crate::security::tpm::crb::transact;
+use crate::security::tpm::transact;
 
 /// Longer than any response this module can provoke. The largest is the
 /// create, whose public area and private blob together stay well inside this;

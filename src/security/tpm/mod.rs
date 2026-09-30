@@ -23,5 +23,10 @@
 pub mod ak;
 pub mod crb;
 pub mod error;
+mod fifo;
 pub mod machine_key;
+mod mmio;
 pub mod quote;
+mod transport;
+
+pub use transport::transact;

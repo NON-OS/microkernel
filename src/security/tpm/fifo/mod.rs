@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Command Response Buffer transport, at runtime.
+//! FIFO (TIS) transport, at runtime.
 //!
-//! Every firmware TPM presents this interface: Intel PTT, AMD fTPM and QEMU's
-//! `tpm-crb` all do. The part publishes a buffer in memory and a doorbell
-//! rather than accepting bytes through a port.
+//! Most discrete TPM 2.0 chips present this interface rather than CRB:
+//! command bytes go in through a data port a burst at a time, the part is
+//! told to go, and the response comes back out of the same port. QEMU's
+//! `tpm-tis` does the same.
+//!
+//! Everything but `mmio_bus` is generic over [`bus::FifoBus`], so the host
+//! proofs drive the shipping protocol against a modelled register file.
 
-mod buffer;
-mod exec;
-mod locality;
-mod regs;
-mod response;
-mod transact;
-mod wait;
+pub(crate) mod bus;
+pub(crate) mod fail;
+pub(crate) mod locality;
+mod mmio_bus;
+pub(crate) mod recv;
+pub(crate) mod regs;
+pub(crate) mod send;
+pub(crate) mod session;
 
-pub(in crate::security::tpm) use transact::transact;
+pub(in crate::security::tpm) use mmio_bus::transact;

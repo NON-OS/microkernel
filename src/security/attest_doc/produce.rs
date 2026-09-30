@@ -22,9 +22,9 @@ use super::error::AttestDocError;
 use crate::memory::iommu::{capabilities, unconfined_grants, IommuVendor};
 use crate::security::attest_registry::{attested_count, registry_complete, registry_root};
 use crate::security::tpm::ak::ak_public;
-use crate::security::tpm::crb::transact;
 use crate::security::tpm::error::TpmError;
 use crate::security::tpm::quote::{build_quote, check_attest, parse_quote};
+use crate::security::tpm::transact;
 
 /// PCRs covered by the quote: the firmware and boot chain measurements the
 /// bootloader extended. Naming them explicitly rather than quoting every PCR

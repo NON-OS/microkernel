@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Command Response Buffer transport, at runtime.
+//! Picking the interface and running a command through it.
 //!
-//! Every firmware TPM presents this interface: Intel PTT, AMD fTPM and QEMU's
-//! `tpm-crb` all do. The part publishes a buffer in memory and a doorbell
-//! rather than accepting bytes through a port.
+//! Firmware TPMs (Intel PTT, AMD fTPM, QEMU `tpm-crb`) present CRB; most
+//! discrete TPM 2.0 chips (and QEMU `tpm-tis`) present the FIFO. Callers see
+//! neither: they hand [`transact`] a command and get the response.
 
-mod buffer;
-mod exec;
-mod locality;
-mod regs;
-mod response;
-mod transact;
-mod wait;
+mod acpi;
+mod detect;
+mod dispatch;
+mod ident;
 
-pub(in crate::security::tpm) use transact::transact;
+pub use dispatch::transact;

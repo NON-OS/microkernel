@@ -19,8 +19,8 @@ use core::sync::atomic::{AtomicU32, Ordering};
 use super::create::build_create_primary;
 use super::identity::remember;
 use super::public::parse_public;
-use crate::security::tpm::crb::transact;
 use crate::security::tpm::error::TpmError;
+use crate::security::tpm::transact;
 
 /// Handle of the loaded attestation key, or zero before bring-up. Transient:
 /// the TPM forgets it at reset, which costs nothing because the same

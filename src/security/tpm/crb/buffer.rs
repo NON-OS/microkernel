@@ -18,10 +18,10 @@ use super::regs::{
     MAX_PLAUSIBLE_BUFFER, TPM_CRB_CTRL_CMD_HADDR, TPM_CRB_CTRL_CMD_LADDR, TPM_CRB_CTRL_CMD_SIZE,
     TPM_CRB_CTRL_RSP_HADDR, TPM_CRB_CTRL_RSP_LADDR, TPM_CRB_CTRL_RSP_SIZE,
 };
-use super::window::read32;
 use crate::memory::addr::PhysAddr;
 use crate::memory::unified::phys_to_virt;
 use crate::security::tpm::error::TpmError;
+use crate::security::tpm::mmio::read32;
 
 /// Where the part expects a command, as the kernel can reach it.
 ///
