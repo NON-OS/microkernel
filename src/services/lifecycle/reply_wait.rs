@@ -32,20 +32,38 @@ const SLOW_BUDGET_MS: u64 = 5_000;
  * run queue, so the capsule runs. The reply goes to a kernel inbox that
  * wakes no one, so each sleep is a single tick.
  */
-/// Wait one round for a reply. False once the budget is spent.
-pub(super) fn pause(round: u32, started_ms: u64) -> bool {
+/// Wait one round for a reply. False once the budget is spent. `mark` is
+/// the caller's `wake_mark`, read before it last looked for the reply.
+pub(super) fn pause(round: u32, started_ms: u64, mark: u64) -> bool {
     if round >= FAST_ROUNDS
         && crate::time::timestamp_millis().saturating_sub(started_ms) >= SLOW_BUDGET_MS
     {
         return false;
     }
-    rest(round);
+    rest_since(round, mark);
     true
+}
+
+/*
+ * The reply wakes the caller after it lands, and a sleep only refuses to
+ * start for a wake that came after its token was read. Read after the look
+ * at the inbox, as it was, the token already counted a reply that landed in
+ * between: the caller slept to the next tick with the reply waiting, and
+ * with the capsule on another CPU that window is live on every request.
+ * Read before the look, a reply the look missed always ends the sleep.
+ */
+/// The caller's wake generation, to be read before it looks for a reply.
+pub(super) fn wake_mark() -> u64 {
+    crate::process::current_pid().map_or(0, crate::sched::wake_token)
 }
 
 /// Give the CPU away for one round, by sleeping a tick once plain yields
 /// have had their chance. A caller with no process can only yield.
 pub(super) fn rest(round: u32) {
+    rest_since(round, wake_mark());
+}
+
+fn rest_since(round: u32, mark: u64) {
     let pid = match crate::process::current_pid() {
         Some(pid) if round >= FAST_ROUNDS => pid,
         _ => {
@@ -53,8 +71,7 @@ pub(super) fn rest(round: u32) {
             return;
         }
     };
-    let token = crate::sched::wake_token(pid);
     let wake = crate::time::timestamp_millis().saturating_add(1);
-    crate::sched::sleep_until_unless_woken(pid, wake, token);
+    crate::sched::sleep_until_unless_woken(pid, wake, mark);
     crate::sched::yield_now();
 }

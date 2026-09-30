@@ -194,6 +194,7 @@ pub fn round_trip(
         if state.generation() != gen_at_send {
             return Err(TransportError::Stale);
         }
+        let mark = super::reply_wait::wake_mark();
         if let Some(reply) = nonos_inbox::try_dequeue_existing(reply_inbox) {
             if state.generation() != gen_at_send {
                 return Err(TransportError::Stale);
@@ -204,7 +205,7 @@ pub fn round_trip(
             }
             return Ok(ResponseBytes { status: resp.status, body: resp.body.to_vec() });
         }
-        if !super::reply_wait::pause(round, started_ms) {
+        if !super::reply_wait::pause(round, started_ms, mark) {
             break;
         }
     }
