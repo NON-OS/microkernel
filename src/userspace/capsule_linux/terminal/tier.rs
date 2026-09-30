@@ -22,8 +22,27 @@ use alloc::vec::Vec;
 
 /// Every word a terminal may send. The empty word is the first of them. The
 /// names the personality knows the tiers by are these with `qwen-` before
-/// them, and those it checks against the table its measurement covers.
-const TIERS: [&str; 4] = ["small", "medium", "large", "xlarge"];
+/// them, and those it checks against the table its measurement covers:
+/// Qwen2.5 from 0.5B to 32B, Qwen3 from 0.6B to 32B, and Qwen2.5-Coder.
+const TIERS: [&str; 17] = [
+    "small",
+    "medium",
+    "large",
+    "xlarge",
+    "xxl",
+    "max",
+    "qwen3-0.6b",
+    "qwen3-1.7b",
+    "qwen3-4b",
+    "qwen3-8b",
+    "qwen3-14b",
+    "qwen3-30b-a3b",
+    "qwen3-32b",
+    "coder-1.5b",
+    "coder-7b",
+    "coder-14b",
+    "coder-32b",
+];
 
 /// The tier `word` names, as an index into the allowlist, or `None` for any
 /// word outside it. NUL bytes after the word are not part of it.

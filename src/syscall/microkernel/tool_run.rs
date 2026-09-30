@@ -27,8 +27,8 @@ const MAX_ARGV: usize = 4096;
 /// NUL-separated argument blob (`name\0arg1\0...`), empty for none. Returns the
 /// new tool's pid, or an errno. Only the baked set can be named, so a caller can
 /// never point this at an arbitrary binary. `tool.qwen` is the exception
-/// that is not an embedded tool: `argv` is a tier word (`small`, `medium`,
-/// `large`, `xlarge`, or empty for `small`) and the child is the Linux
+/// that is not an embedded tool: `argv` is a tier word from the allowlist in
+/// `capsule_linux/terminal/tier.rs` (empty for `small`) and the child is the Linux
 /// personality running that tier on the caller's terminal. Any other word
 /// is EINVAL, all terminal-run slots held is EBUSY.
 pub fn sys_tool_run(name_ptr: u64, name_len: u64, argv_ptr: u64, argv_len: u64) -> i64 {
