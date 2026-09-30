@@ -30,6 +30,6 @@ pub use install::{spawn_install, spawn_run};
 pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
 pub use state::shared_state;
 pub use terminal::{
-    admit_terminal_run, end_terminal_runs_of, is_private_run, run_tier_for_caller,
+    admit_terminal_run, end_terminal_runs_of, is_private_run, run_qwen_for_caller,
     terminal_run_gone,
 };

@@ -30,7 +30,9 @@ const MAX_ARGV: usize = 4096;
 /// that is not an embedded tool: `argv` is a tier word from the allowlist in
 /// `capsule_linux/terminal/tier.rs` (empty for `small`) and the child is the Linux
 /// personality running that tier on the caller's terminal. Any other word
-/// is EINVAL, all terminal-run slots held is EBUSY.
+/// is EINVAL, all terminal-run slots held is EBUSY. `window\0<tier>` checks
+/// the tier word against the same allowlist and queues that tier in its own
+/// desktop window, returning 0 (init starts it, so there is no pid yet).
 pub fn sys_tool_run(name_ptr: u64, name_len: u64, argv_ptr: u64, argv_len: u64) -> i64 {
     let nlen = name_len as usize;
     if nlen == 0 || nlen > MAX_NAME || validate_user_read(name_ptr, nlen).is_err() {

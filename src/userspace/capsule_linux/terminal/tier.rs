@@ -61,6 +61,10 @@ pub(super) fn parse(word: &[u8]) -> Option<u8> {
 /// terminal form of the program rather than its window. The question never
 /// travels here; it goes to the program's stdin.
 pub(super) fn argv(index: u8) -> Option<Vec<String>> {
-    let tier = TIERS.get(usize::from(index))?;
-    Some(vec![String::from("run"), alloc::format!("qwen-{tier}"), String::from("cli")])
+    Some(vec![String::from("run"), package(index)?, String::from("cli")])
+}
+
+/// The name the personality knows tier `index` by, its shipped program.
+pub(super) fn package(index: u8) -> Option<String> {
+    Some(alloc::format!("qwen-{}", TIERS.get(usize::from(index))?))
 }

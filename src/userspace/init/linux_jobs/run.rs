@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Starting what a queued run asked for, said on the log.
 
-//! Work a capsule asks the Linux personality to do, performed by init: an
-//! install once the market vouches for it, or a run of what was installed.
+use crate::sys::serial::{print, println};
+use crate::userspace::capsule_linux::spawn_run;
 
-mod queue;
-mod run;
-mod service;
-mod status;
-mod why;
-
-pub(crate) use queue::{has_pending, request_install, request_quiet_run, request_run};
-pub(crate) use service::service;
-pub(crate) use status::{get as install_stage, Stage};
+/// Start `package`'s program. A quiet run is said without its package: a
+/// shipped tier a terminal asked for is named nowhere on the log.
+pub(super) fn run(package: &str, quiet: bool) {
+    let said: &[u8] = match spawn_run(package) {
+        Ok(_) => b"[LINUX-RUN] started ",
+        Err(_) => b"[LINUX-RUN] refused ",
+    };
+    print(said);
+    println(if quiet { b"a Qwen window" } else { package.as_bytes() });
+}

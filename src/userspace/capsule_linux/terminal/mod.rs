@@ -17,6 +17,8 @@
 //! run a Qwen tier in the terminal rather than in a window. A small fixed set
 //! of slots, each with endpoints of its own, holds these runs; the process in
 //! a slot is private from its first instruction and ends with its terminal.
+//! A terminal may instead ask for a tier in its own window (`window`), which
+//! is queued for init as the store's runs are and is not the terminal's.
 
 mod admit;
 mod exit;
@@ -25,7 +27,8 @@ mod roles;
 mod run;
 mod slots;
 mod tier;
+mod window;
 
 pub use admit::{admit_terminal_run, is_private_run};
 pub use exit::{end_terminal_runs_of, terminal_run_gone};
-pub use run::run_tier_for_caller;
+pub use window::run_qwen_for_caller;

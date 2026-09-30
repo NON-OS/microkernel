@@ -16,7 +16,7 @@
 
 use crate::security::market_capsule::client::{queued_get_release, queued_install_ready};
 use crate::sys::serial::{print, println};
-use crate::userspace::capsule_linux::{package_arg, spawn_install, spawn_run};
+use crate::userspace::capsule_linux::{package_arg, spawn_install};
 
 use super::queue::{take, Job};
 use super::status::Stage;
@@ -26,14 +26,7 @@ pub(crate) fn service() {
     for job in take() {
         match job {
             Job::Install(listing, release) => install(&listing, &release),
-            Job::Run(package) => {
-                let said: &[u8] = match spawn_run(&package) {
-                    Ok(_) => b"[LINUX-RUN] started ",
-                    Err(_) => b"[LINUX-RUN] refused ",
-                };
-                print(said);
-                println(package.as_bytes());
-            }
+            Job::Run(package, quiet) => super::run::run(&package, quiet),
         }
     }
 }

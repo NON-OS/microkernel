@@ -25,8 +25,9 @@ const DEPTH: usize = 8;
 pub(super) enum Job {
     /// A listing and the release asked for, which is empty for the default.
     Install(String, String),
-    /// A package whose program should start.
-    Run(String),
+    /// A package whose program should start, and whether its name is kept
+    /// off the log (true for a shipped tier a terminal asked for).
+    Run(String, bool),
 }
 
 static PENDING: Mutex<Vec<Job>> = Mutex::new(Vec::new());
@@ -44,7 +45,13 @@ pub(crate) fn request_install(listing: String, release: String) -> bool {
 
 /// Queue a run. False when full or already queued.
 pub(crate) fn request_run(package: String) -> bool {
-    push(Job::Run(package))
+    push(Job::Run(package, false))
+}
+
+/// Queue a run whose package name never reaches the log. False when full
+/// or already queued.
+pub(crate) fn request_quiet_run(package: String) -> bool {
+    push(Job::Run(package, true))
 }
 
 fn push(job: Job) -> bool {

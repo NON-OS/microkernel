@@ -30,7 +30,7 @@ use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_INVAL, ERRNO_NOENT, 
 /// EBUSY when every slot is held, EPERM without a calling process, ENOENT
 /// when this image carries no personality, and EINVAL for a spawn the
 /// verified path refused.
-pub fn run_tier_for_caller(word: &[u8]) -> Result<u32, i64> {
+pub(super) fn run_tier_for_caller(word: &[u8]) -> Result<u32, i64> {
     let Some(index) = tier::parse(word) else {
         crate::sys::serial::print(b"[LINUX-TERM] refused: unknown tier\n");
         return Err(ERRNO_INVAL);
