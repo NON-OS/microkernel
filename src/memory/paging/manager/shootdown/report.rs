@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 
-use super::request::REQ_PENDING_ACKS;
+use super::request::{REQ_PAGES, REQ_PENDING_ACKS, REQ_VA};
 
 /// What every CPU looked like when the round gave up, printed before the halt.
 /// A timeout says only that an ack did not arrive; which cpu owed it, whether
@@ -25,6 +25,10 @@ use super::request::REQ_PENDING_ACKS;
 pub(super) fn report_stuck() {
     let mut head = crate::sys::serial::Line::new();
     head.str(b"[SMP] acks outstanding=").dec(REQ_PENDING_ACKS.load(Ordering::Acquire) as u64);
+    // What the round was for: a kernel-half or a user address, one page or a
+    // whole flush (pages=0), which names the kind of change that waited.
+    head.str(b" va=").hex(REQ_VA.load(Ordering::Acquire));
+    head.str(b" pages=").dec(REQ_PAGES.load(Ordering::Acquire) as u64);
     head.end();
     for cpu in 0..crate::smp::MAX_CPUS {
         if !crate::smp::cpu_is_online(cpu) {
