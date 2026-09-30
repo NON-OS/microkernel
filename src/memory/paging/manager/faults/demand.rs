@@ -35,6 +35,19 @@ impl PagingManager {
         }
 
         /*
+         * The fault reported the page absent when it was taken, not now. Two
+         * threads of one process on two CPUs can fault on the same page at
+         * once; the second waits on the manager lock while the first fills
+         * it. Filling again would put a fresh zero page over the one the
+         * first thread may already have written, and leak it. The caller
+         * holds the lock, so nothing can change the entry between this check
+         * and the fill below; present means the faulting access is retried.
+         */
+        if self.leaf_entry(virtual_addr).is_ok() {
+            return Ok(());
+        }
+
+        /*
          * Charge the page against the faulting process's demand budget. A
          * runaway capsule is refused here and killed by the fault path instead
          * of exhausting physical memory.
