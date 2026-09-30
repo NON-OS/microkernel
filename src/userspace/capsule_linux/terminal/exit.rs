@@ -13,23 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! A terminal run ends with the terminal that started it, and its slot is
+//! free again once it is gone.
 
-//! The Linux personality capsule: its signed artifacts baked into the
-//! kernel, and the spawn that admits them.
+use crate::process::signal::SIGKILL;
 
-mod embed;
-mod family;
-mod install;
-mod roles;
-mod spawn;
-mod state;
-mod terminal;
+/// `parent` is exiting: end every run it started. A run outliving its
+/// terminal would hold a slot, and a model's memory, for no one to read.
+pub fn end_terminal_runs_of(parent: u32) {
+    for pid in super::held::held_by(parent) {
+        crate::process::exit::teardown(pid, 128 + SIGKILL as i32, true);
+    }
+}
 
-pub use family::package_arg;
-pub use install::{spawn_install, spawn_run};
-pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
-pub use state::shared_state;
-pub use terminal::{
-    admit_terminal_run, end_terminal_runs_of, is_private_run, run_tier_for_caller,
-    terminal_run_gone,
-};
+/// `pid` is gone and its endpoints are unregistered: free its slot, if it
+/// held one.
+pub fn terminal_run_gone(pid: u32) {
+    super::held::release(pid);
+}

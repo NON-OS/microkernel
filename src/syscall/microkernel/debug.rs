@@ -17,7 +17,9 @@
 //! `MkDebug` handler. A capsule emits one short diagnostic line on the
 //! boot serial. The contract layer has already verified the
 //! `Capability::Debug` token; this layer only validates the user
-//! buffer and writes it through.
+//! buffer and writes it through. A caller whose output is private (a
+//! terminal's run of the Linux personality, or a guest it hosts) is never
+//! written to serial; its line goes only to its own `proc.<pid>` inbox.
 //!
 //! The line is bounded to `MAX_LEN` bytes after which the syscall
 //! returns `-EINVAL`. Empty calls are also rejected. Non-printable
@@ -45,7 +47,16 @@ pub fn sys_mk_debug(user_ptr: u64, len: u64) -> i64 {
     if crate::usercopy::copy_from_user(user_ptr, &mut buf[..len]).is_err() {
         return ERRNO_FAULT;
     }
-    crate::sys::serial::print(&buf[..len]);
+    /*
+     * A terminal's run of the Linux personality, or a guest it hosts, has
+     * someone's private text in its output: its lines go to its own inbox
+     * only, never the serial console.
+     */
+    let private =
+        crate::process::current_pid().is_some_and(crate::userspace::capsule_linux::is_private_run);
+    if !private {
+        crate::sys::serial::print(&buf[..len]);
+    }
     // Mirror to the on-screen log too: a capsule reporting its bring-up on a
     // machine with no serial port is otherwise invisible. No-op unless the
     // framebuffer console is enabled (NONOS_FBCONSOLE=1 bring-up build).
@@ -56,6 +67,7 @@ pub fn sys_mk_debug(user_ptr: u64, len: u64) -> i64 {
     // headless bring-up.
     /* crate::sys::boot_log::capsule_screen(&buf[..len]); */
     mirror_to_proc_inbox(&buf[..len]);
+    buf[..len].fill(0);
     len as i64
 }
 

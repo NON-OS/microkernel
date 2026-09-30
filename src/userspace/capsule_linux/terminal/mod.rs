@@ -13,23 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The personality started by a terminal, as that terminal's own child, to
+//! run a Qwen tier in the terminal rather than in a window. A small fixed set
+//! of slots, each with endpoints of its own, holds these runs; the process in
+//! a slot is private from its first instruction and ends with its terminal.
 
-//! The Linux personality capsule: its signed artifacts baked into the
-//! kernel, and the spawn that admits them.
+mod admit;
+mod exit;
+mod held;
+mod run;
+mod slots;
+mod tier;
 
-mod embed;
-mod family;
-mod install;
-mod roles;
-mod spawn;
-mod state;
-mod terminal;
-
-pub use family::package_arg;
-pub use install::{spawn_install, spawn_run};
-pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
-pub use state::shared_state;
-pub use terminal::{
-    admit_terminal_run, end_terminal_runs_of, is_private_run, run_tier_for_caller,
-    terminal_run_gone,
-};
+pub use admit::{admit_terminal_run, is_private_run};
+pub use exit::{end_terminal_runs_of, terminal_run_gone};
+pub use run::run_tier_for_caller;

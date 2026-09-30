@@ -31,8 +31,16 @@ pub(super) fn finalize_teardown(pid: Pid) {
         let _ = crate::services::registry::unregister_endpoint_by_name(reply.as_str());
         let _ = crate::ipc::nonos_inbox::unregister_inbox(reply.as_str());
     }
+    /*
+     * A terminal run's slot is free for the next run only now, with both of
+     * its endpoints gone, or that run would collide on them.
+     */
+    crate::userspace::capsule_linux::terminal_run_gone(pid);
     if !super::postmortem::is_retained(pid) {
         let _ = crate::ipc::nonos_inbox::unregister_for_pid(pid);
+    } else {
+        // Output is kept for the parent to drain; input has no reader left.
+        let _ = crate::ipc::nonos_inbox::unregister_stdin_for_pid(pid);
     }
 
     crate::syscall::microkernel::tty_table::forget(pid);

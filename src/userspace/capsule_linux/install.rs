@@ -44,6 +44,15 @@ pub fn spawn_run(package: &str) -> Result<u32, SpawnError> {
 }
 
 fn spawn(role: &Role, argv: Vec<String>) -> Result<u32, SpawnError> {
+    let pid = spawn_role(role)?;
+    crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv);
+    Ok(pid)
+}
+
+/// The personality in `role`, parented to the caller, with no argument
+/// vector set here: a caller that must hand one over before the process
+/// first runs does it from the spawn path (see `terminal::admit`).
+pub(super) fn spawn_role(role: &Role) -> Result<u32, SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
         .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
     let spec = CapsuleSpecVerified {
@@ -59,7 +68,5 @@ fn spawn(role: &Role, argv: Vec<String>) -> Result<u32, SpawnError> {
         requested_caps: LINUX_CAPS | role.extra_caps,
         debug_tag: role.tag,
     };
-    let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
-    crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv);
-    Ok(pid)
+    capsule_spawn::spawn_verified(&spec, &trust_anchor, None)
 }

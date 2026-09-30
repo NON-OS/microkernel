@@ -28,6 +28,9 @@ use crate::process::core::{create_process_with_parent, ProcessState};
 use crate::services::registry::{adopt_endpoint, register_endpoint, required_caps};
 use alloc::format;
 
+/// Messages a capsule's stdin inbox holds before its parent is told EBUSY.
+const STDIN_CAPACITY: usize = 64;
+
 pub(crate) fn run(params: &InstallParams<'_>) -> Result<u32, SpawnError> {
     super::trace::trace(params.name, b"install enter");
     if params.elf.is_empty() {
@@ -69,6 +72,13 @@ pub(crate) fn run(params: &InstallParams<'_>) -> Result<u32, SpawnError> {
         .map_err(|_| SpawnError::EndpointCollision)?;
     nonos_inbox::register_inbox(&format!("proc.{}", pid), pid)
         .map_err(|_| SpawnError::ProcessCreation)?;
+    /*
+     * What its parent feeds it (MkProcInput), drained with MkStdinRead. It
+     * goes with `proc.<pid>` when the process is torn down. Small: every
+     * capsule has one, and a parent refused by a full one feeds it later.
+     */
+    nonos_inbox::register_inbox_with_capacity(&format!("stdin.{}", pid), pid, STDIN_CAPACITY)
+        .map_err(|_| SpawnError::ProcessCreation)?;
     let entry = super::load_elf_into_pid::load_elf_into_pid(params.elf, pid, params.debug_tag)?;
     let caps = params.caps_bits;
     super::install_caps::install_caps(pid, caps)?;
@@ -81,6 +91,11 @@ pub(crate) fn run(params: &InstallParams<'_>) -> Result<u32, SpawnError> {
         SpawnError::EndpointCollision
     })?;
     super::spawn_log::emit(params.name, pid, caps, entry);
+    /*
+     * Nothing below can fail. A terminal's run of the Linux personality gets
+     * its request and is marked private here, before it can first run.
+     */
+    crate::userspace::capsule_linux::admit_terminal_run(params.name, pid);
     crate::sched::add_to_run_queue(pid);
     crate::sys::bench::mark_named(b"capsule_runqueue_ok", params.name.as_bytes());
     super::trace::trace(params.name, b"runqueue ok");

@@ -57,4 +57,10 @@ pub fn teardown(pid: Pid, exit_code: i32, by_signal: bool) {
     crate::process::accounting::clear(pid);
     crate::process::foreign::clear(pid);
     super::pending::enqueue(pid);
+    /*
+     * A terminal's runs of the Linux personality end with it rather than
+     * pass to init: nothing else can read or answer them. This pid is a
+     * zombie already, so a run's own teardown cannot come back here for it.
+     */
+    crate::userspace::capsule_linux::end_terminal_runs_of(pid);
 }
