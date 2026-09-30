@@ -45,8 +45,8 @@ pub const MAX_INBOX_CAPACITY: usize = 65536;
 /// liveness-checked.
 pub const KERNEL_OWNER: u32 = 0;
 
-struct Registry {
-    map: BTreeMap<String, Arc<Inbox>>,
+pub(super) struct Registry {
+    pub(super) map: BTreeMap<String, Arc<Inbox>>,
 }
 
 impl Registry {
@@ -55,13 +55,13 @@ impl Registry {
     }
 }
 
-static REGISTRY: RwLock<Registry> = RwLock::new(Registry::new());
+pub(super) static REGISTRY: RwLock<Registry> = RwLock::new(Registry::new());
 static DEFAULT_CAP: AtomicUsize = AtomicUsize::new(DEFAULT_INBOX_CAPACITY);
-static GLOBAL_STATS: GlobalStats = GlobalStats::new();
+pub(super) static GLOBAL_STATS: GlobalStats = GlobalStats::new();
 
-struct GlobalStats {
+pub(super) struct GlobalStats {
     total_inboxes_created: AtomicU64,
-    total_inboxes_removed: AtomicU64,
+    pub(super) total_inboxes_removed: AtomicU64,
 }
 
 impl GlobalStats {
@@ -137,71 +137,6 @@ pub fn unregister_inbox(module: &str) -> Option<usize> {
     } else {
         None
     }
-}
-
-/// Drop the canonical per-process inboxes `proc.{pid}` and `stdin.{pid}`
-/// for a dying capsule, zeroing what is still queued in them: a child's
-/// output and its input can be someone's private text. Called from
-/// `process::exit::teardown`. Returns the count dropped from `proc.{pid}`.
-/// Reply inboxes (`endpoint.<u64>`) are kernel-owned and intentionally left
-/// alone so a respawn reuses them; stale replies are filtered by the
-/// transport's generation re-check.
-pub fn unregister_for_pid(pid: u32) -> Option<usize> {
-    let _ = unregister_stdin_for_pid(pid);
-    remove_zeroed(&alloc::format!("proc.{}", pid))
-}
-
-/// Drop `stdin.{pid}` alone, zeroing what is queued in it. Nothing reads a
-/// dead process's input, even while its output is kept for its parent.
-pub fn unregister_stdin_for_pid(pid: u32) -> Option<usize> {
-    remove_zeroed(&alloc::format!("stdin.{}", pid))
-}
-
-fn remove_zeroed(module: &str) -> Option<usize> {
-    let inbox = REGISTRY.write().map.remove(module)?;
-    GLOBAL_STATS.total_inboxes_removed.fetch_add(1, Ordering::Relaxed);
-    let mut dropped = 0;
-    while let Some(mut msg) = inbox.dequeue() {
-        crate::crypto::secure_zero(&mut msg.data);
-        dropped += 1;
-    }
-    Some(dropped)
-}
-
-/// Take at most `max` bytes from the front of `module`, as a stream: the
-/// rest of a longer message stays first in line for the next take, so no
-/// byte is dropped. The kernel's copies of what was split are zeroed. The
-/// registry is held for writing throughout, so no other reader or writer
-/// sees the queue while it is put back together. `None` when the inbox is
-/// missing or empty.
-pub fn take_front(module: &str, max: usize) -> Option<Vec<u8>> {
-    let reg = REGISTRY.write();
-    let inbox = reg.map.get(module)?;
-    let mut msg = inbox.dequeue()?;
-    if msg.data.len() <= max {
-        return Some(core::mem::take(&mut msg.data));
-    }
-    let head = msg.data[..max].to_vec();
-    let rest = IpcMessage::with_timestamp(&msg.from, &msg.to, &msg.data[max..], msg.timestamp_ms);
-    crate::crypto::secure_zero(&mut msg.data);
-    let mut queued = Vec::new();
-    while let Some(m) = inbox.dequeue() {
-        queued.push(m);
-    }
-    /*
-     * The queue held `msg` and `queued`, so the remainder and `queued` fit
-     * back in. A remainder is only unbuildable without the IPC secret, which
-     * the message itself was built with; should it fail, say so.
-     */
-    if rest.is_err() {
-        crate::sys::serial::print(b"[INBOX] remainder of a split message lost\n");
-    }
-    for m in rest.ok().into_iter().chain(queued) {
-        if let Err(mut lost) = inbox.try_enqueue(m) {
-            crate::crypto::secure_zero(&mut lost.data);
-        }
-    }
-    Some(head)
 }
 
 /// Strict enqueue. The inbox must exist; if its owner is not

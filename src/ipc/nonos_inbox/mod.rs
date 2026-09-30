@@ -28,19 +28,23 @@
 //! called from `process::exit::teardown` to drop a dying capsule's
 //! `proc.{pid}` inbox along with everything still queued in it.
 
+mod drop_pid;
 mod error;
 mod inbox;
 mod registry;
 mod stats;
+mod take;
 mod waiter;
 
+pub use drop_pid::{unregister_for_pid, unregister_stdin_for_pid};
 pub use error::{InboxError, StrictEnqueueError};
 pub use registry::{
     capacity, clear, exists, get_default_capacity, get_global_stats, get_inbox_stats, inbox_count,
     is_empty, is_full, len, list_inboxes, peek, register_inbox, register_inbox_with_capacity,
-    register_or_get_bootstrap_inbox, set_default_capacity, take_front, try_dequeue_existing,
-    try_enqueue_strict, unregister_for_pid, unregister_inbox, unregister_stdin_for_pid,
-    DEFAULT_INBOX_CAPACITY, KERNEL_OWNER, MAX_INBOX_CAPACITY, MIN_INBOX_CAPACITY,
+    register_or_get_bootstrap_inbox, set_default_capacity, try_dequeue_existing,
+    try_enqueue_strict, unregister_inbox, DEFAULT_INBOX_CAPACITY, KERNEL_OWNER, MAX_INBOX_CAPACITY,
+    MIN_INBOX_CAPACITY,
 };
 pub use stats::InboxStatsSnapshot;
+pub use take::take_front;
 pub use waiter::{unwait, wait_on, wake_waiter};
