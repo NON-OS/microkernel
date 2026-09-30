@@ -38,15 +38,17 @@ use crate::smp::lock_responsive;
 // what stops the two from waiting on each other.
 static PID_RUN_QUEUE: Mutex<VecDeque<u32>> = Mutex::new(VecDeque::new());
 
+// The wake goes to the CPU that can run the pid, which is not any idle one
+// when a CPU still holds its stack (see `selection::wake_for`).
 pub fn add_to_run_queue(pid: u32) {
     if insert(pid, false) {
-        crate::smp::wake_idle_cpu();
+        super::super::selection::wake_for(pid);
     }
 }
 
 pub fn add_to_run_queue_front(pid: u32) {
     if insert(pid, true) {
-        crate::smp::wake_idle_cpu();
+        super::super::selection::wake_for(pid);
     }
 }
 

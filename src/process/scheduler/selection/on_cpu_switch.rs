@@ -68,8 +68,11 @@ pub(crate) fn release_leaving() {
         return;
     }
     let slot = &LEAVING[this_cpu()];
-    if slot.load(Ordering::Relaxed) != 0 {
+    let left = slot.load(Ordering::Relaxed);
+    if left != 0 {
         slot.store(0, Ordering::SeqCst);
+        // A waker that found the pid still named here woke nobody for it.
+        super::on_cpu_wake::left_claimable(left);
     }
 }
 
