@@ -14,23 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod ahci_capsule;
-pub mod audio_capsule;
-pub mod block_device;
-pub mod broker;
-pub mod e1000_capsule;
-pub mod hda_capsule;
-pub mod i2c_pci_capsule;
-pub mod inventory;
-pub mod iwlwifi_capsule;
-pub mod nvme_capsule;
-pub mod ps2_kbd_capsule;
-pub mod rtl8139_capsule;
-pub mod rtl8169_capsule;
-pub mod rtl8821ce_capsule;
-pub mod usb_msc_capsule;
-pub mod virtio_blk_capsule;
-pub mod virtio_gpu_capsule;
-pub mod virtio_net_capsule;
-pub mod virtio_rng_capsule;
-pub mod xhci_capsule;
+//! Kernel-side client for the USB mass-storage driver capsule,
+//! driver.usb_msc0, which moves BOT/SCSI traffic over driver.xhci0. The
+//! capsule's embed, spawn and liveness live in
+//! `userspace::capsule_driver_usb_msc`; this is the block surface the
+//! kernel's block layer reads and writes through.
+
+mod capability;
+mod error;
+mod io;
+mod protocol;
+mod transport;
+
+pub use error::DriverUsbMscError;
+pub use io::{capacity, flush, geometry, read_blocks, write_blocks};
+pub(crate) use transport::REPLY_INBOX;

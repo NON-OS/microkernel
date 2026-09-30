@@ -25,7 +25,7 @@ use alloc::vec::Vec;
 use super::errnos::{
     ERRNO_ACCES, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_NOMEM, ERRNO_PERM, ERRNO_TIMEDOUT,
 };
-use crate::hardware::block_device::BlockDeviceError;
+use crate::hardware::block_device::BlockDeviceError as B;
 
 const STORE_BASE_LBA: u64 = 256;
 const SECTOR: usize = 512;
@@ -63,12 +63,12 @@ pub fn sys_store_read(lba: u64, user_ptr: u64, len: u64) -> i64 {
     len as i64
 }
 
-fn errno(e: BlockDeviceError) -> i64 {
+fn errno(e: B) -> i64 {
     match e {
-        BlockDeviceError::Dead => ERRNO_NODEV,
-        BlockDeviceError::AccessDenied | BlockDeviceError::NoCallerPid => ERRNO_ACCES,
-        BlockDeviceError::Stale | BlockDeviceError::TransportFailure => ERRNO_TIMEDOUT,
-        BlockDeviceError::OutOfRange | BlockDeviceError::InvalidArgument => ERRNO_INVAL,
+        B::Dead => ERRNO_NODEV,
+        B::AccessDenied | B::NoCallerPid => ERRNO_ACCES,
+        B::Stale | B::TransportFailure | B::NotReady => ERRNO_TIMEDOUT,
+        B::OutOfRange | B::InvalidArgument => ERRNO_INVAL,
         _ => ERRNO_FAULT,
     }
 }

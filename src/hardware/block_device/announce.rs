@@ -14,23 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod ahci_capsule;
-pub mod audio_capsule;
-pub mod block_device;
-pub mod broker;
-pub mod e1000_capsule;
-pub mod hda_capsule;
-pub mod i2c_pci_capsule;
-pub mod inventory;
-pub mod iwlwifi_capsule;
-pub mod nvme_capsule;
-pub mod ps2_kbd_capsule;
-pub mod rtl8139_capsule;
-pub mod rtl8169_capsule;
-pub mod rtl8821ce_capsule;
-pub mod usb_msc_capsule;
-pub mod virtio_blk_capsule;
-pub mod virtio_gpu_capsule;
-pub mod virtio_net_capsule;
-pub mod virtio_rng_capsule;
-pub mod xhci_capsule;
+//! Saying, once, which disk the block layer settled on.
+
+use super::backend::Backend;
+
+pub(super) fn announce(backend: Backend) -> Backend {
+    let line = match backend {
+        Backend::Nvme => "[BLOCK] NONOS disk on NVMe (driver.nvme0)",
+        Backend::Ahci => "[BLOCK] NONOS disk on SATA (driver.ahci0)",
+        Backend::VirtioBlk => "[BLOCK] NONOS disk on virtio-blk (driver.virtio_blk0)",
+        Backend::UsbMsc => "[BLOCK] NONOS disk on USB mass storage (driver.usb_msc0)",
+    };
+    crate::sys::serial::println(line.as_bytes());
+    crate::log::info!("{}", line);
+    backend
+}

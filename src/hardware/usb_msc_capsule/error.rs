@@ -14,23 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod ahci_capsule;
-pub mod audio_capsule;
-pub mod block_device;
-pub mod broker;
-pub mod e1000_capsule;
-pub mod hda_capsule;
-pub mod i2c_pci_capsule;
-pub mod inventory;
-pub mod iwlwifi_capsule;
-pub mod nvme_capsule;
-pub mod ps2_kbd_capsule;
-pub mod rtl8139_capsule;
-pub mod rtl8169_capsule;
-pub mod rtl8821ce_capsule;
-pub mod usb_msc_capsule;
-pub mod virtio_blk_capsule;
-pub mod virtio_gpu_capsule;
-pub mod virtio_net_capsule;
-pub mod virtio_rng_capsule;
-pub mod xhci_capsule;
+//! Errors the kernel-side USB mass-storage client surfaces, in the shape the
+//! other block clients use, with one more: the driver is still looking for
+//! its device.
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DriverUsbMscError {
+    Dead,
+    Stale,
+    AccessDenied,
+    InvalidArgument,
+    OversizedRequest,
+    OutOfRange,
+    DeviceFailure,
+    /// The device's logical blocks are not 512 bytes, so it is not served.
+    BlockSize,
+    NoCallerPid,
+    TransportFailure,
+    ProtocolMismatch,
+    /// The driver has not yet decided whether a device is there.
+    NotReady,
+    /// The driver looked, and no mass-storage device is plugged in.
+    NoDevice,
+}

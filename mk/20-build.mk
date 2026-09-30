@@ -745,7 +745,7 @@ NONOS_DESKTOP_GUI_CAPSULE_CHECKS = \
 	$(driver-nvme_VERIFY) $(driver-ahci_VERIFY) \
 	$(driver-virtio-gpu_VERIFY) $(driver-virtio-net_VERIFY) \
 	$(driver-ps2-input_VERIFY) $(driver-xhci_VERIFY) \
-	$(driver-usb-hid_VERIFY) \
+	$(driver-usb-hid_VERIFY) $(driver-usb-msc_VERIFY) \
 	$(net-core_VERIFY) $(net-sockets_VERIFY) $(net-nym_VERIFY) \
 	$(policy_VERIFY) $(wallpaper_catalog_VERIFY) \
 	$(installer_VERIFY) $(linux_VERIFY) \
@@ -1188,7 +1188,7 @@ DESKTOP_STD_TOOL_ARTIFACTS := $(std-proof_ARTIFACTS) $(ripgrep_ARTIFACTS) \
 DESKTOP_BASE_SLUGS := proof-io ramfs keyring entropy crypto vfs \
 		driver-virtio-rng driver-virtio-blk driver-nvme driver-ahci \
 		driver-virtio-gpu \
-		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid \
+		driver-virtio-net driver-ps2-input driver-xhci driver-usb-hid driver-usb-msc \
 		net-core net-sockets net-nym socks5 policy wallpaper_catalog \
 		installer input-router compositor wm desktop-shell image-codec \
 		clipboard login wallpaper toolkit about install install-cli linux boot-splash \

@@ -27,6 +27,7 @@ use core::sync::atomic::{AtomicBool, Ordering};
 
 use spin::Once;
 
+use super::announce::announce;
 use super::backend::Backend;
 use super::identify::{identify, Found};
 use super::BlockDeviceError;
@@ -34,9 +35,16 @@ use super::BlockDeviceError;
 static SELECTED: Once<Backend> = Once::new();
 static TOLD_NONE: AtomicBool = AtomicBool::new(false);
 
-/// Asked in this order, so a machine with an NVMe data disk and a SATA boot
-/// disk settles on the NVMe one without reading the other.
-const ORDER: [Backend; 3] = [Backend::Nvme, Backend::Ahci, Backend::VirtioBlk];
+/// Asked in this order. A USB stick that carries NONOS is first: it is
+/// there because someone brought it to boot a live session from it, and
+/// that session keeps its state on the stick, not on an internal disk that
+/// may hold an installed NONOS. The kernel is not told which disk the
+/// firmware booted, so this order stands in for that answer. Then NVMe
+/// before SATA, so a machine with an NVMe data disk and a SATA boot disk
+/// settles on the NVMe one without reading the other; virtio-blk last.
+/// The cost: on a machine with an xHCI controller, every disk waits while
+/// driver.usb_msc0 looks for a device, about 1.5 s when none is plugged in.
+const ORDER: [Backend; 4] = [Backend::UsbMsc, Backend::Nvme, Backend::Ahci, Backend::VirtioBlk];
 
 pub fn selected() -> Result<Backend, BlockDeviceError> {
     if let Some(&backend) = SELECTED.get() {
@@ -60,15 +68,4 @@ pub fn selected() -> Result<Backend, BlockDeviceError> {
         crate::log::warn!("{}", line);
     }
     Err(BlockDeviceError::Dead)
-}
-
-fn announce(backend: Backend) -> Backend {
-    let line = match backend {
-        Backend::Nvme => "[BLOCK] NONOS disk on NVMe (driver.nvme0)",
-        Backend::Ahci => "[BLOCK] NONOS disk on SATA (driver.ahci0)",
-        Backend::VirtioBlk => "[BLOCK] NONOS disk on virtio-blk (driver.virtio_blk0)",
-    };
-    crate::sys::serial::println(line.as_bytes());
-    crate::log::info!("{}", line);
-    backend
 }

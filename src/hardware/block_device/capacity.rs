@@ -17,6 +17,7 @@
 use super::backend::Backend;
 use super::map_ahci::map_ahci_error;
 use super::map_nvme::map_nvme_error;
+use super::map_usb_msc::map_usb_msc_error;
 use super::map_virtio::map_virtio_error;
 use super::select::selected;
 use super::BlockDeviceError;
@@ -33,5 +34,6 @@ pub(super) fn capacity_on(backend: Backend) -> Result<u64, BlockDeviceError> {
         }
         Backend::Ahci => crate::hardware::ahci_capsule::capacity().map_err(map_ahci_error),
         Backend::Nvme => crate::hardware::nvme_capsule::capacity().map_err(map_nvme_error),
+        Backend::UsbMsc => crate::hardware::usb_msc_capsule::capacity().map_err(map_usb_msc_error),
     }
 }

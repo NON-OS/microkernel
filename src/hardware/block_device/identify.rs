@@ -16,11 +16,8 @@
 
 //! Whether one backend's disk is the NONOS disk.
 
-use super::backend::Backend;
-use super::capacity::capacity_on;
-use super::nvme_fit::nvme_sectors_fit;
-use super::read::read_on;
 use super::BlockDeviceError;
+use super::{backend::Backend, capacity::capacity_on, fit::sectors_fit, read::read_on};
 use crate::fs::blockfs_volume::PLAN_LBA;
 
 /// The package store's first sector and header magic, as vfs writes them.
@@ -43,7 +40,7 @@ pub(super) fn identify(backend: Backend) -> Found {
         Ok(s) => s,
         Err(e) => return classify(e),
     };
-    if sectors <= STORE_LBA || (backend == Backend::Nvme && !nvme_sectors_fit()) {
+    if sectors <= STORE_LBA || !sectors_fit(backend) {
         return Found::Absent;
     }
     match has_magic(backend, STORE_LBA, STORE_MAGIC) {
@@ -69,7 +66,8 @@ fn classify(e: BlockDeviceError) -> Found {
         | BlockDeviceError::AccessDenied
         | BlockDeviceError::NoCallerPid
         | BlockDeviceError::TransportFailure
-        | BlockDeviceError::ProtocolMismatch => Found::Refused(e),
+        | BlockDeviceError::ProtocolMismatch
+        | BlockDeviceError::NotReady => Found::Refused(e),
         _ => Found::Absent,
     }
 }

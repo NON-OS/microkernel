@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod announce;
 mod backend;
 mod capacity;
 mod error;
+mod fit;
 mod flush;
 mod geometry;
 mod identify;
 mod map_ahci;
 mod map_nvme;
+mod map_usb_msc;
 mod map_virtio;
 mod nvme_fit;
 mod read;

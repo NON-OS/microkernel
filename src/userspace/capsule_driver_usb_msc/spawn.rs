@@ -20,6 +20,7 @@ use super::embed::{
 };
 use super::state;
 use crate::capabilities::Capability;
+use crate::hardware::usb_msc_capsule::REPLY_INBOX;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified};
 use crate::security::nonos_id_cert::IdCertVerifyError;
 use crate::security::nonos_trust_anchor::{
@@ -30,7 +31,6 @@ use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
 const SERVICE_NAME: &str = "driver.usb_msc0";
 const SERVICE_PORT: u32 = 4224;
-const REPLY_INBOX: &str = "endpoint.4294967315";
 const REPLY_PORT: u32 = 4225;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 

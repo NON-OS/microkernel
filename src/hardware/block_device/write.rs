@@ -17,6 +17,7 @@
 use super::backend::Backend;
 use super::map_ahci::map_ahci_error;
 use super::map_nvme::map_nvme_error;
+use super::map_usb_msc::map_usb_msc_error;
 use super::map_virtio::map_virtio_error;
 use super::select::selected;
 use super::BlockDeviceError;
@@ -31,6 +32,9 @@ pub fn write(lba: u64, data: &[u8]) -> Result<(), BlockDeviceError> {
         }
         Backend::Nvme => {
             crate::hardware::nvme_capsule::write_blocks(lba, data).map_err(map_nvme_error)
+        }
+        Backend::UsbMsc => {
+            crate::hardware::usb_msc_capsule::write_blocks(lba, data).map_err(map_usb_msc_error)
         }
     }
 }
