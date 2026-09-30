@@ -20,16 +20,20 @@
     nonos-qwen-tier.py plan TIER... --dir DIR --image IMAGE [--fresh]
 
 The tiers, their files, lengths and SHA-256 digests are read from the
-signed personality's table (pinned.rs), so this tool and the kernel can
-never disagree on what a tier is. fetch runs on any machine with a network
-and resumes a cut download; plan checks every file against its pin before
-writing a byte, sizes the data volume to hold all the tiers asked for, and
-hands the layout to nonos-data-plan.py. NONOS itself never downloads a
+signed personality's tables (pinned.rs and the pinned_*.rs beside it, one
+a family), so this tool and the kernel can never disagree on what a tier
+is. Each file comes from the Qwen team's Hugging Face repository for its
+model: Qwen/Qwen2.5-<size>-Instruct-GGUF, Qwen/Qwen2.5-Coder-<size>-
+Instruct-GGUF or Qwen/Qwen3-<size>-GGUF. fetch runs on any machine with a
+network and resumes a cut download; plan checks every file against its pin
+before writing a byte, sizes the data volume to hold all the tiers asked
+for, and hands the layout to nonos-data-plan.py. NONOS itself never downloads a
 model: the disk carries the files, and the first boot seals and verifies
 them into the encrypted volume.
 """
 
 import argparse
+import glob
 import hashlib
 import os
 import re
@@ -38,19 +42,46 @@ import sys
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PINS = os.path.join(HERE, "../userland/capsule_linux/src/linux/file/models/pinned.rs")
-PIN = re.compile(r'tier: "(\w+)",\s*name: b"/([^"]+)",\s*bytes: ([\d_]+),\s*'
+MODELS = os.path.join(HERE, "../userland/capsule_linux/src/linux/file/models")
+PIN = re.compile(r'tier: "([\w.-]+)",\s*name: b"/([^"]+)",\s*bytes: ([\d_]+),\s*'
                  r'sha256: hex32\(b"([0-9a-f]{64})"\)')
-HF = "https://huggingface.co/Qwen/Qwen2.5-{}-Instruct-GGUF/resolve/main/{}"
+TABLE = re.compile(r'pub const (\w+): &\[Pinned\] = &\[(.*?)\n\];', re.S)
+FAMILIES = re.compile(r'FAMILIES: &\[&\[Pinned\]\] = &\[([\w, ]+)\]')
+HF = "https://huggingface.co/Qwen/{}/resolve/main/{}"
+QWEN25 = re.compile(r"qwen2\.5-(coder-)?(\d+(?:\.\d+)?)b-instruct-q[\w-]+\.gguf")
+QWEN3 = re.compile(r"Qwen3-(\d+(?:\.\d+)?B(?:-A\d+B)?)-Q[\w-]+\.gguf")
 # 484 plain bytes per sealed 512-byte sector, one pointer block per 60, a margin.
 PLAIN, FANOUT, SPARE = 484, 60, 65_536
 
 
 def pins():
+    """Every tier's files, family by family in the order pinned.rs gives."""
+    tables = {}
+    for path in sorted(glob.glob(os.path.join(MODELS, "pinned*.rs"))):
+        for const, body in TABLE.findall(open(path).read()):
+            tables[const] = PIN.findall(body)
+    order = FAMILIES.search(open(os.path.join(MODELS, "pinned.rs")).read())
+    if not order or sorted(tables) != sorted(order.group(1).replace(" ", "").split(",")):
+        sys.exit(f"{MODELS}: the tables and pinned.rs's FAMILIES do not agree")
     out = {}
-    for tier, name, size, digest in PIN.findall(open(PINS).read()):
-        out.setdefault(tier, []).append((name, int(size.replace("_", "")), digest))
+    for const in order.group(1).replace(" ", "").split(","):
+        for tier, name, size, digest in tables[const]:
+            out.setdefault(tier, []).append((name, int(size.replace("_", "")), digest))
     return out
+
+
+def repo(name):
+    """The Hugging Face repository the Qwen team publishes `name` in."""
+    if m := QWEN25.fullmatch(name):
+        coder = "Coder-" if m.group(1) else ""
+        return f"Qwen2.5-{coder}{m.group(2)}B-Instruct-GGUF"
+    if m := QWEN3.fullmatch(name):
+        return f"Qwen3-{m.group(1)}-GGUF"
+    sys.exit(f"{name}: no known Qwen repository publishes this file")
+
+
+def url(name):
+    return HF.format(repo(name), name)
 
 
 def check(path, size, digest):
@@ -68,7 +99,7 @@ def fetch(name, size, digest, into):
     if check(path, size, digest):
         return print(f"{name}: present and verified")
     have = os.path.getsize(part) if os.path.exists(part) else 0
-    req = urllib.request.Request(HF.format(name.split("-")[1].upper(), name))
+    req = urllib.request.Request(url(name))
     if have:
         req.add_header("Range", f"bytes={have}-")
     with urllib.request.urlopen(req) as r:
@@ -105,7 +136,7 @@ def main():
     a, table = ap.parse_args(), pins()
     if a.verb == "list":
         for tier, files in table.items():
-            print(f"{tier:7} {sum(s for _, s, _ in files) / 1e9:5.2f} GB  "
+            print(f"{tier:13} {sum(s for _, s, _ in files) / 1e9:5.2f} GB  "
                   + " ".join(n for n, _, _ in files))
         return
     unknown = [t for t in a.tiers if t not in table]
