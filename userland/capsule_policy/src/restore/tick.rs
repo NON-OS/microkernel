@@ -25,7 +25,7 @@ use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::{mk_getpid, mk_service_lookup, mk_uptime_ms};
-use nonos_policy_proto::setup_record::{is_done, Answers, ANSWERS_LEN, ANSWERS_PATH};
+use nonos_policy_proto::setup_record::{check, is_done, ANSWERS_LEN, ANSWERS_PATH};
 use nonos_policy_proto::setup_record::{DONE, DONE_PATH};
 
 const RETRY_MS: u64 = 250;
@@ -57,10 +57,12 @@ pub fn tick() {
     if !done {
         return;
     }
-    let raw = vfs::read_file(pid, ANSWERS_PATH, ANSWERS_LEN as u32);
-    match raw.ok().and_then(|raw| Answers::decode(&raw)) {
-        Some(answers) => super::apply::apply(answers),
-        None => super::apply::say(b"[POLICY] setup marker without answers: nothing restored\n"),
+    let Ok(raw) = vfs::read_file(pid, ANSWERS_PATH, ANSWERS_LEN as u32) else {
+        return super::apply::say(b"[POLICY] setup marker without answers: nothing restored\n");
+    };
+    match check(&raw) {
+        Ok(answers) => super::apply::apply(answers),
+        Err(why) => super::apply::refused(why.name()),
     }
 }
 

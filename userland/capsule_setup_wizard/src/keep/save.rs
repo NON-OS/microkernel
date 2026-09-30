@@ -18,7 +18,9 @@
 
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
-use nonos_policy_proto::setup_record::{Answers, ANSWERS_PATH, DONE, DONE_PATH, SETUP_DIR};
+use nonos_policy_proto::setup_record::{Answers, Name, Tier, DONE, DONE_PATH, SETUP_DIR};
+
+use super::put::{put, put_answers};
 
 use crate::render::screens::{appearance, keyboard};
 use crate::server::say::say;
@@ -31,11 +33,14 @@ pub fn save(ctx: &Context) {
         keyboard_layout: keyboard::layout(ctx.kbd_sel),
         timezone: ctx.tz_off,
         wallpaper: appearance::wallpaper(ctx.wall_sel),
+        /* The name step and the tier table take nothing these refuse. */
+        username: Name::new(ctx.name.typed()).unwrap_or(Name::EMPTY),
+        qwen_tier: ctx.qwen.chosen().and_then(Tier::new).unwrap_or(Tier::EMPTY),
     };
     let pid = mk_getpid();
     let _ = vfs::mkdir(pid, b"/nonos");
     let _ = vfs::mkdir(pid, SETUP_DIR);
-    match put(pid, ANSWERS_PATH, &answers.encode()).and_then(|()| put(pid, DONE_PATH, &DONE)) {
+    match put_answers(pid, &answers).and_then(|()| put(pid, DONE_PATH, &DONE)) {
         Ok(()) => say(b"[SETUP] answers kept; the next boot skips setup\n"),
         Err(why) => {
             say(b"[SETUP] answers not kept, setup runs again next boot: ");
@@ -43,14 +48,4 @@ pub fn save(ctx: &Context) {
             say(b"\n");
         }
     }
-}
-
-/*
- * A record loaded from an earlier boot belongs to nobody, and only a file's
- * owner may persist it, so it is unlinked and written afresh first.
- */
-fn put(pid: u32, path: &[u8], bytes: &[u8]) -> Result<(), &'static str> {
-    let _ = vfs::unlink(pid, path);
-    vfs::write_file(pid, path, bytes)?;
-    vfs::persist(pid, path)
 }

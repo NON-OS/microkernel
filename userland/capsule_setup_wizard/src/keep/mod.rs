@@ -17,6 +17,7 @@
 //! Setup's answers across boots: kept in the vfs store when the chosen mode
 //! keeps state, and read back so a later boot skips setup.
 
+mod put;
 mod save;
 mod skip;
 mod store;

@@ -16,7 +16,7 @@
 
 /*
  * The lines under the review table: what the mode keeps, what may run,
- * the Wi-Fi network, and the answers no mode keeps.
+ * the Wi-Fi network, and whether the name and Qwen model are kept.
  */
 
 use crate::state::Context;
@@ -51,7 +51,13 @@ pub fn local_line(ctx: &Context) -> &'static [u8] {
 }
 
 /*
- * keep::save keeps the keyboard, time zone and wallpaper and nothing else,
- * so these two go to the policy service for this boot in every mode.
+ * keep::save keeps these two with the keyboard, time zone and wallpaper, so
+ * they are kept exactly when the mode line says the answers are.
  */
-pub const THIS_BOOT: &[u8] = b"Name and Qwen model: for this boot only, in every mode.";
+pub fn name_line(ctx: &Context) -> &'static [u8] {
+    match (mode::keeps(ctx), crate::keep::store_ready()) {
+        (false, _) => b"Name and Qwen model: amnesic, for this boot only.",
+        (true, true) => b"Name and Qwen model: kept with the other answers.",
+        (true, false) => b"Name and Qwen model: no NONOS store, for this boot only.",
+    }
+}

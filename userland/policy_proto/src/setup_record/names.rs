@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::field::Field;
-use super::limits::STR_MAX;
-use super::setup_record::{NAME_MAX, TIER_MAX};
-
 /*
- * The longest value a string field takes, in bytes. A name shown in a prompt
- * and a tier name are kept short; the rest may use the whole wire limit.
+ * Making a kept name or tier from what setup holds, held to the same rules
+ * a record read back is.
  */
-pub fn str_max_of(field: Field) -> usize {
-    match field {
-        Field::Username => NAME_MAX,
-        Field::QwenTier => TIER_MAX,
-        _ => STR_MAX,
+
+use super::kept::{Name, Tier};
+use super::rules::{name_ok, tier_ok};
+
+impl Name {
+    /* `None` for a name setup's name step would not take. */
+    pub fn new(s: &[u8]) -> Option<Self> {
+        Self::from_ok(s, name_ok)
+    }
+}
+
+impl Tier {
+    /* `None` for anything that is not a tier's name. */
+    pub fn new(s: &[u8]) -> Option<Self> {
+        Self::from_ok(s, tier_ok)
     }
 }

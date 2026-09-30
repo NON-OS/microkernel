@@ -17,51 +17,19 @@
 //! What first-boot setup keeps when the person chose a mode that keeps state.
 //!
 //! Two files in the vfs store. The store overwrites a record only with one of
-//! the same length, so both lengths are fixed here. Setup writes the answers
-//! first and the marker last, and the policy service restores the answers only
-//! beside a marker, so a half-finished save restores nothing.
+//! the same length, so each version's length is fixed. Setup writes the
+//! answers first and the marker last, and the policy service restores the
+//! answers only beside a marker, so a half-finished save restores nothing.
 
-pub const SETUP_DIR: &[u8] = b"/nonos/setup";
-pub const ANSWERS_PATH: &[u8] = b"/nonos/setup/answers";
-pub const DONE_PATH: &[u8] = b"/nonos/setup/done";
+mod answers;
+mod check;
+mod kept;
+mod layout;
+mod names;
+mod rules;
 
-pub const ANSWERS_LEN: usize = 7;
-pub const DONE: [u8; 4] = *b"NSD1";
-const MAGIC: [u8; 4] = *b"NSA1";
-
-/// The policy fields setup restores on a later boot.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct Answers {
-    pub keyboard_layout: u8,
-    pub timezone: i8,
-    pub wallpaper: u8,
-}
-
-impl Answers {
-    pub fn encode(&self) -> [u8; ANSWERS_LEN] {
-        let mut out = [0u8; ANSWERS_LEN];
-        out[..4].copy_from_slice(&MAGIC);
-        out[4] = self.keyboard_layout;
-        out[5] = self.timezone as u8;
-        out[6] = self.wallpaper;
-        out
-    }
-
-    /// `None` for anything but a record `encode` wrote. Zeros, which is how
-    /// the store withdraws a record, have no magic and so read as absent.
-    pub fn decode(raw: &[u8]) -> Option<Answers> {
-        if raw.len() != ANSWERS_LEN || raw[..4] != MAGIC {
-            return None;
-        }
-        let timezone = raw[5] as i8;
-        if !(-12..=14).contains(&timezone) {
-            return None;
-        }
-        Some(Answers { keyboard_layout: raw[4], timezone, wallpaper: raw[6] })
-    }
-}
-
-/// Whether `raw` is the marker setup writes once it has kept its answers.
-pub fn is_done(raw: &[u8]) -> bool {
-    raw == DONE
-}
+pub use answers::Answers;
+pub use check::{check, Refused};
+pub use kept::{Kept, Name, Tier};
+pub use layout::{is_done, ANSWERS_LEN, ANSWERS_PATH, ANSWERS_V1_LEN, DONE, DONE_PATH, SETUP_DIR};
+pub use rules::{name_ok, tier_ok, NAME_MAX, TIER_MAX};

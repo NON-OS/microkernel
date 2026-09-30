@@ -31,19 +31,22 @@ extern crate alloc;
 
 use fake_vfs::FakeVfs;
 use nonos_disk::gather;
-use nonos_policy_proto::setup_record::{Answers, DONE};
+use nonos_policy_proto::setup_record::{Answers, Name, Tier, DONE};
 
-const KEPT: Answers = Answers { keyboard_layout: 2, timezone: -5, wallpaper: 3 };
+fn kept() -> Answers {
+    let (username, qwen_tier) = (Name::new(b"ada").unwrap(), Tier::new(b"small").unwrap());
+    Answers { keyboard_layout: 2, timezone: -5, wallpaper: 3, username, qwen_tier }
+}
 
 #[test]
 fn setup_answers_travel_with_their_marker() {
     let mut v = FakeVfs::default();
-    v.put("/nonos/setup/answers", &KEPT.encode());
+    v.put("/nonos/setup/answers", &kept().encode());
     let c = gather(&mut v);
-    assert_eq!(c.answers, Some(KEPT));
+    assert_eq!(c.answers, Some(kept()), "name and Qwen tier included");
     let files = vfs::load(c.store.bytes());
     let want =
-        [("/nonos/setup/answers", KEPT.encode().to_vec()), ("/nonos/setup/done", DONE.to_vec())];
+        [("/nonos/setup/answers", kept().encode().to_vec()), ("/nonos/setup/done", DONE.to_vec())];
     assert_eq!(files, want.map(|(n, d)| (n.to_string(), d)));
 }
 
@@ -55,4 +58,13 @@ fn answers_setup_never_writes_stay_behind() {
     let c = gather(&mut v);
     assert!(c.answers.is_none(), "a time zone of +127 is not one setup offers");
     assert!(vfs::load(c.store.bytes()).is_empty());
+}
+
+#[test]
+fn an_older_record_travels_as_it_was_kept() {
+    let mut v = FakeVfs::default();
+    v.put("/nonos/setup/answers", &kept().encode_v1());
+    let c = gather(&mut v);
+    assert_eq!(c.answers.map(|a| a.username.as_bytes().len()), Some(0));
+    assert_eq!(vfs::load(c.store.bytes())[0].1, kept().encode_v1().to_vec());
 }

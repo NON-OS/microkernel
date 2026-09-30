@@ -21,7 +21,7 @@ use nonos_policy_proto::setup_record::Answers;
 use nonos_policy_proto::Field;
 
 use crate::push;
-use crate::store::{set_bool, set_i8, set_u8};
+use crate::store::{set_bool, set_i8, set_str, set_u8};
 
 /*
  * Persistent goes back on first: the answers were only kept because setup
@@ -31,10 +31,19 @@ pub(super) fn apply(answers: Answers) {
     let _ = set_bool::set(Field::Persistent, true);
     let _ = set_u8::set(Field::KeyboardLayout, answers.keyboard_layout);
     let _ = set_u8::set(Field::Wallpaper, answers.wallpaper);
+    /* Empty in a version 1 record, which leaves each unset as setup would. */
+    let _ = set_str::set(Field::Username, answers.username.as_bytes());
+    let _ = set_str::set(Field::QwenTier, answers.qwen_tier.as_bytes());
     if set_i8::set(Field::Timezone, answers.timezone) {
         push::on_i8_set(Field::Timezone, answers.timezone);
     }
     say(b"[POLICY] restored the answers setup kept on an earlier boot\n");
+}
+
+pub(super) fn refused(part: &str) {
+    say(b"[POLICY] kept setup answers refused, nothing restored: bad ");
+    say(part.as_bytes());
+    say(b"\n");
 }
 
 pub(super) fn say(line: &[u8]) {

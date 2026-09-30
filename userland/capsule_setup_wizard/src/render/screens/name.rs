@@ -30,7 +30,7 @@ use crate::text::{key, Typed};
 const RULES: &[&[u8]] = &[
     b"Lowercase letters, digits, - and _, starting with a letter.",
     b"1 to 32 characters. Left empty, the name is nonos.",
-    b"It applies to this boot only: setup does not keep it.",
+    b"Install mode keeps it with the other answers; amnesic does not.",
 ];
 
 pub fn draw(ctx: &Context) {

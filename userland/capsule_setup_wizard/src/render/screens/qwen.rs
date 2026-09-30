@@ -31,7 +31,7 @@ const WHERE: &[&[u8]] = &[
     b"qwen runs the tier chosen here when no tier is named. Its file",
     b"comes from the NONOS model repository or a disk you import,",
     b"and is checked against its signed SHA-256 pin before it runs.",
-    b"The choice applies to this boot only: setup does not keep it.",
+    b"Install mode keeps it with the other answers; amnesic does not.",
 ];
 
 pub fn draw(ctx: &Context) {

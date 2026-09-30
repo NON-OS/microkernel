@@ -4,7 +4,7 @@ use crate::render::widgets::{lines, text::cat};
 use crate::server::step::{default_key, Outcome, K_ENTER, K_ENTER_LF};
 use crate::state::Context;
 
-use super::review_lines::{local_line, mode_line, net_line, THIS_BOOT};
+use super::review_lines::{local_line, mode_line, name_line, net_line};
 use super::{appearance, keyboard, timezone};
 
 pub fn draw(ctx: &Context) {
@@ -42,7 +42,7 @@ pub fn draw(ctx: &Context) {
         lines::text(buf, spx, w, h, x, y, &[head], FG);
         lines::text(buf, spx, w, h, x + 110, y, &[name], FG);
     }
-    let said = [mode_line(ctx), local_line(ctx), net_line(ctx), THIS_BOOT];
+    let said = [mode_line(ctx), local_line(ctx), net_line(ctx), name_line(ctx)];
     lines::text(buf, spx, w, h, x, 250, &said, FG);
 }
 

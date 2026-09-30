@@ -41,7 +41,7 @@ fn sizes_read_like_a_drive_label() {
 #[test]
 fn the_rows_say_what_the_plan_writes() {
     let mut v = FakeVfs::default();
-    let kept = Answers { keyboard_layout: 2, timezone: -5, wallpaper: 0 };
+    let kept = Answers::decode(b"NSA1\x02\xfb\0").unwrap();
     v.put("/nonos/setup/answers", &kept.encode());
     v.put("/linux/bin/huge", &vec![0; 17 << 20]);
     for proof in [".nonos_id_cert.bin", ".manifest.bin", ".zk_trailer.bin"] {
@@ -57,7 +57,7 @@ fn the_rows_say_what_the_plan_writes() {
     let want = [
         ("erased", "all 2.2 GB of it, whatever it holds now"),
         ("table", "GPT, 4 partitions, backup copy at the end"),
-        ("store", "33.4 MB at LBA 256: 2 files, 11 B"),
+        ("store", "33.4 MB at LBA 256: 2 files, 69 B"),
         ("carried", "setup answers (UK, UTC-5), 0 signed programs"),
         ("left out", "1 program, 17.8 MB: more than the store's 16.8 MB"),
         ("disk plan", "LBA 65536, no imports; key header cleared"),
