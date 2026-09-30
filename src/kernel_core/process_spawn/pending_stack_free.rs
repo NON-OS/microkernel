@@ -19,24 +19,30 @@
 //! has to wait until the CPU has context-switched off it. The list
 //! is per-CPU; only the originating core drains its own deferred
 //! stacks, which keeps the API correct once SMP goes live.
+//!
+//! The originating core is not always the one that was on the stack: a
+//! process killed from another CPU is queued on the killer's. So each entry
+//! keeps its pid, and one that any CPU still runs or is leaving waits for a
+//! later tick. The single-CPU image never finds one held.
 
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::sync::atomic::Ordering;
+use core::sync::atomic::{fence, Ordering};
 use spin::Mutex;
 
 use crate::arch::{Arch, ArchOps};
 use crate::memory::addr::VirtAddr;
 use crate::memory::page_allocator::deallocate_page;
 use crate::process::core::{Pid, PROCESS_TABLE};
+use crate::process::scheduler::selection::cpu_holding;
 use crate::process::userspace::constants::KERNEL_STACK_SIZE;
 use crate::smp::MAX_CPUS;
 
-static PENDING: [Mutex<Vec<u64>>; MAX_CPUS] = [const { Mutex::new(Vec::new()) }; MAX_CPUS];
+static PENDING: [Mutex<Vec<(Pid, u64)>>; MAX_CPUS] = [const { Mutex::new(Vec::new()) }; MAX_CPUS];
 
 #[inline]
-fn slot() -> &'static Mutex<Vec<u64>> {
+fn slot() -> &'static Mutex<Vec<(Pid, u64)>> {
     let idx = Arch::current_cpu_id() as usize;
     &PENDING[if idx < MAX_CPUS { idx } else { 0 }]
 }
@@ -50,7 +56,7 @@ pub(crate) fn defer_release(pid: Pid) {
     if top == 0 {
         return;
     }
-    slot().lock().push(top);
+    slot().lock().push((pid, top));
 }
 
 pub(crate) fn drain() {
@@ -63,7 +69,17 @@ pub(crate) fn drain() {
             if q.is_empty() {
                 return;
             }
-            q.drain(..).collect()
+            // Pairs with the fence in the switch: see `switch_to_process`.
+            fence(Ordering::SeqCst);
+            let mut free = Vec::new();
+            q.retain(|&(pid, top)| {
+                let held = cpu_holding(pid).is_some();
+                if !held {
+                    free.push(top);
+                }
+                held
+            });
+            free
         }
         None => return,
     };
