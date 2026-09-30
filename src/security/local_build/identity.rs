@@ -65,8 +65,13 @@ pub(super) fn persistent() -> bool {
     with_identity(|id| id.persistent).unwrap_or(false)
 }
 
+/// Run `f` on the identity, minting it first if this boot has none.
+///
+/// The lock is held across minting and across a whole proof, and it is
+/// reached from system calls with interrupts masked, so a CPU waiting for
+/// it answers TLB shootdowns while it spins.
 pub(super) fn with_identity<T>(f: impl FnOnce(&LocalIdentity) -> T) -> Option<T> {
-    let mut guard = IDENTITY.lock();
+    let mut guard = crate::smp::lock_responsive(&IDENTITY);
     if guard.is_none() {
         *guard = Some(mint()?);
     }

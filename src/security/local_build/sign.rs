@@ -29,10 +29,22 @@ use super::trailer::encode;
 /// proof verifies against nothing.
 fn context(elf: &[u8], granted_caps: u64) -> [u8; 48] {
     let mut ctx = [0u8; 48];
-    ctx[..32].copy_from_slice(blake3::hash(elf).as_bytes());
+    ctx[..32].copy_from_slice(&measure(elf));
     ctx[32..40].copy_from_slice(&granted_caps.to_be_bytes());
     ctx[40..48].copy_from_slice(&POLICY_EPOCH.to_be_bytes());
     ctx
+}
+
+/// `blake3::hash(elf)`, taken a serve unit at a time. An image is megabytes
+/// and signing runs from a system call with interrupts masked, so TLB
+/// shootdowns are answered between pieces. The pieces reach one hasher in
+/// order, so the digest is the same as hashing the image whole.
+fn measure(elf: &[u8]) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new();
+    crate::smp::in_serve_units(elf, |piece| {
+        hasher.update(piece);
+    });
+    *hasher.finalize().as_bytes()
 }
 
 /// Prove this machine may run `elf` holding `granted_caps`.
