@@ -35,8 +35,60 @@ namespace NonosExtraction.HpetProtection
 theorem the_pageprotection_from_u8_wrapper_is_its_method (a : Std.U8) :
     pageprotection_from_u8 a = protection.PageProtection.from_u8 a := rfl
 
+/-! ### Decoding the HPET page protection field
+
+    The HPET table's accessor passes the low four bits of the page protection
+    byte to `from_u8`. These theorems say that the three codes the ACPI
+    specification defines decode to their named variants, that every other value
+    is kept as `Unknown` carrying the value itself, and so that no two bytes
+    decode to the same variant. They cannot say anything about the masking in
+    the accessor, which is not extracted. -/
+
+/-- The numeric code each variant stands for: the specification's zero, one and
+    two, and the carried byte for `Unknown`. -/
+def protectionCode : protection.PageProtection → Nat
+  | .NoGuarantee => 0
+  | .Protected4K => 1
+  | .Protected64K => 2
+  | .Unknown u => u.val
+
+/-- Codes zero, one and two are no guarantee, 4 KiB and 64 KiB protection, in
+    that order, as the ACPI HPET description table defines them. -/
+theorem pageprotection_from_u8_decodes_the_three_specified_codes :
+    pageprotection_from_u8 0#u8 = ok .NoGuarantee ∧
+    pageprotection_from_u8 1#u8 = ok .Protected4K ∧
+    pageprotection_from_u8 2#u8 = ok .Protected64K := ⟨rfl, rfl, rfl⟩
+
+/-- Every value from three up is reported as unknown with the value intact,
+    rather than being folded into one of the named variants. -/
+theorem pageprotection_from_u8_keeps_every_other_value_as_unknown (v : Std.U8)
+    (h : 3 ≤ v.val) :
+    pageprotection_from_u8 v = ok (.Unknown v) := by
+  unfold pageprotection_from_u8 protection.PageProtection.from_u8
+  split
+  all_goals first | rfl | exact absurd h (by decide)
+
+/-- The decoded variant always gives back the byte it came from. -/
+theorem pageprotection_from_u8_can_be_read_back_to_its_code (v : Std.U8) :
+    ∃ p, pageprotection_from_u8 v = ok p ∧ protectionCode p = v.val := by
+  unfold pageprotection_from_u8 protection.PageProtection.from_u8
+  split <;> exact ⟨_, rfl, rfl⟩
+
+/-- Distinct bytes decode to distinct variants, so the decoding loses nothing. -/
+theorem pageprotection_from_u8_sends_distinct_bytes_to_distinct_variants (a b : Std.U8)
+    (h : pageprotection_from_u8 a = pageprotection_from_u8 b) : a = b := by
+  obtain ⟨p, hp, hpa⟩ := pageprotection_from_u8_can_be_read_back_to_its_code a
+  obtain ⟨q, hq, hqb⟩ := pageprotection_from_u8_can_be_read_back_to_its_code b
+  rw [hp, hq] at h
+  cases h
+  exact UScalar.eq_of_val_eq (by rw [← hpa, ← hqb])
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.HpetProtection.the_pageprotection_from_u8_wrapper_is_its_method
+#print axioms NonosExtraction.HpetProtection.pageprotection_from_u8_decodes_the_three_specified_codes
+#print axioms NonosExtraction.HpetProtection.pageprotection_from_u8_keeps_every_other_value_as_unknown
+#print axioms NonosExtraction.HpetProtection.pageprotection_from_u8_can_be_read_back_to_its_code
+#print axioms NonosExtraction.HpetProtection.pageprotection_from_u8_sends_distinct_bytes_to_distinct_variants
 
 end NonosExtraction.HpetProtection

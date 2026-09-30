@@ -41,10 +41,144 @@ theorem the_timer_comparator_wrapper_is_its_method (a : Std.U8) :
 theorem the_timer_fsb_route_wrapper_is_its_method (a : Std.U8) :
     timer_fsb_route a = registers.timer_fsb_route a := rfl
 
+/-! ### Where each timer's registers sit
+
+The three offset functions compute `base + 0x20 * n` in checked `u64` arithmetic
+from a `u8` timer index. The theorems below establish that the arithmetic never
+overflows for any of the 256 indices, give each function's exact value, pin timer 0
+to the literal offsets `configure_hpet` in `src/arch/x86_64/time/timer/hpet.rs`
+writes through, and show that the three register families interleave without
+aliasing: a comparator offset is always its configuration offset plus 8, no offset
+of one family equals an offset of another, distinct timers get distinct offsets,
+and every register of the 32 timers an HPET can describe lies below `0x500`, inside
+the first page of the block.
+
+They say nothing about whether the index a caller passes is below the comparator
+count the capability register reports: the functions accept every `u8`, and
+`timer_fsb_route 120` is `0x1010`, past the first page. They also cannot see the
+MMIO accesses themselves, which are not extracted; `configure_hpet` currently
+adds its literal offsets rather than calling these functions, so the agreement at
+timer 0 is agreement between two independent statements of the layout.
+-/
+
+/-- The shared shape of the three offset functions: a `u8` index widened to `u64`,
+scaled by `0x20` and added to a base, never overflows while the base is small. -/
+private theorem offset_is_exact (n : Std.U8) (base : Std.U64) (hb : base.val ≤ 0x1000) :
+    ∃ v : Std.U64, (do
+        let i ← lift (UScalar.cast .U64 n)
+        let i1 ← i * 32#u64
+        base + i1 : Result Std.U64) = ok v ∧ v.val = base.val + 0x20 * n.val := by
+  have hn : n.val < 256 := by scalar_tac
+  simp only [lift, bind_tc_ok]
+  have hc : (UScalar.cast .U64 n).val = n.val := by
+    rw [UScalar.cast_val_eq]; simp; omega
+  have ⟨m, hm, hmv⟩ := WP.spec_imp_exists
+    (U64.mul_spec (x := UScalar.cast .U64 n) (y := 32#u64) (by simp only [hc]; scalar_tac))
+  rw [hm]; simp only [bind_tc_ok]
+  have ⟨s, hs, hsv⟩ := WP.spec_imp_exists
+    (U64.add_spec (x := base) (y := m) (by simp only [hmv, hc]; scalar_tac))
+  exact ⟨s, hs, by simp only [hsv, hmv, hc]; simp; omega⟩
+
+theorem timer_config_is_0x100_plus_0x20_per_timer (n : Std.U8) :
+    ∃ v : Std.U64, timer_config n = ok v ∧ v.val = 0x100 + 0x20 * n.val :=
+  offset_is_exact n 256#u64 (by decide)
+
+theorem timer_comparator_is_0x108_plus_0x20_per_timer (n : Std.U8) :
+    ∃ v : Std.U64, timer_comparator n = ok v ∧ v.val = 0x108 + 0x20 * n.val :=
+  offset_is_exact n 264#u64 (by decide)
+
+theorem timer_fsb_route_is_0x110_plus_0x20_per_timer (n : Std.U8) :
+    ∃ v : Std.U64, timer_fsb_route n = ok v ∧ v.val = 0x110 + 0x20 * n.val :=
+  offset_is_exact n 272#u64 (by decide)
+
+/-- Timer 0's configuration and comparator registers are at `0x100` and `0x108`,
+the literal offsets `configure_hpet` adds to the HPET base when it programs the
+periodic tick. -/
+theorem timer_zero_config_and_comparator_are_where_configure_hpet_writes :
+    timer_config 0#u8 = ok 0x100#u64 ∧ timer_comparator 0#u8 = ok 0x108#u64 := by
+  constructor <;> rfl
+
+/-- The comparator register is the second quadword of its timer's block: eight
+bytes past that timer's configuration register, for every index. -/
+theorem timer_comparator_is_eight_past_timer_config (n : Std.U8) :
+    ∃ c v : Std.U64, timer_config n = ok c ∧ timer_comparator n = ok v ∧
+      v.val = c.val + 8 := by
+  obtain ⟨c, hc, hcv⟩ := timer_config_is_0x100_plus_0x20_per_timer n
+  obtain ⟨v, hv, hvv⟩ := timer_comparator_is_0x108_plus_0x20_per_timer n
+  exact ⟨c, v, hc, hv, by omega⟩
+
+/-- The FSB route register is the third quadword of its timer's block. -/
+theorem timer_fsb_route_is_sixteen_past_timer_config (n : Std.U8) :
+    ∃ c v : Std.U64, timer_config n = ok c ∧ timer_fsb_route n = ok v ∧
+      v.val = c.val + 0x10 := by
+  obtain ⟨c, hc, hcv⟩ := timer_config_is_0x100_plus_0x20_per_timer n
+  obtain ⟨v, hv, hvv⟩ := timer_fsb_route_is_0x110_plus_0x20_per_timer n
+  exact ⟨c, v, hc, hv, by omega⟩
+
+private theorem ok_ne_of_val_ne {a b : Std.U64} (h : a.val ≠ b.val) :
+    (ok a : Result Std.U64) ≠ ok b := by
+  intro he; injection he with he; exact h (congrArg UScalar.val he)
+
+/-- No register of one family is ever a register of another family, whatever the
+two timer indices: a write meant for one timer's comparator can never land on any
+timer's configuration or FSB route register, and so on. -/
+theorem timer_config_timer_comparator_and_timer_fsb_route_never_alias (n m : Std.U8) :
+    timer_comparator n ≠ timer_config m ∧ timer_fsb_route n ≠ timer_config m ∧
+      timer_fsb_route n ≠ timer_comparator m := by
+  obtain ⟨c, hc, hcv⟩ := timer_config_is_0x100_plus_0x20_per_timer m
+  obtain ⟨v, hv, hvv⟩ := timer_comparator_is_0x108_plus_0x20_per_timer n
+  obtain ⟨v', hv', hvv'⟩ := timer_comparator_is_0x108_plus_0x20_per_timer m
+  obtain ⟨f, hf, hfv⟩ := timer_fsb_route_is_0x110_plus_0x20_per_timer n
+  rw [hc, hv, hf, hv']
+  exact ⟨ok_ne_of_val_ne (by omega), ok_ne_of_val_ne (by omega),
+    ok_ne_of_val_ne (by omega)⟩
+
+/-- Distinct timers have distinct configuration registers. -/
+theorem timer_config_tells_timers_apart (n m : Std.U8)
+    (h : timer_config n = timer_config m) : n = m := by
+  obtain ⟨c, hc, hcv⟩ := timer_config_is_0x100_plus_0x20_per_timer n
+  obtain ⟨c', hc', hcv'⟩ := timer_config_is_0x100_plus_0x20_per_timer m
+  rw [hc, hc'] at h
+  injection h with h
+  have := congrArg UScalar.val h
+  exact UScalar.eq_of_val_eq (by omega)
+
+/-- Every timer register lies above the general registers (the main counter at
+`0x0F0` is the last of them and ends at `0x0F8`), and for the at most 32 timers the
+capability register can report, every timer register ends by `0x500`, inside the
+first 4 KiB page of the HPET block. Timer 31's FSB route register is the last one,
+at `0x4F0`. -/
+theorem timer_registers_of_the_32_reportable_timers_fit_below_0x500 (n : Std.U8)
+    (hn : n.val < 32) :
+    ∃ c v f : Std.U64, timer_config n = ok c ∧ timer_comparator n = ok v ∧
+      timer_fsb_route n = ok f ∧
+      0x0F8 ≤ c.val ∧ c.val < v.val ∧ v.val < f.val ∧ f.val + 8 ≤ 0x500 := by
+  obtain ⟨c, hc, hcv⟩ := timer_config_is_0x100_plus_0x20_per_timer n
+  obtain ⟨v, hv, hvv⟩ := timer_comparator_is_0x108_plus_0x20_per_timer n
+  obtain ⟨f, hf, hfv⟩ := timer_fsb_route_is_0x110_plus_0x20_per_timer n
+  exact ⟨c, v, f, hc, hv, hf, by omega, by omega, by omega, by omega⟩
+
+/-- The bound on the index is the caller's: the functions take any `u8`, the
+largest offset (timer 255's FSB route register, `0x20F0`) is still computed without
+overflow, and timer 120's FSB route register is already past the first page. -/
+theorem timer_fsb_route_past_the_reportable_timers_leaves_the_first_page :
+    timer_fsb_route 120#u8 = ok 0x1010#u64 ∧ timer_fsb_route 255#u8 = ok 0x20F0#u64 := by
+  constructor <;> rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.HpetRegisters.the_timer_config_wrapper_is_its_method
 #print axioms NonosExtraction.HpetRegisters.the_timer_comparator_wrapper_is_its_method
 #print axioms NonosExtraction.HpetRegisters.the_timer_fsb_route_wrapper_is_its_method
+#print axioms NonosExtraction.HpetRegisters.timer_config_is_0x100_plus_0x20_per_timer
+#print axioms NonosExtraction.HpetRegisters.timer_comparator_is_0x108_plus_0x20_per_timer
+#print axioms NonosExtraction.HpetRegisters.timer_fsb_route_is_0x110_plus_0x20_per_timer
+#print axioms NonosExtraction.HpetRegisters.timer_zero_config_and_comparator_are_where_configure_hpet_writes
+#print axioms NonosExtraction.HpetRegisters.timer_comparator_is_eight_past_timer_config
+#print axioms NonosExtraction.HpetRegisters.timer_fsb_route_is_sixteen_past_timer_config
+#print axioms NonosExtraction.HpetRegisters.timer_config_timer_comparator_and_timer_fsb_route_never_alias
+#print axioms NonosExtraction.HpetRegisters.timer_config_tells_timers_apart
+#print axioms NonosExtraction.HpetRegisters.timer_registers_of_the_32_reportable_timers_fit_below_0x500
+#print axioms NonosExtraction.HpetRegisters.timer_fsb_route_past_the_reportable_timers_leaves_the_first_page
 
 end NonosExtraction.HpetRegisters

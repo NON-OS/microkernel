@@ -35,8 +35,29 @@ namespace NonosExtraction.DistributorDevice
 theorem the_gicdistributor_new_wrapper_is_its_method (a : Std.U64) :
     gicdistributor_new a = device.GicDistributor.new a := rfl
 
+/-! ### The distributor frame is where the firmware put it
+
+    `new` records the base address it is given without masking, rounding or
+    offsetting it, so every register access the driver makes is relative to the
+    address the device tree or ACPI table reported. The theorems cannot say that
+    the address is a valid, mapped distributor frame; that comes from the firmware
+    tables and the MMIO mapping, neither of which is extracted.
+-/
+
+/-- The constructed distributor keeps the base exactly as given. -/
+theorem gicdistributor_new_keeps_the_firmware_base (b : Std.U64) :
+    ∃ d, gicdistributor_new b = ok d ∧ d.base = b := ⟨_, rfl, rfl⟩
+
+/-- Different bases give different devices, so two frames are never collapsed
+    onto one. -/
+theorem gicdistributor_new_tells_bases_apart (a b : Std.U64) (h : gicdistributor_new a = gicdistributor_new b) : a = b := by
+  simpa [gicdistributor_new, device.GicDistributor.new] using h
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.DistributorDevice.the_gicdistributor_new_wrapper_is_its_method
+
+#print axioms NonosExtraction.DistributorDevice.gicdistributor_new_keeps_the_firmware_base
+#print axioms NonosExtraction.DistributorDevice.gicdistributor_new_tells_bases_apart
 
 end NonosExtraction.DistributorDevice

@@ -21,6 +21,7 @@ them take are stated once in NonosExtraction.Shapes.
 -/
 
 import NonosExtraction.IrqReserved
+import NonosExtraction.Bits
 
 open Aeneas Aeneas.Std Result
 open nonos_x_irq_reserved
@@ -38,9 +39,191 @@ theorem the_reserve_wrapper_is_its_method (a : Std.U32) :
 theorem the_is_reserved_wrapper_is_its_method (a : Std.U32) :
     is_reserved a = reserved.is_reserved a := rfl
 
+/-! ### Which bit a line is, and what happens past the table
+
+`RESERVED` is four sixty-four bit words, one bit for each of the 256 lines an
+IOAPIC redirection table can carry. The theorems below fix the arithmetic that
+maps a GSI to its bit and the refusal at the edge. A line at or beyond 256 is
+reported reserved without touching the table, which is what lets
+`bind/intx.rs` refuse a malformed line rather than program it, and reserving
+such a line returns without touching the table either. A line below 256 is word
+`gsi / 64`, bit `gsi % 64`: `reserve` ORs in exactly the one-bit mask `2^(gsi % 64)`
+on that word, and `is_reserved` reports exactly that bit of the word it loads, so
+the bit written by `set_irq` is the bit the broker reads.
+
+What they cannot establish. The words are atomics, and Aeneas models
+`AtomicU64::new`, `load` and `fetch_or` as opaque functions, so nothing here says
+that a load returns what an earlier `fetch_or` stored, or anything about
+ordering between processors. The statements are therefore about which word and
+which mask the code passes to those calls and how it reads their answer. Nor can
+they say that `set_irq` reserves before it unmasks, since that caller is not
+extracted.
+-/
+
+/-- A line below 256 is word `gsi / 64`, bit `gsi % 64`. -/
+theorem index_of_a_line_in_the_table (gsi : Std.U32) (h : gsi.val < 256) :
+    ∃ (w : Std.Usize) (b : Std.U32), w.val = gsi.val / 64 ∧ b.val = gsi.val % 64 ∧
+      reserved.index gsi = ok (some (w, b)) := by
+  unfold reserved.index
+  simp only [lift, bind_tc_ok, reserved.WORDS]
+  have hm : (4#usize * 64#usize : Result Std.Usize) = ok 256#usize := by
+    obtain ⟨z, hz, hv⟩ := WP.spec_imp_exists (Usize.mul_spec (x := 4#usize) (y := 64#usize) (by scalar_tac))
+    rw [hz]
+    congr 1
+    apply UScalar.eq_of_val_eq
+    rw [hv]
+    rfl
+  have hg : (UScalar.cast .Usize gsi).val = gsi.val := by
+    rw [UScalar.cast_val_eq]
+    apply Nat.mod_eq_of_lt
+    have : gsi.val < 2 ^ 32 := by scalar_tac
+    rcases System.Platform.numBits_eq with hp | hp <;>
+      simp only [UScalarTy.Usize_numBits_eq, hp] <;> omega
+  rw [hm]
+  simp only [bind_tc_ok]
+  have hlt : ¬ ((UScalar.cast .Usize gsi) >= 256#usize) := by
+    simp only [ge_iff_le, UScalar.le_equiv, not_le]
+    rw [hg]
+    scalar_tac
+  simp only [hlt, if_false]
+  obtain ⟨q, hq, hqv⟩ := UScalar.div_spec (UScalar.cast .Usize gsi) (y := 64#usize) (by simp)
+  obtain ⟨r, hr, hrv⟩ := WP.spec_imp_exists
+    (UScalar.rem_spec (UScalar.cast .Usize gsi) (y := 64#usize) (by simp))
+  rw [hq, hr]
+  simp only [bind_tc_ok]
+  refine ⟨q, UScalar.cast .U32 r, ?_, ?_, rfl⟩
+  · rw [hqv, hg]
+    rfl
+  · rw [UScalar.cast_val_eq, hrv, hg]
+    simp only [UScalarTy.numBits]
+    have : gsi.val % (64#usize : Std.Usize).val = gsi.val % 64 := rfl
+    omega
+
+/-- A line at or past 256 has no bit. -/
+theorem index_past_the_table (gsi : Std.U32) (h : 256 ≤ gsi.val) :
+    reserved.index gsi = ok none := by
+  unfold reserved.index
+  simp only [lift, bind_tc_ok, reserved.WORDS]
+  have hm : (4#usize * 64#usize : Result Std.Usize) = ok 256#usize := by
+    obtain ⟨z, hz, hv⟩ := WP.spec_imp_exists (Usize.mul_spec (x := 4#usize) (y := 64#usize) (by scalar_tac))
+    rw [hz]
+    congr 1
+    apply UScalar.eq_of_val_eq
+    rw [hv]
+    rfl
+  have hg : (UScalar.cast .Usize gsi).val = gsi.val := by
+    rw [UScalar.cast_val_eq]
+    apply Nat.mod_eq_of_lt
+    have : gsi.val < 2 ^ 32 := by scalar_tac
+    rcases System.Platform.numBits_eq with hp | hp <;>
+      simp only [UScalarTy.Usize_numBits_eq, hp] <;> omega
+  rw [hm]
+  simp only [bind_tc_ok]
+  have hge : ((UScalar.cast .Usize gsi) >= 256#usize) := by
+    simp only [ge_iff_le, UScalar.le_equiv]
+    rw [hg]
+    scalar_tac
+  simp only [hge, if_true]
+
+/-- A line outside every redirection table is reported reserved, and the answer
+    does not depend on the table: `bind/intx.rs` refuses it. -/
+theorem is_reserved_refuses_every_line_past_256 (gsi : Std.U32) (h : 256 ≤ gsi.val) :
+    is_reserved gsi = ok true := by
+  unfold is_reserved reserved.is_reserved
+  rw [index_past_the_table gsi h]
+  rfl
+
+/-- Reserving a line outside every redirection table returns without touching the
+    table (it neither reaches `fetch_or` nor fails on an out-of-range word). -/
+theorem reserve_of_a_line_past_256_does_nothing (gsi : Std.U32) (h : 256 ≤ gsi.val) :
+    reserve gsi = ok () := by
+  unfold reserve reserved.reserve
+  rw [index_past_the_table gsi h]
+  rfl
+
+/-- `is_reserved` of a line in the table loads word `gsi / 64` and answers with
+    bit `gsi % 64` of what it loaded, for whatever value the load returns. -/
+theorem is_reserved_reads_bit_gsi_mod_64_of_word_gsi_div_64 (gsi : Std.U32) (h : gsi.val < 256)
+    (a : Array (core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64)) 4#usize)
+    (ha : reserved.RESERVED = ok a) :
+    ∃ w : Std.Usize, w.val = gsi.val / 64 ∧
+      is_reserved gsi = (do
+        let a1 ← Array.index_usize a w
+        let v ← core.sync.atomic.AtomicU64Align8U64.load a1 core.sync.atomic.Ordering.Acquire
+        ok (v.val.testBit (gsi.val % 64))) := by
+  obtain ⟨w, b, hw, hb, hi⟩ := index_of_a_line_in_the_table gsi h
+  refine ⟨w, hw, ?_⟩
+  unfold is_reserved reserved.is_reserved
+  rw [hi, ha]
+  simp only [bind_tc_ok]
+  have hb64 : b.val < 64 := by omega
+  obtain ⟨m, hm, hmv, -⟩ := WP.spec_imp_exists (U64.ShiftLeft_spec (x := 1#u64) (y := b) hb64)
+  have hmv' : m.val = 2 ^ (gsi.val % 64) := by
+    rw [hmv, ← hb, Nat.shiftLeft_eq, show (1#u64 : Std.U64).val = 1 from rfl, Nat.one_mul]
+    have : 2 ^ b.val < U64.size := by
+      simp only [U64.size, U64.numBits, UScalarTy.numBits]
+      exact Nat.pow_lt_pow_right (by decide) hb64
+    exact Nat.mod_eq_of_lt this
+  show (do
+      let a1 ← a.index_usize w
+      let i ← core.sync.atomic.AtomicU64Align8U64.load a1 core.sync.atomic.Ordering.Acquire
+      let i1 ← 1#u64 <<< b
+      let i2 ← lift (i &&& i1)
+      ok (i2 != 0#u64)) = _
+  cases hx : Array.index_usize a w with
+  | ok a1 =>
+    simp only [bind_tc_ok]
+    cases hl : core.sync.atomic.AtomicU64Align8U64.load a1 core.sync.atomic.Ordering.Acquire with
+    | ok v =>
+      simp only [bind_tc_ok, hm, lift]
+      rw [Bits.reads_bit v m 0#u64 (gsi.val % 64) hmv' rfl]
+    | fail e => simp only [bind_tc_fail]
+    | div => simp only [bind_tc_div]
+  | fail e => simp only [bind_tc_fail]
+  | div => simp only [bind_tc_div]
+
+/-- `reserve` of a line in the table ORs the one-bit mask `2^(gsi % 64)` into word
+    `gsi / 64`, the same word and bit `is_reserved` reads, with release ordering. -/
+theorem reserve_sets_the_bit_is_reserved_reads (gsi : Std.U32) (h : gsi.val < 256)
+    (a : Array (core.sync.atomic.Atomic Std.U64 (core.sync.atomic.private.Align8 Std.U64)) 4#usize)
+    (ha : reserved.RESERVED = ok a) :
+    ∃ (w : Std.Usize) (m : Std.U64), w.val = gsi.val / 64 ∧ m.val = 2 ^ (gsi.val % 64) ∧
+      reserve gsi = (do
+        let a1 ← Array.index_usize a w
+        let _ ← core.sync.atomic.AtomicU64Align8U64.fetch_or a1 m
+          core.sync.atomic.Ordering.Release
+        ok ()) := by
+  obtain ⟨w, b, hw, hb, hi⟩ := index_of_a_line_in_the_table gsi h
+  have hb64 : b.val < 64 := by omega
+  obtain ⟨m, hm, hmv, -⟩ := WP.spec_imp_exists (U64.ShiftLeft_spec (x := 1#u64) (y := b) hb64)
+  refine ⟨w, m, hw, ?_, ?_⟩
+  · rw [hmv, ← hb, Nat.shiftLeft_eq, show (1#u64 : Std.U64).val = 1 from rfl, Nat.one_mul]
+    have : 2 ^ b.val < U64.size := by
+      simp only [U64.size, U64.numBits, UScalarTy.numBits]
+      exact Nat.pow_lt_pow_right (by decide) hb64
+    exact Nat.mod_eq_of_lt this
+  unfold reserve reserved.reserve
+  rw [hi, ha]
+  simp only [bind_tc_ok]
+  show (do
+      let a1 ← a.index_usize w
+      let i ← 1#u64 <<< b
+      let _ ← core.sync.atomic.AtomicU64Align8U64.fetch_or a1 i core.sync.atomic.Ordering.Release
+      ok ()) = _
+  cases hx : Array.index_usize a w with
+  | ok a1 => simp only [bind_tc_ok, hm]
+  | fail e => simp only [bind_tc_fail]
+  | div => simp only [bind_tc_div]
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.IrqReserved.the_reserve_wrapper_is_its_method
 #print axioms NonosExtraction.IrqReserved.the_is_reserved_wrapper_is_its_method
+#print axioms NonosExtraction.IrqReserved.index_of_a_line_in_the_table
+#print axioms NonosExtraction.IrqReserved.index_past_the_table
+#print axioms NonosExtraction.IrqReserved.is_reserved_refuses_every_line_past_256
+#print axioms NonosExtraction.IrqReserved.reserve_of_a_line_past_256_does_nothing
+#print axioms NonosExtraction.IrqReserved.is_reserved_reads_bit_gsi_mod_64_of_word_gsi_div_64
+#print axioms NonosExtraction.IrqReserved.reserve_sets_the_bit_is_reserved_reads
 
 end NonosExtraction.IrqReserved

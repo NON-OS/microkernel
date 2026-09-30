@@ -38,9 +38,63 @@ theorem the_i2chiddevice_is_touchpad_wrapper_is_its_method (a : types.I2cHidDevi
 theorem the_i2chiddevice_is_touchscreen_wrapper_is_its_method (a : types.I2cHidDevice) :
     i2chiddevice_is_touchscreen a = types.I2cHidDevice.is_touchscreen a := rfl
 
+/-! ### Which device a predicate picks out
+
+`is_touchpad` and `is_touchscreen` are what the enumeration filters in
+`acpi/devices/i2c/enumerate.rs` keep a device by. The theorems below say each
+one answers true for exactly its own device type, never fails, and that no
+device is both, so the touchpad list and the touchscreen list the kernel builds
+from one enumeration cannot share an entry. The comparison goes through the
+derived `PartialEq`, which reads discriminants, so these also say the derived
+equality separates the two variants from each other and from the other five.
+They say nothing about how `device_type` was assigned in the first place: the
+classification from ACPI `_HID` and `_CID` strings is not extracted here.
+-/
+
+/-- A device is reported as a touchpad exactly when its type is `Touchpad`, and
+    the query always answers. -/
+theorem i2chiddevice_is_touchpad_holds_exactly_for_the_touchpad_type
+    (d : types.I2cHidDevice) :
+    ∃ b, i2chiddevice_is_touchpad d = ok b ∧ (b = true ↔ d.device_type = .Touchpad) := by
+  unfold i2chiddevice_is_touchpad types.I2cHidDevice.is_touchpad
+    types.I2cHidDeviceType.Insts.CoreCmpPartialEqI2cHidDeviceType.eq
+  refine ⟨_, rfl, ?_⟩
+  generalize d.device_type = t
+  cases t <;> simp [types.I2cHidDeviceType.read_discriminant]
+
+/-- A device is reported as a touchscreen exactly when its type is
+    `Touchscreen`, and the query always answers. -/
+theorem i2chiddevice_is_touchscreen_holds_exactly_for_the_touchscreen_type
+    (d : types.I2cHidDevice) :
+    ∃ b, i2chiddevice_is_touchscreen d = ok b ∧
+      (b = true ↔ d.device_type = .Touchscreen) := by
+  unfold i2chiddevice_is_touchscreen types.I2cHidDevice.is_touchscreen
+    types.I2cHidDeviceType.Insts.CoreCmpPartialEqI2cHidDeviceType.eq
+  refine ⟨_, rfl, ?_⟩
+  generalize d.device_type = t
+  cases t <;> simp [types.I2cHidDeviceType.read_discriminant]
+
+/-- No device passes both filters, so `enumerate_touchpads` and
+    `enumerate_touchscreens` never hand the same device to two drivers. -/
+theorem no_device_is_both_i2chiddevice_is_touchpad_and_i2chiddevice_is_touchscreen
+    (d : types.I2cHidDevice) :
+    ¬ (i2chiddevice_is_touchpad d = ok true ∧ i2chiddevice_is_touchscreen d = ok true) := by
+  obtain ⟨b, hb, hbi⟩ := i2chiddevice_is_touchpad_holds_exactly_for_the_touchpad_type d
+  obtain ⟨c, hc, hci⟩ := i2chiddevice_is_touchscreen_holds_exactly_for_the_touchscreen_type d
+  rintro ⟨h1, h2⟩
+  rw [hb] at h1
+  rw [hc] at h2
+  have e1 := hbi.mp (by cases h1; rfl)
+  have e2 := hci.mp (by cases h2; rfl)
+  rw [e1] at e2
+  cases e2
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.I2cTypes.the_i2chiddevice_is_touchpad_wrapper_is_its_method
 #print axioms NonosExtraction.I2cTypes.the_i2chiddevice_is_touchscreen_wrapper_is_its_method
+#print axioms NonosExtraction.I2cTypes.i2chiddevice_is_touchpad_holds_exactly_for_the_touchpad_type
+#print axioms NonosExtraction.I2cTypes.i2chiddevice_is_touchscreen_holds_exactly_for_the_touchscreen_type
+#print axioms NonosExtraction.I2cTypes.no_device_is_both_i2chiddevice_is_touchpad_and_i2chiddevice_is_touchscreen
 
 end NonosExtraction.I2cTypes

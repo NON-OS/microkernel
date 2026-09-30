@@ -35,8 +35,29 @@ namespace NonosExtraction.RedistributorDevice
 theorem the_gicredistributor_new_wrapper_is_its_method (a : Std.U64) :
     gicredistributor_new a = device.GicRedistributor.new a := rfl
 
+/-! ### The redistributor frame is where the firmware put it
+
+    `new` records the base address it is given without masking, rounding or
+    offsetting it, so every register access the driver makes is relative to the
+    address the device tree or ACPI table reported, including each frame `find.rs` walks. The theorems cannot say that
+    the address is a valid, mapped redistributor frame; that comes from the firmware
+    tables and the MMIO mapping, neither of which is extracted.
+-/
+
+/-- The constructed redistributor keeps the base exactly as given. -/
+theorem gicredistributor_new_keeps_the_firmware_base (b : Std.U64) :
+    ∃ d, gicredistributor_new b = ok d ∧ d.base = b := ⟨_, rfl, rfl⟩
+
+/-- Different bases give different devices, so two frames are never collapsed
+    onto one. -/
+theorem gicredistributor_new_tells_bases_apart (a b : Std.U64) (h : gicredistributor_new a = gicredistributor_new b) : a = b := by
+  simpa [gicredistributor_new, device.GicRedistributor.new] using h
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.RedistributorDevice.the_gicredistributor_new_wrapper_is_its_method
+
+#print axioms NonosExtraction.RedistributorDevice.gicredistributor_new_keeps_the_firmware_base
+#print axioms NonosExtraction.RedistributorDevice.gicredistributor_new_tells_bases_apart
 
 end NonosExtraction.RedistributorDevice

@@ -38,9 +38,41 @@ theorem the_plic_new_wrapper_is_its_method (a : Std.U64) :
 theorem the_plic_base_wrapper_is_its_method (a : plic.Plic) :
     plic_base a = plic.Plic.impl.base a := rfl
 
+/-! ### The handle keeps the address it was built with
+
+    A `Plic` is only the base address of the controller's register window, and
+    every register access in `priority`, `enable`, `pending` and `context_ops`
+    adds an offset to what `base` returns. The theorems below show that `base`
+    answers exactly the address `new` was given, and that `new` applied to that
+    answer rebuilds the same handle, so no field is lost or altered between the
+    two.
+
+    They cannot say the address is the right one. `state` loads it from the
+    `PLIC_BASE` atomic and `init` writes through it with volatile accesses, and
+    neither the atomic nor the MMIO is in the extracted crate.
+-/
+
+/-- Reading the base of a freshly built handle gives back the address it was
+    built with, for every address including zero and the largest. -/
+theorem plic_base_returns_what_plic_new_was_given (b : Std.U64) :
+    (do let p ← plic_new b; plic_base p) = ok b := rfl
+
+/-- Every handle is the one `new` builds from its own base, so `base` loses no
+    information and two handles with the same base are the same handle. -/
+theorem plic_new_rebuilds_a_handle_from_what_plic_base_returns
+    (p : plic.Plic) (b : Std.U64) (h : plic_base p = ok b) :
+    plic_new b = ok p := by
+  unfold plic_base plic.Plic.impl.base at h
+  cases p
+  simp only [ok.injEq] at h
+  subst h
+  rfl
+
 /-! ### Axiom profile -/
 
 #print axioms NonosExtraction.RegistersPlic.the_plic_new_wrapper_is_its_method
 #print axioms NonosExtraction.RegistersPlic.the_plic_base_wrapper_is_its_method
+#print axioms NonosExtraction.RegistersPlic.plic_base_returns_what_plic_new_was_given
+#print axioms NonosExtraction.RegistersPlic.plic_new_rebuilds_a_handle_from_what_plic_base_returns
 
 end NonosExtraction.RegistersPlic
