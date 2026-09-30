@@ -54,7 +54,7 @@ pub fn run(st: &mut SystemTable<Boot>, sec: &SecurityContext, _hw: &HardwareInfo
             return ENTRIES[default];
         }
         if remaining != shown_prev {
-            render(sel, remaining, sec);
+            render(sel, default, remaining, sec);
             shown_prev = remaining;
         }
         match poll(st.boot_services()) {

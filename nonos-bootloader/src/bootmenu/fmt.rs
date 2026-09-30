@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) fn status_line(buf: &mut [u8; 64], secs: u32) -> &[u8] {
+/* `name` is the entry a hands-off boot takes when the count reaches zero. */
+pub(super) fn status_line<'a>(buf: &'a mut [u8; 64], secs: u32, name: &[u8]) -> &'a [u8] {
     if secs == 0 {
         let s = b"up/down select    enter boot";
         buf[..s.len()].copy_from_slice(s);
         return &buf[..s.len()];
     }
     let mut n = 0usize;
-    for &b in b"Booting Hardened in " {
+    for &b in b"Booting ".iter().chain(name).chain(b" in ") {
         buf[n] = b;
         n += 1;
     }

@@ -23,7 +23,7 @@ use crate::display::fx::fill_atmosphere;
 use crate::display::gop::get_dimensions;
 use crate::security::SecurityContext;
 
-pub(super) fn render(sel: usize, remaining_s: u32, sec: &SecurityContext) {
+pub(super) fn render(sel: usize, default: usize, remaining_s: u32, sec: &SecurityContext) {
     let (w, h) = get_dimensions();
     fill_atmosphere();
 
@@ -35,6 +35,14 @@ pub(super) fn render(sel: usize, remaining_s: u32, sec: &SecurityContext) {
 
     draw_header(w, title_y);
     draw_list(w, list_top, sel);
-    draw_footer(w, status_y, remaining_s);
+    draw_footer(w, status_y, remaining_s, default_name(default));
     draw_security_status(w, status_y + 44, sec);
+}
+
+fn default_name(default: usize) -> &'static [u8] {
+    if default == 0 {
+        b"Hardened"
+    } else {
+        b"Standard"
+    }
 }

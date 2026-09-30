@@ -16,8 +16,8 @@
 
 use crate::menu::{MenuAction, SecurityMode};
 
-// Hardened is index 0 so it is both the highlighted default and the
-// timeout selection. Development is intentionally absent: an unsigned,
+// Hardened is index 0 and Standard index 1; run::default_index picks the
+// timeout selection by build policy. Development is intentionally absent: an unsigned,
 // unattested boot is only reachable through the explicit dev override,
 // never from this menu.
 /*

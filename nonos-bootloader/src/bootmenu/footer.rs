@@ -18,9 +18,9 @@ use super::fmt::status_line;
 use super::theme::STATUS;
 use crate::display::font::{draw_string, CHAR_WIDTH};
 
-pub(super) fn draw_footer(w: u32, y: u32, remaining_s: u32) {
+pub(super) fn draw_footer(w: u32, y: u32, remaining_s: u32, name: &[u8]) {
     let mut buf = [0u8; 64];
-    let msg = status_line(&mut buf, remaining_s);
+    let msg = status_line(&mut buf, remaining_s, name);
     let mw = msg.len() as u32 * CHAR_WIDTH;
     draw_string(w.saturating_sub(mw) / 2, y, msg, STATUS);
 }
