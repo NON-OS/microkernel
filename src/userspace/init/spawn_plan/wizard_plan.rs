@@ -26,6 +26,10 @@ use crate::userspace::capsule_setup_wizard as wiz;
 #[cfg(not(feature = "microkernel-input-probe"))]
 pub(in crate::userspace::init) fn spawn_desktop() {
     super::desktop_fleet::spawn_gui_core();
+    /* Recovery skips setup; after_setup sees it unfinished and starts the desktop. */
+    if crate::boot::handoff::boot_profile().skips_setup() {
+        return;
+    }
     super::boot::capsule(
         "SETUP-WIZARD",
         "setup_wizard",
@@ -37,6 +41,11 @@ pub(in crate::userspace::init) fn spawn_desktop() {
 pub(in crate::userspace::init) fn spawn_post_wizard() {
     super::desktop_fleet::spawn_rest();
     spawn_after_first();
+    /* Recovery opens a Terminal: the tool it is booted for. */
+    if crate::boot::handoff::boot_profile().skips_setup() {
+        let _ =
+            crate::userspace::init::request_instance(crate::userspace::init::PendingApp::Terminal);
+    }
 }
 
 /* The market and the apps, once setup or the installer has ended. */

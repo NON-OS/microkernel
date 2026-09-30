@@ -19,6 +19,7 @@ use crate::sys::boot_log;
 
 pub fn run_init() -> ! {
     boot_log::ok("INIT", "Starting");
+    super::app_choice::apply_profile();
     run_user_entry_proof();
     run_std_proof();
     run_ripgrep();

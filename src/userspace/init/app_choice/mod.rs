@@ -14,9 +14,11 @@ mod bits;
 mod gate;
 mod names;
 mod present;
+mod profile;
 
 #[cfg(feature = "microkernel-setup-wizard")]
 pub(crate) use gate::choose;
 pub(crate) use gate::off;
 pub(crate) use names::{capsule_off, linux_off, tool_off, window_off};
 pub(crate) use present::PRESENT;
+pub(crate) use profile::apply as apply_profile;

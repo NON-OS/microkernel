@@ -24,6 +24,11 @@ pub(crate) fn choose(off: u8) {
     }
 }
 
+/* Apps the boot profile does not run, recorded before any app spawns. */
+pub(super) fn withhold(mask: u32) {
+    OFF.fetch_or(mask & super::PRESENT, Ordering::SeqCst);
+}
+
 pub(crate) fn off() -> u32 {
     OFF.load(Ordering::SeqCst)
 }
