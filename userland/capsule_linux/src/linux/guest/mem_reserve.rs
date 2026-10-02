@@ -54,12 +54,13 @@ impl Guest {
     }
 
     /// Take `len` of address space at `addr` without backing it: a PROT_NONE
-    /// reservation. Bytes appear, zeroed, when the guest first touches them.
+    /// reservation. Nothing is mapped, and the kernel fills no page for a
+    /// guest on its own, so a touch before a commit faults as Linux faults.
     pub fn reserve(&mut self, addr: u64, len: u64) -> i64 {
         let Some((start, span)) = span_within(addr, len, USER_MAX) else {
             return -1;
         };
-        self.regions.push(Region::new(start, span, true, false, false));
+        self.regions.push(Region { access: false, ..Region::new(start, span, false, false, false) });
         0
     }
 }

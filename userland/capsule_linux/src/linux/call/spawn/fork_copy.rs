@@ -16,27 +16,31 @@
 
 //! Copying a parent's spans into the child it just made.
 
-use crate::linux::guest::{Guest, Region, MAX_SPAN};
-use nonos_libc::peer::{mk_peer_map, mk_peer_write, PEER_PROT_EXEC, PEER_PROT_WRITE};
+use crate::linux::guest::{Guest, MAX_SPAN};
+use nonos_libc::peer::{mk_peer_map, mk_peer_write};
 
 /// Every span, mapped into the child and then filled from the parent.
 pub(super) fn copy_spans(guest: &mut Guest, child: u32) -> bool {
     let spans = guest.regions.clone();
     for span in spans {
-        // An unbacked reservation has no frames to copy; the child reserves it
-        // the same way, and its own first access faults a page in.
+        // An unbacked reservation has no frames to copy; the child holds the
+        // same reservation, and a touch there faults in the child as here.
         if !span.backed {
             continue;
         }
         /*
          * A piece at a time: the kernel takes at most MAX_SPAN a call, and a
          * region past it, a megabyte of static buffer for one, failed the
-         * whole fork.
+         * whole fork. Each piece gets the protection the span has now,
+         * PROT_NONE included: the kernel copies into a page whatever its
+         * protection, so the bytes still go in, and the child can do no more
+         * with them than the parent can.
          */
         let mut done = 0;
         while done < span.len {
             let (at, take) = (span.at + done, (span.len - done).min(MAX_SPAN));
-            if mk_peer_map(child, at, take, prot_of(&span)) < 0 || !copy_one(guest, child, at, take)
+            if mk_peer_map(child, at, take, span.peer_prot()) < 0
+                || !copy_one(guest, child, at, take)
             {
                 return false;
             }
@@ -44,17 +48,6 @@ pub(super) fn copy_spans(guest: &mut Guest, child: u32) -> bool {
         }
     }
     true
-}
-
-fn prot_of(span: &Region) -> u64 {
-    let mut prot = 0;
-    if span.write {
-        prot |= PEER_PROT_WRITE;
-    }
-    if span.exec {
-        prot |= PEER_PROT_EXEC;
-    }
-    prot
 }
 
 fn copy_one(guest: &Guest, child: u32, at: u64, len: u64) -> bool {

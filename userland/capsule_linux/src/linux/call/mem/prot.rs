@@ -24,7 +24,7 @@ use super::prot_span::protect_span;
 pub const PROT_WRITE: u64 = 2;
 pub const PROT_EXEC: u64 = 4;
 /// PROT_READ, PROT_WRITE and PROT_EXEC together: any access at all.
-const PROT_ANY: u64 = 7;
+pub(super) const PROT_ANY: u64 = 7;
 
 /// A request for both at once.
 pub fn wx_refused(prot: u64) -> bool {
@@ -79,8 +79,8 @@ pub fn mprotect(guest: &mut Guest, addr: u64, len: u64, prot: u64) -> u64 {
                 return errno::fail(errno::ENOMEM);
             }
         }
-        // Every page is present now; this sets `prot` on all of them,
-        // including any the guest touched while the span was reserved.
+        // Every page is present now; this sets `prot` on all of them and
+        // records it, so a later fork gives the child no more than this.
         if protect_span(guest, at, piece, prot) < 0 {
             return errno::fail(errno::EACCES);
         }

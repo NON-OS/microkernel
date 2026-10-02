@@ -41,6 +41,7 @@ mod region;
 mod region_cut;
 mod region_find;
 mod region_mark;
+mod region_prot;
 mod sigpending;
 pub mod sigqueue;
 pub mod sigstack;
@@ -61,6 +62,6 @@ pub use layout::{
 };
 pub use links::Links;
 pub use mem::{page_down, page_up, span_within, MAX_SPAN, PAGE};
-pub use region::Region;
+pub use region::{peer_prot, Region};
 pub use timer::Timer;
 pub use watch::{Watch, EPOLLET, EPOLLONESHOT};
