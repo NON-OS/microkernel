@@ -88,7 +88,7 @@ impl Mmio for Card {
         self.store.borrow().get(off).copied().unwrap_or(0)
     }
     fn write32(&self, off: usize, val: u32) {
-        self.put(off, val as u32);
+        self.put(off, val);
     }
 }
 

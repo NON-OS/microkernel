@@ -1,11 +1,15 @@
 // NONOS Operating System (AGPL-3.0-or-later)
-//! Host proofs for the RTL8821CE power-sequence engine: the executor that every
-//! Realtek MAC power transition runs on. The real `regs` and `pwr` source are
-//! included and driven against a modeled register file so the exact
-//! read-modify-write, poll and ordering behaviour is checked without hardware.
+//! Host proofs for the RTL8821CE driver: its real source, included by path and
+//! driven against a modeled register file, checked without hardware.
 
 extern crate alloc;
 
+#[path = "../../capsule_driver_rtl8821ce/src/constants/mod.rs"]
+pub mod constants;
+#[path = "../../capsule_driver_rtl8821ce/src/coex/mod.rs"]
+pub mod coex;
+#[cfg(test)]
+mod coex_tests;
 #[path = "../../capsule_driver_rtl8821ce/src/pwr/mod.rs"]
 pub mod pwr;
 #[path = "../../capsule_driver_rtl8821ce/src/regs.rs"]
@@ -37,6 +41,27 @@ mod linkport_tests;
 pub mod assoc;
 #[cfg(test)]
 mod assoc_tests;
+// The connect request and result codes of the serve stage; the rest of the
+// stage needs the kernel.
+#[path = "../../capsule_driver_rtl8821ce/src/serve/connect/request.rs"]
+pub mod connect_request;
+#[path = "../../capsule_driver_rtl8821ce/src/serve/connect/result.rs"]
+pub mod connect_result;
+#[path = "../../capsule_driver_rtl8821ce/src/serve/connect/probe.rs"]
+pub mod connect_probe;
+#[cfg(test)]
+mod connect_tests;
+// The answer the serve loop sends a frame neither request family takes.
+#[path = "../../capsule_driver_rtl8821ce/src/serve/refuse.rs"]
+pub mod serve_refuse;
+#[cfg(test)]
+mod serve_refuse_tests;
+// The access point's half of the key handshakes, shared with the core proofs;
+// the link proofs use only part of it.
+#[cfg(test)]
+#[allow(dead_code)]
+#[path = "../../nonos_wifi_core_proofs/src/ap_sim.rs"]
+mod ap_sim;
 #[path = "../../capsule_driver_rtl8821ce/src/mac/mod.rs"]
 pub mod mac;
 #[cfg(test)]
@@ -51,6 +76,12 @@ mod phy_tests;
 mod phy_rxpath_tests;
 #[cfg(test)]
 mod prep_tests;
+#[cfg(test)]
+mod pwr_cycle_tests;
+#[cfg(test)]
+mod pwr_mock;
+#[cfg(test)]
+mod pwr_switch_tests;
 #[cfg(test)]
 mod pwr_tests;
 #[path = "../../capsule_driver_rtl8821ce/src/ring/mod.rs"]
