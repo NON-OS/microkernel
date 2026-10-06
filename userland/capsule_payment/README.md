@@ -5,14 +5,15 @@
 `capsule_payment` is the userland payment authority. It runs as a CPL=3
 capsule and issues signed NOX install receipts: a caller asks it to settle
 an install, the capsule records the charge against a monotonic nonce, and
-it returns a receipt signed by the keyring so the installer can verify
-payment without trusting the requester. It owns the payment nonce, the
-pending outbox, and the per-publisher settlement state.
+it has the keyring sign an EIP-712 receipt and returns the receipt's struct
+hash. It owns the payment nonce and the pending outbox of signed receipts.
+The install path it serves is described in
+[docs/handbook/apps/market-and-store.md](../../docs/handbook/apps/market-and-store.md).
 
 ```text
 installer / marketplace client
         |
-        | OP_PAY (publisher addr, amount) / OP_DRAIN_RECEIPTS
+        | OP_PAY / OP_DRAIN_RECEIPTS / OP_LIST_TOKENS
         v
 capsule_payment -- MkIpcCall --> keyring (secp256k1 receipt signature)
         |
@@ -25,34 +26,48 @@ capsule_payment -- MkIpcCall --> keyring (secp256k1 receipt signature)
 CAPSULE_REQUIRED_CAPS = 0x18
 ```
 
-The capsule resolves the keyring with `MkServiceLookup`, requests receipt
-signatures with `MkIpcCall`, serves callers with `MkIpcRecvFrom` plus
-`MkIpcSendToPid`, and terminates only through `MkExit`. It requests no
-hardware grants.
+IPC and Memory. Service `service:4114:payment`; replies go to the kernel
+reply endpoint. The capsule resolves the keyring with `MkServiceLookup`,
+requests receipt signatures with `MkIpcCall`, receives with `MkIpcRecv`,
+answers with `MkIpcSend`, and reads the clock with `MkTimeMillis`. It requests
+no hardware grants.
+
+No kernel profile turns on `nonos-capsule-payment`: the capsule is built,
+signed and enrolled, but no image carries it, so the installer's paid path
+answers `EAGAIN` on every image.
 
 ## Interface contract
 
 | Operation | Input | Output |
 |---|---|---|
-| `OP_HEALTHCHECK` | none | liveness, nonce high-water mark |
-| `OP_PAY` | publisher address, amount | charge accepted, receipt id |
-| `OP_DRAIN_RECEIPTS` | cursor/count | pending keyring-signed receipt bytes |
-| `OP_LIST_TOKENS` | none | supported wallet/payment assets |
+| `OP_HEALTHCHECK` (1) | none | status 0 |
+| `OP_PAY` (2) | owner pid, wallet id, capsule id, publisher address, amount, receipt type | the signed receipt's 32-byte struct hash |
+| `OP_DRAIN_RECEIPTS` (3) | none | a count and up to 13 pending 297-byte receipt records, taken from the outbox |
+| `OP_LIST_TOKENS` (4) | none | supported wallet/payment assets |
 
-Unknown operations reply `E_BAD_OP`. Malformed bodies reply `E_INVAL`.
+Unknown operations and malformed bodies reply `EINVAL`. `OP_PAY` answers
+`EAGAIN` when no keyring runs or the outbox holds its 1024 records already.
 
 ## Authority
 
 The capsule may talk to the keyring over IPC. It has no PCI, MMIO, IRQ,
 DMA, PIO, network, display, or focus-routing authority. It never moves
-funds itself; settlement authority is the publisher Ethereum address
-carried in the signed receipt and reconciled on chain.
+funds itself.
+
+## Limits
+
+The keyring signs a receipt only when the owner pid in the request is the pid
+the kernel stamped on the message (`resolve_caller`), and only with a key that
+pid owns. `OP_PAY` forwards the wallet owner's pid while the kernel stamps the
+payment capsule's own, so the keyring refuses the signature with `EACCES`
+and `OP_PAY` returns that status.
 
 ## Privacy and persistence
 
 The nonce and outbox live in capsule memory for the life of the boot.
-Receipts carry only the publisher address, amount, and nonce; no caller
-identity is retained.
+A receipt record carries the capsule id, publisher address, amount, nonce,
+epoch, expiry and receipt type, the paying account's address and the
+keyring's signature.
 
 ## Token registry
 
