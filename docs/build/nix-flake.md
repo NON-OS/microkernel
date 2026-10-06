@@ -59,3 +59,47 @@ Every app first moves to the root of the git checkout it was started in, and ref
 ### Development shell and formatter
 
 `devShells.default` is the shell [toolchain.md](toolchain.md) describes, and `formatter` is `nixfmt` (`formatter`, `tools/nix/default.nix:104-105`).
+
+## Checks
+
+`nix flake check` builds every check for the host. Each check is its own derivation, cached until its inputs change, so a failure names itself (`checks.nix`, `tools/nix/checks.nix:1-3`). The set is the union of five groups (`proofChecks`, `tools/nix/checks.nix:303`):
+
+| group | names | what each one does |
+|---|---|---|
+| proof crates | `proofs-<crate>` | `cargo test` of one [proof crate](../overview/glossary.md#proof-crate) with overflow checks on and one test thread, then clippy with warnings as errors (`script`, `tools/nix/checks.nix:85-95`) |
+| cargo checks | `nonos-verify`, `attest-poc`, `attest-battery`, `qjs-prelude`, and six `kernel-features-<set>` | the verification engine's lint and hygiene scan, the attestation tests and attacks, the browser prelude tests, and a kernel `cargo check` per optional feature set (`cargoChecks`, `tools/nix/checks.nix:119-167`) |
+| profile checks | `kernel-profile-<profile>` | a kernel `cargo check` with exactly the features each profile resolves to (`profileChecks`, `tools/nix/checks.nix:174-193`) |
+| static checks | `static-hygiene`, `static-abi`, `static-tree`, `static-evidence` | the Python and shell checks over the whole tree (`staticChecks`, `tools/nix/checks.nix:211-247`) |
+| drift checks | `catalogues`, `inputs`, `git-pins`, `wallpaper-pins`, `starks-pin`, `shield-vectors-pin`, `busybox-source`, `rust-src-lock`, `config` | the flake's own inputs held to the tree they mirror (`driftChecks`, `tools/nix/checks.nix:250-301`) |
+
+The proof crates are every `userland/*_proofs` directory with a `Cargo.lock`, and seven more named by hand (`proofDirs`, `tools/nix/checks.nix:20-30`). The two live TPM suites run on Linux only and fail when a live test was skipped (`needsTpm`, `tools/nix/checks.nix:32-34`). A few crates are not yet clippy clean in their tests, or at all, and are listed by name; the comment beside the lists says they only shrink (`lintLib`, `tools/nix/checks.nix:44-54`).
+
+Count the checks for a host:
+
+```
+nix eval --json .#checks.x86_64-linux --apply builtins.attrNames
+```
+
+At this commit that gives 143 checks on x86_64-linux and on aarch64-linux, and 141 on aarch64-darwin, where the two TPM suites are left out. On x86_64-linux the 143 are 114 proof crates, 6 kernel feature sets, 6 kernel profiles, 4 static checks, 4 other cargo checks and 9 drift checks. [ci.md](ci.md) says how they stood at this commit.
+
+### Run them
+
+```
+make check
+```
+
+Not tested in this release.
+
+`make check` runs `nix run .#check-report` (`check`, `Makefile:60-61`). It builds every check for this host in one `nix build --keep-going`, then prints `PASS` or `FAIL` for each, the number of tests each proof crate ran, and the size of the bill of materials, writes the same record as a JSON file in the checkout, and exits non-zero when any check failed (`main`, `tools/nonos-check-report:58-69`). It asks Nix for every check's derivation in one evaluation, so a single check that does not evaluate stops the whole report. CI runs `nix flake check -L --keep-going` instead, on Linux and on macOS, one `matrix` entry each (`.github/workflows/verify.yml:39-60`).
+
+One check by name, with its log streamed:
+
+```
+nix build .#checks.x86_64-linux.proofs-prove_proofs -L
+```
+
+Not tested in this release.
+
+### What stays outside the flake
+
+Kani, Verus, the Charon and Aeneas extraction, `cargo-fuzz` runs and the `cargo-audit` advisory feed need a network or a toolchain no lock pins yet, so they keep their own workflows (`checks.nix`, `tools/nix/checks.nix:1-8`). [ci.md](ci.md) lists them.
