@@ -43,3 +43,7 @@ The kernel's controlled stop when a boot step cannot go on: a `[FATAL]` line nam
 ## Boot-root record
 
 The 104-byte file `boot_root.approval` on the ESP: the bootloader tree's root and an epoch, signed with the device policy key, ECDSA P-256. The kernel holds the loader's measurement, taken from the firmware's PCR 4 log, to that root and, on a measured boot, the epoch to the rollback floor. Explained in [Measured boot and the TPM](../security/measured-boot-and-tpm.md#the-kernel-checks-its-loader). Code: `nonos-boot-measure/src/record/mod.rs`.
+
+## Build profile
+
+<a id="profile"></a>The kind of image `profile` in `nonos.toml` selects: standard, hardened, airgapped, qemu, dev or core. It fixes the kernel features, what is taken out of the binary (serial debug output for hardened, that and every network feature for airgapped) and the weakest loader policy allowed, so it decides what an image can ever do. The boot profile is a separate choice, made in the boot menu at each boot. Explained in [Profiles](../build/profiles.md). Code: `tools/nix/config.nix`.
