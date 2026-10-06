@@ -40,3 +40,19 @@ Two more facilities exist and are not active on a normal image:
 
 - The `log_info!`, `log_warn!` and related macros format a message and pass it to `log::log` (`src/log/macros.rs:17-80`). A `LogManager` would keep the last `RAM_BUF_SIZE`, 1024, entries with a SHA3 hash chain and show warnings on the VGA text screen (`src/log/backend/ram_buffer.rs:20`, `src/log/manager/state.rs:30-83`). But `log` writes only when a manager is installed, and nothing in the kernel calls `init` (`src/log/manager/api.rs:26-53`). In this release these messages are dropped. The lines that reach the console are the ones written to it directly.
 - With the `dbg-ring` feature, `RING_LEN`, 4096, fixed 32-byte records go to a ring in the `.nonos.dbg_ring` section, and the panic handler drains them to the console (`src/log/dbg_ring/types.rs:19-31`, `src/log/dbg_ring/drain.rs:24-39`). Without the feature, every ring call compiles to nothing.
+
+## Reading the log on a running system
+
+The Terminal's `log` command reads the serial tail:
+
+```sh
+log
+log rtl tpm
+log > boot.txt
+```
+
+Not tested in this release.
+
+`log` alone shows the newest `NEWEST`, 200, lines. With words, it shows every line that contains any of them, ignoring case, and `log > boot.txt` keeps the output in a file like any command's, as `run` and its header say (`userland/capsule_terminal/src/command/builtin/log.rs:18-55`). On an image without the tail it prints `log: no line matches`.
+
+The command calls `mk_log_tail`, the `MkLogTail` system call, number `0x474F4C4D`, which the kernel names `SYS_LOG_TAIL` (`src/syscall/microkernel/numbers.rs:78`). It needs the `AttestRead` capability, checked as `can_attest_read` (`src/syscall/contract/cap_table/mk.rs:54`). The Terminal requests it in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_terminal/Capsule.mk:19-24`), where it is the `ATTEST_READ` bit (`abi/caps.toml:37`). `sys_log_tail` copies up to `KEPT` bytes, oldest first (`src/syscall/microkernel/log_tail.rs:32-46`). The Terminal itself is described on [Terminal](../using/terminal.md).
