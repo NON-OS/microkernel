@@ -27,6 +27,7 @@ use super::procstat_entry::ProcStatEntry;
 use super::procstat_fill::entry_for;
 use super::procstat_header::ProcStatHeader;
 use super::procstat_header_fill::header_for;
+use super::procstat_redact::{sees_all, visible};
 use crate::usercopy::{validate_user_write, write_user_value};
 
 pub use super::procstat_entry::PROC_NAME_LEN;
@@ -46,8 +47,10 @@ pub fn sys_proc_stat(buf_ptr: u64, max_entries: u64) -> i64 {
         return ERRNO_FAULT;
     }
     let mut dst = buf_ptr + size_of::<ProcStatHeader>() as u64;
+    let caller = crate::process::current_pid().unwrap_or(0);
+    let all = sees_all();
     for pid in pids.iter().take(to_write) {
-        if write_user_value(dst, &entry_for(*pid, now_ms)).is_err() {
+        if write_user_value(dst, &visible(entry_for(*pid, now_ms), caller, all)).is_err() {
             return ERRNO_FAULT;
         }
         dst += size_of::<ProcStatEntry>() as u64;

@@ -16,7 +16,8 @@
 
 //! Kernel broker for runtime capsule-store persistence. Fail-closed on
 //! `Capability::StoreWrite`; writes are scoped to `lba >= STORE_BASE_LBA`
-//! so blockfs's 0..256 header ring is unreachable, and bounded per call.
+//! so blockfs's 0..256 header ring is unreachable, and must end below the
+//! disk plan, so the plan and the sealed data volume past it are too.
 
 use super::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_PERM};
 
@@ -35,6 +36,10 @@ pub fn sys_store_write(lba: u64, user_ptr: u64, len: u64) -> i64 {
     if len > MAX_LEN || len % SECTOR != 0 {
         return ERRNO_INVAL;
     }
+    if lba.saturating_add((len / SECTOR) as u64) > crate::fs::blockfs_volume::PLAN_LBA {
+        crate::sys::serial::print(b"[STORE-WR] refused: past the store, into the disk plan\n");
+        return ERRNO_PERM;
+    }
     if crate::usercopy::validate_user_read(user_ptr, len).is_err() {
         return ERRNO_FAULT;
     }
@@ -42,14 +47,20 @@ pub fn sys_store_write(lba: u64, user_ptr: u64, len: u64) -> i64 {
     if crate::usercopy::copy_from_user(user_ptr, &mut buf[..len]).is_err() {
         return ERRNO_FAULT;
     }
+    /* A disk whose store is not the loader's copy sets the copy aside
+     * before the copy can take a write meant for another store. The disk is
+     * kept first, so there is one to compare. */
+    let _ = crate::hardware::block_device::selected();
+    super::store_copy::check_against_disk();
     match crate::hardware::block_device::write(lba, &buf[..len]) {
         Ok(()) => {
+            super::store_copy::wrote(lba, &buf[..len]);
             crate::sys::serial::print(b"[STORE-WR] ok\n");
             len as i64
         }
-        Err(_) => {
+        Err(e) => {
             crate::sys::serial::print(b"[STORE-WR] err\n");
-            ERRNO_FAULT
+            super::store_errno::store_errno(e)
         }
     }
 }

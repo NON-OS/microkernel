@@ -23,20 +23,11 @@
 
 use core::mem::size_of;
 
-use crate::hardware::broker::IrqError;
 use crate::process::current_pid;
-use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NODEV, ERRNO_PERM};
+use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_PERM};
 use crate::usercopy::{validate_user_write, write_user_value};
 
 const DEFAULT_WAIT_MS: u64 = 100;
-
-fn errno_for(e: IrqError) -> i64 {
-    match e {
-        IrqError::NotHolder => ERRNO_PERM,
-        IrqError::UnknownGrant => ERRNO_INVAL,
-        IrqError::PlatformError => ERRNO_NODEV,
-    }
-}
 
 pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64) -> i64 {
     let pid = match current_pid() {
@@ -55,13 +46,15 @@ pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64)
     let token = crate::sched::wake_token(pid);
     let armed = match crate::hardware::broker::irq_wait_arm(pid, grant_id) {
         Ok(s) => s,
-        Err(e) => return errno_for(e),
+        Err(e) => return super::errno_map::grant_errno(e),
     };
+    let mut deadline = None;
     if armed == last_seq {
         let wait = if timeout_ms == 0 { DEFAULT_WAIT_MS } else { timeout_ms };
-        let deadline = crate::time::timestamp_millis().saturating_add(wait);
-        crate::sched::sleep_until_unless_woken(pid, deadline, token);
+        let at = crate::time::timestamp_millis().saturating_add(wait);
+        crate::sched::sleep_until_unless_woken(pid, at, token);
         crate::sched::yield_now();
+        deadline = Some(at);
     }
     let current = match crate::hardware::broker::irq_wait_disarm(pid, grant_id) {
         Ok(s) => s,
@@ -70,5 +63,5 @@ pub fn sys_irq_wait(grant_id: u64, last_seq: u64, timeout_ms: u64, out_ptr: u64)
     if write_user_value(out_ptr, &current).is_err() {
         return ERRNO_FAULT;
     }
-    0
+    super::timeout::verdict(deadline, current, last_seq)
 }

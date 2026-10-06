@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Microkernel syscall ABI tags. Mirrors `SyscallNumber::Mk*`
-//! discriminants so the numeric router has a fixed local set.
+//! Microkernel syscall ABI tags, mirroring `SyscallNumber::Mk*` for the numeric router.
 
 use crate::syscall::abi::tag4;
 
@@ -51,29 +50,55 @@ pub const SYS_PROC_STAT: u64 = tag4(b"MPST");
 pub const SYS_PROC_OUTPUT: u64 = tag4(b"MOUT");
 pub const SYS_PROC_INPUT: u64 = tag4(b"MPIN");
 pub const SYS_STDIN_READ: u64 = tag4(b"MSRD");
-// Program stdout: mirrors bytes into the caller's own `proc.<pid>` inbox and
-// writes nothing to serial. Gated on the IPC capability so a capsule without
-// `Capability::Debug` still has a stdout.
+/// Program stdout: the caller's own `proc.<pid>` inbox, never serial; needs only IPC.
 pub const SYS_STDOUT_WRITE: u64 = tag4(b"MSOW");
+/// Output only the caller's launcher reads: never serial, whatever the caps.
+pub const SYS_PRIVATE_WRITE: u64 = tag4(b"MPVW");
+/// The package store's sectors, written and read on the disk the block layer chose.
 pub const SYS_STORE_WRITE: u64 = tag4(b"MSWR");
+pub const SYS_STORE_READ: u64 = tag4(b"MSRR");
+/// The data volume: a verified import, a file's size, a range of it, a passphrase.
+pub const SYS_DATA_IMPORT: u64 = tag4(b"MDIM");
+pub const SYS_DATA_STAT: u64 = tag4(b"MDST");
+pub const SYS_DATA_READ: u64 = tag4(b"MDRD");
+pub const SYS_DATA_PASSPHRASE: u64 = tag4(b"MDPW");
+/// An import fed chunk by chunk, by a capsule holding StreamImport (model fetch, prove).
+pub const SYS_DATA_FEED_BEGIN: u64 = tag4(b"MDFB");
+pub const SYS_DATA_FEED: u64 = tag4(b"MDFD");
+pub const SYS_DATA_REMOVE: u64 = tag4(b"MDRM");
 pub const SYS_ATTEST_STATUS: u64 = tag4(b"MAST");
-/// A signed attestation document, as opposed to the unsigned status above.
+/// The roots, depths and epochs the gates check against, as a versioned record.
+pub const SYS_ATTEST_POLICY: u64 = tag4(b"MAPY");
+/// The kernel's verdict on the bootloader that started it, as a versioned record.
+pub const SYS_BOOT_ATTEST: u64 = tag4(b"MBTA");
+/// A signed attestation document; then the entries its registry root folds, to recompute it.
 pub const SYS_ATTEST_DOC: u64 = tag4(b"MADC");
-/// The capsule entries the document's registry root folds, so a verifier can
-/// recompute that root and read what each program was permitted to do.
 pub const SYS_ATTEST_ENTRIES: u64 = tag4(b"MAEN");
+/// The last of what the kernel wrote to its serial console, kept in memory.
+pub const SYS_LOG_TAIL: u64 = tag4(b"MLOG");
+/// This machine's TPM-derived device secret, to the one capsule holding DeviceSecret.
+pub const SYS_DEVICE_SECRET: u64 = tag4(b"MDVS");
+/// The bootloader's and the kernel's slot of the device proof, to the same capsule.
+pub const SYS_BOOT_SLOTS: u64 = tag4(b"MBSL");
+/// Enrollment's TPM half: the EK, its certificate, the AK, activation, signing.
+pub const SYS_ENROLL: u64 = tag4(b"MENR");
 /// A chunk of the image this machine booted, for the installer to write.
 pub const SYS_INSTALL_SOURCE: u64 = tag4(b"MISR");
-/// Create a process with no capabilities, supervised by the caller, to
-/// host code the kernel has not verified and does not interpret.
+/// A process with no capabilities, supervised by the caller, for code never verified.
 pub const SYS_FOREIGN_SPAWN: u64 = tag4(b"MFSP");
 /// Give such a process an entry point and make it runnable.
 pub const SYS_FOREIGN_START: u64 = tag4(b"MFST");
-/// Wait for one of the caller's guests to issue a syscall this kernel
-/// refuses, and take its register frame.
+/// Wait for a guest of the caller's to make a refused syscall; take its registers.
 pub const SYS_FOREIGN_WAIT: u64 = tag4(b"MFWT");
 /// Answer one parked guest with the value its `rax` receives.
 pub const SYS_FOREIGN_REPLY: u64 = tag4(b"MFRP");
+/// Copy a parked guest's registers out, in `struct sigcontext` order.
+pub const SYS_FOREIGN_CONTEXT: u64 = tag4(b"MFCX");
+/// Answer a parked guest with a context: a signal handler, or its return.
+pub const SYS_FOREIGN_SIGNAL: u64 = tag4(b"MFSG");
+/// Stop a guest thread that is running its own code at its next timer tick,
+/// and hand it over parked, so a signal can be delivered to it.
+pub const SYS_FOREIGN_INTERRUPT: u64 = tag4(b"MFIN");
 /// Back a span of a guest's address space with fresh frames.
 pub const SYS_PEER_MAP: u64 = tag4(b"MPMP");
 /// Copy bytes between the caller and a guest it supervises.
@@ -98,6 +123,15 @@ pub const SYS_LOCAL_VERIFY: u64 = tag4(b"MLVF");
 pub const SYS_APP_INSTALL: u64 = tag4(b"MAIN");
 /// Ask to enrol this machine's own build root.
 pub const SYS_DEV_ROOT_LOCAL: u64 = tag4(b"MDRO");
+/// Grant or withdraw consent to run what this machine installs.
+pub const SYS_LOCAL_CONSENT: u64 = tag4(b"MLCG");
+/// Restore that consent, at setup, from the token a grant returned.
+pub const SYS_LOCAL_RESTORE: u64 = tag4(b"MLCR");
+/// Start the program a distribution package installed.
+pub const SYS_APP_LAUNCH: u64 = tag4(b"MAPL");
+/// Where an asked-for install stands.
+pub const SYS_APP_INSTALL_STATUS: u64 = tag4(b"MAIS");
+pub const SYS_APP_UNINSTALL: u64 = tag4(b"MAUN");
 /// Ask to enrol a signing root so software built here runs here. Prints a
 /// confirmation code; enrols nothing on its own.
 pub const SYS_DEV_ROOT_REQUEST: u64 = tag4(b"MDRQ");
@@ -125,10 +159,9 @@ pub const SYS_PIO_RELEASE: u64 = tag4(b"MPRL");
 pub const SYS_MK_DEBUG: u64 = tag4(b"MDBG");
 pub const SYS_PCI_CONFIG_READ: u64 = tag4(b"MPCR");
 pub const SYS_PCI_CONFIG_WRITE: u64 = tag4(b"MPCW");
-// Spawn another window instance of an embedded, attested app capsule
-// (terminal or browser). Gated on the SpawnWindow capability.
+/// Spawn another window of an embedded, attested app (terminal or browser); needs SpawnWindow.
 pub const SYS_SPAWN_INSTANCE: u64 = tag4(b"MSPI");
-
-// Run a baked, attested command-line tool by name, parented to the caller so
-// it can drive the tool's stdin and stdout. Gated on the IPC capability.
+/// Run a baked, attested tool by name as the caller's child, to drive its stdio; needs IPC.
 pub const SYS_TOOL_RUN: u64 = tag4(b"MTRN");
+pub const SYS_TTY_SET: u64 = tag4(b"MTTY");
+pub const SYS_TTY_QUERY: u64 = tag4(b"MTTQ");

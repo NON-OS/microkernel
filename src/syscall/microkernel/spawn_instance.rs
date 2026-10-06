@@ -22,7 +22,7 @@
 //! request; init performs the spawn in its own context and the window
 //! appears a tick later. See `userspace::init::instance_spawn`.
 
-use super::errnos::{ERRNO_BUSY, ERRNO_INVAL, ERRNO_NOENT};
+use super::errnos::{ERRNO_ACCES, ERRNO_BUSY, ERRNO_INVAL, ERRNO_NOENT};
 use crate::usercopy::{read_user_bytes, validate_user_read};
 
 // Handle names are short; cap the copy so a bad length can never over-read.
@@ -45,9 +45,6 @@ pub fn sys_spawn_instance(name_ptr: u64, name_len: u64) -> i64 {
         Err(_) => return ERRNO_INVAL,
     };
     let result = queue_by_name(name);
-    if result >= 0 {
-        boost_init_for_drain();
-    }
     // Land every request in the boot log so the on-demand path is observable.
     crate::sys::serial::print(b"[SPAWN-INSTANCE] queued ");
     crate::sys::serial::print(name.as_bytes());
@@ -55,43 +52,19 @@ pub fn sys_spawn_instance(name_ptr: u64, name_len: u64) -> i64 {
     result
 }
 
-// The queued window spawn is drained by init, which runs at Priority::Low so an
-// idle desktop leaves its cycles to the apps. A busy-yielding app with a fetch
-// in flight can then starve a low-priority init off a single CPU, and the drain
-// never runs, so the second window never opens. This syscall runs in the
-// scheduled caller (the shell), so lift init to Normal here: init cannot boost
-// itself once starved, but the click that needs the window can. Init drops back
-// to Low from its own loop once the queue empties. Init is pid 1, the first
-// process the kernel creates, before any capsule.
-fn boost_init_for_drain() {
-    const INIT_PID: u32 = 1;
-    if let Some(pcb) = crate::process::core::PROCESS_TABLE.find_by_pid(INIT_PID) {
-        let _irq = crate::interrupts::disable_interrupts_guard();
-        *pcb.priority.lock() = crate::process::core::Priority::Normal;
-    }
-}
-
-// Map a handle to an app that declares instance endpoints, and queue it.
-// An unknown handle is rejected; a full queue asks the caller to retry.
+/*
+ * Map a handle to an app that declares instance endpoints, and queue it.
+ * An unknown handle is rejected, and so is an app the person turned off at
+ * setup; a full queue asks the caller to retry.
+ */
 fn queue_by_name(name: &str) -> i64 {
-    use crate::userspace::init::{request_instance, PendingApp};
-    let app = match name {
-        "app.terminal" => PendingApp::Terminal,
-        "app.browser" => PendingApp::Browser,
-        "app.text_editor" => PendingApp::TextEditor,
-        "app.settings" => PendingApp::Settings,
-        "app.calculator" => PendingApp::Calculator,
-        "app.clock" => PendingApp::Clock,
-        "app.about" => PendingApp::About,
-        "app.snake" => PendingApp::Snake,
-        "app.nonos_wallet" => PendingApp::WalletNonos,
-        "app.file_manager" => PendingApp::FileManager,
-        "app.process_manager" => PendingApp::ProcessManager,
-        "app.audio_player" => PendingApp::AudioPlayer,
-        "app.video_player" => PendingApp::VideoPlayer,
-        "app.install" => PendingApp::Install,
-        _ => return ERRNO_NOENT,
+    use crate::userspace::init::{app_window_off, request_instance, PendingApp};
+    let Some(app) = PendingApp::named(name) else {
+        return ERRNO_NOENT;
     };
+    if app_window_off(app) {
+        return ERRNO_ACCES;
+    }
     if request_instance(app) {
         0
     } else {

@@ -15,25 +15,30 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `MkBatteryStatus` returns the battery charge as a percentage 0..=100,
-//! or a negative errno when no battery can be read.
+//! or a negative errno saying why there is no number:
 //!
-//! There is no reading to give. A battery percentage comes from the ACPI
-//! `_BST` and `_BIF` objects, evaluating those needs an AML interpreter, and
-//! the kernel does not have one: it scans AML for device resources and never
-//! executes it.
+//! - `ERRNO_NODEV`: the firmware declares no battery (no PNP0C0A device in
+//!   the ACPI namespace). A desktop; the shell says "No battery".
+//! - `ERRNO_NOTSUP`: a battery is declared, or the kernel cannot tell, but
+//!   its charge cannot be read. The shell says "Battery status unavailable".
 //!
-//! So this refuses. It previously answered a fixed 100, which meant every
-//! caller was told the machine was on full charge, on hardware with no battery
-//! at all, with no way to tell that apart from a real reading. A shell asking
-//! for a number it cannot have should be told so, and the caller already
-//! handles a negative return as "not reported". Inventing a plausible number
-//! is the one answer that cannot be checked and cannot be corrected.
-//!
-//! When an AML evaluator lands, replace the body with the real remaining
-//! capacity and this comment with nothing.
+//! A charge comes from evaluating the battery's `_BST` and `_BIX`/`_BIF`
+//! methods, which read the embedded controller through an EmbeddedControl
+//! OperationRegion. That needs an AML interpreter, and the kernel does not
+//! have one: it scans AML for device declarations and constant packages and
+//! never executes it. So no percentage is ever returned today, and none is
+//! invented: a plausible fixed number is the one answer that cannot be
+//! checked and cannot be corrected.
 
-use super::errnos::ERRNO_NODEV;
+use super::errnos::ERRNO_NOTSUP;
 
 pub fn sys_battery_status() -> i64 {
-    ERRNO_NODEV
+    #[cfg(target_arch = "x86_64")]
+    {
+        if crate::arch::x86_64::acpi::parser::with_data(|d| d.power_devices.battery) == Some(false)
+        {
+            return super::errnos::ERRNO_NODEV;
+        }
+    }
+    ERRNO_NOTSUP
 }

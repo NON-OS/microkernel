@@ -14,9 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::process::{current_pid, with_process_mut};
+use crate::memory::paging::manager::api::lookup_asid_for_process;
+use crate::process::{current_pid, current_process};
 
+/*
+ * VA for an `addr == 0` mmap: a range from the per-process allocator that
+ * holds no present page, so the mapping never overwrites the image, the
+ * stack or any other live mapping of the caller.
+ */
 pub(crate) fn reserve_va(pages: u64) -> Option<u64> {
-    let pid = current_pid()?;
-    with_process_mut(pid, |pcb| pcb.mmap_va.lock().reserve(pages)).flatten()
+    let asid = lookup_asid_for_process(current_pid()?)?;
+    current_process()?.reserve_unmapped(pages, asid)
 }

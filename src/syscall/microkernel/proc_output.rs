@@ -34,6 +34,10 @@ pub fn sys_proc_output(pid: u64, buf_ptr: u64, buf_len: usize) -> i64 {
     if caller == 0 || parent_of(target) != Some(caller) {
         return ERRNO_PERM;
     }
+    // Checked before the line is taken, so a bad buffer loses nothing.
+    if crate::usercopy::validate_user_write(buf_ptr, buf_len).is_err() {
+        return ERRNO_FAULT;
+    }
     let name = alloc::format!("proc.{}", target);
     let Some(msg) = crate::ipc::nonos_inbox::try_dequeue_existing(&name) else {
         crate::process::exit::postmortem::release(target);

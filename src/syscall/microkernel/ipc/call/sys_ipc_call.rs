@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::syscall::microkernel::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL};
+use crate::syscall::microkernel::narrow::u32_arg;
 use crate::{process::current_pid, services::registry::lookup_port};
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
@@ -66,7 +67,7 @@ pub fn sys_ipc_call(
     // The genuine reply carries this token; a forged injection can only carry 0.
     let token = next_call_token();
     let inbox = reply_inbox::for_pid(pid);
-    let endpoint = lookup_port(ep as u32);
+    let endpoint = u32_arg(ep).and_then(lookup_port);
     let endpoint_pid = endpoint.as_ref().map(|endpoint| endpoint.pid);
     if let Some(server_pid) = endpoint_pid {
         if !pending_reply::push(server_pid, pid, inbox.clone(), token) {

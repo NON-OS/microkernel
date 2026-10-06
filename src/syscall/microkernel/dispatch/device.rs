@@ -16,11 +16,16 @@
 
 use super::args::Args;
 use crate::syscall::microkernel::device::{sys_device_claim, sys_device_list, sys_device_release};
+use crate::syscall::microkernel::errnos::ERRNO_INVAL;
+use crate::syscall::microkernel::narrow::u32_arg;
 use crate::syscall::microkernel::numbers::*;
 
 pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
     Some(match nr {
-        SYS_DEVICE_LIST => sys_device_list(a.a0 as u32, a.a1, a.a2),
+        SYS_DEVICE_LIST => match u32_arg(a.a0) {
+            Some(class) => sys_device_list(class, a.a1, a.a2),
+            None => ERRNO_INVAL,
+        },
         SYS_DEVICE_CLAIM => sys_device_claim(a.a0),
         SYS_DEVICE_RELEASE => sys_device_release(a.a0),
         _ => return None,

@@ -27,6 +27,7 @@ mod reply_inbox;
 mod send;
 mod send_caps;
 mod send_to_pid;
+mod send_trace;
 mod sender_pid;
 
 pub use call::sys_ipc_call;

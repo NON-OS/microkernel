@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod any_mapped;
 mod release_va;
 mod reserve_va;
 mod rollback_mapped_pages;
 
+pub(super) use any_mapped::any_mapped;
 pub(super) use release_va::release_va;
 pub(super) use reserve_va::reserve_va;
 pub(super) use rollback_mapped_pages::rollback_mapped_pages;

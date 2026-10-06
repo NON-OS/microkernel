@@ -77,20 +77,24 @@ pub fn sys_device_claim(device_id: u64) -> i64 {
         Err(ClaimError::AlreadyClaimed) => ERRNO_BUSY,
         Err(ClaimError::UnknownDevice) => ERRNO_NODEV,
         Err(ClaimError::NotHolder) | Err(ClaimError::NotClaimed) => ERRNO_INVAL,
+        Err(ClaimError::Unconfined) => ERRNO_PERM,
     }
 }
 
-// Releases the claim on `device_id` held by the calling pid. Any
-// outstanding MMIO grants for the device are torn down first; the
-// caller's CR3 is active here so the unmap and TLB shootdown are
-// in-context. The exit path performs the same cleanup for every
-// claim a dying capsule was holding.
+// Releases the claim on `device_id` held by the calling pid. Bus
+// mastering stops first, so nothing the device still has in flight can
+// land in a DMA frame once it is freed below; then the outstanding MMIO,
+// IRQ, DMA and PIO grants are torn down (the caller's CR3 is active here
+// so the unmap and TLB shootdown are in-context), and the claim goes
+// last. The exit path performs the same cleanup for every claim a dying
+// capsule was holding, and drops its claims before its DMA grants.
 pub fn sys_device_release(device_id: u64) -> i64 {
     let pid = match current_pid() {
         Some(p) => p,
         None => return ERRNO_PERM,
     };
     trace_release(b"enter", pid);
+    let _ = broker::quiesce_held_device(pid, device_id);
     let _ = broker::release_for_device(pid, device_id);
     let _ = broker::irq_release_for_device(pid, device_id);
     let _ = broker::dma_release_for_device(pid, device_id);
@@ -102,6 +106,8 @@ pub fn sys_device_release(device_id: u64) -> i64 {
         }
         Err(ClaimError::NotClaimed) => ERRNO_NODEV,
         Err(ClaimError::NotHolder) => ERRNO_PERM,
-        Err(ClaimError::AlreadyClaimed) | Err(ClaimError::UnknownDevice) => ERRNO_INVAL,
+        Err(ClaimError::AlreadyClaimed)
+        | Err(ClaimError::UnknownDevice)
+        | Err(ClaimError::Unconfined) => ERRNO_INVAL,
     }
 }
