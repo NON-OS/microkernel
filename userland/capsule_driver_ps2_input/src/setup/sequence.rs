@@ -19,9 +19,13 @@ use super::irq::bind as irq_bind;
 use super::marker::marker;
 use super::open_line::open_line;
 use super::pio::grant as pio_grant;
+use super::release::release;
+use super::say_aux::{say_aux, say_dropped, say_no_aux};
 use super::setup_aux::setup_aux;
 use crate::discover::find_ps2_kbd;
-use crate::init::{disable_aux, enable_keyboard, enable_mouse, flush_output};
+use crate::init::{
+    disable_aux, dropped, enable_keyboard, enable_mouse, flush_output, restore_keyboard,
+};
 
 pub fn run() -> Result<Driver, &'static str> {
     let dev = find_ps2_kbd().ok_or("ps2 keyboard not present in device list")?;
@@ -34,11 +38,20 @@ pub fn run() -> Result<Driver, &'static str> {
             0
         }
     };
-    let aux_irq_grant_id = setup_aux();
+    let aux = setup_aux();
+    let aux_irq_grant_id = aux.map_or(0, |a| a.irq_grant_id);
     flush_output(pio_grant_id);
-    enable_keyboard(pio_grant_id)?;
+    if let Err(e) = enable_keyboard(pio_grant_id) {
+        // Give back both claims, and with them the port grant and both
+        // lines, so the next attempt claims the controller afresh instead
+        // of being refused its own leftover claim.
+        release(dev.device_id, aux);
+        return Err(e);
+    }
     let (mouse_enabled, mouse_wheel) = if aux_irq_grant_id != 0 {
-        match enable_mouse(pio_grant_id) {
+        let outcome = enable_mouse(pio_grant_id);
+        say_aux(outcome);
+        match outcome {
             Ok(wheel) => (true, wheel),
             Err(_) => {
                 // enable_mouse turned the aux clock on before the step that
@@ -46,12 +59,15 @@ pub fn run() -> Result<Driver, &'static str> {
                 // (firmware-disabled aux) leaving it enabled streams garbage
                 // the drain would have to discard forever. Turn it back off.
                 disable_aux(pio_grant_id);
+                restore_keyboard(pio_grant_id);
                 (false, false)
             }
         }
     } else {
+        say_no_aux();
         (false, false)
     };
+    say_dropped(dropped());
     open_line(irq_grant_id);
     open_line(aux_irq_grant_id);
     marker(b"[driver_ps2] endpoint driver.ps2_kbd0 ready\n");

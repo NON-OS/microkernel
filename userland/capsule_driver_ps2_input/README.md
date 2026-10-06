@@ -31,7 +31,8 @@ events, AUX mouse events, controller status, and bounded diagnostic counters.
         |                                     |
         +------------------+------------------+
                            |
-                    IPC service replies
+        MkInputEventPost --> kernel input ring --> input_router
+        IPC service replies (to the kernel only)
 ```
 
 ## Microkernel contract
@@ -57,30 +58,41 @@ The capsule uses only microkernel calls:
 | `MkPioGrant` | obtain the i8042 PIO range |
 | `MkPioRead` / `MkPioWrite` | access data/status/command ports |
 | `MkIrqBind` / `MkIrqAck` | own and acknowledge IRQ1 and IRQ12 |
+| `MkInputEventPost` | post each decoded key, motion and button event to the kernel input ring (`src/keymap/post.rs`, `src/mouse/post.rs`) |
 | `MkIpcRecv` / `MkIpcSend` | serve the driver endpoint |
+
+No capsule may send to `driver.ps2_kbd0`: the kernel holds the endpoint to an
+empty list (`src/services/registry/held.rs`), so only the kernel's own sends
+reach it, by name or by pid.
 
 There is no inline port assembly in the capsule. The static gate rejects raw
 `in`/`out` instructions so every byte crosses the broker grant checks.
 
 ## Authority
 
-The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Irq`, and `Pio`
-(`CAPSULE_REQUIRED_CAPS = 0x358019`). It does not grant `Mmio`, `Dma`,
-filesystem, graphics, network, admin, debug, or persistent storage authority.
+The manifest grants `IPC`, `Memory`, `Driver`, `DeviceEnum`, `Irq`, `Pio` and
+`InputSource` (`CAPSULE_REQUIRED_CAPS = 0x358018`). It does not grant `Mmio`,
+`Dma`, filesystem, graphics, network, admin, debug, or persistent storage
+authority.
+
+`InputSource` admits `MkInputEventPost`. The kernel's consumer gate for
+`MkInputEventDrain` and `MkInputEventWait` also accepts `InputSource`, so this
+capsule could drain the keystroke ring as `input_router` does; nothing in its
+code calls those.
 
 ```text
 allowed:
   - i8042 PIO through MkPio*
   - IRQ1 and IRQ12 through MkIrq*
   - bounded in-memory event rings
-  - IPC replies to authorized callers
+  - posts to the kernel input ring through MkInputEventPost
+  - IPC replies to the kernel
 
 forbidden:
   - persistent key or mouse logs
   - focus decisions
-  - text layout or input-method policy
+  - input-method policy
   - window routing
-  - direct kernel input paths
 ```
 
 ## Runtime lifecycle
@@ -147,6 +159,10 @@ Each mouse record is 8 bytes:
 | 6 | `u8` | overflow and parser flags |
 | 7 | `u8` | reserved, always zero |
 
+The record keeps the device's wheel sign, where a notch toward the user is
++1. The event posted to the input ring negates it: there a notch away is +1,
+as USB and I2C HID mice report it and as every app reads it.
+
 The parser requires bit 3 in the first packet byte for synchronization. Bad
 alignment increments `mouse_sync_errors` and never enters the public event
 ring.
@@ -193,15 +209,20 @@ only bounded memory rings and diagnostic counters. It does not write input to
 disk, forward input to unrelated services, keep history after process exit, or
 decide where input should be delivered.
 
-Focus, compositor routing, lock-screen policy, accessibility policy, keyboard
-layout, compose keys, and text rendering belong to higher-level userland
-capsules. This driver is only the hardware input source.
+Focus, compositor routing, lock-screen policy, accessibility policy, compose
+keys, and text rendering belong to higher-level userland capsules. The keyboard
+layout is the one exception: nothing downstream resolves shift or layout, so
+the driver translates each key through the active layout (`nonos_keymap`),
+reads the choice from the policy store at most once a second, and cycles it on
+Ctrl+Alt+Space (`src/keymap/active.rs`).
 
 ## Failure model
 
 | Failure | Behavior |
 |---|---|
-| keyboard platform record missing | startup fails |
+| keyboard platform record missing | one log line, exit `EXIT_ABSENT` (2), nothing claimed |
+| no i8042 answers (the ports float, the output buffer never empties) | the probe gives its claim back, one log line, exit `EXIT_ABSENT` (2) |
+| keyboard enable fails | both claims are released (with the port grant and both lines); the attempt is repeated on the shared bounded schedule, and running out exits `EXIT_GAVE_UP` (6) |
 | PIO grant denied | startup fails and device claim is released |
 | IRQ1 bind denied | PIO grant and device claim are released |
 | AUX record or IRQ12 bind denied | keyboard grants are released and startup fails |
@@ -219,6 +240,7 @@ capsules. This driver is only the hardware input source.
 - AUX enable, controller config update, mouse defaults, and report enable.
 - Scancode event ring for keyboard input.
 - Standard 3-byte PS/2 mouse packet parser and event ring.
+- Key, motion and button events posted to the kernel input ring.
 - Polling operations for keyboard and mouse events.
 - Controller telemetry that does not consume pending data bytes.
 - Diagnostic counters for dropped events and controller/parser errors.
@@ -226,8 +248,8 @@ capsules. This driver is only the hardware input source.
 ## State ownership
 
 The capsule owns the i8042 PIO grant, IRQ1 grant, IRQ12 grant, keyboard decoder
-state, AUX packet parser state, and both bounded event rings. It does not own
-focus, routing, layout, text conversion, cursor policy, compositor state, or
+state, the active layout, AUX packet parser state, and both bounded event
+rings. It does not own focus, routing, cursor policy, compositor state, or
 input persistence. Those decisions are made by higher-level userland capsules.
 
 ## Operating rules
@@ -236,7 +258,7 @@ input persistence. Those decisions are made by higher-level userland capsules.
 - Keep IRQ ownership explicit: keyboard on IRQ1, AUX mouse on IRQ12.
 - Never persist keyboard or pointer input.
 - Never route input to windows from this capsule.
-- Never make focus, lock-screen, or text-layout decisions here.
+- Never make focus or lock-screen decisions here.
 - Drop deterministically on bounded-ring overflow and expose the counter.
 - Treat packet sync loss as data-plane damage, not as a kernel fault.
 
@@ -267,9 +289,19 @@ Evidence required for release:
 - Event overflow and packet sync-loss counters are observable.
 - Real hardware proof is attached to the release record.
 
+## Real hardware bring-up checklist
+
+What only a boot on real silicon can confirm. The host proofs cover the parsers, the bring-up sequence against a model, and the bounded retry; these do not.
+
+- On a machine without the device: the broker log shows no claim for it and the capsule exits at once with `EXIT_ABSENT` (2); the capsule's own `no controller present, not started` line needs the Debug capability, which this manifest does not grant, so the kernel prints `[EXIT] <service> status 2: no device present, not started` for it (`src/process/exit/end_note.rs`).
+- With the device present but failing (disabled in firmware, or a forced setup error): at most seven claim and release rounds in the broker log over about six seconds, then one `device present, bring-up failed` line naming the last cause (with the Debug capability), and exit `EXIT_GAVE_UP` (6), which the kernel names as `[EXIT] <service> status 6: device present, bring-up failed and was given up`. The capsule holds no core while it waits.
+- On a legacy-free machine (no i8042) the probe takes one claim and one release, and the capsule exits `EXIT_ABSENT` without a retry.
+- On an EC-emulated i8042 the keyboard types and, where fitted, the touchpad or mouse moves; a wheel mouse scrolls.
+- A firmware-disabled aux port is switched back off and the keyboard keeps scanning.
+
 ## Explicit non-goals today
 
-This capsule does not implement USB HID, keyboard layouts, compose keys,
+This capsule does not implement USB HID, compose keys,
 international input methods, accessibility policy, focus routing, screen-lock
 policy, text rendering, compositor cursor policy, or persistent input logs.
 
@@ -300,3 +332,5 @@ Before this driver is called hardware-complete, the remaining evidence is:
 - a real machine with legacy PS/2 input records keyboard and mouse events;
 - a USB-only machine proves the absence of this capsule does not block the USB
   HID path.
+
+Handbook: [drivers](../../docs/handbook/drivers.md).

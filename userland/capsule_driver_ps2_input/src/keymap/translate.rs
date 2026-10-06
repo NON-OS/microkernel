@@ -13,17 +13,20 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::keypad::is_keypad;
 use super::set1::keycode_for as base_keycode_for;
 use super::set1_e0::keycode_for as e0_keycode_for;
 use crate::ring::{FLAG_BREAK, FLAG_E0_PREFIX};
 pub struct Translated {
     pub keycode: u32,
     pub is_release: bool,
+    /// A numeric keypad key, which no layout remaps.
+    pub keypad: bool,
 }
 pub fn translate(scancode: u8, flags: u8) -> Option<Translated> {
     let is_release = (flags & FLAG_BREAK) != 0;
     let key = scancode & 0x7F;
-    let keycode =
-        if (flags & FLAG_E0_PREFIX) != 0 { e0_keycode_for(key)? } else { base_keycode_for(key)? };
-    Some(Translated { keycode, is_release })
+    let e0 = (flags & FLAG_E0_PREFIX) != 0;
+    let keycode = if e0 { e0_keycode_for(key)? } else { base_keycode_for(key)? };
+    Some(Translated { keycode, is_release, keypad: is_keypad(key, e0) })
 }

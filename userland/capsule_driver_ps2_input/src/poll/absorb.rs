@@ -42,14 +42,25 @@ pub(super) fn absorb(drainer: &mut Drainer, ring: &mut Ring, byte: u8) {
     }
     ring.push(Event { scancode: byte, flags });
     if let Some(t) = keymap::translate(byte, flags) {
+        // The keyboard repeats a held key as more make codes. A repeat must
+        // not act like a fresh press where a press acts once: Caps Lock held
+        // flickered caps at the repeat rate, and Ctrl+Alt+Space held cycled
+        // through every layout.
+        let repeat = !t.is_release && drainer.held.code(t.keycode).is_some();
+        if repeat && keymap::acts_once(t.keycode) {
+            return;
+        }
         if let Some(bit) = keymap::modifier_bit(t.keycode) {
-            if t.is_release {
-                drainer.mods &= !bit;
-            } else {
+            if !t.is_release {
                 drainer.mods |= bit;
+            } else if !drainer.held.other_held(t.keycode, |k| keymap::modifier_bit(k) == Some(bit))
+            {
+                // Both Shifts (or Ctrls, or Metas) share a bit: letting one go
+                // while the other is down must leave it set.
+                drainer.mods &= !bit;
             }
         }
-        if !t.is_release && t.keycode == keymap::KEYCODE_CAPS_LOCK {
+        if !t.is_release && !repeat && t.keycode == keymap::KEYCODE_CAPS_LOCK {
             drainer.caps = !drainer.caps;
         }
         // Ctrl+Alt+Space cycles the keyboard layout inside the driver and
@@ -59,9 +70,13 @@ pub(super) fn absorb(drainer: &mut Drainer, ring: &mut Ring, byte: u8) {
             && drainer.mods & keymap::MOD_CTRL != 0
             && drainer.mods & keymap::MOD_ALT != 0
         {
-            let _ = keymap::active::cycle();
+            if !repeat {
+                let _ = keymap::active::cycle();
+                // Held with no code: its release posts nothing either.
+                let _ = drainer.held.press(t.keycode, 0);
+            }
             return;
         }
-        let _ = keymap::publish(t, drainer.mods, drainer.caps);
+        let _ = keymap::publish(t, drainer.mods, drainer.caps, &mut drainer.held);
     }
 }

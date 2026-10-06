@@ -13,12 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::init::wait::{wait_input_clear as wait, WaitError, CTL_TIMEOUT_MS};
 
-pub(super) fn wait_input_clear(grant_id: u64) -> Result<(), &'static str> {
-    match wait(grant_id, CTL_TIMEOUT_MS) {
-        Ok(()) => Ok(()),
-        Err(WaitError::Read) => Err("ps2 status read failed"),
-        Err(WaitError::Timeout) => Err("ps2 input buffer busy"),
-    }
+//! The keys a hold must not repeat.
+//!
+//! The keyboard repeats a held key as more make codes. Mute held would flip
+//! the sound on and off at the repeat rate, and the power key held would ask
+//! for a shutdown thirty times a second, so their repeats are dropped here and
+//! each press acts once, as the USB driver's repeat leaves them out too.
+
+use super::set1::{KEYCODE_MUTE, KEYCODE_POWER};
+
+/// Whether `keycode` acts once per press, its repeats posting nothing.
+pub fn acts_once(keycode: u32) -> bool {
+    matches!(keycode, KEYCODE_MUTE | KEYCODE_POWER)
 }

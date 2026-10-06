@@ -18,18 +18,24 @@ use super::claim::claim;
 use super::irq::bind_raw as irq_bind_raw;
 use crate::discover::find_ps2_aux;
 
-pub(super) fn setup_aux() -> u64 {
-    let Some(aux) = find_ps2_aux() else {
-        return 0;
-    };
-    let Ok(epoch) = claim(aux.device_id) else {
-        return 0;
-    };
+/// The aux (mouse) record the driver claimed and the IRQ12 grant bound on it.
+#[derive(Clone, Copy)]
+pub(super) struct Aux {
+    pub device_id: u64,
+    pub irq_grant_id: u64,
+}
+
+/// Claim the aux record and bind its line, or `None` when there is no aux
+/// record or either step fails (a failed bind gives the claim back). The
+/// caller releases `device_id` if the keyboard then fails to come up.
+pub(super) fn setup_aux() -> Option<Aux> {
+    let aux = find_ps2_aux()?;
+    let epoch = claim(aux.device_id).ok()?;
     match irq_bind_raw(aux, epoch) {
-        Ok(out) => out.grant_id,
+        Ok(out) => Some(Aux { device_id: aux.device_id, irq_grant_id: out.grant_id }),
         Err(_) => {
             let _ = nonos_libc::mk_device_release(aux.device_id);
-            0
+            None
         }
     }
 }

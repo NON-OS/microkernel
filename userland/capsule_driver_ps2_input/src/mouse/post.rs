@@ -26,8 +26,12 @@ pub fn publish(ev: MouseEvent, previous_buttons: u8) -> bool {
     if ev.dx != 0 || ev.dy != 0 {
         ok &= post(INPUT_KIND_POINTER_REL, 0, 0, ev.dx as i32, ev.dy as i32);
     }
+    // The IntelliMouse wheel byte counts a notch toward the user as +1. The
+    // input ring counts a notch away as +1, as USB and I2C HID mice report it
+    // and every app reads it, so the step is negated: posted raw, every PS/2
+    // wheel (and QEMU's default mouse) scrolled the wrong way.
     if ev.dz != 0 {
-        ok &= post(INPUT_KIND_WHEEL, 0, 0, 0, ev.dz as i32);
+        ok &= post(INPUT_KIND_WHEEL, 0, 0, 0, -i32::from(ev.dz));
     }
     ok & publish_buttons(previous_buttons, ev.buttons)
 }

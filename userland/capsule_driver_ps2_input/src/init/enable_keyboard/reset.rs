@@ -13,13 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::data::data;
-use super::read_byte::read_byte;
-use crate::constants::KBD_RESET;
+use crate::constants::{KBD_BAT_OK, KBD_RESET, MOUSE_ACK};
+use crate::init::enable_scanning::{read_reply, send};
+use crate::init::wait::{ACK_TIMEOUT_MS, BAT_TIMEOUT_MS};
 
-pub(super) fn reset(grant_id: u64) {
-    if data(grant_id, KBD_RESET).is_ok() {
-        let _ = read_byte(grant_id);
-        let _ = read_byte(grant_id);
+/// Reset the keyboard: 0xFF, its ACK (0xFA), then the self-test result
+/// (0xAA) once the basic assurance test is done, which takes a real
+/// keyboard hundreds of milliseconds. True when the keyboard passed.
+pub(super) fn reset(grant_id: u64) -> Result<bool, &'static str> {
+    if send(grant_id, KBD_RESET, ACK_TIMEOUT_MS)? != Some(MOUSE_ACK) {
+        return Ok(false);
     }
+    Ok(read_reply(grant_id, BAT_TIMEOUT_MS)? == Some(KBD_BAT_OK))
 }
