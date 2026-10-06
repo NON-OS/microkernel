@@ -239,3 +239,7 @@ The kernel path every capsule passes before it becomes a process, `spawn_verifie
 ## STARK proof
 
 A proof, checked by the `nox_verify` verifier from the pinned NON-OS STARKs library, that a measurement and its context fill a slot of an enrolled tree. Every attestation trailer carries one beside its Merkle path, except a development image's, and a gate admits only when both the path and the proof pass. Explained in [STARK attestation](../security/stark-attestation.md#the-statement). Code: `src/security/capsule_attest/path.rs`.
+
+## Syscall tag
+
+Four ASCII letters packed little-endian into the 64-bit system call number by `tag4`, first letter in the lowest byte. `MkIpcSend` is `MISD`, so its number is 0x4453494D. Explained in [Syscalls](../abi/syscalls.md#numbers). Code: `src/syscall/abi/tag.rs`.
