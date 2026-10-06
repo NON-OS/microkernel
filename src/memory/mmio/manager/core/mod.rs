@@ -16,6 +16,7 @@
 
 mod init;
 mod map;
+mod map_page;
 mod query;
 mod types;
 
