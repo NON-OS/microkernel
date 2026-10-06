@@ -1,0 +1,39 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# What the kernel needs to check the bootloader the firmware measured: the TCG
+# event log replayed to PCR 4, the PE Authenticode digest the firmware records,
+# and the signed boot-root record. Shared by the kernel, the bootloader that
+# carries the log and the enroll tool that measures the loader, so all three
+# read the same bytes the same way. The gate is the kernel's whole decision.
+
+[package]
+name = "nonos-boot-measure"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+# Development images: a loader trailer may be the path alone (src/gate/membership.rs).
+dev-attest = []
+
+[dependencies]
+sha2 = { version = "0.10", default-features = false }
+# The bootloader's slot is checked as every slot is: its path under the
+# signed root, and the STARK proof of the same slot. Pinned by rev.
+nonos-attest-path = { path = "../nonos-attest-path" }
+nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
+
+[dev-dependencies]
+# Tree, to enroll a real path in the dev-attest tests.
+nonos-attest-path = { path = "../nonos-attest-path", features = ["alloc"] }
+p256 = { version = "0.13", default-features = false, features = ["ecdsa"] }
