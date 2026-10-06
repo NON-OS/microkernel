@@ -167,3 +167,7 @@ The bootloader policy an image is built with, weakest first: `dev-qemu`, `standa
 ## Machine key
 
 A 32-byte key the TPM derives on request as an HMAC over a label, under a primary key whose policy binds PCRs 0, 4, 7 and 9. Nothing is stored: one machine in one boot state gets the same key every time, and a firmware, Secure Boot, loader or kernel change gives another. The data volume key and the key that seals saved Wi-Fi networks are machine keys, and a capsule holding Crypto asks for one with `CryptoMachineKey`. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-machine-key). Code: `src/security/tpm/machine_key/mod.rs`, `src/security/tpm/machine_key/pcrs.rs`.
+
+## Manifest
+
+<a id="capsule-manifest"></a>The publisher-signed binary record, schema version 3, that describes one capsule: its certificate id, namespace, version, target triple, the BLAKE3 hash of its ELF, its required and optional capabilities, up to 16 endpoints and up to 4 publisher signatures. `verify_with_publisher` checks it at every spawn, and a grant outside it is refused with `GrantOutsideManifest`. Explained in [Manifests and capabilities](../userland/manifests-and-capabilities.md). Code: `src/security/capsule_manifest/schema/manifest.rs`, `src/security/capsule_manifest/verify/mod.rs`.
