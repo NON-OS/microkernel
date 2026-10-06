@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the policy service's request handling. Builds for
+# the host so `cargo test` runs the real frame decode, handlers and store
+# (included via #[path]) against any bytes a client can send, with the kernel
+# calls they make answered by libc_shim.
+[package]
+name = "policy_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_policy_proto = { path = "../policy_proto" }
+nonos_libc = { package = "policy_proofs_libc_shim", path = "libc_shim" }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
