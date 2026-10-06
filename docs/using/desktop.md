@@ -50,3 +50,11 @@ The bar runs across the top of the screen and stays there, even over a full-scre
 - The clock follows the time zone and the 24-hour switch in [Settings](settings.md).
 
 The battery label never shows a charge. It reads `No battery` when the firmware declares none, and `Battery status unavailable` otherwise (`userland/capsule_desktop_shell/src/state/indicators/battery_text.rs`). The kernel call behind it, `sys_battery_status`, never returns a percentage, because reading a battery needs an ACPI AML interpreter and the kernel does not have one (`src/syscall/microkernel/battery.rs:35-44`).
+
+## The dock
+
+The dock sits at the bottom of the screen. It holds fifteen app tiles and, last, the Launchpad button (`userland/capsule_desktop_shell/src/state/apps.rs`).
+
+- A click on a tile raises the app's window, restoring it if it was minimised. If the app has no window, a new one opens and a notice says `opening a new window`.
+- If nothing opens, a notice names the app and the reason, for example `did not open: no window in 30 s`, or `turned off at setup` for an app turned off during first-boot setup (`userland/capsule_desktop_shell/src/state/says.rs`).
+- While a full-screen window is up, the dock is hidden. Touch the bottom edge of the screen with the pointer to bring it back over the window. It hides again when the pointer leaves it. A click on the brand shows it for 1.8 seconds (`BRAND_REVEAL_MS` in `userland/capsule_desktop_shell/src/state/taskbar/dock_rule.rs`).
