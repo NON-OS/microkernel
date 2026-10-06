@@ -16,23 +16,11 @@
 
 use super::super::super::constants::PAGE_SIZE;
 use super::super::super::error::{BuddyAllocError, BuddyAllocResult};
-use super::mapping::unmap_page;
-use super::stats::VMAP_ALLOCATOR;
+use super::release::release;
 use crate::memory::addr::VirtAddr;
-use crate::memory::frame_alloc;
 
 pub fn free_pages(addr: VirtAddr, count: usize) -> BuddyAllocResult<()> {
-    if count == 0 {
-        return Err(BuddyAllocError::InvalidPageCount);
-    }
-    for i in 0..count {
-        let offset = i.checked_mul(PAGE_SIZE).ok_or(BuddyAllocError::Overflow)?;
-        let page_addr = VirtAddr::new(addr.as_u64() + offset as u64);
-        if let Some(phys_addr) = unmap_page(page_addr)? {
-            let _ = frame_alloc::deallocate_frame(phys_addr);
-        }
-    }
-    VMAP_ALLOCATOR.lock().deallocate_range(addr)
+    release(addr, count, true)
 }
 
 pub fn free_aligned(addr: VirtAddr, size: usize) -> BuddyAllocResult<()> {
@@ -41,15 +29,7 @@ pub fn free_aligned(addr: VirtAddr, size: usize) -> BuddyAllocResult<()> {
 }
 
 pub fn deallocate_pages(addr: VirtAddr, count: usize) -> BuddyAllocResult<()> {
-    if count == 0 {
-        return Err(BuddyAllocError::InvalidPageCount);
-    }
-    for i in 0..count {
-        let offset = i.checked_mul(PAGE_SIZE).ok_or(BuddyAllocError::Overflow)?;
-        let page_addr = VirtAddr::new(addr.as_u64() + offset as u64);
-        unmap_page(page_addr)?;
-    }
-    VMAP_ALLOCATOR.lock().deallocate_range(addr)
+    release(addr, count, false)
 }
 
 pub fn deallocate_aligned(addr: VirtAddr, size: usize) -> BuddyAllocResult<()> {
