@@ -13,8 +13,12 @@ CAPSULE_DOMAIN             := crates.io
 CAPSULE_NAMESPACE          := systems.nonos.tool.pastel
 CAPSULE_SERVICE_ENDPOINT   := service:4904:tool.pastel
 CAPSULE_REPLY_ENDPOINT     := reply:4905:endpoint.tool.pastel.reply
-CAPSULE_REQUIRED_CAPS      := 0x19
-CAPSULE_CAPS_CEILING       := 0x19
+# CoreExec | IPC | Memory | FileSystem: the crates.io tool sandbox,
+# SANDBOX_CAPS in src/userspace/tool_capsules/spec.rs. FileSystem is for
+# the files the person names, which std::fs opens through vfs, and vfs
+# serves only a holder of it.
+CAPSULE_REQUIRED_CAPS      := 0x59
+CAPSULE_CAPS_CEILING       := 0x59
 CAPSULE_PREBUILT_BIN       := target/upstream-pastel/bin/pastel
 CAPSULE_METADATA           := crates.io pastel publisher
 
