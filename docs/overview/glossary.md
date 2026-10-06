@@ -59,3 +59,7 @@ The most capability bits something may hold. A publisher's NONOS ID certificate 
 ## Capability token
 
 The kernel's record of a process's capabilities, bound to its pid, its address space, a nonce drawn for this boot and a revocation epoch, and sealed with a 64-byte MAC made of two keyed BLAKE3 hashes that only the kernel can make. Every system call the kernel knows resolves the caller's token first, and a bad MAC, a broken binding, a revoked token or a missing capability is refused with EPERM. Explained in [Capabilities](../kernel/capabilities.md#the-token). Code: `src/capabilities/token/types/defs.rs`, `src/syscall/contract/resolver/resolve.rs`.
+
+## Capability word
+
+The 64-bit mask of capability bits a process holds. At spawn it is the manifest's required bits plus the optional bits the spawn site grants, with Network removed on a boot profile without network; a Linux guest gets 0. Explained in [Manifests and capabilities](../userland/manifests-and-capabilities.md#how-the-word-is-fixed). Code: `src/security/capsule_manifest/verify/caps_bits.rs`.
