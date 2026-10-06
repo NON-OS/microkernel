@@ -23,7 +23,7 @@ use super::error::IommuError;
 use super::protection::IommuProtection;
 
 /// Owned handle for an IOMMU translation domain. Dropping the handle
-/// destroys the domain and frees its page-table backing.
+/// destroys the domain; its page-table frames are not freed.
 pub struct IommuDomain {
     id: DomainId,
 }

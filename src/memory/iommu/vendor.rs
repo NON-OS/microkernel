@@ -14,23 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Which remapping hardware the firmware described.
+
+/*
+ * Chosen from the ACPI tables, never from CPUID: QEMU presents an
+ * intel-iommu under KVM on AMD hosts, and that machine is VT-d.
+ */
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IommuError {
-    NotInitialized,
-    NotSupported,
-    DomainExhausted,
-    InvalidDomain,
-    InvalidDevice,
-    InvalidIova,
-    InvalidSize,
-    AlreadyMapped,
-    NotMapped,
-    DeviceAttachFailed,
-    DeviceDetachFailed,
-    PageTableExhausted,
-    BackendFault,
-    /// IVRS describes AMD-Vi hardware and this kernel has no AMD-Vi backend.
-    AmdViNotDriven,
-    /// The firmware described neither a DMAR remapping unit nor an IVRS table.
-    NoIommu,
+pub enum IommuVendor {
+    /// No DMAR remapping unit and no IVRS table, or a build with no IOMMU backend.
+    Absent,
+    /// DMAR described at least one remapping unit.
+    IntelVtd,
+    /// IVRS is present and DMAR described no unit. This kernel does not drive AMD-Vi.
+    AmdVi,
+}
+
+impl IommuVendor {
+    /// The name the posture line prints.
+    pub const fn name(self) -> &'static [u8] {
+        match self {
+            Self::Absent => b"none",
+            Self::IntelVtd => b"intel-vt-d",
+            Self::AmdVi => b"amd-vi",
+        }
+    }
 }

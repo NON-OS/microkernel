@@ -40,3 +40,15 @@ pub(crate) fn detach_device(_domain: DomainId, device: DeviceAddress) -> Result<
     unmap_device(device.pci_bus(), device.pci_device(), device.pci_function())
         .map_err(|_| IommuError::DeviceDetachFailed)
 }
+
+/// Whether a unit this kernel has in service translates `device`: VT-d is
+/// enforcing and a programmed unit's scope covers the device. A device no unit
+/// covers would take an IOVA for a physical address.
+pub(crate) fn translates(device: DeviceAddress) -> bool {
+    enforced::require().is_ok()
+        && crate::arch::x86_64::iommu::unit::coverage::unit_covers(
+            device.pci_bus(),
+            device.pci_device(),
+            device.pci_function(),
+        )
+}

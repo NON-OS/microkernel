@@ -14,24 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(feature = "nonos-iommu-amdvi")]
-mod amd_capabilities;
-#[cfg(feature = "nonos-iommu-amdvi")]
-mod amd_device;
-#[cfg(feature = "nonos-iommu-amdvi")]
-mod amd_domain;
-mod capabilities;
-mod device;
-mod dispatch;
-mod dispatch_device;
-mod domain;
-mod enforced;
-mod mapping;
-mod refuse;
-mod route;
-mod select;
+//! A domain call on a machine with no IOMMU this kernel drives, refused by name.
 
-pub(crate) use capabilities::capabilities;
-pub(crate) use dispatch::{allocate_domain, free_domain, map, unmap};
-pub(crate) use dispatch_device::{attach_device, detach_device, translates};
-pub(crate) use select::select_vendor;
+use crate::memory::iommu::IommuError;
+use crate::sys::serial::Line;
+
+pub(super) fn amd_vi(op: &'static [u8]) -> IommuError {
+    let mut line = Line::new();
+    line.str(b"[AMD-VI] refused ").str(op);
+    if cfg!(feature = "nonos-iommu-amdvi") {
+        line.str(b": AMD-Vi units are not in service").end();
+    } else {
+        line.str(b": no AMD-Vi backend in this kernel").end();
+    }
+    IommuError::AmdViNotDriven
+}
+
+pub(super) fn absent(op: &'static [u8]) -> IommuError {
+    let mut line = Line::new();
+    line.str(b"[IOMMU] refused ").str(op);
+    line.str(b": no DMAR remapping unit and no IVRS table").end();
+    IommuError::NoIommu
+}
