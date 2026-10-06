@@ -224,3 +224,11 @@ These are the service endpoints declared in `userland/*/Capsule.mk`, each with t
 | 4988 | `shield_vectors` | 4989 | `capsule_shield_vectors` |
 | 5012 | `nonos.shield` | 5013 | `capsule_shield` |
 | 5190 | `smp_stress` | 5191 | `capsule_smp_stress` |
+
+## See also
+
+- [The NONOS ABI](README.md)
+- [IPC in the kernel](../kernel/ipc.md)
+- [IPC services](../userland/ipc-services.md)
+- [Capsule isolation](../security/capsule-isolation.md)
+- [Broker](broker.md)
