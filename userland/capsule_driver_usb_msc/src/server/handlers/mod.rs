@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod accept_csw;
+pub mod block;
+mod block_rw;
 pub mod build_capacity;
 pub mod build_inquiry;
 pub mod build_read;

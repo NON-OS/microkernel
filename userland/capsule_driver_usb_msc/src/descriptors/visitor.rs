@@ -18,10 +18,24 @@ use super::types::{MscBinding, ProbeResult};
 use super::wire::*;
 use crate::protocol::MAX_BINDINGS;
 
-pub(super) fn visit_record(rec: &[u8], cur: &mut Option<MscBinding>, out: &mut ProbeResult) {
+/// `last_ep` is the address of the bulk endpoint just bound, which a
+/// SuperSpeed companion right after it describes; 0 when there is none.
+pub(super) fn visit_record(
+    rec: &[u8],
+    cur: &mut Option<MscBinding>,
+    last_ep: &mut u8,
+    out: &mut ProbeResult,
+) {
     match rec[1] {
-        DESC_INTERFACE => visit_interface(rec, cur),
-        DESC_ENDPOINT => visit_endpoint(rec, cur, out),
+        DESC_INTERFACE => {
+            *last_ep = 0;
+            visit_interface(rec, cur)
+        }
+        DESC_ENDPOINT => *last_ep = visit_endpoint(rec, cur, out),
+        DESC_SS_EP_COMPANION => {
+            visit_companion(rec, *last_ep, cur, out);
+            *last_ep = 0;
+        }
         _ => {}
     }
 }
@@ -37,10 +51,12 @@ fn visit_interface(rec: &[u8], cur: &mut Option<MscBinding>) {
     *cur = is_msc.then_some(MscBinding { interface: rec[2], ..MscBinding::default() });
 }
 
-fn visit_endpoint(rec: &[u8], cur: &mut Option<MscBinding>, out: &mut ProbeResult) {
-    let Some(mut binding) = *cur else { return };
+/// Bind a bulk endpoint of the current interface; returns its address, or 0
+/// when the record bound nothing.
+fn visit_endpoint(rec: &[u8], cur: &mut Option<MscBinding>, out: &mut ProbeResult) -> u8 {
+    let Some(mut binding) = *cur else { return 0 };
     if rec.len() < 7 || rec[3] & EP_ATTR_TRANSFER_MASK != EP_ATTR_BULK {
-        return;
+        return 0;
     }
     bind_endpoint(rec, &mut binding);
     *cur = Some(binding);
@@ -48,6 +64,31 @@ fn visit_endpoint(rec: &[u8], cur: &mut Option<MscBinding>, out: &mut ProbeResul
         out.bindings[out.count] = binding;
         out.count += 1;
         *cur = None;
+    }
+    rec[2]
+}
+
+/// A SuperSpeed companion: its bMaxBurst (bits 4:0, 0 to 15 allowed) goes
+/// to the endpoint it follows, in the interface being walked or the binding
+/// that endpoint just completed. A value past 15 is out of specification
+/// and taken as 0, one packet per burst.
+fn visit_companion(rec: &[u8], ep: u8, cur: &mut Option<MscBinding>, out: &mut ProbeResult) {
+    if rec.len() < 6 || ep == 0 {
+        return;
+    }
+    let burst = if rec[2] <= 15 { rec[2] } else { 0 };
+    let last = out.count.checked_sub(1);
+    let binding = match cur {
+        Some(b) if b.bulk_in == ep || b.bulk_out == ep => b,
+        _ => match last.map(|i| &mut out.bindings[i]) {
+            Some(b) if b.bulk_in == ep || b.bulk_out == ep => b,
+            _ => return,
+        },
+    };
+    if ep & EP_DIR_IN != 0 {
+        binding.max_burst_in = burst;
+    } else {
+        binding.max_burst_out = burst;
     }
 }
 

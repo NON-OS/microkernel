@@ -29,6 +29,9 @@ pub struct State {
     pub(super) csw_failed: u64,
     pub(super) phase_errors: u64,
     pub(super) residue_bytes: u64,
+    /// The bound device puts residues in its CSWs that do not count what it
+    /// moved (`State::residue`); only the bytes that crossed the bus count.
+    pub(super) ignore_residue: bool,
 }
 
 impl State {
@@ -45,6 +48,7 @@ impl State {
             csw_failed: 0,
             phase_errors: 0,
             residue_bytes: 0,
+            ignore_residue: false,
         }
     }
 }
