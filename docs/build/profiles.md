@@ -81,3 +81,7 @@ loader = "standard"
 When a feature the kernel tests by name pulls back something the profile takes out, the flake still evaluates, but the kernel refuses to build and says which features are tangled and that the profile builds only with `install = false` (`blocked`, `tools/nix/config.nix:178-182`, `refuse`, `tools/nix/image.nix:78-88`).
 
 The `kernel-profile-<profile>` checks type-check the kernel with exactly each profile's features (`profileChecks`, `tools/nix/checks.nix:169-193`), and the build receipt reads the kernel's bytes to confirm that no capsule a profile takes out is inside it (`enforcement`, `tools/nonos-receipt:103-126`).
+
+## The image capability ceiling
+
+Each build writes the OR of the capability ceilings of the capsules its profile ships into the trust policy the kernel embeds (`ceilingOf`, `tools/nix/image.nix:59-64`), and the kernel bakes that value in (`BAKED`, `src/security/image_ceiling/value.rs:19-21`). In this release the ceiling is not enforced. Capsule spawn calls only `would_refuse`, which prints `[CEILING] not enforced, would refuse` and the capsule's name when a capsule asks for more, then lets the spawn go on (`would_refuse`, `src/security/image_ceiling/admits.rs:53-60`, `src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:68`). Until it is, the image-wide limit adds nothing at spawn. [Capabilities](../kernel/capabilities.md) describes the bits.
