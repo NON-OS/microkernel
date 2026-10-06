@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::regs::op::crcr_program;
 use crate::rings::command::CommandRing;
-pub fn program_command_ring(op_base: u64, ring: &CommandRing) {
+pub fn program_command_ring(op_base: u64, ring: &mut CommandRing) {
+    ring.set_op_base(op_base);
     crcr_program(op_base, 0, 0);
     let v = ring.crcr_value();
     let rcs = (v & 0x1) as u8;

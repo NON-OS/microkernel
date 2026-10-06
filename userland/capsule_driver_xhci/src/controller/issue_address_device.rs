@@ -13,12 +13,24 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::ring_doorbell::ring_doorbell;
-use super::wait_command_completion::wait_command_completion;
+
+//! Address Device, which has the controller send the device its
+//! SET_ADDRESS (xHCI 1.2 section 4.6.5). The device may then ignore Setup
+//! packets for its SetAddress recovery interval (USB 2.0 section 9.2.6.3,
+//! 2 ms), and the next request, the class driver's descriptor read, came
+//! over IPC well inside it. Linux's hub_port_init sleeps 10 ms here ("let
+//! SET_ADDRESS settle, some device hardware wants it"), and so does this.
+use nonos_libc::mk_idle_ms;
+
+use super::run_command::run_command;
 use crate::error::{XhciError, XhciResult};
 use crate::rings::command::CommandRing;
 use crate::rings::event::EventRing;
 use crate::trb::commands::address_device_command;
+
+/// The settle time after SET_ADDRESS, as Linux gives it.
+pub const SET_ADDRESS_SETTLE_MS: u64 = 10;
+
 pub fn issue_address_device(
     doorbell_base: u64,
     intr_base: u64,
@@ -28,11 +40,10 @@ pub fn issue_address_device(
     slot_id: u8,
 ) -> XhciResult<()> {
     let trb = address_device_command(cmd_ring.cycle() != 0, input_context_phys, slot_id);
-    let issued_phys = cmd_ring.enqueue(trb)?;
-    ring_doorbell(doorbell_base, 0, 0);
-    let completion = wait_command_completion(intr_base, issued_phys, evt_ring)?;
+    let completion = run_command(doorbell_base, intr_base, cmd_ring, evt_ring, trb)?;
     if completion.slot_id != slot_id {
         return Err(XhciError::UnexpectedCompletionSlot);
     }
+    let _ = mk_idle_ms(SET_ADDRESS_SETTLE_MS);
     Ok(())
 }

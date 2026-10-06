@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum XhciError {
-    DeviceNotFound,
     BrokerCallFailed(i64),
     ControllerUnsupported,
     ResetTimeout,

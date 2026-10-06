@@ -30,21 +30,36 @@ mod server;
 mod setup;
 mod slots;
 mod trb;
-use crate::error::errno_value;
-use nonos_libc::{heap_init, mk_exit};
+use crate::error::reason;
+use nonos_libc::{heap_init, mk_exit, start_driver};
+const DRIVER: &[u8] = b"driver.xhci";
 /// # Safety
 /// The capsule entry point. The kernel loader calls this once on a fresh stack
 /// with the capsule's heap region reserved; it must never be called from Rust.
+///
+/// Without a controller the driver says so and leaves (`EXIT_ABSENT`) before
+/// claiming anything. A controller that is there is brought up on the shared
+/// bounded schedule, each failed attempt releasing what it took, and running
+/// out is `EXIT_GAVE_UP`.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    let driver = match setup::run() {
-        Ok(d) => d,
-        Err(e) => {
-            mk_exit(-errno_value(e));
-        }
+    let all = discover::find_all_xhci();
+    let started =
+        start_driver(DRIVER, all.first().copied(), |dev| setup::run(*dev).map_err(reason));
+    let mut drivers = match started {
+        Ok(d) => alloc::vec![d],
+        Err(code) => mk_exit(code),
     };
-    server::run(driver);
+    // The other controllers are best effort: one that fails (a Thunderbolt
+    // controller powered down with nothing attached, say) leaves the
+    // primary's ports served.
+    for dev in all.iter().skip(1) {
+        if let Ok(d) = setup::run(*dev) {
+            drivers.push(d);
+        }
+    }
+    server::run(drivers);
 }

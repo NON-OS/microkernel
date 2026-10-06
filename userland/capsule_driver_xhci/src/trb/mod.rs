@@ -17,6 +17,7 @@ mod base;
 pub mod builders;
 pub mod commands;
 mod completion_code;
+mod endpoint_id;
 mod get_cycle;
 mod get_pointer;
 mod get_type;

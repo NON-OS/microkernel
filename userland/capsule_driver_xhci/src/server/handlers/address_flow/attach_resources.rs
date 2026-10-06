@@ -13,25 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::super::address_reply::reply_ok;
+
 use crate::controller::clear_dcbaa_slot;
-use crate::protocol::{Request, E_INVAL};
 use crate::server::context::Context;
-use crate::server::error::reply_with_status;
 use crate::slots::SlotResources;
 
-pub(super) fn attach_resources(
-    ctx: &mut Context,
-    req: &Request,
-    tx: &mut [u8],
-    resources: SlotResources,
-) {
-    let (slot, port, speed, mps) =
-        (resources.slot_id, resources.port_id, resources.speed, resources.max_packet);
+/// Put the addressed slot's resources in the table. False, with the DCBAA
+/// entry cleared, when the table refuses them.
+pub(super) fn attach_resources(ctx: &mut Context, resources: SlotResources) -> bool {
+    let slot = resources.slot_id;
     if !ctx.driver.slots.attach_addressed(resources, ctx.driver.layout.max_slots) {
         let _ = clear_dcbaa_slot(&ctx.driver.dcbaa, slot, ctx.driver.layout.max_slots);
-        reply_with_status(tx, req, E_INVAL);
-        return;
+        return false;
     }
-    reply_ok(tx, req, slot, port, speed, mps);
+    true
 }

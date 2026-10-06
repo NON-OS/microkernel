@@ -15,9 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::address_flow::{address_after_reset, port_speed, slot_ready};
 use crate::controller::reset_port;
-use crate::protocol::{Request, ADDRESS_DEVICE_REQUEST_LEN, E_INVAL, E_IO, E_NODEV};
+use crate::protocol::{Request, ADDRESS_DEVICE_REQUEST_LEN, E_BUSY, E_INVAL, E_IO, E_NODEV};
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
+use crate::slots::PORT_FREE;
 pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != ADDRESS_DEVICE_REQUEST_LEN {
         reply_with_status(tx, req, E_INVAL);
@@ -29,7 +30,12 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         reply_with_status(tx, req, E_INVAL);
         return;
     }
-    let portsc = match reset_port(ctx.driver.layout.op_base, port_id) {
+    if ctx.driver.slots.port_state(port_id) != PORT_FREE {
+        reply_with_status(tx, req, E_BUSY);
+        return;
+    }
+    let usb3 = ctx.driver.layout.ports.is_usb3(port_id);
+    let portsc = match reset_port(ctx.driver.layout.op_base, port_id, usb3) {
         Ok(v) => v,
         Err(crate::error::XhciError::NoDeviceOnPort) => {
             reply_with_status(tx, req, E_NODEV);

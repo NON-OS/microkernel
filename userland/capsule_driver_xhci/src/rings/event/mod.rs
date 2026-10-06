@@ -19,5 +19,8 @@ mod current_trb;
 mod drained_total;
 mod erst_base_phys;
 mod has_event;
+mod issued_transfer;
+mod park;
 mod state;
+pub use issued_transfer::IssuedTransfer;
 pub use state::EventRing;

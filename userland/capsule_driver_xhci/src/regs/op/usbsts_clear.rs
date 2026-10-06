@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::constants::USBSTS;
-use crate::regs::{mmio_read32, mmio_write32};
+use crate::regs::mmio_write32;
+
+/// Acknowledge the USBSTS bits in `w1c_mask` and no others. Every writable
+/// USBSTS bit is RW1C (HSE, EINT, PCD, SRE), so writing back what was read
+/// would acknowledge a port change or an interrupt nobody has looked at.
 pub fn usbsts_clear(op_base: u64, w1c_mask: u32) {
-    let cur = mmio_read32(op_base + USBSTS);
-    mmio_write32(op_base + USBSTS, cur | w1c_mask);
+    mmio_write32(op_base + USBSTS, w1c_mask);
 }

@@ -14,33 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::dma::{DmaPool, DmaRegion};
-use crate::error::XhciResult;
+use crate::error::{XhciError, XhciResult};
+use crate::regs::op::MAX_PAGE_BYTES;
 use alloc::vec::Vec;
-const SCRATCHPAD_PAGE_BYTES: u64 = 4096;
 const SCRATCHPAD_PTR_BYTES: u64 = 8;
+const POOL_PAGE_BYTES: u64 = 4096;
+/// The scratchpad buffers HCSPARAMS2 asks for (xHCI 1.2 section 4.20): an
+/// array of `count` pointers, DCBAA entry 0, each to one zeroed page of the
+/// controller's own page size (PAGESIZE), aligned to that size. The pool
+/// aligns to 4 KiB; a larger page is carved out of a grant twice its size.
 pub enum Scratchpads {
     None,
     Allocated { array: DmaRegion, pages: Vec<DmaRegion> },
 }
 impl Scratchpads {
-    pub fn allocate(pool: &DmaPool, count: u32) -> XhciResult<Self> {
+    pub fn allocate(pool: &DmaPool, count: u32, page_bytes: u64) -> XhciResult<Self> {
         if count == 0 {
             return Ok(Scratchpads::None);
+        }
+        if !page_bytes.is_power_of_two()
+            || !(POOL_PAGE_BYTES..=MAX_PAGE_BYTES).contains(&page_bytes)
+        {
+            return Err(XhciError::ControllerUnsupported);
         }
         let array_bytes = (count as u64) * SCRATCHPAD_PTR_BYTES;
         let array = pool.alloc(array_bytes)?;
         array.zero();
+        let grant_bytes = if page_bytes == POOL_PAGE_BYTES { page_bytes } else { 2 * page_bytes };
         let mut pages: Vec<DmaRegion> = Vec::with_capacity(count as usize);
-        for _ in 0..count {
-            let page = pool.alloc(SCRATCHPAD_PAGE_BYTES)?;
-            page.zero();
-            pages.push(page);
-        }
         let array_va = array.as_mut_ptr::<u64>();
-        for (i, page) in pages.iter().enumerate() {
+        for i in 0..count as usize {
+            let page = pool.alloc(grant_bytes)?;
+            page.zero();
+            let phys = aligned_page(page.phys(), page_bytes);
             unsafe {
-                core::ptr::write_volatile(array_va.add(i), page.phys());
+                core::ptr::write_volatile(array_va.add(i), phys);
             }
+            pages.push(page);
         }
         Ok(Scratchpads::Allocated { array, pages })
     }
@@ -56,4 +66,10 @@ impl Scratchpads {
             Scratchpads::Allocated { pages, .. } => pages.len() as u32,
         }
     }
+}
+
+/// The first `page_bytes`-aligned address at or after `phys`. A grant of
+/// twice `page_bytes` always holds one whole aligned page from there.
+pub fn aligned_page(phys: u64, page_bytes: u64) -> u64 {
+    (phys + page_bytes - 1) & !(page_bytes - 1)
 }
