@@ -17,16 +17,15 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LocalBuildError {
     NoIdentity,
-    ProofFailed,
-    TrailerShape,
+    /// The capabilities asked for include one a local tag may not carry.
+    ScarceCapability,
 }
 
 impl LocalBuildError {
     pub const fn as_str(self) -> &'static str {
         match self {
             Self::NoIdentity => "no local build identity",
-            Self::ProofFailed => "local proof generation failed",
-            Self::TrailerShape => "proof does not match the trailer layout",
+            Self::ScarceCapability => "a local tag may carry only the ambient capabilities",
         }
     }
 }
