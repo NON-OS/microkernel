@@ -36,3 +36,28 @@ flowchart LR
 7. Spawn. `finish` claims the reply inbox, loads the ELF, installs the capability word, allocates the stacks, registers the service [endpoint](../overview/glossary.md#endpoint) and puts the process on the run queue (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:88-117`).
 
 A failure at any step stops that capsule and nothing else. A process that fails half way through step 7 is torn down with exit status -1 (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:79-80`, `SPAWN_FAILED`).
+
+## What lives under userland/
+
+These counts were taken on this tree by listing the top-level directories of `userland/` and the files they hold.
+
+| Kind | How it is recognised | Count |
+|---|---|---|
+| Directories | top level of `userland/` | 288 |
+| Crates | a top-level directory with a `Cargo.toml` | 271 |
+| Capsule declarations | a directory with a `Capsule.mk` | 107 |
+| Capsules the build includes | an include line in `mk/20-build.mk` | 97 |
+| Driver capsules the build includes | `capsule_driver_*` among the 97 | 18 |
+| Proof crates | a name ending in `_proofs` | 107 |
+| Other crates | a `Cargo.toml`, neither of the two above | 67 |
+| Linux userland programs | declared in `userland/linux_userland/Userland.mk` | 19 |
+
+What the numbers hide:
+
+- The include block runs from `capsule_proof_io` to `capsule_power` (`mk/20-build.mk:463-562`). Ten declared capsules are outside it, so this release does not build, sign or enroll them: `capsule_attack`, `capsule_smp_stress` and eight drivers, `capsule_driver_ax88179`, `capsule_driver_cdc_ecm`, `capsule_driver_cdc_ncm`, `capsule_driver_e1000e`, `capsule_driver_igc`, `capsule_driver_rndis`, `capsule_driver_rtl8153` and `capsule_driver_rtsx`.
+- One included capsule, `shield-vectors`, is a development test: only a development image signs and enrolls it (`nonos-mk/capsule.mk:163-170`, `NONOS_DEV_CAPSULES`).
+- Seven proof crates carry a `capsule_` prefix, `capsule_linux_proofs` among them. They are host test crates, not capsules.
+- Of the 67 other crates, 65 have a `src/lib.rs`. The two that do not, `capsule_driver_bga` and `capsule_gui_proof`, are capsule programs that no `Capsule.mk` declares, so they are not built into any image. Two of the libraries are test support: `linux_guests` also builds the test guests a test image enrolls (`mk/20-build.mk:568-571`, `NONOS_LINUX_GUESTS`), and `i2c_proofs_libc_shim` exists for the I2C proof crates.
+- Seventeen directories have no `Cargo.toml`. Ten are capsules whose program is built elsewhere with `std`: `ripgrep`, installed from crates.io at a pinned version (`mk/20-build.mk:279-290`, `UPSTREAM_RIPGREP_VERSION`), and `sd`, the seven tool apps below and the `tokio-smoke` test, built from source in `userland/upstream-src/`. The other seven are `assets`, `linux_userland`, `nonos_examples`, `platform`, `sdk`, `upstream-src` and `vendor`. The `sdk` and `nonos_examples` directories hold crates one level down.
+
+The build catalogue, `tools/nix/capsules.json`, lists 116 programs: the 97 included capsules and the 19 Linux userland programs (`mk/60-nix.mk:42`, `NONOS_CATALOGUE_CAPSULES`).
