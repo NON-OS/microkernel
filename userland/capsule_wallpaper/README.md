@@ -2,113 +2,83 @@
 
 ## Role
 
-`capsule_wallpaper` is a production desktop capsule. It owns wallpaper surface
-creation and presentation policy above the graphics syscall surface.
+`capsule_wallpaper` paints the desktop background. It registers one
+full-screen surface, submits it to the compositor at `z` 0, below the
+desktop shell's overlay (1) and every application window (2), and keeps it
+painted with the wallpaper the policy store names. The images come from
+`capsule_wallpaper_catalog`. The handbook page is
+[System apps and services](../../docs/handbook/apps/system-apps.md).
 
 ```text
-wallpaper service
-    |
-    | graphics Mk calls
-    v
-surface create -> map -> fill -> present -> destroy
-    |
-    `-- transient desktop background surface
+policy (Field::Wallpaper) --> wallpaper --> wallpaper_catalog (JPEG bytes)
+                                  |
+                                  | decode, stretch, paint
+                                  v
+                    own surface at z 0 --> compositor
 ```
 
 ## Microkernel contract
 
-The capsule calls the graphics surface API exposed through libc:
-
-- display dimensions
-- surface create
-- surface map
-- full-surface present
-- surface destroy
-- `MkExit` for completion status
-
-The kernel-side spawn path is feature gated through `nonos-capsule-wallpaper`.
+- `MkServiceLookup` finds the compositor, the policy store, the catalog and
+  the setters.
+- `MkMmap`, `MkSurfaceRegister` and `MkSurfaceShare` make the background
+  surface, sized from the compositor's `OP_DISPLAY_INFO`.
+- `MkIpcCall` submits the scene and commits damage to the compositor, asks
+  `policy` for `Wallpaper` and fetches images from the catalog in chunks.
+- `MkIpcRecvFrom` and `MkIpcReply` serve `service:4340:wallpaper`.
+- `MkDisplayVsyncWait` is the clock for a fade.
+- The kernel mirror is `src/userspace/capsule_wallpaper`, under the feature
+  `nonos-capsule-wallpaper`.
 
 ## Interface contract
 
-| Call | Purpose |
-|---|---|
-| display dimensions | discover framebuffer dimensions |
-| surface create/map/present/destroy | exercise the graphics surface lifecycle |
-| `MkExit` | completion status |
+Requests use a 20-byte header with magic `0x4E57_4C50` ("NWLP"):
+
+| Op | Value | Purpose |
+|---|---|---|
+| `OP_HEALTHCHECK` | 0x0001 | liveness ping |
+| `OP_SET_WALLPAPER` | 0x0002 | paint a colour or an image carried in the request (PNG, BMP, JPEG or raw LZ4) |
+| `OP_GET_WALLPAPER` | 0x0003 | the current colour, placement policy, size and alpha |
+| `OP_SET_POLICY` | 0x0004 | the placement: Fill, Fit, Stretch, Center or Tile |
+| `OP_FADE` | 0x0005 | fade to a target alpha over a duration |
+
+`OP_SET_WALLPAPER` is accepted only from the pids behind `desktop_shell`
+and `policy`, looked up on every request; any other sender gets `E_ACCES`.
+A frame whose header is refused is answered with `E_BAD_MAGIC`,
+`E_BAD_VERSION` or `E_BAD_LEN`.
 
 ## Authority
 
-The capsule must declare only the graphics, IPC, and memory authority needed by
-the graphics contract. The current manifest declares `CAPSULE_REQUIRED_CAPS =
-0x1819`.
-
-## Privacy and persistence
-
-The capsule writes a solid color into a transient mapped surface. It does not
-read user files, inspect windows, persist pixels, capture input, or store
-display state.
+`CAPSULE_REQUIRED_CAPS = 0x1818`: IPC, Memory, GraphicsDisplayQuery and
+GraphicsSurfaceCreate. GraphicsDisplayQuery is the bit `MkDisplayVsyncWait`
+needs. No FileSystem: the images come from the catalog
+over IPC. No Debug, network, driver or admin authority.
 
 ## Runtime lifecycle
 
-The capsule creates one background surface, fills it, presents it, and exits
-after handing the desktop a stable background.
+1. `wait_for_setup` retries setup until the compositor answers and the
+   surface is registered and submitted.
+2. The server loop serves requests. Every 300 ticks the subscriber asks
+   the policy store for `Wallpaper`; when the index changed it fetches that
+   image from the catalog, decodes it with the toolkit's JPEG decoder into
+   a buffer of at most 1920 by 1080 pixels, stretches it over the surface
+   and commits damage.
+
+## Privacy and persistence
+
+The capsule reads no user files and stores nothing. The chosen wallpaper
+is the policy store's `Wallpaper` field, which is kept across reboots only
+as one of the answers first-boot setup keeps on a persistent install.
 
 ## Failure model
 
-Graphics `ENOTSUP` exits cleanly. Any failed surface operation exits non-zero.
-
-## Current implemented surface
-
-- Creates, maps, fills, presents, and destroys a graphics surface.
-- Exits after the wallpaper presentation path completes.
-
-## Wire format
-
-There is no long-running IPC wire protocol. The visible artifacts are graphics
-syscall return values and PASS/FAIL markers emitted through `MkDebug`.
-
-## State ownership
-
-The capsule owns one transient surface id and mapped surface pointer during the
-smoke. The graphics backend owns framebuffer mapping. No wallpaper pixels are
-persisted.
-
-## Operating rules
-
-- Treat `ENOTSUP` as parked graphics, not success of rendering.
-- Destroy the surface on every mapped failure path.
-- Do not add desktop policy to this validation capsule.
-
-## Release target
-
-The finished wallpaper capsule, if retained, is a signed graphics validation
-artifact with an explicit manifest, feature-gated spawn, deterministic surface
-lifecycle, and no desktop policy. If a real wallpaper service is needed, it
-should be promoted as a separate UI capsule with storage and permissions
-defined up front.
-
-## Release evidence
-
-Release evidence is the graphics validation marker sequence, surface lifecycle
-proof, and static proof that framebuffer mapping remains kernel-owned.
-
-## Release checklist
-
-- Surface create/map/present/destroy validation passes.
-- Failure markers identify the failed graphics step.
-- Static gate confirms no direct framebuffer mapping in userland.
-- Parked status is removed only with a real manifest and spawn contract.
-
-## Explicit non-goals today
-
-No compositor, window manager, image loader, theme engine, desktop shell,
-input handling, persistent wallpaper storage, or production spawn path lives
-here.
+- Compositor not ready: setup is retried.
+- Catalog or policy unreachable: the current background stays.
+- An image that does not decode leaves the background as it was and the
+  request gets `E_INVAL`.
 
 ## Verification
 
-- Build/validation target: `nonos-mk-wallpaper-test` when the graphics validation slice
-  is active.
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Promotion check: this capsule must stay marked parked until it has a real
-  manifest, capability mask, and production spawn contract.
+- Build: `make nonos-mk-wallpaper`; sign: `make nonos-mk-wallpaper-sign`.
+- `userland/wallpaper_catalog_proofs` covers the catalog's request path;
+  nothing covers this capsule's own on the host.

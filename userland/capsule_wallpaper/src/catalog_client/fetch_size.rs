@@ -18,8 +18,6 @@ use nonos_libc::mk_ipc_call_timeout;
 
 use super::proto::{Header, E_OK, HDR_LEN, IPC_PAYLOAD_MAX, OP_GET_SIZE};
 
-const REPLY_TIMEOUT_MS: u64 = 500;
-
 pub fn fetch_size(catalog_port: u32, index: u32) -> Option<u32> {
     let mut buf = [0u8; IPC_PAYLOAD_MAX];
     let req = Header { op: OP_GET_SIZE, status: 0, index, offset: 0, payload_len: 0 };
@@ -30,7 +28,7 @@ pub fn fetch_size(catalog_port: u32, index: u32) -> Option<u32> {
         HDR_LEN,
         buf.as_mut_ptr(),
         buf.len(),
-        REPLY_TIMEOUT_MS,
+        super::budget::SIZE_MS,
     );
     if n <= 0 || (n as usize) < HDR_LEN + 4 {
         return None;
