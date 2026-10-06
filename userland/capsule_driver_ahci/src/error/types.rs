@@ -14,21 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::identity::Refusal;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AhciError {
     DeviceNotFound,
+    /// No ATA disk on a port: its link stayed quiet after COMRESET (nothing
+    /// attached), or the device on it is no ATA disk (an optical drive).
+    NoDisk,
     BrokerCallFailed(i64),
     CommandFailed,
     Timeout,
+    /// The disk's IDENTIFY block breaks the named rule in `identity`.
+    IdentityRefused(Refusal),
+    /// A transfer named sectors outside the served disk, or more bytes than
+    /// the data buffer holds; no command was built.
+    OutOfRange,
 }
 
 pub type AhciResult<T> = Result<T, AhciError>;
-
-pub fn exit_code(e: AhciError) -> i32 {
-    match e {
-        AhciError::DeviceNotFound => 2,
-        AhciError::BrokerCallFailed(_) => 3,
-        AhciError::CommandFailed => 4,
-        AhciError::Timeout => 5,
-    }
-}

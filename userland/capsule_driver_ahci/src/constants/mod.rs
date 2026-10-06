@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod ata;
+pub mod identify;
 pub mod pci;
 pub mod port;
 pub mod regs;
+pub mod timing;
 
 pub use pci::{AHCI_ABAR_BAR, CLASS_BLOCK};
 pub use port::{MAX_PORTS, PORT_KIND_NONE, PORT_KIND_SATA};
-pub use regs::{
-    GHC_AE, GHC_HR, HBA_CAP, HBA_CAP2, HBA_GHC, HBA_IS, HBA_PI, HBA_VS, SIG_ATAPI, SIG_PM,
-    SIG_SATA, SIG_SEMB,
-};
+pub use regs::{HBA_CAP, HBA_CAP2, HBA_GHC, HBA_PI, HBA_VS, SIG_ATAPI, SIG_PM, SIG_SATA, SIG_SEMB};

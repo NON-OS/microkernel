@@ -14,20 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::ata::COMPLETION_POLL_LIMIT;
+use crate::clock::wait_until;
 use crate::constants::regs::{CMD_CR, CMD_ST, PORT_CMD};
+use crate::constants::timing::ENGINE_STOP_MS;
+use crate::error::{AhciError, AhciResult};
 use crate::regs::Regs;
 
-pub(super) fn start(regs: Regs, base: u32) {
+/// Start the command list engine. ST may be set only once CR reads clear
+/// (AHCI 1.3.1, 10.3.1); a CR that never clears leaves the engine off.
+pub(super) fn start(regs: Regs, base: u32) -> AhciResult<()> {
+    if !wait_until(ENGINE_STOP_MS, || unsafe { regs.r32(base + PORT_CMD) } & CMD_CR == 0) {
+        return Err(AhciError::Timeout);
+    }
+    // FRE was already enabled during program(); only ST is set here, after
+    // the link is up, so command processing starts against a ready device.
     unsafe {
-        let mut spin = 0u32;
-        while regs.r32(base + PORT_CMD) & CMD_CR != 0 && spin < COMPLETION_POLL_LIMIT {
-            spin += 1;
-            core::hint::spin_loop();
-        }
-        // FRE was already enabled during program(); only ST is set here, after
-        // the link is up, so command processing starts against a ready device.
         let cmd = regs.r32(base + PORT_CMD);
         regs.w32(base + PORT_CMD, cmd | CMD_ST);
     }
+    Ok(())
 }

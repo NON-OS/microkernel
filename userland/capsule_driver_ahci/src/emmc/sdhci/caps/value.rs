@@ -14,23 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::PORT_KIND_SATA;
-use crate::controller::PortInfo;
-use crate::engine::{init_port, Port};
-use crate::regs::Regs;
+//! The register values a host reports and its specification version.
 
-pub(super) fn bring_up(
-    device_id: u64,
-    claim_epoch: u64,
-    regs: Regs,
-    ports: &[PortInfo],
-) -> Option<Port> {
-    for p in ports {
-        if p.present == 1 && p.kind == PORT_KIND_SATA {
-            if let Ok(port) = init_port(device_id, claim_epoch, regs, p.index) {
-                return Some(port);
-            }
-        }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Caps {
+    /// Capabilities, 0x40.
+    pub caps: u32,
+    /// Capabilities, 0x44.
+    pub caps1: u32,
+    /// Host Controller Version, 0xFE: spec version in 7:0, vendor in 15:8.
+    pub version: u16,
+}
+
+impl Caps {
+    /// The Specification Version Number: 0 = 1.00, 1 = 2.00, 2 = 3.00,
+    /// 3 = 4.00, 4 = 4.10, 5 = 4.20.
+    pub const fn spec(&self) -> u8 {
+        self.version as u8
     }
-    None
 }

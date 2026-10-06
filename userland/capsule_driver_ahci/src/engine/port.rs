@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::region::DmaRegion;
+use crate::identity::Names;
 
 pub struct Port {
     pub(crate) clb: DmaRegion,
@@ -23,4 +24,11 @@ pub struct Port {
     pub(crate) data: DmaRegion,
     pub(crate) base: u32,
     pub(crate) capacity_sectors: u64,
+    /// CAP.SCLO of the port's HBA: recovery may use Command List Override.
+    pub(crate) sclo: bool,
+    /// Model and serial from the disk's IDENTIFY block.
+    pub(crate) names: Names,
+    /// PxTFD as the last failed command left it, read before recovery
+    /// clears it: the disk's own status and error registers.
+    pub(crate) last_tfd: u32,
 }

@@ -21,3 +21,6 @@ pub const OP_CAPACITY: u16 = 4;
 pub const OP_READ_BLOCKS: u16 = 5;
 pub const OP_WRITE_BLOCKS: u16 = 6;
 pub const OP_FLUSH: u16 = 7;
+/// The served disk's size, sector size, model and serial; no request
+/// payload. Reply layout in `identify_reply`.
+pub const OP_IDENTIFY: u16 = 8;

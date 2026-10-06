@@ -14,42 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::ata::COMPLETION_POLL_LIMIT;
-use crate::constants::regs::{IS_ERR_MASK, PORT_CI, PORT_IS, PORT_TFD, TFD_BSY, TFD_DRQ, TFD_ERR};
+use super::completion::{wait_done, wait_ready, SLOT0};
+use crate::clock::Deadline;
+use crate::constants::regs::{PORT_CI, PORT_IS};
+use crate::constants::timing::COMMAND_MS;
 use crate::error::{AhciError, AhciResult};
 use crate::regs::Regs;
 
-pub(super) fn issue_slot0(regs: Regs, base: u32) -> AhciResult<()> {
+/// Issue the command built in slot 0 and wait for it, all inside one
+/// COMMAND_MS budget so the reply reaches the kernel before it stops waiting.
+/// A device still BSY or DRQ from before is kicked once (`recover`) and given
+/// the rest of the budget.
+pub(super) fn issue_slot0(regs: Regs, base: u32, sclo: bool) -> AhciResult<()> {
+    let read = |off: u32| unsafe { regs.r32(base + off) };
+    let deadline = Deadline::after_ms(COMMAND_MS);
     unsafe {
         regs.w32(base + PORT_IS, u32::MAX);
-        let mut spin = 0u32;
-        while regs.r32(base + PORT_TFD) & (TFD_BSY | TFD_DRQ) != 0 {
-            spin += 1;
-            if spin >= COMPLETION_POLL_LIMIT {
-                return Err(AhciError::Timeout);
-            }
-            core::hint::spin_loop();
-        }
-        // The HBA DMA-reads the command list and table only after it sees the
-        // command-issue bit set. Order those stores ahead of the CI write so it
-        // never fetches a stale command header, FIS, or PRDT.
-        core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
-        regs.w32(base + PORT_CI, 1);
-        spin = 0;
-        loop {
-            if regs.r32(base + PORT_IS) & IS_ERR_MASK != 0
-                || regs.r32(base + PORT_TFD) & TFD_ERR != 0
-            {
-                return Err(AhciError::CommandFailed);
-            }
-            if regs.r32(base + PORT_CI) & 1 == 0 {
-                return Ok(());
-            }
-            spin += 1;
-            if spin >= COMPLETION_POLL_LIMIT {
-                return Err(AhciError::Timeout);
-            }
-            core::hint::spin_loop();
-        }
     }
+    match wait_ready(read, || deadline.expired()) {
+        Err(AhciError::Timeout) => {
+            super::recover::recover(regs, base, sclo)?;
+            wait_ready(read, || deadline.expired())?;
+        }
+        other => other?,
+    }
+    // The HBA DMA-reads the command list and table only after it sees the
+    // command-issue bit set. Order those stores ahead of the CI write so it
+    // never fetches a stale command header, FIS, or PRDT.
+    core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
+    unsafe {
+        regs.w32(base + PORT_CI, SLOT0);
+    }
+    wait_done(read, || deadline.expired())
 }

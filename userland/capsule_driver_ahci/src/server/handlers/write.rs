@@ -16,7 +16,7 @@
 
 use crate::constants::ata::SECTOR_SIZE;
 use crate::engine::transfer;
-use crate::protocol::{Request, E_IO, E_MSGSIZE, E_NODEV, RW_HEADER_LEN};
+use crate::protocol::{Request, E_MSGSIZE, E_NODEV, RW_HEADER_LEN};
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
 
@@ -41,6 +41,9 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
             bytes,
         );
     }
-    let status = if transfer(port, regs, lba, nsectors, true).is_ok() { 0 } else { E_IO };
+    let status = match transfer(port, regs, lba, nsectors, true) {
+        Ok(()) => 0,
+        Err(e) => super::failure::status(port, e),
+    };
     reply_with_status(tx, req, status);
 }
