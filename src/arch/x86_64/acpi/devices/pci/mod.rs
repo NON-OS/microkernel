@@ -17,6 +17,7 @@
 mod enumerate;
 mod raw;
 mod types;
+mod window;
 
 pub use enumerate::enumerate_pci_devices;
 pub use raw::enumerate_pci_raw;

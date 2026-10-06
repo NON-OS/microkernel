@@ -20,6 +20,7 @@ use core::ptr;
 use spin::Mutex;
 
 use super::super::state::TableRegistry;
+use super::dmar_scope::{parse_drhd, UnitScope};
 use crate::arch::x86_64::acpi::tables::{Dmar, Drhd, SdtHeader, SIG_DMAR};
 
 const DRHD_TYPE: u16 = 0;
@@ -27,11 +28,29 @@ const MAX_REMAP_UNITS: usize = 8;
 
 static REMAP_UNIT_BASES: Mutex<heapless::Vec<u64, MAX_REMAP_UNITS>> =
     Mutex::new(heapless::Vec::new());
+static FOREIGN_SEGMENT_UNITS: Mutex<usize> = Mutex::new(0);
+/// What each unit in `REMAP_UNIT_BASES` covers, at the same index.
+static REMAP_UNIT_SCOPES: Mutex<heapless::Vec<UnitScope, MAX_REMAP_UNITS>> =
+    Mutex::new(heapless::Vec::new());
 
-/// Register bases of the remapping units DMAR reported. These were collected
-/// and then dropped on the floor; the VT-d driver reads them from here.
+/// Register bases of the segment 0 remapping units DMAR reported, in table
+/// order. A client Intel machine has two: one scoped to the integrated
+/// graphics and one for every other device. The VT-d driver programs all of
+/// them; a device's DMA is translated only by the unit whose scope holds it.
 pub fn remap_unit_bases() -> heapless::Vec<u64, MAX_REMAP_UNITS> {
     REMAP_UNIT_BASES.lock().clone()
+}
+
+/// Units DMAR placed on a PCI segment other than 0. The kernel enumerates
+/// segment 0 only, so it has no table for their devices and leaves them off.
+pub fn foreign_segment_units() -> usize {
+    *FOREIGN_SEGMENT_UNITS.lock()
+}
+
+/// What each segment 0 remapping unit covers, in DMAR order (index-matched to
+/// `remap_unit_bases`).
+pub fn remap_unit_scopes() -> heapless::Vec<UnitScope, MAX_REMAP_UNITS> {
+    REMAP_UNIT_SCOPES.lock().clone()
 }
 
 pub fn parse_dmar(registry: &mut TableRegistry) {
@@ -63,8 +82,23 @@ pub fn parse_dmar(registry: &mut TableRegistry) {
             }
             if kind == DRHD_TYPE && length as usize >= mem::size_of::<Drhd>() {
                 let drhd = ptr::read_volatile(cursor as *const Drhd);
-                if REMAP_UNIT_BASES.lock().push(drhd.register_base_address).is_ok() {
-                    found_drhd = true;
+                if drhd.segment != 0 {
+                    *FOREIGN_SEGMENT_UNITS.lock() += 1;
+                } else {
+                    // The flags and device scopes say which devices the unit
+                    // translates; a unit whose structure does not parse is
+                    // kept with an empty, truncated scope, so it is never
+                    // taken to cover a device.
+                    let bytes = core::slice::from_raw_parts(cursor as *const u8, length as usize);
+                    let scope = parse_drhd(bytes)
+                        .unwrap_or(UnitScope { truncated: true, ..UnitScope::EMPTY });
+                    let mut bases = REMAP_UNIT_BASES.lock();
+                    let mut scopes = REMAP_UNIT_SCOPES.lock();
+                    if bases.len() < MAX_REMAP_UNITS && scopes.len() < MAX_REMAP_UNITS {
+                        let _ = bases.push(drhd.register_base_address);
+                        let _ = scopes.push(scope);
+                        found_drhd = true;
+                    }
                 }
             }
             cursor += length as u64;

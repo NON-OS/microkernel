@@ -37,6 +37,11 @@ pub fn parse_mcfg(registry: &mut TableRegistry) {
 
         for i in 0..entry_count {
             let entry = ptr::read_volatile(entries_ptr.add(i));
+            // An inverted bus range or a zero base describes nothing that
+            // can be reached; Linux's pci_mcfg_check_entries rejects both.
+            if entry.end_bus < entry.start_bus || entry.base_address == 0 {
+                continue;
+            }
             registry.data.pcie_segments.push(PcieSegment {
                 base_address: entry.base_address,
                 segment: entry.segment_group,

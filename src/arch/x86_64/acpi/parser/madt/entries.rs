@@ -19,23 +19,57 @@ use core::ptr;
 
 use super::super::state::TableRegistry;
 use crate::arch::x86_64::acpi::data::*;
+use crate::arch::x86_64::acpi::hw::madt_cpu::{keep_entry, processor_usable, MADT_FLAG_ENABLED};
 use crate::arch::x86_64::acpi::tables::madt::*;
 
-pub fn parse_local_apic(registry: &mut TableRegistry, ptr: u64, len: u8) {
+/// What processor entries are judged against: the MADT revision (which
+/// decides whether the Online Capable bit means anything) and whether the
+/// table lists any usable type 0 processor (which decides whether small-ID
+/// x2APIC entries are duplicates).
+#[derive(Clone, Copy)]
+pub struct CpuContext {
+    pub revision: u8,
+    pub has_xapic_cpus: bool,
+}
+
+/// Record one processor unless it is unusable, a placeholder, a duplicate
+/// x2APIC listing of an xAPIC processor, or an APIC ID already recorded.
+pub(super) fn record_processor(
+    registry: &mut TableRegistry,
+    ctx: CpuContext,
+    apic_id: u32,
+    uid: u32,
+    flags: u32,
+    is_x2apic: bool,
+) {
+    if !processor_usable(flags, ctx.revision) {
+        return;
+    }
+    if !keep_entry(apic_id, is_x2apic, ctx.has_xapic_cpus) {
+        return;
+    }
+    if registry.data.processors.iter().any(|p| p.apic_id == apic_id) {
+        return;
+    }
+    let enabled = flags & MADT_FLAG_ENABLED != 0;
+    registry.data.processors.push(ProcessorInfo::new(apic_id, uid, is_x2apic, enabled));
+}
+
+pub fn parse_local_apic(registry: &mut TableRegistry, ptr: u64, len: u8, ctx: CpuContext) {
     if len < mem::size_of::<MadtLocalApic>() as u8 {
         return;
     }
-    unsafe {
-        let entry = ptr::read_volatile(ptr as *const MadtLocalApic);
-        if entry.is_usable() {
-            registry.data.processors.push(ProcessorInfo::new(
-                entry.apic_id as u32,
-                entry.processor_id as u32,
-                false,
-                entry.is_enabled(),
-            ));
-        }
-    }
+    // SAFETY: the caller bounded `ptr..ptr + len` inside the mapped MADT and
+    // `len` covers the struct.
+    let entry = unsafe { ptr::read_volatile(ptr as *const MadtLocalApic) };
+    record_processor(
+        registry,
+        ctx,
+        entry.apic_id as u32,
+        entry.processor_id as u32,
+        entry.flags,
+        false,
+    );
 }
 
 pub fn parse_ioapic(registry: &mut TableRegistry, ptr: u64, len: u8) {

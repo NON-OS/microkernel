@@ -48,6 +48,11 @@ pub struct McfgEntry {
 }
 
 impl McfgEntry {
+    /// The MCFG base address is the ECAM address of bus 0 in the segment,
+    /// even when the entry's range starts above bus 0 (PCI Firmware 3.2
+    /// table 4-3; Linux `pci_mmcfg_add` and `pci_mcfg_lookup` both add
+    /// `start_bus << 20` to it to find the first mapped bus). So a function's
+    /// address is `base + (bus << 20)`, not `base + ((bus - start_bus) << 20)`.
     pub fn config_address(&self, bus: u8, device: u8, function: u8, offset: u16) -> Option<u64> {
         if bus < self.start_bus || bus > self.end_bus {
             return None;
@@ -63,8 +68,9 @@ impl McfgEntry {
                 + (offset as u64),
         )
     }
+    /// Zero for a malformed entry whose end bus is below its start bus.
     pub fn bus_count(&self) -> u16 {
-        (self.end_bus as u16) - (self.start_bus as u16) + 1
+        (self.end_bus as u16 + 1).saturating_sub(self.start_bus as u16)
     }
     pub fn contains_bus(&self, bus: u8) -> bool {
         bus >= self.start_bus && bus <= self.end_bus

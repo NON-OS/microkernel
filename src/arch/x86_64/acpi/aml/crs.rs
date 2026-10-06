@@ -159,34 +159,32 @@ pub(super) fn scan_large_descriptors(region: &[u8], mut cb: impl FnMut(u8, &[u8]
 /// from a SerialBus descriptor and the GPIO pin from a GpioInt descriptor.
 fn fill_touchpad_descriptor(lead: u8, data: &[u8], dev: &mut I2cHidDevice) {
     match lead {
-        LEAD_SERIAL_BUS => {
-            if dev.slave_addr == 0 {
-                if let Some(addr) = parse_i2c_serial_bus(data) {
-                    dev.slave_addr = addr;
-                    // The controller name must come from the same fragment
-                    // that supplied the address: a body scan can walk several
-                    // ResourceTemplate fragments (multi-SKU firmware keeps
-                    // alternatives side by side), and pairing the address from
-                    // one with the ResourceSource of another names the wrong
-                    // bus.
-                    if let Some(ctrl) = parse_i2c_controller(data) {
-                        dev.controller = ctrl;
-                    }
+        // The first descriptor of each kind wins; a later one falls to the
+        // last arm and changes nothing.
+        LEAD_SERIAL_BUS if dev.slave_addr == 0 => {
+            if let Some(addr) = parse_i2c_serial_bus(data) {
+                dev.slave_addr = addr;
+                // The controller name must come from the same fragment
+                // that supplied the address: a body scan can walk several
+                // ResourceTemplate fragments (multi-SKU firmware keeps
+                // alternatives side by side), and pairing the address from
+                // one with the ResourceSource of another names the wrong
+                // bus.
+                if let Some(ctrl) = parse_i2c_controller(data) {
+                    dev.controller = ctrl;
                 }
             }
         }
-        LEAD_GPIO => {
-            if !dev.has_gpio {
-                if let Some(pin) = parse_gpio_int(data) {
-                    dev.gpio_pin = pin;
-                    dev.has_gpio = true;
-                    // Same-fragment rule as the I2C controller name above: the
-                    // community name must come from the descriptor that
-                    // supplied the pin, or a multi-SKU body scan can pair the
-                    // pin with another template's community.
-                    if let Some(ctrl) = parse_gpio_controller(data) {
-                        dev.gpio_controller = ctrl;
-                    }
+        LEAD_GPIO if !dev.has_gpio => {
+            if let Some(pin) = parse_gpio_int(data) {
+                dev.gpio_pin = pin;
+                dev.has_gpio = true;
+                // Same-fragment rule as the I2C controller name above: the
+                // community name must come from the descriptor that
+                // supplied the pin, or a multi-SKU body scan can pair the
+                // pin with another template's community.
+                if let Some(ctrl) = parse_gpio_controller(data) {
+                    dev.gpio_controller = ctrl;
                 }
             }
         }

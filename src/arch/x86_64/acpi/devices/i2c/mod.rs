@@ -14,12 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! HID-over-I2C devices from the ACPI namespace: matched by `_HID` or
+//! `_CID` (PNP0C50/ACPI0C50), with the slave address, bus speed, interrupt
+//! (GpioInt or APIC), HID descriptor register (`_DSM` function 1) and host
+//! controller name the firmware declares statically.
+
 mod configs;
+mod dsm;
 mod enumerate;
 pub mod hids;
+mod names;
+mod parse;
+mod resources;
 mod types;
+mod walk;
 
-pub use configs::get_additional_touchpad_configs;
-pub use enumerate::{enumerate_i2c_hid_devices, find_touchpads, find_touchscreens};
+pub use enumerate::{
+    enumerate_i2c_hid_devices, enumerate_platform_i2c_hosts, find_touchpads, find_touchscreens,
+};
 pub use hids::{classify_hid_device, TOUCHPAD_HIDS, TOUCHSCREEN_HIDS};
-pub use types::{I2cHidDevice, I2cHidDeviceType};
+pub use parse::{parse_hid_devices, parse_platform_controllers, I2cHostName};
+pub use types::{HidInterrupt, I2cHidDevice, I2cHidDeviceType};

@@ -17,10 +17,6 @@
 use crate::arch::x86_64::acpi::parser;
 
 pub fn get_ioapic_for_gsi(gsi: u32) -> Option<u64> {
-    for io in parser::ioapics() {
-        if gsi >= io.gsi_base && gsi < io.gsi_base + 24 {
-            return Some(io.address);
-        }
-    }
-    None
+    let ioapics = parser::ioapics();
+    crate::arch::x86_64::acpi::data::owner_of_gsi(&ioapics, gsi).map(|io| io.address)
 }
