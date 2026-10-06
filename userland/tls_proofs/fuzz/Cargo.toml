@@ -1,0 +1,48 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+#
+# Fuzz targets for the TLS stack's parsers of server bytes: the DER walker,
+# the certificate field readers, the chain check, record framing and the
+# server hello. Run one with: cargo +nightly-2026-01-16 fuzz run <target>
+
+[package]
+name = "tls_proofs-fuzz"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+tls_proofs = { path = ".." }
+
+[[bin]]
+name = "tls_cert"
+path = "fuzz_targets/tls_cert.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "tls_record"
+path = "fuzz_targets/tls_record.rs"
+test = false
+doc = false
+bench = false
+
+[workspace]
