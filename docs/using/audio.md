@@ -32,3 +32,11 @@ There is one master volume, from 0 to 100. Every sound passes through it, the de
 The `Volume` row in [Settings](settings.md) is something else: how loud the desktop's own tones are, before the master volume. `System sound` switches those tones off, and `Alert sounds` adds a tone for warnings and errors.
 
 The volume keys: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+## Where the sound comes out
+
+You do not pick an output; the driver plays through every one it can. At start it walks each sound chip (codec), finds each speaker, headphone and line-out pin with a path to a converter that plays 48 kHz 16-bit sound, and drives them all on one codec, the one with speakers when there is one (`userland/capsule_driver_hda/README.md`). It reads the headphone jack twice a second: when headphones go in, the speakers go off, and when they come out, the speakers come back (`POLL_MS` in `userland/capsule_driver_hda/src/server/runner/jack_poll.rs`).
+
+The `Output device` row in Settings, Sound, says what the hardware reported when the panel opened, for example `Speakers and headphone jack` or `Headphones` (`userland/capsule_settings/src/settings/state/audio_output.rs`).
+
+HDMI and DisplayPort audio are not played: NONOS plays through speakers, headphones and line out only.
