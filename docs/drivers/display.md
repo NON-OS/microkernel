@@ -74,3 +74,9 @@ One bring-up attempt, `claimed`, takes the device off its legacy interrupt line,
 The service answers twelve ops, from `OP_HEALTHCHECK` to `OP_GET_PRIMARY_SURFACE` (`userland/capsule_driver_virtio_gpu/src/protocol/ops.rs:16-27`). Each resource records the process that created it in `owner_pid`, and the resource ops refuse another process's resource (`userland/capsule_driver_virtio_gpu/src/server/handlers/create_resource.rs:59`, `userland/capsule_driver_virtio_gpu/src/server/handlers/set_scanout.rs:33`).
 
 Without a virtio GPU the capsule exits with `EXIT_ABSENT` (2) at once, and the compositor stays on GOP; a device that fails every bring-up attempt exits with `EXIT_GAVE_UP` (`userland/capsule_driver_virtio_gpu/src/main.rs:40-55`). At this commit `virtio_gpu_proofs` passes 38 host tests. Its crate comment lists what they hold to the specification: the status handshake, the accepted features, the control queue and the wire bytes of each 2D command, with the shipping source mounted by `#[path]` (`userland/virtio_gpu_proofs/src/lib.rs:17-32`).
+
+## Bochs BGA
+
+`capsule_driver_bga` matches the QEMU and Bochs display adapter, PCI 1234:1111 (`VENDOR_QEMU_BOCHS`, `DEVICE_BGA`), with its framebuffer in BAR 0 and registers in BAR 2, as `find_bga` checks (`userland/capsule_driver_bga/src/constants.rs:17-22`, `userland/capsule_driver_bga/src/discover.rs:34-57`). It sets one mode, `MODE_WIDTH` by `MODE_HEIGHT` at 32 bits, 1024 by 768 (`userland/capsule_driver_bga/src/constants.rs:33-35`), then serves nothing and sleeps in turns of `HOLD_MS`, 60 seconds (`userland/capsule_driver_bga/src/main.rs:32-53`).
+
+It is parked. It has no `Capsule.mk`, no Cargo feature and no kernel mirror, and `family_driver` leaves `DisplayBga` without a driver on purpose: re-moding the adapter would destroy the firmware scanout the compositor presents into (`src/hardware/inventory/driver.rs:33-36`). `bga_proofs` passes 9 host tests at this commit.
