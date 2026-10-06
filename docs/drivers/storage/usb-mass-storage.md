@@ -78,3 +78,11 @@ nix run .#qemu -- --stick --usb
 Not tested in this release.
 
 USB sticks and USB disks have not been tested on hardware in this release.
+
+## See also
+
+- [Storage drivers](README.md)
+- [USB and the xHCI host controller](../usb/README.md)
+- [USB hubs](../usb/hubs.md)
+- [SD cards and eMMC](sd-and-emmc.md)
+- [Write a USB stick](../../install/usb-stick.md)
