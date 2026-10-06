@@ -24,11 +24,24 @@ use nonos_hash::wipe;
 /// the capsule that provider is `nonos_secp256k1`, and on the host it is the
 /// audited k256 crate. Every intermediate
 /// extended key wipes itself; on any failure the output is zeroed.
-pub fn derive_eth_key<F>(seed: &[u8; 64], mut pubkey: F, out: &mut [u8; 32]) -> bool
+pub fn derive_eth_key<F>(seed: &[u8; 64], pubkey: F, out: &mut [u8; 32]) -> bool
+where
+    F: FnMut(&[u8; 32]) -> Option<[u8; 65]>,
+{
+    derive_eth_key_at(seed, pubkey, 0, out)
+}
+
+/// The same walk to account `index`, m/44'/60'/0'/0/index, which is how
+/// every Ethereum wallet numbers the further accounts of one phrase. A
+/// hardened index (2^31 or more) is refused and zeroes the output.
+pub fn derive_eth_key_at<F>(seed: &[u8; 64], mut pubkey: F, index: u32, out: &mut [u8; 32]) -> bool
 where
     F: FnMut(&[u8; 32]) -> Option<[u8; 65]>,
 {
     wipe(out);
+    if index >= crate::bip32::HARDENED {
+        return false;
+    }
     let Some(master) = master_from_seed(seed) else {
         return false;
     };
@@ -45,7 +58,7 @@ where
     let Some(change) = normal_step(&account, &mut pubkey, 0) else {
         return false;
     };
-    let Some(address) = normal_step(&change, &mut pubkey, 0) else {
+    let Some(address) = normal_step(&change, &mut pubkey, index) else {
         return false;
     };
 
