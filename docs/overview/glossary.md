@@ -127,3 +127,7 @@ The `vfs_pool` service, `capsule_vfs`. It holds every file the desktop and its a
 ## Grant
 
 One revocable piece of a claimed device that the hardware broker hands the claiming process: an MMIO window, a DMA buffer, an interrupt binding or, on x86_64, a port range. Each has a grant id, and the broker revokes it on unmap, on device release and when the process exits. Explained in [The hardware broker](../kernel/hardware-broker.md#revocation). Code: `src/hardware/broker/grant.rs`, `src/process/exit/finalize.rs`.
+
+## Hardware broker
+
+<a id="broker"></a>The ring 0 code through which a driver capsule lists devices, claims one and receives grants on it: MMIO windows, DMA buffers, interrupt bindings and, on x86_64 only, port I/O, each behind its own capability. When a remapping unit covers a claimed PCI device, the broker moves it into the capsule's IOMMU domain before powering it, and every grant a process holds is released when it exits. Explained in [The hardware broker](../kernel/hardware-broker.md), with the calls in [Broker ABI](../abi/broker.md). Code: `src/hardware/broker/mod.rs`, `src/hardware/broker/claim/claim.rs`.
