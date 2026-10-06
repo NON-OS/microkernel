@@ -17,13 +17,18 @@
 
 extern crate alloc;
 
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::super::error::HttpError;
 use super::chunk::decode;
-use super::headers::headers;
-use super::status::status;
+use super::framing::{content_length, transfer_codings, Codings};
+use super::head::head;
 use super::types::Response;
+
+/// How many interim responses may come before the final one. Servers send
+/// one or two (100 Continue, 103 Early Hints); more is a loop, not a reply.
+const MAX_INTERIM: usize = 8;
 
 /// Parse a complete response.
 ///
@@ -31,38 +36,42 @@ use super::types::Response;
 /// a short read has to be an error, or a truncated pack would be handed on as
 /// though it were whole.
 pub fn parse_response(raw: &[u8]) -> Result<Response, HttpError> {
-    let split = find_blank_line(raw).ok_or(HttpError::Incomplete)?;
-    let head = &raw[..split];
-    let body = &raw[split + 4..];
-
-    let mut lines = head.split(|b| *b == b'\n');
-    let first = lines.next().ok_or(HttpError::StatusLine)?;
-    let code = status(first.strip_suffix(b"\r").unwrap_or(first))?;
-    let rest_at = first.len() + 1;
-    let fields = headers(head.get(rest_at..).unwrap_or(&[]))?;
-
-    let chunked =
-        fields.iter().any(|(n, v)| n == "transfer-encoding" && v.eq_ignore_ascii_case("chunked"));
-    let body = if chunked {
-        decode(body)?
-    } else {
-        match fields.iter().find(|(n, _)| n == "content-length") {
-            Some((_, v)) => {
-                let want: usize = v.parse().map_err(|_| HttpError::Body)?;
-                if body.len() < want {
-                    return Err(HttpError::Body);
-                }
-                body[..want].to_vec()
-            }
-            // No length and no chunking means the body runs to the close,
-            // which is what Connection: close asks for.
-            None => Vec::from(body),
+    let mut rest = raw;
+    /*
+     * An interim (1xx) response comes ahead of the final one and is not it
+     * (RFC 9110 15.2): taking a 103 Early Hints as the answer handed the real
+     * response on as its body. 101 is final; what follows it is no longer
+     * HTTP.
+     */
+    for _ in 0..=MAX_INTERIM {
+        let (code, fields, after) = head(rest)?;
+        if (100..200).contains(&code) && code != 101 {
+            rest = after;
+            continue;
         }
-    };
-
-    Ok(Response { status: code, headers: fields, body })
+        let body = body(code, &fields, after)?;
+        return Ok(Response { status: code, headers: fields, body });
+    }
+    Err(HttpError::StatusLine)
 }
 
-fn find_blank_line(raw: &[u8]) -> Option<usize> {
-    raw.windows(4).position(|w| w == b"\r\n\r\n")
+/*
+ * RFC 9112 6.3, in its order: no body for 1xx, 204 and 304 whatever the
+ * fields say; then Transfer-Encoding, which overrides any Content-Length;
+ * then one Content-Length; else the body runs to the close, which is what
+ * Connection: close asks for.
+ */
+fn body(code: u16, fields: &[(String, String)], after: &[u8]) -> Result<Vec<u8>, HttpError> {
+    if (100..200).contains(&code) || code == 204 || code == 304 {
+        return Ok(Vec::new());
+    }
+    match transfer_codings(fields) {
+        Codings::ChunkedLast => return decode(after),
+        Codings::Other => return Ok(Vec::from(after)),
+        Codings::None => {}
+    }
+    match content_length(fields)? {
+        Some(want) => after.get(..want).map(Vec::from).ok_or(HttpError::Body),
+        None => Ok(Vec::from(after)),
+    }
 }
