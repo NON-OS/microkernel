@@ -111,6 +111,9 @@ fn toggle_view(state: &mut State) -> EventOutcome {
         Mode::Code => b"code view",
         Mode::Document => b"page view",
     };
+    // Edits made in the code view did not rebuild the pages (reflow does
+    // nothing there), so the page view would open on the text as it was.
+    state.reflow();
     let rows = state.visible_rows;
     super::follow_caret::follow_caret(state, rows);
     EventOutcome::Repaint

@@ -45,10 +45,6 @@ impl Block {
         }
     }
 
-    pub fn covered(&self) -> bool {
-        self.runs.iter().map(|r| r.len).sum::<usize>() == self.text.len()
-    }
-
     pub fn style_at(&self, off: usize) -> RunStyle {
         let mut at = 0usize;
         for r in &self.runs {

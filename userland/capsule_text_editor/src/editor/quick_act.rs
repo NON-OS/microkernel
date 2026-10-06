@@ -55,16 +55,10 @@ impl Editor {
         };
 
         let path = files[hit].clone();
-        let bytes = path.as_bytes();
         let d = self.doc();
         d.prompt = None;
         d.prompt_len = 0;
-        // The document's path is the commit point, exactly as the open prompt
-        // does it, so the file loads through the one path that already handles
-        // a read failing.
-        let n = bytes.len().min(d.path.len());
-        d.path[..n].copy_from_slice(&bytes[..n]);
-        d.path_len = n;
-        super::ctrl_open::ctrl_open(d)
+        self.open_path(&path);
+        EventOutcome::Repaint
     }
 }

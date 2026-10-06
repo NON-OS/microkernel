@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/*
+ * There is no list kind: a list line keeps its "- " or "1. " marker in the
+ * text (doc::list), so it is a Paragraph here, and the Markdown export writes
+ * it back as the list it was typed as.
+ */
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum BlockKind {
     Paragraph,
     Heading(u8),
-    Bullet,
-    Numbered,
     PageBreak,
 }
 

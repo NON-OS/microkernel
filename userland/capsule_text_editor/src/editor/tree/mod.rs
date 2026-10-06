@@ -21,10 +21,12 @@
 
 mod activate;
 mod new;
+mod note;
 mod parent;
 mod reload;
 mod visible;
 
+pub(in crate::editor) use note::{empty_tree_line, explorer_note};
 pub(in crate::editor) use parent::parent_of;
 
 use alloc::string::String;

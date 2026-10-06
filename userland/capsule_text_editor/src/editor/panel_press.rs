@@ -45,7 +45,10 @@ impl Editor {
         let rect = panel_rect(self.last_w, self.last_h, panel_title(panel), &labels);
         let row = navlist_hit(panel_list(rect), labels.len(), CHROME_PX, x, y);
         if let Some(text) = row.and_then(|i| SPECIALS.get(i)).map(|(_, text)| *text) {
-            let _ = self.doc().insert(text.as_bytes());
+            let doc = self.doc();
+            if !doc.insert(text.as_bytes()) {
+                doc.status = crate::editor::unsupported::NO_ROOM;
+            }
         }
         EventOutcome::Repaint
     }

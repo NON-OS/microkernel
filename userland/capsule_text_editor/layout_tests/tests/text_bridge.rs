@@ -15,20 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use capsule_text_editor_layout_tests::doc::kind::BlockKind;
-use capsule_text_editor_layout_tests::doc::text_bridge::{doc_from_text, text_from_doc};
+use capsule_text_editor_layout_tests::doc::text_bridge::doc_from_text;
+use capsule_text_editor_layout_tests::doc_covered;
 
 #[test]
 fn each_line_becomes_a_block() {
     let d = doc_from_text(b"one\ntwo\nthree");
     assert_eq!(d.blocks.len(), 3);
     assert_eq!(d.blocks[1].as_str(), "two");
-    assert!(d.covered());
+    assert!(doc_covered(&d));
 }
 
 #[test]
-fn round_trip_preserves_the_bytes() {
-    let src: &[u8] = b"one\ntwo\n\nfour";
-    assert_eq!(text_from_doc(&doc_from_text(src)), src.to_vec());
+fn blank_lines_stay_as_empty_paragraphs() {
+    let d = doc_from_text(b"one\ntwo\n\nfour");
+    let texts: Vec<&str> = d.blocks.iter().map(|b| b.as_str()).collect();
+    assert_eq!(texts, ["one", "two", "", "four"]);
 }
 
 #[test]
@@ -36,7 +38,7 @@ fn empty_input_is_one_empty_paragraph() {
     let d = doc_from_text(b"");
     assert_eq!(d.blocks.len(), 1);
     assert_eq!(d.blocks[0].as_str(), "");
-    assert!(d.covered());
+    assert!(doc_covered(&d));
 }
 
 #[test]
@@ -49,9 +51,11 @@ fn markdown_hashes_become_headings() {
 }
 
 #[test]
-fn headings_round_trip_back_to_hashes() {
-    let src: &[u8] = b"# Title\nbody";
-    assert_eq!(text_from_doc(&doc_from_text(src)), src.to_vec());
+fn list_lines_stay_paragraphs_with_their_markers() {
+    let d = doc_from_text(b"- one\n2. two");
+    assert_eq!(d.blocks[0].kind, BlockKind::Paragraph);
+    assert_eq!(d.blocks[0].as_str(), "- one");
+    assert_eq!(d.blocks[1].as_str(), "2. two");
 }
 
 #[test]

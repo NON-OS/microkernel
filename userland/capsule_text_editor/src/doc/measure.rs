@@ -20,6 +20,8 @@ pub trait Measurer {
     fn ascent(&self, style: &crate::doc::style::RunStyle) -> f32;
 }
 
+/// Half an em per byte. Host proofs measure with it (they have no font
+/// service), and TtfMeasurer falls back to it when a face is missing.
 pub struct FixedMeasurer;
 
 impl Measurer for FixedMeasurer {

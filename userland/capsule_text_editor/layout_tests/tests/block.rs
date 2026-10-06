@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use capsule_text_editor_layout_tests::covered;
 use capsule_text_editor_layout_tests::doc::block::Block;
 use capsule_text_editor_layout_tests::doc::kind::BlockKind;
 use capsule_text_editor_layout_tests::doc::style::RunStyle;
@@ -24,7 +25,7 @@ fn plain_block_is_one_run_covering_the_text() {
     assert_eq!(b.as_str(), "hello");
     assert_eq!(b.runs.len(), 1);
     assert_eq!(b.runs[0].len, 5);
-    assert!(b.covered());
+    assert!(covered(&b));
 }
 
 #[test]
@@ -34,7 +35,7 @@ fn style_at_reads_the_run_containing_the_offset() {
     bold.bold = true;
     b.runs[0].len = 3;
     b.runs.push(capsule_text_editor_layout_tests::doc::block::Run { len: 3, style: bold });
-    assert!(b.covered());
+    assert!(covered(&b));
     assert!(!b.style_at(0).bold);
     assert!(!b.style_at(2).bold);
     assert!(b.style_at(3).bold);
@@ -51,12 +52,12 @@ fn style_at_past_the_end_returns_the_last_run() {
 fn covered_is_false_when_runs_disagree_with_text() {
     let mut b = Block::plain(BlockKind::Paragraph, "hello", RunStyle::body());
     b.runs[0].len = 4;
-    assert!(!b.covered());
+    assert!(!covered(&b));
 }
 
 #[test]
 fn multibyte_text_is_measured_in_bytes() {
     let b = Block::plain(BlockKind::Paragraph, "héllo", RunStyle::body());
     assert_eq!(b.runs[0].len, 6);
-    assert!(b.covered());
+    assert!(covered(&b));
 }

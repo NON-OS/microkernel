@@ -30,8 +30,8 @@
 
 use super::sect_state::sect_on;
 
-/// Nav index of the Editing section, matching `sect::section_for`.
-const EDITING: usize = 1;
+/// Nav index of the Editing section, matching `sect::section`.
+const EDITING: usize = 0;
 
 /// Bit positions inside the Editing section, in the order its table lists them.
 const BIT_INVISIBLES: u32 = 1;

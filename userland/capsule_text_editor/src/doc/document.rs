@@ -27,10 +27,6 @@ impl Doc {
     pub fn new() -> Self {
         Self { blocks: Vec::new() }
     }
-
-    pub fn covered(&self) -> bool {
-        self.blocks.iter().all(|b| b.covered())
-    }
 }
 
 impl Default for Doc {

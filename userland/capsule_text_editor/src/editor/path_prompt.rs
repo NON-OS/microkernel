@@ -17,12 +17,12 @@
 use nonos_app_skeleton::{EventOutcome, InputEvent, KEY_BACKSPACE, KEY_ENTER, KEY_ESC, MOD_CTRL};
 
 use super::ctrl_export::ctrl_export;
-use super::ctrl_open::ctrl_open;
-use super::ctrl_save::ctrl_save;
+use super::ctrl_save::{exists, write_to};
 use super::state::{PromptOp, State};
 
 pub(super) fn start(state: &mut State, op: PromptOp) -> EventOutcome {
     state.prompt = Some(op);
+    state.overwrite_armed = false;
     // Save As starts from the current path so a small edit is quick. Open
     // starts empty, because opening a different file meant backspacing the
     // whole of the old one first.
@@ -43,19 +43,6 @@ pub(super) fn start(state: &mut State, op: PromptOp) -> EventOutcome {
     EventOutcome::Repaint
 }
 
-/// Move the caret to the line the prompt names, and scroll so it is visible.
-fn goto(state: &mut State, len: usize) -> EventOutcome {
-    let Some(n) = super::goto_line::parse_line_number(&state.prompt_path[..len]) else {
-        state.status = b"not a line number";
-        return EventOutcome::Repaint;
-    };
-    state.caret = super::goto_line::offset_of_line(&state.buf[..state.len], n);
-    let rows = state.visible_rows;
-    super::follow_caret::follow_caret(state, rows);
-    state.status = b"jumped";
-    EventOutcome::Repaint
-}
-
 pub(super) fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
     let Some(op) = state.prompt else { return EventOutcome::Idle };
     match event.code {
@@ -69,6 +56,7 @@ pub(super) fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
             if state.prompt_len > 0 {
                 state.prompt_len -= 1;
             }
+            state.overwrite_armed = false;
         }
         KEY_ENTER => {
             state.prompt = None;
@@ -81,25 +69,43 @@ pub(super) fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
                 state.prompt_len = 0;
                 return ctrl_export(state, n);
             }
-            // Goto moves the caret and touches nothing else. It must return
-            // before the commit below, which would otherwise overwrite the
-            // document's path with a line number.
+            /*
+             * Goto moves the caret and touches nothing else, so a line number
+             * can never be taken for a path.
+             */
             if op == PromptOp::Goto {
                 let n = state.prompt_len;
                 state.prompt_len = 0;
-                return goto(state, n);
+                return super::goto_prompt::goto(state, n);
             }
-            // Commit point: the typed path becomes the document's only here.
-            state.path[..state.prompt_len].copy_from_slice(&state.prompt_path[..state.prompt_len]);
-            state.path_len = state.prompt_len;
-            state.prompt_len = 0;
-            return match op {
-                PromptOp::Open => ctrl_open(state),
-                PromptOp::Save => ctrl_save(state),
-                // Quick never reaches here: the shell takes its Enter, because
-                // resolving the name needs the tree.
-                PromptOp::Export | PromptOp::Goto | PromptOp::Quick => EventOutcome::Repaint,
-            };
+            let n = state.prompt_len;
+            let target = state.prompt_path[..n].to_vec();
+            match op {
+                PromptOp::Save => {
+                    let same = target[..] == state.path[..state.path_len];
+                    /*
+                     * Replacing another file is asked once: the prompt stays
+                     * open with the name, and Enter again is the answer.
+                     */
+                    if !same && !state.overwrite_armed && exists(state, &target) {
+                        state.prompt = Some(PromptOp::Save);
+                        state.overwrite_armed = true;
+                        state.status = b"a file with that name exists: Enter again replaces it";
+                        return EventOutcome::Repaint;
+                    }
+                    state.overwrite_armed = false;
+                    state.prompt_len = 0;
+                    write_to(state, &target);
+                }
+                /*
+                 * Open and Quick never reach here: the shell finishes them,
+                 * because only it can choose which tab the file goes into.
+                 */
+                PromptOp::Open | PromptOp::Quick | PromptOp::Export | PromptOp::Goto => {
+                    state.prompt_len = 0;
+                }
+            }
+            return EventOutcome::Repaint;
         }
         code => {
             if event.flags & MOD_CTRL == 0 {
@@ -107,6 +113,7 @@ pub(super) fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
                     if ch.is_ascii_graphic() && state.prompt_len < 255 {
                         state.prompt_path[state.prompt_len] = ch as u8;
                         state.prompt_len += 1;
+                        state.overwrite_armed = false;
                     }
                 }
             }

@@ -19,7 +19,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::items::{rows, MenuCmd};
+use super::items::rows;
 use super::metrics::{panel_rect, row_h, text_top, TitleSpan, DROP_PAD_X};
 use crate::editor::layout::CHROME_PX;
 use crate::editor::theme;
@@ -35,9 +35,14 @@ pub(in crate::editor) fn paint_dropdown(fb: &mut PaintBuffer, spans: &[TitleSpan
 
     let rh = row_h();
     let ty = text_top(rh);
-    for (i, (label, cmd)) in rows(open).iter().enumerate() {
+    for (i, (label, _)) in rows(open).iter().enumerate() {
         let top = y + 1 + i as u32 * rh;
-        let fg = if *cmd == MenuCmd::Todo { th.muted } else { th.foreground };
-        let _ = fb.text_ttf((x + DROP_PAD_X) as i32, (top + ty) as i32, label, fg, CHROME_PX);
+        let _ = fb.text_ttf(
+            (x + DROP_PAD_X) as i32,
+            (top + ty) as i32,
+            label,
+            th.foreground,
+            CHROME_PX,
+        );
     }
 }

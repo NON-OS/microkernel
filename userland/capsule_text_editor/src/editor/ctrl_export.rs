@@ -19,6 +19,7 @@ use alloc::vec::Vec;
 use nonos_app_skeleton::{clients::vfs, EventOutcome};
 
 use super::resolve_owner_pid::resolve_owner_pid;
+use super::save_said::export_failed;
 use super::state::State;
 use crate::doc::export::{docx, md, pdf};
 use crate::doc::ttf_measure::TtfMeasurer;
@@ -30,11 +31,13 @@ pub(super) fn ctrl_export(state: &mut State, path_len: usize) -> EventOutcome {
         return EventOutcome::Repaint;
     };
     if !resolve_owner_pid(state) {
-        state.status = b"export failed";
+        state.status = b"export failed: file service not reachable";
         return EventOutcome::Repaint;
     }
-    let ok = vfs::write_file(state.owner_pid, &path, &bytes).is_ok();
-    state.status = if ok { b"exported" } else { b"export failed" };
+    state.status = match vfs::write_file(state.owner_pid, &path, &bytes) {
+        Ok(()) => b"exported",
+        Err(err) => export_failed(err),
+    };
     EventOutcome::Repaint
 }
 

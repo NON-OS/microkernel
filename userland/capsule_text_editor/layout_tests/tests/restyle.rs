@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use capsule_text_editor_layout_tests::covered;
 use capsule_text_editor_layout_tests::doc::block::Block;
 use capsule_text_editor_layout_tests::doc::kind::BlockKind;
 use capsule_text_editor_layout_tests::doc::restyle::set_style;
@@ -27,7 +28,7 @@ fn para() -> Block {
 fn styling_the_middle_splits_into_three_runs() {
     let mut b = para();
     set_style(&mut b, 2, 2, &|s| s.bold = true);
-    assert!(b.covered());
+    assert!(covered(&b));
     assert_eq!(b.runs.len(), 3);
     assert!(!b.style_at(1).bold);
     assert!(b.style_at(2).bold);
@@ -39,7 +40,7 @@ fn styling_the_middle_splits_into_three_runs() {
 fn styling_the_whole_block_stays_one_run() {
     let mut b = para();
     set_style(&mut b, 0, 6, &|s| s.italic = true);
-    assert!(b.covered());
+    assert!(covered(&b));
     assert_eq!(b.runs.len(), 1);
     assert!(b.style_at(0).italic);
 }
@@ -50,7 +51,7 @@ fn toggling_back_merges_the_runs_again() {
     set_style(&mut b, 2, 2, &|s| s.bold = true);
     assert_eq!(b.runs.len(), 3);
     set_style(&mut b, 2, 2, &|s| s.bold = false);
-    assert!(b.covered());
+    assert!(covered(&b));
     assert_eq!(b.runs.len(), 1);
 }
 
@@ -69,7 +70,7 @@ fn size_and_colour_are_settable() {
         s.size_px = 24.0;
         s.color = 0xFF17BED9;
     });
-    assert!(b.covered());
+    assert!(covered(&b));
     assert_eq!(b.style_at(0).size_px, 24.0);
     assert_eq!(b.style_at(0).color, 0xFF17BED9);
     assert_eq!(b.style_at(4).size_px, 16.0);

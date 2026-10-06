@@ -23,7 +23,7 @@ use nonos_app_skeleton::PaintBuffer;
 use super::layout::{ACTIVITY_W, CHROME_PX, FOOTER_H, ROW_H, SIDEBAR_W, TABBAR_H, TITLEBAR_H};
 use super::shell::pane_y;
 use super::theme;
-use super::tree::FileTree;
+use super::tree::{empty_tree_line, explorer_note, FileTree};
 
 pub(super) fn paint_sidebar(
     fb: &mut PaintBuffer,
@@ -35,9 +35,16 @@ pub(super) fn paint_sidebar(
     let th = theme::active();
     fb.fill_rect(ACTIVITY_W, 0, SIDEBAR_W, height, th.sidebar_bg);
     fb.fill_rect(ACTIVITY_W, TITLEBAR_H, SIDEBAR_W, TABBAR_H, th.header_bg);
-    let _ =
+    let after =
         fb.text_ttf((ACTIVITY_W + 14) as i32, (TITLEBAR_H + 10) as i32, "EXPLORER", th.muted, 11.0);
     fb.fill_rect(ACTIVITY_W + SIDEBAR_W - 1, 0, 1, height, th.line);
+    // A failed create, rename or delete leaves the rows as they were, so the
+    // reason goes in the header band, where it shows over a full tree too.
+    if let (false, Some(note)) = (tree.visible.is_empty(), explorer_note(tree.status)) {
+        let room = (ACTIVITY_W + SIDEBAR_W).saturating_sub(after.max(0) as u32 + 22);
+        let cut = truncate(note, room);
+        let _ = fb.text_ttf(after + 10, (TITLEBAR_H + 10) as i32, cut, th.accent, 11.0);
+    }
 
     // While the name entry is open its bar takes the first row slot.
     let top = pane_y(ribbon) + if entry_open { ROW_H } else { 0 };
@@ -45,7 +52,7 @@ pub(super) fn paint_sidebar(
     let rows = avail / ROW_H;
 
     if tree.visible.is_empty() {
-        let msg = if tree.status.is_empty() { "(empty)" } else { tree.status };
+        let msg = empty_tree_line(tree.status);
         let _ = fb.text_ttf((ACTIVITY_W + 14) as i32, (top + 6) as i32, msg, th.muted, CHROME_PX);
         return;
     }
@@ -64,8 +71,7 @@ pub(super) fn paint_sidebar(
         let x = ACTIVITY_W + indent;
         if node.is_dir {
             let expanded = tree.expanded.contains(&node.path);
-            let mark = if expanded { "\u{25BE}" } else { "\u{25B8}" };
-            let _ = fb.text_ttf(x as i32, (y + 5) as i32, mark, th.muted, 12.0);
+            super::disclosure::disclosure(fb, x + 4, y + ROW_H / 2, expanded, th.muted);
         }
         let tx = x + 15;
         let color = if node.is_dir { th.folder } else { th.foreground };

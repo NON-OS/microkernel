@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Input routing for the Home screen. The nav rows with a store behind them,
-//! the document rows and the "View all" link are wired; the search field, the
-//! template rows and the storeless nav rows are drawn sunk and stay idle.
+//! Input routing for the Home screen: the nav rows, the document rows and the
+//! "View all" link.
 
 use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
 
