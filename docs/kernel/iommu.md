@@ -60,3 +60,14 @@ A DMA [grant](../overview/glossary.md#grant) in a confined domain is mapped with
 Every call that claims to confine a device asks first whether a unit is translating. `require` refuses with `NotInitialized` before bring-up has succeeded, so the kernel never writes entries into tables no hardware walks, and never hands a device an I/O virtual address it would take as physical (`src/memory/iommu/backend_x86_64/enforced.rs:17-36`). On an AMD-Vi machine the calls are refused with `AmdViNotDriven`, and with no IOMMU with `NoIommu`, each with a serial line from `amd_vi` or `absent` (`src/memory/iommu/backend_x86_64/refuse.rs:22-38`).
 
 The device then reaches all of memory, and the kernel counts it instead of hiding it. Each DMA grant made without a confining domain adds one to the count through `note_unconfined`, and its release takes one off (`src/memory/iommu/unconfined.rs:35-51`). The kernel's own virtio-rng entropy driver counts its buffers the same way, with `note_unconfined` (`src/drivers/virtio_rng/device/core.rs:44-45`).
+
+## The posture line
+
+`report_posture` prints the state once DMA protection has been set up, right after paging, and prints the first line again whenever the count changes (`src/memory/iommu/posture.rs:38-79`):
+
+```
+[IOMMU] <none|intel-vt-d|amd-vi> present, enforcing=<0|1>, unconfined grants=<n>
+[IOMMU] capabilities aw=<bits> ir=<0|1> snoop=<0|1> pages=<mask> domains=<n>
+```
+
+`enforcing=1` together with `unconfined grants=0` means that every DMA buffer the broker has granted is confined, because `unconfined_grants` counts every grant made without a domain (`src/memory/iommu/posture.rs:17-28`). It does not mean every device is confined: a device found at boot that no capsule has claimed stays in the identity domain and can still reach all memory. On a machine with no remapping hardware the boot prints `[IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted` and selects `IommuVendor::Absent` (`src/memory/iommu/backend_x86_64/select.rs:62-65`).
