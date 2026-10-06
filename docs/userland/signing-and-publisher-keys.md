@@ -22,3 +22,29 @@ On this tree it prints 97 names on one line, from `proof_io` and `std_proof` to 
 ## capsule-sign
 
 The host tool is the binary `capsule-sign`, built in `nonos-sign` around the `nonos_capsule_sign` library (`nonos-sign/Cargo.toml:8-14`). Its subcommands are `keygen`, `derive-id`, `mk-trust-policy`, `sign-id-cert`, `sign-manifest`, `sign-release`, `verify-release`, `verify-policy`, `verify-cert` and `verify-manifest` (`nonos-sign/src/cli/dispatch.rs:29-45`, `dispatch`). The `nonos-sign` host tests, 21 of them, passed in the flake checks on this commit.
+
+## How a capsule is signed
+
+```mermaid
+sequenceDiagram
+  participant M as make
+  participant S as capsule-sign
+  participant E as nonos-stark-enroll
+  M->>S: derive-id
+  M->>S: sign-id-cert
+  M->>S: sign-manifest
+  M->>S: verify-manifest
+  M->>E: capsules
+```
+
+The template in `nonos-mk/capsule.mk` drives `capsule-sign` for each capsule, and the seal, `tools/nonos_seal/capsules.py`, runs the same steps with the same arguments read from `tools/nix/capsules.json` (`tools/nonos_seal/capsules.py:77-96`, `sign`).
+
+1. The publisher's NONOS ID is a BLAKE3 hash over the domain string `nonos.id.v1` and the length-prefixed handle, domain and recovery string, so it survives a certificate renewal (`src/security/nonos_id_cert/derive.rs:22-39`, `derive_nonos_id`). The template recomputes it on every signing with `derive-id` (`nonos-mk/capsule.mk:213-218`, `nonos_id`).
+2. Before signing, `scripts/check_device_secret_cap.py` refuses DeviceSecret in any capsule but `prove` (`nonos-mk/capsule.mk:255-256`, `check_device_secret_cap`).
+3. `sign-id-cert` writes the certificate: serial, NONOS ID, namespace glob, capability ceiling, trust anchor epoch, validity window and both publisher public keys, signed with both trust anchor seeds (`nonos-mk/capsule.mk:257-271`, `CAPSULE_SIGN_BIN`). The seal issues every certificate under epoch 1, valid from 2026-01-01 to 2030-01-01 in Unix milliseconds (`tools/nonos_seal/capsules.py:32-34`, `VALID_FROM_MS`).
+4. `sign-manifest` hashes the ELF and signs the manifest with both publisher seeds, then `verify-manifest` checks the result against the trust anchor policy (`nonos-mk/capsule.mk:279-297`, `CAPSULE_SIGN_BIN`).
+5. `nonos-stark-enroll capsules` takes every capsule as `CAPS:elf:trailer` and writes the [policy root](../overview/glossary.md#policy-root) and one [attestation trailer](../overview/glossary.md#attestation-trailer) per capsule in one run (`mk/20-build.mk:600-605`, `NONOS_STARK_ENROLL`).
+
+The seal does not repeat a long enrollment it can reuse. When the root and trailers in the tree still pass the [spawn gate](../overview/glossary.md#spawn-gate)'s check for every capsule built, it keeps them; otherwise it enrolls the whole set again (`tools/nonos_seal/capsules.py:104-134`, `enrolled`).
+
+A build with `NONOS_TRUST_REUSE=1` signs nothing at all. It requires the committed certificate and manifest, verifies them under the baked policy and checks that the freshly built ELF measures to the enrolled payload hash; a capsule that drifts fails by name (`nonos-mk/capsule.mk:220-248`, `NONOS_TRUST_REUSE`).
