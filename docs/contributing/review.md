@@ -51,3 +51,12 @@ Anything exploitable goes through a private security advisory, never a public is
 ## Conduct
 
 The Code of Conduct applies in the repositories, issues, pull requests and the project chat, and to maintainers at least as much as to anyone else. A blunt technical disagreement is welcome; a personal attack is not. Reports go to the address the Code of Conduct gives.
+
+## See also
+
+- [Contributing](README.md)
+- [Tests and proofs](tests-and-proofs.md)
+- [Commits](commits.md)
+- [CI](../build/ci.md)
+- [Reporting a vulnerability](../security/reporting-a-vulnerability.md)
+- [CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md)
