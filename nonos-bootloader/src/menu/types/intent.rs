@@ -14,10 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod action;
-mod intent;
-mod mode;
+use super::action::MenuAction;
 
-pub use action::MenuAction;
-pub use intent::BootIntent;
-pub use mode::SecurityMode;
+/*
+ * What the person asked the verified kernel to do once it runs. It is kept
+ * apart from SecurityMode on purpose: installing changes what the kernel
+ * starts first, never how the kernel is checked, so an install boot goes
+ * through exactly the signature, attestation and rollback checks of the
+ * security mode it was resolved to.
+ */
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum BootIntent {
+    #[default]
+    Run,
+    Install,
+}
+
+impl BootIntent {
+    pub const fn of(action: MenuAction) -> Self {
+        match action {
+            MenuAction::Install => Self::Install,
+            _ => Self::Run,
+        }
+    }
+}
