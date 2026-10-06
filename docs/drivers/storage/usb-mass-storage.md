@@ -64,3 +64,17 @@ The block surface answers the kernel's client alone, which arrives as sender pid
 When a stick carries NONOS, the block layer asks it before any internal disk, so a live boot keeps its state on the stick; see [Storage drivers](README.md#how-a-disk-becomes-the-nonos-disk).
 
 The driver has no Debug capability, so bulk payloads stay off the console (`src/userspace/capsule_driver_usb_msc/spawn.rs:51-53`, `requested_caps`). The kernel says where the driver's search stands in one `[USB-MSC]` line, read from the driver's state reply (`src/hardware/usb_msc_capsule/report.rs:18-38`, `report_line`).
+
+## How it was verified
+
+- `userland/usb_msc_proofs` is the [proof crate](../../overview/glossary.md#proof-crate). It runs the descriptor walk, the BOT and SCSI codecs, the sector spans and the transport against a scripted device behind `driver.xhci0`. Its flake check fails on this commit: clippy, run with warnings as errors, rejects `State::new` without a `Default` (`userland/capsule_driver_usb_msc/src/state/types.rs:38`, `State::new`). The check recorded no test count.
+- The boot matrix, `make nonos-mk-boot-matrix`, has two cells with the NONOS store on a USB stick on a `qemu-xhci` controller, one of 512-byte and one of 4096-byte blocks (`scripts/bootmatrix/cells.py:59-60`, `usb_block`; `scripts/bootmatrix/qemu.py:50-57`, `usb_stick`). No run of the matrix is reported for this commit.
+- `tools/nonos_qemu` plugs the sealed stick into the xHCI controller as a `usb-storage` device (`tools/nonos_qemu/machine.py:80-88`, `usb_stick`). From a checkout with a sealed image:
+
+```
+nix run .#qemu -- --stick --usb
+```
+
+Not tested in this release.
+
+USB sticks and USB disks have not been tested on hardware in this release.
