@@ -69,3 +69,21 @@ make nonos-mk-run-smp-serial-log
 Not tested in this release.
 
 The first, `nonos-mk-run-serial-log`, boots the desktop image on one CPU and writes the console to `QEMU_SERIAL_LOG`, `target/qemu-serial.log` (`mk/40-run.mk:205-215`, `mk/10-qemu.mk:40`). The second, `nonos-mk-run-smp-serial-log`, boots on `QEMU_SMP`, 4, CPUs and writes `QEMU_SMP_SERIAL_LOG`, `target/qemu-smp-serial.log` (`mk/40-run.mk:419-429`, `mk/10-qemu.mk:32-41`). See [make targets](../build/make-targets.md).
+
+## Tags
+
+Each kernel line starts with a tag in square brackets. These are the ones a reader meets most:
+
+| Tag | Written by | Meaning |
+|---|---|---|
+| `[NONOS]`, `[UKERNEL]`, `[INIT]` | `kernel_entry` and the `boot_log` helpers | boot milestones |
+| `[FATAL]` | `stop` (`src/boot/stop.rs:28-35`) | a boot step failed and the boot stopped |
+| `[TRAP xx]`, `[PANIC xx]` | `dump_trap`, `emit_fatal_notice` | a CPU exception; `xx` is its short name, such as `PF`. `[TRAP xx]` is printed for `PF`, `GP` and `UD` only |
+| `[SMP]`, `[SMP-PROOF]` | CPU bring-up | CPUs found, started and online |
+| `[CPU-PROT]` | `report` | SMEP, SMAP, UMIP, NX and write protect as read back |
+| `[MEM]`, `[VM-INIT]`, `[KSEC]`, `[STACK-GUARD]` | memory init | the physical span, page tables, W^X and stack guards |
+| `[TIMER]`, `[APIC]`, `[BOOT-ENTROPY]` | clock and tick setup | the counter rate, the tick, the boot nonce |
+| `[HEAP-GUARD]`, `[OOM]` | the kernel heap | a corrupted block, or an exhausted heap |
+| `[EXIT]` | `note` (`src/process/exit/end_note.rs:23-37`) | a driver capsule ended by itself with a nonzero status |
+
+`[TRAP xx]` and `[PANIC xx]` are explained on [panic and boot stop](panic-and-boot-stop.md); memory lines on [memory and paging](memory-and-paging.md); CPU lines on [scheduler and SMP](scheduler-and-smp.md).
