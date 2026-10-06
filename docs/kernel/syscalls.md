@@ -89,3 +89,12 @@ Then run `scripts/check_syscall_abi.py` and `scripts/check_syscall_caps.py`; [Co
 ## Other architectures
 
 The aarch64 `svc` handler and the riscv64 `syscall` handler decode the number the same way and call the same `dispatch` (`src/syscall/contract/mod.rs:17-24`). Both architectures build only with the `nonos-arch-preview` feature; without it `compile_error` stops the build (`src/lib.rs:28-35`). See [aarch64](../architectures/aarch64.md) and [riscv64](../architectures/riscv64.md).
+
+## See also
+
+- [Syscall ABI](../abi/syscalls.md): every call with its arguments and gate.
+- [Capabilities](capabilities.md): the check in front of every handler.
+- [IPC](ipc.md): the eight IPC calls.
+- [Hardware broker](hardware-broker.md): the device calls.
+- [Linux personality](../userland/linux-personality.md): what a Linux program's system calls become.
+- [x86_64](../architectures/x86_64.md): the release architecture.
