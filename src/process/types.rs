@@ -84,7 +84,7 @@ impl Process {
 
     pub fn is_authorized_executable_region(&self, address: u64) -> bool {
         self.pcb.as_ref().map_or(false, |pcb| {
-            let mem = pcb.memory.lock();
+            let mem = pcb.memory_state();
             if address >= mem.code_start.as_u64() && address < mem.code_end.as_u64() {
                 return true;
             }
@@ -110,7 +110,7 @@ impl Process {
 
     pub fn resident_memory_kb(&self) -> u64 {
         self.pcb.as_ref().map_or(0, |pcb| {
-            let mem = pcb.memory.lock();
+            let mem = pcb.memory_state();
             mem.resident_pages.load(core::sync::atomic::Ordering::Relaxed) * 4
         })
     }
