@@ -16,21 +16,18 @@
 
 //! Reprotecting a span, a peer call at a time.
 
-use nonos_libc::peer::{mk_peer_protect, PEER_PROT_EXEC, PEER_PROT_WRITE};
+use nonos_libc::peer::mk_peer_protect;
 
-use crate::linux::guest::{Guest, MAX_SPAN};
+use crate::linux::guest::{peer_prot, Guest, MAX_SPAN};
 
-use super::prot::{PROT_EXEC, PROT_WRITE};
+use super::prot::{PROT_ANY, PROT_EXEC, PROT_WRITE};
 
-/// Set the protection of a span already mapped in the guest.
-pub fn protect_span(guest: &Guest, addr: u64, span: u64, prot: u64) -> i64 {
-    let mut bits = 0;
-    if prot & PROT_WRITE != 0 {
-        bits |= PEER_PROT_WRITE;
-    }
-    if prot & PROT_EXEC != 0 {
-        bits |= PEER_PROT_EXEC;
-    }
+/// Set the protection of a span already mapped in the guest, and record it
+/// on the spans it covers.
+pub fn protect_span(guest: &mut Guest, addr: u64, span: u64, prot: u64) -> i64 {
+    let (write, exec, access) =
+        (prot & PROT_WRITE != 0, prot & PROT_EXEC != 0, prot & PROT_ANY != 0);
+    let bits = peer_prot(write, exec, access);
     let mut done = 0;
     while done < span {
         let take = (span - done).min(MAX_SPAN);
@@ -40,5 +37,6 @@ pub fn protect_span(guest: &Guest, addr: u64, span: u64, prot: u64) -> i64 {
         }
         done += take;
     }
+    guest.set_prot(addr, span, write, exec, access);
     0
 }

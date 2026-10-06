@@ -21,24 +21,30 @@ use nonos_libc::mk_foreign_start;
 use super::guest::Guest;
 use super::guest::{STACK_SIZE, STACK_TOP};
 use super::image;
+use super::launch::Launch;
 use super::origin::Origin;
-use super::start::say;
+use super::say::say;
 
-pub(super) fn start(
-    guest: &mut Guest,
-    path: &[u8],
-    bytes: &[u8],
-    origin: Origin,
-) -> Result<(), &'static [u8]> {
-    if let Err(why) = prove(path, bytes, origin) {
-        say(b"[LINUX] refused: ");
-        say(why.as_bytes());
-        say(b"\n");
+/*
+ * The launch is taken, not borrowed: once the program is mapped its bytes are
+ * never read again, and kept they would hold up to 16 MiB of the heap that
+ * every later execve reads its own program into. They go when this returns.
+ */
+pub(super) fn start(guest: &mut Guest, launch: Launch) -> Result<(), &'static [u8]> {
+    let (path, bytes) = (&launch.path[..], &launch.bytes[..]);
+    if let Err(why) = prove(path, bytes, &launch.origin) {
+        /* Named, and why, where the person who typed it reads it. */
+        let line = alloc::format!(
+            "linux: {} does not run: its proof was refused ({why})\n",
+            alloc::string::String::from_utf8_lossy(path)
+        );
+        say(line.as_bytes());
         return Err(&b"[LINUX] unproven program\n"[..]);
     }
     let (image, entry, interp_base) = image::program(guest, bytes).map_err(|e| e.why())?;
     guest.map(STACK_TOP - STACK_SIZE, STACK_SIZE, true, false);
-    let argv = alloc::vec![path.to_vec()];
+    let mut argv = alloc::vec![launch.argv0.clone().unwrap_or_else(|| path.to_vec())];
+    argv.extend(launch.args.iter().cloned());
     let rsp = image::build(guest, STACK_TOP, &image, interp_base, &argv, &super::env::default())
         .ok_or(&b"[LINUX] stack refused\n"[..])?;
     match mk_foreign_start(guest.pid, entry, rsp) {
@@ -48,7 +54,7 @@ pub(super) fn start(
 }
 
 /// A program out of the store proves itself against the enrolled set.
-fn prove(path: &[u8], bytes: &[u8], origin: Origin) -> Result<(), &'static str> {
+fn prove(path: &[u8], bytes: &[u8], origin: &Origin) -> Result<(), &'static str> {
     match origin {
         Origin::BuiltIn => Ok(()),
         Origin::Store => super::attest::verify(path, bytes).map(|_| ()),

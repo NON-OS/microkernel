@@ -18,17 +18,41 @@
 
 use nonos_libc::peer::mk_peer_unmap;
 
+use crate::linux::abi::errno;
+
 use super::handle::Guest;
-use super::layout::STACK_TOP;
-use super::mem::{span_within, MAX_SPAN};
+use super::layout::USER_MAX;
+use super::mem::{maps_full, span_within, MAX_SPAN};
 use super::region_cut::cut;
 
 impl Guest {
-    /// Return `[addr, addr + len)` to the kernel.
+    /// Return `[addr, addr + len)` to the kernel. `-ENOMEM` when cutting it
+    /// out would leave more spans than vm.max_map_count, as Linux refuses it.
     pub fn unmap(&mut self, addr: u64, len: u64) -> i64 {
-        let Some((start, span)) = span_within(addr, len, STACK_TOP) else {
+        let Some((start, span)) = span_within(addr, len, USER_MAX) else {
             return -1;
         };
+        /*
+         * A hole in the middle of a mapping leaves two. Unrefused, a guest
+         * could split a reservation, which costs it no frame, into as many
+         * entries of this capsule's memory as it liked.
+         */
+        let kept = cut(&self.regions, start, span);
+        if maps_full(self.regions.len(), kept.len()) {
+            return -errno::ENOMEM;
+        }
+        let rc = self.drop_frames(start, span);
+        if rc < 0 {
+            return rc;
+        }
+        self.regions = kept;
+        0
+    }
+
+    /// Take the frames under `[start, start + span)`, a page-aligned span,
+    /// back from the guest and leave its region list alone: a page not there
+    /// is skipped, and one touched again reads zero.
+    pub fn drop_frames(&self, start: u64, span: u64) -> i64 {
         let mut done = 0;
         while done < span {
             let take = (span - done).min(MAX_SPAN);
@@ -38,7 +62,6 @@ impl Guest {
             }
             done += take;
         }
-        self.regions = cut(&self.regions, start, span);
         0
     }
 }

@@ -17,6 +17,8 @@
 
 //! Draining the client's requests and answering what is understood.
 
+use core::mem;
+
 use crate::linux::guest::Guest;
 
 use super::object::Object;
@@ -24,25 +26,46 @@ use super::ops::req;
 use super::route::route;
 use super::unserved::unserved;
 use super::args::Args;
-use super::wire::next;
+use super::wire::{malformed, walk, Msg};
 
+/// Serve what has arrived, while the client is reading what it is told: a
+/// client that is not has its requests wait (`unix::Conn::backlogged`), and
+/// its reads come back here to go on.
+///
+/// The requests are walked where they lie and the ones served cut from the
+/// queue once (`wire::walk`). No handler writes to the queue, so it is held
+/// apart from the guest while they run.
 pub fn serve(guest: &mut Guest) {
-    while one(guest).is_some() {}
+    let mut queue = mem::take(&mut guest.display.to_server);
+    let served = match guest.display.backlogged() {
+        true => 0,
+        false => walk(&queue, |msg| {
+            one(guest, msg);
+            !guest.display.backlogged()
+        }),
+    };
+    queue.drain(..served);
+    guest.display.to_server = queue;
+    /*
+     * A header that claims less than a header can never complete, so the
+     * bytes behind it would wait, and pile up behind every later write, for
+     * good. A Wayland server ends such a client; here what it sent is
+     * dropped, and said.
+     */
+    if malformed(&guest.display.to_server) {
+        guest.display.to_server.clear();
+        crate::linux::say::say(b"[WAYLAND] malformed request header: client stream dropped\n");
+    }
 }
 
-/// One message. It leaves the queue before it is served, so a handler
-/// that refuses cannot leave it there to be served again forever.
-fn one(guest: &mut Guest) -> Option<()> {
-    let (object, opcode, id, body, size) = {
-        let (msg, size) = next(&guest.display.to_server)?;
-        (guest.objects.get(msg.object), msg.opcode, msg.object, msg.args.to_vec(), size)
-    };
-    guest.display.to_server.drain(..size);
-    let mut args = Args::new(&body);
-    if !route(guest, object, id, opcode, &mut args) {
-        unserved(object, opcode);
+/// One message, already walked past, so a handler that refuses it cannot
+/// have it served again.
+fn one(guest: &mut Guest, msg: Msg<'_>) {
+    let object = guest.objects.get(msg.object);
+    let mut args = Args::new(msg.args);
+    if !route(guest, object, msg.object, msg.opcode, &mut args) {
+        unserved(object, msg.opcode);
     }
-    Some(())
 }
 
 /// Requests that only remove something.

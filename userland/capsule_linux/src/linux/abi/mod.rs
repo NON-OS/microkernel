@@ -16,10 +16,16 @@
 
 //! The Linux contract a compiled binary was built against: its numbers, its
 //! errnos, and the names it knows them by.
-#![allow(dead_code)]
 
 pub mod errno;
+pub mod errno_sock;
 pub mod name;
 pub mod nr;
-pub mod nr_path;
 pub mod nr_high;
+pub mod nr_path;
+pub mod nr_mem;
+pub mod errno_io;
+pub mod nr_file;
+pub mod nr_sig;
+pub mod nr_sched;
+pub mod nr_sock;

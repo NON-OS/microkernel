@@ -16,6 +16,7 @@
 
 //! Which image actually runs, once `#!` has had its say.
 
+use crate::linux::guest::Links;
 use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
@@ -35,11 +36,21 @@ pub struct Program {
     pub argv: Vec<Vec<u8>>,
 }
 
-pub fn resolve(cwd: &[u8], name: &[u8], argv: &[Vec<u8>]) -> Result<Program, u64> {
-    let mut path = visible(cwd, name);
+/// A path reached through a link is loaded, and proved, as the file it names.
+pub fn resolve(links: &Links, cwd: &[u8], name: &[u8], argv: &[Vec<u8>]) -> Result<Program, u64> {
+    let mut path = links.follow(visible(cwd, name), true);
     let mut args = argv.to_vec();
     for _ in 0..MAX_DEPTH {
         let Ok(bytes) = store_read(&key(&path), MAX_IMAGE) else {
+            /* Not in the store: one of the built-in BusyBox's programs runs
+             * as itself, which is how a shell with no Linux tree behind it
+             * still runs `ls`. The built-in is part of this capsule's own
+             * image, measured by its manifest, and argv[0] says which
+             * program to be. */
+            if crate::linux::built_in::serves(&path).is_some() {
+                let bytes = crate::linux::built_in::built_in().bytes;
+                return Ok(Program { path: b"/bin/busybox".to_vec(), bytes, argv: args });
+            }
             return Err(errno::fail(errno::ENOENT));
         };
         if crate::linux::attest::verify(&path, &bytes).is_err() {
@@ -49,7 +60,7 @@ pub fn resolve(cwd: &[u8], name: &[u8], argv: &[Vec<u8>]) -> Result<Program, u64
             return Ok(Program { path, bytes, argv: args });
         };
         args = rewrite(&interp, &path, &args);
-        path = visible(cwd, &interp.path);
+        path = links.follow(visible(cwd, &interp.path), true);
     }
     Err(errno::fail(errno::ELOOP))
 }

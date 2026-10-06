@@ -41,6 +41,8 @@ pub struct Surface {
     pub pending: Option<u32>,
     /// The xdg_surface wrapping it, once the client asks for one.
     pub xdg: Option<u32>,
+    /// The xdg_toplevel made from that xdg_surface, once there is one.
+    pub toplevel: Option<u32>,
     /// Frame callbacks owed, answered after the next present.
     pub frames: Vec<u32>,
     /// Set once a configure has been sent and acked.

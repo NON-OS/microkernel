@@ -14,33 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! `uname`. Six fixed fields of sixty-five bytes, in Linux's order.
-//!
-//! `sysname` says Linux because it names the ABI this capsule implements,
-//! which is the question the caller is asking: a program reads it to
-//! decide which syscalls exist. What machine it is really running on is
-//! in the other fields, and they say NONOS rather than pretending.
+/*
+ * `uname`. Six fixed fields of sixty-five bytes, in Linux's order.
+ *
+ * `sysname` says Linux because it names the ABI this capsule implements,
+ * which is the question the caller is asking: a program reads it to
+ * decide which syscalls exist. What machine it is really running on is
+ * in the other fields, and they say NONOS rather than pretending.
+ */
 
 use crate::linux::abi::errno;
+use crate::linux::file::declared;
 use crate::linux::guest::Guest;
 
 const FIELD: usize = 65;
 const UTSNAME_LEN: usize = FIELD * 6;
 
-/// The oldest release that has every call this capsule serves. A program
-/// gating a feature on the version gets an answer that matches what it
-/// will actually find here.
-const RELEASE: &[u8] = b"6.1.0";
-
+/*
+ * The oldest release that has every call this capsule serves. A program
+ * gating a feature on the version gets an answer that matches what it
+ * will actually find here.
+ */
 pub fn uname(guest: &mut Guest, out: u64) -> u64 {
     let mut buf = [0u8; UTSNAME_LEN];
-    put(&mut buf, 0, b"Linux");
-    put(&mut buf, 1, b"nonos");
-    put(&mut buf, 2, RELEASE);
-    put(&mut buf, 3, b"NONOS Linux personality");
-    put(&mut buf, 4, b"x86_64");
-    put(&mut buf, 5, b"nonos");
+    put(&mut buf, 0, declared::OSTYPE);
+    put(&mut buf, 1, declared::HOSTNAME);
+    put(&mut buf, 2, declared::RELEASE);
+    put(&mut buf, 3, declared::VERSION);
+    put(&mut buf, 4, declared::MACHINE);
+    put(&mut buf, 5, declared::DOMAIN);
     if guest.write(out, &buf) < UTSNAME_LEN as i64 {
         return errno::fail(errno::EFAULT);
     }

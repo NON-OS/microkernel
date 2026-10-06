@@ -14,48 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Registering the NONOS surface the pixels land on.
 
-use nonos_app_skeleton::clients::compositor::scene_submit;
-use nonos_app_skeleton::discover::lookup_port;
-use nonos_libc::{mk_surface_register, SurfaceDescriptor};
+use nonos_libc::{mk_surface_register, mk_surface_share, SurfaceDescriptor};
 
-use super::scene::Scene;
+use super::reshape::Shape;
+use super::scene_pixels::Pixels;
 
 /// SURFACE_FORMAT_ARGB8888 in the surface registry, which is one there
 /// and zero in wl_shm. The two numbers are unrelated and both are right.
 const FORMAT_ARGB8888: u32 = 1;
 
-/// Registered once, on the first commit: its size is the first buffer's,
-/// and a client does not say before then.
-pub fn surface(scene: &mut Scene, width: u32, height: u32, stride: u32) -> Option<u64> {
-    if let Some(handle) = scene.out {
-        return Some(handle);
-    }
+/// A surface over `pixels` at `shape`, shared so the compositor can map it.
+/// Registered for the first buffer, and again for each buffer of another
+/// shape (reshape.rs), since a registered surface keeps its size.
+pub fn register(pixels: &Pixels, (width, height, stride): Shape) -> Option<u64> {
+    let (base_va, byte_len) = pixels.span();
     let desc = SurfaceDescriptor {
         width,
         height,
         stride,
         format: FORMAT_ARGB8888,
-        byte_len: scene.pixels.len() as u64,
-        base_va: scene.pixels.as_ptr() as u64,
+        byte_len,
+        base_va,
         flags: 0,
     };
-    let handle = mk_surface_register(&desc);
-    if handle < 0 {
+    let sid = mk_surface_register(&desc);
+    let handle = if sid < 0 { sid } else { mk_surface_share(sid as u64) };
+    if handle <= 0 {
+        say(alloc::format!("[WAYLAND] surface {width}x{height} refused, rc {handle}\n"));
         return None;
     }
-    scene.out = Some(handle as u64);
-    place(handle as u64, width, height);
     Some(handle as u64)
 }
 
-/// Registering a surface makes it exist; the compositor still has to be
-/// told where it goes, or it is never drawn.
-fn place(handle: u64, width: u32, height: u32) {
-    let Some(port) = lookup_port(b"compositor") else {
-        return;
-    };
-    let _ = scene_submit(port, 1, handle, 0, 0, width, height, 0);
+pub(super) fn say(line: alloc::string::String) {
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
 }

@@ -15,40 +15,63 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! `epoll_wait`: which of the watched descriptors are ready now.
+//!
+//! A level-triggered entry is reported for as long as its readiness holds.
+//! An EPOLLET entry is reported when readiness rises: bits already seen at
+//! the last look are left out until they fall, or until a call on the
+//! descriptor answers EAGAIN (`epoll_arm`). An EPOLLONESHOT entry reports
+//! once and then nothing until it is modified.
 
 use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Guest, Kind};
+use crate::linux::guest::{Guest, Kind, EPOLLONESHOT};
 use crate::linux::net::ready;
 
 use super::epoll::EVENT_LEN;
+use super::epoll_rules::{live, seen};
 
+/// The most events one call can ask for, as Linux bounds it.
+const MOST: u64 = (i32::MAX as u64) / EVENT_LEN as u64;
+
+/// Report what is ready now, never waiting; `waits` does the waiting.
 pub fn epoll_wait(guest: &mut Guest, ep: u64, out: u64, max: u64) -> u64 {
-    let Some(list) = guest.fds.get(ep as usize).filter(|f| f.kind == Kind::Epoll) else {
+    // maxevents is an int, and one of zero or less is refused.
+    if max == 0 || max > MOST {
+        return errno::fail(errno::EINVAL);
+    }
+    /* A closed descriptor is EBADF; an open one that is not an epoll, EINVAL. */
+    let Some(list) = guest.fds.get(ep as usize).filter(|f| f.is_open()) else {
         return errno::fail(errno::EBADF);
     };
-    let watch = list.watch.clone();
+    if list.kind != Kind::Epoll {
+        return errno::fail(errno::EINVAL);
+    }
+    let mut watch = list.watch.clone();
     let mut blob: Vec<u8> = Vec::new();
     let mut hits = 0u64;
-    for (fd, wanted, data) in watch {
+    for w in watch.iter_mut().filter(|w| w.armed) {
         if hits >= max {
             break;
         }
-        let live = u32::from(ready(guest, fd)) & wanted;
+        // Hang-up and error are reported whether they were asked for or not.
+        let level = u32::from(ready(guest, w.fd));
+        let live = live(level, w.events, w.fired);
+        w.fired = seen(level, w.events);
         if live == 0 {
             continue;
         }
+        w.armed = w.events & EPOLLONESHOT == 0;
         blob.extend_from_slice(&live.to_le_bytes());
-        blob.extend_from_slice(&data.to_le_bytes());
+        blob.extend_from_slice(&w.data.to_le_bytes());
         hits += 1;
     }
-    if blob.is_empty() {
-        return errno::ok(0);
-    }
-    if guest.write(out, &blob) < blob.len() as i64 {
+    if !blob.is_empty() && guest.write(out, &blob) < blob.len() as i64 {
         return errno::fail(errno::EFAULT);
     }
-    let _ = EVENT_LEN;
+    // What was reported, and what was seen, is kept only once it is delivered.
+    if let Some(list) = guest.fds.get_mut(ep as usize) {
+        list.watch = watch;
+    }
     errno::ok(hits)
 }

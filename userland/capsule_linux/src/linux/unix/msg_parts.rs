@@ -23,17 +23,24 @@ use crate::linux::guest::Guest;
 
 use super::msg::u64le;
 
-/// The iovecs, joined. Each is a pointer and a length, sixteen bytes.
+/// The most one message puts on the connection, as a stream socket's send
+/// buffer takes no more at once; the rest is a short write the client sends
+/// again.
+const MOST: usize = 1 << 20;
+
+/// The iovecs, joined, up to MOST. Each is a pointer and a length, sixteen
+/// bytes.
 pub(super) fn gather(guest: &Guest, iov: u64, count: u64) -> Option<Vec<u8>> {
     let mut out = Vec::new();
     for i in 0..count.min(64) {
-        let entry = guest.read(iov + i * 16, 16)?;
+        let entry = guest.read(iov.checked_add(i * 16)?, 16)?;
         let base = u64le(&entry, 0);
-        let len = u64le(&entry, 8);
+        let room = MOST - out.len();
+        let len = u64le(&entry, 8).min(room as u64);
         if len == 0 {
             continue;
         }
-        out.extend_from_slice(&guest.read(base, len.min(1 << 20) as usize)?);
+        out.extend_from_slice(&guest.read(base, len as usize)?);
     }
     Some(out)
 }

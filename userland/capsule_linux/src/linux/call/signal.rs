@@ -14,55 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! Signal dispositions, recorded and never delivered.
-//!
-//! Delivery means pushing a frame onto a guest thread's stack and
-//! redirecting it, which needs the guest's register state, and the trap
-//! mechanism hands out a frame but no way to rewrite one. So the
-//! handlers a program installs are remembered and nothing is ever
-//! raised. That is a real limit and it is recorded here rather than
-//! hidden behind a success: a program whose correctness depends on
-//! SIGALRM firing will hang, not misbehave quietly.
-
+//! Signal dispositions and masks, recorded here and acted on in
+//! `serve::deliver`: a handler is kept with its flags, restorer and mask, and
+//! each thread has the mask of signals it holds back (signal_mask). The
+//! struct and the numbers it may name are in `signal_act`, which the host
+//! proofs hold.
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-/// Linux refuses to let these two be caught, and so does this.
-const SIGKILL: u64 = 9;
-const SIGSTOP: u64 = 19;
+pub use super::signal_act::SIGSET_LEN;
+use super::signal_act::{decode, encode, signal_of, SIGACTION_LEN};
 
-/// The largest signal number Linux defines.
-const NSIG: u64 = 64;
-
-pub fn rt_sigaction(guest: &mut Guest, signum: u64, act: u64, old: u64) -> u64 {
-    if signum == 0 || signum > NSIG || signum == SIGKILL || signum == SIGSTOP {
+/// In Linux's order: the size, then the new action read, then the signal it
+/// names, then the old action written, once the new one is in place.
+pub fn rt_sigaction(guest: &mut Guest, signum: u64, act: u64, old: u64, size: u64) -> u64 {
+    if size != SIGSET_LEN {
         return errno::fail(errno::EINVAL);
     }
-    if old != 0 && guest.write(old, &[0u8; SIGACTION_LEN]) < SIGACTION_LEN as i64 {
-        return errno::fail(errno::EFAULT);
+    let new = match act {
+        0 => None,
+        at => match guest.read(at, SIGACTION_LEN).as_deref().and_then(decode) {
+            Some(a) => Some(a),
+            None => return errno::fail(errno::EFAULT),
+        },
+    };
+    let n = match signal_of(signum, new.is_some()) {
+        Ok(n) => n,
+        Err(e) => return errno::fail(e),
+    };
+    let was = guest.signals.action(n).unwrap_or_default();
+    if let Some(a) = new {
+        guest.signals.set(n, a);
+        /* A signal set to be ignored is dropped where it already waits. */
+        if guest.signals.discards(n as u8) {
+            guest.signals.discard(n as u8);
+        }
     }
-    if act != 0 {
-        guest.handlers[signum as usize - 1] = true;
-    }
-    errno::ok(0)
-}
-
-/// `struct sigaction` on x86_64: handler, flags, restorer, mask.
-const SIGACTION_LEN: usize = 32;
-
-/// The mask is recorded nowhere because nothing is ever raised against
-/// it. Reporting an empty old mask is true: no signal is pending.
-pub fn rt_sigprocmask(guest: &Guest, old: u64) -> u64 {
-    if old != 0 && guest.write(old, &[0u8; 8]) < 8 {
-        return errno::fail(errno::EFAULT);
-    }
-    errno::ok(0)
-}
-
-/// An alternate stack for a handler that will never run.
-pub fn sigaltstack(guest: &Guest, old: u64) -> u64 {
-    if old != 0 && guest.write(old, &[0u8; 24]) < 24 {
+    if old != 0 && guest.write(old, &encode(was)) < SIGACTION_LEN as i64 {
         return errno::fail(errno::EFAULT);
     }
     errno::ok(0)

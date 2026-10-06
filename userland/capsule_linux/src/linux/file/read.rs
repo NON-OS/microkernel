@@ -14,23 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! Reading from a file a guest has open.
-//!
-//! The descriptor is inspected, released, and only then are the bytes put
-//! into the guest: writing into the guest needs the guest itself, and the
-//! descriptor is a part of it.
+/*
+ * `read` on a file: the bytes at the descriptor's offset, which moves on.
+ */
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Guest, Kind};
+use crate::linux::guest::Guest;
 
-/// One transfer, matching the kernel's own peer-copy ceiling.
-const MAX_IO: u64 = 1 << 20;
+use super::rw::read_at;
 
 pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
-    let bytes = match take(guest, fd, len) {
+    let at = guest.fds.get(fd as usize).map_or(0, super::desc::pos);
+    if let Some(done) = model(guest, fd, at, buf, len) {
+        return done;
+    }
+    let bytes = match read_at(guest, fd, at, len as usize) {
         Ok(bytes) => bytes,
-        Err(e) => return e,
+        Err(e) => return errno::fail(e),
     };
     if bytes.is_empty() {
         return errno::ok(0);
@@ -39,26 +39,27 @@ pub fn read(guest: &mut Guest, fd: u64, buf: u64, len: u64) -> u64 {
         return errno::fail(errno::EFAULT);
     }
     if let Some(entry) = guest.fds.get_mut(fd as usize) {
-        entry.offset += bytes.len() as u64;
+        super::desc::set_pos(entry, at + bytes.len() as u64);
     }
     errno::ok(bytes.len() as u64)
 }
 
-fn take(guest: &mut Guest, fd: u64, len: u64) -> Result<alloc::vec::Vec<u8>, u64> {
-    let Some(entry) = guest.fds.get_mut(fd as usize) else {
-        return Err(errno::fail(errno::EBADF));
+/*
+ * A model file goes from the volume straight into the guest's buffer.
+ */
+fn model(guest: &mut Guest, fd: u64, at: u64, buf: u64, len: u64) -> Option<u64> {
+    let entry = guest.fds.get(fd as usize).filter(|f| f.is_open() && super::desc::reads(f))?;
+    let got = match super::models::read_into(guest, &entry.path, at, buf, len)? {
+        Ok(got) => got,
+        Err(e) => {
+            /* The offset and the errno only: nothing of the model's bytes. */
+            let line = alloc::format!("[LINUX] a model read at {at} refused: errno {e}\n");
+            crate::linux::start::say(line.as_bytes());
+            return Some(errno::fail(e));
+        }
     };
-    if entry.kind != Kind::File {
-        return Err(errno::fail(errno::EBADF));
+    if let Some(entry) = guest.fds.get_mut(fd as usize) {
+        super::desc::set_pos(entry, at + got);
     }
-    if len == 0 || entry.offset >= entry.size {
-        return Ok(alloc::vec::Vec::new());
-    }
-    let want = len.min(MAX_IO).min(entry.size - entry.offset);
-    let at = entry.offset;
-    // Opened to write only: Linux answers EBADF, not end of file.
-    let Some(stream) = entry.stream.as_mut() else {
-        return Err(errno::fail(errno::EBADF));
-    };
-    stream.read_window(at, want as u32).map_err(|_| errno::fail(errno::EIO))
+    Some(errno::ok(got))
 }

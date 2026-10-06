@@ -24,6 +24,17 @@ path = "src/main.rs"
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
 nonos_inflate = { path = "../inflate" }
+nonos_hash = { path = "../nonos_hash" }
+nonos_tls = { path = "../nonos_tls" }
+nonos_openpgp = { path = "../openpgp" }
+nonos_ed25519 = { path = "../nonos_ed25519" }
+nonos_zstd = { path = "../zstd" }
+nonos_xz = { path = "../xz" }
+# The network the person chose, read the way every capsule holding Network
+# reads it: a guest's stream follows it (src/linux/net/guest_route.rs).
+nonos_route_link = { path = "../nonos_route_link" }
+sha1 = { version = "0.10", default-features = false }
+blake3 = { version = "1", default-features = false, features = ["pure"] }
 
 [profile.release]
 panic = "abort"

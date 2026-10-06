@@ -14,10 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/* Calls that name a file or a descriptor. */
 
-//! Calls that name a file or a descriptor.
-
-use crate::linux::abi::{nr, nr_path as np};
+use crate::linux::abi::{errno, nr, nr_path as np};
 use crate::linux::call;
 use crate::linux::file;
 use crate::linux::file::flags;
@@ -30,45 +29,45 @@ pub fn file_ops(guest: &mut Guest, tid: u32, nr: u64, a: [u64; 6]) -> Option<u64
         nr::WRITEV => call::writev(guest, a[0], a[1], a[2]),
         nr::READ => call::read(guest, a[0], a[1], a[2]),
         nr::CLOSE => call::close(guest, a[0]),
-        nr::MEMFD_CREATE => file::memfd_create(guest),
+        nr::MEMFD_CREATE => file::new_memfd(guest, a[1]),
         nr::FTRUNCATE => file::ftruncate(guest, a[0], a[1]),
-        nr::OPENAT => file::openat(guest, a[0], a[1], a[2]),
-        nr::OPEN => file::openat(guest, flags::AT_FDCWD, a[0], a[1]),
+        nr::OPENAT => file::openat(guest, a[0], a[1], a[2], a[3]),
+        nr::OPEN => file::openat(guest, flags::AT_FDCWD, a[0], a[1], a[2]),
         nr::LSEEK => file::lseek(guest, a[0], a[1], a[2]),
-        nr::FSTAT => file::fstat(guest, a[0], a[1]),
-        nr::STAT | nr::LSTAT => file::newfstatat(guest, flags::AT_FDCWD, a[0], a[1]),
-        nr::NEWFSTATAT => file::newfstatat(guest, a[0], a[1], a[2]),
         nr::GETDENTS64 => file::getdents64(guest, a[0], a[1], a[2]),
-        nr::EPOLL_CREATE1 => file::epoll_create(guest),
+        nr::EPOLL_CREATE1 => file::epoll_create1(guest, a[0]),
+        /* The size is a hint Linux ignores past checking it is positive. */
+        nr::EPOLL_CREATE if a[0] as u32 as i32 <= 0 => errno::fail(errno::EINVAL),
+        nr::EPOLL_CREATE => file::epoll_create(guest),
+        nr::EVENTFD2 => file::eventfd2(guest, a[0], a[1]),
+        nr::EVENTFD => file::eventfd2(guest, a[0], 0),
         nr::PIPE => call::pipe2(guest, a[0], 0),
         nr::PIPE2 => call::pipe2(guest, a[0], a[1]),
         nr::DUP => call::dup(guest, a[0]),
-        nr::DUP2 | nr::DUP3 => call::dup2(guest, a[0], a[1]),
+        nr::DUP2 => call::dup2(guest, a[0], a[1]),
+        nr::DUP3 => file::dup3(guest, a[0], a[1], a[2]),
         nr::EPOLL_CTL => file::epoll_ctl(guest, a[0], a[1], a[2], a[3]),
-        nr::EPOLL_PWAIT => file::epoll_wait(guest, a[0], a[1], a[2]),
-        nr::TIMERFD_CREATE => file::timerfd_create(guest),
-        nr::TIMERFD_SETTIME => file::timerfd_settime(guest, a[0], a[2]),
+        nr::TIMERFD_CREATE => file::timerfd_create(guest, a[0], a[1]),
+        nr::TIMERFD_SETTIME => file::timerfd_settime(guest, a[0], a[1], a[2], a[3]),
+        nr::TIMERFD_GETTIME => file::timerfd_gettime(guest, a[0], a[1]),
         nr::PREAD64 => file::pread64(guest, a[0], a[1], a[2], a[3]),
         nr::GETCWD => call::getcwd(guest, a[0], a[1]),
         np::CHDIR => call::chdir(guest, a[0]),
         np::FCHDIR => call::fchdir(guest, a[0]),
-        np::MKDIR => file::mkdirat(guest, flags::AT_FDCWD, a[0]),
-        np::MKDIRAT => file::mkdirat(guest, a[0], a[1]),
+        np::MKDIR => file::mkdirat(guest, flags::AT_FDCWD, a[0], a[1]),
+        np::MKDIRAT => file::mkdirat(guest, a[0], a[1], a[2]),
         np::RMDIR => file::rmdir(guest, a[0]),
         np::UNLINK => file::unlinkat(guest, flags::AT_FDCWD, a[0], 0),
         np::UNLINKAT => file::unlinkat(guest, a[0], a[1], a[2]),
-        np::RENAME => file::rename(guest, a[0], a[1]),
-        np::FSYNC => file::fsync(guest, a[0]),
+        np::RENAME => file::renameat2(guest, flags::AT_FDCWD, a[0], flags::AT_FDCWD, a[1], 0),
+        np::FSYNC | np::FDATASYNC => file::fsync(guest, a[0]),
         np::READV => call::readv(guest, a[0], a[1], a[2]),
         np::CHMOD => file::chmod(guest, a[0], a[1]),
         np::FCHMOD => file::fchmod(guest, a[0], a[1]),
         np::FCHMODAT => file::fchmodat(guest, a[0], a[1], a[2]),
-        np::FACCESSAT | np::FACCESSAT2 => file::faccessat(guest, a[0], a[1]),
-        np::STATFS | np::FSTATFS => file::statfs(guest, a[1]),
-        np::STATX => file::statx(guest, a[0], a[1], a[4]),
-        np::EPOLL_WAIT => file::epoll_wait(guest, a[0], a[1], a[2]),
-        nr::ACCESS => file::access(guest, a[0]),
-        nr::READLINK => file::readlink(guest, a[0]),
-        _ => return None,
+        _ => {
+            let looked = super::table_meta::meta_ops(guest, nr, a);
+            return looked.or_else(|| super::table_sys::sys_ops(guest, tid, nr, a));
+        }
     })
 }

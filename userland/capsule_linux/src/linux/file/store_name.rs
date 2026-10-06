@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Store operations that change the namespace rather than content.
+/* Store operations that change the namespace rather than content. */
 
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
@@ -24,21 +24,22 @@ use super::root::Key;
 type Fail = &'static str;
 
 pub fn mkdir(at: &Key) -> Result<(), Fail> {
+    at.writable()?;
     vfs::mkdir(mk_getpid(), at.as_bytes())
 }
 
 pub fn rmdir(at: &Key) -> Result<(), Fail> {
+    at.writable()?;
     vfs::rmdir(mk_getpid(), at.as_bytes(), false)
 }
 
 pub fn unlink(at: &Key) -> Result<(), Fail> {
+    at.writable()?;
     vfs::unlink(mk_getpid(), at.as_bytes())
 }
 
 pub fn rename(from: &Key, to: &Key) -> Result<(), Fail> {
+    from.writable()?;
+    to.writable()?;
     vfs::rename(mk_getpid(), from.as_bytes(), to.as_bytes())
-}
-
-pub fn chmod(at: &Key, mode: u16) -> Result<(), Fail> {
-    vfs::chmod(mk_getpid(), at.as_bytes(), mode)
 }

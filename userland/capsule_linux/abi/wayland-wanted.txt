@@ -1,0 +1,43 @@
+# Globals real Wayland clients look for, client then interface. From reading
+# foot's registry handler and GTK 4's gdkdisplay-wayland.c; not checked
+# against a running client yet. The denominator of Wayland coverage.
+foot wl_compositor
+foot wl_subcompositor
+foot wl_shm
+foot xdg_wm_base
+foot wl_seat
+foot wl_output
+foot zxdg_output_manager_v1
+foot wl_data_device_manager
+foot zwp_primary_selection_device_manager_v1
+foot zxdg_decoration_manager_v1
+foot wp_presentation
+foot xdg_activation_v1
+foot wp_viewporter
+foot wp_fractional_scale_manager_v1
+foot zwp_text_input_manager_v3
+foot wp_cursor_shape_manager_v1
+foot wp_single_pixel_buffer_manager_v1
+gtk4 wl_compositor
+gtk4 wl_subcompositor
+gtk4 wl_shm
+gtk4 xdg_wm_base
+gtk4 wl_seat
+gtk4 wl_output
+gtk4 zxdg_output_manager_v1
+gtk4 wl_data_device_manager
+gtk4 zwp_primary_selection_device_manager_v1
+gtk4 zxdg_decoration_manager_v1
+gtk4 wp_presentation
+gtk4 xdg_activation_v1
+gtk4 wp_viewporter
+gtk4 wp_fractional_scale_manager_v1
+gtk4 zwp_text_input_manager_v3
+gtk4 wp_single_pixel_buffer_manager_v1
+gtk4 zwp_linux_dmabuf_v1
+gtk4 zwp_pointer_gestures_v1
+gtk4 zwp_tablet_manager_v2
+gtk4 zwp_keyboard_shortcuts_inhibit_manager_v1
+gtk4 zxdg_exporter_v2
+gtk4 zxdg_importer_v2
+gtk4 gtk_shell1

@@ -1,0 +1,43 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+/*
+ * The last calls a family made, said when a guest dies on a signal, so a
+ * crash names what the program was doing rather than only that it ended.
+ * Only numbers are kept, never bytes of the guest's memory. A family that
+ * holds a model or is on a terminal shows results only for the calls that
+ * lay out memory, which are addresses and lengths, not anything the model
+ * was told or the person typed.
+ */
+
+use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering::Relaxed};
+
+pub(super) const KEEP: usize = 16;
+
+/*
+ * Number, first argument and result of each call, in a ring.
+ */
+pub(super) static CALLS: [AtomicU64; KEEP * 3] = [const { AtomicU64::new(u64::MAX) }; KEEP * 3];
+pub(super) static NEXT: AtomicUsize = AtomicUsize::new(0);
+
+/// Note one answered call: its number, first argument and result.
+pub fn note(number: u64, arg0: u64, result: u64) {
+    let at = NEXT.load(Relaxed);
+    for (i, v) in [number, arg0, result].into_iter().enumerate() {
+        CALLS[at * 3 + i].store(v, Relaxed);
+    }
+    NEXT.store((at + 1) % KEEP, Relaxed);
+}

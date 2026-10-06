@@ -36,6 +36,7 @@ pub fn of(number: u64) -> &'static [u8] {
         nr::BRK => b"brk",
         nr::RT_SIGACTION => b"rt_sigaction",
         nr::RT_SIGPROCMASK => b"rt_sigprocmask",
+        nr::RT_SIGRETURN => b"rt_sigreturn",
         nr::IOCTL => b"ioctl",
         nr::READV => b"readv",
         nr::WRITEV => b"writev",

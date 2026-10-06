@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Linux x86_64 syscall numbers from one hundred up. Same contract
 //! as `nr`, split only because a file here stays under seventy-five lines.
 
@@ -30,13 +29,18 @@ pub const GETDENTS64: u64 = 217;
 pub const WAIT4: u64 = 61;
 pub const EPOLL_CTL: u64 = 233;
 pub const DUP3: u64 = 292;
+pub const ACCEPT4: u64 = 288;
 pub const PIPE2: u64 = 293;
 pub const TIMERFD_CREATE: u64 = 283;
 pub const TIMERFD_SETTIME: u64 = 286;
+pub const TIMERFD_GETTIME: u64 = 287;
+pub const EVENTFD: u64 = 284;
+pub const EVENTFD2: u64 = 290;
 pub const EPOLL_CREATE1: u64 = 291;
 pub const EPOLL_PWAIT: u64 = 281;
 pub const SET_TID_ADDRESS: u64 = 218;
 pub const CLOCK_GETTIME: u64 = 228;
+pub const CLOCK_GETRES: u64 = 229;
 pub const EXIT_GROUP: u64 = 231;
 pub const OPENAT: u64 = 257;
 pub const NEWFSTATAT: u64 = 262;
@@ -45,3 +49,9 @@ pub const PRLIMIT64: u64 = 302;
 pub const GETRANDOM: u64 = 318;
 pub const MEMFD_CREATE: u64 = 319;
 pub const RSEQ: u64 = 334;
+pub const MREMAP: u64 = 25;
+pub const PRCTL: u64 = 157;
+pub const SCHED_GETAFFINITY: u64 = 204;
+pub const GETCPU: u64 = 309;
+pub const MEMBARRIER: u64 = 324;
+pub const CLONE3: u64 = 435;
