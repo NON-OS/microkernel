@@ -17,6 +17,14 @@
 use crate::state::Entry;
 use crate::tcp::{window, FLAG_ACK, FLAG_PSH, MSS};
 
+/// The peer's MSS once its SYN has been read; ours before that.
+fn segment_max(e: &Entry) -> usize {
+    match e.tcb.send.mss {
+        0 => MSS,
+        mss => usize::from(mss),
+    }
+}
+
 pub fn drain_send(e: &mut Entry) {
     loop {
         let usable = window::usable(
@@ -28,7 +36,7 @@ pub fn drain_send(e: &mut Entry) {
         if usable == 0 || e.snd_buf.is_empty() {
             break;
         }
-        let n = (usable as usize).min(MSS).min(e.snd_buf.len());
+        let n = (usable as usize).min(segment_max(e)).min(e.snd_buf.len());
         let seg_seq = e.tcb.send.nxt;
         let chunk: alloc::vec::Vec<u8> = e.snd_buf.drain(..n).collect();
         let _ = crate::server::tcp_tx::send(e.tcb, FLAG_ACK | FLAG_PSH, &chunk);

@@ -2,126 +2,115 @@
 
 ## Role
 
-`capsule_net_tcp` is the TCP transport capsule. It owns TCP header
-validation, segment construction, checksums, connection state, and per-flow
-control blocks. It sits above `net.ip` and below `net.sockets`.
+`capsule_net_tcp` is the TCP layer of the split network stack. It owns the
+connection table, the TCP state machine, retransmission, congestion control
+and the stream buffers. It sits above `net.ip` and below `net.sockets`, and the
+kernel holds no TCP state.
 
 ```text
 net.sockets
     |
-    | stream operation IPC
+    | NTCP requests over IPC
     v
-net.tcp -- TCB + TCP state machine --> net.ip
+net.tcp -- TCBs + TCP state machine + timers --> net.ip
 ```
 
-## Microkernel contract
+The desktop image does not carry it: there `net.core` registers the `net.tcp`
+name and answers with smoltcp. It is built into the `microkernel-input-e2e-ps2`
+test image.
 
-The capsule uses IPC and memory only:
+## Service and endpoints
 
-- `MkIpcRecv` receives requests on `service:4430:net.tcp`.
-- `MkIpcSend` replies through `reply:4431:endpoint.4294967350`.
-- Its wire magic is `NTCP`.
-- Its endpoint name is `net.tcp`.
-- Its kernel mirror target is `src/network/tcp_capsule`.
+- Handle `net.tcp`, service endpoint `service:4430:net.tcp`, reply endpoint
+  `reply:4431:endpoint.net.tcp.reply`.
+- Kernel mirror `src/userspace/capsule_net_tcp`.
+- It waits until `net.ip` is registered, seeds its ISS key, then serves
+  inbox 0.
 
-The kernel does not own connection state, retransmission state, stream buffers,
-port ownership, or TCP timers.
+## Interface
 
-## Interface contract
+Requests carry the 20 byte header shared by the stack capsules, with magic
+`0x4E544350` ("NTCP") and version 1.
 
-| Operation | Meaning |
-|---|---|
-| `OP_HEALTHCHECK` | server liveness |
-| `OP_LISTEN` / `OP_ACCEPT` | passive open and accepted connection handoff |
-| `OP_CONNECT` | active open |
-| `OP_SEND` / `OP_RECV` | stream byte movement |
-| `OP_CLOSE` / `OP_SHUTDOWN` | orderly or half-close teardown |
+| Op | Value | Meaning |
+|---|---|---|
+| `OP_HEALTHCHECK` | 1 | liveness |
+| `OP_LISTEN` | 2 | passive open |
+| `OP_CONNECT` | 3 | active open; blocks until established or 8 s pass |
+| `OP_ACCEPT` | 4 | take an established connection off a listener |
+| `OP_SEND` | 5 | queue bytes |
+| `OP_RECV` | 6 | take received bytes, never more than the reply carries |
+| `OP_CLOSE` | 7 | close |
+| `OP_SHUTDOWN` | 8 | handled as a close |
+| `OP_STATE` | 9 | the connection's state |
+
+A connection answers only its owner. A frame that fails header parsing is
+still answered, under the op and request id it names, or under zeros when it is
+too short. Errnos are in `src/protocol/errno.rs`.
+
+## TCP
+
+- The ISS is `iss_for`: SipHash-2-4 over the four tuple under a key from
+  `crypto_random`, added to the clock.
+- Retransmission follows RFC 6298, with RTO between 200 ms and 60 s and
+  `MAX_RETX`, 8, tries. Congestion control is Reno shaped, from `INIT_CWND`
+  of three segments.
+- `peer_mss` reads the peer's MSS option and `send_mss` never sends a larger
+  segment, 536 bytes when the SYN named none. Window scaling is never
+  negotiated.
+- Segments are checked as RFC 9293 and RFC 5961 ask: none to or from an
+  address no unicast host can have, no ACK for bytes never sent, a reset
+  believed only at exactly `RCV.NXT` and answered elsewhere in the window
+  with a challenge ACK.
+- A closed peer window that holds data back is probed by the persist timer,
+  and a reader that makes room announces it.
+- The reassembly buffer holds `REASM_MAX_SEGS`, 32, segments and drains in
+  sequence order across the 2^32 wrap.
+
+## Table rules
+
+- Hold a listener to `HALF_OPEN_MAX` (8) connections a SYN opened and the peer
+  has not finished, the oldest giving way to a new SYN, each ending
+  `HALF_OPEN_MS` (30 s) after its SYN (`src/state/table/half_open.rs`). Every
+  application's sockets reach this capsule as net.sockets, one owner, so a
+  forged SYN must never hold a place past its listener's few.
+- Count no TIME-WAIT entry against its owner, and give the oldest one's place
+  to a new connection when the table is full. End a FIN-WAIT-2 entry
+  `FIN_WAIT_2_MS` (60 s) after our FIN was acknowledged if the peer never sends
+  its own (`src/state/table/linger.rs`).
+- Reset and free the connections of an owner that ended without closing them,
+  looked for every two seconds while the stack is busy
+  (`src/state/table/orphans.rs`, `src/server/orphans.rs`). TIME-WAIT ends by
+  itself.
+- An owner holds at most `MAX_CONN_PER_PID`, 32, connections.
 
 ## Authority
 
-The manifest grants IPC and memory only:
-`CAPSULE_REQUIRED_CAPS = 0x00018`. It has no driver, MMIO, IRQ, DMA, PIO,
-filesystem, admin, debug, or direct NIC authority.
+`CAPSULE_REQUIRED_CAPS := 0x0003c`: Network (`0x04`), IPC (`0x08`), Memory
+(`0x10`) and Crypto (`0x20`). Network because the kernel registers a network
+service only for a holder of it; Crypto for the random ISS key. No CoreExec,
+FileSystem, Debug or hardware bits.
 
 ## Privacy and persistence
 
-Connection state and stream buffers are runtime-only. The capsule must not
-persist payloads, peer histories, packet captures, or socket identities across
-process exit or reboot.
+Connections and their buffers live in memory and end with the process.
+Nothing is logged or written to storage.
 
-## Runtime lifecycle
+## What it does not do
 
-The capsule owns listener state, active TCBs, send/receive variables, segment
-validation, and transition logic. It exchanges packets with `net.ip` and
-exposes stream operations to `net.sockets`.
+- `OP_CONNECT` blocks the whole server, for up to eight seconds, while the
+  handshake runs.
+- No window scaling, SACK or timestamps.
+- No TLS, DNS or socket handles: those belong to the callers and `net.sockets`.
+- The `tcp-chaos` feature of `net.ip` is the only fault injection; nothing in
+  this capsule drops segments on purpose.
 
-## Failure model
+## Build and verify
 
-No socket, port in use, refused connection, timeout, reset, closed state, bad
-segment, and empty receive queue return protocol errors. Timer and retransmit
-behavior must remain in this capsule, not the kernel.
+- `make nonos-mk-net-tcp`, then `nonos-mk-net-tcp-sign` and
+  `nonos-mk-net-tcp-verify`.
+- `userland/tcp_proofs` drives the real request handlers against a peer played
+  on the host. `userland/net_proofs` runs the segment parser and the
+  reassembly buffer.
 
-## Current implemented surface
-
-- TCP header parse/build helpers are present.
-- TCP pseudo-header checksum code is present.
-- The 11-state TCP state enum is present.
-- TCB structures for send and receive variables are present.
-- Protocol constants cover health, listen, connect, accept, send, receive,
-  close, and shutdown.
-
-## Wire format
-
-Requests use the `NTCP` protocol magic. Listen/connect requests carry address
-and port fields. Send requests carry socket id and bytes. Receive replies carry
-socket id, status, and stream bytes. Segment wire format remains TCP over
-`net.ip`, not a kernel syscall ABI.
-
-## State ownership
-
-The capsule owns listener tables, TCBs, sequence variables, receive buffers,
-send buffers, retransmit timers, and close state. `net.sockets` owns caller
-handles. The kernel owns no TCP state.
-
-## Operating rules
-
-- Keep timers and retransmission in userland.
-- Bound receive and send buffers per connection.
-- Return explicit errors for refused, timeout, reset, and closed states.
-- Do not add TLS, DNS, or socket fd tables here.
-
-## Release target
-
-The finished TCP capsule owns listener tables, active connection TCBs,
-handshake, data transfer, retransmit timers, close, reset handling, and
-backpressure across `net.ip`. It has validation evidence for connect, accept, send,
-receive, close, timeout, and reset without adding socket syscalls to the
-kernel.
-
-## Release evidence
-
-Release evidence is handshake validation, listener accept validation, send/receive
-transfer, FIN close, timeout, reset handling, and static proof that no kernel
-TCP or socket syscall path exists.
-
-## Release checklist
-
-- Connect and accept validation passes.
-- Send/receive transfer passes.
-- FIN close, reset, and timeout are tested.
-- Buffer bounds are enforced.
-- Static gate confirms no kernel TCP/socket syscall path.
-
-## Explicit non-goals today
-
-No TLS, DNS, socket fd table, firewall, congestion-control tuning surface,
-packet capture, persistent connection log, hardware access, or kernel TCP path
-lives here. Runtime timers, server loop, `net.ip` client, and sockets
-integration still need promotion before production networking can use it.
-
-## Verification
-
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Build gate, once `src/main.rs` lands: `make -B nonos-mk-net-tcp`
-- Runtime proof: three-way handshake, data transfer, FIN close, timeout path,
-  and RST handling through `net.ip` with no kernel TCP parser.
+See [the network stack](../../docs/handbook/network/stack.md).

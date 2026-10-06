@@ -14,24 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use crate::server::tcp_rx::action::RxAction;
 use crate::state::Entry;
-use crate::tcp::{State, TcpHeader, FLAG_ACK, FLAG_SYN};
+use crate::tcp::{State, TcpHeader, FLAG_FIN};
 
-pub fn step(e: &mut Entry, hdr: &TcpHeader) -> RxAction {
-    if hdr.flags & (FLAG_SYN | FLAG_ACK) == FLAG_SYN | FLAG_ACK
-        && hdr.ack == e.tcb.send.nxt
-    {
-        e.tcb.recv.nxt = hdr.seq.wrapping_add(1);
-        e.tcb.send.una = hdr.ack;
-        e.tcb.send.wnd = hdr.window;
-        e.tcb.send.mss = crate::tcp::send_mss(hdr.mss);
-        e.tcb.send.wl1 = hdr.seq;
-        e.tcb.send.wl2 = hdr.ack;
-        e.tcb.state = State::Established;
-        return RxAction::Reply(e.tcb, FLAG_ACK, Vec::new());
+/*
+ * RFC 9293 3.10.7.4, SYN-RECEIVED: the ACK of our SYN moves SND.UNA past it
+ * and gives the first send window. Without that, SND.UNA stayed where the
+ * listener left it, the bytes in flight read as the whole ISS, and the new
+ * connection never had a window to send in. Data and a FIN may ride on the
+ * same ACK; they are taken as on any established segment, not dropped.
+ */
+pub fn complete(e: &mut Entry, hdr: &TcpHeader, payload: &[u8]) -> RxAction {
+    e.tcb.state = State::Established;
+    e.tcb.send.una = hdr.ack;
+    e.tcb.send.wnd = hdr.window;
+    e.tcb.send.wl1 = hdr.seq;
+    e.tcb.send.wl2 = hdr.ack;
+    if payload.is_empty() && !hdr.has_flag(FLAG_FIN) {
+        return RxAction::None;
     }
-    RxAction::None
+    super::established::step(e, hdr, payload)
 }

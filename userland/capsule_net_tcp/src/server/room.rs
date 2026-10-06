@@ -13,25 +13,23 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Telling the peer about room a reader made.
 
-use alloc::vec::Vec;
-
-use crate::server::tcp_rx::action::RxAction;
 use crate::state::Entry;
-use crate::tcp::{State, TcpHeader, FLAG_ACK, FLAG_SYN};
+use crate::tcp::persist::worth_announcing;
+use crate::tcp::{State, FLAG_ACK, MSS, RWND_MAX};
 
-pub fn step(e: &mut Entry, hdr: &TcpHeader) -> RxAction {
-    if hdr.flags & (FLAG_SYN | FLAG_ACK) == FLAG_SYN | FLAG_ACK
-        && hdr.ack == e.tcb.send.nxt
-    {
-        e.tcb.recv.nxt = hdr.seq.wrapping_add(1);
-        e.tcb.send.una = hdr.ack;
-        e.tcb.send.wnd = hdr.window;
-        e.tcb.send.mss = crate::tcp::send_mss(hdr.mss);
-        e.tcb.send.wl1 = hdr.seq;
-        e.tcb.send.wl2 = hdr.ack;
-        e.tcb.state = State::Established;
-        return RxAction::Reply(e.tcb, FLAG_ACK, Vec::new());
+/// After a read, announce the receive window when it grew by enough since it
+/// was last advertised. A peer that saw it closed sends nothing until told,
+/// and before this nothing told it until the peer's own persist probe.
+pub fn announce(e: &mut Entry) {
+    if !matches!(e.tcb.state, State::Established | State::FinWait1 | State::FinWait2) {
+        return;
     }
-    RxAction::None
+    let room = e.rwnd();
+    if !worth_announcing(e.tcb.recv.wnd, room, MSS, RWND_MAX) {
+        return;
+    }
+    e.tcb.recv.wnd = room;
+    let _ = crate::server::tcp_tx::send(e.tcb, FLAG_ACK, &[]);
 }

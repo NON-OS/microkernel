@@ -16,22 +16,22 @@
 
 use alloc::vec::Vec;
 
-use crate::server::tcp_rx::action::RxAction;
-use crate::state::Entry;
-use crate::tcp::{State, TcpHeader, FLAG_ACK, FLAG_SYN};
+use super::types::Entry;
 
-pub fn step(e: &mut Entry, hdr: &TcpHeader) -> RxAction {
-    if hdr.flags & (FLAG_SYN | FLAG_ACK) == FLAG_SYN | FLAG_ACK
-        && hdr.ack == e.tcb.send.nxt
-    {
-        e.tcb.recv.nxt = hdr.seq.wrapping_add(1);
-        e.tcb.send.una = hdr.ack;
-        e.tcb.send.wnd = hdr.window;
-        e.tcb.send.mss = crate::tcp::send_mss(hdr.mss);
-        e.tcb.send.wl1 = hdr.seq;
-        e.tcb.send.wl2 = hdr.ack;
-        e.tcb.state = State::Established;
-        return RxAction::Reply(e.tcb, FLAG_ACK, Vec::new());
+impl Entry {
+    /// The oldest received bytes, no more than `max` of them. A longer block
+    /// is split and its rest stays at the front of the queue, so one read
+    /// never has to carry more than its reply holds and nothing is dropped
+    /// or reordered.
+    pub fn take_rx(&mut self, max: usize) -> Option<Vec<u8>> {
+        if max == 0 {
+            return None;
+        }
+        let mut front = self.rx.pop_front()?;
+        if front.len() > max {
+            let rest = front.split_off(max);
+            self.rx.push_front(rest);
+        }
+        Some(front)
     }
-    RxAction::None
 }

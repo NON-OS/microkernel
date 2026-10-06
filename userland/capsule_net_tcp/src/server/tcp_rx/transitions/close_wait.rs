@@ -15,30 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::server::tcp_rx::action::RxAction;
-use crate::server::tcp_rx::transitions::established::{ack_range, handle_ack, handle_dup_ack, handle_fin, handle_payload, reply_ack};
+use crate::server::tcp_rx::transitions::established::{ack_range, handle_ack, reply_ack};
 use crate::state::Entry;
-use crate::tcp::{seq, TcpHeader, FLAG_ACK};
+use crate::tcp::{seq, TcpHeader, FLAG_ACK, FLAG_FIN};
 
+/*
+ * CLOSE-WAIT (RFC 9293 3.10.7.4): the peer has sent its FIN, this side has
+ * not. The peer's ACKs still acknowledge this side's data and move its
+ * window, so they are taken; ignoring them left acknowledged data queued for
+ * retransmission until the retry limit tore the connection down. A segment
+ * outside the window, the peer's FIN again among them when this side's ACK
+ * of it was lost, is answered with an ACK. Data after the FIN is not taken.
+ */
 pub fn step(e: &mut Entry, hdr: &TcpHeader, payload: &[u8]) -> RxAction {
-    if !seq::acceptable(hdr.seq, payload.len() as u32, e.tcb.recv.nxt, e.tcb.recv.wnd) {
+    let fin = u32::from(hdr.has_flag(FLAG_FIN));
+    if !seq::acceptable(hdr.seq, payload.len() as u32 + fin, e.tcb.recv.nxt, e.tcb.recv.wnd) {
         return reply_ack::reply_ack(e);
     }
-    // Every segment of a synchronized connection carries an ACK; one without
-    // is dropped, and one whose ACK this side could not have earned is
-    // dropped and answered (RFC 9293 3.10.7.4).
     if !hdr.has_flag(FLAG_ACK) {
         return RxAction::None;
     }
     if !ack_range::acceptable(e, hdr.ack) {
         return reply_ack::reply_ack(e);
     }
-    // A duplicate ACK leaves the window as it was (RFC 5681 section 2); one
-    // that moved it is a window update, judged against the window before it.
-    let window_before = e.tcb.send.wnd;
-    if !handle_ack::handle_ack(e, hdr) && hdr.window == window_before {
-        handle_dup_ack::handle_dup_ack(e, hdr, payload);
-    }
-    handle_payload::handle_payload(e, hdr, payload);
-    handle_fin::handle_fin(e, hdr);
-    reply_ack::reply_ack(e)
+    handle_ack::handle_ack(e, hdr);
+    RxAction::None
 }

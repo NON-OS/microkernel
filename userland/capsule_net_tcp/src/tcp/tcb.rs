@@ -30,6 +30,8 @@ pub struct SendVars {
     pub iss: u32,
     pub wl1: u32,
     pub wl2: u32,
+    /// The largest segment the peer takes, from its SYN; 0 until known.
+    pub mss: u16,
 }
 
 #[derive(Clone, Copy, Default)]

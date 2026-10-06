@@ -14,24 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+use super::MSS;
 
-use crate::server::tcp_rx::action::RxAction;
-use crate::state::Entry;
-use crate::tcp::{State, TcpHeader, FLAG_ACK, FLAG_SYN};
+/// What a peer that sent no MSS option takes (RFC 9293 3.7.1: 576 - 40).
+const DEFAULT_MSS: u16 = 536;
 
-pub fn step(e: &mut Entry, hdr: &TcpHeader) -> RxAction {
-    if hdr.flags & (FLAG_SYN | FLAG_ACK) == FLAG_SYN | FLAG_ACK
-        && hdr.ack == e.tcb.send.nxt
-    {
-        e.tcb.recv.nxt = hdr.seq.wrapping_add(1);
-        e.tcb.send.una = hdr.ack;
-        e.tcb.send.wnd = hdr.window;
-        e.tcb.send.mss = crate::tcp::send_mss(hdr.mss);
-        e.tcb.send.wl1 = hdr.seq;
-        e.tcb.send.wl2 = hdr.ack;
-        e.tcb.state = State::Established;
-        return RxAction::Reply(e.tcb, FLAG_ACK, Vec::new());
-    }
-    RxAction::None
+/// The floor for an announced MSS, so a peer cannot have every byte sent in
+/// its own segment. Linux uses the same figure.
+const MIN_MSS: u16 = 88;
+
+/*
+ * The largest segment to send this peer, from the MSS its SYN announced.
+ * Segments larger than that leave with Don't Fragment set and are dropped
+ * at the narrow link (PPPoE, a tunnel) with nothing coming back that this
+ * stack reads, so the connection stalls.
+ */
+pub fn send_mss(announced: Option<u16>) -> u16 {
+    announced.unwrap_or(DEFAULT_MSS).clamp(MIN_MSS, MSS as u16)
 }

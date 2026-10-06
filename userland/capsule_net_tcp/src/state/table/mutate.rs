@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::tcp::{Tcb, MAX_CONN_PER_PID};
+use crate::tcp::{State, Tcb, MAX_CONN_PER_PID};
 
 use super::types::{Table, TableError, TABLE_CAP};
 use crate::state::Entry;
@@ -24,12 +24,17 @@ pub fn quota_ok(owner_count: usize, cap: usize) -> bool {
 }
 
 impl Table {
+    /// The owner's connections, less those in TIME-WAIT, which the stack
+    /// keeps after the owner closed them (`linger.rs`).
     pub fn count_owned(&self, owner: u32) -> usize {
-        self.entries.iter().filter(|e| e.owner_pid == owner).count()
+        self.entries
+            .iter()
+            .filter(|e| e.owner_pid == owner && e.tcb.state != State::TimeWait)
+            .count()
     }
 
     pub fn insert(&mut self, owner: u32, parent: u32, tcb: Tcb) -> Result<u32, TableError> {
-        if self.entries.len() >= TABLE_CAP {
+        if self.entries.len() >= TABLE_CAP && !self.reclaim_time_wait() {
             return Err(TableError::Full);
         }
         if !quota_ok(self.count_owned(owner), MAX_CONN_PER_PID) {

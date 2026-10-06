@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod handle_ack;
+pub(super) mod ack_range;
+pub(super) mod handle_ack;
 mod handle_dup_ack;
 mod handle_fin;
-mod handle_payload;
-mod reply_ack;
+pub(super) mod handle_payload;
+pub(super) mod reply_ack;
 mod step;
 
 pub use step::step;

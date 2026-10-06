@@ -14,24 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+/*
+ * Whether an address off the wire can be one end of a TCP connection. A
+ * connection is between two unicast hosts; 0/8 (this network), 127/8
+ * (loopback, never seen on a wire) and everything from 224 up (multicast,
+ * the reserved block and the limited broadcast) are not, and our own
+ * address as a source is a forgery (RFC 1122 3.2.1.3, 4.2.3.10).
+ */
+pub fn usable_pair(src: [u8; 4], dst: [u8; 4], local: [u8; 4]) -> bool {
+    unicast(src) && unicast(dst) && src != local
+}
 
-use crate::server::tcp_rx::action::RxAction;
-use crate::state::Entry;
-use crate::tcp::{State, TcpHeader, FLAG_ACK, FLAG_SYN};
-
-pub fn step(e: &mut Entry, hdr: &TcpHeader) -> RxAction {
-    if hdr.flags & (FLAG_SYN | FLAG_ACK) == FLAG_SYN | FLAG_ACK
-        && hdr.ack == e.tcb.send.nxt
-    {
-        e.tcb.recv.nxt = hdr.seq.wrapping_add(1);
-        e.tcb.send.una = hdr.ack;
-        e.tcb.send.wnd = hdr.window;
-        e.tcb.send.mss = crate::tcp::send_mss(hdr.mss);
-        e.tcb.send.wl1 = hdr.seq;
-        e.tcb.send.wl2 = hdr.ack;
-        e.tcb.state = State::Established;
-        return RxAction::Reply(e.tcb, FLAG_ACK, Vec::new());
-    }
-    RxAction::None
+fn unicast(a: [u8; 4]) -> bool {
+    a[0] != 0 && a[0] != 127 && a[0] < 224
 }

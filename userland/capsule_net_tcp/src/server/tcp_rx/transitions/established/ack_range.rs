@@ -14,24 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
-use crate::server::tcp_rx::action::RxAction;
 use crate::state::Entry;
-use crate::tcp::{State, TcpHeader, FLAG_ACK, FLAG_SYN};
+use crate::tcp::seq;
 
-pub fn step(e: &mut Entry, hdr: &TcpHeader) -> RxAction {
-    if hdr.flags & (FLAG_SYN | FLAG_ACK) == FLAG_SYN | FLAG_ACK
-        && hdr.ack == e.tcb.send.nxt
-    {
-        e.tcb.recv.nxt = hdr.seq.wrapping_add(1);
-        e.tcb.send.una = hdr.ack;
-        e.tcb.send.wnd = hdr.window;
-        e.tcb.send.mss = crate::tcp::send_mss(hdr.mss);
-        e.tcb.send.wl1 = hdr.seq;
-        e.tcb.send.wl2 = hdr.ack;
-        e.tcb.state = State::Established;
-        return RxAction::Reply(e.tcb, FLAG_ACK, Vec::new());
-    }
-    RxAction::None
+/// The largest window a peer can offer without window scaling, which this
+/// stack never negotiates: how far behind SND.UNA an old ACK can still be.
+const MAX_SND_WND: u32 = 65_535;
+
+/*
+ * RFC 5961 5.2: an ACK is acceptable in SND.UNA - MAX.SND.WND =< SEG.ACK
+ * =< SND.NXT. One past SND.NXT acknowledges bytes never sent, and one further
+ * back than any window explains is not from this connection. A blind sender
+ * only has to land its sequence number inside the receive window to have
+ * its data taken; it also has to guess this to get past here.
+ */
+pub fn acceptable(e: &Entry, ack: u32) -> bool {
+    seq::leq(ack, e.tcb.send.nxt) && seq::leq(e.tcb.send.una.wrapping_sub(MAX_SND_WND), ack)
 }
