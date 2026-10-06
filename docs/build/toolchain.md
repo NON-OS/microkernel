@@ -98,3 +98,11 @@ It sets `NONOS_IN_FLAKE`, and points `OVMF` and `OVMF_VARS` at the firmware, so 
 ## Hardware virtualization
 
 A QEMU boot uses KVM when `/dev/kvm` opens read and write, and the TCG emulator otherwise (`accel`, `tools/nonos_qemu/machine.py:26-36`). The runner would also pick the macOS hypervisor on an Intel Mac, but the flake does not evaluate on one. Apple silicon runs only arm64 guests in its hypervisor, so an x86_64 NONOS guest is emulated there, and `make doctor` says so (`doctor`, `Makefile:124-135`). Under TCG the runner gives each guest CPU its own host thread.
+
+## See also
+
+- [The Nix flake](nix-flake.md)
+- [Make targets](make-targets.md)
+- [Reproducible builds](reproducible-builds.md)
+- [Architectures](../architectures/README.md)
+- [Requirements to run NONOS](../install/requirements.md)
