@@ -105,3 +105,19 @@ The other broker paths are narrow too:
 - `validate` lets a driver change only Command register bits 1, 2 and 10, the MSI-X enable and function-mask bits, and a few vendor bits for audio and network functions; it refuses every other config-space write before it reaches the bus (`src/hardware/broker/pci/allowlist.rs:17-60`).
 - `alloc_and_zero` zeroes every frame of a DMA grant before the device or the capsule sees it (`src/hardware/broker/dma/map/alloc.rs:35-39`), and `scrub` zeroes the frames again before they go back to the allocator (`src/hardware/broker/dma/scrub.rs:27-35`).
 - When a process ends, its MMIO, IRQ, DMA and PIO grants are released, `dma_release_all_for_pid` among them (`src/process/exit/teardown.rs:48-52`).
+
+## The Linux personality's sandbox
+
+The [Linux personality](../overview/glossary.md#linux-personality), `capsule_linux`, runs unmodified x86_64 Linux programs as guests and answers their system calls. [Linux personality](../userland/linux-personality.md) lists which calls are served and which are refused.
+
+A guest holds nothing. `empty_guest` creates the process, installs an empty capability set with `install_spawn`, and logs `[FOREIGN] guest pid=<pid> caps=<mask>` with the mask read back (`src/process/foreign/spawn.rs:53-79`). With no bits, every NONOS call a guest could make fails the cap table, except `MkTtyQuery`, which only describes the caller's own streams (`src/syscall/contract/cap_table/mk.rs:214-220`).
+
+A NONOS system call number is four ASCII bytes packed by `tag4` (`src/syscall/abi/tag.rs:20-22`), so a Linux number never matches one. `syscall_handler` finds no `SyscallNumber` for it and passes it to `redirect` (`src/arch/x86_64/syscall/manager/entry.rs:38-53`). `redirect` parks the guest thread and wakes its supervisor, the capsule that created it, which answers; a process with no supervisor gets `ENOSYS` (`src/process/foreign/trap.rs:28-57`).
+
+The supervisor needs `ForeignExec` for every call that touches a guest (`can_foreign_exec` in `src/syscall/contract/cap_table/mk.rs:153-167`). Among the `Capsule.mk` files in this tree, only `capsule_linux` requests it, in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_linux/Capsule.mk:45`). A supervisor reaches only its own guests: every peer call starts with `supervised_asid`, which refuses a pid the caller does not supervise (`src/process/foreign/peer_guard.rs:65-73`). A peer call touches only the guest's user half and moves at most `MAX_SPAN`, 1 MiB, at a time (`src/process/foreign/peer_guard.rs:28-39`). One supervisor holds at most `MAX_GUESTS`, 1024 guests and guest threads; past that a spawn is `EAGAIN` (`src/process/foreign/room.rs:33-38`).
+
+Inside `capsule_linux`:
+
+- Only the `INSTALL` role asks for `Network`, because a package mirror is reached through `net.sockets`, which serves only holders of `Network` (`src/userspace/capsule_linux/roles.rs:35-44`). The `RUN` and `TERMINAL` roles ask for nothing extra (`src/userspace/capsule_linux/roles.rs:46-67`).
+- `under_root` places every guest path under the family's root or its private directories, and `writable` keeps the shared tree read-only to guests; only an install writes it (`userland/capsule_linux/src/linux/file/root.rs:34-65`).
+- `not_loopback` refuses a bind or listen outside 127.0.0.0/8 with `EACCES` (`userland/capsule_linux/src/linux/net/policy.rs:33-41`), and `refuse_out` answers a datagram to anywhere outside the family with `ENETUNREACH` (`userland/capsule_linux/src/linux/net/policy.rs:43-53`).
