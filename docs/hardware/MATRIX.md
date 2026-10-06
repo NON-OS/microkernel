@@ -152,3 +152,12 @@ No tool writes this page. Before the commit in its footer moves, the NONOS team 
 4. The real-hardware column changes only with a hardware report made as [Reporting a machine](report.md) describes. A report that cannot name its image commit says so, as the one above does.
 
 A machine is listed by its chips and their ids, never by brand or model.
+
+## See also
+
+- [Reporting a machine](report.md)
+- [Drivers](../drivers/README.md)
+- [Input drivers](../drivers/input/README.md)
+- [Audio](../drivers/audio.md)
+- [Installation requirements](../install/requirements.md)
+- [Tests and proofs](../contributing/tests-and-proofs.md)
