@@ -54,3 +54,13 @@ Read from the code on this commit, `net.core` takes no received frame from the e
 3. From then on `net.core` asks that card only for batches. It reads each snapshot as a batch, finds that the frame count does not match the body, and drops it with the line `[NET-CORE] rx batch unreadable, dropped` (`userland/capsule_net_core/src/device/rx_batch.rs:63-68`, `batch_frames`; `userland/capsule_net_core/src/device/batch_frames.rs:26-35`, `batch_frames`).
 
 Transmit uses operation 4 and is not touched, but with no frame received, DHCP gets no lease through these drivers. The virtio driver serves real batches (`userland/capsule_driver_virtio_net/src/protocol/ops.rs:25`, `OP_RX_BATCH`). The Wi-Fi drivers do not answer operation 6 with status 0, so `net.core` falls back to operation 5 for them.
+
+## Behaviour every PCI driver shares
+
+- The kernel starts `driver_e1000`, `driver_rtl8139` and `driver_rtl8169` on every boot of an image that carries them (`src/userspace/init/spawn_plan/drivers_nic.rs:17-21`, `spawn`). A driver whose chip is absent exits at once with `EXIT_ABSENT` (2) and claims nothing (`userland/libc/src/bringup/policy.rs:37-41`, `EXIT_ABSENT`).
+- A chip that is present but fails bring-up is tried 7 times, with a sleep starting at 100 ms and doubling up to 3.2 s, then the driver exits with `EXIT_GAVE_UP` (6) (`userland/libc/src/bringup/policy.rs:30-41`, `BRINGUP_ATTEMPTS`, `EXIT_GAVE_UP`).
+- No PCI Ethernet driver binds an interrupt: they all poll, and none of their masks holds Irq (`userland/capsule_driver_e1000/src/setup/sequence.rs:24-27`, `IMS`).
+- Each draws a new locally administered station address every boot instead of the address burned into the card, and fails closed without randomness (`userland/capsule_driver_e1000/src/init/station_address.rs:22-31`, `draw`).
+- When the bound link goes down and comes back, `net.core` asks DHCP for the lease again (`userland/capsule_net_core/src/iface/relink.rs:40-47`, `Change::Returned`).
+
+The USB drivers differ on the address: they take the adapter's own and hold no Crypto capability to draw one; see [USB networking](usb-net.md).
