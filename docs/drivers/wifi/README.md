@@ -135,3 +135,7 @@ After one join succeeds, autojoin is done for that boot (`userland/capsule_net_c
 ## Which images carry them
 
 The full image, the one `make` builds, adds both Wi-Fi drivers to the desktop (`Cargo.toml:627-638`, `microkernel-full-gui`). The `qemu` profile builds the desktop without them (`tools/nix/config.nix:94-98`, `qemu`), and the air-gapped profile drops every network driver (`tools/nix/config.nix:86-93`, `networkFeatures`). The hardened profile keeps them but drops the serial console for capsules, so neither driver writes a log line there (`tools/nix/config.nix:78-85`, `debugFeatures`).
+
+## Firmware and its licence
+
+Both drivers link their firmware into the capsule with `include_bytes!`, so no filesystem access is needed at boot (`userland/capsule_driver_rtl8821ce/src/fwload.rs:38`, `include_bytes`). The files sit in [nonos-bootloader/firmware/realtek/](../../../nonos-bootloader/firmware/realtek/) and [nonos-bootloader/firmware/intel/](../../../nonos-bootloader/firmware/intel/). They are vendor binaries from the linux-firmware project, not AGPL code. Their licences allow binary redistribution without modification, with the notice kept, and forbid reverse engineering: read [the Realtek licence](../../../nonos-bootloader/firmware/realtek/LICENSE) and [the Intel licence](../../../nonos-bootloader/firmware/intel/LICENSE).
