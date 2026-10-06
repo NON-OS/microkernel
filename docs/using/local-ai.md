@@ -110,3 +110,7 @@ A model is kept on the data volume. The kernel seals every sector of it with Cha
 - A download that stops keeps what came: a mark `<name>.partial` is saved every 64 MiB (`MARK_EVERY` in `src/fs/blockfs_volume/import_feed/live.rs:35`), and the next `qwen get` goes on from there.
 - On an installed NONOS the volume is on the disk. On a live boot it is held in memory and gone at power off, and it grows only while more than the larger of 1 GiB and a quarter of memory is free (`reserve` in `src/fs/cryptoblock/ram.rs:55-59`).
 - The fetcher can write to the volume but holds no FileSystem capability, so it cannot read what the volume holds.
+
+## What reads a model file
+
+`qwenchat` reads a model with llama.cpp's own GGUF loader, inside the Linux personality. Only a file whose SHA-256 is the pin reaches it. The strict GGUF header reader in `userland/nonos_gguf` is used by no capsule in this release.
