@@ -93,3 +93,12 @@ Three calls work on another process's mask. `sys_cap_grant` needs `Admin`, and t
 
 - The `[token]` section of `abi/caps.toml` does not describe the kernel's token: `id_bytes` and `mac_bytes` say 32, while `CapabilityToken` holds a `u64` `token_id` and a 64-byte `signature` (`abi/caps.toml:58-65`, `src/capabilities/token/types/defs.rs:22-32`), which `sign_token` fills with `mac64` (`src/capabilities/token/sign.rs:24-31`). The `algo` the `[mac]` section publishes is `sha3-256` (`abi/caps.toml:67-70`). The `mac64` the kernel computes is two keyed BLAKE3 hashes (`src/capabilities/token/material.rs:41-51`).
 - `check_caps_abi.py` checks bit values, and `read_abi` collects every name a group or delegation line uses, each of which must be a published bit (`scripts/check_caps_abi.py:71-81`). Which capabilities a group should hold is policy, and no script judges it.
+
+## See also
+
+- [The NONOS ABI](README.md)
+- [Syscalls](syscalls.md)
+- [Kernel capabilities](../kernel/capabilities.md)
+- [Manifests and capabilities](../userland/manifests-and-capabilities.md)
+- [Capsule isolation](../security/capsule-isolation.md)
+- [abi/caps.toml](../../abi/caps.toml)
