@@ -4,4 +4,10 @@
 #[path = "../../../capsule_driver_virtio_blk/src/queue/layout.rs"]
 mod layout;
 
+#[path = "../../../capsule_driver_virtio_blk/src/queue/used.rs"]
+mod used;
+
 pub use layout::Queue;
+
+#[cfg(test)]
+mod idle_tests;

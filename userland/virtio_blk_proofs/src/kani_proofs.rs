@@ -7,6 +7,7 @@ use crate::constants::{MAX_SECTORS_PER_REQUEST, SECTOR_SIZE};
 use crate::protocol::{decode_request, read_u32_le, read_u64_le, Request, RW_HEADER_LEN};
 use crate::queue::Queue;
 use crate::regs::Regs;
+use crate::transport::Transport;
 use crate::server::{read::parse_read, write::parse_write};
 use crate::setup::Driver;
 
@@ -25,7 +26,7 @@ fn driver(capacity: u64) -> Driver {
             data_len: 0,
             last_used: 0,
         },
-        regs: Regs::mmio(0),
+        transport: Transport::Legacy(Regs::mmio(0)),
         capacity_sectors: capacity,
     }
 }
@@ -124,20 +125,20 @@ fn decode_is_total_and_header_faithful() {
     }
 }
 
-// For every op, sender and attestation verdict: a mutating operation passes
-// only for the kernel client or the may_write installer, and nothing else is
-// ever refused.
+// For every op, sender and StoreWrite verdict: the medium, reads included,
+// is served only to the kernel client or a StoreWrite holder, and a health
+// check is never refused.
 #[kani::proof]
-fn write_authority_is_exactly_the_kernel_or_the_installer() {
-    use crate::protocol::{OP_FLUSH, OP_WRITE_BLOCKS};
+fn medium_authority_is_exactly_the_kernel_or_a_storewrite_holder() {
+    use crate::protocol::OP_HEALTHCHECK;
     use crate::server::acl::rule::allows;
     let op: u16 = kani::any();
     let pid: u32 = kani::any();
     let may_write: bool = kani::any();
     let verdict = allows(op, pid, may_write);
-    if op == OP_WRITE_BLOCKS || op == OP_FLUSH {
-        assert_eq!(verdict, pid == 0 || may_write);
-    } else {
+    if op == OP_HEALTHCHECK {
         assert!(verdict);
+    } else {
+        assert_eq!(verdict, pid == 0 || may_write);
     }
 }
