@@ -98,3 +98,15 @@ The install role also installs Alpine, Debian and pacman packages. A name with `
 - `/tmp`, `/dev/shm`, `/home`, `/root`, `/run` and `/var/tmp` are private to the family: they live under `/linux-private/` and a random id, outside every family's tree, and are cleared at the end (`userland/capsule_linux/src/linux/file/private/names.rs:17-56`, `PRIVATE`).
 - Those private directories hold at most 16 MiB and 128 names together, `ENOSPC` past either, because they live in the store every capsule shares (`userland/capsule_linux/src/linux/file/system/declared/sizes.rs:55-69`, `PRIVATE_NAMES`).
 - A guest is told it has one CPU, a pid maximum of 32768, 100 clock ticks a second and 64 KiB pipes (`userland/capsule_linux/src/linux/file/system/declared/sizes.rs:23-41`, `PIPE_MAX`).
+
+## Networking
+
+In this release a guest cannot reach the network. A guest is started only by the personality's base instance and its run and terminal roles, and none of them holds Network (`src/userspace/capsule_linux/spawn.rs:39-53`, `LINUX_CAPS`; `src/userspace/capsule_linux/roles.rs:46-67`, `extra_caps`). The install role does hold it, but it is only ever spawned to install or remove a package, which the personality does itself without starting a guest (`src/userspace/capsule_linux/install.rs:32-45`, `spawn_install`; `userland/capsule_linux/src/linux/start.rs:31-52`, `install_request`). The kernel therefore refuses every call the personality makes to `net.sockets` or `net.anon` on a guest's behalf.
+
+The rules the personality applies before that point:
+
+- A guest binds and listens only on 127.0.0.0/8, which reaches nothing outside its family; anything else is `EACCES`. A datagram to outside the family is `ENETUNREACH`. A raw internet socket is `EPERM`, and any family but `AF_INET` and `AF_UNIX` is `EAFNOSUPPORT` (`userland/capsule_linux/src/linux/net/policy.rs:17-62`, `not_loopback`; `userland/capsule_linux/src/linux/net/socket.rs:45-48`, `EAFNOSUPPORT`).
+- A stream to outside the family is sent by the system's default network. Anyone goes to `net.anon`; Nym, or a default that cannot be read, goes to the mixnet socket of `net.sockets`; Direct also goes to the mixnet, because a guest is never given a direct socket (`userland/capsule_linux/src/linux/net/guest_route.rs:51-61`, `path`). A chosen network that is not running is `ENETUNREACH`, and nothing else is tried.
+- A family that holds a model gets no internet socket at all, `EACCES`, and a model is not opened while an internet socket is (`userland/capsule_linux/src/linux/net/offline.rs:36-44`, `refuse_inet`).
+
+The network choices themselves are explained on [Privacy networks](../using/privacy-network.md).
