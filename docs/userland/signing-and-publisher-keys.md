@@ -95,3 +95,21 @@ The market service `market.index` holds the signed catalogue and answers what is
 The catalogue format lives in `marketplace_abi`. A publisher signs a release under the domain `NONOS.marketplace.release.v2` (`userland/marketplace_abi/src/codec/release_signing.rs:27`, `RELEASE_SIGNING_DOMAIN`). A catalogue holds at most 1024 entries of at most 64 releases each, and a blob over 2 MiB is refused before it is parsed (`userland/marketplace_abi/src/limits.rs:26-41`, `MAX_INDEX_BLOB`). The `market_proofs` host tests, 62 of them, passed on this commit.
 
 Installing goes through the kernel. `MkAppInstall` needs AppInstall (`abi/syscalls.toml:732-736`, `MAIN`). A capsule read from the [store](../overview/glossary.md#store) is started with `MkCapsuleLoad`, which runs the same spawn path as a capsule in the kernel image, and takes its service name and endpoints from the signed manifest, never from the caller (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:26-33`, `load_capsule_from_vfs`). The call itself needs only CoreExec, IPC and Memory, which every app holds (`abi/syscalls.toml:538-541`, `MCLD`): what the loaded capsule may do is fixed by its own manifest and proof, not by its caller. How a person uses this is in [Marketplace](../using/marketplace.md).
+
+## What the kernel refuses
+
+The certificate is checked first. It is refused when its trust anchor epoch is older than the policy's, its serial or NONOS ID is revoked, or the clock is outside its validity window (`src/security/nonos_id_cert/verify/checks.rs:22-45`, `EpochStale`), and when either trust anchor signature fails. The window is checked only for a capsule loaded from the store, and only once the wall clock has been set from the RTC or firmware (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/validity_clock.rs:20-29`, `validity_now_ms`). A capsule in the kernel image is spawned with no clock at all, so its window is never checked; the signatures always are (`src/userspace/capsule_hello/spawn.rs:55`, `spawn_verified`).
+
+The manifest checks follow; [Manifests and capabilities](manifests-and-capabilities.md) lists them in order. Then the trailer: an empty trailer or one that does not verify refuses the capsule and puts a `[ZK-ATTEST]` line on the serial log (`src/kernel_core/process_spawn/capsule_spawn/runner/attest_gate.rs:23-34`, `attest_gate`).
+
+For a capsule loaded from the store, `MkCapsuleLoad` answers with an errno:
+
+| Answer | When |
+|---|---|
+| `-EINVAL` | an artifact is empty or over 16 MiB, the manifest does not decode, or it declares no service or no reply endpoint |
+| `-EEXIST` | a live instance already holds the service or reply [endpoint](../overview/glossary.md#endpoint) |
+| `-EACCES` | the certificate, the manifest, a signature, the trailer or the [boot profile](../overview/glossary.md#boot-profile) refused it, or the spawn failed after the checks, for example loading the ELF |
+| `-EFAULT` | a pointer in the request is not readable user memory |
+| `-ENOMEM` | the kernel heap cannot hold an artifact |
+
+The size limit is `MAX_ARTIFACT` (`src/syscall/microkernel/capsule_load/copy.rs:22`), the missing endpoint case is `endpoint` (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/endpoint.rs:20-26`), and the mapping from loader errors is `load_errno` (`src/syscall/microkernel/capsule_load/errno.rs:26-31`).
