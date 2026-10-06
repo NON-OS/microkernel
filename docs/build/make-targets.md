@@ -73,3 +73,33 @@ make usb DISK=/dev/sdX
 Not tested in this release.
 
 Without `DISK`, `make usb` prints the path of the sealed image, or says there is none, and stops. With it, the target says the disk will be overwritten and asks you to type the disk path a second time; on a mismatch it writes nothing. On Linux it writes with `sudo dd` and `conv=fsync`; on macOS it unmounts the disk, writes to the raw `rdisk` device and ejects it (`USB_IMG`, `Makefile:107-122`). Every byte on that disk is lost. [Write a USB stick](../install/usb-stick.md) walks through it.
+
+## Options of a QEMU boot
+
+`make boot`, `make dev-boot` and `nix run .#qemu` run the QEMU runner in `tools/nonos_qemu`. Pass options after `--`, or through `QEMU_ARGS` (`args`, `tools/nonos_qemu/__main__.py:50-72`):
+
+| option | what it does |
+|---|---|
+| `--profile P` | boots the image sealed for `P`; without it, the only image under `target/release` |
+| `--image PATH` | boots this disk image instead of a sealed one |
+| `--tpm` | attaches a software TPM 2.0 |
+| `--fresh` | starts the data disk again from the image, and the TPM with it |
+| `--stick` | boots the sealed stick alone, with no data volume |
+| `--usb` | with `--stick`, plugs the stick into the USB controller as mass storage |
+| `--model TIER` | lays a Qwen tier on a new data disk; `auto` picks the tier setup would pick for `--mem` |
+| `--smp N` | CPUs; the default is 8, or every core of the host when it has fewer |
+| `--mem SIZE` | memory, `8G` by default |
+| `--net nat` or `--net off` | user mode networking, or none; `nat` is the default |
+| `--install-target` | attaches a blank 8 GiB NVMe disk with the serial `NONOS-TARGET` |
+| `--installed` | boots that NVMe disk alone |
+| `--headless` | no window; the serial console goes to `--serial`, by default `target/qemu/serial.log` |
+| `--timeout N` | stops a headless boot after `N` seconds |
+| `--expect PATTERN` | a pattern the serial console must show; repeat it for more |
+
+The machine is a q35 with UEFI firmware, a virtio VGA at 1920 by 1080, a USB controller, a virtio RNG, a virtio network card when `--net nat`, the TPM on a CRB interface when `--tpm`, and Intel HD Audio (`devices`, `tools/nonos_qemu/machine.py:91-103`). The blank install disk is `INSTALL_TARGET_GB` gibibytes (`tools/nonos_qemu/machine.py:23`).
+
+A boot runs from the [ESP](../overview/glossary.md#esp), copied out of the image into a folder QEMU serves as a FAT drive, and from a virtio data disk that carries the [package store](../overview/glossary.md#package-store). The data disk, and the encrypted volume on it, is kept from one boot to the next; an image with another path or another modification time, or `--fresh`, starts it again (`needs_copy`, `tools/nonos_qemu/disk.py:53-62`). The software TPM's state is kept as well, and a new TPM cannot open a volume an earlier TPM made, so the runner warns when that happens (`made`, `tools/nonos_qemu/__main__.py:133-139`).
+
+`--model auto` takes the largest Qwen3 tier whose file, plus a fifth, plus 512 MiB for the runtime, fits in the memory less 1 GiB (`fits`, `tools/nonos_qemu/disk.py:128-142`). The runner fetches the tier's pinned files once into `target/models/files`, checks them against their pins, and lays them only on a new data disk (`lay_models`, `tools/nonos_qemu/disk.py:154-163`). Fetching needs the network.
+
+With `--headless --timeout N`, a boot passes when every `--expect` pattern appears on the serial console before the deadline. With no pattern, a boot still running at the deadline passes and one that stopped fails (`watch`, `tools/nonos_qemu/__main__.py:88-106`).
