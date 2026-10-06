@@ -118,3 +118,9 @@ Once a program has opened a Qwen model, its family gets no internet socket in an
 
 - Setup's app list has a `Linux and Qwen` switch. When it is off, the kernel refuses `tool.linux`, `tool.qwen` and `tool.model-fetch` with EACCES (`tool_off` in `src/userspace/init/app_choice/names.rs:57-58`), and the Terminal prints `linux: the kernel refused to start it`. Safe Mode turns every optional app off for the boot, and Recovery keeps only Files and the text editor beside the Terminal and Settings (`BootProfile` in `src/userspace/init/app_choice/profile.rs:41-42`).
 - `linux: not installed in this build` means the image has no Linux personality.
+
+## Hardware report
+
+`sh`, `python3`, `sqlite3` and `john`: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+The host tests of the personality pass on this commit: `capsule_linux_proofs` (369 tests) and `terminal_line_proofs` (247).
