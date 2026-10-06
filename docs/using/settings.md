@@ -121,3 +121,9 @@ The panel shows no "signed" badge: Settings cannot check the image's signature i
 | Row | What it changes |
 |---|---|
 | `Preemptive scheduling` | Whether the timer ends a program's turn, so none can hold the processor. The policy store passes the change to the kernel (`on_bool_set` in `userland/capsule_policy/src/push/on_bool_set.rs`). |
+
+## What Settings does not have
+
+- No keyboard layout row. The layout is chosen at first boot and cycled with `Ctrl+Alt+Space`; see [Keyboard layouts](keyboard-layouts.md). The policy store has the field, but Settings does not list it (`ALL_FIELDS` in `userland/capsule_settings/src/settings/schema/all_fields.rs`).
+- No switch to turn back on an app turned off at setup. That field is not in `ALL_FIELDS` either.
+- No shutdown or restart. The desktop has no way to power off in this release.
