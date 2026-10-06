@@ -16,8 +16,9 @@
 
 // Path helpers for the VFS backend: read the process working directory
 // (MGCW), turn a std Path into the service's length-checked byte form
-// (joining a relative path onto the cwd so chdir takes effect), and build
-// the pid+path request body most operations start from.
+// (joining a relative path onto that kernel-held directory; std's own chdir
+// is unsupported in the PAL, so std cannot change it), and build the
+// pid+path request body most operations start from.
 
 use super::err::err;
 use super::syscall::{sys3, tag4};
