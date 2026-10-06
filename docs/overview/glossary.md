@@ -39,3 +39,7 @@ A committed list or count of the known sites of something the tree should not ha
 ## Boot stop
 
 The kernel's controlled stop when a boot step cannot go on: a `[FATAL]` line naming the step on the serial console, a NONOS BOOT STOPPED band on the panel when a framebuffer is reachable, then a halt loop on the CPU that stopped. Explained in [Panic and boot stop](../kernel/panic-and-boot-stop.md#a-boot-step-fails). Code: `src/boot/stop.rs`.
+
+## Boot-root record
+
+The 104-byte file `boot_root.approval` on the ESP: the bootloader tree's root and an epoch, signed with the device policy key, ECDSA P-256. The kernel holds the loader's measurement, taken from the firmware's PCR 4 log, to that root and, on a measured boot, the epoch to the rollback floor. Explained in [Measured boot and the TPM](../security/measured-boot-and-tpm.md#the-kernel-checks-its-loader). Code: `nonos-boot-measure/src/record/mod.rs`.
