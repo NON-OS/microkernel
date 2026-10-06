@@ -29,6 +29,13 @@
 
 use crate::syscall::microkernel::errnos::ERRNO_NOSYS;
 
+#[path = "foreign_absent_peer.rs"]
+mod peer;
+#[path = "foreign_absent_query.rs"]
+mod query;
+pub use peer::*;
+pub use query::*;
+
 pub fn sys_foreign_spawn(_name_ptr: u64, _name_len: u64) -> i64 {
     ERRNO_NOSYS
 }
@@ -45,7 +52,7 @@ pub fn sys_foreign_reply(_pid: u64, _value: u64) -> i64 {
     ERRNO_NOSYS
 }
 
-pub fn sys_foreign_thread(_pid: u64, _entry: u64, _rsp: u64, _tls: u64) -> i64 {
+pub fn sys_foreign_thread(_pid: u64, _entry: u64, _rsp: u64, _tls: u64, _tid: u64) -> i64 {
     ERRNO_NOSYS
 }
 
@@ -54,26 +61,6 @@ pub fn sys_foreign_fork(_pid: u64, _rsp: u64) -> i64 {
 }
 
 pub fn sys_foreign_exec(_pid: u64, _entry: u64, _rsp: u64) -> i64 {
-    ERRNO_NOSYS
-}
-
-pub fn sys_peer_map(_pid: u64, _addr: u64, _len: u64, _prot: u64) -> i64 {
-    ERRNO_NOSYS
-}
-
-pub fn sys_peer_copy(_pid: u64, _guest_addr: u64, _buf: u64, _len: u64, _to_guest: u64) -> i64 {
-    ERRNO_NOSYS
-}
-
-pub fn sys_peer_protect(_pid: u64, _addr: u64, _len: u64, _prot: u64) -> i64 {
-    ERRNO_NOSYS
-}
-
-pub fn sys_peer_tls(_pid: u64, _base: u64) -> i64 {
-    ERRNO_NOSYS
-}
-
-pub fn sys_peer_unmap(_pid: u64, _addr: u64, _len: u64) -> i64 {
     ERRNO_NOSYS
 }
 

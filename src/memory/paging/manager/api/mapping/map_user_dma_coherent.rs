@@ -43,7 +43,7 @@ pub fn map_user_dma_coherent(
     write_combining: bool,
 ) -> PagingResult<()> {
     let base = PagePermissions::USER | PagePermissions::READ | PagePermissions::WRITE;
-    let permissions = if write_combining && crate::arch::x86_64::pat::wc_ready() {
+    let permissions = if write_combining && crate::arch::write_combining::write_combining_ready() {
         base | PagePermissions::WRITE_THROUGH
     } else {
         base | PagePermissions::NO_CACHE | PagePermissions::WRITE_THROUGH
