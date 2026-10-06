@@ -78,3 +78,11 @@ make nonos-mk-run QEMU_NET_MODE=nat
 Not tested in this release.
 
 The flake check `proofs-virtio_net_proofs` passed with 20 tests on this commit.
+
+## Which image carries which driver
+
+- The desktop base, which every desktop image builds on, carries virtio-net (`mk/20-build.mk:1095-1098`, `DESKTOP_BASE_SLUGS`).
+- The full image that `make` builds adds e1000, RTL8139 and RTL8169, with the two Wi-Fi drivers (`Cargo.toml:627-638`, `microkernel-full-gui`).
+- The air-gapped profile drops every network driver and the whole stack (`tools/nix/config.nix:86-93`, `networkFeatures`).
+- `nonos-mk-ethernet-prod` builds the desktop with the three wired drivers (`mk/20-build.mk:1145-1155`, `ETHERNET_DRIVER_ARTIFACTS`). No QEMU run target attaches an e1000 or RTL8139 device, so this release has no QEMU run for them.
+- The build includes the capsule makefiles of virtio-net, e1000, RTL8139 and RTL8169 and of no other Ethernet driver (`mk/20-build.mk:532-542`, `capsule_driver_e1000`). The e1000e, igc and USB capsules are therefore in no image.
