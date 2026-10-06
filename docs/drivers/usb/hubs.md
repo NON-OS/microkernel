@@ -32,3 +32,9 @@ Hubs are handled by the USB HID [capsule](../../overview/glossary.md#capsule), `
 6. Each port is tried three times, then left alone until its device is unplugged (`userland/capsule_driver_usb_hid/src/orchestrator/enumerate/scan_hub.rs:42-48`, `TRIES`).
 
 The driver has words for both refusals: `the controller driver was not told this is a hub (op 0x21 refused); low and full speed devices below it will not work` and `the controller driver cannot address a device behind a hub yet (op 0x20 refused)` (`userland/capsule_driver_usb_hid/src/hub/error.rs:51-53`, `E_INVAL`). It writes them as `[usb-hub]` lines with `mk_debug` (`userland/capsule_driver_usb_hid/src/hub/say.rs:57-60`, `say`). The kernel grants `driver.usb_hid0` only IPC, Memory and InputSource, no Debug (`src/userspace/capsule_driver_usb_hid/spawn.rs:51-53`, `requested_caps`), so these lines do not reach the console in this release, and a hub with a device behind it fails silently.
+
+## What is ready for the routed step
+
+The class side is written and tested on the host. The route string has one 4-bit field per tier, so a device can sit at most five hubs deep (`userland/capsule_driver_usb_hid/src/hub/route.rs:24-45`, `child_route`). A 4-bit field cannot name a hub port past 15, so those ports are left alone (`userland/capsule_driver_usb_hid/src/hub/descriptor.rs:26-29`, `MAX_HUB_PORTS`). A low or full speed device behind a high-speed hub gets that hub's transaction translator, and a multi-TT hub runs single-TT (`userland/capsule_driver_usb_hid/src/hub/route.rs:47-65`, `child_tt`; `userland/capsule_driver_usb_hid/src/xhci/ops/configure_hub.rs:26-29`, `MTT`).
+
+What is missing is the xHCI side: writing the route string, the speed and the transaction translator into the slot context for ops 0x20 and 0x21 (`userland/capsule_driver_usb_hid/src/xhci/ops/address_routed.rs:17-25`, `OP_ADDRESS_ROUTED`).
