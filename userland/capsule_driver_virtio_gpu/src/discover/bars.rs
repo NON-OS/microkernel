@@ -13,25 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::mmio::RegisterGrant;
-use crate::discover::Found;
-use nonos_libc::{mk_irq_bind, IrqBindOut, MK_IRQ_BIND_MSIX};
-pub fn bind(
-    dev: Found,
-    claim_epoch: u64,
-    _registers: RegisterGrant,
-) -> Result<IrqBindOut, &'static str> {
-    let mut out = IrqBindOut { grant_id: 0, vector: 0 };
-    if dev.irq_line == 0 || dev.irq_line == 0xFF {
-        return Ok(out);
+
+use nonos_libc::{DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO};
+use nonos_virtio::{BarInfo, Bars};
+
+/// The broker's BAR list in the shared transport's terms.
+pub(super) fn bars(r: &DeviceRecord) -> Bars {
+    let mut out = [BarInfo::ABSENT; 6];
+    for (slot, bar) in out.iter_mut().zip(r.bars.iter()) {
+        *slot = match bar.kind {
+            BAR_KIND_MMIO => BarInfo::mmio(bar.size),
+            BAR_KIND_PIO => BarInfo::io(bar.size),
+            _ => BarInfo::ABSENT,
+        };
     }
-    let intx = mk_irq_bind(dev.device_id, claim_epoch, dev.irq_line as u32, 0, 0, &mut out);
-    if intx >= 0 {
-        return Ok(out);
-    }
-    let msix = mk_irq_bind(dev.device_id, claim_epoch, 0, MK_IRQ_BIND_MSIX, 1, &mut out);
-    if msix >= 0 {
-        return Ok(out);
-    }
-    Ok(out)
+    out
 }

@@ -14,61 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::read::{u32_at, u8_at};
+//! Where the modern structures live, from the vendor capabilities.
+//!
+//! The walk used to read every field of every vendor capability through a
+//! config read each, let the last capability of a type win, read the notify
+//! multiplier whatever the capability's length, and take a region in any
+//! BAR the capability named. It now reads config space once and hands it to
+//! the parse the other virtio drivers use (`nonos_virtio::caps`), proved in
+//! virtio_transport_proofs: the first usable capability of each type wins,
+//! cap_len is checked before a field past it is read, a capability naming
+//! an absent, I/O or out-of-range BAR, a range past its BAR, or the pages
+//! of the MSI-X table is skipped, pointers below 0x40 end the walk, and the
+//! walk stops after 48 capabilities or on a loop.
+
+use nonos_virtio::{parse, ConfigSpace};
+
+use super::broker::LibcBroker;
 use super::types::{ModernCaps, Region};
+use crate::discover::Found;
 
-const CAP_PTR: u32 = 0x34;
-const PCI_CAP_VENDOR: u8 = 0x09;
-const CFG_COMMON: u8 = 1;
-const CFG_NOTIFY: u8 = 2;
-const CFG_DEVICE: u8 = 4;
-
-pub fn read(device_id: u64, epoch: u64) -> Result<ModernCaps, &'static str> {
-    let mut common = None;
-    let mut notify = None;
-    let mut device = None;
-    let mut multiplier = 0;
-    let mut ptr = u8_at(device_id, epoch, CAP_PTR)? as u32 & 0xFC;
-    for _ in 0..48 {
-        if ptr < 0x40 {
-            break;
-        }
-        scan_one(device_id, epoch, ptr, &mut common, &mut notify, &mut device, &mut multiplier)?;
-        ptr = u8_at(device_id, epoch, ptr + 1)? as u32 & 0xFC;
-    }
+pub fn read(dev: &Found, epoch: u64) -> Result<ModernCaps, &'static str> {
+    let mut broker = LibcBroker::new(dev.device_id, epoch);
+    let cfg = ConfigSpace::read(&mut broker).ok_or("virtio-gpu: pci config read failed")?;
+    let caps = parse(&cfg, &dev.bars);
     Ok(ModernCaps {
-        common: common.ok_or("virtio-gpu: common cfg missing")?,
-        notify: notify.ok_or("virtio-gpu: notify cfg missing")?,
-        device: device.ok_or("virtio-gpu: device cfg missing")?,
-        notify_multiplier: multiplier,
+        common: caps.common.map(region).ok_or("virtio-gpu: common cfg missing")?,
+        notify: caps.notify.map(region).ok_or("virtio-gpu: notify cfg missing")?,
+        device: caps.device.map(region).ok_or("virtio-gpu: device cfg missing")?,
+        notify_multiplier: caps.notify_multiplier,
     })
 }
 
-fn scan_one(
-    device_id: u64,
-    epoch: u64,
-    ptr: u32,
-    common: &mut Option<Region>,
-    notify: &mut Option<Region>,
-    device: &mut Option<Region>,
-    multiplier: &mut u32,
-) -> Result<(), &'static str> {
-    if u8_at(device_id, epoch, ptr)? != PCI_CAP_VENDOR {
-        return Ok(());
-    }
-    let region = Region {
-        bar: u8_at(device_id, epoch, ptr + 4)?,
-        offset: u32_at(device_id, epoch, ptr + 8)?,
-        length: u32_at(device_id, epoch, ptr + 12)?,
-    };
-    match u8_at(device_id, epoch, ptr + 3)? {
-        CFG_COMMON => *common = Some(region),
-        CFG_NOTIFY => {
-            *notify = Some(region);
-            *multiplier = u32_at(device_id, epoch, ptr + 16)?;
-        }
-        CFG_DEVICE => *device = Some(region),
-        _ => {}
-    }
-    Ok(())
+fn region(r: nonos_virtio::Region) -> Region {
+    Region { bar: r.bar, offset: r.offset, length: r.length }
 }

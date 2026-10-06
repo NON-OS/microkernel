@@ -25,8 +25,9 @@ impl Regs {
             notify: io,
             notify_offset: crate::constants::LEG_QUEUE_NOTIFY,
             notify_multiplier: 0,
+            notify_len: 2,
             device: io,
-            device_offset: 0,
+            device_offset: crate::constants::LEG_DEVICE_CFG,
         }
     }
 }

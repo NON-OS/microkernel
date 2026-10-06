@@ -17,6 +17,9 @@ use super::super::io::RegIo;
 use super::types::Regs;
 
 impl Regs {
+    /// The three regions. The notify region is unbounded until
+    /// `with_notify_len` says how much of it is mapped; the register grant
+    /// always does.
     pub const fn modern(
         common: u64,
         common_offset: usize,
@@ -32,8 +35,13 @@ impl Regs {
             notify: RegIo::Mmio(notify as *mut u8),
             notify_offset,
             notify_multiplier,
+            notify_len: usize::MAX,
             device: RegIo::Mmio(device as *mut u8),
             device_offset,
         }
+    }
+
+    pub const fn with_notify_len(self, notify_len: usize) -> Self {
+        Self { notify_len, ..self }
     }
 }

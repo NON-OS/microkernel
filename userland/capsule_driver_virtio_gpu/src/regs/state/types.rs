@@ -27,6 +27,9 @@ pub struct Regs {
     pub(in crate::regs) notify: RegIo,
     pub(in crate::regs) notify_offset: usize,
     pub(in crate::regs) notify_multiplier: usize,
+    /// Bytes of the notify region mapped from `notify_offset`, which every
+    /// doorbell must fall inside.
+    pub(in crate::regs) notify_len: usize,
     pub(in crate::regs) device: RegIo,
     pub(in crate::regs) device_offset: usize,
 }

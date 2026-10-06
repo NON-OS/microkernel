@@ -23,7 +23,6 @@ pub struct Driver {
     pub pci_device: u16,
     pub claim_epoch: u64,
     pub mmio_grant: u64,
-    pub irq_grant: u64,
     pub queue_grant: u64,
     pub queue_user_va: u64,
     pub queue_device_addr: u64,
