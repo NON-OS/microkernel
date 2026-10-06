@@ -115,3 +115,7 @@ Some handlers check again. `sys_cap_grant` asks for `Admin` once more and for ev
 - `MkCapGrant(pid, mask)` needs `Admin`, and the caller must hold every bit it grants (`src/syscall/microkernel/capability/handlers.rs:33-52`); `grant` then mints a new token with the bits added (`src/process/caps.rs:89-97`).
 - `MkCapRevoke(pid, mask)` needs `Admin`. `revoke` raises the target's revocation epoch and mints a token without the bits, so any copy of the old token fails `check_revocation_epoch` (`src/process/caps.rs:99-108`).
 - `MkCapCheck(pid, mask)`, served by `sys_cap_check`, returns 1 when that pid holds every bit of the mask and 0 otherwise; it needs only a valid token, so any capsule may ask about any pid (`src/syscall/microkernel/capability/handlers.rs:68-74`).
+
+## Groups and delegation in the ABI file
+
+`abi/caps.toml` also names four groups, `BASIC`, `SERVICE`, `OPER` and `GRAPHICS_SERVICE`, which the file describes as the masks real capsules in this tree are spawned with (`abi/caps.toml:43-56`), and a `[delegation]` table of what one group may hand to another, such as `OPER_to_SERVICE` (`abi/caps.toml:72-78`). These are published policy. The kernel does not read them, and the syscall check calls only the five checks above.
