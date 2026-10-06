@@ -15,43 +15,41 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::arch::trap::contract::cause::{FaultAccess, PageFaultInfo, TrapCause};
-use crate::sys::serial::{print_hex, print_str};
+use crate::sys::serial::Line;
 
 pub(super) fn report(cause: &TrapCause) {
+    let mut line = Line::new();
+    line.str(b"[TRAP] ");
     match cause {
-        TrapCause::PageFault(info) => page_fault(info),
+        TrapCause::PageFault(info) => page_fault(&mut line, info),
         TrapCause::ProtectionFault { error_code }
         | TrapCause::StackSegment { error_code }
         | TrapCause::SegmentNotPresent { error_code }
         | TrapCause::InvalidTss { error_code }
         | TrapCause::ControlProtection { error_code }
         | TrapCause::DoubleFault { error_code } => {
-            print_str("  ESR=");
-            print_hex(*error_code);
-            print_str("\n");
+            line.str(b"esr=").hex(*error_code);
         }
         TrapCause::OtherException(ec) => {
-            print_str("  EC=");
-            print_hex(*ec as u64);
-            print_str("\n");
+            line.str(b"ec=").hex(u64::from(*ec));
         }
-        _ => {}
+        _ => return,
     }
+    line.end_fatal();
 }
 
-fn page_fault(info: &PageFaultInfo) {
-    print_str("  FAR=");
-    print_hex(info.fault_address);
-    print_str(access_label(info.access));
-    print_str(if info.present { " present" } else { " not-present" });
-    print_str(if info.user { " EL0" } else { " EL1" });
-    print_str("\n");
+fn page_fault(line: &mut Line, info: &PageFaultInfo) {
+    line.str(b"far=")
+        .hex(info.fault_address)
+        .str(access_label(info.access))
+        .str(if info.present { b" present" } else { b" not-present" })
+        .str(if info.user { b" EL0" } else { b" EL1" });
 }
 
-fn access_label(access: FaultAccess) -> &'static str {
+fn access_label(access: FaultAccess) -> &'static [u8] {
     match access {
-        FaultAccess::Read => " read",
-        FaultAccess::Write => " write",
-        FaultAccess::InstructionFetch => " ifetch",
+        FaultAccess::Read => b" read",
+        FaultAccess::Write => b" write",
+        FaultAccess::InstructionFetch => b" ifetch",
     }
 }
