@@ -34,3 +34,14 @@ So on a machine with a TPM:
 - There is no way back to an older release on that machine once the floor has passed its index.
 
 Without a TPM the loader keeps no floor, notes `No TPM: rollback protection is off`, and an older signed kernel boots (`nonos-bootloader/src/boot/crypto/rollback/floor.rs`).
+
+## Firmware changes and the data volume
+
+The data volume's key and the key that seals remembered Wi-Fi networks are derived by the TPM under the boot PCRs 0, 4, 7 and 9: the firmware code, the boot manager the firmware measured, the Secure Boot policy, and the kernel the loader measured (`BOUND_PCRS` in `src/security/tpm/machine_key/pcrs.rs`). Nothing of the key is stored, so a change to any of these gives another key:
+
+- after a firmware update, or after turning Secure Boot on or off, the installed data volume stays closed and remembered networks read `Sealed under a different boot state`;
+- a newer kernel opens no volume an older one made, by design (`tools/nonos_qemu/__main__.py`).
+
+The kernel never formats over a volume it cannot open: it logs `[DATA] the volume holds data this key cannot open; not formatting over it` and leaves it (`src/fs/blockfs_volume/mount_or_format.rs`). Putting the firmware and the Secure Boot setting back the way they were gives the old key back. Clearing the TPM changes the seed these keys come from, and every such key with it, for good (`src/security/tpm/machine_key/mod.rs`).
+
+A reinstall is not affected: the installer clears the key header and the volume's header ring, so the new system makes a new volume on its first boot.
