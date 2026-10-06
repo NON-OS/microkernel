@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,22 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::chips::{chip_width, draw_chip};
 use super::layout::splash;
-use crate::display::gop::{get_dimensions, is_initialized};
+use crate::display::fx::clear_region;
+use crate::display::gop::is_initialized;
+use crate::display::ink::palette::{CYAN, TEXT_3, WARN};
+use crate::display::ink::{label, label_width, metrics, Style};
 
-const LABELS: [&[u8]; 3] = [b"SECURE BOOT", b"MEASURED", b"ATTESTED"];
+/// The three facts the splash keeps in view, as mono label and value pairs.
+/// The kernel's STARK reads verified only once the loader has checked it;
+/// before that it says so instead of claiming it. A development loader checks
+/// the kernel's Merkle path alone, and says that, never STARK.
+#[cfg(not(feature = "dev-attest"))]
+const KERNEL: &[u8] = b"KERNEL STARK";
+#[cfg(not(feature = "dev-attest"))]
+const VERIFIED: &[u8] = b"VERIFIED";
+#[cfg(feature = "dev-attest")]
+const KERNEL: &[u8] = b"KERNEL PATH";
+#[cfg(feature = "dev-attest")]
+const VERIFIED: &[u8] = b"DEV, NO STARK";
 
 pub fn draw_status_line(secure_boot: bool, measured: bool, attested: bool) {
     if !is_initialized() {
         return;
     }
-    let (w, _) = get_dimensions();
-    let total: u32 = LABELS.iter().map(|l| chip_width(l)).sum::<u32>() + 20;
-    let mut x = (w.saturating_sub(total)) / 2;
-    let y = splash().chips_y;
-    let states = [secure_boot, measured, attested];
-    for (label, on) in LABELS.iter().zip(states) {
-        x = draw_chip(x, y, label, on as u8 * 2);
+    let s = splash();
+    let facts: [(&[u8], &[u8], u32); 3] = [
+        (b"SECURE BOOT", if secure_boot { b"ON" } else { b"OFF" }, if secure_boot { CYAN } else { WARN }),
+        (b"TPM 2.0", if measured { b"MEASURING" } else { b"NOT FOUND" }, if measured { CYAN } else { WARN }),
+        (KERNEL, if attested { VERIFIED } else { b"NOT YET CHECKED" }, if attested { CYAN } else { TEXT_3 }),
+    ];
+    let line = metrics(Style::Mono).line + 2 * s.u;
+    clear_region(s.col_x, s.chips_y, s.col_w, line * 2);
+    let half = s.col_w / 2;
+    for (i, (name, value, color)) in facts.iter().enumerate() {
+        let (x, y) = (s.col_x + (i as u32 % 2) * half, s.chips_y + (i as u32 / 2) * line);
+        label(x, y, name, TEXT_3);
+        label(x + label_width(KERNEL) + 3 * s.u, y, value, *color);
     }
 }

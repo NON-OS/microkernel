@@ -14,25 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::bg::bg_at;
-use super::color::mix;
-use crate::display::gop::{get_dimensions, put_pixel};
+//! What the proofs panel reports on, as this boot established it.
 
-// Blend a translucent rect over the (known) atmosphere background, writing
-// each pixel once. No framebuffer reads, so it stays cheap on real hardware.
-pub fn blend_rect(x: u32, y: u32, w: u32, h: u32, color: u32, alpha: u32) {
-    let (fw, fh) = get_dimensions();
-    for dy in 0..h {
-        let py = y + dy;
-        if py >= fh {
-            break;
-        }
-        for dx in 0..w {
-            let px = x + dx;
-            if px >= fw {
-                break;
-            }
-            put_pixel(px, py, mix(bg_at(px, py, fw, fh), color, alpha));
-        }
-    }
+use crate::kernel_verify::CryptoVerifyResult;
+use crate::security::SecurityContext;
+
+/// The kernel's verification, the platform's switches, and the three regions
+/// the loader carries for the kernel's check of the loader. Each region is the
+/// bytes as read, `None` when the loader found none.
+pub struct Proofs<'a> {
+    pub crypto: &'a CryptoVerifyResult,
+    pub security: &'a SecurityContext,
+    pub tcg_log: Option<&'a [u8]>,
+    pub trailer: Option<&'a [u8]>,
+    pub record: Option<&'a [u8]>,
 }

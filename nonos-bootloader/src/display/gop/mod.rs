@@ -15,13 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod draw;
+mod edid;
+mod handle;
 mod init;
+mod latch;
+mod mode;
+mod offered;
+pub mod order;
+pub mod pick;
 mod read;
 mod report;
 pub mod state;
+mod try_init;
 
 pub use draw::{clear_screen, draw_rect, fill_rect, hline, put_pixel, vline};
+pub use handle::report_gop_handle;
 pub use init::init_gop;
+pub(crate) use edid::read_edid;
+pub(crate) use init::preferred_mode;
+pub(crate) use mode::linear_bgr;
 pub use read::get_pixel;
 pub use report::report_gop_mode;
 pub use state::{

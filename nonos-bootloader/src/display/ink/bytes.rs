@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,14 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Per-channel color interpolation, shared by the progress gradient.
-pub(crate) fn lerp(a: u32, b: u32, t: u32) -> u32 {
-    let mut out = 0xFF00_0000;
-    let mut s = 0u32;
-    while s < 24 {
-        let c = (((a >> s) & 0xFF) * (256 - t) + ((b >> s) & 0xFF) * t) / 256;
-        out |= (c & 0xFF) << s;
-        s += 8;
-    }
-    out
+/// `n` bytes of `b` from `at`, little-endian; None past the end.
+pub fn le(b: &[u8], at: usize, n: usize) -> Option<u32> {
+    let s = b.get(at..at.checked_add(n)?)?;
+    Some(s.iter().rev().fold(0u32, |v, &x| (v << 8) | x as u32))
 }

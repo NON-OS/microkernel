@@ -15,11 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod bg;
-mod blend;
-mod bloom;
 mod color;
 mod fill;
 
-pub use blend::blend_rect;
-pub use bloom::bloom_char;
+pub use color::mix;
 pub use fill::{clear_region, fill_atmosphere};
