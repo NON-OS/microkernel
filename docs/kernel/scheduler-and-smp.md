@@ -97,3 +97,9 @@ The switch happens only when the tick interrupted user mode, preemption is not d
 ## Sleep and wake
 
 A process sleeps until a deadline in milliseconds of elapsed time. `enter_sleep` takes the process's state lock, leaves the run queue, marks it sleeping and records the deadline, unless a wake arrived after the caller read its wake token (`src/process/scheduler/dispatch/sleep_enter.rs:45-58`). The tokens are `WAKE_SLOTS`, 1024 counters indexed by pid modulo 1024 (`src/process/scheduler/dispatch/wake_gen.rs:37-48`). Two pids that share a slot can only make a sleep end early, never let one sleep through a wake. Every tick, `check_sleeping_processes` wakes up to 64 sleepers whose deadline has passed (`src/process/scheduler/dispatch/sweep.rs:23-51`). The [futex](futex.md) is built on this.
+
+## Shootdowns and stopping the other CPUs
+
+A TLB shootdown is how a CPU that changed a page table makes the others drop the old translation. A round that is still unanswered after `SHOOTDOWN_WARN_MS`, 50 ms, is sent again as an NMI; after `SHOOTDOWN_TIMEOUT_MS`, 2000 ms, the machine stops (`src/memory/paging/manager/shootdown/request.rs:32-35`). A stale translation could reach freed memory, so the kernel does not carry on past that point.
+
+To stop the machine for a panic, `send_panic_ipi` sends every other CPU an NMI, which reaches a CPU even while it spins with interrupts masked (`src/smp/panic_ipi.rs:26-31`). See [panic and boot stop](panic-and-boot-stop.md).
