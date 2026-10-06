@@ -73,3 +73,35 @@ A send straight to a process's inbox by pid (`MkIpcSendToPid`) must pass the gat
 The kernel names the sender. `IpcMessage::new` is given `proc.<pid>` of the calling process (`src/syscall/microkernel/ipc/send_to_pid.rs:68-70`), so a service can trust the sender's pid rather than a pid written in the payload. The keyring relies on this; see [Device secrets and keys](device-secrets-and-keys.md).
 
 Keystrokes have their own rule. Driver capsules hold `Irq`, and `can_input_source` accepts `Irq` so drivers can post events, but draining the input ring, or blocking until it has events, needs `can_input_consumer`, which accepts only `InputSource` or `Admin` (`src/syscall/contract/cap_table/mk.rs:190-200`). A driver capsule cannot read what is typed into another program.
+
+## Drivers: the broker and the IOMMU
+
+A driver is a capsule that holds broker bits, and each broker call asks for its own bit, starting with `can_device_enum` for the device list (`src/syscall/contract/cap_table/mk.rs:123-136`).
+
+| Bit | Calls | What it grants |
+|---|---|---|
+| `DeviceEnum` | `MkDeviceList` | the device list |
+| `Driver` | `MkDeviceClaim`, `MkDeviceRelease`, `MkPciConfigRead`, `MkPciConfigWrite` | one device, and its config space within the allowlist |
+| `Mmio` | `MkMmioMap`, `MkMmioUnmap` | a slice of a claimed device's BAR |
+| `Irq` | `MkIrqBind`, `MkIrqUnbind`, `MkIrqWait`, `MkIrqPoll`, `MkIrqAck` | the device's interrupt |
+| `Dma` | `MkDmaMap`, `MkDmaUnmap` | a zeroed buffer the device may read and write |
+| `Pio` | `MkPioGrant`, `MkPioRead`, `MkPioWrite`, `MkPioRelease` | kernel-run port I/O on the device, x86_64 only |
+
+`claim` refuses a device another capsule already holds, moves the device into the claiming capsule's [IOMMU domain](../overview/glossary.md#iommu-domain) before powering it, and sets it so that no request it makes is no-snoop (`src/hardware/broker/claim/claim.rs:23-45`). The domain maps nothing until `MkDmaMap` grants a buffer, so the device reaches that capsule's buffers and faults on everything else (`src/hardware/broker/confine/mod.rs`).
+
+Confinement depends on the hardware. `detect` selects Intel VT-d when the firmware's DMAR table yields a remapping unit, and with only an IVRS table selects AMD-Vi, which this kernel drives only when built with the `nonos-iommu-amdvi` feature (`src/memory/iommu/backend_x86_64/select.rs:43-66`). That feature is off by default in `Cargo.toml`, while VT-d enforcement (`nonos-iommu-enforce`) is part of the default `microkernel-core` set. Interrupt remapping (`nonos-iommu-intremap`) is off by default.
+
+When confinement is not possible, the broker says so:
+
+- `unconfined_allowed` lets a claim go ahead without a domain only when no remapping unit is in service: none was found, none came up, or the unit is AMD-Vi and not in service, which is always the case in a kernel built without `nonos-iommu-amdvi` (`src/hardware/broker/confine/posture.rs:32-50`). The device then reaches all of memory.
+- A device that no unit in service `translates` also stays on physical addresses (`src/hardware/broker/confine/attach.rs:41-48`).
+- With a unit in service, any other failure to give the device a domain refuses the claim.
+
+Each claim prints a line on the serial console that starts with `[VT-D] pid=`, gives the device's address, and says `confined`, `unconfined` or `refused` with the reason (`say` in `src/hardware/broker/confine/table.rs:45-53`). `posture_line` prints the summary as `[IOMMU] <vendor> present, enforcing=<0|1>, unconfined grants=<n>` (`src/memory/iommu/posture.rs:69-79`). Device DMA is confined only when that line shows `enforcing=1` and `unconfined grants=0`. On an image built with `capsule-serial-debug` (the standard, qemu and dev profiles) the kernel keeps a copy of the serial console in memory, and the Terminal command `log iommu vt-d` shows these lines from it; a hardened or air-gapped image keeps no copy (`keep` in `src/sys/serial/tail.rs:51-54`).
+
+The other broker paths are narrow too:
+
+- `map_for_caller` maps a BAR slice only for the capsule holding the claim at its current epoch, and only inside that BAR (`src/hardware/broker/mmio/map.rs:49-80`). `protected_regions` keeps every MSI-X table and pending-bit array out of the mapping (`src/hardware/broker/mmio/msix_exclusion.rs:39-52`).
+- `validate` lets a driver change only Command register bits 1, 2 and 10, the MSI-X enable and function-mask bits, and a few vendor bits for audio and network functions; it refuses every other config-space write before it reaches the bus (`src/hardware/broker/pci/allowlist.rs:17-60`).
+- `alloc_and_zero` zeroes every frame of a DMA grant before the device or the capsule sees it (`src/hardware/broker/dma/map/alloc.rs:35-39`), and `scrub` zeroes the frames again before they go back to the allocator (`src/hardware/broker/dma/scrub.rs:27-35`).
+- When a process ends, its MMIO, IRQ, DMA and PIO grants are released, `dma_release_all_for_pid` among them (`src/process/exit/teardown.rs:48-52`).
