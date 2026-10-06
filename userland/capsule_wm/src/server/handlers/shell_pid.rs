@@ -14,8 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) const SERVICE_INBOX: u64 = 0;
-pub(super) const RECV_TIMEOUT_MS: u64 = 250;
-/// The idle wait while the compositor is owed a restack (state/restack.rs).
-pub(super) const OWED_RECV_TIMEOUT_MS: u64 = 50;
-pub(super) const SWEEP_INTERVAL_TICKS: u32 = 4;
+use nonos_libc::mk_service_lookup;
+
+const DESKTOP_SHELL: &[u8] = b"desktop_shell";
+
+/// The desktop shell's pid, or 0 when it is not registered. Looked up at each
+/// hit test rather than kept: a restarted shell has a new pid, and a stale one
+/// would hand the dock's band to whatever process reused it.
+pub(super) fn shell_pid() -> u32 {
+    let mut port = 0u32;
+    let mut pid = 0u32;
+    let rc = mk_service_lookup(DESKTOP_SHELL.as_ptr(), DESKTOP_SHELL.len(), &mut port, &mut pid);
+    if rc >= 0 && port != 0 {
+        pid
+    } else {
+        0
+    }
+}

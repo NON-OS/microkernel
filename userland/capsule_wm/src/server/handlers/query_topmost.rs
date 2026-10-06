@@ -37,10 +37,12 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
         let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     };
-    let hit = topmost_hit_at(&ctx.windows, x, y);
+    let hit = topmost_hit_at(&ctx.windows, x, y, super::shell_pid::shell_pid());
     let off = HDR_LEN + STATUS_LEN;
     let values = hit
-        .map(|h| [h.owner_pid, h.window_id, h.local_x, h.local_y, h.win_x, h.win_y, h.win_w, h.win_h])
+        .map(|h| {
+            [h.owner_pid, h.window_id, h.local_x, h.local_y, h.win_x, h.win_y, h.win_w, h.win_h]
+        })
         .unwrap_or([0; 8]);
     for (idx, value) in values.iter().enumerate() {
         let start = off + idx * 4;

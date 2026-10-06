@@ -13,15 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::geometry::Rect;
-use crate::state::Context;
-use crate::window::{Kind, Visibility};
 
-pub fn collides(ctx: &Context, owner_pid: u32, window_id: u32, candidate: Rect) -> bool {
-    ctx.windows.windows().any(|w| {
-        !w.matches(owner_pid, window_id)
-            && w.visibility == Visibility::Visible
-            && w.kind == Kind::Normal
-            && w.rect.overlaps(&candidate)
-    })
+use super::WindowTable;
+
+impl WindowTable {
+    /// How many windows `owner_pid` holds open.
+    pub fn held_by(&self, owner_pid: u32) -> usize {
+        self.entries.iter().filter(|w| w.in_use && w.owner_pid == owner_pid).count()
+    }
 }

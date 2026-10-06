@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::window::{Visibility, Window, WindowTable};
+use crate::window::{Kind, Visibility, Window, WindowTable};
 
 pub struct HitTarget {
     pub owner_pid: u32,
@@ -27,7 +27,16 @@ pub struct HitTarget {
     pub win_h: u32,
 }
 
-pub fn topmost_hit_at(table: &WindowTable, px: u32, py: u32) -> Option<HitTarget> {
+/// The window a press at (`px`, `py`) lands on, with the desktop shell's own
+/// popup windows (its dock) above every other window. The shell draws its
+/// chrome in a compositor band over every application window, so a window
+/// dragged across the dock is drawn under it, and the click there must reach
+/// the dock too. `chrome_pid` is the shell's pid, or 0 when it is not running;
+/// no other process's popup gets the band, so an application cannot open one
+/// over the dock to take its clicks.
+pub fn topmost_hit_at(table: &WindowTable, px: u32, py: u32, chrome_pid: u32) -> Option<HitTarget> {
+    let chrome = |w: &Window| chrome_pid != 0 && w.owner_pid == chrome_pid && w.kind == Kind::Popup;
+    let rank = |w: &Window| (chrome(w), w.z);
     let mut best: Option<&Window> = None;
     for w in table.windows() {
         if w.visibility != Visibility::Visible {
@@ -41,7 +50,7 @@ pub fn topmost_hit_at(table: &WindowTable, px: u32, py: u32) -> Option<HitTarget
         }
         best = Some(match best {
             None => w,
-            Some(cur) if w.z > cur.z => w,
+            Some(cur) if rank(w) > rank(cur) => w,
             Some(cur) => cur,
         });
     }

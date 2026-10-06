@@ -3,7 +3,8 @@ use alloc::vec::Vec;
 use nonos_libc::mk_ipc_call_timeout;
 
 use super::{
-    build_request, reply::decode_status, BOOT_REPLY_TIMEOUT_MS, CALL_REPLY_TIMEOUT_MS, NCMP_HDR_LEN,
+    build_request, reply::decode_status, BOOT_REPLY_TIMEOUT_MS, CALL_REPLY_TIMEOUT_MS, ETIMEDOUT,
+    NCMP_HDR_LEN, TIMED_OUT,
 };
 
 pub(crate) fn call(
@@ -42,5 +43,8 @@ fn call_with_timeout(
         rx.len(),
         timeout_ms,
     );
+    if rc == ETIMEDOUT {
+        return Err(TIMED_OUT);
+    }
     decode_status(&rx, op, request_id, rc)
 }

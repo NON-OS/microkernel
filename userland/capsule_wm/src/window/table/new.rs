@@ -30,7 +30,14 @@ impl WindowTable {
                 visibility: Visibility::Hidden,
                 z: 0,
                 in_use: false,
+                full_screen: false,
             }; MAX_WINDOWS],
         }
+    }
+}
+
+impl Default for WindowTable {
+    fn default() -> Self {
+        Self::new()
     }
 }

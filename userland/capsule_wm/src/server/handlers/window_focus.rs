@@ -14,56 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::compositor_client::push_focus_set;
 use crate::protocol::{Request, E_INVAL, E_NOENT, E_PERM, WINDOW_FOCUS_REQ_LEN};
 use crate::server::respond;
+use crate::server::tell_compositor::lift;
 use crate::state::Context;
+use crate::window::Visibility;
 
+/// A client focusing its own window. Focus is this table's: it is set here
+/// whatever the compositor says. It was set only once the compositor had
+/// answered the focus_set within its 16 ms, and a compositor composing a
+/// whole frame often had not, so a window brought back from the dock was
+/// drawn on top while the keys went on to the window it covered. A window
+/// not on screen (minimised) takes no focus; it is restored first.
 pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != WINDOW_FOCUS_REQ_LEN {
-        if respond::status(sender_pid, req, E_INVAL, tx) < 0 {
-            return;
-        }
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     }
     let Some(window_id) = super::u32_at::u32_at(body, 0) else {
-        if respond::status(sender_pid, req, E_INVAL, tx) < 0 {
-            return;
-        }
+        let _ = respond::status(sender_pid, req, E_INVAL, tx);
         return;
     };
     let Some(window) = ctx.windows.find(sender_pid, window_id) else {
-        if respond::status(sender_pid, req, E_NOENT, tx) < 0 {
-            return;
-        }
+        let _ = respond::status(sender_pid, req, E_NOENT, tx);
         return;
     };
-    if !window.kind.focusable() {
-        if respond::status(sender_pid, req, E_PERM, tx) < 0 {
-            return;
-        }
+    if !window.kind.focusable() || window.visibility != Visibility::Visible {
+        let _ = respond::status(sender_pid, req, E_PERM, tx);
         return;
     }
-    let unchanged = matches!(
-        ctx.focus.current(),
-        Some(f) if f.owner_pid == sender_pid && f.window_id == window_id
-    );
-    if !unchanged {
-        let rid = ctx.issue_request_id();
-        if push_focus_set(ctx.compositor_port, rid, sender_pid).is_err() {
-            if respond::status(sender_pid, req, E_INVAL, tx) < 0 {
-                return;
-            }
-            return;
-        }
-        if !ctx.focus.set(sender_pid, window_id) {
-            if respond::status(sender_pid, req, E_INVAL, tx) < 0 {
-                return;
-            }
-            return;
-        }
+    if ctx.focus.set(sender_pid, window_id) {
+        lift(ctx, sender_pid);
     }
-    if respond::status(sender_pid, req, 0, tx) < 0 {
-        return;
-    }
+    let _ = respond::status(sender_pid, req, 0, tx);
 }

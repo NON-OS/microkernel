@@ -17,6 +17,9 @@
 use crate::window::Window;
 
 pub const MAX_WINDOWS: usize = 256;
+/// The most windows one client holds open, so no one client can take every
+/// window from the rest.
+pub const PER_OWNER: usize = MAX_WINDOWS / 2;
 
 pub struct WindowTable {
     pub(crate) entries: [Window; MAX_WINDOWS],

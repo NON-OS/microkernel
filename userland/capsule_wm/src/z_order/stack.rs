@@ -34,3 +34,9 @@ impl ZStack {
         z
     }
 }
+
+impl Default for ZStack {
+    fn default() -> Self {
+        Self::new()
+    }
+}

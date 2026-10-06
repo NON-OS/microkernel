@@ -14,25 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::protocol::NOTIFY_KIND_CLOSED;
-use crate::server::hand_off_focus::hand_off_focus;
+use crate::focus::hand_off;
 use crate::state::Context;
 
-pub(super) fn sweep_dead(ctx: &mut Context) {
-    ctx.subscriptions.purge_dead();
-    let mut swept = false;
-    while let Some(window) = ctx.windows.remove_one_dead() {
-        swept = true;
-        crate::server::notify_fanout::broadcast(
-            ctx,
-            NOTIFY_KIND_CLOSED,
-            window.owner_pid,
-            window.window_id,
-            window.rect.x,
-            window.rect.y,
-        );
-    }
-    if swept {
-        hand_off_focus(ctx);
+/// After a window closed, was minimised or lost its process: move focus to
+/// the window now on top (focus/hand_off.rs) and tell the compositor, which
+/// lifts that window's layer as this stack already has it.
+///
+/// A compositor that does not answer in time changes nothing here. The close
+/// or minimise it follows has already happened in the client, which removed
+/// its layer, so refusing it (as the handlers did) left this table holding a
+/// window the screen no longer showed, and every press over the place it had
+/// been went to it.
+pub fn hand_off_focus(ctx: &mut Context) {
+    if let Some(pid) = hand_off(&ctx.windows, &mut ctx.focus) {
+        crate::server::tell_compositor::lift(ctx, pid);
     }
 }
