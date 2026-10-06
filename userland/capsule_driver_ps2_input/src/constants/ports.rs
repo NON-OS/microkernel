@@ -20,8 +20,12 @@ pub const CTL_WRITE_CONFIG: u8 = 0x60;
 pub const CTL_ENABLE_AUX: u8 = 0xA8;
 pub const CTL_DISABLE_AUX: u8 = 0xA7;
 pub const CTL_ENABLE_KBD: u8 = 0xAE;
+pub const CTL_DISABLE_KBD: u8 = 0xAD;
 pub const CTL_WRITE_AUX: u8 = 0xD4;
 pub const KBD_ENABLE_SCANNING: u8 = 0xF4;
+pub const KBD_RESET: u8 = 0xFF;
+/// The keyboard's basic assurance test passed.
+pub const KBD_BAT_OK: u8 = 0xAA;
 pub const MOUSE_ENABLE_REPORTING: u8 = 0xF4;
 pub const MOUSE_SET_DEFAULTS: u8 = 0xF6;
 pub const MOUSE_SET_SAMPLE_RATE: u8 = 0xF3;
@@ -32,5 +36,8 @@ pub const INTELLIMOUSE_ID: u8 = 0x03;
 pub const MOUSE_ACK: u8 = 0xFA;
 pub const CONFIG_IRQ1: u8 = 1 << 0;
 pub const CONFIG_IRQ12: u8 = 1 << 1;
+pub const CONFIG_KBD_DISABLE: u8 = 1 << 4;
 pub const CONFIG_AUX_DISABLE: u8 = 1 << 5;
+/// Translate the keyboard's scan code set 2 to set 1.
+pub const CONFIG_XLATE: u8 = 1 << 6;
 pub const RING_CAPACITY: usize = 256;

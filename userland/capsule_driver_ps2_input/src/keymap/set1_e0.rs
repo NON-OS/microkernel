@@ -15,13 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::set1::{
     KEYCODE_DEL, KEYCODE_DOWN, KEYCODE_END, KEYCODE_HOME, KEYCODE_INS, KEYCODE_LEFT, KEYCODE_LMETA,
-    KEYCODE_PGDN, KEYCODE_PGUP, KEYCODE_RALT, KEYCODE_RCTRL, KEYCODE_RIGHT, KEYCODE_RMETA,
-    KEYCODE_UP,
+    KEYCODE_MUTE, KEYCODE_PGDN, KEYCODE_PGUP, KEYCODE_POWER, KEYCODE_RALT, KEYCODE_RCTRL,
+    KEYCODE_RIGHT, KEYCODE_RMETA, KEYCODE_UP, KEYCODE_VOLUME_DOWN, KEYCODE_VOLUME_UP,
 };
 pub fn keycode_for(scan: u8) -> Option<u32> {
     let v = match scan {
         0x1C => 0x0D,
         0x1D => KEYCODE_RCTRL,
+        // A laptop's Fn volume keys come through its i8042 as these (an HP
+        // 15s among them): the codes of the Windows multimedia keyboards the
+        // firmware imitates.
+        0x20 => KEYCODE_MUTE,
+        0x2E => KEYCODE_VOLUME_DOWN,
+        0x30 => KEYCODE_VOLUME_UP,
         0x35 => b'/' as u32,
         0x38 => KEYCODE_RALT,
         0x47 => KEYCODE_HOME,
@@ -36,6 +42,8 @@ pub fn keycode_for(scan: u8) -> Option<u32> {
         0x53 => KEYCODE_DEL,
         0x5B => KEYCODE_LMETA,
         0x5C => KEYCODE_RMETA,
+        // ACPI Power, from a keyboard with a power key of its own.
+        0x5E => KEYCODE_POWER,
         _ => return None,
     };
     Some(v)

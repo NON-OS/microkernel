@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use super::axis::axis;
 use super::event::MouseEvent;
 pub const BUTTON_LEFT: u8 = 1 << 0;
 pub const BUTTON_RIGHT: u8 = 1 << 1;
@@ -58,28 +59,4 @@ pub fn parse(bytes: &[u8]) -> Option<MouseEvent> {
         buttons,
         flags,
     })
-}
-
-/// Movement on one axis. When the controller reports an overflow the delta byte
-/// is the low bits of a value that did not fit, so applying it verbatim makes
-/// the cursor leap to a garbage position. Cap it to a bounded step in the
-/// reported direction instead, which keeps fast motion smooth and monotonic.
-fn axis(v: u8, sign_bit: u8, overflow: bool) -> i16 {
-    if overflow {
-        if sign_bit != 0 {
-            -255
-        } else {
-            255
-        }
-    } else {
-        sign(v, sign_bit)
-    }
-}
-
-fn sign(v: u8, sign_bit: u8) -> i16 {
-    if sign_bit != 0 {
-        v as i16 | -256i16
-    } else {
-        v as i16
-    }
 }

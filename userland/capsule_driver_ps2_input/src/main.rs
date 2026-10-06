@@ -26,33 +26,32 @@ mod protocol;
 mod ring;
 mod server;
 mod setup;
-use nonos_libc::{heap_init, mk_exit, mk_time_millis, mk_yield};
+use nonos_libc::{heap_init, mk_exit, start_driver};
 
-// Bounded probe: exit cleanly if no PS/2 controller answers, instead of
-// spinning forever on hardware whose keyboard and pointer are USB or i2c.
-const PROBE_DEADLINE_MS: i64 = 10_000;
+const DRIVER: &[u8] = b"driver.ps2_input";
 
 /// # Safety
 /// The capsule entry point. The kernel loader calls this once on a fresh stack
 /// with the capsule's heap region reserved; it must never be called from Rust.
+///
+/// The broker lists the keyboard record on every machine, so presence is a
+/// controller answering on its ports. A machine whose keyboard and pointer
+/// are USB or i2c has none: the driver says so and leaves (`EXIT_ABSENT`)
+/// at once. A controller that answers is brought up on the shared bounded
+/// schedule, each failed attempt giving its claims back, and running out is
+/// `EXIT_GAVE_UP`. This replaces ten seconds of retries a few yields apart,
+/// which spun a core and, because a failed attempt kept its claim, could
+/// never have succeeded after the first.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    let start = mk_time_millis();
-    let driver = loop {
-        match setup::run() {
-            Ok(d) => break d,
-            Err(_) => {
-                if mk_time_millis().wrapping_sub(start) > PROBE_DEADLINE_MS {
-                    mk_exit(0);
-                }
-                for _ in 0..64 {
-                    mk_yield();
-                }
-            }
-        }
+    let found = discover::find_ps2_kbd().filter(|dev| setup::controller_answers(*dev));
+    // run() looks the keyboard record up again itself; the list is fixed.
+    let driver = match start_driver(DRIVER, found, |_| setup::run()) {
+        Ok(d) => d,
+        Err(code) => mk_exit(code),
     };
     server::run(driver);
 }

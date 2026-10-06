@@ -14,17 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::config::configure;
 use super::enable_port::enable_port;
+use super::reset::reset;
 use crate::init::enable_scanning;
 
-// Bring the keyboard online without resetting the controller: the firmware
-// already initialized the i8042 (the machine boots and types in its own BIOS).
-// A keyboard RESET (0xFF) makes the device reply with a delayed self-test byte
-// that lands after init returns and desyncs the scancode stream, and rewriting
-// the config byte off a possibly-stale read can silence a working controller,
-// so neither is done here. What is required: explicitly enable the first port
-// (firmware may hand off with it disabled) and then start scanning.
+/// Configure the controller for the keyboard, enable its port and start
+/// scanning. Linux on x86 does not reset the keyboard by default, and some
+/// EC-emulated keyboards misbehave when reset, so the reset is the recovery
+/// for a keyboard that does not acknowledge scanning, not the first step. A
+/// keyboard that answers neither is tolerated: the controller is up and a
+/// keyboard plugged in later works.
 pub fn enable_keyboard(grant_id: u64) -> Result<(), &'static str> {
+    configure(grant_id)?;
     enable_port(grant_id)?;
-    enable_scanning(grant_id)
+    if enable_scanning(grant_id)? {
+        return Ok(());
+    }
+    if reset(grant_id)? {
+        let _ = enable_scanning(grant_id)?;
+    }
+    Ok(())
 }

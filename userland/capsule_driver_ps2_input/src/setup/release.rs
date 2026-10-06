@@ -13,20 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{STATUS_OFFSET, STATUS_OUTPUT_FULL};
-use nonos_libc::mk_pio_read;
 
-const WAIT_SPINS: u32 = 10_000;
+use super::setup_aux::Aux;
+use nonos_libc::mk_device_release;
 
-pub(super) fn wait_output_full(grant_id: u64) -> Result<(), &'static str> {
-    for _ in 0..WAIT_SPINS {
-        let mut status = 0u32;
-        if mk_pio_read(grant_id, STATUS_OFFSET, 1, &mut status) < 0 {
-            return Err("ps2 status read failed");
-        }
-        if status as u8 & STATUS_OUTPUT_FULL != 0 {
-            return Ok(());
-        }
+/// The broker cascades a release through every grant on the device: the port
+/// grant and the line on the keyboard, the line on the aux record.
+pub(super) fn release(keyboard: u64, aux: Option<Aux>) {
+    if let Some(aux) = aux {
+        let _ = mk_device_release(aux.device_id);
     }
-    Err("ps2 output buffer empty")
+    let _ = mk_device_release(keyboard);
 }
