@@ -71,3 +71,8 @@ The C library carries only the wait number, `N_MK_FUTEX_WAIT` (`userland/libc/sr
 ## Linux programs
 
 A Linux program's futex call never reaches these calls. The Linux personality capsule serves `futex` entirely itself: a waiting guest thread is parked inside its trap, so the wait is the absence of a reply and the wake is the reply (`userland/capsule_linux/src/linux/call/futex.rs:17-22`). It accepts `FUTEX_WAIT`, `FUTEX_WAKE`, `FUTEX_REQUEUE`, `FUTEX_CMP_REQUEUE`, `FUTEX_WAIT_BITSET` and `FUTEX_WAKE_BITSET`, with the private flag (`userland/capsule_linux/src/linux/call/futex_op.rs:24-31`). `decode` refuses every other operation, and `FUTEX_CLOCK_REALTIME` on anything but `FUTEX_WAIT_BITSET`, with `ENOSYS`, and a zero bitset or a misaligned word with `EINVAL` (`userland/capsule_linux/src/linux/call/futex_op.rs:46-75`). Priority-inheritance futexes are among the refused operations. See [Linux personality](../userland/linux-personality.md).
+
+## Tests
+
+- The kernel's own waiter list, the `waiters` module, is compiled into the `kernel_proofs` [proof crate](../overview/glossary.md#proof-crate), which runs the order a wait takes its steps in against every interleaving with one waker (`userland/kernel_proofs/src/futex_waiters/mod.rs:17-26`). That crate passes on this commit.
+- The Linux futex decoding is tested in the `capsule_linux_proofs` proof crate (`userland/capsule_linux_proofs/src/tests/futex_tests.rs`), which also passes on this commit.
