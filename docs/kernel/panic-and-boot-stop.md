@@ -94,3 +94,10 @@ When the kernel heap cannot satisfy an allocation, `alloc_error_handler` calls `
 ## TLB shootdown timeout
 
 When a CPU changes a page table and another CPU has not acknowledged the flush after `SHOOTDOWN_TIMEOUT_MS`, `fail_timed_out` prints `[FATAL] TLB shootdown timeout outstanding=n ms=2000`, reports where each CPU last was, stops the other CPUs and halts (`src/memory/paging/manager/shootdown/slow.rs:45-53`). A stale translation could reach memory that was freed, so the kernel does not continue. See [scheduler and SMP](scheduler-and-smp.md).
+
+## What to do after a stop
+
+- Read the band. It names the step that failed, and the step names the subsystem.
+- If the machine has a serial port, the console has the full sequence before the stop. On a running Standard image the Terminal's `log` command shows the same lines; after a stop the Terminal is not running.
+- Try another [boot mode](../install/boot-modes.md). Safe Mode starts no network, no audio driver and no optional app.
+- Report the machine with the step text; see [report a machine](../hardware/report.md) and [troubleshooting](../install/troubleshooting.md).
