@@ -38,3 +38,7 @@ The VMD function itself gets no driver. The kernel's inventory files a VMD of cl
 ## Which VMDs
 
 Thirteen Intel device ids, taken from the table of Linux's vmd driver: 8086:201d, 28c0, 467f, 4c3d, 7d0b, 9a0b, a77f, ad0b, b06f, b60b, b07f, d70b and d73b (`src/drivers/pci/vmd/domain/ids.rs:20-29`, `VMD_DEVICE_IDS`). 8086:28c1 is left out: the comment there says its bus range comes from BIOS data in MEMBAR2, which NONOS does not read, so a drive behind it stays hidden. For twelve of the ids the child buses may start above bus 0, as VMCAP and VMCONFIG say; 201d always starts at bus 0 (`src/drivers/pci/vmd/domain/ids.rs:31-36`, `BUS_RESTRICTED`).
+
+## What has not been tested
+
+The bring-up has not run on a machine with a VMD in this release, and no QEMU target in `mk/` attaches one. What is tested is the part that needs no hardware. `userland/kernel_proofs` drives the id table, the bus start, the CFGBAR offsets, the window choice and the whole assignment walk against a simulated bus (`userland/kernel_proofs/src/vmd_domain/mod.rs:17-33`, `sim`). The crate's 388 tests pass on this commit.
