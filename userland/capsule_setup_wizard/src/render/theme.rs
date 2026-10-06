@@ -1,26 +1,43 @@
-pub const BACKDROP: u32 = 0xFF0B_0F16;
-pub const CARD_BG: u32 = 0xFF16_1E2A;
-pub const ACCENT: u32 = 0xFF4F_D1C5;
-pub const FG: u32 = 0xFFFF_FFFF;
-pub const HINT: u32 = 0xFF8A_A0B8;
-pub const GRAD_TOP: u32 = 0xFF0D_2B29;
-pub const GRAD_BOT: u32 = 0xFF0B_0F16;
-pub const ROW_BG: u32 = 0xFF0E_141D;
-pub const ROW_BORDER: u32 = 0xFF24_3246;
-pub const ROW_SEL_BG: u32 = 0xFF10_211F;
-pub const DOT_DONE: u32 = ACCENT;
-pub const DOT_CUR: u32 = FG;
-pub const DOT_TODO: u32 = 0xFF32_4054;
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use nonos_brand::palette as p;
+
+/* The NØNOS palette (nonos_brand), the same as the installer and the loader. */
+pub const BACKDROP: u32 = p::GROUND;
+pub const ACCENT: u32 = p::CYAN;
+pub const FG: u32 = p::TEXT;
+pub const HINT: u32 = p::TEXT_3;
+pub const ROW_BORDER: u32 = p::RULE;
+pub const ROW_SEL_BG: u32 = p::CYAN_SOFT;
+pub const SUB: u32 = p::TEXT_2;
+pub const RULE: u32 = p::RULE;
 
 pub const STEP_LABELS: &[&[u8]] = &[
-    b"Language",
     b"Keyboard",
-    b"Identity keys",
-    b"Passphrase",
-    b"Persistence",
+    b"Your name",
+    b"Time zone",
+    b"Mode",
     b"Network",
-    b"Admin",
+    b"Network route",
     b"Privacy",
     b"Appearance",
+    b"Qwen model",
+    b"Apps",
+    b"Installed software",
+    b"Computer name",
     b"Review",
 ];
