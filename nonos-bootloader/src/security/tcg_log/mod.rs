@@ -14,20 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::anti_rollback::types::VersionState;
+//! The firmware's TCG event log, copied out for the kernel's check of this
+//! loader.
 
-pub struct AntiRollbackState {
-    pub(crate) state: VersionState,
-    pub(crate) initialized: bool,
-    pub(crate) tpm_available: bool,
-}
+mod copy;
+mod locate;
 
-impl AntiRollbackState {
-    pub const fn new() -> Self {
-        Self { state: VersionState::new(), initialized: false, tpm_available: false }
-    }
-
-    pub fn get_state(&self) -> &VersionState {
-        &self.state
-    }
-}
+pub use copy::event_log;

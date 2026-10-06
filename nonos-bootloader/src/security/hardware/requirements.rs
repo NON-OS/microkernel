@@ -16,14 +16,22 @@
 
 use super::capabilities::HardwareCapabilities;
 
+/*
+ * The floor a machine must meet to boot at all. A UEFI loader for x86_64 runs
+ * in long mode, which implies SSE2, so those two hold by construction. NX is
+ * what keeps writable pages from running: without it W^X is a convention. The
+ * hardware RNG is reported, not required: the kernel's generator falls back.
+ */
 pub fn check_minimum_requirements(caps: &HardwareCapabilities) -> RequirementCheck {
+    let nx_bit = caps.cpu.nx_bit;
+    let min_physical_bits = caps.memory.physical_bits >= 36;
     RequirementCheck {
         cpu_64bit: true,
-        nx_bit: caps.cpu.nx_bit,
+        nx_bit,
         sse2: true,
-        min_physical_bits: caps.memory.physical_bits >= 36,
+        min_physical_bits,
         hardware_rng: caps.cpu.rdrand,
-        passed: true,
+        passed: nx_bit && min_physical_bits,
     }
 }
 

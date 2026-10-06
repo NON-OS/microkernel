@@ -14,67 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::consts::{
-    response_code, DEFINE_COUNTER_CMD, INCREMENT_CMD, READ_CMD, RC_NV_UNINITIALIZED,
-};
+//! The rollback floor over the firmware's TCG2 protocol.
+
+use super::floor_seq::{floor_and_base_with, raise_with};
+use crate::log::logger::log_info;
+use crate::security::{audit, AuditEvent};
 use crate::security::tpm_extend::{submit_tpm_command, tpm_present};
 use uefi::table::boot::BootServices;
 
-fn rb_define() -> [u8; 45] {
-    let mut cmd = DEFINE_COUNTER_CMD;
-    cmd[34] = 0x20;
-    cmd
-}
-
-fn rb_increment() -> [u8; 31] {
-    let mut cmd = INCREMENT_CMD;
-    cmd[13] = 0x20;
-    cmd[17] = 0x20;
-    cmd
-}
-
-fn rb_read() -> [u8; 35] {
-    let mut cmd = READ_CMD;
-    cmd[13] = 0x20;
-    cmd[17] = 0x20;
-    cmd
-}
-
+/// The TPM's rollback floor, `None` without a TPM or a readable counter.
+/// A base set on this read is said and audited: on a machine that had one, it
+/// means the owner deleted it, and the floor began again at 0.
 pub fn read_floor(bs: &BootServices) -> Option<u64> {
     if !tpm_present(bs) {
         return None;
     }
-    let mut resp = [0u8; 64];
-    let _ = submit_tpm_command(bs, &rb_define(), &mut resp);
-    let n = submit_tpm_command(bs, &rb_read(), &mut resp).ok()?;
-    let rc = response_code(&resp);
-    if rc == RC_NV_UNINITIALIZED {
-        return Some(0);
+    let (floor, set) =
+        floor_and_base_with(|cmd: &[u8], resp: &mut [u8]| submit_tpm_command(bs, cmd, resp).ok())?;
+    if set {
+        log_info("rollback", "floor base set from the tpm counter: the floor begins at 0");
+        audit(AuditEvent::PolicyEnforced, 0, b"rollback floor base set");
     }
-    if rc != 0 || n < 24 {
-        return None;
-    }
-    Some(u64::from_be_bytes([
-        resp[16], resp[17], resp[18], resp[19], resp[20], resp[21], resp[22], resp[23],
-    ]))
+    Some(floor)
 }
 
+/// Raise the floor to `target`; false without a TPM or when an increment fails.
 pub fn commit_floor(bs: &BootServices, target: u64) -> bool {
-    let mut current = match read_floor(bs) {
-        Some(value) => value,
-        None => return false,
-    };
-    let mut guard = 0u32;
-    while current < target {
-        if guard >= 4096 {
-            return false;
-        }
-        let mut resp = [0u8; 32];
-        if submit_tpm_command(bs, &rb_increment(), &mut resp).is_err() || response_code(&resp) != 0 {
-            return false;
-        }
-        current += 1;
-        guard += 1;
+    if !tpm_present(bs) {
+        return false;
     }
-    true
+    raise_with(|cmd: &[u8], resp: &mut [u8]| submit_tpm_command(bs, cmd, resp).ok(), target)
 }

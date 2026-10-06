@@ -17,6 +17,8 @@
 mod consts;
 mod define;
 mod floor;
+mod floor_cmd;
+mod floor_seq;
 mod increment;
 mod read;
 mod selftest;
