@@ -23,6 +23,25 @@ pub(super) fn map_volume_err(e: VolumeError) -> VfsError {
         VolumeError::NotMounted => VfsError::NotInitialized,
         VolumeError::BadKeyLength => VfsError::IoError("blockfs key length"),
         VolumeError::Keyring(_) => VfsError::IoError("keyring unavailable"),
+        VolumeError::TooLargeToReadWhole(_) => {
+            VfsError::FsError("file too large to read whole; read it by range")
+        }
+        VolumeError::Plan(_) => VfsError::IoError("no usable disk plan"),
+        VolumeError::MachineKey(_) => VfsError::IoError("no machine key for the data volume"),
+        VolumeError::Device(_) => VfsError::IoError("block device"),
+        VolumeError::Window(_) => VfsError::IoError("data volume window"),
+        VolumeError::NoImport => VfsError::NotFound,
+        VolumeError::DigestMismatch => VfsError::IoError("import does not match its pinned digest"),
+        VolumeError::NameTaken => VfsError::AlreadyExists,
+        VolumeError::Unopenable => VfsError::IoError("data volume under another key"),
+        VolumeError::NeedsPassphrase | VolumeError::WrongPassphrase => VfsError::PermissionDenied,
+        VolumeError::ImportOnly => VfsError::PermissionDenied,
+        VolumeError::NotPassphraseKeyed => VfsError::NotFound,
+        VolumeError::UnknownKeying => VfsError::IoError("key header of an unknown kind"),
+        VolumeError::AlreadyOpen | VolumeError::VolumeExists => VfsError::AlreadyExists,
+        VolumeError::Stretch(_) => VfsError::IoError("passphrase stretch refused"),
+        VolumeError::Importing => VfsError::IoError("an import is still coming to the name"),
+        VolumeError::NoMemory => VfsError::IoError("too little memory free for a volume in RAM"),
         VolumeError::BlockFs(BlockFsError::NotFound) => VfsError::NotFound,
         VolumeError::BlockFs(_) => VfsError::IoError("blockfs"),
     }
