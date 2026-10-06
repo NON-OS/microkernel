@@ -28,11 +28,13 @@ mod input;
 mod misc;
 mod raw;
 mod reply;
+mod time;
 
 pub use call::{mk_ipc_call_timeout, mk_service_lookup, serve, Served, SERVICE_PID, SERVICE_PORT};
 pub use input::{
     mk_input_event_post, take_events, InputEvent, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP,
     INPUT_KIND_POINTER_REL, INPUT_KIND_WHEEL,
 };
-pub use misc::{mk_debug, mk_yield, take_debug, yields};
+pub use misc::{mk_debug, mk_idle_ms, mk_yield, slept_ms, take_debug, yields};
 pub use reply::{mk_ipc_reply, take_reply};
+pub use time::{mk_uptime_ms, Deadline};

@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Yielding and debug output. Yields are counted rather than taken, so a
-//! driver that settles by yielding runs at full speed and a test can still
-//! see that it waited.
+//! Yielding, sleeping and debug output. Yields and sleeps are counted rather
+//! than taken, so a driver that settles by waiting runs at full speed and a
+//! test can still see how it waited, and for how long.
 
 use std::cell::{Cell, RefCell};
 
@@ -24,7 +24,18 @@ use crate::raw;
 
 thread_local! {
     static YIELDS: Cell<u64> = const { Cell::new(0) };
+    static SLEPT_MS: Cell<u64> = const { Cell::new(0) };
     static DEBUG: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
+}
+
+pub fn mk_idle_ms(ms: u64) -> i64 {
+    SLEPT_MS.with(|s| s.set(s.get().saturating_add(ms)));
+    0
+}
+
+/// How many milliseconds the driver asked to sleep on this thread so far.
+pub fn slept_ms() -> u64 {
+    SLEPT_MS.with(Cell::get)
 }
 
 pub fn mk_yield() -> i64 {
