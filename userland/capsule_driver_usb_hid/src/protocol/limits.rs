@@ -22,6 +22,8 @@ pub const MAX_HID_BINDINGS: usize = 8;
 pub const KEY_REPORT_LEN: usize = 8;
 pub const MOUSE_REPORT_MIN: usize = 3;
 pub const MOUSE_REPORT_MAX: usize = 4;
+/// Buttons, then X and Y as 16-bit positions; the wheel byte is optional.
+pub const TABLET_REPORT_MIN: usize = 5;
 pub const MAX_EVENTS: usize = 16;
 pub const KEY_EVENT_WIRE_LEN: usize = 8;
 pub const MOUSE_EVENT_WIRE_LEN: usize = 8;

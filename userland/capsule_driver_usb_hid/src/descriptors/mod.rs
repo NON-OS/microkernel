@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod binding;
+mod config;
+mod packet_size;
 mod parse;
 mod types;
 mod wire;
 
 pub use binding::HidBinding;
+pub use config::{configuration_value, is_hub, total_length, CONFIG_HEADER_LEN};
 pub use parse::hid_bindings;
 pub use types::HidKind;
 pub use wire::write_binding;

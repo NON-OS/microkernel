@@ -21,14 +21,14 @@ mod header;
 mod limits;
 mod ops;
 
-pub use decode::parse;
+pub use decode::{parse, refused};
 pub use encode::{response_header, write_status};
 pub use errno::{E_BAD_OP, E_INVAL, E_NO_HID};
 pub use header::{Request, HDR_LEN};
 pub use limits::{
     CONFIG_DESCRIPTOR_MAX, HID_BINDING_WIRE_LEN, IPC_PAYLOAD_MAX, KEY_EVENT_WIRE_LEN,
     KEY_REPORT_LEN, MAX_EVENTS, MAX_HID_BINDINGS, MOUSE_EVENT_WIRE_LEN, MOUSE_REPORT_MAX,
-    MOUSE_REPORT_MIN, STATUS_LEN,
+    MOUSE_REPORT_MIN, STATUS_LEN, TABLET_REPORT_MIN,
 };
 pub use ops::{
     OP_FEED_KEYBOARD_REPORT, OP_FEED_MOUSE_REPORT, OP_GET_STATE, OP_HEALTHCHECK, OP_POLL_KEYS,

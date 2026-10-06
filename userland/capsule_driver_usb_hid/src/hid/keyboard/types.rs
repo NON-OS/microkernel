@@ -24,4 +24,8 @@ pub struct Keyboard {
     pub(in crate::hid::keyboard) caps_lock: bool,
     pub(in crate::hid::keyboard) events: VecDeque<KeyEvent>,
     pub(in crate::hid::keyboard) post_failures: u64,
+    // The code each held key went down with, so its release carries it.
+    pub(in crate::hid::keyboard) held: nonos_keymap::HeldKeys,
+    // The held key the driver repeats, which a USB keyboard does not.
+    pub(in crate::hid::keyboard) repeat: super::repeat::KeyRepeat,
 }

@@ -26,6 +26,8 @@ impl Keyboard {
             caps_lock: false,
             events: VecDeque::new(),
             post_failures: 0,
+            held: nonos_keymap::HeldKeys::new(),
+            repeat: super::repeat::KeyRepeat::new(),
         }
     }
 }

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::packet_size::holds_a_report;
 use super::types::{
     Endpoint, HidKind, Interface, CLASS_HID, EP_TRANSFER_INTERRUPT, PROTOCOL_KEYBOARD,
     PROTOCOL_MOUSE, SUBCLASS_BOOT,
@@ -42,6 +43,9 @@ impl HidBinding {
         } else {
             HidKind::Tablet
         };
+        if !holds_a_report(kind, ep.max_packet_size) {
+            return None;
+        }
         Some(Self {
             kind,
             interface_number: iface.number,
@@ -52,6 +56,11 @@ impl HidBinding {
     }
 }
 
+/// An IN endpoint of interrupt type, other than endpoint 0: that is the
+/// control pipe every device has, and the controller driver would turn a
+/// binding of it into a reconfiguration of that pipe.
 fn is_interrupt_in(ep: Endpoint) -> bool {
-    (ep.address & 0x80) != 0 && (ep.attributes & 0x03) == EP_TRANSFER_INTERRUPT
+    (ep.address & 0x80) != 0
+        && (ep.address & 0x0f) != 0
+        && (ep.attributes & 0x03) == EP_TRANSFER_INTERRUPT
 }

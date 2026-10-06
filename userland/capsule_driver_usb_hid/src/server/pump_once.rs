@@ -16,8 +16,9 @@
 
 use nonos_libc::mk_ipc_recv_from;
 
-use crate::protocol::parse;
+use crate::protocol::{parse, refused, E_INVAL};
 use crate::server::dispatch::dispatch;
+use crate::server::respond;
 use crate::state::State;
 
 const SERVICE_INBOX: u64 = 0;
@@ -32,11 +33,12 @@ pub fn pump_once(state: &mut State, rx: &mut [u8], tx: &mut [u8]) -> bool {
         RECV_TIMEOUT_MS,
         &mut sender_pid,
     );
-    if n <= 0 || sender_pid == 0 {
+    if !nonos_libc::recv_ready(n) || sender_pid == 0 {
         return false;
     }
     let Some((req, body)) = parse(&rx[..n as usize]) else {
-        return false;
+        let _ = respond::status(sender_pid, &refused(&rx[..n as usize]), E_INVAL, tx);
+        return true;
     };
     dispatch(state, sender_pid, req, body, tx);
     true

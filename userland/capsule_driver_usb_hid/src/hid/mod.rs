@@ -15,15 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod active;
+mod button_changes;
 mod key_event;
 mod keyboard;
 mod keymap;
 mod mouse;
 mod mouse_event;
+mod mouse_report;
 mod post_key;
 mod post_mouse;
 mod post_wire;
 mod tablet;
+mod tablet_report;
+mod usage_keycode;
 
 pub use keyboard::Keyboard;
 pub use mouse::Mouse;
