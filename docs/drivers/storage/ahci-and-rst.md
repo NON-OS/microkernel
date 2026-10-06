@@ -31,3 +31,13 @@ A disk must offer (`userland/capsule_driver_ahci/src/identity/refusal.rs:17-29`,
 - a capacity above 0 and below 2^48 sectors.
 
 The capsule sends four ATA commands: IDENTIFY DEVICE, READ DMA EXT, WRITE DMA EXT and FLUSH CACHE EXT (`userland/capsule_driver_ahci/src/constants/ata.rs:17-20`, `ATA_IDENTIFY`). It has no NCQ, no TRIM and no SMART. One request moves at most 64 sectors, 32 KiB (`userland/capsule_driver_ahci/src/constants/ata.rs:29-34`, `MAX_SECTORS`). One command may take 30 s, after which the port is recovered with a COMRESET (`userland/capsule_driver_ahci/src/constants/timing.rs:47-55`, `COMMAND_MS`). The reply still reaches the kernel inside its own 35 s wait (`src/services/lifecycle/reply_wait.rs:28`, `SLOW_BUDGET_MS`).
+
+## Intel RST
+
+Intel Rapid Storage Technology changes what the firmware shows in ways that matter here.
+
+RAID On with SATA disks. The controller reports the RAID subclass, but it is a standard AHCI controller with its ABAR in BAR5, so NONOS binds it as one (`src/hardware/inventory/classify_storage.rs:26-33`, `classify_storage`). The capsule does not read RST metadata, so a RAID volume made of several disks is not supported: to NONOS each member is a separate raw disk, and the capsule serves one disk.
+
+NVMe hidden behind the SATA controller. In RAID mode RST can remap an NVMe drive behind the SATA controller's ABAR, and the NVMe function then disappears from PCI. The capsule reads the remap registers when the ABAR is 512 KiB or more: VSCAP at 0xA4, REMAP_CAP at 0x800, and a class code at 0x880 for each of three slots, 0x80 apart (`userland/capsule_driver_ahci/src/controller/remap.rs:23-42`, `may_remap`). When VSCAP bit 0 is set, each slot marked in REMAP_CAP whose class code is NVMe counts as one hidden drive (`userland/capsule_driver_ahci/src/controller/remap.rs:44-57`, `remapped_nvme`). NONOS does not drive the hidden drives. The capsule writes `Intel RST hides N NVMe drive(s) behind this controller; set the firmware's SATA mode to AHCI` with `mk_debug` (`userland/capsule_driver_ahci/src/setup/remap.rs:23-49`, `say_remapped`), but `driver.ahci0` holds no Debug capability (`src/hardware/ahci_capsule/spawn.rs:51-57`, `requested_caps`), so in this release that line, like every other line the capsule writes, does not reach the console. The installer's message below is what a person sees.
+
+Intel VMD is a third arrangement, with its own page: [Intel VMD](vmd.md).
