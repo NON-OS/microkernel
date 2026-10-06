@@ -1,0 +1,11 @@
+exits.txt: the ed25519 identities of three nodes listed in
+https://validator.nymtech.net/api/v1/unstable/nym-nodes/skimmed/exit-gateways/active
+on 2026-09-28.
+
+described.json: trimmed from
+https://validator.nymtech.net/api/v1/nym-nodes/described of the same day
+(841 nodes, 1,563,754 bytes), keeping for each node only node_id,
+contract_node_type, host_information.keys.ed25519 and network_requester.
+The first three nodes are the three in exits.txt; the fourth is a real node
+that is not an exit gateway; the fifth is a copy of the first with node_id
+999999 and an address that does not parse.
