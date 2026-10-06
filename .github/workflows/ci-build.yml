@@ -96,6 +96,16 @@ jobs:
       - name: Install Nix in WSL2
         run: |
           set -euo pipefail
+          # The WSL shell runs as root, and Nix run as root builds as the
+          # nixbld users: the single-user installer stops when the group is
+          # missing, so make it and its build users first.
+          if ! getent group nixbld >/dev/null; then
+            groupadd --system nixbld
+            for i in $(seq 1 8); do
+              useradd --system --no-create-home --home-dir /var/empty \
+                --shell /usr/sbin/nologin --gid nixbld --groups nixbld "nixbld$i"
+            done
+          fi
           curl -fsSL https://nixos.org/nix/install | sh -s -- --no-daemon --yes
           mkdir -p ~/.config/nix
           echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
