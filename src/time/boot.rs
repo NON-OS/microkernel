@@ -45,3 +45,16 @@ pub(crate) fn ticks_since_anchor() -> u64 {
 pub(crate) fn counter_hz() -> u64 {
     COUNTER_HZ.load(Ordering::Relaxed)
 }
+
+/// Fill in the counter rate when the anchor could not measure it, from a
+/// reference only available later in boot (the ACPI PM timer, once the FADT
+/// is parsed). A rate already latched is never replaced: elapsed times
+/// handed out so far were measured against it.
+pub(crate) fn set_counter_hz_if_unknown(hz: u64) -> bool {
+    COUNTER_HZ.compare_exchange(0, hz, Ordering::AcqRel, Ordering::Relaxed).is_ok()
+}
+
+/// Whether the anchor latched a real rate.
+pub(crate) fn counter_hz_known() -> bool {
+    COUNTER_HZ.load(Ordering::Relaxed) != 0
+}
