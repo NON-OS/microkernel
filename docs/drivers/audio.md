@@ -90,3 +90,9 @@ A DSP-capable Intel controller that does have an analog codec plays through it a
 - More than one output stream at the controller; the audio server mixes before the driver.
 - Any rate or format other than 48 kHz, 16-bit stereo at the controller.
 - Intel SOF and AMD ACP, as above.
+
+## Authority and privacy
+
+- `driver.hda0` holds IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, and Debug only in a build with `capsule-serial-debug` (`CAPSULE_OPTIONAL_CAPS`, `userland/capsule_driver_hda/Capsule.mk:18-21`).
+- `audio.server` holds IPC and Memory only, with the same optional Debug (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_audio/Capsule.mk:16-19`). It owns no hardware.
+- No sample and no stream state is stored. PCM lives in the queue and the DMA ring only while it plays.
