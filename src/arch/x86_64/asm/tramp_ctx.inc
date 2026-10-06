@@ -46,6 +46,8 @@
     and     rsp, -16
     fxsave  [rsp]
     mov     rbx, rsp
+    /* The save area is the shim's second argument: it may rewrite it. */
+    mov     rsi, rbx
     call    \shim
     fxrstor [rbx]
     mov     rsp, rbp
