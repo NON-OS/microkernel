@@ -69,3 +69,13 @@ Every driver capsule needs a proof crate named after it, apart from the two name
 - [Tests and proofs](tests-and-proofs.md): proof crates, static checks, Kani, Lean, fuzzing, how to run each, and the state of the checks at this commit.
 - [Review](review.md): what CI runs on a pull request, who is asked to review it, and what reviewers look for.
 - [Commits](commits.md): the subject line, the body, and what a commit leaves out.
+
+## See also
+
+- [Build](../build/README.md)
+- [The Nix flake](../build/nix-flake.md)
+- [Make targets](../build/make-targets.md)
+- [CI](../build/ci.md)
+- [Architectures](../architectures/README.md)
+- [The capsule model](../userland/README.md)
+- [CONTRIBUTING.md](../../CONTRIBUTING.md)
