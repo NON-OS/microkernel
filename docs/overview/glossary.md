@@ -199,3 +199,7 @@ The 32-byte root of the capsule attestation tree, written by the seal's enrollme
 ## Policy store
 
 The policy service, `capsule_policy`, on port 4108: a typed key-value store of system-wide settings such as the keyboard layout, the default network and `Keep data across reboots`. Settings and setup write it and other capsules read it through `nonos_policy_client`; it holds the values in memory and, on a machine that keeps data, writes the kept ones to disk about a second after the last change. Explained in [Settings](../using/settings.md#how-long-a-change-lasts). Code: `userland/capsule_policy/Capsule.mk`, `userland/capsule_policy/src/keep/tick.rs`.
+
+## Proof crate
+
+A host Rust crate, mostly a `userland/*_proofs` directory, that compiles shipping kernel or capsule source through `#[path]` and tests it on the build machine. `nix flake check` runs each one that has a `Cargo.lock` as `proofs-<name>`: the tests in release with overflow checks on, then clippy with warnings denied, except for the crates still listed as not lint clean. Explained in [Tests and proofs](../contributing/tests-and-proofs.md#proof-crates). Code: `tools/nix/checks.nix`.
