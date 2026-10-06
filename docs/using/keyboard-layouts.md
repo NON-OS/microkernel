@@ -1,3 +1,25 @@
 # Keyboard layouts
 
 Which keyboard layouts NONOS has, how to choose one at first boot, how to switch while you type, and how PS/2 and USB keyboards apply them.
+
+## The six layouts
+
+NONOS resolves keys for six layouts. The table holds every one there is (`Layout` in `userland/nonos_keymap/src/layout.rs`, `POLICY_LAYOUTS` in `userland/nonos_keymap/src/policy.rs`):
+
+| Setup row | Name in setup | Short name | What differs from US |
+|---|---|---|---|
+| 1 | `US QWERTY` | `us` | The base layout. The extra key an ISO keyboard has beside left Shift gives nothing. |
+| 2 | `UK` | `uk` | `"` and `@` swap, `£` on 3, `#` and `~` beside Enter. AltGr gives `€` on 4. |
+| 3 | `German` | `de` | QWERTZ: Y and Z swap. Umlauts and `ß` on their German keys. AltGr gives `@` on Q, `€` on E, and the brackets and braces on 7 to 0. |
+| 4 | `French AZERTY` | `fr` | A and Q swap, Z and W swap, M sits right of L, digits need Shift. AltGr gives `@` on 0, `€` on E, and the brackets on the number row. |
+| 5 | `Italian` | `it` | Accented vowels right of P and L. AltGr gives `@` and `#` right of L, `€` on E, and the brackets right of P. |
+| 6 | `Spanish` | `es` | `ñ` right of L, inverted punctuation beside the digits. AltGr gives `@` on 2, `#` on 3 and `€` on E. |
+
+The right `Alt` key is AltGr on every layout but US (`userland/capsule_driver_ps2_input/src/keymap/modifiers.rs`, `userland/capsule_driver_usb_hid/src/hid/keymap/resolve.rs`). AltGr over a key with nothing on its third level gives the ordinary character.
+
+The policy store's label list also names `US Dvorak`, `Russian`, `Japanese` and `Chinese` (`userland/policy_proto/src/keyboard_layout_labels.rs`). No key table exists for them, so setup does not offer them, and a driver that is told one keeps the layout it has.
+
+Known limits, from the tables themselves (`userland/nonos_keymap/src/tables/`):
+
+- French and Spanish dead keys (circumflex, diaeresis, acute, grave) arrive as plain characters. Accents are not composed onto the next letter.
+- On the German layout, Caps Lock does not capitalise an umlaut. Shift does.
