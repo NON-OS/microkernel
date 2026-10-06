@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the CDC-ECM driver: the shipped ecm module runs
+# here through #[path], binding the scripted device usbnet_proofs gives
+# (QEMU usb-net's descriptors) and moving frames through it.
+[package]
+name = "cdc_ecm_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_usbnet = { package = "usbnet_proofs", path = "../usbnet_proofs" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
