@@ -33,3 +33,38 @@ The program starts in `_start`: `find_virtio_rng` looks for the device, `bring_u
 ## 1. The crate
 
 The crate is a `no_std`, `no_main` binary named `driver_virtio_rng` with `_start` as its entry (`userland/capsule_driver_virtio_rng/src/main.rs:17-36`). It depends on `nonos_libc` for every system call and on `nonos_virtio` for the virtio 1.0 transport (`userland/capsule_driver_virtio_rng/Cargo.toml:17-23`). It reaches hardware only through the broker; the static checks refuse a `crate::drivers` import in this crate, through `capsule_kernel_drivers` (`nonos-ci/run-static-checks.sh:476-483`).
+
+## 2. The manifest
+
+`Capsule.mk` declares who the capsule is. This is the whole of virtio-rng's below its four-line header comment, as the build reads it to fill `CAPSULE_SLUG` and the rest:
+
+```make
+CAPSULE_SLUG             := driver-virtio-rng
+CAPSULE_HANDLE           := driver.virtio_rng
+CAPSULE_DOMAIN           := systems.nonos
+CAPSULE_DIR              := userland/capsule_driver_virtio_rng
+CAPSULE_BIN_NAME         := driver_virtio_rng
+CAPSULE_FEATURE          := nonos-capsule-driver-virtio-rng
+CAPSULE_NAMESPACE        := systems.nonos.driver.virtio_rng
+CAPSULE_SERVICE_ENDPOINT := service:4200:driver.virtio_rng
+CAPSULE_REPLY_ENDPOINT   := reply:4201:endpoint.4294967302
+# IPC|Memory|Driver|DeviceEnum|Mmio|Dma|Pio
+# = 0x08|0x10|0x10000|0x8000|0x20000|0x80000|0x100000 = 0x1B8018
+# No Irq: the driver polls its rings and makes no MkIrq* call (and posts
+# no input), the only calls Irq admits. A driver moved to interrupts
+# takes the bit back.
+CAPSULE_REQUIRED_CAPS    := 0x1B8018
+CAPSULE_KERNEL_MIRROR    := src/hardware/virtio_rng_capsule
+
+include nonos-mk/capsule.mk
+```
+
+What each line means:
+
+- `CAPSULE_SLUG` names the make targets. The include turns it into `NONOS_CAPSULE_RULES`: `nonos-mk-driver-virtio-rng` builds the ELF, `nonos-mk-driver-virtio-rng-sign` signs it (`nonos-mk/capsule.mk:175-177`). The include refuses a manifest that leaves out `CAPSULE_SLUG` or any other required variable (`nonos-mk/capsule.mk:28-55`).
+- `CAPSULE_HANDLE` is the service name clients look up, and `CAPSULE_SERVICE_ENDPOINT` gives it a port. `check_capsule_ports.py` fails when `clashes` finds two capsules on one port (`scripts/check_capsule_ports.py:18-32`).
+- `CAPSULE_REPLY_ENDPOINT` names the inbox the kernel's client reads replies from; its name must equal `REPLY_INBOX` in the mirror (`src/hardware/virtio_rng_capsule/client/transport.rs:25-27`).
+- `CAPSULE_NAMESPACE` under `systems.nonos.` puts the capsule in the enrolled tier, which `classify` decides (`src/kernel_core/process_spawn/capsule_spawn/runner/tier.rs:22-28`) and `attest_gate` checks at every spawn (`src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:72-77`).
+- `CAPSULE_REQUIRED_CAPS` is the capability word: `0x1B8018` is IPC, Memory, Driver, DeviceEnum, Mmio, Dma and Pio, and no Irq because the driver polls. The capsule runs with these bits plus any optional bit the spawn grants, as `install_caps` computes (`src/security/capsule_manifest/verify/caps_bits.rs:45-47`). On a boot mode without network, `caps` in the profile gate then takes the Network bit away (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:48-55`).
+
+A driver that prints to the serial console adds `CAPSULE_OPTIONAL_CAPS := 0x100`, the `Debug` bit, and its mirror asks for it with `serial_debug_cap`, which returns it only in a kernel built with `capsule-serial-debug` (`src/capabilities/serial_debug.rs:37-50`). Hardened and Air-Gapped images leave that feature out through `debugFeatures` (`tools/nix/config.nix:78-93`). The shared start code prints its lines, such as `say_absent`'s, with `mk_debug` (`userland/libc/src/bringup/run.rs:64-89`), and the contract table admits `MkDebug` only with `Debug` (`src/syscall/contract/cap_table/mk.rs:138`), so a driver without the bit gives up without a line of its own on the console.
