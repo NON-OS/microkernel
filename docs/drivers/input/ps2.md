@@ -63,3 +63,11 @@ A PS/2 mouse counts upward motion as positive. The driver negates Y, so that on 
 When the mouse bring-up failed, bytes from the aux port are still read to keep the output buffer clear, and then thrown away (`aux_enabled`, `userland/capsule_driver_ps2_input/src/poll/drain.rs:52-60`).
 
 A touchpad on the aux port gets no special treatment. The driver speaks no vendor touchpad protocol, so it sees what the touchpad sends in plain PS/2 mouse mode: relative motion and its buttons.
+
+## Authority and privacy
+
+The [capsule](../../overview/glossary.md#capsule) manifest asks for the [capabilities](../../overview/glossary.md#capability) IPC, Memory, DeviceEnum, Driver, Irq, Pio and InputSource and nothing else: no MMIO, no DMA and no Debug (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_driver_ps2_input/Capsule.mk:18`). The kernel installs the set the signed manifest names, and its spawn site asks for nothing beyond it (`requested_caps`, `src/hardware/ps2_kbd_capsule/spawn.rs:51-57`).
+
+Without Debug the driver's own `[driver_ps2]` lines are refused by the kernel and never reach the console. When the driver ends with a status other than 0, the kernel prints an `[EXIT]` line with its service name and status, and for status 2 or 6 the reason in words (`words`, `src/process/exit/end_rule.rs:38-44`).
+
+No capsule may send to `driver.ps2_kbd0`: the kernel holds it to an empty list (`KERNEL_ONLY`, `src/services/registry/held_table.rs:27`). Scan codes stay in the driver's bounded ring and key events in the kernel input ring until the router delivers them. The driver writes nothing to disk.
