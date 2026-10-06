@@ -13,56 +13,77 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The `[HDA]` lines bring-up writes to the serial console, built on the
+//! stack. They are what a boot log on a machine without a debugger shows.
 
 use nonos_libc::mk_debug;
 
-pub(super) fn mark(s: &str) {
+pub(crate) fn mark(s: &str) {
     mk_debug(s.as_ptr(), s.len());
 }
 
-pub(super) fn mark_corb_vid(vid: u16) {
-    let prefix = b"[HDA] corb vid=";
-    let mut buf = [0u8; 20];
-    let mut n = prefix.len();
-    buf[..n].copy_from_slice(prefix);
-    let mut shift: i32 = 12;
-    while shift >= 0 {
-        let nib = ((vid >> shift) & 0xf) as u8;
-        buf[n] = if nib < 10 { b'0' + nib } else { b'a' + nib - 10 };
-        n += 1;
-        shift -= 4;
-    }
-    buf[n] = b'\n';
-    n += 1;
-    mk_debug(buf.as_ptr(), n);
+/// One console line, cut to fit.
+pub(crate) struct Line {
+    buf: [u8; 120],
+    n: usize,
 }
 
-fn put_str(buf: &mut [u8], n: usize, s: &[u8]) -> usize {
-    buf[n..n + s.len()].copy_from_slice(s);
-    n + s.len()
-}
-
-fn put_dec(buf: &mut [u8], mut n: usize, v: u8) -> usize {
-    if v >= 100 {
-        buf[n] = b'0' + v / 100;
-        n += 1;
+impl Line {
+    pub(crate) fn new(s: &str) -> Self {
+        let mut l = Line { buf: [0; 120], n: 0 };
+        l.s(s);
+        l
     }
-    if v >= 10 {
-        buf[n] = b'0' + (v / 10) % 10;
-        n += 1;
-    }
-    buf[n] = b'0' + v % 10;
-    n + 1
-}
 
-pub(super) fn mark_path(cad: u8, dac: u8, pin: u8) {
-    let mut buf = [0u8; 48];
-    let mut n = put_str(&mut buf, 0, b"[HDA] path cad=");
-    n = put_dec(&mut buf, n, cad);
-    n = put_str(&mut buf, n, b" dac=");
-    n = put_dec(&mut buf, n, dac);
-    n = put_str(&mut buf, n, b" pin=");
-    n = put_dec(&mut buf, n, pin);
-    buf[n] = b'\n';
-    mk_debug(buf.as_ptr(), n + 1);
+    pub(crate) fn s(&mut self, s: &str) -> &mut Self {
+        for &b in s.as_bytes() {
+            if self.n + 1 < self.buf.len() {
+                self.buf[self.n] = b;
+                self.n += 1;
+            }
+        }
+        self
+    }
+
+    /// `v` in hex, `digits` long.
+    pub(crate) fn hex(&mut self, v: u32, digits: u32) -> &mut Self {
+        let mut shift = digits * 4;
+        while shift > 0 {
+            shift -= 4;
+            let nib = ((v >> shift) & 0xf) as u8;
+            let c = if nib < 10 { b'0' + nib } else { b'a' + nib - 10 };
+            if self.n + 1 < self.buf.len() {
+                self.buf[self.n] = c;
+                self.n += 1;
+            }
+        }
+        self
+    }
+
+    pub(crate) fn dec(&mut self, v: u32) -> &mut Self {
+        let mut d = [0u8; 10];
+        let mut k = 0usize;
+        let mut r = v;
+        loop {
+            d[k] = b'0' + (r % 10) as u8;
+            k += 1;
+            r /= 10;
+            if r == 0 {
+                break;
+            }
+        }
+        while k > 0 {
+            k -= 1;
+            if self.n + 1 < self.buf.len() {
+                self.buf[self.n] = d[k];
+                self.n += 1;
+            }
+        }
+        self
+    }
+
+    pub(crate) fn emit(&mut self) {
+        self.buf[self.n] = b'\n';
+        mk_debug(self.buf.as_ptr(), self.n + 1);
+    }
 }

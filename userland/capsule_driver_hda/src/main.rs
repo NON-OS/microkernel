@@ -20,6 +20,7 @@
 extern crate alloc;
 
 mod audio;
+mod clock;
 mod constants;
 mod controller;
 mod discover;
@@ -29,22 +30,14 @@ mod protocol;
 mod regs;
 mod server;
 mod setup;
+mod start;
 
 use nonos_libc::{heap_init, mk_exit};
-
-use crate::error::exit_code;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    let driver = match setup::run() {
-        Ok(driver) => driver,
-        Err(e) => {
-            setup::mark_setup_fail(e);
-            mk_exit(exit_code(e))
-        }
-    };
-    server::run(driver);
+    start::start()
 }

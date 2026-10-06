@@ -14,27 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum HdaError {
-    DeviceNotFound,
     BrokerCallFailed(i64),
     ControllerResetTimeout,
-    ImmediateCommandBusy,
-    ImmediateResponseTimeout,
     UnsupportedController,
     VerbTimeout,
+    ControllerNotResponding,
+    DmaOutOfReach,
+    StreamResetTimeout,
+    CodecPowerTimeout,
 }
 
 pub type HdaResult<T> = Result<T, HdaError>;
 
+/// The code the setup-fail mark prints for each failure. The driver no
+/// longer exits with it: a missing controller is `EXIT_ABSENT` before any
+/// attempt and a failed one `EXIT_GAVE_UP`, but the numbers stay so the
+/// boot log still reads the way it did.
 pub fn exit_code(e: HdaError) -> i32 {
     match e {
-        HdaError::DeviceNotFound => 2,
         HdaError::BrokerCallFailed(_) => 3,
         HdaError::ControllerResetTimeout => 4,
-        HdaError::ImmediateCommandBusy => 5,
-        HdaError::ImmediateResponseTimeout => 6,
         HdaError::UnsupportedController => 7,
         HdaError::VerbTimeout => 8,
+        HdaError::ControllerNotResponding => 9,
+        HdaError::DmaOutOfReach => 10,
+        HdaError::StreamResetTimeout => 11,
+        HdaError::CodecPowerTimeout => 12,
     }
 }

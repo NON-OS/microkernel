@@ -17,3 +17,20 @@
 pub const CLASS_AUDIO: u32 = 0x0050;
 pub const HDA_BAR_INDEX: u8 = 0;
 pub const HDA_BAR_MIN_SIZE: u64 = 0x1000;
+
+pub const PCI_VENDOR_INTEL: u16 = 0x8086;
+pub const PCI_CLASS_MULTIMEDIA: u8 = 0x04;
+/// Multimedia audio controller: what Intel's controllers from Skylake on
+/// report while their audio DSP is enabled in firmware.
+pub const PCI_SUBCLASS_AUDIO: u8 = 0x01;
+/// High Definition Audio controller.
+pub const PCI_SUBCLASS_HDA: u8 = 0x03;
+
+/// Intel PCH configuration registers Linux sets in `azx_init_pci` and
+/// `hda_intel_init_chip` (sound/pci/hda/hda_intel.c).
+pub const PCI_CFG_TCSEL: u32 = 0x44;
+pub const PCI_CFG_CGCTL: u32 = 0x48;
+pub const PCI_CFG_DEVC: u32 = 0x78;
+pub const TCSEL_MASK: u32 = 0x07;
+pub const CGCTL_MISCBDCGE: u32 = 1 << 6;
+pub const DEVC_NOSNOOP: u32 = 1 << 11;
