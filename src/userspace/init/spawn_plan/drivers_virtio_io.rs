@@ -34,7 +34,11 @@ fn spawn_rng() {}
 
 #[cfg(feature = "nonos-capsule-driver-virtio-blk")]
 fn spawn_blk() {
+    use crate::hardware::inventory::HardwareFamily;
     use crate::hardware::virtio_blk_capsule as c;
+    if !super::device_present::present("DRIVER-VIRTIO-BLK", HardwareFamily::StorageVirtioBlk) {
+        return;
+    }
     super::boot::capsule(
         "DRIVER-VIRTIO-BLK",
         "driver_virtio_blk",

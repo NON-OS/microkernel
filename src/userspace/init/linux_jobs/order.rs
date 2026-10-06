@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(not(feature = "microkernel-setup-wizard"))]
-pub(in crate::userspace::init) fn spawn_apps() {
-    super::apps::spawn();
-}
+//! The order queued jobs run in when some have to wait. Pure, so the kernel
+//! proofs hold it.
 
-/// With first-boot setup the apps wait for the desktop that follows it.
-/// Spawned beside setup they found no shell and exited, and they took the
-/// keyboard focus setup needed on the way.
-#[cfg(feature = "microkernel-setup-wizard")]
-pub(in crate::userspace::init) fn spawn_apps() {}
+use alloc::vec::Vec;
+
+/// What had to wait, ahead of what was asked meanwhile, each once: installs
+/// run in the order they were asked for, however long the one before took.
+pub(crate) fn requeue<T: PartialEq>(waiting: Vec<T>, newer: Vec<T>) -> Vec<T> {
+    let mut out = waiting;
+    for job in newer {
+        if !out.contains(&job) {
+            out.push(job);
+        }
+    }
+    out
+}

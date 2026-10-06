@@ -19,7 +19,7 @@ use crate::services::lifecycle::{self, CapsuleState};
 use crate::sys::boot_log;
 
 pub(crate) fn boot(
-    prefix: &str,
+    prefix: &'static str,
     name: &'static str,
     spawn_fn: fn() -> Result<(), SpawnError>,
     state_fn: fn() -> &'static CapsuleState,
@@ -28,7 +28,16 @@ pub(crate) fn boot(
         Ok(()) => {
             boot_log::ok(prefix, "capsule spawned");
             lifecycle::register(lifecycle::Capsule { name, state: state_fn() });
+            super::super::supervisor::watch(prefix, name, spawn_fn, state_fn);
         }
+        Err(e) => boot_log::error(super::error::message(prefix, e).as_str()),
+    }
+}
+
+/// Start a watched service again after it ended.
+pub(crate) fn restart(prefix: &str, spawn_fn: fn() -> Result<(), SpawnError>) {
+    match spawn_fn() {
+        Ok(()) => boot_log::ok(prefix, "restarted after it ended"),
         Err(e) => boot_log::error(super::error::message(prefix, e).as_str()),
     }
 }

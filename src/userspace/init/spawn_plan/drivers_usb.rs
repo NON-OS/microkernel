@@ -48,9 +48,19 @@ fn spawn_usb_hid() {
 #[cfg(not(feature = "nonos-capsule-driver-usb-hid"))]
 fn spawn_usb_hid() {}
 
+/*
+ * Whether a mass-storage device is plugged in is known only once the xHCI
+ * driver has enumerated its ports, after this plan has run. So the driver
+ * starts wherever an xHCI controller is, looks for its device itself within
+ * a bounded window, and tells the block layer "no device" if it finds none.
+ */
 #[cfg(feature = "nonos-capsule-driver-usb-msc")]
 fn spawn_usb_msc() {
+    use crate::hardware::inventory::HardwareFamily;
     use crate::userspace::capsule_driver_usb_msc as c;
+    if !super::device_present::present("DRIVER-USB-MSC", HardwareFamily::UsbXhci) {
+        return;
+    }
     super::boot::capsule(
         "DRIVER-USB-MSC",
         "driver_usb_msc",

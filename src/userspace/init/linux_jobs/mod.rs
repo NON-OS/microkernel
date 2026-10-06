@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(not(feature = "microkernel-setup-wizard"))]
-pub(in crate::userspace::init) fn spawn_apps() {
-    super::apps::spawn();
-}
 
-/// With first-boot setup the apps wait for the desktop that follows it.
-/// Spawned beside setup they found no shell and exited, and they took the
-/// keyboard focus setup needed on the way.
-#[cfg(feature = "microkernel-setup-wizard")]
-pub(in crate::userspace::init) fn spawn_apps() {}
+//! Work a capsule asks the Linux personality to do, performed by init: an
+//! install once the market vouches for it, or a run of what was installed.
+
+mod direct;
+mod evict;
+mod order;
+mod queue;
+mod run;
+mod service;
+mod status;
+mod why;
+
+pub(crate) use queue::{has_pending, request_install, request_quiet_run, request_run, request_uninstall};
+pub(crate) use service::service;
+pub(crate) use status::{get as install_stage, Stage};

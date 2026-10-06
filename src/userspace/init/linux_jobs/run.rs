@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(not(feature = "microkernel-setup-wizard"))]
-pub(in crate::userspace::init) fn spawn_apps() {
-    super::apps::spawn();
-}
+//! Starting what a queued run asked for, said on the log.
 
-/// With first-boot setup the apps wait for the desktop that follows it.
-/// Spawned beside setup they found no shell and exited, and they took the
-/// keyboard focus setup needed on the way.
-#[cfg(feature = "microkernel-setup-wizard")]
-pub(in crate::userspace::init) fn spawn_apps() {}
+use crate::sys::serial::{print, println};
+use crate::userspace::capsule_linux::spawn_run;
+
+/// Start `package`'s program. A quiet run is said without its package: a
+/// shipped tier a terminal asked for is named nowhere on the log.
+pub(super) fn run(package: &str, quiet: bool) {
+    let said: &[u8] = match super::super::app_choice::linux_off() {
+        true => b"[LINUX-RUN] Linux turned off at setup, not started: ",
+        false if spawn_run(package).is_ok() => b"[LINUX-RUN] started ",
+        false => b"[LINUX-RUN] refused ",
+    };
+    print(said);
+    println(if quiet { b"a Qwen window" } else { package.as_bytes() });
+}

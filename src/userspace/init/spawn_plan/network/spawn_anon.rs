@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(not(feature = "microkernel-setup-wizard"))]
-pub(in crate::userspace::init) fn spawn_apps() {
-    super::apps::spawn();
+//! Spawning the Anyone onion transport, after nym and before the SOCKS front end.
+
+#[cfg(feature = "nonos-capsule-net-anon")]
+pub(super) fn spawn_anon() {
+    use crate::userspace::capsule_net_anon as c;
+    super::super::boot::capsule("NET-ANON", "net_anon", c::spawn_net_anon_capsule, c::shared_state);
 }
 
-/// With first-boot setup the apps wait for the desktop that follows it.
-/// Spawned beside setup they found no shell and exited, and they took the
-/// keyboard focus setup needed on the way.
-#[cfg(feature = "microkernel-setup-wizard")]
-pub(in crate::userspace::init) fn spawn_apps() {}
+#[cfg(not(feature = "nonos-capsule-net-anon"))]
+pub(super) fn spawn_anon() {}

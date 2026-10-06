@@ -14,13 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(not(feature = "microkernel-setup-wizard"))]
-pub(in crate::userspace::init) fn spawn_apps() {
-    super::apps::spawn();
-}
+/*
+ * The apps first-boot setup turned off. Setup's exit status carries them;
+ * init records them before it starts the desktop, and from then on no app
+ * turned off is spawned, at boot or on demand. Only spawns are withheld:
+ * every check an app that does start goes through is unchanged.
+ */
 
-/// With first-boot setup the apps wait for the desktop that follows it.
-/// Spawned beside setup they found no shell and exited, and they took the
-/// keyboard focus setup needed on the way.
+mod bits;
+mod gate;
+mod names;
+mod present;
+mod profile;
+
 #[cfg(feature = "microkernel-setup-wizard")]
-pub(in crate::userspace::init) fn spawn_apps() {}
+pub(crate) use gate::choose;
+pub(crate) use gate::off;
+pub(crate) use names::{capsule_off, linux_off, tool_off, window_off};
+pub(crate) use present::PRESENT;
+pub(crate) use profile::apply as apply_profile;
