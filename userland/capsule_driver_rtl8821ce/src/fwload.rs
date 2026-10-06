@@ -99,6 +99,8 @@ pub fn load(regs: &Regs, device_id: u64, claim_epoch: u64) -> Result<(), FwLoadE
         status::line(b"), 32-bit descriptor cannot address it\n");
     }
 
+    // Burst sizes first, as rtw88 sets them before the ring addresses (pci.c:403).
+    crate::mac::set_dma_burst(regs);
     // Point the card at the beacon-queue ring before the first kick reads it.
     regs.write32(REG_TXBD_DESA_BCNQ, ring.device_addr() as u32);
     regs.write32(REG_TXBD_DESA_BCNQ + 4, (ring.device_addr() >> 32) as u32);
@@ -142,8 +144,18 @@ pub fn load(regs: &Regs, device_id: u64, claim_epoch: u64) -> Result<(), FwLoadE
 /// Shared with the serving stage, which maps the transmit and receive rings the
 /// same way.
 pub(crate) fn map_dma(device_id: u64, claim_epoch: u64, bytes: u64) -> Option<Grant> {
+    map_dma_with(device_id, claim_epoch, bytes, 0)
+}
+
+/// `map_dma` with the broker's map flags (`MK_DMA_MAP_*`).
+pub(crate) fn map_dma_with(
+    device_id: u64,
+    claim_epoch: u64,
+    bytes: u64,
+    flags: u32,
+) -> Option<Grant> {
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-    if mk_dma_map(device_id, claim_epoch, bytes, 0, &mut out) < 0 {
+    if mk_dma_map(device_id, claim_epoch, bytes, flags, &mut out) < 0 {
         return None;
     }
     Some(Grant::new(out.user_va, out.device_addr, out.length as usize))
