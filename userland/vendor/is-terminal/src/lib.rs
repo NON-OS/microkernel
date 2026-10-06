@@ -99,12 +99,11 @@ impl<Stream: AsFd> IsTerminal for Stream {
             hermit_abi::isatty(self.as_fd().as_fd().as_raw_fd())
         }
 
-        // NONOS stdio is an IPC pipe to the terminal capsule, never a tty;
-        // "not a terminal" (colors off) is the honest headless answer.
+        // NONOS asks the kernel, through std: the launcher that renders this
+        // process's output says which of its streams reach a terminal.
         #[cfg(target_vendor = "nonos")]
         {
-            let _ = self.as_fd();
-            false
+            std::io::IsTerminal::is_terminal(&self.as_fd())
         }
     }
 }
