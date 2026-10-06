@@ -80,3 +80,12 @@ Passing the gates in the window decides nothing on its own. The Marketplace wind
 - A Linux package: the package chosen is held to the BLAKE3 the catalogue pins, and what it depends on to the distribution's own signed index (`fetch` in `userland/capsule_linux/src/linux/install/fetch.rs`).
 
 A Linux package's proof is made on this machine after its bytes check out. Such a program runs only if setup's `Installed software` step was answered `Also software installed here` (`MODES` in `userland/capsule_setup_wizard/src/render/screens/local_software.rs:24`); the other answer is `Only NONOS software`. A Qwen tier installs only model files, and its chat program is part of the image.
+
+## What needs a network
+
+- Browsing the catalogue does not. It is on the machine.
+- Installing a Qwen tier does, unless it is `qwen3-0.6b` on a release stick that carries it. The download goes over the Anyone network, through its client `net.anon`, whatever the default network is, and waits up to three minutes for Anyone to build its first circuit. The card says the path before you install.
+- Installing a Linux package does too, also over Anyone (`for_installs` in `userland/capsule_linux/src/linux/install/http_route.rs:112`), and the exit resolves the mirror's name. A mirror named by a private address on your own network is dialled directly.
+- `d` downloads a tier directly instead, for that install only. The card offers it when a download through an anonymity network would be large, and after one stopped because the network or its exits did not answer. A direct download is faster, and the mirror sees this machine's address.
+
+See [Privacy networks](privacy-network.md).
