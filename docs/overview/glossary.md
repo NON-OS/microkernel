@@ -179,3 +179,7 @@ A publisher's certificate, signed by the trust anchor with both Ed25519 and ML-D
 ## Nym mixnet
 
 The Nym anonymity network, route value `NYM`, and the default network for the browser, the Terminal and the wallet. A program reaches it through `net.socks5`, and when the policy store does not answer, the route is read as Nym, never as Direct. Explained in [Privacy networks](../using/privacy-network.md). Code: `userland/policy_proto/src/route.rs`, `userland/nonos_route_link/src/chosen.rs`.
+
+## Package store
+
+<a id="store"></a>The region of a NONOS disk from sector 256 up to the disk plan at sector 245,760, headed by the magic `NONOSTR1`. The seal fills it with what `tools/nix/store.json` declares, the Linux userland, demo capsules, sample films and wallpapers among them, and the file store reads it and adds to it: installed apps, kept files and setup's answers. It is written unencrypted. Explained in [Storage drivers](../drivers/storage/README.md#the-disk-layout). Code: `userland/nonos_disk_map/src/places.rs`.
