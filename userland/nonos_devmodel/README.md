@@ -24,3 +24,13 @@ So the rule for choosing a model: if the driver spins, a live device can
 answer it. If the driver reads back immediately, it cannot, and the property
 stays documented rather than asserted.
 
+
+## Who uses it
+
+It is a host-only library. The proof crates for i2c_pci, e1000, xhci,
+virtio_rng, rtl8169, hda, bga and virtio_gpu depend on it by path and point
+their driver's register window at a `FakeBar`. `nonos_i2cmodel` covers what a
+memory window cannot, the I2C controller's FIFOs.
+
+See [drivers](../../docs/handbook/drivers.md) and
+[proofs](../../docs/handbook/verification/proofs.md).
