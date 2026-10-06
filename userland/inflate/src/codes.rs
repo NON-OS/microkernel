@@ -14,46 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
 use super::bits::Bits;
-use super::huff::{decode, Huff};
-use super::tables::{DBASE, DEXT, LBASE, LEXT, MAX_OUT};
+use super::fast::fast;
+use super::huff::{Table, EOB, KIND, LEN, LIT};
+use super::out::Out;
+use super::types::End;
 
-pub fn codes(b: &mut Bits, out: &mut Vec<u8>, lit: &Huff, dist: &Huff) -> Option<()> {
+/// Decodes one block's literal/length and distance codes up to its end of
+/// block: the fast loop while it can, then one symbol at a time with every
+/// check. A refill before each symbol leaves 56 bits while the input lasts,
+/// enough for a length, its distance and both extra fields.
+pub fn codes(b: &mut Bits, out: &mut Out, lit: &Table<1024>, dist: &Table<256>) -> Result<(), End> {
     loop {
-        let sym = decode(b, lit)?;
-        if sym == 256 {
-            return Some(());
+        if let Some(done) = fast(b, out, lit, dist) {
+            return done;
         }
-        if sym < 256 {
-            out.push(sym as u8);
-        } else {
-            copy_match(b, out, sym, dist)?;
-        }
-        if out.len() > MAX_OUT {
-            return None;
+        b.refill();
+        let e = symbol(b, lit)?;
+        match e & KIND {
+            LIT => out.lit((e >> 16) as u8)?,
+            LEN => {
+                let len = (e >> 16) as usize + extra(b, e)?;
+                let d = symbol(b, dist)?;
+                if d & KIND != LIT {
+                    return Err(End::Corrupt);
+                }
+                out.copy((d >> 16) as usize + extra(b, d)?, len)?;
+            }
+            EOB => return Ok(()),
+            _ => return Err(End::Corrupt),
         }
     }
 }
 
-fn copy_match(b: &mut Bits, out: &mut Vec<u8>, sym: u16, dist: &Huff) -> Option<()> {
-    let s = (sym - 257) as usize;
-    if s >= 29 {
-        return None;
+/// Decodes and consumes one code. A missing code with the input used up
+/// may be the start of one the input never delivered.
+#[inline(always)]
+pub fn symbol<const N: usize>(b: &mut Bits, t: &Table<N>) -> Result<u32, End> {
+    let e = t.lookup(b.buf);
+    let n = e & 0xFF;
+    if n == 0 || n > b.cnt {
+        let short = n > b.cnt || (b.drained() && b.cnt < 15);
+        return Err(if short { End::Truncated } else { End::Corrupt });
     }
-    let len = LBASE[s] as usize + b.bits(LEXT[s] as u32)? as usize;
-    let dsym = decode(b, dist)? as usize;
-    if dsym >= 30 {
-        return None;
+    b.drop_bits(n);
+    Ok(e)
+}
+
+/// The value of an entry's extra bits.
+#[inline(always)]
+fn extra(b: &mut Bits, e: u32) -> Result<usize, End> {
+    let n = (e >> 8) & 0xF;
+    if n > b.cnt {
+        return Err(End::Truncated);
     }
-    let dist_v = DBASE[dsym] as usize + b.bits(DEXT[dsym] as u32)? as usize;
-    if dist_v == 0 || dist_v > out.len() || out.len().checked_add(len)? > MAX_OUT {
-        return None;
-    }
-    let start = out.len() - dist_v;
-    for i in 0..len {
-        out.push(out[start + i]);
-    }
-    Some(())
+    let v = (b.buf & ((1u64 << n) - 1)) as usize;
+    b.drop_bits(n);
+    Ok(v)
 }
