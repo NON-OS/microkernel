@@ -82,3 +82,10 @@ The numbers are the tags `SYS_TIME_MILLIS`, `SYS_TIME_MONOTONIC`, `SYS_TIME_RTC`
 - The HPET code in `detect_hpet` maps the block the ACPI HPET table names and checks that it answers like one (`src/arch/x86_64/time/hpet.rs:30-74`). The timer setups that would use it, such as `init_with_acpi` (`src/arch/x86_64/api.rs:31-37`) and the timer module's `init` (`src/arch/x86_64/time/timer/init.rs:29-36`), are not called on the boot path.
 - `src/nonos_time` is not part of the kernel crate: the module list ending in `usercopy` and `userspace` has no entry for it (`src/lib.rs:58-83`).
 - The local APIC timer runs in periodic mode. The TSC-deadline mode in `timer_enable` is not what `setup_timer` uses (`src/arch/x86_64/interrupt/apic/timer_ops.rs:24-33`).
+
+## Limits
+
+- The tick is fixed at 100 Hz on every CPU, idle or not. There is no tickless idle.
+- Sleep deadlines are checked once per tick, so a sleep can end up to one tick, 10 ms, after its deadline.
+- When no reference timer answers, every duration is off by the ratio between the real rate and 2.5 GHz.
+- The wall clock is only as right as the loader's UEFI time or the RTC until a capsule corrects it.
