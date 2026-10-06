@@ -121,3 +121,7 @@ Inside `capsule_linux`:
 - Only the `INSTALL` role asks for `Network`, because a package mirror is reached through `net.sockets`, which serves only holders of `Network` (`src/userspace/capsule_linux/roles.rs:35-44`). The `RUN` and `TERMINAL` roles ask for nothing extra (`src/userspace/capsule_linux/roles.rs:46-67`).
 - `under_root` places every guest path under the family's root or its private directories, and `writable` keeps the shared tree read-only to guests; only an install writes it (`userland/capsule_linux/src/linux/file/root.rs:34-65`).
 - `not_loopback` refuses a bind or listen outside 127.0.0.0/8 with `EACCES` (`userland/capsule_linux/src/linux/net/policy.rs:33-41`), and `refuse_out` answers a datagram to anywhere outside the family with `ENETUNREACH` (`userland/capsule_linux/src/linux/net/policy.rs:43-53`).
+
+## Host tests
+
+Some of these rules are compiled into host test crates by path, so the tests run the kernel's own code. The broker's `unconfined_allowed` is mounted as `posture` in `kernel_proofs` (`userland/kernel_proofs/src/confine_posture/mod.rs:22-23`), and `held.rs`, with `HELD` and `inbox_admits`, as `held` (`userland/kernel_proofs/src/ipc_held_tests/mod.rs:23-24`). At this commit `kernel_proofs` runs 388 tests and all pass.
