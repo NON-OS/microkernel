@@ -95,3 +95,7 @@ The kernel's linear, never executable mapping of the first 256 GiB of physical m
 ## Disk plan
 
 One plain sector at LBA 245,760, with the magic `NONOSDP1`, that names the data volume's range and up to 30 files to import. The kernel checks every range in it against the disk and against each other before it uses any; a live stick's plan names no volume. Explained in [Storage drivers](../drivers/storage/README.md#the-disk-layout). Code: `src/fs/blockfs_volume/plan_types.rs`.
+
+## DMA pool
+
+Memory the hardware broker reserves for DMA buffers: a low pool below 4 GiB for devices that can only name 32-bit addresses, and a high pool for display surfaces. A run of pages goes back only to the pool it came from. Explained in [The hardware broker](../kernel/hardware-broker.md#dma-buffers). Code: `src/hardware/broker/dma/pool/mod.rs`.
