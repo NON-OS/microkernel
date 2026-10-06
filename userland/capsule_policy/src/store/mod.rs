@@ -18,13 +18,16 @@ pub mod defaults;
 pub mod get_bool;
 pub mod get_i8;
 pub mod get_str;
+pub mod get_u64;
 pub mod get_u8;
 pub mod set_bool;
 pub mod set_i8;
 pub mod set_str;
+pub mod set_u64;
 pub mod set_u8;
 pub mod state;
 pub mod str_validate;
+pub mod string_field;
 pub mod types;
 
 pub use types::STRING_CAP;

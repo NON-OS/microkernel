@@ -14,13 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod handle_get;
-pub mod handle_set;
-pub mod handlers;
-pub mod recv;
-pub mod reply;
-pub mod respond;
-pub mod runner;
-pub mod serve;
+//! Restoring what first-boot setup kept on an earlier boot.
 
-pub use runner::run;
+mod apply;
+mod tick;
+mod values;
+
+pub use tick::{settled, tick};

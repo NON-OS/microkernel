@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod handle_get;
-pub mod handle_set;
-pub mod handlers;
-pub mod recv;
-pub mod reply;
-pub mod respond;
-pub mod runner;
-pub mod serve;
+use nonos_policy_proto::{wallpapers_kept, Field};
 
-pub use runner::run;
+use super::state::STORE;
+
+/// Refuses a set the field cannot hold: no wallpaper kept, or one past the
+/// collection.
+pub fn set(field: Field, value: u64) -> bool {
+    let mut s = STORE.lock();
+    match field {
+        Field::WallpapersKept if wallpapers_kept::valid(value) => s.wallpapers_kept = value,
+        _ => return false,
+    }
+    super::state::changed();
+    true
+}

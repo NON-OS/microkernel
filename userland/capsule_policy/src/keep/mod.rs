@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod handle_get;
-pub mod handle_set;
-pub mod handlers;
-pub mod recv;
-pub mod reply;
-pub mod respond;
-pub mod runner;
-pub mod serve;
+//! Keeping what Settings changes, on a machine that keeps state.
+//!
+//! The policy store is memory. Setup's answers come back at boot from the
+//! record setup kept; anything changed after that would not, and an
+//! installed machine would forget every change made in Settings. So when a
+//! value changes on a machine that keeps state (Persistent), the kept fields
+//! (settings_record::KEPT) are written to the settings record once the
+//! changes have been quiet for a moment, and restore puts them back after the
+//! answers. An amnesic boot keeps nothing, so writes nothing.
 
-pub use runner::run;
+mod snapshot;
+mod tick;
+
+pub use tick::{tick, written_now};

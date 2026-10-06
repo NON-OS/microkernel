@@ -1,18 +1,7 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+/*
+ * NONOS Operating System
+ * Copyright (C) 2026 NONOS Contributors (AGPL-3.0-or-later)
+ */
 
 use super::default_hostname::default_hostname;
 use super::empty_string::empty_string;
@@ -42,7 +31,8 @@ pub const fn store() -> Store {
         wifi_autoconnect: true,
         animations_enabled: true,
         cursor_size: 1,
-        wallpaper: 48,
+        // special-variant-9: catalog index 13 + 14 + 18 + 10.
+        wallpaper: 55,
         clock_format24: true,
         prefer_ipv6: false,
         metered_connection: false,
@@ -53,6 +43,11 @@ pub const fn store() -> Store {
         audio_balance: 50,
         alert_sounds: false,
         startup_chime: false,
+        persistent: false,
+        apps_off: 0,
+        wallpapers_kept: nonos_policy_proto::wallpapers_kept::ALL,
+        // The Nym mixnet until setup or Settings says otherwise.
+        network_route: nonos_policy_proto::route::NYM,
         kernel_aslr: true,
         kernel_stack_guard: true,
         kernel_nx_bit: true,
@@ -67,5 +62,7 @@ pub const fn store() -> Store {
         kernel_seccomp: true,
         hostname: default_hostname(),
         domainname: empty_string(),
+        username: empty_string(),
+        qwen_tier: empty_string(),
     }
 }

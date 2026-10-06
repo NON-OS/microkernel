@@ -34,6 +34,8 @@ pub fn get(field: Field) -> Option<u8> {
         Field::ProxyMode => s.proxy_mode,
         Field::Volume => s.volume,
         Field::AudioBalance => s.audio_balance,
+        Field::AppsOff => s.apps_off,
+        Field::NetworkRoute => s.network_route,
 
         _ => return None,
     })

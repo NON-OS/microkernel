@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod handle_get;
-pub mod handle_set;
-pub mod handlers;
-pub mod recv;
-pub mod reply;
-pub mod respond;
-pub mod runner;
-pub mod serve;
+use nonos_policy_proto::{Field, E_NOT_FOUND, KIND_U64, OP_GET};
+use crate::store::get_u64;
 
-pub use runner::run;
+use super::super::respond;
+
+pub fn handle(pid: u32, field: Field) {
+    match get_u64::get(field) {
+        Some(v) => respond::ok(pid, OP_GET, field as u32, KIND_U64, &v.to_le_bytes()),
+        None => respond::err(pid, OP_GET, field as u32, KIND_U64, E_NOT_FOUND),
+    }
+}

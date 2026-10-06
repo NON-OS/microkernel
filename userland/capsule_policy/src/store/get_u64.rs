@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod handle_get;
-pub mod handle_set;
-pub mod handlers;
-pub mod recv;
-pub mod reply;
-pub mod respond;
-pub mod runner;
-pub mod serve;
+use nonos_policy_proto::Field;
 
-pub use runner::run;
+use super::state::STORE;
+
+pub fn get(field: Field) -> Option<u64> {
+    let s = STORE.lock();
+    match field {
+        Field::WallpapersKept => Some(s.wallpapers_kept),
+        _ => None,
+    }
+}
