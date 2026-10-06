@@ -220,3 +220,7 @@ In this release nothing in the kernel calls the virtio-rng client; the kernel re
 ## 12. Who may send to it
 
 A driver serves its device raw, so its endpoint goes into `HELD` with the services allowed to reach it, or with `KERNEL_ONLY` as virtio-rng's is (`src/services/registry/held_table.rs:31-40`). A storage driver may instead check each sender with `mk_cap_check`, as NVMe does (`userland/capsule_driver_nvme/src/server/medium.rs:26-29`). The host test `every_driver_the_kernel_spawns_is_classified` fails on a spawned `driver.` endpoint that is neither in `HELD` nor in its own `GATED_IN_DRIVER` list, which names only `driver.nvme0`, `driver.ahci0` and `driver.virtio_blk0`. A new driver that checks its own senders goes on `GATED_IN_DRIVER` too (`userland/kernel_proofs/src/ipc_held_tests/classified.rs:26-57`).
+
+## 13. Starting it at boot
+
+`spawn_rng` starts the capsule whenever its feature is on (`src/userspace/init/spawn_plan/drivers_virtio_io.rs:22-33`). A driver for hardware a machine may lack asks `present` with a `HardwareFamily` first, as `spawn_blk` does (`src/userspace/init/spawn_plan/drivers_virtio_io.rs:35-48`). A new device class needs a variant in `HardwareFamily` and a rule in `classify_family` (`src/hardware/inventory/classify.rs:28-49`).
