@@ -112,7 +112,3 @@ pub fn compute_shared_secret(
 ) -> X25519SharedSecret {
     x25519(private, public)
 }
-
-pub fn derive_public_key(private: &X25519PrivateKey) -> X25519PublicKey {
-    x25519_base(private)
-}
