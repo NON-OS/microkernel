@@ -1,0 +1,20 @@
+# NONOS userland: anon_tls12_proofs nonos_tls stand-in
+#
+# The two names net.anon's TLS 1.2 module takes from nonos_tls, the Io trait
+# and the crypto pool's RSA verify. Here the verify is the rsa crate, so the
+# signature check in the proofs is not the capsule's own code checking
+# itself.
+
+[package]
+name = "anon_tls12_proofs_tls"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+rsa = { version = "0.9", default-features = false, features = ["sha2"] }
+sha2 = { version = "0.10", default-features = false, features = ["oid"] }

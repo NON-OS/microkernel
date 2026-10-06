@@ -1,0 +1,21 @@
+# NONOS userland: anon_tls12_proofs shim
+#
+# The nonos_libc calls net.anon's TLS 1.2 module makes, answered on the host
+# by RustCrypto, written apart from the capsule. Randomness is a seeded
+# generator, so a handshake replays byte for byte.
+
+[package]
+name = "anon_tls12_proofs_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+sha2 = { version = "0.10", default-features = false }
+hmac = { version = "0.12", default-features = false }
+chacha20poly1305 = { version = "0.10", default-features = false, features = ["alloc"] }
+aes-gcm = { version = "0.10", default-features = false, features = ["alloc", "aes"] }

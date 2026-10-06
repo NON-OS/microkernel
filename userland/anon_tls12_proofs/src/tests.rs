@@ -1,0 +1,12 @@
+mod cases;
+mod expect;
+mod hello_tests;
+mod mitm_tests;
+mod openssl_replay;
+mod prf_tests;
+mod record;
+mod record_tests;
+mod replay;
+mod server_tests;
+mod sha384_tests;
+mod spki_tests;
