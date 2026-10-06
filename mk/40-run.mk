@@ -22,7 +22,7 @@ endef
 
 $(QEMU_BLK_IMG):
 	@mkdir -p $(dir $@)
-	@truncate -s 64M $@
+	@truncate -s 128M $@
 
 # The capsule package store lives at LBA 0 of the virtio-blk image instead of
 # being baked into the kernel with include_bytes!. The image itself is an
@@ -33,8 +33,23 @@ QEMU_BLK_STORE_STAMP := $(QEMU_BLK_IMG).store.stamp
 NONOS_MEDIA_DIR := media/samples
 NONOS_MEDIA_FILES := $(wildcard $(NONOS_MEDIA_DIR)/*)
 
-$(QEMU_BLK_STORE_STAMP): $(std-proof_ARTIFACTS) $(gui_demo_ARTIFACTS) $(game_2048_ARTIFACTS) $(egui_proof_ARTIFACTS) tools/nonos-store-pack $(NONOS_MEDIA_FILES) | $(QEMU_BLK_IMG)
-	@$(NONOS_PYTHON) tools/nonos-store-pack --image $(QEMU_BLK_IMG) --lba 256 \
+# The sample films are 6.8 MB of the 96 MiB the vfs loads. A guest-test image
+# leaves them out, keeping that budget for its guests and outside programs.
+ifneq ($(NONOS_LINUX_GUESTS),1)
+NONOS_STORE_MEDIA_ENTRIES := \
+	--entry /Movies/big_buck_bunny.avi=$(NONOS_MEDIA_DIR)/big_buck_bunny.avi \
+	--entry /Movies/blender_reel_2013.mp4=$(NONOS_MEDIA_DIR)/blender_reel_2013.mp4 \
+	--entry /Movies/caminandes_llamigos.avi=$(NONOS_MEDIA_DIR)/caminandes_llamigos.avi \
+	--entry /Movies/elephants_dream.avi=$(NONOS_MEDIA_DIR)/elephants_dream.avi \
+	--entry /Movies/sintel.avi=$(NONOS_MEDIA_DIR)/sintel.avi \
+	--entry /Movies/tears_of_steel.avi=$(NONOS_MEDIA_DIR)/tears_of_steel.avi
+endif
+
+# LINUX_GUEST_STORE_* are empty unless NONOS_LINUX_GUESTS=1 (userland/linux_guests/Guests.mk).
+# The demo capsules the desktop offers from the store. Grouped so the
+# Linux-guest test image, which packs its own large signed set, can leave
+# them out and stay inside the vfs load budget (Guests.mk empties this).
+NONOS_STORE_DEMO_ENTRIES := \
 		--entry /capsules/std_proof.elf=$(std-proof_BIN) \
 		--entry /capsules/std_proof.nonos_id_cert.bin=$(std-proof_CERT) \
 		--entry /capsules/std_proof.manifest.bin=$(std-proof_MANIFEST) \
@@ -50,14 +65,31 @@ $(QEMU_BLK_STORE_STAMP): $(std-proof_ARTIFACTS) $(gui_demo_ARTIFACTS) $(game_204
 		--entry /capsules/egui_proof.elf=$(egui_proof_BIN) \
 		--entry /capsules/egui_proof.nonos_id_cert.bin=$(egui_proof_CERT) \
 		--entry /capsules/egui_proof.manifest.bin=$(egui_proof_MANIFEST) \
-		--entry /capsules/egui_proof.zk_trailer.bin=$(egui_proof_ATTESTATION) \
-		--entry /Movies/big_buck_bunny.avi=$(NONOS_MEDIA_DIR)/big_buck_bunny.avi \
-		--entry /Movies/blender_reel_2013.mp4=$(NONOS_MEDIA_DIR)/blender_reel_2013.mp4 \
-		--entry /Movies/caminandes_llamigos.avi=$(NONOS_MEDIA_DIR)/caminandes_llamigos.avi \
-		--entry /Movies/elephants_dream.avi=$(NONOS_MEDIA_DIR)/elephants_dream.avi \
-		--entry /Movies/sintel.avi=$(NONOS_MEDIA_DIR)/sintel.avi \
-		--entry /Movies/tears_of_steel.avi=$(NONOS_MEDIA_DIR)/tears_of_steel.avi
+		--entry /capsules/egui_proof.zk_trailer.bin=$(egui_proof_ATTESTATION)
+
+# The wallpaper collection: every wallpaper, end to end, in
+# nonos-data/wallpapers/catalog.txt's order. vfs streams it from the disk and
+# never loads it (nonos_disk_map STREAMED_PREFIX); the wallpaper catalog reads
+# only the wallpapers kept at setup out of it, each held to its pinned SHA-256.
+NONOS_WALLPAPER_COLLECTION := $(TARGET_DIR)/wallpapers/collection
+NONOS_STORE_WALLPAPER_ENTRIES := --entry /Wallpapers/collection=$(NONOS_WALLPAPER_COLLECTION)
+$(NONOS_WALLPAPER_COLLECTION): tools/nonos-wallpaper-pack nonos-data/wallpapers/catalog.txt \
+		$(wildcard nonos-data/wallpapers/*.jpg)
+	@$(NONOS_PYTHON) tools/nonos-wallpaper-pack pack $@
+
+# Every store a NONOS disk carries, the QEMU disk's and the stick's: the demo
+# capsules, the sample films, the Linux userland, and the test guests when
+# NONOS_LINUX_GUESTS=1.
+NONOS_STORE_DEPS := $(std-proof_ARTIFACTS) $(gui_demo_ARTIFACTS) $(game_2048_ARTIFACTS) \
+	$(egui_proof_ARTIFACTS) $(LINUX_USERLAND_STORE_DEPS) $(LINUX_GUEST_STORE_DEPS) \
+	tools/nonos-store-pack $(NONOS_MEDIA_FILES) $(NONOS_WALLPAPER_COLLECTION)
+NONOS_STORE_ENTRIES = $(NONOS_STORE_DEMO_ENTRIES) $(NONOS_STORE_MEDIA_ENTRIES) \
+	$(NONOS_STORE_WALLPAPER_ENTRIES) $(LINUX_USERLAND_STORE_ENTRIES) $(LINUX_GUEST_STORE_ENTRIES)
+$(QEMU_BLK_STORE_STAMP): $(NONOS_STORE_DEPS) | $(QEMU_BLK_IMG)
+	@$(NONOS_PYTHON) tools/nonos-store-pack --image $(QEMU_BLK_IMG) --lba 256 $(NONOS_STORE_ENTRIES)
 	@touch $@
+# The stick packs the same store into its own image (mk/20-build.mk).
+nonos-mk-usb-img: $(NONOS_STORE_DEPS)
 
 # Declared in mk/20-build.mk; this only extends its prerequisites.
 nonos-mk-run-from-config: $(QEMU_BLK_STORE_STAMP)
@@ -67,36 +99,19 @@ $(QEMU_OVMF_VARS_RW): $(OVMF_VARS)
 	@[ -n "$(OVMF_VARS)" ] || { echo "::error::OVMF_VARS not found"; exit 1; }
 	@cp "$(OVMF_VARS)" "$@"
 
-# Mint a throwaway developer identity so a clean checkout can attest and boot.
-# Public seed, no custody: never use the resulting image for production.
-nonos-mk-dev-enroll:
-	@test "$(NONOS_DEV)" = 1 || { echo "use: make NONOS_DEV=1 nonos-mk-dev-enroll"; exit 1; }
-	@printf "\n  *** NONOS dev identity: public seed, no custody, not for production ***\n\n"
-	@$(MAKE) --no-print-directory NONOS_DEV=1 $(ZK_BOOT_ROOT) $(ZK_BOOT_COMMITMENTS) $(ZK_BOOT_SECRETS)
-	@printf "  dev boot identity ready: root %s\n\n" "$$(shasum -a 256 $(ZK_BOOT_ROOT) | cut -c1-16)"
-
-# One command for a clean checkout: enroll a dev identity, then build and boot.
-# The GOP preference pins the firmware mode to the QEMU window size so the
-# cocoa window opens at a size that fits the host screen; hardware builds
-# never set it and keep the largest-mode pick.
-nonos-mk-dev-run:
-	@$(MAKE) --no-print-directory NONOS_DEV=1 nonos-mk-dev-enroll
-	@$(MAKE) --no-print-directory NONOS_DEV=1 \
-		NONOS_GOP_PREF=$(QEMU_XRES)x$(QEMU_YRES) nonos-mk-run
-
 # The kernel link and the ESP come last, in that order, because everything
 # before them can refresh capsule ELFs and trailers the kernel embeds and an
 # ESP packed earlier ships a kernel one generation behind the tree. They sit
 # in the recipe rather than the prerequisite list: a prerequisite list states
 # no order, it only states a set.
-nonos-mk-run: nonos-mk-swtpm-start nonos-mk-live-production-proof $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW)
+nonos-mk-run: nonos-mk-swtpm-start $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW)
 	$(call nonos_kernel_and_esp,nonos-mk-zerostate)
 	@echo "Booting NONOS in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
 	@echo "  TPM: swtpm CRB"
 	@echo "  Quit: Ctrl+A then X"
 	@rm -f "$(QEMU_QMP_SOCK)"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
@@ -116,7 +131,7 @@ nonos-mk-swtpm-stop:
 	@pkill -f "tpmstate dir=$(SWTPM_STATE)" 2>/dev/null || true
 
 nonos-mk-swtpm-start: nonos-mk-swtpm-stop
-	@command -v "$(SWTPM)" >/dev/null || { echo "swtpm not found (brew install swtpm)"; exit 1; }
+	@command -v "$(SWTPM)" >/dev/null || { echo "swtpm not found: run make from the flake shell"; exit 1; }
 	@rm -rf "$(SWTPM_STATE)"
 	@mkdir -p "$(SWTPM_STATE)"
 	@# Give the emulated part an endorsement key before the daemon takes the
@@ -143,18 +158,18 @@ nonos-mk-swtpm-start: nonos-mk-swtpm-stop
 	@# the boot dies, so reap it by the pidfile only setup uses.
 	@pkill -f 'swtpm_setup.pidfile' >/dev/null 2>&1 || true
 	@while pgrep -f 'swtpm_setup.pidfile' >/dev/null 2>&1; do \
-		perl -e 'select(undef,undef,undef,0.1)'; \
+		sleep 0.1; \
 	done
 	@rm -f "$(SWTPM_STATE)/.lock"
 	@$(SWTPM) socket --tpm2 --tpmstate dir="$(SWTPM_STATE)" --ctrl type=unixio,path="$(SWTPM_SOCK)" --flags startup-clear --daemon
-	@while [ ! -S "$(SWTPM_SOCK)" ]; do perl -e 'select(undef,undef,undef,0.1)'; done
+	@while [ ! -S "$(SWTPM_SOCK)" ]; do sleep 0.1; done
 
-nonos-mk-run-wizard: nonos-mk-setup-wizard-esp $(QEMU_BLK_IMG) $(QEMU_OVMF_VARS_RW)
-	@echo "Booting NONOS (first-boot setup wizard) in QEMU..."
-	@echo "  Network: $(QEMU_NET_DESC)"
-	@echo "  Drive it with the host keyboard; Quit: Ctrl+A then X"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
-		-drive "format=raw,file=fat:rw:$(TARGET_DIR)/esp-setup-wizard" \
+nonos-mk-run-wizard: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP) $(QEMU_OVMF_VARS_RW)
+	$(call nonos_kernel_and_esp,nonos-mk-desktop-gui-prod)
+	@echo "Booting NONOS (first-boot setup; skipped once a boot kept its answers)..."
+	@echo "  Network: $(QEMU_NET_DESC); quit: Ctrl+A then X"
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
+		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
@@ -175,7 +190,7 @@ nonos-mk-run-serial: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
 	$(call nonos_kernel_and_esp,nonos-mk-desktop-gui-prod)
 	@echo "Booting NONOS serial console in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
@@ -193,7 +208,7 @@ nonos-mk-run-serial-log: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
 	@echo "Booting NONOS serial console in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
 	@echo "  Serial log: $(QEMU_SERIAL_LOG)"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
@@ -204,7 +219,7 @@ nonos-mk-run-input-probe-inject-serial-log: nonos-mk-input-probe-inject-esp $(QE
 	@echo "Booting NONOS input-probe inject serial console in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
 	@echo "  Serial log: $(QEMU_SERIAL_LOG)"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(NONOS_INPUT_PROBE_INJECT_ESP)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
@@ -331,8 +346,22 @@ nonos-mk-check-caps:
 	@$(NONOS_PYTHON) scripts/check_cap_parity.py
 	@$(NONOS_PYTHON) scripts/check_attest_params.py
 
-nonos-mk-static: nonos-mk-check-caps
+# Every assumption the security rests on is named in one register, and a new
+# one that is not fails here, before a build.
+.PHONY: nonos-mk-check-assumptions
+nonos-mk-check-assumptions:
+	@$(NONOS_PYTHON) tools/nonos-assumptions
+
+nonos-mk-static: nonos-mk-check-caps nonos-mk-check-assumptions
 	@./nonos-ci/run-static-checks.sh
+
+# Ring 0's size against its budget, from the kernel the last build produced.
+# Run after `nonos-mk-capsules`; TCB_BUDGET picks another profile's file.
+TCB_BUDGET ?= nonos-ci/baselines/tcb-x86_64-capsules.txt
+.PHONY: nonos-mk-tcb
+nonos-mk-tcb:
+	@$(NONOS_PYTHON) tools/nonos-tcb --by-module --baseline $(TCB_BUDGET)
+	@$(NONOS_PYTHON) tools/nonos-proof-coverage --baseline scripts/baselines/proof-coverage.txt
 
 MICROKERNEL_BIN := $(TARGET_DIR)/x86_64-nonos/release/nonos-kernel
 
@@ -393,7 +422,7 @@ nonos-mk-run-smp-serial-log: $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAMP)
 	@echo "Booting NONOS on $(QEMU_SMP) CPUs in QEMU..."
 	@echo "  Network: $(QEMU_NET_DESC)"
 	@echo "  Serial log: $(QEMU_SMP_SERIAL_LOG)"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp $(QEMU_SMP) -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp $(QEMU_SMP) -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
@@ -426,7 +455,7 @@ nonos-mk-run-install: nonos-mk-swtpm-start $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAM
 	@echo "Booting NONOS with a blank NVMe install target..."
 	@echo "  Target: $(INSTALL_TARGET_IMG) (nvme, serial NONOS-TARGET)"
 	@echo "  Quit: Ctrl+A then X"
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
@@ -439,7 +468,7 @@ nonos-mk-run-install: nonos-mk-swtpm-start $(QEMU_BLK_IMG) $(QEMU_BLK_STORE_STAM
 nonos-mk-run-installed: nonos-mk-swtpm-start $(QEMU_OVMF_VARS_RW)
 	@test -f $(INSTALL_TARGET_IMG) || { echo "no install target yet: run make qemu-install and install first"; exit 1; }
 	@echo "Booting the disk the installer wrote, as the only disk..."
-	@$(QEMU) -m $(QEMU_MEM) -accel hvf -cpu host,+rdrand,+rdseed -smp 1 -machine q35 \
+	@$(QEMU) -m $(QEMU_MEM) $(QEMU_ACCEL_ARGS) -smp 1 -machine q35 \
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
 		-drive "file=$(INSTALL_TARGET_IMG),if=none,id=tgt,format=raw" \
@@ -448,9 +477,10 @@ nonos-mk-run-installed: nonos-mk-swtpm-start $(QEMU_OVMF_VARS_RW)
 		-serial mon:stdio -vga none -display $(QEMU_DISPLAY) -no-reboot
 
 # The DMA-protection boot. Every other lane starts QEMU with no remapping
-# hardware, so the kernel finds an empty DMAR and says so:
+# hardware, so the kernel finds neither a DMAR unit nor an IVRS table and
+# says so:
 #
-#     [VT-D] no remapping units in DMAR; DMA is unrestricted
+#     [IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted
 #
 # which means the IOMMU bring-up compiled into every image has never run. This
 # lane presents an intel-iommu so it does. TCG rather than hvf: the hypervisor
@@ -467,7 +497,7 @@ nonos-mk-run-iommu-serial-log: nonos-mk-desktop-gui-prod $(QEMU_BLK_IMG) $(QEMU_
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,file="$(QEMU_OVMF_VARS_RW)" \
-		$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_USB) $(QEMU_RNG) \
+		$(call iommu_virtio_args,$(QEMU_BLK) $(QEMU_GPU) $(QEMU_NET) $(QEMU_RNG)) $(QEMU_USB) \
 		-serial "file:$(QEMU_IOMMU_SERIAL_LOG)" -display none -no-reboot
 
 # The machine matrix. The shipping images (single CPU, and the same tree with
@@ -475,10 +505,12 @@ nonos-mk-run-iommu-serial-log: nonos-mk-desktop-gui-prod $(QEMU_BLK_IMG) $(QEMU_
 # the requested cells ask for, so a single-CPU cell never pays for the
 # multiprocessor build. scripts/boot_matrix.py then boots each cell of
 # scripts/bootmatrix/cells.py BOOT_MATRIX_REPEAT times: q35
-# and i440fx, one to eight CPUs, with and without an IOMMU, and a kill during
-# store traffic followed by a reboot of the same disk. A cell fails on any boot
-# that misses readiness, reports a fault, brings up fewer CPUs than it was
-# given, or says DMA is unrestricted with an IOMMU present.
+# and i440fx, one to eight CPUs, with no IOMMU, an intel-iommu or an
+# amd-iommu, a kill during store traffic followed by a reboot of the same
+# disk, and the store on a USB stick with 512 and with 4096-byte blocks. A cell fails on any boot that misses readiness, reports a fault, brings
+# up fewer CPUs than it was given, prints an [IOMMU] posture line other than
+# the one its IOMMU calls for, or says DMA is unrestricted with an intel-iommu
+# present.
 BOOT_MATRIX_DIR ?= $(TARGET_DIR)/boot-matrix
 BOOT_MATRIX_REPEAT ?= 5
 BOOT_MATRIX_TIMEOUT ?= 300

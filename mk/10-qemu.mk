@@ -1,69 +1,68 @@
-# QEMU and OVMF discovery, and the prerequisites every build shares: the pinned
+# QEMU and its firmware, and the prerequisites every build shares: the pinned
 # toolchain, the signing keys, and the transparent-STARK enrollment tools.
 
 .PHONY: nonos-mk nonos-mk-check-deps nonos-mk-ensure-signing-key nonos-mk-toolchain
 
-# QEMU + OVMF discovery.
+# QEMU and its UEFI firmware. The firmware is QEMU's own build of edk2, which
+# the flake's shell names in OVMF and OVMF_VARS (tools/nix/shell.nix), so no
+# lane searches the host for one.
 QEMU := qemu-system-x86_64
-ifeq ($(UNAME_S),Darwin)
-    OVMF ?= $(shell \
-        if [ -f firmware/OVMF.fd ]; then echo firmware/OVMF.fd; \
-        elif [ -f /opt/homebrew/share/qemu/edk2-x86_64-code.fd ]; then echo /opt/homebrew/share/qemu/edk2-x86_64-code.fd; \
-        elif [ -f /usr/local/share/qemu/edk2-x86_64-code.fd ]; then echo /usr/local/share/qemu/edk2-x86_64-code.fd; \
-        fi)
-    OVMF_VARS ?= $(shell \
-        if [ -f firmware/OVMF_VARS.fd ]; then echo firmware/OVMF_VARS.fd; \
-        elif [ -f /opt/homebrew/share/qemu/edk2-x86_64-vars.fd ]; then echo /opt/homebrew/share/qemu/edk2-x86_64-vars.fd; \
-        elif [ -f /usr/local/share/qemu/edk2-x86_64-vars.fd ]; then echo /usr/local/share/qemu/edk2-x86_64-vars.fd; \
-        elif [ -f /opt/homebrew/share/qemu/edk2-i386-vars.fd ]; then echo /opt/homebrew/share/qemu/edk2-i386-vars.fd; \
-        elif [ -f /usr/local/share/qemu/edk2-i386-vars.fd ]; then echo /usr/local/share/qemu/edk2-i386-vars.fd; \
-        fi)
-else
-    # Walk the candidate list shipped by the major Linux distros.
-    OVMF ?= $(shell \
-        for f in \
-            /usr/share/OVMF/OVMF_CODE_4M.fd \
-            /usr/share/OVMF/OVMF_CODE.fd \
-            /usr/share/qemu/OVMF.fd \
-            /usr/share/ovmf/OVMF.fd \
-            /usr/share/edk2-ovmf/x64/OVMF_CODE.fd \
-            /usr/share/edk2/ovmf/OVMF_CODE.fd ; do \
-            if [ -r $$f ]; then echo $$f; exit 0; fi; \
-        done)
-    OVMF_VARS ?= $(shell \
-        for f in \
-            /usr/share/OVMF/OVMF_VARS_4M.fd \
-            /usr/share/OVMF/OVMF_VARS.fd \
-            /usr/share/qemu/OVMF_VARS.fd \
-            /usr/share/ovmf/OVMF_VARS.fd \
-            /usr/share/edk2-ovmf/x64/OVMF_VARS.fd \
-            /usr/share/edk2/ovmf/OVMF_VARS.fd ; do \
-            if [ -r $$f ]; then echo $$f; exit 0; fi; \
-        done)
-endif
+OVMF ?=
+OVMF_VARS ?=
 
 QEMU_MEM := 2G
 QEMU_CPU := max
+# The accelerator follows the host, by the rule scripts/bootmatrix/qemu.py
+# already uses: KVM when /dev/kvm opens read-write, hvf on macOS, TCG
+# otherwise. TCG emulates the processor, so `-cpu host` names nothing there and
+# it gets `max`, which carries RDRAND. Set QEMU_ACCEL to override.
+ifeq ($(shell [ -r /dev/kvm ] && [ -w /dev/kvm ] && echo y),y)
+    QEMU_ACCEL_AUTO := kvm
+else ifeq ($(UNAME_S),Darwin)
+    QEMU_ACCEL_AUTO := hvf
+else
+    QEMU_ACCEL_AUTO := tcg
+endif
+QEMU_ACCEL ?= $(QEMU_ACCEL_AUTO)
+ifeq ($(QEMU_ACCEL),tcg)
+    QEMU_ACCEL_ARGS := -accel tcg -cpu $(QEMU_CPU)
+else
+    QEMU_ACCEL_ARGS := -accel $(QEMU_ACCEL) -cpu host,+rdrand,+rdseed
+endif
 QEMU_SMP ?= 4
 QEMU_HOST_SSH_PORT ?= 2222
 QEMU_HOST_HTTP_PORT ?= 8080
 QEMU_NET_MODE ?= nat
-QEMU_NET_CAPTURE ?=
+# Every networked run is captured, so what a boot sent is on disk rather than
+# inferred from the code; tools/nonos-pcap-egress summarises it. Set it empty
+# to run without one.
+QEMU_NET_CAPTURE ?= $(TARGET_DIR)/qemu-net.pcap
 QEMU_SERIAL_LOG ?= $(TARGET_DIR)/qemu-serial.log
 QEMU_SMP_SERIAL_LOG ?= $(TARGET_DIR)/qemu-smp-serial.log
 QEMU_IOMMU_SERIAL_LOG ?= $(TARGET_DIR)/qemu-iommu-serial.log
 # Options for the intel-iommu device the IOMMU lane adds; a knob like the
 # others so the lane can be driven from the command line.
 QEMU_IOMMU_OPTS ?= intremap=on,caching-mode=on
+# A virtio device uses the vIOMMU only with iommu_platform=on, and only then is
+# VIRTIO_F_ACCESS_PLATFORM offered. Without it the device addresses memory
+# physically and the lane tests nothing about it. disable-legacy=on because a
+# legacy driver cannot take bit 33: it fails to bind instead of bypassing.
+QEMU_IOMMU_VIRTIO ?= iommu_platform=on,disable-legacy=on
+_iv := $(_boot_comma)$(QEMU_IOMMU_VIRTIO)$(_boot_comma)
+iommu_virtio = $(foreach d,virtio-blk-pci virtio-net-pci virtio-rng-pci virtio-vga virtio-vga-gl,\
+	$(eval _iommu_args := $(patsubst $(d),$(d)$(_boot_comma)$(QEMU_IOMMU_VIRTIO),\
+	$(subst $(d)$(_boot_comma),$(d)$(_iv),$(_iommu_args)))))$(_iommu_args)
+iommu_virtio_args = $(eval _iommu_args := $(subst virtio-vga$(_boot_comma)disable-modern=on,virtio-vga,$(1)))$(call iommu_virtio)
 QEMU_BLK_IMG := $(TARGET_DIR)/qemu-virtio-blk.img
 QEMU_OVMF_VARS_RW := $(TARGET_DIR)/qemu-OVMF_VARS.fd
 QEMU_BLK := -drive "file=$(QEMU_BLK_IMG),if=none,id=vd0,format=raw" -device virtio-blk-pci,drive=vd0
 # Control socket for screendumps and input injection against a live desktop.
 QEMU_QMP_SOCK := $(TARGET_DIR)/qemu-run.qmp
 QEMU_QMP := -qmp unix:$(QEMU_QMP_SOCK),server,nowait
-# These feed xres=/yres= on the GPU device line AND NONOS_GOP_PREF in the
-# bootloader, so a non-default mode must go through nonos-mk-dev-run (see
-# mk/40-run.mk:58) to reach the bootloader splash.
+# These feed xres=/yres= on the GPU device line. The bootloader keeps the
+# mode the firmware set, or the EDID native one, as on hardware; only an
+# 800x600-class firmware default gives way to the largest offered mode, so
+# OVMF's splash may come up smaller than xres/yres. NONOS_GOP_PREF pins one.
 #
 # The desktop resolution is a separate decision: it comes from the virtio-gpu
 # GET_DISPLAY_INFO reply, not from GOP. Under -display cocoa the UI overrides
@@ -74,8 +73,8 @@ QEMU_QMP := -qmp unix:$(QEMU_QMP_SOCK),server,nowait
 # VNC: with no client attached at boot nothing overrides xres/yres, and the
 # guest reads GET_DISPLAY_INFO once at driver init, so attaching a viewer
 # afterwards cannot shrink it.
-#   make NONOS_DEV=1 QEMU_XRES=2560 QEMU_YRES=1440 \
-#        QEMU_DISPLAY=vnc=127.0.0.1:1 nonos-mk-dev-run
+#   make QEMU_XRES=2560 QEMU_YRES=1440 \
+#        QEMU_DISPLAY=vnc=127.0.0.1:1 nonos-mk-run
 #   open vnc://127.0.0.1:5901
 # Screendumps over QMP ($(QEMU_QMP_SOCK)) work on either display.
 # The default stays 1080p because fill cost scales with pixel count on 1 vCPU.
@@ -84,26 +83,36 @@ QEMU_YRES ?= 1080
 # QEMU_GL=1 swaps the display device for virtio-vga-gl (modern transport,
 # virglrenderer backend) so the guest can negotiate the 3D command set; the
 # cocoa display then needs a GL context. Default stays the plain 2D device.
+# cocoa exists only on macOS; elsewhere the window is gtk.
+ifeq ($(UNAME_S),Darwin)
+QEMU_UI := cocoa
+else
+QEMU_UI := gtk
+endif
 ifeq ($(QEMU_GL),1)
 QEMU_GPU := -device virtio-vga-gl,xres=$(QEMU_XRES),yres=$(QEMU_YRES)
-QEMU_DISPLAY := cocoa,gl=es,zoom-to-fit=on
+QEMU_DISPLAY ?= $(QEMU_UI),gl=es,zoom-to-fit=on
 else
 QEMU_GPU := -device virtio-vga,disable-modern=on,vectors=0,edid=on,xres=$(QEMU_XRES),yres=$(QEMU_YRES)
-QEMU_DISPLAY := cocoa,zoom-to-fit=on
+QEMU_DISPLAY ?= $(QEMU_UI),zoom-to-fit=on
 endif
 # Keyboard/mouse via the q35 i8042 (PS/2). USB HID interrupt-IN transfers
 # are not serviced under macOS hvf, so usb-kbd/usb-mouse never deliver input
 # there; the xHCI controller stays for the USB stack/storage paths.
 QEMU_USB := -device qemu-xhci,id=xhci
 QEMU_RNG := -device virtio-rng-pci
+ifeq ($(UNAME_S),Darwin)
 QEMU_AUDIODEV ?= coreaudio
+else
+QEMU_AUDIODEV ?= none
+endif
 QEMU_AUDIO := -audiodev $(QEMU_AUDIODEV),id=snd0 -device intel-hda -device hda-duplex,audiodev=snd0
 
 # Software TPM 2.0 for measured boot. The guest reaches it by direct MMIO at
 # 0xFED40000 (tpm-crb), so no TCG2 firmware is needed; swtpm backs it over a
 # unix socket.
 SWTPM ?= swtpm
-SWTPM_STATE ?= /tmp/nonos-swtpm
+SWTPM_STATE ?= $(abspath $(TARGET_DIR))/swtpm
 SWTPM_SOCK ?= $(SWTPM_STATE)/swtpm-sock
 # Provisioning tool. A TPM with no endorsement key answers TPM_RC_HANDLE to
 # every EK read, so without this the boot chain exercises measurement but never
@@ -142,7 +151,6 @@ nonos-mk: nonos-mk-capsules
 	@echo "Built microkernel-capsules ($(VERSION))."
 	@echo "  make nonos-mk-esp           package the ESP for QEMU"
 	@echo "  make nonos-mk-run           full OS under QEMU + OVMF + TPM + NAT"
-	@echo "  make nonos-mk-dev-run       clean-clone: mint a dev identity then boot"
 	@echo "  make nonos-mk-verify        static gates + symbol scan"
 	@echo "  make nonos-mk-test          verify + the boot harnesses"
 
