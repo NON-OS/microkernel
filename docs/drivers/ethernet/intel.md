@@ -108,3 +108,13 @@ The same three reasons as e1000e: the build does not include it, the kernel mirr
 ### Tests
 
 `igc_proofs` runs the descriptor, ring, reset, semaphore, PHY and queue code against a register window in host memory, with a modelled part where a handshake needs one; its own notes say QEMU has no model of this part (`userland/igc_proofs/src/lib.rs:17-25`, `igc`). The flake check `proofs-igc_proofs` passed with 58 tests on this commit.
+
+## To run the proofs
+
+The flake runs each [proof crate](../../overview/glossary.md#proof-crate) with overflow checks on. The same run by hand:
+
+```sh
+cd userland/e1000_proofs && cargo test --release --config profile.release.overflow-checks=true
+```
+
+Not tested in this release.
