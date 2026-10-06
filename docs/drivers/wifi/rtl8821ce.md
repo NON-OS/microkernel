@@ -92,3 +92,9 @@ The status codes are defined beside `failure_code`, which maps each way a join c
 | WPA3 confirm failed, the sign of a wrong password | -10 |
 | Message 3 did not match the beacon | -11 |
 | No randomness for the join | -12 |
+
+## Carrying traffic
+
+The one service inbox takes two request families: `net.core`'s link protocol, handled by `netif::serve`, and the Wi-Fi control family (`userland/capsule_driver_rtl8821ce/src/serve/mod.rs:100-122`, `netif::serve`). A frame neither family takes is answered with -22 rather than left without a reply (`userland/capsule_driver_rtl8821ce/src/serve/refuse.rs:24-25`, `STATUS_REFUSED`).
+
+While joined, a new group key from the access point is installed and a deauthentication ends the session, so the link reads down and the background scan resumes (`userland/capsule_driver_rtl8821ce/src/serve/mod.rs:137-150`, `after_receive`). The driver does not rejoin by itself; see [autojoin](README.md#autojoin-and-losing-the-link).
