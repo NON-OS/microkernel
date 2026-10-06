@@ -21,6 +21,9 @@ use super::super::gateway::Gateway;
 use super::super::session::Session;
 
 pub const TABLE_CAP: usize = 32;
+/// The most sessions one client holds, so no one client can take every
+/// session from the rest.
+pub const PER_OWNER: usize = TABLE_CAP / 2;
 pub static TABLE: Mutex<Table> = Mutex::new(Table::new());
 
 pub struct Table {

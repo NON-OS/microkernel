@@ -54,6 +54,6 @@ pub fn build_surb(
         key,
         header: built.header.to_bytes(),
         first_hop_address,
-        payload_keys: built.payload_keys,
+        payload_key_seeds: built.payload_key_seeds,
     })
 }

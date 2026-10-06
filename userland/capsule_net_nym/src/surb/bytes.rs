@@ -17,26 +17,27 @@
 use alloc::vec::Vec;
 
 use super::types::{ReplySurb, SURB_KEY_BYTES};
-use crate::sphinx::constants::PAYLOAD_KEY_SIZE;
+use crate::sphinx::constants::PAYLOAD_KEY_SEED_SIZE;
 
 /// Serialize a reply block the way the far end reads it.
 ///
 /// Layout is the encryption key, the header, the address of the hop a reply
-/// enters the network at, then one payload key per hop. The key leads because
-/// it is ours rather than part of the route, and the far end strips it before
-/// handing the rest to the packet layer.
+/// enters the network at, then one payload key seed per hop. The key leads
+/// because it is ours rather than part of the route, and the far end strips it
+/// before handing the rest to the packet layer. Seeds are told from full keys
+/// by width alone: five seeds are shorter than one key.
 pub fn surb_bytes(surb: &ReplySurb) -> Vec<u8> {
     let mut out = Vec::with_capacity(
         SURB_KEY_BYTES
             + surb.header.len()
             + surb.first_hop_address.len()
-            + surb.payload_keys.len() * PAYLOAD_KEY_SIZE,
+            + surb.payload_key_seeds.len() * PAYLOAD_KEY_SEED_SIZE,
     );
     out.extend_from_slice(&surb.key);
     out.extend_from_slice(&surb.header);
     out.extend_from_slice(&surb.first_hop_address);
-    for hop_key in &surb.payload_keys {
-        out.extend_from_slice(hop_key);
+    for seed in &surb.payload_key_seeds {
+        out.extend_from_slice(seed);
     }
     out
 }

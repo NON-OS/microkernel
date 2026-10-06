@@ -14,8 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const E_NEED_MORE: u16 = 8;
-pub const E_BAD_FRAME: u16 = 9;
+// These share a space with what net.tcp reports through the same call, and
+// with the timeout and close below. They used to be 8 and 9, the same as a
+// timeout and a close and as a net.tcp call that never completed: a frame
+// that did not fit read as a quiet link, and the bytes held with it were
+// dropped without a word.
+
+/// A frame longer than the buffer it was to be copied into.
+pub const E_NEED_MORE: u16 = 202;
+/// Bytes that are not a frame: the link has lost its place in the stream.
+pub const E_BAD_FRAME: u16 = 203;
+
+/// The longest frame a buffer has to take. The length field reaches 65535
+/// before it needs the 64 bit form, which this refuses, so a buffer this
+/// size holds any frame that will be accepted. A gateway pushes a reply as
+/// large as the packet it came in, and a requester may answer in packets of
+/// up to 32 KiB; a buffer sized for the 2 KiB regular packet turned every
+/// larger one into an error that read as an idle link.
+pub const FRAME_MAX: usize = 64 * 1024;
 
 pub fn frame_len(buf: &[u8], len: usize) -> Result<Option<(usize, usize)>, u16> {
     if len == 126 {

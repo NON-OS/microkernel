@@ -25,8 +25,8 @@ use crate::trace;
 ///
 /// Refuses rather than degrades: a message that cannot be answered or that
 /// would be linkable is not sent at all.
-pub fn send_sphinx(tcp_port: u32, session: &Session, payload: &[u8]) -> u16 {
-    let prepared = match ready(session) {
+pub fn send_sphinx(tcp_port: u32, session: &mut Session, payload: &[u8]) -> u16 {
+    let prepared = match ready(session, session.surbs.for_request() as usize) {
         Ok(prepared) => prepared,
         Err(errno) => return errno,
     };
@@ -49,7 +49,7 @@ pub fn send_sphinx(tcp_port: u32, session: &Session, payload: &[u8]) -> u16 {
 
     for packet in &packets {
         let Ok(frame) =
-            gateway_client::make_encrypted_blob(gateway_client::KIND_FORWARD_SPHINX, packet)
+            gateway_client::make_encrypted_blob(gateway_client::KIND_FORWARD_SPHINX, &packet.packet)
         else {
             trace::say(b"send failed: could not seal frame for gateway");
             return E_CRYPTO;
@@ -63,6 +63,12 @@ pub fn send_sphinx(tcp_port: u32, session: &Session, payload: &[u8]) -> u16 {
             return E_NO_TCP;
         }
     }
+    // Counted once the whole message is on the wire: a request that did
+    // not leave handed the far end nothing.
+    session.surbs.sent(prepared.reply_surbs.len() as u32);
+    // Held until each is acknowledged: one fragment lost on the way is the
+    // whole message lost, and the exit would answer none of it.
+    crate::server::record(&crate::server::recipient_of(session), packets);
     trace::say(b"sent");
     E_OK
 }

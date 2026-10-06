@@ -23,9 +23,9 @@ use super::types::FrameKind;
 use crate::tcp_client;
 
 /// Nothing arrived inside the caller's budget. Not a failure of the link.
-pub const E_TIMEOUT: u16 = 8;
+pub const E_TIMEOUT: u16 = 200;
 /// The peer sent a close frame, so the session is over.
-pub const E_CLOSED: u16 = 9;
+pub const E_CLOSED: u16 = 201;
 
 /// One frame off the link: its bytes, and whether the gateway sent it as
 /// text. The two are not interchangeable. A binary frame is an encrypted
@@ -52,6 +52,15 @@ pub fn recv_binary(tcp_port: u32, stream: u32, out: &mut [u8], wait_ms: i64) -> 
                 }
                 FrameKind::Ping => send::send_pong(tcp_port, stream, &ctrl[..frame.len])?,
                 FrameKind::Pong => {}
+                // Too long for the caller's buffer. It is stepped over whole,
+                // so the frames behind it are still read in their places,
+                // rather than the error taking every byte held with it.
+                FrameKind::Oversized => {
+                    crate::trace::say_num(
+                        b"gateway frame too long for the buffer, bytes",
+                        frame.len as u64,
+                    );
+                }
                 FrameKind::Close => {
                     carry::keep(stream, &[]);
                     return Err(E_CLOSED);
@@ -59,7 +68,16 @@ pub fn recv_binary(tcp_port: u32, stream: u32, out: &mut [u8], wait_ms: i64) -> 
             }
             buf.drain(0..frame.consumed);
         }
-        let n = tcp_client::recv(tcp_port, stream, &mut chunk)?;
+        // A read that fails leaves what was already held where the next call
+        // will find it: those bytes came off the socket and cannot be read
+        // from it again.
+        let n = match tcp_client::recv(tcp_port, stream, &mut chunk) {
+            Ok(n) => n,
+            Err(e) => {
+                carry::keep(stream, &buf);
+                return Err(e);
+            }
+        };
         if n == 0 {
             if mk_uptime_ms() >= deadline {
                 carry::keep(stream, &buf);

@@ -26,6 +26,7 @@ mod io;
 mod open;
 mod recv;
 mod recv_accept;
+mod recv_batch;
 mod recv_control;
 mod recv_drain;
 mod recv_plain;
@@ -50,3 +51,4 @@ mod topology_status;
 
 pub use dispatch::dispatch;
 pub use recv_drain::drain_stream;
+pub use send_ready::ready;

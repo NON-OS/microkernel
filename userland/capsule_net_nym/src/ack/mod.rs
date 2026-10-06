@@ -17,8 +17,11 @@
 //! The acknowledgement that travels inside every message packet.
 
 mod build;
+pub mod ledger;
+mod open;
 mod plaintext;
 mod types;
 
 pub use build::build_surb_ack;
+pub use open::open_ack;
 pub use types::{ACK_IV_BYTES, ACK_PLAINTEXT_BYTES, FRAG_ID_BYTES, PADDED_ADDRESS_BYTES};

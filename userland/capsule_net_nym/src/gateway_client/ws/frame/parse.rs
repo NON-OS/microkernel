@@ -35,6 +35,9 @@ pub fn next(buf: &[u8], out: &mut [u8], ctrl: &mut [u8; 125]) -> Result<Option<F
         return Ok(None);
     }
     let consumed = start + len;
+    if (opcode == 1 || opcode == 2) && len > out.len() {
+        return Ok(Some(frame(FrameKind::Oversized, len, consumed)));
+    }
     match opcode {
         // Nym's control frames are text and its mix packets binary; both carry
         // a payload identically, so only the reported kind differs.

@@ -59,6 +59,11 @@ pub fn snapshot() -> Result<Vec<Node>, RouteError> {
     Ok(guard.nodes.clone())
 }
 
+/// How many nodes the held topology names, without copying them.
+pub fn node_count() -> usize {
+    STORE.lock().nodes.len()
+}
+
 pub fn meta() -> Option<DirectoryMeta> {
     STORE.lock().meta
 }
