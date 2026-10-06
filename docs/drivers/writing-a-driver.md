@@ -234,3 +234,27 @@ A driver serves its device raw, so its endpoint goes into `HELD` with the servic
 - Regenerate the capsule catalogue `tools/nix/capsules.json` with `tools/nix/catalogues.py`; the flake's `catalogues` check fails while it is stale (`mk/60-nix.mk:1-10`).
 - Do not add the driver to `userland/apps.list`. That list is for installed tool apps, one line each with a slug, a binary, a `service_port` and a reply port (`userland/apps.list:1-3`).
 - Write the README. The static checks fail on a driver README without the sections from `## Role` to `## Verification`, a `text` diagram, the `CAPSULE_REQUIRED_CAPS` it runs with and the broker calls it makes, through the `driver_doc_fail` loop (`nonos-ci/run-static-checks.sh:198-241`).
+
+## 15. The proof crate
+
+Every driver needs a proof crate. `check_driver_proofs.py` fails on a new driver without one, through `unproved` (`scripts/check_driver_proofs.py:36-48`). The virtio-rng proof crate mounts the shipping `constants`, `queue` and `init` modules by `#[path]`, so its tests run the code that boots (`userland/virtio_rng_proofs/src/lib.rs:33-45`):
+
+```rust
+#[path = "../../capsule_driver_virtio_rng/src/constants/mod.rs"]
+pub mod constants;
+
+pub mod regs;
+
+#[path = "../../capsule_driver_virtio_rng/src/queue/mod.rs"]
+pub mod queue;
+
+#[path = "../../capsule_driver_virtio_rng/src/init.rs"]
+pub mod init;
+
+#[cfg(test)]
+mod tests;
+```
+
+The register accessors run against a `FakeBar` from `nonos_devmodel`, a register window in host memory (`userland/virtio_rng_proofs/src/tests/model.rs:19-30`). One test drives the driver's own virtio handshake, `init::bring_up`, not the retry loop of the same name in `nonos_libc`, and checks that the status byte ends with every bit the virtio specification requires and no `STATUS_FAILED` (`userland/virtio_rng_proofs/src/tests/status_tests.rs:28-44`). The port-I/O accessor has no host build, so the crate assembles `Regs` with a shim in its place that refuses to be called (`userland/virtio_rng_proofs/src/regs/mod.rs:17-35`).
+
+The flake finds every `userland/*_proofs` directory with a `Cargo.lock` on its own as `proofDirs` (`tools/nix/checks.nix:18-29`). Each runs `cargo test --release` with overflow checks on, then `clippy` with warnings as errors, except for the few crates the `lintLib` and `lintNone` lists still excuse; a new crate joins neither list (`tools/nix/checks.nix:44-62`, `tools/nix/checks.nix:85-94`). At this commit `proofs-virtio_rng_proofs` passes with 12 tests.
