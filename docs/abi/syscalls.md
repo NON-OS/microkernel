@@ -236,3 +236,34 @@ A supervising capsule that holds `ForeignExec`, such as the Linux personality, u
 | `CHKF` | `0x464B4843` | `CryptoHkdfSha256` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | HKDF-SHA256. |
 | `CKEC` | `0x43454B43` | `CryptoKeccak256` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | Keccak-256. |
 | `CMKY` | `0x594B4D43` | `CryptoMachineKey` | Crypto | `can_crypto` `src/syscall/contract/cap_table/crypto.rs:33` | A 32-byte key bound to this TPM and boot state, named by a label. |
+
+## Graphics and input structures
+
+`MSRG` reads a `SurfaceDescriptor` from the caller, and `MSAT` writes one back (`src/syscall/dispatch/router/surface_handlers.rs:87-95`, `src/syscall/dispatch/router/surface_handlers.rs:155-166`). `do_register` refuses a `byte_len` of 0 or over `MAX_SURFACE_BYTES`, 64 MiB, and a `base_va` that is not page aligned (`src/syscall/dispatch/router/surface_handlers.rs:101-104`). `MIEP` reads one `InputEvent` (`src/syscall/dispatch/router/input_ops/do_post.rs:23-27`). Both layouts match `abi/wire.toml`.
+
+### `SurfaceDescriptor`, 40 bytes
+
+| Field | Offset | Type | Meaning |
+|---|---|---|---|
+| `width` | 0 | `u32` | Width in pixels |
+| `height` | 4 | `u32` | Height in pixels |
+| `stride` | 8 | `u32` | Row stride |
+| `format` | 12 | `u32` | Pixel format; `FMT_ARGB8888`, 1, is the only one |
+| `byte_len` | 16 | `u64` | Bytes of backing memory |
+| `base_va` | 24 | `u64` | Page-aligned start of the caller's own writable memory |
+| `flags` | 32 | `u64` | Flags word |
+
+### `InputEvent`, 32 bytes
+
+| Field | Offset | Type | Meaning |
+|---|---|---|---|
+| `kind` | 0 | `u16` | 0 key down, 1 key up, 2 relative pointer, 3 absolute pointer, 4 wheel, 5 button down, 6 button up, 7 touch |
+| `flags` | 2 | `u16` | Flags word |
+| `code` | 4 | `u32` | Key or button code |
+| `x` | 8 | `i32` | Position |
+| `y` | 12 | `i32` | Position |
+| `delta_x` | 16 | `i32` | Motion or wheel delta |
+| `delta_y` | 20 | `i32` | Motion or wheel delta |
+| `timestamp_ns` | 24 | `u64` | Time of the event in nanoseconds |
+
+`FMT_ARGB8888` is defined in `src/kernel_core/surface_registry/types.rs:22`, and the kinds are the `INPUT_KIND_KEY_DOWN` to `INPUT_KIND_TOUCH` constants of `nonos_abi` (`userland/nonos_abi/src/input.rs:20-27`).
