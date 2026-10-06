@@ -85,3 +85,19 @@ The wallet keeps the two keyring blobs under `/data`, as `VAULT_PATH` and `WORDS
 The Shield capsule never uses the vault root in this release. `open_with` sets `live` to true on every boot (`userland/capsule_shield/src/ops.rs:131-140`), so its store is kept in memory under `ROOT_LIVE`, `/run/shield` (`userland/capsule_shield/src/ops.rs:43`). `root` then wraps the file key under a key `session` draws once for the boot (`userland/capsule_shield/src/guard.rs:39-55`). The store is gone at reboot, and the recovery words open the account again.
 
 What a sealed record does not do, by design (`userland/nonos_vault/src/lib.rs`): it does not survive a firmware, bootloader or kernel change, because a moved PCR changes the root; and it does not stop rollback, because an older blob opens as well as a newer one. Keep the wallet's recovery phrase written down.
+
+## The data volume
+
+On an installed disk the data volume lies past the disk plan. `PLAN_LBA` is sector 245760, 120 MiB in, and nothing the plan names starts below `DATA_FLOOR`, 128 MiB in (`src/fs/blockfs_volume/plan_types.rs:35-39`). The capsule store sits below the plan.
+
+Every 512-byte sector is sealed on its own. `seal` draws a random 12-byte nonce and encrypts 484 bytes with ChaCha20-Poly1305 under associated data made of `AAD_PREFIX` and the sector's LBA (`src/fs/cryptoblock/seal.rs:22-48`). A sector moved to another LBA, or altered, fails its tag, and `open_sealed` writes nothing for it (`src/fs/cryptoblock/sector_open.rs:41-73`).
+
+The key comes from the TPM. `open_machine_volume` derives it under `KEY_LABEL` with `derive_for_kernel` (`src/fs/blockfs_volume/open_machine.rs:42-82`). If the TPM gives no key the volume stays closed: `open_machine_volume` returns `VolumeError::MachineKey` and writes `[DATA] no machine key (...); the data volume stays closed` to the kernel's log manager (`src/fs/blockfs_volume/open_machine.rs:75-78`). The installer checks this first and says when the installed data volume would stay closed (`text` in `userland/capsule_install/src/install/source/tpm.rs:50-58`).
+
+Because the key is bound to PCR 0, 4, 7 and 9, a firmware update, a change to Secure Boot settings, a different bootloader or a different kernel gives a different key. `mount_or_format` then refuses to format over the volume and logs `[DATA] the volume holds data this key cannot open; not formatting over it` (`src/fs/blockfs_volume/mount_or_format.rs:54-77`). This release has no step that moves a TPM-keyed volume to a new key.
+
+The kernel can also key the volume with a passphrase. `sys_data_passphrase` takes 1 to `PASSPHRASE_MAX` bytes, 256, and at least `CREATE_MIN`, 8, to create one, and wipes its copy afterwards (`src/syscall/microkernel/data/passphrase.rs:31-60`). The passphrase is stretched with Argon2id at `RECOMMENDED` settings: 64 MiB of memory, 3 passes and a parallelism of 4 (`src/crypto/util/argon2/params.rs:27-30`). No capsule in this release calls the libc wrapper `mk_data_volume_passphrase` (`userland/libc/src/data.rs:50-56`), and the setup wizard says there is no passphrase-keyed volume (`WHY` in `userland/capsule_setup_wizard/src/render/screens/mode.rs:21-31`).
+
+On a live boot, where the disk carries the NONOS store but no plan, or a plan that keeps no volume, `open_session_volume` builds the volume in RAM under a key drawn from the RNG for this boot (`src/fs/blockfs_volume/session.rs:36-64`). It needs at least `LEAST`, 256 MiB (`src/fs/blockfs_volume/session.rs:32-34`), free beyond what `reserve` keeps for the system, the larger of 1 GiB and a quarter of memory (`src/fs/cryptoblock/ram.rs:55-59`). It is gone at power off.
+
+Reading the volume takes `FileSystem`; importing into it takes `StoreWrite` and `FileSystem`; streaming a file in takes `StreamImport`, as `can_stream_import` checks (`src/syscall/contract/cap_table/mk.rs:140-146`).
