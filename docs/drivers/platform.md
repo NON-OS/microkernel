@@ -96,3 +96,14 @@ The controllers with a known layout:
 - Shutting down from the desktop.
 - Confined DMA on AMD-Vi machines in the default build, and interrupt remapping by default.
 - Routing a GPIO interrupt; only levels are read.
+
+## See also
+
+- [README.md](README.md)
+- [broker-api.md](broker-api.md)
+- [../kernel/iommu.md](../kernel/iommu.md)
+- [../kernel/scheduler-and-smp.md](../kernel/scheduler-and-smp.md)
+- [../kernel/pci-and-acpi.md](../kernel/pci-and-acpi.md)
+- [../security/measured-boot-and-tpm.md](../security/measured-boot-and-tpm.md)
+- [input/README.md](input/README.md)
+- [../hardware/MATRIX.md](../hardware/MATRIX.md)
