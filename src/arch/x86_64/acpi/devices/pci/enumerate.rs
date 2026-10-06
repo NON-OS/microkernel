@@ -15,12 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec::Vec;
-use core::ptr;
 
 use super::types::PciDevice;
+use super::window::BusWindow;
 use crate::arch::x86_64::acpi::data::PcieSegment;
 use crate::arch::x86_64::acpi::parser;
 
+/// Every function in every MCFG segment and bus range. Buses are walked by
+/// number across the whole declared range rather than by following bridges,
+/// so a device behind a root port (Wi-Fi and NVMe sit on buses 1..n on Intel
+/// laptops) is found whether or not the walk visits its bridge first.
 pub fn enumerate_pci_devices() -> Vec<PciDevice> {
     let mut devices = Vec::new();
     for seg in parser::pcie_segments() {
@@ -32,20 +36,16 @@ pub fn enumerate_pci_devices() -> Vec<PciDevice> {
 }
 
 fn enumerate_bus(seg: &PcieSegment, bus: u8, devices: &mut Vec<PciDevice>) {
+    let Some(win) = BusWindow::map(seg, bus) else {
+        return;
+    };
     for device in 0..32u8 {
-        if let Some(dev) = probe_device(seg, bus, device, 0) {
-            let is_multifunction = unsafe {
-                if let Some(config_addr) = seg.config_address(bus, device, 0, 0x0E) {
-                    let header_type = ptr::read_volatile(config_addr as *const u8);
-                    header_type & 0x80 != 0
-                } else {
-                    false
-                }
-            };
+        if let Some(dev) = probe_device(&win, seg.segment, bus, device, 0) {
+            let is_multifunction = win.read8(device, 0, 0x0E) & 0x80 != 0;
             devices.push(dev);
             if is_multifunction {
                 for function in 1..8u8 {
-                    if let Some(dev) = probe_device(seg, bus, device, function) {
+                    if let Some(dev) = probe_device(&win, seg.segment, bus, device, function) {
                         devices.push(dev);
                     }
                 }
@@ -54,25 +54,25 @@ fn enumerate_bus(seg: &PcieSegment, bus: u8, devices: &mut Vec<PciDevice>) {
     }
 }
 
-fn probe_device(seg: &PcieSegment, bus: u8, device: u8, function: u8) -> Option<PciDevice> {
-    let config_addr = seg.config_address(bus, device, function, 0)?;
-    unsafe {
-        let vendor_id = ptr::read_volatile(config_addr as *const u16);
-        if vendor_id == 0xFFFF {
-            return None;
-        }
-        let device_id = ptr::read_volatile((config_addr + 2) as *const u16);
-        let class_code = ptr::read_volatile((config_addr + 9) as *const u8);
-        let subclass = ptr::read_volatile((config_addr + 10) as *const u8);
-        Some(PciDevice {
-            segment: seg.segment,
-            bus,
-            device,
-            function,
-            vendor_id,
-            device_id,
-            class: class_code,
-            subclass,
-        })
+fn probe_device(
+    win: &BusWindow,
+    segment: u16,
+    bus: u8,
+    device: u8,
+    function: u8,
+) -> Option<PciDevice> {
+    let vendor_id = win.read16(device, function, 0);
+    if vendor_id == 0xFFFF {
+        return None;
     }
+    Some(PciDevice {
+        segment,
+        bus,
+        device,
+        function,
+        vendor_id,
+        device_id: win.read16(device, function, 2),
+        class: win.read8(device, function, 0x0B),
+        subclass: win.read8(device, function, 0x0A),
+    })
 }

@@ -15,49 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::error::AcpiResult;
+use super::hw::port_bus::PortBus;
+use super::hw::reset::reset_sequence;
 use super::parser;
-use super::tables::AddressSpace;
-use core::ptr;
 
+/// Reset the machine: ACPI reset register, keyboard controller, both again,
+/// port 0xCF9, then a triple fault, in Linux's `reboot=acpi` order with its
+/// delays (see `hw::reset`). Never returns.
 pub fn reboot() -> AcpiResult<()> {
-    if let Some(reset_performed) = parser::with_data(|data| {
-        if let Some(ref reset_reg) = data.reset_reg {
-            unsafe {
-                match AddressSpace::from_u8(reset_reg.address_space) {
-                    Some(AddressSpace::SystemIo) => {
-                        crate::arch::x86_64::port::outb(reset_reg.address as u16, data.reset_value);
-                        return true;
-                    }
-                    Some(AddressSpace::SystemMemory) => {
-                        ptr::write_volatile(reset_reg.address as *mut u8, data.reset_value);
-                        return true;
-                    }
-                    _ => {}
-                }
-            }
-        }
-        false
-    }) {
-        if reset_performed {
-            for _ in 0..10000 {
-                core::hint::spin_loop();
-            }
-        }
-    }
+    let fadt = parser::with_data(|d| d.fadt).flatten();
+    // SAFETY: CLI only masks maskable interrupts on this CPU.
+    unsafe { core::arch::asm!("cli", options(nomem, nostack)) };
+    reset_sequence(&mut PortBus, fadt.as_ref());
+    // SAFETY: loading a zero-limit IDT and raising #BP makes the CPU fail to
+    // deliver the exception, then the double fault, and shut down, which
+    // the chipset turns into a reset. Nothing runs after this.
     unsafe {
-        for _ in 0..1000 {
-            if crate::arch::x86_64::port::inb(0x64) & 0x02 == 0 {
-                break;
-            }
-            core::hint::spin_loop();
-        }
-        crate::arch::x86_64::port::outb(0x64, 0xFE);
-    }
-    for _ in 0..100000 {
-        core::hint::spin_loop();
-    }
-    unsafe {
-        let null_idt: [u8; 6] = [0; 6];
+        let null_idt: [u8; 10] = [0; 10];
         core::arch::asm!("lidt [{}]", "int3", in(reg) &null_idt, options(noreturn));
     }
 }

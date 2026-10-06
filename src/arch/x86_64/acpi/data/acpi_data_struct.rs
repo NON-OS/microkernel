@@ -21,7 +21,10 @@ use super::ioapic::IoApicInfo;
 use super::numa::NumaMemoryRegion;
 use super::pcie::PcieSegment;
 use super::processor::ProcessorInfo;
-use crate::arch::x86_64::acpi::tables::{GenericAddress, PmProfile};
+use crate::arch::x86_64::acpi::aml::power_devices::PowerDevices;
+use crate::arch::x86_64::acpi::aml::sleep_obj::SleepPackage;
+use crate::arch::x86_64::acpi::hw::fadt_decode::FadtInfo;
+use crate::arch::x86_64::acpi::tables::PmProfile;
 
 #[derive(Debug)]
 pub struct AcpiData {
@@ -39,11 +42,14 @@ pub struct AcpiData {
     pub numa_regions: Vec<NumaMemoryRegion>,
     pub pcie_segments: Vec<PcieSegment>,
     pub hpet_address: Option<u64>,
-    pub pm1a_control: u32,
-    pub pm1b_control: u32,
-    pub slp_typ: [u8; 6],
-    pub reset_reg: Option<GenericAddress>,
-    pub reset_value: u8,
+    /// The FADT, decoded within its own length with the 64-bit X_ blocks
+    /// preferred (`hw::fadt_decode`). None when there is no FADT.
+    pub fadt: Option<FadtInfo>,
+    /// SLP_TYPa/SLP_TYPb for S5, read from the `\_S5` package in the DSDT or
+    /// an SSDT at init. None when no constant `\_S5` package exists.
+    pub s5: Option<SleepPackage>,
+    /// Power devices the namespace declares (battery, AC, lid, EC, button).
+    pub power_devices: PowerDevices,
     pub pm_profile: PmProfile,
     pub sci_interrupt: u16,
 }

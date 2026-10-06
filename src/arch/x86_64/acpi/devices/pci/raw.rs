@@ -15,32 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec::Vec;
-use core::ptr;
 
+use super::window::BusWindow;
 use crate::arch::x86_64::acpi::parser;
 
+/// (segment, bus, device, function) of every function the MCFG windows
+/// answer for.
 pub fn enumerate_pci_raw() -> Vec<(u16, u8, u8, u8)> {
     let mut devices = Vec::new();
     for seg in parser::pcie_segments() {
         for bus in seg.start_bus..=seg.end_bus {
+            let Some(win) = BusWindow::map(&seg, bus) else {
+                continue;
+            };
             for device in 0..32u8 {
-                for function in 0..8u8 {
-                    if let Some(config_addr) = seg.config_address(bus, device, function, 0) {
-                        unsafe {
-                            let vendor_id = ptr::read_volatile(config_addr as *const u16);
-                            if vendor_id != 0xFFFF {
-                                devices.push((seg.segment, bus, device, function));
-                                if function == 0 {
-                                    let header_type =
-                                        ptr::read_volatile((config_addr + 0x0E) as *const u8);
-                                    if header_type & 0x80 == 0 {
-                                        break;
-                                    }
-                                }
-                            } else if function == 0 {
-                                break;
-                            }
-                        }
+                if win.read16(device, 0, 0) == 0xFFFF {
+                    continue;
+                }
+                let functions = if win.read8(device, 0, 0x0E) & 0x80 != 0 { 8 } else { 1 };
+                for function in 0..functions {
+                    if win.read16(device, function, 0) != 0xFFFF {
+                        devices.push((seg.segment, bus, device, function));
                     }
                 }
             }

@@ -26,11 +26,13 @@ pub mod controller;
 pub mod crs;
 mod gpio_enumerate;
 mod hid_enumerate;
+pub mod power_devices;
 pub mod scan;
+pub mod sleep_obj;
 pub mod tables;
 pub mod types;
 
 pub use controller::enumerate_i2c_controllers;
-pub use gpio_enumerate::enumerate_gpio_controllers;
+pub use gpio_enumerate::{community_window, enumerate_gpio_controllers, sbreg_from_bar0};
 pub use hid_enumerate::enumerate_i2c_hid;
-pub use types::{GpioController, I2cHidDevice, LpssController};
+pub use types::{GpioController, I2cHidDevice, LpssController, GPIO_MAX_WINDOWS};
