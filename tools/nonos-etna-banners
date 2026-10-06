@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""The wallet's section photographs, sized for its column, from the phone art.
+
+Reads design/etna/<name>-header.png (1290 by 860, 8-bit RGB) from an Etna-iOS
+checkout, box-filters each to --width keeping the 1290:860 aspect, and writes
+RGB PNGs the capsule decodes as they are. Standard library only, so the art
+can be regenerated anywhere; identical photos are written once and named in
+the index the capsule reads.
+"""
+
+import argparse
+import hashlib
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from etna_png import decode, encode, shrink  # noqa: E402
+
+NAMES = ["welcome", "home", "send", "receive", "deposit", "withdraw", "proving",
+         "history", "settings", "backup"]
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("etna", type=Path, help="an Etna-iOS checkout")
+    ap.add_argument("out", type=Path, help="where the sized photographs go")
+    ap.add_argument("--width", type=int, default=560)
+    a = ap.parse_args()
+    a.out.mkdir(parents=True, exist_ok=True)
+    index = []
+    for name in NAMES:
+        src = a.etna / "design/etna" / f"{name}-header.png"
+        digest = hashlib.sha256(src.read_bytes()).hexdigest()[:12]
+        dst = a.out / f"etna-{digest}.png"
+        if not dst.exists():
+            dst.write_bytes(encode(*shrink(*decode(src), a.width)))
+        index.append(f"{name} {dst.name}")
+        print(f"[etna] {name} -> {dst.name} ({dst.stat().st_size} bytes)")
+    (a.out / "index.txt").write_text("\n".join(index) + "\n")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

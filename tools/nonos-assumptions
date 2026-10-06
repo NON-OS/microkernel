@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Fail when the security rests on something the register does not name.
+
+The register is verification/ASSUMPTIONS.md: one row per thing that is
+trusted rather than proven. Most rows are found in the tree, not recalled:
+every third-party crate linked into the kernel or the bootloader, every
+in-tree cryptographic implementation, the hardware features the kernel
+relies on, the toolchains, and any Lean axiom or Verus assumption. A found
+assumption with no row fails, and so does a found-kind row nothing matches,
+so the register cannot drift in either direction. Rows of kind `stated`
+have no detector; they are what a reader must know that no scan can see.
+"""
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "ratchets"))
+import assume_scan  # noqa: E402
+
+ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*([a-z-]+)\s*\|")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("--root", type=Path, default=Path("."))
+    ap.add_argument("--register", type=Path, default=Path("verification/ASSUMPTIONS.md"))
+    ap.add_argument("--list", action="store_true", help="print what the scan finds and exit")
+    a = ap.parse_args()
+    root = a.root.resolve()
+    found = assume_scan.found(root)
+    if a.list:
+        print("\n".join(sorted(found)))
+        return 0
+    rows = {}
+    for line in (root / a.register).read_text().splitlines():
+        if m := ROW.match(line):
+            rows[m.group(1)] = m.group(2)
+    unlisted = sorted(found - rows.keys())
+    stale = sorted(k for k, kind in rows.items() if kind != "stated" and k not in found)
+    for k in unlisted:
+        print(f"::error::assumption {k} is not in {a.register}", file=sys.stderr)
+    for k in stale:
+        print(f"::error::{a.register} lists {k}, which nothing in the tree still rests on", file=sys.stderr)
+    stated = sum(1 for kind in rows.values() if kind == "stated")
+    print(f"[assumptions] {len(found)} found, {stated} stated, {len(unlisted)} unlisted, {len(stale)} stale")
+    return 1 if unlisted or stale else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
