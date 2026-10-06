@@ -67,3 +67,15 @@ pub(in crate::sys::apic) const TIMER_MODE_PERIODIC: u32 = 1 << 17;
 // Kernel-internal vector for the LAPIC timer; matches the IDT slot
 // installed during interrupts init.
 pub const TIMER_VECTOR: u8 = 0x20;
+
+// LVT entries beyond the four above, present only when the version register's
+// max-LVT field reaches them: CMCI (max LVT >= 6), thermal (>= 5) and
+// performance counters (>= 4). In x2APIC mode an absent one is an absent MSR,
+// and writing it faults, so each is guarded by that field.
+pub(in crate::sys::apic) const LAPIC_LVT_CMCI: u32 = 0x2F0;
+pub(in crate::sys::apic) const LAPIC_LVT_THERMAL: u32 = 0x330;
+pub(in crate::sys::apic) const LAPIC_LVT_PERF: u32 = 0x340;
+
+// Vector for the LVT error entry. Matches the IDT gate installed for it; see
+// `interrupts::idt::vectors::VECTOR_APIC_ERROR`.
+pub(in crate::sys::apic) const ERROR_VECTOR: u32 = 0xFE;

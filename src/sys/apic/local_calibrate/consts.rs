@@ -32,11 +32,18 @@ pub(super) static LAPIC_TICKS_PER_MS: AtomicU64 = AtomicU64::new(0);
 pub(super) const TSC_HZ_MIN: u64 = 300_000_000;
 pub(super) const TSC_HZ_MAX: u64 = 6_000_000_000;
 
-// A LAPIC timer runs off the CPU bus clock: 100 to 400 MHz on real parts,
-// so with the divide-by-16 configured below it decrements 6250 to 25000
-// times per millisecond. Clamping the measured rate to a slightly wider
-// band means a wrong TSC estimate can shift the tick a little but can never
-// program a pathologically short period, which is what made an
+// What the LAPIC timer counts depends on the part. Older Intel and AMD parts
+// drive it from the bus clock, 100 to 400 MHz, which with the divide-by-16
+// configured below is 6250 to 25000 decrements per millisecond. Intel parts
+// since Skylake and the Atom line drive it from the core crystal instead
+// (Linux sets `lapic_timer_period` straight from CPUID 0x15 for that reason):
+// 24 MHz on client Skylake through Comet Lake, 38.4 MHz on Alder Lake, and
+// 19.2 MHz on Goldmont and Gemini Lake, which is 1200 per millisecond.
+//
+// The floor was 2000, sized for a bus clock. On a Gemini Lake it raised a
+// correct 1200 to 2000, so every tick ran 5/3 as long as asked and the
+// scheduler, sleeps and timeouts all ran slow by that factor. The band below
+// still refuses a pathologically short period, which is what made an
 // uncalibrated timer fire thousands of times a second and wedge the box.
-pub(super) const LAPIC_TICKS_PER_MS_MIN: u64 = 2_000;
+pub(super) const LAPIC_TICKS_PER_MS_MIN: u64 = 500;
 pub(super) const LAPIC_TICKS_PER_MS_MAX: u64 = 60_000;
