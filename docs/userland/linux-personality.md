@@ -50,3 +50,20 @@ The calls are routed in two stages. Process, futex, sleep and blocking calls go 
 Two answers are deliberate non-answers. `clone3` returns `ENOSYS` so that glibc falls back to `clone`, which is served (`userland/capsule_linux/src/linux/call/glibc_sched.rs:64-68`, `clone3`). `rseq` and `set_robust_list` succeed and do nothing (`userland/capsule_linux/src/linux/serve/table.rs:60`, `SET_ROBUST_LIST`).
 
 A number that nothing serves returns `ENOSYS`, 38, and puts `[LINUX] unserved` on the log with the call's number, as `nr=29` for `shmget`, so a program that dies on a missing call leaves the number it needed (`userland/capsule_linux/src/linux/serve/unserved.rs:23-41`, `unserved`). The personality's name table holds only calls it serves, so an unserved one is named by number (`userland/capsule_linux/src/linux/serve/unserved.rs:27-32`, `decimal`); `tools/nonos-linux-coverage --list` gives the names.
+
+## What is refused, and why
+
+Seventeen calls are refused on purpose. Each one logs `[LINUX] refused` with its reason (`userland/capsule_linux/src/linux/serve/refused.rs:25-51`, `REFUSED`).
+
+| Calls | Errno | Reason |
+|---|---|---|
+| `ptrace` | `EPERM` | a guest does not inspect or steer another |
+| `process_vm_readv`, `process_vm_writev` | `EPERM` | no guest reads or writes another's memory |
+| `capget`, `capset` | `EPERM` | capabilities are the kernel's, not Linux's |
+| `mount`, `umount2` | `EPERM` | the tree is laid out by the personality |
+| `chroot` | `EPERM` | the family is already rooted |
+| `unshare`, `setns` | `EPERM` | namespaces are the personality's |
+| `io_uring_setup`, `io_uring_enter`, `io_uring_register` | `ENOSYS` | a second call path around the gate |
+| `inotify_init`, `inotify_init1`, `inotify_add_watch`, `inotify_rm_watch` | `ENOSYS` | the store sends no change events to watch |
+
+That is ten `EPERM` refusals and seven `ENOSYS` ones. Among the 153 unserved calls, these seventeen are the only ones answered with a reason; the rest get the plain `ENOSYS` above. System V shared memory and semaphores, for example, are unserved.
