@@ -35,6 +35,11 @@ pub(super) fn record(pid: Pid, parent: Pid, code: i32) {
     log.insert(pid, (parent, code));
 }
 
+/// A status left in place, for a reader that is not the parent reaping it.
+pub(crate) fn peek_exit_status(pid: Pid) -> Option<i32> {
+    REAP_LOG.lock().get(&pid).map(|&(_, code)| code)
+}
+
 pub(crate) fn reap_exit_status(pid: Pid) -> Option<i32> {
     REAP_LOG.lock().remove(&pid).map(|(_, code)| code)
 }
