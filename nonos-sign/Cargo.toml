@@ -1,0 +1,51 @@
+[package]
+name = "nonos-sign"
+version = "0.1.0"
+edition = "2021"
+autotests = false
+build = "build.rs"
+
+[lib]
+name = "nonos_capsule_sign"
+path = "src/lib.rs"
+
+[[bin]]
+name = "capsule-sign"
+path = "src/main.rs"
+
+[[test]]
+name = "host_trust"
+path = "tests/host_trust.rs"
+
+# Verifies the actual on-disk capsule artifacts decode and verify
+# against the baked trust-anchor policy bytes — the same chain the
+# kernel runs at spawn time.
+[[test]]
+name = "artifacts"
+path = "tests/artifacts.rs"
+
+# Exercises the release transparency feature end to end: hybrid sign,
+# log append, lookup, both-signature verify, wrong-key and unlogged
+# rejection, and Merkle root behaviour on corrupt and missing logs.
+[[test]]
+name = "release"
+path = "tests/release.rs"
+
+# uninlined_format_args is a purely stylistic lint whose default level has
+# moved between clippy versions, so pin it here to keep CI deterministic
+# regardless of the toolchain's current default.
+[lints.clippy]
+uninlined_format_args = "allow"
+
+[dependencies]
+ed25519-dalek = { version = "2.1", features = ["zeroize"] }
+rand = "0.8"
+hex = "0.4"
+blake3 = "1"
+base64 = "0.22"
+# The kernel's admission decoders, run before the signer's own.
+admission_proofs = { path = "../userland/admission_proofs" }
+
+[build-dependencies]
+cc = "1.0"
+glob = "0.3"
