@@ -67,3 +67,11 @@ The details, from the code:
 - A Linux package mirror named by an address in 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 or 169.254.0.0/16 is on your own network and is dialled directly (`is_local` in `userland/capsule_linux/src/linux/net/route.rs`). The shipped catalogue lists no Linux packages, so this applies only to a build that names such a mirror.
 - The Settings note under `Default network` says it is what "Qwen downloads take", and a comment in `userland/policy_proto/src/route.rs` says installs cross the mixnet. Both are older than the code above: downloads go over Anyone.
 - A Linux program started from the Terminal runs in a role the kernel spawns without the Network [capability](../overview/glossary.md#capability). It can still use loopback and Unix sockets inside its own family. See [Linux programs](linux-programs.md).
+
+## How names are looked up
+
+- Direct: names are looked up in the clear by `net.dns`, which on the desktop is `net.core`, at the DNS servers the DHCP lease named.
+- Nym: the host name travels unresolved inside the SOCKS5 CONNECT; the exit resolves it.
+- Anyone: the host name travels inside the stream's BEGIN cell to the exit, which resolves it. `net.anon` does no lookup of its own.
+- `.anyone` addresses never leave the Anyone network (`for_host` in `userland/nonos_route_link/src/pick.rs:117-123`). A short `.anyone` name is looked up in a list the Anyone DNS services sign, which is weaker than the full 56-letter address, since the list decides where the name points.
+- The Nym client's first contact, the directory at `validator.nymtech.net`, is reached at an address pinned in the image and never looked up (`PINNED` in `userland/capsule_net_nym/src/directory_sync/pinned.rs:27`).
