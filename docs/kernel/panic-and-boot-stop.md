@@ -73,3 +73,16 @@ A Rust panic in the kernel runs `panic` (`src/boot/panic/handler.rs:41-64`):
 4. `show` paints a red band across the top of the framebuffer with `KERNEL PANIC`, the source file and line, and `details on the serial console` (`src/sys/boot_log/panic_screen.rs:26-48`).
 5. `send_panic_ipi` stops every other CPU with an NMI, which arrives even at a CPU that spins with interrupts masked (`src/smp/panic_ipi.rs:26-31`). In `on_nmi` each one marks itself halted and stops (`src/smp/nmi/handle.rs:32-48`).
 6. It halts.
+
+## CPU exceptions
+
+A page fault, a general protection fault and an invalid opcode first print a `[TRAP xx]` line through `dump_trap`, with the privilege level, the instruction and stack pointers, the code and stack segments, flags, CR3, the address-space id, the pid, the error code and, for a page fault, CR2 (`src/arch/x86_64/diag/dump_trap.rs:23-67`). `xx` is the exception's short name: `PF`, `GP` or `UD`. Other exceptions print no `[TRAP xx]` line.
+
+The page-fault `handle` first tries to resolve the fault, such as a page mapped on demand or a copy-on-write page (`src/interrupts/handlers/exceptions/page_fault.rs:31-53`). If it cannot:
+
+- In user mode, `terminate_user_process` ends the capsule with exit status -11 (`src/interrupts/handlers/exceptions/page_fault.rs:71-77`). The rest of the system keeps running. Other exceptions in user mode end the capsule the same way with their own status, such as -4 for an invalid opcode, passed to `exit_and_yield` (`src/interrupts/handlers/exceptions/opcode.rs:79`).
+- In kernel mode, `kernel_panic` prints `[PANIC PF] fatal kernel fault, no recovery path rip=` with the instruction address and `-- CPU halting, boot terminated`, through `emit_fatal_notice` (`src/arch/x86_64/diag/fatal_notice.rs:19-25`), and halts that CPU (`src/interrupts/handlers/exceptions/page_fault.rs:79-95`).
+
+A kernel general protection fault prints its own `[PANIC GP]` line with the selector from the error code, through a local `emit_fatal_notice` (`src/interrupts/handlers/exceptions/gpf.rs:75-86`). A double fault uses `emit_fatal_notice_nolock`, which writes without taking the console lock, since the interrupted code may hold it (`src/interrupts/handlers/exceptions/double_fault.rs:27`).
+
+This path writes to the serial console only. It does not paint the panel and does not signal the other CPUs, so on a machine without a serial port nothing new appears on the panel and the CPU that faulted stops.
