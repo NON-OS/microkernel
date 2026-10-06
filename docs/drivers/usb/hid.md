@@ -23,3 +23,10 @@ The driver puts keyboards and mice in the boot protocol with SET_PROTOCOL, and a
 - Absolute pointer: at least 5 bytes, three buttons, then X and Y as 16-bit positions from 0 to 0x7FFF, then an optional wheel, the layout QEMU's `usb-tablet` sends (`userland/capsule_driver_usb_hid/src/hid/tablet_report.rs:17-52`, `tablet_report`).
 
 So every absolute pointer, a touch screen or a pen tablet among them, is decoded in the `usb-tablet` layout whatever layout it really sends, and media keys sent on a separate consumer-control interface are not read (`userland/capsule_driver_usb_hid/src/hid/usage_keycode/map.rs:58-61`, `KEYCODE_MUTE`). A keyboard or mouse that refuses SET_PROTOCOL is still bound, and its reports are read as boot reports whatever their layout.
+
+## Keys
+
+- Letters, digits and symbols resolve through the shared layout tables in `nonos_keymap`, so a USB and a PS/2 keyboard agree on every layout (`userland/capsule_driver_usb_hid/src/hid/keymap/mod.rs:17-20`, `nonos_keymap`).
+- The layout follows the keyboard layout the policy store holds, read at most once a second on a key press (`userland/capsule_driver_usb_hid/src/hid/active.rs:30-31`, `POLICY`). Ctrl with the left Alt and Space cycles it inside the driver, and that chord never reaches an app (`userland/capsule_driver_usb_hid/src/hid/keyboard/push_key.rs:26-34`, `cycle`).
+- Mute, Volume Down, Volume Up and Power from the keyboard usage page post the system key codes 0x1301 to 0x1304 (`userland/capsule_driver_usb_hid/src/hid/usage_keycode/map.rs:57-63`, `KEYCODE_MUTE`). The input router hands them to the desktop shell whatever window has focus (`userland/capsule_input_router/src/route/shell_keys.rs:17-33`, `is_shell_key`).
+- A held key repeats after 500 ms, about 30 times a second, and stops by itself after 30 s, because a boot keyboard pulled out with a key down sends no release (`userland/capsule_driver_usb_hid/src/hid/keyboard/repeat/timing.rs:19-26`, `LIMIT_MS`).
