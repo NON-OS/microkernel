@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! repeat(auto-fill | auto-fit, ...), the form every responsive card grid is
 //! written in. The count is not in the stylesheet, it comes from how many
 //! floors fit across the container, so these pin the count and the widths.
@@ -8,8 +9,8 @@ use crate::render::render;
 
 const W: u32 = 1200;
 
-// 1200 of width with a 20 gap fits three 300 floors, and the tracks then
-// share the width evenly because the max side is a fraction.
+/* 1200 of width with a 20 gap fits three 300 floors, and the tracks then
+ * share the width evenly because the max side is a fraction. */
 #[test]
 fn auto_fill_minmax_resolves_to_real_tracks() {
     let doc = render(&card_page("repeat(auto-fill, minmax(300px, 1fr))"), W);
@@ -22,7 +23,7 @@ fn auto_fill_minmax_resolves_to_real_tracks() {
     assert_eq!(cards[1].0 - cards[0].0, want + 20);
 }
 
-// A floor only two tracks clear gives two columns, and the third item wraps.
+/* A floor only two tracks clear gives two columns, and the third item wraps. */
 #[test]
 fn auto_fill_track_count_follows_the_floor() {
     let doc = render(&card_page("repeat(auto-fill, minmax(500px, 1fr))"), W);
@@ -32,8 +33,8 @@ fn auto_fill_track_count_follows_the_floor() {
     assert_eq!(cards[2].0, cards[0].0, "the third item wraps under the first");
 }
 
-// auto-fit drops the tracks no item lands in, so two items fill the row that
-// auto-fill would leave a third of empty.
+/* auto-fit drops the tracks no item lands in, so two items fill the row that
+ * auto-fill would leave a third of empty. */
 #[test]
 fn auto_fit_collapses_the_tracks_no_item_uses() {
     let two = "<html><head><style>body{margin:0}\
@@ -47,9 +48,9 @@ fn auto_fit_collapses_the_tracks_no_item_uses() {
     assert_eq!(cards[1].0, (W as i32 - 20) / 2 + 20, "the second starts after the gap");
 }
 
-// A percentage floor resolves against the container before the count is
-// worked out. A track costs its floor plus a gap, so 20% of 1200 fits four
-// times and not five: five 240s plus four 20s is 1280, past the container.
+/* A percentage floor resolves against the container before the count is
+ * worked out. A track costs its floor plus a gap, so 20% of 1200 fits four
+ * times and not five: five 240s plus four 20s is 1280, past the container. */
 #[test]
 fn a_percentage_floor_resolves_against_the_container() {
     let wide = card_boxes(&render(&card_page("repeat(auto-fill, minmax(45%, 1fr))"), W));
