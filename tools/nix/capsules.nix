@@ -51,15 +51,26 @@ let
   '';
   rustStd = mkRustStd pins.rust;
 
+  # A crate that compiles C for the capsule triple (blake3's SIMD, in the
+  # crypto and shield capsules) gets it from cc-rs, which on x86_64 Linux
+  # takes the build machine's gcc. Any other builder's gcc cannot target
+  # x86_64, so there the capsule triple's C compiler is an x86_64 cross gcc.
+  # On x86_64 Linux nothing here changes, so those builds stay as they were.
+  nativeX86 = pkgs.stdenv.hostPlatform.isx86_64 && pkgs.stdenv.hostPlatform.isLinux;
+  x86Cc = pkgs.pkgsCross.gnu64.stdenv.cc;
+
   build =
     args:
     rustBuild ({
       buildStd = true;
       cc = false;
-      nativeBuildInputs = [ pins.llvm.clang-unwrapped pins.llvm.llvm ];
+      nativeBuildInputs = [ pins.llvm.clang-unwrapped pins.llvm.llvm ]
+        ++ lib.optional (!nativeX86) x86Cc;
       extra = {
         AR = "llvm-ar";
         RANLIB = "llvm-ranlib";
+      } // lib.optionalAttrs (!nativeX86) {
+        CC_x86_64_nonos_user = "${x86Cc}/bin/x86_64-unknown-linux-gnu-gcc";
       };
     } // args);
 
