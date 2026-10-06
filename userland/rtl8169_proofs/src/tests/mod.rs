@@ -18,8 +18,33 @@
 
 mod memory;
 mod model;
+mod model_fifo;
 
 mod bring_up_tests;
+mod cfg_tests;
+mod command_word_tests;
+mod cplus_tests;
+mod decode_tests;
+mod detect_ext_tests;
+mod detect_tests;
+mod finish_tests;
+mod g_init_tests;
+mod g_start_tests;
+mod id_tests;
+mod init_8125_tests;
+mod link_log_tests;
+mod link_tests;
 mod mac_tests;
+mod model_eri;
+mod quiesce_tests;
+mod regmap_path_tests;
+mod regmap_tests;
+mod reset_clock_tests;
 mod reset_tests;
 mod ring_tests;
+mod rx_tests;
+mod start_8125_tests;
+mod start_tests;
+mod version_tests;
+mod xid_tests;
+mod xid_vector_tests;

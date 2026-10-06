@@ -16,6 +16,7 @@
 
 //! Software reset, against a part that completes it and one that does not.
 
+use super::memory::CHIP;
 use super::model::{live, resetting_part, window};
 use crate::constants::regs::{CMD_RESET, REG_CMD};
 use crate::init::reset_run;
@@ -25,13 +26,13 @@ use crate::regs::Regs;
 fn reset_is_requested_and_waited_for() {
     let bar = window();
     let _part = live(&bar, resetting_part);
-    reset_run(&Regs::new(bar.base())).expect("a conforming part completes reset");
+    reset_run(&Regs::new(bar.base()), CHIP.ver).expect("a conforming part completes reset");
     assert_eq!(bar.wrote8(REG_CMD) & CMD_RESET, 0);
 }
 
 #[test]
 fn a_part_that_never_completes_reset_is_given_up_on() {
     let bar = window();
-    assert!(reset_run(&Regs::new(bar.base())).is_err());
+    assert!(reset_run(&Regs::new(bar.base()), CHIP.ver).is_err());
     assert_ne!(bar.wrote8(REG_CMD) & CMD_RESET, 0, "the request was made");
 }
