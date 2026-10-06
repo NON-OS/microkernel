@@ -14,14 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The `setup` files that run without the broker: the driver record the
-//! bring-up fills in, and the PCI Command word the claim writes. Discovery,
-//! claiming and mapping talk to the broker and stay out.
+//! The line for a half-duplex link on an 8168 (8-bit PHYstatus).
 
-#[path = "../../../capsule_driver_rtl8169/src/setup/command_word.rs"]
-mod command_word;
-#[path = "../../../capsule_driver_rtl8169/src/setup/driver.rs"]
-mod driver;
+use nonos_libc::logged;
 
-pub use command_word::command_word;
-pub use driver::Driver;
+use super::memory::Memory;
+use super::model::window;
+use crate::constants::regs::REG_PHY_STATUS;
+use crate::link::poll;
+
+#[test]
+fn a_half_duplex_100_link_on_an_8168_is_logged_as_such() {
+    let bar = window();
+    let mut mem = Memory::new();
+    let mut d = mem.driver(&bar);
+    bar.present8(REG_PHY_STATUS, 0x0A);
+    assert!(poll(&mut d).up);
+    assert_eq!(logged().last().cloned().unwrap_or_default(), "rtl8169: link up 100 half\n");
+}

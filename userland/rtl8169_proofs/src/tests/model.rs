@@ -53,7 +53,7 @@ pub fn resetting_part(bar: &FakeBar) {
 static TURN: Mutex<()> = Mutex::new(());
 
 /// A running part and the turn it holds: one live test at a time, so the
-/// model thread is not preempted past the driver's spin budget on a loaded
+/// model thread is not preempted past the driver's deadline on a loaded
 /// runner.
 pub struct Live {
     _part: LiveDevice,

@@ -14,14 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The `setup` files that run without the broker: the driver record the
-//! bring-up fills in, and the PCI Command word the claim writes. Discovery,
-//! claiming and mapping talk to the broker and stay out.
+//! The console line call, kept so a test can read what the driver logged.
 
-#[path = "../../../capsule_driver_rtl8169/src/setup/command_word.rs"]
-mod command_word;
-#[path = "../../../capsule_driver_rtl8169/src/setup/driver.rs"]
-mod driver;
+thread_local! {
+    static LOGGED: std::cell::RefCell<Vec<String>> = const { std::cell::RefCell::new(Vec::new()) };
+}
 
-pub use command_word::command_word;
-pub use driver::Driver;
+pub fn mk_debug(buf: *const u8, len: usize) -> i64 {
+    if buf.is_null() || len == 0 {
+        return -22;
+    }
+    // SAFETY: the caller hands `len` readable bytes, as the real call requires.
+    let bytes = unsafe { std::slice::from_raw_parts(buf, len) };
+    let line = String::from_utf8_lossy(bytes).into_owned();
+    LOGGED.with(|l| l.borrow_mut().push(line));
+    0
+}
+
+/// Every line logged on this thread, in order, each with its newline.
+pub fn logged() -> Vec<String> {
+    LOGGED.with(|l| l.borrow().clone())
+}

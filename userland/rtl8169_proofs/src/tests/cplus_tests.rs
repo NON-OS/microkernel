@@ -14,14 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The `setup` files that run without the broker: the driver record the
-//! bring-up fills in, and the PCI Command word the claim writes. Discovery,
-//! claiming and mapping talk to the broker and stay out.
+//! CPlusCmd per version against Linux rtl_init_one (CPCMD_MASK) and
+//! rtl_hw_start_8169.
 
-#[path = "../../../capsule_driver_rtl8169/src/setup/command_word.rs"]
-mod command_word;
-#[path = "../../../capsule_driver_rtl8169/src/setup/driver.rs"]
-mod driver;
+use crate::chip::MacVersion;
+use crate::hw::cplus_cmd;
 
-pub use command_word::command_word;
-pub use driver::Driver;
+#[test]
+fn cplus_keeps_normal_mode_and_the_timer_and_drops_the_offloads() {
+    // Normal_mode 1<<13, RxVlan 1<<6, RxChkSum 1<<5, INTT 0b11, PCIDAC 1<<4.
+    assert_eq!(cplus_cmd(0x2073, MacVersion(46)), 0x2003);
+    assert_eq!(cplus_cmd(0x2073, MacVersion(63)), 0x2003);
+    // PCIMulRW 1<<3 on every 8169, EnAnaPLL 1<<14 on VER_02 and VER_03.
+    assert_eq!(cplus_cmd(0, MacVersion(2)), 0x4008);
+    assert_eq!(cplus_cmd(0, MacVersion(3)), 0x4008);
+    assert_eq!(cplus_cmd(0, MacVersion(4)), 0x0008);
+}

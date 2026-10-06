@@ -14,25 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Software reset, against a part that completes it and one that does not.
+//! The PCI ids against Linux rtl8169_pci_tbl (r8169_main.c).
 
-use super::memory::CHIP;
-use super::model::{live, resetting_part, window};
-use crate::constants::regs::{CMD_RESET, REG_CMD};
-use crate::init::reset_run;
-use crate::regs::Regs;
+use crate::constants::pci::{REALTEK_VENDOR_ID, RTL8169_DEVICE_IDS};
 
 #[test]
-fn reset_is_requested_and_waited_for() {
-    let bar = window();
-    let _part = live(&bar, resetting_part);
-    reset_run(&Regs::new(bar.base()), CHIP.ver).expect("a conforming part completes reset");
-    assert_eq!(bar.wrote8(REG_CMD) & CMD_RESET, 0);
+fn every_realtek_8169_8168_810x_and_8125_id_linux_lists_is_taken() {
+    assert_eq!(REALTEK_VENDOR_ID, 0x10EC);
+    for id in [0x2502u16, 0x2600, 0x3000, 0x8125, 0x8136, 0x8161, 0x8162, 0x8167, 0x8168, 0x8169] {
+        assert!(RTL8169_DEVICE_IDS.contains(&id), "{id:#06x}");
+    }
 }
 
 #[test]
-fn a_part_that_never_completes_reset_is_given_up_on() {
-    let bar = window();
-    assert!(reset_run(&Regs::new(bar.base()), CHIP.ver).is_err());
-    assert_ne!(bar.wrote8(REG_CMD) & CMD_RESET, 0, "the request was made");
+fn the_5g_and_10g_parts_and_ids_other_drivers_own_are_not() {
+    // 0x8126 RTL8126A, 0x8127 RTL8127A, 0x8129 (8139too too), 0x8139
+    // (RTL8139, its own driver), 0xc821 (the RTL8821CE wireless part).
+    for id in [0x8126u16, 0x8127, 0x8129, 0x8139, 0xC821] {
+        assert!(!RTL8169_DEVICE_IDS.contains(&id), "{id:#06x}");
+    }
 }

@@ -14,14 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The `setup` files that run without the broker: the driver record the
-//! bring-up fills in, and the PCI Command word the claim writes. Discovery,
-//! claiming and mapping talk to the broker and stay out.
+//! A part that resets and also reports both FIFOs drained, the way an idle
+//! 8168g or 8125 does: TXCFG_EMPTY in TxConfig, RXTX_EMPTY in MCU, and the
+//! 8125B's IntrMitigate bits.
 
-#[path = "../../../capsule_driver_rtl8169/src/setup/command_word.rs"]
-mod command_word;
-#[path = "../../../capsule_driver_rtl8169/src/setup/driver.rs"]
-mod driver;
+use nonos_devmodel::FakeBar;
 
-pub use command_word::command_word;
-pub use driver::Driver;
+use super::model::resetting_part;
+use crate::constants::regs::REG_TX_CONFIG;
+use crate::hw::regs::TXCFG_EMPTY;
+use crate::hw::regs::{INTR_MITIGATE_RXTX_EMPTY, MCU_RXTX_EMPTY, REG_INTR_MITIGATE, REG_MCU};
+
+pub fn draining_part(bar: &FakeBar) {
+    resetting_part(bar);
+    bar.present32(REG_TX_CONFIG, bar.wrote32(REG_TX_CONFIG) | TXCFG_EMPTY);
+    bar.present8(REG_MCU, MCU_RXTX_EMPTY);
+    bar.present16(REG_INTR_MITIGATE, INTR_MITIGATE_RXTX_EMPTY);
+}

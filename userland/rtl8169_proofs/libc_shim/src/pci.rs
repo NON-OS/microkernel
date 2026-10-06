@@ -14,14 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The `setup` files that run without the broker: the driver record the
-//! bring-up fills in, and the PCI Command word the claim writes. Discovery,
-//! claiming and mapping talk to the broker and stay out.
+//! The PCI Command bits, at the values nonos_libc gives them (PCI Local Bus
+//! 3.0, 6.2.2).
 
-#[path = "../../../capsule_driver_rtl8169/src/setup/command_word.rs"]
-mod command_word;
-#[path = "../../../capsule_driver_rtl8169/src/setup/driver.rs"]
-mod driver;
-
-pub use command_word::command_word;
-pub use driver::Driver;
+pub const MK_PCI_CMD_MEMORY_SPACE: u16 = 1 << 1;
+pub const MK_PCI_CMD_BUS_MASTER: u16 = 1 << 2;
