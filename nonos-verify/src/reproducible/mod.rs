@@ -20,9 +20,13 @@
 //! measured kernel payload while the ML-DSA signature and the STARK
 //! proof they carry are freshly randomized every run by design, so
 //! those are required present and well formed, never identical.
+//!
+//! With NONOS_REPRO_MANIFESTS set it instead compares the nonos-build.json
+//! that independent `nix build` runs wrote on different machines.
 
 mod compare;
 mod lane;
+mod manifests;
 
 use crate::report::{Report, Status};
 use crate::sh::capture_stdout;
@@ -35,6 +39,15 @@ pub fn run(root: &str) -> std::io::Result<Status> {
     let work = Path::new("target").join("repro-worktrees");
     let target = std::env::var("NONOS_REPRO_TARGET").unwrap_or_else(|_| "nonos-mk-esp".to_string());
     std::fs::create_dir_all(&out)?;
+    if let Ok(list) = std::env::var("NONOS_REPRO_MANIFESTS") {
+        let paths: Vec<&str> = list.split_whitespace().collect();
+        let (verdicts, all_ok) = manifests::compare(&paths)?;
+        std::fs::write(out.join("verdicts.json"), serde_json::to_string_pretty(&verdicts)?)?;
+        let detail =
+            format!("{} independent nix builds name the same artifacts by sha256", paths.len());
+        rpt.check("cross-machine-artifacts", st(all_ok), detail);
+        return rpt.finish(root);
+    }
     std::fs::create_dir_all(&work)?;
 
     let dirt = capture_stdout("git", &["status", "--porcelain"]).1.trim().to_string();
