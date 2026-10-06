@@ -65,8 +65,10 @@ pub fn spawn_wallet_nonos_instance() -> Result<u32, SpawnError> {
             | Capability::Network.bit()
             | Capability::Memory.bit()
             | Capability::Crypto.bit()
+            | Capability::FileSystem.bit()
             | Capability::GraphicsDisplayQuery.bit()
-            | Capability::GraphicsSurfaceCreate.bit(),
+            | Capability::GraphicsSurfaceCreate.bit()
+            | crate::capabilities::serial_debug_cap(),
         instances: WALLET_NONOS_INSTANCES,
         debug_tag: b"[WALLET_NONOS-INSTANCE] elf error:",
     })
@@ -90,8 +92,10 @@ pub fn spawn_wallet_nonos_capsule() -> Result<(), SpawnError> {
             | Capability::Network.bit()
             | Capability::Memory.bit()
             | Capability::Crypto.bit()
+            | Capability::FileSystem.bit()
             | Capability::GraphicsDisplayQuery.bit()
-            | Capability::GraphicsSurfaceCreate.bit(),
+            | Capability::GraphicsSurfaceCreate.bit()
+            | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

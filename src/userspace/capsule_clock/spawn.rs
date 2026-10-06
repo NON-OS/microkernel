@@ -66,7 +66,8 @@ pub fn spawn_clock_instance() -> Result<u32, SpawnError> {
             | Capability::Memory.bit()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit()
-            | Capability::TimeSet.bit(),
+            | Capability::TimeSet.bit()
+            | crate::capabilities::serial_debug_cap(),
         instances: CLOCK_INSTANCES,
         debug_tag: b"[CLOCK-INSTANCE] elf error:",
     })
@@ -90,7 +91,8 @@ pub fn spawn_clock_capsule() -> Result<(), SpawnError> {
             | Capability::Memory.bit()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit()
-            | Capability::TimeSet.bit(),
+            | Capability::TimeSet.bit()
+            | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

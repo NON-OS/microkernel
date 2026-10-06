@@ -32,7 +32,10 @@ const SERVICE_PORT: u32 = 4746;
 const REPLY_INBOX: &str = "endpoint.app.image_viewer.reply";
 const REPLY_PORT: u32 = 4747;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
-const REQUIRED_CAPS: u64 = 0x3959;
+// CoreExec | IPC | Memory | FileSystem | GraphicsDisplayQuery |
+// GraphicsSurfaceCreate | GraphicsSurfaceMap, and Debug on a serial-debug
+// build, as in userland/capsule_image_viewer/Capsule.mk.
+const REQUIRED_CAPS: u64 = 0x3859 | crate::capabilities::serial_debug_cap();
 
 pub fn spawn_image_viewer_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)

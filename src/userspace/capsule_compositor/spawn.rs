@@ -47,13 +47,13 @@ pub fn spawn_compositor_capsule() -> Result<(), SpawnError> {
         manifest_bytes: COMPOSITOR_MANIFEST_BYTES,
         attestation_trailer: COMPOSITOR_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
+        requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit()
             | Capability::GraphicsSurfaceMap.bit()
-            | Capability::GraphicsPresent.bit(),
+            | Capability::GraphicsPresent.bit()
+            | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;

@@ -47,8 +47,7 @@ pub fn spawn_input_router_capsule() -> Result<(), SpawnError> {
         manifest_bytes: INPUT_ROUTER_MANIFEST_BYTES,
         attestation_trailer: INPUT_ROUTER_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
+        requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             // Consumer authority for the raw-input ring (MkInputEventDrain/Wait).
             | Capability::InputSource.bit(),

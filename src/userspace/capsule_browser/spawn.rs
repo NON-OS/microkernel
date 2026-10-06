@@ -44,6 +44,7 @@ fn browser_caps() -> u64 {
         | Capability::Crypto.bit()
         | Capability::GraphicsDisplayQuery.bit()
         | Capability::GraphicsSurfaceCreate.bit()
+        | crate::capabilities::serial_debug_cap()
 }
 
 // Extra window endpoints, each declared in the signed manifest (browser
