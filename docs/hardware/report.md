@@ -87,3 +87,11 @@ Not tested in this release.
 | 03xx | display | none beyond the firmware framebuffer |
 
 The [support matrix](MATRIX.md) lists each driver's ids. If a device you care about is not there, report it anyway: that is how a driver gets written.
+
+## What not to include
+
+- No Wi-Fi network names, passwords or keys. Remove any `log` line that shows one.
+- No serial numbers. Leave out `lsusb -v` and any disk or device serial.
+- No MAC addresses or IP addresses.
+- No user names, file names or contents from your own files.
+- No brand or model is needed. NONOS lists machines by CPU family and chips only, and the form's Machine field is answered by the CPU family, the memory size and the ids.
