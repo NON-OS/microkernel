@@ -62,3 +62,7 @@ Which controllers and chips have drivers, and what has been seen working, is in 
 ## Network
 
 A network is optional: setup's default is no network at all. Setup can join Wi-Fi through two drivers (`userland/nonos_wifi_client/src/driver/services.rs`, [Wi-Fi drivers](../drivers/wifi/README.md)): the Realtek RTL8821CE driver, PCI id 10ec:c821 (`userland/capsule_driver_rtl8821ce/src/constants/mod.rs`), and the Intel iwlwifi driver, which takes more Intel cards than it can join on: on the others it reports `card not supported yet` (`userland/nonos_wifi_client/src/driver/stage.rs`, [iwlwifi](../drivers/wifi/iwlwifi.md)). NONOS 0.9.2 has no USB Wi-Fi driver. A wired card served by the e1000, RTL8169, RTL8139 or virtio-net driver is used as soon as a cable is plugged in (`userland/capsule_setup_wizard/src/network/wired.rs`).
+
+## Reported on real hardware
+
+These items were reported working on one machine: Wi-Fi on the Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic), the local Qwen model offline, the Linux programs sh, python3, sqlite3 and john, the installer writing to an internal NVMe disk and booting from it, the I2C-HID touchpad on Intel LPSS, the PS/2 keyboard with its layouts, Intel HD Audio, the power button and the volume keys. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
