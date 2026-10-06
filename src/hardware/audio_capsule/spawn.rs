@@ -47,7 +47,9 @@ pub fn spawn_audio_capsule() -> Result<(), SpawnError> {
         manifest_bytes: AUDIO_MANIFEST_BYTES,
         attestation_trailer: AUDIO_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::IPC.bit() | Capability::Memory.bit() | Capability::Debug.bit(),
+        requested_caps: Capability::IPC.bit()
+            | Capability::Memory.bit()
+            | crate::capabilities::serial_debug_cap(),
         debug_tag: b"[AUDIO] load_elf_executable error:",
     };
     let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
