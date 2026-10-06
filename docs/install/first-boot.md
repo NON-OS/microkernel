@@ -88,3 +88,11 @@ flowchart TD
 ```
 
 Amnesic starts the desktop. Install keeps the answers, then hands the whole screen to the installer with no desktop behind it. If you leave the installer without installing, the desktop starts (`src/userspace/init/supervisor/after_setup.rs`, `src/userspace/init/supervisor/after_install.rs`).
+
+## See also
+
+- [Boot modes](boot-modes.md)
+- [Install to disk](install-to-disk.md)
+- [The desktop](../using/desktop.md)
+- [Settings](../using/settings.md)
+- [Keyboard layouts](../using/keyboard-layouts.md)
