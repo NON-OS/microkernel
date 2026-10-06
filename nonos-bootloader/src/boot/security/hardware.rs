@@ -28,10 +28,15 @@ pub fn verify_hardware_requirements(st: &mut SystemTable<Boot>, gop: bool) -> Ha
     let hw_caps = detect_hardware_capabilities();
     let hw_reqs = check_minimum_requirements(&hw_caps);
     if !hw_reqs.passed {
+        let why: &[u8] = if !hw_reqs.nx_bit {
+            b"This CPU has no NX bit: NONOS keeps writable memory from running, and cannot here"
+        } else {
+            b"This CPU addresses under 36 bits of physical memory"
+        };
         log_error("security", "Hardware requirements not met");
         update_stage(STAGE_SECURITY, StageStatus::Failed);
         if gop {
-            show_error_screen(b"Hardware requirements not met");
+            show_error_screen(why);
         }
         fatal_reset(st, "Hardware requirements not met");
     }

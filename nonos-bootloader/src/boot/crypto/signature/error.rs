@@ -58,23 +58,17 @@ pub fn handle_invalid_signature(st: &mut SystemTable<Boot>, mode: SecurityMode, 
     }
 }
 
-/// The kernel signed correctly but its STARK self-attestation did not verify
-/// against the enrolled boot root. Under a mode that requires signatures this is
-/// a hard refuse: a signature alone is not enough, the kernel must also prove its
-/// own measurement. This runs only in stark-kernel-attest builds.
-pub fn handle_failed_attestation(st: &mut SystemTable<Boot>, mode: SecurityMode, gop: bool) {
-    if mode.requires_signature() {
-        log_error("crypto", "kernel STARK self-attestation FAILED - refusing to boot");
-        update_stage(STAGE_ZK_VERIFY, StageStatus::Failed);
-        if gop {
-            crate::display::log_error(b"STARK attestation INVALID");
-            show_error_screen(b"Kernel self-attestation invalid");
-        }
-        fatal_reset(st, "kernel self-attestation invalid");
-    } else {
-        if gop {
-            log_warn(b"STARK self-attestation FAILED (dev mode - continuing)");
-        }
-        update_stage(STAGE_ZK_VERIFY, StageStatus::Success);
+/// The kernel signed correctly but its self-attestation path did not verify
+/// against the enrolled boot root. In every mode this is a hard refuse: a
+/// signature alone is not enough, the kernel's measurement must also be
+/// enrolled.
+/* A kernel whose STARK does not verify never boots, in any mode. */
+pub fn handle_failed_attestation(st: &mut SystemTable<Boot>, gop: bool) {
+    log_error("crypto", "kernel self-attestation FAILED, refusing to boot");
+    update_stage(STAGE_ZK_VERIFY, StageStatus::Failed);
+    if gop {
+        crate::display::log_error(b"STARK attestation INVALID");
+        show_error_screen(b"Kernel self-attestation invalid");
     }
+    fatal_reset(st, "kernel self-attestation invalid");
 }
