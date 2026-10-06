@@ -95,3 +95,16 @@ nix build .#hardened
 Not tested in this release.
 
 Both build the `hardened` profile with the rest of `nonos.toml` unchanged (`ATTR`, `Makefile:43`). [profiles.md](profiles.md) lists the six profiles and what each takes out.
+
+## The build pages
+
+| page | what it answers |
+|---|---|
+| [toolchain.md](toolchain.md) | the pinned Rust nightly, the target files, Nix and the host |
+| [nix-flake.md](nix-flake.md) | the flake's inputs, packages, apps, dev shell and checks |
+| [make-targets.md](make-targets.md) | every `make` target, and the options a QEMU boot takes |
+| [profiles.md](profiles.md) | the six build profiles, the keys of `nonos.toml`, and how profiles differ from boot modes |
+| [seal.md](seal.md) | what the seal reads, signs and writes, and what to do without the release keys |
+| [reproducible-builds.md](reproducible-builds.md) | what is pinned, how to compare two builds, and what is not reproducible yet |
+| [sbom.md](sbom.md) | the CycloneDX bill of materials and the other supply chain records |
+| [ci.md](ci.md) | the GitHub workflows, what runs on a pull request, and the state of the checks at this commit |
