@@ -16,10 +16,11 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::clock::says::NOT_SET;
 use crate::clock::state::State;
 use crate::clock::tabs::Tab;
 use crate::clock::{
-    fmt, manifest, paint_analog, paint_settime, paint_stopwatch, paint_tabbar, paint_timer, theme,
+    fmt, paint_analog, paint_settime, paint_stopwatch, paint_tabbar, paint_timer, theme,
 };
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
@@ -30,10 +31,15 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         Tab::Timer => paint_timer::paint(state, fb),
         Tab::Set => paint_settime::paint(state, fb),
     }
-    paint_tabbar::paint(state.tab, fb, manifest::WIDTH);
+    paint_tabbar::paint(state.tab, fb, fb.width);
 }
 
 fn paint_clock(state: &State, fb: &mut PaintBuffer) {
+    // Drawn from no reading the face would show midnight of year zero.
+    if !state.clock_ok {
+        fb.text(40, 122, NOT_SET, theme::ALERT);
+        return;
+    }
     let r = &state.rtc;
     let hms = fmt::hms(r.hour, r.minute, r.second);
     fb.text_scaled(36, 72, &hms, theme::FG, 4);

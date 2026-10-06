@@ -19,12 +19,12 @@ use nonos_app_skeleton::EventOutcome;
 use nonos_libc::time::mk_time_adjust;
 
 use crate::clock::civil;
-use crate::clock::manifest::WIDTH;
+use crate::clock::says::{adjust_outcome, NO_DATE};
 use crate::clock::state::State;
 use crate::clock::tabs::{self, Tab};
 
 pub fn on_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
-    if let Some(t) = tabs::hit(WIDTH as i32, x, y) {
+    if let Some(t) = tabs::hit(state.win_w as i32, x, y) {
         state.tab = t;
         if t == Tab::Set {
             state.load_edit();
@@ -53,6 +53,12 @@ fn settime_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
     } else if in_rect(x, y, 280, 210, 68, 48) {
         state.edit_min = (state.edit_min + 1) % 60;
     } else if in_rect(x, y, 40, 300, 280, 48) {
+        // The new time is set on today's date, which only the system clock
+        // knows; with no reading there is no date to send.
+        if !state.clock_ok {
+            state.set_note = NO_DATE;
+            return EventOutcome::Repaint;
+        }
         let ms = civil::to_unix_ms(
             state.rtc.year,
             state.rtc.month,
@@ -61,11 +67,13 @@ fn settime_click(state: &mut State, x: i32, y: i32) -> EventOutcome {
             state.edit_min,
             0,
         );
-        mk_time_adjust(ms);
+        state.set_note = adjust_outcome(mk_time_adjust(ms));
+        state.refresh();
         return EventOutcome::Repaint;
     } else {
         return EventOutcome::Idle;
     }
+    state.set_note = b"";
     EventOutcome::Repaint
 }
 
