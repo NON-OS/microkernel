@@ -211,3 +211,7 @@ Whoever holds a NONOS ID certificate and the keys it names, and signs capsule ma
 ## Reply inbox
 
 The kernel-owned inbox the spawn path registers for each capsule under the name of its reply endpoint. Replies to that capsule's `MkIpcCall` requests arrive there, and only one that carries the call's correlation token is delivered. Explained in [IPC](../kernel/ipc.md#the-model). Code: `src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs`, `src/syscall/microkernel/ipc/reply_inbox.rs`.
+
+## Rollback floor
+
+How far the TPM NV counter at 0x01000020 has risen above its base at 0x01000021. The loader raises it to each admitted kernel's rollback index and, in every mode but Development, refuses a kernel whose index is below it; on a measured boot the kernel holds the boot-root record's epoch to the same floor. Explained in [Rollback protection](../security/rollback-protection.md#where-the-floor-lives). Code: `src/security/tpm/boot_reads/floor.rs`.
