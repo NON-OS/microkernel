@@ -107,3 +107,9 @@ The Done screen ends with `Remove the USB stick, then press Enter to restart.` E
 On its first boot the kernel finds the cleared key header, derives the volume key from the [TPM](../overview/glossary.md#tpm) and formats the data volume, and the log says `[DATA] formatted a volume of` with its size in sectors. Without a TPM the volume stays closed: `[DATA] no machine key (...); the data volume stays closed` (`src/fs/blockfs_volume/open_machine.rs`, `src/fs/blockfs_volume/mount_or_format.rs`). Setup does not run there when setup's answers came with the store.
 
 Installing to an internal NVMe disk and booting from it was reported on real hardware. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+## Other installers in the tree
+
+- `install-cli` (`userland/tool_install/`) is the installer as a command-line program, built on the same disk and block crates and built into the images (`nonos-capsule-install-cli` in `tools/nix/config.nix`). No command in this release runs it: the Terminal's `install` goes to the Marketplace installer (`userland/capsule_terminal/src/command/builtin/tool.rs`).
+- `capsule_nonos_install` is a console installer that no image carries. Its last four steps print `pending` and write nothing (`userland/capsule_nonos_install/src/asm/steps.S`).
+- `capsule_installer` installs Marketplace packages into the store. It owns no storage device and never lays out a disk (`userland/capsule_installer/README.md`).
