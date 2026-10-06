@@ -103,3 +103,18 @@ Not tested in this release.
 ### What stays outside the flake
 
 Kani, Verus, the Charon and Aeneas extraction, `cargo-fuzz` runs and the `cargo-audit` advisory feed need a network or a toolchain no lock pins yet, so they keep their own workflows (`checks.nix`, `tools/nix/checks.nix:1-8`). [ci.md](ci.md) lists them.
+
+## What each build sees
+
+A derivation sees only the files it reads. [tools/nix/src.nix](../../tools/nix/src.nix) builds each source from the entry for its crate in `tools/nix/inputs.json`, and leaves every `*.md` file out unless the Rust names it (`crate`, `tools/nix/src.nix:17-34`). An edit to the documentation rebuilds no artifact; an edit to one capsule rebuilds that capsule, the proofs that mount its files, and the kernel that embeds it. The static and drift checks are the exception: they read the whole tree, documentation included, so any edit runs them again (`root`, `tools/nix/checks.nix:10-12`).
+
+A crate with no entry stops the flake from evaluating that build, with a message that names the crate (`crate`, `tools/nix/src.nix:25`). After you add a path dependency, a `#[path]`, an `include_bytes!` or a new crate root, regenerate the table and commit it:
+
+```
+python3 tools/nix/inputs.py
+python3 tools/nix/inputs.py --check
+```
+
+Not tested in this release.
+
+The first line rewrites `tools/nix/inputs.json`; it does so whatever other argument it is given. Only `--check` compares without writing, and the `inputs` check runs exactly that (`main`, `tools/nix/inputs.py:390-402`).
