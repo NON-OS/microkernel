@@ -89,3 +89,10 @@ The controllers with a known layout:
 `LAYOUTS` binds each Intel `_HID` to its pad layout (`userland/nonos_pinctrl/src/tables/index.rs:31-48`), and `AMD_IDS` lists the AMD bank (`userland/nonos_pinctrl/src/controller.rs:30-31`). Cannon Lake-H, Ice Lake-N, Tiger Lake-H and Meteor Lake-P are mapped only where the firmware writes static windows, as `STATIC_ONLY` lists (`src/arch/x86_64/acpi/aml/gpio_enumerate/hid_match.rs:19-25`). `nonos_pinctrl` itself touches no register: it turns a firmware pin number into the place its level is read, as Linux's `intel_gpio_to_pin` does (`userland/nonos_pinctrl/src/lib.rs:17-24`).
 
 `driver.i2c_pci0` answers the touchpad driver's doorbell request in `handle` with two words, whether a line is mapped and whether it is asserted now (`userland/capsule_driver_i2c_pci/src/server/handlers/doorbell.rs:17-52`). Without a mapped layout, I2C-HID reads the pad on a timer. At this commit `pinctrl_proofs` passes 13 tests over the layouts and register arithmetic, `acpi_aml_proofs` 82 and `i2c_pci_proofs` 35. [input/i2c-hid.md](input/i2c-hid.md) covers the touchpad.
+
+## What is not supported
+
+- An AML interpreter, and with it battery level, lid events, a control-method power button, thermal zones and backlight control through ACPI.
+- Shutting down from the desktop.
+- Confined DMA on AMD-Vi machines in the default build, and interrupt remapping by default.
+- Routing a GPIO interrupt; only levels are read.
