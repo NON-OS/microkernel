@@ -63,3 +63,12 @@ Three routes that look possible are not available in 0.9.2:
 ## Reporting your chip
 
 If your machine has a Wi-Fi chip that is not on this page, send its PCI vendor and device ids with a hardware report; see [how to report a machine](../../hardware/report.md).
+
+## See also
+
+- [Wi-Fi drivers](README.md)
+- [Intel iwlwifi](iwlwifi.md)
+- [Ethernet drivers](../ethernet/README.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
+- [Report a machine](../../hardware/report.md)
+- [Wi-Fi and networking for users](../../using/wifi-and-networking.md)
