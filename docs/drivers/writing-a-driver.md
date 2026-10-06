@@ -133,3 +133,9 @@ pub fn run() -> Result<Driver, &'static str> {
 ```
 
 `claim` keeps the [claim epoch](../overview/glossary.md#claim-epoch) that `mk_device_claim` returns, and every later call passes it (`userland/capsule_driver_virtio_rng/src/setup/claim.rs:24-30`). `transport::probe` then picks legacy or modern virtio from configuration space, which only the holder may read (`userland/capsule_driver_virtio_rng/src/transport/probe.rs:29-40`). When any later step fails, `mk_device_release` takes every grant with the claim, so the next attempt can claim afresh.
+
+## 6. Registers
+
+On the legacy path, `grant` looks at the register BAR's kind and calls `grant_mmio` or `grant_pio` (`userland/capsule_driver_virtio_rng/src/setup/registers/grant.rs:22-28`). `grant_mmio` rounds the BAR size up to whole pages and calls `mk_mmio_map`; on failure it releases the device before it returns (`userland/capsule_driver_virtio_rng/src/setup/registers/grant_mmio.rs:22-31`). `Regs` then reads and writes through the mapping with volatile accesses, or through `mk_pio_read` and `mk_pio_write` for a port BAR (`userland/capsule_driver_virtio_rng/src/regs/state.rs:23-89`).
+
+On the modern path, `enable` sets Memory Space, Bus Master and Interrupt Disable in one `mk_pci_config_write`, because the broker clears Bus Master on every release (`userland/capsule_driver_virtio_rng/src/setup/modern/pci.rs:31-37`). `map_window` from `nonos_virtio` then maps the common and notify structures (`userland/capsule_driver_virtio_rng/src/setup/modern/run.rs:36-41`).
