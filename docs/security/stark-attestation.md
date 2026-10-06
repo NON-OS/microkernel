@@ -139,3 +139,13 @@ The capsule that proves on the booted system is `nonos.prove`, namespace `system
 The kernel depends on `nox_verify` from the [STARKs repository](https://github.com/NON-OS/STARKs) (`nox_verify`, `Cargo.toml:917-921`). Every manifest names its `main` branch, and the one pin is the flake's `starks` input (`flake.nix:24-32`), locked at `a41bb8bb0dacfea614acc6fb500d0b96abd78d2b` in `flake.lock`. `tools/nonos-starks-sync --check` fails when a lock or a manifest names another commit, and the flake check `starks-pin` runs it against `starks.rev` (`tools/nix/checks.nix:276`).
 
 Two crates in this tree are older or separate. `stark-attest` is the v3-era engine, crate `nonos-stark` in `stark-attest/crates/stark-core`; its README says the gates have moved to v4 trailers and `nox_verify`, and that it checks v3 trailers only (`stark-attest/README.md:16-24`). `nonos-device-attest` takes `stark_proofs` and `nonos-stark` from STARKs, at the same pinned commit (`nonos-device-attest/Cargo.toml:8-15`).
+
+## What a trailer does not prove
+
+- That the image is signed. Signatures are a separate check, on [Boot chain and signatures](boot-chain-and-signatures.md).
+- What a capsule may do beyond the capability word bound into its context, or that its code behaves.
+- Anything about a root the gate did not supply. The root is always the gate's compiled-in or signed value.
+- Which slot it is. The v3 path sits in the v4 trailer beside the proof, in the clear, so anyone holding a trailer learns the slot's position and siblings.
+- Freshness by epoch. `POLICY_EPOCH` and `BOOT_EPOCH` are both 1 (`src/security/capsule_attest/layout.rs:17-18`, `nonos-boot-measure/src/gate/membership.rs:23-24`); a new root at each enrollment does that work. See [Rollback protection](rollback-protection.md).
+
+The path check rests on Poseidon's collision resistance, and the proof's soundness is the STARKs repository's claim. No proof in this tree covers either.
