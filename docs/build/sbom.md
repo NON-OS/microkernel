@@ -35,3 +35,24 @@ The lock files it reads are the kernel's, the loader's, the standard library's f
 - Test only crates: the locks of the [proof crates](../overview/glossary.md#proof-crate) and of the attestation test battery are not in `lockFiles`, so their dependencies are listed only when another lock names them too (`lockFiles`, `tools/nix/default.nix:26-34`).
 - Nix packages other than the four toolchain entries, such as QEMU, swtpm, Go or the image tools. They come from nixpkgs at the commit the `nixpkgs` component names, and the document does not list them one by one.
 - A hash for llama.cpp: its pin is a Nix tree hash rather than a SHA-256 hex string, so it is listed with its URL only (`source`, `tools/nix/sbom.nix:29-35`).
+
+## The cargo SBOM and the policy checks
+
+The supply chain workflow also runs `nonos-verify supply-chain` in the development shell (`.github/workflows/ci-supply-chain.yml`). From the repository root, it runs (`run`, `nonos-verify/src/supply_chain.rs:9-76`):
+
+| step | what it does |
+|---|---|
+| `cargo audit --json` | the RustSec advisory scan |
+| `cargo deny check` | the policy in [deny.toml](../../deny.toml) |
+| `cargo tree --workspace --duplicates` | records crates present in more than one version |
+| `git submodule status --recursive` | fails when a submodule is off its committed pin |
+| `cargo cyclonedx --format json` | a second, cargo generated CycloneDX SBOM |
+
+The tools come from the flake's shell (`tools/nix/shell.nix`).
+
+The `deny.toml` policy, for the kernel crate:
+
+- licences: only those on the allow list are accepted, among them `AGPL-3.0`, `Apache-2.0`, `MIT`, `BSD-3-Clause`, `ISC`, `MPL-2.0` and `Zlib` (`allow`, `deny.toml:29-50`);
+- bans: `openssl`, `openssl-sys` and `time` below 0.3 are refused, and a wildcard version is refused (`deny`, `deny.toml:58-70`);
+- sources: crates.io and the STARKs git repository only (`sources`, `deny.toml:74-78`);
+- advisories: yanked crates are refused, and three entries are tolerated with a written reason each, two unmaintained crates and the yanked `spin` 0.9.8 (`ignore`, `deny.toml:14-27`).
