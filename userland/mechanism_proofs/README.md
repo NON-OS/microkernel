@@ -23,9 +23,6 @@ Bound so far:
   `MemRegion::overlaps`, `contains` and `contains_range` delegate to. Overlap is
   symmetric and is exactly the negation of disjointness. Lean:
   `Nonos/Interval.lean` and `Nonos/Vma.lean`.
-- `timer`: the load-balancer elapsed-tick test in
-  `src/process/scheduler/smp/interval.rs`, which `should_balance` delegates to. A
-  tick wraparound saturates to no time elapsed. Lean: `Nonos/Timer.lean`.
 - `quota`: the resource-token check in `src/capabilities/resource/limits.rs`,
   which `has_bytes` and `has_ops` delegate to. A request is covered exactly when
   it is within the remaining budget. Lean: `Nonos/Quota.lean`.
@@ -53,7 +50,29 @@ Bound so far:
   idle bottoms it, and a real-time task preempts a timesharing one. Lean:
   `Nonos/Priority.lean`.
 
+- `timer`: empty. The load-balancer interval it bound was removed from the
+  kernel with the per-CPU scheduler that used it.
+
+Also mounted, with tests beside them rather than a Lean model each:
+
+- `spawn`: the spawn gate's capability arithmetic in
+  `src/security/capsule_manifest/verify/caps_bits.rs` (`check_ceiling` and
+  `check_grant` delegate to it) and the delegation expiry in
+  `src/capabilities/delegation/lifetime.rs`.
+- `heap`: the zero-on-free allocator in `userland/libc/src/heap/zero_on_free.rs`.
+- `iommu`: the VT-d capability decode and the context and second-level entry
+  encoding under `src/arch/x86_64/iommu`.
+- `context`: the RFLAGS sanitizer in `src/arch/x86_64/context/rflags.rs`.
+- `compositor`: the software row compositing in
+  `userland/compositor/src/sw_blitter/row.rs`.
+- `constants`: the kernel constants the Lean files quote as literals, held
+  equal to them by `constants_tests`.
+
 Run:
 
     cargo test --release
     cargo kani
+
+`nix flake check` runs the tests as `proofs-mechanism_proofs`; the
+`proof-crates-kani` job in `verify.yml` runs the Kani harnesses. See
+[the proofs page](../../docs/handbook/verification/proofs.md).
