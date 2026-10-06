@@ -62,3 +62,16 @@ Three reasons, as the screen gives them:
 The loader also has titles for each missing Secure Boot key, the TPM and the random source (`POLICY` in `nonos-bootloader/src/display/boot/refusal/policy.rs`), but in this release every policy refusal reaches the screen as `Security policy enforcement failed` (`nonos-bootloader/src/boot/security/policy.rs`), so those titles are not shown.
 
 If the firmware itself will not start the stick, and no NONOS screen appears at all, one cause is Secure Boot turned on without the NONOS db certificate enrolled: the seal signs the loader with that key alone (`tools/nonos_seal/chain.py`). Turn Secure Boot off and boot Standard ([Requirements](requirements.md#secure-boot-and-the-tpm)). Not tested in this release.
+
+## The kernel stops
+
+The kernel draws a notice band when it cannot go on, and halts (`src/boot/stop.rs`, `src/kernel_core/init/entry/`):
+
+| On screen | Meaning | What to do |
+|---|---|---|
+| `NONOS BOOT STOPPED`, with a step and a detail | an early kernel step failed | keep the step and detail and report them |
+| `The bootloader failed the kernel's check` | the loader's measurement, boot-root record or STARK proof did not verify | boot an image whose loader is enrolled, written from one release |
+| `The bootloader could not be checked` | the boot carried no boot-root record or no loader trailer | boot a sealed image |
+| `Install NONOS: this image has no installer` | the image was built without setup or the installer | restart and pick another entry; nothing was written |
+
+[Panic and boot stop](../kernel/panic-and-boot-stop.md) explains the kernel side.
