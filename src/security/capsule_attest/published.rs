@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * A static, read through black_box, so the root stays one contiguous run in
- * .rodata where the build receipt finds it. A constant copy was folded into
- * four instruction immediates and never appeared as 32 bytes. A root file of
- * any other length now fails the build instead of refusing every capsule.
- */
-static ROOT: [u8; 32] =
-    *include_bytes!("../../../nonos-data/trust/policy/zk_capsule_policy_root.bin");
+//! The capsule tree as the spawn gate uses it, for `MkAttestPolicy`.
 
-pub(super) fn root() -> Option<[u8; 32]> {
-    Some(*core::hint::black_box(&ROOT))
+use super::layout::{POLICY_EPOCH, POLICY_TREE_DEPTH};
+
+pub(crate) fn published() -> Option<crate::security::attest_policy::Tree> {
+    Some(crate::security::attest_policy::Tree {
+        root: super::policy_root::root()?,
+        epoch: POLICY_EPOCH,
+        depth: POLICY_TREE_DEPTH as u8,
+    })
 }

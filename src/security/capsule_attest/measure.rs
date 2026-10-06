@@ -14,15 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * A static, read through black_box, so the root stays one contiguous run in
- * .rodata where the build receipt finds it. A constant copy was folded into
- * four instruction immediates and never appeared as 32 bytes. A root file of
- * any other length now fails the build instead of refusing every capsule.
- */
-static ROOT: [u8; 32] =
-    *include_bytes!("../../../nonos-data/trust/policy/zk_capsule_policy_root.bin");
+//! The measurement a capsule is attested under: the BLAKE3 digest of its ELF.
+//!
+//! Taken once per spawn, before any root is tried, so a capsule that falls
+//! through to the enrolled roots is not hashed again for each of them. An
+//! image is megabytes and a spawn from a system call runs with interrupts
+//! masked, so the digest is taken a serve unit at a time, answering TLB
+//! shootdowns in between. The pieces are fed to one hasher in order, so the
+//! digest is exactly `blake3::hash(elf)`.
 
-pub(super) fn root() -> Option<[u8; 32]> {
-    Some(*core::hint::black_box(&ROOT))
+pub(crate) fn measure(elf: &[u8]) -> [u8; 32] {
+    let mut hasher = blake3::Hasher::new();
+    crate::smp::in_serve_units(elf, |piece| {
+        hasher.update(piece);
+    });
+    *hasher.finalize().as_bytes()
 }

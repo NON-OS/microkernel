@@ -22,17 +22,17 @@
 //! the same strength, and the result records which of them vouched, because a
 //! measurement without its authority does not say who verified it.
 
-mod against_pedersen;
 mod against_root;
 mod error;
 pub(crate) mod layout;
+pub(crate) mod measure;
+mod path;
 mod policy_root;
 mod proved;
-#[cfg(feature = "nonos-stark-attest")]
-mod stark;
-mod trailer;
+mod published;
 mod verify;
 
 pub use error::AttestError;
 pub use proved::Proved;
+pub(crate) use published::published;
 pub use verify::verify_capsule_attestation;
