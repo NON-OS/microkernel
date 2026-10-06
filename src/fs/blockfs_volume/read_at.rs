@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,12 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::error::VolumeError;
-use super::state::VOLUME;
+use super::state::{READS, VOLUME};
 use crate::fs::blockfs;
 
-pub fn remove(path: &[u8]) -> Result<(), VolumeError> {
-    let guard = VOLUME.write();
+/// Read `out.len()` bytes of the file at `path` from `offset`, or fewer at its
+/// end. Any file, whatever its size, is read this way in pieces; the pieces
+/// of one file read in turn share their pointer path and read-ahead run.
+pub fn read_at(path: &[u8], offset: u64, out: &mut [u8]) -> Result<usize, VolumeError> {
+    let guard = VOLUME.read();
     let state = guard.as_ref().ok_or(VolumeError::NotMounted)?;
-    super::import_guard::guard(&state.key, &state.mount, path, "unlink")?;
-    blockfs::unlink_path(&state.key, &state.mount, path).map_err(VolumeError::BlockFs)
+    let lba = blockfs::resolve(&state.key, &state.mount, path).map_err(VolumeError::BlockFs)?;
+    let node = blockfs::read_node(&state.key, lba).map_err(VolumeError::BlockFs)?;
+    READS.read_at(&state.key, &state.mount, lba, &node, offset, out).map_err(VolumeError::BlockFs)
 }

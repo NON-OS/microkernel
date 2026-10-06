@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::error::VolumeError;
-use super::state::VOLUME;
-use crate::fs::blockfs;
+//! A digest written as hex into a fixed buffer, for log lines.
 
-pub fn write(path: &[u8], data: &[u8]) -> Result<(), VolumeError> {
-    let mut guard = VOLUME.write();
-    let state = guard.as_mut().ok_or(VolumeError::NotMounted)?;
-    super::import_guard::guard(&state.key, &state.mount, path, "write")?;
-    blockfs::write_path(&state.key, &mut state.mount, path, data).map_err(VolumeError::BlockFs)
+pub(super) fn hex32(d: &[u8; 32]) -> [u8; 64] {
+    const DIGITS: &[u8; 16] = b"0123456789abcdef";
+    let mut out = [0u8; 64];
+    for (i, b) in d.iter().enumerate() {
+        out[2 * i] = DIGITS[(b >> 4) as usize];
+        out[2 * i + 1] = DIGITS[(b & 15) as usize];
+    }
+    out
+}
+
+/// The hex as text; it is always ASCII, so this never fails in practice.
+pub(super) fn as_str(h: &[u8; 64]) -> &str {
+    core::str::from_utf8(h).unwrap_or("?")
 }

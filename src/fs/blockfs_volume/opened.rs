@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::error::VolumeError;
-use super::state::VOLUME;
-use crate::fs::blockfs;
+//! Keeping an opened volume for the boot.
 
-pub fn write(path: &[u8], data: &[u8]) -> Result<(), VolumeError> {
-    let mut guard = VOLUME.write();
-    let state = guard.as_mut().ok_or(VolumeError::NotMounted)?;
-    super::import_guard::guard(&state.key, &state.mount, path, "write")?;
-    blockfs::write_path(&state.key, &mut state.mount, path, data).map_err(VolumeError::BlockFs)
+use super::plan_types::Plan;
+use super::say::say;
+use super::state::{VolumeState, VOLUME};
+use crate::fs::blockfs::BlockFsMount;
+use alloc::format;
+
+/// Keep `mount` under `key` as the open volume, and say where it lies.
+pub(super) fn install(plan: &Plan, key: [u8; 32], mount: BlockFsMount) {
+    let (n, at) = (plan.volume_sectors, plan.volume_base);
+    say(&format!("[DATA] volume open: {n} sectors at LBA {at}"));
+    *VOLUME.write() = Some(VolumeState { key, mount });
 }

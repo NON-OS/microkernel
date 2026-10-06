@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::error::VolumeError;
-use super::state::VOLUME;
-use crate::fs::blockfs;
+//! The disk plan, read from its sector and checked against the disk.
 
-pub fn write(path: &[u8], data: &[u8]) -> Result<(), VolumeError> {
-    let mut guard = VOLUME.write();
-    let state = guard.as_mut().ok_or(VolumeError::NotMounted)?;
-    super::import_guard::guard(&state.key, &state.mount, path, "write")?;
-    blockfs::write_path(&state.key, &mut state.mount, path, data).map_err(VolumeError::BlockFs)
+use super::error::VolumeError;
+use super::plan::parse_plan;
+use super::plan_types::{Plan, PLAN_LBA};
+
+pub(super) fn read_plan() -> Result<Plan, VolumeError> {
+    let capacity = crate::hardware::block_device::capacity().map_err(VolumeError::Device)?;
+    let mut sector = [0u8; 512];
+    crate::hardware::block_device::read(PLAN_LBA, &mut sector).map_err(VolumeError::Device)?;
+    parse_plan(&sector, capacity).map_err(|e| {
+        crate::log::warn!("[DATA] disk plan at LBA {} refused: {:?}", PLAN_LBA, e);
+        VolumeError::Plan(e)
+    })
 }

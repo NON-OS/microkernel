@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::error::VolumeError;
-use super::state::VOLUME;
-use crate::fs::blockfs;
+//! What an import brought onto the volume.
 
-pub fn write(path: &[u8], data: &[u8]) -> Result<(), VolumeError> {
-    let mut guard = VOLUME.write();
-    let state = guard.as_mut().ok_or(VolumeError::NotMounted)?;
-    super::import_guard::guard(&state.key, &state.mount, path, "write")?;
-    blockfs::write_path(&state.key, &mut state.mount, path, data).map_err(VolumeError::BlockFs)
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Imported {
+    pub bytes: u64,
+    pub sha256: [u8; 32],
+    /// False when an earlier boot had already imported and verified it.
+    pub fresh: bool,
 }

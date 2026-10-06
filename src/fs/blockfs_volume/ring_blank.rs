@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::error::VolumeError;
-use super::state::VOLUME;
-use crate::fs::blockfs;
+//! Whether a volume's header ring has never been written.
 
-pub fn write(path: &[u8], data: &[u8]) -> Result<(), VolumeError> {
-    let mut guard = VOLUME.write();
-    let state = guard.as_mut().ok_or(VolumeError::NotMounted)?;
-    super::import_guard::guard(&state.key, &state.mount, path, "write")?;
-    blockfs::write_path(&state.key, &mut state.mount, path, data).map_err(VolumeError::BlockFs)
+use super::error::VolumeError;
+use crate::fs::blockfs::HEADER_RING_SECTORS;
+
+/// True when every sector of the header ring at device LBA `base` is zero.
+pub(super) fn ring_blank(base: u64) -> Result<bool, VolumeError> {
+    let mut sector = [0u8; 512];
+    for lba in base..base + HEADER_RING_SECTORS {
+        crate::hardware::block_device::read(lba, &mut sector).map_err(VolumeError::Device)?;
+        if sector.iter().any(|b| *b != 0) {
+            return Ok(false);
+        }
+    }
+    Ok(true)
 }
