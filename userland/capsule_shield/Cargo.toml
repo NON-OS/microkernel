@@ -1,0 +1,32 @@
+[package]
+name = "nonos_shield"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "nonos.shield: the NOX Shield wallet service, 1:1 with the phone apps"
+
+[[bin]]
+name = "shield"
+path = "src/main.rs"
+
+[dependencies]
+# The phones' wallet core, with nox_prover unchanged inside it.
+nox_shield_core = { package = "nonos_shield_core", path = "../shield_core" }
+# The same nox_prover shield_core links, to check the periodic cache it ships.
+nox_prover = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["not_before", "parallel"] }
+# The pool the prover's parallel phases run on, sized and stacked here.
+rayon = "=1.12.0"
+shield_wire = { path = "../shield_wire" }
+nonos_vault = { path = "../nonos_vault" }
+nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }
+# The randomness every crate below asks for comes from the kernel's CSPRNG.
+getrandom02 = { package = "getrandom", version = "=0.2.17", features = ["custom"] }
+
+[profile.release]
+panic = "abort"
+opt-level = 3
+lto = false
+debug = false
+strip = true
