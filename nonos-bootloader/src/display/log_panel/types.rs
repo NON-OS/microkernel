@@ -14,22 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::display::boot::layout::{log_line_width, log_origin, panel_rows};
+use crate::display::boot::layout::splash;
+use crate::display::ink::{metrics, Style};
 
 pub const MAX_LOG_LINES: usize = 256;
 pub const LOG_LINE_LEN: usize = 120;
-pub const LINE_HEIGHT: u32 = 16;
+
+/// The splash shows the log's latest line under its headline; the whole log
+/// goes to the serial console and the proofs panel shows the evidence.
+pub fn line_height() -> u32 {
+    metrics(Style::Mono).line
+}
 
 pub fn get_log_area() -> (u32, u32) {
-    log_origin()
+    let s = splash();
+    (s.col_x, s.detail_y)
 }
 
 pub fn max_visible_lines() -> usize {
-    (panel_rows() as usize).min(MAX_LOG_LINES)
+    1
 }
 
 pub fn line_clear_width() -> u32 {
-    log_line_width()
+    splash().col_w
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

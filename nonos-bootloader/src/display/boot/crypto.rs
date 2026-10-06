@@ -47,6 +47,4 @@ impl BootCryptoState {
     }
 }
 
-pub fn show_crypto_verification(_state: &BootCryptoState) {}
-
 pub fn animate_hash_reveal() {}

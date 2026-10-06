@@ -15,40 +15,35 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::clear::clear_line;
-use crate::display::font::draw_string;
-use crate::display::fx::blend_rect;
-use crate::display::gop::fill_rect;
+use crate::display::ink::palette::{ACCENT, BAD, OK, TEXT_2, TEXT_3, WARN};
+use crate::display::ink::{dot, draw, unit, width, Style};
 use crate::display::log_panel::buffer::get_entry;
-use crate::display::log_panel::types::{get_log_area, line_clear_width, LogLevel, LINE_HEIGHT};
+use crate::display::log_panel::types::{get_log_area, line_clear_width, line_height, LogLevel};
 
-const CYAN: u32 = 0xFF00F5D4;
-const TEXT_DONE: u32 = 0xFFBED6D4;
-const DIM: u32 = 0xFF4F666A;
-const AMBER: u32 = 0xFFE8A33D;
-const RED: u32 = 0xFFE0554A;
-
+/// One line of the verification card: a state dot and the text, cut at a
+/// character boundary so it never runs past the card.
 pub fn draw_entry_at(line_num: usize, entry_idx: usize) {
     let (log_x, log_y) = get_log_area();
-    let y = log_y + (line_num as u32) * LINE_HEIGHT;
+    let y = log_y + (line_num as u32) * line_height();
     clear_line(line_num);
-    if let Some(entry) = get_entry(entry_idx) {
-        if entry.len == 0 {
-            return;
-        }
-        let (mark, text, led) = match entry.level {
-            LogLevel::Ok => (CYAN, TEXT_DONE, true),
-            LogLevel::Info => (DIM, DIM, false),
-            LogLevel::Warn => (AMBER, AMBER, true),
-            LogLevel::Error => (RED, RED, true),
-            LogLevel::Security => (CYAN, CYAN, true),
-        };
-        if led {
-            blend_rect(log_x.saturating_sub(1), y + 3, 11, 11, mark, 22);
-            fill_rect(log_x + 1, y + 5, 7, 7, mark);
-        } else {
-            fill_rect(log_x + 3, y + 7, 3, 3, mark);
-        }
-        let max_chars = (line_clear_width().saturating_sub(40) / 8) as usize;
-        draw_string(log_x + 24, y, &entry.text[..entry.len.min(max_chars)], text);
+    let Some(entry) = get_entry(entry_idx) else { return };
+    if entry.len == 0 {
+        return;
     }
+    let (mark, text) = match entry.level {
+        LogLevel::Ok => (OK, TEXT_2),
+        LogLevel::Info => (TEXT_3, TEXT_3),
+        LogLevel::Warn => (WARN, WARN),
+        LogLevel::Error => (BAD, BAD),
+        LogLevel::Security => (ACCENT, ACCENT),
+    };
+    let u = unit();
+    let d = dot(log_x, y, Style::Mono, mark);
+    let tx = log_x + d + 2 * u;
+    let room = line_clear_width().saturating_sub(d + 2 * u);
+    let mut n = entry.len.min(entry.text.len());
+    while n > 0 && width(&entry.text[..n], Style::Mono) > room {
+        n -= 1;
+    }
+    draw(tx, y, &entry.text[..n], Style::Mono, text);
 }

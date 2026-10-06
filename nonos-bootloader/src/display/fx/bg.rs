@@ -14,37 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::color::mix;
+use crate::display::ink::palette::{GROUND, GROUND_FOOT};
 
-const BG: u32 = 0xFF04070B;
-const GLOW: u32 = 0xFF00F5D4;
-const BLACK: u32 = 0xFF000000;
+/*
+ * The ground: Ink black, lifting to GROUND_FOOT over the last eighth of the
+ * screen, with a 4x4 ordered dither so the lift has no bands. Pure and
+ * integer only, so it is written once per pixel with no framebuffer reads.
+ */
+const BAYER: [[i32; 4]; 4] = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 5]];
 
-// Atmosphere color at a pixel: base, a soft cyan lift behind the upper
-// wordmark, an edge vignette, and scanline texture. Integer-only and pure,
-// so it can be written once with no framebuffer reads.
-pub(super) fn bg_at(x: u32, y: u32, w: u32, h: u32) -> u32 {
-    let mut c = BG;
-
-    let cx = (w / 2) as i64;
-    let nx = (x as i64 - cx) * 1000 / 540;
-    let ny = (y as i64 - 150) * 1000 / 360;
-    let d2 = nx * nx + ny * ny;
-    if d2 < 1_000_000 {
-        c = mix(c, GLOW, ((1_000_000 - d2) * 26 / 1_000_000) as u32);
+pub(super) fn bg_at(x: u32, y: u32, _w: u32, h: u32) -> u32 {
+    let start = h as i32 * 7 / 8;
+    let t = ((y as i32 - start).max(0) * 256 / (h as i32 - start).max(1)).min(256);
+    if t == 0 {
+        return GROUND;
     }
-
-    let mcx = (w / 2) as i64;
-    let mcy = (h / 2) as i64;
-    let maxd2 = (mcx * mcx + mcy * mcy).max(1);
-    let vd2 = (x as i64 - mcx).pow(2) + (y as i64 - mcy).pow(2);
-    let r = vd2 * 1000 / maxd2;
-    if r > 302 {
-        c = mix(c, BLACK, (((r - 302) * 120 / 698) as u32).min(120));
-    }
-
-    if y % 3 == 0 {
-        c = mix(c, BLACK, 16);
-    }
-    c
+    let d = BAYER[(y % 4) as usize][(x % 4) as usize];
+    let ch = |shift: u32| {
+        let (a, b) = (((GROUND >> shift) & 0xFF) as i32, ((GROUND_FOOT >> shift) & 0xFF) as i32);
+        let v16 = (a * 16 * (256 - t) + b * 16 * t) / 256 + d - 8;
+        ((v16.max(0) / 16).min(255) as u32) << shift
+    };
+    0xFF00_0000 | ch(16) | ch(8) | ch(0)
 }

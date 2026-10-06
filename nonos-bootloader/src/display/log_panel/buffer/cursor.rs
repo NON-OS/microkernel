@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::storage::get_count;
-use crate::display::log_panel::types::{get_log_area, LINE_HEIGHT, MAX_LOG_LINES};
+use crate::display::boot::layout::splash;
 
+/// Where text may go below the splash: under its step list. The kernel's
+/// early console starts here.
 pub fn get_cursor_y() -> u32 {
-    let (_, base_y) = get_log_area();
-    let count = get_count();
-    let visible_lines = count.min(MAX_LOG_LINES);
-    base_y + (visible_lines as u32) * LINE_HEIGHT
+    let s = splash();
+    s.panel_y + s.panel_h
 }

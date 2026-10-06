@@ -14,31 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::display::font::CHAR_WIDTH;
-use crate::display::fx::bloom_char;
-use crate::display::gop::{get_dimensions, is_initialized};
+mod advice;
+mod draw;
+mod hold;
+mod kernel;
+mod platform;
+mod policy;
 
-const WORD: [u8; 5] = [b'N', 0xD8, b'N', b'O', b'S'];
-const TRACK: u32 = 10;
-const TITLE: u32 = 0xFFEAFDFA;
-const GLOW: u32 = 0xFF00F5D4;
-
-fn advance() -> u32 {
-    CHAR_WIDTH * 3 + TRACK
-}
-
-pub fn wordmark_width() -> u32 {
-    WORD.len() as u32 * advance() - TRACK
-}
-
-pub fn draw_wordmark(_x: u32, y: u32) {
-    if !is_initialized() {
-        return;
-    }
-    let (w, _) = get_dimensions();
-    let mut x = w.saturating_sub(wordmark_width()) / 2;
-    for &ch in WORD.iter() {
-        bloom_char(x, y, ch, 3, TITLE, GLOW);
-        x += advance();
-    }
-}
+pub use advice::advice;
+pub use draw::draw_card;
+pub use hold::hold;

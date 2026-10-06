@@ -19,13 +19,16 @@ pub mod constants;
 pub mod font;
 pub mod fx;
 pub mod gop;
+pub mod ink;
 pub mod log_panel;
 pub mod security;
+pub mod text;
+pub mod version;
 
 pub use boot::{
-    animate_hash_reveal, draw_boot_progress, draw_status_line, draw_wordmark, init_boot_screen,
-    reset_animation, show_crypto_verification, show_error_screen, show_handoff_message,
-    tick_animation, update_stage, BootCryptoState, StageStatus,
+    animate_hash_reveal, draw_boot_progress, draw_status_line, init_boot_screen,
+    reset_animation, show_error_screen, show_handoff_message, show_proofs, tick_animation,
+    update_stage, BootCryptoState, Proofs, StageStatus,
 };
 pub use constants::*;
 pub use gop::{init_gop, report_gop_mode};
