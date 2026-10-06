@@ -124,3 +124,11 @@ The DMA mapping is in `errno_for` (`src/syscall/microkernel/dma.rs:100-111`), th
 ## Tests
 
 `userland/kernel_proofs` compiles the I/O address placement (`userland/kernel_proofs/src/iova_space/mod.rs`), the confinement posture (`userland/kernel_proofs/src/confine_posture/mod.rs`), the user windows (`userland/kernel_proofs/src/device_windows/mod.rs`), the MMIO window rule (`userland/kernel_proofs/src/mmio_window/mod.rs`), the DMA pool sizing (`userland/kernel_proofs/src/dma_pool_bitmap/mod.rs`) and the PCI vendor bits (`userland/kernel_proofs/src/pci_quirk_bits/mod.rs`) from the kernel sources. It passed, 388 tests, in the flake check run on this commit.
+
+## See also
+
+- [Broker ABI](../abi/broker.md): the request and result layouts.
+- [Driver model](../drivers/README.md) and [Broker API](../drivers/broker-api.md): the broker from the driver's side.
+- [IOMMU](iommu.md): when a device is confined to its capsule's domain.
+- [PCI and ACPI](pci-and-acpi.md): where the device table comes from.
+- [Capabilities](capabilities.md): `Driver`, `Mmio`, `Irq`, `Dma`, `Pio` and `DeviceEnum`.
