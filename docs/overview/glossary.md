@@ -183,3 +183,7 @@ The Nym anonymity network, route value `NYM`, and the default network for the br
 ## Package store
 
 <a id="store"></a>The region of a NONOS disk from sector 256 up to the disk plan at sector 245,760, headed by the magic `NONOSTR1`. The seal fills it with what `tools/nix/store.json` declares, the Linux userland, demo capsules, sample films and wallpapers among them, and the file store reads it and adds to it: installed apps, kept files and setup's answers. It is written unencrypted. Explained in [Storage drivers](../drivers/storage/README.md#the-disk-layout). Code: `userland/nonos_disk_map/src/places.rs`.
+
+## PCR
+
+A TPM platform configuration register. The firmware extends PCR 4 with each UEFI application it starts, the loader extends PCR 9 once for the admitted kernel, NONOS binds its machine keys to PCRs 0, 4, 7 and 9, and a quote covers PCRs 0, 1, 2 and 7. Explained in [Measured boot and the TPM](../security/measured-boot-and-tpm.md#pcrs). Code: `src/security/tpm/machine_key/pcrs.rs`, `src/security/tpm/boot_reads/pcr4.rs`.
