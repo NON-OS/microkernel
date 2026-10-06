@@ -13,3 +13,8 @@ license = "AGPL-3.0-or-later"
 
 [lib]
 path = "src/lib.rs"
+
+# The kernel's quote binding hashes with BLAKE3; the tests compile that file
+# unchanged, so they need the same crate.
+[dev-dependencies]
+blake3 = { version = "1.5", default-features = false }
