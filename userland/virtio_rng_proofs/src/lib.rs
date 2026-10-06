@@ -35,6 +35,9 @@ pub mod constants;
 
 pub mod regs;
 
+#[path = "../../capsule_driver_virtio_rng/src/queue/mod.rs"]
+pub mod queue;
+
 #[path = "../../capsule_driver_virtio_rng/src/init.rs"]
 pub mod init;
 
