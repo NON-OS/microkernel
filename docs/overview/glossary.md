@@ -31,3 +31,7 @@ A committed list or count of the known sites of something the tree should not ha
 ## Boot handoff
 
 <a id="handoff"></a>What the loader gives the kernel at the jump. On x86_64 it is `BootHandoffV1`, magic 0x4E4F4E4F, version 2, which carries the memory map, the framebuffer, the ACPI pointer, the flags, the measurements, the attestation policy and results, and a random seed; flag bit 11 asks for the installer and bits 12 to 15 carry the boot profile. On aarch64 the kernel builds the same `KernelHandoff` from the device tree instead. Explained in [Boot handoff](../kernel/boot-handoff.md). Code: `src/boot/handoff/types/handoff.rs`, `src/boot/handoff/kernel_handoff/arch.rs`.
+
+## Boot profile
+
+<a id="boot-mode"></a>The posture chosen in the boot menu at each boot, also called the boot mode: Standard, Hardened, Safe Mode, Air-Gapped or Recovery. The loader passes it in the handoff flags and the kernel reads it as `BootProfile`, Standard when there is no handoff; only Standard and Hardened let a network driver or service start, the others take Network from every capsule, Safe Mode also starts no audio and no optional app, and Recovery skips setup. It narrows what the image's build profile allows and never widens it. Explained in [Boot modes](../install/boot-modes.md). Code: `src/boot/handoff/api/profile.rs`, `src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs`.
