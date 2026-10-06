@@ -14,18 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Putting a process to sleep until a deadline or a wake.
+use super::on_cpu::held_elsewhere;
 
-pub fn sleep_until(pid: u32, wake_time_ms: u64) {
-    super::sleep_enter::enter_sleep(pid, wake_time_ms, None);
-}
-
-/// Sleep, unless a wake arrived after `token` was read. The check and the
-/// transition happen under the process's state lock, the lock every wake
-/// takes after bumping the generation, so a wake either lands before
-/// (bumping the generation, and this returns without sleeping) or after
-/// (finding a genuinely Sleeping process to transition). No gap, on any
-/// number of CPUs.
-pub fn sleep_until_unless_woken(pid: u32, wake_time_ms: u64, token: u64) {
-    super::sleep_enter::enter_sleep(pid, wake_time_ms, Some(token));
+/// Take `pid` from `Ready` to `Running` under the state lock, reporting
+/// whether this caller made the transition. A pid another CPU is still
+/// running on, or still leaving, is `Ready` only on paper: its stack is in
+/// use, so it is refused until that CPU is off it (see `on_cpu`).
+pub(super) fn claim(pid: u32) -> bool {
+    use crate::process::nonos_core::{ProcessState, PROCESS_TABLE};
+    let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) else {
+        return false;
+    };
+    let mut state = pcb.state.lock();
+    if *state == ProcessState::Ready && !held_elsewhere(pid) {
+        *state = ProcessState::Running;
+        true
+    } else {
+        false
+    }
 }

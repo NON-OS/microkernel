@@ -16,7 +16,7 @@
 
 use super::super::preemption::{set_reschedule, SCHEDULER_STATS};
 use super::run_queue::runnable_process_count;
-use super::sleep::check_sleeping_processes;
+use super::sweep::check_sleeping_processes;
 use core::sync::atomic::Ordering;
 
 pub fn wakeup() {

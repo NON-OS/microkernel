@@ -14,20 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// PID run queue, sleep table, and wakeup hook for the scheduler. The
-// scheduling-event atomics this code increments live next door in
-// `super::preemption`.
+/*
+ * PID run queue, sleep table, and wakeup hook for the scheduler. The
+ * scheduling-event atomics this code increments live next door in
+ * `super::preemption`.
+ */
 
 mod run_queue;
 mod sleep;
+mod sleep_enter;
+mod sleep_table;
+mod sweep;
+pub mod try_wake;
+mod wake;
+mod wake_gen;
 mod wakeup;
 
 pub use run_queue::{
     add_to_run_queue, add_to_run_queue_front, is_in_run_queue, remove_from_run_queue,
 };
 pub use run_queue::{get_runnable_pids, runnable_process_count};
-pub use sleep::{
-    check_sleeping_processes, get_remaining_sleep, is_sleeping, sleep_until,
-    sleep_until_unless_woken, wake_process, wake_token,
-};
+pub use sleep::{sleep_until, sleep_until_unless_woken};
+pub use sleep_table::{get_remaining_sleep, is_sleeping};
+pub use sweep::check_sleeping_processes;
+pub use wake::wake_process;
+pub use wake_gen::wake_token;
 pub use wakeup::wakeup;
