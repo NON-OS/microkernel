@@ -6,10 +6,12 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-//! The WPA2 four-way handshake message layer: parsing EAPOL-Key frames and
-//! verifying their MIC under the KCK derived from the pairwise transient key.
-//! Reached through OP_EAPOL_VERIFY. The MIC rests on the RFC-verified HMAC-SHA1.
+//! The four-way and group-key handshake message layer: parsing EAPOL-Key
+//! frames, verifying their MIC under the KCK derived from the pairwise
+//! transient key, and reading the key data they carry. The MIC rests on the
+//! RFC-verified HMAC-SHA1 (WPA2-PSK) and AES-CMAC (SAE, PSK-SHA256).
 
 pub mod build;
+pub mod kde;
 pub mod mic;
 pub mod parse;

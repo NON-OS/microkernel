@@ -25,11 +25,25 @@
 //! wrong path and double-encrypts. It owns the transmit sequence number and, for
 //! software CCMP, the packet-number counter, so those are never duplicated per
 //! driver either.
+//!
+//! Receive goes through [`LinkStation::receive`] (`receive`), which checks each
+//! frame against the association (BSS, protection, replay) before it reaches
+//! the stack, and answers the access point's key handshakes with the
+//! supplicant the join finished with (`eapol`). `rx_frame` remains the bare
+//! structural decap, without those checks.
+
+mod eapol;
+mod receive;
+mod replay;
+
+pub use receive::{Rx, RxDrop};
 
 use alloc::vec::Vec;
 
 use crate::dot11::data::{build_data, parse_data, protect, unprotect};
 use crate::dot11::header::MacAddr;
+use crate::wpa::supplicant::Supplicant;
+use replay::Replay;
 
 /// How the link protects data frames.
 pub enum Ccmp {
@@ -54,13 +68,29 @@ pub struct LinkStation {
     pn: u64,
     seq: u16,
     associated: bool,
+    replay: Replay,
+    /// Group keys by index, for frames the chip did not decrypt.
+    group_keys: [Option<[u8; 16]>; 4],
+    /// The supplicant the join finished with, which answers the AP's group
+    /// key handshakes and repeated message 3s.
+    supplicant: Option<Supplicant>,
 }
 
 impl LinkStation {
     /// A fresh, unassociated station with the given MAC. It refuses to transmit
     /// until `associate` records a BSSID and CCMP mode.
     pub fn new(our_mac: MacAddr) -> Self {
-        Self { our_mac, bssid: [0u8; 6], ccmp: Ccmp::Hardware, pn: 0, seq: 0, associated: false }
+        Self {
+            our_mac,
+            bssid: [0u8; 6],
+            ccmp: Ccmp::Hardware,
+            pn: 0,
+            seq: 0,
+            associated: false,
+            replay: Replay::new(),
+            group_keys: [None; 4],
+            supplicant: None,
+        }
     }
 
     /// Record association to `bssid` with the given CCMP mode, resetting the
@@ -71,11 +101,63 @@ impl LinkStation {
         self.pn = 0;
         self.seq = 0;
         self.associated = true;
+        self.replay = Replay::new();
+        self.group_keys = [None; 4];
+        self.supplicant = None;
     }
 
-    /// Drop the association; the station stops framing until it associates again.
+    /// Hand over the supplicant the join finished with, taking its group key.
+    pub fn set_supplicant(&mut self, sup: Supplicant) {
+        if sup.gtk().len() == 16 {
+            let mut key = [0u8; 16];
+            key.copy_from_slice(sup.gtk());
+            self.set_group_key(sup.gtk_id(), key, sup.gtk_rsc());
+        }
+        self.supplicant = Some(sup);
+    }
+
+    /// Take a group key for software decryption, with its Key RSC as the
+    /// replay floor.
+    pub fn set_group_key(&mut self, key_id: u8, key: [u8; 16], rsc: u64) {
+        if let Some(slot) = self.group_keys.get_mut(key_id as usize) {
+            *slot = Some(key);
+            self.replay.set_group(key_id, rsc);
+        }
+    }
+
+    /// Drop the association; the station stops framing until it associates
+    /// again, and forgets the keys and the supplicant.
     pub fn deassociate(&mut self) {
         self.associated = false;
+        self.group_keys = [None; 4];
+        self.supplicant = None;
+    }
+
+    /// The BSSID of the current association.
+    pub fn bssid(&self) -> MacAddr {
+        self.bssid
+    }
+
+    /// Protect a robust management frame to the AP (a deauthentication, with
+    /// management frame protection on) under the pairwise key, advancing the
+    /// packet number data frames share. `None` without a software key.
+    pub fn protect_mgmt(&mut self, frame: &[u8]) -> Option<Vec<u8>> {
+        let tk = self.pairwise_key()?;
+        let pn = self.pn.wrapping_add(1);
+        let out = crate::dot11::ccmp::encrypt(frame, pn, &tk)?;
+        self.pn = pn;
+        Some(out)
+    }
+
+    pub(super) fn pairwise_key(&self) -> Option<[u8; 16]> {
+        match &self.ccmp {
+            Ccmp::Hardware => None,
+            Ccmp::Software { tk } | Ccmp::SoftwareTxHwRx { tk } => Some(*tk),
+        }
+    }
+
+    pub(super) fn group_key(&self, key_id: u8) -> Option<[u8; 16]> {
+        self.group_keys.get(key_id as usize).copied().flatten()
     }
 
     /// Whether the station is associated and carrying data.

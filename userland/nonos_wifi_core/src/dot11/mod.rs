@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The 802.11 frame layer. This is the first brick of the association MLME that
-//! sits on top of the already-alive firmware: it builds the management frames a
-//! scan, an authentication and an association exchange are made of. It holds no
-//! device state and touches no register, so it is proven in `iwlwifi_proofs`.
-//!
-//! Still ahead, on top of this layer: the host-command queue to the firmware,
-//! the TX/RX rings, the scan/auth/assoc state machine, and the WPA2 EAPOL
-//! four-way handshake with CCMP key install. None of that is wired yet, so the
-//! builders here are not called from the driver server path until it is.
+//! The 802.11 frame layer the association MLME and the data path are made
+//! of: the MAC header, the management frames a scan, an authentication
+//! (open or SAE) and an association exchange are built from and parsed out
+//! of, the beacon elements a join needs, and the data frame with its CCMP
+//! protection. It holds no device state and touches no register, so it is
+//! proven on the host in `nonos_wifi_core_proofs` and `rtl8821ce_proofs`.
 
+pub mod auth;
+pub mod ccmp;
 pub mod data;
 pub mod header;
+pub mod ies;
 pub mod mgmt;
 pub mod parse;
