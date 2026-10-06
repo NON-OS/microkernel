@@ -97,3 +97,11 @@ linux sh -c 'ls /usr/bin | wc -l'
 Not tested in this release.
 
 See [Files](files.md) for the NONOS side.
+
+## Network
+
+A program started with `linux` has no internet. The kernel starts the personality for the Terminal in the role `app.linux.term`, which asks for no optional [capability](../overview/glossary.md#capability) (`TERMINAL` in `src/userspace/capsule_linux/roles.rs:60-67`), so the network services refuse it. `wget`, or an HTTP request from `python3`, to an internet host fails.
+
+Inside the program's own family, sockets work: it may bind and listen on 127.0.0.0/8 and use Unix sockets. A bind or listen anywhere else is EACCES (`not_loopback` in `userland/capsule_linux/src/linux/net/policy.rs:33-41`), a datagram leaving the family is ENETUNREACH, and a raw socket is EPERM.
+
+Once a program has opened a Qwen model, its family gets no internet socket in any role (`refuse_inet` in `userland/capsule_linux/src/linux/net/offline.rs:37-39`).
