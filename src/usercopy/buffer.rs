@@ -14,23 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod buffer;
-mod bytes;
-mod copy;
-mod direct;
-mod error;
-mod policy;
-mod string;
-mod string_scan;
-mod validate;
-mod value;
-mod value_rules;
-mod walk;
+//! The kernel buffer a copy of a caller-chosen length lands in, with no kernel
+//! dependencies so a host proof can run it.
 
-pub(crate) use buffer::take_buffer;
-pub use bytes::*;
-pub use copy::*;
-pub use error::*;
-pub use string::*;
-pub use validate::*;
-pub use value::*;
+use alloc::vec::Vec;
+
+use super::error::UsercopyError;
+
+/// An empty vector with room for `len` bytes, or `SizeTooLarge` when the heap
+/// cannot give that much. The kernel's allocation failure handler halts the
+/// machine, so a length a caller chose, megabytes of it, must never reach an
+/// allocation that cannot fail.
+pub(crate) fn take_buffer(len: usize) -> Result<Vec<u8>, UsercopyError> {
+    let mut buf = Vec::new();
+    buf.try_reserve_exact(len).map_err(|_| UsercopyError::SizeTooLarge)?;
+    Ok(buf)
+}
