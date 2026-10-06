@@ -129,3 +129,9 @@ lake build
 ```
 
 Not tested in this release.
+
+## Extraction and Verus
+
+Charon and Aeneas lower Rust MIR into Lean. At this commit 979 functions are extracted; 492 are `substantive`, with a theorem about their behaviour, and 487 are `trivial`, with only the theorem that a generated wrapper is the method it forwards to (`verification/evidence/EVIDENCE.json:28-32`). `tools/ratchets/proven_functions.py` holds the proven count to a floor that may only rise.
+
+`verification/verus` proves theorems about capability bit operations, page-table permission encoding and IPC length guards as restated in its own spec functions. It mounts no kernel file, so a kernel change does not reach it; `verification/README.md` says so. It has 5 `source_files` (`verification/evidence/EVIDENCE.json:2187`).
