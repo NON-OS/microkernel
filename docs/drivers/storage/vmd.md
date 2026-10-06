@@ -34,3 +34,7 @@ The kernel does a scan of segment 0 first, then goes on to list the functions be
 A drive behind a VMD never interrupts: its MSI lands on the VMD's own vectors, which nothing services, so it is listed with no interrupt and the NVMe driver polls, as it does on every machine (`src/drivers/pci/vmd/probe.rs:55-57`, `interrupt_line`). Its DMA reaches the IOMMU under the VMD's requester id, and the broker uses that id when it confines the drive to its capsule's domain (`src/drivers/pci/vmd/registry.rs:53-60`, `dma_requester`; `src/hardware/broker/confine/table.rs:35-43`, `pci_address`).
 
 The VMD function itself gets no driver. The kernel's inventory files a VMD of class 01h as `StorageVmd`, which nothing starts (`src/hardware/inventory/classify_storage.rs:26-36`, `StorageVmd`), and the SATA capsule refuses it by id (`userland/capsule_driver_ahci/src/discover/rule.rs:33-41`, `INTEL_VMD_DEVICE_IDS`).
+
+## Which VMDs
+
+Thirteen Intel device ids, taken from the table of Linux's vmd driver: 8086:201d, 28c0, 467f, 4c3d, 7d0b, 9a0b, a77f, ad0b, b06f, b60b, b07f, d70b and d73b (`src/drivers/pci/vmd/domain/ids.rs:20-29`, `VMD_DEVICE_IDS`). 8086:28c1 is left out: the comment there says its bus range comes from BIOS data in MEMBAR2, which NONOS does not read, so a drive behind it stays hidden. For twelve of the ids the child buses may start above bus 0, as VMCAP and VMCONFIG say; 201d always starts at bus 0 (`src/drivers/pci/vmd/domain/ids.rs:31-36`, `BUS_RESTRICTED`).
