@@ -49,7 +49,7 @@ mod observe;
 mod present;
 
 pub use bar::FakeBar;
-pub use live::{run, LiveDevice};
+pub use live::{run, turns, LiveDevice};
 
 #[cfg(test)]
 mod tests;
