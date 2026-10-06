@@ -184,3 +184,13 @@ Every call returns a negative errno on failure, from `ERRNO_PERM` (-1) to `ERRNO
 - `DEVICE_FLAG_CLAIMED` is never set, so a driver cannot tell from the list that a device is taken; the claim answers -16 instead.
 - `abi/syscalls.toml` describes `MkPioGrant` with `port_base` and `port_count` arguments, while `sys_pio_grant` takes a BAR index (`abi/syscalls.toml:393-396`, `src/syscall/microkernel/pio/grant.rs:40-46`). The code is what runs.
 - Without a remapping unit in service a claimed device can reach all of memory. The broker says so in the log on each claim.
+
+## See also
+
+- [README.md](README.md)
+- [writing-a-driver.md](writing-a-driver.md)
+- [../abi/broker.md](../abi/broker.md)
+- [../abi/errors.md](../abi/errors.md)
+- [../kernel/hardware-broker.md](../kernel/hardware-broker.md)
+- [../kernel/iommu.md](../kernel/iommu.md)
+- [../kernel/capabilities.md](../kernel/capabilities.md)
