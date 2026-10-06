@@ -15,3 +15,21 @@ NONOS is a [capability](../overview/glossary.md#capability) microkernel written 
 - It hands devices to driver capsules through the [hardware broker](../overview/glossary.md#hardware-broker): claims, register windows, DMA buffers, port I/O and interrupts, each revocable.
 - It reads the ACPI tables, scans PCI, and brings up the IOMMU where there is one it drives.
 - It keeps time, writes the kernel log, and stops the machine cleanly on a fatal error.
+
+## What ring 0 does not do
+
+- Device drivers run as ring 3 capsules: disks, network cards, Wi-Fi, USB, input, audio and the GPU. The kernel side of each, under `src/hardware`, is its spawn site and an IPC client. The drivers that stay in ring 0 are platform pieces: the virtio-rng entropy probe, `virtio_rng`, beside the PCI code in `src/drivers` (`src/drivers/mod.rs:17-27`), the TPM transport under `src/security/tpm`, and the serial console under `src/sys/serial`.
+- Services run as capsules too: the network stack, the file system service, crypto, the keyring. `src/services` keeps only capability bits in `caps`, liveness state in `lifecycle` and the [endpoint](../overview/glossary.md#endpoint) registry (`src/services/mod.rs:17-22`).
+- The kernel does not speak the Linux system call ABI. A Linux program's calls reach a supervising capsule, which answers them; unknown numbers from any other process get `ENOSYS` from `syscall_handler` (`src/arch/x86_64/syscall/manager/entry.rs:38-53`).
+- Only x86_64 is a release target. A build for any other architecture, aarch64 and riscv64 included, stops at `compile_error` unless it turns on the `nonos-arch-preview` feature (`src/lib.rs:28-35`).
+
+```mermaid
+flowchart TD
+    A[app capsule] -->|MkIpcSend| K[kernel]
+    K -->|message| S[service capsule]
+    D[driver capsule] -->|MkDeviceClaim, MkDmaMap| K
+    K -->|grants| D
+    S -->|MkIpcCall| D
+```
+
+An app capsule reaches a service capsule, and a service reaches a driver capsule, only through the kernel's IPC, and a device is held by the one driver capsule that claimed it. The pages below describe each part.
