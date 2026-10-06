@@ -43,7 +43,7 @@ pub(super) fn build_pcb(
         pgid: AtomicU32::new(pid),
         sid: AtomicU32::new(pid),
         name: spin::Mutex::new(String::from(name)),
-        state: spin::Mutex::new(st),
+        state: crate::sys::sync::IrqMutex::new(st),
         priority: spin::Mutex::new(pr),
         memory: spin::Mutex::new(MemoryState {
             code_start: VirtAddr::new(0),
