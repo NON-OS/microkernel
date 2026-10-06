@@ -31,3 +31,16 @@ flowchart LR
 - NONOS 0.9.2 has no in-place update. A newer release is installed over the old one, and that erases it.
 - There is no login password. Setup asks for an account name, not a secret.
 - The boot menu, setup and the installer are driven from the keyboard.
+
+## Try it in a virtual machine first
+
+With an image sealed, the build boots it under QEMU beside a blank 8 GiB NVMe disk, so you can run the installer without touching real hardware:
+
+```
+make boot-install
+make boot-installed
+```
+
+Not tested in this release.
+
+`make boot-install` boots the sealed image as every `make boot` does: its ESP as a FAT drive and a virtio data disk made from the image, with a software TPM. It adds the blank disk as NVMe. `make boot-installed` boots the disk the installer wrote, alone, which shows the machine starts from what was written (`Makefile`, `tools/nonos_qemu/machine.py`, `tools/nonos_qemu/disk.py`).
