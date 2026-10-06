@@ -5,3 +5,8 @@ rustflags = [
 
 # Platform-specific runners are defined in the Makefile for portability
 # Use `make run` instead of `cargo run` for QEMU testing
+
+# Fetch git dependencies through the git CLI, so a private repository is read
+# with the credentials git already has.
+[net]
+git-fetch-with-cli = true
