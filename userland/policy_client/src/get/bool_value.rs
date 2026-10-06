@@ -18,12 +18,23 @@
 
 use nonos_policy_proto::{Field, IPC_PAYLOAD_MAX, KIND_BOOL, OP_GET};
 
-use crate::call::call;
+use crate::call::{call, call_within};
 
 /// The stored value, or `None` if the store did not answer with a boolean.
 pub fn get_bool(port: u32, field: Field) -> Option<bool> {
     let mut rx = [0u8; IPC_PAYLOAD_MAX];
     let reply = call(port, OP_GET, field as u32, KIND_BOOL, &mut rx)?;
+    if reply.header.kind != KIND_BOOL || reply.header.field != field as u32 {
+        return None;
+    }
+    reply.payload.first().map(|b| *b != 0)
+}
+
+/// `get_bool`, waiting at most `timeout_ms`, for a caller whose loop serves
+/// others.
+pub fn get_bool_within(port: u32, field: Field, timeout_ms: u64) -> Option<bool> {
+    let mut rx = [0u8; IPC_PAYLOAD_MAX];
+    let reply = call_within(port, OP_GET, field as u32, KIND_BOOL, &mut rx, timeout_ms)?;
     if reply.header.kind != KIND_BOOL || reply.header.field != field as u32 {
         return None;
     }

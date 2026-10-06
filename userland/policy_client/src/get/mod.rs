@@ -19,9 +19,11 @@
 mod bool_value;
 mod i8_value;
 mod str_value;
+mod u64_value;
 mod u8_value;
 
-pub use bool_value::get_bool;
+pub use bool_value::{get_bool, get_bool_within};
 pub use i8_value::get_i8;
 pub use str_value::get_str;
+pub use u64_value::get_u64;
 pub use u8_value::get_u8;

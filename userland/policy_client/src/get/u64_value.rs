@@ -14,23 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reading the system policy store.
-//!
-//! A capsule that owns a setting needs three things: the store's port, one
-//! request and reply, and the confidence that the reply is an answer to the
-//! question it asked. This carries all three so that each owner is a field name
-//! and a line to apply it, rather than another hand-written round trip.
+//! A set of up to 64, by index.
 
-#![no_std]
+use nonos_policy_proto::{Field, IPC_PAYLOAD_MAX, KIND_U64, OP_GET};
 
-mod call;
-mod get;
-mod lookup;
-mod status;
-mod watch;
+use crate::call::call;
 
-pub use call::{call, call_within, Reply};
-pub use get::{get_bool, get_bool_within, get_i8, get_str, get_u64, get_u8};
-pub use lookup::lookup;
-pub use status::status;
-pub use watch::Watch;
+/// The stored value, or `None` if the store did not answer with eight bytes.
+pub fn get_u64(port: u32, field: Field) -> Option<u64> {
+    let mut rx = [0u8; IPC_PAYLOAD_MAX];
+    let reply = call(port, OP_GET, field as u32, KIND_U64, &mut rx)?;
+    if reply.header.kind != KIND_U64 || reply.header.field != field as u32 {
+        return None;
+    }
+    Some(u64::from_le_bytes(reply.payload.get(..8)?.try_into().ok()?))
+}
