@@ -22,37 +22,35 @@ pub fn tsc_frequency() -> u64 {
     TSC_FREQ_HZ.load(Ordering::Relaxed)
 }
 
-pub fn ticks_to_ns(ticks: u64) -> u64 {
-    let freq = TSC_FREQ_HZ.load(Ordering::Relaxed);
-    if freq == 0 {
+/*
+ * x * mul / div in 128 bits, saturating at u64::MAX. In 64 bits the products
+ * below overflow within hours of uptime (ticks * 1_000_000 passes u64::MAX
+ * after about 1.7 h at 3 GHz), and the kernel is built with overflow checks,
+ * so an overflow is a panic, not a wrong time.
+ */
+fn scale(x: u64, mul: u64, div: u64) -> u64 {
+    if div == 0 {
         return 0;
     }
-    let ns_per_tick = 1_000_000_000u128 / freq as u128;
-    ((ticks as u128) * ns_per_tick) as u64
+    u64::try_from(x as u128 * mul as u128 / div as u128).unwrap_or(u64::MAX)
+}
+
+pub fn ticks_to_ns(ticks: u64) -> u64 {
+    scale(ticks, 1_000_000_000, TSC_FREQ_HZ.load(Ordering::Relaxed))
 }
 
 pub fn ticks_to_us(ticks: u64) -> u64 {
-    let freq = TSC_FREQ_HZ.load(Ordering::Relaxed);
-    if freq == 0 {
-        return 0;
-    }
-    ticks * 1_000_000 / freq
+    scale(ticks, 1_000_000, TSC_FREQ_HZ.load(Ordering::Relaxed))
 }
 
 pub fn ticks_to_ms(ticks: u64) -> u64 {
-    let freq = TSC_FREQ_HZ.load(Ordering::Relaxed);
-    if freq == 0 {
-        return 0;
-    }
-    ticks * 1_000 / freq
+    scale(ticks, 1_000, TSC_FREQ_HZ.load(Ordering::Relaxed))
 }
 
 pub fn us_to_ticks(us: u64) -> u64 {
-    let freq = TSC_FREQ_HZ.load(Ordering::Relaxed);
-    freq * us / 1_000_000
+    scale(us, TSC_FREQ_HZ.load(Ordering::Relaxed), 1_000_000)
 }
 
 pub fn ms_to_ticks(ms: u64) -> u64 {
-    let freq = TSC_FREQ_HZ.load(Ordering::Relaxed);
-    freq * ms / 1_000
+    scale(ms, TSC_FREQ_HZ.load(Ordering::Relaxed), 1_000)
 }
