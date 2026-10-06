@@ -42,3 +42,15 @@ The identity domain does not confine a device that was found; what it buys is th
 Only units on PCI segment 0 are programmed. DMAR units on other segments are counted by `foreign_segment_units` and named in a warning, and the devices behind them are unrestricted (`src/arch/x86_64/acpi/parser/other/dmar.rs:44-48`). The kernel records at most `MAX_REMAP_UNITS`, 8, segment 0 units, and reads only the DRHD structures of the table (`src/arch/x86_64/acpi/parser/other/dmar.rs:26-27`).
 
 Interrupt remapping is a separate feature, `nonos-iommu-intremap`. No feature list in [Cargo.toml](../../Cargo.toml) turns it on, and without it bring-up prints that interrupt remapping is not built in, in `init` (`src/arch/x86_64/iommu/unit/bringup/init.rs:38-43`).
+
+## Per capsule domains
+
+The [hardware broker](hardware-broker.md) gives each driver capsule one domain, which maps nothing until `MkDmaMap` grants the capsule a buffer (`src/hardware/broker/confine/mod.rs:17-21`). `attach` runs inside the claim:
+
+- If `translates` says no unit in service covers the device, the device stays on physical addresses, and the claim goes ahead with a serial line saying it reaches all memory (`src/hardware/broker/confine/attach.rs:34-48`). `translates` decides coverage: a unit must be enforcing and its scope must hold the device (`src/memory/iommu/backend_x86_64/device.rs:47-54`).
+- If a unit does cover it, the device leaves the identity domain and `attach_device` puts it in the capsule's domain (`src/hardware/broker/confine/attach.rs:88-100`).
+- If a unit in service would not take the device, the claim is refused rather than granted unconfined; `unconfined_allowed` lets a claim through only when no unit is in service at all (`src/hardware/broker/confine/posture.rs:30-50`).
+- Drives behind one VMD share a requester id; one capsule may hold several of them, and a second capsule is refused the shared id with `Refused` (`src/hardware/broker/confine/attach.rs:72-82`).
+- A device with no PCI requester id, such as a controller found through ACPI, is not confined at all: `pci_address` returns nothing for it and `attach` lets the claim through without a domain (`src/hardware/broker/confine/table.rs:35-43`). Its DMA grants carry physical addresses and are counted as unconfined.
+
+A DMA [grant](../overview/glossary.md#grant) in a confined domain is mapped with `IommuProtection::READ_WRITE` at an I/O virtual address from the capsule's own range (`src/hardware/broker/confine/map.rs:22-50`). When the capsule releases the device, `detach` puts it back to denied, not to the identity domain, and the domain goes with the capsule's last device (`src/hardware/broker/confine/detach.rs:21-46`).
