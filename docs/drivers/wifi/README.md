@@ -96,3 +96,23 @@ The panel turns the driver's code into one line with `join_text` (`userland/nono
 | any other | `The join failed` |
 
 The client answers -38 itself, and sends no passphrase, for a driver its table marks as unable to join (`userland/nonos_wifi_client/src/driver/connect.rs:60-64`, `joins`). Both drivers are marked as able to join in 0.9.2 (`userland/nonos_wifi_client/src/driver/services.rs:32-35`, `SERVICES`), so every join reaches the driver, and the iwlwifi driver answers -38 itself when its radio cannot join.
+
+## Bring-up stages
+
+The status operation returns a stage byte, and the panel shows its text (`userland/nonos_wifi_client/src/driver/stage.rs:49-63`, `DriverStage`).
+
+| Stage | Code | Panel text |
+|---|---|---|
+| `Ready` | 0 | `Ready` |
+| `NotClaimed` | 1 | `The card could not be claimed` |
+| `PowerFailed` | 2 | `The card did not power on` |
+| `DeadMmio` | 3 | `The card's registers read back dead` |
+| `FirmwareFailed` | 4 | `The card's firmware did not load` |
+| `NoDma` | 5 | `No DMA memory for the radio` |
+| `EfuseFailed` | 6 | `The card's calibration did not read` |
+| `NoStationAddress` | 7 | `No random address could be drawn` |
+| `NoAirPath` | 8 | `card not supported yet; use Ethernet or USB Wi-Fi` |
+
+NONOS 0.9.2 has no driver for a USB Wi-Fi adapter, so the second suggestion in the last line does not apply to this release; see [not-supported.md](not-supported.md).
+
+When no Wi-Fi driver answers at all, the panel names the chip by its PCI ids and says whether this build has a driver for it (`userland/capsule_settings/src/settings/ui/live_wifi.rs:115-130`, `no_driver`).
