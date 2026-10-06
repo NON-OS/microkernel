@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::FieldElement;
-use super::constants::{D, D2};
+use super::constants::D2;
 
 #[derive(Clone)]
 pub struct EdwardsPoint {
@@ -69,61 +69,6 @@ impl EdwardsPoint {
         EdwardsPoint { x: e.mul(&f), y: g.mul(&h), z: f.mul(&g), t: e.mul(&h) }
     }
 
-    pub fn scalar_mul(&self, scalar: &[u8; 32]) -> EdwardsPoint {
-        let mut r0 = EdwardsPoint::identity();
-        let mut r1 = self.clone();
-
-        for i in (0..256).rev() {
-            let byte = i / 8;
-            let bit = i % 8;
-            let b = ((scalar[byte] >> bit) & 1) as u64;
-
-            let sum = r0.add(&r1);
-            let r0_double = r0.double();
-            let r1_double = r1.double();
-
-            r0 = Self::ct_select(b, &sum, &r0_double);
-            r1 = Self::ct_select(b, &r1_double, &sum);
-        }
-
-        r0
-    }
-
-    fn ct_select(condition: u64, a: &Self, b: &Self) -> Self {
-        let mask = 0u64.wrapping_sub(condition);
-        let inv_mask = !mask;
-        Self {
-            x: FieldElement([
-                (a.x.0[0] & mask) | (b.x.0[0] & inv_mask),
-                (a.x.0[1] & mask) | (b.x.0[1] & inv_mask),
-                (a.x.0[2] & mask) | (b.x.0[2] & inv_mask),
-                (a.x.0[3] & mask) | (b.x.0[3] & inv_mask),
-                (a.x.0[4] & mask) | (b.x.0[4] & inv_mask),
-            ]),
-            y: FieldElement([
-                (a.y.0[0] & mask) | (b.y.0[0] & inv_mask),
-                (a.y.0[1] & mask) | (b.y.0[1] & inv_mask),
-                (a.y.0[2] & mask) | (b.y.0[2] & inv_mask),
-                (a.y.0[3] & mask) | (b.y.0[3] & inv_mask),
-                (a.y.0[4] & mask) | (b.y.0[4] & inv_mask),
-            ]),
-            z: FieldElement([
-                (a.z.0[0] & mask) | (b.z.0[0] & inv_mask),
-                (a.z.0[1] & mask) | (b.z.0[1] & inv_mask),
-                (a.z.0[2] & mask) | (b.z.0[2] & inv_mask),
-                (a.z.0[3] & mask) | (b.z.0[3] & inv_mask),
-                (a.z.0[4] & mask) | (b.z.0[4] & inv_mask),
-            ]),
-            t: FieldElement([
-                (a.t.0[0] & mask) | (b.t.0[0] & inv_mask),
-                (a.t.0[1] & mask) | (b.t.0[1] & inv_mask),
-                (a.t.0[2] & mask) | (b.t.0[2] & inv_mask),
-                (a.t.0[3] & mask) | (b.t.0[3] & inv_mask),
-                (a.t.0[4] & mask) | (b.t.0[4] & inv_mask),
-            ]),
-        }
-    }
-
     pub fn compress(&self) -> [u8; 32] {
         let z_inv = self.z.invert();
         let x = self.x.mul(&z_inv);
@@ -132,27 +77,6 @@ impl EdwardsPoint {
         let mut bytes = y.to_bytes();
         bytes[31] ^= (x.is_negative() as u8) << 7;
         bytes
-    }
-
-    pub fn decompress(bytes: &[u8; 32]) -> Option<EdwardsPoint> {
-        let mut y_bytes = *bytes;
-        let x_sign = (y_bytes[31] >> 7) & 1;
-        y_bytes[31] &= 0x7f;
-
-        let y = FieldElement::from_bytes(&y_bytes);
-        let y2 = y.square();
-
-        let num = y2.sub(&FieldElement::one());
-        let den = D.mul(&y2).add(&FieldElement::one());
-        let den_inv = den.invert();
-        let x2 = num.mul(&den_inv);
-
-        let x = x2.sqrt()?;
-
-        let x = if (x.is_negative() as u8) != x_sign { x.neg() } else { x };
-
-        let t = x.mul(&y);
-        Some(EdwardsPoint { x, y, z: FieldElement::one(), t })
     }
 
     pub fn zeroize(&mut self) {
