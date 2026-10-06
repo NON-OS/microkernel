@@ -175,3 +175,7 @@ A 32-byte key the TPM derives on request as an HMAC over a label, under a primar
 ## NONOS ID certificate
 
 A publisher's certificate, signed by the trust anchor with both Ed25519 and ML-DSA-65. It binds the publisher's NONOS ID to its public keys, the namespaces it may publish under, its capability ceiling and the trust-anchor epoch it was issued under. Explained in [Signing and publisher keys](../userland/signing-and-publisher-keys.md). Code: `src/security/nonos_id_cert/schema/cert.rs`, `src/security/nonos_id_cert/policy.rs`.
+
+## Nym mixnet
+
+The Nym anonymity network, route value `NYM`, and the default network for the browser, the Terminal and the wallet. A program reaches it through `net.socks5`, and when the policy store does not answer, the route is read as Nym, never as Direct. Explained in [Privacy networks](../using/privacy-network.md). Code: `userland/policy_proto/src/route.rs`, `userland/nonos_route_link/src/chosen.rs`.
