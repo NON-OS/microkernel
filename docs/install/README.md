@@ -23,3 +23,11 @@ flowchart LR
 7. [Update](update.md). Move an installed system to a newer release.
 8. [Recovery](recovery.md). Boot with no network and no setup, to read an installed system's files or start over.
 9. [Troubleshooting](troubleshooting.md). What each refusal and error message means, and how to collect logs.
+
+## What to expect
+
+- The stick boots [amnesic](../overview/glossary.md#amnesic): nothing reaches the machine's own disks unless you choose to install.
+- Installing replaces everything on one whole disk, the one you name. NONOS does not share a disk with another system, and the installer is not a secure wipe.
+- NONOS 0.9.2 has no in-place update. A newer release is installed over the old one, and that erases it.
+- There is no login password. Setup asks for an account name, not a secret.
+- The boot menu, setup and the installer are driven from the keyboard.
