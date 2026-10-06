@@ -13,6 +13,28 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+# The store's layout and container format, which the included vfs source
+# takes from this crate.
+nonos_disk_map = { path = "../nonos_disk_map" }
+
+# The kernel's constant-time helpers, as crypto_proofs mounts them: one place
+# carries the reason their manual shapes are allowed.
+crypto_proofs = { path = "../crypto_proofs" }
+
+# The included vfs block layer names nonos_libc; on the host that is the shim,
+# whose store calls answer as the kernel's over a disk in memory.
+nonos_libc = { package = "fs_proofs_libc_shim", path = "libc_shim" }
+
+[dev-dependencies]
+# The SHA-256 compression the kernel's resumable stream hash is built on, and
+# the digest it must finish as (stream_hash).
+sha2 = { version = "0.10", default-features = false, features = ["compress"] }
+# capsule_ramfs from capsule source, in a crate of its own whose root matches
+# the capsule's; the ramfs proofs drive it through its request handlers.
+ramfs_host = { package = "fs_proofs_ramfs_host", path = "ramfs_host" }
+# The disk writer's GPT entry check, which the installer's contents probe
+# (nonos_blk_client/src/disks/contents.rs) names.
+nonos_disk = { path = "../nonos_disk" }
 
 # `kani` is set by the Kani model checker, not by rustc; declare it so ordinary
 # builds do not warn on the cfg-gated proof harnesses.

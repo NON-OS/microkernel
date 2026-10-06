@@ -25,13 +25,13 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use crate::vfs_blk::store_patch::store_header::{ENTRY_LEN, HEADER_LEN};
-use crate::vfs_blk::store_patch::store_toc::decode;
+use crate::vfs_blk::store_patch::store_toc::{decode, Window};
 use crate::vfs_blk::store_patch::{patch_digest, DIGEST_AT, DIGEST_LEN};
 
 const SECTOR: usize = 512;
 const NAME_LEN: usize = 96;
 const COUNT: usize = 3;
-const CAPACITY: u64 = 1 << 20;
+const CAPACITY: Window = Window { base: 0, end: 1 << 20 };
 
 /// A table with three entries, laid out the way the appender writes one.
 fn table() -> Vec<u8> {

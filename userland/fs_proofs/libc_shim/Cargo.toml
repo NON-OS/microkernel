@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# What the vfs block layer takes from nonos_libc, for the host: the store's
+# two kernel calls over a disk in memory that answers as the kernel does,
+# can be absent, can fault, and can lose power after a given sector, plus
+# the log line and the clock the loader reads.
+[package]
+name = "fs_proofs_libc_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+name = "nonos_libc"
+path = "src/lib.rs"

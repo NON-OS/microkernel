@@ -21,6 +21,8 @@
 
 mod time;
 
+#[path = "../../../capsule_vfs/src/store/fdtable/budget.rs"]
+mod budget;
 #[path = "../../../capsule_vfs/src/store/fdtable/chmod.rs"]
 mod chmod;
 #[path = "../../../capsule_vfs/src/store/fdtable/close.rs"]
@@ -29,6 +31,8 @@ mod close;
 mod copy;
 #[path = "../../../capsule_vfs/src/store/fdtable/dirstat.rs"]
 mod dirstat;
+#[path = "../../../capsule_vfs/src/store/fdtable/install.rs"]
+mod install;
 #[path = "../../../capsule_vfs/src/store/fdtable/journal.rs"]
 mod journal;
 #[path = "../../../capsule_vfs/src/store/fdtable/lookup.rs"]
@@ -45,6 +49,8 @@ mod open;
 mod query;
 #[path = "../../../capsule_vfs/src/store/fdtable/read.rs"]
 mod read;
+#[path = "../../../capsule_vfs/src/store/fdtable/reap.rs"]
+mod reap;
 #[path = "../../../capsule_vfs/src/store/fdtable/rename.rs"]
 mod rename;
 #[path = "../../../capsule_vfs/src/store/fdtable/rmdir.rs"]
@@ -53,6 +59,8 @@ mod rmdir;
 mod search;
 #[path = "../../../capsule_vfs/src/store/fdtable/seek.rs"]
 mod seek;
+#[path = "../../../capsule_vfs/src/store/fdtable/streamed.rs"]
+mod streamed;
 #[path = "../../../capsule_vfs/src/store/fdtable/truncate.rs"]
 mod truncate;
 #[path = "../../../capsule_vfs/src/store/fdtable/types.rs"]
@@ -66,4 +74,5 @@ mod write;
 #[path = "../../../capsule_vfs/src/store/fdtable/zeroize.rs"]
 mod zeroize;
 
-pub use types::{SeekWhence, Store, StoreError};
+pub use budget::{DATA_BYTES_MAX, NAMES_PER_OWNER};
+pub use types::{SeekWhence, Store, StoreError, PER_OWNER_FDS};

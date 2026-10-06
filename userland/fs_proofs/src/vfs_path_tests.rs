@@ -18,50 +18,47 @@ use crate::{is_read_only, normalize};
 
 #[test]
 fn collapses_duplicate_slashes() {
-    assert_eq!(normalize("/a//b"), "/a/b");
-    assert_eq!(normalize("/a///b//c"), "/a/b/c");
+    assert_eq!(normalize("/a//b").as_deref(), Some("/a/b"));
+    assert_eq!(normalize("/a///b//c").as_deref(), Some("/a/b/c"));
 }
 
 #[test]
 fn drops_dot_components() {
-    assert_eq!(normalize("/a/./b"), "/a/b");
-    assert_eq!(normalize("/./a"), "/a");
+    assert_eq!(normalize("/a/./b").as_deref(), Some("/a/b"));
+    assert_eq!(normalize("/./a").as_deref(), Some("/a"));
 }
 
 #[test]
-fn resolves_parent_components() {
-    assert_eq!(normalize("/a/../b"), "/b");
-    assert_eq!(normalize("/a/b/c/../../d"), "/a/d");
-    assert_eq!(normalize("/a/b/.."), "/a");
+fn refuses_parent_components() {
+    // Callers resolve `..` themselves; vfs never decides what a climb reaches.
+    for path in ["/a/../b", "/a/b/c/../../d", "/a/b/..", "/..", "/../..", "..", "/linux/../capsules"] {
+        assert_eq!(normalize(path), None, "{path}");
+    }
 }
 
 #[test]
 fn strips_trailing_slash_except_root() {
-    assert_eq!(normalize("/a/b/"), "/a/b");
-    assert_eq!(normalize("/a/"), "/a");
-    assert_eq!(normalize("/"), "/");
+    assert_eq!(normalize("/a/b/").as_deref(), Some("/a/b"));
+    assert_eq!(normalize("/a/").as_deref(), Some("/a"));
+    assert_eq!(normalize("/").as_deref(), Some("/"));
 }
 
 #[test]
 fn empty_and_root_normalize_to_root() {
-    assert_eq!(normalize(""), "/");
-    assert_eq!(normalize("//"), "/");
-    assert_eq!(normalize("/.."), "/");
-    assert_eq!(normalize("/../.."), "/");
+    assert_eq!(normalize("").as_deref(), Some("/"));
+    assert_eq!(normalize("//").as_deref(), Some("/"));
 }
 
 #[test]
 fn adds_leading_slash_to_relative() {
-    assert_eq!(normalize("a/b"), "/a/b");
-    assert_eq!(normalize("a"), "/a");
+    assert_eq!(normalize("a/b").as_deref(), Some("/a/b"));
+    assert_eq!(normalize("a").as_deref(), Some("/a"));
 }
 
 #[test]
-fn parent_of_root_stays_root() {
-    // A `..` that would escape the root is clamped, never producing a path
-    // above `/`.
-    assert_eq!(normalize("/../a"), "/a");
-    assert_eq!(normalize("/a/../../b"), "/b");
+fn dots_that_are_names_are_kept() {
+    // Only a whole `..` component is refused; names containing dots are not.
+    assert_eq!(normalize("/a/..b/c...").as_deref(), Some("/a/..b/c..."));
 }
 
 #[test]
@@ -84,6 +81,7 @@ fn read_only_rejects_lookalikes_and_others() {
 fn normalized_capsules_path_is_still_guarded() {
     // The guard runs on the normalized form, so slash tricks cannot smuggle a
     // write into the protected tree.
-    assert!(is_read_only(&normalize("/capsules//evil")));
-    assert!(is_read_only(&normalize("/capsules/../capsules/evil")));
+    assert!(normalize("/capsules//evil").as_deref().is_some_and(is_read_only));
+    // A climb back into the tree is not normalised into it: it is refused.
+    assert_eq!(normalize("/capsules/../capsules/evil"), None);
 }

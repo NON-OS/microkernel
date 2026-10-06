@@ -18,12 +18,11 @@
 // including them at the crate root leaves those paths dangling. Declaring the
 // two support modules as siblings here gives the real handler sources the
 // module shape they compile against inside the capsule, which lets the wire
-// proofs call the production encoder instead of a copy of it.
+// proofs call the production encoder instead of a copy of it. They are the
+// crate root's own includes, named again, so each source is compiled once.
 
-#[path = "../../capsule_vfs/src/server/handlers/path/mod.rs"]
-pub mod path;
-#[path = "../../capsule_vfs/src/server/handlers/util.rs"]
-pub mod util;
+pub(crate) use crate::vfs_path as path;
+pub(crate) use crate::vfs_util as util;
 
 #[path = "../../capsule_vfs/src/server/handlers/journal.rs"]
 pub mod journal;

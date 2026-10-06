@@ -30,6 +30,8 @@ mod file_ext;
 mod file_kind;
 #[path = "../../../capsule_file_manager/src/fm/filetype.rs"]
 mod filetype;
+#[path = "../../../capsule_file_manager/src/fm/listing_state.rs"]
+pub mod listing_state;
 #[path = "../../../capsule_file_manager/src/fm/open_with_table.rs"]
 pub mod open_with_table;
 #[path = "../../../capsule_file_manager/src/fm/prefs.rs"]
@@ -48,6 +50,10 @@ pub mod state;
 pub mod tags;
 
 // Pure colour tokens, pulled in because `file_color` maps a file kind onto them.
+// What the name prompt, the filter and the search box take.
+#[path = "../../../capsule_file_manager/src/fm/text_field.rs"]
+pub mod text_field;
+
 #[path = "../../../capsule_file_manager/src/fm/theme.rs"]
 #[allow(dead_code)]
 mod theme;
@@ -61,9 +67,22 @@ mod tags_query;
 pub mod tags_reconcile;
 #[path = "../../../capsule_file_manager/src/fm/undo.rs"]
 pub mod undo;
+#[path = "../../../capsule_file_manager/src/fm/wheel.rs"]
+pub mod wheel;
+
+// The trail the header's Forward arrow retraces, and the tag prompt's
+// toggle over the selection.
+#[path = "../../../capsule_file_manager/src/fm/nav_trail.rs"]
+pub mod nav_trail;
+#[path = "../../../capsule_file_manager/src/fm/tags_toggle.rs"]
+pub mod tags_toggle;
 
 pub use entries::{build_entries, Entry};
 pub use file_color::color;
 pub use file_ext::ext;
 pub use file_kind::kind_of;
 pub use filetype::Kind;
+
+// The folder a desktop icon hands the manager through the shell.
+#[path = "../../../capsule_file_manager/src/fm/open_arg_reply.rs"]
+pub mod open_arg_reply;

@@ -28,7 +28,7 @@ const SECTOR: u64 = 512;
 const FLOOR: u64 = 8192;
 
 fn extent(offset: u64, len: u64) -> TocEntry {
-    TocEntry { name: String::from("/data/x"), offset, len, digest: [0; 16] }
+    TocEntry { name: String::from("/data/x"), offset, len, digest: [0; 16], slot: 0 }
 }
 
 #[test]
