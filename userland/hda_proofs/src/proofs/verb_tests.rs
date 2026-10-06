@@ -13,50 +13,68 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-//! Posting a verb and collecting its answer.
-//!
-//! This is the exchange a passive window cannot serve, and the reason this
-//! capsule had no host coverage before. The driver writes a command into the
-//! ring, advances CORBWP and then waits on RIRBWP, which is the controller's
-//! register and never the driver's. Nothing in memory ever moves it, so every
-//! path past this point was reachable only by booting a machine that has an
-//! audio controller in it. A model on another thread advances it instead.
+//! One verb out through the CORB and its answer back through the RIRB.
 
 use nonos_devmodel::run;
 
 use crate::constants::CORBWP;
-use crate::controller::verb;
+use crate::controller::verb::Link;
 use crate::model::{corb_engine, rings, window};
+use crate::proofs::fixtures::{alc236_hp, sim_codec};
 use crate::regs::Regs;
+use crate::sim;
 
 pub const RESPONSE: u32 = 0x1234_5678;
 pub const CMD: u32 = 0x0010_f000;
+
+pub fn link_over(bar: &nonos_devmodel::FakeBar, corb: u64, rirb: u64) -> Link {
+    Link::new(Regs::new(bar.base()), corb, rirb, 256)
+}
 
 #[test]
 fn a_running_controller_answers_a_posted_command() {
     let bar = window();
     let (corb, rirb) = rings(RESPONSE);
     let _controller = run(&bar, corb_engine);
-    let mut wp = 0u16;
-    let got = verb::send(Regs::new(bar.base()), corb.base(), rirb.base(), &mut wp, CMD);
-    assert!(got == Ok(RESPONSE), "the response was not read from the answered slot");
-    assert_eq!(wp, 1, "the driver's shadow write pointer did not follow the controller");
-    assert_eq!(bar.wrote16(CORBWP as usize), 1, "the controller was never told to fetch");
+    let mut link = link_over(&bar, corb.base(), rirb.base());
+    assert_eq!(link.send(CMD), Ok(RESPONSE), "the response was not read from the answered slot");
+        assert_eq!(bar.wrote16(CORBWP as usize), 1, "the controller was never told to fetch");
 }
 
 #[test]
 fn the_first_command_is_posted_one_slot_ahead_of_where_the_controller_reads() {
-    /*
-     * Both pointers start at zero and the controller consumes the slot after
-     * the one it last read. A command left in slot zero is fetched only after
-     * a full lap of the ring, so the first verb of every boot hangs.
-     */
     let bar = window();
     let (corb, rirb) = rings(RESPONSE);
     let _controller = run(&bar, corb_engine);
-    let mut wp = 0u16;
-    assert!(verb::send(Regs::new(bar.base()), corb.base(), rirb.base(), &mut wp, CMD).is_ok());
+    let mut link = link_over(&bar, corb.base(), rirb.base());
+    assert!(link.send(CMD).is_ok());
     assert_eq!(corb.wrote32(4), CMD, "the command is not in slot one");
     assert_eq!(corb.wrote32(0), 0, "slot zero was written over");
+}
+
+#[test]
+fn unsolicited_responses_in_the_ring_are_set_aside_not_taken_as_answers() {
+    /*
+     * The RIRB carries unsolicited responses (a jack event) between the
+     * answers. Reading each answer from the slot numbered like its command
+     * took the first unsolicited response as an answer and every answer after
+     * it from the wrong slot.
+     */
+    let mut c = sim_codec(&alc236_hp());
+    c.unsol_before_each = 1;
+    let s = sim::start(vec![(0, c)]);
+    let mut link = s.link();
+    for _ in 0..3 {
+        assert_eq!(link.send(0x000f_0000), Ok(0x10ec_0236), "an unsolicited entry was read as the answer");
+    }
+    assert_eq!(link.unsolicited(), 3);
+}
+
+#[test]
+fn an_answer_is_taken_only_from_the_codec_that_was_asked() {
+    let s = sim::start(vec![(0, sim_codec(&alc236_hp()))]);
+    let mut link = s.link();
+    // Codec 2 is not on this link: no answer may be borrowed from codec 0.
+    assert!(link.send(0x200f_0000).is_err());
+    assert_eq!(link.send(0x000f_0000), Ok(0x10ec_0236));
 }

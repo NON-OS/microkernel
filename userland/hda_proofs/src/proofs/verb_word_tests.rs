@@ -23,9 +23,10 @@
 //! no error path to catch this on hardware, which is why it is checked here.
 
 use crate::constants::{
-    PARAM_VENDOR_ID, POWER_D0, STREAM_FMT_48K16S, VERB_GET_PARAMETER, VERB_SET_POWER_STATE,
+    PARAM_VENDOR_ID, POWER_D0, VERB_GET_PARAMETER, VERB_SET_POWER_STATE,
     VERB_SET_STREAM_FORMAT,
 };
+use crate::controller::codec::format::PLAYBACK;
 use crate::controller::{compose_verb, compose_verb_long};
 
 #[test]
@@ -42,7 +43,7 @@ fn the_long_form_trades_eight_verb_bits_for_eight_payload_bits() {
      * A four-bit verb at 19:16 and a sixteen-bit payload at 15:0. The node and
      * codec fields do not move, so both forms address the same widget.
      */
-    let fmt = compose_verb_long(0, 2, VERB_SET_STREAM_FORMAT as u16, STREAM_FMT_48K16S);
+    let fmt = compose_verb_long(0, 2, VERB_SET_STREAM_FORMAT as u16, PLAYBACK);
     assert_eq!(fmt, 0x0022_0011);
     assert_eq!(compose_verb_long(1, 2, 0xf, 0xffff), 0x102f_ffff);
 }

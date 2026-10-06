@@ -25,7 +25,8 @@
 
 use nonos_devmodel::FakeBar;
 
-use crate::constants::{SD_CTL, SD_FMT, STREAM_FMT_48K16S};
+use crate::constants::{SD_CTL, SD_FMT};
+use crate::controller::codec::format::PLAYBACK;
 use crate::controller::bdl::{BDL_IOC, N_PERIODS, PERIOD_BYTES};
 use crate::model::WINDOW;
 use crate::proofs::stream_tests::{play, BDL_BYTES, OFF, SAMPLE_DEV, TAG};
@@ -68,5 +69,5 @@ fn the_stream_tag_and_sample_format_are_the_ones_the_codec_was_configured_for() 
     let (bar, bdl) = (FakeBar::new(WINDOW), FakeBar::new(BDL_BYTES));
     play(&bar, &bdl);
     assert_eq!(bar.wrote8((OFF + SD_CTL) as usize + 2), TAG << 4, "the tag is misplaced");
-    assert_eq!(bar.wrote16((OFF + SD_FMT) as usize), STREAM_FMT_48K16S);
+    assert_eq!(bar.wrote16((OFF + SD_FMT) as usize), PLAYBACK);
 }

@@ -47,6 +47,7 @@ impl AtStart {
 pub fn watch(s: Arc<AtStart>, gate: usize, bit: u8, at: [usize; 4]) -> impl Fn(&FakeBar) + Send {
     move |bar| {
         if bar.wrote8(gate) & bit == 0 || s.taken.swap(true, Ordering::AcqRel) {
+            std::thread::yield_now();
             return;
         }
         for (cell, off) in s.cells.iter().zip(at) {
