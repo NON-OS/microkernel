@@ -43,10 +43,6 @@ impl RateRing {
         self.len
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.len == 0
-    }
-
     /// The i-th oldest sample; zero past the end.
     pub fn at(&self, i: usize) -> u32 {
         if i >= self.len {

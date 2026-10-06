@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::pm::format::CAP_TABLE;
+use crate::pm::format_caps::CAP_TABLE;
 use crate::pm::theme::{MUTED, RULE};
 
 use super::super::chrome::Rect;
@@ -31,7 +31,7 @@ const TOP_PAD: u32 = 4;
 const PAIR_GAP: u32 = 6;
 
 // An abbreviated header is only honest if the full name is on screen, so the
-// strip under the grid pairs each one with the name format::CAP_TABLE gives it,
+// strip under the grid pairs each one with the name format_caps::CAP_TABLE gives it,
 // five to a line. The abbreviation keeps its column colour; the spelt-out name
 // is muted, because the eye is meant to come here once and then stop.
 pub fn paint(fb: &mut PaintBuffer, r: &Rect) {

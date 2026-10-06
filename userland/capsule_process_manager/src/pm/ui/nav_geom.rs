@@ -16,7 +16,8 @@
 
 use crate::pm::state::{Screen, SCREENS};
 
-use super::metrics::{NAV_GAP, NAV_H, NAV_PAD_X, NAV_TOP, SIDEBAR_W};
+use super::fit::sidebar_w;
+use super::metrics::{NAV_GAP, NAV_H, NAV_PAD_X, NAV_TOP};
 
 pub fn row_y(index: usize) -> u32 {
     NAV_TOP + index as u32 * (NAV_H + NAV_GAP)
@@ -26,15 +27,15 @@ pub fn row_x() -> u32 {
     NAV_PAD_X / 2
 }
 
-pub fn row_w() -> u32 {
-    SIDEBAR_W - NAV_PAD_X
+pub fn row_w(fb_w: u32) -> u32 {
+    sidebar_w(fb_w) - NAV_PAD_X
 }
 
 // Which nav entry covers `y`, in window coordinates. The painter walks the same
 // `row_y`, so a click cannot land on an entry other than the one drawn under
 // the pointer.
-pub fn at(x: i32, y: i32) -> Option<Screen> {
-    if x < 0 || x >= SIDEBAR_W as i32 || y < NAV_TOP as i32 {
+pub fn at(fb_w: u32, x: i32, y: i32) -> Option<Screen> {
+    if x < 0 || x >= sidebar_w(fb_w) as i32 || y < NAV_TOP as i32 {
         return None;
     }
     let offset = (y - NAV_TOP as i32) as u32;

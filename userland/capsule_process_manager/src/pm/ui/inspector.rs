@@ -22,12 +22,14 @@ use crate::pm::state::{Row, State};
 use crate::pm::theme::{MUTED, SIDEBAR_BG, SIDEBAR_LINE, TITLE};
 
 use super::insp_geom::{content_w, content_x, pane_x};
-use super::metrics::{BODY_PX, INSPECTOR_W, INSP_SECTION_GAP, PANE_PAD_TOP, TITLE_PX};
+use super::metrics::{
+    BODY_PX, INSPECTOR_W, INSP_FIELD_H, INSP_SECTION_GAP, PANE_PAD_TOP, TITLE_PX,
+};
 use super::tint::state_tint;
 use super::{insp_actions, insp_chips, insp_fields, insp_spark, text};
 
 // The docked detail pane: identity, the numbers behind the selected row, its
-// trend, its full grant list, and the two actions. It owns the whole window
+// trend, its full grant list, and the action. It owns the whole window
 // height, so it paints its own ground instead of sitting inside a content rect.
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
     let x = pane_x(fb.width);
@@ -37,14 +39,29 @@ pub fn paint(state: &State, fb: &mut PaintBuffer) {
         return empty(fb, x);
     };
     let (left, w) = (content_x(fb.width), content_w());
+    let (_, actions, _, _) = super::insp_geom::btn(fb.width, fb.height);
+    let limit = actions.saturating_sub(INSP_SECTION_GAP);
     let mut y = heading(fb, left, PANE_PAD_TOP, w, row);
-    y = insp_fields::block(fb, left, y, row, state.sys.mem_total_kb) + INSP_SECTION_GAP;
+    /*
+     * A short window has no room for every field above the action. The
+     * fields used to run on through the buttons and the grant chips, so the
+     * lines wrote over each other. They are clipped to the whole lines that
+     * fit, and what follows them is drawn only where it fits too.
+     */
+    let lines = limit.saturating_sub(y) / INSP_FIELD_H * INSP_FIELD_H;
+    let mut clip = fb.sub(0, 0, fb.width, y + lines);
+    y = insp_fields::block(&mut clip, left, y, row, state.sys.mem_total_kb) + INSP_SECTION_GAP;
+    if y + insp_spark::height() > limit {
+        return insp_actions::paint(fb, state.is_protected(row));
+    }
     y = insp_spark::paint(fb, left, y, w, state.history.get(row.pid));
-    let mut buf = [0u8; 12];
-    let n = u32_decimal(row.caps.count_ones(), &mut buf);
-    y = insp_fields::field(fb, left, y, b"Authority", &buf[..n], TITLE);
-    insp_chips::paint(fb, left, y, w, row.caps);
-    insp_actions::paint(fb);
+    if y + INSP_FIELD_H <= limit {
+        let mut buf = [0u8; 12];
+        let n = u32_decimal(row.caps.count_ones(), &mut buf);
+        y = insp_fields::field(fb, left, y, b"Authority", &buf[..n], TITLE);
+        insp_chips::paint(fb, left, y, w, limit, row.caps);
+    }
+    insp_actions::paint(fb, state.is_protected(row));
 }
 
 fn heading(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, row: &Row) -> u32 {

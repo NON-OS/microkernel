@@ -17,6 +17,7 @@
 use alloc::vec::Vec;
 
 use super::super::security::Monitor;
+use super::notes;
 use super::{Filter, History, Query, Screen, Sort, State};
 
 impl State {
@@ -25,11 +26,11 @@ impl State {
             rows: Vec::new(),
             sys: super::System::default(),
             refreshes: 0,
-            status: b"reading process table",
+            status: notes::READING,
             selected_pid: 0,
-            notice: b"up/down select  K end  F force  C/M/I/Y/N/P sort",
+            notice: b"",
             pending_pid: 0,
-            pending_sig: 0,
+            me: nonos_libc::mk_getpid(),
             sort: Sort::Cpu,
             scroll: 0,
             visible: 1,

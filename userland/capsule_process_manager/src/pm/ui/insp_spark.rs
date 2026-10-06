@@ -23,6 +23,11 @@ use crate::pm::theme::{ACCENT, MUTED, OK, TRACK_BG};
 use super::metrics::{BODY_PX, CARD_LINE_GAP, INSP_SECTION_GAP, SPARK_H};
 use super::{spark, text};
 
+/// How far `paint` moves down: two panels, each a caption and a plot.
+pub fn height() -> u32 {
+    2 * (line_height(BODY_PX).max(1) as u32 + CARD_LINE_GAP + SPARK_H + INSP_SECTION_GAP)
+}
+
 // Two trend panels over the same per-pid ring. A single sample has no shape and
 // a flat line would read as a real idle stretch, so the caption says
 // "collecting" and the plot stays empty until two points can be joined.

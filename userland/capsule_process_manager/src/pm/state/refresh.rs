@@ -23,6 +23,7 @@ use alloc::vec;
 
 use nonos_libc::{mk_proc_stat, ProcStatHeader};
 
+use super::notes;
 use super::types::{ENTRY_LEN, HEADER_LEN, MAX_PROCS};
 use super::{Sort, State};
 
@@ -37,7 +38,16 @@ impl State {
         let mut buf = vec![0u8; HEADER_LEN + MAX_PROCS * ENTRY_LEN];
         let written = mk_proc_stat(buf.as_mut_ptr(), MAX_PROCS as u32);
         if written <= 0 {
-            self.status = b"process table unavailable";
+            // Rows from an earlier read would sit under a strip that calls the
+            // table live, and a kill could be armed on a process no longer
+            // shown, so a refused read empties the table and says why.
+            self.status = notes::UNAVAILABLE;
+            self.rows.clear();
+            self.alerts.clear();
+            self.flagged.clear();
+            self.selected_pid = 0;
+            self.pending_pid = 0;
+            self.scroll = 0;
             return;
         }
         let count = (written as usize).min(MAX_PROCS);
@@ -69,7 +79,7 @@ impl State {
             Sort::Pid => rows.sort_by(|a, b| a.pid.cmp(&b.pid)),
         }
         self.rows = rows;
-        self.status = b"live from the kernel";
+        self.status = notes::LIVE;
         self.finish(warmed);
     }
 }

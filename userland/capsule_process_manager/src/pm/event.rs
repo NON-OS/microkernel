@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
+use nonos_app_skeleton::input::text::is_paste;
+use nonos_app_skeleton::{clipboard_paste_line, EventOutcome, InputEvent, InputKind};
 
-use super::state::{Screen, State, SIGKILL, SIGTERM};
+use super::state::{Screen, State};
 use super::ui::hit::{self, Target};
 use super::ui::table_geom;
 
@@ -43,7 +44,21 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
     if !event.is_key_down() {
         return EventOutcome::Idle;
     }
+    if state.query_focused() && is_paste(&event) {
+        return paste(state);
+    }
     event_key::key(state, event.code)
+}
+
+fn paste(state: &mut State) -> EventOutcome {
+    // Room for more than the field holds, so a longer line is seen as cut.
+    let mut buf = [0u8; 128];
+    match clipboard_paste_line(&mut buf) {
+        Ok(Some(line)) => state.paste_into_query(line.text),
+        Ok(None) => state.notice = b"paste: the clipboard holds no text",
+        Err(_) => state.notice = b"paste: the clipboard is not available",
+    }
+    EventOutcome::Repaint
 }
 
 // The whole click path: ask the shared hit test what the frame drew under the
@@ -69,8 +84,7 @@ fn click(state: &mut State, x: i32, y: i32) -> EventOutcome {
             state.jump_to_alert();
         }
         Target::Filter(filter) => state.set_filter(filter),
-        Target::EndProcess => state.kill_selected(SIGTERM),
-        Target::ForceQuit => state.kill_selected(SIGKILL),
+        Target::EndProcess => state.end_selected(),
     }
     EventOutcome::Repaint
 }

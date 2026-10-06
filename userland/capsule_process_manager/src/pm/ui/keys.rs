@@ -35,7 +35,6 @@ pub enum Act {
     NextScreen,
     Security,
     Terminate,
-    ForceKill,
     SortCpu,
     SortMem,
     SortName,

@@ -16,50 +16,44 @@
 
 use nonos_libc::mk_kill;
 
-use super::super::critical::is_critical;
-use super::{State, SIGKILL};
+use super::notes::{kill_note, ARMED, NO_SELECTION, PROTECTED};
+use super::{State, SIGTERM};
 
 impl State {
     // Cancel any armed kill. Called whenever the user navigates or re-sorts, so
-    // a pending confirmation never carries over to a different selection.
+    // a pending confirmation never carries over to a different selection. The
+    // status strip shows `notice`, so the prompt or outcome it holds goes too:
+    // it was about the selection the user just left.
     pub(super) fn disarm(&mut self) {
         self.pending_pid = 0;
-        self.pending_sig = 0;
+        self.notice = b"";
     }
 
-    // Terminate the selected process with `sig`, in two steps. The first press
-    // arms the exact (pid, signal); the same press again confirms and sends it.
-    // Core system processes are refused outright: ending the compositor, window
-    // manager, input router or a core service would strand the whole session, so
-    // the monitor never lets a keypress do it. Ordinary apps stay killable. The
-    // kernel still enforces the ProcessControl authority on top of this.
-    pub fn kill_selected(&mut self, sig: u64) {
+    // End the selected process, in two steps. The first press arms the exact
+    // pid; the same press again confirms and sends it. Core system processes
+    // and this window are refused outright: ending the compositor, window
+    // manager, input router or a core service would strand the whole session,
+    // so the monitor never lets a keypress do it. Ordinary apps stay endable.
+    // The kernel still enforces the ProcessControl authority on top of this,
+    // and what it answered is what the strip says.
+    pub fn end_selected(&mut self) {
         let Some(pid) = (self.selected_pid != 0).then_some(self.selected_pid) else {
-            self.notice = b"select a process first";
+            self.notice = NO_SELECTION;
             return;
         };
-        if self.rows.iter().find(|r| r.pid == pid).is_some_and(|r| is_critical(r.name())) {
-            self.notice = b"protected: a core system process cannot be ended here";
+        if self.rows.iter().find(|r| r.pid == pid).is_some_and(|r| self.is_protected(r)) {
             self.disarm();
+            self.notice = PROTECTED;
             return;
         }
-        if self.pending_pid == pid && self.pending_sig == sig {
-            let rc = mk_kill(pid as u64, sig);
-            self.notice = if rc >= 0 {
-                if sig == SIGKILL {
-                    b"force-killed"
-                } else {
-                    b"terminated"
-                }
-            } else {
-                b"denied by the kernel"
-            };
+        if self.pending_pid == pid {
+            let rc = mk_kill(pid as u64, SIGTERM);
             self.disarm();
+            self.notice = kill_note(rc);
             self.refresh();
             return;
         }
         self.pending_pid = pid;
-        self.pending_sig = sig;
-        self.notice = b"press the same key again to confirm";
+        self.notice = ARMED;
     }
 }

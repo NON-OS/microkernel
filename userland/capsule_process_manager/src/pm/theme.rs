@@ -42,7 +42,6 @@ pub const NAV_BG_ACTIVE: u32 = 0x2035C4E2;
 pub const NAV_BORDER_ACTIVE: u32 = 0x5935C4E2;
 // Row washes. These carry alpha: draw them with blend_rect / fill_round only.
 pub const SELECT_BG: u32 = 0x1C35C4E2;
-pub const ROW_HOVER_BG: u32 = 0x14FFFFFF;
 // Chips, meter tracks and the search field.
 pub const PILL_BG: u32 = 0xFF14232C;
 pub const PILL_BORDER: u32 = 0xFF1D323D;
@@ -53,7 +52,4 @@ pub const SEARCH_BORDER: u32 = 0xFF24363F;
 pub const OK: u32 = 0xFF33CF7D;
 pub const AMBER: u32 = 0xFFE0A44A;
 pub const DANGER: u32 = 0xFFE06C75;
-pub const OK_TINT: u32 = 0x2033CF7D;
-pub const AMBER_TINT: u32 = 0x22E0A44A;
-pub const DANGER_TINT: u32 = 0x22E06C75;
 pub const ACCENT_TINT: u32 = 0x2035C4E2;

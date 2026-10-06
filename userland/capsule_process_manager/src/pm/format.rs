@@ -55,16 +55,13 @@ pub fn u64_decimal(value: u64, out: &mut [u8]) -> usize {
     n
 }
 
-// One decimal place, e.g. "11.0%". cpu_pct is a whole percent from the kernel,
-// so the tenth is always 0 today; the width is what keeps a column of numbers
-// aligned when a future sample carries one.
-pub fn pct_1dp(pct: u8, out: &mut [u8]) -> usize {
+// A whole percent, e.g. "11%". The kernel's cpu_pct is a whole percent, so no
+// decimal is printed that the reading does not have.
+pub fn percent(pct: u8, out: &mut [u8]) -> usize {
     let mut n = u32_decimal(pct as u32, out);
-    if n + 3 <= out.len() {
-        out[n] = b'.';
-        out[n + 1] = b'0';
-        out[n + 2] = b'%';
-        n += 3;
+    if n < out.len() {
+        out[n] = b'%';
+        n += 1;
     }
     n
 }
@@ -158,59 +155,4 @@ pub fn mem_human(kb: u64, out: &mut [u8]) -> usize {
         }
         n
     }
-}
-
-// Capability bits and their short names, in enum order, so the selected
-// process can show exactly which authorities it was granted.
-pub const CAP_TABLE: &[(u64, &[u8])] = &[
-    (1 << 0, b"exec"),
-    (1 << 1, b"io"),
-    (1 << 2, b"net"),
-    (1 << 3, b"ipc"),
-    (1 << 4, b"mem"),
-    (1 << 5, b"crypto"),
-    (1 << 6, b"fs"),
-    (1 << 7, b"hw"),
-    (1 << 8, b"debug"),
-    (1 << 9, b"admin"),
-    (1 << 10, b"regsvc"),
-    (1 << 11, b"gquery"),
-    (1 << 12, b"gcreate"),
-    (1 << 13, b"gmap"),
-    (1 << 14, b"gpresent"),
-    (1 << 15, b"devenum"),
-    (1 << 16, b"driver"),
-    (1 << 17, b"mmio"),
-    (1 << 18, b"irq"),
-    (1 << 19, b"dma"),
-    (1 << 20, b"pio"),
-    (1 << 21, b"input"),
-    (1 << 22, b"time"),
-    (1 << 23, b"spawnbroker"),
-    (1 << 24, b"spawnwindow"),
-    (1 << 25, b"procctl"),
-];
-
-// "Ndrop 0xHEX": how many capabilities are granted, and the raw bit set, so the
-// authority of every process is visible at a glance.
-pub fn caps_summary(caps: u64, out: &mut [u8]) -> usize {
-    let mut n = u32_decimal(caps.count_ones(), out);
-    for &c in b"  0x" {
-        if n < out.len() {
-            out[n] = c;
-            n += 1;
-        }
-    }
-    let mut started = false;
-    for shift in (0..64).step_by(4).rev() {
-        let nyb = ((caps >> shift) & 0xf) as u8;
-        if nyb != 0 || started || shift == 0 {
-            started = true;
-            if n < out.len() {
-                out[n] = if nyb < 10 { b'0' + nyb } else { b'a' + (nyb - 10) };
-                n += 1;
-            }
-        }
-    }
-    n
 }

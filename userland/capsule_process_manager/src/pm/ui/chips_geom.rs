@@ -16,9 +16,10 @@
 
 use crate::pm::state::{Filter, Screen, FILTERS};
 
+use super::super::fit::sidebar_w;
 use super::super::metrics::{
     BODY_PX, CHIP_GAP, CHIP_H, CHIP_PAD_X, HEAD_H, PANE_PAD_TOP, PANE_PAD_X, SEARCH_META_GAP,
-    SIDEBAR_W, TITLE_PX,
+    TITLE_PX,
 };
 use super::super::text;
 
@@ -41,20 +42,20 @@ pub fn width() -> u32 {
 
 // The row hangs off the measured screen name rather than a fixed column, so a
 // longer title pushes the chips right instead of drawing underneath them.
-pub fn origin(screen: Screen) -> Option<u32> {
+pub fn origin(fb_w: u32, screen: Screen) -> Option<u32> {
     if !listed(screen) {
         return None;
     }
     let title = text::width_of(screen.nav_label(), TITLE_PX);
-    Some(SIDEBAR_W + PANE_PAD_X + title + SEARCH_META_GAP)
+    Some(sidebar_w(fb_w) + PANE_PAD_X + title + SEARCH_META_GAP)
 }
 
 pub fn top() -> u32 {
     PANE_PAD_TOP + HEAD_H.saturating_sub(CHIP_H) / 2
 }
 
-pub fn at(screen: Screen, x: i32, y: i32) -> Option<Filter> {
-    let mut cx = origin(screen)?;
+pub fn at(fb_w: u32, screen: Screen, x: i32, y: i32) -> Option<Filter> {
+    let mut cx = origin(fb_w, screen)?;
     let y0 = top();
     if y < y0 as i32 || y >= (y0 + CHIP_H) as i32 {
         return None;
