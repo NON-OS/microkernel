@@ -171,3 +171,34 @@ The device is given `device_addr`, never `user_va`: the driver writes through `u
 virtio-rng polls. `disable_intx` sets Interrupt Disable so the device never holds a shared line up (`userland/capsule_driver_virtio_rng/src/setup/irq.rs:33-41`), and `fill` posts a request, rings the doorbell and checks the used ring with `mk_yield` between looks, giving up after `MAX_YIELDS` (100,000) (`userland/capsule_driver_virtio_rng/src/fill.rs:22-44`).
 
 A driver that takes interrupts adds `Irq` (bit 18) to its manifest and binds one. virtio-blk's `bind` calls `mk_irq_bind` for the legacy line first, falls back to one vector with `MK_IRQ_BIND_MSIX`, and releases what it holds if both fail (`userland/capsule_driver_virtio_blk/src/setup/irq.rs:19-40`). It then waits in slices of `WAIT_SLICE_MS` (100 ms) with `mk_irq_wait`, telling a timeout from a wake by `MK_IRQ_WAIT_TIMED_OUT` (`userland/capsule_driver_virtio_blk/src/io/wait_slice.rs:23-62`). After a wake, `rearm` reads the device's interrupt status, which lowers its line, and only then calls `mk_irq_ack` to unmask it (`userland/capsule_driver_virtio_blk/src/io/rearm.rs:33-41`). Ack before the status read and a level-triggered line fires again at once.
+
+## 9. The service
+
+`server::run` receives a request, decodes the 20-byte header and dispatches on the op (`userland/capsule_driver_virtio_rng/src/server/runner.rs:36-57`):
+
+```rust
+pub fn run(driver: &mut Driver) -> ! {
+    let mut rx = vec![0u8; RX_BUF_LEN];
+    let mut tx = vec![0u8; TX_BUF_LEN];
+    loop {
+        let n = mk_ipc_recv(0, rx.as_mut_ptr(), RX_BUF_LEN, 0);
+        if !nonos_libc::recv_ready(n) {
+            continue;
+        }
+        let req = match decode_request(&rx[..n as usize]) {
+            Some(r) => r,
+            None => {
+                reply_decode_failed(&mut tx, E_INVAL);
+                continue;
+            }
+        };
+        match req.op {
+            OP_FILL_RANDOM => handlers::fill::handle(driver, &req, &mut tx),
+            OP_HEALTHCHECK => handlers::health::handle(&req, &mut tx),
+            _ => reply_with_status(&mut tx, &req, E_INVAL),
+        }
+    }
+}
+```
+
+The header is magic, version, op, flags, a reserved word, request id and payload length, all little-endian; virtio-rng's `MAGIC` is 0x4E4F5244, `NORD` (`userland/capsule_driver_virtio_rng/src/protocol/header.rs:21-33`). The ops are `OP_FILL_RANDOM` (1) and `OP_HEALTHCHECK` (2) (`userland/capsule_driver_virtio_rng/src/protocol/ops.rs:21-22`). An unknown op gets a reply with status -22 that echoes its request id; a header that does not decode gets one with request id 0. `reply_with_status` sends every reply to `KERNEL_REPLY_ENDPOINT`, the kernel client's inbox, since only the kernel talks to this driver (`userland/capsule_driver_virtio_rng/src/server/error.rs:27-36`). `recv_ready` sleeps `RECV_PARK_MS` (100 ms) after a receive that failed at once, so a loop whose inbox is gone holds no core (`userland/libc/src/bringup/run.rs:95-104`, `userland/libc/src/bringup/policy.rs:128-130`).
