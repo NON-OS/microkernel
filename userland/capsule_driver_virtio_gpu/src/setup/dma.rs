@@ -15,21 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::mmio::RegisterGrant;
 use crate::constants::VQ_REGION_SIZE;
-use nonos_libc::{mk_device_release, mk_dma_map, mk_irq_unbind, DmaMapOut, IrqBindOut};
+use nonos_libc::{mk_device_release, mk_dma_map, DmaMapOut};
 pub fn map_queue(
     device_id: u64,
     claim_epoch: u64,
     registers: RegisterGrant,
-    irq: &IrqBindOut,
 ) -> Result<DmaMapOut, &'static str> {
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
     let r = mk_dma_map(device_id, claim_epoch, VQ_REGION_SIZE, 0, &mut out);
     if r < 0 {
-        if irq.grant_id != 0 {
-            if mk_irq_unbind(irq.grant_id) < 0 {
-                return Err("virtio-gpu: irq rollback failed after queue dma failure");
-            }
-        }
         if !registers.release() {
             return Err("virtio-gpu: register rollback failed after queue dma failure");
         }

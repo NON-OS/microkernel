@@ -22,6 +22,8 @@ pub struct ModernGrant {
     pub common_offset: usize,
     pub notify: MmioMapOut,
     pub notify_offset: usize,
+    /// Bytes of the notify region mapped from `notify_offset`.
+    pub notify_len: usize,
     pub notify_multiplier: usize,
     pub device: MmioMapOut,
     pub device_offset: usize,
@@ -46,7 +48,8 @@ impl RegisterGrant {
                 g.notify_multiplier,
                 g.device.user_va,
                 g.device_offset,
-            ),
+            )
+            .with_notify_len(g.notify_len),
         }
     }
     pub fn grant_id(self) -> u64 {
