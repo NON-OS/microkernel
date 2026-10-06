@@ -18,6 +18,8 @@ pub mod core;
 pub mod line;
 pub mod print;
 
+pub mod tail;
+
 pub use core::init;
 pub use line::Line;
 pub use print::{print, print_dec, print_dec as print_u64, print_hex, print_str, println};
