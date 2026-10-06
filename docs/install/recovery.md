@@ -45,3 +45,13 @@ Look through your files in Files and the Editor. On an installed system a file r
 The installed data volume opens only on the machine that made it, in the same boot state: its key is derived by the [TPM](../overview/glossary.md#tpm) under PCRs 0, 4, 7 and 9, and never stored (`src/security/tpm/machine_key/pcrs.rs`). After a firmware update or a change to Secure Boot, the TPM gives another key, and the kernel leaves the volume closed rather than format over it (`src/fs/blockfs_volume/mount_or_format.rs`). Programs that read `/data` then get `data volume under another key`, or `no machine key for the data volume` when the TPM gave no key at all (`src/fs/vfs/map_volume_err.rs`).
 
 To get it back, put the firmware and the Secure Boot setting back as they were when the volume was made, and boot again. A reinstall erases the volume for good.
+
+## Start over
+
+If the installed system does not boot, or you want a clean one:
+
+1. Plug the stick in and boot it. Open the firmware's boot menu and choose the stick.
+2. Choose `Install NØNOS` and answer setup.
+3. Choose the old disk, type its word, and let the installer write and read it back ([Install to disk](install-to-disk.md)).
+
+This erases the old store and data volume. If the stick itself is refused, the screen says why: see [Troubleshooting](troubleshooting.md).
