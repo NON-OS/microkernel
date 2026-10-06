@@ -28,7 +28,9 @@ pub(super) use transport::REPLY_INBOX;
 
 pub use get_app::{get_app, AppSummary};
 pub use get_release::{get_release, ReleaseSummary};
+pub(crate) use get_release::queued_get_release;
 pub use healthcheck::healthcheck;
 pub use install_ready::{install_ready, InstallReadiness};
+pub(crate) use install_ready::queued_install_ready;
 pub use list_apps::list_apps;
 pub use load_index::load_index;
