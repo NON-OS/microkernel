@@ -124,3 +124,9 @@ cd userland/iwlwifi_proofs && cargo test --release --config profile.release.over
 ```
 
 Not tested in this release.
+
+## Not supported
+
+- Hidden networks, open, TKIP and Enterprise networks.
+- 6 GHz, HT, VHT and HE rates, rate scaling, QoS, aggregation and power save.
+- Interrupt-driven operation, firmware restart, roaming, access point and monitor mode.
