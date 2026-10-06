@@ -25,3 +25,28 @@ A kernel for any architecture other than x86_64 stops at `compile_error!` unless
 | CI | build, boot check, boot matrix | build and three boot cells | none |
 
 The file counts include each backend's assembly. In lines, headers included, the three backends hold 52006, 12508 and 8423.
+
+## How a port plugs in
+
+```mermaid
+classDiagram
+    class ArchOps
+    class X86_64
+    class Aarch64
+    class Riscv64
+    ArchOps <|.. X86_64
+    ArchOps <|.. Aarch64
+    ArchOps <|.. Riscv64
+```
+
+Shared kernel code reaches the CPU in two ways.
+
+The first is the `ArchOps` trait: eight primitives every backend implements, `halt`, `enable_interrupts`, `disable_interrupts`, `interrupts_enabled`, `current_cpu_id`, `read_time_counter`, `flush_tlb_one` and `switch_address_space` (`src/arch/abi.rs:36-86`). `Arch` is a type alias that names `X86_64`, `Aarch64` or `Riscv64` by target architecture (`src/arch/mod.rs:64-69`). A backend that cannot implement a primitive is meant to have no `ArchOps` impl at all, so the build fails instead of running a wrong answer (`src/arch/abi.rs:31-36`).
+
+The second is a set of small modules in `src/arch` with one branch per architecture and a fallback for the rest. `time_counter_hz` answers 0 where the platform cannot say how fast its counter runs (`src/arch/time_counter.rs:39-52`), and `send_ipi` answers an error on an architecture with no interrupt controller backend (`src/arch/interrupt_controller/ipi.rs:28-38`). Each backend tree is compiled only for its own target (`riscv64`, `src/arch/mod.rs:42-49`) and its names are re-exported one level up (`riscv64`, `src/arch/mod.rs:72-77`).
+
+The build picks the rest by architecture:
+
+- `build.rs` chooses the linker script in `script_name` (`build.rs:335-339`).
+- `user_target` picks the capsule target that matches the kernel and panics when `NONOS_USER_TARGET` names another architecture, because the kernel would load binaries its CPU cannot run (`build.rs:594-604`).
+- The static checks count `cfg(target_arch` sites outside `src/arch` into `cfg_count` and fail when the count grows past its baseline (`nonos-ci/run-static-checks.sh:46-47`). At this commit it already has: 234 against 116, as [Code style](../contributing/code-style.md) says.
