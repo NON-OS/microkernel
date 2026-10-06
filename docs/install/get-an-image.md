@@ -62,3 +62,14 @@ Not tested in this release.
 | `core` | kernel work | the microkernel and its base capsules, no desktop |
 
 The table is `profiles` in `tools/nix/config.nix`. `make profiles` prints the same, with each profile's privacy posture. [Profiles](../build/profiles.md) has the details.
+
+## A development image, without the signing keys
+
+`make dev-image` seals a profile's development twin, the `qemu` profile's unless `PROFILE=` names another, in a copy of the tree under `target/dev`, with throwaway keys and path-only attestation: its capsules are admitted on their path, without a STARK proof. Its loader has the development override compiled in, and it is never a release. `make dev-boot` boots it under QEMU with a software TPM (`Makefile`, `tools/nix/config.nix`).
+
+```
+make dev-image
+make dev-boot
+```
+
+Not tested in this release.
