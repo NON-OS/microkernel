@@ -121,8 +121,14 @@ impl AddressSpace {
         // page table base address. The nomem option is correct as this does not
         // access memory through a pointer. The nostack option is correct as no
         // stack space is used.
+        #[cfg(target_arch = "x86_64")]
         unsafe {
             core::arch::asm!("mov {}, cr3", out(reg) cr3, options(nomem, nostack));
+        }
+        // The same root through the arch reader: TTBR0_EL1 with the ASID masked.
+        #[cfg(not(target_arch = "x86_64"))]
+        {
+            cr3 = crate::arch::paging::read_root();
         }
 
         Self {

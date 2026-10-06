@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod mapping;
 pub mod release;
 pub mod setup;
 
-pub use mapping::{map_user_stack, record_segments};
 pub use release::release;
-pub use setup::{allocate, inherit, switch_to};
+pub use setup::{allocate, inherit};
