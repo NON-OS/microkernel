@@ -21,8 +21,7 @@ else
     target/nonos-kernel.x86_64 \
     target/x86_64-nonos/release/nonos-kernel \
     target/kernel_signed.bin \
-    target/kernel_attested.bin \
-    ci-reports/build/nonos-kernel.x86_64
+    target/kernel_attested.bin
   do
     if [ -f "$candidate" ]; then
       printf '%s\n' "$candidate" >> "$artifacts"
