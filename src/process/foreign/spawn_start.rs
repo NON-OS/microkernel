@@ -16,7 +16,7 @@
 
 //! Making a built guest runnable.
 
-use super::peer_guard::{in_user_half, pid_arg};
+use super::peer_guard::{in_user_half, pid_arg, supervised_asid};
 use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_PERM};
 
 // `rsp` of zero asks for the kernel's own user stack.
@@ -44,6 +44,11 @@ pub fn sys_foreign_start(pid: u64, entry: u64, rsp: u64) -> i64 {
      */
     if !in_user_half(entry, 1) || (rsp != 0 && !in_user_half(rsp, 0)) {
         return ERRNO_INVAL;
+    }
+    /* A stack the supervisor built carries argv, and the program's name. */
+    let name = (rsp != 0).then(|| supervised_asid(caller, u64::from(pid)).ok()).flatten();
+    if let Some(name) = name.and_then(|(asid, _held)| super::guest_name::from_stack(asid, rsp)) {
+        super::guest_stats::rename(pid, name);
     }
     super::start_context::install(pid, entry, rsp)
 }

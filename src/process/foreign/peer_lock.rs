@@ -27,6 +27,26 @@ pub(super) type Held = MutexGuard<'static, ()>;
 
 /// Take it. Only `peer_guard::supervised_asid` calls this, and it hands
 /// the result back beside the asid so the two cannot be separated.
+///
+/// The holder maps and unmaps in the guest's tables, and each change waits
+/// for every CPU running the guest to acknowledge a TLB shootdown. Peer calls
+/// arrive as system calls, with interrupts masked, so a CPU waiting here
+/// answers shootdowns while it spins or the two would wait on each other.
 pub(super) fn take() -> Held {
-    ADDRESS_SPACE.lock()
+    crate::smp::lock_responsive(&ADDRESS_SPACE)
+}
+
+/// Run `f` with no peer call in progress or able to start.
+///
+/// A supervisor's copy walks the guest's tables and writes its frames
+/// through the kernel's own mapping, from its own CPU, so the exit path's
+/// wait for every CPU to leave the guest's tables does not cover it. A guest
+/// torn down from another CPU (its terminal ending, say) had its tables and
+/// frames freed on a later tick while such a copy could still be writing:
+/// into a frame by then another process's. The address space is now
+/// released inside this, and the guest's row is gone before, so a call
+/// either finished first or finds no guest.
+pub fn without_peer_calls<R>(f: impl FnOnce() -> R) -> R {
+    let _held = take();
+    f()
 }

@@ -41,6 +41,7 @@ pub fn sys_peer_unmap(pid: u64, addr: u64, len: u64) -> i64 {
         return ERRNO_INVAL;
     }
     let perms = PagePermissions::READ | PagePermissions::USER;
+    let mut dropped = 0;
     for i in 0..len.div_ceil(PAGE) {
         let va = VirtAddr::new(addr + i * PAGE);
         if translate_in_asid(asid, va).is_none() {
@@ -48,7 +49,9 @@ pub fn sys_peer_unmap(pid: u64, addr: u64, len: u64) -> i64 {
         }
         if let Ok(frame) = unmap_page_in_asid(asid, va, perms) {
             let _ = crate::memory::frame_alloc::deallocate_frame(frame);
+            dropped += 1;
         }
     }
+    super::guest_stats::resident(pid as u32, 0, dropped);
     0
 }

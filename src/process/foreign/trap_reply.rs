@@ -18,11 +18,13 @@
 
 use super::peer_guard::pid_arg;
 use super::registry;
-use super::trap_table::PARKED;
+use super::trap_table::{Answer, PARKED};
 use crate::syscall::microkernel::errnos::{ERRNO_INVAL, ERRNO_NOENT, ERRNO_PERM};
 
-// A guest whose supervisor died is not left asleep forever and is not told its
-// call succeeded.
+/*
+ * A guest that trapped just as it lost its supervisor is not left asleep
+ * forever and is not told its call succeeded.
+ */
 pub(super) const ABANDONED: u64 = ERRNO_NOENT as u64;
 
 /// `MkForeignReply`: answer one parked guest. Refused unless the caller is
@@ -38,17 +40,25 @@ pub fn sys_foreign_reply(pid: u64, value: u64) -> i64 {
     if registry::supervisor_of(pid) != Some(caller) {
         return ERRNO_PERM;
     }
-    answer_raw(pid, value)
+    answer_raw(pid, Answer::Value(value))
 }
 
 /// Hand a parked guest its value and wake it. The permission check is
 /// the caller's: `exec` has made it already, on the same terms.
-pub(super) fn answer_raw(pid: u32, value: u64) -> i64 {
+pub(super) fn answer_raw(pid: u32, answer: Answer) -> i64 {
     let mut parked = PARKED.lock();
     let Some(entry) = parked.iter_mut().find(|p| p.frame.pid == pid && p.answer.is_none()) else {
         return ERRNO_NOENT;
     };
-    entry.answer = Some(value);
+    entry.answer = Some(answer);
+    /*
+     * A handler answer spends the thread's stop mark as it is posted: a mark
+     * set after this, while the thread has yet to take the answer, is for
+     * another signal and stops it at its next tick. No other answer does.
+     */
+    if matches!(answer, Answer::Deliver(_)) {
+        super::interrupt::forget(pid);
+    }
     drop(parked);
     crate::sched::wake_process(pid);
     0
@@ -58,14 +68,5 @@ pub(super) fn answer_raw(pid: u32, value: u64) -> i64 {
 /// pid cannot collect an answer left behind by its predecessor.
 pub(super) fn forget(pid: u32) {
     PARKED.lock().retain(|p| p.frame.pid != pid);
-}
-
-/// Release every frame belonging to a guest whose supervisor has gone.
-pub(super) fn abandon(pid: u32) {
-    let mut parked = PARKED.lock();
-    for entry in parked.iter_mut().filter(|p| p.frame.pid == pid) {
-        entry.answer = Some(ABANDONED);
-    }
-    drop(parked);
-    crate::sched::wake_process(pid);
+    super::signal_fpu::forget(pid);
 }
