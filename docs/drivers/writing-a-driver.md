@@ -282,3 +282,12 @@ Not tested in this release.
 At this commit the flake's run of the static checks fails. One finding in its log is outside virtio-rng: the `forbidden_import_hits` gate matches an import in the AHCI driver (`nonos-ci/run-static-checks.sh:4493-4512`). The line it matches imports `read` and `write` from `super::rw` (`userland/capsule_driver_ahci/src/server/handlers/emmc/dispatch.rs:29`). The same gate covers virtio-rng, so its crate must not `use` an item named `read`, `write`, `mmap` or `_exit` either.
 
 Signing needs the publisher's private seed. The committed trust directory, `NONOS_BAKED_TRUST_DIR`, holds publisher public keys, capsule certificates and manifests and the trust-anchor policy; the seeds stay in a directory git ignores (`nonos-mk/capsule.mk:56-64`), so `nonos-mk-<slug>-sign` runs only where the seed is. [../userland/signing-and-publisher-keys.md](../userland/signing-and-publisher-keys.md) covers publisher keys.
+
+## See also
+
+- [README.md](README.md)
+- [broker-api.md](broker-api.md)
+- [../userland/manifests-and-capabilities.md](../userland/manifests-and-capabilities.md)
+- [../contributing/tests-and-proofs.md](../contributing/tests-and-proofs.md)
+- [../build/make-targets.md](../build/make-targets.md)
+- [../kernel/hardware-broker.md](../kernel/hardware-broker.md)
