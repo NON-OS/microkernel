@@ -17,18 +17,22 @@
 //! The disk list, one line each: the word, the part, the size, the bus,
 //! what it holds. A driver that did not answer is listed with its fault.
 
-use nonos_blk_client::{scan, Disk};
+use nonos_blk_client::{survey, Disk};
 
 use super::source::bytes;
 
 pub fn run() -> i32 {
-    let disks = scan();
+    let found = survey();
+    let disks = &found.disks;
+    if found.raid_hides_disks() {
+        println!("Intel RST/VMD is on: set the BIOS storage mode to AHCI (or turn VMD off), then boot this stick again");
+    }
     if disks.is_empty() {
         println!("no block driver is serving a disk on this boot");
         return 2;
     }
     println!("{:<8} {:<28} {:>10}  {:<12} holds", "word", "disk", "size", "bus");
-    for d in &disks {
+    for d in disks {
         println!("{}", line(d));
     }
     println!();
@@ -38,7 +42,12 @@ pub fn run() -> i32 {
 
 pub fn line(d: &Disk) -> String {
     match &d.fault {
-        Some(fault) => format!("{:<8} {:<28} {:>10}  {:<12} {}", "-", d.label(), "-", "-", fault),
+        Some(fault) => {
+            let name = d.identity.map(|i| i.model_str().to_string());
+            let size = if d.bytes() > 0 { bytes(d.bytes()) } else { String::from("-") };
+            let name = name.as_deref().unwrap_or(d.label());
+            format!("{:<8} {:<28} {:>10}  {:<12} {}", "-", name, size, d.label(), fault)
+        }
         None => {
             let name = d.identity.map(|i| i.model_str().to_string());
             let name = name.as_deref().unwrap_or(d.label());

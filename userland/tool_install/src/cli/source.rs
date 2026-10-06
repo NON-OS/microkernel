@@ -19,7 +19,8 @@
 
 use nonos_disk::NonosImage;
 use nonos_libc::{
-    mk_install_source, mk_install_source_size, INSTALL_SOURCE_KERNEL_IMAGE,
+    mk_install_source, mk_install_source_size, INSTALL_SOURCE_BOOT_ROOT_RECORD,
+    INSTALL_SOURCE_BOOT_TRAILER, INSTALL_SOURCE_KERNEL_APPROVAL, INSTALL_SOURCE_KERNEL_IMAGE,
     INSTALL_SOURCE_LOADER_IMAGE,
 };
 
@@ -29,6 +30,9 @@ pub const BOOT_CFG: &[u8] = b"timeout=0\ndefault=nonos\n";
 pub struct Image {
     pub loader: Vec<u8>,
     pub kernel: Vec<u8>,
+    pub boot_trailer: Vec<u8>,
+    pub boot_root: Vec<u8>,
+    pub kernel_approval: Option<Vec<u8>>,
 }
 
 impl Image {
@@ -38,11 +42,27 @@ impl Image {
         if loader.is_empty() || kernel.is_empty() {
             return Err(String::from("the bootloader did not record the running image"));
         }
-        Ok(Image { loader, kernel })
+        /* An installed disk halts at its first boot without these. */
+        let records = [INSTALL_SOURCE_BOOT_TRAILER, INSTALL_SOURCE_BOOT_ROOT_RECORD]
+            .map(|kind| read_all(kind).ok().filter(|r| !r.is_empty()));
+        let [Some(boot_trailer), Some(boot_root)] = records else {
+            return Err(String::from(
+                "the bootloader handed over no trailer or boot-root record, and a disk without them would not boot",
+            ));
+        };
+        let kernel_approval = read_all(INSTALL_SOURCE_KERNEL_APPROVAL).ok().filter(|a| !a.is_empty());
+        Ok(Image { loader, kernel, boot_trailer, boot_root, kernel_approval })
     }
 
     pub fn as_disk_image(&self) -> NonosImage<'_> {
-        NonosImage { boot_efi: &self.loader, kernel_bin: &self.kernel, boot_cfg: BOOT_CFG }
+        NonosImage {
+            boot_efi: &self.loader,
+            kernel_bin: &self.kernel,
+            boot_cfg: BOOT_CFG,
+            boot_trailer: &self.boot_trailer,
+            boot_root: &self.boot_root,
+            kernel_approval: self.kernel_approval.as_deref(),
+        }
     }
 }
 

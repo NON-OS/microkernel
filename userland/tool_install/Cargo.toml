@@ -2,7 +2,8 @@
 # eK@nonos.systems
 #
 # `install` at the terminal prompt. Lists the disks the block drivers serve,
-# writes the running image to the one named, reads it back, prints a receipt.
+# writes a whole NONOS disk to the one named (the running image, a store with
+# what this boot carries, the disk plan), reads it back, prints a receipt.
 # The layout, the drivers and the confirmation word come from the same crates
 # the desktop installer uses, so the two never disagree about a disk.
 
