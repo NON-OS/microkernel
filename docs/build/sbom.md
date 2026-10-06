@@ -56,3 +56,18 @@ The `deny.toml` policy, for the kernel crate:
 - bans: `openssl`, `openssl-sys` and `time` below 0.3 are refused, and a wildcard version is refused (`deny`, `deny.toml:58-70`);
 - sources: crates.io and the STARKs git repository only (`sources`, `deny.toml:74-78`);
 - advisories: yanked crates are refused, and three entries are tolerated with a written reason each, two unmaintained crates and the yanked `spin` 0.9.8 (`ignore`, `deny.toml:14-27`).
+
+## The other records
+
+| record | what it pins or lists |
+|---|---|
+| each crate's `Cargo.lock` | every dependency by name, version and sha256; the tree has no workspace, so every crate keeps its own (`Cargo.lock`, `tools/nix/vendor.nix:1-9`) |
+| [flake.lock](../../flake.lock) | the three flake inputs by commit and NAR hash |
+| [tools/nix/sources.txt](../../tools/nix/sources.txt) | 47 sources and toolchain releases by URL and hash |
+| [tools/nix/git-sources.json](../../tools/nix/git-sources.json) | every git dependency other than STARKs by tree hash |
+| [tools/nix/inputs.json](../../tools/nix/inputs.json) | the files each cargo build reads |
+| [tools/nix/capsules.json](../../tools/nix/capsules.json) and [store.json](../../tools/nix/store.json) | every capsule and every entry of the package store, as make declares them |
+| `nonos-build.json` in `result/` | every artifact of one build by sha256, with the resolved configuration |
+| [third_party/pqclean/PROVENANCE.md](../../third_party/pqclean/PROVENANCE.md) | the vendored PQClean snapshot and the algorithms compiled from it |
+| [third_party/minimp3/LICENSE](../../third_party/minimp3/LICENSE) | the licence of the vendored minimp3 decoder |
+| [third_party/redox/IMPORT_MAP.md](../../third_party/redox/IMPORT_MAP.md) | reference material from Redox OS, pinned by commit; it is not compiled into NONOS |
