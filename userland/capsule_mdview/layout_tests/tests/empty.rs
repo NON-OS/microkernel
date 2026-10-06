@@ -14,17 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod app;
-mod doc;
-mod draw;
-mod event;
-mod layout;
-mod load;
-mod manifest;
-mod measure;
-mod paint;
-mod scroll;
-mod theme;
-mod verdict;
+//! An empty or blank /readme.txt parses to no blocks, which used to leave the
+//! window blank after three reads of it; the page now names it instead.
 
-pub use app::MdView;
+use mdview_layout_tests::layout::parse;
+use mdview_layout_tests::verdict::{empty_page, EMPTY};
+
+#[test]
+fn an_empty_file_is_named_not_drawn_blank() {
+    assert_eq!(empty_page(parse("").len()), Some(EMPTY));
+}
+
+#[test]
+fn a_file_of_blank_lines_is_named_not_drawn_blank() {
+    assert_eq!(empty_page(parse("  \n\n\t\n").len()), Some(EMPTY));
+}
+
+#[test]
+fn a_file_with_text_is_laid_out() {
+    assert_eq!(empty_page(parse("# NONOS\n\nhello").len()), None);
+}

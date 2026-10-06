@@ -17,8 +17,9 @@
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
 
+use super::verdict::{refuse_bytes, MAX_BYTES, READ_LIMIT};
+
 const PATH: &[u8] = b"/readme.txt";
-const MAX_BYTES: u32 = 64 * 1024;
 
 pub fn read_doc() -> Result<String, &'static str> {
     let owner_pid = mk_getpid();
@@ -30,6 +31,9 @@ pub fn read_doc() -> Result<String, &'static str> {
             return Err("mdview: /readme.txt is a directory or too large");
         }
     }
-    let bytes = vfs::read_file(owner_pid, PATH, MAX_BYTES)?;
+    let bytes = vfs::read_file(owner_pid, PATH, READ_LIMIT)?;
+    if let Some(why) = refuse_bytes(bytes.len()) {
+        return Err(why);
+    }
     String::from_utf8(bytes).map_err(|_| "mdview: /readme.txt is not valid utf-8")
 }
