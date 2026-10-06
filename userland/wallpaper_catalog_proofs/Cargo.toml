@@ -1,0 +1,23 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the wallpaper catalog service's request handling.
+# Builds for the host so `cargo test` runs the real frame decode, handlers and
+# catalog (included via #[path]) against any bytes a client can send, with the
+# reply each one sends kept by the policy proofs' stand-in nonos_libc.
+[package]
+name = "wallpaper_catalog_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "policy_proofs_libc_shim", path = "../policy_proofs/libc_shim" }
+nonos_hash = { path = "../nonos_hash" }
+nonos_wallpapers = { path = "../nonos_wallpapers" }
+# The JPEG decoder the wallpaper service paints from.
+nonos_toolkit = { path = "../toolkit", default-features = false }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
