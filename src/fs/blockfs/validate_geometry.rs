@@ -18,12 +18,20 @@ use super::constants::FIRST_ALLOC_LBA;
 use super::BlockFsError;
 
 pub(crate) fn validate_geometry() -> Result<u64, BlockFsError> {
-    let geometry = crate::hardware::block_device::geometry().map_err(BlockFsError::BlockDevice)?;
-    if geometry.sector_size != crate::fs::cryptoblock::SECTOR_BYTES as u32 {
+    /* A volume in RAM has no disk under it to ask. */
+    if !crate::fs::cryptoblock::ram::on() {
+        let geometry = crate::hardware::block_device::geometry().map_err(BlockFsError::BlockDevice)?;
+        if geometry.sector_size != crate::fs::cryptoblock::SECTOR_BYTES as u32 {
+            return Err(BlockFsError::InvalidGeometry);
+        }
+    }
+    /*
+     * The volume is the window the cryptoblock layer was given, not the
+     * whole device: blockfs addresses sectors inside it.
+     */
+    let sectors = crate::fs::cryptoblock::window_sectors().ok_or(BlockFsError::InvalidGeometry)?;
+    if sectors <= FIRST_ALLOC_LBA + 1 {
         return Err(BlockFsError::InvalidGeometry);
     }
-    if geometry.sectors <= FIRST_ALLOC_LBA + 1 {
-        return Err(BlockFsError::InvalidGeometry);
-    }
-    Ok(geometry.sectors)
+    Ok(sectors)
 }

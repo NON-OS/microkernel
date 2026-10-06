@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,14 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(crate) const MAGIC: [u8; 8] = *b"NONOSFS1";
-pub(crate) const NODE_MAGIC: [u8; 8] = *b"NONOSND1";
-pub(crate) const VERSION: u64 = 1;
-pub const HEADER_RING_SECTORS: u64 = 256;
-pub(crate) const SUPERBLOCK_BYTES: usize = 104;
-pub(crate) const NODE_DIGEST_OFFSET: usize = 96;
-pub(crate) const NODE_BYTES: usize = 128;
-pub(crate) const FIRST_ALLOC_LBA: u64 = HEADER_RING_SECTORS;
-pub const MODE_DIR: u16 = 0x4000;
-pub const MODE_FILE: u16 = 0x8000;
-pub(crate) const MODE_755: u16 = 0o755;
+//! A pointer block as bytes: FANOUT little-endian LBAs, the rest zero.
+
+use super::file_consts::{FANOUT, PTR_BYTES};
+use super::read_u64::read_u64;
+use super::tree_store::Block;
+use super::write_u64::write_u64;
+use crate::fs::cryptoblock::PLAIN_BLOCK_BYTES;
+
+pub(crate) fn encode(ptrs: &[u64; FANOUT]) -> Block {
+    let mut block = [0u8; PLAIN_BLOCK_BYTES];
+    for (i, lba) in ptrs.iter().enumerate() {
+        write_u64(&mut block, i * PTR_BYTES, *lba);
+    }
+    block
+}
+
+pub(crate) fn entry(block: &Block, i: usize) -> u64 {
+    read_u64(block, i * PTR_BYTES)
+}
