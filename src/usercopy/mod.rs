@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod buffer;
 mod bytes;
 mod copy;
 mod direct;
@@ -26,6 +27,7 @@ mod value;
 mod value_rules;
 mod walk;
 
+pub(crate) use buffer::take_buffer;
 pub use bytes::*;
 pub use copy::*;
 pub use error::*;
