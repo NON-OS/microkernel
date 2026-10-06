@@ -86,3 +86,23 @@ The flake check `proofs-virtio_net_proofs` passed with 20 tests on this commit.
 - The air-gapped profile drops every network driver and the whole stack (`tools/nix/config.nix:86-93`, `networkFeatures`).
 - `nonos-mk-ethernet-prod` builds the desktop with the three wired drivers (`mk/20-build.mk:1145-1155`, `ETHERNET_DRIVER_ARTIFACTS`). No QEMU run target attaches an e1000 or RTL8139 device, so this release has no QEMU run for them.
 - The build includes the capsule makefiles of virtio-net, e1000, RTL8139 and RTL8169 and of no other Ethernet driver (`mk/20-build.mk:532-542`, `capsule_driver_e1000`). The e1000e, igc and USB capsules are therefore in no image.
+
+## Tests on this commit
+
+Each [proof crate](../../overview/glossary.md#proof-crate) compiles its driver's own source with `#[path]` and runs it on the host against models. The flake runs `cargo test --release` with overflow checks on, then clippy with warnings denied (`tools/nix/checks.nix:85-94`, `testArgs`, `clippy`). None of these tests covers the exchange between `net.core` and a driver, which is where [the receive fault](#the-receive-fault) sits.
+
+| Check | Result |
+|---|---|
+| `proofs-e1000_proofs` | passed, 20 tests |
+| `proofs-e1000e_proofs` | passed, 48 tests |
+| `proofs-igc_proofs` | passed, 58 tests |
+| `proofs-rtl8139_proofs` | passed, 15 tests |
+| `proofs-rtl8169_proofs` | failed: the tests pass, then a clippy lint stops the check; see [realtek.md](realtek.md#tests) |
+| `proofs-virtio_net_proofs` | passed, 20 tests |
+| `proofs-usbnet_proofs` | passed, 17 tests |
+| `proofs-cdc_ecm_proofs` | passed, 7 tests |
+| `proofs-cdc_ncm_proofs` | passed, 33 tests |
+| `proofs-rndis_proofs` | passed, 22 tests |
+| `proofs-ax88179_proofs` | passed, 25 tests |
+| `proofs-rtl8153_proofs` | passed, 27 tests |
+| `proofs-net_core_proofs` | passed, 31 tests |
