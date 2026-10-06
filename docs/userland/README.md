@@ -97,3 +97,11 @@ All seven are built from unmodified crates.io source by one rule (`mk/20-build.m
 Most capsules are `no_std` programs on `nonos_libc`, the userland side of the kernel ABI. Seventeen are Rust programs that use `std` through the NONOS platform layer in `toolchain/nonos-std/`. A second native runtime and an SDK are in the tree, but no capsule in this release uses them. [libc and the Rust runtimes](libc.md) says what each one does and does not do.
 
 Unmodified Linux programs run as guests of the [Linux personality](../overview/glossary.md#linux-personality), a capsule that answers their system calls, and never as capsules themselves, even the nineteen that are signed and enrolled like capsules. See [The Linux personality](linux-personality.md).
+
+## Pages in this section
+
+- [Manifests and capabilities](manifests-and-capabilities.md): the manifest format and how the capability word is fixed.
+- [Signing and publisher keys](signing-and-publisher-keys.md): `capsule-sign`, the keys, the enrollment and the market's publishers.
+- [libc and the Rust runtimes](libc.md): `nonos_libc`, `nonos_runtime`, the SDK, the toolkit and `std`.
+- [IPC services](ipc-services.md): service names, ports and message formats.
+- [The Linux personality](linux-personality.md): which Linux calls are served, which are refused, and why.
