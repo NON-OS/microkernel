@@ -15,9 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod catalog;
+pub mod cover_art;
+mod handed;
+mod order;
+mod playable;
 mod queue;
+mod rescan_gap;
+mod tag_pass;
+pub mod tags;
 mod track;
 
 pub use catalog::Library;
+pub use handed::{handed, same_path, Handed};
+pub use order::{by_album, by_artist};
 pub use queue::Queue;
+pub use rescan_gap::next_rescan_ms;
 pub use track::Track;

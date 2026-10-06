@@ -22,6 +22,9 @@ use super::decoder::Decoder;
 use super::mp3::Mp3Decoder;
 use super::wav::WavDecoder;
 
+/// The formats `open` reads, as Settings names them.
+pub const DECODERS: [&str; 2] = ["WAV", "MP3"];
+
 pub fn open(data: Vec<u8>) -> Result<Box<dyn Decoder>, &'static str> {
     if is_mp3(&data) {
         return Mp3Decoder::new(data).map(|d| Box::new(d) as Box<dyn Decoder>);

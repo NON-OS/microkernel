@@ -28,8 +28,8 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::geometry::Rect;
 use super::sprite::{
-    bell, chevron, check, close, compass, download, gear, grid, heart, home, magnifier, next, note,
-    pause, play, plus, prev, radio, repeat, shuffle, speaker, Sprite,
+    check, close, download, gear, grid, home, magnifier, next, note, pause, play, plus, prev,
+    repeat, shuffle, speaker, Sprite,
 };
 
 const SRC: u32 = 64;
@@ -49,15 +49,10 @@ pub enum Glyph {
     Home,
     Grid,
     Gear,
-    Chevron,
     Download,
-    Heart,
     Check,
     Close,
     Plus,
-    Compass,
-    Radio,
-    Bell,
 }
 
 pub struct Icons {
@@ -66,9 +61,9 @@ pub struct Icons {
 
 impl Icons {
     pub fn new() -> Icons {
-        let builders: [fn(u32, u32) -> Sprite; 21] = [
+        let builders: [fn(u32, u32) -> Sprite; 16] = [
             play, pause, prev, next, shuffle, repeat, speaker, note, magnifier, home, grid, gear,
-            chevron, download, heart, check, close, plus, compass, radio, bell,
+            download, check, close, plus,
         ];
         Icons { masks: builders.iter().map(|f| f(SRC, WHITE)).collect() }
     }

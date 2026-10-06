@@ -28,71 +28,37 @@ use crate::library::Library;
 pub enum View {
     Home,
     Library,
-    Browse,
     Search,
-    Radio,
     NowPlaying,
     Downloads,
     Settings,
 }
 
-pub const NAV: [(View, &str); 7] = [
+// Every destination here shows the person's own music, read from
+// /home/nonos/music, or what they are downloading into it. The player has no
+// radio, playlist store or catalogue behind it, so it offers none of those
+// pages rather than painting made-up ones.
+pub const NAV: [(View, &str); 5] = [
     (View::Home, "Home"),
     (View::Library, "Library"),
-    (View::Browse, "Browse"),
     (View::Search, "Search"),
-    (View::Radio, "Radio"),
     (View::NowPlaying, "Now Playing"),
     (View::Downloads, "Downloads"),
 ];
 
-pub const PLAYLISTS: [(&str, u32); 5] = [
-    ("chillwave", 72),
-    ("midnight drive", 54),
-    ("focus mode", 88),
-    ("synthwave", 62),
-    ("late night", 36),
-];
-
-pub const RAIL_TABS: [&str; 3] = ["Up next", "Lyrics", "Related"];
-
-pub const SET_SECTIONS: [&str; 9] = [
-    "Playback",
-    "Audio quality",
-    "Downloads",
-    "Appearance",
-    "Notifications",
-    "Devices",
-    "Account",
-    "Privacy",
-    "About",
-];
-
-pub const LIB_TABS: [&str; 4] = ["Songs", "Formats", "Queued", "On disk"];
+pub const LIB_TABS: [&str; 4] = ["Songs", "Artists", "Albums", "Queued"];
 
 pub struct UiState {
     pub view: View,
     pub scroll: usize,
     pub query: String,
     pub lib_tab: usize,
-    pub rail_tab: usize,
-    pub set_sec: usize,
-    pub playlist: Option<usize>,
     pub hover: Option<usize>,
 }
 
 impl UiState {
     pub fn new() -> UiState {
-        UiState {
-            view: View::Home,
-            scroll: 0,
-            query: String::new(),
-            lib_tab: 0,
-            rail_tab: 0,
-            set_sec: 0,
-            playlist: None,
-            hover: None,
-        }
+        UiState { view: View::Home, scroll: 0, query: String::new(), lib_tab: 0, hover: None }
     }
 
     pub fn go(&mut self, v: View) {
@@ -116,9 +82,7 @@ fn folded(hay: &str, needle: &str) -> bool {
     if nb.len() > hb.len() {
         return false;
     }
-    (0..=hb.len() - nb.len()).any(|i| {
-        (0..nb.len()).all(|j| hb[i + j].eq_ignore_ascii_case(&nb[j]))
-    })
+    (0..=hb.len() - nb.len()).any(|i| (0..nb.len()).all(|j| hb[i + j].eq_ignore_ascii_case(&nb[j])))
 }
 
 pub fn matches(lib: &Library, i: usize, q: &str) -> bool {

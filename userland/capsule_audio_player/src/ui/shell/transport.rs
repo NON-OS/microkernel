@@ -26,7 +26,7 @@ use crate::ui::art::cover;
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
 use crate::ui::metrics::{pill, ITEM, LABEL, R_THUMB, S2, S3, S4, S5};
-use crate::ui::paint::{disc, fill, ring, stroke, text, text_right};
+use crate::ui::paint::{disc, fill, ring, stroke, text, text_mid, text_right};
 use crate::ui::text::{mmss, truncate_to_width};
 use crate::ui::theme::{alpha, CYAN, EDGE, INK, MID, MUTE, PANEL, RED, VOID};
 use crate::ui::widget::slider;
@@ -45,10 +45,15 @@ fn meta(fb: &mut PaintBuffer, b: &Bar, v: &PlayerView, id: &str) {
     stroke(fb, b.thumb, R_THUMB, 1, EDGE);
     let tx = b.thumb.right() + S4;
     let tw = b.shuffle.x - S5 - tx;
-    let title = truncate_to_width(&v.title, ITEM, tw);
+    let named = if v.title.is_empty() { "Nothing playing" } else { v.title.as_str() };
+    let title = truncate_to_width(named, ITEM, tw);
     text(fb, tx, b.thumb.y + S2, &title, INK, ITEM);
-    let sub = truncate_to_width(&v.artist, LABEL, tw);
-    text(fb, tx, b.thumb.y + S2 + 25, &sub, MUTE, LABEL);
+    let (line, ink) = match v.notice {
+        Some(notice) => (notice, RED),
+        None => (v.artist.as_str(), MUTE),
+    };
+    let sub = truncate_to_width(line, LABEL, tw);
+    text(fb, tx, b.thumb.y + S2 + 25, &sub, ink, LABEL);
 }
 
 fn cluster(fb: &mut PaintBuffer, icons: &Icons, b: &Bar, v: &PlayerView) {
@@ -64,7 +69,7 @@ fn cluster(fb: &mut PaintBuffer, icons: &Icons, b: &Bar, v: &PlayerView) {
 
 fn scrubber(fb: &mut PaintBuffer, b: &Bar, r: Rect, v: &PlayerView) {
     let stamps = Rect::new(b.scrub.x, r.y + S3, b.scrub.w, 20);
-    text(fb, stamps.x, stamps.y, &mmss(v.pos_ms), MUTE, LABEL);
+    text_mid(fb, stamps, &mmss(v.pos_ms), MUTE, LABEL);
     text_right(fb, stamps, &mmss(v.dur_ms), MUTE, LABEL);
     slider(fb, b.scrub, v.pos_ms as u64, v.dur_ms.max(1) as u64, true);
 }

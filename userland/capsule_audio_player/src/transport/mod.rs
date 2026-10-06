@@ -16,8 +16,10 @@
 
 mod client_sink;
 mod defs;
+mod late_sink;
 mod machine;
 mod pump;
 
-pub use defs::{Fed, FeedSink, State};
+pub use defs::{FeedSink, State};
+pub use late_sink::LateSink;
 pub use machine::Transport;

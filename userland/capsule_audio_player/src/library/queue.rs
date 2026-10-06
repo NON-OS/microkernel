@@ -33,15 +33,6 @@ impl Queue {
         }
     }
 
-    pub fn remove(&mut self, track: usize) {
-        if let Some(pos) = self.items.iter().position(|&t| t == track) {
-            self.items.remove(pos);
-            if self.current > pos || self.current >= self.items.len() {
-                self.current = self.current.saturating_sub(1);
-            }
-        }
-    }
-
     pub fn contains(&self, track: usize) -> bool {
         self.items.contains(&track)
     }

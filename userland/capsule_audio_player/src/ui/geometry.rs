@@ -66,12 +66,6 @@ impl Rect {
         Rect::new(self.x, self.y + y, self.w, h)
     }
 
-    pub fn cell(&self, i: i32, n: i32, gap: i32) -> Rect {
-        let span = (self.w - gap * (n - 1)).max(0);
-        let w = span / n.max(1);
-        Rect::new(self.x + i * (w + gap), self.y, w, self.h)
-    }
-
     pub fn centred(&self, w: i32, h: i32) -> Rect {
         Rect::new(self.x + (self.w - w) / 2, self.y + (self.h - h) / 2, w, h)
     }

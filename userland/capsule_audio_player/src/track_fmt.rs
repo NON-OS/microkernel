@@ -19,11 +19,17 @@ use alloc::string::String;
 
 use crate::decode::Decoder;
 
+/// The Now Playing label: the format the decoder found and, when the file
+/// gave one, its sample rate ("MP3 44100Hz"). Every track read "WAV" before,
+/// MP3s included.
 pub fn format_of(dec: &dyn Decoder) -> String {
     let info = dec.info();
-    let mut s = String::from("WAV ");
-    push_u32(&mut s, info.rate);
-    s.push_str("Hz");
+    let mut s = String::from(dec.kind());
+    if info.rate > 0 {
+        s.push(' ');
+        push_u32(&mut s, info.rate);
+        s.push_str("Hz");
+    }
     s
 }
 
