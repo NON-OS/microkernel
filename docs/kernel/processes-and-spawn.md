@@ -44,3 +44,15 @@ What the attestation check does, from the kernel side: `measure` takes the BLAKE
 A development image may admit capsules on the path alone with `nonos-dev-attest`; `compile_error` refuses that feature together with `nonos-release` (`src/lib.rs:43-47`).
 
 The spawn site does not choose the capabilities. The word installed comes from the verified manifest, and `requested_caps` is only an upper bound for optional bits (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:25-27`).
+
+## Install
+
+`run` in `install` does the work in an order that leaves nothing behind on failure (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:28-77`):
+
+1. An empty ELF is refused, and so is a [reply inbox](../overview/glossary.md#reply-inbox) name that `InboxName` cannot hold, before anything is registered (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:30-40`).
+2. The reply inbox and its endpoint are registered unowned, because the pid does not exist yet, through `register_or_get_bootstrap_inbox` (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:41-43`).
+3. `create_process_with_parent` makes the process in the `Ready` state with its scheduling band (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:44-56`).
+4. `finish` claims the reply endpoint, registers `proc.<pid>` and `stdin.<pid>`, loads the ELF, installs the capabilities, allocates the kernel and user stacks, sets the first user context, registers the service endpoint and puts the process on the run queue (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:88-117`).
+5. If any step after the pid exists fails, `teardown` ends the process with status -1, as an exit would (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:70-80`).
+
+`install_caps` trims the word through the boot profile, which removes `Network` on a boot that runs no network, then calls `install_spawn` once (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install_caps.rs:20-24`). `for_capsule` starts 4 interactive, 7 network and 4 storage capsules in the `High` band and every other capsule in `Normal` (`src/kernel_core/process_spawn/capsule_spawn/runner/install/priority.rs:64-70`).
