@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::sys::{apic, idt, serial};
-use crate::{bus, interrupts};
+use crate::bus;
+use crate::sys::{apic, serial};
 use core::arch::asm;
 
 use super::acpi_tables::init_acpi_tables;
-#[cfg(feature = "nonos-user-entry-proof")]
-use super::syscall_msrs::print_syscall_msrs;
+use super::cpu_tables::init_cpu_tables;
 
 pub fn init_core_systems() {
     serial::init();
@@ -32,27 +31,7 @@ pub fn init_core_systems() {
     crate::time::anchor();
     crate::sys::timer::tsc::init_default();
     crate::sys::bench::mark(b"kernel_entry");
-    if crate::arch::x86_64::gdt::init().is_err() {
-        serial::println(b"[FATAL] arch GDT init failed");
-        crate::arch::halt_loop();
-    }
-    serial::println(b"[NONOS] GDT configured");
-    if crate::arch::x86_64::syscall::init().is_err() {
-        serial::println(b"[FATAL] arch syscall init failed");
-        crate::arch::halt_loop();
-    }
-    serial::println(b"[NONOS] SYSCALL configured");
-    #[cfg(feature = "nonos-user-entry-proof")]
-    print_syscall_msrs();
-    unsafe {
-        idt::setup();
-    }
-    serial::println(b"[NONOS] Early IDT configured");
-    crate::memory::heap::manager::init_bootstrap();
-    serial::println(b"[NONOS] Global allocator initialized");
-    interrupts::init_idt();
-    serial::println(b"[NONOS] Full IDT loaded");
-    crate::sys::bench::mark(b"kernel_idt_ready");
+    init_cpu_tables();
     init_acpi_tables();
     apic::init();
     serial::println(b"[NONOS] APIC initialized");
@@ -61,8 +40,7 @@ pub fn init_core_systems() {
     // tick the moment the CPU idles) before the timer is armed.
     crate::arch::x86_64::interrupt::apic::idle_timer::init();
     if crate::arch::x86_64::interrupt::apic::preemption::install_on_bsp().is_err() {
-        serial::println(b"[FATAL] preemption timer install failed");
-        crate::arch::halt_loop();
+        crate::boot::stop("preemption timer install failed", "LAPIC timer");
     }
     serial::println(b"[NONOS] Preemption timer armed");
     crate::sys::bench::mark(b"kernel_timer_ready");
