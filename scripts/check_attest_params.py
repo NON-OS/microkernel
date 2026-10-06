@@ -35,8 +35,11 @@ import sys
 from pathlib import Path
 
 PARAMS = ["LOG_ROUNDS", "N_QUERIES", "GRIND_BITS", "EXTRA_BLOWUP_BITS"]
-SOURCE = Path("nonos-stark/src/attest_params.rs")
-TREES = ["src", "nonos-bootloader/src", "nonos-stark-enroll/src", "userland"]
+SOURCE = Path("stark-attest/crates/stark-core/src/attest_params.rs")
+# security/ and the bootloader's tools were missing, and both held a copy
+# still at three rounds after the gate moved to five.
+TREES = ["src", "nonos-bootloader/src", "nonos-bootloader/tools", "nonos-stark-enroll/src",
+         "security", "userland"]
 
 DECL = re.compile(rf"^\s*(?:pub(?:\([^)]*\))?\s+)?const ({'|'.join(PARAMS)})\s*:", re.M)
 
