@@ -50,6 +50,10 @@ pub enum Field {
     AudioBalance = 0x011F,
     AlertSounds = 0x0120,
     StartupChime = 0x0121,
+    Persistent = 0x0122,
+    AppsOff = 0x0123,
+    NetworkRoute = 0x0124,
+    WallpapersKept = 0x0125,
     KernelAslr = 0x0201,
     KernelStackGuard = 0x0202,
     KernelNxBit = 0x0203,
@@ -64,4 +68,6 @@ pub enum Field {
     KernelSeccomp = 0x020C,
     Hostname = 0x0301,
     DomainName = 0x0302,
+    Username = 0x0303,
+    QwenTier = 0x0304,
 }
