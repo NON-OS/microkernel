@@ -71,3 +71,17 @@ After a `|`, only ten built-ins read the piped lines: `grep`, `sort`, `uniq`, `c
 `a &` starts a job and gives the prompt back. `jobs` lists the jobs, and `fg <id>` brings one to the foreground. Nothing is ever stopped, so `bg <id>` only says that a job runs on.
 
 The built-ins that wait on the network or on an install run as jobs even in the foreground, so the window keeps drawing and `Ctrl+C` is read: `ping`, `install`, `curl` with its other names, `git clone`, and `pkg install` or `pkg remove` (`userland/capsule_terminal/src/jobs/classify.rs`).
+
+## What Ctrl+C does
+
+| While | `Ctrl+C` |
+|---|---|
+| typing a line | Drops the line and prints `^C`. |
+| searching the history | Leaves the search and puts the line back as it was. |
+| a Linux program runs in the foreground | Sends the byte 0x03 to the program's terminal, which turns it into SIGINT for the foreground group. The shell stays. |
+| an installed tool runs in the foreground | Sends SIGINT (2) to it and ends the job. |
+| a built-in job runs | Cancels the job. A `git clone` closes its connection and writes nothing. |
+
+Code: `interrupt` in `userland/capsule_terminal/src/event/interrupt.rs`. `Ctrl+Shift+C` copies and never interrupts.
+
+`Ctrl+D` on an empty input line ends the input of a Linux program. Any other program has no end of input yet, and the terminal prints `^D (end of input is not delivered to this program)`.
