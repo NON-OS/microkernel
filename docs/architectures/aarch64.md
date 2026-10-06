@@ -54,3 +54,24 @@ python3 scripts/check_aarch64_boot.py --self-test
 ```
 
 On this tree it answers that 17 bad logs were rejected and 4 good ones accepted.
+
+## Boot path
+
+```mermaid
+flowchart LR
+    S[_start] --> E[kernel_entry]
+    E --> D[dtb_adapter]
+    D --> I[init]
+    I --> H[KernelHandoff]
+    H --> K[microkernel_init]
+    K --> M[microkernel_main]
+```
+
+- `_start` drops from EL2 to EL1 when entered at EL2, resets SCTLR_EL1 with the MMU and caches off, parks every core but the first in `wfe`, clears BSS, turns on FP and SIMD in CPACR_EL1, installs VBAR_EL1 and calls `kernel_entry` with the device tree pointer from x0 (`src/arch/aarch64/asm/start.S:13-77`).
+- `kernel_entry` opens the PL011 console on its default base, fills `BootInfo` through `dtb_adapter`, runs `init`, and says on the console when it found no usable device tree and assumed QEMU `virt` (`src/arch/aarch64/boot/entry.rs:32-69`).
+- It then arms the bootstrap heap and builds a `KernelHandoff`, so from `microkernel_init` and `microkernel_main` on the kernel runs the same code x86_64 runs (`src/arch/aarch64/boot/entry.rs:76-80`). [Boot handoff](../kernel/boot-handoff.md) explains the [handoff](../overview/glossary.md#handoff).
+- `init` brings up the console and the CPU, latches the CPU list, publishes the PCI windows and the RTC base, installs the vectors, runs `security::init_all`, `init_mmu`, `init_gic` and the timer, starts the other cores, and unmasks interrupts last (`src/arch/aarch64/boot/init.rs:20-81`).
+
+`init` stops the boot through `refuse` when `security::init_all` fails (`src/arch/aarch64/boot/init.rs:53-55`), when the device tree names a GIC other than v3 (`src/arch/aarch64/boot/init.rs:57-59`) and when the timer tick cannot be installed, for example with no timer interrupt id (`install_on_cpu`, `src/arch/aarch64/timer/preemption/install.rs:23-32`). `security::init_all` turns on pointer authentication, BTI, memory tagging and the speculation mitigations (`init_pac`, `src/arch/aarch64/security/init_all.rs:22-28`), each feature only where the ID registers report it, as `has_feature` does for pointer authentication (`src/arch/aarch64/security/pac/init.rs:24-27`). The speculation barrier itself runs on every CPU (`speculative_barrier`, `src/arch/aarch64/security/spectre/init.rs:22-27`).
+
+The generic timer ticks every 10 ms and each tick calls the shared scheduler's `tick` (`TICK_PERIOD_NS`, `src/arch/aarch64/timer/preemption/handler.rs:20-25`). Page descriptors keep execution from crossing privilege: `execute_never` sets PXN on every user page and UXN on every kernel page, whatever the caller asked (`src/arch/paging/descriptor/aarch64/build.rs:53-63`).
