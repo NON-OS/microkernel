@@ -47,15 +47,13 @@ pub fn spawn_driver_virtio_gpu_capsule() -> Result<(), SpawnError> {
         manifest_bytes: DRIVER_VIRTIO_GPU_MANIFEST_BYTES,
         attestation_trailer: DRIVER_VIRTIO_GPU_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
+        requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
             | crate::capabilities::serial_debug_cap()
             | Capability::GraphicsSurfaceCreate.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Driver.bit()
             | Capability::Mmio.bit()
-            | Capability::Irq.bit()
             | Capability::Dma.bit()
             | Capability::Pio.bit(),
         debug_tag: b"",
