@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Read the package store of a NONOS image or stick the way vfs reads it at
+boot, and say what vfs would stage and what it would refuse.
+
+    tools/nonos-store-check IMAGE
+
+The rules are vfs's own, entry by entry:
+  - the header (userland/capsule_vfs/src/blk/store_header.rs entry_count):
+    magic NONOSTR1, version 1, at most MAX_ENTRIES descriptors, or the whole
+    store is refused;
+  - each descriptor (store_toc.rs descriptor): an extent on a sector, from
+    past the table's own sectors up to STORE_END_LBA, which does not wrap,
+    and a name nonos_disk_map's valid_name takes;
+  - the budgets (store_toc.rs decode), in table order: 96 MiB of loaded
+    payload and 20 MiB streamed (under /Wallpapers/), an entry past either
+    refused;
+  - the digest (blk/store.rs verify): digest16 of the payload, unless zero.
+
+Any refusal is what vfs reports as store status 9. The exit status is 0 only
+for a store vfs stages whole."""
+
+import struct
+import sys
+
+SECTOR = 512
+STORE_BASE_LBA = 256
+STORE_END_LBA = 245_760
+MAGIC = b"NONOSTR1"
+VERSION = 1
+HEADER_LEN, ENTRY_LEN, NAME_LEN = 32, 128, 96
+MAX_ENTRIES = 512
+MAX_TOTAL_BYTES = 96 * 1024 * 1024
+STREAMED_PREFIX = "/Wallpapers/"
+STREAMED_MAX_BYTES = 20 * 1024 * 1024
+FNV_OFFSET = 0x6c62272e07bb014262b821756295c58d
+FNV_PRIME = 0x0000000001000000000000000000013b
+MASK = (1 << 128) - 1
+
+
+def digest16(data):
+    h = FNV_OFFSET
+    for b in data:
+        h = ((h ^ b) * FNV_PRIME) & MASK
+    return h.to_bytes(16, "big")
+
+
+def valid_name(name):
+    b = name.encode("latin-1")
+    if not b.startswith(b"/") or len(b) > NAME_LEN:
+        return False
+    if not all(0x20 <= c <= 0x7E for c in b):
+        return False
+    return all(part not in (b"", b".", b"..") for part in b[1:].split(b"/"))
+
+
+def check(image):
+    with open(image, "rb") as f:
+        f.seek(STORE_BASE_LBA * SECTOR)
+        head = f.read(SECTOR)
+        if len(head) < HEADER_LEN or head[:8] != MAGIC or struct.unpack_from("<I", head, 8)[0] != VERSION:
+            print(f"refused whole: no store header at LBA {STORE_BASE_LBA} (magic {head[:8]!r})")
+            return 1
+        count = struct.unpack_from("<I", head, 12)[0]
+        if count > MAX_ENTRIES:
+            print(f"refused whole: {count} entries, vfs takes at most {MAX_ENTRIES}")
+            return 1
+        table = HEADER_LEN + ENTRY_LEN * count
+        f.seek(STORE_BASE_LBA * SECTOR)
+        toc = f.read(-(-table // SECTOR) * SECTOR)
+        if len(toc) < table:
+            print("refused whole: the image ends inside the table")
+            return 1
+        base = STORE_BASE_LBA * SECTOR
+        floor = base + -(-table // SECTOR) * SECTOR
+        end = STORE_END_LBA * SECTOR
+        loaded, streams = MAX_TOTAL_BYTES, STREAMED_MAX_BYTES
+        refused = 0
+        print(f"{count} entries; payloads from byte {floor} to {end}")
+        for slot in range(count):
+            raw = toc[HEADER_LEN + ENTRY_LEN * slot:HEADER_LEN + ENTRY_LEN * (slot + 1)]
+            field = raw[:NAME_LEN]
+            name = field[:field.index(0)] if 0 in field else field
+            name = name.decode("latin-1")
+            offset, length = struct.unpack_from("<QQ", raw, NAME_LEN)
+            digest = raw[NAME_LEN + 16:NAME_LEN + 32]
+            why = None
+            if offset % SECTOR or offset < floor or offset + length > end or offset + length >= 1 << 64:
+                why = f"extent {offset}+{length} is out of bounds"
+            elif not valid_name(name):
+                why = "its name is not one vfs takes"
+            else:
+                stream = name.startswith(STREAMED_PREFIX)
+                left = streams if stream else loaded
+                if length > left:
+                    why = f"past the {'streamed' if stream else 'loaded'} budget ({left} bytes left)"
+                elif stream:
+                    streams -= length
+                else:
+                    loaded -= length
+            if why is None and digest != bytes(16) and not name.startswith(STREAMED_PREFIX):
+                f.seek(offset)
+                data = f.read(length)
+                if len(data) < length:
+                    why = "the image ends inside its payload"
+                elif digest16(data) != digest:
+                    why = "its digest does not match its bytes"
+            mark = "ok     " if why is None else "REFUSED"
+            print(f"  {mark} {slot:3d} {name:<52} {length:>10} @ {offset}" + (f"  ({why})" if why else ""))
+            refused += why is not None
+        used = MAX_TOTAL_BYTES - loaded
+        print(f"loaded {used} of {MAX_TOTAL_BYTES} bytes, streamed {STREAMED_MAX_BYTES - streams} "
+              f"of {STREAMED_MAX_BYTES}; {refused} refused")
+        if refused:
+            print("vfs would report store status 9")
+        return 1 if refused else 0
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        sys.exit(__doc__)
+    sys.exit(check(sys.argv[1]))

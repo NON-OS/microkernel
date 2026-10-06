@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Serve package mirrors to a booted guest, through this machine's proxy.
+
+The guest's installer speaks plain HTTP to an address, with the mirror's
+name as the Host line. This relay listens on loopback (10.0.2.2 to a QEMU
+guest on user networking), refuses any Host line not on its list, fetches
+the path over HTTPS through HTTPS_PROXY, caches it, and returns it. Nothing
+it relays needs to be trusted: every file is held to its distribution's
+signature inside the guest. It never dials a mirror directly.
+"""
+
+import argparse
+import hashlib
+import http.server
+import os
+import pathlib
+import ssl
+import sys
+import urllib.error
+import urllib.request
+
+HOSTS = {
+    "dl-cdn.alpinelinux.org",
+    "geo.mirror.pkgbuild.com",
+    "www.blackarch.org",
+    "deb.debian.org",
+    "kali.download",
+}
+
+
+def fetcher(ca):
+    ctx = ssl.create_default_context(cafile=ca) if ca else ssl.create_default_context()
+    proxy = urllib.request.ProxyHandler()  # HTTPS_PROXY from the environment
+    return urllib.request.build_opener(proxy, urllib.request.HTTPSHandler(context=ctx))
+
+
+def handler(cache, opener, log):
+    class Relay(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            host = self.headers.get("Host", "").split(":")[0]
+            if host not in HOSTS or ".." in self.path or not self.path.startswith("/"):
+                return self.reply(403, b"refused\n", f"refused {host}{self.path}")
+            key = cache / hashlib.sha256(f"{host}{self.path}".encode()).hexdigest()
+            if not key.exists():
+                try:
+                    with opener.open(f"https://{host}{self.path}", timeout=120) as r:
+                        body = r.read()
+                except urllib.error.HTTPError as e:
+                    return self.reply(e.code, b"", f"{e.code} {host}{self.path}")
+                except OSError as e:
+                    return self.reply(502, b"", f"502 {host}{self.path}: {e}")
+                key.write_bytes(body)
+            body = key.read_bytes()
+            self.reply(200, body, f"200 {len(body):9} {host}{self.path}")
+
+        def reply(self, code, body, line):
+            print(line, file=log, flush=True)
+            self.send_response(code)
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Connection", "close")
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *_):
+            pass
+
+    return Relay
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--port", type=int, default=8080)
+    ap.add_argument("--cache", type=pathlib.Path, required=True)
+    ap.add_argument("--ca", default=os.environ.get("SSL_CERT_FILE") or "/root/.ccr/ca-bundle.crt")
+    a = ap.parse_args()
+    a.cache.mkdir(parents=True, exist_ok=True)
+    ca = a.ca if os.path.exists(a.ca) else None
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", a.port), handler(a.cache, fetcher(ca), sys.stdout))
+    print(f"relay on 127.0.0.1:{a.port} for {', '.join(sorted(HOSTS))}", flush=True)
+    server.serve_forever()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

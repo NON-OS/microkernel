@@ -1,0 +1,267 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""The build receipt: what `make build` produced, from what, and whether it is
+the same as last time, printed and written to receipts/<profile>.json.
+
+It names every artifact by sha256, the toolchain by the store path that pins
+it, every pinned input by hash (the flake's inputs, every C source, every git
+dependency, every Cargo.lock), the installer the image carries, and what the
+seal will enroll and sign. Then it holds the build to the receipt already
+committed for that profile: every artifact hash side by side, and one verdict.
+
+    tools/nonos-receipt [--result result] [--receipts receipts]
+
+A receipt written by a clean tree is the one to commit. Two machines that
+build the same commit must write the same artifacts section; that is the
+reproducibility claim, and anyone can test it by building and diffing.
+"""
+
+import argparse
+import hashlib
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+# The pieces of an image that install it, by capsule slug.
+INSTALLER = ("setup-wizard", "install", "install-cli")
+
+
+def sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+def git(*args):
+    r = subprocess.run(["git", *args], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
+def inputs(root):
+    """Every pinned input, by hash."""
+    lock = json.loads((root / "flake.lock").read_text())
+    flake = {}
+    for name, node in sorted(lock["nodes"].items()):
+        locked = node.get("locked")
+        if locked:
+            flake[name] = {"rev": locked.get("rev", ""), "narHash": locked["narHash"]}
+    sources = {}
+    for line in (root / "tools/nix/sources.txt").read_text().splitlines():
+        parts = line.split()
+        if len(parts) >= 3 and not line.startswith("#"):
+            sources[parts[0]] = parts[2]
+    gits = {sha: pin["hash"] for sha, pin in
+            sorted(json.loads((root / "tools/nix/git-sources.json").read_text())["sources"].items())}
+    locks = sorted(p for p in root.rglob("Cargo.lock") if "target" not in p.parts and ".git" not in p.parts)
+    digest = hashlib.sha256()
+    for p in locks:
+        digest.update(f"{p.relative_to(root)} {sha256(p)}\n".encode())
+    return {
+        "flake": flake,
+        "rust_toolchain_toml": sha256(root / "rust-toolchain.toml"),
+        "c_sources": sources,
+        "git_sources": gits,
+        "cargo_locks": {"count": len(locks), "sha256_of_all": digest.hexdigest()},
+    }
+
+
+def embedded(result, arts):
+    """Which capsules the kernel binary carries, by their bytes: the kernel
+    embeds each capsule ELF whole, so a capsule is in the image exactly when
+    its file appears inside the kernel's. None when no kernel was built."""
+    path = result / "kernel/nonos-kernel"
+    if not path.is_file():
+        return None
+    kernel = path.read_bytes()
+    found = {}
+    for rel in arts:
+        if rel.startswith("capsules/") and rel.count("/") == 2:
+            elf = (result / rel).read_bytes()
+            if len(elf) >= 4096:
+                found[rel.split("/")[1]] = elf[:65536] in kernel
+    return found
+
+
+def enforcement(result, cfg, arts):
+    """The profile's promises, held to the kernel's bytes."""
+    catalogue = {e["slug"]: e for e in json.loads((result / "capsules/catalogue.json").read_text())}
+    inside = embedded(result, arts)
+    taken = set(cfg.get("taken_out") or [])
+    if inside is None:
+        # Nothing to hold the promises to; the build says why the kernel is
+        # missing, and the seal builds it and checks it.
+        return {
+            "capsules_in_kernel": [],
+            "taken_out": sorted(taken),
+            "taken_out_but_present": [],
+            "installer_missing": [],
+            "holds": None,
+        }
+    leaked = sorted(s for s, yes in inside.items() if yes and catalogue.get(s, {}).get("feature") in taken)
+    missing = sorted(s for s in INSTALLER if cfg.get("installer") and not inside.get(s))
+    return {
+        "capsules_in_kernel": sorted(s for s, yes in inside.items() if yes),
+        "taken_out": sorted(taken),
+        "taken_out_but_present": leaked,
+        "installer_missing": missing,
+        "holds": not leaked and not missing,
+    }
+
+
+def receipt(root, result):
+    build = json.loads((result / "nonos-build.json").read_text())
+    cfg = build["config"]
+    arts = build["artifacts"]
+    capsules = {k.split("/")[1]: v for k, v in arts.items() if k.startswith("capsules/") and k.count("/") == 2}
+    installer = {s: capsules.get(s) for s in INSTALLER}
+    return {
+        "format": "nonos-receipt/1",
+        "commit": git("rev-parse", "HEAD"),
+        "tree_clean": git("status", "--porcelain", "--untracked-files=no") == "",
+        "profile": cfg["profile"],
+        "name": cfg["name"],
+        "config": {k: cfg.get(k) for k in ("about", "loader", "smp", "install", "rollback_index", "network", "installer", "features", "kernel", "bootloader")},
+        "toolchain": {"versions": cfg.get("toolchain", {}), "store_paths": cfg.get("toolchain_paths", {})},
+        "inputs": inputs(root),
+        "artifacts": arts,
+        "enforced": enforcement(result, cfg, arts),
+        "installer": {
+            "carried": bool(cfg.get("installer")),
+            "capsules": installer if cfg.get("installer") else {},
+        },
+        "seal": {
+            "enrolls": {
+                "kernel": arts.get("kernel/nonos-kernel"),
+                "bootloader": arts.get("bootloader/nonos_boot.efi"),
+                "capsules": len(capsules),
+            },
+            "signs": [
+                "every capsule's certificate and manifest (Ed25519 and ML-DSA-65, publisher keys)",
+                "the kernel (Ed25519 and ML-DSA-65), at rollback index %s" % cfg.get("rollback_index"),
+                "boot_root.approval and kernel.approval (device policy key)",
+                "BOOTX64.EFI for Secure Boot (db key)",
+            ],
+            "boundary": build["boundary"],
+        },
+    }
+
+
+def compare(new, old):
+    """(verdict, rows): every artifact's hash beside the committed receipt's."""
+    if old is None:
+        return "first receipt for this profile: nothing to compare yet", []
+    rows, differ = [], 0
+    for path in sorted(set(new["artifacts"]) | set(old["artifacts"])):
+        a, b = old["artifacts"].get(path), new["artifacts"].get(path)
+        same = a == b
+        differ += not same
+        rows.append((path, a, b, same))
+    same_inputs = new["inputs"] == old["inputs"] and new["toolchain"] == old["toolchain"]
+    if differ == 0:
+        return f"REPRODUCED: all {len(rows)} artifacts are the bytes of the receipt from {old['commit'][:9]}", rows
+    if same_inputs and new["commit"] == old["commit"]:
+        return f"NOT REPRODUCED: {differ} of {len(rows)} artifacts differ from the same commit and inputs", rows
+    return (f"CHANGED: {differ} of {len(rows)} artifacts differ from the receipt of {old['commit'][:9]}, "
+            "built from other sources; commit this receipt once the change is meant"), rows
+
+
+def enforced(r, e):
+    p = print
+    p(f"\nwhat the kernel's bytes hold ({len(e['capsules_in_kernel'])} capsules embedded)")
+    p(f"  taken out by the profile: {len(e['taken_out'])} features; present anyway: "
+      f"{', '.join(e['taken_out_but_present']) or 'none'}")
+    if r["installer"]["carried"]:
+        p(f"  installer in the kernel: {'yes' if not e['installer_missing'] else 'MISSING ' + ', '.join(e['installer_missing'])}")
+    p(f"  the profile's promises {'HOLD' if e['holds'] else 'DO NOT HOLD'}")
+
+
+def show(r, verdict, rows):
+    p = print
+    p(f"\nNONOS build receipt: {r['name']} at {r['commit'][:12]}{'' if r['tree_clean'] else ' (uncommitted changes)'}")
+    p(f"  {r['config']['about']}")
+    p(f"  loader {r['config']['loader']}, rollback index {r['config']['rollback_index']}, "
+      f"network {'in' if r['config']['network'] else 'out'}, installer {'carried' if r['installer']['carried'] else 'not carried'}")
+    p("\ntoolchain")
+    for k, v in r["toolchain"]["store_paths"].items():
+        p(f"  {k:<10} {v}")
+    p("\npinned inputs")
+    for k, v in r["inputs"]["flake"].items():
+        p(f"  {k:<14} {v['rev'][:12]:<12} {v['narHash']}")
+    p(f"  {len(r['inputs']['c_sources'])} C sources by sha256, {len(r['inputs']['git_sources'])} git dependency trees, "
+      f"{r['inputs']['cargo_locks']['count']} Cargo.lock files ({r['inputs']['cargo_locks']['sha256_of_all'][:16]})")
+    arts = r["artifacts"]
+    p(f"\nartifacts ({len(arts)} files)")
+    for path in ("kernel/nonos-kernel", "bootloader/nonos_boot.efi", "nonos.cdx.json"):
+        if path in arts:
+            p(f"  {arts[path]}  {path}")
+    p(f"  ... and {len(arts) - 3} more, every one in receipts/{r['name']}.json")
+    if r["installer"]["carried"]:
+        p("\ninstaller")
+        for s, h in r["installer"]["capsules"].items():
+            p(f"  {h or 'MISSING':<64}  {s}")
+    e = r["enforced"]
+    if e["holds"] is None:
+        p(f"\nthe kernel: {r['config'].get('kernel')}")
+        p("  the profile's promises are held to the kernel's bytes once it is built")
+    else:
+        enforced(r, e)
+    p("\nwhat the seal enrolls and signs (ek's keys; never this build)")
+    e = r["seal"]["enrolls"]
+    p(f"  kernel {e['kernel'] or r['config'].get('kernel')}")
+    p(f"  loader {e['bootloader'] or r['config'].get('bootloader')}")
+    p(f"  {e['capsules']} capsules")
+    for s in r["seal"]["signs"]:
+        p(f"  signs {s}")
+    changed = [row for row in rows if not row[3]]
+    if changed:
+        p("\nagainst the committed receipt")
+        for path, a, b, _ in changed[:40]:
+            p(f"  {path}\n    was {a}\n    now {b}")
+        if len(changed) > 40:
+            p(f"  ... {len(changed) - 40} more")
+    p(f"\n{verdict}\n")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--result", default="result", type=Path)
+    ap.add_argument("--receipts", default="receipts", type=Path)
+    ap.add_argument("--root", default=".", type=Path)
+    a = ap.parse_args()
+    r = receipt(a.root, a.result)
+    path = a.receipts / f"{r['name']}.json"
+    old = json.loads(path.read_text()) if path.is_file() else None
+    verdict, rows = compare(r, old)
+    r["verdict"] = verdict
+    a.receipts.mkdir(parents=True, exist_ok=True)
+    # A build that fails to reproduce never replaces the receipt it failed.
+    if verdict.startswith("NOT REPRODUCED"):
+        path = path.with_name(f"{r['name']}.rejected.json")
+    path.write_text(json.dumps(r, indent=1, sort_keys=True) + "\n")
+    show(r, verdict, rows)
+    if r["enforced"]["holds"] is False:
+        sys.exit("the kernel does not keep the profile's promises; see above")
+    if verdict.startswith("NOT REPRODUCED"):
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

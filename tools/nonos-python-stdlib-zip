@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+"""The standard library of a CPython build as the zip its getpath finds at
+<prefix>/lib/python312.zip: every module's source, and its bytecode as an
+unchecked hash-based .pyc, which zipimport loads as is, so nothing is compiled
+at start and tracebacks still show the source. The tests, the Tk and IDLE
+modules and the bundled pip are left out. Entries are sorted and stamped
+with one date, and in the generated sysconfig module the build directory is
+mapped to /build and the repository, where the toolchains live, to /nonos, so
+the same sources give the same bytes on any machine.
+
+    tools/nonos-python-stdlib-zip SRC BUILD_ROOT REPO_ROOT OUT
+
+Run with the build's own Python: bytecode is only valid for its version."""
+
+import importlib.util
+import marshal
+import os
+import sys
+import zipfile
+
+SKIP = {"test", "idlelib", "tkinter", "turtledemo", "ensurepip", "lib2to3", "__pycache__",
+        "site-packages", "__phello__"}
+STAMP = (2026, 9, 30, 0, 0, 0)
+UNCHECKED_HASH = 0b01
+
+
+def sources(src):
+    lib = os.path.join(src, "Lib")
+    for root, dirs, names in os.walk(lib):
+        dirs[:] = sorted(d for d in dirs if d not in SKIP)
+        for name in sorted(names):
+            if name.endswith(".py"):
+                path = os.path.join(root, name)
+                yield os.path.relpath(path, lib), path
+    built = os.path.join(src, open(os.path.join(src, "pybuilddir.txt")).read().strip())
+    for name in sorted(os.listdir(built)):
+        if name.startswith("_sysconfigdata_") and name.endswith(".py"):
+            yield name, os.path.join(built, name)
+
+
+def pyc(source, arcname):
+    code = compile(source, f"/usr/lib/python312.zip/{arcname}", "exec", dont_inherit=True)
+    flags = UNCHECKED_HASH.to_bytes(4, "little")
+    return importlib.util.MAGIC_NUMBER + flags + importlib.util.source_hash(source) + marshal.dumps(code)
+
+
+def put(zf, arcname, data):
+    info = zipfile.ZipInfo(arcname, STAMP)
+    info.compress_type = zipfile.ZIP_DEFLATED
+    info.external_attr = 0o644 << 16
+    zf.writestr(info, data, compresslevel=9)
+
+
+def main():
+    src, build_root, repo_root, out = sys.argv[1:5]
+    # Every spelling the build may have recorded, as given, normalised and
+    # with symlinks resolved, the longest first so none leaves a tail.
+    def spellings(path, to):
+        return [(p, to) for p in {path, os.path.normpath(path), os.path.realpath(path)}]
+    maps = sorted(spellings(build_root, "/build") + spellings(repo_root, "/nonos"),
+                  key=lambda m: len(m[0]), reverse=True)
+    entries = sorted(sources(src))
+    with zipfile.ZipFile(out + ".part", "w") as zf:
+        for arcname, path in entries:
+            data = open(path, "rb").read()
+            if arcname.startswith("_sysconfigdata_"):
+                for path, to in maps:
+                    data = data.replace(path.encode(), to.encode())
+            put(zf, arcname, data)
+            put(zf, arcname[:-3] + ".pyc", pyc(data, arcname))
+    os.replace(out + ".part", out)
+    print(f"{out}: {len(entries)} modules, {os.path.getsize(out)} bytes")
+
+
+if __name__ == "__main__":
+    main()
