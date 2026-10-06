@@ -37,3 +37,13 @@ The kernel starts this driver on any machine with an xHCI controller, since a st
 Each root port gets three tries (`userland/capsule_driver_usb_msc/src/scan/pass.rs:27-28`, `TRIES`). A device of another class is left to its own driver. The first device that binds is served for the rest of the boot, and the driver does not look for a second one (`userland/capsule_driver_usb_msc/src/server/runner.rs:47-71`, `Medium::Absent`).
 
 The driver looks at the root ports of the xHCI controllers only. A stick behind a USB hub is not found in this release (`userland/capsule_driver_usb_msc/src/xhci/port.rs:34-47`, `connected_ports`); see [USB hubs](../usb/hubs.md).
+
+## Bringing a device up
+
+Bring-up opens with INQUIRY (`userland/capsule_driver_usb_msc/src/disk/ready.rs:39-97`, `unit_ready`):
+
+- INQUIRY first, up to five tries, since some firmware answers nothing else correctly until it has seen one;
+- TEST UNIT READY up to 600 times, 50 ms apart, which gives a USB-SATA bridge or a slow stick 30 s, with one START STOP UNIT when the medium reports NOT READY;
+- on a card reader with several logical units, the first unit with a medium is served, and an empty slot that is not the last unit is given up at once.
+
+It then reads the size with READ CAPACITY(10), and asks READ CAPACITY(16) of a device past 2^32 blocks (`userland/capsule_driver_usb_msc/src/disk/ready.rs:99-119`, `capacity`).
