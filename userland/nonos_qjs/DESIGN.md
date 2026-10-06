@@ -24,8 +24,10 @@ capsule, with no libc and no operating system underneath it.
                           Rust global allocator, libm crate, compiler_builtins
 ```
 
-- `Engine` (src/engine.rs) is the safe Rust surface: `new()`, `eval()`,
-  `install_dom(host)` and `dispatch_event(node, type)`. Values never cross the
+- `Engine` (src/engine/, split into lifecycle.rs, eval.rs and events.rs) is
+  the safe Rust surface: `new()`, `eval()`, `install_dom(host)`,
+  `dispatch_event(node, type)`, `flush_timers(now_ms)` and
+  `take_navigation()`. Values never cross the
   FFI boundary; only handles and strings do.
 - The C core (vendor/) is QuickJS-ng: quickjs.c, libregexp.c, libunicode.c,
   dtoa.c. It is compiled freestanding by build.rs.
@@ -106,8 +108,9 @@ engine holds a pointer into `page_dom`, which keeps its address for the page's
 life, so a navigation drops the engine before it replaces the DOM. A click, a
 form field edit or a submit dispatches straight into the retained engine and the
 page relays out, so a script that mutates the tree in response to input is
-reflected on screen. QuickJS is the browser's only script executor; the earlier
-tree-walk parser and interpreter are gone.
+reflected on screen. QuickJS is the browser's only script executor. The earlier
+tree-walk interpreter under capsule_browser/src/browser/js is still compiled,
+but `World::empty` is an inert companion that no script runs in.
 
 ## Verification
 
@@ -150,12 +153,11 @@ The engine, the DOM write and query surface, events and inline style are done,
 building and running on the kernel. What remains to render an arbitrary React or
 Svelte site:
 
-- External `<script src>` bundles are not fed to the engine yet; only inline
-  scripts run. Most framework apps ship an external bundle, so fetching those
-  into the engine is the next step.
-- setTimeout, setInterval and fetch/XHR are not bound to the host loop yet, so a
-  standalone microtask pump and a network binding are still to come. The browser
-  keeps its socket-level fetch and timer pumps as the scaffolding these will use.
+- External `<script src>` files are fetched and run in document order, but
+  module scripts run as classic scripts: import graphs are not resolved.
+- setTimeout and setInterval live in the prelude, and the browser drives them
+  with `flush_timers` on each tick. fetch, XMLHttpRequest and WebSocket are not
+  bound, so a script has no network.
 - Node identity, so getElementById returns the same object twice.
 - WebGL, WebAssembly and Web Workers remain out of scope, so canvas-and-shader
   pages will not fully render.

@@ -8,20 +8,28 @@ import { dirname, join } from 'node:path';
 import { extractPrelude } from './extract.mjs';
 import { classListChecks } from './classlist.mjs';
 import { historyChecks } from './history.mjs';
+import { lifecycleChecks, stubDocument } from './lifecycle.mjs';
+import { navigatorChecks } from './navigator.mjs';
 import { locationChecks } from './location.mjs';
+import { computedChecks } from './computed.mjs';
 import { datasetChecks } from './dataset.mjs';
+import { dialogChecks } from './dialogs.mjs';
 import { eventChecks } from './events.mjs';
+import { scrollChecks } from './scroll.mjs';
 import { storageChecks } from './storage.mjs';
 import { timerChecks } from './timers.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const source = join(here, '..', '..', 'vendor', 'dom_bindings.c');
+const requestSource = join(here, '..', '..', '..', 'capsule_browser', 'src', 'browser', 'http', 'request.rs');
 
 // The prelude replaces console with a sink, which is right in a capsule and
 // would silence these checks, so stdout is held onto first.
 const say = s => process.stdout.write(`${s}\n`);
 
 const prelude = extractPrelude(source);
+// The capsule installs document before the prelude runs; so does this.
+stubDocument();
 // eslint-disable-next-line no-new-func
 new Function(prelude)();
 
@@ -41,12 +49,17 @@ const counting = (cond, what) => {
 
 for (const [name, check] of [
   ['classList', classListChecks],
+  ['computed', computedChecks],
   ['dataset', datasetChecks],
+  ['dialogs', dialogChecks],
   ['events', eventChecks],
   ['timers', timerChecks],
+  ['scroll', scrollChecks],
   ['storage', storageChecks],
   ['location', locationChecks],
   ['history', historyChecks],
+  ['lifecycle', lifecycleChecks],
+  ['navigator', ok => navigatorChecks(ok, requestSource)],
 ]) {
   try {
     check(counting);
