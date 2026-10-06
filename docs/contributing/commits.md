@@ -60,3 +60,10 @@ capsule_driver_rtl8153 for x86_64-nonos-user; inputs.py --check passes.
 None of the last 50 commits on `main` is a merge commit: the history is linear. Rebase your branch onto `main` rather than merging `main` into it.
 
 `.gitattributes` gives `nonos-ci/run-static-checks.sh` the `union` merge driver, so two branches that each add a gate to it combine without a conflict (`.gitattributes:1`). A union merge keeps the lines of both sides, so read the merged script before you push.
+
+## See also
+
+- [Contributing](README.md)
+- [Review](review.md)
+- [Tests and proofs](tests-and-proofs.md)
+- [Code style](code-style.md)
