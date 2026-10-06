@@ -18,7 +18,6 @@ that ships, not about a re-implementation of it.
 | AES-128-GCM | NIST GCM test cases |
 | Ed25519 | RFC 8032 |
 | ECDSA P-256, P-384 | RFC 6979 |
-| secp256k1 | SEC 2 generator plus an RFC 6979 sign/verify round trip |
 | RSA PKCS#1 v1.5 (SHA-256) | an OpenSSL-produced 2048-bit signature |
 
 For the authenticated schemes the tests also check that verification rejects a
@@ -40,6 +39,17 @@ replace, over roughly a million sampled inputs and by Kani over all inputs. A
 masking defect in these would accept or reject silently. The timing property is
 by construction: the code is branch free and reads every byte.
 
+secp256k1 is no longer here: the curve moved to `userland/nonos_secp256k1`,
+which carries its own tests.
+
+## Boot root and the Ed25519 move
+
+`boot_root_tests.rs` checks the kernel's P-256 verification of a boot-root
+record against one that `tools/nonos-policy-approve boot-root` signed with
+Python's `cryptography` (the fixture in `nonos-boot-measure/src/tests/fixture`).
+`ed25519_migration_tests.rs` runs the kernel's Ed25519 and the userland
+`nonos_ed25519` over the same inputs and requires them to agree byte for byte.
+
 ## Interoperability
 
 The RSA vector is produced by OpenSSL rather than by the kernel itself, so the
@@ -53,3 +63,6 @@ cd userland/crypto_proofs
 cargo test --release      # runnable known-answer proofs
 cargo kani                # all-input constant-time checks (requires Kani)
 ```
+
+`nix flake check` runs the tests as `proofs-crypto_proofs`. No CI job runs
+the Kani harnesses here. See [the proofs page](../../docs/handbook/verification/proofs.md).

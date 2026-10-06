@@ -18,8 +18,6 @@
 // absolute `crate::crypto::asymmetric::ed25519::...` paths, so it must live at
 // exactly that module path. The `#[path]` include pulls the real source; its
 // child modules resolve relative to the real directory.
-// `sc_reduce_mod_l` is a `pub(crate)` re-export the kernel consumes elsewhere;
-// in this proof crate only sign/verify are exercised, so it reads as unused.
 //
 // The field/point/scalar arithmetic follows the ref10 reference layout
 // (explicit index loops and casts, kept for line-by-line auditability against

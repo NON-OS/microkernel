@@ -13,9 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The kernel attestation files these proofs mount.
 
-mod stream;
-
-pub use stream::{fill_random_bytes, get_random_bytes, get_random_bytes_secure};
-#[cfg(test)]
-pub use stream::{replay_from, set_unavailable};
+pub mod capsule_attest;
+pub mod local_build;

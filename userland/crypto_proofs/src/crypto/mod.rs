@@ -52,27 +52,4 @@ pub use error::{CryptoError, CryptoResult};
 pub mod entropy;
 pub mod util;
 
-// The kernel ZK verifier reaches curve25519 at `crate::crypto::curve25519`.
 pub use asymmetric::curve25519;
-
-// The kernel ZK proof verifier (PLONK / range / commitment) over untrusted
-// proof bytes. Self-contained apart from the primitives mirrored above.
-#[allow(
-    clippy::needless_range_loop,
-    clippy::unnecessary_cast,
-    clippy::manual_is_multiple_of,
-    clippy::redundant_closure,
-    clippy::wrong_self_convention,
-    clippy::identity_op,
-    clippy::manual_rotate,
-    clippy::useless_conversion,
-    clippy::should_implement_trait,
-    clippy::manual_memcpy,
-    clippy::manual_div_ceil,
-    clippy::needless_borrow,
-    clippy::op_ref,
-    clippy::new_without_default,
-    clippy::let_and_return
-)]
-#[path = "../../../../src/crypto/zk_kernel/mod.rs"]
-pub mod zk_kernel;

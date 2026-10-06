@@ -13,9 +13,10 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The local build trailer, mounted from the kernel.
 
-mod stream;
+#[path = "../../../../../src/security/local_build/trailer.rs"]
+pub mod trailer;
 
-pub use stream::{fill_random_bytes, get_random_bytes, get_random_bytes_secure};
 #[cfg(test)]
-pub use stream::{replay_from, set_unavailable};
+mod tag_tests;

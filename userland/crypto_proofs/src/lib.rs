@@ -25,6 +25,9 @@ extern crate alloc;
 // primitives expect from their parent module.
 pub mod crypto;
 pub mod hash;
+/* The kernel's attestation layouts, which only the tests read. */
+#[cfg(test)]
+pub mod security;
 
 #[cfg(test)]
 mod aesgcm_tests;
@@ -43,24 +46,17 @@ mod hex;
 #[cfg(test)]
 mod hkdf_tests;
 #[cfg(test)]
+mod boot_root_tests;
+#[cfg(test)]
 mod hmac_tests;
 #[cfg(test)]
 mod p256_tests;
 #[cfg(test)]
 mod p384_tests;
 #[cfg(test)]
-mod rsa_tests;
-#[cfg(test)]
 mod rsa_pkcs1_encoding_tests;
 #[cfg(test)]
-#[cfg(test)]
-mod zk_tests;
-#[cfg(test)]
-mod zk_attest_tests;
-#[cfg(test)]
-mod zk_field_tests;
-#[cfg(test)]
-mod zk_field_vectors;
+mod rsa_tests;
 #[cfg(test)]
 mod sha256_tests;
 #[cfg(test)]
