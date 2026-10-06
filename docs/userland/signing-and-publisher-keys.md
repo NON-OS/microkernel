@@ -113,3 +113,11 @@ For a capsule loaded from the store, `MkCapsuleLoad` answers with an errno:
 | `-ENOMEM` | the kernel heap cannot hold an artifact |
 
 The size limit is `MAX_ARTIFACT` (`src/syscall/microkernel/capsule_load/copy.rs:22`), the missing endpoint case is `endpoint` (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/endpoint.rs:20-26`), and the mapping from loader errors is `load_errno` (`src/syscall/microkernel/capsule_load/errno.rs:26-31`).
+
+## See also
+
+- [Boot chain and signatures](../security/boot-chain-and-signatures.md)
+- [STARK attestation](../security/stark-attestation.md)
+- [Device secrets and keys](../security/device-secrets-and-keys.md)
+- [Make targets](../build/make-targets.md)
+- [Manifests and capabilities](manifests-and-capabilities.md)
