@@ -14,3 +14,33 @@ A process moves through the states of `ProcessState`: `New`, `Ready`, `Running`,
 - Installed later. The installer reads the same four artifacts from the store and passes them to `MkCapsuleLoad` by pointer; `load_capsule_from_vfs` takes the service name and both [endpoints](../overview/glossary.md#endpoint) from the signed manifest and limits the requested bits to what the manifest declares (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:34-68`). The call needs `CoreExec`, `IPC` and `Memory` (`src/syscall/contract/cap_table/mk.rs:85-88`).
 - On behalf of another process. A caller holding `SpawnBroker` may name a live pid as the new capsule's parent; `attest` is the only way to build that attribution (`src/kernel_core/process_spawn/capsule_spawn/attested_parent.rs:36-46`).
 - Linux guests. `MkForeignSpawn` creates a process for the [Linux personality](../overview/glossary.md#linux-personality) that holds no capabilities at all: `install_spawn` gives it an empty word (`src/process/foreign/spawn.rs:65-68`); its system calls go to the supervising capsule. [Linux personality](../userland/linux-personality.md) covers it.
+
+## The spawn gate
+
+Every verified capsule, built in or installed, goes through `spawn_verified_as`, and any refusal comes back as a `SpawnError` (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:38-82`).
+
+```mermaid
+flowchart TD
+    P[profile_gate] -->|refused| X[SpawnError]
+    P --> F[preflight]
+    F -->|certificate or manifest refused| X
+    F --> G[attest_gate]
+    G -->|no trailer or proof refused| X
+    G --> I[install]
+    I -->|any step fails| T[teardown]
+    I --> R[record_attested]
+```
+
+1. The [boot profile](../overview/glossary.md#boot-profile) may refuse the capsule by name; `check` in `profile_gate` prints a `[PROFILE]` line and returns `ProfileRefused` (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:31-46`).
+2. `run` in `preflight` decodes the identity certificate with `decode_id_cert` and checks it against the baked trust anchor with `verify_id_cert` (`src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:41-44`).
+3. `verify_with_publisher` checks the manifest and its publisher signature against the ELF, the target triple, the requested capabilities and the two declared endpoints, and returns the capabilities to install (`src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:46-67`). The manifest may not ask for any bit above the `allowed_caps_ceiling` of the identity certificate, which `check_ceiling` enforces (`src/security/capsule_manifest/verify/caps.rs:21-29`).
+4. `classify` puts a capsule in the `systems.nonos` namespace in the `Enrolled` tier and any other in the `Publisher` tier (`src/kernel_core/process_spawn/capsule_spawn/runner/tier.rs:22-28`). Both tiers end in the same `attest_gate` (`src/kernel_core/process_spawn/capsule_spawn/runner/publisher_gate.rs:28-33`), which `run` calls with the manifest's `required_caps` (`src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:70-77`).
+5. `attest_gate` refuses a capsule with no trailer and otherwise calls `verify_capsule_attestation`, printing a `[ZK-ATTEST]` line either way (`src/kernel_core/process_spawn/capsule_spawn/runner/attest_gate.rs:23-63`).
+6. `install` creates the process (below).
+7. `record_attested` enters the pid, the proved measurement, the [capability word](../overview/glossary.md#capability-word) and the authority that vouched in the attestation registry (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:64-80`).
+
+What the attestation check does, from the kernel side: `measure` takes the BLAKE3 digest of the ELF (`src/security/capsule_attest/measure.rs:26-32`), and `verify_capsule_attestation` tries the vendor's policy root first and then each root a person enrolled on the machine (`src/security/capsule_attest/verify.rs:33-63`). Against a root, `verify_against` builds the leaf from that digest, the capability word it is given and the policy epoch, folds the trailer's path to the kernel's own root, and checks the STARK proof over the same statement (`src/security/capsule_attest/path.rs:35-54`). The word it is given is the manifest's required capabilities; the optional bits a spawn site adds are bounded by the signed manifest and the certificate ceiling, not by the proof. A capsule whose bytes or required capabilities differ from what was proved is refused. Against an enrolled root, a trailer that starts with the `local_build` magic, for a capsule this machine built itself, carries a keyed tag only this kernel can mint or check, and `local_build::verify` checks that tag instead of a STARK proof (`src/security/capsule_attest/against_root.rs:34-45`). The proof system itself is on [STARK attestation](../security/stark-attestation.md), and signatures on [Signing and publisher keys](../userland/signing-and-publisher-keys.md).
+
+A development image may admit capsules on the path alone with `nonos-dev-attest`; `compile_error` refuses that feature together with `nonos-release` (`src/lib.rs:43-47`).
+
+The spawn site does not choose the capabilities. The word installed comes from the verified manifest, and `requested_caps` is only an upper bound for optional bits (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:25-27`).
