@@ -44,3 +44,11 @@ make boot-installed
 Not tested in this release.
 
 `make boot-install` boots the sealed image as every `make boot` does: its ESP as a FAT drive and a virtio data disk made from the image, with a software TPM. It adds the blank disk as NVMe. `make boot-installed` boots the disk the installer wrote, alone, which shows the machine starts from what was written (`Makefile`, `tools/nonos_qemu/machine.py`, `tools/nonos_qemu/disk.py`).
+
+## See also
+
+- [Hardware support matrix](../hardware/MATRIX.md)
+- [Reporting a machine](../hardware/report.md)
+- [Using NONOS](../using/README.md)
+- [Building NONOS](../build/README.md)
+- [What NONOS protects against](../security/protections-and-limits.md)
