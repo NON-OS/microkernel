@@ -54,3 +54,11 @@ Kernel code outside the memory subsystem goes through `frame_alloc`. Its `alloc`
 `allocate_pages` takes a range from it, backs each page with a frame from `frame_alloc`, maps it and zeroes it (`src/memory/buddy_alloc/allocator/api/alloc.rs:25-41`). `release` gives pages back in a fixed order: unmap up to 32 pages under one [TLB shootdown](../overview/glossary.md#tlb-shootdown), free the frames, then free the range (`src/memory/buddy_alloc/allocator/api/release.rs:43-66`). Freeing a frame while another CPU might still translate to it would let that CPU reach memory that now belongs to someone else.
 
 `page_allocator` is started by `init_unified_vm` once paging is up (`src/memory/unified/init/run.rs:79-84`). Its main user is `allocate_kernel_stack`, which gives every process a kernel-only stack of `KERNEL_STACK_SIZE`, 32 KiB (`src/kernel_core/process_spawn/kernel_stack.rs:39-56`, `src/process/userspace/constants.rs:31`).
+
+## Modules that are present but not on the boot path
+
+Three pieces exist in the tree and are not used to boot in this release:
+
+- `boot_memory` describes itself as an early boot-time allocator, but nothing outside the module calls its `init` (`src/memory/boot_memory/manager/api.rs:27`).
+- `page_info` keeps per-page records with reference counts, but nothing calls `add_page` (`src/memory/page_info/manager/api.rs:30`). Only its `PageFlags` type is used elsewhere (`src/fs/mapping.rs:17`).
+- `init_all_memory_subsystems` would start every memory module from a fixed 1 MiB to 1 GiB span, but the boot path does not call it (`src/memory/unified/system.rs:24-35`).
