@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Machine-checked theorems about the NONOS capability algebra, verified by
-//! Verus (SMT). The spec functions below mirror `src/capabilities/bits.rs`
-//! exactly: a right is a single power-of-two bit, a token is the bitwise-OR of
+//! Verus (SMT). The spec functions below restate `src/capabilities/bits.rs`
+//! by hand: a right is a single power-of-two bit, a token is the bitwise-OR of
 //! its granted rights, and the kernel's `has_capability`, `remove_capability`,
-//! `add_capability`, and attenuation are the bit operations modelled here. The
-//! proofs therefore establish properties of the operations the kernel actually
-//! executes, with no separate abstract model to trust.
+//! `add_capability`, and attenuation are the bit operations written out here.
+//! This crate includes no kernel file, so the proofs hold for the restated
+//! operations; a change to the kernel's does not reach them.
 //!
 //! Verify with: verus --crate-type=lib src/lib.rs
 
