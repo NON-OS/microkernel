@@ -2,128 +2,112 @@
 
 ## Role
 
-`capsule_net_sockets` is the socket multiplexer capsule. It gives application
-capsules one IPC-facing socket API while delegating transport behavior to
-`net.tcp`, `net.udp`, `net.nym`, and name lookup to `net.dns`.
+`capsule_net_sockets` is the socket service. It gives application capsules one
+socket API over IPC and turns each request into calls on the transports:
+`net.tcp` for streams, `net.udp` for datagrams, `net.nym` for mixnet sockets,
+and `net.dns` for names. The kernel has no socket syscalls; handles, ownership
+and dispatch live here.
 
 ```text
-application capsule
+application capsule (browser, Linux personality, SDK programs)
     |
-    | socket IPC
+    | NSKT requests over IPC
     v
 net.sockets -- per-pid handle table --> net.tcp / net.udp / net.nym / net.dns
 ```
 
-## Microkernel contract
+It is in the desktop image, where `net.tcp`, `net.udp` and `net.dns` all
+resolve to `net.core`, and in the `microkernel-net-sockets`,
+`microkernel-net-nym` and `microkernel-input-e2e-ps2` profiles.
 
-The capsule uses IPC and memory only:
+## Service and endpoints
 
-- `MkIpcRecv` receives requests on `service:4460:net.sockets`.
-- `MkIpcSend` replies through `reply:4461:endpoint.4294967380`.
-- Its wire magic is `NSKT`.
-- Its endpoint name is `net.sockets`.
-- Its kernel mirror target is `src/network/sockets_capsule`.
+- Handle `net.sockets`, service endpoint `service:4460:net.sockets`, reply
+  endpoint `reply:4461:endpoint.net.sockets.reply`.
+- Kernel mirror `src/userspace/capsule_net_sockets`.
+- It looks up `net.tcp`, `net.udp` and `net.dns` once at setup, and `net.nym`
+  again on use until it appears.
 
-The kernel does not expose a POSIX socket syscall table. Socket handles,
-ownership, bind/connect/listen/accept/send/receive/close behavior, and
-transport dispatch are userland policy.
+## Interface
 
-## Interface contract
+Requests carry the 20 byte header shared by the stack capsules, with magic
+`0x4E534B54` ("NSKT") and version 1.
 
-| Operation | Meaning |
-|---|---|
-| `OP_SOCKET` | allocate a caller-owned socket handle |
-| `OP_BIND` / `OP_LISTEN` / `OP_ACCEPT` | server-side socket flow |
-| `OP_CONNECT` | client-side connection flow |
-| `OP_SEND` / `OP_RECV` | data movement through selected transport |
-| `OP_CLOSE` | release handle and transport state |
-| `OP_GETSOCKOPT` / `OP_SETSOCKOPT` | socket option surface |
+| Op | Value | Meaning |
+|---|---|---|
+| `OP_HEALTHCHECK` | 1 | liveness |
+| `OP_SOCKET` | 2 | a handle: family 4, kind 1 stream, 2 datagram, 3 mixnet |
+| `OP_BIND` | 3 | bind a local port |
+| `OP_LISTEN` | 4 | listen on a stream socket |
+| `OP_ACCEPT` | 5 | take a connection off a listener |
+| `OP_CONNECT` | 6 | connect to an address |
+| `OP_SEND` | 7 | send bytes |
+| `OP_RECV` | 8 | receive bytes |
+| `OP_CLOSE` | 9 | release the handle and its transport |
+| `OP_GETSOCKOPT` | 10 | read an option |
+| `OP_SETSOCKOPT` | 11 | set an option |
+| `OP_CONNECT_HOST` | 12 | connect to a host name |
+| `OP_POLL` | 13 | readable and writable state |
+| `OP_CONNECT_NB` | 14 | connect without waiting |
 
-## Authority
-
-The manifest grants IPC and memory only:
-`CAPSULE_REQUIRED_CAPS = 0x00018`. It has no hardware, driver, MMIO, IRQ, DMA,
-PIO, filesystem, admin, debug, or raw packet authority.
-
-## Privacy and persistence
-
-The socket table is process-scoped runtime state. It should track only the
-caller, handle, family, kind, endpoint, and transport state needed to dispatch
-operations. It does not persist socket history, payloads, DNS history, or peer
-metadata across exit.
-
-## Runtime lifecycle
-
-The capsule owns per-pid handle tables, maps handles to UDP/TCP/Nym transport
-state, dispatches operations to transport capsules, and releases handles on
-close or caller teardown.
-
-## Failure model
-
-No handle, no transport, table full, bad family/kind, not bound, not listening,
-not connected, empty RX, refused, and timeout return protocol errors. No kernel
-socket fallback exists.
-
-## Current implemented surface
-
-- Socket family and kind types are present.
-- A per-pid socket table is present.
-- Protocol constants cover socket, bind, listen, accept, connect, send,
-  receive, close, getsockopt, and setsockopt.
-- The capsule boundary keeps POSIX-shaped API compatibility in userland
-  instead of reintroducing Linux-shaped kernel syscalls.
-
-## Wire format
-
-Requests use the `NSKT` protocol magic. Socket requests carry family and kind.
-Bind/connect/listen/accept/send/receive/close requests carry caller-owned
-socket handles and transport-specific address fields. Replies carry status,
-socket handles, option values, or payload bytes.
-
-## State ownership
-
-The capsule owns per-pid socket tables, socket handles, option state, accept
-queues, and transport dispatch state. UDP, TCP, DNS, and Nym capsules own
-protocol state. The kernel owns no socket table.
+- Handles are keyed by pid and handle. The table holds `TABLE_CAP`, 256, with
+  at most `PER_PID_MAX`, 128, per client.
+- A stream connect does not block the service: it is recorded as pending and
+  the loop polls `net.tcp` every `PENDING_POLL_MS` until it is up, fails or
+  eight seconds pass.
+- `OP_CONNECT_HOST` uses the name as an address when it parses as one. On a
+  mixnet socket it refuses any other name with `E_NAME_REFUSED` (15) and never
+  asks `net.dns`: a mixnet frame carries an address, so the name could only
+  reach the exit after a lookup in the clear. Stream and datagram sockets
+  resolve through `net.dns`.
+- A mixnet socket opens a session on `net.nym`, and its writes are framed into
+  bodies of at most `MAX_BODY` bytes.
+- A frame that fails header parsing is still answered, under the op and
+  request id it names, or under zeros when it is too short.
 
 ## Operating rules
 
 - Scope socket handles to caller identity.
-- Route all transport work to `net.udp`, `net.tcp`, `net.dns`, or `net.nym`.
-- Return explicit errors for bad handle, table full, and wrong socket state.
+- Route all transport work to `net.udp`, `net.tcp`, `net.dns` or `net.nym`.
+- Return explicit errors for bad handle, table full and wrong socket state.
+- Hold one client to `PER_PID_MAX` sockets, half the table, so no client can
+  refuse every other socket on the machine.
+- Free the sockets of a client that ended without closing them, releasing their
+  transports through the close handler's own `release`: looked for every two
+  seconds while requests arrive, and at once when a socket cannot be opened
+  (`src/server/handlers/reap.rs`).
 - Do not introduce Linux-shaped socket syscalls.
 
-## Release target
+## Authority
 
-The finished sockets capsule owns per-caller socket handles, bind/connect/listen
-state, accept queues, transport dispatch to UDP/TCP/Nym, DNS-assisted connect
-where policy allows it, mixnet cover-tick options, and close cleanup. It gives
-applications a familiar API shape while keeping kernel syscalls native Mk-only.
+`CAPSULE_REQUIRED_CAPS := 0x0001c`: Network (`0x04`), IPC (`0x08`) and Memory
+(`0x10`). `CAPSULE_OPTIONAL_CAPS := 0x100`, Debug, granted only by a
+`capsule-serial-debug` build. No CoreExec, Crypto, FileSystem or hardware bits.
+The kernel requires Network of every sender, so a capsule without it cannot
+open a socket here.
 
-## Release evidence
+## Privacy and persistence
 
-Release evidence is UDP socket validation, TCP connect/accept validation, Nym mixnet
-session validation, close cleanup, per-pid isolation test, transport failure mapping,
-and static proof that the kernel has no socket syscall surface.
+The table holds each socket's owner, kind, addresses and transport handle in
+memory. Payloads pass through and are not kept beyond what a mixnet read holds
+for its caller. Nothing is written to storage.
 
-## Release checklist
+## What it does not do
 
-- UDP socket validation passes.
-- TCP connect/accept validation passes.
-- Nym mixnet socket connect/send/recv/cover option validation passes.
-- Close cleanup releases handle state.
-- Per-pid isolation is tested.
-- Static gate confirms kernel syscall surface stays Mk-only.
+- It reads no network route. A stream socket here is a direct connection
+  whatever network the person chose; callers that follow the choice decide
+  before they come here (see the routes page below).
+- On the desktop, `OP_LISTEN` and `OP_ACCEPT` fail: `net.core` has no listening
+  TCP.
+- No IPv6, no TLS, no raw sockets.
 
-## Explicit non-goals today
+## Build and verify
 
-No kernel socket syscalls, raw NIC access, firewall, DNS resolver internals,
-TLS, persistent connection database, packet capture, or filesystem-backed fd
-table lives here.
+- `make nonos-mk-net-sockets`, then `nonos-mk-net-sockets-sign` and
+  `nonos-mk-net-sockets-verify`.
+- `userland/sockets_proofs` runs the table's per-client share, the take-out of
+  ended clients' sockets, a random open, close and end run, and the reply a
+  refused frame gets.
 
-## Verification
-
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Build gate, once `src/main.rs` lands: `make -B nonos-mk-net-sockets`
-- Runtime proof: create UDP and TCP sockets, bind/connect, send/receive, close,
-  and prove that all transport work routes through network capsules.
+See [the network stack](../../docs/handbook/network/stack.md) and
+[network routes](../../docs/handbook/network/socks5-and-routes.md).

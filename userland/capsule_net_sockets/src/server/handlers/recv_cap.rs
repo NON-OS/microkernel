@@ -14,10 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{clients::dns, state};
+//! How many bytes one read may hand a caller.
 
-use super::parse_ipv4::parse_ipv4;
+use crate::server::handlers::io::u32_at;
 
-pub fn resolve_host(host: &[u8]) -> Option<[u8; 4]> {
-    parse_ipv4(host).or_else(|| dns::resolve_a(state::dns(), host).ok())
+/// The most one read hands back. The service's buffers are sized for it.
+pub const RECV_MAX: usize = 32 * 1024;
+
+/// What a caller that does not state a capacity was built against.
+const ASSUMED_CAP: usize = 1536;
+
+/// The capacity the caller states after the handle and read number,
+/// bounded by RECV_MAX. A read takes bytes out of the socket, so handing a
+/// caller more than it can hold loses the rest; a caller too old to state
+/// one is held to what it was built against.
+pub fn recv_cap(body: &[u8]) -> usize {
+    match u32_at(body, 8) {
+        Ok(n) => (n as usize).clamp(1, RECV_MAX),
+        Err(_) => ASSUMED_CAP,
+    }
 }
