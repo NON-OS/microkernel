@@ -18,10 +18,26 @@
 //! kernel, and the spawn that admits them.
 
 mod embed;
+mod family;
 mod install;
+mod role_spawn;
+mod roles;
 mod spawn;
 mod state;
+mod terminal;
 
-pub use install::spawn_install;
+pub use family::package_arg;
+
+/// Whether a store-started or windowed Linux program still holds the one run
+/// role: its endpoint is released when the process ends, so a second open
+/// before then is told it is busy instead of being queued and refused unseen.
+pub fn run_busy() -> bool {
+    crate::services::registry::lookup_service(roles::RUN.name).is_some()
+}
+pub use install::{spawn_install, spawn_run, spawn_terminal, spawn_uninstall};
 pub use spawn::{spawn_linux_capsule, LINUX_CAPS};
 pub use state::shared_state;
+pub use terminal::{
+    admit_terminal_run, end_terminal_runs_of, is_private_run, run_qwen_for_caller,
+    terminal_run_gone,
+};
