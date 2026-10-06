@@ -42,3 +42,17 @@ A live boot's data volume was only in RAM, and the wipe runs before a shutdown o
 ### A tampered image or capsule
 
 A capsule whose certificate, manifest, signatures or attestation do not verify is never spawned; [Design principles](design-principles.md#everything-that-runs-is-signed-and-measured) walks through the checks. The loader's boot menu names the checks it makes on the kernel image before the kernel runs, and [Boot chain and signatures](../security/boot-chain-and-signatures.md) and [Rollback protection](../security/rollback-protection.md) cover that path.
+
+## Trust boundaries
+
+```mermaid
+flowchart LR
+    firmware["UEFI firmware, CPU and TPM"] -->|assumed honest| kernel["Kernel"]
+    apps["Apps and Linux programs"] -->|syscall gate| kernel
+    apps -->|endpoint gates| services["System services"]
+    drivers["Driver capsules"] -->|broker grants| kernel
+    kernel -->|IOMMU domain| devices["Devices"]
+    services -->|chosen route| observer["Network observer"]
+```
+
+Each arrow crosses a boundary. UEFI firmware, the CPU and the TPM sit below the kernel and are assumed honest. Apps and Linux programs cross the syscall gate into the Kernel, and the endpoint gates into System services. Driver capsules reach hardware only through broker grants, and Devices reach memory through their capsule's IOMMU domain where a VT-d unit in service covers them. Whatever leaves the machine takes the chosen route before a Network observer sees it.
