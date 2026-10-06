@@ -146,3 +146,11 @@ cargo fuzz run elf_header corpus/elf_header -- -max_total_time=60
 ```
 
 Not tested in this release.
+
+## What to run for a change
+
+- Kernel or capsule code: the proof crate that mounts it, and `nix flake check`.
+- A driver: its proof crate, extended to cover the change.
+- A function a refinement theorem names: the extraction job and the Lean build.
+- A changed ABI number or capability bit: `static-abi`.
+- A parser of untrusted input that has a fuzz target: that target, for a few minutes.
