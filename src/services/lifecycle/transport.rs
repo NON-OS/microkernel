@@ -42,11 +42,13 @@ const RECV_YIELDS: u32 = 50_000;
 /// can never run to release the lock (the deadlock involuntary preemption now
 /// makes reachable). On contention, hand the CPU to the holder and retry.
 pub fn lock_yielding(lock: &'static Mutex<()>) -> MutexGuard<'static, ()> {
+    let mut round = 0u32;
     loop {
         if let Some(guard) = lock.try_lock() {
             return guard;
         }
-        crate::sched::yield_now();
+        super::reply_wait::rest(round);
+        round = round.saturating_add(1);
     }
 }
 
@@ -118,12 +120,7 @@ pub fn decode_v1_response<'a>(
     if buf.len() < total || (payload_len as usize) < 4 {
         return None;
     }
-    let status = i32::from_le_bytes([
-        buf[FRAME_HDR_LEN],
-        buf[FRAME_HDR_LEN + 1],
-        buf[FRAME_HDR_LEN + 2],
-        buf[FRAME_HDR_LEN + 3],
-    ]);
+    let status = i32::from_le_bytes(buf[FRAME_HDR_LEN..FRAME_HDR_LEN + 4].try_into().ok()?);
     let body = &buf[FRAME_HDR_LEN + 4..total];
     Some(DecodedResponse { op, request_id, status, body })
 }
@@ -182,14 +179,16 @@ pub fn round_trip(
             return Err(TransportError::TransportFailure);
         }
     }
-
-    for _ in 0..RECV_YIELDS {
+    let started_ms = crate::time::timestamp_millis();
+    let _waiting = super::waiting::Waiting::on(reply_inbox);
+    for round in 0..RECV_YIELDS {
         if !state.is_alive() {
             return Err(TransportError::Dead);
         }
         if state.generation() != gen_at_send {
             return Err(TransportError::Stale);
         }
+        let mark = super::reply_wait::wake_mark();
         if let Some(reply) = nonos_inbox::try_dequeue_existing(reply_inbox) {
             if state.generation() != gen_at_send {
                 return Err(TransportError::Stale);
@@ -200,7 +199,9 @@ pub fn round_trip(
             }
             return Ok(ResponseBytes { status: resp.status, body: resp.body.to_vec() });
         }
-        crate::sched::yield_now();
+        if !super::reply_wait::pause(round, started_ms, mark) {
+            break;
+        }
     }
     Err(TransportError::TransportFailure)
 }

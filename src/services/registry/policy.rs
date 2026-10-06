@@ -16,7 +16,14 @@
 
 use crate::capabilities::Capability;
 
-const NETWORK_SERVICES: [&str; 9] = [
+/*
+ * Services that carry traffic off the machine. Reaching one takes Network, not
+ * only IPC: net.anon, net.nym and net.socks5 carry anonymity streams, which a
+ * capsule without Network must not be able to open through them. net.socks5
+ * is the SOCKS front of net.nym, so leaving it out left the same streams one
+ * IPC call away from a capsule the list was written to keep off them.
+ */
+const NETWORK_SERVICES: [&str; 11] = [
     "net.core",
     "net.l2",
     "net.ip",
@@ -26,6 +33,8 @@ const NETWORK_SERVICES: [&str; 9] = [
     "net.dhcp.client",
     "net.sockets",
     "net.nym",
+    "net.anon",
+    "net.socks5",
 ];
 
 pub fn required_caps(name: &str, default: u64) -> u64 {

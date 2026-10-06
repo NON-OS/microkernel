@@ -22,12 +22,16 @@ mod adopt;
 mod auth;
 mod endpoint;
 mod error;
+mod held;
+mod peers;
+mod peers_check;
 mod policy;
 mod reserved;
 
 pub(crate) use adopt::adopt_endpoint;
 pub use endpoint::ServiceEndpoint;
 pub use error::RegError;
+pub use peers_check::{caller_may_reach, caller_may_reach_pid, caller_may_write_inbox};
 pub use policy::required_caps;
 pub(crate) use reserved::{is_reserved_service, is_runtime_registrable};
 
@@ -65,6 +69,11 @@ pub fn lookup_service(name: &str) -> Option<ServiceEndpoint> {
 
 pub fn lookup_port(port: u32) -> Option<ServiceEndpoint> {
     ENDPOINTS.lock().iter().find(|e| e.port == port).cloned()
+}
+
+/// Every endpoint `pid` serves, its reply inbox included.
+pub fn endpoints_of(pid: u32) -> Vec<ServiceEndpoint> {
+    ENDPOINTS.lock().iter().filter(|e| e.pid == pid).cloned().collect()
 }
 
 pub fn unregister_endpoints_for_pid(pid: u32) -> usize {
