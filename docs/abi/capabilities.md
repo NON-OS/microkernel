@@ -50,3 +50,15 @@ Syscalls it admits lists every call whose cap table gate names the capability, a
 | 33 | `0x200000000` | `LocalSign` | `LOCAL_SIGN` | Mint a proof that this machine agreed to run bytes it installed itself. | `MLSG` |
 | 34 | `0x400000000` | `StreamImport` | `STREAM_IMPORT` | Stream a file into the data volume, kept only if it hashes to the digest named first. Grants no read. | `MDFB`, `MDFD`, `MDRM` |
 | 35 | `0x800000000` | `DeviceSecret` | `DEVICE_SECRET` | Receive this machine's TPM-derived device secret and its boot slots, and run enrolment's TPM half. | `MDVS`, `MBSL`, `MENR` |
+
+## Checks outside the syscall table
+
+Several bits gate a service or a path inside a call rather than a syscall:
+
+- `Network`: an [endpoint](../overview/glossary.md#endpoint) in `NETWORK_SERVICES` requires it on top of `IPC`, through `required_caps` (`src/services/registry/policy.rs:26-44`). See [IPC](ipc.md).
+- `RegisterService`: `caller_has_register_right` accepts it, or `Admin`, before a capsule may claim a runtime-registrable name (`src/services/registry/auth/caller_has_register_right.rs:17-20`).
+- `SpawnBroker`: `attest` honours a capsule load's `on_behalf_of` pid only for a caller holding it (`src/kernel_core/process_spawn/capsule_spawn/attested_parent.rs:36-45`).
+- `ProcessControl`: `sys_kill` lets a holder, or an `Admin` holder, end a process it does not parent or supervise (`src/syscall/microkernel/kill.rs:45-54`), and `sees_all` shows it the full process table (`src/syscall/microkernel/procstat_redact.rs:29-34`).
+- `Keyring`: `gate_caller` refuses every keyring operation to a caller without it (`src/security/keyring_capsule/capability.rs:26-35`).
+- `Entropy`: `gate_read` refuses entropy reads to a caller without it (`src/security/entropy_capsule/capability.rs:23-31`).
+- `IO` and `Hardware` are marked "Enforces nothing" in the table itself (`src/capabilities/types/defs.rs:23-31`).
