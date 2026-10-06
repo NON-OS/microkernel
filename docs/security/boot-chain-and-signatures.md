@@ -132,3 +132,19 @@ The certificate's `verify` refuses a certificate whose trust-anchor epoch is bel
 The STARK check that follows is on [STARK attestation](stark-attestation.md). The wire formats of the certificate and the manifest are on [Signing and publisher keys](../userland/signing-and-publisher-keys.md).
 
 At build time `capsule-sign sign-id-cert` signs each certificate with the two trust-anchor seeds (`NONOS_TA_ED25519_SEED`, `nonos-mk/capsule.mk:252-271`). `capsule-sign sign-manifest` then signs the manifest with the publisher's two seeds, and `verify-manifest` checks it at once (`CAPSULE_SIGN_BIN`, `nonos-mk/capsule.mk:275-297`). With `NONOS_TRUST_REUSE` set to 1 nothing is signed: the committed certificate and manifest must exist, and `verify-manifest` checks them and the freshly built ELF against the enrolled payload hash, unless `NONOS_ENROLL_BUILD` is also 1, which only requires that they exist (`nonos-mk/capsule.mk:220-248`).
+
+## What a refusal looks like
+
+| Where | What failed | What you see |
+|---|---|---|
+| Loader | no signature, in any mode but Development | `Kernel not signed` on screen, then `[FATAL] kernel not signed` and a warm reset |
+| Loader | invalid signature | `Signature invalid`, then `[FATAL] kernel signature invalid` |
+| Loader | a signed kernel whose trailer does not verify, in any mode | `Kernel self-attestation invalid`, then `[FATAL] kernel self-attestation invalid` |
+| Loader | rollback index below the TPM floor | `Rollback: tpm floor N above image index M`, then `[FATAL] rollback index below TPM floor` |
+| Loader | Hardened or Air-Gapped, and no floor could be read | `Hardened needs a TPM: its rollback floor keeps an older signed kernel from booting` (or `Air-Gapped`), then `[FATAL] profile requires a TPM rollback floor` |
+| Kernel | the loader failed the kernel's check | the notice `The bootloader failed the kernel's check`; no program starts |
+| Kernel | no boot-root record or no loader trailer | the notice `The bootloader could not be checked`; no program starts |
+| Loader | in Development, a kernel that is not enrolled | `kernel attestation required`, then `[FATAL] kernel self-attestation missing` |
+| Kernel | a capsule's trailer is refused | `[ZK-ATTEST] FAIL` with the capsule's name and reason on the serial line; that spawn fails |
+
+The loader's messages come from `handle_no_signature` and its neighbours (`nonos-bootloader/src/boot/crypto/signature/error.rs:27-74`) and from `enforce_floor` (`nonos-bootloader/src/boot/crypto/rollback/floor.rs:28-60`). The on-screen lines appear only when the loader has a graphics console; the `[FATAL]` line and the warm reset happen either way. `attest_kernel` gives the Development line (`nonos-bootloader/src/boot/attestation/kernel_gate.rs:34-59`). The kernel's come from `refuse_unchecked_loader` (`src/kernel_core/init/entry/loader_refusal.rs:27-48`) and `attest_gate` (`src/kernel_core/process_spawn/capsule_spawn/runner/attest_gate.rs:23-63`).
