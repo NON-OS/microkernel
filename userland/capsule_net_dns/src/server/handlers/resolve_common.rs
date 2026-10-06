@@ -18,7 +18,7 @@ use core::str;
 
 use nonos_libc::{mk_time_millis, mk_yield};
 
-use crate::dns::{first_address, question_matches, Answer, RCODE_NO_ERROR, RCODE_NXDOMAIN};
+use crate::dns::{first_address, question_matches, Answer, Header, RCODE_NO_ERROR, RCODE_NXDOMAIN};
 use crate::protocol::{E_NAME_INVALID, E_NXDOMAIN, E_SERVFAIL, E_TIMEOUT};
 use crate::state::{local_port, next_xid, udp_port, upstream, DNS_PORT};
 use crate::udp_client::{recv_from, send_to};
@@ -39,10 +39,10 @@ pub fn exchange(query: &[u8], xid: u16) -> Result<Answer, u16> {
     let t0 = mk_time_millis();
     let mut last_send = t0 - RESEND_MS;
     while mk_time_millis().wrapping_sub(t0) <= DEADLINE_MS {
-        if mk_time_millis().wrapping_sub(last_send) >= RESEND_MS {
-            if send_to(udp_port(), lport, upstream, DNS_PORT, query).is_ok() {
-                last_send = mk_time_millis();
-            }
+        if mk_time_millis().wrapping_sub(last_send) >= RESEND_MS
+            && send_to(udp_port(), lport, upstream, DNS_PORT, query).is_ok()
+        {
+            last_send = mk_time_millis();
         }
         match recv_from(udp_port(), lport) {
             Ok(d) if d.src == upstream && d.src_port == DNS_PORT => {
@@ -63,11 +63,20 @@ pub fn xid() -> Option<u16> {
     next_xid()
 }
 
+/*
+ * Only a response to this query, with its id and its question, is read any
+ * further; anything else from the server's address and port, malformed or
+ * not, is ignored and the wait goes on (E_TIMEOUT). It used to be parsed
+ * first and a parse failure taken as the server's answer, so one stray or
+ * forged packet ended the lookup as SERVFAIL.
+ */
 fn parse_response(query: &[u8], payload: &[u8], xid: u16) -> Result<Answer, u16> {
-    let (hdr, answer) = first_address(payload).map_err(|_| E_SERVFAIL)?;
-    if hdr.id != xid || !question_matches(query, payload) {
+    let ours = Header::parse(payload)
+        .is_some_and(|h| h.is_response() && h.id == xid && question_matches(query, payload));
+    if !ours {
         return Err(E_TIMEOUT);
     }
+    let (hdr, answer) = first_address(payload).map_err(|_| E_SERVFAIL)?;
     if hdr.rcode() == RCODE_NXDOMAIN {
         return Err(E_NXDOMAIN);
     }

@@ -25,7 +25,7 @@ mod types;
 pub use cache::Cache;
 pub use question::matches as question_matches;
 pub use header::{Header, HDR_LEN, RCODE_NO_ERROR, RCODE_NXDOMAIN};
-pub use name::{skip, NameError};
+pub use name::{read as read_name, skip, Name, NameError};
 pub use query::{build_a_query, build_aaaa_query};
 pub use response::{first_address, Answer};
 pub use types::{LABEL_MAX, NAME_MAX, POINTER_MASK, TYPE_A, TYPE_AAAA};

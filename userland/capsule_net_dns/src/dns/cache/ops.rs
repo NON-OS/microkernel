@@ -19,6 +19,9 @@ use core::sync::atomic::Ordering;
 use super::entry::{Cache, CacheEntry, ENTRY_CAP, NAME_BYTES};
 use super::hash::hash;
 
+/// The longest any answer is cached, a day.
+const TTL_MAX_MS: u64 = 86_400_000;
+
 impl Cache {
     pub fn lookup(&self, name: &str, now_ms: u64) -> Option<[u8; 4]> {
         let h = hash(name);
@@ -32,8 +35,11 @@ impl Cache {
             })
     }
 
+    /// Keep `ipv4` for `name` for its TTL, and never longer than a day: a
+    /// TTL can say 68 years, and one forged or mistaken answer would then
+    /// never be asked for again.
     pub fn insert(&mut self, name: &str, ipv4: [u8; 4], ttl_ms: u64, now_ms: u64) {
-        let entry = entry_for(name, ipv4, ttl_ms, now_ms);
+        let entry = entry_for(name, ipv4, ttl_ms.min(TTL_MAX_MS), now_ms);
         if let Some(slot) = self.find_slot(&entry) {
             *slot = Some(entry);
             return;
