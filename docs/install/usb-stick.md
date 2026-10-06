@@ -65,3 +65,23 @@ Not tested in this release.
 ## Windows
 
 This repository documents no tool for writing the stick from Windows. Write it from a Linux or macOS machine.
+
+## Check the write
+
+Compare the stick with the image, byte for byte, over the length of the image. The stick is larger than the image, so `cmp` reads only as many bytes as the image holds. On Linux:
+
+```
+sudo cmp -n "$(stat -c %s target/release/standard/nonos.img)" target/release/standard/nonos.img /dev/sdX && echo same
+```
+
+Not tested in this release.
+
+On macOS:
+
+```
+sudo cmp -n "$(stat -f %z target/release/standard/nonos.img)" target/release/standard/nonos.img /dev/rdisk4 && echo same
+```
+
+Not tested in this release.
+
+`same` means the write arrived whole. Check before the first boot. The kernel keeps a boot's state on a USB stick that carries NONOS before any internal disk (`ORDER` in `src/hardware/block_device/select.rs`), so a boot whose setup chose Install keeps its answers in the stick's own package [store](../overview/glossary.md#store), and a used stick no longer matches the image (`userland/capsule_setup_wizard/src/render/screens/mode.rs`).
