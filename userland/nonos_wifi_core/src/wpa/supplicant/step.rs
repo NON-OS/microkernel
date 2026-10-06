@@ -14,141 +14,118 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Drive one EAPOL-Key frame through the handshake. Message 1 (no MIC) yields
-//! message 2; message 3 (MIC set, install) is verified and yields message 4.
+//! Drive one EAPOL-Key frame through the handshake (IEEE Std 802.11-2020,
+//! 12.7.6 and 12.7.7). Every frame must be an RSN descriptor with Key Ack set,
+//! no Request or Error, the key descriptor version of the negotiated AKM, and
+//! a replay counter above the last one whose MIC verified; anything else is
+//! dropped unanswered. Message 1 (no MIC) yields message 2, also when the AP
+//! repeats message 1 because message 2 was lost. Message 3 must carry Install,
+//! Secure and Encrypted Key Data, verify under the KCK, repeat the ANonce, and
+//! hold the beacon's RSNE; it yields message 4. Once connected, a repeated
+//! message 3 is answered with message 4 again without reinstalling any key,
+//! and a group message 1 delivers the next GTK and yields group message 2.
+//!
+//! A frame that fails its MIC is dropped, not treated as the end of the
+//! handshake: an unauthenticated frame must not be able to tear the join down.
+//! Only an authentic message that is unacceptable (a downgraded RSNE, key data
+//! without a valid group key) fails it.
 
 use alloc::vec::Vec;
 
 use super::state::{State, Supplicant};
-use crate::ccmp::keywrap::aes_unwrap;
-use crate::eapol::build::build_key_frame;
-use crate::eapol::mic::verify_mic;
 use crate::eapol::parse::{
-    parse, KEY_INFO_MIC, KEY_INFO_PAIRWISE, KEY_INFO_SECURE, KEY_INFO_VERSION2,
+    parse, EapolKey, DESCRIPTOR_RSN, KEY_INFO_ACK, KEY_INFO_ERROR, KEY_INFO_INDEX_MASK,
+    KEY_INFO_MIC, KEY_INFO_PAIRWISE, KEY_INFO_REQUEST, KEY_INFO_VERSION_MASK,
 };
-use crate::wpa::ptk::ptk;
 
-// Message 2 repeats the RSN element the association request advertised, so the AP
-// sees the same pairwise/group/AKM selection the STA committed to. It is the one
-// shared constant, so the request and the handshake cannot disagree.
-use crate::wpa::RSN_IE;
-
-/// What `step` produced: a frame to transmit, and whether the handshake is now
-/// complete. A frame is returned for messages 2 and 4; `None` means the input
-/// was not a handshake message the supplicant acts on, or verification failed
-/// (check `Supplicant::state` for `Failed`).
+/// What `step` produced: a frame to transmit, and whether the group key
+/// changed. A frame is returned for messages 2 and 4 and for group message 2;
+/// `None` means the input was not a message the supplicant acts on, or it was
+/// dropped (check `Supplicant::state` for `Failed`).
 pub struct StepOutput {
     pub reply: Option<Vec<u8>>,
+    /// A group key handshake delivered a new group key: the caller installs
+    /// `Supplicant::gtk` at `Supplicant::gtk_id`.
+    pub new_group_key: bool,
+}
+
+impl StepOutput {
+    pub(super) fn none() -> Self {
+        Self { reply: None, new_group_key: false }
+    }
+
+    pub(super) fn reply(frame: Option<Vec<u8>>) -> Self {
+        Self { reply: frame, new_group_key: false }
+    }
 }
 
 impl Supplicant {
     pub fn step(&mut self, frame: &[u8]) -> StepOutput {
+        if self.state == State::Failed {
+            return StepOutput::none();
+        }
         let Some(key) = parse(frame) else {
-            return StepOutput { reply: None };
+            return StepOutput::none();
         };
-        if key.key_info & KEY_INFO_PAIRWISE == 0 {
-            return StepOutput { reply: None };
+        let info = key.key_info;
+        if key.descriptor_type != DESCRIPTOR_RSN
+            || info & KEY_INFO_ACK == 0
+            || info & (KEY_INFO_REQUEST | KEY_INFO_ERROR) != 0
+            || info & KEY_INFO_VERSION_MASK != self.akm.key_version()
+            || !self.replay_is_fresh(&key.replay_counter)
+        {
+            return StepOutput::none();
         }
-        // Message 1 carries the ANonce with no MIC; message 3 carries a MIC.
-        // That bit alone distinguishes them unambiguously in the pairwise
-        // exchange, which is why the state is checked alongside it.
-        let has_mic = key.key_info & KEY_INFO_MIC != 0;
-        match (self.state, has_mic) {
-            (State::Start, false) => self.on_message1(key.nonce, key.replay_counter),
-            (State::PtkDerived, true) => self.on_message3(frame, &key),
-            _ => StepOutput { reply: None },
+        // Reply in the 802.1X version the authenticator spoke.
+        self.eapol_version = match frame[0] {
+            v @ 1..=3 => v,
+            _ => crate::eapol::build::EAPOL_VERSION_DEFAULT,
+        };
+        let has_mic = info & KEY_INFO_MIC != 0;
+        if info & KEY_INFO_PAIRWISE != 0 {
+            if info & KEY_INFO_INDEX_MASK != 0 {
+                return StepOutput::none();
+            }
+            return match (self.state, has_mic) {
+                (State::Start | State::PtkDerived, false) => self.on_message1(&key),
+                (State::PtkDerived, true) => self.on_message3(frame, &key),
+                (State::Connected, true) => self.on_message3_again(frame, &key),
+                _ => StepOutput::none(),
+            };
+        }
+        if has_mic && self.state == State::Connected {
+            return self.on_group1(frame, &key);
+        }
+        StepOutput::none()
+    }
+
+    // A replay counter must exceed the last one a verified MIC vouched for.
+    // Message 1 carries no MIC, so it never raises the floor; it is held only
+    // to the floor already set.
+    fn replay_is_fresh(&self, rc: &[u8; 8]) -> bool {
+        match &self.rx_replay {
+            Some(last) => u64::from_be_bytes(*rc) > u64::from_be_bytes(*last),
+            None => true,
         }
     }
 
-    // Message 1 -> derive the PTK, answer with message 2 (SNonce + RSN IE,
-    // MIC keyed by the fresh KCK).
-    fn on_message1(&mut self, anonce: [u8; 32], replay: [u8; 8]) -> StepOutput {
-        self.anonce = anonce;
-        self.ptk = ptk(&self.pmk, &self.aa, &self.spa, &self.anonce, &self.snonce);
-        let info = KEY_INFO_VERSION2 | KEY_INFO_PAIRWISE | KEY_INFO_MIC;
-        let mut out = [0u8; 128];
-        match build_key_frame(&mut out, info, &replay, &self.snonce, &RSN_IE, self.kck()) {
-            Some(n) => {
+    // Message 1 -> derive the PTK, answer with message 2 (SNonce and the
+    // station's RSNE, MIC keyed by the fresh KCK). A repeated message 1 before
+    // message 3 is answered the same way, with the ANonce it carries: the AP
+    // repeats it when message 2 was lost, and its replay counter advanced, so
+    // the earlier message 2 would be discarded.
+    fn on_message1(&mut self, key: &EapolKey<'_>) -> StepOutput {
+        self.anonce = key.nonce;
+        self.ptk = self.akm.derive_ptk(&self.pmk, &self.aa, &self.spa, &self.anonce, &self.snonce);
+        match self.message2(&key.replay_counter) {
+            Some(frame) => {
                 self.state = State::PtkDerived;
-                StepOutput { reply: Some(out[..n].to_vec()) }
+                StepOutput::reply(Some(frame))
             }
             None => {
-                self.state = State::Failed;
-                StepOutput { reply: None }
+                self.fail(super::state::Failure::Internal);
+                StepOutput::none()
             }
         }
     }
-
-    // Message 3 -> verify its MIC and ANonce, unwrap the group key, answer with
-    // message 4. Any mismatch abandons the handshake.
-    fn on_message3(&mut self, frame: &[u8], key: &crate::eapol::parse::EapolKey<'_>) -> StepOutput {
-        if !verify_mic(self.kck(), frame) || key.nonce != self.anonce {
-            self.state = State::Failed;
-            return StepOutput { reply: None };
-        }
-        if !self.install_group_key(key.key_data) {
-            self.state = State::Failed;
-            return StepOutput { reply: None };
-        }
-        let info = KEY_INFO_VERSION2 | KEY_INFO_PAIRWISE | KEY_INFO_MIC | KEY_INFO_SECURE;
-        let empty: [u8; 0] = [];
-        let mut out = [0u8; 128];
-        match build_key_frame(&mut out, info, &key.replay_counter, &self.snonce, &empty, self.kck())
-        {
-            Some(n) => {
-                self.state = State::Connected;
-                StepOutput { reply: Some(out[..n].to_vec()) }
-            }
-            None => {
-                self.state = State::Failed;
-                StepOutput { reply: None }
-            }
-        }
-    }
-
-    // Message 3's key data is AES-key-wrapped under the KEK and holds a GTK
-    // KDE (dd <len> 00 0f ac 01 <keyid> <gtk>). Unwrap it, find the KDE, and
-    // store the group key.
-    fn install_group_key(&mut self, wrapped: &[u8]) -> bool {
-        if wrapped.len() < 16 || !wrapped.len().is_multiple_of(8) {
-            return false;
-        }
-        let mut plain = [0u8; 128];
-        let Some(len) = aes_unwrap(&self.kek(), wrapped, &mut plain) else {
-            return false;
-        };
-        find_gtk(&plain[..len], &mut self.gtk).map(|n| self.gtk_len = n).is_some()
-    }
-}
-
-// Scan an unwrapped key-data buffer for the GTK KDE and copy the key out.
-// KDE: 0xDD, length, 00 0F AC (RSN OUI), 0x01 (GTK), key-id byte, reserved,
-// then the group key.
-fn find_gtk(data: &[u8], out: &mut [u8; 32]) -> Option<usize> {
-    let mut i = 0usize;
-    while i + 2 <= data.len() {
-        let tag = data[i];
-        let len = data[i + 1] as usize;
-        let body_end = i.checked_add(2)?.checked_add(len)?;
-        if body_end > data.len() {
-            return None;
-        }
-        if tag == 0xDD
-            && len >= 6
-            && data[i + 2..i + 5] == [0x00, 0x0f, 0xac]
-            && data[i + 5] == 0x01
-        {
-            let gtk = &data[i + 8..body_end];
-            if gtk.is_empty() || gtk.len() > out.len() {
-                return None;
-            }
-            out[..gtk.len()].copy_from_slice(gtk);
-            return Some(gtk.len());
-        }
-        if tag == 0x00 {
-            break; // padding
-        }
-        i = body_end;
-    }
-    None
 }

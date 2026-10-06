@@ -14,21 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The station-side association MLME: the chip-independent brain that takes a
-//! network name and passphrase to a connected, keyed link. It reads the
-//! network's beacon to choose SAE or PSK under the person's policy
-//! (`rsn::select`), authenticates (Open System, or the SAE exchange),
-//! associates with the matching RSNE, then hands the AP's EAPOL frames to the
-//! supplicant. It emits the frames to transmit and never touches hardware, so
-//! any driver (Intel, Realtek) drives the same state machine and it is proven
-//! on the host.
+//! The RSN negotiation: read what a network's beacon offers (`parse`,
+//! `rsnxe`), decide how to join it under the person's policy (`select`), and
+//! say so in the station's own elements (`build`). Pure parsing and encoding
+//! over untrusted beacon bytes, proven in `nonos_wifi_core_proofs`.
 
-mod assoc;
-mod auth;
-mod beacon;
-mod failure;
-mod state;
-mod step;
+pub mod build;
+pub mod parse;
+pub mod rsnxe;
+pub mod select;
+pub mod suite;
 
-pub use failure::MlmeFailure;
-pub use state::{Entropy, JoinRequest, Mlme, MlmeOutput, MlmeState, SAE_ENTROPY, SECRET_MAX};
+pub use parse::{parse_rsne, Rsne};
+pub use select::{select, JoinPolicy, Pmf, SelectError, Selection};

@@ -19,9 +19,10 @@
 //! adapter (`netif`) with its `LinkPort` trait, the key-installation seam
 //! (`key::KeyStore`) that lets CCMP be software on one chip and hardware on
 //! another, and the plaintext frame contract (`frame`) the two exchange. The
-//! 802.11/WPA2 brains (mlme, wpa supplicant, ccmp default, eapol, dot11) live
-//! here too; the drivers implement `LinkPort` and `KeyStore` over their own
-//! rings and never fork the shared logic.
+//! 802.11/WPA2/WPA3 brains (mlme, the RSN negotiation, SAE, the wpa
+//! supplicant, ccmp default, eapol, dot11) live here too; the drivers
+//! implement `LinkPort` and `KeyStore` over their own rings and never fork
+//! the shared logic.
 
 #![cfg_attr(not(test), no_std)]
 
@@ -34,5 +35,8 @@ pub mod frame;
 pub mod key;
 pub mod mlme;
 pub mod netif;
+pub mod rsn;
+pub mod sae;
+pub mod scan_list;
 pub mod station;
 pub mod wpa;

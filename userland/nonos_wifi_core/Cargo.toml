@@ -1,9 +1,10 @@
 # NONOS Operating System
 # Copyright (C) 2026 NONOS Contributors
 #
-# Shared WiFi core: the chip-independent 802.11/WPA2 brains and the net_core
-# link adapter both the Intel (iwlwifi) and Realtek (rtl8821ce) drivers depend
-# on. no_std for the drivers; std under `cargo test` for the host proofs.
+# Shared WiFi core: the chip-independent 802.11/WPA2/WPA3 brains and the
+# net_core link adapter both the Intel (iwlwifi) and Realtek (rtl8821ce)
+# drivers depend on. no_std for the drivers; std under `cargo test` for the
+# host proofs.
 [package]
 name = "nonos_wifi_core"
 version = "0.3.0"
@@ -12,7 +13,15 @@ edition = "2021"
 [lib]
 path = "src/lib.rs"
 
+# The SHA-256 AKMs (SAE, PSK-SHA256) key their PTK expansion with HMAC-SHA256,
+# and WPA3-SAE runs over the NIST P-256 group (IEEE 802.11 group 19). These are
+# the same RustCrypto crates, versions and features the TLS client and
+# capsule_crypto already build for the capsule target; `expose-field` adds the
+# field arithmetic the hash-to-element map and hunting-and-pecking need.
 [dependencies]
+p256 = { version = "0.13", default-features = false, features = ["arithmetic", "expose-field"] }
+sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
+hmac = { version = "0.12", default-features = false }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

@@ -118,3 +118,38 @@ pub fn assoc_request(
     out[cur..end].copy_from_slice(ies.rsn);
     Some(end)
 }
+
+/// Build an element `[id][len][data]` into `out` at `off`, returning the new
+/// offset, or `None` on overflow. The association builder below takes whole
+/// elements; this is how the MLME makes the SSID and rates ones.
+pub fn element(out: &mut [u8], off: usize, id: u8, data: &[u8]) -> Option<usize> {
+    put_ie(out, off, id, data)
+}
+
+/// Build an association request: capability information, a listen interval,
+/// then `elements`, each already a whole element (id, length, content), in
+/// the order given (IEEE Std 802.11-2020, Table 9-34: SSID, Supported Rates,
+/// Extended Supported Rates, RSN, then the RSN Extension element).
+pub fn assoc_request_elements(
+    out: &mut [u8],
+    src: MacAddr,
+    bssid: MacAddr,
+    cap: u16,
+    seq: u16,
+    elements: &[&[u8]],
+) -> Option<usize> {
+    let fc = frame_control(TYPE_MGMT, SUBTYPE_ASSOC_REQ);
+    let off = write_header(out, fc, bssid, src, bssid, seq)?;
+    let mut cur = off.checked_add(4)?;
+    if cur > out.len() {
+        return None;
+    }
+    out[off..off + 2].copy_from_slice(&cap.to_le_bytes());
+    out[off + 2..off + 4].copy_from_slice(&10u16.to_le_bytes());
+    for e in elements {
+        let end = cur.checked_add(e.len())?;
+        out.get_mut(cur..end)?.copy_from_slice(e);
+        cur = end;
+    }
+    Some(cur)
+}
