@@ -82,3 +82,20 @@ The peer list holds a capsule to the endpoints named for it and nothing else. In
 Receiving is narrower. `resolve_for_recv` maps endpoint 0 to the caller's own `proc.<pid>`, accepts another endpoint only when the caller owns it, and answers `EACCES` otherwise (`src/syscall/microkernel/ipc/inbox_name.rs:28-40`).
 
 Registering a name at run time is refused for any name starting `proc.` or `endpoint.`, for the reserved core services and for ports 4098 to 4107, in `allowed` (`src/syscall/microkernel/ipc/register_allowed.rs:24-39`). The reserved names are `keyring`, `entropy_pool`, `crypto_pool`, `vfs_pool` and `market.index`, in `RESERVED_NAMES` (`src/services/registry/reserved.rs:19-28`). A name the caller does not already hold on that port must be one of the five network services in `RUNTIME_REGISTRABLE` (`src/services/registry/reserved.rs:32-33`), and `caller_has_register_right` asks for `RegisterService` or `Admin` (`src/services/registry/auth/caller_has_register_right.rs:17-20`).
+
+## Blocking, waking and timeouts
+
+`MkIpcRecv` and `MkIpcRecvFrom` block until a message arrives. A `timeout_ms` of 0 waits forever; any other value ends the wait with `ETIMEDOUT`, -110, once that many milliseconds have passed, as `recv_from_inbox` does (`src/syscall/microkernel/ipc/recv.rs:149-153`). The receiver reads its `wake_token` before it looks at the queue, so a message that lands between the empty check and the sleep is not lost (`src/syscall/microkernel/ipc/recv.rs:124-132`).
+
+A message longer than the receive buffer is cut to the buffer and the rest is dropped: the whole message is dequeued and `copy_to_user` copies only what fits (`src/syscall/microkernel/ipc/recv.rs:133-147`). Size the buffer for the largest message the service sends.
+
+`MkIpcCall` is a request and its reply in one call:
+
+- `next_call_token` hands every call a nonzero correlation token (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs:37-46`).
+- The call records a pending entry with the server through `pending_reply::push` and fails with `EBUSY` when the server's queue or the caller's share is full (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs:72-76`).
+- A `timeout_ms` of 0 means 5000 ms here, not forever (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs:90`).
+- `recv_reply_correlated` delivers only a message whose correlation equals the token and discards every other message in the reply inbox (`src/syscall/microkernel/ipc/recv.rs:58-93`).
+- A plain send carries correlation 0, which `sys_ipc_send` sets (`src/syscall/microkernel/ipc/send.rs:30-31`), so it cannot pass as a reply.
+- A call that times out leaves its pending entry in place, so a late reply still pairs with the right caller and is then discarded. Apart from the reply itself, only a failed send or `clear_pid`, when either side exits, removes an entry (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs:95-105`).
+
+`MkIpcReply` takes its token from the pending entry through `pending_reply::remove`; with no pending call from that destination it drops the reply and returns 0 (`src/syscall/microkernel/ipc/reply.rs:75-78`). A server can also answer with `MkIpcSend` to its own reply endpoint; `redirect_reply` then calls `pop`, which takes the pending entry whose token matches the request the server received last, not the oldest one, and the bytes go to that caller stamped with that token (`src/syscall/microkernel/ipc/send.rs:141-150`, `src/syscall/microkernel/ipc/pending_reply/pop.rs:20-41`).
