@@ -17,16 +17,34 @@
 use alloc::vec::Vec;
 
 use super::{read_u32, Socket};
-use crate::io::Result;
+use crate::io::{Error, ErrorKind, Result};
 use crate::net::proto::{
-    call, BODY_OFF, OP_ACCEPT, OP_BIND, OP_CONNECT, OP_LISTEN, OP_RECV, OP_SEND,
+    call, BODY_OFF, OP_ACCEPT, OP_BIND, OP_CONNECT, OP_CONNECT_HOST, OP_LISTEN, OP_RECV, OP_SEND,
 };
 
 const MAX_PAYLOAD: usize = 1536;
+/// The longest legal domain name, and net.sockets' own bound.
+const MAX_HOST: usize = 253;
 
 impl Socket {
     pub(crate) fn connect(&self, ip: [u8; 4], port: u16) -> Result<()> {
         call(self.port, OP_CONNECT, &endpoint(self.handle, ip, port), 0).map(|_| ())
+    }
+
+    /// Connect to `host` by name: net.sockets hands the name to the mixnet
+    /// exit unresolved. Body: handle u32, port u16, host length u16, host
+    /// (capsule_net_sockets connect/parse_host.rs).
+    pub(crate) fn connect_host(&self, host: &str, port: u16) -> Result<()> {
+        let name = host.as_bytes();
+        if name.is_empty() || name.len() > MAX_HOST {
+            return Err(Error::new(ErrorKind::InvalidInput, "bad hostname"));
+        }
+        let mut body = Vec::with_capacity(8 + name.len());
+        body.extend_from_slice(&self.handle.to_le_bytes());
+        body.extend_from_slice(&port.to_le_bytes());
+        body.extend_from_slice(&(name.len() as u16).to_le_bytes());
+        body.extend_from_slice(name);
+        call(self.port, OP_CONNECT_HOST, &body, 0).map(|_| ())
     }
 
     pub(crate) fn bind(&self, ip: [u8; 4], port: u16) -> Result<()> {

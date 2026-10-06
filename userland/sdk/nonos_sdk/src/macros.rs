@@ -23,10 +23,11 @@
 /// ```
 ///
 /// The list is not advice to the runtime. It is written into a `.nonos.caps`
-/// section of the binary, and the build refuses to sign a capsule whose
-/// manifest disagrees with it. So what the source says an app may do, what the
-/// manifest is signed for, and what the kernel installs are one fact checked
-/// in one place rather than three numbers that drift.
+/// section of the binary. After signing, the seal's verify phase and
+/// `nonos-mk-verify-image` run `scripts/check_declared_caps.py`, which fails
+/// when the section and the manifest's required capabilities differ. Signing
+/// itself does not run that check, so a mismatch is caught after the manifest
+/// is signed, before the image is called ready.
 ///
 /// A section rather than a symbol because release builds strip symbols, and a
 /// declaration that vanishes under `--strip-all` is worse than none: it would

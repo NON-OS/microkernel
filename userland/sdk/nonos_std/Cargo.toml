@@ -21,3 +21,6 @@ path = "src/lib.rs"
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../../libc" }
 hashbrown = { version = "0.14", default-features = false }
+# The network the person chose, read the way every capsule holding Network
+# reads it: an app's connection follows it (src/net/way.rs).
+nonos_route_link = { path = "../../nonos_route_link" }

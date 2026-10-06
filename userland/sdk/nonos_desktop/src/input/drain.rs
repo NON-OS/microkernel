@@ -19,6 +19,7 @@ use nonos_ipc::recv_from;
 
 use super::super::wire::NINP_MAGIC;
 use super::parse::parse_event;
+use super::router::from_router;
 
 const INBOX: u64 = 0;
 const RECV_BLOCK: u64 = 0;
@@ -45,6 +46,9 @@ pub fn drain_input(out: &mut [InputEvent]) -> usize {
             continue;
         }
         if u32::from_le_bytes([rx[0], rx[1], rx[2], rx[3]]) != NINP_MAGIC {
+            continue;
+        }
+        if !from_router(sender) {
             continue;
         }
         if let Some(event) = parse_event(&rx[HDR..FRAME]) {

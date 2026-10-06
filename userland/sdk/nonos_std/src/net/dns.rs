@@ -18,6 +18,8 @@ use alloc::vec::Vec;
 
 use crate::io::{Error, ErrorKind, Result};
 use crate::net::addr::Ipv4Addr;
+use super::way::LOOKUP_OFF_DIRECT;
+use super::Route;
 
 const DNS_NAME: &[u8] = b"net.dns";
 const MAGIC: u32 = 0x4E44_4E53;
@@ -29,6 +31,8 @@ pub(crate) fn resolve_host(host: &str) -> Result<Ipv4Addr> {
     if host.is_empty() || host.len() > 255 {
         return Err(Error::new(ErrorKind::InvalidInput, "bad hostname"));
     }
+    super::way::direct_only(Route::chosen(), LOOKUP_OFF_DIRECT)
+        .map_err(|why| Error::new(ErrorKind::PermissionDenied, why))?;
     let mut port = 0u32;
     let mut owner = 0u32;
     let rc = nonos_libc::mk_service_lookup(DNS_NAME.as_ptr(), DNS_NAME.len(), &mut port, &mut owner);
