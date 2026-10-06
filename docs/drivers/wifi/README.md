@@ -159,3 +159,10 @@ cd userland/nonos_wifi_core_proofs && cargo test --release --config profile.rele
 ```
 
 Not tested in this release.
+
+## What no Wi-Fi driver does
+
+- No 6 GHz. The RTL8821CE scans 2.4 GHz channels 1 to 13 only; the iwlwifi path keeps 2.4 and 5 GHz channels (`userland/capsule_driver_iwlwifi/src/firmware/gen3/nvm.rs:38-40`, `NVM_CHANNELS`).
+- No open, TKIP or Enterprise networks.
+- No access point, mesh or monitor mode, no roaming and no power save.
+- No USB Wi-Fi adapters.
