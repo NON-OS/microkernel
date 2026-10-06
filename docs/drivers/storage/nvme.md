@@ -110,3 +110,12 @@ make boot-installed
 Not tested in this release.
 
 On real hardware, the installer writing to an internal NVMe disk and booting from it: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+## See also
+
+- [Storage drivers](README.md)
+- [AHCI and Intel RST](ahci-and-rst.md), for NVMe drives that Intel RST hides
+- [Intel VMD](vmd.md)
+- [Broker API](../broker-api.md)
+- [Install to disk](../../install/install-to-disk.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
