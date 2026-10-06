@@ -93,3 +93,7 @@ On each tick, `tick` charges the tick to the running process or to idle and spen
 - the running process was killed from another CPU, which `is_dead` reports, checked only when the tick interrupted user mode (`src/process/scheduler/preemption/tick.rs:65-71`).
 
 The switch happens only when the tick interrupted user mode, preemption is not disabled on this CPU, and `need_reschedule` is set (`src/interrupts/timer/tick.rs:50-71`). Kernel code holds plain spin locks with interrupts open, and a switch inside one could hand the CPU to a task that spins on the same lock. Kernel code gives up the CPU by calling `yield_now` (`src/process/scheduler/preemption/yield_impl.rs:22-27`). A reschedule interrupt from another CPU only sets the flag; `reschedule` does not switch inside the handler (`src/smp/ipi_dispatch/handlers.rs:35-42`).
+
+## Sleep and wake
+
+A process sleeps until a deadline in milliseconds of elapsed time. `enter_sleep` takes the process's state lock, leaves the run queue, marks it sleeping and records the deadline, unless a wake arrived after the caller read its wake token (`src/process/scheduler/dispatch/sleep_enter.rs:45-58`). The tokens are `WAKE_SLOTS`, 1024 counters indexed by pid modulo 1024 (`src/process/scheduler/dispatch/wake_gen.rs:37-48`). Two pids that share a slot can only make a sleep end early, never let one sleep through a wake. Every tick, `check_sleeping_processes` wakes up to 64 sleepers whose deadline has passed (`src/process/scheduler/dispatch/sweep.rs:23-51`). The [futex](futex.md) is built on this.
