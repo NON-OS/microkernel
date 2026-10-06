@@ -39,3 +39,9 @@ Look through your files in Files and the Editor. On an installed system a file r
 - It cannot copy files to a USB stick or another disk. The file service keeps files in memory and in the NONOS store, and mounts no other file system (`userland/capsule_vfs/README.md`), and the USB storage driver serves sectors, not files (`userland/capsule_driver_usb_msc/README.md`).
 - It cannot reach a network, by design.
 - It cannot open a data volume the TPM no longer gives the key for.
+
+## When the data volume does not open
+
+The installed data volume opens only on the machine that made it, in the same boot state: its key is derived by the [TPM](../overview/glossary.md#tpm) under PCRs 0, 4, 7 and 9, and never stored (`src/security/tpm/machine_key/pcrs.rs`). After a firmware update or a change to Secure Boot, the TPM gives another key, and the kernel leaves the volume closed rather than format over it (`src/fs/blockfs_volume/mount_or_format.rs`). Programs that read `/data` then get `data volume under another key`, or `no machine key for the data volume` when the TPM gave no key at all (`src/fs/vfs/map_volume_err.rs`).
+
+To get it back, put the firmware and the Secure Boot setting back as they were when the volume was made, and boot again. A reinstall erases the volume for good.
