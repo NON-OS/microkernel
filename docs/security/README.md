@@ -55,3 +55,13 @@ None of these defends against everything. [Protections and limits](protections-a
 - [Device secrets and keys](device-secrets-and-keys.md): the keyring, sealed records, the encrypted data volume, what stays in RAM and what is wiped at shutdown.
 - [Protections and limits](protections-and-limits.md): the threats NONOS addresses and the ones it does not.
 - [Reporting a vulnerability](reporting-a-vulnerability.md): how to report a security bug privately.
+
+## Where to start
+
+A security reviewer: [Protections and limits](protections-and-limits.md), then [Capsule isolation](capsule-isolation.md), then the boot chain pages.
+
+A person deciding whether to keep data on NONOS: [Device secrets and keys](device-secrets-and-keys.md), then the "does not address" table in [Protections and limits](protections-and-limits.md).
+
+A driver or capsule author: [Capsule isolation](capsule-isolation.md), then [Manifests and capabilities](../userland/manifests-and-capabilities.md).
+
+Someone who found a security bug: [Reporting a vulnerability](reporting-a-vulnerability.md).
