@@ -75,3 +75,9 @@ Every NONOS ID certificate names the trust-anchor epoch it was issued under, and
 ## Attestation epochs
 
 The STARK contexts carry an epoch too. `POLICY_EPOCH`, for capsules, is 1 in the kernel and the enroll tool (`src/security/capsule_attest/layout.rs:17-18`, `nonos-stark-enroll/src/context.rs:19-20`). `BOOT_EPOCH`, for the kernel and the loader, is 1 in the boot-measure crate and the enroll tool (`nonos-boot-measure/src/gate/membership.rs:23-24`). Today the epoch in a context separates nothing. What retires old trailers is the root: `emit` draws a fresh pad seed for every enrollment, so each enrollment gives a new root even for the same slots, and a trailer from an earlier one does not fold to it (`nonos-stark-enroll/src/commands.rs:24-34`). See [STARK attestation](stark-attestation.md).
+
+## Without a TPM
+
+- The loader reads no floor. Hardened and Air-Gapped refuse to boot; every other mode boots with rollback protection off and says so on the panel.
+- No floor is raised after admission, and `raise_failed` stays silent because `tpm_present` is false (`nonos-bootloader/src/boot/crypto/rollback/raise.rs:42-47`).
+- The kernel's check of the loader takes the self-reported path and holds the boot-root record to a floor of 0.
