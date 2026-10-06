@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(in super::super) const OP_LOAD_INDEX: u16 = 1;
-pub(in super::super) const OP_LIST_APPS: u16 = 2;
-pub(in super::super) const OP_GET_APP: u16 = 3;
-pub(in super::super) const OP_GET_RELEASE: u16 = 4;
-pub(in super::super) const OP_INSTALL_READY: u16 = 5;
-pub(in super::super) const OP_HEALTHCHECK: u16 = 6;
+/* The op numbers its clients send, from the one place they are defined. */
+pub(in super::super) use nonos_market_proto::{
+    OP_GET_APP, OP_GET_RELEASE, OP_HEALTHCHECK, OP_INSTALL_READY, OP_LIST_APPS, OP_LOAD_INDEX,
+};

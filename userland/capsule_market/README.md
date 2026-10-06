@@ -2,119 +2,81 @@
 
 ## Role
 
-`capsule_market` is the signed capsule marketplace and install-readiness
-service. It verifies marketplace index material, applies trust policy, and
-answers whether a capsule release is ready for installation.
+`capsule_market` is the marketplace index and install-readiness service,
+`market.index`. It holds the signed catalogue the image ships, checks it
+against the operator key, and answers what is listed and whether a release
+passes the install gates. It does not fetch or install anything itself. The
+handbook page is
+[docs/handbook/apps/market-and-store.md](../../docs/handbook/apps/market-and-store.md).
 
 ```text
-operator-supplied index
+BASELINE (embedded) then /nonos/marketplace/index.bin
     |
-    | load / verify IPC
+    | load_verified: decode, newer serial, trusted operator, signatures
     v
-market -- trust anchors + install checks --> install-ready result
+market -- list / get / install-ready --> app_store, init (Linux installs)
 ```
 
 ## Microkernel contract
 
-The capsule is a signed IPC service:
+- Requests arrive with `MkIpcRecv` on `service:4106:market.index`; replies go
+  out on `reply:4107:endpoint.4294967303`.
+- `CAPSULE_REQUIRED_CAPS = 0x59`: CoreExec, IPC, Memory and FileSystem.
+  CoreExec is for `MkGetPid`; FileSystem lets it read
+  `/nonos/marketplace/index.bin` through vfs (`src/boot_index.rs`), since vfs
+  serves only a holder of FileSystem. Signatures are checked in process by
+  `nonos_ed25519`, so it holds no Crypto. It has no driver, MMIO, IRQ, DMA,
+  PIO, network, admin, debug or loader authority.
+- The kernel mirror is `src/security/market_capsule`. The capsule is turned on
+  by `nonos-capsule-market` in `microkernel-desktop-base`, so the standard
+  desktop images carry it and the offline desktop does not.
 
-- `MkIpcRecv` receives requests on `service:4106:market.index`.
-- `MkIpcSend` replies on `reply:4107:endpoint.4294967303`.
-- `MkExit` terminates on fatal setup failure.
-- The kernel mirror is `src/security/market_capsule`.
+The kernel does not parse marketplace indexes or make package policy.
 
-The kernel does not parse marketplace indexes or make package policy. It
-verifies the capsule, routes IPC, and leaves marketplace decisions in userland.
+## Loading the catalogue
+
+At start the capsule takes the catalogue embedded at build time
+(`target/market/index.bin`, from `mk/21-market.mk`), then the file at
+`/nonos/marketplace/index.bin` if one is there, before it serves anything.
+Each goes through `load_verified`: it must decode, its serial must be newer
+than the one held, its operator key must be in `TRUSTED_OPERATORS`, and the
+operator's signature over the index must verify. Each release's publisher
+signature is checked and kept per release; a bad one blocks that release, not
+the index. A build with the `offline-verify` feature refuses every signature.
 
 ## Interface contract
 
-| Surface | Purpose |
-|---|---|
-| load index | ingest a signed marketplace index |
-| list/get | return indexed capsule and release metadata |
-| install-ready | evaluate trust, signature, platform, and policy checks |
-| reject path | return deterministic refusal reasons |
+Magic `0x4E4D4B54`, version 1, a 20-byte header.
 
-## Authority
+| Op | Name | Reply |
+|---|---|---|
+| 1 | `OP_LOAD_INDEX` | status; `E_INVAL`, `E_STALE` or `E_KEYREJECTED` on refusal |
+| 2 | `OP_LIST_APPS` | every listing |
+| 3 | `OP_GET_APP` | one listing's metadata |
+| 4 | `OP_GET_RELEASE` | one release |
+| 5 | `OP_INSTALL_READY` | the verdict and six gates, seven bytes |
+| 6 | `OP_HEALTHCHECK` | status |
 
-The manifest grants `IPC` and `Memory` (`CAPSULE_REQUIRED_CAPS = 0x18`). It has
-no driver, MMIO, IRQ, DMA, PIO, filesystem, network, admin, debug, or direct
-loader authority.
+The six gates are the index signature, the operator's validation, the package
+(a URL and both hashes), the publisher signature, the arch (and
+`kernel_abi_min` at most 1), and attestation (a trailer hash, or a `linux.`
+listing whose proof the machine mints). An empty release id asks for the
+first release.
 
 ## Privacy and persistence
 
-The capsule keeps the loaded index in runtime memory. It does not install
-capsules by itself, write persistent state, or bypass signature policy. The
-operator key set is part of the capsule trust configuration.
+The accepted index lives only in capsule memory. Nothing is written back.
 
-## Runtime lifecycle
+## Limits
 
-The capsule starts with trusted operator keys, accepts an index load, verifies
-it, stores the accepted index in memory, and answers list/get/install-ready
-queries until exit.
-
-## Failure model
-
-Malformed index, untrusted operator, bad signature, unsupported platform,
-missing release, and policy mismatch return explicit protocol errors. The
-capsule never asks the kernel to install unverified bytes.
-
-## Current implemented surface
-
-- Rejects unsigned or malformed marketplace input.
-- Verifies accepted index material against trusted operator keys.
-- Exposes list/get/install-ready operations through its IPC protocol.
-- Keeps marketplace policy out of the kernel.
-
-## Wire format
-
-Requests carry operation id and index or query payloads. Replies carry status,
-metadata records, release records, or install-readiness results. The index
-format remains signed and versioned outside the kernel.
-
-## State ownership
-
-The capsule owns loaded index state, trust-evaluation state, and install-ready
-decision state. The loader owns final capsule admission. The kernel does not
-parse marketplace indexes.
-
-## Operating rules
-
-- Reject unsigned or malformed indexes.
-- Keep operator and publisher trust explicit.
-- Return deterministic refusal reasons.
-- Never fetch or install code directly.
-
-## Release target
-
-The finished market capsule verifies signed indexes, enforces publisher and
-operator trust policy, evaluates install readiness, supports rollback-safe
-release selection, and exposes deterministic errors for rejected releases. It
-never fetches unauthenticated code or bypasses the capsule loader.
-
-## Release evidence
-
-Release evidence is marketplace-index validation for valid index, mutated body,
-untrusted operator, rollback selection, and install-ready refusal paths.
-
-## Release checklist
-
-- Valid signed index validation passes.
-- Mutated body is rejected.
-- Untrusted operator is rejected.
-- Rollback and platform checks are covered.
-- Loader bypass remains impossible.
-
-## Explicit non-goals today
-
-No network fetcher, payment flow, mutable local package database, direct file
-installer, kernel loader bypass, or unsigned development ingest path lives
-here.
+- One operator key; no rotation list beyond `TRUSTED_OPERATORS`.
+- Any serial is accepted while nothing has been accepted yet.
+- A newer catalogue reaches a machine only by a rebuild or a file at
+  `/nonos/marketplace/index.bin`; there is no network fetcher.
 
 ## Verification
 
-- Build: `make -B nonos-mk-market`
-- Host tool smoke: `tools/ci/marketplace_index_smoke.sh`
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Security check: unsigned ingest and direct crypto primitive dependencies are
-  forbidden by static gates.
+`userland/market_proofs` drives the index decoder and the request readers with
+arbitrary bytes and checks the readiness gates and release selection. `make
+nonos-mk-market-smoke` and `make nonos-mk-market-fixtures` build the host smoke
+test and its fixtures.

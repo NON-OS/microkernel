@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::super::install_ready::find_release::find_release;
 use super::encode_release::encode_release;
 use super::parse_pair::parse_pair;
 use crate::protocol::{Request, E_INVAL, E_MSGSIZE, E_NODATA};
@@ -30,14 +31,10 @@ pub(crate) fn handle(store: &Store, body: &[u8], req: &Request, tx: &mut [u8]) {
         Some(p) => p,
         None => return reply_status(tx, req, E_INVAL),
     };
-    let release = accepted
-        .index
-        .entries
-        .iter()
-        .find(|e| e.listing_id == listing_id)
-        .and_then(|e| e.releases.iter().find(|r| r.release_id == release_id));
-    let release = match release {
-        Some(r) => r,
+    // The same resolution readiness uses, so an empty id is the default
+    // release here too: the two must agree on which release a request means.
+    let release = match find_release(&accepted.index, listing_id, release_id) {
+        Some((_, _, r)) => r,
         None => return reply_status(tx, req, E_NODATA),
     };
     let out = encode_release(release);
