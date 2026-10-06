@@ -78,3 +78,9 @@ A command such as Address Device gets 5 s (`userland/capsule_driver_xhci/src/con
 `driver.xhci0` serves service endpoint 4206 (`userland/capsule_driver_xhci/Capsule.mk:14`, `CAPSULE_SERVICE_ENDPOINT`). Its operations are health check, controller status, port status, enable and disable slot, address device, device and configuration descriptors, transfer ring allocation, control transfer, interrupt IN, and bulk configure, OUT, IN and reset (`userland/capsule_driver_xhci/src/protocol/ops.rs:16-30`, `OP_ADDRESS_DEVICE`). Any other operation is answered `E_INVAL` (`userland/capsule_driver_xhci/src/server/dispatch.rs:26-46`, `E_INVAL`). Port status reports each root port as free, addressed or claimed by a class driver, so one class driver does not reset a device another is still reading (`userland/capsule_driver_xhci/src/slots/table/port_state.rs:16-26`, `PORT_CLAIMED`).
 
 The capsule holds the [capabilities](../../overview/glossary.md#capability) IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, the word 0xF8018 (`userland/capsule_driver_xhci/Capsule.mk:16-17`, `CAPSULE_REQUIRED_CAPS`).
+
+## Controllers without a driver
+
+EHCI, OHCI and UHCI controllers are listed by the kernel's inventory and get no driver (`src/hardware/inventory/missing.rs:28-30`, `UsbEhci`; `src/hardware/inventory/classify_serial_bus.rs:19-28`, `classify_serial_bus`). On a machine whose ports hang off such a controller, USB devices do not work in NONOS.
+
+The USB network adapter capsules (CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179, Realtek RTL8153) exist as source under `userland/`, but the build includes none of them (`mk/20-build.mk:528-547`, `capsule_driver_xhci`), and the kernel would not let them send to `driver.xhci0` (`src/services/registry/held_table.rs:32`, `driver.xhci0`).
