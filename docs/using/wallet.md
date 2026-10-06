@@ -115,3 +115,11 @@ The RPC node sees which addresses are asked about. Through Nym or Anyone it does
 Setup's app list has a `Wallet` switch. When it is turned off, the wallet does not start, and Safe Mode and Recovery boots do not start it either (`BootProfile` in `src/userspace/init/app_choice/profile.rs:41-42`).
 
 The host tests pass on this commit: `wallet_proofs` (184 tests), `nonos_secp256k1` (12), `shield_wire_proofs` (12) and `tpm_key_proofs` (42).
+
+## See also
+
+- [Privacy networks](privacy-network.md)
+- [Device secrets and keys](../security/device-secrets-and-keys.md)
+- [Measured boot and the TPM](../security/measured-boot-and-tpm.md)
+- [Update](../install/update.md)
+- [Settings](settings.md)
