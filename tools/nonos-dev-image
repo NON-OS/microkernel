@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""A development image to boot and test, in minutes, with no real key.
+
+    tools/nonos-dev-image [--profile qemu]
+
+It builds the profile's development twin (<profile>-dev: the same kernel
+features, path-only attestation, the loader's development policy) and seals
+it with throwaway keys, the ones CI's boot smoke makes. All of it happens in
+a copy of this checkout under target/dev/tree, so the throwaway keys are made
+there and only there, and the release keys beside a real checkout are never
+read. The image is target/dev/tree/target/release/<profile>-dev/nonos.img;
+`make dev-boot` boots it.
+
+A development image is never a release: its gates take a capsule on its
+Merkle path without the STARK proof, its loader carries the development
+override, and the seal refuses to seal it for release.
+"""
+
+import argparse
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+TREE = ROOT / "target/dev/tree"
+# Never copied: what a real checkout keeps beside the source.
+KEEP_OUT = (".keys/", "nonos-bootloader/keys/", "target/", "result")
+
+
+def sh(*cmd, cwd=TREE, env=None, capture=False):
+    r = subprocess.run(cmd, cwd=cwd, env=dict(os.environ, **(env or {})), text=True,
+                       capture_output=capture)
+    if r.returncode != 0:
+        sys.exit(f"nonos-dev-image: {' '.join(cmd[:3])} failed" + (f":\n{r.stderr}" if capture else ""))
+    return r.stdout.strip() if capture else None
+
+
+def tracked():
+    """Every file the checkout holds as source, committed or not, ignored ones
+    left out, so the copy builds what this tree would."""
+    out = subprocess.run(["git", "ls-files", "-z", "-co", "--exclude-standard"], cwd=ROOT,
+                         capture_output=True, check=True).stdout
+    return [p for p in out.decode().split("\0") if p and not p.startswith(KEEP_OUT)]
+
+
+def sync():
+    """Bring the copy to this checkout: changed files copied, gone ones removed.
+    The trust set is the copy's own once it exists: its throwaway keys and the
+    seal's output live there, and the checkout's would not match them."""
+    own_trust = (TREE / ".git").is_dir()
+    want = set()
+    for rel in tracked():
+        if own_trust and rel.startswith("nonos-data/trust/"):
+            continue
+        src, dst = ROOT / rel, TREE / rel
+        if not src.is_file() and not src.is_symlink():
+            continue
+        want.add(rel)
+        if src.is_symlink():
+            if dst.is_symlink() and os.readlink(dst) == os.readlink(src):
+                continue
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            if dst.exists() or dst.is_symlink():
+                dst.unlink()
+            os.symlink(os.readlink(src), dst)
+            continue
+        s = src.stat()
+        if dst.is_file() and not dst.is_symlink():
+            d = dst.stat()
+            if d.st_size == s.st_size and int(d.st_mtime) == int(s.st_mtime):
+                continue
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, dst)
+    if (TREE / ".git").is_dir():
+        held = sh("git", "ls-files", "-z", capture=True).split("\0")
+        for rel in held:
+            if rel and rel not in want and not rel.startswith(("nonos-data/", ".keys/")):
+                (TREE / rel).unlink(missing_ok=True)
+
+
+def commit():
+    """The copy is its own repository, so the seal can stage what it writes and
+    the flake can build it, with no history of the real one."""
+    git = ["git", "-c", "user.name=nonos-dev", "-c", "user.email=dev@localhost"]
+    if not (TREE / ".git").is_dir():
+        sh("git", "init", "-q")
+    sh("git", "add", "-A")
+    # What the checkout tracks against its own ignore rules (.cargo/config.toml
+    # is one), added by name, so the copy holds exactly the same source.
+    files = "\0".join(tracked()).encode()
+    r = subprocess.run(["git", "add", "-f", "--pathspec-from-file=-", "--pathspec-file-nul"],
+                       cwd=TREE, input=files)
+    if r.returncode != 0:
+        sys.exit("nonos-dev-image: git add of the tracked files failed")
+    if subprocess.run(["git", "diff", "--cached", "--quiet"], cwd=TREE).returncode != 0:
+        sh(*git, "commit", "-q", "--no-gpg-sign", "-m", "development image source")
+
+
+def keys(host_tools):
+    """CI's throwaway keys, made in the copy. Never a real key."""
+    if not (TREE / ".keys/signing_key_v1.bin").is_file():
+        print("nonos-dev-image: making throwaway keys in target/dev/tree, as CI does")
+        sh("bash", "nonos-ci/setup-signing-key.sh")
+    # Every build, not only the first: the script makes only the keys that are
+    # missing, and a capsule added to the tree since the copy's keys were made
+    # needs its own, or the seal stops at it.
+    sh("nix", "develop", "--command", "bash", "nonos-ci/scratch-trust-bootstrap.sh",
+       env={"NONOS_HOST_TOOLS": host_tools, "NONOS_SCRATCH_KEYS_ONLY": "1"})
+    # The market capsule embeds the market operator's public key, and the seal
+    # signs the market index and the model catalogue with it; CI's set has
+    # none, so the copy gets a throwaway one of its own.
+    seed = TREE / ".keys/marketplace_operator_ed25519.seed"
+    pub = TREE / ".keys/marketplace_operator_ed25519.pub"
+    # The operator's public key is the raw 32 bytes, as the market tools read
+    # it; a pair in any other shape is made again.
+    if not (seed.is_file() and pub.is_file() and pub.stat().st_size == 32):
+        seed.unlink(missing_ok=True)
+        pub.unlink(missing_ok=True)
+        out = sh(f"{host_tools}/bin/marketplace-index", "keygen", "--out", str(seed), capture=True)
+        pub.write_bytes(bytes.fromhex(out.split()[-1]))
+    # The checkout tracks its operator's public key here; the copy tracks the
+    # throwaway one instead, so the flake builds the capsule against the key
+    # that signs this image's index.
+    sh("git", "add", "-f", ".keys/marketplace_operator_ed25519.pub")
+    commit()
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("--profile", default="qemu", help="the profile whose development twin to build")
+    a = ap.parse_args()
+    attr = "dev" if a.profile == "dev" else f"{a.profile}-dev"
+    TREE.mkdir(parents=True, exist_ok=True)
+    print(f"nonos-dev-image: {attr}, in {TREE.relative_to(ROOT)}")
+    sync()
+    commit()
+    host_tools = sh("nix", "build", ".#host-tools", "--no-link", "--print-out-paths", capture=True)
+    keys(host_tools)
+    sh("nix", "run", ".#seal", "--", "--profile", attr,
+       env={"SIGNING_KEY": str(TREE / ".keys/signing_key_v1.bin")})
+    img = TREE / "target/release" / attr / "nonos.img"
+    print(f"\nnonos-dev-image: {img.relative_to(ROOT)}")
+    print("  boot it: make dev-boot" + ("" if a.profile == "qemu" else f" PROFILE={a.profile}"))
+
+
+if __name__ == "__main__":
+    main()

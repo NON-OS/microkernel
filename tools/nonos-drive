@@ -1,0 +1,132 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+"""Boot an image headless and drive it like a person, taking screenshots.
+
+    tools/nonos-drive --image IMG --out DIR [--qemu-arg ARG ...] STEP ...
+    tools/nonos-drive --image IMG --out DIR --steps FILE
+
+Each step is one of:
+
+    until:TEXT[:SECS]   wait for TEXT on the serial console (default 600 s)
+    wait:SECS           sleep
+    shot:NAME           screenshot to DIR/NAME.png
+    key:A+B             press keys together, QEMU qcode names (ret, tab, esc,
+                        ctrl, alt, shift, f1, a ...)
+    type:TEXT           type text
+    move:DX,DY          move the mouse by DX, DY
+    click[:right]       press and release a mouse button
+
+It runs nix run .#qemu with --headless and --tpm, talks to QEMU's monitor
+socket, and stops the machine at the end. The serial log is DIR/serial.log.
+A step that waits and does not see its text fails the run.
+"""
+
+import argparse
+import os
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "userland/capsule_install/e2e"))
+from qmp import Qmp  # noqa: E402
+from steps import until  # noqa: E402
+
+QMP = ROOT / "target/qemu/qmp.sock"
+
+
+def rel(q, dx, dy):
+    q.cmd("input-send-event", events=[
+        {"type": "rel", "data": {"axis": "x", "value": dx}},
+        {"type": "rel", "data": {"axis": "y", "value": dy}},
+    ])
+
+
+def click(q, button="left"):
+    for down in (True, False):
+        q.cmd("input-send-event", events=[{"type": "btn", "data": {"down": down, "button": button}}])
+        time.sleep(0.08)
+
+
+def run(q, s, out, serial):
+    kind, _, arg = s.partition(":")
+    if kind == "until":
+        text, _, secs = arg.rpartition(":") if arg.rsplit(":", 1)[-1].isdigit() else (arg, "", "600")
+        ok = until(serial, text, float(secs or 600))
+        print(f"  until {text!r}: {'seen' if ok else 'NOT SEEN'}", flush=True)
+        return ok
+    if kind == "wait":
+        time.sleep(float(arg))
+    elif kind == "shot":
+        q.shot(str(out / f"{arg}.png"))
+        print(f"  shot {arg}.png", flush=True)
+    elif kind == "key":
+        q.key(*arg.split("+"))
+        time.sleep(0.3)
+    elif kind == "type":
+        q.type_text(arg)
+    elif kind == "move":
+        dx, dy = (int(v) for v in arg.split(","))
+        rel(q, dx, dy)
+        time.sleep(0.1)
+    elif kind == "click":
+        click(q, arg or "left")
+    else:
+        sys.exit(f"nonos-drive: unknown step {s!r}")
+    return True
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0],
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--image", required=True)
+    ap.add_argument("--out", required=True, type=Path)
+    ap.add_argument("--steps", type=Path)
+    ap.add_argument("--qemu-arg", action="append", default=[])
+    ap.add_argument("step", nargs="*")
+    a = ap.parse_args()
+    steps = list(a.step)
+    if a.steps:
+        steps += [l.strip() for l in a.steps.read_text().splitlines() if l.strip() and not l.startswith("#")]
+    a.out.mkdir(parents=True, exist_ok=True)
+    serial = a.out / "serial.log"
+    serial.write_text("")
+    QMP.unlink(missing_ok=True)
+    qemu = subprocess.Popen(["nix", "run", ".#qemu", "--", "--image", a.image, "--tpm", "--headless",
+                             "--serial", str(serial), *a.qemu_arg], cwd=ROOT,
+                            stdout=open(a.out / "qemu.log", "w"), stderr=subprocess.STDOUT)
+    ok = True
+    try:
+        q = Qmp(str(QMP), wait=600)
+        for s in steps:
+            if not run(q, s, a.out, str(serial)):
+                ok = False
+                break
+        q.quit()
+    finally:
+        try:
+            qemu.wait(timeout=30)
+        except subprocess.TimeoutExpired:
+            qemu.terminate()
+    print(f"nonos-drive: {'done' if ok else 'stopped at a step that did not happen'}, {a.out}")
+    sys.exit(0 if ok else 1)
+
+
+if __name__ == "__main__":
+    main()
