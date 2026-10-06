@@ -23,4 +23,6 @@ pub enum CryptoBlockError {
     DeviceFailure,
     OutOfRange,
     Unsupported,
+    /// No volume window is set, so no sector may be touched.
+    NoWindow,
 }
