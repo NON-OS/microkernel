@@ -157,3 +157,28 @@ An `I2C_HID` record reuses fields: `hid_record` puts the 7-bit I2C address in `v
 | `USB_HOST_XHCI` | `0x0071` | 256 | xHCI controllers, prog-if 0x30 |
 | `GPIO_CTRL` | `0x0080` | 16 | A platform GPIO community from ACPI |
 | `OTHER` | `0xFFFF` | 16 | Anything not classified |
+
+## Other constants
+
+`BUS_KIND_*` says which bus a record came from, and `BAR_KIND_*` and `BAR_FLAG_*` describe a `Bar`. `DEVICE_FLAG_*` are defined, but no code sets them: `flags` is 0 on every record, and no record is built with `BUS_KIND_VIRT`. `DMA_MAP_*` are the `MkDmaMap` flags, and `BIND_*` the `MkIrqBind` flags. `DMA_MAP_COHERENT` maps uncached; `DMA_MAP_WC` maps write-combining where the PAT allows, else uncached (`src/hardware/broker/dma/flags.rs:19-30`).
+
+| Constant | Value | File |
+|---|---|---|
+| `BUS_KIND_PCI` | `0x1` | `src/hardware/broker/device/bus.rs` |
+| `BUS_KIND_ACPI` | `0x2` | `src/hardware/broker/device/bus.rs` |
+| `BUS_KIND_VIRT` | `0x3` | `src/hardware/broker/device/bus.rs` |
+| `BAR_KIND_NONE` | `0x0` | `src/hardware/broker/device/bar.rs` |
+| `BAR_KIND_MMIO` | `0x1` | `src/hardware/broker/device/bar.rs` |
+| `BAR_KIND_PIO` | `0x2` | `src/hardware/broker/device/bar.rs` |
+| `BAR_FLAG_PREFETCH` | `0x1` | `src/hardware/broker/device/flags.rs` |
+| `BAR_FLAG_MEM64` | `0x2` | `src/hardware/broker/device/flags.rs` |
+| `DEVICE_FLAG_CLAIMED` | `0x1` | `src/hardware/broker/device/flags.rs` |
+| `DEVICE_FLAG_DISABLED` | `0x2` | `src/hardware/broker/device/flags.rs` |
+| `DMA_MAP_HIGH` | `0x1` | `src/hardware/broker/dma/flags.rs` |
+| `DMA_MAP_DMA32` | `0x2` | `src/hardware/broker/dma/flags.rs` |
+| `DMA_MAP_COHERENT` | `0x4` | `src/hardware/broker/dma/flags.rs` |
+| `DMA_MAP_WC` | `0x8` | `src/hardware/broker/dma/flags.rs` |
+| `BIND_MSIX` | `0x1` | `src/hardware/broker/irq/types.rs` |
+| `BIND_MSI` | `0x2` | `src/hardware/broker/irq/types.rs` |
+| `BROKER_VEC_MIN` | `0x81` | `src/arch/x86_64/interrupt/broker/vectors.rs` |
+| `BROKER_VEC_MAX` | `0xc0` | `src/arch/x86_64/interrupt/broker/vectors.rs` |
