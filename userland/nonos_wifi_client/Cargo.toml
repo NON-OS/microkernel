@@ -1,0 +1,26 @@
+# NONOS Operating System (AGPL-3.0-or-later)
+#
+# The one Wi-Fi client Settings, first-boot setup and net_core share: it finds
+# whichever Wi-Fi driver service is running and speaks the control protocol
+# both drivers answer, and it keeps the networks a person chose to remember,
+# sealed under a TPM-derived key, in the NONOS store.
+
+[package]
+name = "nonos_wifi_client"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+description = "NONOS Wi-Fi driver client and sealed saved networks"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# Default features would bring the libc heap and panic handler into every
+# capsule that links this crate; the capsules bring their own.
+nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }
+nonos_seal = { path = "../nonos_seal" }
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+nonos_policy_client = { path = "../policy_client" }
+nonos_policy_proto = { path = "../policy_proto" }
