@@ -14,14 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_app_skeleton::input::text::{is_paste, typed_char};
 use nonos_app_skeleton::{EventOutcome, InputEvent, KEY_BACKSPACE, KEY_ENTER, KEY_ESC};
 
+use super::field_paste::paste_field;
 use super::state::{Mode, State};
+use super::text_field::{name_char, push_within, FILTER_MAX};
 use super::view::rebuild_view;
 
 // Live incremental search: each keystroke edits the filter and rebuilds the
 // view immediately. Escape clears it, Enter keeps it and returns to browsing.
 pub fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
+    if is_paste(&event) {
+        let refused = b"paste refused: a filter takes no spaces or tabs";
+        if let Some(note) = paste_field(&mut state.filter, FILTER_MAX, name_char, refused) {
+            state.status = note;
+        }
+        rebuild_view(state);
+        return EventOutcome::Repaint;
+    }
     match event.code {
         KEY_ESC => {
             state.filter.clear();
@@ -37,12 +48,10 @@ pub fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
             state.filter.pop();
             rebuild_view(state);
         }
-        code => {
-            if let Some(ch) = char::from_u32(code) {
-                if ch.is_ascii_graphic() && state.filter.len() < 48 {
-                    state.filter.push(ch);
-                    rebuild_view(state);
-                }
+        _ => {
+            let ch = typed_char(&event);
+            if ch.is_some_and(|ch| push_within(&mut state.filter, ch, FILTER_MAX, name_char)) {
+                rebuild_view(state);
             }
         }
     }

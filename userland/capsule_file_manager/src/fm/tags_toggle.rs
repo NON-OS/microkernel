@@ -17,23 +17,23 @@
 extern crate alloc;
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
-use super::selection_acting::acting;
-use super::state::State;
-use super::store_meta::save_meta;
-use super::tags_toggle::toggle_tag;
+use super::tags::TagMap;
 
-/// The tag prompt's Enter: the selection's band offers Tag, so the tag goes
-/// on every selected entry (or the one under the cursor), not only the row
-/// the cursor sits on as it did. When all of them carry it already, it comes
-/// off all of them.
-pub fn tag_commit(state: &mut State, name: &str) {
-    let paths: Vec<String> = acting(state).into_iter().map(|(p, _)| p).collect();
-    if paths.is_empty() {
-        state.status = b"no selection";
-        return;
+/// What `tag_commit` does to the map, and the words for it.
+pub fn toggle_tag(tags: &mut TagMap, paths: &[String], name: &str) -> &'static [u8] {
+    let lower = name.to_ascii_lowercase();
+    let all_have = paths.iter().all(|p| tags.tags_for(p).contains(&lower.as_str()));
+    if all_have {
+        for p in paths {
+            tags.remove(p, name);
+        }
+        return b"untagged";
     }
-    state.status = toggle_tag(&mut state.tags, &paths, name);
-    save_meta(state);
+    let refused = paths.iter().filter(|p| !tags.add(p, name)).count();
+    match refused {
+        0 => b"tagged",
+        n if n == paths.len() => b"not tagged: up to 24 letters, digits or -, and 8 tags a file",
+        _ => b"tagged; some had no room for another tag",
+    }
 }

@@ -14,26 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The folder in the shell's answer to "is there something for me to open".
+//! The shell answers with a 4-byte status and then the path; a bare status
+//! means it holds nothing for this app. The shell sends the file manager
+//! folders only (a desktop folder icon), named without the trailing slash
+//! the manager's listing prefixes carry, so one is added. Kept apart from the
+//! IPC so it can be proven.
+
 extern crate alloc;
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
-use super::selection_acting::acting;
-use super::state::State;
-use super::store_meta::save_meta;
-use super::tags_toggle::toggle_tag;
-
-/// The tag prompt's Enter: the selection's band offers Tag, so the tag goes
-/// on every selected entry (or the one under the cursor), not only the row
-/// the cursor sits on as it did. When all of them carry it already, it comes
-/// off all of them.
-pub fn tag_commit(state: &mut State, name: &str) {
-    let paths: Vec<String> = acting(state).into_iter().map(|(p, _)| p).collect();
-    if paths.is_empty() {
-        state.status = b"no selection";
-        return;
+/// `body` is the reply after the wire header.
+pub fn reply_dir(body: &[u8]) -> Option<String> {
+    let path = core::str::from_utf8(body.get(4..)?).ok()?;
+    if !path.starts_with('/') {
+        return None;
     }
-    state.status = toggle_tag(&mut state.tags, &paths, name);
-    save_meta(state);
+    let mut dir = String::from(path);
+    if !dir.ends_with('/') {
+        dir.push('/');
+    }
+    Some(dir)
 }

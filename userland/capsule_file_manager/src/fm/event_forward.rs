@@ -14,23 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_app_skeleton::EventOutcome;
 
-use super::layout::{CONTENT_X, HEADER_H, PAD_X};
-use super::screen_row::empty_state;
+use super::refresh::refresh;
+use super::screen::Screen;
 use super::state::State;
 
-/// Sharing needs an identity backend the system does not have yet, so this
-/// surface says so instead of inventing entries it cannot produce.
-pub fn paint_shared(_state: &State, fb: &mut PaintBuffer) {
-    let x = CONTENT_X + PAD_X;
-    let w = fb.width.saturating_sub(CONTENT_X + PAD_X * 2);
-    empty_state(
-        fb,
-        x,
-        HEADER_H + 60,
-        w,
-        "Nothing shared yet",
-        "Sharing needs the identity backend, which is not built.",
-    );
+/// Forward: back down into the folder Back last went up out of
+/// (`nav_trail.rs`). A folder gone since says so through the listing.
+pub fn open_forward(state: &mut State) -> EventOutcome {
+    let Some(dir) = state.trail.forward() else { return EventOutcome::Idle };
+    state.screen = Screen::Browse;
+    state.prefix = dir;
+    state.cursor = 0;
+    state.scroll = 0;
+    refresh(state);
+    EventOutcome::Repaint
 }

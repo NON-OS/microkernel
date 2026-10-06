@@ -23,6 +23,8 @@ pub fn open_parent(state: &mut State) -> EventOutcome {
     if state.prefix == "/" {
         return EventOutcome::Idle;
     }
+    let from = state.prefix.clone();
+    state.trail.went_up(&from);
     let trim = state.prefix.trim_end_matches('/');
     let cut = trim.rfind('/').unwrap_or(0);
     state.prefix.truncate(if cut == 0 { 1 } else { cut + 1 });

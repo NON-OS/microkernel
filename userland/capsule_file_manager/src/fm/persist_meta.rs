@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use nonos_app_skeleton::clients::vfs::{persist, store_remove};
+use nonos_policy_client::{get_bool, lookup};
+use nonos_policy_proto::Field;
 
 use super::state::State;
 use super::store_meta::{save_meta, FAVORITES_KEY, PREFS_KEY, TAGS_KEY};
@@ -31,10 +33,16 @@ const ALREADY: &str = "already exists";
 /// favourites and prefs reset on every boot.
 ///
 /// Deliberately coarse. Each blob that actually changed costs one payload
-/// extent that `store_remove` cannot reclaim — it frees the TOC slot, not the
-/// bytes — so this belongs on a session boundary, never on a keystroke.
+/// extent that `store_remove` cannot reclaim (it frees the TOC slot, not the
+/// bytes), so this belongs on a session boundary, never on a keystroke.
 pub fn persist_meta(state: &State) {
     save_meta(state);
+    // An amnesic boot keeps nothing: vfs refuses each persist and says so on
+    // the serial console, three lines every time the window closed. Files
+    // not read from the store are not written over either (store_meta.rs).
+    if !state.meta_loaded || !keeps_state() {
+        return;
+    }
     for key in [TAGS_KEY, FAVORITES_KEY, PREFS_KEY] {
         persist_key(state.owner_pid, key);
     }
@@ -54,4 +62,10 @@ fn persist_key(owner_pid: u32, key: &[u8]) {
         return;
     }
     let _ = persist(owner_pid, key);
+}
+
+/* Whether this boot keeps what is written: the choice made at setup, which
+ * only the policy store holds. No answer is taken as amnesic, as vfs takes it. */
+fn keeps_state() -> bool {
+    lookup().and_then(|port| get_bool(port, Field::Persistent)) == Some(true)
 }

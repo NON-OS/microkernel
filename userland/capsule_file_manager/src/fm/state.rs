@@ -66,6 +66,16 @@ pub struct State {
     pub owner_pid: u32,
     pub prefix: String,
     pub all: Vec<Entry>,
+    // The folder `all` was listed from, and the vfs client's reason the last
+    // listing of `prefix` failed. A failed listing is drawn as one, never as
+    // an empty folder, and never over the entries of the folder before it.
+    pub listed: String,
+    pub load_error: Option<&'static str>,
+    // Whether the tags, favourites and preferences were read from the store.
+    // Until they are, nothing is written back over them: a store that did
+    // not answer at open would otherwise have them replaced by the defaults
+    // when the window closed.
+    pub meta_loaded: bool,
     pub entries: Vec<Entry>,
     pub cursor: usize,
     // Index of the first entry drawn, so long directories scroll instead of
@@ -112,6 +122,8 @@ pub struct State {
     pub favorites: Favorites,
     pub prefs: Prefs,
     pub undo: UndoStack,
+    // The folders Back went up out of, for Forward to go down into again.
+    pub trail: super::nav_trail::Trail,
     // Search surface: the live query and its hits as (kind, line, path), where
     // line is the 1-based match line for a content hit and 0 otherwise.
     pub query: String,

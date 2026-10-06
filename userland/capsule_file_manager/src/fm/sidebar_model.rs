@@ -59,12 +59,8 @@ pub struct SideRow {
 }
 
 /// The fixed navigation block, in drawn order.
-pub const NAV: [(&str, Screen); 4] = [
-    ("Home", Screen::Home),
-    ("Recents", Screen::Recents),
-    ("Shared", Screen::Shared),
-    ("Tags", Screen::Tags),
-];
+pub const NAV: [(&str, Screen); 3] =
+    [("Home", Screen::Home), ("Recents", Screen::Recents), ("Tags", Screen::Tags)];
 
 /// Accumulates rows against a running y, so a section only ever states its own
 /// contents and never its offset.

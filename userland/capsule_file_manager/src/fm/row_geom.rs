@@ -59,11 +59,6 @@ pub fn row_slots(state: &State) -> Vec<RowSlot> {
         .collect()
 }
 
-/// Where the row for `index` was drawn, or `None` when it is scrolled out.
-pub fn row_y(state: &State, index: usize) -> Option<u32> {
-    row_slots(state).into_iter().find(|s| s.index == index).map(|s| s.y)
-}
-
 /// Which entry the point `y` lands on; `None` above the first row, below the
 /// last drawn one, or past the end of the listing.
 pub fn row_at(state: &State, y: u32) -> Option<usize> {

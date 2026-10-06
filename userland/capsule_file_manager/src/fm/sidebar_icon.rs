@@ -26,7 +26,6 @@ pub fn nav_icon(hit: &SideHit) -> Icon {
     match hit {
         SideHit::Screen(Screen::Home) => Icon::Home,
         SideHit::Screen(Screen::Recents) => Icon::Clock,
-        SideHit::Screen(Screen::Shared) => Icon::People,
         SideHit::Screen(Screen::Tags) => Icon::Tag,
         SideHit::Screen(Screen::Search) => Icon::Magnifier,
         SideHit::Screen(_) => Icon::Folder,

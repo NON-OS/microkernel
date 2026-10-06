@@ -20,25 +20,17 @@ use super::entries::Entry;
 use super::file_kind::kind_of;
 use super::fmt_time::fmt_time;
 use super::human_size::human_size;
-use super::icon_draw::draw;
-use super::icon_path::Icon;
-use super::layout::ROW_H;
-use super::list_cols::{Cols, MENU_W};
+use super::list_cols::Cols;
 use super::list_kind_label::kind_label;
 use super::measure_text::right_text;
 use super::theme::INK3;
 
 const META_PX: f32 = 14.0;
-const MENU_S: u32 = 16;
 const TEXT_DY: u32 = 15;
 
-/// The three right-aligned meta cells and the per-row menu affordance. Every
-/// cell right-aligns on its own column's end, the same edge `list_head` set its
-/// label against.
-///
-/// The ellipsis is drawn in the tertiary ink because nothing is wired behind it:
-/// this capsule has no row-menu machinery, and the house pattern is that an
-/// unwired control reads as dimmed rather than silently doing nothing.
+/// The three right-aligned meta cells. Every cell right-aligns on its own
+/// column's end, the same edge `list_head` set its label against. No row menu
+/// is drawn: the capsule has none to open.
 pub fn row_meta(fb: &mut PaintBuffer, entry: &Entry, y: u32, c: &Cols) {
     let ty = y + TEXT_DY;
     right_text(fb, c.cols[1].x + c.cols[1].w, ty, kind_label(kind_of(entry)), META_PX, INK3);
@@ -48,6 +40,4 @@ pub fn row_meta(fb: &mut PaintBuffer, entry: &Entry, y: u32, c: &Cols) {
     if entry.mtime != 0 {
         right_text(fb, c.cols[3].x + c.cols[3].w, ty, &fmt_time(entry.mtime), META_PX, INK3);
     }
-    let mx = c.menu_x + MENU_W.saturating_sub(MENU_S) / 2;
-    draw(fb, Icon::Ellipsis, mx, y + (ROW_H - MENU_S) / 2, MENU_S, INK3);
 }
