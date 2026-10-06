@@ -43,3 +43,14 @@ One address serves two networks. You switch between them in the wallet; every si
 The hosts and contracts are fixed in the code; the wallet has no field to add a network, a token or an RPC host.
 
 Sepolia is Ethereum's test network, and the wallet says so: nothing on it has value. The NOX Shield is a private pool that runs only on Sepolia in this release. The `Receive` screen puts the difference this way: paid at the private address, "the sender, the amount, your balance and the notes you hold stay out of sight"; at the `0x` address, "anyone can see what this address holds and sends" (`userland/capsule_wallet_nonos/src/wallet/screen/receive.rs`). The shield's keys and notes are kept by a separate capsule, `capsule_shield`. `Receive` shows the `0x` address, and on Sepolia the private address once the shield has opened for the account.
+
+## Send
+
+1. Press `Send`. It is enabled once the balance has been read.
+2. Fill in the form and press `Review payment`.
+3. The review shows the amount, the network, `Network fee, at most`, `Gas limit` and the nonce, from a fresh nonce, fee and gas estimate. For ETH it adds `Total, at most`; for a token, the token contract.
+4. `Confirm and send` signs and broadcasts once. `Edit` goes back.
+
+The result reads `Sent. Waiting for the network to put it in a block.`, then `Confirmed: the payment is in a block, and twelve blocks hold it.` A transfer that reverts says `In a block, and the transfer reverted. Only the fee was spent.`
+
+The wallet refuses to sign when the node gives no fee, a fee of zero, or a fee above 1000 gwei (`FEE_CEILING_WEI` in `userland/capsule_wallet_nonos/src/wallet/send/gas.rs:34`). A plain transfer to an account is signed at 21,000 gas; a contract call gets the node's estimate plus 20 percent.
