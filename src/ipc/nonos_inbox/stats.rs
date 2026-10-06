@@ -80,6 +80,8 @@ pub struct InboxStatsSnapshot {
     pub peak_size: usize,
     /// Current queue size
     pub current_size: usize,
+    /// Bytes the queued messages are charged against the IPC budget
+    pub bytes: usize,
     /// Inbox capacity
     pub capacity: usize,
 }
@@ -88,14 +90,15 @@ impl core::fmt::Display for InboxStatsSnapshot {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
-            "Inbox[enq:{} deq:{} drop:{} timeout:{} size:{}/{} peak:{}]",
+            "Inbox[enq:{} deq:{} drop:{} timeout:{} size:{}/{} peak:{} bytes:{}]",
             self.enqueued,
             self.dequeued,
             self.dropped_full,
             self.timeouts,
             self.current_size,
             self.capacity,
-            self.peak_size
+            self.peak_size,
+            self.bytes
         )
     }
 }
