@@ -14,3 +14,6 @@ license = "AGPL-3.0-or-later"
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
