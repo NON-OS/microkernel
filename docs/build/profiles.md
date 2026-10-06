@@ -60,3 +60,24 @@ The flake turns a profile into kernel features in one place (`resolve`, `tools/n
 4. Take out everything the profile drops, and with `install = false` the setup and installer features too, replacing any feature that would bring one back by its own members.
 
 The features come from `Cargo.toml`, never from a hand list, so what a profile takes out is not in the kernel binary at all (`kernelFeatures`, `tools/nix/config.nix:4-15`).
+
+## The floors
+
+A profile sets floors, not defaults. A `nonos.toml` that asks a profile for less fails to evaluate, before anything builds, with a message that starts with `nonos.toml:` (`assertMsg`, `tools/nix/config.nix:157-172`). It fails when:
+
+- a key is unknown, or a feature is not in `Cargo.toml`;
+- a feature the profile takes out comes back in through another feature;
+- the loader is weaker than the profile's, in the order `dev-qemu`, `standard-qemu`, `standard`, `production` (`loaders`, `tools/nix/config.nix:66`);
+- `rollback_index` is not an integer of at least 1, or `linux_packages` is not `name:port`;
+- `nonos-dev-attest`, which admits capsules without their STARK proof, or the wallet test vectors, would reach an image whose loader is not `dev-qemu`.
+
+For example, this `nonos.toml` fails with `nonos.toml: profile hardened needs at least loader production, not standard` (`level`, `tools/nix/config.nix:160`):
+
+```
+profile = "hardened"
+loader = "standard"
+```
+
+When a feature the kernel tests by name pulls back something the profile takes out, the flake still evaluates, but the kernel refuses to build and says which features are tangled and that the profile builds only with `install = false` (`blocked`, `tools/nix/config.nix:178-182`, `refuse`, `tools/nix/image.nix:78-88`).
+
+The `kernel-profile-<profile>` checks type-check the kernel with exactly each profile's features (`profileChecks`, `tools/nix/checks.nix:169-193`), and the build receipt reads the kernel's bytes to confirm that no capsule a profile takes out is inside it (`enforcement`, `tools/nonos-receipt:103-126`).
