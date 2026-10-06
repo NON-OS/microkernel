@@ -1,0 +1,36 @@
+# NONOS userland: anon_onion_proofs
+#
+# net.anon's onion service client run end to end on the host: the capsule's
+# own manager, circuit, onion, directory and stream code, over a link that is
+# a queue, against a simulated network whose relays and service are written
+# independently from the fork's rules.
+
+[package]
+name = "anon_onion_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "anon_onion_proofs_shim", path = "shim" }
+nonos_aes = { path = "../nonos_aes" }
+nonos_ed25519 = { path = "../nonos_ed25519" }
+nonos_equix = { path = "../nonos_equix" }
+nonos_inflate = { path = "../inflate" }
+
+[dev-dependencies]
+x25519-dalek = { version = "2", default-features = false, features = ["static_secrets"] }
+curve25519-dalek = { version = "4", default-features = false }
+ed25519-dalek = { version = "2", default-features = false, features = ["hazmat"] }
+sha2 = { version = "0.10", default-features = false }
+sha3 = { version = "0.10", default-features = false }
+hmac = { version = "0.12", default-features = false }
+hkdf = { version = "0.12", default-features = false }
+aes = { version = "0.8", default-features = false }
+ctr = { version = "0.9", default-features = false }
+base64 = { version = "0.22", default-features = false, features = ["alloc"] }
+blake2 = { version = "0.10", default-features = false }
