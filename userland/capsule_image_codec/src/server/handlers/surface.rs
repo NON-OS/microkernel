@@ -25,7 +25,12 @@ use crate::protocol::{E_INVAL, E_NOMEM};
 const PROT_READ_WRITE: i32 = 0x3;
 const MAP_PRIVATE_ANON: i32 = 0x22;
 
-pub fn register_argb_surface(pixels: &[u32], size: ImageSize) -> Result<(u64, u32, u64), i32> {
+/// The shared handle, stride and length of a new surface holding `pixels`,
+/// and the mapping (base, length) to unmap when it is let go.
+pub fn register_argb_surface(
+    pixels: &[u32],
+    size: ImageSize,
+) -> Result<(u64, u32, u64, (usize, usize)), i32> {
     let stride = size.width.checked_mul(4).ok_or(E_INVAL)?;
     let byte_len = (stride as u64).checked_mul(size.height as u64).ok_or(E_INVAL)?;
     let base =
@@ -54,7 +59,9 @@ pub fn register_argb_surface(pixels: &[u32], size: ImageSize) -> Result<(u64, u3
     }
     let handle = mk_surface_share(sid as u64);
     if handle <= 0 {
+        // Nobody holds it yet, so unmapping gives the slot back too.
+        let _ = mk_munmap(base, byte_len as usize);
         return Err(handle as i32);
     }
-    Ok((handle as u64, stride, byte_len))
+    Ok((handle as u64, stride, byte_len, (base as usize, byte_len as usize)))
 }
