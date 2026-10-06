@@ -17,6 +17,7 @@
 mod alloc;
 mod dealloc;
 mod mapping;
+mod release;
 mod stats;
 
 pub use alloc::{allocate_aligned, allocate_pages};
