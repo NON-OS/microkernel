@@ -78,3 +78,53 @@ The file store refuses a write with "no room" (`ENOSPC`) past these limits, inst
 - 2048 names in all, and one program may create at most a quarter of them.
 - 64 MiB for one file.
 - 160 MiB for all files together (`DATA_BYTES_MAX`).
+
+## What is kept after power off
+
+```mermaid
+flowchart LR
+    apps["Files, Editor, Music"] --> vfs_pool["file store in memory"]
+    terminal["Terminal keep"] --> vfs_pool
+    vfs_pool -->|"installed disk only"| store["capsule store on the NONOS disk"]
+    models["Qwen models"] --> volume["data volume"]
+```
+
+The file store is memory. A file reaches the disk only when the program that created it asks the store to keep it, and the store agrees only when the policy store's `Keep data across reboots` field is on (`require_persistent` in `userland/capsule_vfs/src/server/handlers/persist_gate.rs`). That field is set once, during setup: it is on when you choose `Install to this computer`. Settings shows it without letting you change it.
+
+On an amnesic boot, the default, nothing is kept:
+
+- Every request to keep a file is refused, and the store logs `[VFS] refused persist: amnesic boot`.
+- On a live stick, the [data volume](../overview/glossary.md#data-volume) that holds Qwen models is held in memory, and nothing of this machine's is written to the stick (`src/fs/blockfs_volume/plan_types.rs`, `src/fs/blockfs_volume/open_machine.rs`).
+- Setup asks its questions again at the next boot. If you install NONOS from this boot, the installer carries your answers to the new disk (`stage` in `userland/capsule_setup_wizard/src/keep/save.rs`).
+
+On a machine where `Keep data across reboots` is on, as on a NONOS installed to a disk, these are kept:
+
+- Setup's answers: your name, keyboard layout, time zone, wallpaper, the wallpapers kept, Qwen model, the apps turned off, the computer's name and the network route (`record_of` in `userland/capsule_setup_wizard/src/keep/save.rs`).
+- Every value you change in [Settings](settings.md) that the policy store keeps (`KEPT` in `userland/policy_proto/src/settings_record.rs`).
+- Saved Wi-Fi networks, sealed with the TPM machine key.
+- The Terminal's theme, font size and side rail, Files' tags, favourites and view settings, and Snake's scores.
+- The wallet's sealed files under `/data`. See [Wallet](wallet.md).
+- Apps installed from the store.
+- The data volume, on the disk, keyed by a key the TPM derives for this machine, or by a passphrase when it was made with one.
+- Files you created in the Terminal and kept with `keep`.
+
+These are not kept, even on an installed disk:
+
+- Files you create or change in Files or in Editor. Neither app asks for a file to be kept.
+- Music downloads in `/home/nonos/music`.
+- Terminal history, scrollback, variables and aliases.
+
+To keep a file, make it in the Terminal and keep it there:
+
+```sh
+write /home/nonos/notes.txt remember the backup
+keep /home/nonos/notes.txt
+```
+
+Not tested in this release.
+
+`keep` prints `persisted` when the file reached the disk. Three rules hold it (`userland/capsule_vfs/src/blk/store_write.rs`, `userland/nonos_disk_map/src/container.rs`):
+
+- Only the process that created a file may keep it, so a file made in Files, or in another Terminal window, cannot be kept from this one (`persistable` in `userland/capsule_vfs/src/store/fdtable/persist.rs`).
+- Once a path is kept, `keep` can replace its copy on disk only with contents of exactly the same length. Any other change is refused, and removing a kept file frees no disk space.
+- The disk store holds at most 512 entries and 96 MiB of loaded files, the signed programs it already carries included. A kept path is at most 96 printable ASCII characters.
