@@ -61,3 +61,9 @@ If a waker already took this waiter off the list while it was returning early, `
 `sys_futex_wake` takes up to `count` waiters from the front of the list for that key, where a `count` of 0 means all of them, releases the queue lock, and only then wakes each one through the scheduler (`src/syscall/microkernel/futex/wake.rs:25-52`). Waiters are woken in the order they joined. It returns how many it woke; a wake on a word nobody waits on returns 0.
 
 The sleep and the wake both go through the scheduler's sleep table and wake tokens; see [scheduler and SMP](scheduler-and-smp.md).
+
+## In Rust programs
+
+The NONOS standard library port builds `Mutex`, `Condvar`, `RwLock`, `Once` and thread parking on these two calls, so a contended lock sleeps instead of spinning (`toolchain/nonos-std/sys/pal/nonos/futex.rs:1-6`). Its `futex_wait` loops: it checks the word, computes what is left of the caller's timeout from the kernel's millisecond clock, and calls `MkFutexWait` again until the word changes or the time is up (`toolchain/nonos-std/sys/pal/nonos/futex.rs:81-106`). A timeout shorter than one millisecond is rounded up to one. `futex_wake` wakes one waiter and `futex_wake_all` wakes all of them (`toolchain/nonos-std/sys/pal/nonos/futex.rs:108-120`).
+
+The C library carries only the wait number, `N_MK_FUTEX_WAIT` (`userland/libc/src/syscall/numbers/core.rs:38`). Its `mk_idle_ms` uses it as a timed sleep: it waits on a private word on its own stack that nothing else knows, so only the timeout ends the wait (`userland/libc/src/unistd/idle.rs:32-37`).
