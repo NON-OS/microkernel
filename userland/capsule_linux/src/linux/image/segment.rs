@@ -42,6 +42,7 @@ pub(super) fn segment(
     if guest.map(at, ph.memsz, ph.flags & PF_W != 0, ph.flags & PF_X != 0) < 0 {
         return Err(LoadError::Map);
     }
+    guest.mark_kept(at, ph.memsz);
     if ph.filesz == 0 {
         return Ok(());
     }

@@ -14,29 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The service loop: take a trap from any process or thread the family
+//! hosts, answer it or leave the caller parked, and end what has exited.
 
-//! The service loop: take a trap from any thread of the guest, answer it
-//! or leave the caller parked.
+use nonos_libc::{mk_foreign_wait, ForeignFrame};
 
-use nonos_libc::{mk_foreign_reply, mk_foreign_wait, ForeignFrame};
-
-use super::answer::Answer;
-use super::dispatch::answer;
+use super::family::Family;
 use crate::linux::guest::Guest;
 
 /// How long one wait blocks before looking at the guest again.
 const WAIT_MS: u64 = 250;
 
-pub fn serve(guest: &mut Guest) -> i32 {
+pub fn serve(guest: Guest) -> i32 {
+    let mut family = Family::new(guest);
     loop {
         let mut frame = ForeignFrame::default();
-        let got = mk_foreign_wait(&mut frame, WAIT_MS);
-        if got > 0 && guest.owns(frame.pid) {
-            if let Answer::Reply(value) = answer(guest, &frame) {
-                let _ = mk_foreign_reply(frame.pid, value);
-            }
+        // A sleeper or a parked wait due sooner than the usual wait shortens it.
+        let wait = family.next_wake_ms().map_or(WAIT_MS, |ms| ms.clamp(1, WAIT_MS));
+        if mk_foreign_wait(&mut frame, wait) > 0 {
+            family.answer(&frame);
         }
-        if let Some(code) = guest.exited {
+        family.settle_tty_interrupt();
+        family.settle_sleeps();
+        family.settle_futex();
+        // After reap, so a write end that left with its process reads as end of file.
+        family.reap();
+        family.settle_waits();
+        if let Some(code) = family.done() {
+            super::tally::report();
             return code;
         }
     }

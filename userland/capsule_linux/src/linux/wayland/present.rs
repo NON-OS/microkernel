@@ -16,42 +16,65 @@
 
 //! Getting the client's pixels onto a NONOS surface.
 
+use nonos_app_skeleton::clients::compositor::damage_commit;
+use nonos_app_skeleton::discover::lookup_port;
+
 use crate::linux::guest::Guest;
 
-use super::present_surface::surface;
+use super::frame_len::frame_len;
+use super::present_window::{refit, show};
+use super::reshape::{reshape, Reshape};
 use super::scene::Scene;
+use super::window_damage::window_damage;
 
-pub fn present(guest: &mut Guest, buffer: u32) {
-    let Some((at, width, height, stride, bytes)) = source(&guest.scene, buffer) else {
-        return;
+const NO_POOL: &[u8] = b"[WAYLAND] commit of a buffer with no pool behind it, not shown\n";
+const NO_FRAME: &[u8] =
+    b"[WAYLAND] commit of a buffer empty, outside its pool or larger than a frame, not shown\n";
+const NO_ROOM: &[u8] = b"[WAYLAND] no room for the frame, not shown\n";
+
+/// Show `buffer`, committed on `surface`.
+pub fn present(guest: &mut Guest, surface: u32, buffer: u32) {
+    let (at, width, height, stride, bytes) = match source(&guest.scene, buffer) {
+        Ok(found) => found,
+        Err(why) => return say(why),
     };
-    /*
-     * The descriptor handed to the kernel holds this buffer's address, so it
-     * is allocated once and written in place afterwards.
-     */
-    if guest.scene.pixels.len() < bytes {
-        if guest.scene.out.is_some() {
-            return;
-        }
-        guest.scene.pixels.resize(bytes, 0);
+    let shape = (width, height, stride);
+    // Presented by the compositor, as every other app's window is; the
+    // personality holds no GfxPresent and needs none. A buffer of a shape
+    // the surface does not have gets one that has it (reshape.rs).
+    if reshape(guest.scene.shape, shape) != Reshape::Same {
+        return show(guest, surface, at, bytes, shape);
     }
-    let Some(src) = guest.read(at, bytes) else {
+    /* Straight into the frame: a second buffer would hold the pixels twice. */
+    let pid = guest.pid;
+    let Some(frame) = guest.scene.pixels.frame(bytes) else {
+        return say(NO_ROOM);
+    };
+    if !Guest::read_into(pid, at, frame) {
+        return;
+    }
+    if guest.scene.fit.due().is_some() {
+        refit(&mut guest.scene);
+    }
+    // In screen coordinates, where the window is (window_damage.rs).
+    let Some((x, y, w, h)) = window_damage(guest.scene.at, width, height) else {
         return;
     };
-    guest.scene.pixels[..bytes].copy_from_slice(&src);
-    if let Some(handle) = surface(&mut guest.scene, width, height, stride) {
-        let _ = nonos_libc::mk_surface_present_rect(handle, 0, 0, width, height);
+    if let Some(port) = lookup_port(b"compositor") {
+        let _ = damage_commit(port, guest.scene.next_serial(), x, y, w, h);
     }
 }
 
-/// Where the pixels are, how they are shaped, and how many bytes that is.
-fn source(scene: &Scene, buffer: u32) -> Option<(u64, u32, u32, u32, usize)> {
-    let b = scene.buffers.iter().find(|b| b.id == buffer)?;
-    let pool = scene.pools.iter().find(|p| p.id == b.pool)?;
-    let at = pool.at.checked_add(b.offset)?;
-    let bytes = (b.stride as u64).checked_mul(b.height as u64)?;
-    if bytes == 0 || b.offset.checked_add(bytes)? > pool.size {
-        return None;
-    }
-    Some((at, b.width, b.height, b.stride, bytes as usize))
+/// Where the pixels are, how they are shaped, and how many bytes that is
+/// (`frame_len`), or what to say instead.
+fn source(scene: &Scene, buffer: u32) -> Result<(u64, u32, u32, u32, usize), &'static [u8]> {
+    let b = scene.buffers.iter().find(|b| b.id == buffer).ok_or(NO_POOL)?;
+    let pool = scene.pools.iter().find(|p| p.id == b.pool).ok_or(NO_POOL)?;
+    let at = pool.at.checked_add(b.offset).ok_or(NO_FRAME)?;
+    let bytes = frame_len(b.offset, b.stride, b.height, pool.size).ok_or(NO_FRAME)?;
+    Ok((at, b.width, b.height, b.stride, bytes))
+}
+
+fn say(line: &[u8]) {
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
 }

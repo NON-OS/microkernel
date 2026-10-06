@@ -37,7 +37,10 @@ pub fn create_buffer(guest: &mut Guest, pool: u32, args: &mut Args<'_>) {
     if !fits(offset as u64, width as u64, height as u64, stride as u64, size) {
         return;
     }
-    guest.objects.put(id, Object::Buffer);
+    if !guest.objects.put(id, Object::Buffer) {
+        return;
+    }
+    guest.scene.buffers.retain(|b| b.id != id);
     guest.scene.buffers.push(Buffer { id, pool, offset: offset as u64, width, height, stride });
 }
 

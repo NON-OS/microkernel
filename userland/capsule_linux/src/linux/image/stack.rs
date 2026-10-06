@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The stack a Linux program wakes up on: argc, then argv, then the
 //! environment, then the auxiliary vector, each list ended by a null.
 
@@ -57,6 +56,9 @@ pub fn build(
     }
     match guest.write(rsp, &blob) {
         n if n < 0 => None,
-        _ => Some(rsp),
+        _ => {
+            crate::linux::file::record_image(guest.pid, argv, &placed.at, top, rsp);
+            Some(rsp)
+        }
     }
 }

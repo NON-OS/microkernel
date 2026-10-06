@@ -18,23 +18,19 @@
 use crate::linux::abi::errno;
 use crate::linux::guest::Guest;
 
-/// One `struct iovec`: a pointer and a length, both eight bytes.
-const IOVEC: usize = 16;
-/// Linux refuses a longer vector, so a guest cannot ask this capsule to
-/// walk an unbounded list.
-const IOV_MAX: u64 = 1024;
+use super::iovec::vector;
 
+/// In Linux's order: a descriptor that is not open is EBADF before the
+/// array is looked at, even an empty one; the array is checked whole
+/// (`iovec`) before anything is read into it.
 pub fn readv(guest: &mut Guest, fd: u64, iov: u64, count: u64) -> u64 {
-    if count > IOV_MAX {
-        return errno::fail(errno::EINVAL);
-    }
-    let Some(table) = guest.read(iov, count as usize * IOVEC) else {
-        return errno::fail(errno::EFAULT);
+    let open = guest.fds.get(fd as usize).is_some_and(|f| f.is_open());
+    let pieces = match vector(guest, open, iov, count) {
+        Ok(pieces) => pieces,
+        Err(e) => return errno::fail(e),
     };
     let mut got = 0u64;
-    for i in 0..count as usize {
-        let at = i * IOVEC;
-        let (base, len) = (word(&table, at), word(&table, at + 8));
+    for (base, len) in pieces {
         if len == 0 {
             continue;
         }
@@ -54,11 +50,4 @@ pub fn readv(guest: &mut Guest, fd: u64, iov: u64, count: u64) -> u64 {
         }
     }
     errno::ok(got)
-}
-
-fn word(bytes: &[u8], at: usize) -> u64 {
-    match bytes.get(at..at + 8).and_then(|s| s.try_into().ok()) {
-        Some(eight) => u64::from_le_bytes(eight),
-        None => 0,
-    }
 }

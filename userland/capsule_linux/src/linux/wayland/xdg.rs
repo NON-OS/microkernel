@@ -32,7 +32,9 @@ pub fn get_xdg_surface(guest: &mut Guest, args: &mut Args<'_>) {
     let (Some(id), Some(surface)) = (args.u32(), args.u32()) else {
         return;
     };
-    guest.objects.put(id, Object::XdgSurface);
+    if !guest.objects.put(id, Object::XdgSurface) {
+        return;
+    }
     if let Some(s) = guest.scene.surfaces.iter_mut().find(|s| s.id == surface) {
         s.xdg = Some(id);
     }
@@ -40,7 +42,17 @@ pub fn get_xdg_surface(guest: &mut Guest, args: &mut Args<'_>) {
 
 pub fn get_toplevel(guest: &mut Guest, xdg: u32, args: &mut Args<'_>) {
     let Some(id) = args.u32() else { return };
-    guest.objects.put(id, Object::XdgToplevel);
+    if !guest.objects.put(id, Object::XdgToplevel) {
+        return;
+    }
+    if let Some(s) = guest.scene.surfaces.iter_mut().find(|s| s.xdg == Some(xdg)) {
+        s.toplevel = Some(id);
+        // A surface shown before it was made a toplevel goes with this one.
+        let surface = s.id;
+        if let Some(shown) = guest.scene.shown.as_mut().filter(|w| w.surface == surface) {
+            shown.toplevel = Some(id);
+        }
+    }
     let serial = guest.scene.next_serial();
     // An empty states array, which is a length of zero.
     Event::new(id, ev::TOPLEVEL_CONFIGURE)
@@ -52,9 +64,11 @@ pub fn get_toplevel(guest: &mut Guest, xdg: u32, args: &mut Args<'_>) {
 }
 
 pub fn ack_configure(guest: &mut Guest, xdg: u32, args: &mut Args<'_>) {
-    let Some(_serial) = args.u32() else { return };
+    let Some(serial) = args.u32() else { return };
     let owner = guest.scene.surfaces.iter_mut().find(|s| s.xdg == Some(xdg));
     if let Some(s) = owner {
         s.configured = true;
     }
+    // A new size or state is taken with the next buffer (fit.rs).
+    guest.scene.fit.ack(serial);
 }

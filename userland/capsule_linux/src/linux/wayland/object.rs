@@ -35,7 +35,13 @@ pub enum Object {
     Seat,
     Pointer,
     Keyboard,
+    Output,
 }
+
+/// The most objects one client holds at once. A real client holds a few
+/// hundred; without a ceiling, a client creating objects it never destroys
+/// would grow this capsule's memory, and slow every lookup, for good.
+pub const MAX_OBJECTS: usize = 4096;
 
 pub struct Objects {
     slots: Vec<(u32, Object)>,
@@ -51,11 +57,16 @@ impl Objects {
         self.slots.iter().find(|(k, _)| *k == id).map(|(_, v)| *v)
     }
 
-    pub fn put(&mut self, id: u32, what: Object) {
+    /// Record `id` as `what`; false, recording nothing, when a new id would
+    /// pass MAX_OBJECTS, so the request that asked for it makes nothing.
+    pub fn put(&mut self, id: u32, what: Object) -> bool {
+        let full = self.slots.len() >= MAX_OBJECTS;
         match self.slots.iter_mut().find(|(k, _)| *k == id) {
             Some(slot) => slot.1 = what,
+            None if full => return false,
             None => self.slots.push((id, what)),
         }
+        true
     }
 
     pub fn drop_id(&mut self, id: u32) {

@@ -37,6 +37,10 @@ const MAGIC: u32 = 0x4E53_4B54;
 const STATUS_AT: usize = 8;
 
 pub fn call(op: u16, body: &[u8], want: usize) -> Option<(u16, Vec<u8>)> {
+    /* Nothing reaches net.sockets from a family that holds a model. */
+    if crate::linux::file::models::held() {
+        return None;
+    }
     let port = match lookup_service(NAME) {
         Some(peer) if peer.port != 0 => peer.port,
         _ => FIXED_PORT,

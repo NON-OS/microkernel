@@ -16,41 +16,71 @@
 
 //! Backing a span of a guest with pages.
 
-use nonos_libc::peer::{mk_peer_map, PEER_PROT_EXEC, PEER_PROT_WRITE};
-
 use super::handle::Guest;
-use super::layout::STACK_TOP;
-use super::mem::{span_within, MAX_SPAN};
-use super::region::Region;
+use super::layout::USER_MAX;
+use super::mem::{maps_full, span_within};
+use super::mem_span::map_span;
+use super::region::{peer_prot, Region};
+use super::region_cut::cut;
 
 impl Guest {
     /// Pages covering `[addr, addr + len)`.
     pub fn map(&mut self, addr: u64, len: u64, write: bool, exec: bool) -> i64 {
-        // Bounded by the top of the guest's area, which is the stack.
-        let Some((start, span)) = span_within(addr, len, STACK_TOP) else {
+        /* Bounded by the top of the guest's area, which is the stack. */
+        let Some((start, span)) = span_within(addr, len, USER_MAX) else {
             return -1;
         };
-        let mut prot = 0;
-        if write {
-            prot |= PEER_PROT_WRITE;
+        if maps_full(self.regions.len(), self.regions.len() + 1) {
+            return -1;
         }
-        if exec {
-            prot |= PEER_PROT_EXEC;
-        }
-        let mut done = 0;
-        while done < span {
-            let take = (span - done).min(MAX_SPAN);
-            let rc = mk_peer_map(self.pid, start + done, take, prot);
-            if rc < 0 {
-                return rc;
-            }
-            done += take;
+        let rc = map_span(self.pid, start, span, peer_prot(write, exec, true));
+        if rc < 0 {
+            return rc;
         }
         /*
          * Remembered because fork copies a guest by walking what its
-         * supervisor gave it.
+         * supervisor gave it. The newest mapping is the only record of its
+         * span, as on Linux.
          */
-        self.regions.push(Region { at: start, len: span, write, exec });
+        self.regions.push(Region {
+            at: start,
+            len: span,
+            write,
+            exec,
+            access: true,
+            unproven: false,
+            backed: true,
+            kept: false,
+        });
+        0
+    }
+
+    /// Back `[at, at + len)` of a reservation with the given protection, the
+    /// commit an mprotect that asks for access makes. The kernel fills no page
+    /// a guest touches on its own, so every page here is new and zeroed. The
+    /// span is then recorded as backed, in place of the reservation it came
+    /// from, so fork copies it.
+    pub fn commit(&mut self, at: u64, len: u64, write: bool, exec: bool) -> i64 {
+        /* A commit inside a reservation splits it in three. */
+        if maps_full(self.regions.len(), self.regions.len() + 2) {
+            return -1;
+        }
+        let rc = map_span(self.pid, at, len, peer_prot(write, exec, true));
+        if rc < 0 {
+            return rc;
+        }
+        let kept = self.span_kept(at, len);
+        self.regions = cut(&self.regions, at, len);
+        self.regions.push(Region {
+            at,
+            len,
+            write,
+            exec,
+            access: true,
+            unproven: false,
+            backed: true,
+            kept,
+        });
         0
     }
 }

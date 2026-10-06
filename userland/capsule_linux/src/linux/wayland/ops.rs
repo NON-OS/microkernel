@@ -38,11 +38,17 @@ pub mod req {
 
     pub const XDG_BASE_GET_SURFACE: u16 = 2;
     pub const XDG_BASE_PONG: u16 = 3;
+    pub const XDG_SURFACE_DESTROY: u16 = 0;
     pub const XDG_SURFACE_GET_TOPLEVEL: u16 = 1;
     pub const XDG_SURFACE_SET_GEOMETRY: u16 = 3;
     pub const XDG_SURFACE_ACK_CONFIGURE: u16 = 4;
+    pub const TOPLEVEL_DESTROY: u16 = 0;
     pub const TOPLEVEL_SET_TITLE: u16 = 2;
     pub const TOPLEVEL_SET_APP_ID: u16 = 3;
+    pub const TOPLEVEL_SET_MAXIMIZED: u16 = 9;
+    pub const TOPLEVEL_UNSET_MAXIMIZED: u16 = 10;
+    pub const TOPLEVEL_SET_FULLSCREEN: u16 = 11;
+    pub const TOPLEVEL_UNSET_FULLSCREEN: u16 = 12;
 
     pub const SEAT_GET_POINTER: u16 = 0;
     pub const SEAT_GET_KEYBOARD: u16 = 1;
@@ -50,6 +56,7 @@ pub mod req {
 
 pub mod ev {
     pub const CALLBACK_DONE: u16 = 0;
+    pub const DISPLAY_DELETE_ID: u16 = 1;
     pub const SHM_FORMAT: u16 = 0;
     pub const BUFFER_RELEASE: u16 = 0;
     pub const XDG_SURFACE_CONFIGURE: u16 = 0;

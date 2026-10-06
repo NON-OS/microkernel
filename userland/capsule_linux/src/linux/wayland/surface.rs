@@ -25,11 +25,15 @@ use super::args::Args;
 
 pub fn create(guest: &mut Guest, args: &mut Args<'_>) {
     let Some(id) = args.u32() else { return };
-    guest.objects.put(id, Object::Surface);
+    if !guest.objects.put(id, Object::Surface) {
+        return;
+    }
+    guest.scene.surfaces.retain(|s| s.id != id);
     guest.scene.surfaces.push(Surface {
         id,
         pending: None,
         xdg: None,
+        toplevel: None,
         frames: alloc::vec::Vec::new(),
         configured: false,
     });
@@ -47,7 +51,9 @@ pub fn attach(guest: &mut Guest, id: u32, args: &mut Args<'_>) {
 
 pub fn frame(guest: &mut Guest, id: u32, args: &mut Args<'_>) {
     let Some(callback) = args.u32() else { return };
-    guest.objects.put(callback, Object::Callback);
+    if !guest.objects.put(callback, Object::Callback) {
+        return;
+    }
     if let Some(s) = guest.scene.surfaces.iter_mut().find(|s| s.id == id) {
         s.frames.push(callback);
     }

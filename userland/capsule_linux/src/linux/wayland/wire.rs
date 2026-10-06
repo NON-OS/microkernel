@@ -26,6 +26,12 @@ pub struct Msg<'a> {
 }
 
 /// The next message in `buf`, or nothing if it has not all arrived.
+/// True when `buf` starts with a header whose size is less than a header,
+/// which no later byte can make whole.
+pub fn malformed(buf: &[u8]) -> bool {
+    buf.len() >= HEADER && (u16::from_le_bytes([buf[6], buf[7]]) as usize) < HEADER
+}
+
 pub fn next(buf: &[u8]) -> Option<(Msg<'_>, usize)> {
     if buf.len() < HEADER {
         return None;
@@ -37,4 +43,23 @@ pub fn next(buf: &[u8]) -> Option<(Msg<'_>, usize)> {
         return None;
     }
     Some((Msg { object, opcode, args: &buf[HEADER..size] }, size))
+}
+
+/// Each whole message at the front of `buf`, in order, to `each`, until it
+/// answers false or no whole message is left; the bytes walked, for the
+/// caller to cut from its queue once. Each message is walked past before
+/// it is handed on, so one a handler refuses is never handed on again.
+///
+/// Cut from the queue one message at a time, every message moved all the
+/// bytes behind it, and a mebibyte of 12-byte requests in one write moved
+/// some forty gigabytes before the write was answered.
+pub fn walk<'a>(buf: &'a [u8], mut each: impl FnMut(Msg<'a>) -> bool) -> usize {
+    let mut at = 0;
+    while let Some((msg, size)) = buf.get(at..).and_then(next) {
+        at += size;
+        if !each(msg) {
+            break;
+        }
+    }
+    at
 }

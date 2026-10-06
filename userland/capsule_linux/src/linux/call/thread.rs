@@ -42,21 +42,12 @@ pub fn arch_prctl(guest: &mut Guest, tid: u32, code: u64, addr: u64) -> u64 {
     }
 }
 
-/// Seconds and nanoseconds, from the host's own monotonic millisecond clock.
-pub fn clock_gettime(guest: &mut Guest, _clock: u64, out: u64) -> u64 {
-    let ms = nonos_libc::mk_uptime_ms().max(0) as u64;
-    let mut buf = [0u8; 16];
-    buf[..8].copy_from_slice(&(ms / 1000).to_le_bytes());
-    buf[8..].copy_from_slice(&((ms % 1000) * 1_000_000).to_le_bytes());
-    if guest.write(out, &buf) < 0 {
-        return errno::fail(errno::EFAULT);
-    }
-    errno::ok(0)
-}
-
 /// Randomness from the kernel's own source, so a guest's keys are as good
 /// as a capsule's.
-pub fn getrandom(guest: &mut Guest, buf: u64, len: u64, _flags: u64) -> u64 {
+pub fn getrandom(guest: &mut Guest, buf: u64, len: u64, flags: u64) -> u64 {
+    if let Err(e) = super::random_flags::random_flags(flags) {
+        return errno::fail(e);
+    }
     let take = len.min(256) as usize;
     let mut bytes = alloc::vec![0u8; take];
     if nonos_libc::crypto_random(bytes.as_mut_ptr(), take) < 0 {

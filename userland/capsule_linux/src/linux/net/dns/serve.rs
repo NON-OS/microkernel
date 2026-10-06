@@ -20,15 +20,22 @@ use crate::linux::abi::errno;
 use crate::linux::guest::{Guest, Kind};
 
 use super::decide::answer;
+use super::limits::{keeps, query_len};
 
 /// Take a query and queue its answer, to appear to come back from `peer`,
-/// which is whatever the program believes its nameserver is.
+/// which is whatever the program believes its nameserver is. Both the query
+/// and the queue are bounded as a datagram socket bounds them (`limits`).
 pub fn query(guest: &mut Guest, fd: u64, buf: u64, len: u64, peer: [u8; 6]) -> u64 {
-    let Some(msg) = guest.read(buf, len as usize) else {
+    let take = match query_len(len) {
+        Ok(take) => take,
+        Err(e) => return errno::fail(e),
+    };
+    let Some(msg) = guest.read(buf, take) else {
         return errno::fail(errno::EFAULT);
     };
     if let Some(answer) = answer(guest, &msg) {
-        if let Some(entry) = guest.fds.get_mut(fd as usize).filter(|f| f.kind == Kind::Resolver) {
+        let entry = guest.fds.get_mut(fd as usize).filter(|f| f.kind == Kind::Resolver);
+        if let Some(entry) = entry.filter(|e| keeps(e.replies.len())) {
             entry.replies.push((answer, peer));
         }
     }

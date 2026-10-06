@@ -27,26 +27,46 @@ pub struct Guest {
     /// The next address an anonymous mapping gets, growing upward.
     pub mmap_next: u64,
     pub fds: Vec<Fd>,
-    /// Every span this capsule has backed for the guest, in the order
-    /// it did so. Fork copies exactly this list.
+    /// Every span backed for the guest, in order; fork copies exactly this.
     pub regions: Vec<crate::linux::guest::Region>,
     /// Pipe buffers, named by index from the descriptors at each end.
     pub pipes: Vec<Vec<u8>>,
+    /// For each pipe, whether a read end and a write end are open anywhere
+    /// in the family. Filled when the family lends the buffers.
+    pub pipe_ends: Vec<(bool, bool)>,
+    /// For each eventfd counter and each timerfd timer, whether a descriptor
+    /// anywhere in the family names it: a slot nothing names is taken again
+    /// before its table grows. Filled with `pipe_ends`.
+    pub event_used: Vec<bool>,
+    pub timer_used: Vec<bool>,
+    /// eventfd counters, named by index from their descriptors. The
+    /// family's, lent with the pipes.
+    pub events: Vec<super::Event>,
+    /// timerfd timers, the same way.
+    pub timers: Vec<super::Timer>,
     /// Children this guest has forked, for wait to report on.
     pub children: Vec<u32>,
     /// Tids of this guest's threads, not counting itself.
     pub threads: Vec<u32>,
+    /// The word each thread asked to have cleared when it exits, from
+    /// CLONE_CHILD_CLEARTID or set_tid_address: zeroed and woken then,
+    /// which is what a joiner waits for.
+    pub clear_tids: Vec<(u32, u64)>,
     /// Threads parked in a futex wait, with the word they wait on.
     pub waits: Vec<(u32, u64)>,
+    /// The futex waits that have a timeout: the monotonic deadline, and who.
+    pub futex_until: Vec<(u64, u32)>,
+    /// The bitset of each futex wait that named one (WAIT_BITSET); a wait
+    /// not here matches every wake.
+    pub futex_bits: Vec<(u32, u32)>,
     /// The display connection, when the guest has opened one.
     pub display: crate::linux::unix::Conn,
     /// The Wayland objects that connection has created.
     pub objects: crate::linux::wayland::Objects,
     /// What those objects describe, and the surface it reaches.
     pub scene: crate::linux::wayland::Scene,
-    /// Which signals the guest installed a handler for. Nothing is ever
-    /// raised against them; see `call::signal`.
-    pub handlers: [bool; 64],
+    /// Signal dispositions and what is raised against this process's threads.
+    pub signals: super::sigqueue::Signals,
     /// What a relative path is relative to.
     pub cwd: Vec<u8>,
     /// Names this guest has resolved, each with the address it was given.
@@ -60,7 +80,22 @@ pub struct Guest {
     /// Process group and session.
     pub pgid: u32,
     pub sid: u32,
-    /// Remembered, not enforced: the store does not apply it when it creates a
-    /// file.
+    /// Remembered, not enforced: the store does not apply it to a new file.
     pub umask: u16,
+    /// Children forked while answering, for the serve loop to adopt.
+    pub forked: Vec<Guest>,
+    /// The tasks the whole family holds (`call::spawn::tasks`), counted when
+    /// the family lends this guest its pipes, which fork and clone are
+    /// refused past.
+    pub tasks: usize,
+    /// Children that have ended, with their exit codes, until waited for.
+    pub ended: Vec<(u32, i32)>,
+    /// Threads parked in a sleep: the monotonic deadline, and who.
+    pub sleepers: Vec<(u64, u32)>,
+    /// Calls parked until a descriptor they wait on is ready.
+    pub blocked: Vec<super::Blocked>,
+    /// The image's symbolic links, read once and shared by the family.
+    pub links: alloc::rc::Rc<super::Links>,
+    /// Lets go of this process's family sockets when it is dropped (net::sock).
+    pub sockets: crate::linux::net::sock::Holder,
 }

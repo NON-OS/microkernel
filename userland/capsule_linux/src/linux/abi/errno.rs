@@ -16,6 +16,9 @@
 
 //! Linux errno values, and the convention for returning them.
 
+pub use super::errno_sock::*;
+
+pub use super::errno_io::*;
 pub const EPERM: i64 = 1;
 pub const ENOENT: i64 = 2;
 pub const EINTR: i64 = 4;
@@ -30,15 +33,16 @@ pub const EFAULT: i64 = 14;
 pub const EBUSY: i64 = 16;
 pub const EEXIST: i64 = 17;
 pub const ENOTEMPTY: i64 = 39;
-pub const ENODEV: i64 = 19;
 pub const ENOTDIR: i64 = 20;
 pub const ENOSPC: i64 = 28;
 pub const EISDIR: i64 = 21;
 pub const EINVAL: i64 = 22;
-pub const ENFILE: i64 = 23;
 pub const EMFILE: i64 = 24;
 pub const ENOTTY: i64 = 25;
+pub const ENODEV: i64 = 19;
+pub const ENOTSUP: i64 = 95;
 pub const ESPIPE: i64 = 29;
+pub const EROFS: i64 = 30;
 pub const EPIPE: i64 = 32;
 pub const ERANGE: i64 = 34;
 pub const ELOOP: i64 = 40;
@@ -47,8 +51,9 @@ pub const ENOSYS: i64 = 38;
 pub const ECONNRESET: i64 = 104;
 pub const ENOTCONN: i64 = 107;
 pub const ENOTSOCK: i64 = 88;
-pub const ENOTSUP: i64 = 95;
 pub const EAFNOSUPPORT: i64 = 97;
+pub const ETIMEDOUT: i64 = 110;
+pub const ENETUNREACH: i64 = 101;
 pub const ECONNREFUSED: i64 = 111;
 pub const EINPROGRESS: i64 = 115;
 

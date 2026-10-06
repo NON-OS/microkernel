@@ -18,45 +18,68 @@
 
 use alloc::vec::Vec;
 
-use nonos_libc::mk_args;
+use crate::linux::file::{family::choose, key, store_read};
 
-use crate::linux::file::{key, store_read, visible};
-
-use super::origin::Origin;
-
-/// The built-in program: Alpine's static busybox, embedded so a machine with
-/// nothing in the store still runs a real Linux binary.
-static BUILT_IN: &[u8] = include_bytes!("../../guests/busybox.elf");
+use super::launch::Launch;
+use super::source_named::named;
 
 const MAX_IMAGE: u32 = 64 << 20;
-const MAX_ARGS: usize = 256;
 
-/// The program's path, its bytes, and where they came from.
-pub fn source() -> (Vec<u8>, Vec<u8>, Origin) {
-    match named() {
-        Some((path, bytes)) => (path, bytes, Origin::Store),
-        None => (b"/bin/busybox".to_vec(), BUILT_IN.to_vec(), Origin::BuiltIn),
+/// The program, where it came from, and what it is given. A run starts a
+/// shipped tier, or an installed package's recorded program, or nothing:
+/// the built-in program would start something the person did not ask for.
+pub fn source() -> Option<Launch> {
+    let store = Launch::store;
+    if let Some(asked) = super::terminal::requested(MAX_IMAGE) {
+        return asked;
     }
+    if let Some((name, mode)) = super::request::run_request() {
+        /* Before the guest's first byte, so a terminal run is private from it. */
+        super::console::enter(mode);
+        /* A tier's program, or a package's, is read from the store: until
+         * the VFS has finished loading it from the stick, a program that is
+         * there reads as one that is not. */
+        if !super::settle::wait_settled() {
+            return refused(b"linux: the package store has not finished loading; try again", "");
+        }
+        let pkg = choose(&name);
+        match super::install::launch(pkg, mode) {
+            Some(Ok((path, bytes, args))) => {
+                crate::linux::file::machine::show();
+                return Some(store(path, bytes, args));
+            }
+            Some(Err(why)) => {
+                return refused(b"linux: this tier's program could not be read: ", why)
+            }
+            None => {}
+        }
+        let Some(path) = super::install::recorded(pkg) else {
+            return refused(b"linux: nothing installed under that name", "");
+        };
+        return match store_read(&key(&path), MAX_IMAGE) {
+            Ok(bytes) => Some(store(path, bytes, Vec::new())),
+            Err(why) => refused(b"linux: the installed program could not be read: ", why),
+        };
+    }
+    if let Some((path, bytes)) = named(MAX_IMAGE) {
+        return Some(store(path, bytes, Vec::new()));
+    }
+    if let Some((path, bytes, args)) = super::boot_guest::boot_guest(MAX_IMAGE) {
+        return Some(store(path, bytes, args));
+    }
+    /* Started with nothing asked of it, as the desktop starts it at boot.
+     * Running the built-in program here ran BusyBox with no arguments,
+     * which printed its whole usage into the boot log. */
+    super::start_say::routine(b"[LINUX] personality ready, nothing asked to run\n");
+    nonos_libc::mk_exit(0)
 }
 
-fn named() -> Option<(Vec<u8>, Vec<u8>)> {
-    let mut buf = [0u8; MAX_ARGS];
-    let n = mk_args(buf.as_mut_ptr(), buf.len());
-    if n <= 0 {
-        return None;
+/// Say why nothing starts, once, on the run's terminal or else in the log.
+fn refused(what: &[u8], why: &str) -> Option<Launch> {
+    let line = [what, why.as_bytes(), b"\n"].concat();
+    match super::console::attached() {
+        true => super::console::say(&line),
+        false => super::say::say(&line),
     }
-    // The first argument is the path.
-    let args = &buf[..n as usize];
-    let end = args.iter().position(|b| *b == 0 || *b == b' ').unwrap_or(args.len());
-    let path = args.get(..end)?;
-    if path.is_empty() {
-        return None;
-    }
-    /*
-     * The argument is not a guest's, but the program it names is a
-     * Linux one and lives where Linux programs live.
-     */
-    let at = visible(b"/", path);
-    let bytes = store_read(&key(&at), MAX_IMAGE).ok()?;
-    Some((at, bytes))
+    None
 }

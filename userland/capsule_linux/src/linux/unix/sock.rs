@@ -14,26 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! The four calls a client makes on a display socket.
+//! Connecting to the display, and telling a display socket apart.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{Fd, Guest, Kind};
+use crate::linux::guest::{Guest, Kind};
 
 use super::path::{is_display, sun_path};
-
-const SOCK_STREAM: u64 = 1;
-const TYPE_MASK: u64 = 0xFF;
-
-pub fn socket(guest: &mut Guest, kind: u64) -> u64 {
-    if kind & TYPE_MASK != SOCK_STREAM {
-        return errno::fail(errno::ENOSYS);
-    }
-    match crate::linux::file::install(guest, Fd::unix()) {
-        Some(n) => errno::ok(n),
-        None => errno::fail(errno::EMFILE),
-    }
-}
 
 pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
     let Some(path) = sun_path(guest, at, len) else {
@@ -41,8 +27,8 @@ pub fn connect(guest: &mut Guest, fd: u64, at: u64, len: u64) -> u64 {
     };
     if !is_display(&path) {
         /*
-         * Nothing else listens in here, and a client that reaches a socket
-         * which silently accepts would block forever on a reply.
+         * Only the display is served here; every other name is a family
+         * socket's (net::unix_calls), which never reaches this call.
          */
         return errno::fail(errno::ECONNREFUSED);
     }

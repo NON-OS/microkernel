@@ -30,11 +30,14 @@ pub fn commit(guest: &mut Guest, id: u32) {
     let Some(buffer) = surface_buffer(guest, id) else {
         return;
     };
-    present(guest, buffer);
+    present(guest, id, buffer);
     Event::new(buffer, ev::BUFFER_RELEASE).send(&mut guest.display.to_client);
     let owed = take_frames(guest, id);
     for callback in owed {
         Event::new(callback, ev::CALLBACK_DONE).u32(0).send(&mut guest.display.to_client);
+        /* A callback ends with its done, and its id goes back to the client. */
+        guest.objects.drop_id(callback);
+        super::handlers::delete_id(guest, callback);
     }
 }
 

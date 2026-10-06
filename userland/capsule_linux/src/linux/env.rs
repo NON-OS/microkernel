@@ -27,5 +27,10 @@ pub fn default() -> Vec<Vec<u8>> {
         b"PWD=/".to_vec(),
         b"SHELL=/bin/sh".to_vec(),
         b"LANG=C.UTF-8".to_vec(),
+        // libwayland-client will not look for a display without a runtime
+        // directory; /run is private to each guest, and any path ending in
+        // wayland-0 reaches the personality's compositor (unix/path.rs).
+        b"XDG_RUNTIME_DIR=/run/user/0".to_vec(),
+        b"WAYLAND_DISPLAY=wayland-0".to_vec(),
     ]
 }

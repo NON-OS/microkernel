@@ -17,43 +17,33 @@
 //! `mmap`: anonymous pages, or a private mapping of a file.
 
 use crate::linux::abi::errno;
-use crate::linux::guest::{span_within, Guest, MMAP_LIMIT, STACK_TOP};
+use crate::linux::guest::{maps_full, Guest};
 
-use super::map_anon::{anonymous, memfd};
-use super::map_file::file;
+use super::map_args::map_args;
+use super::map_place::place;
 use super::map_req::MapReq;
-use super::prot::wx_refused;
-
-const MAP_SHARED: u64 = 0x01;
-const MAP_ANONYMOUS: u64 = 0x20;
 
 pub fn mmap(guest: &mut Guest, req: MapReq) -> u64 {
-    if req.len == 0 {
-        return errno::fail(errno::EINVAL);
+    /*
+     * Every refusal the arguments alone decide, in Linux's order, with this
+     * personality's own two: no page both writable and executable, and no
+     * exact address below mmap_min_addr, since landing elsewhere would hand
+     * back memory the guest did not ask for.
+     */
+    if let Err(e) = map_args(req.addr, req.len, req.prot, req.flags, req.off) {
+        return errno::fail(e);
     }
-    if wx_refused(req.prot) {
-        return errno::fail(errno::EPERM);
-    }
-    // The ceiling differs by who chose the address.
-    let (at, limit) = match req.fixed() {
-        Some(addr) => (addr, STACK_TOP),
-        None => (guest.mmap_next, MMAP_LIMIT),
-    };
-    let Some((at, span)) = span_within(at, req.len, limit) else {
+    /* Linux refuses a mapping past vm.max_map_count with ENOMEM. */
+    if maps_full(guest.regions.len(), guest.regions.len() + 1) {
         return errno::fail(errno::ENOMEM);
+    }
+    let spot = match place(guest, &req) {
+        Ok(spot) => spot,
+        Err(e) => return errno::fail(e),
     };
-    if req.flags & MAP_ANONYMOUS != 0 {
-        return anonymous(guest, &req, at, span);
+    let out = super::map_kind::map_at(guest, &req, spot.at, spot.span);
+    if spot.from_cursor && (out as i64) >= 0 {
+        guest.mmap_next = spot.at + spot.span;
     }
-    if crate::linux::file::is_memfd(guest, req.fd) {
-        return memfd(guest, &req, at, span);
-    }
-    if req.flags & MAP_SHARED != 0 {
-        /*
-         * Sharing a file between processes needs frames that two address
-         * spaces both point at, which no peer call offers.
-         */
-        return errno::fail(errno::ENOSYS);
-    }
-    file(guest, &req, at, span)
+    out
 }

@@ -13,55 +13,78 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! `select`, answered from the same readiness the poll path reports.
+//! `select`, answered from the same readiness the poll path reports. The
+//! count and the sets are checked in `ready_sets`, which the host proofs hold.
+
+use alloc::vec;
+use alloc::vec::Vec;
 
 use crate::linux::abi::errno;
+use crate::linux::file::MAX_FDS;
 use crate::linux::guest::Guest;
 
-use super::ready;
+use super::ready_sets::{first_closed, narrow, select_count, set_bytes};
+use super::{ready, POLLERR, POLLHUP};
 
-const POLLIN: u16 = 0x001;
-const POLLOUT: u16 = 0x004;
+/// What makes a descriptor count as ready in each set, as Linux's select
+/// counts it: end of file is readable, and an error is both.
+const POLLIN: u16 = 0x001 | POLLHUP | POLLERR;
+const POLLOUT: u16 = 0x004 | POLLERR;
 
-/// Linux caps a descriptor set at 1024 bits and so does every libc that
-/// builds one, so a larger nfds is a caller error rather than a bigger set.
-const FD_SETSIZE: u64 = 1024;
-const SET_BYTES: usize = (FD_SETSIZE / 8) as usize;
-
-pub fn select(guest: &mut Guest, nfds: u64, readfds: u64, writefds: u64) -> u64 {
-    if nfds > FD_SETSIZE {
-        return errno::fail(errno::EINVAL);
+/// Count what is ready among `[readfds, writefds, exceptfds]`, narrowing
+/// the sets to it. In Linux's order: a negative count is EINVAL, a set that
+/// cannot be read EFAULT, and a set naming a descriptor that is not open
+/// EBADF, before any readiness is looked at. The sets are written back only
+/// when something is ready, since a select that waits is tried again with
+/// the same sets; `clear` empties them when its time runs out. Nothing here
+/// has an exceptional condition, so that set always comes back empty.
+pub fn select(guest: &mut Guest, nfds: u64, sets: [u64; 3]) -> u64 {
+    let nfds = match select_count(nfds, MAX_FDS as u64) {
+        Ok(n) => n,
+        Err(e) => return errno::fail(e),
+    };
+    let bytes = set_bytes(nfds);
+    let mut read: [Option<Vec<u8>>; 3] = [None, None, None];
+    for (slot, &at) in read.iter_mut().zip(sets.iter()).filter(|(_, &at)| at != 0) {
+        match guest.read(at, bytes) {
+            Some(set) => *slot = Some(set),
+            None => return errno::fail(errno::EFAULT),
+        }
+    }
+    let named: Vec<&[u8]> = read.iter().flatten().map(Vec::as_slice).collect();
+    let open = |fd: u64| guest.fds.get(fd as usize).is_some_and(|f| f.is_open());
+    if first_closed(&named, nfds, open).is_some() {
+        return errno::fail(errno::EBADF);
     }
     let mut hits = 0u64;
-    for (at, want) in [(readfds, POLLIN), (writefds, POLLOUT)] {
-        if at == 0 {
-            continue;
+    for (set, want) in read.iter_mut().zip([POLLIN, POLLOUT]) {
+        if let Some(set) = set {
+            hits += narrow(set, nfds, |fd| ready(guest, fd), want);
         }
-        let Some(mut set) = guest.read(at, SET_BYTES) else {
-            return errno::fail(errno::EFAULT);
-        };
-        hits += narrow(guest, &mut set, nfds, want);
-        if guest.write(at, &set) < 0 {
-            return errno::fail(errno::EFAULT);
+    }
+    if hits == 0 {
+        return errno::ok(0);
+    }
+    if let Some(except) = read[2].as_mut() {
+        except.fill(0);
+    }
+    for (set, &at) in read.iter().zip(sets.iter()) {
+        if let Some(set) = set {
+            if guest.write(at, set) < 0 {
+                return errno::fail(errno::EFAULT);
+            }
         }
     }
     errno::ok(hits)
 }
 
-/// Clear every bit whose descriptor is not ready for `want`, and report
-/// how many were left set.
-fn narrow(guest: &Guest, set: &mut [u8], nfds: u64, want: u16) -> u64 {
-    let mut kept = 0;
-    for fd in 0..nfds {
-        let (byte, bit) = ((fd / 8) as usize, (fd % 8) as u32);
-        if set[byte] & (1 << bit) == 0 {
-            continue;
-        }
-        if ready(guest, fd) & want != 0 {
-            kept += 1;
-        } else {
-            set[byte] &= !(1 << bit);
-        }
+/// The sets as a select whose time ran out leaves them: empty.
+pub fn clear(guest: &mut Guest, nfds: u64, sets: [u64; 3]) {
+    let Ok(nfds) = select_count(nfds, MAX_FDS as u64) else {
+        return;
+    };
+    let empty = vec![0u8; set_bytes(nfds)];
+    for at in sets.into_iter().filter(|&at| at != 0) {
+        let _ = guest.write(at, &empty);
     }
-    kept
 }

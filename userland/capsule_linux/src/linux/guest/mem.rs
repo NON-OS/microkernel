@@ -22,6 +22,25 @@ pub const PAGE: u64 = 4096;
 /// src/process/foreign/peer_guard.rs.
 pub const MAX_SPAN: u64 = 1 << 20;
 
+/// Linux's default vm.max_map_count: the most spans one guest may hold. A
+/// PROT_NONE reservation costs the guest no frame, so without a ceiling it
+/// could grow the region list, which is this capsule's own memory, without
+/// bound; Linux answers ENOMEM at the same count.
+pub const MAX_MAPS: usize = 65_530;
+
+/// Whether a change that leaves `after` spans where there were `before` is
+/// refused for passing MAX_MAPS. One that does not add a span never is, so a
+/// guest at the ceiling can still give spans back.
+pub fn maps_full(before: usize, after: usize) -> bool {
+    after > MAX_MAPS && after > before
+}
+
+/// A length in whole pages, or None when rounding it up passes the top of
+/// the address space, where Linux's PAGE_ALIGN wraps to zero.
+pub fn page_len(len: u64) -> Option<u64> {
+    len.checked_add(PAGE - 1).map(|l| l & !(PAGE - 1))
+}
+
 pub fn page_down(addr: u64) -> u64 {
     addr & !(PAGE - 1)
 }

@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! One input event, written to the client.
 
 use crate::linux::guest::Guest;
@@ -58,5 +57,5 @@ pub fn button(guest: &mut Guest, code: u32, state: u32) {
 }
 
 fn time_ms() -> u32 {
-    nonos_libc::mk_uptime_ms().max(0) as u32
+    crate::linux::call::family_ms() as u32
 }
