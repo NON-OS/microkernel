@@ -14,19 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The server loop: take each request, check it, and hand it on.
+
 use alloc::vec;
 
-use nonos_libc::{mk_ipc_recv, mk_irq_ack, mk_irq_poll, IrqPollOut};
+use nonos_libc::mk_ipc_recv_from;
 
+use super::dispatch::dispatch;
+use super::poll_irq::poll_irq;
 use crate::protocol::{
-    decode_request, Request, E_INVAL, HDR_LEN, MAX_RW_PAYLOAD_BYTES, OP_CAPACITY,
-    OP_CONTROLLER_INFO, OP_FLUSH, OP_HEALTHCHECK, OP_PORT_LIST, OP_READ_BLOCKS, OP_WRITE_BLOCKS,
-    RESP_HDR_LEN, RW_HEADER_LEN, SERVICE_NAME, STATUS_LEN,
+    decode_request, E_ACCES, E_INVAL, HDR_LEN, MAX_RW_PAYLOAD_BYTES, OP_CONTROLLER_INFO,
+    OP_HEALTHCHECK, OP_IDENTIFY, OP_PORT_LIST, RESP_HDR_LEN, RW_HEADER_LEN, SERVICE_NAME,
+    STATUS_LEN,
 };
+use crate::served::Served;
 use crate::server::{error, handlers};
-use crate::setup::Driver;
 
-pub fn run(driver: &mut Driver) -> ! {
+pub fn run(served: &mut Served) -> ! {
     let rx_len = HDR_LEN + RW_HEADER_LEN + MAX_RW_PAYLOAD_BYTES as usize;
     let tx_len = RESP_HDR_LEN + STATUS_LEN + MAX_RW_PAYLOAD_BYTES as usize;
     let mut rx = vec![0u8; rx_len];
@@ -35,9 +39,12 @@ pub fn run(driver: &mut Driver) -> ! {
     let _service_name = SERVICE_NAME;
 
     loop {
-        poll_irq(driver, &mut last_irq_seq);
-        let n = mk_ipc_recv(0, rx.as_mut_ptr(), rx_len, 0);
-        if n <= 0 {
+        if let Served::Sata(driver) = served {
+            poll_irq(driver, &mut last_irq_seq);
+        }
+        let mut sender_pid = 0u32;
+        let n = mk_ipc_recv_from(0, rx.as_mut_ptr(), rx_len, 0, &mut sender_pid);
+        if !nonos_libc::recv_ready(n) {
             continue;
         }
         let req = match decode_request(&rx[..n as usize]) {
@@ -47,31 +54,21 @@ pub fn run(driver: &mut Driver) -> ! {
                 continue;
             }
         };
-        let body_end = n as usize;
-        dispatch(driver, &req, &rx[HDR_LEN..body_end], &mut tx);
-    }
-}
-
-fn dispatch(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
-    match req.op {
-        OP_HEALTHCHECK | OP_CONTROLLER_INFO | OP_PORT_LIST if req.payload_len != 0 => {
-            error::reply_with_status(tx, req, E_INVAL)
+        if !super::medium::permits(req.op, sender_pid) {
+            error::reply_with_status(&mut tx, &req, E_ACCES);
+            continue;
         }
-        OP_HEALTHCHECK => handlers::health::handle(req, tx),
-        OP_CONTROLLER_INFO => handlers::controller_info::handle(driver, req, tx),
-        OP_PORT_LIST => handlers::port_list::handle(driver, req, tx),
-        OP_CAPACITY => handlers::capacity::handle(driver, req, tx),
-        OP_READ_BLOCKS => handlers::read::handle(driver, req, body, tx),
-        OP_WRITE_BLOCKS => handlers::write::handle(driver, req, body, tx),
-        OP_FLUSH => handlers::flush::handle(driver, req, tx),
-        _ => error::reply_with_status(tx, req, E_INVAL),
-    }
-}
-
-fn poll_irq(driver: &Driver, last: &mut u64) {
-    let mut irq = IrqPollOut { seq: 0, overflow: 0 };
-    if mk_irq_poll(driver.handles.irq_grant_id(), &mut irq as *mut _) >= 0 && irq.seq != *last {
-        *last = irq.seq;
-        let _ = mk_irq_ack(driver.handles.irq_grant_id());
+        let body_end = n as usize;
+        let body = &rx[HDR_LEN..body_end];
+        let bare =
+            matches!(req.op, OP_HEALTHCHECK | OP_CONTROLLER_INFO | OP_PORT_LIST | OP_IDENTIFY);
+        if bare && req.payload_len != 0 {
+            error::reply_with_status(&mut tx, &req, E_INVAL);
+            continue;
+        }
+        match served {
+            Served::Sata(driver) => dispatch(driver, &req, body, &mut tx),
+            Served::Emmc(opened) => handlers::emmc::dispatch(opened, &req, body, &mut tx),
+        }
     }
 }

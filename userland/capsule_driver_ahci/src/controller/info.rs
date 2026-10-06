@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::ports::port_count;
 use crate::constants::{HBA_CAP, HBA_CAP2, HBA_GHC, HBA_PI, HBA_VS};
 use crate::regs::Regs;
 
@@ -24,20 +25,22 @@ pub struct ControllerInfo {
     pub pi: u32,
     pub version: u32,
     pub cap2: u32,
+    /// Port slots from 0 a walk covers: CAP.NP + 1, or up to the highest
+    /// PI bit when that lies above (`ports::port_count`).
     pub port_count: u8,
 }
 
 impl ControllerInfo {
     pub fn read(regs: Regs) -> Self {
         let cap = unsafe { regs.r32(HBA_CAP) };
-        let port_count = ((cap & 0x1f) + 1) as u8;
+        let pi = unsafe { regs.r32(HBA_PI) };
         Self {
             cap,
             ghc: unsafe { regs.r32(HBA_GHC) },
-            pi: unsafe { regs.r32(HBA_PI) },
+            pi,
             version: unsafe { regs.r32(HBA_VS) },
             cap2: unsafe { regs.r32(HBA_CAP2) },
-            port_count,
+            port_count: port_count(cap, pi),
         }
     }
 }

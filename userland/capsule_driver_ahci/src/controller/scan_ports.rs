@@ -19,6 +19,7 @@ use crate::constants::regs::{
     PORT_TFD,
 };
 use crate::constants::{MAX_PORTS, PORT_KIND_NONE};
+use crate::controller::ports::device_present;
 use crate::controller::signature;
 use crate::controller::PortInfo;
 use crate::regs::Regs;
@@ -33,7 +34,7 @@ pub fn scan_ports(regs: Regs, pi: u32, max_ports: u8) -> [PortInfo; MAX_PORTS] {
         let base = PORT_BASE + (i as u32 * PORT_STRIDE);
         let ssts = unsafe { regs.r32(base + PORT_SSTS) };
         let sig = unsafe { regs.r32(base + PORT_SIG) };
-        let present = device_present(ssts);
+        let present = u8::from(device_present(ssts));
         *slot = PortInfo {
             index: i as u8,
             implemented: 1,
@@ -60,14 +61,4 @@ fn empty_ports() -> [PortInfo; MAX_PORTS] {
         i += 1;
     }
     ports
-}
-
-fn device_present(ssts: u32) -> u8 {
-    let det = ssts & 0x0f;
-    let ipm = (ssts >> 8) & 0x0f;
-    if det == 3 && (ipm == 1 || ipm == 6) {
-        1
-    } else {
-        0
-    }
 }

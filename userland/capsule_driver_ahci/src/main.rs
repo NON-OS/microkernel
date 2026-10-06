@@ -19,34 +19,49 @@
 
 extern crate alloc;
 
+mod choose;
+mod clock;
 mod constants;
 mod controller;
 mod discover;
+mod emmc;
 mod engine;
 mod error;
 mod handles;
+mod identity;
+mod log;
 mod protocol;
 mod regs;
+mod served;
 mod server;
 mod setup;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_exit, start_driver};
 
-use crate::error::exit_code;
+const DRIVER: &[u8] = b"driver.ahci";
 
 /// # Safety
 /// The capsule entry point. The kernel loader calls this once on a fresh stack
 /// with the capsule's heap region reserved; it must never be called from Rust.
+///
+/// Without an AHCI controller or an eMMC host the driver says so and leaves
+/// (`EXIT_ABSENT`) before claiming anything. With either, the bring-up
+/// (`served::bring_up`: a SATA disk first, else the eMMC) is retried on the
+/// shared bounded schedule while no disk comes up, and running out is
+/// `EXIT_GAVE_UP`.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
 
-    let mut driver = match setup::run() {
-        Ok(driver) => driver,
-        Err(e) => mk_exit(exit_code(e)),
+    let hosts = served::Hosts::find();
+    let present = hosts.any().then_some(hosts);
+    let started = start_driver(DRIVER, present, served::bring_up);
+    let mut served = match started {
+        Ok(served) => served,
+        Err(code) => mk_exit(code),
     };
 
-    server::run(&mut driver);
+    server::run(&mut served);
 }
