@@ -18,3 +18,5 @@ path = "src/lib.rs"
 [dependencies]
 nonos_devmodel = { path = "../nonos_devmodel" }
 nonos_libc = { package = "virtio_gpu_proofs_libc_shim", path = "libc_shim" }
+# The register type bounds the doorbell with the shared notify arithmetic.
+nonos_virtio = { path = "../nonos_virtio" }

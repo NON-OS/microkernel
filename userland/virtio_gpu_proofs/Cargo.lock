@@ -7,10 +7,15 @@ name = "nonos_devmodel"
 version = "0.1.0"
 
 [[package]]
+name = "nonos_virtio"
+version = "0.1.0"
+
+[[package]]
 name = "virtio_gpu_proofs"
 version = "0.1.0"
 dependencies = [
  "nonos_devmodel",
+ "nonos_virtio",
  "virtio_gpu_proofs_libc_shim",
 ]
 
