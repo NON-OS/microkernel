@@ -1,0 +1,51 @@
+name: ci
+
+# Production gate for a script repo: shell syntax (bash -n), shellcheck for real
+# errors, and Python syntax compilation. Non-sh shells (e.g. zsh) are skipped by
+# the linters that do not support them.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: shell + python lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: bash syntax (bash -n, sh-family only)
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r -d '' f; do
+            head -1 "$f" | grep -qE '^#!.*/(env +)?(ba|da|k)?sh' || continue
+            bash -n "$f" || { echo "::error file=$f::bash syntax error"; fail=1; }
+          done < <(find . -name '*.sh' -not -path './.git/*' -print0)
+          exit $fail
+      - name: shellcheck (errors, sh-family only)
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r -d '' f; do
+            head -1 "$f" | grep -qE '^#!.*/(env +)?(ba|da|k)?sh' || continue
+            shellcheck --severity=error "$f" || fail=1
+          done < <(find . -name '*.sh' -not -path './.git/*' -print0)
+          exit $fail
+      - name: python syntax (py_compile)
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' f; do
+            python3 -m py_compile "$f" || { echo "::error file=$f::python syntax error"; exit 1; }
+          done < <(find . -name '*.py' -not -path './.git/*' -print0)
