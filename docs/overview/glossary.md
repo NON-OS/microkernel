@@ -123,3 +123,7 @@ The `vfs_pool` service, `capsule_vfs`. It holds every file the desktop and its a
 ## Foreign process
 
 <a id="guest"></a>A process that runs code the kernel has not verified, on x86_64 only; the Linux pages call it a guest. The Linux personality creates one with `MkForeignSpawn`, which needs ForeignExec, and it starts with a capability word of 0. A system call number the kernel does not know is parked for its supervising capsule to answer. Explained in [The Linux personality](../userland/linux-personality.md). Code: `src/process/foreign/spawn.rs`, `src/process/foreign/trap.rs`.
+
+## Grant
+
+One revocable piece of a claimed device that the hardware broker hands the claiming process: an MMIO window, a DMA buffer, an interrupt binding or, on x86_64, a port range. Each has a grant id, and the broker revokes it on unmap, on device release and when the process exits. Explained in [The hardware broker](../kernel/hardware-broker.md#revocation). Code: `src/hardware/broker/grant.rs`, `src/process/exit/finalize.rs`.
