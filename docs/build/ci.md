@@ -73,3 +73,7 @@ The boot test of every pull request; its header calls it the blocking boot check
 Dependabot looks for cargo and GitHub Actions updates once a week, for the root directory only, and keeps at most five of its pull requests open for each (`updates`, `.github/dependabot.yml:1-13`).
 
 Only a push to the repository may write the binary cache. A pull request reads it and never writes it, so its code cannot place a store path others will fetch (`CACHIX_AUTH_TOKEN`, `.github/workflows/verify.yml:53-58`).
+
+## On your machine
+
+`make check` builds every flake check for your host, the same set `verify.yml` builds, and prints what each one proved; [nix-flake.md](nix-flake.md) lists them and shows how to run one. It does not run Kani, Verus, Lean, the extraction, the fuzzers or the boot smoke test; [make-targets.md](make-targets.md) lists the boot targets you can run yourself.
