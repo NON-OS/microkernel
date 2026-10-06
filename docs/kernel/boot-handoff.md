@@ -140,3 +140,9 @@ It then waits 2500 ms by `uptime_ms` so the boot log can be read (`src/kernel_co
 `run_init` applies the boot profile and spawns the capsules in a fixed order: the RAM file system, the core services that need it, the display core, the drivers, the virtual file system, the network, the desktop, the marketplace and the apps (`src/userspace/init/entry.rs:20-48`). Afterwards `init` lowers itself to `Low` priority and stays as the supervisor. Spawning is described on [processes and spawn](processes-and-spawn.md).
 
 The boot profile changes what starts. `network` is true only for Standard and Hardened, `minimal` only for Safe Mode, which then starts no audio driver and no optional app, and `skips_setup` only for Recovery (`src/boot/handoff/api/profile.rs:44-57`). The profiles themselves are on [boot modes](../install/boot-modes.md).
+
+## Limits
+
+- The handoff is x86_64 and UEFI only. The aarch64 `kernel_entry` takes a device tree pointer instead (`src/arch/aarch64/boot/entry.rs:31-32`); see [aarch64](../architectures/aarch64.md).
+- The CPU count in the kernel's own summary of the handoff is fixed at one by `cpus` (`src/boot/handoff/kernel_handoff/x86_64/builders.rs:43-45`). The real count comes from the ACPI MADT during SMP bring-up.
+- The checks above are about structure. Whether the kernel image was signed, measured and attested is decided by the loader and by the kernel's later check of the loader; see [boot chain and signatures](../security/boot-chain-and-signatures.md).
