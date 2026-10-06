@@ -25,6 +25,8 @@ const MAX_PORTS: usize = 255;
 #[derive(Clone, Copy, Debug)]
 pub struct PortSnapshot {
     pub port_id: u8,
+    /// Who holds the port: 0 free, 1 being classified, 2 claimed.
+    pub owner: u8,
     pub portsc_raw: u32,
 }
 
@@ -46,6 +48,7 @@ pub fn port_status(
     for i in 0..count {
         out[i] = PortSnapshot {
             port_id: resp[o],
+            owner: resp[o + 1],
             portsc_raw: u32::from_le_bytes([resp[o + 4], resp[o + 5], resp[o + 6], resp[o + 7]]),
         };
         o += ENTRY;

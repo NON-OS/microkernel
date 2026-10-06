@@ -20,8 +20,10 @@ mod ops;
 mod seq;
 mod wire;
 
+pub use call::XhciClientError;
 pub use lookup::lookup;
 pub use ops::{
-    address_device, alloc_transfer_ring, control_transfer, enable_slot, get_config_descriptor,
-    interrupt_in, port_status, PortSnapshot,
+    address_device, address_routed, alloc_transfer_ring, configure_hub, control_transfer,
+    disable_slot, enable_slot, get_config_descriptor, interrupt_in, port_status, PortSnapshot,
+    MAX_DESCRIPTOR_LEN,
 };

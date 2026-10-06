@@ -14,18 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The active keyboard layout for USB keyboards, cycled at runtime with
-//! Ctrl+Alt+Space. Per-driver state: a USB and a PS/2 keyboard each keep
-//! their own layout, which matches per-device expectations until a
-//! settings service owns the preference.
+//! The active keyboard layout for USB keyboards: the policy store's choice,
+//! cycled at runtime with Ctrl+Alt+Space. Per-driver state: a USB and a PS/2
+//! keyboard each follow the store and each keep their own cycle. A change in
+//! the store replaces the cycle.
 
 use core::sync::atomic::{AtomicU8, Ordering};
 
 use nonos_keymap::Layout;
+use nonos_policy_client::Watch;
+use nonos_policy_proto::Field;
 
 static LAYOUT_INDEX: AtomicU8 = AtomicU8::new(0);
 
+/// Asked on a key press, at most once a second.
+static POLICY: Watch = Watch::new(Field::KeyboardLayout, 1000);
+
 pub fn current() -> Layout {
+    let chosen = POLICY.changed(nonos_libc::mk_uptime_ms() as u64).and_then(Layout::from_policy);
+    if let Some(layout) = chosen {
+        LAYOUT_INDEX.store(layout.index(), Ordering::Relaxed);
+    }
     Layout::from_index(LAYOUT_INDEX.load(Ordering::Relaxed))
 }
 

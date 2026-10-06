@@ -16,6 +16,7 @@
 
 mod binding;
 mod enumerate;
+mod find_within;
 mod poll;
 mod run;
 

@@ -14,23 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::is_real_key::is_real_key;
+use super::boot_report::BootReport;
+use super::key_changes::key_changes;
 use super::types::Keyboard;
 
 impl Keyboard {
-    pub fn feed(&mut self, report: &[u8; 8]) {
-        self.modifiers = report[0];
-        let keys = [report[2], report[3], report[4], report[5], report[6], report[7]];
-        for key in keys {
-            if is_real_key(key) && !self.prev.contains(&key) {
-                self.push_key(key, true);
-            }
-        }
-        for key in self.prev {
-            if is_real_key(key) && !keys.contains(&key) {
-                self.push_key(key, false);
-            }
-        }
-        self.prev = keys;
+    /// Take one report, from the interrupt endpoint or fed over IPC. The
+    /// modifiers are set first so every key event carries this report's.
+    pub fn feed(&mut self, raw: &[u8]) {
+        let Some(report) = BootReport::parse(raw) else { return };
+        self.modifiers = report.modifiers;
+        let held = self.prev;
+        self.prev = key_changes(&held, &report, |key, pressed| self.push_key(key, pressed));
     }
 }
