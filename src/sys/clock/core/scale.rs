@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod consts;
-mod init;
-mod rdtsc;
-mod scale;
-mod time;
+//! Counter ticks as milliseconds.
 
-pub use consts::{BOOT_TSC, BOOT_UNIX_MS, NTP_OFFSET_MS, TSC_HZ};
-pub use init::init;
-pub use rdtsc::rdtsc;
-pub use time::{base_unix_ms, set_ntp_offset_ms, since_boot_ms, unix_ms};
+/// Milliseconds in `ticks` of a counter running at `hz`, the product widened
+/// before it is divided. Taken in 64 bits, `ticks * 1000` overflows once the
+/// counter passes 2^64 / 1000 ticks, about 71 days of uptime at 3 GHz, and a
+/// kernel built with overflow checks then panicked on the next clock read,
+/// which any capsule could make with MkTimeMillis or MkTimeMonotonic. A result
+/// too large for 64 bits saturates rather than wrapping; `hz` of zero reads as
+/// no time at all.
+pub(super) fn ticks_to_ms(ticks: u64, hz: u64) -> u64 {
+    if hz == 0 {
+        return 0;
+    }
+    let ms = (ticks as u128 * 1000) / hz as u128;
+    u64::try_from(ms).unwrap_or(u64::MAX)
+}
