@@ -19,6 +19,7 @@
 //! has to wait until the CPU has context-switched off it. The list
 //! is per-CPU; only the originating core drains its own deferred
 //! stacks, which keeps the API correct once SMP goes live.
+//! `pending_stack_held` decides which entries may go.
 
 extern crate alloc;
 
@@ -33,10 +34,10 @@ use crate::process::core::{Pid, PROCESS_TABLE};
 use crate::process::userspace::constants::KERNEL_STACK_SIZE;
 use crate::smp::MAX_CPUS;
 
-static PENDING: [Mutex<Vec<u64>>; MAX_CPUS] = [const { Mutex::new(Vec::new()) }; MAX_CPUS];
+static PENDING: [Mutex<Vec<(Pid, u64)>>; MAX_CPUS] = [const { Mutex::new(Vec::new()) }; MAX_CPUS];
 
 #[inline]
-fn slot() -> &'static Mutex<Vec<u64>> {
+fn slot() -> &'static Mutex<Vec<(Pid, u64)>> {
     let idx = Arch::current_cpu_id() as usize;
     &PENDING[if idx < MAX_CPUS { idx } else { 0 }]
 }
@@ -50,7 +51,7 @@ pub(crate) fn defer_release(pid: Pid) {
     if top == 0 {
         return;
     }
-    slot().lock().push(top);
+    slot().lock().push((pid, top));
 }
 
 pub(crate) fn drain() {
@@ -63,7 +64,7 @@ pub(crate) fn drain() {
             if q.is_empty() {
                 return;
             }
-            q.drain(..).collect()
+            super::pending_stack_held::take_unheld(&mut q)
         }
         None => return,
     };

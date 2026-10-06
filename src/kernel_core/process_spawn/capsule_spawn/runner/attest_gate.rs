@@ -18,8 +18,8 @@ use super::super::spec::{CapsuleSpecVerified, SpawnError};
 use crate::security::capsule_attest::{verify_capsule_attestation, Proved};
 
 /// Returns what was proved and who proved it, so the spawn path can record
-/// both once a pid exists. `None` only on the rollout path, where nothing was
-/// proved at all.
+/// both once a pid exists. An empty or refused trailer is an error; this never
+/// returns `None`.
 pub(crate) fn attest_gate(
     spec: &CapsuleSpecVerified<'_>,
     install_caps: u64,
@@ -30,10 +30,7 @@ pub(crate) fn attest_gate(
         crate::sys::serial::print(b"[ZK-ATTEST] none ");
         crate::sys::serial::print(spec.name.as_bytes());
         crate::sys::serial::print(b"\n");
-        #[cfg(not(feature = "nonos-zk-rollout"))]
         return Err(SpawnError::AttestationRejected);
-        #[cfg(feature = "nonos-zk-rollout")]
-        return Ok(None);
     }
     match verify_capsule_attestation(trailer, spec.elf, install_caps) {
         Ok(proved) => {
@@ -55,13 +52,12 @@ pub(crate) fn attest_gate(
             crate::sys::serial::print(spec.name.as_bytes());
             crate::sys::serial::print(b": ");
             crate::sys::serial::print(e.as_str().as_bytes());
-            crate::sys::serial::print(b"\n");
-            #[cfg(not(feature = "nonos-zk-rollout"))]
-            {
-                return Err(SpawnError::AttestationRejected);
+            if let crate::security::capsule_attest::AttestError::ProofRefused(code) = e {
+                crate::sys::serial::print(b" code ");
+                crate::sys::serial::print_dec(u64::from(code));
             }
-            #[cfg(feature = "nonos-zk-rollout")]
-            Ok(None)
+            crate::sys::serial::print(b"\n");
+            Err(SpawnError::AttestationRejected)
         }
     }
 }
