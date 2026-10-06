@@ -34,3 +34,16 @@ flowchart LR
 `driver.xhci0` takes every PCI function of class 0Ch, subclass 03h, prog-if 30h with a memory BAR0 (`userland/capsule_driver_xhci/src/discover.rs:59-77`, `raw_xhci`). The chipset's controller comes first, ahead of the 15 Intel Thunderbolt and USB4 controllers, whose ports are the Type-C ones only (`userland/capsule_driver_xhci/src/discover.rs:30-37`, `INTEL_THUNDERBOLT_XHCI`). Discovery reads at most 64 device records (`userland/capsule_driver_xhci/src/discover.rs:25`, `MAX_DEVICES`).
 
 The kernel starts `driver.xhci0` at every boot (`src/userspace/init/spawn_plan/drivers_usb.rs:23-32`, `spawn_xhci`). Without a controller it exits with code 2. The first controller must come up, on the shared bring-up schedule of 7 tries; the others are best effort, so a Thunderbolt controller that is powered down leaves the chipset's ports served (`userland/capsule_driver_xhci/src/main.rs:49-63`, `start_driver`). All controllers sit behind the one endpoint `driver.xhci0`: root ports are numbered across them, the first controller's from 1, and slot ids are the capsule's own (`userland/capsule_driver_xhci/src/server/mux.rs:17-26`, `driver.xhci0`).
+
+## Bring-up
+
+For each controller (`userland/capsule_driver_xhci/src/setup/sequence.rs:41-94`, `run`):
+
+- It claims the controller from the [hardware broker](../../overview/glossary.md#hardware-broker), turns on bus mastering and maps BAR0 up to 512 KiB, enough for Intel's doorbells at 0x3000 and extended capabilities near 0x8000 (`userland/capsule_driver_xhci/src/setup/mmio_map.rs:19-31`, `REGISTER_WINDOW_LEN`).
+- It asks for one MSI-X vector. Every completion is decided from the event ring, and the interrupt only parks the driver between polls (`userland/capsule_driver_xhci/src/setup/irq_bind.rs:20-31`, `irq_bind`).
+- It takes the controller from the firmware's legacy USB support through USBLEGSUP before the reset (`userland/capsule_driver_xhci/src/controller/legacy_handoff/legacy_handoff.rs:24-43`, `legacy_handoff`).
+- It waits for CNR to clear, halts and resets the controller, and touches nothing for 1 ms after HCRST, the wait Linux's XHCI_INTEL_HOST quirk gives Intel controllers (`userland/capsule_driver_xhci/src/controller/reset.rs:22-41`, `POST_HCRST_MS`).
+- It keeps all DMA below 4 GiB on a controller without 64-bit addressing, and refuses one with no device slots (`userland/capsule_driver_xhci/src/controller/refuse_unsupported.rs:19-28`, `refuse_unsupported`).
+- It sets up the scratchpads, the device context array, the command ring and the event ring, starts the controller, powers every root port and runs a No-op command.
+
+The capsule marks each step with a `[driver_xhci]` line written with `mk_debug` (`userland/capsule_driver_xhci/src/setup/marker.rs:17-19`, `marker`). The kernel grants `driver.xhci0` no Debug capability, so those lines do not reach the console in this release (`src/hardware/xhci_capsule/spawn.rs:51-57`, `requested_caps`).
