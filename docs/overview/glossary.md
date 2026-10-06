@@ -35,3 +35,7 @@ A committed list or count of the known sites of something the tree should not ha
 ## Boot profile
 
 <a id="boot-mode"></a>The posture chosen in the boot menu at each boot, also called the boot mode: Standard, Hardened, Safe Mode, Air-Gapped or Recovery. The loader passes it in the handoff flags and the kernel reads it as `BootProfile`, Standard when there is no handoff; only Standard and Hardened let a network driver or service start, the others take Network from every capsule, Safe Mode also starts no audio and no optional app, and Recovery skips setup. It narrows what the image's build profile allows and never widens it. Explained in [Boot modes](../install/boot-modes.md). Code: `src/boot/handoff/api/profile.rs`, `src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs`.
+
+## Boot stop
+
+The kernel's controlled stop when a boot step cannot go on: a `[FATAL]` line naming the step on the serial console, a NONOS BOOT STOPPED band on the panel when a framebuffer is reachable, then a halt loop on the CPU that stopped. Explained in [Panic and boot stop](../kernel/panic-and-boot-stop.md#a-boot-step-fails). Code: `src/boot/stop.rs`.
