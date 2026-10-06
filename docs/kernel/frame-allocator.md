@@ -62,3 +62,11 @@ Three pieces exist in the tree and are not used to boot in this release:
 - `boot_memory` describes itself as an early boot-time allocator, but nothing outside the module calls its `init` (`src/memory/boot_memory/manager/api.rs:27`).
 - `page_info` keeps per-page records with reference counts, but nothing calls `add_page` (`src/memory/page_info/manager/api.rs:30`). Only its `PageFlags` type is used elsewhere (`src/fs/mapping.rs:17`).
 - `init_all_memory_subsystems` would start every memory module from a fixed 1 MiB to 1 GiB span, but the boot path does not call it (`src/memory/unified/system.rs:24-35`).
+
+## Limits
+
+- Physical memory at addresses above 64 GiB is not managed: `init_memory` caps the span at `MAX_PHYSICAL_MEMORY` (`src/kernel_core/init/memory/setup.rs:48`). RAM there is never handed out.
+- The bitmap has one lock, `ALLOCATOR` (`src/memory/phys/allocator/api.rs:26`), and `frame_alloc` has its own, `GLOBAL_ALLOCATOR` (`src/memory/frame_alloc/manager/global.rs:21`). A frame taken through `frame_alloc` takes both.
+- The scan is linear. On a nearly full machine one allocation can walk the whole bitmap.
+- Every range `page_allocator` hands out comes from the one 256 MiB vmap window. At 32 KiB each, at most 8192 process kernel stacks fit, fewer when other users hold part of the window.
+- Allocation order is not randomised. `init` stores a `random_seed` drawn from the boot nonce, but the scan never reads it and starts from frame 0 (`src/memory/phys/allocator/init.rs:52-53`).
