@@ -77,3 +77,7 @@ Where the frames come from is decided in `take` (`src/hardware/broker/dma/map/al
 The device address depends on the IOMMU. When a remapping unit confines the device, `map` in the confine module maps the buffer into the capsule's own domain and returns an I/O virtual address; otherwise it returns the physical address (`src/hardware/broker/confine/map.rs:22-50`). I/O virtual addresses start at `IOVA_BASE`, 1 MiB, stay below 4 GiB, and step over the interrupt window `0xFEE0_0000` to `0xFEF0_0000`, where a device write would be taken as an interrupt (`src/hardware/broker/confine/iova_space.rs:29-74`). A grant made without a confining domain is counted by `note_unconfined` and shows in the IOMMU posture line (`src/hardware/broker/dma/map/record.rs:45-51`). A `DMA32` request whose device address would not fit 32 bits fails as `Above4G`, which the caller sees as `ERANGE`, -34 (`src/hardware/broker/dma/map/transaction.rs:53-62`).
 
 The user mapping of a buffer lives in the window from `USER_DMA_BASE`, `0xA0_0000_0000`, to `USER_DMA_END`, `0xB0_0000_0000` (`src/hardware/broker/windows.rs:33-34`).
+
+## Port I/O
+
+On x86_64 a driver holding `Pio` can ask for a grant on an I/O port BAR of a claimed device. It never runs `in` or `out` itself: `MkPioRead` and `MkPioWrite` are carried out by the kernel, at widths 1, 2 and 4 bytes, against the grant table (`src/hardware/broker/pio/types.rs:17-58`). Other architectures have no port I/O and the calls return `ENOSYS`; `pio_absent` stands in there (`src/hardware/broker/mod.rs:39-45`).
