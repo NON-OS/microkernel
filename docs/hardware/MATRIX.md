@@ -113,3 +113,31 @@ PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_H
 | Ethernet | USB CDC-ECM (class 02/06), CDC-NCM (02/0d), RNDIS (02/02/ff, e0/01/03, ef/04/01) | `capsule_driver_cdc_ecm`, `capsule_driver_cdc_ncm`, `capsule_driver_rndis` | Not supported: not in the image | proof crates `cdc_ecm_proofs` (7), `cdc_ncm_proofs` (33), `rndis_proofs` (22) | 0.9.2 |
 | Ethernet | ASIX AX88179 and AX88178A, USB 0b95:1790, 0b95:178a and 11 more | `capsule_driver_ax88179` | Not supported: not in the image | proof crate `ax88179_proofs` (25) | 0.9.2 |
 | Ethernet | Realtek RTL8153, USB 0bda:8153 and 18 more | `capsule_driver_rtl8153` | Not supported: not in the image | proof crate `rtl8153_proofs` (27) | 0.9.2 |
+
+## Sources
+
+Each row comes from a match table in the driver or the kernel. All paths are at the commit in the footer.
+
+- PS/2: `register_legacy` publishes the two i8042 records (`src/hardware/broker/platform.rs:40-74`).
+- Intel LPSS I2C: `device_info` (`userland/capsule_driver_i2c_pci/src/constants/device_info.rs:29-61`). ACPI I2C controllers: `hid_is_i2c_controller` (`src/arch/x86_64/acpi/aml/controller/hid_match.rs:21-38`). Touchpads and touchscreens: `TOUCHPAD_HIDS` (`src/arch/x86_64/acpi/devices/i2c/hids.rs:19-62`).
+- GPIO: `locate` (`userland/nonos_pinctrl/src/locate.rs:32`) and `AMD_IDS` (`userland/nonos_pinctrl/src/controller.rs:31`).
+- USB HID: `CLASS_HID` (`userland/capsule_driver_usb_hid/src/descriptors/types.rs:20-21`); hubs: `CLASS_HUB` (`userland/capsule_driver_usb_hid/src/descriptors/config.rs:22`).
+- xHCI and older USB hosts: `USB_HOST_XHCI` in the broker's `classify_pci` (`src/hardware/broker/class.rs:77-81`), matched by `CLASS_USB_HOST_XHCI` (`userland/capsule_driver_xhci/src/constants/pci_class.rs:16`).
+- USB mass storage: `CLASS_MASS_STORAGE` (`userland/capsule_driver_usb_msc/src/descriptors/wire.rs:23-24`).
+- NVMe: `is_nvme` (`userland/capsule_driver_nvme/src/discover/pci_match.rs:27-33`).
+- AHCI and RST: `is_ahci_function` (`userland/capsule_driver_ahci/src/discover/rule.rs:49-58`). VMD: `INTEL_VMD_DEVICE_IDS` (`userland/capsule_driver_ahci/src/discover/rule.rs:38-41`).
+- eMMC and SD hosts: `INTEL_EMMC` and `INTEL_NOT_EMMC` (`userland/capsule_driver_ahci/src/emmc/pci/ids.rs:25-57`).
+- Card reader: `LINUX_IDS` (`userland/capsule_driver_rtsx/src/chip/id.rs:25-28`), of which `family` brings up two (`userland/capsule_driver_rtsx/src/chip/id.rs:45-54`).
+- virtio: `VIRTIO_BLK_TRANSITIONAL` (`userland/capsule_driver_virtio_blk/src/constants/pci.rs:17-18`), `VIRTIO_NET_TRANSITIONAL` (`userland/capsule_driver_virtio_net/src/constants/pci.rs:23-24`), `VIRTIO_GPU_TRANSITIONAL` (`userland/capsule_driver_virtio_gpu/src/constants/pci.rs:17-18`), `VIRTIO_RNG_TRANSITIONAL` (`userland/capsule_driver_virtio_rng/src/constants/pci.rs:23-24`).
+- Display: `classify_display` (`src/hardware/inventory/classify_display.rs:19-28`); `DisplayGopFramebuffer` (`src/hardware/inventory/support.rs:25`); native GPUs without a modeset driver, `DisplayNativeIntel` (`src/hardware/inventory/missing.rs:25-27`); the parked Bochs driver, `DisplayBga` (`src/hardware/inventory/driver.rs:33-36`) and `DEVICE_BGA` (`userland/capsule_driver_bga/src/constants.rs:19-20`).
+- HD Audio: `hda_controller` (`userland/capsule_driver_hda/src/controller/intel.rs:65-67`), `graphics_audio` (`userland/capsule_driver_hda/src/controller/intel.rs:70-74`), `amd_acp` (`userland/capsule_driver_hda/src/controller/intel.rs:77-79`), `intel_sst` (`userland/capsule_driver_hda/src/controller/sst.rs:33-37`), `eapd_coef` (`userland/capsule_driver_hda/src/controller/codec/realtek.rs:61-104`).
+- RTL8821CE: `PCI_DEVICE_RTL8821CE` (`userland/capsule_driver_rtl8821ce/src/constants/mod.rs:26`).
+- Intel Wi-Fi: `family_for_device` (`userland/capsule_driver_iwlwifi/src/firmware/family.rs:19-39`); the ids with a boot path, `transport` (`userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs:121-130`); the cards named without one, `name` (`userland/capsule_driver_iwlwifi/src/firmware/generation.rs:32-65`), in a line `announce` writes with `mk_debug` (`userland/capsule_driver_iwlwifi/src/setup/announce.rs:39-58`).
+- e1000: `E1000_DEVICE_IDS` (`userland/capsule_driver_e1000/src/constants/pci.rs:19-23`). e1000e: `I82574` and the lists after it (`userland/capsule_driver_e1000e/src/constants/ids.rs:22-51`). igc: `IGC_DEVICE_IDS` (`userland/capsule_driver_igc/src/constants/pci.rs:24-41`).
+- RTL8139: `RTL8139_DEVICE_ID` (`userland/capsule_driver_rtl8139/src/constants/pci.rs:18`). RTL8169 family: `RTL8169_DEVICE_IDS` (`userland/capsule_driver_rtl8169/src/constants/pci.rs:30-31`).
+- USB Ethernet: `SUBCLASS_ECM` (`userland/capsule_driver_cdc_ecm/src/ecm/function.rs:26`), `SUBCLASS_NCM` (`userland/capsule_driver_cdc_ncm/src/ncm/function.rs:26`), `CONTROL_CLASSES` (`userland/capsule_driver_rndis/src/rndis/function.rs:30-31`), `PRODUCTS` (`userland/capsule_driver_ax88179/src/ax/products.rs:21-35`), `RTL8153_FAMILY` (`userland/capsule_driver_rtl8153/src/r8153/ids.rs:26-51`).
+- Power button: `init` (`src/arch/x86_64/acpi/power_button.rs:62-91`); what the desktop does with the key, `POWER_OFF_UNAVAILABLE` (`userland/capsule_desktop_shell/src/state/system_key.rs:42-47`).
+- TPM: the `crb` and `fifo` transports (`src/security/tpm/mod.rs:25-34`).
+- VT-d: `is_enforcing` (`src/arch/x86_64/iommu/mod.rs:17-22`). The IOMMU features are in `Cargo.toml`.
+- QEMU devices: `QEMU_SMP` (`mk/10-qemu.mk:32`), `QEMU_IOMMU_OPTS` (`mk/10-qemu.mk:45`), `QEMU_GPU` (`mk/10-qemu.mk:96`), `QEMU_USB` (`mk/10-qemu.mk:99-102`), `QEMU_AUDIO` (`mk/10-qemu.mk:109`), `QEMU_TPM` (`mk/10-qemu.mk:122`), `QEMU_NET` (`mk/10-qemu.mk:128`), and the NVMe install target, `INSTALL_TARGET_IMG` (`mk/40-run.mk:452-466`).
+- Check results: the flake's `proofs-<crate>` checks (`proofChecks`, `tools/nix/checks.nix:101-102`), each running the crate's tests and then clippy (`tools/nix/checks.nix:85-96`, `clippy`).
