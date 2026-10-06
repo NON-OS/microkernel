@@ -46,3 +46,11 @@ Last, `find_low_dma_region` picks usable memory between `DMA_POOL_MIN_BASE`, 16 
 `allocate_contiguous` finds a run of free frames, from the bottom or with `HIGH` from the top. With `DMA32` it refuses a run that would end above 4 GiB, before claiming anything (`src/memory/phys/allocator/contiguous.rs:24-66`). The flags are defined in `AllocFlags` (`src/memory/phys/types/flags.rs:19-28`).
 
 Kernel code outside the memory subsystem goes through `frame_alloc`. Its `alloc` draws only from `phys`, and an exhausted bitmap returns nothing (`src/memory/frame_alloc/types/ops.rs:23-41`). There is no fallback pool: the comment in `alloc` records why a second range over 16 MiB to 512 MiB was taken out. `deallocate_frame` zeroes the frame before it frees it (`src/memory/frame_alloc/manager/alloc.rs:33-37`). Page-table builders from the `x86_64` crate draw frames through `X86FrameAllocator`, implemented on the same allocator (`src/memory/frame_alloc/types/x86_shim.rs:29-33`).
+
+## Kernel virtual ranges
+
+`VmapAllocator` is a buddy allocator over the 256 MiB vmap window, with block orders from `MIN_ORDER`, 12, to `MAX_ORDER`, 20, that is 4 KiB to 1 MiB (`src/memory/buddy_alloc/allocator/core.rs:22-60`, `src/memory/buddy_alloc/constants/orders.rs:17-19`). A request larger than 1 MiB fails with `AllocationTooLarge` (`src/memory/buddy_alloc/allocator/alloc.rs:33-37`).
+
+`allocate_pages` takes a range from it, backs each page with a frame from `frame_alloc`, maps it and zeroes it (`src/memory/buddy_alloc/allocator/api/alloc.rs:25-41`). `release` gives pages back in a fixed order: unmap up to 32 pages under one [TLB shootdown](../overview/glossary.md#tlb-shootdown), free the frames, then free the range (`src/memory/buddy_alloc/allocator/api/release.rs:43-66`). Freeing a frame while another CPU might still translate to it would let that CPU reach memory that now belongs to someone else.
+
+`page_allocator` is started by `init_unified_vm` once paging is up (`src/memory/unified/init/run.rs:79-84`). Its main user is `allocate_kernel_stack`, which gives every process a kernel-only stack of `KERNEL_STACK_SIZE`, 32 KiB (`src/kernel_core/process_spawn/kernel_stack.rs:39-56`, `src/process/userspace/constants.rs:31`).
