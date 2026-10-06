@@ -69,3 +69,11 @@ A driver capsule never reaches config space directly. It reads and writes it thr
 ## On other architectures
 
 On aarch64 the same PCI code reaches config space through ECAM, from the window the board describes at boot, and the I2C and GPIO controllers come from the device tree instead of ACPI, which is why `seed_hardware_broker` calls `register_acpi_i2c` on x86_64 only (`src/kernel_core/init/platform/hardware_broker.rs:31-38`). Those builds are previews; see [aarch64](../architectures/aarch64.md).
+
+## See also
+
+- [Hardware broker](hardware-broker.md): the device table built from the scan.
+- [IOMMU](iommu.md): what DMAR and IVRS are used for.
+- [Timers](timers.md): the HPET and the PM timer.
+- [Platform drivers](../drivers/platform.md): ACPI buttons, GPIO and pinctrl.
+- [Boot handoff](boot-handoff.md): where the RSDP address comes from.
