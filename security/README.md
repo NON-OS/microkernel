@@ -1,11 +1,11 @@
 # NONOS security operations
 
 This directory holds the offensive and defensive tooling for the NONOS
-attestation. The tools are not a simulation. They link the same `nonos-stark`
-verifier the bootloader links, operate on the same image byte layout the boot
-path parses, and reach the same verdict the machine reaches before it jumps into
-the kernel. A green run here is evidence about the shipped gate, not about a
-model of it.
+attestation. The tools are not a simulation. They link `nonos-attest-path`, the
+same path check the bootloader and the kernel run, and `embed-trailer`, operate
+on the same image byte layout the boot path parses, and reach the verdict the
+path half of the gate reaches. The STARK half (`nox_verify`, from NON-OS/STARKs)
+is not linked here: the gates run it, and the enroll tool's selftest holds it.
 
 ## Threat model
 
@@ -15,9 +15,10 @@ computer. Both layers commit to a Merkle root and prove membership of a context.
 
 - Kernel self-attestation. Before the bootloader jumps, it measures the kernel
   region, binds the measurement to the boot epoch, and verifies a trailer proving
-  that measurement is a member of the enrolled root. Enrollment and verification
-  live in `nonos-stark`, shared by the prover and the bootloader so they agree by
-  construction.
+  that measurement is a member of the enrolled root. Enrollment is
+  `nonos-stark-enroll` with the STARK lane's prover; the path check is
+  `nonos-attest-path` and the proof check `nox_verify`, the same in the
+  bootloader, the kernel and the enroll tool.
 - Capsule attestation. At spawn, the kernel binds a capsule's ELF hash, its
   granted capabilities, and the policy epoch, and verifies membership against the
   policy root before it runs.

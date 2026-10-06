@@ -14,33 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Enroll a kernel image and build the trailer that proves its membership. Same
-//! padding, same commitment, same trailer the build side produces.
+//! Enroll a kernel image and build the trailer that carries its path. The same
+//! padding, tree and trailer the build side produces, from the same crate.
 
-use super::constants::{EXTRA_BLOWUP_BITS, GRIND_BITS, LEAVES, LOG_ROUNDS, N_QUERIES, PAD_IMAGE};
-use super::context::{kernel_context, root_to_bytes};
-use nonos_stark::air::{build_attestation_trailer, enroll_policy_root, Poseidon, RATE};
-use nonos_stark::field::Fp;
+use super::constants::{DEPTH, LEAVES, PAD_SEED};
+use super::context::kernel_context;
+use nonos_attest_path::{digest_to_bytes, leaf, pad_leaf, Kind, Poseidon, Tree};
 
-/// Enroll a kernel image: pad the tree to the gate depth, commit, and build the
-/// trailer bound to the kernel context. Returns the serialized root and trailer.
+/// Enroll a kernel image in slot 0 of a padded tree at the gate depth. Returns the
+/// serialized root and the kernel's trailer, or a zero root and an empty trailer,
+/// which every gate refuses, if the tree cannot be built.
 pub fn enroll_kernel(kernel_bytes: &[u8]) -> ([u8; 32], Vec<u8>) {
-    let hasher = Poseidon::new(LOG_ROUNDS, [Fp::ZERO; RATE]);
-    let mut images: Vec<&[u8]> = vec![kernel_bytes];
-    while images.len() < LEAVES {
-        images.push(PAD_IMAGE);
+    let h = Poseidon::new();
+    let Some(kernel) = leaf(&h, Kind::Kernel, &kernel_context(kernel_bytes)) else {
+        return ([0; 32], Vec::new());
+    };
+    let mut leaves: Vec<_> = (0..LEAVES as u32).map(|i| pad_leaf(&h, &PAD_SEED, i)).collect();
+    leaves[0] = kernel;
+    let Some(tree) = Tree::commit(&h, &leaves, DEPTH) else {
+        return ([0; 32], Vec::new());
+    };
+    match (tree.root(), tree.trailer(0)) {
+        (Some(root), Some(trailer)) => (digest_to_bytes(&root), trailer),
+        _ => ([0; 32], Vec::new()),
     }
-    let root = root_to_bytes(enroll_policy_root(&hasher, &images));
-    let ctx = kernel_context(kernel_bytes);
-    let trailer = build_attestation_trailer(
-        &hasher,
-        LOG_ROUNDS,
-        &images,
-        0,
-        &ctx,
-        N_QUERIES,
-        GRIND_BITS,
-        EXTRA_BLOWUP_BITS,
-    );
-    (root, trailer)
 }
