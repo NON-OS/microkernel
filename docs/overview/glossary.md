@@ -251,3 +251,7 @@ The round in which a CPU that changed a page table makes every other CPU that ma
 ## TPM
 
 The TPM 2.0 chip. NONOS keeps its rollback floor there, derives machine keys and the device secret from it without storing them, and reads PCR 4 from it to check the loader. Hardened and Air-Gapped boots refuse to start without one, and a data volume keyed by the TPM stays closed without it. Explained in [Measured boot and the TPM](../security/measured-boot-and-tpm.md). Code: `src/security/tpm/mod.rs`.
+
+## Trust anchor
+
+The hybrid key pair, one Ed25519 and one ML-DSA-65 key, that signs every NONOS ID certificate. The kernel compiles in the trust-anchor policy built from its public halves, and a tree without that policy file does not build. Explained in [Signing and publisher keys](../userland/signing-and-publisher-keys.md#the-keys). Code: `src/security/nonos_trust_anchor/baked.rs`.
