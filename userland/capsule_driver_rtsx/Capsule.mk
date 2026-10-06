@@ -18,3 +18,5 @@ CAPSULE_REQUIRED_CAPS    := 0xB8018
 CAPSULE_OPTIONAL_CAPS    := 0x100
 
 include nonos-mk/capsule.mk
+# Half done (README): no owner certificate, no kernel embed, no spawn.
+CAPSULE_NOT_IN_IMAGE     := 1

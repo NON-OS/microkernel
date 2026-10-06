@@ -1,5 +1,9 @@
 # capsule_driver_e1000e
 
+Status: not in the 0.9.2 image. The capsule builds and its host proofs
+pass, but it has no owner certificate and the kernel never spawns it:
+it is not yet wired into the kernel mirror and the stack.
+
 ## Role
 
 `capsule_driver_e1000e` is the Intel e1000e Ethernet driver capsule: the
