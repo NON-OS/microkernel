@@ -17,7 +17,7 @@
 use uefi::prelude::*;
 
 use crate::display::{log_info as panel_info, log_ok};
-use crate::security::{audit, init_anti_rollback, init_attestation, initialize_security_subsystem};
+use crate::security::{audit, init_attestation, initialize_security_subsystem};
 use crate::security::{
     verify_platform_security, AuditEvent, HardwareCapabilities, SecurityContext,
 };
@@ -40,7 +40,6 @@ pub fn verify_platform(hw_caps: &HardwareCapabilities, gop: bool) {
 pub fn init_subsystems(st: &mut SystemTable<Boot>, gop: bool) -> SecurityContext {
     let security = initialize_security_subsystem(st);
     init_attestation();
-    let _ = init_anti_rollback(security.measured_boot_active);
     audit(AuditEvent::TpmInit, 0, b"subsystems ready");
     if gop {
         display_subsystem_status(&security);

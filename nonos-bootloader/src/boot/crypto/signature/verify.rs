@@ -32,8 +32,8 @@ pub fn verify_signature(
         handle_no_signature(st, mode, gop);
     } else if !res.signature_valid {
         handle_invalid_signature(st, mode, gop);
-    } else if !res.stark_gate_satisfied() {
-        handle_failed_attestation(st, mode, gop);
+    } else if !res.kernel_attested() {
+        handle_failed_attestation(st, gop);
     } else {
         handle_valid_signature(gop);
     }
