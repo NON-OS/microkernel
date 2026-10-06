@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Holds the kernel's constants against the numbers the Lean specs state.
-//! A spec writes them as its own literals, so the two agree only until someone
-//! edits one. Each assertion names the definition it mirrors; changing the
-//! kernel constant fails here until the Lean file moves with it.
+//! Holds the kernel's constants against literals copied from the Lean specs.
+//! Each assertion names the definition it mirrors. Changing a kernel constant
+//! fails here until the literal below moves with it; no Lean file is read, so
+//! a Lean literal changed alone fails nothing here.
 
 use crate::constants::canonical::{CANONICAL_HIGH_MIN, CANONICAL_LOW_MAX, USER_TOP};
 use crate::constants::chain::MAX_CHAIN_DEPTH;
