@@ -75,3 +75,34 @@ Each process holds one `CapabilityToken`: the owning module id, the list of capa
 The token's `signature` field is a message authentication code, not a public key signature: `mac64` over the 128 byte `token_material`, two keyed BLAKE3 hashes, one of the material and one of the material followed by `CAP2` (`src/capabilities/token/material.rs:41-52`). Only the kernel holds the key, so only the kernel can make or check one. The key is 32 bytes drawn from the random source at boot by `init_token_signing_key`, which halts the boot if the draw fails (`src/kernel_core/init/platform/token_signing_key.rs:19-31`); `set_signing_key` refuses a second key (`src/capabilities/token/signing_key.rs:21-33`).
 
 The `[token]` and `[mac]` tables of `abi/caps.toml` describe a different design, a SHA3-256 MAC under the context `NONOS_CAP_V1` (`abi/caps.toml:58-70`). Nothing under `src/` uses that context; the kernel token is the keyed BLAKE3 one above.
+
+## The check on every system call
+
+```mermaid
+flowchart TD
+    N[syscall number] --> T{check_token}
+    T --> S{check_session_binding}
+    S --> A{check_asid_binding}
+    A --> E{check_revocation_epoch}
+    E --> C{check_syscall_allowed}
+    C --> H[handler]
+    T -->|fails| P[EPERM]
+    S -->|fails| P
+    A -->|fails| P
+    E -->|fails| P
+    C -->|fails| P
+```
+
+Every architecture's syscall entry calls the same `dispatch`, which runs `Capability::resolve` and returns `EPERM` when it fails (`src/syscall/contract/dispatch.rs:25-40`). A refusal is also logged as a `[CAP-DENY]` line with the pid and the call, from `log_deny` (`src/syscall/contract/dispatch.rs:42-46`).
+
+`resolve` reads the calling process's token and builds the context from its address space id, the boot session nonce and its revocation epoch (`src/syscall/contract/capability.rs:35-46`). It then runs five checks, in the order `resolve` lists them (`src/syscall/contract/resolver/resolve.rs:31-43`):
+
+1. `check_token`: the signature verifies, the token has not expired, and its module id and nonce are not on the revocation list (`src/syscall/contract/resolver/check_token.rs:21-32`).
+2. `check_session_binding`: the boot session nonce is set and equals the token's, compared in constant time (`src/syscall/contract/resolver/check_session.rs:23-32`).
+3. `check_asid_binding`: the token names the address space the caller runs in (`src/syscall/contract/resolver/check_asid.rs:22-30`).
+4. `check_revocation_epoch`: the token is not older than the process's revocation epoch (`src/syscall/contract/resolver/check_epoch.rs:22-30`).
+5. `check_syscall_allowed`: the cap table admits this call for this token (`src/syscall/contract/resolver/check_syscall.rs:23-31`).
+
+The cap table is total. `is_allowed` asks the crypto, admin, microkernel and graphics tables in turn and refuses any call none of them claims (`src/syscall/contract/cap_table/mod.rs:27-34`). Only `resolve` can build the witness type `Capability` (`src/syscall/contract/capability.rs:23-32`), and `dispatch` calls the handler only once it holds one; it does not pass the witness on to the handler at this commit (`src/syscall/contract/dispatch.rs:31-40`).
+
+Some handlers check again. `sys_cap_grant` asks for `Admin` once more and for every bit it hands on (`src/syscall/microkernel/capability/handlers.rs:42-47`).
