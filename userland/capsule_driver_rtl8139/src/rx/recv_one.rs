@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_irq_ack;
-
 use super::read_frame::read_frame;
 use crate::constants::regs::{
     CMD_RX_BUF_EMPTY, ISR_ENABLED, ISR_RX_ERR, ISR_RX_FIFO_OVERFLOW, ISR_RX_OVERFLOW, REG_CMD,
@@ -29,11 +27,9 @@ pub fn recv_one(driver: &mut Driver, out: &mut [u8]) -> Result<Option<usize>, &'
         driver.pio.w16(REG_ISR, isr & ISR_ENABLED)?;
     }
     if (isr & (ISR_RX_ERR | ISR_RX_OVERFLOW | ISR_RX_FIFO_OVERFLOW)) != 0 {
-        let _ = mk_irq_ack(driver.irq_grant);
         return Err("rtl8139 rx interrupt error");
     }
     if (driver.pio.r8(REG_CMD)? & CMD_RX_BUF_EMPTY) != 0 {
-        let _ = mk_irq_ack(driver.irq_grant);
         return Ok(None);
     }
     read_frame(driver, out)

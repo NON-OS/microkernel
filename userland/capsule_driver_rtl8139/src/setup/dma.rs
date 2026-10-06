@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_dma_map, DmaMapOut, IrqBindOut, PioGrantOut};
+use nonos_libc::{mk_dma_map, DmaMapOut, PioGrantOut};
 
 use crate::constants::dma::{RX_BUF_BYTES, TX_BUF_BYTES};
 
@@ -40,18 +40,17 @@ pub fn map_all(
     device_id: u64,
     epoch: u64,
     pio: &PioGrantOut,
-    irq: &IrqBindOut,
 ) -> Result<(DmaMapOut, DmaMapOut), &'static str> {
     let rx = alloc(device_id, epoch, RX_BUF_BYTES as u64).ok_or_else(|| {
-        rollback::after_irq(device_id, pio, irq, &[]);
+        rollback::after_pio(device_id, pio, &[]);
         "rx dma failed"
     })?;
     let tx = alloc(device_id, epoch, TX_BUF_BYTES as u64).ok_or_else(|| {
-        rollback::after_irq(device_id, pio, irq, &[rx.grant_id]);
+        rollback::after_pio(device_id, pio, &[rx.grant_id]);
         "tx dma failed"
     })?;
     if rx.device_addr > u32::MAX as u64 || tx.device_addr > u32::MAX as u64 {
-        rollback::after_irq(device_id, pio, irq, &[tx.grant_id, rx.grant_id]);
+        rollback::after_pio(device_id, pio, &[tx.grant_id, rx.grant_id]);
         return Err("rtl8139 requires 32-bit dma");
     }
     Ok((rx, tx))

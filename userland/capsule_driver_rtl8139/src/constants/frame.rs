@@ -15,5 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const MAC_LEN: usize = 6;
-pub const MIN_ETHERNET_FRAME: usize = 60;
+/// A bare header is the shortest frame taken. ARP (42 bytes) and a bare TCP
+/// ACK (54) are shorter than the wire minimum, and refusing them stranded
+/// IPv4 right after DHCP.
+pub const MIN_ETHERNET_FRAME: usize = 14;
+/// The part does not pad short frames itself, so `send` does, to this.
+pub const MIN_WIRE_FRAME: usize = 60;
 pub const MAX_ETHERNET_FRAME: usize = 1514;

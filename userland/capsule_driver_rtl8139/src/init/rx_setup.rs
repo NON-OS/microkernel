@@ -16,19 +16,42 @@
 
 use crate::constants::dma::RX_BUF_DATA_BYTES;
 use crate::constants::regs::{
-    RCR_ACCEPT_BCAST, RCR_ACCEPT_MULTI, RCR_ACCEPT_PHYS, RCR_MXDMA_UNLIMITED, RCR_WRAP, REG_CAPR,
-    REG_RBSTART, REG_RCR,
+    CMD_RX_ENABLE, CMD_TX_ENABLE, RCR_ACCEPT_BCAST, RCR_ACCEPT_MULTI, RCR_ACCEPT_PHYS,
+    RCR_MXDMA_UNLIMITED, RCR_RBLEN_32K, RCR_WRAP, REG_CAPR, REG_CMD, REG_RBSTART, REG_RCR,
 };
 use crate::setup::Driver;
+
+/// Receive configuration. Written only once the receiver is enabled (see
+/// `run`): on parts where RCR does not take while RE is clear, the accept
+/// bits would otherwise fall back to their reset value and nothing arrives.
+pub const RCR: u32 = RCR_ACCEPT_PHYS
+    | RCR_ACCEPT_MULTI
+    | RCR_ACCEPT_BCAST
+    | RCR_WRAP
+    | RCR_MXDMA_UNLIMITED
+    | RCR_RBLEN_32K;
 
 pub fn program(driver: &mut Driver) -> Result<(), &'static str> {
     driver.rx_offset = 0;
     driver.pio.w32(REG_RBSTART, driver.rx_device_addr as u32)?;
-    driver.pio.w16(REG_CAPR, capr_for(0))?;
-    driver.pio.w32(
-        REG_RCR,
-        RCR_ACCEPT_PHYS | RCR_ACCEPT_MULTI | RCR_ACCEPT_BCAST | RCR_WRAP | RCR_MXDMA_UNLIMITED,
-    )
+    driver.pio.w16(REG_CAPR, capr_for(0))
+}
+
+pub fn configure(driver: &Driver) -> Result<(), &'static str> {
+    driver.pio.w32(REG_RCR, RCR)
+}
+
+/*
+ * Receive from the top of the ring again, the way Linux 8139too's rx_err
+ * does. Used when the header at the read position is one the part never
+ * writes for a good frame: after a FIFO overrun real silicon can leave the
+ * ring position lost, and waiting on that header would stop receive for good.
+ */
+pub fn restart(driver: &mut Driver) -> Result<(), &'static str> {
+    driver.pio.w8(REG_CMD, CMD_TX_ENABLE)?;
+    driver.pio.w8(REG_CMD, CMD_RX_ENABLE | CMD_TX_ENABLE)?;
+    configure(driver)?;
+    program(driver)
 }
 
 fn capr_for(offset: usize) -> u16 {

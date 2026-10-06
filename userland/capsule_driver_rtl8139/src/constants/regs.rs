@@ -24,7 +24,12 @@ pub const REG_IMR: u16 = 0x3C;
 pub const REG_ISR: u16 = 0x3E;
 pub const REG_TCR: u16 = 0x40;
 pub const REG_RCR: u16 = 0x44;
+/// EEPROM command register, which holds the config-write lock over IDR.
+pub const REG_CFG9346: u16 = 0x50;
 pub const REG_MSR: u16 = 0x58;
+
+pub const CFG9346_UNLOCK: u8 = 0xC0;
+pub const CFG9346_LOCK: u8 = 0x00;
 
 pub const CMD_RESET: u8 = 0x10;
 pub const CMD_RX_ENABLE: u8 = 0x08;
@@ -47,8 +52,16 @@ pub const RCR_ACCEPT_MULTI: u32 = 1 << 2;
 pub const RCR_ACCEPT_BCAST: u32 = 1 << 3;
 pub const RCR_WRAP: u32 = 1 << 7;
 pub const RCR_MXDMA_UNLIMITED: u32 = 7 << 8;
+/// RBLEN = 10, a 32K+16 ring. Left at 00 the part wraps at 8K while every
+/// offset here is taken against 32K, and receive stops after about 8 KB.
+pub const RCR_RBLEN_32K: u32 = 0b10 << 11;
 pub const TCR_MXDMA_UNLIMITED: u32 = 7 << 8;
+/// Restarts a transmitter halted by an aborted frame.
+pub const TCR_CLEAR_ABORT: u32 = 1 << 0;
 
 pub const TX_STATUS_OK: u32 = 1 << 15;
 pub const TX_STATUS_UNDERRUN: u32 = 1 << 14;
 pub const TX_STATUS_ABORT: u32 = 1 << 30;
+/// TSD early-transmit threshold in 32-byte units: 8 is 256 bytes, where
+/// Linux 8139too starts. Zero is 8 bytes, which underruns on a busy bus.
+pub const TSD_ERTXTH_256: u32 = 8 << 16;

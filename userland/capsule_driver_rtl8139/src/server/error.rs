@@ -14,19 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_ipc_send;
+use nonos_libc::mk_ipc_reply;
 
-use crate::protocol::{
-    encode_response_header, write_status, Request, KERNEL_REPLY_ENDPOINT, RESP_HDR_LEN, STATUS_LEN,
-};
+use crate::protocol::{encode_response_header, write_status, Request, RESP_HDR_LEN, STATUS_LEN};
 
-pub fn reply_with_status(tx: &mut [u8], req: &Request, status: i32) {
-    encode_response_header(tx, req, STATUS_LEN as u32);
-    write_status(&mut tx[RESP_HDR_LEN..], status);
-    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + STATUS_LEN);
+/// Answer the capsule that sent the request. Replies used to go to a fixed
+/// kernel-side inbox, which nothing reads now that the stack is a capsule,
+/// so every call from net_core timed out.
+pub fn reply(sender: u32, tx: &[u8], len: usize) {
+    let _ = mk_ipc_reply(sender, tx.as_ptr(), len);
 }
 
-pub fn reply_decode_failed(tx: &mut [u8], status: i32) {
+pub fn reply_with_status(sender: u32, tx: &mut [u8], req: &Request, status: i32) {
+    encode_response_header(tx, req, STATUS_LEN as u32);
+    write_status(&mut tx[RESP_HDR_LEN..], status);
+    reply(sender, tx, RESP_HDR_LEN + STATUS_LEN);
+}
+
+pub fn reply_decode_failed(sender: u32, tx: &mut [u8], status: i32) {
     let req = Request { op: 0, flags: 0, request_id: 0, payload_len: 0 };
-    reply_with_status(tx, &req, status);
+    reply_with_status(sender, tx, &req, status);
 }

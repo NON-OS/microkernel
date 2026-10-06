@@ -14,23 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_ipc_send;
-
+use crate::constants::dma::TX_SLOT_COUNT;
 use crate::constants::regs::{
     REG_CAPR, REG_CMD, REG_ISR, REG_MSR, REG_RCR, REG_TCR, REG_TXSTATUS0,
 };
 use crate::protocol::{
-    encode_response_header, write_status, Request, E_IO, KERNEL_REPLY_ENDPOINT, RESP_HDR_LEN,
-    STATS_PAYLOAD_LEN, STATUS_LEN,
+    encode_response_header, write_status, Request, E_IO, RESP_HDR_LEN, STATS_PAYLOAD_LEN,
+    STATUS_LEN,
 };
-use crate::server::error::reply_with_status;
+use crate::server::error::{reply, reply_with_status};
 use crate::setup::Driver;
 
-pub fn handle(driver: &Driver, req: &Request, tx: &mut [u8]) {
+pub fn handle(sender: u32, driver: &Driver, req: &Request, tx: &mut [u8]) {
     let regs = match live_regs(driver) {
         Ok(v) => v,
         Err(()) => {
-            reply_with_status(tx, req, E_IO);
+            reply_with_status(sender, tx, req, E_IO);
             return;
         }
     };
@@ -41,7 +40,7 @@ pub fn handle(driver: &Driver, req: &Request, tx: &mut [u8]) {
     for v in regs {
         put32(tx, &mut o, v);
     }
-    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + payload_len as usize);
+    reply(sender, tx, RESP_HDR_LEN + payload_len as usize);
 }
 
 fn live_regs(driver: &Driver) -> Result<[u32; 12], ()> {
@@ -57,7 +56,7 @@ fn live_regs(driver: &Driver) -> Result<[u32; 12], ()> {
         driver.pio.r32(REG_TXSTATUS0 + 8).map_err(|_| ())?,
         driver.pio.r32(REG_TXSTATUS0 + 12).map_err(|_| ())?,
         driver.rx_offset as u32,
-        driver.tx_cur as u32,
+        (driver.tx_cur % TX_SLOT_COUNT) as u32,
     ])
 }
 
