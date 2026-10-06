@@ -52,3 +52,9 @@ The kernel writes these lines itself, so they appear in every image:
 - A step that fails says `[VMD] <why>; drives behind it stay hidden` (`src/drivers/pci/vmd/report.rs:37-41`, `hidden`).
 
 After that, the `[BLOCK]` lines name the NVMe disk when it carries NONOS; see [Storage drivers](README.md#how-a-disk-becomes-the-nonos-disk).
+
+## When the drive does not show
+
+If the bring-up stops, or the drive behind the VMD does not come up, set the firmware's storage mode to AHCI or turn VMD off. The installer says so when it finds no disk and an Intel RST or VMD controller is on the bus, and it warns that a Windows already installed may need switching to AHCI first; see [AHCI and Intel RST](ahci-and-rst.md#what-to-change-in-firmware-setup).
+
+The installer recognises ten of the thirteen VMD ids by id (`userland/nonos_blk_client/src/driver/pci.rs:51-54`, `INTEL_VMD`). The other three, 8086:b07f, d70b and d73b, are still named when they report the RAID subclass (`userland/nonos_blk_client/src/driver/pci.rs:93`, `IntelRaid`), but not when they report another class.
