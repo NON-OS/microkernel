@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for nonos_download: what a downloaded file's first bytes must
+# be to count as audio, the redirects, resumes and refusals a response head
+# leads to, chunked bodies decoded in any split, and the address rules.
+[package]
+name = "download_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_download = { path = "../nonos_download" }
