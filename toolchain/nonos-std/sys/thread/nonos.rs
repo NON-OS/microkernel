@@ -26,6 +26,7 @@ const N_MK_THREAD_SPAWN: i64 = tag4(b"MTSP");
 const N_MK_PID_ALIVE: i64 = tag4(b"MPAL");
 const N_MK_EXIT: i64 = tag4(b"MEXT");
 const N_MK_GETPID: i64 = tag4(b"MGPD");
+const N_MK_PROC_STAT: i64 = tag4(b"MPST");
 
 pub const DEFAULT_MIN_STACK_SIZE: usize = 1 << 20;
 
@@ -173,10 +174,33 @@ impl Drop for Thread {
     }
 }
 
+// MkProcStat's header (src/syscall/microkernel/procstat_header.rs), read
+// as little-endian words: the layout version is the high half of word 1
+// (byte 12), the cores online the low half of word 16 (byte 128), there
+// from version 4. Fields are only ever appended, so a newer kernel still
+// answers here.
+const PROC_STAT_CPUS_SINCE: u32 = 4;
+// The kernel's own MAX_CPUS.
+const MAX_CPUS: u32 = 256;
+
 pub fn available_parallelism() -> io::Result<NonZero<usize>> {
-    // The scheduler runs tasks across cores, but there is no syscall
-    // reporting the core count yet; one is the honest lower bound.
-    Ok(NonZero::<usize>::MIN)
+    // MPST writes its header and one process entry, 320 bytes today; the
+    // buffer leaves room for fields a later kernel appends.
+    let mut buf = [0u64; 128];
+    let r: i64;
+    // SAFETY: MPST writes at most the header plus `max_entries` (1) entries
+    // into the buffer named in rdi, which is 1 KiB and writable.
+    unsafe {
+        core::arch::asm!("syscall", inout("rax") N_MK_PROC_STAT => r,
+            in("rdi") buf.as_mut_ptr() as u64, in("rsi") 1u64,
+            out("rcx") _, out("r11") _);
+    }
+    let version = (buf[1] >> 32) as u32;
+    // Any refusal or an answer out of range reads as one core, the honest
+    // lower bound, so a caller always gets a count it can build on.
+    let cpus = if r >= 0 && version >= PROC_STAT_CPUS_SINCE { buf[16] as u32 } else { 1 };
+    let cpus = if (1..=MAX_CPUS).contains(&cpus) { cpus as usize } else { 1 };
+    Ok(NonZero::new(cpus).unwrap_or(NonZero::<usize>::MIN))
 }
 
 pub fn current_os_id() -> Option<u64> {

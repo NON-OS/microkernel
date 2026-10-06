@@ -1,7 +1,8 @@
 // NONOS std PAL: stdout/stderr via the kernel stdout syscall, which mirrors
 // the bytes into this process's `proc.<pid>` inbox for its launcher to drain.
-// Stdin is a blocking read of this process's kernel stdin channel, fed by a
-// launcher (the terminal).
+// Stdin reads this process's kernel stdin channel, fed by a launcher (the
+// terminal). The kernel read does not block; `read` yields and asks again
+// until bytes arrive.
 // Raw syscall: rax = tag, rdi/rsi = (buf, len).
 
 use crate::io;
