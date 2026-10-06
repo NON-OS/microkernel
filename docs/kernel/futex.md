@@ -85,3 +85,12 @@ A Linux program's futex call never reaches these calls. The Linux personality ca
 - Timeouts are in whole milliseconds, at most 60 seconds per call.
 - An untimed wait wakes every 20 ms to let the caller look again, which costs a little CPU on a long wait.
 - All futexes share one queue lock.
+
+## See also
+
+- [Scheduler and SMP](scheduler-and-smp.md)
+- [Timers](timers.md)
+- [System calls](syscalls.md)
+- [ABI: system calls](../abi/syscalls.md)
+- [Linux personality](../userland/linux-personality.md)
+- [libc](../userland/libc.md)
