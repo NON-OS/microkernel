@@ -75,3 +75,7 @@ The kernel draws a notice band when it cannot go on, and halts (`src/boot/stop.r
 | `Install NONOS: this image has no installer` | the image was built without setup or the installer | restart and pick another entry; nothing was written |
 
 [Panic and boot stop](../kernel/panic-and-boot-stop.md) explains the kernel side.
+
+## Programs that do not start
+
+On Safe Mode, Air-Gapped and Recovery boots the kernel refuses network drivers and services, and on Safe Mode also the audio driver and server, Snake and the hello demo. It logs each one as `[PROFILE] Safe Mode: not started: driver.hda0` and the like (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs`). That is the mode doing its job: boot Standard to have them ([Boot modes](boot-modes.md)).
