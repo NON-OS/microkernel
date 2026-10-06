@@ -67,3 +67,9 @@ flowchart TD
 `handle_syscall_dispatch` counts every call, successes and failures, and writes an audit record when the handler asks for one (`src/syscall/dispatch/router/entry.rs:29-52`). `dispatch_syscall` then picks the family: the 12 crypto calls, the admin calls, the 105 calls `microkernel_ops` matches, the graphics query, the 6 surface calls and the 3 input calls (`src/syscall/dispatch/router/dispatch_fn.rs:22-59`). The 105 are listed in `matches` (`src/syscall/dispatch/router/microkernel_ops.rs:18-127`).
 
 A microkernel call goes to `dispatch_microkernel_syscall`, whose `route` offers it to the IPC, process, capability, device and IRQ handlers, then to MMIO, DMA, PIO, debug and data, and returns -1 when none takes it (`src/syscall/microkernel/dispatch/route.rs:33-69`). Each handler group matches on the `SYS_*` constants, which repeat the tags, for example `SYS_IPC_SEND` (`src/syscall/microkernel/numbers.rs:21`).
+
+## Results
+
+A handler returns a non-negative value on success and a negative errno on failure. The values are on [Errors](../abi/errors.md). A few calls return a positive status that is not an error; `MkIrqWait` returns 1 when it slept out its whole timeout ([Hardware broker](hardware-broker.md)).
+
+Every entry in the registry is marked `Routed`. The status `Unavailable` exists in `AbiStatus` but no entry uses it (`src/syscall/abi/status.rs:17-21`).
