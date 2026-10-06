@@ -60,3 +60,17 @@ USB disks never appear: the list asks those three drivers only (`userland/nonos_
 The Confirm screen names the disk again, says what erasing it destroys, lists every region it erases and writes, and shows the word to type beside the field: `the word is` and the word. The word is the last four characters of the disk's serial, in lower case, when they are printable. Otherwise it is the bus name, `nvme`, `sata` or `virtio`, with the instance number after it past the first, as in `sata1` (`userland/nonos_blk_client/src/disks/describe.rs`, `userland/nonos_blk_client/src/disks/word.rs`).
 
 What you type is turned to lower case. Enter does nothing until the word matches and the plan for the disk is made, so no single key can start an erase (`userland/capsule_install/src/install/event/confirm.rs`).
+
+## What is refused before anything is written
+
+The installer makes the whole plan when you choose the disk, and says on the Confirm screen why a disk cannot take NONOS:
+
+| Message | Why |
+|---|---|
+| `the disk holds ...; NONOS needs a disk of at least ... (2177 MiB)` | the disk is smaller than 2177 MiB, the floor for every image whose boot files fit in 1 GiB |
+| `this disk uses 4096-byte blocks, and NONOS lays its partition table out in 512-byte ones, which firmware would not find here` | the disk's logical blocks are not 512 bytes |
+| `this boot's store is still loading; choose the disk again` | the running store is not loaded yet, so what it carries is not all there |
+| `the kernel gave no entropy for the identifiers` and an errno | no randomness for the disk and partition GUIDs |
+| `that disk has no working driver` | the row is not a disk the installer can write |
+
+The sources are `userland/nonos_disk/src/writer/error_text.rs`, `userland/nonos_blk_client/src/disks/describe.rs` and `userland/capsule_install/src/install/job/prepare.rs`.
