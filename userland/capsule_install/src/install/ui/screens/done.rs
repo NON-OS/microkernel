@@ -23,47 +23,52 @@ use nonos_app_skeleton::PaintBuffer;
 use crate::install::format::{bytes, hex_prefix};
 use crate::install::state::State;
 use crate::install::ui::frame::Body;
-use crate::install::ui::metrics::{BODY_PX, LINE_H};
 use crate::install::ui::widgets::{card, kv};
 use crate::install::ui::{text, theme};
 
+/// Lines in the receipt card.
+pub const RECEIPT_LINES: u32 = 7;
+
 pub fn paint(state: &State, fb: &mut PaintBuffer, b: Body) {
     let Some(o) = state.outcome.as_ref() else { return };
+    let m = &b.m;
     text::line(
         fb,
         b.x,
         b.y,
         "NØNOS is on the disk, and every sector read back as written.",
         theme::OK,
-        BODY_PX,
+        m.body_px,
     );
 
-    let inner = card(fb, b.x, b.y + LINE_H + 12, b.w, 6 * LINE_H + 40, "receipt");
-    let (x, w) = (b.x + 16, b.w - 32);
-    let mut r = kv(fb, x, inner, w, "written", &bytes(o.bytes_written), false);
-    r = kv(fb, x, r, w, "read back", &bytes(o.bytes_verified), false);
-    r = kv(fb, x, r, w, "write time", &alloc::format!("{} s", o.seconds), false);
-    r = kv(fb, x, r, w, "kernel measurement", &hex_prefix(&state.boot.kernel_blake3), true);
+    let card_y = b.y + m.line_h + m.gap;
+    let inner = card(fb, m, b.x, card_y, b.w, m.card_h(RECEIPT_LINES), "receipt");
+    let (x, w) = (b.x + m.inset, b.w - 2 * m.inset);
+    let mut r = kv(fb, m, x, inner, w, "written", &bytes(o.bytes_written), false);
+    r = kv(fb, m, x, r, w, "read back", &bytes(o.bytes_verified), false);
+    r = kv(fb, m, x, r, w, "write time", &alloc::format!("{} s", o.seconds), false);
+    r = kv(fb, m, x, r, w, "store", &alloc::format!("{} files", o.store_files), false);
+    r = kv(fb, m, x, r, w, "kernel measurement", &hex_prefix(&state.boot.kernel_blake3), true);
     let disk = core::str::from_utf8(&o.disk_guid).unwrap_or("");
     let part = core::str::from_utf8(&o.partition_guid).unwrap_or("");
-    r = kv(fb, x, r, w, "disk", disk, true);
-    kv(fb, x, r, w, "partition", part, true);
+    r = kv(fb, m, x, r, w, "disk", disk, true);
+    kv(fb, m, x, r, w, "boot partition", part, true);
 
-    let y = b.y + 7 * LINE_H + 76;
+    let y = card_y + m.card_h(RECEIPT_LINES) + m.gap;
     text::line(
         fb,
         b.x,
         y,
         "Remove the USB stick, then press Enter to restart.",
         theme::FOREGROUND,
-        BODY_PX,
+        m.body_px,
     );
     text::line(
         fb,
         b.x,
-        y + LINE_H,
+        y + m.line_h,
         "The computer boots NØNOS from its own disk from now on.",
         theme::MUTED,
-        BODY_PX,
+        m.body_px,
     );
 }

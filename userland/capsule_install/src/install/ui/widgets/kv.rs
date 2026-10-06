@@ -19,15 +19,18 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::install::ui::metrics::{BODY_PX, LINE_H, MONO_PX};
+use alloc::string::String;
+
+use crate::install::ui::metrics::Metrics;
 use crate::install::ui::text::{fit, top_of};
 use crate::install::ui::{text, theme};
-
-const LABEL_W: u32 = 170;
+use nonos_brand::label as tag;
 
 /// Paints one row at `y` and returns the y of the next.
+#[allow(clippy::too_many_arguments)]
 pub fn kv(
     fb: &mut PaintBuffer,
+    m: &Metrics,
     x: u32,
     y: u32,
     w: u32,
@@ -35,16 +38,17 @@ pub fn kv(
     value: &str,
     mono: bool,
 ) -> u32 {
-    let top = top_of(y, LINE_H, BODY_PX);
-    text::line(fb, x, top, label, theme::MUTED, BODY_PX);
-    let vx = x + LABEL_W;
-    let vw = w.saturating_sub(LABEL_W);
+    let line = m.line_h;
+    let caps: String = label.chars().map(|c| c.to_ascii_uppercase()).collect();
+    tag(fb, x, top_of(y, line, m.label_px), &caps, theme::MUTED, m.label_px);
+    let vx = x + m.label_w;
+    let vw = w.saturating_sub(m.label_w);
     if mono {
-        let cut = fit(fb, value, MONO_PX, vw);
-        text::mono(fb, vx, top_of(y, LINE_H, MONO_PX), cut, theme::FOREGROUND, MONO_PX);
+        let cut = fit(fb, value, m.mono_px, vw);
+        text::mono(fb, vx, top_of(y, line, m.mono_px), cut, theme::FOREGROUND, m.mono_px);
     } else {
-        let cut = fit(fb, value, BODY_PX, vw);
-        text::line(fb, vx, top, cut, theme::FOREGROUND, BODY_PX);
+        let cut = fit(fb, value, m.body_px, vw);
+        text::line(fb, vx, top_of(y, line, m.body_px), cut, theme::FOREGROUND, m.body_px);
     }
-    y + LINE_H
+    y + line
 }

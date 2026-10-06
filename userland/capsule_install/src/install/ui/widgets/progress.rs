@@ -20,18 +20,29 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::install::ui::metrics::BAR_H;
+use crate::install::ui::metrics::Metrics;
 use crate::install::ui::theme;
 
-pub fn bar(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, done: u64, total: u64, colour: u32) {
-    fb.fill_round(x, y, w, BAR_H, BAR_H / 2, theme::BAR_TRACK);
+#[allow(clippy::too_many_arguments)]
+pub fn bar(
+    fb: &mut PaintBuffer,
+    m: &Metrics,
+    x: u32,
+    y: u32,
+    w: u32,
+    done: u64,
+    total: u64,
+    colour: u32,
+) {
+    let h = m.bar_h;
+    fb.fill_round(x, y, w, h, h / 2, theme::BAR_TRACK);
     if total == 0 {
         return;
     }
     let fill = ((w as u64).saturating_mul(done.min(total)) / total) as u32;
-    if fill >= BAR_H {
-        fb.fill_round(x, y, fill, BAR_H, BAR_H / 2, colour);
+    if fill >= h {
+        fb.fill_round(x, y, fill, h, h / 2, colour);
     } else if fill > 0 {
-        fb.fill_rect(x, y + BAR_H / 4, fill, BAR_H / 2, colour);
+        fb.fill_rect(x, y + h / 4, fill, h / 2, colour);
     }
 }

@@ -19,7 +19,9 @@
 
 mod footer;
 mod frame;
+pub mod full;
 mod header;
+mod hints;
 pub mod metrics;
 mod screens;
 mod text;

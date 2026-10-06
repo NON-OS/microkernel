@@ -20,36 +20,46 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::metrics::{FOOTER_H, HEADER_H, PAD};
+use super::metrics::Metrics;
 use super::{footer, header, screens, theme};
 use crate::install::state::{Screen, State};
 
-/// The rectangle a screen owns, below the header and above the footer.
+/// The rectangle a screen owns, below the header and above the footer, and
+/// the sizes it draws at.
 #[derive(Clone, Copy)]
 pub struct Body {
     pub x: u32,
     pub y: u32,
     pub w: u32,
     pub h: u32,
+    pub m: Metrics,
+}
+
+/// The window's body inside a content area `w` by `h`.
+pub fn window_body(w: u32, h: u32) -> Body {
+    let m = Metrics::window();
+    let (x, y, w, h) = m.window_body(w, h);
+    Body { x, y, w, h, m }
 }
 
 pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
     fb.clear(theme::BACKGROUND);
     let (w, h) = (fb.width, fb.height);
-    header::paint(fb, state.screen, w);
-    let body = Body {
-        x: PAD,
-        y: HEADER_H + PAD / 2,
-        w: w.saturating_sub(2 * PAD),
-        h: h.saturating_sub(HEADER_H + FOOTER_H + PAD),
-    };
+    let body = window_body(w, h);
+    header::paint(fb, &body.m, state.screen, w);
+    screen(state, fb, body);
+    footer::paint(fb, &body.m, state, w, h);
+}
+
+/* The screen's own body, the same in a window and full screen. */
+pub(super) fn screen(state: &State, fb: &mut PaintBuffer, body: Body) {
     match state.screen {
         Screen::Welcome => screens::welcome::paint(state, fb, body),
+        Screen::Proofs => screens::proofs::paint(state, fb, body),
         Screen::Disks => screens::disks::paint(state, fb, body),
         Screen::Confirm => screens::confirm::paint(state, fb, body),
         Screen::Writing | Screen::Verifying => screens::writing::paint(state, fb, body),
         Screen::Done => screens::done::paint(state, fb, body),
         Screen::Failed => screens::failed::paint(state, fb, body),
     }
-    footer::paint(fb, state, w, h);
 }
