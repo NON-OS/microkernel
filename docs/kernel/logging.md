@@ -56,3 +56,16 @@ Not tested in this release.
 `log` alone shows the newest `NEWEST`, 200, lines. With words, it shows every line that contains any of them, ignoring case, and `log > boot.txt` keeps the output in a file like any command's, as `run` and its header say (`userland/capsule_terminal/src/command/builtin/log.rs:18-55`). On an image without the tail it prints `log: no line matches`.
 
 The command calls `mk_log_tail`, the `MkLogTail` system call, number `0x474F4C4D`, which the kernel names `SYS_LOG_TAIL` (`src/syscall/microkernel/numbers.rs:78`). It needs the `AttestRead` capability, checked as `can_attest_read` (`src/syscall/contract/cap_table/mk.rs:54`). The Terminal requests it in `CAPSULE_REQUIRED_CAPS` (`userland/capsule_terminal/Capsule.mk:19-24`), where it is the `ATTEST_READ` bit (`abi/caps.toml:37`). `sys_log_tail` copies up to `KEPT` bytes, oldest first (`src/syscall/microkernel/log_tail.rs:32-46`). The Terminal itself is described on [Terminal](../using/terminal.md).
+
+## Reading the log with a serial port or in QEMU
+
+On a machine with a COM1 port, a serial terminal set to 115200 8N1 receives the console from the first kernel line on; that follows from the UART setup above and was not tested on hardware in this release. Under QEMU, the build has targets that write it to a file:
+
+```sh
+make nonos-mk-run-serial-log
+make nonos-mk-run-smp-serial-log
+```
+
+Not tested in this release.
+
+The first, `nonos-mk-run-serial-log`, boots the desktop image on one CPU and writes the console to `QEMU_SERIAL_LOG`, `target/qemu-serial.log` (`mk/40-run.mk:205-215`, `mk/10-qemu.mk:40`). The second, `nonos-mk-run-smp-serial-log`, boots on `QEMU_SMP`, 4, CPUs and writes `QEMU_SMP_SERIAL_LOG`, `target/qemu-smp-serial.log` (`mk/40-run.mk:419-429`, `mk/10-qemu.mk:32-41`). See [make targets](../build/make-targets.md).
