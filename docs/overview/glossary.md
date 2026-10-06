@@ -139,3 +139,7 @@ A service endpoint that only the services named for it may send to, whatever cap
 ## Identity domain
 
 The VT-d domain every device found by the boot PCI scan starts in. It maps physical memory one to one up to the top of the managed range rounded up to 1 GiB, and never less than 4 GiB; a device the scan did not find has no entry and is denied. Explained in [IOMMU](../kernel/iommu.md#when-vt-d-comes-into-service). Code: `src/arch/x86_64/iommu/unit/bringup/domain.rs`, `src/arch/x86_64/iommu/unit/bringup/limit.rs`.
+
+## Inbox
+
+A named, bounded message queue in the kernel into which IPC messages are delivered, such as `proc.<pid>`, where a capsule's requests arrive, and `stdin.<pid>`, which its parent feeds. An inbox holds 1024 messages by default and at most 16 MiB. Explained in [IPC](../kernel/ipc.md#limits). Code: `src/ipc/nonos_inbox/inbox.rs`, `src/ipc/nonos_inbox/budget.rs`.
