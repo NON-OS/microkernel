@@ -62,3 +62,14 @@ If the person chose to install from the boot menu and the image was built withou
 If the kernel's own check of the bootloader refused it, or the boot carried no boot-root record or loader trailer to check, `refuse_unchecked_loader` shows `The bootloader failed the kernel's check` or `The bootloader could not be checked`, says that no program was started, and halts (`src/kernel_core/init/entry/loader_refusal.rs:27-48`). How that check works is on [boot chain and signatures](../security/boot-chain-and-signatures.md).
 
 A refused handoff stops even earlier, before the kernel trusts any framebuffer. That case is on [boot handoff](boot-handoff.md).
+
+## Kernel panic
+
+A Rust panic in the kernel runs `panic` (`src/boot/panic/handler.rs:41-64`):
+
+1. It prints `!!! KERNEL PANIC !!!` and the panic message, with its source location, on the serial console.
+2. It drains the debug ring to the console, on kernels built with that feature.
+3. It writes `KERNEL PANIC - See serial for details` to VGA text memory, which, as the handler's comment notes, a display in UEFI graphics mode does not show.
+4. `show` paints a red band across the top of the framebuffer with `KERNEL PANIC`, the source file and line, and `details on the serial console` (`src/sys/boot_log/panic_screen.rs:26-48`).
+5. `send_panic_ipi` stops every other CPU with an NMI, which arrives even at a CPU that spins with interrupts masked (`src/smp/panic_ipi.rs:26-31`). In `on_nmi` each one marks itself halted and stops (`src/smp/nmi/handle.rs:32-48`).
+6. It halts.
