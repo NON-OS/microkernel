@@ -41,3 +41,27 @@ On an amnesic boot, setup asks again at every boot. On a system installed to a d
 - No notice appears on screen. The driver writes the new layout's short name only to its debug channel.
 
 Settings has no keyboard layout row in this release (`ALL_FIELDS` in `userland/capsule_settings/src/settings/schema/all_fields.rs`), and setup is the only program that writes the layout to the policy store. On an installed system, each boot starts with the layout chosen at setup, and this release has no way to change that choice afterwards. Use the chord after each boot instead.
+
+## How keyboards apply the layout
+
+```mermaid
+flowchart LR
+    ps2["PS/2 keyboard"] --> capsule_driver_ps2_input
+    usb["USB keyboard"] --> capsule_driver_usb_hid
+    policy["policy store"] --> capsule_driver_ps2_input
+    policy --> capsule_driver_usb_hid
+    capsule_driver_ps2_input --> nonos_keymap
+    capsule_driver_usb_hid --> nonos_keymap
+    nonos_keymap --> router["input router"]
+    router --> app["focused window"]
+```
+
+The layout is resolved in the keyboard driver and nowhere else. The PS/2 driver, `capsule_driver_ps2_input`, serves the keyboard behind the i8042 controller. The USB driver, `capsule_driver_usb_hid`, serves keyboards of the USB HID class, interface class 0x03 (`CLASS_HID` in `userland/capsule_driver_usb_hid/src/descriptors/types.rs`). Both resolve every key through the same crate, `nonos_keymap`, so the two kinds of keyboard agree on every layout, Shift and AltGr state.
+
+Each driver asks the [policy store](../overview/glossary.md#policy-store) for the `Keyboard layout` field on a key press, at most once a second (`POLICY` in `userland/capsule_driver_ps2_input/src/keymap/active.rs`). The input router and the focused window then receive the final character. No app applies a layout of its own, so the Terminal, Settings, the browser and Linux programs all type the same characters.
+
+A key's release is sent with the same code as its press, even when Shift was let go in between, so a held key never sticks in an app that tracks held keys (`HeldKeys` in `userland/nonos_keymap/src/held.rs`).
+
+The host tests in `userland/input_proofs` (`layout_tests.rs`, `held_keys_tests.rs`) and `userland/ps2_input_proofs` check the tables and the held-key rule. Both crates pass on this commit: 96 and 38 tests.
+
+The PS/2 keyboard with its layouts: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
