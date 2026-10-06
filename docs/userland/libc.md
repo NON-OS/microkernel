@@ -54,3 +54,16 @@ With the default `panic-handler` feature, a panic writes one `[PANIC]` line with
 - No file API. Files are reached through the `vfs_pool` service over IPC; see [IPC services](ipc-services.md).
 - No signals, `fork` or `exec` for the calling capsule. The `mk_foreign_*` calls act on Linux guests, not on the caller, and a capsule that wants another program started asks the kernel through a launcher call such as `mk_app_launch` or `mk_tool_run`.
 - On riscv64 every call returns ENOSYS, through the stub above.
+
+## Rust std for capsules
+
+Seventeen capsules are ordinary Rust programs that use `std`. Seven are compiled from their own directory with `-Zbuild-std=std,panic_abort`: `std_proof`, `install-cli`, `egui_proof`, `mdview`, `qrgen`, `shield` and the development test `shield-vectors`. Nine are unmodified crates.io programs: `ripgrep`, `sd` and the seven tools in `userland/apps.list`. The tenth, `tokio-smoke`, is a test of the async runtime, built from source in `userland/upstream-src/` with patches to `mio`, `socket2` and `tokio` (`mk/20-build.mk:316-319`, `UPSTREAM_TOKIO_SMOKE_SRC`). Every one of them links the start object built from `toolchain/nonos-rt` (`mk/20-build.mk:236-241`, `NONOS_RT_OBJ`; `nonos-mk/capsule.mk:128-129`, `NONOS_RT_OBJ`).
+
+The platform layer in `toolchain/nonos-std/sys/` gives `std` its NONOS backends: allocation, arguments, environment, files over `vfs_pool`, sockets over `net.sockets` and `net.dns`, random numbers, threads, thread-local keys, time and standard I/O. Some parts are missing or refused:
+
+- Symbolic and hard links, and reading a link, return `Unsupported`, because the [store](../overview/glossary.md#store) does not model links (`toolchain/nonos-std/sys/fs/nonos/ops/links.rs:24-34`, `symlink`).
+- There is no process module in the layer, so `std::process::Command` cannot start a program.
+- `TcpStream` goes to `net.sockets` and DNS to `net.dns` by name (`toolchain/nonos-std/sys/net/connection/nonos/transport/consts.rs:21-24`, `SK_NAME`). A `std` capsule still needs Network for either service to answer it.
+- `TcpStream` opens a plain stream socket, kind 1, never a mixnet socket, so a `std` program's connections do not follow the default network chosen in Settings (`toolchain/nonos-std/sys/net/connection/nonos/tcp_stream/connect.rs:41-48`, `connect_addr`). A name resolves through `net.dns` to one IPv4 address.
+
+`remove_dir_all` is implemented, by walking the directory (`toolchain/nonos-std/sys/fs/nonos/ops/remove_dir_all.rs:27-38`, `remove_dir_all`).
