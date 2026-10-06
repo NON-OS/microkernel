@@ -76,6 +76,21 @@ pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) ->
             va.reserve(crate::arch::x86_64::interrupt::apic::VEC_TIMER);
             va.reserve(crate::arch::x86_64::interrupt::apic::VEC_THERMAL);
             va.reserve(crate::arch::x86_64::interrupt::apic::VEC_ERROR);
+            // The IPI vectors sit inside this pool's range. A device line
+            // handed one would run the TLB shootdown or reschedule handler.
+            {
+                use crate::arch::x86_64::interrupt_controller as ic;
+                for v in [
+                    ic::IPI_TLB_SHOOTDOWN,
+                    ic::IPI_RESCHEDULE,
+                    ic::IPI_PANIC,
+                    ic::IPI_STOP,
+                    ic::IPI_CALL_FUNCTION,
+                    ic::IPI_BARRIER,
+                ] {
+                    va.reserve(v);
+                }
+            }
             // Reserve the driver-broker IRQ pool. Vectors in this
             // range are handed out only by `MkIrqBind` and must not
             // collide with kernel-internal IO-APIC routes.

@@ -20,6 +20,7 @@ pub const IA32_X2APIC_APICID: u32 = 0x802;
 pub const IA32_X2APIC_TPR: u32 = 0x808;
 pub const IA32_X2APIC_EOI: u32 = 0x80B;
 pub const IA32_X2APIC_SVR: u32 = 0x80F;
+pub const IA32_X2APIC_ESR: u32 = 0x828;
 pub const IA32_X2APIC_ICR: u32 = 0x830;
 pub const IA32_X2APIC_LVT_TIMER: u32 = 0x832;
 pub const IA32_X2APIC_LVT_THERM: u32 = 0x833;
@@ -35,6 +36,7 @@ pub const LAPIC_VER: u32 = 0x030;
 pub const LAPIC_TPR: u32 = 0x080;
 pub const LAPIC_EOI: u32 = 0x0B0;
 pub const LAPIC_SVR: u32 = 0x0F0;
+pub const LAPIC_ESR: u32 = 0x280;
 pub const LAPIC_ICR_LOW: u32 = 0x300;
 pub const LAPIC_ICR_HIGH: u32 = 0x310;
 pub const LAPIC_LVT_TIMER: u32 = 0x320;
@@ -49,7 +51,6 @@ pub const LAPIC_DIV: u32 = 0x3E0;
 pub const APIC_BASE_ENABLE: u64 = 1 << 11;
 pub const APIC_BASE_X2: u64 = 1 << 10;
 pub const SVR_APIC_ENABLE: u32 = 1 << 8;
-pub const SVR_EOI_SUPPRESS: u32 = 1 << 12;
 
 pub const LVT_MASKED: u32 = 1 << 16;
 pub const LVT_LEVEL: u32 = 1 << 15;
@@ -73,5 +74,8 @@ pub const ICR_BUSY: u32 = 1 << 12;
 
 pub const VEC_SPURIOUS: u8 = 0xFF;
 pub const VEC_TIMER: u8 = 0x20;
-pub const VEC_THERMAL: u8 = 0x21;
-pub const VEC_ERROR: u8 = 0x22;
+/// The thermal and error LVT vectors, at the top of the IDT where
+/// `interrupts::idt::vectors` declares the APIC's own range. They were 0x21
+/// and 0x22, which are the keyboard and the cascade line.
+pub const VEC_THERMAL: u8 = 0xFD;
+pub const VEC_ERROR: u8 = 0xFE;

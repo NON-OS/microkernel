@@ -20,8 +20,11 @@ use super::super::ops_helpers::locate;
 use super::super::types::Rte;
 use crate::memory::proof::{self, CapTag};
 
-pub fn program_route(gsi: u32, rte: Rte) -> IoApicResult<()> {
+pub fn program_route(gsi: u32, mut rte: Rte) -> IoApicResult<()> {
     let (chip, idx) = locate(gsi).ok_or(IoApicError::GsiNotFound)?;
+    // The entry's destination is 8 bits; an id past it goes to a CPU that fits.
+    rte.dest_apic_id = crate::arch::x86_64::interrupt::apic::device_irq_dest(rte.dest_apic_id)
+        .ok_or(IoApicError::NoReachableCpu)?;
     let (low, high) = rte.to_u32s();
     unsafe {
         redtbl_write(chip.mmio, idx, low, high);
