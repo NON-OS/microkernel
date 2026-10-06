@@ -91,3 +91,13 @@ The USB network adapter capsules (CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179, Realtek
 - `userland/usb_proofs` covers the class side, with keyboards, mice, tablets and hub routing checked against the controller's request limits: 83 tests pass on this commit.
 - Ten of the twelve QEMU command lines in `mk/40-run.mk` attach a `qemu-xhci` controller (`mk/10-qemu.mk:99-102`, `QEMU_USB`), and so does every `make boot` (`tools/nonos_qemu/machine.py:91-93`, `devices`). Those boots take the keyboard and mouse from PS/2. The comment on `QEMU_USB` gives the reason: USB HID interrupt-IN transfers were not serviced under the macOS hvf accelerator. That host behaviour is not tested in this release.
 - USB has not been tested on hardware in this release.
+
+## See also
+
+- [USB keyboards and mice](hid.md)
+- [USB hubs](hubs.md)
+- [USB mass storage](../storage/usb-mass-storage.md)
+- [The driver model](../README.md)
+- [Broker API](../broker-api.md)
+- [Input drivers](../input/README.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
