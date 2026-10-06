@@ -14,46 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The personality, spawned to install a package rather than host one.
+//! The personality, spawned to install a package or to run one, rather than
+//! to host the built-in program.
 
 use alloc::string::String;
 use alloc::vec;
+use alloc::vec::Vec;
 
-use super::embed::{
-    LINUX_ATTESTATION_BYTES, LINUX_ELF, LINUX_MANIFEST_BYTES, LINUX_NONOS_ID_CERT_BYTES,
-};
-use super::spawn::LINUX_CAPS;
-use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified, SpawnError};
-use crate::security::nonos_id_cert::IdCertVerifyError;
-use crate::security::nonos_trust_anchor::{
-    decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY,
-};
+use super::role_spawn::spawn_role;
+use super::roles::{Role, INSTALL, RUN, TERMINAL};
+use crate::kernel_core::process_spawn::capsule_spawn::SpawnError;
 
-// A second service name, because the installer is a second live process and
-// two of them announcing one endpoint is a race over which answers.
-const SERVICE_NAME: &str = "app.linux.install";
-const SERVICE_PORT: u32 = 4938;
-const REPLY_INBOX: &str = "endpoint.app.linux.install.reply";
-const REPLY_PORT: u32 = 4939;
+/// Spawn the installer for `package`, which must hash to `pinned`. With
+/// `direct`, a Qwen tier's model is downloaded over a direct connection
+/// for this install only: the person chose it in the store, where it is
+/// said that the mirror then sees this machine's address.
+pub fn spawn_install(package: &str, pinned: &[u8; 32], direct: bool) -> Result<u32, SpawnError> {
+    let hex: String = pinned.iter().map(|b| alloc::format!("{b:02x}")).collect();
+    let mut argv = vec![String::from("install"), String::from(package), hex];
+    if direct {
+        argv.push(String::from("direct"));
+    }
+    spawn(&INSTALL, argv)
+}
 
-pub fn spawn_install(package: &str) -> Result<u32, SpawnError> {
-    let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
-        .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
-    let spec = CapsuleSpecVerified {
-        name: SERVICE_NAME,
-        service_port: SERVICE_PORT,
-        reply_inbox: REPLY_INBOX,
-        reply_port: REPLY_PORT,
-        elf: LINUX_ELF,
-        nonos_id_cert_bytes: LINUX_NONOS_ID_CERT_BYTES,
-        manifest_bytes: LINUX_MANIFEST_BYTES,
-        attestation_trailer: LINUX_ATTESTATION_BYTES,
-        target_triple: env!("NONOS_USER_TARGET"),
-        requested_caps: LINUX_CAPS,
-        debug_tag: b"[LINUX-INSTALL] elf error:",
-    };
-    let pid = capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
-    let argv = vec![String::from("install"), String::from(package)];
+/// Spawn the personality to take away what installing `package` put down.
+/// It runs as the installer does, so one install or removal runs at a time.
+pub fn spawn_uninstall(package: &str) -> Result<u32, SpawnError> {
+    spawn(&INSTALL, vec![String::from("uninstall"), String::from(package)])
+}
+
+/// Spawn the personality to run the program `package` installed.
+pub fn spawn_run(package: &str) -> Result<u32, SpawnError> {
+    spawn(&RUN, vec![String::from("run"), String::from(package)])
+}
+
+/// Spawn the personality for the terminal's `linux` command. `argv` is the
+/// command as typed: `linux`, the program, then its arguments.
+pub fn spawn_terminal(argv: Vec<String>) -> Result<u32, SpawnError> {
+    spawn(&TERMINAL, argv)
+}
+
+fn spawn(role: &Role, argv: Vec<String>) -> Result<u32, SpawnError> {
+    let pid = spawn_role(role)?;
     crate::process::with_process(pid, |pcb| *pcb.argv.lock() = argv);
     Ok(pid)
 }
