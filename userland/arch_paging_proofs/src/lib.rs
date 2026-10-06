@@ -16,6 +16,8 @@ pub mod descriptor;
 mod civil_tests;
 #[cfg(test)]
 mod descriptor_tests;
+#[cfg(test)]
+mod pat_tests;
 
 #[cfg(kani)]
 mod kani_proofs;
