@@ -14,38 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::pages::{BITS_PER_BYTE, PAGE_SIZE_U64};
+use super::{total_free_frames, PAGE_SIZE_U64};
 
-#[inline]
-pub const fn align_up(value: u64, align: u64) -> u64 {
-    if align == 0 {
-        return value;
-    }
-    let whole = value / align;
-    if whole * align == value {
-        value
-    } else {
-        (whole + 1) * align
-    }
-}
-
-#[inline]
-pub const fn align_down(value: u64, align: u64) -> u64 {
-    if align == 0 {
-        return value;
-    }
-    (value / align) * align
-}
-
-#[inline]
-pub const fn bitmap_bytes_for_frames(frame_count: usize) -> usize {
-    frame_count.div_ceil(BITS_PER_BYTE)
-}
-
-#[inline]
-pub const fn frames_in_range(start: u64, end: u64) -> usize {
-    if end <= start {
-        return 0;
-    }
-    ((end - start) / PAGE_SIZE_U64) as usize
+/*
+ * Bytes of RAM free to allocate. This used to return the managed span less
+ * the free bytes, which is what is in use plus every hole in the span, and
+ * /proc/meminfo printed that as MemFree.
+ */
+pub fn free_memory() -> u64 {
+    (total_free_frames() as u64).saturating_mul(PAGE_SIZE_U64)
 }
