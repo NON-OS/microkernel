@@ -22,3 +22,4 @@ pub const E_BAD_LEN: u16 = 4;
 pub const E_NO_LINK: u16 = 5;
 pub const E_TIMEOUT: u16 = 6;
 pub const E_NAK: u16 = 7;
+pub const E_PERM: u16 = 8;

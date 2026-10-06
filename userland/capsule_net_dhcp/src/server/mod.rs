@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod handlers;
+pub mod lease_admin;
 mod parse_req;
 mod respond;
 mod runner;

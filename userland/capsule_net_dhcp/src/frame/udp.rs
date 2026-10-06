@@ -41,7 +41,10 @@ pub fn write(
     total
 }
 
-pub fn parse(bytes: &[u8]) -> Option<(u16, u16, usize)> {
+/// Ports and length of the UDP datagram in `bytes` (the IP payload, sent
+/// from `src` to `dst`). A checksum that is present is verified (RFC 1122
+/// 4.1.3.4); zero means the sender computed none.
+pub fn parse(src: &[u8; 4], dst: &[u8; 4], bytes: &[u8]) -> Option<(u16, u16, usize)> {
     if bytes.len() < HDR_LEN {
         return None;
     }
@@ -49,6 +52,12 @@ pub fn parse(bytes: &[u8]) -> Option<(u16, u16, usize)> {
     let dst_port = u16::from_be_bytes([bytes[2], bytes[3]]);
     let length = u16::from_be_bytes([bytes[4], bytes[5]]) as usize;
     if length < HDR_LEN || length > bytes.len() {
+        return None;
+    }
+    // Folded over a datagram that carries its own checksum, a correct one
+    // sums to all ones, which this fold reports as 0xFFFF.
+    let sent = u16::from_be_bytes([bytes[6], bytes[7]]);
+    if sent != 0 && fold_with_pseudo(src, dst, PROTO_UDP, &bytes[..length]) != 0xFFFF {
         return None;
     }
     Some((src_port, dst_port, length))

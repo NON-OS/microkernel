@@ -2,124 +2,84 @@
 
 ## Role
 
-`capsule_net_dhcp` is the DHCPv4 client capsule. It obtains, renews, reports,
-and releases IPv4 leases by talking to `net.udp` and applying accepted lease
-configuration to `net.ip`.
+`capsule_net_dhcp` is the DHCPv4 client of the split network stack. It runs
+DISCOVER, OFFER, REQUEST and ACK over raw Ethernet frames on `net.l2`, installs
+the lease into `net.ip`, tells `net.l2` the new address, and answers lease
+status to anyone who asks.
 
 ```text
-boot/network manager
+net.dhcp.client -- raw DHCP frames --> net.l2 --> NIC driver
     |
-    | lease request IPC
-    v
-net.dhcp.client -- DHCP state machine --> net.udp --> net.ip
-    |
-    `-- accepted lease config --> net.ip
+    `-- accepted lease (address, prefix, gateway) --> net.ip
 ```
 
-## Microkernel contract
+It reads the link directly because there is no address yet for `net.ip` and
+`net.udp` to receive on. The desktop image does not carry it: there `net.core`
+runs DHCP inside smoltcp and registers the `net.dhcp.client` name itself. It
+is built into the `microkernel-net-dhcp` and `microkernel-net-ntp` profiles and
+the `microkernel-input-e2e-ps2` test image.
 
-The capsule is IPC-only:
+## Service and endpoints
 
-- `MkIpcRecv` receives requests on `service:4440:net.dhcp.client`.
-- `MkIpcSend` replies through `reply:4441:endpoint.4294967360`.
-- Its wire magic is `NDHC`.
-- Its endpoint name is `net.dhcp.client`.
-- Its kernel mirror target is `src/network/dhcp_capsule`.
+- Handle `net.dhcp.client`, service endpoint `service:4440:net.dhcp.client`,
+  reply endpoint `reply:4441:endpoint.net.dhcp.client.reply`.
+- Kernel mirror `src/userspace/capsule_net_dhcp`.
+- At start it waits until `net.l2` and `net.ip` are registered, tries to take
+  a lease up to sixteen times, then serves inbox 0.
 
-The kernel does not run DHCP, mutate interface configuration, or parse BOOTP
-messages.
+## Interface
 
-## Interface contract
+Requests carry the 20 byte header shared by the stack capsules, with magic
+`0x4E444843` ("NDHC") and version 1.
 
-| Operation | Meaning |
-|---|---|
-| `OP_HEALTHCHECK` | server liveness |
-| `OP_LEASE_REQUEST` | start or restart acquisition |
-| `OP_LEASE_STATUS` | return current lease state |
-| `OP_LEASE_RELEASE` | release the active lease |
-| `OP_LEASE_RENEW` | renew before expiry |
+| Op | Value | Who may call | Meaning |
+|---|---|---|---|
+| `OP_HEALTHCHECK` | 1 | anyone | liveness |
+| `OP_LEASE_REQUEST` | 2 | `app.settings` | acquire a lease again |
+| `OP_LEASE_STATUS` | 3 | anyone | the current lease |
+| `OP_LEASE_RELEASE` | 4 | `app.settings` | give the lease back |
+| `OP_LEASE_RENEW` | 5 | `app.settings` | REQUEST the bound address again |
+
+Request, renew and release change the machine's address, so only the Settings
+app may send them; any other sender gets `E_PERM` (8). `LEASE_ADMINS` and
+`may_change_lease` in `src/server/lease_admin.rs` hold the rule. A frame that
+fails header parsing is still answered, under the op and request id it names,
+or under zeros when it is too short.
+
+## Frames
+
+`dhcp_payload` (`src/frame/extract.rs`) takes a reply only when its framing
+passes the checks `net.ip` would make: the IPv4 header checksum, a total length
+that covers the header and fits the frame, no fragment, and the UDP checksum
+when the sender computed one. `wait_for` reads at most `MAX_POLL_ITERATIONS`
+frames for the matching transaction id, which is drawn from `crypto_random`.
 
 ## Authority
 
-The manifest grants IPC and memory only:
-`CAPSULE_REQUIRED_CAPS = 0x00018`. It has no hardware, driver, MMIO, IRQ, DMA,
-PIO, filesystem, admin, debug, or raw network-device authority.
+`CAPSULE_REQUIRED_CAPS := 0x0003c`: Network (`0x04`), IPC (`0x08`), Memory
+(`0x10`) and Crypto (`0x20`). Network because the kernel registers a network
+service only for a holder of it; Crypto draws each transaction id. No CoreExec,
+FileSystem, Debug or hardware bits. `net.l2` lets only this capsule and
+`net.ip` move frames, and only this capsule set the address.
 
 ## Privacy and persistence
 
-Lease state is runtime network configuration. The capsule should keep address,
-mask, gateway, DNS, lease time, server identifier, and renewal timers in
-memory only. It does not persist lease history or client identifiers to disk.
+The lease (address, prefix, gateway, DNS server, lease time, server
+identifier) lives in memory. Nothing is written to storage.
 
-## Runtime lifecycle
+## What it does not do
 
-The capsule starts unleased, sends DHCP over `net.udp`, advances the client
-state machine, installs accepted lease configuration into `net.ip`, renews
-before expiry, and releases on request or teardown.
+- No expiry or renewal timer. The lease runs out unless Settings sends
+  `OP_LEASE_RENEW`, and no profile that carries this capsule carries Settings.
+- No DHCPv6 and no DHCP server.
+- One interface, the one `net.l2` bound.
 
-## Failure model
+## Build and verify
 
-No link, timeout, NAK, malformed option, busy state, and UDP/IP failure return
-protocol errors. A rejected lease must not modify `net.ip` configuration.
+- `make nonos-mk-net-dhcp`, then `nonos-mk-net-dhcp-sign` and
+  `nonos-mk-net-dhcp-verify`.
+- `userland/dhcp_proofs` runs the request header decode and the reply a
+  refused frame gets. `userland/net_proofs` runs the DHCP parser, the frame
+  checks and `may_change_lease`.
 
-## Current implemented surface
-
-- BOOTP/DHCP message representation is present.
-- DHCP parse/build helpers are present.
-- DHCP constants and options are present.
-- A client state machine is present.
-- Protocol constants cover health, request, status, release, and renew.
-
-## Wire format
-
-Requests use the `NDHC` protocol magic. Lease requests carry interface/client
-identity fields once wired. Status replies carry lease address, mask, gateway,
-DNS, lease time, server id, and current state.
-
-## State ownership
-
-The capsule owns the DHCP client state machine, active lease, renewal timers,
-server identifier, and pending transaction id. `net.ip` owns installed
-interface config.
-
-## Operating rules
-
-- Do not install a rejected or incomplete lease.
-- Treat NAK and timeout as explicit states.
-- Keep lease history volatile.
-- Use `net.udp` for DHCP transport; never send raw frames.
-
-## Release target
-
-The finished DHCP capsule drives DISCOVER/OFFER/REQUEST/ACK, NAK, renew,
-rebind, release, timeout, and lease-status paths through `net.udp`, then
-installs accepted IPv4 configuration through `net.ip`. It keeps leases in
-runtime memory and produces deterministic errors for no-link and timeout.
-
-## Release evidence
-
-Release evidence is DISCOVER/OFFER/REQUEST/ACK validation, NAK path, renew path,
-release path, timeout path, and proof that accepted leases install through
-`net.ip`.
-
-## Release checklist
-
-- DISCOVER/OFFER/REQUEST/ACK validation passes.
-- NAK, timeout, renew, and release paths are tested.
-- Accepted lease installs into `net.ip`.
-- Rejected lease leaves prior config unchanged.
-- Static gate confirms no kernel DHCP parser.
-
-## Explicit non-goals today
-
-No DHCP server, IPv6 SLAAC, DHCPv6, persistent lease database, network manager
-UI, raw NIC access, or kernel interface mutation lives here. The UDP client,
-IP configuration client, server loop, and renewal timer need promotion before
-runtime use.
-
-## Verification
-
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Build gate, once `src/main.rs` lands: `make -B nonos-mk-net-dhcp`
-- Runtime proof: DISCOVER, OFFER, REQUEST, ACK, installed IP config, renew,
-  and release against a QEMU/user-network DHCP server.
+See [the network stack](../../docs/handbook/network/stack.md).
