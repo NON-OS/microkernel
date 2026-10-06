@@ -38,6 +38,34 @@ pub fn get_random_bytes() -> [u8; 32] {
     out
 }
 
+/// The generator never came up, so the draw refuses.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Unavailable;
+
+static UNAVAILABLE: core::sync::atomic::AtomicBool = core::sync::atomic::AtomicBool::new(false);
+
+/*
+ * The kernel's refusing draw: an error rather than a fallback. The two hooks let a
+ * test replay one stream, as a generator that restarts from the same state would,
+ * and take the generator away, as one that never came up would.
+ */
+pub fn get_random_bytes_secure() -> Result<[u8; 32], Unavailable> {
+    if UNAVAILABLE.load(Ordering::Relaxed) {
+        return Err(Unavailable);
+    }
+    Ok(get_random_bytes())
+}
+
+#[cfg(test)]
+pub fn replay_from(state: u64) {
+    STATE.store(state, Ordering::Relaxed);
+}
+
+#[cfg(test)]
+pub fn set_unavailable(off: bool) {
+    UNAVAILABLE.store(off, Ordering::Relaxed);
+}
+
 pub fn fill_random_bytes(buf: &mut [u8]) {
     for chunk in buf.chunks_mut(8) {
         let word = next().to_le_bytes();
