@@ -38,3 +38,29 @@ The keys are `special` and `printable` in `nonos-bootloader/src/bootmenu/input.r
 Above the list the loader shows four facts about this machine: `SECURE BOOT` on or off, `TPM 2.0` measuring or not found, `ROLLBACK` with a TPM counter or none, and the `BUILD FLOOR` (`secure_boot_enabled` and `measured_boot_active` in `nonos-bootloader/src/bootmenu/platform.rs:31-48`).
 
 Under the selected entry it shows one sentence, a line naming the checks the loader makes for that entry, and a verdict: `READY ON THIS MACHINE`, or `REFUSED HERE: NO` followed by what is missing. The names it can list are crypto self-test, signing keys, hardware RNG, Secure Boot, PK, db and TPM 2.0 (`missing` in `nonos-bootloader/src/bootmenu/ready.rs:51-65`). The verdict names what the loader's own checks will refuse, and decides nothing itself.
+
+## What each entry changes
+
+| Entry | What the loader requires | What the kernel starts | First-boot setup |
+|---|---|---|---|
+| Standard | a signed kernel (Ed25519 and ML-DSA-65), its STARK attestation, the rollback check, a hardware RNG | everything the image carries | runs, unless an earlier boot kept its answers |
+| Hardened | Standard, plus Secure Boot with PK and db, and a TPM 2.0 | the same as Standard | the same as Standard |
+| Safe Mode | the same as Standard | no network driver or service, no audio, no optional app | the same as Standard |
+| Air-Gapped | Standard, plus a TPM whose rollback floor it can read | no network driver or service; Browser and Marketplace stay off | the same as Standard |
+| Recovery | the same as Standard | no network; a Terminal opens, with Files and the Editor | skipped |
+| `Install NØNOS` | the same as Standard, raised to the build floor | the same as Standard, then the installer | runs, starting on Install; when an earlier boot kept its answers, the installer opens at once |
+| Shut down | nothing | nothing: the machine powers off | |
+
+On the loader's side, every entry that boots except Hardened shows the same checks line, `ED25519 · ML-DSA-65 · STARK · ROLLBACK · RNG` (`STD` in `nonos-bootloader/src/bootmenu/entries.rs:59`). Hardened shows `STANDARD + SECURE BOOT · PK · DB · TPM 2.0` (`SecurityMode::Hardened` in `nonos-bootloader/src/bootmenu/entries.rs:40-45`). The menu can raise the image's build floor and never lower it, so on a `hardened` or `airgapped` image every entry needs Secure Boot and a [TPM](../overview/glossary.md#tpm) (`policy_of` in `nonos-bootloader/src/bootmenu/ready.rs:40-49`).
+
+Hardened and Air-Gapped are the two modes that need a TPM, because it holds the [rollback floor](../overview/glossary.md#rollback-floor) (`requires_tpm` in `nonos-bootloader/src/menu/types/mode.rs:56-59`). The menu does not list the TPM under Air-Gapped, but the loader stops an Air-Gapped boot that cannot read the floor, with the reason `Air-Gapped needs a TPM: its rollback floor keeps an older signed kernel from booting` (`Floor::Refuse` in `nonos-bootloader/src/boot/crypto/rollback/floor.rs:41-51`). On every entry, a TPM floor above the kernel's signed rollback index stops the boot (`Floor::Held` in `nonos-bootloader/src/boot/crypto/rollback/floor.rs:30-40`).
+
+On the kernel's side, Hardened changes nothing: the kernel treats it as Standard for the network and the apps (`network` and `minimal` in `src/boot/handoff/api/profile.rs:44-52`). The other modes change what starts:
+
+- On Safe Mode, Air-Gapped and Recovery boots the spawn gate refuses every network driver, every `net.` service and the model fetcher; Safe Mode also refuses `driver.hda0`, `audio.server`, `app.snake` and `app.hello` (`NETWORK_DRIVERS` and `NOT_SAFE` in `src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs:21-40`).
+- On those three boots every program that does start loses the Network [capability](../overview/glossary.md#capability), so none can bring a network up later (`caps` in `src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:48-55`).
+- Each refusal goes to the kernel log as `[PROFILE] <mode>: not started: <name>` (`check` in `src/kernel_core/process_spawn/capsule_spawn/runner/profile_gate.rs:31-46`).
+- Init keeps apps off by mode: every optional app on Safe Mode, the Browser and the Marketplace on Air-Gapped, and everything but Files and the Editor on Recovery, beside the Terminal and Settings every boot has (`withheld` in `src/userspace/init/app_choice/profile.rs:37-44`).
+- Recovery skips first-boot setup and opens a Terminal once the desktop is up (`skips_setup` in `src/userspace/init/spawn_plan/wizard_plan.rs:27-48`).
+
+`Install NØNOS` boots the same verified kernel as Standard and asks it to install (`BootIntent` in `nonos-bootloader/src/menu/types/intent.rs:19-31`). The loader sets handoff bit 11, `INSTALL_REQUESTED`, beside the boot mode's bit (`handoff_flag` in `nonos-bootloader/src/handoff/types/install.rs:44-48`). Setup then opens with Install chosen on its Mode step (`mode_sel` in `userland/capsule_setup_wizard/src/state.rs:70`), and the installer takes the whole screen when setup ends. See [Install to disk](install-to-disk.md).
