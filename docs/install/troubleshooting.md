@@ -21,3 +21,17 @@ Not tested in this release.
 The kernel keeps that log only on images built with capsule serial output, such as `standard` and `qemu`. A `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches`. If `log` prints `log: the kernel would not hand over its log (this terminal needs AttestRead)`, this Terminal was not granted the log.
 
 To report a machine, follow [Reporting a machine](../hardware/report.md).
+
+## The boot menu says REFUSED HERE
+
+Under each entry the menu says whether this machine meets what that entry needs (`nonos-bootloader/src/bootmenu/ready.rs`). After `REFUSED HERE: NO` it names what is missing:
+
+| Name | What to do |
+|---|---|
+| `CRYPTO SELF-TEST` | the loader's own BLAKE3 or Ed25519 gave a wrong answer; write the stick again |
+| `SIGNING KEYS` | this loader carries no key to check the kernel with; use a sealed image |
+| `HARDWARE RNG` | turn on RDRAND or the TPM in the firmware; a virtual machine needs virtio-rng |
+| `SECURE BOOT`, `PK`, `DB` | Hardened, or any entry on a `hardened` or `airgapped` image: turn Secure Boot on, with its keys enrolled, or pick Standard on a `standard` image |
+| `TPM 2.0` | Hardened, or any entry on a `hardened` or `airgapped` image: turn the TPM on in the firmware, or pick Standard on a `standard` image |
+
+Air-Gapped also needs a TPM, though the menu does not list it there ([Boot modes](boot-modes.md)).
