@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod close;
-mod lookup;
-mod open;
-mod reap;
-mod types;
+//! Stream connects that are waiting for their handshake.
 
-pub use types::{Socket, SOCKETS};
+mod advance;
+mod settle;
+mod start;
+mod table;
+mod verdict;
+
+pub use advance::advance;
+pub use start::start;
+pub use table::waiting;

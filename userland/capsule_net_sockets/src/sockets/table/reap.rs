@@ -14,40 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+/*
+ * A client that ends without closing its sockets leaves them here, and each
+ * holds a slot and whatever stream, port or mixnet connection it opened.
+ * Nothing else frees them, so a client that crashed in a loop filled the
+ * table and every later socket on the machine was refused. These are taken
+ * out once their owner no longer runs, and the caller releases what they
+ * held.
+ */
 
-use crate::sockets::{Kind, SocketKey};
+use alloc::vec::Vec;
 
-use super::types::{Socket, Table, PER_PID_MAX};
+use super::types::{Socket, Table};
 
 impl Table {
-    pub fn open(&self, pid: u32, kind: Kind) -> Option<SocketKey> {
+    /// Take out every socket whose owner `alive` says has ended.
+    pub fn take_dead(&self, alive: impl Fn(u32) -> bool) -> Vec<Socket> {
+        let mut gone = Vec::new();
         let mut g = self.inner.lock();
-        if g.iter().flatten().filter(|s| s.key.pid == pid).count() >= PER_PID_MAX {
-            return None;
-        }
-        let handle = self.next_handle.fetch_add(1, Ordering::Relaxed);
-        let key = SocketKey { pid, handle };
         for slot in g.iter_mut() {
-            if slot.is_none() {
-                *slot = Some(Socket::new(key, kind));
-                return Some(key);
+            if slot.is_some_and(|s| !alive(s.key.pid)) {
+                if let Some(s) = slot.take() {
+                    gone.push(s);
+                }
             }
         }
-        None
-    }
-}
-
-impl Socket {
-    pub fn new(key: SocketKey, kind: Kind) -> Self {
-        Self {
-            key,
-            kind,
-            local: None,
-            remote: None,
-            transport_handle: 0,
-            bound: false,
-            listening: false,
-        }
+        gone
     }
 }

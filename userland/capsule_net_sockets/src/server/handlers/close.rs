@@ -14,14 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::clients::{nym, tcp, udp};
-use crate::protocol::{E_NO_HANDLE, E_NO_TRANSPORT, E_OK, OP_CLOSE};
+use crate::protocol::{E_NO_HANDLE, E_OK, OP_CLOSE};
 use crate::server::handlers::io::u32_at;
-use crate::server::handlers::mixnet_residual;
 use crate::server::parse_req::Request;
 use crate::server::respond::respond;
-use crate::sockets::{Kind, SocketKey, SOCKETS};
-use crate::state;
+use crate::sockets::{SocketKey, SOCKETS};
 
 pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let handle = match u32_at(body, 0) {
@@ -32,25 +29,8 @@ pub fn handle(pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     let Some(sock) = SOCKETS.with(key, |s| *s) else {
         return status(pid, req, E_NO_HANDLE, tx);
     };
-    if sock.kind == Kind::Stream && sock.transport_handle != 0 {
-        if tcp::close(state::tcp(), sock.transport_handle).is_err() {
-            return status(pid, req, E_NO_TRANSPORT, tx);
-        }
-    }
-    if sock.kind == Kind::Datagram {
-        if let Some(local) = sock.local {
-            if udp::unbind(state::udp(), local.port).is_err() {
-                return status(pid, req, E_NO_TRANSPORT, tx);
-            }
-        }
-    }
-    if sock.kind == Kind::Mixnet && sock.transport_handle != 0 {
-        // Drop anything still held for this socket first, so a later socket
-        // handed the same handle does not read bytes meant for this one.
-        mixnet_residual::release(key);
-        if nym::close(state::nym(), sock.transport_handle).is_err() {
-            return status(pid, req, E_NO_TRANSPORT, tx);
-        }
+    if let Err(e) = super::release::release(&sock) {
+        return status(pid, req, e, tx);
     }
     if !SOCKETS.close(key) {
         return status(pid, req, E_NO_HANDLE, tx);
