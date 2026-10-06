@@ -79,3 +79,12 @@ There are four kinds of tile (`userland/capsule_desktop_shell/src/server/handler
 This screenshot does not show this commit either. It has no search field, it shows `Clock` and `choose` tiles that this commit does not have and other names for two media apps, and it has no Marketplace, Qwen, Video or Install tile. The tables on this page are the ones in the code.
 
 Search matches the names of all four kinds of tile, in any case (`rebuild` in `userland/capsule_desktop_shell/src/render/launchpad/view.rs`). It does not search files: use the search in [Files](files.md) for that.
+
+## Desktop icons
+
+The icons on the desk are the entries of the home folder, `/home/nonos` (`userland/capsule_desktop_shell/src/server/desktop/home.rs`).
+
+- A click opens an icon in the app that suits it: a folder in Files, a picture (`.png`, `.jpg`, `.jpeg`, `.bmp`, `.gif`) in Image Viewer, anything else in Editor.
+- Drag an icon onto a folder icon to move it into that folder.
+- Right-click empty desk space for `New Folder` and `New File`. Right-click an icon for `Open`, `Rename` and `Delete`.
+- `Delete` on a folder removes the folder and everything in it (`userland/capsule_desktop_shell/src/vfs_client/remove.rs`). There is no trash.
