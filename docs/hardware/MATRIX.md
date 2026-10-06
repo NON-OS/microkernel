@@ -76,3 +76,15 @@ PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_H
 | Input | I2C-HID touchscreens | none | Refused: the kernel leaves them out of the device table | none | 0.9.2 |
 | Input | I2C-HID touchpad with a 10-bit address | none | Refused: 10-bit I2C addressing is not supported; the boot log warns | none | 0.9.2 |
 | Input | USB HID keyboard, mouse and tablet, class 03 | `capsule_driver_usb_hid` | Works | proof crate `usb_proofs` (83) | 0.9.2 |
+
+## Audio
+
+| Class | Chip and id | Driver capsule | State | How verified | Release |
+|---|---|---|---|---|---|
+| Audio | HD Audio controller, class 04/03 any vendor; Intel class 04/01 | `capsule_driver_hda` | Works | proof crate `hda_proofs` (116); QEMU `intel-hda`; real hardware (Intel HD Audio) | 0.9.2 |
+| Audio | Realtek ALC codecs, 10ec vendor, with Linux's EAPD coefficients and ALC256 setup | `capsule_driver_hda` | Works | proof crate `hda_proofs` with ALC236 and ALC269 models | 0.9.2 |
+| Audio | Other HD Audio codecs with an analog output | `capsule_driver_hda` | Works | proof crate `hda_proofs` with QEMU's duplex codec model; QEMU `hda-duplex` | 0.9.2 |
+| Audio | HDMI and DisplayPort audio; graphics controllers 1002, 10de, 8086:490d, 4f90, 4f91, 4f92, e2f7 | `capsule_driver_hda` | Refused: NONOS plays through speakers, headphones and line out only; Settings and the player say so | proof crate `hda_proofs` | 0.9.2 |
+| Audio | Intel SST engines 8086:9c36, 9cb6, 0f28, 22a8, 119a, and Intel DSP-only laptops | `capsule_driver_hda` | Refused: needs Intel SOF, which NONOS does not have; Settings and the player say so | proof crate `hda_proofs` | 0.9.2 |
+| Audio | AMD audio coprocessor (ACP), 1022 class 04/80 | `capsule_driver_hda` | Refused: needs an ACP driver, which NONOS does not have; Settings and the player say so | proof crate `hda_proofs` | 0.9.2 |
+| Audio | Microphones and recording | none | Not supported: no input stream is opened | none | 0.9.2 |
