@@ -70,3 +70,31 @@ Turn on `Remember networks I join` with `R`. A network you then join is saved, w
 - The sealed record is the file `/nonos/wifi/saved` in the NONOS store (`PATH` in `userland/nonos_wifi_client/src/saved/file.rs:20-23`).
 
 At boot, `net.core` scans and joins the first saved network in range. Each saved network is tried at most once per boot, so a wrong passphrase is not sent to the access point again and again. After eight scans with none in range (`EMPTY_PASSES_MAX` in `userland/capsule_net_core/src/autojoin/machine.rs:41`) it stops and logs `no saved Wi-Fi network in range; join one from Settings`.
+
+## What the status shows
+
+The `Status` row on the Wi-Fi page (`link` in `userland/capsule_settings/src/settings/ui/live_wifi.rs:21-53`, and `no_driver` in the same file, lines 115-130):
+
+| Line | Meaning |
+|---|---|
+| `Connected to <name>` | The card is associated with that network. |
+| `Not connected` | The driver is ready and no network is joined. |
+| `<adapter>: <stage>` | The driver is still bringing the card up, or stopped at a step, for example `The card's firmware did not load`. |
+| `Firmware stopped: <step> (0x....)` | The RTL8821CE firmware load stopped at the named step, with the control register's bits. |
+| `No Wi-Fi hardware found` | No wireless chip is on the bus. |
+| `Wi-Fi driver did not start for vvvv:dddd` | This build has a driver for the chip, and the driver is not running. |
+| `Wi-Fi chip vvvv:dddd has no NONOS driver; use Ethernet or USB Wi-Fi` | No driver for this chip. NONOS has no USB Wi-Fi driver in this release, so a cable is the only other way. |
+
+On an Intel card the driver takes but cannot use, the stage reads `card not supported yet; use Ethernet or USB Wi-Fi` (`DriverStage` in `userland/nonos_wifi_client/src/driver/stage.rs:19-63`). The same note about USB Wi-Fi applies. [Not supported](../drivers/wifi/not-supported.md) lists the cards with no driver.
+
+Settings' `Network` page shows where the machine stands with DHCP. Its `Network status` card has `Connection` (`Connected`, `No address`, `Not responding` or `Offline`), `IP address`, `Gateway` and `DNS`. Its `Interfaces` card shows the `Wireless adapter`, or `None detected`.
+
+In the Terminal, `ifconfig` (or `ip`) asks the DHCP client and prints one line:
+
+```
+ifconfig
+```
+
+Not tested in this release.
+
+With a lease the line has the form `net0: inet <address>/<prefix> gw <gateway> dns <server>`; without one it is `net0: down` (`run` in `userland/capsule_terminal/src/command/builtin/nox/ifconfig.rs:30-71`).
