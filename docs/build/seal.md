@@ -124,3 +124,11 @@ Not tested in this release.
 The other way is the older make build in `mk/`, which signs with local development keys it generates when none are there; [make-targets.md](make-targets.md) lists its targets. Neither image is a release, and the seal refuses a development twin for one.
 
 CI's boot smoke test does the same with the full qemu profile: it makes scratch keys that exist only on the runner, seals the profile, and boots it (`Seal`, `.github/workflows/ci-boot-smoke.yml:82-89`).
+
+## See also
+
+- [Profiles](profiles.md)
+- [Reproducible builds](reproducible-builds.md)
+- [Device secrets and keys](../security/device-secrets-and-keys.md)
+- [Signing and publisher keys](../userland/signing-and-publisher-keys.md)
+- [Boot chain and signatures](../security/boot-chain-and-signatures.md)
