@@ -52,3 +52,13 @@ One more step stops without a band. If the hardware reports memory encryption an
 `screen` picks the framebuffer: the kernel's own mapping once `init_arch_framebuffer` has made it, and before that the loader's identity mapping of the firmware framebuffer, while that mapping still exists (`src/sys/boot_log/screen.rs:26-54`). `show_notice` then fills a band across the top and writes the lines, without allocating and without taking a lock (`src/sys/boot_log/notice_screen.rs:34-47`).
 
 Two cases show nothing on the panel. A stop between the removal of the low identity map in `init_vm_and_protection` and the framebuffer mapping later in kernel init has no framebuffer it may write to. A machine whose loader passed no framebuffer has none at all. In both cases the serial console is the only record; see [logging](logging.md).
+
+## The two refusals before init
+
+`microkernel_main` checks two things before it creates the first process. Nothing has been started yet, so there is nothing to undo.
+
+If the person chose to install from the boot menu and the image was built without first-boot setup or without the installer capsule, `HAS_INSTALLER` is false (`src/kernel_core/init/entry/install_refusal.rs:24-25`). `refuse_install_without_installer` then shows `Install NONOS: this image has no installer`, says that nothing was written to any disk and that the person should restart and choose another entry, and halts (`src/kernel_core/init/entry/install_refusal.rs:34-47`).
+
+If the kernel's own check of the bootloader refused it, or the boot carried no boot-root record or loader trailer to check, `refuse_unchecked_loader` shows `The bootloader failed the kernel's check` or `The bootloader could not be checked`, says that no program was started, and halts (`src/kernel_core/init/entry/loader_refusal.rs:27-48`). How that check works is on [boot chain and signatures](../security/boot-chain-and-signatures.md).
+
+A refused handoff stops even earlier, before the kernel trusts any framebuffer. That case is on [boot handoff](boot-handoff.md).
