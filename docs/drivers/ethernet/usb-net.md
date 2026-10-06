@@ -47,3 +47,22 @@ Each class capsule holds only its binding and its framing. The shared core `nono
 Unlike the PCI drivers, these capsules use the adapter's own station address. They hold no Crypto capability to draw one. The AX88179 capsule reads AX_NODE_ID and stops the bind when it holds no usable address (`userland/capsule_driver_ax88179/src/ax/station.rs:27-37`, `NO_STATION`), and the RTL8153 capsule reads PLA_BACKUP (`userland/capsule_driver_rtl8153/src/r8153/up/mac.rs:32-41`, `station_address`).
 
 All five ask for the capability mask 0x200018. The comment above it in each `Capsule.mk` reads it as IPC, Memory and Debug (`userland/capsule_driver_cdc_ecm/Capsule.mk:15-18`, `CAPSULE_REQUIRED_CAPS`). In the capability table, 0x200000 is `InputSource`, bit 21, and `Debug` is 0x100, bit 8 (`src/capabilities/types/defs.rs:51`, `InputSource`; `src/capabilities/types/defs.rs:32`, `Debug`). The mask therefore grants IPC, Memory and InputSource and no Debug. The kernel admits `MkDebug` only with Debug (`src/syscall/contract/cap_table/mk.rs:138`, `can_debug`), so the `[usbnet ...]` lines these capsules write would be dropped. The comment and the mask disagree in this release.
+
+## Tests on this commit
+
+Each capsule has a [proof crate](../../overview/glossary.md#proof-crate) that runs its binding and framing on the host against scripted devices, some of them built from QEMU's `usb-net` descriptors. No QEMU run and no hardware boot exists for any of them.
+
+| Check | Result |
+|---|---|
+| `proofs-usbnet_proofs` | passed, 17 tests |
+| `proofs-cdc_ecm_proofs` | passed, 7 tests |
+| `proofs-cdc_ncm_proofs` | passed, 33 tests |
+| `proofs-rndis_proofs` | passed, 22 tests |
+| `proofs-ax88179_proofs` | passed, 25 tests |
+| `proofs-rtl8153_proofs` | passed, 27 tests |
+
+```sh
+cd userland/cdc_ncm_proofs && cargo test --release --config profile.release.overflow-checks=true
+```
+
+Not tested in this release.
