@@ -95,3 +95,18 @@ The capsule holds the [capabilities](../../overview/glossary.md#capability) IPC,
 ## When it gives up
 
 On a machine whose inventory shows no NVMe controller the kernel does not start the capsule, and its boot log says `no controller present, not spawned` for `DRIVER-NVME` (`src/userspace/init/spawn_plan/drivers_storage.rs:55-60`, `spawn_nvme`). A capsule that starts and finds no usable controller exits with code 2 before claiming anything; with Debug it first says `driver.nvme: no controller present, not started` (`userland/libc/src/bringup/run.rs:64-67`, `say_absent`). One attempt brings up the controllers found in rank order until one gives a disk with an I/O queue, and a failed attempt is retried on the shared schedule of 7 tries described in [Storage drivers](README.md#when-drivers-start-and-when-they-give-up) (`userland/capsule_driver_nvme/src/setup/sequence/run.rs:25-67`, `run`).
+
+## How it was verified
+
+`userland/nvme_proofs` is the [proof crate](../../overview/glossary.md#proof-crate). It runs the driver's parsers, completion waits, readiness steps, namespace geometry, host memory buffer plan and controller choice on the host against scripted and hostile controllers: 81 tests pass on this commit. The register and DMA accesses themselves are not part of the proofs.
+
+Under QEMU, the install target is a blank 8 GiB NVMe disk, `-device nvme,drive=tgt,serial=NONOS-TARGET` (`tools/nonos_qemu/machine.py:61-77`, `disks`; `tools/nonos_qemu/machine.py:23`, `INSTALL_TARGET_GB`). From a checkout with a sealed image, the first command boots the image beside that disk and the second boots the disk the installer wrote, alone. Both run `nix run .#qemu` with a software TPM, passing `--install-target` or `--installed` in `QEMU_ARGS` (`Makefile:80-86`). The `make nonos-mk-run-install` lane attaches the same disk (`mk/40-run.mk:463-464`, `INSTALL_TARGET_IMG`).
+
+```
+make boot-install
+make boot-installed
+```
+
+Not tested in this release.
+
+On real hardware, the installer writing to an internal NVMe disk and booting from it: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
