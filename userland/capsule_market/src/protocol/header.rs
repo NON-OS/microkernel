@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(in super::super) const MAGIC: u32 = 0x4E4D_4B54;
-pub(in super::super) const VERSION: u16 = 1;
+/*
+ * The header's numbers are the clients' (`nonos_market_proto`), so the
+ * market and the store and the Terminal cannot disagree on them again.
+ */
+pub(in super::super) use nonos_market_proto::{HDR_LEN, MAGIC, VERSION};
 
-pub(in super::super) const HDR_LEN: usize = 20;
 pub(in super::super) const RESP_HDR_LEN: usize = HDR_LEN;
 
 #[derive(Clone, Copy)]

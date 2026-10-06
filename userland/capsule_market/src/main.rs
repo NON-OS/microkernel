@@ -19,6 +19,7 @@
 
 extern crate alloc;
 
+mod boot_index;
 mod bootstrap_trust;
 mod ingest;
 mod install_ready;
@@ -45,6 +46,10 @@ pub unsafe extern "C" fn _start() -> ! {
 
     let mut store = Store::empty();
     let verifier = DefaultVerifier;
+
+    // Before the first query arrives, so a client never sees an empty
+    // catalogue on a machine that has one.
+    boot_index::load(&mut store, &verifier);
 
     server::run(&mut store, &verifier);
 }
