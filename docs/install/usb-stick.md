@@ -61,3 +61,7 @@ diskutil eject /dev/disk4
 ```
 
 Not tested in this release.
+
+## Windows
+
+This repository documents no tool for writing the stick from Windows. Write it from a Linux or macOS machine.
