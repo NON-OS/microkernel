@@ -32,3 +32,20 @@ Not tested in this release.
 `capsule-serial-debug` lets service capsules write to the serial console, which the hardened and airgapped images must not allow (`debugFeatures`, `tools/nix/config.nix:60-62`). The network features the airgapped profile removes are everything that reaches a network: the drivers, the stack, and the programs whose only job is to go online, such as the browser, the market and the model fetcher (`networkFeatures`, `tools/nix/config.nix:48-58`).
 
 The profile's own description says the `production` loader refuses to start without Secure Boot and a TPM to measure into (`privacy`, `tools/nix/config.nix:78-85`). The build only selects that policy, by building the loader with the cargo feature of the same name (`cargo`, `tools/nix/image.nix:161-162`); the refusal itself is in the loader's verification code and is not checked on this page.
+
+## The keys of `nonos.toml`
+
+| key | default | what it does |
+|---|---|---|
+| `profile` | `standard` | the kind of image (`profile`, `nonos.toml:17`) |
+| `smp` | `true` | brings up every CPU, through the `nonos-smp` feature (`smp`, `nonos.toml:19-20`) |
+| `install` | `true` | keeps first-boot setup and the installer; `false` takes both out (`install`, `nonos.toml:22-25`) |
+| `rollback_index` | `1` | the [rollback index](../overview/glossary.md#rollback-index) bound into the signed kernel (`rollback_index`, `nonos.toml:27-29`) |
+| `features` | none | extra kernel features, checked against `Cargo.toml` (`features`, `nonos.toml:31-32`) |
+| `loader` | the profile's | a stricter loader policy than the profile's own (`loader`, `nonos.toml:34-36`) |
+| `linux_packages` | empty | the package mirror, as `name:port`, that the in-tree Linux tools the image does not carry install from (`linux_packages`, `nonos.toml:38-44`) |
+| `store.linux`, `store.media` | `true`, `true` | whether the package store carries the Linux tools and the Qwen runner, and the sample films (`store`, `nonos.toml:46-49`) |
+
+The defaults live in the flake as well, and a key the flake does not know fails the evaluation (`defaults`, `tools/nix/config.nix:120-134`).
+
+`nonos.toml` states that every boot is amnesic: nothing is kept unless the person chooses to install in first-boot setup. With `install = false` the image has no first-boot setup and no installer, so no boot of it can keep anything or write a disk (`install`, `nonos.toml:22-25`). Such a build takes the name suffix `-live`, and a development twin takes `-dev` (`name`, `tools/nix/config.nix:184`).
