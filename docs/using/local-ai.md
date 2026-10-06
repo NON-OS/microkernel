@@ -101,3 +101,12 @@ What a download needs:
 The files come from the NONOS model repository when the build named one (`NONOS_MODEL_MIRROR` in `mk/22-models.mk`), else from the Qwen team's Hugging Face files.
 
 `market uninstall linux.qwen-TIER` takes a tier's model off the machine again.
+
+## Where models are kept
+
+A model is kept on the data volume. The kernel seals every sector of it with ChaCha20-Poly1305 under a random nonce (`seal` in `src/fs/cryptoblock/seal.rs:22-46`).
+
+- The fetcher streams each file to the kernel, which hashes what it seals. The file is linked only when its SHA-256 is the pinned digest, and the kernel reads it back and hashes it again before writing its `<name>.sha256` record (`src/fs/blockfs_volume/import_feed/finish.rs`).
+- A download that stops keeps what came: a mark `<name>.partial` is saved every 64 MiB (`MARK_EVERY` in `src/fs/blockfs_volume/import_feed/live.rs:35`), and the next `qwen get` goes on from there.
+- On an installed NONOS the volume is on the disk. On a live boot it is held in memory and gone at power off, and it grows only while more than the larger of 1 GiB and a quarter of memory is free (`reserve` in `src/fs/cryptoblock/ram.rs:55-59`).
+- The fetcher can write to the volume but holds no FileSystem capability, so it cannot read what the volume holds.
