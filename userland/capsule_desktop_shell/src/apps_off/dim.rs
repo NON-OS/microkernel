@@ -14,15 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const SPOTLIGHT_WIDTH: u32 = 640;
-pub const SPOTLIGHT_HEIGHT: u32 = 80;
+/* How much of an off app's mark still shows: enough to read, plainly not live. */
+const OFF_ALPHA_PCT: u32 = 35;
 
-pub struct SpotlightState {
-    pub visible: bool,
-}
-
-impl SpotlightState {
-    pub const fn new() -> Self {
-        Self { visible: false }
-    }
+/* `argb` with its alpha cut to OFF_ALPHA_PCT percent, the colour kept. */
+pub const fn dim(argb: u32) -> u32 {
+    let alpha = (argb >> 24) * OFF_ALPHA_PCT / 100;
+    (alpha << 24) | (argb & 0x00FF_FFFF)
 }

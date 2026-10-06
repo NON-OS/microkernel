@@ -38,18 +38,17 @@ const GAP_LOGICAL: u32 = 16;
 const BATT_GLYPH_W_LOGICAL: u32 = 26;
 const NET_GLYPH_W_LOGICAL: u32 = 16;
 const SEARCH_GLYPH_W_LOGICAL: u32 = 15;
-const DOT_LOGICAL: u32 = 8;
 
 pub(super) fn logo_x() -> u32 {
-    LOGO_X_LOGICAL * ui_font::scale()
+    ui_font::px(LOGO_X_LOGICAL)
 }
 
 pub(super) fn logo_size() -> u32 {
-    LOGO_SIZE_LOGICAL * ui_font::scale()
+    ui_font::px(LOGO_SIZE_LOGICAL)
 }
 
 pub(super) fn wordmark_x() -> u32 {
-    WORDMARK_X_LOGICAL * ui_font::scale()
+    ui_font::px(WORDMARK_X_LOGICAL)
 }
 
 /// Right edge of the clickable brand region (logo plus wordmark). Measured from
@@ -59,15 +58,15 @@ pub(crate) fn brand_right() -> u32 {
 }
 
 pub(super) fn right_margin() -> u32 {
-    RIGHT_MARGIN_LOGICAL * ui_font::scale()
+    ui_font::px(RIGHT_MARGIN_LOGICAL)
 }
 
 pub(super) fn pad_x() -> u32 {
-    PAD_X_LOGICAL * ui_font::scale()
+    ui_font::px(PAD_X_LOGICAL)
 }
 
 pub(super) fn gap() -> u32 {
-    GAP_LOGICAL * ui_font::scale()
+    ui_font::px(GAP_LOGICAL)
 }
 
 pub(super) fn batt_glyph_w() -> u32 {
@@ -80,8 +79,4 @@ pub(super) fn net_glyph_w() -> u32 {
 
 pub(super) fn search_glyph_w() -> u32 {
     SEARCH_GLYPH_W_LOGICAL * ui_font::scale()
-}
-
-pub(super) fn dot() -> u32 {
-    DOT_LOGICAL * ui_font::scale()
 }

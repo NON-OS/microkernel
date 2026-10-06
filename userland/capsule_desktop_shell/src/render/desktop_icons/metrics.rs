@@ -26,27 +26,27 @@ const CARET_W_LOGICAL: u32 = 2;
 const BOTTOM_RESERVE_LOGICAL: u32 = 120;
 
 pub(super) fn icon() -> u32 {
-    ICON_LOGICAL * ui_font::scale()
+    ui_font::px(ICON_LOGICAL)
 }
 
 pub(super) fn cell_w() -> u32 {
-    CELL_W_LOGICAL * ui_font::scale()
+    ui_font::px(CELL_W_LOGICAL)
 }
 
 pub(super) fn cell_h() -> u32 {
-    CELL_H_LOGICAL * ui_font::scale()
+    ui_font::px(CELL_H_LOGICAL)
 }
 
 pub(super) fn left() -> u32 {
-    LEFT_LOGICAL * ui_font::scale()
+    ui_font::px(LEFT_LOGICAL)
 }
 
 /// Width of the rename caret, which is a rule rather than a glyph cell.
 pub(super) fn caret_w() -> u32 {
-    CARET_W_LOGICAL * ui_font::scale()
+    ui_font::px(CARET_W_LOGICAL)
 }
 
 /// Leave room at the bottom for the floating dock plus a little breathing space.
 pub(super) fn bottom_reserve() -> u32 {
-    BOTTOM_RESERVE_LOGICAL * ui_font::scale()
+    ui_font::px(BOTTOM_RESERVE_LOGICAL)
 }

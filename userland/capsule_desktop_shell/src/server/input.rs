@@ -15,18 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::{read_i32, read_u16, read_u32};
-use crate::render::layout::{bottom_dock_rect, menubar_height};
+use crate::render::layout::{bottom_dock_rect, dock_area_rect, menubar_height};
 use crate::render::{desktop_icons, desktop_menu, topbar};
 use crate::server::desktop;
-use crate::server::handlers::{launcher_focus, launcher_request, launchpad, menubar_click};
-use crate::server::refresh_taskbar::refresh_taskbar;
-use crate::state::{reveal_taskbar, Context, LAUNCHER_APPS};
+use crate::server::handlers::launcher_request::LaunchOutcome;
+use crate::server::handlers::{launcher_focus, launchpad, menubar_click};
+use crate::state::{dock_pointer, reveal_taskbar, Context, LAUNCHER_APPS};
 use nonos_libc::{
-    mk_time_millis, INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN,
-    INPUT_KIND_POINTER_ABS, INPUT_KIND_TOUCH,
+    INPUT_KIND_BUTTON_DOWN, INPUT_KIND_BUTTON_UP, INPUT_KIND_KEY_DOWN, INPUT_KIND_POINTER_ABS,
+    INPUT_KIND_TOUCH, INPUT_KIND_WHEEL,
 };
 
-const HOVER_REVEAL_BAND: u32 = 4;
+/// The Ctrl bit of a key event's modifier flags, as app_skeleton names it.
+const MOD_CTRL: u16 = nonos_app_skeleton::MOD_CTRL;
 /// Pointer travel, in pixels, before a press on an icon becomes a drag.
 const DRAG_THRESHOLD: u32 = 6;
 
@@ -44,11 +45,46 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
     // pointer position, so this is handled before the x/y checks below.
     if kind == INPUT_KIND_KEY_DOWN {
         let code = read_u32(buf, 12).unwrap_or(0);
+        let flags = read_u16(buf, 10).unwrap_or(0);
+        if super::handlers::escape_chord::is_reserved_chord(kind, code, flags) {
+            super::handlers::escape_chord::bring_process_manager(ctx);
+            return true;
+        }
+        // The volume and power keys come here whatever has focus, with
+        // whatever modifiers are held, and are never text.
+        if super::handlers::system_keys::key(ctx, code) {
+            return true;
+        }
+        // With Ctrl held a key is a command, never text: Ctrl+V pastes, and
+        // the rest used to type their letter into the field.
+        if flags & MOD_CTRL != 0 {
+            if super::paste::is_paste_key(code) {
+                if ctx.rename.is_some() {
+                    desktop::rename_paste(ctx);
+                    super::repaint::repaint(ctx);
+                } else if ctx.launchpad {
+                    super::handlers::launchpad_key::paste(ctx);
+                }
+            }
+            return true;
+        }
+        if super::handlers::dialog_key::key(ctx, code) {
+            return true;
+        }
         if ctx.rename.is_some() {
             desktop::rename_key(ctx, code);
             super::repaint::repaint(ctx);
         } else if ctx.launchpad {
             super::handlers::launchpad_key::key(ctx, code);
+        }
+        return true;
+    }
+    // The wheel reaches the shell only through its pointer grab, which the
+    // Launchpad holds while open; it was dropped here, so the pages could
+    // only be turned by their dots.
+    if kind == INPUT_KIND_WHEEL {
+        if ctx.launchpad {
+            launchpad::wheel(ctx, read_i32(buf, 28).unwrap_or(0));
         }
         return true;
     }
@@ -115,10 +151,23 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
         return true;
     }
     let (px, py) = (x as u32, y as u32);
+    if super::handlers::live_prompt::click(ctx, px, py) {
+        return true;
+    }
+    if super::handlers::delete_prompt::click(ctx, px, py) {
+        return true;
+    }
     if super::handlers::consent::click(ctx, px, py) {
         return true;
     }
     if super::handlers::pkg_consent::click(ctx, px, py) {
+        return true;
+    }
+    // A press on the toasts' panel puts it away; it is drawn over every
+    // window, so the press is not the window's under it.
+    if crate::render::toasts::toast_hit(ctx, px, py) {
+        ctx.toasts.clear();
+        crate::render::sync_toast_layer(ctx);
         return true;
     }
     // The Launchpad, while open, captures every click: a tile launches its app
@@ -144,7 +193,7 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
             // Per-item menu: Open / Rename / Delete.
             (Some(idx), Some(0)) => open_item(ctx, idx),
             (Some(idx), Some(1)) => desktop::start_rename(ctx, idx),
-            (Some(idx), Some(2)) => desktop::delete_entry(ctx, idx),
+            (Some(idx), Some(2)) => desktop::ask_delete(ctx, idx),
             _ => {}
         }
         ctx.desktop_menu = None;
@@ -167,17 +216,17 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
         }
         return true;
     }
-    // The magnifier on the menu bar is the same search the Spotlight request opens.
+    // The magnifier on the menu bar opens the Launchpad and its search, as the
+    // Spotlight request does.
     if topbar::search_hit(ctx, px, py) {
         crate::server::handlers::spotlight_toggle::toggle(ctx);
         return true;
     }
     // Clicking the brand on the menu bar brings up the app dock.
+    // Over a full-screen window it shows the hidden dock for a moment (the
+    // dock's sync after this batch draws it and opens its window).
     if topbar::brand_hit(px, py) {
-        if !ctx.taskbar.visible {
-            reveal_taskbar(&mut ctx.taskbar, mk_time_millis());
-            refresh_taskbar(ctx);
-        }
+        reveal_taskbar(&mut ctx.taskbar, crate::server::dock_clock::now());
         return true;
     }
     // A left-press on an icon begins a potential drag. If the pointer never
@@ -195,8 +244,7 @@ pub fn handle(ctx: &mut Context, buf: &[u8]) -> bool {
     if !ctx.taskbar.visible {
         let dock = bottom_dock_rect(ctx.width, ctx.height);
         if y as u32 >= dock.y.saturating_sub(18) {
-            reveal_taskbar(&mut ctx.taskbar, mk_time_millis());
-            refresh_taskbar(ctx);
+            reveal_taskbar(&mut ctx.taskbar, crate::server::dock_clock::now());
         }
         return true;
     }
@@ -229,6 +277,7 @@ fn is_image_name(name: &str) -> bool {
         || ext.eq_ignore_ascii_case("jpg")
         || ext.eq_ignore_ascii_case("jpeg")
         || ext.eq_ignore_ascii_case("bmp")
+        || ext.eq_ignore_ascii_case("gif")
 }
 
 // Open a desktop item in the app that suits it, and tell that app which item.
@@ -237,42 +286,36 @@ fn is_image_name(name: &str) -> bool {
 // The path travels the way the file manager's Open With already sends it.
 fn open_item(ctx: &mut Context, idx: usize) {
     let Some(item) = ctx.desktop_items.get(idx) else { return };
-    // An image has no viewer in this image, and the editor would show a
-    // screenful of bytes rather than a picture, so nothing opens.
-    if !item.is_dir && is_image_name(&item.name) {
-        return;
-    }
-    let service: &[u8] = if item.is_dir { b"app.file_manager" } else { b"app.text_editor" };
+    // A picture opens in the image viewer, which decodes each kind named in
+    // is_image_name; the editor would show a screenful of bytes.
+    let service: &[u8] = if item.is_dir {
+        b"app.file_manager"
+    } else if is_image_name(&item.name) {
+        b"app.image_viewer"
+    } else {
+        b"app.text_editor"
+    };
     // By service rather than by position: the table is edited often enough
     // that an index would drift into launching the wrong app.
-    let Some(app) = LAUNCHER_APPS.iter().find(|a| a.service == service) else { return };
+    let Some(index) = LAUNCHER_APPS.iter().position(|a| a.service == service) else { return };
     // Desktop items are the home listing, so the path is the name under it.
     // Built from the one definition the listing uses, or an icon would open a
     // path that is not the file it was drawn from.
-    let mut path = alloc::string::String::from(
-        core::str::from_utf8(crate::server::desktop::HOME).unwrap_or("/"),
-    );
-    path.push('/');
-    path.push_str(&item.name);
-    if let Ok(service) = core::str::from_utf8(app.service) {
-        ctx.pending_open.insert(alloc::string::String::from(service), path);
+    let Some(path) = desktop::home_path(&item.name) else { return };
+    if super::handlers::hand_over::hand_over(ctx, index, path) == LaunchOutcome::Failed {
+        crate::apps_off::toast_failed(ctx, service, crate::server::toast_clock::now());
     }
-    launcher_request::request(app);
 }
 
+/// The pointer, mirrored to the shell by the input router wherever it is,
+/// over windows too: touching the bottom edge brings the dock hidden by a
+/// full-screen window, and leaving the dock's area puts it away again
+/// (state/taskbar/dock_rule.rs). The dock's sync after this batch draws the
+/// change and opens or closes its window.
 fn hover_reveal(ctx: &mut Context, y: u32) {
     if ctx.height == 0 {
         return;
     }
-    if !ctx.taskbar.visible {
-        if y >= ctx.height.saturating_sub(HOVER_REVEAL_BAND) {
-            reveal_taskbar(&mut ctx.taskbar, mk_time_millis());
-            refresh_taskbar(ctx);
-        }
-        return;
-    }
-    if y >= bottom_dock_rect(ctx.width, ctx.height).y {
-        reveal_taskbar(&mut ctx.taskbar, mk_time_millis());
-    }
-    // No auto-collapse: the dock stays visible as a persistent taskbar.
+    let top = dock_area_rect(ctx.width, ctx.height).y;
+    dock_pointer(&mut ctx.taskbar, y, ctx.height, top);
 }

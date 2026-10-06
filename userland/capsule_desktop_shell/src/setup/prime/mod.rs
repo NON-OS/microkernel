@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod close_chrome_windows;
 mod open_chrome_windows;
 mod overlay;
+pub(crate) mod patient;
 mod peers;
-mod register;
+pub(crate) mod register;
 mod run;
 
 pub use run::{run, subscribe_input, subscribe_wm};

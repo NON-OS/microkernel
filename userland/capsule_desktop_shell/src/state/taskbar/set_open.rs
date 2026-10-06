@@ -37,5 +37,4 @@ pub fn set_taskbar_open(state: &mut TaskbarState, index: usize, open: bool) {
             return;
         }
     }
-    state.visible = true;
 }

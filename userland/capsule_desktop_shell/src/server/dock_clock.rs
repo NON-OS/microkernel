@@ -14,7 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn require_wallpaper() -> Result<u32, &'static str> {
-    super::require_port::require_port(super::constants::WALLPAPER_SERVICE)
-        .map_err(|_| "wallpaper service not announced")
+//! The one clock the dock's timers read: its launch pulse, its brand
+//! reveal and the wait for a launched app's window. Uptime, never the wall
+//! clock (state/taskbar/types.rs `Uptime` says why).
+
+use nonos_libc::mk_uptime_ms;
+
+use crate::state::Uptime;
+
+pub fn now() -> Uptime {
+    Uptime(mk_uptime_ms())
 }

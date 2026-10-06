@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_ipc_send_to_pid, mk_service_lookup, mk_spawn_instance};
+use core::sync::atomic::{AtomicI64, Ordering};
+
+use nonos_libc::{mk_ipc_send_to_pid, mk_pid_alive, mk_service_lookup, mk_spawn_instance};
 
 use crate::state::apps::LauncherApp;
+use crate::state::says::{NOTHING_REFUSED, NOT_ASKED};
+use crate::state::{raise_tracked, reach_by, Context, Reach};
 
 /// What a dock-launch click actually did, so the caller can surface it on
 /// screen. `Queued` means the kernel accepted a new-window spawn; `Focused`
@@ -33,10 +37,11 @@ const CONTROL_MAGIC: u32 = u32::from_le_bytes(*b"NCTL");
 const CONTROL_VERSION: u16 = 1;
 const OP_FOCUS_SELF: u16 = 1;
 
-// Services that own a single device-backed session, so a second window
-// would fight the first over the same hardware stream rather than give
-// the user anything new.
-const SINGLE_INSTANCE: [&[u8]; 0] = [];
+// Services that run as one window: a second would fight the first over the
+// same session rather than give the user anything new. The App Store holds
+// the catalog and every install in flight, and its capsule declares no
+// instance endpoints, so a spawn could only fail and say so.
+const SINGLE_INSTANCE: [&[u8]; 1] = [b"app.store"];
 
 // Clicking a dock app asks the kernel to spawn another attested instance.
 // The kernel queues the request and init performs the spawn in its own
@@ -52,11 +57,29 @@ pub fn request(app: &LauncherApp) -> LaunchOutcome {
 /// Launch, or focus if already running, whatever capsule owns `service`. Used
 /// by both the dock (a desktop app) and the Launchpad (an installed tool).
 pub fn request_service(service: &[u8]) -> LaunchOutcome {
-    if !is_single_instance(service) && mk_spawn_instance(service) >= 0 {
+    let rc = if is_single_instance(service) { NOT_ASKED } else { mk_spawn_instance(service) };
+    if rc >= 0 {
         return LaunchOutcome::Queued;
     }
-    focus_service(service)
+    let outcome = focus_service(service);
+    /* Kept only for the failure it explains, which says it next. */
+    REFUSED.store(
+        if outcome == LaunchOutcome::Failed { rc } else { NOTHING_REFUSED },
+        Ordering::Relaxed,
+    );
+    outcome
 }
+
+/// Why the last launch spawned nothing, taken once: the kernel's answer to
+/// the spawn it refused, `NOT_ASKED` for an app that opens one window only,
+/// or `NOTHING_REFUSED` when no spawn was asked since (a menu raising a
+/// window that turned out gone). What a launch that opened nothing says
+/// (`state::says::not_opened`), never an answer left from an earlier click.
+pub fn take_refusal() -> i64 {
+    REFUSED.swap(NOTHING_REFUSED, Ordering::Relaxed)
+}
+
+static REFUSED: AtomicI64 = AtomicI64::new(NOTHING_REFUSED);
 
 /// Focus whatever already owns `service`, spawning nothing.
 ///
@@ -64,17 +87,47 @@ pub fn request_service(service: &[u8]) -> LaunchOutcome {
 /// `request_service` spawned a fresh window on every click and left a
 /// minimized one hidden, which made it unreachable: this message is the only
 /// thing that reaches `wm::window_restore`.
+///
+/// Any live instance will do: with the first window closed, the base name
+/// is gone from the registry while "app.terminal.2" still holds a window.
 pub fn focus_service(service: &[u8]) -> LaunchOutcome {
-    let Some(pid) = lookup_pid(service) else { return LaunchOutcome::Failed };
-    let frame = focus_frame();
-    if mk_ipc_send_to_pid(pid, frame.as_ptr(), frame.len()) >= 0 {
+    if super::instances::each_live_pid(service, focus_pid) {
         LaunchOutcome::Focused
     } else {
         LaunchOutcome::Failed
     }
 }
 
-fn is_single_instance(service: &[u8]) -> bool {
+/// Raise app `index`'s newest window the window manager said is open,
+/// restoring it if minimised. A window whose process is gone is forgotten
+/// on the way (state/taskbar/route.rs). Failed when the app has no window
+/// left: the caller opens one, rather than handing the click to an instance
+/// with no window to show.
+pub fn focus_app(ctx: &mut Context, index: usize) -> LaunchOutcome {
+    match raise_tracked(&mut ctx.taskbar, index, reach_pid) {
+        Some(_) => LaunchOutcome::Focused,
+        None => LaunchOutcome::Failed,
+    }
+}
+
+/// Send `pid` the focus frame, and say whether its process took it, is
+/// busy, or is gone. A process that has ended is gone, though the kernel
+/// would still take a frame into its inbox (state/taskbar/route.rs).
+fn reach_pid(pid: u32) -> Reach {
+    reach_by(pid, |p| mk_pid_alive(p), send_focus)
+}
+
+/// Send `pid` the focus frame; false when it is gone or busy.
+pub(crate) fn focus_pid(pid: u32) -> bool {
+    reach_pid(pid) == Reach::Taken
+}
+
+fn send_focus(pid: u32) -> i64 {
+    let frame = focus_frame();
+    mk_ipc_send_to_pid(pid, frame.as_ptr(), frame.len())
+}
+
+pub fn is_single_instance(service: &[u8]) -> bool {
     SINGLE_INSTANCE.iter().any(|s| *s == service)
 }
 

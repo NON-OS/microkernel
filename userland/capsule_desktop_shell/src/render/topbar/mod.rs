@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The menu bar across the top of the desktop: the real NØNOS logo and wordmark
-//! on the left, and a live status cluster on the right holding the battery,
-//! network, clock and last-notification state. Styled to match the dock so the
-//! two bars read as one system.
+//! on the left, the menu titles, the tray's labels, and a live status cluster
+//! on the right holding the battery (when there is a reading), network and
+//! clock. Styled to match the dock so the two bars read as one system.
 
 mod background;
 mod battery_glyph;
@@ -25,12 +25,12 @@ mod brand;
 mod brand_hit;
 mod metrics;
 mod net_glyph;
-mod notify_dot;
 mod paint;
 mod search_box;
 mod search_glyph;
 mod search_hit;
 mod status;
+mod tray;
 
 pub(crate) use metrics::brand_right;
 

@@ -14,21 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Delete a desktop entry: a directory is removed with rmdir, a file with
-//! unlink.
+//! Delete a desktop entry: a directory is removed with rmdir, with everything
+//! in it (the recursive byte), as the Delete prompt says; a file with unlink.
 
 use alloc::vec;
 
-use super::call::call;
+use super::call::call_status;
 use super::constants::{OP_RMDIR, OP_UNLINK};
 use super::owner_body::owner_body;
 use super::path;
 
-pub fn remove(path: &[u8], is_dir: bool) -> bool {
+const EINVAL: i32 = -22;
+
+/// vfs_pool's rmdir removes a directory's whole subtree when the byte after
+/// the path is non-zero, and refuses a non-empty one otherwise.
+const RECURSIVE: u8 = 1;
+
+/// Ok, or why not: the server's errno, or the shell's own for a path it
+/// will not send (`EINVAL`) or a call nothing answered.
+pub fn remove(path: &[u8], is_dir: bool) -> Result<(), i32> {
     if !path::is_valid(path) {
-        return false;
+        return Err(EINVAL);
     }
-    let op = if is_dir { OP_RMDIR } else { OP_UNLINK };
     let mut rx = vec![0u8; 64];
-    call(op, &owner_body(path), &mut rx).is_some()
+    if is_dir {
+        let mut body = owner_body(path);
+        body.push(RECURSIVE);
+        return call_status(OP_RMDIR, &body, &mut rx).map(|_| ());
+    }
+    call_status(OP_UNLINK, &owner_body(path), &mut rx).map(|_| ())
 }

@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::TaskbarState;
+use super::types::{TaskbarState, Uptime};
 
-pub fn mark_taskbar_launch(state: &mut TaskbarState, index: usize, now_ms: i64) {
+/// How long a launched app's dock icon pulses.
+pub const PULSE_MS: i64 = 900;
+
+pub fn mark_taskbar_launch(state: &mut TaskbarState, index: usize, now: Uptime) {
     if index < state.pulse_until_ms.len() {
-        state.pulse_until_ms[index] = now_ms.saturating_add(900);
-        state.visible = true;
+        state.pulse_until_ms[index] = now.0.saturating_add(PULSE_MS).max(1);
     }
 }

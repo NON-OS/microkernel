@@ -27,10 +27,10 @@ pub struct Peers {
 
 pub fn resolve() -> Result<Peers, &'static str> {
     let compositor_port = discover::require_compositor()?;
-    healthcheck(compositor_port, 1)?;
+    super::patient::patiently(8, 50, || healthcheck(compositor_port, 1))?;
     let input_router_port = discover::require_input_router()?;
     let wm_port = discover::require_wm()?;
-    let wallpaper_port = discover::require_wallpaper()?;
+    let wallpaper_port = discover::try_wallpaper();
     let market_port = discover::try_market();
     Ok(Peers { compositor_port, input_router_port, wm_port, wallpaper_port, market_port })
 }

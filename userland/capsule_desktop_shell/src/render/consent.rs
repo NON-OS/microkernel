@@ -10,11 +10,13 @@
 
 use crate::render::fill::fill_rect;
 use crate::render::layout::Rect;
+use crate::render::palette;
 use crate::render::measure_aa::{measure_aa, truncate_to_width};
 use crate::render::text_aa::text_aa;
 use crate::render::ui_font;
 use crate::render::ui_font::{line_h, top_y_centered, valid_str, TITLE_PX, UI_PX};
 use crate::server::handlers::consent::{approve_rect, cancel_rect, panel_rect};
+use crate::state::dialog_keys::Choice;
 use crate::state::Context;
 
 pub(super) const PANEL: u32 = 0xFF12_1A26;
@@ -27,10 +29,10 @@ const MARGIN_LOGICAL: u32 = 20;
 
 const ELLIPSIS: &str = "...";
 const TITLE: &str = "Launch third-party app?";
-const NOTE: &str = "Publisher-signed. The system grants only its manifest permissions.";
+const NOTE: &str = "Its signature is checked as it loads; it gets only its manifest's permissions.";
 
 pub(super) fn margin() -> u32 {
-    MARGIN_LOGICAL * ui_font::scale()
+    ui_font::px(MARGIN_LOGICAL)
 }
 
 pub fn paint_consent(ctx: &Context) {
@@ -48,8 +50,9 @@ pub fn paint_consent(ctx: &Context) {
     line(ctx, x, y, valid_str(name), FG, UI_PX, max_w);
     y += line_h(UI_PX);
     note(ctx, x, y, max_w);
-    button(ctx, approve_rect(ctx.width, ctx.height), APPROVE_BG, "Approve");
-    button(ctx, cancel_rect(ctx.width, ctx.height), CANCEL_BG, "Cancel");
+    let act = ctx.dialog_focus.focused() == Choice::Act;
+    button(ctx, approve_rect(ctx.width, ctx.height), APPROVE_BG, "Approve", act);
+    button(ctx, cancel_rect(ctx.width, ctx.height), CANCEL_BG, "Cancel", !act);
 }
 
 fn note(ctx: &Context, x: u32, top_y: u32, max_w: u32) {
@@ -87,10 +90,23 @@ pub(super) fn wrap_at(text: &str, px: f32, max_w: u32) -> usize {
     }
 }
 
-pub(super) fn button(ctx: &Context, r: Rect, bg: u32, label: &str) {
+/// A dialog button; the one the keyboard is on (state::dialog_keys) wears
+/// a ring in the accent, so Enter's target is never a guess.
+pub(super) fn button(ctx: &Context, r: Rect, bg: u32, label: &str, focused: bool) {
     fill(ctx, r, bg);
     border(ctx, r, BORDER);
-    let inner = r.width.saturating_sub(8 * ui_font::scale());
+    if focused {
+        let s = ui_font::scale();
+        border(ctx, r, palette::ACCENT);
+        let inner = Rect {
+            x: r.x + s,
+            y: r.y + s,
+            width: r.width.saturating_sub(2 * s),
+            height: r.height.saturating_sub(2 * s),
+        };
+        border(ctx, inner, palette::ACCENT);
+    }
+    let inner = r.width.saturating_sub(ui_font::px(8));
     let fitted = truncate_to_width(label, UI_PX, inner);
     let tx = r.x + r.width.saturating_sub(measure_aa(fitted, UI_PX)) / 2;
     text_aa(ctx, tx, top_y_centered(r.y, r.height, UI_PX), fitted, FG, UI_PX);

@@ -19,6 +19,7 @@
 
 extern crate alloc;
 
+mod apps_off;
 mod compositor_client;
 mod frametime;
 mod input_router_client;

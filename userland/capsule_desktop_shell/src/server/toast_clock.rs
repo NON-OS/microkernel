@@ -13,13 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::wallpaper_client;
-pub(super) fn apply_wallpaper_policy(port: u32) -> Result<(), &'static str> {
-    if port == 0 {
-        return Err("wallpaper service not announced");
-    }
-    // Fill scaling for the wallpaper image (Policy::Fill). The image itself is
-    // selected by the Field::Wallpaper policy, not here.
-    wallpaper_client::queue_policy(port, 3, 0)?;
-    Ok(())
+//! The one clock the toasts are timed on: uptime, the clock the serve loop's
+//! tick and its inbox wait already use. Never the wall clock, which reads as
+//! an error before the RTC is read and steps back when NTP corrects it
+//! (`state/toast.rs` has the reasoning).
+
+use nonos_libc::mk_uptime_ms;
+
+use crate::state::toast::UptimeMs;
+
+pub fn now() -> UptimeMs {
+    UptimeMs(mk_uptime_ms())
 }

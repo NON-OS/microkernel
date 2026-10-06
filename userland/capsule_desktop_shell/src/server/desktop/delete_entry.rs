@@ -14,25 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Delete the desktop item at `index` from the filesystem, then re-sync.
+//! Delete a desktop item: the menu asks (state::delete_prompt), the prompt's
+//! Delete button removes it from the home directory and re-syncs.
 
-use alloc::string::String;
-use nonos_libc::mk_time_millis;
+use super::home::home_path;
+use crate::state::Context;
 
-use crate::state::{Context, NotifyLevel};
+/// The menu's Delete: put the question up for the item at `index`.
+pub fn ask_delete(ctx: &mut Context, index: usize) {
+    if let Some(item) = ctx.desktop_items.get(index) {
+        ctx.pending_delete.ask(&item.name, item.is_dir);
+    }
+}
 
-pub fn delete_entry(ctx: &mut Context, index: usize) {
-    let (name, is_dir) = match ctx.desktop_items.get(index) {
-        Some(item) => (item.name.clone(), item.is_dir),
-        None => return,
-    };
-    let mut path = String::from("/");
-    path.push_str(&name);
-    if crate::vfs_client::remove(path.as_bytes(), is_dir) {
-        let _ = super::refresh::refresh(ctx);
-    } else {
+/// Remove `name` from the desktop's directory, once the prompt said Delete.
+pub fn delete_entry(ctx: &mut Context, name: &str, is_dir: bool) {
+    let Some(path) = home_path(name) else { return };
+    match crate::vfs_client::remove(path.as_bytes(), is_dir) {
+        Ok(()) => {
+            let _ = super::refresh::refresh(ctx);
+        }
         // A refused delete left the icon in place with no explanation.
-        let now = mk_time_millis();
-        ctx.toasts.push(b"could not delete", NotifyLevel::Error, now);
+        Err(code) => super::say::refused(ctx, b"Could not delete: ", code),
     }
 }

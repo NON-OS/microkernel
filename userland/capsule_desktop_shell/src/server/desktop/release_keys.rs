@@ -20,6 +20,5 @@
 use crate::state::Context;
 
 pub(super) fn release_keys(ctx: &mut Context) {
-    let rid = ctx.issue_request_id();
-    let _ = crate::input_router_client::release_grab(ctx.input_router_port, rid);
+    crate::server::grabs::sync(ctx);
 }

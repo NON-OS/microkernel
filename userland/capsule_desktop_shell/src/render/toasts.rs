@@ -18,10 +18,11 @@ use super::fill::fill_rect;
 use super::layout::{bottom_dock_rect, Rect};
 use super::measure_aa::{measure_aa_bytes, truncate_to_width};
 use super::text_aa::text_aa;
-use super::ui_font::{line_h, scale, top_y_centered, valid_str, UI_PX};
+use super::ui_font::{line_h, px, top_y_centered, valid_str, UI_PX};
 use crate::compositor_client::push_damage_commit;
 use crate::state::toasts::MAX_TOASTS;
-use crate::state::Context;
+use crate::state::{Context, TOAST_WINDOW_ID};
+use crate::wm_client;
 
 const TOAST_MAX_WIDTH_LOGICAL: u32 = 460;
 const TOAST_MIN_WIDTH_LOGICAL: u32 = 260;
@@ -34,42 +35,41 @@ const TEXT_INSET_LOGICAL: u32 = 12;
 const PANEL_ARGB: u32 = 0xFF0E_1218;
 const ROW_ARGB: u32 = 0xFF1B_2030;
 const TEXT_ARGB: u32 = 0xFFCF_E6E9;
-const TRANSPARENT: u32 = 0x0000_0000;
 
 fn toast_max_width() -> u32 {
-    TOAST_MAX_WIDTH_LOGICAL * scale()
+    px(TOAST_MAX_WIDTH_LOGICAL)
 }
 
 fn toast_min_width() -> u32 {
-    TOAST_MIN_WIDTH_LOGICAL * scale()
+    px(TOAST_MIN_WIDTH_LOGICAL)
 }
 
 fn toast_right_inset() -> u32 {
-    TOAST_RIGHT_INSET_LOGICAL * scale()
+    px(TOAST_RIGHT_INSET_LOGICAL)
 }
 
 fn toast_dock_gap() -> u32 {
-    TOAST_DOCK_GAP_LOGICAL * scale()
+    px(TOAST_DOCK_GAP_LOGICAL)
 }
 
 fn row_pad() -> u32 {
-    ROW_PAD_LOGICAL * scale()
+    px(ROW_PAD_LOGICAL)
 }
 
 fn row_gap() -> u32 {
-    ROW_GAP_LOGICAL * scale()
+    px(ROW_GAP_LOGICAL)
 }
 
 fn accent_width() -> u32 {
-    ACCENT_WIDTH_LOGICAL * scale()
+    px(ACCENT_WIDTH_LOGICAL)
 }
 
 fn text_inset() -> u32 {
-    TEXT_INSET_LOGICAL * scale()
+    px(TEXT_INSET_LOGICAL)
 }
 
 fn panel_edge_inset() -> u32 {
-    2 * scale()
+    px(2)
 }
 
 fn row_height() -> u32 {
@@ -93,31 +93,46 @@ pub fn toast_rect(display_width: u32, display_height: u32) -> Rect {
     Rect { x, y, width, height }
 }
 
+/// Bring the toasts' panel on screen in line with the queue: repaint the
+/// chrome when the toasts changed since it was last painted, claim the
+/// panel's presses, and show its rectangle.
+///
+/// The panel used to be painted straight onto the chrome surface here,
+/// after a transparent fill of its whole rectangle. That fill cut a hole in
+/// whatever the chrome held there (the Launchpad, a menu, a dialog), and
+/// every chrome paint in between, on each hover or icon drag step, cleared
+/// the panel without drawing it again, so the toasts vanished until the
+/// next clock tick. The panel is part of the chrome's frame now
+/// (`paint_in_chrome`), drawn over everything else in it.
 pub fn sync_toast_layer(ctx: &mut Context) {
+    ctx.toasts_synced = ctx.toasts.generation();
     let live = !ctx.toasts.is_empty();
-    let r = toast_rect(ctx.width, ctx.height);
-    if live {
-        paint_toasts(ctx, r);
-        ctx.toast_layer_live = true;
-    } else {
-        if !ctx.toast_layer_live {
-            return;
-        }
-        fill_rect(
-            ctx.backing_va,
-            ctx.stride,
-            ctx.width,
-            ctx.height,
-            r.x,
-            r.y,
-            r.width,
-            r.height,
-            TRANSPARENT,
-        );
-        ctx.toast_layer_live = false;
+    if !live && !ctx.toast_layer_live {
+        return;
     }
+    if ctx.toasts_drawn != ctx.toasts.generation() {
+        super::paint_chrome(ctx);
+    }
+    let r = toast_rect(ctx.width, ctx.height);
+    ctx.toast_layer_live = live;
+    let panel = live.then(|| panel_rect(ctx, r));
+    claim_presses(ctx, panel);
     let rid = ctx.issue_request_id();
     let _ = push_damage_commit(ctx.compositor_port, rid, r.x, r.y, r.width, r.height);
+}
+
+/// The toasts, last in the chrome's frame so they sit over everything in it.
+pub fn paint_in_chrome(ctx: &mut Context) {
+    ctx.toasts_drawn = ctx.toasts.generation();
+    if !ctx.toasts.is_empty() {
+        paint_toasts(ctx, toast_rect(ctx.width, ctx.height));
+    }
+}
+
+/// Where the panel sits inside `r`: right-aligned, as wide as its widest toast.
+fn panel_rect(ctx: &Context, r: Rect) -> Rect {
+    let w = panel_width(ctx, r.width);
+    Rect { x: r.x + (r.width - w), y: r.y, width: w, height: r.height }
 }
 
 fn panel_width(ctx: &Context, layer_width: u32) -> u32 {
@@ -130,11 +145,50 @@ fn panel_width(ctx: &Context, layer_width: u32) -> u32 {
     (widest + row_chrome_width()).clamp(toast_min_width().min(layer_width), layer_width)
 }
 
+/// Whether a press at (`x`, `y`) lands on the toasts' panel.
+pub fn toast_hit(ctx: &Context, x: u32, y: u32) -> bool {
+    if ctx.toasts.is_empty() {
+        return false;
+    }
+    let r = toast_rect(ctx.width, ctx.height);
+    let w = panel_width(ctx, r.width);
+    let px = r.x + (r.width - w);
+    x >= px && x < px + w && y >= r.y && y < r.y + r.height
+}
+
+/// The panel is drawn in the chrome band, over every window; it is a window
+/// of the shell's while it is up, so a press on it reaches the shell (which
+/// dismisses it) instead of the window drawn under it. Reopened on every
+/// change of its rect, since its width follows the widest toast.
+fn claim_presses(ctx: &mut Context, panel: Option<Rect>) {
+    let want = panel.map(|p| (p.x, p.y, p.width, p.height));
+    if want == ctx.toast_window {
+        return;
+    }
+    ctx.toast_window = want;
+    let rid = ctx.issue_request_id();
+    let _ = wm_client::window_close(ctx.wm_port, rid, TOAST_WINDOW_ID);
+    if let Some(p) = panel {
+        let rid = ctx.issue_request_id();
+        let _ = wm_client::window_open(
+            ctx.wm_port,
+            rid,
+            TOAST_WINDOW_ID,
+            WINDOW_KIND_POPUP,
+            p.x,
+            p.y,
+            p.width,
+            p.height,
+        );
+    }
+}
+
+const WINDOW_KIND_POPUP: u32 = 3;
+
 fn paint_toasts(ctx: &Context, r: Rect) {
     let (va, st, w, h) = (ctx.backing_va, ctx.stride, ctx.width, ctx.height);
-    fill_rect(va, st, w, h, r.x, r.y, r.width, r.height, TRANSPARENT);
-    let panel_w = panel_width(ctx, r.width);
-    let panel_x = r.x + (r.width - panel_w);
+    let panel = panel_rect(ctx, r);
+    let (panel_x, panel_w) = (panel.x, panel.width);
     let row_h = row_height();
     fill_rect(va, st, w, h, panel_x, r.y, panel_w, r.height, PANEL_ARGB);
     for (i, toast) in ctx.toasts.iter_live().enumerate() {

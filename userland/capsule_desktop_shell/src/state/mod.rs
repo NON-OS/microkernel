@@ -17,28 +17,43 @@
 pub mod apps;
 pub mod chrome;
 pub mod context;
+pub mod delete_prompt;
+pub mod dialog_keys;
+pub mod grab_rule;
 pub mod indicators;
+pub mod instance;
+pub mod launch;
+pub mod launchpad_wheel;
+pub mod live_prompt;
 pub mod menubar;
 pub mod notify;
+pub mod open_arg;
+pub mod paste_line;
 pub mod pkg_prompt;
+pub mod quiet_gap;
+pub mod says;
 pub mod scale;
-pub mod spotlight;
+pub mod store_word;
+pub mod system_key;
 pub mod taskbar;
 pub mod toast;
 pub mod toasts;
 pub mod tool_apps;
 pub mod tray;
+pub mod volume;
+pub mod wm_notice;
 
-pub use apps::LAUNCHER_APPS;
-pub use chrome::TASKBAR_WINDOW_ID;
+pub use apps::{DOCK_APPS, LAUNCHER_APPS};
+pub use chrome::{TASKBAR_WINDOW_ID, TOAST_WINDOW_ID};
 pub use context::Context;
 pub use menubar::{new_menubar_state, MenubarState};
 pub use notify::NotifyLevel;
 pub use pkg_prompt::PkgInstallPrompt;
-pub use spotlight::SpotlightState;
 pub use taskbar::{
-    collapse_taskbar, expire_taskbar_pulses, expire_taskbar_visibility, mark_taskbar_launch,
-    new_taskbar_state, reveal_taskbar, set_taskbar_open, TaskbarState, TASKBAR_NO_ACTIVE,
+    dock_pointer, dock_work, expect_window, expire_taskbar_pulses, expire_taskbar_visibility,
+    forget_dead_windows, go_step, mark_taskbar_launch, new_taskbar_state, raise_tracked, reach_by,
+    reveal_taskbar, set_full_screen, track_window_closed, track_window_opened, windows_overdue,
+    GoStep, Reach, TaskbarState, Uptime, TASKBAR_NO_ACTIVE,
 };
 pub use toasts::ToastQueue;
 pub use tool_apps::TOOL_APPS;

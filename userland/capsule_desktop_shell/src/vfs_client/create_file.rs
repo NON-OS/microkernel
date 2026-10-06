@@ -23,22 +23,27 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_getpid;
 
-use super::call::call;
+use super::call::{call, call_status};
 use super::constants::{HDR_LEN, OP_CLOSE, OP_OPEN, O_CREATE};
 use super::path;
+use crate::state::says::NO_REPLY;
 
-pub fn create_file(path: &[u8]) -> bool {
+const EINVAL: i32 = -22;
+
+/// Ok, or why not: the server's errno, or `EINVAL` for a path it will not send.
+pub fn create_file(path: &[u8]) -> Result<(), i32> {
     if !path::is_valid(path) {
-        return false;
+        return Err(EINVAL);
     }
-    match open_created(path) {
-        Some(fd) => close(fd),
-        None => false,
-    }
+    let fd = open_created(path)?;
+    // The file exists once the open succeeded; a close the server did not
+    // take only leaves a descriptor it frees when this process ends.
+    let _ = close(fd);
+    Ok(())
 }
 
 /// Open the path with O_CREATE and return the new descriptor on success.
-fn open_created(path: &[u8]) -> Option<u32> {
+fn open_created(path: &[u8]) -> Result<u32, i32> {
     let pid = mk_getpid();
     let mut body = Vec::with_capacity(9 + path.len());
     body.extend_from_slice(&pid.to_le_bytes());
@@ -46,11 +51,11 @@ fn open_created(path: &[u8]) -> Option<u32> {
     body.extend_from_slice(path);
     body.extend_from_slice(&O_CREATE.to_le_bytes());
     let mut rx = vec![0u8; 64];
-    let total = call(OP_OPEN, &body, &mut rx)?;
+    let total = call_status(OP_OPEN, &body, &mut rx)?;
     if total < HDR_LEN + 8 {
-        return None;
+        return Err(NO_REPLY);
     }
-    Some(u32::from_le_bytes([rx[HDR_LEN + 4], rx[HDR_LEN + 5], rx[HDR_LEN + 6], rx[HDR_LEN + 7]]))
+    Ok(u32::from_le_bytes([rx[HDR_LEN + 4], rx[HDR_LEN + 5], rx[HDR_LEN + 6], rx[HDR_LEN + 7]]))
 }
 
 /// Release a descriptor returned by open.

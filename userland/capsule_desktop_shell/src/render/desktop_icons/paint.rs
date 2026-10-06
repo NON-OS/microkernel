@@ -24,11 +24,18 @@ use crate::render::layout::Rect;
 use crate::render::measure_aa::{measure_aa, truncate_to_width};
 use crate::render::palette;
 use crate::render::text_aa::text_aa;
-use crate::render::ui_font::{line_h, scale, top_y_centered, LABEL_PX, META_PX};
+use crate::render::ui_font::{line_h, px, top_y_centered, LABEL_PX, META_PX};
 use crate::state::Context;
 
 const LABEL_FG: u32 = palette::TEXT;
-const META_FG: u32 = palette::TEXT_MUTED;
+const META_FG: u32 = palette::TEXT_DIM;
+/*
+ * Each entry sits on a translucent dark tile. The names were drawn straight
+ * onto the wallpaper in light type, which reads on a dark wallpaper and not
+ * at all on a light one (a teal or white wallpaper left the names and their
+ * counts unreadable). On a dark wallpaper the tile all but vanishes.
+ */
+const SCRIM: u32 = palette::ICON_SCRIM;
 const EDIT_BG: u32 = palette::PILL_EDIT;
 const EDIT_FG: u32 = 0xFFFF_FFFF;
 const CARET: u32 = palette::ACCENT;
@@ -38,29 +45,35 @@ const PILL_VPAD_LOGICAL: u32 = 2;
 const GLYPH_GAP_LOGICAL: u32 = 7;
 
 fn pill_pad() -> u32 {
-    PILL_PAD_LOGICAL * scale()
+    px(PILL_PAD_LOGICAL)
 }
 
 fn pill_vpad() -> u32 {
-    PILL_VPAD_LOGICAL * scale()
+    px(PILL_VPAD_LOGICAL)
 }
 
 pub fn paint_desktop_icons(ctx: &Context) {
     for (i, item) in ctx.desktop_items.iter().enumerate() {
         let (cx, cy, cw, _) = cell_rect(ctx, i);
+        let label_y = cy + icon() + px(GLYPH_GAP_LOGICAL);
+        let renaming = ctx.rename == Some(i);
+        if !renaming {
+            scrim(ctx, item, cx, cy, cw, label_y);
+        }
         let icon_x = cx + (cw - icon()) / 2;
         draw_fs_icon(ctx, icon_x, cy, icon(), item.is_dir);
-
-        let label_y = cy + icon() + GLYPH_GAP_LOGICAL * scale();
-        if ctx.rename == Some(i) {
+        if renaming {
             paint_rename(ctx, cx, cw, label_y);
         } else {
             paint_label(ctx, &item.name, cx, cw, label_y);
             paint_meta(ctx, item, cx, cw, label_y + line_h(LABEL_PX));
         }
     }
+}
 
-    // A dragged icon rides under the cursor until it is dropped.
+/// The icon being dragged, under the cursor. It is drawn with the chrome, so
+/// it stays in sight over any window it is dragged across.
+pub fn paint_drag_ghost(ctx: &Context) {
     if ctx.drag_moved {
         if let Some(item) = ctx.drag_from.and_then(|i| ctx.desktop_items.get(i)) {
             let gx = ctx.drag_x.saturating_sub(icon() / 2);
@@ -68,6 +81,20 @@ pub fn paint_desktop_icons(ctx: &Context) {
             draw_fs_icon(ctx, gx, gy, icon(), item.is_dir);
         }
     }
+}
+
+// The tile under one entry: as wide as the widest of its mark and its two
+// lines, from just above the mark to just below the second line.
+fn scrim(ctx: &Context, item: &crate::vfs_client::Entry, cx: u32, cy: u32, cw: u32, label_y: u32) {
+    let shown = truncate_to_width(&item.name, LABEL_PX, cw.saturating_sub(pill_pad() * 2));
+    let mut buf = [0u8; META_CAP];
+    let meta = meta_text(item, &mut buf);
+    let widest = measure_aa(shown, LABEL_PX).max(measure_aa(meta, META_PX)).max(icon());
+    let width = (widest + pill_pad() * 2).min(cw);
+    let top = cy.saturating_sub(pill_pad());
+    let bottom = label_y + line_h(LABEL_PX) + line_h(META_PX) + pill_vpad() * 2;
+    let rect = Rect { x: cx + (cw - width) / 2, y: top, width, height: bottom - top };
+    crate::render::panel::round_fill(ctx, rect, palette::R_TILE, SCRIM);
 }
 
 // The name, centred in the cell.

@@ -16,27 +16,33 @@
 
 mod bottom_taskbar;
 mod cap_names;
+mod cap_table;
 pub mod chrome;
 pub mod consent;
+mod delete_prompt;
 pub mod desktop_icons;
 pub mod desktop_menu;
 pub mod fill;
 mod icons;
 pub mod launchpad;
+pub mod live_prompt;
 pub mod layout;
 pub mod measure_aa;
 pub mod menubar_menu;
+mod off_tile;
 pub mod palette;
 pub mod panel;
 pub mod pkg_consent;
+pub mod shadow_reach;
 pub mod surface;
 pub mod text_aa;
 pub mod toasts;
 pub mod topbar;
 pub mod ui_font;
+mod whole_frame;
 
 pub use bottom_taskbar::paint_bottom_taskbar;
 pub use chrome::paint_chrome;
-pub use icons::{draw_app_glyph, draw_app_icon, draw_tool_icon};
-pub use layout::{menubar_rect, spotlight_rect};
+pub use icons::{draw_app_icon, draw_tool_icon};
+pub use layout::menubar_rect;
 pub use toasts::sync_toast_layer;

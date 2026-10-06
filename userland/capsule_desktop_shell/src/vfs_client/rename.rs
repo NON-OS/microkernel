@@ -23,13 +23,16 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_getpid;
 
-use super::call::call;
+use super::call::call_status;
 use super::constants::OP_RENAME;
 use super::path;
 
-pub fn rename(old: &[u8], new: &[u8]) -> bool {
+const EINVAL: i32 = -22;
+
+/// Ok, or why not: the server's errno, or `EINVAL` for a path it will not send.
+pub fn rename(old: &[u8], new: &[u8]) -> Result<(), i32> {
     if !path::is_valid(old) || !path::is_valid(new) {
-        return false;
+        return Err(EINVAL);
     }
     let pid = mk_getpid();
     let mut body = Vec::with_capacity(6 + old.len() + new.len());
@@ -39,5 +42,5 @@ pub fn rename(old: &[u8], new: &[u8]) -> bool {
     body.push(new.len() as u8);
     body.extend_from_slice(new);
     let mut rx = vec![0u8; 64];
-    call(OP_RENAME, &body, &mut rx).is_some()
+    call_status(OP_RENAME, &body, &mut rx).map(|_| ())
 }

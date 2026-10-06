@@ -18,5 +18,6 @@ mod constants;
 mod drain;
 mod refresh_clock;
 mod run;
+pub(crate) mod tick;
 
 pub use run::run;

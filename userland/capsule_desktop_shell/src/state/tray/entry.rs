@@ -17,6 +17,9 @@
 use crate::protocol::TRAY_LABEL_MAX;
 
 pub const MAX_TRAY_ITEMS: usize = 32;
+/// The most tray items one client holds, so no one client can take every
+/// item from the rest.
+pub const PER_OWNER: usize = MAX_TRAY_ITEMS / 2;
 
 #[derive(Clone, Copy)]
 pub struct TrayEntry {

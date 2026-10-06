@@ -11,8 +11,10 @@ use super::gen_icon;
 use super::grid::{cell_h, cell_origin, cell_w, tile};
 use super::hit::Target;
 use super::tool_icons;
-use crate::render::draw_app_icon;
+use crate::apps_off::is_off;
 use crate::render::measure_aa::{measure_aa, truncate_to_width};
+use crate::render::off_tile::tile_icon;
+use crate::render::palette;
 use crate::render::text_aa::text_aa;
 use crate::render::ui_font;
 use crate::render::ui_font::{top_y_centered, valid_str, UI_PX};
@@ -22,7 +24,7 @@ const LABEL_FG: u32 = 0xFFE4_EEF8;
 const LABEL_GAP_LOGICAL: u32 = 8;
 
 fn label_gap() -> u32 {
-    LABEL_GAP_LOGICAL * ui_font::scale()
+    ui_font::px(LABEL_GAP_LOGICAL)
 }
 
 pub(super) fn paint(ctx: &Context, cell: usize, t: Target) {
@@ -31,7 +33,7 @@ pub(super) fn paint(ctx: &Context, cell: usize, t: Target) {
     let label: &[u8] = match t {
         Target::App(a) => {
             let app = &LAUNCHER_APPS[a];
-            draw_app_icon(ctx, icon_x, cy, app.icon, tile());
+            tile_icon(ctx, icon_x, cy, app, tile());
             app.label
         }
         Target::Tool(t) => {
@@ -51,13 +53,17 @@ pub(super) fn paint(ctx: &Context, cell: usize, t: Target) {
             stem.as_bytes()
         }
     };
-    paint_label(ctx, label, cx, cy + tile() + label_gap());
+    let fg = match t {
+        Target::App(a) if is_off(LAUNCHER_APPS[a].service) => palette::TEXT_DIM,
+        _ => LABEL_FG,
+    };
+    paint_label(ctx, label, fg, cx, cy + tile() + label_gap());
 }
 
 // The tile label, centred within the cell.
-fn paint_label(ctx: &Context, name: &[u8], cx: u32, band_y: u32) {
+fn paint_label(ctx: &Context, name: &[u8], fg: u32, cx: u32, band_y: u32) {
     let shown = truncate_to_width(valid_str(name), UI_PX, cell_w());
     let x = cx + cell_w().saturating_sub(measure_aa(shown, UI_PX)) / 2;
     let band_h = cell_h().saturating_sub(tile() + label_gap());
-    text_aa(ctx, x, top_y_centered(band_y, band_h, UI_PX), shown, LABEL_FG, UI_PX);
+    text_aa(ctx, x, top_y_centered(band_y, band_h, UI_PX), shown, fg, UI_PX);
 }
