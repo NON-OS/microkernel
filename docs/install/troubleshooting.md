@@ -106,3 +106,21 @@ A Wi-Fi join ends with one of these lines (`userland/nonos_wifi_client/src/drive
 | `The driver did not answer` | the driver stopped answering; collect the log |
 
 Remembering a network can fail with `No NONOS store on this boot's disk`, `This boot keeps nothing across reboots` (Amnesic chosen), `No TPM to seal the passphrase with`, or, after a firmware or kernel change, `Sealed under a different boot state` (`userland/nonos_wifi_client/src/saved/error.rs`).
+
+## The installer
+
+| Where | Message | What to do |
+|---|---|---|
+| Welcome | `the bootloader did not record the running image` | boot from a stick written from a sealed image |
+| Welcome | `the bootloader handed over no trailer or boot-root record, and a disk without them would not boot` | the same |
+| Disks | `No driver is serving a disk yet, so there is nowhere to install for now.` | wait for the next look, press `r`, and check the disk is enabled in the firmware |
+| Disks | `Intel RST/VMD is on: set the BIOS storage mode to AHCI (or turn VMD off), then boot this stick again.` | change the storage mode in the firmware |
+| Disks | `holds the loader this boot ran, so it may be the boot disk: not offered` | the disk carries this same build and the firmware gave no record of the boot partition |
+| Confirm | `NONOS needs a disk of at least` | use a disk of 2177 MiB or more |
+| Confirm | `this disk uses 4096-byte blocks` | use a disk with 512-byte blocks |
+| Confirm | `this boot's store is still loading; choose the disk again` | press Escape, wait, choose the disk again |
+| Stopped | `the disk refused a transfer (status` and a number | the drive failed a write; the next lines name the request |
+| Stopped | `sector` and a number, `read back different from what was written` | install again; if the read-back fails twice, the disk is failing |
+| Stopped | `stopped by you before the table was written` | you pressed Escape; the disk has no partition table now |
+
+The sources are `userland/capsule_install/src/install/`, `userland/nonos_blk_client/src/disks/` and `userland/nonos_disk/src/writer/error_text.rs`. When a write stops, the Stopped screen says whether the disk has a complete table and tells you not to boot it, names the request the driver refused, and says what to do next (`userland/capsule_install/src/install/ui/screens/failed.rs`).
