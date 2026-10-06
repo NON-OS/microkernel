@@ -18,10 +18,10 @@
 //! unbypassable capability check. Per-arch entry shims call
 //! `dispatch(SyscallNumber, SyscallArgs)` after extracting the syscall
 //! number and the six argument registers. The x86_64 shim lives in
-//! `crate::arch::x86_64::syscall::manager::entry`. aarch64 and riscv64
-//! shims will live in `crate::arch::{aarch64,riscv64}::syscall` when
-//! those backends are added; the contract surface they call into does
-//! not change.
+//! `crate::arch::x86_64::syscall::manager::entry`. The aarch64 shim is
+//! `arch::aarch64::exceptions::handlers::svc` and the riscv64 one is
+//! `arch::riscv64::interrupts::handlers::syscall`; both call this same
+//! `dispatch`.
 
 mod args;
 mod cap_table;
