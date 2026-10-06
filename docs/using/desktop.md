@@ -88,3 +88,15 @@ The icons on the desk are the entries of the home folder, `/home/nonos` (`userla
 - Drag an icon onto a folder icon to move it into that folder.
 - Right-click empty desk space for `New Folder` and `New File`. Right-click an icon for `Open`, `Rename` and `Delete`.
 - `Delete` on a folder removes the folder and everything in it (`userland/capsule_desktop_shell/src/vfs_client/remove.rs`). There is no trash.
+
+## Windows
+
+Every app window has a title bar with three round buttons at its left end: close, minimise, and the green button (`userland/toolkit/src/decorations/hit_test.rs`).
+
+- Drag the title bar to move the window. A window cannot be dragged under the menu bar.
+- Drag the right or bottom border to resize. The new size is applied when you let go (`userland/app_skeleton/src/runner/drag.rs`).
+- The green button makes the window full screen: the whole width, from the foot of the menu bar to the bottom edge, over the dock's band. Press it again to get the old size back (`userland/app_skeleton/src/runner/chrome.rs`).
+- A click in a window raises it and gives it the keyboard in one step.
+- The first new window opens in the middle of the work area, between the menu bar and the dock. Each later one, in runs of five, steps down and to the right so its title bar stays reachable (`userland/capsule_wm/src/server/handlers/window_open/cascade.rs`).
+
+A window that hangs, or takes every key, can always be ended: press `Ctrl+Alt+Esc` to bring Processes forward and end it there.
