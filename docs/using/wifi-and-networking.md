@@ -14,3 +14,32 @@ You need a network card NONOS has a driver for, an image that carries that drive
 Realtek RTL8821CE Wi-Fi, for scanning, joining, DHCP, DNS and browser traffic: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
 
 Everything else on this page is stated from the code. The host tests of the Wi-Fi path pass on this commit: `rtl8821ce_proofs` (171 tests), `nonos_wifi_core_proofs` (70), `wifi_panel_proofs` (23), `iwlwifi_proofs` (205) and `net_core_proofs` (31).
+
+## Join a Wi-Fi network
+
+Open Settings and pick `Wi-Fi` in the sidebar. The page has four cards: `Wi-Fi` (the switch), `Connection`, `Networks` and `Saved networks` (`WIFI` in `userland/capsule_settings/src/settings/schema/blocks/wifi.rs:21-46`).
+
+1. Check that the `Wi-Fi` switch is on. `W` flips it.
+2. Press Enter to scan. The `Last join` row reads `Scanning...` until the driver answers. Networks are listed strongest first.
+3. Move to a network with the arrow keys and press `C`, or click it.
+4. A secured network opens a passphrase line. Type the passphrase, press Tab to show or hide what you typed, Enter to join, or Esc to cancel. Esc wipes what was typed.
+5. The row reads `Joining <name>...`, then `Joined` or one of the errors listed below.
+6. `D` leaves the network.
+
+The page keeps its own keys (`wifi_key` in `userland/capsule_settings/src/settings/event/wifi_key.rs:42-63`):
+
+| Key | What it does |
+|---|---|
+| `W` | Wi-Fi on or off. Off leaves the network and stops every scan and join. |
+| Enter or Space | Scan. |
+| `C` or a click | Join the highlighted network. |
+| `D` | Leave the network. |
+| `R` | Turn `Remember networks I join` on or off. |
+| `F` | Forget the highlighted saved network. |
+| Up and Down | Move through the scanned and saved networks. |
+| Tab, `[` and `]` | Tab and `]` go to the next section, `[` to the previous one. |
+| Esc | Close Settings, or cancel the passphrase. |
+
+There is no Terminal command to scan or join Wi-Fi in this release. The Terminal's network commands are `ping`, `ifconfig`, `nslookup`, `curl` and `nym` (`GROUPS` in `userland/capsule_terminal/src/command/builtin/help_layout.rs:33-41`).
+
+First-boot setup has its own Network step. It starts on `No network (default, private)` (`NO_NETWORK` in `userland/capsule_setup_wizard/src/render/screens/network.rs:10`), so setup joins no Wi-Fi network unless you pick one. A plugged-in cable is used without asking, and setup says so when it sees a wired card (`userland/capsule_setup_wizard/src/render/screens/network_lines.rs`).
