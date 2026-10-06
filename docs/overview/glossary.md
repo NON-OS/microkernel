@@ -215,3 +215,7 @@ The kernel-owned inbox the spawn path registers for each capsule under the name 
 ## Rollback floor
 
 How far the TPM NV counter at 0x01000020 has risen above its base at 0x01000021. The loader raises it to each admitted kernel's rollback index and, in every mode but Development, refuses a kernel whose index is below it; on a measured boot the kernel holds the boot-root record's epoch to the same floor. Explained in [Rollback protection](../security/rollback-protection.md#where-the-floor-lives). Code: `src/security/tpm/boot_reads/floor.rs`.
+
+## Rollback index
+
+The anti-rollback number signed into the kernel image together with its BLAKE3 hash, set by `rollback_index` in `nonos.toml`, 1 by default and never below 1. Raising it for a release retires every older kernel on each machine where the new one boots. Explained in [Rollback protection](../security/rollback-protection.md#the-kernels-rollback-index). Code: `nonos-bootloader/tools/sign-kernel/src/message.rs`, `nonos.toml`.
