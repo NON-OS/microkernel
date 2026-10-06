@@ -122,3 +122,9 @@ A capsule that has exited stops receiving even while its process row still exist
 ## When a capsule exits
 
 At teardown `release_pending_replies_for_pid` drops every pending call the process made or was owed (`src/process/exit/teardown.rs:52`). `unregister_for_pid` removes `proc.<pid>` and `stdin.<pid>` and zeroes every payload still queued in them (`src/ipc/nonos_inbox/drop_pid.rs:30-50`). The output inbox of a finished child is kept for its parent to drain while `is_retained` says so, and only its stdin inbox goes (`src/process/exit/finalize.rs:25-32`); at most `RETAINED_CAP`, 64, such inboxes are kept (`src/process/exit/postmortem.rs:28-29`). [Processes and capsule spawn](processes-and-spawn.md) covers the rest of exit.
+
+## Code that is present but not used
+
+- `src/ipc/nonos_channel` also holds `bus.rs`, `channel.rs` and `stats.rs`, but its module file declares only `error`, `hash`, `limits` and `message`, so the channel bus is not compiled (`src/ipc/nonos_channel/mod.rs:21-24`).
+- `kernel_route_ipc` and `kernel_check_ipc_permission` have no caller at this commit; the send path calls `kernel_route_ipc_corr` (`src/ipc/kernel_ipc.rs:45-57`).
+- `src/ipc/pipe` is a byte FIFO with a `PIPE_BUF_SIZE` of 65536 bytes and at most `MAX_PIPES`, 1024, pipes (`src/ipc/pipe/types.rs:20-21`). Nothing calls `create_pipe` at this commit, so no pipe is ever made (`src/ipc/pipe/mod.rs:24`); the only use from outside is `get_fd`, which asks `is_pipe` (`src/process/fd_table.rs:105-117`).
