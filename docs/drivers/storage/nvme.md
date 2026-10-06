@@ -51,3 +51,13 @@ Otherwise the controller is still served for identify and health, and read and w
 - One command moves at most 64 sectors of 512 bytes, the 32 KiB data buffer (`userland/capsule_driver_nvme/src/nvm/constants.rs:22-24`, `MAX_SECTORS`, `DATA_BYTES`). A smaller MDTS lowers that, and MDTS 0 means the whole buffer (`userland/capsule_driver_nvme/src/nvm/geometry/transfer.rs:21-37`, `max_transfer_bytes`).
 - A transfer of more than two 4 KiB pages uses a PRP list (`userland/capsule_driver_nvme/src/nvm/prp.rs:20-35`, `build_prp`).
 - The kernel's client cuts larger requests into commands of that size (`src/hardware/nvme_capsule/client/write_blocks.rs:47-52`, `chunks`).
+
+## Host memory buffer
+
+A DRAM-less SSD keeps its mapping tables in host memory when the host offers some. The driver offers what Identify Controller asks for (`userland/capsule_driver_nvme/src/admin/hmb/ask.rs:20-31`, `HmbAsk`):
+
+- the preferred size up to 64 MiB, raised to the controller's minimum when that is larger, and never more than 128 MiB (`userland/capsule_driver_nvme/src/admin/hmb/plan.rs:24-27`, `BUDGET_PAGES`, `CEILING_PAGES`);
+- in pieces of at most 4 MiB, each one broker DMA map, and at most 256 pieces, as many as one 4 KiB page of descriptors names (`userland/capsule_driver_nvme/src/admin/hmb/plan.rs:28-31`, `MAX_CHUNK_PAGES`, `MAX_DESCRIPTORS`);
+- nothing when the controller asks for none, needs more than 128 MiB, or wants pieces larger than 4 MiB (`userland/capsule_driver_nvme/src/admin/hmb/plan.rs:51-57`, `plan`).
+
+SET FEATURES Host Memory Buffer gets 30 s, because a controller may copy its tables into the buffer before it answers (`userland/capsule_driver_nvme/src/admin/hmb/budget.rs:22-26`, `ENABLE_TIMEOUT_MS`). A controller that refuses the buffer is served without one. A controller that never answers fails the attempt, and it is disabled before the memory is unmapped, because only a disable takes the buffer back (`userland/capsule_driver_nvme/src/setup/hmb/held.rs:25-53`, `after_disable`). The same holds when the SMART health log gets no answer right after the buffer was given (`userland/capsule_driver_nvme/src/setup/sequence/served.rs:44-55`, `hmb_given`). Once an attempt that asked for the queue count and the buffer has failed, no later attempt asks for either (`userland/capsule_driver_nvme/src/setup/hmb/extras.rs:22-39`, `EXTRAS_FAILED`).
