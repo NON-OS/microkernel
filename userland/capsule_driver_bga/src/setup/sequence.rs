@@ -18,14 +18,16 @@ use nonos_libc::mk_device_release;
 
 use super::{claim, mmio, pci, Driver};
 use crate::constants::{BYTES_PER_PIXEL, CLEAR_COLOR, FB_BAR, MODE_HEIGHT, MODE_WIDTH, REG_BAR};
-use crate::discover::find_bga;
+use crate::discover::Found;
 use crate::dispi;
-use crate::error::{BgaError, BgaResult};
+use crate::error::BgaResult;
 use crate::handles::BrokerHandles;
 use crate::regs::Regs;
 
-pub fn run() -> BgaResult<Driver> {
-    let dev = find_bga().ok_or(BgaError::DeviceNotFound)?;
+/// One bring-up attempt on the adapter discovery found. Each failing step
+/// releases the claim, which takes any mapping already made with it, so the
+/// next attempt can claim the adapter again.
+pub fn run(dev: Found) -> BgaResult<Driver> {
     let claim_epoch = claim::claim(dev.device_id)?;
     if let Err(e) = pci::enable_bus_master(dev.device_id, claim_epoch) {
         let _ = mk_device_release(dev.device_id);
