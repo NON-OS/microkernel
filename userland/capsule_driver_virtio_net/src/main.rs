@@ -28,13 +28,10 @@ mod regs;
 mod rx;
 mod server;
 mod setup;
+mod transport;
 mod tx;
 
-use nonos_libc::{heap_init, mk_exit, mk_time_millis, mk_yield};
-
-// Bounded probe: exit cleanly if no virtio-net appears, instead of spinning
-// forever on hardware that has none (real machines use their physical NIC).
-const PROBE_DEADLINE_MS: i64 = 10_000;
+use nonos_libc::{bring_up, heap_init, mk_exit, EXIT_ABSENT, EXIT_GAVE_UP};
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
@@ -42,19 +39,26 @@ pub unsafe extern "C" fn _start() -> ! {
         mk_exit(1);
     }
 
-    let start = mk_time_millis();
-    let mut driver = loop {
-        match setup::run() {
-            Ok(d) => break d,
-            Err(_) => {
-                if mk_time_millis().wrapping_sub(start) > PROBE_DEADLINE_MS {
-                    mk_exit(0);
-                }
-                for _ in 0..64 {
-                    mk_yield();
-                }
-            }
-        }
+    /*
+     * The broker lists every PCI function before the first capsule starts, so
+     * a machine without a virtio-net has none to wait for. Retrying discovery
+     * here spun for ten seconds of boot while net_core's link probes to this
+     * name went unanswered; leave the way the wired drivers do (absent).
+     */
+    if discover::find_virtio_net().is_none() {
+        mk_exit(EXIT_ABSENT);
+    }
+
+    /*
+     * A present device that will not come up used to be retried for ten
+     * seconds with 64 yields between tries: on a modern-only function that
+     * was a claim, refused map and release a few thousand times over, on a
+     * core nobody else got. The shared bring-up sleeps between a bounded
+     * number of attempts, each of which releases what it claimed, and logs
+     * once when it gives up.
+     */
+    let Ok(mut driver) = bring_up(b"driver.virtio_net0", setup::run) else {
+        mk_exit(EXIT_GAVE_UP);
     };
 
     if driver.rx.region_phys() == 0 || driver.tx.region_phys() == 0 {

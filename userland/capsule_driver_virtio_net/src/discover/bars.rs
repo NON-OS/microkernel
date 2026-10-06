@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::{MAC_LEN, MAX_ETHERNET_FRAME};
+use nonos_libc::{DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO};
+use nonos_virtio::{BarInfo, Bars};
 
-pub const STATUS_LEN: usize = 4;
-
-pub const MAX_TX_PAYLOAD_BYTES: u32 = MAX_ETHERNET_FRAME as u32;
-pub const MAC_ADDRESS_PAYLOAD_LEN: usize = MAC_LEN;
-pub const LINK_STATUS_PAYLOAD_LEN: usize = 1;
-
-pub const RX_PAYLOAD_PREFIX_LEN: usize = 4;
-/// Frames one batch carries at most: most of the 64 slot ring, so the
-/// device keeps buffers to fill while the batch is on its way.
-pub const BATCH_MAX_FRAMES: usize = 44;
-/// Frame bytes one batch carries at most, prefixes included.
-pub const BATCH_MAX_BYTES: usize = 64 * 1024;
+/// The broker's BAR list in the shared transport's terms.
+pub(super) fn bars(r: &DeviceRecord) -> Bars {
+    let mut out = [BarInfo::ABSENT; 6];
+    for (slot, bar) in out.iter_mut().zip(r.bars.iter()) {
+        *slot = match bar.kind {
+            BAR_KIND_MMIO => BarInfo::mmio(bar.size),
+            BAR_KIND_PIO => BarInfo::io(bar.size),
+            _ => BarInfo::ABSENT,
+        };
+    }
+    out
+}

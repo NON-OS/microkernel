@@ -23,7 +23,7 @@ use crate::setup::Driver;
 
 pub fn handle(sender_pid: u32, driver: &Driver, req: &Request, tx: &mut [u8]) -> bool {
     let up = if driver.status_supported {
-        let s = unsafe { driver.regs.r16(driver.net_status_offset) };
+        let s = driver.transport.config_r16(driver.net_status_offset);
         (s & VIRTIO_NET_S_LINK_UP) != 0
     } else {
         true

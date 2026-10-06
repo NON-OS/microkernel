@@ -14,17 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::{MAC_LEN, MAX_ETHERNET_FRAME};
+//! The address this station transmits from, drawn per bring-up rather than
+//! taken from the device. The driver never takes VIRTIO_NET_F_MAC, so the
+//! address a hypervisor or a card hands out is never transmitted.
 
-pub const STATUS_LEN: usize = 4;
+use nonos_mac::{apply, MAC_LEN};
 
-pub const MAX_TX_PAYLOAD_BYTES: u32 = MAX_ETHERNET_FRAME as u32;
-pub const MAC_ADDRESS_PAYLOAD_LEN: usize = MAC_LEN;
-pub const LINK_STATUS_PAYLOAD_LEN: usize = 1;
-
-pub const RX_PAYLOAD_PREFIX_LEN: usize = 4;
-/// Frames one batch carries at most: most of the 64 slot ring, so the
-/// device keeps buffers to fill while the batch is on its way.
-pub const BATCH_MAX_FRAMES: usize = 44;
-/// Frame bytes one batch carries at most, prefixes included.
-pub const BATCH_MAX_BYTES: usize = 64 * 1024;
+/// Draw a station address. Fails closed: the device's address would transmit
+/// the identifier this avoids.
+pub fn draw() -> Result<[u8; MAC_LEN], &'static str> {
+    let mut mac = [0u8; MAC_LEN];
+    let rc = nonos_libc::crypto_random(mac.as_mut_ptr(), MAC_LEN);
+    if rc < 0 || (rc as usize) != MAC_LEN {
+        return Err("virtio-net: no entropy for a station address");
+    }
+    apply(&mut mac);
+    Ok(mac)
+}

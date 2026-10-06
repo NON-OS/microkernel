@@ -14,6 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) const fn bit(n: u32) -> u32 {
-    1u32 << n
-}
+//! Legacy or modern virtio-pci: how the running driver reaches the device.
+
+mod access;
+mod broker;
+mod probe;
+mod types;
+
+pub use broker::LibcBroker;
+pub use probe::probe;
+pub use types::{Modern, Transport};

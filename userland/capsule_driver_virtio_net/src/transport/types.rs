@@ -14,17 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::constants::{MAC_LEN, MAX_ETHERNET_FRAME};
+use nonos_virtio::Mmio;
 
-pub const STATUS_LEN: usize = 4;
+use crate::regs::Regs;
 
-pub const MAX_TX_PAYLOAD_BYTES: u32 = MAX_ETHERNET_FRAME as u32;
-pub const MAC_ADDRESS_PAYLOAD_LEN: usize = MAC_LEN;
-pub const LINK_STATUS_PAYLOAD_LEN: usize = 1;
+#[derive(Clone, Copy)]
+pub enum Transport {
+    /// The legacy register window, in an I/O or memory BAR.
+    Legacy(Regs),
+    /// The virtio 1.0 structures, each mapped on its own.
+    Modern(Modern),
+}
 
-pub const RX_PAYLOAD_PREFIX_LEN: usize = 4;
-/// Frames one batch carries at most: most of the 64 slot ring, so the
-/// device keeps buffers to fill while the batch is on its way.
-pub const BATCH_MAX_FRAMES: usize = 44;
-/// Frame bytes one batch carries at most, prefixes included.
-pub const BATCH_MAX_BYTES: usize = 64 * 1024;
+#[derive(Clone, Copy)]
+pub struct Modern {
+    /// struct virtio_net_config.
+    pub device: Mmio,
+    pub notify: Mmio,
+    /// Each queue's doorbell offset in `notify`, by queue index (receive,
+    /// transmit).
+    pub doorbells: [usize; 2],
+}
