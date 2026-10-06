@@ -207,3 +207,7 @@ A host Rust crate, mostly a `userland/*_proofs` directory, that compiles shippin
 ## Publisher
 
 Whoever holds a NONOS ID certificate and the keys it names, and signs capsule manifests with them; a manifest's namespace must match one of the certificate's namespace globs. A capsule under `systems.nonos` is in the enrolled tier and any other in the publisher tier, and both must still pass the attestation trailer check. Explained in [Signing and publisher keys](../userland/signing-and-publisher-keys.md#publishers-outside-the-project). Code: `src/kernel_core/process_spawn/capsule_spawn/runner/tier.rs`.
+
+## Reply inbox
+
+The kernel-owned inbox the spawn path registers for each capsule under the name of its reply endpoint. Replies to that capsule's `MkIpcCall` requests arrive there, and only one that carries the call's correlation token is delivered. Explained in [IPC](../kernel/ipc.md#the-model). Code: `src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs`, `src/syscall/microkernel/ipc/reply_inbox.rs`.
