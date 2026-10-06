@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::calc::op::{apply, Op};
-use crate::calc::state::{ErrorKind, State};
+use crate::calc::state::State;
 
 pub fn run(state: &mut State, op: Op) {
     if state.is_error() {
@@ -41,5 +41,4 @@ pub fn run(state: &mut State, op: Op) {
     }
     state.operator = op;
     state.reset_input();
-    let _ = ErrorKind::None;
 }

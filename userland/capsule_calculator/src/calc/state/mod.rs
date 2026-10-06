@@ -27,13 +27,7 @@ mod convert_sel;
 mod programmer;
 mod set_mode;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum ErrorKind {
-    None,
-    DivByZero,
-    DomainError,
-    Overflow,
-}
+pub use super::error_kind::ErrorKind;
 
 pub struct State {
     pub mode: Mode,
@@ -54,6 +48,15 @@ pub struct State {
     pub from: usize,
     pub to: usize,
     pub history: Ring,
+    /// History rows scrolled past at the top of the History page. The ring
+    /// holds more calculations than the page has rows for.
+    pub history_scroll: usize,
+}
+
+impl Default for State {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl State {
@@ -77,6 +80,7 @@ impl State {
             from: 0,
             to: 1,
             history: Ring::new(),
+            history_scroll: 0,
         }
     }
     pub fn memory_engaged(&self) -> bool {

@@ -26,7 +26,7 @@ pub fn reciprocal(value: Fixed) -> Result<Fixed, ErrorKind> {
     if value == 0 {
         return Err(ErrorKind::DivByZero);
     }
-    let scaled = (FRAC as i128).checked_mul(FRAC).ok_or(ErrorKind::Overflow)?;
+    let scaled = FRAC.checked_mul(FRAC).ok_or(ErrorKind::Overflow)?;
     Ok(scaled / value)
 }
 
@@ -46,7 +46,7 @@ fn integer_sqrt_u128(n: u128) -> u128 {
         return n;
     }
     let mut x = n;
-    let mut y = (x + 1) / 2;
+    let mut y = x.div_ceil(2);
     while y < x {
         x = y;
         y = (x + n / x) / 2;
