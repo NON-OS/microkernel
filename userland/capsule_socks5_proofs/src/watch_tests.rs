@@ -69,3 +69,35 @@ fn uptime_zero_edge_does_not_wedge_the_first_send() {
     w.on_send(5);
     assert!(w.should_rotate(5 + SILENCE_MS));
 }
+
+#[test]
+fn an_answer_without_payload_restarts_the_budget_but_proves_nothing() {
+    let mut w = Watch::new();
+    w.on_send(1_000);
+    // The connect is accepted late in the budget, on a slow machine.
+    w.on_answered(1_000 + SILENCE_MS - 1);
+    assert!(!w.should_rotate(1_000 + SILENCE_MS), "the exit answered: not silent");
+    assert!(!w.proven, "an accepted connect is not a delivery");
+    // Silent again for a whole budget after its last answer: walked away from.
+    assert!(w.should_rotate(1_000 + 2 * SILENCE_MS - 1));
+}
+
+#[test]
+fn an_answer_before_any_send_starts_no_clock() {
+    let mut w = Watch::new();
+    w.on_answered(5_000);
+    assert!(!w.should_rotate(5_000 + SILENCE_MS * 10));
+}
+
+#[test]
+fn a_proven_exit_that_goes_quiet_is_walked_away_from_after_the_longer_budget() {
+    use crate::watch::PROVEN_SILENCE_MS;
+    let mut w = Watch::new();
+    w.on_send(1_000);
+    w.on_delivered();
+    assert!(!w.should_rotate(1_000 + PROVEN_SILENCE_MS * 10), "a delivery ends the silence");
+    w.on_send(5_000);
+    assert!(!w.should_rotate(5_000 + SILENCE_MS), "not on the unproven budget");
+    assert!(!w.should_rotate(5_000 + PROVEN_SILENCE_MS - 1));
+    assert!(w.should_rotate(5_000 + PROVEN_SILENCE_MS), "a proven exit no longer holds the session for good");
+}
