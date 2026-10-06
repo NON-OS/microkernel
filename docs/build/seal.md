@@ -52,3 +52,16 @@ The seal runs six phases in the order the trust chain needs them (`say`, `tools/
 6. verify: every check the boot will make, run against what was written, then a fresh build of the tree compared with what was sealed.
 
 The phase names, from `inputs` to `verify`, come from the seal's own description (`tools/nonos_seal/__init__.py:22-33`). Each phase writes only public files into `nonos-data/` and stages them, then asks the flake to build the next artifact from the tree as it now stands (`tools/nonos_seal/__init__.py`).
+
+## What it signs
+
+The build receipt lists what a seal signs (`signs`, `tools/nonos-receipt:156-161`):
+
+| what | signed with |
+|---|---|
+| every capsule's certificate and manifest | Ed25519 and ML-DSA-65, with the publisher keys |
+| the kernel, at the [rollback index](../overview/glossary.md#rollback-index) | Ed25519 and ML-DSA-65 |
+| `boot_root.approval` and `kernel.approval` | the device policy key |
+| `BOOTX64.EFI` | the Secure Boot db key, when the seal has one |
+
+On top of the signatures, the capsules, the kernel and the loader each carry a STARK membership trailer. A [development image](../overview/glossary.md#development-image) carries only the Merkle path in each trailer, with no STARK proof, which only its own gates accept (`path_only`, `tools/nonos_seal/__main__.py:123-130`). [Boot chain and signatures](../security/boot-chain-and-signatures.md) and [STARK attestation](../security/stark-attestation.md) describe how the boot checks them.
