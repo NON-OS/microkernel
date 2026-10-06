@@ -25,3 +25,9 @@ syscall-abi: 130 published syscalls reach a handler
 | Graphics | 1 | `GDIM` | `graphics_backend` |
 
 The full list, with each call's arguments and the capability it needs, is on [Syscall ABI](../abi/syscalls.md).
+
+## Numbers are tags
+
+A system call number is four ASCII letters packed into a `u64` by `tag4`, first letter in the lowest byte (`src/syscall/abi/tag.rs:17-22`). These are the [syscall tags](../overview/glossary.md#syscall-tag). `MkIpcSend` is `MISD`, which is `0x4453494D` (`abi/syscalls.toml:150`), and a memory dump of the number reads `MISD`.
+
+`SyscallNumber::from_u64` calls `lookup_id`, which searches the registry (`src/syscall/abi/mod.rs:31-40`). A number that is not there gets `ENOSYS`, -38, unless the caller is a Linux guest, described below.
