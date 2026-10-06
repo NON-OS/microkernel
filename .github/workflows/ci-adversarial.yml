@@ -24,15 +24,20 @@ jobs:
   adversarial:
     name: adversarial
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        # every step after the setup runs in `nix develop`, the shell a
+        # developer gets, so CI and a contributor run the same tools
+        shell: nix develop --command bash --noprofile --norc -eo pipefail {0}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
           persist-credentials: false
-      - uses: ./.github/actions/nonos-setup
+      - uses: ./.github/actions/nix-setup
         with:
-          module: adversarial
+          cache: ${{ vars.NONOS_CACHIX }}
       - name: nonos-verify adversarial
         run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- adversarial
       - name: Upload adversarial artifacts
