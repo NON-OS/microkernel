@@ -169,6 +169,12 @@ let
   # tarball, the committed config, static against musl, by
   # tools/nonos-busybox-build with the pinned zig as its compiler. zig carries
   # the Linux UAPI headers its musl target needs, so no host headers are read.
+  # A build machine that is not x86_64 Linux strips BusyBox with an x86_64
+  # strip: its own cannot read the x86_64 ELF it has just linked. On x86_64
+  # Linux nothing here changes, so that build stays exactly as it was.
+  nativeX86 = pkgs.stdenv.hostPlatform.isx86_64 && pkgs.stdenv.hostPlatform.isLinux;
+  x86Binutils = pkgs.pkgsCross.gnu64.buildPackages.binutils-unwrapped;
+
   busybox = pkgs.stdenv.mkDerivation {
     name = "nonos-busybox-1.36.1";
     src = src.busybox;
@@ -194,7 +200,11 @@ let
       done
       exec ${zig}/zig cc -target x86_64-linux-musl "\$@"
       EOF
-      chmod +x $TMPDIR/musl-cc
+      chmod +x $TMPDIR/musl-cc${lib.optionalString (!nativeX86) ''
+
+        mkdir -p $TMPDIR/x86bin
+        ln -s ${x86Binutils}/bin/x86_64-unknown-linux-gnu-strip $TMPDIR/x86bin/strip
+        export PATH=$TMPDIR/x86bin:$PATH''}
       mkdir -p $TMPDIR/kheaders $out
       CC=$TMPDIR/musl-cc KHEADERS=$TMPDIR/kheaders BUSYBOX_TARBALL=$tarball \
         sh tools/nonos-busybox-build $out/busybox
