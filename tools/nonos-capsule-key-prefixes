@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Print the publisher key prefix of every capsule the build includes: the
+CAPSULE_BIN_NAME of each userland/*/Capsule.mk the make files include, in
+include order. The key ceremony makes one publisher pair per prefix."""
+
+import argparse
+import re
+import sys
+from pathlib import Path
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("--root", default=".", help="repository root")
+    a = ap.parse_args()
+    root = Path(a.root)
+    makefiles = [root / "Makefile"] + sorted((root / "mk").glob("*.mk"))
+    include = re.compile(r"^include (userland/\S+/Capsule\.mk)$", re.M)
+    name = re.compile(r"^\s*CAPSULE_BIN_NAME\s*:=\s*(\S+)\s*$", re.M)
+    seen = []
+    for mf in makefiles:
+        for path in include.findall(mf.read_text(errors="replace")):
+            m = name.search((root / path).read_text(errors="replace"))
+            if not m:
+                print(f"no CAPSULE_BIN_NAME in {path}", file=sys.stderr)
+                return 1
+            if m.group(1) not in seen:
+                seen.append(m.group(1))
+    if not seen:
+        print("no capsule includes found", file=sys.stderr)
+        return 1
+    print(" ".join(seen))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
