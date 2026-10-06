@@ -67,3 +67,26 @@ Seventeen calls are refused on purpose. Each one logs `[LINUX] refused` with its
 | `inotify_init`, `inotify_init1`, `inotify_add_watch`, `inotify_rm_watch` | `ENOSYS` | the store sends no change events to watch |
 
 That is ten `EPERM` refusals and seven `ENOSYS` ones. Among the 153 unserved calls, these seventeen are the only ones answered with a reason; the rest get the plain `ENOSYS` above. System V shared memory and semaphores, for example, are unserved.
+
+## What it runs
+
+When the store has no file at a path and the name is `busybox` or one of its programs, bare or in `/bin`, `/sbin`, `/usr/bin` or `/usr/sbin`, the personality runs its built-in BusyBox 1.36.1, compiled static against musl and embedded in the capsule; a file the store does hold always runs instead (`userland/capsule_linux/src/linux/built_in.rs:24-43`, `BUILT_IN`). The binary is built by `tools/nonos-busybox-build` from the upstream release at a pinned SHA-256 and the committed `userland/capsule_linux/guests/busybox.config` (`tools/nonos-busybox-build:39-41`, `SHA256`). The flake check `busybox-source` compares the committed binary with one built from source (`tools/nix/checks.nix:287-292`, `busybox`); it did not pass on this commit, so this release does not claim that the two match.
+
+Nineteen more programs are built from pinned upstream sources and signed and enrolled like capsules, each with target `x86_64-unknown-linux-musl` and a required capability word of 0 (`userland/linux_userland/Userland.mk:107-124`, `LINUX_USERLAND_CAPSULE`):
+
+| Program | Path in the Linux tree |
+|---|---|
+| CPython | `/usr/bin/python3`, with its standard library as `/usr/lib/python312.zip` |
+| Lua, Perl, Tcl, mruby, QuickJS | `/usr/bin/lua`, `/usr/bin/perl`, `/usr/bin/tclsh`, `/usr/bin/mruby`, `/usr/bin/qjs` |
+| SQLite shell | `/usr/bin/sqlite3` |
+| jq, gojq | `/usr/bin/jq`, `/usr/bin/gojq` |
+| ripgrep, fd | `/usr/bin/rg`, `/usr/bin/fd` |
+| zstd, nano, make, OpenSSL | `/usr/bin/zstd`, `/usr/bin/nano`, `/usr/bin/make`, `/usr/bin/openssl` |
+| John the Ripper | `/usr/bin/john`, with its config and word list in `/usr/share/john/` |
+| the Qwen chat program | `/bin/qwenchat`, plus builds for x86-64-v2 and baseline x86-64 |
+
+The list is `userland/linux_userland/Userland.mk:153-181` (`LINUX_USERLAND_GUEST`). Every one of them is carried in the image's store; the separate package list in `tools/nix/store.json` is empty in this release. Python finds a CA bundle at `/etc/ssl/cert.pem`, so its `ssl` module can verify a TLS peer (`userland/linux_userland/Userland.mk:183-193`, `LINUX_USERLAND_STORE_ENTRIES`). Every guest runs as uid 0 (`userland/linux_userland/Userland.mk:211-216`, `LINUX_USERLAND_STORE_DEPS`). How the Qwen model tiers are chosen and installed is on [Local AI](../using/local-ai.md).
+
+A program from the store runs only after it proves itself; the built-in BusyBox is already covered by the personality's own [manifest](../overview/glossary.md#manifest) (`userland/capsule_linux/src/linux/start_guest.rs:56-62`, `prove`). The proof sits beside the program as `.zk_trailer.bin`. With a certificate and a manifest there too, it is checked by `mk_capsule_verify`, the exact chain the [spawn gate](../overview/glossary.md#spawn-gate) runs (`userland/capsule_linux/src/linux/attest_publisher.rs:21-44`, `mk_capsule_verify`). With a trailer alone, it must be one this machine made for a program holding no capabilities (`userland/capsule_linux/src/linux/attest_local.rs:21-30`, `GUEST_CAPS`). A refused program does not run, and the Terminal says so.
+
+The install role also installs Alpine, Debian and pacman packages. A name with `deb:` or `pacman:` in front picks the family, and each family keeps its own tree, so a Debian `jq` never lands on Alpine's (`userland/capsule_linux/src/linux/file/family.rs:31-47`, `PLACES`).
