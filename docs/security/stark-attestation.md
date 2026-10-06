@@ -162,3 +162,13 @@ A development image takes trailers that are the path alone. The flake adds the k
 - `proofs-stark_proofs`: 198 host tests of the in-tree `userland/stark_proofs` crate, which tests the v3-era engine, not `nox_verify` and not the STARKs prover that shares its name. Passed.
 - The booted refusal test boots a test kernel under QEMU and expects four refusals (`flip`, `extra_cap`, `kernel_kind`, `stale_epoch`) and one admission (`CASES`, `nonos-ci/attest_refusal_check.py:26`). It is the make target `nonos-mk-attest-refusal-run` (`ATTEST_REFUSAL_LOG`, `mk/25-attest-refusal.mk:53-62`), and was not run for this release.
 - Two Kani harnesses for `parse_v4` and the v3 reader live in `nonos-attest-path/src/kani_proofs.rs`; `Kani` runs in its own workflow, outside the flake checks (`tools/nix/checks.nix:5-7`), and was not run for this release.
+
+## See also
+
+- [Boot chain and signatures](boot-chain-and-signatures.md)
+- [Measured boot and the TPM](measured-boot-and-tpm.md)
+- [Rollback protection](rollback-protection.md)
+- [Device secrets and keys](device-secrets-and-keys.md)
+- [Manifests and capabilities](../userland/manifests-and-capabilities.md)
+- [Processes and capsule spawn](../kernel/processes-and-spawn.md)
+- [Tests and proofs](../contributing/tests-and-proofs.md)
