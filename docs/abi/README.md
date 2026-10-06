@@ -64,3 +64,16 @@ The published files still disagree with the code in places. Where they differ, t
 - The `[limits]` section of `abi/syscalls.toml` publishes `max_mmap_bytes` as 268435456, 256 MiB (`abi/syscalls.toml:48-52`). `sys_mmap` refuses only a length above `MAX_MMAP_SIZE`, 1 GiB (`src/syscall/microkernel/memory/consts.rs:19`). No script compares that section with the code.
 - The `[token]` section of `abi/caps.toml` publishes `id_bytes` and `mac_bytes` of 32 (`abi/caps.toml:58-65`). `CapabilityToken` holds a `u64` `token_id` and a 64-byte `signature` (`src/capabilities/token/types/defs.rs:22-32`).
 - `abi/driver_broker_abi.md` describes an older device record and lists claim and map as reserved. [Broker](broker.md) has the current calls and layouts.
+
+## How the tables are checked
+
+The numbers, names, gates, layouts, constants and ports in the tables on these pages were generated from the source, and each page was compared with the source by a script that reads files only. Those scripts are not part of this commit, so they are not shown here. The Meaning cells are written by hand from the handlers and their comments.
+
+The checks in the tree compare the files in `abi/` with the code. `check_syscall_abi.py` also compares the capability each `[desc.TAG]` block in `abi/syscalls.toml` publishes with the cap table. Run from the repository root, each passes at this commit:
+
+```sh
+python3 scripts/check_abi_stable.py
+python3 scripts/check_syscall_abi.py
+python3 scripts/check_syscall_args.py
+python3 scripts/check_caps_abi.py
+```
