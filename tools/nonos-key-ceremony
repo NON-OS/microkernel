@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""The key ceremony: make every key the NONOS build uses, on the owner's machine.
+
+    tools/nonos-key-ceremony plan                 what would be made, and where
+    tools/nonos-key-ceremony check                refusals, modes and what is missing
+    tools/nonos-key-ceremony make                 make every missing key
+    tools/nonos-key-ceremony manifest             write the public fingerprints
+    tools/nonos-key-ceremony backup --out FILE    encrypted copy, outside the tree
+    tools/nonos-key-ceremony restore --from FILE  put a backup back
+
+It never prints, copies or uploads a private half, never overwrites a key, and
+refuses to run where git would track or not ignore a private path. Public halves
+go where the make files read them; nonos-data/trust holds the committed ones.
+"""
+
+import argparse
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from nonos_keys import cli  # noqa: E402
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
+    ap.add_argument("--root", default=".", help="the repository root")
+    ap.add_argument("--capsule-sign", default="nonos-sign/target/release/capsule-sign")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    for name in ("plan", "check", "make", "manifest"):
+        sub.add_parser(name)
+    sub.add_parser("backup").add_argument("--out", required=True)
+    sub.add_parser("restore").add_argument("--from", dest="src", required=True)
+    cli.run(ap.parse_args())
+
+
+if __name__ == "__main__":
+    main()
