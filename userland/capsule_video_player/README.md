@@ -3,7 +3,7 @@
 `video_player` is the "Video" window: a library of the video files in the vfs and a player for
 Motion-JPEG AVI. It streams frames from the vfs through a bounded read window, decodes each JPEG
 with the crates.io `zune-jpeg` 0.4, and letterboxes it to the window. It is for any desktop user
-watching the sample films that `mk/40-run.mk` packs under `/Movies`. The handbook page is
+watching the Motion-JPEG AVI films they put under `/Movies`; the image ships none. The handbook page is
 [Audio and media](../../docs/handbook/audio-and-media.md).
 
 ## Role
