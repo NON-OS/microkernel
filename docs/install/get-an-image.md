@@ -86,3 +86,11 @@ python3 -c 'import json; print(json.load(open("target/release/standard/nonos-rel
 Not tested in this release.
 
 The two values must be the same. Whether a build gives the same bytes as another is on [Reproducible builds](../build/reproducible-builds.md).
+
+## See also
+
+- [Requirements](requirements.md)
+- [Write a USB stick](usb-stick.md)
+- [Building NONOS](../build/README.md)
+- [Make targets](../build/make-targets.md)
+- [Boot chain and signatures](../security/boot-chain-and-signatures.md)
