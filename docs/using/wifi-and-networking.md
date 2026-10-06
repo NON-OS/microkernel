@@ -128,3 +128,9 @@ The panel also says why it did not act:
 - `Still waiting for the driver's last answer; try again when it comes`
 
 When a network cannot be remembered, the reason is one of: `This boot keeps nothing across reboots`, `No TPM to seal the passphrase with`, `Sealed under a different boot state`, `The TPM did not give the sealing key`, `Sealed elsewhere or altered on disk`, `The saved-networks record is damaged` or `No NONOS store on this boot's disk`.
+
+## Ethernet
+
+Plug in a cable. There is nothing to configure. About once a second (`REEVAL_INTERVAL_MS`, 1000 ms, in `userland/capsule_net_core/src/server/runner/run.rs:29`), `net.core` looks for a network card whose link is up, binds to it and starts DHCP. Its candidates are the Wi-Fi drivers first, then the wired ones (`WIFI_NICS` and `WIRED_NICS` in `userland/capsule_net_core/src/setup/candidates.rs:24-38`).
+
+The `e1000e` and `igc` driver capsules are in the source tree, but no 0.9.2 image carries them: no kernel profile embeds them (`src/hardware/`, `Cargo.toml`). See [Intel Ethernet](../drivers/ethernet/intel.md).
