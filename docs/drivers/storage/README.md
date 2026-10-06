@@ -74,3 +74,13 @@ The installer writes a whole disk through `nonos_disk`, and the kernel reads the
 The sector numbers come from `userland/nonos_disk_map/src/places.rs:23-48` (`STORE_BASE_LBA`, `KEY_LBA`, `DATA_FLOOR`), and the ESP's place from `userland/nonos_disk/src/layout/plan.rs:54-62` (`esp_end`). The [data volume](../../overview/glossary.md#data-volume) starts at or above 128 MiB. The smallest disk the installer takes is 2177 MiB: the 128 MiB below the data floor, a 1 GiB data volume, the 1 GiB ESP and 1 MiB for the backup table (`userland/nonos_disk/src/layout/sizes.rs:34-38`, `MIN_DISK_SECTORS`).
 
 A disk plan whose volume base and size are both 0 belongs to a live stick: the volume stays in RAM and nothing of the machine is written to the stick (`src/fs/blockfs_volume/plan_types.rs:56-59`, `is_live`).
+
+## Sector sizes
+
+Every caller in NONOS addresses 512-byte sectors, and a disk whose blocks cannot be mapped onto them is passed over by name in the log (`src/hardware/block_device/fit.rs:22-30`, `sectors_fit`). What each driver maps:
+
+- NVMe: namespaces of 512 or 4096-byte LBAs. The kernel's NVMe client reads a 4096-byte LBA whole and writes part of one by reading it, patching it and writing it back (`src/hardware/nvme_capsule/client/write_blocks.rs:27-35`, `write_blocks`).
+- SATA: 512-byte logical sectors only (`userland/capsule_driver_ahci/src/identity/refusal.rs:23-24`, `SectorSize`).
+- USB: logical blocks of 512, 1024, 2048 or 4096 bytes (`userland/capsule_driver_usb_msc/src/span/mod.rs:27-34`, `sectors_per_block`).
+- eMMC: 512-byte sectors (`userland/capsule_driver_ahci/src/emmc/disk/sizes.rs:19-21`, `SECTOR_SIZE`).
+- virtio-blk: 512-byte sectors (`userland/capsule_driver_virtio_blk/src/constants/queue.rs:21-22`, `SECTOR_SIZE`).
