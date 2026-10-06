@@ -1,0 +1,44 @@
+name: nix-setup
+description: >-
+  The one CI setup: Nix with flakes, and the NONOS binary cache. Everything a
+  job runs after this comes from flake.lock, so a CI job and a developer's
+  `nix develop` run the same tools. The cache is the Cachix cache the
+  repository variable NONOS_CACHIX names; it is written only when the job is
+  given CACHIX_AUTH_TOKEN, which only pushes to this repository pass,
+  never a pull request.
+
+inputs:
+  cache:
+    description: "The Cachix cache to read (vars.NONOS_CACHIX); empty uses none."
+    required: false
+    default: ""
+  cachix-token:
+    description: "CACHIX_AUTH_TOKEN; when empty the cache is read and never written."
+    required: false
+    default: ""
+  use-cache:
+    description: "'false' for a build that must not take anyone else's outputs (ci-reproducible)."
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Install Nix
+      uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24
+      with:
+        extra_nix_config: |
+          experimental-features = nix-command flakes
+          sandbox = true
+          max-jobs = auto
+
+    - name: Binary cache
+      if: inputs.use-cache == 'true' && inputs.cache != ''
+      uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866
+      with:
+        name: ${{ inputs.cache }}
+        authToken: ${{ inputs.cachix-token }}
+
+    - name: The commit's time, for every timestamp a lane writes
+      shell: bash
+      run: echo "SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)" >> "$GITHUB_ENV"
