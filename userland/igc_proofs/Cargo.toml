@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the igc (I225/I226) driver capsule. Builds for the
+# host so `cargo test` runs the real driver source (included via #[path])
+# against hostile descriptors and a modelled register file, without a boot
+# and without the part: QEMU has no I225/I226 model.
+[package]
+name = "igc_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_devmodel = { path = "../nonos_devmodel" }
+nonos_mac = { path = "../nonos_mac" }
+nonos_libc = { package = "igc_proofs_libc_shim", path = "libc_shim" }
