@@ -42,3 +42,13 @@ Thirteen Intel device ids, taken from the table of Linux's vmd driver: 8086:201d
 ## What has not been tested
 
 The bring-up has not run on a machine with a VMD in this release, and no QEMU target in `mk/` attaches one. What is tested is the part that needs no hardware. `userland/kernel_proofs` drives the id table, the bus start, the CFGBAR offsets, the window choice and the whole assignment walk against a simulated bus (`userland/kernel_proofs/src/vmd_domain/mod.rs:17-33`, `sim`). The crate's 388 tests pass on this commit.
+
+## Reading the log
+
+The kernel writes these lines itself, so they appear in every image:
+
+- `[VMD] no Intel VMD on segment 0; disks are on the root bus` (`src/drivers/pci/vmd/ensure.rs:34-38`, `found`).
+- `[VMD] <id> at bus <n> dev <n>: RST/VMD is on; bringing up the drives behind it`, then the segment, buses and functions it assigned, and one line for each function found with its class. An NVMe drive shows class 010802 (`src/drivers/pci/vmd/report.rs:25-71`, `announce`, `child`).
+- A step that fails says `[VMD] <why>; drives behind it stay hidden` (`src/drivers/pci/vmd/report.rs:37-41`, `hidden`).
+
+After that, the `[BLOCK]` lines name the NVMe disk when it carries NONOS; see [Storage drivers](README.md#how-a-disk-becomes-the-nonos-disk).
