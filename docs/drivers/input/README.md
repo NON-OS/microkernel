@@ -56,3 +56,12 @@ No input driver writes a key to disk or to a log. The one exception for pointer 
 The kernel holds `driver.ps2_kbd0`, `driver.usb_hid0` and `driver.i2c_hid0` to an empty sender list, so no capsule can ask a keyboard driver for keys (`KERNEL_ONLY`, `src/services/registry/held_table.rs:27-29`).
 
 Two limits follow from the capability rules above. A capsule holding `Irq` may post input events whatever its device, and the manifests of the AHCI, HD Audio, I2C controller, Intel Wi-Fi, NVMe, virtio-blk and xHCI drivers all ask for it. The three input drivers hold `InputSource` as well as `input_router`, so the kernel would let them drain the ring; in the shipped code only `input_router` calls the drain (`can_input_consumer`, `src/capabilities/token/types/authority_broker.rs:64-73`).
+
+## What is not there
+
+- Each key gives one character: `resolve` returns one code per key, so there are no dead keys, no compose sequences and no input method editor (`userland/nonos_keymap/src/resolve.rs:35`).
+- NumLock is not tracked. A keypad key always posts its own code, so the keypad always types digits (`character`, `userland/capsule_driver_ps2_input/src/keymap/keypad.rs:43-48`).
+- I2C touchscreens are left out of the device table the kernel builds from the ACPI tables (`register_acpi_i2c`, `src/hardware/broker/acpi_i2c/register.rs:36-51`).
+- A touchpad on the PS/2 aux port works as a plain PS/2 mouse, without its vendor's own protocol. See [PS/2 keyboard and mouse](ps2.md).
+- An I2C touchpad in touchpad mode gives no right click. See [I2C-HID touchpads](i2c-hid.md).
+- A USB keyboard's Mute and volume keys are read from the keyboard usage page only (`KEYCODE_MUTE`, `userland/capsule_driver_usb_hid/src/hid/usage_keycode/map.rs:58-63`). Media keys sent on a consumer control interface are not read, since the USB HID driver binds the boot keyboard interface alone.
