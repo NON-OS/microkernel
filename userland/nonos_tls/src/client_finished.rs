@@ -16,12 +16,27 @@
 
 use alloc::vec::Vec;
 
-pub fn client_finished(
-    keys: &super::traffic_keys::TrafficKeys,
-    transcript: &[u8],
-) -> Option<Vec<u8>> {
-    let verify = super::finished_value::finished_value(&keys.client_secret, transcript)?;
+/// The client Finished record, given the hash of ClientHello..server Finished.
+pub fn client_finished(keys: &super::traffic_keys::TrafficKeys, th: &[u8; 32]) -> Option<Vec<u8>> {
+    let verify = super::finished_value::finished_value(&keys.client_secret, th)?;
     let mut msg = Vec::with_capacity(36);
+    msg.push(20);
+    super::push::u24(&mut msg, verify.len());
+    msg.extend_from_slice(&verify);
+    super::record_seal::seal(keys.suite, &keys.client_key, &keys.client_iv, 0, 22, &msg)
+}
+
+/// The client's whole closing flight as one record: its empty Certificate
+/// when the server asked for one, then its Finished over everything before
+/// it. A server that asked and gets a bare Finished ends the session there.
+pub fn client_reply(done: &super::server_complete::ServerComplete) -> Option<Vec<u8>> {
+    let keys = &done.handshake;
+    let Some(certificate) = &done.client_certificate else {
+        return client_finished(keys, &done.finished_hash);
+    };
+    let verify = super::finished_value::finished_value(&keys.client_secret, &done.finished_hash)?;
+    let mut msg = Vec::with_capacity(certificate.len() + 36);
+    msg.extend_from_slice(certificate);
     msg.push(20);
     super::push::u24(&mut msg, verify.len());
     msg.extend_from_slice(&verify);

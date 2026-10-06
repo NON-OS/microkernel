@@ -19,5 +19,8 @@ use alloc::vec::Vec;
 pub struct ClientFlight {
     pub record: Vec<u8>,
     pub handshake: Vec<u8>,
+    /// The X25519 private key.
     pub private: [u8; 32],
+    /// The secp256r1 private scalar, for a server that takes the P-256 share.
+    pub p256_private: [u8; 32],
 }

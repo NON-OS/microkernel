@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// Each link costs a signature check in the pool and the message can list 255
+// certificates. Served chains are a leaf and one to three issuers; ten leaves
+// room for cross-signed paths and refuses a list that only asks for work.
+const MAX_CHAIN: u8 = 10;
+
 // Validate the server's TLS Certificate(11) message body for `host` at time
 // `now`: the leaf must match the hostname and be in its validity window and each
 // certificate must be signed by the next one up. The top served certificate is
@@ -23,7 +28,7 @@
 // root's public key. Fail closed everywhere.
 pub fn verify_chain(body: &[u8], host: &[u8], now: u64) -> bool {
     let n = super::cert_count::cert_count(body);
-    if n < 1 {
+    if !(1..=MAX_CHAIN).contains(&n) {
         return false;
     }
     let Some(leaf) = super::cert_at::cert_at(body, 0) else {

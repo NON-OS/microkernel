@@ -22,6 +22,7 @@ pub const TLS13: u16 = 0x0304;
 pub const SUITE_CHACHA20_SHA256: u16 = 0x1303;
 pub const SUITE_AES128_GCM_SHA256: u16 = 0x1301;
 pub const GROUP_X25519: u16 = 0x001d;
+pub const GROUP_SECP256R1: u16 = 0x0017;
 pub const EXT_SERVER_NAME: u16 = 0;
 pub const EXT_SUPPORTED_GROUPS: u16 = 10;
 pub const EXT_SIGNATURE_ALGORITHMS: u16 = 13;

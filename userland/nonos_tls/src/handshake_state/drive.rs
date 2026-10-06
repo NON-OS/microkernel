@@ -13,25 +13,25 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Whether the server's flight has stopped growing.
 
-/// True once an application-data record appears in the flight.
-///
-/// Records are typed in their first byte and carry a big-endian length, so
-/// walking them is exact rather than a guess about how much has arrived. A
-/// type of 23 is application data, which only follows a finished handshake.
-pub(super) fn settled(bytes: &[u8]) -> bool {
-    let mut at = 0usize;
-    while at + 5 <= bytes.len() {
-        let len = u16::from_be_bytes([bytes[at + 3], bytes[at + 4]]) as usize;
-        let end = at + 5 + len;
-        if end > bytes.len() {
-            return false;
+//! A flight handed over whole, for the calls that take one buffer.
+
+use super::types::{HandshakeState, Progress, Start};
+use crate::flight::ClientFlight;
+
+impl HandshakeState {
+    /// Key the handshake and take every record of `flight` in one go. `None`
+    /// if the flight does not start with a ServerHello that can be keyed.
+    pub(crate) fn whole(
+        client: &ClientFlight,
+        flight: &[u8],
+    ) -> Option<(HandshakeState, Progress)> {
+        match HandshakeState::begin(client, flight) {
+            Start::Ready(mut state) => {
+                let progress = state.advance(flight);
+                Some((*state, progress))
+            }
+            Start::Waiting | Start::Alert(_) | Start::Retry | Start::Unusable => None,
         }
-        if bytes[at] == 23 {
-            return true;
-        }
-        at = end;
     }
-    false
 }

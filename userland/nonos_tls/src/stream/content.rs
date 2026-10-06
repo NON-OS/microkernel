@@ -21,5 +21,4 @@ pub(super) const ALERT: u8 = 21;
 pub(super) const HANDSHAKE: u8 = 22;
 pub(super) const APPLICATION_DATA: u8 = 23;
 
-pub(super) const FINISHED: u8 = 20;
 pub(super) const KEY_UPDATE: u8 = 24;
