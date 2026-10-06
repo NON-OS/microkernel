@@ -2,91 +2,59 @@
 
 ## Role
 
-`capsule_keyring` is the in-memory key management capsule. It stores key
-records for requesting capsules and provides lock, unlock, retrieve, metadata,
-delete, and count operations over IPC.
+`capsule_keyring` is the in-memory key store. It keeps key records for the
+capsules that own them, holds the wallet's Ethereum and NOX keys, signs
+with them, and seals the wallet's account into a vault record that survives
+a reboot. The handbook pages are
+[System apps and services](../../docs/handbook/apps/system-apps.md) and
+[Wallet](../../docs/handbook/apps/wallet.md).
 
 ```text
-authorized client
+client capsule (wallet, login, ...)
     |
-    | keyring IPC
+    | keyring IPC, service:4098:keyring
     v
-keyring -- locked in-memory store --> key records
+keyring -- in-memory store, 128 keys, 16 per owner
     |
     `-- reply / error
 ```
 
 ## Microkernel contract
 
-The capsule uses the IPC mechanism only:
-
-- `MkIpcRecv` receives requests on `service:4098:keyring`.
-- `MkIpcSend` returns replies on `reply:4099:endpoint.4294967298`.
+- `MkIpcRecv` receives requests on `service:4098:keyring`; replies go to
+  `reply:4099:endpoint.4294967298`.
+- `CryptoRandom` draws generated keys and nonces.
+- `CryptoMachineKey` gives the machine root the vault derives each record's
+  key from.
+- `MkServiceLookup` names the wallet's pids for the vault gate.
+- `MkPidAlive` finds the keys of owners that ended.
 - `MkExit` terminates on fatal setup failure.
 - The kernel mirror is `src/security/keyring_capsule`.
 
-The kernel does not store user keys, expose a kernel key table, or perform
-keyring policy. It routes IPC and enforces the capsule's signed manifest.
+secp256k1 signing and public keys come from the `nonos_secp256k1` library in
+this process (`src/server/secp.rs`), not from a kernel call. The kernel holds
+no user keys and no keyring policy.
 
 ## Interface contract
 
-| Surface | Purpose |
+24 ops, all listed in `ALL` in `src/protocol/ops.rs`, where a const assertion
+fails the build if two share a code:
+
+| Ops | Purpose |
 |---|---|
-| store | insert caller-owned key material into volatile memory |
-| retrieve | return key material only through the keyring protocol |
-| lock/unlock | transition the key store between usable and sealed runtime states |
-| metadata/delete/count | inspect or remove records without kernel key storage |
+| `OP_STORE`, `OP_RETRIEVE`, `OP_DELETE`, `OP_METADATA`, `OP_COUNT` | caller-owned key records |
+| `OP_LOCK`, `OP_UNLOCK` | lock or release one entry the caller owns |
+| `OP_WALLET_IMPORT`, `OP_WALLET_GENERATE`, `OP_WALLET_GENERATE_HD`, `OP_WALLET_RECOVER` | create a wallet key: from a 32-byte secret, at random, or from a BIP39 mnemonic (m/44'/60'/0'/0/0) |
+| `OP_WALLET_ADDRESS`, `OP_WALLET_EXPORT` | the Ethereum address; the raw key, to its owner only |
+| `OP_SIGN_NOX_RECEIPT` | a recoverable EIP-712 signature |
+| `OP_SIGN_NOX_APPROVE`, `OP_SIGN_NOX_TRANSFER`, `OP_SIGN_NOX_STAKE_APPROVE`, `OP_SIGN_NOX_STAKE`, `OP_SIGN_NOX_UNSTAKE`, `OP_SIGN_NOX_STAKE_LOCKED`, `OP_SIGN_ETH_TRANSFER` | raw signed EIP-1559 transactions |
+| `OP_LIST_WALLET_RAILS` | the wallet rails and their status |
+| `OP_VAULT_SEAL`, `OP_VAULT_OPEN` | seal and open the wallet's account record; the wallet only |
 
-## Authority
-
-The manifest grants `IPC`, `Memory`, and service authority through
-`CAPSULE_REQUIRED_CAPS = 0x38`. It has no device, MMIO, IRQ, DMA, PIO,
-filesystem, network, admin, or debug authority.
-
-## Privacy and persistence
-
-Key material remains in capsule memory. The current capsule is volatile: it
-does not write keys to disk or keep state across reboot. The lock state is
-runtime state and disappears with the process.
-
-## Runtime lifecycle
-
-The capsule starts with an empty volatile store, accepts key operations over
-IPC, enforces lock state, and drops all key records on exit.
-
-## Failure model
-
-Invalid handles, locked state, capacity exhaustion, and malformed requests
-return protocol errors. The kernel never mirrors key bytes for recovery.
-
-## Current implemented surface
-
-- Owns key records in a capsule-local store.
-- Supports store, retrieve, metadata, delete, count, lock, and unlock flows.
-- Supports Ethereum wallet import, generation, address derivation, NOX receipt
-  signing, NOX ERC-20 approval signing, and native ETH EIP-1559 transfer signing.
-- Lists wallet rails so UI and policy can distinguish enabled NONOS Wallet rails
-  from reserved external wallet tracks.
-- Is embedded, spawned, and validation-covered through the kernel mirror.
-- Keeps key storage out of kernel memory.
-
-## Wire format
-
-The keyring protocol carries operation id, caller-owned key handle or label,
-metadata fields, and optional key bytes. Replies carry status, metadata, or key
-bytes depending on the operation. Layout ownership lives in `src/protocol`.
-
-Wallet operations:
-
-| Operation | Input | Output |
-|---|---|---|
-| `OP_WALLET_IMPORT` | caller pid, 32-byte secp256k1 secret | wallet id |
-| `OP_WALLET_GENERATE` | caller pid | wallet id |
-| `OP_WALLET_ADDRESS` | caller pid, wallet id | Ethereum address |
-| `OP_SIGN_NOX_RECEIPT` | caller pid, wallet id, receipt fields | recoverable EIP-712 signature |
-| `OP_SIGN_NOX_APPROVE` | caller pid, wallet id, nonce/fee/gas/amount | raw signed EIP-1559 NOX approval transaction |
-| `OP_SIGN_ETH_TRANSFER` | caller pid, wallet id, recipient, nonce/fee/gas/value | raw signed EIP-1559 ETH transfer transaction |
-| `OP_LIST_WALLET_RAILS` | none | supported and reserved wallet rails |
+Every op that names an owner goes through `resolve_caller`: the pid in the
+request is accepted only when it equals the pid the kernel stamped on the
+message, and sender 0 is refused. A frame too short to carry a sequence
+number is answered with `EINVAL` under sequence 0.
 
 `OP_LIST_WALLET_RAILS` returns:
 
@@ -106,47 +74,43 @@ Enabled rails are ETH and NOX. PR is config-required. SAL is a separate
 Salvium wallet track and is reported reserved until the native Salvium wallet
 core capsule is ported and tested.
 
-## State ownership
+## Authority
 
-The capsule owns key records, metadata, lock state, and deletion state. The
-kernel owns neither key bytes nor key handles.
+The manifest grants `IPC`, `Memory` and `Crypto`
+(`CAPSULE_REQUIRED_CAPS = 0x38`). Crypto is for `CryptoRandom` and
+`CryptoMachineKey`. It has no device, MMIO, IRQ, DMA, PIO, filesystem,
+network, admin, or debug authority. The keyring is the authority for the
+Keyring bit, so it does not hold it; callers do.
+
+## Privacy and persistence
+
+Key records live only in capsule memory and are gone at reboot. The one
+exception is the wallet's account: `OP_VAULT_SEAL` returns a blob sealed by
+`nonos_vault` under a key derived per record from the machine root, which the
+wallet keeps itself. Only the wallet may seal or open it: `may_use_vault`
+accepts a sender only when it owns one of `app.nonos_wallet`,
+`app.nonos_wallet.1` or `app.nonos_wallet.2` (`src/server/vault_gate/rule.rs`).
+After each request the receive buffer is wiped.
 
 ## Operating rules
 
-- Zeroize records on delete and teardown where storage representation permits.
-- Enforce locked state before returning secret material.
-- Keep persistence out until a sealed storage policy exists.
+- Hold one owner to `MAX_KEYS_PER_OWNER` keys of `MAX_KEYS`, so no program can refuse every
+  other program a key.
+- Drop the keys of an owner that ended, each wiped as its own delete would have: a key answers
+  only the pid that stored it, so nobody can use it once that pid is gone. Looked for every two
+  seconds while requests arrive, and before any request when the keyring is full
+  (`src/server/reap.rs`, `src/store/ended.rs`).
+- `unlock` and its locking twin act only on an entry the caller owns.
 - Never mirror keys into kernel service state.
-
-## Release target
-
-The finished keyring capsule has caller-scoped key ownership, locked-state
-enforcement, bounded storage, zeroization on delete and teardown, validation checks
-for every operation, and no kernel-resident secret table. Persistence, if added
-later, must be explicit and sealed by a separate storage policy.
-
-## Release evidence
-
-Release evidence is validation coverage for store/retrieve/delete/count/lock/unlock,
-plus teardown proof that key records do not persist in kernel state.
-
-## Release checklist
-
-- Store/retrieve/delete/count/lock/unlock validation passes.
-- Locked-state denial is tested.
-- Teardown clears volatile records.
-- Static gate confirms no kernel key table exists.
 
 ## Explicit non-goals today
 
-No hardware secure element, TPM sealing, persistent vault, remote sync,
-password UI, filesystem persistence, or crypto primitive implementation lives
-inside this capsule.
+No hardware secure element, remote sync or password UI. The vault blob is
+stored by the wallet, not here.
 
 ## Verification
 
 - Build: `make -B nonos-mk-keyring`
-- Validation: `nonos-mk-keyring-test`
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Privacy check: key data must stay in capsule-owned memory and never move
-  into kernel-resident service state.
+- Host proofs: `userland/wallet_proofs` (`keyring_owner_tests.rs` runs the real store: the
+  per-owner share and the dropping of ended owners' keys; the vault gate rule is held there
+  too).

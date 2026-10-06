@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::types::{Store, StoreError};
+use super::types::{KeyType, Store, StoreError};
 
 impl Store {
     pub fn delete(&mut self, id: u32, caller_pid: u32) -> Result<(), StoreError> {
@@ -27,6 +27,25 @@ impl Store {
             None => return Err(StoreError::NotFound),
         };
         super::wipe::secure_wipe(&mut removed.data);
+        // An account key takes its shield seed with it.
+        if removed.key_type == KeyType::Secp256k1Eth {
+            let tag = id.to_le_bytes();
+            let seeds: alloc::vec::Vec<u32> = self
+                .entries
+                .iter()
+                .filter(|(_, e)| {
+                    e.key_type == KeyType::ShieldSeed
+                        && e.owner_pid == caller_pid
+                        && e.data.get(..4) == Some(&tag[..])
+                })
+                .map(|(i, _)| *i)
+                .collect();
+            for seed in seeds {
+                if let Some(mut gone) = self.entries.remove(&seed) {
+                    super::wipe::secure_wipe(&mut gone.data);
+                }
+            }
+        }
         Ok(())
     }
 }

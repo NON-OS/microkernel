@@ -30,7 +30,9 @@
 mod error;
 mod record;
 mod root;
+mod shield;
 mod wipe;
 
 pub use error::VaultError;
 pub use record::{open_secret, seal_secret, BLOB_LEN};
+pub use shield::{open_seed, seal_seed, SEED_BLOB_LEN};

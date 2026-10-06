@@ -89,6 +89,13 @@ pub fn wallet_generate_hd(store: &mut Store, req: Request<'_>, sender_pid: u32) 
 
     let result = store.store(KeyType::Secp256k1Eth, &key, caller_pid, now, expires_at);
     wipe(&mut key);
+    let result = match result {
+        Ok(id) if super::super::hd::keep_seed(store, id, &words[..WORDS], caller_pid, now, expires_at) => {
+            Ok(id)
+        }
+        Ok(_) => Err(StoreError::Full),
+        Err(e) => Err(e),
+    };
 
     let resp = match result {
         Ok(id) => {

@@ -16,11 +16,13 @@
 
 mod count;
 mod delete;
+mod ended;
 mod eth_secret;
 mod eth_valid;
 mod lock;
 mod metadata;
 mod retrieve;
+mod shield_seed;
 mod state;
 mod store_key;
 mod types;
@@ -28,4 +30,5 @@ mod unlock;
 mod wipe;
 
 pub use eth_valid::eth_secret_valid;
+pub use shield_seed::{Words, MAX_WORDS as SHIELD_MAX_WORDS};
 pub use types::{KeyMetadata, KeyType, Store, StoreError};

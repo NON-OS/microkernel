@@ -14,20 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod approve_data;
-mod consts;
-mod fields;
-mod signed;
-mod stake_data;
-mod unsigned;
+//! The vault gate, asked of the registry on every request.
 
-pub use fields::tx_fields;
-pub use signed::{
-    signed_eth_transfer_tx, signed_nox_approve_tx, signed_nox_stake_approve_tx,
-    signed_nox_stake_locked_tx, signed_nox_stake_tx, signed_nox_transfer_tx, signed_nox_unstake_tx,
-};
-pub use unsigned::{
-    unsigned_eth_transfer_payload, unsigned_nox_approve_payload,
-    unsigned_nox_stake_approve_payload, unsigned_nox_stake_locked_payload,
-    unsigned_nox_stake_payload, unsigned_nox_transfer_payload, unsigned_nox_unstake_payload,
-};
+mod rule;
+
+use nonos_libc::mk_service_lookup;
+
+/// Whether `sender_pid` is the wallet, by the registry's word now.
+pub fn allowed(sender_pid: u32) -> bool {
+    rule::may_use_vault(sender_pid, |name| {
+        let (mut port, mut pid) = (0u32, 0u32);
+        let rc = mk_service_lookup(name.as_ptr(), name.len(), &mut port, &mut pid);
+        (rc == 0 && pid != 0).then_some(pid)
+    })
+}
