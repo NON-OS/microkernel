@@ -71,3 +71,7 @@ A signed ring 3 program, the form in which NONOS runs everything outside the ker
 ## Claim epoch
 
 The number `MkDeviceClaim` returns, taken from one counter that starts at 1 and grows with every claim. Every later MMIO, DMA, interrupt, port and PCI call on that device must pass it back, and a call with an old one fails with ESTALE, -116. Explained in [Broker ABI](../abi/broker.md). Code: `src/hardware/broker/claim/state.rs`.
+
+## Correlation token
+
+The nonzero number the kernel gives each `MkIpcCall` from a counter. Only a reply that carries the same number is delivered to the caller; a plain send carries 0, so it cannot pass as a reply. Explained in [IPC](../kernel/ipc.md#blocking-waking-and-timeouts). Code: `src/syscall/microkernel/ipc/call/sys_ipc_call.rs`.
