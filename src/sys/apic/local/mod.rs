@@ -17,6 +17,7 @@
 pub(super) mod constants;
 mod eoi;
 mod init;
+mod program;
 mod rebind;
 pub(super) mod regs;
 mod report;
@@ -29,6 +30,7 @@ mod x2apic;
 pub use constants::{LAPIC_PHYS_BASE, TIMER_VECTOR};
 pub use eoi::eoi;
 pub use init::init_local_apic;
+pub use program::{ack_error, init_ap_local_apic, lapic_phys_base};
 pub use rebind::rebind_to_virt;
 pub use report::report_local_timer;
 pub use snapshot::{lapic_state, local_apic_id};

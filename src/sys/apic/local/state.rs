@@ -34,3 +34,8 @@ pub static LAPIC_INIT: AtomicBool = AtomicBool::new(false);
 // register accessors route through rdmsr/wrmsr. Latched once at init; never
 // forced on, so an xAPIC machine (QEMU included) keeps the MMIO path.
 pub(in crate::sys::apic) static LAPIC_X2: AtomicBool = AtomicBool::new(false);
+
+// Physical page of the xAPIC register window, read from IA32_APIC_BASE at
+// init. Firmware may relocate the window, so the 0xFEE00000 default is only
+// what this holds before init has read the MSR.
+pub(in crate::sys::apic) static LAPIC_PHYS: AtomicU64 = AtomicU64::new(LOCAL_APIC_DEFAULT_BASE);
