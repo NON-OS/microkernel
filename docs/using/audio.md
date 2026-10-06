@@ -40,3 +40,21 @@ You do not pick an output; the driver plays through every one it can. At start i
 The `Output device` row in Settings, Sound, says what the hardware reported when the panel opened, for example `Speakers and headphone jack` or `Headphones` (`userland/capsule_settings/src/settings/state/audio_output.rs`).
 
 HDMI and DisplayPort audio are not played: NONOS plays through speakers, headphones and line out only.
+
+## When nothing plays
+
+When a machine cannot play, the driver says why rather than staying silent. Settings shows the sentence, Music shows it on its transport bar, and the volume keys show the short form (`userland/audio_proto/src/output.rs`):
+
+| Short form | Sentence |
+|---|---|
+| `No sound hardware` | No sound hardware was found on this computer. |
+| `Needs Intel SOF firmware` | This laptop's audio needs Intel's DSP firmware (SOF), which NONOS does not support. |
+| `No sound chip found` | The sound controller answered, but no sound chip (codec) is connected to it. |
+| `HDMI audio only` | Only HDMI or DisplayPort audio was found; NONOS plays through speakers, headphones and line out only. |
+| `No usable output` | The sound chip has no speaker, headphone or line output NONOS can drive. |
+| `Needs AMD ACP driver` | This computer's audio runs through AMD's audio coprocessor (ACP), which NONOS does not support. |
+| `Driver not answering` | The sound driver is not answering. |
+
+Some machines wire their speakers to an audio DSP rather than to an HD Audio codec. Running that DSP needs firmware NONOS does not load: Intel's Sound Open Firmware, or Intel's older Smart Sound Technology engines (PCI 8086:9c36, 8086:9cb6, 8086:0f28, 8086:22a8 and 8086:119a), which the driver never runs as HD Audio controllers (`SST` in `userland/capsule_driver_hda/src/controller/sst.rs`). The reasons are on [Audio drivers](../drivers/audio.md).
+
+Intel HD Audio: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
