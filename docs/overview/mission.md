@@ -36,3 +36,11 @@ The keyring capsule holds the wallet's key and signs with it. The wallet keeps o
 - A person who holds keys and wants every program on the machine to run with only the rights it was enrolled for. Read the [threat model](threat-model.md), then [Wallet](../using/wallet.md).
 - An OS developer or a security reviewer who wants each claim tied to a file and a line. Read [Architecture](architecture.md) and [Design principles](design-principles.md).
 - A contributor who wants to write a capsule or a driver. Read [Contributing](../contributing/README.md) and [Writing a driver](../drivers/writing-a-driver.md).
+
+## What NONOS is not
+
+- Not a Linux distribution. There is no Linux kernel. Linux programs run in processes that hold no NONOS capabilities, and a call the personality does not serve gets ENOSYS (`unserved` in `userland/capsule_linux/src/linux/serve/unserved.rs:21-41`).
+- Not broad hardware support yet. This release builds bootable images for x86_64 only. The aarch64 and riscv64 kernels build as a preview that boots under QEMU and is not a release target (`nonos-arch-preview` in `Cargo.toml`); see [Architectures](../architectures/README.md). An image carries 18 driver capsules for a fixed list of device classes and chips, which the [support matrix](../hardware/MATRIX.md) gives.
+- Not anonymous against every observer. Direct shows this machine's address to every site it reaches. net.nym and net.anon start on every boot that starts the network stack, whatever the choice, and net.nym contacts a gateway even when nothing uses it, so the local network can see that NONOS runs Nym. The [threat model](threat-model.md) lists the other limits.
+- Not verified as a whole. Host proof crates test the shipped kernel and capsule source, and Lean 4 models cover chosen properties. NONOS makes no claim of functional correctness for the whole kernel.
+- Not independently audited. This release claims no third-party security audit.
