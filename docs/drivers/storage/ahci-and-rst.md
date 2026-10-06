@@ -47,3 +47,11 @@ Intel VMD is a third arrangement, with its own page: [Intel VMD](vmd.md).
 When the installer finds no disk and an Intel RST or VMD controller is on the bus, it shows `Intel RST/VMD is on: set the BIOS storage mode to AHCI (or turn VMD off), then boot this stick again.` It adds that a Windows already on the computer may need switching to AHCI first, or it will not start after the change (`userland/capsule_install/src/install/ui/screens/disks.rs:36-37`, `RAID`, `RAID_WHY`). The message appears only when no disk was found, because a disk found means the firmware already lets NONOS reach one (`userland/nonos_blk_client/src/disks/scan.rs:68-73`, `raid_hides_disks`).
 
 Firmware names this setting differently from one machine to the next; the installer calls it the storage mode.
+
+## Access and capabilities
+
+The capsule serves `driver.ahci0` on service endpoint 4216 (`userland/capsule_driver_ahci/Capsule.mk:14`, `CAPSULE_SERVICE_ENDPOINT`). Its operations are health check, controller info, port list, capacity, read, write, flush and identify (`userland/capsule_driver_ahci/src/protocol/ops.rs:17-26`, `OP_IDENTIFY`). Every operation but the health check answers only the kernel's own client and a holder of `StoreWrite` (`userland/capsule_driver_ahci/src/server/medium_rule.rs:25-29`, `allows`).
+
+It holds the [capabilities](../../overview/glossary.md#capability) IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, the word 0xF8018 (`userland/capsule_driver_ahci/Capsule.mk:16-17`, `CAPSULE_REQUIRED_CAPS`).
+
+The same capsule serves an eMMC disk when no SATA disk comes up; see [SD cards and eMMC](sd-and-emmc.md).
