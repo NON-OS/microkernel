@@ -37,3 +37,12 @@ The Settings tests hold these ids to `has_driver` returning false (`userland/cap
 The same Realtek rule covers every other Realtek Wi-Fi chip, the RTL8852 family included: for vendor 10ec, only device c821 has a driver. Intel BE200 and BE201 (8086:272b and 8086:a840) are named by the iwlwifi driver but are not in its id table, so it never takes them (`userland/capsule_driver_iwlwifi/src/firmware/generation.rs:59-60`, `family_for_device`).
 
 No driver [capsule](../../overview/glossary.md#capsule) for any of these chips exists in the tree.
+
+## Firmware files are not drivers
+
+The tree carries vendor firmware for several of these chips, and their presence does not mean support.
+
+- The bootloader embeds firmware for the RTL8822B, RTL8822C, RTL8723D, RTL8851B and RTL8852A, B and C, and hands it to the kernel (`nonos-bootloader/src/firmware/loader.rs:33-47`, `FIRMWARE_TABLE`).
+- The kernel's lookup for Realtek Wi-Fi firmware has no caller, and no capsule reads those files (`src/boot/firmware.rs:85-104`, `get_realtek_wifi_firmware`).
+- The only Realtek file a driver links is `rtw8821c_fw.bin` (`userland/capsule_driver_rtl8821ce/src/fwload.rs:38`, `include_bytes`).
+- `nonos-bootloader/firmware/mediatek/mt7921e_fw.bin` and `mt7922_fw.bin` are empty files, and `nonos-bootloader/firmware/qualcomm/qca6174a-wifi.bin` is 57 bytes. No code reads any of them.
