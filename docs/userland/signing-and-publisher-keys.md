@@ -81,3 +81,17 @@ python3 tools/nonos-enroll --from <dir>
 ```
 
 Not tested in this release.
+
+## Publishers outside the project
+
+A capsule whose namespace is `systems.nonos` or below it is an enrolled system capsule; any other namespace belongs to a publisher (`src/kernel_core/process_spawn/capsule_spawn/runner/tier.rs:22-28`, `classify`). A publisher's capsule passes the same certificate and manifest checks, and it still runs only with a trailer that verifies, under the vendor root or a root the person enrolled on this machine (`src/kernel_core/process_spawn/capsule_spawn/runner/publisher_gate.rs:28-33`, `attest_gate`). An enrolled root lasts until the next reboot (`src/security/dev_roots/authority.rs:28-31`, `Developer`). The kernel records which root proved each running capsule, `vendor` or `developer`, and prints it on the `[ZK-ATTEST] ok` line (`src/kernel_core/process_spawn/capsule_spawn/runner/attest_gate.rs:36-47`, `authority`). A third value, `publisher`, is kept for a capsule that runs on a signature alone, and the gate admits no such capsule in this release (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:71-74`, `Publisher`).
+
+Four capsules in this tree use a `com.example` namespace and so take the publisher path: `gui_demo`, `game_2048`, `mdview` and `qrgen` (for example `userland/capsule_qrgen/Capsule.mk:7`, `CAPSULE_NAMESPACE`). They are signed, enrolled and proved like the rest; only the tier the gate files them under differs.
+
+### The market
+
+The market service `market.index` holds the signed catalogue and answers what is listed and whether a release passes the install gates; it installs nothing itself. A catalogue is accepted only when it decodes, its serial is newer than the one held, its operator key is trusted and the operator's signature verifies (`userland/capsule_market/src/ingest/load/load_verified.rs:25-47`, `load_verified`). One operator key is trusted (`userland/capsule_market/src/bootstrap_trust/keys.rs:23`, `TRUSTED_OPERATORS`). Each release's publisher signature is checked on its own, so a bad one blocks that release and not the catalogue (`userland/capsule_market/src/ingest/load/verify_publisher_signatures.rs:25`, `verify_publisher_signatures`).
+
+The catalogue format lives in `marketplace_abi`. A publisher signs a release under the domain `NONOS.marketplace.release.v2` (`userland/marketplace_abi/src/codec/release_signing.rs:27`, `RELEASE_SIGNING_DOMAIN`). A catalogue holds at most 1024 entries of at most 64 releases each, and a blob over 2 MiB is refused before it is parsed (`userland/marketplace_abi/src/limits.rs:26-41`, `MAX_INDEX_BLOB`). The `market_proofs` host tests, 62 of them, passed on this commit.
+
+Installing goes through the kernel. `MkAppInstall` needs AppInstall (`abi/syscalls.toml:732-736`, `MAIN`). A capsule read from the [store](../overview/glossary.md#store) is started with `MkCapsuleLoad`, which runs the same spawn path as a capsule in the kernel image, and takes its service name and endpoints from the signed manifest, never from the caller (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:26-33`, `load_capsule_from_vfs`). The call itself needs only CoreExec, IPC and Memory, which every app holds (`abi/syscalls.toml:538-541`, `MCLD`): what the loaded capsule may do is fixed by its own manifest and proof, not by its caller. How a person uses this is in [Marketplace](../using/marketplace.md).
