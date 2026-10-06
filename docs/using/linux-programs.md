@@ -113,3 +113,8 @@ Once a program has opened a Qwen model, its family gets no internet socket in an
 - No internet, as above.
 - Nothing a program writes outlives it, except what a `>` redirect keeps.
 - More packages come only from the Marketplace's Linux tab, and the standard build lists none; see [Marketplace](marketplace.md).
+
+## When `linux` does not start
+
+- Setup's app list has a `Linux and Qwen` switch. When it is off, the kernel refuses `tool.linux`, `tool.qwen` and `tool.model-fetch` with EACCES (`tool_off` in `src/userspace/init/app_choice/names.rs:57-58`), and the Terminal prints `linux: the kernel refused to start it`. Safe Mode turns every optional app off for the boot, and Recovery keeps only Files and the text editor beside the Terminal and Settings (`BootProfile` in `src/userspace/init/app_choice/profile.rs:41-42`).
+- `linux: not installed in this build` means the image has no Linux personality.
