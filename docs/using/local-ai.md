@@ -44,3 +44,33 @@ A chat makes no network connection:
 Only the download of a model needs a network, once per tier.
 
 The local Qwen model, running offline: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+## The tiers
+
+There are 17 tiers. Every file is a GGUF file the Qwen team publishes on Hugging Face, pinned by name, length and SHA-256 inside the signed personality (`Pinned` in `userland/capsule_linux/src/linux/file/models/pinned.rs:32-37`). The pins are in `pinned_qwen25.rs`, `pinned_qwen25_big.rs`, `pinned_qwen3.rs` and `pinned_coder.rs` beside it.
+
+Sizes are in GiB (2^30 bytes). "Files" is the pinned lengths summed. "To run" is what the model fetcher's rule says a chat needs: the files, a key and value cache for 2048 positions, a 512-token batch and a 64 MiB margin (`memory` in `userland/capsule_model_fetch/src/need.rs:60-64`). "Installed" is the smallest total memory that fits on an installed NONOS: the run plus 1 GiB kept for the system. These figures come from that rule; they were not measured on a machine.
+
+| Tier | Model and quantisation | Files | To run | Installed |
+|---|---|---:|---:|---:|
+| `small` | Qwen2.5 0.5B Instruct, Q4_K_M | 0.46 | 0.57 | 1.57 |
+| `medium` | Qwen2.5 1.5B Instruct, Q4_K_M | 1.04 | 1.20 | 2.20 |
+| `large` | Qwen2.5 3B Instruct, Q4_K_M | 1.96 | 2.16 | 3.16 |
+| `xlarge` | Qwen2.5 7B Instruct, Q4_K_M, 2 files | 4.36 | 4.64 | 5.64 |
+| `xxl` | Qwen2.5 14B Instruct, Q4_K_M, 3 files | 8.37 | 8.96 | 9.96 |
+| `max` | Qwen2.5 32B Instruct, Q4_K_M, 5 files | 18.49 | 19.21 | 20.21 |
+| `qwen3-0.6b` | Qwen3 0.6B, Q8_0 | 0.60 | 0.91 | 1.91 |
+| `qwen3-1.7b` | Qwen3 1.7B, Q8_0 | 1.71 | 2.05 | 3.05 |
+| `qwen3-4b` | Qwen3 4B, Q4_K_M | 2.33 | 2.75 | 3.75 |
+| `qwen3-8b` | Qwen3 8B, Q4_K_M | 4.68 | 5.15 | 6.15 |
+| `qwen3-14b` | Qwen3 14B, Q4_K_M | 8.38 | 8.91 | 9.91 |
+| `qwen3-30b-a3b` | Qwen3 30B-A3B, mixture of experts, 3B active, Q4_K_M | 17.28 | 17.59 | 18.59 |
+| `qwen3-32b` | Qwen3 32B, Q4_K_M | 18.40 | 19.12 | 20.12 |
+| `coder-1.5b` | Qwen2.5-Coder 1.5B Instruct, Q4_K_M | 1.04 | 1.20 | 2.20 |
+| `coder-7b` | Qwen2.5-Coder 7B Instruct, Q4_K_M, 2 files | 4.36 | 4.64 | 5.64 |
+| `coder-14b` | Qwen2.5-Coder 14B Instruct, Q4_K_M, 2 files | 8.37 | 8.96 | 9.96 |
+| `coder-32b` | Qwen2.5-Coder 32B Instruct, Q4_K_M, 3 files | 18.49 | 19.21 | 20.21 |
+
+On a live boot the model files are held in memory too, so a tier fits only when its files and its run together stay within what the kernel leaves free: total memory less the larger of 1 GiB and a quarter of memory (`fits` in `userland/capsule_model_fetch/src/need.rs:98-103`). `qwen tiers` prints, for this machine, each tier's download, the memory it needs, and whether it is here.
+
+As an example of a pin, `qwen3-0.6b` is the single file `Qwen3-0.6B-Q8_0.gguf`, 639,446,688 bytes, SHA-256 `9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031` (`userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs`).
