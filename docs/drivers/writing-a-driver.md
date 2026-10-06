@@ -165,3 +165,9 @@ pub fn map_queue(
 ```
 
 The device is given `device_addr`, never `user_va`: the driver writes through `user_va`, and the device reaches the same frames at `device_addr`, an IOVA inside the capsule's [IOMMU domain](../overview/glossary.md#iommu-domain) or the physical address when there is none (`src/hardware/broker/dma/map/transaction.rs:47-65`).
+
+## 8. Polling, or interrupts
+
+virtio-rng polls. `disable_intx` sets Interrupt Disable so the device never holds a shared line up (`userland/capsule_driver_virtio_rng/src/setup/irq.rs:33-41`), and `fill` posts a request, rings the doorbell and checks the used ring with `mk_yield` between looks, giving up after `MAX_YIELDS` (100,000) (`userland/capsule_driver_virtio_rng/src/fill.rs:22-44`).
+
+A driver that takes interrupts adds `Irq` (bit 18) to its manifest and binds one. virtio-blk's `bind` calls `mk_irq_bind` for the legacy line first, falls back to one vector with `MK_IRQ_BIND_MSIX`, and releases what it holds if both fail (`userland/capsule_driver_virtio_blk/src/setup/irq.rs:19-40`). It then waits in slices of `WAIT_SLICE_MS` (100 ms) with `mk_irq_wait`, telling a timeout from a wake by `MK_IRQ_WAIT_TIMED_OUT` (`userland/capsule_driver_virtio_blk/src/io/wait_slice.rs:23-62`). After a wake, `rearm` reads the device's interrupt status, which lowers its line, and only then calls `mk_irq_ack` to unmask it (`userland/capsule_driver_virtio_blk/src/io/rearm.rs:33-41`). Ack before the status read and a level-triggered line fires again at once.
