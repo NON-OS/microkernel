@@ -58,3 +58,13 @@ The card is a Wi-Fi and Bluetooth combo. The driver hands the shared antenna to 
 ## Station address
 
 Every boot draws a new locally administered unicast address from kernel randomness. The address in the efuse is never used, because access points log the source of every probe (`userland/capsule_driver_rtl8821ce/src/station.rs:17-31`, `draw`). With no randomness the radio stays dark at `NoStationAddress` instead of falling back.
+
+## Scanning
+
+The serve loop scans in the background while no network is joined, so a scan request is answered at once from the list (`userland/capsule_driver_rtl8821ce/src/serve/mod.rs:124-133`, `scanner`).
+
+- Channels 1 to 13 on 2.4 GHz only (`userland/capsule_driver_rtl8821ce/src/serve/mod.rs:58-59`, `SCAN_CHANNELS`).
+- 300 ms on each channel (`userland/capsule_driver_rtl8821ce/src/serve/scanner.rs:33-38`, `DWELL_MS`).
+- The scan is passive: the driver listens for beacons and sends nothing.
+
+Before a join the driver hunts the network's beacon: two sweeps at 250 ms a channel (`userland/capsule_driver_rtl8821ce/src/serve/connect/hunt.rs:38-40`, `BEACON_HUNT_DWELL_MS`, `HUNT_SWEEPS`). It sends a probe request only for a network saved as hidden, and that probe names only that network (`userland/capsule_driver_rtl8821ce/src/serve/connect/probe.rs:29-36`, `hunt_probe`).
