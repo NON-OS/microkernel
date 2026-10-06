@@ -109,3 +109,26 @@ With Secure Boot on, the loader also checks its own Secure Boot chain, and `veri
 ## The kernel checks its loader
 
 The firmware measures every UEFI application it starts into [PCR](../overview/glossary.md#pcr) 4 and logs it, as the header of `nonos-boot-measure/src/lib.rs` describes. The kernel replays that log, takes the loader's measurement from it, and holds it to the boot-root record, which the release signs with the device policy key. `signed` checks that ECDSA P-256 signature against the key compiled into the kernel, and an all-zero key verifies nothing (`src/security/boot/loader_check/key.rs:24-38`). The steps and verdicts are on [Measured boot and the TPM](measured-boot-and-tpm.md), and the loader's STARK slot is on [STARK attestation](stark-attestation.md).
+
+## Capsules
+
+A capsule ships three files beside its ELF: a NONOS ID certificate signed by the trust anchor, a [capsule manifest](../overview/glossary.md#capsule-manifest) signed by its publisher, and its attestation trailer, each named after `CAPSULE_BIN_NAME` (`nonos-mk/capsule.mk:101-103`).
+
+The certificate's `verify` refuses a certificate whose trust-anchor epoch is below the policy's (`EpochStale`), whose serial or NONOS id is revoked, or which is outside its validity window when the caller passes a time (`src/security/nonos_id_cert/verify/checks.rs:22-45`). For each required algorithm the certificate must then carry a trust-anchor signature, or the result is `TrustAnchorPolicy`, and that signature must verify under a policy key of the same algorithm, or the result is `TrustAnchorBadSig`; a policy key outside its own validity window is skipped when the caller passes a time (`src/security/nonos_id_cert/verify/dispatch.rs:23-45`).
+
+`verify_with_publisher` checks the manifest in this order (`src/security/capsule_manifest/verify/mod.rs:37-63`):
+
+| Check | Refusal |
+|---|---|
+| BLAKE3 of the certificate file equals the manifest's certificate id | `NonosIdCertIdMismatch` |
+| the namespace matches one of the certificate's globs | `NamespaceOutsideCert` |
+| required and optional capabilities sit inside the certificate's ceiling | `CapsExceedCeiling` |
+| one valid publisher signature per required algorithm, from a key in the certificate, not revoked | `PublisherBadSig`, `PublisherKeyRevoked`, `PublisherPolicy` |
+| BLAKE3 of the ELF equals the manifest's payload hash | `PayloadHashMismatch` |
+| the target triple matches the spawn site's | `TargetTripleMismatch` |
+| every endpoint the spawn site registers is declared | `EndpointDeclDrift` |
+| the grant sits inside required and optional | `GrantOutsideManifest` |
+
+The STARK check that follows is on [STARK attestation](stark-attestation.md). The wire formats of the certificate and the manifest are on [Signing and publisher keys](../userland/signing-and-publisher-keys.md).
+
+At build time `capsule-sign sign-id-cert` signs each certificate with the two trust-anchor seeds (`NONOS_TA_ED25519_SEED`, `nonos-mk/capsule.mk:252-271`). `capsule-sign sign-manifest` then signs the manifest with the publisher's two seeds, and `verify-manifest` checks it at once (`CAPSULE_SIGN_BIN`, `nonos-mk/capsule.mk:275-297`). With `NONOS_TRUST_REUSE` set to 1 nothing is signed: the committed certificate and manifest must exist, and `verify-manifest` checks them and the freshly built ELF against the enrolled payload hash, unless `NONOS_ENROLL_BUILD` is also 1, which only requires that they exist (`nonos-mk/capsule.mk:220-248`).
