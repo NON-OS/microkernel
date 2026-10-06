@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,17 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod boot_partition;
-mod disk_mirror;
-mod load;
-mod own_volume;
-mod pages;
-mod read;
-mod store_copy;
-mod types;
+//! The boot disk's live plan and the model files it names, copied into
+//! memory through the firmware's disk driver for a kernel whose own drivers
+//! may not reach the disk.
 
-pub use boot_partition::boot_partition;
-pub use disk_mirror::disk_mirror;
-pub use load::{file_exists, load_file_from_esp, load_kernel_binary};
-pub use store_copy::store_copy;
-pub use types::{FileLoadError, FileResult};
+mod copy;
+mod memory;
+mod plan;
+mod range;
+
+pub use copy::disk_mirror;
