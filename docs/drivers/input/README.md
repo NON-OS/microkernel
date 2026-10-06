@@ -85,3 +85,15 @@ The check for `input_proofs` runs its tests without clippy, which the flake allo
 The QEMU run target gives the guest its keyboard and mouse through the q35 machine's i8042, and attaches xHCI on its own (`QEMU_USB`, `mk/10-qemu.mk:99-102`).
 
 For the PS/2 keyboard with its layouts, the I2C-HID touchpad on Intel LPSS, the power button and the volume keys there is one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+## See also
+
+- [Drivers](../README.md)
+- [PS/2 keyboard and mouse](ps2.md)
+- [I2C-HID touchpads](i2c-hid.md)
+- [USB HID](../usb/hid.md)
+- [Audio](../audio.md)
+- [Keyboard layouts](../../using/keyboard-layouts.md)
+- [Hardware broker](../../kernel/hardware-broker.md)
+- [Support matrix](../../hardware/MATRIX.md)
+- [Reporting a machine](../../hardware/report.md)
