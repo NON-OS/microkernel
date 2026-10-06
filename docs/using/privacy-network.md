@@ -99,3 +99,7 @@ Direct:
 - Protects nothing beyond what each program's own TLS protects. Names are looked up in the clear.
 
 Reads wait longer on purpose through the two anonymity networks: a reader waits 60 seconds for the next bytes through Nym and 30 seconds through Anyone (`patience_ms` in `userland/nonos_route_link/src/describe.rs:54-60`).
+
+## What the kernel does not do
+
+The kernel does not enforce the choice. It requires the Network capability to reach `net.sockets`, `net.nym`, `net.anon`, `net.socks5` and the other network services (`NETWORK_SERVICES` in `src/services/registry/policy.rs:26-38`), but it does not check which one a [capsule](../overview/glossary.md#capsule) uses. Each program keeps the choice through `nonos_route_link`.
