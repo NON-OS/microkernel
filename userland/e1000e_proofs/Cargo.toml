@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the e1000e driver: the device ID table, the
+# descriptor rings under hostile device writes, the wire header, MDIC words,
+# and the reset, software flag, ULP and bring-up sequences against a modelled
+# part. Builds for the host so `cargo test` runs the real driver source,
+# included via #[path], without a boot.
+[package]
+name = "e1000e_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_devmodel = { path = "../nonos_devmodel" }
+nonos_mac = { path = "../nonos_mac" }
+nonos_libc = { package = "e1000e_proofs_libc_shim", path = "libc_shim" }
