@@ -138,3 +138,27 @@ The `e1000e` and `igc` driver capsules are in the source tree, but no 0.9.2 imag
 ## USB tethering and USB Ethernet
 
 Not available in 0.9.2 images. `net.core` lists the `cdc_ecm`, `cdc_ncm`, `rndis`, `ax88179` and `rtl8153` drivers among its candidates (`WIRED_NICS`, same file), and the drivers are in `userland/`, but no kernel profile embeds them. A phone sharing its connection over USB, or a USB Ethernet adapter, is not used. See [USB networking](../drivers/ethernet/usb-net.md).
+
+## DHCP and DNS
+
+```mermaid
+flowchart LR
+    settings["Settings Wi-Fi page"] --> wifi["Wi-Fi driver"]
+    wifi --> core["net.core"]
+    cable["Ethernet driver"] --> core
+    core --> lease["DHCP lease"]
+    core --> sockets["net.sockets"]
+    sockets --> apps["programs"]
+```
+
+On the desktop one [capsule](../overview/glossary.md#capsule), `net.core`, is the whole network stack. When it starts it registers `net.tcp`, `net.udp`, `net.dhcp.client`, `net.dns` and `net.ip` (`all` in `userland/capsule_net_core/src/register.rs:41-46`). The Settings Wi-Fi page talks to the Wi-Fi driver to scan and join. `net.core` binds the Wi-Fi driver or the Ethernet driver once its link is up and takes a DHCP lease. Programs reach the network through `net.sockets`, which uses `net.core`.
+
+- DHCP: on a lease, `handle_configured` sets the address, adds the default route through the router and opens a DNS socket for every server the lease names (`userland/capsule_net_core/src/iface/dhcp/handle_configured.rs:26-57`).
+- DNS: a lookup asks every server at once and keeps the first IPv4 address any of them gives, within three seconds (`TIMEOUT_MS` in `userland/capsule_net_core/src/server/handlers/dns/lookups.rs:26`).
+- IPv4 only. `net.core` builds `smoltcp` with IPv4 and no IPv6 (`userland/capsule_net_core/Cargo.toml:18-21`), and lookups ask for A records.
+
+The tree also holds a split stack, one capsule per layer: `capsule_net_dhcp`, `capsule_net_dns`, `capsule_net_ip`, `capsule_net_tcp`, `capsule_net_udp` and `capsule_net_l2`. Desktop images do not carry them; `microkernel-desktop-base` carries `net.core` and `net.sockets` instead (`Cargo.toml:591-606`).
+
+A name is looked up in the clear only for a connection that goes Direct. When the default network is Nym or Anyone, `ping` and `nslookup` refuse to run, and the programs that follow the default hand the name to the exit unresolved; see [Privacy networks](privacy-network.md).
+
+With no address, `ping` and `nslookup` say so at once instead of timing out (`offline_line` in `userland/capsule_terminal/src/command/builtin/offline_gate.rs:43-57`). The line reads `ping: not connected to a network (no address yet). Plug in a cable or join a Wi-Fi network in Settings, then try again; nothing was sent`. On a boot that runs no network it reads `no network is running on this boot, so nothing was sent`.
