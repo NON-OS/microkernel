@@ -155,3 +155,9 @@ When the interrupt fires, `on_vector` masks an INTx line at the IO-APIC, bumps t
 - `mk_irq_ack(grant_id)` unmasks an INTx line once the driver has cleared the device's status; for MSI and MSI-X `ack_grant` changes nothing (`src/hardware/broker/irq/release/ack.rs:25-42`).
 
 `mk_irq_unbind(grant_id)` gives the grant back.
+
+## Release
+
+`mk_device_release(device_id)` ends the claim. `sys_device_release` first stops the device mastering the bus with `quiesce_held_device`, then tears down the MMIO, IRQ, DMA and PIO grants on it, and drops the claim last (`src/syscall/microkernel/device.rs:84-113`). The broker's `release` turns bus mastering off again, logs whether the bit stuck, and detaches the device from the capsule's domain (`src/hardware/broker/claim/release.rs:24-36`).
+
+A driver that exits or crashes loses the same things. The exit path calls `release_all_for_pid` and the IRQ, DMA and PIO equivalents for the dying process (`src/process/exit/teardown.rs:48-51`).
