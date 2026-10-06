@@ -25,3 +25,15 @@ sequenceDiagram
 ```
 
 The kernel block layer sends `OP_BLK_READ`, `OP_BLK_WRITE` or `OP_BLK_FLUSH` in 512-byte sectors (`userland/capsule_driver_usb_msc/src/protocol/ops.rs:32-35`, `OP_BLK_READ`). A read, or a write that covers whole device blocks, becomes one SCSI command; a write that covers part of a block becomes a read and a write. Each command goes out in a Command Block Wrapper (CBW) with `OP_BULK_OUT`, its data moves in pieces of at most 4096 bytes, and the answer comes back in a Command Status Wrapper (CSW) read with `OP_BULK_IN` (`userland/capsule_driver_usb_msc/src/disk/bot.rs:17-27`, `data_phase`; `userland/capsule_driver_xhci/src/protocol/limits.rs:37-38`, `BULK_MAX`).
+
+## Finding the device
+
+The kernel starts this driver on any machine with an xHCI controller, since a stick is known only after USB enumeration. The driver then (`userland/capsule_driver_usb_msc/src/scan/scanner.rs:38-44`, `WINDOW_MS`):
+
+- waits up to 30 s for `driver.xhci0` to register;
+- looks for a device for 10 s after that, and gives the ports 1.5 s to report their devices;
+- once that window closes, looks at the ports again every 5 s, so a stick plugged in late is still taken.
+
+Each root port gets three tries (`userland/capsule_driver_usb_msc/src/scan/pass.rs:27-28`, `TRIES`). A device of another class is left to its own driver. The first device that binds is served for the rest of the boot, and the driver does not look for a second one (`userland/capsule_driver_usb_msc/src/server/runner.rs:47-71`, `Medium::Absent`).
+
+The driver looks at the root ports of the xHCI controllers only. A stick behind a USB hub is not found in this release (`userland/capsule_driver_usb_msc/src/xhci/port.rs:34-47`, `connected_ports`); see [USB hubs](../usb/hubs.md).
