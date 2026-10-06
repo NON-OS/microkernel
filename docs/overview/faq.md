@@ -29,3 +29,16 @@ The browser, the Terminal and the wallet connect through the [Nym mixnet](glossa
 ## Installing NONOS on a disk
 
 You can install NONOS on an internal disk. Choose to install in first-boot setup, or pick `Install NØNOS` in the boot menu, and the installer writes to the disk you choose after you confirm. Until then NONOS writes nothing to any disk. See [Install to disk](../install/install-to-disk.md).
+
+## Trying NONOS in a virtual machine
+
+The `qemu` [build profile](glossary.md#build-profile) is the desktop for virtual machines, without the drivers only real hardware has (`tools/nix/config.nix`). From a checkout with Nix, the `Makefile` builds a development image, by default the development twin of the `qemu` profile, and boots it under QEMU with a software TPM attached:
+
+```sh
+make dev-image
+make dev-boot
+```
+
+Not tested in this release.
+
+A development image is sealed with throwaway keys and path-only attestation, and it is never a release. See [Get an image](../install/get-an-image.md) and [Make targets](../build/make-targets.md).
