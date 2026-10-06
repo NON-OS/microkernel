@@ -1,0 +1,23 @@
+# NONOS userland: route_link_proofs
+#
+# Host proofs for nonos_route_link, the one client every capsule that holds
+# Network leaves through. The shipped sources are included through #[path]:
+# the pick over every default and every network up or down, the rule for
+# contacts that can only leave directly, the frames sent to net.socks5 and
+# net.anon, the reading of their answers, the SOCKS5 a client speaks, and
+# the tunnel itself, driven against a proxy written here to speak the same
+# frames and to lose, delay, split and garble its answers on purpose.
+
+[package]
+name = "route_link_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# The route values the policy store holds.
+nonos_policy_proto = { path = "../policy_proto" }
