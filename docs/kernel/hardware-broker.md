@@ -105,3 +105,18 @@ When the vector fires, `on_vector` adds one to the grant's counter, masks an INT
 - On exit `teardown` releases every grant the process holds, through `release_all_for_pid` and its IRQ, DMA and PIO twins (`src/process/exit/teardown.rs:47-51`); the MMIO release also drops the process's claims (`src/hardware/broker/mmio/release.rs:45-54`). Dropping a claim stops the device mastering the bus and detaches it from the capsule's domain, in the claim module's `release_all_for_pid` (`src/hardware/broker/claim/release.rs:51-62`), before the DMA buffers are freed.
 
 A DMA buffer is freed in a fixed order by `teardown` in the DMA module: unmap it from the capsule, take it out of the device's domain, scrub it, and only then return the frames (`src/hardware/broker/dma/teardown.rs:26-46`). If the domain will not give the buffer up, the frames are kept out of use for good rather than handed to someone else. `scrub` writes zeros through the kernel's direct map before the frames are reused (`src/hardware/broker/dma/scrub.rs:19-35`).
+
+## Errors
+
+| Errno | Value | When |
+|---|---:|---|
+| `EPERM` | -1 | No claim on the device, an IOMMU in service would not take it, a reserved line, or a mapping that would expose an MSI-X table. |
+| `EBUSY` | -16 | The device is claimed by another process, or the line is already bound. |
+| `ENODEV` | -19 | No such device, or the kernel could not program the device's MSI or MSI-X. |
+| `EINVAL` | -22 | A bad length, alignment, BAR index or vector count. |
+| `ERANGE` | -34 | A `DMA32` buffer whose device address does not fit 32 bits. |
+| `ENOTSUP` | -95 | An unknown flag. |
+| `ESTALE` | -116 | The claim epoch is not the live one. |
+| `ENOMEM` | -12 | No frames, no user address space, or no free vector. |
+
+The DMA mapping is in `errno_for` (`src/syscall/microkernel/dma.rs:100-111`), the MMIO mapping beside `MmioMapError` (`src/syscall/microkernel/mmio/errno_map.rs:24-35`) and the IRQ mapping beside `IrqBindError` (`src/syscall/microkernel/irq/errno_map.rs:24-42`).
