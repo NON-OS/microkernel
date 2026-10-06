@@ -26,23 +26,23 @@
 
 /// Bits a restored context must not choose for itself: TF (8), DF (10),
 /// IOPL (12, 13), NT (14), RF (16), VM (17), AC (18), VIF (19), VIP (20).
-pub const RFLAGS_PRIVILEGED_MASK: u64 = 0x0000_0000_001F_7500;
+pub(crate) const RFLAGS_PRIVILEGED_MASK: u64 = 0x0000_0000_001F_7500;
 
 /// Bit 1 is reserved and reads as one; a context that cleared it is malformed.
-pub const RFLAGS_RESERVED_SET: u64 = 0x0000_0000_0000_0002;
+pub(crate) const RFLAGS_RESERVED_SET: u64 = 0x0000_0000_0000_0002;
 
 /// IF (9). Set on the way back to user mode, never on a CPL=0 continuation:
 /// a yield or preempt saved under interrupt-gate discipline carries IF=0 and
 /// must keep it, or the timer can land on a path already holding a scheduler
 /// lock and deadlock the core.
-pub const RFLAGS_IF: u64 = 0x0000_0000_0000_0200;
+pub(crate) const RFLAGS_IF: u64 = 0x0000_0000_0000_0200;
 
 /// Drop every privileged bit and restore the reserved one. Keeps IF as saved.
-pub const fn sanitize(rflags: u64) -> u64 {
+pub(crate) const fn sanitize(rflags: u64) -> u64 {
     (rflags & !RFLAGS_PRIVILEGED_MASK) | RFLAGS_RESERVED_SET
 }
 
 /// The same, for a resume that lands in user mode with interrupts on.
-pub const fn sanitize_user(rflags: u64) -> u64 {
+pub(crate) const fn sanitize_user(rflags: u64) -> u64 {
     sanitize(rflags) | RFLAGS_IF
 }

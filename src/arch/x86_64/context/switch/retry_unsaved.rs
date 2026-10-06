@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod dispatch;
-mod first_entry;
-mod kernel_thread;
-mod resume;
-mod retry_unsaved;
-mod validate_resume;
-
-pub(crate) use dispatch::switch_to_user_pcb_x86_64;
+/*
+ * No saved context yet: the task was woken on another CPU while the CPU it
+ * runs on had not finished yielding it. Parking it Sleeping with no deadline
+ * lost it for good, since the wake had already been spent. Park it on a one
+ * tick deadline instead, so the sweep retries once its context is saved,
+ * without the core re-picking it in a loop.
+ */
+pub(super) fn retry_unsaved(pid: u32) {
+    let retry_ms = crate::time::timestamp_millis().saturating_add(1);
+    crate::process::scheduler::dispatch::sleep_until(pid, retry_ms);
+}
