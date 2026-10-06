@@ -77,3 +77,14 @@ The global allocator is `KERNEL_HEAP`, a `SecureHeapAllocator` around a linked-l
 That bootstrap heap is the only heap for the whole run. The `KHEAP_BASE` window would be mapped by `init`, but `init` returns early because the bootstrap heap already set `KERNEL_HEAP` up (`src/memory/heap/manager/init.rs:26-29`). The shutdown wipe therefore erases the range `extent` reports, not the layout window (`src/security/hardening/memory_sanitization/api.rs:102-109`).
 
 Every allocation carries a header with the magic `ALLOCATION_MAGIC`, `0xDEADBEEF`, and an 8-byte trailing canary `CANARY_VALUE`, `0xDEADBEEFCAFEBABE` (`src/memory/heap/constants.rs:18-19`). Memory is zeroed on allocation and on free while `HEAP_ZERO_ON_ALLOC` and `HEAP_ZERO_ON_FREE` hold, which is the default (`src/memory/heap/manager/globals.rs:24-25`). On free, a bad header or a changed `canary_value` prints a `[HEAP-GUARD]` line and the block is not returned to the heap (`src/memory/heap/types/dealloc_impl.rs:40-60`). An allocation the heap cannot satisfy ends in `handle_oom`, which halts the CPU that asked; see [panic and boot stop](panic-and-boot-stop.md).
+
+## Copying to and from user memory
+
+`copy_from_user` and `copy_to_user` never dereference the user address. They run inside `run_without_interrupts`, validate the range, and move the bytes through the directmap (`src/usercopy/copy.rs:27-39`).
+
+- `check_range` refuses a null address, a length over `MAX_COPY_SIZE` (64 MiB), an overflowing range and anything past `0x7FFF_FFFF_FFFF` (`src/usercopy/policy.rs:25-50`).
+- Every page is walked in the live tables. `translate_read` needs a present user page, and `translate_write` also needs it writable (`src/usercopy/walk/access.rs:29-46`).
+- `copy_from_user_directmap` copies from the physical frame through the directmap, page by page, 4 KiB, 2 MiB or 1 GiB leaves alike (`src/usercopy/direct.rs:25-44`).
+- A long copy answers [TLB shootdowns](../overview/glossary.md#tlb-shootdown) every `SERVE_UNIT`, 64 KiB (`src/smp/serve.rs:48`).
+
+This is also why SMAP is safe to turn on: the kernel reaches user memory only through the directmap, which has no user bit, so a supervisor access to a user page never happens, as the note before the `init_mmu` call records (`src/kernel_core/init/entry/init_vm_and_protection.rs:33-41`). The range check, the `policy` module, is compiled into the `kernel_proofs` [proof crate](../overview/glossary.md#proof-crate) (`userland/kernel_proofs/src/usercopy/mod.rs:17-22`), which passes its 388 tests on this commit.
