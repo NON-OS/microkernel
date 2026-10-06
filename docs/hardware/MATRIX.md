@@ -64,3 +64,15 @@ PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_H
 | USB | xHCI host controller, class 0c/03 prog-if 30 | `capsule_driver_xhci` | Works | proof crate `xhci_proofs`: the check fails at this commit on clippy lints; QEMU `qemu-xhci` | 0.9.2 |
 | USB | EHCI, OHCI and UHCI host controllers, class 0c/03 | none | Not supported: no driver; the broker lists them as a generic USB host | none | 0.9.2 |
 | USB | Hubs, class 09 | `capsule_driver_usb_hid` | Partial: the HID driver brings hubs up to reach keyboards and mice below them | proof crate `usb_proofs` (83) | 0.9.2 |
+
+## Input
+
+| Class | Chip and id | Driver capsule | State | How verified | Release |
+|---|---|---|---|---|---|
+| Input | i8042 PS/2 keyboard, platform record 0001:0303 | `capsule_driver_ps2_input` | Works | proof crates `ps2_input_proofs` (38), `input_proofs` (96); QEMU i8042; real hardware (keyboard with its layouts, volume keys) | 0.9.2 |
+| Input | PS/2 mouse or touchpad on the aux port, platform record 0001:0304 | `capsule_driver_ps2_input` | Partial: mice work with wheel; a touchpad is a plain relative mouse, with no vendor protocol | proof crates `ps2_input_proofs`, `input_proofs`; QEMU i8042 | 0.9.2 |
+| Input | I2C-HID touchpad on Intel LPSS, PCI ids in [I2C-HID touchpads](../drivers/input/i2c-hid.md) | `capsule_driver_i2c_pci`, `capsule_driver_i2c_hid` | Works | proof crates `i2c_hid_proofs` (51), `i2c_pci_proofs` (35), `i2c_transfer_proofs` (26); real hardware | 0.9.2 |
+| Input | I2C-HID touchpad on an ACPI-declared controller: AMDI0010, AMDI0510, AMD0010, INT33C2, INT33C3, INT3432, INT3433, INT3442 to INT3447, 80860F41, 808622C1 | `capsule_driver_i2c_pci`, `capsule_driver_i2c_hid` | Works | proof crates as above; not run on such a machine | 0.9.2 |
+| Input | I2C-HID touchscreens | none | Refused: the kernel leaves them out of the device table | none | 0.9.2 |
+| Input | I2C-HID touchpad with a 10-bit address | none | Refused: 10-bit I2C addressing is not supported; the boot log warns | none | 0.9.2 |
+| Input | USB HID keyboard, mouse and tablet, class 03 | `capsule_driver_usb_hid` | Works | proof crate `usb_proofs` (83) | 0.9.2 |
