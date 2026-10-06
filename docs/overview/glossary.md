@@ -171,3 +171,7 @@ A 32-byte key the TPM derives on request as an HMAC over a label, under a primar
 ## Manifest
 
 <a id="capsule-manifest"></a>The publisher-signed binary record, schema version 3, that describes one capsule: its certificate id, namespace, version, target triple, the BLAKE3 hash of its ELF, its required and optional capabilities, up to 16 endpoints and up to 4 publisher signatures. `verify_with_publisher` checks it at every spawn, and a grant outside it is refused with `GrantOutsideManifest`. Explained in [Manifests and capabilities](../userland/manifests-and-capabilities.md). Code: `src/security/capsule_manifest/schema/manifest.rs`, `src/security/capsule_manifest/verify/mod.rs`.
+
+## NONOS ID certificate
+
+A publisher's certificate, signed by the trust anchor with both Ed25519 and ML-DSA-65. It binds the publisher's NONOS ID to its public keys, the namespaces it may publish under, its capability ceiling and the trust-anchor epoch it was issued under. Explained in [Signing and publisher keys](../userland/signing-and-publisher-keys.md). Code: `src/security/nonos_id_cert/schema/cert.rs`, `src/security/nonos_id_cert/policy.rs`.
