@@ -44,3 +44,12 @@ flowchart TD
 6. Open both lines and serve `driver.ps2_kbd0`.
 
 If a claim, the port grant or the keyboard step fails, the attempt fails. After a keyboard failure the driver gives back both claims, with the port grant and both lines, and tries again; that is the bounded retry in the diagram (`release`, `userland/capsule_driver_ps2_input/src/setup/sequence.rs:44-50`). It tries 7 times, sleeping 100 ms after the first failure and doubling up to 3200 ms, about six seconds asleep in all (`BRINGUP_ATTEMPTS`, `userland/libc/src/bringup/policy.rs:31-35`). Then it exits with status 6, `EXIT_GAVE_UP` (`userland/libc/src/bringup/policy.rs:41`).
+
+## Keys
+
+Each byte from the keyboard goes through `absorb`: E0 and E1 prefixes become flags, and bit 7 marks a release (`userland/capsule_driver_ps2_input/src/poll/absorb.rs:22-43`). The byte is then translated to a key, resolved through the active layout with Shift, Caps Lock and AltGr, and posted to the kernel input ring (`publish`, `userland/capsule_driver_ps2_input/src/keymap/post.rs:23-46`).
+
+- A release carries the code its press went down with. Shift+A released after Shift is still an A release, so the router can pair it with its press (`HeldKeys`, `userland/nonos_keymap/src/held.rs:31-34`).
+- A held key repeats as more presses. Mute and Power act once per press and their repeats are dropped (`acts_once`, `userland/capsule_driver_ps2_input/src/keymap/once.rs:27-29`).
+- Ctrl+Alt+Space switches to the next keyboard layout and is not passed on (`cycle`, `userland/capsule_driver_ps2_input/src/poll/absorb.rs:66-79`). [Keyboard layouts](../../using/keyboard-layouts.md) lists the six layouts.
+- The driver also keeps the last 256 raw scan codes in a ring of its own. When it is full, the oldest is overwritten and counted as dropped (`RING_CAPACITY`, `userland/capsule_driver_ps2_input/src/constants/ports.rs:43`; `push`, `userland/capsule_driver_ps2_input/src/ring/push.rs:20-29`).
