@@ -103,3 +103,24 @@ Phase 6 stops the seal on the first failure (`checks`, `tools/nonos_seal/verify.
 | F | the kernel and loader a fresh `nix build` gives against the ones sealed |
 
 Check F ties a sealed image to its source even though the seal itself is not reproducible: the unsigned kernel and loader inside it must be byte for byte what `nix build` gives from the tree the seal leaves, once its staged files are committed. [reproducible-builds.md](reproducible-builds.md) has the rest.
+
+## Without the release keys
+
+Without them you cannot make a release image, but two ways give an image you can boot.
+
+The supported way is a development image:
+
+```
+make dev-image
+make dev-boot
+make dev-image PROFILE=standard
+make dev-boot PROFILE=standard
+```
+
+Not tested in this release.
+
+`make dev-image` copies the checkout's source into `target/dev/tree`, leaving out key directories, `target/` and `result` (`KEEP_OUT`, `tools/nonos-dev-image:43-45`). It makes that copy its own git repository, makes CI's throwaway keys there and a throwaway market operator key, and seals the profile's development twin with them (`keys`, `tools/nonos-dev-image:117-143`). The release keys beside a real checkout are never read. The image lands in `target/dev/tree/target/release/<profile>-dev/nonos.img`, and `make dev-boot` boots it (`DEV_ATTR`, `Makefile:73-78`).
+
+The other way is the older make build in `mk/`, which signs with local development keys it generates when none are there; [make-targets.md](make-targets.md) lists its targets. Neither image is a release, and the seal refuses a development twin for one.
+
+CI's boot smoke test does the same with the full qemu profile: it makes scratch keys that exist only on the runner, seals the profile, and boots it (`Seal`, `.github/workflows/ci-boot-smoke.yml:82-89`).
