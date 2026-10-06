@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::memory::addr::VirtAddr;
-use x86_64::registers::control::Cr2;
 use x86_64::structures::idt::InterruptStackFrame;
 
 use super::context::{log_page_fault, ExceptionContext, PageFaultContext, PageFaultErrorCode};
@@ -32,7 +31,7 @@ use crate::security::observability::redact::redact_address;
 pub fn handle(frame: InterruptStackFrame, error_code: u64) {
     let _ctx = set_interrupt_context();
 
-    let accessed_address = Cr2::read().as_u64();
+    let accessed_address = super::fault_address::fault_address();
     crate::arch::x86_64::diag::dump_trap(b"PF", &frame, Some(error_code), Some(accessed_address));
     let exception = ExceptionContext::from_frame(&frame);
     let error = PageFaultErrorCode::from_bits(error_code);

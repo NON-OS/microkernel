@@ -30,6 +30,8 @@
 //! wrong anyway, since an NMI can land in the window where CS reads kernel and
 //! GS is still the user base. Doing that correctly means reading GS_BASE in
 //! the stub, which is worth doing on its own and not as a side effect here.
+//! Until then the handler must not rely on GS: its first step, which serves
+//! the kernel's own NMIs (`smp::nmi`), names its cpu by APIC id.
 
 use x86_64::structures::idt::InterruptDescriptorTable;
 use x86_64::VirtAddr;
