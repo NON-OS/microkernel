@@ -55,3 +55,11 @@ If the installed system does not boot, or you want a clean one:
 3. Choose the old disk, type its word, and let the installer write and read it back ([Install to disk](install-to-disk.md)).
 
 This erases the old store and data volume. If the stick itself is refused, the screen says why: see [Troubleshooting](troubleshooting.md).
+
+## See also
+
+- [Boot modes](boot-modes.md)
+- [Update](update.md)
+- [Troubleshooting](troubleshooting.md)
+- [Terminal](../using/terminal.md)
+- [Files](../using/files.md)
