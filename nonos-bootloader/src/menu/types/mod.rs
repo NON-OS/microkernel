@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod action;
+mod intent;
 mod mode;
 
 pub use action::MenuAction;
+pub use intent::BootIntent;
 pub use mode::SecurityMode;

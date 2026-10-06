@@ -19,6 +19,8 @@ use super::mode::SecurityMode;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MenuAction {
     Boot(SecurityMode),
+    /* Boot the same verified kernel as Standard and ask it to install. */
+    Install,
     Recovery,
     Diagnostics,
     SecurityStatus,
@@ -39,6 +41,7 @@ impl MenuAction {
             Self::Boot(SecurityMode::SafeMode) => "Boot (Safe Mode)",
             Self::Boot(SecurityMode::NetworkIsolated) => "Boot (Air-Gapped)",
             Self::Boot(SecurityMode::Recovery) => "Boot (Recovery)",
+            Self::Install => "Install NONOS",
             Self::Recovery => "Recovery Mode",
             Self::Diagnostics => "Hardware Diagnostics",
             Self::SecurityStatus => "Security Status",
@@ -51,6 +54,9 @@ impl MenuAction {
         }
     }
     pub const fn requires_verification(&self) -> bool {
-        matches!(self, Self::Boot(SecurityMode::Standard) | Self::Boot(SecurityMode::Hardened))
+        matches!(
+            self,
+            Self::Boot(SecurityMode::Standard) | Self::Boot(SecurityMode::Hardened) | Self::Install
+        )
     }
 }
