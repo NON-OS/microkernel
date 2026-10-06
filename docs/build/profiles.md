@@ -49,3 +49,14 @@ The profile's own description says the `production` loader refuses to start with
 The defaults live in the flake as well, and a key the flake does not know fails the evaluation (`defaults`, `tools/nix/config.nix:120-134`).
 
 `nonos.toml` states that every boot is amnesic: nothing is kept unless the person chooses to install in first-boot setup. With `install = false` the image has no first-boot setup and no installer, so no boot of it can keep anything or write a disk (`install`, `nonos.toml:22-25`). Such a build takes the name suffix `-live`, and a development twin takes `-dev` (`name`, `tools/nix/config.nix:184`).
+
+## How a profile resolves
+
+The flake turns a profile into kernel features in one place (`resolve`, `tools/nix/config.nix:136-188`):
+
+1. Start from the profile's `kernel` features.
+2. Add `nonos-smp` when `smp` is true, and the extra `features`.
+3. Add `nonos-dev-attest` for a development twin, and `nonos-release` when the loader is not `dev-qemu`.
+4. Take out everything the profile drops, and with `install = false` the setup and installer features too, replacing any feature that would bring one back by its own members.
+
+The features come from `Cargo.toml`, never from a hand list, so what a profile takes out is not in the kernel binary at all (`kernelFeatures`, `tools/nix/config.nix:4-15`).
