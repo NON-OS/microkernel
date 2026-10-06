@@ -71,3 +71,7 @@ The paths are in `userland/policy_proto/src/setup_record/layout.rs`, `userland/c
 - The Wi-Fi passphrase is never written in the clear. It is shown as stars, never sent to the console, and wiped from memory on Escape, after a failed join, and once review has used it.
 - Until you install, the store that keeps your answers is the stick's. The installer carries the answers to the disk it writes, so setup does not run there either.
 - To run setup again on a stick that kept answers, write the image to it again: a freshly written store holds no answers.
+
+## When setup cannot start
+
+Setup first waits up to 30 seconds for this boot's store to load (`userland/capsule_setup_wizard/src/keep/skip.rs`). If setup cannot draw at all, it writes `[SETUP] not started:` and the reason to the kernel log, and the desktop starts without it (`userland/capsule_setup_wizard/src/main.rs`).
