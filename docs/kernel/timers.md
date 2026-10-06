@@ -39,3 +39,19 @@ Three kernel modules keep a rate, and all three read the same counter:
 - `sys::timer::tsc` takes the CPUID or PIT rate in `init_default`, or 2.5 GHz when both fail (`src/sys/timer/tsc/init.rs:23-55`). A later PM timer measurement replaces that value through `TSC_FREQ_HZ` (`src/boot/main/core_init/acpi_tables.rs:47-49`).
 
 The pickers and the TSC arithmetic are compiled into the `clock_resolve_proofs` [proof crate](../overview/glossary.md#proof-crate), starting with the `resolve` module (`userland/clock_resolve_proofs/src/lib.rs:6-7`). It passes its 16 tests on this commit.
+
+## The tick
+
+`install_on_bsp` registers the timer handler and programs the boot CPU's local APIC timer at 100 Hz, and each other CPU calls `install_on_ap` for its own (`src/arch/x86_64/interrupt/apic/preemption/install.rs:25-38`). A failure on the boot CPU stops the boot with `preemption timer install failed`.
+
+`setup_timer` puts the timer in periodic mode with a divider of 16 and prints `[APIC] Setting up timer at 100 Hz` (`src/sys/apic/local/timer.rs:28-47`). Its count comes from `calibrate_lapic_ticks_per_ms`, which lets the timer run against a 10 ms TSC window (`src/sys/apic/local_calibrate/calibrate_lapic_ticks_per_ms.rs:26-37`). The result is clamped between `LAPIC_TICKS_PER_MS_MIN`, 500, and `LAPIC_TICKS_PER_MS_MAX`, 60 000, per millisecond (`src/sys/apic/local_calibrate/consts.rs:48-49`). The TSC rate it trusts comes from `accurate_tsc_hz`: CPUID when it lies between 300 MHz and 6 GHz, else the timer module's rate in that band, else 2 GHz (`src/sys/apic/local_calibrate/accurate_tsc_hz.rs:19-32`).
+
+Each tick enters `timer_tick`, which signals end-of-interrupt to the local APIC first, so the timer keeps firing while a switch runs another task (`src/arch/x86_64/interrupt/apic/preemption/tick_handler.rs:26-35`). Then `on_timer_interrupt` runs (`src/interrupts/timer/tick.rs:17-72`):
+
+1. It records this CPU's tick time in its per-CPU block.
+2. On the boot CPU only, it advances the machine's tick count.
+3. It runs the scheduler tick, wakes sleepers whose deadline passed, and finishes deferred wakes.
+4. On the boot CPU only, it runs the paced work.
+5. If the tick interrupted user mode and a reschedule is due, it switches; see [scheduler and SMP](scheduler-and-smp.md).
+
+The paced work in `paced_work` runs alarms and polls the ACPI power button every 10 ticks, updates the load averages every `LOAD_SAMPLE_TICKS`, 500 ticks, and polls the IOMMU for faults (`src/interrupts/timer/clock.rs:32-58`).
