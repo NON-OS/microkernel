@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod clock;
-pub mod heartbeat;
-pub mod hooks;
-pub mod state;
-pub mod tick;
+use x86_64::registers::control::Cr2;
 
-pub use hooks::{clear_tick_hook, init, set_tick_hook, TickHook};
-pub use state::{get_ticks as tick_count, reset_ticks, TICK_COUNT};
-pub use tick::{on_timer_interrupt, tick};
+/*
+ * Raw read: `Cr2::read` panics when CR2 is not canonical, and QEMU TCG
+ * loads CR2 on a non-canonical access too. The fault is still handled
+ * (and a user process killed) instead of panicking the kernel.
+ */
+pub(super) fn fault_address() -> u64 {
+    Cr2::read_raw()
+}
