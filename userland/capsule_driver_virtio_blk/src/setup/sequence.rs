@@ -14,19 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::driver::Driver;
-use super::{claim, dma, irq, registers};
+use super::{claim, dma, irq, modern, registers};
 use crate::constants::LEG_CFG_CAPACITY;
-use crate::discover::find_virtio_blk;
+use crate::discover::{find_virtio_blk, Found};
 use crate::init::bring_up;
 use crate::queue::Queue;
-use nonos_libc::{mk_debug, mk_irq_ack};
+use crate::transport::{self, Transport};
+use nonos_libc::{mk_debug, mk_device_release, mk_irq_ack};
 
 const MSIX_CONFIG_SHIFT: usize = 4;
 
 // The step about to run, printed before it. A step that returns an error is
-// reported by the retry loop in main; a step that never returns reports
-// nothing there, and the last line printed here is then the one that names it.
-fn step(name: &str) {
+// reported by the bring-up loop in main once it gives up; a step that never
+// returns reports nothing there, and the last line printed here names it.
+pub(super) fn step(name: &str) {
     let mut line = [0u8; 64];
     let tag = b"[BLK] step ";
     let n = tag.len();
@@ -36,11 +37,35 @@ fn step(name: &str) {
     let _ = mk_debug(line.as_ptr(), n + m);
 }
 
+/// One bring-up attempt. A failed one holds nothing afterwards.
 pub fn run() -> Result<Driver, &'static str> {
     step("find");
     let dev = find_virtio_blk().ok_or("no virtio-blk device")?;
     step("claim");
     let claim_epoch = claim::claim(dev.device_id)?;
+    let attempt = claimed(dev, claim_epoch);
+    if attempt.is_err() {
+        /*
+         * Whichever step failed, the claim goes, and every MMIO, PIO, IRQ
+         * and DMA grant with it, so the next attempt can claim afresh. The
+         * steps below roll back on their own and this then answers "not
+         * claimed"; a register BAR the driver cannot map never did, and a modern
+         * handshake that fails leaves the release to this line.
+         */
+        let _ = mk_device_release(dev.device_id);
+    }
+    attempt
+}
+
+fn claimed(dev: Found, claim_epoch: u64) -> Result<Driver, &'static str> {
+    step("transport");
+    match transport::probe(&dev, claim_epoch)? {
+        Some(caps) => modern::run(dev, claim_epoch, &caps),
+        None => legacy(dev, claim_epoch),
+    }
+}
+
+fn legacy(dev: Found, claim_epoch: u64) -> Result<Driver, &'static str> {
     step("regs");
     let register_grant = registers::grant(dev, claim_epoch)?;
     step("irq-bind");
@@ -59,9 +84,9 @@ pub fn run() -> Result<Driver, &'static str> {
         &queue_dma,
         &header_dma,
     )?;
-    let regs = register_grant.regs();
+    let regs = register_grant.regs().ok_or("virtio-blk: no legacy register window")?;
     step("bring-up");
-    let init = match bring_up(regs, queue_dma.device_addr, Queue::max_supported_size()) {
+    let init = match bring_up(regs, queue_dma.device_addr, Queue::max_supported_size(), msix) {
         Ok(init) => init,
         Err(e) => {
             dma::rollback::data(
@@ -110,5 +135,10 @@ pub fn run() -> Result<Driver, &'static str> {
         return Err("virtio-blk: irq ack failed");
     }
     step("ready");
-    Ok(Driver { irq_grant: irq_grant.grant_id, queue, regs, capacity_sectors })
+    Ok(Driver {
+        irq_grant: irq_grant.grant_id,
+        queue,
+        transport: Transport::Legacy(regs),
+        capacity_sectors,
+    })
 }

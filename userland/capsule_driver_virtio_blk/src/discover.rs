@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::constants::{VIRTIO_BLK_MODERN, VIRTIO_BLK_TRANSITIONAL, VIRTIO_VENDOR_ID};
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO, BUS_KIND_PCI};
-const MAX_DEVICES: usize = 32;
+use nonos_virtio::{BarInfo, Bars};
+/// The device list holds ACPI and fabricated records beside PCI functions;
+/// at 32 a machine with more stopped short of the device behind a root port.
+const MAX_DEVICES: usize = 128;
 #[derive(Clone, Copy)]
 pub struct Found {
     pub device_id: u64,
@@ -23,6 +26,10 @@ pub struct Found {
     pub register_bar: u8,
     pub register_kind: u8,
     pub register_size: u64,
+    /// The PCI device id: transitional 0x1001 or modern-only 0x1042.
+    pub pci_device: u16,
+    /// Every BAR, for the transport choice and the capability checks.
+    pub bars: Bars,
 }
 pub fn find_virtio_blk() -> Option<Found> {
     let mut buf = [DeviceRecord::empty(); MAX_DEVICES];
@@ -44,6 +51,8 @@ pub fn find_virtio_blk() -> Option<Found> {
                 register_bar: idx,
                 register_kind: kind,
                 register_size: size,
+                pci_device: r.device,
+                bars: bars(r),
             });
         }
     }
@@ -53,6 +62,18 @@ fn is_match(r: &DeviceRecord) -> bool {
     r.vendor == VIRTIO_VENDOR_ID
         && r.bus_kind == BUS_KIND_PCI
         && (r.device == VIRTIO_BLK_TRANSITIONAL || r.device == VIRTIO_BLK_MODERN)
+}
+/// The broker's BAR list in the shared transport's terms.
+fn bars(r: &DeviceRecord) -> Bars {
+    let mut out = [BarInfo::ABSENT; 6];
+    for (slot, bar) in out.iter_mut().zip(r.bars.iter()) {
+        *slot = match bar.kind {
+            BAR_KIND_MMIO => BarInfo::mmio(bar.size),
+            BAR_KIND_PIO => BarInfo::io(bar.size),
+            _ => BarInfo::ABSENT,
+        };
+    }
+    out
 }
 fn first_register_bar(r: &DeviceRecord) -> Option<(u8, u8, u64)> {
     for i in 0..r.bars.len() {
