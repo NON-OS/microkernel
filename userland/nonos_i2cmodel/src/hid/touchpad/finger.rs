@@ -30,8 +30,11 @@ pub(super) const FINGER: &[&[u8]] = &[
     &[0x75, 0x01],            // Report Size (1)
     &[0x95, 0x02],            // Report Count (2)
     &[0x81, 0x02],            // Input: confidence at bit 0, tip at bit 1
-    &[0x95, 0x06],            // Report Count (6)
-    &[0x81, 0x03],            // Input, constant: padding to the byte
+    &[0x09, 0x51],            // Usage (Contact Identifier)
+    &[0x25, 0x3F],            // Logical Maximum (63)
+    &[0x75, 0x06],            // Report Size (6)
+    &[0x95, 0x01],            // Report Count (1)
+    &[0x81, 0x02],            // Input: contact identifier at bit 2
     &[0x05, 0x01],            // Usage Page (Generic Desktop)
     &[0x09, 0x30],            // Usage (X)
     &[0x26, 0xB0, 0x04],      // Logical Maximum (1200)

@@ -27,11 +27,17 @@ const OPCODE_SET_POWER: u8 = 0x8;
 
 impl HidOverI2c {
     /// `w` is the whole write phase: two bytes of register, then byte 2 with
-    /// the report id (3:0) and type (5:4), byte 3 with the opcode. GET and
-    /// SET name the data register next; SET follows it with a two-byte
-    /// length and the report, id first.
+    /// the report id (3:0) and type (5:4), byte 3 with the opcode. A report
+    /// id of 15 or more does not fit the nibble: it reads 0xF and the id
+    /// follows the opcode as byte 4. GET and SET name the data register
+    /// next; SET follows it with a two-byte length and the report, id first.
     pub(super) fn command(&mut self, w: &[u8]) {
-        let (ty, id) = (w[2] >> 4, w[2] & 0x0F);
+        let (ty, mut id) = (w[2] >> 4, w[2] & 0x0F);
+        let mut at = 4;
+        if id == 0x0F && w.len() > 4 {
+            id = w[4];
+            at = 5;
+        }
         match w[3] & 0x0F {
             OPCODE_RESET => {
                 self.commands.push(Command::Reset);
@@ -45,8 +51,8 @@ impl HidOverI2c {
                 let report = self.features.get(&id).cloned().unwrap_or_else(|| vec![id]);
                 self.serving = framed(&report);
             }
-            OPCODE_SET_REPORT if w.len() >= 8 => {
-                let data = w[8..].to_vec();
+            OPCODE_SET_REPORT if w.len() >= at + 4 => {
+                let data = w[at + 4..].to_vec();
                 self.commands.push(Command::SetReport { ty, id, data: data.clone() });
                 self.features.insert(id, data);
             }
