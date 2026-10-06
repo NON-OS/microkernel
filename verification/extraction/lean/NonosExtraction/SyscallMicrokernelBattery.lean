@@ -15,7 +15,7 @@ set_option maxRecDepth 2048
 namespace nonos_x_syscall_microkernel_battery
 
 /-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::errnos::ERRNO_NODEV]
-    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/errnos.rs', lines 30:0-30:33
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/errnos.rs', lines 34:0-34:33
     Visibility: public -/
 @[global_simps, irreducible]
 def syscall.microkernel.errnos.ERRNO_NODEV : Std.I64 := (-19)#i64
