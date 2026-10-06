@@ -14,3 +14,6 @@ license = "AGPL-3.0-or-later"
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+nonos_route_proof = { path = "../route_proof" }
