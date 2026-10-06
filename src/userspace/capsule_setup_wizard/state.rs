@@ -14,12 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::sync::atomic::{AtomicU32, Ordering};
+
 use crate::services::lifecycle::CapsuleState;
 
 static STATE: CapsuleState = CapsuleState::new();
 
+/// The pid setup ran as. The lifecycle tick clears the pid in `STATE` once
+/// the process is gone, and its exit status is read after that.
+static SPAWNED: AtomicU32 = AtomicU32::new(0);
+
 pub(super) fn set_alive(pid: u32) {
+    SPAWNED.store(pid, Ordering::SeqCst);
     STATE.set_alive(pid);
+}
+
+#[cfg(feature = "microkernel-setup-wizard")]
+pub(super) fn spawned_pid() -> u32 {
+    SPAWNED.load(Ordering::SeqCst)
 }
 
 pub fn shared_state() -> &'static CapsuleState {

@@ -15,8 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod embed;
+#[cfg(feature = "microkernel-setup-wizard")]
+mod outcome;
 mod spawn;
 mod state;
 
+#[cfg(feature = "microkernel-setup-wizard")]
+pub use outcome::{ended, Ended};
 pub use spawn::spawn_setup_wizard_capsule;
 pub use state::shared_state;
