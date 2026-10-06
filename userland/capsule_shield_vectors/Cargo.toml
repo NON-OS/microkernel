@@ -1,0 +1,25 @@
+[package]
+name = "nonos_shield_vectors"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "Test 5: the four pinned production wallet vectors proved on the machine, development images only"
+
+[[bin]]
+name = "shield_vectors"
+path = "src/main.rs"
+
+[dependencies]
+# The prover nonos.shield links through shield_core, unchanged, at the same commit.
+nox_prover = { git = "https://github.com/NON-OS/STARKs.git", branch = "main", features = ["not_before", "parallel"] }
+rayon = "=1.12.0"
+nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }
+
+[profile.release]
+panic = "abort"
+opt-level = 3
+lto = false
+debug = false
+strip = true
