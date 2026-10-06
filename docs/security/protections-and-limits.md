@@ -34,3 +34,24 @@ Each row names a threat, what the code does about it, and where. A row in the se
 | Network code in an image meant to stay offline | the air-gapped profile leaves every network driver, stack and online program out of the image | `networkFeatures` (`tools/nix/config.nix:48-58`) |
 
 [Capsule isolation](capsule-isolation.md) and [Device secrets and keys](device-secrets-and-keys.md) explain these mechanisms in full.
+
+## What NONOS does not address
+
+| Threat | Why it is not covered | Where to look |
+|---|---|---|
+| Device DMA on a machine with no remapping unit in service, or with AMD-Vi only | the claim goes ahead unconfined and the boot log says so; AMD-Vi is driven only by kernels built with `nonos-iommu-amdvi`, which is off by default | `unconfined_allowed` (`src/hardware/broker/confine/posture.rs:32-50`) |
+| A device that raises interrupts it should not by writing MSI messages | interrupt remapping is off by default | `nonos-iommu-intremap` in `Cargo.toml` |
+| Reading RAM after a power cut, a forced power-off or a kernel panic | none of these runs the wipe; the panic path halts as it is | `panic` (`src/boot/panic/handler.rs:41-64`) |
+| The data volume key left in RAM after an orderly shutdown | the wipe covers the heap, stacks and process memory, not kernel statics such as the one holding this key | `VOLUME` (`src/fs/blockfs_volume/state.rs:21-26`) |
+| A probe on the bus between the CPU and a discrete TPM | the TPM session is unbound and unsalted, with no parameter encryption, so the machine key crosses the bus in the clear | `build_start` (`src/security/tpm/machine_key/session.rs:17-49`) |
+| Malicious firmware, SMM code or a management engine | it runs below the kernel; NONOS can neither inspect nor contain it, and the PCR binding only notices a changed measurement | `BOUND_PCRS` (`src/security/tpm/machine_key/pcrs.rs:21-24`) |
+| Putting back an older copy of the data volume or of a sealed record | sectors are bound to their LBA, not to a version, and sealed records carry no counter | `AAD_PREFIX` (`src/fs/cryptoblock/seal.rs:39-42`), `userland/nonos_vault/src/lib.rs` |
+| A capsule that misuses the capabilities it was granted | a capability says what kind of thing a capsule may do, not who it may do it with; only the capsule named in `PEERS` is held to a list | `PEERS` (`src/services/registry/peers.rs:17-31`) |
+| A capsule holding `Crypto` deriving a machine key another capsule uses | the kernel does not tie a label to a capsule; it refuses only the kernel's own labels | `is_user_label` (`src/security/tpm/machine_key/kernel_label.rs:42-45`) |
+| A capsule holding `Admin` driving any device | `Admin` stands in for every broker bit | `can_driver` (`src/capabilities/token/types/authority_broker.rs:24-54`) |
+| An attacker who takes over a capsule's code, for example through a memory bug in it | authority follows the process, not the code: tokens are bound to a pid, address space and boot, and `subject_measurement` is always zero, so the attacker gets every bit the capsule holds | `new_token` (`src/process/caps.rs:38-59`) |
+| Speculative-execution and other side channels between capsules | on x86_64 each system call entry fills the return stack buffer and sets IBRS where the CPU has it; the exit hook that issues VERW is called only from `exec_process`, which nothing in this tree calls; the IBPB hook for context switches has no caller, the L1D flush is never issued, and KPTI is not implemented, so Meltdown-affected parts are not mitigated; cache, timing and power channels are not addressed | `kernel_entry_mitigations` (`src/security/hardening/spectre_mitigations/hooks.rs:22-37`), `exec_process` (`src/process/userspace/transitions.rs:28-33`), `l1d_flush` (`src/security/hardening/spectre_mitigations/enable.rs:46-63`) |
+| Files persisted to the capsule store, read straight from the disk | the store is written as given; only records a capsule seals itself are protected | `sys_store_write` (`src/syscall/microkernel/store_write.rs:24-42`) |
+| Capsule diagnostics on the serial console in the standard, qemu and dev profiles | those profiles keep `capsule-serial-debug`, so service capsules may write to serial | `debugFeatures` (`tools/nix/config.nix:60-62`) |
+
+Two further limits are stated on other pages. Network observers and the anonymity routes are on [Privacy network](../using/privacy-network.md). What the bootloader checks is on [Boot chain and signatures](boot-chain-and-signatures.md).
