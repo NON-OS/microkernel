@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::syscall::{call_raw, N_MK_STORE_WRITE};
+//! The kernel's own check of the bootloader that started it, as `MkBootAttest`
+//! reports it: measured, self-reported, refused, or without evidence.
 
-pub fn mk_store_write(lba: u64, buf: *const u8, len: usize) -> i64 {
-    if buf.is_null() || len == 0 {
-        return -22;
-    }
-    call_raw(N_MK_STORE_WRITE, [lba, buf as u64, len as u64, 0, 0, 0])
-}
+mod call;
+mod record;
+
+pub use call::{boot_attest, mk_boot_attest};
+pub use record::{parse_boot_attest, AdmittedLoader, BootAttest, BOOT_ATTEST_LEN};
