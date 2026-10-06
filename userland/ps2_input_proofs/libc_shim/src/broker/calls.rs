@@ -17,7 +17,7 @@
 //! The grant calls the setup sequence makes. Grants are fixed numbers so a
 //! test can tell them apart.
 
-use super::table::acknowledge;
+use super::table::{acknowledge, record_release};
 use super::types::{IrqBindOut, PioGrantOut, IRQ_GRANT_BASE, PIO_GRANT};
 
 pub fn mk_device_claim(_device_id: u64) -> i64 {
@@ -45,7 +45,8 @@ pub fn mk_irq_ack(grant_id: u64) -> i64 {
     0
 }
 
-pub fn mk_device_release(_device_id: u64) -> i64 {
+pub fn mk_device_release(device_id: u64) -> i64 {
+    record_release(device_id);
     0
 }
 

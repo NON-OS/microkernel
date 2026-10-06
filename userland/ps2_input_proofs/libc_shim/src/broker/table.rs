@@ -24,6 +24,18 @@ use super::types::DeviceRecord;
 thread_local! {
     static DEVICES: RefCell<Vec<DeviceRecord>> = const { RefCell::new(Vec::new()) };
     static ACKED: RefCell<Vec<u64>> = const { RefCell::new(Vec::new()) };
+    static RELEASED: RefCell<Vec<u64>> = const { RefCell::new(Vec::new()) };
+}
+
+pub(super) fn record_release(device_id: u64) {
+    RELEASED.with(|r| r.borrow_mut().push(device_id));
+}
+
+/// Every device the driver released on this thread, in order. A failed
+/// bring-up attempt must give its claims back, or the next attempt is
+/// refused its own leftover claim.
+pub fn released() -> Vec<u64> {
+    RELEASED.with(|r| r.borrow().clone())
 }
 
 /// What the broker lists on this thread from now on.

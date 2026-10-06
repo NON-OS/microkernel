@@ -25,10 +25,12 @@
 
 mod broker;
 mod port;
+mod time;
 
 pub use broker::{
     acked, mk_debug, mk_device_claim, mk_device_list, mk_device_release, mk_irq_ack,
-    mk_irq_bind, mk_pio_grant, present, DeviceRecord, IrqBindOut, PioGrantOut, BUS_KIND_ACPI,
-    PIO_GRANT,
+    mk_irq_bind, mk_pio_grant, present, released, DeviceRecord, IrqBindOut, PioGrantOut,
+    BUS_KIND_ACPI, PIO_GRANT,
 };
 pub use port::{attach, mk_pio_read, mk_pio_release, mk_pio_write, Attached, Port};
+pub use time::{mk_uptime_ms, Deadline};

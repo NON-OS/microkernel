@@ -17,12 +17,12 @@
 //! The mouse side: the aux clock on, the configuration written back with
 //! both interrupts, the wheel knock, and the ports that are not a mouse.
 
-use super::controller::{Keyboard, MouseKind};
+use super::controller::{Keyboard, MouseKind, CONFIG_KBD_DISABLE};
 use super::shared::{machine, FIRMWARE_CONFIG};
 use crate::constants::{
-    CONFIG_AUX_DISABLE, CONFIG_IRQ1, CONFIG_IRQ12, CTL_ENABLE_AUX, CTL_READ_CONFIG, CTL_WRITE_AUX,
-    CTL_WRITE_CONFIG, MOUSE_ENABLE_REPORTING, MOUSE_GET_DEVICE_ID, MOUSE_SET_DEFAULTS,
-    MOUSE_SET_SAMPLE_RATE,
+    CONFIG_AUX_DISABLE, CONFIG_IRQ1, CONFIG_IRQ12, CONFIG_XLATE, CTL_DISABLE_KBD, CTL_ENABLE_AUX,
+    CTL_READ_CONFIG, CTL_WRITE_AUX, CTL_WRITE_CONFIG, MOUSE_ENABLE_REPORTING, MOUSE_GET_DEVICE_ID,
+    MOUSE_SET_DEFAULTS, MOUSE_SET_SAMPLE_RATE,
 };
 use crate::init::enable_mouse;
 
@@ -43,10 +43,15 @@ fn a_wheel_mouse_is_found_by_the_knock_and_reporting_is_enabled_last() {
     let (ctl, _port) = machine(Keyboard::PROMPT, MouseKind::Present { wheel: true });
     assert_eq!(enable_mouse(7), Ok(true));
     let c = ctl.borrow();
-    assert_eq!(&c.commands()[..3], [CTL_ENABLE_AUX, CTL_READ_CONFIG, CTL_WRITE_CONFIG]);
-    assert!(c.commands()[3..].iter().all(|&cmd| cmd == CTL_WRITE_AUX), "then only mouse writes");
-    let expected = (FIRMWARE_CONFIG | CONFIG_IRQ1 | CONFIG_IRQ12) & !CONFIG_AUX_DISABLE;
-    assert_eq!(c.config, expected, "both interrupts on, aux clock on, port one untouched");
+    let order = [CTL_DISABLE_KBD, CTL_ENABLE_AUX, CTL_READ_CONFIG, CTL_WRITE_CONFIG];
+    assert_eq!(&c.commands()[..4], order, "the keyboard held off while the config is read");
+    assert!(c.commands()[4..].iter().all(|&cmd| cmd == CTL_WRITE_AUX), "then only mouse writes");
+    // The keyboard's bits come out as the keyboard bring-up sets them
+    // (interrupt, clock and translation on), so the mouse cannot undo them.
+    let expected = (FIRMWARE_CONFIG | CONFIG_IRQ1 | CONFIG_IRQ12 | CONFIG_XLATE)
+        & !CONFIG_AUX_DISABLE
+        & !CONFIG_KBD_DISABLE;
+    assert_eq!(c.config, expected, "both interrupts on, aux clock on, keyboard bits kept");
     assert_eq!(c.data_writes()[1..], KNOCK, "the configuration byte, then the mouse dialogue");
     assert!(c.mouse.reporting);
 }

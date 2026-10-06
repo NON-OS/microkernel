@@ -18,15 +18,17 @@
 
 use super::state::{Controller, Pending, CONFIG_KBD_DISABLE};
 use crate::constants::{
-    CONFIG_AUX_DISABLE, CTL_DISABLE_AUX, CTL_ENABLE_AUX, CTL_ENABLE_KBD, CTL_READ_CONFIG,
-    CTL_WRITE_AUX, CTL_WRITE_CONFIG,
+    CONFIG_AUX_DISABLE, CTL_DISABLE_AUX, CTL_DISABLE_KBD, CTL_ENABLE_AUX, CTL_ENABLE_KBD,
+    CTL_READ_CONFIG, CTL_WRITE_AUX, CTL_WRITE_CONFIG,
 };
 
 impl Controller {
     pub(super) fn command(&mut self, cmd: u8) {
         self.pending = Pending::Nothing;
         match cmd {
-            CTL_READ_CONFIG => self.output.push_back((self.config, false)),
+            CTL_READ_CONFIG => {
+                self.output.push_back((self.config, self.keyboard.ctr_aux_tag && self.aux_clock))
+            }
             CTL_WRITE_CONFIG => self.pending = Pending::ConfigWrite,
             CTL_ENABLE_AUX => {
                 self.config &= !CONFIG_AUX_DISABLE;
@@ -37,6 +39,8 @@ impl Controller {
                 self.aux_clock = false;
             }
             CTL_ENABLE_KBD => self.config &= !CONFIG_KBD_DISABLE,
+            // 0xAD holds the first port's clock off and shows it in bit 4.
+            CTL_DISABLE_KBD => self.config |= CONFIG_KBD_DISABLE,
             CTL_WRITE_AUX => self.pending = Pending::AuxWrite,
             _ => {}
         }
@@ -48,6 +52,11 @@ impl Controller {
         match core::mem::replace(&mut self.pending, Pending::Nothing) {
             Pending::ConfigWrite => self.config = value,
             Pending::AuxWrite if self.aux_clock => {
+                if let Some(key) =
+                    self.keyboard.held.filter(|_| self.config & CONFIG_KBD_DISABLE == 0)
+                {
+                    self.output.push_back((key, false));
+                }
                 for byte in self.mouse.command(value) {
                     self.output.push_back((byte, true));
                 }
