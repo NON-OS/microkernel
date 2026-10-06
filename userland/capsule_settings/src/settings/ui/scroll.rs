@@ -47,8 +47,12 @@ fn cursor_rect(state: &State) -> Option<(u32, u32)> {
     let mut index = 0usize;
     let mut found = None;
     walk(state, |y, h, item| {
-        let Item::Row(bi, ri) = item else { return };
-        if !matches!(blocks[bi].rows[ri], Row::Field(_)) {
+        let stop = match item {
+            Item::Row(bi, ri) => matches!(blocks[bi].rows[ri], Row::Field(_)),
+            Item::Wallpaper(_) => true,
+            _ => false,
+        };
+        if !stop {
             return;
         }
         if index == cursor {

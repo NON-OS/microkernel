@@ -1,9 +1,9 @@
 # NONOS userland: capsule_settings
 # eK@nonos.systems
 #
-# Toggle list with cursor navigation and per-row boolean state. Owned
-# state, no globals. Keyboard input (j/k, Space/Enter, Esc). Real
-# production capsule built on `nonos_app_skeleton`.
+# The Settings window: the policy store's editor, the Wi-Fi panel and what
+# this image and machine report, on `nonos_app_skeleton`. README.md has
+# each section and the keys.
 
 [package]
 name = "nonos_settings"
@@ -22,8 +22,11 @@ path = "src/main.rs"
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
+# The audio service's wire format, for the Sound page's output device row.
+nonos_audio_proto = { path = "../audio_proto" }
 nonos_policy_proto = { path = "../policy_proto" }
 nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_wifi_client = { path = "../nonos_wifi_client" }
 
 [profile.release]
 panic = "abort"

@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod adjust;
+mod adjust_tier;
 pub mod adjust_i8;
 pub mod adjust_u8;
 pub mod clamp_u8;
 pub mod commit_bool;
 pub mod commit_string;
+mod keep_wallpaper;
 pub mod next_section;
 pub mod on_event;
 pub mod on_event_browsing;
@@ -28,10 +30,14 @@ pub mod on_event_wifi;
 pub mod on_pointer;
 pub mod on_search_key;
 pub mod on_search_pointer;
+pub mod on_wifi_passphrase;
+mod paste;
 pub mod pointer_row;
 pub mod push_text_char;
 pub mod report;
 pub mod toggle_or_inc;
+pub mod wifi_key;
+mod wifi_radio_key;
 
 pub use on_event::on_event;
 pub use on_search_pointer::on_accessory;

@@ -20,6 +20,12 @@ use std::process::Command;
 fn main() {
     let sha = resolve_sha();
     println!("cargo:rustc-env=SETTINGS_GIT_SHA={sha}");
+    // The toolchain and target this image was built with, as the compiler
+    // and cargo report them, so Updates never shows a name typed by hand.
+    println!("cargo:rustc-env=SETTINGS_RUSTC={}", rustc_version());
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_else(|_| "unknown".into());
+    let target = env::var("TARGET").unwrap_or_else(|_| "unknown".into());
+    println!("cargo:rustc-env=SETTINGS_ARCH={arch} ({target})");
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=src");
     println!("cargo:rerun-if-env-changed=NONOS_BUILD_SHA");
@@ -49,4 +55,17 @@ fn resolve_sha() -> String {
         }
     }
     "unknown".into()
+}
+
+fn rustc_version() -> String {
+    let rustc = env::var("RUSTC").unwrap_or_else(|_| "rustc".into());
+    Command::new(rustc)
+        .arg("-V")
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .and_then(|o| String::from_utf8(o.stdout).ok())
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "unknown".into())
 }

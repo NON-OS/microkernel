@@ -18,23 +18,9 @@ use nonos_policy_proto::Field;
 
 use crate::settings::schema::rows::{Block, Pill, Row};
 
-pub const DEVELOPER: &[Block] = &[
-    Block {
-        title: "Developer mode",
-        note: Some("Unverified capsules can never spawn in a production build."),
-        pill: Pill::None,
-        rows: &[Row::Field(Field::DeveloperMode)],
-    },
-    Block {
-        title: "Diagnostics",
-        note: None,
-        pill: Pill::None,
-        rows: &[Row::Field(Field::KernelDebug), Row::Field(Field::KernelSerial)],
-    },
-    Block {
-        title: "Scheduler and memory",
-        note: None,
-        pill: Pill::None,
-        rows: &[Row::Field(Field::KernelPreempt), Row::Field(Field::KernelHugepages)],
-    },
-];
+pub const DEVELOPER: &[Block] = &[Block {
+    title: "Scheduler",
+    note: None,
+    pill: Pill::None,
+    rows: &[Row::Field(Field::KernelPreempt)],
+}];

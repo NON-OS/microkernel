@@ -58,4 +58,4 @@ const fn all_placed() -> bool {
     true
 }
 
-const _: () = assert!(all_placed(), "every policy field must appear on a settings screen");
+const _: () = assert!(all_placed(), "every listed field must appear on a settings screen");

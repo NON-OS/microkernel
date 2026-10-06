@@ -17,6 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_policy_proto::Field;
 
+use crate::settings::qwen_tier::shown;
 use crate::settings::state::{current_field, FieldValue, State};
 
 use super::bytes::as_str;
@@ -52,6 +53,8 @@ pub fn paint_string(
     let top = text::centred_top(0, row_h, BODY_PX) + screen_y;
     let fg = if editing { ACCENT } else { VALUE_FG };
     match string_text(state, value, editing) {
+        /* The tier's name, and with nothing set the tier qwen runs then. */
+        Some(b) if field == Field::QwenTier => text::right(fb, right, top, as_str(shown(b)), fg, BODY_PX),
         Some(b) => text::right(fb, right, top, as_str(b), fg, BODY_PX),
         None => text::right(fb, right, top, "--", IDLE, BODY_PX),
     };

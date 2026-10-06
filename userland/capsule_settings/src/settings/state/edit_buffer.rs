@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_app_skeleton::input::text::{last_char_len, push_char};
+
 use super::cache::STRING_CAP;
 
 #[derive(Clone, Copy)]
@@ -36,13 +38,33 @@ impl EditBuffer {
         true
     }
 
+    /// Append `ch` whole, within `cap` bytes, or not at all: a value cut
+    /// inside a character is not text.
+    pub fn push_char(&mut self, ch: char, cap: usize) -> bool {
+        match push_char(&mut self.bytes, self.len, cap, ch) {
+            Some(len) => {
+                self.len = len;
+                true
+            }
+            None => false,
+        }
+    }
+
+    /// Remove the last character, all of its bytes. The buffer holds UTF-8,
+    /// and taking one byte of a two byte letter left half of it behind.
     pub fn pop(&mut self) -> bool {
-        if self.len == 0 {
+        let n = last_char_len(self.as_slice());
+        if n == 0 {
             return false;
         }
-        self.len -= 1;
-        self.bytes[self.len] = 0;
+        self.bytes[self.len - n..self.len].fill(0);
+        self.len -= n;
         true
+    }
+
+    /// The characters held.
+    pub fn char_count(&self) -> usize {
+        core::str::from_utf8(self.as_slice()).map_or(self.len, |s| s.chars().count())
     }
 
     pub fn as_slice(&self) -> &[u8] {

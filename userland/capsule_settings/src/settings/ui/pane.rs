@@ -25,6 +25,8 @@ use super::metrics::PANE_PAD_X;
 use super::net_rows;
 use super::page_head;
 use super::row;
+use super::saved_rows;
+use super::wallpaper_row;
 use super::walk::{walk, Item};
 
 /// Paints the section pane into `fb`, which is the window minus the sidebar.
@@ -53,6 +55,18 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
             }
             return;
         }
+        if let Item::Wallpaper(i) = item {
+            let selected = field_index == cursor;
+            field_index += 1;
+            if !offscreen {
+                if selected {
+                    super::row_focus::paint(fb, card_x, card_w, sy, h);
+                }
+                wallpaper_row::paint(fb, state, i, card_x, card_w, sy, h);
+                row::hairline(fb, card_x, card_w, sy, h);
+            }
+            return;
+        }
         if offscreen {
             return;
         }
@@ -64,7 +78,11 @@ pub fn paint(fb: &mut PaintBuffer, state: &State, scroll: u32, view_w: u32, view
                 net_rows::paint(fb, state, i, card_x, card_w, sy, h);
                 row::hairline(fb, card_x, card_w, sy, h);
             }
-            Item::Row(..) => {}
+            Item::Saved(i) => {
+                saved_rows::paint(fb, state, i, card_x, card_w, sy, h);
+                row::hairline(fb, card_x, card_w, sy, h);
+            }
+            Item::Row(..) | Item::Wallpaper(_) => {}
         }
     });
 }

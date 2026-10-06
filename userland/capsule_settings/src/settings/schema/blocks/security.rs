@@ -14,40 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::Field;
-
-use crate::settings::schema::rows::{Block, Pill, Row, Tone};
+use crate::settings::schema::rows::{Block, Live, Pill, Row};
 
 pub const SECURITY: &[Block] = &[
+    // No "keys generated" switch: nothing sets that field, so it read No on
+    // every machine. The row asks the TPM itself when the page opens.
     Block {
-        title: "Lock screen",
-        note: None,
+        title: "Machine key",
+        note: Some(
+            "Asked of the TPM when this page opens. Saved Wi-Fi passphrases are sealed with it.",
+        ),
         pill: Pill::None,
-        rows: &[Row::Field(Field::AutoLockTimeout), Row::Field(Field::AutoWipe)],
+        rows: &[Row::Live("Machine key", Live::MachineKey)],
     },
     Block {
-        title: "Attestation and keys",
-        note: Some("Groth16 over BLS12-381, checked before any capsule spawns."),
-        pill: Pill::Fixed("Enforced", Tone::Ok),
-        rows: &[
-            Row::Field(Field::HardwareCrypto),
-            Row::Field(Field::ZkAttestation),
-            Row::Field(Field::SystemKeysGenerated),
-        ],
-    },
-    Block {
-        title: "Kernel hardening",
-        note: None,
+        title: "Kernel protections",
+        note: Some("SMEP, SMAP, UMIP, NX and WP are set at boot when the CPU has them."),
         pill: Pill::None,
-        rows: &[
-            Row::Field(Field::KernelAslr),
-            Row::Field(Field::KernelNxBit),
-            Row::Field(Field::KernelSmep),
-            Row::Field(Field::KernelSmap),
-            Row::Field(Field::KernelStackGuard),
-            Row::Field(Field::KernelSeccomp),
-            Row::Field(Field::KernelIommu),
-            Row::Field(Field::KernelWatchdog),
-        ],
+        rows: &[],
     },
 ];

@@ -23,12 +23,11 @@ pub enum Section {
     Appearance,
     Privacy,
     Sound,
-    Storage,
     Updates,
     Developer,
 }
 
-pub const SECTIONS: [Section; 10] = [
+pub const SECTIONS: [Section; 9] = [
     Section::General,
     Section::Network,
     Section::Wifi,
@@ -36,7 +35,6 @@ pub const SECTIONS: [Section; 10] = [
     Section::Appearance,
     Section::Privacy,
     Section::Sound,
-    Section::Storage,
     Section::Updates,
     Section::Developer,
 ];

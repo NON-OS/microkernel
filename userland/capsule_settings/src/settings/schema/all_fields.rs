@@ -16,52 +16,26 @@
 
 use nonos_policy_proto::Field;
 
+/*
+ * Every field Settings shows, each with the code that acts on it. A field
+ * with no reader is not listed: a switch that changes nothing is a lie.
+ * `coverage.rs` holds this list and the screens to each other.
+ */
 pub const ALL_FIELDS: &[Field] = &[
-    Field::Brightness,
-    Field::MouseSensitivity,
-    Field::SoundEnabled,
-    Field::AnonymousMode,
-    Field::NymEnabled,
-    Field::Theme,
-    Field::KeyboardLayout,
-    Field::AutoWipe,
-    Field::Timezone,
-    Field::ScreenTimeout,
-    Field::Language,
-    Field::DeveloperMode,
-    Field::HardwareCrypto,
-    Field::ZkAttestation,
-    Field::SystemKeysGenerated,
-    Field::NotificationsEnabled,
-    Field::HighContrast,
-    Field::FontSize,
-    Field::AutoLockTimeout,
-    Field::WifiAutoconnect,
-    Field::AnimationsEnabled,
-    Field::CursorSize,
-    Field::Wallpaper,
-    Field::ClockFormat24,
-    Field::KernelAslr,
-    Field::KernelStackGuard,
-    Field::KernelNxBit,
-    Field::KernelSmep,
-    Field::KernelSmap,
-    Field::KernelDebug,
-    Field::KernelSerial,
-    Field::KernelWatchdog,
-    Field::KernelPreempt,
-    Field::KernelHugepages,
-    Field::KernelIommu,
-    Field::KernelSeccomp,
-    Field::Hostname,
-    Field::DomainName,
-    Field::PreferIpv6,
-    Field::MeteredConnection,
-    Field::ProxyMode,
-    Field::WifiRadio,
-    Field::WifiAskToJoin,
-    Field::Volume,
-    Field::AudioBalance,
-    Field::AlertSounds,
-    Field::StartupChime,
+    Field::Username,             /* terminal prompt and whoami */
+    Field::Hostname,             // terminal prompt and identity
+    Field::QwenTier,             /* qwen's default model */
+    Field::Timezone,             // shell menubar clock
+    Field::ClockFormat24,        // shell menubar clock
+    Field::NotificationsEnabled, // shell notify handler
+    Field::WifiRadio,            // this app's scan and join
+    Field::Wallpaper,            // wallpaper capsule
+    Field::WallpapersKept,       // wallpaper catalog: the only ones read
+    Field::MouseSensitivity,     // input router
+    Field::Persistent,           // vfs persistence gate
+    Field::SoundEnabled,         // shell tones
+    Field::Volume,               // shell tones
+    Field::AlertSounds,          // shell tones
+    Field::KernelPreempt,        // scheduler tick
+    Field::NetworkRoute,         // browser start and qwen downloads
 ];
