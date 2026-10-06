@@ -41,3 +41,16 @@ The screens run in a fixed order (`userland/capsule_install/src/install/state/sc
 | Failed | Stopped | Read what happened and what to do. Enter looks at the disks again and goes back to them. |
 
 Nothing touches the disk before Enter on Confirm (`userland/capsule_install/src/install/job/prepare.rs`, `userland/capsule_install/src/install/job/start.rs`).
+
+## Which disks are offered
+
+The Disks screen lists every disk the NVMe, SATA and virtio-blk drivers serve, and the SATA driver also serves Intel eMMC hosts. Each row gives the model or the bus, the size, the serial, the block size when it is not 512 bytes, and what the disk holds now: `blank`, `NONOS installed`, `another system (GPT)`, `another system (MBR)`, `unrecognised contents` or `did not answer a read` (`userland/nonos_blk_client/src/disks/probe.rs`).
+
+Some rows are not targets, and say why (`userland/nonos_blk_client/src/disks/scan.rs`):
+
+- The stick this boot came from is left off the list, by the loader's record of its partition.
+- A disk that holds a copy of the running loader, with no such record to tell it from the stick, reads `holds the loader this boot ran, so it may be the boot disk: not offered`.
+- A controller whose driver did not start reads, for example, `NVMe controller present, its driver did not come up`.
+- A disk whose first sectors do not read reads `its first sectors did not read:` with the driver's status, and `not offered`.
+
+USB disks never appear: the list asks those three drivers only (`userland/nonos_blk_client/src/driver/table.rs`). The list looks again every two seconds, or four times as long as the last look took, while it has nothing to install to or a driver is missing, and `r` looks at once (`userland/capsule_install/src/install/rescan.rs`). With no disk and an Intel RST or VMD controller on the bus, the screen says `Intel RST/VMD is on: set the BIOS storage mode to AHCI (or turn VMD off), then boot this stick again.` It adds that a Windows already on the computer may need switching to AHCI first, or it will not start after the change.
