@@ -92,6 +92,58 @@ fn reassembly_joins_contiguous_and_stops_at_gaps() {
     assert_eq!(g.drain_contiguous(100), alloc::vec![1, 2]);
 }
 
+// Sequence numbers wrap at 2^32, and the held segments are keyed by their
+// plain u32. Across the wrap the numerically first key is not the earliest
+// in sequence order, so the drain must not take keys in map order.
+#[test]
+fn reassembly_drains_in_sequence_order_across_the_wrap() {
+    let mut r = Reasm::new();
+    r.insert(0xFFFF_FF80, alloc::vec![1u8; 0x80]);
+    r.insert(0x0000_0000, alloc::vec![2u8; 0x80]);
+    let out = r.drain_contiguous(0xFFFF_FF80);
+    assert_eq!(out.len(), 0x100, "both halves, joined across the wrap");
+    assert!(out[..0x80].iter().all(|b| *b == 1) && out[0x80..].iter().all(|b| *b == 2));
+    assert!(r.is_empty(), "nothing left behind to fill the buffer");
+}
+
+// A segment wholly behind RCV.NXT is spent; it must not stay in the buffer
+// taking one of its few slots for good.
+#[test]
+fn reassembly_lets_go_of_segments_already_passed() {
+    let mut r = Reasm::new();
+    r.insert(0x0000_0010, alloc::vec![9u8; 0x10]);
+    r.insert(0xFFFF_FFF0, alloc::vec![9u8; 0x08]);
+    r.insert(0x0000_0040, alloc::vec![5u8; 4]);
+    assert!(r.drain_contiguous(0x0000_0040) == alloc::vec![5u8; 4]);
+    assert!(r.is_empty());
+}
+
+// Random streams near the wrap, every byte's value fixed by its position:
+// what drains is exactly the unbroken run of held bytes from the drain point.
+#[test]
+fn reassembly_output_matches_a_model_near_the_wrap() {
+    for seed in 0..20_000u32 {
+        let mut s = seed | 1;
+        let base = 0xFFFF_FF00u32.wrapping_add(xorshift(&mut s) % 0x200);
+        let mut r = Reasm::new();
+        let mut model = [false; 0x400];
+        for _ in 0..(xorshift(&mut s) % 12) {
+            let off = (xorshift(&mut s) % 0x300) as usize;
+            let len = 1 + (xorshift(&mut s) % 0x60) as usize;
+            let data: Vec<u8> = (off..off + len).map(|p| (p % 251) as u8).collect();
+            r.insert(base.wrapping_add(off as u32), data);
+            model[off..off + len].iter_mut().for_each(|held| *held = true);
+        }
+        let start = (xorshift(&mut s) % 0x80) as usize;
+        let run = model[start..].iter().take_while(|held| **held).count();
+        let out = r.drain_contiguous(base.wrapping_add(start as u32));
+        assert_eq!(out.len(), run, "seed {seed}: the whole unbroken run, and no more");
+        for (i, b) in out.iter().enumerate() {
+            assert_eq!(*b, ((start + i) % 251) as u8, "seed {seed}: byte {i} out of place");
+        }
+    }
+}
+
 // Ground-truth for the mandatory TCP checksum (RFC 793/1071). These catch the
 // two real bugs a fuzz test cannot: omitting the IPv4 pseudo-header, and a fold
 // that does not carry.

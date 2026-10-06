@@ -9,3 +9,7 @@ pub mod message;
 pub mod parse;
 pub use message::Message;
 pub use parse::parse;
+#[path = "../../../capsule_net_dhcp/src/dhcp/build.rs"]
+pub mod build;
+pub use build::build_request;
+pub use constants::{CLIENT_PORT, SERVER_PORT};

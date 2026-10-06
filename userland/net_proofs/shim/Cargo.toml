@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host stand-in for nonos_userland_libc, for the network capsule proofs. Every
+# IPC call a capsule makes is handed to a responder the proof installs (the
+# service on the other end, played on the host), every reply it sends is kept
+# for the proof to read, and the clock moves only when the proof or a yield
+# moves it, so a run is the same every time.
+[package]
+name = "net_proofs_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
