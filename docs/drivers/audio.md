@@ -55,3 +55,18 @@ The headphone pin is sensed with GET_PIN_SENSE. With headphones in, a speaker pi
 5. The audio server applies a gain of the level squared, so 50 is about 12 dB down and 0 is silence (`gain`, `userland/capsule_audio/src/volume.rs:37-45`).
 
 The shell shows a notice: "Volume 45%", "Muted", or "No sound output" with the reason (`notice`, `userland/capsule_desktop_shell/src/state/volume.rs:99-116`).
+
+## Machines that cannot play
+
+A machine whose audio the driver cannot play on is not an error. The driver gives every claim back and stays only to say why (`run_status`, `userland/capsule_driver_hda/src/server/runner/status.rs:40-65`). A machine with no audio hardware at all is different: there the driver exits with status 2 and `driver.hda0` is not served (`start`, `userland/capsule_driver_hda/src/start.rs:39-68`). For codes 1 to 6 below the audio server refuses a new stream with `E_NODEV`; for code 7 it still opens one (`OP_STREAM_OPEN`, `userland/capsule_audio/src/server/dispatch.rs:51-59`). Settings and the player show the sentence for the code (`MESSAGES`, `userland/audio_proto/src/output.rs:49-58`):
+
+| Code | Case | What the person reads |
+|---|---|---|
+| 0 | plays | Sound plays through this computer's speakers and headphone jack |
+| 1 | no `driver.hda0` service for the server to send to | No sound hardware was found on this computer |
+| 2 | Intel DSP machine | This laptop's audio needs Intel's DSP firmware (SOF), which NONOS does not support |
+| 3 | controller with no codec | The sound controller answered, but no sound chip (codec) is connected to it |
+| 4 | HDMI or DisplayPort codecs only | Only HDMI or DisplayPort audio was found; NONOS plays through speakers, headphones and line out only |
+| 5 | codec with no output the driver can route | The sound chip has no speaker, headphone or line output NONOS can drive |
+| 6 | AMD audio coprocessor | This computer's audio runs through AMD's audio coprocessor (ACP), which NONOS does not support |
+| 7 | driver not answering | The sound driver is not answering |
