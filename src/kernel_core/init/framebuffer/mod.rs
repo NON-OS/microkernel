@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod frame;
 mod hex;
+pub(crate) mod hidpi;
 mod init;
 mod log;
 mod marker;
+mod report;
 mod state;
 
 pub(crate) use init::init_framebuffer;

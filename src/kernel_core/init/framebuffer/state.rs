@@ -25,11 +25,18 @@ pub(crate) struct KernelFramebuffer {
     pub base_va: VirtAddr,
     pub offset: usize,
     pub bgr: bool,
+    /// The panel's (width, height) in millimetres from its EDID, if known.
+    pub physical_mm: Option<(u32, u32)>,
 }
 
 impl KernelFramebuffer {
     pub(crate) fn frame_len(self) -> Option<usize> {
         (self.stride as usize).checked_mul(self.height as usize)
+    }
+
+    /// Framebuffer pixels per console pixel, by the rule in hidpi_scale.
+    pub(crate) fn hidpi_scale(self) -> u32 {
+        super::hidpi::hidpi_scale(self.width, self.height, self.physical_mm)
     }
 }
 

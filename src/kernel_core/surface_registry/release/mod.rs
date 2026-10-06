@@ -16,6 +16,8 @@
 
 mod release_owned_by_pid;
 mod release_surface;
+mod release_unmapped;
 
 pub use release_owned_by_pid::release_owned_by_pid;
 pub use release_surface::release_surface;
+pub use release_unmapped::release_unmapped;

@@ -25,6 +25,8 @@ pub(super) fn seed_hardware_broker() {
         }
     };
     crate::hardware::broker::init_from_pci(&devices);
+    #[cfg(target_arch = "x86_64")]
+    crate::bus::pci::report_aer(&devices);
     let _ = crate::hardware::broker::register_legacy_platform_devices();
     // Firmware-described I2C and GPIO. ACPI names them in AML and only x86
     // firmware speaks it; an ARM board carries the same controllers in its
