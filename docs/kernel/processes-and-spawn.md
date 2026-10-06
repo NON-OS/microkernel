@@ -101,3 +101,12 @@ A process ends in one of three ways, all through `exit_and_yield` or `teardown`:
 `MkKill(pid, sig)` accepts only `SIGINT`, `SIGTERM` and `SIGKILL`. `sys_kill` lets a parent end its child, a supervisor end its guest, and a holder of `ProcessControl` or `Admin` end anything, and gives the exit code 128 plus the signal (`src/syscall/microkernel/kill.rs:26-62`). The signal numbers are 2, 15 and 9: `SIGINT` (`src/process/signal/constants.rs:18`), `SIGTERM` (`src/process/signal/constants.rs:31`) and `SIGKILL` (`src/process/signal/constants.rs:25`).
 
 A capsule whose name starts with `driver.` and that exits on its own with a status other than 0 gets a serial line from the kernel, as `told` decides: status 2 is read as no device present and 6 as a device that never came up, in `words` (`src/process/exit/end_rule.rs:24-44`).
+
+## See also
+
+- [IPC](ipc.md): the inboxes and endpoints spawn creates and exit removes.
+- [Capabilities](capabilities.md): the token `install_spawn` sets.
+- [Memory and paging](memory-and-paging.md): address spaces and page tables.
+- [Capsule model](../userland/README.md): what a capsule is from the author's side.
+- [Manifests and capabilities](../userland/manifests-and-capabilities.md): what the manifest declares.
+- [Capsule isolation](../security/capsule-isolation.md): what the spawn gate and the address space protect.
