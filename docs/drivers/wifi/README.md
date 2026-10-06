@@ -116,3 +116,12 @@ The status operation returns a stage byte, and the panel shows its text (`userla
 NONOS 0.9.2 has no driver for a USB Wi-Fi adapter, so the second suggestion in the last line does not apply to this release; see [not-supported.md](not-supported.md).
 
 When no Wi-Fi driver answers at all, the panel names the chip by its PCI ids and says whether this build has a driver for it (`userland/capsule_settings/src/settings/ui/live_wifi.rs:115-130`, `no_driver`).
+
+## Saved networks
+
+- The list holds at most 4 networks, each passphrase at most 64 bytes (`userland/nonos_wifi_client/src/saved/list.rs:19-21`, `SLOTS`, `PASS_MAX`).
+- It is one file, `/nonos/wifi/saved`, sealed with an AEAD (`userland/nonos_wifi_client/src/saved/file.rs:20-21`, `PATH`).
+- The key comes from `machine_key` under the label `wifi/saved-networks` and is wiped after each use (`userland/nonos_wifi_client/src/saved/key.rs:18-29`, `with_key`).
+- With no TPM, or after the boot state changed, the list cannot be opened (`userland/nonos_wifi_client/src/saved/key.rs:22-26`, `NoTpm`, `BootChanged`).
+- A network is written only on a boot that keeps state (`userland/nonos_wifi_client/src/saved/write.rs:21-24`, `keeps_state`).
+- A network joined with SAE is saved as WPA3, so no later join accepts WPA2 for it (`userland/nonos_wifi_client/src/saved/store.rs:38-41`, `remember`).
