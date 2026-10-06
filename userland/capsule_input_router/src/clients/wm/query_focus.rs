@@ -17,6 +17,8 @@
 use super::super::wire::{call, lookup_port, u32_at};
 use super::constants::{MAGIC, OP_QUERY_FOCUS, SERVICE};
 
+/// The pid whose window has keyboard focus, Some(0) when the window manager
+/// says no window has it, None when it did not answer.
 pub fn query_focus(port_slot: &mut u32, request_id: u32) -> Option<u32> {
     if *port_slot == 0 {
         *port_slot = lookup_port(SERVICE)?;
@@ -26,8 +28,5 @@ pub fn query_focus(port_slot: &mut u32, request_id: u32) -> Option<u32> {
         *port_slot = 0;
         return None;
     }
-    match u32_at(&body, 0).ok()? {
-        0 => None,
-        owner_pid => Some(owner_pid),
-    }
+    u32_at(&body, 0).ok()
 }

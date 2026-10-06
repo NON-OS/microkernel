@@ -53,6 +53,24 @@ impl CursorState {
         self.configured = true;
     }
 
+    // The display is now `width` by `height`. The cursor keeps its place in
+    // proportion, so it stays over what it was over when the picture is
+    // scaled, and stays inside a display that shrank.
+    pub fn resize(&mut self, width: u32, height: u32) {
+        let max_x = width.saturating_sub(1).min(i32::MAX as u32) as i32;
+        let max_y = height.saturating_sub(1).min(i32::MAX as u32) as i32;
+        if (max_x, max_y) == (self.max_x, self.max_y) {
+            return;
+        }
+        self.x = rescale(self.x, self.max_x, max_x);
+        self.y = rescale(self.y, self.max_y, max_y);
+        self.max_x = max_x;
+        self.max_y = max_y;
+        self.frac_x = 0;
+        self.frac_y = 0;
+        self.clamp();
+    }
+
     pub fn apply(&mut self, ev: &InputEvent) -> (u32, u32) {
         if ev.kind == INPUT_KIND_POINTER_REL {
             let sx = ev.delta_x.saturating_mul(self.mult_x2).saturating_add(self.frac_x);
@@ -77,5 +95,18 @@ impl CursorState {
     fn clamp(&mut self) {
         self.x = self.x.clamp(0, self.max_x);
         self.y = self.y.clamp(0, self.max_y);
+    }
+}
+
+fn rescale(v: i32, old_max: i32, new_max: i32) -> i32 {
+    if old_max <= 0 {
+        return new_max / 2;
+    }
+    (i64::from(v) * i64::from(new_max) / i64::from(old_max)) as i32
+}
+
+impl Default for CursorState {
+    fn default() -> Self {
+        Self::new()
     }
 }
