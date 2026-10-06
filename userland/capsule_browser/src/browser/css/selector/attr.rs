@@ -16,35 +16,29 @@
 
 use alloc::string::String;
 
-// An attribute test: presence or one of the CSS match operators.
-pub enum AttrTest {
+/* The operator of an attribute selector: presence, or one of the six value
+ * tests (=, *=, ^=, $=, ~=, |=). */
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum AttrOp {
     Present,
-    // = exact value
-    Eq(String),
-    // *= substring
-    Contains(String),
-    // ^= prefix
-    Starts(String),
-    // $= suffix
-    Ends(String),
-    // ~= whitespace-separated word
-    Word(String),
-    // |= exact or followed by a hyphen
-    Lang(String),
+    Eq,
+    Contains,
+    Starts,
+    Ends,
+    Word,
+    Lang,
 }
 
-impl AttrTest {
-    pub fn matches(&self, have: &str) -> bool {
-        match self {
-            AttrTest::Present => true,
-            AttrTest::Eq(v) => have == v,
-            AttrTest::Contains(v) => !v.is_empty() && have.contains(v.as_str()),
-            AttrTest::Starts(v) => !v.is_empty() && have.starts_with(v.as_str()),
-            AttrTest::Ends(v) => !v.is_empty() && have.ends_with(v.as_str()),
-            AttrTest::Word(v) => have.split_whitespace().any(|w| w == v),
-            AttrTest::Lang(v) => {
-                have == v || have.strip_prefix(v.as_str()).is_some_and(|r| r.starts_with('-'))
-            }
-        }
-    }
+/* One attribute test. The `i` flag asks for an ASCII case-insensitive
+ * comparison of the value; without it the value compares exactly. */
+#[derive(Clone)]
+pub struct AttrTest {
+    pub op: AttrOp,
+    pub value: String,
+    pub case_insensitive: bool,
+}
+
+/* CSS whitespace: space, tab, line feed, carriage return, form feed. */
+pub fn is_space(b: u8) -> bool {
+    matches!(b, b' ' | b'\t' | b'\n' | b'\r' | 0x0c)
 }

@@ -33,11 +33,19 @@ pub(super) struct FloatCtx {
     rects: Vec<FloatRect>,
     content_left: i32,
     content_right: i32,
+    // The top of the lowest-placed float so far. CSS 2.1 9.5.1 rule 5: a
+    // float's top may not be higher than that of any earlier float.
+    floor: i32,
 }
 
 impl FloatCtx {
     pub(super) fn new(content_left: i32, content_w: i32) -> Self {
-        Self { rects: Vec::new(), content_left, content_right: content_left + content_w }
+        Self {
+            rects: Vec::new(),
+            content_left,
+            content_right: content_left + content_w,
+            floor: i32::MIN,
+        }
     }
 
     // The left and right inner edges available at row `y`, after the floats that
@@ -81,16 +89,18 @@ impl FloatCtx {
     }
 
     // The top-left corner a `w`-wide float of the given side takes at or below
-    // `y`, without recording it (its height is not known until it is laid out).
+    // `y` and no higher than any earlier float, without recording it (its
+    // height is not known until it is laid out).
     pub(super) fn next_pos(&self, is_left: bool, w: i32, y: i32) -> (i32, i32) {
-        let row = self.fit_row(y, w);
+        let row = self.fit_row(y.max(self.floor), w);
         let (l, r) = self.edges_at(row);
         let x = if is_left { l } else { (r - w).max(l) };
         (x, row)
     }
 
     // Record a laid-out float so later content flows around it.
-    pub(super) fn record(&mut self, is_left: bool, x: i32, w: i32, bottom: i32) {
+    pub(super) fn record(&mut self, is_left: bool, x: i32, w: i32, top: i32, bottom: i32) {
+        self.floor = self.floor.max(top);
         self.rects.push(FloatRect { left: x, right: x + w, bottom, is_left });
     }
 

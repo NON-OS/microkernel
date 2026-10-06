@@ -24,12 +24,11 @@ use crate::browser::js::value::Value;
 use super::super::ctx::Ctx;
 use super::super::to_str::to_str;
 
-const QUERY_CAP: usize = 256;
-
-// document.querySelectorAll through the real selector matcher.
+/* document.querySelectorAll through the real selector matcher. Every match
+ * comes back: a cap here cut a page's list of links or rows short. */
 pub fn query_all(ctx: &mut Ctx, argv: &[Value]) -> Value {
     let sel = argv.first().map(to_str).unwrap_or_default();
     let hits: Vec<Value> =
-        css::select(ctx.dom, &sel, QUERY_CAP).into_iter().map(Value::Node).collect();
+        css::select_in(ctx.dom, 0, &sel, usize::MAX).into_iter().map(Value::Node).collect();
     Value::Array(Rc::new(RefCell::new(hits)))
 }

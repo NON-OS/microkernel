@@ -19,7 +19,6 @@ use nonos_app_skeleton::PaintBuffer;
 use crate::browser::state::State;
 
 const TOP: i32 = 80;
-pub const VIEW_H: u32 = 680;
 const PAGE_BG: u32 = 0xFF18_1B20;
 const FG: u32 = 0xFFE8_EAED;
 

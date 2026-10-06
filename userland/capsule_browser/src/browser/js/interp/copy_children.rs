@@ -18,9 +18,9 @@ use crate::browser::dom::Dom;
 
 const MAX_GRAFT_DEPTH: u32 = 64;
 
-// Copy src's children under dst_id in dst, subtree by subtree. push()
-// enforces the node budget, so a huge fragment truncates instead of growing
-// without bound.
+/* Copy src's children under dst_id in dst, subtree by subtree. push()
+ * enforces the node budget, so a huge fragment truncates instead of growing
+ * without bound. */
 pub(super) fn copy_children(dst: &mut Dom, src: &Dom, src_id: usize, dst_id: usize, depth: u32) {
     if depth > MAX_GRAFT_DEPTH {
         return;
@@ -37,6 +37,7 @@ pub(super) fn copy_children(dst: &mut Dom, src: &Dom, src_id: usize, dst_id: usi
         };
         dst.nodes[new_id].text = child.text.clone();
         dst.nodes[new_id].attrs = child.attrs.clone();
+        dst.nodes[new_id].ns = child.ns;
         copy_children(dst, src, c, new_id, depth + 1);
     }
 }

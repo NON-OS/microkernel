@@ -16,8 +16,8 @@
 
 use super::predict_fns::{average2, clamp_add_sub_full, clamp_add_sub_half, select};
 
-// Add two pixels channel by channel, wrapping each byte, the inverse of the
-// residual the predictor transform stored.
+/* Add two pixels channel by channel, wrapping each byte, the inverse of the
+ * residual the predictor transform stored. */
 fn add(a: u32, b: u32) -> u32 {
     let mut o = 0u32;
     for s in [0, 8, 16, 24] {
@@ -27,8 +27,8 @@ fn add(a: u32, b: u32) -> u32 {
     o
 }
 
-// The predicted pixel for mode m from the left, top, top-right and top-left
-// neighbors. Modes follow the VP8L predictor table.
+/* The predicted pixel for mode m from the left, top, top-right and top-left
+ * neighbors. Modes follow the VP8L predictor table. */
 pub(super) fn predict(m: u32, l: u32, t: u32, tr: u32, tl: u32) -> u32 {
     match m {
         0 => 0xff00_0000,
@@ -44,12 +44,13 @@ pub(super) fn predict(m: u32, l: u32, t: u32, tr: u32, tl: u32) -> u32 {
         10 => average2(average2(l, tl), average2(t, tr)),
         11 => select(l, t, tl),
         12 => clamp_add_sub_full(l, t, tl),
-        _ => clamp_add_sub_half(average2(l, t), tl),
+        13 => clamp_add_sub_half(average2(l, t), tl),
+        _ => 0xff00_0000,
     }
 }
 
-// Undo the predictor transform in place. Each block picks a mode from the
-// data image; the first pixel, top row and left column use fixed predictors.
+/* Undo the predictor transform in place. Each block picks a mode from the
+ * data image; the first pixel, top row and left column use fixed predictors. */
 pub(super) fn apply(px: &mut [u32], w: usize, h: usize, data: &[u32], bits: u32, dw: usize) {
     for y in 0..h {
         for x in 0..w {
@@ -62,7 +63,9 @@ pub(super) fn apply(px: &mut [u32], w: usize, h: usize, data: &[u32], bits: u32,
                 px[i - w]
             } else {
                 let m = (data[(y >> bits) * dw + (x >> bits)] >> 8) & 0xff;
-                let tr = if x + 1 < w { px[i - w + 1] } else { px[i - w] };
+                /* On the last column the top-right is the first pixel of the
+                 * current row, which is the next element in memory. */
+                let tr = px[i - w + 1];
                 predict(m, px[i - 1], px[i - w], tr, px[i - w - 1])
             };
             px[i] = add(px[i], pred);

@@ -17,7 +17,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use super::node::{Node, NodeKind};
+use super::node::{Node, NodeKind, Ns};
 use super::tree::Dom;
 
 impl Dom {
@@ -33,6 +33,7 @@ impl Dom {
             attrs: Vec::new(),
             parent,
             children: Vec::new(),
+            ns: Ns::Html,
         });
         self.nodes[parent].children.push(id);
         Some(id)

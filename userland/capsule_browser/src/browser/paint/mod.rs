@@ -14,18 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod band;
 mod bg_image;
 mod bg_tile;
+mod blit_rows;
+mod border_corners;
+mod borders;
 mod box_fragment;
 mod box_page;
+mod bubble;
+mod canvas;
 pub mod chrome;
+mod corners;
 pub mod document;
 mod fade;
 mod fill_page;
 mod fill_rounded;
 mod grad;
 pub mod home_page;
+mod mask;
+mod mask_weights;
+mod masked;
+mod page_parts;
 mod paint;
+mod paint_image;
+mod paint_text;
+mod round_clip;
+mod rows;
+mod scroll_paint;
+mod select_list;
 mod shadow;
+mod short_notice;
+mod tinted;
 
+pub(crate) use band::band_rows;
 pub use paint::paint;

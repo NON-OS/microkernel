@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// A numeric reference, decimal or hexadecimal.
+use super::c1::c1;
+
+/// A numeric reference, decimal or hexadecimal, for `push_decoded`.
 ///
-/// The replacement character stands in for anything outside Unicode or in a
-/// surrogate range, which is what the specification asks for and what keeps
-/// a malformed page from losing the text around the reference.
+/// Anything outside Unicode, in a surrogate range or naming a control is
+/// refused, so the caller writes the reference back out as it arrived.
 pub fn numeric(name: &str) -> Option<char> {
     let digits = name.strip_prefix('#')?;
     let code = match digits.strip_prefix(['x', 'X']) {
@@ -27,37 +28,7 @@ pub fn numeric(name: &str) -> Option<char> {
         None if !digits.is_empty() => digits.parse::<u32>().ok()?,
         None => return None,
     };
-    // Numbers written for the old Windows code page, which pages still
-    // carry, name control positions that were never those characters.
-    let code = match code {
-        0x80 => 0x20AC,
-        0x82 => 0x201A,
-        0x83 => 0x0192,
-        0x84 => 0x201E,
-        0x85 => 0x2026,
-        0x86 => 0x2020,
-        0x87 => 0x2021,
-        0x88 => 0x02C6,
-        0x89 => 0x2030,
-        0x8A => 0x0160,
-        0x8B => 0x2039,
-        0x8C => 0x0152,
-        0x91 => 0x2018,
-        0x92 => 0x2019,
-        0x93 => 0x201C,
-        0x94 => 0x201D,
-        0x95 => 0x2022,
-        0x96 => 0x2013,
-        0x97 => 0x2014,
-        0x98 => 0x02DC,
-        0x99 => 0x2122,
-        0x9A => 0x0161,
-        0x9B => 0x203A,
-        0x9C => 0x0153,
-        0x9F => 0x0178,
-        other => other,
-    };
-    match char::from_u32(code) {
+    match char::from_u32(c1(code)) {
         Some(c) if !c.is_control() || c == '\n' || c == '\t' => Some(c),
         _ => None,
     }

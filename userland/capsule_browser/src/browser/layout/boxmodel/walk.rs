@@ -14,25 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::ops::Index;
+
+use alloc::boxed::Box;
 use alloc::string::String;
 
 use crate::browser::css::{Computed, GridSpec, PseudoText};
 use crate::browser::dom::node::Node;
 use crate::browser::dom::Dom;
 
-// Shared state of one box-tree build walk: the source DOM, the resolved
-// styles and the box budget counter.
+/* The cascade's styles by node id (a text node reads its parent's), and
+ * the pseudo-elements of an element by its id (empty for most). */
+pub(super) type Styles<'a> = &'a dyn Index<usize, Output = Computed>;
+pub(super) type Pseudos<'a> = &'a dyn Index<usize, Output = [PseudoText]>;
+/* Named-grid data, boxed on the few nodes that carry any. */
+pub(super) type Grids<'a> = &'a [Option<Box<GridSpec>>];
+
+/* Shared state of one box-tree build walk: the source DOM, the resolved
+ * styles and the box budget counter. */
 pub(super) struct Walk<'a, 'b> {
     pub dom: &'a Dom,
-    pub styles: &'a [Computed],
+    pub styles: Styles<'a>,
     pub bg_images: &'a [Option<String>],
-    pub grids: &'a [Option<GridSpec>],
-    pub pseudos: &'a [(Option<PseudoText>, Option<PseudoText>)],
+    pub svg_paint: &'a [Option<Box<str>>],
+    pub grids: Grids<'a>,
+    pub pseudos: Pseudos<'a>,
     pub count: &'b mut usize,
 }
 
-// One element child under consideration: the node, its DOM id, the parent's
-// tag and its 1-based li ordinal within that parent.
+/* One element child under consideration: the node, its DOM id, the
+ * parent's tag and its 1-based li ordinal within that parent. */
 pub(super) struct ElementIn<'a> {
     pub c: &'a Node,
     pub ch: usize,

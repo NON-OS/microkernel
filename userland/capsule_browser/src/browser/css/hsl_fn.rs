@@ -14,59 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Parse hsl()/hsla(): hue in degrees, saturation and lightness in percent.
-// Alpha is ignored; the result is an opaque ARGB value.
-pub(super) fn parse_hsl(s: &str) -> Option<u32> {
-    let open = s.find('(')?;
-    let inner = s.get(open + 1..)?;
-    let inner = inner.strip_suffix(')').unwrap_or(inner);
-    let mut vals = [0f32; 3];
-    let mut n = 0;
-    for tok in inner.split(|c: char| c == ',' || c == '/' || c.is_ascii_whitespace()) {
-        let tok = tok.trim();
-        if tok.is_empty() {
-            continue;
-        }
-        if n == 3 {
-            break;
-        }
-        let num = tok.trim_end_matches('%').trim_end_matches("deg");
-        let f = num.trim().parse::<f32>().ok()?;
-        if !f.is_finite() {
-            return None;
-        }
-        vals[n] = f;
-        n += 1;
-    }
-    if n < 3 {
-        return None;
-    }
-    let (r, g, b) = hsl_to_rgb(vals[0], vals[1], vals[2]);
-    Some(0xFF00_0000 | ((r as u32) << 16) | ((g as u32) << 8) | b as u32)
+use super::color::args::{args, Args};
+use super::color::rgbaf::Rgbaf;
+use super::color::trig::wrap_deg;
+
+/* hsl()/hsla() arguments: hue in degrees (or another angle unit),
+ * saturation and lightness as percentages (a bare number counts as one),
+ * and an optional alpha that is kept. */
+pub(super) fn parse_hsl(inner: &str) -> Option<u32> {
+    let Args { c, alpha } = args(inner)?;
+    let s = c[1].scaled(100.0) / 100.0;
+    let l = c[2].scaled(100.0) / 100.0;
+    let rgb = hsl_rgb(c[0].scaled(0.0), s, l);
+    Some(Rgbaf { rgb, a: alpha }.to_argb())
 }
 
-// Integer HSL to RGB in per-mille fixed point, avoiding any libm calls.
-fn hsl_to_rgb(h: f32, s: f32, l: f32) -> (u8, u8, u8) {
-    let h = if h.is_finite() { (h + 0.5) as i32 } else { 0 };
-    let h = h.rem_euclid(360);
-    let s = ((if s.is_finite() { s + 0.5 } else { 0.0 }) as i32).clamp(0, 100) * 10;
-    let l = ((if l.is_finite() { l + 0.5 } else { 0.0 }) as i32).clamp(0, 100) * 10;
-    let two_l = 2 * l - 1000;
-    let abs_l = if two_l < 0 { -two_l } else { two_l };
-    let c = (1000 - abs_l) * s / 1000;
-    let hs = h * 1000 / 60;
-    let hmod = hs % 2000;
-    let d = if hmod < 1000 { 1000 - hmod } else { hmod - 1000 };
-    let x = c * (1000 - d) / 1000;
-    let m = l - c / 2;
-    let (r1, g1, b1) = match h / 60 {
-        0 => (c, x, 0),
-        1 => (x, c, 0),
-        2 => (0, c, x),
-        3 => (0, x, c),
-        4 => (x, 0, c),
-        _ => (c, 0, x),
+/// CSS Color 4 hsl-to-rgb: hue in degrees, s and l 0..1, channels 0..1.
+pub(super) fn hsl_rgb(h: f64, s: f64, l: f64) -> [f64; 3] {
+    let (s, l) = (s.clamp(0.0, 1.0), l.clamp(0.0, 1.0));
+    let h = wrap_deg(h);
+    let f = |n: f64| {
+        let k = n + h / 30.0;
+        let k = if k >= 12.0 { k - 12.0 } else { k };
+        let a = s * l.min(1.0 - l);
+        l - a * (k - 3.0).min(9.0 - k).clamp(-1.0, 1.0)
     };
-    let to8 = |v: i32| ((v + m) * 255 / 1000).clamp(0, 255) as u8;
-    (to8(r1), to8(g1), to8(b1))
+    [f(0.0), f(8.0), f(4.0)]
+}
+
+/// rgb 0..1 to (hue degrees, s, l); an achromatic colour reports hue None.
+pub(super) fn rgb_hsl(rgb: [f64; 3]) -> (Option<f64>, f64, f64) {
+    let [r, g, b] = rgb;
+    let (max, min) = (r.max(g).max(b), r.min(g).min(b));
+    let (d, l) = (max - min, (max + min) / 2.0);
+    if d.abs() < 1e-9 {
+        return (None, 0.0, l);
+    }
+    let s = if l <= 0.0 || l >= 1.0 { 0.0 } else { (max - l) / l.min(1.0 - l) };
+    let h = if max == r {
+        (g - b) / d + if g < b { 6.0 } else { 0.0 }
+    } else if max == g {
+        (b - r) / d + 2.0
+    } else {
+        (r - g) / d + 4.0
+    };
+    (Some(h * 60.0), s, l)
 }

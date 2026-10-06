@@ -17,41 +17,97 @@
 use alloc::vec::Vec;
 use spin::Mutex;
 
-/// Where the browser's bytes go.
+use super::choice::{chosen, Network};
+use super::conv::Conv;
+use super::pace::Pace;
+use super::streams::lowest_free;
+use super::way::{Routes, Way};
+
+/// One conversation with a proxy, as the socket calls above see it.
 ///
-/// `net.socks5` speaks RFC 1928 over IPC and has no listening socket, so it
-/// cannot be bypassed by dialling past it. This holds the state that makes a
-/// service call look like a socket to the code above.
-pub struct Route {
-    pub socks_port: u32,
-    /// Bytes the proxy has answered that the reader has not taken yet.
-    pub pending: Vec<u8>,
-    /// The proxy has said the far end finished, so no further asking will
-    /// produce anything.
-    pub closed: bool,
+/// `net.socks5` and `net.anon` speak RFC 1928 over IPC and have no listening
+/// socket, so they cannot be bypassed by dialling past them. A slot holds
+/// what makes a service call look like a socket: the proxy's port and the
+/// conversation, with the frame it has asked and not had answered (`conv`).
+pub struct Slot {
+    pub handle: u32,
+    pub port: u32,
+    pub conv: Conv,
 }
 
-static ROUTE: Mutex<Option<Route>> = Mutex::new(None);
+static SLOTS: Mutex<Vec<Slot>> = Mutex::new(Vec::new());
 
-/// Send everything through `net.socks5` from now on.
-pub fn enable(socks_port: u32) {
-    *ROUTE.lock() = Some(Route { socks_port, pending: Vec::new(), closed: false });
+/// The ways the page being loaded may take, set at each navigation.
+static ROUTES: Mutex<Routes> =
+    Mutex::new(Routes { page: Network::Nym, nym: 0, anon: 0 });
+
+/// How often the proxies are asked, across every conversation.
+pub static PACE: Mutex<Pace> = Mutex::new(Pace::new());
+
+/// The ways of the page now being loaded. The routes they replace.
+pub fn set_routes(routes: Routes) -> Routes {
+    core::mem::replace(&mut *ROUTES.lock(), routes)
 }
 
-/// Go back to reaching hosts directly.
-pub fn disable() {
-    *ROUTE.lock() = None;
+/// The way a connection to `host` takes now.
+pub fn way(host: &str) -> Way {
+    ROUTES.lock().way(host)
 }
 
-pub fn is_on() -> bool {
-    ROUTE.lock().is_some()
+/// Whether a connection may leave direct now (`Routes::direct`).
+pub fn direct_allowed() -> bool {
+    ROUTES.lock().direct(chosen())
 }
 
-/// Run `f` against the route, or report that there is none.
-pub fn with<R>(f: impl FnOnce(&mut Route) -> R) -> Result<R, ()> {
-    let mut guard = ROUTE.lock();
-    match guard.as_mut() {
-        Some(route) => Ok(f(route)),
+/// Streams let go whose proxy has not yet heard so: (port, stream).
+static RESETS: Mutex<Vec<(u32, u32)>> = Mutex::new(Vec::new());
+
+/// Keep a new conversation with the proxy at `port` on `handle`, on the
+/// lowest stream free there (`streams`). `None` when every stream is held.
+pub fn insert(handle: u32, port: u32) -> Option<()> {
+    let mut slots = SLOTS.lock();
+    let used: Vec<u32> = slots.iter().filter(|s| s.port == port).map(|s| s.conv.stream()).collect();
+    let stream = lowest_free(&used)?;
+    /* Its own opening reset ends whatever the stream held at the proxy. */
+    RESETS.lock().retain(|&r| r != (port, stream));
+    slots.push(Slot { handle, port, conv: Conv::opening(stream) });
+    Some(())
+}
+
+/// Whether a new conversation with the proxy at `port` would get a stream.
+pub fn room(port: u32) -> bool {
+    let slots = SLOTS.lock();
+    let used: Vec<u32> = slots.iter().filter(|s| s.port == port).map(|s| s.conv.stream()).collect();
+    lowest_free(&used).is_some()
+}
+
+/// Forget the conversation on `handle`. `tell` asks the proxy to end its
+/// stream too (`pending_resets`), so the exit stops sending for a fetch
+/// that is gone; a conversation that never opened needs no telling.
+pub fn remove(handle: u32, tell: bool) {
+    let mut slots = SLOTS.lock();
+    let Some(at) = slots.iter().position(|s| s.handle == handle) else { return };
+    let slot = slots.swap_remove(at);
+    if tell {
+        RESETS.lock().push((slot.port, slot.conv.stream()));
+    }
+}
+
+/// A stream let go whose proxy should still be told, if any.
+pub fn pending_reset() -> Option<(u32, u32)> {
+    RESETS.lock().first().copied()
+}
+
+/// The proxy heard that reset, or cannot be asked: stop asking.
+pub fn reset_done(r: (u32, u32)) {
+    RESETS.lock().retain(|&x| x != r);
+}
+
+/// Run `f` against the conversation on `handle`, or report there is none.
+pub fn with<R>(handle: u32, f: impl FnOnce(&mut Slot) -> R) -> Result<R, ()> {
+    let mut slots = SLOTS.lock();
+    match slots.iter_mut().find(|s| s.handle == handle) {
+        Some(slot) => Ok(f(slot)),
         None => Err(()),
     }
 }

@@ -14,82 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
 use alloc::vec::Vec;
 
-use crate::browser::css::selector::{Selector, Simple, Step};
+use crate::browser::css::selector::Selector;
 
-use super::simple::parse_simple;
+use super::complex::complex;
+use super::cursor::Cur;
+use super::expand::expand;
+use super::skip::skip_arg;
 
+/* One top-level selector longer than this is refused before it is parsed,
+ * which bounds the work any one of them can cause. */
+const MAX_SELECTOR_BYTES: usize = 8192;
+/* Selectors kept from one list. Longer lists stay valid and are read
+ * whole; the selectors past this bound are not kept. */
+const MAX_SELECTORS: usize = 1024;
+
+/* A selector list, as a style rule or querySelectorAll reads it. The list
+ * is not forgiving: one invalid selector (an unknown pseudo-class, a
+ * dangling combinator, an empty entry, stray tokens) makes the whole list
+ * invalid, and the result is empty, so the rule drops as it does in
+ * Chromium. */
 pub fn parse_selectors(list: &str) -> Vec<Selector> {
     let mut out: Vec<Selector> = Vec::new();
-    // Top-level split keeps :is(.a,.b) whole; each part then expands its
-    // :is()/:where() groups into plain alternatives.
-    let mut parts: Vec<String> = Vec::new();
-    for part in super::is_expand::split_top_level(list) {
-        parts.extend(super::is_expand::expand_is(part));
-    }
-    for part in &parts {
-        // A trailing pseudo-element turns the selector into a generated
-        // content rule for the matched element; both spellings are stripped
-        // before compound parsing so the host element matches normally.
-        let (part, element) = strip_pseudo_element(part.trim_end());
-        // Give `>` its own token whether or not it was spaced.
-        let spaced: String = part.chars().fold(String::new(), |mut s, ch| {
-            if ch == '>' {
-                s.push(' ');
-                s.push('>');
-                s.push(' ');
-            } else {
-                s.push(ch);
-            }
-            s
-        });
-        let mut simples: Vec<Simple> = Vec::new();
-        let mut direct: Vec<bool> = Vec::new();
-        let mut next_direct = false;
-        for tok in spaced.split_whitespace().take(32) {
-            if tok == ">" {
-                next_direct = true;
-                continue;
-            }
-            // Sibling combinators are approximated as descendant so the rule
-            // still applies rather than dying on a bogus tag.
-            if tok == "+" || tok == "~" {
-                continue;
-            }
-            simples.push(parse_simple(tok));
-            direct.push(next_direct);
-            next_direct = false;
-        }
-        let Some(key) = simples.pop() else {
-            continue;
+    let mut c = Cur::new(list);
+    loop {
+        let start = c.i;
+        skip_arg(&mut c, true);
+        let Some(sels) = top(&list[start..c.i]) else {
+            return Vec::new();
         };
-        // direct[i] says step i is a direct child of step i-1; matching
-        // walks outward from the key, so the flag moves onto the ancestor.
-        let key_direct = direct.pop().unwrap_or(false);
-        let mut ancestors: Vec<Step> = Vec::new();
-        let mut below = key_direct;
-        for (simple, d) in simples.into_iter().zip(direct.into_iter()).rev() {
-            ancestors.push(Step { simple, direct: below });
-            below = d;
-        }
-        out.push(Selector { key, ancestors, element });
-        if out.len() >= 64 {
-            break;
+        let room = MAX_SELECTORS - out.len();
+        out.extend(sels.into_iter().take(room));
+        if !c.eat(b',') {
+            return out;
         }
     }
-    out
 }
 
-// Peel a trailing ::before/::after (or the legacy single-colon spelling) off
-// one selector. 1 marks before, 2 after, 0 no pseudo-element.
-fn strip_pseudo_element(part: &str) -> (&str, u8) {
-    for (suffix, which) in [("::before", 1u8), ("::after", 2u8), (":before", 1u8), (":after", 2u8)]
-    {
-        if let Some(rest) = part.strip_suffix(suffix) {
-            return (rest, which);
-        }
+fn top(part: &str) -> Option<Vec<Selector>> {
+    if part.len() > MAX_SELECTOR_BYTES {
+        return None;
     }
-    (part, 0)
+    let mut c = Cur::new(part);
+    c.trivia();
+    let sel = complex(&mut c, false)?;
+    c.trivia();
+    c.peek().is_none().then(|| expand(sel))
 }

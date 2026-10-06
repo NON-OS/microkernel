@@ -21,9 +21,9 @@ use crate::browser::css::Computed;
 
 use super::tree::{BoxKind, BoxNode};
 
-// A childless box (text or image) that inherits its parent's text style and
-// carries the enclosing anchor. The parent background rides along so inline
-// highlights survive the wrap into words.
+/* A childless box (text or image) that inherits its parent's text style and
+ * carries the enclosing anchor. The parent background rides along so inline
+ * highlights survive the wrap into words. */
 pub(super) fn leaf(
     kind: BoxKind,
     parent: &Computed,
@@ -40,5 +40,6 @@ pub(super) fn leaf(
         bg_image: None,
         grid_place: None,
         children: Vec::new(),
+        aux: Default::default(),
     }
 }

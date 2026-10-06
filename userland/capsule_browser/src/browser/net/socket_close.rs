@@ -17,9 +17,16 @@
 use super::constants::{OP_CLOSE, SOCKETS_MAGIC};
 
 pub fn socket_close(sockets_port: u32, handle: u32) -> bool {
-    if super::mixnet::is_on() {
-        return super::mixnet::close();
+    if super::mixnet::is_proxied(handle) {
+        return super::mixnet::close(handle);
     }
+    close_direct(sockets_port, handle)
+}
+
+/// Close a socket of net.sockets.
+pub(super) fn close_direct(sockets_port: u32, handle: u32) -> bool {
+    super::recv_seq::forget(handle);
+    super::recv_pending::forget(handle);
     let mut body = [0u8; 4];
     let mut rx = [0u8; 20];
     body.copy_from_slice(&handle.to_le_bytes());

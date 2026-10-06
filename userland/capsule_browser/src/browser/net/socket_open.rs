@@ -15,10 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::constants::{OP_SOCKET, SOCKETS_MAGIC, SOCKET_FAMILY_IP4, SOCKET_KIND_STREAM};
+use super::mixnet::{Way, PROXIED};
 
-pub fn socket_open(sockets_port: u32) -> Result<u32, ()> {
-    if super::mixnet::is_on() {
-        return super::mixnet::open();
+/// A socket for a connection that leaves `way`: a conversation with the
+/// proxy that carries it, or a socket of net.sockets for a direct one. A way
+/// that is refused opens nothing, and nothing opens direct unless the page's
+/// network is Direct.
+pub fn socket_open(sockets_port: u32, way: Way) -> Result<u32, ()> {
+    match way {
+        Way::Proxy { port, .. } => return super::mixnet::open(port),
+        Way::Refused(_) => return Err(()),
+        Way::Direct if !super::mixnet::direct_allowed() => return Err(()),
+        Way::Direct => {}
     }
     let mut body = [0u8; 4];
     let mut rx = [0u8; 32];
@@ -28,5 +36,14 @@ pub fn socket_open(sockets_port: u32) -> Result<u32, ()> {
     if n < 24 {
         return Err(());
     }
-    Ok(u32::from_le_bytes([rx[20], rx[21], rx[22], rx[23]]))
+    let handle = u32::from_le_bytes([rx[20], rx[21], rx[22], rx[23]]);
+    /* A handle with the proxied bit would be read as a conversation with a
+     * proxy; net.sockets counts from 1 and never gets there, and if it ever
+     * did the socket is handed back rather than mistaken. */
+    if handle & PROXIED != 0 {
+        let _ = super::socket_close::close_direct(sockets_port, handle);
+        return Err(());
+    }
+    super::recv_seq::forget(handle);
+    Ok(handle)
 }

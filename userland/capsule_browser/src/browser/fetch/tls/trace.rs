@@ -14,56 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_debug;
+use crate::browser::fetch::wire::Wire;
 
 /// Say how a handshake flight ended and how much of it had arrived.
 ///
-/// A handshake that stops carries no message of its own: the page simply
-/// stays on "downloading" whether the flight was abandoned, believed early,
-/// or completed. Over the mixnet those three have very different causes and
-/// look identical from the outside, so the reason and the byte count are
-/// worth saying out loud.
-pub fn flight(reason: &[u8], have: usize, idle: u32) {
-    let mut line = [0u8; 96];
-    let mut n = 0;
-    for &b in b"[BROWSER] tls flight " {
-        line[n] = b;
-        n += 1;
-    }
-    for &b in reason {
-        if n < line.len() - 32 {
-            line[n] = b;
-            n += 1;
-        }
-    }
-    for &b in b" bytes " {
-        line[n] = b;
-        n += 1;
-    }
-    n += write_num(&mut line[n..], have as u64);
-    for &b in b" idle " {
-        line[n] = b;
-        n += 1;
-    }
-    n += write_num(&mut line[n..], idle as u64);
-    line[n] = b'\n';
-    n += 1;
-    unsafe { mk_debug(line.as_ptr(), n) };
-}
-
-fn write_num(out: &mut [u8], mut v: u64) -> usize {
-    let mut digits = [0u8; 20];
-    let mut d = 0;
-    loop {
-        digits[d] = b'0' + (v % 10) as u8;
-        d += 1;
-        v /= 10;
-        if v == 0 {
-            break;
-        }
-    }
-    for i in 0..d {
-        out[i] = digits[d - 1 - i];
-    }
-    d
+/// A handshake that stops carries no message of its own, and over the
+/// mixnet a flight that completed, was refused or could not be read look
+/// alike from the outside, so the reason and the byte count are said out.
+pub fn flight<W: Wire>(w: &mut W, reason: &str, have: usize) {
+    let line = alloc::format!("[BROWSER] tls flight {reason} bytes {have}\n");
+    w.trace(line.as_bytes());
 }

@@ -23,6 +23,6 @@ mod shortcut_data;
 mod text;
 mod wordmark;
 
-pub use constants::CONTENT_TOP;
-pub use hit::{search_bar_hit, shortcut_at};
+pub use hit::shortcut_url_at;
 pub use paint::paint;
+pub use search_bar::search_bar;

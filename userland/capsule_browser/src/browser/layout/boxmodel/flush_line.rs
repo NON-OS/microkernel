@@ -16,128 +16,59 @@
 
 use alloc::vec::Vec;
 
-use crate::browser::css::TextAlign;
+use crate::browser::css::{Computed, TextAlign};
 
+use super::contexts::bidi::{needs_bidi, visual};
+use super::contexts::flush_item::flush_item;
+use super::contexts::line_join::join_pieces;
 use super::ctx::Ctx;
-use super::display_list::{Content, DisplayList, Fragment};
+use super::display_list::DisplayList;
 use super::inline_items::InlineItem;
 
-// Emit one finished line box at (x, top) and return the height consumed.
-// `pending` holds (line-relative x, item); `line_w` is the used width.
-pub(super) fn flush_line(
-    frags: &mut DisplayList,
-    pending: &mut Vec<(i32, InlineItem)>,
+/* Where a container's lines go: its content box x and width, the side
+ * its text lines up on (text-align with start and end resolved against
+ * the direction), and its direction, the bidi paragraph level. */
+pub(super) struct Place {
     x: i32,
-    top: i32,
     w: i32,
-    line_h: i32,
-    line_w: i32,
     align: TextAlign,
+    rtl: bool,
     ctx: Ctx,
-) -> i32 {
-    if pending.is_empty() {
-        // Blank line from consecutive breaks still takes vertical room.
-        return line_h;
+}
+
+impl Place {
+    pub(super) fn new(c: &Computed, x: i32, w: i32, ctx: Ctx) -> Self {
+        let align = match (c.text_align, c.rtl) {
+            (TextAlign::Start, false) | (TextAlign::End, true) => TextAlign::Left,
+            (TextAlign::Start, true) | (TextAlign::End, false) => TextAlign::Right,
+            (a, _) => a,
+        };
+        Place { x, w, align, rtl: c.rtl, ctx }
     }
-    let extra = (w - line_w).max(0);
-    let shift = match align {
-        TextAlign::Left => 0,
-        TextAlign::Center => extra / 2,
-        TextAlign::Right => extra,
-    };
-    for (ix, item) in pending.drain(..) {
-        match item {
-            InlineItem::Word {
-                text,
-                px,
-                color,
-                bg,
-                bold,
-                mono,
-                underline,
-                font,
-                spacing,
-                href,
-                adv,
-                node,
-                ..
-            } => {
-                frags.push(Fragment {
-                    x: x + shift + ix,
-                    y: top,
-                    w: adv,
-                    h: line_h,
-                    bg,
-                    border: [0; 4],
-                    border_color: 0,
-                    href,
-                    content: Content::Text {
-                        text,
-                        color,
-                        px: px as f32,
-                        bold,
-                        mono,
-                        underline,
-                        font,
-                        spacing,
-                    },
-                    z: ctx.z,
-                    clip: ctx.clip,
-                    fixed: ctx.fixed,
-                    sticky: ctx.sticky,
-                    alpha: ctx.alpha,
-                    bg_image: None,
-                    bg_size: crate::browser::css::BgSize::Auto,
-                    bg_repeat: true,
-                    shadow: None,
-                    radius: 0,
-                    node,
-                });
-            }
-            InlineItem::Image { src, alt, w: iw, h: ih, href, node, fit } => {
-                frags.push(Fragment {
-                    x: x + shift + ix,
-                    y: top + (line_h - ih).max(0) / 2,
-                    w: iw,
-                    h: ih,
-                    bg: 0,
-                    border: [0; 4],
-                    border_color: 0,
-                    href,
-                    content: Content::Image { src, alt, fit },
-                    z: ctx.z,
-                    clip: ctx.clip,
-                    fixed: ctx.fixed,
-                    sticky: ctx.sticky,
-                    alpha: ctx.alpha,
-                    bg_image: None,
-                    bg_size: crate::browser::css::BgSize::Auto,
-                    bg_repeat: true,
-                    shadow: None,
-                    radius: 0,
-                    node,
-                });
-            }
-            InlineItem::Atom { frags: sub, h, .. } => {
-                // Shift the inline-block's own fragments, laid out at the
-                // origin, into its slot on the line, sitting on the line's
-                // bottom edge so it aligns with the text run.
-                let dx = x + shift + ix;
-                let dy = top + (line_h - h).max(0);
-                for mut f in sub {
-                    f.x += dx;
-                    f.y += dy;
-                    if let Some(c) = f.clip.as_mut() {
-                        c[0] += dx;
-                        c[1] += dy;
-                        c[2] += dx;
-                        c[3] += dy;
-                    }
-                    frags.push(f);
-                }
-            }
-            InlineItem::Break => {}
+
+    /* Emit one finished line at `top`, `h` tall, `line_w` used: items at
+     * their line-relative x, in visual order when any run right to left.
+     * An underlined word after underlined text and an underlined space
+     * takes the space into its fragment, so the underline is unbroken. */
+    pub(super) fn emit(
+        &self,
+        frags: &mut DisplayList,
+        items: Vec<(i32, InlineItem)>,
+        [top, h, line_w]: [i32; 3],
+    ) {
+        let extra = (self.w - line_w).max(0);
+        let shift = match self.align {
+            TextAlign::Center => extra / 2,
+            TextAlign::Right => extra,
+            _ => 0,
+        };
+        let items = join_pieces(items);
+        let bidi = needs_bidi(self.rtl, &items);
+        let items = if bidi { visual(items, self.rtl) } else { items };
+        let mut ul_end: Option<i32> = None;
+        for (ix, item) in items {
+            let x = self.x + shift + ix;
+            ul_end = flush_item(frags, item, [x, top, h], ul_end.filter(|_| !bidi), &self.ctx);
         }
     }
-    line_h
 }

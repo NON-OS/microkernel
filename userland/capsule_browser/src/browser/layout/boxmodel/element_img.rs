@@ -16,7 +16,7 @@
 
 use alloc::string::{String, ToString};
 
-use crate::browser::css::{Computed, Size};
+use crate::browser::css::Computed;
 
 use super::attr_px::attr_px;
 use super::img_src::img_src;
@@ -24,9 +24,10 @@ use super::leaf::leaf;
 use super::tree::{BoxKind, BoxNode};
 use super::walk::{ElementIn, Walk};
 
-// Box for an <img>. The width/height attributes are presentational hints:
-// they size the box when no CSS width/height applies, so an undecoded icon
-// reserves icon space, not a default box.
+/* Box for an <img>. The width/height attributes are presentational hints,
+ * kept beside the style: they size the box where CSS leaves a side auto,
+ * and together give its aspect ratio before the image arrives, so an
+ * undecoded icon reserves icon space, not a default box. */
 pub(super) fn element_img(
     w: &Walk,
     item: &ElementIn,
@@ -38,15 +39,6 @@ pub(super) fn element_img(
     let alt = item.c.attr("alt").unwrap_or("").to_string();
     let mut b = leaf(BoxKind::Image { src, alt }, parent, link, item.ch);
     b.style = style;
-    if b.style.width == Size::Auto {
-        if let Some(px) = attr_px(item.c.attr("width")) {
-            b.style.width = Size::Px(px);
-        }
-    }
-    if b.style.height == Size::Auto {
-        if let Some(px) = attr_px(item.c.attr("height")) {
-            b.style.height = Size::Px(px);
-        }
-    }
+    b.aux.attr = [attr_px(item.c.attr("width")), attr_px(item.c.attr("height"))];
     b
 }

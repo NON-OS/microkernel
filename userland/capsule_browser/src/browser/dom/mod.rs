@@ -15,28 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod attach;
-mod attrs;
-mod auto_close;
+mod builder;
 mod clone;
-mod close_tag;
-mod comment;
-mod consume;
 mod create;
 mod detach;
-mod flush_text;
 mod insert_before;
-mod limits;
+pub mod limits;
 mod measure;
 pub mod node;
 mod parse;
 mod place;
 mod push;
-mod raw_text;
+pub mod quirks;
 mod remove_attr;
+pub mod script_scroll;
 mod serialize;
 mod set_attr;
+pub mod style_facts;
 mod tree;
 mod void;
 
-pub use parse::parse;
+pub use parse::{parse, parse_fragment};
 pub use tree::Dom;

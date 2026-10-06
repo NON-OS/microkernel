@@ -15,10 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod call;
+mod choice;
+mod conv;
+mod fault;
+mod frames;
+mod heard;
+mod io;
+mod pace;
+mod refusal;
 mod route;
-mod wanted;
+mod status;
+mod streams;
+mod system_default;
+mod way;
 mod wire;
 
-pub use route::{disable, enable, is_on};
-pub use wanted::{set_wanted, wanted};
-pub use wire::{close, connect, open, recv, send};
+pub use choice::{choose, chosen, Network};
+pub use conv::Broke;
+pub use heard::{heard, silent_now};
+pub use status::{still, Heard};
+pub use io::{broke, new_tick, poll, recv, send, sending};
+pub use route::{direct_allowed, room, set_routes, way};
+pub use system_default::from_system_default;
+pub use way::{Routes, Way};
+pub use wire::{close, is_proxied, open, PROXIED};

@@ -14,36 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::boxed::Box;
 use alloc::string::String;
 
-use crate::browser::css::{Computed, GridSpec};
 use crate::browser::dom::Dom;
 
-use super::body_id::body_id;
 use super::collect::collect;
+use super::geom::body_id::{body_id, root_id};
+use super::post::propagate::{fill_natural, propagate};
 use super::tree::{BoxKind, BoxNode};
+use super::walk::{Grids, Pseudos, Styles, Walk};
 use super::wrap_mixed::wrap_mixed;
 
-// Box tree for the page: rooted at <body> (or the document when a page has
-// none), display:none subtrees dropped, mixed children wrapped. Per-node
-// background images and grid specs travel alongside the styles for the
-// collect walk.
+/// An image's natural size (width, height) in px by its src, when known.
+pub type Natural<'a> = &'a dyn Fn(&str) -> Option<(u32, u32)>;
+
+/* Box tree for the page: rooted at the root element (<html>, or <body> or
+ * the document when a page has none), display:none subtrees dropped, mixed
+ * children wrapped. Per-node background images and grid specs travel
+ * alongside the styles for the collect walk. body's background and
+ * overflow pass to the root and the viewport as CSS prescribes, and each
+ * image learns its natural size from `natural`. */
 pub fn build(
     dom: &Dom,
-    styles: &[Computed],
+    styles: Styles<'_>,
     bg_images: &[Option<String>],
-    grids: &[Option<GridSpec>],
-    pseudos: &[(
-        Option<crate::browser::css::PseudoText>,
-        Option<crate::browser::css::PseudoText>,
-    )],
+    svg_paint: &[Option<Box<str>>],
+    grids: Grids<'_>,
+    pseudos: Pseudos<'_>,
+    natural: Natural<'_>,
 ) -> BoxNode {
-    let root_id = body_id(dom);
-    let style = styles.get(root_id).copied().unwrap_or_else(Computed::root);
+    let root_id = root_id(dom);
+    let style = styles[root_id];
     let mut count = 0usize;
-    let children =
-        collect(dom, root_id, &style, styles, bg_images, grids, pseudos, &None, 0, &mut count);
-    BoxNode {
+    let mut w = Walk { dom, styles, bg_images, svg_paint, grids, pseudos, count: &mut count };
+    let children = collect(&mut w, root_id, &style, &None, 0);
+    let mut root = BoxNode {
         kind: BoxKind::Block,
         style,
         href: None,
@@ -51,5 +57,9 @@ pub fn build(
         bg_image: bg_images.get(root_id).cloned().flatten(),
         grid_place: None,
         children: wrap_mixed(&style, children),
-    }
+        aux: Default::default(),
+    };
+    propagate(&mut root, body_id(dom));
+    fill_natural(&mut root, natural, 0);
+    root
 }

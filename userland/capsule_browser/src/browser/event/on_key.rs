@@ -14,33 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, KEY_BACKSPACE, KEY_ENTER, MOD_SHIFT};
+use alloc::string::String;
 
-use crate::browser::keymap::printable;
-use crate::browser::state::State;
+use nonos_app_skeleton::{EventOutcome, InputEvent};
 
+use crate::browser::omnibox::{edit_key, EditKey};
+use crate::browser::state::{State, View};
+
+/* A key while the address bar has the keyboard. Enter goes (or searches),
+ * Esc puts back the address of the page on screen and hands the keyboard
+ * to the page, and everything else edits the text. */
 pub fn on_key(state: &mut State, event: InputEvent) -> EventOutcome {
-    match event.code {
-        KEY_ENTER => {
-            if crate::browser::proxy::command(state, &state.address.clone()) {
-                state.address_focused = false;
-                return EventOutcome::Repaint;
-            }
-            state.pending_nav = Some(state.address.clone());
-            state.status = alloc::format!("loading {}", state.address);
-            state.address_focused = false;
+    match edit_key(event.code, event.flags) {
+        EditKey::Commit => super::omnibox_commit::commit(state),
+        EditKey::Cancel => {
+            let home = state.view == View::Home;
+            let url = if home { String::new() } else { state.ui.current_url.clone() };
+            state.ui.omnibox.set(&url);
+            state.ui.omnibox.select_all();
+            state.ui.text_off = 0;
+            state.focus_page(None);
+            state.mark_omnibox();
             EventOutcome::Repaint
         }
-        KEY_BACKSPACE => {
-            state.address.pop();
+        EditKey::Ignore => EventOutcome::Idle,
+        k => {
+            if !super::omnibox_edit::apply(state, k) {
+                return EventOutcome::Idle;
+            }
+            state.fit_text();
+            state.mark_omnibox();
             EventOutcome::Repaint
         }
-        code => match printable(code, event.flags & MOD_SHIFT != 0) {
-            Some(b) => {
-                state.address.push(b as char);
-                EventOutcome::Repaint
-            }
-            None => EventOutcome::Idle,
-        },
     }
 }

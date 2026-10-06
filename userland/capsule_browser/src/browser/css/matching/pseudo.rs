@@ -15,45 +15,41 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::browser::css::selector::Pseudo;
-use crate::browser::dom::node::NodeKind;
-use crate::browser::dom::Dom;
 
-use super::sibling::element_position;
-use super::simple::matches_simple;
+use super::cx::Cx;
+use super::dir::is_rtl;
+use super::form::form_matches;
+use super::has::has;
+use super::lang::lang_matches;
+use super::misc::{defined, empty, is_link, is_open, is_root};
+use super::nth_of::nth_of;
+use super::selector::test;
+use super::structural::structural;
+use super::user::user_matches;
 
-pub(super) fn pseudo_matches(dom: &Dom, id: usize, p: &Pseudo) -> bool {
+/* One pseudo-class at one element. Selector-list arguments are matched
+ * with the element as their subject, each through the full matcher with its
+ * own combinators; they share the call's step budget. */
+pub(super) fn pseudo_matches(cx: &Cx, id: usize, p: &Pseudo) -> bool {
     match p {
         Pseudo::Never => false,
-        Pseudo::Not(inner) => !matches_simple(dom, id, inner),
-        Pseudo::Empty => dom.nodes.get(id).is_some_and(|n| {
-            n.children.iter().all(|&ch| {
-                dom.nodes
-                    .get(ch)
-                    .is_none_or(|c| c.kind == NodeKind::Text && c.text.trim().is_empty())
-            })
-        }),
-        _ => {
-            let Some((pos, count, pos_ty, count_ty)) = element_position(dom, id) else {
-                return false;
-            };
-            match p {
-                Pseudo::FirstChild => pos == 1,
-                Pseudo::LastChild => pos == count,
-                Pseudo::OnlyChild => count == 1,
-                Pseudo::FirstOfType => pos_ty == 1,
-                Pseudo::LastOfType => pos_ty == count_ty,
-                Pseudo::NthChild(a, b) => nth_matches(*a, *b, pos),
-                _ => false,
-            }
-        }
+        Pseudo::Matches(list) => list.iter().any(|s| test(cx, id, s)),
+        Pseudo::Not(list) => !list.iter().any(|s| test(cx, id, s)),
+        Pseudo::Has(list) => has(cx, id, list),
+        Pseudo::HasAnchor => cx.anchor.get() == id,
+        Pseudo::NthChildOf(a, b, list) => nth_of(cx, id, (*a, *b), list, false),
+        Pseudo::NthLastChildOf(a, b, list) => nth_of(cx, id, (*a, *b), list, true),
+        Pseudo::Empty => empty(cx.dom, id),
+        Pseudo::Root => is_root(cx.dom, id),
+        Pseudo::Scope if cx.scope == 0 => is_root(cx.dom, id),
+        Pseudo::Scope => cx.scope == id,
+        Pseudo::AnyLink => is_link(cx.dom, id),
+        Pseudo::Lang(want) => lang_matches(cx, id, want),
+        Pseudo::Dir(rtl) => is_rtl(cx, id) == *rtl,
+        Pseudo::Defined => defined(cx.dom, id),
+        Pseudo::Open => is_open(cx.dom, id),
+        Pseudo::Form(f) => form_matches(cx, id, *f),
+        Pseudo::User(u) => user_matches(cx.dom, id, *u),
+        _ => structural(cx, id, p),
     }
-}
-
-// An+B holds for position i when i = a*k + b for some k >= 0.
-fn nth_matches(a: i32, b: i32, i: i32) -> bool {
-    if a == 0 {
-        return i == b;
-    }
-    let d = i - b;
-    d % a == 0 && d / a >= 0
 }

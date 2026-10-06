@@ -14,53 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::fetch::types::{Fetch, Phase};
-use crate::browser::http;
-use crate::browser::net;
-use crate::browser::tls13;
+use crate::browser::fetch::plain::request;
+use crate::browser::fetch::types::{Fetch, Phase, TlsWhy};
+use crate::browser::fetch::wire::Wire;
+use crate::browser::tls13::Refusal;
 
-pub(in crate::browser::fetch) fn verify_and_send(port: u32, f: &mut Fetch) {
-    // Every fetch asks the server to close after the response. A close is a
-    // hard end-of-body the reader cannot miss; a kept-alive response has to be
-    // framed exactly and its plaintext offset carried across the next request
-    // on the same connection, and any drift there strands the following image.
-    // CDNs serve images chunked and gzipped, which is the fragile framing, so
-    // the reuse optimisation cost every image on real pages. Correctness over a
-    // saved handshake.
-    let req = http::request::build(&f.url, f.post.as_deref());
-    let host = f.url.host.clone();
-    let Some(tls) = f.tls.as_ref() else {
-        f.phase = Phase::Error;
-        return;
-    };
-    let Some(out) =
-        tls13::application_write(&tls.cf, &tls.flight, req.as_bytes(), host.as_bytes(), tls.now)
-    else {
-        // A server that refused says why, in an alert inside the encrypted
-        // flight. Every one of those used to be reported as a chain failure,
-        // which sent the reader to the certificate store for a fault that was
-        // on the wire and named.
-        let refused = tls13::handshake_alert(&tls.cf, &tls.flight);
-        f.tls_alert = refused;
-        f.error = Some("tls handshake refused");
-        f.phase = Phase::Error;
-        return;
-    };
-    // The handshake is settled and its inputs no longer change, so derive the
-    // server application keys once now and cache them; response records then
-    // decrypt without repeating certificate verification on every read tick.
-    let server_app =
-        tls13::server_complete(&tls.cf, &tls.flight, host.as_bytes(), tls.now).map(|sc| sc.app);
-    if net::socket_send(port, f.handle, &out).is_err() {
-        f.error = Some("send failed");
-        f.phase = Phase::Error;
-        return;
-    }
-    if let Some(app) = server_app {
-        if let Some(tls) = f.tls.as_mut() {
-            tls.server_app = Some(app);
+/*
+ * One pass: the chain, the CertificateVerify and the Finished MAC are checked
+ * once over the messages decrypted as they arrived, and the request is sealed
+ * only after all of them passed. The flight used to be verified twice, and a
+ * refusal decrypted it a third time to look for an alert the handshake state
+ * already holds. A handshake that ran is never run again.
+ */
+/// Answer a finished flight: send the client Finished and the request, or
+/// stop with why the server was not answered.
+pub(super) fn verify_and_send<W: Wire>(w: &mut W, f: &mut Fetch, end: usize) {
+    let req = request::request(f, w.wall_ms());
+    let host = f.url.host.as_bytes();
+    let Some(tls) = f.tls.as_mut() else { return f.stop("tls handshake failed") };
+    let Some(hs) = tls.hs.as_ref() else { return f.stop("tls handshake failed") };
+    match hs.answer(host, tls.now, req.as_bytes()) {
+        Ok(answer) => {
+            /* The request rides with the Finished; counted before the send,
+             * since one that failed part way may have left. */
+            f.requested = true;
+            if w.send(f.handle, &answer.flight).is_err() {
+                return f.stop("send failed");
+            }
+            /* What followed the Finished in the same read is response. */
+            f.buf = tls.flight.split_off(end.min(tls.flight.len()));
+            tls.settle(answer.app);
+            f.tx_seq = 0;
+            f.phase = Phase::ReadBody;
         }
+        Err(Refusal::Alert(description)) => {
+            f.tls_alert = Some(description);
+            f.stop("tls handshake refused");
+        }
+        Err(Refusal::Unverified) => {
+            /* Read after the refusal, for the page; it decides nothing. */
+            let why = TlsWhy::Cert(hs.cert_problem(host, tls.now), tls.now);
+            f.tls_why = Some(why);
+            f.stop("tls handshake refused");
+        }
+        Err(Refusal::Incomplete | Refusal::Seal) => f.stop("tls handshake failed"),
     }
-    f.buf.clear();
-    f.phase = Phase::ReadBody;
 }

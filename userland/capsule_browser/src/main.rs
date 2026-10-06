@@ -25,14 +25,16 @@ mod qjs_dom;
 
 use nonos_app_skeleton::run;
 
-// The browser holds a page DOM, a box tree, decoded rasters and transient
-// fetch buffers at once, so it claims a larger heap than the 16 MiB shared
-// default before the skeleton initialises. A failure here is non-fatal: the
-// skeleton's own init then falls back to the default size.
-const BROWSER_HEAP: usize = 48 * 1024 * 1024;
+/* The browser holds a page DOM, a box tree, decoded rasters and transient
+ * fetch buffers at once, so it claims a larger heap than the 16 MiB shared
+ * default before the skeleton initialises. A failure here is non-fatal: the
+ * skeleton's own init then falls back to the default size. Laying out a
+ * 695 KB article page of 11,236 nodes peaks at 41 MiB on its own. */
+const BROWSER_HEAP: usize = 96 * 1024 * 1024;
 
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     let _ = nonos_libc::heap_init_sized(BROWSER_HEAP);
+    browser::start_on_system_network();
     run(browser::Browser::new)
 }

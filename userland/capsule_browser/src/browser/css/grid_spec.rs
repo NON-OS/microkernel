@@ -17,33 +17,47 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-// Named grid data the Copy style struct cannot hold, kept in a per-node side
-// table like background images. Containers carry the named column lines and
-// template areas; items carry their requested placement.
+/* Named grid data the Copy style struct cannot hold, kept in a per-node
+ * side table like background images. Containers carry the named column
+ * lines and template areas; items carry their requested placement. */
 #[derive(Default)]
 pub struct GridSpec {
-    // (name, zero-based column line index) from [name] groups in the
-    // grid-template-columns track list.
+    /* (name, zero-based column line index) from [name] groups in the
+     * grid-template-columns track list. */
     pub col_lines: Vec<(String, u8)>,
-    // grid-template-areas rows, each a list of cell tokens ("." is a hole).
+    /* grid-template-areas rows, each a list of cell tokens ("." is a hole). */
     pub areas: Vec<Vec<String>>,
-    // grid-area: <name> on an item.
+    /* grid-area: <name> on an item. */
     pub area: Option<String>,
-    // grid-column / grid-row lines, raw: an integer or a line name. Rows are
-    // numeric only; named row lines are rare enough to skip.
+    /* grid-column and grid-row lines as written: an integer (negative
+     * counts from the end), a line or area name, span N, or auto. */
     pub col_start: Option<String>,
     pub col_end: Option<String>,
-    pub row_start: Option<i16>,
-    pub row_end: Option<i16>,
+    pub row_start: Option<String>,
+    pub row_end: Option<String>,
 }
 
 impl GridSpec {
-    // True when this node requests an explicit item placement.
+    /* True when this node requests an explicit item placement. */
     pub fn places_item(&self) -> bool {
         self.area.is_some()
             || self.col_start.is_some()
             || self.col_end.is_some()
             || self.row_start.is_some()
             || self.row_end.is_some()
+    }
+
+    /* The node's spec, created on its first grid declaration. */
+    pub(super) fn ensure(spec: &mut Option<GridSpec>) -> &mut GridSpec {
+        spec.get_or_insert_with(GridSpec::default)
+    }
+
+    /* A grid line written as a custom identifier: not a number, auto or span. */
+    pub fn is_ident(v: &str) -> bool {
+        let first = v.bytes().next().unwrap_or(b'0');
+        !(first.is_ascii_digit()
+            || matches!(first, b'-' | b'+')
+            || v == "auto"
+            || v.starts_with("span"))
     }
 }

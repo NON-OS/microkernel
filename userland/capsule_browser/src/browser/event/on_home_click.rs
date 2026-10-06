@@ -16,20 +16,25 @@
 
 use nonos_app_skeleton::{EventOutcome, InputEvent};
 
+use crate::browser::omnibox::{focus_after, search_bar_hit, Focus, Region};
 use crate::browser::paint::home_page;
-use crate::browser::state::State;
+use crate::browser::state::{Origin, State};
 
+/* A click on the home page, hit-tested at the width it was painted. The
+ * search bar takes the keyboard; a shortcut goes to its site. */
 pub fn on_home_click(state: &mut State, event: InputEvent) -> EventOutcome {
-    if home_page::search_bar_hit(event.x, event.y) {
-        state.address_focused = true;
-        return EventOutcome::Repaint;
-    }
-    match home_page::shortcut_at(event.x, event.y) {
-        Some(url) => {
-            state.address = url.into();
-            state.pending_nav = Some(url.into());
-            EventOutcome::Repaint
+    let w = state.viewport_w;
+    let region = if search_bar_hit(event.x, event.y, w) { Region::Omnibox } else { Region::Page };
+    match focus_after(region, None, state.ui.kbd) {
+        (Focus::Omnibox, _) if state.ui.kbd == Focus::Omnibox => {}
+        (Focus::Omnibox, _) => {
+            state.focus_omnibox();
+            state.fit_text();
         }
+        (Focus::Page, field) => state.focus_page(field),
+    }
+    match home_page::shortcut_url_at(event.x, event.y, w) {
+        Some(url) => super::navigate::navigate(state, url.into(), Origin::User),
         None => EventOutcome::Idle,
     }
 }

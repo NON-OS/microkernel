@@ -16,11 +16,11 @@
 
 use alloc::string::{String, ToString};
 
-use crate::browser::dom::node::NodeKind;
+use crate::browser::dom::node::{Node, NodeKind};
 use crate::browser::dom::Dom;
 
-// Visible text for a form widget: the value (or hint attribute) for inputs,
-// the first option for selects. Empty means the widget shows blank.
+/* Visible text for a form widget: the value (or placeholder) of an input,
+ * the selected option of a select (else its first). Empty means blank. */
 pub(super) fn field_label(dom: &Dom, id: usize) -> String {
     let Some(node) = dom.nodes.get(id) else {
         return String::new();
@@ -30,22 +30,39 @@ pub(super) fn field_label(dom: &Dom, id: usize) -> String {
             node.attr("value").or_else(|| node.attr("placeholder")).unwrap_or("").to_string()
         }
         "select" => {
-            for &c in &node.children {
-                let Some(opt) = dom.nodes.get(c) else {
-                    continue;
-                };
-                if opt.kind == NodeKind::Element && opt.tag == "option" {
-                    for &t in &opt.children {
-                        if let Some(tn) = dom.nodes.get(t) {
-                            if tn.kind == NodeKind::Text && !tn.text.trim().is_empty() {
-                                return tn.text.trim().to_string();
-                            }
-                        }
-                    }
-                }
-            }
-            String::new()
+            let chosen = options(dom, node).find(|o| o.attr("selected").is_some());
+            chosen.or_else(|| options(dom, node).next()).map(|o| text(dom, o)).unwrap_or_default()
         }
         _ => String::new(),
     }
+}
+
+/* The longest option label of a select, which its width must fit. */
+pub(super) fn widest_option(dom: &Dom, id: usize) -> String {
+    let Some(node) = dom.nodes.get(id) else {
+        return String::new();
+    };
+    options(dom, node).map(|o| text(dom, o)).max_by_key(|t| t.chars().count()).unwrap_or_default()
+}
+
+/* The <option> elements of a select, directly or inside an <optgroup>. */
+fn options<'a>(dom: &'a Dom, select: &'a Node) -> impl Iterator<Item = &'a Node> + 'a {
+    let kids = move |n: &'a Node| n.children.iter().filter_map(move |&c| dom.nodes.get(c));
+    kids(select)
+        .flat_map(move |c| {
+            let group = (c.tag == "optgroup").then(|| kids(c)).into_iter().flatten();
+            core::iter::once(c).chain(group)
+        })
+        .filter(|o| o.kind == NodeKind::Element && o.tag == "option")
+}
+
+/* An option's text, trimmed. */
+fn text(dom: &Dom, option: &Node) -> String {
+    let mut out = String::new();
+    for &t in &option.children {
+        if let Some(tn) = dom.nodes.get(t).filter(|n| n.kind == NodeKind::Text) {
+            out.push_str(&tn.text);
+        }
+    }
+    out.trim().to_string()
 }

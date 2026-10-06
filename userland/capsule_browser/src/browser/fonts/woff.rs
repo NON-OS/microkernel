@@ -61,7 +61,7 @@ pub(super) fn unwrap_woff(bytes: Vec<u8>) -> Option<Vec<u8>> {
     }
     for (_, data, _, _) in &tables {
         out.extend_from_slice(data);
-        while out.len() % 4 != 0 {
+        while !out.len().is_multiple_of(4) {
             out.push(0);
         }
     }

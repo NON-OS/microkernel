@@ -14,18 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub use crate::browser::omnibox::geometry::{BACK_X, FWD_X, HOME_X, RELOAD_X, TITLEBAR};
+
 pub const TOOLBAR_BG: u32 = 0xFF2B_2E37;
 pub const FIELD_BG: u32 = 0xFF15_171C;
 pub const BORDER: u32 = 0xFF3A_3F4B;
 pub const FG: u32 = 0xFFE6_EDF3;
 pub const DIM: u32 = 0xFF8B_98A5;
 pub const ACCENT: u32 = 0xFF8A_B4F8;
-pub const TITLEBAR: u32 = 28;
-pub const TOOLBAR_H: i32 = 52;
-pub const T: i32 = TITLEBAR as i32;
-pub const BTN_W: i32 = 28;
-pub const BACK_X: i32 = 14;
-pub const FWD_X: i32 = 46;
-pub const RELOAD_X: i32 = 82;
-pub const HOME_X: i32 = 114;
-pub const PILL_L: i32 = 152;
+/* Selected text background in a focused field. */
+pub const SELECTION: u32 = 0xFF2A_4A78;
+/* The truncated-page notice. */
+pub const WARN: u32 = 0xFFE8_B04B;

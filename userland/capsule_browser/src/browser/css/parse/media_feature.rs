@@ -16,11 +16,14 @@
 
 use crate::browser::manifest::HEIGHT;
 
-// Verdict for one parenthesized media feature against the fixed desktop
-// viewport: mouse pointer, hover, landscape, light scheme, 1x resolution.
-// Unknown features fail closed so a block written for capabilities we lack
-// cannot restyle the page.
+/* Verdict for one parenthesized media feature against the fixed desktop
+ * viewport: mouse pointer, hover, landscape, light scheme, 1x resolution.
+ * Unknown features fail closed so a block written for capabilities we lack
+ * cannot restyle the page. */
 pub(super) fn feature_matches(body: &str, viewport_w: u32) -> bool {
+    if let Some(verdict) = super::media_range::range(body, viewport_w) {
+        return verdict;
+    }
     let (name, value) = match body.find(':') {
         Some(c) => (body[..c].trim(), Some(body[c + 1..].trim())),
         None => (body.trim(), None),
@@ -37,17 +40,21 @@ pub(super) fn feature_matches(body: &str, viewport_w: u32) -> bool {
         ("hover" | "any-hover", Some(v)) => v == "hover",
         ("pointer" | "any-pointer", Some(v)) => v == "fine",
         ("hover" | "any-hover" | "pointer" | "any-pointer", None) => true,
-        // 1x device: any maximum accommodates it, any explicit minimum is
-        // treated as asking for more.
+        /* 1x device: any maximum accommodates it, any explicit minimum is
+         * treated as asking for more. */
         ("max-resolution", _) => true,
         _ => false,
     }
 }
 
-// px, em and rem bounds; media queries resolve em against the 16px initial
-// font size, never the element's.
+/* px, em and rem bounds; media queries resolve em against the 16px initial
+ * font size, never the element's. */
 fn len_px(v: &str) -> Option<u32> {
     let v = v.trim();
+    /* Zero is the one length CSS lets go without a unit. */
+    if v.parse::<f32>() == Ok(0.0) {
+        return Some(0);
+    }
     if let Some(n) = v.strip_suffix("px") {
         return n.trim().parse::<f32>().ok().map(|f| (f + 0.5) as u32);
     }

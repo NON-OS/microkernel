@@ -17,28 +17,29 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use crate::browser::css::color::media_query_matches;
 use crate::browser::state::State;
 use crate::browser::url::{self, Url};
 
+use super::enqueue_css::MAX_SHEETS;
 use super::import_url::import_url;
 
-const MAX_SHEETS: usize = 16;
-
-// Follow the @import rules of a freshly fetched stylesheet: resolve each
-// imported URL against that sheet's own address (not the page base, since the
-// imports are relative to the importing file) and queue it for fetching. An
-// index sheet that is nothing but @import lines, which several sites ship as
-// their main entry point, otherwise contributes no rules and the page loses
-// all of its styling.
+/* Follow the @import rules of a freshly fetched stylesheet: resolve each
+ * imported URL against that sheet's own address (not the page base, since
+ * the imports are relative to the importing file) and queue it for fetching
+ * when its media list matches the viewport. An index sheet that is nothing
+ * but @import lines, which several sites ship as their main entry point,
+ * otherwise contributes no rules and the page loses all of its styling. */
 pub(super) fn enqueue_imports(state: &mut State, css: &str, sheet: &Url) {
     let mut fresh: Vec<String> = Vec::new();
     let mut rest = css;
     while let Some(pos) = rest.find("@import") {
         rest = &rest[pos + "@import".len()..];
         let Some(end) = rest.find(';') else { break };
-        if let Some(spec) = import_url(&rest[..end]) {
+        if let Some((spec, media)) = import_url(&rest[..end]) {
             let abs = url::join(sheet, &spec);
-            if !fresh.contains(&abs) && !state.css_queue.contains(&abs) {
+            let applies = media_query_matches(media, state.viewport_w, state.viewport_h);
+            if applies && !fresh.contains(&abs) && !state.css_queue.contains(&abs) {
                 fresh.push(abs);
             }
         }

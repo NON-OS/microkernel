@@ -1,0 +1,59 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::rows::rows;
+
+/// Named references `swnwar;` to `zwnj;`, sorted by bytes.
+pub static ROWS: &[(&str, char, char)] = rows! {
+    "swnwar" 0x292A "szlig" 0xDF "target" 0x2316 "tau" 0x3C4 "tbrk" 0x23B4 "tcaron" 0x165
+    "tcedil" 0x163 "tcy" 0x442 "tdot" 0x20DB "telrec" 0x2315 "tfr" 0x1D531 "there4" 0x2234
+    "therefore" 0x2234 "theta" 0x3B8 "thetasym" 0x3D1 "thetav" 0x3D1 "thickapprox" 0x2248
+    "thicksim" 0x223C "thinsp" 0x2009 "thkap" 0x2248 "thksim" 0x223C "thorn" 0xFE "tilde" 0x2DC
+    "times" 0xD7 "timesb" 0x22A0 "timesbar" 0x2A31 "timesd" 0x2A30 "tint" 0x222D "toea" 0x2928
+    "top" 0x22A4 "topbot" 0x2336 "topcir" 0x2AF1 "topf" 0x1D565 "topfork" 0x2ADA "tosa" 0x2929
+    "tprime" 0x2034 "trade" 0x2122 "triangle" 0x25B5 "triangledown" 0x25BF "triangleleft" 0x25C3
+    "trianglelefteq" 0x22B4 "triangleq" 0x225C "triangleright" 0x25B9 "trianglerighteq" 0x22B5
+    "tridot" 0x25EC "trie" 0x225C "triminus" 0x2A3A "triplus" 0x2A39 "trisb" 0x29CD
+    "tritime" 0x2A3B "trpezium" 0x23E2 "tscr" 0x1D4C9 "tscy" 0x446 "tshcy" 0x45B "tstrok" 0x167
+    "twixt" 0x226C "twoheadleftarrow" 0x219E "twoheadrightarrow" 0x21A0 "uArr" 0x21D1 "uHar" 0x2963
+    "uacute" 0xFA "uarr" 0x2191 "ubrcy" 0x45E "ubreve" 0x16D "ucirc" 0xFB "ucy" 0x443
+    "udarr" 0x21C5 "udblac" 0x171 "udhar" 0x296E "ufisht" 0x297E "ufr" 0x1D532 "ugrave" 0xF9
+    "uharl" 0x21BF "uharr" 0x21BE "uhblk" 0x2580 "ulcorn" 0x231C "ulcorner" 0x231C "ulcrop" 0x230F
+    "ultri" 0x25F8 "umacr" 0x16B "uml" 0xA8 "uogon" 0x173 "uopf" 0x1D566 "uparrow" 0x2191
+    "updownarrow" 0x2195 "upharpoonleft" 0x21BF "upharpoonright" 0x21BE "uplus" 0x228E "upsi" 0x3C5
+    "upsih" 0x3D2 "upsilon" 0x3C5 "upuparrows" 0x21C8 "urcorn" 0x231D "urcorner" 0x231D
+    "urcrop" 0x230E "uring" 0x16F "urtri" 0x25F9 "uscr" 0x1D4CA "utdot" 0x22F0 "utilde" 0x169
+    "utri" 0x25B5 "utrif" 0x25B4 "uuarr" 0x21C8 "uuml" 0xFC "uwangle" 0x29A7 "vArr" 0x21D5
+    "vBar" 0x2AE8 "vBarv" 0x2AE9 "vDash" 0x22A8 "vangrt" 0x299C "varepsilon" 0x3F5 "varkappa" 0x3F0
+    "varnothing" 0x2205 "varphi" 0x3D5 "varpi" 0x3D6 "varpropto" 0x221D "varr" 0x2195
+    "varrho" 0x3F1 "varsigma" 0x3C2 "varsubsetneq" 0x228A+0xFE00 "varsubsetneqq" 0x2ACB+0xFE00
+    "varsupsetneq" 0x228B+0xFE00 "varsupsetneqq" 0x2ACC+0xFE00 "vartheta" 0x3D1
+    "vartriangleleft" 0x22B2 "vartriangleright" 0x22B3 "vcy" 0x432 "vdash" 0x22A2 "vee" 0x2228
+    "veebar" 0x22BB "veeeq" 0x225A "vellip" 0x22EE "verbar" 0x7C "vert" 0x7C "vfr" 0x1D533
+    "vltri" 0x22B2 "vnsub" 0x2282+0x20D2 "vnsup" 0x2283+0x20D2 "vopf" 0x1D567 "vprop" 0x221D
+    "vrtri" 0x22B3 "vscr" 0x1D4CB "vsubnE" 0x2ACB+0xFE00 "vsubne" 0x228A+0xFE00
+    "vsupnE" 0x2ACC+0xFE00 "vsupne" 0x228B+0xFE00 "vzigzag" 0x299A "wcirc" 0x175 "wedbar" 0x2A5F
+    "wedge" 0x2227 "wedgeq" 0x2259 "weierp" 0x2118 "wfr" 0x1D534 "wopf" 0x1D568 "wp" 0x2118
+    "wr" 0x2240 "wreath" 0x2240 "wscr" 0x1D4CC "xcap" 0x22C2 "xcirc" 0x25EF "xcup" 0x22C3
+    "xdtri" 0x25BD "xfr" 0x1D535 "xhArr" 0x27FA "xharr" 0x27F7 "xi" 0x3BE "xlArr" 0x27F8
+    "xlarr" 0x27F5 "xmap" 0x27FC "xnis" 0x22FB "xodot" 0x2A00 "xopf" 0x1D569 "xoplus" 0x2A01
+    "xotime" 0x2A02 "xrArr" 0x27F9 "xrarr" 0x27F6 "xscr" 0x1D4CD "xsqcup" 0x2A06 "xuplus" 0x2A04
+    "xutri" 0x25B3 "xvee" 0x22C1 "xwedge" 0x22C0 "yacute" 0xFD "yacy" 0x44F "ycirc" 0x177
+    "ycy" 0x44B "yen" 0xA5 "yfr" 0x1D536 "yicy" 0x457 "yopf" 0x1D56A "yscr" 0x1D4CE "yucy" 0x44E
+    "yuml" 0xFF "zacute" 0x17A "zcaron" 0x17E "zcy" 0x437 "zdot" 0x17C "zeetrf" 0x2128 "zeta" 0x3B6
+    "zfr" 0x1D537 "zhcy" 0x436 "zigrarr" 0x21DD "zopf" 0x1D56B "zscr" 0x1D4CF "zwj" 0x200D
+    "zwnj" 0x200C
+};
