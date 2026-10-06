@@ -18,8 +18,10 @@ use core::sync::atomic::Ordering;
 
 use super::super::types::{Pid, Priority, ProcessState};
 use super::build_pcb::build_pcb;
+use super::current_pid::CURRENT_PID;
 use super::inherit::compute_inherited_caps;
-use super::types::{allocate_tid, CURRENT_PID, PROCESS_TABLE};
+use super::pid::allocate_tid;
+use super::types::PROCESS_TABLE;
 use crate::kernel_core::process_spawn::capsule_spawn::AttestedParent;
 
 pub fn create_process(

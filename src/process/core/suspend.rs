@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::boxed::Box;
 use alloc::collections::BTreeMap;
 use core::sync::atomic::Ordering;
 use spin::RwLock;
@@ -28,7 +29,7 @@ static SUSPENDED_CONTEXTS: RwLock<BTreeMap<Pid, SuspendedContext>> = RwLock::new
 pub static INTERRUPT_SAVED_CONTEXTS: RwLock<BTreeMap<Pid, crate::sched::Context>> =
     RwLock::new(BTreeMap::new());
 
-pub static INTERRUPT_SAVED_FPU_STATES: RwLock<BTreeMap<Pid, FpuState>> =
+pub static INTERRUPT_SAVED_FPU_STATES: RwLock<BTreeMap<Pid, Box<FpuState>>> =
     RwLock::new(BTreeMap::new());
 
 pub fn suspend_process(pid: Pid) -> Result<(), &'static str> {
@@ -99,15 +100,14 @@ pub fn clear_interrupt_context(pid: Pid) {
     INTERRUPT_SAVED_CONTEXTS.write().remove(&pid);
 }
 
+/// Into the pid's own area, made once on the heap and reused on every switch.
 pub fn save_fpu_state(pid: Pid) {
-    let mut fpu = FpuState::default();
-    fpu.save();
-    INTERRUPT_SAVED_FPU_STATES.write().insert(pid, fpu);
+    INTERRUPT_SAVED_FPU_STATES.write().entry(pid).or_insert_with(FpuState::new).save();
 }
 
+/// Straight from the saved area; nothing is copied onto the stack.
 pub fn restore_fpu_state(pid: Pid) {
-    let fpu_copy = INTERRUPT_SAVED_FPU_STATES.read().get(&pid).cloned();
-    if let Some(fpu) = fpu_copy {
+    if let Some(fpu) = INTERRUPT_SAVED_FPU_STATES.read().get(&pid) {
         fpu.restore();
     }
 }
@@ -164,7 +164,7 @@ pub fn resume_and_switch(pid: Pid) -> Result<(), &'static str> {
 
 fn get_process_stack_pointer(pid: Pid) -> Option<u64> {
     let pcb = PROCESS_TABLE.find_by_pid(pid)?;
-    let mem = pcb.memory.lock();
+    let mem = pcb.memory_state();
 
     for vma in &mem.vmas {
         if vma.start.as_u64() >= 0x7000_0000_0000 {
@@ -177,7 +177,7 @@ fn get_process_stack_pointer(pid: Pid) -> Option<u64> {
 
 fn get_process_instruction_pointer(pid: Pid) -> Option<u64> {
     let pcb = PROCESS_TABLE.find_by_pid(pid)?;
-    let mem = pcb.memory.lock();
+    let mem = pcb.memory_state();
 
     if mem.code_start.as_u64() != 0 {
         Some(mem.code_start.as_u64())

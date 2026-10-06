@@ -35,7 +35,9 @@ pub struct ProcessControlBlock {
     pub pgid: AtomicU32,
     pub sid: AtomicU32,
     pub name: Mutex<String>,
-    pub state: Mutex<ProcessState>,
+    /// Masks interrupts while held: the IRQ path takes it to wake a waiter,
+    /// and a holder with IF=1 interrupted by that wake would spin forever.
+    pub state: crate::sys::sync::IrqMutex<ProcessState>,
     pub priority: Mutex<Priority>,
     pub memory: Mutex<MemoryState>,
     pub thread_group: Option<Arc<ThreadGroup>>,
@@ -204,13 +206,11 @@ impl ProcessControlBlock {
     pub fn get_name(&self) -> String {
         self.name.lock().clone()
     }
-
     #[inline]
     pub fn terminate(&self, code: i32) {
         self.exit_code.store(code, Ordering::Relaxed);
         *self.state.lock() = ProcessState::Terminated(code);
     }
-
     pub fn set_name(&self, new_name: &str) {
         let mut name = self.name.lock();
         name.clear();
