@@ -1,0 +1,32 @@
+# NONOS userland: capsule_driver_e1000e
+# eK@nonos.systems
+#
+# Userland Intel e1000e gigabit driver capsule: the 82574 and 82583 and the
+# I217, I218 and I219 PHYs behind Intel PCH MACs. Claims the NIC through the
+# kernel hardware broker (MkDeviceList / MkDeviceClaim / MkPciConfigWrite /
+# MkMmioMap / MkDmaMap) and polls; no interrupt is bound. Frames only, over
+# the same NNET wire protocol as capsule_driver_e1000.
+
+[package]
+name = "nonos_capsule_driver_e1000e"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland Intel e1000e driver capsule"
+
+[[bin]]
+name = "driver_e1000e"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_mac = { path = "../nonos_mac" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
