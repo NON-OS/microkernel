@@ -110,3 +110,11 @@ The flake checks of this commit were built on one x86_64-linux machine for this 
 The `inputs` failure and the missing proof check concern the same three crates, and the committed entry of each names `.keys/marketplace_operator_ed25519.pub`, the market operator's public key. In a tree without that file, `crate` cannot build the source of these crates and the regenerated table no longer matches, which gives exactly these two results. They may therefore come from the tree the checks ran on rather than from the commit; a run on a full checkout is not tested in this release.
 
 Every other check passed, among them all six `kernel-profile-*` and all six `kernel-features-*` checks, both live TPM suites, and the `starks-pin`, `git-pins`, `catalogues` and `rust-src-lock` drift checks. No workflow run of this commit on GitHub is recorded here.
+
+## See also
+
+- [The Nix flake](nix-flake.md)
+- [Reproducible builds](reproducible-builds.md)
+- [Tests and proofs](../contributing/tests-and-proofs.md)
+- [Commits](../contributing/commits.md)
+- [Review](../contributing/review.md)
