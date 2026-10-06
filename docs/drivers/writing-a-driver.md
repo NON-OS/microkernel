@@ -224,3 +224,13 @@ A driver serves its device raw, so its endpoint goes into `HELD` with the servic
 ## 13. Starting it at boot
 
 `spawn_rng` starts the capsule whenever its feature is on (`src/userspace/init/spawn_plan/drivers_virtio_io.rs:22-33`). A driver for hardware a machine may lack asks `present` with a `HardwareFamily` first, as `spawn_blk` does (`src/userspace/init/spawn_plan/drivers_virtio_io.rs:35-48`). A new device class needs a variant in `HardwareFamily` and a rule in `classify_family` (`src/hardware/inventory/classify.rs:28-49`).
+
+## 14. Feature, profile and build
+
+- Add the feature `nonos-capsule-driver-<name> = []` beside the others (`Cargo.toml:150-168`), and a single-driver profile in the shape of `microkernel-driver-virtio-rng` (`Cargo.toml:316-321`).
+- Add the feature to each image profile that should carry the driver: `microkernel-desktop-offline` for every image with a desktop, or `microkernel-full-gui` for the real-hardware images only (`Cargo.toml:538-590`, `Cargo.toml:632-646`).
+- A network driver also goes into `networkFeatures`, so the Air-Gapped image leaves it out (`tools/nix/config.nix:48-58`), and into `NETWORK_DRIVERS`, so Air-Gapped, Safe Mode and Recovery boots refuse to start it (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs:21-28`).
+- Include the manifest with the other drivers (`mk/20-build.mk:528-547`).
+- Regenerate the capsule catalogue `tools/nix/capsules.json` with `tools/nix/catalogues.py`; the flake's `catalogues` check fails while it is stale (`mk/60-nix.mk:1-10`).
+- Do not add the driver to `userland/apps.list`. That list is for installed tool apps, one line each with a slug, a binary, a `service_port` and a reply port (`userland/apps.list:1-3`).
+- Write the README. The static checks fail on a driver README without the sections from `## Role` to `## Verification`, a `text` diagram, the `CAPSULE_REQUIRED_CAPS` it runs with and the broker calls it makes, through the `driver_doc_fail` loop (`nonos-ci/run-static-checks.sh:198-241`).
