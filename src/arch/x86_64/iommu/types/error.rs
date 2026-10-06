@@ -42,4 +42,11 @@ pub enum VtdError {
     /// would strand in-flight DMA.
     FirmwareOwnsUnit,
     Timeout,
+    /// The unit refused a queued invalidation descriptor (Fault Status IQE).
+    InvalidationRejected,
+    /// Interrupt remapping is not on, so there is no entry to route through.
+    InterruptRemappingOff,
+    /// An xAPIC-format entry names eight bits of APIC id; this CPU's is wider.
+    DestinationTooWide,
+    RemapTableFull,
 }

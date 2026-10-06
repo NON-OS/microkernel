@@ -24,6 +24,7 @@ use crate::arch::x86_64::iommu::unit::access::RemapUnit;
 /// translation outlives the context entry that produced it.
 pub fn invalidate_iotlb_global(unit: &RemapUnit, ecap: u64) -> Result<(), VtdError> {
     compiler_fence(Ordering::SeqCst);
+    super::write_buffer::flush_write_buffer(unit)?;
     let reg = offsets::iotlb_offset(ecap);
     // SAFETY: eK@nonos.systems - discarding cached translations can only
     // narrow what a device reaches.

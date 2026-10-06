@@ -26,7 +26,7 @@ use super::super::globals::is_enforcing;
 use super::super::globals::state::STATE;
 use super::super::tables::root::clear_context;
 use super::super::types::VtdError;
-use super::super::unit::invalidate::invalidate_all;
+use super::super::unit::invalidate::invalidate_all_units;
 use super::super::unit::report::probed;
 use super::bdf_to_source_id::bdf_to_source_id;
 
@@ -34,7 +34,7 @@ pub fn unmap_device(bus: u8, device: u8, function: u8) -> Result<(), VtdError> {
     if !is_enforcing() {
         return Err(VtdError::NotEnforcing);
     }
-    let info = probed().ok_or(VtdError::NotPresent)?;
+    probed().ok_or(VtdError::NotPresent)?;
     let source = bdf_to_source_id(bus, device, function);
 
     let mut state = STATE.lock();
@@ -42,7 +42,7 @@ pub fn unmap_device(bus: u8, device: u8, function: u8) -> Result<(), VtdError> {
         return Err(VtdError::DeviceNotAttached);
     }
     clear_context(source)?;
-    invalidate_all(&info.unit, info.ecap)?;
+    invalidate_all_units()?;
     state.bindings.retain(|binding| binding.source != source);
     Ok(())
 }

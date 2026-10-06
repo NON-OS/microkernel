@@ -23,6 +23,7 @@ pub(super) fn reason(e: VtdError) -> &'static [u8] {
         VtdError::PageTableExhausted => b"out of frames for tables",
         VtdError::TableUnreachable => b"table outside the directmap",
         VtdError::DomainTableFull => b"more devices than bindings",
+        VtdError::InvalidationRejected => b"unit refused a queued invalidation",
         _ => b"unexpected error",
     }
 }

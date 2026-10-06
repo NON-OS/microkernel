@@ -14,20 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::reason::{bdf_text, is_interrupt, reason_text};
 use super::record::FaultRecord;
-use crate::sys::serial;
+use crate::sys::serial::Line;
 
-/// The source id is printed raw rather than split into bus, device and
-/// function: it is what the DMAR tables and lspci both key on, so it is the
-/// form that can be looked up directly.
+/// One line per record, built whole so another CPU's output cannot splice
+/// into it. The device reads as lspci prints it; the raw source id follows
+/// because the DMAR device scopes key on that form. An interrupt request
+/// carries its remapping table index where a DMA fault carries the page.
 pub(super) fn log_record(record: &FaultRecord) {
-    serial::print(b"[VT-D] denied ");
-    serial::print(if record.read { b"read " } else { b"write " });
-    serial::print(b"src=");
-    serial::print_hex(record.source as u64);
-    serial::print(b" addr=");
-    serial::print_hex(record.address);
-    serial::print(b" reason=");
-    serial::print_hex(record.reason as u64);
-    serial::println(b"");
+    let mut line = Line::new();
+    line.str(b"[VT-D] IOMMU fault ");
+    if is_interrupt(record.reason) {
+        line.str(b"interrupt dev=").str(&bdf_text(record.source));
+        line.str(b" index=").hex(record.address >> 48);
+    } else {
+        line.str(if record.read { b"read dev=" } else { b"write dev=" });
+        line.str(&bdf_text(record.source));
+        line.str(b" addr=").hex(record.address & !0xFFF);
+    }
+    line.str(b" src=").hex(record.source as u64);
+    line.str(b" reason=").hex(record.reason as u64).str(b" ");
+    line.str(reason_text(record.reason));
+    line.end();
+}
+
+/// What the budget held back this poll, and every fault since boot.
+pub(super) fn log_hidden(hidden: u32, total: u64) {
+    let mut line = Line::new();
+    line.str(b"[VT-D] IOMMU faults not shown=").dec(hidden as u64);
+    line.str(b" total since boot=").dec(total);
+    line.end();
+}
+
+pub(super) fn log_overflow(base: u64) {
+    let mut line = Line::new();
+    line.str(b"[VT-D] IOMMU fault records overflowed on unit base=").hex(base);
+    line.str(b"; some faults were not recorded");
+    line.end();
 }

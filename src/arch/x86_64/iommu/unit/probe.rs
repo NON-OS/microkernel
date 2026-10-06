@@ -48,16 +48,26 @@ pub enum ProbeError {
     RegistersOutsideWindow,
 }
 
-/// Map the first unit DMAR reported and read its capabilities.
+/// Upper bound on units, as many as the DMAR parser keeps.
+pub const MAX_UNITS: usize = 8;
+
+/// Map every segment 0 unit DMAR reported and read its capabilities.
 ///
-/// This reads a single unit. A machine with several needs each programmed, and
-/// picking only the first would silently leave devices behind the others
-/// unconfined, so `probe_all` reports the count and callers must not assume one
-/// covers the machine.
-pub fn probe_first() -> Result<UnitInfo, ProbeError> {
+/// All or nothing: a unit that cannot be read cannot be programmed, and
+/// programming the others alone would leave the devices behind it reaching
+/// memory directly while the kernel believes the machine confined.
+pub fn probe_all() -> Result<heapless::Vec<UnitInfo, MAX_UNITS>, ProbeError> {
     let bases = remap_unit_bases();
-    let base = *bases.first().ok_or(ProbeError::NoUnits)?;
-    probe_at(base)
+    if bases.is_empty() {
+        return Err(ProbeError::NoUnits);
+    }
+    let mut units = heapless::Vec::new();
+    for base in bases.iter() {
+        let info = probe_at(*base)?;
+        // The parser keeps at most MAX_UNITS bases, so this cannot overflow.
+        let _ = units.push(info);
+    }
+    Ok(units)
 }
 
 /// How many remapping units the firmware reported.

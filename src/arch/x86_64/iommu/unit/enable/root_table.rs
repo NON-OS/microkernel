@@ -31,7 +31,10 @@ pub unsafe fn install_root_table(unit: &RemapUnit, root_phys: u64) -> Result<(),
     // translation table mode zero is what these tables are.
     unsafe {
         unit.write64(offsets::RTADDR, root_phys);
-        unit.write32(offsets::GCMD, offsets::GCMD_SRTP);
+        // GCMD carries every persistent control in each write: SRTP alone
+        // would clear QIE and stop the queue started just before.
+        let command = offsets::gcmd_with(unit.read32(offsets::GSTS), offsets::GCMD_SRTP);
+        unit.write32(offsets::GCMD, command);
     }
     for _ in 0..offsets::COMMAND_SPINS {
         if unit.read32(offsets::GSTS) & offsets::GSTS_RTPS != 0 {

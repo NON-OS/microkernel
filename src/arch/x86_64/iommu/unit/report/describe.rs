@@ -19,30 +19,26 @@
 //! because this code runs before anything has been decided.
 
 use super::super::probe::UnitInfo;
-use crate::sys::serial;
+use crate::sys::serial::Line;
 
 pub(super) fn unit(count: usize, info: &UnitInfo) {
-    serial::print(b"[VT-D] units=");
-    serial::print_hex(count as u64);
-    serial::print(b" ver=");
-    serial::print_hex(info.version as u64);
-    serial::print(b" domains=");
-    serial::print_hex(info.domains as u64);
-    serial::print(b" gaw=");
-    serial::print_hex(info.max_address_width as u64);
-    serial::print(b" levels=");
-    serial::print_hex(info.levels.page_table_levels() as u64);
+    let mut line = Line::new();
+    line.str(b"[VT-D] units=").hex(count as u64);
+    line.str(b" base=").hex(info.unit.base_pa());
+    line.str(b" ver=").hex(info.version as u64);
+    line.str(b" domains=").hex(info.domains as u64);
+    line.str(b" gaw=").hex(info.max_address_width as u64);
+    line.str(b" levels=").hex(info.levels.page_table_levels() as u64);
     if info.caching_mode {
-        serial::print(b" cm");
+        line.str(b" cm");
     }
     if info.requires_write_buffer_flush {
-        serial::print(b" rwbf");
+        line.str(b" rwbf");
     }
     if info.translation_enabled {
-        // Firmware left it on with its own tables. We do not own them, so this
-        // is not protection we can reason about, and bring-up will refuse the
-        // unit rather than swap a root table out from under live transfers.
-        serial::print(b" te=firmware");
+        // Firmware left it on with its own tables. The report turns it off
+        // right after this line, before anything is programmed.
+        line.str(b" te=firmware");
     }
-    serial::println(b"");
+    line.end();
 }

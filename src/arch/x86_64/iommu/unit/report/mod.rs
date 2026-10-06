@@ -20,4 +20,4 @@ mod init;
 mod state;
 
 pub use init::init;
-pub use state::probed;
+pub use state::{probed, units};

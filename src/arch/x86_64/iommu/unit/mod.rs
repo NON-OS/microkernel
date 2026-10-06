@@ -16,8 +16,11 @@
 
 pub mod access;
 pub mod bringup;
+pub mod clock;
+pub mod coverage;
 pub mod enable;
 pub mod fault;
 pub mod invalidate;
 pub mod probe;
+pub mod queue;
 pub mod report;
