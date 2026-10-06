@@ -30,7 +30,9 @@ defaults:
 
 concurrency:
   group: lean-${{ github.head_ref || github.ref_name }}
-  cancel-in-progress: true
+  # A pull request's older run is moot; a run on main finishes, so every
+  # commit there gets a verdict (the newest queued push runs next).
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lean:
@@ -41,7 +43,7 @@ jobs:
       - name: Install elan
         run: |
           set -euo pipefail
-          curl -fsSL https://elan.lean-lang.org/elan-init.sh -o elan-init.sh
+          curl --retry 5 --retry-all-errors -fsSL https://elan.lean-lang.org/elan-init.sh -o elan-init.sh
           bash elan-init.sh -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
       - name: Verify theorems (lake build)
