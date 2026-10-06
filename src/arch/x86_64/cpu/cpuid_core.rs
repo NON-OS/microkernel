@@ -19,50 +19,32 @@ use core::arch::asm;
 
 #[inline]
 pub fn cpuid(leaf: u32) -> (u32, u32, u32, u32) {
-    increment_calls();
-    let eax: u32;
-    let ebx: u32;
-    let ecx: u32;
-    let edx: u32;
-    unsafe {
-        asm!(
-            "push rbx",
-            "cpuid",
-            "mov {ebx_out:e}, ebx",
-            "pop rbx",
-            in("eax") leaf,
-            in("ecx") 0u32,
-            lateout("eax") eax,
-            ebx_out = out(reg) ebx,
-            lateout("ecx") ecx,
-            lateout("edx") edx,
-            options(nostack, preserves_flags)
-        );
-    }
-    (eax, ebx, ecx, edx)
+    cpuid_count(leaf, 0)
 }
 
 #[inline]
 pub fn cpuid_count(leaf: u32, subleaf: u32) -> (u32, u32, u32, u32) {
     increment_calls();
     let eax: u32;
-    let ebx: u32;
     let ecx: u32;
     let edx: u32;
+    let rbx: u64;
+    /*
+     * SAFETY: CPUID touches no memory. RBX is restored by the exchange, which
+     * stays correct when the compiler picks RBX as the output; a push/pop
+     * pair would then overwrite the result with the caller's RBX.
+     */
     unsafe {
         asm!(
-            "push rbx",
+            "mov {rbx_out}, rbx",
             "cpuid",
-            "mov {ebx_out:e}, ebx",
-            "pop rbx",
-            in("eax") leaf,
-            in("ecx") subleaf,
-            lateout("eax") eax,
-            ebx_out = out(reg) ebx,
-            lateout("ecx") ecx,
-            lateout("edx") edx,
+            "xchg {rbx_out}, rbx",
+            inout("eax") leaf => eax,
+            inout("ecx") subleaf => ecx,
+            rbx_out = out(reg) rbx,
+            out("edx") edx,
             options(nostack, preserves_flags)
         );
     }
-    (eax, ebx, ecx, edx)
+    (eax, rbx as u32, ecx, edx)
 }
