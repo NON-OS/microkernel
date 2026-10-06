@@ -79,3 +79,30 @@ The kernel draws a notice band when it cannot go on, and halts (`src/boot/stop.r
 ## Programs that do not start
 
 On Safe Mode, Air-Gapped and Recovery boots the kernel refuses network drivers and services, and on Safe Mode also the audio driver and server, Snake and the hello demo. It logs each one as `[PROFILE] Safe Mode: not started: driver.hda0` and the like (`src/kernel_core/process_spawn/capsule_spawn/runner/profile_refuse.rs`). That is the mode doing its job: boot Standard to have them ([Boot modes](boot-modes.md)).
+
+## Setup and Wi-Fi
+
+| Message | Meaning and what to do |
+|---|---|
+| `No Wi-Fi driver is running: none for this chip yet, or it did not start.` | no driver answers for this card; Settings names the chip. The screen also suggests a USB Wi-Fi adapter, but NONOS 0.9.2 has no USB Wi-Fi driver: use a wired card |
+| `card not supported yet; use Ethernet or USB Wi-Fi` | the iwlwifi driver took the card but has no air path for it (`userland/nonos_wifi_client/src/driver/stage.rs`); use a wired card |
+| `firmware stopped:` and a step | the RTL8821CE firmware load stopped at that step; report it with the log |
+| `This boot runs no network: the boot menu chose it.` | Safe Mode or Air-Gapped; boot Standard for a network |
+| `[SETUP] not started:` and a reason | setup could not draw; the desktop starts without it |
+| `Not applied to this session:` and names | the settings service refused those answers; set them again in Settings |
+| `Nothing was applied to this session: there is no settings service` | no answer took effect this boot |
+
+A Wi-Fi join ends with one of these lines (`userland/nonos_wifi_client/src/driver/join_text.rs`):
+
+| Line | What to do |
+|---|---|
+| `The network was not heard on any channel` | move closer, press `s` to look again |
+| `The access point refused the association` | the access point said no; try again |
+| `The handshake did not finish; check the passphrase` | a wrong passphrase ends here; type it again |
+| `A passphrase is 8 to 63 characters, or 64 hex digits` | the passphrase has the wrong length |
+| `The network's security is not supported (open, TKIP or Enterprise)` | NONOS cannot join this network |
+| `WPA3: the access point did not accept the password` | type the password again |
+| `This driver cannot join networks yet` | the iwlwifi driver cannot join on this card |
+| `The driver did not answer` | the driver stopped answering; collect the log |
+
+Remembering a network can fail with `No NONOS store on this boot's disk`, `This boot keeps nothing across reboots` (Amnesic chosen), `No TPM to seal the passphrase with`, or, after a firmware or kernel change, `Sealed under a different boot state` (`userland/nonos_wifi_client/src/saved/error.rs`).
