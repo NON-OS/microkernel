@@ -68,3 +68,34 @@ A few sizes are fixed by the code:
 Each failure is one `HandoffError` with a fixed text, such as `Invalid handoff magic value` or `Bootloader entropy seed is all zero` (`src/boot/handoff/api/error/handoff_error.rs:20-47`). A version or size mismatch is a refusal, so a loader and a kernel built for different handoff versions do not boot together.
 
 On failure `kernel_entry` prints `[NONOS] Handoff FAIL` and `[NONOS] Handoff ERR:` with the error text on the [serial console](../overview/glossary.md#serial-console), then calls `vga_fallback` (`src/nonos_main.rs:79-88`). `vga_fallback` writes `NONOS <version> <channel> - No framebuffer available` into the legacy VGA text buffer at `0xB8000` and halts (`src/entry/fallback.rs:14-43`). The panic handler's comment says the VGA text buffer is invisible on UEFI machines, which is why the handler also calls `panic_screen` (`src/boot/panic/handler.rs:54-57`). A refused handoff has no such step: its only mark on the framebuffer is the breadcrumb segment described below. What a given panel shows here was not tested on hardware in this release. See [panic and boot stop](panic-and-boot-stop.md).
+
+## Kernel entry
+
+```mermaid
+flowchart TD
+    L[exit_and_jump] --> S[_start]
+    S --> E[kernel_entry]
+    E --> H[init_handoff]
+    H -->|refused| V[vga_fallback]
+    H -->|accepted| C[init_core_systems]
+    C --> I[microkernel_init]
+    I --> M[microkernel_main]
+    M --> R[run_init]
+```
+
+The kernel image is entered at `_start` (`src/arch/x86_64/asm/start.S:10-45`). It masks interrupts, writes `NX64` to the COM1 port `0x3F8`, resets the x87 unit, sets CR0 and CR4 for SSE, aligns the stack and calls `kernel_entry`.
+
+`kernel_entry` (`src/nonos_main.rs:52-95`) paints the first breadcrumb, writes `R` to COM1, starts the serial console, validates the handoff, runs `init_core_systems`, prints the security status and enters the microkernel.
+
+The breadcrumbs are a strip of segments along the top of the framebuffer, each 180 pixels wide and 10 pixels tall with 20 pixels between them, written by `paint` straight to the framebuffer through the loader's mapping (`src/boot/entry_marker.rs:25-35`). The module's header says what `paint` is for: a machine with no serial console, where the strip records how far the kernel got before any other output exists (`src/boot/entry_marker.rs:17-35`). `paint` checks every geometry field first, since it may be handed the raw, unchecked handoff (`src/boot/entry_marker.rs:37-47`).
+
+| Segment | Value written | When |
+|---|---|---|
+| 0 | `0xFFFF8000` | first instruction path of `kernel_entry` |
+| 0 | `0xFFFF0000` | the handoff was refused |
+| 0 | `0xFF00FFFF` | the handoff was accepted |
+| 1 | `0xFFFFD000` | `init_core_systems` returned and the security status was printed |
+
+`paint` writes the value as it is, without converting it to the panel's pixel format, so the colour seen depends on that format. Read the segment's position, then its colour.
+
+After `init_core_systems`, `log_security_status` prints whether the kernel signature was verified and whether Secure Boot is on. It feeds the 32-byte seed to the kernel random generator through `seed_from_bootloader`, then `wipe_boot_seed` overwrites the seed in the handoff page (`src/entry/security.rs:37-47`, `src/boot/handoff/api/cleanup.rs:31-45`). The seed itself is never printed. The measurements stay readable for the life of the system; only the seed is secret.
