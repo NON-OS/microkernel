@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# capsule_ramfs's store, handle table, wire codec and request handlers,
+# assembled for the host from capsule source. Its own crate because the
+# capsule's files name `crate::store` and `crate::handles`, which in
+# fs_proofs are other things; fs_proofs drives it from its tests.
+[package]
+name = "fs_proofs_ramfs_host"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+name = "ramfs_host"
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "fs_proofs_libc_shim", path = "../libc_shim" }
