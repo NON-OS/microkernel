@@ -98,3 +98,18 @@ PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_H
 | Wi-Fi | Intel 8086:2725, 7e40, 2729 | `capsule_driver_iwlwifi` | Refused: their firmware image is not in the tree | proof crate `iwlwifi_proofs` | 0.9.2 |
 | Wi-Fi | Intel 8086:08b1 to 08b4, 095a, 095b, 3165, 3166, 24fb, 24f3 to 24f6, 24fd, 2526, 9df0, a370, 31dc, 30dc, 271b, 271c, 2723, 34f0, 3df0, 4df0, 02f0, 06f0, 43f0, a0f0, 272f, a74f, 272b, a840 | `capsule_driver_iwlwifi` | Refused: no boot path in this driver. Its line naming the card is not printed, since the driver holds no Debug capability | proof crate `iwlwifi_proofs` | 0.9.2 |
 | Wi-Fi | Every other Wi-Fi chip | none | Not supported: no driver | none | 0.9.2 |
+
+## Ethernet
+
+| Class | Chip and id | Driver capsule | State | How verified | Release |
+|---|---|---|---|---|---|
+| Ethernet | Intel e1000, 28 ids, 8086:100e among them | `capsule_driver_e1000` | Works | proof crate `e1000_proofs` (20) | 0.9.2 |
+| Ethernet | Intel e1000e: 82574, 82583, I217, I218, I219, 64 ids | `capsule_driver_e1000e` | Not supported: not in the image | proof crate `e1000e_proofs` (48) | 0.9.2 |
+| Ethernet | Intel I225 and I226 (igc), 16 ids | `capsule_driver_igc` | Not supported: not in the image | proof crate `igc_proofs` (58) | 0.9.2 |
+| Ethernet | Realtek RTL8139 10ec:8139 | `capsule_driver_rtl8139` | Works | proof crate `rtl8139_proofs` (15) | 0.9.2 |
+| Ethernet | Realtek RTL8169, RTL8168 and RTL8111, RTL810x, RTL8125: 10ec:8169, 8167, 8161, 8162, 8168, 2502, 2600, 8136, 8125, 3000 | `capsule_driver_rtl8169` | Works | proof crate `rtl8169_proofs`: the check fails at this commit on a clippy lint after its tests ran | 0.9.2 |
+| Ethernet | Realtek RTL8126 10ec:8126, RTL8127 10ec:8127 | none | Not supported: left out of the RTL8169 driver, since their start differs from the RTL8125's | none | 0.9.2 |
+| Ethernet | virtio-net 1af4:1000, 1af4:1041 | `capsule_driver_virtio_net` | Works | proof crate `virtio_net_proofs` (20); QEMU `virtio-net-pci` | 0.9.2 |
+| Ethernet | USB CDC-ECM (class 02/06), CDC-NCM (02/0d), RNDIS (02/02/ff, e0/01/03, ef/04/01) | `capsule_driver_cdc_ecm`, `capsule_driver_cdc_ncm`, `capsule_driver_rndis` | Not supported: not in the image | proof crates `cdc_ecm_proofs` (7), `cdc_ncm_proofs` (33), `rndis_proofs` (22) | 0.9.2 |
+| Ethernet | ASIX AX88179 and AX88178A, USB 0b95:1790, 0b95:178a and 11 more | `capsule_driver_ax88179` | Not supported: not in the image | proof crate `ax88179_proofs` (25) | 0.9.2 |
+| Ethernet | Realtek RTL8153, USB 0bda:8153 and 18 more | `capsule_driver_rtl8153` | Not supported: not in the image | proof crate `rtl8153_proofs` (27) | 0.9.2 |
