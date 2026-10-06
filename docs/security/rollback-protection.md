@@ -81,3 +81,11 @@ The STARK contexts carry an epoch too. `POLICY_EPOCH`, for capsules, is 1 in the
 - The loader reads no floor. Hardened and Air-Gapped refuse to boot; every other mode boots with rollback protection off and says so on the panel.
 - No floor is raised after admission, and `raise_failed` stays silent because `tpm_present` is false (`nonos-bootloader/src/boot/crypto/rollback/raise.rs:42-47`).
 - The kernel's check of the loader takes the self-reported path and holds the boot-root record to a floor of 0.
+
+## Limits
+
+- Anyone who can clear the TPM, or delete the base index, starts the floor again at 0, as the tests above show.
+- The footer's `image_version` is always 1, and `check_rollback` and `commit_rollback` do not read it.
+- `check_rollback` returns without comparing anything when `has_production_footer` refuses the image or its footer does not parse, and `commit_rollback` then raises nothing; in a mode that requires signatures a footer that does not parse stops the boot at `commit_rollback` (`nonos-bootloader/src/boot/crypto/rollback/check.rs:23-30`, `nonos-bootloader/src/boot/crypto/rollback/commit.rs:26-39`). What `has_production_footer` accepts is decided in the loader's verification module and is not covered here.
+- A comment beside `NONOS_ROLLBACK_INDEX` says the loader rejects index 0 as unset (`mk/00-config.mk:111-114`). That check would sit in the loader's verification module and is not confirmed here.
+- Raising the index is a release decision; nothing in the build raises it.
