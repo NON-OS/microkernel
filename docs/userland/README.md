@@ -91,3 +91,9 @@ The system services a capsule talks to are on [IPC services](ipc-services.md). T
 | `csview` | 4914 | 4915 |
 
 All seven are built from unmodified crates.io source by one rule (`mk/20-build.mk:342`, `NONOS_TOOL_BINS`). Each is spawned with CoreExec, IPC, Memory and FileSystem and nothing else (`src/userspace/tool_capsules/spec.rs:42-45`, `SANDBOX_CAPS`). Two more tool capsules, `tool.ripgrep` on 4820 and `tool.sd` on 4822, are also unmodified crates.io programs but are not in the list. The maintainer script `tools/nonos-app` adds a tool: it makes the tool's publisher keys with `capsule-sign keygen` (`tools/nonos-app:145`, `keygen`), appends a line to the list (`tools/nonos-app:284`, `APPS`) and rewrites the kernel's tool registry (`tools/nonos-app:206`, `REGISTRY`).
+
+## Runtimes
+
+Most capsules are `no_std` programs on `nonos_libc`, the userland side of the kernel ABI. Seventeen are Rust programs that use `std` through the NONOS platform layer in `toolchain/nonos-std/`. A second native runtime and an SDK are in the tree, but no capsule in this release uses them. [libc and the Rust runtimes](libc.md) says what each one does and does not do.
+
+Unmodified Linux programs run as guests of the [Linux personality](../overview/glossary.md#linux-personality), a capsule that answers their system calls, and never as capsules themselves, even the nineteen that are signed and enrolled like capsules. See [The Linux personality](linux-personality.md).
