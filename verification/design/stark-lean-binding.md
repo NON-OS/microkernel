@@ -6,9 +6,17 @@ AGPL-3.0-or-later
 
 # Binding the proof corpus into the boot attestation
 
-The kernel's transparent STARK self-attestation proves, at boot, that the image
-that is about to run is the one enrolled under the trusted root. Today it commits
-to `blake3(image) || boot_epoch`. This note specifies how to extend that public
+The kernel's self-attestation checks, at boot, that the image about to run is
+the one enrolled under the trusted root: the bootloader builds the context
+`blake3(image) || boot_epoch`, makes it a leaf with `nonos-attest-path`, and folds
+the trailer's path to the compiled-in root. There is no proof system in it.
+
+This design depends on that. While the gate was a public-leaf STARK, the context
+was transcript salt and building a trailer took no secret, so anyone could make a
+valid trailer for an enrolled image under any context they chose. Adding the
+verification root to the context then would have bound nothing, exactly as the
+capability word bound nothing at the capsule gate. With the context inside the
+leaf, a field added to it is a field the enrolled tree fixes. This note specifies how to extend that public
 commitment to also carry the **proof-corpus root**, so the boot proof states not
 only "this is the enrolled image" but "this exact image is the one whose
 properties were machine-checked in Lean". It is a design spec, not a stub: the
@@ -23,8 +31,9 @@ change with a build and a boot to prove it.
   profile) and refuses to form on any `sorry` or non-standard axiom. This is the
   `verification_root`.
 - The CI Lean job runs it as a gate, so the root is already trustworthy.
-- `nonos-stark-enroll/src/main.rs::kernel_context` (around line 58) builds the
-  kernel attestation context as `blake3(image) || BOOT_EPOCH`.
+- `nonos-stark-enroll/src/context.rs::kernel_context` builds the kernel
+  attestation context as `blake3(image) || BOOT_EPOCH`, and the bootloader's
+  `kernel_verify/stark_attest.rs` builds the same bytes.
 
 ## The change
 
