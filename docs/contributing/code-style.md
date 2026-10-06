@@ -96,3 +96,12 @@ The supply-chain job runs `cargo deny check` against `deny.toml` through `run_lo
 - Sources: the `sources` table admits crates.io and one git repository, `NON-OS/STARKs` (`deny.toml:74-78`).
 
 Moving the STARKs pin goes through its own pull request; [Review](review.md) says how.
+
+## See also
+
+- [Tests and proofs](tests-and-proofs.md)
+- [Review](review.md)
+- [Commits](commits.md)
+- [Architectures](../architectures/README.md)
+- [Writing a driver](../drivers/writing-a-driver.md)
+- [Contributing](README.md)
