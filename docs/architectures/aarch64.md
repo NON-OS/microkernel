@@ -75,3 +75,28 @@ flowchart LR
 `init` stops the boot through `refuse` when `security::init_all` fails (`src/arch/aarch64/boot/init.rs:53-55`), when the device tree names a GIC other than v3 (`src/arch/aarch64/boot/init.rs:57-59`) and when the timer tick cannot be installed, for example with no timer interrupt id (`install_on_cpu`, `src/arch/aarch64/timer/preemption/install.rs:23-32`). `security::init_all` turns on pointer authentication, BTI, memory tagging and the speculation mitigations (`init_pac`, `src/arch/aarch64/security/init_all.rs:22-28`), each feature only where the ID registers report it, as `has_feature` does for pointer authentication (`src/arch/aarch64/security/pac/init.rs:24-27`). The speculation barrier itself runs on every CPU (`speculative_barrier`, `src/arch/aarch64/security/spectre/init.rs:22-27`).
 
 The generic timer ticks every 10 ms and each tick calls the shared scheduler's `tick` (`TICK_PERIOD_NS`, `src/arch/aarch64/timer/preemption/handler.rs:20-25`). Page descriptors keep execution from crossing privilege: `execute_never` sets PXN on every user page and UXN on every kernel page, whatever the caller asked (`src/arch/paging/descriptor/aarch64/build.rs:53-63`).
+
+## What exists
+
+`src/arch/aarch64` holds 292 files and 12508 lines, headers included.
+
+| Module | Size | What it holds |
+|---|---|---|
+| `abi` (`src/arch/aarch64/mod.rs:17`) | 10 files, 306 lines | the `Aarch64` implementation of `ArchOps` |
+| `asm` (`src/arch/aarch64/mod.rs:18`) | 10 files, 638 lines | `start.S`, the vector table, user entry and resume, FP and SIMD save and restore |
+| `boot` (`src/arch/aarch64/mod.rs:19`) | 26 files, 1474 lines | entry, the device tree adapter, `BootInfo`, the memory map, secondary cores, PCI windows, refusals, trap proofs |
+| `context` (`src/arch/aarch64/mod.rs:21`) | 14 files, 719 lines | first entry to EL0, saving and resuming user frames, the kernel-side switch context |
+| `cpu` (`src/arch/aarch64/mod.rs:22`) | 23 files, 994 lines | barriers, feature registers, MPIDR affinity, interrupt masking, wait for event |
+| `cpu_random` (`src/arch/aarch64/mod.rs:23`) | 3 files, 136 lines | RNDR and RNDRRS from FEAT_RNG |
+| `exceptions` (`src/arch/aarch64/mod.rs:24`) | 28 files, 1293 lines | the vector install, exception frames, syndrome decoding, the trap contract, fatal paths |
+| `fpu` (`src/arch/aarch64/mod.rs:25`) | 10 files, 349 lines | lazy FP and SIMD state per task |
+| `gic` (`src/arch/aarch64/mod.rs:26`) | 38 files, 1371 lines | GICv3 distributor, redistributors, ICC registers, SGIs, interrupt handlers including ones bound for capsules |
+| `interrupt_controller` (`src/arch/aarch64/mod.rs:27`) | 3 files, 104 lines | the shared IPI interface, carried on GIC SGIs |
+| `mmu` (`src/arch/aarch64/mod.rs:28`) | 35 files, 1825 lines | MAIR, TCR and SCTLR, the boot map, the image map, tables, TLB and TTBR |
+| `psci` (`src/arch/aarch64/mod.rs:29`) | 18 files, 726 lines | PSCI calls: CPU on and off, suspend, system off and reset |
+| `rtc` (`src/arch/aarch64/mod.rs:30`) | 3 files, 92 lines | the PL031 real-time clock |
+| `security` (`src/arch/aarch64/mod.rs:31`) | 29 files, 1097 lines | pointer authentication, BTI, MTE, speculation barriers and SSBS |
+| `timer` (`src/arch/aarch64/mod.rs:32`) | 29 files, 928 lines | the generic timer, physical and virtual, deadlines, delays, the preemption tick |
+| `uart` (`src/arch/aarch64/mod.rs:33`) | 11 files, 393 lines | the PL011 console |
+
+`aarch64-nonos.json` keeps `cpu` at `generic`, so ordinary code is ARMv8.0, and its `features` add pointer authentication, the speculation barriers, memory tagging and the RNG for the instructions the kernel writes by hand (`aarch64-nonos.json:20-21`). The note on `aarch64-nonos.json` in `mk/20-build.mk` gives the reason for `generic`: naming an architecture version instead would let LLVM put newer instructions into ordinary code, and every hand-written use sits behind an ID register check (`mk/20-build.mk:836-843`). `linker_aarch64.ld` links the image at `0x40080000` on the `virt` board and starts writable data on a 2 MB boundary, so the boot map's 2 MB blocks can keep text read only and executable (`__kernel_rw_start`, `linker_aarch64.ld:18-41`).
