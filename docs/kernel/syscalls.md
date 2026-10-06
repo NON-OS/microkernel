@@ -37,3 +37,25 @@ A system call number is four ASCII letters packed into a `u64` by `tag4`, first 
 The `[wire]` table states it: the `syscall` instruction, the number in `rax`, up to six arguments in `rdi`, `rsi`, `rdx`, `r10`, `r8` and `r9`, and the result in `rax`, under the key `reg_abi` (`abi/syscalls.toml:9-15`). A result from -4095 to -1 is a negative errno, as `errno_range` says (`abi/syscalls.toml:17-19`); anything else is success.
 
 The CPU itself overwrites `rcx` and `r11`. The entry code saves the caller's `rdi`, `rsi` and `rdx` and writes them back on return, so a caller may keep values there across a call (`src/arch/x86_64/asm/syscall.S:36-41`). It also saves `rbx` and `r12` to `r15` and returns them unchanged (`src/arch/x86_64/asm/syscall.S:42-54`).
+
+## The entry path on x86_64
+
+```mermaid
+flowchart TD
+    C[capsule] -->|syscall| A[syscall_entry_asm]
+    A --> H[syscall_handler]
+    H -->|unknown number| R[redirect]
+    H --> D[dispatch]
+    D --> V{"Capability::resolve"}
+    V -->|refused| P[EPERM]
+    V -->|admitted| S[dispatch_syscall]
+    S --> M[dispatch_microkernel_syscall]
+    S --> X[crypto, admin, graphics, surface and input routers]
+```
+
+1. At boot each CPU runs `program_this_cpu`, which writes `STAR`, points `LSTAR` at `syscall_entry_asm`, sets the flag mask, enables `EFER.SCE`, and reads `STAR` back to confirm the selectors (`src/arch/x86_64/syscall/manager/program.rs:23-47`). `init_ap` refuses to program an application processor before the boot CPU has passed those checks (`src/arch/x86_64/syscall/manager/init.rs:40-49`).
+2. `setup_fmask` makes the CPU clear `IF`, `TF`, `DF` and `AC` on every entry, so the kernel starts with interrupts off (`src/arch/x86_64/syscall/msr.rs:108-111`).
+3. `syscall_entry_asm` swaps to the kernel `GS` base, clears the direction flag, moves to the per CPU kernel stack and saves the caller's registers; it refuses to assemble if the count differs from `SYSCALL_FRAME_WORDS` (`src/arch/x86_64/asm/syscall.S:29-69`). That count is 17 words, set in `SYSCALL_FRAME_WORDS` (`src/arch/x86_64/asm/syscall_frame.inc:4`).
+4. `syscall_handler` first runs `kernel_entry`, which applies the Spectre mitigations for entering the kernel, then decodes the number with `SyscallNumber::from_u64`, counts the call and hands it to the contract dispatch (`src/arch/x86_64/syscall/manager/entry.rs:23-61`).
+5. An unknown number goes to `redirect` (`src/arch/x86_64/syscall/manager/entry.rs:38-53`). For a process hosted under the [Linux personality](../overview/glossary.md#linux-personality), `redirect` parks the call and wakes the supervising capsule, which answers it; for any other process it returns nothing and the call gets `ENOSYS` (`src/process/foreign/trap.rs:28-41`).
+6. On the way out the entry code runs the signal hook `syscall_return_signal_hook`, restores the registers and sets `IF` in the returned flags (`src/arch/x86_64/asm/syscall.S:100-139`). It returns with `sysretq` only when bits 63 to 47 of the return address are clear, and with `iretq` otherwise, because `sysretq` faults in ring 0 on a non-canonical address (`src/arch/x86_64/asm/syscall.S:141-164`).
