@@ -32,9 +32,9 @@ fn the_prefixed_and_pss_schemes_keep_their_lengths() {
 }
 
 #[test]
-fn a_twenty_byte_digest_is_reachable_only_under_scheme_two() {
+fn a_twenty_byte_digest_is_reachable_under_the_pkcs1_schemes_only() {
     assert_eq!(digest_len(2, 3), Some(20));
-    assert_eq!(digest_len(0, 3), None);
+    assert_eq!(digest_len(0, 3), Some(20));
     assert_eq!(digest_len(1, 3), None);
     assert_eq!(digest_len(3, 3), None, "there is no scheme 3");
 }
