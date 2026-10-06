@@ -120,3 +120,17 @@ Each [proof crate](../../overview/glossary.md#proof-crate) runs the driver's own
 `make boot-install` attaches the blank NVMe target through `tools/nonos_qemu` (`tools/nonos_qemu/machine.py:61-77`, `disks`). The virtio-blk disk is `QEMU_BLK` in `mk/10-qemu.mk:56-58`.
 
 The installer writing to an internal NVMe disk and booting from it: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+## See also
+
+- [The driver model](../README.md)
+- [Broker API](../broker-api.md)
+- [NVMe](nvme.md)
+- [AHCI and Intel RST](ahci-and-rst.md)
+- [Intel VMD](vmd.md)
+- [SD cards and eMMC](sd-and-emmc.md)
+- [USB mass storage](usb-mass-storage.md)
+- [USB and the xHCI host controller](../usb/README.md)
+- [Install to disk](../../install/install-to-disk.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
+- [Hardware broker](../../kernel/hardware-broker.md)
