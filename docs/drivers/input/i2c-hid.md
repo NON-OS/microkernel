@@ -91,3 +91,9 @@ Both a tap and a clickpad press post button 1 (`publish_touch`, `userland/capsul
 - `driver.i2c_hid0` looks the controller service up 100 times, 20 ms apart, then exits with status 2 (`LOOKUP_ATTEMPTS`, `userland/capsule_driver_i2c_hid/src/i2c_client/service.rs:10-11`). After 3 unanswered calls in a row it pauses its calls for 1 s, doubling to 30 s (`UNANSWERED_LIMIT`, `userland/capsule_driver_i2c_hid/src/i2c_client/gate.rs:33-35`).
 - Not supported: touchscreens, 10-bit I2C addresses, I2C keyboards and other HID-over-I2C devices that are not pointers, interrupt-driven transfers and DMA.
 - No touch, report or gesture is stored. Each report is decoded, posted and dropped. With Debug, the driver writes the first 16 bytes of each of its first six raw reports to the console as `[i2chid] frm` lines, so a decode can be checked against the wire (`frame_dumps`, `userland/capsule_driver_i2c_hid/src/input/poll/read_frame.rs:55-58`).
+
+## How this is checked
+
+- [Proof crates](../../overview/glossary.md#proof-crate) at commit bff12b97, all passing: `i2c_hid_proofs` runs both drivers' wire code against a modelled DesignWare core with a modelled touchpad (51 tests); `i2c_pci_proofs` holds the LPSS reset, the clocks and the id tables (35); `i2c_transfer_proofs` holds the transfer engine (26); `pinctrl_proofs` holds the GPIO layouts (13); `input_proofs` holds the gesture decoder (96).
+- The touchpad on Intel LPSS has one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+- The AMD path and every other Intel family have not been run on hardware in this release.
