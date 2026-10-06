@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::budget::grow;
 use super::types::{Store, StoreError, MAX_FILE_BYTES};
 
 impl Store {
@@ -25,6 +26,7 @@ impl Store {
         if !writable {
             return Err(StoreError::AccessDenied);
         }
+        let others = self.held_except(Some(file_idx));
         let data = &mut self.files[file_idx].data;
         let start = if append { data.len() } else { pos };
         let end = start.saturating_add(bytes.len());
@@ -32,6 +34,7 @@ impl Store {
             return Err(StoreError::Full);
         }
         if end > data.len() {
+            grow(data, end, others)?;
             data.resize(end, 0);
         }
         data[start..end].copy_from_slice(bytes);

@@ -52,7 +52,7 @@ pub(super) fn split_artifact(rest: &[u8]) -> Result<(String, &[u8]), i32> {
         return Err(EINVAL);
     }
     let raw = str::from_utf8(&rest[1..1 + len]).map_err(|_| EINVAL)?;
-    let path = normalize(raw);
+    let path = normalize(raw).ok_or(EINVAL)?;
     if !is_capsule_artifact(&path) {
         return Err(EINVAL);
     }

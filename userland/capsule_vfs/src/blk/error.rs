@@ -14,20 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Why a block request did not produce usable sector bytes. Transport carries
-// the raw syscall return (a timeout and a refused send are both negative and
-// worth telling apart), Status carries the driver's own errno so an E_NXIO is
-// never mistaken for a wire fault.
+/*
+ * Why a block request did not produce usable sector bytes. Transport carries
+ * the raw syscall return of a store write, or a store read that timed out;
+ * Status carries the errno a store read was refused with, so a device fault
+ * is never mistaken for a lost reply.
+ *
+ * Three families, kept apart all the way to the caller: NoService is no
+ * disk at all, the normal state of a live boot; Transport and Status are a
+ * disk that is there and failed; ShortReply, BadLength and BadContainer are
+ * a disk that answered with bytes that do not decode. NoSpace is a write
+ * the store has no room for, which is none of those.
+ */
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BlkError {
     NoService,
     Transport(i64),
     ShortReply(usize),
-    BadHeader,
-    IdMismatch,
     BadLength,
     Status(i32),
     Inval,
     BadContainer,
     Exists,
+    /// An entry's bytes do not fit in the heap: the store is refused whole.
+    NoMemory,
+    /// The table is full, the load budget spent, or no free extent below
+    /// the end of the store fits the payload.
+    NoSpace,
 }

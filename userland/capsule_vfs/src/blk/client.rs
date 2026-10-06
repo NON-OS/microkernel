@@ -14,43 +14,56 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
+//! Reads of the package store, through the kernel.
+//!
+//! The kernel's block layer picks the disk NONOS is kept on, NVMe, SATA or
+//! virtio-blk, and the store's writes already went there. Its reads went to
+//! the virtio-blk driver by name, so on any other disk the store could not be
+//! loaded. Reading through the kernel as well keeps both halves on one disk.
+
+use nonos_libc::mk_store_read;
 
 use super::error::BlkError;
-use super::reply::decode_reply;
-use super::transport::call;
-use super::wire::{
-    CAPACITY_BODY_LEN, HDR_LEN, MAX_READ_BYTES, OP_CAPACITY, OP_READ_BLOCKS, RW_REQ_LEN,
-    SECTOR_SIZE, STATUS_LEN,
-};
+use super::wire::{MAX_READ_BYTES, SECTOR_SIZE, STORE_END_LBA};
 
+const EPERM: i64 = -1;
+const ENODEV: i64 = -19;
+const ENOSYS: i64 = -38;
+const ETIMEDOUT: i64 = -110;
+
+/// How far the store may reach, in sectors: to the disk plan, below which the
+/// kernel keeps the store's window. A smaller disk refuses the read past its
+/// end by itself.
 pub fn capacity() -> Result<u64, BlkError> {
-    let mut rx = [0u8; HDR_LEN + STATUS_LEN + CAPACITY_BODY_LEN];
-    let (n, request_id) = call(OP_CAPACITY, &[], &mut rx)?;
-    let body = decode_reply(&rx, n, OP_CAPACITY, request_id)?;
-    if body.len() < CAPACITY_BODY_LEN {
-        return Err(BlkError::BadLength);
-    }
-    Ok(u64::from_le_bytes([body[0], body[1], body[2], body[3], body[4], body[5], body[6], body[7]]))
+    Ok(STORE_END_LBA)
 }
 
-// `out` sizes the request: it must be a non-zero whole number of sectors and no
-// larger than the driver's per-request ceiling, since anything else is rejected
-// on the far side as E_INVAL or E_MSGSIZE after a pointless round-trip.
 pub fn read_blocks(lba: u64, out: &mut [u8]) -> Result<(), BlkError> {
-    if out.is_empty() || out.len() % SECTOR_SIZE != 0 || out.len() > MAX_READ_BYTES {
+    if out.is_empty() || !out.len().is_multiple_of(SECTOR_SIZE) || out.len() > MAX_READ_BYTES {
         return Err(BlkError::Inval);
     }
-    let nsectors = (out.len() / SECTOR_SIZE) as u32;
-    let mut body = [0u8; RW_REQ_LEN];
-    body[0..8].copy_from_slice(&lba.to_le_bytes());
-    body[8..12].copy_from_slice(&nsectors.to_le_bytes());
-    let mut rx = vec![0u8; HDR_LEN + STATUS_LEN + out.len()];
-    let (n, request_id) = call(OP_READ_BLOCKS, &body, &mut rx)?;
-    let payload = decode_reply(&rx, n, OP_READ_BLOCKS, request_id)?;
-    if payload.len() != out.len() {
-        return Err(BlkError::BadLength);
+    let n = mk_store_read(lba, out.as_mut_ptr(), out.len());
+    match n {
+        n if n == out.len() as i64 => Ok(()),
+        /*
+         * No NONOS disk behind any driver, a kernel without the call, or a
+         * vfs without the store's authority: there is no store to read.
+         */
+        EPERM | ENODEV | ENOSYS => Err(BlkError::NoService),
+        ETIMEDOUT => Err(BlkError::Transport(n)),
+        n if n < 0 => Err(BlkError::Status(n as i32)),
+        n => Err(BlkError::ShortReply(n as usize)),
     }
-    out.copy_from_slice(payload);
+}
+
+/// `out.len()` bytes from `lba` on, in as many requests as the kernel's cap
+/// on one takes. The table of a store with more than 255 entries is longer
+/// than one request, and read whole it was refused before a byte was read.
+pub fn read_span(lba: u64, out: &mut [u8]) -> Result<(), BlkError> {
+    let mut at = lba;
+    for piece in out.chunks_mut(MAX_READ_BYTES) {
+        read_blocks(at, piece)?;
+        at += (piece.len() / SECTOR_SIZE) as u64;
+    }
     Ok(())
 }

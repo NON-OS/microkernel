@@ -50,8 +50,12 @@ pub fn copy(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Err(_) => return encode_response(OP_COPY, req.flags, req.request_id, EINVAL, &[]),
     };
     let recursive = after.get(1 + dl).is_some_and(|&b| b != 0);
-    let src = normalize(src);
-    let dst = normalize(dst);
+    let Some(src) = normalize(src) else {
+        return encode_response(OP_COPY, req.flags, req.request_id, EINVAL, &[]);
+    };
+    let Some(dst) = normalize(dst) else {
+        return encode_response(OP_COPY, req.flags, req.request_id, EINVAL, &[]);
+    };
     // Copying out of /capsules is fine; creating or overwriting inside it is not.
     if is_read_only(&dst) {
         return encode_response(OP_COPY, req.flags, req.request_id, EACCES, &[]);

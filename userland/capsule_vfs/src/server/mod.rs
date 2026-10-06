@@ -15,10 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod dispatch;
+mod fs_gate;
 pub mod generation;
 mod handlers;
+mod reap;
 mod runner;
 mod seeder;
+mod seeder_busy;
 mod seeder_idle;
+mod seeder_step;
+mod slow_op;
 
 pub use runner::run;

@@ -26,6 +26,7 @@ use alloc::vec::Vec;
 
 use super::artifact_path::split_artifact;
 use super::installer_gate::require_installer;
+use super::persist_gate::may_persist;
 use super::util::{map_blk_err, map_store_err, split_caller};
 use crate::protocol::{
     encode_response, Request, EINVAL, EMSGSIZE, MAX_DATA_BYTES, OP_STORE_INSTALL,
@@ -57,7 +58,8 @@ fn place(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Result<(), i32
         return Err(EMSGSIZE);
     }
     store.install_bytes(&path, offset, data, pid).map_err(map_store_err)?;
-    if flags & STORE_INSTALL_FINAL == 0 {
+    // An amnesic boot keeps the install in RAM, where it works until reboot.
+    if flags & STORE_INSTALL_FINAL == 0 || !may_persist() {
         return Ok(());
     }
     let whole = store.persistable(&path, pid).map_err(map_store_err)?;

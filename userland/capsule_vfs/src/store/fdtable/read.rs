@@ -24,6 +24,16 @@ impl Store {
             let entry = self.entry(fd, owner_pid)?;
             (entry.file_idx, entry.pos)
         };
+        if let Some(extent) = self.files[file_idx].streamed {
+            // Served from the device, a request's worth at a time; a device
+            // that fails the read fails this one, and nothing is kept.
+            let out = crate::blk::streamed::read_range(&extent, pos as u64, max)
+                .map_err(|_| StoreError::Inval)?;
+            if let Some(entry) = self.fds[fd as usize].as_mut() {
+                entry.pos = pos + out.len();
+            }
+            return Ok(out);
+        }
         let data = &self.files[file_idx].data;
         let avail = data.len().saturating_sub(pos);
         let n = if max < avail { max } else { avail };

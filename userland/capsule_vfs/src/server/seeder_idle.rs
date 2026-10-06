@@ -16,54 +16,29 @@
 
 //! Advancing the staging load from the receive loop's idle slot.
 
-use crate::blk::load::{Load, Step};
 use crate::store::Store;
 
-use super::seeder::{note, PackageSeeder, MAX_ATTEMPTS, QUIET_POLLS, SLICE_MS};
+use super::seeder::{PackageSeeder, QUIET_POLLS};
+use crate::blk::patience::MAX_ATTEMPTS;
 
 impl PackageSeeder {
     pub fn on_idle(&mut self, store: &mut Store) {
         if self.done {
             return;
         }
-        self.quiet += 1;
-        if self.quiet < QUIET_POLLS + self.attempts {
-            return;
-        }
-        self.quiet = 0;
+        /*
+         * The quiet gate is for starting a load. One in progress takes every
+         * idle slot, and poll_ms makes those a millisecond apart: gated, a
+         * slice ran every 750 ms and staging took ten minutes under TCG.
+         */
         if self.load.is_none() {
-            self.attempts += 1;
-            match Load::begin() {
-                Ok(load) => self.load = Some(load),
-                Err(e) => {
-                    crate::blk::status::record(&e);
-                    if self.attempts >= MAX_ATTEMPTS {
-                        self.done = true;
-                        note(b"[VFSD] packages unavailable\n");
-                    }
-                    return;
-                }
+            self.quiet += 1;
+            /* Capped: a disk waited for is asked every 1.75 s, not ever more slowly. */
+            if self.quiet < QUIET_POLLS + self.attempts.min(MAX_ATTEMPTS) {
+                return;
             }
+            self.quiet = 0;
         }
-        let Some(load) = self.load.as_mut() else {
-            return;
-        };
-        match load.step_for(SLICE_MS) {
-            Step::More => {}
-            Step::Done(staged) => {
-                store.adopt_staged(staged);
-                self.load = None;
-                self.done = true;
-                note(b"[VFSD] packages staged\n");
-            }
-            Step::Failed(e) => {
-                crate::blk::status::record(&e);
-                self.load = None;
-                if self.attempts >= MAX_ATTEMPTS {
-                    self.done = true;
-                    note(b"[VFSD] packages unavailable\n");
-                }
-            }
-        }
+        self.advance(store);
     }
 }

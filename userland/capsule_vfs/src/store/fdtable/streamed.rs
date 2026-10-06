@@ -14,19 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+//! Files whose bytes stay on the device (blk::streamed).
 
-use super::wire::{HDR_LEN, MAGIC, VERSION};
+use super::types::Store;
 
-pub fn encode_request(op: u16, request_id: u32, body: &[u8]) -> Vec<u8> {
-    let mut out = Vec::with_capacity(HDR_LEN + body.len());
-    out.extend_from_slice(&MAGIC.to_le_bytes());
-    out.extend_from_slice(&VERSION.to_le_bytes());
-    out.extend_from_slice(&op.to_le_bytes());
-    out.extend_from_slice(&0u16.to_le_bytes());
-    out.extend_from_slice(&0u16.to_le_bytes());
-    out.extend_from_slice(&request_id.to_le_bytes());
-    out.extend_from_slice(&(body.len() as u32).to_le_bytes());
-    out.extend_from_slice(body);
-    out
+impl Store {
+    /// The size a file reports: its bytes, or the length on the device.
+    pub(super) fn size_of(&self, idx: usize) -> u64 {
+        let f = &self.files[idx];
+        f.streamed.as_ref().map_or(f.data.len() as u64, |e| e.len)
+    }
+
+    /// Whether the file at `idx` is served from the device.
+    pub(super) fn is_streamed(&self, idx: usize) -> bool {
+        self.files[idx].streamed.is_some()
+    }
 }

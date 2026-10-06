@@ -19,7 +19,7 @@ use core::str;
 
 use super::installer_gate::require_installer;
 use super::path::normalize;
-use super::util::split_caller;
+use super::util::{map_blk_err, split_caller};
 use crate::protocol::{encode_response, Request, EINVAL, MAX_PATH_BYTES, OP_STORE_REMOVE};
 
 pub fn store_remove(req: Request<'_>, sender_pid: u32) -> Vec<u8> {
@@ -41,9 +41,12 @@ pub fn store_remove(req: Request<'_>, sender_pid: u32) -> Vec<u8> {
         Ok(s) => s,
         Err(_) => return encode_response(OP_STORE_REMOVE, req.flags, req.request_id, EINVAL, &[]),
     };
-    let path = normalize(path);
-    match crate::blk::store_remove::remove(&path) {
-        Ok(()) => encode_response(OP_STORE_REMOVE, req.flags, req.request_id, 0, &[]),
-        Err(_) => encode_response(OP_STORE_REMOVE, req.flags, req.request_id, EINVAL, &[]),
-    }
+    let Some(path) = normalize(path) else {
+        return encode_response(OP_STORE_REMOVE, req.flags, req.request_id, EINVAL, &[]);
+    };
+    let status = match crate::blk::store_remove::remove(&path) {
+        Ok(()) => 0,
+        Err(e) => map_blk_err(e),
+    };
+    encode_response(OP_STORE_REMOVE, req.flags, req.request_id, status, &[])
 }

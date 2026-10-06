@@ -34,17 +34,20 @@
 //! part of the entry this path does not rewrite, and the rule about what may
 //! be replaced at all stays in `store_rules`.
 
-use super::digest::digest16;
+use nonos_disk_map::digest16;
+
 use super::error::BlkError;
 use super::store_free::free_extent;
 use super::store_entry::patch_entry;
 use super::store_rules::permitted;
-use super::store_toc::{TocEntry, MAX_TOTAL_BYTES};
+use super::store_toc::{room_for, TocEntry};
 use super::store_write::{commit_entry, write_payload};
 
 /// Replace entry `index` of `entries` with `data`, which must be the same
 /// length. `floor` is the first byte after the reserved table region and
 /// `capacity_bytes` the device's size, both bounds on where the payload may go.
+/// The table is patched at the entry's own slot, which is not its place in
+/// `entries` when a damaged descriptor before it was left out.
 pub fn replace(
     toc: &[u8],
     index: usize,
@@ -55,15 +58,14 @@ pub fn replace(
 ) -> Result<(), BlkError> {
     let entry = entries.get(index).ok_or(BlkError::BadContainer)?;
     permitted(&entry.name, entry.len, data.len())?;
-    let live: u64 = entries.iter().map(|e| e.len).sum();
-    if live.saturating_add(data.len() as u64) > MAX_TOTAL_BYTES {
-        return Err(BlkError::BadLength);
+    if data.len() as u64 > room_for(entries, &entry.name) {
+        return Err(BlkError::NoSpace);
     }
     let at = free_extent(entries, floor, data.len() as u64);
     if at.saturating_add(data.len() as u64) > capacity_bytes {
-        return Err(BlkError::BadLength);
+        return Err(BlkError::NoSpace);
     }
     write_payload(at, data)?;
-    let region = patch_entry(toc, index, at, &digest16(data))?;
-    commit_entry(&region, index)
+    let region = patch_entry(toc, entry.slot, at, &digest16(data))?;
+    commit_entry(&region, entry.slot)
 }
