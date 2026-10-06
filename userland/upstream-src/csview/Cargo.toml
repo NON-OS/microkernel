@@ -84,3 +84,7 @@ pager = ["dep:pager"]
 [target.'cfg(target_family = "unix")'.dependencies.pager]
 version = "0.16"
 optional = true
+
+# nonos-app-patch
+[patch.crates-io]
+errno = { path = "../errno-0.3.14" }
