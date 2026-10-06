@@ -58,3 +58,17 @@ Every request starts with a 10-byte header: the tag `0x57494649`, an operation a
 A join body is `[ssid_len][ssid][pass_len][pass][flags]`. Flag bit 0 says the network was saved as WPA3, so the driver joins it with SAE or not at all; bit 1 says it is hidden (`userland/nonos_wifi_client/src/join_wire.rs:47-48`, `FLAG_WPA3_ONLY`, `FLAG_HIDDEN`). The request buffer that carried the passphrase is wiped before the call returns (`userland/nonos_wifi_client/src/driver/call.rs:55`, `wipe`).
 
 Both drivers answer a scan at once from the list their background scan keeps. That list holds at most 16 networks and drops one unheard for 3 sweeps (`userland/nonos_wifi_core/src/scan_list.rs:34-37`, `MAX_RESULTS`, `MAX_AGE`).
+
+## Security a join accepts
+
+The choice is made by `select` from the access point's RSN element and the flags (`userland/nonos_wifi_core/src/rsn/select.rs:87-134`).
+
+- WPA3-Personal (SAE) whenever the access point offers it and can protect management frames (`userland/nonos_wifi_core/src/rsn/select.rs:100-105`, `Akm::Sae`).
+- SAE runs over group 19 only, NIST P-256 (`userland/nonos_wifi_core/src/sae/group.rs:32`, `GROUP_19`), with the password element from hash-to-element or from hunting and pecking (`userland/nonos_wifi_core/src/sae/mod.rs:17-25`, `h2e`, `hnp`).
+- WPA2-Personal otherwise: PSK-SHA256 when the access point offers it and can protect management frames, plain PSK if not (`userland/nonos_wifi_core/src/rsn/select.rs:117-132`, `PskSha256`).
+- A network saved as WPA3 that now offers only WPA2 is refused as a downgrade (`userland/nonos_wifi_core/src/rsn/select.rs:106-116`, `Downgrade`).
+- The pairwise and group cipher must be CCMP-128; TKIP is refused (`userland/nonos_wifi_core/src/rsn/select.rs:88-90`, `UnsupportedCipher`).
+- Enterprise (802.1X), fast transition and OWE have no AKM here (`userland/nonos_wifi_core/src/rsn/select.rs:76-77`, `UnsupportedAkm`).
+- Open networks and access points that admit only 802.11n stations are refused (`userland/nonos_wifi_core/src/mlme/failure.rs:26-37`, `OpenNetwork`, `NeedsHt`).
+
+On a joined link a received frame reaches the stack only from the access point, protected and above the replay counter; fragments and A-MSDUs are dropped (`userland/nonos_wifi_core/src/station/receive.rs:47-61`, `RxDrop`).
