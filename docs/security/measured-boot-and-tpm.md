@@ -122,3 +122,15 @@ The attestation key is a primary key under the endorsement hierarchy with a fixe
 The attestation key is the same on every boot and across a reinstall, so a quote names the machine, as the comment beside `MkAttestDoc` says (`src/syscall/contract/cap_table/mk.rs:37-46`). The document therefore goes only to a capsule that holds `AttestRead` and does not hold `Network`, as `can_attest_doc` requires (`src/syscall/caps/checks/system.rs:45-52`). A refusal returns `EPERM`, and the reason goes to the serial console only, after `[ATTEST] refused:` (`sys_attest_doc`, `src/syscall/microkernel/attest_doc.rs:35-50`). `MkEnroll` gives the prover the endorsement key's public area and certificate, the attestation key's public area, `ActivateCredential`, and attestation-key signatures (`ak_sign`, `src/security/tpm/enroll/mod.rs:17-30`), under the same gate as `MkDeviceSecret` (`device_secret_caller`, `src/syscall/microkernel/device_proof/enroll/call.rs:39`).
 
 The quote does not cover PCR 4 or PCR 9, so a quote alone does not say which loader or kernel ran; the kernel's check of its loader and the device proof carry that.
+
+## Without a TPM
+
+| Part | What happens without a TPM |
+|---|---|
+| Loader | PCR 9 is not extended; with no rollback floor, Hardened and Air-Gapped refuse to boot and every other mode boots with rollback protection off |
+| The kernel's check of its loader | the self-reported path; the boot-root record is held to a floor of 0 and the log says `self-reported, not measured` |
+| Machine key | `CryptoMachineKey` returns `ENODEV`; a data volume keyed by the TPM stays closed, and the local-build identity lasts one boot |
+| Device secret | `MkDeviceSecret` returns `ENODEV`, or `ENOENT` when there is no approval |
+| Quotes | `MkAttestDoc` returns `EPERM` |
+
+`errno_for` maps a missing TPM to `ENODEV`, error 19 (`src/syscall/dispatch/crypto/machine_key.rs:68-78`). For the data volume, `open_machine_volume` asks `derive_for_kernel` for the key, and when that fails it logs `no machine key` and leaves the volume closed (`src/fs/blockfs_volume/open_machine.rs:75-78`). The local-build fallback is `mint`, a random key for this boot only (`src/security/local_build/identity.rs:35-47`). The rollback rule is on [Rollback protection](rollback-protection.md).
