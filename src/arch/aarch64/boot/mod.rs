@@ -21,7 +21,10 @@ mod init;
 mod memory;
 pub mod multicore;
 mod pci_windows;
+mod refuse;
 pub mod stack;
+#[cfg(any(feature = "nonos-trap-proof-sp0", feature = "nonos-trap-proof-kernel-abort"))]
+mod trap_proof;
 
 pub use entry::kernel_entry;
 pub use info::{BootInfo, MemoryRegion};
@@ -29,4 +32,5 @@ pub use init::init;
 pub(crate) use memory::init_boot_memory;
 pub use multicore::start_secondary_cpus;
 pub(crate) use pci_windows::remap as remap_pci_windows;
+pub(crate) use refuse::{refuse, security_reason};
 pub use stack::setup_stack;

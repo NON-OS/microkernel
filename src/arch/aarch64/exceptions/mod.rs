@@ -19,6 +19,7 @@ pub mod frame;
 pub mod handlers;
 pub mod install;
 pub mod syndrome;
+pub(crate) mod terminal;
 pub mod verify;
 
 pub use frame::ExceptionFrame;

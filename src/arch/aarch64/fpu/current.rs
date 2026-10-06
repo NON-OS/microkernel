@@ -20,7 +20,7 @@ use crate::process::core::{CURRENT_PID, PROCESS_TABLE};
 
 use super::slot::FpSimdSlot;
 
-pub fn slot_mut() -> Option<&'static mut FpSimdSlot> {
+pub(super) fn slot_mut() -> Option<&'static mut FpSimdSlot> {
     let pid = CURRENT_PID.load(Ordering::Acquire);
     if pid == 0 {
         return None;

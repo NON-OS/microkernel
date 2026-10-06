@@ -16,16 +16,31 @@
 
 use crate::arch::aarch64::exceptions::frame::ExceptionFrame;
 
-use super::fatal::fatal;
+use super::fatal::{fatal, fatal_interrupt};
+
+/// Which slot of the group was taken, as its vector entry passes it in x1.
+const KIND_IRQ: u64 = 1;
+const KIND_FIQ: u64 = 2;
+const KIND_SERROR: u64 = 3;
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_invalid_sp0(frame: *mut ExceptionFrame) -> ! {
+pub extern "C" fn aarch64_exc_invalid_sp0(frame: *mut ExceptionFrame, kind: u64) -> ! {
     let frame = unsafe { &*frame };
-    fatal(b"SP_EL0 vector", frame)
+    match kind {
+        KIND_IRQ => fatal_interrupt(b"SP_EL0 vector IRQ", None, frame),
+        KIND_FIQ => fatal_interrupt(b"SP_EL0 vector FIQ", None, frame),
+        KIND_SERROR => fatal(b"SP_EL0 vector SError", frame),
+        _ => fatal(b"SP_EL0 vector sync", frame),
+    }
 }
 
 #[no_mangle]
-pub extern "C" fn aarch64_exc_invalid_aarch32(frame: *mut ExceptionFrame) -> ! {
+pub extern "C" fn aarch64_exc_invalid_aarch32(frame: *mut ExceptionFrame, kind: u64) -> ! {
     let frame = unsafe { &*frame };
-    fatal(b"AArch32 vector", frame)
+    match kind {
+        KIND_IRQ => fatal_interrupt(b"AArch32 vector IRQ", None, frame),
+        KIND_FIQ => fatal_interrupt(b"AArch32 vector FIQ", None, frame),
+        KIND_SERROR => fatal(b"AArch32 vector SError", frame),
+        _ => fatal(b"AArch32 vector sync", frame),
+    }
 }

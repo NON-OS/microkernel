@@ -18,7 +18,7 @@ use crate::arch::aarch64::context::save_user_frame;
 use crate::arch::aarch64::exceptions::frame::ExceptionFrame;
 use crate::arch::aarch64::gic::{acknowledge_interrupt, dispatch_irq, end_interrupt};
 
-use super::fatal::fatal;
+use super::fatal::fatal_interrupt;
 
 #[no_mangle]
 pub extern "C" fn aarch64_exc_irq_current(frame: *mut ExceptionFrame) {
@@ -44,5 +44,5 @@ fn handle(frame: &ExceptionFrame, tag: &[u8]) {
         return;
     }
     end_interrupt(intid);
-    fatal(tag, frame)
+    fatal_interrupt(tag, Some(intid), frame)
 }

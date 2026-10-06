@@ -22,7 +22,7 @@ use crate::crypto::rng::fill_random_bytes_secure;
 use super::error::{PacError, PacResult};
 use super::key::{PacKey, PacKeys};
 
-pub fn generate_keys() -> PacResult<PacKeys> {
+pub(super) fn generate_keys() -> PacResult<PacKeys> {
     Ok(PacKeys {
         ia: generate_key()?,
         ib: generate_key()?,

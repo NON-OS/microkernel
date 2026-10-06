@@ -25,7 +25,12 @@ pub fn clear_tag(ptr: *mut u8, size: usize) {
 }
 
 fn clear_granule(addr: u64) {
+    /*
+     * STZG takes the tag from bits [59:56] of a general register, and register
+     * 31 in that field is SP, not XZR, so the zero tag has to come from a
+     * register that holds 0.
+     */
     unsafe {
-        asm!("stzg xzr, [{0}]", in(reg) addr);
+        asm!("stzg {tag}, [{addr}]", tag = in(reg) 0u64, addr = in(reg) addr, options(nostack, preserves_flags));
     }
 }

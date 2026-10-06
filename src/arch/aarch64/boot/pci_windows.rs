@@ -32,7 +32,7 @@ static IO_SIZE: AtomicU64 = AtomicU64::new(0);
 /// Nothing is published to the accessors here. Config space sits at 256 GiB on
 /// this board, which the boot map does not describe, and `BootInfo` lives in
 /// the entry path's frame and is gone by the time `remap` runs.
-pub fn publish(info: &super::BootInfo) {
+pub(super) fn publish(info: &super::BootInfo) {
     ECAM_BASE.store(info.pci_ecam_base, Ordering::Relaxed);
     ECAM_SIZE.store(info.pci_ecam_size, Ordering::Relaxed);
     IO_BASE.store(info.pci_io_cpu_base, Ordering::Relaxed);
@@ -54,7 +54,7 @@ pub fn publish(info: &super::BootInfo) {
 const ECAM_BUSES: u64 = 16;
 const ECAM_BUS_STRIDE: u64 = 0x10_0000;
 
-pub fn remap() {
+pub(crate) fn remap() {
     let ecam_size = ECAM_SIZE.load(Ordering::Acquire).min(ECAM_BUSES * ECAM_BUS_STRIDE);
     if ecam_size > 0 {
         match map(ECAM_BASE.load(Ordering::Relaxed), ecam_size) {

@@ -18,6 +18,7 @@ pub mod attributes;
 mod boot_map;
 mod control;
 pub mod granule;
+mod image_map;
 mod map;
 mod state;
 pub mod table;
