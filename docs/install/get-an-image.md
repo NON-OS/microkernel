@@ -73,3 +73,16 @@ make dev-boot
 ```
 
 Not tested in this release.
+
+## Check the image
+
+The seal records the sha256 of the stick image under `sealed`, `usb`, `sha256` in `nonos-release.json` (`record` and `sealed` in `tools/nonos_seal/verify.py`). Compare it with the image you are about to write:
+
+```
+sha256sum target/release/standard/nonos.img
+python3 -c 'import json; print(json.load(open("target/release/standard/nonos-release.json"))["sealed"]["usb"]["sha256"])'
+```
+
+Not tested in this release.
+
+The two values must be the same. Whether a build gives the same bytes as another is on [Reproducible builds](../build/reproducible-builds.md).
