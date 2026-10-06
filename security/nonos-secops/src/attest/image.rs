@@ -18,7 +18,7 @@
 //! way the bootloader does. The parse is defensive: any out-of-range offset
 //! returns None rather than indexing past the buffer.
 
-use embed_zk_proof::{assemble_attested_image, SignedKernel, FOOTER_SIZE};
+use embed_trailer::{assemble_attested_image, SignedKernel, FOOTER_SIZE};
 
 /// Assemble an attested image, for tools that need a subject to inspect or attack.
 pub fn assemble_image(kernel_bytes: &[u8], trailer: Vec<u8>) -> Vec<u8> {

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The attestation operations both tools share, each the boot-side operation
-//! over the boot-side byte layout using the shared nonos-stark verifier.
+//! over the boot-side byte layout using the shared nonos-attest-path check.
 
 mod constants;
 mod context;
@@ -27,5 +27,5 @@ mod verify;
 pub use context::kernel_context;
 pub use enroll::enroll_kernel;
 pub use image::{assemble_image, parse_image_footer};
-pub use parser::proof_parser_is_total;
+pub use parser::trailer_parser_is_total;
 pub use verify::verify_kernel_attestation;

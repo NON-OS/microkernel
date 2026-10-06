@@ -16,7 +16,7 @@
 
 //! nonos-secops: the shared library behind the defense and offense tools. Every
 //! check runs the bootloader's operation over the boot-side byte layout using the
-//! shared nonos-stark verifier, so a verdict from these tools is the verdict at
+//! shared nonos-attest-path check, so a verdict from these tools is the verdict at
 //! boot.
 
 pub mod attest;
@@ -24,7 +24,7 @@ pub mod offense;
 pub mod rng;
 
 pub use attest::{
-    assemble_image, enroll_kernel, kernel_context, parse_image_footer, proof_parser_is_total,
+    assemble_image, enroll_kernel, kernel_context, parse_image_footer, trailer_parser_is_total,
     verify_kernel_attestation,
 };
 pub use offense::{battery, fuzz, Finding, Severity};
