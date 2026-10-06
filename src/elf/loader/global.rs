@@ -17,10 +17,16 @@
 use spin::Once;
 
 use crate::elf::errors::ElfError;
+use crate::smp::lock_responsive;
 
 use super::core::ElfLoader;
 use super::image::ElfImage;
 
+/*
+ * Held for a whole load, which maps every page of the image and can take
+ * milliseconds. A load is reached from system calls with interrupts masked,
+ * so a CPU waiting its turn answers TLB shootdowns while it spins.
+ */
 static ELF_LOADER: Once<spin::Mutex<ElfLoader>> = Once::new();
 
 pub fn init_elf_loader() {
@@ -37,18 +43,18 @@ pub fn get_elf_loader() -> Option<&'static spin::Mutex<ElfLoader>> {
 
 pub fn load_elf_executable_into(elf_data: &[u8], target_asid: u32) -> Result<ElfImage, ElfError> {
     let loader = get_elf_loader().ok_or(ElfError::NotInitialized)?;
-    let mut guard = loader.lock();
+    let mut guard = lock_responsive(loader);
     guard.load_executable_into(elf_data, target_asid)
 }
 
 pub fn load_elf_entry_into(elf_data: &[u8], target_asid: u32) -> Result<u64, ElfError> {
     let loader = get_elf_loader().ok_or(ElfError::NotInitialized)?;
-    let mut guard = loader.lock();
+    let mut guard = lock_responsive(loader);
     Ok(guard.load_entry_into(elf_data, target_asid)?.as_u64())
 }
 
 pub fn load_elf_executable(elf_data: &[u8]) -> Result<ElfImage, ElfError> {
     let loader = get_elf_loader().ok_or(ElfError::NotInitialized)?;
-    let mut guard = loader.lock();
+    let mut guard = lock_responsive(loader);
     guard.load_executable(elf_data)
 }
