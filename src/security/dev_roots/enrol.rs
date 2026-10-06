@@ -74,9 +74,3 @@ pub fn confirm_dev_root(caller_caps: u64, answer: u32) -> Result<Authority, Enro
     crate::sys::serial::println(b"; locally built capsules may now run");
     Ok(Authority::Developer(slot))
 }
-
-/// How many developer roots this session holds. Always zero immediately after
-/// a boot: nothing enrolled survives the power going off.
-pub fn dev_root_count() -> usize {
-    TABLE.lock().roots.iter().filter(|s| s.used).count()
-}
