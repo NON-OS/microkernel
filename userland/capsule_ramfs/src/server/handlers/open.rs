@@ -19,10 +19,10 @@ use alloc::vec::Vec;
 
 use crate::handles::HandleTable;
 use crate::protocol::{
-    encode_response, read_u16_le, read_u32_le, Request, EINVAL, EIO, EMFILE, ENOENT,
+    encode_response, read_u16_le, read_u32_le, Request, EINVAL, EIO, EMFILE, ENOENT, ENOSPC,
     OPEN_FLAG_CREATE, OPEN_FLAG_TRUNCATE,
 };
-use crate::store::Store;
+use crate::store::{Store, StoreError};
 
 pub fn open(
     store: &mut Store,
@@ -52,8 +52,10 @@ pub fn open(
         if flags & OPEN_FLAG_CREATE == 0 {
             return encode_response(req.seq, ENOENT, &[]);
         }
-        if store.ensure(&path).is_err() {
-            return encode_response(req.seq, EIO, &[]);
+        match store.ensure(&path) {
+            Ok(()) => {}
+            Err(StoreError::Full) => return encode_response(req.seq, ENOSPC, &[]),
+            Err(_) => return encode_response(req.seq, EIO, &[]),
         }
     }
     if flags & OPEN_FLAG_TRUNCATE != 0 && store.truncate(&path, 0).is_err() {

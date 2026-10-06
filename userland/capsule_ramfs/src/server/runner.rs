@@ -19,8 +19,9 @@ use alloc::vec;
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_send};
 
 use super::dispatch::dispatch;
+use super::reap::Reaper;
 use crate::handles::HandleTable;
-use crate::protocol::{decode_request, KERNEL_REPLY_ENDPOINT};
+use crate::protocol::{decode_request, encode_response, EINVAL, KERNEL_REPLY_ENDPOINT};
 use crate::store::Store;
 
 const MAX_MSG: usize = 8192;
@@ -29,17 +30,23 @@ pub fn run() -> ! {
     let mut buf = vec![0u8; MAX_MSG];
     let mut store = Store::new();
     let mut handles = HandleTable::new();
+    let mut reaper = Reaper::new();
     loop {
         let mut sender_pid: u32 = 0;
         let n = mk_ipc_recv_from(0, buf.as_mut_ptr(), MAX_MSG, 0, &mut sender_pid);
         if n <= 0 {
             continue;
         }
-        let req = match decode_request(&buf[..n as usize]) {
-            Some(r) => r,
-            None => continue,
+        reaper.reap_if_due(&mut handles);
+        let resp = match decode_request(&buf[..n as usize]) {
+            Some(req) => dispatch(&mut store, &mut handles, req, sender_pid),
+            /*
+             * Refused by the decode: answered under a zero sequence number.
+             * The caller is blocked in its call until a reply comes, and the
+             * kernel keeps its place in this service's reply queue until then.
+             */
+            None => encode_response(0, EINVAL, &[]),
         };
-        let resp = dispatch(&mut store, &mut handles, req, sender_pid);
         let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, resp.as_ptr(), resp.len());
     }
 }

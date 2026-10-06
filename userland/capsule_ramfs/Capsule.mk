@@ -1,6 +1,7 @@
 # ramfs — RAM-resident filesystem capsule. Pure userland service
-# capsule with no broker hardware authority; uses Crypto for
-# content addressing. The kernel-side mirror provides the IPC
+# capsule with no broker hardware authority; uses Crypto for each
+# file's random key and nonce and the ChaCha20-Poly1305 seal and open
+# (CryptoRandom, CryptoEncrypt, CryptoDecrypt). The kernel-side mirror provides the IPC
 # client surface (`fs::ramfs_capsule::client`) and the in-init
 # spawn entry (`spawn_ramfs_capsule`).
 

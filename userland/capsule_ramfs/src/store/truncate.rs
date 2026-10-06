@@ -18,15 +18,27 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 use super::crypto::{fresh_nonce, open, seal, TAG_LEN};
+use super::limits::MAX_FILE_BYTES;
 use super::types::{Store, StoreError};
 
 impl Store {
     pub fn truncate(&mut self, path: &str, length: usize) -> Result<(), StoreError> {
+        if !self.files.contains_key(path) {
+            return Err(StoreError::NotFound);
+        }
+        if length > MAX_FILE_BYTES {
+            return Err(StoreError::TooLarge);
+        }
+        if length > self.held(path) {
+            self.room_for(path, length)?;
+        }
         let f = self.files.get_mut(path).ok_or(StoreError::NotFound)?;
         let mut plain: Vec<u8> = if f.ciphertext.is_empty() {
             Vec::new()
         } else {
-            let mut buf = vec![0u8; f.ciphertext.len() - TAG_LEN];
+            let plain_len =
+                f.ciphertext.len().checked_sub(TAG_LEN).ok_or(StoreError::CryptoFailure)?;
+            let mut buf = vec![0u8; plain_len];
             let n = open(&f.key, &f.nonce, &f.ciphertext, &mut buf)?;
             buf.truncate(n);
             buf
