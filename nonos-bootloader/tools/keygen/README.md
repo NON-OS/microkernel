@@ -25,11 +25,11 @@ Ed25519 signing key generator for the NØNOS boot attestation chain.
 
 ## What This Tool Does
 
-Every kernel that boots on NØNOS must be signed. No signature, no boot. This tool generates the Ed25519 keypairs that make that possible.
+Every kernel that boots on NØNOS must carry an Ed25519 and an ML-DSA-65 signature. This tool generates Ed25519 keypairs only. The release keys, Ed25519 and ML-DSA-65 both, come from `tools/nonos-key-ceremony` instead; see [the keys page](../../../docs/handbook/trust/keys.md).
 
 When you run keygen, it pulls entropy from your operating system's cryptographic RNG, derives one or more Ed25519 keypairs, writes them to disk with proper permissions, and produces an audit log documenting exactly how and when the keys were created. The secret key bytes are zeroized from memory the moment they hit the filesystem.
 
-The output includes the raw 32-byte seed (what you actually protect), hex and base64 encoded versions for convenience, and the derived public key in all three formats. If you're setting up a multisig scheme, it also generates a signers manifest with fingerprints for each key.
+The output includes the raw 32-byte seed (what you actually protect), hex and base64 encoded versions for convenience, and the derived public key in all three formats. With `--signers` it also writes a signers manifest with fingerprints for each key. The bootloader has threshold code (`verify_multisig` on `KeystoreV2`), but nothing on the kernel signing path calls it, so a multisig set made here is not checked at boot.
 
 ---
 
@@ -58,7 +58,7 @@ The simplest case is a single signing key for development:
 
 You'll get `signer1.key` (the 32-byte secret), `signer1.pub.raw` (the 32-byte public key), and encoded versions of both. The secret files are created with mode 0600 so only you can read them.
 
-For a production multisig setup where three of four keyholders must sign:
+For a signer set of four with a recorded threshold of three:
 
 ```
 ./target/release/nonos-keygen \
@@ -72,7 +72,7 @@ For a production multisig setup where three of four keyholders must sign:
 
 The `--operator` flag hashes your identity into the generation log for audit purposes. The `signers.json` file lists each signer's public key along with SHA-256 and BLAKE3 fingerprints so you can verify them through independent channels.
 
-If your secrets live in an HSM or air-gapped machine, use `--pub-only` to generate just the public key files and manifest structure:
+`--pub-only` still generates fresh keypairs, then writes only their public halves and the manifest and drops the secrets. The public keys it writes belong to secrets nobody holds, so it cannot describe keys made elsewhere. It is useful only for testing the layout:
 
 ```
 ./target/release/nonos-keygen \
@@ -98,7 +98,7 @@ If your secrets live in an HSM or air-gapped machine, use `--pub-only` to genera
 
 `--format` controls which format gets printed to stdout: `raw`, `hex`, or `base64`. All formats are always written to disk regardless.
 
-`--pub-only` skips writing secret key files entirely. Use this when secrets are generated externally.
+`--pub-only` generates the keypairs as usual and skips writing the secret files, so the secrets are lost. It does not import keys made elsewhere.
 
 `--allow-write-secrets` is required to write secret files. The tool refuses without it to prevent accidents.
 
@@ -134,7 +134,7 @@ The entropy comes from `OsRng`, which reads `/dev/urandom` on Linux and the equi
 
 Secret bytes are explicitly zeroized after being written to disk. The `zeroize` crate handles this, overwriting the memory before deallocation. This prevents secrets from lingering in RAM where they could be recovered through memory dumps or cold boot attacks.
 
-All file writes are atomic. The tool writes to a temporary file, calls fsync, then renames to the final path. If power fails mid-write, you get either the complete file or nothing—never a partial key.
+All file writes are atomic. The tool writes to a temporary file, calls fsync, then renames to the final path. If power fails mid-write, you get either the complete file or nothing, never a partial key.
 
 For production use, generate keys on an air-gapped machine or use HSM-backed generation. Never commit secret keys to version control. After copying secrets to their final secure location (encrypted storage, HSM), securely erase the originals. The `shred` command on Linux or similar tools can help, though SSDs complicate secure deletion.
 
@@ -154,17 +154,19 @@ Or point the environment variable at it:
 export NONOS_SIGNING_KEY=/absolute/path/to/signer1.key
 ```
 
-Then use `sign-kernel` to sign a kernel binary:
+Then use `sign-kernel` to sign a kernel binary. It also needs an ML-DSA-65 seed and public key, which this tool does not make (`capsule-sign keygen --alg mldsa65` does):
 
 ```
 cd ../sign-kernel
 cargo run --release -- \
   --key /path/to/signer1.key \
+  --mldsa65-key /path/to/kernel_mldsa65.seed \
+  --mldsa65-pub /path/to/kernel_mldsa65.pub \
   --input kernel.bin \
   --output kernel_signed.bin
 ```
 
-The bootloader build embeds the public key at compile time by reading from `NONOS_SIGNING_KEY` and deriving the public half.
+The bootloader build embeds the Ed25519 public key at compile time, derived from the seed at `NONOS_SIGNING_KEY` or read raw from `NONOS_TRUST_ANCHOR_PUBKEY`, and the ML-DSA-65 key from `NONOS_MLDSA65_PUBKEY`.
 
 ---
 

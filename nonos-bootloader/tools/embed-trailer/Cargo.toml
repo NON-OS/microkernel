@@ -1,0 +1,20 @@
+[package]
+name = "embed-trailer"
+version = "0.2.0"
+edition = "2021"
+publish = false
+authors = ["eK <team@nonos.systems>"]
+description = "Embed the kernel self-attestation path trailer into a signed NONOS kernel image"
+license = "AGPL-3.0"
+
+[workspace]
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.0", features = ["derive"] }
+blake3 = "1.5"
+hex = "0.4"
+nonos-attest-path = { path = "../../../nonos-attest-path" }
+
+[dev-dependencies]
+nonos-attest-path = { path = "../../../nonos-attest-path", features = ["alloc"] }

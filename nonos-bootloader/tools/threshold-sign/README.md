@@ -1,8 +1,8 @@
 # NØNOS Threshold Signing
 
-FROST threshold signatures over Ristretto255. Multiple parties collaborate to produce a single Ed25519-compatible signature without any party ever holding the complete private key.
+FROST threshold signatures on the Edwards25519 curve. Multiple parties collaborate to produce a single 64-byte Schnorr signature under one group public key.
 
-Status: Production ready. Pending bootloader integration.
+Status: a standalone tool. Nothing in the bootloader or the kernel checks its signatures, and its key generation uses a trusted dealer. The bootloader's host tools are described in [the bootloader page](../../../docs/handbook/bootloader.md).
 
 ---
 
@@ -10,9 +10,9 @@ Status: Production ready. Pending bootloader integration.
 
 Traditional multi-sig requires collecting multiple separate signatures and verifying each one. If you need 3-of-5 approval, you store and verify 3 signatures.
 
-Threshold signatures are different. The 3-of-5 parties collaborate through a two-round protocol to produce a single 64-byte signature. Anyone verifying it sees one signature, one public key - indistinguishable from regular Ed25519. But cryptographically, that signature could only have been created if at least 3 of the 5 keyholders participated.
+Threshold signatures are different. The 3-of-5 parties collaborate through a two-round protocol to produce a single 64-byte signature. Anyone verifying it sees one signature and one public key. That signature could only have been created if at least 3 of the 5 keyholders participated.
 
-No single party ever holds the full private key. Not during setup, not during signing, not ever.
+During signing no party holds the full private key. During setup one party does: `threshold-keygen` draws every polynomial coefficient in one process from one RNG, so whoever runs it holds the secret until the shares are handed out and that process ends.
 
 ---
 
@@ -25,7 +25,7 @@ No single party ever holds the full private key. Not during setup, not during si
 2. After seeing all commitments, each participant produces a signature share
 3. Any t signature shares combine into the final signature
 
-The magic is in the math - Shamir secret sharing plus Schnorr signatures plus Lagrange interpolation.
+The pieces are Shamir secret sharing, Schnorr signatures and Lagrange interpolation.
 
 ---
 
@@ -46,7 +46,12 @@ threshold-sign            All-in-one for testing (not for production)
 ## Build
 
 ```
-cargo build --release -p nonos-threshold-sign
+cargo build --release
+```
+
+The tool is its own Cargo workspace; run that from this directory.
+
+```
 ```
 
 ---
@@ -63,7 +68,7 @@ Someone trusted generates the key shares:
 threshold-keygen -t 3 -n 5 -o keys/
 ```
 
-This creates `key_share_1.json` through `key_share_5.json` plus `public_key_package.json`. Distribute each share to its participant over a secure channel. Delete the shares after distribution - the coordinator shouldn't keep copies.
+This creates `key_share_1.json` through `key_share_5.json` plus `public_key_package.json`. Distribute each share to its participant over a secure channel. Delete the shares after distribution; the coordinator should not keep copies.
 
 ### Round 1
 
@@ -93,7 +98,7 @@ Each participant generates their signature share:
 threshold-round2 -p signing_package.json -n my_nonces.json -k my_key_share.json -o my_sig_share.json
 ```
 
-They send `my_sig_share.json` to the coordinator and delete `my_nonces.json` - nonces must never be reused.
+They send `my_sig_share.json` to the coordinator and delete `my_nonces.json`; nonces must never be reused.
 
 ### Aggregation
 
@@ -103,7 +108,7 @@ Coordinator combines the shares:
 threshold-aggregate -p signing_package.json -s sig_1.json sig_2.json sig_3.json -k public_key_package.json -o signature.bin
 ```
 
-Output is a standard 64-byte signature.
+Output is a 64-byte signature, `R` then `s`.
 
 ### Verification
 
@@ -137,16 +142,16 @@ This is for testing only. Production deployments must use the distributed workfl
 
 ## Security
 
-**What's protected:**
+**What is protected:**
 - Secret shares are zeroized in memory on drop
 - Nonces are zeroized after signing
-- No party ever reconstructs the full private key
+- No party reconstructs the full private key while signing; the dealer at key generation does hold it
 - t-1 colluding parties learn nothing about the key
 
 **What you must do:**
 - Distribute key shares over secure channels
 - Store key shares in protected storage (HSM if possible)
-- Never reuse nonces - delete them after round 2
+- Never reuse nonces; delete them after round 2
 - Verify the coordinator isn't malicious (commitments are binding)
 
 **Domain separation:**
@@ -186,17 +191,13 @@ NONOS:FROST:CHALLENGE:v1 Schnorr challenge
 [R: 32 bytes][s: 32 bytes]
 ```
 
-Standard Ed25519 format. Works with any Ed25519 verifier.
+The layout is Ed25519's, but the challenge is SHA-512 over the domain `NONOS:FROST:CHALLENGE:v1`, then `R`, the group key and the message. A standard Ed25519 verifier hashes `R`, the key and the message with no domain, so it refuses these signatures; check them with `threshold-verify` or `verify_signature`.
 
 ---
 
 ## Bootloader integration
 
-The bootloader will verify FROST signatures on:
-- Kernel binaries (replacing current multi-sig)
-- Configuration updates
-
-A single `group_public_key` gets embedded in the bootloader. At runtime, it verifies that the signature was created by at least t of the n authorized parties - without needing to know who specifically signed.
+None yet. The loader's kernel check takes one Ed25519 and one ML-DSA-65 signature from `sign-kernel`. `KeystoreV2` in the loader has a `verify_multisig` function, but nothing calls it, and it does not read FROST signatures.
 
 ---
 
