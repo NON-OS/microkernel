@@ -57,3 +57,9 @@ The kernel image has three load segments in the linker script's `PHDRS`: text re
 Any zero other than UMIP adds `[CPU-PROT] WARNING kernel is not fully protected from user pages`. Each secondary CPU applies the same bits itself, and `finish` keeps it from running user code if it ended up weaker than the boot CPU (`src/smp/ap/user_setup.rs:46-59`).
 
 On aarch64 the same properties come from the PXN, UXN and AP bits in each descriptor. PAN is not enabled, and `report_el1_protection` says so on the console (`src/kernel_core/init/entry/init_vm_and_protection.rs:84-89`).
+
+## Stack guards
+
+Each fault stack of the boot CPU is a `GuardedStack` with a 4096-byte `GUARD_BYTES` page below it (`src/arch/x86_64/gdt/guarded_stack.rs:27-34`). Once paging is up, `arm_stack_guards` unmaps those pages and prints `[STACK-GUARD] bsp armed n/m`, with a warning when not every guard was taken out (`src/kernel_core/init/entry/init_vm_and_protection.rs:59-73`). Each secondary CPU arms its own with `arm_ap_guards` and prints no count (`src/smp/ap/bring_up.rs:55-56`).
+
+The 64 KiB kernel stacks of secondary CPUs are mapped back to back by `allocate`, with no unmapped page between them (`src/smp/init/stack.rs:22-32`). An overflow there runs into the next CPU's stack.
