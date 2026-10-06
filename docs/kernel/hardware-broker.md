@@ -97,3 +97,11 @@ The routes are set up before any capsule starts: `init_broker_irq_routing` progr
 When the vector fires, `on_vector` adds one to the grant's counter, masks an INTx line at the IO-APIC, wakes the driver if it is waiting and sends the end of interrupt; it takes no locks and touches no IPC (`src/hardware/broker/irq/dispatch.rs:17-73`).
 
 `MkIrqWait(grant_id, last_seq, timeout_ms, out)` sleeps until the counter moves past `last_seq` and writes the new count to `out`. A `grant_id` of 0 waits on every grant the caller holds, and a `timeout_ms` of 0 means `DEFAULT_WAIT_MS`, 100 ms (`src/syscall/microkernel/irq/wait.rs:17-30`). It returns 0 when the count moved or another wake came first, and 1 when it slept out the whole timeout, as `verdict` decides (`src/syscall/microkernel/irq/timeout.rs:19-36`). Spurious returns are part of the contract; the driver checks the count and waits again. `MkIrqAck` unmasks an INTx line again and does nothing for MSI and MSI-X, in `ack_grant` (`src/hardware/broker/irq/release/ack.rs:25-42`).
+
+## Revocation
+
+- `MkMmioUnmap`, `MkDmaUnmap` and `MkPioRelease` take back one grant.
+- `MkDeviceRelease` stops the device mastering the bus first, then tears down its MMIO, IRQ, DMA and PIO grants, then drops the claim, in `sys_device_release` (`src/syscall/microkernel/device.rs:84-113`).
+- On exit `teardown` releases every grant the process holds, through `release_all_for_pid` and its IRQ, DMA and PIO twins (`src/process/exit/teardown.rs:47-51`); the MMIO release also drops the process's claims (`src/hardware/broker/mmio/release.rs:45-54`). Dropping a claim stops the device mastering the bus and detaches it from the capsule's domain, in the claim module's `release_all_for_pid` (`src/hardware/broker/claim/release.rs:51-62`), before the DMA buffers are freed.
+
+A DMA buffer is freed in a fixed order by `teardown` in the DMA module: unmap it from the capsule, take it out of the device's domain, scrub it, and only then return the frames (`src/hardware/broker/dma/teardown.rs:26-46`). If the domain will not give the buffer up, the frames are kept out of use for good rather than handed to someone else. `scrub` writes zeros through the kernel's direct map before the frames are reused (`src/hardware/broker/dma/scrub.rs:19-35`).
