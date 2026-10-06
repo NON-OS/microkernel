@@ -114,3 +114,11 @@ The window and `market info` give the reason in words, and offer Retry only when
 | `This system holds no key to check it with` | No |
 
 The host tests of the market pass on this commit: `market_proofs` (62 tests).
+
+## See also
+
+- [Local AI](local-ai.md)
+- [Linux programs](linux-programs.md)
+- [Privacy networks](privacy-network.md)
+- [Manifests and capabilities](../userland/manifests-and-capabilities.md)
+- [Signing and publisher keys](../userland/signing-and-publisher-keys.md)
