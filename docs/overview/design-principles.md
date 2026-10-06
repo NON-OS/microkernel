@@ -67,3 +67,15 @@ When something cannot be done safely, the code refuses and says why, instead of 
 - No factory address on the wire. The e1000 driver fails when it has no randomness for a station address, rather than fall back to the address in its EEPROM (`draw` in `userland/capsule_driver_e1000/src/init/station_address.rs:17-32`).
 - No clock sync that names the machine. net.ntp asks a time server only when Direct is chosen (`step` in `userland/capsule_net_ntp/src/decide.rs:17-45`).
 - No guessed Linux call. A call the Linux personality does not serve answers ENOSYS and names itself on the log (`unserved` in `userland/capsule_linux/src/linux/serve/unserved.rs:21-41`).
+
+## Small files, and mod.rs only declares
+
+The house rule is a file of at most 75 lines that does one thing, and a `mod.rs` that only declares modules and re-exports them; `verification/ASSUMPTIONS.md` calls it the 75-line rule. `nonos-ci/run-static-checks.sh` enforces it for the bootloader: a bootloader `mod.rs` with anything but declarations fails (`boot_mod_bodies` at `nonos-ci/run-static-checks.sh:2217-2237`), and so does one past 75 lines (`boot_mod_oversize` at `nonos-ci/run-static-checks.sh:2240-2246`).
+
+In the kernel it is a convention, not a check. 790 of the 5,761 Rust files under `src/` are longer than 75 lines, and 36 of its 841 `mod.rs` files define a function. Counted from the repository root:
+
+```sh
+find src -name '*.rs' -print0 | xargs -0 wc -l | awk '$2 != "total" && $1 > 75' | wc -l      # 790
+find src -name mod.rs | wc -l                                                                # 841
+grep -lE '^\s*(pub(\([a-z]+\))? )?(const )?(unsafe )?fn ' $(find src -name mod.rs) | wc -l    # 36
+```
