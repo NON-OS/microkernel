@@ -14,34 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod budget;
-mod chmod;
-mod close;
-mod copy;
-mod streamed;
-mod dirstat;
-mod install;
-mod journal;
-mod lookup;
-mod mkdir;
-mod new;
-mod open;
-mod packages;
-mod persist;
-mod query;
-mod read;
-mod reap;
-mod rename;
-mod rmdir;
-mod search;
-mod seed;
-mod seek;
-mod time;
-mod truncate;
-mod types;
-mod unlink;
-mod usage;
-mod write;
-mod zeroize;
+//! The FileSystem decision, pure so the host proofs can walk every case.
 
-pub use types::{SeekWhence, Store, StoreError};
+/// Whether vfs serves a request from `sender_pid`.
+///
+/// The sender pid is stamped by the kernel and pid 0 is never handed to a
+/// process, so it marks the kernel-internal client, which asks FileSystem of
+/// the process it sends for before it sends (src/fs/vfs_capsule/capability.rs).
+/// Any other sender is served only when `holds` says the kernel grants that
+/// pid FileSystem. `holds` is asked once for each such request and its answer
+/// is kept nowhere.
+pub fn allows(sender_pid: u32, holds: impl FnOnce(u32) -> bool) -> bool {
+    sender_pid == 0 || holds(sender_pid)
+}

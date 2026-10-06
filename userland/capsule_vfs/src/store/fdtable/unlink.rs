@@ -28,6 +28,13 @@ impl Store {
                 return Err(StoreError::NotEmpty);
             }
         }
+        self.remove_at(idx);
+        Ok(())
+    }
+
+    /// Take entry `idx` out: its handles closed, the others moved down, and
+    /// its bytes wiped before they are freed.
+    pub(super) fn remove_at(&mut self, idx: usize) {
         for slot in self.fds.iter_mut() {
             match slot {
                 Some(fd) if fd.file_idx == idx => *slot = None,
@@ -37,6 +44,5 @@ impl Store {
         }
         super::zeroize::zeroize(&mut self.files[idx].data);
         self.files.remove(idx);
-        Ok(())
     }
 }

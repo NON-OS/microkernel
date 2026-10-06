@@ -42,7 +42,9 @@ pub fn truncate(store: &mut Store, req: Request<'_>, sender_pid: u32) -> Vec<u8>
     let mut sz = [0u8; 8];
     sz.copy_from_slice(&rest[1 + len..1 + len + 8]);
     let size = u64::from_le_bytes(sz);
-    let path = normalize(path);
+    let Some(path) = normalize(path) else {
+        return encode_response(OP_TRUNCATE, req.flags, req.request_id, EINVAL, &[]);
+    };
     if is_read_only(&path) {
         return encode_response(OP_TRUNCATE, req.flags, req.request_id, EACCES, &[]);
     }

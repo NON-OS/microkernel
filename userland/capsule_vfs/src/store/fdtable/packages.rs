@@ -18,7 +18,11 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::types::{File, Store, MAX_FILES};
+use crate::blk::streamed::Extent;
 use crate::blk::store::StoreEntry;
+
+// A package entry served from the device: read-only, as the device copy is.
+const MODE_STREAMED: u16 = 0o444;
 
 // Packages are staged from the block device rather than embedded, because
 // whole-set enrollment derives every capsule's trailer from every capsule
@@ -36,7 +40,7 @@ impl Store {
     /// did both, which is why it held the receive loop for the whole container.
     pub(crate) fn adopt_staged(&mut self, staged: Vec<StoreEntry>) {
         for entry in staged {
-            self.stage(entry.name, entry.data);
+            self.stage(entry.name, entry.data, entry.streamed);
         }
         /*
          * Staging lands from the idle slot, not through dispatch, so the
@@ -45,10 +49,15 @@ impl Store {
         crate::server::generation::bump();
     }
 
-    fn stage(&mut self, name: String, data: Vec<u8>) {
+    fn stage(&mut self, name: String, data: Vec<u8>, streamed: Option<Extent>) {
         if self.files.len() >= MAX_FILES || self.files.iter().any(|f| f.name == name) {
             return;
         }
-        self.files.push(File::new(name, data, false, 0));
+        let mut file = File::new(name, data, false, 0);
+        if streamed.is_some() {
+            file.mode = MODE_STREAMED;
+            file.streamed = streamed;
+        }
+        self.files.push(file);
     }
 }

@@ -35,7 +35,7 @@ impl Store {
         let base: i64 = match whence {
             SeekWhence::Set => 0,
             SeekWhence::Cur => pos as i64,
-            SeekWhence::End => self.files[file_idx].data.len() as i64,
+            SeekWhence::End => self.size_of(file_idx) as i64,
         };
         let target = base.checked_add(offset).ok_or(StoreError::Inval)?;
         if target < 0 || target > MAX_FILE_BYTES as i64 {

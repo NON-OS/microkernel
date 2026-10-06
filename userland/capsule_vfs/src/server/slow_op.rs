@@ -14,34 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod budget;
-mod chmod;
-mod close;
-mod copy;
-mod streamed;
-mod dirstat;
-mod install;
-mod journal;
-mod lookup;
-mod mkdir;
-mod new;
-mod open;
-mod packages;
-mod persist;
-mod query;
-mod read;
-mod reap;
-mod rename;
-mod rmdir;
-mod search;
-mod seed;
-mod seek;
-mod time;
-mod truncate;
-mod types;
-mod unlink;
-mod usage;
-mod write;
-mod zeroize;
+//! The line a slow handler leaves on the console.
 
-pub use types::{SeekWhence, Store, StoreError};
+use nonos_libc::mk_debug;
+
+/// A handler that outlives its caller's timeout turns every reply into a drop
+/// and reads as a dead service. Name the op and the cost.
+pub(super) fn report(op: u16, spent: i64) {
+    if spent <= 1000 {
+        return;
+    }
+    let mut line = *b"[VFS] slow op 0000 ms 000000";
+    for (i, shift) in [(14usize, 12u32), (15, 8), (16, 4), (17, 0)] {
+        line[i] = b"0123456789abcdef"[((op as usize) >> shift) & 0xF];
+    }
+    let ms = spent.min(999_999) as u32;
+    let mut v = ms;
+    for i in (22..28).rev() {
+        line[i] = b'0' + (v % 10) as u8;
+        v /= 10;
+    }
+    let _ = mk_debug(line.as_ptr(), line.len());
+}

@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
+use super::budget::{copy_of, grow};
 use super::types::{File, Store, StoreError, StoreResult, MAX_FILES, MAX_FILE_BYTES};
 
 impl Store {
@@ -49,7 +49,10 @@ impl Store {
         if self.files[idx].data.len() != offset {
             return Err(StoreError::Inval);
         }
-        self.files[idx].data.extend_from_slice(bytes);
+        let others = self.held_except(Some(idx));
+        let data = &mut self.files[idx].data;
+        grow(data, offset.saturating_add(bytes.len()), others)?;
+        data.extend_from_slice(bytes);
         self.files[idx].mtime = super::time::now_ms();
         Ok(())
     }
@@ -58,10 +61,11 @@ impl Store {
         if self.find(path).is_some() {
             self.unlink(path)?;
         }
-        if self.files.len() >= MAX_FILES {
+        if self.files.len() >= MAX_FILES || !self.may_name(owner, 1) {
             return Err(StoreError::Full);
         }
-        self.files.push(File::new(String::from(path), Vec::from(bytes), false, owner));
+        let data = copy_of(bytes, self.held_except(None))?;
+        self.files.push(File::new(String::from(path), data, false, owner));
         Ok(())
     }
 }
