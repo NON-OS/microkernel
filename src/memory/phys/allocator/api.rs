@@ -23,7 +23,7 @@ use super::{
 use crate::memory::addr::PhysAddr;
 use spin::Mutex;
 
-static ALLOCATOR: Mutex<AllocatorState> = Mutex::new(AllocatorState::new());
+pub(super) static ALLOCATOR: Mutex<AllocatorState> = Mutex::new(AllocatorState::new());
 
 pub fn phys_init_with_bitmap(
     managed_start: PhysAddr,

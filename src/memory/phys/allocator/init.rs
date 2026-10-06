@@ -45,6 +45,8 @@ pub fn init_with_bitmap(
     }
     state.frame_start = aligned_start;
     state.frame_count = frame_count;
+    /* Every frame is RAM until the boot map's holes are taken out. */
+    state.usable_frames = frame_count;
     state.bitmap_ptr = bitmap_ptr;
     state.bitmap_bytes = bitmap_bytes;
     state.next_hint = 0;
