@@ -113,3 +113,12 @@ The generic timer ticks every 10 ms and each tick calls the shared scheduler's `
 - The capsules that link the std platform layer, which issues system calls with x86_64 registers and does not cross-compile to aarch64 yet (`DESKTOP_STD_TOOL_ARTIFACTS`, `mk/20-build.mk:1072-1080`).
 - A firmware framebuffer. `init_arch_framebuffer` maps nothing on aarch64; the display comes up later as a virtio GPU (`src/kernel_core/init/entry/init_arch_framebuffer.rs:21-30`).
 - Checks for every profile. The flake's `profileChecks` type-check each profile against `x86_64-nonos.json` only (`tools/nix/checks.nix:174-193`).
+
+## See also
+
+- [Architectures](README.md)
+- [x86_64](x86_64.md)
+- [riscv64](riscv64.md)
+- [Boot handoff](../kernel/boot-handoff.md)
+- [IOMMU](../kernel/iommu.md)
+- [Make targets](../build/make-targets.md)
