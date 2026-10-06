@@ -130,3 +130,13 @@ After `init_core_systems`, `log_security_status` prints whether the kernel signa
 | `start_secondary_cpus` (`src/kernel_core/init/entry/microkernel_init.rs:85`) | starts every other CPU; see [scheduler and SMP](scheduler-and-smp.md) |
 
 Not every stage stops the boot. `init_core_services`, `init_vm_and_protection` and `init_extended_state` stop it on failure through `fatal`, which calls `boot::stop` for a [boot stop](../overview/glossary.md#boot-stop) (`src/kernel_core/init/entry/fatal.rs:19-22`). A missing boot nonce, an unarmed stack guard and a failed device routing step each print a warning and the boot goes on. A failed self test prints `[CRYPTO-POST] FAIL` with the primitive's name and the boot also goes on: `run_selftest` returns whether all four passed (`src/crypto/application/certification/selftest.rs:43-62`), and `microkernel_init` discards that answer (`src/kernel_core/init/entry/microkernel_init.rs:58`). The full list of steps that stop the boot is on [panic and boot stop](panic-and-boot-stop.md).
+
+## From init to the first capsule
+
+`microkernel_main` runs two refusals first (`src/kernel_core/init/entry/microkernel_main.rs:22-61`). If the person asked to install and the image has no installer, the boot stops with a notice. If the kernel's check of the bootloader refused it or had nothing to check, the boot stops with a notice. Both are on [panic and boot stop](panic-and-boot-stop.md).
+
+It then waits 2500 ms by `uptime_ms` so the boot log can be read (`src/kernel_core/init/entry/microkernel_main.rs:34`), creates the `init` process at `High` priority, gives it an address space and a kernel stack, and calls `run_init`.
+
+`run_init` applies the boot profile and spawns the capsules in a fixed order: the RAM file system, the core services that need it, the display core, the drivers, the virtual file system, the network, the desktop, the marketplace and the apps (`src/userspace/init/entry.rs:20-48`). Afterwards `init` lowers itself to `Low` priority and stays as the supervisor. Spawning is described on [processes and spawn](processes-and-spawn.md).
+
+The boot profile changes what starts. `network` is true only for Standard and Hardened, `minimal` only for Safe Mode, which then starts no audio driver and no optional app, and `skips_setup` only for Recovery (`src/boot/handoff/api/profile.rs:44-57`). The profiles themselves are on [boot modes](../install/boot-modes.md).
