@@ -155,3 +155,7 @@ A set of I/O page tables the remapping unit applies to the devices attached to i
 ## Kernel mirror
 
 The kernel module that carries one capsule, named by `CAPSULE_KERNEL_MIRROR` in its `Capsule.mk`, such as `src/hardware/virtio_rng_capsule` or `src/userspace/capsule_linux`. It embeds the capsule's four files with `include_bytes!` and spawns it through the spawn gate with the capabilities it offers. Explained in [Writing a driver](../drivers/writing-a-driver.md#11-the-kernel-mirror). Code: `nonos-mk/capsule.mk`, `src/hardware/virtio_rng_capsule/embed.rs`.
+
+## Linux personality
+
+The capsule `capsule_linux`, `app.linux`, which runs unmodified x86_64 Linux programs as guests and answers the Linux system calls the kernel hands it. It is the only capsule that holds ForeignExec, and it runs a program from the store only when the proof kept beside it verifies. Explained in [The Linux personality](../userland/linux-personality.md). Code: `userland/capsule_linux/Capsule.mk`.
