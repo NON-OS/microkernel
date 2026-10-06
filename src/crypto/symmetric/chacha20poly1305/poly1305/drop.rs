@@ -14,31 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::chacha20::secure_zero_bytes;
 use super::types::Poly1305;
+use crate::crypto::constant_time::{compiler_fence, volatile_write};
 
 impl Drop for Poly1305 {
     fn drop(&mut self) {
-        // SAFETY: Volatile writes ensure zeroing of sensitive cryptographic state.
-        unsafe {
-            core::ptr::write_volatile(&mut self.h0, 0);
-            core::ptr::write_volatile(&mut self.h1, 0);
-            core::ptr::write_volatile(&mut self.h2, 0);
-            core::ptr::write_volatile(&mut self.h3, 0);
-            core::ptr::write_volatile(&mut self.h4, 0);
-            core::ptr::write_volatile(&mut self.r0, 0);
-            core::ptr::write_volatile(&mut self.r1, 0);
-            core::ptr::write_volatile(&mut self.r2, 0);
-            core::ptr::write_volatile(&mut self.r3, 0);
-            core::ptr::write_volatile(&mut self.r4, 0);
-            core::ptr::write_volatile(&mut self.s1, 0);
-            core::ptr::write_volatile(&mut self.s2, 0);
-            core::ptr::write_volatile(&mut self.s3, 0);
-            core::ptr::write_volatile(&mut self.s4, 0);
-            core::ptr::write_volatile(&mut self.buffer_len, 0);
-        }
-        secure_zero_bytes(&mut self.s);
-        secure_zero_bytes(&mut self.buffer);
-        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+        volatile_write(&mut self.h, [0; 3]);
+        volatile_write(&mut self.r, [0; 3]);
+        volatile_write(&mut self.pad, [0; 2]);
+        volatile_write(&mut self.buffer, [0; 16]);
+        volatile_write(&mut self.buffer_len, 0);
+        compiler_fence();
     }
 }

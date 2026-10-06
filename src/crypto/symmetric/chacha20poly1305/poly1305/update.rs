@@ -14,106 +14,60 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::core::{HIBIT, M42, M44};
 use super::types::Poly1305;
 
 impl Poly1305 {
     pub(crate) fn update(&mut self, mut data: &[u8]) {
         if self.buffer_len > 0 {
-            let need = 16 - self.buffer_len;
-            let take = core::cmp::min(need, data.len());
+            let take = core::cmp::min(16 - self.buffer_len, data.len());
             self.buffer[self.buffer_len..self.buffer_len + take].copy_from_slice(&data[..take]);
             self.buffer_len += take;
             data = &data[take..];
-
             if self.buffer_len == 16 {
-                let buf_copy = self.buffer;
-                self.block(&buf_copy, 1 << 24);
+                let full = self.buffer;
+                self.blocks(&[full], HIBIT);
                 self.buffer_len = 0;
             }
         }
-
-        while data.len() >= 16 {
-            self.block(&data[..16], 1 << 24);
-            data = &data[16..];
-        }
-
-        if !data.is_empty() {
-            self.buffer[..data.len()].copy_from_slice(data);
-            self.buffer_len = data.len();
+        let (full, rest) = data.as_chunks::<16>();
+        self.blocks(full, HIBIT);
+        if !rest.is_empty() {
+            self.buffer[..rest.len()].copy_from_slice(rest);
+            self.buffer_len = rest.len();
         }
     }
 
     pub(crate) fn finalize(&mut self) -> [u8; 16] {
         if self.buffer_len > 0 {
-            let mut block = [0u8; 16];
-            block[..self.buffer_len].copy_from_slice(&self.buffer[..self.buffer_len]);
-            block[self.buffer_len] = 1;
-            self.block(&block, 0);
+            let mut last = [0u8; 16];
+            last[..self.buffer_len].copy_from_slice(&self.buffer[..self.buffer_len]);
+            last[self.buffer_len] = 1;
+            self.blocks(&[last], 0);
         }
-
-        let mut c = self.h1 >> 26;
-        self.h1 &= 0x3ffffff;
-        self.h2 = self.h2.wrapping_add(c);
-        c = self.h2 >> 26;
-        self.h2 &= 0x3ffffff;
-        self.h3 = self.h3.wrapping_add(c);
-        c = self.h3 >> 26;
-        self.h3 &= 0x3ffffff;
-        self.h4 = self.h4.wrapping_add(c);
-        c = self.h4 >> 26;
-        self.h4 &= 0x3ffffff;
-        self.h0 = self.h0.wrapping_add(c * 5);
-        c = self.h0 >> 26;
-        self.h0 &= 0x3ffffff;
-        self.h1 = self.h1.wrapping_add(c);
-
-        let mut g0 = self.h0.wrapping_add(5);
-        c = g0 >> 26;
-        g0 &= 0x3ffffff;
-        let mut g1 = self.h1.wrapping_add(c);
-        c = g1 >> 26;
-        g1 &= 0x3ffffff;
-        let mut g2 = self.h2.wrapping_add(c);
-        c = g2 >> 26;
-        g2 &= 0x3ffffff;
-        let mut g3 = self.h3.wrapping_add(c);
-        c = g3 >> 26;
-        g3 &= 0x3ffffff;
-        let g4 = self.h4.wrapping_add(c).wrapping_sub(1 << 26);
-
-        let mask = ((g4 >> 31) as u32).wrapping_sub(1);
-        let mask = !mask;
-
-        self.h0 = (self.h0 & mask) | (g0 & !mask);
-        self.h1 = (self.h1 & mask) | (g1 & !mask);
-        self.h2 = (self.h2 & mask) | (g2 & !mask);
-        self.h3 = (self.h3 & mask) | (g3 & !mask);
-        self.h4 = (self.h4 & mask) | (g4 & !mask);
-
-        let h0 = self.h0;
-        let h1 = self.h1;
-        let h2 = self.h2;
-        let h3 = self.h3;
-        let h4 = self.h4;
-
-        let mut f = [0u8; 16];
-        let t = h0 | (h1 << 26);
-        f[0..4].copy_from_slice(&(t as u32).to_le_bytes());
-        let t = (h1 >> 6) | (h2 << 20);
-        f[4..8].copy_from_slice(&(t as u32).to_le_bytes());
-        let t = (h2 >> 12) | (h3 << 14);
-        f[8..12].copy_from_slice(&(t as u32).to_le_bytes());
-        let t = (h3 >> 18) | (h4 << 8);
-        f[12..16].copy_from_slice(&(t as u32).to_le_bytes());
-
-        let mut tag = [0u8; 16];
-        let mut carry = 0u16;
-        for i in 0..16 {
-            let v = f[i] as u16 + self.s[i] as u16 + carry;
-            tag[i] = v as u8;
-            carry = v >> 8;
+        let [mut h0, mut h1, mut h2] = self.h;
+        /*
+         * Two carry passes leave h fully reduced below 2^130 with each limb
+         * in range; then h - p is computed and kept, by mask, only when it
+         * does not borrow, so h ends below p = 2^130 - 5.
+         */
+        for _ in 0..2 {
+            h2 += h1 >> 44;
+            h1 &= M44;
+            h0 += (h2 >> 42) * 5;
+            h2 &= M42;
+            h1 += h0 >> 44;
+            h0 &= M44;
         }
-
-        tag
+        let g0 = h0 + 5;
+        let g1 = h1 + (g0 >> 44);
+        let g2 = (h2 + (g1 >> 44)).wrapping_sub(1 << 42);
+        let keep_g = (g2 >> 63).wrapping_sub(1);
+        h0 = (h0 & !keep_g) | (g0 & M44 & keep_g);
+        h1 = (h1 & !keep_g) | (g1 & M44 & keep_g);
+        h2 = (h2 & !keep_g) | (g2 & keep_g);
+        let h = (h0 as u128).wrapping_add((h1 as u128) << 44).wrapping_add((h2 as u128) << 88);
+        let pad = (self.pad[0] as u128) | ((self.pad[1] as u128) << 64);
+        h.wrapping_add(pad).to_le_bytes()
     }
 }
