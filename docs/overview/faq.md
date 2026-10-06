@@ -13,3 +13,11 @@ The Linux personality runs x86_64 Linux programs in processes that hold no NONOS
 ## Keeping files
 
 By default nothing is kept: every boot is amnesic until the person chooses to install in first-boot setup. On a live stick, files saved during that boot live in a [data volume](glossary.md#data-volume) held in RAM, and they are gone at power off. After an install to a disk, kept files live in an encrypted data volume on that disk, keyed by the machine's TPM or by a passphrase. See [Files](../using/files.md) and [Install to disk](../install/install-to-disk.md).
+
+## Hardware NONOS runs on
+
+NONOS 0.9.2 builds images for x86_64 computers. Drivers are written for device classes and chips, and the [support matrix](../hardware/MATRIX.md) lists each class and chip with its PCI or USB id.
+
+One machine has a maintainer report for these items: Wi-Fi on the Realtek RTL8821CE (PCI `10ec:c821`, from `userland/capsule_driver_rtl8821ce/src/constants/mod.rs`) for scan, join, DHCP, DNS and browser traffic; the local Qwen model offline; the Linux programs sh, python3, sqlite3 and john; the installer writing to an internal NVMe disk and booting from it; the I2C-HID touchpad on the Intel LPSS I2C controller (PCI `8086:31ac` to `8086:31ba`, even device ids only, from `userland/capsule_driver_i2c_pci/src/constants/device_info.rs`); the PS/2 keyboard with its layouts; Intel HD Audio (PCI class `0x0403`, from `userland/capsule_driver_hda/src/discover/candidate.rs`); the power button and the volume keys. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+To add a machine of your own, see [Report a machine](../hardware/report.md).
