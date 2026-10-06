@@ -105,3 +105,11 @@ Unmodified Linux programs run as guests of the [Linux personality](../overview/g
 - [libc and the Rust runtimes](libc.md): `nonos_libc`, `nonos_runtime`, the SDK, the toolkit and `std`.
 - [IPC services](ipc-services.md): service names, ports and message formats.
 - [The Linux personality](linux-personality.md): which Linux calls are served, which are refused, and why.
+
+## See also
+
+- [Architecture in one diagram](../overview/architecture.md)
+- [Processes and capsule spawn](../kernel/processes-and-spawn.md)
+- [Capsule isolation](../security/capsule-isolation.md)
+- [Writing a driver](../drivers/writing-a-driver.md)
+- [Tests and proofs](../contributing/tests-and-proofs.md)
