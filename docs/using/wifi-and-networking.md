@@ -134,3 +134,7 @@ When a network cannot be remembered, the reason is one of: `This boot keeps noth
 Plug in a cable. There is nothing to configure. About once a second (`REEVAL_INTERVAL_MS`, 1000 ms, in `userland/capsule_net_core/src/server/runner/run.rs:29`), `net.core` looks for a network card whose link is up, binds to it and starts DHCP. Its candidates are the Wi-Fi drivers first, then the wired ones (`WIFI_NICS` and `WIRED_NICS` in `userland/capsule_net_core/src/setup/candidates.rs:24-38`).
 
 The `e1000e` and `igc` driver capsules are in the source tree, but no 0.9.2 image carries them: no kernel profile embeds them (`src/hardware/`, `Cargo.toml`). See [Intel Ethernet](../drivers/ethernet/intel.md).
+
+## USB tethering and USB Ethernet
+
+Not available in 0.9.2 images. `net.core` lists the `cdc_ecm`, `cdc_ncm`, `rndis`, `ax88179` and `rtl8153` drivers among its candidates (`WIRED_NICS`, same file), and the drivers are in `userland/`, but no kernel profile embeds them. A phone sharing its connection over USB, or a USB Ethernet adapter, is not used. See [USB networking](../drivers/ethernet/usb-net.md).
