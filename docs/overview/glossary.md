@@ -19,3 +19,7 @@ Any CPU other than the boot CPU. On x86_64 the boot CPU starts each one in the l
 ## Attestation
 
 Evidence that what runs is what was enrolled. The loader checks the kernel's trailer before the jump, the kernel checks the loader against the boot-root record, and the spawn gate checks every capsule's trailer; the kernel records each running capsule's measurement and the root that vouched for it, which a holder of `AttestRead` can read. About's Proofs screen shows each part as Holds, Broken or Unknown, and never draws Unknown as a pass. Explained in [STARK attestation](../security/stark-attestation.md#who-checks-them). Code: `src/security/attest_registry/mod.rs`, `userland/capsule_about/src/about/data/proofs/session.rs`.
+
+## Attestation trailer
+
+<a id="trailer"></a>The proof a capsule, the kernel or the loader carries that its measurement fills a slot of an enrolled tree: a Merkle path and a STARK proof of the same slot, in a v4 container with the magic `NATTV4`. For a capsule the measurement is the BLAKE3 hash of its ELF, bound to its manifest's required capabilities, and an empty or refused trailer ends the spawn with `AttestationRejected`. The seal writes one for every capsule, the kernel and the loader; a development image's trailers carry the path alone. Explained in [STARK attestation](../security/stark-attestation.md#the-trailer). Code: `nonos-attest-path/src/v4/layout.rs`, `src/kernel_core/process_spawn/capsule_spawn/runner/attest_gate.rs`.
