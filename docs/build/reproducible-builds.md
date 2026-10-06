@@ -24,3 +24,13 @@ The sealed image still traces back to the source. The seal's last check rebuilds
 | the devcontainer | the Debian base image by digest, and Nix 2.34.6 by the sha256 of its installer (`NIX_INSTALLER_SHA256`, `.devcontainer/Dockerfile:6-27`) |
 
 Every `Cargo.lock` that uses STARKs must name the commit `flake.lock` pins, or the `starks-pin` check fails (`starks`, `tools/nix/checks.nix:274-276`).
+
+## How the build keeps the host out
+
+- Each cargo build runs in Nix's sandbox, offline and `--frozen`, against a vendor directory that holds exactly its lock's crates (`setup`, `tools/nix/vendor.nix:194-208`).
+- A rustc wrapper rewrites every build path it would write into a binary to `/cargo`, `/rust` or `/nonos`, so the bytes do not depend on where the build ran (`rustcWrapper`, `tools/nix/vendor.nix:185-192`).
+- Every artifact carries the commit's time, never the clock's: `SOURCE_DATE_EPOCH` is the flake's `lastModified` (`epoch`, `tools/nix/image.nix:34-35`).
+- The kernel's build script asks git for the commit; in the sandbox a small shim answers with the commit the flake was evaluated at (`gitShim`, `tools/nix/image.nix:23-32`).
+- Nix's fixup phase is turned off, so nothing strips or patches a NONOS binary after it is built (`dontFixup`, `tools/nix/rustbuild.nix:1-4`).
+- Every C file built into the kernel or a capsule goes through the one pinned clang, and the Linux userland through the pinned Zig, so no host compiler reaches an artifact (`llvm`, `tools/nix/pins.nix:20-27`).
+- The FAT volume serial and every timestamp on the [ESP](../overview/glossary.md#esp), the USB image and the ISO are fixed values (`IMAGE_DATE`, `tools/nonos_seal/media.py:45-47`).
