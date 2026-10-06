@@ -31,17 +31,12 @@ allow = [
     "AGPL-3.0",                      # this crate
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
-    "BSD-2-Clause",
     "BSD-3-Clause",
     "CC0-1.0",
-    "ISC",
     "MIT",
     "MIT-0",
-    "MPL-2.0",
     "Unicode-3.0",
-    "Unicode-DFS-2016",
     "Unlicense",
-    "Zlib",
 ]
 confidence-threshold = 0.93
 exceptions = []
