@@ -110,3 +110,7 @@ In 0x6000i, the image number is 0 for so-a0-gf-a0, 1 for so-a0-hr-b0, 2 for ty-a
 ## The older driver protocol
 
 The capsule also answers its own NIWF protocol, which carries the legacy firmware load path for the 7265, 8265, 9260 and AX200 families. Nothing drives that path at startup, and no other capsule in the tree sends this protocol. Once the SO radio owns the card, the three operations that write it are refused with `E_BUSY` (`userland/capsule_driver_iwlwifi/src/server/guard.rs:29-32`, `drives_card`).
+
+## Firmware
+
+The capsule links six files from `nonos-bootloader/firmware/intel/` with `include_bytes!`: 7265D-29, 8265-36, 9260-th-b0-jf-b0-46, cc-a0-77, so-a0-gf-a0-86 and so-a0-hr-b0-84 (`userland/capsule_driver_iwlwifi/src/firmware/blob.rs:17-28`, `include_bytes`). Only the last two are booted. They are Intel binaries from linux-firmware, under [the Intel licence](../../../nonos-bootloader/firmware/intel/LICENSE), not AGPL code. Adding the TY or MA image to the tree and to `gen3_blob` is what those two cards lack.
