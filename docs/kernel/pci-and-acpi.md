@@ -65,3 +65,7 @@ Config accesses go through one accessor that picks the mechanism: ECAM when a wi
 Functions behind an Intel VMD are the exception: the VMD module gives them a segment of their own and reaches their config space through the VMD's CFGBAR. Those functions never interrupt and their drivers poll, and their DMA reaches the IOMMU under the VMD's own requester id, which `dma_requester` reports (`src/drivers/pci/vmd/mod.rs:17-25`). [VMD](../drivers/storage/vmd.md) has the details.
 
 A driver capsule never reaches config space directly. It reads and writes it through `MkPciConfigRead` and `MkPciConfigWrite`, which the hardware broker limits to the first 256 bytes and to a short list of writable bits.
+
+## On other architectures
+
+On aarch64 the same PCI code reaches config space through ECAM, from the window the board describes at boot, and the I2C and GPIO controllers come from the device tree instead of ACPI, which is why `seed_hardware_broker` calls `register_acpi_i2c` on x86_64 only (`src/kernel_core/init/platform/hardware_broker.rs:31-38`). Those builds are previews; see [aarch64](../architectures/aarch64.md).
