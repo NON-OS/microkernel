@@ -149,3 +149,7 @@ Two crates in this tree are older or separate. `stark-attest` is the v3-era engi
 - Freshness by epoch. `POLICY_EPOCH` and `BOOT_EPOCH` are both 1 (`src/security/capsule_attest/layout.rs:17-18`, `nonos-boot-measure/src/gate/membership.rs:23-24`); a new root at each enrollment does that work. See [Rollback protection](rollback-protection.md).
 
 The path check rests on Poseidon's collision resistance, and the proof's soundness is the STARKs repository's claim. No proof in this tree covers either.
+
+## Development images
+
+A development image takes trailers that are the path alone. The flake adds the kernel feature `nonos-dev-attest` to a profile with `dev` set, gives that profile the `dev-qemu` loader, and refuses `nonos-dev-attest` with any other loader (`tools/nix/config.nix:142-168`). The kernel refuses to compile it beside `nonos-release` with a `compile_error` (`src/lib.rs:43-47`). Its capsule gate prints `[ZK-ATTEST] development image: paths only, no STARK proofs, never a release` once, in `dev_path` (`src/security/capsule_attest/path.rs:56-86`). The seal sets `NONOS_ENROLL_PATHS` for such an image and refuses to seal it as a release (`tools/nonos_seal/__main__.py:119-130`).
