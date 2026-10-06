@@ -38,10 +38,16 @@ pub mod hid;
 pub mod i2c_client;
 #[path = "../../capsule_driver_i2c_hid/src/input/mod.rs"]
 pub mod input;
+/// The request wire the server loop reads with: the header decode every frame
+/// passes before dispatch, and the reply encoder a refusal is answered with.
+#[path = "../../capsule_driver_i2c_hid/src/protocol/mod.rs"]
+pub mod protocol;
 #[path = "../../capsule_driver_i2c_hid/src/setup.rs"]
 pub mod setup;
-#[path = "../../capsule_driver_i2c_hid/src/state.rs"]
+#[path = "../../capsule_driver_i2c_hid/src/state/mod.rs"]
 pub mod state;
 
+#[cfg(test)]
+mod request_refusal_tests;
 #[cfg(test)]
 mod tests;
