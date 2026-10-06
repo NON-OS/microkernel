@@ -21,7 +21,10 @@
 //! aarch64 in a vector page that `VBAR_EL1` points at; both amount to the
 //! same question and neither is answerable from shared code.
 
-/// Whether the trap vectors are installed and unmodified.
+/// Whether the trap vectors are installed. On x86_64 this asks the
+/// `arch::x86_64::idt` table, which the boot path never loads (the live IDT
+/// is `interrupts::idt`), and only reports whether it was initialized, so
+/// the answer there is false and no entry is compared.
 ///
 /// `false` is a finding, not an error: the caller reports it rather than
 /// acting on it.
