@@ -21,19 +21,26 @@ from pathlib import Path
 
 CARGO = Path("Cargo.toml")
 BASELINE = Path("scripts/baselines/dark-features.txt")
-LANE_FILES = ["Makefile", "mk", ".github/workflows"]
+LANE_FILES = ["Makefile", "mk", ".github/workflows", "tools/nix"]
 SRC = Path("src")
 
 FEATURE_LINE = re.compile(r'^\s*([A-Za-z0-9_-]+)\s*=\s*\[([^\]]*)\]', re.M | re.S)
 CFG_SITE = re.compile(r'feature\s*=\s*"([A-Za-z0-9_-]+)"')
 FLAG = re.compile(r'--features[ =]+([^\s\\]+)')
 BUILD_CALL = re.compile(r'\$\(call nonos_kernel_build,[^,]*,([^)]*)\)')
-VARIABLE = re.compile(r'\$\([^)]*\)|\$\{\{[^}]*\}\}')
+VARIABLE = re.compile(r'\$\([^)]*\)|\$\{\{[^}]*\}\}|\$\{[^}]*\}')
 # A workflow matrix hands cargo its feature string through an expression, so
 # the values live in the list under `features:` rather than on the command
 # line. Items are `- a,b` lines until the indentation drops back.
 # A matrix list may carry comment lines between its entries.
 MATRIX_LIST = re.compile(r'^(\s+)features:\s*\n((?:\1\s+(?:-\s+[A-Za-z0-9_,-]+|#.*)\s*\n)+)', re.M)
+# The flake's kernel feature checks (tools/nix/checks.nix) name their sets in
+# one Nix list: kernelFeatureSets = [ "a,b" "c" ];
+NIX_SETS = re.compile(r'kernelFeatureSets\s*=\s*\[([^\]]*)\]')
+# The flake's profiles (tools/nix/config.nix) name their kernel features in
+# `kernel = [ "a" "b" ];`, and add one by rule as `lib.optional (...) "name"`.
+NIX_KERNEL = re.compile(r'\bkernel\s*=\s*\[([^\]]*)\]')
+NIX_OPTIONAL = re.compile(r'lib\.optional\b[^\n]*\)\s*"([A-Za-z0-9_-]+)"')
 
 def features_table(text):
     """name -> features it enables, from the [features] section only."""
@@ -56,7 +63,9 @@ def lane_features(root):
             matrix = [item.split("-", 1)[1] for _, block in MATRIX_LIST.findall(text)
                       for item in block.split("\n")
                       if "-" in item and not item.lstrip().startswith("#")]
-            for m in FLAG.findall(text) + BUILD_CALL.findall(text) + matrix:
+            nix = [item for block in NIX_SETS.findall(text) + NIX_KERNEL.findall(text)
+                   for item in re.findall(r'"([^"]+)"', block)] + NIX_OPTIONAL.findall(text)
+            for m in FLAG.findall(text) + BUILD_CALL.findall(text) + matrix + nix:
                 for name in VARIABLE.sub("", m).split(","):
                     if name.strip():
                         names.add(name.strip())

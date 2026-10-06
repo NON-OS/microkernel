@@ -23,7 +23,11 @@ import os
 import platform
 import shlex
 
-IOMMU_OPTS = "intel-iommu,intremap=on,caching-mode=on"
+# The -device argument for each kind of IOMMU a cell can ask for.
+IOMMU_DEVICES = {
+    "intel-iommu": "intel-iommu,intremap=on,caching-mode=on",
+    "amd-iommu": "amd-iommu",
+}
 
 
 def accelerator(cell, requested):
@@ -43,6 +47,16 @@ def cpu_model(accel):
     return "host,+rdrand,+rdseed" if accel in ("kvm", "hvf") else "max"
 
 
+def usb_stick(argv, path, block):
+    """The stick on the xHCI controller the extra devices carry, or on one of
+    its own when they carry none."""
+    stick = "usb-storage,bus=xhci.0,drive=usbstick,removable=on"
+    if block != 512:
+        stick += f",logical_block_size={block},physical_block_size={block}"
+    controller = [] if any(a.startswith("qemu-xhci,id=xhci") for a in argv) else ["-device", "qemu-xhci,id=xhci"]
+    return controller + ["-drive", f"file={path},if=none,id=usbstick,format=raw", "-device", stick]
+
+
 def command(cell, paths, accel, serial_log, blk_copy, vars_copy):
     """The argv. `paths` carries qemu, esp per profile, ovmf and extra devices."""
     machine = cell.machine + (",kernel-irqchip=split" if cell.iommu else "")
@@ -52,11 +66,14 @@ def command(cell, paths, accel, serial_log, blk_copy, vars_copy):
         "-drive", f"format=raw,file=fat:rw:{paths.esp[cell.profile]}",
         "-drive", f"if=pflash,format=raw,readonly=on,file={paths.ovmf}",
         "-drive", f"if=pflash,format=raw,unit=1,file={vars_copy}",
-        "-drive", f"file={blk_copy},if=none,id=vd0,format=raw",
-        "-device", "virtio-blk-pci,drive=vd0",
     ]
+    if not cell.usb_block:
+        argv += ["-drive", f"file={blk_copy},if=none,id=vd0,format=raw",
+                 "-device", "virtio-blk-pci,drive=vd0"]
     if cell.iommu:
-        argv += ["-device", IOMMU_OPTS]
+        argv += ["-device", IOMMU_DEVICES[cell.iommu]]
     argv += shlex.split(paths.extra)
+    if cell.usb_block:
+        argv += usb_stick(argv, blk_copy, cell.usb_block)
     argv += ["-serial", f"file:{serial_log}", "-display", "none", "-no-reboot"]
     return argv

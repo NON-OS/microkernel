@@ -11,8 +11,10 @@ Current set, and why each is still here:
 
 - `SYS_FUTEX_WAKE` (MFTK): reached by the std PAL in the pinned rust-src,
   which lives outside this tree and is not scanned. Not dark.
-- `SYS_THREAD_SPAWN` (MTSP), `SYS_SET_TLS` (MSTB): the std PAL's thread
-  support is the intended consumer. Check the PAL before treating as dark.
+- `SYS_SET_TLS` (MSTB): the std PAL's thread support is the intended
+  consumer. Check the PAL before treating as dark. (`SYS_THREAD_SPAWN`,
+  MTSP, left the list when libc's `thread` module wrapped it for no_std
+  workers.)
 - `SYS_SPAWN` (MSPN): the kernel spawns capsules itself; userland goes
   through the installer and `SYS_SPAWN_INSTANCE`. Dark by design so far.
 - `SYS_STDOUT_WRITE` (MSOW): std uses `MkProcOutput`. Dark.
