@@ -30,20 +30,10 @@ $(QEMU_BLK_IMG):
 # re-pack on every mtime bump while still not ordering creation before packing.
 QEMU_BLK_STORE_STAMP := $(QEMU_BLK_IMG).store.stamp
 
-NONOS_MEDIA_DIR := media/samples
-NONOS_MEDIA_FILES := $(wildcard $(NONOS_MEDIA_DIR)/*)
-
-# The sample films are 6.8 MB of the 96 MiB the vfs loads. A guest-test image
-# leaves them out, keeping that budget for its guests and outside programs.
-ifneq ($(NONOS_LINUX_GUESTS),1)
-NONOS_STORE_MEDIA_ENTRIES := \
-	--entry /Movies/big_buck_bunny.avi=$(NONOS_MEDIA_DIR)/big_buck_bunny.avi \
-	--entry /Movies/blender_reel_2013.mp4=$(NONOS_MEDIA_DIR)/blender_reel_2013.mp4 \
-	--entry /Movies/caminandes_llamigos.avi=$(NONOS_MEDIA_DIR)/caminandes_llamigos.avi \
-	--entry /Movies/elephants_dream.avi=$(NONOS_MEDIA_DIR)/elephants_dream.avi \
-	--entry /Movies/sintel.avi=$(NONOS_MEDIA_DIR)/sintel.avi \
-	--entry /Movies/tears_of_steel.avi=$(NONOS_MEDIA_DIR)/tears_of_steel.avi
-endif
+# The image carries no sample films: they were taken out of the tree. The
+# store's media group stays, empty, so the seal and make declare the same
+# store (tools/nix/store.json).
+NONOS_STORE_MEDIA_ENTRIES :=
 
 # LINUX_GUEST_STORE_* are empty unless NONOS_LINUX_GUESTS=1 (userland/linux_guests/Guests.mk).
 # The demo capsules the desktop offers from the store. Grouped so the
@@ -82,7 +72,7 @@ $(NONOS_WALLPAPER_COLLECTION): tools/nonos-wallpaper-pack nonos-data/wallpapers/
 # NONOS_LINUX_GUESTS=1.
 NONOS_STORE_DEPS := $(std-proof_ARTIFACTS) $(gui_demo_ARTIFACTS) $(game_2048_ARTIFACTS) \
 	$(egui_proof_ARTIFACTS) $(LINUX_USERLAND_STORE_DEPS) $(LINUX_GUEST_STORE_DEPS) \
-	tools/nonos-store-pack $(NONOS_MEDIA_FILES) $(NONOS_WALLPAPER_COLLECTION)
+	tools/nonos-store-pack $(NONOS_WALLPAPER_COLLECTION)
 NONOS_STORE_ENTRIES = $(NONOS_STORE_DEMO_ENTRIES) $(NONOS_STORE_MEDIA_ENTRIES) \
 	$(NONOS_STORE_WALLPAPER_ENTRIES) $(LINUX_USERLAND_STORE_ENTRIES) $(LINUX_GUEST_STORE_ENTRIES)
 $(QEMU_BLK_STORE_STAMP): $(NONOS_STORE_DEPS) | $(QEMU_BLK_IMG)

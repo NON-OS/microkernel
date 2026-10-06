@@ -65,32 +65,7 @@
    "file": "nonos-data/trust/capsules/egui_proof.zk_trailer.bin"
   }
  ],
- "media": [
-  {
-   "path": "/Movies/big_buck_bunny.avi",
-   "file": "media/samples/big_buck_bunny.avi"
-  },
-  {
-   "path": "/Movies/blender_reel_2013.mp4",
-   "file": "media/samples/blender_reel_2013.mp4"
-  },
-  {
-   "path": "/Movies/caminandes_llamigos.avi",
-   "file": "media/samples/caminandes_llamigos.avi"
-  },
-  {
-   "path": "/Movies/elephants_dream.avi",
-   "file": "media/samples/elephants_dream.avi"
-  },
-  {
-   "path": "/Movies/sintel.avi",
-   "file": "media/samples/sintel.avi"
-  },
-  {
-   "path": "/Movies/tears_of_steel.avi",
-   "file": "media/samples/tears_of_steel.avi"
-  }
- ],
+ "media": [],
  "wallpapers": [
   {
    "path": "/Wallpapers/collection",
