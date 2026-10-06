@@ -85,3 +85,12 @@ python3 scripts/check_caps_abi.py
 - [Capabilities](capabilities.md): the 36 capability bits, what each admits, and the groups `abi/caps.toml` publishes.
 - [Broker](broker.md): the calls a driver makes to the device [broker](../overview/glossary.md#broker), the records they exchange, and the broker's constants.
 - [IPC](ipc.md): the IPC calls, the message envelope, the limits, and the well-known service ports.
+
+## See also
+
+- [Kernel syscalls](../kernel/syscalls.md)
+- [Kernel capabilities](../kernel/capabilities.md)
+- [The libc](../userland/libc.md)
+- [The Linux personality](../userland/linux-personality.md)
+- [The broker API for drivers](../drivers/broker-api.md)
+- [abi/syscalls.toml](../../abi/syscalls.toml)
