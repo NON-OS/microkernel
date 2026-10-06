@@ -16,6 +16,8 @@
 
 pub mod context;
 pub mod frame;
+pub mod publish;
 pub mod root;
 pub mod sl_pte;
+pub mod touched;
 pub mod walk;

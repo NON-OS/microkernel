@@ -18,3 +18,8 @@
 /// ceiling on a unit that is answering at all: past it the unit is treated as
 /// broken rather than waited on forever.
 pub const COMMAND_SPINS: u32 = 1_000_000;
+
+/// The same ceiling on the clock, for waits that read uptime. Linux allows
+/// a unit ten seconds (DMAR_OPERATION_TIMEOUT); a unit that has not answered
+/// in one has stopped, and a stalled boot says so sooner.
+pub const COMMAND_MS: u64 = 1000;

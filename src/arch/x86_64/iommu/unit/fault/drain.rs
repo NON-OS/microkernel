@@ -14,33 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::log::log_record;
+use super::budget::Budget;
+use super::count::count;
+use super::log::{log_hidden, log_overflow, log_record};
 use super::status::{clear_status, has_faults, overflowed};
 use super::take::take_fault;
 use crate::arch::x86_64::iommu::regs::cap;
-use crate::arch::x86_64::iommu::unit::report::probed;
-use crate::sys::serial;
+use crate::arch::x86_64::iommu::unit::probe::UnitInfo;
+use crate::arch::x86_64::iommu::unit::report::units;
 
-/// Drain every pending fault record to the console and return how many.
+/// Drain every pending fault record and return how many.
 ///
 /// A denial the operator cannot see is indistinguishable from a hang, so this
 /// is what makes enforcement diagnosable: a device that stops working under
-/// translation names itself here.
+/// translation names itself here. Every record is cleared, whether or not the
+/// budget lets it print, since a full set of records stops the unit recording.
 pub fn drain_faults() -> usize {
-    let Some(info) = probed() else {
-        return 0;
-    };
+    let mut budget = Budget::default();
+    let drained = units().iter().map(|info| drain_unit(info, &mut budget)).sum();
+    let total = count(drained);
+    if budget.hidden > 0 {
+        log_hidden(budget.hidden, total);
+    }
+    drained
+}
+
+fn drain_unit(info: &UnitInfo, budget: &mut Budget) -> usize {
     if !has_faults(&info.unit) {
         return 0;
     }
     if overflowed(&info.unit) {
-        serial::println(b"[VT-D] fault records overflowed; some denials were lost");
+        log_overflow(info.unit.base_pa());
     }
 
     let mut drained = 0;
     for index in 0..cap::fault_recording_count(info.cap) as usize {
         if let Some(record) = take_fault(&info.unit, info.cap, index) {
-            log_record(&record);
+            if budget.admit() {
+                log_record(&record);
+            }
             drained += 1;
         }
     }

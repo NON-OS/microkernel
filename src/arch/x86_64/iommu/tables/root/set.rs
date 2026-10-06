@@ -19,6 +19,7 @@ use crate::arch::x86_64::iommu::tables::context::{
     context_high, context_index, context_low, is_present,
 };
 use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::publish::publish;
 use crate::arch::x86_64::iommu::types::{DomainId, SourceId, VtdError};
 
 /// Point one device at a domain's second-level tables. `address_width` is the
@@ -38,5 +39,6 @@ pub fn set_context(
     }
     entries[slot + 1] = context_high(domain.as_u16(), address_width);
     entries[slot] = context_low(sl_root);
+    publish(table);
     Ok(())
 }

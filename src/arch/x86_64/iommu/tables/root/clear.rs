@@ -18,6 +18,7 @@ use super::context_table::slot_of;
 use super::table::root_table;
 use crate::arch::x86_64::iommu::tables::context::{context_index, entry_address, is_present};
 use crate::arch::x86_64::iommu::tables::frame::entries_mut;
+use crate::arch::x86_64::iommu::tables::publish::publish;
 use crate::arch::x86_64::iommu::types::{SourceId, VtdError};
 
 /// Deny a device again. The present bit goes first, so the device is denied
@@ -37,5 +38,6 @@ pub fn clear_context(source: SourceId) -> Result<(), VtdError> {
     }
     entries[slot] = 0;
     entries[slot + 1] = 0;
+    publish(table);
     Ok(())
 }

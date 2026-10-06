@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use super::super::types::MAX_VTD_DOMAINS;
+use super::state::{FIRST_DYNAMIC_DOMAIN_ID, STATE};
 
-use super::state::NEXT_DOMAIN_ID;
-
+/// The lowest free slot, or `MAX_VTD_DOMAINS` when none is, which
+/// `create_domain` refuses. A counter that never went back ran out after 256
+/// claims in one boot however many domains were live, and a driver restarted
+/// that often would then find every claim refused.
 pub fn allocate_domain_id() -> u64 {
-    NEXT_DOMAIN_ID.fetch_add(1, Ordering::SeqCst)
+    let state = STATE.lock();
+    let first = FIRST_DYNAMIC_DOMAIN_ID as usize;
+    (first..MAX_VTD_DOMAINS).find(|&i| !state.domains[i].used).unwrap_or(MAX_VTD_DOMAINS) as u64
 }

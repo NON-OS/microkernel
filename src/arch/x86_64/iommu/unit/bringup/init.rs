@@ -33,7 +33,15 @@ pub fn init() {
         return;
     }
     match bring_up() {
-        Ok(assigned) => verdict::enabled(assigned),
+        Ok(assigned) => {
+            verdict::enabled(assigned);
+            // Interrupt remapping needs each unit's queue, which bring-up
+            // started; without the feature the line says it is not built.
+            #[cfg(feature = "nonos-iommu-intremap")]
+            crate::arch::x86_64::iommu::remap::init();
+            #[cfg(not(feature = "nonos-iommu-intremap"))]
+            crate::sys::serial::println(b"[VT-D] IOMMU interrupt remapping not built in");
+        }
         Err(e) => verdict::failed(e),
     }
 }

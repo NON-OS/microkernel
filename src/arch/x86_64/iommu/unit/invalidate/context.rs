@@ -26,6 +26,7 @@ pub fn invalidate_context_global(unit: &RemapUnit) -> Result<(), VtdError> {
     // Table writes must be visible before the command that re-reads them, or
     // the unit refills from what it just dropped.
     compiler_fence(Ordering::SeqCst);
+    super::write_buffer::flush_write_buffer(unit)?;
     // SAFETY: eK@nonos.systems - discarding cached copies of entries this
     // module wrote cannot grant access.
     unsafe {

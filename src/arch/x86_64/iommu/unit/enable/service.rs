@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::firmware_remap::release_remapping;
+use super::invalidation::start_invalidation;
 use super::root_table::install_root_table;
 use super::translation::enable_translation;
 use crate::arch::x86_64::iommu::regs::offsets;
@@ -21,9 +23,11 @@ use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::access::RemapUnit;
 use crate::arch::x86_64::iommu::unit::invalidate::invalidate_all;
 
-/// Install, invalidate, enable. Refuses a unit firmware left enabled: its
-/// tables describe transfers already in flight, and swapping the root would
-/// fault DMA the kernel did not issue and cannot retry.
+/// Queue, install, invalidate, enable. The queue comes first so the
+/// invalidation after the root pointer already takes the path every later
+/// one will (Linux intel/iommu.c, init_dmars). Refuses a unit firmware left
+/// enabled: its tables describe transfers already in flight, and swapping the
+/// root would fault DMA the kernel did not issue and cannot retry.
 ///
 /// # Safety
 /// As `install_root_table`.
@@ -35,8 +39,11 @@ pub unsafe fn bring_into_service(
     if unit.read32(offsets::GSTS) & offsets::GSTS_TES != 0 {
         return Err(VtdError::FirmwareOwnsUnit);
     }
-    // SAFETY: eK@nonos.systems - the caller's promise about `root_phys`.
+    // SAFETY: eK@nonos.systems - the caller's promise about `root_phys`, and
+    // the unit is not translating yet, so its queue is this call's to start.
     unsafe {
+        release_remapping(unit);
+        start_invalidation(unit);
         install_root_table(unit, root_phys)?;
     }
     invalidate_all(unit, ecap)?;

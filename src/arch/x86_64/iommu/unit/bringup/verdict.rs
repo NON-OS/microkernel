@@ -20,34 +20,32 @@
 //! machine confines DMA without reading the source.
 
 use super::message::reason;
+use crate::arch::x86_64::acpi::parser::other::foreign_segment_units;
 use crate::arch::x86_64::iommu::globals::page_levels;
 use crate::arch::x86_64::iommu::types::VtdError;
 use crate::arch::x86_64::iommu::unit::fault::drain_faults;
 use crate::arch::x86_64::iommu::unit::probe::unit_count;
-use crate::sys::serial;
+use crate::sys::serial::{self, Line};
 
 pub(super) fn not_built_in() {
     serial::println(b"[VT-D] enforcement not built in; DMA is unrestricted");
 }
 
 /// Identity mapping does not confine a device that was enumerated; what it
-/// buys is that anything absent from the enumeration is denied. Said for one
-/// unit only, because one unit is all bring-up programs: where firmware
-/// reported several, devices behind the others still reach memory directly
-/// and an operator has to know that before trusting the machine.
+/// buys is that anything absent from the enumeration is denied. Every segment
+/// 0 unit is programmed; units on other segments are not, and an operator has
+/// to know that before trusting the machine.
 pub(super) fn enabled(assigned: usize) {
-    serial::print(b"[VT-D] translation enabled, levels=");
-    serial::print_hex(page_levels().unwrap_or(0) as u64);
-    serial::print(b" devices=");
-    serial::print_hex(assigned as u64);
-    serial::println(b"");
+    let mut line = Line::new();
+    line.str(b"[VT-D] translation enabled, levels=").hex(page_levels().unwrap_or(0) as u64);
+    line.str(b" devices=").hex(assigned as u64).end();
     serial::println(b"[VT-D] enumerated devices identity mapped; others denied");
-
-    let units = unit_count();
-    if units > 1 {
-        serial::print(b"[VT-D] WARNING units=");
-        serial::print_hex(units as u64);
-        serial::println(b"; only the first is programmed, the rest are unrestricted");
+    Line::new().str(b"[VT-D] units programmed=").hex(unit_count() as u64).end();
+    let foreign = foreign_segment_units();
+    if foreign > 0 {
+        let mut line = Line::new();
+        line.str(b"[VT-D] WARNING units on other segments=").hex(foreign as u64);
+        line.str(b"; not programmed, devices behind them are unrestricted").end();
     }
 
     // Anything recorded before this point came from firmware's own tables and
@@ -56,7 +54,7 @@ pub(super) fn enabled(assigned: usize) {
 }
 
 pub(super) fn failed(e: VtdError) {
-    serial::print(b"[VT-D] bring-up failed (");
-    serial::print(reason(e));
-    serial::println(b"); DMA is unrestricted");
+    let mut line = Line::new();
+    line.str(b"[VT-D] bring-up failed (").str(reason(e));
+    line.str(b"); DMA is unrestricted").end();
 }

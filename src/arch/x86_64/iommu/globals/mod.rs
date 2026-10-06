@@ -19,6 +19,7 @@ mod is_enforcing;
 mod is_present;
 mod page_levels;
 mod set_present;
+mod snoop_control;
 pub(super) mod state;
 
 pub use allocate_domain_id::allocate_domain_id;
@@ -26,3 +27,4 @@ pub use is_enforcing::{is_enforcing, set_enforcing};
 pub use is_present::is_present;
 pub use page_levels::{page_levels, set_page_levels};
 pub use set_present::set_present;
+pub use snoop_control::{set_snoop_control, snoop_control};

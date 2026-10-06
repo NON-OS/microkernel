@@ -25,3 +25,15 @@ pub const fn requires_write_buffer_flush(cap: u64) -> bool {
 pub const fn caching_mode(cap: u64) -> bool {
     cap & (1 << 7) != 0
 }
+
+/// ECAP.C: the unit snoops CPU caches on a table walk. When clear, a table
+/// write sits in a cache line the hardware never reads until it is flushed.
+pub const fn page_walk_coherent(ecap: u64) -> bool {
+    ecap & 1 != 0
+}
+
+/// CAP.PLMR or CAP.PHMR: the unit has protected memory regions, and PMEN is
+/// a register it implements.
+pub const fn has_protected_regions(cap: u64) -> bool {
+    cap & ((1 << 5) | (1 << 6)) != 0
+}
