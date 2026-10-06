@@ -63,3 +63,16 @@ An idle CPU halts and waits for the next tick. The idle-timer code records that 
 - If CPUID reports ARAT, the timer runs in every C-state and `hlt` is safe.
 - Otherwise, on Intel, it clears the C1E enable bit in `MSR_IA32_POWER_CTL`, `0x1FC` (`src/arch/x86_64/interrupt/apic/idle_timer/consts.rs:22-23`).
 - Otherwise `halt_safe` reports false and the idle loop spins instead of halting, which costs power and keeps the tick.
+
+## Wall clock and the time calls
+
+At boot `sys::clock` takes its epoch from the loader's UEFI time, else from the timer module's RTC reading, else from the RTC directly, through `resolve_epoch_ms` (`src/sys/clock/core/init.rs:39-47`). `unix_ms` is that epoch plus the elapsed time plus a correction offset (`src/sys/clock/core/time.rs:51-62`).
+
+| Call | Number | Returns |
+|---|---|---|
+| `MkTimeMillis` | `0x534D544D` | the wall clock in Unix milliseconds; -61 until the clock has a rate and an epoch |
+| `MkTimeMonotonic` | `0x4E4F4D4D` | milliseconds since boot, never adjusted, so it never goes backwards |
+| `MkTimeRtc` | `0x5452544D` | the RTC date and time as year, month, day, hour, minute, second; -61 with no RTC |
+| `MkTimeAdjust` | `0x4441544D` | sets the correction so the wall clock reads `correct_ms`; -22 for a value before 2025-01-01 or after 2100-01-01 |
+
+The numbers are the tags `SYS_TIME_MILLIS`, `SYS_TIME_MONOTONIC`, `SYS_TIME_RTC` and `SYS_TIME_ADJUST` (`src/syscall/microkernel/numbers.rs:44-47`). The handlers are `sys_time_millis`, `sys_time_monotonic`, `sys_time_rtc` and `sys_time_adjust` (`src/syscall/microkernel/time.rs:33-95`). The first three need only a valid token. `MkTimeAdjust` needs the `TimeSet` [capability](../overview/glossary.md#capability), checked by `can_set_time` (`src/syscall/contract/cap_table/mk.rs:80`, `abi/syscalls.toml:850-854`). The kernel has no network time client of its own; a [capsule](../overview/glossary.md#capsule) that holds `TimeSet` can correct the clock.
