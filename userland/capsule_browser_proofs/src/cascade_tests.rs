@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Known-answer proofs for CSS specificity, the heart of the cascade: which
 //! rule wins when two match. CSS 2.1 6.4.3 compares (ids, classes+attrs, tags)
 //! as a tuple, so a higher level always outranks any count at a lower one. The
@@ -14,7 +15,7 @@ fn spec(sel: &str) -> u32 {
     specificity(&list[0])
 }
 
-// Decode the packed value back into (ids, classes+attrs, tags).
+/* Decode the packed value back into (ids, classes+attrs, tags). */
 fn counts(sel: &str) -> (u32, u32, u32) {
     let s = spec(sel);
     ((s >> 20) & 0x3FF, (s >> 10) & 0x3FF, s & 0x3FF)
@@ -39,8 +40,8 @@ fn compound_and_chain_selectors_accumulate_per_level() {
 
 #[test]
 fn one_id_outranks_any_number_of_classes() {
-    // The tuple guarantee, and the exact bug a flattened id*100+class*10 scheme
-    // gets wrong: ten classes must NOT reach a single id.
+    /* The tuple guarantee, and the exact bug a flattened id*100+class*10 scheme
+     * gets wrong: ten classes must NOT reach a single id. */
     assert!(spec("#x") > spec(".a.b.c.d.e.f.g.h.i.j"), "one id beats ten classes");
     assert!(spec("#x") > spec(".a.b.c.d.e"), "and beats five");
 }

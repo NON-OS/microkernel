@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Known-answer proofs for attribute-selector matching and the nth-child An+B
 //! parser, driven through the real selector parser. These are the classic
 //! self-consistent-but-wrong sites: the CSS attribute operators (^= $= *= ~= |=)
@@ -7,7 +8,7 @@
 use crate::browser::css::parse::selectors::parse_selectors;
 use crate::browser::css::selector::Pseudo;
 
-// Parse "[...]" and test its single attribute operator against `have`.
+/* Parse "[...]" and test its single attribute operator against `have`. */
 fn attr_matches(sel: &str, have: &str) -> bool {
     let list = parse_selectors(sel);
     list[0].key.attrs[0].1.matches(have)
@@ -15,13 +16,13 @@ fn attr_matches(sel: &str, have: &str) -> bool {
 
 #[test]
 fn attribute_operators_match_per_the_spec() {
-    // ~=  whitespace-separated word
+    /* ~=  whitespace-separated word */
     assert!(attr_matches("[class~=btn]", "btn primary"));
     assert!(attr_matches("[class~=btn]", "btn"));
     assert!(!attr_matches("[class~=btn]", "btnx"), "not a substring match");
     assert!(!attr_matches("[class~=btn]", "primary"));
 
-    // ^=  prefix, $=  suffix, *=  substring
+    /* ^=  prefix, $=  suffix, *=  substring */
     assert!(attr_matches("[href^=https]", "https://x"));
     assert!(!attr_matches("[href^=https]", "http://x"));
     assert!(attr_matches("[href$=.png]", "a.png"));
@@ -29,17 +30,17 @@ fn attribute_operators_match_per_the_spec() {
     assert!(attr_matches("[title*=ell]", "hello"));
     assert!(!attr_matches("[title*=ell]", "world"));
 
-    // |=  exact or value-then-hyphen (the language operator)
+    /* |=  exact or value-then-hyphen (the language operator) */
     assert!(attr_matches("[lang|=en]", "en"));
     assert!(attr_matches("[lang|=en]", "en-US"));
     assert!(!attr_matches("[lang|=en]", "english"), "must be en or en-*, not a prefix");
     assert!(!attr_matches("[lang|=en]", "fr"));
 
-    // =  exact, case-sensitive
+    /* =  exact, case-sensitive */
     assert!(attr_matches("[type=text]", "text"));
     assert!(!attr_matches("[type=text]", "Text"));
 
-    // presence
+    /* presence */
     assert!(attr_matches("[data-x]", ""));
 }
 

@@ -1,4 +1,5 @@
 // NONOS Operating System (AGPL-3.0-or-later)
+#![cfg(test)]
 //! Known-answer proofs for URL resolution (RFC 3986 relative references). Every
 //! relative href/src/@import goes through join(); a wrong "../" or path merge
 //! silently points the browser at the wrong resource on every page.
@@ -12,9 +13,9 @@ fn resolved(base: &str, loc: &str) -> String {
 
 #[test]
 fn absolute_and_protocol_relative_references() {
-    // An absolute URL replaces the base entirely.
+    /* An absolute URL replaces the base entirely. */
     assert_eq!(resolved("http://ex.com/a/b", "https://other.com/x"), "https://other.com/x");
-    // A protocol-relative reference keeps the base scheme.
+    /* A protocol-relative reference keeps the base scheme. */
     assert_eq!(resolved("https://ex.com/a/b", "//cdn.com/x"), "https://cdn.com/x");
 }
 
