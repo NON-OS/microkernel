@@ -101,3 +101,12 @@ When a CPU changes a page table and another CPU has not acknowledged the flush a
 - If the machine has a serial port, the console has the full sequence before the stop. On a running Standard image the Terminal's `log` command shows the same lines; after a stop the Terminal is not running.
 - Try another [boot mode](../install/boot-modes.md). Safe Mode starts no network, no audio driver and no optional app.
 - Report the machine with the step text; see [report a machine](../hardware/report.md) and [troubleshooting](../install/troubleshooting.md).
+
+## See also
+
+- [Boot handoff](boot-handoff.md)
+- [Logging](logging.md)
+- [Memory and paging](memory-and-paging.md)
+- [Scheduler and SMP](scheduler-and-smp.md)
+- [Recovery](../install/recovery.md)
+- [Reporting a vulnerability](../security/reporting-a-vulnerability.md)
