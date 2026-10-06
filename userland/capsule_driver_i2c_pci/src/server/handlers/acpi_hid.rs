@@ -14,47 +14,64 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_list, DeviceRecord, BUS_KIND_ACPI};
+use nonos_libc::{mk_device_list, DeviceRecord};
 
+use crate::discover::touchpad_of;
 use crate::driver::Driver;
 use crate::protocol::{Request, E_OK};
 use crate::server::respond;
 
 const MAX_DEVICES: usize = 128;
-// Mirror of the kernel broker's I2C_HID class id.
-const CLASS_I2C_HID: u32 = 0x0041;
 
 /// Answer with the touchpad the kernel registered from ACPI: its I2C slave
-/// address, HID descriptor register, and GPIO pin, packed little-endian. When
-/// setup settled on a candidate address (the one that ACKed the probe on the
-/// bound bus), that record is preferred: multi-SKU firmware declares several
-/// pads and only one is fitted, so "the first record" can be a phantom. An
-/// empty body means the firmware declared none and the HID driver should probe.
+/// address, HID descriptor register, GPIO pin and interrupt facts (the
+/// kernel's HID_INFO bits), packed little-endian. When setup settled on a
+/// candidate address (the one that answered the probe on the bound bus), that
+/// record is answered, with the descriptor register the probe found the
+/// descriptor at: multi-SKU firmware declares several pads and only one is
+/// fitted, so "the first record" can be a phantom, and firmware that computes
+/// its `_DSM` at run time leaves the declared register a guess. An empty body
+/// means the firmware declared no addressable device and the HID driver
+/// scans the bus.
 pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, out: &mut [u8]) {
     let mut buf = [DeviceRecord::empty(); MAX_DEVICES];
     let n = mk_device_list(0, buf.as_mut_ptr(), MAX_DEVICES as u64);
     let count = if n > 0 { core::cmp::min(n as usize, MAX_DEVICES) } else { 0 };
-    let mut first: Option<&DeviceRecord> = None;
-    let mut matched: Option<&DeviceRecord> = None;
-    for r in &buf[..count] {
-        if r.bus_kind != BUS_KIND_ACPI || r.class != CLASS_I2C_HID || r.vendor == 0 {
-            continue;
-        }
+    let mut first = None;
+    let mut matched = None;
+    for tp in buf[..count].iter().filter_map(touchpad_of).filter(|tp| tp.addr != 0) {
         if first.is_none() {
-            first = Some(r);
+            first = Some(tp);
         }
-        if driver.bound_addr != 0 && (r.vendor & 0x7F) as u8 == driver.bound_addr {
-            matched = Some(r);
+        if driver.bound_addr != 0 && tp.addr == driver.bound_addr {
+            matched = Some(tp);
             break;
         }
     }
-    if let Some(r) = matched.or(first) {
-        let mut body = [0u8; 6];
-        body[0..2].copy_from_slice(&r.vendor.to_le_bytes());
-        body[2..4].copy_from_slice(&r.device.to_le_bytes());
-        body[4..6].copy_from_slice(&(r.irq_source as u16).to_le_bytes());
-        let _ = respond::send(sender_pid, req, E_OK, &body, out);
-        return;
+    let answer = match (matched, first) {
+        (Some(tp), _) => Some((tp, if driver.bound_desc_reg != 0 { driver.bound_desc_reg } else { tp.desc_reg })),
+        (None, _) if driver.bound_addr != 0 => None,
+        (None, Some(tp)) => Some((tp, tp.desc_reg)),
+        (None, None) => None,
+    };
+    match answer {
+        Some((tp, reg)) => {
+            let mut body = [0u8; 8];
+            body[0..2].copy_from_slice(&u16::from(tp.addr).to_le_bytes());
+            body[2..4].copy_from_slice(&reg.to_le_bytes());
+            body[4..6].copy_from_slice(&tp.gpio_pin.to_le_bytes());
+            body[6] = tp.info;
+            let _ = respond::send(sender_pid, req, E_OK, &body, out);
+        }
+        // A blind scan bound an address the firmware never declared.
+        None if driver.bound_addr != 0 => {
+            let mut body = [0u8; 8];
+            body[0..2].copy_from_slice(&u16::from(driver.bound_addr).to_le_bytes());
+            body[2..4].copy_from_slice(&driver.bound_desc_reg.max(1).to_le_bytes());
+            let _ = respond::send(sender_pid, req, E_OK, &body, out);
+        }
+        None => {
+            let _ = respond::send(sender_pid, req, E_OK, &[], out);
+        }
     }
-    let _ = respond::send(sender_pid, req, E_OK, &[], out);
 }

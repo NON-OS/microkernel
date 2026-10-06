@@ -13,16 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{IC_STATUS, IC_STATUS_MST_ACTIVITY, TIMEOUT_ITERS};
+use nonos_libc::Deadline;
+
+use crate::constants::{IC_STATUS, IC_STATUS_MST_ACTIVITY, IDLE_TIMEOUT_MS};
 use crate::regs::Regs;
 use crate::transaction::TransferError;
 
 pub fn wait_idle(regs: Regs) -> Result<(), TransferError> {
-    for _ in 0..TIMEOUT_ITERS {
+    let deadline = Deadline::after_ms(IDLE_TIMEOUT_MS);
+    loop {
         if regs.read32(IC_STATUS) & IC_STATUS_MST_ACTIVITY == 0 {
             return Ok(());
         }
+        if deadline.expired() {
+            return Err(TransferError::Busy);
+        }
         core::hint::spin_loop();
     }
-    Err(TransferError::Busy)
 }

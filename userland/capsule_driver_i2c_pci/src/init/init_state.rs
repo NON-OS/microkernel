@@ -14,20 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Controller bring-up: the LPSS wrapper, the DesignWare core checks, the
-//! SCL timing and the FIFO depths.
-
-mod bring_up;
-mod bus_setup;
-mod fifo;
-mod init_state;
-mod lpss_init;
-mod program_clock;
-pub mod scl;
-mod unlisted;
-
-pub use bring_up::bring_up;
-pub use bus_setup::BusSetup;
-pub use fifo::fifo_depths;
-pub use init_state::InitState;
-pub use unlisted::proves_lpss_i2c;
+#[derive(Clone, Copy)]
+pub struct InitState {
+    pub comp_type: u32,
+    pub comp_param: u32,
+    /// FIFO depths as the core reports them, in entries.
+    pub tx_depth: u32,
+    pub rx_depth: u32,
+    pub enabled: u32,
+    pub status: u32,
+}

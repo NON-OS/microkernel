@@ -15,14 +15,34 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use nonos_libc::{mk_device_list, DeviceRecord, BUS_KIND_ACPI};
 
-use super::defs::{AcpiTouchpad, CLASS_I2C_HID, MAX_DEVICES};
+use super::acpi_touchpad::AcpiTouchpad;
+use super::defs::{CLASS_I2C_HID, MAX_DEVICES};
+
+/// The touchpad entry a kernel I2C-HID record describes. The record layout
+/// is set by src/hardware/broker/acpi_i2c/hid_record.rs.
+pub fn touchpad_of(r: &DeviceRecord) -> Option<AcpiTouchpad> {
+    if r.bus_kind != BUS_KIND_ACPI || r.class != CLASS_I2C_HID {
+        return None;
+    }
+    let bar = r.bars[0];
+    Some(AcpiTouchpad {
+        addr: (r.vendor & 0x7F) as u8,
+        desc_reg: r.device,
+        controller_idx: r.pci_progif.checked_sub(1),
+        host_base: bar.base,
+        host_name: (bar.size as u32).to_le_bytes(),
+        speed_hz: bar.aux,
+        info: bar.flags,
+        gpio_pin: r.irq_source as u16,
+        gpio_community: r.irq_pin,
+    })
+}
 
 /// Collect every ACPI-declared i2c-HID device into `out`, returning how many
 /// were written. Firmware for a chassis with several possible pads (HP ships
 /// ELAN2513 and ELAN0712 variants of the same laptop) declares them all and
-/// gates the real one behind `_STA`, which this kernel does not evaluate — so
-/// the caller must treat each entry as a candidate and let the bus probe
-/// decide, never just the first record.
+/// gates the real one behind a `_STA` method the kernel cannot evaluate, so
+/// the caller treats each entry as a candidate and lets the bus probe decide.
 pub fn find_touchpad_addrs(out: &mut [AcpiTouchpad]) -> usize {
     let mut buf = [DeviceRecord::empty(); MAX_DEVICES];
     let n = mk_device_list(0, buf.as_mut_ptr(), MAX_DEVICES as u64);
@@ -34,11 +54,8 @@ pub fn find_touchpad_addrs(out: &mut [AcpiTouchpad]) -> usize {
         if count >= out.len() {
             break;
         }
-        if r.bus_kind == BUS_KIND_ACPI && r.class == CLASS_I2C_HID && r.vendor != 0 {
-            out[count] = AcpiTouchpad {
-                addr: (r.vendor & 0x7F) as u8,
-                controller_idx: r.pci_progif.checked_sub(1),
-            };
+        if let Some(tp) = touchpad_of(r) {
+            out[count] = tp;
             count += 1;
         }
     }

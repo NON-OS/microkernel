@@ -15,8 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub(super) const MAX_DEVICES: usize = 128;
 pub(super) const PCI_CLASS_SERIAL_BUS: u8 = 0x0c;
+pub(super) const PCI_CLASS_SIGNAL_PROC: u8 = 0x11;
+pub(super) const PCI_SUBCLASS_OTHER: u8 = 0x80;
 pub(super) const ACPI_LPSS_FAMILY: &str = "acpi-lpss";
+pub(super) const UNKNOWN_LPSS_FAMILY: &str = "Intel LPSS (unlisted id)";
 pub(super) const CLASS_I2C_HID: u32 = 0x0041;
+/// The broker's class for an ACPI GPIO community record.
+pub const CLASS_GPIO_CTRL: u32 = 0x0080;
 
 /// Upper bound on host controllers probed in one bring-up. Gemini Lake exposes
 /// eight LPSS I2C functions; other platforms fewer.
@@ -26,6 +31,9 @@ pub const MAX_CONTROLLERS: usize = 8;
 pub struct Found {
     pub device_id: u64,
     pub irq_line: u8,
+    /// Physical base of the MMIO window, which the LPSS remap register is
+    /// programmed with and an ACPI touchpad record names its controller by.
+    pub bar0_base: u64,
     pub bar0_size: u64,
     pub pci_device: u16,
     pub clock_hz: u32,
@@ -33,16 +41,11 @@ pub struct Found {
     pub is_acpi: bool,
 }
 
-/// An ACPI-declared HID device: its 7-bit I2C address, used to probe which
-/// controller actually answers it, and the controller index the firmware named
-/// in its `_CRS` ResourceSource (carried as index+1 in `pci_progif`, zero when
-/// unnamed).
-#[derive(Clone, Copy, Default)]
-pub struct AcpiTouchpad {
-    pub addr: u8,
-    pub controller_idx: Option<u8>,
+impl Found {
+    /// An Intel LPSS PCI function: it has the LPSS private register block
+    /// (reset, remap, capabilities) behind the DesignWare core. Platform
+    /// (ACPI) controllers such as AMD's AMDI0010 do not.
+    pub fn is_lpss(&self) -> bool {
+        !self.is_acpi
+    }
 }
-
-/// Upper bound on ACPI HID candidates considered. Multi-SKU firmware declares
-/// one device per possible pad; only the fitted one answers.
-pub const MAX_TARGETS: usize = 4;

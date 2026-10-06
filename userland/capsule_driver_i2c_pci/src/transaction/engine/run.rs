@@ -13,10 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::constants::{IC_DATA_CMD, IC_DATA_CMD_STOP, TIMEOUT_ITERS};
+use nonos_libc::Deadline;
+
+use crate::constants::{IC_DATA_CMD, IC_DATA_CMD_STOP};
 use crate::driver::Driver;
 use crate::transaction::{TransferError, TransferRequest, TransferResult};
 
+use super::budget::{budget_ms, in_flight, CLOCK_EVERY};
 use super::check_abort::check_abort;
 use super::done::done;
 use super::drain_rx::drain_rx;
@@ -30,7 +33,9 @@ pub fn run(driver: &Driver, req: TransferRequest<'_>) -> Result<TransferResult, 
     let mut out = TransferResult::empty();
     let total = req.write.len() + req.read_len;
     let (mut wi, mut ri, mut ci) = (0usize, 0usize, 0usize);
-    for _ in 0..TIMEOUT_ITERS {
+    let deadline = Deadline::after_ms(budget_ms(total));
+    let mut spins = 0u32;
+    loop {
         check_abort(regs, &mut out)?;
         drain_rx(regs, &mut out, &mut ri, req.read_len);
         while ci < total
@@ -59,12 +64,12 @@ pub fn run(driver: &Driver, req: TransferRequest<'_>) -> Result<TransferResult, 
             out.read_len = ri;
             return Ok(out);
         }
+        // The clock is a system call; reading it every few rounds keeps the
+        // bound in time without paying for it on every register poll.
+        spins = spins.wrapping_add(1);
+        if spins.is_multiple_of(CLOCK_EVERY) && deadline.expired() {
+            return Err(TransferError::Timeout);
+        }
         core::hint::spin_loop();
     }
-    Err(TransferError::Timeout)
-}
-
-/// Read commands issued whose bytes have not yet been drained.
-fn in_flight(req: &TransferRequest<'_>, ci: usize, ri: usize) -> u32 {
-    ci.saturating_sub(req.write.len()).saturating_sub(ri) as u32
 }

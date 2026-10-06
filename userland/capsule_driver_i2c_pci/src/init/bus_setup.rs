@@ -14,20 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Controller bring-up: the LPSS wrapper, the DesignWare core checks, the
-//! SCL timing and the FIFO depths.
-
-mod bring_up;
-mod bus_setup;
-mod fifo;
-mod init_state;
-mod lpss_init;
-mod program_clock;
-pub mod scl;
-mod unlisted;
-
-pub use bring_up::bring_up;
-pub use bus_setup::BusSetup;
-pub use fifo::fifo_depths;
-pub use init_state::InitState;
-pub use unlisted::proves_lpss_i2c;
+/// What bring-up needs to know about the controller beyond its registers.
+#[derive(Clone, Copy)]
+pub struct BusSetup {
+    /// DesignWare input clock in Hz, which the SCL counts derive from.
+    pub clock_hz: u32,
+    /// Physical base of the MMIO window when this is an Intel LPSS function
+    /// (it has the LPSS private block); None for a platform controller.
+    pub lpss_base: Option<u64>,
+    /// Run the bus in standard mode (100 kHz): a device on it declared a
+    /// ConnectionSpeed below fast mode.
+    pub standard_mode: bool,
+}

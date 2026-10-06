@@ -25,5 +25,33 @@ pub struct Driver {
     /// firmware-named fallback's address). Zero when setup had no ACPI
     /// candidates; the HID driver then scans the bus itself.
     pub bound_addr: u8,
+    /// The HID descriptor register the probe found the descriptor at, or the
+    /// firmware's declaration when nothing answered yet.
+    pub bound_desc_reg: u16,
+    /// The touchpad's interrupt line, sensed for interrupt-paced reads, when
+    /// the platform's GPIO layout is one this driver knows.
+    pub doorbell: Option<Doorbell>,
     pub regs: Regs,
+}
+
+/// The register holding the level of the touchpad's GpioInt pin.
+#[derive(Clone, Copy)]
+pub struct Doorbell {
+    pub regs: Regs,
+    pub cfg_offset: u64,
+    /// The bit of that register holding the raw line level: PADCFG0
+    /// GPIORXSTATE on Intel, PIN_STS on AMD.
+    pub level_bit: u32,
+    /// The line is asserted high (GpioInt ActiveHigh); i2c-HID pads are
+    /// almost always active low.
+    pub active_high: bool,
+}
+
+impl Doorbell {
+    /// True when register value `value` says a report waits: the level bit
+    /// is the line before any inversion (GPIORXSTATE, PIN_STS), so the
+    /// declared polarity decides which level is "asserted".
+    pub fn asserted(&self, value: u32) -> bool {
+        (value & self.level_bit != 0) == self.active_high
+    }
 }

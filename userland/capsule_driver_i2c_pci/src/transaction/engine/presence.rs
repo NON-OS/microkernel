@@ -13,21 +13,17 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! What a probe of one address on the bus found.
 
-//! Controller bring-up: the LPSS wrapper, the DesignWare core checks, the
-//! SCL timing and the FIFO depths.
-
-mod bring_up;
-mod bus_setup;
-mod fifo;
-mod init_state;
-mod lpss_init;
-mod program_clock;
-pub mod scl;
-mod unlisted;
-
-pub use bring_up::bring_up;
-pub use bus_setup::BusSetup;
-pub use fifo::fifo_depths;
-pub use init_state::InitState;
-pub use unlisted::proves_lpss_i2c;
+/// What an address probe found.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Presence {
+    /// Nothing acknowledged the address.
+    Absent,
+    /// A device acknowledged, but no register it was asked for read back as
+    /// an HID descriptor: present, possibly still waking, possibly not HID.
+    Acked,
+    /// A 30-byte HID descriptor (wHIDDescLength 30, bcdVersion 1.00) came
+    /// back from one of the registers tried.
+    HidDescriptor(u16),
+}

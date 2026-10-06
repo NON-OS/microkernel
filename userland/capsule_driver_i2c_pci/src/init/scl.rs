@@ -67,8 +67,11 @@ pub fn fs_spklen(clk_hz: u32) -> u32 {
     (clk_hz / 10_000_000).max(1)
 }
 
+/// IC_SDA_HOLD: SDA held 300 ns after SCL falls when transmitting (bits
+/// 15:0), and one input clock when receiving (bits 23:16), the receive hold
+/// Linux i2c_dw_set_sda_hold adds when firmware leaves it zero.
 pub fn sda_hold(clk_hz: u32) -> u32 {
     const HOLD_NS: u64 = 300;
     let ticks = (clk_hz as u64).saturating_mul(HOLD_NS) / 1_000_000_000;
-    ticks.clamp(1, u16::MAX as u64) as u32
+    ticks.clamp(1, u16::MAX as u64) as u32 | (1 << crate::constants::IC_SDA_HOLD_RX_SHIFT)
 }

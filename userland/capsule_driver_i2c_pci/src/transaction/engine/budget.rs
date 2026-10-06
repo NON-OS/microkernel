@@ -13,21 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The two sums a transfer is run by: how long it may take, and how many
+//! read commands are out whose bytes have not been drained.
 
-//! Controller bring-up: the LPSS wrapper, the DesignWare core checks, the
-//! SCL timing and the FIFO depths.
+use crate::constants::{TRANSFER_BASE_MS, TRANSFER_PER_KIB_MS};
+use crate::transaction::TransferRequest;
 
-mod bring_up;
-mod bus_setup;
-mod fifo;
-mod init_state;
-mod lpss_init;
-mod program_clock;
-pub mod scl;
-mod unlisted;
+/// Rounds of the poll loop between two reads of the clock.
+pub const CLOCK_EVERY: u32 = 16;
 
-pub use bring_up::bring_up;
-pub use bus_setup::BusSetup;
-pub use fifo::fifo_depths;
-pub use init_state::InitState;
-pub use unlisted::proves_lpss_i2c;
+/// Milliseconds a transfer of `bytes` may take before it is a timeout.
+pub fn budget_ms(bytes: usize) -> u64 {
+    TRANSFER_BASE_MS + (bytes as u64 * TRANSFER_PER_KIB_MS).div_ceil(1024)
+}
+
+/// Read commands issued whose bytes have not yet been drained.
+pub fn in_flight(req: &TransferRequest<'_>, ci: usize, ri: usize) -> u32 {
+    ci.saturating_sub(req.write.len()).saturating_sub(ri) as u32
+}

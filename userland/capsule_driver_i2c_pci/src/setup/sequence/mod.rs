@@ -15,5 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod bring_up_one;
 mod run;
+mod say;
+mod unlisted_gate;
 
 pub use run::run;
+pub use say::say_no_controller;

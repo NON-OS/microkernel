@@ -14,20 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Controller bring-up: the LPSS wrapper, the DesignWare core checks, the
-//! SCL timing and the FIFO depths.
+use super::{bxt, layout};
+use crate::constants::{is_bxt_family, HID_INFO_GPIO};
+use crate::discover::AcpiTouchpad;
+use crate::driver::Doorbell;
 
-mod bring_up;
-mod bus_setup;
-mod fifo;
-mod init_state;
-mod lpss_init;
-mod program_clock;
-pub mod scl;
-mod unlisted;
-
-pub use bring_up::bring_up;
-pub use bus_setup::BusSetup;
-pub use fifo::fifo_depths;
-pub use init_state::InitState;
-pub use unlisted::proves_lpss_i2c;
+/// The touchpad's interrupt line as a register to read, or None when the
+/// firmware gave no GpioInt or its layout is not mapped (the HID driver
+/// then polls). Broxton keeps its own path: there each community is an
+/// ACPI device of its own and the pin is the pad index.
+pub fn doorbell(pci_device: u16, tp: &AcpiTouchpad) -> Option<Doorbell> {
+    if tp.info & HID_INFO_GPIO == 0 {
+        return None;
+    }
+    if is_bxt_family(pci_device) {
+        return bxt::doorbell(pci_device, tp);
+    }
+    layout::doorbell(tp)
+}
