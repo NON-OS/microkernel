@@ -22,11 +22,11 @@ dependencies = [
 
 [[package]]
 name = "nonos-abi"
-version = "0.1.0"
+version = "0.3.0"
 
 [[package]]
 name = "nonos-alloc"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "linked_list_allocator",
  "nonos-abi",
@@ -34,7 +34,7 @@ dependencies = [
 
 [[package]]
 name = "nonos-app"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "nonos-abi",
  "nonos-desktop",
@@ -46,11 +46,11 @@ dependencies = [
 
 [[package]]
 name = "nonos-cap"
-version = "0.1.0"
+version = "0.3.0"
 
 [[package]]
 name = "nonos-desktop"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "nonos-abi",
  "nonos-ipc",
@@ -59,32 +59,32 @@ dependencies = [
 
 [[package]]
 name = "nonos-font"
-version = "0.1.0"
+version = "0.2.0"
 
 [[package]]
 name = "nonos-ipc"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "nonos-abi",
 ]
 
 [[package]]
 name = "nonos-log"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "nonos-abi",
 ]
 
 [[package]]
 name = "nonos-panic"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "nonos-abi",
 ]
 
 [[package]]
 name = "nonos-runtime"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "nonos-abi",
  "nonos-alloc",
@@ -99,21 +99,21 @@ dependencies = [
 
 [[package]]
 name = "nonos-service"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "nonos-abi",
 ]
 
 [[package]]
 name = "nonos-surface"
-version = "0.1.0"
+version = "0.3.0"
 dependencies = [
  "nonos-abi",
 ]
 
 [[package]]
 name = "nonos-ui"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "nonos-abi",
  "nonos-font",
@@ -121,7 +121,7 @@ dependencies = [
 
 [[package]]
 name = "nonos-window"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "nonos-surface",
 ]

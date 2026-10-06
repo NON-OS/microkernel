@@ -30,6 +30,7 @@ pub(crate) const OP_CONNECT: u16 = 6;
 pub(crate) const OP_SEND: u16 = 7;
 pub(crate) const OP_RECV: u16 = 8;
 pub(crate) const OP_CLOSE: u16 = 9;
+pub(crate) const OP_CONNECT_HOST: u16 = 12;
 
 pub(crate) fn frame(op: u16, body: &[u8]) -> Vec<u8> {
     let mut f = Vec::with_capacity(HDR_LEN + body.len());

@@ -25,4 +25,4 @@ pub use ip::Ipv4Addr;
 pub use tosock::ToSocketAddrs;
 pub use v4::SocketAddrV4;
 
-pub(crate) use tosock::resolve;
+pub(crate) use tosock::{resolve, Target};

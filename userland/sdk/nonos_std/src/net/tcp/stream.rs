@@ -14,36 +14,82 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::io::{Read, Result, Write};
-use crate::net::addr::{resolve, ToSocketAddrs};
-use crate::net::socket::{Socket, KIND_STREAM};
+use alloc::format;
+
+use super::anyone::AnyoneStream;
+use crate::io::{Error, ErrorKind, Read, Result, Write};
+use crate::net::addr::{Target, ToSocketAddrs};
+use crate::net::socket::{Socket, KIND_MIXNET, KIND_STREAM};
+use crate::net::way::{way, Way};
+use crate::net::Route;
 
 pub struct TcpStream {
-    inner: Socket,
+    inner: Inner,
+}
+
+enum Inner {
+    Socket(Socket),
+    Anyone(AnyoneStream),
 }
 
 impl TcpStream {
+    /// Connect over the network the person chose (net/way.rs): a direct
+    /// socket on Direct, the Nym mixnet or the Anyone network otherwise, and
+    /// a name is looked up on this machine only on Direct.
     pub fn connect<A: ToSocketAddrs>(addr: A) -> Result<Self> {
-        let (ip, port) = resolve(addr)?;
-        let inner = Socket::open(KIND_STREAM)?;
-        inner.connect(ip, port)?;
+        let target = addr.target()?;
+        let inner = match way(Route::chosen()) {
+            Way::Direct => {
+                let (ip, port) = match target {
+                    Target::Addr(ip, port) => (ip, port),
+                    Target::Name(host, port) => {
+                        (crate::net::dns::resolve_host(&host)?.octets(), port)
+                    }
+                };
+                let socket = Socket::open(KIND_STREAM)?;
+                socket.connect(ip, port)?;
+                Inner::Socket(socket)
+            }
+            Way::Mixnet => {
+                let socket = Socket::open(KIND_MIXNET)?;
+                match target {
+                    Target::Addr(ip, port) => socket.connect(ip, port)?,
+                    Target::Name(host, port) => socket.connect_host(&host, port)?,
+                }
+                Inner::Socket(socket)
+            }
+            Way::Anyone(route) => {
+                let (host, port) = match target {
+                    Target::Addr([a, b, c, d], port) => (format!("{a}.{b}.{c}.{d}"), port),
+                    Target::Name(host, port) => (host, port),
+                };
+                Inner::Anyone(AnyoneStream::open(route, &host, port)?)
+            }
+            Way::Down(why) => return Err(Error::new(ErrorKind::Other, why)),
+        };
         Ok(Self { inner })
     }
 
     pub(crate) fn from_socket(inner: Socket) -> Self {
-        Self { inner }
+        Self { inner: Inner::Socket(inner) }
     }
 }
 
 impl Read for TcpStream {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
-        self.inner.recv(buf)
+        match &mut self.inner {
+            Inner::Socket(s) => s.recv(buf),
+            Inner::Anyone(s) => s.read(buf),
+        }
     }
 }
 
 impl Write for TcpStream {
     fn write(&mut self, buf: &[u8]) -> Result<usize> {
-        self.inner.send(buf)
+        match &mut self.inner {
+            Inner::Socket(s) => s.send(buf),
+            Inner::Anyone(s) => s.write(buf),
+        }
     }
 
     fn flush(&mut self) -> Result<()> {

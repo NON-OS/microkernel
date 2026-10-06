@@ -14,11 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod session;
-mod wire;
+//! Whether an input frame came from the input router. Any IPC-capable process
+//! can send to any pid's inbox, so the magic proves nothing; the sender the
+//! kernel recorded does.
 
-pub(crate) use session::{call, port};
-pub(crate) use wire::{
-    BODY_OFF, OP_ACCEPT, OP_BIND, OP_CLOSE, OP_CONNECT, OP_CONNECT_HOST, OP_LISTEN, OP_RECV,
-    OP_SEND, OP_SOCKET,
-};
+use core::sync::atomic::{AtomicU32, Ordering};
+
+static ROUTER_PID: AtomicU32 = AtomicU32::new(0);
+
+pub(super) fn from_router(sender: u32) -> bool {
+    let known = ROUTER_PID.load(Ordering::Acquire);
+    if known != 0 && known == sender {
+        return true;
+    }
+    // Looked up again before refusing, so a restarted router is followed.
+    let Some(pid) = nonos_service::owner(b"input_router") else {
+        return false;
+    };
+    ROUTER_PID.store(pid, Ordering::Release);
+    pid == sender
+}
