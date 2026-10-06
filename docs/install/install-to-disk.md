@@ -95,3 +95,7 @@ The store carries, in this order, while it has room: setup's answers and their m
 The data volume is the encrypted part. The installer clears its key header and zeroes its header ring, so the first boot from the disk keys the volume with the TPM and formats it (`userland/nonos_disk/src/lib.rs`).
 
 The installer is not a secure wipe. It first wipes the old partition tables and the kernel's markers, then writes the ESP, the zeroed header ring and key header, the store, the disk plan and the new tables, in that order (`userland/nonos_disk/src/session/queue.rs`). The rest of the data region is not overwritten: what the disk held there stays on it until the new volume writes over it. NONOS never reads those old bytes, but they are not destroyed.
+
+## How long it takes
+
+The write and the read-back move 2 MiB per step (`BUDGET` in `userland/capsule_install/src/install/job/work.rs`). The screen shows the percentage, the bytes and the rate the disk acknowledged, and the Done screen gives the write time in seconds (`userland/capsule_install/src/install/ui/screens/done.rs`). This release records no typical duration.
