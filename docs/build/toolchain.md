@@ -94,3 +94,7 @@ Not tested in this release.
 `make shell` runs `nix develop` (`shell`, `Makefile:104-105`). The shell carries the pinned Rust with its standard library layer, Zig, CMake, Python, clang and LLVM, QEMU, swtpm, the image tools (`xorriso`, `mtools`, `gptfdisk`, `dosfstools`), the signing and hashing tools (`osslsigncode`, `openssl`, `b3sum`), Node.js, `cargo-audit`, `cargo-deny`, `cargo-cyclonedx`, GNU make, git, jq and perl (`tools`, `tools/nix/shell.nix:14-49`). On Linux it adds `sbsigntool` and `tpm2-tools` (`linuxOnly`, `tools/nix/shell.nix:8`).
 
 It sets `NONOS_IN_FLAKE`, and points `OVMF` and `OVMF_VARS` at the firmware, so the make targets in `mk/` never search the host (`NONOS_IN_FLAKE`, `tools/nix/shell.nix:58-64`).
+
+## Hardware virtualization
+
+A QEMU boot uses KVM when `/dev/kvm` opens read and write, and the TCG emulator otherwise (`accel`, `tools/nonos_qemu/machine.py:26-36`). The runner would also pick the macOS hypervisor on an Intel Mac, but the flake does not evaluate on one. Apple silicon runs only arm64 guests in its hypervisor, so an x86_64 NONOS guest is emulated there, and `make doctor` says so (`doctor`, `Makefile:124-135`). Under TCG the runner gives each guest CPU its own host thread.
