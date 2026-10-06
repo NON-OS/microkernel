@@ -38,3 +38,20 @@ flowchart LR
 6. CI runs the workflows that [Review](review.md) lists.
 7. Review follows. Reviewers ask for evidence: a serial log, a failing proof, a diff.
 8. Merge. A maintainer merges the pull request.
+
+## Where code goes
+
+| Change | Where it goes |
+|---|---|
+| a kernel mechanism | `src/` |
+| a driver | `userland/capsule_driver_<name>/`, with its proof crate in `userland/<name>_proofs/` |
+| a service or a program | `userland/capsule_<name>/` |
+| a host test of shipping code | `userland/<name>_proofs/` |
+| a theorem | `verification/lean/`, or `verification/extraction/` for extracted code |
+| an ABI number or capability bit | `abi/` |
+
+The kernel does not host drivers. `src/drivers/` may hold only `pci`, `security` and `virtio_rng`, and the static checks fail on anything else (`unexpected_drivers`, `nonos-ci/run-static-checks.sh:179-190`). `src/services/` may hold only `caps`, `lifecycle` and `registry` (`unexpected_services`, `nonos-ci/run-static-checks.sh:363-371`). Every other service runs as a [capsule](../overview/glossary.md#capsule) in ring 3.
+
+Every directory under `userland/capsule_*` carries a non-empty `README.md` that states its contract, or `fail_with` marks the static checks failed (`nonos-ci/run-static-checks.sh:352-360`). A driver capsule's `README.md` must also carry sixteen named sections, an ASCII diagram in a `text` block, its `CAPSULE_REQUIRED_CAPS` mask and at least one of the broker calls it makes (`nonos-ci/run-static-checks.sh:198-244`). All 27 driver capsules meet that rule at this commit. [Writing a driver](../drivers/writing-a-driver.md) walks through one.
+
+Every driver capsule needs a proof crate named after it, apart from the two names that `ALIASES` maps to another crate (`scripts/check_driver_proofs.py:31-47`). At this commit `check_driver_proofs.py` reports 27 of 27 drivers with a proof crate.
