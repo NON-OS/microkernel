@@ -16,6 +16,7 @@
 
 //! GUIDs in the GPT on-disk form.
 
+mod nonos;
 mod text;
 mod value;
 

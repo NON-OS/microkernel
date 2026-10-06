@@ -15,14 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The partition table: a protective MBR, a primary header and entry array
-//! at the front of the disk, a backup pair at the end, and one partition.
+//! at the front of the disk, a backup pair at the end, and four partitions.
 
 mod entry;
 mod header;
-mod layout;
 mod mbr;
-mod write;
+mod names;
+mod probe;
+mod shape;
+mod table;
 
-pub use entry::PARTITION_NAME;
-pub use layout::{Layout, ESP_FIRST_LBA};
-pub use write::write_table;
+pub use probe::written_by_nonos;
+pub use shape::{ARRAY_SECTORS, FIRST_USABLE_LBA};
+pub use table::table;

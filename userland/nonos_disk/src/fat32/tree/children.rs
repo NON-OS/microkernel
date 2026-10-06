@@ -34,7 +34,7 @@ pub fn place_children<'a>(
         match child {
             Node::Dir { name, children } => {
                 let clusters =
-                    clusters_for(dir_slots_needed(children.len(), true) * 32, cluster_bytes);
+                    clusters_for(dir_slots_needed(children, true) * 32, cluster_bytes);
                 let first = *next;
                 *next += clusters;
                 runs.push(Run {
@@ -64,10 +64,11 @@ pub fn place_children<'a>(
     entries
 }
 
-/// Slots a directory needs: one per child, `.` and `..` except in the
-/// root, and one zero slot so a reader knows where the listing ends.
-pub fn dir_slots_needed(children: usize, has_dots: bool) -> usize {
-    children + if has_dots { 2 } else { 0 } + 1
+/// Slots a directory needs: each child's, `.` and `..` except in the root,
+/// and one zero slot so a reader knows where the listing ends.
+pub fn dir_slots_needed(children: &[Node<'_>], has_dots: bool) -> usize {
+    let named: usize = children.iter().map(|c| crate::fat32::dir::slots_for(c.name())).sum();
+    named + if has_dots { 2 } else { 0 } + 1
 }
 
 pub fn clusters_for(bytes: usize, cluster_bytes: usize) -> u32 {

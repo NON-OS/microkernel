@@ -18,8 +18,10 @@
 //! child. The caller pads to the run's length, and that zero tail is the
 //! terminator a reader stops at.
 
+use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 
+use super::long_name;
 use super::short_name::{encode as short_name, NameError};
 use super::slot::{slot, ATTR_ARCHIVE, ATTR_DIR};
 use crate::fat32::tree::{Content, Run};
@@ -42,11 +44,34 @@ pub fn encode(index: usize, runs: &[Run<'_>]) -> Result<Vec<u8>, NameError> {
         out.extend_from_slice(&slot(*b".          ", ATTR_DIR, 0, run.first_cluster, 0));
         out.extend_from_slice(&slot(*b"..         ", ATTR_DIR, 0, up, 0));
     }
+    /*
+     * FAT finds a name in any case, so two children that differ only in
+     * case are one name twice: two slots with the same short name, or a
+     * long name a driver resolves to whichever comes first.
+     */
+    let mut folded = BTreeSet::new();
+    if !entries.iter().all(|e| folded.insert(e.name.to_lowercase())) {
+        return Err(NameError::Duplicate);
+    }
+    /* Aliases are made unlike every short name in the directory. */
+    let mut taken: Vec<[u8; 11]> =
+        entries.iter().filter_map(|e| short_name(e.name).ok().map(|s| s.bytes)).collect();
     for e in entries {
-        let name = short_name(e.name)?;
         let attr = if e.is_dir { ATTR_DIR } else { ATTR_ARCHIVE };
         let cluster = runs[e.run].first_cluster;
-        out.extend_from_slice(&slot(name.bytes, attr, name.nt_flags, cluster, e.size));
+        match short_name(e.name) {
+            Ok(name) => out.extend_from_slice(&slot(name.bytes, attr, name.nt_flags, cluster, e.size)),
+            Err(NameError::Empty) => return Err(NameError::Empty),
+            Err(_) => {
+                let units = long_name::units(e.name)?;
+                let alias = long_name::alias(e.name, &taken);
+                taken.push(alias);
+                for s in long_name::encode(&units, &alias) {
+                    out.extend_from_slice(&s);
+                }
+                out.extend_from_slice(&slot(alias, attr, 0, cluster, e.size));
+            }
+        }
     }
     Ok(out)
 }

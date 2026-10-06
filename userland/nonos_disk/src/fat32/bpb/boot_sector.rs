@@ -39,7 +39,14 @@ pub fn boot_sector(geo: &Geometry, hidden_sectors: u64, volume_id: u32) -> Vec<u
     s[21] = 0xF8;
     s[24..26].copy_from_slice(&63u16.to_le_bytes());
     s[26..28].copy_from_slice(&255u16.to_le_bytes());
-    s[28..32].copy_from_slice(&(hidden_sectors as u32).to_le_bytes());
+    /*
+     * Hidden sectors is 32 bits wide, and the Microsoft FAT specification
+     * calls it generally relevant only to media seen through INT 13h, which
+     * a UEFI boot does not use. An ESP that starts past 2 TiB records the
+     * widest value rather than a truncated one.
+     */
+    let hidden = u32::try_from(hidden_sectors).unwrap_or(u32::MAX);
+    s[28..32].copy_from_slice(&hidden.to_le_bytes());
     s[32..36].copy_from_slice(&(geo.partition_sectors as u32).to_le_bytes());
     s[36..40].copy_from_slice(&geo.fat_sectors.to_le_bytes());
     // Ext flags 0: both FATs mirrored. Version 0.0. Root at cluster 2.

@@ -17,9 +17,9 @@
 //! An 8.3 name from a path component. The eleven bytes are upper case, as
 //! the format requires; the two lowercase flags in the slot's reserved byte
 //! are how a listing shows `kernel.bin` while every FAT driver still
-//! matches the path case-insensitively. A part in mixed case cannot be
-//! spelled without a long-name entry, and this writer refuses it instead of
-//! silently changing the name.
+//! matches the path case-insensitively. A name this cannot spell, too long
+//! or in mixed case, is written as a long name instead (`long_name`), never
+//! silently changed.
 
 use super::part::{part, LOWER_BASE, LOWER_EXT};
 
@@ -34,6 +34,8 @@ pub enum NameError {
     TooLong,
     BadChar,
     MixedCase,
+    /// Two children of one directory whose names differ only in case.
+    Duplicate,
 }
 
 pub fn encode(name: &str) -> Result<ShortName, NameError> {

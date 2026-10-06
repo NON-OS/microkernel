@@ -29,7 +29,7 @@ pub fn place_with<'a>(tree: &[Node<'a>], cluster_bytes: usize) -> Placed<'a> {
     let mut runs: Vec<Run<'a>> = Vec::new();
     // The root has no `.` and `..`, and its run is reserved before its
     // children so it is cluster 2, where the boot sector says it is.
-    let root_clusters = clusters_for(dir_slots_needed(tree.len(), false) * 32, cluster_bytes);
+    let root_clusters = clusters_for(dir_slots_needed(tree, false) * 32, cluster_bytes);
     runs.push(Run {
         first_cluster: 2,
         clusters: root_clusters,

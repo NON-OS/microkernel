@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Where a plan puts things, in sectors: the data area, each run, and the
-//! file runs the receipt and the read-back use.
+//! Where a plan puts the ESP's files, in sectors: the data area, each run,
+//! and the file runs the receipt lists.
 
 use alloc::vec::Vec;
 
@@ -26,14 +26,14 @@ use crate::writer::FileRun;
 impl<'a> Plan<'a> {
     /// The first sector of the data area, where cluster 2 begins.
     pub fn data_lba(&self) -> u64 {
-        data_lba(self.layout.esp_first_lba, &self.geometry)
+        data_lba(self.layout.esp.first, &self.geometry)
     }
 
     pub fn run_lba(&self, first_cluster: u32) -> u64 {
         self.data_lba() + (first_cluster as u64 - 2) * self.geometry.sectors_per_cluster as u64
     }
 
-    /// Where each file's bytes land, for the receipt and the read-back.
+    /// Where each file's bytes land, for the receipt.
     pub fn file_runs(&self) -> Vec<FileRun<'a>> {
         let mut files = Vec::new();
         for run in &self.placed.runs {

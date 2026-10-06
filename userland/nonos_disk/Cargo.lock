@@ -3,5 +3,32 @@
 version = 4
 
 [[package]]
+name = "fs_proofs_libc_shim"
+version = "0.1.0"
+
+[[package]]
 name = "nonos_disk"
+version = "0.1.0"
+dependencies = [
+ "fs_proofs_libc_shim",
+ "nonos_disk_map",
+ "nonos_hash",
+ "nonos_policy_proto",
+ "nonos_wallpapers",
+]
+
+[[package]]
+name = "nonos_disk_map"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_hash"
+version = "0.1.0"
+
+[[package]]
+name = "nonos_policy_proto"
+version = "0.3.0"
+
+[[package]]
+name = "nonos_wallpapers"
 version = "0.1.0"
