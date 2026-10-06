@@ -17,24 +17,34 @@
 //! The touchpad's "fresh report" doorbell: reply whether the pad's interrupt
 //! line is electrically active right now. An i2c-HID device holds the line
 //! active-low while an input report waits and releases it after the read, so
-//! sensing PADCFG0.GPIORXSTATE gives interrupt pacing without routing the
-//! interrupt: the HID driver reads the input register only while the line is
-//! asserted. Read-only; nothing to clear.
+//! sensing the pad's level (Intel PADCFG0.GPIORXSTATE, AMD PIN_STS) gives
+//! interrupt pacing without routing the interrupt: the HID driver reads the
+//! input register only while the line is asserted. Read-only; nothing to
+//! clear. `present` is zero when the platform layout is not mapped
+//! (setup/gpio), and the HID driver then polls.
 
-use crate::constants::GPIO_RXSTATE;
+use core::sync::atomic::{AtomicBool, Ordering};
+
+use nonos_libc::mk_debug;
+
 use crate::driver::Driver;
 use crate::protocol::{Request, E_OK};
 use crate::server::respond;
 
+/// Set once the line has been seen asserted, so the first ring is said once.
+static RANG: AtomicBool = AtomicBool::new(false);
+
 pub fn handle(driver: &Driver, sender_pid: u32, req: &Request, out: &mut [u8]) {
     let (present, fired) = match &driver.doorbell {
-        Some(db) => {
-            let level = db.regs.read32(db.cfg_offset) & GPIO_RXSTATE;
-            // Active-low: line pulled to ground = report waiting.
-            (1u32, u32::from(level == 0))
-        }
+        Some(db) => (1u32, u32::from(db.asserted(db.regs.read32(db.cfg_offset)))),
         None => (0u32, 0u32),
     };
+    // The first ring proves the pad and its polarity were found right; with
+    // no such line after a touch, i2c-hid is reading on its timer.
+    if fired == 1 && !RANG.swap(true, Ordering::Relaxed) {
+        let line = b"driver.i2c_pci: touchpad interrupt line rang for the first time\n";
+        let _ = mk_debug(line.as_ptr(), line.len());
+    }
     let mut body = [0u8; 8];
     body[0..4].copy_from_slice(&present.to_le_bytes());
     body[4..8].copy_from_slice(&fired.to_le_bytes());

@@ -26,3 +26,13 @@ pub const LPSS_PRIV_RESETS: u64 = LPSS_PRIV + 0x04;
 pub const LPSS_PRIV_RESETS_FUNC: u32 = 1 << 2;
 pub const LPSS_PRIV_RESETS_IDMA: u32 = 0x3;
 pub const LPSS_PRIV_RESETS_DEASSERT: u32 = LPSS_PRIV_RESETS_FUNC | LPSS_PRIV_RESETS_IDMA;
+// Intel LPSS private registers beyond the reset (intel_lpss_init_dev and
+// intel_lpss_set_remap_addr): the 64-bit remap address the integrated DMA
+// uses for the function's MMIO window, written low then high, and the
+// capabilities word whose type field tells I2C (0) from UART (1) and SPI (2).
+pub const LPSS_PRIV_REMAP_LO: u64 = LPSS_PRIV + 0x40;
+pub const LPSS_PRIV_REMAP_HI: u64 = LPSS_PRIV + 0x44;
+pub const LPSS_PRIV_CAPS: u64 = LPSS_PRIV + 0xFC;
+pub const LPSS_PRIV_CAPS_TYPE_SHIFT: u32 = 4;
+pub const LPSS_PRIV_CAPS_TYPE_MASK: u32 = 0xF;
+pub const LPSS_DEV_I2C: u32 = 0;

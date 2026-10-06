@@ -39,4 +39,5 @@ pub const IC_SDA_HOLD: u64 = 0x7C;
 pub const IC_TX_ABRT_SOURCE: u64 = 0x80;
 pub const IC_ENABLE_STATUS: u64 = 0x9C;
 pub const IC_COMP_PARAM_1: u64 = 0xF4;
+pub const IC_COMP_VERSION: u64 = 0xF8;
 pub const IC_COMP_TYPE: u64 = 0xFC;
