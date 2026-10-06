@@ -22,3 +22,29 @@ nvme: a controller that stops answering right after taking the host memory buffe
 futex: a waiter that returns because the word changed passes on a wake a waker already spent on it, so the waiter behind it is not left to its timeout [skip ci]
 rtl8153: the refusals of an RTL8156 and an RTL8153C name the chip instead of admitting unsupported work, so the stubs gate passes [skip ci]
 ```
+
+## The body
+
+The body says what was wrong, what the change does, and how it was checked, in that order, wrapped at about 72 columns.
+
+1. What was wrong, and when it is known, the commit that introduced it, by its short hash.
+2. What the change does: the files, the behaviour, and the log line it prints if it prints one.
+3. A last paragraph that starts with `Verified:` and lists what ran and its numbers: the proof crate and its test count, clippy, `tools/nix/inputs.py --check`, a build for the capsule target. When something was not run, the paragraph ends by naming it, as in "Not verified on hardware." or "Not verified: a boot."
+
+In the last 50 commits, 29 bodies carry a `Verified:` paragraph, 14 say what was not verified, and 23 name an earlier commit by its hash. One body in full:
+
+```
+rtl8153: the refusals of an RTL8156 and an RTL8153C name the chip instead of admitting unsupported work, so the stubs gate passes [skip ci]
+
+scripts/check_stubs.py (static-hygiene) flagged version.rs:45 and :47:
+the version check refused an RTL8156 and an RTL8153C with "not
+implemented". Neither is work this driver leaves undone: an RTL8156 is
+another chip (r8156_init), and the RTL8153C needs r8153c_init, which
+this driver does not carry. The refusals now say so: "an RTL8156, not
+an RTL8153" and "an RTL8153C, whose init this driver lacks". The check
+is unchanged; behaviour is unchanged, only the log text.
+
+Verified: check_stubs.py reports no rtl8153 site; rtl8153_proofs 27
+pass; cargo clippy -D warnings clean on rtl8153_proofs (--tests) and on
+capsule_driver_rtl8153 for x86_64-nonos-user; inputs.py --check passes.
+```
