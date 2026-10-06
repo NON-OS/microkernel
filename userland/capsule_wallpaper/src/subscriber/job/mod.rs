@@ -14,26 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::catalog_client::fetch_image;
-use crate::compositor_client::push_damage_commit;
-use crate::paint::{decode_jpeg, paint_image};
-use crate::state::Context;
+pub mod fetch;
+pub mod plan;
+pub mod worker;
 
-pub fn apply(ctx: &mut Context, index: u8) -> bool {
-    let catalog_port = match ctx.catalog_port {
-        Some(port) => port,
-        None => return false,
-    };
-    let bytes = match fetch_image(catalog_port, index as u32) {
-        Some(bytes) => bytes,
-        None => return false,
-    };
-    let img = match decode_jpeg(&bytes) {
-        Some(image) => image,
-        None => return false,
-    };
-    paint_image(ctx, &img);
-    let rid = ctx.issue_request_id();
-    let _ = push_damage_commit(ctx.compositor_port, rid, 0, 0, ctx.width, ctx.height);
-    true
-}
+pub use plan::{Outcome, Plan};

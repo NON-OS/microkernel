@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{FadeTimeline, Policy};
+use super::{Backoff, FadeTimeline, Policy};
+use crate::catalog_client::Download;
+use crate::subscriber::job::Plan;
 
 pub struct Context {
     pub compositor_port: u32,
@@ -22,6 +24,14 @@ pub struct Context {
     pub height: u32,
     pub stride: u32,
     pub backing_va: u64,
+    /// The backing, shared with the compositor under this handle.
+    pub surface_handle: u64,
+    /// The compositor said it has the surface in its scene.
+    pub registered: bool,
+    pub register_backoff: Backoff,
+    /// A picture painted and not yet committed to the compositor.
+    pub commit_pending: bool,
+    pub commit_backoff: Backoff,
     pub argb: u32,
     pub alpha: u8,
     pub policy: Policy,
@@ -29,7 +39,8 @@ pub struct Context {
     pub next_request_id: u32,
     pub policy_port: Option<u32>,
     pub catalog_port: Option<u32>,
-    pub applied_wallpaper: Option<u8>,
+    /// The chosen wallpaper: wanted, on the desktop, on its way.
+    pub plan: Plan<Download>,
     pub subscriber_ticks: u32,
 }
 

@@ -14,12 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::job::worker::{send, Sent};
+use super::say;
 use crate::state::Context;
 
-use super::blit_argb::blit_argb;
-use super::decode_jpeg::DecodedImage;
-
-// False when the image or the surface is malformed; the surface is then unchanged.
-pub fn paint_image(ctx: &Context, img: &DecodedImage) -> bool {
-    blit_argb(ctx.backing_va, ctx.stride, ctx.width, ctx.height, &img.pixels, img.width, img.height)
+/// Start the job the plan says is due, if any. Returns at once: the worker
+/// makes the catalog calls.
+pub fn start(ctx: &mut Context) {
+    let Some((index, kept)) = ctx.plan.begin() else {
+        return;
+    };
+    let Some(catalog_port) = ctx.catalog_port else {
+        say::failed(index, "finding the catalog");
+        ctx.plan.not_started(index, kept, true);
+        return;
+    };
+    match send(catalog_port, index, kept) {
+        Sent::Out => {}
+        Sent::Busy(kept) => ctx.plan.not_started(index, kept, false),
+        Sent::Refused(kept) => {
+            say::failed(index, "starting its worker");
+            ctx.plan.not_started(index, kept, true);
+        }
+    }
 }

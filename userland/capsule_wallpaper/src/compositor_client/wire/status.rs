@@ -3,7 +3,8 @@ use alloc::vec::Vec;
 use nonos_libc::mk_ipc_call_timeout;
 
 use super::{
-    build_request, reply::decode_status, BOOT_REPLY_TIMEOUT_MS, CALL_REPLY_TIMEOUT_MS, NCMP_HDR_LEN,
+    build_request, reply::decode_status, BOOT_REPLY_TIMEOUT_MS, CALL_REPLY_TIMEOUT_MS, ETIMEDOUT,
+    NCMP_HDR_LEN, TIMED_OUT,
 };
 
 pub(crate) fn call(
@@ -12,7 +13,7 @@ pub(crate) fn call(
     request_id: u32,
     payload: &[u8],
 ) -> Result<i32, &'static str> {
-    call_with_timeout(compositor_port, op, request_id, payload, CALL_REPLY_TIMEOUT_MS)
+    call_within(compositor_port, op, request_id, payload, CALL_REPLY_TIMEOUT_MS)
 }
 
 pub(crate) fn call_boot(
@@ -21,10 +22,11 @@ pub(crate) fn call_boot(
     request_id: u32,
     payload: &[u8],
 ) -> Result<i32, &'static str> {
-    call_with_timeout(compositor_port, op, request_id, payload, BOOT_REPLY_TIMEOUT_MS)
+    call_within(compositor_port, op, request_id, payload, BOOT_REPLY_TIMEOUT_MS)
 }
 
-fn call_with_timeout(
+/// A call given `timeout_ms` for its answer; `TIMED_OUT` when none came.
+pub(crate) fn call_within(
     compositor_port: u32,
     op: u16,
     request_id: u32,
@@ -42,5 +44,8 @@ fn call_with_timeout(
         rx.len(),
         timeout_ms,
     );
+    if rc == ETIMEDOUT {
+        return Err(TIMED_OUT);
+    }
     decode_status(&rx, op, request_id, rc)
 }

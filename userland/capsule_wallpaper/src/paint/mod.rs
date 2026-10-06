@@ -19,6 +19,6 @@ pub mod decode_jpeg;
 pub mod fill;
 pub mod paint_image;
 
-pub use decode_jpeg::decode_jpeg;
+pub use decode_jpeg::{decode_jpeg, DecodedImage};
 pub use fill::fill_argb;
 pub use paint_image::paint_image;

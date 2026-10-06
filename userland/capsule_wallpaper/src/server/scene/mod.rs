@@ -14,12 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::state::Context;
+mod commit;
+mod register;
 
-use super::blit_argb::blit_argb;
-use super::decode_jpeg::DecodedImage;
-
-// False when the image or the surface is malformed; the surface is then unchanged.
-pub fn paint_image(ctx: &Context, img: &DecodedImage) -> bool {
-    blit_argb(ctx.backing_va, ctx.stride, ctx.width, ctx.height, &img.pixels, img.width, img.height)
-}
+pub use commit::{keep_committed, request_commit};
+pub use register::{first_submit, keep_registered};
