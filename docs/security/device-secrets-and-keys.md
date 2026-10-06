@@ -62,3 +62,26 @@ The keyring capsule, `capsule_keyring`, stores key records for the capsules that
 - `drop_ended` wipes and drops the records of a process that has exited (`userland/capsule_keyring/src/store/ended.rs:32-42`).
 - The receive buffer is wiped with `wipe` after each request (`userland/capsule_keyring/src/server/runner.rs:52`).
 - The kernel-side keyring client refuses any caller without the `Keyring` bit, through `gate_caller` (`src/security/keyring_capsule/capability.rs:26-35`).
+
+## Sealed records
+
+`nonos_vault` seals a small record so it can be stored anywhere and opened only on the machine that sealed it.
+
+- The caller fetches the vault root, the machine key under `ROOT_LABEL`, `nonos.vault.root.v1`. `subkey` derives one key per record with HKDF-SHA256, using the label as salt and the record name as info (`userland/nonos_vault/src/derive.rs:23-50`). Recovering one record's key does not open another.
+- `seal` encrypts with ChaCha20-Poly1305 and refuses an all-zero nonce, which is what a dead entropy source returns (`userland/nonos_vault/src/seal.rs:34-56`).
+- The blob starts with `MAGIC`, `NONOSVLT`, and `VERSION` 2 in a 12-byte header that is also the associated data (`userland/nonos_vault/src/blob.rs:23-39`).
+- `open_with_key` writes nothing usable when the tag fails: it wipes the output (`userland/nonos_vault/src/open.rs:51-66`).
+
+Three records use it in this release:
+
+| Record | Sealed by | Under |
+|---|---|---|
+| `keyring.wallet.account` | the keyring, for the wallet's account key, as `RECORD` (`userland/capsule_keyring/src/vault/record.rs:25-27`) | the vault root |
+| `keyring.wallet.shield` | the keyring, for the wallet's recovery words, as `RECORD` (`userland/capsule_keyring/src/vault/shield.rs:16-28`) | the vault root |
+| `shield.store.file-key` | the Shield capsule, for its store's file key, as `RECORD` (`userland/capsule_shield/src/guard.rs:31-32`) | a key drawn for this boot |
+
+The wallet keeps the two keyring blobs under `/data`, as `VAULT_PATH` and `WORDS_PATH`, so they are persisted to the capsule store (`userland/capsule_wallet_nonos/src/wallet/vault/path.rs:19-29`). Only the wallet, in any of its three windows, may ask the keyring to seal or open either record: `dispatch` puts `OP_VAULT_SEAL`, `OP_VAULT_OPEN`, `OP_SHIELD_SEAL` and `OP_SHIELD_OPEN` behind the vault gate (`userland/capsule_keyring/src/server/dispatch.rs:55-60`), and `may_use_vault` checks the sender against `VAULT_HOLDERS` (`userland/capsule_keyring/src/server/vault_gate/rule.rs:28-37`). That rule is compiled into the `wallet_proofs` host tests as `vault_gate` (`userland/wallet_proofs/src/lib.rs:42-43`); at this commit the crate runs 184 tests and all pass.
+
+The Shield capsule never uses the vault root in this release. `open_with` sets `live` to true on every boot (`userland/capsule_shield/src/ops.rs:131-140`), so its store is kept in memory under `ROOT_LIVE`, `/run/shield` (`userland/capsule_shield/src/ops.rs:43`). `root` then wraps the file key under a key `session` draws once for the boot (`userland/capsule_shield/src/guard.rs:39-55`). The store is gone at reboot, and the recovery words open the account again.
+
+What a sealed record does not do, by design (`userland/nonos_vault/src/lib.rs`): it does not survive a firmware, bootloader or kernel change, because a moved PCR changes the root; and it does not stop rollback, because an older blob opens as well as a newer one. Keep the wallet's recovery phrase written down.
