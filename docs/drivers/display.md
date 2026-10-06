@@ -87,3 +87,13 @@ It is parked. It has no `Capsule.mk`, no Cargo feature and no kernel mirror, and
 - A GOP without a linear 32-bit framebuffer.
 - 3D. The virtio-gpu probe reports whether the host could, and no op uses it.
 - Backlight control.
+
+## See also
+
+- [README.md](README.md)
+- [broker-api.md](broker-api.md)
+- [../using/desktop.md](../using/desktop.md)
+- [../kernel/boot-handoff.md](../kernel/boot-handoff.md)
+- [../hardware/MATRIX.md](../hardware/MATRIX.md)
+- [UEFI specification](https://uefi.org/specifications)
+- [virtio specification](https://docs.oasis-open.org/virtio/virtio/v1.2/virtio-v1.2.html)
