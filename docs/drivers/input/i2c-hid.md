@@ -97,3 +97,12 @@ Both a tap and a clickpad press post button 1 (`publish_touch`, `userland/capsul
 - [Proof crates](../../overview/glossary.md#proof-crate) at commit bff12b97, all passing: `i2c_hid_proofs` runs both drivers' wire code against a modelled DesignWare core with a modelled touchpad (51 tests); `i2c_pci_proofs` holds the LPSS reset, the clocks and the id tables (35); `i2c_transfer_proofs` holds the transfer engine (26); `pinctrl_proofs` holds the GPIO layouts (13); `input_proofs` holds the gesture decoder (96).
 - The touchpad on Intel LPSS has one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
 - The AMD path and every other Intel family have not been run on hardware in this release.
+
+## See also
+
+- [Input drivers](README.md)
+- [PS/2 keyboard and mouse](ps2.md)
+- [Platform: GPIO and pinctrl](../platform.md)
+- [Broker API](../broker-api.md)
+- [Support matrix](../../hardware/MATRIX.md)
+- [Reporting a machine](../../hardware/report.md)
