@@ -16,6 +16,7 @@
 
 pub mod layout;
 pub mod operations;
+mod try_current;
 pub mod types;
 
 pub use types::{PerCpuData, ASID_NONE};
@@ -25,3 +26,4 @@ pub use operations::{
     init_ap, init_bsp, kernel_stack, leave_irq, percpu_random, set_active_asid,
     set_current_process, set_current_thread, set_kernel_stack,
 };
+pub use try_current::try_current;

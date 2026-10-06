@@ -17,7 +17,7 @@
 use super::cpu::{current_cpu, get_cpu};
 use super::state::CPUS_ONLINE;
 use super::types::CpuState;
-use crate::arch::interrupt_controller::{broadcast_ipi, send_ipi, Ipi};
+use crate::arch::interrupt_controller::{send_ipi, Ipi};
 use core::sync::atomic::Ordering;
 
 pub fn send_reschedule_ipi(cpu_id: usize) {
@@ -38,20 +38,23 @@ pub fn send_reschedule_ipi(cpu_id: usize) {
 /// queue rather than trusting the wake.
 pub fn wake_idle_cpu() {
     let me = super::cpu::cpu_id();
-    for id in 0..super::state::cpu_count() {
-        if id == me {
-            continue;
-        }
-        let Some(cpu) = get_cpu(id) else { continue };
-        if cpu.is_online() && cpu.idle.load(Ordering::Acquire) {
-            let _ = send_ipi(cpu.get_apic_id(), Ipi::Reschedule);
-            return;
+    // On a hybrid part an idle P-core is offered the work before an E-core.
+    let passes = if super::topology::is_hybrid() { 2 } else { 1 };
+    for pass in 0..passes {
+        for id in 0..super::state::cpu_count() {
+            if id == me || super::topology::core_kind(id).wake_pass() != pass {
+                continue;
+            }
+            let Some(cpu) = get_cpu(id) else { continue };
+            // Taken as well as read: the flag is cleared only once the halt
+            // returns, so wakes in a row all went to the same CPU while the
+            // others slept on until their tick.
+            if cpu.is_online() && cpu.idle.swap(false, Ordering::AcqRel) {
+                let _ = send_ipi(cpu.get_apic_id(), Ipi::Reschedule);
+                return;
+            }
         }
     }
-}
-
-pub fn send_panic_ipi() {
-    let _ = broadcast_ipi(Ipi::Panic);
 }
 
 pub fn handle_panic_ipi() -> ! {

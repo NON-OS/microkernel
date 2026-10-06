@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod core_kind;
+mod core_kind_record;
 pub mod detection;
 pub mod types;
 
+pub(crate) use core_kind_record::{core_kind, is_hybrid, record_core_kind};
 pub use types::{CpuInfo, CpuTopology, MAX_NUMA_NODES};
 
 pub use detection::{

@@ -22,9 +22,20 @@ nonos_ap_pmode:
     or      $((1<<8) | (1<<11)), %eax
     wrmsr
 
-    /* CR0.PG | CR0.WP | CR0.PE. */
+    /*
+     * INIT leaves CR0 at 0x60000010: CD and NW set, caching off for this
+     * AP for as long as nothing clears them, and with NW set snoops stop
+     * invalidating its lines. Nothing later cleared them, so every AP ran
+     * with CR0=0xe0010011 (read back live) beside a boot CPU at 0x80010033:
+     * on hardware that honours CD, uncached and many times slower through
+     * every masked stretch, and without NE, so x87 errors took the legacy
+     * FERR route instead of #MF. Write back and drop whatever the cache
+     * holds, then run cached, with NE and MP as the boot CPU has them.
+     */
+    wbinvd
     mov     %cr0, %eax
-    or      $((1<<31) | (1<<16) | (1<<0)), %eax
+    and     $~((1<<30) | (1<<29)), %eax
+    or      $((1<<31) | (1<<16) | (1<<5) | (1<<1) | (1<<0)), %eax
     mov     %eax, %cr0
 
     /* lgdt 64-bit, then far jump into 64-bit code segment 0x08. */
