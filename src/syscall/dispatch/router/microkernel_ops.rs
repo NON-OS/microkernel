@@ -13,11 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-use crate::syscall::{numbers::SyscallNumber, SyscallResult};
-
+pub(super) use super::microkernel_handle::handle;
+use crate::syscall::numbers::SyscallNumber::{self, *};
 pub(super) fn matches(nr: SyscallNumber) -> bool {
-    use SyscallNumber::*;
     matches!(
         nr,
         MkIpcSend
@@ -55,6 +53,12 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkAttestStatus
             | MkAttestDoc
             | MkAttestEntries
+            | MkLogTail
+            | MkAttestPolicy
+            | MkBootAttest
+            | MkDeviceSecret
+            | MkBootSlots
+            | MkEnroll
             | MkInstallSource
             | MkDevRootRequest
             | MkDevRootConfirm
@@ -81,12 +85,24 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkPioRelease
             | MkDebug
             | MkStdoutWrite
+            | MkPrivateWrite
             | MkStoreWrite
+            | MkStoreRead
+            | MkDataImport
+            | MkDataStat
+            | MkDataRead
+            | MkDataPassphrase
+            | MkDataFeedBegin
+            | MkDataFeed
+            | MkDataRemove
             | MkSpawnInstance
             | MkForeignSpawn
             | MkForeignStart
             | MkForeignWait
             | MkForeignReply
+            | MkForeignContext
+            | MkForeignSignal
+            | MkForeignInterrupt
             | MkPeerMap
             | MkPeerCopy
             | MkPeerProtect
@@ -99,21 +115,13 @@ pub(super) fn matches(nr: SyscallNumber) -> bool {
             | MkLocalVerify
             | MkAppInstall
             | MkDevRootLocal
+            | MkLocalConsent
+            | MkLocalRestore
+            | MkAppLaunch
+            | MkAppInstallStatus
+            | MkAppUninstall
             | MkToolRun
+            | MkTtySet
+            | MkTtyQuery
     )
-}
-
-pub(super) fn handle(
-    nr: SyscallNumber,
-    a0: u64,
-    a1: u64,
-    a2: u64,
-    a3: u64,
-    a4: u64,
-    a5: u64,
-) -> SyscallResult {
-    let value = crate::syscall::microkernel::dispatch_microkernel_syscall(
-        nr as u64, a0, a1, a2, a3, a4, a5,
-    );
-    SyscallResult { value, capability_consumed: false, audit_required: true }
 }

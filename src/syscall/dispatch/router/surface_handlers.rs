@@ -16,14 +16,16 @@
 
 use alloc::vec::Vec;
 
+use crate::kernel_core::surface_registry::pin::drop_attach::drop_attach;
 use crate::kernel_core::surface_registry::{
-    attach_map, attach_surface, lookup_attached_va, lookup_owned, register_surface,
-    release_surface, share_surface, wait_for_vsync, SurfaceDescriptor,
+    attach_map, attach_surface, lookup_attached_va, lookup_owned, register_surface, share_surface,
+    wait_for_vsync, SurfaceDescriptor,
 };
 use crate::memory::addr::{PhysAddr, VirtAddr};
 use crate::memory::paging::manager::api::translate_address;
 use crate::process::current_pid;
 use crate::syscall::dispatch::util::errno;
+use crate::syscall::microkernel::narrow::u32_arg;
 use crate::syscall::SyscallResult;
 use crate::usercopy::{read_user_value, validate_user_write, write_user_value};
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
@@ -182,8 +184,7 @@ pub(super) fn do_release(handle: u64) -> SyscallResult {
     if attach_map::lookup(pid, handle).is_none() {
         return errno(EPERM);
     }
-    attach_map::forget(pid, handle);
-    match release_surface(handle) {
+    match drop_attach(pid, handle) {
         Ok(n) => SyscallResult::success_audited(n as i64),
         Err(e) => errno(map_err(e)),
     }
@@ -211,7 +212,10 @@ pub(super) fn do_vsync_wait(display: u64) -> SyscallResult {
         None => return errno(ESRCH),
     };
     trace_surface(b"vsync", b"enter", pid);
-    match wait_for_vsync(display as u32, pid) {
+    let Some(display) = u32_arg(display) else {
+        return errno(EINVAL);
+    };
+    match wait_for_vsync(display, pid) {
         Ok(deadline) => {
             trace_surface(b"vsync", b"ok", pid);
             SyscallResult::success_audited(deadline as i64)

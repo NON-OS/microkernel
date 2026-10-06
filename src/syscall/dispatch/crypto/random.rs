@@ -22,7 +22,8 @@ use crate::syscall::SyscallResult;
 use crate::usercopy::copy_to_user;
 
 // User-facing CryptoRandom. CAP_CRYPTO at the syscall gate, then served from
-// the kernel's ChaCha generator, which the entropy capsule seeds and reseeds.
+// the ChaCha20 generator in entropy_capsule::fast, which the entropy capsule
+// seeds and reseeds (not crypto::rng's GLOBAL_RNG).
 // The capsule stays the root of the entropy story without sitting on the
 // per-call path: routing every request through its inbox as an IPC round trip
 // put millions of messages a minute onto one core, and the whole system,

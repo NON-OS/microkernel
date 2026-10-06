@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sys::policy::PolicyField;
+use crate::syscall::microkernel::narrow::u32_arg;
 
 use super::super::errno::E_INVAL;
 use super::bool_arg::push_bool_arg;
@@ -28,14 +29,14 @@ pub(in crate::syscall::dispatch::router::admin) fn policy_push(
     value_ptr: u64,
     value_len: u64,
 ) -> i64 {
-    let field = match PolicyField::from_u32(field_id as u32) {
+    let field = match u32_arg(field_id).and_then(PolicyField::from_u32) {
         Some(f) => f,
         None => return E_INVAL,
     };
-    match kind as u32 {
-        KIND_BOOL => push_bool_arg(field, value_ptr),
-        KIND_I8 => push_i8_arg(field, value_ptr),
-        KIND_STR => push_string_arg(field, value_ptr, value_len as usize),
+    match u32_arg(kind) {
+        Some(KIND_BOOL) => push_bool_arg(field, value_ptr),
+        Some(KIND_I8) => push_i8_arg(field, value_ptr),
+        Some(KIND_STR) => push_string_arg(field, value_ptr, value_len as usize),
         _ => E_INVAL,
     }
 }
