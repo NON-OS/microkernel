@@ -39,3 +39,11 @@ The guide for a person who uses NONOS every day: what each part of the desktop d
 - An app that does not open from the dock says why in a notice, for example `did not open: no window in 30 s`.
 - A silent machine says why in Settings, Sound. See [Sound and media](audio.md#when-nothing-plays).
 - For boot problems and hardware, see [Troubleshooting](../install/troubleshooting.md) and the [support matrix](../hardware/MATRIX.md).
+
+## See also
+
+- [Install NONOS](../install/README.md)
+- [First boot](../install/first-boot.md)
+- [What NONOS is](../overview/README.md)
+- [Hardware support matrix](../hardware/MATRIX.md)
+- [Report a machine](../hardware/report.md)
