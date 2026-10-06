@@ -17,3 +17,19 @@ The loader checks the kernel exactly as for a Standard boot, so a disk whose ker
 - Of the optional apps, only Files and the Editor are available, beside the Terminal and Settings every boot has (`src/userspace/init/app_choice/profile.rs`).
 - The Terminal's splash reads `NONOS, Recovery boot: no network` (`userland/capsule_terminal/src/paint/fetch_boot.rs`).
 - The [store](../overview/glossary.md#store) and the [data volume](../overview/glossary.md#data-volume) open as on any other boot of the same disk: the boot mode decides which programs start, not which storage is read (`src/fs/blockfs_volume/open_machine.rs`).
+
+## What you can do in Recovery
+
+Read the kernel log in the Terminal. `log` shows the newest 200 lines, `log` with words shows only the lines that name one of them, and `log >` keeps the lines in a file (`userland/capsule_terminal/src/command/builtin/log.rs`):
+
+```
+log
+log tpm data
+log > boot-log.txt
+```
+
+Not tested in this release.
+
+The log is there only on images built with capsule serial output, such as `standard` and `qemu`. A `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches` (`src/sys/serial/tail.rs`).
+
+Look through your files in Files and the Editor. On an installed system a file reaches the disk in one of two ways: a program keeps it in the store, for example with `nox keep` and the file's path in the Terminal (`userland/capsule_terminal/src/command/builtin/nox/keep.rs`), or it lives under `/data`, on the data volume, as models do. Files that were never kept lived in memory and are gone.
