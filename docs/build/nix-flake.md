@@ -118,3 +118,7 @@ python3 tools/nix/inputs.py --check
 Not tested in this release.
 
 The first line rewrites `tools/nix/inputs.json`; it does so whatever other argument it is given. Only `--check` compares without writing, and the `inputs` check runs exactly that (`main`, `tools/nix/inputs.py:390-402`).
+
+## The binary cache
+
+CI reads and fills a Cachix cache that the repository variable `NONOS_CACHIX` names. Only a push to the repository passes the `CACHIX_AUTH_TOKEN` that writes it, never a pull request, so no pull request can put a store path into the cache others read (`cachix-token`, `.github/workflows/verify.yml:53-58`). The reproducibility workflow builds with the cache turned off; the setup action's `use-cache` input defaults to `true` and that workflow passes `false` (`.github/actions/nix-setup/action.yml:19-22`).
