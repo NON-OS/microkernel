@@ -30,19 +30,21 @@
 //! nothing. Clearing the owner hierarchy changes the seed and every key with
 //! it, which is the documented way to make the data unrecoverable on purpose.
 
-mod consts;
-mod create;
-mod derive;
+pub(in crate::security::tpm) mod consts;
+pub(in crate::security::tpm) mod create;
+pub(in crate::security::tpm) mod derive;
 mod error;
-mod flush;
-mod hmac;
+pub(in crate::security::tpm) mod flush;
+pub(in crate::security::tpm) mod hmac;
+mod kernel_label;
 mod pcrs;
-mod policy;
-mod run;
-mod session;
-mod wire;
+pub(in crate::security::tpm) mod policy;
+pub(in crate::security::tpm) mod run;
+pub(in crate::security::tpm) mod session;
+pub(in crate::security::tpm) mod wire;
 
 pub use consts::LABEL_MAX;
 pub use derive::derive;
 pub use error::KeyError;
+pub use kernel_label::{derive_for_kernel, is_user_label};
 pub use pcrs::BOUND_PCRS;

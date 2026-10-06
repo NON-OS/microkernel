@@ -31,7 +31,7 @@ use super::error::KeyError;
 use super::pcrs::bitmap;
 use super::wire::{checked, digest_at, frame};
 
-pub(super) fn build_policy_pcr(session: u32, pcrs: &[u8]) -> Vec<u8> {
+pub(in crate::security::tpm) fn build_policy_pcr(session: u32, pcrs: &[u8]) -> Vec<u8> {
     let mut body = Vec::with_capacity(20);
     body.extend_from_slice(&session.to_be_bytes());
     /*
@@ -47,16 +47,16 @@ pub(super) fn build_policy_pcr(session: u32, pcrs: &[u8]) -> Vec<u8> {
     frame(TPM_ST_NO_SESSIONS, TPM_CC_POLICY_PCR, &body)
 }
 
-pub(super) fn build_get_digest(session: u32) -> Vec<u8> {
+pub(in crate::security::tpm) fn build_get_digest(session: u32) -> Vec<u8> {
     frame(TPM_ST_NO_SESSIONS, TPM_CC_POLICY_GET_DIGEST, &session.to_be_bytes())
 }
 
 /// A bare success is all `PolicyPCR` answers with.
-pub(super) fn parse_policy_pcr(resp: &[u8]) -> Result<(), KeyError> {
+pub(in crate::security::tpm) fn parse_policy_pcr(resp: &[u8]) -> Result<(), KeyError> {
     checked(resp).map(|_| ())
 }
 
-pub(super) fn parse_get_digest(resp: &[u8]) -> Result<[u8; DIGEST_LEN], KeyError> {
+pub(in crate::security::tpm) fn parse_get_digest(resp: &[u8]) -> Result<[u8; DIGEST_LEN], KeyError> {
     let r = checked(resp)?;
     digest_at(r, 10)
 }

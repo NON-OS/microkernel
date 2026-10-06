@@ -21,32 +21,32 @@
 
 use crate::security::tpm::error::TpmError;
 
-pub(super) struct Cursor<'a> {
+pub(in crate::security::tpm) struct Cursor<'a> {
     buf: &'a [u8],
     pos: usize,
 }
 
 impl<'a> Cursor<'a> {
-    pub(super) fn at(buf: &'a [u8], pos: usize) -> Self {
+    pub(in crate::security::tpm) fn at(buf: &'a [u8], pos: usize) -> Self {
         Self { buf, pos }
     }
-    pub(super) fn position(&self) -> usize {
+    pub(in crate::security::tpm) fn position(&self) -> usize {
         self.pos
     }
-    pub(super) fn take(&mut self, n: usize) -> Result<&'a [u8], TpmError> {
+    pub(in crate::security::tpm) fn take(&mut self, n: usize) -> Result<&'a [u8], TpmError> {
         let end = self.pos.checked_add(n).ok_or(TpmError::InvalidResponse)?;
         let out = self.buf.get(self.pos..end).ok_or(TpmError::InvalidResponse)?;
         self.pos = end;
         Ok(out)
     }
-    pub(super) fn skip(&mut self, n: usize) -> Result<(), TpmError> {
+    pub(in crate::security::tpm) fn skip(&mut self, n: usize) -> Result<(), TpmError> {
         self.take(n).map(|_| ())
     }
-    pub(super) fn u16(&mut self) -> Result<u16, TpmError> {
+    pub(in crate::security::tpm) fn u16(&mut self) -> Result<u16, TpmError> {
         let b = self.take(2)?;
         Ok(u16::from_be_bytes([b[0], b[1]]))
     }
-    pub(super) fn u32(&mut self) -> Result<u32, TpmError> {
+    pub(in crate::security::tpm) fn u32(&mut self) -> Result<u32, TpmError> {
         let b = self.take(4)?;
         Ok(u32::from_be_bytes([b[0], b[1], b[2], b[3]]))
     }

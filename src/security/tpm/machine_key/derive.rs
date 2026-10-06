@@ -37,7 +37,7 @@ use crate::crypto::fill_random_bytes;
 
 /// One derivation at a time. Two in flight would each hold a session and an
 /// object, and that is the whole slot budget of a small part.
-static IN_PROGRESS: Mutex<()> = Mutex::new(());
+pub(in crate::security::tpm) static IN_PROGRESS: Mutex<()> = Mutex::new(());
 
 /// The key for `label` on this machine in this boot state, or why not.
 pub fn derive(label: &[u8]) -> Result<[u8; DIGEST_LEN], KeyError> {

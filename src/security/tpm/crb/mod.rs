@@ -20,6 +20,7 @@
 //! `tpm-crb` all do. The part publishes a buffer in memory and a doorbell
 //! rather than accepting bytes through a port.
 
+mod area;
 mod buffer;
 mod exec;
 mod locality;
@@ -27,6 +28,5 @@ mod regs;
 mod response;
 mod transact;
 mod wait;
-mod window;
 
-pub use transact::transact;
+pub(in crate::security::tpm) use transact::transact;

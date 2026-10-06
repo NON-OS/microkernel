@@ -21,7 +21,17 @@
 //! a nonce that did not exist at boot, and by then the bootloader is gone.
 
 pub mod ak;
+pub mod boot_reads;
 pub mod crb;
+pub mod device_secret;
+pub mod enroll;
 pub mod error;
+mod fifo;
 pub mod machine_key;
+mod mmio;
 pub mod quote;
+mod resend;
+mod transport;
+
+pub use resend::transact_resending;
+pub use transport::transact;

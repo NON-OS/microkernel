@@ -16,7 +16,8 @@
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TpmError {
-    /// No CRB part answered, or the window could not be mapped. Distinct from
+    /// No part answered on either interface, the firmware named one this
+    /// driver does not drive, or the window could not be mapped. Distinct from
     /// a part that answered badly, because one means no TPM and the other
     /// means a TPM this driver mishandled.
     NotPresent,
@@ -28,7 +29,7 @@ pub enum TpmError {
 impl TpmError {
     pub const fn as_str(self) -> &'static str {
         match self {
-            Self::NotPresent => "no crb tpm present",
+            Self::NotPresent => "no tpm present",
             Self::Timeout => "tpm did not respond in time",
             Self::InvalidResponse => "tpm response malformed",
         }

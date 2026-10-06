@@ -25,11 +25,11 @@
 
 mod attributes;
 mod create;
-mod cursor;
+pub(in crate::security::tpm) mod cursor;
 mod identity;
 mod load;
 mod public;
-mod template;
+pub(in crate::security::tpm) mod template;
 
 pub use identity::ak_public;
 pub use load::{ak_handle, load_ak};

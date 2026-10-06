@@ -25,7 +25,7 @@ use core::ops::Deref;
 
 use super::error::KeyError;
 use crate::security::hardening::memory_sanitization::secure_zero_slice;
-use crate::security::tpm::crb::transact;
+use crate::security::tpm::transact_resending;
 
 /// Longer than any response this module can provoke. The largest is the
 /// create, whose public area and private blob together stay well inside this;
@@ -34,7 +34,7 @@ const RESPONSE_MAX: usize = 1024;
 
 /// A TPM response that wipes itself when dropped. For the HMAC it is the
 /// root key, so the bytes do not stay in freed memory after parsing.
-pub(super) struct Response(Vec<u8>);
+pub(in crate::security::tpm) struct Response(Vec<u8>);
 
 impl Deref for Response {
     type Target = [u8];
@@ -49,15 +49,17 @@ impl Drop for Response {
     }
 }
 
-pub(super) fn run(cmd: &[u8]) -> Result<Response, KeyError> {
+pub(in crate::security::tpm) fn run(cmd: &[u8]) -> Result<Response, KeyError> {
     let mut buf = [0u8; RESPONSE_MAX];
     /*
-     * SAFETY: eK@nonos.systems - every command built by this module creates
-     * or flushes a transient object, starts a session, or reads one. None
-     * writes NV storage and none names a persistent handle, so a failure
-     * here cannot leave the TPM in a state that outlives the boot.
+     * SAFETY: eK@nonos.systems - every command built under security::tpm
+     * creates or flushes a transient object, starts a session, signs, hashes,
+     * or reads: PCRs, the rollback counter, and the EK certificate indices
+     * 0x01C00002 and 0x01C0000A. None writes NV storage or makes an object
+     * persistent, so a failure here cannot leave the TPM in a state that
+     * outlives the boot.
      */
-    let len = unsafe { transact(cmd, &mut buf) };
+    let len = unsafe { transact_resending(cmd, &mut buf) };
     let response = len.map(|n| Response(buf[..n].to_vec())).map_err(KeyError::from);
     secure_zero_slice(&mut buf);
     response

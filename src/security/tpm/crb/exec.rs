@@ -20,7 +20,7 @@ use super::buffer::command_buffer;
 use super::regs::{TPM_CRB_CTRL_REQ, TPM_CRB_CTRL_START, TPM_CRB_REQ_COMMAND_READY, TPM_CRB_START_GO};
 use super::wait::{wait_complete, wait_ready};
 use super::response::read_response;
-use super::window::write32;
+use super::area::write;
 use crate::security::tpm::error::TpmError;
 
 /// Run one command and copy the response back.
@@ -36,7 +36,7 @@ pub(super) unsafe fn execute(cmd: &[u8], out: &mut [u8]) -> Result<usize, TpmErr
 
     // SAFETY: eK@nonos.systems - asking the part to become ready is the
     // documented first step and cancels nothing already in flight.
-    unsafe { write32(TPM_CRB_CTRL_REQ, TPM_CRB_REQ_COMMAND_READY)? };
+    unsafe { write(TPM_CRB_CTRL_REQ, TPM_CRB_REQ_COMMAND_READY)? };
     wait_ready()?;
 
     // Byte at a time, volatile, deliberately not `copy_nonoverlapping`: a
@@ -56,7 +56,7 @@ pub(super) unsafe fn execute(cmd: &[u8], out: &mut [u8]) -> Result<usize, TpmErr
     // begin reading the instant start is set.
     fence(Ordering::SeqCst);
     // SAFETY: eK@nonos.systems - the command is fully written above.
-    unsafe { write32(TPM_CRB_CTRL_START, TPM_CRB_START_GO)? };
+    unsafe { write(TPM_CRB_CTRL_START, TPM_CRB_START_GO)? };
 
     wait_complete()?;
     read_response(out)
