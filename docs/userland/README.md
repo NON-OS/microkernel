@@ -61,3 +61,17 @@ What the numbers hide:
 - Seventeen directories have no `Cargo.toml`. Ten are capsules whose program is built elsewhere with `std`: `ripgrep`, installed from crates.io at a pinned version (`mk/20-build.mk:279-290`, `UPSTREAM_RIPGREP_VERSION`), and `sd`, the seven tool apps below and the `tokio-smoke` test, built from source in `userland/upstream-src/`. The other seven are `assets`, `linux_userland`, `nonos_examples`, `platform`, `sdk`, `upstream-src` and `vendor`. The `sdk` and `nonos_examples` directories hold crates one level down.
 
 The build catalogue, `tools/nix/capsules.json`, lists 116 programs: the 97 included capsules and the 19 Linux userland programs (`mk/60-nix.mk:42`, `NONOS_CATALOGUE_CAPSULES`).
+
+## The capsules by role
+
+Grouped by the first word of their service name in the catalogue:
+
+| Service name | Count | Examples |
+|---|---|---|
+| `app.*` | 29 | `app.terminal`, `app.settings`, `app.browser`, `app.linux` |
+| `driver.*` | 18 | `driver.nvme0`, `driver.rtl8821ce0`, `driver.hda0` |
+| `net.*` | 12 | `net.core`, `net.sockets`, `net.nym`, `net.anon` |
+| `tool.*` | 11 | `tool.ripgrep`, `tool.grex`, `tool.model-fetch` |
+| anything else | 27 | `vfs_pool`, `keyring`, `policy`, `compositor`, `wm` |
+
+The system services a capsule talks to are on [IPC services](ipc-services.md). The drivers have their own section, starting at [the driver model](../drivers/README.md).
