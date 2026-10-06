@@ -99,3 +99,7 @@ A build profile decides what an image can ever do. A [boot mode](../overview/glo
 | Recovery | no | goes straight to its desktop; setup does not run |
 
 Only Standard and Hardened let a network driver or service start (`network`, `src/boot/handoff/api/profile.rs:44-47`). Safe Mode is the one `minimal` mode (`minimal`, `src/boot/handoff/api/profile.rs:49-52`), and Recovery the one that `skips_setup` (`skips_setup`, `src/boot/handoff/api/profile.rs:54-57`). An airgapped build has no network code to start in any boot mode. [Boot modes](../install/boot-modes.md) describes the menu.
+
+## The configurator of the `mk/` targets
+
+The older make build has its own interactive configurator, `tools/nonos-config`, which `make nonos-mk-menuconfig` opens and which writes `.nonos-config` for `make nonos-mk-from-config` (`FROM_CONFIG_FEATURES`, `mk/20-build.mk:960-986`). It does not read `nonos.toml`, and the flake does not read `.nonos-config`.
