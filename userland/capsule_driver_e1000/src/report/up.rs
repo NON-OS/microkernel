@@ -14,9 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reply inbox the kernel-side client owns. Slot 12 in the
-//! per-service reply numbering (ramfs=1, keyring=2, entropy=3,
-//! crypto=4, vfs=5, virtio_rng=6, market=7, virtio_blk=8,
-//! virtio_net=9, ps2_input=A, xhci=B, e1000=C).
+//! The line a finished bring-up leaves: CTRL and STATUS as the part holds
+//! them once both rings are enabled.
 
-pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_000C;
+use super::line::Line;
+
+pub fn up(ctrl: u32, status: u32) {
+    let mut line = Line::new(b"driver.e1000: up, ctrl=");
+    line.hex(ctrl);
+    line.push(b" status=");
+    line.hex(status);
+    line.say();
+}

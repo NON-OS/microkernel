@@ -27,5 +27,8 @@ const ETH_HEADER_LEN: usize = 14;
 const MTU: usize = 1500;
 
 pub const MAC_LEN: usize = 6;
-pub const MIN_ETHERNET_FRAME: usize = 60;
+/// A bare header is the shortest frame taken. TCTL.PSP has the part pad
+/// anything under 60 bytes, and an ARP (42) or a bare TCP ACK (54) is shorter
+/// than that: refusing them stranded IPv4 right after DHCP.
+pub const MIN_ETHERNET_FRAME: usize = ETH_HEADER_LEN;
 pub const MAX_ETHERNET_FRAME: usize = MTU + ETH_HEADER_LEN;
