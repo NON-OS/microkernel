@@ -118,3 +118,14 @@ cargo kani --output-format terse
 ```
 
 Not tested in this release.
+
+## Lean
+
+`verification/lean` is a Lean 4 development with no mathlib. Its `defaultTargets` names one library, `Nonos` (`verification/lean/lakefile.toml:2-5`), and `verification/lean/lean-toolchain` pins Lean 4.15.0. At this commit it has 190 modules and 1499 `theorems`, and `sorry_count` is 0 (`verification/evidence/EVIDENCE.json:2176-2181`). The `lean` workflow runs `lake build`, then fails if the axiom profile shows `sorryAx` (`.github/workflows/lean.yml:49-60`).
+
+```
+cd verification/lean
+lake build
+```
+
+Not tested in this release.
