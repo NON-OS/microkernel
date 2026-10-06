@@ -41,3 +41,9 @@ The project expects the following of every pull request. None of it is enforced 
 - For a driver change, the PCI or USB id of the device and the serial log of the boot you tested it on.
 - A number that grows, said out loud. The ring 0 size may not pass its `tcb` budget, and a pull request that raises the budget has to say why (`nonos-verify/src/build.rs:44-46`). A counting baseline that grows names the new value in `baseline_file`, in the same pull request (`nonos-ci/check-baseline.sh:39-42`).
 - The closest reading for the trusted path: kernel core, crypto, the syscall layer, the bootloader, and the signing and verification tools.
+
+## Issues
+
+The hardware bug form asks for the machine or the QEMU command line, the architecture (x86_64, aarch64 or riscv64), the make target and commit, the serial log, what you expected and what happened, and the PCI or USB id of the device involved, in its fields from `machine` to `device` (`.github/ISSUE_TEMPLATE/hardware-bug.yml:10-52`). [Reporting a machine](../hardware/report.md) explains what to collect.
+
+Anything exploitable goes through a private security advisory, never a public issue, as the form's `contact_links` say (`.github/ISSUE_TEMPLATE/config.yml:2-5`). [Reporting a vulnerability](../security/reporting-a-vulnerability.md) covers it.
