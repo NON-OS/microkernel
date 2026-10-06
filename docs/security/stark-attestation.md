@@ -153,3 +153,12 @@ The path check rests on Poseidon's collision resistance, and the proof's soundne
 ## Development images
 
 A development image takes trailers that are the path alone. The flake adds the kernel feature `nonos-dev-attest` to a profile with `dev` set, gives that profile the `dev-qemu` loader, and refuses `nonos-dev-attest` with any other loader (`tools/nix/config.nix:142-168`). The kernel refuses to compile it beside `nonos-release` with a `compile_error` (`src/lib.rs:43-47`). Its capsule gate prints `[ZK-ATTEST] development image: paths only, no STARK proofs, never a release` once, in `dev_path` (`src/security/capsule_attest/path.rs:56-86`). The seal sets `NONOS_ENROLL_PATHS` for such an image and refuses to seal it as a release (`tools/nonos_seal/__main__.py:119-130`).
+
+## Tests
+
+- `proofs-nonos-attest-path`: 43 host tests of the path crate, known answers, tamper and hostile input. Passed in this release's flake checks.
+- `attest-poc`: the kernel self-attestation path on the host, enrolled, embedded with the real footer assembler, parsed and checked, and the attacks on each; it covers the path half only. Passed.
+- `attest-battery`: the red-team battery and parser fuzz in `security/nonos-secops`, also the path half only; the STARK half is held by the enroll tool's `selftest` (`security/README.md:3-8`). Passed.
+- `proofs-stark_proofs`: 198 host tests of the in-tree `userland/stark_proofs` crate, which tests the v3-era engine, not `nox_verify` and not the STARKs prover that shares its name. Passed.
+- The booted refusal test boots a test kernel under QEMU and expects four refusals (`flip`, `extra_cap`, `kernel_kind`, `stale_epoch`) and one admission (`CASES`, `nonos-ci/attest_refusal_check.py:26`). It is the make target `nonos-mk-attest-refusal-run` (`ATTEST_REFUSAL_LOG`, `mk/25-attest-refusal.mk:53-62`), and was not run for this release.
+- Two Kani harnesses for `parse_v4` and the v3 reader live in `nonos-attest-path/src/kani_proofs.rs`; `Kani` runs in its own workflow, outside the flake checks (`tools/nix/checks.nix:5-7`), and was not run for this release.
