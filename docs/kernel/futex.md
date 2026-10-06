@@ -76,3 +76,12 @@ A Linux program's futex call never reaches these calls. The Linux personality ca
 
 - The kernel's own waiter list, the `waiters` module, is compiled into the `kernel_proofs` [proof crate](../overview/glossary.md#proof-crate), which runs the order a wait takes its steps in against every interleaving with one waker (`userland/kernel_proofs/src/futex_waiters/mod.rs:17-26`). That crate passes on this commit.
 - The Linux futex decoding is tested in the `capsule_linux_proofs` proof crate (`userland/capsule_linux_proofs/src/tests/futex_tests.rs`), which also passes on this commit.
+
+## Limits
+
+- The word is 32 bits and must be 4-byte aligned.
+- There is no requeue, no bitset and no priority inheritance in the kernel calls.
+- A futex is private to one thread group. Two capsules cannot share one through shared memory.
+- Timeouts are in whole milliseconds, at most 60 seconds per call.
+- An untimed wait wakes every 20 ms to let the caller look again, which costs a little CPU on a long wait.
+- All futexes share one queue lock.
