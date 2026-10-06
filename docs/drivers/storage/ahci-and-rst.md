@@ -61,3 +61,13 @@ The same capsule serves an eMMC disk when no SATA disk comes up; see [SD cards a
 - `userland/ahci_link_proofs` is the [proof crate](../../overview/glossary.md#proof-crate). It runs the link checks, the disk choice, the IDENTIFY rules, request spans, hostile completion waits, port recovery, the RST remap rule and the VMD refusal on the host, and checks that the capsule's VMD list matches the kernel's: 99 tests pass on this commit.
 - No QEMU target in `mk/` and no `tools/nonos_qemu` option names an AHCI device, and no QEMU run of the SATA path is reported for this release.
 - Not tested on hardware in this release.
+
+## See also
+
+- [Storage drivers](README.md)
+- [NVMe](nvme.md)
+- [Intel VMD](vmd.md)
+- [SD cards and eMMC](sd-and-emmc.md)
+- [Install to disk](../../install/install-to-disk.md)
+- [Troubleshooting](../../install/troubleshooting.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
