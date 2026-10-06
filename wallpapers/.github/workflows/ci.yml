@@ -1,0 +1,46 @@
+name: ci
+
+# Production gate for the wallpaper collection: the manifest, the files on disk,
+# and the README must agree, and every wallpaper must be a real JPEG. The live
+# GUI loads these, so a missing or corrupt file is a release blocker.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integrity:
+    name: collection integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Every MANIFEST entry exists, is JPEG, and is in the README
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r entry; do
+            [ -z "$entry" ] && continue
+            case "$entry" in \#*|"# "*) continue ;; esac
+            [ -f "$entry" ] || { echo "::error::manifest entry missing on disk: $entry"; fail=1; continue; }
+            file "$entry" | grep -q JPEG || { echo "::error::not a JPEG: $entry"; fail=1; }
+            grep -qF "$entry" README.md || { echo "::error::manifest entry not rendered in README: $entry"; fail=1; }
+          done < <(grep -E '\.jpg$' MANIFEST.txt)
+          exit $fail
+      - name: Every JPEG on disk is listed in the MANIFEST
+        run: |
+          set -euo pipefail
+          fail=0
+          while IFS= read -r -d '' f; do
+            rel="${f#./}"
+            grep -qF "$rel" MANIFEST.txt || { echo "::error::jpeg not in MANIFEST: $rel"; fail=1; }
+          done < <(find . -name '*.jpg' -not -path './.git/*' -print0)
+          exit $fail
