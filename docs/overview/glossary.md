@@ -47,3 +47,7 @@ The 104-byte file `boot_root.approval` on the ESP: the bootloader tree's root an
 ## Build profile
 
 <a id="profile"></a>The kind of image `profile` in `nonos.toml` selects: standard, hardened, airgapped, qemu, dev or core. It fixes the kernel features, what is taken out of the binary (serial debug output for hardened, that and every network feature for airgapped) and the weakest loader policy allowed, so it decides what an image can ever do. The boot profile is a separate choice, made in the boot menu at each boot. Explained in [Profiles](../build/profiles.md). Code: `tools/nix/config.nix`.
+
+## Capability
+
+One named right, one bit of a 64-bit word. The kernel defines 36, from `CoreExec` at bit 0 to `DeviceSecret` at bit 35, and checks the caller's bits before it runs a system call; `IO` and `Hardware` enforce nothing. Explained in [Capabilities](../kernel/capabilities.md#what-each-bit-admits), with every bit in [Capabilities ABI](../abi/capabilities.md). Code: `src/capabilities/types/defs.rs`, `abi/caps.toml`.
