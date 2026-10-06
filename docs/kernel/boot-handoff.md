@@ -54,3 +54,17 @@ A few sizes are fixed by the code:
 - The `AttestPolicy` block is asserted at build time to be 176 bytes (`nonos-bootloader/src/handoff/types/security.rs:68`).
 - The firmware table holds at most `MAX_FIRMWARE_ENTRIES`, 64 (`src/boot/handoff/types/firmware.rs:17`).
 - The command line is read up to `MAX_CMDLINE_LEN`, 4096 bytes (`src/boot/handoff/types/constants.rs:19`). The `cmdline` reader returns nothing for a pointer above 48 bits or for a control byte other than tab, line feed or carriage return (`src/boot/handoff/types/handoff.rs:79-112`).
+
+## What the kernel checks
+
+`init_handoff` accepts the handoff once and checks it in this order (`src/boot/handoff/api/init.rs:40-72`):
+
+1. The pointer is non-zero, 8-byte aligned and canonical.
+2. `magic`, `version` and `size` match this kernel's `BootHandoffV1` exactly.
+3. The framebuffer, memory map and RSDP pointers fit in 48 bits, the `MAX_PHYS_PTR` limit (`src/boot/handoff/api/init.rs:28`).
+4. `validate_security` runs four checks (`src/boot/handoff/api/security/orchestrator.rs:21-27`). The random seed must not be all zero, or the result is `WeakEntropy` (`src/boot/handoff/api/security/entropy.rs:20-25`). When a memory map is present, its entry size must equal the kernel's own, or the result is `MemoryMapEntrySize` (`src/boot/handoff/api/security/memory_map.rs:26-28`). When `FB_AVAILABLE` is set, the framebuffer needs a non-zero width, height and stride, a stride of at least one row of pixels, and a frame that fits its size, or the result is `FramebufferGeometry` (`src/boot/handoff/api/security/framebuffer.rs:20-47`). The entry point must lie inside the 256 MiB `KERNEL_IMAGE_WINDOW` above `KERNEL_BASE`, or in the low half above 1 MiB (`src/boot/handoff/api/security/entry_point.rs:24-36`).
+5. A second call fails with `AlreadyInitialized`.
+
+Each failure is one `HandoffError` with a fixed text, such as `Invalid handoff magic value` or `Bootloader entropy seed is all zero` (`src/boot/handoff/api/error/handoff_error.rs:20-47`). A version or size mismatch is a refusal, so a loader and a kernel built for different handoff versions do not boot together.
+
+On failure `kernel_entry` prints `[NONOS] Handoff FAIL` and `[NONOS] Handoff ERR:` with the error text on the [serial console](../overview/glossary.md#serial-console), then calls `vga_fallback` (`src/nonos_main.rs:79-88`). `vga_fallback` writes `NONOS <version> <channel> - No framebuffer available` into the legacy VGA text buffer at `0xB8000` and halts (`src/entry/fallback.rs:14-43`). The panic handler's comment says the VGA text buffer is invisible on UEFI machines, which is why the handler also calls `panic_screen` (`src/boot/panic/handler.rs:54-57`). A refused handoff has no such step: its only mark on the framebuffer is the breadcrumb segment described below. What a given panel shows here was not tested on hardware in this release. See [panic and boot stop](panic-and-boot-stop.md).
