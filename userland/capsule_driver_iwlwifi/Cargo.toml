@@ -20,6 +20,10 @@ path = "src/main.rs"
 
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+# The scan list, beacon parsing and RSN reading both Wi-Fi drivers share.
+nonos_wifi_core = { path = "../nonos_wifi_core" }
+# The rule that makes random bytes a station address, shared by every driver.
+nonos_mac = { path = "../nonos_mac" }
 
 [profile.release]
 panic = "abort"

@@ -20,14 +20,21 @@
 //! Linux iwlwifi. `classify` is the pure partition; `stage` copies each section
 //! into the DMA region and reports each chunk's page-aligned device address.
 
+// The single-region staging and its helpers are built by the proofs only
+// (see `gen3`): the capsule lays firmware out across grants with `layout`.
+#[cfg(test)]
 mod align;
 mod classify;
 mod markers;
+#[cfg(test)]
 mod placement;
+#[cfg(test)]
 mod stage;
 mod types;
 
 pub use classify::classify;
+#[cfg(test)]
 pub use placement::DramPlacement;
+#[cfg(test)]
 pub use stage::stage;
 pub use types::FwLayout;

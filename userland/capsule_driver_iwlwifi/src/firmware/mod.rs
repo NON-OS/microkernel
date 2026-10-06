@@ -9,11 +9,13 @@
 pub mod blob;
 pub mod family;
 pub mod alive;
+pub mod gen3;
+pub mod generation;
 pub mod load;
 pub mod stage;
 mod tlv;
 
-pub use blob::{blob_for_family, FirmwareBlob};
+pub use blob::{blob_for_family, gen3_blob, gen3_pnvm, FirmwareBlob};
 pub use family::{family_for_device, Family};
 pub use load::{load_sections, release_cpu};
 pub use stage::{stage_firmware, FirmwareStageState};
