@@ -243,3 +243,7 @@ A proof, checked by the `nox_verify` verifier from the pinned NON-OS STARKs libr
 ## Syscall tag
 
 Four ASCII letters packed little-endian into the 64-bit system call number by `tag4`, first letter in the lowest byte. `MkIpcSend` is `MISD`, so its number is 0x4453494D. Explained in [Syscalls](../abi/syscalls.md#numbers). Code: `src/syscall/abi/tag.rs`.
+
+## TLB shootdown
+
+The round in which a CPU that changed a page table makes every other CPU that may cache the old translation drop it and answer. A round still unanswered after 50 ms is sent again as an NMI, and after 2000 ms the machine stops. Explained in [Scheduler and SMP](../kernel/scheduler-and-smp.md#shootdowns-and-stopping-the-other-cpus). Code: `src/memory/paging/manager/shootdown/request.rs`.
