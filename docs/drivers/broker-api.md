@@ -93,3 +93,15 @@ A `Bar` has kind 1 for memory and 2 for port I/O, and `aux` carries the DesignWa
 When no remapping unit is in service, the device cannot be confined. `unconfined_allowed` lets the claim through only for the four errors that mean no unit is in service, and `attach` logs `unconfined: no remapping unit in service, reaches all memory` (`src/hardware/broker/confine/posture.rs:32-49`). That is the case on a machine without VT-d, and on an AMD-Vi machine with the default build (see [platform.md](platform.md)). Any other attach failure refuses the claim.
 
 Every later call on the device carries the epoch, and calls on a grant name the grant id. A call with an old epoch fails with -116, `ERRNO_STALE` (`src/syscall/microkernel/errnos.rs:54`).
+
+## Configuration space
+
+`mk_pci_config_read(device_id, epoch, offset, width)` returns the value read. The broker's `read` accepts widths 1, 2 and 4, aligned, inside the first `CONFIG_LIMIT` (256) bytes (`src/hardware/broker/pci/read.rs:22-48`).
+
+`mk_pci_config_write(device_id, epoch, offset, value)` writes 16 bits, and very few of them. `validate` accepts the Command register, the MSI-X Message Control register and a short list of vendor bits, and refuses every other offset (`src/hardware/broker/pci/allowlist.rs:37-60`):
+
+- In Command, `COMMAND_WRITABLE` is Bus Master, Memory Space and Interrupt Disable (`src/hardware/broker/pci/command.rs:33`). `validate_command` ORs a value made only of those bits into the register, and otherwise requires the new value to match the register outside them (`src/hardware/broker/pci/command.rs:35-41`).
+- In MSI-X Message Control, `MSIX_CONTROL_WRITABLE` is Enable and Function Mask (`src/hardware/broker/pci/allowlist.rs:35`).
+- `writable` adds a few vendor bits: on Intel HD Audio, TCSEL at 0x44, the clock-gating bit at 0x48 and the no-snoop bit at 0x78; on AMD and ATI HD Audio, the snoop bits at 0x42; on any network function, the PCIe completion timeout bits (`src/hardware/broker/pci/quirk_bits.rs:49-61`).
+
+The constants a driver passes are `MK_PCI_CFG_COMMAND` (0x04), `MK_PCI_CMD_MEMORY_SPACE` (bit 1), `MK_PCI_CMD_BUS_MASTER` (bit 2), `MK_PCI_CMD_INTX_DISABLE` (bit 10), `MK_PCI_MSIX_CTRL_FUNCTION_MASK` (bit 14) and `MK_PCI_MSIX_CTRL_ENABLE` (bit 15) (`userland/libc/src/broker/pci.rs:27-36`).
