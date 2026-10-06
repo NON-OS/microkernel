@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod from_router;
 mod lookup;
 mod lookup_service;
 mod peers;
 mod require;
 
+pub use from_router::from_router;
 pub use lookup::lookup_port;
 pub use lookup_service::lookup_service;
 pub use peers::{Peers, ServicePeer};

@@ -20,19 +20,22 @@ use crate::discover::Peers;
 
 use super::boot::BootedApp;
 use super::paint_frame::paint;
+use super::paint_partial::paint_partial;
 use super::request_id::next;
 
+/* Redraw the window. The frame is redrawn only when the window changed size
+ * or state or a frame button's hover changed; otherwise the app says which
+ * part of its content moved, and only that part is painted and committed. */
 pub(super) fn repaint<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_id: &mut u32) {
-    let toolkit_rid = next(request_id);
-    paint(
-        &mut booted.app,
-        &booted.manifest,
-        &booted.binding,
-        peers.toolkit,
-        toolkit_rid,
-        booted.drag.hover,
-        booted.maximized,
-    );
+    let b = &booted.binding;
+    let frame = (b.width, b.height, booted.drag.hover, booted.maximized);
+    let damage = if frame == booted.painted { booted.app.take_damage() } else { None };
+    booted.painted = frame;
+    if let Some(rect) = damage {
+        paint_partial(booted, peers, next(request_id), rect);
+        return;
+    }
+    paint(&mut booted.app, &booted.manifest, &booted.binding, booted.drag.hover, booted.maximized);
     let rid = next(request_id);
     let _ = compositor::damage_commit(
         peers.compositor,

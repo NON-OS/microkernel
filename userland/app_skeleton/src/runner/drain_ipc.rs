@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_ipc_recv_from;
+use nonos_toolkit::decorations::accessory_rect_at;
 
 use crate::app::{App, EventOutcome};
 
 use super::control::{handle_control, ControlOutcome};
 use super::drag::{self, DragState, PointerAction};
+use super::held::{next_message, Held};
+use super::press_part::Route;
 use super::{click_focus, decorations, dispatch::parse_delivery};
-
-const SERVICE_INBOX: u64 = 0;
-const RECV_NOWAIT: u64 = 1;
 
 #[derive(Default)]
 pub(super) struct DrainResult {
@@ -40,6 +39,7 @@ pub(super) struct DrainResult {
 pub(super) fn drain<A: App>(
     app: &mut A,
     drag_state: &mut DragState,
+    held: &mut Option<Held>,
     rx: &mut [u8],
     width: u32,
     height: u32,
@@ -56,8 +56,7 @@ pub(super) fn drain<A: App>(
     let mut resize_to = None;
     loop {
         let mut sender = 0u32;
-        let n =
-            mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), RECV_NOWAIT, &mut sender);
+        let n = next_message(held, rx, &mut sender);
         if n <= 0 {
             return DrainResult { repaint, restore, move_to, resize_to, ..Default::default() };
         }
@@ -70,9 +69,21 @@ pub(super) fn drain<A: App>(
             ControlOutcome::NotControl => {}
         }
         let Some(event) = parse_delivery(&rx[..n as usize]) else { continue };
+        // Routed input only: a frame any other process sent is not the user.
+        if !crate::discover::from_router(sender) {
+            continue;
+        }
         let event = decorations::normalize(event);
         click_focus::handle(event, wm_port, window_id, request_id);
         match decorations::handle(width, height, maximized, event) {
+            /*
+             * An app with work the user would lose keeps its window and says
+             * why; the next press on close is the answer.
+             */
+            Some(EventOutcome::Close) if !app.close_requested() => {
+                repaint = true;
+                continue;
+            }
             Some(EventOutcome::Close) => {
                 return DrainResult {
                     repaint,
@@ -105,14 +116,18 @@ pub(super) fn drain<A: App>(
             }
             _ => {}
         }
-        if let Some(local) =
-            decorations::to_accessory(width, height, maximized, app.titlebar_accessory_w(), event)
-        {
-            if app.on_accessory_event(local) == EventOutcome::Repaint {
-                repaint = true;
+        let accessory_w = app.titlebar_accessory_w();
+        let q = super::chrome::quarters();
+        let accessory = accessory_rect_at(width, height, maximized, accessory_w, q);
+        let event = match drag_state.press.route(event, accessory) {
+            Route::Accessory(local) => {
+                if app.on_accessory_event(local) == EventOutcome::Repaint {
+                    repaint = true;
+                }
+                continue;
             }
-            continue;
-        }
+            Route::Window(event) => event,
+        };
         match drag::handle(drag_state, width, height, win_x, win_y, maximized, &event) {
             PointerAction::MoveTo(mx, my) => {
                 move_to = Some((mx, my));

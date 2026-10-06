@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_yield;
+use nonos_libc::mk_idle_ms;
 
 use crate::app::AppManifest;
 use crate::clients::wm;
@@ -22,6 +22,7 @@ use crate::clients::wm::WindowPlacement;
 use crate::discover::Peers;
 
 use super::input_mask::input_mask;
+use super::patience::WINDOW_OPEN;
 use super::request_id::bump;
 use super::submit_scene::submit_scene;
 use super::subscribe_input::subscribe_input;
@@ -47,9 +48,9 @@ fn open_with_retry(
     request_id: &mut u32,
 ) -> Result<WindowPlacement, &'static str> {
     let mut last = "wm open failed";
-    for attempt in 0..3 {
+    for attempt in 0..WINDOW_OPEN.attempts {
         if attempt > 0 {
-            mk_yield();
+            mk_idle_ms(WINDOW_OPEN.rest_ms);
         }
         match wm::window_open(
             peers.wm,

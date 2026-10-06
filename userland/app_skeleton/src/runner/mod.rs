@@ -27,22 +27,40 @@ mod ensure_primed;
 mod entry;
 #[cfg(feature = "runtime")]
 mod ephemeral;
+#[cfg(feature = "runtime")]
 mod fail;
+mod finish_band;
 mod fit_display;
 mod frame_finish;
+pub mod full_screen_ask;
+#[cfg(feature = "runtime")]
+mod frame_loop;
+mod held;
 mod idle;
 mod maximize;
+pub mod min_size;
 mod move_window;
+pub mod no_window;
+mod off_screen;
+mod open_peers;
+#[cfg(feature = "runtime")]
+mod pace;
+mod paint_draw;
 mod paint_frame;
 mod paint_once;
+mod paint_partial;
+mod press_part;
 mod prime_frame;
 mod refresh_input;
+mod reopen;
 mod repaint;
 mod request_id;
 mod resize_window;
+mod restore;
 mod run_loop;
 mod service_frame;
 mod teardown;
+pub mod teardown_steps;
 
 #[cfg(feature = "runtime")]
 pub use entry::run;
