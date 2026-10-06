@@ -1,5 +1,9 @@
 # capsule_driver_rtl8153
 
+Status: not in the 0.9.2 image. The capsule builds and its host proofs
+pass, but it has no owner certificate and the kernel never spawns it:
+driver.xhci0 has no bulk IN poll or control OUT data stage yet.
+
 ## Role
 
 `capsule_driver_rtl8153` drives the Realtek RTL8153 and RTL8153B USB 3.0

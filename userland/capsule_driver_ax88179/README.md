@@ -1,5 +1,9 @@
 # capsule_driver_ax88179
 
+Status: not in the 0.9.2 image. The capsule builds and its host proofs
+pass, but it has no owner certificate and the kernel never spawns it:
+driver.xhci0 has no bulk IN poll or control OUT data stage yet.
+
 ## Role
 
 `capsule_driver_ax88179` drives the ASIX AX88179 (USB 3.0) and AX88178A
