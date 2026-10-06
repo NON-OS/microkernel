@@ -57,3 +57,20 @@ The block layer writes its own lines, so they appear whatever the drivers may pr
 - one `[USB-MSC]` line saying where the stick search stands (`src/hardware/usb_msc_capsule/report.rs:32-38`, `report_line`).
 
 The drivers' own lines are a different matter. They write with `mk_debug`, which needs the Debug capability. The kernel never grants it to `driver.ahci0` (`src/hardware/ahci_capsule/spawn.rs:51-57`, `requested_caps`), and the spawn grants in `src/hardware/xhci_capsule/spawn.rs`, `src/userspace/capsule_driver_usb_hid/spawn.rs` and `src/userspace/capsule_driver_usb_msc/spawn.rs` leave it out as well. `driver.nvme0` and `driver.virtio_blk0` get it only in an image built with `capsule-serial-debug` (`src/hardware/nvme_capsule/spawn.rs:51-53`, `serial_debug_cap`). The standard, qemu and dev profiles have that feature through `microkernel-desktop-base`; the hardened and air-gapped profiles drop it (`tools/nix/config.nix:60-62`, `debugFeatures`).
+
+## The disk layout
+
+The installer writes a whole disk through `nonos_disk`, and the kernel reads the fixed sectors that `nonos_disk_map` names (`userland/nonos_disk/src/lib.rs:17-32`, `nonos_disk_map`).
+
+| Sectors | GPT partition | What it holds |
+|---|---|---|
+| 0 to 33 | none | protective MBR and primary GPT |
+| 256 to 245759 | `NONOS-STORE` | the package store |
+| 245760 | `NONOS-PLAN` | the disk plan |
+| 245761 | `NONOS-PLAN` | the key header |
+| 262144 up to the ESP | `NONOS-DATA` | the data volume |
+| 1 GiB ending at the last MiB boundary before the backup GPT | `NONOS-ESP` | loader, kernel image and `boot.cfg` |
+
+The sector numbers come from `userland/nonos_disk_map/src/places.rs:23-48` (`STORE_BASE_LBA`, `KEY_LBA`, `DATA_FLOOR`), and the ESP's place from `userland/nonos_disk/src/layout/plan.rs:54-62` (`esp_end`). The [data volume](../../overview/glossary.md#data-volume) starts at or above 128 MiB. The smallest disk the installer takes is 2177 MiB: the 128 MiB below the data floor, a 1 GiB data volume, the 1 GiB ESP and 1 MiB for the backup table (`userland/nonos_disk/src/layout/sizes.rs:34-38`, `MIN_DISK_SECTORS`).
+
+A disk plan whose volume base and size are both 0 belongs to a live stick: the volume stays in RAM and nothing of the machine is written to the stick (`src/fs/blockfs_volume/plan_types.rs:56-59`, `is_live`).
