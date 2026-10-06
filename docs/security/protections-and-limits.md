@@ -55,3 +55,18 @@ Each row names a threat, what the code does about it, and where. A row in the se
 | Capsule diagnostics on the serial console in the standard, qemu and dev profiles | those profiles keep `capsule-serial-debug`, so service capsules may write to serial | `debugFeatures` (`tools/nix/config.nix:60-62`) |
 
 Two further limits are stated on other pages. Network observers and the anonymity routes are on [Privacy network](../using/privacy-network.md). What the bootloader checks is on [Boot chain and signatures](boot-chain-and-signatures.md).
+
+## The build profile matters
+
+The profile an image was built with decides what it can ever do. `tools/nix/config.nix` defines them, and `nonos.toml` picks one, `standard` by default.
+
+| Profile | Security posture from the profile definition |
+|---|---|
+| `standard` | every driver, the desktop, first-boot setup and the installer; capsules may write to the serial console |
+| `hardened` | the standard system with loader policy `production` and no serial console for capsules |
+| `airgapped` | hardened, with no network driver, stack or online program compiled in |
+| `qemu` | the desktop for virtual machines; the host sees everything the guest does |
+| `dev` | the development loader policy and path-only attestation; never sealed for release |
+| `core` | the microkernel and its base capsules, no desktop |
+
+The profile's `drop` list is taken out of the kernel's features at build time, so a dropped feature is absent from the binary rather than switched off at run time. [Build profiles](../build/profiles.md) has the details.
