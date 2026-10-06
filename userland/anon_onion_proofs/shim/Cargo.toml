@@ -1,0 +1,21 @@
+# NONOS userland: anon_onion_proofs_shim
+#
+# The host stand-in for nonos_libc that anon_onion_proofs compiles net.anon
+# against: a settable clock, a seeded random source, the crypto pool's
+# primitives done in place, and a log of every trace line.
+
+[package]
+name = "anon_onion_proofs_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+sha2 = { version = "0.10", default-features = false }
+hmac = { version = "0.12", default-features = false }
+hkdf = { version = "0.12", default-features = false }
+x25519-dalek = { version = "2", default-features = false, features = ["static_secrets"] }
