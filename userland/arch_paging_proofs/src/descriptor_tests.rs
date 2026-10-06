@@ -87,6 +87,15 @@ macro_rules! properties_for {
                 }
             }
 
+            /// An interior entry grants user access exactly when it was asked
+            /// to. On aarch64 that is APTable[0], a bit the encoder once left
+            /// clear on every table, so every interior entry granted EL0.
+            #[test]
+            fn table_grants_user_exactly_when_asked() {
+                assert!(d::table_grants_user(d::table(PA, true)));
+                assert!(!d::table_grants_user(d::table(PA, false)));
+            }
+
             /// A kernel mapping is never reachable from EL0. This is the bit
             /// whose polarity was inverted, and the failure mode is the whole
             /// kernel readable from userspace.
