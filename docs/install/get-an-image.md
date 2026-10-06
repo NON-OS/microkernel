@@ -41,3 +41,24 @@ The seal writes into `target/release/<name>/`, where the name is the profile's, 
 | `build-receipt.json` | the receipt of what the build and the seal produced |
 
 Write `nonos.img` to a stick with `make usb` or `dd` ([Write a USB stick](usb-stick.md)). The ISO holds the boot files and nothing else, with no package store and no model (`tools/nonos_seal/media.py`). The build's own notes say firmware reads a plain El Torito ISO less dependably than a GPT disk (`mk/30-image.mk`).
+
+## Choose a profile
+
+`nonos.toml` picks the [build profile](../overview/glossary.md#build-profile), `standard` by default. `PROFILE=` picks another for one command:
+
+```
+PROFILE=hardened make build seal
+```
+
+Not tested in this release.
+
+| Profile | For | What the image carries |
+|---|---|---|
+| `standard` | a person's own machine | every driver, the desktop, first-boot setup and the installer; capsules may write to the serial console, so the Terminal's `log` works |
+| `hardened` | a machine that may be seized | Secure Boot and a TPM required at boot; no capsule writes to a serial console |
+| `airgapped` | keys and documents that must never touch a network | `hardened`, with no network driver, stack or online program compiled in |
+| `qemu` | trying NONOS in a virtual machine | the desktop, without the drivers only real hardware has |
+| `dev` | working on NONOS | the `qemu` image with the loader's development policy and path-only attestation; a `--release` seal refuses it |
+| `core` | kernel work | the microkernel and its base capsules, no desktop |
+
+The table is `profiles` in `tools/nix/config.nix`. `make profiles` prints the same, with each profile's privacy posture. [Profiles](../build/profiles.md) has the details.
