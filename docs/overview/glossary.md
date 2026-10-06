@@ -223,3 +223,7 @@ The anti-rollback number signed into the kernel image together with its BLAKE3 h
 ## Seal
 
 The step between the reproducible build and a bootable image, run as `make seal` or `nix run .#seal`. In six phases it signs the market inputs, gives every capsule its certificate, manifest and trailer, enrolls the kernel and the loader, writes the signed image with its ESP, store, USB image and ISO, and checks what it wrote. It compiles nothing itself, and the build never holds a key. Explained in [The seal](../build/seal.md). Code: `tools/nonos_seal/__init__.py`.
+
+## Secure Boot
+
+The UEFI firmware feature that starts only a loader whose signature the firmware's signature database, db, trusts. The Hardened entry needs it on, with a platform key and a db, and so does every entry on a build whose loader floor is Hardened. When the seal has the NONOS db key, it signs `BOOTX64.EFI` with that key alone. Explained in [Requirements](../install/requirements.md#secure-boot-and-the-tpm). Code: `nonos-bootloader/src/bootmenu/ready.rs`.
