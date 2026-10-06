@@ -55,7 +55,7 @@ pub(in crate::security::tpm) fn control_area() -> Option<u64> {
 
 /// The table's directmap view, once its length and checksum check out.
 fn table() -> Option<*const u8> {
-    let phys = crate::arch::x86_64::acpi::table_address(b"TPM2")?;
+    let phys = crate::arch::firmware_table::acpi_table_address(b"TPM2")?;
     let base = phys_to_virt(PhysAddr::new(phys))?.as_u64() as *const u8;
     let len = u32::from_le_bytes(bytes::<4>(base, 4)) as usize;
     if !(MIN_LEN..=MAX_LEN).contains(&len) {
