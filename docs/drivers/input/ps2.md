@@ -78,3 +78,10 @@ No capsule may send to `driver.ps2_kbd0`: the kernel holds it to an empty list (
 - The driver sends no LED command, so the Caps Lock and Num Lock lights stay as the firmware left them. The command list in `userland/capsule_driver_ps2_input/src/constants/ports.rs` has none.
 - The driver adds no absolute mode, tap or multi-finger gesture of its own for a PS/2 touchpad, since it speaks no vendor protocol. What the touchpad sends as a mouse is what arrives.
 - The driver reads at most 16 bytes from the controller per pass (`MAX_BYTES_PER_DRAIN`, `userland/capsule_driver_ps2_input/src/poll/drain.rs:23`).
+
+## How this is checked
+
+- The [proof crate](../../overview/glossary.md#proof-crate) `ps2_input_proofs` runs the presence probe, the bring-up sequence and its fallbacks, and the keyboard and mouse setup against a modelled i8042 that records every byte the driver sends: 38 tests, and the check `proofs-ps2_input_proofs` passes at commit bff12b97.
+- `input_proofs` holds the packet decode and the layout tables against hostile bytes: 96 tests, check `proofs-input_proofs` passes.
+- The QEMU run target gives the guest its keyboard and mouse through the q35 machine's i8042 (`QEMU_USB`, `mk/10-qemu.mk:99-102`).
+- For the PS/2 keyboard with its layouts and the volume keys there is one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
