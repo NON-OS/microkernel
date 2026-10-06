@@ -66,3 +66,7 @@ The spawn site does not choose the capabilities. The word installed comes from t
 - Each `PT_LOAD` segment must have its file size within its memory size, must not be both writable and executable (`WXViolation`), must be aligned as declared and must lie inside the file (`src/elf/loader/core/load_segment/validate.rs:20-47`).
 - Pages are user readable, writable only for a writable segment and executable only for an executable one, as `pte_perms_from_phdr` sets them (`src/elf/loader/core/load_segment/pte_flags.rs:20-29`).
 - Relative relocations are applied, then `enforce_relro` makes the `PT_GNU_RELRO` span read only, so a capsule cannot rewrite its own GOT (`src/elf/loader/core/relro.rs:27-57`).
+
+## Stacks
+
+The user stack is `USER_STACK_SIZE`, 2 MiB, ending at `USER_STACK_BASE`, `0x0000_7FFF_FFFF_0000`, and each process has a kernel stack of `KERNEL_STACK_SIZE`, 32 KiB (`src/process/userspace/constants.rs:30-32`). The page below the user stack is left unmapped, so an overflow faults as a user fault, and stack pages are never executable, as `allocate_user_stack` maps them (`src/kernel_core/process_spawn/user_stack.rs:26-57`).
