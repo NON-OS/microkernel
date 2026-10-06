@@ -150,3 +150,24 @@ fn a_non_digit_is_ignored() {
     a.digit(200, ETH);
     assert_eq!(a.raw(), 9);
 }
+
+/* "Use all" fills the field with what is held, exactly: scaled back it is
+ * the same base units, and it reads as the figure a person would type. */
+#[test]
+fn a_held_amount_fills_the_field_exactly() {
+    for (v, dp) in [
+        (1_234_500_000_000_000_000u128, 18u32),
+        (1, 18),
+        (7_000_000_000_000_000_000, 18),
+        (0, 18),
+        (1_250_000, 6),
+        (999_999, 6),
+    ] {
+        let a = Amount::of_units(v, dp);
+        assert_eq!(a.scaled(dp), v, "{v} at {dp}");
+    }
+    let a = Amount::of_units(1_250_000, 6);
+    assert_eq!((a.raw(), a.places(), a.point_started()), (125, 2, true), "reads 1.25");
+    let whole = Amount::of_units(7_000_000, 6);
+    assert_eq!((whole.raw(), whole.places(), whole.point_started()), (7, 0, false), "reads 7");
+}

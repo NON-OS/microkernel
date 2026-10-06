@@ -14,5 +14,19 @@ edition = "2021"
 [lib]
 path = "src/lib.rs"
 
+[dependencies]
+# The route values the policy store holds, for the network the wallet's
+# requests go over (nonos_route_link's pick, compiled by path).
+nonos_policy_proto = { path = "../policy_proto" }
+# The keyring's check that sealed words are an account's own: BIP39 and
+# BIP32 from nonos_hd, the curve from nonos_secp256k1, as the keyring links.
+nonos_hd = { path = "../nonos_hd" }
+nonos_secp256k1 = { path = "../nonos_secp256k1" }
+
+# keccak-256 on the host, for the EIP-55 examples (the wallet asks the
+# crypto service for it on the device).
+[dev-dependencies]
+sha3 = { version = "0.10", default-features = false }
+
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
