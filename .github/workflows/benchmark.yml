@@ -21,8 +21,8 @@ on:
         required: true
         default: "3"
         type: string
-  push:
-    branches: [main]
+  # ci.yml runs the same benchmark module on every push to main, so this
+  # workflow keeps only the nightly run and the manual one with its inputs.
   schedule:
     - cron: "30 6 * * *"
 
