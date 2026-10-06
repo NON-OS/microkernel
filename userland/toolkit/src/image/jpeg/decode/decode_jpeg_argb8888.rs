@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::image::jpeg::marker::{
     is_app, is_rst, is_sof_unsupported, read_marker, M_COM, M_DHT, M_DQT, M_DRI, M_EOI, M_SOF0,
-    M_SOI, M_SOS,
+    M_SOF1, M_SOF2, M_SOI, M_SOS,
 };
 use crate::image::types::{DecodeError, ImageSize};
 
@@ -37,7 +37,8 @@ pub fn decode_jpeg_argb8888(input: &[u8], out: &mut [u32]) -> Result<ImageSize, 
         match marker {
             M_SOI => continue,
             M_EOI => return Err(DecodeError::Truncated),
-            M_SOF0 => handle_sof0(input, out, &mut state)?,
+            M_SOF0 | M_SOF1 => handle_sof0(input, out, &mut state)?,
+            M_SOF2 => return super::progressive::progressive(input, out),
             m if is_sof_unsupported(m) => return Err(DecodeError::Unsupported),
             M_DQT => handle_dqt(input, &mut state)?,
             M_DHT => handle_dht(input, &mut state)?,

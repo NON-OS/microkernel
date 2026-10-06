@@ -17,6 +17,8 @@
 use super::buffer::PaintBuffer;
 
 impl<'a> PaintBuffer<'a> {
+    /* The rectangle is clipped to the surface once; each row is then one
+    slice fill, cut short where the pixel buffer ends. */
     pub fn fill_rect(&mut self, x: u32, y: u32, w: u32, h: u32, argb: u32) {
         if w == 0 || h == 0 || x >= self.width || y >= self.height {
             return;
@@ -24,14 +26,13 @@ impl<'a> PaintBuffer<'a> {
         let stride = self.stride_words as usize;
         let cw = core::cmp::min(w, self.width - x) as usize;
         let ch = core::cmp::min(h, self.height - y) as usize;
+        let len = self.pixels.len();
         for row in 0..ch {
-            let base = (y as usize + row) * stride + x as usize;
-            for col in 0..cw {
-                let idx = base + col;
-                if idx < self.pixels.len() {
-                    self.pixels[idx] = argb;
-                }
+            let start = (y as usize + row) * stride + x as usize;
+            if start >= len {
+                break;
             }
+            self.pixels[start..(start + cw).min(len)].fill(argb);
         }
     }
 }

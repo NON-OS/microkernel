@@ -14,47 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! A rasterized-glyph cache. Outlining a glyph with ab_glyph is expensive, so a
-//! full screen of text every keystroke would be slow. Each (face, glyph, size)
-//! is rasterized once into a coverage bitmap and reused; the colour is applied
-//! at blit time, so the same glyph serves every colour. Capsules are single
-//! threaded, so the lock never actually contends.
+//! The rasterized-glyph cache. Outlining a glyph with ab_glyph is expensive,
+//! so a full screen of text every repaint would be slow. Each (face, glyph,
+//! size, subpixel phase) is rasterized once into a coverage bitmap and reused;
+//! the colour is applied at blit time, so the same glyph serves every colour.
+//! Capsules are single threaded, so the lock never actually contends.
 
-use alloc::collections::BTreeMap;
-use alloc::vec::Vec;
+use spin::{Mutex, MutexGuard};
 
-use spin::Mutex;
+use super::store::Store;
 
-/// A glyph's coverage bitmap and its offset from the pen origin.
-pub(super) struct Raster {
-    pub min_x: i32,
-    pub min_y: i32,
-    pub w: u32,
-    pub h: u32,
-    pub cov: Vec<u8>,
+static CACHE: Mutex<Store> = Mutex::new(Store::new());
+
+pub(super) fn lock() -> MutexGuard<'static, Store> {
+    CACHE.lock()
 }
 
-// (mono face, glyph id, px size bits).
-type Key = (bool, u16, u32);
+/// Drop every cached glyph. The cache knows a face by the address of its
+/// data, so whoever frees face data calls this before that memory can hold
+/// another face: the page font registry does on every navigation.
+pub fn clear_glyph_cache() {
+    CACHE.lock().clear();
+    super::gpos::kern::clear();
+}
 
-/// Guard against an unbounded cache if a program renders at many sizes; the
-/// working set for a UI is far smaller than this.
-const MAX_ENTRIES: usize = 8192;
-
-static CACHE: Mutex<Option<BTreeMap<Key, Option<Raster>>>> = Mutex::new(None);
-
-/// Fetch the cached raster for `key`, rasterizing on a miss, then run `blit`.
-/// A glyph with no outline (a space) caches as None so it is not retried.
-pub(super) fn with_raster<R>(
-    key: Key,
-    rasterize: impl FnOnce() -> Option<Raster>,
-    blit: impl FnOnce(&Raster) -> R,
-) -> Option<R> {
-    let mut guard = CACHE.lock();
-    let map = guard.get_or_insert_with(BTreeMap::new);
-    if map.len() >= MAX_ENTRIES && !map.contains_key(&key) {
-        map.clear();
-    }
-    let entry = map.entry(key).or_insert_with(rasterize);
-    entry.as_ref().map(blit)
+/// Bytes the glyph cache holds against `GLYPH_CACHE_BUDGET`.
+pub fn glyph_cache_bytes() -> usize {
+    CACHE.lock().bytes
 }

@@ -20,10 +20,11 @@ mod handle_dri;
 mod handle_sof0;
 mod handle_sos;
 mod parse_jpeg_header;
+mod progressive;
 mod skip_segment;
 mod state;
 mod state_new;
 mod validate_quant_tables;
 
 pub use decode_jpeg_argb8888::decode_jpeg_argb8888;
-pub use parse_jpeg_header::parse_jpeg_header;
+pub use parse_jpeg_header::{parse_jpeg_header, OTHER_PROCESS};

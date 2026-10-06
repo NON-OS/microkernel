@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod bits;
+pub mod coef;
 pub mod decode;
 pub mod dht;
 pub mod dqt;

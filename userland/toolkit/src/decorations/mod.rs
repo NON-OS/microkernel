@@ -20,12 +20,17 @@ mod hit_test;
 mod metrics;
 mod palette;
 mod rect;
+mod scale;
 mod titlebar;
 mod traffic_lights;
 
-pub use accessory::accessory_rect;
-pub use frame_rect::{content_rect, frame_rect, light_rect, margin, radius, titlebar_rect};
-pub use hit_test::{hit_test, DecorationHit};
+pub use accessory::{accessory_rect, accessory_rect_at};
+pub use frame_rect::{
+    border_at, chrome_growth_at, content_rect, content_rect_at, frame_rect, frame_rect_at,
+    light_rect, light_rect_at, margin, margin_at, radius, radius_at, titlebar_h_at, titlebar_rect,
+    titlebar_rect_at,
+};
+pub use hit_test::{hit_test, hit_test_at, DecorationHit};
 pub use metrics::{
     ACCESSORY_INSET, ACCESSORY_PAD_Y, BORDER_PX, FRAME_RADIUS, HAIRLINE_PX, LIGHT_D, LIGHT_GAP,
     LIGHT_HIT_PAD, LIGHT_INSET, SHADOW_MARGIN, TITLEBAR_H, TITLE_PX,
@@ -35,5 +40,6 @@ pub use palette::{
     SHADOW, TITLE_TEXT, TRANSPARENT,
 };
 pub use rect::Rect;
-pub use titlebar::draw_frame;
-pub use traffic_lights::draw_traffic_lights;
+pub use scale::{at as scaled, px_at as scaled_px, ONE as SCALE_ONE};
+pub use titlebar::{draw_frame, draw_frame_at};
+pub use traffic_lights::{draw_traffic_lights, draw_traffic_lights_at};

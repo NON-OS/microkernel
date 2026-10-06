@@ -26,8 +26,8 @@ fn fill_rect(
 ) {
     let x0 = x.min(w) as usize;
     let y0 = y.min(h) as usize;
-    let x1 = (x + rw).min(w) as usize;
-    let y1 = (y + rh).min(h) as usize;
+    let x1 = x.saturating_add(rw).min(w) as usize;
+    let y1 = y.saturating_add(rh).min(h) as usize;
     let mut py = y0;
     while py < y1 {
         let mut px = x0;

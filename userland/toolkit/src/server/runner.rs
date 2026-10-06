@@ -20,7 +20,9 @@ use alloc::vec;
 
 use nonos_libc::{mk_exit, mk_ipc_recv_from, mk_ipc_reply};
 
-use crate::protocol::{decode, encode, Header, HDR_LEN, IPC_PAYLOAD_MAX, TOOLKIT_ENDPOINT};
+use crate::protocol::{
+    decode, encode, refusal, Header, HDR_LEN, IPC_PAYLOAD_MAX, TOOLKIT_ENDPOINT,
+};
 
 use super::dispatch;
 
@@ -40,6 +42,9 @@ pub fn run() -> ! {
         }
         let used = n as usize;
         let Some(hdr) = decode(&rx[..used]) else {
+            let (reply_hdr, status) = refusal(&rx[..used]);
+            encode(&mut tx[..HDR_LEN], &reply_hdr, status);
+            let _ = mk_ipc_reply(sender_pid, tx.as_ptr(), HDR_LEN);
             continue;
         };
         let payload = &rx[HDR_LEN..used];

@@ -13,13 +13,13 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::image::png::deflate::BitReader;
+use crate::image::png::deflate::{BitReader, ByteSource};
 use crate::image::png::huffman::Huffman;
 use crate::image::types::DecodeError;
 
 use super::tables::CL_ORDER;
 
-pub fn dynamic(bits: &mut BitReader<'_>) -> Result<(Huffman, Huffman), DecodeError> {
+pub fn dynamic<S: ByteSource>(bits: &mut BitReader<S>) -> Result<(Huffman, Huffman), DecodeError> {
     let hlit = bits.read_bits(5)? as usize + 257;
     let hdist = bits.read_bits(5)? as usize + 1;
     let hclen = bits.read_bits(4)? as usize + 4;

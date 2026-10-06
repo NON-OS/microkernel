@@ -58,7 +58,8 @@ pub fn decode_block(
         let raw_ac = br.read_bits(s)?;
         let val = extend(raw_ac, s);
         let zi = ZIGZAG[k];
-        coeffs[zi] = val * (qt.values[zi] as i32);
+        /* DQT keeps its values in zigzag order, the order k walks. */
+        coeffs[zi] = val * (qt.values[k] as i32);
         k += 1;
     }
     idct_8x8(&coeffs, samples);

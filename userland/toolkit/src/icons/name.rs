@@ -32,6 +32,7 @@ impl IconId {
             IconId::Processes => "processes",
             IconId::Settings => "settings",
             IconId::Snake => "snake",
+            IconId::Store => "store",
             IconId::Terminal => "terminal",
             IconId::VideoPlayer => "video_player",
             IconId::Wallet => "wallet",
@@ -67,6 +68,7 @@ impl IconId {
             IconId::CalcConvert => "calc_convert",
             IconId::CalcHistory => "calc_history",
             IconId::Install => "install",
+            IconId::Qwen => "qwen",
         }
     }
 }
