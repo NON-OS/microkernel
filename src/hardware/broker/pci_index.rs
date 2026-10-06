@@ -27,13 +27,14 @@ extern crate alloc;
 use alloc::vec::Vec;
 use spin::RwLock;
 
-use crate::drivers::pci::types::{MsixInfo, PciAddress, PciBar};
+use crate::drivers::pci::types::{MsiInfo, MsixInfo, PciAddress, PciBar};
 
 #[derive(Clone, Copy, Debug)]
 pub(in crate::hardware::broker) struct PciHandle {
     pub(in crate::hardware::broker) device_id: u64,
     pub(in crate::hardware::broker) address: PciAddress,
     pub(in crate::hardware::broker) bars: [PciBar; 6],
+    pub(in crate::hardware::broker) msi: Option<MsiInfo>,
     pub(in crate::hardware::broker) msix: Option<MsixInfo>,
 }
 
@@ -45,4 +46,10 @@ pub(in crate::hardware::broker) fn install(handles: Vec<PciHandle>) {
 
 pub(in crate::hardware::broker) fn lookup(device_id: u64) -> Option<PciHandle> {
     INDEX.read().iter().find(|h| h.device_id == device_id).copied()
+}
+
+/// Every handle, for a check that has to look across devices (the MMIO map
+/// keeps every device's MSI-X table out of a capsule's pages).
+pub(in crate::hardware::broker) fn all() -> Vec<PciHandle> {
+    INDEX.read().clone()
 }

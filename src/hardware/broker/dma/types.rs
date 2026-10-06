@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) const DMA_MAP_HIGH: u32 = 1 << 0;
-
 #[derive(Debug, Clone, Copy)]
 pub struct DmaGrant {
     pub grant_id: u64,
@@ -26,6 +24,9 @@ pub struct DmaGrant {
     pub user_va: u64,
     pub length: u64,
     pub flags: u32,
+    /// What the device was given: an IOVA when `confined`, else `physical_start`.
+    pub device_addr: u64,
+    pub confined: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -54,6 +55,8 @@ pub enum DmaMapError {
     BadLengthForClass,
     UnsupportedFlags,
     NoMemory,
+    /// A `DMA_MAP_DMA32` map whose device address would end above 4 GiB.
+    Above4G,
     NoVaSpace,
     MapFailed,
 }

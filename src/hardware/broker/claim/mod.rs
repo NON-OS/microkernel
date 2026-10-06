@@ -16,11 +16,13 @@
 
 mod claim;
 mod lookup;
+mod no_snoop;
+mod quiesce;
 mod release;
 mod state;
 mod types;
 
 pub use claim::claim;
 pub use lookup::lookup;
-pub use release::{release, release_all_for_pid};
+pub use release::{quiesce_all, quiesce_held, release, release_all_for_pid};
 pub use types::{Claim, ClaimError};

@@ -24,8 +24,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 use crate::memory::addr::VirtAddr;
 
-pub(super) const USER_DMA_BASE: u64 = 0x0000_00A0_0000_0000;
-pub(super) const USER_DMA_END: u64 = 0x0000_00B0_0000_0000;
+pub(super) use super::super::windows::{USER_DMA_BASE, USER_DMA_END};
 const PAGE_SIZE: u64 = 4096;
 
 static NEXT_USER_DMA_VA: AtomicU64 = AtomicU64::new(USER_DMA_BASE);

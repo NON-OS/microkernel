@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::msix_ops::current_ops;
+use super::msi_program::clear;
 use crate::hardware::broker::pci_index;
 
 pub(crate) fn teardown_msix_vector(device_id: u64, device_vector: u16) {
@@ -27,4 +28,12 @@ pub(crate) fn disable_msix_for_device(device_id: u64) {
     let Some(handle) = pci_index::lookup(device_id) else { return };
     let Some(msix) = handle.msix else { return };
     current_ops().disable_for_device(&handle.address, &msix);
+}
+
+pub(crate) fn disable_msi_for_device(device_id: u64) {
+    let Some(handle) = pci_index::lookup(device_id) else { return };
+    let Some(msi) = handle.msi else { return };
+    if clear(&handle.address, &msi).is_err() {
+        crate::log::info!("[IRQ] {} msi left enabled: config write refused", handle.address);
+    }
 }

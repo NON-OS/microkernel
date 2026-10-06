@@ -14,28 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::acpi::aml::{
-    enumerate_gpio_controllers, enumerate_i2c_controllers, enumerate_i2c_hid,
+use alloc::vec::Vec;
+
+use crate::arch::x86_64::acpi::aml::{enumerate_gpio_controllers, enumerate_i2c_controllers};
+use crate::arch::x86_64::acpi::devices::i2c::{
+    enumerate_i2c_hid_devices, enumerate_platform_i2c_hosts, I2cHidDeviceType,
 };
 
 use super::super::table::register_platform_device;
 use super::hid_record::hid_record;
 use super::record::device_record;
+use super::report::report;
 
-/// Register the ACPI-enumerated LPSS I2C controllers and their I2C-HID
-/// touchpads with the broker table. On a machine that exposes its controller as
-/// a PCI function the controller loop finds nothing and PCI enumeration covers
-/// it; the touchpad records still let the HID driver skip address probing. The
-/// GPIO communities are enumerated here as well so each touchpad record can
-/// name the community its interrupt pin belongs to.
+/// Register the ACPI-enumerated platform I2C controllers and the firmware's
+/// HID-over-I2C devices with the broker table, and say on the boot console
+/// what was found. Touchpads (and devices whose class the `_HID` does not
+/// tell) are registered, touchpads first so the host driver tries them
+/// first; touchscreens are left out, since the input driver drives a pad.
+/// A machine whose firmware declares no such device registers nothing and
+/// says nothing.
 pub fn register_acpi_i2c() {
     for ctl in enumerate_i2c_controllers() {
         register_platform_device(device_record(&ctl));
     }
     let gpio = enumerate_gpio_controllers();
-    for dev in enumerate_i2c_hid() {
-        if dev.slave_addr != 0 {
-            register_platform_device(hid_record(&dev, &gpio));
-        }
+    let hosts = enumerate_platform_i2c_hosts();
+    let mut devices: Vec<_> = enumerate_i2c_hid_devices()
+        .into_iter()
+        .filter(|d| d.device_type != I2cHidDeviceType::Touchscreen)
+        .collect();
+    devices.sort_by_key(|d| d.device_type != I2cHidDeviceType::Touchpad);
+    for dev in &devices {
+        report(dev, &hosts);
+        register_platform_device(hid_record(dev, &gpio, &hosts));
     }
 }

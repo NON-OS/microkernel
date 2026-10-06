@@ -34,6 +34,7 @@ pub fn init_from_pci(devices: &[PciDevice]) {
             device_id: idx as u64,
             address: dev.address,
             bars: dev.bars,
+            msi: dev.msi,
             msix: dev.msix,
         });
     }
