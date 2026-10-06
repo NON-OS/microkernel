@@ -1,27 +1,40 @@
 extern crate alloc;
 use crate::viewer::gallery::layout::{cell_rect, grid, Grid, HEADER_H, THUMB_H, THUMB_W};
-use crate::viewer::gallery::state::{GalleryState, MAX_TILES};
+use crate::viewer::gallery::state::GalleryState;
+use crate::viewer::says::{gallery_next, gallery_note};
 use crate::viewer::scale::{draw_nn, Dst};
 use nonos_app_skeleton::PaintBuffer;
 
 const BG: u32 = 0xFF10_1418;
 const FG: u32 = 0xFFE6_E6E6;
+const DIM: u32 = 0xFF9A_A4AE;
 const PLACEHOLDER: u32 = 0xFF23_282E;
 const ERRTILE: u32 = 0xFF3A_1E1E;
 const SEL: u32 = 0xFF4A_9EFF;
+const TROUBLE: u32 = 0xFFE0_7A6E;
+/// The bitmap face's advance, for centring a line by its length.
+const GLYPH_W: u32 = 8;
 
 pub fn paint_gallery(g: &mut GalleryState, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
     fb.fill_rect(0, 0, w, h, BG);
     let gr = grid(w);
-    let n = g.entries.len().min(MAX_TILES);
-    if n == 0 {
-        fb.text(w / 2 - 60, h / 2, b"No images found", FG);
+    let n = g.entries.len();
+    if let Some(note) = gallery_note(g.scanned, g.scan_error, n) {
+        let x = (w / 2).saturating_sub(note.len() as u32 * GLYPH_W / 2);
+        fb.text(x, h / 2, note.as_bytes(), FG);
+        if let Some(next) = gallery_next(g.scanned, g.scan_error, n) {
+            let x = (w / 2).saturating_sub(next.len() as u32 * GLYPH_W / 2);
+            fb.text(x, h / 2 + 2 * GLYPH_W, next.as_bytes(), DIM);
+        }
         return;
     }
     paint_boxes(fb, g, &gr, n);
     blit_thumbs(fb, g, &gr, n);
     fb.text(10, 8, b"Gallery", FG);
+    if let Some(trouble) = g.decoder_trouble {
+        fb.text(10 + 9 * GLYPH_W, 8, trouble.as_bytes(), TROUBLE);
+    }
 }
 
 fn paint_boxes(fb: &mut PaintBuffer, g: &GalleryState, gr: &Grid, n: usize) {

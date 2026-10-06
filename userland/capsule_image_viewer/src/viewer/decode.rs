@@ -1,4 +1,5 @@
 extern crate alloc;
+use crate::viewer::budget::refuse_pixels;
 use alloc::vec;
 use alloc::vec::Vec;
 use nonos_app_skeleton::discover::lookup_service;
@@ -64,6 +65,9 @@ pub fn decode(bytes: &[u8], name: &[u8]) -> Result<Decoded, &'static str> {
     let mut desc = SurfaceDescriptor::default();
     let va = mk_surface_attach(handle, &mut desc as *mut _);
     if va <= 0 {
+        // The codec handed this handle over; it is ours to give back whether
+        // or not it could be mapped, or the decoder's surface stays held.
+        let _ = mk_surface_release(handle);
         return Err("attach failed");
     }
     if w != desc.width || h != desc.height {
@@ -79,6 +83,11 @@ pub fn decode(bytes: &[u8], name: &[u8]) -> Result<Decoded, &'static str> {
     {
         let _ = mk_surface_release(handle);
         return Err("bad surface geometry");
+    }
+    // The decoder's surface is its memory; the copy below is the heap's.
+    if let Some(why) = refuse_pixels(desc.width, desc.height) {
+        let _ = mk_surface_release(handle);
+        return Err(why);
     }
     let px = copy_surface(va as usize, desc.stride, desc.width, desc.height);
     let _ = mk_surface_release(handle);
