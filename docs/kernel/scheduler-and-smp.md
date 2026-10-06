@@ -80,3 +80,16 @@ There are no per-CPU run queues and there is no separate balancer. Every CPU tak
 When a pid is queued, `wake_for` tells the CPU that still holds it with a reschedule interrupt, or, if no CPU holds it, wakes one idle CPU (`src/process/scheduler/selection/on_cpu_wake.rs:38-65`). `wake_idle_cpu` wakes at most one, not all (`src/smp/ipi_handler.rs:39-58`). On a hybrid Intel part, `wake_pass` offers the work to an idle performance core before an efficiency core (`src/smp/topology/core_kind.rs:61-70`).
 
 An idle AP runs `ap_idle_loop`: with interrupts masked it marks itself idle, checks the queue and halts only if it is empty, so work queued in between is never missed (`src/smp/ap/idle.rs:29-63`). `take_work` claims a pid and switches to it (`src/smp/ap/idle_steps.rs:35-47`). From then on that CPU schedules the same way the boot CPU does.
+
+## Time slices and preemption
+
+Each CPU's local APIC timer fires at `TICK_HZ`, 100 Hz (`src/arch/x86_64/interrupt/apic/preemption/install.rs:25`). A slice is `DEFAULT_TIME_SLICE`, 10 ticks, so 100 ms (`src/process/scheduler/preemption/state.rs:20`). See [timers](timers.md) for how the timer is calibrated.
+
+On each tick, `tick` charges the tick to the running process or to idle and spends one tick of the slice (`src/process/scheduler/preemption/tick.rs:23-72`). It asks for a reschedule when:
+
+- the slice runs out and kernel preemption is on, which `KERNEL_PREEMPT` makes the default (`src/sys/policy/kernel_preempt.rs:19`);
+- a `High` or `RealTime` process was just woken while this CPU runs a lower band, through one of eight `SLOTS` read by `give_way` (`src/process/scheduler/preemption/band_wake.rs:35-67`);
+- a kernel task waits in the real-time task queue, as `has_realtime_tasks` reports (`src/process/scheduler/preemption/tick.rs:57-59`);
+- the running process was killed from another CPU, which `is_dead` reports, checked only when the tick interrupted user mode (`src/process/scheduler/preemption/tick.rs:65-71`).
+
+The switch happens only when the tick interrupted user mode, preemption is not disabled on this CPU, and `need_reschedule` is set (`src/interrupts/timer/tick.rs:50-71`). Kernel code holds plain spin locks with interrupts open, and a switch inside one could hand the CPU to a task that spins on the same lock. Kernel code gives up the CPU by calling `yield_now` (`src/process/scheduler/preemption/yield_impl.rs:22-27`). A reschedule interrupt from another CPU only sets the flag; `reschedule` does not switch inside the handler (`src/smp/ipi_dispatch/handlers.rs:35-42`).
