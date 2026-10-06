@@ -30,7 +30,6 @@ pub struct State {
     pub cwd: Cwd,
     pub owner_pid: u32,
     pub fresh: bool,
-    pub start_ms: u64,
     // Shell variables, set with `set NAME VALUE` and expanded as $NAME.
     pub vars: Vec<(Vec<u8>, Vec<u8>)>,
     // Exit status of the last command: 0 on success, nonzero on failure.
@@ -59,4 +58,10 @@ pub struct State {
     // close_block and last_status to the job's reap in the on_tick pump.
     pub fg_running: bool,
     pub fg_started_ms: i64,
+    /// Text picked with the pointer, if any.
+    pub sel: Option<crate::term::select::Selection>,
+    /// The scrollback search: what is typed, and the match it is on.
+    pub find: Option<crate::term::select::Find>,
+    /// The line editing a foreground program gets while it reads lines.
+    pub cooked: crate::event::cooked::Cooked,
 }

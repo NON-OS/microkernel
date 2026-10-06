@@ -18,14 +18,12 @@ use nonos_app_skeleton::EventOutcome;
 use nonos_libc::mk_time_millis;
 
 use crate::command;
-use crate::jobs;
-use crate::term::context::context_line;
-use crate::term::cwd::home_var;
-use crate::term::dimensions::COLS;
-use crate::term::identity::{hostname, USER};
-use crate::term::prompt::PROMPT_BYTES;
+use crate::term::dimensions::LINE_MAX;
 use crate::term::state::State;
 use crate::term::util::{copy_into, format_u64};
+
+use super::echo_line::echo_line;
+use super::run_line::run_line;
 
 pub fn on_enter(state: &mut State) -> EventOutcome {
     // Running a line ends any search that found it. The match is already on
@@ -34,26 +32,35 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
     state.fresh = false;
     let started = mk_time_millis();
     state.open_block(crate::term::rtc::rtc_hms());
-    let mut ctx = [0u8; COLS];
-    let cn = context_line(USER, hostname(), state.cwd.as_bytes(), home_var(state), &mut ctx);
-    state.scrollback.push_line(&ctx[..cn]);
     // A `!` form is resolved before anything else sees the line, so what is
     // echoed, recorded in history and run are all the same text. Expanding
     // later would put one command on screen and another through the parser.
-    let mut entered = [0u8; COLS];
-    let n;
-    match crate::term::history::expand(state.line.as_bytes(), &state.history) {
+    let mut entered = [0u8; LINE_MAX];
+    let typed = state.line.as_bytes();
+    let mut n = typed.len().min(LINE_MAX);
+    entered[..n].copy_from_slice(&typed[..n]);
+    /*
+     * A line that starts with `qwen` is a question, and a `!word` in it is
+     * part of what is asked, not a history reference.
+     */
+    let expanded = if command::builtin::qwen::is_line(state.line.as_bytes()) {
+        None
+    } else {
+        crate::term::history::expand(state.line.as_bytes(), &state.history)
+    };
+    match expanded {
         // The expansion is what gets echoed, which is the whole safety of the
         // feature: the reader sees the command that is about to run, not the
         // shorthand they typed for it.
         Some(Ok(line)) => {
-            n = line.len().min(COLS);
+            n = line.len().min(LINE_MAX);
             entered[..n].copy_from_slice(&line[..n]);
         }
         Some(Err(_)) => {
             // Naming an entry that is not there runs nothing. Silently
             // dropping the `!` would run the rest of the line, which is how
             // history expansion earns its reputation.
+            echo_line(state, &entered[..n]);
             state.scrollback.push_line(b"no matching history entry");
             state.line.clear();
             state.history.reset_cursor();
@@ -61,61 +68,21 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
             state.scrollback.jump_bottom();
             return EventOutcome::Repaint;
         }
-        None => {
-            let body = state.line.as_bytes();
-            n = body.len();
-            entered[..n].copy_from_slice(body);
-        }
+        None => {}
     }
-    let mut echo = [0u8; COLS + 8];
-    let mut k = 0;
-    k += copy_into(&mut echo[k..], PROMPT_BYTES);
-    k += copy_into(&mut echo[k..], &entered[..n]);
-    state.scrollback.push_line(&echo[..k]);
-    state.history.push(&entered[..n]);
-    let mut outcome = command::Outcome::Repaint;
-    let mut prev_status: i32 = state.last_status;
-    for command::Stmt { conn, body, background } in command::split_program(&entered[..n]) {
-        let go = match conn {
-            command::Conn::Always => true,
-            command::Conn::And => prev_status == 0,
-            command::Conn::Or => prev_status != 0,
-        };
-        if !go {
-            continue;
-        }
-        let aliased = command::alias_expand(body, &state.aliases);
-        let expanded = command::expand(&aliased, &state.vars, prev_status);
-        state.last_status = 0;
-        let argv = command::parse(&expanded);
-        let args = &argv.argv[..argv.argc];
-        match jobs::is_job_command(state, args) {
-            jobs::Verdict::Job(work) => {
-                let id = jobs::submit(state, body, background, work);
-                if background {
-                    print_started(state, id);
-                    prev_status = state.last_status;
-                    continue;
-                }
-                state.fg_running = true;
-                state.fg_started_ms = mk_time_millis();
-                break;
-            }
-            jobs::Verdict::Handled => {
-                prev_status = state.last_status;
-                continue;
-            }
-            jobs::Verdict::Instant => {}
-        }
-        if let command::Outcome::Exit = command::run(state, &argv) {
-            outcome = command::Outcome::Exit;
-            break;
-        }
-        if state.fg_running {
-            break;
-        }
-        prev_status = state.last_status;
-    }
+    echo_line(state, &entered[..n]);
+    /*
+     * A question to Qwen is the rest of the line as typed. It is taken
+     * before the shell splits and expands the line, which would break it at
+     * a `;` or an apostrophe, and it is sent to the program, not kept in
+     * history.
+     */
+    let outcome = if command::builtin::qwen::enter(state, &entered[..n]) {
+        command::Outcome::Repaint
+    } else {
+        state.history.push(&entered[..n]);
+        run_line(state, &entered[..n])
+    };
     if !state.fg_running {
         let dur = (mk_time_millis() - started).clamp(0, u32::MAX as i64) as u32;
         state.close_block(state.last_status == 0, dur);
@@ -132,7 +99,7 @@ pub fn on_enter(state: &mut State) -> EventOutcome {
 // "[n] started" line printed when a background job is submitted; the
 // job's own output streams into the scrollback as Task 13's on_tick pump
 // steps it.
-fn print_started(state: &mut State, id: u32) {
+pub(super) fn print_started(state: &mut State, id: u32) {
     let mut num = [0u8; 20];
     let nk = format_u64(id as u64, &mut num);
     let mut msg = [0u8; 32];

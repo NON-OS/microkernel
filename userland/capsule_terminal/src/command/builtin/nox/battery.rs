@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// `battery`: charge percentage from the platform battery status. Negative means
-// no battery is reported (a desktop, or emulation).
+// `battery`: charge percentage from the platform battery status. -ENODEV
+// (-19) means the firmware declares no battery (a desktop); any other
+// negative value means a battery whose charge the kernel cannot read (it has
+// no AML interpreter to evaluate _BST), and is said in those words.
 
 use alloc::vec::Vec;
 use nonos_libc::mk_battery_status;
@@ -25,8 +27,12 @@ use crate::term::util::format_u64;
 
 pub fn run(state: &mut State) -> bool {
     let b = mk_battery_status();
+    if b == -19 {
+        state.scrollback.push_line(b"No battery");
+        return true;
+    }
     if b < 0 {
-        state.scrollback.push_error(b"battery: not reported");
+        state.scrollback.push_error(b"Battery status unavailable");
         return false;
     }
     let pct = (b as u64).min(100);

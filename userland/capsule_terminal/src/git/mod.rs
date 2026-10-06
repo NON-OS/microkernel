@@ -19,4 +19,4 @@ mod storage;
 mod transport;
 
 pub use storage::VfsStorage;
-pub use transport::Https;
+pub use transport::{Https, Stepped};

@@ -33,14 +33,12 @@ pub(super) fn caps_of(e: &[u8]) -> u64 {
     u64::from_be_bytes(e[36..44].try_into().unwrap_or([0; 8]))
 }
 
-/// The kernel's authority byte: 0 vendor, 255 publisher, otherwise a
-/// developer slot plus one. Padded to the column.
-fn signed_by(byte: u8) -> &'static [u8] {
-    match byte {
-        0 => b"vendor     ",
-        255 => b"publisher  ",
-        _ => b"developer  ",
-    }
+/// The kernel's authority byte, by the one table `whoami` reads too, padded
+/// to the column.
+fn signed_by(line: &mut Vec<u8>, byte: u8) {
+    let name = super::own::signer(byte);
+    line.extend_from_slice(name);
+    line.resize(line.len() + 11usize.saturating_sub(name.len()), b' ');
 }
 
 pub(super) fn heading(out: &mut Output<'_>) {
@@ -59,7 +57,7 @@ pub(super) fn row(out: &mut Output<'_>, e: &[u8]) {
     line.extend_from_slice(b"  ");
     push_hex(&mut line, &e[4..10]);
     line.extend_from_slice(if caps & network_bit() != 0 { b"    YES    " } else { b"    no     " });
-    line.extend_from_slice(signed_by(e[44]));
+    signed_by(&mut line, e[44]);
     let mut first = true;
     for (i, name) in CAP_NAMES.iter().enumerate() {
         if caps & (1u64 << i) != 0 {

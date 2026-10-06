@@ -17,12 +17,12 @@
 //! `neofetch` — the fresh-tab splash rendered as scrollback text.
 
 use alloc::vec::Vec;
-use nonos_libc::mk_time_millis;
+use nonos_libc::mk_uptime_ms;
 
 use crate::command::output::Output;
-use crate::term::identity::{hostname, USER};
+use crate::term::identity::{hostname, username};
 use crate::term::state::State;
-use crate::term::util::{copy_into, format_u64};
+use crate::term::util::copy_into;
 
 use super::compose::two_column;
 use super::logo::LOGO;
@@ -42,22 +42,21 @@ fn row(label: &str, value: &[u8]) -> Vec<u8> {
     line
 }
 
-fn uptime(state: &State, buf: &mut [u8]) -> usize {
-    let now = mk_time_millis();
-    let elapsed =
-        if now > 0 && now as u64 >= state.start_ms { now as u64 - state.start_ms } else { 0 };
-    let total = elapsed / 1000;
-    let mut k = 0;
-    k += format_u64(total / 60, &mut buf[k..]);
-    k += copy_into(&mut buf[k..], b"m ");
-    k += format_u64(total % 60, &mut buf[k..]);
-    k += copy_into(&mut buf[k..], b"s");
-    k
+/*
+ * The system's uptime, from the monotonic clock `uptime` reads. It was the
+ * time since this tab opened, under a row labelled uptime.
+ */
+fn uptime(buf: &mut [u8]) -> usize {
+    let ms = mk_uptime_ms();
+    if ms < 0 {
+        return copy_into(buf, b"unavailable");
+    }
+    crate::paint::fetch_uptime::uptime_str(ms as u64, buf)
 }
 
-fn info(kernel: &[u8], up: &[u8]) -> Vec<Vec<u8>> {
+fn info(kernel: &[u8], up: &[u8], signed: &[u8]) -> Vec<Vec<u8>> {
     let mut head = Vec::with_capacity(32);
-    head.extend_from_slice(USER);
+    head.extend_from_slice(username());
     head.push(b'@');
     head.extend_from_slice(hostname());
     let mut rule = Vec::with_capacity(head.len());
@@ -67,23 +66,24 @@ fn info(kernel: &[u8], up: &[u8]) -> Vec<Vec<u8>> {
         rule,
         Vec::from(&b"ZeroState Cryptographic OS"[..]),
         Vec::new(),
-        row("os", b"NONOS RAM-resident"),
+        row("os", crate::paint::fetch_boot::os_line().as_bytes()),
         row("kernel", kernel),
         row("shell", b"nox   (type 'help')"),
-        row("trust", b"Ed25519 + ML-DSA-65"),
+        row("signed", signed),
         row("arch", b"x86_64"),
         row("uptime", up),
     ]
 }
 
 pub fn run(state: &mut State) {
-    let mut ubuf = [0u8; 24];
-    let n = uptime(state, &mut ubuf);
+    let mut ubuf = [0u8; 32];
+    let n = uptime(&mut ubuf);
+    let signed = crate::command::builtin::receipt::own_line();
     let mut kernel = Vec::with_capacity(32);
     kernel.extend_from_slice(b"microkernel ");
     kernel.extend_from_slice(VERSION.trim_end().as_bytes());
 
-    let rows = two_column(&LOGO, &info(&kernel, &ubuf[..n]), GAP);
+    let rows = two_column(&LOGO, &info(&kernel, &ubuf[..n], signed), GAP);
     let (plain, styled) = palette();
 
     let out = &mut Output::new(&mut state.scrollback);

@@ -18,12 +18,12 @@
 //! panel of system facts. All text is anti-aliased TrueType.
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_libc::mk_time_millis;
+use nonos_libc::mk_uptime_ms;
 
 use super::fetch_banner::draw_banner;
 use super::fetch_palette::draw_palette;
 use super::fetch_uptime::uptime_str;
-use crate::term::state::State;
+use super::user_host::draw_fetch_id;
 use crate::term::theme::types::Theme;
 
 // Breathing room between the titlebar and the top of the banner. Anchored to
@@ -39,27 +39,19 @@ fn row(fb: &mut PaintBuffer, x: i32, y: i32, label: &str, value: &str, t: &Theme
     let _ = fb.text_ttf_mono(x + 96, y, value, t.fg, INFO_PX);
 }
 
-pub fn draw_fetch(state: &State, fb: &mut PaintBuffer, x: u32, body_y: u32, right: u32, t: &Theme) {
+pub fn draw_fetch(fb: &mut PaintBuffer, x: u32, body_y: u32, right: u32, t: &Theme) {
     let ix = x as i32;
     let edge = right as i32;
     let after = draw_banner(fb, ix, body_y as i32 + BANNER_PAD, edge, t);
     let _ = fb.text_ttf(ix, after + 4, "ZeroState Cryptographic OS", t.dim, 14.0);
 
     let mut y = after + 34;
-    let _ = fb.text_ttf_mono(ix, y, "nonos", t.accent, INFO_PX);
-    let mut host = [0u8; 40];
-    host[0] = b'@';
-    let hn = crate::term::identity::hostname();
-    let hl = hn.len().min(host.len() - 1);
-    host[1..1 + hl].copy_from_slice(&hn[..hl]);
-    let at = core::str::from_utf8(&host[..1 + hl]).unwrap_or("@");
-    let gap = fb.measure_ttf_mono("nonos", INFO_PX);
-    let _ = fb.text_ttf_mono(ix + gap, y, at, t.dim, INFO_PX);
+    draw_fetch_id(fb, ix, y, INFO_PX, t);
     y += 8;
     fb.fill_rect(ix as u32, (y + 8) as u32, (edge - ix).clamp(0, RULE_W) as u32, 1, t.dim);
     y += 24;
 
-    row(fb, ix, y, "os", "NONOS RAM-resident", t);
+    row(fb, ix, y, "os", super::fetch_boot::os_line(), t);
     y += ROW;
     let mut kb = [0u8; 48];
     let kn = super::fetch_version::kernel_line(&mut kb);
@@ -67,16 +59,16 @@ pub fn draw_fetch(state: &State, fb: &mut PaintBuffer, x: u32, body_y: u32, righ
     y += ROW;
     row(fb, ix, y, "shell", "nox   (type 'help')", t);
     y += ROW;
-    row(fb, ix, y, "trust", "Ed25519 + ML-DSA-65", t);
+    // The kernel's record of who signed this terminal, not a fixed claim.
+    let signed = crate::command::builtin::receipt::own_line();
+    row(fb, ix, y, "signed", core::str::from_utf8(signed).unwrap_or(""), t);
     y += ROW;
-    row(fb, ix, y, "arch", "x86_64", t);
+    row(fb, ix, y, "arch", super::fetch_arch::arch(), t);
     y += ROW;
 
-    let now = mk_time_millis();
-    let elapsed =
-        if now > 0 && now as u64 >= state.start_ms { now as u64 - state.start_ms } else { 0 };
+    // The system's uptime, as `uptime` reports it; it was the tab's age.
     let mut buf = [0u8; 24];
-    let n = uptime_str(elapsed, &mut buf);
+    let n = uptime_str(mk_uptime_ms().max(0) as u64, &mut buf);
     let up = core::str::from_utf8(&buf[..n]).unwrap_or("");
     row(fb, ix, y, "uptime", up, t);
     y += ROW + 6;

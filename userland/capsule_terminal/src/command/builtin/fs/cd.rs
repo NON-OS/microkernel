@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Change the working directory. With no argument, go to root.
+//! Change the working directory. With no argument, go home: `$HOME`, which
+//! every tab starts with as /home/nonos, the directory the vfs seeds.
 
 use nonos_app_skeleton::clients::vfs;
 
@@ -23,7 +24,12 @@ use crate::command::output::Output;
 use crate::term::state::State;
 
 pub fn cd(state: &mut State, argv: &[&[u8]]) {
-    let target = argv.get(1).copied().unwrap_or(b"/");
+    let home = crate::term::cwd::home_var(state).to_vec();
+    if argv.len() < 2 && home.is_empty() {
+        Output::new(&mut state.scrollback).writeln(b"cd: HOME is not set");
+        return;
+    }
+    let target = argv.get(1).copied().unwrap_or(&home);
     let path = abspath(state, target);
     let owner = pid(state);
     if path == b"/" {

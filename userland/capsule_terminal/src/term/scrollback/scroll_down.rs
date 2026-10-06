@@ -17,7 +17,8 @@
 use super::types::Scrollback;
 
 impl Scrollback {
+    /// Forward toward the live screen by `lines`.
     pub fn scroll_down(&mut self, lines: usize) {
-        self.grid.scroll_view_down(lines);
+        self.vt.scroll_view(-(lines.min(isize::MAX as usize) as isize));
     }
 }

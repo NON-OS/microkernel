@@ -31,8 +31,6 @@ pub fn compute(w: u32, h: u32, c: &Chrome, r: Rails) -> Layout {
     let body_w = w.saturating_sub(lw);
 
     Layout {
-        titlebar: Rect { x: 0, y: 0, w, h: titlebar_h },
-        tabstrip: Rect { x: 0, y: tab_y, w, h: tabstrip_h },
         left_rail: Rect { x: 0, y: content_y, w: lw, h: content_h },
         body: Rect { x: lw, y: content_y, w: body_w, h: body_h },
         input: Rect { x: lw, y: content_y + body_h, w: body_w, h: input_h },

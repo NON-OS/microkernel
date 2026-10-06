@@ -16,6 +16,8 @@
 
 use alloc::vec;
 
+use nonos_libc::mk_time_millis;
+
 use super::types::Terminal;
 use crate::palette::Palette;
 use crate::rail::Rail;
@@ -41,6 +43,10 @@ impl Terminal {
             rail_scroll: 0,
             layout: None,
             palette: Palette::new(),
+            cells: None,
+            ptr: Default::default(),
+            started_ms: mk_time_millis(),
+            handed_due_ms: 0,
         }
     }
 }

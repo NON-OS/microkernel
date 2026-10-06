@@ -17,8 +17,10 @@
 mod capture;
 mod clear;
 mod feed_raw;
+mod fit;
 mod jump_bottom;
 mod new;
+mod program_ended;
 mod push_dir_row;
 mod push_error;
 mod push_line;

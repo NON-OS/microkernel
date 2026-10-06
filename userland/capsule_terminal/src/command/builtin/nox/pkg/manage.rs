@@ -16,42 +16,30 @@
 
 use alloc::vec::Vec;
 
-use nonos_app_skeleton::clients::vfs::store_status;
+use nonos_app_skeleton::clients::vfs::{store_status, store_was_read};
 
-use super::run::USAGE;
-use super::{call, emit};
 use crate::term::state::State;
 use crate::term::util::format_u64;
 
-// The argument is the installed slug, the same name `pkg install` reported,
-// not the path the package was installed from.
-pub(super) fn remove(state: &mut State, rest: &[&[u8]]) -> bool {
-    let Some(&name) = rest.first() else {
-        state.scrollback.push_error(USAGE);
-        return false;
-    };
-    match call::pkg_remove(name) {
-        Ok(()) => {
-            let mut line = Vec::with_capacity(8 + name.len());
-            line.extend_from_slice(b"removed ");
-            line.extend_from_slice(name);
-            state.scrollback.push_line(&line);
-            true
-        }
-        Err(status) => {
-            emit::error(state, status);
-            false
-        }
-    }
-}
-
 // Report whether the on-device store behind the installed packages is
-// writable, so a failed install can be told apart from a broken store.
+// usable, so a failed install can be told apart from a broken store. A store
+// that loaded with a damaged entry left out (9) is usable; only the codes that
+// mean no disk was read say the boot has none (app_skeleton vfs store_disk).
 pub(super) fn status(state: &mut State) -> bool {
     match store_status() {
         Ok(0) => {
             state.scrollback.push_line(b"store healthy");
             true
+        }
+        Ok(9) => {
+            state.scrollback.push_line(
+                b"store loaded; a damaged entry was left out",
+            );
+            true
+        }
+        Ok(code) if !store_was_read(code) => {
+            state.scrollback.push_error(b"no NONOS disk on this boot: packages are not kept");
+            false
         }
         Ok(code) => {
             let mut num = [0u8; 24];

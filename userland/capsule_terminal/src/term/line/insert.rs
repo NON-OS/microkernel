@@ -15,19 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::Line;
-use crate::term::dimensions::COLS;
+use crate::term::dimensions::LINE_MAX;
 
 impl Line {
-    pub fn insert(&mut self, byte: u8) -> bool {
-        if self.len >= COLS {
+    /// Insert `ch` at the cursor, all of its bytes or none of them, so a full
+    /// line never ends in a partial character.
+    pub fn insert_char(&mut self, ch: char) -> bool {
+        let mut enc = [0u8; 4];
+        let bytes = ch.encode_utf8(&mut enc).as_bytes();
+        let n = bytes.len();
+        if self.len + n > LINE_MAX {
             return false;
         }
         if self.cursor < self.len {
-            self.buf.copy_within(self.cursor..self.len, self.cursor + 1);
+            self.buf.copy_within(self.cursor..self.len, self.cursor + n);
         }
-        self.buf[self.cursor] = byte;
-        self.cursor += 1;
-        self.len += 1;
+        self.buf[self.cursor..self.cursor + n].copy_from_slice(bytes);
+        self.cursor += n;
+        self.len += n;
         true
     }
 }

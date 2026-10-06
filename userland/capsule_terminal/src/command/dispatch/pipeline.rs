@@ -16,39 +16,59 @@
 
 use alloc::vec::Vec;
 
+use alloc::vec;
+
 use super::exec::exec;
 use super::filter::apply;
+use super::filter::input::{not_a_filter, FILTERS};
 use crate::term::state::State;
-
-const FILTERS: [&[u8]; 10] =
-    [b"grep", b"sort", b"uniq", b"cut", b"nl", b"wc", b"head", b"tail", b"tac", b"rev"];
 
 // Run a `a | b | c` pipeline: split the args on `|`, then fold each stage
 // in order over an accumulating buffer. A stage whose command name is a
 // known filter runs as a filter over the buffer; any other stage runs as
 // a real command through `exec`, capturing its output as the new buffer.
-// v1: real-command stages ignore the incoming buffer (no stdin plumbing
-// into non-filter commands) — only filters read upstream output.
+// Only the filters read what is piped in. Any other command after a `|`
+// used to run as if nothing had been piped and drop the lines without a
+// word; it now stops the pipeline and says which commands read a pipe.
 pub(super) fn run_pipeline(state: &mut State, args: &[&[u8]]) -> Vec<Vec<u8>> {
     let segments = split_stages(args);
     if segments.is_empty() {
         return Vec::new();
     }
     let mut lines = Vec::new();
-    for seg in &segments {
-        lines = run_stage(state, seg, lines);
+    for (i, seg) in segments.iter().enumerate() {
+        let stops = i > 0 && !is_filter(seg);
+        lines = run_stage(state, seg, lines, i == 0);
+        if stops {
+            break;
+        }
     }
     lines
 }
 
-pub(crate) fn run_stage(state: &mut State, seg: &[&[u8]], buffer: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-    if FILTERS.contains(&seg.first().copied().unwrap_or(b"")) {
-        apply(seg, buffer)
-    } else {
-        state.scrollback.begin_capture();
-        let _ = exec(state, seg);
-        state.scrollback.end_capture()
+/// Whether a stage reads the lines piped into it.
+pub(crate) fn is_filter(seg: &[&[u8]]) -> bool {
+    FILTERS.contains(&seg.first().copied().unwrap_or(b""))
+}
+
+/// One stage over the lines before it. `first` is the stage nothing is piped
+/// into, the only place a command that is not a filter can stand.
+pub(crate) fn run_stage(
+    state: &mut State,
+    seg: &[&[u8]],
+    buffer: Vec<Vec<u8>>,
+    first: bool,
+) -> Vec<Vec<u8>> {
+    if is_filter(seg) {
+        return apply(seg, buffer);
     }
+    if !first {
+        state.last_status = 1;
+        return vec![not_a_filter(seg.first().copied().unwrap_or(b""))];
+    }
+    state.scrollback.begin_capture();
+    let _ = exec(state, seg);
+    state.scrollback.end_capture()
 }
 
 pub(crate) fn split_stages<'a>(args: &'a [&'a [u8]]) -> Vec<&'a [&'a [u8]]> {

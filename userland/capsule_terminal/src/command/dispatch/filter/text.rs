@@ -17,29 +17,57 @@
 use alloc::vec;
 use alloc::vec::Vec;
 
-use crate::command::flags::{parse, Spec};
+use super::input::spec_for;
+use crate::command::flags::{parse, Parsed};
 use crate::term::util::format_u64;
 
-// grep [-i] [-v] <pattern>: keep matching lines; -i ignores case, -v inverts.
-pub(super) fn grep(args: &[&[u8]], input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-    let (mut ci, mut inv) = (false, false);
-    let mut pat: &[u8] = b"";
-    for a in args {
-        match *a {
-            b"-i" => ci = true,
-            b"-v" => inv = true,
-            p => pat = p,
-        }
+/// The flags `name` was given, or the line saying why they were refused.
+fn flags<'a>(name: &[u8], args: &[&'a [u8]]) -> Result<Parsed<'a>, Vec<Vec<u8>>> {
+    match spec_for(name) {
+        Some(spec) => parse(&spec, args).map_err(|e| vec![e]),
+        None => Ok(Parsed::default()),
     }
-    input.into_iter().filter(|l| contains(l, pat, ci) != inv).collect()
+}
+
+// grep [-c -i -n -v] <pattern>: keep matching lines; -i ignores case, -v
+// inverts, -n numbers each kept line by its place in the input, -c prints only
+// how many matched. It used to know only -i and -v and take any other flag
+// for the pattern.
+pub(super) fn grep(args: &[&[u8]], input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
+    let parsed = match flags(b"grep", args) {
+        Ok(p) => p,
+        Err(e) => return e,
+    };
+    let Some(&pat) = parsed.operands.first() else {
+        return vec![Vec::from(&b"grep: missing pattern"[..])];
+    };
+    let (ci, inv) = (parsed.has(b'i'), parsed.has(b'v'));
+    let kept = input.into_iter().enumerate().filter(|(_, l)| contains(l, pat, ci) != inv);
+    if parsed.has(b'c') {
+        let mut num = [0u8; 24];
+        let n = format_u64(kept.count() as u64, &mut num);
+        return vec![num[..n].to_vec()];
+    }
+    if !parsed.has(b'n') {
+        return kept.map(|(_, l)| l).collect();
+    }
+    kept.map(|(i, l)| {
+        let mut num = [0u8; 24];
+        let n = format_u64(i as u64 + 1, &mut num);
+        let mut row = num[..n].to_vec();
+        row.push(b':');
+        row.extend_from_slice(&l);
+        row
+    })
+    .collect()
 }
 
 // sort [-n] [-r] [-u]: -n orders by leading integer, -r reverses, -u drops
 // adjacent duplicates once the order is settled.
 pub(super) fn sort(args: &[&[u8]], mut input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-    let parsed = match parse(&Spec::new(b"sort", b"nru"), args) {
+    let parsed = match flags(b"sort", args) {
         Ok(p) => p,
-        Err(e) => return vec![e],
+        Err(e) => return e,
     };
     if parsed.has(b'n') {
         input.sort_unstable_by(|a, b| numeric_key(a).cmp(&numeric_key(b)).then_with(|| a.cmp(b)));
@@ -83,7 +111,10 @@ fn numeric_key(line: &[u8]) -> i64 {
 /// which is the form this is nearly always reached for: `sort | uniq -c` is
 /// how anyone counts anything from a listing.
 pub(super) fn uniq(args: &[&[u8]], input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-    let count = args.iter().any(|a| *a == b"-c");
+    let count = match flags(b"uniq", args) {
+        Ok(p) => p.has(b'c'),
+        Err(e) => return e,
+    };
     let mut out: Vec<Vec<u8>> = Vec::new();
     let mut runs: Vec<u64> = Vec::new();
     for line in input {
@@ -148,20 +179,16 @@ pub(super) fn nl(input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
     out
 }
 
-// cut -d<delim> -f<n>: emit the n-th delim-separated field of each line
+// cut -d <delim> -f <n>: emit the n-th delim-separated field of each line
 // (1-based; default delimiter space, default field 1). Missing field -> "".
+// The value may follow its flag or be joined to it, -d, or -d ",".
 pub(super) fn cut(args: &[&[u8]], input: Vec<Vec<u8>>) -> Vec<Vec<u8>> {
-    let mut delim = b' ';
-    let mut field = 1usize;
-    for a in args {
-        if let Some(d) = a.strip_prefix(b"-d") {
-            if let Some(&c) = d.first() {
-                delim = c;
-            }
-        } else if let Some(f) = a.strip_prefix(b"-f") {
-            field = field_index(f);
-        }
-    }
+    let parsed = match flags(b"cut", args) {
+        Ok(p) => p,
+        Err(e) => return e,
+    };
+    let delim = parsed.value(b'd').and_then(|d| d.first().copied()).unwrap_or(b' ');
+    let field = parsed.value(b'f').map(field_index).unwrap_or(1);
     input
         .into_iter()
         .map(|l| l.split(|&b| b == delim).nth(field - 1).map(<[u8]>::to_vec).unwrap_or_default())

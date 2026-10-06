@@ -26,7 +26,8 @@ impl Terminal {
     pub(super) fn on_tick_inner(&mut self) -> bool {
         self.flush_prefs();
         let sampled = self.rail.tick();
-        jobs::pump(self.cur()) || sampled
+        let handed = self.take_handed();
+        jobs::pump(self.cur()) || sampled || handed
     }
 
     fn flush_prefs(&mut self) {

@@ -22,6 +22,7 @@
 mod cat;
 mod cd;
 mod cp;
+mod filter_file;
 mod find;
 mod glob;
 mod grep;
@@ -55,6 +56,7 @@ mod wc;
 pub use cat::cat;
 pub use cd::cd;
 pub use cp::cp;
+pub use filter_file::filter_file;
 pub use find::find;
 pub use grep::grep;
 pub use head::head;

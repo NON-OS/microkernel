@@ -33,9 +33,15 @@ nonos_bench_core = { path = "../../nonos-bench" }
 nonos_git = { path = "../nonos_git" }
 nonos_http = { path = "../nonos_http" }
 nonos_policy_proto = { path = "../policy_proto" }
+# Whether this boot is live, for which Qwen tier runs by default.
+nonos_policy_client = { path = "../policy_client" }
+nonos_market_proto = { path = "../market_proto" }
 nonos_socket = { path = "../nonos_socket" }
 nonos_tls = { path = "../nonos_tls" }
 nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_vt = { path = "../nonos_vt" }
+# The network the person chose, for what the shell sends off the machine.
+nonos_route_link = { path = "../nonos_route_link" }
 
 [profile.release]
 panic = "abort"

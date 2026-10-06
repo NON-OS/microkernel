@@ -22,6 +22,8 @@ use super::super::ensure_pid::ensure_pid;
 use super::super::pull::auth::extra_headers;
 use super::super::pull::resolve::resolve_host;
 use super::{args, request, walk};
+use crate::command::builtin::direct_gate::{refusal_line, PUSH};
+use crate::command::builtin::offline_probe::offline;
 use crate::term::cwd::resolve;
 use crate::term::state::State;
 
@@ -35,6 +37,14 @@ pub fn run(state: &mut State, argv: &[&[u8]]) -> bool {
             return false;
         }
     };
+    if let Some(line) = refusal_line(b"push", PUSH, nonos_route_link::direct_refusal()) {
+        state.scrollback.push_error(&line);
+        return false;
+    }
+    if let Some(line) = offline(b"push") {
+        state.scrollback.push_error(&line);
+        return false;
+    }
     let ip = match resolve_host(&a.target.hostname) {
         Ok(ip) => ip,
         Err(e) => {

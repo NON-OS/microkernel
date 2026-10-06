@@ -20,8 +20,8 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::line_chars::chars_of;
 use super::syntax::Part;
-use crate::term::grid::width::char_width;
 use crate::term::theme::types::Theme;
+use nonos_vt::width::width as char_width;
 
 // Draw text as crisp monospace, advancing by the columns each character
 // occupies. What is typed has to render the same as what the grid shows, or a

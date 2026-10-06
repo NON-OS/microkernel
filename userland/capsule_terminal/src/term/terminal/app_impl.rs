@@ -24,7 +24,11 @@ impl App for Terminal {
     }
 
     fn on_event(&mut self, event: InputEvent) -> EventOutcome {
-        self.on_event_inner(event)
+        let outcome = self.on_event_inner(event);
+        if outcome == EventOutcome::Close {
+            self.hang_up_all();
+        }
+        outcome
     }
 
     fn paint(&mut self, fb: &mut PaintBuffer) {
@@ -49,5 +53,10 @@ impl App for Terminal {
 
     fn on_accessory_event(&mut self, event: InputEvent) -> EventOutcome {
         self.accessory_event(event)
+    }
+
+    fn close_requested(&mut self) -> bool {
+        self.hang_up_all();
+        true
     }
 }

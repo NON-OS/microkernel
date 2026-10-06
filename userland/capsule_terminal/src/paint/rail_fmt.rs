@@ -32,10 +32,6 @@ pub fn mib_into(buf: &mut [u8], kb: u64) -> usize {
     n + copy_into(&mut buf[n..], b" MB")
 }
 
-pub fn u32_into(buf: &mut [u8], v: u32) -> usize {
-    format_u64(v as u64, buf)
-}
-
 /// One Q11 fixed-point load average as a two-place decimal: the kernel publishes
 /// 2048 for a load of 1.00 and no float crosses the ABI. Hundredths are rounded
 /// half away from zero, so 1024 reads as "0.50" and 21 as "0.01".

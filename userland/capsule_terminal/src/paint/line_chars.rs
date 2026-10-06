@@ -26,14 +26,3 @@ pub fn chars_of(bytes: &[u8]) -> impl Iterator<Item = char> + '_ {
     };
     whole.chars()
 }
-
-// The nearest character boundary at or before `at`. A byte in the middle of a
-// character has its top two bits set to one and zero, which is what marks it
-// as a continuation of the byte before.
-pub fn char_floor(bytes: &[u8], at: usize) -> usize {
-    let mut i = at.min(bytes.len());
-    while i > 0 && bytes.get(i).is_some_and(|b| b & 0xC0 == 0x80) {
-        i -= 1;
-    }
-    i
-}

@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Reaching hosts through the mixnet from the command line.
+//! Reaching hosts from the command line over the network the person chose.
 //!
-//! The browser routes through `net.socks5` whenever that capsule is running.
-//! Anything the terminal fetches, `curl` and `git` included, leaves the same
-//! way for the same reason, so a shell is not the hole in a machine that is
-//! otherwise anonymised.
+//! Anything the terminal fetches, `curl` and `git` included, leaves the way
+//! the browser, the wallet and the model fetcher leave: through the Nym
+//! mixnet or the Anyone network, or directly only when Direct is the
+//! default, so a shell is not the hole in a machine that is otherwise
+//! anonymised. The client is nonos_route_link's; the terminal keeps none of
+//! its own.
 
-mod socks;
+pub mod exchange;
 mod stream;
-mod wire;
 
-pub use stream::Wire;
+pub use exchange::{Exchange, Poll, Stage};
 
 /// Whether the mixnet proxy is running, and so whether anything that leaves
 /// directly is worth pointing out.

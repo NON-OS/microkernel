@@ -16,10 +16,15 @@
 
 use crate::term::util::{copy_into, format_u64};
 
+/// "3h 4m 5s", or "4m 5s" inside the first hour.
 pub fn uptime_str(elapsed_ms: u64, buf: &mut [u8]) -> usize {
     let total = elapsed_ms / 1000;
     let mut k = 0;
-    k += format_u64(total / 60, &mut buf[k..]);
+    if total >= 3600 {
+        k += format_u64(total / 3600, &mut buf[k..]);
+        k += copy_into(&mut buf[k..], b"h ");
+    }
+    k += format_u64(total % 3600 / 60, &mut buf[k..]);
     k += copy_into(&mut buf[k..], b"m ");
     k += format_u64(total % 60, &mut buf[k..]);
     k += copy_into(&mut buf[k..], b"s");
