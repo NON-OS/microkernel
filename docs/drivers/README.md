@@ -113,3 +113,7 @@ Nine of the 27 directories are in the tree with their proofs but are not built i
 | `capsule_driver_xhci` | USB host | `driver.xhci0` | desktop-offline | USB 3 xHCI host controller for the USB class drivers |
 
 "desktop-offline" and the others name the `microkernel-` feature profile that first carries the driver; each later profile keeps it.
+
+## Drivers inside the kernel
+
+Three driver modules stay in the kernel: PCI enumeration, the validators in `security` such as `validate_dma_buffer`, and a small virtio-rng entropy driver, `init_virtio_rng` (`src/drivers/mod.rs:25-35`). `init_entropy` brings that driver up at boot and falls back to the software RNG without it (`src/kernel_core/init/platform/entropy.rs:19-25`). It drives the same PCI function that `capsule_driver_virtio_rng` later claims through the broker, and in this release nothing in the kernel calls the capsule's client. The static checks fail if anything else appears under `src/drivers/`, through the `unexpected_drivers` test (`nonos-ci/run-static-checks.sh:179-190`).
