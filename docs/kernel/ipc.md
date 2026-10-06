@@ -28,3 +28,18 @@ All eight calls need the `IPC` capability in the caller's token; the table entry
 | `MSVR` | `MkServiceRegister` | Claim a service name and port at run time. |
 
 The four letter tags are [syscall tags](../overview/glossary.md#syscall-tag); [System calls](syscalls.md) explains them.
+
+## Limits
+
+- A payload is at most `MAX_MESSAGE_SIZE`, 1 MiB (`src/ipc/nonos_channel/limits.rs:26`).
+- `send_with_correlation` refuses a length of 0 or above `MAX_MESSAGE_SIZE` with `EINVAL` before it allocates anything (`src/syscall/microkernel/ipc/send.rs:45-47`).
+- `sys_ipc_send_to_pid` (`src/syscall/microkernel/ipc/send_to_pid.rs:45-47`) and `sys_ipc_reply` (`src/syscall/microkernel/ipc/reply.rs:52-58`) apply the same `MAX_MESSAGE_SIZE` bound. `sys_ipc_call` checks the response length `resp_len` against `MAX_MESSAGE_SIZE` (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs:57-59`), and its request goes through `send_with_correlation`.
+- An inbox holds `DEFAULT_INBOX_CAPACITY` messages, 1024; a capacity set by hand must lie between `MIN_INBOX_CAPACITY` 16 and `MAX_INBOX_CAPACITY` 65536 (`src/ipc/nonos_inbox/registry.rs:40-42`).
+- Bytes are budgeted as well as messages: `TOTAL_BYTES_MAX` is 96 MiB for every inbox together, `INBOX_BYTES_MAX` is 16 MiB for one inbox, and `SHARE_BYTES_MAX` is half of that for one sender in one inbox (`src/ipc/nonos_inbox/budget.rs:41-43`).
+- Each queued message is charged its payload, both names and `MESSAGE_OVERHEAD` of 128 bytes (`src/ipc/nonos_inbox/budget.rs:44-52`).
+- The kernel's own messages, sender 0, count against the inbox and the total but not against a sender share, as `admit` shows (`src/ipc/nonos_inbox/budget.rs:75-90`).
+- One service has at most `MAX_PER_SERVICE` 64 calls waiting for its replies, and one caller at most `MAX_PER_CALLER` 8 of them (`src/syscall/microkernel/ipc/pending_reply/share.rs:31-38`).
+- A service name passed to lookup or register is at most `NAME_MAX`, 64 bytes, in both `lookup.rs` (`src/syscall/microkernel/ipc/lookup.rs:24`) and `register.rs` (`src/syscall/microkernel/ipc/register.rs:28`).
+- `register_endpoint` refuses a new endpoint once `MAX_SERVICES`, 256, are registered (`src/services/registry.rs:42-55`), and `sys_service_register` reports that as `ERRNO_NOMEM`, -12 (`src/syscall/microkernel/ipc/register.rs:53-55`).
+
+A message that does not fit is refused, never cut on the way in: `try_enqueue` checks the count and the byte budget under one lock and hands the message back (`src/ipc/nonos_inbox/inbox.rs:97-112`).
