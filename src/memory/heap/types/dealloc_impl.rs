@@ -16,7 +16,7 @@
 
 use super::super::constants::MIN_ALIGNMENT;
 use super::allocator::SecureHeapAllocator;
-use super::header::AllocationHeader;
+use super::header::{data_offset, AllocationHeader};
 use core::alloc::{GlobalAlloc, Layout};
 use core::mem;
 use core::ptr;
@@ -31,9 +31,10 @@ pub(super) unsafe fn dealloc_impl(allocator: &SecureHeapAllocator, ptr: *mut u8,
             return;
         }
 
-        let header_size = mem::size_of::<AllocationHeader>();
-        let raw_ptr = ptr.sub(header_size);
-        let header_ptr = raw_ptr as *const AllocationHeader;
+        let align = layout.align().max(MIN_ALIGNMENT);
+        let offset = data_offset(align);
+        let raw_ptr = ptr.sub(offset);
+        let header_ptr = ptr.sub(mem::size_of::<AllocationHeader>()) as *const AllocationHeader;
 
         let header = ptr::read_volatile(header_ptr);
         if !header.is_valid() || header.size != layout.size() {
@@ -67,8 +68,7 @@ pub(super) unsafe fn dealloc_impl(allocator: &SecureHeapAllocator, ptr: *mut u8,
             ptr::write_bytes(ptr, 0, layout.size());
         }
 
-        let total_size = header_size + layout.size() + mem::size_of::<u64>();
-        let align = layout.align().max(MIN_ALIGNMENT);
+        let total_size = offset + layout.size() + mem::size_of::<u64>();
         if let Ok(adjusted_layout) = Layout::from_size_align(total_size, align) {
             super::super::manager::HEAP_STATS.record_deallocation(layout.size());
             crate::arch::run_without_interrupts(|| {
