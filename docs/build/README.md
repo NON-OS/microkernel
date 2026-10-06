@@ -82,3 +82,16 @@ The flake's `artifacts` function writes one tree per build (`tools/nix/artifacts
 The kernel embeds the certificate, manifest and STARK trailer of every capsule it ships, read from the [trust set](../overview/glossary.md#trust-set) committed under `nonos-data/trust`. When the tree lacks them for a capsule, the flake writes `kernel/README` naming the capsules instead of building the kernel (`kernelNote`, `tools/nix/artifacts.nix:24-26`). The loader compiles in the kernel's public keys; without them the flake writes `bootloader/README` (`loaderNote`, `tools/nix/artifacts.nix:21-22`).
 
 Nothing in `result/` is an image. It holds no ESP, no signature and no trailer of the kernel or the loader. Of the flake's steps, only the seal writes an image; the older make build in `mk/` writes its own, signed with local development keys ([make-targets.md](make-targets.md)).
+
+## Another profile
+
+`nonos.toml` picks the [build profile](../overview/glossary.md#build-profile), and `standard` is the default (`profile`, `nonos.toml:17`). Name another one for a single build without editing the file:
+
+```
+make PROFILE=hardened
+nix build .#hardened
+```
+
+Not tested in this release.
+
+Both build the `hardened` profile with the rest of `nonos.toml` unchanged (`ATTR`, `Makefile:43`). [profiles.md](profiles.md) lists the six profiles and what each takes out.
