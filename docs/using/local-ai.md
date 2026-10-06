@@ -74,3 +74,30 @@ Sizes are in GiB (2^30 bytes). "Files" is the pinned lengths summed. "To run" is
 On a live boot the model files are held in memory too, so a tier fits only when its files and its run together stay within what the kernel leaves free: total memory less the larger of 1 GiB and a quarter of memory (`fits` in `userland/capsule_model_fetch/src/need.rs:98-103`). `qwen tiers` prints, for this machine, each tier's download, the memory it needs, and whether it is here.
 
 As an example of a pin, `qwen3-0.6b` is the single file `Qwen3-0.6B-Q8_0.gguf`, 639,446,688 bytes, SHA-256 `9465e63a22add5354d9bb4b99e90117043c7124007664907259bd16d043bb031` (`userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs`).
+
+## Install a model
+
+You can install a tier three ways:
+
+- From the Marketplace: the `Models` tab lists every tier. Select one and press Enter. Its card says what it downloads and the memory it needs. See [Marketplace](marketplace.md).
+- From the Terminal: `qwen get TIER` downloads one or more tiers, and `qwen tiers` lists them.
+- From a release stick: on a live boot from a stick that carries it, `qwen3-0.6b` is imported from the stick with no network when you open it there.
+
+```
+qwen tiers
+qwen get qwen3-0.6b
+qwen get --direct qwen3-8b
+```
+
+Not tested in this release.
+
+What a download needs:
+
+- A system built with the signed model catalogue. It is built from the same pins and signed with the marketplace operator key (`mk/22-models.mk`). Without it, `qwen get` ends with exit status 3 (`NO_CATALOGUE` in `userland/capsule_model_fetch/src/exit.rs:35`) and says the system `was built without a signed model catalogue (no marketplace operator key), so it has nothing to fetch from; put a tier on its disk with tools/nonos-qwen-tier.py instead` (`userland/capsule_model_fetch/src/catalogue/embed.rs`).
+- A [data volume](../overview/glossary.md#data-volume): NONOS installed on a disk, or a live boot, whose volume is held in memory. A machine with no disk that carries NONOS at all has nowhere to keep a model.
+- A network. Downloads go over the Anyone network whatever the default network is, and wait up to three minutes for Anyone to build its first circuit. `qwen get --direct` takes one download directly instead, faster, and the mirror then sees this machine's address (`DIRECT` in `userland/capsule_terminal/src/command/builtin/qwen/fetch_words.rs:29-36`). See [Privacy networks](privacy-network.md).
+- A boot that runs a network. Air-Gapped, Safe Mode and Recovery boots run none.
+
+The files come from the NONOS model repository when the build named one (`NONOS_MODEL_MIRROR` in `mk/22-models.mk`), else from the Qwen team's Hugging Face files.
+
+`market uninstall linux.qwen-TIER` takes a tier's model off the machine again.
