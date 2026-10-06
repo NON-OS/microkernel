@@ -19,26 +19,33 @@
 //! Every inbox is registered with an explicit owner pid. Sends use
 //! `try_enqueue_strict`, which fails closed when the inbox is
 //! missing, when its owner pid has exited, or when the bounded queue
-//! is full. There is no auto-registration on the IPC paths; the only
+//! is full or out of bytes. There is no auto-registration on the IPC paths; the only
 //! way to materialise an inbox is `register_inbox(name, owner_pid)`
 //! (capsule-owned) or `register_or_get_bootstrap_inbox(name)`
 //! (kernel-owned reply inbox, set up at spawn time).
 //!
 //! Capsule lifecycle integrates through `unregister_for_pid(pid)`,
-//! called from `process::exit::teardown` to drop a dying capsule's
+//! called from `process::exit::finalize_teardown` to drop a dying capsule's
 //! `proc.{pid}` inbox along with everything still queued in it.
 
+mod budget;
+mod drop_pid;
 mod error;
 mod inbox;
 mod registry;
 mod stats;
+mod take;
+mod waiter;
 
+pub use drop_pid::{unregister_for_pid, unregister_stdin_for_pid};
 pub use error::{InboxError, StrictEnqueueError};
 pub use registry::{
     capacity, clear, exists, get_default_capacity, get_global_stats, get_inbox_stats, inbox_count,
     is_empty, is_full, len, list_inboxes, peek, register_inbox, register_inbox_with_capacity,
     register_or_get_bootstrap_inbox, set_default_capacity, try_dequeue_existing,
-    try_enqueue_strict, unregister_for_pid, unregister_inbox, DEFAULT_INBOX_CAPACITY, KERNEL_OWNER,
-    MAX_INBOX_CAPACITY, MIN_INBOX_CAPACITY,
+    try_enqueue_strict, unregister_inbox, DEFAULT_INBOX_CAPACITY, KERNEL_OWNER, MAX_INBOX_CAPACITY,
+    MIN_INBOX_CAPACITY,
 };
 pub use stats::InboxStatsSnapshot;
+pub use take::take_front;
+pub use waiter::{unwait, wait_on, wake_waiter};

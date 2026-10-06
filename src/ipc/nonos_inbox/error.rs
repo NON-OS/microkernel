@@ -37,7 +37,7 @@ pub enum InboxError {
     AlreadyRegistered { module: String },
 }
 
-/// Result of `try_enqueue_strict`. Distinguishes the four routes a
+/// Result of `try_enqueue_strict`. Distinguishes the three routes a
 /// strict enqueue can fail through; a caller can map each one to a
 /// distinct errno (ENOENT for missing, ESRCH for dead owner, EAGAIN
 /// for full).
