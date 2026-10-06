@@ -107,3 +107,14 @@ Reading the volume takes `FileSystem`; importing into it takes `StoreWrite` and 
 `sys_store_write` writes the bytes it is given to the disk, at LBA 256 or above and below the plan, and needs `StoreWrite` (`src/syscall/microkernel/store_write.rs:24-42`). The file service persists a file only when the policy field `Persistent` is set, which first-boot setup records when the person chooses to keep state. `require_persistent` refuses every other persist (`userland/capsule_vfs/src/server/handlers/persist_gate.rs:29-42`). An allowed file is written with `append` as it is (`userland/capsule_vfs/src/server/handlers/store_persist.rs:57-63`). On an amnesic boot nothing is persisted.
 
 On an installed system, a file persisted to the store is in the clear on the disk unless its capsule sealed it. The saved Wi-Fi list is sealed with the machine key, and the wallet's account key and recovery words are sealed by the keyring.
+
+## Kept in RAM only
+
+| Secret | Where it comes from |
+|---|---|
+| The capability token MAC key | 32 random bytes, `init_token_signing_key` (`src/kernel_core/init/platform/token_signing_key.rs:19-31`) |
+| The boot session nonce bound into every token | 16 random bytes, `init_once_from_rng` (`src/security/boot_session.rs:33-42`) |
+| Keyring records, apart from the two wallet records it seals | the keyring's `Store` (`userland/capsule_keyring/src/store/types/store.rs:20-23`) |
+| The Shield store and its file key | `session` (`userland/capsule_shield/src/guard.rs:39-47`) |
+| The live boot volume and its key | `open_session_volume` (`src/fs/blockfs_volume/session.rs:36-64`) |
+| Every file on an amnesic boot | refused by `require_persistent` (`userland/capsule_vfs/src/server/handlers/persist_gate.rs:29-42`) |
