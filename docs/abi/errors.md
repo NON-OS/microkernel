@@ -198,3 +198,11 @@ Some calls map their own failures onto these codes:
 - `abi/syscalls.toml` publishes 25 codes and leaves out 9 of the 24 microkernel constants: `EFBIG`, `ENOSPC`, `EBADMSG`, `EOPNOTSUPP`, `ENETDOWN`, `ETIMEDOUT`, `EALREADY`, `EINPROGRESS` and `ESTALE`. It also leaves out `ENODATA`, `EPROTO` and `EMSGSIZE`, which the time and crypto calls return. A toolchain that reads only that file will not have names for them.
 - `abi/syscalls.toml` lists `errno_range` down to -4095, but no value the kernel defines is below -133.
 - When no microkernel group handles a number, `route_tail` returns -1, which reads as `EPERM`; no published number reaches that path at this commit (`src/syscall/microkernel/dispatch/route.rs:52-68`).
+
+## See also
+
+- [The NONOS ABI](README.md)
+- [Syscalls](syscalls.md)
+- [Broker](broker.md)
+- [IPC](ipc.md)
+- [abi/syscalls.toml](../../abi/syscalls.toml)
