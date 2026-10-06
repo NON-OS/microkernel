@@ -33,3 +33,9 @@ Not tested in this release.
 The log is there only on images built with capsule serial output, such as `standard` and `qemu`. A `hardened` or `airgapped` image keeps nothing, and `log` prints `log: no line matches` (`src/sys/serial/tail.rs`).
 
 Look through your files in Files and the Editor. On an installed system a file reaches the disk in one of two ways: a program keeps it in the store, for example with `nox keep` and the file's path in the Terminal (`userland/capsule_terminal/src/command/builtin/nox/keep.rs`), or it lives under `/data`, on the data volume, as models do. Files that were never kept lived in memory and are gone.
+
+## What Recovery cannot do
+
+- It cannot copy files to a USB stick or another disk. The file service keeps files in memory and in the NONOS store, and mounts no other file system (`userland/capsule_vfs/README.md`), and the USB storage driver serves sectors, not files (`userland/capsule_driver_usb_msc/README.md`).
+- It cannot reach a network, by design.
+- It cannot open a data volume the TPM no longer gives the key for.
