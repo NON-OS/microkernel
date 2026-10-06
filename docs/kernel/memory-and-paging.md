@@ -88,3 +88,7 @@ Every allocation carries a header with the magic `ALLOCATION_MAGIC`, `0xDEADBEEF
 - A long copy answers [TLB shootdowns](../overview/glossary.md#tlb-shootdown) every `SERVE_UNIT`, 64 KiB (`src/smp/serve.rs:48`).
 
 This is also why SMAP is safe to turn on: the kernel reaches user memory only through the directmap, which has no user bit, so a supervisor access to a user page never happens, as the note before the `init_mmu` call records (`src/kernel_core/init/entry/init_vm_and_protection.rs:33-41`). The range check, the `policy` module, is compiled into the `kernel_proofs` [proof crate](../overview/glossary.md#proof-crate) (`userland/kernel_proofs/src/usercopy/mod.rs:17-22`), which passes its 388 tests on this commit.
+
+## Changing a mapping on several CPUs
+
+When a mapping changes, every CPU that may cache the old translation has to drop it. This is the TLB shootdown, described with the rest of the multi-CPU machinery on [scheduler and SMP](scheduler-and-smp.md).
