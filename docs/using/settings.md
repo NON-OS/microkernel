@@ -127,3 +127,10 @@ The panel shows no "signed" badge: Settings cannot check the image's signature i
 - No keyboard layout row. The layout is chosen at first boot and cycled with `Ctrl+Alt+Space`; see [Keyboard layouts](keyboard-layouts.md). The policy store has the field, but Settings does not list it (`ALL_FIELDS` in `userland/capsule_settings/src/settings/schema/all_fields.rs`).
 - No switch to turn back on an app turned off at setup. That field is not in `ALL_FIELDS` either.
 - No shutdown or restart. The desktop has no way to power off in this release.
+
+## How long a change lasts
+
+The policy store keeps its values in memory.
+
+- On an amnesic boot, the default, every change is gone at power off.
+- On a machine where `Keep data across reboots` is on, the policy store writes the values it keeps to `/nonos/settings/values` about a second after your last change, and puts them back at the next boot after setup's answers (`QUIET_MS` in `userland/capsule_policy/src/keep/tick.rs`). The kept fields are listed in `KEPT` in `userland/policy_proto/src/settings_record.rs`.
