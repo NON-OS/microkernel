@@ -15,16 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::consts::{PIXEL_FORMAT_BGRX, PIXEL_FORMAT_RGBX};
-use uefi::proto::console::gop::{ModeInfo, PixelFormat};
+use crate::display::gop::linear_bgr;
+use uefi::proto::console::gop::ModeInfo;
 
+// The handoff's pixel format for a mode the kernel can scan out from, by the
+// same rule the splash latched with: RGB, BGR, or a PixelBitMask mode whose
+// masks are one of those two at 32 bits a pixel. PixelBltOnly has no linear
+// framebuffer and is never usable.
 pub(super) fn mode_usable(info: &ModeInfo) -> Option<u32> {
     let (width, height) = info.resolution();
     if width == 0 || height == 0 || info.stride() < width {
         return None;
     }
-    match info.pixel_format() {
-        PixelFormat::Rgb => Some(PIXEL_FORMAT_RGBX),
-        PixelFormat::Bgr => Some(PIXEL_FORMAT_BGRX),
-        PixelFormat::Bitmask | PixelFormat::BltOnly => None,
-    }
+    Some(if linear_bgr(info)? { PIXEL_FORMAT_BGRX } else { PIXEL_FORMAT_RGBX })
 }

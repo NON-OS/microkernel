@@ -14,23 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
+//! The module kinds for what the kernel's check of this loader reads. They
+//! follow the install regions' kinds and match the kernel's
+//! `boot_evidence.rs`.
 
-pub fn secure_cleanup_before_jump() {
-    wipe_crypto_state();
-    wipe_signing_keys();
-    wipe_entropy_pools();
-    compiler_fence(Ordering::SeqCst);
-}
-
-fn wipe_crypto_state() {
-    crate::crypto::keystore_v2::wipe_all_keys();
-}
-
-fn wipe_signing_keys() {
-    crate::crypto::sig::wipe_signing_state();
-}
-
-fn wipe_entropy_pools() {
-    crate::entropy::wipe_entropy_state();
-}
+/// The firmware's TCG event log, crypto-agile format.
+pub const MODULE_KIND_TCG_LOG: u32 = 4;
+/// This loader's own v4 trailer, `EFI/nonos/bootloader.trailer`.
+pub const MODULE_KIND_BOOT_TRAILER: u32 = 5;
+/// The signed boot-root record, `EFI/nonos/boot_root.approval`.
+pub const MODULE_KIND_BOOT_ROOT_RECORD: u32 = 6;

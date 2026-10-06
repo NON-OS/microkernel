@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::security::AttestPolicy;
+
 /// Cryptographic verification results from boot process.
 #[derive(Clone, Copy)]
 pub struct CryptoHandoff {
@@ -23,6 +25,7 @@ pub struct CryptoHandoff {
     pub zk_attested: bool,
     pub zk_program_hash: [u8; 32],
     pub zk_capsule_commitment: [u8; 32],
+    pub policy: AttestPolicy,
 }
 
 impl Default for CryptoHandoff {
@@ -34,6 +37,15 @@ impl Default for CryptoHandoff {
             zk_attested: false,
             zk_program_hash: [0u8; 32],
             zk_capsule_commitment: [0u8; 32],
+            policy: AttestPolicy {
+                kernel_root: [0u8; 32],
+                boot_epoch: 0,
+                depth: 0,
+                checked: 0,
+                approval_present: 0,
+                reserved: [0u8; 5],
+                approval: [0u8; 128],
+            },
         }
     }
 }

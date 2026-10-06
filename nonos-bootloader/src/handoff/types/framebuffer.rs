@@ -26,5 +26,7 @@ pub struct FramebufferInfo {
     pub stride: u32,
     pub pixel_format: u32,
     pub cursor_y: u32,
-    pub reserved: u32,
+    /// The panel's physical size from its EDID: width in millimetres in the
+    /// low 16 bits, height in the high 16, 0 when the panel does not say.
+    pub phys_mm: u32,
 }

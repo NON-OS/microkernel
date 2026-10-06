@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The module array the handoff points at: the loader image and the kernel
-//! image file, for the installer. Written into the loader-data page
-//! allocated for it, so it outlives boot services like the handoff itself.
+//! The module array the handoff points at: the loader image, the kernel
+//! image file and the boot partition's record, for the installer, then the
+//! boot evidence for the kernel's check of this loader, then the package
+//! store. Written into the
+//! loader-data page allocated for it, so it outlives boot services like the
+//! handoff itself.
 
 use super::params::HandoffInitParams;
 use crate::handoff::types::{BootHandoffV1, Module};
@@ -31,7 +34,13 @@ use crate::handoff::types::{BootHandoffV1, Module};
 pub unsafe fn init_modules(bh_ptr: *mut BootHandoffV1, p: &HandoffInitParams) {
     let slots = p.modules_addr as *mut Module;
     let mut count = 0u32;
-    for m in p.install_source.iter().filter(|m| m.size > 0) {
+    let install = &p.install;
+    let all = install
+        .source
+        .iter()
+        .chain(install.evidence.iter())
+        .chain([&install.store, &install.mirror]);
+    for m in all.filter(|m| m.size > 0) {
         core::ptr::write(slots.add(count as usize), *m);
         count += 1;
     }
