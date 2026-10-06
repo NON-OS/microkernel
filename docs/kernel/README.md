@@ -33,3 +33,21 @@ flowchart TD
 ```
 
 An app capsule reaches a service capsule, and a service reaches a driver capsule, only through the kernel's IPC, and a device is held by the one driver capsule that claimed it. The pages below describe each part.
+
+## Kernel pages
+
+- [Boot handoff](boot-handoff.md): what the bootloader passes and how the kernel takes over.
+- [Memory and paging](memory-and-paging.md): address spaces, page tables and the kernel map.
+- [Frame allocator](frame-allocator.md): physical memory.
+- [Scheduler and SMP](scheduler-and-smp.md): run queues, priorities and the other CPUs.
+- [Futex](futex.md): sleeping until a word in user memory changes.
+- [IPC](ipc.md): inboxes, endpoints, limits and who may send to whom.
+- [Capabilities](capabilities.md): the bits, the token and the check on every system call.
+- [System calls](syscalls.md): the entry path, the dispatch and how many calls there are.
+- [Processes and capsule spawn](processes-and-spawn.md): the spawn gate, the ELF loader, exit and reaping.
+- [IOMMU](iommu.md): VT-d, AMD-Vi and what DMA is confined.
+- [Hardware broker](hardware-broker.md): claims, MMIO, DMA, port I/O, PCI configuration and interrupts.
+- [PCI and ACPI](pci-and-acpi.md): the firmware tables and the PCI scans.
+- [Timers](timers.md): clocks and the timer interrupt.
+- [Logging](logging.md): the kernel log and the serial console.
+- [Panic and boot stop](panic-and-boot-stop.md): what happens on a fatal error.
