@@ -31,7 +31,7 @@ pub fn program(regs: &Regs, mac: &[u8; MAC_LEN]) {
         | ((mac[2] as u32) << 16)
         | ((mac[3] as u32) << 24);
     let high = (mac[4] as u32) | ((mac[5] as u32) << 8) | RAH_AV;
-    // SAFETY: eK@nonos.systems — `regs` carries a valid broker
+    // SAFETY: `regs` carries a valid broker
     // MmioMap base; offsets are within BAR0.
     unsafe {
         regs.w32(REG_RAL0, low);

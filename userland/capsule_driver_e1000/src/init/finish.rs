@@ -14,12 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod claim;
-mod dma;
-mod driver;
-mod mmio;
-mod rollback;
-mod sequence;
+//! The end of one bring-up attempt. Setup has taken every grant; programming
+//! the part either works, or every grant goes back before the attempt reports
+//! failure, so the next attempt claims the device afresh instead of meeting
+//! its own leftover claim.
 
-pub use driver::Driver;
-pub use sequence::run;
+use crate::setup::Driver;
+
+use super::run::bring_up;
+
+pub fn finish(mut driver: Driver) -> Result<Driver, &'static str> {
+    match bring_up(&mut driver) {
+        Ok(()) => Ok(driver),
+        Err(e) => {
+            driver.release();
+            Err(e)
+        }
+    }
+}

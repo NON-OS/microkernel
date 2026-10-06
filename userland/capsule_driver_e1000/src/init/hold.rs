@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod claim;
-mod dma;
-mod driver;
-mod mmio;
-mod rollback;
-mod sequence;
+//! A busy wait on the uptime clock, for the reset's fixed settle times.
 
-pub use driver::Driver;
-pub use sequence::run;
+use nonos_libc::Deadline;
+
+// At least `ms` milliseconds: uptime counts whole milliseconds, so a deadline
+// `ms` ahead can fall due up to one early.
+pub fn hold_ms(ms: u64) {
+    let until = Deadline::after_ms(ms + 1);
+    while !until.expired() {
+        core::hint::spin_loop();
+    }
+}

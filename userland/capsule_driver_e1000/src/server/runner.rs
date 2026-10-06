@@ -16,7 +16,7 @@
 
 use alloc::vec;
 
-use nonos_libc::mk_ipc_recv;
+use nonos_libc::mk_ipc_recv_from;
 
 use crate::constants::MAX_ETHERNET_FRAME;
 use crate::protocol::{
@@ -39,32 +39,33 @@ pub fn run(driver: &mut Driver) -> ! {
     let mut tx = vec![0u8; tx_len];
 
     loop {
-        let n = mk_ipc_recv(SERVICE_INBOX, rx.as_mut_ptr(), rx_len, 0);
-        if n <= 0 {
+        let mut sender: u32 = 0;
+        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx_len, 0, &mut sender);
+        if !nonos_libc::recv_ready(n) || sender == 0 {
             continue;
         }
         let len = n as usize;
         let req = match decode_request(&rx[..len]) {
             Some(r) => r,
             None => {
-                reply_decode_failed(&mut tx, E_INVAL);
+                reply_decode_failed(sender, &mut tx, E_INVAL);
                 continue;
             }
         };
         let body_end = HDR_LEN.saturating_add(req.payload_len as usize);
         if body_end != len {
-            reply_with_status(&mut tx, &req, E_MSGSIZE);
+            reply_with_status(sender, &mut tx, &req, E_MSGSIZE);
             continue;
         }
         let body = &rx[HDR_LEN..body_end];
         match req.op {
-            OP_HEALTHCHECK => handlers::health::handle(&req, &mut tx),
-            OP_LINK_STATUS => handlers::link_status::handle(driver, &req, &mut tx),
-            OP_MAC_ADDRESS => handlers::mac_address::handle(driver, &req, &mut tx),
-            OP_TX_PACKET => handlers::tx_packet::handle(driver, &req, body, &mut tx),
-            OP_RX_PACKET => handlers::rx_packet::handle(driver, &req, &mut tx),
-            OP_STATS => handlers::stats::handle(driver, &req, &mut tx),
-            _ => reply_with_status(&mut tx, &req, E_INVAL),
+            OP_HEALTHCHECK => handlers::health::handle(sender, &req, &mut tx),
+            OP_LINK_STATUS => handlers::link_status::handle(sender, driver, &req, &mut tx),
+            OP_MAC_ADDRESS => handlers::mac_address::handle(sender, driver, &req, &mut tx),
+            OP_TX_PACKET => handlers::tx_packet::handle(sender, driver, &req, body, &mut tx),
+            OP_RX_PACKET => handlers::rx_packet::handle(sender, driver, &req, &mut tx),
+            OP_STATS => handlers::stats::handle(sender, driver, &req, &mut tx),
+            _ => reply_with_status(sender, &mut tx, &req, E_INVAL),
         }
     }
 }

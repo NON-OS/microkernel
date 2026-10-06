@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod claim;
-mod dma;
-mod driver;
-mod mmio;
-mod rollback;
-mod sequence;
+//! The console lines that let a photo of `log` show where the card got to:
+//! one when bring-up finishes, with CTRL and STATUS as the part left them,
+//! and one each time the link changes, with the speed and duplex the PHY
+//! negotiated. Autonegotiation takes seconds, so the link is reported as the
+//! network stack polls it rather than at bring-up.
 
-pub use driver::Driver;
-pub use sequence::run;
+mod line;
+mod link;
+mod up;
+
+pub use link::link;
+pub use up::up;

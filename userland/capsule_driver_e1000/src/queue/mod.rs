@@ -16,7 +16,10 @@
 
 pub mod layout;
 pub mod rx;
+mod rx_consume;
 pub mod tx;
+mod tx_post;
+mod tx_reclaim;
 
 pub use rx::RxRing;
 pub use tx::TxRing;
