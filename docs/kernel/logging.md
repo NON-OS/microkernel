@@ -87,3 +87,10 @@ Each kernel line starts with a tag in square brackets. These are the ones a read
 | `[EXIT]` | `note` (`src/process/exit/end_note.rs:23-37`) | a driver capsule ended by itself with a nonzero status |
 
 `[TRAP xx]` and `[PANIC xx]` are explained on [panic and boot stop](panic-and-boot-stop.md); memory lines on [memory and paging](memory-and-paging.md); CPU lines on [scheduler and SMP](scheduler-and-smp.md).
+
+## What is never written
+
+- The bootloader's random seed. `log_entropy` says only whether it arrived (`src/entry/security.rs:33-36`).
+- A private Linux run's output, as above.
+
+Fault lines do print addresses: the `[TRAP xx]` line from `dump_trap` carries the instruction and stack pointers, CR3 and, for a page fault, the faulting address (`src/arch/x86_64/diag/dump_trap.rs:23-63`). At shutdown the wipe calls `wipe_ram_log` for the structured log's buffer (`src/security/hardening/memory_sanitization/api.rs:92-96`); the serial tail is a separate static buffer, and the wipe does not clear it.
