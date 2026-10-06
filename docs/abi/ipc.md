@@ -110,3 +110,117 @@ Three lists in the registry name services by role: the names reserved for core s
 | `NETWORK_SERVICES` | `net.core`, `net.l2`, `net.ip`, `net.udp`, `net.tcp`, `net.dns`, `net.dhcp.client`, `net.sockets`, `net.nym`, `net.anon`, `net.socks5` |
 
 Registering a name at run time with `MkServiceRegister` is narrow on purpose. `allowed` refuses a name that starts with `proc.` or `endpoint.`, and `is_reserved_service` refuses the reserved names and the ports of the core services and their replies, 4098 to 4107 (`src/syscall/microkernel/ipc/register_allowed.rs:24-39`, `src/services/registry/reserved.rs:24-28`). A capsule may claim a name it does not already hold only when it has `RegisterService` or `Admin` and the name is in `RUNTIME_REGISTRABLE`.
+
+## Well-known service ports
+
+These are the service endpoints declared in `userland/*/Capsule.mk`, each with the capsule that serves it and its reply port. `capsule_ports` in `scripts/capsule_port_sources.py` reads the same lines (`scripts/capsule_port_sources.py:40-46`), and `scripts/check_capsule_ports.py` finds no port declared twice at this commit. The table lists declarations; it does not say which capsules a given image carries. Window instance endpoints and the ports of Linux guests are left out.
+
+| Port | Service | Reply port | Capsule |
+|---|---|---|---|
+| 4096 | `ramfs` | 4097 | `capsule_ramfs` |
+| 4098 | `keyring` | 4099 | `capsule_keyring` |
+| 4100 | `entropy_pool` | 4101 | `capsule_entropy` |
+| 4102 | `crypto_pool` | 4103 | `capsule_crypto` |
+| 4104 | `vfs_pool` | 4105 | `capsule_vfs` |
+| 4106 | `market.index` | 4107 | `capsule_market` |
+| 4108 | `policy` | 4109 | `capsule_policy` |
+| 4110 | `wallpaper_catalog` | 4111 | `capsule_wallpaper_catalog` |
+| 4112 | `installer` | 4113 | `capsule_installer` |
+| 4114 | `payment` | 4115 | `capsule_payment` |
+| 4200 | `driver.virtio_rng` | 4201 | `capsule_driver_virtio_rng` |
+| 4202 | `driver.virtio_blk0` | 4203 | `capsule_driver_virtio_blk` |
+| 4204 | `driver.virtio_net0` | 4205 | `capsule_driver_virtio_net` |
+| 4206 | `driver.xhci0` | 4207 | `capsule_driver_xhci` |
+| 4208 | `driver.ps2_kbd0` | 4209 | `capsule_driver_ps2_input` |
+| 4210 | `driver.e1000_0` | 4211 | `capsule_driver_e1000` |
+| 4212 | `driver.rtl8139_0` | 4213 | `capsule_driver_rtl8139` |
+| 4214 | `driver.rtl8169_0` | 4215 | `capsule_driver_rtl8169` |
+| 4216 | `driver.ahci0` | 4217 | `capsule_driver_ahci` |
+| 4218 | `driver.hda0` | 4219 | `capsule_driver_hda` |
+| 4220 | `driver.nvme0` | 4221 | `capsule_driver_nvme` |
+| 4222 | `driver.usb_hid0` | 4223 | `capsule_driver_usb_hid` |
+| 4224 | `driver.usb_msc0` | 4225 | `capsule_driver_usb_msc` |
+| 4226 | `driver.virtio_gpu0` | 4227 | `capsule_driver_virtio_gpu` |
+| 4228 | `driver.iwlwifi0` | 4229 | `capsule_driver_iwlwifi` |
+| 4230 | `driver.i2c_pci0` | 4231 | `capsule_driver_i2c_pci` |
+| 4232 | `driver.i2c_hid0` | 4233 | `capsule_driver_i2c_hid` |
+| 4234 | `driver.rtl8821ce0` | 4235 | `capsule_driver_rtl8821ce` |
+| 4250 | `driver.cdc_ecm0` | 4251 | `capsule_driver_cdc_ecm` |
+| 4252 | `driver.cdc_ncm0` | 4253 | `capsule_driver_cdc_ncm` |
+| 4254 | `driver.rndis0` | 4255 | `capsule_driver_rndis` |
+| 4256 | `driver.ax88179_0` | 4257 | `capsule_driver_ax88179` |
+| 4258 | `driver.rtl8153_0` | 4259 | `capsule_driver_rtl8153` |
+| 4270 | `driver.e1000e_0` | 4271 | `capsule_driver_e1000e` |
+| 4272 | `driver.igc_0` | 4273 | `capsule_driver_igc` |
+| 4290 | `driver.rtsx0` | 4291 | `capsule_driver_rtsx` |
+| 4310 | `compositor` | 4311 | `compositor` |
+| 4320 | `input_router` | 4321 | `capsule_input_router` |
+| 4330 | `wm` | 4331 | `capsule_wm` |
+| 4340 | `wallpaper` | 4341 | `capsule_wallpaper` |
+| 4400 | `net.l2` | 4401 | `capsule_net_l2` |
+| 4402 | `net.ip` | 4403 | `capsule_net_ip` |
+| 4410 | `desktop_shell` | 4411 | `capsule_desktop_shell` |
+| 4412 | `image_codec` | 4413 | `capsule_image_codec` |
+| 4414 | `clipboard` | 4415 | `capsule_clipboard` |
+| 4416 | `login` | 4417 | `capsule_login` |
+| 4420 | `net.udp` | 4421 | `capsule_net_udp` |
+| 4430 | `net.tcp` | 4431 | `capsule_net_tcp` |
+| 4440 | `net.dhcp.client` | 4441 | `capsule_net_dhcp` |
+| 4444 | `attest` | 4445 | `capsule_attest` |
+| 4448 | `power` | 4449 | `capsule_power` |
+| 4450 | `net.dns` | 4451 | `capsule_net_dns` |
+| 4460 | `net.sockets` | 4461 | `capsule_net_sockets` |
+| 4470 | `net.nym` | 4471 | `capsule_net_nym` |
+| 4480 | `net.core` | 4481 | `capsule_net_core` |
+| 4482 | `net.ntp.client` | 4483 | `capsule_net_ntp` |
+| 4484 | `net.anon` | 4485 | `capsule_net_anon` |
+| 4500 | `proof_io` | 4501 | `capsule_proof_io` |
+| 4502 | `std_proof` | 4503 | `capsule_std_proof` |
+| 4504 | `tokio_smoke` | 4505 | `capsule_tokio_smoke` |
+| 4610 | `toolkit` | 4611 | `toolkit` |
+| 4710 | `app.about` | 4711 | `capsule_about` |
+| 4720 | `app.calculator` | 4721 | `capsule_calculator` |
+| 4722 | `app.terminal` | 4723 | `capsule_terminal` |
+| 4724 | `app.file_manager` | 4725 | `capsule_file_manager` |
+| 4726 | `app.text_editor` | 4727 | `capsule_text_editor` |
+| 4728 | `app.settings` | 4729 | `capsule_settings` |
+| 4730 | `app.clock` | 4731 | `capsule_clock` |
+| 4732 | `app.snake` | 4733 | `capsule_snake` |
+| 4734 | `app.nonos_wallet` | 4735 | `capsule_wallet_nonos` |
+| 4736 | `app.process_manager` | 4737 | `capsule_process_manager` |
+| 4746 | `app.image_viewer` | 4747 | `capsule_image_viewer` |
+| 4760 | `app.browser` | 4761 | `capsule_browser` |
+| 4790 | `app.input_proof` | 4791 | `capsule_input_proof` |
+| 4792 | `app.input_probe` | 4793 | `capsule_input_probe` |
+| 4794 | `app.setup_wizard` | 4795 | `capsule_setup_wizard` |
+| 4796 | `app.boot_splash` | 4797 | `capsule_boot_splash` |
+| 4810 | `app.hello` | 4811 | `capsule_hello` |
+| 4820 | `tool.ripgrep` | 4821 | `capsule_ripgrep` |
+| 4822 | `tool.sd` | 4823 | `capsule_sd` |
+| 4870 | `app.audio_player` | 4871 | `capsule_audio_player` |
+| 4872 | `audio.server` | 4873 | `capsule_audio` |
+| 4900 | `tool.grex` | 4901 | `capsule_grex` |
+| 4902 | `tool.dotenv-linter` | 4903 | `capsule_dotenv-linter` |
+| 4904 | `tool.pastel` | 4905 | `capsule_pastel` |
+| 4906 | `tool.jsonxf` | 4907 | `capsule_jsonxf` |
+| 4908 | `net.socks5` | 4909 | `capsule_socks5` |
+| 4910 | `tool.tokei` | 4911 | `capsule_tokei` |
+| 4912 | `tool.huniq` | 4913 | `capsule_huniq` |
+| 4914 | `tool.csview` | 4915 | `capsule_csview` |
+| 4916 | `app.gui_demo` | 4917 | `capsule_gui_demo` |
+| 4918 | `app.egui_proof` | 4919 | `capsule_egui_proof` |
+| 4920 | `app.game_2048` | 4921 | `capsule_game_2048` |
+| 4922 | `app.mdview` | 4923 | `capsule_mdview` |
+| 4924 | `app.qrgen` | 4925 | `capsule_qrgen` |
+| 4926 | `app.video_player` | 4927 | `capsule_video_player` |
+| 4932 | `app.install` | 4933 | `capsule_install` |
+| 4934 | `tool.install` | 4935 | `tool_install` |
+| 4936 | `app.linux` | 4937 | `capsule_linux` |
+| 4940 | `app.store` | 4941 | `capsule_app_store` |
+| 4950 | `app.prove` | 4951 | `capsule_prove` |
+| 4954 | `test.attack` | 4955 | `capsule_attack` |
+| 4956 | `app.nonos_install` | 4957 | `capsule_nonos_install` |
+| 4960 | `tool.model-fetch` | 4961 | `capsule_model_fetch` |
+| 4988 | `shield_vectors` | 4989 | `capsule_shield_vectors` |
+| 5012 | `nonos.shield` | 5013 | `capsule_shield` |
+| 5190 | `smp_stress` | 5191 | `capsule_smp_stress` |
