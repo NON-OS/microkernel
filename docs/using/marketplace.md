@@ -89,3 +89,8 @@ A Linux package's proof is made on this machine after its bytes check out. Such 
 - `d` downloads a tier directly instead, for that install only. The card offers it when a download through an anonymity network would be large, and after one stopped because the network or its exits did not answer. A direct download is faster, and the mirror sees this machine's address.
 
 See [Privacy networks](privacy-network.md).
+
+## Where installs are kept
+
+- A Linux package is held in memory until restart, on every boot: `Installed for this session, held in memory until restart. Enter opens it` (`installed_line` in `userland/market_proto/src/reason.rs:106-113`).
+- A Qwen tier's model is kept on the data volume: on the disk of an installed NONOS, or in memory on a live boot, gone at power off.
