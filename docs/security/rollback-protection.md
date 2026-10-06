@@ -71,3 +71,7 @@ The make target `nonos-mk-boot-root-record` uses the committed record when it na
 ## Certificate epochs
 
 Every NONOS ID certificate names the trust-anchor epoch it was issued under, and the certificate check refuses one below the policy's epoch as `EpochStale` (`src/security/nonos_id_cert/verify/checks.rs:27-29`). Raising the policy's epoch and rebuilding the kernel retires every certificate issued under the old one. The build uses `NONOS_TRUST_ANCHOR_EPOCH` 1 (`mk/20-build.mk:218`).
+
+## Attestation epochs
+
+The STARK contexts carry an epoch too. `POLICY_EPOCH`, for capsules, is 1 in the kernel and the enroll tool (`src/security/capsule_attest/layout.rs:17-18`, `nonos-stark-enroll/src/context.rs:19-20`). `BOOT_EPOCH`, for the kernel and the loader, is 1 in the boot-measure crate and the enroll tool (`nonos-boot-measure/src/gate/membership.rs:23-24`). Today the epoch in a context separates nothing. What retires old trailers is the root: `emit` draws a fresh pad seed for every enrollment, so each enrollment gives a new root even for the same slots, and a trailer from an earlier one does not fold to it (`nonos-stark-enroll/src/commands.rs:24-34`). See [STARK attestation](stark-attestation.md).
