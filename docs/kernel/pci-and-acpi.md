@@ -47,3 +47,13 @@ The sources, one per table:
 - `aml_blocks` returns the DSDT and every SSDT the root table listed (`src/arch/x86_64/acpi/aml/tables.rs:100-118`). `init` reads `\_S5` from them once with `find_in_blocks`, while the heap and the tables are known to be intact, and warns when there is none, in which case soft off is not available (`src/arch/x86_64/acpi/parser/init.rs:89-105`).
 
 What is ignored: any table not named above. The SLIT has a signature constant, `SIG_SLIT`, and types, but `init` never parses it (`src/arch/x86_64/acpi/tables/mod.rs:65`). MADT entry types other than the seven listed are skipped. The kernel has no AML interpreter: the scanner in `scan` reads the bytes for the objects above and never executes AML (`src/arch/x86_64/acpi/aml/mod.rs:17-30`).
+
+## Scanning PCI
+
+The kernel scans PCI twice at boot, with two pieces of code that serve different readers.
+
+`bus::pci::init` walks buses 0 to 255, devices 0 to 31 and, for a multifunction device, functions 1 to 7, and keeps up to `MAX_DEVICES`, 256, functions (`src/bus/pci/init.rs:22-65`). It prints `[PCI] Found <n> devices` and a line per known class. A second call does nothing, because `PCI_INIT` is already set. The VT-d bring-up reads this list through `enumerate_devices` to give every function a context entry (`src/arch/x86_64/iommu/unit/bringup/assign.rs:22-45`).
+
+`enumerate_all_buses` in the PCI manager walks the same 256 buses with a full probe: IDs, class, header type, all six BARs, the capability list, MSI, MSI-X, power management and PCI Express information, in `probe_device` (`src/drivers/pci/manager/probe.rs:32-107`). It then adds the functions hidden behind any Intel VMD with `vmd::children` (`src/drivers/pci/manager/probe.rs:136-147`). `seed_hardware_broker` builds the broker's device table from this second scan (`src/kernel_core/init/platform/hardware_broker.rs:19-27`). Both scans cover PCI segment 0 only; a VMD's private domain is the one exception.
+
+Between the two scans, `assign_unassigned` programs the BARs of endpoints firmware left at zero and skips bridges (`src/bus/pci/assign/run.rs:34-62`), so the broker's table records the addresses devices decode at. The module's note says UEFI firmware on a PC assigns every BAR before the kernel runs, so `assign_unassigned` is expected to find nothing to do there; it exists for boards booted straight from a device tree (`src/bus/pci/assign/mod.rs:17-31`).
