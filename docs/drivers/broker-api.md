@@ -135,3 +135,23 @@ One grant may not exceed the page ceiling of the device's class, from `dma_page_
 `map_for_caller` validates, allocates and zeroes the frames, maps them into the caller, maps them into the device's domain and records the grant, undoing each step on failure (`src/hardware/broker/dma/map/transaction.rs:26-66`). The 32-byte `DmaMapOut` returns `user_va`, `device_addr`, `length` and `grant_id` (`src/syscall/microkernel/dma.rs:43-52`). With a domain, `device_addr` is an IOVA placed from `IOVA_BASE` (1 MiB) up, below 4 GiB, stepping over the interrupt window from 0xFEE0_0000 to 0xFEF0_0000 (`src/hardware/broker/confine/iova_space.rs:31-37`). Without one, it is the physical address. A DMA32 map whose address would end above 4 GiB fails with -34, `ERRNO_RANGE` (`src/syscall/microkernel/dma.rs:109-111`).
 
 `mk_dma_unmap(grant_id)` gives a buffer back. `teardown` unmaps it from the driver, then takes it out of the device's domain before the frames go anywhere. If the domain will not let go, the frames are quarantined and never reused; otherwise `scrub` zeroes them before they are freed (`src/hardware/broker/dma/teardown.rs:26-46`). For a write-back buffer on x86_64, `mk_dma_sync_for_device` and `mk_dma_sync_for_cpu` flush the cache lines without a system call (`userland/libc/src/broker/dma_sync.rs:27-48`).
+
+## Interrupts
+
+`mk_irq_bind(device_id, epoch, irq_source, flags, vector_count, out)` binds one of three kinds, and `mk_irq_bind` documents them (`userland/libc/src/broker/irq.rs:17-51`):
+
+- `flags` 0 is legacy INTx: `irq_source` is the record's line and `vector_count` is 0.
+- `MK_IRQ_BIND_MSIX` takes a run of 1 to 64 vectors, no more than the device's MSI-X table holds, programmed from entry 0; `irq_source` is 0. Grant ids and vectors of the run are the base plus `i`.
+- `MK_IRQ_BIND_MSI` takes one MSI vector, for a function without MSI-X.
+
+A device holds one MSI or MSI-X bind at a time: the MSI-X and MSI validators answer a second one with `AlreadyBound`, which is -16 (`src/hardware/broker/irq/validate/msix.rs:68-70`, `src/hardware/broker/irq/validate/msi.rs:43-44`).
+
+The broker pool holds 64 vectors, `BROKER_VEC_COUNT` (`src/arch/x86_64/interrupt/broker/vectors.rs:41`). `bind` checks the claim and epoch and picks the path from the flags (`src/hardware/broker/irq/bind/bind.rs:23-39`). A bind fails with -1 on a line the kernel keeps for itself (`ReservedGsi`), -16 on a line another grant holds and -12 when no vector is free (`src/syscall/microkernel/irq/errno_map.rs:33-38`).
+
+When the interrupt fires, `on_vector` masks an INTx line at the IO-APIC, bumps the grant's sequence counter, wakes a waiting driver and sends EOI (`src/hardware/broker/irq/dispatch.rs:32-73`). The driver then uses one of these:
+
+- `mk_irq_wait(grant_id, last_seq, timeout_ms, out_seq)` sleeps until the counter moves past `last_seq`. Grant 0 waits on every grant the caller holds. Timeout 0 means `DEFAULT_WAIT_MS`, 100 ms (`src/syscall/microkernel/irq/wait.rs:30-58`). It returns `MK_IRQ_WAIT_TIMED_OUT` (1) when it slept out the whole timeout with the counter unmoved, 0 otherwise, and callers loop because early wakes are part of the contract (`userland/libc/src/broker/irq_wait.rs:22-44`).
+- `mk_irq_poll(grant_id, out)` reads the counter and an overflow count without sleeping, through the broker's `poll` (`src/hardware/broker/irq/poll.rs:27-35`).
+- `mk_irq_ack(grant_id)` unmasks an INTx line once the driver has cleared the device's status; for MSI and MSI-X `ack_grant` changes nothing (`src/hardware/broker/irq/release/ack.rs:25-42`).
+
+`mk_irq_unbind(grant_id)` gives the grant back.
