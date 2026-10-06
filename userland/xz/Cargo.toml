@@ -1,0 +1,14 @@
+[package]
+name = "nonos_xz"
+version = "0.1.0"
+edition = "2021"
+authors = ["NONOS Contributors"]
+license = "AGPL-3.0"
+description = "xz and LZMA2 decoding for NONOS userland"
+
+[lib]
+name = "nonos_xz"
+path = "src/lib.rs"
+
+[dependencies]
+nonos_hash = { path = "../nonos_hash" }
