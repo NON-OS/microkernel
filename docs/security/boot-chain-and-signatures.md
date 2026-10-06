@@ -65,3 +65,23 @@ A key id is BLAKE3 in derive-key mode over the public key, under the context `NO
 | 56 | 4 | rollback index |
 
 `create_image_footer` writes these fields, with `FLAG_HAS_ZK_PROOF` as the flag (`nonos-bootloader/tools/embed-trailer/src/footer/create.rs:19-46`). The make rules build `kernel_signed.bin` with `sign-kernel` at `NONOS_ROLLBACK_INDEX`, then `kernel_attested.bin` with `embed-trailer` (`mk/20-build.mk:1248-1266`). The [seal](../overview/glossary.md#seal) runs the same two tools in `sign_kernel` with the release keys (`tools/nonos_seal/chain.py:65-74`). The image goes onto the ESP as `EFI/nonos/kernel.bin`, beside `EFI/Boot/BOOTX64.EFI`, `EFI/nonos/bootloader.trailer` and `EFI/nonos/boot_root.approval` (`ESP_DIR`, `mk/20-build.mk:1297-1303`).
+
+## Keys and where their public halves live
+
+| Key | Algorithms | Signs | Public half | Checked by |
+|---|---|---|---|---|
+| Kernel signing | Ed25519 and ML-DSA-65 | the kernel image | compiled into the loader | the loader |
+| [Trust anchor](../overview/glossary.md#trust-anchor) | Ed25519 and ML-DSA-65 | every [NONOS ID certificate](../overview/glossary.md#nonos-id-certificate) | sealed into the trust-anchor policy, compiled into the kernel | the kernel, at spawn |
+| Publisher, one per capsule | Ed25519 and ML-DSA-65 | that capsule's manifest | inside the capsule's certificate | the kernel, at spawn |
+| Device policy | ECDSA P-256 | the [boot-root record](../overview/glossary.md#boot-root-record) and the kernel approval | compiled into the kernel | the kernel and the TPM |
+| Secure Boot db | as enrolled in the firmware | `BOOTX64.EFI` | enrolled in the firmware | the firmware |
+
+The loader takes the two kernel signing keys at build time. `resolve_public_key` reads the Ed25519 key from the 32-byte file `NONOS_TRUST_ANCHOR_PUBKEY` names, or derives it from the seed at `NONOS_SIGNING_KEY` (`nonos-bootloader/build.rs:135-158`). `resolve_mldsa65_public_key` reads `NONOS_MLDSA65_PUBKEY`, a 1963-byte `NONOSPK1` file whose algorithm byte must be `0x03` and whose key is 1952 bytes (`nonos-bootloader/build.rs:160-184`). The loader keeps them as `NONOS_PUBLIC_KEY` and `NONOS_MLDSA65_PUBLIC_KEY`, with the Ed25519 key id in `NONOS_KEY_ID` (`nonos-bootloader/build.rs:84-125`). `compute_key_id` uses the same `NONOS:KEYID:ED25519:v1` context as the signer (`nonos-bootloader/build.rs:284-288`).
+
+A loader built with the `production`, `hardened-production` or `hardened` feature counts as production in `production_mode` (`nonos-bootloader/build.rs:49-51`). Such a build stops without `NONOS_MLDSA65_PUBKEY` and never generates a signing key. Any other build that is given neither `NONOS_TRUST_ANCHOR_PUBKEY` nor `NONOS_SIGNING_KEY` and finds no `keys/signing_key_v1.bin` writes a fresh seed there, as `resolve_signing_key_path` shows (`nonos-bootloader/build.rs:186-216`).
+
+The flake builds the loader from public files only: `kernel_signing_ed25519.pub` and `kernel_mldsa65.pub` under `nonos-data/trust/keys/`, and the kernel root, and it stops if one is missing (`kernelKeys`, `tools/nix/image.nix:130-159`). The seal writes those two files in `kernel_public_halves`, deriving the Ed25519 half from the kernel signing seed (`tools/nonos_seal/keys.py:72-86`).
+
+The trust anchor's public keys are `nonos_trust_anchor_ed25519.pub` and `nonos_trust_anchor_mldsa65.pub` in the same directory (`NONOS_TA_ED25519_PUB`, `mk/20-build.mk:209-213`). `capsule-sign mk-trust-policy` seals them into the trust-anchor policy at `NONOS_TRUST_ANCHOR_EPOCH` 1, valid from 2026-01-01 to 2030-01-01 (`mk/20-build.mk:215-220`, `mk/20-build.mk:444-452`). The kernel compiles that policy in as `BAKED_TRUST_ANCHOR_POLICY`, and a missing file breaks the build (`src/security/nonos_trust_anchor/baked.rs:17-23`). Each capsule's publisher keys are `<capsule>_publisher_ed25519.pub` and `<capsule>_publisher_mldsa65.pub` in the same directory (`_NONOS_CAPSULE_KEY_PUB_PREFIX`, `nonos-mk/capsule.mk:85`, `nonos-mk/capsule.mk:108-110`).
+
+The kernel's build script stages the device policy key's 64-byte public half, x then y, from `device_policy_p256.pub` under `nonos-data/trust/policy/`. With no file it writes 64 zero bytes, and the kernel then treats the key as absent; a file of any other length stops the build, in `stage_device_policy_key` (`build.rs:66-80`). Its uses are on [Measured boot and the TPM](measured-boot-and-tpm.md) and [Device secrets and keys](device-secrets-and-keys.md).
