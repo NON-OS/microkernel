@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The forward cipher: one block, ten rounds, in place.
+//! The forward cipher: one block in place, ten rounds or fourteen.
 
 use crate::mix_columns::mix_columns;
 use crate::shift_rows::shift_rows;
@@ -25,23 +25,33 @@ impl Aes128 {
     /// Encrypt one block in place. CTR mode never decrypts, so there is no
     /// inverse cipher here and no inverse tables to carry.
     pub fn encrypt_block(&self, block: &mut [u8; BLOCK_BYTES]) {
-        self.add_round_key(block, 0);
-        for round in 1..ROUNDS {
-            sub_bytes(block);
-            shift_rows(block);
-            mix_columns(block);
-            self.add_round_key(block, round);
-        }
+        encrypt_with(&self.round_keys, ROUNDS, block);
+    }
+}
+
+/// The forward cipher under an expanded key of `rounds + 1` round keys. One
+/// body for both key sizes: AES-256 differs from AES-128 only in its schedule
+/// and in running four more rounds.
+pub(crate) fn encrypt_with(round_keys: &[u8], rounds: usize, block: &mut [u8; BLOCK_BYTES]) {
+    if crate::hardware::in_use() && crate::hardware::encrypt(round_keys, rounds, block) {
+        return;
+    }
+    add_round_key(round_keys, block, 0);
+    for round in 1..rounds {
         sub_bytes(block);
         shift_rows(block);
-        self.add_round_key(block, ROUNDS);
+        mix_columns(block);
+        add_round_key(round_keys, block, round);
     }
+    sub_bytes(block);
+    shift_rows(block);
+    add_round_key(round_keys, block, rounds);
+}
 
-    fn add_round_key(&self, block: &mut [u8; BLOCK_BYTES], round: usize) {
-        let at = round * BLOCK_BYTES;
-        for (byte, key) in block.iter_mut().zip(self.round_keys[at..].iter()) {
-            *byte ^= key;
-        }
+fn add_round_key(round_keys: &[u8], block: &mut [u8; BLOCK_BYTES], round: usize) {
+    let at = round * BLOCK_BYTES;
+    for (byte, key) in block.iter_mut().zip(round_keys[at..].iter()) {
+        *byte ^= key;
     }
 }
 

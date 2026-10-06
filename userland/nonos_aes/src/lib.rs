@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The one AES-128 in userland, and the two counter widths the onion
-//! transports need.
+//! AES-128 and two counter widths, and AES-256 in counter mode for onion
+//! services. net.anon is its one capsule; net.nym carries its own AES under
+//! `src/crypto/aes`.
 //!
 //! In a crate rather than behind a syscall. A bare stream cipher handed to
 //! every capsule is a footgun: reuse a key and counter once and the XOR of two
@@ -31,9 +32,12 @@
 
 #![no_std]
 
+mod aes256;
 mod ctr128;
+mod ctr256;
 mod ctr64;
 mod encrypt_block;
+pub mod hardware;
 mod key_schedule;
 mod mix_columns;
 mod shift_rows;
@@ -41,6 +45,8 @@ mod sub_byte;
 mod types;
 mod xtime;
 
+pub use aes256::{Aes256, KEY256_BYTES};
 pub use ctr128::Ctr128Be;
+pub use ctr256::Ctr256Be;
 pub use ctr64::Ctr64Be;
 pub use types::{Aes128, BLOCK_BYTES, KEY_BYTES};
