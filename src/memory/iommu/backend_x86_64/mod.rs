@@ -14,11 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+#[cfg(feature = "nonos-iommu-amdvi")]
+mod amd_capabilities;
+#[cfg(feature = "nonos-iommu-amdvi")]
+mod amd_device;
+#[cfg(feature = "nonos-iommu-amdvi")]
+mod amd_domain;
+mod capabilities;
 mod device;
+mod dispatch;
+mod dispatch_device;
 mod domain;
 mod enforced;
 mod mapping;
+mod refuse;
+mod route;
+mod select;
 
-pub(crate) use device::{attach_device, detach_device};
-pub(crate) use domain::{allocate_domain, free_domain};
-pub(crate) use mapping::{map, unmap};
+pub(crate) use capabilities::capabilities;
+pub(crate) use dispatch::{allocate_domain, free_domain, map, unmap};
+pub(crate) use dispatch_device::{attach_device, detach_device, translates};
+pub(crate) use select::select_vendor;

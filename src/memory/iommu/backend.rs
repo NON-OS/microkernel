@@ -21,4 +21,7 @@ mod inner;
 #[path = "backend_unsupported.rs"]
 mod inner;
 
-pub(super) use inner::{allocate_domain, attach_device, detach_device, free_domain, map, unmap};
+pub(super) use inner::{
+    allocate_domain, attach_device, capabilities, detach_device, free_domain, map, select_vendor,
+    translates, unmap,
+};
