@@ -23,7 +23,8 @@ use crate::sink::SinkError;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WriteError {
-    /// The device cannot hold the table plus the image.
+    /// The device is smaller than the layout needs, `MIN_DISK_SECTORS` for
+    /// every image that fits a one-GiB ESP.
     DiskTooSmall {
         total_sectors: u64,
         needed_sectors: u64,

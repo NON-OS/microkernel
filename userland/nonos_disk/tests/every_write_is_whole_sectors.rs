@@ -17,54 +17,59 @@
 //! A block driver takes whole sectors and nothing else. The sink here
 //! refuses what a driver refuses and stores nothing, so the image can be the
 //! size of the real one: a loader that is an exact multiple of the sector
-//! and a kernel that is not, on an eight gigabyte disk.
+//! and a kernel that is not, on an eight gigabyte disk. The order is checked
+//! too: the old tables are wiped first, the store's header after its body,
+//! the plan after the store, the table after both with the primary GPT
+//! header last, and the flush after it.
 
-mod common;
+#[path = "common/entropy.rs"]
+mod entropy;
+#[path = "common/strict_sink.rs"]
+mod strict_sink;
 
-use nonos_disk::{install, BlockSink, NonosImage, SinkError, SECTOR_SIZE};
-
-struct StrictSink {
-    sectors: u64,
-    writes: Vec<(u64, usize)>,
-}
-
-impl BlockSink for StrictSink {
-    fn capacity_sectors(&mut self) -> Result<u64, SinkError> {
-        Ok(self.sectors)
-    }
-    fn write_at(&mut self, lba: u64, data: &[u8]) -> Result<(), SinkError> {
-        self.writes.push((lba, data.len()));
-        if data.is_empty() || data.len() % SECTOR_SIZE != 0 {
-            return Err(SinkError(-22));
-        }
-        if lba + (data.len() / SECTOR_SIZE) as u64 > self.sectors {
-            return Err(SinkError(-6));
-        }
-        Ok(())
-    }
-    fn read_at(&mut self, _lba: u64, out: &mut [u8]) -> Result<(), SinkError> {
-        out.fill(0);
-        Ok(())
-    }
-    fn flush(&mut self) -> Result<(), SinkError> {
-        Ok(())
-    }
-}
+use nonos_disk::{install, NonosImage, StoreImage, SECTOR_SIZE};
+use nonos_disk_map::PLAN_LBA;
+use strict_sink::StrictSink;
 
 #[test]
 fn every_write_is_whole_sectors() {
-    // The loader fills its clusters exactly (a multiple of 4096), the kernel
-    // does not: both shapes have been shipped, and the first one once queued
-    // an empty tail write that the driver refused.
-    let boot_efi = vec![0xAAu8; 14_225_408];
-    let kernel_bin = vec![0x55u8; 89_971_099];
-    let image = NonosImage { boot_efi: &boot_efi, kernel_bin: &kernel_bin, boot_cfg: b"x=1\n" };
-    let mut sink = StrictSink { sectors: (8u64 << 30) / SECTOR_SIZE as u64, writes: Vec::new() };
-    let result = install(&mut sink, &image, common::ENTROPY, &mut |_| {});
+    /*
+     * The loader fills its clusters exactly (a multiple of 4096), the kernel
+     * does not: both shapes have been shipped, and the first one once queued
+     * an empty tail write that the driver refused.
+     */
+    let (boot_efi, kernel_bin) = (vec![0xAAu8; 14_225_408], vec![0x55u8; 89_971_099]);
+    let image = NonosImage {
+        boot_efi: &boot_efi,
+        kernel_bin: &kernel_bin,
+        boot_cfg: b"x=1\n",
+        boot_trailer: &[0x11; 70_011],
+        boot_root: &[0x22; 186],
+        kernel_approval: None,
+    };
+    let sectors = (8u64 << 30) / SECTOR_SIZE as u64;
+    let mut sink = StrictSink { sectors, writes: Vec::new(), flushed_after: None };
+    let result = install(&mut sink, &image, StoreImage::empty(), entropy::ENTROPY, &mut |_| {});
     let bad: Vec<_> = sink.writes.iter().filter(|(_, n)| *n == 0 || n % SECTOR_SIZE != 0).collect();
     assert!(bad.is_empty(), "writes a driver refuses: {bad:?}");
+    /*
+     * The read-back sees zeros, so the install reports a mismatch; what
+     * matters here is that the write phase went to the end, in order.
+     */
     let written: usize = sink.writes.iter().map(|(_, n)| n).sum();
-    // The read-back sees zeros, so the install reports a mismatch; what
-    // matters here is that the write phase went to the end.
     assert!(written > boot_efi.len() + kernel_bin.len(), "stopped early: {result:?}");
+    assert_eq!(sink.writes[..4], [(0, 1024), (sectors - 1, 512), (256, 512), (PLAN_LBA, 512)]);
+    let last = |w: (u64, usize)| sink.writes.iter().rposition(|x| *x == w).unwrap();
+    let body = sink.writes.iter().rposition(|x| x.0 == 257).unwrap();
+    assert!(
+        body < last((256, 512)) && last((256, 512)) < last((PLAN_LBA, 512)),
+        "body, header, plan"
+    );
+    assert_eq!(
+        sink.writes[last((PLAN_LBA, 512)) + 1],
+        (sectors - 33, 16384),
+        "then the backup table"
+    );
+    assert_eq!(sink.writes.last(), Some(&(1, 512)), "the primary GPT header is last");
+    assert_eq!(sink.flushed_after, Some(sink.writes.len()), "and the flush follows it");
 }

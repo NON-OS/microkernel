@@ -16,8 +16,10 @@
 
 //! Building the reserved area, and why a volume could not be written.
 
+pub mod check;
 mod error;
 mod reserved;
 
+pub use check::check;
 pub use error::WriteVolumeError;
 pub use reserved::{build_reserved, data_lba};

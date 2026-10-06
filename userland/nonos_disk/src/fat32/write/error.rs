@@ -25,6 +25,8 @@ pub enum WriteVolumeError {
     Plan(PlanError),
     Name(NameError),
     Sink(SinkError),
+    /// A file past the four GiB a directory slot's size field holds.
+    FileTooLarge,
 }
 
 impl From<PlanError> for WriteVolumeError {

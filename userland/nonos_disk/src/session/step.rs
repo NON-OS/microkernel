@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The session: a plan, its job queue, and a cursor. Jobs go down in the
-//! order the queue holds them, which puts every byte of the volume on the
-//! disk before the table that names it, and the flush after both.
+//! order the queue holds them, which puts every byte of every partition on
+//! the disk before the table that names them, and the flush after both.
 
 use alloc::vec::Vec;
 
@@ -28,45 +28,50 @@ use crate::writer::WriteError;
 
 pub struct Session<'a> {
     pub(super) plan: Plan<'a>,
-    jobs: Vec<Job<'a>>,
-    next: usize,
-    offset: usize,
+    pub(super) jobs: Vec<Job<'a>>,
+    pub(super) kept_from: usize,
+    pub(super) table_from: usize,
+    pub(super) next: usize,
+    pub(super) offset: usize,
     pub(super) done: u64,
-    total: u64,
-    pub(super) table_written: bool,
+    pub(super) total: u64,
+    /// The request the session last handed the sink, kept so a failure
+    /// can name it whatever the sink below recorded.
+    pub(super) last: Option<Attempt>,
+}
+
+/// One request the session handed the sink.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Attempt {
+    /// A write of `sectors` from `lba`.
+    Write { lba: u64, sectors: u64 },
+    /// The flush after the table.
+    Flush,
 }
 
 impl<'a> Session<'a> {
-    pub fn new(plan: Plan<'a>) -> Session<'a> {
-        let jobs = super::queue::queue(&plan);
-        let total = jobs.iter().map(|j| j.len() as u64).sum();
-        Session { plan, jobs, next: 0, offset: 0, done: 0, total, table_written: false }
-    }
-
-    pub fn total_bytes(&self) -> u64 {
-        self.total
-    }
-
-    /// Write up to `budget` bytes, rounded down to whole sectors and never
-    /// less than one, then report. Call until `Done`.
+    /// Write up to `budget` bytes of the current job, rounded down to whole
+    /// sectors and never less than one, then report. Call until `Done`.
     pub fn step(
         &mut self,
         sink: &mut dyn BlockSink,
         budget: usize,
     ) -> Result<Progress<'a>, WriteError> {
-        if let Some(job) = self.jobs.get(self.next) {
-            let remaining = job.len() - self.offset;
-            let n = remaining.min((budget / SECTOR_SIZE).max(1) * SECTOR_SIZE);
-            let lba = job.lba + (self.offset / SECTOR_SIZE) as u64;
-            sink.write_at(lba, &job.bytes()[self.offset..self.offset + n])?;
-            self.offset += n;
-            self.done += n as u64;
-            if self.offset == job.len() {
-                self.next += 1;
-                self.offset = 0;
+        let Some(job) = self.jobs.get(self.next) else { return self.finish(sink) };
+        let remaining = job.len() - self.offset;
+        let n = remaining.min((budget / SECTOR_SIZE).max(1) * SECTOR_SIZE);
+        let lba = job.lba + (self.offset / SECTOR_SIZE) as u64;
+        self.last = Some(Attempt::Write { lba, sectors: (n / SECTOR_SIZE) as u64 });
+        sink.write_at(lba, &job.bytes()[self.offset..self.offset + n])?;
+        self.offset += n;
+        self.done += n as u64;
+        if self.offset == job.len() {
+            self.next += 1;
+            self.offset = 0;
+            if self.next == self.jobs.len() {
+                return Ok(Progress::TableWritten);
             }
-            return Ok(Progress::Writing { done: self.done, total: self.total });
         }
-        self.finish(sink)
+        Ok(Progress::Writing { done: self.done, total: self.total })
     }
 }

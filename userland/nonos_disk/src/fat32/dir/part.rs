@@ -31,7 +31,25 @@ pub fn part(text: &str, out: &mut [u8], lower_flag: u8) -> Result<u8, NameError>
         match c {
             b'a'..=b'z' => lower = true,
             b'A'..=b'Z' => upper = true,
-            b'0'..=b'9'
+            _ if allowed(c) => {}
+            _ => return Err(NameError::BadChar),
+        }
+        out[i] = c.to_ascii_uppercase();
+    }
+    match (lower, upper) {
+        (true, true) => Err(NameError::MixedCase),
+        (true, false) => Ok(lower_flag),
+        _ => Ok(0),
+    }
+}
+
+/// Whether a short name can hold `c`, in either case.
+pub fn allowed(c: u8) -> bool {
+    matches!(
+        c,
+        b'a'..=b'z'
+            | b'A'..=b'Z'
+            | b'0'..=b'9'
             | b'!'
             | b'#'
             | b'$'
@@ -47,14 +65,6 @@ pub fn part(text: &str, out: &mut [u8], lower_flag: u8) -> Result<u8, NameError>
             | b'`'
             | b'{'
             | b'}'
-            | b'~' => {}
-            _ => return Err(NameError::BadChar),
-        }
-        out[i] = c.to_ascii_uppercase();
-    }
-    match (lower, upper) {
-        (true, true) => Err(NameError::MixedCase),
-        (true, false) => Ok(lower_flag),
-        _ => Ok(0),
-    }
+            | b'~'
+    )
 }
