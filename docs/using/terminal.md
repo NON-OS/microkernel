@@ -170,3 +170,16 @@ Code: `interrupt` in `userland/capsule_terminal/src/event/interrupt.rs`. `Ctrl+S
 | `exit` | Close this terminal. `quit` is the same. |
 
 The shell also answers to names `help` does not list: `dir` (`ls`), `del` (`rm`), `caps` (`capsules`), `svc` (`service`), `host` (`nslookup`), `ip` (`ifconfig`), `bat` (`battery`), `profile` (`theme`), `commands` (`help`), and the nox names `where`, `in`, `read`, `copy`, `mk` and `move`. It also has `write <file> <text>`, `keep <path>` (see [Files](files.md)), `basename`, `dirname`, `apps`, `display`, `motd`, `neofetch`, and `pull` and `push`, which copy a file from or to a host over plain TCP (`userland/capsule_terminal/src/command/builtin/nox/dispatch.rs`).
+
+## Linux programs
+
+`linux` followed by a program name runs that program through the [Linux personality](../overview/glossary.md#linux-personality). The program reads the keyboard as a terminal. One that draws a full screen reads keys raw, as an xterm would send them.
+
+```sh
+linux sh
+linux python3
+```
+
+Not tested in this release.
+
+Which programs ship and which Linux calls are refused is on [Linux programs](linux-programs.md).
