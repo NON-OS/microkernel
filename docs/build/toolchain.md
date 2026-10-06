@@ -69,3 +69,16 @@ NONOS targets are custom target files, built with `-Zbuild-std`:
 The kernel target links with `rust-lld`, aborts on panic, disables the red zone and uses the `kernel` code model with static relocation (`linker`, `x86_64-nonos.json:15-32`). The x86_64 user target builds position independent executables and keeps the red zone (`relocation`, `userland/x86_64-nonos-user.json:16-33`).
 
 The flake builds the kernel for `x86_64-nonos.json` with `-Zbuild-std=core,alloc` and `compiler-builtins-mem` (`cargo`, `tools/nix/image.nix:116-120`), every capsule for the `x86_64-nonos-user` target (`userTarget`, `tools/nix/capsules.nix:11`), and the loader for `x86_64-unknown-uefi` (`cargo`, `tools/nix/image.nix:161-162`). The tree has no riscv64 kernel target file; [the architectures pages](../architectures/README.md) say what each architecture runs.
+
+## Other compilers and tools
+
+CMake, Go and clang come from nixpkgs, and each version below is asserted when the flake evaluates, so a nixpkgs update that moves one fails at once (`assert`, `tools/nix/pins.nix:71-74`). Zig does not come from nixpkgs: the build uses the 0.16.0 release tarball from ziglang.org for the host, held to the sha256 in `tools/nix/sources.txt` (`zigPlatform`, `tools/nix/userland.nix:20-30`).
+
+| tool | version | builds |
+|---|---|---|
+| Zig | 0.16.0, the ziglang.org release | the C programs of the Linux userland, and BusyBox |
+| CMake | 4.4.3 | the CMake builds of the Linux userland |
+| Go | 1.26.8 | the Go programs of the Linux userland, such as gojq |
+| clang | major version 21 | every C file built into a NONOS binary, such as the kernel's PQClean code |
+
+Python is 3.12, with the `cryptography` package for the scripts that need it (`pythonTools`, `tools/nix/pins.nix:77-81`). On Linux the software TPM is swtpm 0.9.0 on libtpms 0.9.6, the released pair the live TPM proofs run against; on macOS it is the swtpm nixpkgs builds (`swtpm`, `tools/nix/pins.nix:47-51`). QEMU and its UEFI firmware come from nixpkgs, and the firmware is QEMU's own build of edk2 (`firmware`, `tools/nix/shell.nix:9-10`).
