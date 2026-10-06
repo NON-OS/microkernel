@@ -14,20 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod announce;
-mod backing;
-mod binding;
-mod ensure_input_subscription;
-mod input_mask;
-mod open;
-pub mod patience;
-mod register;
-mod request_id;
-mod resize;
-mod submit_scene;
-mod subscribe_input;
+use crate::app::App;
+use crate::clients::compositor;
+use crate::discover::Peers;
 
-pub use binding::WindowBinding;
-pub(crate) use ensure_input_subscription::ensure_input_subscription;
-pub use open::open_window;
-pub use resize::reopen_surface;
+use super::boot::BootedApp;
+use super::repaint::repaint;
+use super::request_id::next;
+
+const APP_LAYER_Z: u32 = 2;
+
+/// Put a minimized window back in the scene where it was and repaint it.
+pub(super) fn restore<A: App>(booted: &mut BootedApp<A>, peers: &Peers, request_id: &mut u32) {
+    let _ = compositor::scene_submit(
+        peers.compositor,
+        next(request_id),
+        booted.binding.surface_handle,
+        booted.binding.x,
+        booted.binding.y,
+        booted.binding.width,
+        booted.binding.height,
+        APP_LAYER_Z,
+    );
+    booted.minimized = false;
+    repaint(booted, peers, request_id);
+}

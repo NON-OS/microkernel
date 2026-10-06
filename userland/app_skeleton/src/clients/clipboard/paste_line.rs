@@ -14,20 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod announce;
-mod backing;
-mod binding;
-mod ensure_input_subscription;
-mod input_mask;
-mod open;
-pub mod patience;
-mod register;
-mod request_id;
-mod resize;
-mod submit_scene;
-mod subscribe_input;
+use super::paste::clipboard_paste;
+use crate::input::text::{first_line, PasteLine};
 
-pub use binding::WindowBinding;
-pub(crate) use ensure_input_subscription::ensure_input_subscription;
-pub use open::open_window;
-pub use resize::reopen_surface;
+/// Read the clipboard's text into `out` and take its first line, for a
+/// one-line field. Err when the clipboard cannot be reached; Ok(None) when
+/// what it holds is not text. An empty clipboard is an empty line.
+pub fn clipboard_paste_line(out: &mut [u8]) -> Result<Option<PasteLine<'_>>, &'static str> {
+    let n = clipboard_paste(out)?;
+    Ok(first_line(&out[..n]))
+}

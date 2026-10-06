@@ -15,23 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::clients::input_router;
-use nonos_libc::mk_yield;
+use nonos_libc::mk_idle_ms;
 
+use super::patience::INPUT_SUBSCRIBE;
 use super::request_id::bump;
-
-const SUBSCRIBE_ATTEMPTS: usize = 4;
 
 pub(super) fn subscribe_input(
     port: u32,
     request_id: &mut u32,
     kind_mask: u32,
 ) -> Result<(), &'static str> {
-    for _ in 0..SUBSCRIBE_ATTEMPTS {
+    for attempt in 0..INPUT_SUBSCRIBE.attempts {
         let rid = bump(request_id);
         if input_router::subscribe(port, rid, kind_mask).is_ok() {
             return Ok(());
         }
-        mk_yield();
+        if attempt + 1 < INPUT_SUBSCRIBE.attempts {
+            mk_idle_ms(INPUT_SUBSCRIBE.rest_ms);
+        }
     }
     Err("input subscribe deferred")
 }

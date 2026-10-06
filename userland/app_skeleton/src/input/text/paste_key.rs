@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod announce;
-mod backing;
-mod binding;
-mod ensure_input_subscription;
-mod input_mask;
-mod open;
-pub mod patience;
-mod register;
-mod request_id;
-mod resize;
-mod submit_scene;
-mod subscribe_input;
+use crate::input::{InputEvent, KEY_INSERT, MOD_ALT, MOD_CTRL, MOD_META, MOD_SHIFT};
 
-pub use binding::WindowBinding;
-pub(crate) use ensure_input_subscription::ensure_input_subscription;
-pub use open::open_window;
-pub use resize::reopen_surface;
+/// Whether a key press asks a text field to paste: Ctrl+V, or Shift+Insert,
+/// the older binding many keyboards and hands still use. The keymap sends a
+/// Ctrl chord's letter as typed, so either case of v counts.
+pub fn is_paste(event: &InputEvent) -> bool {
+    if !event.is_key_down() || event.flags & (MOD_ALT | MOD_META) != 0 {
+        return false;
+    }
+    let ctrl = event.flags & MOD_CTRL != 0;
+    let shift = event.flags & MOD_SHIFT != 0;
+    match event.code {
+        0x56 | 0x76 => ctrl,
+        KEY_INSERT => shift && !ctrl,
+        _ => false,
+    }
+}

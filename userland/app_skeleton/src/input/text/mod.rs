@@ -14,20 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod announce;
-mod backing;
-mod binding;
-mod ensure_input_subscription;
-mod input_mask;
-mod open;
-pub mod patience;
-mod register;
-mod request_id;
-mod resize;
-mod submit_scene;
-mod subscribe_input;
+//! Text input for the apps' fields: which keys type which characters, which
+//! key pastes, what the clipboard's text becomes in a one-line field, and
+//! UTF-8 edits on a fixed buffer. One reading, so every field agrees on what
+//! a key does.
 
-pub use binding::WindowBinding;
-pub(crate) use ensure_input_subscription::ensure_input_subscription;
-pub use open::open_window;
-pub use resize::reopen_surface;
+mod paste_key;
+mod paste_line;
+mod typed;
+mod utf8;
+
+pub use paste_key::is_paste;
+pub use paste_line::{first_line, paste_char, PasteLine};
+pub use typed::{text_char, typed_char};
+pub use utf8::{last_char_len, push_char};

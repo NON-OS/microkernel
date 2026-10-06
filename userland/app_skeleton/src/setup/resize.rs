@@ -16,33 +16,42 @@
 
 use nonos_libc::{mk_munmap, mk_surface_release};
 
-use crate::clients::compositor;
 use crate::clients::wm::WindowPlacement;
 use crate::discover::Peers;
 
 use super::backing::alloc_backing;
 use super::binding::WindowBinding;
 use super::register::register_and_share;
-use super::request_id::bump;
 use super::submit_scene::submit_scene;
 
+/// Give the window a new surface of `w` by `h` at (`x`, `y`), drawn by
+/// `paint` before the compositor is shown it.
+///
+/// This used to take the window out of the scene first and then submit the
+/// new surface still blank (transparent), with the paint only after: every
+/// maximize, restore and step of a resize drag showed the desktop where the
+/// window was for a frame or more. The new surface is now painted first and
+/// submitted in the old layer's place (the compositor replaces a client's
+/// layer in its band and repaints the old and new rectangles in one frame),
+/// and only then is the old surface let go. When the submit is refused the
+/// old surface stays on screen and the new one is given back.
 pub fn reopen_surface(
     peers: &Peers,
     old: &WindowBinding,
-    x: u32,
-    y: u32,
-    w: u32,
-    h: u32,
+    placement: WindowPlacement,
     request_id: &mut u32,
+    paint: impl FnOnce(&WindowBinding),
 ) -> Result<WindowBinding, &'static str> {
-    let rid = bump(request_id);
-    let _ = compositor::scene_remove(peers.compositor, rid, 0);
+    let WindowPlacement { x, y, width: w, height: h } = placement;
     let (backing_va, stride, byte_len) = alloc_backing(w, h)?;
-    let surface_handle = register_and_share(backing_va, w, h, stride, byte_len)?;
-    submit_scene(peers, surface_handle, request_id, WindowPlacement { x, y, width: w, height: h })?;
-    let _ = mk_surface_release(old.surface_handle);
-    let _ = mk_munmap(old.backing_va as *mut u8, old.byte_len as usize);
-    Ok(WindowBinding {
+    let surface_handle = match register_and_share(backing_va, w, h, stride, byte_len) {
+        Ok(handle) => handle,
+        Err(e) => {
+            let _ = mk_munmap(backing_va as *mut u8, byte_len as usize);
+            return Err(e);
+        }
+    };
+    let binding = WindowBinding {
         surface_handle,
         backing_va,
         x,
@@ -51,5 +60,14 @@ pub fn reopen_surface(
         height: h,
         stride_words: w,
         byte_len,
-    })
+    };
+    paint(&binding);
+    if let Err(e) = submit_scene(peers, surface_handle, request_id, placement) {
+        let _ = mk_surface_release(surface_handle);
+        let _ = mk_munmap(backing_va as *mut u8, byte_len as usize);
+        return Err(e);
+    }
+    let _ = mk_surface_release(old.surface_handle);
+    let _ = mk_munmap(old.backing_va as *mut u8, old.byte_len as usize);
+    Ok(binding)
 }
