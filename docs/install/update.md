@@ -17,3 +17,9 @@ To update, you install the newer release over the old one.
 5. Type the disk's word, let the installer write and read back, remove the stick and restart ([Install to disk](install-to-disk.md)).
 
 An update from one release to another is not tested in this release.
+
+## What carries over
+
+Nothing from the old disk. The installer carries what the running boot holds, and when you boot the stick that is the stick's store, because the kernel takes a USB stick that carries NONOS before any internal disk (`ORDER` in `src/hardware/block_device/select.rs`). It carries setup's answers, the wallpapers they keep, and the signed programs the stick carries (`userland/nonos_disk/src/carry/gather.rs`). The old store, the programs you installed there from the Marketplace, anything you kept there, and the old [data volume](../overview/glossary.md#data-volume) are erased with the disk.
+
+NONOS 0.9.2 has no way to copy files off the old disk first: the file service keeps files in memory and in the NONOS store, and mounts no other file system (`userland/capsule_vfs/README.md`), and the USB storage driver serves sectors, not files (`userland/capsule_driver_usb_msc/README.md`).
