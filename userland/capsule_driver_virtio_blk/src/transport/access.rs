@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The medium-authority decision, pure so the host proofs can walk every case.
-//!
-//! Reads were open to every sender. Raw sectors hold every partition on the
-//! disk, another system's unencrypted files among them, so a read is held to
-//! the same authority as a write. A health check stays open.
+use super::types::Transport;
+use crate::constants::{LEG_ISR, LEG_QUEUE_NOTIFY};
 
-use crate::protocol::OP_HEALTHCHECK;
+impl Transport {
+    /// Tell the device queue `queue` has a request.
+    pub fn notify(self, queue: u16) {
+        match self {
+            Self::Legacy(regs) => unsafe { regs.w16(LEG_QUEUE_NOTIFY, queue) },
+            Self::Modern(m) => m.notify.w16(m.doorbell, queue),
+        }
+    }
 
-/// The sender pid is stamped by the kernel and pid 0 is never handed to a
-/// process, so it marks the kernel-internal client and nothing else. Any
-/// other sender reaches the medium only when the kernel says it holds
-/// StoreWrite.
-pub fn allows(op: u16, sender_pid: u32, sender_may_write: bool) -> bool {
-    op == OP_HEALTHCHECK || sender_pid == 0 || sender_may_write
+    /// Read, and so clear, the interrupt status; on INTx that lowers the
+    /// line (see `io::rearm`). With MSI-X the value is unused.
+    pub fn isr(self) -> u8 {
+        match self {
+            Self::Legacy(regs) => unsafe { regs.r8(LEG_ISR) },
+            Self::Modern(m) => m.isr.r8(0),
+        }
+    }
 }

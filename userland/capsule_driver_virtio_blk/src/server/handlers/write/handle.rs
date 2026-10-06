@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::request::write_request;
-use crate::io::{submit, BlkError};
+use crate::io::{settle, submit, BlkError};
 use crate::protocol::{Request, E_INVAL, E_IO, RW_HEADER_LEN};
 use crate::queue::Direction;
 use crate::server::error::reply_with_status;
@@ -28,12 +28,17 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
             return;
         }
     };
+    // The buffer may still be the device's, for a request it has not answered.
+    if settle(driver.transport, &mut driver.queue, driver.irq_grant).is_err() {
+        reply_with_status(tx, req, E_IO);
+        return;
+    }
     unsafe {
         let dst = driver.queue.data_mut(parsed.bytes_n as u32);
         dst.copy_from_slice(&body[RW_HEADER_LEN..RW_HEADER_LEN + parsed.bytes_n]);
     }
     let outcome = submit(
-        driver.regs,
+        driver.transport,
         &mut driver.queue,
         driver.irq_grant,
         Direction::Write,

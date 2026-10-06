@@ -14,18 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The medium-authority decision, pure so the host proofs can walk every case.
-//!
-//! Reads were open to every sender. Raw sectors hold every partition on the
-//! disk, another system's unencrypted files among them, so a read is held to
-//! the same authority as a write. A health check stays open.
+//! The capacity from struct virtio_blk_config in the device region.
 
-use crate::protocol::OP_HEALTHCHECK;
+use nonos_virtio::common::stable_read;
+use nonos_virtio::{Mmio, VirtioError};
 
-/// The sender pid is stamped by the kernel and pid 0 is never handed to a
-/// process, so it marks the kernel-internal client and nothing else. Any
-/// other sender reaches the medium only when the kernel says it holds
-/// StoreWrite.
-pub fn allows(op: u16, sender_pid: u32, sender_may_write: bool) -> bool {
-    op == OP_HEALTHCHECK || sender_pid == 0 || sender_may_write
+/// Bytes of struct virtio_blk_config the driver reads: the 64-bit capacity.
+const CAPACITY_LEN: usize = 8;
+
+/// Capacity in 512-byte sectors, read as two 32-bit halves under the config
+/// generation so a resize between them cannot pair two different values.
+pub fn read(common: &Mmio, device: Mmio) -> Result<u64, &'static str> {
+    if device.len() < CAPACITY_LEN {
+        return Err(VirtioError::DeviceCfgShort.message());
+    }
+    stable_read(common, || ((device.r32(4) as u64) << 32) | device.r32(0) as u64)
+        .ok_or(VirtioError::DeviceCfgUnstable.message())
 }

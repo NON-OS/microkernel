@@ -14,18 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The medium-authority decision, pure so the host proofs can walk every case.
-//!
-//! Reads were open to every sender. Raw sectors hold every partition on the
-//! disk, another system's unencrypted files among them, so a read is held to
-//! the same authority as a write. A health check stays open.
+//! The virtio 1.0 bring-up, for a function that has no legacy register
+//! window (a modern-only virtio-blk, as QEMU builds behind its IOMMU).
 
-use crate::protocol::OP_HEALTHCHECK;
+mod capacity;
+mod handshake;
+mod pci;
+mod run;
 
-/// The sender pid is stamped by the kernel and pid 0 is never handed to a
-/// process, so it marks the kernel-internal client and nothing else. Any
-/// other sender reaches the medium only when the kernel says it holds
-/// StoreWrite.
-pub fn allows(op: u16, sender_pid: u32, sender_may_write: bool) -> bool {
-    op == OP_HEALTHCHECK || sender_pid == 0 || sender_may_write
-}
+pub use run::run;

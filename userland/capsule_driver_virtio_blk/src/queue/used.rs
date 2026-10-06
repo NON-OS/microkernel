@@ -21,14 +21,36 @@ impl Queue {
     pub fn used_idx(&self) -> u16 {
         unsafe { read_volatile(self.region_va.add(self.used_offset + USED_IDX_OFFSET).cast()) }
     }
+    /// Requests handed to the device so far, as the avail ring counts them.
+    pub fn avail_idx(&self) -> u16 {
+        unsafe { read_volatile(self.region_va.add(self.avail_offset + 2).cast()) }
+    }
+    /// Whether the device has answered every request it was given. One
+    /// slot and one data buffer serve them all, so neither may be touched
+    /// while a request is still out.
+    pub fn idle(&self) -> bool {
+        self.used_idx() == self.avail_idx()
+    }
     pub fn status_byte(&self) -> u8 {
         unsafe { read_volatile(self.header_va.add(STATUS_OFFSET)) }
     }
+    /// The first `len` bytes of the data buffer, at most its length.
+    ///
+    /// # Safety
+    ///
+    /// The device must have answered every request (`idle`), or it may still
+    /// be writing the buffer under the slice.
     pub unsafe fn data(&self, len: u32) -> &[u8] {
         let n = core::cmp::min(len, self.data_len) as usize;
         core::slice::from_raw_parts(self.data_va, n)
     }
-    pub unsafe fn data_mut(&self, len: u32) -> &mut [u8] {
+    /// The first `len` bytes of the data buffer, to fill before a write.
+    ///
+    /// # Safety
+    ///
+    /// The device must have answered every request (`idle`), or it may still
+    /// be reading the buffer for a write being changed under it.
+    pub unsafe fn data_mut(&mut self, len: u32) -> &mut [u8] {
         let n = core::cmp::min(len, self.data_len) as usize;
         core::slice::from_raw_parts_mut(self.data_va, n)
     }
