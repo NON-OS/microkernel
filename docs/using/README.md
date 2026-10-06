@@ -25,3 +25,11 @@ The guide for a person who uses NONOS every day: what each part of the desktop d
 | [Local model](local-ai.md) | chat with the Qwen model on this machine, offline, and pick its tier |
 | [Marketplace](marketplace.md) | install signed apps and packages |
 | [Wallet](wallet.md) | hold keys and make payments |
+
+## A first hour
+
+1. Open the [Launchpad](desktop.md#the-launchpad) from the last tile of the dock, and type a few letters of an app's name.
+2. Open Settings and look at Privacy. `Keep data across reboots` tells you whether this machine keeps anything at all past this boot.
+3. Join a network on the Wi-Fi panel of Settings, then check the `Default network` row on the Network panel.
+4. Open Terminal and type `help`. Then try `help keys` and `help shell`.
+5. Open About and read its Proofs screen. It says in one line whether this boot is attested and whether its traffic is anonymous.
