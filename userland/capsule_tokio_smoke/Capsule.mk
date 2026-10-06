@@ -21,7 +21,11 @@ CAPSULE_DOMAIN             := systems.nonos
 CAPSULE_NAMESPACE          := systems.nonos.tokio_smoke
 CAPSULE_SERVICE_ENDPOINT   := service:4504:tokio_smoke
 CAPSULE_REPLY_ENDPOINT     := reply:4505:endpoint.tokio_smoke.reply
-CAPSULE_REQUIRED_CAPS      := 0x11d
+CAPSULE_REQUIRED_CAPS      := 0x1d
+# Debug, granted only by a build that compiles `capsule-serial-debug`: the
+# kernel mirror folds it in through serial_debug_cap().
+CAPSULE_OPTIONAL_CAPS      := 0x100
+CAPSULE_KERNEL_MIRROR      := src/userspace/capsule_tokio_smoke
 CAPSULE_CAPS_CEILING       := 0x11d
 CAPSULE_PREBUILT_BIN       := target/upstream-tokio-smoke/tokio-smoke
 CAPSULE_METADATA           := nonos tokio-smoke v0.0.0 publisher
