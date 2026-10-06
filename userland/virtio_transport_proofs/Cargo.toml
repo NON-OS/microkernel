@@ -1,0 +1,16 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the shared virtio 1.0 PCI transport
+# (userland/nonos_virtio). Builds for the host so `cargo test` runs the real
+# transport source (included via #[path]) against synthetic config spaces,
+# a broker in host memory and a model device, without a boot.
+[package]
+name = "virtio_transport_proofs"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
