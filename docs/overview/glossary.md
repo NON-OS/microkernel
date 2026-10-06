@@ -79,3 +79,7 @@ The nonzero number the kernel gives each `MkIpcCall` from a counter. Only a repl
 ## Data volume
 
 The encrypted volume the disk plan places at sector 262,144 or above, where kept files such as Qwen models live, each sector sealed with ChaCha20-Poly1305. On an installed disk its key is derived from the TPM under the label `blockfs.data.v1`, or is a random key sealed under a passphrase when the key header says so; on a live stick the volume is held in RAM under a key drawn for that boot and is gone at power off. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-data-volume). Code: `src/fs/blockfs_volume/open_machine.rs`, `src/fs/blockfs_volume/session.rs`.
+
+## Development image
+
+A profile's development twin, `<profile>-dev`: the same kernel features, path-only attestation and the `dev-qemu` loader policy, sealed with throwaway keys by `make dev-image` in a copy of the checkout under `target/dev/tree`. Its gates take a capsule on its Merkle path without the STARK proof, and the seal refuses it for a release. Explained in [The seal](../build/seal.md#without-the-release-keys). Code: `tools/nonos-dev-image`.
