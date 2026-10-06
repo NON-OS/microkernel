@@ -127,3 +127,20 @@ These are the apps the dock and the Launchpad know, in dock order (`LAUNCHER_APP
 First-boot setup can turn off eight optional groups: Browser, Wallet, the app store (Marketplace), Files, the text editor, Calculator, the media apps (Music, Video, Image Viewer), and Linux with Qwen (`OPTIONAL` in `userland/policy_proto/src/apps/table.rs`). Setup shows the desktop, Terminal, Settings and Processes as always on, and About, Snake and Install have no switch either. Settings has no switch to turn an optional app back on in this release: the `Apps turned off at setup` field is not among the fields it lists (`ALL_FIELDS` in `userland/capsule_settings/src/settings/schema/all_fields.rs`).
 
 The seven command-line tools in `userland/apps.list` also have Launchpad tiles: `grex`, `dotenv-linter`, `pastel`, `jsonxf`, `tokei`, `huniq` and `csview`. They run in the Terminal.
+
+## Keys the desktop answers
+
+These keys go to the desktop shell whatever window has focus (`userland/capsule_input_router/src/route/chord.rs`, `userland/capsule_input_router/src/route/shell_keys.rs`):
+
+| Key | What it does |
+|---|---|
+| `Ctrl+Alt+Esc` | Closes the Launchpad and menus, and brings Processes forward, opening it if needed. No window ever sees this chord. |
+| Volume Up, Volume Down | Steps the master volume by 5 out of 100 and shows a notice such as `Volume 45%`. See [Sound and media](audio.md). |
+| Mute | Mutes or unmutes, and shows `Muted` or the level. |
+| Power | Shows `Power off is not available from the desktop`. |
+
+One more chord never reaches a window: `Ctrl+Alt+Space` cycles the keyboard layout inside the keyboard driver. See [Keyboard layouts](keyboard-layouts.md).
+
+The power key does not power the machine off, whether it comes from a keyboard or from the machine's ACPI power button, which the kernel turns into the same key (`src/arch/x86_64/acpi/power_button.rs`). The desktop has no Shut Down in this release: the power service capsule is built but not started, and the shell offers no shutdown action (`POWER_OFF_UNAVAILABLE` in `userland/capsule_desktop_shell/src/state/system_key.rs`).
+
+The power button and the volume keys: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
