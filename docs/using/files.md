@@ -43,3 +43,30 @@ A USB stick written by another system does not show up in Files. The file store 
 | `png`, `jpg`, `jpeg`, `bmp`, `gif` | Image Viewer |
 
 Any other file opens in the preview pane, as text or, for a binary file, as hex.
+
+## Working with files
+
+Files works with the mouse and with single keys. Press `?` for the key list; any key closes it (`userland/capsule_file_manager/src/fm/help.rs`).
+
+| Key | What it does |
+|---|---|
+| arrows, or `j`, `k`, `h`, `l` | Move, open, go up. |
+| `Enter`, `l` | Open a folder, or preview a file. |
+| `Backspace`, `h` | Up one folder. |
+| `Space`, `a` | Check or uncheck an entry; select everything in view. |
+| `n`, `m` | New file; new folder. |
+| `r` | Rename. |
+| `d` | Delete the selection or the entry under the cursor. Type `y` and `Enter` to confirm. |
+| `c`, `x`, `p` | Copy, cut, paste into the current folder. |
+| `o` | Duplicate. |
+| `u` | Switch read-only on or off. |
+| `f` | Pin or unpin in Favourites. |
+| `t` | Tag or untag. |
+| `s` | Sort by name, size, date or type in turn. |
+| `/` | Filter; type to search. |
+| `Esc` | Close the window. |
+
+- Search finds files by name and by content. Content matching skips files over 1 MiB and binary files, which are still matched by name (`SEARCH_MAX_FILE_BYTES` in `userland/capsule_vfs/src/store/fdtable/search.rs`).
+- The header's undo button reverses a new file, new folder, rename, permission change, paste, move or duplicate, and says whether all, part or none of it was put back.
+- A delete cannot be undone. There is no trash, so a delete also empties the undo list.
+- A folder whose listing failed shows `Files are not available` with the reason, never an empty folder.
