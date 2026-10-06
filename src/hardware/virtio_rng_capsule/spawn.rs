@@ -53,7 +53,6 @@ pub fn spawn_driver_virtio_rng_capsule() -> Result<(), SpawnError> {
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()
-            | Capability::Irq.bit()
             | Capability::Dma.bit()
             | Capability::Pio.bit(),
         debug_tag: b"[DRIVER-VIRTIO-RNG] load_elf_executable error:",
