@@ -84,3 +84,19 @@ The manifest is schema version 3 (`src/security/capsule_manifest/schema/constant
 The decoder refuses a required and optional set that overlap (`src/security/capsule_manifest/decode/header.rs:45-49`, `OverlappingCaps`), a duplicate endpoint (`src/security/capsule_manifest/decode/endpoints.rs:44-48`, `DuplicateEndpoint`), and any byte after the last signature (`src/security/capsule_manifest/decode/mod.rs:30-32`, `TrailingBytes`). The publisher signs every byte before the signature count (`src/security/capsule_manifest/verify/signed_region.rs:20-41`, `compute`). Signature sizes come from `src/crypto/asymmetric/alg_id/lengths.rs:19-29` (`MLDSA65_SIG_BYTES`), and the algorithm byte from `src/crypto/asymmetric/alg_id/types.rs:39-47` (`from_u8`). The decoder also knows ML-DSA-44 (2) and ML-DSA-87 (4), but the policy below asks only for Ed25519 and ML-DSA-65.
 
 The schema in `abi/capsule_manifest.schema.json` names the same fields as a JSON object. Some of its descriptions are older than the decoder; where they differ, the decoder is right.
+
+## What the kernel checks
+
+`verify_with_publisher` runs these checks in this order, and the first failure refuses the capsule (`src/security/capsule_manifest/verify/mod.rs:37-63`, `verify_with_publisher`):
+
+1. The manifest decodes.
+2. Its certificate id equals the BLAKE3 of the certificate presented with it.
+3. Its namespace matches one of the certificate's namespace globs.
+4. Its required and optional capabilities stay under the certificate's ceiling.
+5. For each algorithm the production policy requires, one signature verifies under a publisher key the certificate carries and the [trust anchor](../overview/glossary.md#trust-anchor) policy has not revoked. The policy requires both Ed25519 and ML-DSA-65 (`src/security/nonos_id_cert/policy.rs:30-32`, `NONOS_PRODUCTION_POLICY`).
+6. The payload hash equals the BLAKE3 of the ELF being loaded.
+7. The target triple equals the one the spawn site names. A capsule in the kernel image is held to the kernel's user target; a capsule loaded from the store names its own, so for it this check adds nothing (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:65`, `target_triple`).
+8. Every endpoint the spawn site is about to register is declared in the manifest.
+9. The grant stays inside the manifest's required and optional sets.
+
+Each failure has its own variant of `ManifestVerifyError`, from `NonosIdCertIdMismatch` to `GrantOutsideManifest` (`src/security/capsule_manifest/error.rs:45-58`). The certificate itself is checked before any of this; [Signing and publisher keys](signing-and-publisher-keys.md) lists those refusals.
