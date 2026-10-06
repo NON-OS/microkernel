@@ -45,3 +45,12 @@ The data volume's key and the key that seals remembered Wi-Fi networks are deriv
 The kernel never formats over a volume it cannot open: it logs `[DATA] the volume holds data this key cannot open; not formatting over it` and leaves it (`src/fs/blockfs_volume/mount_or_format.rs`). Putting the firmware and the Secure Boot setting back the way they were gives the old key back. Clearing the TPM changes the seed these keys come from, and every such key with it, for good (`src/security/tpm/machine_key/mod.rs`).
 
 A reinstall is not affected: the installer clears the key header and the volume's header ring, so the new system makes a new volume on its first boot.
+
+## See also
+
+- [Install to disk](install-to-disk.md)
+- [Recovery](recovery.md)
+- [Troubleshooting](troubleshooting.md)
+- [Rollback protection](../security/rollback-protection.md)
+- [Measured boot and the TPM](../security/measured-boot-and-tpm.md)
+- [Release notes for 0.9.2](../release/0.9.2.md)
