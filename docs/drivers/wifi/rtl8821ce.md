@@ -102,3 +102,15 @@ While joined, a new group key from the access point is installed and a deauthent
 ## Firmware
 
 The capsule links `rtw8821c_fw.bin` from `nonos-bootloader/firmware/realtek/` with `include_bytes!` (`userland/capsule_driver_rtl8821ce/src/fwload.rs:38`, `include_bytes`). The file is 139,472 bytes in this tree. The note beside the driver, [firmware/README.md](../../../userland/capsule_driver_rtl8821ce/firmware/README.md), gives its origin: linux-firmware, `rtw88/rtw8821c_fw.bin`, version 24.11.0, copyright Realtek Semiconductor Corp. It is not AGPL code. Its terms are in [the Realtek licence](../../../nonos-bootloader/firmware/realtek/LICENSE): binary redistribution without modification, the notice kept, no reverse engineering.
+
+## Reading what the driver did
+
+On a build that grants Debug, the driver writes one console line per bring-up step through `mk_debug` (`userland/capsule_driver_rtl8821ce/src/status.rs:32-33`, `line`). The standard profile keeps the `capsule-serial-debug` feature that grants it, and the hardened profile drops it (`tools/nix/config.nix:69-85`, `debugFeatures`). The Terminal's `log` command shows the kernel's recent lines and keeps only those naming the words you give (`userland/capsule_terminal/src/command/builtin/log.rs:18-21`, `mk_log_tail`):
+
+```sh
+log rtl8821ce
+```
+
+Not tested in this release.
+
+Without Debug those lines are dropped, and the Settings Wi-Fi panel's stage line is the record.
