@@ -12,7 +12,10 @@ CAPSULE_FEATURE          := nonos-capsule-audio
 CAPSULE_NAMESPACE        := systems.nonos.audio.server
 CAPSULE_SERVICE_ENDPOINT := service:4872:audio.server
 CAPSULE_REPLY_ENDPOINT   := reply:4873:endpoint.4294967321
-# IPC|Memory|Debug + CoreExec base = 0x119
-CAPSULE_REQUIRED_CAPS    := 0x119
-
+# IPC | Memory = 0x18
+CAPSULE_REQUIRED_CAPS    := 0x18
+# Debug, granted only by a build that compiles `capsule-serial-debug`: the
+# kernel mirror folds it in through serial_debug_cap().
+CAPSULE_OPTIONAL_CAPS    := 0x100
+CAPSULE_KERNEL_MIRROR    := src/hardware/audio_capsule
 include nonos-mk/capsule.mk

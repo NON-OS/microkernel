@@ -21,10 +21,13 @@ extern crate alloc;
 
 mod mark;
 mod mixer;
+#[cfg(feature = "nonos-audio-smoketest")]
 mod selftest;
+#[cfg(feature = "nonos-audio-smoketest")]
 mod selftest_stream;
 mod server;
 mod sink;
+mod volume;
 
 use nonos_libc::{heap_init, mk_exit};
 
