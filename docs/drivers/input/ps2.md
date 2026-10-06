@@ -71,3 +71,10 @@ The [capsule](../../overview/glossary.md#capsule) manifest asks for the [capabil
 Without Debug the driver's own `[driver_ps2]` lines are refused by the kernel and never reach the console. When the driver ends with a status other than 0, the kernel prints an `[EXIT]` line with its service name and status, and for status 2 or 6 the reason in words (`words`, `src/process/exit/end_rule.rs:38-44`).
 
 No capsule may send to `driver.ps2_kbd0`: the kernel holds it to an empty list (`KERNEL_ONLY`, `src/services/registry/held_table.rs:27`). Scan codes stay in the driver's bounded ring and key events in the kernel input ring until the router delivers them. The driver writes nothing to disk.
+
+## Limits
+
+- NumLock is not tracked: the keypad always types digits (`character`, `userland/capsule_driver_ps2_input/src/keymap/keypad.rs:43-48`).
+- The driver sends no LED command, so the Caps Lock and Num Lock lights stay as the firmware left them. The command list in `userland/capsule_driver_ps2_input/src/constants/ports.rs` has none.
+- The driver adds no absolute mode, tap or multi-finger gesture of its own for a PS/2 touchpad, since it speaks no vendor protocol. What the touchpad sends as a mouse is what arrives.
+- The driver reads at most 16 bytes from the controller per pass (`MAX_BYTES_PER_DRAIN`, `userland/capsule_driver_ps2_input/src/poll/drain.rs:23`).
