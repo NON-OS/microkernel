@@ -211,3 +211,7 @@ Not tested in this release.
 ## The network a command uses
 
 `curl` and `git` connect through the network chosen in Settings: the Nym mixnet, the Anyone network, or Direct. `ping`, `nslookup`, `pull` and `push` reach a host directly and cannot cross an anonymity network, so they run only when Direct is chosen. Otherwise they print the reason and `so nothing was sent` (`userland/capsule_terminal/src/command/builtin/direct_gate.rs`). See [Privacy networks](privacy-network.md).
+
+## What is kept
+
+History, aliases, variables and scrollback live in the tab's memory and go with it. The theme, the font size and whether the side rail shows are written to `/etc/terminal/prefs.dat`, which outlives a reboot only on a machine where `Keep data across reboots` is on (`userland/capsule_terminal/src/term/prefs/store.rs`).
