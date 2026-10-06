@@ -31,7 +31,7 @@ sha2 = { version = "0.10", default-features = false }
 # The bootloader's slot is checked as every slot is: its path under the
 # signed root, and the STARK proof of the same slot. Pinned by rev.
 nonos-attest-path = { path = "../nonos-attest-path" }
-nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
+nox_verify = { version = "0.1", git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
 
 [dev-dependencies]
 # Tree, to enroll a real path in the dev-attest tests.
