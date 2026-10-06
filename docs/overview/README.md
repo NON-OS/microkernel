@@ -23,3 +23,9 @@ NONOS is an operating system for x86_64 computers, built on a capability microke
 | an OS developer | [Kernel](../kernel/README.md), then [Drivers](../drivers/README.md) and [Userland](../userland/README.md) |
 | a security reviewer | [Threat model](threat-model.md), then [Security](../security/README.md) |
 | a contributor | [Build](../build/README.md), then [Contributing](../contributing/README.md) |
+
+## See also
+
+- [Documentation index](../README.md)
+- [Support matrix](../hardware/MATRIX.md)
+- [Release notes for 0.9.2](../release/0.9.2.md)
