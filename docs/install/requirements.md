@@ -28,3 +28,11 @@ A Standard boot runs without a TPM, with three things missing:
 - No rollback floor. The menu shows `ROLLBACK` with `NO COUNTER`, the loader notes `No TPM: rollback protection is off`, and an older signed kernel would boot (`nonos-bootloader/src/boot/crypto/rollback/floor.rs`).
 - No key for an installed disk's [data volume](../overview/glossary.md#data-volume). The kernel derives that key from the TPM, and without one it leaves the volume closed (`src/fs/blockfs_volume/open_machine.rs`).
 - No remembered Wi-Fi networks. A remembered passphrase is sealed with ChaCha20-Poly1305 under a key the TPM derives, and is never written in the clear (`userland/nonos_wifi_client/src/saved/file.rs`, `userland/nonos_wifi_client/src/saved/key.rs`). Without a TPM, remembering a network fails with `No TPM to seal the passphrase with`.
+
+## Memory
+
+This release sets no minimum amount of memory: the loader's hardware check names only NX and the physical address width (`nonos-bootloader/src/boot/security/hardware.rs`). What memory decides is what runs:
+
+- On a boot from the stick, the session's data volume is held in RAM, and only when at least 256 MiB is free beyond what the kernel keeps for the system, which is the larger of 1 GiB and a quarter of memory (`src/fs/blockfs_volume/session.rs`, `src/fs/cryptoblock/ram.rs`). Below that, that boot has no `/data`, and programs that ask for it get `too little memory free for a volume in RAM`.
+- The Qwen model step in setup offers only the tiers that fit this machine's memory ([Local AI](../using/local-ai.md)).
+- The QEMU boots give the virtual machine 8 GiB by default (`--mem 8G`), and the boot tool's help says Qwen, Linux programs and a second window need more than 2G (`tools/nonos_qemu/__main__.py`).
