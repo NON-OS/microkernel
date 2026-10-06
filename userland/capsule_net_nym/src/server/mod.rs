@@ -25,8 +25,12 @@ mod handlers;
 mod keepalive;
 mod parse_req;
 mod pump_tick;
+mod reap;
+mod report;
+mod resend_tick;
 mod respond;
 mod runner;
 
 pub use connect_tick::gateway_lost;
+pub use resend_tick::{acknowledge, record, recipient_of, waiting};
 pub use runner::run;

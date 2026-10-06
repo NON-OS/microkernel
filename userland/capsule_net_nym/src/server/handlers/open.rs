@@ -28,7 +28,17 @@ pub fn handle(pid: u32, req: &Request, tx: &mut [u8]) {
     if fill_random(&mut key).is_err() {
         return respond(pid, OP_OPEN_SESSION, E_CRYPTO, req.request_id, 0, tx);
     }
-    let id = match TABLE.lock().open(pid, key) {
+    // A full table may be full of sessions whose clients have ended. The
+    // first answer is taken out of the lock before the reap takes it again.
+    let first = TABLE.lock().open(pid, key);
+    let opened = match first {
+        Err(TableError::Full) => {
+            crate::server::reap::reap_now();
+            TABLE.lock().open(pid, key)
+        }
+        other => other,
+    };
+    let id = match opened {
         Ok(id) => id,
         Err(TableError::NoGateway) => {
             return respond(pid, OP_OPEN_SESSION, E_NO_GATEWAY, req.request_id, 0, tx);

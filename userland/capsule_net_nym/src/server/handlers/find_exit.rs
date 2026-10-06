@@ -16,51 +16,46 @@
 
 //! Finding an exit that answers.
 
-use crate::directory_sync::{fetch_exit, ExitAddress};
+use alloc::vec::Vec;
+
+use crate::directory_sync::{cached_requesters, refresh_requesters, ExitAddress};
 use crate::setup;
 use crate::topology::{self, Role};
 use crate::trace;
 
-/// How many exits to ask before giving up.
+/// A requester on a known exit gateway, starting from `index`.
 ///
-/// A node is asked directly for the requester it runs, and a node that is
-/// listed is not necessarily one that answers: it may be busy, behind a
-/// filter, or not running the interface at all. Stopping at the first
-/// silence would make one unlucky node look like a network with no exits.
-const CANDIDATES: usize = 6;
-
-/// An exit that answered, starting from `index`.
-///
-/// Callers pass an index so they can ask for a different one than last time.
-/// The walk starts there and moves on, so a caller that wants variety gets it
-/// without having to know which nodes are reachable.
+/// Callers pass an index so they can ask for a different one than last time;
+/// net.socks5 moves on when an exit stays silent. Requesters come from the
+/// validator's described nodes over TLS, and one is offered only while the
+/// gateway its address names is an exit gateway in the current node list, so
+/// every packet this returns an address for leaves by a gateway the directory
+/// vouched for.
 pub fn find_exit(index: usize) -> Option<ExitAddress> {
     let nodes = topology::snapshot().ok()?;
-    let exits: alloc::vec::Vec<_> = nodes.iter().filter(|n| n.role == Role::ExitGateway).collect();
+    let exits: Vec<[u8; 32]> =
+        nodes.iter().filter(|n| n.role == Role::ExitGateway).map(|n| n.identity).collect();
     if exits.is_empty() {
         trace::say(b"exit lookup: the directory lists none");
         return None;
     }
-    trace::say_num(b"exit lookup: candidates", exits.len() as u64);
-
-    let port = setup::tcp_port();
-    for step in 0..CANDIDATES.min(exits.len()) {
-        let node = exits[(index + step) % exits.len()];
-        let Some(found) = fetch_exit(port, node.ip, node.identity) else {
-            continue;
-        };
-        // An exit is only usable if we can address the gateway it sits
-        // behind. We hold a slice of the network, so a requester whose
-        // gateway is outside it answers here and is then unreachable: the
-        // route cannot be built, and the failure lands later and further
-        // away than it needs to.
-        if topology::node_by_identity(&found.gateway).is_none() {
-            trace::say(b"exit lookup: skipped one whose gateway we cannot route to");
-            continue;
+    let is_exit = |id: &[u8; 32]| exits.iter().any(|e| e == id);
+    let mut usable: Vec<ExitAddress> =
+        cached_requesters().into_iter().filter(|r| is_exit(&r.gateway)).collect();
+    if usable.is_empty() {
+        match refresh_requesters(setup::tcp_port(), is_exit) {
+            Ok(n) => trace::say_num(b"exit lookup: requesters on known exits", n as u64),
+            Err(e) => {
+                trace::say_num(b"exit lookup: described nodes failed, code", e as u64);
+                return None;
+            }
         }
-        trace::say_num(b"exit lookup: answered after tries", step as u64 + 1);
-        return Some(found);
+        usable = cached_requesters().into_iter().filter(|r| is_exit(&r.gateway)).collect();
     }
-    trace::say_num(b"exit lookup: none answered of", CANDIDATES as u64);
-    None
+    if usable.is_empty() {
+        trace::say(b"exit lookup: no requester on a known exit");
+        return None;
+    }
+    trace::say_num(b"exit lookup: candidates", usable.len() as u64);
+    Some(usable[index % usable.len()])
 }

@@ -15,19 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec::Vec;
+use nonos_libc::mk_uptime_ms;
 use spin::Mutex;
 
-use crate::reply::{collect, open_reply, reply_message, Assembly, Reply};
+use crate::reply::{open_reply, reply_message, Collected, Reassembly, Reply};
 use crate::sphinx::constants::ACK_PLAINTEXT_SIZE;
-use crate::state::TABLE;
+use crate::state::{RX_DEPTH, TABLE};
+use crate::surb::keys_held;
 use crate::trace;
 
-/// Fragments of the reply currently being rebuilt.
+/// Replies being rebuilt from their fragments.
 ///
-/// One at a time is enough because a reply is answered before the next
-/// request goes out, and holding several would mean deciding which of them a
-/// fragment belongs to on nothing but its set id, which anyone could forge.
-static PENDING: Mutex<Vec<Assembly>> = Mutex::new(Vec::new());
+/// Many at once: an exit answers a page as dozens of messages sent back to
+/// back, and their packets arrive interleaved. A set id is only trusted this
+/// far because the fragment carrying it opened under one of our reply block
+/// keys, which nobody but the exit we handed them to can use.
+static PENDING: Mutex<Reassembly> = Mutex::new(Reassembly::new());
 
 /// Take a message the gateway pushed and deliver what it turns out to be.
 ///
@@ -42,30 +45,59 @@ pub fn route_reply(tcp_port: u32, payload: &[u8]) {
     // it says is that the fragment it names arrived, which is the only word
     // the far end sends back unprompted.
     if payload.len() == ACK_PLAINTEXT_SIZE {
-        trace::say(b"fragment acknowledged by the far end");
+        if crate::server::acknowledge(payload) {
+            trace::say_num(b"fragment acknowledged, still waiting on", crate::server::waiting() as u64);
+        } else {
+            trace::say(b"fragment acknowledged again, or not one of ours");
+        }
         return;
     }
     let Some(fragment) = open_reply(payload) else {
         // Either it was not sealed to one of our blocks, or it is shorter
         // than the parts a reply is read in. Both mean it was not for us.
-        trace::say(b"push dropped: no reply block key matched");
+        trace::say_num(b"push dropped: no reply block key matched, keys held", keys_held() as u64);
         return;
     };
-    let Some(message) = collect(&mut PENDING.lock(), &fragment) else {
-        trace::say(b"push held: message still missing fragments");
-        return;
+    // It came back on one of our blocks, so the far end holds one fewer.
+    TABLE.lock().with_sphinx_session(|session| session.surbs.spent());
+    let mut pending = PENDING.lock();
+    let message = match pending.collect(&fragment, mk_uptime_ms()) {
+        Collected::Complete(message) => message,
+        Collected::Held => {
+            trace::say_two(
+                b"push held: sets waiting, bytes",
+                pending.pending() as u64,
+                pending.held_bytes() as u64,
+            );
+            return;
+        }
+        // The far end resends a fragment whose acknowledgement was slow, so a
+        // copy of one already placed or delivered is normal and harmless.
+        Collected::Duplicate => {
+            trace::say(b"push dropped: a copy of a fragment already taken");
+            return;
+        }
+        Collected::Refused => {
+            trace::say_num(
+                b"push dropped: not a fragment this will hold, bytes",
+                fragment.len() as u64,
+            );
+            return;
+        }
     };
+    drop(pending);
     match reply_message(&message) {
         Some(Reply::Data(body)) => {
             trace::say_num(b"reply delivered bytes", body.len() as u64);
             deliver(body);
+            super::top_up::send_ahead(tcp_port);
         }
         // The far end has spent down to the reserve it keeps and will say
         // nothing more until it has room to answer. Everything sent after
         // this point depends on the top up going out.
         Some(Reply::SurbRequest { recipient, amount }) => {
             trace::say_num(b"far end asked for reply blocks", amount as u64);
-            super::top_up::top_up(tcp_port, &recipient, amount);
+            super::top_up::answer_request(tcp_port, &recipient, amount);
         }
         None => {
             trace::say_num(b"push dropped: not a reply message, bytes", message.len() as u64);
@@ -80,5 +112,19 @@ pub fn route_reply(tcp_port: u32, payload: &[u8]) {
 fn deliver(body: &[u8]) {
     let mut owned = Vec::with_capacity(body.len());
     owned.extend_from_slice(body);
-    TABLE.lock().with_sphinx_session(|session| session.push(owned));
+    let backlog = TABLE.lock().with_sphinx_session(|session| {
+        session.push(owned);
+        session.backlog()
+    });
+    // Half full means the reader has stopped collecting, and past full the
+    // oldest message goes: worth a line before that happens, not after.
+    if let Some((messages, bytes)) = backlog {
+        if messages > RX_DEPTH / 2 {
+            trace::say_two(
+                b"reader falling behind: messages, bytes",
+                messages as u64,
+                bytes as u64,
+            );
+        }
+    }
 }

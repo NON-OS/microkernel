@@ -15,12 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::SphinxHeader;
-use crate::sphinx::constants::PAYLOAD_KEY_SIZE;
+use crate::sphinx::constants::{PAYLOAD_KEY_SEED_SIZE, PAYLOAD_KEY_SIZE};
 use alloc::vec::Vec;
 
 /// A header plus the per-hop payload keys the sender needs to lay the
 /// matching onion layers. The keys never travel; each hop rederives its own.
+///
+/// The seeds are what a reply block hands over instead of keys: whoever
+/// answers stretches them exactly as the hops do.
 pub struct BuiltHeader {
     pub header: SphinxHeader,
     pub payload_keys: Vec<[u8; PAYLOAD_KEY_SIZE]>,
+    pub payload_key_seeds: Vec<[u8; PAYLOAD_KEY_SEED_SIZE]>,
 }
