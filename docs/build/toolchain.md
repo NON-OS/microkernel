@@ -53,3 +53,19 @@ The flake derives four toolchains from the one pin:
 The bootloader has its own `rust-toolchain.toml` with the same `channel` and the UEFI target (`nonos-bootloader/rust-toolchain.toml:1-4`).
 
 Capsules that use `std` build against a copy of the pinned standard library with the NONOS platform layer of `toolchain/nonos-std` applied; the pinned toolchain itself is never patched (`mkRustStd`, `tools/nix/capsules.nix:16-20`).
+
+## Target files
+
+NONOS targets are custom target files, built with `-Zbuild-std`:
+
+| file | what it builds | settings that matter |
+|---|---|---|
+| [x86_64-nonos.json](../../x86_64-nonos.json) | the x86_64 kernel | `features` turns off MMX, SSE and AVX and turns on soft float (`x86_64-nonos.json:21-22`) |
+| [aarch64-nonos.json](../../aarch64-nonos.json) | the aarch64 kernel | `features` asks for strict alignment, pointer authentication, MTE and RNDR (`aarch64-nonos.json:21`) |
+| [userland/x86_64-nonos-user.json](../../userland/x86_64-nonos-user.json) | every capsule on x86_64 | `features` keeps SSE and SSE2 (`userland/x86_64-nonos-user.json:21`) |
+| [userland/aarch64-nonos-user.json](../../userland/aarch64-nonos-user.json) | capsules for aarch64 | an aarch64 user target |
+| [userland/riscv64-nonos-user.json](../../userland/riscv64-nonos-user.json) | capsules for riscv64 | a riscv64 user target |
+
+The kernel target links with `rust-lld`, aborts on panic, disables the red zone and uses the `kernel` code model with static relocation (`linker`, `x86_64-nonos.json:15-32`). The x86_64 user target builds position independent executables and keeps the red zone (`relocation`, `userland/x86_64-nonos-user.json:16-33`).
+
+The flake builds the kernel for `x86_64-nonos.json` with `-Zbuild-std=core,alloc` and `compiler-builtins-mem` (`cargo`, `tools/nix/image.nix:116-120`), every capsule for the `x86_64-nonos-user` target (`userTarget`, `tools/nix/capsules.nix:11`), and the loader for `x86_64-unknown-uefi` (`cargo`, `tools/nix/image.nix:161-162`). The tree has no riscv64 kernel target file; [the architectures pages](../architectures/README.md) say what each architecture runs.
