@@ -60,11 +60,14 @@ pub fn init() -> Result<(), &'static str> {
     Ok(())
 }
 
+/// `hpet_base` is the physical address the ACPI table gave; the HPET is
+/// used through the mapping `hpet::detect_hpet` makes of that table entry,
+/// and only when it answers like an HPET. Without one the TSC is calibrated
+/// the HPET-less way.
 pub fn init_with_hpet(hpet_base: u64) -> Result<(), &'static str> {
-    if hpet_base == 0 || hpet::detect_hpet() != Some(hpet_base) {
-        accept_tsc(tsc::init())?;
-    } else {
-        accept_tsc(tsc::init_with_hpet(hpet_base))?;
+    match hpet::detect_hpet() {
+        Some(mapped) if hpet_base != 0 => accept_tsc(tsc::init_with_hpet(mapped))?,
+        _ => accept_tsc(tsc::init())?,
     }
     accept_pit(pit::init())?;
     accept_rtc(rtc::init())?;
