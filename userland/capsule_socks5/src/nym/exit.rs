@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU32, Ordering};
+use core::sync::atomic::{AtomicU32, AtomicU8, Ordering};
 
 use spin::Mutex;
 
+use super::choose::{Named, Record};
 use super::watch::Watch;
 
 /// The Nym address of the network requester that opens TCP on our behalf.
 ///
-/// Not compiled in. An exit sees the hosts a client asks for, so which one to
-/// trust is a decision for whoever runs the machine, and baking a default in
-/// would make that choice silently on their behalf. Until it is set, connect
-/// requests are refused rather than routed somewhere unchosen.
+/// Empty until `exit()` fills it. `set_exit` can set it, but nothing calls
+/// that today: `exit()` takes the first exit `discover_exit` finds in the
+/// directory, else one of the compiled `BOOTSTRAP_EXITS`, and keeps it here.
+/// An exit sees the hosts a client asks for, so that choice is made for you.
 static EXIT: Mutex<Option<Exit>> = Mutex::new(None);
 
 /// Position in the directory's exit list. `find_exit` wraps it, so it only
@@ -36,6 +37,12 @@ static INDEX: AtomicU32 = AtomicU32::new(0);
 /// enforces: lookups prove nothing, only delivery does.
 static WATCH: Mutex<Watch> = Mutex::new(Watch::new());
 
+/// Which exits went silent on this session and which delivered (`choose`).
+static RECORD: Mutex<Record<Exit>> = Mutex::new(Record::new());
+
+/// Exits walked away from this session for silence, saturating.
+static ROTATIONS: AtomicU8 = AtomicU8::new(0);
+
 /// A network requester: 32-byte identity, 32-byte encryption key, and the
 /// identity of the gateway it sits behind.
 #[derive(Clone, Copy)]
@@ -43,6 +50,12 @@ pub struct Exit {
     pub identity: [u8; 32],
     pub encryption: [u8; 32],
     pub gateway: [u8; 32],
+}
+
+impl Named for Exit {
+    fn id(&self) -> [u8; 32] {
+        self.identity
+    }
 }
 
 pub fn set_exit(exit: Exit) {
@@ -60,6 +73,14 @@ pub fn note_sent() {
 /// A message came back through the current exit, which proves it.
 pub fn note_delivered() {
     WATCH.lock().on_delivered();
+    if let Some(exit) = *EXIT.lock() {
+        RECORD.lock().proven(exit);
+    }
+}
+
+/// The current exit answered without payload: alive, not yet proven.
+pub fn note_answered() {
+    WATCH.lock().on_answered(nonos_libc::mk_uptime_ms());
 }
 
 /// Walk to the next exit if the current one has used up its silence budget.
@@ -74,9 +95,23 @@ pub fn rotate_if_silent() -> bool {
     }
     watch.on_rotate();
     drop(watch);
+    if let Some(silent) = EXIT.lock().take() {
+        RECORD.lock().silent(&silent);
+    }
     INDEX.fetch_add(1, Ordering::AcqRel);
-    *EXIT.lock() = None;
+    let _ = ROTATIONS.fetch_update(Ordering::AcqRel, Ordering::Acquire, |n| n.checked_add(1));
     true
+}
+
+/// Exits walked away from this session for silence.
+pub fn rotations() -> u8 {
+    ROTATIONS.load(Ordering::Acquire)
+}
+
+/// An exit went silent this session, and the one now in use has not
+/// delivered yet: the proxy is trying another.
+pub fn trying_another() -> bool {
+    rotations() > 0 && !WATCH.lock().proven
 }
 
 /// The exit to route through.
@@ -91,8 +126,14 @@ pub fn exit() -> Option<Exit> {
         return Some(configured);
     }
     let index = INDEX.load(Ordering::Acquire);
-    let found = super::discover::discover_exit(index)
-        .or_else(|| super::bootstrap::bootstrap_exit(index as usize))?;
+    /* The next exit not seen silent this session, else one that delivered,
+     * else the one silent longest ago (`choose`). */
+    let at = |place: u32| {
+        super::discover::discover_exit(place)
+            .or_else(|| super::bootstrap::bootstrap_exit(place as usize))
+    };
+    let (found, place) = RECORD.lock().pick(index, at)?;
+    INDEX.store(place, Ordering::Release);
     *slot = Some(found);
     Some(found)
 }

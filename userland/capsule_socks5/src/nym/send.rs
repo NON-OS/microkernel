@@ -37,9 +37,9 @@ pub enum SendError {
 
 /// Build the network-requester frame that asks an exit to open `dest`.
 ///
-/// Returns the bytes to hand to `net.nym`. Refuses when no exit is configured:
-/// there is no safe default, and falling back to a direct socket would defeat
-/// the reason this capsule exists.
+/// Returns the bytes to hand to `net.nym`. Refuses only when `exit()` finds no
+/// exit in the directory or the compiled bootstrap list; it never falls back to
+/// a direct socket.
 pub fn connect_request(conn_id: u64, dest: &Dest) -> Result<Vec<u8>, SendError> {
     if exit().is_none() {
         return Err(SendError::NoExit);
@@ -69,7 +69,14 @@ pub fn send_through_mixnet(frame: &[u8]) -> Result<(), SendError> {
             super::exit::note_sent();
             Ok(())
         }
-        Err(crate::ipc::CallError::Remote(code)) => Err(SendError::Remote(code)),
+        Err(crate::ipc::CallError::Remote(code)) => {
+            // A session net.nym no longer holds is refused for good; drop
+            // it, so the next open builds one that will be answered.
+            if code == super::recv::E_NO_SESSION {
+                super::session::reset_session();
+            }
+            Err(SendError::Remote(code))
+        }
         Err(crate::ipc::CallError::NoTransport) => Err(SendError::Remote(101)),
         Err(crate::ipc::CallError::Encode) => Err(SendError::Remote(102)),
         Err(crate::ipc::CallError::Transport) => Err(SendError::Remote(103)),

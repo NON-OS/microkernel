@@ -24,7 +24,7 @@ pub const MAX_CONNS: usize = 64;
 #[derive(Clone, Copy)]
 pub(super) struct Slot {
     pub(super) id: u64,
-    pub(super) socket: u32,
+    pub(super) socket: u64,
     /// The next stream position to stamp on a send for this connection. Nym send
     /// requests carry a sequence so the exit can reassemble a reordered stream.
     pub(super) seq: u64,
@@ -51,7 +51,7 @@ impl Manager {
     /// Register `socket` and return the connection id assigned to it, or `None`
     /// when the table is full. Ids never repeat within a session and never take
     /// the value zero (reserved as "no connection").
-    pub fn open(&mut self, socket: u32) -> Option<u64> {
+    pub fn open(&mut self, socket: u64) -> Option<u64> {
         let i = self.slots.iter().position(|s| !s.used)?;
         let id = self.next_id;
         self.next_id = self.next_id.wrapping_add(1);
@@ -70,6 +70,13 @@ impl Manager {
     /// The next send sequence for `id`, advancing its counter, or `None` if the
     /// connection is unknown or closed. The first send on a connection is
     /// sequence zero.
+    ///
+    /// One number per message, not per byte: the exit files each send by its
+    /// number and hands its socket only an unbroken run from zero, the way it
+    /// numbers what it sends back. Counting bytes gave the second send a
+    /// number with a gap in front of it that nothing fills, so every stream
+    /// stopped after its first write. A number is spent even when its send
+    /// fails, and the stream is then ended, since the exit would wait on it.
     pub fn next_seq(&mut self, id: u64) -> Option<u64> {
         let slot = self.slots.iter_mut().find(|s| s.used && s.id == id)?;
         let seq = slot.seq;
