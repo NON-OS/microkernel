@@ -29,6 +29,14 @@ What this capsule actually does, and where its edges are.
 
 ## Runs
 
+- Page scripts run in document order, inline and external alike, with
+  `defer` and module scripts after the rest; then readyState goes to
+  "interactive" with DOMContentLoaded and to "complete" with load.
+- Cookies: Set-Cookie on every response, a Cookie header on matching
+  requests, document.cookie without HttpOnly ones. In memory only, one jar
+  per network (Direct, Nym, Anyone) so a cookie never crosses networks,
+  bounded at 300 cookies and 50 per domain, gone when the browser exits.
+- Requests send the Firefox 128 ESR User-Agent Tor Browser sends.
 - Scripts execute against the live DOM at load, on clicks (bubbling), on
   input, on submit, and on setTimeout/setInterval ticks (50ms granularity).
 - DOM API: getElementById, querySelector/querySelectorAll (full matcher),
@@ -47,7 +55,7 @@ What this capsule actually does, and where its edges are.
 ## Out of scope
 
 Floats, CSS transforms/transitions/animations, :hover, WASM, WebGL, video
-and audio, service workers, cookies and storage, and V8-class SPA
+and audio, service workers, persistent storage, and V8-class SPA
 frameworks. Unknown CSS properties and unsupported JS syntax are skipped,
 never faked.
 
