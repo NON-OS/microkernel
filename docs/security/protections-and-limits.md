@@ -70,3 +70,19 @@ The profile an image was built with decides what it can ever do. `tools/nix/conf
 | `core` | the microkernel and its base capsules, no desktop |
 
 The profile's `drop` list is taken out of the kernel's features at build time, so a dropped feature is absent from the binary rather than switched off at run time. [Build profiles](../build/profiles.md) has the details.
+
+## Checking a running machine
+
+The Terminal's `log` command reads the copy of the serial console that the kernel keeps in memory, through `mk_log_tail`, which needs `AttestRead` (`userland/capsule_terminal/src/command/builtin/log.rs:32-40`). Only a standard, qemu or dev image keeps that copy; on a hardened or air-gapped image `keep` stores nothing, so `log` finds no lines (`src/sys/serial/tail.rs:51-54`).
+
+```sh
+log iommu vt-d
+```
+
+Not tested in this release.
+
+It shows whether device DMA is confined: look for a `[VT-D]` line for each claimed device, and for `enforcing=1` and `unconfined grants=0` on the last `[IOMMU]` line.
+
+`log` does not show capability refusals. The `[CAP-DENY]` lines go to the kernel's log manager, which writes warnings to the text-mode console and every line to its `ram_buffer`, not to the serial console (`src/log/manager/state.rs:58-82`).
+
+The Security page in Settings shows whether the TPM gave a machine key in this boot state. See [Device secrets and keys](device-secrets-and-keys.md).
