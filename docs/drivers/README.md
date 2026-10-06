@@ -124,3 +124,19 @@ Three driver modules stay in the kernel: PCI enumeration, the validators in `sec
 - No EHCI, OHCI or UHCI USB host driver and no SPI controller driver: for `UsbEhci` the inventory lists an `EHCI host controller driver` as missing, and the same for the other three (`src/hardware/inventory/missing.rs:28-31`).
 - An Intel VMD domain, `StorageVmd`, is listed and never spawned for (`src/hardware/inventory/family.rs:23-25`); [storage/vmd.md](storage/vmd.md) says what that means for the disks behind it.
 - The nine capsules marked "no" above run on no machine in this release.
+
+## See also
+
+- [broker-api.md](broker-api.md)
+- [writing-a-driver.md](writing-a-driver.md)
+- [platform.md](platform.md)
+- [display.md](display.md)
+- [audio.md](audio.md)
+- [wifi/README.md](wifi/README.md)
+- [ethernet/README.md](ethernet/README.md)
+- [storage/README.md](storage/README.md)
+- [usb/README.md](usb/README.md)
+- [input/README.md](input/README.md)
+- [../hardware/MATRIX.md](../hardware/MATRIX.md)
+- [../kernel/hardware-broker.md](../kernel/hardware-broker.md)
+- [../abi/broker.md](../abi/broker.md)
