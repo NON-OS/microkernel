@@ -109,3 +109,24 @@ After `init_core_systems`, `log_security_status` prints whether the kernel signa
 3. `init_acpi_tables`: the RSDP from the handoff, the ACPI parse, the power button, and a TSC calibration against the ACPI PM timer when no rate is known yet (`src/boot/main/core_init/acpi_tables.rs:19-33`).
 4. The local APIC, the idle-timer fix and the 100 Hz preemption timer. A failure in `install_on_bsp` stops the boot (`src/boot/main/core_init/init_core_systems.rs:42-44`).
 5. `sti`, memory encryption detection, PCI enumeration, and `init_platform_baseline`: BAR assignment, the device broker, the entropy source, the boot session nonce and the [capability](../overview/glossary.md#capability) token signing key (`src/kernel_core/init/platform/baseline.rs:35-61`).
+
+## Microkernel init
+
+`microkernel_init` is an ordered list of stages, each in its own file with the reason for its place (`src/kernel_core/init/entry/microkernel_init.rs:33-89`):
+
+| Stage | What it does |
+|---|---|
+| `init_boot_entropy` (`src/kernel_core/init/entry/microkernel_init.rs:38`) | draws the per-boot nonce; [memory and paging](memory-and-paging.md) says what reads it |
+| `init_arch_memory_and_framebuffer` (`src/kernel_core/init/entry/microkernel_init.rs:39`) | builds the physical allocator from the memory map; see [frame allocator](frame-allocator.md) |
+| `init_arch_firmware` (`src/kernel_core/init/entry/microkernel_init.rs:44`) | takes the firmware blob table from the handoff |
+| `init_core_services` (`src/kernel_core/init/entry/microkernel_init.rs:45`) | speculation mitigations, the random generator, the IPC secret, the boot CPU's SMP record, the scheduler and the clocks |
+| `init_vm_and_protection` (`src/kernel_core/init/entry/microkernel_init.rs:46`) | the paging manager, removal of the low identity map, SMEP, SMAP, UMIP, NX, write protect and stack guards; see [memory and paging](memory-and-paging.md) |
+| `init_extended_state` (`src/kernel_core/init/entry/microkernel_init.rs:47`) | CPUID, and the SSE and AVX state the kernel owns from here on |
+| `init_dma_protection` (`src/kernel_core/init/entry/microkernel_init.rs:52`) | the IOMMU, in kernels built with `nonos-arch-iommu`; see [IOMMU](iommu.md) |
+| `run_selftest` (`src/kernel_core/init/entry/microkernel_init.rs:58`) | checks SHA3-256, BLAKE3, ChaCha20-Poly1305 and Ed25519 against known answers |
+| `init_platform_baseline` (`src/kernel_core/init/entry/microkernel_init.rs:64`) | already done on x86_64, so it returns at once |
+| `init_arch_framebuffer` (`src/kernel_core/init/entry/microkernel_init.rs:74`) | maps the framebuffer now that the paging manager exists |
+| `init_device_routing`, `init_process_runtime` (`src/kernel_core/init/entry/microkernel_init.rs:76-77`) | device interrupt routing, then the process tables and the ELF loader |
+| `start_secondary_cpus` (`src/kernel_core/init/entry/microkernel_init.rs:85`) | starts every other CPU; see [scheduler and SMP](scheduler-and-smp.md) |
+
+Not every stage stops the boot. `init_core_services`, `init_vm_and_protection` and `init_extended_state` stop it on failure through `fatal`, which calls `boot::stop` for a [boot stop](../overview/glossary.md#boot-stop) (`src/kernel_core/init/entry/fatal.rs:19-22`). A missing boot nonce, an unarmed stack guard and a failed device routing step each print a warning and the boot goes on. A failed self test prints `[CRYPTO-POST] FAIL` with the primitive's name and the boot also goes on: `run_selftest` returns whether all four passed (`src/crypto/application/certification/selftest.rs:43-62`), and `microkernel_init` discards that answer (`src/kernel_core/init/entry/microkernel_init.rs:58`). The full list of steps that stop the boot is on [panic and boot stop](panic-and-boot-stop.md).
