@@ -38,6 +38,7 @@ fn event_field_extraction_reads_the_spec_bits() {
         };
         assert_eq!(trb.completion_code(), (trb.d2 >> 24) as u8);
         assert_eq!(trb.slot_id(), (trb.d3 >> 24) as u8);
+        assert_eq!(trb.endpoint_id(), ((trb.d3 >> 16) & 0x1F) as u8);
         assert_eq!(trb.get_type(), (trb.d3 >> 10) & 0x3F);
         assert_eq!(trb.get_cycle(), trb.d3 & 1 != 0);
         assert_eq!(trb.get_pointer(), (trb.d0 as u64) | ((trb.d1 as u64) << 32));

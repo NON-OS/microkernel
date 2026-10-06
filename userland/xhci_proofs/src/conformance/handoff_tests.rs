@@ -19,14 +19,14 @@
 use nonos_devmodel::run;
 
 use super::devices::cooperative_firmware;
-use super::model::{controller, with_legacy_cap, BIOS_OWNED, LEGACY, OS_OWNED};
+use super::model::{controller, with_legacy_cap, BIOS_OWNED, LEGACY, MAPPED, OS_OWNED};
 use crate::controller::legacy_handoff;
 
 #[test]
 fn ownership_passes_when_firmware_releases_and_smis_are_masked() {
     let bar = with_legacy_cap(true);
     let _fw = run(&bar, cooperative_firmware);
-    legacy_handoff(bar.base());
+    legacy_handoff(bar.base(), MAPPED);
     let sup = bar.wrote32(LEGACY);
     assert_ne!(sup & OS_OWNED, 0);
     assert_eq!(sup & BIOS_OWNED, 0);
@@ -45,7 +45,7 @@ fn ownership_passes_when_firmware_releases_and_smis_are_masked() {
 #[test]
 fn firmware_that_never_releases_is_forced_off_after_the_timeout() {
     let bar = with_legacy_cap(true);
-    legacy_handoff(bar.base());
+    legacy_handoff(bar.base(), MAPPED);
     assert_eq!(bar.wrote32(LEGACY) & BIOS_OWNED, 0, "the BIOS bit is forced down");
     assert_ne!(bar.wrote32(LEGACY) & OS_OWNED, 0);
 }
@@ -54,6 +54,6 @@ fn firmware_that_never_releases_is_forced_off_after_the_timeout() {
 fn a_controller_without_a_legacy_capability_is_left_alone() {
     let bar = controller(0);
     bar.present32(LEGACY, 0xDEAD_BEEF);
-    legacy_handoff(bar.base());
+    legacy_handoff(bar.base(), MAPPED);
     assert_eq!(bar.wrote32(LEGACY), 0xDEAD_BEEF);
 }

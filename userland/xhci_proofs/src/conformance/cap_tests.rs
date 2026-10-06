@@ -60,11 +60,12 @@ fn sixty_four_byte_contexts_are_read_from_csz() {
 }
 
 #[test]
-fn a_controller_without_64_bit_addressing_or_slots_is_refused() {
+fn a_controller_without_slots_is_refused_and_one_without_64_bit_addressing_is_not() {
     let bar = controller(0);
     refuse_unsupported(bar.base()).expect("the modelled controller is supported");
+    // AC64 clear: served, with its DMA kept below 4 GiB (dma_tests).
     bar.present32(HCCPARAMS1 as usize, 0);
-    assert_eq!(refuse_unsupported(bar.base()), Err(XhciError::ControllerUnsupported));
+    refuse_unsupported(bar.base()).expect("a 32-bit controller is served");
     bar.present32(HCCPARAMS1 as usize, 0x1);
     bar.present32(HCSPARAMS1 as usize, 2 << 24);
     assert_eq!(refuse_unsupported(bar.base()), Err(XhciError::ControllerUnsupported));
