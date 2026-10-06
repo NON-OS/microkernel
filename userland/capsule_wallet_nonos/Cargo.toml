@@ -15,9 +15,18 @@ path = "src/main.rs"
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_seal = { path = "../nonos_seal" }
 nonos_app_skeleton = { path = "../app_skeleton" }
+nonos_toolkit = { path = "../toolkit", default-features = false }
+spin = "0.9"
 nonos_qr = { path = "../nonos_qr" }
 nonos_hd = { path = "../nonos_hd" }
+# The request format of nonos.shield, the on-device shield wallet.
+shield_wire = { path = "../shield_wire" }
 nonos_tls = { path = "../nonos_tls" }
+# Every RPC request leaves through the network the person chose.
+nonos_route_link = { path = "../nonos_route_link" }
+# Whether this boot keeps anything past power off, as the store itself asks.
+nonos_policy_client = { path = "../policy_client" }
+nonos_policy_proto = { path = "../policy_proto" }
 
 [profile.release]
 panic = "abort"

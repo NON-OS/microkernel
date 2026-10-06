@@ -17,13 +17,15 @@
 //! A whole account refresh in one round trip. Every field the UI shows is put
 //! into a single JSON-RPC batch and sent over one TLS connection, so a refresh
 //! costs one handshake instead of one per field. A missing field in the reply
-//! leaves that value untouched for the caller; a failed fetch returns None so
-//! the caller can mark the link degraded and re-run the diagnostic.
+//! leaves that value untouched for the caller. The request is carried a step
+//! at a time by `step::Job`, and a failed one marks the link degraded so the
+//! diagnostic runs again.
 
-use super::constants::{SERVICE_DNS, SERVICE_SOCKETS};
+use alloc::vec::Vec;
+
 use crate::wallet::nox::constants::{
-    NOX_TOKEN, SEL_ACTIVE_POSITIONS, SEL_BALANCE_OF, SEL_PENDING_REWARDS, SEL_PROTOCOL_STATS,
-    STAKING_PROXY, STATS_EMISSION_RATE, STATS_REWARDS_DISTRIBUTED, STATS_TOTAL_STAKED,
+    SEL_ACTIVE_POSITIONS, SEL_BALANCE_OF, SEL_PENDING_REWARDS, SEL_PROTOCOL_STATS,
+    STATS_EMISSION_RATE, STATS_REWARDS_DISTRIBUTED, STATS_TOTAL_STAKED,
 };
 use crate::wallet::nox::{apr_bps, calldata_addr, q32_to_u128};
 use crate::wallet::rpc;
@@ -37,6 +39,8 @@ const ID_CLAIMABLE: u64 = 11;
 const ID_POSITIONS: u64 = 12;
 const ID_STATS: u64 = 13;
 const ID_STAKE_INFO: u64 = 14;
+const ID_USDC_BALANCE: u64 = 15;
+const ID_HEAD: u64 = 16;
 
 pub struct NoxStats {
     pub total: [u8; 32],
@@ -50,6 +54,7 @@ pub struct Snapshot {
     pub nonce: Option<u64>,
     pub fee: Option<u64>,
     pub nox_balance: Option<[u8; 32]>,
+    pub usdc_balance: Option<[u8; 32]>,
     pub claimable: Option<[u8; 32]>,
     pub positions: Option<u64>,
     /// ZeroState Passes the staking contract counts for this account. Taken
@@ -57,48 +62,47 @@ pub struct Snapshot {
     /// applied from what staking itself believes.
     pub passes: Option<u64>,
     pub stats: Option<NoxStats>,
+    /// The newest block the host had when it answered.
+    pub head: Option<u64>,
 }
 
-fn ports() -> Option<(u32, u32)> {
-    let dns = super::lookup::lookup(SERVICE_DNS);
-    let sockets = super::lookup::lookup(SERVICE_SOCKETS);
-    if dns == 0 || sockets == 0 {
-        None
-    } else {
-        Some((dns, sockets))
-    }
-}
-
-/// Fetch every displayed field in a single batched round trip. None means the
-/// request itself did not complete, so the link is down.
-pub fn read_snapshot(addr: &[u8; 20]) -> Option<Snapshot> {
-    let (dns, sockets) = ports()?;
-
-    let nox_bal = calldata_addr(&SEL_BALANCE_OF, addr);
-    let claim = calldata_addr(&SEL_PENDING_REWARDS, addr);
-    let positions = calldata_addr(&SEL_ACTIVE_POSITIONS, addr);
-    let info = calldata_addr(&crate::wallet::nox::SEL_GET_STAKE_INFO, addr);
-
-    let r_eth = rpc::request_balance(addr, ID_ETH_BALANCE);
-    let r_nonce = rpc::request_nonce(addr, ID_NONCE);
-    let r_fee = rpc::request_fee(ID_FEE);
-    let r_nox = rpc::request_eth_call(&NOX_TOKEN, &nox_bal, ID_NOX_BALANCE);
-    let r_claim = rpc::request_eth_call(&STAKING_PROXY, &claim, ID_CLAIMABLE);
-    let r_pos = rpc::request_eth_call(&STAKING_PROXY, &positions, ID_POSITIONS);
-    let r_stats = rpc::request_eth_call(&STAKING_PROXY, &SEL_PROTOCOL_STATS, ID_STATS);
-    let r_info = rpc::request_eth_call(&STAKING_PROXY, &info, ID_STAKE_INFO);
-
-    let body = rpc::request_batch(&[
-        &r_eth, &r_nonce, &r_fee, &r_nox, &r_claim, &r_pos, &r_stats, &r_info,
+/// The single batched request that asks for every displayed field of
+/// `addr` on the network picked now.
+pub fn snapshot_request(addr: &[u8; 20]) -> Vec<u8> {
+    let chain = crate::wallet::chain::current();
+    let balance_of = calldata_addr(&SEL_BALANCE_OF, addr);
+    let mut parts: Vec<Vec<u8>> = Vec::from([
+        rpc::request_balance(addr, ID_ETH_BALANCE),
+        rpc::request_nonce(addr, ID_NONCE),
+        rpc::request_fee(ID_FEE),
+        rpc::request_eth_call(&chain.nox, &balance_of, ID_NOX_BALANCE),
+        rpc::request_eth_call(&chain.usdc, &balance_of, ID_USDC_BALANCE),
+        rpc::request_block_number(ID_HEAD),
     ]);
-    let resp = super::fetch_rpc::fetch_rpc(dns, sockets, &body)?;
+    // Staking lives on mainnet only; on Sepolia nothing is asked of it.
+    if let Some(staking) = chain.staking {
+        let claim = calldata_addr(&SEL_PENDING_REWARDS, addr);
+        let positions = calldata_addr(&SEL_ACTIVE_POSITIONS, addr);
+        let info = calldata_addr(&crate::wallet::nox::SEL_GET_STAKE_INFO, addr);
+        parts.push(rpc::request_eth_call(&staking, &claim, ID_CLAIMABLE));
+        parts.push(rpc::request_eth_call(&staking, &positions, ID_POSITIONS));
+        parts.push(rpc::request_eth_call(&staking, &SEL_PROTOCOL_STATS, ID_STATS));
+        parts.push(rpc::request_eth_call(&staking, &info, ID_STAKE_INFO));
+    }
+    let refs: Vec<&[u8]> = parts.iter().map(Vec::as_slice).collect();
+    rpc::request_batch(&refs)
+}
 
-    let obj = |id| rpc::object_for_id(&resp, id);
-    Some(Snapshot {
+/// The fields the batch reply to `snapshot_request` holds. A field it does
+/// not hold is None, and leaves that value untouched for the caller.
+pub fn parse_snapshot(resp: &[u8]) -> Snapshot {
+    let obj = |id| rpc::object_for_id(resp, id);
+    Snapshot {
         eth_balance: obj(ID_ETH_BALANCE).and_then(rpc::parse_quantity32),
         nonce: obj(ID_NONCE).and_then(rpc::parse_u64),
         fee: obj(ID_FEE).and_then(rpc::parse_u64),
         nox_balance: obj(ID_NOX_BALANCE).and_then(rpc::parse_quantity32),
+        usdc_balance: obj(ID_USDC_BALANCE).and_then(rpc::parse_quantity32),
         claimable: obj(ID_CLAIMABLE).and_then(rpc::parse_quantity32),
         positions: obj(ID_POSITIONS)
             .and_then(rpc::parse_quantity32)
@@ -110,7 +114,8 @@ pub fn read_snapshot(addr: &[u8; 20]) -> Option<Snapshot> {
             .and_then(|w| q32_to_u128(&w))
             .map(|n| n as u64),
         stats: obj(ID_STATS).and_then(parse_stats),
-    })
+        head: obj(ID_HEAD).and_then(rpc::parse_u64),
+    }
 }
 
 fn parse_stats(obj: &[u8]) -> Option<NoxStats> {

@@ -14,29 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! One screen at a time, each drawn whole on the Etna frame.
+
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::wallet::screen;
 use crate::wallet::state::{
-    State, VIEW_HOME, VIEW_NOX, VIEW_PROOF, VIEW_RECEIVE, VIEW_SEND, VIEW_SHIELDED, VIEW_SWAP,
+    State, VIEW_EXPORT, VIEW_IMPORT, VIEW_NOX, VIEW_RECEIVE, VIEW_RECOVER, VIEW_SEND,
+    VIEW_ACCOUNTS, VIEW_SETTINGS, VIEW_SHIELD, VIEW_SWAP,
 };
 
 pub fn paint(state: &State, fb: &mut PaintBuffer) {
-    crate::wallet::theme::set_light(state.light_mode);
-    super::paint_background::paint_background(fb);
-    super::paint_sysbar::paint_sysbar(fb);
-    super::paint_sidebar::paint_sidebar(state, fb);
-    super::paint_topbar::paint_topbar(state, fb);
-    super::paint_statusline::paint_statusline(fb);
-    match state.view {
-        VIEW_RECEIVE => super::paint_receive::paint_receive(state, fb),
-        VIEW_SEND => super::paint_send::paint_send(state, fb),
-        VIEW_PROOF => super::paint_proof_view::paint_proof_view(state, fb),
-        VIEW_NOX => super::paint_nox::paint_nox(state, fb),
-        VIEW_SWAP => super::swap::paint_swap(state, fb),
-        VIEW_SHIELDED => super::paint_portfolio::paint_portfolio(state, fb),
-        VIEW_HOME => super::paint_home::paint_home(state, fb),
-        _ => super::paint_home::paint_home(state, fb),
+    /* What the wallet said last, drawn by the frame above the status line. */
+    crate::wallet::etna::notice::set(core::str::from_utf8(state.status).unwrap_or(""));
+    if state.locked {
+        return screen::locked::locked(state, fb);
     }
-    super::paint_statusbar::paint_statusbar(state, fb);
-    super::paint_panels::paint_panels(state, fb);
+    if state.backup_active {
+        return screen::backup::backup(state, fb);
+    }
+    match (state.view, state.address_ready) {
+        (VIEW_IMPORT | VIEW_RECOVER | VIEW_EXPORT, _) => screen::custody::show(state, fb),
+        (VIEW_SETTINGS, _) => screen::settings::show(state, fb),
+        (VIEW_ACCOUNTS, true) => screen::accounts::show(state, fb),
+        (VIEW_RECEIVE, true) => screen::receive::receive(state, fb),
+        (VIEW_SEND, true) => screen::pay::show(state, fb),
+        (VIEW_SHIELD, true) => screen::shield::show::show(state, fb),
+        (VIEW_SWAP, true) => screen::swap::show::show(state, fb),
+        (VIEW_NOX, true) => screen::stake::show(state, fb),
+        (_, true) => screen::home::home(state, fb),
+        (_, false) => screen::welcome::welcome(state, fb),
+    }
 }

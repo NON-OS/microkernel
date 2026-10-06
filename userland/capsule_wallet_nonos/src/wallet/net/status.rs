@@ -37,5 +37,9 @@ pub struct NetStatus {
     pub tls_finished_ok: bool,
     pub tls_client_finished_ok: bool,
     pub rpc_chain_ok: bool,
+    /// The RPC host whose chain id `rpc_chain_ok` holds for.
+    pub rpc_host: &'static str,
+    /// The network the last check went over, None before the first.
+    pub route: Option<nonos_route_link::Route>,
     pub status: &'static [u8],
 }

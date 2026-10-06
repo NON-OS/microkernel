@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 
-use super::call::keyring_call;
+use super::call::{keyring_call, wipe};
 use super::constants::{HDR_LEN, OP_WALLET_EXPORT};
 
 // Ask the keyring for this wallet's raw private key. The keyring returns it only
@@ -26,11 +26,13 @@ pub fn export_secret(port: u32, owner_pid: u32, wallet_id: u32) -> Result<[u8; 3
     let mut payload = Vec::with_capacity(8);
     payload.extend_from_slice(&owner_pid.to_le_bytes());
     payload.extend_from_slice(&wallet_id.to_le_bytes());
-    let rx = keyring_call(port, OP_WALLET_EXPORT, &payload, 32)?;
+    let mut rx = keyring_call(port, OP_WALLET_EXPORT, &payload, 32)?;
     if rx.len() < HDR_LEN + 32 {
+        wipe(&mut rx);
         return Err(-11);
     }
     let mut out = [0u8; 32];
     out.copy_from_slice(&rx[HDR_LEN..HDR_LEN + 32]);
+    wipe(&mut rx);
     Ok(out)
 }

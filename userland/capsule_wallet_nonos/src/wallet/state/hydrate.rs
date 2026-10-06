@@ -31,7 +31,6 @@ pub fn hydrate(state: &mut State) {
         state.status = b"keyring unavailable";
         return;
     }
-    restore(state);
     match read_rails(state.keyring_port).and_then(|rx| decode_rails(&rx, &mut state.rails)) {
         Ok(n) => {
             state.rail_count = filter_rails(&mut state.rails, n);
@@ -39,4 +38,13 @@ pub fn hydrate(state: &mut State) {
         }
         Err(_) => state.status = b"rail refresh failed",
     }
+    /* The network last picked, before the wallet is restored, so its shield
+     * opens on the network it runs on. Once, while no wallet is open. */
+    if state.wallet_id == 0 && !state.vault_restore_tried {
+        if let Some(sepolia) = crate::wallet::vault::recall_network() {
+            crate::wallet::chain::pick(sepolia);
+        }
+    }
+    /* Last, so what the restore found is what the status line says. */
+    restore(state);
 }

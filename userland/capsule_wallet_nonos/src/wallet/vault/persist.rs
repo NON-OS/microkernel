@@ -25,14 +25,15 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_getpid;
 
+use super::unsealed::Unsealed;
 use super::vfs::{call, OP_STORE_PERSIST};
 
-pub(super) fn persist(path: &[u8]) -> bool {
+pub(super) fn persist(path: &[u8]) -> Result<(), Unsealed> {
     let pid = mk_getpid();
     let mut body = Vec::with_capacity(5 + path.len());
     body.extend_from_slice(&pid.to_le_bytes());
     body.push(path.len() as u8);
     body.extend_from_slice(path);
     let mut rx = vec![0u8; 64];
-    call(OP_STORE_PERSIST, &body, &mut rx).worked()
+    super::save_ops::stored(call(OP_STORE_PERSIST, &body, &mut rx))
 }

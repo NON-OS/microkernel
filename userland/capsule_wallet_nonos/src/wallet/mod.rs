@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod accounts;
+mod act;
 mod app;
+pub mod chain;
+pub mod etna;
 mod event;
-mod hex;
 mod ipc;
 mod manifest;
 mod net;
@@ -26,6 +29,8 @@ pub mod paint;
 pub mod vault;
 mod pool;
 mod rpc;
+mod send;
+pub mod screen;
 mod shield;
 mod state;
 mod swap;

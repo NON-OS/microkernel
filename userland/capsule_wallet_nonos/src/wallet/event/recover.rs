@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::{EventOutcome, KEY_BACKSPACE, KEY_ENTER, KEY_ESC};
 
-use crate::wallet::ipc::{recover_wallet, wallet_address};
+use crate::wallet::ipc::{forget_key, recover_wallet, wallet_address};
 use crate::wallet::state::{State, VIEW_RECEIVE};
 
 // Recovery-phrase entry. Words are typed in the clear so the user can check
@@ -87,6 +87,7 @@ fn submit(state: &mut State) -> EventOutcome {
                     count += 1;
                 }
                 None => {
+                    wipe_indices(&mut indices);
                     state.status = b"a word is not in the BIP39 list";
                     return EventOutcome::Repaint;
                 }
@@ -94,6 +95,7 @@ fn submit(state: &mut State) -> EventOutcome {
         }
     }
     if !matches!(count, 12 | 15 | 18 | 21 | 24) {
+        wipe_indices(&mut indices);
         state.status = b"phrase must be 12, 15, 18, 21 or 24 words";
         return EventOutcome::Repaint;
     }
@@ -106,25 +108,33 @@ fn submit(state: &mut State) -> EventOutcome {
                 state.address_ready = true;
                 state.recover_active = false;
                 state.status = b"wallet recovered";
-                super::keep::keep(state);
+                super::keep::keep(state, false);
                 super::probe_tick::probe_kick(state)
             }
             Err(_) => {
-                state.status = b"address failed";
+                let gone = forget_key(state.keyring_port, state.owner_pid, id).is_ok();
+                state.status = super::keyring_says::unnamed(gone);
                 EventOutcome::Repaint
             }
         },
-        Err(_) => {
-            state.status = b"phrase rejected: checksum does not match";
+        Err(code) => {
+            state.status = super::keyring_says::refusal(
+                code,
+                b"the keyring rejected this phrase: its checksum does not match",
+            );
             EventOutcome::Repaint
         }
     };
+    wipe_indices(&mut indices);
+    wipe(state);
+    outcome
+}
+
+fn wipe_indices(indices: &mut [u16; 24]) {
     for w in indices.iter_mut() {
         // SAFETY: volatile write so the parsed phrase does not linger.
         unsafe { core::ptr::write_volatile(w, 0) };
     }
-    wipe(state);
-    outcome
 }
 
 fn wipe(state: &mut State) {
