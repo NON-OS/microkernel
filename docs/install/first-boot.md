@@ -75,3 +75,16 @@ The paths are in `userland/policy_proto/src/setup_record/layout.rs`, `userland/c
 ## When setup cannot start
 
 Setup first waits up to 30 seconds for this boot's store to load (`userland/capsule_setup_wizard/src/keep/skip.rs`). If setup cannot draw at all, it writes `[SETUP] not started:` and the reason to the kernel log, and the desktop starts without it (`userland/capsule_setup_wizard/src/main.rs`).
+
+## After setup
+
+```mermaid
+flowchart TD
+  review[Review] --> mode{Mode step}
+  mode -->|Amnesic| desk[desktop]
+  mode -->|Install| kept[answers kept]
+  kept --> inst[installer]
+  inst --> desk
+```
+
+Amnesic starts the desktop. Install keeps the answers, then hands the whole screen to the installer with no desktop behind it. If you leave the installer without installing, the desktop starts (`src/userspace/init/supervisor/after_setup.rs`, `src/userspace/init/supervisor/after_install.rs`).
