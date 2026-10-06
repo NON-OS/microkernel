@@ -94,3 +94,23 @@ See [Privacy networks](privacy-network.md).
 
 - A Linux package is held in memory until restart, on every boot: `Installed for this session, held in memory until restart. Enter opens it` (`installed_line` in `userland/market_proto/src/reason.rs:106-113`).
 - A Qwen tier's model is kept on the data volume: on the disk of an installed NONOS, or in memory on a live boot, gone at power off.
+
+## When an install stops
+
+The window and `market info` give the reason in words, and offer Retry only when asking again could help (`reason` in `userland/market_proto/src/reason.rs:127-242`). Among them:
+
+| Reason | Retry |
+|---|---|
+| `A live boot with no NONOS disk at all has nowhere to hold a model. Install NONOS: Install is in the dock` | No |
+| `The data volume is locked; unlock it, then retry` | Yes |
+| `No network to download the model over: the chosen one is not running` | Yes |
+| `No signed model catalogue on this system lists it` | No |
+| `The model did not match its pinned SHA-256, so none of it was kept` | Yes |
+| `The model did not finish downloading; retry to go on from there` | Yes |
+| `This machine has too little memory to run it; choose a smaller tier` | No |
+| `This boot runs no network (Air-Gapped, Safe Mode or Recovery), and a model is downloaded or taken off the data volume only on a boot that does` | No |
+| `Anyone did not build a circuit within 3 minutes; retry, or press d to download direct (the mirror sees this machine's address)` | Yes |
+| `This system has no mirror for it` | No |
+| `This system holds no key to check it with` | No |
+
+The host tests of the market pass on this commit: `market_proofs` (62 tests).
