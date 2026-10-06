@@ -17,7 +17,10 @@
 //! What gets written, and what this boot verified about it.
 
 mod attest;
+mod census;
 mod load;
+mod tpm;
 
 pub use attest::Boot;
+pub use census::census;
 pub use load::Image;

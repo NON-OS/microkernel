@@ -16,18 +16,24 @@
 
 //! Install NONOS onto a disk, from the image this machine is running.
 //!
-//! Six screens in a fixed order: what this does, which disk, type its name,
-//! writing, reading back, done. Every byte written comes from the memory
-//! the bootloader left the image in, so the disk gets exactly what booted
-//! and was verified, and the read-back is what says it arrived.
+//! Seven screens in a fixed order: what this does, what this boot proved,
+//! which disk, type its name, writing, reading back, done. The boot
+//! partition's bytes come from the memory the bootloader left the image in,
+//! so the disk boots exactly what booted here and was verified; the store's
+//! come from this boot's vfs. The read-back is what says it all arrived.
 
 mod app;
+mod carry;
 mod event;
 mod format;
+pub mod full;
 mod job;
 mod manifest;
+mod proofs;
+mod rescan;
 mod source;
 mod state;
+mod survey;
 mod ui;
 
 pub use app::Install;

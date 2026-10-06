@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! The image, read out of the kernel: the bootloader as the firmware loaded
-//! it and the kernel image file as the bootloader verified it. Both are
+//! it and the kernel image file as the bootloader verified it, with the
+//! records the kernel checks the loader against and the release's approval
+//! of the kernel. Both are
 //! copied once into memory this capsule owns for the life of the install,
 //! and lent to the disk writer from there, which is why they are leaked
 //! rather than boxed: the writer's borrows outlive every frame.
@@ -25,7 +27,8 @@ use alloc::vec::Vec;
 
 use nonos_disk::NonosImage;
 use nonos_libc::{
-    mk_install_source, mk_install_source_size, INSTALL_SOURCE_KERNEL_IMAGE,
+    mk_install_source, mk_install_source_size, INSTALL_SOURCE_BOOT_ROOT_RECORD,
+    INSTALL_SOURCE_BOOT_TRAILER, INSTALL_SOURCE_KERNEL_APPROVAL, INSTALL_SOURCE_KERNEL_IMAGE,
     INSTALL_SOURCE_LOADER_IMAGE,
 };
 
@@ -39,6 +42,9 @@ const CHUNK: usize = 1 << 20;
 pub struct Image {
     pub loader: &'static [u8],
     pub kernel: &'static [u8],
+    pub boot_trailer: &'static [u8],
+    pub boot_root: &'static [u8],
+    pub kernel_approval: Option<&'static [u8]>,
 }
 
 impl Image {
@@ -48,11 +54,36 @@ impl Image {
         if loader.is_empty() || kernel.is_empty() {
             return Err(String::from("the bootloader did not record the running image"));
         }
-        Ok(Image { loader: Vec::leak(loader), kernel: Vec::leak(kernel) })
+        /* An installed disk halts at its first boot without these, so the
+         * install stops here, before a disk is touched. */
+        let records = [INSTALL_SOURCE_BOOT_TRAILER, INSTALL_SOURCE_BOOT_ROOT_RECORD]
+            .map(|kind| read_all(kind).ok().filter(|r| !r.is_empty()));
+        let [Some(boot_trailer), Some(boot_root)] = records else {
+            return Err(String::from(
+                "the bootloader handed over no trailer or boot-root record, and a disk without them would not boot",
+            ));
+        };
+        /* The running image may carry none; the installed one then has none
+         * either, and its device secret stays sealed the same way. */
+        let kernel_approval = read_all(INSTALL_SOURCE_KERNEL_APPROVAL).ok().filter(|a| !a.is_empty());
+        Ok(Image {
+            loader: Vec::leak(loader),
+            kernel: Vec::leak(kernel),
+            boot_trailer: Vec::leak(boot_trailer),
+            boot_root: Vec::leak(boot_root),
+            kernel_approval: kernel_approval.map(Vec::leak).map(|a| &*a),
+        })
     }
 
     pub fn as_disk_image(&self) -> NonosImage<'static> {
-        NonosImage { boot_efi: self.loader, kernel_bin: self.kernel, boot_cfg: BOOT_CFG }
+        NonosImage {
+            boot_efi: self.loader,
+            kernel_bin: self.kernel,
+            boot_cfg: BOOT_CFG,
+            boot_trailer: self.boot_trailer,
+            boot_root: self.boot_root,
+            kernel_approval: self.kernel_approval,
+        }
     }
 }
 

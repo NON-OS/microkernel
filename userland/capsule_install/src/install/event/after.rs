@@ -16,17 +16,23 @@
 
 //! After the install: restart, close, or go back and pick another disk.
 //! Restart is the kernel's reboot, which needs the Admin bit this capsule
-//! carries for exactly this one call.
+//! carries for exactly this one call. Going back looks at the disks again:
+//! a stopped write can follow a driver that went away, and the list it
+//! left is not the machine any more.
 
 use nonos_app_skeleton::{EventOutcome, KEY_ENTER, KEY_ESC};
 use nonos_libc::mk_admin_reboot;
 
 use super::router::back;
+use crate::install::full::active;
 use crate::install::state::{Screen, State};
+use crate::install::survey::look;
 
 pub fn on_after_key(state: &mut State, code: u32) -> EventOutcome {
     match state.screen {
         Screen::Done => match code {
+            /* Full screen, nothing runs after this but the new disk. */
+            KEY_ESC if active() => EventOutcome::Idle,
             KEY_ESC => EventOutcome::Close,
             KEY_ENTER => {
                 mk_admin_reboot();
@@ -36,7 +42,10 @@ pub fn on_after_key(state: &mut State, code: u32) -> EventOutcome {
         },
         _ => match code {
             KEY_ESC => EventOutcome::Close,
-            KEY_ENTER => back(state, Screen::Disks),
+            KEY_ENTER => {
+                look(state);
+                back(state, Screen::Disks)
+            }
             _ => EventOutcome::Idle,
         },
     }

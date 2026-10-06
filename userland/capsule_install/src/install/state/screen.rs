@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The six screens, in the order a person meets them. Failed can follow
+//! The seven screens, in the order a person meets them. Failed can follow
 //! Writing or Verifying; nothing else is out of order.
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Screen {
     Welcome,
+    Proofs,
     Disks,
     Confirm,
     Writing,
@@ -32,6 +33,7 @@ impl Screen {
     pub fn title(self) -> &'static str {
         match self {
             Screen::Welcome => "Install NØNOS on this computer",
+            Screen::Proofs => "What this boot proved",
             Screen::Disks => "Choose the disk",
             Screen::Confirm => "Everything on this disk will be erased",
             Screen::Writing => "Writing",
@@ -44,7 +46,7 @@ impl Screen {
     /// One-based step for the header, of five that a person acts in.
     pub fn step(self) -> u8 {
         match self {
-            Screen::Welcome => 1,
+            Screen::Welcome | Screen::Proofs => 1,
             Screen::Disks => 2,
             Screen::Confirm => 3,
             Screen::Writing | Screen::Verifying | Screen::Failed => 4,

@@ -1,0 +1,15 @@
+[package]
+name = "nonos_brand"
+version = "0.9.2"
+edition = "2021"
+authors = ["NONOS Contributors"]
+license = "AGPL-3.0"
+description = "NONOS brand faces, palette and mark for the installer and first-boot setup"
+
+[lib]
+name = "nonos_brand"
+path = "src/lib.rs"
+
+[dependencies]
+nonos_toolkit = { path = "../../toolkit", default-features = false }
+nonos_app_skeleton = { path = "../../app_skeleton" }

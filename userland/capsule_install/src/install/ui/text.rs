@@ -14,22 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Text placement over the toolkit's TrueType rasteriser. Every line in
-//! this window goes through here, so the metrics are decided once.
+//! Text placement in the brand's faces: Geist for text, JetBrains Mono for
+//! hashes and labels. Every line in this window goes through here, so the
+//! metrics are decided once.
+
+use alloc::string::String;
 
 use nonos_app_skeleton::PaintBuffer;
-use nonos_toolkit::ttf::line_height;
+
+use nonos_brand::{label_w, line_h, measure, text, Face};
+
+/// The size a footer's two hints are set at, in mono capitals: `px` when
+/// both fit side by side in `room` with `gap` between them, else `small`.
+/// The longest pair, a stoppable write's "Esc stop, the disk is left without
+/// a table" with "do not power off", is wider than a 1280 pixel canvas's
+/// column at caption size, and the two used to run into each other there.
+pub fn keys_px(left: &str, right: &str, room: u32, gap: u32, px: f32, small: f32) -> f32 {
+    let caps = |s: &str| -> String { s.chars().map(|c| c.to_ascii_uppercase()).collect() };
+    let (l, r) = (caps(left), caps(right));
+    if label_w(&l, px) + label_w(&r, px) + gap <= room {
+        px
+    } else {
+        small
+    }
+}
 
 pub fn line(fb: &mut PaintBuffer, x: u32, top: u32, s: &str, argb: u32, px: f32) {
-    fb.text_ttf(x as i32, top as i32, s, argb, px);
+    text(fb, x, top, s, Face::Body, argb, px);
+}
+
+/// A headline: Geist at 500.
+pub fn title(fb: &mut PaintBuffer, x: u32, top: u32, s: &str, argb: u32, px: f32) {
+    text(fb, x, top, s, Face::Headline, argb, px);
 }
 
 pub fn mono(fb: &mut PaintBuffer, x: u32, top: u32, s: &str, argb: u32, px: f32) {
-    fb.text_ttf_mono(x as i32, top as i32, s, argb, px);
+    text(fb, x, top, s, Face::Mono, argb, px);
 }
 
-pub fn width(fb: &PaintBuffer, s: &str, px: f32) -> u32 {
-    fb.measure_ttf(s, px).max(0) as u32
+pub fn width(_fb: &PaintBuffer, s: &str, px: f32) -> u32 {
+    measure(s, Face::Body, px, 0.0)
 }
 
 pub fn right(fb: &mut PaintBuffer, right_x: u32, top: u32, s: &str, argb: u32, px: f32) {
@@ -39,7 +63,7 @@ pub fn right(fb: &mut PaintBuffer, right_x: u32, top: u32, s: &str, argb: u32, p
 
 /// The top of a line box centred in a row of height `h`.
 pub fn top_of(y: u32, h: u32, px: f32) -> u32 {
-    y + h.saturating_sub(line_height(px).max(1) as u32) / 2
+    y + h.saturating_sub(line_h(Face::Body, px)) / 2
 }
 
 /// Longest prefix that measures within `max_w`, cut on a char boundary.
