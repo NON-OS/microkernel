@@ -53,3 +53,23 @@ The boot test of every pull request; its header calls it the blocking boot check
 ### lean
 
 `lean.yml` builds the Lean 4 specification in `verification/lean` and fails when a profiled theorem depends on `sorryAx` (`sorryAx`, `.github/workflows/lean.yml:49-60`).
+
+## On a push, a schedule or a tag
+
+| workflow | when | what it does |
+|---|---|---|
+| `ci`, `verify`, `lean` | push to `main` or `develop` | the same as on a pull request |
+| `ci-boot-smoke` | push to `main` | the same as on a pull request |
+| `nightly` | daily, 06:00 UTC | build, trust chain, adversarial, supply chain, evidence, the QEMU runtime checks and the reproducibility comparison (`cron`, `.github/workflows/nightly.yml:7-10`) |
+| `ci-boot-matrix` | daily, 06:00 UTC | boots every cell of the machine matrix; its header says it is not a merge check and that the SMP cells are known to fail (`schedule`, `.github/workflows/ci-boot-matrix.yml:3-14`) |
+| `fuzz` | daily, 01:00 UTC | 30 minutes per fuzz target over the parsers of untrusted input; a crash fails the run and keeps its input (`cron`, `.github/workflows/fuzz.yml:3-12`) |
+| `benchmark` | daily, 06:30 UTC | the benchmark suite (`cron`, `.github/workflows/benchmark.yml:27`) |
+| `starks-bump` | daily, 05:17 UTC | moves the `starks` input to STARKs main, syncs every lock, runs `nix flake check` and opens a pull request; it never merges (`cron`, `.github/workflows/starks-bump.yml:3-14`) |
+| `release` | a tag `v*` | every blocking module in production mode, the release bundle, one attestation, then a pre-release with signed build provenance (`tags`, `.github/workflows/release.yml:9-14`) |
+| `cut-release` | by hand | points a version tag at a commit and starts `release` on it (`version`, `.github/workflows/cut-release.yml:9-20`) |
+| `build-for-enrollment` | by hand | builds the capsule set with `nix build .#capsules` and publishes the ELFs with a `BLAKE3` manifest; it signs nothing (`BLAKE3`, `.github/workflows/build-for-enrollment.yml:3-9`) |
+| `ci-windows-virtualbox` | by hand | boots a released ISO under VirtualBox on a Windows runner and keeps its serial log (`VirtualBox`, `.github/workflows/ci-windows-virtualbox.yml:1-7`) |
+
+Dependabot looks for cargo and GitHub Actions updates once a week, for the root directory only, and keeps at most five of its pull requests open for each (`updates`, `.github/dependabot.yml:1-13`).
+
+Only a push to the repository may write the binary cache. A pull request reads it and never writes it, so its code cannot place a store path others will fetch (`CACHIX_AUTH_TOKEN`, `.github/workflows/verify.yml:53-58`).
