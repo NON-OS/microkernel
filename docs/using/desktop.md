@@ -144,3 +144,24 @@ One more chord never reaches a window: `Ctrl+Alt+Space` cycles the keyboard layo
 The power key does not power the machine off, whether it comes from a keyboard or from the machine's ACPI power button, which the kernel turns into the same key (`src/arch/x86_64/acpi/power_button.rs`). The desktop has no Shut Down in this release: the power service capsule is built but not started, and the shell offers no shutdown action (`POWER_OFF_UNAVAILABLE` in `userland/capsule_desktop_shell/src/state/system_key.rs`).
 
 The power button and the volume keys: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+## About and its Proofs screen
+
+About is the machine's account of itself. Its sidebar has seven sections: Overview, Proofs, System, Trust, Verify, Display and Licenses (`SECTIONS` in `userland/capsule_about/src/about/section.rs`).
+
+- Overview shows the version and this window's admission badge. The badge reads `Verified` only when the kernel admitted the window under a proof. `Signed, no proof`, `Not admitted` and `Unknown` are never drawn as a pass.
+- Proofs answers two questions in one headline: is this boot [attested](../overview/glossary.md#attestation), and is its traffic anonymous. It reads the boot verdicts and the process table from the kernel, the chosen network from the policy store, and the latest route proof from the `attest` service.
+- System shows the build, memory and uptime. Trust decodes the capability word the kernel recorded for this window. Verify runs the checks the machine can do on itself. Display names the framebuffer size and whether the compositor presents through virtio-gpu or the firmware framebuffer. Licenses holds the text of the AGPL-3.0-or-later licence the image is under, and the third-party licences.
+
+The Proofs headline is one of six sentences (`userland/capsule_about/src/about/data/proofs/words.rs`):
+
+| Headline | When |
+|---|---|
+| `Attested, and anonymous over the Nym mixnet` | Every check holds and the route proof says Nym carries the traffic. |
+| `Attested, and anonymous over the Anyone network` | The same, over Anyone. |
+| `Attested, not anonymous: the direct route shows this machine` | Every check holds, and Direct is the chosen network. |
+| `Attested; the anonymity route is not up, so nothing leaves` | Every check holds, and the chosen network is not carrying traffic yet. |
+| `Not attested: a check below failed` | A check is broken. |
+| `Not established: something below could not be read` | A check, or the route proof, could not be read. |
+
+A part that could not be read is shown as unknown, never as a pass (`userland/capsule_about/src/about/data/proofs/session.rs`). About writes nothing and asks no network anything.
