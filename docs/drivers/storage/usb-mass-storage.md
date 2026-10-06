@@ -47,3 +47,12 @@ Bring-up opens with INQUIRY (`userland/capsule_driver_usb_msc/src/disk/ready.rs:
 - on a card reader with several logical units, the first unit with a medium is served, and an empty slot that is not the last unit is given up at once.
 
 It then reads the size with READ CAPACITY(10), and asks READ CAPACITY(16) of a device past 2^32 blocks (`userland/capsule_driver_usb_msc/src/disk/ready.rs:99-119`, `capacity`).
+
+## Reads, writes and flush
+
+- Reads and writes use READ(10) and WRITE(10), or READ(16) and WRITE(16) when a request passes the 32-bit LBA or the 16-bit block count (`userland/capsule_driver_usb_msc/src/span/mod.rs:73-77`, `needs_cdb16`).
+- The kernel asks in 512-byte sectors, at most 64 per request (`userland/capsule_driver_usb_msc/src/protocol/limits.rs:23-27`, `BLK_MAX_SECTORS`).
+- Device blocks of 1024, 2048 or 4096 bytes are mapped onto those sectors: a request that starts or ends inside a block reads it whole, and a write changes it and writes it back (`userland/capsule_driver_usb_msc/src/span/mod.rs:17-34`, `sectors_per_block`). Any other block length is reported as it is, and the kernel passes the device over (`src/hardware/block_device/fit.rs:32-43`, `usb_msc_sectors_fit`).
+- A flush is SYNCHRONIZE CACHE(10). A device that answers ILLEGAL REQUEST has no cache to flush, and that counts as done (`userland/capsule_driver_usb_msc/src/disk/ready.rs:121-132`, `sync_cache`).
+
+Two habits of real devices that the Bulk-Only specification does not allow are accepted: a zero-length packet before the CSW, and a CSW sent in place of a data phase the device skipped. A transport that loses its phase is reset with Bulk-Only reset recovery (`userland/capsule_driver_usb_msc/src/disk/bot.rs:20-30`, `reset_recovery`).
