@@ -25,3 +25,21 @@ The words derive the account at `m/44'/60'/0'/0/0`, the standard Ethereum path, 
 `Add account` opens further accounts of the same phrase, `m/44'/60'/0'/0/1` to `m/44'/60'/0'/0/7`: eight accounts in all (`MAX_ACCOUNT_INDEX` in `userland/capsule_keyring/src/server/words_own.rs:24`).
 
 The wallet's own `Settings` screen picks the network (`Ethereum mainnet` or `Sepolia`), says whether the key is `sealed to this machine` or `RAM only, gone at reboot`, and offers `Show the private key`, `Restore from recovery words`, `Import a private key` and `Lock the screen` (`ROWS` in `userland/capsule_wallet_nonos/src/wallet/screen/settings/mod.rs:42-47`).
+
+## Networks and assets
+
+One address serves two networks. You switch between them in the wallet; every signature carries the chosen chain id, so a transaction reviewed on one network cannot be replayed on the other (`MAINNET` and `SEPOLIA` in `userland/capsule_wallet_nonos/src/wallet/chain.rs:73-97`).
+
+| | Ethereum mainnet | Sepolia |
+|---|---|---|
+| Chain id | 1 | 11155111 |
+| ETH | yes | yes |
+| NOX | `0x0a26c80be4e060e688d7c23addb92cbb5d2c9eca` | `0x3e5249a65ca513d5e11260222e0d26f46b465d36` |
+| USDC | `0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48` | `0x1c7d4b196cb0c7b01d743fbc6116a902379c7238` |
+| NOX staking | `0xa94d6009790ba13597a1e1b7cf4e1531ea513613` | no |
+| NOX Shield | no: the screen says `The shield pool is not deployed on Ethereum mainnet` and offers `Switch to Sepolia` | yes |
+| RPC hosts, tried in order | `ethereum-rpc.publicnode.com`, `mainnet.gateway.tenderly.co`, `rpc.mevblocker.io` | `ethereum-sepolia-rpc.publicnode.com`, `sepolia.gateway.tenderly.co`, `rpc.sepolia.ethpandaops.io` |
+
+The hosts and contracts are fixed in the code; the wallet has no field to add a network, a token or an RPC host.
+
+Sepolia is Ethereum's test network, and the wallet says so: nothing on it has value. The NOX Shield is a private pool that runs only on Sepolia in this release. The `Receive` screen puts the difference this way: paid at the private address, "the sender, the amount, your balance and the notes you hold stay out of sight"; at the `0x` address, "anyone can see what this address holds and sends" (`userland/capsule_wallet_nonos/src/wallet/screen/receive.rs`). The shield's keys and notes are kept by a separate capsule, `capsule_shield`. `Receive` shows the `0x` address, and on Sepolia the private address once the shield has opened for the account.
