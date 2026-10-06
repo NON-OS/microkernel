@@ -14,11 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Framebuffer present syscall: blit a userland surface to the display.
+//! Handing a microkernel syscall to its numeric dispatcher.
 
-mod blit;
-mod consts;
-mod handle;
-mod store;
+use crate::syscall::microkernel::dispatch_microkernel_syscall;
+use crate::syscall::{numbers::SyscallNumber, SyscallResult};
 
-pub(in crate::syscall::dispatch::router) use handle::handle;
+pub(super) fn handle(
+    nr: SyscallNumber,
+    a0: u64,
+    a1: u64,
+    a2: u64,
+    a3: u64,
+    a4: u64,
+    a5: u64,
+) -> SyscallResult {
+    let value = dispatch_microkernel_syscall(nr as u64, a0, a1, a2, a3, a4, a5);
+    SyscallResult { value, capability_consumed: false, audit_required: true }
+}

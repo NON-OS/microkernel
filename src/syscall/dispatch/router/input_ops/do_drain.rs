@@ -18,13 +18,21 @@ use super::consts::{EFAULT, EINVAL, FIRST_INPUT_DRAIN, MAX_DRAIN};
 use crate::kernel_core::surface_registry::{drain_input, InputEvent};
 use crate::syscall::dispatch::util::errno;
 use crate::syscall::SyscallResult;
-use crate::usercopy::copy_to_user;
+use crate::usercopy::{copy_to_user, validate_user_write};
 
 pub(super) fn do_drain(out_ptr: u64, max_events: u64) -> SyscallResult {
     if out_ptr == 0 || max_events == 0 {
         return errno(EINVAL);
     }
     let cap = core::cmp::min(max_events as usize, MAX_DRAIN);
+    /*
+     * The ring is drained for good, so the buffer is checked for the most a
+     * drain can write before anything is taken: a bad one is EFAULT with the
+     * events left for the next call, not keystrokes consumed and dropped.
+     */
+    if validate_user_write(out_ptr, cap * core::mem::size_of::<InputEvent>()).is_err() {
+        return errno(EFAULT);
+    }
     let mut scratch = [InputEvent::default(); MAX_DRAIN];
     let n = drain_input(&mut scratch[..cap]);
     if n == 0 {

@@ -31,6 +31,15 @@ pub(super) fn do_wait(last_seq: u64, timeout_ms: u64, out_ptr: u64) -> SyscallRe
     };
     let start = crate::time::timestamp_millis();
     loop {
+        /*
+         * The wake count is read before the waiter is armed and the sequence
+         * checked. An event posted on another CPU after that check wakes a
+         * process still running, which changes nothing, and takes the armed
+         * waiter with it: without the count the reader then slept its whole
+         * wait (50 ms by default) with input queued, and every key or pointer
+         * move in that time waited with it.
+         */
+        let token = crate::sched::wake_token(pid);
         arm_input_waiter(pid);
         let seq = input_seq();
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
@@ -46,7 +55,7 @@ pub(super) fn do_wait(last_seq: u64, timeout_ms: u64, out_ptr: u64) -> SyscallRe
         } else {
             start.saturating_add(timeout_ms)
         };
-        crate::sched::sleep_until(pid, deadline);
+        crate::sched::sleep_until_unless_woken(pid, deadline, token);
         crate::sched::yield_now();
     }
 }

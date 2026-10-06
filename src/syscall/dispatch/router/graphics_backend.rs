@@ -31,17 +31,20 @@ pub(super) fn handle(
     a0: u64,
     a1: u64,
     a2: u64,
-    _a3: u64,
+    a3: u64,
     _a4: u64,
     _a5: u64,
 ) -> SyscallResult {
     match nr {
-        SyscallNumber::GraphicsDisplayDimensions => handle_display_dimensions(a0, a1, a2),
+        SyscallNumber::GraphicsDisplayDimensions => handle_display_dimensions(a0, a1, a2, a3),
         _ => super::super::util::errno(ENOTSUP),
     }
 }
 
-fn handle_display_dimensions(display: u64, out_w: u64, out_h: u64) -> SyscallResult {
+// `out_mm`, when not 0, receives the panel's physical size from its EDID,
+// width in millimetres in the low 16 bits and height in the high 16, or 0
+// when the firmware gave none. Callers that pass 0 there see the old call.
+fn handle_display_dimensions(display: u64, out_w: u64, out_h: u64, out_mm: u64) -> SyscallResult {
     if display != 0 || out_w == 0 || out_h == 0 {
         return super::super::util::errno(EINVAL);
     }
@@ -53,6 +56,12 @@ fn handle_display_dimensions(display: u64, out_w: u64, out_h: u64) -> SyscallRes
     }
     if write_user_value(out_h, &fb.height).is_err() {
         return super::super::util::errno(EFAULT);
+    }
+    if out_mm != 0 {
+        let mm = fb.physical_mm.map_or(0u32, |(w, h)| w | (h << 16));
+        if write_user_value(out_mm, &mm).is_err() {
+            return super::super::util::errno(EFAULT);
+        }
     }
     SyscallResult::success_audited(0)
 }
