@@ -20,6 +20,7 @@
 mod command;
 pub mod descriptor;
 mod device;
+mod drowsy;
 mod inspect;
 mod phase;
 mod record;

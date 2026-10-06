@@ -46,3 +46,11 @@ received with what report, what feature report the host set.
 Timing. The model has no clock; SCL counts are checked arithmetically by the
 proof crates against the specification's minimums, not observed on a wire.
 Silicon errata. A part that departs from the databook departs from this too.
+
+## Who uses it
+
+`i2c_hid_proofs` and `i2c_transfer_proofs` depend on it by path. It is a
+host-only library and ships in no image.
+
+See [drivers](../../docs/handbook/drivers.md) and
+[proofs](../../docs/handbook/verification/proofs.md).
