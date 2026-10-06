@@ -60,3 +60,15 @@ Before a device is addressed, its port is (`userland/capsule_driver_xhci/src/con
 - given 50 ms to recover.
 
 Every port is reset before it is addressed, a USB 3 port that is already enabled included, because another class driver may have addressed and released the device on it (`userland/capsule_driver_xhci/src/controller/reset_port.rs:65-70`, `PortAction::Reset`).
+
+## Transfers
+
+| Kind | Used for | Limits |
+|---|---|---|
+| Control, on endpoint 0 | descriptors and class requests | 5 s each, `TRANSFER_TIMEOUT_MS` in `userland/capsule_driver_xhci/src/controller/wait_transfer_completion.rs:25-27` |
+| Interrupt IN | keyboard and mouse reports | 4 endpoints per device and 8 bytes per report, `MAX_INTERRUPT_ENDPOINTS` in `userland/capsule_driver_xhci/src/slots/resources.rs:26` and `HID_REPORT_MAX` in `userland/capsule_driver_xhci/src/protocol/limits.rs:36` |
+| Bulk IN and OUT | mass storage | 4096 bytes per transfer, `BULK_MAX` in `userland/capsule_driver_xhci/src/protocol/limits.rs:37-38`, and 5 s, `BULK_TIMEOUT_MS` in `userland/capsule_driver_xhci/src/controller/bulk/wait.rs:28` |
+
+Isochronous transfers and interrupt OUT are not implemented. The driver configures control, interrupt IN and bulk endpoints only (`userland/capsule_driver_xhci/src/controller/bulk/input.rs:20-21`, `EP_TYPE_BULK_IN`; `userland/capsule_driver_xhci/src/contexts/configure_ep.rs:20`, `EP_TYPE_INTERRUPT_IN`). USB audio devices and cameras therefore have no path in this release.
+
+A command such as Address Device gets 5 s (`userland/capsule_driver_xhci/src/controller/wait_command_completion.rs:24-26`, `COMPLETION_TIMEOUT_MS`), and one that does not complete is aborted so the commands behind it are not stuck (`userland/capsule_driver_xhci/src/controller/run_command.rs:37`, `abort`). After a STALL, another error or a timeout, the endpoint is reset or stopped and its ring moved past the failed transfer (`userland/capsule_driver_xhci/src/controller/recover_endpoint.rs:51-77`, `recover_endpoint`).
