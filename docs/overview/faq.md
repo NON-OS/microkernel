@@ -50,3 +50,7 @@ Shutting down or restarting from NONOS runs the [ZeroState](glossary.md#zerostat
 ## Without a TPM
 
 The boot menu describes its Hardened entry as "Standard, and refuses to boot without Secure Boot and a TPM" (`nonos-bootloader/src/bootmenu/entries.rs`). Without a TPM the machine key cannot be derived, so an installed data volume needs a passphrase instead (`src/fs/blockfs_volume/passphrase.rs`), and the keyring cannot seal the wallet's record, so it answers ENOENT and nothing is saved (`userland/capsule_keyring/src/server/handlers/vault_seal.rs`). See [Boot modes](../install/boot-modes.md) and [Measured boot and the TPM](../security/measured-boot-and-tpm.md).
+
+## Audits and proofs
+
+This release claims no independent security audit. What it has is proof crates that test the shipped kernel and capsule source on the host, run by `nix flake check`; Lean 4 models in `verification/lean/`; and a list of everything NONOS trusts without proof, [verification/ASSUMPTIONS.md](../../verification/ASSUMPTIONS.md). [Design principles](design-principles.md#proofs-live-next-to-the-code) gives the results on this commit, failures included, and [Tests and proofs](../contributing/tests-and-proofs.md) says how to run them.
