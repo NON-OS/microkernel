@@ -84,3 +84,11 @@ From the code above, a riscv64 kernel needs at least:
 - a CI job that builds it and boots it, as `ci-build-aarch64.yml` and `ci-boot-aarch64.yml` do for aarch64.
 
 [aarch64](aarch64.md) shows how far the same steps took that port.
+
+## See also
+
+- [Architectures](README.md)
+- [aarch64](aarch64.md)
+- [x86_64](x86_64.md)
+- [Boot handoff](../kernel/boot-handoff.md)
+- [Contributing](../contributing/README.md)
