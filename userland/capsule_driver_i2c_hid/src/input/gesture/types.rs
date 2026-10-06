@@ -39,6 +39,18 @@ pub(super) const CONTINUITY_DIV: i64 = 8;
 /// report rates; the travel bound is what actually separates a tap from a drag.
 pub(super) const TAP_MAX_FRAMES: u16 = 40;
 pub(super) const TAP_TRAVEL_DIV: i64 = 16;
+/// Two-finger scroll: one wheel notch for every 1/`SCROLL_NOTCHES_PER_PAD`
+/// of the pad's height, about 2 mm on a laptop pad, which is what one notch
+/// of a mouse wheel scrolls in an app. A full swipe is a long scroll, a short
+/// flick a few lines.
+pub(super) const SCROLL_NOTCHES_PER_PAD: u32 = 32;
+/// Natural (content follows the fingers) or traditional (the view moves the
+/// way the fingers do, as a scroll wheel turned toward the user scrolls
+/// down) direction. Traditional is the default.
+pub(super) const NATURAL_SCROLL: bool = false;
+/// A jump of the scrolling finger beyond this fraction of the pad between
+/// two of its reports is a torn read or a swapped contact, not a swipe.
+pub(super) const SCROLL_JUMP_DIV: u32 = 4;
 
 #[derive(Default)]
 pub struct TouchGesture {
@@ -48,6 +60,11 @@ pub struct TouchGesture {
     pub(super) button_run: u8,
     pub(super) scrolling: bool,
     pub(super) scroll_y: u32,
+    /// The finger the scroll follows, when the pad names its contacts.
+    pub(super) scroll_id: Option<u32>,
+    /// The contact count of the current frame. In hybrid reporting only the
+    /// first report of a frame carries it and the others say zero.
+    pub(super) frame_contacts: u32,
     pub(super) multi_touch: bool,
     pub(super) palm: bool,
     pub(super) last_x: i64,
@@ -70,6 +87,8 @@ pub struct TouchGesture {
 pub struct TouchActions {
     /// Relative cursor motion in nominal screen pixels, already accelerated.
     pub motion: Option<(i32, i32)>,
+    /// Wheel notches, positive to scroll up as a mouse wheel turned away
+    /// from the user does.
     pub wheel: i32,
     pub button_down: bool,
     pub button_up: bool,

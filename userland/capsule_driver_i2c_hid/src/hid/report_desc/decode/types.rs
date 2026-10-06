@@ -25,6 +25,9 @@ pub struct TouchSample {
     pub tip: bool,
     /// Number of fingers down, for gesture logic.
     pub contacts: u32,
+    /// Which finger this report describes, when the pad says (Contact
+    /// Identifier). None on pads that do not report it.
+    pub contact_id: Option<u32>,
     /// The physical click button (clickpad) is pressed.
     pub button: bool,
     /// The contact is a deliberate finger (PTP confidence bit). True when the
