@@ -17,3 +17,38 @@ There is no login and no password. The `login` service starts with nothing on sc
 ## Keys in setup
 
 Enter goes to the next step and Escape to the one before. In a list, Up and Down or `k` and `j` move, Home and End jump to the ends, and a digit picks that row (`userland/capsule_setup_wizard/src/server/step.rs`). Ctrl+Alt+Space cycles the keyboard layout at any time, in the PS/2 and the USB keyboard drivers alike (`userland/capsule_driver_ps2_input/src/poll/absorb.rs`, `userland/capsule_driver_usb_hid/src/hid/keyboard/push_key.rs`).
+
+## The steps
+
+The step names are `STEP_LABELS` in `userland/capsule_setup_wizard/src/render/theme.rs`, and each screen is a file under `userland/capsule_setup_wizard/src/render/screens/`.
+
+1. Keyboard. Six layouts: US QWERTY, UK, German, French AZERTY, Italian and Spanish, the ones the keyboard drivers have tables for (`POLICY_LAYOUTS` in `userland/nonos_keymap/src/policy.rs`). The choice takes effect when you press Enter. See [Keyboard layouts](../using/keyboard-layouts.md).
+2. Your name. The account name the Terminal shows as name@host: lowercase letters, digits, `-` and `_`, starting with a letter, 1 to 32 characters. Left empty, it is `nonos`. A refused key is named on the screen.
+3. Time zone. Whole hours from UTC, from UTC-12 to UTC+14, for the menu bar clock. `j` adds an hour and `k` takes one off.
+4. Mode. Where this machine keeps what you do:
+   - `Amnesic (default)`: RAM only. Nothing is written to any disk, and setup runs again on the next boot.
+   - `USB live (unavailable)`: cannot be chosen. Its screen says why: NONOS keeps state only on an NVMe, SATA or virtio disk today, and has no passphrase-keyed volume.
+   - `Install to this computer`: keeps your answers in the package store of the disk this boot came from, so setup does not run again, then opens the installer when setup ends.
+
+   After the boot menu's `Install NØNOS` entry, this step starts on Install (`userland/capsule_setup_wizard/src/render/screens/mode.rs`).
+5. Network. The first row is `No network (default, private)`. Under it come up to six Wi-Fi networks the card has heard, strongest first. The list refreshes every 2 seconds, and `s` looks again (`userland/capsule_setup_wizard/src/network/poll.rs`).
+   - An open network is joined at once on Enter.
+   - A secured, WPA2-Personal network asks for its passphrase: 8 to 63 characters, shown as stars. Tab shows it, Escape clears it, Enter joins. A join takes up to 30 seconds. A failed join says why and wipes what you typed.
+   - With the Install mode chosen, `r` remembers the joined network, sealed with a key the TPM derives.
+   - The step's own note reads `WPA3 (SAE) and enterprise networks cannot be joined.`
+   - A wired card is used as soon as a cable is plugged in, without asking.
+
+   On Safe Mode and Air-Gapped boots the step says `This boot runs no network: the boot menu chose it.` See [Wi-Fi and networking](../using/wifi-and-networking.md).
+6. Network route. Which network this machine's own traffic leaves through: the browser starts on it and Qwen downloads take it.
+   - `Nym mixnet (default)`: hides who you talk to, even from someone watching the whole internet. Pages and downloads are slow.
+   - `Anyone network`: onion routing through three relays, much faster than the mixnet. Someone watching both ends at once could match the traffic.
+   - `Direct`: no anonymity network. Every site, the model mirror and your own network see this machine's address.
+
+   A route that fails never falls back to another, and Settings changes the choice later. See [Privacy networks](../using/privacy-network.md).
+7. Privacy. Statements with no switch (`userland/capsule_setup_wizard/src/render/screens/privacy.rs`): the e1000, RTL8169 and RTL8821CE drivers send from a random MAC address drawn at each start (`userland/capsule_driver_e1000/src/init/station_address.rs`, `userland/capsule_driver_rtl8169/src/init/mac.rs`, `userland/capsule_driver_rtl8821ce/src/station.rs`); shutdown and reboot wipe process memory, kernel stacks and held keys; NONOS has no telemetry.
+8. Appearance. Which wallpapers this machine keeps, and which one is the desktop's. Space keeps or drops the highlighted one, `a` keeps them all, `n` keeps only the desktop's, and Enter makes the highlighted one the desktop's and goes on.
+9. Qwen model. Which Qwen tier the Terminal's `qwen` runs when you name none. The list starts with `None for now`, then the tiers that fit this machine's memory, smallest first. The step starts on Qwen3 0.6B, the tier the stick carries, when it fits, and otherwise on the largest tier that fits (`userland/capsule_setup_wizard/src/qwen/default.rs`, `userland/capsule_model_fetch/src/default_tier.rs`). On an amnesic stick the model is held in memory and is gone at power off. With no NONOS disk at all, no tier is offered. See [Local AI](../using/local-ai.md).
+10. Apps. Each optional app is on until you turn it off with Space. An app turned off is not started, and its dock icon does not open it. With Linux and Qwen off, `qwen` and Linux packages do not run. Required apps are listed without a switch. On a Safe Mode boot no optional app starts, whatever this step says.
+11. Installed software. `Only NONOS software`, the default, or `Also software installed here`, which lets this machine run the programs the Marketplace installs and this machine proves.
+12. Computer name. The host in name@host: lowercase letters, digits and `-`, starting with a letter and ending with a letter or digit, up to 63 characters. Left empty, it is `nonos`.
+13. Review. Your answers in a table, and lines that say what is kept. Enter applies them and starts the desktop, or opens the installer on Install. If the settings service refused an answer, the screen names it once, after `Not applied to this session:`, and the next Enter goes on without it (`userland/capsule_setup_wizard/src/render/screens/review.rs`).
