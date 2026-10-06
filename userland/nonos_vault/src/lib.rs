@@ -41,8 +41,8 @@
 //!
 //! It does not stop rollback. Someone holding the disk can put back an older
 //! blob, and the seal proves the machine rather than the version. Fixing that
-//! needs a monotonic counter in TPM NV storage, which this kernel's TPM stack
-//! does not yet drive.
+//! needs a TPM NV counter per record. The only NV counter in use is the boot
+//! floor at 0x01000020, which the bootloader advances and the kernel reads.
 //!
 //! It is not a place to keep something ephemeral. A capsule whose whole point
 //! is to be unlinkable between boots, like the mixnet client's identity,
