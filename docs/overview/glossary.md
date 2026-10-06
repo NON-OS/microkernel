@@ -159,3 +159,7 @@ The kernel module that carries one capsule, named by `CAPSULE_KERNEL_MIRROR` in 
 ## Linux personality
 
 The capsule `capsule_linux`, `app.linux`, which runs unmodified x86_64 Linux programs as guests and answers the Linux system calls the kernel hands it. It is the only capsule that holds ForeignExec, and it runs a program from the store only when the proof kept beside it verifies. Explained in [The Linux personality](../userland/linux-personality.md). Code: `userland/capsule_linux/Capsule.mk`.
+
+## Loader policy
+
+The bootloader policy an image is built with, weakest first: `dev-qemu`, `standard-qemu`, `standard` or `production`. Each build profile sets the weakest it allows, `production` for hardened and airgapped, and `dev-qemu`, which compiles in the development override, is never sealed for release. Explained in [Profiles](../build/profiles.md#the-floors). Code: `tools/nix/config.nix`.
