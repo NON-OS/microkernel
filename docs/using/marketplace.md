@@ -34,3 +34,16 @@ Open `Marketplace` from the dock (setup's app list calls it `App store`). The wi
 | `r` | Reload the catalogue. |
 
 The keys are `on_key` in `userland/capsule_app_store/src/store/event_keys.rs:32-57` and `act` in `userland/capsule_app_store/src/store/event_actions.rs:29-66`. The selected listing's card shows its publisher, version, description and each install gate with its own verdict.
+
+## Use the Terminal
+
+```
+market list
+market info linux.qwen-small
+market install linux.qwen-small
+market uninstall linux.qwen-small
+```
+
+Not tested in this release.
+
+`market` asks the same market service as the window, `market.index`, and takes these four forms (`USAGE` in `userland/capsule_terminal/src/command/builtin/market/run.rs:21-22`). `market install` refuses any id that does not start with `linux.`: `NONOS capsules come with the image`. When the market says a listing cannot install, it prints each gate that fails. After `install`, `market info <id>` shows how the install goes.
