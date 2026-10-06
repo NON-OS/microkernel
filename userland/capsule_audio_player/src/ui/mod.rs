@@ -30,6 +30,8 @@ pub mod icon;
 pub mod metrics;
 pub mod paint;
 pub mod screen;
+pub mod search_key;
+pub mod shortcut;
 pub mod shell;
 mod sprite;
 pub mod state;
@@ -39,5 +41,5 @@ pub mod widget;
 
 pub use control::Control;
 pub use frame::{Frame, Scene};
-pub use hit::{hit, Action};
+pub use hit::{hit, Action, Lists};
 pub use state::{UiState, View};

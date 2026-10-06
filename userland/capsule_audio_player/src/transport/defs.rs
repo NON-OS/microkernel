@@ -24,6 +24,9 @@ pub enum State {
 pub enum Fed {
     Accepted,
     WouldBlock,
+    /// The sink cannot take sound at all: no audio service, or one that has
+    /// stopped answering. Waiting would only repeat the failure each tick.
+    Failed(&'static str),
 }
 
 pub trait FeedSink {

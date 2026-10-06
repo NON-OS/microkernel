@@ -25,13 +25,13 @@ use crate::model::PlayerView;
 use crate::waveform::Waveform;
 
 use super::geometry::{page, shell};
+use super::icon::Icons;
 use super::metrics::R_WIN;
 use super::paint::stroke;
-use super::theme::EDGE;
-use super::icon::Icons;
 use super::screen;
 use super::shell::{rail, sidebar, topbar, transport, Ground};
 use super::state::{UiState, View};
+use super::theme::EDGE;
 
 pub struct Frame {
     pub icons: Icons,
@@ -46,7 +46,10 @@ pub struct Scene<'a> {
     pub wave: &'a Waveform,
     pub playing: Option<usize>,
     pub id: &'a str,
-    pub step: u32,
+    /// The output's level, for the playing row's meter.
+    pub level: u16,
+    /// The Downloads page's rows.
+    pub downloads: &'a [crate::fetch::list::Row],
 }
 
 impl Frame {
@@ -65,27 +68,43 @@ impl Frame {
 
         let sh = shell(w, h);
         stroke(fb, sh.frame, R_WIN, 1, EDGE);
-        sidebar(fb, &self.icons, sh.sidebar, ui.view, ui.playlist);
+        sidebar(fb, &self.icons, sh.sidebar, ui.view);
         topbar(fb, &self.icons, sh.topbar, &ui.query, ui.view == View::Search);
         transport(fb, &self.icons, sh.transport, s.view, s.id);
-        rail(fb, &self.icons, sh.rail, s.lib, s.queue, s.view, ui.rail_tab);
+        rail(fb, &self.icons, sh.rail, s.lib, s.queue, s.view);
 
         let p = page(&sh);
         match ui.view {
             View::Home => screen::home(fb, &self.icons, p, s.lib, s.playing),
             View::Library => screen::library(
-                fb, &self.icons, p, s.lib, s.queue, s.rows, ui.lib_tab, ui.scroll, s.playing, ui.hover,
-                s.step,
+                fb,
+                &self.icons,
+                p,
+                s.lib,
+                s.queue,
+                s.rows,
+                ui.lib_tab,
+                ui.scroll,
+                s.playing,
+                ui.hover,
+                s.level,
             ),
             View::Search => screen::search(
-                fb, &self.icons, p, s.lib, s.queue, s.rows, &ui.query, ui.scroll, s.playing, ui.hover,
-                s.step,
+                fb,
+                &self.icons,
+                p,
+                s.lib,
+                s.queue,
+                s.rows,
+                &ui.query,
+                ui.scroll,
+                s.playing,
+                ui.hover,
+                s.level,
             ),
-            View::Browse => screen::browse(fb, &self.icons, p, s.lib),
-            View::Radio => screen::radio(fb, &self.icons, p),
-            View::Downloads => screen::downloads(fb, &self.icons, p, s.lib, s.step, s.playing),
+            View::Downloads => screen::downloads(fb, &self.icons, p, s.downloads, ui.scroll),
             View::NowPlaying => screen::nowplaying(fb, p, s.view, s.wave, s.id),
-            View::Settings => screen::settings(fb, &self.icons, p, ui.set_sec, s.view, s.lib, s.queue),
+            View::Settings => screen::settings(fb, &self.icons, p, s.view, s.lib, s.queue),
         }
     }
 }

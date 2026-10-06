@@ -15,5 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod call;
+mod master;
 mod proto;
 pub use call::{AudioClient, FeedResult};
+pub use master::{master, set_master};

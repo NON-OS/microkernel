@@ -1,9 +1,8 @@
 # NONOS userland: capsule_audio_player
 #
 # Windowed audio player capsule ("Resonare") built on
-# `nonos_app_skeleton`. C1 scaffold: boots dormant, opens its window,
-# paints a stub background, and emits a boot marker. Real transport,
-# decode, and paint arrive in later phases.
+# `nonos_app_skeleton`: the WAV and MP3 files under /audio, decoded here
+# and played through audio.server. README.md has the rest.
 
 [package]
 name = "nonos_audio_player"
@@ -22,6 +21,14 @@ path = "src/main.rs"
 nonos_audio_proto = { path = "../audio_proto" }
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_app_skeleton = { path = "../app_skeleton" }
+# The playing track's cover, decoded here from its tags (src/library/cover_art.rs).
+nonos_toolkit = { path = "../toolkit", default-features = false }
+# Downloading an MP3 from an address over the chosen route (src/fetch/):
+# the route, TLS with the chain checked, and what a download decides.
+nonos_route_link = { path = "../nonos_route_link" }
+nonos_tls = { path = "../nonos_tls" }
+nonos_download = { path = "../nonos_download" }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
 
 [build-dependencies]
 cc = "1"

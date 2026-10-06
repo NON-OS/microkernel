@@ -16,7 +16,8 @@
 
 //! Search: the live query echoed as a heading, then the filtered rows. With an
 //! empty query the screen names what it searches rather than pretending to
-//! have suggestions.
+//! have suggestions. With an address in the field, the page is about the
+//! download instead.
 
 extern crate alloc;
 
@@ -33,6 +34,9 @@ use crate::ui::widget::{button, button_w, page_header, row, table_header, Flags,
 
 const CLEAR: &str = "Clear";
 const PLAY: &str = "Play now";
+const DOWNLOAD: &str = "Download";
+const ENTER_DOWNLOADS: &str =
+    "Press Enter to download it into /home/nonos/music over the chosen network, then play it";
 
 pub fn clear_rect(r: Rect) -> Rect {
     let w = button_w(CLEAR, true);
@@ -41,7 +45,8 @@ pub fn clear_rect(r: Rect) -> Rect {
 
 pub fn play_rect(r: Rect) -> Rect {
     let c = clear_rect(r);
-    let w = button_w(PLAY, true);
+    // One place for Play now and, with an address in the field, Download.
+    let w = button_w(PLAY, true).max(button_w(DOWNLOAD, true));
     Rect::new(c.x - S4 - w, c.y, w, c.h)
 }
 
@@ -85,8 +90,12 @@ pub fn paint(
     scroll: usize,
     playing: Option<usize>,
     hover: Option<usize>,
-    step: u32,
+    level: u16,
 ) {
+    if crate::fetch::is_address(query) {
+        address(fb, icons, r);
+        return;
+    }
     let title = if query.is_empty() {
         String::from("Search")
     } else {
@@ -118,6 +127,16 @@ pub fn paint(
             queued: queue.contains(idx),
             hover: hover == Some(idx),
         };
-        row(fb, icons, rr, t, idx + 1, &f, step);
+        row(fb, icons, rr, t, idx + 1, &f, level);
     }
+}
+
+/// An address in the field: the page says what Enter does with it, and how
+/// the download is going once it runs, in place of matches it cannot have.
+fn address(fb: &mut PaintBuffer, icons: &Icons, r: Rect) {
+    let running = crate::fetch::line();
+    let sub = if running.is_empty() { String::from(ENTER_DOWNLOADS) } else { running };
+    page_header(fb, r, "Download an MP3", &sub, "");
+    button(fb, icons, clear_rect(r), CLEAR, Some(Glyph::Close), Variant::Ghost);
+    button(fb, icons, play_rect(r), DOWNLOAD, Some(Glyph::Download), Variant::Glow);
 }

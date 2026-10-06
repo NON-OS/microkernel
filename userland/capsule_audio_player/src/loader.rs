@@ -16,11 +16,21 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use nonos_app_skeleton::clients::vfs::read_file;
+use nonos_app_skeleton::clients::vfs::{read_file, stat};
 use nonos_libc::mk_getpid;
 
-pub const MAX_FILE: u32 = 32 * 1024 * 1024;
+use crate::track_limit::{refuse_size, READ_LIMIT};
 
+/// Read a whole track, refusing one past the limit: by its size before any of
+/// it is read when the store can say it, else by a read longer than the limit.
 pub fn load(path: &[u8]) -> Result<Vec<u8>, &'static str> {
-    read_file(mk_getpid(), path, MAX_FILE)
+    let pid = mk_getpid();
+    if let Some(why) = stat(pid, path).ok().and_then(|(size, _)| refuse_size(size)) {
+        return Err(why);
+    }
+    let bytes = read_file(pid, path, READ_LIMIT)?;
+    match refuse_size(bytes.len() as u64) {
+        Some(why) => Err(why),
+        None => Ok(bytes),
+    }
 }

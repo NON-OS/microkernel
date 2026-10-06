@@ -19,6 +19,7 @@
 use nonos_app_skeleton::PaintBuffer;
 
 use super::curve::{contour, ellipse};
+use super::rungs::rungs;
 use crate::ui::geometry::Rect;
 use crate::ui::paint::ring as ring_stroke;
 use crate::ui::theme::alpha;
@@ -33,13 +34,10 @@ pub fn grid(fb: &mut PaintBuffer, r: Rect, c: u32) {
     let vx = r.cx();
     for i in 0..=8 {
         let x = r.x - r.w / 2 + r.w * 2 * i / 8;
-        fb.line_aa(vx, vy, x, r.bottom(), alpha(c, 0x55));
+        let (ex, ey) = inside(r, vx, vy, x, r.bottom());
+        fb.line_aa(vx, vy, ex, ey, alpha(c, 0x55));
     }
-    let mut y = vy;
-    let mut step = s * 3 / 100;
-    while y < r.bottom() {
-        y += step;
-        step = step * 145 / 100;
+    for y in rungs(vy, r.bottom(), s) {
         fb.line_aa(r.x, y, r.right(), y, alpha(c, 0x44));
     }
     fb.line_aa(r.x, vy, r.right(), vy, c);
@@ -61,4 +59,15 @@ pub fn wave(fb: &mut PaintBuffer, r: Rect, c: u32) {
     for (y, amp, cycles, phase, a) in bands {
         contour(fb, r, r.h * y / 100, s * amp / 100, cycles, phase, alpha(c, a));
     }
+}
+
+/// The end of the line from (x0, y0) to (x1, y1), cut where it leaves `r`'s
+/// sides: the fan reaches past the cover, and drawn whole it ran across the
+/// panels beside it.
+fn inside(r: Rect, x0: i32, y0: i32, x1: i32, y1: i32) -> (i32, i32) {
+    let edge = if x1 < r.x { r.x } else if x1 > r.right() { r.right() } else { return (x1, y1) };
+    if x1 == x0 {
+        return (x1, y1);
+    }
+    (edge, y0 + (y1 - y0) * (edge - x0) / (x1 - x0))
 }

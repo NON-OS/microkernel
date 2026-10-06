@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-//! Home: the feature banner, then the six-up shelves. `grid_top` and `card_at`
-//! are the one geometry source, so the hit-test lands on exactly the tile the
-//! painter drew.
+//! Home: the first track in the library as the banner, then the library in
+//! six-up shelves, in the order it was read. `grid_top`, `card_at` and
+//! `see_all_at` are the one geometry source, so the hit-test lands on exactly
+//! the tile or link the painter drew.
 
 extern crate alloc;
 
@@ -25,8 +25,9 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::library::Library;
 use crate::ui::geometry::Rect;
-use crate::ui::icon::Icons;
-use crate::ui::metrics::{line_h, SECTION, S3, S4, S5, S6};
+use crate::ui::icon::{Glyph, Icons};
+use crate::ui::metrics::{line_h, BODY, S2, S3, S4, S6, SECTION};
+use crate::ui::paint::width;
 use crate::ui::widget::{card, card_h, hero, section_header, HERO_H};
 
 const MIN_CARD: i32 = 128;
@@ -77,34 +78,59 @@ pub fn card_at(r: Rect, n: usize, x: i32, y: i32) -> Option<usize> {
     None
 }
 
-const SHELF_TITLES: [(&str, &str); 3] =
-    [("Made for you", "See all"), ("Recently added", "See all"), ("Jump back in", "See all")];
+// Plain names for what each shelf holds: the library, split in reading order.
+// The player keeps no history or recommendations to sort by.
+const SHELF_TITLES: [&str; 3] = ["Your library", "More in your library", "Also in your library"];
+const SEE_ALL: &str = "See all";
 
-pub fn paint(
-    fb: &mut PaintBuffer,
-    icons: &Icons,
-    r: Rect,
-    lib: &Library,
-    playing: Option<usize>,
-) {
+fn shelf_head(r: Rect, shelf: usize) -> Rect {
+    Rect::new(r.x, shelf_top(r, shelf) - line_h(SECTION) - S3, r.w, line_h(SECTION))
+}
+
+fn see_all_rect(r: Rect, shelf: usize) -> Rect {
+    let h = shelf_head(r, shelf);
+    let w = width(SEE_ALL, BODY) + S2 * 2;
+    Rect::new(h.right() - w + S2, h.y, w, h.h)
+}
+
+fn shelf_filled(r: Rect, n: usize, shelf: usize) -> bool {
+    shelf * (cols(r) as usize) < n
+}
+
+/// "See all" on a shelf that shows tracks opens the Library list.
+pub fn see_all_at(r: Rect, n: usize, x: i32, y: i32) -> bool {
+    (0..shelves(r)).any(|s| shelf_filled(r, n, s) && see_all_rect(r, s).contains(x, y))
+}
+
+pub fn paint(fb: &mut PaintBuffer, icons: &Icons, r: Rect, lib: &Library, playing: Option<usize>) {
     let banner = Rect::new(r.x, r.y, r.w, HERO_H);
     let feature = lib.tracks.first();
-    let title = feature.map(|t| t.title.as_str()).unwrap_or("Your library");
-    hero(
-        fb,
-        icons,
-        banner,
-        "Featured today",
-        title,
-        "Picked up where you left off, tuned to the hour and the room you are in.",
-        ("NONOS AUDIO", "LOSSLESS"),
-    );
+    let (eyebrow, title, copy, format, actions) = match feature {
+        Some(t) => (
+            "First in your library",
+            t.title.as_str(),
+            "Play starts it, Shuffle mixes the queue.",
+            t.format.as_str(),
+            [("Play", Glyph::Play), ("Shuffle", Glyph::Shuffle)],
+        ),
+        // Nothing ships with the system: the banner says how music gets here
+        // and its buttons go there, not a Play with nothing to play.
+        None => (
+            "Welcome",
+            "Your music lives here",
+            "Paste an MP3 link into Search, or copy files into /home/nonos/music.",
+            "",
+            [("Paste a link", Glyph::Search), ("Downloads", Glyph::Download)],
+        ),
+    };
+    hero(fb, icons, banner, eyebrow, title, copy, ("NONOS AUDIO", format), actions);
 
     let n = lib.tracks.len();
     for shelf in 0..shelves(r) {
-        let head = Rect::new(r.x, shelf_top(r, shelf) - line_h(SECTION) - S3, r.w, line_h(SECTION));
-        let (t, a) = SHELF_TITLES[shelf.min(2)];
-        section_header(fb, head, t, a);
+        if !shelf_filled(r, n, shelf) {
+            break;
+        }
+        section_header(fb, shelf_head(r, shelf), SHELF_TITLES[shelf.min(2)], SEE_ALL);
         for col in 0..cols(r) {
             let i = shelf * cols(r) as usize + col as usize;
             if i >= n {
@@ -123,5 +149,4 @@ pub fn paint(
             );
         }
     }
-    let _ = S5;
 }

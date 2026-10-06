@@ -25,7 +25,13 @@ pub fn speaker(px: u32, rgb: u32) -> Sprite {
     let cy = m(50);
     shape::rrect(&mut s, m(18), m(40), m(14), m(20), m(3), rgb);
     shape::tri(&mut s, [(m(18), cy), (m(42), m(22)), (m(42), m(78))], rgb);
-    prim::ring(&mut s, m(50), cy, m(30), m(6), rgb);
+    // Two sound waves to its right, where a ring round it read as a
+    // half moon at the size the bar draws it.
+    let t = m(7);
+    stroke::line(&mut s, (m(56), m(38)), (m(62), cy), t, rgb);
+    stroke::line(&mut s, (m(62), cy), (m(56), m(62)), t, rgb);
+    stroke::line(&mut s, (m(68), m(26)), (m(78), cy), t, rgb);
+    stroke::line(&mut s, (m(78), cy), (m(68), m(74)), t, rgb);
     s
 }
 

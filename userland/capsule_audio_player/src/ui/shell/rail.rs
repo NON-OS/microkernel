@@ -14,81 +14,76 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! The right rail: the cover of what is playing, its scrubber and transport,
-//! the volume trim and the up-next queue. `tab_at` and `queue_row` are the one
-//! geometry source, so the hit-test lands on exactly what the painter drew.
+//! the volume trim and the up-next queue. `queue_row` is the one geometry
+//! source (`rail_geom.rs`), so the hit-test lands on exactly the row the
+//! painter drew.
 
 extern crate alloc;
 
 use nonos_app_skeleton::PaintBuffer;
 
 use crate::library::{Library, Queue};
-use crate::transport::State;
 use crate::model::PlayerView;
+use crate::transport::State;
 use crate::ui::art::cover;
+use crate::ui::control::Control;
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
-use crate::ui::metrics::{cap_h, pill, ITEM, LABEL, SECONDARY, S1, S2, S3, S4, S5, S6, SECTION};
-use crate::ui::paint::{fill, stroke, text, text_centre, text_right};
-use crate::ui::state::RAIL_TABS;
+use crate::ui::metrics::{cap_h, pill, ITEM, LABEL, S1, S2, S3, S4, S5, SECONDARY, SECTION};
+use crate::ui::paint::{fill, stroke, text, text_centre, text_mid, text_right};
 use crate::ui::text::{mmss, truncate_to_width};
-use crate::ui::theme::{CYAN, CYAN_WASH, EDGE, INK, MID, MUTE, PANEL, VOID};
-use crate::ui::widget::slider;
+use crate::ui::theme::{CYAN, CYAN_WASH, EDGE, INK, MID, MUTE, PANEL, RED, VOID};
+use crate::ui::widget::{permille, slider};
 
-const QROW_H: i32 = 46;
+use super::rail_geom::{
+    art_rect, body, head_rect, queue_row, queue_visible, seek_rect, transport_row, vol_rect, QROW_H,
+};
 
-fn body(r: Rect) -> Rect {
-    r.pad(S5, S5)
+fn play_rect(r: Rect) -> Rect {
+    let tr = transport_row(r);
+    Rect::new(tr.cx() - 22, tr.y, 44, 44)
 }
 
-fn reserved() -> i32 {
-    S6 + cap_h(SECTION) * 4 + 6 + S5 + cap_h(LABEL) * 2 + 44 + S5 + 6 + S6 + 32 + S4 + QROW_H
-}
-
-fn art_rect(r: Rect) -> Rect {
+// The four small buttons beside play, in the order prev, next, shuffle, repeat.
+fn small_rects(r: Rect) -> [Rect; 4] {
     let b = body(r);
-    let h = (b.h - reserved()).clamp(72, b.w);
-    Rect::new(b.x, b.y, b.w, h)
+    let tr = transport_row(r);
+    let big = play_rect(r);
+    [
+        Rect::new(big.x - 44 - S3, tr.y + 7, 30, 30),
+        Rect::new(big.right() + S3, tr.y + 7, 30, 30),
+        Rect::new(b.x, tr.y + 7, 30, 30),
+        Rect::new(b.right() - 30, tr.y + 7, 30, 30),
+    ]
 }
 
-fn seek_rect(r: Rect) -> Rect {
+fn speaker_rect(r: Rect) -> Rect {
     let b = body(r);
-    Rect::new(b.x, art_rect(r).bottom() + S6 + cap_h(SECTION) * 4, b.w, 6)
+    Rect::new(b.x, vol_rect(r).cy() - 11, 22, 22)
 }
 
-fn transport_row(r: Rect) -> Rect {
-    let b = body(r);
-    Rect::new(b.x, seek_rect(r).bottom() + S5 + cap_h(LABEL) * 2, b.w, 44)
-}
-
-fn vol_rect(r: Rect) -> Rect {
-    let b = body(r);
-    Rect::new(b.x + 26, transport_row(r).bottom() + S5, b.w - 26, 6)
-}
-
-pub fn tab_rect(r: Rect, i: usize) -> Rect {
-    let b = body(r);
-    let w = b.w / RAIL_TABS.len() as i32;
-    Rect::new(b.x + i as i32 * w, vol_rect(r).bottom() + S6, w, 32)
-}
-
-pub fn tab_at(r: Rect, x: i32, y: i32) -> Option<usize> {
-    (0..RAIL_TABS.len()).find(|&i| tab_rect(r, i).contains(x, y))
-}
-
-pub fn queue_row(r: Rect, i: usize) -> Rect {
-    let b = body(r);
-    Rect::new(b.x, tab_rect(r, 0).bottom() + S3 + i as i32 * QROW_H, b.w, QROW_H)
-}
-
-pub fn queue_visible(r: Rect) -> usize {
-    let top = queue_row(r, 0).y;
-    ((r.bottom() - S5 - top).max(0) / QROW_H) as usize
-}
-
-pub fn queue_at(r: Rect, x: i32, y: i32) -> Option<usize> {
-    (0..queue_visible(r)).find(|&i| queue_row(r, i).contains(x, y))
+/// The rail's own transport answers clicks the same way the bar's does.
+pub fn control_at(r: Rect, x: i32, y: i32) -> Option<Control> {
+    if play_rect(r).contains(x, y) {
+        return Some(Control::PlayPause);
+    }
+    let small = [Control::Prev, Control::Next, Control::Shuffle, Control::Repeat];
+    if let Some(i) = (0..4).find(|&i| small_rects(r)[i].contains(x, y)) {
+        return Some(small[i]);
+    }
+    if speaker_rect(r).contains(x, y) {
+        return Some(Control::Mute);
+    }
+    let seek = seek_rect(r);
+    if seek.inset(-8).contains(x, y) {
+        return Some(Control::Seek(permille(seek, x)));
+    }
+    let vol = vol_rect(r);
+    if vol.inset(-8).contains(x, y) {
+        return Some(Control::Volume(permille(vol, x)));
+    }
+    None
 }
 
 fn round_btn(fb: &mut PaintBuffer, icons: &Icons, r: Rect, g: Glyph, ink: u32) {
@@ -102,7 +97,6 @@ pub fn rail(
     lib: &Library,
     queue: &Queue,
     view: &PlayerView,
-    tab: usize,
 ) {
     if r.w <= 0 {
         return;
@@ -117,44 +111,38 @@ pub fn rail(
     cover(fb, art, title, 12);
 
     let ty = art.bottom() + S5;
-    let head = truncate_to_width(title, SECTION, b.w - 34);
+    let head = truncate_to_width(title, SECTION, b.w);
     text(fb, b.x, ty, &head, INK, SECTION);
-    let sub = truncate_to_width(artist, SECONDARY, b.w - 34);
+    let sub = truncate_to_width(artist, SECONDARY, b.w);
     text(fb, b.x, ty + cap_h(SECTION) * 2, &sub, MID, SECONDARY);
-    icons.centred(fb, Rect::new(b.right() - 30, ty, 30, 30), 17, Glyph::Heart, MUTE);
 
     let seek = seek_rect(r);
     slider(fb, seek, view.pos_ms as u64, view.dur_ms.max(1) as u64, true);
     let times = Rect::new(b.x, seek.bottom() + S2, b.w, cap_h(LABEL) * 2);
-    text(fb, times.x, times.y, &mmss(view.pos_ms), MUTE, LABEL);
+    text_mid(fb, times, &mmss(view.pos_ms), MUTE, LABEL);
     text_right(fb, times, &mmss(view.dur_ms), MUTE, LABEL);
 
-    let tr = transport_row(r);
-    let big = Rect::new(tr.cx() - 22, tr.y, 44, 44);
+    let big = play_rect(r);
     fill(fb, big, pill(44), CYAN);
     let g = if view.state == State::Playing { Glyph::Pause } else { Glyph::Play };
     icons.centred(fb, big, 19, g, VOID);
-    round_btn(fb, icons, Rect::new(big.x - 44 - S3, tr.y + 7, 30, 30), Glyph::Prev, INK);
-    round_btn(fb, icons, Rect::new(big.right() + S3, tr.y + 7, 30, 30), Glyph::Next, INK);
+    let [prev, next, shuffle, repeat] = small_rects(r);
+    round_btn(fb, icons, prev, Glyph::Prev, INK);
+    round_btn(fb, icons, next, Glyph::Next, INK);
     let sh = if view.shuffle { CYAN } else { MUTE };
     let rp = if view.repeat { CYAN } else { MUTE };
-    round_btn(fb, icons, Rect::new(b.x, tr.y + 7, 30, 30), Glyph::Shuffle, sh);
-    round_btn(fb, icons, Rect::new(b.right() - 30, tr.y + 7, 30, 30), Glyph::Repeat, rp);
+    round_btn(fb, icons, shuffle, Glyph::Shuffle, sh);
+    round_btn(fb, icons, repeat, Glyph::Repeat, rp);
 
     let vol = vol_rect(r);
-    icons.centred(fb, Rect::new(b.x, vol.cy() - 11, 22, 22), 16, Glyph::Speaker, MID);
+    let spk = if view.muted { RED } else { MID };
+    icons.centred(fb, speaker_rect(r), 16, Glyph::Speaker, spk);
     let level = if view.muted { 0 } else { view.volume_q15.max(0) as u64 };
     slider(fb, vol, level, 32768, false);
 
-    for (i, label) in RAIL_TABS.iter().enumerate() {
-        let t = tab_rect(r, i);
-        let on = i == tab;
-        text_centre(fb, t, label, if on { INK } else { MUTE }, SECONDARY);
-        if on {
-            fill(fb, Rect::new(t.x + S3, t.bottom() - 2, t.w - S3 * 2, 2), 1, CYAN);
-        }
-    }
-    fill(fb, Rect::new(b.x, tab_rect(r, 0).bottom() - 1, b.w, 1), 0, EDGE);
+    let qh = head_rect(r);
+    text_mid(fb, qh, "Up next", INK, SECONDARY);
+    fill(fb, Rect::new(b.x, qh.bottom() - 1, b.w, 1), 0, EDGE);
 
     let items = queue.items();
     let shown = queue_visible(r).min(items.len());
@@ -177,14 +165,7 @@ pub fn rail(
             INK,
             SECONDARY,
         );
-        text(
-            fb,
-            tx,
-            row.cy() + S1,
-            &truncate_to_width(&t.artist, LABEL, tw),
-            MUTE,
-            LABEL,
-        );
+        text(fb, tx, row.cy() + S1, &truncate_to_width(&t.artist, LABEL, tw), MUTE, LABEL);
     }
     if shown == 0 {
         let empty = Rect::new(b.x, queue_row(r, 0).y, b.w, QROW_H);

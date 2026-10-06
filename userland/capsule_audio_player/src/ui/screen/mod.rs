@@ -14,24 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod browse;
-mod downloads;
 mod home;
 mod lib_geom;
 mod library;
 mod nowplaying;
-mod radio;
+mod downloads;
 mod search;
 mod settings;
 mod settings_view;
 
-pub use browse::paint as browse;
-pub use downloads::{paint as downloads, row_at as downloads_row_at, visible as downloads_visible};
-pub use radio::{paint as radio, tile_at as radio_tile_at};
-pub use home::{card_at, paint as home};
+pub use home::{card_at, paint as home, see_all_at};
 pub use lib_geom::{row_at as lib_row_at, rows_for, tab_hit, visible as lib_visible};
 pub use library::paint as library;
 pub use nowplaying::paint as nowplaying;
-pub use search::{paint as search, row_at as search_row_at, play_at as search_play_at};
+pub use downloads::{
+    act_at as download_act_at, any_finished, clear_rect as downloads_clear_rect,
+    paint as downloads, visible as downloads_visible,
+};
+pub use search::{
+    clear_rect as search_clear_rect, paint as search, play_at as search_play_at,
+    play_rect as search_play_rect, row_at as search_row_at, visible as search_visible,
+};
 pub use settings::{hit as settings_hit, Hit as SettingsHit};
 pub use settings_view::paint as settings;

@@ -21,7 +21,7 @@ use alloc::vec::Vec;
  * From the shared crate rather than written out again here. This copy did not
  * know about OP_PLAY_TONE, which the server has always answered to.
  */
-pub use nonos_audio_proto::{E_AGAIN, OP_CLOSE, OP_FEED_PCM, OP_PAUSE, OP_RESUME, OP_STREAM_OPEN};
+pub use nonos_audio_proto::{E_AGAIN, E_NODEV, OP_CLOSE, OP_FEED_PCM, OP_PAUSE, OP_RESUME, OP_STREAM_OPEN};
 pub use nonos_audio_proto::{HDR_LEN, MAGIC, VERSION};
 
 fn build_request(op: u16, request_id: u32, payload: &[u8]) -> Vec<u8> {

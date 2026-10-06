@@ -49,7 +49,8 @@ pub fn cols(r: Rect) -> Cols {
     let art = Rect::new(ix.right() + S3, r.cy() - art_s / 2, art_s, art_s);
     let pip = Rect::new(r.right() - 34, r.y, 26, r.h);
     let time = Rect::new(pip.x - 80, r.y, 70, r.h);
-    let format = Rect::new(time.x - 96, r.y, 86, r.h);
+    // Room for an album's name; the title keeps the rest.
+    let format = Rect::new(time.x - 236, r.y, 220, r.h);
     Cols { index: ix, art, title: Rect::new(art.right() + S4, r.y, format.x - art.right() - S4 * 2, r.h), format, time, pip }
 }
 
@@ -57,7 +58,7 @@ pub fn header(fb: &mut PaintBuffer, r: Rect) {
     let c = cols(r);
     text_mid(fb, c.index, "#", MUTE, LABEL);
     text_mid(fb, c.title, &upper("Title"), MUTE, LABEL);
-    text_mid(fb, c.format, &upper("Format"), MUTE, LABEL);
+    text_mid(fb, c.format, &upper("Album"), MUTE, LABEL);
     text_right(fb, c.time, &upper("Time"), MUTE, LABEL);
     fill(fb, Rect::new(r.x, r.bottom() - 1, r.w, 1), 0, EDGE);
 }
@@ -68,7 +69,7 @@ pub struct Flags {
     pub hover: bool,
 }
 
-pub fn row(fb: &mut PaintBuffer, icons: &Icons, r: Rect, t: &Track, n: usize, f: &Flags, step: u32) {
+pub fn row(fb: &mut PaintBuffer, icons: &Icons, r: Rect, t: &Track, n: usize, f: &Flags, level: u16) {
     let (playing, queued) = (f.playing, f.queued);
     let c = cols(r);
     if f.hover && !playing {
@@ -76,7 +77,7 @@ pub fn row(fb: &mut PaintBuffer, icons: &Icons, r: Rect, t: &Track, n: usize, f:
     }
     if playing {
         fill(fb, r, 8, HOVER);
-        equalizer(fb, c.index.centred(16, 16), true, step);
+        equalizer(fb, c.index.centred(16, 16), level);
     } else {
         let mut s = String::new();
         push_u32(&mut s, n as u32, 2);
@@ -89,8 +90,12 @@ pub fn row(fb: &mut PaintBuffer, icons: &Icons, r: Rect, t: &Track, n: usize, f:
     text(fb, c.title.x, ty, &title, fg, ITEM);
     let artist = truncate_to_width(&t.artist, SECONDARY, c.title.w);
     text(fb, c.title.x, ty + line_h(ITEM), &artist, MID, SECONDARY);
-    text_mid(fb, c.format, &t.format, MID, DATA);
-    text_right(fb, c.time, &mmss(t.dur_ms), MID, DATA);
+    // The album its tags name, or the file's format when they name none.
+    let album = if t.album.is_empty() { t.format.clone() } else { truncate_to_width(&t.album, DATA, c.format.w) };
+    text_mid(fb, c.format, &album, MID, DATA);
+    // A track not loaded yet has no known length: "--", not "0:00".
+    let time = if t.dur_ms == 0 { String::from("--") } else { mmss(t.dur_ms) };
+    text_right(fb, c.time, &time, MID, DATA);
     if queued {
         icons.centred(fb, c.pip, 18, Glyph::Check, GREEN);
     }

@@ -20,23 +20,23 @@ use nonos_app_skeleton::PaintBuffer;
 
 use crate::ui::geometry::Rect;
 use crate::ui::paint::fill;
-use crate::ui::theme::CYAN;
+use crate::ui::theme::{alpha, CYAN};
 
-const PHASE: [i32; 4] = [88, 46, 100, 62];
+/// Output levels, of 32767, at which each bar lights: about -24, -18, -12
+/// and -6 dB.
+const LIT_AT: [u16; 4] = [2064, 4125, 8231, 16423];
 
-pub fn equalizer(fb: &mut PaintBuffer, r: Rect, running: bool, step: u32) {
+/// The playing row's level meter: four bars, rising left to right, lit by
+/// the loudest sample just sent to the output (`Transport::level`). It was
+/// animated from a frame counter, the same dance whatever was playing and
+/// through silence.
+pub fn equalizer(fb: &mut PaintBuffer, r: Rect, level: u16) {
     let bw = (r.w / 7).max(2);
     let gap = (r.w - bw * 4) / 3;
-    for (i, base) in PHASE.iter().enumerate() {
-        let pct = if running {
-            let t = (step + i as u32 * 37) % 100;
-            let swing = if t < 50 { t } else { 100 - t };
-            (*base * (55 + swing as i32 * 90 / 100)) / 100
-        } else {
-            *base / 3
-        };
-        let h = (r.h * pct.clamp(12, 100) / 100).max(2);
+    for (i, at) in LIT_AT.iter().enumerate() {
+        let h = (r.h * (i as i32 + 1) / 4).max(2);
         let x = r.x + i as i32 * (bw + gap);
-        fill(fb, Rect::new(x, r.bottom() - h, bw, h), 1, CYAN);
+        let ink = if level >= *at { CYAN } else { alpha(CYAN, 0x40) };
+        fill(fb, Rect::new(x, r.bottom() - h, bw, h), 1, ink);
     }
 }

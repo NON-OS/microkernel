@@ -21,6 +21,7 @@
 extern crate alloc;
 
 use alloc::string::String;
+use alloc::vec::Vec;
 use nonos_app_skeleton::measure_ttf;
 
 pub fn truncate_to_width(s: &str, px: f32, max: i32) -> String {
@@ -41,6 +42,36 @@ pub fn truncate_to_width(s: &str, px: f32, max: i32) -> String {
     }
     let mut out = String::from(&s[..cut]);
     out.push_str(ell);
+    out
+}
+
+/// The end of `s` that fits in `max`, after "...": for a field whose text
+/// runs on past its width, where the newest characters are the ones to see.
+pub fn tail_to_width(s: &str, px: f32, max: i32) -> String {
+    if measure_ttf(s, px) <= max {
+        return String::from(s);
+    }
+    let ell = "...";
+    let budget = max - measure_ttf(ell, px);
+    if budget <= 0 {
+        return String::new();
+    }
+    // The longest end that fits, found by halving: an address runs to a
+    // thousand characters, and measuring every end of it on each paint
+    // would cost a million glyph lookups.
+    let starts: Vec<usize> = s.char_indices().map(|(i, _)| i).collect();
+    let (mut lo, mut hi) = (0, starts.len());
+    while lo < hi {
+        let mid = (lo + hi) / 2;
+        if measure_ttf(&s[starts[mid]..], px) <= budget {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+    }
+    let from = starts.get(lo).copied().unwrap_or(s.len());
+    let mut out = String::from(ell);
+    out.push_str(&s[from..]);
     out
 }
 

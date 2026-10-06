@@ -40,6 +40,9 @@ impl Decoder for FakeDecoder {
     fn info(&self) -> AudioInfo {
         AudioInfo { rate: 48_000, channels: 2, total_frames: Some(4) }
     }
+    fn kind(&self) -> &'static str {
+        "WAV"
+    }
     fn next(&mut self, out: &mut [i16]) -> usize {
         if self.frames_left == 0 {
             return 0;

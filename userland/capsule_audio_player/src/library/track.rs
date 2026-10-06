@@ -19,10 +19,21 @@ use alloc::string::{String, ToString};
 
 pub struct Track {
     pub title: String,
+    /// The line under the title: the artist its tags name, or the file's
+    /// own name when they name none, never an artist made up.
     pub artist: String,
     pub format: String,
     pub path: String,
     pub dur_ms: u32,
+    /// The artist its tags name; empty when they name none.
+    pub by: String,
+    /// The album its tags name; empty when they name none.
+    pub album: String,
+    /// Its number on that album.
+    pub number: Option<u16>,
+    /// Whether its tags have been read yet (`tag_pass.rs`), so each file is
+    /// read once and the window stays live while a large library is.
+    pub tagged: bool,
 }
 
 impl Track {
@@ -31,10 +42,15 @@ impl Track {
         let (stem, ext) = split_ext(base);
         Track {
             title: prettify(stem),
-            artist: String::from("NONOS"),
+            artist: base.to_string(),
             format: fmt_label(ext),
             path: path.to_string(),
+            // Known once the track has loaded (`app.rs`); 0 until then.
             dur_ms: 0,
+            by: String::new(),
+            album: String::new(),
+            number: None,
+            tagged: false,
         }
     }
 }

@@ -21,7 +21,7 @@ use nonos_app_skeleton::PaintBuffer;
 use crate::ui::geometry::Rect;
 use crate::ui::icon::{Glyph, Icons};
 use crate::ui::metrics::{pill, ITEM, R_CTL, S3};
-use crate::ui::paint::{fill, panel, shadow, text, width};
+use crate::ui::paint::{fill, mid_top, panel, shadow, text, width};
 use crate::ui::theme::{alpha, rgb, CYAN, EDGE, INK, VOID};
 
 #[derive(Clone, Copy, PartialEq)]
@@ -68,5 +68,5 @@ pub fn button(
         icons.draw(fb, Rect::new(x, r.cy() - s / 2, s, s), g, fg);
         x += s + S3;
     }
-    text(fb, x, r.cy() - (ITEM * 0.72) as i32, label, fg, ITEM);
+    text(fb, x, mid_top(r.cy(), ITEM), label, fg, ITEM);
 }
