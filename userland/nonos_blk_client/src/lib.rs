@@ -19,8 +19,9 @@
 //! The three drivers share a header and differ in magic, opcode numbers and
 //! service name. [`Driver`] carries those three facts per driver, the wire
 //! module encodes and decodes the shared header, and [`BlockDevice`] is what
-//! a caller holds: capacity, read, write, flush, in whole sectors, sixty-four
-//! per request because that is the smallest ceiling any of the three has.
+//! a caller holds: capacity, read, write, flush, in whole 512-byte sectors
+//! whatever the disk's own block size, split per request at what its
+//! driver moves at once.
 
 #![no_std]
 
@@ -30,11 +31,15 @@ mod device;
 mod disks;
 mod driver;
 mod error;
+mod refusal;
 mod sink;
+mod status_text;
 mod wire;
 
-pub use device::{discover, BlockDevice, Found, Identity};
-pub use disks::{scan, Contents, Disk};
-pub use driver::Driver;
+pub use device::{controllers, discover, BlockDevice, Found, Geometry, Identity};
+pub use disks::{scan, survey, Contents, Disk, Survey};
+pub use driver::{classify, Controller, Driver};
 pub use error::BlkError;
+pub use refusal::{last_refusal, Op as RefusedOp, Refusal};
 pub use sink::DeviceSink;
+pub use status_text::describe as describe_status;

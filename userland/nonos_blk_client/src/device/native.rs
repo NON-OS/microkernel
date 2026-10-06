@@ -14,21 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The flush. Reads and writes are in `read.rs` and `write.rs`; callers
-//! hand them whole sectors of any length, and `span.rs` splits them at the
-//! per-request ceiling in the disk's own blocks, so the disk writer above
-//! never has to know what the ceiling or the block size is.
+//! The driver requests `span.rs` asks for, over the wire. A request that
+//! fails is logged here, in the disk's own blocks, which is what the
+//! driver was sent and what its own log names.
 
 use super::handle::BlockDevice;
+use super::refused::refused_blocks;
+use super::span::Native;
 use crate::error::BlkError;
-use crate::wire::{call, decode_reply, HDR_LEN, STATUS_LEN};
 
-impl BlockDevice {
-    pub fn flush(&self) -> Result<(), BlkError> {
-        let op = self.driver.ops().flush;
-        let mut rx = [0u8; HDR_LEN + STATUS_LEN];
-        let done = call(self.port, self.driver.magic(), op, &[], &mut rx)
-            .and_then(|(n, id)| decode_reply(&rx, n, self.driver.magic(), op, id).map(|_| ()));
-        done.inspect_err(|e| super::refused::refused("flush", 0, 0, e))
+pub struct Wire<'a>(pub &'a BlockDevice);
+
+impl Native for Wire<'_> {
+    type Error = BlkError;
+
+    fn read_native(&mut self, lba: u64, out: &mut [u8]) -> Result<(), BlkError> {
+        self.0.read_one(lba, out).inspect_err(|e| refused_blocks("read", self.0, lba, out.len(), e))
+    }
+
+    fn write_native(&mut self, lba: u64, data: &[u8]) -> Result<(), BlkError> {
+        self.0
+            .write_one(lba, data)
+            .inspect_err(|e| refused_blocks("write", self.0, lba, data.len(), e))
     }
 }

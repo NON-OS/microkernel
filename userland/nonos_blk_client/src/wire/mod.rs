@@ -27,7 +27,6 @@ pub use encode::{encode_request, rw_header};
 pub const VERSION: u16 = 1;
 pub const HDR_LEN: usize = 20;
 pub const STATUS_LEN: usize = 4;
+/// The unit callers address a disk in. The per-request ceiling and the
+/// disk's own block size are the device's, in `device/span.rs`.
 pub const SECTOR_SIZE: usize = 512;
-/// The smallest per-request ceiling among the three drivers.
-pub const MAX_SECTORS: usize = 64;
-pub const MAX_BYTES: usize = MAX_SECTORS * SECTOR_SIZE;

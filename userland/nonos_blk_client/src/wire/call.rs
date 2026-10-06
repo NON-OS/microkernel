@@ -28,9 +28,10 @@ use nonos_libc::mk_ipc_call_timeout;
 use super::encode_request;
 use crate::error::BlkError;
 
-/// Long enough for a first request to a driver still finishing its bring-up
-/// under TCG, short enough that a dead disk fails the install in seconds.
-const TIMEOUT_MS: u64 = 8000;
+/// Longer than the driver's own wait for a request (settle, then up to 30 s
+/// for the device), so the driver, not this call, is the one that says why a
+/// slow request failed.
+const TIMEOUT_MS: u64 = 65_000;
 
 static REQUEST_ID: AtomicU32 = AtomicU32::new(1);
 
