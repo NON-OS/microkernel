@@ -44,3 +44,14 @@ Solid arrows show which code starts which. Dotted arrows show measurements going
 | Shutdown | `zerostate_shutdown_wipe` quiesces devices, then wipes DMA buffers, process memory, kernel stacks and the heap (`src/security/hardening/memory_sanitization/api.rs:59-110`) |
 
 None of these defends against everything. [Protections and limits](protections-and-limits.md) lists what NONOS addresses and what it does not, each in one table.
+
+## Pages in this section
+
+- [Boot chain and signatures](boot-chain-and-signatures.md): how the kernel and capsules are signed with Ed25519 and ML-DSA, and who checks each signature.
+- [Rollback protection](rollback-protection.md): how an older, signed image is refused.
+- [STARK attestation](stark-attestation.md): the proofs a capsule carries and the anonymous device proof.
+- [Measured boot and TPM](measured-boot-and-tpm.md): which PCRs are extended, the machine key and the attestation key.
+- [Capsule isolation](capsule-isolation.md): address spaces, the capability check on every system call, IPC rules, driver confinement and the Linux sandbox.
+- [Device secrets and keys](device-secrets-and-keys.md): the keyring, sealed records, the encrypted data volume, what stays in RAM and what is wiped at shutdown.
+- [Protections and limits](protections-and-limits.md): the threats NONOS addresses and the ones it does not.
+- [Reporting a vulnerability](reporting-a-vulnerability.md): how to report a security bug privately.
