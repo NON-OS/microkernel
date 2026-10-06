@@ -19,9 +19,11 @@
 
 mod decode;
 mod layout;
+mod mouse_layout;
 mod parse;
 mod read_bits;
 
-pub use decode::{decode_touch, TouchSample};
+pub use decode::{decode_mouse, decode_touch, TouchSample};
 pub use layout::{Field, TouchLayout};
-pub use parse::parse;
+pub use mouse_layout::MouseLayout;
+pub use parse::{parse, parse_mouse};

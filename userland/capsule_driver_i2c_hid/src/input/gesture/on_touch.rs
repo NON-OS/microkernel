@@ -16,7 +16,8 @@
 
 use super::types::{
     TouchActions, TouchGesture, CONTINUITY_DIV, GAIN_CEIL_X16, GAIN_FLOOR_X16, GAIN_SPEED_DIV,
-    MOTION_CAP, NOMINAL_WIDTH, TAP_MAX_FRAMES, TAP_TRAVEL_DIV,
+    MOTION_CAP, NATURAL_SCROLL, NOMINAL_WIDTH, SCROLL_JUMP_DIV, SCROLL_NOTCHES_PER_PAD,
+    TAP_MAX_FRAMES, TAP_TRAVEL_DIV,
 };
 use crate::hid::TouchSample;
 
@@ -72,24 +73,28 @@ impl TouchGesture {
             return act;
         }
 
+        // A precision touchpad in hybrid mode sends one finger per report and
+        // the frame's contact count only in the first; the others say zero.
+        // A report that says zero with its finger down belongs to the frame
+        // the last count described.
+        if contacts > 0 {
+            self.frame_contacts = contacts;
+        } else if !tip {
+            self.frame_contacts = 0;
+        }
+        let contacts = if contacts == 0 && tip { self.frame_contacts } else { contacts };
+
         if contacts >= 2 {
             self.multi_touch = true;
-            let scroll_step = (y_max / 96).max(1);
-            if self.scrolling {
-                let dy = y as i32 - self.scroll_y as i32;
-                if dy.unsigned_abs() >= scroll_step {
-                    act.wheel = dy / scroll_step as i32;
-                    self.scroll_y = y;
-                }
-            } else {
-                self.scrolling = true;
-                self.scroll_y = y;
+            if let Some(wheel) = self.scroll(s.contact_id, tip, y, y_max) {
+                act.wheel = wheel;
             }
             // Two fingers never move the cursor.
             self.was_tip = false;
             return act;
         }
         self.scrolling = false;
+        self.scroll_id = None;
 
         // PTP hybrid reporting alternates which contact a report carries, and
         // only the first report of a frame set carries the true contact count.
@@ -169,6 +174,45 @@ impl TouchGesture {
 // One axis of the accelerated pad-to-pixel conversion. The accumulator holds
 // the remainder in (pad-range * 16) denominator units, so slow motion that
 // rounds to zero pixels in one report still adds up across reports.
+impl TouchGesture {
+    /// One report of a two-finger touch. The scroll follows one finger: the
+    /// first one seen, by its contact identifier when the pad gives one, so
+    /// the reports of the other finger in hybrid mode neither move it nor
+    /// re-anchor it. Whole notches are posted and the rest is kept for the
+    /// next report.
+    fn scroll(&mut self, id: Option<u32>, tip: bool, y: u32, y_max: u32) -> Option<i32> {
+        if !self.scrolling {
+            if tip {
+                self.scrolling = true;
+                self.scroll_id = id;
+                self.scroll_y = y;
+            }
+            return None;
+        }
+        let mine = match (self.scroll_id, id) {
+            (Some(a), Some(b)) => a == b,
+            _ => true,
+        };
+        if !mine || !tip {
+            return None;
+        }
+        let dy = y as i32 - self.scroll_y as i32;
+        if dy.unsigned_abs() > y_max / SCROLL_JUMP_DIV {
+            self.scroll_y = y;
+            return None;
+        }
+        let step = (y_max / SCROLL_NOTCHES_PER_PAD).max(1) as i32;
+        let notches = dy / step;
+        if notches == 0 {
+            return None;
+        }
+        self.scroll_y = (self.scroll_y as i32 + notches * step) as u32;
+        // Fingers moving down the pad (y growing) scroll the view down,
+        // which is a negative wheel, unless natural scrolling is on.
+        Some(if NATURAL_SCROLL { notches } else { -notches })
+    }
+}
+
 fn step_axis(acc: &mut i64, d_pad: i64, gain_x16: i64, den_pad: i64) -> i32 {
     let den = den_pad * 16;
     *acc += d_pad * NOMINAL_WIDTH * gain_x16;

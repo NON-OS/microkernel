@@ -14,16 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Turn a stream of touch samples into pointer gestures: relative cursor
-//! motion with speed-dependent acceleration under one finger, two-finger
-//! scroll, and palm suppression via the PTP confidence bit. Clicks come from
-//! the physical clickpad button and from a short tap that barely travels; a
-//! brush that moves is a drag and never clicks. Motion is relative, not absolute: a
-//! laptop pad is a motion surface, and absolute mapping would teleport the
-//! cursor to wherever the finger lands. Pure state so it can be exercised by
-//! host tests without a device.
+//! The driver's state for its one pad.
 
-mod on_touch;
-mod types;
+mod fields;
+mod new;
+mod repeat;
 
-pub use types::{TouchActions, TouchGesture};
+pub use fields::State;
+pub use repeat::{FrameRepeat, FRAME_MAX};

@@ -14,16 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Turn a stream of touch samples into pointer gestures: relative cursor
-//! motion with speed-dependent acceleration under one finger, two-finger
-//! scroll, and palm suppression via the PTP confidence bit. Clicks come from
-//! the physical clickpad button and from a short tap that barely travels; a
-//! brush that moves is a drag and never clicks. Motion is relative, not absolute: a
-//! laptop pad is a motion surface, and absolute mapping would teleport the
-//! cursor to wherever the finger lands. Pure state so it can be exercised by
-//! host tests without a device.
+//! Where the fields of a relative mouse report sit, as the descriptor walk
+//! found them. Offsets are in bits from the start of the report body.
 
-mod on_touch;
-mod types;
+use super::layout::Field;
 
-pub use types::{TouchActions, TouchGesture};
+/// The fields of a relative mouse report, located by parsing the HID report
+/// descriptor. `buttons` spans the button bits, button 1 first.
+#[derive(Clone, Copy, Default)]
+pub struct MouseLayout {
+    pub report_id: u8,
+    pub buttons: Field,
+    pub button_count: u8,
+    pub x: Field,
+    pub y: Field,
+    pub wheel: Field,
+}
+
+impl MouseLayout {
+    pub fn is_relative_mouse(&self) -> bool {
+        self.x.present() && self.y.present()
+    }
+}

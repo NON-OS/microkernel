@@ -42,6 +42,10 @@ pub struct TouchLayout {
     pub y: Field,
     pub tip: Field,
     pub contact_count: Field,
+    /// The first finger's Contact Identifier (usage 0x0D:0x51). A pad in
+    /// hybrid mode sends one finger per report, so this is what tells the
+    /// reports of one finger from the other's.
+    pub contact_id: Field,
     pub button: Field,
     /// The PTP Confidence bit (usage 0x0D:0x47): set when the contact is a
     /// deliberate finger, clear for a palm or accidental contact. Absent on

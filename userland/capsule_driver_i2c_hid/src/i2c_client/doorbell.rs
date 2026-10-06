@@ -19,7 +19,11 @@ use nonos_libc::mk_ipc_call_timeout;
 use crate::i2c_client::seq;
 use crate::i2c_client::wire::{HDR_LEN, MAGIC, OP_GPIO_DOORBELL, VERSION};
 
-const CALL_TIMEOUT_MS: u64 = 5;
+/// The controller driver answers this from one register read, but it is a
+/// process of its own and has to be scheduled to do it: a budget shorter than
+/// a scheduler tick timed out under ordinary load, and each miss was a kernel
+/// `ipc.call unanswered` line.
+const CALL_TIMEOUT_MS: u64 = 25;
 // Header (20) + status (4) + present (4) + fired (4).
 const MIN_REPLY: usize = HDR_LEN + 4 + 8;
 
@@ -36,6 +40,9 @@ pub fn query_doorbell(port: u32) -> Option<(bool, bool)> {
     tx[8..16].copy_from_slice(&request_id.to_le_bytes());
 
     let mut rx = [0u8; 48];
+    if !super::gate::may_call() {
+        return None;
+    }
     let got = mk_ipc_call_timeout(
         port as u64,
         tx.as_ptr(),
@@ -44,6 +51,7 @@ pub fn query_doorbell(port: u32) -> Option<(bool, bool)> {
         rx.len(),
         CALL_TIMEOUT_MS,
     );
+    super::gate::record(got);
     if got < MIN_REPLY as i64 {
         return None;
     }
