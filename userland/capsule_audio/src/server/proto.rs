@@ -23,6 +23,11 @@ pub use nonos_audio_proto::{write_header, HDR_LEN, MAGIC, STATUS_LEN, VERSION};
 pub use nonos_audio_proto::{E_AGAIN, E_INVAL, E_OK};
 pub use nonos_audio_proto::{OP_CLOSE, OP_FEED_PCM, OP_PAUSE, OP_PLAY_PCM, OP_PLAY_TONE};
 pub use nonos_audio_proto::{OP_RESUME, OP_STOP, OP_STREAM_OPEN};
+pub use nonos_audio_proto::{
+    output_status_reply, E_NODEV, OP_OUTPUT_STATUS, OUTPUT_NOT_ANSWERING, OUTPUT_NO_DEVICE,
+    OUTPUT_READY, OUTPUT_REPLY_LEN,
+};
+pub use nonos_audio_proto::{volume_reply, MasterVolume, OP_SET_VOLUME, VOLUME_REPLY_LEN};
 
 pub struct Request {
     pub op: u16,
@@ -44,6 +49,19 @@ pub fn decode(msg: &[u8]) -> Option<Request> {
         request_id: u32::from_le_bytes([msg[12], msg[13], msg[14], msg[15]]),
         payload_len: u32::from_le_bytes([msg[16], msg[17], msg[18], msg[19]]),
     })
+}
+
+/// The request a frame `decode` refused is answered under: the op and request
+/// id it names, or zeros when it is too short to name them.
+pub fn refused(msg: &[u8]) -> Request {
+    let Some(h) = msg.first_chunk::<HDR_LEN>() else {
+        return Request { op: 0, request_id: 0, payload_len: 0 };
+    };
+    Request {
+        op: u16::from_le_bytes([h[6], h[7]]),
+        request_id: u32::from_le_bytes([h[12], h[13], h[14], h[15]]),
+        payload_len: 0,
+    }
 }
 
 pub fn encode_reply(req: &Request, status: i32, out: &mut [u8]) -> usize {
@@ -68,4 +86,19 @@ pub fn encode_open_reply(req: &Request, status: i32, stream_id: u32, out: &mut [
     out[HDR_LEN..HDR_LEN + STATUS_LEN].copy_from_slice(&status.to_le_bytes());
     out[24..28].copy_from_slice(&stream_id.to_le_bytes());
     28
+}
+
+/// The reply to `OP_OUTPUT_STATUS`: what this machine's audio is.
+pub fn encode_output_reply(req: &Request, code: u32, flags: u32, out: &mut [u8]) -> usize {
+    output_status_reply(out, req.request_id, code, flags)
+}
+
+/// The reply to `OP_SET_VOLUME`: `status`, then the volume in force.
+pub fn encode_volume_reply(
+    req: &Request,
+    status: i32,
+    volume: MasterVolume,
+    out: &mut [u8],
+) -> usize {
+    volume_reply(out, req.request_id, status, volume)
 }

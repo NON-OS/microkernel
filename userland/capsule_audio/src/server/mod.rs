@@ -24,5 +24,5 @@ mod serve;
 pub mod streams;
 pub mod tone;
 
-pub use dispatch::handle;
+pub use dispatch::{handle, no_sink};
 pub use run::run;

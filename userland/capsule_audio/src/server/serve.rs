@@ -19,9 +19,9 @@ use crate::mark::mark;
 use crate::mixer::{Mixer, BYTES};
 use crate::sink::Sink;
 
-pub fn forward(mixer: &Mixer, sink: &Sink, request_id: u32) -> i32 {
+pub fn forward(mixer: &Mixer, sink: &Sink, request_id: u32, master: i32) -> i32 {
     let mut out = [0u8; BYTES];
-    mixer.write_bytes(&mut out);
+    mixer.write_bytes(&mut out, master);
     if sink.write_pcm(&out, request_id) {
         mark("[AUDIO] served\n");
         E_OK

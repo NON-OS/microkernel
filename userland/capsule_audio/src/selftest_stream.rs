@@ -24,15 +24,17 @@ use crate::sink::Sink;
 const TARGET_SENT: usize = 6 * KEEP_AHEAD;
 const MAX_ITERS: u32 = 20_000;
 const FEED_RETRIES: u32 = 100;
+/// The self-test's own table has one client, the server itself.
+const SELF: u32 = 0;
 
 pub fn run_streams(sink: &Sink) {
     let mut table = StreamTable::new();
     let mut pump_state = PumpState::new();
-    let id_a = match table.open(0) {
+    let id_a = match table.open(SELF) {
         Some(id) => id,
         None => return,
     };
-    let id_b = match table.open(0) {
+    let id_b = match table.open(SELF) {
         Some(id) => id,
         None => return,
     };
@@ -52,7 +54,7 @@ pub fn run_streams(sink: &Sink) {
 
 fn feed_retry(table: &mut StreamTable, id: u32, buf: &[i16]) {
     for _ in 0..FEED_RETRIES {
-        if table.feed(id, buf) != E_AGAIN {
+        if table.feed(id, SELF, buf) != E_AGAIN {
             return;
         }
         mk_yield();

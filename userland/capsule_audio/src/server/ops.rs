@@ -22,6 +22,7 @@ use super::tone;
 use crate::mixer::{Mixer, SAMPLES};
 use crate::sink::Sink;
 
+use nonos_audio_proto::read_volume_request;
 use nonos_audio_proto::TONE_PAYLOAD_LEN as TONE_PAYLOAD;
 const PCM_HDR: usize = 8;
 const STREAM_FEED_HDR: usize = 8;
@@ -32,7 +33,7 @@ fn payload<'a>(req: &Request, msg: &'a [u8]) -> &'a [u8] {
     &msg[HDR_LEN..HDR_LEN + plen]
 }
 
-pub fn play_tone(req: &Request, msg: &[u8], mixer: &mut Mixer, sink: &Sink) -> i32 {
+pub fn play_tone(req: &Request, msg: &[u8], mixer: &mut Mixer, sink: &Sink, master: i32) -> i32 {
     let b = payload(req, msg);
     if b.len() < TONE_PAYLOAD {
         return E_INVAL;
@@ -43,10 +44,10 @@ pub fn play_tone(req: &Request, msg: &[u8], mixer: &mut Mixer, sink: &Sink) -> i
     let mut buf = [0i16; SAMPLES];
     tone::synth(freq, ms, gain, &mut buf);
     mixer.add(&buf);
-    forward(mixer, sink, req.request_id)
+    forward(mixer, sink, req.request_id, master)
 }
 
-pub fn play_pcm(req: &Request, msg: &[u8], mixer: &mut Mixer, sink: &Sink) -> i32 {
+pub fn play_pcm(req: &Request, msg: &[u8], mixer: &mut Mixer, sink: &Sink, master: i32) -> i32 {
     let b = payload(req, msg);
     if b.len() < PCM_HDR {
         return E_INVAL;
@@ -65,13 +66,13 @@ pub fn play_pcm(req: &Request, msg: &[u8], mixer: &mut Mixer, sink: &Sink) -> i3
         i += 1;
     }
     mixer.add(&buf[..samples]);
-    forward(mixer, sink, req.request_id)
+    forward(mixer, sink, req.request_id, master)
 }
 
-pub fn stream_open(req: &Request, msg: &[u8], table: &mut StreamTable) -> (i32, u32) {
-    let b = payload(req, msg);
-    let format = if b.len() >= 2 { u16::from_le_bytes([b[0], b[1]]) } else { 0 };
-    match table.open(format) {
+/// The format word a client sends is not kept: the mixer takes one format,
+/// S16 stereo at 48 kHz, and the stream was never read as anything else.
+pub fn stream_open(table: &mut StreamTable, owner: u32) -> (i32, u32) {
+    match table.open(owner) {
         Some(id) => (E_OK, id),
         None => (E_INVAL, 0),
     }
@@ -83,6 +84,7 @@ pub fn stream_feed(
     table: &mut StreamTable,
     pump: &mut PumpState,
     sink: &Sink,
+    owner: u32,
 ) -> i32 {
     let b = payload(req, msg);
     if b.len() < STREAM_FEED_HDR {
@@ -102,36 +104,64 @@ pub fn stream_feed(
         buf[i] = i16::from_le_bytes([p[i * 2], p[i * 2 + 1]]);
         i += 1;
     }
-    let status = table.feed(stream_id, &buf[..samples]);
+    let status = table.feed(stream_id, owner, &buf[..samples]);
     if status == E_OK {
         super::pump::step(pump, table, sink);
     }
     status
 }
 
-pub fn stream_pause(req: &Request, msg: &[u8], table: &mut StreamTable) -> i32 {
+pub fn stream_pause(req: &Request, msg: &[u8], table: &mut StreamTable, owner: u32) -> i32 {
     let b = payload(req, msg);
     if b.len() < 4 {
         return E_INVAL;
     }
     let id = u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
-    if table.set_paused(id, true) { E_OK } else { E_INVAL }
+    if table.set_paused(id, owner, true) {
+        E_OK
+    } else {
+        E_INVAL
+    }
 }
 
-pub fn stream_resume(req: &Request, msg: &[u8], table: &mut StreamTable) -> i32 {
+pub fn stream_resume(req: &Request, msg: &[u8], table: &mut StreamTable, owner: u32) -> i32 {
     let b = payload(req, msg);
     if b.len() < 4 {
         return E_INVAL;
     }
     let id = u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
-    if table.set_paused(id, false) { E_OK } else { E_INVAL }
+    if table.set_paused(id, owner, false) {
+        E_OK
+    } else {
+        E_INVAL
+    }
 }
 
-pub fn stream_close(req: &Request, msg: &[u8], table: &mut StreamTable) -> i32 {
+pub fn stream_close(req: &Request, msg: &[u8], table: &mut StreamTable, owner: u32) -> i32 {
     let b = payload(req, msg);
     if b.len() < 4 {
         return E_INVAL;
     }
     let id = u32::from_le_bytes([b[0], b[1], b[2], b[3]]);
-    if table.close(id) { E_OK } else { E_INVAL }
+    if table.close(id, owner) {
+        E_OK
+    } else {
+        E_INVAL
+    }
+}
+
+/// Set the master volume from the request, or leave it as it is for a payload
+/// `read_volume_request` refuses and for an empty one, which only asks what it
+/// is. The reply carries the volume in force either way.
+pub fn set_volume(req: &Request, msg: &[u8], pump: &mut PumpState) -> i32 {
+    if req.payload_len == 0 {
+        return E_OK;
+    }
+    match read_volume_request(payload(req, msg)) {
+        Some(setting) => {
+            pump.set_volume(setting);
+            E_OK
+        }
+        None => E_INVAL,
+    }
 }
