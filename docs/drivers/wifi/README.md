@@ -166,3 +166,14 @@ Not tested in this release.
 - No open, TKIP or Enterprise networks.
 - No access point, mesh or monitor mode, no roaming and no power save.
 - No USB Wi-Fi adapters.
+
+## See also
+
+- [Realtek RTL8821CE](rtl8821ce.md)
+- [Intel iwlwifi](iwlwifi.md)
+- [Wi-Fi chips with no driver](not-supported.md)
+- [Ethernet drivers](../ethernet/README.md)
+- [The driver model](../README.md)
+- [Wi-Fi and networking for users](../../using/wifi-and-networking.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
+- [Manifests and capabilities](../../userland/manifests-and-capabilities.md)
