@@ -51,3 +51,17 @@ flowchart LR
 With the mouse: drag to select, double-click a word, triple-click a line, `Alt`+drag a block. `Ctrl+D` never closes the terminal; `exit` does.
 
 History expansion works as in other shells: `!!` is the last command, `!n` the nth, `!text` the last one starting with text. The expanded line is shown before it runs. A reference that matches nothing runs nothing and prints `no matching history entry`.
+
+## Pipes, redirects and chains
+
+`help shell` prints the syntax.
+
+| Syntax | Meaning |
+|---|---|
+| `a \| b` | Feed the output of `a` to `b`. |
+| `a > f`, `a >> f`, `a < f` | Write to, append to, or read from a file. `/dev/null` is nothing. |
+| `a && b`, `a \|\| b`, `a ; b` | Run `b` on success, on failure, or always. |
+| `a &` | Run `a` in the background. |
+| `$name`, `$?` | A shell variable set with `set`, or the last exit status. |
+
+After a `|`, only ten built-ins read the piped lines: `grep`, `sort`, `uniq`, `cut`, `nl`, `wc`, `head`, `tail`, `tac` and `rev`. Any other command after a `|` stops the pipeline and says so (`userland/capsule_terminal/README.md`). Redirects also work for Linux programs and the installed tools.
