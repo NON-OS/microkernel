@@ -47,11 +47,13 @@
 
 extern crate alloc;
 
+mod blind;
 mod field;
 mod point;
 mod scalar;
 mod signature;
 
+pub use blind::blind_public;
 pub use signature::{sign, verify, KeyPair, Signature};
 
 /// The public key for a secret seed.
