@@ -13,7 +13,12 @@ let
   };
   sources = lib.listToAttrs (map (l: let p = parse l; in lib.nameValuePair p.name p) lines);
 
-  fetchPin = p: pkgs.fetchurl { inherit (p) url; sha256 = p.hash; };
+  # ftp.gnu.org resets connections from CI runners often enough to fail a
+  # build, so a GNU pin falls back to the kernel.org GNU mirror. The sha256
+  # decides what is accepted, so the bytes are the pin's whichever answers.
+  gnu = "https://ftp.gnu.org/gnu/";
+  urlsOf = url: [ url ] ++ lib.optional (lib.hasPrefix gnu url) ("https://mirrors.kernel.org/gnu/" + lib.removePrefix gnu url);
+  fetchPin = p: pkgs.fetchurl { urls = urlsOf p.url; sha256 = p.hash; };
 
   tarballs = lib.filterAttrs (n: p: !(lib.hasPrefix "zig-" n || lib.hasPrefix "cmake-" n || lib.hasPrefix "git+" p.url)) sources;
 
