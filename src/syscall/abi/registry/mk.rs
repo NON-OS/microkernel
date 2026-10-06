@@ -13,14 +13,10 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use crate::syscall::abi::{tag4, AbiDomain, AbiEntry, AbiStatus};
 use crate::syscall::numbers::SyscallNumber;
-
-// All Mk* native syscalls. Every entry is Routed, the dispatcher
-// match in `dispatch/router/dispatch_fn.rs` forwards each to
-// `microkernel::dispatch_microkernel_syscall`. Capability gates live
-// at `contract/cap_table/mk.rs`.
+/// Every Mk* syscall. Most route to the microkernel dispatch; the surface and
+/// input calls go to `surface_ops` and `input_ops` (router/dispatch_fn.rs).
 pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MISD", SyscallNumber::MkIpcSend, "MkIpcSend"),
     e(b"MIRC", SyscallNumber::MkIpcRecv, "MkIpcRecv"),
@@ -56,6 +52,12 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MAST", SyscallNumber::MkAttestStatus, "MkAttestStatus"),
     e(b"MADC", SyscallNumber::MkAttestDoc, "MkAttestDoc"),
     e(b"MAEN", SyscallNumber::MkAttestEntries, "MkAttestEntries"),
+    e(b"MLOG", SyscallNumber::MkLogTail, "MkLogTail"),
+    e(b"MAPY", SyscallNumber::MkAttestPolicy, "MkAttestPolicy"),
+    e(b"MBTA", SyscallNumber::MkBootAttest, "MkBootAttest"),
+    e(b"MDVS", SyscallNumber::MkDeviceSecret, "MkDeviceSecret"),
+    e(b"MBSL", SyscallNumber::MkBootSlots, "MkBootSlots"),
+    e(b"MENR", SyscallNumber::MkEnroll, "MkEnroll"),
     e(b"MISR", SyscallNumber::MkInstallSource, "MkInstallSource"),
     e(b"MDRQ", SyscallNumber::MkDevRootRequest, "MkDevRootRequest"),
     e(b"MDRC", SyscallNumber::MkDevRootConfirm, "MkDevRootConfirm"),
@@ -95,6 +97,9 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MFST", SyscallNumber::MkForeignStart, "MkForeignStart"),
     e(b"MFWT", SyscallNumber::MkForeignWait, "MkForeignWait"),
     e(b"MFRP", SyscallNumber::MkForeignReply, "MkForeignReply"),
+    e(b"MFCX", SyscallNumber::MkForeignContext, "MkForeignContext"),
+    e(b"MFSG", SyscallNumber::MkForeignSignal, "MkForeignSignal"),
+    e(b"MFIN", SyscallNumber::MkForeignInterrupt, "MkForeignInterrupt"),
     e(b"MPMP", SyscallNumber::MkPeerMap, "MkPeerMap"),
     e(b"MPCP", SyscallNumber::MkPeerCopy, "MkPeerCopy"),
     e(b"MPPT", SyscallNumber::MkPeerProtect, "MkPeerProtect"),
@@ -107,12 +112,27 @@ pub(super) const ENTRIES: &[AbiEntry] = &[
     e(b"MLVF", SyscallNumber::MkLocalVerify, "MkLocalVerify"),
     e(b"MAIN", SyscallNumber::MkAppInstall, "MkAppInstall"),
     e(b"MDRO", SyscallNumber::MkDevRootLocal, "MkDevRootLocal"),
+    e(b"MLCG", SyscallNumber::MkLocalConsent, "MkLocalConsent"),
+    e(b"MLCR", SyscallNumber::MkLocalRestore, "MkLocalRestore"),
+    e(b"MAPL", SyscallNumber::MkAppLaunch, "MkAppLaunch"),
+    e(b"MAIS", SyscallNumber::MkAppInstallStatus, "MkAppInstallStatus"),
+    e(b"MAUN", SyscallNumber::MkAppUninstall, "MkAppUninstall"),
     e(b"MTRN", SyscallNumber::MkToolRun, "MkToolRun"),
+    e(b"MTTY", SyscallNumber::MkTtySet, "MkTtySet"),
+    e(b"MTTQ", SyscallNumber::MkTtyQuery, "MkTtyQuery"),
     e(b"MSOW", SyscallNumber::MkStdoutWrite, "MkStdoutWrite"),
+    e(b"MPVW", SyscallNumber::MkPrivateWrite, "MkPrivateWrite"),
     e(b"MSWR", SyscallNumber::MkStoreWrite, "MkStoreWrite"),
+    e(b"MSRR", SyscallNumber::MkStoreRead, "MkStoreRead"),
+    e(b"MDIM", SyscallNumber::MkDataImport, "MkDataImport"),
+    e(b"MDST", SyscallNumber::MkDataStat, "MkDataStat"),
+    e(b"MDRD", SyscallNumber::MkDataRead, "MkDataRead"),
+    e(b"MDPW", SyscallNumber::MkDataPassphrase, "MkDataPassphrase"),
+    e(b"MDFB", SyscallNumber::MkDataFeedBegin, "MkDataFeedBegin"),
+    e(b"MDFD", SyscallNumber::MkDataFeed, "MkDataFeed"),
+    e(b"MDRM", SyscallNumber::MkDataRemove, "MkDataRemove"),
     e(b"MCVF", SyscallNumber::MkCapsuleVerify, "MkCapsuleVerify"),
 ];
-
 const fn e(tag: &[u8; 4], variant: SyscallNumber, name: &'static str) -> AbiEntry {
     AbiEntry { id: tag4(tag), variant, name, domain: AbiDomain::Mk, status: AbiStatus::Routed }
 }
