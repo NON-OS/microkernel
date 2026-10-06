@@ -20,6 +20,12 @@ mod controller;
 mod shared;
 
 mod keyboard_tests;
+mod keymap_tests;
+mod keypad_tests;
 mod mouse_tests;
+mod packet_tests;
+mod presence_tests;
 mod sequence_fallback_tests;
 mod sequence_tests;
+mod aux_failure_tests;
+mod held_key_tests;

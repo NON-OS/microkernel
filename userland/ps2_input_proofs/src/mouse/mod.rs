@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The broker half of the shim.
+//! The mouse packet path, each file the shipping one: the bytes the aux port
+//! delivers are assembled into packets, decoded, and queued. Posting to the
+//! kernel input ring talks to the kernel and stays out.
 
-mod calls;
-mod table;
-mod types;
-
-pub use calls::{
-    mk_debug, mk_device_claim, mk_device_release, mk_irq_ack, mk_irq_bind, mk_pio_grant,
-};
-pub use table::{acked, mk_device_list, present, released};
-pub use types::{DeviceRecord, IrqBindOut, PioGrantOut, BUS_KIND_ACPI, IRQ_GRANT_BASE, PIO_GRANT};
+#[path = "../../../capsule_driver_ps2_input/src/mouse/axis.rs"]
+mod axis;
+#[path = "../../../capsule_driver_ps2_input/src/mouse/event.rs"]
+pub mod event;
+#[path = "../../../capsule_driver_ps2_input/src/mouse/packet.rs"]
+pub mod packet;
+#[path = "../../../capsule_driver_ps2_input/src/mouse/parser.rs"]
+pub mod parser;
+#[path = "../../../capsule_driver_ps2_input/src/mouse/ring.rs"]
+pub mod ring;

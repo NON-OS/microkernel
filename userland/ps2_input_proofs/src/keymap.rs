@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The broker half of the shim.
+//! The driver's scan set 1 decode, at the `crate::keymap` paths its files name
+//! each other by: the base table, the E0 table, the decode that picks one by
+//! the prefix and reads the break bit, and the keys whose repeats it drops.
 
-mod calls;
-mod table;
-mod types;
-
-pub use calls::{
-    mk_debug, mk_device_claim, mk_device_release, mk_irq_ack, mk_irq_bind, mk_pio_grant,
-};
-pub use table::{acked, mk_device_list, present, released};
-pub use types::{DeviceRecord, IrqBindOut, PioGrantOut, BUS_KIND_ACPI, IRQ_GRANT_BASE, PIO_GRANT};
+#[path = "../../capsule_driver_ps2_input/src/keymap/set1/mod.rs"]
+pub mod set1;
+#[path = "../../capsule_driver_ps2_input/src/keymap/set1_e0.rs"]
+pub mod set1_e0;
+#[path = "../../capsule_driver_ps2_input/src/keymap/translate.rs"]
+pub mod translate;
+#[path = "../../capsule_driver_ps2_input/src/keymap/once.rs"]
+pub mod once;
+#[path = "../../capsule_driver_ps2_input/src/keymap/keypad.rs"]
+pub mod keypad;
