@@ -67,3 +67,13 @@ The platform layer in `toolchain/nonos-std/sys/` gives `std` its NONOS backends:
 - `TcpStream` opens a plain stream socket, kind 1, never a mixnet socket, so a `std` program's connections do not follow the default network chosen in Settings (`toolchain/nonos-std/sys/net/connection/nonos/tcp_stream/connect.rs:41-48`, `connect_addr`). A name resolves through `net.dns` to one IPv4 address.
 
 `remove_dir_all` is implemented, by walking the directory (`toolchain/nonos-std/sys/fs/nonos/ops/remove_dir_all.rs:27-38`, `remove_dir_all`).
+
+## The native runtime
+
+`nonos_runtime` is a second, smaller stack beside `nonos_libc` that does not depend on it. It ties together `nonos-abi`, `nonos-alloc`, `nonos-panic`, `nonos-cap`, `nonos-ipc`, `nonos-service`, `nonos-surface` and `nonos-log` (`userland/nonos_runtime/Cargo.toml:20-31`, `nonos_runtime`).
+
+- `nonos_main!` emits `_start`, which calls `run` (`userland/nonos_runtime/src/macros.rs:17-25`, `nonos_main`).
+- `run` calls `boot`, then the entry function, then the cleanup hooks, and exits with 0; a failed `boot` exits with 1 (`userland/nonos_runtime/src/run.rs:21-28`, `run_cleanup`).
+- `boot` maps a fixed 16 MiB heap (`userland/nonos_alloc/src/init.rs:24`, `INITIAL_HEAP_SIZE`) and records the [capability word](../overview/glossary.md#capability-word) the program says it has (`userland/nonos_runtime/src/boot.rs:20-24`, `set_granted`). The record is informational: the kernel enforces the word from the signed [manifest](../overview/glossary.md#manifest), whatever the program records.
+
+No capsule in this release uses it. Its users are the crates in `userland/nonos_examples/` and three crates of the SDK, and no `Capsule.mk` builds any of them.
