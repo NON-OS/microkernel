@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Write the xz decoder's test vectors: the zstd vectors' deterministic
+inputs, compressed by the reference `xz` binary.
+
+Only the compressed files are committed. The inputs come from the generator
+in tools/nonos-zstd-vectors, and the Rust test regenerates them with the
+zstd test's copy of it, so there is one generator and the decoder is never
+its own oracle.
+"""
+
+import argparse
+import pathlib
+import runpy
+import subprocess
+import sys
+
+GEN = runpy.run_path(str(pathlib.Path(__file__).with_name("nonos-zstd-vectors")))
+
+# name, kind, seed, size, xz arguments
+VECTORS = [
+    ("empty", "text", 1, 0, ["-6"]),
+    ("tiny", "text", 2, 50, ["-0"]),
+    ("text64k", "text", 3, 65536, ["-6"]),
+    ("text300k", "text", 4, 300000, ["-9e"]),
+    ("noise140k", "noise", 5, 140000, ["-6"]),
+    ("zeros300k", "zeros", 6, 300000, ["-6"]),
+    ("runs100k", "runs", 7, 100000, ["-6"]),
+    ("mixed256k", "mixed", 8, 262144, ["-9"]),
+    ("none", "text", 9, 20000, ["-6", "--check=none"]),
+    ("crc32", "text", 10, 20000, ["-6", "--check=crc32"]),
+    ("sha256", "text", 11, 20000, ["-6", "--check=sha256"]),
+    ("blocks", "mixed", 12, 200000, ["-6", "--block-size=65536"]),
+    ("lclppb", "text", 13, 100000, ["--lzma2=preset=6,lc=0,lp=2,pb=0"]),
+    ("lc4pb4", "runs", 14, 100000, ["--lzma2=preset=6,lc=4,lp=0,pb=4"]),
+    ("dict4k", "text", 15, 100000, ["--lzma2=preset=6,dict=4KiB"]),
+    ("bcj", "noise", 16, 4096, ["--x86", "--lzma2=preset=6"]),
+]
+
+
+def xz(data, args):
+    cmd = ["xz", "-q", "-c", "--format=xz", *args]
+    return subprocess.run(cmd, input=data, capture_output=True, check=True).stdout
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("out", type=pathlib.Path, help="directory for the .xz files")
+    a = ap.parse_args()
+    a.out.mkdir(parents=True, exist_ok=True)
+    for name, kind, seed, size, args in VECTORS:
+        z = xz(GEN["KINDS"][kind](GEN["Rng"](seed), size), args)
+        (a.out / f"{name}.xz").write_bytes(z)
+        print(f"{name:10} {kind:6} {size:7} -> {len(z):7}  {' '.join(args)}")
+    # Two streams, with stream padding between and after them.
+    one = xz(GEN["text"](GEN["Rng"](17), 10000), ["-1"])
+    two = xz(GEN["noise"](GEN["Rng"](18), 5000), ["-1", "--check=crc32"])
+    (a.out / "concat.xz").write_bytes(one + bytes(8) + two + bytes(4))
+    print("concat     text+noise 15000")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

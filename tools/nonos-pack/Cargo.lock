@@ -3,6 +3,10 @@
 version = 4
 
 [[package]]
+name = "admission_proofs"
+version = "0.1.0"
+
+[[package]]
 name = "arrayref"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -244,6 +248,7 @@ version = "0.1.0"
 name = "nonos-sign"
 version = "0.1.0"
 dependencies = [
+ "admission_proofs",
  "base64",
  "blake3",
  "cc",

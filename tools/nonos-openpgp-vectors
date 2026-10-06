@@ -1,0 +1,88 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Write the OpenPGP verifier's test vectors with GnuPG.
+
+Throwaway keys are made in a temporary home and deleted with it; only the
+public keys, the detached signatures and the fingerprints
+GnuPG reports are kept. The verifier is checked against GnuPG's own output,
+never against a signature it made itself.
+"""
+
+import argparse
+import os
+import pathlib
+import subprocess
+import sys
+import tempfile
+
+KEYS = [
+    # name, algorithm, usage of the primary, a signing subkey or not
+    ("ed", "ed25519", "sign", False),
+    ("rsa", "rsa3072", "sign", False),
+    ("sub", "ed25519", "cert", True),
+]
+SIGS = [("ed", "SHA512"), ("ed", "SHA256"), ("rsa", "SHA256"), ("rsa", "SHA512"), ("sub", "SHA512")]
+
+
+def gpg(home, *args, data=None):
+    cmd = ["gpg", "--homedir", home, "--batch", "--quiet", "--pinentry-mode", "loopback",
+           "--passphrase", "", *args]
+    return subprocess.run(cmd, input=data, capture_output=True, check=True).stdout
+
+
+def fingerprints(home, uid):
+    out = gpg(home, "--with-colons", "--fingerprint", "--fingerprint", uid).decode()
+    return [line.split(":")[9] for line in out.splitlines() if line.startswith("fpr:")]
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("out", type=pathlib.Path, help="directory for the vectors")
+    a = ap.parse_args()
+    a.out.mkdir(parents=True, exist_ok=True)
+    # The signed file; the test regenerates it from the same formula.
+    data = bytes((i * 131 + 17) % 251 for i in range(70000))
+    lines = []
+    with tempfile.TemporaryDirectory() as home:
+        os.chmod(home, 0o700)
+        for name, algo, usage, sub in KEYS:
+            uid = f"NONOS test {name} <{name}@nonos.invalid>"
+            gpg(home, "--quick-gen-key", uid, algo, usage, "never")
+            fprs = fingerprints(home, uid)
+            if sub:
+                gpg(home, "--quick-add-key", fprs[0], algo, "sign", "never")
+                fprs = fingerprints(home, uid)
+            (a.out / f"{name}.pub").write_bytes(gpg(home, "--export", fprs[0]))
+            lines.append(f"{name} {' '.join(fprs)}")
+        for name, digest in SIGS:
+            uid = f"{name}@nonos.invalid"
+            sig = gpg(home, "--local-user", uid, "--digest-algo", digest, "--detach-sign",
+                      "-o", "-", data=data)
+            (a.out / f"{name}-{digest.lower()}.sig").write_bytes(sig)
+            print(f"{name}-{digest.lower()}.sig {len(sig)} bytes")
+        # Armored forms, as a Debian repository publishes its key and Release.gpg.
+        (a.out / "rsa.asc").write_bytes(gpg(home, "--armor", "--export", "rsa@nonos.invalid"))
+        asc = gpg(home, "--local-user", "rsa@nonos.invalid", "--digest-algo", "SHA256",
+                  "--armor", "--detach-sign", "-o", "-", data=data)
+        (a.out / "rsa-sha256.asc").write_bytes(asc)
+    (a.out / "fingerprints.txt").write_text("\n".join(lines) + "\n")
+    print("\n".join(lines))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

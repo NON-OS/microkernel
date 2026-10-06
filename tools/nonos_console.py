@@ -51,7 +51,7 @@ KERNELS = [
 ]
 
 EM_MACHINES = {62: "x86-64", 183: "AArch64", 243: "RISC-V"}
-TRAILER_MAGIC = b"NZKSTRK1"
+TRAILER_MAGIC = b"NZKPATH1"
 STT_FUNC, STT_OBJECT, SHT_SYMTAB = 2, 1, 2
 
 CAPABILITIES = [
@@ -741,7 +741,7 @@ def bench_overhead(attested):
     certs = sum(size_of(c.cert) for c in attested)
     trust = trailers + manifests + certs
     field("  capsule code", mib(code))
-    field("  stark trailers", "{}  ({:.1f}% of code)".format(
+    field("  path trailers", "{}  ({:.1f}% of code)".format(
         mib(trailers), 100.0 * trailers / code if code else 0.0))
     field("  manifests", "{} bytes".format(commas(manifests)))
     field("  identity certs", "{} bytes".format(commas(certs)))
@@ -1350,9 +1350,6 @@ def section_crypto():
                        if n != "mod.rs" and not n.startswith("."))
         colour = GREEN if label == "post-quantum" else ""
         field(label, ", ".join(names), colour)
-    zk = os.path.join(SRC, "crypto", "zk_kernel")
-    if os.path.isdir(zk):
-        field("zero knowledge", "{} lines".format(commas(count_lines(walk(zk, ".rs")))))
 
 
 def section_authority(capsules):
@@ -1509,7 +1506,7 @@ def section_attack(capsules):
                    "capability field not found in this layout")
 
         trailer = open(victim.trailer, "rb").read()
-        attack("forge: corrupt the STARK trailer",
+        attack("forge: corrupt the path trailer",
                trailer[:8] == TRAILER_MAGIC,
                "kernel requires {} before parsing".format(TRAILER_MAGIC.decode()))
 

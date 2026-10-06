@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""Write a small Debian archive for the installer's tests, with Debian's
+own tools: .debs from dpkg-deb, the Packages index from dpkg-scanpackages,
+a Release over it, signed with a throwaway GnuPG key.
+
+The layout is an archive's, so the test walks the same chain an install
+does: Release.gpg, Release, Packages, .deb, data member.
+"""
+
+import argparse
+import hashlib
+import os
+import pathlib
+import shutil
+import subprocess
+import sys
+import tempfile
+
+PKGS = [
+    # name, compression, depends, provides, files {path: bytes}, links {path: target}
+    ("nonos-hello", "xz", "libnonos1 (>= 1.0) | libnonos-alt, missing-alt | libnonos-virtual", "",
+     {"usr/bin/nonos-hello": b"\x7fELF nonos hello\n"}, {}),
+    ("libnonos1", "zstd", "", "libnonos-virtual",
+     {"usr/lib/libnonos.so.1": b"\x7fELF libnonos\n"}, {"usr/lib/libnonos.so": "libnonos.so.1"}),
+    ("nonos-gz", "gzip", "", "", {"usr/share/nonos/gz": b"gzip member\n"}, {}),
+]
+
+
+def run(*cmd, cwd=None, data=None):
+    return subprocess.run(cmd, cwd=cwd, input=data, capture_output=True, check=True).stdout
+
+
+def build(tmp, out, name, comp, depends, provides, files, links):
+    root = tmp / name
+    (root / "DEBIAN").mkdir(parents=True)
+    control = f"Package: {name}\nVersion: 1.0\nArchitecture: amd64\nMaintainer: NONOS <test@nonos.invalid>\nDescription: test\n"
+    control += f"Depends: {depends}\n" if depends else ""
+    control += f"Provides: {provides}\n" if provides else ""
+    (root / "DEBIAN/control").write_text(control)
+    for path, body in files.items():
+        (root / path).parent.mkdir(parents=True, exist_ok=True)
+        (root / path).write_bytes(body)
+    for path, target in links.items():
+        os.symlink(target, root / path)
+    pool = out / "pool/main" / name[0] / name
+    pool.mkdir(parents=True, exist_ok=True)
+    run("dpkg-deb", "--root-owner-group", f"-Z{comp}", "--build", str(root), str(pool / f"{name}_1.0_amd64.deb"))
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("out", type=pathlib.Path, help="directory for the archive")
+    a = ap.parse_args()
+    shutil.rmtree(a.out, ignore_errors=True)
+    a.out.mkdir(parents=True)
+    with tempfile.TemporaryDirectory() as t:
+        tmp = pathlib.Path(t)
+        for p in PKGS:
+            build(tmp, a.out, *p)
+        lists = a.out / "dists/nonos/main/binary-amd64"
+        lists.mkdir(parents=True)
+        (lists / "Packages").write_bytes(run("dpkg-scanpackages", "--multiversion", "pool", cwd=a.out))
+        (lists / "Packages.xz").write_bytes(run("xz", "-c", "-6", str(lists / "Packages")))
+        sums = "".join(
+            f" {hashlib.sha256(f.read_bytes()).hexdigest()} {f.stat().st_size} main/binary-amd64/{f.name}\n"
+            for f in sorted(lists.iterdir()))
+        release = f"Origin: NONOS test\nSuite: nonos\nCodename: nonos\nArchitectures: amd64\nComponents: main\nSHA256:\n{sums}"
+        (a.out / "dists/nonos/Release").write_text(release)
+        home = tmp / "gnupg"
+        home.mkdir(mode=0o700)
+        g = ["gpg", "--homedir", str(home), "--batch", "--quiet", "--pinentry-mode", "loopback", "--passphrase", ""]
+        run(*g, "--quick-gen-key", "NONOS test archive <archive@nonos.invalid>", "rsa3072", "sign", "never")
+        (a.out / "archive-key.asc").write_bytes(run(*g, "--armor", "--export", "archive@nonos.invalid"))
+        sig = run(*g, "--armor", "--detach-sign", "-o", "-", data=release.encode())
+        (a.out / "dists/nonos/Release.gpg").write_bytes(sig)
+    for f in sorted(p for p in a.out.rglob("*") if p.is_file()):
+        print(f"{f.stat().st_size:8} {f.relative_to(a.out)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

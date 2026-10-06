@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""A build with one control removed, and the line that must then appear.
+
+verification/mutants.json names each control by one exact substitution and
+the log line its hostile guest prints once the control is gone. --check
+confirms every substitution still applies exactly once, so a mutant cannot
+rot into testing nothing; --apply NAME rewrites a worktree to that mutant for
+a build and a boot; --verdict NAME LOG says whether the boot showed it.
+"""
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+MUTANTS = Path("verification/mutants.json")
+
+
+def load(root):
+    return {m["name"]: m for m in json.loads((root / MUTANTS).read_text())}
+
+
+def count(root, m):
+    return (root / m["file"]).read_text().count(m["old"])
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--root", type=Path, default=Path("."))
+    ap.add_argument("--check", action="store_true", help="every mutant still applies once")
+    ap.add_argument("--apply", metavar="NAME", help="rewrite --root to this mutant")
+    ap.add_argument("--verdict", nargs=2, metavar=("NAME", "LOG"), help="did the boot show it")
+    a = ap.parse_args()
+    mutants = load(a.root)
+    if a.check:
+        stale = [n for n, m in mutants.items() if count(a.root, m) != 1]
+        for n in stale:
+            print(f"[mutant] {n}: its substitution no longer applies once")
+        print(f"[mutant] {len(mutants) - len(stale)} of {len(mutants)} apply")
+        return 1 if stale else 0
+    if a.apply:
+        m = mutants[a.apply]
+        if count(a.root, m) != 1:
+            sys.exit(f"[mutant] {a.apply} does not apply to {a.root}")
+        path = a.root / m["file"]
+        path.write_text(path.read_text().replace(m["old"], m["new"]))
+        print(f"[mutant] {a.apply} applied; expect: {m['escapes']}")
+        return 0
+    if a.verdict:
+        name, log = a.verdict
+        seen = mutants[name]["escapes"].encode() in Path(log).read_bytes()
+        print(f"[mutant] {name}: {'caught' if seen else 'NOT caught, the guest did not notice'}")
+        return 0 if seen else 1
+    ap.print_help()
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())
