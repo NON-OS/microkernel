@@ -17,7 +17,8 @@
 //! Installing a leaf in an address space that is not running.
 
 use super::super::core::PagingManager;
-use super::super::shootdown::{flush_tlb_one_smp, ASID_KERNEL};
+use super::super::pending_flush::PendingFlush;
+use super::super::shootdown::ASID_KERNEL;
 use super::super::tlb_scope::is_kernel_half;
 use super::tables::{alloc_table, table_at};
 use crate::arch::paging::descriptor;
@@ -32,7 +33,7 @@ impl PagingManager {
         va: VirtAddr,
         pa: PhysAddr,
         flags: u64,
-    ) -> PagingResult<()> {
+    ) -> PagingResult<PendingFlush> {
         let address_space =
             self.address_spaces.get(&asid).ok_or(PagingError::AddressSpaceNotFound)?;
         let cr3 = address_space.cr3_value;
@@ -42,7 +43,7 @@ impl PagingManager {
 
         // SAFETY: eK@nonos.systems - cr3 is one of ours, page tables
         // go through the directmap.
-        unsafe {
+        let replaced = unsafe {
             let l4 = &mut *table_at(cr3);
             if !pte_is_present(l4[l4_idx]) {
                 alloc_table(&mut l4[l4_idx])?;
@@ -56,13 +57,16 @@ impl PagingManager {
                 alloc_table(&mut l2[l2_idx])?;
             }
             let l1 = &mut *table_at(PhysAddr::new(pte_address(l2[l2_idx])));
+            let old = l1[l1_idx];
             l1[l1_idx] = descriptor::leaf(pa.as_u64(), flags);
-        }
+            pte_is_present(old)
+        };
 
-        // Scoped by the asid that changed, and issued whether or not this cpu
-        // is running it.
+        /*
+         * Scoped by the asid that changed, and owed whether or not this cpu
+         * is running it; nothing remote is owed when the entry was absent.
+         */
         let scope = if is_kernel_half(va) { ASID_KERNEL } else { asid };
-        flush_tlb_one_smp(va, scope);
-        Ok(())
+        Ok(PendingFlush::after_install(va, scope, replaced))
     }
 }

@@ -16,7 +16,7 @@
 
 use core::sync::atomic::{AtomicU64, AtomicUsize};
 
-pub struct PagingStatistics {
+pub(crate) struct PagingStatistics {
     pub(crate) total_mappings: AtomicUsize,
     pub(crate) page_faults: AtomicU64,
     pub(crate) tlb_flushes: AtomicU64,
@@ -29,7 +29,7 @@ pub struct PagingStatistics {
 }
 
 impl PagingStatistics {
-    pub const fn new() -> Self {
+    pub(crate) const fn new() -> Self {
         Self {
             total_mappings: AtomicUsize::new(0),
             page_faults: AtomicU64::new(0),

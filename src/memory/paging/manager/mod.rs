@@ -20,6 +20,7 @@ mod core;
 mod faults;
 mod mapping;
 mod pending_flush;
+mod pending_flush_install;
 mod protection;
 mod query;
 pub mod shootdown;
@@ -29,5 +30,6 @@ mod translation;
 pub use self::core::PagingManager;
 pub use api::*;
 pub use shootdown::{
-    flush_tlb_all_smp, flush_tlb_one_smp, flush_tlb_range_smp, handle_shootdown_ipi, ASID_KERNEL,
+    flush_tlb_all_smp, flush_tlb_one_smp, flush_tlb_range_smp, handle_shootdown_ipi,
+    shootdown_in_flight, ASID_KERNEL,
 };

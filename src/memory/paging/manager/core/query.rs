@@ -26,10 +26,6 @@ impl PagingManager {
         self.active_page_table
     }
 
-    pub fn active_asid(&self) -> Option<u32> {
-        self.active_asid
-    }
-
     pub fn mappings_count(&self) -> usize {
         self.mappings.len()
     }

@@ -17,12 +17,13 @@
 use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use super::super::core::PagingManager;
+use super::super::pending_flush::PendingFlush;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::stats::PagingStatistics;
 use crate::memory::paging::types::{PagePermissions, PageSize};
 
 impl PagingManager {
-    pub fn map_page_in_asid(
+    pub(in crate::memory::paging::manager) fn map_page_in_asid(
         &mut self,
         asid: u32,
         virtual_addr: VirtAddr,
@@ -30,7 +31,7 @@ impl PagingManager {
         permissions: PagePermissions,
         size: PageSize,
         stats: &PagingStatistics,
-    ) -> PagingResult<()> {
+    ) -> PagingResult<PendingFlush> {
         if !self.initialized {
             return Err(PagingError::NotInitialized);
         }
@@ -38,8 +39,8 @@ impl PagingManager {
             return Err(PagingError::WXViolation);
         }
         let pte_flags = permissions.to_pte_flags();
-        self.install_mapping_in_asid(asid, virtual_addr, physical_addr, pte_flags)?;
+        let flush = self.install_mapping_in_asid(asid, virtual_addr, physical_addr, pte_flags)?;
         stats.record_mapping(permissions, size);
-        Ok(())
+        Ok(flush)
     }
 }
