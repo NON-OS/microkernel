@@ -103,3 +103,11 @@ Only Standard and Hardened let a network driver or service start (`network`, `sr
 ## The configurator of the `mk/` targets
 
 The older make build has its own interactive configurator, `tools/nonos-config`, which `make nonos-mk-menuconfig` opens and which writes `.nonos-config` for `make nonos-mk-from-config` (`FROM_CONFIG_FEATURES`, `mk/20-build.mk:960-986`). It does not read `nonos.toml`, and the flake does not read `.nonos-config`.
+
+## See also
+
+- [Make targets](make-targets.md)
+- [The seal](seal.md)
+- [Boot modes](../install/boot-modes.md)
+- [Rollback protection](../security/rollback-protection.md)
+- [What NONOS protects against](../security/protections-and-limits.md)
