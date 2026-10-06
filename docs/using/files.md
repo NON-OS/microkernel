@@ -30,3 +30,16 @@ What a fresh boot holds (`userland/capsule_vfs/src/store/fdtable/seed.rs`):
 | `/Movies` | Sample films, on an image built with them (`mk/40-run.mk`). |
 
 A USB stick written by another system does not show up in Files. The file store reads one store, the one on the NONOS disk the machine booted from, and has no reader for other file systems (`userland/capsule_vfs/README.md`).
+
+## Opening a file
+
+`Enter`, or a click, opens a folder in place and a file in the app that reads it (`userland/capsule_file_manager/src/fm/open_with_table.rs`):
+
+| Extension | Opens in |
+|---|---|
+| `txt`, `md`, `log`, `rs`, `toml`, `json`, `html` | Editor |
+| `mp3`, `wav` | Music |
+| `avi` | Video |
+| `png`, `jpg`, `jpeg`, `bmp`, `gif` | Image Viewer |
+
+Any other file opens in the preview pane, as text or, for a binary file, as hex.
