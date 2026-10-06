@@ -94,3 +94,10 @@ Each kernel line starts with a tag in square brackets. These are the ones a read
 - A private Linux run's output, as above.
 
 Fault lines do print addresses: the `[TRAP xx]` line from `dump_trap` carries the instruction and stack pointers, CR3 and, for a page fault, the faulting address (`src/arch/x86_64/diag/dump_trap.rs:23-63`). At shutdown the wipe calls `wipe_ram_log` for the structured log's buffer (`src/security/hardening/memory_sanitization/api.rs:92-96`); the serial tail is a separate static buffer, and the wipe does not clear it.
+
+## Limits
+
+- The structured log is not initialised in this release, so `log_info!` and its relatives write nothing.
+- The serial tail exists only on images built with `capsule-serial-debug`. Images from the `hardened` and `airgapped` build profiles keep no tail, so `log` has nothing to show there.
+- The tail keeps 128 KiB: the start of the boot and the latest lines. The middle of a long run is lost.
+- The on-screen boot log is a build-time choice.
