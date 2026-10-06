@@ -19,33 +19,13 @@
 //! and program its own registers. The mode and the MMIO mapping are global and
 //! were adopted from the BSP before the SIPI was sent; only the register
 //! programming happens here, per CPU.
-
-use core::sync::atomic::Ordering;
-
-use super::constants::*;
-use super::init_x2apic::init_x2apic;
-use super::mmio::mmio_w32;
-use super::ops::set_tpr;
-use super::state::{rdmsr, wrmsr, X2APIC_MODE};
+//!
+//! The programming is `sys::apic`'s, the same the boot CPU ran, so the two
+//! cannot drift. They did: this file used to set LINT0 to NMI, unmask thermal
+//! and error onto 0x21 and 0x22 (the keyboard and cascade vectors, the second
+//! with no gate at all), and in x2APIC mode enable directed-EOI suppression,
+//! which strands every level-triggered I/O APIC line routed to an AP.
 
 pub unsafe fn init_ap_lapic() {
-    // Hardware-enable this CPU's LAPIC (and keep it in the same mode the
-    // BSP chose; the mode is a package-wide contract).
-    let mut base = rdmsr(IA32_APIC_BASE) | APIC_BASE_ENABLE;
-    if X2APIC_MODE.load(Ordering::Acquire) {
-        base |= APIC_BASE_X2;
-    }
-    wrmsr(IA32_APIC_BASE, base);
-
-    if X2APIC_MODE.load(Ordering::Acquire) {
-        init_x2apic();
-    } else {
-        mmio_w32(LAPIC_SVR, SVR_APIC_ENABLE | VEC_SPURIOUS as u32);
-        mmio_w32(LAPIC_LVT_LINT0, LVT_NMI);
-        mmio_w32(LAPIC_LVT_LINT1, LVT_MASKED | LVT_LEVEL);
-        mmio_w32(LAPIC_LVT_THERM, VEC_THERMAL as u32);
-        mmio_w32(LAPIC_LVT_ERROR, VEC_ERROR as u32);
-        mmio_w32(LAPIC_LVT_TIMER, LVT_MASKED);
-    }
-    set_tpr(0);
+    crate::sys::apic::init_ap_local_apic();
 }

@@ -18,6 +18,7 @@ use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use super::constants::*;
 use super::error::{IoApicError, IoApicResult};
+use super::reg_lock::locked;
 use crate::memory::layout::PAGE_SIZE;
 
 pub(crate) unsafe fn map_mmio(pa: PhysAddr) -> IoApicResult<VirtAddr> {
@@ -25,32 +26,49 @@ pub(crate) unsafe fn map_mmio(pa: PhysAddr) -> IoApicResult<VirtAddr> {
 }
 
 #[inline(always)]
-pub(crate) fn reg_write(base: VirtAddr, index: u32, val: u32) {
+fn raw_write(base: VirtAddr, index: u32, val: u32) {
     unsafe {
-        let sel = (base.as_u64() + IOREGSEL) as *mut u32;
-        let win = (base.as_u64() + IOWIN) as *mut u32;
-        core::ptr::write_volatile(sel, index);
-        core::ptr::write_volatile(win, val);
+        core::ptr::write_volatile((base.as_u64() + IOREGSEL) as *mut u32, index);
+        core::ptr::write_volatile((base.as_u64() + IOWIN) as *mut u32, val);
     }
 }
 
 #[inline(always)]
-pub(crate) fn reg_read(base: VirtAddr, index: u32) -> u32 {
+fn raw_read(base: VirtAddr, index: u32) -> u32 {
     unsafe {
-        let sel = (base.as_u64() + IOREGSEL) as *mut u32;
-        let win = (base.as_u64() + IOWIN) as *const u32;
-        core::ptr::write_volatile(sel, index);
-        core::ptr::read_volatile(win)
+        core::ptr::write_volatile((base.as_u64() + IOREGSEL) as *mut u32, index);
+        core::ptr::read_volatile((base.as_u64() + IOWIN) as *const u32)
     }
 }
 
+pub(crate) fn reg_read(base: VirtAddr, index: u32) -> u32 {
+    locked(|| raw_read(base, index))
+}
+
+fn raw_entry(base: VirtAddr, i: u32) -> (u32, u32) {
+    let high = raw_read(base, IOREDTBL0 + (i * 2) + 1);
+    (raw_read(base, IOREDTBL0 + (i * 2)), high)
+}
+
+fn raw_set(base: VirtAddr, i: u32, low: u32, high: u32) {
+    raw_write(base, IOREDTBL0 + (i * 2) + 1, high);
+    raw_write(base, IOREDTBL0 + (i * 2), low);
+}
+
 pub(crate) unsafe fn redtbl_write(base: VirtAddr, i: u32, low: u32, high: u32) {
-    reg_write(base, IOREDTBL0 + (i * 2) + 1, high);
-    reg_write(base, IOREDTBL0 + (i * 2), low);
+    locked(|| raw_set(base, i, low, high))
 }
 
 pub(crate) unsafe fn redtbl_read(base: VirtAddr, i: u32) -> (u32, u32) {
-    let high = reg_read(base, IOREDTBL0 + (i * 2) + 1);
-    let low = reg_read(base, IOREDTBL0 + (i * 2));
-    (low, high)
+    locked(|| raw_entry(base, i))
+}
+
+/// Read entry `i`, let `f` compute its new (low, high) and write it back, all
+/// under one hold of the lock so no other update lands in between.
+pub(crate) unsafe fn redtbl_update(base: VirtAddr, i: u32, f: impl FnOnce(u32, u32) -> (u32, u32)) {
+    locked(|| {
+        let (low, high) = raw_entry(base, i);
+        let (low, high) = f(low, high);
+        raw_set(base, i, low, high);
+    })
 }

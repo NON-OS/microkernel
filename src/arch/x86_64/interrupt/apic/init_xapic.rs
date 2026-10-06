@@ -32,9 +32,9 @@ pub(super) unsafe fn init_xapic() -> ApicResult<()> {
         MMIO_BASE.store(va.as_u64(), Ordering::Release);
 
         mmio_w32(LAPIC_SVR, SVR_APIC_ENABLE | VEC_SPURIOUS as u32);
-        mmio_w32(LAPIC_LVT_LINT0, LVT_NMI);
-        mmio_w32(LAPIC_LVT_LINT1, LVT_MASKED | LVT_LEVEL);
-        mmio_w32(LAPIC_LVT_THERM, VEC_THERMAL as u32);
+        mmio_w32(LAPIC_LVT_LINT0, LVT_MASKED);
+        mmio_w32(LAPIC_LVT_LINT1, LVT_NMI);
+        mmio_w32(LAPIC_LVT_THERM, LVT_MASKED);
         mmio_w32(LAPIC_LVT_ERROR, VEC_ERROR as u32);
         mmio_w32(LAPIC_LVT_TIMER, LVT_MASKED);
 

@@ -15,24 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::error::{IoApicError, IoApicResult};
-use super::super::mmio::{redtbl_read, redtbl_write};
+use super::super::mmio::redtbl_update;
 use super::super::ops_helpers::locate;
 
 pub fn retarget(gsi: u32, dest_apic_id: u32) -> IoApicResult<()> {
     let (chip, idx) = locate(gsi).ok_or(IoApicError::GsiNotFound)?;
-    // The RTE destination field is 8 bits wide. An APIC id above 255
-    // (x2APIC) would be masked to 0xFF and retarget the wrong CPU; keep
-    // the mask below but surface it so the mistarget is not silent.
-    if dest_apic_id > 0xFF {
-        crate::sys::serial::println(
-            b"[IOAPIC] warning: retarget dest APIC id > 0xFF truncated to 8 bits (x2APIC)",
-        );
-    }
+    // The RTE destination field is 8 bits wide. An APIC id that does not fit
+    // is not truncated onto some other CPU; the line goes to one that fits.
+    let dest_apic_id = crate::arch::x86_64::interrupt::apic::device_irq_dest(dest_apic_id)
+        .ok_or(IoApicError::NoReachableCpu)?;
     unsafe {
-        let (low, mut high) = redtbl_read(chip.mmio, idx);
-        high &= !(0xFF << 24);
-        high |= (dest_apic_id & 0xFF) << 24;
-        redtbl_write(chip.mmio, idx, low, high);
+        redtbl_update(chip.mmio, idx, |low, high| {
+            (low, (high & !(0xFF << 24)) | ((dest_apic_id & 0xFF) << 24))
+        });
     }
     Ok(())
 }
