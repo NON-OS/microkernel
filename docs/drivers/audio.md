@@ -100,3 +100,9 @@ A DSP-capable Intel controller that does have an analog codec plays through it a
 ## Log lines
 
 With Debug granted the driver writes `[HDA]` lines and the server `[AUDIO]` lines. The Standard image grants it; the Hardened and Air-Gapped images drop the feature, so their capsules write nothing to the console (`debugFeatures`, `tools/nix/config.nix:84-92`). In the NONOS Terminal, `log hda audio` shows them. The useful ones: `[HDA] controller` with the PCI id, `[HDA] codecs mask=`, `[HDA] path` for each output pin, `[HDA] ready: outputs muted, no stream until a player opens one`, `[HDA] headphones in, speakers off`, and `[HDA] no playable output:` with the reason. [Reporting a machine](../hardware/report.md) says what to send.
+
+## How this is checked
+
+- [Proof crates](../overview/glossary.md#proof-crate) at commit bff12b97, all passing: `hda_proofs` puts modelled codecs on the link, among them a Realtek ALC236, an ALC269, an Intel display codec and QEMU's duplex codec, and holds the reset, the verb rings, the codec walk, the Realtek steps, the jack and the verdicts (116 tests); `audio_proto_proofs` holds the wire format, the refusals and the volume (38); `desktop_proofs` holds the volume key rules among its 230 tests.
+- The QEMU run target attaches an `intel-hda` controller with an `hda-duplex` codec (`QEMU_AUDIO`, `mk/10-qemu.mk:109`).
+- Intel HD Audio and the volume keys have one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
