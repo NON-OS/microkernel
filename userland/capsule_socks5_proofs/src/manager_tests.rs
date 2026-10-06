@@ -45,7 +45,7 @@ fn close_by_socket_returns_id_for_tunnel_teardown() {
 #[test]
 fn full_table_refuses_new_client() {
     let mut m = Manager::new();
-    for s in 0..MAX_CONNS as u32 {
+    for s in 0..MAX_CONNS as u64 {
         assert!(m.open(s).is_some(), "slot {s} must fit");
     }
     assert_eq!(m.count(), MAX_CONNS);
@@ -55,7 +55,7 @@ fn full_table_refuses_new_client() {
 #[test]
 fn freed_slot_is_reused() {
     let mut m = Manager::new();
-    for s in 0..MAX_CONNS as u32 {
+    for s in 0..MAX_CONNS as u64 {
         m.open(s).unwrap();
     }
     let victim = m.open(1000);
