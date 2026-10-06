@@ -84,3 +84,7 @@ Each boot draws a locally administered address from kernel randomness; the card'
 - Management and EAPOL frames go at the lowest basic rate and data at the highest basic rate; no rate scaling runs (`userland/capsule_driver_iwlwifi/src/firmware/gen3/station/rates.rs:28-32`, `IWL_TX_FLAGS_CMD_RATE`).
 
 A join returns the RTL8821CE's status codes, plus -3 and -4 when the pairwise or group key does not go into the card (`userland/capsule_driver_iwlwifi/src/server/join_wire.rs:54-75`, `CODE_GROUP_KEY`); the panel texts are on the [Wi-Fi overview](README.md#what-a-join-answers). A deauthentication or disassociation from the access point ends the link (`userland/capsule_driver_iwlwifi/src/firmware/gen3/join/link.rs:34-44`, `parse_leave`). Read from the code, nothing watches for lost beacons, so a link whose access point goes silent stays up until a disconnect.
+
+## Authority
+
+The [manifest](../../overview/glossary.md#manifest) asks for the [capability](../../overview/glossary.md#capability-word) mask 0xF8038: IPC, Memory, Crypto, Driver, DeviceEnum, Mmio, Irq and Dma (`userland/capsule_driver_iwlwifi/Capsule.mk:15-17`, `CAPSULE_REQUIRED_CAPS`). The service is `driver.iwlwifi0` on port 4228 (`userland/capsule_driver_iwlwifi/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`). The kernel's spawn request holds no Debug in any build (`src/hardware/iwlwifi_capsule/spawn.rs:50-59`, `requested_caps`), so the driver's own console lines never reach the log. The Settings panel's stage line and the status reply are the record.
