@@ -29,3 +29,18 @@ The default tier, when you name none, is chosen in this order (`resolve` in `use
 4. else the smallest tier, which then says it does not fit.
 
 When the tier is a default rather than your choice, the Terminal says so in a line as the chat starts.
+
+## How it runs, and why it is offline
+
+`qwen` asks the kernel to run the tier through the [Linux personality](../overview/glossary.md#linux-personality) as a child of the Terminal. The program is `qwenchat`, built from llama.cpp at a pinned commit for three instruction sets: x86-64-v3, x86-64-v2 and plain x86-64, which QEMU's software CPU needs (`userland/linux_userland/Userland.mk`). The personality chooses among them.
+
+A chat makes no network connection:
+
+- A Terminal chat runs in one of two slots, `app.linux.term.1` and `app.linux.term.2`, which ask for no capability beyond the personality's own, and the personality's own set has no Network [capability](../overview/glossary.md#capability) (`TERMINAL` in `src/userspace/capsule_linux/terminal/roles.rs:25-42`). Two Terminal chats can run at once; a third is refused with EBUSY.
+- A window chat runs in the role `app.linux.run`, which also asks for nothing more (`src/userspace/capsule_linux/roles.rs`). One window runs at a time; a second is refused with EBUSY. The window stays open when the Terminal that asked for it closes.
+- Once a program family opens a model, the personality also refuses it every internet socket, and refuses to open a model while an internet socket is open (`refuse_inet` in `userland/capsule_linux/src/linux/net/offline.rs:37-39`).
+- From the moment a model is opened, the family's console output goes only to the Terminal or window that started it, never to the serial log (`held` in `userland/capsule_linux/src/linux/file/models/held.rs:31-33`).
+
+Only the download of a model needs a network, once per tier.
+
+The local Qwen model, running offline: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
