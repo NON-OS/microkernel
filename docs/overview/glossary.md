@@ -203,3 +203,7 @@ The policy service, `capsule_policy`, on port 4108: a typed key-value store of s
 ## Proof crate
 
 A host Rust crate, mostly a `userland/*_proofs` directory, that compiles shipping kernel or capsule source through `#[path]` and tests it on the build machine. `nix flake check` runs each one that has a `Cargo.lock` as `proofs-<name>`: the tests in release with overflow checks on, then clippy with warnings denied, except for the crates still listed as not lint clean. Explained in [Tests and proofs](../contributing/tests-and-proofs.md#proof-crates). Code: `tools/nix/checks.nix`.
+
+## Publisher
+
+Whoever holds a NONOS ID certificate and the keys it names, and signs capsule manifests with them; a manifest's namespace must match one of the certificate's namespace globs. A capsule under `systems.nonos` is in the enrolled tier and any other in the publisher tier, and both must still pass the attestation trailer check. Explained in [Signing and publisher keys](../userland/signing-and-publisher-keys.md#publishers-outside-the-project). Code: `src/kernel_core/process_spawn/capsule_spawn/runner/tier.rs`.
