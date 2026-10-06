@@ -141,3 +141,14 @@ Each row comes from a match table in the driver or the kernel. All paths are at 
 - VT-d: `is_enforcing` (`src/arch/x86_64/iommu/mod.rs:17-22`). The IOMMU features are in `Cargo.toml`.
 - QEMU devices: `QEMU_SMP` (`mk/10-qemu.mk:32`), `QEMU_IOMMU_OPTS` (`mk/10-qemu.mk:45`), `QEMU_GPU` (`mk/10-qemu.mk:96`), `QEMU_USB` (`mk/10-qemu.mk:99-102`), `QEMU_AUDIO` (`mk/10-qemu.mk:109`), `QEMU_TPM` (`mk/10-qemu.mk:122`), `QEMU_NET` (`mk/10-qemu.mk:128`), and the NVMe install target, `INSTALL_TARGET_IMG` (`mk/40-run.mk:452-466`).
 - Check results: the flake's `proofs-<crate>` checks (`proofChecks`, `tools/nix/checks.nix:101-102`), each running the crate's tests and then clippy (`tools/nix/checks.nix:85-96`, `clippy`).
+
+## How the matrix is kept current
+
+No tool writes this page. Before the commit in its footer moves, the NONOS team checks every row against the tree by hand:
+
+1. Each row's ids are read again from the tables listed under Sources. A new id, a new driver or a driver that enters or leaves the image becomes a row change.
+2. The state follows the code: what the kernel spawns at boot (`src/userspace/init/spawn_plan`), what the driver refuses and why, and what is missing.
+3. The proof crate column takes the test counts and results of the flake checks for that exact commit. A failing check is shown as failing, with its cause.
+4. The real-hardware column changes only with a hardware report made as [Reporting a machine](report.md) describes. A report that cannot name its image commit says so, as the one above does.
+
+A machine is listed by its chips and their ids, never by brand or model.
