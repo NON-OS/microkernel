@@ -13,18 +13,24 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! The policy indices setup offers are the ones a driver can resolve.
 
-#![no_std]
+use nonos_keymap::{Layout, POLICY_LAYOUTS};
 
-mod held;
-mod iso;
-mod layout;
-mod policy;
-mod resolve;
-mod tables;
+#[test]
+fn every_offered_index_names_a_distinct_layout() {
+    let mut seen = [false; Layout::COUNT as usize];
+    for index in POLICY_LAYOUTS {
+        let layout = Layout::from_policy(index).expect("offered layout has a table");
+        assert!(!seen[layout.index() as usize], "two indices name one layout");
+        seen[layout.index() as usize] = true;
+    }
+    assert!(seen.iter().all(|s| *s));
+}
 
-pub use held::{HeldKeys, KeyPosts};
-pub use iso::{iso, KEY_ISO};
-pub use layout::Layout;
-pub use policy::POLICY_LAYOUTS;
-pub use resolve::resolve;
+#[test]
+fn layouts_without_tables_map_to_nothing() {
+    for index in [1u8, 7, 8, 9, 200] {
+        assert_eq!(Layout::from_policy(index), None);
+    }
+}
