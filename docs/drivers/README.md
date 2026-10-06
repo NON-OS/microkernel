@@ -77,3 +77,39 @@ Eighteen driver capsules have a Cargo feature (`Cargo.toml:150-168`) and a `Caps
 - `microkernel-full-gui` (`Cargo.toml:632`) adds e1000, RTL8139, RTL8169, iwlwifi, RTL8821CE, the I2C controller and I2C-HID.
 
 The `profiles` table picks the set for each image (`tools/nix/config.nix:69-117`). The Standard and Hardened images build `microkernel-full-gui`. The Air-Gapped image builds it too and drops every feature in `networkFeatures`, which holds all six network drivers (`tools/nix/config.nix:50-58`). The qemu image builds `microkernel-desktop-gui`, without the seven drivers `microkernel-full-gui` adds. The core image builds `microkernel-capsules`, which carries no driver capsule. [../build/profiles.md](../build/profiles.md) covers the profiles.
+
+## Every driver capsule
+
+Nine of the 27 directories are in the tree with their proofs but are not built into any image: they have no Cargo feature and no kernel spawn, and their `Capsule.mk`, where there is one, is not included by `mk/20-build.mk`.
+
+| Capsule | Device class | Service | Built in | What it does |
+|---|---|---|---|---|
+| `capsule_driver_ahci` | SATA AHCI, Intel eMMC host | `driver.ahci0` | desktop-offline | SATA disks behind an AHCI controller, and Intel eMMC hosts until the eMMC driver has keys of its own |
+| `capsule_driver_ax88179` | USB Ethernet | `driver.ax88179_0` | no | ASIX AX88179 and AX88178A Gigabit adapters on `driver.xhci0` |
+| `capsule_driver_bga` | Display | none | no | Bochs Graphics Adapter mode set; parked, see [display.md](display.md) |
+| `capsule_driver_cdc_ecm` | USB Ethernet | `driver.cdc_ecm0` | no | USB CDC Ethernet Control Model functions |
+| `capsule_driver_cdc_ncm` | USB Ethernet | `driver.cdc_ncm0` | no | USB CDC Network Control Model functions |
+| `capsule_driver_e1000` | Ethernet | `driver.e1000_0` | full-gui | Intel 8254x, polled |
+| `capsule_driver_e1000e` | Ethernet | `driver.e1000e_0` | no | Intel 82574, 82583 and the I217, I218 and I219 PHYs |
+| `capsule_driver_hda` | Audio | `driver.hda0` | desktop-offline | Intel HD Audio controller, one output stream for `audio.server` |
+| `capsule_driver_i2c_hid` | Input | `driver.i2c_hid0` | full-gui | HID over I2C touchpads, through `driver.i2c_pci0` |
+| `capsule_driver_i2c_pci` | I2C bus | `driver.i2c_pci0` | full-gui | Intel LPSS DesignWare I2C controllers and the touchpad's GPIO line |
+| `capsule_driver_igc` | Ethernet | `driver.igc_0` | no | Intel I225 and I226 2.5 GbE |
+| `capsule_driver_iwlwifi` | Wi-Fi | `driver.iwlwifi0` | full-gui | Intel Wi-Fi cards, see [wifi/iwlwifi.md](wifi/iwlwifi.md) |
+| `capsule_driver_nvme` | Storage | `driver.nvme0` | desktop-offline | NVMe, the admin queue and one I/O queue pair |
+| `capsule_driver_ps2_input` | Input | `driver.ps2_kbd0` | desktop-offline | i8042 keyboard and mouse, with keyboard layouts |
+| `capsule_driver_rndis` | USB Ethernet | `driver.rndis0` | no | USB RNDIS functions, as phones use for tethering |
+| `capsule_driver_rtl8139` | Ethernet | `driver.rtl8139_0` | full-gui | Realtek RTL8139 Fast Ethernet over port I/O |
+| `capsule_driver_rtl8153` | USB Ethernet | `driver.rtl8153_0` | no | Realtek RTL8153 and RTL8153B USB 3.0 Gigabit |
+| `capsule_driver_rtl8169` | Ethernet | `driver.rtl8169_0` | full-gui | Realtek RTL8168 and RTL8169 Gigabit, polled |
+| `capsule_driver_rtl8821ce` | Wi-Fi | `driver.rtl8821ce0` | full-gui | Realtek RTL8821CE, see [wifi/rtl8821ce.md](wifi/rtl8821ce.md) |
+| `capsule_driver_rtsx` | SD card reader | `driver.rtsx0` | no | Realtek RTS5227 and RTS522A PCIe card readers |
+| `capsule_driver_usb_hid` | Input | `driver.usb_hid0` | desktop-offline | USB boot keyboards and mice, and other HID interfaces as a tablet |
+| `capsule_driver_usb_msc` | Storage | `driver.usb_msc0` | desktop-offline | USB mass storage, bulk-only SCSI, through `driver.xhci0` |
+| `capsule_driver_virtio_blk` | Storage | `driver.virtio_blk0` | desktop-offline | virtio block devices |
+| `capsule_driver_virtio_gpu` | Display | `driver.virtio_gpu0` | desktop-offline | virtio GPU 2D scanout, see [display.md](display.md) |
+| `capsule_driver_virtio_net` | Ethernet | `driver.virtio_net0` | desktop-base | virtio network devices |
+| `capsule_driver_virtio_rng` | Entropy | `driver.virtio_rng` | desktop-offline | virtio entropy device; the worked example in [writing-a-driver.md](writing-a-driver.md) |
+| `capsule_driver_xhci` | USB host | `driver.xhci0` | desktop-offline | USB 3 xHCI host controller for the USB class drivers |
+
+"desktop-offline" and the others name the `microkernel-` feature profile that first carries the driver; each later profile keeps it.
