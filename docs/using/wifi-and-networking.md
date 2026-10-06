@@ -43,3 +43,19 @@ The page keeps its own keys (`wifi_key` in `userland/capsule_settings/src/settin
 There is no Terminal command to scan or join Wi-Fi in this release. The Terminal's network commands are `ping`, `ifconfig`, `nslookup`, `curl` and `nym` (`GROUPS` in `userland/capsule_terminal/src/command/builtin/help_layout.rs:33-41`).
 
 First-boot setup has its own Network step. It starts on `No network (default, private)` (`NO_NETWORK` in `userland/capsule_setup_wizard/src/render/screens/network.rs:10`), so setup joins no Wi-Fi network unless you pick one. A plugged-in cable is used without asking, and setup says so when it sees a wired card (`userland/capsule_setup_wizard/src/render/screens/network_lines.rs`).
+
+## Which networks can be joined
+
+The drivers share one join engine, `nonos_wifi_core`. It runs WPA2-Personal (PSK and PSK-SHA256) and WPA3-Personal (SAE), with CCMP-128 only (`select` in `userland/nonos_wifi_core/src/rsn/select.rs:87-104`). It refuses:
+
+- open networks, with no RSN element (`OpenNetwork` in `userland/nonos_wifi_core/src/mlme/beacon.rs:50-52`);
+- TKIP, 802.1X Enterprise, FT and OWE;
+- access points that admit only 802.11n stations (`NeedsHt`, same file, lines 58-60).
+
+A network that offers WPA3 and WPA2 side by side is joined with WPA3 first. If that does not finish, for any reason but a wrong password, the RTL8821CE driver joins it again with WPA2 (`retry_with_psk` in `userland/capsule_driver_rtl8821ce/src/serve/connect.rs:156-165`). A network saved after a WPA3 join is saved as WPA3 and is never joined with WPA2 again.
+
+A passphrase is 8 to 63 characters, or 64 hex digits.
+
+Two notes in the interface are older than this code. The `Connection` card in Settings reads `WPA2-Personal or open. WPA3 (SAE) cannot be joined.`, and setup says WPA3 and enterprise networks cannot be joined. The driver code above is what runs: WPA3-Personal joins, open networks do not.
+
+A hidden network cannot be joined in this release. Settings joins only a network its scan heard, and there is no field to type a network name. The drivers can probe by name for a network saved as hidden, but nothing in this release saves a network that way.
