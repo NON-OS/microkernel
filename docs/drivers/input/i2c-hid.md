@@ -59,3 +59,14 @@ Once the 30-byte HID descriptor reads, the driver (`reprobe`, `userland/capsule_
 1. Sends SET_POWER ON, once more 1 ms later if the pad does not acknowledge it, then waits 60 ms (`POWER_ON_MS`, `userland/capsule_driver_i2c_hid/src/hid/power/settle.rs:22-25`). Then it sends RESET and reads the input register every 5 ms for up to one second for the empty report a reset device sends, holding an early answer to at least 100 ms (`RESET_TIMEOUT_MS`, `userland/capsule_driver_i2c_hid/src/hid/power/await_reset.rs:29-31`).
 2. Reads the report descriptor, at most 1024 bytes, three times 20 ms apart if it has to (`REPORT_DESC_ATTEMPTS`, `userland/capsule_driver_i2c_hid/src/setup.rs:112`).
 3. Sets the Precision Touchpad input mode to 3 and the surface and button switches on, writing a feature report only when a bit differs (`INPUT_MODE_TOUCHPAD`, `userland/capsule_driver_i2c_hid/src/hid/input_mode/configure.rs:28-54`).
+
+## Reading reports
+
+The transfer engine polls the controller, and the touchpad's own interrupt line is routed to neither capsule. A touchpad holds that line active while a report waits, so `driver.i2c_pci0` reads the level of that GPIO pad and answers `OP_GPIO_DOORBELL` with it (`handle`, `userland/capsule_driver_i2c_pci/src/server/handlers/doorbell.rs:37-52`). It finds the pad's register:
+
+- on Broxton, Apollo Lake and Gemini Lake, from the community the firmware names, at the pin's index (`is_bxt_family`, `userland/capsule_driver_i2c_pci/src/constants/device_info.rs:71-74`);
+- on Intel chipsets from Sunrise Point to Meteor Lake and on AMD, through the tables in `nonos_pinctrl` (`locate`, `userland/nonos_pinctrl/src/locate.rs:32`).
+
+`driver.i2c_hid0` trusts the doorbell once it has rung. It then reads only when the line is active, and falls back to timed reads after 2500 quiet turns, or for good when the controller has no doorbell to offer (`DOORBELL_TRUST_CYCLES`, `userland/capsule_driver_i2c_hid/src/server/runner/run.rs:35-37`). Its loop waits 2 ms for a request each turn (`RECV_TIMEOUT_MS`, `userland/capsule_driver_i2c_hid/src/server/runner/run.rs:26`).
+
+A pad in touchpad mode sends absolute contacts, which go through the gesture decoder. A pad that only sends a mouse report is decoded as a relative mouse with up to five buttons (`publish`, `userland/capsule_driver_i2c_hid/src/input/publish.rs:25-49`).
