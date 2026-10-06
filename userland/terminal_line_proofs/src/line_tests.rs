@@ -9,8 +9,8 @@ use crate::line::Line;
 
 fn typed(s: &str) -> Line {
     let mut l = Line::new();
-    for b in s.bytes() {
-        l.insert(b);
+    for ch in s.chars() {
+        l.insert_char(ch);
     }
     l
 }
@@ -163,13 +163,13 @@ fn delete_at_the_end_does_nothing() {
 /// bytes at once. It has to stop at the edge rather than run past it.
 #[test]
 fn yanking_into_a_nearly_full_line_stays_in_bounds() {
-    let wide = "x".repeat(crate::term::dimensions::COLS);
+    let wide = "x".repeat(crate::term::dimensions::LINE_MAX);
     let mut l = typed(&wide);
-    assert_eq!(l.len, crate::term::dimensions::COLS);
+    assert_eq!(l.len, crate::term::dimensions::LINE_MAX);
     l.kill_line();
     l.yank();
-    assert!(l.len <= crate::term::dimensions::COLS);
+    assert!(l.len <= crate::term::dimensions::LINE_MAX);
     l.yank();
-    assert!(l.len <= crate::term::dimensions::COLS);
+    assert!(l.len <= crate::term::dimensions::LINE_MAX);
     assert!(l.cursor <= l.len);
 }
