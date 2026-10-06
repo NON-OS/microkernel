@@ -82,3 +82,11 @@ What the driver does on such a machine:
 - An AMD audio coprocessor, vendor 1022 with class 0x04 and subclass 0x80, is the same case for AMD and gives code 6 (`amd_acp`, `userland/capsule_driver_hda/src/controller/intel.rs:77-79`).
 
 A DSP-capable Intel controller that does have an analog codec plays through it as plain HD Audio.
+
+## Not supported
+
+- Recording. The driver opens no input stream, so no microphone is read (`output_descriptor`, `userland/capsule_driver_hda/src/setup/sequence.rs:214-225`).
+- HDMI and DisplayPort audio.
+- More than one output stream at the controller; the audio server mixes before the driver.
+- Any rate or format other than 48 kHz, 16-bit stereo at the controller.
+- Intel SOF and AMD ACP, as above.
