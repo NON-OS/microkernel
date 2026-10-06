@@ -1,0 +1,24 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for net.tcp. The capsule's own source (everything but
+# its entry point and its inbox loop) is included via #[path] and driven
+# through its real request handlers, against a peer played on the host behind
+# the stand-in nonos_libc: segments go out through the capsule's IP client and
+# come back the same way, so the state machine under test is the one that
+# ships.
+[package]
+name = "tcp_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "net_proofs_shim", path = "../net_proofs/shim" }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
