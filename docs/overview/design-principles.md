@@ -58,3 +58,12 @@ Kept files go to a [data volume](glossary.md#data-volume). On a live stick, whic
 Shutting down and restarting, the `AdminShutdown` and `AdminReboot` syscalls, both run the [ZeroState](glossary.md#zerostate) wipe first (`shutdown` in `src/syscall/dispatch/router/admin/shutdown.rs:20-27`, `reboot` in `src/syscall/dispatch/router/admin/reboot.rs:20-28`): the other CPUs are stopped, then memory is wiped, then the firmware is called (`terminate` in `src/security/zerostate/terminate.rs:21-39`). The wipe stops claimed devices and wipes their DMA buffers before it wipes process memory, kernel stacks, filesystem caches, keys, the RAM log and the heap (`zerostate_shutdown_wipe` in `src/security/hardening/memory_sanitization/api.rs:59-109`).
 
 The limits: stopping the other CPUs is best effort. On an interrupt controller that refuses the broadcast, the wipe covers what the running core can reach (`terminate` in `src/security/zerostate/terminate.rs:31-35`). A kernel panic halts every CPU without the wipe (`panic` in `src/boot/panic/handler.rs:41-64`), and cutting the power skips it too.
+
+## Refuse rather than fall back
+
+When something cannot be done safely, the code refuses and says why, instead of taking a weaker path.
+
+- No route beats the wrong route. A chosen network that is not running gives `Down`, never `Direct` (`pick` in `userland/nonos_route_link/src/pick.rs:125-139`). The wallet's chain reads go over Nym or Anyone even when Direct is chosen (`private_only` in `userland/nonos_route_link/src/pick.rs:86-100`).
+- No factory address on the wire. The e1000 driver fails when it has no randomness for a station address, rather than fall back to the address in its EEPROM (`draw` in `userland/capsule_driver_e1000/src/init/station_address.rs:17-32`).
+- No clock sync that names the machine. net.ntp asks a time server only when Direct is chosen (`step` in `userland/capsule_net_ntp/src/decide.rs:17-45`).
+- No guessed Linux call. A call the Linux personality does not serve answers ENOSYS and names itself on the log (`unserved` in `userland/capsule_linux/src/linux/serve/unserved.rs:21-41`).
