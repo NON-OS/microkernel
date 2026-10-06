@@ -42,3 +42,7 @@ make dev-boot
 Not tested in this release.
 
 A development image is sealed with throwaway keys and path-only attestation, and it is never a release. See [Get an image](../install/get-an-image.md) and [Make targets](../build/make-targets.md).
+
+## What happens at shutdown
+
+Shutting down or restarting from NONOS runs the [ZeroState](glossary.md#zerostate) wipe first. The kernel stops the other CPUs and every claimed device, then wipes device buffers, process memory, kernel stacks, filesystem caches, keys, its RAM log and its heap, and only then hands the machine to the firmware. A kernel panic halts the machine without the wipe, and so does cutting the power. See [Design principles](design-principles.md#amnesic-by-default).
