@@ -1,7 +1,16 @@
 use std::path::Path;
 
+/// The kernel and userland, and the crates every gate runs: the loader, the
+/// attestation path parser, the boot measurement check and the device proof.
 pub fn root_dirs() -> &'static [&'static str] {
-    &["src", "userland"]
+    &[
+        "src",
+        "userland",
+        "nonos-bootloader/src",
+        "nonos-attest-path/src",
+        "nonos-boot-measure/src",
+        "nonos-device-attest/src",
+    ]
 }
 
 pub fn skip(path: &Path) -> bool {

@@ -41,6 +41,31 @@ pub fn run(root: &str) -> std::io::Result<Status> {
     let ok = run_logged("make", &["nonos-mk-capsules"], &out.join("build-x86_64.txt"));
     rpt.check("build-x86_64-capsules", st(ok), "make nonos-mk-capsules");
 
+    // What ring 0 is, from the dep-info of the kernel just built. It may not
+    // grow past its budget; a PR that raises the budget has to say why.
+    let tcb = [
+        "tools/nonos-tcb",
+        "--by-module",
+        "--baseline",
+        "nonos-ci/baselines/tcb-x86_64-capsules.txt",
+    ];
+    let ok = run_logged("python3", &tcb, &out.join("tcb-budget.txt"));
+    rpt.check(
+        "tcb-budget",
+        st(ok),
+        "ring 0 lines within nonos-ci/baselines/tcb-x86_64-capsules.txt",
+    );
+
+    // The share of ring 0 under a theorem over extracted code; may not shrink.
+    let proof =
+        ["tools/nonos-proof-coverage", "--baseline", "scripts/baselines/proof-coverage.txt"];
+    let ok = run_logged("python3", &proof, &out.join("proof-coverage.txt"));
+    rpt.check(
+        "proof-coverage",
+        st(ok),
+        "extracted-code theorem lines at or above scripts/baselines/proof-coverage.txt",
+    );
+
     let kbin = "target/x86_64-nonos/release/nonos-kernel";
     if Path::new(kbin).exists() {
         let (_, sz) = capture("size", &[kbin]);
