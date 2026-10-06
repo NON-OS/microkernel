@@ -54,3 +54,12 @@ The build picks the rest by architecture:
 ## Starting work on a port
 
 Read the page for the port first: each one lists what is missing, read from the code. No page here gives a date for either port. [Contributing](../contributing/README.md) and [Review](../contributing/review.md) describe how a change gets in.
+
+## See also
+
+- [x86_64](x86_64.md)
+- [aarch64](aarch64.md)
+- [riscv64](riscv64.md)
+- [Boot handoff](../kernel/boot-handoff.md)
+- [Memory and paging](../kernel/memory-and-paging.md)
+- [Code style](../contributing/code-style.md)
