@@ -29,7 +29,17 @@ host="$root/target/toolchains/python-3.12.15-host"
 if [ ! -x "$host/bin/python3.12" ]; then
 	mkdir -p "$work/host"
 	tar -xJf "$py" -C "$work/host"
-	(cd "$work/host/Python-3.12.15" &&
+	# It runs here, so it is built by the build machine's own compiler: CC,
+	# CFLAGS and LDFLAGS above are the cross build's (zig for musl) and,
+	# exported by a development shell, would reach this configure too, which
+	# then finds headers that compiler cannot see. It only freezes modules for
+	# the cross build and zips the standard library, which needs zlib alone,
+	# so the modules that need other system libraries are left out rather
+	# than taken from whatever the build machine has.
+	(cd "$work/host/Python-3.12.15" && unset CC CXX AR RANLIB CFLAGS LDFLAGS &&
+		for m in _bz2 _lzma readline _curses _curses_panel _dbm _gdbm _sqlite3 _ssl _hashlib _tkinter _uuid _ctypes; do
+			export "py_cv_module_$m=n/a"
+		done &&
 		./configure --prefix="$host" --disable-test-modules --without-ensurepip >/dev/null &&
 		make -j8 >/dev/null && make install >/dev/null)
 fi
