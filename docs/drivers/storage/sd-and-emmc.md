@@ -62,3 +62,7 @@ The host is driven as SDHCI 3.0 or 4.x and the card as JEDEC eMMC 5.1 (`userland
 What it does: it takes the reader, brings the chip up and looks at the slot every 500 ms. A card that arrives is identified, its size logged and its first block read. A card that fails is powered down until it is reinserted (`userland/capsule_driver_rtsx/src/watch.rs:17-46`, `LOOK_MS`; `userland/capsule_driver_rtsx/src/report.rs:38-59`, `read_blocks`). It serves no block requests, and the kernel block layer has no backend for it (`src/hardware/block_device/backend.rs:17-23`, `Backend`). It holds no IRQ [capability](../../overview/glossary.md#capability) and polls the reader (`userland/capsule_driver_rtsx/Capsule.mk:14-15`, `CAPSULE_REQUIRED_CAPS`).
 
 It is not in the image. The driver capsules the build includes are listed in `mk/20-build.mk:528-547`, from `capsule_driver_virtio_rng` to `capsule_driver_nvme`; `capsule_driver_rtsx` is not among them, and no kernel feature or build file names it. Its pure modules run in `userland/rtsx_proofs`, checked against values the crate takes from Linux's rtsx code and the SD specification; 26 tests pass on this commit.
+
+## The sd capsule is a text tool
+
+`userland/capsule_sd` is not an SD card driver. It is `sd`, the find-and-replace tool from crates.io, signed as a capsule (`userland/capsule_sd/Capsule.mk:30-32`, `CAPSULE_METADATA`).
