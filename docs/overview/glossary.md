@@ -255,3 +255,7 @@ The TPM 2.0 chip. NONOS keeps its rollback floor there, derives machine keys and
 ## Trust anchor
 
 The hybrid key pair, one Ed25519 and one ML-DSA-65 key, that signs every NONOS ID certificate. The kernel compiles in the trust-anchor policy built from its public halves, and a tree without that policy file does not build. Explained in [Signing and publisher keys](../userland/signing-and-publisher-keys.md#the-keys). Code: `src/security/nonos_trust_anchor/baked.rs`.
+
+## Trust set
+
+The public files the seal writes under `nonos-data/trust`: each capsule's NONOS ID certificate, signed manifest and STARK trailer, the attestation roots and policies, and the kernel's public keys. The kernel embeds the capsule files and the loader compiles in the kernel's keys; for a tree that lacks a capsule's files, the flake builds no kernel and writes a note naming the capsule. Explained in [Build](../build/README.md). Code: `tools/nix/image.nix`, `tools/nix/artifacts.nix`.
