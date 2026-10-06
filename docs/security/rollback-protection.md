@@ -89,3 +89,12 @@ The STARK contexts carry an epoch too. `POLICY_EPOCH`, for capsules, is 1 in the
 - `check_rollback` returns without comparing anything when `has_production_footer` refuses the image or its footer does not parse, and `commit_rollback` then raises nothing; in a mode that requires signatures a footer that does not parse stops the boot at `commit_rollback` (`nonos-bootloader/src/boot/crypto/rollback/check.rs:23-30`, `nonos-bootloader/src/boot/crypto/rollback/commit.rs:26-39`). What `has_production_footer` accepts is decided in the loader's verification module and is not covered here.
 - A comment beside `NONOS_ROLLBACK_INDEX` says the loader rejects index 0 as unset (`mk/00-config.mk:111-114`). That check would sit in the loader's verification module and is not confirmed here.
 - Raising the index is a release decision; nothing in the build raises it.
+
+## See also
+
+- [Boot chain and signatures](boot-chain-and-signatures.md)
+- [Measured boot and the TPM](measured-boot-and-tpm.md)
+- [STARK attestation](stark-attestation.md)
+- [Boot modes](../install/boot-modes.md)
+- [Updating](../install/update.md)
+- [The seal](../build/seal.md)
