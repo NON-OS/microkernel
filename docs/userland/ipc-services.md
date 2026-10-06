@@ -119,3 +119,7 @@ The network stack of the desktop image, whose `microkernel-desktop-base` feature
 At start it also registers `net.tcp` on 4476, `net.udp` on 4472, `net.dhcp.client` on 4474, `net.dns` on 4478 and `net.ip` on 4479, so a client that looks up those names reaches it (`userland/capsule_net_core/src/register.rs:19-29`, `PORT_TCP`). Every one of these names needs Network as well as IPC.
 
 `net.sockets` offers a socket interface: health check 1, socket 2 through set option 11, connect by host name 12, readiness poll 13 and non-blocking connect 14 (`userland/capsule_net_sockets/src/protocol/ops.rs:17-38`, `OP_CONNECT_NB`). A socket is a plain stream (kind 1), a datagram socket (kind 2) or a mixnet socket (kind 3), chosen by the client when it opens it (`userland/capsule_net_sockets/src/server/handlers/socket.rs:23-34`, `Mixnet`). The `std` platform layer sends `TcpStream` and `UdpSocket` there. How traffic is routed to Nym, Anyone or directly is on [Privacy networks](../using/privacy-network.md).
+
+## Host tests
+
+Proof crates mount these protocol modules on the host. On this commit the flake checks passed `fs_proofs` (367 tests), `compositor_proofs` (68), `wm_proofs` (58), `input_proofs` (96), `audio_proto_proofs` (38), `clipboard_proofs` (3), `policy_proofs` (2), `net_core_proofs` (31) and `service_header_proofs` (16).
