@@ -16,4 +16,5 @@
 
 #[path = "../../../../../src/security/tpm/error.rs"]
 pub mod error;
+pub mod fifo;
 pub mod machine_key;
