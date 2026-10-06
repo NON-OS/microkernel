@@ -1,8 +1,14 @@
 name: ci-build
 
-# Reusable build/compile proof. Formatting, clippy, the production desktop GUI
-# profile, section sizes, and a binary symbol scan on the built release ELF.
-# Logic is the `nonos-verify build` subcommand; this workflow only invokes it.
+# The build, as a contributor runs it, on every platform NONOS supports.
+#
+#   platforms  `nix build` of the reproducible artifacts on Linux x86_64, Linux
+#              aarch64 and macOS, and inside the devcontainer, the Windows
+#              path for anyone without WSL2. A platform that cannot build
+#              fails this workflow.
+#   windows    `make build` and `make check` inside WSL2 on a Windows runner.
+#   verify     the `nonos-verify build` lane: clippy, the capsule kernel, its
+#              section sizes and the symbol scan, run in the flake's shell.
 
 on:
   workflow_call:
@@ -14,6 +20,8 @@ on:
         default: "scratch"
     secrets:
       SIGNING_KEY_BASE64:
+        required: false
+      CACHIX_AUTH_TOKEN:
         required: false
 
 permissions:
@@ -28,19 +36,111 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    name: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 75
+  platforms:
+    name: nix build (${{ matrix.name }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x86_64, runner: ubuntu-latest }
+          - { name: linux-aarch64, runner: ubuntu-24.04-arm }
+          - { name: macos-aarch64, runner: macos-latest }
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          submodules: recursive
           persist-credentials: false
-      - uses: ./.github/actions/nonos-setup
+      - uses: ./.github/actions/nix-setup
         with:
-          targets: x86_64-nonos,x86_64-unknown-uefi
-          module: build
+          cache: ${{ vars.NONOS_CACHIX }}
+          # Written only by pushes to this repository, never by a pull request's
+          # code, so no PR can put a store path into the cache others read.
+          cachix-token: ${{ github.event_name == 'push' && secrets.CACHIX_AUTH_TOKEN || '' }}
+      - name: nix build
+        run: nix build .#default -L --keep-going
+      - name: The build manifest
+        if: always()
+        run: |
+          mkdir -p ci-reports/build
+          cp result/nonos-build.json "ci-reports/build/nonos-build-${{ matrix.name }}.json" 2>/dev/null || true
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: nonos-build-${{ matrix.name }}
+          path: ci-reports/build/
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # Windows builds in WSL2, the way a Windows contributor does: the same two
+  # make commands inside a Linux distribution, from a checkout whose line
+  # endings Git left alone, so the source is byte for byte the one Linux sees.
+  windows:
+    name: make build, make check (windows, WSL2)
+    runs-on: windows-latest
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: wsl-bash {0}
+    steps:
+      - name: Keep line endings as committed
+        shell: pwsh
+        run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: Vampire/setup-wsl@d1da7f2c0322a5ee4f24975344f67fc0f5baf364 # v7.0.0
+        with:
+          distribution: Ubuntu-24.04
+          additional-packages: curl xz-utils git make ca-certificates
+      - name: Install Nix in WSL2
+        run: |
+          set -euo pipefail
+          curl -fsSL https://nixos.org/nix/install | sh -s -- --no-daemon --yes
+          mkdir -p ~/.config/nix
+          echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
+      - name: Copy the checkout into the Linux filesystem
+        run: |
+          set -euo pipefail
+          git config --global --add safe.directory '*'
+          git clone -q --no-hardlinks . ~/nonos
+      - name: make build
+        run: |
+          set -euo pipefail
+          . ~/.nix-profile/etc/profile.d/nix.sh
+          cd ~/nonos && make doctor && make build
+      - name: make check
+        run: |
+          set -euo pipefail
+          . ~/.nix-profile/etc/profile.d/nix.sh
+          cd ~/nonos && make check
+
+  container:
+    name: nix build (devcontainer)
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Build the devcontainer image
+        run: docker build -t nonos-dev .devcontainer
+      - name: nix build inside it
+        run: |
+          docker run --rm --privileged -v "$PWD:/workspaces/nonos-unified" -w /workspaces/nonos-unified nonos-dev \
+            bash -lc 'git config --global --add safe.directory "$PWD" && nix build .#default -L --keep-going --no-link'
+
+  verify:
+    name: nonos-verify build
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/nix-setup
+        with:
+          cache: ${{ vars.NONOS_CACHIX }}
       - name: Provision CI trust material
         env:
           NONOS_CI_TRUST_MODE: ${{ inputs.trust-mode }}
@@ -50,14 +150,11 @@ jobs:
           case "${NONOS_CI_TRUST_MODE}" in
             scratch)
               bash nonos-ci/setup-signing-key.sh
-              bash nonos-ci/scratch-trust-bootstrap.sh
+              nix develop --command bash nonos-ci/scratch-trust-bootstrap.sh
               ;;
             production)
               bash nonos-ci/setup-signing-key.sh
               make nonos-mk-check-trust-manifest
-              # The vendor image bakes the public unbound sentinel; the
-              # installer enrolls the owner's device slots at install.
-              echo "NONOS_DEVICE_BINDING=unbound" >> "$GITHUB_ENV"
               echo "NONOS_TRUST_REUSE=1" >> "$GITHUB_ENV"
               ;;
             *)
@@ -66,8 +163,8 @@ jobs:
               ;;
           esac
       - name: nonos-verify build
-        run: cargo run --release --manifest-path nonos-verify/Cargo.toml -- build
-      - name: Upload build artifacts
+        run: nix develop --command cargo run --release --manifest-path nonos-verify/Cargo.toml -- build
+      - name: Upload build reports
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
