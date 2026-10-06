@@ -14,20 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod collapse;
+pub mod dock_rule;
+pub mod expect;
 mod expire_pulses;
 mod expire_visibility;
+mod go_step;
 mod mark_launch;
 mod new;
-mod reveal;
+mod route;
 mod set_open;
 mod types;
+mod windows;
 
-pub use collapse::collapse_taskbar;
+pub use dock_rule::{dock_pointer, dock_work, reveal_taskbar, set_full_screen};
+pub use expect::{expect_window, windows_overdue};
 pub use expire_pulses::expire_taskbar_pulses;
 pub use expire_visibility::expire_taskbar_visibility;
+pub use go_step::{go_step, GoStep};
 pub use mark_launch::mark_taskbar_launch;
 pub use new::new_taskbar_state;
-pub use reveal::reveal_taskbar;
-pub use set_open::set_taskbar_open;
-pub use types::{TaskbarState, TASKBAR_NO_ACTIVE};
+pub use route::{raise_tracked, reach_by, Reach};
+pub use types::{TaskbarState, Uptime, TASKBAR_NO_ACTIVE};
+pub use windows::{forget_dead_windows, track_window_closed, track_window_opened};

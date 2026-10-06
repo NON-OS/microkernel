@@ -14,30 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_service_lookup;
+use core::sync::atomic::{AtomicBool, Ordering};
 
-use crate::state::LAUNCHER_APPS;
+use nonos_policy_client::get_bool;
+use nonos_policy_proto::Field;
 
-pub(super) fn resolve_label(owner_pid: u32) -> Option<&'static [u8]> {
-    for app in LAUNCHER_APPS.iter() {
-        if service_pid(app.service) == Some(owner_pid) {
-            return Some(app.label);
-        }
+use crate::state::NotifyLevel;
+
+static ENABLED: AtomicBool = AtomicBool::new(true);
+
+// Follow the Notifications setting; an unanswered read keeps the last value.
+pub fn follow(port: u32) {
+    if port == 0 {
+        return;
     }
-    None
+    if let Some(v) = get_bool(port, Field::NotificationsEnabled) {
+        ENABLED.store(v, Ordering::Relaxed);
+    }
 }
 
-fn service_pid(service: &[u8]) -> Option<u32> {
-    let mut port = 0u32;
-    let mut pid = 0u32;
-    let rc = mk_service_lookup(
-        service.as_ptr(),
-        service.len(),
-        &mut port as *mut u32,
-        &mut pid as *mut u32,
-    );
-    if rc < 0 || pid == 0 {
-        return None;
-    }
-    Some(pid)
+// With notifications off, an app's news is dropped; warnings and errors still show.
+pub fn shows(level: NotifyLevel) -> bool {
+    ENABLED.load(Ordering::Relaxed) || !matches!(level, NotifyLevel::Info)
 }

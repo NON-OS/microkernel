@@ -30,9 +30,11 @@ mod pkg;
 mod pkg_decode;
 mod pkg_wire;
 mod port;
+mod probe;
 
 pub use available::available;
 pub use list_installed::list_installed;
-pub use load::load_by_name;
+pub use load::{issue_load, Issued};
 pub use pkg::{pkg_commit, pkg_query};
 pub use pkg_decode::PkgSummary;
+pub use probe::probe;

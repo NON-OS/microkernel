@@ -16,6 +16,10 @@
 
 use crate::state::Context;
 
+/// A launch still loading is looked for every few tens of milliseconds
+/// (`handlers/installed_launch_poll.rs`), and the app it brings up waits on
+/// the shell's focus frame before it draws, so the serve loop does not park a
+/// whole second at a time while one is followed.
 pub fn ready_to_block(ctx: &Context) -> bool {
-    ctx.input_ready && ctx.wm_notify_ready
+    ctx.input_ready && ctx.wm_notify_ready && ctx.launch.is_none()
 }

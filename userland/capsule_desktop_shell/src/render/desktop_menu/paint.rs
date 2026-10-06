@@ -25,7 +25,7 @@ use crate::render::layout::Rect;
 use crate::render::palette;
 use crate::render::panel::{blend, round_fill, shadow_panel};
 use crate::render::text_aa::text_aa_bytes;
-use crate::render::ui_font::{scale, top_y_centered, UI_PX};
+use crate::render::ui_font::{px, scale, top_y_centered, UI_PX};
 use crate::state::Context;
 
 const GLYPH_H_LOGICAL: u32 = 18;
@@ -38,7 +38,7 @@ pub fn paint(ctx: &Context) {
     }
     let (ox, oy) = origin(ctx);
     let (w, rh, s) = (width(ctx), row_h(), scale());
-    let inset = INSET_LOGICAL * s;
+    let inset = px(INSET_LOGICAL);
     let with_glyph = ctx.menu_target.is_none();
     let frame = Rect { x: ox, y: oy, width: w, height: height(ctx) };
     shadow_panel(ctx, frame, palette::R_CARD, palette::PANEL, palette::LINE);
@@ -53,7 +53,7 @@ pub fn paint(ctx: &Context) {
         if with_glyph {
             glyph(ctx, ox + pad_x(), top + rh.saturating_sub(GLYPH_H_LOGICAL * s) / 2, i == 0);
         } else {
-            let x = ox + pad_x() + 4 * s;
+            let x = ox + pad_x() + px(4);
             let tick = Rect { x, y: top + rh / 2 - 3 * s, width: 3 * s, height: 6 * s };
             blend(ctx, tick, palette::ACCENT);
         }

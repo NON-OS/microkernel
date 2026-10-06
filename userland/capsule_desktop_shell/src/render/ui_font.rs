@@ -21,23 +21,35 @@
 use core::sync::atomic::{AtomicU32, Ordering};
 use nonos_toolkit::font::ttf;
 
-static SCALE: AtomicU32 = AtomicU32::new(1);
+/// Drawing pixels per logical pixel, in quarters: 4 is one to one.
+static QUARTERS: AtomicU32 = AtomicU32::new(4);
 
-/// Latch the display scale. Every size below is a logical size multiplied by
-/// this, so a denser mode draws the same physical type rather than half-height
-/// type. Set once from the surface geometry before the first frame.
-pub fn set_scale(scale: u32) {
-    SCALE.store(scale.max(1), Ordering::Relaxed);
+/// Latch the display scale, in quarters of a pixel. Every size below is a
+/// logical size taken through `px` or `scaled`, so the desktop's type and its
+/// bars, icons and menus grow together, by the same rule first-boot setup and
+/// the installer use. Set once from the surface geometry before the first
+/// frame.
+pub fn set_scale(quarters: u32) {
+    QUARTERS.store(quarters.max(4), Ordering::Relaxed);
 }
 
+/// `v` logical pixels on the canvas, to the nearest pixel.
+pub fn px(v: u32) -> u32 {
+    v.saturating_mul(QUARTERS.load(Ordering::Relaxed)).saturating_add(2) / 4
+}
+
+/// Whole drawing pixels per logical pixel, for the glyphs drawn in whole
+/// pixels (the status icons, the menu marks): 1 up to a scale of 1.5, 2 from
+/// 2. A glyph's metrics use this too, so the room kept for it is the room it
+/// takes.
 pub fn scale() -> u32 {
-    SCALE.load(Ordering::Relaxed)
+    (QUARTERS.load(Ordering::Relaxed) / 4).max(1)
 }
 
 /// Convert a logical point size to device pixels. Draw and measure both route
 /// through here, so they cannot disagree about how large a glyph is.
 pub fn scaled(px: f32) -> f32 {
-    px * scale() as f32
+    px * QUARTERS.load(Ordering::Relaxed) as f32 / 4.0
 }
 
 /// Body text: menu bar, status cluster, labels, dialogs.
@@ -72,7 +84,7 @@ pub fn top_y_centered(box_y: u32, box_h: u32, px: f32) -> u32 {
 }
 
 /// The valid UTF-8 prefix of `bytes`, so malformed state renders short instead of blank.
-pub(crate) fn valid_str(bytes: &[u8]) -> &str {
+pub fn valid_str(bytes: &[u8]) -> &str {
     core::str::from_utf8(bytes)
         .unwrap_or_else(|e| core::str::from_utf8(&bytes[..e.valid_up_to()]).unwrap_or(""))
 }

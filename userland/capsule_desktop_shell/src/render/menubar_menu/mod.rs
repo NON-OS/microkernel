@@ -20,9 +20,11 @@
 mod hit;
 mod items;
 mod metrics;
+mod off_rows;
 mod origin;
 mod paint;
 
 pub use hit::{row_hit, title_hit};
 pub use items::focused;
+pub use metrics::titles_right;
 pub use paint::{paint, paint_titles};

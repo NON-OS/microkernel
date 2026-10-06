@@ -14,37 +14,72 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{
-    MenubarState, NotifyLevel, PkgInstallPrompt, SpotlightState, TaskbarState, ToastQueue,
-    TrayTable,
-};
+use super::{MenubarState, PkgInstallPrompt, TaskbarState, ToastQueue, TrayTable};
 
 pub struct Context {
     pub compositor_port: u32,
     pub wm_port: u32,
     pub input_router_port: u32,
+    /// The wallpaper service's port, 0 until it registers.
+    pub wallpaper_port: u32,
+    /// Whether the wallpaper has taken the desktop's scaling yet
+    /// (server/wallpaper_policy.rs).
+    pub wallpaper_policy_sent: bool,
     pub input_kind_mask: u32,
     pub input_ready: bool,
     pub wm_notify_ready: bool,
     pub width: u32,
     pub height: u32,
+    /// Drawing pixels per logical pixel, in quarters (`state::scale`).
     pub scale: u32,
     pub stride: u32,
+    /// The surface every painter draws on. It is the chrome surface, over
+    /// the windows, except while the desktop's icons are painted onto the
+    /// desk surface under them (render/chrome.rs paint_desk).
     pub backing_va: u64,
+    /// The shell's two surfaces, both the size of the display: the desk in
+    /// the compositor's band under every application window, with the
+    /// desktop's icons, and the chrome in the band over every window, with
+    /// the menubar, the dock, menus, the Launchpad, toasts and dialogs.
+    pub desk_va: u64,
+    pub chrome_va: u64,
+    /// The off-screen frame each surface's paint is drawn in before it is
+    /// copied over the surface (render/whole_frame.rs), kept between paints.
+    pub back: alloc::vec::Vec<u32>,
+    /// The router grab mask the shell holds (state/grab_rule.rs).
+    pub grab_held: u32,
     pub tray: TrayTable,
     pub taskbar: TaskbarState,
-    pub spotlight: SpotlightState,
     /// Whether the full-screen Launchpad overlay is open.
     pub launchpad: bool,
     pub launchpad_query: alloc::string::String,
     pub launchpad_page: usize,
+    /// Wheel notches added up toward the next page turn.
+    pub launchpad_wheel: crate::state::launchpad_wheel::PageWheel,
     pub launchpad_view: alloc::vec::Vec<crate::render::launchpad::Target>,
-    pub last_notify_level: Option<NotifyLevel>,
     pub toasts: ToastQueue,
     pub toast_layer_live: bool,
+    /// The toast queue's generation the chrome was last painted with.
+    pub toasts_drawn: u32,
+    /// The toast queue's generation the panel was last brought on screen
+    /// with (render/toasts.rs sync_toast_layer). The serve loop syncs the
+    /// panel whenever the queue moved past it, whoever pushed or expired.
+    pub toasts_synced: u32,
+    /// The panel the shell holds a window over for its toasts, as last
+    /// opened with the window manager (render/toasts.rs claim_presses).
+    pub toast_window: Option<(u32, u32, u32, u32)>,
+    /// Whether the DHCP client held an address at the last tick: the menu
+    /// bar's network glyph, and the edge the "network connected" toast is on.
     pub net_was_online: bool,
     pub clock_24h: bool,
+    // Whole hours east of UTC, from the Timezone setting.
+    pub tz_hours: i8,
     pub policy_port: u32,
+    /// When the tick may next read the policy store, after one went
+    /// unanswered (state/quiet_gap.rs).
+    pub policy_gap: crate::state::quiet_gap::QuietGap,
+    /// When the tick may next ask the installer for its apps, likewise.
+    pub installer_gap: crate::state::quiet_gap::QuietGap,
     pub next_request_id: u32,
     /// Entries at the VFS root, shown as icons on the desktop. Loaded lazily
     /// once the vfs_pool service is up, then refreshed after we mutate it.
@@ -62,6 +97,9 @@ pub struct Context {
     /// second click focuses that window instead of loading another copy. An
     /// entry is dropped once its pid stops accepting control frames.
     pub installed_pids: alloc::collections::BTreeMap<alloc::vec::Vec<u8>, u32>,
+    /// The Launchpad launch the installer is still loading, followed on the
+    /// shell's turns (`server/handlers/installed_launch_poll.rs`).
+    pub launch: Option<crate::state::launch::Launch>,
     /// Which menu-bar title is open, and the row under the pointer inside it.
     pub menubar: MenubarState,
     /// Top-left corner of the desktop right-click menu, or None when hidden.
@@ -85,12 +123,23 @@ pub struct Context {
     /// Open-with broker: path handed to a target app's service name by
     /// `OP_OPEN_WITH`, pulled once via `OP_TAKE_OPEN_ARG` after the app wakes.
     pub pending_open: alloc::collections::BTreeMap<alloc::string::String, alloc::string::String>,
+    /// A command line a Launchpad tool tile left for the Terminal, answered
+    /// only to a Terminal window and only while still wanted
+    /// (state::open_arg). Kept apart from `pending_open`, which any process
+    /// can fill through `OP_OPEN_WITH`.
+    pub pending_command: Option<crate::state::open_arg::PendingCommand>,
     /// Name of the runtime-installed app whose launch is awaiting the consent
     /// modal, or None when no dialog is up.
     pub pending_consent: Option<alloc::vec::Vec<u8>>,
     /// The /pkgs package whose install awaits the consent modal, carrying the
     /// summary pkg_query returned, or None when no dialog is up.
     pub pending_pkg_install: Option<PkgInstallPrompt>,
+    /// The offer to install NONOS, shown once at the start of a live session.
+    pub live_prompt: crate::state::live_prompt::LivePrompt,
+    /// A desktop Delete waiting on its confirmation.
+    pub pending_delete: crate::state::delete_prompt::DeletePrompt,
+    /// Which of the open dialog's two buttons the keyboard is on.
+    pub dialog_focus: crate::state::dialog_keys::DialogFocus,
 }
 
 impl Context {

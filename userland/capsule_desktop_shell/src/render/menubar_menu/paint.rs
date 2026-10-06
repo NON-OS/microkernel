@@ -19,6 +19,7 @@
 
 use super::items::{rows, title, TITLE_COUNT};
 use super::metrics::{inset, pad_x, pad_y, panel_h, panel_w, row_h, row_pad_x, title_w, title_x};
+use super::off_rows::row_fg;
 use super::origin::origin;
 use crate::render::layout::{menubar_height, Rect};
 use crate::render::palette;
@@ -68,6 +69,6 @@ pub fn paint(ctx: &Context) {
             round_fill(ctx, hl, palette::R_TILE, palette::ACCENT_HOVER);
         }
         let text_y = top_y_centered(top, row_h(), UI_PX);
-        text_aa(ctx, ox + row_pad_x(), text_y, label, palette::TEXT, UI_PX);
+        text_aa(ctx, ox + row_pad_x(), text_y, label, row_fg(index, i), UI_PX);
     }
 }

@@ -16,39 +16,14 @@
 
 use nonos_libc::mk_battery_status;
 
-/// Battery charge as a percent, or None on AC power or when the reading is
-/// unavailable. Used to fill the battery glyph on the menu bar.
-pub fn percent() -> Option<u32> {
-    let rc = mk_battery_status();
-    if (0..=100).contains(&rc) {
-        Some(rc as u32)
-    } else {
-        None
-    }
-}
+use super::battery_text::Battery;
 
-pub fn label(buf: &mut [u8; 4]) -> usize {
-    let rc = mk_battery_status();
-    if rc < 0 || rc > 100 {
-        buf[0] = b'A';
-        buf[1] = b'C';
-        return 2;
-    }
-    let p = rc as u32;
-    let mut n = 0;
-    if p >= 100 {
-        buf[0] = b'1';
-        buf[1] = b'0';
-        buf[2] = b'0';
-        buf[3] = b'%';
-        return 4;
-    }
-    if p >= 10 {
-        buf[n] = b'0' + ((p / 10) % 10) as u8;
-        n += 1;
-    }
-    buf[n] = b'0' + (p % 10) as u8;
-    n += 1;
-    buf[n] = b'%';
-    n + 1
+/// What the kernel says about the battery (`MkBatteryStatus`,
+/// `src/syscall/microkernel/battery.rs`): a percent, no battery at all (the
+/// firmware declares none: a desktop), or a battery whose charge cannot be
+/// read. Today the last is every laptop, because reading `_BST` needs an AML
+/// interpreter the kernel does not have; the bar says so in words instead of
+/// drawing a gauge.
+pub fn percent() -> Battery {
+    Battery::from_status(mk_battery_status())
 }

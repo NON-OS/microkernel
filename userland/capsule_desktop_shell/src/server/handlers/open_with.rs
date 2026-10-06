@@ -16,10 +16,11 @@
 
 use alloc::string::String;
 
-use crate::protocol::{Request, E_INVAL, E_NOENT};
-use crate::server::handlers::launcher_request;
+use super::launcher_request::LaunchOutcome;
+use crate::protocol::{Request, E_BUSY, E_INVAL, E_NOENT};
 use crate::server::respond;
 use crate::state::apps::LAUNCHER_APPS;
+use crate::state::open_arg::is_path;
 use crate::state::Context;
 
 pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
@@ -34,16 +35,25 @@ pub fn handle(ctx: &mut Context, sender_pid: u32, req: &Request, body: &[u8], tx
     }
     let svc = &body[2..2 + nlen];
     let path = &body[2 + nlen..];
-    let app = match LAUNCHER_APPS.iter().find(|a| a.service == svc) {
-        Some(a) => a,
-        None => {
-            let _ = respond::status(sender_pid, req, E_NOENT, tx);
+    let Some(index) = LAUNCHER_APPS.iter().position(|a| a.service == svc) else {
+        let _ = respond::status(sender_pid, req, E_NOENT, tx);
+        return;
+    };
+    // Only a path may be left this way. Any process can send OP_OPEN_WITH, and
+    // what it leaves is what the app is told to open, so it must never take
+    // the form of the Terminal's command line (state::open_arg).
+    let path = match core::str::from_utf8(path) {
+        Ok(p) if is_path(p) => p,
+        _ => {
+            let _ = respond::status(sender_pid, req, E_INVAL, tx);
             return;
         }
     };
-    if let (Ok(k), Ok(v)) = (core::str::from_utf8(svc), core::str::from_utf8(path)) {
-        ctx.pending_open.insert(String::from(k), String::from(v));
-    }
-    let _ = launcher_request::request(app);
-    let _ = respond::status(sender_pid, req, 0, tx);
+    // The file manager shows a preview and says the app could not be
+    // started when the answer is not 0.
+    let status = match super::hand_over::hand_over(ctx, index, String::from(path)) {
+        LaunchOutcome::Failed => E_BUSY,
+        _ => 0,
+    };
+    let _ = respond::status(sender_pid, req, status, tx);
 }

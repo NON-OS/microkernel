@@ -15,7 +15,6 @@ const GREX: &[u8] = include_bytes!("../../../../assets/icons/tools/grex.a8");
 const DOTENV_LINTER: &[u8] = include_bytes!("../../../../assets/icons/tools/dotenv_linter.a8");
 const PASTEL: &[u8] = include_bytes!("../../../../assets/icons/tools/pastel.a8");
 const JSONXF: &[u8] = include_bytes!("../../../../assets/icons/tools/jsonxf.a8");
-const CHOOSE: &[u8] = include_bytes!("../../../../assets/icons/tools/choose.a8");
 const TOKEI: &[u8] = include_bytes!("../../../../assets/icons/tools/tokei.a8");
 const HUNIQ: &[u8] = include_bytes!("../../../../assets/icons/tools/huniq.a8");
 const CSVIEW: &[u8] = include_bytes!("../../../../assets/icons/tools/csview.a8");
@@ -26,7 +25,6 @@ fn glyph_for(label: &[u8]) -> Option<&'static [u8]> {
         b"dotenv-linter" => Some(DOTENV_LINTER),
         b"pastel" => Some(PASTEL),
         b"jsonxf" => Some(JSONXF),
-        b"choose" => Some(CHOOSE),
         b"tokei" => Some(TOKEI),
         b"huniq" => Some(HUNIQ),
         b"csview" => Some(CSVIEW),

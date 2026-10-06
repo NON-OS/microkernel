@@ -17,7 +17,7 @@
 //! Measured geometry and labels for the right-click menu.
 
 use crate::render::measure_aa::measure_aa_bytes;
-use crate::render::ui_font::{line_h, scale, UI_PX};
+use crate::render::ui_font::{line_h, px, UI_PX};
 use crate::state::Context;
 
 /// Rows for the empty-desktop menu and the per-item menu. Row index doubles as
@@ -44,24 +44,24 @@ const ROW_LEAD_LOGICAL: u32 = 12;
 const MIN_W_LOGICAL: u32 = 200;
 
 pub(super) fn pad_y() -> u32 {
-    PAD_Y_LOGICAL * scale()
+    px(PAD_Y_LOGICAL)
 }
 
 pub(super) fn pad_x() -> u32 {
-    PAD_X_LOGICAL * scale()
+    px(PAD_X_LOGICAL)
 }
 
 pub(super) fn label_x() -> u32 {
-    LABEL_X_LOGICAL * scale()
+    px(LABEL_X_LOGICAL)
 }
 
 /// Height of one row: the measured line box plus breathing room above and below.
 pub(super) fn row_h() -> u32 {
-    line_h(UI_PX) + ROW_LEAD_LOGICAL * scale()
+    line_h(UI_PX) + px(ROW_LEAD_LOGICAL)
 }
 
 /// Panel width: wide enough for the longest label the open menu can show.
 pub(super) fn width(ctx: &Context) -> u32 {
     let widest = items(ctx).iter().map(|label| measure_aa_bytes(label, UI_PX)).max().unwrap_or(0);
-    (label_x() + widest + pad_x()).max(MIN_W_LOGICAL * scale())
+    (label_x() + widest + pad_x()).max(px(MIN_W_LOGICAL))
 }

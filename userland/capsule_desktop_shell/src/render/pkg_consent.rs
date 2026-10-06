@@ -14,6 +14,7 @@ use super::consent::{
 };
 use crate::render::ui_font::{line_h, valid_str, TITLE_PX, UI_PX};
 use crate::server::handlers::pkg_consent::{approve_rect, cancel_rect, panel_rect};
+use crate::state::dialog_keys::Choice;
 use crate::state::Context;
 
 const TITLE: &str = "Install package?";
@@ -45,8 +46,9 @@ pub fn paint_pkg_consent(ctx: &Context) {
     line(ctx, x, y, tier, DIM, UI_PX, max_w);
     y += line_h(UI_PX);
     paint_caps(ctx, x, y, approve.y, max_w, valid_str(&caps));
-    button(ctx, approve, APPROVE_BG, "Approve");
-    button(ctx, cancel_rect(ctx.width, ctx.height), CANCEL_BG, "Cancel");
+    let act = ctx.dialog_focus.focused() == Choice::Act;
+    button(ctx, approve, APPROVE_BG, "Approve", act);
+    button(ctx, cancel_rect(ctx.width, ctx.height), CANCEL_BG, "Cancel", !act);
 }
 
 fn paint_caps(ctx: &Context, x: u32, top_y: u32, buttons_y: u32, max_w: u32, caps: &str) {

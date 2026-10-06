@@ -19,7 +19,7 @@ pub(super) fn draw(ctx: &Context, x: u32, y: u32, size: u32, label: &[u8]) {
         let mut buf = surface(ctx);
         let r = (size * 10 / 46).max(2);
         buf.panel(x, y, size, size, r, palette::TILE_FILL, palette::LINE_SOFT);
-        let inset = 4 * ui_font::scale();
+        let inset = ui_font::px(4);
         let inner = size.saturating_sub(2 * inset);
         buf.fill_round(
             x + inset,

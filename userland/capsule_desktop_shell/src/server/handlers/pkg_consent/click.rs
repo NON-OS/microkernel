@@ -7,11 +7,10 @@
 
 use alloc::vec::Vec;
 
-use nonos_libc::mk_time_millis;
-
 use super::{approve_rect, geometry::hit};
 use crate::render::sync_toast_layer;
 use crate::server::repaint::repaint;
+use crate::state::dialog_keys::Choice;
 use crate::state::{Context, NotifyLevel, PkgInstallPrompt};
 
 /// The commit blocks this single-threaded loop for as long as the installer
@@ -19,41 +18,46 @@ use crate::state::{Context, NotifyLevel, PkgInstallPrompt};
 /// before it starts: otherwise the stale panel sits on screen for the whole
 /// install with no sign that the click registered.
 pub(crate) fn click(ctx: &mut Context, px: u32, py: u32) -> bool {
-    let Some(prompt) = ctx.pending_pkg_install.take() else {
+    if ctx.pending_pkg_install.is_none() {
         return false;
+    }
+    let approve = hit(approve_rect(ctx.width, ctx.height), px, py);
+    answer(ctx, if approve { Choice::Act } else { Choice::Leave });
+    true
+}
+
+/// Approve installs the package; Cancel, Esc or a press outside does not.
+pub(crate) fn answer(ctx: &mut Context, choice: Choice) {
+    ctx.dialog_focus.reset();
+    let Some(prompt) = ctx.pending_pkg_install.take() else {
+        return;
     };
-    if !hit(approve_rect(ctx.width, ctx.height), px, py) {
+    if choice == Choice::Leave {
         repaint(ctx);
-        return true;
+        return;
     }
     let mut text = Vec::with_capacity(32);
     text.extend_from_slice(b"installing ");
     text.extend_from_slice(&prompt.summary.slug);
-    ctx.toasts.push(&text, NotifyLevel::Info, mk_time_millis());
+    ctx.toasts.push(&text, NotifyLevel::Info, crate::server::toast_clock::now());
     sync_toast_layer(ctx);
     repaint(ctx);
     commit(ctx, prompt);
     repaint(ctx);
-    true
 }
 
 /// The commit re-verifies against the digest the prompt was built from, so a
 /// file swapped between the query and the click fails rather than installing
 /// something the user never saw.
 fn commit(ctx: &mut Context, prompt: PkgInstallPrompt) {
-    let mut text = Vec::with_capacity(32);
-    let level = match crate::installer_client::pkg_commit(&prompt.path, &prompt.summary.digest) {
+    match crate::installer_client::pkg_commit(&prompt.path, &prompt.summary.digest) {
         Ok(()) => {
+            let mut text = Vec::with_capacity(32);
             text.extend_from_slice(b"installed ");
             text.extend_from_slice(&prompt.summary.slug);
-            NotifyLevel::Info
+            ctx.toasts.push(&text, NotifyLevel::Info, crate::server::toast_clock::now());
+            sync_toast_layer(ctx);
         }
-        Err(code) => {
-            text.extend_from_slice(b"install failed: ");
-            crate::server::handlers::pkg_install::push_i32(&mut text, code);
-            NotifyLevel::Error
-        }
-    };
-    ctx.toasts.push(&text, level, mk_time_millis());
-    sync_toast_layer(ctx);
+        Err(code) => crate::server::handlers::pkg_install::report_rejected(ctx, code),
+    }
 }

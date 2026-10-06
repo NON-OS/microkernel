@@ -17,4 +17,5 @@
 mod discover;
 mod prime;
 
+pub use discover::try_wallpaper;
 pub use prime::{run, subscribe_input, subscribe_wm};

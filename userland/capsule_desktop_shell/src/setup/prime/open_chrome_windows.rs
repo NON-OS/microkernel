@@ -17,10 +17,16 @@
 use crate::render::layout::bottom_dock_rect;
 use crate::state::{Context, TASKBAR_WINDOW_ID};
 use crate::wm_client;
-use nonos_libc::mk_yield;
+use nonos_libc::mk_idle_ms;
 
 const WINDOW_KIND_POPUP: u32 = 3;
-const OPEN_RETRIES: usize = 16;
+/* The dock's own window, tried as an app's is (app_skeleton
+ * setup/patience.rs): rested between tries, not yielded. A bare yield comes
+ * back at once when nothing else wants the processor, so sixteen of them
+ * were spent in microseconds on a window manager that was only a frame
+ * behind, and the whole desktop setup went round again. */
+const OPEN_RETRIES: u32 = nonos_app_skeleton::setup::patience::WINDOW_OPEN.attempts * 4;
+const REST_MS: u64 = nonos_app_skeleton::setup::patience::WINDOW_OPEN.rest_ms;
 
 pub fn open_chrome_windows(ctx: &mut Context) -> Result<(), &'static str> {
     let bottom = bottom_dock_rect(ctx.width, ctx.height);
@@ -36,7 +42,7 @@ fn open_retry(
     width: u32,
     height: u32,
 ) -> Result<(), &'static str> {
-    for _ in 0..OPEN_RETRIES {
+    for attempt in 0..OPEN_RETRIES {
         if wm_client::window_open(
             ctx.wm_port,
             ctx.issue_request_id(),
@@ -51,7 +57,9 @@ fn open_retry(
         {
             return Ok(());
         }
-        mk_yield();
+        if attempt + 1 < OPEN_RETRIES {
+            mk_idle_ms(REST_MS);
+        }
     }
     Err("wm rejected window_open")
 }

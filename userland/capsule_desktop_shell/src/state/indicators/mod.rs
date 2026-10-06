@@ -15,7 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod battery;
+pub mod battery_text;
 pub mod clock;
 pub mod clock_stamp;
+pub mod local_time;
 pub mod net;
+pub mod notify_gate;
 pub mod policy;

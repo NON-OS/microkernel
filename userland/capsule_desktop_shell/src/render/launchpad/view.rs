@@ -48,7 +48,7 @@ pub(crate) fn rebuild(ctx: &mut Context) {
     }
 }
 
-pub(super) fn pages(ctx: &Context) -> usize {
+pub(crate) fn pages(ctx: &Context) -> usize {
     let cap = per_page(ctx.width, ctx.height).max(1);
     ctx.launchpad_view.len().div_ceil(cap).max(1)
 }

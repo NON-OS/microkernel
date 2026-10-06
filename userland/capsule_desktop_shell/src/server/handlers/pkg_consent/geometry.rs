@@ -14,19 +14,19 @@ const BTN_W_LOGICAL: u32 = 110;
 const BTN_H_LOGICAL: u32 = 32;
 
 fn panel_w() -> u32 {
-    PANEL_W_LOGICAL * ui_font::scale()
+    ui_font::px(PANEL_W_LOGICAL)
 }
 
 fn panel_h() -> u32 {
-    PANEL_H_LOGICAL * ui_font::scale()
+    ui_font::px(PANEL_H_LOGICAL)
 }
 
 fn btn_w() -> u32 {
-    BTN_W_LOGICAL * ui_font::scale()
+    ui_font::px(BTN_W_LOGICAL)
 }
 
 fn btn_h() -> u32 {
-    BTN_H_LOGICAL * ui_font::scale()
+    ui_font::px(BTN_H_LOGICAL)
 }
 
 pub(crate) fn panel_rect(w: u32, h: u32) -> Rect {
@@ -45,11 +45,10 @@ pub(crate) fn cancel_rect(w: u32, h: u32) -> Rect {
 
 fn button_rect(w: u32, h: u32, approve: bool) -> Rect {
     let p = panel_rect(w, h);
-    let s = ui_font::scale();
     let (bw, bh) = (btn_w(), btn_h());
-    let y = p.y + p.height.saturating_sub(bh + 16 * s);
+    let y = p.y + p.height.saturating_sub(bh + ui_font::px(16));
     let mid = p.x + p.width / 2;
-    let x = if approve { mid.saturating_sub(bw + 8 * s) } else { mid + 8 * s };
+    let x = if approve { mid.saturating_sub(bw + ui_font::px(8)) } else { mid + ui_font::px(8) };
     Rect { x, y, width: bw, height: bh }
 }
 

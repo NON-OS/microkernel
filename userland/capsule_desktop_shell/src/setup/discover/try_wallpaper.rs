@@ -14,22 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::render::fill::fill_rect;
-use crate::render::layout::Rect;
-use crate::state::Context;
-
-pub fn paint_rect(ctx: &Context, r: Rect, argb: u32) {
-    fill_rect(ctx.backing_va, ctx.stride, ctx.width, ctx.height, r.x, r.y, r.width, r.height, argb);
-}
-
-pub fn paint_border(ctx: &Context, r: Rect, argb: u32, t: u32) {
-    let t = t.min(r.width).min(r.height);
-    if t == 0 {
-        return;
-    }
-    let (bw, st, w, h) = (ctx.backing_va, ctx.stride, ctx.width, ctx.height);
-    fill_rect(bw, st, w, h, r.x, r.y, r.width, t, argb);
-    fill_rect(bw, st, w, h, r.x, r.y + r.height - t, r.width, t, argb);
-    fill_rect(bw, st, w, h, r.x, r.y, t, r.height, argb);
-    fill_rect(bw, st, w, h, r.x + r.width - t, r.y, t, r.height, argb);
+/// The wallpaper service's port, or 0 while it is not registered. The desktop
+/// does not wait for it: the wallpaper only paints under the shell, and a slow
+/// one (its catalog reading from the store) once held the whole desktop back
+/// in "setup stuck: wallpaper call failed". The runner asks again.
+pub fn try_wallpaper() -> u32 {
+    super::lookup_port::lookup_port(super::constants::WALLPAPER_SERVICE).unwrap_or(0)
 }

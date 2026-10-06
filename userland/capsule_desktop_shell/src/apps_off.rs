@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_service_lookup;
+/*
+ * The apps first-boot setup turned off, as the kernel holds them. The kernel
+ * spawns none of them, at boot or for a click, so every way in (dock,
+ * Launchpad, the Go menu) shows each as off and says why it opens nothing.
+ */
 
-use crate::state::LAUNCHER_APPS;
+mod dim;
+mod mask;
+mod open;
+mod qwen;
 
-pub fn resolve_app_index(owner_pid: u32) -> Option<usize> {
-    for (index, app) in LAUNCHER_APPS.iter().enumerate() {
-        let mut port = 0u32;
-        let mut pid = 0u32;
-        let rc = mk_service_lookup(app.service.as_ptr(), app.service.len(), &mut port, &mut pid);
-        if rc >= 0 && pid == owner_pid {
-            return Some(index);
-        }
-    }
-    None
-}
+pub use dim::dim;
+pub use mask::is_off;
+pub use open::{expect, open, request, say_default, toast_failed};

@@ -14,53 +14,53 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The right-hand status cluster: battery, network and the date-time stamp,
-//! all from live readings, set straight on the bar with no tile behind them.
+//! The right-hand status cluster: battery (a gauge for a reading, plain
+//! words for no battery or an unreadable one), network and the date-time stamp, all from live readings, set
+//! straight on the bar with no tile behind them. The tray's labels sit just
+//! left of it.
 
 use super::battery_glyph::battery_glyph;
-use super::metrics::{batt_glyph_w, dot, gap, net_glyph_w, right_margin, search_glyph_w, FG};
+use super::metrics::{batt_glyph_w, gap, net_glyph_w, search_glyph_w, FG};
 use super::net_glyph::net_glyph;
-use super::notify_dot::notify_dot;
-use super::search_box::{search_box, total};
+use super::search_box::{cluster_x, fitted, has_gauge, search_box};
 use super::search_glyph::search_glyph;
 use crate::render::layout::menubar_rect;
 use crate::render::palette;
 use crate::render::text_aa::text_aa_bytes;
-use crate::render::ui_font::{scale, top_y_centered, STATUS_PX};
+use crate::render::ui_font::{px, scale, top_y_centered, STATUS_PX};
 use crate::state::indicators::clock_stamp::{stamp, STAMP_LEN};
-use crate::state::indicators::{battery, net};
+use crate::state::indicators::{battery, battery_text};
 use crate::state::Context;
 
 pub(super) fn status(ctx: &Context) {
     let bar = menubar_rect(ctx.width);
-
-    let online = net::online();
-    let pct = battery::percent();
-    let mut bbuf = [0u8; 4];
-    let blen = battery::label(&mut bbuf);
-    let btext = &bbuf[..blen];
+    // Read once a second by the tick (refresh_clock), not here: the chrome is
+    // painted on every menu hover and press, and each paint asked the DHCP
+    // client, on the shell's only thread, which waits while it gets an address.
+    let online = ctx.net_was_online;
+    let batt = battery::percent();
+    let pct = batt.percent();
+    let mut bbuf = [0u8; battery_text::LABEL_MAX];
+    let blen = battery_text::label(batt, &mut bbuf);
     let mut sbuf = [b'-'; STAMP_LEN];
-    let stamped = stamp(&mut sbuf, ctx.clock_24h);
-    let when: &[u8] = if stamped { &sbuf } else { b"--:--" };
-
-    let has_notify = ctx.last_notify_level.is_some();
-    let total = total(ctx, btext, when);
-    if bar.width <= total + right_margin() {
+    let when: &[u8] = match stamp(&mut sbuf, ctx.clock_24h, ctx.tz_hours) {
+        Some(n) => &sbuf[..n],
+        None => b"--:--",
+    };
+    let btext = fitted(ctx, &bbuf[..blen], when);
+    let Some(mut x) = cluster_x(ctx, btext, when) else {
         return;
-    }
-
-    let mut x = bar.x + bar.width - right_margin() - total;
+    };
+    super::tray::tray(ctx, x);
     let glyph_y = bar.y + (bar.height - 12 * scale()) / 2;
     let text_y = top_y_centered(bar.y, bar.height, STATUS_PX);
-    let dot_y = bar.y + (bar.height - dot()) / 2;
-
-    if has_notify {
-        notify_dot(ctx, x, dot_y);
-        x += dot() + gap();
+    if !btext.is_empty() {
+        if has_gauge(btext) {
+            battery_glyph(ctx, x, glyph_y, pct);
+            x += batt_glyph_w() + px(6);
+        }
+        x = text_aa_bytes(ctx, x, text_y, btext, FG, STATUS_PX) + gap();
     }
-    battery_glyph(ctx, x, glyph_y, pct);
-    x += batt_glyph_w() + 6 * scale();
-    x = text_aa_bytes(ctx, x, text_y, btext, FG, STATUS_PX) + gap();
     net_glyph(ctx, x, glyph_y, online);
     x += net_glyph_w() + gap();
     if let Some((sx, sy, _)) = search_box(ctx, btext, when) {

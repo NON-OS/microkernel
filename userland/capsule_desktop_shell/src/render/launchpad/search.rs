@@ -10,7 +10,7 @@ use crate::render::measure_aa::{measure_aa, truncate_to_width};
 use crate::render::palette;
 use crate::render::panel::panel;
 use crate::render::text_aa::text_aa;
-use crate::render::ui_font::{scale, top_y_centered, UI_PX};
+use crate::render::ui_font::{px, top_y_centered, UI_PX};
 use crate::state::Context;
 
 const PLACEHOLDER: &str = "Search applications...";
@@ -33,7 +33,7 @@ pub(super) fn paint(ctx: &Context) {
     let border = if ctx.launchpad_query.is_empty() { palette::LINE_SOFT } else { palette::ACCENT };
     panel(ctx, Rect { x, y, width: w, height: h }, palette::R_DOCK, palette::TILE_FILL, border);
 
-    let pad = 14 * scale();
+    let pad = px(14);
     let text_x = x + pad;
     let avail = w.saturating_sub(2 * pad);
     let top_y = top_y_centered(y, h, UI_PX);
@@ -44,7 +44,7 @@ pub(super) fn paint(ctx: &Context) {
     } else {
         let s = truncate_to_width(&ctx.launchpad_query, UI_PX, avail);
         text_aa(ctx, text_x, top_y, s, palette::TEXT, UI_PX);
-        let caret_x = text_x + measure_aa(s, UI_PX) + 2 * scale();
+        let caret_x = text_x + measure_aa(s, UI_PX) + px(2);
         text_aa(ctx, caret_x, top_y, "_", palette::ACCENT, UI_PX);
     }
 }

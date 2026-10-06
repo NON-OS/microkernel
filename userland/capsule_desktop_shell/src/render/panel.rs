@@ -16,22 +16,22 @@
 
 use super::layout::Rect;
 use super::surface::surface;
-use super::ui_font::scale;
+use super::ui_font::px;
 use crate::state::Context;
 
 pub fn round_fill(ctx: &Context, r: Rect, radius_logical: u32, argb: u32) {
-    let rad = radius_logical * scale();
+    let rad = px(radius_logical);
     surface(ctx).fill_round(r.x, r.y, r.width, r.height, rad, argb);
 }
 
 pub fn panel(ctx: &Context, r: Rect, radius_logical: u32, fill: u32, border: u32) {
-    let rad = radius_logical * scale();
+    let rad = px(radius_logical);
     surface(ctx).panel(r.x, r.y, r.width, r.height, rad, fill, border);
 }
 
 pub fn shadow_panel(ctx: &Context, r: Rect, radius_logical: u32, fill: u32, border: u32) {
-    let rad = radius_logical * scale();
-    let spread = 3 * scale();
+    let rad = px(radius_logical);
+    let spread = shadow_spread();
     let mut fb = surface(ctx);
     fb.shadow_round(r.x, r.y, r.width, r.height, rad, spread, SHADOW);
     fb.panel(r.x, r.y, r.width, r.height, rad, fill, border);
@@ -42,3 +42,8 @@ pub fn blend(ctx: &Context, r: Rect, argb: u32) {
 }
 
 const SHADOW: u32 = 0x5A00_0000;
+
+/// How far a shadowed panel's shadow reaches past its rectangle.
+pub fn shadow_spread() -> u32 {
+    px(3)
+}

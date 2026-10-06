@@ -14,19 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_munmap;
-
-use crate::setup::prime::{close_chrome_windows, overlay::Overlay, register};
+use crate::setup::prime::{overlay::Overlay, register};
 use crate::state::Context;
 
-pub fn register_overlay(ctx: &mut Context, overlay: &Overlay) -> Result<(), &'static str> {
+/// Register `overlay` with the compositor in band `z`; its shared surface
+/// handle, which setup releases again if a later step fails.
+pub fn register_overlay(ctx: &mut Context, overlay: &Overlay, z: u32) -> Result<u64, &'static str> {
     let rid = ctx.issue_request_id();
-    if let Err(e) = register::register_overlay(ctx.compositor_port, rid, overlay) {
-        close_chrome_windows::close_chrome_windows(ctx);
-        if mk_munmap(overlay.backing_va as *mut u8, overlay.byte_len as usize) < 0 {
-            return Err("overlay munmap failed");
-        }
-        return Err(e);
-    }
-    Ok(())
+    register::register_overlay(ctx.compositor_port, rid, overlay, z)
 }

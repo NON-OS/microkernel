@@ -16,32 +16,16 @@
 
 //! Asking the audio service for one tone.
 
-use core::sync::atomic::{AtomicU32, Ordering};
-
 use nonos_audio_proto::{tone_request, TONE_MSG_LEN};
-use nonos_libc::{mk_ipc_call_timeout, mk_service_lookup};
-
-const SERVICE: &[u8] = b"audio.server";
+use nonos_libc::mk_ipc_call_timeout;
 
 // The shell draws the desktop. A wedged audio service costs it this and no more.
 const TIMEOUT_MS: u64 = 100;
 
 const REQUEST_ID: u32 = 1;
 
-static PORT: AtomicU32 = AtomicU32::new(0);
-
 pub(super) fn play(hz: u32, ms: u32, gain: u16) {
-    let mut port = PORT.load(Ordering::Relaxed);
-    if port == 0 {
-        let mut found = 0u32;
-        let mut pid = 0u32;
-        let rc = mk_service_lookup(SERVICE.as_ptr(), SERVICE.len(), &mut found, &mut pid);
-        if rc < 0 || found == 0 {
-            return;
-        }
-        port = found;
-        PORT.store(port, Ordering::Relaxed);
-    }
+    let Some(port) = super::audio_port::port() else { return };
     let mut req = [0u8; TONE_MSG_LEN];
     let n = tone_request(&mut req, REQUEST_ID, hz, ms, gain);
     if n == 0 {
@@ -57,7 +41,6 @@ pub(super) fn play(hz: u32, ms: u32, gain: u16) {
         TIMEOUT_MS,
     );
     if rc < 0 {
-        // The service may have restarted on a new port; look it up again next time.
-        PORT.store(0, Ordering::Relaxed);
+        super::audio_port::forget();
     }
 }
