@@ -25,4 +25,7 @@ pub enum KeyType {
     MasterKey = 6,
     SigningKey = 7,
     Secp256k1Eth = 8,
+    /// An HD wallet's recovery words, kept beside its account key for the
+    /// shield: the eth key's id (4, little endian), the count, the indices.
+    ShieldSeed = 9,
 }
