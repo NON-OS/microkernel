@@ -23,3 +23,7 @@ Evidence that what runs is what was enrolled. The loader checks the kernel's tra
 ## Attestation trailer
 
 <a id="trailer"></a>The proof a capsule, the kernel or the loader carries that its measurement fills a slot of an enrolled tree: a Merkle path and a STARK proof of the same slot, in a v4 container with the magic `NATTV4`. For a capsule the measurement is the BLAKE3 hash of its ELF, bound to its manifest's required capabilities, and an empty or refused trailer ends the spawn with `AttestationRejected`. The seal writes one for every capsule, the kernel and the loader; a development image's trailers carry the path alone. Explained in [STARK attestation](../security/stark-attestation.md#the-trailer). Code: `nonos-attest-path/src/v4/layout.rs`, `src/kernel_core/process_spawn/capsule_spawn/runner/attest_gate.rs`.
+
+## Baseline
+
+A committed list or count of the known sites of something the tree should not have, such as lint switches, stub admissions or architecture leaks. Its check fails when a new site appears or the count grows, so a baseline may only shrink. Explained in [Tests and proofs](../contributing/tests-and-proofs.md#static-checks). Code: `scripts/gate.py`, `nonos-ci/check-baseline.sh`.
