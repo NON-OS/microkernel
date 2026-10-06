@@ -81,3 +81,22 @@ Music (`app.audio_player`) is the music player; its window is titled `Resonare` 
 | `/` | Open Search. |
 
 Code: `shortcut` in `userland/capsule_audio_player/src/ui/shortcut.rs`, `key` in `userland/capsule_audio_player/src/ui/event.rs`.
+
+## Video
+
+Video (`app.video_player`) plays Motion-JPEG AVI files and nothing else (`userland/capsule_video_player/README.md`).
+
+- It has no sound. The AVI's audio stream is not read, and the player shows `Picture only, no sound` where a volume control would be (`userland/capsule_video_player/src/ui/player/paint.rs`).
+- The library lists the `.avi` files in `/`, `/Movies`, `/Series`, `/Downloads` and `/Clips`, up to 256. MP4, MKV and MOV files are not listed, since they would only refuse to play (`ROOTS` in `userland/capsule_video_player/src/catalog/folders.rs`).
+- An image built from this tree carries sample films under `/Movies`: five AVI files Video plays, and one MP4 it does not list (`mk/40-run.mk`).
+- Where you stopped in a video is remembered while the window stays open, and forgotten when it closes.
+
+| Key | What it does |
+|---|---|
+| `Space` | Play or pause. |
+| `Left`, `Right` | Seek back or forward 10 seconds. |
+| `0` | Start again. |
+| `L` | Back to the library. |
+| `Esc` | Close. |
+
+Code: `from_key` in `userland/capsule_video_player/src/event/key.rs`.
