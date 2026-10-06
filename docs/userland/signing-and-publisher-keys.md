@@ -48,3 +48,36 @@ The template in `nonos-mk/capsule.mk` drives `capsule-sign` for each capsule, an
 The seal does not repeat a long enrollment it can reuse. When the root and trailers in the tree still pass the [spawn gate](../overview/glossary.md#spawn-gate)'s check for every capsule built, it keeps them; otherwise it enrolls the whole set again (`tools/nonos_seal/capsules.py:104-134`, `enrolled`).
 
 A build with `NONOS_TRUST_REUSE=1` signs nothing at all. It requires the committed certificate and manifest, verifies them under the baked policy and checks that the freshly built ELF measures to the enrolled payload hash; a capsule that drifts fails by name (`nonos-mk/capsule.mk:220-248`, `NONOS_TRUST_REUSE`).
+
+## Make targets and tools
+
+The template gives every included capsule four targets (`nonos-mk/capsule.mk:177`, `NONOS_CAPSULE_RULES` defines them):
+
+| Target | What it does |
+|---|---|
+| `nonos-mk-<slug>` | builds the ELF |
+| `nonos-mk-<slug>-sign` | writes the certificate, the manifest and the trailer |
+| `nonos-mk-<slug>-verify` | runs `verify-manifest` on the committed artifacts |
+| `nonos-mk-check-<slug>-keys` | fails when a seed or `.pub` file is missing |
+
+Two more cover the whole set: `nonos-mk-stark-enroll-capsules` runs the enrollment and `nonos-mk-all-capsules-attested` builds, signs and attests every capsule in the set (`mk/20-build.mk:608-626`, `ZK_CAPSULE_ROOT`). For example:
+
+```sh
+make nonos-mk-hello-sign
+```
+
+Not tested in this release.
+
+It needs the two publisher seeds for `hello` and the two trust anchor seeds in `.keys/`, and it stops on the first missing one, naming the file and the `keygen` command that makes it (`nonos-mk/capsule.mk:204-211`).
+
+Two front ends run the whole sequence:
+
+- `nix run .#seal` builds, signs, enrolls and packs an image (`tools/nonos-seal:18-19`, `nonos_seal`). Before it stages anything for git, it refuses a file that looks like a private key (`tools/nonos_seal/keys.py:43-64`, `guard`). [The seal](../build/seal.md) describes it.
+- `python3 tools/nonos-enroll --from <dir>` enrolls a set built by a reproducible builder: it checks the artifact is for this commit, verifies every binary against the builder's manifest, places them, then signs and enrolls through `nonos-mk-all-capsules-attested` (`tools/nonos_enroll/__main__.py:40-61`, `run_make`).
+
+```sh
+nix run .#seal
+python3 tools/nonos-enroll --from <dir>
+```
+
+Not tested in this release.
