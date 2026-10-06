@@ -41,3 +41,9 @@ Each entry is a `DeviceRecord` of 176 bytes: the device id, the bus kind, the PC
 The ids are in `ids` (`src/hardware/broker/class.rs:21-44`) and the PCI mapping in `classify_pci` (`src/hardware/broker/class.rs:57-84`). The PS/2 records come from `register_legacy`, which adds them on every machine and leaves the driver to find out whether an i8042 answers (`src/hardware/broker/platform.rs:31-40`).
 
 `MkDeviceList(class, buf, count)` needs `DeviceEnum`. With a count of 0 `sys_device_list` returns how many devices of that class exist; otherwise it copies up to `count` records (`src/syscall/microkernel/device.rs:40-65`).
+
+## Claims
+
+`MkDeviceClaim(device_id)` needs `Driver`. A device has one holder at a time; `claim` refuses a second with `EBUSY` and returns a fresh [claim epoch](../overview/glossary.md#claim-epoch) to the first (`src/hardware/broker/claim/claim.rs:23-45`). In the same call the broker moves the device into the capsule's [IOMMU domain](../overview/glossary.md#iommu-domain), powers it to D0 with `power_on_device` and turns off no-snoop requests, before the driver can enable bus mastering (`src/hardware/broker/claim/claim.rs:33-43`). When an IOMMU is in service and will not take the device, the claim fails with `ClaimError::Unconfined`, which the caller sees as `EPERM` (`src/syscall/microkernel/device.rs:75-81`); [IOMMU](iommu.md) explains when that happens.
+
+Epochs come from one counter that starts at 1, in `next_epoch` (`src/hardware/broker/claim/state.rs:24-29`). Every MMIO, DMA, IRQ and PIO request carries the epoch, and one that does not match the live claim is refused as `StaleEpoch`, which the caller sees as `ESTALE`, -116, as `validate` does for DMA (`src/hardware/broker/dma/map/validate.rs:46-52`). A grant from an earlier claim cannot be reused after a release and a new claim.
