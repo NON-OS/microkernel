@@ -16,37 +16,30 @@
 
 use super::error::AttestError;
 
-/// The two proof shapes, told apart by their own first eight bytes.
-const STARK_MAGIC: &[u8; 8] = b"NZKSTRK1";
-
-/// Verify a capsule's proof against one specific root.
-pub(super) fn verify(
+/// Verify a capsule against the vendor's root. Only a v4 trailer opens it, path
+/// and STARK both: letting the trailer choose its verifier would let a prover
+/// pick a weaker one for the root everything shipped is measured under.
+pub(super) fn vendor(
     trailer: &[u8],
-    elf: &[u8],
+    digest: &[u8; 32],
     granted_caps: u64,
     root: &[u8; 32],
 ) -> Result<[u8; 32], AttestError> {
-    if trailer.len() >= 8 && &trailer[0..8] == STARK_MAGIC {
-        return stark(trailer, elf, granted_caps, root);
+    super::path::verify_against(trailer, digest, granted_caps, root)
+}
+
+/// Verify against a root a person enrolled on this machine: a developer's
+/// path tree, or this machine's own local root, whose tags only this kernel
+/// can check.
+pub(super) fn enrolled(
+    trailer: &[u8],
+    digest: &[u8; 32],
+    granted_caps: u64,
+    root: &[u8; 32],
+) -> Result<[u8; 32], AttestError> {
+    if trailer.starts_with(crate::security::local_build::MAGIC) {
+        return crate::security::local_build::verify(trailer, digest, granted_caps, root)
+            .ok_or(AttestError::Rejected);
     }
-    super::against_pedersen::verify(trailer, elf, granted_caps, root)
+    super::path::verify_against(trailer, digest, granted_caps, root)
 }
-
-#[cfg(feature = "nonos-stark-attest")]
-fn stark(
-    trailer: &[u8],
-    elf: &[u8],
-    granted_caps: u64,
-    root: &[u8; 32],
-) -> Result<[u8; 32], AttestError> {
-    super::stark::verify_against(trailer, elf, granted_caps, root)
-}
-
-/// A build without the STARK verifier cannot check a STARK trailer, and saying
-/// so is the only safe answer: the alternative is falling through to the other
-/// parser, which would refuse for the wrong reason.
-#[cfg(not(feature = "nonos-stark-attest"))]
-fn stark(_: &[u8], _: &[u8], _: u64, _: &[u8; 32]) -> Result<[u8; 32], AttestError> {
-    Err(AttestError::Rejected)
-}
-
