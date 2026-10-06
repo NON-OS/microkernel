@@ -15,16 +15,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
+mod device;
+mod epoch;
 mod error;
 mod map_block;
 mod open;
+mod pending;
 mod read;
+mod read_ahead;
+pub mod ram;
 mod seal;
+mod sector_open;
+mod window;
 mod write;
+mod write_deferred;
 
 pub use constants::{PLAIN_BLOCK_BYTES, SECTOR_BYTES};
+pub use epoch::epoch;
 pub use error::CryptoBlockError;
-pub use open::open;
+pub use open::{open, open_into};
 pub use read::read;
+pub use read_ahead::ReadAhead;
 pub use seal::seal;
+pub use window::{set_window, window_sectors};
 pub use write::write;
+pub use write_deferred::{flush_held, write_deferred};
