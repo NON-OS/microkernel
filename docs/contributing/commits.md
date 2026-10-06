@@ -54,3 +54,9 @@ capsule_driver_rtl8153 for x86_64-nonos-user; inputs.py --check passes.
 - Trailers. None of the last 200 commits on `main` carries a sign-off or a co-author line; the only lines git reads as trailers are some of their `Verified:` paragraphs. Keep to that.
 - Key material of any kind. The flake build never holds a key; signing happens in the [seal](../overview/glossary.md#seal), a separate step (`seal`, `Makefile:11-14`). [Signing and publisher keys](../userland/signing-and-publisher-keys.md) explains where keys live.
 - Unrelated changes. One concern per commit; a formatting pass over files you did not otherwise change goes in a commit of its own, or nowhere.
+
+## History shape
+
+None of the last 50 commits on `main` is a merge commit: the history is linear. Rebase your branch onto `main` rather than merging `main` into it.
+
+`.gitattributes` gives `nonos-ci/run-static-checks.sh` the `union` merge driver, so two branches that each add a gate to it combine without a conflict (`.gitattributes:1`). A union merge keeps the lines of both sides, so read the merged script before you push.
