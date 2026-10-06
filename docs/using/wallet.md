@@ -73,3 +73,23 @@ sequenceDiagram
 ```
 
 The Wallet window reads balances, the nonce and the fee from the RPC node, asks `capsule_keyring` to sign, and broadcasts the signed transaction once.
+
+## What NONOS keeps, and the TPM
+
+On a boot that keeps data, the wallet writes these files under `/data` in the NONOS store (`VAULT_PATH` and the paths beside it in `userland/capsule_wallet_nonos/src/wallet/vault/path.rs:23-42`):
+
+| File | What it holds |
+|---|---|
+| `/data/wallet.vault` | The account key, sealed by the keyring. |
+| `/data/wallet.words` | The recovery words, sealed by the keyring. |
+| `/data/wallet.accounts` | Which accounts of the phrase are in use. Not secret. |
+| `/data/wallet.kind` | Whether the wallet came from words or a private key. Not secret. |
+| `/data/wallet.network` | Mainnet or Sepolia. Not secret. |
+
+The seal is a key derived for each record from the [machine key](../overview/glossary.md#machine-key), which the TPM computes under an object bound to PCRs 0, 4, 7 and 9 (`BOUND_PCRS` in `src/security/tpm/machine_key/pcrs.rs:24`). Nothing stores that key. It is the same on every boot of this machine with this firmware and this kernel, and different anywhere else. That is why an update, or another machine, cannot open the sealed copy.
+
+When the wallet cannot be kept, the status line says why and what to do (`kept_status` in `userland/capsule_wallet_nonos/src/wallet/event/keep_plan.rs:76-93`), for example:
+
+- `this is a live session: nothing is kept past power off, so this wallet is gone then; write down the phrase`
+- `no machine key to seal under, so this wallet is gone at reboot: write down the phrase`, on a machine with no TPM
+- `the disk is full, so this wallet is gone at reboot: write down the phrase`
