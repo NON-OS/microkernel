@@ -72,3 +72,15 @@ The facade modules in `src/arch` have no riscv64 branch, so riscv64 gets each on
 - `init_broker_irq_routing`, which installs the routes that carry device interrupts for the [hardware broker](../overview/glossary.md#hardware-broker), answers an error (`src/arch/init_broker_irq_routing.rs:17-34`).
 - Port I/O compiles its `backend` from `unsupported.rs` (`src/arch/port_io/mod.rs:35-37`).
 - `set_user_tls` reports failure (`src/arch/context/tls.rs:25-39`).
+
+## What it would take
+
+From the code above, a riscv64 kernel needs at least:
+
+- a kernel target file and a make target that builds with `nonos-arch-preview`;
+- an entry that builds a `KernelHandoff` and calls `microkernel_init`, with a riscv64 variant of `ArchSpecificHandoff`;
+- the `__kernel_text_start` and related section symbols in `linker_riscv64.ld`;
+- riscv64 branches in the facades listed above;
+- a CI job that builds it and boots it, as `ci-build-aarch64.yml` and `ci-boot-aarch64.yml` do for aarch64.
+
+[aarch64](aarch64.md) shows how far the same steps took that port.
