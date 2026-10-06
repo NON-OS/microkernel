@@ -40,7 +40,7 @@ pub fn sys_pci_config_read(device_id: u64, claim_epoch: u64, offset: u32, width:
     }
 }
 
-pub fn sys_pci_config_write(device_id: u64, claim_epoch: u64, offset: u32, value: u32) -> i64 {
+pub fn sys_pci_config_write(device_id: u64, claim_epoch: u64, offset: u32, value: u16) -> i64 {
     let pid = match current_pid() {
         Some(p) => p,
         None => return ERRNO_PERM,
@@ -48,7 +48,7 @@ pub fn sys_pci_config_write(device_id: u64, claim_epoch: u64, offset: u32, value
     if !caps::has(pid, Capability::Driver.bit()) {
         return ERRNO_PERM;
     }
-    let req = PciWriteRequest { device_id, claim_epoch, offset, value: value as u16 };
+    let req = PciWriteRequest { device_id, claim_epoch, offset, value };
     match pci_config_write(pid, req) {
         Ok(()) => 0,
         Err(e) => write_errno(e),

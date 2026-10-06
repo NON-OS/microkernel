@@ -14,35 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::kernel_core::process_spawn::capsule_spawn::Tier;
 use crate::security::capsule_attest::verify_capsule_attestation;
 use crate::security::capsule_manifest::CapsuleManifest;
 use crate::syscall::microkernel::errnos::ERRNO_ACCES;
 
-pub(super) fn check(
-    tier: &Tier,
-    manifest: &CapsuleManifest,
-    elf: &[u8],
-    trailer: &[u8],
-) -> Result<(), i64> {
+pub(super) fn check(manifest: &CapsuleManifest, elf: &[u8], trailer: &[u8]) -> Result<(), i64> {
+    /* Every tier needs a trailer that verifies, as the spawn gate does. */
     if trailer.is_empty() {
-        return match tier {
-            Tier::Publisher => Ok(()),
-            Tier::Enrolled => rollout_verdict(),
-        };
+        return Err(ERRNO_ACCES);
     }
     // This path answers "would this verify", so the measurement is discarded.
     // The registry is populated from the spawn path, which has a pid.
     match verify_capsule_attestation(trailer, elf, manifest.required_caps) {
         Ok(_) => Ok(()),
-        Err(_) => rollout_verdict(),
-    }
-}
-
-fn rollout_verdict() -> Result<(), i64> {
-    if cfg!(feature = "nonos-zk-rollout") {
-        Ok(())
-    } else {
-        Err(ERRNO_ACCES)
+        Err(_) => Err(ERRNO_ACCES),
     }
 }

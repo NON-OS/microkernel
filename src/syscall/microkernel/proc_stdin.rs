@@ -19,9 +19,16 @@
 //! terminal) feeds one message to a running child capsule's
 //! `stdin.<pid>` inbox; the child drains it with `MkStdinRead`. Same
 //! inbox-naming convention and parent gate as `sys_proc_output`.
+//! The kernel's copies of stdin bytes are zeroed once handed on, since
+//! they can be what a person typed.
+
+mod read;
 
 use super::errnos::{ERRNO_BUSY, ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOENT, ERRNO_PERM};
+use crate::ipc::nonos_inbox::StrictEnqueueError;
 use crate::process::{current_pid, get_parent_pid};
+
+pub use read::sys_stdin_read;
 
 pub fn sys_proc_input(pid: u64, buf_ptr: u64, buf_len: usize) -> i64 {
     if buf_ptr == 0 || buf_len == 0 || pid == 0 || pid > u32::MAX as u64 {
@@ -48,33 +55,18 @@ pub fn sys_proc_input(pid: u64, buf_ptr: u64, buf_len: usize) -> i64 {
     }
     let name = alloc::format!("stdin.{}", target);
     let from = alloc::format!("proc.{}", caller);
-    let msg = match crate::ipc::nonos_channel::IpcMessage::new(&from, &name, &data) {
-        Ok(m) => m,
-        Err(_) => return ERRNO_INVAL,
+    let msg = crate::ipc::nonos_channel::IpcMessage::new(&from, &name, &data);
+    let len = data.len() as i64;
+    crate::crypto::secure_zero(&mut data);
+    let Ok(msg) = msg else {
+        return ERRNO_INVAL;
     };
     match crate::ipc::nonos_inbox::try_enqueue_strict(&name, msg) {
-        Ok(()) => data.len() as i64,
-        Err(crate::ipc::nonos_inbox::StrictEnqueueError::MissingInbox)
-        | Err(crate::ipc::nonos_inbox::StrictEnqueueError::DeadOwner) => ERRNO_NOENT,
-        Err(crate::ipc::nonos_inbox::StrictEnqueueError::QueueFull(_)) => ERRNO_BUSY,
+        Ok(()) => len,
+        Err(StrictEnqueueError::MissingInbox) | Err(StrictEnqueueError::DeadOwner) => ERRNO_NOENT,
+        Err(StrictEnqueueError::QueueFull(mut refused)) => {
+            crate::crypto::secure_zero(&mut refused.data);
+            ERRNO_BUSY
+        }
     }
-}
-
-pub fn sys_stdin_read(buf_ptr: u64, buf_len: usize) -> i64 {
-    if buf_ptr == 0 || buf_len == 0 {
-        return ERRNO_INVAL;
-    }
-    let caller = current_pid().unwrap_or(0);
-    if caller == 0 {
-        return ERRNO_PERM;
-    }
-    let name = alloc::format!("stdin.{}", caller);
-    let Some(msg) = crate::ipc::nonos_inbox::try_dequeue_existing(&name) else {
-        return 0;
-    };
-    let n = msg.data.len().min(buf_len);
-    if crate::usercopy::copy_to_user(buf_ptr, &msg.data[..n]).is_err() {
-        return ERRNO_FAULT;
-    }
-    n as i64
 }

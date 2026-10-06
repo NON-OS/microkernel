@@ -21,6 +21,12 @@
 
 use super::errnos::ERRNO_FAULT;
 
+/// `zk_verified` when the loader checked the kernel's STARK proof.
+pub const ZK_STARK: u8 = 1;
+/// `zk_verified` from a development kernel: its loader checked the Merkle
+/// path alone, with no STARK proof, and every capsule gate does the same.
+pub const ZK_PATH_ONLY: u8 = 2;
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct AttestStatusAbi {
@@ -37,7 +43,11 @@ pub fn sys_attest_status(out_ptr: u64) -> i64 {
         return ERRNO_FAULT;
     };
     let abi = AttestStatusAbi {
-        zk_verified: h.zk.verified,
+        zk_verified: match h.zk.verified {
+            0 => 0,
+            _ if cfg!(feature = "nonos-dev-attest") => ZK_PATH_ONLY,
+            _ => ZK_STARK,
+        },
         kernel_sig_ok: h.meas.kernel_sig_ok,
         secure_boot: h.meas.secure_boot,
         zk_attestation_ok: h.meas.zk_attestation_ok,

@@ -16,7 +16,8 @@
 
 use alloc::vec::Vec;
 
-use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL};
+use crate::syscall::microkernel::errnos::{ERRNO_FAULT, ERRNO_INVAL, ERRNO_NOMEM};
+use crate::usercopy::UsercopyError;
 
 const MAX_ARTIFACT: usize = 16 * 1024 * 1024;
 
@@ -30,5 +31,10 @@ pub(crate) fn read_blob(ptr: u64, len: u32) -> Result<Vec<u8>, i64> {
     if crate::usercopy::validate_user_read(ptr, n).is_err() {
         return Err(ERRNO_FAULT);
     }
-    crate::usercopy::read_user_bytes(ptr, n).map_err(|_| ERRNO_FAULT)
+    // The length is in bounds by now, so a size refusal is a heap that
+    // cannot hold the blob.
+    crate::usercopy::read_user_bytes(ptr, n).map_err(|e| match e {
+        UsercopyError::SizeTooLarge => ERRNO_NOMEM,
+        _ => ERRNO_FAULT,
+    })
 }

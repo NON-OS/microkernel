@@ -55,10 +55,18 @@ pub fn sys_pid_alive(pid: u32) -> i64 {
     if pid == 0 {
         return 0;
     }
-    if crate::process::get_process_table().find_by_pid(pid).is_some() {
-        1
-    } else {
-        0
+    /*
+     * A zombie waits in the table until its tables are freed, and read as
+     * alive all that while: a launcher that asked found an app that had
+     * ended, and handed the next open to it.
+     */
+    use crate::process::nonos_core::ProcessState;
+    match crate::process::get_process_table().find_by_pid(pid) {
+        Some(pcb) => match *pcb.state.lock() {
+            ProcessState::Zombie(_) | ProcessState::Terminated(_) => 0,
+            _ => 1,
+        },
+        None => 0,
     }
 }
 
@@ -98,7 +106,8 @@ pub fn sys_args(buf: u64, len: usize) -> i64 {
 }
 
 pub fn sys_thread_spawn(entry: u64, stack: u64) -> i64 {
-    if entry == 0 || stack == 0 {
+    // Refused before anything is built, on the user entry builder's terms.
+    if !crate::process::core::start_in_user_half(entry, stack) {
         return ERRNO_INVAL;
     }
     match crate::process::core::spawn_thread(entry, stack) {

@@ -16,13 +16,17 @@
 
 use super::args::Args;
 use crate::syscall::microkernel::capability::{sys_cap_check, sys_cap_grant, sys_cap_revoke};
+use crate::syscall::microkernel::errnos::ERRNO_INVAL;
+use crate::syscall::microkernel::narrow::u32_arg;
 use crate::syscall::microkernel::numbers::*;
 
 pub(super) fn handle(nr: u64, a: Args) -> Option<i64> {
-    Some(match nr {
-        SYS_CAP_GRANT => sys_cap_grant(a.a0 as u32, a.a1),
-        SYS_CAP_REVOKE => sys_cap_revoke(a.a0 as u32, a.a1),
-        SYS_CAP_CHECK => sys_cap_check(a.a0 as u32, a.a1),
+    let call: fn(u32, u64) -> i64 = match nr {
+        SYS_CAP_GRANT => sys_cap_grant,
+        SYS_CAP_REVOKE => sys_cap_revoke,
+        SYS_CAP_CHECK => sys_cap_check,
         _ => return None,
-    })
+    };
+    // The target pid is refused, not truncated onto another process.
+    Some(u32_arg(a.a0).map_or(ERRNO_INVAL, |pid| call(pid, a.a1)))
 }

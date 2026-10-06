@@ -18,6 +18,7 @@ mod clear_pid;
 mod pop;
 mod push;
 mod remove;
+mod share;
 mod state;
 
 pub(crate) use clear_pid::clear_pid;

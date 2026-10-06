@@ -17,7 +17,10 @@
 //! `MkDebug` handler. A capsule emits one short diagnostic line on the
 //! boot serial. The contract layer has already verified the
 //! `Capability::Debug` token; this layer only validates the user
-//! buffer and writes it through.
+//! buffer and writes it through. A caller whose output is private (a
+//! terminal's run of the Linux personality, or a guest it hosts) is never
+//! written to serial; its line goes only to its own `proc.<pid>` inbox,
+//! where the terminal that started it shows it.
 //!
 //! The line is bounded to `MAX_LEN` bytes after which the syscall
 //! returns `-EINVAL`. Empty calls are also rejected. Non-printable
@@ -25,7 +28,11 @@
 //! marker strings, and silently rewriting them would defeat the
 //! purpose of having the channel.
 
+mod proc_mirror;
+
 use super::errnos::{ERRNO_FAULT, ERRNO_INVAL};
+
+pub(super) use proc_mirror::mirror_to_proc_inbox;
 
 const MAX_LEN: usize = 256;
 
@@ -45,36 +52,18 @@ pub fn sys_mk_debug(user_ptr: u64, len: u64) -> i64 {
     if crate::usercopy::copy_from_user(user_ptr, &mut buf[..len]).is_err() {
         return ERRNO_FAULT;
     }
-    crate::sys::serial::print(&buf[..len]);
-    // Mirror to the on-screen log too: a capsule reporting its bring-up on a
-    // machine with no serial port is otherwise invisible. No-op unless the
-    // framebuffer console is enabled (NONOS_FBCONSOLE=1 bring-up build).
-    //
-    // Silenced for a clean desktop: capsule diagnostics now surface in the
-    // Settings panel and the in-system log viewer, so they no longer scroll over
-    // the framebuffer. Uncomment to bring the on-screen capsule trace back for a
-    // headless bring-up.
-    /* crate::sys::boot_log::capsule_screen(&buf[..len]); */
-    mirror_to_proc_inbox(&buf[..len]);
+    /*
+     * A terminal's run of the Linux personality, or a guest it hosts, has
+     * someone's private text in its output: its lines go to its own inbox
+     * only, where the terminal shows them, never the serial console. The
+     * personality keeps a healthy run's narration to itself.
+     */
+    let private =
+        crate::process::current_pid().is_some_and(crate::userspace::capsule_linux::is_private_run);
+    if !private {
+        crate::sys::serial::print(&buf[..len]);
+    }
+    proc_mirror::mirror_to_proc_inbox(&buf[..len]);
+    buf[..len].fill(0);
     len as i64
-}
-
-// Mirror the line into the calling process's own `proc.<pid>` inbox so a
-// launcher (the terminal) can drain a child capsule's stdout into its
-// window. Best effort: a missing or full inbox is ignored, and serial
-// above stays the source of truth for trust logs.
-pub(super) fn mirror_to_proc_inbox(bytes: &[u8]) {
-    let Some(pid) = crate::process::current_pid() else {
-        return;
-    };
-    let name = alloc::format!("proc.{}", pid);
-    // Skip the copy when the inbox is missing or already full. Nothing is
-    // draining most capsules, so their inbox fills once and then every later
-    // line is dropped here without building a message.
-    if !crate::ipc::nonos_inbox::exists(&name) || crate::ipc::nonos_inbox::is_full(&name) {
-        return;
-    }
-    if let Ok(msg) = crate::ipc::nonos_channel::IpcMessage::new(&name, &name, bytes) {
-        let _ = crate::ipc::nonos_inbox::try_enqueue_strict(&name, msg);
-    }
 }
