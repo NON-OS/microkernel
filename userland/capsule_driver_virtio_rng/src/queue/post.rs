@@ -20,6 +20,7 @@
 //! used ring with the byte count.
 
 use core::ptr::{read_volatile, write_volatile};
+use core::sync::atomic::{fence, Ordering};
 
 use super::layout::Queue;
 use crate::constants::{VQ_DESC_OFFSET, VRING_DESC_F_WRITE};
@@ -47,12 +48,14 @@ impl Queue {
             let _ = DESC_SIZE; // documented size; the offsets above derive from it.
 
             let avail = self.region_va.add(self.avail_offset).cast::<u16>();
-            // VirtqAvail layout: u16 flags, u16 idx, u16 ring[QUEUE_SIZE], u16 used_event
-            // ring slot 0 lives at offset 4 = avail.add(2)
-            write_volatile(avail.add(2), 0u16);
+            // VirtqAvail layout: u16 flags, u16 idx, u16 ring[queue_size], u16 used_event.
+            // The device reads ring[idx % queue_size]; descriptor 0 goes there,
+            // not always into ring[0], which only the first request reads.
+            let idx = read_volatile(avail.add(1));
+            write_volatile(avail.add(2 + self.ring_pos(idx)), 0u16);
             // Publish: bump idx after the slot write so the device
             // never observes a partial ring update.
-            let idx = read_volatile(avail.add(1));
+            fence(Ordering::Release);
             write_volatile(avail.add(1), idx.wrapping_add(1));
         }
     }

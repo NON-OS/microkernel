@@ -38,7 +38,7 @@ pub fn run(driver: &mut Driver) -> ! {
     let mut tx = vec![0u8; TX_BUF_LEN];
     loop {
         let n = mk_ipc_recv(0, rx.as_mut_ptr(), RX_BUF_LEN, 0);
-        if n <= 0 {
+        if !nonos_libc::recv_ready(n) {
             continue;
         }
         let req = match decode_request(&rx[..n as usize]) {

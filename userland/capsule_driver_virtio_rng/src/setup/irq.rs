@@ -14,28 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! IRQ phase: bind the device's interrupt to a broker IRQ slot.
-//! INTx is tried first; on a platform where the line's GSI is not
-//! routed the bind falls back to MSI-X (vector 1). The broker
-//! leaves the source masked; the capsule unmasks via `MkIrqAck`
-//! once it is ready to take fires.
+//! Interrupt phase: take the device off its legacy interrupt pin.
+//!
+//! The driver never waits on an interrupt; `fill` polls the used ring.
+//! It used to bind the INTx line anyway, ack it after every request and
+//! never read the device's interrupt status, so the device held the level
+//! triggered line up: each ack let it fire once more and the kernel masked
+//! it again with the request pending, leaving GSI 10 (shared on QEMU's q35
+//! with the e1000e, xHCI, SATA and SMBus functions) masked for good with
+//! its IRR set. The grant also kept any other driver from binding the
+//! line. The driver now binds nothing and sets Interrupt Disable, so the
+//! device drives no pin at all.
 
-use nonos_libc::{mk_device_release, mk_irq_bind, IrqBindOut, MK_IRQ_BIND_MSIX};
+use nonos_libc::{
+    mk_device_release, mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_INTX_DISABLE,
+};
 
-use super::registers::RegisterGrant;
-use crate::discover::Found;
-
-pub fn bind(dev: Found, claim_epoch: u64, regs: RegisterGrant) -> Result<IrqBindOut, &'static str> {
-    let mut out = IrqBindOut { grant_id: 0, vector: 0 };
-    let r = mk_irq_bind(dev.device_id, claim_epoch, dev.irq_line as u32, 0, 0, &mut out);
-    if r >= 0 {
-        return Ok(out);
+pub fn disable_intx(device_id: u64, claim_epoch: u64) -> Result<(), &'static str> {
+    let rc =
+        mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, MK_PCI_CMD_INTX_DISABLE);
+    if rc >= 0 {
+        return Ok(());
     }
-    let msix = mk_irq_bind(dev.device_id, claim_epoch, 0, MK_IRQ_BIND_MSIX, 1, &mut out);
-    if msix < 0 {
-        let _ = regs.release();
-        let _ = mk_device_release(dev.device_id);
-        return Err("irq bind failed");
-    }
-    Ok(out)
+    let _ = mk_device_release(device_id);
+    Err("interrupt disable failed")
 }
