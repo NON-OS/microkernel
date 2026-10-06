@@ -14,23 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod entropy;
-mod hkdf;
-mod init;
-mod keygen;
-mod memory;
-mod random;
-mod types;
-mod verify;
+//! Argon2id, RFC 9106, with the BLAKE2b of RFC 7693 it is built on: the
+//! key-stretching function for a passphrase-keyed data volume.
 
-pub use entropy::estimate_entropy;
-pub use hkdf::hkdf_expand_labeled;
-pub use init::{feature_summary, init, init_crypto_subsystem};
-pub use keygen::{generate_keypair, sig};
-pub use memory::{hash_memory_region, secure_erase_memory_region, secure_zero};
-pub use random::{
-    fill_random, generate_secure_key, generate_secure_key_checked, secure_random_u32,
-    secure_random_u64, secure_random_u8,
-};
-pub use types::SignatureAlgorithm;
-pub use verify::{ed25519_verify, verify_signature};
+mod address;
+mod argon2id;
+mod blake2b;
+mod blake2b_compress;
+mod blake2b_consts;
+mod block;
+mod derive;
+mod ends;
+mod fill;
+mod hprime;
+mod index;
+mod memory;
+mod params;
+mod segment;
+mod wipe;
+
+pub use argon2id::argon2id;
+pub use derive::argon2;
+pub use ends::Inputs;
+pub use params::{Argon2Error, Params, MAX_M_KIB, MAX_P, MAX_T, RECOMMENDED};

@@ -14,23 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod entropy;
-mod hkdf;
-mod init;
-mod keygen;
-mod memory;
-mod random;
-mod types;
-mod verify;
+//! Wiping words that held password-derived state.
 
-pub use entropy::estimate_entropy;
-pub use hkdf::hkdf_expand_labeled;
-pub use init::{feature_summary, init, init_crypto_subsystem};
-pub use keygen::{generate_keypair, sig};
-pub use memory::{hash_memory_region, secure_erase_memory_region, secure_zero};
-pub use random::{
-    fill_random, generate_secure_key, generate_secure_key_checked, secure_random_u32,
-    secure_random_u64, secure_random_u8,
-};
-pub use types::SignatureAlgorithm;
-pub use verify::{ed25519_verify, verify_signature};
+/// Zero `words` with stores the compiler may not drop.
+pub(super) fn wipe(words: &mut [u64]) {
+    for w in words.iter_mut() {
+        /*
+         * SAFETY: `w` is a valid, aligned and exclusive reference.
+         */
+        unsafe { core::ptr::write_volatile(w, 0) };
+    }
+}

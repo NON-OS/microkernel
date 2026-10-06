@@ -14,23 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod entropy;
-mod hkdf;
-mod init;
-mod keygen;
-mod memory;
-mod random;
-mod types;
-mod verify;
+//! Argon2id as a password KDF.
 
-pub use entropy::estimate_entropy;
-pub use hkdf::hkdf_expand_labeled;
-pub use init::{feature_summary, init, init_crypto_subsystem};
-pub use keygen::{generate_keypair, sig};
-pub use memory::{hash_memory_region, secure_erase_memory_region, secure_zero};
-pub use random::{
-    fill_random, generate_secure_key, generate_secure_key_checked, secure_random_u32,
-    secure_random_u64, secure_random_u8,
-};
-pub use types::SignatureAlgorithm;
-pub use verify::{ed25519_verify, verify_signature};
+use super::derive::argon2;
+use super::ends::Inputs;
+use super::params::{Argon2Error, Params};
+
+/// Argon2id with no secret and no associated data: the password KDF.
+pub fn argon2id(
+    password: &[u8],
+    salt: &[u8],
+    params: Params,
+    out: &mut [u8],
+    between: &mut dyn FnMut(),
+) -> Result<(), Argon2Error> {
+    let inputs = Inputs { password, salt, secret: &[], ad: &[], y: 2 };
+    argon2(&inputs, params, out, between)
+}
