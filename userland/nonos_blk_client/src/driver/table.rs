@@ -19,6 +19,8 @@
 //! here, and the driver's own tests are what hold the two together until
 //! the three protocols become one.
 
+use super::pci::Controller;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Driver {
     VirtioBlk,
@@ -37,12 +39,44 @@ pub struct Ops {
 }
 
 impl Driver {
-    pub fn service(self) -> &'static [u8] {
+    /// The service name of instance `n` of this driver, `None` past the
+    /// last one known. Each driver serves one controller under its `0`
+    /// name today; the next names are looked up as well, so a kernel that
+    /// registers a second NVMe or SATA instance has its disks listed with
+    /// no change here, and a name nobody registered costs one lookup.
+    pub fn service(self, n: u8) -> Option<&'static [u8]> {
+        let names: &[&'static [u8]] = match self {
+            /* Written as a call site, not an array entry: the capability
+             * audit reads this name as the evidence that a client of this
+             * crate needs StoreWrite. */
+            Driver::VirtioBlk => return (n == 0).then_some(&b"driver.virtio_blk0"[..]),
+            Driver::Nvme => &[b"driver.nvme0", b"driver.nvme1", b"driver.nvme2", b"driver.nvme3"],
+            Driver::Ahci => &[b"driver.ahci0", b"driver.ahci1", b"driver.ahci2", b"driver.ahci3"],
+        };
+        names.get(n as usize).copied()
+    }
+
+    /// How many instance names [`Driver::service`] knows.
+    pub fn instances(self) -> u8 {
         match self {
-            Driver::VirtioBlk => b"driver.virtio_blk0",
-            Driver::Nvme => b"driver.nvme0",
-            Driver::Ahci => b"driver.ahci0",
+            Driver::VirtioBlk => 1,
+            Driver::Nvme | Driver::Ahci => 4,
         }
+    }
+
+    /// The kind of controller on the bus this driver serves.
+    pub fn controller(self) -> Controller {
+        match self {
+            Driver::VirtioBlk => Controller::VirtioBlk,
+            Driver::Nvme => Controller::Nvme,
+            Driver::Ahci => Controller::Ahci,
+        }
+    }
+
+    /// Whether this driver serves a disk from controller `c`: the SATA
+    /// driver also serves the eMMC hosts.
+    pub fn serves(self, c: Controller) -> bool {
+        c == self.controller() || (self == Driver::Ahci && c == Controller::Emmc)
     }
 
     pub fn magic(self) -> u32 {
@@ -61,12 +95,12 @@ impl Driver {
         }
     }
 
-    /// What a person sees in the disk list.
+    /// The bus, as a person sees it in the disk list.
     pub fn label(self) -> &'static [u8] {
         match self {
-            Driver::VirtioBlk => b"virtio-blk",
+            Driver::VirtioBlk => b"virtio",
             Driver::Nvme => b"NVMe",
-            Driver::Ahci => b"SATA (AHCI)",
+            Driver::Ahci => b"SATA",
         }
     }
 }
