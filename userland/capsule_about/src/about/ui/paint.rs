@@ -48,6 +48,7 @@ pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
 fn section(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
     match state.section {
         Section::Overview => screens::overview::paint(state, fb, rect),
+        Section::Proofs => screens::proofs::paint(state, fb, rect),
         Section::System => screens::system::paint(state, fb, rect),
         Section::Trust => screens::trust::paint(state, fb, rect),
         Section::Verify => screens::verify::paint(state, fb, rect),

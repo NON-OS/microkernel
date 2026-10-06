@@ -16,7 +16,8 @@
 
 pub const VERSION: &[u8] = include_bytes!("../../../../../VERSION");
 pub const GIT_SHA: &[u8] = env!("ABOUT_GIT_SHA").as_bytes();
-pub const TOOLCHAIN: &[u8] = b"nightly-2026-01-16";
+// What `rustc -V` said when this image was built (build.rs).
+pub const TOOLCHAIN: &[u8] = env!("ABOUT_TOOLCHAIN").as_bytes();
 
 #[cfg(target_arch = "x86_64")]
 pub const ARCH: &[u8] = b"x86_64";

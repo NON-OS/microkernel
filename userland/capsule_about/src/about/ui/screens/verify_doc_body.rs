@@ -58,5 +58,5 @@ pub(super) fn body(fb: &mut PaintBuffer, top: i32, inner: u32, doc: &Doc) {
         u64_decimal(doc.attest_len as u64, &mut signed),
         u64_decimal(doc.signature_len as u64, &mut sig),
     );
-    kv(fb, CARD_PAD, rows_y + (ROW_H * 2) as i32, inner, b"Covered by the key", &cell[..n], true);
+    kv(fb, CARD_PAD, rows_y + (ROW_H * 3) as i32, inner, b"Covered by the key", &cell[..n], true);
 }

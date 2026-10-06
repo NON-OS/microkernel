@@ -31,5 +31,9 @@ pub const COMPONENTS: [Component; 7] = [
     Component { name: b"Noto Sans", role: b"interface typeface", license: b"OFL-1.1" },
     Component { name: b"Noto Sans Mono", role: b"data typeface", license: b"OFL-1.1" },
     Component { name: b"minimp3", role: b"audio decode", license: b"CC0-1.0" },
-    Component { name: b"relibc (Redox)", role: b"C runtime graft", license: b"MIT" },
+    Component {
+        name: b"Noto Sans scripts",
+        role: b"Arabic, Hebrew, Devanagari",
+        license: b"OFL-1.1",
+    },
 ];
