@@ -60,3 +60,30 @@ display
 Not tested in this release.
 
 `version` names the release and who signed the Terminal (`run`, `userland/capsule_terminal/src/command/builtin/version.rs:30-40`). `capsules` lists every [capsule](../overview/glossary.md#capsule) running, with the capabilities the kernel granted it, so you can see which drivers are up (`run`, `userland/capsule_terminal/src/command/builtin/capsules.rs:34`). `display` prints the screen size (`run`, `userland/capsule_terminal/src/command/builtin/display.rs:22-39`).
+
+## Read the ids on another operating system
+
+Boot a Linux live system on the same machine and run:
+
+```text
+lspci -nn
+lsusb
+```
+
+Not tested in this release.
+
+`lspci -nn` prints each PCI function with its class code and its vendor:device pair in brackets. `lsusb` prints `ID` and the vendor:product pair for each USB device. The class code tells you which NONOS driver to look at; most drivers then match by vendor and device id, as the [support matrix](MATRIX.md) lists. A controller the firmware declares only in ACPI, such as an AMD I2C controller, does not appear in `lspci` at all.
+
+| Class code | What it is | NONOS driver |
+|---|---|---|
+| 0403, 0401 | HD Audio controller | `capsule_driver_hda` |
+| 0280 | Wi-Fi | `capsule_driver_rtl8821ce`, `capsule_driver_iwlwifi` |
+| 02xx | Ethernet | the Ethernet drivers, matched by id |
+| 0108 | NVMe | `capsule_driver_nvme` |
+| 0106, 0104 | SATA, RAID | `capsule_driver_ahci` |
+| 0805 | SD host; on the Intel ids the driver lists, the internal eMMC | `capsule_driver_ahci` |
+| 0c03 | USB host | `capsule_driver_xhci`, for xHCI |
+| 0c80, 1180 | Intel LPSS, where the I2C touchpad controller sits | `capsule_driver_i2c_pci` |
+| 03xx | display | none beyond the firmware framebuffer |
+
+The [support matrix](MATRIX.md) lists each driver's ids. If a device you care about is not there, report it anyway: that is how a driver gets written.
