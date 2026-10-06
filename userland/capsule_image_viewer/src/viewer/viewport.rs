@@ -95,21 +95,21 @@ pub fn clamp_pan_mode(view: &mut View, mode: FitMode, sw: u32, sh: u32, vw: u32,
     }
 }
 
+/// Zoom by `factor` about the window point `at`, keeping the image pixel under
+/// it where it was. `image` and `window` are (width, height).
 pub fn zoom_at(
     view: &mut View,
     mode: FitMode,
-    sw: u32,
-    sh: u32,
-    vw: u32,
-    vh: u32,
-    px: i32,
-    py: i32,
+    image: (u32, u32),
+    window: (u32, u32),
+    at: (i32, i32),
     factor: f32,
 ) {
+    let ((sw, sh), (vw, vh), (px, py)) = (image, window, at);
     let before = place_mode(mode, sw, sh, vw, vh, view);
     let ix = (px as f32 - before.dx as f32) / before.dw.max(1) as f32;
     let iy = (py as f32 - before.dy as f32) / before.dh.max(1) as f32;
-    view.zoom = (view.zoom * factor).max(0.05).min(32.0);
+    view.zoom = (view.zoom * factor).clamp(0.05, 32.0);
     let after = place_mode(mode, sw, sh, vw, vh, &View { zoom: view.zoom, pan_x: 0.0, pan_y: 0.0 });
     let want_dx = px as f32 - ix * after.dw as f32;
     let want_dy = py as f32 - iy * after.dh as f32;

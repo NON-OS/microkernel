@@ -1,3 +1,4 @@
+use crate::viewer::caption::nav_shown;
 use crate::viewer::nav::{button_rects, BTN_H, BTN_W};
 use crate::viewer::overlay;
 use crate::viewer::scale::{draw_bilinear, draw_nn, Dst};
@@ -37,7 +38,7 @@ pub fn paint(st: &mut ViewerState, fb: &mut PaintBuffer) {
 }
 
 fn paint_nav(fb: &mut PaintBuffer, st: &ViewerState) {
-    if st.img.is_none() || st.dir.len() <= 1 {
+    if !nav_shown(st.dir.len()) {
         return;
     }
     let (l, r) = button_rects(fb.width, fb.height);
