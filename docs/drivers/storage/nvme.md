@@ -73,3 +73,21 @@ SET FEATURES Host Memory Buffer gets 30 s, because a controller may copy its tab
 | A read, write or flush | 30 s | `COMPLETION_TIMEOUT_MS` in `userland/capsule_driver_nvme/src/nvm/constants.rs:26-29` |
 
 A wait reads the clock once every 1024 polls, so the loop makes no system call per poll (`userland/capsule_driver_nvme/src/admin/completion_wait.rs:22-24`, `DEADLINE_CHECK_SPINS`). A CSTS that reads all ones, a device gone from the bus, ends a wait at once, and CSTS.CFS ends the enable wait (`userland/capsule_driver_nvme/src/admin/ready_step.rs:53-75`, `ready_step`). A completion entry is taken only when its phase tag, queue id and command id all match the command, and any other entry is consumed while the wait goes on (`userland/capsule_driver_nvme/src/admin/completion_wait.rs:48-92`, `wait_noting_foreign`). A read or write whose wait ran out is waited out before the data buffer is used again, so a late completion cannot land under the next request (`userland/capsule_driver_nvme/src/nvm/wait.rs:41-53`, `settle`).
+
+## Operations and access
+
+The capsule serves `driver.nvme0` on service endpoint 4220 (`userland/capsule_driver_nvme/Capsule.mk:13`, `CAPSULE_SERVICE_ENDPOINT`). Its operations are listed in `userland/capsule_driver_nvme/src/protocol/ops.rs:17-25` (`OP_HEALTHCHECK`), with reply sizes in `userland/capsule_driver_nvme/src/protocol/limits.rs:17-25` (`CONTROLLER_INFO_PAYLOAD_LEN`).
+
+| Operation | Answers |
+|---|---|
+| `OP_HEALTHCHECK` | liveness, to any sender |
+| `OP_CONTROLLER_INFO` | a 52-byte register and setup record |
+| `OP_IDENTIFY_CONTROLLER` | 88 bytes of Identify Controller fields |
+| `OP_IDENTIFY_NAMESPACE` | 36 bytes for the served namespace |
+| `OP_SMART_HEALTH` | 177 bytes of SMART health fields |
+| `OP_CAPACITY` | the namespace size in LBAs |
+| `OP_READ_BLOCKS`, `OP_WRITE_BLOCKS`, `OP_FLUSH` | block I/O |
+
+Every operation but the health check answers only the kernel's own client and a sender holding `StoreWrite`; see [Storage drivers](README.md#who-may-read-and-write-a-disk).
+
+The capsule holds the [capabilities](../../overview/glossary.md#capability) IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, the word 0xF8018 (`userland/capsule_driver_nvme/Capsule.mk:15-16`, `CAPSULE_REQUIRED_CAPS`). A kernel compiled with `capsule-serial-debug` also grants Debug, 0x100, and only then do the capsule's own lines reach the console: each controller it saw, each admin command that failed with its status, and why a namespace got no I/O queue (`userland/capsule_driver_nvme/Capsule.mk:17-21`, `CAPSULE_OPTIONAL_CAPS`). The standard, qemu and dev profiles compile that feature in; the hardened and air-gapped profiles do not (`tools/nix/config.nix:60-62`, `debugFeatures`).
