@@ -55,3 +55,9 @@ The capsule serves `driver.ahci0` on service endpoint 4216 (`userland/capsule_dr
 It holds the [capabilities](../../overview/glossary.md#capability) IPC, Memory, Driver, DeviceEnum, Mmio, Irq and Dma, the word 0xF8018 (`userland/capsule_driver_ahci/Capsule.mk:16-17`, `CAPSULE_REQUIRED_CAPS`).
 
 The same capsule serves an eMMC disk when no SATA disk comes up; see [SD cards and eMMC](sd-and-emmc.md).
+
+## How it was verified
+
+- `userland/ahci_link_proofs` is the [proof crate](../../overview/glossary.md#proof-crate). It runs the link checks, the disk choice, the IDENTIFY rules, request spans, hostile completion waits, port recovery, the RST remap rule and the VMD refusal on the host, and checks that the capsule's VMD list matches the kernel's: 99 tests pass on this commit.
+- No QEMU target in `mk/` and no `tools/nonos_qemu` option names an AHCI device, and no QEMU run of the SATA path is reported for this release.
+- Not tested on hardware in this release.
