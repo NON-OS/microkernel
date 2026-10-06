@@ -17,10 +17,12 @@ use super::types::RegisterGrant;
 use crate::regs::Regs;
 
 impl RegisterGrant {
-    pub fn regs(self) -> Regs {
+    /// The legacy register window. A modern grant has none.
+    pub fn regs(self) -> Option<Regs> {
         match self {
-            Self::Mmio(g) => Regs::mmio(g.user_va),
-            Self::Pio(g) => Regs::pio(g.grant_id),
+            Self::Mmio(g) => Some(Regs::mmio(g.user_va)),
+            Self::Pio(g) => Some(Regs::pio(g.grant_id)),
+            Self::Modern(_) => None,
         }
     }
 }

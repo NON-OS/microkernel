@@ -14,30 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_irq_ack, mk_irq_poll, mk_yield, IrqPollOut};
+use nonos_libc::mk_yield;
 
-use super::constants::LEG_QUEUE_NOTIFY;
 use super::queue::Queue;
-use super::regs::Regs;
+use super::transport::Transport;
 
 const MAX_YIELDS: u32 = 100_000;
 
-pub fn fill(regs: Regs, queue: &mut Queue, irq_grant: u64) -> Result<u32, &'static str> {
+/// One request, polled to completion. No interrupt is involved: the device
+/// has Interrupt Disable set (see `setup::irq`). The used ring is the only
+/// completion signal; an interrupt sequence change is not one, since on a
+/// shared line it may belong to another device and the buffer would be
+/// read before the device wrote it.
+pub fn fill(transport: Transport, queue: &mut Queue) -> Result<u32, &'static str> {
     queue.post_request();
-    unsafe {
-        regs.w16(LEG_QUEUE_NOTIFY, 0);
-    }
-
-    let prev_seq = read_seq(irq_grant);
-    let target = queue.last_used.wrapping_add(1);
+    transport.notify(0);
 
     let mut tries = 0u32;
     loop {
-        if queue.used_idx() == target {
-            break;
-        }
-        if read_seq(irq_grant) != prev_seq {
-            break;
+        if let Some(done) = queue.completion() {
+            return done;
         }
         if tries >= MAX_YIELDS {
             return Err("virtio-rng: device did not respond");
@@ -45,14 +41,4 @@ pub fn fill(regs: Regs, queue: &mut Queue, irq_grant: u64) -> Result<u32, &'stat
         let _ = mk_yield();
         tries = tries.wrapping_add(1);
     }
-    queue.last_used = target;
-    let len = queue.used_len();
-    let _ = mk_irq_ack(irq_grant);
-    Ok(len)
-}
-
-fn read_seq(grant: u64) -> u64 {
-    let mut out = IrqPollOut { seq: 0, overflow: 0 };
-    let _ = mk_irq_poll(grant, &mut out as *mut _);
-    out.seq
 }

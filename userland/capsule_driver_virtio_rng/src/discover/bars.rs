@@ -13,21 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::types::RegisterGrant;
-use nonos_libc::{mk_mmio_unmap, mk_pio_release};
 
-impl RegisterGrant {
-    pub fn release(self) -> bool {
-        match self {
-            Self::Mmio(g) => mk_mmio_unmap(g.grant_id) >= 0,
-            Self::Pio(g) => mk_pio_release(g.grant_id) >= 0,
-            Self::Modern(w) => {
-                let mut ok = true;
-                for &id in w.grant_ids().iter().rev().flatten() {
-                    ok = mk_mmio_unmap(id) >= 0 && ok;
-                }
-                ok
-            }
-        }
+use nonos_libc::{DeviceRecord, BAR_KIND_MMIO, BAR_KIND_PIO};
+use nonos_virtio::{BarInfo, Bars};
+
+/// The broker's BAR list in the shared transport's terms.
+pub(super) fn bars(r: &DeviceRecord) -> Bars {
+    let mut out = [BarInfo::ABSENT; 6];
+    for (slot, bar) in out.iter_mut().zip(r.bars.iter()) {
+        *slot = match bar.kind {
+            BAR_KIND_MMIO => BarInfo::mmio(bar.size),
+            BAR_KIND_PIO => BarInfo::io(bar.size),
+            _ => BarInfo::ABSENT,
+        };
     }
+    out
 }

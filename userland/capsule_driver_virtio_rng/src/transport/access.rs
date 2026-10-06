@@ -13,21 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::types::RegisterGrant;
-use nonos_libc::{mk_mmio_unmap, mk_pio_release};
 
-impl RegisterGrant {
-    pub fn release(self) -> bool {
+use super::types::Transport;
+use crate::constants::LEG_QUEUE_NOTIFY;
+
+impl Transport {
+    /// Tell the device queue `queue` has a buffer to fill. virtio-rng has
+    /// one queue; the legacy register takes its index, a modern doorbell is
+    /// that queue's own and takes the index too.
+    pub fn notify(self, queue: u16) {
         match self {
-            Self::Mmio(g) => mk_mmio_unmap(g.grant_id) >= 0,
-            Self::Pio(g) => mk_pio_release(g.grant_id) >= 0,
-            Self::Modern(w) => {
-                let mut ok = true;
-                for &id in w.grant_ids().iter().rev().flatten() {
-                    ok = mk_mmio_unmap(id) >= 0 && ok;
-                }
-                ok
-            }
+            Self::Legacy(regs) => unsafe { regs.w16(LEG_QUEUE_NOTIFY, queue) },
+            Self::Modern(m) => m.notify.w16(m.doorbell, queue),
         }
     }
 }

@@ -13,21 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::types::RegisterGrant;
-use nonos_libc::{mk_mmio_unmap, mk_pio_release};
 
-impl RegisterGrant {
-    pub fn release(self) -> bool {
-        match self {
-            Self::Mmio(g) => mk_mmio_unmap(g.grant_id) >= 0,
-            Self::Pio(g) => mk_pio_release(g.grant_id) >= 0,
-            Self::Modern(w) => {
-                let mut ok = true;
-                for &id in w.grant_ids().iter().rev().flatten() {
-                    ok = mk_mmio_unmap(id) >= 0 && ok;
-                }
-                ok
-            }
-        }
-    }
-}
+//! The virtio 1.0 bring-up, for a function that has no legacy register
+//! window (a modern-only virtio-rng, as QEMU builds behind its IOMMU).
+
+mod pci;
+mod queue;
+mod run;
+
+pub use run::run;

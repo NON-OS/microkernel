@@ -13,21 +13,14 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::types::RegisterGrant;
-use nonos_libc::{mk_mmio_unmap, mk_pio_release};
 
-impl RegisterGrant {
-    pub fn release(self) -> bool {
-        match self {
-            Self::Mmio(g) => mk_mmio_unmap(g.grant_id) >= 0,
-            Self::Pio(g) => mk_pio_release(g.grant_id) >= 0,
-            Self::Modern(w) => {
-                let mut ok = true;
-                for &id in w.grant_ids().iter().rev().flatten() {
-                    ok = mk_mmio_unmap(id) >= 0 && ok;
-                }
-                ok
-            }
-        }
-    }
-}
+//! Legacy or modern virtio-pci: how the running driver reaches the device.
+
+mod access;
+mod broker;
+mod probe;
+mod types;
+
+pub use broker::LibcBroker;
+pub use probe::probe;
+pub use types::{Modern, Transport};

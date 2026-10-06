@@ -13,21 +13,22 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::types::RegisterGrant;
-use nonos_libc::{mk_mmio_unmap, mk_pio_release};
 
-impl RegisterGrant {
-    pub fn release(self) -> bool {
-        match self {
-            Self::Mmio(g) => mk_mmio_unmap(g.grant_id) >= 0,
-            Self::Pio(g) => mk_pio_release(g.grant_id) >= 0,
-            Self::Modern(w) => {
-                let mut ok = true;
-                for &id in w.grant_ids().iter().rev().flatten() {
-                    ok = mk_mmio_unmap(id) >= 0 && ok;
-                }
-                ok
-            }
-        }
-    }
+use nonos_virtio::Mmio;
+
+use crate::regs::Regs;
+
+#[derive(Clone, Copy)]
+pub enum Transport {
+    /// The legacy register window, in an I/O or memory BAR.
+    Legacy(Regs),
+    /// The virtio 1.0 structures, each mapped on its own.
+    Modern(Modern),
+}
+
+#[derive(Clone, Copy)]
+pub struct Modern {
+    pub notify: Mmio,
+    /// The request queue's doorbell offset in `notify`.
+    pub doorbell: usize,
 }
