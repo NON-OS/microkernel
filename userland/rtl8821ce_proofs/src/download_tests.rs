@@ -12,7 +12,7 @@ use crate::fw::ddma::{DDMA_CHKSUM_STS, DDMA_OWN, REG_DDMA_CH0CTRL, REG_DDMA_CH0D
 use crate::fw::{download, DownloadError, MAX_CHUNK};
 use crate::regs::Mmio;
 
-const FW: &[u8] = include_bytes!("../../capsule_driver_rtl8821ce/firmware/rtw8821c_fw.bin");
+const FW: &[u8] = include_bytes!("../../../nonos-bootloader/firmware/realtek/rtw8821c_fw.bin");
 
 struct Card {
     ctrl: RefCell<u32>,
