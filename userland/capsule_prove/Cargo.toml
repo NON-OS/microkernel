@@ -1,0 +1,39 @@
+# NONOS userland: capsule_prove
+#
+# nonos.prove, the anonymous device proof. A window on nonos_app_skeleton
+# that proves, on the booted OS, that this machine runs an enrolled
+# bootloader and kernel and is an enrolled device, without naming it. The
+# statement and witness are assembled by the pure half under src/assemble,
+# which userland/prove_proofs runs on the host as it ships; the proof is
+# nonos-device-attest's, built without std and proven on one core.
+
+[package]
+name = "nonos_prove"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS anonymous device proof capsule"
+
+[[bin]]
+name = "prove"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_app_skeleton = { path = "../app_skeleton" }
+# The prover without its host modules and without rayon: no_std, one core.
+nonos-device-attest = { path = "../../nonos-device-attest", default-features = false }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
+
+[profile.dev]
+panic = "abort"
+opt-level = 0
+debug = true
