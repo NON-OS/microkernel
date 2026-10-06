@@ -51,3 +51,11 @@ For each touchpad the kernel writes one line to the boot console with its id, bu
 The bus runs in fast mode unless a device on it declared a lower speed (`standard_mode`, `userland/capsule_driver_i2c_pci/src/setup/sequence/run.rs:139-144`).
 
 `driver.i2c_hid0` asks for the address the firmware gave, and probes it (`reprobe`, `userland/capsule_driver_i2c_hid/src/setup.rs:21-29`). When there is none, or no descriptor answers there, it scans 0x10, 0x15, 0x2C, 0x38, 0x4B, 0x4C, 0x20 and 0x24 at descriptor registers 0x0001 and 0x0020 (`CANDIDATE_ADDRS`, `userland/capsule_driver_i2c_hid/src/hid/probe/scan.rs:20-23`). Until a pad answers it probes again every 250 turns of its loop (`REPROBE_EVERY`, `userland/capsule_driver_i2c_hid/src/server/runner/run.rs:31`). After 20 probes with no answer it writes one console line, when it holds Debug, saying that no touchpad answers on the bus (`UNANSWERED_PROBES`, `userland/capsule_driver_i2c_hid/src/setup.rs:61-68`).
+
+## Waking the pad
+
+Once the 30-byte HID descriptor reads, the driver (`reprobe`, `userland/capsule_driver_i2c_hid/src/setup.rs:21-64`):
+
+1. Sends SET_POWER ON, once more 1 ms later if the pad does not acknowledge it, then waits 60 ms (`POWER_ON_MS`, `userland/capsule_driver_i2c_hid/src/hid/power/settle.rs:22-25`). Then it sends RESET and reads the input register every 5 ms for up to one second for the empty report a reset device sends, holding an early answer to at least 100 ms (`RESET_TIMEOUT_MS`, `userland/capsule_driver_i2c_hid/src/hid/power/await_reset.rs:29-31`).
+2. Reads the report descriptor, at most 1024 bytes, three times 20 ms apart if it has to (`REPORT_DESC_ATTEMPTS`, `userland/capsule_driver_i2c_hid/src/setup.rs:112`).
+3. Sets the Precision Touchpad input mode to 3 and the surface and button switches on, writing a feature report only when a bit differs (`INPUT_MODE_TOUCHPAD`, `userland/capsule_driver_i2c_hid/src/hid/input_mode/configure.rs:28-54`).
