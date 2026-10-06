@@ -93,20 +93,34 @@ for prefix in ${CAPSULE_KEY_PREFIXES}; do
     mv ".keys/${prefix}_publisher_mldsa65.pub" nonos-data/trust/keys/
 done
 
+# Every publisher the catalogue names, the Linux userland's included,
+# which the Capsule.mk scan above does not see: both modes sign with them.
+python3 -c 'import json; [print(e[f"seed_{a}"][:-5], e[f"pub_{a}"]) for e in json.load(open("tools/nix/capsules.json")) for a in ("ed25519", "mldsa65")]' \
+    | sort -u | while read -r seed pub; do
+    [ -f "${seed}.seed" ] && continue
+    alg="${seed##*_}"
+    "${CS}" keygen --alg "${alg}" --out "${seed}"
+    chmod 600 "${seed}.seed"
+    mv "${seed}.pub" "${pub}"
+done
+
+# The marketplace operator signs the Marketplace index and the Qwen model
+# catalogue, and capsule_model_fetch compiles its public key in from
+# .keys/marketplace_operator_ed25519.pub. A sealed image for use refuses to
+# go without one (tools/nonos_seal/market.py), so a scratch image gets a
+# scratch operator, written over the committed public key on this runner
+# only. A workflow that seals a release profile commits that key locally
+# first, since the seal seals only a committed tree.
+if [ ! -f .keys/marketplace_operator_ed25519.seed ]; then
+    echo "[scratch-trust-bootstrap] generating scratch marketplace operator key"
+    "${CS}" keygen --alg ed25519 --out .keys/marketplace_operator_ed25519
+    chmod 600 .keys/marketplace_operator_ed25519.seed
+fi
+
 # NONOS_SCRATCH_KEYS_ONLY=1 stops at the keys, with the kernel's ML-DSA-65 key
 # beside the Ed25519 seed setup-signing-key.sh wrote: `nix run .#seal` signs
 # and enrolls from there, against the flake's artifacts.
 if [ "${NONOS_SCRATCH_KEYS_ONLY:-0}" = "1" ]; then
-    # Every publisher the catalogue names, the Linux userland's included,
-    # which the Capsule.mk scan above does not see.
-    python3 -c 'import json; [print(e[f"seed_{a}"][:-5], e[f"pub_{a}"]) for e in json.load(open("tools/nix/capsules.json")) for a in ("ed25519", "mldsa65")]' \
-        | sort -u | while read -r seed pub; do
-        [ -f "${seed}.seed" ] && continue
-        alg="${seed##*_}"
-        "${CS}" keygen --alg "${alg}" --out "${seed}"
-        chmod 600 "${seed}.seed"
-        mv "${seed}.pub" "${pub}"
-    done
     mkdir -p nonos-bootloader/keys
     [ -f nonos-bootloader/keys/kernel_mldsa65.seed ] || \
         "${CS}" keygen --alg mldsa65 --out nonos-bootloader/keys/kernel_mldsa65

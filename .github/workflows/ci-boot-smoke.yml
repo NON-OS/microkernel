@@ -85,6 +85,14 @@ jobs:
           bash nonos-ci/setup-signing-key.sh
           NONOS_HOST_TOOLS="$(nix build .#host-tools --no-link --print-out-paths)" NONOS_SCRATCH_KEYS_ONLY=1 \
             nix develop --command bash nonos-ci/scratch-trust-bootstrap.sh
+          # The scratch marketplace operator key replaced the committed public
+          # key on this runner. The seal seals only a committed tree, so the
+          # scratch key is committed here, on this runner, and never pushed
+          # (the checkout keeps no credentials): the image is built from
+          # exactly the tree it is sealed from.
+          git -c user.name="boot-smoke" -c user.email="boot-smoke@localhost" \
+            commit -q -m "scratch marketplace operator key for this runner" \
+            -- .keys/marketplace_operator_ed25519.pub
       - name: Seal the qemu profile
         run: nix run .#seal -- --profile qemu
       - name: Boot it
