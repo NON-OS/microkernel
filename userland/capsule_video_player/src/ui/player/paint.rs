@@ -23,18 +23,10 @@ use crate::ui::layout::{Layout, Rect};
 use crate::ui::paint::shape;
 use crate::ui::text::{center_y, hhmmss, BODY_PX};
 use crate::ui::theme;
-use crate::ui::widget::progress::{paint_bar, paint_scrub};
+use crate::ui::widget::progress::paint_scrub;
 
 const GLYPH: u32 = 18;
-const SMALL: u32 = 16;
-
-fn tint(on: bool) -> u32 {
-    if on {
-        theme::ACCENT
-    } else {
-        theme::TEXT_DIM
-    }
-}
+const NO_SOUND: &str = "Picture only, no sound";
 
 fn center(r: Rect, size: u32) -> (u32, u32) {
     (r.x + r.w.saturating_sub(size) / 2, r.y + r.h.saturating_sub(size) / 2)
@@ -52,24 +44,17 @@ fn paint_play(fb: &mut PaintBuffer, t: &Transport, playing: bool) {
     }
 }
 
-fn paint_sides(fb: &mut PaintBuffer, t: &Transport, muted: bool, volume: u32) {
-    let (sx, sy) = center(t.shuffle, GLYPH);
-    icon::transport::shuffle(fb, sx, sy, GLYPH, theme::TEXT_DIM);
+fn paint_sides(fb: &mut PaintBuffer, t: &Transport) {
     let (px, py) = center(t.prev, GLYPH);
     icon::transport::prev(fb, px, py, GLYPH, theme::TEXT);
     let (nx, ny) = center(t.next, GLYPH);
     icon::transport::next(fb, nx, ny, GLYPH, theme::TEXT);
-    let (rx, ry) = center(t.repeat, GLYPH);
-    icon::transport::repeat(fb, rx, ry, GLYPH, theme::TEXT_DIM);
-    let (vx, vy) = center(t.cc, SMALL);
-    icon::ui::cc(fb, vx, vy, SMALL, theme::TEXT_DIM);
-    let (ix, iy) = center(t.pip, SMALL);
-    icon::ui::pip(fb, ix, iy, SMALL, theme::TEXT_DIM);
-    let (fx, fy) = center(t.full, SMALL);
-    icon::ui::fullscreen(fb, fx, fy, SMALL, theme::TEXT_DIM);
-    let mark = if muted { icon::transport::mute } else { icon::transport::volume };
-    mark(fb, t.mute.x, t.mute.y, SMALL, tint(!muted));
-    paint_bar(fb, t.volume, volume.min(100) * 10, theme::TEXT_DIM);
+    // Said in place of a volume control: the stream has no sound to set.
+    let w = fb.measure_ttf(NO_SOUND, BODY_PX).max(0) as u32;
+    if w <= t.note.w {
+        let x = t.note.x + t.note.w - w;
+        fb.text_ttf(x as i32, center_y(t.note.y, t.note.h), NO_SOUND, theme::TEXT_MUTED, BODY_PX);
+    }
 }
 
 fn paint_times(fb: &mut PaintBuffer, l: &Layout, st: &BarState) {
@@ -82,19 +67,11 @@ fn paint_times(fb: &mut PaintBuffer, l: &Layout, st: &BarState) {
     fb.text_ttf(l.remain_x.saturating_sub(w) as i32, y, total, theme::TEXT_DIM, BODY_PX);
 }
 
-pub fn paint_transport(fb: &mut PaintBuffer, l: &Layout, st: &BarState, muted: bool, volume: u32) {
+pub fn paint_transport(fb: &mut PaintBuffer, l: &Layout, st: &BarState) {
     fb.fill_rect(l.bar.x, l.bar.y, l.bar.w, l.bar.h, theme::PANEL);
     paint_scrub(fb, l.scrub, st.permille, st.permille);
     paint_times(fb, l, st);
     let t = transport(l, fb.width);
     paint_play(fb, &t, st.playing);
-    paint_sides(fb, &t, muted, volume);
-    fb.text_ttf(
-        (t.lang.x + 10) as i32,
-        center_y(t.lang.y, t.lang.h),
-        "EN",
-        theme::TEXT_DIM,
-        BODY_PX,
-    );
-    icon::ui::chevron_down(fb, t.lang.x + t.lang.w - 20, t.lang.y + 9, 12, theme::TEXT_MUTED);
+    paint_sides(fb, &t);
 }

@@ -14,10 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Folders: the roots the catalogue reads down the left, each with the number
+//! of videos found in it, and the chosen folder's videos on the right with an
+//! Open button. Every rect a click is tested against is computed here.
+
 use nonos_app_skeleton::paint::PaintBuffer;
 
-use super::grid::paint_list;
+use super::grid::{paint_grid, paint_list};
 use crate::app::state::VideoApp;
+use crate::catalog::folders::{in_folder, LABELS};
+use crate::catalog::says::library_unavailable;
+use crate::ui::format::count;
 use crate::ui::icon;
 use crate::ui::layout::Rect;
 use crate::ui::paint::{rrect, shape};
@@ -29,53 +36,93 @@ use crate::ui::widget::empty::paint_empty;
 const RAIL_W: u32 = 190;
 const GAP: u32 = 20;
 const ROW_H: u32 = 36;
-const ACTIONS_H: u32 = 44;
+const RAIL_TOP: u32 = 28;
+const ACTIONS_H: u32 = 52;
 const BTN_W: u32 = 130;
 const BTN_H: u32 = 38;
-const BTN_GAP: u32 = 10;
 
-const LOCATIONS: [&str; 5] = ["Home", "Movies", "Series", "Downloads", "Clips"];
+/// Row `i` of the rail: 0 is every folder, then one row per root.
+pub fn rail_row(body: Rect, i: usize) -> Rect {
+    Rect { x: body.x, y: body.y + RAIL_TOP + i as u32 * ROW_H, w: RAIL_W, h: ROW_H }
+}
 
-pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
-    let rail = Rect { x: body.x, y: body.y, w: RAIL_W, h: body.h };
-    fb.text_ttf(rail.x as i32, rail.y as i32, "LOCATIONS", theme::LABEL, BODY_PX);
-    for (i, name) in LOCATIONS.iter().enumerate() {
-        let r = Rect { x: rail.x, y: rail.y + 28 + i as u32 * ROW_H, w: rail.w, h: ROW_H };
-        let active = i == 0;
-        let (fill, ink) =
-            if active { (theme::SELECT, theme::ACCENT) } else { (0, theme::TEXT_DIM) };
+/// The folder a click on the rail picks: `Some(None)` for every folder.
+pub fn folder_at(body: Rect, x: i32, y: i32) -> Option<Option<usize>> {
+    (0..=LABELS.len()).find(|&i| rail_row(body, i).contains(x, y)).map(|i| {
+        if i == 0 {
+            None
+        } else {
+            Some(i - 1)
+        }
+    })
+}
+
+/// Where the chosen folder's videos are drawn.
+pub fn area(body: Rect) -> Rect {
+    let x = body.x + RAIL_W + GAP;
+    Rect {
+        x,
+        y: body.y,
+        w: body.w.saturating_sub(RAIL_W + GAP),
+        h: body.h.saturating_sub(ACTIONS_H),
+    }
+}
+
+pub fn open_button(body: Rect) -> Rect {
+    let a = area(body);
+    let y = body.y + body.h.saturating_sub(BTN_H);
+    Rect { x: (a.x + a.w).saturating_sub(BTN_W), y, w: BTN_W, h: BTN_H }
+}
+
+fn paint_rail(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
+    fb.text_ttf(body.x as i32, body.y as i32, "FOLDERS", theme::LABEL, BODY_PX);
+    let items = &app.browse.items;
+    for i in 0..=LABELS.len() {
+        let r = rail_row(body, i);
+        let (name, n) = match i {
+            0 => ("All folders", items.len()),
+            _ => (LABELS[i - 1], items.iter().filter(|m| in_folder(&m.path, i - 1)).count()),
+        };
+        let active = app.browse.folder == i.checked_sub(1);
+        let ink = if active { theme::ACCENT } else { theme::TEXT_DIM };
         if active {
-            rrect::fill_round(fb, r.x, r.y, r.w, r.h, 8, fill);
+            rrect::fill_round(fb, r.x, r.y, r.w, r.h, 8, theme::SELECT);
         }
         icon::nav::files(fb, r.x + 8, r.y + r.h.saturating_sub(18) / 2, 18, ink);
         fb.text_ttf((r.x + 34) as i32, center_y(r.y, r.h), name, ink, BODY_PX);
+        let tally = alloc::format!("{}", n);
+        let tw = fb.measure_ttf(&tally, BODY_PX).max(0) as u32;
+        let tx = (r.x + r.w).saturating_sub(tw + 10);
+        fb.text_ttf(tx as i32, center_y(r.y, r.h), &tally, theme::TEXT_MUTED, BODY_PX);
     }
-    shape::vline(fb, rail.x + rail.w, rail.y, rail.h, theme::BORDER);
+    shape::vline(fb, body.x + RAIL_W, body.y, body.h, theme::BORDER);
+}
 
-    let right_x = rail.x + rail.w + GAP;
-    let right_w = body.w.saturating_sub(rail.w + GAP);
-    let table_h = body.h.saturating_sub(ACTIONS_H);
-    let right = Rect { x: right_x, y: body.y, w: right_w, h: table_h };
-
+pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, body: Rect) {
+    paint_rail(fb, app, body);
+    let right = area(body);
     if app.browse.items.is_empty() {
-        paint_empty(
-            fb,
-            right,
-            icon::nav::files,
-            "This folder is empty",
-            "No playable video files were found in this location",
-        );
+        let (head, note) = library_unavailable(app.browse.scanned, app.browse.scan_error)
+            .unwrap_or(("No videos found", "None of these folders holds a Motion-JPEG .avi"));
+        paint_empty(fb, right, icon::nav::files, head, note);
+        return;
+    }
+    if app.browse.is_empty() {
+        let note = if app.browse.query.is_empty() {
+            "No video in this folder"
+        } else {
+            "No video in this folder matches that search"
+        };
+        paint_empty(fb, right, icon::nav::files, "Nothing here", note);
+        return;
+    }
+    if app.browse.grid {
+        paint_grid(fb, &app.browse, right);
     } else {
         paint_list(fb, &app.browse, right);
     }
-
-    let actions_y = body.y + body.h.saturating_sub(BTN_H);
-    let open =
-        Rect { x: right_x + right_w.saturating_sub(BTN_W), y: actions_y, w: BTN_W, h: BTN_H };
-    let add = Rect { x: open.x.saturating_sub(BTN_W + BTN_GAP), y: actions_y, w: BTN_W, h: BTN_H };
-    let import =
-        Rect { x: add.x.saturating_sub(BTN_W + BTN_GAP), y: actions_y, w: BTN_W, h: BTN_H };
-    paint_button(fb, import, "Import", Tone::Ghost);
-    paint_button(fb, add, "Add to Playlist", Tone::Ghost);
-    paint_button(fb, open, "Open", Tone::Primary);
+    let tally = count(app.browse.len(), "video", "videos");
+    let b = open_button(body);
+    fb.text_ttf(right.x as i32, center_y(b.y, b.h), &tally, theme::TEXT_MUTED, BODY_PX);
+    paint_button(fb, b, "Open", Tone::Primary);
 }

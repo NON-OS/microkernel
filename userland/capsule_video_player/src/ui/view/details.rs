@@ -40,22 +40,24 @@ const ROW_H: u32 = 30;
 pub fn paint(fb: &mut PaintBuffer, app: &VideoApp, outer: Rect) {
     paint_tabs(fb, outer.x, outer.y, outer.w, &TABS, 1);
     let body = Rect { y: outer.y + TABS_H + 12, h: outer.h.saturating_sub(TABS_H + 12), ..outer };
-    let item = match app.browse.selected() {
+    // The video the player has open, which a handed-over file or a search
+    // since can make other than the library's selected row.
+    let item = match app.playing_item() {
         Some(item) => item,
         None => {
             paint_empty(
                 fb,
                 body,
                 icon::ui::info,
-                "Nothing selected",
-                "Pick a video in your library to see its details",
+                "Nothing playing",
+                "Open a video from your library to see its details",
             );
             return;
         }
     };
 
     let poster = Rect { x: body.x, y: body.y, w: POSTER_W, h: POSTER_H };
-    paint_poster(fb, poster, item.kind);
+    paint_poster(fb, poster, item.kind, item.thumb.as_deref());
     let bar = Rect { x: body.x, y: poster.y + poster.h + 14, w: POSTER_W, h: 6 };
     paint_bar(fb, bar, item.permille(), theme::ACCENT);
     let resume = duration(item.resume_ms);

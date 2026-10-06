@@ -18,36 +18,43 @@ use alloc::vec::Vec;
 
 use nonos_app_skeleton::clients::vfs::list_paths;
 
+use super::entry::is_playable;
+use super::folders::ROOTS;
 use super::media::MediaItem;
 use super::probe::probe;
+use super::says::{list_roots, scan_failure};
 
 pub const MAX_ENTRIES: usize = 256;
 
-pub const ROOTS: [&[u8]; 5] = [b"/", b"/Movies", b"/Series", b"/Downloads", b"/Clips"];
-
-pub fn scan(owner_pid: u32) -> Vec<MediaItem> {
+/// The videos under the roots, and why none of the roots could be listed when
+/// that is so: an unreadable store must not read as one with no videos.
+pub fn scan(owner_pid: u32) -> (Vec<MediaItem>, Option<&'static str>) {
     let mut out: Vec<MediaItem> = Vec::new();
-    for root in ROOTS {
-        collect(owner_pid, root, &mut out);
-    }
+    let results: [_; ROOTS.len()] =
+        list_roots(|i| collect(owner_pid, ROOTS[i].as_bytes(), &mut out));
     out.sort_by(|a, b| a.name.cmp(&b.name));
     out.truncate(MAX_ENTRIES);
+    // A probe the store did not answer ends the probing: the rest are
+    // listed without their size, length and frame.
     for item in out.iter_mut() {
-        probe(owner_pid, item);
+        if !probe(owner_pid, item) {
+            break;
+        }
     }
-    out
+    (out, scan_failure(&results))
 }
 
-fn collect(owner_pid: u32, root: &[u8], out: &mut Vec<MediaItem>) {
-    let Ok(paths) = list_paths(owner_pid, root) else {
-        return;
-    };
+fn collect(owner_pid: u32, root: &[u8], out: &mut Vec<MediaItem>) -> Result<(), &'static str> {
+    let paths = list_paths(owner_pid, root)?;
     for path in paths {
-        if out.iter().any(|m| m.path == path) {
+        // Only what the player decodes is listed (Motion-JPEG AVI). An .mp4,
+        // .mkv or .mov would show in the library and then refuse to play.
+        if !is_playable(&path) || out.iter().any(|m| m.path == path) {
             continue;
         }
         if let Some(item) = MediaItem::from_path(&path) {
             out.push(item);
         }
     }
+    Ok(())
 }

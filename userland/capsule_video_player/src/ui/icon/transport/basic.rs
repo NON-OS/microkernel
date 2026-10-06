@@ -32,7 +32,3 @@ pub fn prev(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
 pub fn next(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
     cache::draw(fb, x, y, s, argb, Glyph::Next);
 }
-
-pub fn rewind(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::Rewind);
-}

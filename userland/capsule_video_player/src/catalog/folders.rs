@@ -14,21 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ui::sprite::{cache, Glyph};
-use nonos_app_skeleton::paint::PaintBuffer;
+//! The folders the catalogue reads, and the names the Folders page gives
+//! them. The scan and the page share this one list, so the page can only
+//! offer a folder that was actually read.
 
-pub fn plus(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::Plus);
-}
+use super::entry::parent_dir;
 
-pub fn close(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::Close);
-}
+pub const ROOTS: [&str; 5] = ["/", "/Movies", "/Series", "/Downloads", "/Clips"];
 
-pub fn check(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::Check);
-}
+pub const LABELS: [&str; ROOTS.len()] = ["Top level", "Movies", "Series", "Downloads", "Clips"];
 
-pub fn dots(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::Dots);
+/// Whether the video at `path` sits directly in root `folder`.
+pub fn in_folder(path: &str, folder: usize) -> bool {
+    ROOTS.get(folder).is_some_and(|root| parent_dir(path) == *root)
 }

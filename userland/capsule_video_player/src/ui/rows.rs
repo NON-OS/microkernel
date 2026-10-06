@@ -14,53 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::layout::{Rect, EDGE, ROW_H, TOP};
+//! Where the list starts so the selected video stays in sight. Pure, so the
+//! proofs drive it without a window.
 
-pub const HEADER_H: u32 = 44;
+use nonos_app_skeleton::scroll::{wheel_offset, WHEEL_LINES};
 
-pub fn list_top() -> u32 {
-    TOP + HEADER_H
-}
-
-pub fn visible_rows(h: u32) -> usize {
-    (h.saturating_sub(list_top()).saturating_sub(EDGE) / ROW_H) as usize
-}
-
-pub fn row_rect(w: u32, slot: usize) -> Rect {
-    Rect {
-        x: EDGE,
-        y: list_top() + slot as u32 * ROW_H,
-        w: w.saturating_sub(EDGE * 2),
-        h: ROW_H,
-    }
-}
-
-pub fn row_at(w: u32, h: u32, scroll: usize, count: usize, x: i32, y: i32) -> Option<usize> {
-    if x < EDGE as i32 || x >= w.saturating_sub(EDGE) as i32 {
-        return None;
-    }
-    if y < list_top() as i32 {
-        return None;
-    }
-    let slot = ((y as u32 - list_top()) / ROW_H) as usize;
-    if slot >= visible_rows(h) {
-        return None;
-    }
-    let index = scroll.checked_add(slot)?;
-    if index < count {
-        Some(index)
+/// The first index to show after the selection moved to `sel`, given the
+/// current first index `scroll`, how many entries fit (`visible`) and how
+/// many share a line (`stride`: 1 in the list, the column count in the grid).
+/// The result is always the start of a line, so the grid never reflows by
+/// one tile; it moves only when `sel` would be off screen, and then by as
+/// few lines as bring it back.
+pub fn scroll_for(sel: usize, scroll: usize, visible: usize, stride: usize) -> usize {
+    let stride = stride.max(1);
+    let lines = (visible / stride).max(1);
+    let line = sel / stride;
+    let top = scroll / stride;
+    let top = if line < top {
+        line
+    } else if line >= top + lines {
+        line + 1 - lines
     } else {
-        None
-    }
+        top
+    };
+    top * stride
 }
 
-pub fn scroll_for(sel: usize, scroll: usize, h: u32) -> usize {
-    let vis = visible_rows(h).max(1);
-    if sel < scroll {
-        sel
-    } else if sel >= scroll + vis {
-        sel + 1 - vis
-    } else {
-        scroll
-    }
+/// The first index to show after a wheel `delta_y`, the selection left where
+/// it is. A notch moves the grid one line of tiles and the list three rows, a
+/// notch away toward the top; the start stays on a line, and the last line
+/// stops at the bottom of the page rather than scrolling off it.
+pub fn wheel_scroll(
+    scroll: usize,
+    len: usize,
+    visible: usize,
+    stride: usize,
+    delta_y: i32,
+) -> usize {
+    let stride = stride.max(1);
+    let shown = (visible / stride).max(1);
+    let last = len.div_ceil(stride).saturating_sub(shown);
+    let step = if stride > 1 { 1 } else { WHEEL_LINES };
+    wheel_offset(scroll / stride, delta_y, step, last) * stride
 }

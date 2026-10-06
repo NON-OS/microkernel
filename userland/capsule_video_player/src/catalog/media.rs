@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use alloc::string::{String, ToString};
+use alloc::vec::Vec;
 
 use super::entry::file_name;
 use super::kind::{kind_of, strip_ext, MediaKind};
+
+/// Left this close to its end, a video counts as watched through.
+pub const END_SLACK_MS: i64 = 2000;
 
 pub struct MediaItem {
     pub path: String,
@@ -28,6 +31,7 @@ pub struct MediaItem {
     pub duration_ms: i64,
     pub width: u32,
     pub height: u32,
+    /// Where play was left in this window (`app/resume.rs`); 0 is unwatched.
     pub resume_ms: i64,
     pub thumb: Option<Vec<u32>>,
 }
@@ -55,6 +59,16 @@ impl MediaItem {
 
     pub fn decodable(&self) -> bool {
         self.kind.decodable()
+    }
+
+    /// Where to open the video again: where it was left, or the start when
+    /// that was within `END_SLACK_MS` of its end, as after watching it through.
+    pub fn resume_point(&self) -> i64 {
+        if self.resume_ms > 0 && self.resume_ms.saturating_add(END_SLACK_MS) < self.duration_ms {
+            self.resume_ms
+        } else {
+            0
+        }
     }
 
     pub fn permille(&self) -> u32 {

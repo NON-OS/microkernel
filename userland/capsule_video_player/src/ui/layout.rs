@@ -17,10 +17,7 @@
 pub const TOP: u32 = 28;
 pub const EDGE: u32 = 10;
 pub const BAR_H: u32 = 64;
-pub const ROW_H: u32 = 44;
 
-const BTN: u32 = 36;
-const GAP: u32 = 12;
 pub const PAD: u32 = 16;
 
 #[derive(Clone, Copy)]
@@ -45,9 +42,6 @@ pub struct Layout {
     pub video: Rect,
     pub bar: Rect,
     pub scrub: Rect,
-    pub back: Rect,
-    pub play: Rect,
-    pub fwd: Rect,
     pub elapsed_x: u32,
     pub remain_x: u32,
 }
@@ -57,14 +51,10 @@ pub fn layout(w: u32, h: u32) -> Layout {
     let bar_h = BAR_H.min(usable_h);
     let bar_y = h.saturating_sub(EDGE).saturating_sub(bar_h).max(TOP);
     let inner_w = w.saturating_sub(EDGE).saturating_sub(PAD).saturating_sub(PAD).max(1);
-    let cx = w / 2;
     Layout {
         video: Rect { x: 0, y: TOP, w, h: bar_y.saturating_sub(TOP) },
         bar: Rect { x: 0, y: bar_y, w: w.saturating_sub(EDGE), h: bar_h },
         scrub: Rect { x: PAD, y: bar_y + 8, w: inner_w, h: 6 },
-        back: Rect { x: cx.saturating_sub(BTN + GAP + BTN / 2), y: bar_y + 22, w: BTN, h: BTN },
-        play: Rect { x: cx.saturating_sub(BTN / 2), y: bar_y + 22, w: BTN, h: BTN },
-        fwd: Rect { x: cx + BTN / 2 + GAP, y: bar_y + 22, w: BTN, h: BTN },
         elapsed_x: PAD,
         remain_x: w.saturating_sub(EDGE).saturating_sub(PAD),
     }

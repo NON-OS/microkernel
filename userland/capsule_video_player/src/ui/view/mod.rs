@@ -17,9 +17,5 @@
 pub mod details;
 pub mod files;
 pub mod grid;
-pub mod home;
 pub mod library;
-pub mod playlists;
-pub mod prefs_geom;
 pub mod render;
-pub mod settings;

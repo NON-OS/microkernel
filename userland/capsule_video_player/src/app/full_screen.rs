@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ui::sprite::{cache, Glyph};
-use nonos_app_skeleton::paint::PaintBuffer;
+//! A film is watched full screen: the window asks for it (the runner takes
+//! it the way the green button does, the dock hidden) while the player shows
+//! a film, playing or paused, and gives it back on the way out of the player.
+//! Pausing does not ask it back, so the window does not jump on every pause.
 
-pub fn volume(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::Volume);
-}
+use crate::ui::screen::Route;
 
-pub fn mute(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::Mute);
+pub fn wants_full_screen(route: Route, film_open: bool) -> bool {
+    route == Route::Player && film_open
 }
