@@ -105,3 +105,11 @@ A program started with `linux` has no internet. The kernel starts the personalit
 Inside the program's own family, sockets work: it may bind and listen on 127.0.0.0/8 and use Unix sockets. A bind or listen anywhere else is EACCES (`not_loopback` in `userland/capsule_linux/src/linux/net/policy.rs:33-41`), a datagram leaving the family is ENETUNREACH, and a raw socket is EPERM.
 
 Once a program has opened a Qwen model, its family gets no internet socket in any role (`refuse_inet` in `userland/capsule_linux/src/linux/net/offline.rs:37-39`).
+
+## What does not work
+
+- A Linux system call the personality does not serve returns ENOSYS. Which calls are served and which are refused is on [the Linux personality page](../userland/linux-personality.md).
+- A program is told the machine has one CPU, whatever it has (`CPUS` in `userland/capsule_linux/src/linux/file/system/declared/sizes.rs:23`).
+- No internet, as above.
+- Nothing a program writes outlives it, except what a `>` redirect keeps.
+- More packages come only from the Marketplace's Linux tab, and the standard build lists none; see [Marketplace](marketplace.md).
