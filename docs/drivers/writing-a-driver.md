@@ -202,3 +202,7 @@ pub fn run(driver: &mut Driver) -> ! {
 ```
 
 The header is magic, version, op, flags, a reserved word, request id and payload length, all little-endian; virtio-rng's `MAGIC` is 0x4E4F5244, `NORD` (`userland/capsule_driver_virtio_rng/src/protocol/header.rs:21-33`). The ops are `OP_FILL_RANDOM` (1) and `OP_HEALTHCHECK` (2) (`userland/capsule_driver_virtio_rng/src/protocol/ops.rs:21-22`). An unknown op gets a reply with status -22 that echoes its request id; a header that does not decode gets one with request id 0. `reply_with_status` sends every reply to `KERNEL_REPLY_ENDPOINT`, the kernel client's inbox, since only the kernel talks to this driver (`userland/capsule_driver_virtio_rng/src/server/error.rs:27-36`). `recv_ready` sleeps `RECV_PARK_MS` (100 ms) after a receive that failed at once, so a loop whose inbox is gone holds no core (`userland/libc/src/bringup/run.rs:95-104`, `userland/libc/src/bringup/policy.rs:128-130`).
+
+## 10. Teardown
+
+`release` drops the grants in reverse order: buffer, queue, registers, then the claim (`userland/capsule_driver_virtio_rng/src/setup/driver.rs:43-48`). The kernel does the same for a driver that exits or crashes, so a missed release leaks nothing past the process.
