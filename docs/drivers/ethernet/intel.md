@@ -118,3 +118,12 @@ cd userland/e1000_proofs && cargo test --release --config profile.release.overfl
 ```
 
 Not tested in this release.
+
+## See also
+
+- [Ethernet drivers](README.md)
+- [Realtek Ethernet](realtek.md)
+- [USB networking](usb-net.md)
+- [The broker API](../broker-api.md)
+- [Writing a driver](../writing-a-driver.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
