@@ -43,3 +43,17 @@ Pages are 4 KiB, with `HUGE_PAGE_2M` and `HUGE_PAGE_1G` leaves possible (`src/me
 No mapping may be writable and executable at once. `map_page` returns `WXViolation` for such a request (`src/memory/paging/manager/mapping/map.rs:41-43`), and a protection change is checked the same way with `is_wx_violation` (`src/memory/paging/manager/protection/update.rs:33-34`).
 
 The kernel image has three load segments in the linker script's `PHDRS`: text read and execute, read-only data, and data read and write (`linker.ld:11-15`). `report_kernel_sections` compares the live mappings with the four entries `kernel_sections` returns, text, read-only data, data and bss (`src/memory/layout/manager/state.rs:49-80`), and prints `[KSEC] 4/4 sections mapped as declared`, or names each page that differs and ends with `WARNING W^X not held` (`src/kernel_core/init/entry/report_sections.rs:33-51`). It reports and does not stop the boot.
+
+## CPU protections
+
+`init_vm_and_protection` turns the ring 0 restrictions on once the final tables exist. `apply` refuses a CPU without execute-never, then enables SMEP, SMAP and UMIP where CPUID reports them, sets EFER.NXE and CR0.WP, and reads every one back (`src/memory/mmu/mmu/protect/apply.rs:26-44`). On a CPU without NX, `init_mmu` fails and the boot stops with `memory: init_mmu failed` (`src/kernel_core/init/entry/init_vm_and_protection.rs:41-43`). With SMAP live, `clear_alignment_check` clears EFLAGS.AC, since SMAP is not enforced while AC is set (`src/memory/mmu/mmu/protect/cr4.rs:46-49`).
+
+`report` prints the result as one line on the [serial console](../overview/glossary.md#serial-console) (`src/memory/mmu/mmu/protect/report.rs:25-43`):
+
+```text
+[CPU-PROT] smep=1 smap=1 umip=1 nx=1 wp=1
+```
+
+Any zero other than UMIP adds `[CPU-PROT] WARNING kernel is not fully protected from user pages`. Each secondary CPU applies the same bits itself, and `finish` keeps it from running user code if it ended up weaker than the boot CPU (`src/smp/ap/user_setup.rs:46-59`).
+
+On aarch64 the same properties come from the PXN, UXN and AP bits in each descriptor. PAN is not enabled, and `report_el1_protection` says so on the console (`src/kernel_core/init/entry/init_vm_and_protection.rs:84-89`).
