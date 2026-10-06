@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for net.sockets' socket table: one client's share of
+# it, and the sockets of clients that ended without closing them. Builds for
+# the host so `cargo test` runs the real table source (included via #[path]),
+# and the request header decode with the reply a refused frame is answered
+# with, over the net proofs' stand-in nonos_libc.
+[package]
+name = "sockets_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_libc = { package = "net_proofs_shim", path = "../net_proofs/shim" }
+spin ={ version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
