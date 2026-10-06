@@ -51,3 +51,7 @@ The 104-byte file `boot_root.approval` on the ESP: the bootloader tree's root an
 ## Capability
 
 One named right, one bit of a 64-bit word. The kernel defines 36, from `CoreExec` at bit 0 to `DeviceSecret` at bit 35, and checks the caller's bits before it runs a system call; `IO` and `Hardware` enforce nothing. Explained in [Capabilities](../kernel/capabilities.md#what-each-bit-admits), with every bit in [Capabilities ABI](../abi/capabilities.md). Code: `src/capabilities/types/defs.rs`, `abi/caps.toml`.
+
+## Capability ceiling
+
+The most capability bits something may hold. A publisher's NONOS ID certificate carries one, and the spawn gate refuses a manifest whose required or optional bits go past it. Each build also writes an image-wide ceiling into the kernel, but in this release a capsule above it only logs `[CEILING] not enforced` and starts anyway. Explained in [Profiles](../build/profiles.md#the-image-capability-ceiling). Code: `src/security/capsule_manifest/verify/caps.rs`, `src/security/image_ceiling/admits.rs`.
