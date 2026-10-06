@@ -100,3 +100,16 @@ The generic timer ticks every 10 ms and each tick calls the shared scheduler's `
 | `uart` (`src/arch/aarch64/mod.rs:33`) | 11 files, 393 lines | the PL011 console |
 
 `aarch64-nonos.json` keeps `cpu` at `generic`, so ordinary code is ARMv8.0, and its `features` add pointer authentication, the speculation barriers, memory tagging and the RNG for the instructions the kernel writes by hand (`aarch64-nonos.json:20-21`). The note on `aarch64-nonos.json` in `mk/20-build.mk` gives the reason for `generic`: naming an architecture version instead would let LLVM put newer instructions into ordinary code, and every hand-written use sits behind an ID register check (`mk/20-build.mk:836-843`). `linker_aarch64.ld` links the image at `0x40080000` on the `virt` board and starts writable data on a 2 MB boundary, so the boot map's 2 MB blocks can keep text read only and executable (`__kernel_rw_start`, `linker_aarch64.ld:18-41`).
+
+## What is missing
+
+- A loader. `nonos-bootloader` is built for one target, `x86_64-unknown-uefi` (`targets`, `nonos-bootloader/rust-toolchain.toml:4`). QEMU starts the aarch64 kernel directly, so none of the loader's checks run before it.
+- A device tree under QEMU. QEMU passes none when it boots an ELF, and a device tree boot needs an Image-format target the build does not have (`ARM_QEMU_FLAGS`, `mk/20-build.mk:897-900`). Without one, `BootInfo` assumes the `virt` board, 512 MB of RAM at `0x4000_0000` and one CPU, whatever `-m` says (`ram_size`, `src/arch/aarch64/boot/info/types.rs:67-92`).
+- Any interrupt controller but a GICv3. `init` refuses a device tree that names another (`gic_unsupported`, `src/arch/aarch64/boot/init.rs:57-59`).
+- An SMMU driver. Every IOMMU mapping request on an ARM board is refused (`iommu`, `src/memory/mod.rs:43-46`).
+- PAN. The kernel prints `pan=off` from `report_el1_protection` rather than claim it (`src/kernel_core/init/entry/init_vm_and_protection.rs:78-89`).
+- Kernel stack guard pages. `arm_stack_guards` does nothing outside x86_64 (`src/kernel_core/init/entry/init_vm_and_protection.rs:75-76`).
+- Setting a thread's TLS register from a system call. `set_user_tls` reports failure, because the trap frame return would overwrite `tpidr_el0` (`src/arch/context/tls.rs:25-39`).
+- The capsules that link the std platform layer, which issues system calls with x86_64 registers and does not cross-compile to aarch64 yet (`DESKTOP_STD_TOOL_ARTIFACTS`, `mk/20-build.mk:1072-1080`).
+- A firmware framebuffer. `init_arch_framebuffer` maps nothing on aarch64; the display comes up later as a virtio GPU (`src/kernel_core/init/entry/init_arch_framebuffer.rs:21-30`).
+- Checks for every profile. The flake's `profileChecks` type-check each profile against `x86_64-nonos.json` only (`tools/nix/checks.nix:174-193`).
