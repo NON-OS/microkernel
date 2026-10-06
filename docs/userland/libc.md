@@ -85,3 +85,11 @@ No capsule in this release uses it. Its users are the crates in `userland/nonos_
 ## The toolkit
 
 `userland/toolkit/` is the drawing library the desktop apps link, and the same crate builds a small `toolkit` service capsule (`userland/toolkit/Cargo.toml:11-17`, `nonos_toolkit`). Because it is linked into each app, its drawing code runs in that app's process, with that app's capabilities. Twenty-five crates name it directly in their `Cargo.toml`, `app_skeleton`, the shared base of the desktop apps, among them.
+
+## See also
+
+- [ABI: system calls](../abi/syscalls.md)
+- [ABI: errors](../abi/errors.md)
+- [IPC services](ipc-services.md)
+- [Toolchain](../build/toolchain.md)
+- [Userland](README.md)
