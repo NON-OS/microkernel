@@ -67,8 +67,18 @@ fn quantity_decodes_low_bytes() {
 #[test]
 fn format_nox_two_decimals() {
     let mut buf = [0u8; 48];
-    let n = format_nox(1_500_000_000_000_000_000, &mut buf);
+    let n = format_nox(1_500_000_000_000_000_000, &mut buf).expect("fits");
     assert_eq!(&buf[..n], b"1.50");
+}
+
+/* A buffer too short for the figure gives none, never a cut one. */
+#[test]
+fn format_nox_never_cuts_a_figure_short() {
+    let mut small = [0u8; 4];
+    assert_eq!(format_nox(12_345 * 1_000_000_000_000_000_000, &mut small), None);
+    assert_eq!(format_nox(1_500_000_000_000_000_000, &mut small), Some(4));
+    let mut max = [0u8; 48];
+    assert!(format_nox(u128::MAX, &mut max).is_some());
 }
 
 #[test]
