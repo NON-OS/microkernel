@@ -27,3 +27,20 @@ nym
 ```
 
 Not tested in this release.
+
+## How a connection finds its way
+
+```mermaid
+flowchart LR
+    app["Program"] --> route["nonos_route_link"]
+    route --> socks["net.socks5"]
+    socks --> nym["net.nym"]
+    route --> anon["net.anon"]
+    route --> sockets["net.sockets"]
+    nym --> core["net.core"]
+    anon --> core
+    sockets --> core
+    core --> nic["network card driver"]
+```
+
+Every program that opens its own connections asks one library, `nonos_route_link`, which network to use. It sends a Nym stream to `net.socks5`, the SOCKS5 front of the mixnet, which resolves only `net.nym` and never a direct socket (`run` in `userland/capsule_socks5/src/setup.rs:27-38`). It sends an Anyone stream to `net.anon`, and a Direct one to `net.sockets`. All three reach the wire through `net.core` and the network card driver; see [Wi-Fi and networking](wifi-and-networking.md).
