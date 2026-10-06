@@ -16,7 +16,7 @@
 
 use crate::ingress::{from_frame, Inbound, IngressError};
 use crate::l2_client::{poll_frame, RxError};
-use crate::protocol::{E_BAD_PACKET, E_L2_FAULT};
+use crate::protocol::E_L2_FAULT;
 use crate::state::{push, Packet};
 
 pub enum PollResult {
@@ -36,10 +36,16 @@ pub fn poll_and_route(l2: u32) -> PollResult {
             let _ = push(p);
             PollResult::KeepPolling
         }
-        Err(IngressError::NotIpv4) | Err(IngressError::NotForUs) | Err(IngressError::Absorbed) => {
-            PollResult::KeepPolling
-        }
-        Err(_) => PollResult::Fault(E_BAD_PACKET),
+        /*
+         * A frame that is not ours, or not well formed, is dropped and the
+         * poll goes on. A malformed one used to end the poll as E_BAD_PACKET,
+         * as if the link had failed, holding back what was queued behind it.
+         */
+        Err(IngressError::NotIpv4)
+        | Err(IngressError::NotForUs)
+        | Err(IngressError::Absorbed)
+        | Err(IngressError::BadFrame)
+        | Err(IngressError::BadIp) => PollResult::KeepPolling,
     }
 }
 
