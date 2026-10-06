@@ -62,3 +62,10 @@ Several bits gate a service or a path inside a call rather than a syscall:
 - `Keyring`: `gate_caller` refuses every keyring operation to a caller without it (`src/security/keyring_capsule/capability.rs:26-35`).
 - `Entropy`: `gate_read` refuses entropy reads to a caller without it (`src/security/entropy_capsule/capability.rs:23-31`).
 - `IO` and `Hardware` are marked "Enforces nothing" in the table itself (`src/capabilities/types/defs.rs:23-31`).
+
+## Rules the predicates add
+
+- `Admin` stands in for `Driver`, `Mmio`, `Irq`, `Dma` and `Pio`: each predicate, such as `can_driver`, accepts either (`src/capabilities/token/types/authority_broker.rs:24-54`). It also stands in for `DeviceEnum` when listing devices, for `SpawnWindow`, and for `ProcessControl`, through `can_device_enum`, `can_spawn_window` and `can_control_processes` (`src/capabilities/token/types/authority_admin.rs:30-57`).
+- `Admin` does not imply `EnrolDevRoot`: `can_enrol_dev_root` asks for that bit alone (`src/capabilities/token/types/authority_admin.rs:43-52`). It does not stand in for `DeviceEnum` on `MISR`, since `can_install_source` asks for `DeviceEnum` alone (`src/syscall/caps/checks/hardware.rs:28-31`).
+- `Irq` lets a driver post input events but not read them: `can_input_source` accepts `Irq`, and `can_input_consumer`, which gates draining and waiting, does not (`src/capabilities/token/types/authority_broker.rs:55-73`).
+- `can_attest_doc` refuses a caller that holds `Network`, whatever else it holds, because a TPM quote names the machine for good (`src/syscall/caps/checks/system.rs:42-52`).
