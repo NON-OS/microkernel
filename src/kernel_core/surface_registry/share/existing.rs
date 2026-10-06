@@ -14,10 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod release_owned_by_pid;
-mod release_surface;
-mod release_unmapped;
+use crate::kernel_core::surface_registry::types::{
+    RegistryError, SurfaceDescriptor, SurfaceHandle,
+};
 
-pub use release_owned_by_pid::release_owned_by_pid;
-pub use release_surface::release_surface;
-pub use release_unmapped::release_unmapped;
+/*
+ * An attach `receiver_pid` already holds for `handle`: fill `out_desc` with
+ * its window and return its base VA. None when there is no such record.
+ */
+pub(super) fn existing(
+    receiver_pid: u32,
+    handle: SurfaceHandle,
+    out_desc: &mut SurfaceDescriptor,
+) -> Option<Result<u64, RegistryError>> {
+    let (base_va, byte_len) = super::super::attach_map::lookup(receiver_pid, handle)?;
+    Some(super::descriptor::descriptor(handle).map(|desc| {
+        *out_desc = desc;
+        out_desc.base_va = base_va;
+        out_desc.byte_len = byte_len;
+        base_va
+    }))
+}

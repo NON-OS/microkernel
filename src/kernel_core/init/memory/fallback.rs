@@ -14,10 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod release_owned_by_pid;
-mod release_surface;
-mod release_unmapped;
+use crate::memory::addr::PhysAddr;
 
-pub use release_owned_by_pid::release_owned_by_pid;
-pub use release_surface::release_surface;
-pub use release_unmapped::release_unmapped;
+/* Fixed spans tried in turn when the firmware's map gave nothing usable. */
+pub(super) fn init_fallback() {
+    let regions = [
+        (0x100000u64, 0x8000_0000u64),
+        (0x100000u64, 0x4000_0000u64),
+        (0x200000u64, 0x1000_0000u64),
+    ];
+    for (start, end) in regions {
+        if crate::memory::phys::init(PhysAddr::new(start), PhysAddr::new(end)).is_ok() {
+            crate::sys::serial::println(b"[MEM] fallback OK");
+            return;
+        }
+    }
+}

@@ -21,6 +21,10 @@ use core::sync::atomic::Ordering;
 
 pub fn microkernel_main() -> ! {
     crate::sys::bench::mark(b"microkernel_main_start");
+    super::install_refusal::refuse_install_without_installer();
+    super::loader_refusal::refuse_unchecked_loader(
+        crate::security::boot::loader_check::check_bootloader(),
+    );
     // bring-up diagnostics silenced:
     // log_acpi_touchpad_onscreen();
     // crate::hardware::broker::device_census();
@@ -39,21 +43,17 @@ pub fn microkernel_main() -> ! {
         Ok(pid) => pid,
         Err(e) => {
             boot_log::error("Failed to create init process");
-            crate::sys::serial::println(b"[FATAL] Init process creation failed");
-            crate::sys::serial::println(e.as_bytes());
-            crate::arch::halt_loop()
+            crate::boot::stop("Init process creation failed", e)
         }
     };
     crate::sys::bench::mark(b"init_process_created");
     if let Err(_) = create_address_space(init_pid) {
         boot_log::error("Failed to create init address space");
-        crate::sys::serial::println(b"[FATAL] Init address space creation failed");
-        crate::arch::halt_loop()
+        crate::boot::stop("Init address space creation failed", "")
     }
     if crate::kernel_core::process_spawn::allocate_kernel_stack(init_pid).is_err() {
         boot_log::error("Failed to allocate init kernel stack");
-        crate::sys::serial::println(b"[FATAL] Init kernel stack allocation failed");
-        crate::arch::halt_loop()
+        crate::boot::stop("Init kernel stack allocation failed", "")
     }
     CURRENT_PID.store(init_pid, Ordering::SeqCst);
     boot_log::ok("UKERNEL", "Entering userspace");

@@ -14,10 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod release_owned_by_pid;
-mod release_surface;
-mod release_unmapped;
+use crate::kernel_core::surface_registry::types::RegistryError;
+use crate::memory::addr::{PhysAddr, VirtAddr};
+use crate::memory::paging::manager::api::map_page_in_asid;
+use crate::memory::paging::types::PagePermissions;
 
-pub use release_owned_by_pid::release_owned_by_pid;
-pub use release_surface::release_surface;
-pub use release_unmapped::release_unmapped;
+/* Map `frames` user read-write at consecutive pages from `base` in `asid`. */
+pub(super) fn map_frames(
+    asid: u32,
+    base: VirtAddr,
+    frames: &[PhysAddr],
+) -> Result<(), RegistryError> {
+    let perms = PagePermissions::user_rw();
+    for (i, frame) in frames.iter().enumerate() {
+        let va = VirtAddr::new(base.as_u64() + (i as u64) * 4096);
+        map_page_in_asid(asid, va, *frame, perms).map_err(|_| RegistryError::MapFailed)?;
+    }
+    Ok(())
+}

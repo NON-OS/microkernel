@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod release_owned_by_pid;
-mod release_surface;
-mod release_unmapped;
+use spin::Mutex;
 
-pub use release_owned_by_pid::release_owned_by_pid;
-pub use release_surface::release_surface;
-pub use release_unmapped::release_unmapped;
+/*
+ * Orders attaching a surface against pinning, unmapping and freeing its
+ * frames. An attach holds it from the slot check until its mapping is
+ * recorded, so every other holder of the gate either sees that record or
+ * has already emptied the slot, which makes the attach fail.
+ */
+pub static GATE: Mutex<()> = Mutex::new(());

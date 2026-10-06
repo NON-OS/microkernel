@@ -14,10 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod release_owned_by_pid;
-mod release_surface;
-mod release_unmapped;
+use alloc::vec::Vec;
 
-pub use release_owned_by_pid::release_owned_by_pid;
-pub use release_surface::release_surface;
-pub use release_unmapped::release_unmapped;
+use crate::kernel_core::surface_registry::types::SurfaceHandle;
+use crate::memory::addr::PhysAddr;
+
+/* A surface window inside a range that is being unmapped. */
+pub(super) struct Window {
+    pub base: u64,
+    /* The surface's frame list, by page index from `base`. */
+    pub frames: Vec<PhysAddr>,
+    /* Owner and handle when the owner unmaps a window others still map. */
+    pub orphan: Option<(u32, SurfaceHandle)>,
+    /* Frames of an orphaned window whose PTE was really removed. */
+    pub unmapped: Vec<PhysAddr>,
+}
+
+impl Window {
+    pub(super) fn held(base: u64, frames: Vec<PhysAddr>) -> Self {
+        Self { base, frames, orphan: None, unmapped: Vec::new() }
+    }
+}

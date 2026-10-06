@@ -14,10 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod release_owned_by_pid;
-mod release_surface;
-mod release_unmapped;
+use alloc::vec::Vec;
 
-pub use release_owned_by_pid::release_owned_by_pid;
-pub use release_surface::release_surface;
-pub use release_unmapped::release_unmapped;
+use crate::kernel_core::surface_registry::attach_map::state::ATTACHES;
+use crate::kernel_core::surface_registry::types::SurfaceHandle;
+
+/* True when a process other than `owner` holds an attach record for `handle`. */
+pub fn has_foreign_holder(handle: SurfaceHandle, owner: u32) -> bool {
+    ATTACHES.lock().iter().any(|r| r.handle == handle && r.pid != owner)
+}
+
+/* (handle, base_va) of every attach record held by `pid`. */
+pub fn records_of(pid: u32) -> Vec<(SurfaceHandle, u64)> {
+    ATTACHES.lock().iter().filter(|r| r.pid == pid).map(|r| (r.handle, r.base_va)).collect()
+}

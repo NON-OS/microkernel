@@ -31,6 +31,6 @@ pub use consumer_ready::consumer_ready;
 pub use diag::input_diag;
 pub use drain::drain_input;
 pub use drains::input_drains;
-pub use post::post_input;
+pub use post::{post_input, try_post_input};
 pub use ring::KIND_DIAG_BASE;
 pub use seq::input_seq;
