@@ -37,6 +37,8 @@ mod firmware;
 mod hcmd;
 mod init;
 mod mlme;
+// Which PCI function is a supported adapter, decided without the INTx line.
+mod pci_match;
 mod protocol;
 mod regs;
 // The receive path: reading the firmware's responses and notifications. Reached
@@ -48,18 +50,26 @@ mod setup;
 // Reached through OP_WPA_PTK.
 mod wpa;
 
-use nonos_libc::{heap_init, mk_exit};
+use nonos_libc::{heap_init, mk_exit, start_driver};
+
+const DRIVER: &[u8] = b"driver.iwlwifi";
 
 /// # Safety
 /// The capsule entry point. The kernel loader calls this once on a fresh stack
 /// with the capsule's heap region reserved; it must never be called from Rust.
+///
+/// Without a supported adapter the driver says so and leaves (`EXIT_ABSENT`)
+/// before claiming anything. An adapter that is there is brought up on the
+/// shared bounded schedule, each failed attempt giving back every grant, and
+/// running out is `EXIT_GAVE_UP`.
 #[no_mangle]
 pub unsafe extern "C" fn _start() -> ! {
     if heap_init().is_err() {
         mk_exit(1);
     }
-    let Ok(driver) = setup::run() else {
-        mk_exit(2);
+    let driver = match start_driver(DRIVER, discover::find_iwlwifi(), |dev| setup::run(*dev)) {
+        Ok(driver) => driver,
+        Err(code) => mk_exit(code),
     };
     server::run(driver);
 }

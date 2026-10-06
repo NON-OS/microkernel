@@ -18,6 +18,8 @@ pub struct Driver {
     pub pci_device: u16,
     pub claim_epoch: u64,
     pub mmio_grant: u64,
+    /// Bytes of the register window the broker mapped.
+    pub mmio_len: u64,
     pub irq_grant: u64,
     pub dma_grant: u64,
     pub dma_user_va: u64,

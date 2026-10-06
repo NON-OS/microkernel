@@ -11,3 +11,5 @@ pub const E_BAD_OP: i32 = -38;
 pub const E_INVAL: i32 = -22;
 pub const E_TIMEOUT: i32 = -110;
 pub const E_FW_INVALID: i32 = -84;
+/// EBUSY: the gen3 radio owns the card, so the legacy op that would write it is refused.
+pub const E_BUSY: i32 = -16;

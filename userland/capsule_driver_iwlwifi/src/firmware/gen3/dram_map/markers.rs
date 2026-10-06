@@ -23,4 +23,5 @@ pub(super) const SEP_CPU1_CPU2: u32 = 0xFFFF_CCCC;
 pub(super) const SEP_PAGING: u32 = 0xAAAA_BBBB;
 /// Each firmware chunk is placed on its own page, as the Linux driver allocates
 /// one coherent block per section.
+#[cfg(test)]
 pub(super) const CHUNK_ALIGN: u64 = 4096;

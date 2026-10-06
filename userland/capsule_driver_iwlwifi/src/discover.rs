@@ -16,16 +16,17 @@
 
 use nonos_libc::{mk_device_list, DeviceRecord, BAR_KIND_MMIO, BUS_KIND_PCI};
 
-use crate::constants::INTEL_VENDOR_ID;
-use crate::firmware::family::family_for_device;
+use crate::pci_match::{is_intel_wifi, is_supported_adapter, Candidate};
+use crate::setup::announce;
 
 const MAX_DEVICES: usize = 96;
-const PCI_CLASS_NETWORK: u8 = 0x02;
-const PCI_SUBCLASS_OTHER: u8 = 0x80;
 
 #[derive(Clone, Copy)]
 pub struct Found {
     pub device_id: u64,
+    /// The legacy interrupt pin and line as firmware left them. Either may say
+    /// "none" (pin 0, line 0xFF); the bind then goes straight to MSI-X.
+    pub irq_pin: u8,
     pub irq_line: u8,
     pub bar0_size: u64,
     pub pci_device: u16,
@@ -38,15 +39,16 @@ pub fn find_iwlwifi() -> Option<Found> {
         return None;
     }
     for r in &buf[..core::cmp::min(n as usize, MAX_DEVICES)] {
-        if !is_match(r) || r.irq_pin == 0 || r.irq_line == 0xFF {
-            continue;
+        let c = candidate(r);
+        if is_intel_wifi(&c) {
+            announce(c.device);
         }
-        let bar0 = r.bars[0];
-        if r.bar_count != 0 && bar0.kind == BAR_KIND_MMIO && bar0.size != 0 {
+        if is_supported_adapter(&c) {
             return Some(Found {
                 device_id: r.device_id,
+                irq_pin: r.irq_pin,
                 irq_line: r.irq_line,
-                bar0_size: bar0.size,
+                bar0_size: r.bars[0].size,
                 pci_device: r.device,
             });
         }
@@ -54,10 +56,15 @@ pub fn find_iwlwifi() -> Option<Found> {
     None
 }
 
-fn is_match(r: &DeviceRecord) -> bool {
-    r.vendor == INTEL_VENDOR_ID
-        && r.bus_kind == BUS_KIND_PCI
-        && r.pci_class == PCI_CLASS_NETWORK
-        && r.pci_subclass == PCI_SUBCLASS_OTHER
-        && family_for_device(r.device).is_some()
+// The fields of a broker record the adapter decision reads.
+fn candidate(r: &DeviceRecord) -> Candidate {
+    let bar0 = r.bars[0];
+    Candidate {
+        is_pci: r.bus_kind == BUS_KIND_PCI,
+        vendor: r.vendor,
+        device: r.device,
+        class: r.pci_class,
+        subclass: r.pci_subclass,
+        bar0_mmio: r.bar_count != 0 && bar0.kind == BAR_KIND_MMIO && bar0.size != 0,
+    }
 }

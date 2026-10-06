@@ -22,6 +22,19 @@ pub fn parse(buf: &[u8]) -> Option<(Request, &[u8])> {
     ))
 }
 
+/// The request a frame `parse` refused is answered under: the op and request
+/// id it names, or zeros when it is too short to name them. Its caller is
+/// blocked in its call until a reply comes, so a refusal is answered too.
+pub fn refused(buf: &[u8]) -> Request {
+    let Some(h) = buf.first_chunk::<HDR_LEN>() else {
+        return Request { op: 0, request_id: 0 };
+    };
+    Request {
+        op: u16::from_le_bytes([h[6], h[7]]),
+        request_id: u32::from_le_bytes([h[12], h[13], h[14], h[15]]),
+    }
+}
+
 fn le16(x: &[u8]) -> u16 {
     u16::from_le_bytes([x[0], x[1]])
 }

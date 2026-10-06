@@ -25,5 +25,7 @@ pub mod layout;
 mod scratch;
 mod write;
 
-pub use layout::{FSEQ_ENTRIES, MAX_DRAM_ENTRY, PRPH_SCRATCH_SIZE};
+pub use layout::{PRPH_SCRATCH_REPORTED, PRPH_SCRATCH_SIZE};
+#[cfg(test)]
+pub use layout::{FSEQ_ENTRIES, MAX_DRAM_ENTRY};
 pub use scratch::{DramImage, PrphScratch};
