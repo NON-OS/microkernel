@@ -1,0 +1,44 @@
+# NONOS userland: nonos_route_link
+# eK@nonos.systems
+#
+# The network a capsule's own connections leave through, and a byte stream
+# over it. The network is the system's default, which setup asks for and
+# Settings changes, read from the policy store: the Nym mixnet when the store
+# holds nothing this build knows or cannot be asked, the Anyone onion network,
+# or a direct connection only when the default says so. A default whose
+# network is not running is no route, and nothing ever falls back to a direct
+# connection, which would name this machine to whoever answers.
+#
+# One rule and one client, so the model fetcher, the Terminal, the wallet and
+# the time client cannot disagree about it. The parts that decide and the
+# parts that frame and read the proxies' bytes are pure and proven on the
+# host by route_link_proofs; the parts that make the calls are thin.
+
+[package]
+name = "nonos_route_link"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS chosen network route: the pick, the policy read, and a stream over Nym, Anyone or Direct"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+# Three syscalls: an IPC call with a bound, the uptime clock and a timed
+# sleep. The heap and the panic handler are the capsule's own business.
+nonos_libc = { package = "nonos_userland_libc", path = "../libc", default-features = false }
+nonos_socket = { path = "../nonos_socket" }
+nonos_policy_client = { path = "../policy_client" }
+nonos_policy_proto = { path = "../policy_proto" }
+
+[profile.release]
+opt-level = 2
+lto = false
+debug = false
+
+[profile.dev]
+opt-level = 0
+debug = true
