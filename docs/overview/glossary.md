@@ -235,3 +235,7 @@ The kernel's main log, a UART that takes its tagged lines: on x86_64 the 16550 a
 ## Spawn gate
 
 The kernel path every capsule passes before it becomes a process, `spawn_verified_as`. It checks, in order, that the boot profile allows the capsule, its NONOS ID certificate, its manifest (namespace, capability ceiling, signatures, payload hash, target, endpoints and the grant), then its attestation trailer, and refuses the spawn at the first failure. Explained in [Processes and capsule spawn](../kernel/processes-and-spawn.md#the-spawn-gate). Code: `src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs`, `src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs`.
+
+## STARK proof
+
+A proof, checked by the `nox_verify` verifier from the pinned NON-OS STARKs library, that a measurement and its context fill a slot of an enrolled tree. Every attestation trailer carries one beside its Merkle path, except a development image's, and a gate admits only when both the path and the proof pass. Explained in [STARK attestation](../security/stark-attestation.md#the-statement). Code: `src/security/capsule_attest/path.rs`.
