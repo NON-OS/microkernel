@@ -77,3 +77,7 @@ The platform layer in `toolchain/nonos-std/sys/` gives `std` its NONOS backends:
 - `boot` maps a fixed 16 MiB heap (`userland/nonos_alloc/src/init.rs:24`, `INITIAL_HEAP_SIZE`) and records the [capability word](../overview/glossary.md#capability-word) the program says it has (`userland/nonos_runtime/src/boot.rs:20-24`, `set_granted`). The record is informational: the kernel enforces the word from the signed [manifest](../overview/glossary.md#manifest), whatever the program records.
 
 No capsule in this release uses it. Its users are the crates in `userland/nonos_examples/` and three crates of the SDK, and no `Capsule.mk` builds any of them.
+
+## The SDK
+
+`userland/sdk/` holds nine crates and two example apps: `nonos_sdk`, `nonos_prelude`, `nonos_app`, `nonos_window`, `nonos_ui`, `nonos_appkit`, `nonos_desktop`, `nonos_font` and `nonos_std`. The last is a `no_std` library shaped like `std` and built on `nonos_libc`, not on the runtime. No `Capsule.mk` builds an SDK crate, so no SDK app is signed, enrolled or in an image. The one capsule crate that uses one, `capsule_gui_proof`, depends on `nonos_std` and has no `Capsule.mk` either (`userland/capsule_gui_proof/Cargo.toml:24`, `nonos_std`).
