@@ -20,7 +20,7 @@
 
 use nonos_i2cmodel::Command;
 
-use super::fixture::rig;
+use super::fixture::{pad, rig, rig_with, HID_DESC_REG, PAD};
 use crate::setup;
 
 #[test]
@@ -54,4 +54,14 @@ fn the_reset_acknowledgement_is_drained_so_the_first_poll_sees_a_real_frame() {
         "nothing read the input register after the reset: {:?}",
         pad.commands()
     );
+}
+
+#[test]
+fn a_pad_that_sleeps_through_the_first_power_on_is_asked_again_and_reset() {
+    let r = rig_with(pad().drowsy(), Some((PAD, HID_DESC_REG)));
+    let state = setup::run().expect("setup");
+    assert!(state.woke, "one NACKed SET_POWER left the pad unreset");
+    let cmds = r.pad.lock().take_commands();
+    assert!(cmds.contains(&Command::SetPower { sleep: false }), "{cmds:?}");
+    assert!(cmds.contains(&Command::Reset), "{cmds:?}");
 }
