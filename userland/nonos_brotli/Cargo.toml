@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# A no_std Brotli (RFC 7932) decompressor: WOFF2 web fonts and, later,
+# Content-Encoding: br. Host tests decode vectors made by the reference
+# encoder at every quality and window size.
+
+[package]
+name = "nonos_brotli"
+version = "0.1.0"
+edition = "2021"
+authors = ["NONOS Contributors"]
+license = "AGPL-3.0"
+description = "No-std Brotli decompressor for NONOS userland"
+
+[lib]
+name = "nonos_brotli"
+path = "src/lib.rs"
+
+[dependencies]
