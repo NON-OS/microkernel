@@ -19,12 +19,14 @@ use super::state::SupportState::{self, *};
 
 pub fn support_state(family: HardwareFamily) -> SupportState {
     match family {
-        StorageVirtioBlk | StorageUsbMsc | StorageAhci | StorageNvme => DataPath,
+        StorageVirtioBlk | StorageUsbMsc | StorageAhci | StorageNvme | StorageEmmc => DataPath,
         NetworkVirtio | NetworkE1000 | NetworkRtl8139 | NetworkRtl8169 => DataPath,
+        NetworkRtl8821ce => DataPath,
         DisplayGopFramebuffer | DisplayVirtioGpu | DisplayBga => DataPath,
         UsbXhci | InputPs2 | InputUsbHid => DataPath,
         NetworkIwlwifi | AudioHda | InputI2cHid | SerialI2c => ControllerStatus,
         DisplayNativeIntel | DisplayNativeAmd | DisplayNativeNvidia => EnumerateOnly,
+        StorageVmd => EnumerateOnly,
         UsbEhci | UsbOhci | UsbUhci | SerialSpi | BridgePci | SystemPeripheral | Unknown => {
             EnumerateOnly
         }

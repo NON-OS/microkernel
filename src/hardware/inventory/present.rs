@@ -14,30 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod classify;
-mod classify_display;
-mod classify_network;
-mod classify_serial_bus;
-mod classify_storage;
-mod driver;
-mod emmc;
-mod family;
-mod missing;
-mod present;
-mod record;
-mod scan;
-mod state;
-mod support;
-mod vmd;
+//! Whether the machine has a device of one family, from the broker's list.
 
-pub use classify::{classify_device, classify_family};
-pub use driver::family_driver;
-pub use emmc::{is_intel_emmc, INTEL_EMMC_DEVICE_IDS};
-pub use family::HardwareFamily;
-pub use missing::missing_path;
-pub use present::present;
-pub use record::InventoryRecord;
-pub use scan::scan;
-pub use state::SupportState;
-pub use support::support_state;
-pub use vmd::{is_intel_vmd, INTEL_VMD_DEVICE_IDS};
+use super::classify::classify_device;
+use super::family::HardwareFamily;
+use crate::hardware::broker::list;
+
+/// A driver capsule for hardware that is not there costs a spawn, an
+/// attestation and, for some, a setup loop that never finds its device, so
+/// init asks this before starting one.
+pub fn present(family: HardwareFamily) -> bool {
+    list().iter().any(|rec| classify_device(rec) == family)
+}
