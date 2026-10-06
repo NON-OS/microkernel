@@ -15,3 +15,7 @@ The Anyone onion network, route value `ANYONE`, which puts three relays between 
 ## Application processor
 
 Any CPU other than the boot CPU. On x86_64 the boot CPU starts each one in the last stage of kernel init, with INIT and two STARTUP interrupts through a real-mode trampoline at physical 0x8000. Explained in [Scheduler and SMP](../kernel/scheduler-and-smp.md). Code: `src/smp/init/ap_unit.rs`.
+
+## Attestation
+
+Evidence that what runs is what was enrolled. The loader checks the kernel's trailer before the jump, the kernel checks the loader against the boot-root record, and the spawn gate checks every capsule's trailer; the kernel records each running capsule's measurement and the root that vouched for it, which a holder of `AttestRead` can read. About's Proofs screen shows each part as Holds, Broken or Unknown, and never draws Unknown as a pass. Explained in [STARK attestation](../security/stark-attestation.md#who-checks-them). Code: `src/security/attest_registry/mod.rs`, `userland/capsule_about/src/about/data/proofs/session.rs`.
