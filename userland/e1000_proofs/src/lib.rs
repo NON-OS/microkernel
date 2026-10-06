@@ -18,12 +18,16 @@ pub mod init;
 pub mod queue;
 #[path = "../../capsule_driver_e1000/src/regs.rs"]
 pub mod regs;
+#[path = "../../capsule_driver_e1000/src/report/mod.rs"]
+pub mod report;
 pub mod setup;
 
 #[cfg(test)]
 mod conformance;
 #[cfg(test)]
 mod e1000_tests;
+#[cfg(test)]
+mod report_tests;
 
 #[cfg(kani)]
 mod kani_proofs;

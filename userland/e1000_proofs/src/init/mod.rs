@@ -17,6 +17,12 @@
 //! The driver's bring-up files, each named here so the tests can drive one
 //! step at a time as well as the whole sequence.
 
+#[path = "../../../capsule_driver_e1000/src/init/finish.rs"]
+mod finish;
+#[path = "../../../capsule_driver_e1000/src/init/hold.rs"]
+mod hold;
+#[path = "../../../capsule_driver_e1000/src/init/link_up.rs"]
+mod link_up;
 #[path = "../../../capsule_driver_e1000/src/init/mac_filter.rs"]
 mod mac_filter;
 #[path = "../../../capsule_driver_e1000/src/init/reset.rs"]
@@ -30,6 +36,7 @@ mod station_address;
 #[path = "../../../capsule_driver_e1000/src/init/tx_setup.rs"]
 mod tx_setup;
 
+pub use finish::finish;
 pub use mac_filter::program as mac_program;
 pub use reset::run as reset_run;
 pub use run::bring_up;
