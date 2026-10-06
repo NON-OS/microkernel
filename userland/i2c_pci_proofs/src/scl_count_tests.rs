@@ -57,5 +57,7 @@ fn the_spike_filter_and_sda_hold_are_never_programmed_as_zero() {
         assert!(fs_spklen(clk) >= 1, "{clk} Hz gave a zero spike length");
         assert!(sda_hold(clk) >= 1, "{clk} Hz gave a zero SDA hold");
     }
-    assert_eq!((fs_spklen(GEMINI_LAKE), sda_hold(GEMINI_LAKE)), (13, 39));
+    // 300 ns of transmit hold (39 cycles at 133 MHz) in bits 15:0, and the
+    // one-cycle receive hold Linux adds in bits 23:16.
+    assert_eq!((fs_spklen(GEMINI_LAKE), sda_hold(GEMINI_LAKE)), (13, 39 | 1 << 16));
 }
