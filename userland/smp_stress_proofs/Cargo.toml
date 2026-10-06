@@ -1,0 +1,17 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the SMP stress capsule: what it counts as a lost or late
+# wake, when it passes, how it reads its run length, and that every line it
+# prints fits the kernel's debug line. The capsule's own files are mounted
+# by path, so the tests hold the code that runs.
+[package]
+name = "smp_stress_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
