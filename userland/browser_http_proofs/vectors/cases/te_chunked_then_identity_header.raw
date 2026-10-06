@@ -1,0 +1,21 @@
+HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+Transfer-Encoding: identity
+
+7
+<!docty
+7
+pe html
+7
+><title
+7
+>t</tit
+7
+le><p>c
+7
+afé ok
+5
+</p>
+
+0
+

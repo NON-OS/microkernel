@@ -1,0 +1,20 @@
+HTTP/1.1 200 OK
+Transfer-Encoding: chunked
+
+7 ; name=val
+<!docty
+7 ; name=val
+pe html
+7 ; name=val
+><title
+7 ; name=val
+>t</tit
+7 ; name=val
+le><p>c
+7 ; name=val
+afé ok
+5 ; name=val
+</p>
+
+0
+
