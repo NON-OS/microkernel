@@ -22,6 +22,6 @@ pub fn configure(intid: u32) {
     PHYS_INTID.store(intid, Ordering::Release);
 }
 
-pub fn phys_intid() -> u32 {
+pub(super) fn phys_intid() -> u32 {
     PHYS_INTID.load(Ordering::Acquire)
 }

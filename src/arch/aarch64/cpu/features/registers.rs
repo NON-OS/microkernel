@@ -16,7 +16,7 @@
 
 use core::arch::asm;
 
-pub fn read_aa64isar0() -> u64 {
+pub(super) fn read_aa64isar0() -> u64 {
     let value: u64;
     unsafe {
         asm!("mrs {}, id_aa64isar0_el1", out(reg) value, options(nostack));
@@ -24,7 +24,7 @@ pub fn read_aa64isar0() -> u64 {
     value
 }
 
-pub fn read_aa64isar1() -> u64 {
+pub(super) fn read_aa64isar1() -> u64 {
     let value: u64;
     unsafe {
         asm!("mrs {}, id_aa64isar1_el1", out(reg) value, options(nostack));
@@ -32,7 +32,7 @@ pub fn read_aa64isar1() -> u64 {
     value
 }
 
-pub fn read_aa64pfr0() -> u64 {
+pub(super) fn read_aa64pfr0() -> u64 {
     let value: u64;
     unsafe {
         asm!("mrs {}, id_aa64pfr0_el1", out(reg) value, options(nostack));
@@ -40,7 +40,7 @@ pub fn read_aa64pfr0() -> u64 {
     value
 }
 
-pub fn read_aa64pfr1() -> u64 {
+pub(super) fn read_aa64pfr1() -> u64 {
     let value: u64;
     unsafe {
         asm!("mrs {}, id_aa64pfr1_el1", out(reg) value, options(nostack));
@@ -56,7 +56,7 @@ pub fn read_aa64pfr1() -> u64 {
 /// compiler a feature bit it may then emit into ordinary code. The encoding is
 /// architecturally fixed and reads as zero where SVE is absent, which is exactly
 /// the answer a feature probe wants.
-pub fn read_aa64zfr0() -> u64 {
+pub(super) fn read_aa64zfr0() -> u64 {
     let value: u64;
     // SAFETY: S3_0_C0_C4_4 is ID_AA64ZFR0_EL1. Reading an ID register at EL1 has
     // no side effects.
@@ -67,7 +67,7 @@ pub fn read_aa64zfr0() -> u64 {
 }
 
 /// `ID_AA64MMFR1_EL1`, which reports the memory-model features PAN lives in.
-pub fn read_aa64mmfr1() -> u64 {
+pub(super) fn read_aa64mmfr1() -> u64 {
     let value: u64;
     // SAFETY: an identification register, always readable at EL1, no side effects.
     unsafe {

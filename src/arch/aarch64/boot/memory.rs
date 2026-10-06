@@ -94,7 +94,7 @@ fn bounds(region: &MemoryRegion) -> Option<(u64, u64)> {
 /// or `(0, 0)` when there is none. Overlapping the two would let both hand out
 /// the same frame.
 fn find_low_dma_region(info: &BootInfo, main_start: u64, main_end: u64) -> (u64, usize) {
-    let want_pages = dma::low32_capacity_pages();
+    let want_pages = dma::low32_default_pages();
     let want_bytes = (want_pages as u64) * PAGE_SIZE;
 
     for region in info.memory_map().iter() {

@@ -18,7 +18,7 @@ use core::arch::asm;
 
 use super::key::PacKeys;
 
-pub fn install_keys(keys: &PacKeys) {
+pub(super) fn install_keys(keys: &PacKeys) {
     unsafe {
         asm!("msr apiakeylo_el1, {}", in(reg) keys.ia.lo);
         asm!("msr apiakeyhi_el1, {}", in(reg) keys.ia.hi);
