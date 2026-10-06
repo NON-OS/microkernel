@@ -54,3 +54,9 @@ Some rows are not targets, and say why (`userland/nonos_blk_client/src/disks/sca
 - A disk whose first sectors do not read reads `its first sectors did not read:` with the driver's status, and `not offered`.
 
 USB disks never appear: the list asks those three drivers only (`userland/nonos_blk_client/src/driver/table.rs`). The list looks again every two seconds, or four times as long as the last look took, while it has nothing to install to or a driver is missing, and `r` looks at once (`userland/capsule_install/src/install/rescan.rs`). With no disk and an Intel RST or VMD controller on the bus, the screen says `Intel RST/VMD is on: set the BIOS storage mode to AHCI (or turn VMD off), then boot this stick again.` It adds that a Windows already on the computer may need switching to AHCI first, or it will not start after the change.
+
+## The confirmation word
+
+The Confirm screen names the disk again, says what erasing it destroys, lists every region it erases and writes, and shows the word to type beside the field: `the word is` and the word. The word is the last four characters of the disk's serial, in lower case, when they are printable. Otherwise it is the bus name, `nvme`, `sata` or `virtio`, with the instance number after it past the first, as in `sata1` (`userland/nonos_blk_client/src/disks/describe.rs`, `userland/nonos_blk_client/src/disks/word.rs`).
+
+What you type is turned to lower case. Enter does nothing until the word matches and the plan for the disk is made, so no single key can start an erase (`userland/capsule_install/src/install/event/confirm.rs`).
