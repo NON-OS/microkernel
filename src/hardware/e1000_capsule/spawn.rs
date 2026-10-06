@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Spawn the e1000 driver capsule with the broker capability
-//! bundle. PCI MMIO + INTx + DMA driver — needs IPC | Memory |
-//! Driver | DeviceEnum | Mmio | Irq | Dma. No Network cap: frame
+//! bundle. PCI MMIO + DMA driver, polled — needs IPC | Memory |
+//! Crypto | Driver | DeviceEnum | Mmio | Dma. No Network cap: frame
 //! transport over IPC, not a network-service authority.
 
 use super::client::REPLY_INBOX;
@@ -62,7 +62,6 @@ pub fn spawn_driver_e1000_capsule() -> Result<(), SpawnError> {
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()
-            | Capability::Irq.bit()
             | Capability::Dma.bit(),
         debug_tag: b"[DRIVER-E1000] load_elf_executable error:",
     };
