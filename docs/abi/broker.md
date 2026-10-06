@@ -188,3 +188,11 @@ An `I2C_HID` record reuses fields: `hid_record` puts the 7-bit I2C address in `v
 - `abi/driver_broker_abi.md` in the tree describes an older `DeviceRecord`, without the PCI class bytes and interrupt fields, and lists claim and map as reserved. Use this page.
 - The argument lists for the broker calls in `abi/syscalls.toml` do not match the handlers for `MkPioGrant`, `MkIrqAck` and `MkIrqPoll`; see [The NONOS ABI](README.md#stability-in-092).
 - The allowlist of PCI registers lives in the broker and is not tabled here.
+
+## See also
+
+- [The NONOS ABI](README.md)
+- [The broker API for drivers](../drivers/broker-api.md)
+- [Writing a driver](../drivers/writing-a-driver.md)
+- [The hardware broker in the kernel](../kernel/hardware-broker.md)
+- [IOMMU](../kernel/iommu.md)
