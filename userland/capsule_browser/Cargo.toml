@@ -24,13 +24,18 @@ path = "src/main.rs"
 harness = []
 
 [dependencies]
+nonos_policy_client = { path = "../policy_client" }
+nonos_policy_proto = { path = "../policy_proto" }
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 nonos_tls = { path = "../nonos_tls" }
 nonos_app_skeleton = { path = "../app_skeleton" }
 nonos_toolkit = { path = "../toolkit" }
 nonos_inflate = { path = "../inflate" }
+nonos_brotli = { path = "../nonos_brotli" }
 nonos_base64 = { path = "../base64" }
 nonos_qjs = { path = "../nonos_qjs" }
+# Which .anyone names are short, and what the browser says about one.
+nonos_route_link = { path = "../nonos_route_link" }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
 
 [profile.release]
