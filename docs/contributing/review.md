@@ -47,3 +47,7 @@ The project expects the following of every pull request. None of it is enforced 
 The hardware bug form asks for the machine or the QEMU command line, the architecture (x86_64, aarch64 or riscv64), the make target and commit, the serial log, what you expected and what happened, and the PCI or USB id of the device involved, in its fields from `machine` to `device` (`.github/ISSUE_TEMPLATE/hardware-bug.yml:10-52`). [Reporting a machine](../hardware/report.md) explains what to collect.
 
 Anything exploitable goes through a private security advisory, never a public issue, as the form's `contact_links` say (`.github/ISSUE_TEMPLATE/config.yml:2-5`). [Reporting a vulnerability](../security/reporting-a-vulnerability.md) covers it.
+
+## Conduct
+
+The Code of Conduct applies in the repositories, issues, pull requests and the project chat, and to maintainers at least as much as to anyone else. A blunt technical disagreement is welcome; a personal attack is not. Reports go to the address the Code of Conduct gives.
