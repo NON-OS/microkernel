@@ -274,3 +274,12 @@ A supervising capsule that holds `ForeignExec`, such as the Linux personality, u
 - When no microkernel group handles a number, `route_tail` returns -1, which reads as `EPERM` (`src/syscall/microkernel/dispatch/route.rs:52-68`). The router's own default, `util::errno` with 38, is `ENOSYS` (`src/syscall/dispatch/router/dispatch_fn.rs:58`). Neither is reached by a number in `REGISTRY` at this commit; `scripts/check_syscall_abi.py` checks that every published call reaches a handler.
 - `AbiStatus::Unavailable` is declared and never used: every entry is routed (`src/syscall/abi/status.rs:17-21`).
 - `handle_syscall` in `src/syscall/entry.rs` is a second entry point that no architecture calls (`src/syscall/entry.rs:25-35`).
+
+## See also
+
+- [The NONOS ABI](README.md)
+- [Capabilities](capabilities.md)
+- [Errors](errors.md)
+- [Kernel syscalls](../kernel/syscalls.md)
+- [Processes and capsule spawn](../kernel/processes-and-spawn.md)
+- [The Linux personality](../userland/linux-personality.md)
