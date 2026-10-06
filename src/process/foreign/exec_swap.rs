@@ -14,25 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The one word of a guest's state that is not in the saved frame.
+//! Replacing the context an exec leaves behind, and the thread pointer that
+//! went with it.
 
-/// The user stack pointer.
-#[inline]
-pub(super) fn user_rsp() -> u64 {
-    let rsp: u64;
-    /*
-     * SAFETY: eK@nonos.systems - reads `user_stack_saved` in PerCpuData
-     * at a compile-time offset. Kernel GS is still active on this path:
-     * neither sysret nor iretq has run, which is the same condition the
-     * sigreturn path relies on for the same read.
-     */
-    unsafe {
-        core::arch::asm!(
-            "mov {0}, gs:[{off}]",
-            out(reg) rsp,
-            off = const crate::smp::percpu::layout::USER_STACK_SAVED,
-            options(nomem, nostack, preserves_flags),
-        );
-    }
-    rsp
+pub(super) type Saved = Option<crate::arch::context::SavedUser>;
+
+/// Put a context in place and hand back the one it displaced.
+pub(super) fn swap(pid: u32, ctx: Saved) -> Option<Saved> {
+    crate::process::with_process(pid, |p| {
+        core::mem::replace(&mut *p.saved_user_context.lock(), ctx)
+    })
+}
+
+/// Forget the thread pointer the replaced runtime set: the scheduler writes
+/// the control block's base on every switch, so leaving it would put the new
+/// image back on the old TLS the first time it is preempted.
+pub(super) fn drop_tls(pid: u32) {
+    crate::process::with_process(pid, |pcb| pcb.set_tls_base(0));
 }
