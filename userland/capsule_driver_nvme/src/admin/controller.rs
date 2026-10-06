@@ -14,20 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::Deadline;
-
-use crate::constants::{CC_EN, CC_IOCQES_16, CC_IOSQES_64, CSTS_CFS, CSTS_RDY, REG_CC, REG_CSTS};
+use super::disable_step::{await_ready_before_disable, disable_start, DisableStart};
+use super::ready_wait::wait_ready;
+use crate::clock::uptime_ms;
+use crate::constants::{CC_EN, CC_IOCQES_16, CC_IOSQES_64, REG_CC, REG_CSTS};
 use crate::controller::ControllerInfo;
 use crate::error::{NvmeError, NvmeResult};
 use crate::regs::Regs;
 
-// Real controllers can take up to CAP.TO to become ready; this is a generous
-// wall-time bound, not a CPU-speed-dependent spin count.
-const READY_TIMEOUT_MS: u64 = 5_000;
-
-pub fn reset_to_disabled(regs: Regs) -> NvmeResult<()> {
+/// Reset the controller: wait out an enable firmware left half done, clear
+/// CC.EN, and wait for RDY (and CFS) to clear.
+pub fn reset_to_disabled(regs: Regs, info: ControllerInfo) -> NvmeResult<()> {
+    let csts = || unsafe { regs.r32(REG_CSTS) };
+    match disable_start(unsafe { regs.r32(REG_CC) }, csts()) {
+        DisableStart::Gone => return Err(NvmeError::UnsupportedController),
+        DisableStart::AwaitReady => await_ready_before_disable(info.cap, csts, uptime_ms)?,
+        DisableStart::Clear => {}
+    }
     unsafe { regs.w32(REG_CC, 0) };
-    wait_ready(regs, false)
+    wait_ready(info.cap, false, csts, uptime_ms)
 }
 
 pub fn enable(regs: Regs, info: ControllerInfo) -> NvmeResult<()> {
@@ -36,22 +41,5 @@ pub fn enable(regs: Regs, info: ControllerInfo) -> NvmeResult<()> {
     }
     let cc = CC_EN | CC_IOSQES_64 | CC_IOCQES_16;
     unsafe { regs.w32(REG_CC, cc) };
-    wait_ready(regs, true)
-}
-
-fn wait_ready(regs: Regs, want_ready: bool) -> NvmeResult<()> {
-    let deadline = Deadline::after_ms(READY_TIMEOUT_MS);
-    loop {
-        let csts = unsafe { regs.r32(REG_CSTS) };
-        if (csts & CSTS_CFS) != 0 {
-            return Err(NvmeError::UnsupportedController);
-        }
-        if ((csts & CSTS_RDY) != 0) == want_ready {
-            return Ok(());
-        }
-        if deadline.expired() {
-            return Err(NvmeError::ControllerTimeout);
-        }
-        core::hint::spin_loop();
-    }
+    wait_ready(info.cap, true, || unsafe { regs.r32(REG_CSTS) }, uptime_ms)
 }

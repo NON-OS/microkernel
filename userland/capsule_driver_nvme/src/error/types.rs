@@ -16,27 +16,18 @@
 
 #[derive(Debug, Clone, Copy)]
 pub enum NvmeError {
-    DeviceNotFound,
     ClaimFailed,
     BrokerCallFailed,
     UnsupportedController,
     UnsupportedPageSize,
     ControllerTimeout,
+    /// CSTS.CFS still set once CC.EN is clear and CAP.TO has passed: the
+    /// reset that clears it did not.
+    ControllerFatal,
+    /// The monotonic clock could not be read, so no wait could be bounded.
+    ClockFailed,
     AdminCommandFailed,
     InvalidTransfer,
 }
 
 pub type NvmeResult<T> = Result<T, NvmeError>;
-
-pub const fn exit_code(e: NvmeError) -> i32 {
-    match e {
-        NvmeError::DeviceNotFound => 30,
-        NvmeError::ClaimFailed => 31,
-        NvmeError::BrokerCallFailed => 32,
-        NvmeError::UnsupportedController => 33,
-        NvmeError::UnsupportedPageSize => 34,
-        NvmeError::ControllerTimeout => 35,
-        NvmeError::AdminCommandFailed => 36,
-        NvmeError::InvalidTransfer => 37,
-    }
-}

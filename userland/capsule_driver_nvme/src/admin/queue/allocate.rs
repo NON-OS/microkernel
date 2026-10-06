@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{CQ_BYTES, IDENTIFY_BYTES, SQ_BYTES};
+use super::constants::{ADMIN_ENTRIES, CQ_BYTES, IDENTIFY_BYTES, SQ_BYTES};
 use super::types::AdminQueue;
+use crate::admin::CqCursor;
 use crate::dma::DmaRegion;
 use crate::error::NvmeResult;
 
@@ -26,8 +27,7 @@ impl AdminQueue {
             cq: DmaRegion::map(device_id, epoch, CQ_BYTES)?,
             identify: DmaRegion::map(device_id, epoch, IDENTIFY_BYTES)?,
             tail: 0,
-            head: 0,
-            phase: true,
+            cursor: CqCursor::new(ADMIN_ENTRIES),
             cid: 1,
         })
     }

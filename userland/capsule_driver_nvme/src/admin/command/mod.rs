@@ -17,10 +17,12 @@
 mod create_io_cq;
 mod create_io_sq;
 mod get_log_page;
+mod identify_active_ns;
 mod identify_controller;
 mod identify_namespace;
 mod nvm_flush;
 mod nvm_rw;
+pub mod set_features;
 mod submission;
 
 pub use submission::Submission;

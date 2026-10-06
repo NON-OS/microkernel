@@ -17,7 +17,7 @@
 use nonos_libc::mk_ipc_send;
 
 use crate::protocol::{
-    encode_response_header, write_status, Request, E_IO, E_MSGSIZE, E_NODEV, KERNEL_REPLY_ENDPOINT,
+    encode_response_header, write_status, Request, E_MSGSIZE, E_NODEV, KERNEL_REPLY_ENDPOINT,
     READ_REQ_LEN, RESP_HDR_LEN, STATUS_LEN,
 };
 use crate::server::error::reply_with_status;
@@ -38,8 +38,8 @@ pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
         Err(s) => return reply_with_status(tx, req, s),
     };
     let lba_size = io.lba_size as usize;
-    if io.transfer(regs, lba, nsectors, false).is_err() {
-        return reply_with_status(tx, req, E_IO);
+    if let Err(e) = io.transfer(regs, lba, nsectors, false) {
+        return reply_with_status(tx, req, io.failure_status(e));
     }
     let bytes = nsectors as usize * lba_size;
     let payload = STATUS_LEN + bytes;
