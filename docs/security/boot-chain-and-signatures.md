@@ -148,3 +148,11 @@ At build time `capsule-sign sign-id-cert` signs each certificate with the two tr
 | Kernel | a capsule's trailer is refused | `[ZK-ATTEST] FAIL` with the capsule's name and reason on the serial line; that spawn fails |
 
 The loader's messages come from `handle_no_signature` and its neighbours (`nonos-bootloader/src/boot/crypto/signature/error.rs:27-74`) and from `enforce_floor` (`nonos-bootloader/src/boot/crypto/rollback/floor.rs:28-60`). The on-screen lines appear only when the loader has a graphics console; the `[FATAL]` line and the warm reset happen either way. `attest_kernel` gives the Development line (`nonos-bootloader/src/boot/attestation/kernel_gate.rs:34-59`). The kernel's come from `refuse_unchecked_loader` (`src/kernel_core/init/entry/loader_refusal.rs:27-48`) and `attest_gate` (`src/kernel_core/process_spawn/capsule_spawn/runner/attest_gate.rs:23-63`).
+
+## Limits
+
+- The loader's verification module (the signature checks, the key-id comparison, the footer validation, the Secure Boot chain check, and the TPM extend and NV code) is not described in these pages. The order of its checks and its internal refusal reasons are not stated here.
+- In the make flow, a loader built with `NONOS_TRUST_ANCHOR_PUBKEY` compiles in the Ed25519 key that file holds, while `sign-kernel` signs with `SIGNING_KEY`; a kernel signature can only verify under the compiled-in key when the two are one key pair (`mk/20-build.mk:129-144`). The flake sets that variable to the kernel signing key's own public half (`NONOS_TRUST_ANCHOR_PUBKEY`, `tools/nix/image.nix:155-157`).
+- `mk-trust-policy` always writes empty revocation lists and zero flags, though the kernel reads all three lists, as `TrustAnchorPolicyInput` shows (`nonos-sign/src/cli/trust_policy/run.rs:47-54`).
+- Capsules spawned from the kernel image at boot pass no time, so certificate validity windows are not checked for them, as in `spawn_verified` for the VFS capsule (`src/fs/vfs_capsule/spawn.rs:57`). A capsule loaded from the store passes the wall clock once it is set, through `validity_now_ms` (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:70-78`).
+- `verify_kernel_self_attestation` in the kernel has no caller; it is kept as a copy of the loader's check (`src/security/kernel_attest.rs:23-38`).
