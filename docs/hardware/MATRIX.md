@@ -56,3 +56,11 @@ PCI ids are vendor:device in hex. USB ids say USB, and ACPI ids are firmware `_H
 | Storage | Realtek PCIe card reader 10ec:5227, 10ec:522a | `capsule_driver_rtsx` | Not supported: not in the image | proof crate `rtsx_proofs` (26) | 0.9.2 |
 | Storage | USB mass storage, class 08 subclass 06, bulk-only | `capsule_driver_usb_msc` | Works | proof crate `usb_msc_proofs`: the check fails at this commit on a clippy lint | 0.9.2 |
 | Storage | virtio-blk 1af4:1001, 1af4:1042 | `capsule_driver_virtio_blk` | Works | proof crate `virtio_blk_proofs` (13); QEMU | 0.9.2 |
+
+## USB
+
+| Class | Chip and id | Driver capsule | State | How verified | Release |
+|---|---|---|---|---|---|
+| USB | xHCI host controller, class 0c/03 prog-if 30 | `capsule_driver_xhci` | Works | proof crate `xhci_proofs`: the check fails at this commit on clippy lints; QEMU `qemu-xhci` | 0.9.2 |
+| USB | EHCI, OHCI and UHCI host controllers, class 0c/03 | none | Not supported: no driver; the broker lists them as a generic USB host | none | 0.9.2 |
+| USB | Hubs, class 09 | `capsule_driver_usb_hid` | Partial: the HID driver brings hubs up to reach keyboards and mice below them | proof crate `usb_proofs` (83) | 0.9.2 |
