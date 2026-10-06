@@ -23,7 +23,7 @@ use crate::protocol::{
 };
 
 use super::handlers;
-use super::parse_req::{parse, HDR_LEN};
+use super::parse_req::{parse, refused, HDR_LEN};
 use super::respond::respond;
 
 const SERVICE_INBOX: u64 = 0;
@@ -40,7 +40,14 @@ pub fn run() -> ! {
             continue;
         }
         let len = n as usize;
-        let Ok((req, body)) = parse(&rx[..len]) else { continue };
+        let (req, body) = match parse(&rx[..len]) {
+            Ok(parsed) => parsed,
+            Err(errno) => {
+                let req = refused(&rx[..len]);
+                let _ = respond(sender_pid, req.op, errno, req.request_id, 0, &mut tx);
+                continue;
+            }
+        };
         match req.op {
             OP_HEALTHCHECK => handlers::health::handle(sender_pid, &req, &mut tx),
             OP_BIND => handlers::bind::handle(sender_pid, &req, body, &mut tx),

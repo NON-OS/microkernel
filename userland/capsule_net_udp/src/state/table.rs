@@ -19,6 +19,9 @@ use alloc::vec::Vec;
 use super::bind::BindEntry;
 
 pub const MAX_BINDS: usize = 64;
+/// The most ports one client binds at once, so no one client can take
+/// every port from the rest.
+pub const BINDS_PER_PID: usize = MAX_BINDS / 2;
 
 pub struct BindTable {
     entries: Vec<BindEntry>,
@@ -44,8 +47,20 @@ impl BindTable {
         if self.entries.len() >= MAX_BINDS {
             return Err(TableError::Full);
         }
+        if self.entries.iter().filter(|b| b.owner_pid == entry.owner_pid).count() >= BINDS_PER_PID {
+            return Err(TableError::Full);
+        }
         self.entries.push(entry);
         Ok(())
+    }
+
+    /// Free every port whose owner `alive` says has ended. A client that
+    /// ended without unbinding kept its ports for good, so a service that
+    /// came back could not bind its own port again. Returns how many went.
+    pub fn take_dead(&mut self, alive: impl Fn(u32) -> bool) -> usize {
+        let before = self.entries.len();
+        self.entries.retain(|b| alive(b.owner_pid));
+        before - self.entries.len()
     }
 
     pub fn remove(&mut self, pid: u32, port: u16) -> Result<(), TableError> {
