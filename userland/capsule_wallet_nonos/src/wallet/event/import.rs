@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::{EventOutcome, KEY_BACKSPACE, KEY_ENTER, KEY_ESC};
 
-use crate::wallet::ipc::{import_wallet, wallet_address};
+use crate::wallet::ipc::{forget_key, import_wallet, wallet_address};
 use crate::wallet::state::{State, VIEW_RECEIVE};
 
 // Open or close the private-key import field. Closing always wipes whatever was
@@ -90,16 +90,20 @@ fn submit(state: &mut State) -> EventOutcome {
                 state.address_ready = true;
                 state.import_active = false;
                 state.status = b"wallet imported";
-                super::keep::keep(state);
+                super::keep::keep(state, true);
                 super::probe_tick::probe_kick(state)
             }
             Err(_) => {
-                state.status = b"address failed";
+                let gone = forget_key(state.keyring_port, state.owner_pid, id).is_ok();
+                state.status = super::keyring_says::unnamed(gone);
                 EventOutcome::Repaint
             }
         },
-        Err(_) => {
-            state.status = b"import failed";
+        Err(code) => {
+            state.status = super::keyring_says::refusal(
+                code,
+                b"the keyring rejected this key: it is not a valid secp256k1 key",
+            );
             EventOutcome::Repaint
         }
     };

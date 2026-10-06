@@ -24,20 +24,14 @@
 pub(super) enum Answer {
     /// Reply received, status 0, this many bytes.
     Ok(usize),
-    /// Reply received with a failure status. The server is up and this is its
-    /// answer.
-    Refused,
+    /// Reply received with this failure status. The server is up and this
+    /// is its answer.
+    Refused(i32),
     /// Nothing came back inside the timeout. Says nothing about the disk.
     Silent,
 }
 
 impl Answer {
-    /// For callers that only need to know whether it worked: a save either
-    /// landed or it did not, and both failures mean the same thing there.
-    pub(super) fn worked(&self) -> bool {
-        matches!(self, Answer::Ok(_))
-    }
-
     pub(super) fn len(&self) -> Option<usize> {
         match self {
             Answer::Ok(n) => Some(*n),

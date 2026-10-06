@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 use nonos_libc::mk_getpid;
 
 use super::answer::Answer;
-use super::vfs::{call, HDR_LEN, OP_OPEN};
+use super::vfs::{call, ENOENT, HDR_LEN, OP_OPEN};
 
 /// The descriptor, or which kind of nothing.
 ///
@@ -47,8 +47,10 @@ pub(super) fn open_existing(path: &[u8]) -> Opened {
     let mut rx = vec![0u8; 64];
     let total = match call(OP_OPEN, &body, &mut rx) {
         Answer::Ok(n) => n,
-        Answer::Refused => return Opened::Absent,
-        Answer::Silent => return Opened::Silent,
+        /* Only "no such file" is no file. Any other refusal is a store that
+         * could not say, and is asked again like a silent one. */
+        Answer::Refused(ENOENT) => return Opened::Absent,
+        Answer::Refused(_) | Answer::Silent => return Opened::Silent,
     };
     if total < HDR_LEN + 8 {
         return Opened::Absent;

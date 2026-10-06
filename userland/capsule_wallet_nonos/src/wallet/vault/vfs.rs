@@ -27,6 +27,9 @@ const MAGIC: u32 = 0x4E4F_5646;
 const VERSION: u16 = 1;
 pub(super) const HDR_LEN: usize = 20;
 
+/// The store's "no such file".
+pub(super) const ENOENT: i32 = -2;
+
 pub(super) const OP_OPEN: u16 = 1;
 pub(super) const OP_CLOSE: u16 = 2;
 pub(super) const OP_READ: u16 = 3;
@@ -69,7 +72,7 @@ pub(super) fn call(op: u16, body: &[u8], rx: &mut [u8]) -> Answer {
     let status =
         i32::from_le_bytes([rx[HDR_LEN], rx[HDR_LEN + 1], rx[HDR_LEN + 2], rx[HDR_LEN + 3]]);
     if status != 0 {
-        return Answer::Refused;
+        return Answer::Refused(status);
     }
     Answer::Ok(rc as usize)
 }

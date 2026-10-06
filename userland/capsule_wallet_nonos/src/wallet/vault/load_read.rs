@@ -21,30 +21,18 @@ use alloc::vec::Vec;
 
 use nonos_libc::mk_getpid;
 
-use super::format::BLOB_LEN;
+use super::read_judge::judge;
+pub(super) use super::read_judge::Unread;
 use super::vfs::{call, HDR_LEN, OP_READ};
 
-/// `None` for anything that is not exactly a blob.
-///
-/// A short read is a refusal rather than a partial buffer. The blob is fixed
-/// length by construction, so fewer bytes means a truncated file or a store
-/// that answered something else, and either way there is nothing here to
-/// hand to the opener. Padding to length would present a record that fails
-/// its tag as though the wallet had been tampered with.
-pub(super) fn read_exact(fd: u32) -> Option<[u8; BLOB_LEN]> {
+/// The blob, or why there is none (`read_judge`).
+pub(super) fn read_exact<const N: usize>(fd: u32) -> Result<[u8; N], Unread> {
     let pid = mk_getpid();
     let mut body = Vec::with_capacity(12);
     body.extend_from_slice(&pid.to_le_bytes());
     body.extend_from_slice(&fd.to_le_bytes());
-    body.extend_from_slice(&(BLOB_LEN as u32).to_le_bytes());
+    body.extend_from_slice(&(N as u32).to_le_bytes());
 
-    let mut rx = vec![0u8; HDR_LEN + 8 + BLOB_LEN];
-    let total = call(OP_READ, &body, &mut rx).len()?;
-    let data = rx.get(HDR_LEN + 4..total)?;
-    if data.len() != BLOB_LEN {
-        return None;
-    }
-    let mut out = [0u8; BLOB_LEN];
-    out.copy_from_slice(data);
-    Some(out)
+    let mut rx = vec![0u8; HDR_LEN + 8 + N];
+    judge::<N>(call(OP_READ, &body, &mut rx), &rx, HDR_LEN + 4)
 }

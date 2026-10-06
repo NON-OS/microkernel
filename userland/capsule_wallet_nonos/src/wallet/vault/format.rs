@@ -26,7 +26,7 @@ use nonos_seal::{NONCE_LEN, TAG_LEN};
 /// Header 12, nonce 12, secret 32, tag 16.
 pub const BLOB_LEN: usize = HEADER_LEN + NONCE_LEN + SECRET_LEN + TAG_LEN;
 
-/// Magic 8, version 2, key type 1, reserved 1.
+/// Magic 8, version 2, record-name length 1, reserved 1.
 pub const HEADER_LEN: usize = 12;
 
 pub const SECRET_LEN: usize = 32;

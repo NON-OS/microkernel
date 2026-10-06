@@ -32,17 +32,32 @@ pub fn restore(state: &mut State) {
     if state.wallet_id != 0 || state.vault_restore_tried {
         return;
     }
-    let id = match recall(state.keyring_port, state.owner_pid) {
+    let recalled = recall(state.keyring_port, state.owner_pid);
+    /* The store answered: the patience starts again from its next silence. */
+    if !matches!(recalled, Recall::NotYet) {
+        state.vault_silent_since = None;
+    }
+    let id = match recalled {
         Recall::Wallet(id) => id,
         Recall::Nothing => {
             state.vault_restore_tried = true;
             return;
         }
         /*
-         * Nothing is settled, so nothing is latched. The next hydrate asks
-         * again, and the store is usually up within a second or two of boot.
+         * Nothing is settled, so nothing is latched. The window's tick asks
+         * again (`app`), and the store is usually up within a second or two
+         * of boot. No TPM derivation ran, so asking again costs none.
          */
-        Recall::NotYet => return,
+        Recall::NotYet => {
+            let now = nonos_libc::mk_uptime_ms();
+            let since = *state.vault_silent_since.get_or_insert(now);
+            state.status = if crate::wallet::event::vault_gave_up(Some(since), now) {
+                b"this machine's stored wallet could not be read; it is asked again in the background"
+            } else {
+                b"reading the wallet this machine kept"
+            };
+            return;
+        }
         /*
          * There is a wallet on this disk and it is not this machine's to open.
          * Saying so matters: without it the window looks like a machine that
@@ -51,6 +66,7 @@ pub fn restore(state: &mut State) {
          */
         Recall::Sealed { machine_changed } => {
             state.vault_restore_tried = true;
+            state.vault_present = true;
             state.status = super::restore_words::sealed(machine_changed);
             return;
         }
@@ -63,12 +79,16 @@ pub fn restore(state: &mut State) {
             state.address_ready = true;
             state.vault_saved = true;
             state.status = b"wallet restored from this machine";
+            crate::wallet::accounts::restore(state);
         }
         /*
          * The keyring took the key but will not name it, which is a keyring
          * fault rather than a vault one; leave the wallet unset rather than
          * show an id with no address behind it.
          */
-        Err(_) => state.status = b"vault opened but the address could not be read",
+        Err(_) => {
+            state.vault_present = true;
+            state.status = b"vault opened but the address could not be read";
+        }
     }
 }

@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use crate::wallet::ipc::{generate_wallet_hd, wallet_address};
+use crate::wallet::ipc::{forget_key, generate_wallet_hd, wallet_address};
 use crate::wallet::state::State;
 
 // Generation asks the keyring for a fresh HD wallet: real entropy becomes a
@@ -47,17 +47,11 @@ pub fn generate(state: &mut State) -> EventOutcome {
     }
     if !ok {
         super::backup::wipe_backup(state);
-        /*
-         * Name the real reason instead of always blaming entropy: the keyring
-         * returns EACCES (-13) when the caller identity does not match, ENOSPC
-         * (-28) when its slots are full, and -11 when it cannot be reached.
-         */
-        state.status = match last_err {
-            -13 => b"generate blocked: keyring rejected caller".as_slice(),
-            -28 => b"keyring is full".as_slice(),
-            -11 => b"keyring unreachable".as_slice(),
-            _ => b"generate failed: no entropy source".as_slice(),
-        };
+        /* The keyring's EINVAL here is a draw it could not make. */
+        state.status = super::keyring_says::refusal(
+            last_err,
+            b"the keyring could not draw entropy for a new wallet",
+        );
         return EventOutcome::Repaint;
     }
     match wallet_address(state.keyring_port, state.owner_pid, id) {
@@ -73,12 +67,13 @@ pub fn generate(state: &mut State) -> EventOutcome {
             state.backup_count = count;
             state.backup_active = true;
             state.status = b"wallet created, write down the phrase";
-            super::keep::keep(state);
+            super::keep::keep(state, false);
             super::probe_tick::probe_kick(state)
         }
         Err(_) => {
             super::backup::wipe_backup(state);
-            state.status = b"address failed";
+            let gone = forget_key(state.keyring_port, state.owner_pid, id).is_ok();
+            state.status = super::keyring_says::unnamed(gone);
             EventOutcome::Repaint
         }
     }

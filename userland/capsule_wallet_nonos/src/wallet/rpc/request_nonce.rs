@@ -16,13 +16,25 @@
 
 use alloc::vec::Vec;
 
+/// The account's nonce counting what the node holds waiting: the next to sign.
 pub fn request_nonce(address: &[u8; 20], id: u64) -> Vec<u8> {
+    request_nonce_at(address, b"pending", id)
+}
+
+/// The account's nonce in the newest block: every nonce under it is used.
+pub fn request_nonce_latest(address: &[u8; 20], id: u64) -> Vec<u8> {
+    request_nonce_at(address, b"latest", id)
+}
+
+fn request_nonce_at(address: &[u8; 20], tag: &[u8], id: u64) -> Vec<u8> {
     let mut out = Vec::with_capacity(144);
     out.extend_from_slice(
         b"{\"jsonrpc\":\"2.0\",\"method\":\"eth_getTransactionCount\",\"params\":[\"",
     );
     super::append_hex20::append_hex20(&mut out, address);
-    out.extend_from_slice(b"\",\"pending\"],\"id\":");
+    out.extend_from_slice(b"\",\"");
+    out.extend_from_slice(tag);
+    out.extend_from_slice(b"\"],\"id\":");
     super::append_dec_u64::append_dec_u64(&mut out, id);
     out.extend_from_slice(b"}");
     out

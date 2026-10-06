@@ -41,13 +41,28 @@ pub fn keyring_call(port: u32, op: u16, payload: &[u8], rx_len: usize) -> Result
         rx.len(),
         KEYRING_TIMEOUT_MS,
     );
+    /* The request may carry a secret (an imported key, recovery words): no
+     * copy of it stays in the heap. Nor does an answer that is not handed
+     * on. */
+    wipe(&mut tx);
     if rc < HDR_LEN as i64 {
+        wipe(&mut rx);
         return Err(-11);
     }
     rx.truncate(rc as usize);
     let status = i32::from_le_bytes([rx[4], rx[5], rx[6], rx[7]]);
     if status != 0 {
+        wipe(&mut rx);
         return Err(status);
     }
     Ok(rx)
+}
+
+/// Zero a buffer so the write is not optimised away.
+pub fn wipe(buf: &mut [u8]) {
+    for b in buf.iter_mut() {
+        // SAFETY: volatile write to a byte this function holds a borrow of.
+        unsafe { core::ptr::write_volatile(b, 0) };
+    }
+    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
 }

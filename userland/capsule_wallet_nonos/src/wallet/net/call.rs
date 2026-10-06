@@ -30,7 +30,7 @@ pub fn call(
     rx: &mut [u8],
     timeout_ms: u64,
 ) -> Result<usize, ()> {
-    let mut tx = [0u8; 1536];
+    let mut tx = [0u8; super::send_cap::FRAME];
     let len = HDR_LEN.checked_add(body.len()).ok_or(())?;
     if len > tx.len() {
         return Err(());

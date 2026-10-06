@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const DNS_MAGIC: u32 = 0x4E44_4E53;
-pub const ETH_RPC_HOST: &[u8] = b"ethereum-rpc.publicnode.com";
 pub const NYM_MAGIC: u32 = 0x4E59_4D31;
 pub const OP_HEALTHCHECK: u16 = 1;
 pub const OP_RESOLVE_A: u16 = 2;

@@ -14,49 +14,55 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::EventOutcome;
+//! A key, given first to whatever owns the keyboard: the backup words, a
+//! key screen, a field on the screen on show. Only what none of them takes
+//! moves between screens, and no single key ever signs or sends anything.
 
-use crate::wallet::state::{hydrate, State};
+use nonos_app_skeleton::{EventOutcome, KEY_ENTER, KEY_ESC};
 
-// Who gets a key, in order. Whatever is open and typing into owns the key
-// first; only what nothing is typing into reaches the shortcuts. Getting this
-// order wrong is how digits became view jumps: one to seven were shortcuts
-// before they were figures, so typing an amount navigated away mid-number.
+use crate::wallet::screen;
+use crate::wallet::state::{State, VIEW_SWAP};
+
 pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
+    if state.locked {
+        if code == KEY_ENTER {
+            return super::lock::unlock(state);
+        }
+        return EventOutcome::Idle;
+    }
     // The one-time backup screen owns input until the user confirms the
     // phrase is written down. Enter is the only way through.
     if state.backup_active {
-        if code == nonos_app_skeleton::KEY_ENTER {
+        if code == KEY_ENTER {
             return super::backup::confirm_backup(state);
         }
         return EventOutcome::Idle;
     }
-    // The recovery field owns every key while open, so typed words are never
-    // mistaken for view shortcuts.
-    if state.recover_active {
-        return super::recover::recover_input(state, code);
-    }
-    // While the import field is open it owns every key, so a typed hex digit is
-    // never mistaken for a view shortcut.
-    if state.import_active {
-        return super::import::import_input(state, code);
-    }
-    // The field on the current view gets first refusal, and declines anything
-    // it cannot use so the shortcuts below still work.
-    // Escape cancels an armed send before anything else looks at the key. A
-    // reader reaching for the cancel of an irreversible action should not have
-    // to know which field currently owns the keyboard.
-    if code == nonos_app_skeleton::KEY_ESC && state.broadcast_armed {
-        super::broadcast_arm::disarm(state);
-        state.status = b"send cancelled";
-        return EventOutcome::Repaint;
-    }
-    if let Some(out) = super::field_input::field_input(state, code) {
+    if let Some(out) = screen::custody::click::key(state, code) {
         return out;
     }
-    if code == b'r' as u32 || code == b'R' as u32 {
-        hydrate(state);
-        return EventOutcome::Repaint;
+    if let Some(out) = super::etna_scroll::scroll_key(state, code) {
+        return out;
     }
-    super::shortcuts::shortcut(state, code)
+    if let Some(out) = screen::shield::key::key(state, code) {
+        return out;
+    }
+    if let Some(out) = screen::pay::key::key(state, code) {
+        return out;
+    }
+    if let Some(out) = screen::stake::click::key(state, code) {
+        return out;
+    }
+    if state.view == VIEW_SWAP {
+        if let Some(out) = super::swap_input::swap_input(state, code) {
+            return out;
+        }
+    }
+    if code == KEY_ESC {
+        return super::escape::escape(state);
+    }
+    if code == u32::from(b'r') || code == u32::from(b'R') {
+        return super::probe_tick::probe_kick(state);
+    }
+    EventOutcome::Idle
 }

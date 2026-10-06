@@ -27,3 +27,14 @@ pub fn request_receipt(tx_hash: &[u8; 32], id: u64) -> Vec<u8> {
     out.extend_from_slice(b"}");
     out
 }
+
+/// The newest block's number.
+pub fn request_block_number(id: u64) -> Vec<u8> {
+    let mut out = Vec::with_capacity(72);
+    out.extend_from_slice(
+        b"{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":",
+    );
+    super::append_dec_u64::append_dec_u64(&mut out, id);
+    out.extend_from_slice(b"}");
+    out
+}

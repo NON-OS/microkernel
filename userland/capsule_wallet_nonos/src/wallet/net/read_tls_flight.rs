@@ -14,49 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
+//! The bounds a TLS flight is read under through an anonymity network, as
+//! `step::gather` keeps them between slices. A routed answer is read to the
+//! close the proxy reports, never to a guess at how many records it holds.
 
-// Bounded wait for the first response bytes. Kept generous enough for a live
-// but slow RPC, low enough that a dead connection fails fast and the single
-// per-tick read never stalls the UI for long.
-const FIRST_WAIT: u32 = 1400;
-const IDLE_AFTER_DATA: u32 = 48;
-const YIELD_BURST: u32 = 400;
+use super::bounds::Bounds;
 
-pub fn read_tls_flight(sockets_port: u32, handle: u32) -> Result<Vec<u8>, ()> {
-    let mut out = Vec::new();
-    let mut idle = 0u32;
-    loop {
-        let mut chunk = [0u8; 4096];
-        match super::socket_recv::socket_recv(sockets_port, handle, &mut chunk) {
-            Ok(n) if n > 0 => {
-                idle = 0;
-                out.extend_from_slice(&chunk[..n]);
-                if super::super::tls13::server_finished_flight_ready(&out) {
-                    break;
-                }
-                if out.len() > 24 * 1024 {
-                    return Err(());
-                }
-            }
-            _ => {
-                if super::super::tls13::server_finished_flight_ready(&out) {
-                    break;
-                }
-                idle += 1;
-                let budget = if out.is_empty() { FIRST_WAIT } else { IDLE_AFTER_DATA };
-                if idle >= budget {
-                    break;
-                }
-                for _ in 0..YIELD_BURST {
-                    nonos_libc::mk_yield();
-                }
-            }
-        }
-    }
-    if out.is_empty() {
-        Err(())
-    } else {
-        Ok(out)
+/* The most a flight may hold, on either kind of link. */
+pub(super) const FLIGHT_MAX: usize = 24 * 1024;
+/* The most an answer may hold: a batch of receipts, each with every log its
+ * transaction emitted, runs far past a flight. */
+pub(super) const ANSWER_MAX: usize = 512 * 1024;
+
+/* Through an anonymity network: how long the far end may pause between the
+ * pieces of one answer, and the most one answer may take in all. */
+const ROUTED_QUIET_MS: u64 = 8_000;
+const ROUTED_TOTAL_MS: u64 = 90_000;
+
+pub(super) fn routed(patience_ms: u64) -> Bounds {
+    Bounds {
+        first_ms: patience_ms,
+        quiet_ms: ROUTED_QUIET_MS,
+        total_ms: ROUTED_TOTAL_MS,
+        max: FLIGHT_MAX,
     }
 }

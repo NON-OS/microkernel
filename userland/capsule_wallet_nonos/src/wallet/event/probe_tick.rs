@@ -16,90 +16,155 @@
 
 use nonos_app_skeleton::EventOutcome;
 
-use crate::wallet::net::probe_network;
-use crate::wallet::net::read_snapshot::{read_snapshot, Snapshot};
+use crate::wallet::net::read_snapshot::Snapshot;
+use crate::wallet::net::step::{Finished, Job};
 use crate::wallet::state::State;
 
-/// Refresh the account. The expensive network self-diagnostic (DNS, sockets,
-/// the full TLS check) runs once to confirm the link; after that every refresh
-/// is a single batched round trip that fetches balance, nonce, fee and the
-/// staking figures over one connection. Returns Repaint only when a shown value
-/// actually changed, so a steady screen does not recomposite every cycle. On a
-/// failed fetch the link is marked degraded so the next tick re-runs the
-/// diagnostic and reconnects.
-pub fn probe_tick(state: &mut State) -> EventOutcome {
-    if !state.net.rpc_chain_ok {
-        let net = probe_network();
-        let changed = net.status != state.status;
-        state.net = net;
-        state.status = state.net.status;
-        return outcome(changed);
+/// Refresh the account, a step per tick. The expensive network
+/// self-diagnostic (DNS, sockets, the full TLS check) runs once to confirm
+/// the link; after that every refresh is a single batched round trip that
+/// fetches balance, nonce, fee and the staking figures over one connection.
+/// The payments still on their way, on this network and account, are read
+/// first, all in one batch with the newest block and the account's nonces. No step waits on
+/// the network longer than a slice (`net::step`), and only a finished job
+/// touches the state. Returns Repaint only when a shown value actually
+/// changed, so a steady screen does not recomposite every cycle. On a
+/// failed fetch the link is marked degraded so the next refresh re-runs the
+/// diagnostic and reconnects. `due` begins a refresh when none is under way.
+pub fn probe_tick(state: &mut State, due: bool) -> EventOutcome {
+    if state.net_job.is_none() {
+        if !due {
+            return EventOutcome::Idle;
+        }
+        state.probe_step = 0;
+        let chain = crate::wallet::chain::current().id;
+        let open = state.sent.open(chain, &state.address);
+        state.net_job = Some(if open.is_empty() {
+            account_job(state)
+        } else {
+            Job::follow(open, &state.address)
+        });
     }
+    let Some(finished) = state.net_job.as_mut().and_then(Job::step) else {
+        return EventOutcome::Idle;
+    };
+    state.net_job = None;
+    outcome(finish(state, finished))
+}
 
-    match read_snapshot(&state.address) {
-        Some(snap) => outcome(apply(state, snap)),
-        None => {
-            // The link dropped; fall back to the diagnostic on the next tick.
-            state.net.rpc_chain_ok = false;
-            state.status = b"reconnecting to the network";
-            EventOutcome::Repaint
+/// The diagnostic while the link is unconfirmed, the snapshot after.
+fn account_job(state: &State) -> Job {
+    /* A host is read from only once it answered this network's chain id. */
+    if state.net.rpc_chain_ok && state.net.rpc_host == crate::wallet::chain::rpc_host() {
+        Job::snapshot(&state.address)
+    } else {
+        Job::probe()
+    }
+}
+
+/// Take a finished job's result, returning whether anything shown changed.
+fn finish(state: &mut State, finished: Finished) -> bool {
+    match finished {
+        Finished::Probe(net) => {
+            let changed = net.status != state.status;
+            state.net = net;
+            state.status = state.net.status;
+            changed
+        }
+        Finished::Snapshot { snap, address, chain, host } => {
+            /* Asked for an account or a network no longer open. */
+            if address != state.address || chain != crate::wallet::chain::current().id {
+                return false;
+            }
+            match snap {
+                Some(snap) => {
+                    /* A new block read is news on Home, whatever else moved. */
+                    let mut newer = false;
+                    if let Some(block) = snap.head {
+                        let route = state.net.route.map_or("", |r| r.label());
+                        let at_ms = nonos_libc::mk_uptime_ms();
+                        let read =
+                            crate::wallet::net::last_read::LastRead { block, host, route, at_ms };
+                        let slot =
+                            &mut state.last_read[usize::from(crate::wallet::chain::is_sepolia())];
+                        newer = slot.map_or(true, |r| r.block != block || r.host != host);
+                        *slot = Some(read);
+                    }
+                    apply(state, snap) | newer
+                }
+                None => {
+                    // The link dropped; fall back to the diagnostic next refresh.
+                    state.net.rpc_chain_ok = false;
+                    state.status = b"reconnecting to the network";
+                    true
+                }
+            }
+        }
+        Finished::Follow { followed, address, chain } => {
+            let here = address == state.address && chain == crate::wallet::chain::current().id;
+            let changed = match followed {
+                Some(f) if here => followed_now(state, f),
+                _ => false,
+            };
+            /* The account is read in the same refresh, as it always was. */
+            state.net_job = Some(account_job(state));
+            changed
         }
     }
 }
 
 /// Apply a snapshot, returning whether anything shown changed.
 fn apply(state: &mut State, snap: Snapshot) -> bool {
-    let mut changed = false;
-    if let Some(b) = snap.eth_balance {
-        changed |= !state.balance_ready || b != state.balance_wei;
-        state.balance_wei = b;
-        state.balance_ready = true;
+    use super::reading::take;
+    let staking = crate::wallet::chain::current().staking.is_some();
+    let asked = if staking { 9 } else { 5 };
+    let came = [
+        snap.eth_balance.is_some(),
+        snap.nonce.is_some(),
+        snap.fee.is_some(),
+        snap.nox_balance.is_some(),
+        snap.usdc_balance.is_some(),
+        snap.claimable.is_some(),
+        snap.positions.is_some(),
+        snap.passes.is_some(),
+        snap.stats.is_some(),
+    ]
+    .iter()
+    .filter(|c| **c)
+    .count();
+    if snap.nonce.is_some() && !state.nonce_ready {
+        state.send_nonce = snap.nonce.unwrap_or(0);
     }
-    if let Some(n) = snap.nonce {
-        changed |= !state.nonce_ready || n != state.live_nonce;
-        if !state.nonce_ready {
-            state.send_nonce = n;
+    let mut changed = take(snap.eth_balance, &mut state.balance_wei, &mut state.balance_ready);
+    changed |= take(snap.nonce, &mut state.live_nonce, &mut state.nonce_ready);
+    changed |= take(snap.fee, &mut state.fee_wei, &mut state.fee_ready);
+    let nox = &mut state.nox;
+    changed |= take(snap.nox_balance, &mut nox.balance_wei, &mut nox.balance_ready);
+    changed |= take(snap.usdc_balance, &mut state.usdc_units, &mut state.usdc_ready);
+    let nox = &mut state.nox;
+    changed |= take(snap.claimable, &mut nox.claimable_wei, &mut nox.claimable_ready);
+    changed |= take(snap.positions, &mut nox.positions, &mut nox.positions_ready);
+    changed |= take(snap.passes, &mut nox.passes, &mut nox.passes_ready);
+    let total = snap.stats.as_ref().map(|s| s.total);
+    let rewards = snap.stats.as_ref().map(|s| s.rewards);
+    let apr = snap.stats.as_ref().and_then(|s| s.apr);
+    changed |= take(total, &mut nox.total_staked_wei, &mut nox.stats_ready);
+    if let Some(r) = rewards {
+        nox.rewards_distributed_wei = r;
+    }
+    /* A rate that cannot be worked out (nothing staked) is not the last one. */
+    changed |= take(apr, &mut nox.apr_bps, &mut nox.apr_ready);
+    let status: &'static [u8] = match came {
+        0 => {
+            /* An answer with no readings in it: the link is checked again. */
+            state.net.rpc_chain_ok = false;
+            b"the network answered without any readings, checking the link again"
         }
-        state.live_nonce = n;
-        state.nonce_ready = true;
-    }
-    if let Some(f) = snap.fee {
-        changed |= !state.fee_ready || f != state.fee_wei;
-        state.fee_wei = f;
-        state.fee_ready = true;
-    }
-    if let Some(b) = snap.nox_balance {
-        changed |= !state.nox.balance_ready || b != state.nox.balance_wei;
-        state.nox.balance_wei = b;
-        state.nox.balance_ready = true;
-    }
-    if let Some(c) = snap.claimable {
-        changed |= !state.nox.claimable_ready || c != state.nox.claimable_wei;
-        state.nox.claimable_wei = c;
-        state.nox.claimable_ready = true;
-    }
-    if let Some(p) = snap.positions {
-        changed |= !state.nox.positions_ready || p != state.nox.positions;
-        state.nox.positions = p;
-        state.nox.positions_ready = true;
-    }
-    if let Some(n) = snap.passes {
-        changed |= !state.nox.passes_ready || n != state.nox.passes;
-        state.nox.passes = n;
-        state.nox.passes_ready = true;
-    }
-    if let Some(s) = snap.stats {
-        changed |= !state.nox.stats_ready
-            || s.total != state.nox.total_staked_wei
-            || s.rewards != state.nox.rewards_distributed_wei;
-        state.nox.total_staked_wei = s.total;
-        state.nox.rewards_distributed_wei = s.rewards;
-        state.nox.stats_ready = true;
-        if let Some(bps) = s.apr {
-            state.nox.apr_bps = bps;
-            state.nox.apr_ready = true;
-        }
-    }
+        n if n < asked => b"some readings did not come, shown as not read",
+        _ => state.net.status,
+    };
+    changed |= status != state.status;
+    state.status = status;
     changed
 }
 
@@ -113,6 +178,46 @@ fn outcome(changed: bool) -> EventOutcome {
 
 /// Kick a fresh refresh from the top on the next idle tick without blocking now.
 pub fn probe_kick(state: &mut State) -> EventOutcome {
-    state.probe_step = 0;
+    state.probe_step = 1;
     EventOutcome::Repaint
+}
+
+/* Each payment's fate from one reading; the one on the Sent screen also
+ * says it there. True when anything shown changed. */
+fn followed_now(state: &mut State, f: crate::wallet::net::step::Followed) -> bool {
+    use crate::wallet::send::sent::{Fate, Reading};
+    let now = nonos_libc::mk_uptime_ms();
+    let mut changed = false;
+    for (hash, receipt) in f.receipts {
+        let r = Reading { receipt, head: f.head, latest: f.latest, pending: f.pending };
+        let Some(fate) = state.sent.judge(&hash, r, now) else { continue };
+        changed = true;
+        if hash != state.broadcast_hash {
+            continue;
+        }
+        match fate {
+            Fate::Confirmed { ok } => {
+                crate::wallet::send::follow(state, &hash, Some(ok));
+            }
+            Fate::InBlock { .. } => {
+                state.status = b"in a block, waiting for it to be confirmed";
+            }
+            Fate::Replaced => {
+                state.receipt_ready = true;
+                state.receipt_ok = false;
+                state.broadcast_unknown = false;
+                state.status = b"replaced: another transaction used its nonce";
+            }
+            Fate::Dropped => {
+                state.receipt_ready = true;
+                state.receipt_ok = false;
+                state.broadcast_unknown = false;
+                state.status = b"dropped: no block has it, nothing was paid";
+            }
+            Fate::Waiting => {
+                state.status = b"sent, waiting for a block";
+            }
+        }
+    }
+    changed
 }

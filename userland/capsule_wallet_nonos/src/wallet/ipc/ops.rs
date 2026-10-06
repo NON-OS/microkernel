@@ -23,22 +23,24 @@
 
 use super::constants::*;
 
-pub const ALL: [u16; 15] = [
+pub const ALL: [u16; 17] = [
     OP_WALLET_IMPORT,
     OP_WALLET_ADDRESS,
-    OP_SIGN_NOX_APPROVE,
-    OP_SIGN_ETH_TRANSFER,
     OP_LIST_WALLET_RAILS,
     OP_WALLET_EXPORT,
     OP_SIGN_NOX_STAKE_APPROVE,
     OP_SIGN_NOX_STAKE,
-    OP_SIGN_NOX_TRANSFER,
     OP_SIGN_NOX_UNSTAKE,
     OP_SIGN_NOX_STAKE_LOCKED,
     OP_WALLET_GENERATE_HD,
     OP_WALLET_RECOVER,
     OP_VAULT_SEAL,
     OP_VAULT_OPEN,
+    OP_SIGN_TX,
+    OP_SHIELD_MATERIAL,
+    OP_SHIELD_SEAL,
+    OP_SHIELD_OPEN,
+    OP_WALLET_DERIVE,
 ];
 
 pub const fn all_distinct(ops: &[u16]) -> bool {
