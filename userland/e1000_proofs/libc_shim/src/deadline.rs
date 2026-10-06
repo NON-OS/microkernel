@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bring-up against a modelled part.
-//!
-//! The property that earns its place: the card is brought on the air under
-//! a drawn station address and never under the one in its EEPROM. That
-//! address is the one identifier an amnesic machine would otherwise announce
-//! to every network it joins, and the driver's promise is that it fails
-//! closed without entropy rather than falling back. Checked with the entropy
-//! source switched off, and by a part watching the receive enable.
+//! The uptime deadline the reset waits on, on the host clock.
 
-mod memory;
-mod model;
+use std::time::{Duration, Instant};
 
-mod address_tests;
-mod bring_up_tests;
-mod finish_tests;
-mod reset_tests;
-mod ring_tests;
+/// A deadline on the host clock, with the capsule's API. The reset holds the
+/// part for the milliseconds the 8254x manual asks, and the tests wait them.
+pub struct Deadline {
+    end: Instant,
+}
+
+impl Deadline {
+    pub fn after_ms(timeout_ms: u64) -> Self {
+        Self { end: Instant::now() + Duration::from_millis(timeout_ms) }
+    }
+
+    pub fn expired(&self) -> bool {
+        Instant::now() >= self.end
+    }
+}

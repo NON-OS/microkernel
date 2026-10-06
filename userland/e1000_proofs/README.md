@@ -60,3 +60,6 @@ The order of the enable against the address write inside one bring-up is a
 property of the source and is not asserted here: a window reads back final
 state, and a part sampling from another thread misses a gap of a few
 instructions.
+
+See [drivers](../../docs/handbook/drivers.md) and
+[proofs](../../docs/handbook/verification/proofs.md).

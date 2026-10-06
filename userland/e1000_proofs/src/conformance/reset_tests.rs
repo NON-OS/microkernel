@@ -19,7 +19,9 @@
 
 use super::model::{live_part, window};
 use crate::constants::regs::{REG_CTRL, REG_IMC};
-use crate::constants::status::{CTRL_ASDE, CTRL_LRST, CTRL_RST, CTRL_SLU};
+use crate::constants::status::{
+    CTRL_ASDE, CTRL_FRCDPLX, CTRL_FRCSPD, CTRL_LRST, CTRL_RST, CTRL_SLU,
+};
 use crate::init::reset_run;
 use crate::regs::Regs;
 
@@ -41,4 +43,18 @@ fn a_part_that_never_completes_reset_is_given_up_on() {
     let bar = window();
     let err = reset_run(&Regs::new(bar.base())).err();
     assert_eq!(err, Some("CTRL.RST did not self-clear"));
+}
+
+/// An EEPROM that loads FRCSPD and FRCDPLX into CTRL does not keep the MAC
+/// forced: speed and duplex follow the PHY, as in Linux
+/// e1000_copper_link_preconfig.
+#[test]
+fn speed_and_duplex_forced_by_the_eeprom_are_handed_back_to_the_phy() {
+    let bar = window();
+    let _part = live_part(&bar);
+    bar.present32(REG_CTRL, CTRL_FRCSPD | CTRL_FRCDPLX);
+    reset_run(&Regs::new(bar.base())).expect("the part completed the reset");
+    let ctrl = bar.wrote32(REG_CTRL);
+    assert_eq!(ctrl & (CTRL_FRCSPD | CTRL_FRCDPLX), 0, "speed and duplex not forced");
+    assert_eq!(ctrl & CTRL_SLU, CTRL_SLU, "link still set up");
 }

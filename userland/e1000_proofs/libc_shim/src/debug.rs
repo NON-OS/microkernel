@@ -14,20 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The bring-up against a modelled part.
-//!
-//! The property that earns its place: the card is brought on the air under
-//! a drawn station address and never under the one in its EEPROM. That
-//! address is the one identifier an amnesic machine would otherwise announce
-//! to every network it joins, and the driver's promise is that it fails
-//! closed without entropy rather than falling back. Checked with the entropy
-//! source switched off, and by a part watching the receive enable.
+//! The console: every line the driver logs, kept per thread so a test can
+//! read back exactly what the owner would see in `log`.
 
-mod memory;
-mod model;
+use std::cell::RefCell;
 
-mod address_tests;
-mod bring_up_tests;
-mod finish_tests;
-mod reset_tests;
-mod ring_tests;
+thread_local! {
+    static LOGGED: RefCell<Vec<String>> = const { RefCell::new(Vec::new()) };
+}
+
+pub fn mk_debug(buf: *const u8, len: usize) -> i64 {
+    /*
+     * SAFETY: the caller hands `len` readable bytes, as the real call
+     * requires.
+     */
+    let bytes = unsafe { std::slice::from_raw_parts(buf, len) };
+    LOGGED.with(|l| l.borrow_mut().push(String::from_utf8_lossy(bytes).into_owned()));
+    len as i64
+}
+
+/// Every line logged on this thread, in order, newline included.
+pub fn logged() -> Vec<String> {
+    LOGGED.with(|l| l.borrow().clone())
+}
