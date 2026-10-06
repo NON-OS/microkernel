@@ -63,3 +63,7 @@ The kernel's record of a process's capabilities, bound to its pid, its address s
 ## Capability word
 
 The 64-bit mask of capability bits a process holds. At spawn it is the manifest's required bits plus the optional bits the spawn site grants, with Network removed on a boot profile without network; a Linux guest gets 0. Explained in [Manifests and capabilities](../userland/manifests-and-capabilities.md#how-the-word-is-fixed). Code: `src/security/capsule_manifest/verify/caps_bits.rs`.
+
+## Capsule
+
+A signed ring 3 program, the form in which NONOS runs everything outside the kernel. It ships as four files, declared once in a `Capsule.mk`: its ELF, its NONOS ID certificate, its signed manifest and its attestation trailer. The kernel starts it as its own process only after the spawn gate verifies all four, with its own address space, its `proc.<pid>` and `stdin.<pid>` inboxes, and the capability word its manifest allows. Explained in [Userland](../userland/README.md#what-a-capsule-is). Code: `nonos-mk/capsule.mk`, `src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs`.
