@@ -24,8 +24,13 @@ dependencies = [
 name = "nonos_attest"
 version = "0.3.0"
 dependencies = [
+ "nonos_route_proof",
  "nonos_userland_libc",
 ]
+
+[[package]]
+name = "nonos_route_proof"
+version = "0.1.0"
 
 [[package]]
 name = "nonos_userland_libc"
