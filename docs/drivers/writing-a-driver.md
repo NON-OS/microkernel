@@ -216,3 +216,7 @@ The kernel mirror is a module under `src/hardware/`, declared in `src/hardware/m
 - `client/`: the kernel's side of the protocol. `round_trip` sends one request and waits for its reply under a lock (`src/hardware/virtio_rng_capsule/client/transport.rs:37-52`), and `gate_read` refuses the call when the current process does not hold `CAP_DRIVER` (`src/hardware/virtio_rng_capsule/capability.rs:25-34`).
 
 In this release nothing in the kernel calls the virtio-rng client; the kernel reads entropy from its own boot-time driver. The mirror still shows the whole shape.
+
+## 12. Who may send to it
+
+A driver serves its device raw, so its endpoint goes into `HELD` with the services allowed to reach it, or with `KERNEL_ONLY` as virtio-rng's is (`src/services/registry/held_table.rs:31-40`). A storage driver may instead check each sender with `mk_cap_check`, as NVMe does (`userland/capsule_driver_nvme/src/server/medium.rs:26-29`). The host test `every_driver_the_kernel_spawns_is_classified` fails on a spawned `driver.` endpoint that is neither in `HELD` nor in its own `GATED_IN_DRIVER` list, which names only `driver.nvme0`, `driver.ahci0` and `driver.virtio_blk0`. A new driver that checks its own senders goes on `GATED_IN_DRIVER` too (`userland/kernel_proofs/src/ipc_held_tests/classified.rs:26-57`).
