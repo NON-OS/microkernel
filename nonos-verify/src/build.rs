@@ -100,20 +100,21 @@ pub fn run(root: &str) -> std::io::Result<Status> {
         rpt.check("section-size", Status::Skip, "kernel ELF absent (build did not produce it)");
     }
 
-    for arch in ["aarch64", "riscv64"] {
-        if Path::new(&format!("{arch}-nonos.json")).exists() {
-            rpt.check(
-                &format!("build-{arch}"),
-                Status::Gap,
-                "kernel target json present, build lane not wired",
-            );
-        } else {
-            rpt.gap(
-                format!("kernel build lane for {arch}"),
-                format!("a {arch}-nonos.json kernel target + a make build target (only userland/{arch}-nonos-user.json exists today)"),
-            );
-        }
-    }
+    // aarch64 is built by `make nonos-mk-arm` in ci-build-aarch64 and booted
+    // in ci-boot-aarch64; riscv64 has no kernel target and ships in no release.
+    let mk = std::fs::read_to_string("mk/20-build.mk").unwrap_or_default();
+    let arm = Path::new("aarch64-nonos.json").exists() && mk.contains("\nnonos-mk-arm:");
+    rpt.check(
+        "build-aarch64",
+        if arm { Status::Pass } else { Status::Gap },
+        if arm { "lane wired: make nonos-mk-arm (ci-build-aarch64, ci-boot-aarch64)" }
+        else { "aarch64-nonos.json or the nonos-mk-arm target is missing" },
+    );
+    rpt.check(
+        "build-riscv64",
+        if Path::new("riscv64-nonos.json").exists() { Status::Gap } else { Status::Skip },
+        "no riscv64 kernel target; not a release architecture",
+    );
 
     rpt.finish(root)
 }

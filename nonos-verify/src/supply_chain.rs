@@ -84,9 +84,14 @@ pub fn run(root: &str) -> std::io::Result<Status> {
         }))
         .unwrap(),
     )?;
-    rpt.gap(
-        "bit-for-bit reproducibility gate",
-        "nightly: build twice with fixed SOURCE_DATE_EPOCH and compare blake3 of kernel + capsule artifacts",
+    // The double build is its own module: ci-reproducible builds on three
+    // machines and `nonos-verify reproducible` compares their manifests.
+    let wired = std::fs::read_to_string(".github/workflows/ci-reproducible.yml")
+        .is_ok_and(|w| w.contains("nonos-verify reproducible"));
+    rpt.check(
+        "reproducibility-gate",
+        if wired { Status::Pass } else { Status::Gap },
+        "double build compared by nonos-verify reproducible (ci-reproducible)",
     );
 
     rpt.finish(root)
