@@ -38,3 +38,7 @@ The driver has words for both refusals: `the controller driver was not told this
 The class side is written and tested on the host. The route string has one 4-bit field per tier, so a device can sit at most five hubs deep (`userland/capsule_driver_usb_hid/src/hub/route.rs:24-45`, `child_route`). A 4-bit field cannot name a hub port past 15, so those ports are left alone (`userland/capsule_driver_usb_hid/src/hub/descriptor.rs:26-29`, `MAX_HUB_PORTS`). A low or full speed device behind a high-speed hub gets that hub's transaction translator, and a multi-TT hub runs single-TT (`userland/capsule_driver_usb_hid/src/hub/route.rs:47-65`, `child_tt`; `userland/capsule_driver_usb_hid/src/xhci/ops/configure_hub.rs:26-29`, `MTT`).
 
 What is missing is the xHCI side: writing the route string, the speed and the transaction translator into the slot context for ops 0x20 and 0x21 (`userland/capsule_driver_usb_hid/src/xhci/ops/address_routed.rs:17-25`, `OP_ADDRESS_ROUTED`).
+
+## Mass storage behind a hub
+
+`driver.usb_msc0` looks at root ports only, so a stick behind a hub is not found either (`userland/capsule_driver_usb_msc/src/xhci/port.rs:34-47`, `connected_ports`).
