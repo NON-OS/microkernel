@@ -13,10 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Host proofs for the software AES.
 
-//! The capsule_net_nym AES, compiled in from the capsule source so its AES-256
-//! is held to the same published vectors as the shared AES-128.
+//! net.nym's acknowledgement sealing and opening, compiled in unchanged, with
+//! the sizes it is defined in.
 
-// Compiled in once, at `crate::crypto::aes`, where the acknowledgement
-// source also finds it.
-pub(super) use crate::crypto::aes;
+#[path = "../../../capsule_net_nym/src/ack/open.rs"]
+pub mod open;
+#[path = "../../../capsule_net_nym/src/ack/plaintext.rs"]
+pub mod plaintext;
+
+pub mod types {
+    pub const ACK_IV_BYTES: usize = 16;
+    pub const FRAG_ID_BYTES: usize = 5;
+    pub const ACK_PLAINTEXT_BYTES: usize = ACK_IV_BYTES + FRAG_ID_BYTES;
+}
