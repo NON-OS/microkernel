@@ -16,43 +16,21 @@
 
 use nonos_libc::mk_yield;
 
-use nonos_policy_proto::{decode_field, Header, E_INVAL, HDR_LEN, IPC_PAYLOAD_MAX, OP_GET, OP_SET};
+use nonos_policy_proto::IPC_PAYLOAD_MAX;
 
-use super::{handle_get, handle_set, recv, respond};
+use super::{recv, serve};
 
 pub fn run(endpoint: u64) -> ! {
     let mut buf = [0u8; IPC_PAYLOAD_MAX];
     let mut sender: u32 = 0;
     loop {
+        crate::restore::tick();
+        crate::keep::tick();
         let n = recv::poll(endpoint, &mut buf, &mut sender as *mut u32);
         if n <= 0 {
             mk_yield();
             continue;
         }
-        if (n as usize) < HDR_LEN {
-            continue;
-        }
-        let total = n as usize;
-        let hdr = match Header::decode(&buf[..HDR_LEN]) {
-            Some(h) => h,
-            None => continue,
-        };
-        let body_end = HDR_LEN + hdr.payload_len as usize;
-        if body_end > total {
-            respond::err(sender, hdr.op, hdr.field, hdr.kind, E_INVAL);
-            continue;
-        }
-        let field = match decode_field(hdr.field) {
-            Some(f) => f,
-            None => {
-                respond::err(sender, hdr.op, hdr.field, hdr.kind, E_INVAL);
-                continue;
-            }
-        };
-        match hdr.op {
-            OP_GET => handle_get::dispatch(sender, field),
-            OP_SET => handle_set::dispatch(sender, field, &buf[HDR_LEN..body_end]),
-            _ => respond::err(sender, hdr.op, hdr.field, hdr.kind, E_INVAL),
-        }
+        serve::serve(sender, &buf[..n as usize]);
     }
 }

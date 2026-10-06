@@ -21,5 +21,6 @@ pub mod recv;
 pub mod reply;
 pub mod respond;
 pub mod runner;
+pub mod serve;
 
 pub use runner::run;
