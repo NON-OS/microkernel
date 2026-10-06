@@ -79,3 +79,12 @@ cd userland/rtl8169_proofs && cargo test --release --config profile.release.over
 ```
 
 Not tested in this release.
+
+## See also
+
+- [Ethernet drivers](README.md)
+- [Intel Ethernet](intel.md)
+- [USB networking](usb-net.md)
+- [Wi-Fi drivers](../wifi/README.md)
+- [The broker API](../broker-api.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
