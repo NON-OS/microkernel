@@ -14,40 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
+//! The Adler-32 of RFC 1950 section 8.
 
-extern crate alloc;
+const BASE: u32 = 65521;
 
-mod adler32;
-mod align;
-mod bits;
-mod codes;
-mod copy;
-mod copy_words;
-mod crc32;
-mod dynamic;
-mod emit;
-mod fast;
-mod fixed;
-mod gzip;
-mod gzip_header;
-mod gzip_member;
-mod huff;
-mod huff_build;
-mod huff_fill;
-mod huff_sub;
-mod inflate_raw;
-mod members;
-mod meta;
-mod out;
-mod stored;
-mod tables;
-mod types;
-mod zlib;
+/// Bytes summed before a reduction: the largest n with
+/// 255 n (n + 1) / 2 + (n + 1) (BASE - 1) below 2^32.
+const NMAX: usize = 5552;
 
-pub use gzip::{gunzip, gunzip_partial, gunzip_within};
-pub use inflate_raw::{inflate, raw_partial};
-pub use members::{members, members_within, Member};
-pub use tables::MAX_OUT;
-pub use types::{End, Inflated};
-pub use zlib::{zlib, zlib_partial};
+pub(super) fn adler32(data: &[u8]) -> u32 {
+    let (mut a, mut b) = (1u32, 0u32);
+    for block in data.chunks(NMAX) {
+        for &x in block {
+            a += u32::from(x);
+            b += a;
+        }
+        a %= BASE;
+        b %= BASE;
+    }
+    b << 16 | a
+}
