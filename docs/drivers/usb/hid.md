@@ -30,3 +30,23 @@ So every absolute pointer, a touch screen or a pen tablet among them, is decoded
 - The layout follows the keyboard layout the policy store holds, read at most once a second on a key press (`userland/capsule_driver_usb_hid/src/hid/active.rs:30-31`, `POLICY`). Ctrl with the left Alt and Space cycles it inside the driver, and that chord never reaches an app (`userland/capsule_driver_usb_hid/src/hid/keyboard/push_key.rs:26-34`, `cycle`).
 - Mute, Volume Down, Volume Up and Power from the keyboard usage page post the system key codes 0x1301 to 0x1304 (`userland/capsule_driver_usb_hid/src/hid/usage_keycode/map.rs:57-63`, `KEYCODE_MUTE`). The input router hands them to the desktop shell whatever window has focus (`userland/capsule_input_router/src/route/shell_keys.rs:17-33`, `is_shell_key`).
 - A held key repeats after 500 ms, about 30 times a second, and stops by itself after 30 s, because a boot keyboard pulled out with a key down sends no release (`userland/capsule_driver_usb_hid/src/hid/keyboard/repeat/timing.rs:19-26`, `LIMIT_MS`).
+
+## Where events go
+
+```mermaid
+sequenceDiagram
+    participant K as USB keyboard
+    participant X as driver.xhci0
+    participant H as driver.usb_hid0
+    participant R as input_router
+    participant W as focused window
+    H->>X: OP_INTERRUPT_IN
+    X->>K: interrupt IN
+    X-->>H: 8-byte report
+    H->>R: key event through the kernel input ring
+    R->>W: key press
+```
+
+`driver.usb_hid0` polls each bound endpoint through `driver.xhci0` and posts every key and pointer event to the kernel input ring with `mk_input_event_post` (`userland/capsule_driver_usb_hid/src/hid/post_wire.rs:19-28`, `mk_input_event_post`). The `input_router` [capsule](../../overview/glossary.md#capsule) drains the ring in batches of up to 32 (`userland/capsule_input_router/src/sources/kernel_ring.rs:19-38`, `MAX_BATCH`). It sends a key press to the focused window, asking the window manager which one that is, and sends the release wherever its press went (`userland/capsule_input_router/src/route/keyboard.rs:25-56`, `route_keyboard`).
+
+The router holds the [capabilities](../../overview/glossary.md#capability) IPC, Memory and InputSource, the word 0x200018 (`userland/capsule_input_router/Capsule.mk:14-16`, `CAPSULE_REQUIRED_CAPS`). `driver.usb_hid0` holds the same word (`userland/capsule_driver_usb_hid/Capsule.mk:15`, `CAPSULE_REQUIRED_CAPS`). No capsule may send to `driver.usb_hid0`: the kernel holds its endpoint to itself (`src/services/registry/held_table.rs:27-29`, `driver.usb_hid0`).
