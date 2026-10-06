@@ -23,3 +23,14 @@ An update from one release to another is not tested in this release.
 Nothing from the old disk. The installer carries what the running boot holds, and when you boot the stick that is the stick's store, because the kernel takes a USB stick that carries NONOS before any internal disk (`ORDER` in `src/hardware/block_device/select.rs`). It carries setup's answers, the wallpapers they keep, and the signed programs the stick carries (`userland/nonos_disk/src/carry/gather.rs`). The old store, the programs you installed there from the Marketplace, anything you kept there, and the old [data volume](../overview/glossary.md#data-volume) are erased with the disk.
 
 NONOS 0.9.2 has no way to copy files off the old disk first: the file service keeps files in memory and in the NONOS store, and mounts no other file system (`userland/capsule_vfs/README.md`), and the USB storage driver serves sectors, not files (`userland/capsule_driver_usb_msc/README.md`).
+
+## The rollback floor
+
+Every signed kernel carries a rollback index: the seal signs it in from `rollback_index` in `nonos.toml`, 1 by default, which that file says to raise only for a security release (`sign_kernel` in `tools/nonos_seal/chain.py`, `tools/nix/config.nix`). Each verified boot raises the machine's TPM [rollback floor](../overview/glossary.md#rollback-floor) to the index of the kernel it just booted (`nonos-bootloader/src/boot/crypto/rollback/commit.rs`), and a kernel whose index is below the floor is refused on every entry, under the title `This kernel is older than allowed` (`nonos-bootloader/src/boot/crypto/rollback/floor.rs`, `nonos-bootloader/src/display/boot/refusal/platform.rs`).
+
+So on a machine with a TPM:
+
+- Booting a newer release's stick once is enough to raise the floor, if that release raised its index. From then on the older system on the disk is refused, so install the newer one.
+- There is no way back to an older release on that machine once the floor has passed its index.
+
+Without a TPM the loader keeps no floor, notes `No TPM: rollback protection is off`, and an older signed kernel boots (`nonos-bootloader/src/boot/crypto/rollback/floor.rs`).
