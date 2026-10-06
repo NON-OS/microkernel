@@ -134,3 +134,13 @@ The quote does not cover PCR 4 or PCR 9, so a quote alone does not say which loa
 | Quotes | `MkAttestDoc` returns `EPERM` |
 
 `errno_for` maps a missing TPM to `ENODEV`, error 19 (`src/syscall/dispatch/crypto/machine_key.rs:68-78`). For the data volume, `open_machine_volume` asks `derive_for_kernel` for the key, and when that fails it logs `no machine key` and leaves the volume closed (`src/fs/blockfs_volume/open_machine.rs:75-78`). The local-build fallback is `mint`, a random key for this boot only (`src/security/local_build/identity.rs:35-47`). The rollback rule is on [Rollback protection](rollback-protection.md).
+
+## Limits
+
+- The loader's TPM code (detection, the TCG2 extend, the event log copy and the NV counter) is in its verification module and is not described in these pages.
+- A boot without a TPM or without a log checks the loader file that the loader itself handed over: the loader's own word, which the verdict says.
+- The attestation key has no `noDA`, so on a TPM built from the reference code its first authorization after each startup costs a retry.
+- The machine key and the device secret both come from a primary key that `build_create` makes in the storage hierarchy (`src/security/tpm/machine_key/create.rs:35-38`). Clearing the TPM changes that hierarchy's seed and every key with it, so a data volume keyed by the TPM cannot be opened again; the module comment above `derive` calls this the way to make the data unrecoverable on purpose (`src/security/tpm/machine_key/mod.rs:29-47`).
+- The quote covers PCRs 0, 1, 2 and 7 only.
+- The device secret stays sealed until a `kernel.approval` signed with the device policy key sits on the ESP; no make rule puts it there.
+- In this release the command sequences, the rollback floor reads and the device secret were tested against swtpm over a socket, and the FIFO protocol against a modelled register file. The CRB and FIFO transports did not run against a hardware TPM.
