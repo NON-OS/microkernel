@@ -31,3 +31,13 @@ The first step of setup is `Keyboard layout`. Use `Up` and `Down`, or the digits
 The layout takes effect the moment you leave that step, not at the end of setup. The name and the Wi-Fi passphrase you type later in setup are typed in the layout you chose (`userland/capsule_setup_wizard/src/render/screens/keyboard_live.rs`).
 
 On an amnesic boot, setup asks again at every boot. On a system installed to a disk, the choice is kept with setup's other answers.
+
+## Switching while you type
+
+`Ctrl+Alt+Space` moves to the next layout, in the order `us`, `uk`, `de`, `fr`, `es`, `it`, then back to `us` (`Layout::next` in `userland/nonos_keymap/src/layout.rs`). The keyboard driver takes the chord itself, so no app ever sees it as input.
+
+- The switch lasts until the next one, or until the layout stored in the policy store changes.
+- Each keyboard driver keeps its own switch. A layout chosen with the chord on a PS/2 keyboard does not change a USB keyboard plugged into the same machine, and the other way round (`userland/capsule_driver_usb_hid/src/hid/active.rs`).
+- No notice appears on screen. The driver writes the new layout's short name only to its debug channel.
+
+Settings has no keyboard layout row in this release (`ALL_FIELDS` in `userland/capsule_settings/src/settings/schema/all_fields.rs`), and setup is the only program that writes the layout to the policy store. On an installed system, each boot starts with the layout chosen at setup, and this release has no way to change that choice afterwards. Use the chord after each boot instead.
