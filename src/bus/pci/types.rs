@@ -16,9 +16,10 @@
 
 use core::sync::atomic::{AtomicBool, AtomicU32};
 
-pub(super) const PCI_CONFIG_ADDRESS: u16 = 0x0CF8;
-pub(super) const PCI_CONFIG_DATA: u16 = 0x0CFC;
-pub(super) const MAX_DEVICES: usize = 64;
+/// Room for every function a laptop or desktop enumerates. VT-d bring-up gives
+/// a context entry only to devices listed here and denies the rest, so a
+/// device past the end of a short table would lose DMA outright.
+pub(super) const MAX_DEVICES: usize = 256;
 
 pub(super) static PCI_INIT: AtomicBool = AtomicBool::new(false);
 pub(super) static DEVICE_COUNT: AtomicU32 = AtomicU32::new(0);
