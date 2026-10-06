@@ -1,0 +1,336 @@
+{
+  "epoch": 1,
+  "policy_root": "24aa0cb7dca5a111728d04b04c1beb492d881dc0a6aa7c4af5eb03ee00c0399d",
+  "verified": 41,
+  "refused": 0,
+  "items": [
+  {
+    "caps": 0,
+    "handle": "the microkernel",
+    "kind": "kernel",
+    "measurement": "c195ea2029df356552e75ad65ef859b220ac7ff8bffbd84554e9e5752c0b4958",
+    "slug": "kernel",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6169,
+    "handle": "app.about",
+    "kind": "capsule",
+    "measurement": "8cb9aa09dc03f30748ae3a502eb20b6306f701e982e48855e06936345a305efa",
+    "slug": "about",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "attest",
+    "kind": "capsule",
+    "measurement": "e3e3ed9704016af80c461cd3b570c99fa4343b96b0f2a331e3e6c225c69c5375",
+    "slug": "attest",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6489,
+    "handle": "app.audio_player",
+    "kind": "capsule",
+    "measurement": "2a70b551a4c1fd924c272d2d03bfcc523cf54a7495cbefe43e005e4a6cac2b9a",
+    "slug": "audio_player",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6205,
+    "handle": "app.browser",
+    "kind": "capsule",
+    "measurement": "37558545499cf0d5c879ded39813d51e36f576abd88d86fed2c1eb5e736ccbc8",
+    "slug": "browser",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6169,
+    "handle": "app.calculator",
+    "kind": "capsule",
+    "measurement": "56899f5e8fe7dc54a2aeb0c9e95b542d1ecf8a32b443e76aab2c4e4e8c4f2d87",
+    "slug": "calculator",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "clipboard",
+    "kind": "capsule",
+    "measurement": "15ee7289b449617a26f867969140e642d089c530cfefb61b68daa43704761e89",
+    "slug": "clipboard",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 4200473,
+    "handle": "app.clock",
+    "kind": "capsule",
+    "measurement": "dce71c9fdfcb540589b7ab553142c3d14c5d9a2bf117e51bea83a44adea616a8",
+    "slug": "clock",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 57,
+    "handle": "crypto",
+    "kind": "capsule",
+    "measurement": "7eaa90b7d2a0128ecdde4be8d0f97d7b6439b01d5966104edd434a6818c50892",
+    "slug": "crypto",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "csview",
+    "kind": "capsule",
+    "measurement": "ab56de76952230a3569c28a343046ad4cafa3229e9c2b8fe221fe2353a680260",
+    "slug": "csview",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "dotenv-linter",
+    "kind": "capsule",
+    "measurement": "906b1f84aa9b44749e16fb0bb0eb14bcdbba56299a65e3fd2d586592cd81da20",
+    "slug": "dotenv-linter",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6169,
+    "handle": "egui_proof",
+    "kind": "capsule",
+    "measurement": "88d2c4bd9219e2fa95abf62387d2f8e19362f04366205eb9a033edac43efae48",
+    "slug": "egui_proof",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 57,
+    "handle": "entropy",
+    "kind": "capsule",
+    "measurement": "82d069328ad21847aad984829b822253c35a9143b9507c5379c16dfc16bfc1e1",
+    "slug": "entropy",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6169,
+    "handle": "game_2048",
+    "kind": "capsule",
+    "measurement": "8e74a14e957d4d2cf996122266c0e8e314a875b39dcd500e59fc7ca3cdacb38c",
+    "slug": "game_2048",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "grex",
+    "kind": "capsule",
+    "measurement": "da80e857f3218a1fd128f9bf704e27ea030aaf005b2a5044e50c1a1aa67702eb",
+    "slug": "grex",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6169,
+    "handle": "gui_demo",
+    "kind": "capsule",
+    "measurement": "36b7b81e82d8d33c95f53238d1b42893eea0079ad0ffb0181ca3dbf6b2db4c76",
+    "slug": "gui_demo",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6169,
+    "handle": "app.hello",
+    "kind": "capsule",
+    "measurement": "7af0d6ff91cfbbad5961bc53cac2652085d9fe0aeeddde0052795fd27093654a",
+    "slug": "hello",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "huniq",
+    "kind": "capsule",
+    "measurement": "3034cdfcbb6db3a3b5656bf32e2f83c94975a5d89e65df2ae492805547f23459",
+    "slug": "huniq",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 8388697,
+    "handle": "installer",
+    "kind": "capsule",
+    "measurement": "48ca01976b660513d8b08752012ef7df8613e7534e460275de7de77bd230e6f1",
+    "slug": "installer",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "jsonxf",
+    "kind": "capsule",
+    "measurement": "3915920f3d0129542a169cb47fa8033bae2c1fa9dbdcae645a9c86d21b8b56bd",
+    "slug": "jsonxf",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 57,
+    "handle": "keyring",
+    "kind": "capsule",
+    "measurement": "b341894564481a65d3ec0d297d02452547b4d89b26dd9f771caa0e7472c4f01c",
+    "slug": "keyring",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "login",
+    "kind": "capsule",
+    "measurement": "4e1bacab6c725448add4a70f8854d3fe9d90d94bb24ec685f7173e3671594f51",
+    "slug": "login",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 57,
+    "handle": "market",
+    "kind": "capsule",
+    "measurement": "f1e5a1f3958358e945c5214e58bd9bed3d023e526728cb48fb16cb5e4d73bf02",
+    "slug": "market",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6233,
+    "handle": "mdview",
+    "kind": "capsule",
+    "measurement": "5c7bfb3937d957768c4022bf7b28f07bd42acae5dff835ee9c2f5ac2374ba5f8",
+    "slug": "mdview",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "pastel",
+    "kind": "capsule",
+    "measurement": "bcf65472f4a9ed31624b27f1de0c19b8da79152f6ebd82a8e298331f60a303f3",
+    "slug": "pastel",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "payment",
+    "kind": "capsule",
+    "measurement": "5e9fc6b0293f75d445c7686ef40bb96fce42ba71b48fd11d5413ab30de425288",
+    "slug": "payment",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 537,
+    "handle": "policy",
+    "kind": "capsule",
+    "measurement": "da53710fe5b9ed426588db65093a2dce57350fb146ec9ebd40ef38f42c6d8c2e",
+    "slug": "policy",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 537,
+    "handle": "power",
+    "kind": "capsule",
+    "measurement": "32d47ef171b468f8596b7da41640ef1375f2f5aec20c9e761a6bfc04de9a89c6",
+    "slug": "power",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6169,
+    "handle": "qrgen",
+    "kind": "capsule",
+    "measurement": "3cfb64f40fb66f9e5decc5ce56132b06b7e4a68326161e74e58ebc3933e0b5a5",
+    "slug": "qrgen",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 56,
+    "handle": "ramfs",
+    "kind": "capsule",
+    "measurement": "bbbcfb9ce973091016866bffb3412fde7d800835598894463a915aa1f8e99b81",
+    "slug": "ramfs",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "sd",
+    "kind": "capsule",
+    "measurement": "e3036a0cabab1f6eb9723b3c78f3cf4b5a439bd6f9281e361c79708327e0be57",
+    "slug": "sd",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 38941,
+    "handle": "app.settings",
+    "kind": "capsule",
+    "measurement": "5c53068d798b71f94d8bd1fd560edc6dde6e809e0c53c02d457229ef4e1fbc29",
+    "slug": "settings",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6233,
+    "handle": "app.snake",
+    "kind": "capsule",
+    "measurement": "7d7ae712d9af47e5db800e27e9aac6279b514dfb34107133604f40088173bf6b",
+    "slug": "snake",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 317,
+    "handle": "net.socks5",
+    "kind": "capsule",
+    "measurement": "93a2709bb32a60382ab81d72e559259938554934a08c5a9a6f1d690d711074f1",
+    "slug": "socks5",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6269,
+    "handle": "app.terminal",
+    "kind": "capsule",
+    "measurement": "920d088f4275a34da0fc764afcc0e6a4a2c0cda1394cd43511b22b3add8d349a",
+    "slug": "terminal",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "tokei",
+    "kind": "capsule",
+    "measurement": "1402c3fa16b98f302c504c62e397499436a9bd0dc72de0a61e2da9df6cd1505e",
+    "slug": "tokei",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 285,
+    "handle": "tokio_smoke",
+    "kind": "capsule",
+    "measurement": "c3c7d51038effe81f66db1939f526ac770056a88d32ee812faed5dd8c2aecea7",
+    "slug": "tokio-smoke",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 335544601,
+    "handle": "vfs",
+    "kind": "capsule",
+    "measurement": "0212e6909bce9d807a48b26ddd6fe9d89f0429104059c860f96cf1bf13a77b69",
+    "slug": "vfs",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 6169,
+    "handle": "wallpaper",
+    "kind": "capsule",
+    "measurement": "afc20a33360c1c6a23e2a339a7dda9184b04573be483ae92f9f5ebb4b8c6cb5f",
+    "slug": "wallpaper",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "wallpaper_catalog",
+    "kind": "capsule",
+    "measurement": "0bab1e36085442473f58a0f91f94bdba8e80c52d61aacb1fe30b7592f8e055db",
+    "slug": "wallpaper_catalog",
+    "trailer_bytes": 327526
+  },
+  {
+    "caps": 25,
+    "handle": "wm",
+    "kind": "capsule",
+    "measurement": "081634af5ebf016781ffe792e61d0b4a88521664b4a264f0b8b3299ee143abd3",
+    "slug": "wm",
+    "trailer_bytes": 327526
+  }
+  ]
+}
