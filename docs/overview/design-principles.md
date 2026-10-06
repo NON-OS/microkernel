@@ -89,3 +89,12 @@ On this commit `nix flake check` ran 113 proof-crate checks and 110 passed. `rtl
 The Lean 4 models in `verification/lean/` are not built by `nix flake check`. Its `static-evidence` check requires the `sorry_count` that `verification/evidence/collect-evidence.sh` finds in their sources to be zero (`tools/nix/checks.nix:240-246`), and it passes on this commit. Kani, Verus, the Charon and Aeneas extraction and the fuzzers run outside the flake, as the header of `tools/nix/checks.nix` says. Everything NONOS trusts without proof is listed in [verification/ASSUMPTIONS.md](../../verification/ASSUMPTIONS.md).
 
 The limit: proof crates test code on the host; they do not boot it. What has been seen on a machine is in the [support matrix](../hardware/MATRIX.md).
+
+## See also
+
+- [Overview](README.md)
+- [Architecture](architecture.md)
+- [Threat model](threat-model.md)
+- [Code style](../contributing/code-style.md)
+- [Tests and proofs](../contributing/tests-and-proofs.md)
+- [Capsule isolation](../security/capsule-isolation.md)
