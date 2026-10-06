@@ -73,3 +73,15 @@ A microkernel call goes to `dispatch_microkernel_syscall`, whose `route` offers 
 A handler returns a non-negative value on success and a negative errno on failure. The values are on [Errors](../abi/errors.md). A few calls return a positive status that is not an error; `MkIrqWait` returns 1 when it slept out its whole timeout ([Hardware broker](hardware-broker.md)).
 
 Every entry in the registry is marked `Routed`. The status `Unavailable` exists in `AbiStatus` but no entry uses it (`src/syscall/abi/status.rs:17-21`).
+
+## Adding a system call
+
+A call is reachable only when all of these agree, which is why `scripts/check_syscall_abi.py` checks each one, starting from `from_u64` (`scripts/check_syscall_abi.py:23-36`):
+
+1. The tag in `[numbers]` and a `[desc.TAG]` block with its gate in [abi/syscalls.toml](../../abi/syscalls.toml).
+2. The variant in `src/syscall/numbers/defs.rs`.
+3. A row in the family table under `src/syscall/abi/registry`.
+4. The gate in the cap table under `src/syscall/contract/cap_table`. A call no table claims is refused for everyone.
+5. The route in `src/syscall/dispatch/router`, and for a microkernel call its `SYS_*` constant in `src/syscall/microkernel/numbers.rs` and an arm under `src/syscall/microkernel/dispatch`.
+
+Then run `scripts/check_syscall_abi.py` and `scripts/check_syscall_caps.py`; [Contributing: tests and proofs](../contributing/tests-and-proofs.md) lists the other checks.
