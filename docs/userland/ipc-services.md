@@ -123,3 +123,11 @@ At start it also registers `net.tcp` on 4476, `net.udp` on 4472, `net.dhcp.clien
 ## Host tests
 
 Proof crates mount these protocol modules on the host. On this commit the flake checks passed `fs_proofs` (367 tests), `compositor_proofs` (68), `wm_proofs` (58), `input_proofs` (96), `audio_proto_proofs` (38), `clipboard_proofs` (3), `policy_proofs` (2), `net_core_proofs` (31) and `service_header_proofs` (16).
+
+## See also
+
+- [ABI: IPC](../abi/ipc.md)
+- [IPC in the kernel](../kernel/ipc.md)
+- [libc and the Rust runtimes](libc.md)
+- [Manifests and capabilities](manifests-and-capabilities.md)
+- [Userland](README.md)
