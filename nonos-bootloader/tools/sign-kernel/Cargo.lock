@@ -3,6 +3,10 @@
 version = 4
 
 [[package]]
+name = "admission_proofs"
+version = "0.1.0"
+
+[[package]]
 name = "anstream"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -854,6 +858,7 @@ dependencies = [
 name = "nonos-sign"
 version = "0.1.0"
 dependencies = [
+ "admission_proofs",
  "base64 0.22.1",
  "blake3",
  "cc",
