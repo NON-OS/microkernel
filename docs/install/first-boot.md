@@ -52,3 +52,22 @@ The step names are `STEP_LABELS` in `userland/capsule_setup_wizard/src/render/th
 11. Installed software. `Only NONOS software`, the default, or `Also software installed here`, which lets this machine run the programs the Marketplace installs and this machine proves.
 12. Computer name. The host in name@host: lowercase letters, digits and `-`, starting with a letter and ending with a letter or digit, up to 63 characters. Left empty, it is `nonos`.
 13. Review. Your answers in a table, and lines that say what is kept. Enter applies them and starts the desktop, or opens the installer on Install. If the settings service refused an answer, the screen names it once, after `Not applied to this session:`, and the next Enter goes on without it (`userland/capsule_setup_wizard/src/render/screens/review.rs`).
+
+## What is kept, and where
+
+Every answer is handed to the settings service, which applies it to this session in either mode (`userland/capsule_setup_wizard/src/render/screens/commit.rs`). What reaches a disk depends on the Mode step:
+
+| What | Path | When it is written |
+|---|---|---|
+| The answers: keyboard, time zone, wallpaper and the wallpapers kept, name, Qwen tier, apps turned off, computer name, network route | `/nonos/setup/answers` | Install: written to the store. Amnesic: held in memory for the installer, gone at shutdown |
+| The marker that setup is done | `/nonos/setup/done` | Install only, after the answers |
+| Consent to run installed software | `/nonos/consent/local.token` | Install, with `Also software installed here` chosen |
+| A remembered Wi-Fi network | `/nonos/wifi/saved` | Install, with `r` checked and a TPM present |
+
+The paths are in `userland/policy_proto/src/setup_record/layout.rs`, `userland/capsule_setup_wizard/src/consent/restore.rs` and `userland/nonos_wifi_client/src/saved/file.rs`; the order of writing is in `userland/capsule_setup_wizard/src/keep/save.rs`.
+
+- The answers go first and the marker last, so a save cut short restores nothing and setup simply runs again.
+- The answers and the marker are not encrypted. The [store](../overview/glossary.md#store) is written to the disk as it is (`src/syscall/microkernel/store_write.rs`).
+- The Wi-Fi passphrase is never written in the clear. It is shown as stars, never sent to the console, and wiped from memory on Escape, after a failed join, and once review has used it.
+- Until you install, the store that keeps your answers is the stick's. The installer carries the answers to the disk it writes, so setup does not run there either.
+- To run setup again on a stick that kept answers, write the image to it again: a freshly written store holds no answers.
