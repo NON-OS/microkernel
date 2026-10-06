@@ -1,28 +1,29 @@
 # boot_proofs
 
 Host-runnable proofs for the bootloader's security-critical logic. The real
-`security::anti_rollback` decision code and the real `image_format` footer
-parser are included through `#[path]` and run on the host. Only the TPM and
-NVRAM write is shimmed, so the invariants are proved about the code that gates a
-kernel boot.
+rollback floor code and the real `image_format` footer parser are included
+through `#[path]` and run on the host, so the invariants are proved about the
+code that gates a kernel boot.
 
-## Anti-rollback
+## Rollback floor
 
-The stored version floor is the mechanism that stops an attacker downgrading the
-system to a kernel with a known vulnerability. The proofs establish:
+The floor is a TPM monotonic counter at NV index 0x01000020; it stops an
+attacker booting an older signed kernel with a known vulnerability. The real
+`security::tpm_nv` read and raise sequences run against a TPM scripted to the
+specification (`scripted_tpm.rs`). The tests establish:
 
-- Version zero is always rejected, and without a TPM-backed or initialized
-  anchor nothing boots.
-- A version below the floor is rejected; a version at or above it is accepted.
-- Booting a version raises the floor, after which no older version boots.
-- A too-old boot is rejected and leaves the stored state untouched, because the
-  check runs before any commit.
-- The floor never decreases across updates, and setting the minimum only ever
-  raises it.
+- A new TPM starts the floor at 1; a held counter is read and not incremented.
+- A counter the owner undefines reads above its old floor on the next boot,
+  never 0 (REVIEW R20), because an uninitialized counter is incremented first.
+- Any other read answer, or an increment that fails, is no floor.
+- Raising reaches the target and never lowers; a failed increment is reported.
+- The read is a value only in the shape of one, byte by byte, and the three
+  commands name the rollback counter.
+- Without a readable counter Hardened and Air-Gapped refuse; every other
+  profile boots and says so (`floor_rule`).
 
-Kani harnesses extend the core claims over every `u64`: acceptance is exactly
-non-zero and at or above the floor, an update never lowers the floor, and no
-older version is accepted after a successful boot.
+Kani harnesses hold the read's mapping total for every answer and length. The
+same files run against swtpm in `userland/tpm_enroll_proofs`.
 
 ## Image footer parser
 

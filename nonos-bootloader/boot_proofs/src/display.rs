@@ -14,15 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Real AntiRollbackState plus the real check and update implementations.
-#[allow(clippy::new_without_default)]
-#[path = "../../../../../src/security/anti_rollback/state/types.rs"]
-pub mod types;
+//! The splash's GOP mode choice, pixel layouts and EDID parse, the real
+//! source included by #[path].
 
-#[path = "../../../../../src/security/anti_rollback/state/check.rs"]
-mod check;
+#[path = "../../src/display/gop/pick.rs"]
+pub mod pick;
 
-#[path = "../../../../../src/security/anti_rollback/state/update.rs"]
-mod update;
-
-pub use types::AntiRollbackState;
+#[path = "../../src/display/gop/order.rs"]
+pub mod order;

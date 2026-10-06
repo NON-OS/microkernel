@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Mirrors the bootloader's `crate::security` parent so the included
-// anti-rollback source resolves its absolute module paths.
-pub mod anti_rollback;
-// The rollback counter's commands and sequences (REVIEW R20).
-pub mod tpm_nv;
+//! The loader's handoff flags, which `menu::types::mode` names.
+
+pub mod types;

@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Mirrors the bootloader's `crate::security` parent so the included
-// anti-rollback source resolves its absolute module paths.
-pub mod anti_rollback;
-// The rollback counter's commands and sequences (REVIEW R20).
-pub mod tpm_nv;
+// The loader's rollback counter: its commands, the read's mapping and the
+// read and raise sequences, all transport-free (REVIEW R20). Only the TCG2
+// wrapper, floor.rs, stays behind.
+#[path = "../../../../src/security/tpm_nv/consts.rs"]
+pub mod consts;
+#[path = "../../../../src/security/tpm_nv/floor_cmd.rs"]
+pub mod floor_cmd;
+#[path = "../../../../src/security/tpm_nv/floor_seq.rs"]
+pub mod floor_seq;

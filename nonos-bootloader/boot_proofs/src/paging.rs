@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::security::anti_rollback::types::{RollbackError, VersionState};
+//! Where the boot identity reaches the framebuffer, the real source.
 
-// The real implementation persists the state to a TPM NV index. The proofs
-// target the decision logic that runs before this point, so the write is a
-// no-op that always succeeds; it never masks a check.
-pub fn write_to_nvram(_state: &VersionState) -> Result<(), RollbackError> {
-    Ok(())
-}
+#[path = "../../src/paging/constants.rs"]
+pub mod constants;
+
+#[path = "../../src/paging/fb_window.rs"]
+pub mod fb_window;
