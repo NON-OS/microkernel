@@ -64,26 +64,18 @@ impl ArchOps for X86_64 {
         if let Some(id) = crate::smp::sole_cpu_apic_id() {
             return id;
         }
-        // Read the local APIC id from CPUID leaf 1, EBX[31:24].
-        // This matches the value the platform IRQ controller uses to
-        // route IPIs and is the canonical CPU identifier on x86_64.
-        let apic_id: u32;
-        unsafe {
-            asm!(
-                "push rbx",
-                "mov eax, 1",
-                "cpuid",
-                "shr ebx, 24",
-                "mov {0:e}, ebx",
-                "pop rbx",
-                out(reg) apic_id,
-                out("eax") _,
-                out("ecx") _,
-                out("edx") _,
-                options(nomem, preserves_flags),
-            );
-        }
-        apic_id
+        // The APIC id from CPUID, the value the descriptor table was filled
+        // from and the IPI path addresses. Leaf 1 EBX[31:24] is only the low
+        // byte of it: on a part with ids past 255, or in x2APIC mode, that
+        // byte names some other CPU, and the lookup would either halt this one
+        // as unregistered or hand it another CPU's state. Leaf 0x0B carries
+        // the full 32-bit id; `cpuid_apic_id` picks it whenever it exists.
+        /*
+         * The shared helper restores RBX by exchange, which stays correct
+         * when the compiler picks RBX for the output; a push/pop pair would
+         * hand back the caller's RBX, a stack address, as the APIC id.
+         */
+        cpuid_apic_id()
     }
 
     #[inline(always)]
@@ -107,5 +99,29 @@ impl ArchOps for X86_64 {
     #[inline(always)]
     unsafe fn switch_address_space(root: PhysAddr) {
         asm!("mov cr3, {}", in(reg) root.as_u64(), options(nostack, preserves_flags));
+    }
+}
+
+/// Whether leaf 0x0B is implemented: 0 not yet asked, 1 yes, 2 no. Settled on
+/// first use and identical on every CPU of a machine, so a race to set it
+/// writes the same answer twice.
+static LEAF_0B: core::sync::atomic::AtomicU8 = core::sync::atomic::AtomicU8::new(0);
+
+#[inline]
+fn cpuid_apic_id() -> u32 {
+    use crate::arch::x86_64::interrupt::apic::plan::apic_id_from_cpuid;
+    use crate::arch::x86_64::time::tsc::cpuid;
+    use core::sync::atomic::Ordering;
+    match LEAF_0B.load(Ordering::Relaxed) {
+        1 => cpuid(0x0B, 0).3,
+        2 => cpuid(1, 0).1 >> 24,
+        _ => {
+            let max = cpuid(0, 0).0;
+            let (_, ebx_b, _, edx_b) = if max >= 0x0B { cpuid(0x0B, 0) } else { (0, 0, 0, 0) };
+            let leaf1 = cpuid(1, 0).1;
+            let usable = max >= 0x0B && ebx_b & 0xFFFF != 0;
+            LEAF_0B.store(if usable { 1 } else { 2 }, Ordering::Relaxed);
+            apic_id_from_cpuid(max, ebx_b, edx_b, leaf1)
+        }
     }
 }
