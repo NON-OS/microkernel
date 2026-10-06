@@ -7,7 +7,8 @@ capsule holding a bounded FIFO of recently-copied entries, addressable by
 content type. Any other capsule that needs cut/copy/paste talks to it
 over IPC; the kernel never carries clipboard bytes itself. Idle entries
 self-clear after a configurable timeout so a left-open window does not
-leak its last selection forever.
+leak its last selection forever. The handbook page is
+[System apps and services](../../docs/handbook/apps/system-apps.md).
 
 ```text
 copying capsule (terminal, text_editor, ...)
@@ -23,9 +24,9 @@ pasting capsule (terminal, text_editor, ...)
 
 ## Microkernel contract
 
-- `MkIpcRecv` on port `4414` waits for incoming requests.
-- `MkIpcSend` on port `4414` (reply channel) returns responses.
-- `MkTimeMillis` reads the monotonic wall clock to drive the idle-timeout
+- `MkIpcRecvFrom` on port `4414` waits for incoming requests.
+- `MkIpcReply` returns each response to its sender.
+- `MkTimeMillis` reads the wall clock to drive the idle-timeout
   privacy invariant.
 - `MkYield` backs off when no request is pending.
 - `MkExit` is the only termination path.
@@ -44,17 +45,16 @@ pasting capsule (terminal, text_editor, ...)
 
 ## Authority
 
-`Capsule.mk` declares `CAPSULE_REQUIRED_CAPS := 0x19`, which decodes to
+`Capsule.mk` declares `CAPSULE_REQUIRED_CAPS := 0x18`, which decodes to
 exactly:
 
 | Bit | Capability | Purpose |
 |---|---|---|
-| 0x01 | CoreExec | run user code |
 | 0x08 | IPC | recv/send on port `4414` |
 | 0x10 | Memory | heap allocation for clipboard entries |
 
-`MkTimeMillis` requires no extra capability bit (CoreExec covers it).
-`Debug` is **deliberately absent** — the NO LOGS / NO TRACES posture
+`MkTimeMillis` needs only a valid token, no capability bit.
+`Debug` is **deliberately absent**: the NO LOGS / NO TRACES posture
 refuses any serial surface and the capsule emits no `MkDebug` markers.
 No `Driver`, `Mmio`, `Irq`, `Dma`, `Pio`, `Network`, `Crypto`,
 `FileSystem`, `Hardware`, `Admin`, `RegisterService` or any Graphics
@@ -67,8 +67,8 @@ capability is requested.
 | NO LOGS | Debug cap dropped from the mask; no `MkDebug` call in any file; `debug_tag` in the kernel spawn spec is the empty string. |
 | NO TRACES | Idle entries self-clear after the configurable timeout (default 10 min). No persistent identifier, no on-disk record, no IPC service publishes the entry list outside this capsule. |
 | EPHEMERAL | Zero files. All state lives in a `VecDeque<Entry>` that vanishes on capsule exit. Total bytes bounded by `MAX_TOTAL_BYTES = 256 KiB`. |
-| NOT LINUX | NONOS Mk-tag syscall ABI. The wire is the NCMP-style `MAGIC=0x43424930` header (NONOS clipboard); no POSIX shapes. |
-| PRIVACY MICROKERNEL | Capability mask is the minimal 3-bit viable surface. Refuses Network, FileSystem, every Graphics/Driver cap. Any compromise stays bounded by IPC + heap with no path to disk, devices, or other capsules' memory. |
+| NOT LINUX | NONOS Mk-tag syscall ABI. The wire is the 20-byte `MAGIC=0x43424930` header (NONOS clipboard); no POSIX shapes. |
+| PRIVACY MICROKERNEL | Capability mask is two bits. Refuses Network, FileSystem, every Graphics/Driver cap. Any compromise stays bounded by IPC + heap with no path to disk, devices, or other capsules' memory. |
 
 ## Runtime lifecycle
 
@@ -80,19 +80,21 @@ capability is requested.
    - Reads current wall clock via `mk_time_millis`.
    - Calls `clipboard.expire_if_idle(now)`; if the idle timeout has
      elapsed, every entry is dropped immediately.
-   - Blocks on `mk_ipc_recv` for the next request.
-   - Routes the request through `handlers::route` and sends the reply.
+   - Waits on `mk_ipc_recv_from` for the next request.
+   - Routes the request through `handlers::route` and replies to the
+     sender with `mk_ipc_reply`. `route` returns a whole reply for every
+     input, which `userland/clipboard_proofs` checks against any bytes.
 
 ## Failure model
 
-- Heap init failure → exit status `1`.
-- Malformed request (bad magic / version / length) → typed errno reply
-  (E_BAD_MAGIC / E_BAD_VERSION / E_BAD_LEN); no state change.
-- Unknown op → E_BAD_OP reply; no state change.
-- Payload too large (`> MAX_ENTRY_BYTES`) → E_RANGE; entry refused.
-- Response buffer too small for a paste reply → E_RANGE; entry kept,
+- Heap init failure: exit status `1`.
+- Malformed request (bad magic, version or length): typed errno reply
+  (E_BAD_MAGIC, E_BAD_VERSION, E_BAD_LEN); no state change.
+- Unknown op: E_BAD_OP reply; no state change.
+- Payload too large (`> MAX_ENTRY_BYTES`): E_RANGE; entry refused.
+- Response buffer too small for a paste reply: E_RANGE; entry kept,
   not delivered.
-- Idle-timeout out of range on `OP_SET_IDLE_TIMEOUT` → E_RANGE; current
+- Idle-timeout out of range on `OP_SET_IDLE_TIMEOUT`: E_RANGE; current
   timeout unchanged.
 
 ## Current implemented surface
@@ -116,8 +118,8 @@ capability is requested.
 
 ## Wire format
 
-20-byte NCMP-style header followed by a typed payload. Magic
-`0x4342_4930` (`'CBI0'` little-endian — NONOS ClipBoard Interface v0).
+20-byte header followed by a typed payload. Magic
+`0x4342_4930` (`'CBI0'`, NONOS ClipBoard Interface v0).
 All multi-byte fields are little-endian.
 
 Header layout (fixed at `HDR_LEN = 20`):
@@ -151,7 +153,7 @@ state, and no IPC-visible state outside the documented ops.
 - Every file ≤ 75 LOC.
 - One function per file where the function is non-trivial; `mod.rs`
   carries re-exports only.
-- All wire parsing is bounds-checked; no `try_into().unwrap()` —
+- All wire parsing is bounds-checked; no `try_into().unwrap()`;
   little-endian decode uses explicit indexing.
 
 ## Release target
@@ -175,12 +177,11 @@ must produce a signed ELF whose SHA matches the embedded manifest
 - [x] 15-line license header on every file
 - [x] No inline comments past the license header
 - [x] `Capsule.mk` with `CAPSULE_REQUIRED_CAPS`, slug, handle, endpoints
-- [x] Capability mask audited (`0x19` = CoreExec + IPC + Memory, no
+- [x] Capability mask audited (`0x18` = IPC + Memory, no
   Debug, no Network, no FileSystem)
 - [x] Kernel mirror at `src/userspace/capsule_clipboard/`
 - [x] Cert + manifest baked into `nonos-data/trust/capsules/`
 - [x] Spawn wired through `src/userspace/init/spawn_plan/`
-- [x] README documents all 16 contract sections
 - [x] Idle-timeout privacy auto-clear (default 10 min, configurable
   via `OP_SET_IDLE_TIMEOUT`, bounded by `MIN_IDLE_TIMEOUT_MS=5s` and
   `MAX_IDLE_TIMEOUT_MS=24h`)
@@ -193,13 +194,12 @@ must produce a signed ELF whose SHA matches the embedded manifest
 
 ## Explicit non-goals today
 
-- No persistence across capsule restart. Intentional — matches the
+- No persistence across capsule restart. Intentional: it matches the
   EPHEMERAL posture. A "remember after reboot" pin would require an
   explicit user authorization flow and an encrypted-at-rest backing
   store; deferred.
 - No multi-user separation. The capsule serves whatever caller can
-  reach its port. Per-user clipboards belong in a higher-layer policy
-  capsule above this one.
+  reach its port: one history is shared by every caller.
 - No content sanitization. Bytes go in and come back unchanged; the
   caller is responsible for character-set handling.
 - No drag-and-drop. That belongs in the compositor + toolkit layer,
@@ -209,6 +209,8 @@ must produce a signed ELF whose SHA matches the embedded manifest
 
 - `nonos-ci/run-static-checks.sh` clean (per-capsule one-function-per-file
   enforcement, capability mask, README contract sections).
+- `userland/clipboard_proofs` runs the real protocol, router, handlers
+  and history on the host.
 - `make nonos-mk-host-trust-verify` verifies
   the baked `clipboard.manifest.bin` against the trust anchor.
 - Kernel cargo check matrix passes with `nonos-capsule-clipboard` on
