@@ -90,3 +90,7 @@ This path writes to the serial console only. It does not paint the panel and doe
 ## Kernel heap exhausted
 
 When the kernel heap cannot satisfy an allocation, `alloc_error_handler` calls `handle_oom` (`src/lib.rs:52-56`). `handle_oom` prints `[OOM] ALLOCATION FAILED` with the requested size and alignment, dumps the memory-map and surface accounting, prints `[OOM] System halted`, writes `OOM: Memory allocation failed - system halted` to VGA text memory, and halts that CPU (`src/entry/oom.rs:46-63`). The module forbids allocation on this path, which is why `handle_oom` prints the size through the console's own `print_dec` and not the formatter (`src/entry/oom.rs:46-53`). The heap is the 64 MiB described on [memory and paging](memory-and-paging.md).
+
+## TLB shootdown timeout
+
+When a CPU changes a page table and another CPU has not acknowledged the flush after `SHOOTDOWN_TIMEOUT_MS`, `fail_timed_out` prints `[FATAL] TLB shootdown timeout outstanding=n ms=2000`, reports where each CPU last was, stops the other CPUs and halts (`src/memory/paging/manager/shootdown/slow.rs:45-53`). A stale translation could reach memory that was freed, so the kernel does not continue. See [scheduler and SMP](scheduler-and-smp.md).
