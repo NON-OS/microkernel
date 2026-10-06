@@ -117,3 +117,7 @@ The network choices themselves are explained on [Privacy networks](../using/priv
 - A thread exiting is not the process exiting: `exit` from a thread ends the thread, and `exit_group` ends the process (`userland/capsule_linux/src/linux/serve/dispatch.rs:47-53`, `exit_thread`).
 - The thread pointer is set per thread through the kernel, and `getrandom` returns at most 256 bytes a call from the kernel's random source (`userland/capsule_linux/src/linux/call/thread.rs:28-60`, `getrandom`).
 - Signals are kept and delivered by the personality: actions, masks, alternate stacks, `signalfd`, queued real-time signals, POSIX and interval timers. A caught signal enters its handler through Linux's `rt_sigframe` when the thread returns from a call, when the signal ends a wait it is parked in, or when the kernel stops it running; an uncaught one does what its default says, and a default of ending the process ends all of it (`userland/capsule_linux/src/linux/serve/deliver.rs:17-22`, `rt_sigframe`).
+
+## Tests
+
+`capsule_linux_proofs` mounts the personality's pure modules on the host, among them the task limit, the run-request parser, the route choice and the Wayland wire format (`userland/capsule_linux_proofs/src/linux/call/mod.rs:34`, `tasks`). Its 369 tests passed in the flake checks on this commit.
