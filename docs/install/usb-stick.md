@@ -85,3 +85,11 @@ sudo cmp -n "$(stat -f %z target/release/standard/nonos.img)" target/release/sta
 Not tested in this release.
 
 `same` means the write arrived whole. Check before the first boot. The kernel keeps a boot's state on a USB stick that carries NONOS before any internal disk (`ORDER` in `src/hardware/block_device/select.rs`), so a boot whose setup chose Install keeps its answers in the stick's own package [store](../overview/glossary.md#store), and a used stick no longer matches the image (`userland/capsule_setup_wizard/src/render/screens/mode.rs`).
+
+## Boot from the stick
+
+1. Plug the stick in and turn the machine on.
+2. Open the firmware's boot menu and choose the stick. The key for that menu depends on the machine.
+3. The NONOS boot menu appears and counts down 10 seconds on its default entry. Pick an entry, or let the countdown start the default ([Boot modes](boot-modes.md)).
+
+If the firmware will not start the stick with Secure Boot on, turn Secure Boot off and try again: the loader is signed only with the NONOS db key ([Requirements](requirements.md#secure-boot-and-the-tpm)). Not tested in this release.
