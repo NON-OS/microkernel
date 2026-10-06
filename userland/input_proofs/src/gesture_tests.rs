@@ -14,54 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Proofs for the touchpad gesture state machine: absolute move, tap-to-click,
-//! drag (no accidental tap), two-finger scroll, and the clickpad button.
+//! The touchpad gesture state machine's motion: relative, accelerated, slow
+//! motion carried between reports, every report capped, and a torn
+//! coordinate re-anchored instead of followed.
 
 use crate::gesture::TouchGesture;
+use crate::hid::TouchSample;
 
-// One finger maps to an absolute cursor position scaled into the router's range.
+/// One report from a 1000 by 1000 pad with one confident finger down.
+pub(super) fn at(x: u32, y: u32, tip: bool) -> TouchSample {
+    let contacts = u32::from(tip);
+    TouchSample {
+        x,
+        y,
+        x_max: 1000,
+        y_max: 1000,
+        tip,
+        contacts,
+        contact_id: None,
+        button: false,
+        confidence: true,
+    }
+}
+
 #[test]
-fn one_finger_moves_cursor() {
+fn the_first_report_of_a_touch_moves_nothing_and_the_next_moves_by_the_delta() {
     let mut g = TouchGesture::default();
-    let a = g.on_touch(500, 250, 1000, 1000, true, 1, false);
-    assert_eq!(a.move_to, Some((16383, 8191)));
+    assert_eq!(g.on_touch(&at(500, 250, true)).motion, None);
+    /* 10 units: speed 8, gain 10/16, 10 * 800 * 10 / 16000 = 5 pixels. */
+    let a = g.on_touch(&at(510, 250, true));
+    assert_eq!(a.motion, Some((5, 0)));
     assert!(!a.button_down && !a.button_up && a.wheel == 0);
 }
 
-// Finger down then up in place is a tap, delivered as a click.
 #[test]
-fn tap_is_a_click() {
+fn motion_below_a_pixel_adds_up_across_reports() {
     let mut g = TouchGesture::default();
-    g.on_touch(500, 250, 1000, 1000, true, 1, false);
-    let a = g.on_touch(500, 250, 1000, 1000, false, 0, false);
-    assert!(a.button_down && a.button_up);
-    assert_eq!(a.move_to, None);
+    g.on_touch(&at(500, 500, true));
+    /* One unit at the floor gain is 6400 / 16000 of a pixel: two carry, the third moves. */
+    assert_eq!(g.on_touch(&at(501, 500, true)).motion, None);
+    assert_eq!(g.on_touch(&at(502, 500, true)).motion, None);
+    assert_eq!(g.on_touch(&at(503, 500, true)).motion, Some((1, 0)));
 }
 
-// A finger that travels before lifting is a drag, not a tap.
 #[test]
-fn drag_does_not_click() {
+fn no_report_moves_the_cursor_past_the_cap() {
     let mut g = TouchGesture::default();
-    g.on_touch(100, 100, 1000, 1000, true, 1, false);
-    g.on_touch(900, 100, 1000, 1000, true, 1, false);
-    let a = g.on_touch(900, 100, 1000, 1000, false, 0, false);
-    assert!(!a.button_down && !a.button_up);
+    g.on_touch(&at(100, 900, true));
+    /* 125 units, the largest continuous step: 137 pixels uncapped. */
+    assert_eq!(g.on_touch(&at(225, 775, true)).motion, Some((36, -36)));
 }
 
-// Two fingers scroll by the wheel and never move the cursor.
 #[test]
-fn two_fingers_scroll() {
+fn a_torn_coordinate_re_anchors_without_moving() {
     let mut g = TouchGesture::default();
-    g.on_touch(500, 500, 1000, 1000, false, 2, false);
-    let a = g.on_touch(500, 600, 1000, 1000, false, 2, false);
-    assert_eq!(a.wheel, 6);
-    assert_eq!(a.move_to, None);
-}
-
-// The physical clickpad press and release map to the left button.
-#[test]
-fn clickpad_button_maps_to_left() {
-    let mut g = TouchGesture::default();
-    assert!(g.on_touch(500, 250, 1000, 1000, true, 1, true).button_down);
-    assert!(g.on_touch(500, 250, 1000, 1000, true, 1, false).button_up);
+    g.on_touch(&at(100, 100, true));
+    assert_eq!(g.on_touch(&at(400, 100, true)).motion, None);
+    assert_eq!(g.on_touch(&at(410, 100, true)).motion, Some((5, 0)));
 }
