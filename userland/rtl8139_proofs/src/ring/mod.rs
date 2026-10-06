@@ -1,10 +1,15 @@
 // NONOS Operating System (AGPL-3.0-or-later)
 // The real RX ring primitives (pub(super) in the driver; wrapped for the
 // proofs).
+// The ring readers on their own, for the Kani harnesses; rx includes them
+// again privately, under the receive gate the host tests drive.
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../capsule_driver_rtl8139/src/rx/copy_ring.rs"]
 mod copy_ring;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../capsule_driver_rtl8139/src/rx/ring_u16.rs"]
 mod ring_u16;
+#[allow(clippy::duplicate_mod)]
 #[path = "../../../capsule_driver_rtl8139/src/rx/ring_u8.rs"]
 mod ring_u8;
 
