@@ -55,3 +55,11 @@ Each tick enters `timer_tick`, which signals end-of-interrupt to the local APIC 
 5. If the tick interrupted user mode and a reschedule is due, it switches; see [scheduler and SMP](scheduler-and-smp.md).
 
 The paced work in `paced_work` runs alarms and polls the ACPI power button every 10 ticks, updates the load averages every `LOAD_SAMPLE_TICKS`, 500 ticks, and polls the IOMMU for faults (`src/interrupts/timer/clock.rs:32-58`).
+
+## Keeping the tick alive in idle
+
+An idle CPU halts and waits for the next tick. The idle-timer code records that on parts with C1E an enhanced halt can stop the local APIC timer, and the tick with it. The idle-timer `init` handles this at boot (`src/arch/x86_64/interrupt/apic/idle_timer/init.rs:26-47`):
+
+- If CPUID reports ARAT, the timer runs in every C-state and `hlt` is safe.
+- Otherwise, on Intel, it clears the C1E enable bit in `MSR_IA32_POWER_CTL`, `0x1FC` (`src/arch/x86_64/interrupt/apic/idle_timer/consts.rs:22-23`).
+- Otherwise `halt_safe` reports false and the idle loop spins instead of halting, which costs power and keeps the tick.
