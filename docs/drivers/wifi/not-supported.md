@@ -59,3 +59,7 @@ Three routes that look possible are not available in 0.9.2:
 - A wired port on the Intel 8254x, Realtek RTL8139 or Realtek RTL8169 family. Their drivers are in the image, but read from the code, `net.core` takes no received frame from them; see [the receive fault](../ethernet/README.md#the-receive-fault). The Intel I217, I218, I219, I225 and I226 drivers are in no image ([Intel Ethernet](../ethernet/intel.md)).
 - USB tethering from a phone and USB Ethernet adapters. Capsules for CDC-ECM, CDC-NCM, RNDIS, the ASIX AX88179 and the Realtek RTL8153 exist in the tree, but no image includes them and the USB host driver does not serve the bulk transfer they need. The reasons are on the [USB networking page](../ethernet/usb-net.md).
 - USB Wi-Fi adapters: no driver.
+
+## Reporting your chip
+
+If your machine has a Wi-Fi chip that is not on this page, send its PCI vendor and device ids with a hardware report; see [how to report a machine](../../hardware/report.md).
