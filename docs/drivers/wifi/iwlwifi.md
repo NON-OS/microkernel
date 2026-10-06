@@ -38,3 +38,27 @@ Only the AX210 family ids that carry transport values go past the first step, an
 | any | GF dual radio (CDB), JF, blank | none | refused |
 
 Only the two SO images are bundled (`userland/capsule_driver_iwlwifi/src/firmware/blob.rs:40-51`, `gen3_blob`). No platform NVM (PNVM) file is committed, so the firmware runs on its built-in defaults (`userland/capsule_driver_iwlwifi/src/firmware/blob.rs:53-62`, `gen3_pnvm`).
+
+## Bring-up
+
+```mermaid
+flowchart TD
+  Setup["setup: claim, BAR0, staging grant"] --> Check{"transport values"}
+  Check -- no --> NoAir["NoAirPath"]
+  Check -- yes --> Take["take the NIC, read CSR_HW_REV"]
+  Take --> Pick["select firmware"]
+  Pick -- not bundled --> NoAir
+  Pick --> Boot["boot to ALIVE"]
+  Boot --> Up["post-ALIVE commands"]
+  Up --> Scan["passive scan"]
+  Up --> Join["joins, when can_join"]
+```
+
+1. Setup claims the function and maps BAR0. It binds INTx when firmware routed a line, else one MSI-X vector, else runs polled (`userland/capsule_driver_iwlwifi/src/setup/irq_plan.rs:17-25`, `ERRNO_STALE`). It maps a 64-page staging grant (`userland/capsule_driver_iwlwifi/src/constants/pci.rs:16-20`, `FW_STAGING_SIZE`).
+2. The [hardware broker](../../overview/glossary.md#hardware-broker) gives a network-class device at most 64 pages per DMA grant (`src/hardware/broker/dma/limits.rs:31-37`, `dma_page_limit_for_class`), so the driver spreads its memory over several grants.
+3. `bring_up` takes the NIC, reads CSR_HW_REV and CSR_HW_RF_ID, selects the image and maps the control, receive and firmware regions (`userland/capsule_driver_iwlwifi/src/server/radio/bring.rs:102-135`, `map_all`).
+4. It boots the firmware to ALIVE, then runs the post-ALIVE commands (`userland/capsule_driver_iwlwifi/src/server/radio/bring.rs:149-196`, `boot`, `up`).
+5. After ALIVE every device interrupt is masked and the driver polls; the cause registers still latch for the error checks (`userland/capsule_driver_iwlwifi/src/firmware/gen3/start.rs:138-146`, `mask_interrupts`). The interrupt bound at setup is acknowledged once there and never waited on.
+6. It checks that the firmware runs every join command at the layout the driver encodes; if not, it only scans (`userland/capsule_driver_iwlwifi/src/server/radio/bring.rs:209-220`, `check_join_api`).
+
+A failure after the firmware was told where its memory is stops the device and keeps the grants mapped, so nothing the device may still write to is handed back (`userland/capsule_driver_iwlwifi/src/server/radio/bring.rs:149-164`, `stop_device`). A firmware that fails while running is not restarted (`userland/capsule_driver_iwlwifi/src/firmware/gen3/outcome.rs:57-59`, `Lost`).
