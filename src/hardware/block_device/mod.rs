@@ -14,15 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod announce;
 mod backend;
 mod capacity;
 mod error;
+mod fit;
 mod flush;
 mod geometry;
+mod identify;
 mod map_ahci;
 mod map_nvme;
+mod map_usb_msc;
 mod map_virtio;
+mod mirror;
+mod nvme_fit;
 mod read;
+mod seen;
 mod select;
 mod types;
 mod write;
@@ -33,6 +40,6 @@ pub use error::BlockDeviceError;
 pub use flush::flush;
 pub use geometry::geometry;
 pub use read::read;
-pub use select::selected;
+pub use select::{chosen, selected};
 pub use types::BlockGeometry;
 pub use write::write;
