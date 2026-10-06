@@ -18,39 +18,15 @@ use core::sync::atomic::Ordering;
 
 use super::state::HPET_BASE;
 
+/// The mapped HPET base, from the ACPI HPET table only (see `time::hpet`).
 pub(crate) fn detect_hpet() -> Option<u64> {
-    const HPET_DEFAULT_BASE: u64 = 0xFED00000;
-    if is_valid_hpet_base(HPET_DEFAULT_BASE) {
-        return Some(HPET_DEFAULT_BASE);
-    }
-    for base in (0xFED00000..=0xFED10000).step_by(0x1000) {
-        if is_valid_hpet_base(base) {
-            return Some(base);
-        }
-    }
-    if let Some(acpi_base) = try_acpi_hpet_detection() {
-        if is_valid_hpet_base(acpi_base) {
-            return Some(acpi_base);
-        }
-    }
-    None
+    super::super::hpet::detect_hpet()
 }
 
+/// Whether `base` is the HPET block `detect_hpet` mapped. A physical
+/// address is never read here: it is only compared.
 pub fn is_valid_hpet_base(base: u64) -> bool {
-    unsafe {
-        let capabilities_ptr = base as *const u64;
-        let capabilities = core::ptr::read_volatile(capabilities_ptr);
-        let vendor_id = (capabilities >> 48) as u16;
-        matches!(vendor_id, 0x8086 | 0x1022 | 0x10DE | 0x1002) || vendor_id != 0
-    }
-}
-
-fn try_acpi_hpet_detection() -> Option<u64> {
-    if crate::arch::x86_64::acpi::is_initialized() {
-        crate::arch::x86_64::acpi::hpet_address()
-    } else {
-        None
-    }
+    base != 0 && detect_hpet() == Some(base)
 }
 
 pub(crate) fn configure_hpet_for_timing(hpet_base: u64) {

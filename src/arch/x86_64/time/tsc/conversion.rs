@@ -16,75 +16,71 @@
 
 use super::state::CALIBRATION;
 
+/*
+ * x * mul / div in 128 bits, saturating at u64::MAX. In 64 bits these
+ * products overflow: ns * freq after about 6 s at 3 GHz, ticks * 1_000_000
+ * after about 1.7 h of uptime. The kernel is built with overflow checks, so
+ * an overflow is a panic, not a wrong time.
+ */
 #[inline]
-pub fn ticks_to_ns(ticks: u64) -> u64 {
-    let freq = CALIBRATION.read().frequency_hz;
-    if freq == 0 {
+fn scale(x: u64, mul: u64, div: u64) -> u64 {
+    if div == 0 {
         return 0;
     }
-    let (result, overflow) = ticks.overflowing_mul(1_000_000_000);
-    if overflow {
-        (ticks / freq) * 1_000_000_000 + ((ticks % freq) * 1_000_000_000) / freq
-    } else {
-        result / freq
-    }
+    u64::try_from(x as u128 * mul as u128 / div as u128).unwrap_or(u64::MAX)
+}
+
+#[inline]
+fn freq() -> u64 {
+    CALIBRATION.read().frequency_hz
+}
+
+#[inline]
+pub fn ticks_to_ns(ticks: u64) -> u64 {
+    scale(ticks, 1_000_000_000, freq())
 }
 
 #[inline]
 pub fn ticks_to_us(ticks: u64) -> u64 {
-    let freq = CALIBRATION.read().frequency_hz;
-    if freq == 0 {
-        return 0;
-    }
-    (ticks * 1_000_000) / freq
+    scale(ticks, 1_000_000, freq())
 }
 
 #[inline]
 pub fn ticks_to_ms(ticks: u64) -> u64 {
-    let freq = CALIBRATION.read().frequency_hz;
-    if freq == 0 {
-        return 0;
-    }
-    (ticks * 1_000) / freq
+    scale(ticks, 1_000, freq())
 }
 
 #[inline]
 pub fn ns_to_ticks(ns: u64) -> u64 {
-    let freq = CALIBRATION.read().frequency_hz;
-    if freq == 0 {
+    let f = freq();
+    if f == 0 {
         return 0;
     }
-    (ns * freq) / 1_000_000_000
+    scale(ns, f, 1_000_000_000)
 }
 
 #[inline]
 pub fn us_to_ticks(us: u64) -> u64 {
-    let freq = CALIBRATION.read().frequency_hz;
-    if freq == 0 {
+    let f = freq();
+    if f == 0 {
         return 0;
     }
-    (us * freq) / 1_000_000
+    scale(us, f, 1_000_000)
 }
 
 #[inline]
 pub fn ms_to_ticks(ms: u64) -> u64 {
-    let freq = CALIBRATION.read().frequency_hz;
-    if freq == 0 {
+    let f = freq();
+    if f == 0 {
         return 0;
     }
-    (ms * freq) / 1_000
+    scale(ms, f, 1_000)
 }
 
 pub fn tsc_to_ns(tsc_ticks: u64, tsc_freq: u64) -> u64 {
-    if tsc_freq == 0 {
-        return 0;
-    }
-    (tsc_ticks * 1_000_000_000) / tsc_freq
+    scale(tsc_ticks, 1_000_000_000, tsc_freq)
 }
 
 pub fn ns_to_tsc(nanoseconds: u64, tsc_freq: u64) -> u64 {
-    if tsc_freq == 0 {
-        return 0;
-    }
-    (nanoseconds * tsc_freq) / 1_000_000_000
+    scale(nanoseconds, tsc_freq, 1_000_000_000)
 }
