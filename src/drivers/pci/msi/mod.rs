@@ -17,6 +17,10 @@
 mod controller;
 mod core;
 mod msix;
+mod msix_entry;
+mod msix_mask;
+mod msix_window;
+mod msix_write;
 
 pub use controller::{
     disable_legacy_interrupt, enable_legacy_interrupt, get_interrupt_line, get_interrupt_pin,
@@ -26,8 +30,7 @@ pub use core::{
     configure_msi, configure_msi_multi, disable_msi, is_msi_enabled, mask_msi_vector,
     unmask_msi_vector,
 };
-pub use msix::{
-    configure_msix, configure_msix_single, disable_msix, enable_msix, is_msix_enabled,
-    is_msix_vector_pending, mask_all_msix, mask_msix_vector, unmask_all_msix, unmask_msix_vector,
-    zero_msix_vector,
-};
+pub use msix::{configure_msix, configure_msix_single, disable_msix, enable_msix, is_msix_enabled};
+pub use msix_entry::{is_msix_vector_pending, zero_msix_vector};
+pub use msix_mask::{mask_all_msix, mask_msix_vector, unmask_all_msix, unmask_msix_vector};
+pub use msix_write::write_msix_message;
