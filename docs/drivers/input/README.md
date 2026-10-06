@@ -40,3 +40,11 @@ Two groups of keys never reach the focused window:
 
 - Ctrl+Alt+Esc goes to `desktop_shell`, which brings Process Manager forward to end a window that misbehaves (`is_reserved_chord`, `userland/capsule_input_router/src/route/chord.rs:34-36`).
 - Mute, Volume Down, Volume Up and Power go to `desktop_shell` whatever has focus (`is_shell_key`, `userland/capsule_input_router/src/route/shell_keys.rs:32-34`). [Audio](../audio.md) says what the volume keys do. The Power key, from a keyboard or from the ACPI power button, only shows the notice `Power off is not available from the desktop`: the desktop has no way to power off in 0.9.2 (`POWER_OFF_UNAVAILABLE`, `userland/capsule_desktop_shell/src/state/system_key.rs:42-47`).
+
+## Keyboard layouts
+
+The keyboard drivers turn a key into its final character themselves, because nothing downstream applies Shift or a layout. The PS/2 driver keeps the active layout in `LAYOUT_INDEX` (`userland/capsule_driver_ps2_input/src/keymap/active.rs:28`), and the USB HID driver has the same `cycle` (`userland/capsule_driver_usb_hid/src/hid/active.rs:43`).
+
+Both use the tables in `nonos_keymap`: US, UK, German, French AZERTY, Spanish and Italian (`Layout`, `userland/nonos_keymap/src/layout.rs:21-28`). Setup offers exactly these six (`POLICY_LAYOUTS`, `userland/nonos_keymap/src/policy.rs:28`). A layout index with no table maps to nothing, and the driver keeps the layout it has (`from_policy`, `userland/nonos_keymap/src/policy.rs:32-42`).
+
+The drivers read the layout from the [policy store](../../overview/glossary.md#policy-store) at most once a second (`POLICY`, `userland/capsule_driver_ps2_input/src/keymap/active.rs:31`). Ctrl+Alt+Space moves to the next layout in the order above, and the driver consumes that chord, so no application sees it (`cycle`, `userland/capsule_driver_ps2_input/src/poll/absorb.rs:66-79`). [Keyboard layouts](../../using/keyboard-layouts.md) is the guide for people at the keyboard.
