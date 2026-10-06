@@ -26,3 +26,9 @@ pub(super) fn trace(name: &str, label: &[u8]) {
     crate::sys::serial::print(b" ");
     crate::sys::serial::println(label);
 }
+
+/// Mark that `name`'s endpoint collided with one already registered.
+pub(super) fn collided(name: &str) -> super::super::super::spec::SpawnError {
+    crate::sys::bench::mark_named(b"capsule_endpoint_collision", name.as_bytes());
+    super::super::super::spec::SpawnError::EndpointCollision
+}
