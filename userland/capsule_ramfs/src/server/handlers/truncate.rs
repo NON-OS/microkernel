@@ -18,7 +18,9 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use crate::handles::{HandleError, HandleTable};
-use crate::protocol::{encode_response, read_u64_le, Request, EACCES, EINVAL, EIO, ENOENT};
+use crate::protocol::{
+    encode_response, read_u64_le, Request, EACCES, EFBIG, EINVAL, EIO, ENOENT, ENOSPC,
+};
 use crate::store::{Store, StoreError};
 
 pub fn truncate(
@@ -47,5 +49,7 @@ pub fn truncate(
         Ok(()) => encode_response(req.seq, 0, &[]),
         Err(StoreError::NotFound) => encode_response(req.seq, ENOENT, &[]),
         Err(StoreError::CryptoFailure) => encode_response(req.seq, EIO, &[]),
+        Err(StoreError::TooLarge) => encode_response(req.seq, EFBIG, &[]),
+        Err(StoreError::Full) => encode_response(req.seq, ENOSPC, &[]),
     }
 }
