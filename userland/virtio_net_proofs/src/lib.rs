@@ -8,6 +8,7 @@
 
 #[path = "../../capsule_driver_virtio_net/src/constants/mod.rs"]
 pub mod constants;
+pub mod modern;
 #[path = "../../capsule_driver_virtio_net/src/protocol/mod.rs"]
 pub mod protocol;
 pub mod queue;
@@ -16,6 +17,10 @@ pub mod queue;
 #[allow(clippy::missing_safety_doc)]
 pub mod rx;
 
+#[cfg(test)]
+mod mac_tests;
+#[cfg(test)]
+mod station_tests;
 #[cfg(test)]
 mod net_tests;
 
