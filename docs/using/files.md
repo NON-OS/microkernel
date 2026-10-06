@@ -70,3 +70,11 @@ Files works with the mouse and with single keys. Press `?` for the key list; any
 - The header's undo button reverses a new file, new folder, rename, permission change, paste, move or duplicate, and says whether all, part or none of it was put back.
 - A delete cannot be undone. There is no trash, so a delete also empties the undo list.
 - A folder whose listing failed shows `Files are not available` with the reason, never an empty folder.
+
+## Limits of the file store
+
+The file store refuses a write with "no room" (`ENOSPC`) past these limits, instead of failing as a whole (`userland/capsule_vfs/src/store/fdtable/budget.rs`):
+
+- 2048 names in all, and one program may create at most a quarter of them.
+- 64 MiB for one file.
+- 160 MiB for all files together (`DATA_BYTES_MAX`).
