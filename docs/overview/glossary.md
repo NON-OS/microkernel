@@ -107,3 +107,7 @@ A capsule, built from a `userland/capsule_driver_*` crate, that drives one kind 
 ## Endpoint
 
 A named IPC address with a port. A capsule's manifest declares its service endpoint, which others send to, and its reply endpoint; the kernel's service registry records each with the pid that serves it and the capability bits a sender must hold. Explained in [IPC](../kernel/ipc.md#the-model). Code: `src/services/registry/endpoint.rs`, `src/security/capsule_manifest/schema/endpoint.rs`.
+
+## Enrollment
+
+Committing a set of measurements, such as the BLAKE3 hash of every capsule's ELF, to one Merkle policy tree, then writing its root and a trailer for each member. The seal runs one enrollment for the capsule set and one each for the kernel and the loader; each draws a fresh pad seed, so the same members give a new root every time. Explained in [STARK attestation](../security/stark-attestation.md#who-makes-the-trailers). Code: `nonos-stark-enroll/src/commands.rs`.
