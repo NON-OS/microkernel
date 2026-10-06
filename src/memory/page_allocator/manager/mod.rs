@@ -20,8 +20,10 @@ mod api;
 mod dealloc;
 mod globals;
 mod mapping;
+mod sized;
 mod stats;
 
-pub use api::{allocate_page, allocate_pages, allocate_sized, deallocate_page, init};
+pub use api::{allocate_pages, init};
 pub use api::{get_allocation_count, get_page_info, get_stats, is_allocated};
 pub use api::{get_peak_pages, get_total_bytes_allocated, is_initialized};
+pub use sized::{allocate_sized, deallocate_page};
