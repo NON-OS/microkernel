@@ -50,3 +50,7 @@ The build picks the rest by architecture:
 - `build.rs` chooses the linker script in `script_name` (`build.rs:335-339`).
 - `user_target` picks the capsule target that matches the kernel and panics when `NONOS_USER_TARGET` names another architecture, because the kernel would load binaries its CPU cannot run (`build.rs:594-604`).
 - The static checks count `cfg(target_arch` sites outside `src/arch` into `cfg_count` and fail when the count grows past its baseline (`nonos-ci/run-static-checks.sh:46-47`). At this commit it already has: 234 against 116, as [Code style](../contributing/code-style.md) says.
+
+## Starting work on a port
+
+Read the page for the port first: each one lists what is missing, read from the code. No page here gives a date for either port. [Contributing](../contributing/README.md) and [Review](../contributing/review.md) describe how a change gets in.
