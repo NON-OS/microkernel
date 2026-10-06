@@ -35,14 +35,14 @@ mod authority;
 mod consent;
 mod enrol;
 mod error;
+mod local;
 mod pending;
 mod resolve;
 mod table;
 
 pub use authority::Authority;
-pub use enrol::{
-    confirm_dev_root, dev_root_count, request_dev_root, request_local_build_root,
-};
+pub use enrol::{confirm_dev_root, request_dev_root, request_local_build_root};
 pub use error::EnrolError;
+pub use local::{grant_local_root, restore_local_root, revoke_local_root};
 pub use resolve::{authority_for, enrolled_roots};
 pub use table::MAX_DEV_ROOTS;
