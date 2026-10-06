@@ -112,3 +112,13 @@ To stop the machine for a panic, `send_panic_ipi` sends every other CPU an NMI, 
 - The tick preempts only user code. A process looping inside the kernel without yielding keeps its CPU.
 - A CPU is started once, at boot. Nothing starts it again after it halts.
 - Secondary CPU stacks are mapped back to back by `allocate`, with no guard page between them (`src/smp/init/stack.rs:22-32`).
+
+## See also
+
+- [Timers](timers.md)
+- [Futex](futex.md)
+- [Memory and paging](memory-and-paging.md)
+- [Processes and spawn](processes-and-spawn.md)
+- [Panic and boot stop](panic-and-boot-stop.md)
+- [Linux personality](../userland/linux-personality.md)
+- [x86_64](../architectures/x86_64.md)
