@@ -75,3 +75,14 @@ Three gates hold sites against a [baseline](../overview/glossary.md#baseline) th
 - Unreachable exports: a kernel `pub fn` that no other file mentions outside an import is found by `unreachable` and listed in `scripts/baselines/unreachable.txt` (`scripts/check_unreachable.py:26-35`). Its docstring gives the reason: a mechanism with no caller can be reviewed, merged and shipped without one line of it running.
 
 Every [proof crate](../overview/glossary.md#proof-crate) must pass `cargo clippy` with `-D warnings` over all its targets, except the crates named in `lintLib` and `lintNone`, two lists that only shrink and that a new crate never joins (`tools/nix/checks.nix:44-62`). Three proof crates fail that at this commit.
+
+## Architecture boundaries
+
+Shared kernel code reaches the CPU through the `ArchOps` trait and the `Arch` alias, not through `crate::arch::x86_64` paths (`src/arch/abi.rs:17-36`). Two counts are meant only to shrink:
+
+- `cfg(target_arch` sites outside `src/arch`, counted into `cfg_count` against 116 in `nonos-ci/baselines/cfg-target-arch-count.txt` (`nonos-ci/run-static-checks.sh:46-47`).
+- `crate::arch::x86_64::` paths outside `src/arch`, counted into `arch_leak_count` against 100 in `nonos-ci/baselines/arch-x86_64-uses.txt` (`nonos-ci/run-static-checks.sh:55-60`).
+
+Both have grown past their baselines. The same `grep` the script runs counts 234 and 135 at this commit, so `static-tree` fails on both. Do not add to either.
+
+[Architectures](../architectures/README.md) describes the boundary.
