@@ -154,3 +154,12 @@ Not tested in this release.
 - A function a refinement theorem names: the extraction job and the Lean build.
 - A changed ABI number or capability bit: `static-abi`.
 - A parser of untrusted input that has a fuzz target: that target, for a few minutes.
+
+## See also
+
+- [Code style](code-style.md)
+- [Review](review.md)
+- [CI](../build/ci.md)
+- [The Nix flake](../build/nix-flake.md)
+- [Reproducible builds](../build/reproducible-builds.md)
+- [Contributing](README.md)
