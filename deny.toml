@@ -29,6 +29,7 @@ ignore = []
 allow = [
     "0BSD",                          # smoltcp 0.11.0, managed 0.8.0 (BSD Zero Clause; OSI-approved, public-domain-equivalent)
     "AGPL-3.0",                      # this crate
+    "AGPL-3.0-or-later",             # nonos-boot-measure, nonos-attest-path, STARKs nox_verify
     "Apache-2.0",
     "Apache-2.0 WITH LLVM-exception",
     "BSD-3-Clause",
@@ -49,6 +50,8 @@ license-files = [{ path = "LICENSE", hash = 0xbd0eed23 }]
 [bans]
 multiple-versions = "warn"
 wildcards = "deny"
+# Path dependencies are workspace crates, all publish = false.
+allow-wildcard-paths = true
 highlight = "all"
 allow = []
 deny = [
