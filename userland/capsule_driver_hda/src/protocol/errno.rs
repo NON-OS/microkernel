@@ -17,3 +17,6 @@
 pub const E_OK: i32 = 0;
 pub const E_AGAIN: i32 = -11;
 pub const E_INVAL: i32 = -22;
+/// The driver is up but this machine's audio is not one it can play
+/// through; `OP_OUTPUT_STATUS` says why.
+pub const E_NODEV: i32 = -19;

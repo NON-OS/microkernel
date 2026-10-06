@@ -13,10 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Every codec STATESTS reported, asked for its identity over the CORB.
+//!
+//! These used to go through the Immediate Command registers while the CORB
+//! was already running. The specification has software use one interface or
+//! the other, not both at once (HDA 1.0a section 3.4.3), and the Immediate
+//! Command interface is optional: Linux uses it only as a fallback. Every
+//! present codec is probed, at whatever address it answers; the analog codec
+//! is not always at 0, and the display codec is usually at 2.
 
-use crate::constants::PARAM_VENDOR_ID;
-use crate::controller::immediate;
-use crate::regs::Regs;
+use crate::constants::{PARAM_VENDOR_ID, VERB_GET_PARAMETER};
+use crate::controller::compose_verb;
+use crate::controller::verb::Link;
 
 pub const MAX_CODECS: usize = 15;
 
@@ -29,7 +37,7 @@ pub struct CodecProbe {
     pub device_id: u16,
 }
 
-pub fn probe(regs: Regs, statests: u16) -> [CodecProbe; MAX_CODECS] {
+pub fn probe(link: &mut Link, statests: u16) -> [CodecProbe; MAX_CODECS] {
     let mut out = [empty(); MAX_CODECS];
     let mut address = 0u8;
     while (address as usize) < MAX_CODECS {
@@ -37,15 +45,15 @@ pub fn probe(regs: Regs, statests: u16) -> [CodecProbe; MAX_CODECS] {
         out[address as usize] = if present == 0 {
             CodecProbe { address, present, ok: 0, vendor_id: 0, device_id: 0 }
         } else {
-            read_vendor(regs, address)
+            read_vendor(link, address)
         };
-        address = address.wrapping_add(1);
+        address += 1;
     }
     out
 }
 
-fn read_vendor(regs: Regs, address: u8) -> CodecProbe {
-    match immediate::get_parameter(regs, address, 0, PARAM_VENDOR_ID) {
+fn read_vendor(link: &mut Link, address: u8) -> CodecProbe {
+    match link.send(compose_verb(address, 0, VERB_GET_PARAMETER, PARAM_VENDOR_ID)) {
         Ok(id) => CodecProbe {
             address,
             present: 1,

@@ -21,18 +21,20 @@ mod errno;
 mod header;
 mod limits;
 mod ops;
+mod output;
 
-pub use decode::decode_request;
+pub use decode::{decode_request, refused};
 pub use encode::{encode_response_header, write_status};
 pub use endpoint::{KERNEL_REPLY_ENDPOINT, SERVICE_NAME};
-pub use errno::{E_AGAIN, E_INVAL, E_OK};
+pub use errno::{E_AGAIN, E_INVAL, E_NODEV, E_OK};
 pub use header::{Request, HDR_LEN, RESP_HDR_LEN};
 pub use limits::{
     CODEC_ENTRY_BYTES, CODEC_LIST_HEADER_BYTES, CODEC_MASK_PAYLOAD_LEN,
     CONTROLLER_INFO_PAYLOAD_LEN, MAX_CODEC_LIST_BYTES, MAX_PCM_CHUNK, MAX_STREAM_LAYOUT_BYTES,
-    STATUS_LEN, STREAM_ENTRY_BYTES, STREAM_LAYOUT_HEADER_BYTES,
+    OUTPUT_STATUS_PAYLOAD_LEN, STATUS_LEN, STREAM_ENTRY_BYTES, STREAM_LAYOUT_HEADER_BYTES,
 };
 pub use ops::{
-    OP_CODEC_LIST, OP_CODEC_MASK, OP_CONTROLLER_INFO, OP_HEALTHCHECK, OP_PLAY_TONE,
+    OP_CODEC_LIST, OP_CODEC_MASK, OP_CONTROLLER_INFO, OP_HEALTHCHECK, OP_OUTPUT_STATUS, OP_PLAY_TONE,
     OP_STREAM_LAYOUT, OP_STREAM_START, OP_STREAM_STOP, OP_WRITE_PCM,
 };
+pub use output::{write_output_status, OutputStatus, OUT_HEADPHONE, OUT_LINE, OUT_SPEAKER};

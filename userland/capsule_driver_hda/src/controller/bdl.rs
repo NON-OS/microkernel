@@ -18,6 +18,15 @@ pub const PERIOD_BYTES: u64 = 0x2000;
 pub const N_PERIODS: usize = 4;
 pub const RING_BYTES: u64 = PERIOD_BYTES * N_PERIODS as u64;
 pub const BDL_IOC: u32 = 1;
+/// The BDL itself, and each buffer it names, must start on a 128-byte
+/// boundary (HDA 1.0a sections 3.3.37 and 3.6.2). The list sits at the start
+/// of its page and every period is a multiple of 128 bytes from a page-aligned
+/// ring, so both hold by construction.
+pub const BDL_ALIGN: u64 = 128;
+/// The DMA position buffer shares the BDL's page, 128-byte aligned as
+/// DPLBASE requires, one 8-byte entry per stream descriptor.
+pub const POSBUF_OFFSET: u64 = 0x800;
+const _: () = assert!(PERIOD_BYTES.is_multiple_of(BDL_ALIGN) && POSBUF_OFFSET.is_multiple_of(BDL_ALIGN));
 
 pub struct BdlEntry {
     pub addr: u64,
