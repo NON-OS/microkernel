@@ -100,3 +100,30 @@ Every app window has a title bar with three round buttons at its left end: close
 - The first new window opens in the middle of the work area, between the menu bar and the dock. Each later one, in runs of five, steps down and to the right so its title bar stays reachable (`userland/capsule_wm/src/server/handlers/window_open/cascade.rs`).
 
 A window that hangs, or takes every key, can always be ended: press `Ctrl+Alt+Esc` to bring Processes forward and end it there.
+
+## Apps that ship
+
+These are the apps the dock and the Launchpad know, in dock order (`LAUNCHER_APPS` in `userland/capsule_desktop_shell/src/state/apps.rs`):
+
+| Label | Service | What it is |
+|---|---|---|
+| Terminal | `app.terminal` | The shell, with tabs and jobs. See [Terminal](terminal.md). |
+| Files | `app.file_manager` | The file browser. See [Files](files.md). |
+| Editor | `app.text_editor` | A text and code editor. |
+| Settings | `app.settings` | The settings window. See [Settings](settings.md). |
+| Processes | `app.process_manager` | Every process with its CPU, memory, capabilities and state; it can end one. |
+| About | `app.about` | The machine's account of itself. See [About and its Proofs screen](#about-and-its-proofs-screen). |
+| Marketplace | `app.store` | Browse and install signed apps. See [Marketplace](marketplace.md). |
+| Calculator | `app.calculator` | Arithmetic. |
+| Wallet | `app.nonos_wallet` | Keys and payments. See [Wallet](wallet.md). |
+| Browser | `app.browser` | Web pages over the network you chose. See [Privacy networks](privacy-network.md). |
+| Qwen | `tool.qwen` | A chat with the local Qwen model. It is not a capsule: the [Linux personality](../overview/glossary.md#linux-personality) runs it in a window of its own. See [Local model](local-ai.md). |
+| Music | `app.audio_player` | The music player, titled `Resonare`. See [Sound and media](audio.md). |
+| Video | `app.video_player` | The video player. See [Sound and media](audio.md). |
+| Snake | `app.snake` | A game. |
+| Install | `app.install` | Writes NONOS onto a disk you choose. See [Install to disk](../install/install-to-disk.md). |
+| Image Viewer | `app.image_viewer` | A gallery of the PNG, JPEG, BMP and GIF files in the file store, and a view of one picture. It has no dock tile: open it from the Launchpad, or by opening a picture. |
+
+First-boot setup can turn off eight optional groups: Browser, Wallet, the app store (Marketplace), Files, the text editor, Calculator, the media apps (Music, Video, Image Viewer), and Linux with Qwen (`OPTIONAL` in `userland/policy_proto/src/apps/table.rs`). Setup shows the desktop, Terminal, Settings and Processes as always on, and About, Snake and Install have no switch either. Settings has no switch to turn an optional app back on in this release: the `Apps turned off at setup` field is not among the fields it lists (`ALL_FIELDS` in `userland/capsule_settings/src/settings/schema/all_fields.rs`).
+
+The seven command-line tools in `userland/apps.list` also have Launchpad tiles: `grex`, `dotenv-linter`, `pastel`, `jsonxf`, `tokei`, `huniq` and `csview`. They run in the Terminal.
