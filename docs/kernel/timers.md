@@ -76,3 +76,9 @@ At boot `sys::clock` takes its epoch from the loader's UEFI time, else from the 
 | `MkTimeAdjust` | `0x4441544D` | sets the correction so the wall clock reads `correct_ms`; -22 for a value before 2025-01-01 or after 2100-01-01 |
 
 The numbers are the tags `SYS_TIME_MILLIS`, `SYS_TIME_MONOTONIC`, `SYS_TIME_RTC` and `SYS_TIME_ADJUST` (`src/syscall/microkernel/numbers.rs:44-47`). The handlers are `sys_time_millis`, `sys_time_monotonic`, `sys_time_rtc` and `sys_time_adjust` (`src/syscall/microkernel/time.rs:33-95`). The first three need only a valid token. `MkTimeAdjust` needs the `TimeSet` [capability](../overview/glossary.md#capability), checked by `can_set_time` (`src/syscall/contract/cap_table/mk.rs:80`, `abi/syscalls.toml:850-854`). The kernel has no network time client of its own; a [capsule](../overview/glossary.md#capsule) that holds `TimeSet` can correct the clock.
+
+## Present but not used
+
+- The HPET code in `detect_hpet` maps the block the ACPI HPET table names and checks that it answers like one (`src/arch/x86_64/time/hpet.rs:30-74`). The timer setups that would use it, such as `init_with_acpi` (`src/arch/x86_64/api.rs:31-37`) and the timer module's `init` (`src/arch/x86_64/time/timer/init.rs:29-36`), are not called on the boot path.
+- `src/nonos_time` is not part of the kernel crate: the module list ending in `usercopy` and `userspace` has no entry for it (`src/lib.rs:58-83`).
+- The local APIC timer runs in periodic mode. The TSC-deadline mode in `timer_enable` is not what `setup_timer` uses (`src/arch/x86_64/interrupt/apic/timer_ops.rs:24-33`).
