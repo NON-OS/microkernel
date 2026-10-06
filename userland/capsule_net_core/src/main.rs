@@ -19,6 +19,7 @@
 
 extern crate alloc;
 
+mod autojoin;
 mod device;
 mod handles;
 mod iface;

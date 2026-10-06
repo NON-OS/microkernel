@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::device::budget;
-use crate::device::tx;
+use crate::device::tx_hold;
 use crate::device::types::NicTxToken;
 
 impl smoltcp::phy::TxToken for NicTxToken {
@@ -25,9 +24,7 @@ impl smoltcp::phy::TxToken for NicTxToken {
     {
         let mut buf = alloc::vec![0u8; len];
         let r = f(&mut buf);
-        if budget::poll_open() {
-            tx::send_frame(self.port, &buf);
-        }
+        tx_hold::send_or_hold(self.port, buf);
         r
     }
 }

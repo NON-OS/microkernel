@@ -23,5 +23,7 @@ pub const OP_LINK_STATUS: u16 = 2;
 pub const OP_MAC_ADDRESS: u16 = 3;
 pub const OP_TX_PACKET: u16 = 4;
 pub const OP_RX_PACKET: u16 = 5;
+/// Every frame the driver holds, in one reply; see device::rx_batch.
+pub const OP_RX_BATCH: u16 = 6;
 
 pub const OP_LEASE_STATUS: u16 = 3;

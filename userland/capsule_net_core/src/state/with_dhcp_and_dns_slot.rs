@@ -17,16 +17,12 @@
 use smoltcp::iface::{Interface, SocketHandle, SocketSet};
 
 use crate::state::globals::NET;
+use crate::state::types::DnsSockets;
 
 pub fn with_dhcp_and_dns_slot<R>(
-    f: impl FnOnce(
-        &mut Interface,
-        &mut SocketSet<'static>,
-        SocketHandle,
-        &mut Option<SocketHandle>,
-    ) -> R,
+    f: impl FnOnce(&mut Interface, &mut SocketSet<'static>, SocketHandle, &mut DnsSockets) -> R,
 ) -> Option<R> {
     let mut guard = NET.lock();
     let state = guard.as_mut()?;
-    Some(f(&mut state.iface, &mut state.sockets, state.dhcp_handle, &mut state.dns_handle))
+    Some(f(&mut state.iface, &mut state.sockets, state.dhcp_handle, &mut state.dns))
 }

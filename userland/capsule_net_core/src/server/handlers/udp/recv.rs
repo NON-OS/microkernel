@@ -18,10 +18,15 @@ use smoltcp::socket::udp;
 use smoltcp::wire::IpAddress;
 
 use crate::protocol::udp::{E_BAD_LEN, E_NO_SOCKET, E_OK, E_RX_EMPTY, MAGIC_NUDP, OP_RECV};
-use crate::server::parse_req::{Request, IPC_BUF_MAX};
+use crate::server::parse_req::Request;
 use crate::server::respond::reply;
 use crate::state;
 use crate::udp_ports;
+
+/* The most of one datagram handed back, as before receives grew for TCP.
+ * UDP callers do not state what they can hold, so a datagram longer than
+ * this is cut to it, as it always was. */
+const DATAGRAM_MAX: usize = 1518;
 
 pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() < 2 {
@@ -44,7 +49,7 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
             let IpAddress::Ipv4(v4) = meta.endpoint.addr;
             let src_ip = v4.0;
             let src_port = meta.endpoint.port;
-            let len = payload.len().min(IPC_BUF_MAX - 6);
+            let len = payload.len().min(DATAGRAM_MAX);
             let mut out = alloc::vec![0u8; 6 + len];
             out[0..4].copy_from_slice(&src_ip);
             out[4..6].copy_from_slice(&src_port.to_le_bytes());
