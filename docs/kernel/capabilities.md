@@ -131,3 +131,12 @@ A capability says what kind of call a process may make, not whom it may talk to.
 ```
 $ python3 scripts/check_syscall_caps.py
 ```
+
+## See also
+
+- [System calls](syscalls.md): the entry path that runs this check.
+- [Capability ABI](../abi/capabilities.md): the published bits and groups for capsule authors.
+- [Manifests and capabilities](../userland/manifests-and-capabilities.md): how a capsule asks for bits.
+- [IPC](ipc.md): endpoint requirements, held endpoints and the peer list.
+- [Processes and capsule spawn](processes-and-spawn.md): where a capsule's token is installed.
+- [Boot modes](../install/boot-modes.md): the profiles that remove `Network`.
