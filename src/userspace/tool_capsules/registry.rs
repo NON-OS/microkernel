@@ -8,22 +8,27 @@
 
 extern crate alloc;
 
+#[cfg(feature = "nonos-tool-capsules")]
 use alloc::vec;
 use alloc::vec::Vec;
 
 use super::spec::ToolCapsule;
-use crate::sys::boot_log;
+
+/// The name the terminal's `linux` command runs. It names no embedded tool:
+/// it is the Linux personality the kernel runs itself, so it is named here
+/// beside the generated list rather than in `userland/apps.list`.
+pub(super) const LINUX_TOOL: &[u8] = b"tool.linux";
 
 /// Every embedded tool capsule, generated from `userland/apps.list`. Off the
 /// `nonos-tool-capsules` feature (core builds that do not cross-compile the
 /// tool binaries) the list is empty, so nothing is `include_bytes`d.
 #[cfg(not(feature = "nonos-tool-capsules"))]
-fn embedded_tools() -> Vec<ToolCapsule> {
+pub(super) fn embedded_tools() -> Vec<ToolCapsule> {
     Vec::new()
 }
 
 #[cfg(feature = "nonos-tool-capsules")]
-fn embedded_tools() -> Vec<ToolCapsule> {
+pub(super) fn embedded_tools() -> Vec<ToolCapsule> {
     vec![
         // nonos-app:begin (generated; do not edit by hand)
         tool_capsule!(
@@ -105,19 +110,4 @@ fn embedded_tools() -> Vec<ToolCapsule> {
             crate::userspace::capsule_install::CLI_CAPS
         ),
     ]
-}
-
-/// Run the embedded tool whose service name matches `name`, parented to the
-/// caller so it can drive the tool's stdin and stdout. `argv` is the NUL
-/// separated argument blob. Returns the tool's pid, or `None`. Tools run on
-/// demand, not at boot: a command-line tool has nothing to do until invoked.
-pub fn run_named(name: &[u8], argv: &[u8]) -> Option<u32> {
-    let tool = embedded_tools().into_iter().find(|t| t.name.as_bytes() == name)?;
-    match tool.spawn_with_args(argv) {
-        Ok(pid) => Some(pid),
-        Err(_) => {
-            boot_log::error("tool capsule spawn failed");
-            None
-        }
-    }
 }
