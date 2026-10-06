@@ -147,3 +147,7 @@ A named, bounded message queue in the kernel into which IPC messages are deliver
 ## IOMMU
 
 The DMA remapping unit, which limits the memory a device can reach. This kernel drives Intel VT-d; its AMD-Vi backend sits behind a feature no build profile turns on, so a device that no unit in service covers, on an AMD-Vi machine among others, goes ahead unconfined and the boot log says so. Explained in [IOMMU](../kernel/iommu.md). Code: `src/hardware/broker/confine/posture.rs`.
+
+## IOMMU domain
+
+A set of I/O page tables the remapping unit applies to the devices attached to it. The hardware broker gives each driver capsule one domain, shared by every PCI device it claims, which maps only the DMA buffers granted to it, so the device faults on everything else. ACPI and platform devices get no domain. Explained in [IOMMU](../kernel/iommu.md#per-capsule-domains). Code: `src/hardware/broker/confine/attach.rs`.
