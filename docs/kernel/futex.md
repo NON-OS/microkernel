@@ -20,3 +20,7 @@ Both need only a valid [capability](../overview/glossary.md#capability) token: `
 | `ERRNO_FAULT` | -14 | wait only: the word cannot be read from user memory |
 
 The values are in `src/syscall/microkernel/errnos.rs:22-35`, where `ERRNO_PERM` is first.
+
+## Who shares a futex
+
+The wait queue is keyed on the pair of thread group and address, `Key` (`src/syscall/microkernel/futex/waiters.rs:23-24`). The threads of one capsule share a thread group, so they meet on the same word. Another capsule that waits at the same numeric address has a different key and never sees their wakes. The queue is one map, `FUTEX_QUEUE`, under one lock, and `tgid_of` finds the caller's group (`src/syscall/microkernel/futex/queue.rs:27-35`).
