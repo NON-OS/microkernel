@@ -1,0 +1,19 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host proofs for the HashX and Equi-X port. The expected values are not
+# produced by this code: they come from the fork's own src/ext/equix, built
+# from vectors/equix_gen.c, from the upstream HashX test suite, and from
+# RFC 7693 for BLAKE2b.
+[package]
+name = "equix_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_equix = { path = "../nonos_equix" }
