@@ -36,3 +36,13 @@ The result is one line on the [serial console](../overview/glossary.md#serial-co
 The numbers depend on the machine; the example is the one in the code's own comment. If the bitmap cannot be set up, `init_fallback` tries fixed spans of 1 MiB to 2 GiB, 1 MiB to 1 GiB and 2 MiB to 256 MiB in turn and prints `[MEM] fallback OK` when one works (`src/kernel_core/init/memory/fallback.rs:20-32`).
 
 Last, `find_low_dma_region` picks usable memory between `DMA_POOL_MIN_BASE`, 16 MiB, and `DMA_CEILING_32BIT`, 4 GiB, for the 32-bit DMA pool, and those frames are reserved so the bitmap never hands them out (`src/kernel_core/init/memory/low_dma.rs:19-23`, `src/kernel_core/init/memory/setup.rs:69-74`). The pool itself belongs to the [hardware broker](hardware-broker.md).
+
+## Allocating and freeing frames
+
+`allocate_frame` in `phys` is a next-fit scan: it starts at a hint just past the last frame it gave out and wraps around the bitmap (`src/memory/phys/allocator/alloc.rs:20-53`). With the `HIGH` flag it scans down from the top instead. With `ZERO` it clears the frame through the [directmap](../overview/glossary.md#directmap) before returning it.
+
+`deallocate_frame` refuses a frame below or above the span, a misaligned address, and a frame that is already free, which it reports as `DoubleFree` (`src/memory/phys/allocator/alloc.rs:55-76`).
+
+`allocate_contiguous` finds a run of free frames, from the bottom or with `HIGH` from the top. With `DMA32` it refuses a run that would end above 4 GiB, before claiming anything (`src/memory/phys/allocator/contiguous.rs:24-66`). The flags are defined in `AllocFlags` (`src/memory/phys/types/flags.rs:19-28`).
+
+Kernel code outside the memory subsystem goes through `frame_alloc`. Its `alloc` draws only from `phys`, and an exhausted bitmap returns nothing (`src/memory/frame_alloc/types/ops.rs:23-41`). There is no fallback pool: the comment in `alloc` records why a second range over 16 MiB to 512 MiB was taken out. `deallocate_frame` zeroes the frame before it frees it (`src/memory/frame_alloc/manager/alloc.rs:33-37`). Page-table builders from the `x86_64` crate draw frames through `X86FrameAllocator`, implemented on the same allocator (`src/memory/frame_alloc/types/x86_shim.rs:29-33`).
