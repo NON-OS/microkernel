@@ -30,5 +30,8 @@ pub const MAX_ETHERNET_FRAME: usize = MTU + ETH_HEADER_LEN;
 
 
 pub const VIRTIO_NET_HDR_LEN: usize = 10;
+// Under VIRTIO_F_VERSION_1 struct virtio_net_hdr always ends in num_buffers,
+// merged receive buffers or not: 12 bytes ahead of every frame, both ways.
+pub const VIRTIO_NET_HDR_LEN_V1: usize = 12;
 
 pub const MAC_LEN: usize = 6;

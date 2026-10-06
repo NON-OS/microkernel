@@ -20,7 +20,9 @@
 
 
 
-use crate::constants::{RING_SLOTS, VIRTIO_NET_HDR_LEN};
+use core::sync::atomic::{fence, Ordering};
+
+use crate::constants::RING_SLOTS;
 use crate::queue::RxQueue;
 
 pub struct Frame<'a> {
@@ -39,25 +41,40 @@ pub unsafe fn take_one(rx: &mut RxQueue) -> Option<Frame<'static>> {
     if used == rx.last_used {
         return None;
     }
+    // The element and the frame are only valid once the index is seen.
+    fence(Ordering::Acquire);
     let ring_pos = rx.last_used % RING_SLOTS;
     let (desc_id, used_len) = rx.used_elem_at(ring_pos);
+    rx.last_used = rx.last_used.wrapping_add(1);
+
+    // An id past the primed buffers names no slot this queue posted. Folding
+    // it into range would read a slot the device may still be writing and
+    // post the wild id back to the device, so the entry is dropped and
+    // nothing is refilled.
+    if desc_id >= u32::from(rx.buf_count) {
+        rx.pending_refill = None;
+        return Some(Frame { bytes: &[] });
+    }
 
 
 
 
 
-    let (payload_ptr, payload_len) = if used_len as usize > VIRTIO_NET_HDR_LEN {
-        let raw = (used_len as usize) - VIRTIO_NET_HDR_LEN;
-        let cap = (rx.buf_len as usize).saturating_sub(VIRTIO_NET_HDR_LEN);
+    // The header is 10 bytes on the legacy transport and 12 under
+    // VERSION_1; a frame starts after whichever this queue was set up for,
+    // and never past the end of its slot.
+    let hdr_len = core::cmp::min(rx.hdr_len, rx.buf_len as usize);
+    let (payload_ptr, payload_len) = if used_len as usize > hdr_len {
+        let raw = (used_len as usize) - hdr_len;
+        let cap = (rx.buf_len as usize).saturating_sub(hdr_len);
         let len = core::cmp::min(raw, cap);
-        let slot = (desc_id as usize) % (rx.buf_count as usize);
-        let base = rx.buf_va.add(rx.buf_len as usize * slot + VIRTIO_NET_HDR_LEN);
+        let slot = desc_id as usize;
+        let base = rx.buf_va.add(rx.buf_len as usize * slot + hdr_len);
         (base as *const u8, len)
     } else {
         (core::ptr::null::<u8>(), 0usize)
     };
 
-    rx.last_used = rx.last_used.wrapping_add(1);
     rx.pending_refill = Some(desc_id as u16);
 
     if payload_len == 0 {

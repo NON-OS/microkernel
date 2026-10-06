@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr::{read_volatile, write_volatile};
+use core::sync::atomic::{fence, Ordering};
 
 use super::TxQueue;
 use crate::constants::{RING_SLOTS, VQ_AVAIL_OFFSET, VQ_DESC_OFFSET};
@@ -34,6 +35,9 @@ impl TxQueue {
             let idx = read_volatile(avail.add(1));
             let pos = (idx % RING_SLOTS) as usize;
             write_volatile(avail.add(AVAIL_RING_OFFSET / 2 + pos), slot);
+            // The frame bytes are plain stores; volatile alone would let them
+            // land after the index that tells the device to read them.
+            fence(Ordering::Release);
             write_volatile(avail.add(1), idx.wrapping_add(1));
         }
     }
