@@ -19,8 +19,9 @@
 
 use crate::install::tar::entries;
 
-/// libffi-3.4.6-r0.apk, decompressed. An independent reader sees one
-/// regular file in it: usr/lib/libffi.so.8.1.4 at 38960 bytes.
+/// libffi-3.4.6-r0.apk, decompressed. Python's tarfile sees two control
+/// files, two directories, the library at 38960 bytes, and its soname
+/// link usr/lib/libffi.so.8 -> libffi.so.8.1.4, each with a pax header.
 const PKG: &[u8] = include_bytes!("../../vectors/libffi.tar");
 
 #[test]

@@ -17,3 +17,26 @@ authors = ["eK@nonos.systems"]
 
 [lib]
 path = "src/lib.rs"
+
+[dependencies]
+# What the mounted installer files link against in the capsule.
+nonos_inflate = { path = "../inflate" }
+nonos_hash = { path = "../nonos_hash" }
+nonos_xz = { path = "../xz" }
+nonos_zstd = { path = "../zstd" }
+sha1 = { version = "0.10", default-features = false }
+# What the installer pins a shipped tier's program by (file/hash_windows.rs).
+blake3 = { version = "1", default-features = false, features = ["pure"] }
+# The route values the policy store holds, for nonos_route_link's pick,
+# compiled by path: the network a guest's stream leaves through.
+nonos_policy_proto = { path = "../policy_proto" }
+
+[dev-dependencies]
+# The verifier the crypto service runs, standing in for the IPC call.
+rsa = { version = "0.9", default-features = false, features = ["sha2"] }
+# Reads the GnuPG vectors the pacman request is checked with.
+nonos_openpgp = { path = "../openpgp" }
+sha1 = { version = "0.10", default-features = false, features = ["oid"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fuzzing)'] }
