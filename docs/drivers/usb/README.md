@@ -14,3 +14,17 @@ How NONOS drives USB: one xHCI capsule owns every USB controller, and class caps
 | Hubs | interface class 09h | `driver.usb_hid0` | The hub comes up; devices behind it are not reached. See [USB hubs](hubs.md). |
 | USB network adapters | per adapter | none in the image | Not in the image. See [USB network adapters](../ethernet/usb-net.md). |
 | Audio devices, cameras | | none | Not supported: no isochronous transfers |
+
+## How the pieces fit
+
+```mermaid
+flowchart LR
+    HC[xHCI controller] --- X[driver.xhci0]
+    X --- H[driver.usb_hid0]
+    X --- M[driver.usb_msc0]
+    H --> Ring[kernel input ring]
+    Ring --> R[input_router]
+    M --> B[kernel block layer]
+```
+
+`driver.xhci0` owns the xHCI controllers: their registers, rings and DMA. It knows nothing of keyboards or disks. The class [capsules](../../overview/glossary.md#capsule) `driver.usb_hid0` and `driver.usb_msc0` read descriptors and run transfers through it. The kernel lets only those two send to it, because the controller carries raw transfers to every device behind it (`src/services/registry/held_table.rs:30-32`, `driver.xhci0`). Keyboard and mouse events go to the kernel input ring and from there to `input_router`; disk sectors go to the kernel block layer.
