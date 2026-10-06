@@ -161,3 +161,20 @@ When the interrupt fires, `on_vector` masks an INTx line at the IO-APIC, bumps t
 `mk_device_release(device_id)` ends the claim. `sys_device_release` first stops the device mastering the bus with `quiesce_held_device`, then tears down the MMIO, IRQ, DMA and PIO grants on it, and drops the claim last (`src/syscall/microkernel/device.rs:84-113`). The broker's `release` turns bus mastering off again, logs whether the bit stuck, and detaches the device from the capsule's domain (`src/hardware/broker/claim/release.rs:24-36`).
 
 A driver that exits or crashes loses the same things. The exit path calls `release_all_for_pid` and the IRQ, DMA and PIO equivalents for the dying process (`src/process/exit/teardown.rs:48-51`).
+
+## Errors
+
+Every call returns a negative errno on failure, from `ERRNO_PERM` (-1) to `ERRNO_STALE` (-116) (`src/syscall/microkernel/errnos.rs:22-54`). The ones a driver meets most:
+
+| Value | Name | Usual cause |
+|---|---|---|
+| -1 | EPERM | not the holder, an MSI-X page in the request, or a device a remapping unit would not take |
+| -12 | ENOMEM | no address space or no vector left |
+| -16 | EBUSY | device or interrupt line already held, or a second MSI or MSI-X bind |
+| -19 | ENODEV | no such device |
+| -22 | EINVAL | bad BAR, range, length or alignment |
+| -34 | ERANGE | a DMA32 buffer above 4 GiB |
+| -95 | ENOTSUP | an unknown flag bit |
+| -116 | ESTALE | an old claim epoch |
+
+[../abi/errors.md](../abi/errors.md) has the full list.
