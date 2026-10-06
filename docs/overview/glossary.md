@@ -263,3 +263,12 @@ The public files the seal writes under `nonos-data/trust`: each capsule's NONOS 
 ## ZeroState
 
 The wipe `terminate` runs before every shutdown and restart. It stops the other CPUs and the claimed devices, wipes DMA buffers, process memory, kernel stacks, file system caches, the key vault, the RAM log and the kernel heap, then hands the machine to the firmware. A kernel panic, a forced power-off or a power cut skips it, and it does not reach kernel statics outside the heap, the data volume key among them. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#wiped-at-shutdown-and-reboot). Code: `src/security/zerostate/terminate.rs`, `src/security/hardening/memory_sanitization/api.rs`.
+
+## See also
+
+- [Overview](README.md)
+- [Architecture](architecture.md)
+- [FAQ](faq.md)
+- [Kernel](../kernel/README.md)
+- [Userland](../userland/README.md)
+- [ABI](../abi/README.md)
