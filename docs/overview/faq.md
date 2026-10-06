@@ -46,3 +46,7 @@ A development image is sealed with throwaway keys and path-only attestation, and
 ## What happens at shutdown
 
 Shutting down or restarting from NONOS runs the [ZeroState](glossary.md#zerostate) wipe first. The kernel stops the other CPUs and every claimed device, then wipes device buffers, process memory, kernel stacks, filesystem caches, keys, its RAM log and its heap, and only then hands the machine to the firmware. A kernel panic halts the machine without the wipe, and so does cutting the power. See [Design principles](design-principles.md#amnesic-by-default).
+
+## Without a TPM
+
+The boot menu describes its Hardened entry as "Standard, and refuses to boot without Secure Boot and a TPM" (`nonos-bootloader/src/bootmenu/entries.rs`). Without a TPM the machine key cannot be derived, so an installed data volume needs a passphrase instead (`src/fs/blockfs_volume/passphrase.rs`), and the keyring cannot seal the wallet's record, so it answers ENOENT and nothing is saved (`userland/capsule_keyring/src/server/handlers/vault_seal.rs`). See [Boot modes](../install/boot-modes.md) and [Measured boot and the TPM](../security/measured-boot-and-tpm.md).
