@@ -62,3 +62,10 @@ Every driver capsule needs a proof crate named after it, apart from the two name
 - Report a security problem privately, never in a public issue. [SECURITY.md](../../SECURITY.md) and [Reporting a vulnerability](../security/reporting-a-vulnerability.md) say how.
 - NONOS is licensed under the GNU Affero General Public License, version 3 or any later version. Source files carry the notice in their header and a new file should too; [Code style](code-style.md) shows the header and says where it is missing.
 - Code for an architecture other than x86_64 is a preview or not supported; read [Architectures](../architectures/README.md) before you work on one.
+
+## Pages in this section
+
+- [Code style](code-style.md): formatting, the file header, comments, file size, and the panic, lint and dependency rules.
+- [Tests and proofs](tests-and-proofs.md): proof crates, static checks, Kani, Lean, fuzzing, how to run each, and the state of the checks at this commit.
+- [Review](review.md): what CI runs on a pull request, who is asked to review it, and what reviewers look for.
+- [Commits](commits.md): the subject line, the body, and what a commit leaves out.
