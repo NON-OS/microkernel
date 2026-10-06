@@ -45,3 +45,13 @@ Every codec that answers is walked: its widgets, pin configurations, connection 
 Realtek codecs get the coefficient writes Linux applies to every codec of a type before EAPD can power the amplifier (`eapd_coef`, `userland/capsule_driver_hda/src/controller/codec/realtek.rs:61-104`). The ones numbered from 215 to 300 are the ALC215, 222, 225, 230, 233, 234, 235, 236, 245, 255, 256, 257, 262, 267, 268, 269 (three of its variants), 272, 273, 274, 275, 280, 282 to 290, 292 to 295, 298, 299 and 300. The same function also lists older and newer parts. The ALC230, 235, 236, 255, 256 and 257, and the codec 19e5:8326, also get Linux's `alc256_init` for the headphone amplifier (`uses_alc256_init`, `userland/capsule_driver_hda/src/controller/codec/realtek.rs:108-113`).
 
 The headphone pin is sensed with GET_PIN_SENSE. With headphones in, a speaker pin is disabled and the headphone and line-out pins stay on (`pin_ctl`, `userland/capsule_driver_hda/src/controller/codec/jack.rs:39-45`).
+
+## Volume and the volume keys
+
+1. A laptop whose Fn volume keys reach the PS/2 driver as E0 20, E0 2E and E0 30 gets them posted as Mute, Volume Down and Volume Up (`KEYCODE_MUTE`, `userland/capsule_driver_ps2_input/src/keymap/set1_e0.rs:28-30`). Mute acts once per press. A USB keyboard's Mute, Volume Up and Volume Down usages, 0x7F, 0x80 and 0x81, post the same codes (`KEYCODE_VOLUME_UP`, `userland/capsule_driver_usb_hid/src/hid/usage_keycode/map.rs:61-63`).
+2. The input router sends these keys to `desktop_shell` whatever window has focus (`is_shell_key`, `userland/capsule_input_router/src/route/shell_keys.rs:32-34`).
+3. The shell steps the level by 5 out of 100. Up and Down stop at the ends and also unmute; Mute flips the mute switch (`after_key`, `userland/capsule_desktop_shell/src/state/volume.rs:55-67`).
+4. The shell sends `OP_SET_VOLUME` with the level and the mute switch (`userland/audio_proto/src/volume.rs:36-38`).
+5. The audio server applies a gain of the level squared, so 50 is about 12 dB down and 0 is silence (`gain`, `userland/capsule_audio/src/volume.rs:37-45`).
+
+The shell shows a notice: "Volume 45%", "Muted", or "No sound output" with the reason (`notice`, `userland/capsule_desktop_shell/src/state/volume.rs:99-116`).
