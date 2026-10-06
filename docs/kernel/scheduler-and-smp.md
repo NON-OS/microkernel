@@ -37,3 +37,18 @@ On the AP, `ap_entry` first claims its start, so an AP the boot CPU gave up on n
 For each AP the boot CPU prints `[SMP] ap=N apic=M` followed by `online`, `no response, parked` or `timeout after entry` (`src/smp/init/ap_unit.rs:66-86`). After the last one, `start_aps` reads `cpus_online` and prints `[SMP] answered=N online=M` (`src/smp/init/ap_start.rs:78-83`), and `start_secondary_cpus` prints one summary, such as `[SMP-PROOF] cpu_count=4 PASS` when any AP came up, `UP` when none did, or `FAIL` with a reason (`src/kernel_core/init/start_secondary.rs:17-47`). The count is the number of CPUs online, the boot CPU included.
 
 An AP runs user processes only if its syscall registers were set and its CPU protections match the boot CPU's. Otherwise `finish` prints `[SMP] cpu=N runs no user code` and the CPU only takes interrupts and shootdowns (`src/smp/ap/user_setup.rs:46-59`).
+
+## Per-CPU state
+
+Each CPU has one 4096-byte `PerCpuData` block in a static array of `MAX_CPUS` blocks (`src/smp/percpu/types.rs:28-68`, `src/smp/percpu/operations.rs:22-25`). Assembly reads four fields at fixed offsets, and `SELF_PTR` and its neighbours are asserted at build time, so the syscall stub fails to build if the struct moves (`src/smp/percpu/layout.rs:33-37`).
+
+| Offset | Field | Use |
+|---|---|---|
+| `0x00` | `self_ptr` | address of this block |
+| `0x08` | `cpu_id` | CPU number |
+| `0x20` | `kernel_stack_top` | the stack the syscall entry switches to |
+| `0x28` | `user_stack_saved` | the user stack saved on syscall entry |
+
+The other fields are read from Rust only: the current process, the time slice and reschedule flag, whether the current tick came from user mode, the active address-space id for shootdown targeting, and the time of the last tick. In kernel mode the GS base points at the block, and in user mode it is zero, as `init_bsp` and the entry paths arrange (`src/smp/percpu/operations.rs:27-52`).
+
+`cpu_id` finds the current CPU from its local APIC id, not from GS, and halts a CPU whose id is in no descriptor rather than guess (`src/smp/cpu_id.rs:24-43`). Guessing 0 would let it act as the boot CPU with that CPU's current process and [capabilities](../overview/glossary.md#capability).
