@@ -11,3 +11,11 @@ The [capsule](../../overview/glossary.md#capsule) takes a PCI function as an AHC
 - never an Intel VMD, which reports the RAID subclass too but is a PCI domain, not a disk controller (`userland/capsule_driver_ahci/src/discover/rule.rs:33-41`, `INTEL_VMD_DEVICE_IDS`).
 
 Its register block, the ABAR in BAR5, must be a memory BAR that holds the global registers and one port, so the 2 KiB ABAR common on Intel chipsets is enough (`userland/capsule_driver_ahci/src/discover/rule.rs:27-31`, `MIN_ABAR_BYTES`). The kernel's inventory makes the same check before it counts an Intel RAID-mode function as SATA (`src/hardware/inventory/classify.rs:51-61`, `classify_device`). The capsule walks every controller that matches, in device list order (`userland/capsule_driver_ahci/src/discover/find.rs:32-34`, `find_ahci`).
+
+## Bring-up
+
+- It takes the controller from the firmware with the BIOS/OS handoff: 25 ms, and up to 2 s more when the firmware says it is busy (`userland/capsule_driver_ahci/src/controller/enable.rs:71-96`, `take_from_bios`).
+- It sets AHCI mode and resets the controller. A reset still running after 1 s leaves the controller alone (`userland/capsule_driver_ahci/src/controller/enable.rs:28-45`, `enable_ahci`).
+- On every implemented port a COMRESET decides whether a disk is there. The link must come up within 2 s, and the disk must leave BSY within 10 s, time for a spinning disk to spin up (`userland/capsule_driver_ahci/src/constants/timing.rs:37-43`, `LINK_TIMEOUT_MS`, `DEVICE_READY_MS`).
+- A port whose signature names a port multiplier, an ATAPI device or an enclosure bridge is skipped. Disks behind a port multiplier are not served (`userland/capsule_driver_ahci/src/setup/say_skipped.rs:23-41`, `say_skipped`).
+- Every command completion is polled, so a controller with no routed interrupt line is served all the same (`userland/capsule_driver_ahci/src/discover/candidate.rs:30-35`, `irq_line`).
