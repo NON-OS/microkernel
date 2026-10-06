@@ -57,7 +57,6 @@ pub fn spawn_driver_rtl8821ce_capsule() -> Result<(), SpawnError> {
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()
-            | Capability::Irq.bit()
             | Capability::Dma.bit(),
         debug_tag: b"[DRIVER-RTL8821CE] load_elf_executable error:",
     };
