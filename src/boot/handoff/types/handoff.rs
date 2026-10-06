@@ -21,7 +21,7 @@ use super::firmware::FirmwareHandoff;
 use super::framebuffer::FramebufferInfo;
 use super::info::{AcpiInfo, Modules, SmbiosInfo, Timing};
 use super::memory::MemoryMap;
-use super::security::{Measurements, RngSeed, ZkAttestation};
+use super::security::{AttestPolicy, Measurements, RngSeed, ZkAttestation};
 
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
@@ -42,6 +42,7 @@ pub struct BootHandoffV1 {
     pub zk: ZkAttestation,
     pub firmware: FirmwareHandoff,
     pub cmdline_ptr: u64,
+    pub policy: AttestPolicy,
 }
 
 impl BootHandoffV1 {
@@ -142,6 +143,7 @@ impl Default for BootHandoffV1 {
             zk: ZkAttestation::default(),
             firmware: FirmwareHandoff::default(),
             cmdline_ptr: 0,
+            policy: AttestPolicy::default(),
         }
     }
 }

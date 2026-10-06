@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const HANDOFF_MAGIC: u32 = 0x4E_4F_4E_4F;
-pub const HANDOFF_VERSION: u16 = 1;
+pub const HANDOFF_VERSION: u16 = 2;
 pub const MAX_CMDLINE_LEN: usize = 4096;
 
 pub fn validate_cmdline_len(len: usize) -> bool {
@@ -42,11 +42,23 @@ pub mod flags {
     pub const TPM_MEASURED: u64 = 1 << 8;
     pub const SECURE_BOOT: u64 = 1 << 9;
     pub const ZK_ATTESTED: u64 = 1 << 10;
+    /*
+     * The boot menu's "Install NONOS": the loader verified and attested this
+     * kernel as for a Standard boot, and init starts the installer first.
+     */
+    pub const INSTALL_REQUESTED: u64 = 1 << 11;
+    /* The boot profile chosen in the menu; Standard sets none. */
+    pub const PROFILE_HARDENED: u64 = 1 << 12;
+    pub const PROFILE_SAFE: u64 = 1 << 13;
+    pub const PROFILE_AIR_GAPPED: u64 = 1 << 14;
+    pub const PROFILE_RECOVERY: u64 = 1 << 15;
 
     pub fn flag_names(flags: u64) -> &'static [&'static str] {
-        const NAMES: [&str; 11] =
-            ["W^X", "NXE", "SMEP", "SMAP", "UMIP", "IDMAP", "FB", "ACPI", "TPM", "SECBOOT", "ZK"];
-        &NAMES[..(64 - flags.leading_zeros() as usize).min(11)]
+        const NAMES: [&str; 16] = [
+            "W^X", "NXE", "SMEP", "SMAP", "UMIP", "IDMAP", "FB", "ACPI", "TPM", "SECBOOT", "ZK",
+            "INSTALL", "HARDENED", "SAFE", "AIRGAP", "RECOVERY",
+        ];
+        &NAMES[..(64 - flags.leading_zeros() as usize).min(16)]
     }
 }
 

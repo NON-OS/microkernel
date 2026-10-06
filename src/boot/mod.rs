@@ -23,6 +23,7 @@ mod init;
 pub mod main;
 
 mod panic;
+mod stop;
 pub mod vga;
 
 pub use handoff::{get_handoff, is_initialized, total_memory};
@@ -33,6 +34,7 @@ pub use init::{
 pub use panic::{
     disable_interrupts, enable_interrupts, halt, halt_loop, interrupts_enabled, without_interrupts,
 };
+pub use stop::stop;
 pub use vga::{clear_screen, show_boot_splash, show_panic, write_string};
 
 #[macro_export]

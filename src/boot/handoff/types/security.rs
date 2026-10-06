@@ -69,3 +69,40 @@ impl Default for RngSeed {
         Self { seed32: [0; 32] }
     }
 }
+
+/// The policy the boot chain checked this kernel against. `kernel_root` is the
+/// enrolled root the bootloader's path gate folded to, and is zero with
+/// `checked` clear unless that gate ran and passed on this boot.
+#[repr(C)]
+#[derive(Debug, Clone, Copy)]
+pub struct AttestPolicy {
+    pub kernel_root: [u8; 32],
+    pub boot_epoch: u64,
+    pub depth: u8,
+    pub checked: u8,
+    /// One when `approval` holds the release's approval file for this kernel.
+    pub approval_present: u8,
+    pub reserved: [u8; 5],
+    /// The approval file as the bootloader read it: key x, y, then r, s. Only
+    /// its signature is trusted, and only under the key compiled into this
+    /// kernel.
+    pub approval: [u8; 128],
+}
+
+/// The kernel reads this at the same offsets the bootloader writes it; the
+/// handoff version guards the rest, this guards the block itself.
+const _: () = assert!(core::mem::size_of::<AttestPolicy>() == 176);
+
+impl Default for AttestPolicy {
+    fn default() -> Self {
+        Self {
+            kernel_root: [0; 32],
+            boot_epoch: 0,
+            depth: 0,
+            checked: 0,
+            approval_present: 0,
+            reserved: [0; 5],
+            approval: [0; 128],
+        }
+    }
+}
