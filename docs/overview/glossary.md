@@ -191,3 +191,7 @@ A TPM platform configuration register. The firmware extends PCR 4 with each UEFI
 ## Peer list
 
 A kernel table that holds a named capsule to the endpoints listed for it, whatever its capabilities admit; a capsule not on it is unaffected. In this release it has one row: the Shield prover may send only to `shield.core`. Explained in [IPC](../kernel/ipc.md#who-may-send-to-whom). Code: `src/services/registry/peers.rs`.
+
+## Policy root
+
+The 32-byte root of the capsule attestation tree, written by the seal's enrollment of the capsule set and compiled into the kernel. The spawn gate tries every capsule's trailer against it first, then against any signing roots enrolled on this machine. Explained in [STARK attestation](../security/stark-attestation.md#three-trees). Code: `src/security/capsule_attest/policy_root.rs`, `src/security/capsule_attest/verify.rs`.
