@@ -36,6 +36,6 @@ pub mod bip39;
 mod path;
 
 pub use nonos_hash::{hmac_sha512, sha256, sha512, wipe, HmacSha512, Sha512};
-pub use path::derive_eth_key;
+pub use path::{derive_eth_key, derive_eth_key_at};
 pub use pbkdf2::pbkdf2_hmac_sha512;
 pub use wordlist::ENGLISH_WORDLIST;
