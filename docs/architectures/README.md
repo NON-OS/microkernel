@@ -11,3 +11,17 @@ Which CPU architectures NONOS runs on, how complete each port is, and how a port
 | [riscv64](riscv64.md) | Not supported | A backend with no kernel target file and no make target; its entry calls a function that does not exist, so it does not build into a kernel. |
 
 A kernel for any architecture other than x86_64 stops at `compile_error!` unless the `nonos-arch-preview` feature is on, so a release cannot ship another architecture by accident (`src/lib.rs:28-35`).
+
+## What each port has
+
+| | x86_64 | aarch64 | riscv64 |
+|---|---|---|---|
+| backend | `src/arch/x86_64/`, 937 files | `src/arch/aarch64/`, 292 files | `src/arch/riscv64/`, 218 files |
+| kernel target file | `x86_64-nonos.json` | `aarch64-nonos.json` | none |
+| linker script | `linker.ld` | `linker_aarch64.ld` | `linker_riscv64.ld` |
+| capsule target file | `userland/x86_64-nonos-user.json` | `userland/aarch64-nonos-user.json` | `userland/riscv64-nonos-user.json` |
+| loader | `nonos-bootloader`, a UEFI application | none | none |
+| how it boots | UEFI firmware runs the loader | QEMU loads the kernel ELF | no boot path |
+| CI | build, boot check, boot matrix | build and three boot cells | none |
+
+The file counts include each backend's assembly. In lines, headers included, the three backends hold 52006, 12508 and 8423.
