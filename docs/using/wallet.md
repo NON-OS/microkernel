@@ -93,3 +93,11 @@ When the wallet cannot be kept, the status line says why and what to do (`kept_s
 - `this is a live session: nothing is kept past power off, so this wallet is gone then; write down the phrase`
 - `no machine key to seal under, so this wallet is gone at reboot: write down the phrase`, on a machine with no TPM
 - `the disk is full, so this wallet is gone at reboot: write down the phrase`
+
+## Network use
+
+The wallet reads the chain over TLS, one batch of calls per refresh, and never over a direct connection. It takes the Nym mixnet or the Anyone network as the default network says; under a Direct default it uses Nym, or Anyone when Nym is not running (`for_wallet` in `userland/nonos_route_link/src/chosen.rs:46-48`). With neither running it reads nothing and says `the wallet reads the chain only over Nym or Anyone, and neither is running`.
+
+The shield is stricter: it uses Nym or Anyone only when the default names one of them, and under a Direct default it does not connect (`anonymous_route` in `userland/shield_core/src/net/tor/stream.rs`).
+
+The RPC node sees which addresses are asked about. Through Nym or Anyone it does not see this machine's address. See [Privacy networks](privacy-network.md).
