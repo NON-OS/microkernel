@@ -20,8 +20,6 @@ use super::constants::{PTE_NX, PTE_RW};
 // crate import for what is a single-byte mask.
 pub const PF_X: u32 = 1 << 0;
 pub const PF_W: u32 = 1 << 1;
-#[allow(dead_code)]
-pub const PF_R: u32 = 1 << 2;
 
 // Translate ELF segment flags into x86_64 page-table flags. Enforces
 // W^X: a segment that requests both write and execute is rejected.
