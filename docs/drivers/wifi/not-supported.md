@@ -46,3 +46,16 @@ The tree carries vendor firmware for several of these chips, and their presence 
 - The kernel's lookup for Realtek Wi-Fi firmware has no caller, and no capsule reads those files (`src/boot/firmware.rs:85-104`, `get_realtek_wifi_firmware`).
 - The only Realtek file a driver links is `rtw8821c_fw.bin` (`userland/capsule_driver_rtl8821ce/src/fwload.rs:38`, `include_bytes`).
 - `nonos-bootloader/firmware/mediatek/mt7921e_fw.bin` and `mt7922_fw.bin` are empty files, and `nonos-bootloader/firmware/qualcomm/qca6174a-wifi.bin` is 57 bytes. No code reads any of them.
+
+## What to use instead
+
+On real hardware, 0.9.2 offers little here.
+
+1. If the Wi-Fi card is a replaceable module, a Realtek RTL8821CE card (10ec:c821). It is the only Wi-Fi chip with a hardware report for 0.9.2; read its [page](rtl8821ce.md) first.
+2. In a virtual machine, the virtio network device, which the QEMU run targets attach; see [Ethernet drivers](../ethernet/README.md#virtio-net-in-a-virtual-machine).
+
+Three routes that look possible are not available in 0.9.2:
+
+- A wired port on the Intel 8254x, Realtek RTL8139 or Realtek RTL8169 family. Their drivers are in the image, but read from the code, `net.core` takes no received frame from them; see [the receive fault](../ethernet/README.md#the-receive-fault). The Intel I217, I218, I219, I225 and I226 drivers are in no image ([Intel Ethernet](../ethernet/intel.md)).
+- USB tethering from a phone and USB Ethernet adapters. Capsules for CDC-ECM, CDC-NCM, RNDIS, the ASIX AX88179 and the Realtek RTL8153 exist in the tree, but no image includes them and the USB host driver does not serve the bulk transfer they need. The reasons are on the [USB networking page](../ethernet/usb-net.md).
+- USB Wi-Fi adapters: no driver.
