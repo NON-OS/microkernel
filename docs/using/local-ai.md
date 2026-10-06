@@ -114,3 +114,14 @@ A model is kept on the data volume. The kernel seals every sector of it with Cha
 ## What reads a model file
 
 `qwenchat` reads a model with llama.cpp's own GGUF loader, inside the Linux personality. Only a file whose SHA-256 is the pin reaches it. The strict GGUF header reader in `userland/nonos_gguf` is used by no capsule in this release.
+
+## When it does not start
+
+`qwen` prints the kernel's reason and its errno name (`REASONS` in `userland/capsule_terminal/src/command/builtin/qwen/refused.rs:25-35`), among them:
+
+- `Linux and Qwen are off for this boot, at setup or by Safe Mode or Recovery (EACCES)`
+- `not enough memory to load the model (ENOMEM)`
+- `every place for a Qwen chat is taken; end or close a running one first (EBUSY)`
+- `this system was built without the Linux personality that runs Qwen (ENOENT)`
+
+Why a download stopped, in the Marketplace's words, is listed on the [Marketplace](marketplace.md) page.
