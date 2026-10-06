@@ -48,7 +48,6 @@ path    = "src/nonos_main.rs"
 harness = false
 
 [features]
-nonos-stark-attest = []
 default = ["microkernel-core"]
 
 # Bring up a non-x86_64 arch tree (aarch64/riscv64) in QEMU. Compiles + boots
@@ -59,6 +58,12 @@ nonos-arch-preview = []
 # channel. Off by default: they cost real time on a path a shipped image has
 # no reason to spend it on, and the benchmark lane turns them on.
 nonos-bench-micro = []
+
+# aarch64 boot lane only. Each compiles one deliberate exception into the boot
+# path so the lane can assert the line the kernel prints for it. No profile
+# enables them; a kernel built with one stops at that exception by design.
+nonos-trap-proof-sp0 = []
+nonos-trap-proof-kernel-abort = []
 
 # Bootstrap. `kernel` switches malloc/free to Rust `alloc`; `standalone`
 # brings in the panic handler and global allocator.
@@ -77,11 +82,15 @@ capsule-serial-debug = []
 # Runtime subsystem.
 sched = []
 
-# Userland capsule embeds. Each `nonos-capsule-*` feature embeds the
-# named capsule binary and arms the kernel-side spawner. Every name
-# below maps 1:1 to a capsule directory under `userland/`.
+# Userland capsule embeds. Each `nonos-capsule-*` feature embeds the named capsule binary and
+# arms the kernel-side spawner; every name below maps 1:1 to a capsule directory under `userland/`.
 nonos-capsule-proof-io          = []
 nonos-capsule-std-proof         = []
+# nonos.shield: the NOX Shield wallet service the wallet window calls.
+nonos-capsule-shield            = []
+# Test 5, the pinned wallet vectors proved on the machine: development images
+# only (tools/nix/config.nix refuses it beside any other loader policy).
+nonos-capsule-shield-vectors    = []
 nonos-capsule-ripgrep           = []
 nonos-capsule-sd                = []
 nonos-capsule-tokio-smoke       = []
@@ -113,6 +122,11 @@ nonos-capsule-video-player      = []
 nonos-capsule-about             = []
 nonos-capsule-install           = []
 nonos-capsule-install-cli       = []
+# nonos.prove, the anonymous device proof. In no profile yet: it needs its
+# trust data first.
+nonos-capsule-prove             = []
+nonos-capsule-model-fetch       = []
+nonos-capsule-app-store         = []
 nonos-capsule-audio-player      = []
 nonos-capsule-hello             = []
 nonos-capsule-boot-splash       = []
@@ -162,6 +176,7 @@ nonos-capsule-net-ntp           = []
 nonos-capsule-net-core          = []
 nonos-capsule-net-sockets       = []
 nonos-capsule-net-nym           = []
+nonos-capsule-net-anon          = []
 nonos-capsule-socks5            = []
 nonos-capsule-linux             = []
 nonos-capsule-market            = []
@@ -181,26 +196,9 @@ dbg-ring = []
 # checks in `dealloc_impl` are unaffected either way.
 heap-track = []
 
-# Production posture. Excludes the legacy unverified spawn path:
-# `runner::legacy`, the `CapsuleSpec` legacy struct, and every
-# capsule still wired through them are cfg-gated off. Only capsules
-# that go through `spawn_verified` (proof_io today) compile under
-# this feature. Mutex with `nonos-dev-unverified-capsules` is
-# enforced by the `compile_error!` in `lib.rs`.
-# Production posture: verified-only spawn path. Capsule attestation is enforced
-# unconditionally by the always-compiled transparent verifier; a missing or failed
-# proof is fatal unless `nonos-zk-rollout` is set.
+# Production posture. Capsule attestation is enforced in every build: a missing
+# or failed STARK proof is fatal at spawn.
 nonos-production = []
-# Staged-rollout escape hatch: when set, a missing or failing attestation is logged
-# but the spawn proceeds. Mutually exclusive with `nonos-production` (enforced by
-# the `compile_error!` in lib.rs). Opt-in only, never part of any profile.
-nonos-zk-rollout = []
-
-# Escape hatch for development that still needs the legacy
-# unverified spawn path. Mutually exclusive with `nonos-production`
-# (see the `compile_error!` in `lib.rs`). Never part of any default
-# production profile; opt-in only.
-nonos-dev-unverified-capsules = []
 
 # Pre-iretq audit. The scheduler walks the target CR3 through the
 # directmap and proves the kernel halves, the user RIP leaf, the
@@ -217,7 +215,21 @@ nonos-terminal-smoketest = ["nonos-capsule-terminal", "nonos-user-entry-proof"]
 nonos-image-viewer-smoketest = ["nonos-capsule-image-viewer", "nonos-user-entry-proof"]
 nonos-video-player-smoketest = ["nonos-capsule-video-player", "nonos-user-entry-proof"]
 
-nonos-ntp-smoketest = ["microkernel-net-ntp", "nonos-user-entry-proof"]
+# The smoke run is read from net.ntp's `[NTP]` serial markers, which need
+# Debug, granted only by a kernel built with capsule-serial-debug.
+nonos-ntp-smoketest = ["microkernel-net-ntp", "nonos-user-entry-proof", "capsule-serial-debug"]
+# The booted spawn gate against four broken capsules and one honest one. Test
+# only: lib.rs refuses it beside nonos-production.
+nonos-attest-refusal-smoketest = ["microkernel-core", "nonos-capsule-proof-io"]
+# A development image: the gates admit a capsule, the kernel and the loader on
+# their Merkle path alone, with no STARK proof, so a test image is enrolled in
+# seconds. Only the dev profile turns it on, beside the loader's development
+# policy; nonos-production refuses it (src/lib.rs).
+nonos-dev-attest = ["nonos-boot-measure/dev-attest"]
+# Every image the seal may seal for release: tools/nix/config.nix turns it on
+# for each profile whose loader is not the development one. A kernel built
+# with it refuses to compile nonos-dev-attest (src/lib.rs).
+nonos-release = []
 
 # Brutal-minimum kernel profile. Each entry closes a real boundary:
 #   kernel, standalone   no-std bootstrap and panic handler routing
@@ -245,8 +257,8 @@ microkernel-capsules = [
 ]
 
 # Per-capsule production profiles. Each builds a kernel under the
-# `nonos-production` posture (verified-only spawn path, dev-unverified
-# locked out) with proof_io baked in plus the named capsule. These
+# `nonos-production` posture (the verified spawn path, the only one
+# in every build) with proof_io baked in plus the named capsule. These
 # are the kernel build path for capsule production images; the
 # matching `nonos-mk-<slug>-prod` Makefile recipes
 # invoke them.
@@ -520,28 +532,27 @@ microkernel-net-sockets = [
 # no_std capsule built on nonos_libc. The tool capsules and the tokio smoke
 # test are the two pieces that need the std platform layer, which is x86_64
 # only, so they live in the profile below. aarch64 builds this set.
-microkernel-desktop-base = [
+# The desktop with nothing that reaches a network and no serial console for
+# capsules: everything a hardened or air-gapped image may carry, and all that
+# first-boot setup and the installer need.
+microkernel-desktop-offline = [
   "microkernel-core",
   "nonos-production",
-  "capsule-serial-debug",
   "nonos-capsule-proof-io",
   "nonos-capsule-ramfs",
   "nonos-capsule-keyring",
   "nonos-capsule-entropy",
   "nonos-capsule-crypto",
   "nonos-capsule-vfs",
-  "nonos-capsule-installer",
   "nonos-capsule-driver-virtio-rng",
   "nonos-capsule-driver-virtio-blk",
+  "nonos-capsule-driver-nvme",
+  "nonos-capsule-driver-ahci",
   "nonos-capsule-driver-virtio-gpu",
-  "nonos-capsule-driver-virtio-net",
   "nonos-capsule-driver-ps2-input",
   "nonos-capsule-driver-xhci",
   "nonos-capsule-driver-usb-hid",
-  "nonos-capsule-net-core",
-  "nonos-capsule-net-sockets",
-  "nonos-capsule-net-nym",
-  "nonos-capsule-socks5",
+  "nonos-capsule-driver-usb-msc",
   "nonos-capsule-input-router",
   "nonos-capsule-compositor",
   "nonos-capsule-wm",
@@ -562,7 +573,6 @@ microkernel-desktop-base = [
   "nonos-capsule-boot-splash",
   "nonos-capsule-calculator",
   "nonos-capsule-snake",
-  "nonos-capsule-browser",
   "nonos-capsule-audio-player",
   "nonos-capsule-video-player",
   "nonos-capsule-wallet-nonos",
@@ -573,6 +583,26 @@ microkernel-desktop-base = [
   "nonos-capsule-policy",
   "nonos-capsule-process-manager",
   "nonos-capsule-power",
+  "nonos-capsule-prove",
+]
+
+# The desktop as the standard images run it: the offline desktop, the
+# programs that go online, and the serial console for capsules.
+microkernel-desktop-base = [
+  "microkernel-desktop-offline",
+  "capsule-serial-debug",
+  "nonos-capsule-installer",
+  "nonos-capsule-driver-virtio-net",
+  "nonos-capsule-net-core",
+  "nonos-capsule-net-sockets",
+  "nonos-capsule-net-nym",
+  "nonos-capsule-net-anon",
+  "nonos-capsule-socks5",
+  "nonos-capsule-model-fetch",
+  "nonos-capsule-app-store",
+  "nonos-capsule-market",
+  "nonos-capsule-browser",
+  "nonos-capsule-shield",
 ]
 
 # Desktop boot profile. This is the signed QEMU GUI lane:
@@ -594,15 +624,13 @@ microkernel-desktop-gui-async-gate = [
   "nonos-capsule-tokio-smoke",
 ]
 
-# Full desktop image. The desktop-gui set plus every production hardware
-# driver capsule (storage, NIC, audio, USB MSC, I2C HID) and the market,
-# setup-wizard, and input-proof capsules. Excludes only the input-probe
-# injection harness, which exists to fake input during tests. Every
-# capsule here is already in the verified-capsule policy root.
+# Full desktop image, what `make` and `make qemu` build. The desktop-gui set
+# plus every production hardware driver capsule, the market and input-proof
+# capsules, and first-boot setup, which runs before the desktop starts. Only
+# the input-probe injection harness, which fakes input for tests, is left
+# out. Every capsule here is already in the verified-capsule policy root.
 microkernel-full-gui = [
   "microkernel-desktop-gui",
-  "nonos-capsule-driver-ahci",
-  "nonos-capsule-driver-nvme",
   "nonos-capsule-driver-e1000",
   "nonos-capsule-driver-rtl8139",
   "nonos-capsule-driver-rtl8169",
@@ -613,7 +641,7 @@ microkernel-full-gui = [
   "nonos-capsule-driver-i2c-pci",
   "nonos-capsule-driver-i2c-hid",
   "nonos-capsule-market",
-  "nonos-capsule-setup-wizard",
+  "microkernel-setup-wizard",
   "nonos-capsule-input-proof",
   "nonos-capsule-hello",
 ]
@@ -670,6 +698,9 @@ microkernel-terminal-smoketest = [
 # only the pure rotate/scale/viewport pipeline: no vfs, no IPC, no codec.
 microkernel-image-viewer-smoketest = [
   "microkernel-core",
+  # The run is read from capsule serial markers, and a capsule writes them
+  # only with Debug, which a kernel built with this feature grants.
+  "capsule-serial-debug",
   "nonos-capsule-proof-io",
   "nonos-capsule-image-viewer",
   "nonos-image-viewer-smoketest",
@@ -681,7 +712,6 @@ microkernel-image-viewer-smoketest = [
 microkernel-video-player-smoketest = [
   "microkernel-core",
   "capsule-serial-debug",
-  "nonos-stark-attest",
   "nonos-capsule-proof-io",
   "nonos-capsule-video-player",
   "nonos-video-player-smoketest",
@@ -693,6 +723,9 @@ microkernel-video-player-smoketest = [
 # `[HDA]` serial markers can be asserted deterministically.
 microkernel-driver-hda-smoketest = [
   "microkernel-core",
+  # The run is read from capsule serial markers, and a capsule writes them
+  # only with Debug, which a kernel built with this feature grants.
+  "capsule-serial-debug",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-hda",
   "nonos-capsule-audio",
@@ -701,6 +734,9 @@ microkernel-driver-hda-smoketest = [
 
 microkernel-audio-player-smoketest = [
   "microkernel-core",
+  # The run is read from capsule serial markers, and a capsule writes them
+  # only with Debug, which a kernel built with this feature grants.
+  "capsule-serial-debug",
   "nonos-capsule-proof-io",
   "nonos-capsule-driver-hda",
   "nonos-capsule-audio",
@@ -721,6 +757,9 @@ microkernel-process-manager = ["microkernel-desktop-gui"]
 # is the sole focusable window and a click always routes focus to it.
 microkernel-input-e2e-ps2 = [
   "microkernel-core",
+  # The run is read from capsule serial markers, and a capsule writes them
+  # only with Debug, which a kernel built with this feature grants.
+  "capsule-serial-debug",
   "nonos-production",
   "nonos-user-entry-proof",
   "nonos-capsule-proof-io",
@@ -756,6 +795,9 @@ microkernel-input-e2e-ps2 = [
 
 microkernel-input-e2e-xhci = [
   "microkernel-core",
+  # The run is read from capsule serial markers, and a capsule writes them
+  # only with Debug, which a kernel built with this feature grants.
+  "capsule-serial-debug",
   "nonos-production",
   "nonos-user-entry-proof",
   "nonos-capsule-proof-io",
@@ -807,8 +849,12 @@ microkernel-input-probe = [
   "nonos-capsule-input-probe",
 ]
 
+# First-boot setup and the installer on the offline desktop. It carries no
+# network and no serial console, so a hardened or air-gapped image can have
+# it; the standard images add microkernel-desktop-gui beside it.
 microkernel-setup-wizard = [
-  "microkernel-desktop-gui",
+  "microkernel-desktop-offline",
+  "nonos-tool-capsules",
   "nonos-capsule-setup-wizard",
 ]
 
@@ -824,9 +870,25 @@ nonos-arch-iommu     = []   # src/arch/x86_64/iommu/*
 # machine has with no IOMMU at all. Split from `nonos-arch-iommu` because that
 # flag only decides whether the code compiles; this one decides whether the
 # hardware is put in charge. Part of `microkernel-core`: a build that omits it
-# says so on the console at boot, and the DMA API refuses to hand out a
-# device address it cannot back with a translation.
+# says so on the console at boot, and IommuDomain refuses to allocate, map or
+# attach while no unit translates. MkDmaMap and the direct memory::dma
+# allocators do not ask: they hand out host-physical device addresses with or
+# without a translation.
 nonos-iommu-enforce  = ["nonos-arch-iommu"]
+
+# Interrupt remapping on every VT-d unit (VT-d chapter 5), with compatibility
+# format interrupts still passed (CFI), and the remapped-entry routing drivers
+# move their MSI and MSI-X vectors onto. Off by default until a boot log from
+# QEMU intel-iommu,intremap=on and from a real Intel machine shows the units
+# acknowledging it.
+nonos-iommu-intremap = ["nonos-iommu-enforce"]
+
+# Drive AMD-Vi units (AMD IOMMU spec 48882): a shared device table with every
+# enumerated device identity mapped and every other requester id denied, a
+# command buffer and event log per unit, and capsule domains behind the same
+# broker calls as VT-d. Off by default until QEMU amd-iommu and a real AMD
+# machine show the units in service.
+nonos-iommu-amdvi = ["nonos-arch-iommu"]
 
 # In-tree crypto, audit-anchored constant-time implementations.
 crypto-ed25519-int   = []
@@ -851,8 +913,12 @@ std = []
 
 [dependencies]
 nonos_bench_core = { path = "nonos-bench", version = "0.1.0" }
-# Transparent STARK stack, shared with the bootloader for kernel self-attestation.
-nonos-stark = { path = "stark-attest/crates/stark-core", version = "0.2.0" }
+# The attestation path check, shared with the bootloader and secops.
+nonos-attest-path = { path = "nonos-attest-path" }
+nonos-boot-measure = { path = "nonos-boot-measure" }
+# The STARK lane's gate verifier, no_std. Every capsule is admitted only when
+# its path and its STARK proof over the same slot both check. Pinned by rev.
+nox_verify = { git = "https://github.com/NON-OS/STARKs.git", branch = "main" }
 # Synchronization. spin is the kernel-wide lock primitive (no_std,
 # interrupt-safe).
 spin        = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "lazy", "rwlock"] }
@@ -864,21 +930,23 @@ linked_list_allocator = { version = "0.10", default-features = false, features =
 # Collections.
 smallvec = { version = "1.15", default-features = false }
 bitvec   = { version = "1.0",  default-features = false, features = ["alloc"] }
-heapless = { version = "0.8",  default-features = false }
+heapless = { version = "0.9",  default-features = false }
 
 # External crypto (optional; in-tree implementations are the default).
-ed25519-dalek    = { version = "2.1.1", default-features = false, features = ["alloc", "zeroize"], optional = true }
+ed25519-dalek    = { version = "3.0.0", default-features = false, features = ["alloc", "zeroize"], optional = true }
 curve25519-dalek = { version = "4.1.3", default-features = false, features = ["alloc", "zeroize"], optional = true }
-x25519-dalek     = { version = "2",     default-features = false, features = ["static_secrets"], optional = true }
+x25519-dalek     = { version = "3",     default-features = false, features = ["static_secrets"], optional = true }
 sha3             = { version = "0.10",  default-features = false, optional = true }
 
 # Hashing.
-blake3 = { version = "1.0",  default-features = false }
-sha2   = { version = "0.10", default-features = false, features = ["force-soft"] }
+# Portable only: the SSE and AVX assembly would use vector registers in the
+# kernel, which runs before a thread's are saved.
+blake3 = { version = "1.0",  default-features = false, features = ["pure"] }
+sha2   = { version = "0.10", default-features = false, features = ["force-soft", "compress"] }
 
 # Core utilities used in the kernel tree.
 bitflags = { version = "2.4", default-features = false }
-volatile = { version = "0.4", default-features = false }
+volatile = { version = "0.6", default-features = false }
 
 # Network stack used by the virtio-net interface bridge.
 smoltcp = { version = "0.11", default-features = false, features = ["alloc", "socket-raw", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6", "medium-ethernet"] }
@@ -886,14 +954,11 @@ smoltcp = { version = "0.11", default-features = false, features = ["alloc", "so
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
 
-[target.'cfg(not(target_arch = "x86_64"))'.dependencies]
-blake3 = { version = "1.0", default-features = false, features = ["pure"] }
-
 [build-dependencies]
 blake3        = { version = "1.5",  default-features = false }
 cc            = "1.1"
 glob          = "0.3"
-ed25519-dalek = { version = "2.1.1", default-features = false, features = ["alloc", "zeroize"] }
+ed25519-dalek = { version = "3.0.0", default-features = false, features = ["alloc", "zeroize"] }
 sha2          = { version = "0.10", default-features = false }
 
 [dev-dependencies]
@@ -922,7 +987,7 @@ perf        = "warn"
 # src/capabilities/types.rs.
 [package.metadata.nonos]
 zerostate = true
-version   = "0.9.1"
+version   = "0.9.2"
 abi       = "Mk-v0"
 
 [package.metadata.nonos.vm]
