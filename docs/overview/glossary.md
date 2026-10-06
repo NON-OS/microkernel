@@ -87,3 +87,7 @@ A profile's development twin, `<profile>-dev`: the same kernel features, path-on
 ## Device secret
 
 Four field words the TPM derives as the witness of the anonymous device proof, under a policy the release approves over PCR 9 and this machine's PCRs 0, 4 and 7. It is never stored, and a firmware or loader change gives a new one. In this release only `app.prove` holds the `DeviceSecret` capability that receives it. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-device-secret). Code: `src/security/tpm/device_secret/mod.rs`.
+
+## Directmap
+
+The kernel's linear, never executable mapping of the first 256 GiB of physical memory at 0xFFFF_8000_0000_0000, PML4 slot 256. The bootloader builds it, and the kernel reaches page tables, user frames and the handoff through it. Explained in [Memory and paging](../kernel/memory-and-paging.md). Code: `src/memory/layout/constants/regions.rs`.
