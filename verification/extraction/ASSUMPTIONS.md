@@ -138,6 +138,30 @@ dependency is visible where the theorem is used rather than only here. The bound
 caller relies on, `accepted_table_is_inside_the_file`, takes only the weakest: that
 `ok_or` never returns a value it was not given.
 
+## Standard-library calls in the TSC conversion and the battery call
+
+`scale` in `sys::timer::tsc::convert` widens to `u128`, multiplies, divides,
+and narrows back with a saturating fallback. `sys_battery_status` compares the
+firmware's answer, an `Option<bool>`, with `Some(false)`. Aeneas has no model
+for three of the library calls this takes, and emits each as an opaque axiom.
+
+- **`U64.Insts.CoreConvertTryFromU128TryFromIntError.try_from`**, 5 uses.
+  `u64::try_from(u128)`, the narrowing in `scale`. Aeneas models the same
+  conversion for other widths as `core.num.tryFromUScalar`; this instance is
+  missing from its name table, as `usize::try_from(u64)` is above.
+- **`core.result.Result.unwrap_or`**, 5 uses. `Result::unwrap_or`, which turns
+  a failed narrowing into `u64::MAX`.
+- **`core.option.Option.Insts.CoreCmpPartialEqOption.eq`**, 1 use.
+  `PartialEq` for `Option<bool>`, in `sys_battery_status`.
+
+The uses are the wrapper theorems of `SysTimerTscConvertRefinement` (five
+conversions that call `scale`) and of `SyscallMicrokernelBatteryRefinement`,
+which reach the calls only through the definitions they unfold to `rfl`. None
+is a proof axiom: each declares only that a function of the given type exists.
+No theorem claims what `scale` returns on overflow or what the battery call
+returns, and none will until these have models or the claim names the behaviour
+as a hypothesis.
+
 ## Adding one
 
 If a new axiom appears, the gate fails and the fix is to add it here with what it
