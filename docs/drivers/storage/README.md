@@ -102,3 +102,21 @@ The NVMe, SATA and virtio-blk drivers share one bring-up schedule. A driver that
 The installer reaches disks through `nonos_blk_client`, which knows three drivers: NVMe, SATA and virtio-blk (`userland/nonos_blk_client/src/driver/table.rs:24-31`, `Driver`). It also looks up `driver.nvme1` to `driver.nvme3` and `driver.ahci1` to `driver.ahci3`, but each driver registers only its `0` name in this release (`userland/nonos_blk_client/src/driver/table.rs:41-57`, `service`). USB disks are never offered as install targets.
 
 The list also names a storage controller that should be serving a disk and is not, so it can say why a disk is missing: an Intel RST or VMD controller, or an Intel eMMC host whose driver did not come up (`userland/nonos_blk_client/src/driver/pci.rs:27-38`, `IntelRaid`). The disk the machine booted from, by the loader's record, is left off the list; one recognised only as a copy of the running loader stays on it but is never a target (`userland/nonos_blk_client/src/disks/scan.rs:86-91`, `survey`).
+
+## How each driver is verified
+
+Each [proof crate](../../overview/glossary.md#proof-crate) runs the driver's own source on the host. The counts are the flake check results for this commit.
+
+| Driver | Host proofs | QEMU | Real hardware |
+|---|---|---|---|
+| `driver.nvme0` | `userland/nvme_proofs`, 81 tests pass | blank `nvme` install target | see below |
+| `driver.ahci0`, SATA | `userland/ahci_link_proofs`, 99 tests pass | no QEMU target names an AHCI device | not tested in this release |
+| `driver.ahci0`, eMMC | `userland/emmc_proofs`, 83 tests pass | none | not tested in this release |
+| VMD bring-up | `userland/kernel_proofs`, 388 tests pass for the crate | none | not tested in this release |
+| `driver.rtsx0` | `userland/rtsx_proofs`, 26 tests pass | none | not tested in this release |
+| `driver.usb_msc0` | `userland/usb_msc_proofs`: its check fails on this commit at the clippy step | boot matrix cells with 512 and 4096-byte sticks | not tested in this release |
+| `driver.virtio_blk0` | `userland/virtio_blk_proofs`, 13 tests pass | `virtio-blk-pci` data disk | does not apply |
+
+`make boot-install` attaches the blank NVMe target through `tools/nonos_qemu` (`tools/nonos_qemu/machine.py:61-77`, `disks`). The virtio-blk disk is `QEMU_BLK` in `mk/10-qemu.mk:56-58`.
+
+The installer writing to an internal NVMe disk and booting from it: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
