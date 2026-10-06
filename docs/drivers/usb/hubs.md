@@ -46,3 +46,10 @@ What is missing is the xHCI side: writing the route string, the speed and the tr
 ## How it was verified
 
 `userland/usb_proofs` is the [proof crate](../../overview/glossary.md#proof-crate) for the class side. It holds the hub descriptor parse, hub port status, and route and transaction translator tests, and its 83 tests pass on this commit. No QEMU target in `mk/` attaches a USB hub, and hubs have not been tested on hardware in this release.
+
+## See also
+
+- [USB and the xHCI host controller](README.md)
+- [USB keyboards and mice](hid.md)
+- [USB mass storage](../storage/usb-mass-storage.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
