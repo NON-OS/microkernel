@@ -46,3 +46,9 @@ Three of these show no band. `memory: init_mmu failed`, `memory: protection flag
 One more step stops without a band. If the hardware reports memory encryption and turning it on fails, `init_memory_encryption` prints `[FATAL] memory encryption: hardware fault during enable` and halts, rather than run in plaintext on a machine that claims otherwise (`src/boot/main/init_memory_encryption.rs:22-50`).
 
 `stop` halts only the CPU that calls it. The last three steps run after the other CPUs have started; they stay in their idle loops with nothing to run.
+
+## Which screen the band is drawn on
+
+`screen` picks the framebuffer: the kernel's own mapping once `init_arch_framebuffer` has made it, and before that the loader's identity mapping of the firmware framebuffer, while that mapping still exists (`src/sys/boot_log/screen.rs:26-54`). `show_notice` then fills a band across the top and writes the lines, without allocating and without taking a lock (`src/sys/boot_log/notice_screen.rs:34-47`).
+
+Two cases show nothing on the panel. A stop between the removal of the low identity map in `init_vm_and_protection` and the framebuffer mapping later in kernel init has no framebuffer it may write to. A machine whose loader passed no framebuffer has none at all. In both cases the serial console is the only record; see [logging](logging.md).
