@@ -91,3 +91,7 @@ Four field words the TPM derives as the witness of the anonymous device proof, u
 ## Directmap
 
 The kernel's linear, never executable mapping of the first 256 GiB of physical memory at 0xFFFF_8000_0000_0000, PML4 slot 256. The bootloader builds it, and the kernel reaches page tables, user frames and the handoff through it. Explained in [Memory and paging](../kernel/memory-and-paging.md). Code: `src/memory/layout/constants/regions.rs`.
+
+## Disk plan
+
+One plain sector at LBA 245,760, with the magic `NONOSDP1`, that names the data volume's range and up to 30 files to import. The kernel checks every range in it against the disk and against each other before it uses any; a live stick's plan names no volume. Explained in [Storage drivers](../drivers/storage/README.md#the-disk-layout). Code: `src/fs/blockfs_volume/plan_types.rs`.
