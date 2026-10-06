@@ -118,3 +118,25 @@ On an installed system, a file persisted to the store is in the clear on the dis
 | The Shield store and its file key | `session` (`userland/capsule_shield/src/guard.rs:39-47`) |
 | The live boot volume and its key | `open_session_volume` (`src/fs/blockfs_volume/session.rs:36-64`) |
 | Every file on an amnesic boot | refused by `require_persistent` (`userland/capsule_vfs/src/server/handlers/persist_gate.rs:29-42`) |
+
+## Wiped at shutdown and reboot
+
+`AdminShutdown` and `AdminReboot` need `Admin` (`can_admin` in `src/syscall/contract/cap_table/admin.rs:20-28`), and both end in `terminate` (`shutdown` in `src/syscall/dispatch/router/admin/shutdown.rs:25-27`). The power capsule makes the call with `mk_admin_shutdown` (`userland/capsule_power/src/server/handlers/shutdown.rs:23-31`). `terminate` stops the other CPUs, runs the wipe, then hands the machine to the firmware (`src/security/zerostate/terminate.rs:35-39`).
+
+`zerostate_shutdown_wipe` runs in this order (`src/security/hardening/memory_sanitization/api.rs:59-110`):
+
+1. Stop every claimed device from mastering the bus.
+2. Zero every frame a live DMA grant holds.
+3. Wipe each process's code and memory regions in its own address space.
+4. Wipe the kernel stacks.
+5. Clear the file system caches and the crypto file system state.
+6. Zero the kernel's key vault.
+7. Wipe the log manager's RAM buffer, unless another holder has its lock at that moment.
+8. Erase the whole kernel heap.
+
+What it does not reach:
+
+- Kernel statics outside the heap. The data volume key is one: `VOLUME` holds it (`src/fs/blockfs_volume/state.rs:21-26`), and the wipe does not name it. The token MAC key in `SIGNING_KEY` is another (`src/capabilities/token/signing_key.rs:19`), and so is the copy of the serial console that `FIRST` and `TAIL` keep on standard, qemu and dev images (`src/sys/serial/tail.rs:39-47`).
+- On a live boot, the in-memory volume. `Ram` keeps its sectors in frames taken as they are first written, outside the heap (`src/fs/cryptoblock/ram.rs:41-47`), and its key stays in `VOLUME`.
+- A kernel panic. `panic` prints, stops the other CPUs and halts without wiping (`src/boot/panic/handler.rs:41-64`).
+- A forced power-off or a power cut. Neither runs any code. The power button module notes that holding the button for four seconds still forces the machine off in hardware (`src/arch/x86_64/acpi/power_button.rs`). Memory contents then fade on their own time.
