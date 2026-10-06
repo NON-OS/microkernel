@@ -1,0 +1,35 @@
+Package: libnonos1
+Version: 1.0
+Architecture: amd64
+Maintainer: NONOS <test@nonos.invalid>
+Provides: libnonos-virtual
+Filename: pool/main/l/libnonos1/libnonos1_1.0_amd64.deb
+Size: 566
+MD5sum: 716daeecd2860394351e0b99acb4425a
+SHA1: c51fdf61c834495aef6d4788ead573c2e0f5a85c
+SHA256: 6e00c0707b664b543ec4c70812a38775b8073a4f53410f80e3c27add62fde391
+Description: test
+
+Package: nonos-gz
+Version: 1.0
+Architecture: amd64
+Maintainer: NONOS <test@nonos.invalid>
+Filename: pool/main/n/nonos-gz/nonos-gz_1.0_amd64.deb
+Size: 604
+MD5sum: 16530b71603ea349a96fd86fe1bd213b
+SHA1: d5525d0b8f35c1231186288250fb1d36d89488dc
+SHA256: b2dbc6882208c99855837fcf02f64892c635be6114287cfbba1cfeb3a8e47eca
+Description: test
+
+Package: nonos-hello
+Version: 1.0
+Architecture: amd64
+Maintainer: NONOS <test@nonos.invalid>
+Depends: libnonos1 (>= 1.0) | libnonos-alt, missing-alt | libnonos-virtual
+Filename: pool/main/n/nonos-hello/nonos-hello_1.0_amd64.deb
+Size: 772
+MD5sum: cfa80aa0c77be4a0dbba73fd8bee6628
+SHA1: 8af5a117ead7cccb621f5882ba996e3fb558449d
+SHA256: 264ced869ab274df80d3784e27caace16c6093394e7356e33ff9929507565eb5
+Description: test
+
