@@ -1,0 +1,23 @@
+# NONOS userland: nonos_usbnet
+# eK@nonos.systems
+#
+# What every USB network class driver shares: the client side of
+# driver.xhci0, the descriptor walk, the NNET frame service net.core and
+# net.l2 speak, and the search for the device. Each driver capsule
+# (cdc_ecm, cdc_ncm, rndis, ax88179, rtl8153) brings only its own binding
+# and framing.
+
+[package]
+name = "nonos_usbnet"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB network class driver core"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
