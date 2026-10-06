@@ -19,6 +19,8 @@ use alloc::vec::Vec;
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum TimerKind {
     TimeWait,
+    HalfOpen,
+    FinWait2,
 }
 
 #[derive(Clone, Copy)]
@@ -49,6 +51,10 @@ impl Timers {
 
     pub fn cancel_all(&mut self, handle: u32) {
         self.entries.retain(|e| e.handle != handle);
+    }
+
+    pub fn deadline_of(&self, handle: u32, kind: TimerKind) -> Option<u64> {
+        self.entries.iter().find(|e| e.handle == handle && e.kind == kind).map(|e| e.deadline_ms)
     }
 
     pub fn next_deadline(&self) -> Option<u64> {

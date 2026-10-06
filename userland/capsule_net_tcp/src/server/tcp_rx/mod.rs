@@ -20,6 +20,7 @@ mod drain;
 mod existing;
 pub(super) mod rst;
 mod transitions;
+mod unicast;
 
 pub use action::RxAction;
 pub use drain::drain_one;

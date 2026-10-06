@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod half_open;
+mod linger;
 mod lookup;
 mod mutate;
+mod orphans;
 mod types;
 
 pub use types::TABLE;

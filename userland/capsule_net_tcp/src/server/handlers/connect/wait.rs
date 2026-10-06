@@ -33,8 +33,11 @@ pub fn established(owner: u32, handle: u32) -> bool {
         tcp_rx::drain_one();
         let ready =
             TABLE.lock().owned_mut(owner, handle).map(|e| e.tcb.state == State::Established);
-        if ready.map_or(false, |state| state) {
-            return true;
+        match ready {
+            Some(true) => return true,
+            // Gone: the peer refused with a reset. Nothing more will come.
+            None => return false,
+            Some(false) => {}
         }
         if expired(start, &mut fallback) {
             return false;

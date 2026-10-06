@@ -22,17 +22,17 @@ use crate::tcp::{Endpoint4, TcpHeader};
 pub fn update(local: Endpoint4, remote: Endpoint4, hdr: TcpHeader, payload: &[u8]) -> RxAction {
     let now = crate::clock::now_ms();
     let mut table = TABLE.lock();
-    let mut arm: Option<(u32, u64)> = None;
+    let mut arm: Option<(u32, TimerKind, u64)> = None;
     let mut accepted: Option<(u32, u32)> = None;
     let action = match table.connection_match_mut(local, remote) {
         Some(e) => step_entry::step_entry(e, &hdr, payload, now, &mut accepted, &mut arm),
         None => {
             let has_listener = table.listener_for_mut(local.port).is_some();
-            no_match::no_match(local, remote, &hdr, has_listener)
+            no_match::no_match(local, remote, &hdr, payload.len(), has_listener)
         }
     };
-    if let Some((h, d)) = arm {
-        table.timers.arm(h, TimerKind::TimeWait, d);
+    if let Some((h, kind, d)) = arm {
+        table.timers.arm(h, kind, d);
     }
     drop(table);
     if let Some((parent, child)) = accepted {

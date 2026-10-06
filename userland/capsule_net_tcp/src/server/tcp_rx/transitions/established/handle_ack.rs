@@ -17,24 +17,42 @@
 use crate::state::Entry;
 use crate::tcp::{seq, TcpHeader, FLAG_ACK};
 
+/// Take the segment's ACK. True when it acknowledged new data.
 pub fn handle_ack(e: &mut Entry, hdr: &TcpHeader) -> bool {
-    if !(hdr.has_flag(FLAG_ACK) && seq::gt(hdr.ack, e.tcb.send.una) && seq::leq(hdr.ack, e.tcb.send.nxt)) {
+    if !hdr.has_flag(FLAG_ACK) || !seq::leq(hdr.ack, e.tcb.send.nxt) {
         return false;
     }
-    if let Some(oldest) = e.retx.oldest_mut() {
-        if oldest.xmits == 1 {
-            let r = crate::clock::now_ms().saturating_sub(oldest.sent_ms).min(crate::tcp::RTO_MAX_MS as u64) as u32;
-            e.rtt.on_sample(r);
+    let new = seq::gt(hdr.ack, e.tcb.send.una);
+    if new {
+        if let Some(oldest) = e.retx.oldest_mut() {
+            if oldest.xmits == 1 {
+                let r = crate::clock::now_ms().saturating_sub(oldest.sent_ms).min(crate::tcp::RTO_MAX_MS as u64) as u32;
+                e.rtt.on_sample(r);
+            }
         }
+        e.tcb.send.una = hdr.ack;
+        e.retx.ack(hdr.ack);
+        e.cc.on_new_ack();
     }
-    e.tcb.send.una = hdr.ack;
-    e.retx.ack(hdr.ack);
-    e.cc.on_new_ack();
-    if crate::tcp::window::should_update(e.tcb.send.wl1, e.tcb.send.wl2, hdr.seq, e.tcb.send.una, hdr.ack) {
+    /*
+     * SND.UNA =< SEG.ACK =< SND.NXT updates the window (RFC 9293 3.10.7.4),
+     * an ACK of nothing new included: that is how a receiver that closed its
+     * window opens it again. Taking the window only with new data left it
+     * shut, and what was queued behind it was never sent.
+     */
+    let mut opened = false;
+    if seq::leq(e.tcb.send.una, hdr.ack)
+        && crate::tcp::window::should_update(e.tcb.send.wl1, e.tcb.send.wl2, hdr.seq, e.tcb.send.una, hdr.ack)
+    {
+        opened = hdr.window > e.tcb.send.wnd;
         e.tcb.send.wnd = hdr.window;
+        // The peer answered, a probe or anything else: it is still there.
+        e.persist.unanswered = 0;
         e.tcb.send.wl1 = hdr.seq;
         e.tcb.send.wl2 = hdr.ack;
     }
-    crate::server::sender::drain_send(e);
-    true
+    if new || opened {
+        crate::server::sender::drain_send(e);
+    }
+    new
 }

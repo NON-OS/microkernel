@@ -38,7 +38,7 @@ impl Rtt {
             self.rttvar = r_ms / 2;
             self.has_sample = true;
         } else {
-            let delta = if self.srtt > r_ms { self.srtt - r_ms } else { r_ms - self.srtt };
+            let delta = self.srtt.abs_diff(r_ms);
             self.rttvar = (self.rttvar * 3 + delta) / 4;
             self.srtt = (self.srtt * 7 + r_ms) / 8;
         }

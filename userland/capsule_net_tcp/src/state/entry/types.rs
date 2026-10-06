@@ -33,4 +33,5 @@ pub struct Entry {
     pub rtt: crate::tcp::rtt::Rtt,
     pub reasm: crate::state::Reasm,
     pub cc: crate::tcp::cc::Cc,
+    pub persist: crate::tcp::persist::Persist,
 }

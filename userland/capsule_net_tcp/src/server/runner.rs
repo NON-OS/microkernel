@@ -24,7 +24,7 @@ use crate::protocol::{
 };
 
 use super::handlers;
-use super::parse_req::{parse, HDR_LEN};
+use super::parse_req::{parse, refused, HDR_LEN};
 use super::respond::respond;
 use super::tick::{recv_budget, tick};
 
@@ -41,7 +41,14 @@ pub fn run() -> ! {
         if n <= 0 || sender_pid == 0 {
             continue;
         }
-        let Ok((req, body)) = parse(&rx[..n as usize]) else { continue };
+        let (req, body) = match parse(&rx[..n as usize]) {
+            Ok(parsed) => parsed,
+            Err(errno) => {
+                let req = refused(&rx[..n as usize]);
+                let _ = respond(sender_pid, req.op, errno, req.request_id, 0, &mut tx);
+                continue;
+            }
+        };
         match req.op {
             OP_HEALTHCHECK => handlers::health::handle(sender_pid, &req, &mut tx),
             OP_LISTEN => handlers::listen::handle(sender_pid, &req, body, &mut tx),

@@ -24,7 +24,9 @@ const IDLE_CAP_MS: u64 = 250;
 pub fn tick() {
     let now = now_ms();
     reap_timers(now);
+    crate::server::orphans::reap_if_due(now);
     crate::server::retransmit::scan(now);
+    crate::server::persist::scan(now);
     while drain_one() {}
 }
 
@@ -37,6 +39,8 @@ fn reap_timers(now: u64) {
                 t.remove_by_handle(handle);
                 t.timers.cancel_all(handle);
             }
+            TimerKind::HalfOpen => TABLE.lock().expire_half_open(handle),
+            TimerKind::FinWait2 => TABLE.lock().expire_fin_wait_2(handle),
         }
     }
 }
