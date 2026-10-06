@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Spawn the virtio-net driver capsule with the broker capability
-//! bundle. MMIO + IRQ + DMA driver with separate RX and TX
-//! queues — needs IPC | Memory | Driver | DeviceEnum | Mmio |
-//! Irq | Dma. No Network cap: this capsule is a frame-level
-//! transport over IPC, not a network-service authority. No
-//! Crypto cap: it moves frames, not keys.
+//! bundle. A polled MMIO and DMA driver with separate RX and TX
+//! queues: IPC | Memory | Driver | DeviceEnum | Mmio | Dma, and Crypto
+//! for the station address it draws each boot. No Network cap: this
+//! capsule is a frame-level transport over IPC, not a network-service
+//! authority.
 
 use super::client::REPLY_INBOX;
 use super::embed::{
@@ -57,11 +57,13 @@ pub fn spawn_driver_virtio_net_capsule() -> Result<(), SpawnError> {
         target_triple: TARGET_TRIPLE,
         requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
+            // The station address is drawn per boot, as e1000's is,
+            // and CryptoRandom is gated on this capability.
+            | Capability::Crypto.bit()
             | crate::capabilities::serial_debug_cap()
             | Capability::Driver.bit()
             | Capability::DeviceEnum.bit()
             | Capability::Mmio.bit()
-            | Capability::Irq.bit()
             | Capability::Dma.bit()
             | Capability::Pio.bit(),
         debug_tag: b"[DRIVER-VIRTIO-NET] load_elf_executable error:",
