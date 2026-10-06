@@ -77,3 +77,15 @@ Only a push to the repository may write the binary cache. A pull request reads i
 ## On your machine
 
 `make check` builds every flake check for your host, the same set `verify.yml` builds, and prints what each one proved; [nix-flake.md](nix-flake.md) lists them and shows how to run one. It does not run Kani, Verus, Lean, the extraction, the fuzzers or the boot smoke test; [make-targets.md](make-targets.md) lists the boot targets you can run yourself.
+
+## `[skip ci]`
+
+GitHub documents that it starts no `push` or `pull_request` workflow for a commit whose message contains `[skip ci]`; scheduled and manual workflows still run. Count how many recent commits on your branch carry it:
+
+```
+git log -300 --format=%s | grep -c '\[skip ci\]'
+```
+
+On this release's history the command prints 300: every one of the latest 300 commits carries it, so by GitHub's rule no push workflow ran on them. For those commits the record of the checks is a local run of the flake checks, and the run below is that record for this commit.
+
+`cut-release` refuses to tag a commit with a completed check run that did not succeed, and counts nothing else, so a commit on which no workflow ran passes that test (`verdict`, `.github/workflows/cut-release.yml:40-54`).
