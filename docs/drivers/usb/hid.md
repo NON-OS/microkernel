@@ -63,3 +63,12 @@ The driver's own lines, such as `[USB-HID-ENUM] HID device bound`, are written w
 - `userland/input_proofs` covers, among the other input drivers, this driver's usage to key code map and key repeat, and the input router's routing: 96 tests pass.
 - The `nonos-mk-plan-a-runtime` lane hands its `QEMU_BLK_IMG` disk to `nonos-ci/plan-a-runtime.sh` (`mk/40-run.mk:330-334`), which boots QEMU with that disk and a `usb-tablet` on the xHCI controller (`nonos-ci/plan-a-runtime.sh:60-64`, `QEMU_BLK_IMG`). No run of it is reported for this commit. The other make targets boot QEMU with a PS/2 keyboard and mouse. The comment on `QEMU_USB` says USB HID interrupt-IN transfers were not serviced under the macOS hvf accelerator (`mk/10-qemu.mk:99-102`, `QEMU_USB`); that host behaviour is not tested in this release.
 - USB keyboards and mice have not been tested on hardware in this release.
+
+## See also
+
+- [USB and the xHCI host controller](README.md)
+- [USB hubs](hubs.md)
+- [Input drivers](../input/README.md)
+- [PS/2 keyboard and mouse](../input/ps2.md)
+- [I2C-HID touchpads](../input/i2c-hid.md)
+- [Keyboard layouts](../../using/keyboard-layouts.md)
