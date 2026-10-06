@@ -227,3 +227,7 @@ The step between the reproducible build and a bootable image, run as `make seal`
 ## Secure Boot
 
 The UEFI firmware feature that starts only a loader whose signature the firmware's signature database, db, trusts. The Hardened entry needs it on, with a platform key and a db, and so does every entry on a build whose loader floor is Hardened. When the seal has the NONOS db key, it signs `BOOTX64.EFI` with that key alone. Explained in [Requirements](../install/requirements.md#secure-boot-and-the-tpm). Code: `nonos-bootloader/src/bootmenu/ready.rs`.
+
+## Serial console
+
+The kernel's main log, a UART that takes its tagged lines: on x86_64 the 16550 at I/O port 0x3F8, set to 115200 8N1, and on aarch64 the PL011. With no UART present the output is dropped and the boot goes on; a capsule may write to it only with the Debug capability. Explained in [Logging](../kernel/logging.md#the-serial-console). Code: `src/arch/x86_64/console.rs`.
