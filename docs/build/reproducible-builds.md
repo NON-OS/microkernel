@@ -34,3 +34,52 @@ Every `Cargo.lock` that uses STARKs must name the commit `flake.lock` pins, or t
 - Nix's fixup phase is turned off, so nothing strips or patches a NONOS binary after it is built (`dontFixup`, `tools/nix/rustbuild.nix:1-4`).
 - Every C file built into the kernel or a capsule goes through the one pinned clang, and the Linux userland through the pinned Zig, so no host compiler reaches an artifact (`llvm`, `tools/nix/pins.nix:20-27`).
 - The FAT volume serial and every timestamp on the [ESP](../overview/glossary.md#esp), the USB image and the ISO are fixed values (`IMAGE_DATE`, `tools/nonos_seal/media.py:45-47`).
+
+## Compare two builds
+
+### Against the committed receipt
+
+`make build` ends with the build receipt: every artifact by sha256, the toolchain, and every pinned input by hash. The receipt is then held to the one committed for the same profile, with one of three verdicts (`compare`, `tools/nonos-receipt:167-183`):
+
+| verdict | meaning |
+|---|---|
+| `REPRODUCED` | every artifact is byte for byte the committed one |
+| `CHANGED` | artifacts differ, and so does the commit or an input; commit the new receipt once the change is meant |
+| `NOT REPRODUCED` | the same commit and inputs gave different bytes |
+
+Any other verdict writes the new receipt over the committed one in your checkout. A `NOT REPRODUCED` build never replaces the receipt it failed: it is written beside it as `<profile>.rejected.json`, and `make` exits with an error (`rejected`, `tools/nonos-receipt:256-263`). The header says `(uncommitted changes)` when the tree is dirty; only a receipt written from a clean tree is one to commit (`artifacts`, `tools/nonos-receipt:29-31`).
+
+### Between two machines
+
+Build the same commit on both machines, from a clean checkout, then compare the `artifacts` sections of the two manifests:
+
+```
+nix build .#default
+nix develop --command jq -S .artifacts result/nonos-build.json > artifacts-this-machine.json
+diff artifacts-this-machine.json artifacts-other-machine.json
+```
+
+Not tested in this release.
+
+Compare `artifacts`, not the whole file. The `config` section also names each toolchain by its Nix store path, and those paths differ from one host system to another (`toolchain_paths`, `tools/nix/artifacts.nix:36-44`). The kernel embeds the short commit, and Nix gives a tree with uncommitted changes another one, so a dirty checkout does not match a clean one (`rev`, `tools/nix/image.nix:23-26`).
+
+### What CI compares
+
+```mermaid
+flowchart LR
+    a[Linux x86_64 build] --> cmp[nonos-verify reproducible]
+    b[Linux aarch64 build] --> cmp
+    c[macOS build] --> cmp
+```
+
+The `ci-reproducible` workflow builds the default package on Linux x86_64, Linux aarch64 and macOS, with no binary cache, so no machine can take another's output (`matrix`, `.github/workflows/ci-reproducible.yml:36-55`). It hands the three `nonos-build.json` files to `nonos-verify reproducible`, which fails unless every manifest names the same files with the same hashes and the same `config` (`compare`, `nonos-verify/src/reproducible/manifests.rs:26-51`). `ci.yml` runs it on every pull request and on pushes to `main` and `develop`, and the nightly and release workflows run it too.
+
+### A published release
+
+A release carries `SHA256SUMS` and `BLAKE3SUMS` over its assets, `nonos-build.json` and the bill of materials (`assets`, `.github/workflows/ci-release-artifacts.yml:60-64`), and a signed build provenance statement for every asset, which `gh attestation verify` checks with no key from NONOS (`uses`, `.github/workflows/release.yml:106-112`):
+
+```
+gh attestation verify nonos.cdx.json --repo NON-OS/nonos-unified
+```
+
+Not tested in this release.
