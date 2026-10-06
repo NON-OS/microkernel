@@ -19,6 +19,7 @@
 // The control-register bits are defined once, by the module that writes them.
 // A second definition here is how the check ends up testing a different bit
 // than the bring-up set.
+#[cfg(target_arch = "x86_64")]
 pub use crate::memory::mmu::CR4_REQUIRED_BITS;
 
 /// Pattern used for heap corruption detection.
