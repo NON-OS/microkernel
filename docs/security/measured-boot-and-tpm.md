@@ -144,3 +144,14 @@ The quote does not cover PCR 4 or PCR 9, so a quote alone does not say which loa
 - The quote covers PCRs 0, 1, 2 and 7 only.
 - The device secret stays sealed until a `kernel.approval` signed with the device policy key sits on the ESP; no make rule puts it there.
 - In this release the command sequences, the rollback floor reads and the device secret were tested against swtpm over a socket, and the FIFO protocol against a modelled register file. The CRB and FIFO transports did not run against a hardware TPM.
+
+## See also
+
+- [Boot chain and signatures](boot-chain-and-signatures.md)
+- [Rollback protection](rollback-protection.md)
+- [STARK attestation](stark-attestation.md)
+- [Device secrets and keys](device-secrets-and-keys.md)
+- [Platform drivers](../drivers/platform.md)
+- [Protections and limits](protections-and-limits.md)
+- [TCG PC Client Platform Firmware Profile](https://trustedcomputinggroup.org/resource/pc-client-specific-platform-firmware-profile-specification/)
+- [TPM 2.0 Library specification](https://trustedcomputinggroup.org/resource/tpm-library-specification/)
