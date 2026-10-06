@@ -90,3 +90,11 @@ The list is `userland/linux_userland/Userland.mk:153-181` (`LINUX_USERLAND_GUEST
 A program from the store runs only after it proves itself; the built-in BusyBox is already covered by the personality's own [manifest](../overview/glossary.md#manifest) (`userland/capsule_linux/src/linux/start_guest.rs:56-62`, `prove`). The proof sits beside the program as `.zk_trailer.bin`. With a certificate and a manifest there too, it is checked by `mk_capsule_verify`, the exact chain the [spawn gate](../overview/glossary.md#spawn-gate) runs (`userland/capsule_linux/src/linux/attest_publisher.rs:21-44`, `mk_capsule_verify`). With a trailer alone, it must be one this machine made for a program holding no capabilities (`userland/capsule_linux/src/linux/attest_local.rs:21-30`, `GUEST_CAPS`). A refused program does not run, and the Terminal says so.
 
 The install role also installs Alpine, Debian and pacman packages. A name with `deb:` or `pacman:` in front picks the family, and each family keeps its own tree, so a Debian `jq` never lands on Alpine's (`userland/capsule_linux/src/linux/file/family.rs:31-47`, `PLACES`).
+
+## The filesystem a guest sees
+
+- The guest's `/` is the family's tree in the store: `/linux` for Alpine and the shipped programs, `/linux-deb` and `/linux-pacman` for the others. No path a guest is given back names that root (`userland/capsule_linux/src/linux/file/root.rs:21-53`, `under_root`).
+- The shared tree is written by installs only. A guest that writes there gets a read-only file system error (`userland/capsule_linux/src/linux/file/root.rs:59-65`, `writable`).
+- `/tmp`, `/dev/shm`, `/home`, `/root`, `/run` and `/var/tmp` are private to the family: they live under `/linux-private/` and a random id, outside every family's tree, and are cleared at the end (`userland/capsule_linux/src/linux/file/private/names.rs:17-56`, `PRIVATE`).
+- Those private directories hold at most 16 MiB and 128 names together, `ENOSPC` past either, because they live in the store every capsule shares (`userland/capsule_linux/src/linux/file/system/declared/sizes.rs:55-69`, `PRIVATE_NAMES`).
+- A guest is told it has one CPU, a pid maximum of 32768, 100 clock ticks a second and 64 KiB pipes (`userland/capsule_linux/src/linux/file/system/declared/sizes.rs:23-41`, `PIPE_MAX`).
