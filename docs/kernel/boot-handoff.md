@@ -11,3 +11,46 @@ The boot stack and the handoff structure are passed as directmap addresses, not 
 The loader then calls `exit_boot_services`, copies the final UEFI memory map with `copy_memory_map` and records it in the handoff (`nonos-bootloader/src/handoff/exit/orchestrate.rs:102-106`). It loads the new page tables with `switch_to_kernel_pml4` (`nonos-bootloader/src/handoff/exit/orchestrate.rs:115`). Before the jump, `validate_and_jump` checks the entry, stack and handoff addresses (`nonos-bootloader/src/handoff/exit/validate.rs:28-46`). `validate_handoff_address` refuses one that is zero, below 1 MiB, not 8-byte aligned or not canonical (`nonos-bootloader/src/handoff/jump/validate.rs:47-55`), and the loader then halts with code `0xE3` instead of jumping (`nonos-bootloader/src/handoff/exit/validate.rs:38-41`).
 
 The jump itself is `nonos_arch_handoff_jump` (`nonos-bootloader/src/arch/x86_64/asm/handoff_jump.S:33-53`). It masks interrupts, loads the stack pointer, moves the handoff address into `rdi` and the entry address into `rax`, clears every other general register and jumps through `rax`. There is no way back to the loader.
+
+## The handoff structure
+
+The [boot handoff](../overview/glossary.md#boot-handoff) is one `#[repr(C)]` structure, `BootHandoffV1`, defined identically on both sides (`src/boot/handoff/types/handoff.rs:28-46`, `nonos-bootloader/src/handoff/types/handoff.rs:28-47`). Its first fields are `magic`, `version` and `size`. The constants file holds the magic value `0x4E4F4E4F`, the layout version 2 and `MAX_CMDLINE_LEN` (`src/boot/handoff/types/constants.rs:17-19`).
+
+| Field | What it carries |
+|---|---|
+| `magic`, `version`, `size` | the layout's identity; the kernel compares all three |
+| `flags` | the bits in the next table |
+| `entry_point` | the kernel entry address the loader jumped to |
+| `fb` | the UEFI GOP framebuffer: base, size, width, height, stride in bytes, pixel format, panel size in millimetres |
+| `mmap` | pointer, entry size and count of the UEFI memory map copy |
+| `acpi`, `smbios` | the ACPI RSDP and the SMBIOS entry point |
+| `modules` | pointer and count of loaded modules |
+| `timing` | the loader's TSC rate estimate and the UEFI time in Unix milliseconds |
+| `meas`, `zk`, `policy` | the boot measurements and verification results the loader recorded |
+| `rng` | a 32-byte seed for the kernel random generator |
+| `firmware` | device firmware blobs read from the boot medium |
+| `cmdline_ptr` | an optional kernel command line |
+
+The `flags` word uses these bits, as listed in the `flags` module (`src/boot/handoff/types/constants.rs:33-54`):
+
+| Bit | Name | Meaning |
+|---|---|---|
+| 0, 1 | `WX`, `NXE` | always set by the loader |
+| 2 to 4 | `SMEP`, `SMAP`, `UMIP` | the CPU has this protection, as the loader detected it |
+| 5 | `IDMAP_PRESERVED` | always set: the low identity map is present at entry |
+| 6 | `FB_AVAILABLE` | `fb` is valid |
+| 7 | `ACPI_AVAILABLE` | `acpi` is valid |
+| 8 | `TPM_MEASURED` | the loader extended TPM measurements |
+| 9 | `SECURE_BOOT` | the loader reports UEFI Secure Boot as on |
+| 10 | `ZK_ATTESTED` | the loader reports the attestation proof as verified |
+| 11 | `INSTALL_REQUESTED` | the person chose the boot menu's install entry |
+| 12 to 15 | `PROFILE_HARDENED`, `PROFILE_SAFE`, `PROFILE_AIR_GAPPED`, `PROFILE_RECOVERY` | the [boot profile](../overview/glossary.md#boot-profile); Standard sets none |
+
+The loader's `build_handoff_flags` sets the framebuffer, ACPI, Secure Boot, attestation, TPM, SMEP, SMAP and UMIP bits from what it found, and sets `WX`, `NXE` and `IDMAP_PRESERVED` on every boot (`nonos-bootloader/src/handoff/prepare/flags.rs:20-57`). The install bit and the profile bits come from the boot menu: `handoff_flag` adds `INSTALL_REQUESTED` (`nonos-bootloader/src/handoff/types/install.rs:45-46`), and the chosen mode adds its `PROFILE_*` bit (`nonos-bootloader/src/menu/types/mode.rs:61-64`).
+
+A few sizes are fixed by the code:
+
+- Each memory map entry is a `MemoryMapEntry`: type, padding, physical start, virtual start, page count and attributes, 40 bytes in all (`src/boot/handoff/types/memory.rs:42-49`). Only entries of type `CONVENTIONAL`, 7, count as usable RAM (`src/boot/handoff/types/memory.rs:25`).
+- The `AttestPolicy` block is asserted at build time to be 176 bytes (`nonos-bootloader/src/handoff/types/security.rs:68`).
+- The firmware table holds at most `MAX_FIRMWARE_ENTRIES`, 64 (`src/boot/handoff/types/firmware.rs:17`).
+- The command line is read up to `MAX_CMDLINE_LEN`, 4096 bytes (`src/boot/handoff/types/constants.rs:19`). The `cmdline` reader returns nothing for a pointer above 48 bits or for a control byte other than tab, line feed or carriage return (`src/boot/handoff/types/handoff.rs:79-112`).
