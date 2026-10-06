@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::frequency_cpuid::{detect_frequency_cpuid_16h, detect_tsc_frequency_cpuid_15h};
+use super::frequency_pick::pick_tsc_hz;
 use super::frequency_pit::calibrate_tsc_with_pit;
+use super::frequency_report::{FROM_BOOT_CPU, FROM_CPUID, FROM_PIT, SOURCE};
 use core::sync::atomic::{AtomicU64, Ordering};
 
 static TSC_FREQUENCY: AtomicU64 = AtomicU64::new(0);
@@ -26,15 +28,23 @@ pub fn tsc_frequency() -> u64 {
     if freq > 0 {
         return freq;
     }
-    if let Some(f) = detect_tsc_frequency_cpuid_15h() {
-        TSC_FREQUENCY.store(f, Ordering::Relaxed);
-        return f;
-    }
-    if let Some(f) = detect_frequency_cpuid_16h() {
-        TSC_FREQUENCY.store(f, Ordering::Relaxed);
-        return f;
-    }
-    let f = calibrate_tsc_with_pit();
+    // The source is recorded for report_ap_tsc_rate, which the boot CPU
+    // prints once the APs are up; the closures run only when picked.
+    SOURCE.store(FROM_BOOT_CPU, Ordering::Release);
+    let f = pick_tsc_hz(
+        crate::sys::timer::tsc::tsc_frequency(),
+        || {
+            let hz = detect_tsc_frequency_cpuid_15h().or_else(detect_frequency_cpuid_16h);
+            if hz.is_some() {
+                SOURCE.store(FROM_CPUID, Ordering::Release);
+            }
+            hz
+        },
+        || {
+            SOURCE.store(FROM_PIT, Ordering::Release);
+            calibrate_tsc_with_pit()
+        },
+    );
     TSC_FREQUENCY.store(f, Ordering::Relaxed);
     f
 }

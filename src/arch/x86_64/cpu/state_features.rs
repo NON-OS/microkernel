@@ -14,26 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::error::CpuError;
-use super::state;
+//! The feature cache on its own, for the one boot step that needs it before
+//! the rest of `init`: turning on SSE, AVX and XSAVE. CPUID only; no timer is
+//! touched, so this is safe as early as it is called.
 
-#[inline]
-pub fn init() -> Result<(), CpuError> {
-    state::init()
-}
+use super::features::CpuFeatures;
+use super::state_globals::CPU_FEATURES;
 
-#[inline]
-pub unsafe fn init_ap(cpu_id: u16, apic_id: u32) -> Result<(), CpuError> {
-    let r = unsafe { state::init_ap(cpu_id, apic_id) };
-    // Whatever became of the per-CPU record, this CPU must see the
-    // framebuffer through the same table as the boot CPU before it runs a
-    // thread that presents.
-    // SAFETY: the AP's bring-up, interrupts off, before its first thread.
-    unsafe { crate::arch::x86_64::pat::mirror_on_ap() };
-    r
-}
-
-#[inline]
-pub fn is_initialized() -> bool {
-    state::is_initialized()
+/// Fill the feature cache from CPUID. Idempotent; `init` fills it again later.
+pub fn detect_features() {
+    let found = CpuFeatures::detect();
+    // SAFETY: eK@nonos.systems - called on the boot CPU before any other CPU
+    // or thread runs, so nothing reads the cache while it is written.
+    unsafe { CPU_FEATURES = found };
 }

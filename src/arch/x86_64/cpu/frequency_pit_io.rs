@@ -14,26 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::error::CpuError;
-use super::state;
+//! Port access for the PIT measurement in frequency_pit.rs.
+
+use core::arch::asm;
 
 #[inline]
-pub fn init() -> Result<(), CpuError> {
-    state::init()
+pub(super) unsafe fn outb(port: u16, value: u8) {
+    // SAFETY: a one-byte write to a PIT port the caller names; on a board
+    // whose PIT is gated the write is dropped, and it touches no memory.
+    unsafe {
+        asm!("out dx, al", in("dx") port, in("al") value, options(nomem, nostack, preserves_flags));
+    }
 }
 
 #[inline]
-pub unsafe fn init_ap(cpu_id: u16, apic_id: u32) -> Result<(), CpuError> {
-    let r = unsafe { state::init_ap(cpu_id, apic_id) };
-    // Whatever became of the per-CPU record, this CPU must see the
-    // framebuffer through the same table as the boot CPU before it runs a
-    // thread that presents.
-    // SAFETY: the AP's bring-up, interrupts off, before its first thread.
-    unsafe { crate::arch::x86_64::pat::mirror_on_ap() };
-    r
-}
-
-#[inline]
-pub fn is_initialized() -> bool {
-    state::is_initialized()
+pub(super) unsafe fn inb(port: u16) -> u8 {
+    let value: u8;
+    // SAFETY: a one-byte read of a PIT port the caller names; a gated PIT
+    // reads back all ones, and the read touches no memory.
+    unsafe {
+        asm!("in al, dx", in("dx") port, out("al") value, options(nomem, nostack, preserves_flags));
+    }
+    value
 }

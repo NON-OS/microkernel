@@ -69,14 +69,7 @@ pub fn per_cpu_data(cpu_id: u16) -> Option<PerCpuData> {
 
 #[inline]
 pub fn current_cpu_id() -> u16 {
-    let apic_id: u32;
-    unsafe {
-        core::arch::asm!(
-            "push rbx", "mov eax, 1", "cpuid", "shr ebx, 24", "mov {0:e}, ebx", "pop rbx",
-            out(reg) apic_id, out("eax") _, out("ecx") _, out("edx") _, options(nomem)
-        );
-    }
-    apic_id as u16
+    (super::cpuid_core::cpuid(1).1 >> 24) as u16
 }
 
 pub fn has_feature(name: &str) -> bool {
