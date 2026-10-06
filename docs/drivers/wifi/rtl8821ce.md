@@ -114,3 +114,10 @@ log rtl8821ce
 Not tested in this release.
 
 Without Debug those lines are dropped, and the Settings Wi-Fi panel's stage line is the record.
+
+## Not supported
+
+- 5 GHz channels: the scan list has channels 1 to 13 only.
+- Open, TKIP and Enterprise networks, and access points that admit only 802.11n stations.
+- Access point, mesh and monitor mode, roaming, power save, and stored profiles inside the driver. The driver has no code for them.
+- The Bluetooth half of the card.
