@@ -107,3 +107,14 @@ bash nonos-ci/run-static-checks.sh
 ```
 
 Not tested in this release.
+
+## Kani
+
+Crates under `userland` hold 109 Kani harnesses, counted as `harnesses` (`verification/evidence/EVIDENCE.json:22`); `nonos-attest-path` and `nonos-bootloader/boot_proofs` hold five more. The `kani` job checks `userland/fs_proofs` with Kani 0.67.0 (`.github/workflows/verify.yml:62-72`). A second job runs `cargo kani` in fifteen more proof crates, from `kernel_proofs` to `arch_paging_proofs`, then in `nonos-attest-path` and `nonos-bootloader/boot_proofs` (`.github/workflows/verify.yml:106-122`). 28 of the 109 sit in crates neither job runs: `stark_proofs`, `crypto_proofs`, `nonos_mac`, the three `nonos_nox_*` crates and `shield_core`.
+
+```
+cd userland/fs_proofs
+cargo kani --output-format terse
+```
+
+Not tested in this release.
