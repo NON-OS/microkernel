@@ -50,3 +50,9 @@ Each driver is a capsule in ring 3, in a directory named `userland/capsule_drive
 When a driver ends, by exit or by fault, the process teardown gives back every claim and grant it held (`release_all_for_pid` in `src/process/exit/teardown.rs:47-51`). The NVMe, AHCI and virtio-blk drivers serve raw sectors only to the kernel's own client and to holders of StoreWrite, and ask the kernel on every request (`permits` in `userland/capsule_driver_nvme/src/server/medium.rs:17-30`).
 
 [Drivers](../drivers/README.md) describes the driver model, [Writing a driver](../drivers/writing-a-driver.md) builds one, and the [support matrix](../hardware/MATRIX.md) lists each device class and chip with its id.
+
+## System services
+
+System services are capsules that other capsules reach by name over IPC: the file store (`vfs`, `ramfs`), keys and randomness (`keyring`, `entropy`, `crypto`), settings (`policy`), attestation (`attest`), the network stack from `net.l2` to `net.sockets`, the anonymity transports (`net.nym`, `net.anon`, `net.socks5`), audio, input routing, and the display (`compositor`, `wm`, `desktop_shell`). Init, which runs in the kernel, starts them in a fixed order: ramfs, the core services, the display core, the drivers, vfs, the network, the desktop, the market and the apps (`run_init` in `src/userspace/init/entry.rs:20-48`). It restarts 30 of them when they end (`WATCHED` in `src/userspace/init/supervisor/watch_rule.rs:17-59`), each at most 8 times (`DEFAULT_MAX_RESTARTS` in `src/services/lifecycle/state/constants.rs:17`). Drivers, apps, setup, the installer and the Linux personality end on purpose, so init does not restart them. Reaching any of the 11 services that carry traffic off the machine takes the Network bit as well as IPC (`NETWORK_SERVICES` in `src/services/registry/policy.rs:19-45`).
+
+[IPC services](../userland/ipc-services.md) lists them with their endpoints, and [IPC](../kernel/ipc.md) covers the kernel side.
