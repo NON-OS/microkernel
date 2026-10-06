@@ -14,18 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod firmware;
-pub mod loader_check;
-mod modules;
-pub mod secure_boot;
-pub mod slots;
+//! The two boot slots of the device proof's witness, as this boot has them:
+//! the bootloader's and the kernel's context digest, path and root. Read by
+//! `MkBootSlots`, so nonos.prove never parses an image.
 
-pub use secure_boot::{
-    add_trusted_key, generate_attestation_report, get_boot_measurements, get_policy,
-    get_stats as secure_boot_stats, init as secure_boot_init, is_boot_chain_verified, is_enforcing,
-    list_trusted_keys, record_boot_measurements, revoke_key, set_policy, verify_boot_chain,
-    verify_code_signature, verify_kernel, AttestationReport, BootMeasurements, SecureBootError,
-    SecureBootPolicy, SecureBootResult, SecureBootStats, TrustedBootKeys, TrustedKey,
-};
+mod footer;
+mod read;
+pub mod record;
+pub mod slot;
 
-pub use firmware::{init as firmware_init, FirmwareDB};
+pub use read::boot_slots_record;
+pub use record::RECORD_LEN;
