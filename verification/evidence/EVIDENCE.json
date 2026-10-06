@@ -19,16 +19,16 @@
   },
   "proof_systems": {
     "kani": {
-      "harnesses": 100
+      "harnesses": 109
     },
     "lean_extraction": {
       "bv_decide_calls": 10,
       "bv_decide_theorems": 11,
       "counts": {
-        "extracted": 987,
-        "proven": 987,
-        "substantive": 494,
-        "trivial": 493,
+        "extracted": 979,
+        "proven": 979,
+        "substantive": 492,
+        "trivial": 487,
         "unproven": 0
       },
       "description": "Functions lowered from real Rust MIR by Charon and translated to Lean by Aeneas. Counted three ways, because they are not equally proven: substantive carries a property about behaviour, trivial carries only the theorem that its generated wrapper is the method it forwards to, and unproven carries nothing.",
@@ -371,9 +371,6 @@
         "nonos_x_crypto_util_bigint_constructors::biguint_new",
         "nonos_x_crypto_util_bigint_constructors::biguint_one",
         "nonos_x_crypto_util_bigint_constructors::biguint_zero",
-        "nonos_x_crypto_zk_kernel_field_ct::fieldelement_ct_is_zero",
-        "nonos_x_crypto_zk_kernel_field_ct::fieldelement_is_zero",
-        "nonos_x_crypto_zk_kernel_range_types::bitproof_verify_structure",
         "nonos_x_data_interrupt::interruptoverride_is_active_low",
         "nonos_x_data_interrupt::interruptoverride_is_level_triggered",
         "nonos_x_data_interrupt::nmiconfig_applies_to_all",
@@ -612,9 +609,6 @@
         "nonos_x_memory_paging_constants_pte_funcs::pte_is_writable",
         "nonos_x_memory_paging_error_impls_recover::pagingerror_is_demand_pageable",
         "nonos_x_memory_paging_error_impls_recover::pagingerror_is_recoverable",
-        "nonos_x_memory_paging_stats_query::pagingstatistics_page_faults",
-        "nonos_x_memory_paging_stats_query::pagingstatistics_tlb_flushes",
-        "nonos_x_memory_paging_stats_query::pagingstatistics_total_mappings",
         "nonos_x_memory_paging_types_page_size::pagesize_align_mask",
         "nonos_x_memory_paging_types_page_size::pagesize_bytes",
         "nonos_x_memory_paging_types_page_size::pagesize_is_aligned",
@@ -736,8 +730,6 @@
         "nonos_x_pipe_types::pipe_new",
         "nonos_x_pipe_types::pipe_pipe_id",
         "nonos_x_pipe_types::pipe_space_available",
-        "nonos_x_plonk_types::plonkcircuit_new",
-        "nonos_x_plonk_types::plonkevaluations_new",
         "nonos_x_port_stats_snapshot::portstatssnapshot_total_bytes",
         "nonos_x_port_stats_snapshot::portstatssnapshot_total_ops",
         "nonos_x_process_fd_types::fdentry_is_cloexec",
@@ -1096,7 +1088,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Align.lean",
-          "sha256": "d99493635e8300a9d16ba0e1fb182ebce113a26a973bedc47d585a0a94221398"
+          "sha256": "536715ddc6c62f4f2991ca07855a85d9a8ac1df71946c91370faca5182beceb7"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/AmlTypes.lean",
@@ -1232,15 +1224,15 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CapabilitiesChainChain.lean",
-          "sha256": "d2011ac17fe766f06a96229b06fee25fc701af0f7b0283894ddf3d9646fd23e5"
+          "sha256": "b68402bb72a0caf76a1c6c4e97da1cb1b96996587725db81cbe0f37eb7b443df"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CapabilitiesTokenTypesConstruct.lean",
-          "sha256": "2fe8b48213dc1e9d3eef31cd91cdc431bf2b7ec614e5967f24c36acb0f64f96e"
+          "sha256": "a4bf4a4d51813705cab5f0b0d4bed39b44906f3934777e4c1b651ff222d2e365"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Caps.lean",
-          "sha256": "c38ce83715efe6194711645718c0e0efc2dd76a20c165fb417154f88ee98b42b"
+          "sha256": "53dc5882055ce67198564d5e8312843fbff799b9bd637d363a94fe103bdca11a"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/CensusBuf.lean",
@@ -1284,7 +1276,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ContextRflags.lean",
-          "sha256": "b1013c3104f60d14952e5f90799999a24f78506ca6f95122878252c152bf922f"
+          "sha256": "854154ff6a6e2161515413ef7106d0c0e6b07ceabb6ffacb9feaf0c5cbf06084"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/ContextTypes.lean",
@@ -1313,14 +1305,6 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/CryptoUtilBigintConstructors.lean",
           "sha256": "8db3ee81ab8a31be227b129c8fd9ebd6f157d6bbb015ce4f4c63a143074ef81e"
-        },
-        {
-          "path": "verification/extraction/lean/NonosExtraction/CryptoZkKernelFieldCt.lean",
-          "sha256": "28f7c9d1a4262d36b7de22d0c63baab5d570dfaf2fff0cf1bcaefad018f956bd"
-        },
-        {
-          "path": "verification/extraction/lean/NonosExtraction/CryptoZkKernelRangeTypes.lean",
-          "sha256": "8a2cf68b292357737630fc8090c185c2889a29331db5cf7f175de6daa17b6cd8"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Ct.lean",
@@ -1444,7 +1428,7 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/FsBlockfsHeaderLba.lean",
-          "sha256": "7077986c8efbc0350a71f42ca8afa2a5e5ee68c17af652a3b6380c049b48d9f3"
+          "sha256": "fb12d852f1422bd545df30ae9ea997c308fe6e0d472f8408e7803f17ce52507e"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/FsVfsTypes.lean",
@@ -1647,10 +1631,6 @@
           "sha256": "86abf6bd435f2471e78ac5b238af023e2f2612008858e6d77a390d4abbf4ae25"
         },
         {
-          "path": "verification/extraction/lean/NonosExtraction/MemoryPagingStatsQuery.lean",
-          "sha256": "b8522465bcb0c11c1335976f76c35f2310d866e369c883e98975e15c24bc7437"
-        },
-        {
           "path": "verification/extraction/lean/NonosExtraction/MemoryPagingTypesPageSize.lean",
           "sha256": "b5a3cd5bb8c2d17040f0665c307dc720cd619779f2fdeb30a2c68add3fb5010d"
         },
@@ -1732,11 +1712,11 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PacKey.lean",
-          "sha256": "396e2af119d50f37049df662cb85f04a1cafb32b51e71d7f72adf63383c46a27"
+          "sha256": "a9d3eabb78edfbbfaffe02b861c6dba0d320b58deb1ef430efd1c1b0e716e23f"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/Paging.lean",
-          "sha256": "6b72a1b86d723cb9f0a4b86bc296480bfb7935181eaf856ef16c0d87852025d0"
+          "sha256": "ef445c8f791a4a46f51e4e48f900dd520136108e71978d969c905214095520e3"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PagingTypesPermissionsConvert.lean",
@@ -1773,10 +1753,6 @@
         {
           "path": "verification/extraction/lean/NonosExtraction/PipeTypes.lean",
           "sha256": "9b84c2e927bf8c02c625e1a94909d3f065a53f88ce90ba44c54fd367cab2a415"
-        },
-        {
-          "path": "verification/extraction/lean/NonosExtraction/PlonkTypes.lean",
-          "sha256": "041b400dd85aec92d3cbf80b8e57350ee05c97e22bf64b3e76fe52ad46e593b0"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/PortStatsSnapshot.lean",
@@ -1940,11 +1916,11 @@
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/SyscallMicrokernelBattery.lean",
-          "sha256": "7e56702d11dbdf7a2008365f4c6a26083de5b866c80ae6830b574b08b664336d"
+          "sha256": "17ca7d480cb1f8f2b3edacd0041ce2564a114dd52c603cbbf5854201dd709352"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/SyscallMicrokernelPioUnsupported.lean",
-          "sha256": "317fce5bd6b8191bee00b686469bfbae02f14fbde86b6b1b6d42605f4b86a924"
+          "sha256": "98166723791e03f4f85f712d601c499f426f86306941fb487363ec3c65b03aec"
         },
         {
           "path": "verification/extraction/lean/NonosExtraction/TablesContext.lean",
@@ -2197,15 +2173,15 @@
       ]
     },
     "lean_specification": {
-      "axiom_profiled_theorems": 623,
+      "axiom_profiled_theorems": 626,
       "mathlib": false,
-      "modules": 188,
+      "modules": 190,
       "sorry_count": 0,
-      "theorems": 1492,
+      "theorems": 1499,
       "toolchain": "leanprover/lean4:v4.15.0"
     },
     "runnable": {
-      "proof_crates": 55
+      "proof_crates": 107
     },
     "verus": {
       "source_files": 5
