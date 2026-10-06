@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const KIND_BOOL: u8 = 1;
-pub const KIND_U8: u8 = 2;
-pub const KIND_I8: u8 = 3;
-pub const KIND_STR: u8 = 4;
+use super::field::Field;
+use super::limits::STR_MAX;
+use super::setup_record::{NAME_MAX, TIER_MAX};
 
-/// Eight bytes, little endian: a set of up to 64 things by index.
-pub const KIND_U64: u8 = 6;
-
-/// An opaque record whose layout the two ends agree on out of band.
-pub const KIND_BYTES: u8 = 5;
+/*
+ * The longest value a string field takes, in bytes. A name shown in a prompt
+ * and a tier name are kept short; the rest may use the whole wire limit.
+ */
+pub fn str_max_of(field: Field) -> usize {
+    match field {
+        Field::Username => NAME_MAX,
+        Field::QwenTier => TIER_MAX,
+        _ => STR_MAX,
+    }
+}

@@ -14,13 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const KIND_BOOL: u8 = 1;
-pub const KIND_U8: u8 = 2;
-pub const KIND_I8: u8 = 3;
-pub const KIND_STR: u8 = 4;
+/*
+ * Making a kept name, tier or computer name from what setup holds, held to the same rules
+ * a record read back is.
+ */
 
-/// Eight bytes, little endian: a set of up to 64 things by index.
-pub const KIND_U64: u8 = 6;
+use super::kept::{Host, Name, Tier};
+use super::rules::{host_ok, name_ok, tier_ok};
 
-/// An opaque record whose layout the two ends agree on out of band.
-pub const KIND_BYTES: u8 = 5;
+impl Name {
+    /* `None` for a name setup's name step would not take. */
+    pub fn new(s: &[u8]) -> Option<Self> {
+        Self::from_ok(s, name_ok)
+    }
+}
+
+impl Tier {
+    /* `None` for anything that is not a tier's name. */
+    pub fn new(s: &[u8]) -> Option<Self> {
+        Self::from_ok(s, tier_ok)
+    }
+}
+
+impl Host {
+    /* `None` for a computer name the kernel would not take. */
+    pub fn new(s: &[u8]) -> Option<Self> {
+        Self::from_ok(s, host_ok)
+    }
+}
