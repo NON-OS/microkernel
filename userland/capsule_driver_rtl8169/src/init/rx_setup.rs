@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::chip::MacVersion;
 use crate::constants::queue::{BUFFER_SIZE, RX_DESC_COUNT};
 use crate::constants::regs::{
     DESC_EOR, DESC_OWN, REG_RMS, REG_RXDESC_ADDR_HI, REG_RXDESC_ADDR_LO, REG_RX_CONFIG,
-    RX_CONFIG_ACCEPT_BCAST, RX_CONFIG_ACCEPT_MULTI, RX_CONFIG_ACCEPT_PHYS, RX_CONFIG_DMA,
-    RX_CONFIG_MAXDMA,
 };
+use crate::hw::regs::REG_MAR0;
+use crate::hw::rx_config;
 use crate::queue::desc::{desc_mut, Descriptor};
 use crate::queue::RxRing;
 use crate::regs::Regs;
@@ -42,13 +43,17 @@ pub fn program(regs: &Regs, rx: &RxRing) {
         regs.w16(REG_RMS, BUFFER_SIZE as u16);
         regs.w32(REG_RXDESC_ADDR_LO, rx.desc_da as u32);
         regs.w32(REG_RXDESC_ADDR_HI, (rx.desc_da >> 32) as u32);
-        regs.w32(
-            REG_RX_CONFIG,
-            RX_CONFIG_ACCEPT_PHYS
-                | RX_CONFIG_ACCEPT_MULTI
-                | RX_CONFIG_ACCEPT_BCAST
-                | RX_CONFIG_DMA
-                | RX_CONFIG_MAXDMA,
-        );
+    }
+}
+
+/// RxConfig for this version, written once the receiver is enabled (see
+/// `run`), after the multicast filter is opened as Linux rtl_set_rx_mode
+/// opens it for an interface that takes every multicast group.
+pub fn configure(regs: &Regs, ver: MacVersion) {
+    // SAFETY: MAR0..MAR0+8 and RxConfig lie inside every mapped window.
+    unsafe {
+        regs.w32(REG_MAR0 + 4, u32::MAX);
+        regs.w32(REG_MAR0, u32::MAX);
+        regs.w32(REG_RX_CONFIG, rx_config(ver));
     }
 }

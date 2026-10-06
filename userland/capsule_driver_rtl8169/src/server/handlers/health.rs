@@ -17,6 +17,6 @@
 use crate::protocol::Request;
 use crate::server::error::reply_with_status;
 
-pub fn handle(req: &Request, tx: &mut [u8]) {
-    reply_with_status(tx, req, 0);
+pub fn handle(sender: u32, req: &Request, tx: &mut [u8]) {
+    reply_with_status(sender, tx, req, 0);
 }

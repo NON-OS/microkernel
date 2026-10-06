@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_device_release, mk_irq_bind, mk_mmio_unmap, IrqBindOut, MmioMapOut};
+//! The end of one bring-up attempt. Setup has taken every grant; programming
+//! the part either works, or every grant goes back before the attempt reports
+//! failure, so the next attempt claims the device afresh instead of meeting
+//! its own leftover claim.
 
-use crate::discover::Found;
+use crate::setup::Driver;
 
-pub fn bind(dev: Found, claim_epoch: u64, mmio: &MmioMapOut) -> Result<IrqBindOut, &'static str> {
-    let mut out = IrqBindOut { grant_id: 0, vector: 0 };
-    let r = mk_irq_bind(dev.device_id, claim_epoch, dev.irq_line as u32, 0, 0, &mut out);
-    if r < 0 {
-        let _ = mk_mmio_unmap(mmio.grant_id);
-        let _ = mk_device_release(dev.device_id);
-        return Err("irq bind failed");
+use super::run::bring_up;
+
+pub fn finish(mut driver: Driver) -> Result<Driver, &'static str> {
+    match bring_up(&mut driver) {
+        Ok(()) => Ok(driver),
+        Err(e) => {
+            driver.release();
+            Err(e)
+        }
     }
-    Ok(out)
 }

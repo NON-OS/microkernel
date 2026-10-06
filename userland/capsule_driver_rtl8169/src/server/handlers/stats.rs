@@ -14,19 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_ipc_send;
-
 use crate::constants::queue::{RX_DESC_COUNT, TX_DESC_COUNT};
-use crate::constants::regs::{
-    REG_CMD, REG_IMR, REG_ISR, REG_PHY_STATUS, REG_RMS, REG_RX_CONFIG, REG_TX_CONFIG,
-};
+use crate::constants::regs::{REG_CMD, REG_PHY_STATUS, REG_RMS, REG_RX_CONFIG, REG_TX_CONFIG};
 use crate::protocol::{
-    encode_response_header, write_status, Request, KERNEL_REPLY_ENDPOINT, RESP_HDR_LEN,
-    STATS_PAYLOAD_LEN, STATUS_LEN,
+    encode_response_header, write_status, Request, RESP_HDR_LEN, STATS_PAYLOAD_LEN, STATUS_LEN,
 };
+use crate::regmap::{read_events, read_mask};
+use crate::server::error::reply;
 use crate::setup::Driver;
 
-pub fn handle(driver: &Driver, req: &Request, tx: &mut [u8]) {
+pub fn handle(sender: u32, driver: &Driver, req: &Request, tx: &mut [u8]) {
     let payload_len = STATUS_LEN as u32 + STATS_PAYLOAD_LEN as u32;
     encode_response_header(tx, req, payload_len);
     write_status(&mut tx[RESP_HDR_LEN..], 0);
@@ -34,7 +31,7 @@ pub fn handle(driver: &Driver, req: &Request, tx: &mut [u8]) {
     for v in live_regs(driver) {
         put32(tx, &mut o, v);
     }
-    let _ = mk_ipc_send(KERNEL_REPLY_ENDPOINT, tx.as_ptr(), RESP_HDR_LEN + payload_len as usize);
+    reply(sender, tx, RESP_HDR_LEN + payload_len as usize);
 }
 
 fn live_regs(driver: &Driver) -> [u32; 12] {
@@ -42,8 +39,8 @@ fn live_regs(driver: &Driver) -> [u32; 12] {
         [
             driver.regs.r8(REG_CMD) as u32,
             driver.regs.r8(REG_PHY_STATUS) as u32,
-            driver.regs.r16(REG_ISR) as u32,
-            driver.regs.r16(REG_IMR) as u32,
+            read_events(&driver.regs, driver.chip.ver),
+            read_mask(&driver.regs, driver.chip.ver),
             driver.regs.r32(REG_RX_CONFIG),
             driver.regs.r32(REG_TX_CONFIG),
             driver.regs.r16(REG_RMS) as u32,
@@ -51,7 +48,7 @@ fn live_regs(driver: &Driver) -> [u32; 12] {
             driver.tx.cur as u32,
             RX_DESC_COUNT as u32,
             TX_DESC_COUNT as u32,
-            0,
+            driver.chip.ver.0 as u32,
         ]
     }
 }

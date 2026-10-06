@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_dma_map, DmaMapOut, IrqBindOut, MmioMapOut};
+use nonos_libc::{mk_dma_map, DmaMapOut, MmioMapOut};
 
 use crate::constants::queue::{RX_BUFFER_BYTES, RX_RING_BYTES, TX_BUFFER_BYTES, TX_RING_BYTES};
 
@@ -26,9 +26,9 @@ fn page_round(n: u64) -> u64 {
     (n + PAGE_MASK) & !PAGE_MASK
 }
 
-fn alloc(device_id: u64, epoch: u64, bytes: u64) -> Option<DmaMapOut> {
+fn alloc(device_id: u64, epoch: u64, bytes: u64, flags: u32) -> Option<DmaMapOut> {
     let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
-    let r = mk_dma_map(device_id, epoch, page_round(bytes), 0, &mut out);
+    let r = mk_dma_map(device_id, epoch, page_round(bytes), flags, &mut out);
     if r < 0 {
         None
     } else {
@@ -40,27 +40,22 @@ pub fn map_all(
     device_id: u64,
     epoch: u64,
     mmio: &MmioMapOut,
-    irq: &IrqBindOut,
+    flags: u32,
 ) -> Result<(DmaMapOut, DmaMapOut, DmaMapOut, DmaMapOut), &'static str> {
-    let rx_ring = alloc(device_id, epoch, RX_RING_BYTES as u64).ok_or_else(|| {
-        rollback::after(device_id, mmio, irq, &[]);
+    let rx_ring = alloc(device_id, epoch, RX_RING_BYTES as u64, flags).ok_or_else(|| {
+        rollback::after(device_id, mmio, &[]);
         "rx ring dma failed"
     })?;
-    let rx_buf = alloc(device_id, epoch, RX_BUFFER_BYTES as u64).ok_or_else(|| {
-        rollback::after(device_id, mmio, irq, &[rx_ring.grant_id]);
+    let rx_buf = alloc(device_id, epoch, RX_BUFFER_BYTES as u64, flags).ok_or_else(|| {
+        rollback::after(device_id, mmio, &[rx_ring.grant_id]);
         "rx buffer dma failed"
     })?;
-    let tx_ring = alloc(device_id, epoch, TX_RING_BYTES as u64).ok_or_else(|| {
-        rollback::after(device_id, mmio, irq, &[rx_buf.grant_id, rx_ring.grant_id]);
+    let tx_ring = alloc(device_id, epoch, TX_RING_BYTES as u64, flags).ok_or_else(|| {
+        rollback::after(device_id, mmio, &[rx_buf.grant_id, rx_ring.grant_id]);
         "tx ring dma failed"
     })?;
-    let tx_buf = alloc(device_id, epoch, TX_BUFFER_BYTES as u64).ok_or_else(|| {
-        rollback::after(
-            device_id,
-            mmio,
-            irq,
-            &[tx_ring.grant_id, rx_buf.grant_id, rx_ring.grant_id],
-        );
+    let tx_buf = alloc(device_id, epoch, TX_BUFFER_BYTES as u64, flags).ok_or_else(|| {
+        rollback::after(device_id, mmio, &[tx_ring.grant_id, rx_buf.grant_id, rx_ring.grant_id]);
         "tx buffer dma failed"
     })?;
     Ok((rx_ring, rx_buf, tx_ring, tx_buf))

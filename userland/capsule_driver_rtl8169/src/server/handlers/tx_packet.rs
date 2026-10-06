@@ -15,25 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::constants::{MAX_ETHERNET_FRAME, MIN_ETHERNET_FRAME};
-use crate::protocol::{Request, E_INVAL, E_IO, E_MSGSIZE, MAX_TX_PAYLOAD_BYTES};
+use crate::protocol::{Request, E_AGAIN, E_INVAL, E_MSGSIZE, MAX_TX_PAYLOAD_BYTES};
 use crate::server::error::reply_with_status;
 use crate::setup::Driver;
-use crate::tx::send;
+use crate::tx::{busy, send};
 
-pub fn handle(driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
+pub fn handle(sender: u32, driver: &mut Driver, req: &Request, body: &[u8], tx: &mut [u8]) {
     if req.payload_len as usize != body.len() {
-        reply_with_status(tx, req, E_MSGSIZE);
+        reply_with_status(sender, tx, req, E_MSGSIZE);
         return;
     }
     if body.len() < MIN_ETHERNET_FRAME
         || body.len() > MAX_ETHERNET_FRAME
         || body.len() as u32 > MAX_TX_PAYLOAD_BYTES
     {
-        reply_with_status(tx, req, E_INVAL);
+        reply_with_status(sender, tx, req, E_INVAL);
         return;
     }
-    match send(driver, body) {
-        Ok(()) => reply_with_status(tx, req, 0),
-        Err(_) => reply_with_status(tx, req, E_IO),
+    if busy(driver) {
+        reply_with_status(sender, tx, req, E_AGAIN);
+        return;
     }
+    send(driver, body);
+    reply_with_status(sender, tx, req, 0);
 }
