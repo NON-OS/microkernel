@@ -171,3 +171,13 @@ With no address, `ping` and `nslookup` say so at once instead of timing out (`of
 - No IPv6.
 - No Wi-Fi command in the Terminal.
 - Saved networks need a TPM and a boot that keeps data.
+
+## See also
+
+- [Wi-Fi drivers](../drivers/wifi/README.md)
+- [RTL8821CE](../drivers/wifi/rtl8821ce.md)
+- [Ethernet drivers](../drivers/ethernet/README.md)
+- [Privacy networks](privacy-network.md)
+- [Settings](settings.md)
+- [Terminal](terminal.md)
+- [Hardware support matrix](../hardware/MATRIX.md)
