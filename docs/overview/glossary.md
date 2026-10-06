@@ -143,3 +143,7 @@ The VT-d domain every device found by the boot PCI scan starts in. It maps physi
 ## Inbox
 
 A named, bounded message queue in the kernel into which IPC messages are delivered, such as `proc.<pid>`, where a capsule's requests arrive, and `stdin.<pid>`, which its parent feeds. An inbox holds 1024 messages by default and at most 16 MiB. Explained in [IPC](../kernel/ipc.md#limits). Code: `src/ipc/nonos_inbox/inbox.rs`, `src/ipc/nonos_inbox/budget.rs`.
+
+## IOMMU
+
+The DMA remapping unit, which limits the memory a device can reach. This kernel drives Intel VT-d; its AMD-Vi backend sits behind a feature no build profile turns on, so a device that no unit in service covers, on an AMD-Vi machine among others, goes ahead unconfined and the boot log says so. Explained in [IOMMU](../kernel/iommu.md). Code: `src/hardware/broker/confine/posture.rs`.
