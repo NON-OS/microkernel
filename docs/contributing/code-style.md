@@ -86,3 +86,13 @@ Shared kernel code reaches the CPU through the `ArchOps` trait and the `Arch` al
 Both have grown past their baselines. The same `grep` the script runs counts 234 and 135 at this commit, so `static-tree` fails on both. Do not add to either.
 
 [Architectures](../architectures/README.md) describes the boundary.
+
+## Dependencies
+
+The supply-chain job runs `cargo deny check` against `deny.toml` through `run_logged` (`nonos-verify/src/supply_chain.rs:25-27`). The header of `deny.toml` says the policy is written for the kernel crate.
+
+- Licences: the `allow` list holds the project's own AGPL-3.0 and 0BSD, Apache-2.0 (also with the LLVM exception), BSD-2-Clause, BSD-3-Clause, CC0-1.0, ISC, MIT, MIT-0, MPL-2.0, Unicode-3.0, Unicode-DFS-2016, Unlicense and Zlib (`deny.toml:29-49`).
+- Bans: the `deny` list refuses `openssl`, `openssl-sys` and `time` older than 0.3, and `wildcards` refuses wildcard version requirements (`deny.toml:58-70`).
+- Sources: the `sources` table admits crates.io and one git repository, `NON-OS/STARKs` (`deny.toml:74-78`).
+
+Moving the STARKs pin goes through its own pull request; [Review](review.md) says how.
