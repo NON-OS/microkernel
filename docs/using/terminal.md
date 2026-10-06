@@ -85,3 +85,88 @@ The built-ins that wait on the network or on an install run as jobs even in the 
 Code: `interrupt` in `userland/capsule_terminal/src/event/interrupt.rs`. `Ctrl+Shift+C` copies and never interrupts.
 
 `Ctrl+D` on an empty input line ends the input of a Linux program. Any other program has no end of input yet, and the terminal prints `^D (end of input is not delivered to this program)`.
+
+## Built-in commands
+
+`help` lists the commands in groups, and `help <command>` shows one command's usage. These are the 69 commands it documents (`USAGE` in `userland/capsule_terminal/src/command/builtin/help_one.rs`), grouped here much as `help` groups them.
+
+| Files | What it does |
+|---|---|
+| `ls` | List a directory. `-l` long, `-a` hidden, `-h` human sizes, `-R` recurse, `-t` by time, `-S` by size. |
+| `tree` | Draw a directory and everything under it. |
+| `cat` | Print files. `-n` numbers the lines. |
+| `cd` | Change directory. With no argument, go to `$HOME`, `/home/nonos`. |
+| `pwd` | Print the working directory. |
+| `mkdir` | Make directories. `-p` makes parents too. |
+| `touch` | Create empty files. A file that exists is left as it is. |
+| `rm` | Remove. `-r` recurses into directories, `-f` ignores what is missing. |
+| `rmdir` | Remove empty directories. |
+| `mv` | Move or rename. |
+| `cp` | Copy. `-r` recurses into directories. |
+| `stat` | Kind, size, write bit and modification time of one path. |
+| `find` | Walk a tree, filtering by `-name <pattern>`, `-type f` or `-type d`. |
+| `du` | How many bytes the files under a path hold. |
+
+| Text | What it does |
+|---|---|
+| `head`, `tail` | First or last lines, ten by default, `-n <count>` for another number. |
+| `grep` | Search. `-i` ignores case, `-n` numbers, `-r` recurses, `-v` inverts, `-c` counts. No `-r` in a pipe. |
+| `wc` | Count lines, words and bytes, with a total for several files. `-l`, `-w`, `-c`. |
+| `echo` | Write the arguments back. |
+| `sort` | Sort lines. `-n` numeric, `-r` reverse, `-u` unique. |
+| `uniq` | Collapse repeated neighbouring lines. `-c` counts each run. |
+| `cut` | The nth field of each line. `-d <char>` sets the separator, `-f <n>` the field; a space and field 1 by default. |
+| `nl` | Number the lines. |
+| `tac` | Reverse the order of the lines. |
+| `rev` | Reverse the characters in each line. |
+
+| System and identity | What it does |
+|---|---|
+| `capsules` | Every running capsule, with the capabilities the kernel granted it. |
+| `service <name>` | The port and pid answering a service name. |
+| `ps` | Every process in the kernel's table, with its parent and state. |
+| `kill <pid or name> [signal]` | Signal a process, as in `kill browser`. Signal 9 by default. |
+| `sys` | Version and build identity together. |
+| `battery` | The charge, when the kernel gives one. In this release it prints `No battery` or `Battery status unavailable`, never a charge. |
+| `about` | What this terminal is and how it reaches the rest of the system. |
+| `version` | The release this terminal was built in, and who signed it. |
+| `receipt [--hex]` | Every capsule as the kernel recorded it: measurement, signer, capabilities. |
+| `log [word ...]` | The kernel's console lines, newest last. With words, only the lines naming one. |
+| `bench` | Cycle costs of the kernel primitives, as percentiles. |
+| `whoami`, `id` | Your name, then this capsule and who the kernel says signed it. |
+| `date` | The real-time clock, as year-month-day hour:minute:second UTC. |
+| `uptime` | How long the system has run, from the monotonic clock. |
+
+| Network | What it does |
+|---|---|
+| `ping <host>` | Round trip to a host. Direct network only. |
+| `ifconfig` | Interfaces, addresses and link state. |
+| `nslookup <name>` | Resolve a name. Direct network only. |
+| `curl <url>` | Fetch a URL over the chosen network. `http`, `get` and `fetch` are the same command. |
+| `nym` | Mixnet client state: directory, gateway and route. |
+
+| Apps | What it does |
+|---|---|
+| `market` | `market list`, `market info <id>`, `market install <id>`, `market uninstall <id>`. See [Marketplace](marketplace.md). |
+| `install <name> [argv...]` | Verify, load and start the capsule held at `/capsules/<name>.*` in the store. |
+| `pkg` | `pkg install <path> [--yes]`, `pkg remove <name>`, `pkg status`. |
+| `git` | A git client over HTTPS. See [Git](#git). |
+| `nox [command]` | The nox command index, or a command by its nox name. |
+| `qwen [tier] [question]` | Chat with a Qwen model on this machine, offline. |
+| `run <app>`, `open <app>` | Bring an app's window forward: `files`, `editor`, `settings`, `calc`, `about`, `procs`, `term`. |
+| `exec <name> [argv...]` | Load a store capsule as this terminal's child and run it in the foreground. |
+
+| Shell | What it does |
+|---|---|
+| `type <name...>`, `which <name...>` | Say which of the four routes a name runs through. |
+| `history` | The commands run in this tab. |
+| `jobs`, `fg <id>`, `bg <id>` | List, bring forward, or report background jobs. |
+| `env` | The shell variables that are set. |
+| `set [name value]`, `unset <name>` | List, set or remove a shell variable. |
+| `alias [name expansion]`, `unalias <name>` | List, define or remove an alias, as in `alias ll ls -l`. |
+| `theme [name]` | Switch the terminal's colours, or list them. |
+| `clear` | Empty the scrollback. |
+| `help [command]` | The grouped list, or one command in detail. |
+| `exit` | Close this terminal. `quit` is the same. |
+
+The shell also answers to names `help` does not list: `dir` (`ls`), `del` (`rm`), `caps` (`capsules`), `svc` (`service`), `host` (`nslookup`), `ip` (`ifconfig`), `bat` (`battery`), `profile` (`theme`), `commands` (`help`), and the nox names `where`, `in`, `read`, `copy`, `mk` and `move`. It also has `write <file> <text>`, `keep <path>` (see [Files](files.md)), `basename`, `dirname`, `apps`, `display`, `motd`, `neofetch`, and `pull` and `push`, which copy a file from or to a host over plain TCP (`userland/capsule_terminal/src/command/builtin/nox/dispatch.rs`).
