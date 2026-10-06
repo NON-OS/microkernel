@@ -70,3 +70,15 @@ A machine whose audio the driver cannot play on is not an error. The driver give
 | 5 | codec with no output the driver can route | The sound chip has no speaker, headphone or line output NONOS can drive |
 | 6 | AMD audio coprocessor | This computer's audio runs through AMD's audio coprocessor (ACP), which NONOS does not support |
 | 7 | driver not answering | The sound driver is not answering |
+
+## Intel SST and SOF are not supported
+
+On some Intel laptops the speakers and microphones hang off Intel's audio DSP over I2S or SoundWire instead of an HD Audio codec. Linux runs those machines with Sound Open Firmware: firmware loaded into the DSP, a topology for the board, and a driver for the codec on that bus. NONOS 0.9.2 has none of these. The HD Audio driver plays only through a codec on the HD Audio link, and there is no DSP driver in the tree.
+
+What the driver does on such a machine:
+
+- An Intel SST engine, the Haswell and Broadwell ULT audio DSP (8086:9c36, 9cb6) or the Atom LPE engine (8086:0f28, 22a8, 119a), is never run as an HD Audio controller, since its registers are the DSP's and not HD Audio's (`intel_sst`, `userland/capsule_driver_hda/src/controller/sst.rs:33-37`). Its presence is logged as `[HDA] intel sst dsp 8086:<id> found, needs SOF` and sets the verdict to code 2 (`start`, `userland/capsule_driver_hda/src/start.rs:39-48`).
+- An Intel controller that can route audio through a DSP (`dsp_capable`, `userland/capsule_driver_hda/src/controller/intel.rs:58-60`) and whose link has no codec, or only the display's HDMI codec, is judged to need SOF, code 2 (`judge`, `userland/capsule_driver_hda/src/controller/verdict.rs:53-64`).
+- An AMD audio coprocessor, vendor 1022 with class 0x04 and subclass 0x80, is the same case for AMD and gives code 6 (`amd_acp`, `userland/capsule_driver_hda/src/controller/intel.rs:77-79`).
+
+A DSP-capable Intel controller that does have an analog codec plays through it as plain HD Audio.
