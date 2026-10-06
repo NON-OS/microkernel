@@ -101,3 +101,17 @@ The wallet reads the chain over TLS, one batch of calls per refresh, and never o
 The shield is stricter: it uses Nym or Anyone only when the default names one of them, and under a Direct default it does not connect (`anonymous_route` in `userland/shield_core/src/net/tor/stream.rs`).
 
 The RPC node sees which addresses are asked about. Through Nym or Anyone it does not see this machine's address. See [Privacy networks](privacy-network.md).
+
+## What the wallet does not do
+
+- No swap: it is hidden in this build because no liquidity pool is wired (`SWAP_OFFERED` in `userland/capsule_wallet_nonos/src/wallet/screen/home_actions.rs:38`).
+- No other chains, no other tokens, no custom RPC host.
+- No BIP39 passphrase.
+- No passphrase on the keyring: `Lock the screen` hides balances, the address and every action, and `Open the wallet` brings them back without asking for one.
+- No hardware wallet and no secure element.
+- No shield on mainnet.
+- No recovery of an account whose words and key are both lost.
+
+Setup's app list has a `Wallet` switch. When it is turned off, the wallet does not start, and Safe Mode and Recovery boots do not start it either (`BootProfile` in `src/userspace/init/app_choice/profile.rs:41-42`).
+
+The host tests pass on this commit: `wallet_proofs` (184 tests), `nonos_secp256k1` (12), `shield_wire_proofs` (12) and `tpm_key_proofs` (42).
