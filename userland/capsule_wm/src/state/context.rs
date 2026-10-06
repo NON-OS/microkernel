@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::SubscriptionList;
+use super::{Restack, SubscriptionList};
 use crate::focus::FocusModel;
 use crate::window::WindowTable;
 use crate::z_order::ZStack;
@@ -29,6 +29,8 @@ pub struct Context {
     pub subscriptions: SubscriptionList,
     pub next_request_id: u32,
     pub input_router_pid: u32,
+    /// Whether the compositor is owed the stack again (restack.rs).
+    pub restack: Restack,
 }
 
 impl Context {

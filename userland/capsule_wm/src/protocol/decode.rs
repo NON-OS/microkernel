@@ -14,24 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{Request, HDR_LEN, MAGIC, VERSION};
+use super::{Request, E_BAD_LEN, E_BAD_MAGIC, E_BAD_VERSION, HDR_LEN, MAGIC, VERSION};
 
-pub fn parse(buf: &[u8]) -> Option<(Request, &[u8])> {
-    if buf.len() < HDR_LEN {
-        return None;
+/// The request a frame carries and its body, or why it was refused and the
+/// request the refusal answers.
+///
+/// A refused frame is still answered: its caller is blocked on the reply and
+/// would otherwise wait out its whole timeout. The refusal carries the op,
+/// flags and request id the frame named, or zeros when it is too short to
+/// name them, so a caller matching replies to calls can tell it is its own.
+pub fn parse(buf: &[u8]) -> Result<(Request, &[u8]), (i32, Request)> {
+    let Some(head) = buf.first_chunk::<HDR_LEN>() else {
+        return Err((E_BAD_LEN, Request { op: 0, flags: 0, request_id: 0 }));
+    };
+    let req =
+        Request { op: u16_at(head, 6), flags: u16_at(head, 8), request_id: u32_at(head, 12) };
+    if u32_at(head, 0) != MAGIC {
+        return Err((E_BAD_MAGIC, req));
     }
-    let magic = u32::from_le_bytes(buf[0..4].try_into().ok()?);
-    let version = u16::from_le_bytes(buf[4..6].try_into().ok()?);
-    if magic != MAGIC || version != VERSION {
-        return None;
+    if u16_at(head, 4) != VERSION {
+        return Err((E_BAD_VERSION, req));
     }
-    let op = u16::from_le_bytes(buf[6..8].try_into().ok()?);
-    let flags = u16::from_le_bytes(buf[8..10].try_into().ok()?);
-    let request_id = u32::from_le_bytes(buf[12..16].try_into().ok()?);
-    let payload_len = u32::from_le_bytes(buf[16..20].try_into().ok()?);
-    let end = HDR_LEN.checked_add(payload_len as usize)?;
-    if end != buf.len() {
-        return None;
+    match HDR_LEN.checked_add(u32_at(head, 16) as usize) {
+        Some(end) if end == buf.len() => Ok((req, &buf[HDR_LEN..])),
+        _ => Err((E_BAD_LEN, req)),
     }
-    Some((Request { op, flags, request_id }, &buf[HDR_LEN..end]))
+}
+
+fn u16_at(head: &[u8; HDR_LEN], off: usize) -> u16 {
+    u16::from_le_bytes([head[off], head[off + 1]])
+}
+
+fn u32_at(head: &[u8; HDR_LEN], off: usize) -> u32 {
+    u32::from_le_bytes([head[off], head[off + 1], head[off + 2], head[off + 3]])
 }

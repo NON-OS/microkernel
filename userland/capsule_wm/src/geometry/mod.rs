@@ -16,6 +16,7 @@
 
 pub mod constrain;
 pub mod rect;
+pub mod resize;
 
 pub use constrain::clamp_to_display;
 pub use rect::Rect;

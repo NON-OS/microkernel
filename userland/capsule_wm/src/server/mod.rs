@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod full_screen_notify;
+pub mod hand_off_focus;
 pub mod handlers;
 pub mod notify_fanout;
 pub mod respond;
 pub mod respond_window_opened;
 pub mod runner;
+pub mod tell_compositor;
 
 pub use runner::run;

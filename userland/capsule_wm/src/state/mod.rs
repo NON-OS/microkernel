@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod context;
+pub mod restack;
 pub mod subscriptions;
 
 pub use context::Context;
+pub use restack::Restack;
 pub use subscriptions::SubscriptionList;

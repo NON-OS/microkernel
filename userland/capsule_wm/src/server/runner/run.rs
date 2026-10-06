@@ -19,9 +19,13 @@ use alloc::vec;
 use nonos_libc::mk_ipc_recv_from;
 
 use crate::protocol::{parse, HDR_LEN, IPC_PAYLOAD_MAX};
+use crate::server::respond;
+use crate::server::tell_compositor::resync;
 use crate::state::Context;
 
-use super::constants::{RECV_TIMEOUT_MS, SERVICE_INBOX, SWEEP_INTERVAL_TICKS};
+use super::constants::{
+    OWED_RECV_TIMEOUT_MS, RECV_TIMEOUT_MS, SERVICE_INBOX, SWEEP_INTERVAL_TICKS,
+};
 use super::dispatch::dispatch;
 use super::sweep_dead::sweep_dead;
 
@@ -34,18 +38,22 @@ pub fn run(mut ctx: Context) -> ! {
         if sweep_ticks % SWEEP_INTERVAL_TICKS == 0 {
             sweep_dead(&mut ctx);
         }
+        resync(&mut ctx);
+        // A restack owed to the compositor is due within its backoff, which
+        // the idle wait would otherwise stretch to its full length.
+        let wait = if ctx.restack.owed() { OWED_RECV_TIMEOUT_MS } else { RECV_TIMEOUT_MS };
         let mut sender_pid = 0u32;
-        let n = mk_ipc_recv_from(
-            SERVICE_INBOX,
-            rx.as_mut_ptr(),
-            rx.len(),
-            RECV_TIMEOUT_MS,
-            &mut sender_pid,
-        );
+        let n = mk_ipc_recv_from(SERVICE_INBOX, rx.as_mut_ptr(), rx.len(), wait, &mut sender_pid);
         if n <= 0 || sender_pid == 0 {
             continue;
         }
-        let Some((req, body)) = parse(&rx[..n as usize]) else { continue };
+        let (req, body) = match parse(&rx[..n as usize]) {
+            Ok(parsed) => parsed,
+            Err((code, req)) => {
+                let _ = respond::status(sender_pid, &req, code, &mut tx);
+                continue;
+            }
+        };
         dispatch(&mut ctx, sender_pid, req, body, &mut tx);
     }
 }
