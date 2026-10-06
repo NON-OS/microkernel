@@ -1,15 +1,14 @@
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StatusFlags {
     pub network_up: bool,
-    pub battery_pct: u8,
+    /// None when there is no reading; never a stand-in 0.
+    pub battery_pct: Option<u8>,
     pub alerts: u8,
 }
 
 impl StatusFlags {
     pub fn battery_clamped(mut self) -> Self {
-        if self.battery_pct > 100 {
-            self.battery_pct = 100;
-        }
+        self.battery_pct = self.battery_pct.map(|p| p.min(100));
         self
     }
 }

@@ -13,24 +13,29 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::image::png::deflate::BitReader;
+
+use crate::image::png::deflate::{BitReader, ByteSource};
 use crate::image::png::huffman::Huffman;
 use crate::image::types::DecodeError;
 
-use super::put::put;
 use super::tables::{DIST_BASE, DIST_EXTRA, LEN_BASE, LEN_EXTRA};
+use super::window::{Out, Sink};
 
-pub fn block(
-    bits: &mut BitReader<'_>,
+/* One Huffman-coded block: literals and length/distance matches until the
+ * end-of-block symbol, or until the sink has everything it wants. */
+pub fn block<S: ByteSource, K: Sink>(
+    bits: &mut BitReader<S>,
     ll: &Huffman,
     ds: &Huffman,
-    out: &mut [u8],
-    w: &mut usize,
+    out: &mut Out<'_, K>,
 ) -> Result<(), DecodeError> {
     loop {
+        if out.done() {
+            return Ok(());
+        }
         let sym = ll.decode(bits)?;
         if sym < 256 {
-            put(out, w, sym as u8)?;
+            out.lit(sym as u8)?;
         } else if sym == 256 {
             return Ok(());
         } else {
@@ -44,13 +49,7 @@ pub fn block(
                 return Err(DecodeError::Unsupported);
             }
             let dist = DIST_BASE[dsym] as usize + bits.read_bits(DIST_EXTRA[dsym])? as usize;
-            if dist == 0 || dist > *w {
-                return Err(DecodeError::Truncated);
-            }
-            for _ in 0..len {
-                let b = out[*w - dist];
-                put(out, w, b)?;
-            }
+            out.copy(dist, len)?;
         }
     }
 }

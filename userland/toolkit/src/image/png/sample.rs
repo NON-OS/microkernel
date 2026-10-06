@@ -13,13 +13,26 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use crate::image::types::DecodeError;
 
-pub fn put(out: &mut [u8], w: &mut usize, b: u8) -> Result<(), DecodeError> {
-    if *w >= out.len() {
-        return Err(DecodeError::OutputTooSmall);
+/* Sample `i` of an unfiltered row at bit depth `depth`, as stored. */
+pub(super) fn sample(row: &[u8], i: usize, depth: u8) -> u16 {
+    match depth {
+        16 => u16::from_be_bytes([row[2 * i], row[2 * i + 1]]),
+        8 => row[i] as u16,
+        d => {
+            let bit = i * d as usize;
+            let shift = 8 - d as usize - bit % 8;
+            ((row[bit / 8] as u16) >> shift) & ((1u16 << d) - 1)
+        }
     }
-    out[*w] = b;
-    *w += 1;
-    Ok(())
+}
+
+/* A stored sample scaled to eight bits: 16-bit keeps the high byte, lower
+ * depths stretch their range to 0..255. */
+pub(super) fn to8(v: u16, depth: u8) -> u32 {
+    match depth {
+        16 => (v >> 8) as u32,
+        8 => v as u32,
+        d => v as u32 * 255 / ((1u32 << d) - 1),
+    }
 }

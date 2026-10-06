@@ -24,9 +24,7 @@ use super::readable::readable_px;
 // the readable floor, the same clamp draw_text applies, so measured runs match
 // what is painted.
 pub fn measure(text: &str, px: f32, mono: bool) -> i32 {
-    let px = readable_px(px);
-    let Some(f) = face(mono) else { return 0 };
-    measure_with(f, text, px)
+    super::fallback::measure(text, px, mono)
 }
 
 // Same measurement with a caller-provided face, matching draw_text_with.
@@ -42,7 +40,7 @@ pub fn measure_tracked<F: Font>(f: &F, text: &str, px: f32, spacing: f32) -> i32
     for ch in text.chars() {
         let g = sf.glyph_id(ch);
         if let Some(p) = prev {
-            pen += sf.kern(p, g);
+            pen += super::gpos::kern::kern_px(&sf, p, g);
         }
         pen += sf.h_advance(g) + spacing;
         prev = Some(g);
