@@ -42,3 +42,7 @@ What is missing is the xHCI side: writing the route string, the speed and the tr
 ## Mass storage behind a hub
 
 `driver.usb_msc0` looks at root ports only, so a stick behind a hub is not found either (`userland/capsule_driver_usb_msc/src/xhci/port.rs:34-47`, `connected_ports`).
+
+## How it was verified
+
+`userland/usb_proofs` is the [proof crate](../../overview/glossary.md#proof-crate) for the class side. It holds the hub descriptor parse, hub port status, and route and transaction translator tests, and its 83 tests pass on this commit. No QEMU target in `mk/` attaches a USB hub, and hubs have not been tested on hardware in this release.
