@@ -17,3 +17,5 @@
 // Mirrors the bootloader's `crate::security` parent so the included
 // anti-rollback source resolves its absolute module paths.
 pub mod anti_rollback;
+// The rollback counter's commands and sequences (REVIEW R20).
+pub mod tpm_nv;

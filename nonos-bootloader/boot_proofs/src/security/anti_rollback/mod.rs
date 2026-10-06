@@ -14,17 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The real version/error types (pure: plain u64 fields and an error enum).
-// `new_without_default` is a style choice in the real source, not restyled here.
-#[allow(clippy::new_without_default)]
-#[path = "../../../../src/security/anti_rollback/types/mod.rs"]
-pub mod types;
+// The real rollback-floor rule by profile, unchanged (REVIEW R8).
+#[path = "../../../../src/security/anti_rollback/floor_rule.rs"]
+pub mod floor_rule;
 
-// The real check/update decision logic, over the real AntiRollbackState.
-pub mod state;
-
-// TPM/NVRAM write shim: the real path persists to hardware NV storage; the
-// proofs exercise the decision logic, so the write is a no-op here.
-pub mod nvram;
-
-pub use state::AntiRollbackState;
+pub use floor_rule::{floor_rule, Floor};
