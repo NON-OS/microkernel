@@ -92,3 +92,13 @@ This is also why SMAP is safe to turn on: the kernel reaches user memory only th
 ## Changing a mapping on several CPUs
 
 When a mapping changes, every CPU that may cache the old translation has to drop it. This is the TLB shootdown, described with the rest of the multi-CPU machinery on [scheduler and SMP](scheduler-and-smp.md).
+
+## See also
+
+- [Frame allocator](frame-allocator.md)
+- [Boot handoff](boot-handoff.md)
+- [Scheduler and SMP](scheduler-and-smp.md)
+- [Hardware broker](hardware-broker.md)
+- [IOMMU](iommu.md)
+- [Capsule isolation](../security/capsule-isolation.md)
+- [Protections and limits](../security/protections-and-limits.md)
