@@ -16,10 +16,12 @@
 
 mod get;
 mod init;
+mod pool;
 mod seed;
 
 pub use get::{get_entropy64, get_entropy64_secure, get_tsc_entropy};
 pub use init::{
     has_adequate_entropy, init_entropy, mark_bootloader_entropy_provided, verify_entropy_sources,
 };
-pub use seed::{collect_seed_entropy, collect_seed_entropy_secure, mix_entropy_into_seed};
+pub use pool::collect_seed_entropy_secure;
+pub use seed::{collect_seed_entropy, mix_entropy_into_seed};

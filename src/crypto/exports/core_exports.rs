@@ -23,9 +23,9 @@ pub use super::super::core::aead::{
 };
 pub use super::super::core::api::{
     ed25519_verify, estimate_entropy, feature_summary, fill_random, generate_keypair,
-    generate_plonk_proof, generate_secure_key, hash_memory_region, hkdf_expand_labeled, init,
-    init_crypto_subsystem, secure_erase_memory_region, secure_random_u32, secure_random_u64,
-    secure_random_u8, secure_zero, sig, verify_plonk_proof, verify_signature, SignatureAlgorithm,
+    generate_secure_key, hash_memory_region, hkdf_expand_labeled, init, init_crypto_subsystem,
+    secure_erase_memory_region, secure_random_u32, secure_random_u64, secure_random_u8,
+    secure_zero, sig, verify_signature, SignatureAlgorithm,
 };
 pub use super::super::core::syscall::{sign_message, verify_signature_syscall, SyscallCryptoError};
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]

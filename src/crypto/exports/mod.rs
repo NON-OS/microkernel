@@ -19,11 +19,9 @@ pub mod core_exports;
 pub mod hash_exports;
 pub mod pqc_exports;
 pub mod sym_exports;
-pub mod zk_exports;
 
 pub use asym_exports::*;
 pub use core_exports::*;
 pub use hash_exports::*;
 pub use pqc_exports::*;
 pub use sym_exports::*;
-pub use zk_exports::*;
