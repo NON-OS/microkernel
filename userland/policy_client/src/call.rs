@@ -35,6 +35,18 @@ pub fn call<'a>(
     kind: u8,
     rx: &'a mut [u8; IPC_PAYLOAD_MAX],
 ) -> Option<Reply<'a>> {
+    call_within(port, op, field, kind, rx, REPLY_TIMEOUT_MS)
+}
+
+/// `call`, waiting at most `timeout_ms` for the reply.
+pub fn call_within<'a>(
+    port: u32,
+    op: u16,
+    field: u32,
+    kind: u8,
+    rx: &'a mut [u8; IPC_PAYLOAD_MAX],
+    timeout_ms: u64,
+) -> Option<Reply<'a>> {
     let mut tx = [0u8; HDR_LEN];
     Header { op, field, kind, status: 0, payload_len: 0 }.encode(&mut tx);
     let n = mk_ipc_call_timeout(
@@ -43,7 +55,7 @@ pub fn call<'a>(
         HDR_LEN,
         rx.as_mut_ptr(),
         rx.len(),
-        REPLY_TIMEOUT_MS,
+        timeout_ms,
     );
     if n <= 0 || (n as usize) < HDR_LEN {
         return None;
