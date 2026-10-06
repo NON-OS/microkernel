@@ -19,6 +19,18 @@ use super::allocator::PageAllocator;
 use spin::Mutex;
 
 pub(super) static PAGE_ALLOCATOR: Mutex<PageAllocator> = Mutex::new(PageAllocator::new());
+
+/// Run `f` on the allocator with interrupts masked, the only way it is taken.
+///
+/// Masked, because the timer tick frees kernel stacks through this lock, and
+/// a tick landing on a holder would spin on its own cpu. Responsive, because
+/// that tick spins with interrupts masked, so waiting deaf would leave a
+/// shootdown on this cpu unanswered for as long as the holder takes. The
+/// holder never waits on a shootdown itself: every critical section here is
+/// bookkeeping, with the mapping done outside (see `alloc`).
+pub(super) fn with_allocator<R>(f: impl FnOnce(&mut PageAllocator) -> R) -> R {
+    crate::arch::run_without_interrupts(|| f(&mut crate::smp::lock_responsive(&PAGE_ALLOCATOR)))
+}
 pub(super) static ALLOCATOR_STATS: AllocatorStats = AllocatorStats::new();
 
 pub(super) fn get_timestamp() -> u64 {

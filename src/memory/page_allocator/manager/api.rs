@@ -14,38 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::error::PageAllocResult;
+use super::super::error::{PageAllocError, PageAllocResult};
 use super::super::types::{PageAllocatorStats, PageInfo};
-use super::globals::{ALLOCATOR_STATS, PAGE_ALLOCATOR};
+use super::globals::{with_allocator, ALLOCATOR_STATS};
 use crate::memory::addr::VirtAddr;
 use crate::memory::{buddy_alloc, layout};
 use core::sync::atomic::Ordering;
 
 pub fn init() -> PageAllocResult<()> {
-    buddy_alloc::init().map_err(|_| super::super::error::PageAllocError::MappingFailed)?;
-    PAGE_ALLOCATOR.lock().init()
-}
-pub fn allocate_page() -> PageAllocResult<VirtAddr> {
-    PAGE_ALLOCATOR.lock().allocate_page(layout::PAGE_SIZE)
+    buddy_alloc::init().map_err(|_| PageAllocError::MappingFailed)?;
+    with_allocator(|a| a.init())
 }
 pub fn allocate_pages(count: usize) -> PageAllocResult<VirtAddr> {
     // checked_mul so an oversized count returns InvalidSize instead of
     // overflowing (and aborting under release overflow-checks) before the
     // allocator's own size ceiling is even consulted.
-    let size = count
-        .checked_mul(layout::PAGE_SIZE)
-        .ok_or(super::super::error::PageAllocError::InvalidSize)?;
-    PAGE_ALLOCATOR.lock().allocate_page(size)
-}
-pub fn allocate_sized(size: usize) -> PageAllocResult<VirtAddr> {
-    PAGE_ALLOCATOR.lock().allocate_page(size)
-}
-pub fn deallocate_page(va: VirtAddr) -> PageAllocResult<()> {
-    PAGE_ALLOCATOR.lock().deallocate_page(va)
+    let size = count.checked_mul(layout::PAGE_SIZE).ok_or(PageAllocError::InvalidSize)?;
+    super::sized::allocate_sized(size)
 }
 
 pub fn get_page_info(va: VirtAddr) -> Option<PageInfo> {
-    PAGE_ALLOCATOR.lock().get_page_info(va).map(|p| PageInfo {
+    with_allocator(|a| a.get_page_info(va).copied()).map(|p| PageInfo {
         page_id: p.page_id,
         virtual_addr: p.virtual_addr,
         physical_addr: p.physical_addr,
@@ -55,10 +44,10 @@ pub fn get_page_info(va: VirtAddr) -> Option<PageInfo> {
 }
 
 pub fn get_stats() -> PageAllocatorStats {
-    PAGE_ALLOCATOR.lock().get_allocator_stats()
+    with_allocator(|a| a.get_allocator_stats())
 }
 pub fn is_allocated(va: VirtAddr) -> bool {
-    PAGE_ALLOCATOR.lock().get_page_info(va).is_some()
+    with_allocator(|a| a.get_page_info(va).is_some())
 }
 pub fn get_allocation_count() -> usize {
     ALLOCATOR_STATS.active_pages.load(Ordering::Relaxed)
@@ -70,5 +59,5 @@ pub fn get_peak_pages() -> usize {
     ALLOCATOR_STATS.peak_pages.load(Ordering::Relaxed)
 }
 pub fn is_initialized() -> bool {
-    PAGE_ALLOCATOR.lock().initialized
+    with_allocator(|a| a.initialized)
 }
