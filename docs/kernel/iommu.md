@@ -75,3 +75,13 @@ The device then reaches all of memory, and the kernel counts it instead of hidin
 ## AMD-Vi
 
 `init` for AMD-Vi first takes every unit back from firmware, because a unit left enabled would translate every device through tables built for firmware's own drivers (`src/arch/x86_64/amd_vi/init.rs:24-45`). A kernel built with `nonos-iommu-amdvi` would then drive the units through `bringup`, with one shared device table and per capsule domains (`src/arch/x86_64/amd_vi/mod.rs:17-25`). No feature list in [Cargo.toml](../../Cargo.toml) turns that feature on, so on such a machine the boot prints `[AMD-VI] IOMMU driver not built in; DMA is unrestricted`.
+
+## Trying it in QEMU
+
+The build has a boot with an emulated Intel IOMMU. `nonos-mk-run-iommu-serial-log` builds the desktop image and runs QEMU under TCG, without hardware acceleration, so it is slow; it writes the serial log to `QEMU_IOMMU_SERIAL_LOG`, the path it prints (`mk/40-run.mk:489-501`):
+
+```
+make nonos-mk-run-iommu-serial-log
+```
+
+Not tested in this release.
