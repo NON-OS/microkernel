@@ -54,17 +54,17 @@ fn a_secured_network_needs_a_passphrase_before_connecting() {
     p.choose();
     assert_eq!(p.status(), WifiStatus::Entering, "a secured network opens the editor");
     assert!(p.connect_request().is_none(), "no connect without a passphrase");
-    for c in b"hunter2" {
+    for c in b"hunter2!x" {
         p.push_pass(*c);
     }
-    assert_eq!(p.passphrase_len(), 7);
+    assert_eq!(p.passphrase_len(), 9);
     p.backspace();
-    assert_eq!(p.passphrase_len(), 6);
+    assert_eq!(p.passphrase_len(), 8);
     let req = p.connect_request().expect("connect once a key is entered");
     // [ssid_len][ssid][passphrase]
     assert_eq!(req[0] as usize, 6, "SSID length");
     assert_eq!(&req[1..7], b"Secure");
-    assert_eq!(&req[7..], b"hunter", "the entered passphrase, minus the backspaced char");
+    assert_eq!(&req[7..], b"hunter2!", "the entered passphrase, minus the backspaced char");
     assert_eq!(p.status(), WifiStatus::Connecting);
 }
 
