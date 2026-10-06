@@ -183,3 +183,27 @@ linux python3
 Not tested in this release.
 
 Which programs ship and which Linux calls are refused is on [Linux programs](linux-programs.md).
+
+## Git
+
+`git` is a client written for NONOS (`userland/nonos_git/README.md`). It works on a repository in the current directory of the file store.
+
+```sh
+cd /home/nonos/workspace
+git clone https://example.org/team/project.git
+cd project
+write notes.txt remember the backup
+git add notes.txt
+git commit -m "first note"
+git push
+```
+
+Not tested in this release.
+
+- Subcommands: `init`, `clone <url> [branch]`, `add`, `status`, `commit -m <msg>`, `log`, `push [url]`, `remote` (`userland/capsule_terminal/src/command/builtin/git/dispatch.rs`).
+- Only `https://` addresses. SSH and `git://` are not supported, nor are merge and rebase.
+- `git clone` fetches only the tip, depth 1, of branch `main` unless you name another, into a folder named after the address's last part, with `.git` dropped. One response may be at most 64 MiB (`MAX_RESPONSE` in `userland/capsule_terminal/src/command/builtin/git/clone/job.rs`).
+- Clone and push leave through the network chosen in Settings. When that network is not running, nothing is sent and the reason is printed.
+- Git cannot send credentials in this release. When a server answers HTTP 401 or 403, git prints `the server wants credentials, which this cannot send yet` (`say_failure` in `userland/capsule_terminal/src/command/builtin/git/clone/fail.rs`). So `git push` works only to a server that takes a push without them.
+- `git clone` runs as a job and `Ctrl+C` stops it. `git push` does not: the window waits until it ends.
+- The repository lives in the file store, in memory. See [Files](files.md) for what survives a reboot.
