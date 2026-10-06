@@ -82,3 +82,12 @@ A pad in touchpad mode sends absolute contacts, which go through the gesture dec
 | Palm | A contact the pad marks not confident stops all motion until every finger lifts | `palm`, `userland/capsule_driver_i2c_hid/src/input/gesture/on_touch.rs:62-74` |
 
 Both a tap and a clickpad press post button 1 (`publish_touch`, `userland/capsule_driver_i2c_hid/src/input/publish_touch.rs:29-46`). In touchpad mode there is no right click, no three-finger gesture and no pinch. Natural scrolling is a constant in the source, off, and not a setting (`NATURAL_SCROLL`, `userland/capsule_driver_i2c_hid/src/input/gesture/types.rs:50`).
+
+## Authority and limits
+
+- `driver.i2c_pci0` holds IPC, Memory, Driver, DeviceEnum, Mmio and Irq (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_driver_i2c_pci/Capsule.mk:16`). It has no DMA and no Debug, so its own `driver.i2c_pci:` lines never reach the console.
+- `driver.i2c_hid0` holds IPC, Memory and InputSource, and Debug only in a build with `capsule-serial-debug` (`CAPSULE_OPTIONAL_CAPS`, `userland/capsule_driver_i2c_hid/Capsule.mk:14-17`).
+- A transfer writes at most 64 bytes and reads at most 1024 (`TRANSFER_WRITE_MAX`, `userland/capsule_driver_i2c_pci/src/protocol/limits.rs:7-8`).
+- `driver.i2c_hid0` looks the controller service up 100 times, 20 ms apart, then exits with status 2 (`LOOKUP_ATTEMPTS`, `userland/capsule_driver_i2c_hid/src/i2c_client/service.rs:10-11`). After 3 unanswered calls in a row it pauses its calls for 1 s, doubling to 30 s (`UNANSWERED_LIMIT`, `userland/capsule_driver_i2c_hid/src/i2c_client/gate.rs:33-35`).
+- Not supported: touchscreens, 10-bit I2C addresses, I2C keyboards and other HID-over-I2C devices that are not pointers, interrupt-driven transfers and DMA.
+- No touch, report or gesture is stored. Each report is decoded, posted and dropped. With Debug, the driver writes the first 16 bytes of each of its first six raw reports to the console as `[i2chid] frm` lines, so a decode can be checked against the wire (`frame_dumps`, `userland/capsule_driver_i2c_hid/src/input/poll/read_frame.rs:55-58`).
