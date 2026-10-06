@@ -33,3 +33,9 @@ The guide for a person who uses NONOS every day: what each part of the desktop d
 3. Join a network on the Wi-Fi panel of Settings, then check the `Default network` row on the Network panel.
 4. Open Terminal and type `help`. Then try `help keys` and `help shell`.
 5. Open About and read its Proofs screen. It says in one line whether this boot is attested and whether its traffic is anonymous.
+
+## If something does not work
+
+- An app that does not open from the dock says why in a notice, for example `did not open: no window in 30 s`.
+- A silent machine says why in Settings, Sound. See [Sound and media](audio.md#when-nothing-plays).
+- For boot problems and hardware, see [Troubleshooting](../install/troubleshooting.md) and the [support matrix](../hardware/MATRIX.md).
