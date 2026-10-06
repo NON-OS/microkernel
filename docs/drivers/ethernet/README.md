@@ -21,3 +21,26 @@ The states mean:
 | USB CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179, Realtek RTL8153 | USB class or USB ids | five capsules | no | Not supported: not built, and the USB host driver lacks the transfer they need | [usb-net.md](usb-net.md) |
 
 No Ethernet driver has a hardware report in 0.9.2.
+
+## How a frame travels
+
+```mermaid
+flowchart LR
+  Core["net.core"] --> E1000["driver.e1000_0"]
+  Core --> R8169["driver.rtl8169_0"]
+  Core --> R8139["driver.rtl8139_0"]
+  Core --> Virtio["driver.virtio_net0"]
+  E1000 --> Broker["hardware broker"]
+  R8169 --> Broker
+  R8139 --> Broker
+  Virtio --> Broker
+  Broker --> Card["PCI network card"]
+```
+
+Each driver is a capsule that moves raw Ethernet frames and nothing more; ARP, IP, DHCP, DNS and TCP live in `net.core` above it. The driver reaches its PCI network card only through grants from the [hardware broker](../../overview/glossary.md#hardware-broker): a device claim, a register mapping and DMA buffers.
+
+Every wired driver answers the same link protocol: a 20-byte header tagged `NNET` (0x4E4E4554), and the operations link status (2), MAC address (3), transmit (4) and receive (5) (`userland/capsule_net_core/src/protocol/ops.rs:17-25`, `MAGIC_NNET`, `OP_RX_PACKET`). Operation 6 is where they part. `net.core` and the virtio driver use it for a receive batch (`userland/capsule_net_core/src/protocol/ops.rs:26-27`, `OP_RX_BATCH`); e1000, RTL8139 and RTL8169 use it for a register snapshot (`userland/capsule_driver_e1000/src/protocol/ops.rs:23-28`, `OP_STATS`).
+
+The kernel holds the four wired endpoints in the image to `net.core` and `net.l2`; no other capsule may send to them (`src/services/registry/held_table.rs:20-24`, `HELD`; `src/services/registry/held_table.rs:41-44`, `WIRED_STACK`). See [held endpoint](../../overview/glossary.md#held-endpoint).
+
+`net.core` binds the first candidate whose link answers up. Wi-Fi comes first, then `driver.virtio_net0`, `driver.e1000_0`, `driver.rtl8169_0` and `driver.rtl8139_0`, then the USB drivers (`userland/capsule_net_core/src/setup/candidates.rs:25-38`, `WIRED_NICS`). The e1000e and igc capsules are not on that list.
