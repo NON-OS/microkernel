@@ -113,3 +113,12 @@ Installing to an internal NVMe disk and booting from it was reported on real har
 - `install-cli` (`userland/tool_install/`) is the installer as a command-line program, built on the same disk and block crates and built into the images (`nonos-capsule-install-cli` in `tools/nix/config.nix`). No command in this release runs it: the Terminal's `install` goes to the Marketplace installer (`userland/capsule_terminal/src/command/builtin/tool.rs`).
 - `capsule_nonos_install` is a console installer that no image carries. Its last four steps print `pending` and write nothing (`userland/capsule_nonos_install/src/asm/steps.S`).
 - `capsule_installer` installs Marketplace packages into the store. It owns no storage device and never lays out a disk (`userland/capsule_installer/README.md`).
+
+## See also
+
+- [First boot](first-boot.md)
+- [Update](update.md)
+- [Troubleshooting](troubleshooting.md)
+- [Storage drivers](../drivers/storage/README.md)
+- [Hardware support matrix](../hardware/MATRIX.md)
+- [Device secrets and keys](../security/device-secrets-and-keys.md)
