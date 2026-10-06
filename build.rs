@@ -18,6 +18,8 @@ use std::env;
 use std::fs;
 use std::path::PathBuf;
 
+mod build_info;
+
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=src/");
@@ -38,8 +40,9 @@ fn main() {
     compile_arch_asm();
     configure_kernel_target();
     stage_image_capability_ceiling();
+    stage_device_policy_key();
     generate_manifest_and_signature();
-    embed_kernel_build_info();
+    build_info::embed_kernel_build_info();
 }
 
 // The image capability ceiling is baked into the kernel, but most images do not
@@ -56,6 +59,24 @@ fn stage_image_capability_ceiling() {
     let dst = PathBuf::from(&out_dir).join("image_capability_ceiling.bin");
     let bytes = fs::read(&src).unwrap_or_else(|_| vec![0u8; 8]);
     fs::write(&dst, bytes).expect("stage image capability ceiling");
+}
+
+// The release's P-256 policy key, the one that approves which kernels may use
+// the device secret. Staged like the ceiling: present, it is copied verbatim as
+// x || y, 64 bytes; absent, 64 zero bytes are written and the kernel treats the
+// key as not provisioned and refuses to derive the secret. A plain checkout
+// still builds, and nothing unseals until the key bootstrap has run.
+fn stage_device_policy_key() {
+    let out_dir = env::var("OUT_DIR").unwrap();
+    let src = PathBuf::from("nonos-data/trust/policy/device_policy_p256.pub");
+    println!("cargo:rerun-if-changed={}", src.display());
+    let dst = PathBuf::from(&out_dir).join("device_policy_p256.pub");
+    let bytes = match fs::read(&src) {
+        Ok(b) if b.len() == 64 => b,
+        Ok(b) => panic!("{} must be 64 bytes (x || y), got {}", src.display(), b.len()),
+        Err(_) => vec![0u8; 64],
+    };
+    fs::write(&dst, bytes).expect("stage device policy key");
 }
 
 // Assemble src/arch/<arch>/asm/*.S for the kernel target.
@@ -423,27 +444,6 @@ fn sign_manifest_ed25519(data: &[u8], key_path: PathBuf) -> Result<Vec<u8>, Stri
     Ok(sig.to_bytes().to_vec())
 }
 
-fn embed_kernel_build_info() {
-    let build_time = match std::env::var("SOURCE_DATE_EPOCH") {
-        Ok(epoch) => format!("epoch:{}", epoch.trim()),
-        Err(_) => "reproducible:none".to_string(),
-    };
-    println!("cargo:rerun-if-env-changed=SOURCE_DATE_EPOCH");
-    println!("cargo:rustc-env=NONOS_KERNEL_BUILD_TIME={}", build_time);
-
-    if let Ok(output) =
-        std::process::Command::new("git").args(["rev-parse", "--short", "HEAD"]).output()
-    {
-        let commit = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        println!("cargo:rustc-env=NONOS_KERNEL_GIT_COMMIT={}", commit);
-    } else {
-        println!("cargo:rustc-env=NONOS_KERNEL_GIT_COMMIT=unknown");
-    }
-
-    println!("cargo:rustc-env=NONOS_KERNEL_NAME=NONOS Kernel");
-    println!("cargo:rustc-env=NONOS_KERNEL_VERSION=0.8.3");
-}
-
 fn generate_manifest_asm(manifest_content: &[u8], signature: &[u8], out_dir: &str) {
     let manifest_hex: String = manifest_content.iter().map(|b| format!("0x{:02x}, ", b)).collect();
     let signature_hex: String = signature.iter().map(|b| format!("0x{:02x}, ", b)).collect();
@@ -537,12 +537,14 @@ pub fn get_signature() -> &'static [u8] {{
 // changes. include_bytes! does not register a dependency on the byte file
 // itself, so without this the kernel keeps embedding the previous build.
 fn rerun_on_capsule_binaries() {
+    // The embed sites read NONOS_USER_TARGET whether or not userland/ is here.
+    let target = user_target();
     let userland = PathBuf::from("userland");
     let Ok(entries) = fs::read_dir(&userland) else {
         return;
     };
     for entry in entries.flatten() {
-        let bin_dir = entry.path().join(format!("target/{}/release", user_target())); 
+        let bin_dir = entry.path().join(format!("target/{target}/release"));
         let Ok(children) = fs::read_dir(&bin_dir) else {
             continue;
         };
@@ -570,7 +572,12 @@ fn rerun_on_capsule_binaries() {
 /// the whole space uniformly and needs neither.
 fn c_target(arch: &str) -> Option<(&'static str, &'static [&'static str])> {
     match arch {
-        "x86_64" => Some(("x86_64-unknown-none-elf", &["-mno-red-zone", "-mcmodel=kernel"][..])),
+        // No vector registers: kernel code runs before a thread's are saved.
+        "x86_64" => Some((
+            "x86_64-unknown-none-elf",
+            &["-mno-red-zone", "-mcmodel=kernel", "-mno-mmx", "-mno-sse", "-mno-sse2", "-mno-avx"]
+                [..],
+        )),
         "aarch64" => Some(("aarch64-unknown-none-elf", &[][..])),
         "riscv64" => Some(("riscv64-unknown-none-elf", &[][..])),
         _ => None,
@@ -580,11 +587,22 @@ fn c_target(arch: &str) -> Option<(&'static str, &'static [&'static str])> {
 /// The user target whose capsule binaries this kernel embeds.
 ///
 /// The build system passes `NONOS_USER_TARGET` so the capsules the kernel bakes
-/// in are built for the same architecture it is. Defaults to the x86_64 user
-/// target, which is what a plain `cargo build` with no make wrapper expects.
+/// in are built for the same architecture it is. Without it the default follows
+/// the kernel's own architecture, so a plain `cargo build` of an aarch64 kernel
+/// never embeds x86_64 capsules. A value naming another architecture is refused:
+/// the kernel would load binaries its CPU cannot run.
 fn user_target() -> String {
     println!("cargo:rerun-if-env-changed=NONOS_USER_TARGET");
-    let target = env::var("NONOS_USER_TARGET").unwrap_or_else(|_| "x86_64-nonos-user".to_string());
+    let arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap_or_default();
+    let default = match arch.as_str() {
+        "aarch64" => "aarch64-nonos-user",
+        "riscv64" => "riscv64-nonos-user",
+        _ => "x86_64-nonos-user",
+    };
+    let target = env::var("NONOS_USER_TARGET").unwrap_or_else(|_| default.to_string());
+    if matches!(arch.as_str(), "x86_64" | "aarch64" | "riscv64") && !target.starts_with(&arch) {
+        panic!("NONOS_USER_TARGET={target} does not match the kernel architecture {arch}");
+    }
     /*
      * The embed sites are `include_bytes!`, which takes a literal, so the path
      * has to be assembled at compile time. Re-exporting the value as a rustc env
