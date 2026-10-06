@@ -15,11 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod arrow;
-mod mark;
-mod media;
 mod view;
 
-pub use arrow::{back, chevron_down, chevron_left, chevron_right};
-pub use mark::{check, close, dots, plus};
-pub use media::{cc, clock, fullscreen, pip};
+pub use arrow::back;
 pub use view::{grid, info, list, search};

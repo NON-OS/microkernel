@@ -23,11 +23,6 @@ use crate::ui::theme;
 pub const WIDTH: u32 = 6;
 const MIN_THUMB: u32 = 28;
 
-pub fn clamp_scroll(scroll: usize, visible: usize, total: usize) -> usize {
-    let max = total.saturating_sub(visible);
-    scroll.min(max)
-}
-
 pub fn thumb(r: Rect, scroll: usize, visible: usize, total: usize) -> Rect {
     if total <= visible || total == 0 {
         return Rect { x: r.x, y: r.y, w: r.w, h: r.h };

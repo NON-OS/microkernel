@@ -15,14 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::action::Action;
-use crate::ui::layout::{Layout, Rect};
+use crate::ui::layout::Layout;
 use crate::ui::player::header::{back_button, info_button};
 use crate::ui::player::transport::transport;
 use crate::ui::screen::Route;
 
 const SCRUB_GRAB: u32 = 9;
 const SKIP_SECS: i32 = 10;
-const GRAB: u32 = 6;
 
 pub fn from_click(l: &Layout, w: u32, x: i32, y: i32) -> Action {
     if x < 0 || y < 0 {
@@ -44,12 +43,6 @@ pub fn from_click(l: &Layout, w: u32, x: i32, y: i32) -> Action {
     if t.next.contains(x, y) {
         return Action::SeekBy(SKIP_SECS);
     }
-    if grown(t.mute).contains(x, y) {
-        return Action::ToggleMute;
-    }
-    if let Some(level) = along(grown(t.volume), x, y) {
-        return Action::SetVolume(level / 10);
-    }
     if let Some(permille) = scrub_permille(l, x as u32, y as u32) {
         return Action::SeekToPermille(permille);
     }
@@ -57,23 +50,6 @@ pub fn from_click(l: &Layout, w: u32, x: i32, y: i32) -> Action {
         return Action::TogglePlay;
     }
     Action::None
-}
-
-fn grown(r: Rect) -> Rect {
-    Rect {
-        x: r.x.saturating_sub(GRAB),
-        y: r.y.saturating_sub(GRAB),
-        w: r.w + GRAB * 2,
-        h: r.h + GRAB * 2,
-    }
-}
-
-fn along(r: Rect, x: i32, y: i32) -> Option<u32> {
-    if !r.contains(x, y) {
-        return None;
-    }
-    let span = r.w.saturating_sub(1).max(1) as u64;
-    Some(((x as u32 - r.x) as u64 * 1000 / span).min(1000) as u32)
 }
 
 fn scrub_permille(l: &Layout, x: u32, y: u32) -> Option<u32> {

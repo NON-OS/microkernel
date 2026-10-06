@@ -22,6 +22,9 @@ use crate::ui::screen::Route;
 
 impl VideoApp {
     pub(super) fn advance(&mut self) -> bool {
+        if self.poll_open_arg() {
+            return true;
+        }
         if self.route() != Route::Player {
             let first_scan = !self.browse.scanned;
             self.refresh_library();
@@ -48,7 +51,8 @@ impl VideoApp {
         match self.clock.step(self.next, total, mk_uptime_ms()) {
             Step::End => {
                 self.playing = false;
-                false
+                self.note_position();
+                true
             }
             Step::Wait => false,
             Step::Skip(i) => {

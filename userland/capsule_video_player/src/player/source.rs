@@ -17,8 +17,13 @@
 use alloc::vec::Vec;
 
 use nonos_app_skeleton::clients::vfs::VfsStream;
+use nonos_avi::movi_span;
 
 pub const WINDOW: u32 = 1024 * 1024;
+/// Chunks looked past after `movi` for `idx1`.
+const INDEX_HOPS: usize = 8;
+/// 16 bytes an entry: room for a million frames, past any film here.
+const INDEX_MAX: u32 = 16 * 1024 * 1024;
 
 pub struct Source {
     stream: VfsStream,
@@ -34,6 +39,32 @@ impl Source {
 
     pub fn read_header(&mut self, max: u32) -> Result<Vec<u8>, &'static str> {
         self.stream.read_window(0, max)
+    }
+
+    /// The `idx1` chunk's data of a file longer than its `head`: AVI keeps
+    /// it after the frames, where the head's `movi` size says they end. Any
+    /// chunk between (`JUNK` padding) is stepped over.
+    pub fn read_index(&mut self, head: &[u8]) -> Result<Vec<u8>, &'static str> {
+        let mut pos = movi_span(head).map_err(|_| "not a playable avi")?.end;
+        for _ in 0..INDEX_HOPS {
+            let hdr = self.stream.read_window(pos, 8)?;
+            if hdr.len() < 8 {
+                return Err("no index after the frames: the avi is cut short");
+            }
+            let size = u32::from_le_bytes([hdr[4], hdr[5], hdr[6], hdr[7]]);
+            if hdr[0..4] == *b"idx1" {
+                if size > INDEX_MAX {
+                    return Err("the avi index is too large to read");
+                }
+                let data = self.stream.read_window(pos + 8, size)?;
+                if (data.len() as u32) < size {
+                    return Err("the avi index is cut short");
+                }
+                return Ok(data);
+            }
+            pos = pos.saturating_add(8 + size as u64 + (size & 1) as u64);
+        }
+        Err("no index after the frames")
     }
 
     pub fn bytes_at(&mut self, off: u64, len: u32) -> Result<&[u8], &'static str> {

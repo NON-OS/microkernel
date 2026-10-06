@@ -26,14 +26,6 @@ pub fn span(w: u32, permille: u32) -> u32 {
     (w as u64 * permille.min(1000) as u64 / 1000) as u32
 }
 
-pub fn permille_at(r: Rect, x: i32) -> u32 {
-    if r.w == 0 || x <= r.x as i32 {
-        return 0;
-    }
-    let off = (x as u32 - r.x).min(r.w);
-    (off as u64 * 1000 / r.w as u64) as u32
-}
-
 pub fn paint_bar(fb: &mut PaintBuffer, r: Rect, permille: u32, fill: u32) {
     let radius = r.h / 2;
     rrect::fill_round(fb, r.x, r.y, r.w, r.h, radius, theme::TRACK);

@@ -17,24 +17,12 @@
 use crate::ui::sprite::{cache, Glyph};
 use nonos_app_skeleton::paint::PaintBuffer;
 
-pub fn home(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::Home);
-}
-
 pub fn library(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
     cache::draw(fb, x, y, s, argb, Glyph::Library);
 }
 
-pub fn playlist(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::Playlist);
-}
-
 pub fn files(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
     cache::draw(fb, x, y, s, argb, Glyph::Files);
-}
-
-pub fn gear(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::Gear);
 }
 
 pub fn video(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {

@@ -16,6 +16,7 @@
 
 use super::action::Action;
 
+pub const KEY_BACKSPACE: u32 = 0x08;
 pub const KEY_ENTER: u32 = 0x0D;
 pub const KEY_ESC: u32 = 0x1B;
 pub const KEY_UP: u32 = 0x1201;
@@ -24,14 +25,17 @@ pub const KEY_LEFT: u32 = 0x1203;
 pub const KEY_RIGHT: u32 = 0x1204;
 
 const SKIP_SECS: i32 = 10;
-const VOLUME_STEP: i32 = 5;
 
+/// Keys on the library pages. Printable keys type into the search field,
+/// which filters the list as it changes.
 pub fn from_library_key(code: u32) -> Action {
     match code {
         KEY_ESC => Action::Close,
         KEY_ENTER => Action::OpenSelected,
         KEY_UP => Action::MoveSel(-1),
         KEY_DOWN => Action::MoveSel(1),
+        KEY_BACKSPACE => Action::Erase,
+        0x20..=0x7E => Action::Type(code as u8),
         _ => Action::None,
     }
 }
@@ -39,8 +43,6 @@ pub fn from_library_key(code: u32) -> Action {
 pub fn from_key(code: u32) -> Action {
     match code {
         KEY_ESC => return Action::Close,
-        KEY_UP => return Action::VolumeBy(VOLUME_STEP),
-        KEY_DOWN => return Action::VolumeBy(-VOLUME_STEP),
         KEY_LEFT => return Action::SeekBy(-SKIP_SECS),
         KEY_RIGHT => return Action::SeekBy(SKIP_SECS),
         _ => {}
@@ -50,7 +52,6 @@ pub fn from_key(code: u32) -> Action {
     }
     match code as u8 {
         b' ' => Action::TogglePlay,
-        b'm' | b'M' => Action::ToggleMute,
         b'l' | b'L' => Action::ShowLibrary,
         b'0' => Action::Restart,
         _ => Action::None,

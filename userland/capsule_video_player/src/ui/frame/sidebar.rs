@@ -67,10 +67,7 @@ fn paint_item(fb: &mut PaintBuffer, w: u32, index: usize, item: Route, route: Ro
 
 fn glyph_for(item: Route) -> fn(&mut PaintBuffer, u32, u32, u32, u32) {
     match item {
-        Route::Library => nav::library,
-        Route::Playlists => nav::playlist,
         Route::Files => nav::files,
-        Route::Settings => nav::gear,
-        _ => nav::home,
+        _ => nav::library,
     }
 }

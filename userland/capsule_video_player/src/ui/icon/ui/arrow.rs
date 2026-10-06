@@ -17,18 +17,6 @@
 use crate::ui::sprite::{cache, Glyph};
 use nonos_app_skeleton::paint::PaintBuffer;
 
-pub fn chevron_down(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::ChevronDown);
-}
-
-pub fn chevron_right(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::ChevronRight);
-}
-
-pub fn chevron_left(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
-    cache::draw(fb, x, y, s, argb, Glyph::ChevronLeft);
-}
-
 pub fn back(fb: &mut PaintBuffer, x: u32, y: u32, s: u32, argb: u32) {
     cache::draw(fb, x, y, s, argb, Glyph::Back);
 }

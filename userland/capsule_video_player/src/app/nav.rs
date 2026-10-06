@@ -32,7 +32,7 @@ impl Nav {
     }
 
     pub fn current(&self) -> Route {
-        *self.stack.last().unwrap_or(&Route::Home)
+        *self.stack.last().unwrap_or(&Route::Library)
     }
 
     pub fn can_back(&self) -> bool {

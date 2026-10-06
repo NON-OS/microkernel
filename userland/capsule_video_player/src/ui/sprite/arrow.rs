@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Back arrow and the three navigation chevrons.
+//! The back arrow the player header draws.
 
 use super::canvas::Sprite;
 use super::stroke::line;
@@ -25,23 +25,5 @@ pub fn back(px: u32, rgb: u32) -> Sprite {
     let t = m(W);
     line(&mut s, (m(18), m(50)), (m(84), m(50)), t, rgb);
     path(&mut s, &m, &[(44, 26), (18, 50), (44, 74)], t, rgb);
-    s
-}
-
-pub fn chevron_down(px: u32, rgb: u32) -> Sprite {
-    let (mut s, m) = blank(px);
-    path(&mut s, &m, &[(22, 36), (50, 66), (78, 36)], m(W), rgb);
-    s
-}
-
-pub fn chevron_left(px: u32, rgb: u32) -> Sprite {
-    let (mut s, m) = blank(px);
-    path(&mut s, &m, &[(64, 22), (36, 50), (64, 78)], m(W), rgb);
-    s
-}
-
-pub fn chevron_right(px: u32, rgb: u32) -> Sprite {
-    let (mut s, m) = blank(px);
-    path(&mut s, &m, &[(36, 22), (64, 50), (36, 78)], m(W), rgb);
     s
 }

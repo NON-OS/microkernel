@@ -17,6 +17,7 @@
 use nonos_app_skeleton::paint::PaintBuffer;
 
 use crate::catalog::kind::MediaKind;
+use crate::catalog::thumb::{THUMB_H, THUMB_W};
 use crate::ui::icon;
 use crate::ui::layout::Rect;
 use crate::ui::paint::rrect;
@@ -34,7 +35,16 @@ fn tint(kind: MediaKind) -> u32 {
     }
 }
 
-pub fn paint_poster(fb: &mut PaintBuffer, r: Rect, kind: MediaKind) {
+/// The video's first frame when the probe decoded one (`catalog/thumb.rs`),
+/// else a plain card with the video mark. The thumbnail was decoded for
+/// every video at scan and never drawn.
+pub fn paint_poster(fb: &mut PaintBuffer, r: Rect, kind: MediaKind, thumb: Option<&[u32]>) {
+    if let Some(pixels) = thumb {
+        if paint_frame(fb, r, pixels, THUMB_W, THUMB_H) {
+            rrect::stroke_round(fb, r.x, r.y, r.w, r.h, RADIUS, 1, theme::BORDER);
+            return;
+        }
+    }
     rrect::fill_round(fb, r.x, r.y, r.w, r.h, RADIUS, tint(kind));
     rrect::stroke_round(fb, r.x, r.y, r.w, r.h, RADIUS, 1, theme::BORDER);
     let size = MARK.min(r.w / 3).min(r.h / 3).max(12);
