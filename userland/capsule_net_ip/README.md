@@ -2,126 +2,92 @@
 
 ## Role
 
-`capsule_net_ip` is the IPv4 network-layer capsule. It consumes Ethernet
-delivery from `net.l2`, validates IPv4 packets, builds outbound IPv4 packets,
-owns interface configuration, and routes protocol payloads toward ICMP, UDP,
-and TCP capsules.
+`capsule_net_ip` is the IPv4 layer of the split network stack. It owns the
+interface address and the route table, builds outbound IPv4 packets and hands
+them to `net.l2`, and checks inbound packets before passing them up to
+`net.udp` and `net.tcp`. It answers ICMP echo requests itself.
 
 ```text
-net.udp / net.tcp / ICMP client
+net.udp / net.tcp
     |
-    | transport payload
+    | NIP4 requests over IPC
     v
-net.ip -- IPv4 parse/build + route table --> net.l2
-    |
-    `-- Ethernet delivery / ARP resolution
+net.ip -- IPv4 parse/build + route table + ICMP echo --> net.l2
 ```
 
-## Microkernel contract
+The desktop image does not carry it: there `net.core` registers the `net.ip`
+name itself and answers ICMP only. It is built into the `microkernel-net-ip`
+through `microkernel-net-ntp` profiles and the `microkernel-input-e2e-ps2`
+test image.
 
-The capsule is IPC-only:
+## Service and endpoints
 
-- `MkIpcRecv` receives requests on `service:4402:net.ip`.
-- `MkIpcSend` replies through `reply:4403:endpoint.4294967330`.
-- Its wire magic is `NIP4`.
-- Its endpoint name is `net.ip`.
-- Its kernel mirror target is `src/network/ip_capsule`.
+- Handle `net.ip`, service endpoint `service:4402:net.ip`, reply endpoint
+  `reply:4403:endpoint.net.ip.reply`.
+- Kernel mirror `src/userspace/capsule_net_ip`.
+- It waits until `net.l2` is registered, then serves inbox 0.
 
-The kernel does not parse IP headers, own route tables, fragment packets, or
-dispatch transport protocols.
+## Interface
 
-## Interface contract
+Requests carry the 20 byte header shared by the stack capsules, with magic
+`0x4E495034` ("NIP4") and version 1 (`src/protocol/header.rs`).
 
-| Operation | Meaning |
-|---|---|
-| `OP_HEALTHCHECK` | server liveness |
-| `OP_GET_CONFIG` / `OP_SET_CONFIG` | interface address, prefix, gateway, MTU |
-| `OP_SEND_PACKET` / `OP_POLL_PACKET` | IPv4 payload movement |
-| `OP_ROUTE_ADD` / `OP_ROUTE_CLEAR` | runtime route table control |
+| Op | Value | Who may call | Meaning |
+|---|---|---|---|
+| `OP_HEALTHCHECK` | 1 | anyone | liveness |
+| `OP_GET_CONFIG` | 2 | anyone | address, prefix and gateway |
+| `OP_SET_CONFIG` | 3 | `net.dhcp.client` | install a lease and its default route |
+| `OP_SEND_PACKET` | 4 | anyone | build and send one IPv4 packet |
+| `OP_POLL_PACKET` | 5 | anyone | the next inbound packet of one protocol |
+| `OP_ROUTE_ADD` | 6 | `net.admin` | add a route |
+| `OP_ROUTE_CLEAR` | 7 | `net.admin` | empty the table |
+
+`src/server/authz.rs` compares the sender's pid with the pid the registry bound
+to the named service. No capsule registers `net.admin`, so `OP_ROUTE_ADD` and
+`OP_ROUTE_CLEAR` answer `E_PERM` to everyone. A frame that fails header parsing
+is still answered, under the op and request id it names, or under zeros when it
+is too short.
+
+## Packets
+
+- Egress: `send` refuses with no address, takes the next hop from the longest
+  matching route (prefix 0 is the default), resolves it through `net.l2` and
+  sends the frame. The table holds `TABLE_CAP`, 16 routes.
+- Ingress happens inside `OP_POLL_PACKET`: up to `POLL_BUDGET`, eight, frames
+  are pulled from `net.l2` per call. `parse` rejects a bad version, length or
+  checksum and any fragment; options are carried but not decoded.
+  `from_frame` drops a packet whose source no host can have (0/8, loopback,
+  224 and up, or our own address) and one addressed to someone else. A
+  malformed frame is dropped and the poll goes on.
+- An echo request to our address is answered by `try_reply` and never reaches
+  a caller. One sent to the broadcast address is not answered.
+- The `tcp-chaos` cargo feature, off in every shipped build, drops inbound TCP
+  segments 3 and 6 to exercise retransmission.
 
 ## Authority
 
-The manifest grants IPC and memory only:
-`CAPSULE_REQUIRED_CAPS = 0x00018`. It has no hardware, driver, DMA, MMIO,
-PIO, filesystem, admin, debug, or socket authority.
+`CAPSULE_REQUIRED_CAPS := 0x0001c`: Network (`0x04`), IPC (`0x08`) and Memory
+(`0x10`). Network because the kernel registers a network service only for a
+holder of it. No CoreExec, Crypto, FileSystem, Debug or hardware bits.
 
 ## Privacy and persistence
 
-The capsule holds runtime interface state: MAC, IPv4 address, prefix, gateway,
-MTU, upstream L2 port, and packet identification counter. That state is
-ephemeral and disappears when the process exits. Packet payloads are not
-persisted.
+The capsule holds the interface address, prefix, gateway and route table in
+memory. Packets pass through and are not kept or logged.
 
-## Runtime lifecycle
+## What it does not do
 
-The capsule receives interface config, maintains route entries, validates
-inbound IPv4 packets, builds outbound IPv4 packets, asks `net.l2` for delivery,
-and dispatches payloads by protocol number.
+- No IPv6, no fragmentation or reassembly, no forwarding between interfaces.
+- The route table changes only through `OP_SET_CONFIG`, since nothing holds
+  `net.admin`.
+- It reads `net.l2` only when a caller polls.
 
-## Failure model
+## Build and verify
 
-No config, no route, no neighbour, L2 fault, bad checksum, unsupported
-protocol, RX empty, and table-full conditions return explicit protocol errors.
-Fragmented or option-bearing packets are rejected in this slice.
+- `make nonos-mk-net-ip`, then `nonos-mk-net-ip-sign` and
+  `nonos-mk-net-ip-verify`.
+- `userland/ip_proofs` drives the real ingress and ICMP echo path against
+  frames played from the host. `userland/net_proofs` runs the IPv4 and ICMP
+  parsers.
 
-## Current implemented surface
-
-- IPv4 address helpers are present.
-- RFC 791 header parse/build and checksum code are present.
-- ICMP parse/build/echo helpers are present.
-- A 16-entry longest-prefix route table is present.
-- Protocol constants cover health, get/set config, send packet, poll packet,
-  route add, and route clear.
-
-## Wire format
-
-Requests use the `NIP4` protocol magic. Config requests carry address, prefix,
-gateway, MTU, and L2 endpoint fields. Packet requests carry protocol number,
-destination/source address fields, and payload bytes bounded by MTU.
-
-## State ownership
-
-The capsule owns interface config, route table, packet identification counter,
-and protocol demux state. `net.l2` owns neighbour resolution. UDP/TCP capsules
-own transport state.
-
-## Operating rules
-
-- Reject malformed headers, bad checksum, fragments, and options in this slice.
-- Keep route table bounded.
-- Do not store payloads after dispatch.
-- Never add socket or firewall policy here.
-
-## Release target
-
-The finished IP capsule owns IPv4 configuration, route lookup, checksum
-validation, ICMP echo, transport demux to UDP/TCP, and L2 delivery through ARP.
-It has validation evidence for address setup, ICMP round trip, route miss, checksum
-failure, and no kernel IP parser.
-
-## Release evidence
-
-Release evidence is ICMP echo validation, route miss test, checksum failure test,
-configuration update proof, and static proof that no kernel IP parser exists.
-
-## Release checklist
-
-- Address/gateway configuration validation passes.
-- ICMP echo round trip passes through `net.l2`.
-- Route miss and checksum failure are tested.
-- Fragment/options rejection is tested.
-- Static gate confirms no kernel IP parser.
-
-## Explicit non-goals today
-
-No IPv6, fragmentation/reassembly, IP options, multicast routing, firewall,
-NAT, socket API, packet capture, persistent interface database, or hardware
-access lives here. The L2 client, server loop, and main entry point still need
-promotion before end-to-end runtime use.
-
-## Verification
-
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Build gate, once `src/main.rs` lands: `make -B nonos-mk-net-ip`
-- Runtime proof: configure address/gateway, send ICMP echo through `net.l2`,
-  receive echo reply, and prove the kernel never parses IP.
+See [the network stack](../../docs/handbook/network/stack.md).

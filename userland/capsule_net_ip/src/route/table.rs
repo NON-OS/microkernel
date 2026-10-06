@@ -53,17 +53,15 @@ impl Table {
     pub fn lookup(&self, dst: &Ipv4Addr) -> Option<Route> {
         let r = self.entries.read();
         let mut best: Option<Route> = None;
-        for slot in r.iter() {
-            if let Some(route) = slot {
-                if route.prefix == 0 {
-                    if best.is_none() {
-                        best = Some(*route);
-                    }
-                } else if same_subnet(dst, &route.network, route.prefix) {
-                    if best.map_or(true, |b| b.prefix < route.prefix) {
-                        best = Some(*route);
-                    }
+        for route in r.iter().flatten() {
+            if route.prefix == 0 {
+                if best.is_none() {
+                    best = Some(*route);
                 }
+            } else if same_subnet(dst, &route.network, route.prefix)
+                && best.map_or(true, |b| b.prefix < route.prefix)
+            {
+                best = Some(*route);
             }
         }
         best

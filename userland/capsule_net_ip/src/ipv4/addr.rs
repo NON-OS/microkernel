@@ -24,6 +24,14 @@ fn mask_with_prefix(addr: &Ipv4Addr, prefix: u8) -> Ipv4Addr {
     (host & mask).to_be_bytes()
 }
 
+// Whether a datagram off the wire can have come from `src`, at a host whose
+// own address is `local`. No host has a broadcast, multicast, reserved,
+// unspecified or loopback address, and none but this one has `local`; RFC
+// 1122 3.2.1.3 has a host discard a datagram claiming one of them.
+pub fn source_ok(src: &Ipv4Addr, local: &Ipv4Addr) -> bool {
+    src[0] != 0 && src[0] != 127 && src[0] < 224 && src != local
+}
+
 // True iff `addr` and `other` share the same /prefix subnet.
 pub fn same_subnet(addr: &Ipv4Addr, other: &Ipv4Addr, prefix: u8) -> bool {
     mask_with_prefix(addr, prefix) == mask_with_prefix(other, prefix)
