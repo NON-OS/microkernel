@@ -85,3 +85,17 @@ The `kernel-profile-<profile>` checks type-check the kernel with exactly each pr
 ## The image capability ceiling
 
 Each build writes the OR of the capability ceilings of the capsules its profile ships into the trust policy the kernel embeds (`ceilingOf`, `tools/nix/image.nix:59-64`), and the kernel bakes that value in (`BAKED`, `src/security/image_ceiling/value.rs:19-21`). In this release the ceiling is not enforced. Capsule spawn calls only `would_refuse`, which prints `[CEILING] not enforced, would refuse` and the capsule's name when a capsule asks for more, then lets the spawn go on (`would_refuse`, `src/security/image_ceiling/admits.rs:53-60`, `src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:68`). Until it is, the image-wide limit adds nothing at spawn. [Capabilities](../kernel/capabilities.md) describes the bits.
+
+## Build profiles and boot modes
+
+A build profile decides what an image can ever do. A [boot mode](../overview/glossary.md#boot-mode) is chosen in the boot menu at each boot and narrows it further: Standard, Hardened, Safe Mode, Air-Gapped or Recovery (`BootProfile`, `src/boot/handoff/api/profile.rs:24-42`). The flake's own comments call the boot menu a run-time posture that any image offers (`tools/nix/config.nix`). A kernel started with no handoff from the loader runs Standard (`boot_profile`, `src/boot/handoff/api/profile.rs:60-63`).
+
+| boot mode | network | what the kernel does differently |
+|---|---|---|
+| Standard | yes | nothing |
+| Hardened | yes | nothing in the kernel's network rule |
+| Safe Mode | no | starts no audio driver and no optional app |
+| Air-Gapped | no | starts no network driver or network service |
+| Recovery | no | goes straight to its desktop; setup does not run |
+
+Only Standard and Hardened let a network driver or service start (`network`, `src/boot/handoff/api/profile.rs:44-47`). Safe Mode is the one `minimal` mode (`minimal`, `src/boot/handoff/api/profile.rs:49-52`), and Recovery the one that `skips_setup` (`skips_setup`, `src/boot/handoff/api/profile.rs:54-57`). An airgapped build has no network code to start in any boot mode. [Boot modes](../install/boot-modes.md) describes the menu.
