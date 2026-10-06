@@ -82,3 +82,15 @@ CMake, Go and clang come from nixpkgs, and each version below is asserted when t
 | clang | major version 21 | every C file built into a NONOS binary, such as the kernel's PQClean code |
 
 Python is 3.12, with the `cryptography` package for the scripts that need it (`pythonTools`, `tools/nix/pins.nix:77-81`). On Linux the software TPM is swtpm 0.9.0 on libtpms 0.9.6, the released pair the live TPM proofs run against; on macOS it is the swtpm nixpkgs builds (`swtpm`, `tools/nix/pins.nix:47-51`). QEMU and its UEFI firmware come from nixpkgs, and the firmware is QEMU's own build of edk2 (`firmware`, `tools/nix/shell.nix:9-10`).
+
+## The development shell
+
+```
+make shell
+```
+
+Not tested in this release.
+
+`make shell` runs `nix develop` (`shell`, `Makefile:104-105`). The shell carries the pinned Rust with its standard library layer, Zig, CMake, Python, clang and LLVM, QEMU, swtpm, the image tools (`xorriso`, `mtools`, `gptfdisk`, `dosfstools`), the signing and hashing tools (`osslsigncode`, `openssl`, `b3sum`), Node.js, `cargo-audit`, `cargo-deny`, `cargo-cyclonedx`, GNU make, git, jq and perl (`tools`, `tools/nix/shell.nix:14-49`). On Linux it adds `sbsigntool` and `tpm2-tools` (`linuxOnly`, `tools/nix/shell.nix:8`).
+
+It sets `NONOS_IN_FLAKE`, and points `OVMF` and `OVMF_VARS` at the firmware, so the make targets in `mk/` never search the host (`NONOS_IN_FLAKE`, `tools/nix/shell.nix:58-64`).
