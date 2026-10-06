@@ -29,12 +29,11 @@ pub fn chip(game: &mut Game, row: usize, index: usize) -> EventOutcome {
     EventOutcome::Repaint
 }
 
+// A locked switch (Wrap edges in Zen or Classic) is drawn locked and a click
+// on it changes nothing, so nothing is repainted either.
 pub fn toggle(game: &mut Game, index: usize) -> EventOutcome {
-    match index {
-        0 => game.opts.obstacles = !game.opts.obstacles,
-        1 => game.opts.wrap = !game.opts.wrap,
-        2 => game.opts.powerups = !game.opts.powerups,
-        _ => return EventOutcome::Idle,
+    if game.opts.flip(index, game.mode) {
+        return EventOutcome::Repaint;
     }
-    EventOutcome::Repaint
+    EventOutcome::Idle
 }

@@ -23,8 +23,6 @@ use crate::snake::ui::play_geom_rows::{foot, FOOT_BTNS, FOOT_LABELS};
 
 const RESUME: &[u8] = b"Resume";
 
-// Sound has no mixer route from a windowed app, so it is drawn as the disabled
-// control it is rather than as a button that quietly does nothing.
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
     for index in 0..FOOT_BTNS {
@@ -42,8 +40,7 @@ fn label(game: &Game, index: usize) -> &'static [u8] {
 
 fn style(index: usize) -> Style {
     match index {
-        2 => Style::Disabled,
-        3 => Style::Danger,
+        2 => Style::Danger,
         _ => Style::Ghost,
     }
 }

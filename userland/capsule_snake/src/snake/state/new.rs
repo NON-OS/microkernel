@@ -20,6 +20,7 @@ use nonos_libc::mk_time_millis;
 
 use super::difficulty::Difficulty;
 use super::game::Game;
+use super::kept::Kept;
 use super::mode::Mode;
 use super::options::Options;
 use super::phase::{Dir, Phase};
@@ -54,6 +55,7 @@ impl Game {
             last_ms: mk_time_millis(),
             runs: Vec::new(),
             awards: Vec::new(),
+            kept: Kept::Quiet,
             rng: mk_time_millis() as u64 | 1,
         };
         game.reset(false);

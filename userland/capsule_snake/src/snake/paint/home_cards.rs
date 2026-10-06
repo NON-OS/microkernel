@@ -17,10 +17,13 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
 
-use crate::snake::state::{difficulty, mode, Game};
+use crate::snake::input::hover::{self, Tag};
+use crate::snake::state::{daily, Game};
+use crate::snake::theme::BTN_HOVER_BG;
 use crate::snake::ui::card;
-use crate::snake::ui::home_geom::{card as slot, CARD_LABELS};
+use crate::snake::ui::home_geom::{card as slot, CARDS, CARD_LABELS};
 use crate::snake::ui::icon_table;
+use crate::snake::ui::metrics::RADIUS_CARD;
 
 use super::num;
 
@@ -30,18 +33,24 @@ pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
     daily(game, fb, w, h);
     best(game, fb, w, h);
+    for index in 0..CARDS {
+        if hover::is(Tag::HomeCard, index) {
+            let r = slot(w, h, index);
+            fb.fill_round(r.0, r.1, r.2, r.3, RADIUS_CARD, BTN_HOVER_BG);
+        }
+    }
 }
 
-// The challenge is the day the capsule is running on, taken from the clock the
-// game already advances rather than a fresh syscall in the paint path.
+// The day's mode and difficulty, from the same pick a click on the card sets
+// up (`state::daily`), on the wall clock the game already advances rather
+// than a fresh syscall in the paint path.
 fn daily(game: &Game, fb: &mut PaintBuffer, w: u32, h: u32) {
-    let day = (game.last_ms.max(0) / 86_400_000) as usize;
-    let pick = mode::ALL[day % mode::ALL.len()];
-    let level = difficulty::ALL[(day / mode::ALL.len()) % difficulty::ALL.len()];
+    let (pick, level) = daily::pick(game.last_ms);
     let mark = icon_table::mode(pick);
     card::stat(fb, slot(w, h, 0), mark, CARD_LABELS[0], pick.name(), level.name());
 }
 
+// The highest score among the stored runs, which are kept best first.
 fn best(game: &Game, fb: &mut PaintBuffer, w: u32, h: u32) {
     let top = game.runs.iter().max_by_key(|run| run.score);
     let score = num::dec(top.map(|run| run.score).unwrap_or(0));

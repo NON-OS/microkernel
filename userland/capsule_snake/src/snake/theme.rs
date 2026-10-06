@@ -23,13 +23,11 @@ pub const BOARD_BG: u32 = 0xFF0D171E;
 pub const RAIL_BG: u32 = 0xFF0A1218;
 pub const SCRIM: u32 = 0xC00B1319;
 // Hairlines, the dotted board grid and row banding.
-pub const RULE: u32 = 0xFF16262F;
 pub const RULE_SOFT: u32 = 0xFF122029;
 pub const GRID_DOT: u32 = 0x14FFFFFF;
 pub const BAND: u32 = 0xFF101A21;
 // Text, brightest to dimmest.
 pub const TITLE: u32 = 0xFFEAF4F8;
-pub const FOREGROUND: u32 = 0xFFCDDDE5;
 pub const LABEL: u32 = 0xFFDBE8EE;
 pub const MUTED: u32 = 0xFF6D818C;
 // Brand teal, carried over from the house palette for chrome and selection.
@@ -59,6 +57,4 @@ pub const WALL_EDGE: u32 = 0xFF3A5464;
 pub const OK: u32 = 0xFF33CF7D;
 pub const AMBER: u32 = 0xFFE0A44A;
 pub const DANGER: u32 = 0xFFE06C75;
-pub const OK_TINT: u32 = 0x2033CF7D;
-pub const AMBER_TINT: u32 = 0x22E0A44A;
 pub const DANGER_TINT: u32 = 0x22E06C75;

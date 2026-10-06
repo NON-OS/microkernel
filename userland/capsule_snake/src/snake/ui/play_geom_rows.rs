@@ -21,18 +21,14 @@ use super::play_geom::{foot_band, hud_band, rail};
 use super::rect::{self, Rect};
 
 pub const HUD_CARDS: usize = 4;
-pub const FOOT_BTNS: usize = 4;
+pub const FOOT_BTNS: usize = 3;
 pub const RAIL_ROWS: usize = 4;
 
-pub const FOOT_LABELS: [&[u8]; FOOT_BTNS] = [b"Pause", b"Restart", b"Sound", b"Quit"];
+pub const FOOT_LABELS: [&[u8]; FOOT_BTNS] = [b"Pause", b"Restart", b"Home"];
 pub const RAIL_HEADS: [&[u8]; RAIL_ROWS] = [b"Mode", b"Level", b"Next level", b"Tip"];
 
 pub fn hud(w: u32, h: u32, index: usize) -> Rect {
     rect::column(hud_band(w, h), index, HUD_CARDS, HUD_CARD_GAP)
-}
-
-pub fn hud_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {
-    rect::index_at(HUD_CARDS, x, y, |i| hud(w, h, i))
 }
 
 // The footer row is right-aligned so the primary action sits under the rail

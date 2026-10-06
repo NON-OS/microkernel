@@ -17,7 +17,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::draw;
 
-use crate::snake::state::Game;
+use crate::snake::state::{Game, Options};
 use crate::snake::theme::{LABEL, MUTED};
 use crate::snake::ui::icon_table;
 use crate::snake::ui::metrics::{GAP_TIGHT, ICON_MD, PX_BODY, ROW_H};
@@ -30,7 +30,7 @@ use crate::snake::ui::toggle as switch;
 pub fn paint(game: &Game, fb: &mut PaintBuffer) {
     let (w, h) = (fb.width, fb.height);
     let state = [game.opts.obstacles, game.opts.wraps(game.mode), game.opts.powerups];
-    let locked = [false, game.mode.forces_wrap() || game.mode.hard_walls(), false];
+    let locked = [false, Options::wrap_locked(game.mode), false];
     for index in 0..TOGGLES {
         let row = toggle_row(w, h, index);
         let mark_y = row.1 + ROW_H.saturating_sub(ICON_MD) / 2;

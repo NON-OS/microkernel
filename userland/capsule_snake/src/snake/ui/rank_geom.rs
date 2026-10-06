@@ -49,10 +49,6 @@ pub fn row(w: u32, h: u32, index: usize) -> Rect {
     rect::row(band, index.min(RANK_ROWS - 1), ROW_H, 0)
 }
 
-pub fn row_at(w: u32, h: u32, x: i32, y: i32) -> Option<usize> {
-    rect::index_at(RANK_ROWS, x, y, |i| row(w, h, i))
-}
-
 pub fn award_row(w: u32, h: u32, index: usize) -> Rect {
     let inner = rect::inset(awards(w, h), PAD_TIGHT);
     let top = inner.1 + TABLE_HEAD_H;
@@ -67,4 +63,13 @@ pub fn back(w: u32, h: u32) -> Rect {
 
 pub fn back_at(w: u32, h: u32, x: i32, y: i32) -> bool {
     rect::hit(back(w, h), x, y)
+}
+
+// The rest of the footer band, right of Back: where the screen says what
+// became of the ranks on disk.
+pub fn kept_note(w: u32, h: u32) -> Rect {
+    let b = back(w, h);
+    let c = rect::content(w, h);
+    let x = b.0 + b.2 + GAP;
+    (x, b.1, (c.0 + c.2).saturating_sub(x), b.3)
 }
