@@ -62,6 +62,12 @@ pub fn zerostate_shutdown_wipe() {
     let saved_level = SANITIZATION_LEVEL.load(Ordering::Relaxed);
     SANITIZATION_LEVEL.store(SanitizationLevel::Paranoid as u64, Ordering::SeqCst);
 
+    // Devices first: one still mastering the bus would write packet and block
+    // buffers back behind the wipe. Then the frames those grants hold, which
+    // belong to no process VMA and no heap, so nothing below reaches them.
+    let _ = crate::hardware::broker::quiesce_all_devices();
+    let _ = crate::hardware::broker::dma_wipe_live_grants();
+
     for process in crate::process::enumerate_all_processes() {
         sanitize_process_memory(process.pid as u64);
     }
@@ -83,6 +89,11 @@ pub fn zerostate_shutdown_wipe() {
 
     SANITIZATION_LEVEL.store(saved_level, Ordering::SeqCst);
     crate::log::info!("[SANITIZE] ZeroState shutdown wipe complete");
+
+    // The kernel log's RAM buffer is a static, outside the heap, so the erase
+    // below never reaches it. It goes after the last line above, so nothing
+    // logged during the wipe survives it.
+    crate::log::wipe_ram_log();
 
     // The heap goes last and nothing may allocate afterwards, because the
     // erase covers the allocator's own free list. terminate() calls into the
