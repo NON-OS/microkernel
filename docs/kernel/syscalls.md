@@ -85,3 +85,7 @@ A call is reachable only when all of these agree, which is why `scripts/check_sy
 5. The route in `src/syscall/dispatch/router`, and for a microkernel call its `SYS_*` constant in `src/syscall/microkernel/numbers.rs` and an arm under `src/syscall/microkernel/dispatch`.
 
 Then run `scripts/check_syscall_abi.py` and `scripts/check_syscall_caps.py`; [Contributing: tests and proofs](../contributing/tests-and-proofs.md) lists the other checks.
+
+## Other architectures
+
+The aarch64 `svc` handler and the riscv64 `syscall` handler decode the number the same way and call the same `dispatch` (`src/syscall/contract/mod.rs:17-24`). Both architectures build only with the `nonos-arch-preview` feature; without it `compile_error` stops the build (`src/lib.rs:28-35`). See [aarch64](../architectures/aarch64.md) and [riscv64](../architectures/riscv64.md).
