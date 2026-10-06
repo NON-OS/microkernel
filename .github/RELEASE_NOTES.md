@@ -1,5 +1,10 @@
 # NONOS 0.9.2 (pre-release)
 
+> These notes record the 0.9.2 pre-release as it was. Parts are superseded: the gates now read v4
+> trailers through `nox_verify` from NON-OS/STARKs, not the stark-attest engine, and the
+> reproducible lane has not yet run on the current tree. What holds today, with its evidence, is in
+>.
+
 506 commits between August 7 and September 3, written by [@eKisNonos](https://github.com/eKisNonos) and [@senseix21](https://github.com/senseix21). This document covers all of it: what broke, how we found it, what is true now, and why this tag is marked pre-release even though it is the most complete NONOS to date.
 
 ## Contents
