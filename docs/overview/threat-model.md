@@ -89,3 +89,12 @@ NONOS relies on these without proof. They are the hardware, firmware, compiler a
 - A `dev` image, which promises nothing (`tools/nix/config.nix:102-109`).
 - Timing and cache side channels between capsules. The kernel runs speculation mitigations at each syscall entry (`kernel_entry` in `src/arch/x86_64/syscall/manager/entry.rs:34-36`) and logs at boot what the CPU is exposed to and which mitigations are on (`vulnerabilities` and `mitigations` in `src/security/hardening/spectre_mitigations/report.rs:22-41`). This model claims nothing beyond that.
 - A kernel panic. It halts every CPU without the ZeroState wipe (`panic` in `src/boot/panic/handler.rs:41-64`).
+
+## See also
+
+- [Protections and limits](../security/protections-and-limits.md)
+- [Capsule isolation](../security/capsule-isolation.md)
+- [Device secrets and keys](../security/device-secrets-and-keys.md)
+- [Privacy network](../using/privacy-network.md)
+- [Design principles](design-principles.md)
+- [Reporting a vulnerability](../security/reporting-a-vulnerability.md)
