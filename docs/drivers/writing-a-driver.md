@@ -206,3 +206,13 @@ The header is magic, version, op, flags, a reserved word, request id and payload
 ## 10. Teardown
 
 `release` drops the grants in reverse order: buffer, queue, registers, then the claim (`userland/capsule_driver_virtio_rng/src/setup/driver.rs:43-48`). The kernel does the same for a driver that exits or crashes, so a missed release leaks nothing past the process.
+
+## 11. The kernel mirror
+
+The kernel mirror is a module under `src/hardware/`, declared in `src/hardware/mod.rs` as `virtio_rng_capsule` (`src/hardware/mod.rs:35`). It holds:
+
+- `embed.rs`: the ELF, certificate, manifest and attestation trailer behind the Cargo feature, as `DRIVER_VIRTIO_RNG_ELF` and its siblings, and empty slices without it (`src/hardware/virtio_rng_capsule/embed.rs:23-52`).
+- `spawn.rs`: `spawn_driver_virtio_rng_capsule` fills a `CapsuleSpecVerified` with the endpoints and `requested_caps` and calls `spawn_verified` (`src/hardware/virtio_rng_capsule/spawn.rs:37-63`). Its `requested_caps` must stay inside the manifest or the spawn is refused, and `check_mirror_caps.py` holds `requested_caps` to the manifest on the host (`scripts/check_mirror_caps.py:17-30`).
+- `client/`: the kernel's side of the protocol. `round_trip` sends one request and waits for its reply under a lock (`src/hardware/virtio_rng_capsule/client/transport.rs:37-52`), and `gate_read` refuses the call when the current process does not hold `CAP_DRIVER` (`src/hardware/virtio_rng_capsule/capability.rs:25-34`).
+
+In this release nothing in the kernel calls the virtio-rng client; the kernel reads entropy from its own boot-time driver. The mirror still shows the whole shape.
