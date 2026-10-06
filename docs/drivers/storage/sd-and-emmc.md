@@ -66,3 +66,7 @@ It is not in the image. The driver capsules the build includes are listed in `mk
 ## The sd capsule is a text tool
 
 `userland/capsule_sd` is not an SD card driver. It is `sd`, the find-and-replace tool from crates.io, signed as a capsule (`userland/capsule_sd/Capsule.mk:30-32`, `CAPSULE_METADATA`).
+
+## USB card readers
+
+A USB card reader is a USB mass-storage device. `driver.usb_msc0` serves the first logical unit that has a card in it (`userland/capsule_driver_usb_msc/src/scan/probe.rs:80-91`, `max_lun`). An empty slot that is not the reader's last unit is given up at once rather than waited on (`userland/capsule_driver_usb_msc/src/disk/ready.rs:51-58`, `unit_ready`). See [USB mass storage](usb-mass-storage.md).
