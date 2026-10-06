@@ -43,3 +43,42 @@ The four letter tags are [syscall tags](../overview/glossary.md#syscall-tag); [S
 - `register_endpoint` refuses a new endpoint once `MAX_SERVICES`, 256, are registered (`src/services/registry.rs:42-55`), and `sys_service_register` reports that as `ERRNO_NOMEM`, -12 (`src/syscall/microkernel/ipc/register.rs:53-55`).
 
 A message that does not fit is refused, never cut on the way in: `try_enqueue` checks the count and the byte budget under one lock and hands the message back (`src/ipc/nonos_inbox/inbox.rs:97-112`).
+
+## Who may send to whom
+
+A send by name passes four gates, in this order.
+
+```mermaid
+flowchart TD
+    S[MkIpcSend] --> T{IPC capability}
+    T -->|no| P[EPERM]
+    T -->|yes| E{caller_satisfies_endpoint}
+    E -->|no| P
+    E -->|yes| R{caller_may_reach}
+    R -->|no| P
+    R -->|yes| K[kernel_route_ipc_corr]
+    K -->|caps::has fails| C[EACCES]
+    K --> Q{try_enqueue_strict}
+    Q -->|full| A[EAGAIN]
+    Q -->|process gone| H[ESRCH]
+    Q -->|queued| W[wake_process]
+```
+
+1. The syscall contract checks the caller's [capability token](../overview/glossary.md#capability-token) for `IPC`; a refusal is `EPERM`. [Capabilities](capabilities.md) describes that check.
+2. `caller_satisfies_endpoint` finds the endpoint by name or port and refuses an unknown endpoint, an endpoint whose requirement is zero, and a caller that lacks any required bit (`src/syscall/microkernel/ipc/send_caps.rs:36-49`).
+3. `caller_may_reach` applies two lists that capabilities cannot express: the held endpoints and the [peer list](../overview/glossary.md#peer-list) (`src/services/registry/peers_check.rs:54-61`).
+4. `kernel_route_ipc_corr` looks the endpoint up again and tests the caller's bits with `caps::has`, answering `EACCES` when they fall short (`src/ipc/kernel_ipc.rs:63-66`), then queues with `try_enqueue_strict` and wakes the receiving process with `wake_process` (`src/ipc/kernel_ipc.rs:81-89`).
+
+A send to the sender's own reply endpoint is a reply and does not go through the router: `redirect_reply` hands it to the caller waiting in `MkIpcCall`, or leaves it in that reply inbox for the kernel when no call is pending (`src/syscall/microkernel/ipc/send.rs:136-150`).
+
+What an endpoint requires is set when it is registered. A capsule's service endpoint is registered at spawn with `required_caps(name, IPC)` (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:104-106`), and `required_caps` adds `Network` for the 11 names in `NETWORK_SERVICES`, from `net.core` to `net.socks5` (`src/services/registry/policy.rs:26-45`). A capsule's reply endpoint is created unowned before its pid exists, then claimed by `adopt_endpoint` with an `IPC` requirement (`src/kernel_core/process_spawn/capsule_spawn/runner/install/install.rs:95-96`); only an endpoint still owned by pid 0 can be adopted (`src/services/registry/adopt.rs:31-46`).
+
+The held endpoints are driver endpoints that only named services may reach, listed in `HELD` (`src/services/registry/held_table.rs:20-36`). The wired network drivers take messages only from `net.core` and `net.l2`; the Wi-Fi drivers from `net.core`, the Settings windows and the setup wizard; `driver.xhci0` from the USB HID and storage drivers; `driver.i2c_pci0` from the I2C-HID driver; `driver.virtio_gpu0` from `compositor`; and `driver.hda0` from `audio.server`. The keyboard, pointer, USB storage and random source drivers are `KERNEL_ONLY`: no capsule may send to them, because the kernel drives them itself (`src/services/registry/held_table.rs:38-40`). A caller counts as named when it owns the endpoint of that name, which `endpoint_admits` checks (`src/services/registry/held.rs:48-52`).
+
+The peer list holds a capsule to the endpoints named for it and nothing else. In this release it has one entry, in `PEERS`: `shield_prover` may send only to `shield.core` (`src/services/registry/peers.rs:27-31`). A capsule not on the list is not limited by it.
+
+`MkIpcSendToPid` writes into the inbox every endpoint of the destination is read from, so `caller_satisfies_inbox` makes the caller pass the gate of each endpoint the destination serves (`src/syscall/microkernel/ipc/send_caps.rs:65-77`). `sys_ipc_send_to_pid` applies the peer list through `caller_may_reach_pid` before that (`src/syscall/microkernel/ipc/send_to_pid.rs:59-66`).
+
+Receiving is narrower. `resolve_for_recv` maps endpoint 0 to the caller's own `proc.<pid>`, accepts another endpoint only when the caller owns it, and answers `EACCES` otherwise (`src/syscall/microkernel/ipc/inbox_name.rs:28-40`).
+
+Registering a name at run time is refused for any name starting `proc.` or `endpoint.`, for the reserved core services and for ports 4098 to 4107, in `allowed` (`src/syscall/microkernel/ipc/register_allowed.rs:24-39`). The reserved names are `keyring`, `entropy_pool`, `crypto_pool`, `vfs_pool` and `market.index`, in `RESERVED_NAMES` (`src/services/registry/reserved.rs:19-28`). A name the caller does not already hold on that port must be one of the five network services in `RUNTIME_REGISTRABLE` (`src/services/registry/reserved.rs:32-33`), and `caller_has_register_right` asks for `RegisterService` or `Admin` (`src/services/registry/auth/caller_has_register_right.rs:17-20`).
