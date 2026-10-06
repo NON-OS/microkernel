@@ -16,6 +16,7 @@
 
 use super::layout::{parse, Block};
 use super::load::read_doc;
+use super::verdict::empty_page;
 
 // The vfs service can still be registering when the first frame lands, so one
 // attempt is too few; retrying every frame would pour sync IPC calls into a
@@ -45,6 +46,13 @@ impl Doc {
         match read_doc() {
             Ok(text) => {
                 self.blocks = parse(&text);
+                // A page that parses to nothing has nothing to draw: say so
+                // and stop, rather than read it again and paint a blank page.
+                if let Some(why) = empty_page(self.blocks.len()) {
+                    self.error = Some(why);
+                    self.attempts = MAX_ATTEMPTS;
+                    return false;
+                }
                 self.error = None;
                 true
             }
