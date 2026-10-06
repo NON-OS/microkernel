@@ -75,3 +75,27 @@ The details, from the code:
 - Anyone: the host name travels inside the stream's BEGIN cell to the exit, which resolves it. `net.anon` does no lookup of its own.
 - `.anyone` addresses never leave the Anyone network (`for_host` in `userland/nonos_route_link/src/pick.rs:117-123`). A short `.anyone` name is looked up in a list the Anyone DNS services sign, which is weaker than the full 56-letter address, since the list decides where the name points.
 - The Nym client's first contact, the directory at `validator.nymtech.net`, is reached at an address pinned in the image and never looked up (`PINNED` in `userland/capsule_net_nym/src/directory_sync/pinned.rs:27`).
+
+## What each network protects, and what it does not
+
+Nym mixnet:
+
+- The destination sees a Nym exit, not this machine.
+- The client makes a new identity every boot and keeps none, so a gateway cannot link two boots by the client's identity. It still sees this machine's address.
+- The directory fetch goes to `validator.nymtech.net` over TLS, before any mixnet exists. Your local network and that server see that this machine uses Nym.
+- Cover traffic is sent only when a program asks for it, through a socket option on a `net.sockets` mixnet socket. The client sends none on its own timer, and `net.socks5`, which carries the browser's and `nonos_route_link`'s Nym streams, never asks. So cover traffic does not hide the volume and timing of your traffic.
+- The exit learns the host name you connect to. It sees the content too unless the program uses TLS.
+
+Anyone network:
+
+- Circuits always have three hops (`HOPS` in `userland/capsule_net_anon/src/protocol/limits.rs:61`).
+- The directory comes from seven authorities over plain HTTP on port 9230; a consensus needs a majority of their signatures, four of seven (`REQUIRED_SIGNATURES` in `userland/capsule_net_anon/src/directory/authority/types.rs:29`). Your local network and the authorities see that this machine uses Anyone.
+- One guard is kept until it fails three times (`GUARD_ATTEMPTS` in `userland/capsule_net_anon/src/manager/guard.rs:27`). `net.anon` holds no FileSystem capability and writes nothing, so no guard survives a reboot.
+- Someone who watches both this machine and the destination at once can match the traffic by timing.
+- The exit learns the host name, and the content unless the program uses TLS.
+
+Direct:
+
+- Protects nothing beyond what each program's own TLS protects. Names are looked up in the clear.
+
+Reads wait longer on purpose through the two anonymity networks: a reader waits 60 seconds for the next bytes through Nym and 30 seconds through Anyone (`patience_ms` in `userland/nonos_route_link/src/describe.rs:54-60`).
