@@ -24,3 +24,17 @@ The driver takes an Intel PCI function of class 0x02, subclass 0x80, with a memo
 | BE200, BE201 | 272b, a840 | Not supported: not in the id table, the driver never takes them |
 
 Only the AX210 family ids that carry transport values go past the first step, and only the SO ones among them have a bundled firmware; `bring_up` leaves every other card as setup left it and refuses it with `NotSoDevice` (`userland/capsule_driver_iwlwifi/src/server/radio/bring.rs:97-101`, `NotSoDevice`). The transport values are per PCI id (`userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs:119-130`, `transport`). The BE200 and BE201 ids are named but sit outside the id table (`userland/capsule_driver_iwlwifi/src/firmware/generation.rs:59-60`, `family_for_device`).
+
+## Firmware choice on the SO platforms
+
+`select` picks the image from the MAC type and step in CSR_HW_REV and the RF type in CSR_HW_RF_ID, as Linux names it (`userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs:151-185`, `select`). The MAC types are SO 0x37, SO-F 0x43, TY 0x42 and MA 0x44; the RF types are GF 0x10D and HR 0x10C or 0x10A (`userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs:76-85`, `MAC_SO`, `RF_GF`).
+
+| MAC | RF | Image | In the tree |
+|---|---|---|---|
+| SO or SO-F | GF, single radio | `iwlwifi-so-a0-gf-a0-86.ucode` | yes |
+| SO or SO-F | HR | `iwlwifi-so-a0-hr-b0-84.ucode` | yes |
+| TY | GF | `iwlwifi-ty-a0-gf-a0` | no |
+| MA, step B | GF | `iwlwifi-ma-b0-gf-a0` | no |
+| any | GF dual radio (CDB), JF, blank | none | refused |
+
+Only the two SO images are bundled (`userland/capsule_driver_iwlwifi/src/firmware/blob.rs:40-51`, `gen3_blob`). No platform NVM (PNVM) file is committed, so the firmware runs on its built-in defaults (`userland/capsule_driver_iwlwifi/src/firmware/blob.rs:53-62`, `gen3_pnvm`).
