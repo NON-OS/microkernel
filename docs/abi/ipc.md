@@ -43,3 +43,16 @@ Arguments are in register order. Every call needs the `IPC` [capability](../over
 - `sys_ipc_call` treats a `timeout_ms` of 0 as 5000 ms (`src/syscall/microkernel/ipc/call/sys_ipc_call.rs:90`).
 - `from_envelope` gives `MkIpcRecvFrom` the sender's pid, and 0 for a message the kernel sent itself (`src/syscall/microkernel/ipc/sender_pid.rs:17-23`).
 - `sys_ipc_reply` takes the token from `pending_reply`, and drops a reply to a pid with no call outstanding on this server while still returning 0 (`src/syscall/microkernel/ipc/reply.rs:75-78`). A full inbox, `QueueFull`, is `EBUSY` (`src/syscall/microkernel/ipc/reply.rs:95-96`).
+
+## The envelope
+
+The kernel keeps each queued message as an `IpcMessage` (`src/ipc/nonos_channel/message.rs:25-32`). A receiver gets only `data`, and the sender's pid through `MkIpcRecvFrom`.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `from` | `String` | Sender, `proc.<pid>` for a capsule |
+| `to` | `String` | Destination inbox name |
+| `data` | `Vec<u8>` | The payload, at most `MAX_MESSAGE_SIZE` bytes |
+| `timestamp_ms` | `u64` | Time the message was built |
+| `correlation` | `u64` | Token pairing a reply with its call; 0 for a plain send |
+| `checksum64` | `u64` | Checksum over the names, payload and time |
