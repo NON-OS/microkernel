@@ -75,3 +75,19 @@ Grouped by the first word of their service name in the catalogue:
 | anything else | 27 | `vfs_pool`, `keyring`, `policy`, `compositor`, `wm` |
 
 The system services a capsule talks to are on [IPC services](ipc-services.md). The drivers have their own section, starting at [the driver model](../drivers/README.md).
+
+## Installed tool apps
+
+`userland/apps.list` names the crates.io tools installed as capsules, one line per app in the form `slug bin service_port reply_port` (`userland/apps.list:1`, `service_port`).
+
+| App | Service port | Reply port |
+|---|---|---|
+| `grex` | 4900 | 4901 |
+| `dotenv-linter` | 4902 | 4903 |
+| `pastel` | 4904 | 4905 |
+| `jsonxf` | 4906 | 4907 |
+| `tokei` | 4910 | 4911 |
+| `huniq` | 4912 | 4913 |
+| `csview` | 4914 | 4915 |
+
+All seven are built from unmodified crates.io source by one rule (`mk/20-build.mk:342`, `NONOS_TOOL_BINS`). Each is spawned with CoreExec, IPC, Memory and FileSystem and nothing else (`src/userspace/tool_capsules/spec.rs:42-45`, `SANDBOX_CAPS`). Two more tool capsules, `tool.ripgrep` on 4820 and `tool.sd` on 4822, are also unmodified crates.io programs but are not in the list. The maintainer script `tools/nonos-app` adds a tool: it makes the tool's publisher keys with `capsule-sign keygen` (`tools/nonos-app:145`, `keygen`), appends a line to the list (`tools/nonos-app:284`, `APPS`) and rewrites the kernel's tool registry (`tools/nonos-app:206`, `REGISTRY`).
