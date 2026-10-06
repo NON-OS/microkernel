@@ -23,3 +23,11 @@ Known limits, from the tables themselves (`userland/nonos_keymap/src/tables/`):
 
 - French and Spanish dead keys (circumflex, diaeresis, acute, grave) arrive as plain characters. Accents are not composed onto the next letter.
 - On the German layout, Caps Lock does not capitalise an umlaut. Shift does.
+
+## Choosing a layout at first boot
+
+The first step of setup is `Keyboard layout`. Use `Up` and `Down`, or the digits `1` to `6`, then `Enter` (`userland/capsule_setup_wizard/src/render/screens/keyboard.rs`).
+
+The layout takes effect the moment you leave that step, not at the end of setup. The name and the Wi-Fi passphrase you type later in setup are typed in the layout you chose (`userland/capsule_setup_wizard/src/render/screens/keyboard_live.rs`).
+
+On an amnesic boot, setup asks again at every boot. On a system installed to a disk, the choice is kept with setup's other answers.
