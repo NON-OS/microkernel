@@ -93,3 +93,10 @@ Not tested in this release.
 3. The NONOS boot menu appears and counts down 10 seconds on its default entry. Pick an entry, or let the countdown start the default ([Boot modes](boot-modes.md)).
 
 If the firmware will not start the stick with Secure Boot on, turn Secure Boot off and try again: the loader is signed only with the NONOS db key ([Requirements](requirements.md#secure-boot-and-the-tpm)). Not tested in this release.
+
+## See also
+
+- [Get an image](get-an-image.md)
+- [Boot modes](boot-modes.md)
+- [First boot](first-boot.md)
+- [Troubleshooting](troubleshooting.md)
