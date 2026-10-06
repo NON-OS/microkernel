@@ -16,7 +16,7 @@
 
 // Nothing is runnable: every process is parked on a timeout or an
 // IRQ/IPC wake. Yield used to plain-return here, which sent the
-// caller's recv/wait loop spinning at CPL=0 with IF=0 (SFMASK) —
+// caller's recv/wait loop spinning at CPL=0 with IF=0 (SFMASK):
 // the timer could never fire, so time froze and no sleeper could
 // ever wake. Waiting with interrupts open is what unfroze it, and the
 // handler (timer tick or broker IRQ) refills the run queue before
@@ -28,5 +28,48 @@ pub(super) fn idle_until_interrupt() {
     // read as a third of the processor spent in init.
     crate::process::accounting::idle_enter();
     crate::arch::idle::wait_for_interrupt();
+    mark_idle(false);
     crate::process::accounting::idle_leave();
+}
+
+/*
+ * The pick, made with this CPU already marked idle, as `park` and the AP idle
+ * loop make it. Marked only after a pick that found nothing, a CPU that
+ * queued work in between saw no idle mark, sent no wake, and the halt that
+ * followed lasted to the next 10 ms tick. Marked first, that wake is sent and
+ * stays pending with interrupts masked, so the halt ends at once.
+ */
+pub(super) fn select_marked_idle() -> Option<u32> {
+    mark_idle(true);
+    let next = super::super::super::selection::select_next_process();
+    if next.is_some() {
+        pass_on_spent_wake();
+    }
+    next
+}
+
+/*
+ * A wake sent while this CPU was marked may be for work it is not taking, so
+ * it goes on to another idle CPU rather than leave that work to a tick. The
+ * queue holds running pids too: at worst the CPU woken finds nothing.
+ */
+fn pass_on_spent_wake() {
+    if !cfg!(feature = "nonos-smp") {
+        return;
+    }
+    let spent = !crate::smp::current_cpu().idle.swap(false, core::sync::atomic::Ordering::SeqCst);
+    if spent && crate::process::scheduler::dispatch::runnable_process_count() > 0 {
+        crate::smp::wake_idle_cpu();
+    }
+}
+
+/*
+ * A CPU that makes a process runnable sends a wake only to a CPU marked idle.
+ * Unmarked, a CPU waiting here heard of new work at its next tick at best.
+ * The single-CPU image has no one to send it and keeps its old behaviour.
+ */
+fn mark_idle(idle: bool) {
+    if cfg!(feature = "nonos-smp") {
+        crate::smp::current_cpu().idle.store(idle, core::sync::atomic::Ordering::SeqCst);
+    }
 }
