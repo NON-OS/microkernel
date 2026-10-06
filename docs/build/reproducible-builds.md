@@ -83,3 +83,13 @@ gh attestation verify nonos.cdx.json --repo NON-OS/nonos-unified
 ```
 
 Not tested in this release.
+
+## What is not reproducible yet
+
+- The sealed image, by design: its signatures, [trailers](../overview/glossary.md#trailer) and roots differ from one seal to the next.
+- A commit that adds a capsule before its seal is committed: the kernel embeds every shipped capsule's certificate, manifest and trailer, so `result/` holds `kernel/README` instead of a kernel (`kernelNote`, `tools/nix/artifacts.nix:24-26`). The loader likewise needs the kernel's public keys committed (`loaderNote`, `tools/nix/artifacts.nix:21-22`).
+- The cross-system comparison in CI as written: `nonos-verify reproducible` also requires the `config` sections to match (`same_config`, `nonos-verify/src/reproducible/manifests.rs:42-43`), and they carry each host's own toolchain store paths, so builds on two host systems are not expected to pass it. No run of it is checked in this release.
+- On the check run recorded for this commit, the `inputs` check failed for three crates and one proof check did not evaluate. [ci.md](ci.md) lists the state of every check and what the two results have in common.
+- The `busybox-source` check did not run on that check run, because the machine could not download the pinned Zig compiler. The committed BusyBox binary is not compared with a build from source in this release.
+- The older make build in `mk/` is outside these guarantees. It takes its time from git (`SOURCE_DATE_EPOCH`, `mk/00-config.mk:20`) and signs with local keys; its one reproducibility check builds the loader twice on one machine and compares the bytes (`nonos-mk-verify-reproducible-boot`, `mk/20-build.mk:159-172`).
+- A comparison of this commit's artifacts built on two machines is not tested in this release.
