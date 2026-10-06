@@ -37,3 +37,9 @@ The bootloader builds the first tables. The directmap maps the first 256 GiB of 
 From then on the kernel runs only from the upper half. Every new address space copies entries 256 to 511 from the kernel's table with `clone_kernel_half_into` (`src/memory/paging/manager/address_space/clone.rs:35-50`), so no process inherits a low mapping by accident. A failure in any step is a [boot stop](../overview/glossary.md#boot-stop) with `memory: init_unified_vm failed`.
 
 Pages are 4 KiB, with `HUGE_PAGE_2M` and `HUGE_PAGE_1G` leaves possible (`src/memory/layout/constants/page.rs:17-21`). One low mapping comes back for a while: the AP trampoline. `install` maps the 16 pages at physical `0x8000` read and execute while the other CPUs start, and `remove` unmaps them and clears the low half again (`src/smp/init/ap_identity.rs:40-71`). See [scheduler and SMP](scheduler-and-smp.md).
+
+## W^X
+
+No mapping may be writable and executable at once. `map_page` returns `WXViolation` for such a request (`src/memory/paging/manager/mapping/map.rs:41-43`), and a protection change is checked the same way with `is_wx_violation` (`src/memory/paging/manager/protection/update.rs:33-34`).
+
+The kernel image has three load segments in the linker script's `PHDRS`: text read and execute, read-only data, and data read and write (`linker.ld:11-15`). `report_kernel_sections` compares the live mappings with the four entries `kernel_sections` returns, text, read-only data, data and bss (`src/memory/layout/manager/state.rs:49-80`), and prints `[KSEC] 4/4 sections mapped as declared`, or names each page that differs and ends with `WARNING W^X not held` (`src/kernel_core/init/entry/report_sections.rs:33-51`). It reports and does not stop the boot.
