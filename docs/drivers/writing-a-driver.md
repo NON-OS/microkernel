@@ -72,3 +72,35 @@ A driver that prints to the serial console adds `CAPSULE_OPTIONAL_CAPS := 0x100`
 ## 3. Finding the device
 
 The id table is the two constants above, and `is_match` is the whole test: a PCI record with vendor 0x1AF4 and one of the two device ids (`userland/capsule_driver_virtio_rng/src/discover/is_match.rs:19-23`). `find_virtio_rng` asks for every class with `mk_device_list(0, ...)` into a buffer of `MAX_DEVICES` (128) records, and keeps the first match that has a usable register BAR (`userland/capsule_driver_virtio_rng/src/discover/find.rs:22-53`). A driver for a PCI class, such as NVMe, matches on `pci_class`, `pci_subclass` and `pci_progif` instead.
+
+## 4. The start
+
+`_start` checks for the device before it claims anything, then hands the attempts to the shared schedule (`userland/capsule_driver_virtio_rng/src/main.rs:35-57`):
+
+```rust
+#[no_mangle]
+pub unsafe extern "C" fn _start() -> ! {
+    if heap_init().is_err() {
+        mk_exit(1);
+    }
+
+    /*
+     * The broker lists every PCI function before the first capsule starts:
+     * with no virtio-rng there is nothing to wait for. Discovery used to be
+     * retried with everything else for ten seconds of yields.
+     */
+    if discover::find_virtio_rng().is_none() {
+        mk_exit(EXIT_ABSENT);
+    }
+
+    /*
+     * A present device that will not come up is tried a bounded number of
+     * times with a sleep between tries, each failed try releasing what it
+     * claimed, and then given up on once, by name.
+     */
+    let Ok(mut driver) = bring_up(b"driver.virtio_rng", setup::run) else {
+        mk_exit(EXIT_GAVE_UP);
+    };
+```
+
+No device means `EXIT_ABSENT` (2) at once. A device that fails seven attempts means `EXIT_GAVE_UP` (6). After bring-up the driver asks for one `fill` and exits 3 if it fails or 4 if every byte is zero (`userland/capsule_driver_virtio_rng/src/main.rs:59-77`). Thirteen of the drivers call `start_driver` instead, which does the discovery check and the schedule in one call (`userland/libc/src/bringup/run.rs:52-62`).
