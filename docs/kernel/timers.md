@@ -89,3 +89,11 @@ The numbers are the tags `SYS_TIME_MILLIS`, `SYS_TIME_MONOTONIC`, `SYS_TIME_RTC`
 - Sleep deadlines are checked once per tick, so a sleep can end up to one tick, 10 ms, after its deadline.
 - When no reference timer answers, every duration is off by the ratio between the real rate and 2.5 GHz.
 - The wall clock is only as right as the loader's UEFI time or the RTC until a capsule corrects it.
+
+## See also
+
+- [Scheduler and SMP](scheduler-and-smp.md)
+- [Futex](futex.md)
+- [Boot handoff](boot-handoff.md)
+- [Platform drivers](../drivers/platform.md)
+- [ABI: system calls](../abi/syscalls.md)
