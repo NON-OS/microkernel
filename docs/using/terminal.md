@@ -207,3 +207,7 @@ Not tested in this release.
 - Git cannot send credentials in this release. When a server answers HTTP 401 or 403, git prints `the server wants credentials, which this cannot send yet` (`say_failure` in `userland/capsule_terminal/src/command/builtin/git/clone/fail.rs`). So `git push` works only to a server that takes a push without them.
 - `git clone` runs as a job and `Ctrl+C` stops it. `git push` does not: the window waits until it ends.
 - The repository lives in the file store, in memory. See [Files](files.md) for what survives a reboot.
+
+## The network a command uses
+
+`curl` and `git` connect through the network chosen in Settings: the Nym mixnet, the Anyone network, or Direct. `ping`, `nslookup`, `pull` and `push` reach a host directly and cannot cross an anonymity network, so they run only when Direct is chosen. Otherwise they print the reason and `so nothing was sent` (`userland/capsule_terminal/src/command/builtin/direct_gate.rs`). See [Privacy networks](privacy-network.md).
