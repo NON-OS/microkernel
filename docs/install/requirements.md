@@ -48,3 +48,13 @@ The sealed image `nonos.img` is 1,043,148,800 bytes, about 995 MiB:
 | Room for the backup partition table | 1 MiB |
 
 The sizes are `USB_MB`, `STICK_TIER` and `GPT_TAIL` in `tools/nonos_seal/media.py`, and the pinned file size in `userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs`. Use a stick of 2 GB or more. Writing the image erases everything on the stick.
+
+## A disk to install to
+
+- An NVMe disk, a SATA disk on an AHCI controller, or an Intel eMMC host, which the SATA driver also serves (`userland/nonos_blk_client/src/driver/pci.rs`). Under QEMU, a virtio disk. The installer lists disks from the NVMe, SATA and virtio-blk drivers only, so a USB disk is never a target (`userland/nonos_blk_client/src/driver/table.rs`).
+- At least 2177 MiB, which a drive label calls 2.3 GB (`MIN_DISK_SECTORS` in `userland/nonos_disk/src/layout/sizes.rs`).
+- 512-byte logical blocks. A disk with 4096-byte blocks is listed and refused (`userland/nonos_blk_client/src/disks/describe.rs`).
+- The firmware's storage mode set to AHCI. With Intel RST or VMD on, the disks sit behind a RAID controller NONOS has no driver for. When that hides every disk, the installer says so (`userland/nonos_blk_client/src/disks/scan.rs`).
+- The whole disk. The installer replaces everything on it, whatever it holds.
+
+Which controllers and chips have drivers, and what has been seen working, is in the [hardware support matrix](../hardware/MATRIX.md).
