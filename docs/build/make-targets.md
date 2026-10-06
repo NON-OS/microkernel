@@ -103,3 +103,39 @@ A boot runs from the [ESP](../overview/glossary.md#esp), copied out of the image
 `--model auto` takes the largest Qwen3 tier whose file, plus a fifth, plus 512 MiB for the runtime, fits in the memory less 1 GiB (`fits`, `tools/nonos_qemu/disk.py:128-142`). The runner fetches the tier's pinned files once into `target/models/files`, checks them against their pins, and lays them only on a new data disk (`lay_models`, `tools/nonos_qemu/disk.py:154-163`). Fetching needs the network.
 
 With `--headless --timeout N`, a boot passes when every `--expect` pattern appears on the serial console before the deadline. With no pattern, a boot still running at the deadline passes and one that stopped fails (`watch`, `tools/nonos_qemu/__main__.py:88-106`).
+
+## The targets in `mk/`
+
+The files in [mk/](../../mk) hold the older make build: it calls `cargo` directly instead of the flake. The Makefile includes them only inside the flake's shell; outside it, any `make nonos-mk-<name>` or `make ci-<name>` re-runs itself inside `nix develop` (`NONOS_IN_FLAKE`, `Makefile:145-150`).
+
+These targets sign with a local development key. The first target that needs one generates an Ed25519 seed (`SIGNING_KEY`, `mk/10-qemu.mk:163-167`) and an ML-DSA-65 key (`KERNEL_MLDSA65_KEY`, `mk/10-qemu.mk:172-175`) in the loader's key directory (`KEYS_DIR`, `mk/00-config.mk:18`). An image built this way carries those local keys and is never a release. `nonos-mk-distclean` deletes the Ed25519 and ML-DSA-65 key files at those paths, whoever made them (`SIGNING_KEY`, `mk/00-config.mk:76-79`).
+
+| target | what it does |
+|---|---|
+| `nonos-mk-run` | builds the kernel and the ESP, then boots under QEMU with a software TPM and NAT networking; quit with Ctrl+A then X (`nonos_kernel_and_esp`, `mk/40-run.mk:107-120`) |
+| `nonos-mk-run-net` | the same with port forwards to the guest's SSH and HTTP ports (`QEMU_NET_MODE`, `mk/40-run.mk:122-123`) |
+| `nonos-mk-run-serial-log` | a headless boot that writes the serial console to `QEMU_SERIAL_LOG` (`QEMU_SERIAL_LOG`, `mk/40-run.mk:205-215`) |
+| `nonos-mk-run-smp-serial-log` | the same with `QEMU_SMP` CPUs and a kernel built with `nonos-smp` (`QEMU_SMP`, `mk/40-run.mk:419-429`) |
+| `nonos-mk-debug` | waits for GDB on port 1234 before the first instruction (`nonos_kernel_and_esp`, `mk/40-run.mk:228-235`) |
+| `nonos-mk-run-iommu-serial-log` | boots under TCG with an emulated Intel IOMMU, so the DMA remapping code runs (`QEMU_IOMMU_OPTS`, `mk/40-run.mk:489-501`) |
+| `nonos-mk-boot-matrix` | boots every cell of the machine matrix `BOOT_MATRIX_REPEAT` times, 5 by default, each within `BOOT_MATRIX_TIMEOUT` seconds, 300 by default (`BOOT_MATRIX_REPEAT`, `mk/40-run.mk:514-536`) |
+| `nonos-mk-iso` | a UEFI ISO from the ESP, with every timestamp pinned (`NONOS_ISO`, `mk/30-image.mk:19-37`) |
+| `nonos-mk-usb-img`, `nonos-mk-usb-run` | a GPT disk image (`USB_IMG`, `mk/20-build.mk:1351-1354`), and a boot of it as a real disk rather than a FAT folder (`USB_IMG`, `mk/30-image.mk:41-51`) |
+| `nonos-mk-static`, `nonos-mk-verify-fast` | the capability parity check `check_cap_parity`, the assumption register and the tree checks of `run-static-checks.sh`, with no kernel build (`mk/40-run.mk:345-356`) |
+| `nonos-mk-verify`, `nonos-mk-test` | the static checks, the trust checks and a scan of `MICROKERNEL_BIN` for symbols the microkernel must not carry; `nonos-mk-test` adds three QEMU boot tests (`mk/40-run.mk:378-414`) |
+| `nonos-mk-arm`, `nonos-mk-arm-run` | the aarch64 kernel, and a boot of it under `qemu-system-aarch64` (`ARM_QEMU_FLAGS`, `mk/20-build.mk:921-924`) |
+| `ci-fast`, `ci-security`, `ci-release`, `ci-soak` | `ci-fast` runs the tests of `nonos-verify` with the pinned `TOOLCHAIN` and the claims check, `ci-security` adds two audit scripts, `ci-release` adds a byte for byte double build of the loader, and `ci-soak` runs the QEMU evidence scripts (`mk/50-ci.mk:16-24`) |
+| `nonos-mk-clean`, `nonos-mk-clean-all` | removes the kernel build, or every build and the ESP (`TARGET_DIR`, `mk/50-ci.mk:82-91`) |
+| `nonos-mk-distclean` | removes everything `nonos-mk-clean-all` does, and the local signing keys (`SIGNING_KEY`, `mk/50-ci.mk:93-101`) |
+| `nonos-mk-capsule-catalogue`, `nonos-mk-store-catalogue` | print the JSON the flake reads about the capsules and the store (`nonos_catalogue_print`, `mk/60-nix.mk:52-79`) |
+
+The QEMU of these targets has its own settings: 2 GiB of memory (`QEMU_MEM`, `mk/10-qemu.mk:13`), KVM when `/dev/kvm` is readable and writable, the macOS hypervisor on macOS, TCG otherwise (`QEMU_ACCEL_AUTO`, `mk/10-qemu.mk:19-31`), a 1920 by 1080 display (`QEMU_XRES`, `mk/10-qemu.mk:81-82`), and NAT networking captured to `target/qemu-net.pcap` (`QEMU_NET_CAPTURE`, `mk/10-qemu.mk:35-39`). `QEMU_NET_MODE=hostfwd` forwards host port 2222 to the guest's port 22 and 8080 to its port 80 (`QEMU_HOST_SSH_PORT`, `mk/10-qemu.mk:33-35`, `mk/10-qemu.mk:134-136`).
+
+Make runs as many jobs as the smaller of the core count and the memory in GiB divided by 4, and caps each cargo at 2 jobs; `NONOS_JOBS=1` runs one at a time (`NONOS_JOBS`, `mk/00-config.mk:38-44`).
+
+```
+make nonos-mk-static
+make nonos-mk-run-serial-log
+```
+
+Not tested in this release.
