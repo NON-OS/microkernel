@@ -139,3 +139,29 @@ pub fn run() -> Result<Driver, &'static str> {
 On the legacy path, `grant` looks at the register BAR's kind and calls `grant_mmio` or `grant_pio` (`userland/capsule_driver_virtio_rng/src/setup/registers/grant.rs:22-28`). `grant_mmio` rounds the BAR size up to whole pages and calls `mk_mmio_map`; on failure it releases the device before it returns (`userland/capsule_driver_virtio_rng/src/setup/registers/grant_mmio.rs:22-31`). `Regs` then reads and writes through the mapping with volatile accesses, or through `mk_pio_read` and `mk_pio_write` for a port BAR (`userland/capsule_driver_virtio_rng/src/regs/state.rs:23-89`).
 
 On the modern path, `enable` sets Memory Space, Bus Master and Interrupt Disable in one `mk_pci_config_write`, because the broker clears Bus Master on every release (`userland/capsule_driver_virtio_rng/src/setup/modern/pci.rs:31-37`). `map_window` from `nonos_virtio` then maps the common and notify structures (`userland/capsule_driver_virtio_rng/src/setup/modern/run.rs:36-41`).
+
+## 7. DMA memory
+
+The driver takes two grants: two pages for the virtqueue and one page for the entropy, `VQ_REGION_SIZE` and `ENTROPY_BUF_LEN` (`userland/capsule_driver_virtio_rng/src/constants/queue.rs:22-29`). `map_queue` maps the queue coherent because both sides write it while it runs (`userland/capsule_driver_virtio_rng/src/setup/dma.rs:28-44`):
+
+```rust
+pub fn map_queue(
+    device_id: u64,
+    claim_epoch: u64,
+    regs: RegisterGrant,
+) -> Result<DmaMapOut, &'static str> {
+    let mut out = DmaMapOut { user_va: 0, device_addr: 0, length: 0, grant_id: 0 };
+    // The virtqueue is read and written by both sides while it runs: mapped
+    // uncached, so neither needs a cache flush (virtio 1.2, 2.7.13).
+    let r =
+        mk_dma_map(device_id, claim_epoch, VQ_REGION_SIZE as u64, MK_DMA_MAP_COHERENT, &mut out);
+    if r < 0 {
+        let _ = regs.release();
+        let _ = mk_device_release(device_id);
+        return Err("dma map failed (queue)");
+    }
+    Ok(out)
+}
+```
+
+The device is given `device_addr`, never `user_va`: the driver writes through `user_va`, and the device reaches the same frames at `device_addr`, an IOVA inside the capsule's [IOMMU domain](../overview/glossary.md#iommu-domain) or the physical address when there is none (`src/hardware/broker/dma/map/transaction.rs:47-65`).
