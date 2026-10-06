@@ -36,3 +36,19 @@ A service should not trust a pid written inside a message. The kernel records wh
 Every send is checked against the caller's [capability word](../overview/glossary.md#capability-word). The caller must hold every bit the endpoint requires. A name nobody registered and an endpoint with no stated requirement are refused outright, and a caller short of a bit is refused with a `[CAP-DENY]` line on the kernel log that names the bits it needed and the bits it holds (`src/syscall/microkernel/ipc/send_caps.rs:36-63`, `caller_satisfies_endpoint`). A service endpoint requires IPC. The eleven network services, `net.core`, `net.l2`, `net.ip`, `net.udp`, `net.tcp`, `net.dns`, `net.dhcp.client`, `net.sockets`, `net.nym`, `net.anon` and `net.socks5`, require Network as well (`src/services/registry/policy.rs:26-45`, `NETWORK_SERVICES`).
 
 A service may add its own rules on top, and several do; the sections below say which.
+
+## The common header
+
+Most services frame each message with the same 20-byte header, all fields little-endian, followed by the payload. This is the `vfs_pool` decoder (`userland/capsule_vfs/src/protocol/decode.rs:27-50`, `decode_request`):
+
+| Bytes | Field |
+|---|---|
+| 0 to 3 | magic, one per service |
+| 4 to 5 | version, 1 |
+| 6 to 7 | operation |
+| 8 to 9 | flags |
+| 10 to 11 | reserved, zero |
+| 12 to 15 | request id, echoed in the reply |
+| 16 to 19 | payload length |
+
+A reply carries the same header, and its payload starts with a signed 32-bit status, 0 or a negative errno (`userland/capsule_vfs/src/protocol/encode.rs:21-33`, `encode_response`). The keyring and the policy store use shorter headers of their own, described below. The kernel side of the wire, the calls, the envelope and the limits, is in [ABI: IPC](../abi/ipc.md).
