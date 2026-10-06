@@ -49,3 +49,36 @@ All three root files sit under `nonos-data/trust/policy/` (`ZK_CAPSULE_ROOT`, `m
 The kernel compiles the capsule [policy root](../overview/glossary.md#policy-root) in as a static read through `black_box`, so it stays 32 contiguous bytes, and a file of another length fails the build (`ROOT`, `src/security/capsule_attest/policy_root.rs:17-28`). The loader compiles the kernel root in as `KERNEL_ATTEST_ROOT`. A loader built without `dev-mode` or `dev-qemu` fails to build when that root is not given or is all zero, and any loader build fails on a root file that is not 32 bytes (`generate_kernel_attest_root`, `nonos-bootloader/build.rs:245-276`). The comment above that function says a development build boots on signature trust alone; that is out of date, since `attest_kernel` refuses an unattested kernel in every mode. The kernel is enrolled from a frozen copy, `kernel.enrolled.elf`, so a relink in the middle of a build cannot change the bytes under the proof (`KERNEL_ATTEST_STAMP`, `mk/20-build.mk:637-648`).
 
 The loader's tree cannot live in the loader, whose measurement would then depend on a root that depends on it. Its root is embedded in nothing; the release signs it into the [boot-root record](../overview/glossary.md#boot-root-record), as `bootloader` in the enroll tool explains (`nonos-stark-enroll/src/commands.rs:40-48`).
+
+## Who makes the trailers
+
+`nonos-stark-enroll` is the host tool that builds the trees and writes the trailers. It links `nonos-attest-path` with its `alloc` feature, `nonos-boot-measure`, and from the STARKs repository the prover `stark_proofs` with `fri8` and `parallel` and the verifier `nox_verify` (`nonos-stark-enroll/Cargo.toml:12-17`).
+
+| Verb | What it does |
+|---|---|
+| `capsules <root.bin> <CAPS:image:trailer> ...` | one tree over every capsule given, each with its capability word in hex |
+| `kernel <image> <root.bin> <trailer.bin>` | a tree with one slot, for the kernel's BLAKE3 |
+| `bootloader <image.efi> <root.bin> <trailer.bin>` | a tree with one slot, for the loader's Authenticode digest |
+| `verify`, `verify-kernel`, `verify-bootloader` | check trailers again with the gate's own check |
+| `recompute <root.bin.transcript>` | rebuild a root from its transcript |
+| `refusal-variants` | broken trailers for the booted refusal test |
+| `authenticode <image.efi>` | print a loader's Authenticode digest |
+| `selftest` | the enroll, trailer and gate loop, end to end |
+
+The verbs are in `usage` and `main` (`nonos-stark-enroll/src/main.rs:37-68`).
+
+`enroll` takes 1 to 256 slots and starts every leaf as a padding leaf from `pad_leaf`, drawn from a 32-byte pad seed, so no padding digest is known before the tree exists (`nonos-stark-enroll/src/policy.rs:36-41`, `nonos-attest-path/src/leaf.rs:84-96`). The slots take the first leaves in order, the tree is committed, and each slot's path is folded with the gate's own `verify` before anything else (`nonos-stark-enroll/src/policy.rs:42-56`). `emit` draws the pad seed with `os_random`, which reads `/dev/urandom` (`nonos-stark-enroll/src/io.rs:55-61`), and writes the root, each trailer, and a transcript beside the root (`nonos-stark-enroll/src/commands.rs:24-34`).
+
+`prove_v4` builds the prover's statement, then `agree` compares the prover's public words with those of `nox_verify` and refuses on any difference, so a drift between the two is an enrollment error rather than a kernel that refuses its own boot (`nonos-stark-enroll/src/stark/prove.rs:28-67`). It proves with 64 bytes of fresh entropy, makes at most three such attempts when the zero-knowledge rank certificate is not reached, and passes the result through `check_v4`, the gate's full check, before it returns (`nonos-stark-enroll/src/stark/prove.rs:36-52`, `nonos-stark-enroll/src/stark/check.rs:23-43`). A trailer the boot would refuse never leaves the tool.
+
+`prove_all` proves slots in parallel and hands the trailers back in slot order; one proof peaks near 3 GB, so the number of workers is bounded (`nonos-stark-enroll/src/stark/batch.rs:17-41`). It runs `NONOS_ENROLL_JOBS` at a time when that is set, and otherwise half the cores, at most 8, and no more than memory allows at 3.5 GB each (`nonos-stark-enroll/src/stark/batch.rs:82-99`).
+
+The transcript, headed `nonos-policy-transcript v2`, records the depth, both epochs, the pad seed, every slot and the root, since nothing in a tree is secret (`render`, `nonos-stark-enroll/src/transcript.rs:17-40`). `recompute` rebuilds the root through the same `enroll`, so it proves every slot again unless `NONOS_ENROLL_PATHS` is 1, which builds the paths alone (`nonos-stark-enroll/src/transcript.rs:42-82`, `nonos-stark-enroll/src/policy.rs:57-73`). The make rules build the tool at `NONOS_STARK_ENROLL`, under `nonos-stark-enroll/target/` (`mk/00-config.mk:85`). To check a published capsule root from its transcript without proving:
+
+```sh
+NONOS_ENROLL_PATHS=1 nonos-stark-enroll recompute zk_capsule_policy_root.bin.transcript
+```
+
+Not tested in this release.
+
+The make rule for `ZK_CAPSULE_ROOT` calls `capsules` once with every capsule in `NONOS_ENROLLED_CAPSULES`, so the whole set shares one root; with `NONOS_TRUST_REUSE` set to 1 it only checks that the committed root exists (`mk/20-build.mk:592-605`). The [seal](../overview/glossary.md#seal) runs `kernel` and then `verify-kernel`, `bootloader` and then `verify-bootloader` (`tools/nonos_seal/chain.py:46-62`).
