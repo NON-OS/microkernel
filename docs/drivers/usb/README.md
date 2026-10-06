@@ -84,3 +84,10 @@ The capsule holds the [capabilities](../../overview/glossary.md#capability) IPC,
 EHCI, OHCI and UHCI controllers are listed by the kernel's inventory and get no driver (`src/hardware/inventory/missing.rs:28-30`, `UsbEhci`; `src/hardware/inventory/classify_serial_bus.rs:19-28`, `classify_serial_bus`). On a machine whose ports hang off such a controller, USB devices do not work in NONOS.
 
 The USB network adapter capsules (CDC-ECM, CDC-NCM, RNDIS, ASIX AX88179, Realtek RTL8153) exist as source under `userland/`, but the build includes none of them (`mk/20-build.mk:528-547`, `capsule_driver_xhci`), and the kernel would not let them send to `driver.xhci0` (`src/services/registry/held_table.rs:32`, `driver.xhci0`).
+
+## How it was verified
+
+- `userland/xhci_proofs` is the [proof crate](../../overview/glossary.md#proof-crate) for the controller. It runs the TRB layer, the event ring and the bring-up against a register window and host DMA memory. Its flake check fails on this commit: clippy, run with warnings as errors, rejects two assertions in its tests (`userland/xhci_proofs/src/conformance/silicon_tests.rs:255`, `slept_ms`; `userland/xhci_proofs/src/event_ring/address_tests.rs:39`, `SET_ADDRESS_SETTLE_MS`). The check recorded no test count.
+- `userland/usb_proofs` covers the class side, with keyboards, mice, tablets and hub routing checked against the controller's request limits: 83 tests pass on this commit.
+- Ten of the twelve QEMU command lines in `mk/40-run.mk` attach a `qemu-xhci` controller (`mk/10-qemu.mk:99-102`, `QEMU_USB`), and so does every `make boot` (`tools/nonos_qemu/machine.py:91-93`, `devices`). Those boots take the keyboard and mouse from PS/2. The comment on `QEMU_USB` gives the reason: USB HID interrupt-IN transfers were not serviced under the macOS hvf accelerator. That host behaviour is not tested in this release.
+- USB has not been tested on hardware in this release.
