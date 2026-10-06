@@ -75,3 +75,7 @@ The number `MkDeviceClaim` returns, taken from one counter that starts at 1 and 
 ## Correlation token
 
 The nonzero number the kernel gives each `MkIpcCall` from a counter. Only a reply that carries the same number is delivered to the caller; a plain send carries 0, so it cannot pass as a reply. Explained in [IPC](../kernel/ipc.md#blocking-waking-and-timeouts). Code: `src/syscall/microkernel/ipc/call/sys_ipc_call.rs`.
+
+## Data volume
+
+The encrypted volume the disk plan places at sector 262,144 or above, where kept files such as Qwen models live, each sector sealed with ChaCha20-Poly1305. On an installed disk its key is derived from the TPM under the label `blockfs.data.v1`, or is a random key sealed under a passphrase when the key header says so; on a live stick the volume is held in RAM under a key drawn for that boot and is gone at power off. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-data-volume). Code: `src/fs/blockfs_volume/open_machine.rs`, `src/fs/blockfs_volume/session.rs`.
