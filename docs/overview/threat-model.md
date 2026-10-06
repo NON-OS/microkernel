@@ -77,3 +77,15 @@ NONOS relies on these without proof. They are the hardware, firmware, compiler a
 - An observer on the network path, for connections made under Nym or Anyone.
 - Someone who reads the disk of a machine that is off.
 - A capsule changed after it was signed and enrolled.
+
+## Out of scope
+
+- Firmware, a CPU or a TPM that lies. These are the assumptions above.
+- Physical access to a running machine, including bus, JTAG and cold-boot attacks.
+- DMA from a device no VT-d unit in service covers: on a machine with AMD-Vi, with no remapping unit, or behind a unit that did not come up. The device is unconfined, and the serial log says so for each claim.
+- What sites learn from what the person sends them, and everything under Direct, which shows this machine's address to every site it reaches.
+- Seeing that NONOS runs Nym. Both anonymity transports start on every boot that starts the network stack, whatever the choice (`spawn_nym` and `spawn_anon` in `src/userspace/init/spawn_plan/network/spawn.rs:17-29`), and net.nym reaches for a gateway from its serve loop while idle (`_start` in `userland/capsule_net_nym/src/main.rs:48-63`).
+- Serial output on a standard image. Capsules may write diagnostics to the serial console there; the hardened and airgapped profiles take that out (`debugFeatures` in `tools/nix/config.nix:60-92`).
+- A `dev` image, which promises nothing (`tools/nix/config.nix:102-109`).
+- Timing and cache side channels between capsules. The kernel runs speculation mitigations at each syscall entry (`kernel_entry` in `src/arch/x86_64/syscall/manager/entry.rs:34-36`) and logs at boot what the CPU is exposed to and which mitigations are on (`vulnerabilities` and `mitigations` in `src/security/hardening/spectre_mitigations/report.rs:22-41`). This model claims nothing beyond that.
+- A kernel panic. It halts every CPU without the ZeroState wipe (`panic` in `src/boot/panic/handler.rs:41-64`).
