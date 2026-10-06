@@ -9,6 +9,7 @@ const MAGIC: u32 = 0x4E42_4C4B; // "NBLK", the wire tag from protocol/header.rs
 const VERSION: u16 = 1;
 use crate::queue::Queue;
 use crate::regs::Regs;
+use crate::transport::Transport;
 use crate::server::{read::parse_read, write::parse_write};
 use crate::setup::Driver;
 
@@ -45,7 +46,7 @@ fn driver(capacity: u64) -> Driver {
             data_len: 0,
             last_used: 0,
         },
-        regs: Regs::mmio(0),
+        transport: Transport::Legacy(Regs::mmio(0)),
         capacity_sectors: capacity,
     }
 }
@@ -222,18 +223,16 @@ fn encoded_response_headers_decode_back_to_the_request_fields() {
     }
 }
 
-// Write authority.
+// Medium authority.
 
 #[test]
-fn mutating_ops_answer_only_the_kernel_or_a_sender_holding_store_write() {
+fn the_medium_answers_only_the_kernel_or_a_sender_holding_store_write() {
     use crate::protocol::{OP_CAPACITY, OP_FLUSH, OP_HEALTHCHECK, OP_READ_BLOCKS, OP_WRITE_BLOCKS};
     use crate::server::acl::rule::allows;
-    for op in [OP_WRITE_BLOCKS, OP_FLUSH] {
+    for op in [OP_WRITE_BLOCKS, OP_FLUSH, OP_READ_BLOCKS, OP_CAPACITY, 0xffff] {
         assert!(allows(op, 0, false), "the kernel client must never be refused");
-        assert!(!allows(op, 7, false), "a sender without StoreWrite reached a mutating op");
+        assert!(!allows(op, 7, false), "a sender without StoreWrite reached the medium");
         assert!(allows(op, 7, true), "a sender the kernel vouches for was refused");
     }
-    for op in [OP_CAPACITY, OP_READ_BLOCKS, OP_HEALTHCHECK, 0xffff] {
-        assert!(allows(op, 7, false), "the read side must stay open as before");
-    }
+    assert!(allows(OP_HEALTHCHECK, 7, false), "a health check must stay open");
 }
