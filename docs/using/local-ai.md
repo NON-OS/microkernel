@@ -125,3 +125,11 @@ A model is kept on the data volume. The kernel seals every sector of it with Cha
 - `this system was built without the Linux personality that runs Qwen (ENOENT)`
 
 Why a download stopped, in the Marketplace's words, is listed on the [Marketplace](marketplace.md) page.
+
+## See also
+
+- [Marketplace](marketplace.md)
+- [Linux programs](linux-programs.md)
+- [Privacy networks](privacy-network.md)
+- [Settings](settings.md)
+- [Install to disk](../install/install-to-disk.md)
