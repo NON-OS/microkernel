@@ -66,3 +66,11 @@ cd userland/cdc_ncm_proofs && cargo test --release --config profile.release.over
 ```
 
 Not tested in this release.
+
+## See also
+
+- [Ethernet drivers](README.md)
+- [Realtek Ethernet](realtek.md)
+- [USB host controller](../usb/README.md)
+- [Wi-Fi chips with no driver](../wifi/not-supported.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
