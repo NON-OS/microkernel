@@ -130,3 +130,12 @@ Not tested in this release.
 - Hidden networks, open, TKIP and Enterprise networks.
 - 6 GHz, HT, VHT and HE rates, rate scaling, QoS, aggregation and power save.
 - Interrupt-driven operation, firmware restart, roaming, access point and monitor mode.
+
+## See also
+
+- [Wi-Fi drivers](README.md)
+- [Realtek RTL8821CE](rtl8821ce.md)
+- [Wi-Fi chips with no driver](not-supported.md)
+- [The broker API](../broker-api.md)
+- [IOMMU](../../kernel/iommu.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
