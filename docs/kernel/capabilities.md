@@ -123,3 +123,11 @@ Some handlers check again. `sys_cap_grant` asks for `Admin` once more and for ev
 ## What capabilities do not cover
 
 A capability says what kind of call a process may make, not whom it may talk to. The held endpoints and the [peer list](../overview/glossary.md#peer-list) on [IPC](ipc.md) add that. `IO` and `Hardware` gate nothing at this commit. A capability check is only as good as the process isolation under it; [Capsule isolation](../security/capsule-isolation.md) covers that side.
+
+## Tests
+
+`userland/kernel_proofs` compiles the cap table (`userland/kernel_proofs/src/syscall/contract/mod.rs`), the predicates (`userland/kernel_proofs/src/syscall/caps/mod.rs`), the capability list and the bit helpers (`userland/kernel_proofs/src/capabilities/mod.rs`) from the kernel sources. It passed, 388 tests, in the flake check run on this commit. `scripts/check_syscall_caps.py` compares the gate each call publishes in `abi/syscalls.toml` with the cap table; it prints nothing and exits 0 when they agree, as it does here:
+
+```
+$ python3 scripts/check_syscall_caps.py
+```
