@@ -14,28 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::theme::STATUS;
-use crate::display::font::{draw_string, CHAR_WIDTH};
+//! What the menu shows: the selection, the countdown, and what to repaint.
+
 use crate::security::SecurityContext;
 
-pub(super) fn draw_security_status(w: u32, y: u32, sec: &SecurityContext) {
-    let mut buf = [0u8; 64];
-    let mut n = 0usize;
-    let head: &[u8] = if sec.measured_boot_active {
-        b"TPM MEASURED BOOT ACTIVE   NV COUNTER "
-    } else {
-        b"TPM MEASURED BOOT INACTIVE   NV COUNTER "
-    };
-    for &b in head {
-        buf[n] = b;
-        n += 1;
+/// What changed since the last frame, so a key press repaints only the card
+/// and the text under it, and a tick of the countdown only the footer.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum Dirty {
+    All,
+    Selection,
+    Timer,
+}
+
+pub(super) struct Frame<'a> {
+    pub sel: usize,
+    pub default: usize,
+    pub remaining_s: u32,
+    pub total_s: u32,
+    /// The first frame leaves the emblem to the opening animation.
+    pub intro: bool,
+    pub sec: &'a SecurityContext,
+}
+
+impl<'a> Frame<'a> {
+    pub fn new(default: usize, total_s: u32, sec: &'a SecurityContext) -> Self {
+        Frame { sel: default, default, remaining_s: total_s, total_s, intro: true, sec }
     }
-    let counter: &[u8] = if sec.tpm_counter_ok { b"OK" } else { b"--" };
-    for &b in counter {
-        buf[n] = b;
-        n += 1;
-    }
-    let msg = &buf[..n];
-    let mw = msg.len() as u32 * CHAR_WIDTH;
-    draw_string(w.saturating_sub(mw) / 2, y, msg, STATUS);
 }

@@ -274,8 +274,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e5032e24019045c762d3c0f28f5b6b8bbf38563a65908389bf7978758920897"
 
 [[package]]
+name = "nonos-attest-path"
+version = "0.1.0"
+dependencies = [
+ "blake3",
+]
+
+[[package]]
+name = "nonos-boot-measure"
+version = "0.1.0"
+dependencies = [
+ "nonos-attest-path",
+ "nox_verify",
+ "sha2",
+]
+
+[[package]]
 name = "nonos-stark"
-version = "0.2.0"
+version = "0.1.0"
+source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a41bb8bb0dacfea614acc6fb500d0b96abd78d2b"
 dependencies = [
  "blake3",
 ]
@@ -294,8 +311,10 @@ dependencies = [
  "goblin",
  "heapless",
  "log",
- "nonos-stark",
+ "nonos-attest-path",
+ "nonos-boot-measure",
  "noto-sans-mono-bitmap",
+ "nox_verify",
  "r-efi",
  "sha2",
  "spin",
@@ -304,7 +323,6 @@ dependencies = [
  "uuid",
  "xmas-elf",
  "zerocopy",
- "zeroize",
 ]
 
 [[package]]
@@ -312,6 +330,14 @@ name = "noto-sans-mono-bitmap"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f102c477fd4ec864c149803bf606ecc23bc9329602ec0f99073a728abf454abc"
+
+[[package]]
+name = "nox_verify"
+version = "0.1.0"
+source = "git+https://github.com/NON-OS/STARKs.git?branch=main#a41bb8bb0dacfea614acc6fb500d0b96abd78d2b"
+dependencies = [
+ "nonos-stark",
+]
 
 [[package]]
 name = "pkcs8"
