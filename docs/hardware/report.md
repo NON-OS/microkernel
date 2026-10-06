@@ -110,3 +110,11 @@ Open an issue on GitHub at [NON-OS/nonos-unified](https://github.com/NON-OS/nono
 | Device involved | the PCI or USB id |
 
 A security problem does not go in a public issue. See [Reporting a vulnerability](../security/reporting-a-vulnerability.md).
+
+## See also
+
+- [Support matrix](MATRIX.md)
+- [Troubleshooting](../install/troubleshooting.md)
+- [Terminal](../using/terminal.md)
+- [Drivers](../drivers/README.md)
+- [Reporting a vulnerability](../security/reporting-a-vulnerability.md)
