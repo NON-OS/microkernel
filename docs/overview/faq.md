@@ -25,3 +25,7 @@ To add a machine of your own, see [Report a machine](../hardware/report.md).
 ## The network NONOS uses
 
 The browser, the Terminal and the wallet connect through the [Nym mixnet](glossary.md#nym-mixnet) by default. The [Anyone network](glossary.md#anyone-network) and Direct are the other two choices, asked in first-boot setup and changed in Settings. If the chosen network is not running, connections fail: nothing falls back to Direct. Downloads for an install, a Qwen model or a Linux package, go over the Anyone network whatever the choice. The wallet never uses Direct for its chain reads, and the clock is set from a time server only under Direct. See [Privacy network](../using/privacy-network.md).
+
+## Installing NONOS on a disk
+
+You can install NONOS on an internal disk. Choose to install in first-boot setup, or pick `Install NØNOS` in the boot menu, and the installer writes to the disk you choose after you confirm. Until then NONOS writes nothing to any disk. See [Install to disk](../install/install-to-disk.md).
