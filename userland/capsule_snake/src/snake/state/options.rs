@@ -23,6 +23,12 @@ pub struct Options {
     pub powerups: bool,
 }
 
+impl Default for Options {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Options {
     pub fn new() -> Self {
         Options { obstacles: true, wrap: false, powerups: true }
@@ -38,5 +44,23 @@ impl Options {
             return false;
         }
         self.wrap
+    }
+
+    // Zen and Classic decide wrapping themselves, so the switch is locked there.
+    pub fn wrap_locked(mode: Mode) -> bool {
+        mode.forces_wrap() || mode.hard_walls()
+    }
+
+    // Flip the rule at `index` (Obstacles, Wrap edges, Power-ups, the order of
+    // `setup_geom_rows::TOGGLE_LABELS`). False when nothing changed: a locked
+    // switch, or no switch at all.
+    pub fn flip(&mut self, index: usize, mode: Mode) -> bool {
+        match index {
+            0 => self.obstacles = !self.obstacles,
+            1 if !Options::wrap_locked(mode) => self.wrap = !self.wrap,
+            2 => self.powerups = !self.powerups,
+            _ => return false,
+        }
+        true
     }
 }

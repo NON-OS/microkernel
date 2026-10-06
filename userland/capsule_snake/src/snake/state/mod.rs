@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod daily;
 pub mod difficulty;
 pub mod game;
+pub mod kept;
 pub mod level;
 pub mod mode;
 pub mod mode_text;
@@ -27,7 +29,6 @@ pub mod run;
 pub mod screen;
 pub mod tick;
 
-pub use difficulty::Difficulty;
 pub use game::Game;
 pub use mode::Mode;
 pub use options::Options;

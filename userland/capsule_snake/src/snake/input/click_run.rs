@@ -20,13 +20,16 @@ use crate::snake::state::{Game, Screen};
 
 use super::nav;
 
-// Footer: Pause, Restart, Sound, Quit. Sound has no mixer route from a
-// windowed app and no state to carry, so index 2 is deliberately unclaimed.
+// Footer: Pause, Restart, Home, in `play_geom_rows::FOOT_LABELS` order. The
+// game makes no sound, so the footer offers no sound switch. The last button
+// ends the run and goes to the home screen, so it is called Home, as on the
+// game-over panel; it read Quit, and left the window open. The window closes
+// with its close button.
 pub fn foot(game: &mut Game, index: usize) -> EventOutcome {
     match index {
         0 => nav::pause(game),
         1 => restart(game),
-        3 => nav::go(game, Screen::Home),
+        2 => nav::go(game, Screen::Home),
         _ => EventOutcome::Idle,
     }
 }

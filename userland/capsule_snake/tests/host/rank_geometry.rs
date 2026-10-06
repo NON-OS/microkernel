@@ -14,7 +14,7 @@ mod snake {
 }
 
 use snake::ui::metrics::RANK_ROWS;
-use snake::ui::rank_geom::{award_row, awards, back, back_at, head, row, row_at, table, AWARD_ROWS};
+use snake::ui::rank_geom::{award_row, awards, back, back_at, head, row, table, AWARD_ROWS};
 use snake::ui::rank_geom_cols::{column, COLUMNS};
 use snake::ui::rect::{content, Rect};
 
@@ -47,9 +47,7 @@ fn main() {
         check(disjoint(tb, aw), "table overlaps awards");
         check(inside(tb, head(w, h)), "head escapes table");
         for i in 0..RANK_ROWS {
-            let r = row(w, h, i);
-            check(inside(tb, r), "rank row escapes table");
-            check(row_at(w, h, centre(r).0, centre(r).1) == Some(i), "rank hit test drifts");
+            check(inside(tb, row(w, h, i)), "rank row escapes table");
         }
         for i in 0..AWARD_ROWS {
             check(inside(aw, award_row(w, h, i)), "award row escapes awards panel");

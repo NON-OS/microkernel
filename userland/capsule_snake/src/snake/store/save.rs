@@ -16,41 +16,61 @@
 
 use nonos_app_skeleton::clients::vfs;
 use nonos_libc::mk_getpid;
+use nonos_policy_client::{get_bool, lookup};
+use nonos_policy_proto::Field;
 
+use crate::snake::state::kept::{self, Kept};
 use crate::snake::state::Game;
 
 use super::{codec, encode, gate, paths};
 
-// Written once, at the transition into Over, never per tick. Every step is
-// dropped on failure: the run stays in memory for this window's lifetime and
-// nothing on the frame path ever waits on the outcome.
-pub fn save_from(game: &Game) {
+// Written once, at the transition into Over, never per tick. A failed step
+// does not stop the game: the run stays in memory for this window's lifetime
+// and nothing on the frame path waits on the outcome. What became of the save
+// is handed back so the Ranks screen can say it.
+pub fn save_from(game: &Game) -> Kept {
     if !gate::live() {
-        return;
+        return Kept::NotSaved(kept::NO_SERVICE);
     }
     let pid = mk_getpid();
     if pid == 0 {
-        return;
+        return Kept::NotSaved("this window has no process id");
     }
     if let Err(err) = vfs::mkdir(pid, paths::DIR) {
         gate::note(err);
     }
     if !gate::live() {
-        return;
+        return Kept::NotSaved(kept::NO_SERVICE);
     }
-    write(pid, paths::RANKS, &encode::runs(&game.runs));
-    let kept = game.awards.len().min(codec::MAX_AWARDS);
-    write(pid, paths::AWARDS, &encode::awards(&game.awards[..kept]));
+    let keeps = keeps_state();
+    let ranks = write(pid, paths::RANKS, &encode::runs(&game.runs), keeps);
+    let held = game.awards.len().min(codec::MAX_AWARDS);
+    let awards = write(pid, paths::AWARDS, &encode::awards(&game.awards[..held]), keeps);
+    kept::worse(ranks, awards)
+}
+
+// Whether this boot keeps what is written, as setup chose: the policy store
+// holds it, and no answer is taken as amnesic, as vfs takes it.
+fn keeps_state() -> bool {
+    lookup().and_then(|port| get_bool(port, Field::Persistent)) == Some(true)
 }
 
 // The owner pid is this window's own: the vfs server rejects a claimed owner
 // pid that differs from the real sender pid.
-fn write(pid: u32, path: &[u8], data: &[u8]) {
+fn write(pid: u32, path: &[u8], data: &[u8], keeps: bool) -> Kept {
     if let Err(err) = vfs::write_file(pid, path, data) {
         gate::note(err);
-        return;
+        return kept::of_file(Err(err), Ok(()));
     }
-    if let Err(err) = vfs::persist(pid, path) {
+    // A live session keeps it for this session. Asking vfs to keep it anyway
+    // was refused, and printed "[VFS] refused persist: amnesic boot" on the
+    // serial console twice every game over.
+    if !keeps {
+        return Kept::Session(kept::AMNESIC);
+    }
+    let persisted = vfs::persist(pid, path);
+    if let Err(err) = persisted {
         gate::note(err);
     }
+    kept::of_file(Ok(()), persisted)
 }

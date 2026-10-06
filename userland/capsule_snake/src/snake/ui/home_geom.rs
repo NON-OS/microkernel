@@ -23,7 +23,7 @@ pub const ACTIONS: usize = 4;
 pub const CARDS: usize = 2;
 
 pub const LABELS: [&[u8]; ACTIONS] = [b"Play", b"Continue", b"Ranks", b"Settings"];
-pub const CARD_LABELS: [&[u8]; CARDS] = [b"Daily challenge", b"Recent best"];
+pub const CARD_LABELS: [&[u8]; CARDS] = [b"Daily challenge", b"Best run"];
 
 pub fn wordmark_h() -> u32 {
     line_height(PX_WORDMARK).max(1) as u32 + line_height(PX_BODY).max(1) as u32

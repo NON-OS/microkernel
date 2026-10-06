@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const COLS: i16 = 35;
-pub const ROWS: i16 = 21;
+use super::difficulty::{self, Difficulty};
+use super::mode::{self, Mode};
 
-// The nominal window, matching capsule_process_manager, whose HiDPI behaviour
-// is boot-proven. There is no fixed cell size: the board is fitted to the live
-// surface every frame (paint/board_fit.rs), so maximize still works.
-pub const WIN_W: u32 = 1240;
-pub const WIN_H: u32 = 780;
+pub const DAY_MS: i64 = 86_400_000;
 
-// The snake is placed here on every reset, heading right. Walls are kept out
-// of the rectangle around it so a level change can never spawn a kill.
-pub const SPAWN: (i16, i16) = (COLS / 2, ROWS / 2);
-pub const SPAWN_CLEAR_X: i16 = 7;
-pub const SPAWN_CLEAR_Y: i16 = 2;
+// The day's run: the mode turns over every day and the difficulty every four
+// days, so all sixteen pairs come round in sixteen days. It is read from the
+// wall clock the game already keeps (`Game::last_ms`), and the home card and
+// its click both ask here, so the card names the run a click sets up.
+pub fn pick(wall_ms: i64) -> (Mode, Difficulty) {
+    let day = (wall_ms.max(0) / DAY_MS) as usize;
+    let mode = mode::ALL[day % mode::ALL.len()];
+    let level = difficulty::ALL[(day / mode::ALL.len()) % difficulty::ALL.len()];
+    (mode, level)
+}
