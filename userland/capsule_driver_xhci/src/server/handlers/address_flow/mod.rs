@@ -18,6 +18,7 @@ mod alloc_resources;
 mod attach_resources;
 mod command_address;
 mod complete_address;
+mod fix_ep0;
 mod port_speed;
 mod slot_ready;
 pub use address_after_reset::address_after_reset;

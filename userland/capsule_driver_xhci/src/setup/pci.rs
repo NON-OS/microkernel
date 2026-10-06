@@ -14,12 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER};
+use nonos_libc::{
+    mk_pci_config_write, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER, MK_PCI_CMD_INTX_DISABLE,
+    MK_PCI_CMD_MEMORY_SPACE,
+};
 
 use crate::error::{XhciError, XhciResult};
 
 pub fn enable_bus_master(device_id: u64, claim_epoch: u64) -> XhciResult<()> {
-    let r = mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, MK_PCI_CMD_BUS_MASTER);
+    // Memory Space too: firmware that never used the controller can leave it
+    // clear, and then every register access drops without an error. INTx is
+    // disabled: the driver takes MSI-X or polls, and never the legacy line.
+    // Intel PCH controllers offer MSI and no MSI-X, so on those it polls;
+    // with USBCMD.INTE set and INTx enabled the controller would hold a
+    // level-triggered line, possibly shared, that nothing acknowledges.
+    let bits = MK_PCI_CMD_BUS_MASTER | MK_PCI_CMD_MEMORY_SPACE | MK_PCI_CMD_INTX_DISABLE;
+    let r = mk_pci_config_write(device_id, claim_epoch, MK_PCI_CFG_COMMAND, bits);
     if r < 0 {
         return Err(XhciError::BrokerCallFailed(r));
     }

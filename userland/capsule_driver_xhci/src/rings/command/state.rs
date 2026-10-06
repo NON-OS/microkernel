@@ -22,6 +22,9 @@ pub struct CommandRing {
     pub(super) region: DmaRegion,
     pub(super) cycle: u8,
     pub(super) enqueue_index: usize,
+    /// The operational registers the ring was programmed into, 0 before
+    /// `program_command_ring`; an abort needs CRCR.
+    pub(super) op_base: u64,
 }
 impl CommandRing {
     pub fn new(pool: &DmaPool) -> XhciResult<Self> {
@@ -32,6 +35,6 @@ impl CommandRing {
         let link =
             LinkTrbBuilder::new().target(region.phys()).toggle_cycle(true).cycle(true).build();
         write_volatile_at(last_slot_va, link);
-        Ok(Self { region, cycle: 1, enqueue_index: 0 })
+        Ok(Self { region, cycle: 1, enqueue_index: 0, op_base: 0 })
     }
 }

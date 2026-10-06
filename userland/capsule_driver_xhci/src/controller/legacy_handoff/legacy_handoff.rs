@@ -14,35 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use super::claim::claim;
-use crate::constants::HCCPARAMS1;
-use crate::regs::mmio_read32;
+use crate::regs::cap::ext_caps;
 
-// Extended-capability ID for USB legacy support (xHCI 1.2 §7.1).
+// Extended-capability ID for USB legacy support (xHCI 1.2 section 7.1).
 const XECP_ID_LEGACY: u32 = 1;
-const XECP_WALK_LIMIT: u32 = 256;
+/// USBLEGSUP and USBLEGCTLSTS, the two dwords the handoff touches.
+const LEGACY_CAP_BYTES: u64 = 8;
 
 /// Claim the controller from BIOS/SMM before it is reset. On real firmware the
 /// controller is frequently still owned by SMM through USB legacy support;
 /// resetting or driving it without the USBLEGSUP handshake races SMM and can
 /// lose the boot keyboard or wedge the reset. Controllers without a legacy
-/// capability (e.g. QEMU) advertise no xECP and this is a no-op.
-pub fn legacy_handoff(mmio_base: u64) {
-    // HCCPARAMS1[31:16] is the xECP offset, in 32-bit words from the cap base.
-    let xecp = (mmio_read32(mmio_base + HCCPARAMS1) >> 16) & 0xFFFF;
-    if xecp == 0 {
-        return;
-    }
-    let mut cap = mmio_base + (xecp as u64) * 4;
-    for _ in 0..XECP_WALK_LIMIT {
-        let dw0 = mmio_read32(cap);
+/// capability (e.g. QEMU) advertise none and this is a no-op. The list is
+/// walked only inside the `mapped_len` bytes actually mapped: Intel puts it
+/// near 0x8000, past what a short mapping covers.
+pub fn legacy_handoff(mmio_base: u64, mapped_len: u64) {
+    let mut found = None;
+    ext_caps(mmio_base, mapped_len, LEGACY_CAP_BYTES, |off, dw0| {
         if dw0 & 0xFF == XECP_ID_LEGACY {
-            claim(cap);
-            return;
+            found = Some(off);
+            return false;
         }
-        let next = (dw0 >> 8) & 0xFF;
-        if next == 0 {
-            return;
-        }
-        cap += (next as u64) * 4;
+        true
+    });
+    if let Some(off) = found {
+        claim(mmio_base + off);
     }
 }

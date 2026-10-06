@@ -20,6 +20,7 @@ use crate::protocol::{
 };
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
+use crate::server::handlers::recover::{recover_after, DCI_EP0};
 pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() != DEVICE_DESCRIPTOR_REQUEST_LEN {
         reply_with_status(tx, req, E_INVAL);
@@ -34,7 +35,8 @@ pub fn handle(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         }
     };
     out.zero();
-    if transfer(ctx, slot, &out).is_err() {
+    if let Err(e) = transfer(ctx, slot, &out) {
+        recover_after(ctx, slot, DCI_EP0, e);
         reply_with_status(tx, req, E_IO);
         return;
     }

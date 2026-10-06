@@ -13,9 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod errno_value;
+mod reason;
 mod xhci_error;
 mod xhci_result;
-pub use errno_value::errno_value;
+pub use reason::reason;
 pub use xhci_error::XhciError;
 pub use xhci_result::XhciResult;

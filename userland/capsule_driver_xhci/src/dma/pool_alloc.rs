@@ -32,11 +32,21 @@ impl DmaPool {
         if r < 0 {
             return Err(XhciError::BrokerCallFailed(r));
         }
-        Ok(DmaRegion {
+        let region = DmaRegion {
             user_va: out.user_va,
             device_addr: out.device_addr,
             length: out.length,
             grant_id: out.grant_id,
-        })
+        };
+        if !self.addr64 && !below_4g(region.device_addr, region.length) {
+            // Dropping the region unmaps the grant.
+            return Err(XhciError::ControllerUnsupported);
+        }
+        Ok(region)
     }
+}
+
+/// Whether every byte of `[addr, addr + len)` has a 32-bit bus address.
+pub fn below_4g(addr: u64, len: u64) -> bool {
+    addr.checked_add(len).is_some_and(|end| end <= 1 << 32)
 }

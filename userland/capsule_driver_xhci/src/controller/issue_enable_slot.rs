@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-use super::ring_doorbell::ring_doorbell;
-use super::wait_command_completion::wait_command_completion;
+
+use super::run_command::run_command;
 use crate::error::{XhciError, XhciResult};
 use crate::rings::command::CommandRing;
 use crate::rings::event::EventRing;
@@ -26,9 +26,7 @@ pub fn issue_enable_slot(
     evt_ring: &mut EventRing,
 ) -> XhciResult<u8> {
     let trb = enable_slot_command(cmd_ring.cycle() != 0, 0);
-    let issued_phys = cmd_ring.enqueue(trb)?;
-    ring_doorbell(op_doorbell_base, 0, 0);
-    let completion = wait_command_completion(intr_base, issued_phys, evt_ring)?;
+    let completion = run_command(op_doorbell_base, intr_base, cmd_ring, evt_ring, trb)?;
     let slot_id = completion.slot_id;
     if slot_id == 0 {
         return Err(XhciError::ControllerUnsupported);

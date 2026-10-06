@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use crate::protocol::{
-    Request, E_INVAL, OP_ADDRESS_DEVICE, OP_ALLOC_TRANSFER_RING, OP_CONTROLLER_STATUS,
-    OP_CONTROL_TRANSFER, OP_DISABLE_SLOT, OP_ENABLE_SLOT, OP_GET_CONFIG_DESCRIPTOR,
-    OP_GET_DEVICE_DESCRIPTOR, OP_HEALTHCHECK, OP_INTERRUPT_IN, OP_PORT_STATUS,
+    Request, E_INVAL, OP_ADDRESS_DEVICE, OP_ALLOC_TRANSFER_RING, OP_BULK_IN, OP_BULK_OUT,
+    OP_CONFIGURE_BULK, OP_CONTROLLER_STATUS, OP_CONTROL_TRANSFER, OP_DISABLE_SLOT, OP_ENABLE_SLOT,
+    OP_GET_CONFIG_DESCRIPTOR, OP_GET_DEVICE_DESCRIPTOR, OP_HEALTHCHECK, OP_INTERRUPT_IN,
+    OP_PORT_STATUS, OP_RESET_BULK,
 };
 use crate::server::context::Context;
 use crate::server::error::reply_with_status;
@@ -37,6 +38,10 @@ pub fn dispatch(ctx: &mut Context, req: &Request, body: &[u8], tx: &mut [u8]) {
         OP_CONTROL_TRANSFER => handlers::control_transfer::handle(ctx, req, body, tx),
         OP_ALLOC_TRANSFER_RING => handlers::alloc_transfer_ring::handle(ctx, req, body, tx),
         OP_INTERRUPT_IN => handlers::interrupt_in::handle(ctx, req, body, tx),
+        OP_CONFIGURE_BULK => handlers::bulk::configure(ctx, req, body, tx),
+        OP_BULK_OUT => handlers::bulk::transfer_out(ctx, req, body, tx),
+        OP_BULK_IN => handlers::bulk::transfer_in(ctx, req, body, tx),
+        OP_RESET_BULK => handlers::bulk::reset(ctx, req, body, tx),
         _ => reply_with_status(tx, req, E_INVAL),
     }
 }

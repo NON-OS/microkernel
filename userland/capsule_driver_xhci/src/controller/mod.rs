@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 mod ack_irq;
+mod bulk;
 mod dcbaa_slot;
 mod drain_events;
 mod get_config_descriptor;
@@ -24,6 +25,7 @@ mod issue_configure_endpoint;
 mod issue_control_transfer;
 mod issue_disable_slot;
 mod issue_enable_slot;
+mod issue_evaluate_context;
 mod issue_noop_and_wait;
 mod layout;
 mod legacy_handoff;
@@ -32,10 +34,13 @@ mod poll_interrupt_in;
 mod program_command_ring;
 mod program_dcbaa;
 mod program_event_ring;
+mod recover_endpoint;
 mod refuse_unsupported;
 mod reset;
 mod reset_port;
+mod reset_toggle;
 mod ring_doorbell;
+mod run_command;
 mod scratchpad;
 mod start;
 mod wait_cnr_clear;
@@ -43,16 +48,20 @@ mod wait_command_completion;
 mod wait_hc_running;
 mod wait_transfer_completion;
 pub use ack_irq::ack_irq;
+pub use bulk::{bulk_transfer, reset_bulk_endpoint, write_bulk_input, BulkEndpoint, BulkPipes};
 pub use dcbaa_slot::{clear_dcbaa_slot, set_dcbaa_slot};
 pub use drain_events::drain_events;
 pub use get_config_descriptor::{get_config_descriptor, CONFIG_DESCRIPTOR_MAX};
-pub use get_device_descriptor::{get_device_descriptor, DEVICE_DESCRIPTOR_LEN};
+pub use get_device_descriptor::{
+    get_device_descriptor, read_device_descriptor, DEVICE_DESCRIPTOR_LEN, DEVICE_DESCRIPTOR_PREFIX,
+};
 pub use halt::halt;
 pub use issue_address_device::issue_address_device;
 pub use issue_configure_endpoint::issue_configure_endpoint;
 pub use issue_control_transfer::{issue_control_transfer, ControlRequest};
 pub use issue_disable_slot::issue_disable_slot;
 pub use issue_enable_slot::issue_enable_slot;
+pub use issue_evaluate_context::issue_evaluate_context;
 pub use issue_noop_and_wait::issue_noop_and_wait;
 pub use layout::ControllerLayout;
 pub use legacy_handoff::legacy_handoff;
@@ -61,9 +70,15 @@ pub use poll_interrupt_in::{poll_interrupt_in, IntrPoll};
 pub use program_command_ring::program_command_ring;
 pub use program_dcbaa::program_dcbaa;
 pub use program_event_ring::program_event_ring;
+pub use recover_endpoint::recover_endpoint;
 pub use refuse_unsupported::refuse_unsupported;
 pub use reset::reset;
-pub use reset_port::reset_port;
+pub use reset_port::{power_all_ports, reset_port};
+// Reached by the host proofs (userland/xhci_proofs), not by the capsule.
+#[allow(unused_imports)]
+pub use reset_port::{port_action, PortAction};
+#[allow(unused_imports)]
+pub use scratchpad::aligned_page;
 pub use scratchpad::Scratchpads;
 pub use start::start;
 pub use wait_cnr_clear::wait_cnr_clear;

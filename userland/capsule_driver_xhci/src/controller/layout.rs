@@ -13,7 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-#[derive(Debug, Clone, Copy)]
+use crate::regs::cap::PortProtocols;
+#[derive(Clone, Copy)]
 pub struct ControllerLayout {
     pub op_base: u64,
     pub doorbell_base: u64,
@@ -22,4 +23,6 @@ pub struct ControllerLayout {
     pub max_ports: u8,
     pub max_scratchpad: u32,
     pub context_size: u8,
+    /// USB 2 or USB 3, per root port, from the Supported Protocol capabilities.
+    pub ports: PortProtocols,
 }

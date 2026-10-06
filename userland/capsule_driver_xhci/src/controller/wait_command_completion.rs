@@ -15,13 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 use nonos_libc::Deadline;
 
-use crate::constants::{CC_SUCCESS, TRB_TYPE_CMD_COMPLETION_EVENT};
+use crate::constants::{CC_SUCCESS, TRB_TYPE_CMD_COMPLETION_EVENT, TRB_TYPE_TRANSFER_EVENT};
 use crate::controller::park::{park_step, SPIN_BUDGET};
 use crate::error::{XhciError, XhciResult};
 use crate::regs::runtime::erdp_program;
 use crate::rings::event::EventRing;
 
-const COMPLETION_TIMEOUT_MS: u64 = 1_000;
+// Linux XHCI_CMD_DEFAULT_TIMEOUT: an Address Device carries a SET_ADDRESS to
+// the device, which a slow device can take well past a second to answer.
+const COMPLETION_TIMEOUT_MS: u64 = 5_000;
 
 #[derive(Clone, Copy)]
 pub struct CommandCompletion {
@@ -46,6 +48,10 @@ pub fn wait_command_completion(
         let event = evt_ring.current_trb();
         evt_ring.advance();
         erdp_program(intr_base, evt_ring.current_dequeue_phys(), true, 0);
+        if event.get_type() == TRB_TYPE_TRANSFER_EVENT {
+            evt_ring.park(event);
+            continue;
+        }
         if event.get_type() != TRB_TYPE_CMD_COMPLETION_EVENT {
             continue;
         }
