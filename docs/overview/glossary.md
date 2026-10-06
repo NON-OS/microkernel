@@ -195,3 +195,7 @@ A kernel table that holds a named capsule to the endpoints listed for it, whatev
 ## Policy root
 
 The 32-byte root of the capsule attestation tree, written by the seal's enrollment of the capsule set and compiled into the kernel. The spawn gate tries every capsule's trailer against it first, then against any signing roots enrolled on this machine. Explained in [STARK attestation](../security/stark-attestation.md#three-trees). Code: `src/security/capsule_attest/policy_root.rs`, `src/security/capsule_attest/verify.rs`.
+
+## Policy store
+
+The policy service, `capsule_policy`, on port 4108: a typed key-value store of system-wide settings such as the keyboard layout, the default network and `Keep data across reboots`. Settings and setup write it and other capsules read it through `nonos_policy_client`; it holds the values in memory and, on a machine that keeps data, writes the kept ones to disk about a second after the last change. Explained in [Settings](../using/settings.md#how-long-a-change-lasts). Code: `userland/capsule_policy/Capsule.mk`, `userland/capsule_policy/src/keep/tick.rs`.
