@@ -60,3 +60,15 @@ As written, the boot would go like this:
 `linker_riscv64.ld` places the image at `0x80200000`, above the 2 MB its comment reserves for OpenSBI, in three `PT_LOAD` segments, and sets the global pointer for gp-relative addressing (`PHDRS`, `linker_riscv64.ld:11-32`). Unlike the other two scripts it defines no `__kernel_text_start` pairs, which the kernel's W^X check reads. `userland/riscv64-nonos-user.json` builds capsules for `generic-rv64` with the M, A, F, D and C extensions in its `features` and the `lp64d` ABI (`userland/riscv64-nonos-user.json:19-21`).
 
 Seven extraction crates lower small riscv64 functions to Lean, among them `riscv64_boot_hart_id_store`, `riscv64_cpu_caps_query`, `riscv64_cpu_extensions_query` and `riscv64_sbi_extensions_extension` (`verification/extraction/crates.json:3460-3515`), each with a refinement module in `verification/extraction/lean/NonosExtraction/`. They reason about those functions in Lean; they do not make the port build.
+
+## What the shared code answers on riscv64
+
+The facade modules in `src/arch` have no riscv64 branch, so riscv64 gets each one's fallback:
+
+- `time_counter_hz` answers 0, so the clock counts as not calibrated (`src/arch/time_counter.rs:39-52`).
+- `unix_timestamp` answers `None`, so there is no wall clock before the network (`src/arch/wall_clock.rs:29-36`).
+- `random_u64` answers `None` (`src/arch/cpu_random/read.rs:29-41`).
+- `send_ipi` answers an error (`src/arch/interrupt_controller/ipi.rs:28-38`).
+- `init_broker_irq_routing`, which installs the routes that carry device interrupts for the [hardware broker](../overview/glossary.md#hardware-broker), answers an error (`src/arch/init_broker_irq_routing.rs:17-34`).
+- Port I/O compiles its `backend` from `unsupported.rs` (`src/arch/port_io/mod.rs:35-37`).
+- `set_user_tls` reports failure (`src/arch/context/tls.rs:25-39`).
