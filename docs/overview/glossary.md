@@ -115,3 +115,7 @@ Committing a set of measurements, such as the BLAKE3 hash of every capsule's ELF
 ## ESP
 
 The EFI system partition, a FAT volume. It holds the loader as `EFI/BOOT/BOOTX64.EFI` and, under `EFI/nonos`, the signed `kernel.bin`, the loader's trailer, the boot-root record, the kernel approval when there is one, and `boot.cfg`. Explained in [Install to disk](../install/install-to-disk.md#what-is-written). Code: `tools/nonos_seal/media.py`.
+
+## File store
+
+The `vfs_pool` service, `capsule_vfs`. It holds every file the desktop and its apps see in its own memory, serves holders of FileSystem, and writes a file to the package store only when asked to keep it on a boot that keeps data. Explained in [Files](../using/files.md). Code: `userland/capsule_vfs/Capsule.mk`, `userland/capsule_vfs/src/server/handlers/persist_gate.rs`.
