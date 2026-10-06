@@ -14,18 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The controller bring-up against a modelled host controller.
+//! The event ring, against a controller that writes whatever it likes.
+//!
+//! The controller owns every byte of an event TRB: the cycle bit, the type,
+//! the completion code, the slot and endpoint ids, the residual length and
+//! the 64-bit pointer. These proofs run the driver's own `EventRing` and
+//! every function that consumes it (the interrupt drain, both completion
+//! waits, the interrupt-IN poll and the bulk wait) over host DMA memory,
+//! with a producer written from the specification on the other side.
 
-mod devices;
-mod model;
-mod port_device;
+mod events;
+mod fixture;
+mod producer;
 
-mod cap_tests;
-mod encoding_tests;
-mod halt_tests;
-mod handoff_tests;
-mod park_tests;
-mod port_tests;
-mod reason_tests;
-mod reset_tests;
-mod silicon_tests;
+mod address_tests;
+mod boundary_tests;
+mod dequeue_tests;
+mod erdp_tests;
+mod fuzz_tests;
+mod match_tests;
+mod recover_tests;
+mod residual_tests;
+mod toggle_tests;
