@@ -23,13 +23,16 @@ mod part;
 
 mod wire;
 
+mod config_tests;
 mod legacy_tests;
 mod modern_queue_tests;
 mod modern_refusal_tests;
 mod modern_tests;
+mod notify_bound_tests;
 mod queue_limit_tests;
 mod queue_tests;
 mod reply_refusal_tests;
 mod reply_tests;
+mod request_refusal_tests;
 mod wire_scanout_tests;
 mod wire_tests;

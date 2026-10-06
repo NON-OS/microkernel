@@ -46,11 +46,12 @@ pub fn step(bar: &FakeBar, served: &AtomicU16, log: &Mutex<Vec<Seen>>, answer: A
         response_flags: second.flags,
     });
     let id = match answer {
-        Answer::WrongDescriptor => head.wrapping_add(1) % QUEUE_SIZE,
-        _ => head,
+        Answer::WrongDescriptor => (head.wrapping_add(1) % QUEUE_SIZE) as u32,
+        Answer::AliasedDescriptor => head as u32 | 0x1_0000,
+        _ => head as u32,
     };
     let entry = VQ_USED_OFFSET + 4 + slot * 8;
-    put(bar, entry, &(id as u32).to_le_bytes());
+    put(bar, entry, &id.to_le_bytes());
     put(bar, entry + 4, &(response.len() as u32).to_le_bytes());
     fence(Ordering::Release);
     put(bar, VQ_USED_OFFSET + 2, &done.wrapping_add(1).to_le_bytes());
