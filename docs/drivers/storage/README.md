@@ -46,3 +46,14 @@ flowchart TD
 The first disk that passes is kept for the rest of the boot. A driver that cannot answer yet stops the search instead of letting a later disk win, so reads and writes never split across two disks (`src/hardware/block_device/select.rs:59-72`, `Found::Refused`). The disk plan sits at `PLAN_LBA`, 120 MiB in (`src/fs/blockfs_volume/plan_types.rs:35-37`, `PLAN_LBA`).
 
 Until a disk is kept, and for as long as the kept disk is a USB stick, a read that the loader's copy in memory can answer is answered from that copy (`src/hardware/block_device/read.rs:25-41`, `copy_answers`). The copy holds the live plan's sector and the model files it names, in at most 31 ranges (`src/hardware/block_device/mirror/record.rs:19-20`, `EXTENTS`). So a live boot opens its volume even from a stick no kernel driver serves.
+
+## What the console shows
+
+The block layer writes its own lines, so they appear whatever the drivers may print:
+
+- one line per disk it asks, repeated only when what it saw changes, for example `[BLOCK] asked NVMe (driver.nvme0): ...` with the sector count and the first eight bytes at LBA 256 (`src/hardware/block_device/seen.rs:68-83`, `line`);
+- the disk it keeps, for example `[BLOCK] NONOS disk on NVMe (driver.nvme0)` (`src/hardware/block_device/announce.rs:21-31`, `announce`);
+- with no disk found, `[BLOCK] no disk carries the NONOS store or disk plan yet; block I/O refused` (`src/hardware/block_device/select.rs:73-78`, `TOLD_NONE`);
+- one `[USB-MSC]` line saying where the stick search stands (`src/hardware/usb_msc_capsule/report.rs:32-38`, `report_line`).
+
+The drivers' own lines are a different matter. They write with `mk_debug`, which needs the Debug capability. The kernel never grants it to `driver.ahci0` (`src/hardware/ahci_capsule/spawn.rs:51-57`, `requested_caps`), and the spawn grants in `src/hardware/xhci_capsule/spawn.rs`, `src/userspace/capsule_driver_usb_hid/spawn.rs` and `src/userspace/capsule_driver_usb_msc/spawn.rs` leave it out as well. `driver.nvme0` and `driver.virtio_blk0` get it only in an image built with `capsule-serial-debug` (`src/hardware/nvme_capsule/spawn.rs:51-53`, `serial_debug_cap`). The standard, qemu and dev profiles have that feature through `microkernel-desktop-base`; the hardened and air-gapped profiles drop it (`tools/nix/config.nix:60-62`, `debugFeatures`).
