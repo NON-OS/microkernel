@@ -108,3 +108,11 @@ Both build the `hardened` profile with the rest of `nonos.toml` unchanged (`ATTR
 | [reproducible-builds.md](reproducible-builds.md) | what is pinned, how to compare two builds, and what is not reproducible yet |
 | [sbom.md](sbom.md) | the CycloneDX bill of materials and the other supply chain records |
 | [ci.md](ci.md) | the GitHub workflows, what runs on a pull request, and the state of the checks at this commit |
+
+## See also
+
+- [Get an image](../install/get-an-image.md)
+- [Write a USB stick](../install/usb-stick.md)
+- [Tests and proofs](../contributing/tests-and-proofs.md)
+- [Architecture in one diagram](../overview/architecture.md)
+- [flake.nix](../../flake.nix) and [nonos.toml](../../nonos.toml)
