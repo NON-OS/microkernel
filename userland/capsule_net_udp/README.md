@@ -2,120 +2,81 @@
 
 ## Role
 
-`capsule_net_udp` is the UDP transport capsule. It sits above `net.ip`, owns
-UDP header validation and construction, and serves datagram operations to DHCP,
-DNS, sockets, and direct network clients.
+`capsule_net_udp` is the UDP layer of the split network stack. It sits above
+`net.ip`, gives each client the ports it binds, builds and checks UDP headers,
+and queues inbound datagrams per port. `net.dns` and `net.ntp.client` use it,
+and `net.sockets` uses it for datagram sockets.
 
 ```text
-DHCP / DNS / sockets / client capsule
+net.dns / net.ntp.client / net.sockets
     |
-    | datagram IPC
+    | NUDP requests over IPC
     v
-net.udp -- UDP parse/build/checksum --> net.ip
+net.udp -- UDP build/parse + port table --> net.ip
 ```
 
-## Microkernel contract
+The desktop image does not carry it: there `net.core` registers the `net.udp`
+name itself. It is built into the `microkernel-net-udp` through
+`microkernel-net-ntp` profiles and the `microkernel-input-e2e-ps2` test image.
 
-The capsule is a signed IPC service:
+## Service and endpoints
 
-- `MkIpcRecv` receives requests on `service:4420:net.udp`.
-- `MkIpcSend` replies through `reply:4421:endpoint.4294967340`.
-- Its wire magic is `NUDP`.
-- Its endpoint name is `net.udp`.
-- Its kernel mirror target is `src/network/udp_capsule`.
+- Handle `net.udp`, service endpoint `service:4420:net.udp`, reply endpoint
+  `reply:4421:endpoint.net.udp.reply`.
+- Kernel mirror `src/userspace/capsule_net_udp`.
+- It waits until `net.ip` is registered, then serves inbox 0.
 
-The kernel does not allocate ports, parse UDP, or own datagram queues.
+## Interface
 
-## Interface contract
+Requests carry the 20 byte header shared by the stack capsules, with magic
+`0x4E554450` ("NUDP") and version 1.
 
-| Operation | Meaning |
-|---|---|
-| `OP_HEALTHCHECK` | server liveness |
-| `OP_BIND` / `OP_UNBIND` | own a UDP port in capsule state |
-| `OP_SEND` | send one datagram through `net.ip` |
-| `OP_RECV` | poll one datagram for a bound port |
+| Op | Value | Meaning |
+|---|---|---|
+| `OP_HEALTHCHECK` | 1 | liveness |
+| `OP_BIND` | 2 | own a port |
+| `OP_UNBIND` | 3 | give a port back |
+| `OP_SEND` | 4 | send one datagram from a port the caller owns |
+| `OP_RECV` | 5 | take one datagram for a port the caller owns |
+
+- A port has one owner. `insert` refuses a port already bound and holds
+  `MAX_BINDS`, 64, with at most `BINDS_PER_PID`, 32, per client
+  (`src/state/table.rs`).
+- When a bind is refused, `take_dead` frees the ports of every client that
+  has ended and the bind is tried once more, so a service that restarts can
+  bind its own port again.
+- Each port queues up to `RX_RING_DEPTH`, 32, datagrams. `OP_RECV` serves from
+  the queue and otherwise pulls one segment from `net.ip`, filing it under its
+  destination port.
+- A payload is at most `UDP_PAYLOAD_MAX`, 1472 bytes.
+- A frame that fails header parsing is still answered, under the op and
+  request id it names, or under zeros when it is too short.
+- Errnos (`src/protocol/errno.rs`): `E_NO_PORT`, `E_PORT_IN_USE`,
+  `E_NO_IP_LINK`, `E_RX_EMPTY` and the header errors.
 
 ## Authority
 
-The manifest grants IPC and memory only:
-`CAPSULE_REQUIRED_CAPS = 0x00018`. It has no driver, MMIO, IRQ, DMA, PIO,
-filesystem, admin, debug, or direct network-device authority.
+`CAPSULE_REQUIRED_CAPS := 0x0001c`: Network (`0x04`), IPC (`0x08`) and Memory
+(`0x10`). Network because the kernel registers a network service only for a
+holder of it. No CoreExec, Crypto, FileSystem, Debug or hardware bits.
 
 ## Privacy and persistence
 
-UDP payloads are transient. The capsule should hold only runtime port binding
-and receive-queue state. It does not persist datagrams, record peers, or keep
-traffic logs.
+Datagrams wait in memory until their owner reads them. Nothing is logged or
+written to storage.
 
-## Runtime lifecycle
+## What it does not do
 
-The capsule owns the port table, accepts binds, validates UDP headers and
-checksums, dispatches outbound datagrams through `net.ip`, and queues inbound
-datagrams for callers.
+- No retries, ordering or delivery guarantees: that is UDP.
+- No broadcast or multicast group membership.
+- It reads `net.ip` only when a caller asks to receive.
 
-## Failure model
+## Build and verify
 
-No port, port in use, no IP link, bad payload, and empty RX return protocol
-errors. Datagram loss is surfaced to callers; there is no retry or stream
-semantics.
+- `make nonos-mk-net-udp`, then `nonos-mk-net-udp-sign` and
+  `nonos-mk-net-udp-verify`.
+- `userland/udp_proofs` runs the request header decode and the reply a refused
+  frame gets. `userland/net_proofs` runs the UDP parser and the bind table,
+  its per-client share and the freeing of ended clients' ports.
 
-## Current implemented surface
-
-- UDP header representation is present.
-- UDP parse/build helpers are present.
-- RFC 768 pseudo-header checksum code is present.
-- Protocol constants cover health, bind, unbind, send, and receive.
-- The maximum payload is pinned to MTU 1500 minus IPv4 and UDP headers.
-
-## Wire format
-
-Requests use the `NUDP` protocol magic. Bind/unbind requests carry port
-numbers. Send requests carry destination address, port fields, and datagram
-payload. Receive replies carry source address, source port, and payload bytes.
-
-## State ownership
-
-The capsule owns port bindings, receive queues, and datagram dispatch state.
-`net.ip` owns packet routing. DHCP, DNS, and sockets own their higher-level
-protocol state.
-
-## Operating rules
-
-- Enforce one owner per bound port.
-- Drop or report datagrams without a bound receiver.
-- Do not retry or order datagrams.
-- Never add DHCP/DNS/socket policy here.
-
-## Release target
-
-The finished UDP capsule owns port binding, datagram queues, checksum handling,
-send/receive dispatch through `net.ip`, and deterministic errors for empty
-queues, missing ports, and IP faults. DHCP, DNS, and sockets use it as a
-transport service rather than duplicating UDP logic.
-
-## Release evidence
-
-Release evidence is bind/send/receive validation, port-collision test, checksum
-failure test, and DHCP/DNS clients using this capsule instead of duplicating
-UDP parsing.
-
-## Release checklist
-
-- Bind/send/receive validation passes.
-- Port collision returns deterministic error.
-- Checksum failure is tested.
-- DHCP and DNS route through this capsule.
-- Static gate confirms no kernel UDP parser.
-
-## Explicit non-goals today
-
-No IP routing, fragmentation, DHCP state, DNS cache, TCP semantics, socket fd
-table, firewall, packet capture, retransmission, or hardware access lives
-here. The server loop and `net.ip` client still need promotion for runtime use.
-
-## Verification
-
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Build gate, once `src/main.rs` lands: `make -B nonos-mk-net-udp`
-- Runtime proof: bind a UDP port, send a datagram through `net.ip`, receive a
-  datagram back, and prove port state is process-local to the capsule.
+See [the network stack](../../docs/handbook/network/stack.md).

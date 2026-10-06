@@ -19,6 +19,10 @@ use crate::server::parse_req::Request;
 use crate::server::respond::respond;
 use crate::state::{BindEntry, TableError, STATE};
 
+fn alive(pid: u32) -> bool {
+    nonos_libc::mk_pid_alive(pid)
+}
+
 // Body: 2-byte local port (LE).
 pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
     if body.len() < 2 {
@@ -26,8 +30,14 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         return;
     }
     let port = u16::from_le_bytes([body[0], body[1]]);
-    let entry = BindEntry::new(sender_pid, port);
-    let errno = match STATE.binds.lock().insert(entry) {
+    let mut binds = STATE.binds.lock();
+    let mut placed = binds.insert(BindEntry::new(sender_pid, port));
+    // The port, or the last free place, may be held by a client that ended.
+    if placed.is_err() && binds.take_dead(alive) > 0 {
+        placed = binds.insert(BindEntry::new(sender_pid, port));
+    }
+    drop(binds);
+    let errno = match placed {
         Ok(()) => E_OK,
         Err(TableError::InUse) | Err(TableError::Full) => E_PORT_IN_USE,
         Err(TableError::NotFound) => E_PORT_IN_USE,
