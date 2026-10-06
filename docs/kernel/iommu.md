@@ -85,3 +85,7 @@ make nonos-mk-run-iommu-serial-log
 ```
 
 Not tested in this release.
+
+## Tests
+
+`userland/kernel_proofs` compiles the DMAR scope parser (`userland/kernel_proofs/src/dmar_scope/mod.rs`), the IVRS walk (`userland/kernel_proofs/src/firmware_iommu/mod.rs`), the confinement posture (`userland/kernel_proofs/src/confine_posture/mod.rs`) and several VT-d register and queue helpers from the kernel sources. It passed, 388 tests, in the flake check run on this commit. `userland/mechanism_proofs` holds the VT-d page table entry and context entry encodings (`userland/mechanism_proofs/src/iommu/mod.rs`); it passed, 56 tests, in the same run.
