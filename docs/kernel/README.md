@@ -87,3 +87,12 @@ An app capsule reaches a service capsule, and a service reaches a driver capsule
 | `src/userspace` | 364 | 16457 | The kernel side of every capsule the boot spawns: embedded bytes, spawn entry and liveness. |
 
 The note at the top of `src/userspace` states the rule for that folder: no protocol logic lives in the kernel, only what spawning a capsule needs, with the applications declared in `apps` (`src/userspace/mod.rs:16-29`).
+
+## See also
+
+- [Architecture](../overview/architecture.md): the whole system in one diagram.
+- [The capsule model](../userland/README.md): what runs in ring 3.
+- [Driver model](../drivers/README.md): drivers as capsules.
+- [Security](../security/README.md): the boot chain and what the kernel protects.
+- [ABI](../abi/README.md): the system calls, errors and capabilities as published.
+- [x86_64](../architectures/x86_64.md): the release architecture.
