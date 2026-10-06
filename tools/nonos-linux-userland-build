@@ -53,7 +53,15 @@ fetch() {
 	[ $# -eq 2 ] || { echo "nonos-linux-userland-build: no pin for that source" >&3; exit 1; }
 	file="$cache/$(basename "$1")"
 	if [ ! -f "$file" ]; then
-		curl -fsSL --retry 3 -o "$file.part" "$1"
+		# ftp.gnu.org resets or stalls often enough to fail a build, so a
+		# GNU pin falls back to the kernel.org GNU mirror, as the flake's
+		# fetch does (tools/nix/userland.nix); the sha256 below decides.
+		get="curl -fsSL --retry 3 --connect-timeout 30 --max-time 600 -o $file.part"
+		case $1 in
+		https://ftp.gnu.org/gnu/*)
+			$get "$1" || $get "https://mirrors.kernel.org/gnu/${1#https://ftp.gnu.org/gnu/}" ;;
+		*) $get "$1" ;;
+		esac
 		mv "$file.part" "$file"
 	fi
 	got=$(sha "$file")
