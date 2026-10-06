@@ -17,7 +17,7 @@
 use super::super::constants::CANARY_VALUE;
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 #[cfg(feature = "heap-track")]
-use heapless::FnvIndexSet;
+use heapless::index_set::FnvIndexSet;
 use linked_list_allocator::LockedHeap;
 #[cfg(feature = "heap-track")]
 use spin::Mutex;
