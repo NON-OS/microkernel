@@ -231,3 +231,7 @@ The UEFI firmware feature that starts only a loader whose signature the firmware
 ## Serial console
 
 The kernel's main log, a UART that takes its tagged lines: on x86_64 the 16550 at I/O port 0x3F8, set to 115200 8N1, and on aarch64 the PL011. With no UART present the output is dropped and the boot goes on; a capsule may write to it only with the Debug capability. Explained in [Logging](../kernel/logging.md#the-serial-console). Code: `src/arch/x86_64/console.rs`.
+
+## Spawn gate
+
+The kernel path every capsule passes before it becomes a process, `spawn_verified_as`. It checks, in order, that the boot profile allows the capsule, its NONOS ID certificate, its manifest (namespace, capability ceiling, signatures, payload hash, target, endpoints and the grant), then its attestation trailer, and refuses the spawn at the first failure. Explained in [Processes and capsule spawn](../kernel/processes-and-spawn.md#the-spawn-gate). Code: `src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs`, `src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs`.
