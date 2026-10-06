@@ -18,10 +18,13 @@ use crate::wifi::{NetStatus, ScanNetwork, ScanStats, WifiInterface};
 
 use super::cache::FieldValue;
 use super::edit_buffer::EditBuffer;
+use super::audio_output::AudioOutput;
+use super::machine_key::MachineKey;
 use crate::settings::section::{Section, SECTION_COUNT};
 
 use super::state::{State, WifiConnect, WifiScan, FIELD_SLOTS, WIFI_MAX, WIFI_NET_MAX};
 use super::status::Status;
+use super::wifi_extra::WifiExtra;
 
 pub fn new() -> State {
     State {
@@ -47,10 +50,15 @@ pub fn new() -> State {
         wifi_stage: None,
         wifi_stats: ScanStats::default(),
         wifi_pass_active: false,
+        wifi_pass_shown: false,
         wifi_pass: EditBuffer::empty(),
         wifi_connect: WifiConnect::Idle,
         wifi_datapath: None,
         wifi_net: NetStatus::NoService,
+        wifi_net_polled_ms: None,
+        wifi: WifiExtra::new(),
+        machine_key: MachineKey::Unasked,
+        audio_output: AudioOutput::Unasked,
         win_w: crate::settings::manifest::WIDTH,
         win_h: crate::settings::manifest::HEIGHT,
     }

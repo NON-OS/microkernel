@@ -21,7 +21,6 @@ mod network;
 mod privacy;
 mod security;
 mod sound;
-mod storage;
 mod updates;
 mod wifi;
 
@@ -32,6 +31,5 @@ pub use network::NETWORK;
 pub use privacy::PRIVACY;
 pub use security::SECURITY;
 pub use sound::SOUND;
-pub use storage::STORAGE;
 pub use updates::UPDATES;
 pub use wifi::WIFI;

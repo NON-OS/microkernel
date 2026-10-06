@@ -15,10 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::settings::schema::rows::{Live, Tone};
+use crate::settings::state::audio_output;
+use crate::settings::state::machine_key::said;
 use crate::settings::state::State;
 
 use super::build_info::{ARCHITECTURE, GIT_SHA, TOOLCHAIN, VERSION};
 use super::live_net::{adapter, addr, link_state};
+use super::live_wifi::{join, link, remember};
 use super::valbuf::ValBuf;
 
 /// Format one live row's value, and the tone it should read in.
@@ -34,9 +37,32 @@ pub fn resolve(state: &State, live: Live) -> (ValBuf, Tone) {
         Live::Commit => text(&mut b, GIT_SHA),
         Live::Toolchain => text(&mut b, TOOLCHAIN),
         Live::Architecture => text(&mut b, ARCHITECTURE),
-        Live::StorageService => text(&mut b, "Not exported"),
+        Live::WifiLink => link(&mut b, state),
+        Live::WifiJoin => join(&mut b, state),
+        Live::WifiRemember => remember(&mut b, state),
+        Live::MachineKey => {
+            let (words, tone) = said(state.machine_key);
+            b.push_str(words);
+            tone
+        }
+        Live::AudioOutput => {
+            let (words, tone, _) = audio_output::said(state.audio_output);
+            b.push_str(words);
+            tone
+        }
     };
     (b, tone)
+}
+
+/// The line under a live row's label, for the rows that carry one. The
+/// output device row always does, so its height does not change with what
+/// the hardware said: the reason sound cannot play is too long for the
+/// value column.
+pub fn note(state: &State, live: Live) -> Option<&'static str> {
+    match live {
+        Live::AudioOutput => Some(audio_output::said(state.audio_output).2),
+        _ => None,
+    }
 }
 
 fn text(b: &mut ValBuf, s: &str) -> Tone {

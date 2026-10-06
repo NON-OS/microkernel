@@ -17,12 +17,14 @@
 pub mod call;
 pub mod error;
 pub mod hydrate;
+pub mod hydrate_pass;
 pub mod lookup;
 pub mod notify_shell;
 pub mod op_get;
 pub mod op_set_bool;
 pub mod op_set_i8;
 pub mod op_set_str;
+pub mod op_set_u64;
 pub mod op_set_u8;
 pub mod timeout;
 
@@ -32,4 +34,5 @@ pub use lookup::lookup_policy_port;
 pub use op_set_bool::op_set_bool;
 pub use op_set_i8::op_set_i8;
 pub use op_set_str::op_set_str;
+pub use op_set_u64::op_set_u64;
 pub use op_set_u8::op_set_u8;

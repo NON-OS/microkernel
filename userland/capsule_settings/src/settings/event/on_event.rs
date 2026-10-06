@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind};
+use nonos_app_skeleton::input::text::is_paste;
+use nonos_app_skeleton::{EventOutcome, InputEvent, InputKind, MOD_ALT, MOD_CTRL, MOD_META};
 
 use crate::settings::section::Section;
 use crate::settings::state::{searching, view_h, State};
@@ -28,6 +29,7 @@ use super::on_event_editing::on_event_editing;
 use super::on_event_wifi::on_event_wifi;
 use super::on_pointer::on_pointer;
 use super::on_search_key::on_search_key;
+use super::paste::on_paste;
 
 // Pixels moved per wheel notch.
 const WHEEL_STEP: u32 = 48;
@@ -42,10 +44,21 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
     if !event.is_key_down() {
         return EventOutcome::Idle;
     }
+    // Ctrl+V or Shift+Insert into whichever field has the keyboard.
+    if is_paste(&event) {
+        if let Some(out) = on_paste(state) {
+            return out;
+        }
+    }
     if state.search_focused {
-        return on_search_key(state, event.code);
+        return on_search_key(state, &event);
     }
     if state.editing {
+        // A chord is a command, and the editor's only one is paste: Ctrl with
+        // a letter typed the letter into the value.
+        if event.flags & (MOD_CTRL | MOD_ALT | MOD_META) != 0 {
+            return EventOutcome::Idle;
+        }
         return on_event_editing(state, event.code);
     }
     if state.section == Section::Wifi {

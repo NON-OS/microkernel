@@ -38,17 +38,11 @@ pub fn scan_adapters(out: &mut [WifiInterface]) -> usize {
         return 0;
     }
     let got = core::cmp::min(n as usize, MAX_DEVICES);
-    let mut views = [DeviceView {
-        device_id: 0,
-        bus_kind: 0,
-        pci_class: 0,
-        pci_subclass: 0,
-        vendor: 0,
-        device: 0,
-    }; MAX_DEVICES];
+    let mut views =
+        [DeviceView { bus_kind: 0, pci_class: 0, pci_subclass: 0, vendor: 0, device: 0 };
+            MAX_DEVICES];
     for (view, rec) in views[..got].iter_mut().zip(buf[..got].iter()) {
         *view = DeviceView {
-            device_id: rec.device_id,
             bus_kind: rec.bus_kind,
             pci_class: rec.pci_class,
             pci_subclass: rec.pci_subclass,

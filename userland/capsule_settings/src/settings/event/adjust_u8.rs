@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_policy_proto::{max_of, Field};
+use nonos_policy_proto::{max_of, wallpapers_kept, Field};
 
+use crate::settings::ipc::op_get::op_get;
 use crate::settings::ipc::op_set_u8;
 use crate::settings::state::status::StatusKind;
 use crate::settings::state::{cached_value, store_value, FieldValue, State};
@@ -29,7 +30,18 @@ pub(super) fn adjust_u8(state: &mut State, field: Field, delta: i32) {
         FieldValue::U8(v) => v as i32,
         _ => 0,
     };
-    let next = clamp_u8((current + delta).max(0), max) as u8;
+    let next = if field == Field::Wallpaper {
+        // Left and Right go round the wallpapers kept, and only those: one
+        // not kept is never read into the session.
+        let kept = match op_get(state.policy_port, Field::WallpapersKept) {
+            Ok(FieldValue::U64(set)) => set,
+            _ => wallpapers_kept::ALL,
+        };
+        let at = current.clamp(0, 255) as u8;
+        if delta > 0 { wallpapers_kept::next(kept, at) } else { wallpapers_kept::prev(kept, at) }
+    } else {
+        clamp_u8((current + delta).max(0), max) as u8
+    };
     match op_set_u8(state.policy_port, field, next) {
         Ok(()) => {
             store_value(state, field, FieldValue::U8(next));

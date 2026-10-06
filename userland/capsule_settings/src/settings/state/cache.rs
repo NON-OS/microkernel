@@ -23,6 +23,7 @@ pub enum FieldValue {
     Unknown,
     Bool(bool),
     U8(u8),
+    U64(u64),
     I8(i8),
     Str { bytes: [u8; STRING_CAP], len: usize },
 }

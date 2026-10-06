@@ -19,9 +19,9 @@
 //! brand: it is a network-class device (0x02) with the "other network
 //! controller" subclass (0x80), which is how wireless NICs are classed while
 //! wired Ethernet uses subclass 0x00. Each adapter carries a friendly name
-//! derived from its vendor and device id for display, but selection keys off
-//! the stable device id, never the name, so an unknown-but-valid card still
-//! lists and stays selectable.
+//! derived from its vendor and device id, and an unknown-but-valid card still
+//! lists under a generic one. The panel only names the adapter: it neither
+//! selects nor drives one, so the listed record keeps no device handle.
 
 /// PCI base class for network controllers.
 pub const PCI_CLASS_NETWORK: u8 = 0x02;
@@ -39,7 +39,6 @@ pub const NAME_MAX: usize = 32;
 /// separate so the discovery logic stays pure and host-testable.
 #[derive(Clone, Copy)]
 pub struct DeviceView {
-    pub device_id: u64,
     pub bus_kind: u8,
     pub pci_class: u8,
     pub pci_subclass: u8,
@@ -50,18 +49,73 @@ pub struct DeviceView {
 /// One discovered WiFi adapter as the panel lists it.
 #[derive(Clone, Copy, Default)]
 pub struct WifiInterface {
-    /// The broker handle used to claim and drive the device.
-    pub device_id: u64,
-    pub vendor: u16,
-    pub device: u16,
     name: [u8; NAME_MAX],
     name_len: usize,
+    vendor: u16,
+    device: u16,
 }
 
 impl WifiInterface {
     /// The friendly adapter name for display.
     pub fn name(&self) -> &[u8] {
         &self.name[..self.name_len]
+    }
+
+    /// The PCI vendor and device id.
+    pub fn ids(&self) -> (u16, u16) {
+        (self.vendor, self.device)
+    }
+}
+
+/// Whether this build ships a driver that takes a Wi-Fi chip: the RTL8821CE
+/// driver for 10ec:c821, and the iwlwifi driver for the Intel ids it matches
+/// (`capsule_driver_iwlwifi/src/firmware/family.rs` `family_for_device`). The
+/// kernel spawns iwlwifi for every Intel wireless function, but the driver
+/// leaves at once on an id outside that list (0x24F7 to 0x24FA and 0x24FC are
+/// no adapter's), so such a chip has no driver, not one that failed to start.
+/// Anything else (MediaTek MT7921/7922, Broadcom, Qualcomm ath10k/ath11k,
+/// other Realtek parts) has none either.
+pub fn has_driver(vendor: u16, device: u16) -> bool {
+    match vendor {
+        0x10EC => device == 0xC821,
+        0x8086 => matches!(
+            device,
+            0x08B1..=0x08B4
+                | 0x095A
+                | 0x095B
+                | 0x3165
+                | 0x3166
+                | 0x24FB
+                | 0x24F3..=0x24F6
+                | 0x24FD
+                | 0x2526
+                | 0x9DF0
+                | 0xA370
+                | 0x31DC
+                | 0x30DC
+                | 0x271B
+                | 0x271C
+                | 0x2723
+                | 0x34F0
+                | 0x3DF0
+                | 0x4DF0
+                | 0x02F0
+                | 0x06F0
+                | 0x43F0
+                | 0xA0F0
+                | 0x2725
+                | 0x2729
+                | 0x51F0
+                | 0x51F1
+                | 0x54F0
+                | 0xA74F
+                | 0x272F
+                | 0x7A70
+                | 0x7AF0
+                | 0x7F70
+                | 0x7E40
+        ),
+        _ => false,
     }
 }
 
@@ -94,13 +148,7 @@ fn interface_of(d: &DeviceView) -> WifiInterface {
     let label = adapter_label(d.vendor, d.device);
     let len = label.len().min(NAME_MAX);
     name[..len].copy_from_slice(&label.as_bytes()[..len]);
-    WifiInterface {
-        device_id: d.device_id,
-        vendor: d.vendor,
-        device: d.device,
-        name,
-        name_len: len,
-    }
+    WifiInterface { name, name_len: len, vendor: d.vendor, device: d.device }
 }
 
 /// A friendly name from vendor and device id. Known Intel and Realtek WiFi

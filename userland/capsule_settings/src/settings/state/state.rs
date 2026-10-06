@@ -16,37 +16,21 @@
 
 use crate::settings::schema::ALL_FIELDS;
 use crate::settings::section::{Section, SECTION_COUNT};
-use crate::wifi::{
-    ConnectResult, DataPath, DriverStage, NetStatus, ScanNetwork, ScanOutcome, ScanStats,
-    WifiInterface,
-};
+use crate::wifi::{DataPath, DriverStage, NetStatus, ScanNetwork, ScanStats, WifiInterface};
 
 use super::cache::FieldValue;
 use super::edit_buffer::EditBuffer;
+use super::audio_output::AudioOutput;
+use super::machine_key::MachineKey;
 use super::status::Status;
+use super::wifi_extra::WifiExtra;
+pub use super::wifi_kinds::{WifiConnect, WifiScan};
 
 pub const FIELD_SLOTS: usize = ALL_FIELDS.len();
 /// The most WiFi adapters the panel lists at once.
 pub const WIFI_MAX: usize = 8;
 /// The most networks the panel shows from one scan.
 pub const WIFI_NET_MAX: usize = 16;
-
-/// Where the Wi-Fi panel stands with the driver: it has not scanned yet, the last
-/// scan resolved to one of the driver outcomes.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum WifiScan {
-    Idle,
-    Done(ScanOutcome),
-}
-
-/// Where a connection attempt stands. `Failed` carries the driver's status code
-/// so the panel can say why.
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum WifiConnect {
-    Idle,
-    Connected,
-    Failed(ConnectResult),
-}
 
 pub struct State {
     pub policy_port: u32,
@@ -82,6 +66,8 @@ pub struct State {
     pub wifi_stats: ScanStats,
     /// Whether the passphrase editor is open for the selected secured network.
     pub wifi_pass_active: bool,
+    /// The passphrase is drawn as typed rather than as stars (Tab).
+    pub wifi_pass_shown: bool,
     /// The passphrase being typed for a secured network.
     pub wifi_pass: EditBuffer,
     /// The outcome of the last connection attempt.
@@ -93,6 +79,15 @@ pub struct State {
     /// What net_core reports: down, bound-but-no-address, or a bound lease. Splits
     /// "the stack never started" from "started but got no address".
     pub wifi_net: NetStatus,
+    /// When `wifi_net` was last asked of the DHCP client, on the uptime clock
+    /// (wifi/net_poll.rs).
+    pub wifi_net_polled_ms: Option<i64>,
+    /// The driver found, its link, and the saved networks by name.
+    pub wifi: WifiExtra,
+    /// What the kernel said the last time Security asked for the machine key.
+    pub machine_key: MachineKey,
+    /// What audio.server said the last time the Sound page asked.
+    pub audio_output: AudioOutput,
     /// Window size as of the last paint. The window is resizable, so layout and
     /// hit tests read this rather than the manifest's starting size: against
     /// the constants, clicks below the original height were treated as the

@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::{EventOutcome, KEY_BACKSPACE, KEY_DOWN, KEY_ENTER, KEY_ESC, KEY_UP};
+use nonos_app_skeleton::input::text::typed_char;
+use nonos_app_skeleton::{
+    EventOutcome, InputEvent, KEY_BACKSPACE, KEY_DOWN, KEY_ENTER, KEY_ESC, KEY_UP,
+};
 
+use crate::settings::state::cache::STRING_CAP;
 use crate::settings::state::{search_clear, set_section, track_scroll, State};
 use crate::settings::ui::bytes::as_str;
 use crate::settings::ui::results;
 
 /// Widest query the titlebar field can show without the text running under its
 /// rounded right edge, so typing stops rather than scrolling out of sight.
-const QUERY_MAX: usize = 24;
+/// Counted in characters: the field draws characters, whatever their bytes.
+pub(super) const QUERY_MAX: usize = 24;
 
-pub(super) fn on_search_key(state: &mut State, code: u32) -> EventOutcome {
-    match code {
+pub(super) fn on_search_key(state: &mut State, event: &InputEvent) -> EventOutcome {
+    match event.code {
         KEY_ESC => {
             search_clear(state);
             state.search_focused = false;
@@ -40,13 +45,17 @@ pub(super) fn on_search_key(state: &mut State, code: u32) -> EventOutcome {
         KEY_UP => step(state, -1),
         KEY_DOWN => step(state, 1),
         KEY_ENTER => open_selected(state),
-        c @ 0x20..=0x7E if state.search.len < QUERY_MAX => {
-            state.search.push(c as u8);
-            state.search_cursor = 0;
-            state.search_scroll = 0;
-            EventOutcome::Repaint
-        }
-        _ => EventOutcome::Idle,
+        _ => match typed_char(event) {
+            Some(ch) if state.search.char_count() < QUERY_MAX => {
+                if !state.search.push_char(ch, STRING_CAP) {
+                    return EventOutcome::Idle;
+                }
+                state.search_cursor = 0;
+                state.search_scroll = 0;
+                EventOutcome::Repaint
+            }
+            _ => EventOutcome::Idle,
+        },
     }
 }
 
