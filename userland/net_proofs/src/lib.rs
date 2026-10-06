@@ -36,13 +36,53 @@ pub mod ipv4;
 pub mod state;
 pub mod tcp;
 
+// The DHCP client's own Ethernet, IPv4 and UDP framing, from capsule source:
+// it reads replies off net.l2 directly, before any address exists.
+#[path = "../../capsule_net_dhcp/src/frame/mod.rs"]
+pub mod frame;
+
+// net.udp's datagram builder and parser, from capsule source.
+#[path = "../../capsule_net_udp/src/udp/mod.rs"]
+pub mod udp;
+
+// net.udp's bind table, and the inbound type it holds, from capsule source.
+pub mod ip_client;
+pub mod udp_binds;
+
+// net.core's tables of its clients' connections and ports, from capsule source.
+pub mod core_tables;
+
+// Who may change net.dhcp's lease, from capsule source.
+#[path = "../../capsule_net_dhcp/src/server/lease_admin.rs"]
+pub mod lease_admin;
+
+// The NTP client's request and reply checks, from capsule source.
+#[path = "../../capsule_net_ntp/src/sntp.rs"]
+pub mod sntp;
+
+#[cfg(test)]
+mod arp_learn_tests;
 #[cfg(test)]
 mod arp_tests;
 #[cfg(test)]
+mod core_table_tests;
+#[cfg(test)]
+mod dhcp_frame_tests;
+#[cfg(test)]
 mod dhcp_tests;
+#[cfg(test)]
+mod dns_answer_tests;
 #[cfg(test)]
 mod dns_tests;
 #[cfg(test)]
 mod icmp_tests;
 #[cfg(test)]
+mod lease_admin_tests;
+#[cfg(test)]
+mod sntp_tests;
+#[cfg(test)]
 mod tcp_tests;
+#[cfg(test)]
+mod udp_bind_tests;
+#[cfg(test)]
+mod udp_tests;
