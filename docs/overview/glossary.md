@@ -187,3 +187,7 @@ The Nym anonymity network, route value `NYM`, and the default network for the br
 ## PCR
 
 A TPM platform configuration register. The firmware extends PCR 4 with each UEFI application it starts, the loader extends PCR 9 once for the admitted kernel, NONOS binds its machine keys to PCRs 0, 4, 7 and 9, and a quote covers PCRs 0, 1, 2 and 7. Explained in [Measured boot and the TPM](../security/measured-boot-and-tpm.md#pcrs). Code: `src/security/tpm/machine_key/pcrs.rs`, `src/security/tpm/boot_reads/pcr4.rs`.
+
+## Peer list
+
+A kernel table that holds a named capsule to the endpoints listed for it, whatever its capabilities admit; a capsule not on it is unaffected. In this release it has one row: the Shield prover may send only to `shield.core`. Explained in [IPC](../kernel/ipc.md#who-may-send-to-whom). Code: `src/services/registry/peers.rs`.
