@@ -14,31 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
-#![no_main]
+//! GET MAX LUN (USB MSC BOT 1.0, section 3.2): how many logical units the
+//! device has. A stick has one; a card reader has one per slot, and the
+//! card is often not in the first. A device that stalls the request, as
+//! the specification lets one with a single unit do, or answers past 15,
+//! has one, as Linux's usb_stor_Bulk_max_lun decides.
 
-extern crate alloc;
+use super::types::Disk;
+use crate::xhci::control_in;
 
-mod bot;
-mod descriptors;
-mod disk;
-mod protocol;
-mod scan;
-mod scsi;
-mod server;
-mod span;
-mod state;
-mod xhci;
+const GET_MAX_LUN: (u8, u8) = (0xA1, 0xFE);
+const MAX_LUN: u8 = 15;
 
-use nonos_libc::{heap_init, mk_exit};
-
-/// # Safety
-/// The capsule entry point. The kernel loader calls this once on a fresh stack
-/// with the capsule's heap region reserved; it must never be called from Rust.
-#[no_mangle]
-pub unsafe extern "C" fn _start() -> ! {
-    if heap_init().is_err() {
-        mk_exit(1);
+/// The highest LUN, 0 to 15.
+pub fn max_lun(disk: &Disk) -> u8 {
+    let mut answer = [0u8; 1];
+    match control_in(disk.xhci, disk.slot, GET_MAX_LUN, 0, disk.interface as u16, &mut answer) {
+        Ok(1) if answer[0] <= MAX_LUN => answer[0],
+        _ => 0,
     }
-    server::run();
 }

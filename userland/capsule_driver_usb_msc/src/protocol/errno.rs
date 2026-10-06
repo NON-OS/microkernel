@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub const E_IO: i32 = -5;
+pub const E_NXIO: i32 = -6;
+pub const E_AGAIN: i32 = -11;
+pub const E_ACCES: i32 = -13;
+pub const E_NODEV: i32 = -19;
 pub const E_INVAL: i32 = -22;
+pub const E_MSGSIZE: i32 = -90;
+pub const E_NOTSUP: i32 = -95;
 pub const E_BAD_OP: i32 = -38;
 pub const E_NO_MSC: i32 = -61;
 pub const E_OVERFLOW: i32 = -75;
 pub const E_PHASE: i32 = -84;
+/// A logical unit with no medium in it: a card reader's empty slot.
+pub const E_NOMEDIUM: i32 = -123;

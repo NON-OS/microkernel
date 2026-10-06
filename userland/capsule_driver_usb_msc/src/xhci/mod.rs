@@ -14,22 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod capacity_response;
-mod cdb;
-mod inquiry_response;
-mod request_sense;
-mod sense_response;
-mod test_unit_ready;
-mod validate;
+//! The client side of driver.xhci0 this class driver uses: find the ports,
+//! address the device, and move BOT traffic over its bulk pipes.
 
-pub use capacity_response::{
-    parse_capacity, parse_capacity16, CAPACITY16_DATA_LEN, CAPACITY_DATA_LEN,
-};
-pub use cdb::{
-    inquiry, read10, read16, read_capacity10, read_capacity16, start_unit, write10, write16,
-};
-pub use inquiry_response::{parse_inquiry, INQUIRY_DATA_LEN};
-pub use request_sense::request_sense;
-pub use sense_response::{parse_sense, Sense};
-pub use test_unit_ready::test_unit_ready;
-pub use validate::block_request;
+mod bulk;
+mod call;
+mod control;
+mod lookup;
+mod port;
+mod slot;
+mod wire;
+
+pub use bulk::{bulk_in, bulk_out, configure_bulk, reset_bulk};
+pub use control::{config_descriptor, control_in, control_no_data};
+pub use lookup::lookup;
+pub use port::{connected_ports, Port};
+pub use slot::{address_device, disable_slot, enable_slot};
+pub use wire::{BULK_MAX, E_BUSY, E_PIPE, PORT_CLAIMED, PORT_FREE};
