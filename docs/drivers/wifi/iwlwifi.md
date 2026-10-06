@@ -106,3 +106,7 @@ The status reply carries the stage byte the panel shows, then the step bring-up 
 | 9 | the firmware raised its error cause while running | `FirmwareFailed` | 0 |
 
 In 0x6000i, the image number is 0 for so-a0-gf-a0, 1 for so-a0-hr-b0, 2 for ty-a0-gf-a0 and 3 for ma-b0-gf-a0 (`userland/capsule_driver_iwlwifi/src/firmware/gen3/select.rs:32-44`, `Image`).
+
+## The older driver protocol
+
+The capsule also answers its own NIWF protocol, which carries the legacy firmware load path for the 7265, 8265, 9260 and AX200 families. Nothing drives that path at startup, and no other capsule in the tree sends this protocol. Once the SO radio owns the card, the three operations that write it are refused with `E_BUSY` (`userland/capsule_driver_iwlwifi/src/server/guard.rs:29-32`, `drives_card`).
