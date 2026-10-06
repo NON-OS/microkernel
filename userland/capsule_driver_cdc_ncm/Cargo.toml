@@ -1,0 +1,30 @@
+# NONOS userland: capsule_driver_cdc_ncm
+# eK@nonos.systems
+#
+# CDC-NCM (USB Network Control Model) class capsule. It sits above
+# driver.xhci0 through nonos_usbnet and serves Ethernet frames to net.core
+# over NNET. It has no controller, MMIO, IRQ or DMA authority.
+
+[package]
+name = "nonos_capsule_driver_cdc_ncm"
+version = "0.3.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos.systems"]
+description = "NONOS userland USB CDC-NCM network class driver capsule"
+
+[[bin]]
+name = "driver_cdc_ncm"
+path = "src/main.rs"
+
+[dependencies]
+nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
+nonos_usbnet = { path = "../nonos_usbnet" }
+
+[profile.release]
+panic = "abort"
+opt-level = 2
+lto = false
+debug = false
+strip = true
