@@ -54,3 +54,22 @@ Sepolia is Ethereum's test network, and the wallet says so: nothing on it has va
 The result reads `Sent. Waiting for the network to put it in a block.`, then `Confirmed: the payment is in a block, and twelve blocks hold it.` A transfer that reverts says `In a block, and the transfer reverted. Only the fee was spent.`
 
 The wallet refuses to sign when the node gives no fee, a fee of zero, or a fee above 1000 gwei (`FEE_CEILING_WEI` in `userland/capsule_wallet_nonos/src/wallet/send/gas.rs:34`). A plain transfer to an account is signed at 21,000 gas; a contract call gets the node's estimate plus 20 percent.
+
+## Where keys live and how signing works
+
+- The private key lives in `capsule_keyring`, in memory. The wallet window never holds it: it asks the keyring for an address, a signature or a sealed copy over IPC. The keyring answers a request only for the process that stored the key, and the kernel stamps who sent each message.
+- The keyring holds at most 128 keys, 16 for any one program (`MAX_KEYS` and `MAX_KEYS_PER_OWNER` in `userland/capsule_keyring/src/store/types/constants.rs:17-21`). A wallet made from words takes two of them: its key and its words.
+- Signing runs in the keyring: EIP-1559 transactions for transfers and staking, with secp256k1 in the keyring's own process.
+
+```mermaid
+sequenceDiagram
+    participant W as Wallet window
+    participant K as capsule_keyring
+    participant N as RPC node
+    W->>N: read balances, nonce and fee
+    W->>K: sign this transaction
+    K-->>W: signed transaction
+    W->>N: broadcast once
+```
+
+The Wallet window reads balances, the nonce and the fee from the RPC node, asks `capsule_keyring` to sign, and broadcasts the signed transaction once.
