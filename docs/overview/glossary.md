@@ -151,3 +151,7 @@ The DMA remapping unit, which limits the memory a device can reach. This kernel 
 ## IOMMU domain
 
 A set of I/O page tables the remapping unit applies to the devices attached to it. The hardware broker gives each driver capsule one domain, shared by every PCI device it claims, which maps only the DMA buffers granted to it, so the device faults on everything else. ACPI and platform devices get no domain. Explained in [IOMMU](../kernel/iommu.md#per-capsule-domains). Code: `src/hardware/broker/confine/attach.rs`.
+
+## Kernel mirror
+
+The kernel module that carries one capsule, named by `CAPSULE_KERNEL_MIRROR` in its `Capsule.mk`, such as `src/hardware/virtio_rng_capsule` or `src/userspace/capsule_linux`. It embeds the capsule's four files with `include_bytes!` and spawns it through the spawn gate with the capabilities it offers. Explained in [Writing a driver](../drivers/writing-a-driver.md#11-the-kernel-mirror). Code: `nonos-mk/capsule.mk`, `src/hardware/virtio_rng_capsule/embed.rs`.
