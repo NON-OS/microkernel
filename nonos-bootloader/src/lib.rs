@@ -16,6 +16,12 @@
 
 #![no_std]
 
+#[cfg(all(feature = "dev-attest", feature = "standard"))]
+compile_error!(
+    "dev-attest takes a kernel trailer without its STARK proof; it belongs to \
+     the development loader policy and never to standard or production."
+);
+
 extern crate alloc;
 
 pub mod arch;
@@ -39,4 +45,3 @@ pub mod safety;
 pub mod security;
 pub mod tpm;
 pub mod verify;
-pub mod zk;

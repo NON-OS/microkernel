@@ -14,26 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) fn status_line(buf: &mut [u8; 64], secs: u32) -> &[u8] {
-    if secs == 0 {
-        let s = b"up/down select    enter boot";
-        buf[..s.len()].copy_from_slice(s);
-        return &buf[..s.len()];
-    }
-    let mut n = 0usize;
-    for &b in b"Booting Hardened in " {
-        buf[n] = b;
-        n += 1;
-    }
-    if secs >= 10 {
-        buf[n] = b'0' + (secs / 10 % 10) as u8;
-        n += 1;
-    }
-    buf[n] = b'0' + (secs % 10) as u8;
-    n += 1;
-    for &b in b"s.  up/down, enter." {
-        buf[n] = b;
-        n += 1;
-    }
-    &buf[..n]
+//! The brand panel: the glowing Ø in its frame, as on nonos.software, and
+//! under it what this screen is and which release.
+
+use super::layout::Layout;
+use crate::display::ink::palette::{CYAN, TEXT_2, TEXT_3};
+use crate::display::ink::{draw_captions as captions, draw_emblem as emblem};
+use crate::display::version::version_label;
+
+/// The frame drawn to `progress` thousandths, and the Ø once it is whole.
+pub(super) fn draw_emblem(l: &Layout, progress: u32) {
+    emblem(&l.s, progress, CYAN, true);
+}
+
+pub(super) fn draw_captions(l: &Layout) {
+    captions(&l.s, b"VERIFIED BOOT", TEXT_2, version_label().as_bytes(), TEXT_3);
 }

@@ -23,6 +23,3 @@
 compile_error!(
     "dev-mode compiles in the F12 verification override; not allowed in shipping profiles"
 );
-
-#[cfg(all(feature = "production", not(feature = "zk-transparent")))]
-compile_error!("production requires the transparent proof backend");
