@@ -53,6 +53,8 @@ inductive capabilities.types.defs.Capability where
 | AttestRead : capabilities.types.defs.Capability
 | ForeignExec : capabilities.types.defs.Capability
 | LocalSign : capabilities.types.defs.Capability
+| StreamImport : capabilities.types.defs.Capability
+| DeviceSecret : capabilities.types.defs.Capability
 
 /-- [nonos_caps::capabilities::types::defs::{nonos_caps::capabilities::types::defs::Capability}::bit]:
     Source: 'src/capabilities/../../../../../src/capabilities/types/table.rs', lines 28:12-32:13 -/
@@ -94,10 +96,11 @@ def capabilities.types.defs.Capability.bit
   | capabilities.types.defs.Capability.AttestRead => 1#u64 <<< 31#i32
   | capabilities.types.defs.Capability.ForeignExec => 1#u64 <<< 32#i32
   | capabilities.types.defs.Capability.LocalSign => 1#u64 <<< 33#i32
+  | capabilities.types.defs.Capability.StreamImport => 1#u64 <<< 34#i32
+  | capabilities.types.defs.Capability.DeviceSecret => 1#u64 <<< 35#i32
 
 /-- [nonos_caps::capabilities::bits::fold_caps]: loop body 0:
-    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 35:4-38:5
-    Visibility: public -/
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 35:4-38:5 -/
 @[rust_loop_body]
 def capabilities.bits.fold_caps_loop.body
   (table : Slice capabilities.types.defs.Capability) (acc : Std.U64)
@@ -115,8 +118,7 @@ def capabilities.bits.fold_caps_loop.body
   else ok (done acc)
 
 /-- [nonos_caps::capabilities::bits::fold_caps]: loop 0:
-    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 35:4-38:5
-    Visibility: public -/
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 35:4-38:5 -/
 @[rust_loop]
 def capabilities.bits.fold_caps_loop
   (table : Slice capabilities.types.defs.Capability) (acc : Std.U64)
@@ -128,8 +130,7 @@ def capabilities.bits.fold_caps_loop
     (acc, i)
 
 /-- [nonos_caps::capabilities::bits::fold_caps]:
-    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 32:0-40:1
-    Visibility: public -/
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 32:0-40:1 -/
 @[reducible]
 def capabilities.bits.fold_caps
   (table : Slice capabilities.types.defs.Capability) (bits : Std.U64) :
@@ -138,8 +139,7 @@ def capabilities.bits.fold_caps
   capabilities.bits.fold_caps_loop table bits 0#usize
 
 /-- [nonos_caps::capabilities::bits::select_caps]: loop body 0:
-    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 53:4-59:5
-    Visibility: public -/
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 53:4-59:5 -/
 @[rust_loop_body]
 def capabilities.bits.select_caps_loop.body
   (table : Slice capabilities.types.defs.Capability) (bits : Std.U64)
@@ -161,8 +161,7 @@ def capabilities.bits.select_caps_loop.body
   else ok (done out)
 
 /-- [nonos_caps::capabilities::bits::select_caps]: loop 0:
-    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 53:4-59:5
-    Visibility: public -/
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 53:4-59:5 -/
 @[rust_loop]
 def capabilities.bits.select_caps_loop
   (table : Slice capabilities.types.defs.Capability) (bits : Std.U64)
@@ -175,8 +174,7 @@ def capabilities.bits.select_caps_loop
     (out, i)
 
 /-- [nonos_caps::capabilities::bits::select_caps]:
-    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 50:0-61:1
-    Visibility: public -/
+    Source: 'src/capabilities/../../../../../src/capabilities/bits.rs', lines 50:0-61:1 -/
 @[reducible]
 def capabilities.bits.select_caps
   (table : Slice capabilities.types.defs.Capability) (bits : Std.U64) :

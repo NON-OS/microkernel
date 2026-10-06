@@ -79,6 +79,8 @@ def ofIdx : Nat → Option Cap
   | 31 => some .AttestRead
   | 32 => some .ForeignExec
   | 33 => some .LocalSign
+  | 34 => some .StreamImport
+  | 35 => some .DeviceSecret
   | _ => none
 
 theorem ofIdx_idx (c : Cap) : ofIdx (idx c) = some c := by

@@ -776,17 +776,6 @@
       ]
     },
     {
-      "name": "plonk_types",
-      "crate": "nonos_x_plonk_types",
-      "dir": "verification/extraction/sweep/plonk_types",
-      "lean": "PlonkTypes",
-      "generated": "PlonkTypes.lean",
-      "starts": [
-        "nonos_x_plonk_types::plonkevaluations_new",
-        "nonos_x_plonk_types::plonkcircuit_new"
-      ]
-    },
-    {
       "name": "tables_memory_desc",
       "crate": "nonos_x_tables_memory_desc",
       "dir": "verification/extraction/sweep/tables_memory_desc",
@@ -2078,18 +2067,6 @@
       ]
     },
     {
-      "name": "memory_paging_stats_query",
-      "crate": "nonos_x_memory_paging_stats_query",
-      "dir": "verification/extraction/tree/memory_paging_stats_query",
-      "lean": "MemoryPagingStatsQuery",
-      "generated": "MemoryPagingStatsQuery.lean",
-      "starts": [
-        "nonos_x_memory_paging_stats_query::pagingstatistics_total_mappings",
-        "nonos_x_memory_paging_stats_query::pagingstatistics_page_faults",
-        "nonos_x_memory_paging_stats_query::pagingstatistics_tlb_flushes"
-      ]
-    },
-    {
       "name": "memory_paging_types_page_size",
       "crate": "nonos_x_memory_paging_types_page_size",
       "dir": "verification/extraction/tree/memory_paging_types_page_size",
@@ -2824,27 +2801,6 @@
       "generated": "CryptoSymmetricAesCore.lean",
       "starts": [
         "nonos_x_crypto_symmetric_aes_core::gf_mul"
-      ]
-    },
-    {
-      "name": "crypto_zk_kernel_field_ct",
-      "crate": "nonos_x_crypto_zk_kernel_field_ct",
-      "dir": "verification/extraction/tree/crypto_zk_kernel_field_ct",
-      "lean": "CryptoZkKernelFieldCt",
-      "generated": "CryptoZkKernelFieldCt.lean",
-      "starts": [
-        "nonos_x_crypto_zk_kernel_field_ct::fieldelement_is_zero",
-        "nonos_x_crypto_zk_kernel_field_ct::fieldelement_ct_is_zero"
-      ]
-    },
-    {
-      "name": "crypto_zk_kernel_range_types",
-      "crate": "nonos_x_crypto_zk_kernel_range_types",
-      "dir": "verification/extraction/tree/crypto_zk_kernel_range_types",
-      "lean": "CryptoZkKernelRangeTypes",
-      "generated": "CryptoZkKernelRangeTypes.lean",
-      "starts": [
-        "nonos_x_crypto_zk_kernel_range_types::bitproof_verify_structure"
       ]
     },
     {

@@ -15,15 +15,13 @@ set_option maxRecDepth 2048
 namespace nonos_x_pac_key
 
 /-- [nonos_x_pac_key::key::PacKey]
-    Source: 'src/../../../../../src/arch/aarch64/security/pac/key.rs', lines 18:0-21:1
-    Visibility: public -/
+    Source: 'src/../../../../../src/arch/aarch64/security/pac/key.rs', lines 18:0-21:1 -/
 structure key.PacKey where
   lo : Std.U64
   hi : Std.U64
 
 /-- [nonos_x_pac_key::key::{nonos_x_pac_key::key::PacKey}::new]:
-    Source: 'src/../../../../../src/arch/aarch64/security/pac/key.rs', lines 24:4-26:5
-    Visibility: public -/
+    Source: 'src/../../../../../src/arch/aarch64/security/pac/key.rs', lines 24:4-26:5 -/
 def key.PacKey.new (lo : Std.U64) (hi : Std.U64) : Result key.PacKey := do
   ok { lo, hi }
 
