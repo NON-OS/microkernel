@@ -71,9 +71,10 @@ same property on the implementation, so the model connects to what runs. See
 For every property that has both a specification and an implementation proof,
 the two are linked by name. The Lean theorem `AntiRollback.no_rollback_after_boot`
 states that once a version boots, no strictly older version is ever accepted
-again. The Rust and Kani harnesses in `boot_proofs` prove the real bootloader
-`check_kernel_version` and `update_kernel_version` satisfy exactly that, over
-every `u64`. The Lean theorem `Capability.attenuate_confines` states that an
+again. The tests in `boot_proofs` hold the real loader's TPM floor to it: the
+floor is raised only after a kernel is verified and never lowered, a counter the
+owner deletes reads above its old floor when defined again, and the floor rule
+refuses an index below it in every profile. The Lean theorem `Capability.attenuate_confines` states that an
 attenuated token grants nothing the parent lacked; the Verus proof in
 `capabilities.rs` proves the kernel's `bits & mask` operation implements it. The
 mapping is recorded in `verification/lean/README.md`.
@@ -122,12 +123,13 @@ RFC 8032 algorithm is proving the gate that admits all other code.
 
 ### Boot
 
-The crate `nonos-bootloader/boot_proofs` runs the real `security::anti_rollback`
-decision logic and the real `image_format` footer parser, with only the TPM and
-NVRAM write shimmed. It proves that version zero is rejected, that nothing boots
-without a trusted floor, that booting a version raises the floor and no older
-version boots afterward, that a too-old boot leaves the stored state untouched
-(the check runs before any commit), and that the floor never decreases. Over
+The crate `nonos-bootloader/boot_proofs` runs the real `security::tpm_nv` floor
+read and raise, the floor rule and the `image_format` footer parser. Against a
+TPM scripted to the specification it proves that a new TPM starts the floor at
+1, that a counter the owner undefines reads above its old floor, that any other
+read answer is no floor, that raising never lowers, and that without a floor
+Hardened and Air-Gapped refuse; `userland/tpm_enroll_proofs` runs the same files
+on swtpm. Over
 roughly 125,000 crafted image footers with adversarial region offsets and sizes,
 the parser never panics and never returns a region slice that escapes the input.
 Kani extends the core claims over all inputs.
@@ -186,15 +188,19 @@ more bindings than its fixed cap.
 
 The same pattern covers the other storage and transport drivers. The crate
 `userland/nvme_proofs` proves the NVMe command bounds and that the identify
-page parsers stay inside device-returned buffers. The crate
+page parsers stay inside device-returned buffers, and runs the driver's
+enable, disable and completion waits against scripted hostile controllers:
+each ends in bounded time, succeeds only on what the spec allows, and keeps
+every doorbell and ring index in range. The crate
 `userland/usb_msc_proofs` proves the USB mass-storage descriptor, CSW, and
 request parsers reject malformed device data instead of reading through it.
 The crate `userland/xhci_proofs` proves the xHCI TRB encodings match the
 specification bit for bit. The crate `userland/virtio_net_proofs` proves the
 virtio-net RX path confines every frame to its own slot: over hostile used
-ring entries the driver clamps a claimed length to the slot payload, reduces
-a wild descriptor id into the primed range, and hands a drained slot back to
-the device only after the frame has been copied out. The crate
+ring entries the driver clamps a claimed length to the slot payload, drops
+an entry whose descriptor id names no primed slot without handing that id
+back, and hands a drained slot back to the device only after the frame has
+been copied out. The crate
 `userland/virtio_blk_proofs` proves virtio-blk requests are bounded and
 exactly framed. The crates `userland/e1000_proofs` and
 `userland/rtl8139_proofs` prove the e1000 descriptor rings behave as bounded

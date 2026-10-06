@@ -33,7 +33,7 @@ xhci_proofs         8 passed; 0 failed
 virtio_blk_proofs   7 passed; 0 failed
 e1000_proofs        6 passed; 0 failed
 rtl8139_proofs      7 passed; 0 failed
-boot_proofs         9 passed; 0 failed
+boot_proofs         13 passed; 0 failed
 ```
 
 Two of these needed repair before they reproduced: `net_proofs` stopped
