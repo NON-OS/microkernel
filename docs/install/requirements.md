@@ -66,3 +66,12 @@ A network is optional: setup's default is no network at all. Setup can join Wi-F
 ## Reported on real hardware
 
 These items were reported working on one machine: Wi-Fi on the Realtek RTL8821CE (scan, join, DHCP, DNS, browser traffic), the local Qwen model offline, the Linux programs sh, python3, sqlite3 and john, the installer writing to an internal NVMe disk and booting from it, the I2C-HID touchpad on Intel LPSS, the PS/2 keyboard with its layouts, Intel HD Audio, the power button and the volume keys. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+## See also
+
+- [Get an image](get-an-image.md)
+- [Boot modes](boot-modes.md)
+- [Install to disk](install-to-disk.md)
+- [Hardware support matrix](../hardware/MATRIX.md)
+- [Measured boot and the TPM](../security/measured-boot-and-tpm.md)
+- [Rollback protection](../security/rollback-protection.md)
