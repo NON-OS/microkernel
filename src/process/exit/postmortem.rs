@@ -47,6 +47,11 @@ pub(crate) fn retain(pid: Pid, parent: Pid) {
     }
 }
 
+/// A finished thread: nothing of it is kept, its reply inbox included.
+pub(crate) fn forget_thread(pid: Pid) {
+    drop_inbox(pid);
+}
+
 pub(crate) fn is_retained(pid: Pid) -> bool {
     RETAINED.lock().contains_key(&pid)
 }
