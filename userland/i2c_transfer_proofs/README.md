@@ -48,3 +48,6 @@ answers no, not error, for an empty address.
 cd userland/i2c_transfer_proofs
 cargo test --release
 ```
+
+See [drivers](../../docs/handbook/drivers.md) and
+[proofs](../../docs/handbook/verification/proofs.md).
