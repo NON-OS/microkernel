@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0
  *
  * C ABI symbols QuickJS links against that are natural to write in C:
- * single-threaded pthread no-ops, zeroed time sources, and a minimal
- * integer/string vsnprintf. The engine runs one context per capsule, so the
- * locking primitives never contend; Date is driven from host time later.
+ * single-threaded pthread no-ops, time read from the clocks the browser
+ * lends (eval_shim.c), and a minimal integer/string vsnprintf. The engine
+ * runs one context per capsule, so the locking primitives never contend.
  */
 #include <stddef.h>
 #include <stdint.h>
@@ -31,12 +31,26 @@ int pthread_condattr_destroy(void *a) { (void)a; return 0; }
 int pthread_condattr_setclock(void *a, int b) { (void)a; (void)b; return 0; }
 int pthread_once(void *a, void (*f)(void)) { (void)a; if (f) f(); return 0; }
 
-/* time: zeroed sources; a host clock feeds Date later */
+/* time: Date and performance read the lent clocks through cutils.h
+ * (NJS_HOST_CLOCKS); these answer from the same clocks for any other
+ * caller. Local time is UTC: the system keeps no time zone. */
 struct timespec { long tv_sec; long tv_nsec; };
 struct timeval { long tv_sec; long tv_usec; };
 struct tm { int s, m, h, md, mo, y, wd, yd, dst; long gmtoff; const char *zone; };
-int clock_gettime(int id, struct timespec *t) { (void)id; if (t) { t->tv_sec = 0; t->tv_nsec = 0; } return 0; }
-int gettimeofday(struct timeval *t, void *tz) { (void)tz; if (t) { t->tv_sec = 0; t->tv_usec = 0; } return 0; }
+int64_t njs_wall_us(void);
+uint64_t njs_mono_ns(void);
+int clock_gettime(int id, struct timespec *t) {
+    (void)id;
+    uint64_t ns = njs_mono_ns();
+    if (t) { t->tv_sec = (long)(ns / 1000000000ULL); t->tv_nsec = (long)(ns % 1000000000ULL); }
+    return 0;
+}
+int gettimeofday(struct timeval *t, void *tz) {
+    (void)tz;
+    int64_t us = njs_wall_us();
+    if (t) { t->tv_sec = (long)(us / 1000000); t->tv_usec = (long)(us % 1000000); }
+    return 0;
+}
 struct tm *localtime_r(const long *t, struct tm *r) { (void)t; if (r) { for (unsigned i = 0; i < sizeof(*r); i++) ((char *)r)[i] = 0; } return r; }
 
 /* output: only formatted-to-buffer is functional; stream output is a sink */

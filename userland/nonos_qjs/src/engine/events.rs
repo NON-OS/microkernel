@@ -14,61 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Safe Rust surface over the QuickJS runtime. A single owned runtime and
-//! context per Engine; values never cross the boundary, only strings.
-
 use alloc::string::String;
-use core::ffi::c_void;
 
-#[cfg(not(feature = "hosted"))]
-use crate::alloc_stubs::free;
-#[cfg(feature = "hosted")]
-extern "C" {
-    fn free(p: *mut u8);
-}
-
-extern "C" {
-    fn njs_new_runtime() -> *mut c_void;
-    fn njs_new_context(rt: *mut c_void) -> *mut c_void;
-    fn njs_free_context(ctx: *mut c_void);
-    fn njs_free_runtime(rt: *mut c_void);
-    fn njs_eval_to_string(ctx: *mut c_void, code: *const u8, len: usize) -> *mut u8;
-    fn njs_install_dom(ctx: *mut c_void, host: *mut c_void);
-    fn njs_dispatch_event(ctx: *mut c_void, node: i32, ty: *const u8) -> i32;
-    fn njs_take_navigation() -> *const u8;
-    fn njs_flush_timers(ctx: *mut c_void, now_ms: f64) -> i32;
-}
-
-pub struct Engine {
-    rt: *mut c_void,
-    ctx: *mut c_void,
-}
+use super::ffi::{
+    njs_dispatch_event, njs_event_default_prevented, njs_flush_timers, njs_take_history_step,
+    njs_take_navigation, njs_viewport_changed,
+};
+use super::lifecycle::Engine;
 
 impl Engine {
-    /// Create a fresh runtime and context. Returns None if the engine could not
-    /// allocate.
-    pub fn new() -> Option<Engine> {
-        unsafe {
-            let rt = njs_new_runtime();
-            if rt.is_null() {
-                return None;
-            }
-            let ctx = njs_new_context(rt);
-            if ctx.is_null() {
-                njs_free_runtime(rt);
-                return None;
-            }
-            Some(Engine { rt, ctx })
-        }
-    }
-
-    /// Install the `document` global, binding DOM methods to `host`. The host
-    /// pointer is handed to every njs_dom_* callback as the node tree to mutate;
-    /// it must outlive every eval that touches the DOM.
-    pub fn install_dom(&self, host: *mut c_void) {
-        unsafe { njs_install_dom(self.ctx, host) }
-    }
-
     /// Dispatch a UI event of `ty` to the listeners registered on `node`,
     /// returning how many fired. Used when a real pointer or key event lands on
     /// a laid-out node; the engine must be the one that ran the page scripts.
@@ -77,6 +31,13 @@ impl Engine {
         let n = ty.len().min(31);
         buf[..n].copy_from_slice(&ty.as_bytes()[..n]);
         unsafe { njs_dispatch_event(self.ctx, node, buf.as_ptr()) }
+    }
+
+    /// Whether a listener of the last dispatched event called preventDefault.
+    /// The browser then skips the event's own action (following the link,
+    /// focusing the field, submitting the form), and only then.
+    pub fn default_prevented(&self) -> bool {
+        unsafe { njs_event_default_prevented() != 0 }
     }
 
     /// Run the page timers due at `now_ms`, and report how many ran.
@@ -111,30 +72,20 @@ impl Engine {
         }
     }
 
-    /// Evaluate a script and return its result coerced to a string, or the
-    /// exception message. Pending jobs are drained before the result is read.
-    pub fn eval(&self, code: &str) -> String {
-        unsafe {
-            let p = njs_eval_to_string(self.ctx, code.as_ptr(), code.len());
-            if p.is_null() {
-                return String::new();
-            }
-            let mut n = 0;
-            while *p.add(n) != 0 {
-                n += 1;
-            }
-            let out = String::from_utf8_lossy(core::slice::from_raw_parts(p, n)).into_owned();
-            free(p);
-            out
+    /// The step through the reader's history a script asked for since this
+    /// was last called (`history.back()` is -1, `forward()` 1, `go(n)` n),
+    /// parked like a navigation and cleared by reading.
+    pub fn take_history_step(&self) -> Option<i32> {
+        match unsafe { njs_take_history_step() } {
+            0 => None,
+            n => Some(n),
         }
     }
-}
 
-impl Drop for Engine {
-    fn drop(&mut self) {
-        unsafe {
-            njs_free_context(self.ctx);
-            njs_free_runtime(self.rt);
-        }
+    /// The window was resized and the document's viewport is the new size:
+    /// each media query list the page listens to whose answer changed hears
+    /// `change`, then window hears `resize`. Runs on the time budget.
+    pub fn viewport_changed(&self) {
+        unsafe { njs_viewport_changed(self.ctx) }
     }
 }

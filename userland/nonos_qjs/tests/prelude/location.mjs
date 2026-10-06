@@ -31,4 +31,29 @@ export function locationChecks(ok) {
   // An address with a colon in the path must not be read as a port.
   const colon = at('http://example.org/a:b');
   ok(colon.hostname === 'example.org', `a colon in the path is not a port: ${colon.hostname}`);
+
+  // Writing to location goes somewhere: href, location itself, pathname and
+  // search navigate; a new hash moves within the page and says so.
+  const went = [];
+  globalThis.__njs_navigate = h => went.push(h);
+  globalThis.__njs_setloc(at('https://example.org/a/b?x=1#top'));
+  globalThis.location.href = '/next';
+  globalThis.location = 'https://other.example/';
+  globalThis.location.pathname = 'p';
+  globalThis.location.search = 'q=2';
+  ok(went.join(' ') === '/next https://other.example/ https://example.org/p?x=1#top '
+     + 'https://example.org/a/b?q=2#top', `each write navigates: ${went.join(' ')}`);
+  ok(globalThis.location.href === 'https://example.org/a/b?x=1#top', 'and nothing moved yet');
+
+  let changed = null;
+  globalThis.addEventListener('hashchange', ev => { changed = ev; });
+  globalThis.location.hash = 'list';
+  ok(globalThis.location.hash === '#list', `the hash moved: ${globalThis.location.hash}`);
+  ok(globalThis.location.href === 'https://example.org/a/b?x=1#list', 'and the address with it');
+  ok(changed && changed.oldURL.endsWith('#top') && changed.newURL.endsWith('#list'),
+     'hashchange says from where to where');
+  ok(went.length === 4, 'a hash is no navigation');
+  changed = null;
+  globalThis.location.hash = '#list';
+  ok(changed === null, 'the same hash again changes nothing');
 }

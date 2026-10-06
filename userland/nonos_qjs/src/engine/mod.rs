@@ -14,26 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! QuickJS-ng embedded as a no_std JavaScript engine. The C core is compiled
-//! freestanding by build.rs; this crate supplies the C-ABI symbols it links
-//! against from the Rust allocator and the libm crate.
+//! Safe Rust surface over the QuickJS runtime. A single owned runtime and
+//! context per Engine; values never cross the boundary, only strings.
 
-#![no_std]
+mod eval;
+mod dialog;
+mod events;
+mod ffi;
+mod lifecycle;
+mod limits;
+mod ready;
+mod ui_events;
 
-extern crate alloc;
-
-// The hosted harness build links the system libc, which provides everything
-// the freestanding stub layers exist to supply.
-#[cfg(not(feature = "hosted"))]
-mod alloc_stubs;
-mod engine;
-#[cfg(not(feature = "hosted"))]
-mod math_stubs;
-#[cfg(not(feature = "hosted"))]
-mod misc_stubs;
-#[cfg(not(feature = "hosted"))]
-mod str_stubs;
-
-pub use engine::{
-    Asked, Dialog, Engine, Key, Limits, Press, Stop, MOD_ALT, MOD_CTRL, MOD_META, MOD_SHIFT,
-};
+pub use dialog::{Asked, Dialog};
+pub use lifecycle::Engine;
+pub use limits::{Limits, Stop};
+pub use ui_events::{Key, Press, MOD_ALT, MOD_CTRL, MOD_META, MOD_SHIFT};
