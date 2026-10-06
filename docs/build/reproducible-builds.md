@@ -93,3 +93,11 @@ Not tested in this release.
 - The `busybox-source` check did not run on that check run, because the machine could not download the pinned Zig compiler. The committed BusyBox binary is not compared with a build from source in this release.
 - The older make build in `mk/` is outside these guarantees. It takes its time from git (`SOURCE_DATE_EPOCH`, `mk/00-config.mk:20`) and signs with local keys; its one reproducibility check builds the loader twice on one machine and compares the bytes (`nonos-mk-verify-reproducible-boot`, `mk/20-build.mk:159-172`).
 - A comparison of this commit's artifacts built on two machines is not tested in this release.
+
+## See also
+
+- [The seal](seal.md)
+- [SBOM](sbom.md)
+- [CI](ci.md)
+- [Rollback protection](../security/rollback-protection.md)
+- [Get an image](../install/get-an-image.md)
