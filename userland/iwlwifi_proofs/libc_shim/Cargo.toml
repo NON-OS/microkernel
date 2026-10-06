@@ -1,0 +1,15 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# What the iwlwifi bring-up's release path takes from nonos_libc, for the
+# host: the four release calls, each recording what it was handed.
+[package]
+name = "iwlwifi_proofs_libc_shim"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+name = "nonos_libc"
+path = "src/lib.rs"
