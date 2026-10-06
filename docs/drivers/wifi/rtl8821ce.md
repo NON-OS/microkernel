@@ -121,3 +121,13 @@ Without Debug those lines are dropped, and the Settings Wi-Fi panel's stage line
 - Open, TKIP and Enterprise networks, and access points that admit only 802.11n stations.
 - Access point, mesh and monitor mode, roaming, power save, and stored profiles inside the driver. The driver has no code for them.
 - The Bluetooth half of the card.
+
+## Tests
+
+`rtl8821ce_proofs` compiles the driver's own source with `#[path]` and runs it against a modelled register file: power sequence, efuse, firmware staging and download, MAC and PHY tables, the rings, the scan, the hidden-network probe, association, key install and the refusal of unknown frames. The flake check `proofs-rtl8821ce_proofs` passed with 171 tests on this commit, and `proofs-nonos_wifi_core_proofs` with 70.
+
+```sh
+cd userland/rtl8821ce_proofs && cargo test --release --config profile.release.overflow-checks=true
+```
+
+Not tested in this release.
