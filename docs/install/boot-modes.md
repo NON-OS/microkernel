@@ -64,3 +64,19 @@ On the kernel's side, Hardened changes nothing: the kernel treats it as Standard
 - Recovery skips first-boot setup and opens a Terminal once the desktop is up (`skips_setup` in `src/userspace/init/spawn_plan/wizard_plan.rs:27-48`).
 
 `Install NØNOS` boots the same verified kernel as Standard and asks it to install (`BootIntent` in `nonos-bootloader/src/menu/types/intent.rs:19-31`). The loader sets handoff bit 11, `INSTALL_REQUESTED`, beside the boot mode's bit (`handoff_flag` in `nonos-bootloader/src/handoff/types/install.rs:44-48`). Setup then opens with Install chosen on its Mode step (`mode_sel` in `userland/capsule_setup_wizard/src/state.rs:70`), and the installer takes the whole screen when setup ends. See [Install to disk](install-to-disk.md).
+
+## How the kernel learns the mode
+
+```mermaid
+flowchart LR
+  entry[menu entry] --> flag[handoff flag]
+  flag --> prof[BootProfile]
+  prof --> gate[spawn gate]
+  prof --> apps[app choice]
+  prof --> setup[setup or Terminal]
+  prof --> stat[process stat header]
+```
+
+The chosen entry travels to the kernel as one bit of the [handoff](../overview/glossary.md#handoff) flags: bit 12 for Hardened, 13 for Safe Mode, 14 for Air-Gapped and 15 for Recovery, and none for Standard or Install (`PROFILE_RECOVERY` in `src/boot/handoff/types/constants.rs:51-54`). The kernel reads them into a `BootProfile`, checking Recovery first, then Safe Mode, Air-Gapped and Hardened, and a kernel started with no handoff runs Standard (`boot_profile` in `src/boot/handoff/api/profile.rs:60-75`).
+
+The spawn gate, the app choice and the setup plan above all ask `boot_profile`. Programs read the mode from the process stat header, bits `BOOT_PROFILE_HARDENED` to `BOOT_PROFILE_RECOVERY` (`src/syscall/microkernel/procstat_header.rs:66-69`). The Terminal's splash shows it, for example `NONOS, Recovery boot: no network` (`os_line` in `userland/capsule_terminal/src/paint/fetch_boot.rs:17-35`).
