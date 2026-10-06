@@ -15,47 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Wire and kernel-side types for `MkIrqBind`. The `flags` field on
-//! the request selects between two delivery paths: legacy INTx
-//! (default, flags == 0) and MSI-X (`BIND_MSIX` set). The grant
-//! carries the kind and, for MSI-X, the device-relative vector
-//! index so teardown can unwind the MSI-X table entry it programmed.
+//! the request selects the delivery path: legacy INTx (flags == 0),
+//! MSI-X (`BIND_MSIX`) or MSI (`BIND_MSI`), never two at once.
+
+// The error types live in errors.rs; every arch backend names them here.
+pub(super) use super::errors::{IrqBindError, IrqError, IrqPollResult};
 
 // Public flag bits for `IrqBindRequest::flags`. The kernel rejects
 // any unset bit so capsules cannot quietly opt into a future flag
 // they were not designed against.
 pub const BIND_MSIX: u32 = 1 << 0;
-pub const FLAGS_KNOWN: u32 = BIND_MSIX;
-
-#[repr(u8)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IrqGrantKind {
-    Intx = 0,
-    Msix = 1,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct IrqGrant {
-    pub grant_id: u64,
-    pub pid: u32,
-    pub device_id: u64,
-    pub claim_epoch: u64,
-    pub irq_source: u32,
-    pub vector: u8,
-    pub flags: u32,
-    pub kind: IrqGrantKind,
-    // For `IrqGrantKind::Msix` this is the index of the MSI-X table
-    // entry the kernel programmed for this grant (0..table_size).
-    // Always 0 for INTx grants.
-    pub device_vector: u16,
-}
+pub const BIND_MSI: u32 = 1 << 1;
+pub const FLAGS_KNOWN: u32 = BIND_MSIX | BIND_MSI;
 
 #[derive(Debug, Clone, Copy)]
 pub struct IrqBindRequest {
     pub device_id: u64,
     pub claim_epoch: u64,
     // INTx mode: GSI from `mk_device_list`.
-    // MSI-X mode: must be 0; the kernel always programs the MSI-X
-    // table starting at entry 0 for the device.
+    // MSI-X and MSI mode: must be 0; the kernel programs the MSI-X
+    // table from entry 0, or the MSI capability, for the device.
     pub irq_source: u32,
     pub flags: u32,
     // INTx mode: must be 0.
@@ -72,37 +51,4 @@ pub struct IrqBindRequest {
 pub struct IrqBindResult {
     pub grant_id: u64,
     pub vector: u8,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IrqBindError {
-    NotClaimed,
-    StaleEpoch,
-    UnknownDevice,
-    NotDeviceIrq,
-    AlreadyBound,
-    /// The line is one the kernel routes to itself.
-    ReservedGsi,
-    NoVector,
-    UnsupportedFlags,
-    NotIntx,
-    NoMsixCap,
-    BadMsixBar,
-    BadVectorCount,
-    MsixProgramFailed,
-    NoDeviceHandle,
-    PlatformError,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IrqError {
-    UnknownGrant,
-    NotHolder,
-    PlatformError,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct IrqPollResult {
-    pub seq: u64,
-    pub overflow: u64,
 }

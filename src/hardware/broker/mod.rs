@@ -25,6 +25,7 @@ mod acpi_i2c;
 // mod census;
 mod claim;
 mod class;
+mod confine;
 mod device;
 pub mod dma;
 mod grant;
@@ -45,6 +46,7 @@ mod pio_absent;
 mod platform;
 mod power;
 mod table;
+mod windows;
 
 #[cfg(target_arch = "x86_64")]
 pub use acpi_gpio::register_acpi_gpio;
@@ -52,14 +54,16 @@ pub use acpi_gpio::register_acpi_gpio;
 pub use acpi_i2c::register_acpi_i2c;
 // pub use census::render_and_hold as device_census; // bring-up diagnostic, silenced
 pub use claim::{
-    claim as claim_device, lookup as claim_lookup, release as release_device,
-    release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
+    claim as claim_device, lookup as claim_lookup, quiesce_all as quiesce_all_devices,
+    quiesce_held as quiesce_held_device,
+    release as release_device, release_all_for_pid as release_claims_for_pid, Claim, ClaimError,
 };
 pub use class::{classify_pci, Class};
 pub use device::{Bar, BarKind, BusKind, DeviceRecord, DEVICE_FLAG_CLAIMED, DEVICE_FLAG_DISABLED};
 pub use dma::{
     map_for_caller as dma_map_for_caller, release_all_for_pid as dma_release_all_for_pid,
-    release_for_device as dma_release_for_device, unmap_grant as dma_unmap_grant, DmaError,
+    release_for_device as dma_release_for_device, unmap_grant as dma_unmap_grant,
+    wipe_live_grants as dma_wipe_live_grants, DmaError,
     DmaGrant, DmaMapError, DmaMapRequest, DmaMapResult,
 };
 pub use grant::{GrantError, MmioGrant};
@@ -88,3 +92,4 @@ pub use pio::{
 pub use pio_absent::{pio_release_all_for_pid, pio_release_for_device};
 pub use platform::register_legacy as register_legacy_platform_devices;
 pub use table::{contains, init_from_pci, list, list_by_class};
+pub use windows::touches_device_window;

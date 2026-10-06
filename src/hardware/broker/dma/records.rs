@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Slow-path DMA grant table. One mutex-protected vector keyed by
-//! `grant_id`; revocation paths drain by pid or by device.
+//! `grant_id`; revocation paths drain it by pid or by device (`drain.rs`).
 
 extern crate alloc;
 
@@ -25,7 +25,7 @@ use spin::Mutex;
 
 use super::types::{DmaError, DmaGrant};
 
-static RECORDS: Mutex<Vec<DmaGrant>> = Mutex::new(Vec::new());
+pub(super) static RECORDS: Mutex<Vec<DmaGrant>> = Mutex::new(Vec::new());
 static NEXT_GRANT_ID: AtomicU64 = AtomicU64::new(1);
 
 pub(super) fn allocate_id() -> u64 {
@@ -45,30 +45,14 @@ pub(super) fn remove(pid: u32, grant_id: u64) -> Result<DmaGrant, DmaError> {
     Ok(all.remove(idx))
 }
 
-pub(super) fn drain_for_pid(pid: u32) -> Vec<DmaGrant> {
-    let mut all = RECORDS.lock();
-    let mut taken = Vec::new();
-    all.retain(|g| {
-        if g.pid == pid {
-            taken.push(*g);
-            false
-        } else {
-            true
-        }
-    });
-    taken
-}
-
-pub(super) fn drain_for_device(pid: u32, device_id: u64) -> Vec<DmaGrant> {
-    let mut all = RECORDS.lock();
-    let mut taken = Vec::new();
-    all.retain(|g| {
-        if g.pid == pid && g.device_id == device_id {
-            taken.push(*g);
-            false
-        } else {
-            true
-        }
-    });
-    taken
+/// Visit every live grant without waiting for the table: false, and nothing
+/// visited, when another CPU holds it. For the shutdown wipe only.
+pub(super) fn try_each(mut f: impl FnMut(&DmaGrant)) -> bool {
+    let Some(all) = RECORDS.try_lock() else {
+        return false;
+    };
+    for g in all.iter() {
+        f(g);
+    }
+    true
 }
