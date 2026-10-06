@@ -55,3 +55,9 @@ The deadline depends on `timeout_ms` (`src/syscall/microkernel/futex/wait.rs:60-
 The call returns 0 when woken, when the word had changed, and when the deadline passed. It does not say which. The caller rechecks its word after every return and waits again if needed, so an early return costs a loop and never a lost wake.
 
 If a waker already took this waiter off the list while it was returning early, `leave_early` passes that wake on to the next waiter, so the wake is not spent on a thread that was leaving anyway (`src/syscall/microkernel/futex/waiters.rs:41-58`). The waiter list code is pure so it can be tested on the host; see the last section.
+
+## Waking
+
+`sys_futex_wake` takes up to `count` waiters from the front of the list for that key, where a `count` of 0 means all of them, releases the queue lock, and only then wakes each one through the scheduler (`src/syscall/microkernel/futex/wake.rs:25-52`). Waiters are woken in the order they joined. It returns how many it woke; a wake on a word nobody waits on returns 0.
+
+The sleep and the wake both go through the scheduler's sleep table and wake tokens; see [scheduler and SMP](scheduler-and-smp.md).
