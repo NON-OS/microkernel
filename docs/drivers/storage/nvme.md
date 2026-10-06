@@ -61,3 +61,15 @@ A DRAM-less SSD keeps its mapping tables in host memory when the host offers som
 - nothing when the controller asks for none, needs more than 128 MiB, or wants pieces larger than 4 MiB (`userland/capsule_driver_nvme/src/admin/hmb/plan.rs:51-57`, `plan`).
 
 SET FEATURES Host Memory Buffer gets 30 s, because a controller may copy its tables into the buffer before it answers (`userland/capsule_driver_nvme/src/admin/hmb/budget.rs:22-26`, `ENABLE_TIMEOUT_MS`). A controller that refuses the buffer is served without one. A controller that never answers fails the attempt, and it is disabled before the memory is unmapped, because only a disable takes the buffer back (`userland/capsule_driver_nvme/src/setup/hmb/held.rs:25-53`, `after_disable`). The same holds when the SMART health log gets no answer right after the buffer was given (`userland/capsule_driver_nvme/src/setup/sequence/served.rs:44-55`, `hmb_given`). Once an attempt that asked for the queue count and the buffer has failed, no later attempt asks for either (`userland/capsule_driver_nvme/src/setup/hmb/extras.rs:22-39`, `EXTRAS_FAILED`).
+
+## Timeouts
+
+| Wait | Limit | Where |
+|---|---|---|
+| Ready after CC.EN, and disabled after a reset | CAP.TO times 500 ms, at least 5 s, at most 127.5 s | `ready_timeout_ms` in `userland/capsule_driver_nvme/src/admin/ready_step.rs:20-39` |
+| An admin command | 5 s | `COMPLETION_TIMEOUT_MS` in `userland/capsule_driver_nvme/src/admin/queue/constants.rs:23` |
+| SET FEATURES Number of Queues | 5 s | `QUEUES_TIMEOUT_MS` in `userland/capsule_driver_nvme/src/admin/hmb/budget.rs:27-28` |
+| SET FEATURES Host Memory Buffer | 30 s | `ENABLE_TIMEOUT_MS` in `userland/capsule_driver_nvme/src/admin/hmb/budget.rs:22-26` |
+| A read, write or flush | 30 s | `COMPLETION_TIMEOUT_MS` in `userland/capsule_driver_nvme/src/nvm/constants.rs:26-29` |
+
+A wait reads the clock once every 1024 polls, so the loop makes no system call per poll (`userland/capsule_driver_nvme/src/admin/completion_wait.rs:22-24`, `DEADLINE_CHECK_SPINS`). A CSTS that reads all ones, a device gone from the bus, ends a wait at once, and CSTS.CFS ends the enable wait (`userland/capsule_driver_nvme/src/admin/ready_step.rs:53-75`, `ready_step`). A completion entry is taken only when its phase tag, queue id and command id all match the command, and any other entry is consumed while the wait goes on (`userland/capsule_driver_nvme/src/admin/completion_wait.rs:48-92`, `wait_noting_foreign`). A read or write whose wait ran out is waited out before the data buffer is used again, so a late completion cannot land under the next request (`userland/capsule_driver_nvme/src/nvm/wait.rs:41-53`, `settle`).
