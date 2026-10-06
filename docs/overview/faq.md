@@ -54,3 +54,7 @@ The boot menu describes its Hardened entry as "Standard, and refuses to boot wit
 ## Audits and proofs
 
 This release claims no independent security audit. What it has is proof crates that test the shipped kernel and capsule source on the host, run by `nix flake check`; Lean 4 models in `verification/lean/`; and a list of everything NONOS trusts without proof, [verification/ASSUMPTIONS.md](../../verification/ASSUMPTIONS.md). [Design principles](design-principles.md#proofs-live-next-to-the-code) gives the results on this commit, failures included, and [Tests and proofs](../contributing/tests-and-proofs.md) says how to run them.
+
+## The licence
+
+NONOS is free software under the GNU Affero General Public License, version 3 ([LICENSE](../../LICENSE)). Each source file's header adds "or (at your option) any later version". Vendored code under `third_party/` keeps its own licence, as in `third_party/minimp3/LICENSE`, and device firmware under `nonos-bootloader/firmware/` keeps its vendor's terms, as in `nonos-bootloader/firmware/realtek/LICENSE`.
