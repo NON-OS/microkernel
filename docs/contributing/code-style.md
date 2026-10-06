@@ -63,3 +63,15 @@ Say why, not what the next line does. A module opens with a `//!` comment that s
 No check requires a `SAFETY:` comment, so write one for every new `unsafe` block. `tools/nonos_console.py` counts `unsafe {` sites and `SAFETY:` comments across the tree and prints the second as a share of the first, counted into `documented` (`tools/nonos_console.py:1319-1324`).
 
 Shipping comments carry no markers of unfinished work. The `hygiene` scan rejects the four in `COMMENT_PATTERNS`, among them `FIXME`, `for now` and `placeholder`, in any line that starts as a comment (`nonos-verify/src/hygiene/patterns.rs:28-33`).
+
+## Errors, panics and admissions
+
+Shipping code does not panic. The same scan fails on every pattern in `CODE_PATTERNS`: `.unwrap(`, `.expect(`, `panic!`, `todo!(`, `unimplemented!(`, `unreachable!(` and `#[allow(dead_code)]` (`nonos-verify/src/hygiene/patterns.rs:18-26`). Shipping means the trees in `root_dirs`, the kernel, `userland` and four boot and attestation crates, less what `skip` leaves out: build output, proof crates, tests, vendored and upstream sources, and `build.rs` files (`nonos-verify/src/hygiene/roots.rs:5-31`). Return an error the caller can act on, and when bring-up cannot go on, say on the console why. The scan fails at this commit; [Tests and proofs](tests-and-proofs.md) says where.
+
+Three gates hold sites against a [baseline](../overview/glossary.md#baseline) that may only shrink:
+
+- Lint switches: every `#[allow(` or `#![allow(` in `src` and `userland` matches `MARK` and is listed in `scripts/baselines/allows.txt` (`scripts/check_allows.py:31-34`).
+- Admissions: a word such as stub, unsupported or not implemented in shipping Rust matches `MARK` and is listed in `scripts/baselines/stubs.txt` (`scripts/check_stubs.py:30-32`). The gate matches words, not intent: a refusal that names the chip it will not drive passes, and one that says "not implemented" is listed.
+- Unreachable exports: a kernel `pub fn` that no other file mentions outside an import is found by `unreachable` and listed in `scripts/baselines/unreachable.txt` (`scripts/check_unreachable.py:26-35`). Its docstring gives the reason: a mechanism with no caller can be reviewed, merged and shipped without one line of it running.
+
+Every [proof crate](../overview/glossary.md#proof-crate) must pass `cargo clippy` with `-D warnings` over all its targets, except the crates named in `lintLib` and `lintNone`, two lists that only shrink and that a new crate never joins (`tools/nix/checks.nix:44-62`). Three proof crates fail that at this commit.
