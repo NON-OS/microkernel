@@ -227,3 +227,11 @@ You want to send a change.
 ### Release notes
 
 - [NONOS 0.9.2](release/0.9.2.md): the release notes for this version.
+
+## See also
+
+- [The NONOS overview](overview/README.md)
+- [Glossary](overview/glossary.md)
+- [Hardware support matrix](hardware/MATRIX.md)
+- [README.md](../README.md) at the root of the repository
+- [SECURITY.md](../SECURITY.md)
