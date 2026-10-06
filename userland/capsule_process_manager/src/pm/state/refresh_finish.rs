@@ -28,10 +28,10 @@ impl State {
         // action are usable at once.
         if let Some(idx) = self.selected_index() {
             self.ensure_visible(idx);
-        } else if let Some(first) = self.rows.first() {
-            self.selected_pid = first.pid;
         } else {
-            self.selected_pid = 0;
+            /* Only a row the table shows. When the filter matches none, the
+             * pane says so, and End Process has nothing hidden to aim at. */
+            self.selected_pid = self.filtered().first().map_or(0, |r| r.pid);
         }
         let max = self.filtered().len().saturating_sub(self.visible);
         if self.scroll > max {

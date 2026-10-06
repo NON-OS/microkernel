@@ -18,9 +18,10 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::pm::format::{mem_human, pct_1dp, u32_decimal, uptime_human};
+use crate::pm::format::{mem_human, percent, u32_decimal, uptime_human};
 use crate::pm::format_sys::load_human;
 use crate::pm::security::Level;
+use crate::pm::state::notes::{strip_note, KEYS_HINT};
 use crate::pm::state::State;
 use crate::pm::theme::{ACCENT, AMBER, DANGER, HEADER_BG, MUTED, OK, RULE, TITLE};
 
@@ -43,7 +44,7 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
         n += u32_decimal(total, &mut buf[n..]);
     }
     let mut x = pair(fb, PANE_PAD_X, top, b"PROCS", &buf[..n]);
-    let n = pct_1dp(state.sys.busy_pct, &mut buf);
+    let n = percent(state.sys.busy_pct, &mut buf);
     x = pair(fb, x, top, b"CPU", &buf[..n]);
     let n = mem_human(state.sys.mem_used_kb(), &mut buf);
     x = pair(fb, x, top, b"MEM", &buf[..n]);
@@ -52,12 +53,17 @@ pub fn paint(fb: &mut PaintBuffer, state: &State) {
     let n = uptime_human(state.sys.uptime_ms / 1000, &mut buf);
     x = pair(fb, x, top, b"UP", &buf[..n]);
     let (tone, label) = posture(state);
-    text::left(fb, x, top, label, tone, BODY_PX);
+    let after = text::left(fb, x, top, label, tone, BODY_PX).max(0) as u32 + STATUS_GROUP_GAP;
     let right_x = fb.width.saturating_sub(PANE_PAD_X);
     text::right(fb, right_x, top, state.sort.label(), ACCENT, BODY_PX);
     let sort_w = text::width(fb, state.sort.label(), BODY_PX);
     let hint_x = right_x.saturating_sub(sort_w + STATUS_GROUP_GAP);
-    text::right(fb, hint_x, top, b"? keys", MUTED, BODY_PX);
+    // A kill prompt, its outcome or an unreadable table replaces the key hint,
+    // cut to the room left of the sort label so it never runs under the counts.
+    let note = strip_note(state.notice, state.status);
+    let ink = if note == KEYS_HINT { MUTED } else { AMBER };
+    let cut = text::fit(fb, note, BODY_PX, hint_x.saturating_sub(after));
+    text::right(fb, hint_x, top, cut, ink, BODY_PX);
 }
 
 fn pair(fb: &mut PaintBuffer, x: u32, top: u32, label: &[u8], value: &[u8]) -> u32 {
@@ -67,7 +73,7 @@ fn pair(fb: &mut PaintBuffer, x: u32, top: u32, label: &[u8], value: &[u8]) -> u
 
 fn posture(state: &State) -> (u32, &'static [u8]) {
     match state.alerts.iter().map(|a| a.level).max() {
-        None => (OK, b"SECURE"),
+        None => (OK, b"NO FINDINGS"),
         Some(Level::Info) => (OK, Level::Info.label()),
         Some(Level::Warn) => (AMBER, Level::Warn.label()),
         Some(Level::Critical) => (DANGER, Level::Critical.label()),

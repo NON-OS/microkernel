@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Capability bits (mirrors the kernel enum order used in format::CAP_TABLE).
+// Capability bits (mirrors the kernel enum order used in format_caps::CAP_TABLE).
 // These are the authorities whose abuse would cross an isolation boundary, so
 // the monitor counts who holds them. Holding one is not wrong on its own: a
 // driver capsule needs raw hardware. The point is to make the attack surface

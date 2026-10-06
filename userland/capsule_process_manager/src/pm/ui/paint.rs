@@ -33,16 +33,17 @@ pub fn paint(state: &mut State, fb: &mut PaintBuffer) {
     fb.clear(BACKGROUND);
     let (w, h) = (fb.width, fb.height);
     sidebar::paint(fb, state.screen, h, state.refreshes);
-    let rect = chrome::pane_rect(w, h, state.screen.has_inspector());
+    let docked = super::fit::inspector(state.screen, w);
+    let rect = chrome::pane_rect(w, h, docked);
     let mut buf = [0u8; 24];
     let n = meta(state, &mut buf);
     chrome::page_head(fb, state, &buf[..n]);
     state.fb_w = w;
     state.fb_h = h;
-    state.visible = hit::rows_visible(state.screen, rect.h);
+    state.visible = hit::rows_visible(state.screen, &rect);
     state.alert_visible = screens::sec_geom::visible(rect.h);
     screen(state, fb, &rect);
-    if state.screen.has_inspector() {
+    if docked {
         inspector::paint(state, fb);
     }
     chrome::status_bar(fb, state);

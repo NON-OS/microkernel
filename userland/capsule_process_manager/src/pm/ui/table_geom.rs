@@ -26,7 +26,7 @@ pub use super::table_cols::{fixed_w, Col, COLS_FULL, COLS_OVERVIEW};
 #[path = "table_span.rs"]
 mod table_span;
 
-pub use table_span::{col_w, col_x, index_at, max_scroll, name_w, row_y, sort_at_x, visible_rows};
+pub use table_span::{col_w, col_x, index_at, row_y, sort_at_x, visible_rows};
 
 // The header band, in table-local coordinates. `index_at` rejects the same y,
 // so the sort test and the row test share one edge rather than two.

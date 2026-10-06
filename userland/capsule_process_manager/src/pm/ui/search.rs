@@ -36,9 +36,10 @@ const PLACEHOLDER: &[u8] = b"Filter processes";
 // The chip strip is measured text and cannot shrink, so the field is what gives
 // way when the band is tight, down to SEARCH_MIN_W and no further.
 pub fn rect(fb_w: u32, screen: Screen) -> (u32, u32, u32, u32) {
-    let right = if screen.has_inspector() { fb_w.saturating_sub(INSPECTOR_W) } else { fb_w };
+    let right =
+        if super::fit::inspector(screen, fb_w) { fb_w.saturating_sub(INSPECTOR_W) } else { fb_w };
     let limit = right.saturating_sub(PANE_PAD_X);
-    let chips_end = chips::origin(screen).map_or(0, |o| o + chips::width() + SEARCH_META_GAP);
+    let chips_end = chips::origin(fb_w, screen).map_or(0, |o| o + chips::width() + SEARCH_META_GAP);
     let w = limit.saturating_sub(chips_end).clamp(SEARCH_MIN_W, SEARCH_W);
     let y = PANE_PAD_TOP + HEAD_H.saturating_sub(SEARCH_H) / 2;
     (limit.saturating_sub(w), y, w, SEARCH_H)

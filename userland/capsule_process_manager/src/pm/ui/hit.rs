@@ -16,7 +16,7 @@
 
 use crate::pm::state::{Filter, Screen, State};
 
-use super::table_geom::{Col, COLS_FULL, COLS_OVERVIEW};
+use super::table_geom::{Col, COLS_FULL};
 use super::{chips, chrome, insp_geom, nav_geom, search};
 
 #[path = "hit_pane.rs"]
@@ -34,7 +34,6 @@ pub enum Target {
     Matrix(usize),
     Finding(usize),
     EndProcess,
-    ForceQuit,
     Search,
     Filter(Filter),
 }
@@ -45,20 +44,19 @@ pub enum Target {
 // field and the filter chips live in the head band, above every pane, so both
 // are asked before the pane-local tests.
 pub fn at(state: &State, w: u32, h: u32, x: i32, y: i32) -> Option<Target> {
-    if let Some(screen) = nav_geom::at(x, y) {
+    if let Some(screen) = nav_geom::at(w, x, y) {
         return Some(Target::Nav(screen));
     }
     let (sx, sy, sw, sh) = search::rect(w, state.screen);
     if x >= sx as i32 && x < (sx + sw) as i32 && y >= sy as i32 && y < (sy + sh) as i32 {
         return Some(Target::Search);
     }
-    if let Some(filter) = chips::at(state.screen, x, y) {
+    if let Some(filter) = chips::at(w, state.screen, x, y) {
         return Some(Target::Filter(filter));
     }
-    let inspector = state.screen.has_inspector();
+    let inspector = super::fit::inspector(state.screen, w);
     if inspector && x >= insp_geom::pane_x(w) as i32 {
-        let index = insp_geom::btn_at(w, h, x, y)?;
-        return Some(if index == 0 { Target::EndProcess } else { Target::ForceQuit });
+        return insp_geom::btn_at(w, h, x, y).then_some(Target::EndProcess);
     }
     let r = chrome::pane_rect(w, h, inspector);
     let x = x - r.x as i32;
@@ -67,7 +65,7 @@ pub fn at(state: &State, w: u32, h: u32, x: i32, y: i32) -> Option<Target> {
         return None;
     }
     match state.screen {
-        Screen::Overview => hit_pane::table(state, &r, &COLS_OVERVIEW, x, y),
+        Screen::Overview => hit_pane::overview(state, &r, x, y),
         Screen::Processes => hit_pane::table(state, &r, &COLS_FULL, x, y),
         Screen::Authority => hit_pane::matrix(state, &r, x, y),
         Screen::Security => hit_pane::finding(state, &r, y),

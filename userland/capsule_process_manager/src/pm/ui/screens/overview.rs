@@ -35,7 +35,12 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, r: &Rect) {
     ovw_cpu_mem::memory(state, fb, r.x + step, r.y, w);
     ovw_activity::paint(state, fb, r.x + step * 2, r.y, w);
     ovw_authority::paint(state, fb, r.x + step * 3, r.y, w);
+    table::paint(state, fb, &table_rect(r), &COLS_OVERVIEW);
+}
+
+/* The table sits under the cards. The hit test and the row budget read this
+ * same rect, so a click lands on the row drawn under the pointer. */
+pub fn table_rect(r: &Rect) -> Rect {
     let below = CARD_H + CARD_GAP;
-    let rect = Rect { x: r.x, y: r.y + below, w: r.w, h: r.h.saturating_sub(below) };
-    table::paint(state, fb, &rect, &COLS_OVERVIEW);
+    Rect { x: r.x, y: r.y + below, w: r.w, h: r.h.saturating_sub(below) }
 }

@@ -2,118 +2,81 @@
 
 ## Role
 
-`capsule_process_manager` is a real production application capsule built on
-`nonos_app_skeleton`. It is an observability surface that honestly reports the
-kernel debug syscall as `E_NOSYS` and exposes an input-driven refresh counter.
-The capsule keeps its own state, has no globals, and reads keyboard input
-through the toolkit. The capsule routes UI rendering through the toolkit IPC
-path rather than through any kernel UI code.
+`capsule_process_manager` is the desktop's Processes window,
+`app.process_manager`, a 1240 by 780 app on `nonos_app_skeleton`. It reads
+the kernel's process table with `mk_proc_stat` and shows CPU, memory,
+capabilities and state per process, with filtering, search, sorting and a
+security view, and it can end a process with `mk_kill`. The handbook page is
+[System apps and services](../../docs/handbook/apps/system-apps.md).
 
 ```text
-process manager app
+process manager (App trait)
     |
-    | UI frame request
-    v
-toolkit endpoint
-    |
-    `-- app event loop on app endpoint
+    | MkProcStat (table)        MkKill (pid, signal)
+    v                           v
+kernel process table          kernel, checks ProcessControl
 ```
 
 ## Microkernel contract
 
-The capsule uses the basic Mk surface that every app skeleton uses:
-
-- `MkIpcCall` sends a UI frame request to the toolkit endpoint.
-- `MkIpcRecv` receives application messages on the app endpoint.
-- `MkYield` backs off when no message is available.
-- `MkDebug` emits ownership and proof markers.
-- `MkExit` exits when the IPC surface is parked.
-
-The active spawn path is the standard `nonos_app_skeleton::run` entry point.
-
-## Interface contract
-
-| Call | Purpose |
-|---|---|
-| `MkIpcCall` to toolkit | request a UI frame through userland toolkit policy |
-| `MkIpcRecv` on app endpoint | receive app input messages |
-| `MkYield`, `MkDebug`, `MkExit` | cooperative loop and proof markers |
-
-The keyboard surface accepts a refresh key and Esc.
+- The window, input and frame loop come from `nonos_app_skeleton::run`.
+- `MkProcStat` reads every process's row (`src/pm/state/refresh.rs`). Because
+  the capsule holds ProcessControl, the kernel shows it every field of every
+  row; a caller without ProcessControl or AttestRead sees only identity and
+  state for processes other than itself (`src/syscall/microkernel/procstat_redact.rs`
+  in the kernel).
+- `MkKill` sends SIGTERM. Ending a process is one action, End Process in the
+  inspector or `k`, taken twice: the first press arms the exact pid, the
+  second sends it (`src/pm/state/kill.rs`). The kernel ends a process at once
+  for any signal it accepts (no capsule runs a handler), so there is no
+  separate force-quit. It lets a caller signal an unrelated pid only when it
+  holds ProcessControl or Admin, and the status strip says what it answered:
+  "ended", "denied by the kernel: no authority over that process", or that it
+  refused the request (`src/pm/state/notes.rs`).
 
 ## Authority
 
-The capsule keeps the narrow capability set defined by the app skeleton. It
-does not request kernel statistics authority, graphics, network, filesystem,
-device drivers, or direct framebuffer authority. The view shown to the user
-is the honest result of the kernel debug syscall, which is `E_NOSYS` today,
-plus a local counter of refresh events.
+`CAPSULE_REQUIRED_CAPS = 0x2001819`, and `CAPSULE_OPTIONAL_CAPS = 0x100`:
 
-## Privacy and persistence
+| Bit | Capability | Purpose |
+|---|---|---|
+| 0x0001 | CoreExec | run user code |
+| 0x0008 | IPC | window services |
+| 0x0010 | Memory | heap and window backing |
+| 0x0800, 0x1000 | GraphicsDisplayQuery, GraphicsSurfaceCreate | its window |
+| 0x2000000 | ProcessControl | read every row of the table, signal other processes |
+| 0x0100 | Debug (optional) | granted only by a `capsule-serial-debug` build; the capsule makes no debug call |
 
-The capsule keeps no profile, no settings, no telemetry, and no persistent
-state. The refresh counter and the last response disappear with the process.
-
-## Runtime lifecycle
-
-The capsule emits ownership markers, enters the app skeleton run loop, and
-processes input events through `MkIpcRecv` until the IPC surface is parked. On
-clean shutdown the runtime state is gone with the process.
-
-## Failure model
-
-Toolkit failure is observable through proof markers and never grants the
-capsule a fallback framebuffer path. The `E_NOSYS` response from the kernel
-debug syscall is shown verbatim; the capsule does not paper it over.
-
-## Current implemented surface
-
-- Source for the observability state, painter, theme, and event loop.
-- Honest reporting of the kernel debug syscall response.
-- Refresh counter driven by input events.
-- Runs above `nonos_app_skeleton` with toolkit-only UI.
-
-## Wire format
-
-Input messages arrive on the app endpoint as toolkit input events. UI requests
-go out on the toolkit endpoint.
-
-## State ownership
-
-The capsule owns the local response cache and the refresh counter. The toolkit
-owns rendering. The compositor owns scene and focus. The kernel owns no
-process manager state.
+Endpoints: `service:4736:app.process_manager`, reply `4737`. The kernel
+mirror is `src/userspace/capsule_process_manager`.
 
 ## Operating rules
 
-- Route UI through toolkit IPC only.
-- Do not request direct framebuffer authority.
-- Keep all app state volatile.
-- Do not introduce kernel UI exports for this app.
+- The manager refuses outright to end anything in `CRITICAL`
+  (`src/pm/critical.rs`), matched by the name the kernel gives each at spawn:
+  init, login, the keyring, the entropy and crypto pools, policy, the input
+  router, the VFS, `net.core`, the compositor, the window manager and the
+  desktop shell. It refuses to end its own window too, matched by pid, since
+  its service name is shared with its other windows, which may be ended.
+- With no findings the status strip says "NO FINDINGS", not that the system
+  is secure: the monitor checks that watched services keep running, that
+  nothing stays pinned at full cpu and that only init holds Admin.
+- CPU shares are whole percents, as the kernel reports them.
+- Every key it answers to is listed once, and both the dispatcher and the
+  help overlay walk that list.
+- An empty table says why: still reading, refused by the kernel, or nothing
+  matching the filter or search; a refused kill says so too
+  (`src/pm/state/notes.rs`).
 
-## Release target
+## Privacy and persistence
 
-The release version is a signed application capsule with `Capsule.mk`, signed
-manifest, feature gated spawn, toolkit only UI rendering, an explicit
-capability for whatever kernel statistics surface eventually exists, and
-validation evidence that process manager policy stays out of the kernel.
-
-## Release checklist
-
-- `Capsule.mk` and signed manifest exist.
-- Toolkit IPC validation passes.
-- Feature gated spawn is present.
-- Static gate confirms no kernel app UI exports.
-
-## Explicit non-goals today
-
-No production manifest, signed spawn path, persistent settings, real kernel
-statistics surface, network access, filesystem access, graphics driver access,
-or direct framebuffer authority belongs in this directory.
+All state is in memory: the last table, the rate samples and the view.
+Nothing is written anywhere.
 
 ## Verification
 
-- Build: `cargo build --manifest-path userland/capsule_process_manager/Cargo.toml`
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Promotion check: add `Capsule.mk`, manifest signing, feature gated spawn,
-  and validation evidence before claiming production app status.
+- Build: `make nonos-mk-process-manager`; sign:
+  `make nonos-mk-process-manager-sign`.
+- `userland/apps_proofs` includes `src/pm/state/notes.rs`, `src/pm/critical.rs`
+  and `src/pm/format.rs` and checks the empty-table and kill lines, which
+  processes are protected, and the percent text.

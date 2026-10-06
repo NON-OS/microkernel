@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::metrics::{INSPECTOR_PAD, INSPECTOR_W, INSP_BTN_BOTTOM, INSP_BTN_GAP, INSP_BTN_H};
+use super::metrics::{INSPECTOR_PAD, INSPECTOR_W, INSP_BTN_BOTTOM, INSP_BTN_H};
 
 pub fn pane_x(fb_w: u32) -> u32 {
     fb_w.saturating_sub(INSPECTOR_W)
@@ -28,19 +28,15 @@ pub fn content_w() -> u32 {
     INSPECTOR_W.saturating_sub(INSPECTOR_PAD * 2)
 }
 
-// The two actions stack up from the bottom of the pane, clear of the status
-// strip: index 0 is End Process, index 1 is Force Quit. The painter and the hit
-// test both read the rect from here rather than each deriving one, which is the
-// only reason a click cannot land on the button next to the one it looks at.
-pub fn btn(fb_w: u32, fb_h: u32, index: usize) -> (u32, u32, u32, u32) {
-    let last = fb_h.saturating_sub(INSP_BTN_BOTTOM + INSP_BTN_H);
-    let lift = if index == 0 { INSP_BTN_H + INSP_BTN_GAP } else { 0 };
-    (content_x(fb_w), last.saturating_sub(lift), content_w(), INSP_BTN_H)
+// The one action, End Process, sits at the bottom of the pane, clear of the
+// status strip. The painter and the hit test both read the rect from here
+// rather than each deriving one, so a click lands on what was drawn.
+pub fn btn(fb_w: u32, fb_h: u32) -> (u32, u32, u32, u32) {
+    let y = fb_h.saturating_sub(INSP_BTN_BOTTOM + INSP_BTN_H);
+    (content_x(fb_w), y, content_w(), INSP_BTN_H)
 }
 
-pub fn btn_at(fb_w: u32, fb_h: u32, x: i32, y: i32) -> Option<usize> {
-    (0..2).find(|i| {
-        let (bx, by, bw, bh) = btn(fb_w, fb_h, *i);
-        x >= bx as i32 && x < (bx + bw) as i32 && y >= by as i32 && y < (by + bh) as i32
-    })
+pub fn btn_at(fb_w: u32, fb_h: u32, x: i32, y: i32) -> bool {
+    let (bx, by, bw, bh) = btn(fb_w, fb_h);
+    x >= bx as i32 && x < (bx + bw) as i32 && y >= by as i32 && y < (by + bh) as i32
 }

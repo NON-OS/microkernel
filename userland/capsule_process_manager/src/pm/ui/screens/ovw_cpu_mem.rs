@@ -22,7 +22,7 @@
 use nonos_app_skeleton::PaintBuffer;
 use nonos_toolkit::icons::IconId;
 
-use crate::pm::format::{mem_human, pct_1dp};
+use crate::pm::format::{mem_human, percent};
 use crate::pm::state::State;
 
 use super::super::card;
@@ -31,7 +31,7 @@ use super::ovw_cards::{load_tint, meter, sub_n};
 pub(super) fn cpu(state: &State, fb: &mut PaintBuffer, x: u32, y: u32, w: u32) {
     let pct = state.sys.busy_pct.min(100);
     let mut buf = [0u8; 24];
-    let n = pct_1dp(pct, &mut buf);
+    let n = percent(pct, &mut buf);
     let mut sub = [0u8; 48];
     let mut s = sub_n(&mut sub, b"user ", state.sys.user_pct as u32, b"%");
     s = sub_n(&mut sub[s..], b"  sys ", state.sys.kernel_pct as u32, b"%") + s;
