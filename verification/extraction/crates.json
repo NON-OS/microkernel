@@ -42,7 +42,7 @@
       "lean": "Irq",
       "generated": "Irq.lean",
       "starts": [
-        "nonos_irq::irq::validate::validate_msix_request"
+        "nonos_irq::irq::validate::msix::validate_msix_request"
       ]
     },
     {

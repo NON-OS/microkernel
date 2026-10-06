@@ -14,8 +14,17 @@ set_option maxRecDepth 2048
 
 namespace nonos_x_i2c_types
 
+/-- [nonos_x_i2c_types::types::HidInterrupt]
+    Source: 'src/../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs', lines 19:0-26:1
+    Visibility: public -/
+@[discriminant isize]
+inductive types.HidInterrupt where
+| None : types.HidInterrupt
+| Gpio : Std.U16 → Bool → Bool → types.HidInterrupt
+| Apic : Std.U32 → Bool → Bool → types.HidInterrupt
+
 /-- [nonos_x_i2c_types::types::I2cHidDeviceType]
-    Source: 'src/../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs', lines 29:0-37:1
+    Source: 'src/../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs', lines 74:0-82:1
     Visibility: public -/
 @[discriminant isize]
 inductive types.I2cHidDeviceType where
@@ -28,19 +37,23 @@ inductive types.I2cHidDeviceType where
 | Sensor : types.I2cHidDeviceType
 
 /-- [nonos_x_i2c_types::types::I2cHidDevice]
-    Source: 'src/../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs', lines 18:0-26:1
+    Source: 'src/../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs', lines 34:0-59:1
     Visibility: public -/
 structure types.I2cHidDevice where
   hid : Array Std.U8 8#usize
   cid : Array Std.U8 8#usize
-  uid : Std.U32
-  i2c_address : Std.U8
-  hid_desc_address : Std.U16
-  interrupt_gpio : Std.U32
+  slave_addr : Std.U8
+  ten_bit : Bool
+  speed_hz : Std.U32
+  hid_desc_reg : Std.U16
+  desc_reg_from_dsm : Bool
+  controller : Array Std.U8 4#usize
+  gpio_controller : Array Std.U8 4#usize
+  interrupt : types.HidInterrupt
   device_type : types.I2cHidDeviceType
 
 /-- [nonos_x_i2c_types::types::{impl core::cmp::PartialEq<nonos_x_i2c_types::types::I2cHidDeviceType> for nonos_x_i2c_types::types::I2cHidDeviceType}::eq]:
-    Source: 'src/../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs', lines 28:29-28:38
+    Source: 'src/../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs', lines 73:29-73:38
     Visibility: public -/
 def types.I2cHidDeviceType.Insts.CoreCmpPartialEqI2cHidDeviceType.eq
   (self : types.I2cHidDeviceType) (other : types.I2cHidDeviceType) :
@@ -51,7 +64,7 @@ def types.I2cHidDeviceType.Insts.CoreCmpPartialEqI2cHidDeviceType.eq
   ok (self1 = other1)
 
 /-- [nonos_x_i2c_types::types::{nonos_x_i2c_types::types::I2cHidDevice}::is_touchpad]:
-    Source: 'src/../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs', lines 40:4-42:5
+    Source: 'src/../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs', lines 64:4-66:5
     Visibility: public -/
 def types.I2cHidDevice.is_touchpad
   (self : types.I2cHidDevice) : Result Bool := do
@@ -59,7 +72,7 @@ def types.I2cHidDevice.is_touchpad
     self.device_type types.I2cHidDeviceType.Touchpad
 
 /-- [nonos_x_i2c_types::types::{nonos_x_i2c_types::types::I2cHidDevice}::is_touchscreen]:
-    Source: 'src/../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs', lines 44:4-46:5
+    Source: 'src/../../../../../src/arch/x86_64/acpi/devices/i2c/types.rs', lines 68:4-70:5
     Visibility: public -/
 def types.I2cHidDevice.is_touchscreen
   (self : types.I2cHidDevice) : Result Bool := do

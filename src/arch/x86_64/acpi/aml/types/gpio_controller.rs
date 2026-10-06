@@ -38,9 +38,11 @@ pub struct GpioController {
     pub windows: [(u64, u64); GPIO_MAX_WINDOWS],
     pub window_count: usize,
     /// Sideband port ids of the communities, in the same order, for a PCH
-    /// whose `_CRS` patches its windows in at run time from SBREG_BAR; empty
-    /// when the windows are static.
-    pub pids: &'static [u8],
+    /// whose `_CRS` patches its windows in at run time from SBREG_BAR; none
+    /// when the windows are static. Held by value, so the record owns no
+    /// borrow and the extraction can take it.
+    pub pids: [u8; GPIO_MAX_WINDOWS],
+    pub pid_count: usize,
     /// The eight-byte `_HID` that matched.
     pub hid: [u8; 8],
 }
@@ -48,7 +50,8 @@ pub struct GpioController {
 impl GpioController {
     pub fn new(hid: [u8; 8]) -> Self {
         let windows = [(0, 0); GPIO_MAX_WINDOWS];
-        Self { name: [0; 4], uid: 0, windows, window_count: 0, pids: &[], hid }
+        let pids = [0; GPIO_MAX_WINDOWS];
+        Self { name: [0; 4], uid: 0, windows, window_count: 0, pids, pid_count: 0, hid }
     }
 
     /// Keep one window; false once the record is full.
@@ -61,6 +64,6 @@ impl GpioController {
 
     /// Usable once a window is known, or can be computed from the sideband.
     pub fn is_valid(&self) -> bool {
-        self.window_count > 0 || !self.pids.is_empty()
+        self.window_count > 0 || self.pid_count > 0
     }
 }

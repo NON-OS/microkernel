@@ -17,6 +17,25 @@ noncomputable section
 
 namespace nonos_x_sys_timer_tsc_convert
 
+/-- [core::convert::num::{impl core::convert::TryFrom<u128, core::num::error::TryFromIntError> for u64}::try_from]:
+    Source: '/rustc/library/core/src/convert/num.rs', lines 300:12-300:64
+    Name pattern: [core::convert::num::{core::convert::TryFrom<u64, u128, core::num::error::TryFromIntError>}::try_from]
+    Visibility: public -/
+@[rust_fun
+  "core::convert::num::{core::convert::TryFrom<u64, u128, core::num::error::TryFromIntError>}::try_from"]
+axiom U64.Insts.CoreConvertTryFromU128TryFromIntError.try_from
+  :
+  Std.U128 → Result (core.result.Result Std.U64
+    core.num.error.TryFromIntError)
+
+/-- [core::result::{core::result::Result<T, E>}::unwrap_or]:
+    Source: '/rustc/library/core/src/result.rs', lines 1590:4-1593:28
+    Name pattern: [core::result::{core::result::Result<@T, @E>}::unwrap_or]
+    Visibility: public -/
+@[rust_fun "core::result::{core::result::Result<@T, @E>}::unwrap_or"]
+axiom core.result.Result.unwrap_or
+  {T : Type} {E : Type} : core.result.Result T E → T → Result T
+
 /-- [core::sync::atomic::private::Align8]
     Source: '/rustc/library/core/src/sync/atomic.rs', lines 273:4-273:24
     Name pattern: [core::sync::atomic::private::Align8]
@@ -89,22 +108,30 @@ def sys.timer.tsc.convert.tsc_frequency : Result Std.U64 := do
 def tsc_frequency : Result Std.U64 := do
   sys.timer.tsc.convert.tsc_frequency
 
+/-- [nonos_x_sys_timer_tsc_convert::sys::timer::tsc::convert::scale]:
+    Source: 'src/sys/timer/tsc/../../../../../../../../src/sys/timer/tsc/convert.rs', lines 31:0-36:1 -/
+def sys.timer.tsc.convert.scale
+  (x : Std.U64) (mul : Std.U64) (div : Std.U64) : Result Std.U64 := do
+  if div = 0#u64
+  then ok 0#u64
+  else
+    let i ← lift (UScalar.cast .U128 x)
+    let i1 ← lift (UScalar.cast .U128 mul)
+    let i2 ← i * i1
+    let i3 ← lift (UScalar.cast .U128 div)
+    let i4 ← i2 / i3
+    let r ← U64.Insts.CoreConvertTryFromU128TryFromIntError.try_from i4
+    core.result.Result.unwrap_or r core.num.U64.MAX
+
 /-- [nonos_x_sys_timer_tsc_convert::sys::timer::tsc::convert::ticks_to_ns]:
-    Source: 'src/sys/timer/tsc/../../../../../../../../src/sys/timer/tsc/convert.rs', lines 25:0-32:1
+    Source: 'src/sys/timer/tsc/../../../../../../../../src/sys/timer/tsc/convert.rs', lines 38:0-40:1
     Visibility: public -/
 def sys.timer.tsc.convert.ticks_to_ns (ticks : Std.U64) : Result Std.U64 := do
   let a ← sys.timer.tsc.consts.TSC_FREQ_HZ
-  let freq ←
+  let i ←
     core.sync.atomic.AtomicU64Align8U64.load a
       core.sync.atomic.Ordering.Relaxed
-  if freq = 0#u64
-  then ok 0#u64
-  else
-    let i ← lift (UScalar.cast .U128 freq)
-    let ns_per_tick ← 1000000000#u128 / i
-    let i1 ← lift (UScalar.cast .U128 ticks)
-    let i2 ← i1 * ns_per_tick
-    ok (UScalar.cast .U64 i2)
+  sys.timer.tsc.convert.scale ticks 1000000000#u64 i
 
 /-- [nonos_x_sys_timer_tsc_convert::ticks_to_ns]:
     Source: 'src/lib.rs', lines 15:0-17:1
@@ -113,17 +140,14 @@ def ticks_to_ns (ticks : Std.U64) : Result Std.U64 := do
   sys.timer.tsc.convert.ticks_to_ns ticks
 
 /-- [nonos_x_sys_timer_tsc_convert::sys::timer::tsc::convert::ticks_to_us]:
-    Source: 'src/sys/timer/tsc/../../../../../../../../src/sys/timer/tsc/convert.rs', lines 34:0-40:1
+    Source: 'src/sys/timer/tsc/../../../../../../../../src/sys/timer/tsc/convert.rs', lines 42:0-44:1
     Visibility: public -/
 def sys.timer.tsc.convert.ticks_to_us (ticks : Std.U64) : Result Std.U64 := do
   let a ← sys.timer.tsc.consts.TSC_FREQ_HZ
-  let freq ←
+  let i ←
     core.sync.atomic.AtomicU64Align8U64.load a
       core.sync.atomic.Ordering.Relaxed
-  if freq = 0#u64
-  then ok 0#u64
-  else let i ← ticks * 1000000#u64
-       i / freq
+  sys.timer.tsc.convert.scale ticks 1000000#u64 i
 
 /-- [nonos_x_sys_timer_tsc_convert::ticks_to_us]:
     Source: 'src/lib.rs', lines 19:0-21:1
@@ -132,17 +156,14 @@ def ticks_to_us (ticks : Std.U64) : Result Std.U64 := do
   sys.timer.tsc.convert.ticks_to_us ticks
 
 /-- [nonos_x_sys_timer_tsc_convert::sys::timer::tsc::convert::ticks_to_ms]:
-    Source: 'src/sys/timer/tsc/../../../../../../../../src/sys/timer/tsc/convert.rs', lines 42:0-48:1
+    Source: 'src/sys/timer/tsc/../../../../../../../../src/sys/timer/tsc/convert.rs', lines 46:0-48:1
     Visibility: public -/
 def sys.timer.tsc.convert.ticks_to_ms (ticks : Std.U64) : Result Std.U64 := do
   let a ← sys.timer.tsc.consts.TSC_FREQ_HZ
-  let freq ←
+  let i ←
     core.sync.atomic.AtomicU64Align8U64.load a
       core.sync.atomic.Ordering.Relaxed
-  if freq = 0#u64
-  then ok 0#u64
-  else let i ← ticks * 1000#u64
-       i / freq
+  sys.timer.tsc.convert.scale ticks 1000#u64 i
 
 /-- [nonos_x_sys_timer_tsc_convert::ticks_to_ms]:
     Source: 'src/lib.rs', lines 23:0-25:1
@@ -151,15 +172,14 @@ def ticks_to_ms (ticks : Std.U64) : Result Std.U64 := do
   sys.timer.tsc.convert.ticks_to_ms ticks
 
 /-- [nonos_x_sys_timer_tsc_convert::sys::timer::tsc::convert::us_to_ticks]:
-    Source: 'src/sys/timer/tsc/../../../../../../../../src/sys/timer/tsc/convert.rs', lines 50:0-53:1
+    Source: 'src/sys/timer/tsc/../../../../../../../../src/sys/timer/tsc/convert.rs', lines 50:0-52:1
     Visibility: public -/
 def sys.timer.tsc.convert.us_to_ticks (us : Std.U64) : Result Std.U64 := do
   let a ← sys.timer.tsc.consts.TSC_FREQ_HZ
-  let freq ←
+  let i ←
     core.sync.atomic.AtomicU64Align8U64.load a
       core.sync.atomic.Ordering.Relaxed
-  let i ← freq * us
-  i / 1000000#u64
+  sys.timer.tsc.convert.scale us i 1000000#u64
 
 /-- [nonos_x_sys_timer_tsc_convert::us_to_ticks]:
     Source: 'src/lib.rs', lines 27:0-29:1
@@ -168,15 +188,14 @@ def us_to_ticks (us : Std.U64) : Result Std.U64 := do
   sys.timer.tsc.convert.us_to_ticks us
 
 /-- [nonos_x_sys_timer_tsc_convert::sys::timer::tsc::convert::ms_to_ticks]:
-    Source: 'src/sys/timer/tsc/../../../../../../../../src/sys/timer/tsc/convert.rs', lines 55:0-58:1
+    Source: 'src/sys/timer/tsc/../../../../../../../../src/sys/timer/tsc/convert.rs', lines 54:0-56:1
     Visibility: public -/
 def sys.timer.tsc.convert.ms_to_ticks (ms : Std.U64) : Result Std.U64 := do
   let a ← sys.timer.tsc.consts.TSC_FREQ_HZ
-  let freq ←
+  let i ←
     core.sync.atomic.AtomicU64Align8U64.load a
       core.sync.atomic.Ordering.Relaxed
-  let i ← freq * ms
-  i / 1000#u64
+  sys.timer.tsc.convert.scale ms i 1000#u64
 
 /-- [nonos_x_sys_timer_tsc_convert::ms_to_ticks]:
     Source: 'src/lib.rs', lines 31:0-33:1
