@@ -1,0 +1,31 @@
+# The verified kernel: pure functions, no dependencies, written to be extracted.
+#
+# Charon and Aeneas translate Rust into Lean, and what they translate well is
+# narrow: explicit loops over indices, fixed size arrays, integer arithmetic,
+# no closures, no iterators, no allocation. The rest of this workspace is not
+# written that way and should not be, so the code that carries a machine
+# checked proof lives here and the core calls it.
+[package]
+name = "nox_verified"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+publish = false
+
+[dependencies]
+
+[lints.clippy]
+# Every fallible step is a match rather than the question mark operator or a
+# combinator: the match translates to a case split a proof can follow, the
+# operator to a trait call it cannot.
+question_mark = "allow"
+manual_map = "allow"
+# Comparisons and remainders translate; the library methods that would
+# replace them do not.
+manual_range_contains = "allow"
+manual_is_multiple_of = "allow"
+arithmetic_side_effects = "deny"
+indexing_slicing = "deny"
+panic = "deny"
+unwrap_used = "deny"
+expect_used = "deny"
