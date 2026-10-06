@@ -89,3 +89,24 @@ git log -300 --format=%s | grep -c '\[skip ci\]'
 On this release's history the command prints 300: every one of the latest 300 commits carries it, so by GitHub's rule no push workflow ran on them. For those commits the record of the checks is a local run of the flake checks, and the run below is that record for this commit.
 
 `cut-release` refuses to tag a commit with a completed check run that did not succeed, and counts nothing else, so a commit on which no workflow ran passes that test (`verdict`, `.github/workflows/cut-release.yml:40-54`).
+
+## State of the checks at this commit
+
+The flake checks of this commit were built on one x86_64-linux machine for this release, the same set `make check` builds. Of the 143 checks, 142 evaluated, 133 passed, 9 failed, and 1 did not evaluate. The 110 proof crates that passed ran 6,932 tests.
+
+| check | state | why |
+|---|---|---|
+| `proofs-rtl8169_proofs` | failed | its tests passed; clippy then refused a hand-written `div_ceil` near `leading_zeros` in `userland/capsule_driver_rtl8169/src/log/line.rs:41` |
+| `proofs-usb_msc_proofs` | failed | clippy asks for a `Default` beside the `new` in `userland/capsule_driver_usb_msc/src/state/types.rs:38` |
+| `proofs-xhci_proofs` | failed | clippy refuses two assertions in its tests, in `userland/xhci_proofs/src/conformance/silicon_tests.rs` and `userland/xhci_proofs/src/event_ring/address_tests.rs` |
+| `static-hygiene` | failed | `scripts/check_stubs.py` counts 15 new admissions of unsupported work against its baseline |
+| `static-abi` | failed | `scripts/check_prebuilt.py` finds two binaries it cannot classify: the market index and the model catalogue under `nonos-data/` |
+| `static-tree` | failed | `nonos-ci/run-static-checks.sh` refuses the `read` and `write` imports in `userland/capsule_driver_ahci/src/server/handlers/emmc/dispatch.rs:29` |
+| `inputs` | failed | `tools/nix/inputs.json` did not match what the checked tree reads for `userland/capsule_market`, `userland/capsule_model_fetch` and `userland/model_fetch_proofs` |
+| `nonos-verify` | failed | `nonos-verify hygiene` failed, and the end of its log does not say why |
+| `busybox-source` | failed | it did not run: the machine running the checks could not download the pinned Zig compiler |
+| `proofs-model_fetch_proofs` | did not evaluate | its derivation did not evaluate; `crate` computes its source from its entry in `tools/nix/inputs.json` (`crate`, `tools/nix/src.nix:22-34`) |
+
+The `inputs` failure and the missing proof check concern the same three crates, and the committed entry of each names `.keys/marketplace_operator_ed25519.pub`, the market operator's public key. In a tree without that file, `crate` cannot build the source of these crates and the regenerated table no longer matches, which gives exactly these two results. They may therefore come from the tree the checks ran on rather than from the commit; a run on a full checkout is not tested in this release.
+
+Every other check passed, among them all six `kernel-profile-*` and all six `kernel-features-*` checks, both live TPM suites, and the `starks-pin`, `git-pins`, `catalogues` and `rust-src-lock` drift checks. No workflow run of this commit on GitHub is recorded here.
