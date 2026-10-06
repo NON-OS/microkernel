@@ -58,3 +58,24 @@ The dock sits at the bottom of the screen. It holds fifteen app tiles and, last,
 - A click on a tile raises the app's window, restoring it if it was minimised. If the app has no window, a new one opens and a notice says `opening a new window`.
 - If nothing opens, a notice names the app and the reason, for example `did not open: no window in 30 s`, or `turned off at setup` for an app turned off during first-boot setup (`userland/capsule_desktop_shell/src/state/says.rs`).
 - While a full-screen window is up, the dock is hidden. Touch the bottom edge of the screen with the pointer to bring it back over the window. It hides again when the pointer leaves it. A click on the brand shows it for 1.8 seconds (`BRAND_REVEAL_MS` in `userland/capsule_desktop_shell/src/state/taskbar/dock_rule.rs`).
+
+## The Launchpad
+
+The Launchpad is a full-screen grid of everything you can start. Open it with the Launchpad button at the end of the dock, with `View` then `Show Launchpad`, or with the magnifier on the menu bar.
+
+- Type to filter the tiles. `Enter` starts the first tile left. `Backspace` erases. `Ctrl+V` pastes the first line of the clipboard into the search.
+- `Esc` clears the search, and a second `Esc` closes the Launchpad. A click on empty space closes it too.
+- The mouse wheel, or the dots, turn the pages.
+
+There are four kinds of tile (`userland/capsule_desktop_shell/src/server/handlers/launchpad.rs`):
+
+- An app opens its window.
+- A tool opens the [Terminal](terminal.md) with the tool's command line. `pastel` runs at once; every other tool is typed at the prompt with the cursor after it, ready for its arguments.
+- An installed program asks for your consent before it runs.
+- A `.nonos` package file waiting in `/pkgs` shows what it holds and asks you to confirm its install (`userland/capsule_desktop_shell/src/server/handlers/pkg_install.rs`).
+
+![The Launchpad: a grid of app tiles and command-line tool tiles](../../screenshots/launchpad.png)
+
+This screenshot does not show this commit either. It has no search field, it shows `Clock` and `choose` tiles that this commit does not have and other names for two media apps, and it has no Marketplace, Qwen, Video or Install tile. The tables on this page are the ones in the code.
+
+Search matches the names of all four kinds of tile, in any case (`rebuild` in `userland/capsule_desktop_shell/src/render/launchpad/view.rs`). It does not search files: use the search in [Files](files.md) for that.
