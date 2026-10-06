@@ -86,3 +86,7 @@ The page-fault `handle` first tries to resolve the fault, such as a page mapped 
 A kernel general protection fault prints its own `[PANIC GP]` line with the selector from the error code, through a local `emit_fatal_notice` (`src/interrupts/handlers/exceptions/gpf.rs:75-86`). A double fault uses `emit_fatal_notice_nolock`, which writes without taking the console lock, since the interrupted code may hold it (`src/interrupts/handlers/exceptions/double_fault.rs:27`).
 
 This path writes to the serial console only. It does not paint the panel and does not signal the other CPUs, so on a machine without a serial port nothing new appears on the panel and the CPU that faulted stops.
+
+## Kernel heap exhausted
+
+When the kernel heap cannot satisfy an allocation, `alloc_error_handler` calls `handle_oom` (`src/lib.rs:52-56`). `handle_oom` prints `[OOM] ALLOCATION FAILED` with the requested size and alignment, dumps the memory-map and surface accounting, prints `[OOM] System halted`, writes `OOM: Memory allocation failed - system halted` to VGA text memory, and halts that CPU (`src/entry/oom.rs:46-63`). The module forbids allocation on this path, which is why `handle_oom` prints the size through the console's own `print_dec` and not the formatter (`src/entry/oom.rs:46-53`). The heap is the 64 MiB described on [memory and paging](memory-and-paging.md).
