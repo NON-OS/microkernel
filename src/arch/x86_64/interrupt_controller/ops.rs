@@ -40,14 +40,20 @@ pub fn send_ipi(target: u32, ipi: Ipi) -> Result<(), ()> {
     if !apic::state::is_initialized() {
         return Err(());
     }
-    apic::ipi_one(target, vector_of(ipi));
-    Ok(())
+    if apic::ipi_one(target, vector_of(ipi)) {
+        Ok(())
+    } else {
+        Err(())
+    }
 }
 
 pub fn broadcast_ipi(ipi: Ipi) -> Result<(), ()> {
     if !apic::state::is_initialized() {
         return Err(());
     }
-    apic::ipi_others(vector_of(ipi));
-    Ok(())
+    if apic::ipi_others(vector_of(ipi)) {
+        Ok(())
+    } else {
+        Err(())
+    }
 }
