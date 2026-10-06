@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# The virtio 1.0 PCI transport the virtio driver capsules share: capability
+# parsing, the transport choice, feature negotiation, queue programming and
+# the notify address, as pure functions over a config-space snapshot and a
+# register trait, plus bounds-checked volatile accessors for the mapped
+# regions. No dependencies, so userland/virtio_transport_proofs runs the same
+# source under `cargo test`.
+[package]
+name = "nonos_virtio"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
