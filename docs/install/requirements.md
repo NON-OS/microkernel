@@ -58,3 +58,7 @@ The sizes are `USB_MB`, `STICK_TIER` and `GPT_TAIL` in `tools/nonos_seal/media.p
 - The whole disk. The installer replaces everything on it, whatever it holds.
 
 Which controllers and chips have drivers, and what has been seen working, is in the [hardware support matrix](../hardware/MATRIX.md).
+
+## Network
+
+A network is optional: setup's default is no network at all. Setup can join Wi-Fi through two drivers (`userland/nonos_wifi_client/src/driver/services.rs`, [Wi-Fi drivers](../drivers/wifi/README.md)): the Realtek RTL8821CE driver, PCI id 10ec:c821 (`userland/capsule_driver_rtl8821ce/src/constants/mod.rs`), and the Intel iwlwifi driver, which takes more Intel cards than it can join on: on the others it reports `card not supported yet` (`userland/nonos_wifi_client/src/driver/stage.rs`, [iwlwifi](../drivers/wifi/iwlwifi.md)). NONOS 0.9.2 has no USB Wi-Fi driver. A wired card served by the e1000, RTL8169, RTL8139 or virtio-net driver is used as soon as a cable is plugged in (`userland/capsule_setup_wizard/src/network/wired.rs`).
