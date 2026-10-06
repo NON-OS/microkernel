@@ -72,3 +72,11 @@ The band a [capsule](../overview/glossary.md#capsule) starts in comes from `for_
 The `init` process starts in `High` and drops to `Low` with `lower_init_priority` once it has spawned the system (`src/userspace/init/entry.rs:170-179`).
 
 `band_choice` is compiled into the `kernel_proofs` [proof crate](../overview/glossary.md#proof-crate), which holds it to the band-by-band scan it replaced (`userland/kernel_proofs/src/sched_pick/mod.rs:22-23`). That crate passes on this commit.
+
+## How work spreads across CPUs
+
+There are no per-CPU run queues and there is no separate balancer. Every CPU takes work from the same queue, so an idle CPU picks up whatever is runnable.
+
+When a pid is queued, `wake_for` tells the CPU that still holds it with a reschedule interrupt, or, if no CPU holds it, wakes one idle CPU (`src/process/scheduler/selection/on_cpu_wake.rs:38-65`). `wake_idle_cpu` wakes at most one, not all (`src/smp/ipi_handler.rs:39-58`). On a hybrid Intel part, `wake_pass` offers the work to an idle performance core before an efficiency core (`src/smp/topology/core_kind.rs:61-70`).
+
+An idle AP runs `ap_idle_loop`: with interrupts masked it marks itself idle, checks the queue and halts only if it is empty, so work queued in between is never missed (`src/smp/ap/idle.rs:29-63`). `take_work` claims a pid and switches to it (`src/smp/ap/idle_steps.rs:35-47`). From then on that CPU schedules the same way the boot CPU does.
