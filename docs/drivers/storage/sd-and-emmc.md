@@ -70,3 +70,11 @@ It is not in the image. The driver capsules the build includes are listed in `mk
 ## USB card readers
 
 A USB card reader is a USB mass-storage device. `driver.usb_msc0` serves the first logical unit that has a card in it (`userland/capsule_driver_usb_msc/src/scan/probe.rs:80-91`, `max_lun`). An empty slot that is not the reader's last unit is given up at once rather than waited on (`userland/capsule_driver_usb_msc/src/disk/ready.rs:51-58`, `unit_ready`). See [USB mass storage](usb-mass-storage.md).
+
+## See also
+
+- [Storage drivers](README.md)
+- [AHCI and Intel RST](ahci-and-rst.md)
+- [USB mass storage](usb-mass-storage.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
+- [Report a machine](../../hardware/report.md)
