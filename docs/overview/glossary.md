@@ -103,3 +103,7 @@ Memory the hardware broker reserves for DMA buffers: a low pool below 4 GiB for 
 ## Driver capsule
 
 A capsule, built from a `userland/capsule_driver_*` crate, that drives one kind of device from ring 3. It reaches its device only through grants from the hardware broker and serves it to other capsules over IPC. The tree has 27 driver crates, and 18 of them are built into images in this release. Explained in [Writing a driver](../drivers/writing-a-driver.md). Code: `mk/20-build.mk`, `userland/capsule_driver_virtio_rng/Capsule.mk`.
+
+## Endpoint
+
+A named IPC address with a port. A capsule's manifest declares its service endpoint, which others send to, and its reply endpoint; the kernel's service registry records each with the pid that serves it and the capability bits a sender must hold. Explained in [IPC](../kernel/ipc.md#the-model). Code: `src/services/registry/endpoint.rs`, `src/security/capsule_manifest/schema/endpoint.rs`.
