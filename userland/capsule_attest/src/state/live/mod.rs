@@ -23,15 +23,17 @@
 //! regranted, and it was served under the word "proof". A proof service whose
 //! evidence is a literal is worse than none, because the caller cannot tell.
 //!
-//! `MkProcStat` needs no capability, so reading it keeps this capsule's mask at
-//! CoreExec | IPC | Memory. That matters: an attestation service that had to be
-//! trusted with more authority in order to report on authority would be
-//! answering its own question.
+//! Any token may call `MkProcStat`, but the kernel shows other processes'
+//! capability masks only to a holder of AttestRead or ProcessControl, so this
+//! capsule holds AttestRead beside IPC and Memory (`Capsule.mk`). It reads
+//! masks; it cannot change them.
 
 mod caps;
+mod identity;
 mod read;
 mod types;
 
 pub use caps::{CAP_ADMIN, CAP_DEBUG};
+pub use identity::identity;
 pub use read::snapshot;
 pub use types::Snapshot;

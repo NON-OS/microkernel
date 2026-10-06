@@ -17,6 +17,7 @@
 use alloc::vec;
 
 use nonos_libc::{mk_ipc_recv_from, mk_ipc_reply, mk_yield};
+use nonos_route_proof::Board;
 
 use super::handlers::route;
 use crate::protocol::IPC_PAYLOAD_MAX;
@@ -27,6 +28,7 @@ const RECV_TIMEOUT_MS: u64 = 0;
 pub fn run() -> ! {
     let mut in_buf = vec![0u8; IPC_PAYLOAD_MAX];
     let mut out_buf = vec![0u8; IPC_PAYLOAD_MAX];
+    let mut board = Board::new();
     loop {
         let mut sender_pid = 0u32;
         let received = mk_ipc_recv_from(
@@ -40,7 +42,7 @@ pub fn run() -> ! {
             mk_yield();
             continue;
         }
-        let n = route(&in_buf[..received as usize], &mut out_buf);
+        let n = route(&in_buf[..received as usize], &mut out_buf, sender_pid, &mut board);
         if n > 0 {
             let _ = mk_ipc_reply(sender_pid, out_buf.as_ptr(), n);
         }

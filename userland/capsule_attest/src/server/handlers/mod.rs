@@ -18,8 +18,10 @@ mod health;
 mod proof_boot;
 mod proof_capsule_list;
 mod proof_invariants;
+mod proof_route;
 mod proof_summary;
 mod proof_verdict;
+mod route_report;
 mod router;
 
 pub use router::route;

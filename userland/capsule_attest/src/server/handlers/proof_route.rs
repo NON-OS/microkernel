@@ -14,9 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const E_PERM: i32 = -1;
-pub const E_INVAL: i32 = -22;
-pub const E_BAD_OP: i32 = -38;
-pub const E_BAD_MAGIC: i32 = -71;
-pub const E_BAD_LEN: i32 = -90;
-pub const E_BAD_VERSION: i32 = -93;
+//! Each transport's latest route report, with its age on this board's clock.
+//! Reports name no relay, gateway or key, so any caller may read them.
+
+use nonos_route_proof::{Board, ANSWER_LEN};
+
+use crate::protocol::{Request, E_INVAL, HDR_LEN, STATUS_LEN};
+use crate::server::respond;
+
+pub fn run(out: &mut [u8], req: &Request, board: &Board) -> usize {
+    let dst = HDR_LEN + STATUS_LEN;
+    if dst + ANSWER_LEN > out.len() {
+        return respond::status(out, req, E_INVAL);
+    }
+    let now = nonos_libc::mk_time_millis().max(0) as u64;
+    out[dst..dst + ANSWER_LEN].copy_from_slice(&board.answer(now));
+    respond::with_payload(out, req, 0, ANSWER_LEN)
+}

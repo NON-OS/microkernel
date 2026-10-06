@@ -19,3 +19,7 @@ pub const OP_PROOF_SUMMARY: u16 = 0x0002;
 pub const OP_PROOF_INVARIANTS: u16 = 0x0003;
 pub const OP_PROOF_BOOT: u16 = 0x0004;
 pub const OP_PROOF_CAPSULE_LIST: u16 = 0x0005;
+/// From net.nym or net.anon only: the transport's latest route report.
+pub const OP_ROUTE_REPORT: u16 = 0x0006;
+/// The latest report from each transport, with its age. Anyone may ask.
+pub const OP_PROOF_ROUTE: u16 = 0x0007;
