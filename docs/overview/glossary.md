@@ -11,3 +11,7 @@ Terms are in alphabetical order. Where two names mean one thing, one entry carri
 ## Anyone network
 
 The Anyone onion network, route value `ANYONE`, which puts three relays between this machine and the site and is reached through `net.anon`. App installs, Linux package installs and Qwen model downloads take it whatever the default network is; `qwen get --direct` sends one model download directly instead. Explained in [Privacy networks](../using/privacy-network.md). Code: `userland/nonos_route_link/src/chosen.rs`, `userland/capsule_model_fetch/src/get/offer.rs`.
+
+## Application processor
+
+Any CPU other than the boot CPU. On x86_64 the boot CPU starts each one in the last stage of kernel init, with INIT and two STARTUP interrupts through a real-mode trampoline at physical 0x8000. Explained in [Scheduler and SMP](../kernel/scheduler-and-smp.md). Code: `src/smp/init/ap_unit.rs`.
