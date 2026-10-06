@@ -75,3 +75,25 @@ fn port_statistics_totals_saturate() {
     };
     assert_eq!(small.total_ops(), 10);
 }
+
+/*
+ * The IOAPIC owning a GSI is found by base, not by assuming 24 inputs per
+ * chip: Gemini Lake's single IOAPIC has 120, and GSIs above 23 (its I2C and
+ * GPIO controllers) were reported as belonging to no IOAPIC.
+ */
+#[test]
+fn a_gsi_above_23_belongs_to_the_ioapic_below_it() {
+    use super::ioapic::{owner_of_gsi, IoApicInfo};
+    let one = [IoApicInfo { id: 2, address: 0xFEC0_0000, gsi_base: 0 }];
+    assert_eq!(owner_of_gsi(&one, 9).map(|i| i.id), Some(2));
+    assert_eq!(owner_of_gsi(&one, 119).map(|i| i.id), Some(2));
+    let two = [
+        IoApicInfo { id: 9, address: 0xFEC0_1000, gsi_base: 24 },
+        IoApicInfo { id: 8, address: 0xFEC0_0000, gsi_base: 0 },
+    ];
+    assert_eq!(owner_of_gsi(&two, 23).map(|i| i.id), Some(8));
+    assert_eq!(owner_of_gsi(&two, 24).map(|i| i.id), Some(9));
+    assert_eq!(owner_of_gsi(&two, 55).map(|i| i.id), Some(9));
+    let high = [IoApicInfo { id: 1, address: 0xFEC0_0000, gsi_base: 32 }];
+    assert!(owner_of_gsi(&high, 4).is_none());
+}

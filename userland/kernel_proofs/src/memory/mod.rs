@@ -16,4 +16,6 @@
 
 // Mirrors the kernel `crate::memory` parent for the included paging source.
 pub mod align;
+pub mod iommu;
 pub mod paging;
+pub mod phys;
