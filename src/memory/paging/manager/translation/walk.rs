@@ -29,7 +29,11 @@ impl PagingManager {
         let l2_idx = pd_index(va_val);
         let l1_idx = pt_index(va_val);
         let offset = page_offset(va_val);
-        let cr3 = self.active_page_table.ok_or(PagingError::NoActivePageTable)?;
+        // This cpu's CR3; the manager's record is whichever cpu loaded one last.
+        let cr3 = Some(crate::arch::paging::read_root() & !0xFFF).filter(|&r| r != 0);
+        let cr3 = PhysAddr::new(cr3.ok_or(PagingError::NoActivePageTable)?);
+        // SAFETY: eK@nonos.systems - every table address comes from CR3 or a
+        // present entry, and the directmap maps all physical memory.
         unsafe {
             let l4_table =
                 &*((layout::DIRECTMAP_BASE + cr3.as_u64()) as *const [u64; PAGE_TABLE_ENTRIES]);

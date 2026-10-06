@@ -19,7 +19,11 @@ use crate::memory::paging::types::PagingStats;
 use core::sync::atomic::Ordering;
 
 impl PagingStatistics {
-    pub fn snapshot(&self, mappings_count: usize, address_spaces_count: usize) -> PagingStats {
+    pub(crate) fn snapshot(
+        &self,
+        mappings_count: usize,
+        address_spaces_count: usize,
+    ) -> PagingStats {
         PagingStats {
             total_mappings: mappings_count,
             address_spaces: address_spaces_count,
@@ -32,15 +36,5 @@ impl PagingStatistics {
             kernel_pages: self.kernel_pages.load(Ordering::Relaxed),
             page_modifications: self.page_modifications.load(Ordering::Relaxed),
         }
-    }
-
-    pub fn total_mappings(&self) -> usize {
-        self.total_mappings.load(Ordering::Relaxed)
-    }
-    pub fn page_faults(&self) -> u64 {
-        self.page_faults.load(Ordering::Relaxed)
-    }
-    pub fn tlb_flushes(&self) -> u64 {
-        self.tlb_flushes.load(Ordering::Relaxed)
     }
 }

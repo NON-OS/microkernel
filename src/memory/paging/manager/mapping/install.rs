@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::super::core::PagingManager;
-use super::super::shootdown::flush_tlb_one_smp;
+use super::super::pending_flush::PendingFlush;
 use super::super::tlb_scope::mutation_asid;
 use super::tables::{alloc_table, table_at};
 use crate::arch::paging::descriptor;
@@ -34,7 +34,7 @@ impl PagingManager {
         va: VirtAddr,
         pa: PhysAddr,
         flags: u64,
-    ) -> PagingResult<()> {
+    ) -> PagingResult<PendingFlush> {
         let va_val = va.as_u64();
         let (l4_idx, l3_idx, l2_idx, l1_idx) =
             (pml4_index(va_val), pdpt_index(va_val), pd_index(va_val), pt_index(va_val));
@@ -42,7 +42,7 @@ impl PagingManager {
         let cr3 = PhysAddr::new(read_cr3() & CR3_FRAME_MASK);
         // SAFETY: eK@nonos.systems - cr3 is the running root, and page
         // tables are reached through the directmap.
-        unsafe {
+        let replaced = unsafe {
             let l4 = &mut *table_at(cr3);
             if !pte_is_present(l4[l4_idx]) {
                 alloc_table(&mut l4[l4_idx])?;
@@ -56,10 +56,15 @@ impl PagingManager {
                 alloc_table(&mut l2[l2_idx])?;
             }
             let l1 = &mut *table_at(PhysAddr::new(pte_address(l2[l2_idx])));
+            let old = l1[l1_idx];
             l1[l1_idx] = descriptor::leaf(pa.as_u64(), flags);
-        }
+            pte_is_present(old)
+        };
+        /*
+         * Paid by the caller once the manager lock is released; nothing
+         * remote is owed when the entry was absent (`after_install`).
+         */
         let asid = mutation_asid(va, Some(crate::smp::percpu::active_asid()));
-        flush_tlb_one_smp(va, asid);
-        Ok(())
+        Ok(PendingFlush::after_install(va, asid, replaced))
     }
 }

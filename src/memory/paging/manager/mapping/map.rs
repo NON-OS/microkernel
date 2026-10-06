@@ -17,20 +17,23 @@
 use crate::memory::addr::{PhysAddr, VirtAddr};
 
 use super::super::core::PagingManager;
+use super::super::pending_flush::PendingFlush;
 use crate::memory::paging::constants::page_align_down;
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::stats::PagingStatistics;
 use crate::memory::paging::types::{PageMapping, PagePermissions, PageSize};
 
 impl PagingManager {
-    pub fn map_page(
+    /// Install a leaf. The invalidation it owes comes back to the caller,
+    /// which commits it after releasing the manager lock.
+    pub(in crate::memory::paging::manager) fn map_page(
         &mut self,
         virtual_addr: VirtAddr,
         physical_addr: PhysAddr,
         permissions: PagePermissions,
         size: PageSize,
         stats: &PagingStatistics,
-    ) -> PagingResult<()> {
+    ) -> PagingResult<PendingFlush> {
         if !self.initialized {
             return Err(PagingError::NotInitialized);
         }
@@ -40,7 +43,7 @@ impl PagingManager {
         }
 
         let pte_flags = permissions.to_pte_flags();
-        self.install_mapping(virtual_addr, physical_addr, pte_flags)?;
+        let flush = self.install_mapping(virtual_addr, physical_addr, pte_flags)?;
 
         let mapping = PageMapping::new(virtual_addr, physical_addr, size, permissions);
         let page_addr = page_align_down(virtual_addr.as_u64());
@@ -48,6 +51,6 @@ impl PagingManager {
 
         stats.record_mapping(permissions, size);
 
-        Ok(())
+        Ok(flush)
     }
 }

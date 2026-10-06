@@ -41,25 +41,41 @@ fn table_at(phys: u64) -> *mut [u64; PAGE_TABLE_ENTRIES] {
 // SAFETY: ek@nonos.systems — `table_phys` was the address of a
 // 4 KiB page-table page allocated by this manager and unreachable
 // from any active CR3 by the time `teardown_user_half` runs.
-unsafe fn free_subtree(table_phys: u64, level: u8) {
+/*
+ * `keep` is sorted: leaf frames another process still uses (shared surface
+ * frames), left allocated for their other holder to free.
+ */
+unsafe fn free_subtree(table_phys: u64, level: u8, keep: &[PhysAddr], base_va: u64) {
     let table = unsafe { &mut *table_at(table_phys) };
-    for entry in table.iter_mut() {
+    // Bytes one entry spans at this level: 4 KiB, 2 MiB, 1 GiB, 512 GiB.
+    let span = 1u64 << (12 + 9 * (level as u64 - 1));
+    for (i, entry) in table.iter_mut().enumerate() {
         let value = *entry;
         if !pte_is_present(value) {
             continue;
         }
+        let va = base_va + i as u64 * span;
         let next_phys = pte_address(value);
         if level == 1 || pte_is_huge(value) {
-            let _ = frame_alloc::deallocate_frame(PhysAddr::new(next_phys));
+            let kept = level == 1 && keep.binary_search_by_key(&next_phys, |f| f.as_u64()).is_ok();
+            // A device register page or DMA buffer is the broker's: it scrubs
+            // and frees those itself when it releases the grant, on whichever
+            // CPU handled the exit. Freed here as well, a DMA frame was put on
+            // the RAM free list twice and a register page was zeroed through
+            // the directmap, while other drivers' rings already lived there.
+            let device = crate::hardware::broker::touches_device_window(va, span);
+            if !kept && !device {
+                let _ = frame_alloc::deallocate_frame(PhysAddr::new(next_phys));
+            }
         } else {
-            unsafe { free_subtree(next_phys, level - 1) };
+            unsafe { free_subtree(next_phys, level - 1, keep, va) };
             let _ = frame_alloc::deallocate_frame(PhysAddr::new(next_phys));
         }
         *entry = 0;
     }
 }
 
-pub(super) fn teardown_user_half(cr3_value: PhysAddr) {
+pub(super) fn teardown_user_half(cr3_value: PhysAddr, keep: &[PhysAddr]) {
     // SAFETY: same precondition as `free_subtree`. The PML4 frame
     // is owned by this manager.
     unsafe {
@@ -70,7 +86,7 @@ pub(super) fn teardown_user_half(cr3_value: PhysAddr) {
                 continue;
             }
             let pdpt_phys = pte_address(value);
-            free_subtree(pdpt_phys, 3);
+            free_subtree(pdpt_phys, 3, keep, i as u64 * (1u64 << 39));
             let _ = frame_alloc::deallocate_frame(PhysAddr::new(pdpt_phys));
             pml4[i] = 0;
         }
