@@ -56,3 +56,11 @@ It then reads the size with READ CAPACITY(10), and asks READ CAPACITY(16) of a d
 - A flush is SYNCHRONIZE CACHE(10). A device that answers ILLEGAL REQUEST has no cache to flush, and that counts as done (`userland/capsule_driver_usb_msc/src/disk/ready.rs:121-132`, `sync_cache`).
 
 Two habits of real devices that the Bulk-Only specification does not allow are accepted: a zero-length packet before the CSW, and a CSW sent in place of a data phase the device skipped. A transport that loses its phase is reset with Bulk-Only reset recovery (`userland/capsule_driver_usb_msc/src/disk/bot.rs:20-30`, `reset_recovery`).
+
+## Access
+
+The block surface answers the kernel's client alone, which arrives as sender pid 0. Every other sender gets `E_ACCES`, so the medium is written only through the kernel block layer (`userland/capsule_driver_usb_msc/src/server/handlers/block.rs:17-43`, `E_ACCES`). The installer therefore cannot install to a USB disk: its block client knows only the NVMe, SATA and virtio-blk drivers; see [Storage drivers](README.md#the-installers-disk-list).
+
+When a stick carries NONOS, the block layer asks it before any internal disk, so a live boot keeps its state on the stick; see [Storage drivers](README.md#how-a-disk-becomes-the-nonos-disk).
+
+The driver has no Debug capability, so bulk payloads stay off the console (`src/userspace/capsule_driver_usb_msc/spawn.rs:51-53`, `requested_caps`). The kernel says where the driver's search stands in one `[USB-MSC]` line, read from the driver's state reply (`src/hardware/usb_msc_capsule/report.rs:18-38`, `report_line`).
