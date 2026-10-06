@@ -104,3 +104,32 @@ pub unsafe extern "C" fn _start() -> ! {
 ```
 
 No device means `EXIT_ABSENT` (2) at once. A device that fails seven attempts means `EXIT_GAVE_UP` (6). After bring-up the driver asks for one `fill` and exits 3 if it fails or 4 if every byte is zero (`userland/capsule_driver_virtio_rng/src/main.rs:59-77`). Thirteen of the drivers call `start_driver` instead, which does the discovery check and the schedule in one call (`userland/libc/src/bringup/run.rs:52-62`).
+
+## 5. One attempt
+
+`setup::run` is one bring-up attempt, and the rule written above `run` is that a failed attempt holds nothing afterwards (`userland/capsule_driver_virtio_rng/src/setup/sequence.rs:27-46`):
+
+```rust
+/// One bring-up attempt. A failed one holds nothing afterwards.
+pub fn run() -> Result<Driver, &'static str> {
+    let dev = find_virtio_rng().ok_or("no virtio-rng device")?;
+
+    let claim_epoch = claim::claim(dev.device_id)?;
+
+    let attempt = claimed(dev, claim_epoch);
+    if attempt.is_err() {
+        /*
+         * Whichever step failed, the claim goes, and every MMIO, PIO and
+         * DMA grant with it, so the next attempt can claim afresh. Steps
+         * that roll back on their own have released it already and this
+         * answers "not claimed". A register BAR the driver cannot map and a refused
+         * handshake never did, and every attempt after one of them failed
+         * at claim.
+         */
+        let _ = mk_device_release(dev.device_id);
+    }
+    attempt
+}
+```
+
+`claim` keeps the [claim epoch](../overview/glossary.md#claim-epoch) that `mk_device_claim` returns, and every later call passes it (`userland/capsule_driver_virtio_rng/src/setup/claim.rs:24-30`). `transport::probe` then picks legacy or modern virtio from configuration space, which only the holder may read (`userland/capsule_driver_virtio_rng/src/transport/probe.rs:29-40`). When any later step fails, `mk_device_release` takes every grant with the claim, so the next attempt can claim afresh.
