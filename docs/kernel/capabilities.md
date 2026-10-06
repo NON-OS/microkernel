@@ -119,3 +119,7 @@ Some handlers check again. `sys_cap_grant` asks for `Admin` once more and for ev
 ## Groups and delegation in the ABI file
 
 `abi/caps.toml` also names four groups, `BASIC`, `SERVICE`, `OPER` and `GRAPHICS_SERVICE`, which the file describes as the masks real capsules in this tree are spawned with (`abi/caps.toml:43-56`), and a `[delegation]` table of what one group may hand to another, such as `OPER_to_SERVICE` (`abi/caps.toml:72-78`). These are published policy. The kernel does not read them, and the syscall check calls only the five checks above.
+
+## What capabilities do not cover
+
+A capability says what kind of call a process may make, not whom it may talk to. The held endpoints and the [peer list](../overview/glossary.md#peer-list) on [IPC](ipc.md) add that. `IO` and `Hardware` gate nothing at this commit. A capability check is only as good as the process isolation under it; [Capsule isolation](../security/capsule-isolation.md) covers that side.
