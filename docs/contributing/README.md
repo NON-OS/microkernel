@@ -55,3 +55,10 @@ The kernel does not host drivers. `src/drivers/` may hold only `pci`, `security`
 Every directory under `userland/capsule_*` carries a non-empty `README.md` that states its contract, or `fail_with` marks the static checks failed (`nonos-ci/run-static-checks.sh:352-360`). A driver capsule's `README.md` must also carry sixteen named sections, an ASCII diagram in a `text` block, its `CAPSULE_REQUIRED_CAPS` mask and at least one of the broker calls it makes (`nonos-ci/run-static-checks.sh:198-244`). All 27 driver capsules meet that rule at this commit. [Writing a driver](../drivers/writing-a-driver.md) walks through one.
 
 Every driver capsule needs a proof crate named after it, apart from the two names that `ALIASES` maps to another crate (`scripts/check_driver_proofs.py:31-47`). At this commit `check_driver_proofs.py` reports 27 of 27 drivers with a proof crate.
+
+## Before you start
+
+- Read the [Code of Conduct](../../CODE_OF_CONDUCT.md). It asks you to argue about the code and bring evidence, and it says where to report conduct problems.
+- Report a security problem privately, never in a public issue. [SECURITY.md](../../SECURITY.md) and [Reporting a vulnerability](../security/reporting-a-vulnerability.md) say how.
+- NONOS is licensed under the GNU Affero General Public License, version 3 or any later version. Source files carry the notice in their header and a new file should too; [Code style](code-style.md) shows the header and says where it is missing.
+- Code for an architecture other than x86_64 is a preview or not supported; read [Architectures](../architectures/README.md) before you work on one.
