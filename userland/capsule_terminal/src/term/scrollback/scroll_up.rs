@@ -17,7 +17,8 @@
 use super::types::Scrollback;
 
 impl Scrollback {
+    /// Back into history by `lines`.
     pub fn scroll_up(&mut self, lines: usize) {
-        self.grid.scroll_view_up(lines);
+        self.vt.scroll_view(lines.min(isize::MAX as usize) as isize);
     }
 }

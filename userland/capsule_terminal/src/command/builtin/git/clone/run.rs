@@ -13,59 +13,23 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//! Running a clone.
+//! Running a clone where it is not a job of its own: `nox git clone`, or a
+//! clone in a pipeline. The same stepped job is driven to its end inline,
+//! and the window waits for it, as it always did there.
 
-extern crate alloc;
+use nonos_libc::mk_yield;
 
-use alloc::format;
-use alloc::string::String;
-use alloc::vec::Vec;
-
-use nonos_git::clone;
-use nonos_tls::rtc_now;
-
+use super::job::prepare;
 use crate::command::output::Output;
-use crate::git::Https;
-use nonos_http::parse_url;
+use crate::jobs::JobProgress;
 use crate::term::state::State;
 
-use super::super::repo::storage;
-use super::fail::fail_with;
-
-/// A clone stops at the tip by default. Whole histories are large and the
-/// terminal has no way to show progress across one, so the depth is stated
-/// rather than left to run.
-const DEPTH: u32 = 1;
-
 pub(in crate::command::builtin::git) fn run(state: &mut State, argv: &[&[u8]]) {
-    let Some(url) = argv.first().and_then(|a| core::str::from_utf8(a).ok()) else {
-        Output::new(&mut state.scrollback).writeln(b"usage: git clone <https url> [branch]");
+    let Some(mut job) = prepare(state, argv) else {
         return;
     };
-    let Some(remote) = parse_url(url) else {
-        Output::new(&mut state.scrollback).writeln(b"git clone: only https urls are supported");
-        return;
-    };
-    let branch = argv.get(1).and_then(|a| core::str::from_utf8(a).ok()).unwrap_or("main");
-
-    let Some(into) = remote.last_segment().map(String::from) else {
-        Output::new(&mut state.scrollback).writeln(b"git clone: that url names no directory");
-        return;
-    };
-    let git_dir = format!("{into}/.git");
-    let work_tree = format!("{into}/");
-    let mut transport = Https::new(remote, rtc_now());
-    let mut s = storage(state);
-
-    match clone(&mut transport, &mut s, &git_dir, &work_tree, branch, DEPTH, Some(url)) {
-        Ok(files) => {
-            let mut line = Vec::from(&b"Cloned into "[..]);
-            line.extend_from_slice(into.as_bytes());
-            line.extend_from_slice(b", ");
-            line.extend_from_slice(format!("{files}").as_bytes());
-            line.extend_from_slice(b" files");
-            Output::new(&mut state.scrollback).writeln(&line);
-        }
-        Err(e) => fail_with(state, "git clone", e),
+    let mut out = Output::new(&mut state.scrollback);
+    while job.step_once(&mut out) == JobProgress::Running {
+        mk_yield();
     }
 }

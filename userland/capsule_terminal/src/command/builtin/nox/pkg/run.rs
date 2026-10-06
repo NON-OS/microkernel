@@ -14,61 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
-use super::summary::slug;
-use super::{args, call, emit, manage};
-use crate::term::cwd::resolve;
+use super::manage;
+use super::work::{parse, perform, report, USAGE};
+use crate::command::output::Output;
 use crate::term::state::State;
 
-pub(super) const USAGE: &[u8] = b"usage: nox pkg install <path> [--yes] | remove <name> | status";
-
+/// `pkg` on the window thread: `status`, a usage error, and an install or a
+/// remove where it is not a job of its own (written to a file, piped on, or
+/// with no worker thread to be had), which waits for the installer here as
+/// it always did. A plain `pkg install` or `pkg remove` is a job (`job.rs`).
 pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
-    match args.first().copied() {
-        Some(b"install") => install(state, &args[1..]),
-        Some(b"remove") => manage::remove(state, &args[1..]),
-        Some(b"status") => manage::status(state),
-        _ => {
-            state.scrollback.push_error(USAGE);
-            false
-        }
+    if args.first().copied() == Some(b"status") {
+        return manage::status(state);
     }
-}
-
-// Two-step consent: the bare form only verifies the package and prints what
-// it would be granted, and nothing is written until the user repeats the
-// command with --yes. The commit carries the digest from the query, so a
-// package swapped in between the two steps is rejected rather than installed.
-fn install(state: &mut State, rest: &[&[u8]]) -> bool {
-    let Some((raw, yes)) = args::install(rest) else {
+    let Some(op) = parse(state.cwd.as_bytes(), args) else {
         state.scrollback.push_error(USAGE);
         return false;
     };
-    let path = resolve(state.cwd.as_bytes(), raw);
-    let s = match call::pkg_query(&path) {
-        Ok(s) => s,
-        Err(status) => {
-            emit::error(state, status);
-            return false;
-        }
-    };
-    emit::summary(state, &s);
-    if !yes {
-        state.scrollback.push_line(b"run again with --yes to install");
-        return true;
-    }
-    match call::pkg_commit(&path, &s.digest) {
-        Ok(()) => {
-            let name = slug(&s.namespace);
-            let mut line = Vec::with_capacity(10 + name.len());
-            line.extend_from_slice(b"installed ");
-            line.extend_from_slice(name);
-            state.scrollback.push_line(&line);
-            true
-        }
-        Err(status) => {
-            emit::error(state, status);
-            false
-        }
-    }
+    let done = perform(&op);
+    report(&mut Output::new(&mut state.scrollback), &done)
 }

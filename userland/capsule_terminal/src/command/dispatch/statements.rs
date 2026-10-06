@@ -59,7 +59,7 @@ pub fn split_program(line: &[u8]) -> Vec<Stmt<'_>> {
             start = i + 2;
             i += 2;
             continue;
-        } else if !sq && !dq && c == b'&' {
+        } else if !sq && !dq && c == b'&' && !joins_streams(line, i) {
             push(&mut out, conn, &line[start..i], true);
             conn = Conn::Always;
             start = i + 1;
@@ -68,6 +68,12 @@ pub fn split_program(line: &[u8]) -> Vec<Stmt<'_>> {
     }
     push(&mut out, conn, &line[start..], false);
     out
+}
+
+/// An `&` right after `<` or `>` (`2>&1`) is part of that redirect, not a
+/// mark to run in the background; the tokenizer keeps it with the redirect.
+fn joins_streams(line: &[u8], i: usize) -> bool {
+    i > 0 && matches!(line[i - 1], b'<' | b'>')
 }
 
 fn push<'a>(out: &mut Vec<Stmt<'a>>, conn: Conn, seg: &'a [u8], background: bool) {

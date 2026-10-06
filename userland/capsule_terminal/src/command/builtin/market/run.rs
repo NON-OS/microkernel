@@ -14,37 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Which of the four the words ask for.
+
 use crate::command::output::Output;
 
-use super::call_list::call_list;
-use super::constants::{BODY_OFF, RSP_CAP};
-use super::emit_call_failed::emit_call_failed;
-use super::emit_count::emit_count;
-use super::lookup_market::lookup_market;
-use super::read_u32::read_u32;
-use super::render_entries::render_entries;
+const USAGE: &[u8] =
+    b"usage: market [list] | market info <id> | market install <id> | market uninstall <id>";
 
-pub fn run(out: &mut Output<'_>, _argv: &[&[u8]]) {
-    let Some(port) = lookup_market() else {
-        out.writeln(b"  market service not registered");
-        return;
-    };
-    let mut rsp = [0u8; RSP_CAP];
-    let n = match call_list(port, &mut rsp) {
-        Ok(n) => n,
-        Err(rc) => {
-            emit_call_failed(out, rc);
-            return;
+pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
+    match argv.get(1..).unwrap_or(&[]) {
+        [] | [b"list"] => super::list::run(out),
+        [b"info", id] => super::info::run(out, id),
+        [b"install", id] => super::install::run(out, id),
+        [b"uninstall", id] => super::uninstall::run(out, id),
+        [b"help"] | [b"-h"] | [b"--help"] => usage(out),
+        [b"info"] | [b"install"] | [b"uninstall"] => {
+            out.writeln(b"market: which listing? `market list` shows every id");
+            usage(out);
         }
-    };
-    if n < BODY_OFF + 4 {
-        out.writeln(b"  market: short reply");
-        return;
+        _ => {
+            out.writeln(b"market: not a market command");
+            usage(out);
+        }
     }
-    let Some(count) = read_u32(&rsp[..n], BODY_OFF) else {
-        out.writeln(b"  market: short reply");
-        return;
-    };
-    emit_count(out, count);
-    render_entries(out, &rsp[BODY_OFF + 4..n], count);
+}
+
+fn usage(out: &mut Output<'_>) {
+    out.writeln(USAGE);
+    out.writeln(b"  list            every listing, whether it can install here, and if it has");
+    out.writeln(b"  info <id>       publisher, version, description and each install gate");
+    out.writeln(b"  install <id>    ask the system to install a Linux package listing");
+    out.writeln(b"  uninstall <id>  ask the system to take away what installing it put here");
 }

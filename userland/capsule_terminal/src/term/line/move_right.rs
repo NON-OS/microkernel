@@ -21,7 +21,7 @@ impl Line {
         if self.cursor >= self.len {
             return false;
         }
-        self.cursor += 1;
+        self.cursor = self.next_boundary(self.cursor);
         true
     }
 }

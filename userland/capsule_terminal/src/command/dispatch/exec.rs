@@ -19,8 +19,7 @@ use crate::command::builtin;
 use crate::command::output::Output;
 use crate::term::state::State;
 
-// Run a single resolved command (already stripped of any redirect). The
-// caller handles exit detection and output redirection.
+/// Run one resolved command; the caller strips redirects and detects exit.
 pub(super) fn exec(state: &mut State, args: &[&[u8]]) -> Outcome {
     if args.is_empty() {
         return Outcome::Repaint;
@@ -32,6 +31,7 @@ pub(super) fn exec(state: &mut State, args: &[&[u8]]) -> Outcome {
         b"version" => builtin::version::run(&mut Output::new(&mut state.scrollback), args),
         b"whoami" => builtin::whoami::run(&mut Output::new(&mut state.scrollback), args),
         b"receipt" => builtin::receipt::run(&mut Output::new(&mut state.scrollback), args),
+        b"log" => builtin::log::run(&mut Output::new(&mut state.scrollback), args),
         b"capsules" | b"caps" => {
             builtin::capsules::run(&mut Output::new(&mut state.scrollback), args)
         }
@@ -68,6 +68,11 @@ pub(super) fn exec(state: &mut State, args: &[&[u8]]) -> Outcome {
         b"tail" => builtin::fs::tail(state, args),
         b"grep" => builtin::fs::grep(state, args),
         b"wc" => builtin::fs::wc(state, args),
+        // The line filters that read files named after them; in a pipe the
+        // same names filter the piped lines instead.
+        b"sort" | b"uniq" | b"cut" | b"nl" | b"tac" | b"rev" => {
+            builtin::fs::filter_file(state, args)
+        }
         b"type" | b"which" => {
             let ok = builtin::which::run(&mut Output::new(&mut state.scrollback), args);
             state.last_status = i32::from(!ok);
@@ -76,13 +81,15 @@ pub(super) fn exec(state: &mut State, args: &[&[u8]]) -> Outcome {
             let mut out = Output::new(&mut state.scrollback);
             match args.get(1) {
                 Some(name) => {
-                    let ok = builtin::help_one::run(&mut out, name);
+                    let ok = builtin::help::topic(&mut out, name)
+                        || builtin::help_one::run(&mut out, name);
                     state.last_status = i32::from(!ok);
                 }
                 None => builtin::help::run(&mut out),
             }
         }
         b"theme" | b"profile" => builtin::theme::run(state, args),
+        b"qwen" => builtin::qwen::misplaced(state),
         _ => return builtin::nox::dispatch(state, args),
     }
     Outcome::Repaint

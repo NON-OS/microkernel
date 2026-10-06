@@ -16,16 +16,16 @@
 
 use nonos_http::Response;
 
-use crate::term::state::State;
+use crate::command::output::Output;
 
 /// Print the body a line at a time. A non-200 status is printed first, since
 /// an error page is still a body and would otherwise read as the answer.
-pub fn emit(state: &mut State, response: &Response) {
+pub fn emit(out: &mut Output<'_>, response: &Response) {
     if response.status != 200 {
         let mut line = alloc::vec::Vec::new();
         line.extend_from_slice(b"http: status ");
         push_num(&mut line, response.status as u64);
-        state.scrollback.push_error(&line);
+        out.writeln_error(&line);
     }
     for chunk in response.body.split(|&b| b == b'\n') {
         let trimmed = match chunk.split_last() {
@@ -33,7 +33,7 @@ pub fn emit(state: &mut State, response: &Response) {
             _ => chunk,
         };
         if !trimmed.is_empty() {
-            state.scrollback.push_line(trimmed);
+            out.writeln(trimmed);
         }
     }
 }

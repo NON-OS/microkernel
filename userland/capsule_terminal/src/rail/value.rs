@@ -33,12 +33,4 @@ impl<T: Copy> Metric<T> {
             _ => None,
         }
     }
-
-    pub fn is_known(self) -> bool {
-        matches!(self, Metric::Known(_))
-    }
-
-    pub fn is_unsupported(self) -> bool {
-        matches!(self, Metric::Unsupported)
-    }
 }

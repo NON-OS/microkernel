@@ -22,8 +22,11 @@
 //! a TPM signed; `receipt --hex` prints them in the form that tool reads.
 
 mod hexdump;
+pub mod own;
+mod own_read;
 mod row;
 mod run;
 mod summary;
 
-pub use run::run;
+pub use own_read::own_line;
+pub use run::{entries, run};

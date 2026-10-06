@@ -18,10 +18,13 @@ mod args;
 mod call;
 mod emit;
 mod fmt;
+mod job;
 mod manage;
 
 mod run;
 mod summary;
 mod wire;
+mod work;
 
+pub use job::{prepare, PkgJob, Prepared};
 pub use run::run;

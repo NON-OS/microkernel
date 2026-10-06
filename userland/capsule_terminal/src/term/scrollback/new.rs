@@ -14,11 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use nonos_vt::Term;
+
 use super::types::Scrollback;
-use crate::term::grid::types::Grid;
+use crate::term::dimensions::{COLS, SCROLLBACK_ROWS, VISIBLE_ROWS};
 
 impl Scrollback {
+    /// The size here is only where it starts: the paint resizes it to the
+    /// window before anything is drawn.
     pub fn new() -> Self {
-        Self { capture: None, grid: Grid::new() }
+        Self {
+            capture: None,
+            vt: Term::new(COLS, VISIBLE_ROWS, SCROLLBACK_ROWS),
+            onlcr: true,
+            theme_of: None,
+        }
     }
 }

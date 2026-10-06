@@ -22,6 +22,7 @@ use alloc::vec::Vec;
 
 use nonos_git::{Transport, TransportError};
 use nonos_http::RequestBuilder;
+use nonos_route_link::Route;
 
 use super::round_trip::round_trip;
 use nonos_http::Url;
@@ -29,6 +30,11 @@ use nonos_http::Url;
 pub struct Https {
     pub(super) remote: Url,
     pub(super) now: u64,
+    /// The network every request of this transfer leaves through, read once
+    /// so a transfer does not change route halfway.
+    pub(super) route: Route,
+    /// Why the last connection was not made, when the route refused it.
+    pub(super) refused: Option<&'static str>,
 }
 
 impl Https {
@@ -36,7 +42,17 @@ impl Https {
     /// that does not know the time passes zero, and every certificate then
     /// reads as expired, which is the safe direction to fail.
     pub fn new(remote: Url, now: u64) -> Https {
-        Https { remote, now }
+        Https { remote, now, route: Route::chosen(), refused: None }
+    }
+
+    /// The route the transfer goes over.
+    pub fn route(&self) -> Route {
+        self.route
+    }
+
+    /// Why a connection was refused, in words the person can act on.
+    pub fn refusal(&self) -> Option<&'static str> {
+        self.refused
     }
 }
 

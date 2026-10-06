@@ -17,6 +17,7 @@
 //! Reading the entries and printing them.
 
 use alloc::vec;
+use alloc::vec::Vec;
 
 use nonos_libc::{mk_attest_entries, ATTEST_ENTRY_LEN};
 
@@ -29,14 +30,23 @@ use crate::command::output::Output;
 /// because a short buffer is refused without saying how short.
 const MAX_ENTRIES: usize = 256;
 
-pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
+/// The registry's entries as the kernel wrote them, or its errno.
+pub fn entries() -> Result<Vec<u8>, i64> {
     let mut buf = vec![0u8; MAX_ENTRIES * ATTEST_ENTRY_LEN];
     let rc = mk_attest_entries(&mut buf);
     if rc < 0 {
+        return Err(rc);
+    }
+    buf.truncate((rc as usize).min(MAX_ENTRIES * ATTEST_ENTRY_LEN));
+    Ok(buf)
+}
+
+pub fn run(out: &mut Output<'_>, argv: &[&[u8]]) {
+    let Ok(buf) = entries() else {
         out.writeln(b"the kernel did not hand over its registry");
         return;
-    }
-    let bytes = &buf[..(rc as usize).min(buf.len())];
+    };
+    let bytes = &buf[..];
     if !bytes.len().is_multiple_of(ATTEST_ENTRY_LEN) {
         out.writeln(b"the kernel returned a ragged set; this build and the kernel disagree");
         return;

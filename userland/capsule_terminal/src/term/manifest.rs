@@ -22,9 +22,12 @@ use nonos_app_skeleton::{AppManifest, WindowKind};
 /// every command-line tool has assumed since terminals were hardware, and the
 /// width this shell's own `help` is written to. At the previous 520 by 300 the
 /// text area was about fifty-eight columns and `help` was clipped at the right
-/// edge, silently, with no wrap and no scroll to reach the rest.
-pub const WIDTH: u32 = 760;
-pub const HEIGHT: u32 = 460;
+/// edge, silently, with no wrap and no scroll to reach the rest. At 760 by
+/// 460 `help` alone filled the window, so its output scrolled the command
+/// that asked for it out of sight; this holds a hundred columns and room to
+/// read what a command printed under it.
+pub const WIDTH: u32 = 960;
+pub const HEIGHT: u32 = 540;
 
 const INPUT_KEY_DOWN_BIT: u32 = 1 << 0;
 
@@ -33,8 +36,9 @@ pub fn manifest() -> AppManifest {
         title: b"Terminal",
         window_id: 0x5445_524D,
         kind: WindowKind::Normal,
-        initial_x: 188,
-        initial_y: 404,
+        // Centred on a 1280 by 720 screen, clear of the top bar and the dock.
+        initial_x: 160,
+        initial_y: 90,
         width: WIDTH,
         height: HEIGHT,
         input_kind_mask: INPUT_KEY_DOWN_BIT,

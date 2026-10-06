@@ -14,31 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Print the last lines of a file (default ten, -n or -<count> to change).
+//! Print the last lines of files (default ten, -n or -<count> to change),
+//! each headed by its name when there is more than one.
 
-use alloc::vec::Vec;
-
+use super::head::{ends_args, header};
 use super::read_file::slurp;
-use crate::command::flags::{parse, parse_usize, Spec};
+use crate::command::dispatch::lines_of;
 use crate::command::output::Output;
 use crate::term::state::State;
 
 pub fn tail(state: &mut State, argv: &[&[u8]]) {
-    let spec = Spec::new(b"tail", b"").valued(b"n").numeric(b'n');
-    let parsed = match parse(&spec, &argv[1..]) {
-        Ok(p) => p,
+    let (n, files) = match ends_args(b"tail", argv) {
+        Ok(v) => v,
         Err(e) => return Output::new(&mut state.scrollback).writeln(&e),
     };
-    let n = parsed.value(b'n').and_then(parse_usize).unwrap_or(10);
-    let Some(file) = parsed.operands.last().copied() else {
-        Output::new(&mut state.scrollback).writeln(b"tail: missing file");
-        return;
-    };
-    let Some(bytes) = slurp(state, file) else { return };
-    let lines: Vec<&[u8]> = bytes.split(|&b| b == b'\n').collect();
-    let start = lines.len().saturating_sub(n);
-    let mut out = Output::new(&mut state.scrollback);
-    for line in &lines[start..] {
-        out.writeln(line);
+    for (i, file) in files.iter().enumerate() {
+        let Some(bytes) = slurp(state, file) else { continue };
+        let lines = lines_of(&bytes);
+        let mut out = Output::new(&mut state.scrollback);
+        if files.len() > 1 {
+            header(&mut out, file, i == 0);
+        }
+        for line in &lines[lines.len().saturating_sub(n)..] {
+            out.writeln(line);
+        }
     }
 }

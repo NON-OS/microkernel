@@ -17,7 +17,18 @@
 use super::types::Scrollback;
 
 impl Scrollback {
+    /// Bytes a program or the shell wrote, through output processing.
     pub fn feed_raw(&mut self, bytes: &[u8]) {
-        self.grid.feed(bytes);
+        if !self.onlcr {
+            self.vt.feed(bytes);
+            return;
+        }
+        let mut rest = bytes;
+        while let Some(i) = rest.iter().position(|&b| b == b'\n') {
+            self.vt.feed(&rest[..i]);
+            self.vt.feed(b"\r\n");
+            rest = &rest[i + 1..];
+        }
+        self.vt.feed(rest);
     }
 }

@@ -22,6 +22,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 use nonos_git::{push, read_head, remote_url, resolve_head, Head};
+use nonos_route_link::Route;
 use nonos_tls::rtc_now;
 
 use crate::command::output::Output;
@@ -55,12 +56,19 @@ pub(in crate::command::builtin::git) fn run(state: &mut State, argv: &[&[u8]]) {
 
     let full = format!("refs/heads/{branch}");
     let mut transport = Https::new(remote, rtc_now());
+    if let Route::Down(why) = transport.route() {
+        let line = format!("git push: {why}, so nothing was sent");
+        Output::new(&mut state.scrollback).writeln(line.as_bytes());
+        return;
+    }
     match push(&mut transport, &s, GIT_DIR, &head, &full) {
         Ok(()) => {
             let mut line = Vec::from(&b"Pushed "[..]);
             line.extend_from_slice(full.as_bytes());
+            line.push(b' ');
+            line.extend_from_slice(transport.route().name().as_bytes());
             Output::new(&mut state.scrollback).writeln(&line);
         }
-        Err(e) => fail_with(state, "git push", e),
+        Err(e) => fail_with(state, "git push", e, transport.refusal()),
     }
 }

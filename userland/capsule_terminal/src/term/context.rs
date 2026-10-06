@@ -15,19 +15,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::term::cwd::strip_home;
+use crate::term::prompt::PROMPT_BYTES;
 use crate::term::util::copy_into;
 
-/// The line that opens a command block: `user@host:path`.
+/// The line that opens a command block: `user@host path % cmd`, the prompt as
+/// it stood and what was run under it, the way zsh leaves it in scrollback.
 ///
 /// It is pushed through the scrollback grid rather than drawn, so it is bytes
 /// and the block's own start line, which is where the run's time and outcome
 /// are right-aligned.
-pub fn context_line(user: &[u8], host: &[u8], cwd: &[u8], home: &[u8], out: &mut [u8]) -> usize {
+pub fn context_line(
+    user: &[u8],
+    host: &[u8],
+    cwd: &[u8],
+    home: &[u8],
+    cmd: &[u8],
+    out: &mut [u8],
+) -> usize {
     let mut n = 0;
     n += copy_into(&mut out[n..], user);
     n += copy_into(&mut out[n..], b"@");
     n += copy_into(&mut out[n..], host);
-    n += copy_into(&mut out[n..], b":");
+    n += copy_into(&mut out[n..], b" ");
     match strip_home(cwd, home) {
         Some(tail) => {
             n += copy_into(&mut out[n..], b"~");
@@ -35,5 +44,8 @@ pub fn context_line(user: &[u8], host: &[u8], cwd: &[u8], home: &[u8], out: &mut
         }
         None => n += copy_into(&mut out[n..], cwd),
     }
+    n += copy_into(&mut out[n..], b" ");
+    n += copy_into(&mut out[n..], PROMPT_BYTES);
+    n += copy_into(&mut out[n..], cmd);
     n
 }

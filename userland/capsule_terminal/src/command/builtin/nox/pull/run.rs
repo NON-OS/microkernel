@@ -19,6 +19,8 @@ use super::conn::Conn;
 use super::ctx::Ctx;
 use super::walk::walk;
 use super::{args, fetch, progress, store};
+use crate::command::builtin::direct_gate::{refusal_line, PULL};
+use crate::command::builtin::offline_probe::offline;
 use crate::term::cwd::resolve;
 use crate::term::state::State;
 
@@ -30,6 +32,15 @@ pub fn run(state: &mut State, argv: &[&[u8]]) -> bool {
             return false;
         }
     };
+    let refused = nonos_route_link::direct_refusal();
+    if let Some(line) = refusal_line(b"pull", PULL, refused) {
+        state.scrollback.push_error(&line);
+        return false;
+    }
+    if let Some(line) = offline(b"pull") {
+        state.scrollback.push_error(&line);
+        return false;
+    }
     let ip = match super::resolve::resolve_host(&a.target.hostname) {
         Ok(ip) => ip,
         Err(e) => {

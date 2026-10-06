@@ -27,6 +27,18 @@ pub fn hostname_len(b: &[u8]) -> usize {
     n
 }
 
+/*
+ * The same count for a user name, which may also carry the `_` that policy's
+ * store takes in any name.
+ */
+pub fn user_len(b: &[u8]) -> usize {
+    let mut n = 0;
+    while n < b.len() && (usable(b[n]) || b[n] == b'_') {
+        n += 1;
+    }
+    n
+}
+
 fn usable(c: u8) -> bool {
     c.is_ascii_alphanumeric() || c == b'-' || c == b'.'
 }

@@ -16,18 +16,22 @@
 
 //! Changing what a running search is looking for.
 
+use nonos_app_skeleton::input::text::last_char_len;
+
 use super::search_place::apply;
 use crate::term::state::State;
 
-/// Take a typed byte into the search.
-pub fn search_type(state: &mut State, byte: u8) {
-    edit(state, |needle| needle.push(byte));
+/// Take a typed character into the search.
+pub fn search_type(state: &mut State, ch: char) {
+    let mut enc = [0u8; 4];
+    edit(state, |needle| needle.extend_from_slice(ch.encode_utf8(&mut enc).as_bytes()));
 }
 
-/// Undo the last typed byte.
+/// Undo the last typed character, all of its bytes: the needle is UTF-8.
 pub fn search_backspace(state: &mut State) {
     edit(state, |needle| {
-        needle.pop();
+        let n = last_char_len(needle);
+        needle.truncate(needle.len() - n);
     });
 }
 

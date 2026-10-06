@@ -14,35 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::emit::emit;
-use super::url::parse_url;
-use super::{plain, secure};
+use nonos_libc::mk_yield;
+
+use super::job::prepare;
+use crate::command::output::Output;
+use crate::jobs::JobProgress;
 use crate::term::state::State;
 
-const USAGE: &[u8] =
-    b"usage: http <url>   e.g. http example.com  |  http https://host/path  |  http host:8080";
-
+/// `http` where it is not a job of its own: written to a file or piped on
+/// (`http host > page`), it runs inline as it always did, through the same
+/// stepped exchange, and the window waits for it.
 pub fn run(state: &mut State, args: &[&[u8]]) -> bool {
-    let Some(&raw) = args.first() else {
-        state.scrollback.push_error(USAGE);
+    let Some(mut job) = prepare(state, args) else {
         return false;
     };
-    let Some(url) = parse_url(raw) else {
-        state.scrollback.push_error(b"http: bad url");
-        return false;
-    };
-
-    let result = if url.secure { secure::get(&url) } else { plain::get(&url) };
-    match result {
-        Ok(response) => {
-            emit(state, &response);
-            true
+    let mut out = Output::new(&mut state.scrollback);
+    loop {
+        if let JobProgress::Done(status) = job.step_once(&mut out) {
+            return status == 0;
         }
-        Err(reason) => {
-            let mut line = alloc::vec::Vec::from(*b"http: ");
-            line.extend_from_slice(reason.as_bytes());
-            state.scrollback.push_error(&line);
-            false
-        }
+        mk_yield();
     }
 }

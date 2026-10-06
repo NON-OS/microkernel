@@ -21,8 +21,10 @@ impl Line {
         if self.cursor >= self.len {
             return false;
         }
-        self.buf.copy_within(self.cursor + 1..self.len, self.cursor);
-        self.len -= 1;
+        // The whole character under the cursor.
+        let end = self.next_boundary(self.cursor);
+        self.buf.copy_within(end..self.len, self.cursor);
+        self.len -= end - self.cursor;
         true
     }
 }

@@ -27,5 +27,6 @@
 //! but derived from the active profile background via paint::shade::elevate,
 //! so every profile including the translucent ones stays complete.
 
+pub mod ansi;
 pub mod profiles;
 pub mod types;
