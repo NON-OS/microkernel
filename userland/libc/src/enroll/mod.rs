@@ -14,9 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod allocator;
-mod init;
-mod span;
-mod zero_on_free;
+//! Registering this device: the TPM's half, through `MkEnroll`, for the
+//! capsule that holds DeviceSecret.
 
-pub use init::{init, init_sized, HeapError};
+mod call;
+mod frame;
+
+pub use call::{activate, ak_public, ak_sign, ek_certificate, ek_public, mk_enroll};
+pub use frame::{
+    frame_challenge, split_public, AK_SIGN_LABEL, CERT_MAX, CHALLENGE_MAX, EK_ECC_P256, EK_RSA2048,
+    NAME_LEN, PUBLIC_MAX, SECRET_MAX,
+};

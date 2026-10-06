@@ -14,9 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod allocator;
-mod init;
-mod span;
-mod zero_on_free;
+//! This machine's device secret, the witness of the anonymous device proof.
 
-pub use init::{init, init_sized, HeapError};
+use crate::syscall::{call_raw, N_MK_DEVICE_SECRET};
+
+/// Fill `out` with this machine's TPM-derived device secret, four field words
+/// little-endian. Needs DeviceSecret, which nonos.prove alone holds. 0; ENOENT
+/// while the secret stays sealed, EACCES on a chain the TPM's policy refuses,
+/// ENODEV when the TPM cannot derive it.
+pub fn mk_device_secret(out: &mut [u8; 32]) -> i64 {
+    call_raw(N_MK_DEVICE_SECRET, [out.as_mut_ptr() as u64, out.len() as u64, 0, 0, 0, 0])
+}

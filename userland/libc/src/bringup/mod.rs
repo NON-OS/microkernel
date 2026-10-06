@@ -14,9 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod allocator;
-mod init;
-mod span;
-mod zero_on_free;
+//! Driver bring-up: a bounded number of attempts with backoff, then a clean
+//! give-up, so no driver can spin a core on a device that will not come up.
 
-pub use init::{init, init_sized, HeapError};
+pub mod policy;
+mod run;
+
+pub use policy::{
+    decide, delay_after, next, recv_turn, total_sleep_ms, Next, RecvTurn, BRINGUP_ATTEMPTS,
+    BRINGUP_FIRST_DELAY_MS, BRINGUP_MAX_DELAY_MS, EXIT_ABSENT, EXIT_GAVE_UP, RECV_PARK_MS,
+};
+pub use run::{bring_up, recv_ready, say_absent, start_driver};

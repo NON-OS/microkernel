@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod allocator;
-mod init;
-mod span;
-mod zero_on_free;
+//! This boot's two slots of the device proof's witness, the bootloader's and
+//! the kernel's, as `MkBootSlots` reports them. For the capsule that proves.
 
-pub use init::{init, init_sized, HeapError};
+mod call;
+mod record;
+
+pub use call::{boot_slots, mk_boot_slots};
+pub use record::{parse_boot_slots, BootSlot, BootSlots, BOOT_SLOTS_LEN, PATH_LEN};

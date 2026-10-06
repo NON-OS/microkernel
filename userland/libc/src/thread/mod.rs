@@ -14,9 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod allocator;
-mod init;
-mod span;
-mod zero_on_free;
+//! Threads of this process, for no_std capsules.
+//!
+//! A thread spawned with MkThreadSpawn shares the process's address space,
+//! carries its capabilities and has its own reply inbox, `proc.<tid>`, so it
+//! can make the slow IPC call a window thread would otherwise sit in, and
+//! hand the answer back through memory both can see. See `seat.rs` for what a
+//! thread is to the services it calls.
 
-pub use init::{init, init_sized, HeapError};
+mod entry;
+mod handoff;
+mod seat;
+mod spawn;
+
+pub use handoff::{Handoff, Look};
+pub use seat::{WorkerSeat, WORKER_STACK};
+pub use spawn::mk_thread_spawn;

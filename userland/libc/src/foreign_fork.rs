@@ -14,9 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod allocator;
-mod init;
-mod span;
-mod zero_on_free;
+//! Forking a guest: a second process holding its register state, with zero
+//! in its return register, on its parent's stack or one the caller names.
 
-pub use init::{init, init_sized, HeapError};
+use crate::syscall::{call_raw, N_MK_FOREIGN_FORK};
+
+/// A second process holding a guest's register state, with zero in its return
+/// register.
+pub fn mk_foreign_fork(pid: u32) -> i64 {
+    mk_foreign_fork_at(pid, 0)
+}
+
+/// A fork whose child starts on `rsp` rather than its parent's stack pointer,
+/// as a clone that names a stack asks; zero keeps the parent's.
+pub fn mk_foreign_fork_at(pid: u32, rsp: u64) -> i64 {
+    call_raw(N_MK_FOREIGN_FORK, [pid as u64, rsp, 0, 0, 0, 0])
+}

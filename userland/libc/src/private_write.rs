@@ -14,9 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod allocator;
-mod init;
-mod span;
-mod zero_on_free;
+//! Output only this process's launcher reads, never the serial log.
 
-pub use init::{init, init_sized, HeapError};
+use crate::syscall::{call_raw, N_MK_PRIVATE_WRITE};
+
+/// Write up to 256 bytes of `buf` to this process's own output inbox and
+/// nowhere else. Returns the bytes taken, -16 (EBUSY) when the inbox is
+/// full and nothing was taken, or -19 (ENODEV) when there is no inbox.
+pub fn mk_private_write(buf: &[u8]) -> i64 {
+    call_raw(N_MK_PRIVATE_WRITE, [buf.as_ptr() as u64, buf.len() as u64, 0, 0, 0, 0])
+}

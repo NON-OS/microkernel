@@ -13,10 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+use crate::syscall::{call_raw, N_MK_THREAD_SPAWN};
 
-mod allocator;
-mod init;
-mod span;
-mod zero_on_free;
-
-pub use init::{init, init_sized, HeapError};
+/// Start a thread in this process at `entry` with its stack pointer at
+/// `stack`. The new thread's id, or a negative errno: EINVAL for an entry or
+/// a stack outside the user half, ENOMEM when the kernel could not build it.
+/// Nothing is passed in registers; whatever the thread needs rides its stack.
+pub extern "C" fn mk_thread_spawn(entry: u64, stack: u64) -> i64 {
+    call_raw(N_MK_THREAD_SPAWN, [entry, stack, 0, 0, 0, 0])
+}
