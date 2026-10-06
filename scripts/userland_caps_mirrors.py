@@ -21,7 +21,7 @@ import re
 from pathlib import Path
 
 POSITIONAL = {
-    "desktop shell": Path("userland/capsule_desktop_shell/src/render/cap_names.rs"),
+    "desktop shell": Path("userland/capsule_desktop_shell/src/render/cap_table.rs"),
     "terminal": Path("userland/capsule_terminal/src/command/builtin/cap_names.rs"),
 }
 ABOUT = Path("userland/capsule_about/src/about/data/caps.rs")
