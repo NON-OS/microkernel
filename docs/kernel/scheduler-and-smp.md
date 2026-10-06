@@ -103,3 +103,12 @@ A process sleeps until a deadline in milliseconds of elapsed time. `enter_sleep`
 A TLB shootdown is how a CPU that changed a page table makes the others drop the old translation. A round that is still unanswered after `SHOOTDOWN_WARN_MS`, 50 ms, is sent again as an NMI; after `SHOOTDOWN_TIMEOUT_MS`, 2000 ms, the machine stops (`src/memory/paging/manager/shootdown/request.rs:32-35`). A stale translation could reach freed memory, so the kernel does not carry on past that point.
 
 To stop the machine for a panic, `send_panic_ipi` sends every other CPU an NMI, which reaches a CPU even while it spins with interrupts masked (`src/smp/panic_ipi.rs:26-31`). See [panic and boot stop](panic-and-boot-stop.md).
+
+## Limits
+
+- The kernel has a table of Linux-style scheduling attributes, `SCHED_REGISTRY`, but nothing in the kernel calls its setters, and selection reads only the process's band (`src/process/scheduler/policy.rs:25`).
+- There is no CPU affinity for processes. Any CPU may run any ready process that no other CPU holds.
+- There is no aging. A band that always has a ready process starves the bands below it.
+- The tick preempts only user code. A process looping inside the kernel without yielding keeps its CPU.
+- A CPU is started once, at boot. Nothing starts it again after it halts.
+- Secondary CPU stacks are mapped back to back by `allocate`, with no guard page between them (`src/smp/init/stack.rs:22-32`).
