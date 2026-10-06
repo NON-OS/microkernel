@@ -54,3 +54,9 @@ The [hardware broker](hardware-broker.md) gives each driver capsule one domain, 
 - A device with no PCI requester id, such as a controller found through ACPI, is not confined at all: `pci_address` returns nothing for it and `attach` lets the claim through without a domain (`src/hardware/broker/confine/table.rs:35-43`). Its DMA grants carry physical addresses and are counted as unconfined.
 
 A DMA [grant](../overview/glossary.md#grant) in a confined domain is mapped with `IommuProtection::READ_WRITE` at an I/O virtual address from the capsule's own range (`src/hardware/broker/confine/map.rs:22-50`). When the capsule releases the device, `detach` puts it back to denied, not to the identity domain, and the domain goes with the capsule's last device (`src/hardware/broker/confine/detach.rs:21-46`).
+
+## When remapping is not in service
+
+Every call that claims to confine a device asks first whether a unit is translating. `require` refuses with `NotInitialized` before bring-up has succeeded, so the kernel never writes entries into tables no hardware walks, and never hands a device an I/O virtual address it would take as physical (`src/memory/iommu/backend_x86_64/enforced.rs:17-36`). On an AMD-Vi machine the calls are refused with `AmdViNotDriven`, and with no IOMMU with `NoIommu`, each with a serial line from `amd_vi` or `absent` (`src/memory/iommu/backend_x86_64/refuse.rs:22-38`).
+
+The device then reaches all of memory, and the kernel counts it instead of hiding it. Each DMA grant made without a confining domain adds one to the count through `note_unconfined`, and its release takes one off (`src/memory/iommu/unconfined.rs:35-51`). The kernel's own virtio-rng entropy driver counts its buffers the same way, with `note_unconfined` (`src/drivers/virtio_rng/device/core.rs:44-45`).
