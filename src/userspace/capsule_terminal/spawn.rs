@@ -46,6 +46,10 @@ fn terminal_caps() -> u64 {
         | Capability::FileSystem.bit()
         | Capability::GraphicsDisplayQuery.bit()
         | Capability::GraphicsSurfaceCreate.bit()
+        // `market install` and `uninstall` ask the system as the Marketplace
+        // window does, and `market list` and `info` read where that stands.
+        | Capability::AppInstall.bit()
+        | crate::capabilities::serial_debug_cap()
 }
 
 // Extra window endpoints, each declared in the signed manifest (see the

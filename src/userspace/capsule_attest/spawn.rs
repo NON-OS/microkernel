@@ -31,7 +31,9 @@ const SERVICE_PORT: u32 = 4444;
 const REPLY_INBOX: &str = "endpoint.attest.reply";
 const REPLY_PORT: u32 = 4445;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
-const REQUIRED_CAPS: u64 = 0x19;
+/// AttestRead, IPC, Memory and CoreExec (bit 0, which MkExit needs), as the
+/// signed manifest declares (userland/capsule_attest/Capsule.mk). No Debug.
+const REQUIRED_CAPS: u64 = 0x8000_0019;
 
 pub fn spawn_attest_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)

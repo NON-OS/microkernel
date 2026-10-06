@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::embed::{
-    STD_PROOF_ATTESTATION_BYTES, STD_PROOF_ELF, STD_PROOF_MANIFEST_BYTES,
-    STD_PROOF_NONOS_ID_CERT_BYTES,
+    SHIELD_VECTORS_ATTESTATION_BYTES, SHIELD_VECTORS_ELF, SHIELD_VECTORS_MANIFEST_BYTES,
+    SHIELD_VECTORS_NONOS_ID_CERT_BYTES,
 };
 use crate::capabilities::Capability;
 use crate::kernel_core::process_spawn::capsule_spawn::{self, CapsuleSpecVerified, SpawnError};
@@ -25,13 +25,13 @@ use crate::security::nonos_trust_anchor::{
     decode as decode_trust_anchor, BAKED_TRUST_ANCHOR_POLICY,
 };
 
-const SERVICE_NAME: &str = "std_proof";
-const SERVICE_PORT: u32 = 4502;
-const REPLY_INBOX: &str = "endpoint.std_proof.reply";
-const REPLY_PORT: u32 = 4503;
+const SERVICE_NAME: &str = "shield_vectors";
+const SERVICE_PORT: u32 = 4988;
+const REPLY_INBOX: &str = "endpoint.shield_vectors.reply";
+const REPLY_PORT: u32 = 4989;
 const TARGET_TRIPLE: &str = env!("NONOS_USER_TARGET");
 
-pub fn spawn_std_proof_capsule() -> Result<(), SpawnError> {
+pub fn spawn_shield_vectors_capsule() -> Result<(), SpawnError> {
     let trust_anchor = decode_trust_anchor(BAKED_TRUST_ANCHOR_POLICY)
         .map_err(|_| SpawnError::NonosIdCertRejected(IdCertVerifyError::TrustAnchorPolicy))?;
 
@@ -40,15 +40,15 @@ pub fn spawn_std_proof_capsule() -> Result<(), SpawnError> {
         service_port: SERVICE_PORT,
         reply_inbox: REPLY_INBOX,
         reply_port: REPLY_PORT,
-        elf: STD_PROOF_ELF,
-        nonos_id_cert_bytes: STD_PROOF_NONOS_ID_CERT_BYTES,
-        manifest_bytes: STD_PROOF_MANIFEST_BYTES,
-        attestation_trailer: STD_PROOF_ATTESTATION_BYTES,
+        elf: SHIELD_VECTORS_ELF,
+        nonos_id_cert_bytes: SHIELD_VECTORS_NONOS_ID_CERT_BYTES,
+        manifest_bytes: SHIELD_VECTORS_MANIFEST_BYTES,
+        attestation_trailer: SHIELD_VECTORS_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
+        // The result lines reach the serial console through Debug.
         requested_caps: Capability::CoreExec.bit()
             | Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::FileSystem.bit()
             | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };

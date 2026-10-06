@@ -47,10 +47,8 @@ pub fn spawn_input_probe_capsule() -> Result<(), SpawnError> {
         manifest_bytes: INPUT_PROBE_MANIFEST_BYTES,
         attestation_trailer: INPUT_PROBE_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
+        requested_caps: Capability::IPC.bit()
             | Capability::Memory.bit()
-            | Capability::GraphicsDisplayQuery.bit()
             | Capability::GraphicsSurfaceCreate.bit(),
         debug_tag: b"",
     };
