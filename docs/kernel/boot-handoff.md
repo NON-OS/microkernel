@@ -99,3 +99,13 @@ The breadcrumbs are a strip of segments along the top of the framebuffer, each 1
 `paint` writes the value as it is, without converting it to the panel's pixel format, so the colour seen depends on that format. Read the segment's position, then its colour.
 
 After `init_core_systems`, `log_security_status` prints whether the kernel signature was verified and whether Secure Boot is on. It feeds the 32-byte seed to the kernel random generator through `seed_from_bootloader`, then `wipe_boot_seed` overwrites the seed in the handoff page (`src/entry/security.rs:37-47`, `src/boot/handoff/api/cleanup.rs:31-45`). The seed itself is never printed. The measurements stay readable for the life of the system; only the seed is secret.
+
+## Core systems
+
+`init_core_systems` runs on the boot CPU with interrupts masked until its fifth step (`src/boot/main/core_init/init_core_systems.rs:24-70`):
+
+1. The serial console, the boot timestamp and the clock anchor. See [timers](timers.md).
+2. `init_cpu_tables`: the GDT, the SYSCALL registers, an early IDT, the 64 MiB bootstrap heap and the full IDT (`src/boot/main/core_init/cpu_tables.rs:26-48`).
+3. `init_acpi_tables`: the RSDP from the handoff, the ACPI parse, the power button, and a TSC calibration against the ACPI PM timer when no rate is known yet (`src/boot/main/core_init/acpi_tables.rs:19-33`).
+4. The local APIC, the idle-timer fix and the 100 Hz preemption timer. A failure in `install_on_bsp` stops the boot (`src/boot/main/core_init/init_core_systems.rs:42-44`).
+5. `sti`, memory encryption detection, PCI enumeration, and `init_platform_baseline`: BAR assignment, the device broker, the entropy source, the boot session nonce and the [capability](../overview/glossary.md#capability) token signing key (`src/kernel_core/init/platform/baseline.rs:35-61`).
