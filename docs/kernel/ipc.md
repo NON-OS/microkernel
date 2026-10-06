@@ -132,3 +132,12 @@ At teardown `release_pending_replies_for_pid` drops every pending call the proce
 ## Tests and proofs
 
 The host crate `userland/kernel_proofs` compiles the byte budget (`userland/kernel_proofs/src/inbox_budget/mod.rs`), the pending call shares (`userland/kernel_proofs/src/reply_share/mod.rs`), the held endpoint rule (`userland/kernel_proofs/src/ipc_held_tests/mod.rs`) and the peer list (`userland/kernel_proofs/src/ipc_peers_tests.rs`) straight from the kernel sources. It passed, 388 tests, in the flake check run on this commit. `userland/mechanism_proofs` includes `MAX_MESSAGE_SIZE` from the kernel file (`userland/mechanism_proofs/src/constants/mod.rs`); it passed, 56 tests, in the same run.
+
+## See also
+
+- [System calls](syscalls.md): the entry path and dispatch every IPC call goes through.
+- [Capabilities](capabilities.md): the token check in front of every call.
+- [Processes and capsule spawn](processes-and-spawn.md): where inboxes and endpoints are created and removed.
+- [IPC ABI](../abi/ipc.md): the message formats as a capsule author sees them.
+- [IPC services](../userland/ipc-services.md): the services capsules talk to.
+- [Futex](futex.md): the other blocking primitive.
