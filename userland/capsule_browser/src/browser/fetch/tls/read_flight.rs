@@ -14,61 +14,53 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::fetch::tls::flight_settled;
-use crate::browser::fetch::types::{Fetch, Phase};
-use crate::browser::fetch::{append_capped, constants};
-use crate::browser::net;
-use crate::browser::tls13;
+use super::flight_state::{judge, Flight};
+use crate::browser::fetch::closed::EXIT_CLOSED;
+use crate::browser::fetch::constants::MAX_TLS_FLIGHT;
+use crate::browser::fetch::deadline::read_ms;
+use crate::browser::fetch::types::{Fetch, TlsWhy};
+use crate::browser::fetch::wire::Wire;
+use crate::browser::net::drain::drain;
 
-pub(in crate::browser::fetch) fn read_flight(port: u32, f: &mut Fetch) {
-    let mut chunk = [0u8; 4096];
-    let Some(tls) = f.tls.as_mut() else {
-        f.phase = Phase::Error;
-        return;
-    };
-    let mut got = false;
-    for _ in 0..constants::DRAIN_BURST {
-        match net::socket_recv(port, f.handle, &mut chunk) {
-            Ok(n) if n > 0 => {
-                got = true;
-                if append_capped::append_capped(
-                    &mut tls.flight,
-                    &chunk[..n],
-                    constants::MAX_TLS_FLIGHT,
-                )
-                .is_err()
-                {
-                    f.error = Some("tls flight too large");
-                    f.phase = Phase::Error;
-                    return;
-                }
-                if tls13::server_finished_flight_ready(&tls.flight) {
-                    super::trace::flight(b"complete", tls.flight.len(), f.idle);
-                    f.phase = Phase::TlsVerify;
-                    return;
-                }
-                /*
-                 * A server that refuses the hello answers with an alert in the
-                 * clear, and no ServerHello is ever coming. Without this the
-                 * loop drains, the flight never reads as ready, and a refusal
-                 * we were told about in the first packet is reported as a
-                 * handshake that timed out.
-                 */
-                if let Some(description) = tls13::description_in_record(&tls.flight) {
-                    super::trace::flight(b"refused", tls.flight.len(), f.idle);
-                    f.tls_alert = Some(description);
-                    f.error = Some("tls handshake refused");
-                    f.phase = Phase::Error;
-                    return;
-                }
-            }
-            _ => break,
-        }
+/// Take what the server has sent of its flight, and act in this call on
+/// what it amounts to: answer a finished flight, stop on a refused one.
+pub(in crate::browser::fetch) fn read_flight<W: Wire>(w: &mut W, f: &mut Fetch, until: i64) {
+    let Some(tls) = f.tls.as_mut() else { return f.stop("tls handshake failed") };
+    let budget = read_ms(w.now_ms(), until);
+    let read = drain(w, f.handle, &mut tls.flight, MAX_TLS_FLIGHT, budget);
+    let verdict = judge(tls);
+    let have = tls.flight.len();
+    if read.got > 0 {
+        f.progress_ms = w.now_ms();
+        f.received += read.got;
     }
-    if got {
-        f.idle = 0;
-    } else {
-        let (settled, have) = (flight_settled(&tls.flight), tls.flight.len());
-        super::flight_quiet::quiet(f, settled, have);
+    match verdict {
+        Flight::Waiting if read.full => f.stop("tls flight too large"),
+        /* Closed before the flight was whole: the rest is not coming. */
+        Flight::Waiting if read.closed && have == 0 => f.stop(EXIT_CLOSED),
+        Flight::Waiting if read.closed => {
+            super::trace::flight(w, "cut off", have);
+            f.stop("tls handshake failed");
+        }
+        Flight::Waiting => {}
+        Flight::Complete(end) => {
+            super::trace::flight(w, "complete", have);
+            super::verify_and_send::verify_and_send(w, f, end);
+        }
+        Flight::Refused(alert) => {
+            super::trace::flight(w, "refused", have);
+            f.tls_alert = alert;
+            f.stop("tls handshake refused");
+        }
+        Flight::Tls12(alert) => {
+            super::trace::flight(w, "tls12", have);
+            f.tls_alert = alert;
+            f.tls_why = Some(TlsWhy::Tls12Only);
+            f.stop("tls handshake refused");
+        }
+        Flight::Failed => {
+            super::trace::flight(w, "failed", have);
+            f.stop("tls handshake failed");
+        }
     }
 }

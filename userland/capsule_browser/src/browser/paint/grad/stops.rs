@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// The interpolated ARGB color at position t along the stop list. Before the
-// first stop and after the last the ends hold, matching CSS clamping.
+use alloc::vec::Vec;
+
+/* The interpolated ARGB color at position t along the stop list. Before the
+ * first stop and after the last the ends hold, matching CSS clamping. */
 pub(super) fn color_at(stops: &[(u32, f32)], t: f32) -> u32 {
     let first = stops[0];
     if t <= first.1 {
@@ -44,4 +46,9 @@ fn lerp(a: u32, b: u32, f: f32) -> u32 {
         out |= ((x + (y - x) * f) as u32 & 0xff) << s;
     }
     out
+}
+
+/* The stop colors sampled at n + 1 even positions, i / n for i in 0..=n. */
+pub(super) fn table(stops: &[(u32, f32)], n: usize) -> Vec<u32> {
+    (0..=n).map(|i| color_at(stops, i as f32 / n as f32)).collect()
 }

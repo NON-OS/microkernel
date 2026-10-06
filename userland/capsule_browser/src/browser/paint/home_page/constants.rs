@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub use crate::browser::omnibox::geometry::{BADGE, BADGE_Y, CONTENT_TOP};
+
 pub const PAGE_BG: u32 = 0xFF18_1B20;
 pub const PILL_BG: u32 = 0xFF20_242C;
 pub const FG: u32 = 0xFFE8_EAED;
@@ -21,11 +23,3 @@ pub const ACCENT: u32 = 0xFF8A_B4F8;
 pub const BORDER: u32 = 0xFF3A_3F4B;
 pub const DIM: u32 = 0xFF9A_A0A6;
 pub const WHITE: u32 = 0xFFFF_FFFF;
-pub const CONTENT_TOP: u32 = 80;
-pub const PILL_W: u32 = 640;
-pub const PILL_H: u32 = 46;
-pub const PILL_Y: u32 = 170;
-pub const COUNT: u32 = 4;
-pub const CELL_W: u32 = 150;
-pub const BADGE: u32 = 56;
-pub const BADGE_Y: u32 = 300;

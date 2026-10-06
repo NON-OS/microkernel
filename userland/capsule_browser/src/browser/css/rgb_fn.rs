@@ -14,43 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Parse rgb()/rgba(): the first three components are the channels, honoring a
-// trailing % form; any alpha is ignored. Returns an opaque ARGB value.
-pub(super) fn parse_rgb(s: &str) -> Option<u32> {
-    let open = s.find('(')?;
-    let inner = s.get(open + 1..)?;
-    let inner = inner.strip_suffix(')').unwrap_or(inner);
-    let mut chan = [0u32; 3];
-    let mut n = 0;
-    for tok in inner.split(|c: char| c == ',' || c == '/' || c.is_ascii_whitespace()) {
-        let tok = tok.trim();
-        if tok.is_empty() {
-            continue;
-        }
-        if n == 3 {
-            break;
-        }
-        chan[n] = channel(tok)?;
-        n += 1;
-    }
-    if n < 3 {
-        return None;
-    }
-    Some(0xFF00_0000 | (chan[0] << 16) | (chan[1] << 8) | chan[2])
-}
+use super::color::args::{args, Args};
+use super::color::rgbaf::Rgbaf;
 
-// One 0-255 channel, accepting either a number or an NN% form.
-fn channel(tok: &str) -> Option<u32> {
-    if let Some(pct) = tok.strip_suffix('%') {
-        let f = pct.trim().parse::<f32>().ok()?;
-        if !f.is_finite() {
-            return None;
-        }
-        return Some((f.clamp(0.0, 100.0) * 255.0 / 100.0 + 0.5) as u32);
-    }
-    let f = tok.parse::<f32>().ok()?;
-    if !f.is_finite() {
-        return None;
-    }
-    Some((f.clamp(0.0, 255.0) + 0.5) as u32)
+/* rgb()/rgba() arguments, legacy `r, g, b[, a]` or modern `r g b [/ a]`:
+ * each channel a number 0..255 or a percentage, alpha a number 0..1 or a
+ * percentage. Returns ARGB with the alpha kept. */
+pub(super) fn parse_rgb(inner: &str) -> Option<u32> {
+    let Args { c, alpha } = args(inner)?;
+    let rgb = c.map(|v| v.scaled(255.0) / 255.0);
+    Some(Rgbaf { rgb, a: alpha }.to_argb())
 }

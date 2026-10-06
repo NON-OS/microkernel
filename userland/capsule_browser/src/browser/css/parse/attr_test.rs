@@ -14,41 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::{String, ToString};
+use alloc::string::String;
 
-use crate::browser::css::selector::AttrTest;
+use crate::browser::css::selector::{AttrOp, AttrTest, Simple};
 
-// One [attr] body into a named test: presence, or the =, *=, ^=, $=, ~=, |=
-// operators with an optionally quoted value.
-pub(super) fn parse_attr(body: &str) -> Option<(String, AttrTest)> {
-    let Some(eq) = body.find('=') else {
-        let name = body.trim().to_ascii_lowercase();
-        if name.is_empty() {
+use super::attr_parts::{attr_name, attr_op, bare};
+use super::cursor::Cur;
+use super::ident::{ident, starts_ident};
+use super::string::string;
+
+/* One [..] attribute selector, the cursor on its '['. The name may carry a
+ * namespace prefix (taken as any namespace), the value is an identifier or
+ * a string, and an i or s flag may follow it. The end of the text closes a
+ * missing ']', as CSS closes every open block at the end of input. */
+pub(super) fn attr(c: &mut Cur, s: &mut Simple) -> Option<()> {
+    c.i += 1;
+    c.trivia();
+    let name = attr_name(c)?.to_ascii_lowercase();
+    c.trivia();
+    let mut test = AttrTest { op: AttrOp::Present, value: String::new(), case_insensitive: false };
+    if !(c.eat(b']') || c.peek().is_none()) {
+        test.op = attr_op(c)?;
+        c.trivia();
+        test.value = if matches!(c.peek(), Some(b'"' | b'\'')) { string(c)? } else { bare(c)? };
+        c.trivia();
+        if starts_ident(c) {
+            test.case_insensitive = match ident(c)?.as_str() {
+                "i" | "I" => true,
+                "s" | "S" => false,
+                _ => return None,
+            };
+            c.trivia();
+        }
+        if !(c.eat(b']') || c.peek().is_none()) {
             return None;
         }
-        return Some((name, AttrTest::Present));
-    };
-    let (mut name_part, op) = match body.as_bytes().get(eq.wrapping_sub(1)) {
-        Some(b'*') => (&body[..eq - 1], b'*'),
-        Some(b'^') => (&body[..eq - 1], b'^'),
-        Some(b'$') => (&body[..eq - 1], b'$'),
-        Some(b'~') => (&body[..eq - 1], b'~'),
-        Some(b'|') => (&body[..eq - 1], b'|'),
-        _ => (&body[..eq], b'='),
-    };
-    name_part = name_part.trim();
-    let name = name_part.to_ascii_lowercase();
-    if name.is_empty() {
-        return None;
     }
-    let val = body[eq + 1..].trim().trim_matches('"').trim_matches('\'').to_string();
-    let test = match op {
-        b'*' => AttrTest::Contains(val),
-        b'^' => AttrTest::Starts(val),
-        b'$' => AttrTest::Ends(val),
-        b'~' => AttrTest::Word(val),
-        b'|' => AttrTest::Lang(val),
-        _ => AttrTest::Eq(val),
-    };
-    Some((name, test))
+    s.attrs.push((name, test));
+    Some(())
 }

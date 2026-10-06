@@ -24,6 +24,17 @@ pub enum NodeKind {
     Text,
 }
 
+/// The namespace an element was created in. The parser decides it: `svg`
+/// and `math` open foreign content, whose elements keep their own name case
+/// (`clipPath`, `foreignObject`) and follow their own nesting rules.
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default)]
+pub enum Ns {
+    #[default]
+    Html,
+    Svg,
+    MathMl,
+}
+
 pub struct Node {
     pub kind: NodeKind,
     pub tag: String,
@@ -31,10 +42,24 @@ pub struct Node {
     pub attrs: Vec<(String, String)>,
     pub parent: usize,
     pub children: Vec<usize>,
+    pub ns: Ns,
 }
 
 impl Node {
     pub fn attr(&self, key: &str) -> Option<&str> {
         self.attrs.iter().find(|(k, _)| k.eq_ignore_ascii_case(key)).map(|(_, v)| v.as_str())
+    }
+
+    /// This element as a fragment context for `parse_fragment`: its name,
+    /// after "svg " or "math " when it is not an HTML element.
+    pub fn context_tag(&self) -> String {
+        let prefix = match self.ns {
+            Ns::Html => "",
+            Ns::Svg => "svg ",
+            Ns::MathMl => "math ",
+        };
+        let mut tag = String::from(prefix);
+        tag.push_str(&self.tag);
+        tag
     }
 }

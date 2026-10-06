@@ -14,29 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::walk::{walk, Walk};
+
+/* True once the last chunk and the trailer section have arrived. */
 pub fn complete(body: &[u8]) -> bool {
-    let mut i = 0usize;
-    while i < body.len() {
-        let Some(rel) = super::find_crlf::find_crlf(&body[i..]) else {
-            return false;
-        };
-        let line_end = i + rel;
-        let Some(size) = super::parse_hex::parse_hex(&body[i..line_end]) else {
-            return false;
-        };
-        i = line_end + 2;
-        if size == 0 {
-            return body.get(i..i + 2) == Some(b"\r\n")
-                || body[i..].windows(4).any(|w| w == b"\r\n\r\n");
-        }
-        if size > body.len().saturating_sub(i) {
-            return false;
-        }
-        i += size;
-        if body.get(i..i + 2) != Some(b"\r\n") {
-            return false;
-        }
-        i += 2;
+    matches!(walk(body, None), Walk::Done(_))
+}
+
+/* Bytes the complete chunked body spans, trailer section included; on a
+kept-alive connection the next response starts there. */
+pub fn frame_end(body: &[u8]) -> Option<usize> {
+    match walk(body, None) {
+        Walk::Done(n) => Some(n),
+        _ => None,
     }
-    false
 }

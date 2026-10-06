@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa` (without the `#`) as ARGB; the
+/// short forms double each nibble and a missing alpha is opaque.
 pub fn parse_hex(h: &str) -> Option<u32> {
-    let h = h.trim();
-    if !h.is_ascii() {
-        return None;
-    }
-    let b = h.as_bytes();
-    // #rgba and #rrggbbaa carry an alpha we drop; colors stay opaque.
-    let full: [u8; 6] = match h.len() {
-        3 | 4 => [b[0], b[0], b[1], b[1], b[2], b[2]],
-        6 | 8 => [b[0], b[1], b[2], b[3], b[4], b[5]],
+    let b = h.trim().as_bytes();
+    let d = |i: usize| (b[i] as char).to_digit(16);
+    let [r, g, bl, a] = match b.len() {
+        3 => [d(0)? * 17, d(1)? * 17, d(2)? * 17, 255],
+        4 => [d(0)? * 17, d(1)? * 17, d(2)? * 17, d(3)? * 17],
+        6 => [d(0)? * 16 + d(1)?, d(2)? * 16 + d(3)?, d(4)? * 16 + d(5)?, 255],
+        8 => {
+            let a = d(6)? * 16 + d(7)?;
+            [d(0)? * 16 + d(1)?, d(2)? * 16 + d(3)?, d(4)? * 16 + d(5)?, a]
+        }
         _ => return None,
     };
-    let s = core::str::from_utf8(&full).ok()?;
-    let r = u8::from_str_radix(&s[0..2], 16).ok()? as u32;
-    let g = u8::from_str_radix(&s[2..4], 16).ok()? as u32;
-    let b = u8::from_str_radix(&s[4..6], 16).ok()? as u32;
-    Some(0xFF00_0000 | (r << 16) | (g << 8) | b)
+    Some((a << 24) | (r << 16) | (g << 8) | bl)
 }

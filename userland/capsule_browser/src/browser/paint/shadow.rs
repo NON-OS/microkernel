@@ -16,39 +16,60 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use crate::browser::css::Shadow;
+use crate::browser::layout::boxmodel::Fragment;
 
-use super::grad::put_pixel;
+use super::box_page::TOP;
+use super::corners::corners;
 
-// Paint a drop shadow behind the box: an offset rounded rect of the shadow
-// color, the blur faked by fading concentric outlines so the edge softens
-// instead of drawing a hard block.
-pub(super) fn paint_shadow(fb: &mut PaintBuffer, s: &Shadow, x: i32, y: i32, w: i32, h: i32) {
-    let base_a = (s.color >> 24) & 0xff;
-    if base_a == 0 || w <= 0 || h <= 0 {
+/* Paths spelled out so the children resolve beside this file however it
+ * is itself included (host renderers include it by path). */
+#[path = "shadow/gauss.rs"]
+mod gauss;
+#[path = "shadow/inset.rs"]
+mod inset;
+#[path = "shadow/outer.rs"]
+mod outer;
+#[path = "shadow/rrect.rs"]
+mod rrect;
+
+use rrect::RRect;
+
+/* The screen area a shadow may touch: [x0, y0, x1, y1), inside the frame,
+ * below the chrome and within the fragment's clip. */
+type Window = [i32; 4];
+
+/// Paint the fragment's box-shadow layers of one kind, the last layer
+/// first so the first ends on top: outer shadows (`inset` false) go down
+/// before the background, inset ones (`inset` true) after it.
+pub(super) fn paint_shadow(
+    fb: &mut PaintBuffer,
+    f: &Fragment,
+    sy: i32,
+    clip: Option<[i32; 4]>,
+    inset: bool,
+) {
+    let Some(s) = f.shadow.as_ref() else { return };
+    let mut win = [0, TOP, fb.width as i32, fb.height as i32];
+    if let Some(c) = clip {
+        win = [win[0].max(c[0]), win[1].max(c[1]), win[2].min(c[2]), win[3].min(c[3])];
+    }
+    if win[0] >= win[2] || win[1] >= win[3] || f.w <= 0 || f.h <= 0 {
         return;
     }
-    let blur = (s.blur as i32).clamp(0, 40);
-    let ox = x + s.dx;
-    let oy = y + s.dy;
-    // Solid core, then softening rings out to the blur radius.
-    for ring in 0..=blur {
-        let a = base_a * (blur + 1 - ring) as u32 / (blur + 1) as u32;
-        let color = (a << 24) | (s.color & 0x00ff_ffff);
-        rect_outline(fb, ox - ring, oy - ring, w + 2 * ring, h + 2 * ring, color);
-    }
-}
-
-fn rect_outline(fb: &mut PaintBuffer, x: i32, y: i32, w: i32, h: i32, color: u32) {
-    if w <= 0 || h <= 0 {
-        return;
-    }
-    for px in x..x + w {
-        put_pixel(fb, px, y, color);
-        put_pixel(fb, px, y + h - 1, color);
-    }
-    for py in y..y + h {
-        put_pixel(fb, x, py, color);
-        put_pixel(fb, x + w - 1, py, color);
+    let r = corners(f.radius, f.w, f.h).map(|v| v as f32);
+    let (x, y, w, h) = (f.x as f32, sy as f32, f.w as f32, f.h as f32);
+    let rect = RRect { x, y, w, h, r };
+    for l in s.layers[..(s.n as usize).min(s.layers.len())].iter().rev() {
+        if l.inset != inset {
+            continue;
+        }
+        let a = ((l.color >> 24) * f.alpha as u32 + 127) / 255;
+        let color = (a << 24) | (l.color & 0x00ff_ffff);
+        let g = [l.dx as f32, l.dy as f32, l.blur as f32, l.spread as f32];
+        if inset {
+            inset::paint(fb, &rect, f.border, g, color, win);
+        } else {
+            outer::paint(fb, &rect, g, color, win);
+        }
     }
 }

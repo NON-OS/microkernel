@@ -17,29 +17,28 @@
 use crate::browser::js;
 use crate::browser::state::State;
 
-use super::relayout::relayout;
 use super::script_nav::take_script_nav;
 
-// One app tick for the page's timers. Returns whether anything ran and the
-// screen needs repainting.
+/* One tick of the page's timers. They run every tick, loading or not; the
+ * relayout their work may need is left to the timer gate, which lays the
+ * page out only when the DOM really changed. Returns whether the page was
+ * laid out again. */
 pub fn js_tick(state: &mut State) -> bool {
-    // The page's own timers, in the engine that ran its scripts. Nothing was
-    // draining this queue, so every callback a page deferred sat in it: the
-    // work a page does after its first paint never happened at all.
+    let now = nonos_libc::mk_uptime_ms() as u64;
     let ran = match state.engine.as_ref() {
-        Some(engine) => engine.flush_timers(nonos_libc::mk_uptime_ms() as u64) > 0,
+        Some(engine) => engine.flush_timers(now) > 0,
         None => false,
     };
     if ran {
-        relayout(state);
+        state.track.js_dirty = true;
         take_script_nav(state);
     }
-    let (fired, dirty) = match (state.page_dom.as_mut(), state.world.as_mut()) {
-        (Some(dom), Some(world)) => js::pump_timers(dom, world),
-        _ => return ran,
+    let dirty = match (state.page_dom.as_mut(), state.world.as_mut()) {
+        (Some(dom), Some(world)) => js::pump_timers(dom, world).1,
+        _ => false,
     };
     if dirty {
-        relayout(state);
+        state.track.js_dirty = true;
     }
-    fired || ran
+    super::timer_gate::timer_relayout(state, now)
 }

@@ -15,13 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::browser::fetch::types::{Fetch, Phase};
-use crate::browser::net;
+use crate::browser::fetch::wire::Wire;
 
-pub fn hello(port: u32, f: &mut Fetch) {
-    if net::socket_send(port, f.handle, &[0x05, 0x01, 0x00]).is_err() {
-        f.error = Some("socks hello failed");
-        f.phase = Phase::Error;
-        return;
+pub fn hello<W: Wire>(w: &mut W, f: &mut Fetch) {
+    if w.send(f.handle, &[0x05, 0x01, 0x00]).is_err() {
+        return f.stop("socks hello failed");
     }
     f.socks.clear();
     f.phase = Phase::SocksMethod;

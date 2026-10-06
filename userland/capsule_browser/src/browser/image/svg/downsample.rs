@@ -14,31 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec;
-
-use crate::browser::image::store::Decoded;
-
 use super::raster::{Raster, SS};
 
-// Average each supersample block down to the output raster.
-pub(super) fn downsample(r: Raster, out_w: u32, out_h: u32) -> Decoded {
-    let mut px = vec![0u32; (out_w * out_h) as usize];
-    for y in 0..out_h {
-        for x in 0..out_w {
-            let mut acc = [0u32; 4];
-            for dy in 0..SS {
-                for dx in 0..SS {
-                    let p = r.px[((y * SS + dy) * r.w + x * SS + dx) as usize];
-                    acc[0] += p >> 24;
-                    acc[1] += (p >> 16) & 0xFF;
-                    acc[2] += (p >> 8) & 0xFF;
-                    acc[3] += p & 0xFF;
-                }
+/// Average each supersample block of band `r` into its output rows `out`
+/// (`out_w` wide), weighting colour by alpha so transparent samples do
+/// not darken antialiased edges.
+pub(super) fn downsample(r: &Raster, out: &mut [u32], out_w: u32) {
+    for (i, o) in out.iter_mut().enumerate() {
+        let (x, y) = (i as u32 % out_w, i as u32 / out_w);
+        let mut acc = [0u32; 4];
+        for dy in 0..SS {
+            for dx in 0..SS {
+                let p = r.px[((y * SS + dy) * r.w + x * SS + dx) as usize];
+                let a = p >> 24;
+                acc[0] += a;
+                acc[1] += ((p >> 16) & 0xff) * a;
+                acc[2] += ((p >> 8) & 0xff) * a;
+                acc[3] += (p & 0xff) * a;
             }
-            let n = SS * SS;
-            px[(y * out_w + x) as usize] =
-                (acc[0] / n) << 24 | (acc[1] / n) << 16 | (acc[2] / n) << 8 | (acc[3] / n);
         }
+        let un = |c: u32| (c + acc[0] / 2) / acc[0];
+        *o = match acc[0] {
+            0 => 0,
+            a => (a / (SS * SS)) << 24 | un(acc[1]) << 16 | un(acc[2]) << 8 | un(acc[3]),
+        };
     }
-    Decoded { w: out_w, h: out_h, px }
 }

@@ -16,12 +16,26 @@
 
 const MAX_ATTR_PX: u32 = 4096;
 
-// Whole-pixel value of an <img> width/height attribute. Percentages and
-// malformed values yield None and the box falls back to its default size.
+/* Whole-pixel value of an <img> or <svg> width/height attribute: a plain or
+ * decimal number, optionally with a px unit, rounded. "0" is a real zero
+ * size (a hidden sprite sheet takes no room). Percentages, other units and
+ * malformed values yield None and the box falls back to its default size. */
 pub(super) fn attr_px(v: Option<&str>) -> Option<u32> {
-    let n = v?.trim().parse::<u32>().ok()?;
-    if n == 0 {
+    let t = v?.trim();
+    let n = t.strip_suffix("px").unwrap_or(t).parse::<f32>().ok()?;
+    if !n.is_finite() || n < 0.0 {
         return None;
     }
-    Some(n.min(MAX_ATTR_PX))
+    Some(((n + 0.5) as u32).min(MAX_ATTR_PX))
+}
+
+/* The viewBox width and height when both are positive numbers. */
+pub(super) fn view_box(v: Option<&str>) -> Option<(f32, f32)> {
+    let mut it = v?.split(|c: char| c == ',' || c.is_ascii_whitespace()).filter(|p| !p.is_empty());
+    let mut nums = [0f32; 4];
+    for n in nums.iter_mut() {
+        *n = it.next()?.parse::<f32>().ok()?;
+    }
+    (nums[2] > 0.0 && nums[3] > 0.0 && nums[2].is_finite() && nums[3].is_finite())
+        .then_some((nums[2], nums[3]))
 }

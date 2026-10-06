@@ -17,21 +17,21 @@
 use super::computed::Size;
 
 impl Size {
-    // Whole pixels against a containing base, None when auto. Percentages
-    // and the per-mille part of calc() resolve against `base`.
+    /* Whole pixels against a containing base, None when auto. Percentages,
+     * the per-mille part of calc() and min()/max()/clamp() resolve against
+     * `base`. */
     pub fn resolve(self, base: i32) -> Option<i32> {
         match self {
             Size::Auto => None,
             Size::Px(p) => Some(p as i32),
             Size::Pct(p) => Some(base.saturating_mul(p.min(1000) as i32) / 100),
-            Size::Calc(px, pml) => {
-                Some(px.saturating_add((base as i64 * pml as i64 / 1000) as i32))
-            }
+            Size::Calc(px, pml) => Some(crate::browser::layout::boxmodel::rel((px, pml), base)),
+            Size::Math(m) => Some(m.resolve(base)),
         }
     }
 
-    // A definite pixel size with no base available: plain pixels, or a
-    // calc() whose percentage part is zero.
+    /* A definite pixel size with no base available: plain pixels, or a
+     * calc() whose percentage part is zero. */
     pub fn definite_px(self) -> Option<i32> {
         match self {
             Size::Px(p) => Some(p as i32),

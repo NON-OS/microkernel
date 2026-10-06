@@ -16,13 +16,14 @@
 
 use alloc::vec::Vec;
 
-// Install a fetched face body under its family key: a WOFF unwraps to sfnt
-// first, a raw ttf/otf loads as is. Returns true when the face installed and
-// the page should relayout with its real metrics.
+/* Install a fetched face body under its family key: a WOFF2 or WOFF
+ * unpacks to its sfnt first, a raw ttf/otf loads as is. Returns true when
+ * the face installed and the page should relayout with its real metrics. */
 pub fn ingest_font(key: u32, body: Vec<u8>) -> bool {
-    if body.is_empty() {
-        return false;
-    }
-    let Some(sfnt) = super::woff::unwrap_woff(body) else { return false };
-    super::registry::install(key, sfnt)
+    let sfnt = match body.get(..4) {
+        None => return false,
+        Some(b"wOF2") => super::woff2::unwrap_woff2(&body),
+        Some(_) => super::woff::unwrap_woff(body),
+    };
+    sfnt.is_some_and(|s| super::registry::install(key, s))
 }

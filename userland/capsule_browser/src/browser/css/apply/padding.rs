@@ -18,9 +18,11 @@ use crate::browser::css::computed::Computed;
 use crate::browser::css::set_len::set_len;
 use crate::browser::css::sides::sides;
 
-const MAX_PAD_PX: u32 = 128;
+/* Padding has no cap of its own: lengths already stop at the 100000px parse
+ * ceiling, and a 20vh section padding of 152px is ordinary. */
+const MAX_PAD_PX: u32 = u32::MAX;
 
-// Padding shorthand and per-side lengths.
+/* Padding shorthand and per-side lengths. */
 pub(super) fn apply_padding(c: &mut Computed, name: &str, value: &str, fs: u32) -> bool {
     match name {
         "padding" => {

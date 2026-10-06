@@ -1,0 +1,69 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::super::display_list::DisplayList;
+
+/* Drop a laid-out item's fragments to their final row or line. Grid and flex
+ * lay every item at the container top and move it afterwards, once the row
+ * heights are known, so whatever was resolved against the old position has to
+ * travel with it. A clip the item established inside itself is in those old
+ * coordinates; a clip inherited from an ancestor is already in page
+ * coordinates and must stay where it is. `base` is the clip in force when the
+ * item was laid out, which is what tells the two apart.
+ *
+ * Where an ancestor clip is the tighter of the two on an edge, the item's own
+ * bound did not survive the intersection and cannot be recovered, so that
+ * edge stays put. That errs toward showing a little of what the ancestor was
+ * already clipping, never toward an item hiding its own content, which is the
+ * failure this exists to prevent: a card in the second row clipped against
+ * the first paints its background and nothing else. */
+pub(crate) fn shift_down(
+    frags: &mut DisplayList,
+    a: usize,
+    b: usize,
+    dy: i32,
+    base: Option<[i32; 4]>,
+) {
+    if dy == 0 {
+        return;
+    }
+    for f in frags.iter_mut().take(b).skip(a) {
+        f.y += dy;
+        if let Some(c) = f.clip.as_mut() {
+            move_clip(c, (0, dy), base);
+        }
+    }
+}
+
+/// Move clip `c` of content laid out `d` away from its final place while
+/// clip `base` was in force: its own edges move; an edge it took from `base`
+/// is in page coordinates already and stays, as does an open edge.
+pub(crate) fn move_clip(c: &mut [i32; 4], d: (i32, i32), base: Option<[i32; 4]>) {
+    let b = base.unwrap_or([i32::MIN, i32::MIN, i32::MAX, i32::MAX]);
+    let own = [c[0] > b[0], c[1] > b[1], c[2] < b[2], c[3] < b[3]];
+    for (i, edge) in c.iter_mut().enumerate().filter(|(i, _)| own[*i]) {
+        *edge = move_edge(*edge, if i % 2 == 0 { d.0 } else { d.1 });
+    }
+}
+
+/// Clip edge `edge` moved by `d`. An open edge (i32::MIN or MAX: that axis
+/// is not clipped) stays open instead of wrapping into an empty clip.
+pub(crate) fn move_edge(edge: i32, d: i32) -> i32 {
+    match edge {
+        i32::MIN | i32::MAX => edge,
+        _ => edge.saturating_add(d),
+    }
+}

@@ -16,38 +16,22 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::browser::omnibox::center_x;
 use crate::browser::paint::home_page::{constants, shortcut_data};
 
 pub fn shortcut(fb: &mut PaintBuffer, i: u32) {
     let s = &shortcut_data::SHORTCUTS[i as usize];
-    let cx = center_x(fb.width, i);
+    let cx = center_x(fb.width, shortcut_data::SHORTCUTS.len() as u32, i);
     let bx = cx.saturating_sub(constants::BADGE / 2);
-    fb.fill_rect(bx, constants::BADGE_Y, constants::BADGE, constants::BADGE, s.color);
-    fb.fill_rect(bx, constants::BADGE_Y, 6, 6, constants::PAGE_BG);
-    fb.fill_rect(bx + constants::BADGE - 6, constants::BADGE_Y, 6, 6, constants::PAGE_BG);
-    fb.fill_rect(bx, constants::BADGE_Y + constants::BADGE - 6, 6, 6, constants::PAGE_BG);
-    fb.fill_rect(
-        bx + constants::BADGE - 6,
-        constants::BADGE_Y + constants::BADGE - 6,
-        6,
-        6,
-        constants::PAGE_BG,
-    );
+    let (b, y) = (constants::BADGE, constants::BADGE_Y);
+    fb.fill_rect(bx, y, b, b, s.color);
+    for (px, py) in [(bx, y), (bx + b - 6, y), (bx, y + b - 6), (bx + b - 6, y + b - 6)] {
+        fb.fill_rect(px, py, 6, 6, constants::PAGE_BG);
+    }
     let badge = core::str::from_utf8(s.badge).unwrap_or("");
     let bw = fb.measure_ttf(badge, 26.0);
-    fb.text_ttf(
-        cx as i32 - bw / 2,
-        (constants::BADGE_Y + 14) as i32,
-        badge,
-        constants::WHITE,
-        26.0,
-    );
+    fb.text_ttf(cx as i32 - bw / 2, (y + 14) as i32, badge, constants::WHITE, 26.0);
     let label = core::str::from_utf8(s.label).unwrap_or("");
     let lw = fb.measure_ttf(label, 15.0);
     fb.text_ttf(cx as i32 - lw / 2, 366, label, constants::FG, 15.0);
-}
-
-pub fn center_x(width: u32, i: u32) -> u32 {
-    let row = constants::COUNT.saturating_mul(constants::CELL_W);
-    width.saturating_sub(row) / 2 + i * constants::CELL_W + constants::CELL_W / 2
 }

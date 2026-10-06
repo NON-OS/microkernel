@@ -14,31 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::browser::fetch::proxy_fault::PROXY_ENDED;
 use crate::browser::fetch::socks::{recv_some, request};
-use crate::browser::fetch::types::{Fetch, Phase};
-use crate::browser::net;
+use crate::browser::fetch::socks::hold::again;
+use crate::browser::fetch::types::{Fetch, Phase, Wait};
+use crate::browser::fetch::wire::Wire;
 
-pub fn method(port: u32, f: &mut Fetch) {
-    recv_some::recv_some(port, f);
-    if f.socks.len() < 2 || matches!(f.phase, Phase::Error) {
+pub fn method<W: Wire>(w: &mut W, f: &mut Fetch) {
+    let closed = recv_some::recv_some(w, f);
+    if matches!(f.phase, Phase::Error) {
         return;
+    }
+    if f.socks.len() < 2 {
+        /* Closed before its whole answer: no answer is coming. The greeting
+         * is the proxy's to answer, so the close is too, not the exit's. */
+        if closed {
+            f.stop(PROXY_ENDED);
+        }
+        return;
+    }
+    /* A network's proxy accepts no authentication at all, and turns a
+     * greeting away only when every place it has is taken. */
+    if f.way.proxied() && f.socks[..2] == [0x05, 0xFF] {
+        return again(w, f, Wait::Full);
     }
     if f.socks[0] != 0x05 || f.socks[1] != 0x00 {
-        f.error = Some("socks auth rejected");
-        f.phase = Phase::Error;
-        return;
+        return f.stop("socks auth rejected");
     }
     let Some(req) = request::request(&f.url) else {
-        f.error = Some("socks target rejected");
-        f.phase = Phase::Error;
-        return;
+        return f.stop("socks target rejected");
     };
-    if net::socket_send(port, f.handle, &req).is_err() {
-        f.error = Some("socks connect failed");
-        f.phase = Phase::Error;
-        return;
+    if w.send(f.handle, &req).is_err() {
+        return f.stop("socks connect failed");
     }
     f.socks.clear();
-    f.idle = 0;
     f.phase = Phase::SocksConnect;
 }

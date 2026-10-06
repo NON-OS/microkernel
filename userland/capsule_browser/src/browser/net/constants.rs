@@ -20,5 +20,12 @@ pub const OP_SEND: u16 = 7;
 pub const OP_RECV: u16 = 8;
 pub const OP_CLOSE: u16 = 9;
 pub const OP_CONNECT_HOST: u16 = 12;
+pub const OP_POLL: u16 = 13;
+pub const OP_CONNECT_NB: u16 = 14;
 pub const SOCKET_FAMILY_IP4: u16 = 4;
 pub const SOCKET_KIND_STREAM: u16 = 1;
+
+/* The resolver, asked for one IPv4 address per name. */
+pub const DNS_SERVICE: &[u8] = b"net.dns";
+pub const DNS_MAGIC: u32 = 0x4E44_4E53;
+pub const OP_RESOLVE_A: u16 = 2;

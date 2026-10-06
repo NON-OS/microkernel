@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// A WebP decoder for the lossless VP8L path: bit reader, canonical Huffman,
-// meta-Huffman groups, LZ77 with a color cache, and the four inverse
-// transforms. Lossy VP8 payloads are not decoded here.
+/* WebP: the RIFF container (simple and extended), lossless VP8L (bit
+ * reader, canonical Huffman, meta-Huffman groups, LZ77 with a colour
+ * cache, the four inverse transforms) and lossy VP8 key frames with an
+ * optional ALPH plane. */
 
 mod bitread;
 mod code_len_code;
 mod color_cache;
 mod color_tf;
+mod container;
 mod decode_image;
 mod decode_pixels;
 mod dist;
@@ -38,27 +40,7 @@ mod read_code_lengths;
 mod read_huffman;
 mod read_transform;
 mod transform;
+mod vp8;
 mod vp8l;
 
-use crate::browser::image::store::Decoded;
-
-// Decode a WebP container, dispatching the simple-lossless VP8L chunk. VP8X
-// extended files are walked for their VP8L chunk; lossy VP8 is unsupported.
-pub fn decode_webp(bytes: &[u8]) -> Option<Decoded> {
-    if bytes.len() < 12 || &bytes[0..4] != b"RIFF" || &bytes[8..12] != b"WEBP" {
-        return None;
-    }
-    let mut off = 12usize;
-    while off + 8 <= bytes.len() {
-        let fourcc = &bytes[off..off + 4];
-        let size = u32::from_le_bytes(bytes[off + 4..off + 8].try_into().ok()?) as usize;
-        let end = off.checked_add(8)?.checked_add(size)?;
-        let payload = bytes.get(off + 8..end.min(bytes.len()))?;
-        if fourcc == b"VP8L" {
-            return vp8l::decode_vp8l(payload);
-        }
-        // Even-padded chunk sizes; VP8X falls through to reach the VP8L chunk.
-        off = end + (size & 1);
-    }
-    None
-}
+pub(super) use container::decode_webp;

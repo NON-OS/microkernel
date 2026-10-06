@@ -14,11 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::parse_px::parse_px;
+use super::parse_px::{parse_margin, parse_px};
 
-// Store a parsed, capped length; an invalid value leaves the slot alone.
+/* Store a parsed, capped length; an invalid value leaves the slot alone. */
 pub(super) fn set_len(slot: &mut u32, value: &str, em: u32, max: u32) {
     if let Some(px) = parse_px(value, em) {
         *slot = px.min(max);
+    }
+}
+
+/* Store one margin side: its px part in `slot`, its percentage part (per
+ * mille) in `pml`. "auto" stores 0, as the shorthand does, and the caller
+ * tracks the auto flag. Invalid values leave both alone. */
+pub(super) fn set_signed(slot: &mut i32, pml: &mut i32, value: &str, em: u32) {
+    if value.trim().eq_ignore_ascii_case("auto") {
+        (*slot, *pml) = (0, 0);
+    } else if let Some(m) = parse_margin(value, em) {
+        (*slot, *pml) = m;
     }
 }

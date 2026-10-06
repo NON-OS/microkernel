@@ -14,30 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_app_skeleton::PaintBuffer;
+use nonos_app_skeleton::{measure_ttf, PaintBuffer};
 
+use crate::browser::omnibox::geometry::{search_rect, TEXT_PX};
+use crate::browser::omnibox::{text_offset, Focus};
+use crate::browser::paint::chrome::field_text;
 use crate::browser::paint::home_page::constants;
 use crate::browser::state::State;
 
+/* The home page search bar. It is the address bar's twin: same text, same
+ * caret and selection, drawn wider in the middle of the page. */
 pub fn search_bar(state: &State, fb: &mut PaintBuffer) {
-    let edge = if state.address_focused { constants::ACCENT } else { constants::BORDER };
-    let x = fb.width.saturating_sub(constants::PILL_W) / 2;
-    fb.fill_rect(x, constants::PILL_Y, constants::PILL_W, constants::PILL_H, edge);
-    fb.fill_rect(
-        x + 2,
-        constants::PILL_Y + 2,
-        constants::PILL_W - 4,
-        constants::PILL_H - 4,
-        constants::PILL_BG,
-    );
-    globe(fb, x + 16, constants::PILL_Y + 15);
-    let ty = (constants::PILL_Y + (constants::PILL_H - 18) / 2) as i32;
-    let tx = (x + 40) as i32;
-    if state.address.is_empty() {
-        fb.text_ttf(tx, ty, "Search or enter a URL", constants::DIM, 15.0);
-    } else {
-        fb.text_ttf(tx, ty, &state.address, constants::FG, 15.0);
-    }
+    let focused = state.ui.kbd == Focus::Omnibox;
+    let edge = if focused { constants::ACCENT } else { constants::BORDER };
+    let r = search_rect(fb.width);
+    fb.fill_rect(r.x, r.y, r.w, r.h, edge);
+    fb.fill_rect(r.x + 2, r.y + 2, r.w - 4, r.h - 4, constants::PILL_BG);
+    globe(fb, r.x + 16, r.y + 15);
+    let ed = &state.ui.omnibox;
+    let w = r.w - 56;
+    let caret_px = measure_ttf(&ed.text[..ed.caret], TEXT_PX);
+    let off = text_offset(caret_px, measure_ttf(&ed.text, TEXT_PX), w as i32, 0);
+    let boxed = (r.x + 40, r.y + 2, w, r.h - 4);
+    field_text(fb, boxed, ed, focused, off, "Search or enter a URL");
 }
 
 fn globe(fb: &mut PaintBuffer, x: u32, y: u32) {

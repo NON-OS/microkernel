@@ -22,13 +22,13 @@ use crate::browser::css::sides::sides;
 
 const MAX_BORDER_PX: u32 = 32;
 
-// Border shorthands, per-side widths and color.
+/* Border shorthands, per-side widths and color. */
 pub(super) fn apply_border(c: &mut Computed, name: &str, value: &str, fs: u32) -> bool {
     match name {
         "border" | "border-top" | "border-right" | "border-bottom" | "border-left" => {
             let (width, color) = border_parts(value, fs, MAX_BORDER_PX);
             if let Some(rgb) = color {
-                c.border_color = rgb;
+                c.border_color = kept(rgb);
             }
             if let Some(px) = width {
                 match name {
@@ -59,10 +59,16 @@ pub(super) fn apply_border(c: &mut Computed, name: &str, value: &str, fs: u32) -
         "border-left-width" => set_len(&mut c.border_left, value, fs, MAX_BORDER_PX),
         "border-color" => {
             if let Some(rgb) = parse_color(value) {
-                c.border_color = rgb;
+                c.border_color = kept(rgb);
             }
         }
         _ => return false,
     }
     true
+}
+
+/* Fragment builders read a zero border colour as unset (currentColor): a
+ * transparent one keeps its low bit, still alpha 0 and painting nothing. */
+fn kept(argb: u32) -> u32 {
+    argb | (argb >> 24 == 0) as u32
 }

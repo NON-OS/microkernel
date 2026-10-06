@@ -26,29 +26,37 @@ use super::transform::{apply_all, Transform};
 
 const MAX_PIXELS: usize = 4_000_000;
 
-// Decode a lossless VP8L payload: the header, up to four transforms, the
-// entropy-coded main image, then the transforms undone in reverse.
+/* Decode a lossless VP8L payload: the header, then the image stream. */
 pub(super) fn decode_vp8l(data: &[u8]) -> Option<Decoded> {
     let mut br = BitReader::new(data);
     let (w, h) = read_header(&mut br)?;
-    if (w as usize).checked_mul(h as usize)? > MAX_PIXELS {
+    let px = image_stream(&mut br, w as usize, h as usize)?;
+    Some(Decoded { w, h, px })
+}
+
+/// An image stream with no header, its size known from outside (an ALPH
+/// chunk's lossless plane): up to four transforms, the entropy-coded main
+/// image, then the transforms undone in reverse.
+pub(super) fn decode_headless(data: &[u8], w: usize, h: usize) -> Option<Vec<u32>> {
+    image_stream(&mut BitReader::new(data), w, h)
+}
+
+fn image_stream(br: &mut BitReader, w: usize, h: usize) -> Option<Vec<u32>> {
+    if w.checked_mul(h)? > MAX_PIXELS {
         return None;
     }
-    let mut xsize = w as usize;
+    let mut xsize = w;
     let mut transforms: Vec<Transform> = Vec::new();
     while br.read_bit() == 1 {
         if transforms.len() >= 4 {
             return None;
         }
-        transforms.push(read_transform(&mut br, &mut xsize, h as usize)?);
+        transforms.push(read_transform(br, &mut xsize, h)?);
     }
-    let px = decode_image(&mut br, xsize, h as usize, true)?;
+    let px = decode_image(br, xsize, h, true)?;
     if br.eos {
         return None;
     }
-    let (px, full_w) = apply_all(transforms, px, xsize, h as usize);
-    if full_w != w as usize || px.len() != w as usize * h as usize {
-        return None;
-    }
-    Some(Decoded { w, h, px })
+    let (px, full_w) = apply_all(transforms, px, xsize, h);
+    (full_w == w && px.len() == w * h).then_some(px)
 }

@@ -14,35 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::browser::manifest::WIDTH;
-use crate::browser::paint::home_page::{constants, shortcut, shortcut_data};
+use crate::browser::omnibox::shortcut_at;
+use crate::browser::paint::home_page::shortcut_data::SHORTCUTS;
 
-pub fn shortcut_at(x: i32, y: i32) -> Option<&'static str> {
-    if x < 0 || y < 0 {
-        return None;
-    }
-    let (xu, yu) = (x as u32, y as u32);
-    for i in 0..shortcut_data::SHORTCUTS.len() as u32 {
-        let bx = shortcut::center_x(WIDTH, i).saturating_sub(constants::BADGE / 2);
-        if xu >= bx
-            && xu < bx + constants::BADGE
-            && yu >= constants::BADGE_Y
-            && yu < constants::BADGE_Y + constants::BADGE
-        {
-            return Some(shortcut_data::SHORTCUTS[i as usize].url);
-        }
-    }
-    None
-}
-
-pub fn search_bar_hit(x: i32, y: i32) -> bool {
-    if x < 0 || y < 0 {
-        return false;
-    }
-    let (xu, yu) = (x as u32, y as u32);
-    let px = WIDTH.saturating_sub(constants::PILL_W) / 2;
-    xu >= px
-        && xu < px + constants::PILL_W
-        && yu >= constants::PILL_Y
-        && yu < constants::PILL_Y + constants::PILL_H
+/* The site of the shortcut badge under (x, y) on a home page `width` pixels
+ * wide, the width it was painted at. */
+pub fn shortcut_url_at(x: i32, y: i32, width: u32) -> Option<&'static str> {
+    let i = shortcut_at(x, y, width, SHORTCUTS.len() as u32)?;
+    Some(SHORTCUTS[i].url)
 }

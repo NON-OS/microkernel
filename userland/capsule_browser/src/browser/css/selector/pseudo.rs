@@ -14,22 +14,50 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::boxed::Box;
+use alloc::string::String;
+use alloc::vec::Vec;
 
-use super::simple::Simple;
+use super::complex::Selector;
+use super::state::{FormState, UserState};
 
-// A pseudo-class on a compound. Structural ones evaluate against the DOM;
-// `Never` stands for state and unsupported pseudos, which cannot hold in a
-// static render, so the compound fails closed instead of over-matching.
+/* A pseudo-class on a compound, evaluated against the document. */
+#[derive(Clone)]
 pub enum Pseudo {
     FirstChild,
     LastChild,
     OnlyChild,
     FirstOfType,
     LastOfType,
-    // :nth-child(An+B), 1-based among element siblings.
+    OnlyOfType,
+    /* :nth-child(An+B), 1-based among element siblings. */
     NthChild(i32, i32),
+    NthLastChild(i32, i32),
+    NthOfType(i32, i32),
+    NthLastOfType(i32, i32),
+    /* :nth-child(An+B of S): counted among the siblings matching S. */
+    NthChildOf(i32, i32, Vec<Selector>),
+    NthLastChildOf(i32, i32, Vec<Selector>),
     Empty,
-    Not(Box<Simple>),
+    Root,
+    Scope,
+    /* :is(), :where() and :-webkit-any(): some argument matches. */
+    Matches(Vec<Selector>),
+    /* :not(): no argument matches. */
+    Not(Vec<Selector>),
+    /* :has(): an element related to this one as a relative argument says
+     * matches it. Each argument ends in a step whose compound is HasAnchor. */
+    Has(Vec<Selector>),
+    /* The element a :has() argument is anchored at; never written. */
+    HasAnchor,
+    AnyLink,
+    Lang(String),
+    /* :dir(rtl) when true, :dir(ltr) when false. */
+    Dir(bool),
+    Defined,
+    Open,
+    Form(FormState),
+    User(UserState),
+    /* A condition that cannot hold in a NONOS document: :visited, shadow
+     * tree, media playback, fullscreen and autofill states among others. */
     Never,
 }

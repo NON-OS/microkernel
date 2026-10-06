@@ -17,8 +17,9 @@
 use super::calc::{P, V};
 use super::calc_factor::factor;
 
-// One term: factors joined by * and /. A number scales a length; length
-// times length has no meaning and drops the declaration.
+/// One term: factors joined by * and /. A number scales a length or an
+/// undecided min/max/clamp; length times length has no meaning and drops
+/// the declaration.
 pub(super) fn term(p: &mut P) -> Option<V> {
     let mut acc = factor(p)?;
     loop {
@@ -44,6 +45,8 @@ fn mul_div(a: V, b: V, op: u8) -> Option<V> {
         (V::Len { px, pml }, V::Num(n), b'/') if n != 0.0 => {
             Some(V::Len { px: px / n, pml: pml / n })
         }
+        (V::Math(m), V::Num(n), b'*') | (V::Num(n), V::Math(m), b'*') => m.scaled(n).map(V::Math),
+        (V::Math(m), V::Num(n), b'/') if n != 0.0 => m.scaled(1.0 / n).map(V::Math),
         _ => None,
     }
 }

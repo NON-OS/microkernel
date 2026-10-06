@@ -17,24 +17,30 @@
 use alloc::vec::Vec;
 
 use crate::browser::fetch::types::Fetch;
-use crate::browser::tls13;
 
-pub(in crate::browser::fetch) fn decrypt(f: &Fetch) -> Option<Vec<u8>> {
-    let tls = f.tls.as_ref()?;
-    // Once the handshake cached the server keys, decrypt straight from them and
-    // skip re-verifying the certificate chain on every read tick. On a
-    // kept-alive connection the buffer holds every response since the
-    // handshake, so this fetch's response starts past the consumed prefix.
-    if let Some(app) = tls.server_app.as_ref() {
-        let mut plain = tls13::application_plaintext_cached(app, &f.buf);
-        if f.rx_consumed > 0 {
-            if f.rx_consumed >= plain.len() {
-                plain.clear();
-            } else {
-                plain.drain(..f.rx_consumed);
-            }
-        }
-        return Some(plain);
-    }
-    tls13::application_plaintext(&tls.cf, &tls.flight, &f.buf, f.url.host.as_bytes(), tls.now)
+/*
+ * The response was decrypted from its first record on every read, and on a
+ * kept connection from the connection's first record: the n-th image opened
+ * every record before it again. The reader keeps its place, so each call
+ * opens only the records that completed since the last one.
+ */
+/// This response's plaintext so far, or `None` before the handshake has
+/// verified: there is nothing to read without its keys, and no reason to
+/// verify again to find out.
+pub fn plain(f: &mut Fetch) -> Option<&[u8]> {
+    let Fetch { tls, buf, rx_consumed, .. } = f;
+    let tls = tls.as_mut()?;
+    let app = tls.server_app.as_ref()?;
+    tls.reader.feed(app, buf);
+    Some(tls.reader.plaintext().get(*rx_consumed..).unwrap_or(&[]))
+}
+
+/// The same, copied out for code that keeps the response.
+pub fn decrypt(f: &mut Fetch) -> Option<Vec<u8>> {
+    plain(f).map(<[u8]>::to_vec)
+}
+
+/// A record failed to open, so nothing after it is believed.
+pub fn broken(f: &Fetch) -> bool {
+    f.tls.as_ref().is_some_and(|tls| tls.reader.is_broken())
 }

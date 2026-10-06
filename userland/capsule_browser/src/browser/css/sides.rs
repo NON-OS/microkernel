@@ -14,18 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::parse_px::parse_px;
+use super::calc::split_top::words;
+use super::computed::Size;
+use super::parse_px::{parse_margin, parse_px};
+use super::parse_size::parse_offset;
 
-// Expand a 1-4 value box shorthand into [top, right, bottom, left].
-// "auto" resolves to 0; any unparsable component rejects the whole value.
-pub(super) fn sides(value: &str, em: u32, max: u32) -> Option<[u32; 4]> {
-    let mut vals = [0u32; 4];
+/* Expand a 1-4 value box shorthand into [top, right, bottom, left]. Words
+ * split at paren depth 0, so a function argument list stays one word. */
+fn expand<T: Copy + Default>(
+    value: &str,
+    mut one: impl FnMut(&str) -> Option<T>,
+) -> Option<[T; 4]> {
+    let mut vals = [T::default(); 4];
     let mut n = 0;
-    for part in value.split_whitespace() {
-        if n == 4 {
-            return None;
-        }
-        vals[n] = if part.eq_ignore_ascii_case("auto") { 0 } else { parse_px(part, em)?.min(max) };
+    for part in words(value) {
+        *vals.get_mut(n)? = one(part)?;
         n += 1;
     }
     match n {
@@ -35,4 +38,27 @@ pub(super) fn sides(value: &str, em: u32, max: u32) -> Option<[u32; 4]> {
         4 => Some(vals),
         _ => None,
     }
+}
+
+fn auto(part: &str) -> bool {
+    part.eq_ignore_ascii_case("auto")
+}
+
+/// Non-negative sides capped at `max` (padding, border widths). "auto"
+/// resolves to 0; any unparsable component rejects the whole value.
+pub(super) fn sides(value: &str, em: u32, max: u32) -> Option<[u32; 4]> {
+    expand(value, |p| if auto(p) { Some(0) } else { Some(parse_px(p, em)?.min(max)) })
+}
+
+/// Signed sides for margins as (px, per-mille of the containing width);
+/// "auto" resolves to 0 here and is tracked apart.
+pub(super) fn signed_sides(value: &str, em: u32) -> Option<[(i32, i32); 4]> {
+    expand(value, |p| if auto(p) { Some((0, 0)) } else { parse_margin(p, em) })
+}
+
+/// Signed offsets (top, right, bottom, left) from the 1-4 value `inset`
+/// shorthand, each a length, percentage or auto.
+pub(super) fn offsets(value: &str, em: u32) -> Option<[Size; 4]> {
+    let v = expand(value, |p| parse_offset(p, em).map(Some))?;
+    Some(v.map(|s| s.unwrap_or(Size::Auto)))
 }

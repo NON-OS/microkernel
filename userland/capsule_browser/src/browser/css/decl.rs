@@ -16,7 +16,47 @@
 
 use alloc::string::String;
 
+/* One declaration as parsed. The flags say, once per parse, what the value
+ * holds, so the cascade skips the substitution pass for the many values
+ * that name no custom property and no light-dark() pair. */
 pub struct Decl {
     pub name: String,
     pub value: String,
+    /* Declared !important: it outranks every normal declaration. */
+    pub important: bool,
+    pub flags: u8,
+}
+
+impl Decl {
+    /* The value holds var(). */
+    pub const VAR: u8 = 1;
+    /* The value holds light-dark(). */
+    pub const LIGHT_DARK: u8 = 2;
+    /* The name is a custom property, --name. */
+    pub const CUSTOM: u8 = 4;
+
+    pub fn new(name: String, value: String, important: bool) -> Decl {
+        let mut flags = 0;
+        if value.contains("var(") {
+            flags |= Decl::VAR;
+        }
+        if value.contains("light-dark(") {
+            flags |= Decl::LIGHT_DARK;
+        }
+        if name.starts_with("--") {
+            flags |= Decl::CUSTOM;
+        }
+        Decl { name, value, important, flags }
+    }
+
+    /* The value needs substitution before an applier may read it. */
+    pub fn needs_resolve(&self) -> bool {
+        self.flags & (Decl::VAR | Decl::LIGHT_DARK) != 0
+    }
+
+    /* Heap and inline bytes this declaration keeps: the parse budget's
+     * measure. Each allocation is counted at 16 bytes at least. */
+    pub fn cost(&self) -> usize {
+        core::mem::size_of::<Decl>() + self.name.len().max(16) + self.value.len().max(16)
+    }
 }
