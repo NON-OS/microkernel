@@ -1,0 +1,78 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Taking a verified consensus and starting to join microdescriptors onto it.
+
+use crate::trace;
+
+use super::dir_consensus::{sweep, Fetched};
+use super::state::{Bootstrap, Manager, NextConsensus};
+
+/*
+ * A consensus attempt is 376 KB off the wire and 1.8 MB inflated. Retrying one
+ * that just failed on the very next turn re-downloads all of it, and a boot that
+ * could not reach a quorum did that thirty six times. The wait is longer than the
+ * bootstrap's because the thing being waited for is slower: another authority
+ * becoming reachable, not a DHCP lease landing. In the manager's whole-second
+ * clock this is five seconds; it was written as 5000 against that clock and
+ * waited eighty three minutes.
+ */
+const RETRY_SECONDS: u64 = 5;
+
+pub(super) fn load(state: &mut Manager, now: u64) {
+    let doc = match sweep(state, now) {
+        None => return,
+        Some(Fetched::Doc(doc)) => doc,
+        Some(Fetched::Unheld(missing)) => {
+            /* Back for the certificates it named and the client lacks; the
+             * relays in hand keep serving meanwhile if this is a refresh. */
+            state.refetch = missing;
+            state.bootstrap = Bootstrap::Cold;
+            state.retry_after = now.saturating_add(RETRY_SECONDS);
+            return;
+        }
+        Some(Fetched::Nothing) => {
+            state.retry_after = now.saturating_add(RETRY_SECONDS);
+            return;
+        }
+    };
+    trace::say_num(b"consensus relays", doc.entries.len() as u64);
+    state.entries = doc.entries;
+    if state.refreshing {
+        // The relays in hand still serve under the consensus they came from.
+        state.next = Some(NextConsensus {
+            valid_after: doc.valid_after,
+            fresh_until: doc.fresh_until,
+            valid_until: doc.valid_until,
+            weights: doc.weights,
+            signatures: doc.verified_signatures,
+            srv_current: doc.srv_current,
+            srv_previous: doc.srv_previous,
+        });
+    } else {
+        state.weights = doc.weights;
+        state.valid_after = doc.valid_after;
+        state.fresh_until = doc.fresh_until;
+        state.srv_current = doc.srv_current;
+        state.srv_previous = doc.srv_previous;
+        state.valid_until = doc.valid_until;
+        state.consensus_signatures = doc.verified_signatures;
+    }
+    state.micro.clear();
+    state.dir.micro = 0;
+    state.authority_cursor = state.authority_cursor.wrapping_add(1);
+    state.bootstrap = Bootstrap::Joining;
+}
