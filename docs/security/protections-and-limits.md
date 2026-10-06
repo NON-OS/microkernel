@@ -86,3 +86,12 @@ It shows whether device DMA is confined: look for a `[VT-D]` line for each claim
 `log` does not show capability refusals. The `[CAP-DENY]` lines go to the kernel's log manager, which writes warnings to the text-mode console and every line to its `ram_buffer`, not to the serial console (`src/log/manager/state.rs:58-82`).
 
 The Security page in Settings shows whether the TPM gave a machine key in this boot state. See [Device secrets and keys](device-secrets-and-keys.md).
+
+## See also
+
+- [Threat model](../overview/threat-model.md)
+- [Capsule isolation](capsule-isolation.md)
+- [Device secrets and keys](device-secrets-and-keys.md)
+- [Measured boot and TPM](measured-boot-and-tpm.md)
+- [Rollback protection](rollback-protection.md)
+- [Reporting a vulnerability](reporting-a-vulnerability.md)
