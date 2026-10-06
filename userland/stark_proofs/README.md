@@ -1,8 +1,17 @@
 # stark_proofs
 
-Host-runnable proofs for the in-kernel STARK primitives. The real
-`src/crypto/stark` source is included through `#[path]` and run on the host,
-so the checks are about the code that ships.
+Host tests for the stark-attest engine: the `nonos-stark` crate in
+`stark-attest/crates/stark-core`, taken as a path dependency and re-exported as
+`crate::crypto::stark`. Beside it the crate includes the kernel's BLAKE3,
+SHA-3 and constant-time files from `src/crypto` through `#[path]`.
+
+There is no `src/crypto/stark` in the kernel. The kernel and bootloader gates
+check v4 trailers with `nox_verify` from the STARKs repository, which these
+tests do not reach; this engine is the v3-era prover and verifier. See
+[the STARK layer page](../../docs/handbook/trust/stark.md) and
+[the proofs page](../../docs/handbook/verification/proofs.md). `nix flake
+check` runs its tests as `proofs-stark_proofs`; the two Kani proofs in
+`src/kani_proofs.rs` run in no CI job.
 
 ## Poseidon-Goldilocks
 
