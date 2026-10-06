@@ -14,6 +14,10 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies]
+# The bring-up proofs: the station address is drawn through nonos_mac, and
+# the port I/O, entropy and release calls are answered by the shim.
+nonos_mac = { path = "../nonos_mac" }
+nonos_libc = { package = "rtl8139_proofs_libc_shim", path = "libc_shim" }
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
