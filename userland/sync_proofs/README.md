@@ -22,3 +22,7 @@ Run:
 
     cargo test --release
     cargo kani
+
+`nix flake check` runs the tests as `proofs-sync_proofs`; the
+`proof-crates-kani` job in `verify.yml` runs the Kani harnesses. See
+[the proofs page](../../docs/handbook/verification/proofs.md).
