@@ -139,3 +139,11 @@ make nonos-mk-run-serial-log
 ```
 
 Not tested in this release.
+
+## See also
+
+- [The Nix flake](nix-flake.md)
+- [Profiles](profiles.md)
+- [The seal](seal.md)
+- [First boot](../install/first-boot.md)
+- [Install to disk](../install/install-to-disk.md)
