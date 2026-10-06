@@ -12,7 +12,48 @@ set_option maxHeartbeats 1000000
 /- You can set the `maxRecDepth` value with the `-max-recdepth` CLI option -/
 set_option maxRecDepth 2048
 
+/- You can remove the following line by using the CLI option `-all-computable`: -/
+noncomputable section
+
 namespace nonos_x_syscall_microkernel_battery
+
+/-- [core::option::{impl core::cmp::PartialEq<core::option::Option<T>> for core::option::Option<T>}::eq]:
+    Source: '/rustc/library/core/src/option.rs', lines 2440:4-2440:38
+    Name pattern: [core::option::{core::cmp::PartialEq<core::option::Option<@T>, core::option::Option<@T>>}::eq]
+    Visibility: public -/
+@[rust_fun
+  "core::option::{core::cmp::PartialEq<core::option::Option<@T>, core::option::Option<@T>>}::eq"]
+axiom core.option.Option.Insts.CoreCmpPartialEqOption.eq
+  {T : Type} (cmpPartialEqInst : core.cmp.PartialEq T T) :
+  Option T → Option T → Result Bool
+
+/-- [nonos_x_syscall_microkernel_battery::arch::x86_64::acpi::parser::PowerDevices]
+    Source: 'src/arch/mod.rs', lines 14:12-16:13
+    Visibility: public -/
+structure arch.x86_64.acpi.parser.PowerDevices where
+  battery : Bool
+
+/-- [nonos_x_syscall_microkernel_battery::arch::x86_64::acpi::parser::Data]
+    Source: 'src/arch/mod.rs', lines 10:12-12:13
+    Visibility: public -/
+structure arch.x86_64.acpi.parser.Data where
+  power_devices : arch.x86_64.acpi.parser.PowerDevices
+
+/-- [nonos_x_syscall_microkernel_battery::arch::x86_64::acpi::parser::with_data]:
+    Source: 'src/arch/mod.rs', lines 18:12-20:13
+    Visibility: public -/
+def arch.x86_64.acpi.parser.with_data
+  {R : Type} {T1 : Type} (coreopsfunctionFnOnceT1TupleSharedDataRInst :
+  core.ops.function.FnOnce T1 arch.x86_64.acpi.parser.Data R) (_f : T1) :
+  Result (Option R)
+  := do
+  ok none
+
+/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::errnos::ERRNO_NOTSUP]
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/errnos.rs', lines 46:0-46:34
+    Visibility: public -/
+@[global_simps, irreducible]
+def syscall.microkernel.errnos.ERRNO_NOTSUP : Std.I64 := (-95)#i64
 
 /-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::errnos::ERRNO_NODEV]
     Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/errnos.rs', lines 34:0-34:33
@@ -20,14 +61,50 @@ namespace nonos_x_syscall_microkernel_battery
 @[global_simps, irreducible]
 def syscall.microkernel.errnos.ERRNO_NODEV : Std.I64 := (-19)#i64
 
+/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status::closure]
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery.rs', lines 38:56-38:83 -/
+@[reducible]
+def syscall.microkernel.battery.sys_battery_status.closure := Unit
+
+/-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status::{impl core::ops::function::FnOnce<(&'_ nonos_x_syscall_microkernel_battery::arch::x86_64::acpi::parser::Data,), bool> for nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status::closure}::call_once]:
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery.rs', lines 38:56-38:83 -/
+def
+  syscall.microkernel.battery.sys_battery_status.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool.call_once
+  (c : syscall.microkernel.battery.sys_battery_status.closure)
+  (tupled_args : arch.x86_64.acpi.parser.Data) :
+  Result Bool
+  := do
+  ok tupled_args.power_devices.battery
+
+/-- Trait implementation: [nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status::{impl core::ops::function::FnOnce<(&'_ nonos_x_syscall_microkernel_battery::arch::x86_64::acpi::parser::Data,), bool> for nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status::closure}]
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery.rs', lines 38:56-38:83 -/
+@[reducible]
+def
+  syscall.microkernel.battery.sys_battery_status.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool
+  : core.ops.function.FnOnce
+  syscall.microkernel.battery.sys_battery_status.closure
+  arch.x86_64.acpi.parser.Data Bool := {
+  call_once :=
+    syscall.microkernel.battery.sys_battery_status.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool.call_once
+}
+
 /-- [nonos_x_syscall_microkernel_battery::syscall::microkernel::battery::sys_battery_status]:
-    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery.rs', lines 37:0-39:1
+    Source: 'src/syscall/microkernel/../../../../../../../src/syscall/microkernel/battery.rs', lines 35:0-44:1
     Visibility: public -/
 def syscall.microkernel.battery.sys_battery_status : Result Std.I64 := do
-  ok syscall.microkernel.errnos.ERRNO_NODEV
+  let o ←
+    arch.x86_64.acpi.parser.with_data
+      syscall.microkernel.battery.sys_battery_status.closure.Insts.CoreOpsFunctionFnOnceTupleSharedDataBool
+      ()
+  let b ←
+    core.option.Option.Insts.CoreCmpPartialEqOption.eq core.cmp.PartialEqBool o
+      (some false)
+  if b
+  then ok syscall.microkernel.errnos.ERRNO_NODEV
+  else ok syscall.microkernel.errnos.ERRNO_NOTSUP
 
 /-- [nonos_x_syscall_microkernel_battery::sys_battery_status]:
-    Source: 'src/lib.rs', lines 11:0-13:1
+    Source: 'src/lib.rs', lines 12:0-14:1
     Visibility: public -/
 def sys_battery_status : Result Std.I64 := do
   syscall.microkernel.battery.sys_battery_status

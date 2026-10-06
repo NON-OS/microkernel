@@ -34,7 +34,9 @@ pub fn enumerate_gpio_controllers() -> Vec<GpioController> {
             let mut ctl = GpioController::new(scope.hid);
             ctl.name = scope.name;
             ctl.uid = parse_uid(scope.body).unwrap_or(0);
-            ctl.pids = community_pids(&scope.hid);
+            let pids = community_pids(&scope.hid);
+            ctl.pid_count = pids.len().min(ctl.pids.len());
+            ctl.pids[..ctl.pid_count].copy_from_slice(&pids[..ctl.pid_count]);
             if let Some(crs) = scope.crs {
                 parse_gpio_crs(crs, &mut ctl);
             }

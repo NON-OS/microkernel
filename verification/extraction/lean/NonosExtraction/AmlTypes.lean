@@ -14,54 +14,58 @@ set_option maxRecDepth 2048
 
 namespace nonos_x_aml_types
 
-/-- [nonos_x_aml_types::types::LpssController]
-    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types.rs', lines 73:0-86:1
+/-- [nonos_x_aml_types::types::gpio_controller::GpioController]
+    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types/gpio_controller.rs', lines 27:0-48:1
     Visibility: public -/
-structure types.LpssController where
+structure types.gpio_controller.GpioController where
+  «name» : Array Std.U8 4#usize
+  uid : Std.U32
+  windows : Array (Std.U64 × Std.U64) 5#usize
+  window_count : Std.Usize
+  pids : Array Std.U8 5#usize
+  pid_count : Std.Usize
+  hid : Array Std.U8 8#usize
+
+/-- [nonos_x_aml_types::types::gpio_controller::{nonos_x_aml_types::types::gpio_controller::GpioController}::is_valid]:
+    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types/gpio_controller.rs', lines 66:4-68:5
+    Visibility: public -/
+def types.gpio_controller.GpioController.is_valid
+  (self : types.gpio_controller.GpioController) : Result Bool := do
+  if self.window_count > 0#usize
+  then ok true
+  else ok (self.pid_count > 0#usize)
+
+/-- [nonos_x_aml_types::types::lpss_controller::LpssController]
+    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types/lpss_controller.rs', lines 24:0-37:1
+    Visibility: public -/
+structure types.lpss_controller.LpssController where
   mmio_base : Std.U64
   mmio_size : Std.U32
   irq : Std.U32
   has_irq : Bool
   hid : Array Std.U8 8#usize
 
-/-- [nonos_x_aml_types::types::{nonos_x_aml_types::types::LpssController}::is_valid]:
-    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types.rs', lines 95:4-97:5
+/-- [nonos_x_aml_types::types::lpss_controller::{nonos_x_aml_types::types::lpss_controller::LpssController}::is_valid]:
+    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types/lpss_controller.rs', lines 46:4-48:5
     Visibility: public -/
-def types.LpssController.is_valid
-  (self : types.LpssController) : Result Bool := do
+def types.lpss_controller.LpssController.is_valid
+  (self : types.lpss_controller.LpssController) : Result Bool := do
   if self.mmio_base != 0#u64
   then ok (self.mmio_size != 0#u32)
-  else ok false
-
-/-- [nonos_x_aml_types::types::GpioController]
-    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types.rs', lines 105:0-120:1
-    Visibility: public -/
-structure types.GpioController where
-  «name» : Array Std.U8 4#usize
-  uid : Std.U32
-  mmio_base : Std.U64
-  mmio_size : Std.U64
-  hid : Array Std.U8 8#usize
-
-/-- [nonos_x_aml_types::types::{nonos_x_aml_types::types::GpioController}::is_valid]:
-    Source: 'src/../../../../../src/arch/x86_64/acpi/aml/types.rs', lines 128:4-130:5
-    Visibility: public -/
-def types.GpioController.is_valid
-  (self : types.GpioController) : Result Bool := do
-  if self.mmio_base != 0#u64
-  then ok (self.mmio_size != 0#u64)
   else ok false
 
 /-- [nonos_x_aml_types::lpsscontroller_is_valid]:
     Source: 'src/lib.rs', lines 10:0-12:1
     Visibility: public -/
-def lpsscontroller_is_valid (this : types.LpssController) : Result Bool := do
-  types.LpssController.is_valid this
+def lpsscontroller_is_valid
+  (this : types.lpss_controller.LpssController) : Result Bool := do
+  types.lpss_controller.LpssController.is_valid this
 
 /-- [nonos_x_aml_types::gpiocontroller_is_valid]:
     Source: 'src/lib.rs', lines 14:0-16:1
     Visibility: public -/
-def gpiocontroller_is_valid (this : types.GpioController) : Result Bool := do
-  types.GpioController.is_valid this
+def gpiocontroller_is_valid
+  (this : types.gpio_controller.GpioController) : Result Bool := do
+  types.gpio_controller.GpioController.is_valid this
 
 end nonos_x_aml_types

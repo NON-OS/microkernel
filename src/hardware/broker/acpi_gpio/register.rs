@@ -37,7 +37,8 @@ pub fn register_acpi_gpio() {
                 say(&ctl, "SBREG_BAR unreadable at 00:1f.1, no community windows");
                 continue;
             };
-            for &pid in ctl.pids {
+            let (pids, n) = (ctl.pids, ctl.pid_count);
+            for &pid in &pids[..n] {
                 let (at, len) = community_window(base, pid);
                 ctl.push_window(at, len);
             }

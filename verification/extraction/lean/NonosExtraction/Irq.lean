@@ -25,20 +25,52 @@ namespace nonos_irq
 axiom core.option.Option.ok_or
   {T : Type} {E : Type} : Option T → E → Result (core.result.Result T E)
 
+/-- [nonos_irq::irq::errors::IrqBindError]
+    Source: 'src/irq/../../../../../src/hardware/broker/irq/errors.rs', lines 20:0-40:1
+    Visibility: public -/
+@[discriminant isize]
+inductive irq.errors.IrqBindError where
+| NotClaimed : irq.errors.IrqBindError
+| StaleEpoch : irq.errors.IrqBindError
+| UnknownDevice : irq.errors.IrqBindError
+| NotDeviceIrq : irq.errors.IrqBindError
+| AlreadyBound : irq.errors.IrqBindError
+| ReservedGsi : irq.errors.IrqBindError
+| NoVector : irq.errors.IrqBindError
+| UnsupportedFlags : irq.errors.IrqBindError
+| NotIntx : irq.errors.IrqBindError
+| NoMsixCap : irq.errors.IrqBindError
+| NoMsiCap : irq.errors.IrqBindError
+| BadMsixBar : irq.errors.IrqBindError
+| BadVectorCount : irq.errors.IrqBindError
+| MsixProgramFailed : irq.errors.IrqBindError
+| MsiProgramFailed : irq.errors.IrqBindError
+| NoDeviceHandle : irq.errors.IrqBindError
+| PlatformError : irq.errors.IrqBindError
+
 /-- [nonos_irq::irq::types::BIND_MSIX]
-    Source: 'src/irq/../../../../../src/hardware/broker/irq/types.rs', lines 26:0-26:34
+    Source: 'src/irq/../../../../../src/hardware/broker/irq/types.rs', lines 27:0-27:34
     Visibility: public -/
 @[global_simps, irreducible]
 def irq.types.BIND_MSIX : Result Std.U32 := 1#u32 <<< 0#i32
 
-/-- [nonos_irq::irq::types::FLAGS_KNOWN]
-    Source: 'src/irq/../../../../../src/hardware/broker/irq/types.rs', lines 27:0-27:39
+/-- [nonos_irq::irq::types::BIND_MSI]
+    Source: 'src/irq/../../../../../src/hardware/broker/irq/types.rs', lines 28:0-28:33
     Visibility: public -/
 @[global_simps, irreducible]
-def irq.types.FLAGS_KNOWN : Result Std.U32 := irq.types.BIND_MSIX
+def irq.types.BIND_MSI : Result Std.U32 := 1#u32 <<< 1#i32
+
+/-- [nonos_irq::irq::types::FLAGS_KNOWN]
+    Source: 'src/irq/../../../../../src/hardware/broker/irq/types.rs', lines 29:0-29:50
+    Visibility: public -/
+@[global_simps, irreducible]
+def irq.types.FLAGS_KNOWN : Result Std.U32 := do
+  let i ← irq.types.BIND_MSIX
+  let i1 ← irq.types.BIND_MSI
+  ok (i ||| i1)
 
 /-- [nonos_irq::irq::types::IrqBindRequest]
-    Source: 'src/irq/../../../../../src/hardware/broker/irq/types.rs', lines 53:0-65:1
+    Source: 'src/irq/../../../../../src/hardware/broker/irq/types.rs', lines 32:0-44:1
     Visibility: public -/
 structure irq.types.IrqBindRequest where
   device_id : Std.U64
@@ -47,30 +79,9 @@ structure irq.types.IrqBindRequest where
   flags : Std.U32
   vector_count : Std.U32
 
-/-- [nonos_irq::irq::types::IrqBindError]
-    Source: 'src/irq/../../../../../src/hardware/broker/irq/types.rs', lines 78:0-95:1
-    Visibility: public -/
-@[discriminant isize]
-inductive irq.types.IrqBindError where
-| NotClaimed : irq.types.IrqBindError
-| StaleEpoch : irq.types.IrqBindError
-| UnknownDevice : irq.types.IrqBindError
-| NotDeviceIrq : irq.types.IrqBindError
-| AlreadyBound : irq.types.IrqBindError
-| ReservedGsi : irq.types.IrqBindError
-| NoVector : irq.types.IrqBindError
-| UnsupportedFlags : irq.types.IrqBindError
-| NotIntx : irq.types.IrqBindError
-| NoMsixCap : irq.types.IrqBindError
-| BadMsixBar : irq.types.IrqBindError
-| BadVectorCount : irq.types.IrqBindError
-| MsixProgramFailed : irq.types.IrqBindError
-| NoDeviceHandle : irq.types.IrqBindError
-| PlatformError : irq.types.IrqBindError
-
-/-- [nonos_irq::irq::validate::MsixHandleView]
-    Source: 'src/irq/../../../../../src/hardware/broker/irq/validate.rs', lines 46:0-53:1 -/
-structure irq.validate.MsixHandleView where
+/-- [nonos_irq::irq::validate::msix_view::MsixHandleView]
+    Source: 'src/irq/../../../../../src/hardware/broker/irq/validate/msix_view.rs', lines 27:0-34:1 -/
+structure irq.validate.msix_view.MsixHandleView where
   msix_present : Bool
   msix_table_size : Std.U16
   table_bar_in_range : Bool
@@ -78,78 +89,82 @@ structure irq.validate.MsixHandleView where
   pba_bar_in_range : Bool
   pba_bar_is_mmio : Bool
 
-/-- [nonos_irq::irq::validate::validate_msix_request]:
-    Source: 'src/irq/../../../../../src/hardware/broker/irq/validate.rs', lines 74:0-117:1 -/
-def irq.validate.validate_msix_request
+/-- [nonos_irq::irq::validate::msix_view::{nonos_irq::irq::validate::msix_view::MsixHandleView}::check]:
+    Source: 'src/irq/../../../../../src/hardware/broker/irq/validate/msix_view.rs', lines 50:4-65:5 -/
+def irq.validate.msix_view.MsixHandleView.check
+  (self : irq.validate.msix_view.MsixHandleView) (n : Std.Usize) :
+  Result (core.result.Result Unit irq.errors.IrqBindError)
+  := do
+  if self.msix_present
+  then
+    let i ← lift (UScalar.cast .U16 n)
+    if i > self.msix_table_size
+    then ok (core.result.Result.Err irq.errors.IrqBindError.BadVectorCount)
+    else
+      if self.table_bar_in_range
+      then
+        if self.table_bar_is_mmio
+        then
+          if self.pba_bar_in_range
+          then
+            if self.pba_bar_is_mmio
+            then ok (core.result.Result.Ok ())
+            else ok (core.result.Result.Err irq.errors.IrqBindError.BadMsixBar)
+          else ok (core.result.Result.Err irq.errors.IrqBindError.BadMsixBar)
+        else ok (core.result.Result.Err irq.errors.IrqBindError.BadMsixBar)
+      else ok (core.result.Result.Err irq.errors.IrqBindError.BadMsixBar)
+  else ok (core.result.Result.Err irq.errors.IrqBindError.NoMsixCap)
+
+/-- [nonos_irq::irq::validate::msix::validate_msix_request]:
+    Source: 'src/irq/../../../../../src/hardware/broker/irq/validate/msix.rs', lines 46:0-72:1 -/
+def irq.validate.msix.validate_msix_request
   (req : irq.types.IrqBindRequest) (pool_capacity : Std.Usize)
-  (handle : Option irq.validate.MsixHandleView)
-  (has_existing_msix_grant : Bool) :
-  Result (core.result.Result Unit irq.types.IrqBindError)
+  (handle : Option irq.validate.msix_view.MsixHandleView)
+  (has_message_grant : Bool) :
+  Result (core.result.Result Unit irq.errors.IrqBindError)
   := do
   let i ← irq.types.FLAGS_KNOWN
   let i1 ← lift (~~~ i)
   let i2 ← lift (req.flags &&& i1)
   if i2 != 0#u32
-  then ok (core.result.Result.Err irq.types.IrqBindError.UnsupportedFlags)
+  then ok (core.result.Result.Err irq.errors.IrqBindError.UnsupportedFlags)
   else
     let i3 ← irq.types.BIND_MSIX
-    let i4 ← lift (req.flags &&& i3)
-    if i4 = 0#u32
-    then ok (core.result.Result.Err irq.types.IrqBindError.UnsupportedFlags)
+    if req.flags != i3
+    then ok (core.result.Result.Err irq.errors.IrqBindError.UnsupportedFlags)
     else
       let n ← lift (UScalar.cast .Usize req.vector_count)
       if n = 0#usize
-      then ok (core.result.Result.Err irq.types.IrqBindError.BadVectorCount)
+      then ok (core.result.Result.Err irq.errors.IrqBindError.BadVectorCount)
       else
         if n > pool_capacity
-        then ok (core.result.Result.Err irq.types.IrqBindError.BadVectorCount)
+        then ok (core.result.Result.Err irq.errors.IrqBindError.BadVectorCount)
         else
           let r ←
             core.option.Option.ok_or handle
-              irq.types.IrqBindError.NoDeviceHandle
+              irq.errors.IrqBindError.NoDeviceHandle
           let cf ← core.result.Result.Insts.CoreOpsTry.branch r
           match cf with
           | core.ops.control_flow.ControlFlow.Continue val =>
-            if val.msix_present
-            then
-              let i5 ← lift (UScalar.cast .U16 n)
-              if i5 > val.msix_table_size
+            let r1 ← irq.validate.msix_view.MsixHandleView.check val n
+            let cf1 ← core.result.Result.Insts.CoreOpsTry.branch r1
+            match cf1 with
+            | core.ops.control_flow.ControlFlow.Continue _ =>
+              if req.irq_source != 0#u32
               then
                 ok (core.result.Result.Err
-                  irq.types.IrqBindError.BadVectorCount)
+                  irq.errors.IrqBindError.NotDeviceIrq)
               else
-                if val.table_bar_in_range
+                if has_message_grant
                 then
-                  if val.table_bar_is_mmio
-                  then
-                    if val.pba_bar_in_range
-                    then
-                      if val.pba_bar_is_mmio
-                      then
-                        if req.irq_source != 0#u32
-                        then
-                          ok (core.result.Result.Err
-                            irq.types.IrqBindError.NotDeviceIrq)
-                        else
-                          if has_existing_msix_grant
-                          then
-                            ok (core.result.Result.Err
-                              irq.types.IrqBindError.AlreadyBound)
-                          else ok (core.result.Result.Ok ())
-                      else
-                        ok (core.result.Result.Err
-                          irq.types.IrqBindError.BadMsixBar)
-                    else
-                      ok (core.result.Result.Err
-                        irq.types.IrqBindError.BadMsixBar)
-                  else
-                    ok (core.result.Result.Err
-                      irq.types.IrqBindError.BadMsixBar)
-                else
-                  ok (core.result.Result.Err irq.types.IrqBindError.BadMsixBar)
-            else ok (core.result.Result.Err irq.types.IrqBindError.NoMsixCap)
+                  ok (core.result.Result.Err
+                    irq.errors.IrqBindError.AlreadyBound)
+                else ok (core.result.Result.Ok ())
+            | core.ops.control_flow.ControlFlow.Break residual =>
+              core.result.Result.Insts.CoreOpsTryTraitFromResidualResultInfallible.from_residual
+                Unit (core.convert.FromSame irq.errors.IrqBindError) residual
           | core.ops.control_flow.ControlFlow.Break residual =>
             core.result.Result.Insts.CoreOpsTryTraitFromResidualResultInfallible.from_residual
-              Unit (core.convert.FromSame irq.types.IrqBindError) residual
+              Unit (core.convert.FromSame irq.errors.IrqBindError) residual
 
 end nonos_irq
