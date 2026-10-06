@@ -18,3 +18,7 @@ python3 tools/nonos-capsule-key-prefixes
 ```
 
 On this tree it prints 97 names on one line, from `proof_io` and `std_proof` to `power`. The script reads only the `include` lines of the make files, so the shared Linux userland publisher is not among them. Its own description says the key ceremony, `tools/nonos-key-ceremony`, makes one publisher pair per name (`tools/nonos-capsule-key-prefixes:17-19`, `CAPSULE_BIN_NAME`).
+
+## capsule-sign
+
+The host tool is the binary `capsule-sign`, built in `nonos-sign` around the `nonos_capsule_sign` library (`nonos-sign/Cargo.toml:8-14`). Its subcommands are `keygen`, `derive-id`, `mk-trust-policy`, `sign-id-cert`, `sign-manifest`, `sign-release`, `verify-release`, `verify-policy`, `verify-cert` and `verify-manifest` (`nonos-sign/src/cli/dispatch.rs:29-45`, `dispatch`). The `nonos-sign` host tests, 21 of them, passed in the flake checks on this commit.
