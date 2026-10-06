@@ -71,3 +71,7 @@ The device then reaches all of memory, and the kernel counts it instead of hidin
 ```
 
 `enforcing=1` together with `unconfined grants=0` means that every DMA buffer the broker has granted is confined, because `unconfined_grants` counts every grant made without a domain (`src/memory/iommu/posture.rs:17-28`). It does not mean every device is confined: a device found at boot that no capsule has claimed stays in the identity domain and can still reach all memory. On a machine with no remapping hardware the boot prints `[IOMMU] no DMAR remapping unit and no IVRS table; IOMMU domains refused; DMA is unrestricted` and selects `IommuVendor::Absent` (`src/memory/iommu/backend_x86_64/select.rs:62-65`).
+
+## AMD-Vi
+
+`init` for AMD-Vi first takes every unit back from firmware, because a unit left enabled would translate every device through tables built for firmware's own drivers (`src/arch/x86_64/amd_vi/init.rs:24-45`). A kernel built with `nonos-iommu-amdvi` would then drive the units through `bringup`, with one shared device table and per capsule domains (`src/arch/x86_64/amd_vi/mod.rs:17-25`). No feature list in [Cargo.toml](../../Cargo.toml) turns that feature on, so on such a machine the boot prints `[AMD-VI] IOMMU driver not built in; DMA is unrestricted`.
