@@ -69,3 +69,11 @@ NONOS relies on these without proof. They are the hardware, firmware, compiler a
 - BLAKE3, SHA-2, SHA-3 and the width-8 Poseidon hash are collision resistant.
 - Nobody has bus, JTAG or cold-boot access to the machine.
 - The compiler, a Rust nightly, generates what the source says.
+
+## In scope
+
+- A capsule, an app or a Linux program that tries to reach past its capability word.
+- A device that tries DMA outside its capsule's grants, where a VT-d unit in service covers it.
+- An observer on the network path, for connections made under Nym or Anyone.
+- Someone who reads the disk of a machine that is off.
+- A capsule changed after it was signed and enrolled.
