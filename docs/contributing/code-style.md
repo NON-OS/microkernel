@@ -52,3 +52,14 @@ The static checks enforce this in the bootloader only:
 - The bootloader's kernel verification module is held to the same two limits (`kernel_verify_oversize`, `nonos-ci/run-static-checks.sh:2267-2282`).
 
 Everywhere else the limit is a house rule with no check behind it, and older code does not meet it: at this commit 790 of the 5761 Rust files under `src/` are longer than 75 lines.
+
+## Comments
+
+Say why, not what the next line does. A module opens with a `//!` comment that says what the module is for and what it is not for; the one in `src/arch/time_counter.rs:17-22` names what `x86_64` and `aarch64` read and why callers must not use it as wall-clock time.
+
+- An `unsafe fn` documents its contract in a `# Safety` section, as `enable_interrupts` does (`src/arch/abi.rs:42-46`).
+- An `unsafe` block has a `// SAFETY:` comment above it naming the fact that makes it sound, as the call to `rdrand_u64` does (`src/arch/cpu_random/read.rs:33-36`).
+
+No check requires a `SAFETY:` comment, so write one for every new `unsafe` block. `tools/nonos_console.py` counts `unsafe {` sites and `SAFETY:` comments across the tree and prints the second as a share of the first, counted into `documented` (`tools/nonos_console.py:1319-1324`).
+
+Shipping comments carry no markers of unfinished work. The `hygiene` scan rejects the four in `COMMENT_PATTERNS`, among them `FIXME`, `for now` and `placeholder`, in any line that starts as a comment (`nonos-verify/src/hygiene/patterns.rs:28-33`).
