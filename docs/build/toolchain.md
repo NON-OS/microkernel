@@ -36,3 +36,20 @@ make doctor
 ```
 
 It says `ok    nix, with flakes` when Nix answers with flakes on, then reports hardware virtualization, and ends with `This machine can build NONOS: make` (`doctor`, `Makefile:124-136`).
+
+## Rust
+
+`rust-toolchain.toml` pins the `channel` to `nightly-2026-01-16` with the `rust-src`, `llvm-tools-preview`, `clippy` and `rustfmt` components and the `minimal` profile (`rust-toolchain.toml:1-4`). The flake reads that same file through rust-overlay (`fromRustupToolchainFile`, `tools/nix/pins.nix:10`), so rustup and the flake cannot drift apart.
+
+The flake derives four toolchains from the one pin:
+
+| toolchain | targets added | used for |
+|---|---|---|
+| `rust`, `tools/nix/pins.nix:10` | none | the kernel, the [capsules](../overview/glossary.md#capsule) and the host tools |
+| `rustUefi`, `tools/nix/pins.nix:13` | `x86_64-unknown-uefi` | the bootloader |
+| `rustShell`, `tools/nix/pins.nix:16` | `x86_64-unknown-uefi`, `wasm32-unknown-unknown` | the development shell and the STARK verifier for the web |
+| `rustMusl`, `tools/nix/pins.nix:19` | `x86_64-unknown-linux-musl` | the Rust programs of the Linux userland, such as ripgrep and fd |
+
+The bootloader has its own `rust-toolchain.toml` with the same `channel` and the UEFI target (`nonos-bootloader/rust-toolchain.toml:1-4`).
+
+Capsules that use `std` build against a copy of the pinned standard library with the NONOS platform layer of `toolchain/nonos-std` applied; the pinned toolchain itself is never patched (`mkRustStd`, `tools/nix/capsules.nix:16-20`).
