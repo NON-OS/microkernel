@@ -2,17 +2,23 @@
 
 ## Role
 
-`capsule_crypto` is the userland cryptographic operation capsule. It exposes
-the approved crypto service surface over IPC so user requests do not call
-kernel-resident crypto shims.
+`capsule_crypto` is the userland cryptographic operation capsule. The kernel
+forwards most crypto syscalls to it over IPC, so hashing, AEAD, X25519, HMAC
+and HKDF for capsules run here and not in kernel code.
 
 ```text
-client capsule
+capsule
+    |
+    | Crypto* syscall
+    v
+kernel client (src/security/crypto_capsule)
     |
     | crypto IPC
     v
-crypto -- operation dispatcher --> hash / verify / crypto response
+crypto -- dispatch --> hash / verify / AEAD / X25519 / HMAC / HKDF
 ```
+
+The handbook page is [Kernel crypto](../../docs/handbook/kernel/crypto.md).
 
 ## Microkernel contract
 
@@ -23,22 +29,33 @@ The capsule uses IPC and memory only:
 - `MkExit` terminates on fatal setup failure.
 - The kernel mirror is `src/security/crypto_capsule`.
 
-The kernel keeps boot-time and TCB cryptography where required, but user-facing
-crypto requests route through this capsule.
+Not every crypto syscall reaches this capsule. The kernel serves
+`CryptoRandom` from its own generator, `CryptoKeccak256` with its own SHA-3
+code and `CryptoMachineKey` from the TPM. The kernel also keeps the
+cryptography it needs for itself, such as capsule signature checks.
 
 ## Interface contract
 
-| Surface | Purpose |
+`dispatch` serves these operations:
+
+| Surface | Operations |
 |---|---|
-| hash | user-facing digest operations |
-| verify | signature verification operations as they are promoted |
-| AEAD | encryption/decryption operations through the capsule protocol |
-| errno mapping | deterministic failure reporting for malformed requests |
+| hash | BLAKE3, SHA-256, SHA-384, SHA-512, SHA3-256 |
+| verify | Ed25519, P-256 ECDSA, P-384 ECDSA, RSA |
+| AEAD | ChaCha20-Poly1305 and AES-256-GCM, seal and open |
+| key agreement | X25519 public key and shared secret |
+| MAC and KDF | HMAC-SHA256, HKDF-SHA256 |
+| health | healthcheck |
+
+An unknown operation is answered with `EINVAL`. SHA-384 and the P-256,
+P-384 and RSA verifiers have no syscall in front of them. Sealing refuses an
+all-zero nonce.
 
 ## Authority
 
-The manifest grants `IPC`, `Memory`, and service authority through
-`CAPSULE_REQUIRED_CAPS = 0x38`. It has no driver, MMIO, IRQ, DMA, PIO,
+The manifest grants `IPC` and `Memory` through
+`CAPSULE_REQUIRED_CAPS = 0x18`. It hashes, verifies and seals in its own code and draws no
+randomness from the kernel, so it holds no Crypto. It has no driver, MMIO, IRQ, DMA, PIO,
 filesystem, network, admin, or debug authority.
 
 ## Privacy and persistence
@@ -47,63 +64,34 @@ Request buffers are processed in capsule memory and replies are returned over
 IPC. The capsule does not persist plaintexts, digests, signatures, or keys.
 Long-lived secret storage belongs to `capsule_keyring`, not here.
 
-## Runtime lifecycle
-
-The capsule receives bounded crypto requests, dispatches to operation handlers,
-returns the result, and retains no request material after completion.
-
 ## Failure model
 
 Unsupported operation, malformed payload, oversized input, verification
-failure, or crypto backend failure return explicit protocol errors. There is no
-silent fallback to syscall-side crypto shims.
-
-## Current implemented surface
-
-- Owns the user-facing crypto protocol.
-- Dispatches supported operations through modular server handlers.
-- Is embedded, spawned, and validation-covered for the hash surface.
-- Keeps user crypto off the syscall fast path inside the kernel.
+failure, or crypto backend failure return explicit protocol errors. The kernel
+client maps them to errnos: an authentication failure is `EBADMSG` for the AEAD
+calls, and a dead or restarted capsule has an errno of its own.
 
 ## Wire format
 
-Requests carry operation id, algorithm id where applicable, input lengths, and
-payload bytes. Replies carry status and result bytes. All operation families
-must define fixed bounds before they are promoted.
+Every message starts with the `NOCX` magic. Requests carry operation id, flags,
+a request id and payload bytes. Replies carry the same three fields, a status
+and the result bytes. The kernel side of the layout
+is a mirror in `src/security/crypto_capsule/protocol.rs`, which reports drift
+as `ProtocolMismatch`.
 
 ## State ownership
 
 The capsule owns transient operation buffers only. `capsule_keyring` owns
-long-lived key material. The kernel owns boot/TCB crypto only and does not
-serve user crypto requests directly.
+long-lived key material.
 
-## Operating rules
+## Build and image
 
-- Bound every input and output length.
-- Keep plaintext/key material transient.
-- Return explicit verification and decode errors.
-- Do not bypass the capsule through syscall-side crypto shims.
-
-## Release target
-
-The finished crypto capsule exposes the approved hash, signature, verification,
-and AEAD operations through one audited IPC surface, with fixed wire layouts,
-bounded input sizes, zero persistent plaintext/key storage, and validation coverage
-per operation family.
-
-## Release evidence
-
-Release evidence is operation-family validation coverage, request-size boundary
-tests, and static proof that user-facing crypto syscalls route through the
-capsule client.
-
-## Release checklist
-
-- Hash validation passes.
-- Signature verify validation passes when promoted.
-- AEAD validation passes when promoted.
-- Boundary tests cover oversized input and malformed payloads.
-- Static gate confirms no user-facing kernel crypto shim.
+`Capsule.mk` defines the capsule for the shared capsule rules, so
+`make nonos-mk-crypto` builds it and `make nonos-mk-crypto-sign` signs it. The
+kernel embeds it when built with the `nonos-capsule-crypto` feature, which
+`microkernel-crypto`, `microkernel-desktop-offline` (and the desktop sets built
+on it), `microkernel-terminal-only` and the smoke-test sets turn on. The kernel
+spawns it at init after the entropy capsule.
 
 ## Explicit non-goals today
 
@@ -112,8 +100,6 @@ driver, network protocol, or persistent audit log lives in this capsule.
 
 ## Verification
 
-- Build: `make -B nonos-mk-crypto`
-- Validation: `nonos-mk-crypto-hash-test`
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Architecture check: user-facing hash and AEAD syscall paths must route
-  through the capsule client rather than kernel shims.
+- Build: `make nonos-mk-crypto`
+- Static gate: `bash nonos-ci/run-static-checks.sh`, which includes
+  `scripts/check_mirror_caps.py` for the spawn mirror's capability word.
