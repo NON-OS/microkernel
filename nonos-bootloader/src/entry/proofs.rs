@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,23 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::action::resolve_action;
-use nonos_boot::bootmenu;
-use nonos_boot::hardware::HardwareInfo;
-use nonos_boot::menu::{BootIntent, SecurityMode};
+//! The boot screen's proofs panel, fed from what this boot verified and the
+//! evidence it gathered for the kernel.
+
+use nonos_boot::display::{show_proofs, Proofs};
+use nonos_boot::kernel_verify::CryptoVerifyResult;
 use nonos_boot::security::SecurityContext;
 use uefi::prelude::*;
 
-pub fn select_security_mode(
-    st: &mut SystemTable<Boot>,
-    dev_override: bool,
+use super::boot_evidence::BootEvidence;
+
+pub fn show(
+    st: &SystemTable<Boot>,
+    gop: bool,
+    crypto: &CryptoVerifyResult,
     security: &SecurityContext,
-    hw: &HardwareInfo,
-) -> Result<(SecurityMode, BootIntent), Status> {
-    if dev_override {
-        let _ = st.stdout().output_string(uefi::cstr16!("[WARN] DEV MODE - SECURITY BYPASSED\r\n"));
-        return Ok((SecurityMode::Development, BootIntent::Run));
-    }
-    let action = bootmenu::run(st, security, hw);
-    Ok((resolve_action(st, action)?, BootIntent::of(action)))
+    evidence: &BootEvidence,
+) {
+    let proofs = Proofs {
+        crypto,
+        security,
+        tcg_log: evidence.log,
+        trailer: evidence.trailer,
+        record: evidence.record,
+    };
+    show_proofs(st.boot_services(), gop, &proofs);
 }
