@@ -36,3 +36,15 @@ This release sets no minimum amount of memory: the loader's hardware check names
 - On a boot from the stick, the session's data volume is held in RAM, and only when at least 256 MiB is free beyond what the kernel keeps for the system, which is the larger of 1 GiB and a quarter of memory (`src/fs/blockfs_volume/session.rs`, `src/fs/cryptoblock/ram.rs`). Below that, that boot has no `/data`, and programs that ask for it get `too little memory free for a volume in RAM`.
 - The Qwen model step in setup offers only the tiers that fit this machine's memory ([Local AI](../using/local-ai.md)).
 - The QEMU boots give the virtual machine 8 GiB by default (`--mem 8G`), and the boot tool's help says Qwen, Linux programs and a second window need more than 2G (`tools/nonos_qemu/__main__.py`).
+
+## USB stick
+
+The sealed image `nonos.img` is 1,043,148,800 bytes, about 995 MiB:
+
+| Part | Size |
+|---|---|
+| Partition table, package store, disk plan and ESP | 384 MiB |
+| The Qwen3 0.6B model file, laid past the ESP | 639,446,688 bytes, rounded up to whole sectors |
+| Room for the backup partition table | 1 MiB |
+
+The sizes are `USB_MB`, `STICK_TIER` and `GPT_TAIL` in `tools/nonos_seal/media.py`, and the pinned file size in `userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs`. Use a stick of 2 GB or more. Writing the image erases everything on the stick.
