@@ -31,3 +31,9 @@ The full list, with each call's arguments and the capability it needs, is on [Sy
 A system call number is four ASCII letters packed into a `u64` by `tag4`, first letter in the lowest byte (`src/syscall/abi/tag.rs:17-22`). These are the [syscall tags](../overview/glossary.md#syscall-tag). `MkIpcSend` is `MISD`, which is `0x4453494D` (`abi/syscalls.toml:150`), and a memory dump of the number reads `MISD`.
 
 `SyscallNumber::from_u64` calls `lookup_id`, which searches the registry (`src/syscall/abi/mod.rs:31-40`). A number that is not there gets `ENOSYS`, -38, unless the caller is a Linux guest, described below.
+
+## Calling convention
+
+The `[wire]` table states it: the `syscall` instruction, the number in `rax`, up to six arguments in `rdi`, `rsi`, `rdx`, `r10`, `r8` and `r9`, and the result in `rax`, under the key `reg_abi` (`abi/syscalls.toml:9-15`). A result from -4095 to -1 is a negative errno, as `errno_range` says (`abi/syscalls.toml:17-19`); anything else is success.
+
+The CPU itself overwrites `rcx` and `r11`. The entry code saves the caller's `rdi`, `rsi` and `rdx` and writes them back on return, so a caller may keep values there across a call (`src/arch/x86_64/asm/syscall.S:36-41`). It also saves `rbx` and `r12` to `r15` and returns them unchanged (`src/arch/x86_64/asm/syscall.S:42-54`).
