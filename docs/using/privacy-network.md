@@ -103,3 +103,7 @@ Reads wait longer on purpose through the two anonymity networks: a reader waits 
 ## What the kernel does not do
 
 The kernel does not enforce the choice. It requires the Network capability to reach `net.sockets`, `net.nym`, `net.anon`, `net.socks5` and the other network services (`NETWORK_SERVICES` in `src/services/registry/policy.rs:26-38`), but it does not check which one a [capsule](../overview/glossary.md#capsule) uses. Each program keeps the choice through `nonos_route_link`.
+
+## What is tested
+
+The host tests of this path pass on this commit: `route_link_proofs` (73 tests), `capsule_socks5_proofs` (136), `nym_topology_proofs` (25), `nym_reply_proofs` (64), `anon_ntor_proofs` (226), `anon_onion_proofs` (67), `anon_link_proofs` (14) and `net_anon_proofs` (2). A booted image carrying traffic through a live Nym gateway or a live Anyone circuit is not tested in this release.
