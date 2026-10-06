@@ -74,3 +74,24 @@ The installer makes the whole plan when you choose the disk, and says on the Con
 | `that disk has no working driver` | the row is not a disk the installer can write |
 
 The sources are `userland/nonos_disk/src/writer/error_text.rs`, `userland/nonos_blk_client/src/disks/describe.rs` and `userland/capsule_install/src/install/job/prepare.rs`.
+
+## What is written
+
+The disk gets a GPT with four partitions, laid out in 512-byte sectors (`userland/nonos_disk/src/lib.rs`, `userland/nonos_disk_map/src/places.rs`, `userland/nonos_disk/src/layout/plan.rs`):
+
+| Sectors | Partition | What it holds |
+|---|---|---|
+| 0 to 33 | | the protective MBR and the primary GPT |
+| 256 to 245,759 | `NONOS-STORE` | the package store |
+| 245,760 to 262,143 | `NONOS-PLAN` | the disk plan naming the data volume, then the key header, cleared |
+| 262,144 to the ESP | `NONOS-DATA` | the data volume, everything between the plan and the ESP |
+| 1 GiB, or whole MiBs more for larger boot files, ending on the last MiB boundary before the backup GPT | `NONOS-ESP` | the boot files |
+| the last 33 sectors | | the backup GPT |
+
+The [ESP](../overview/glossary.md#esp) holds `EFI/BOOT/BOOTX64.EFI`, then `kernel.bin`, `bootloader.trailer`, `boot_root.approval`, `boot.cfg` and, when the running image has one, `kernel.approval` under `EFI/nonos/`, and `startup.nsh` at the top (`userland/nonos_disk/src/image/nonos.rs`). The loader and kernel bytes are the ones the loader verified on this boot and handed to the kernel, read back with `mk_install_source`, not read again from the stick (`userland/capsule_install/src/install/source/load.rs`).
+
+The store carries, in this order, while it has room: setup's answers and their marker, the wallpapers those answers keep, the signed programs under `/linux/` and then `/capsules/`, each program whole or not at all, then the files the Linux programs read (`userland/nonos_disk/src/carry/gather.rs`). Nothing else from the running session is carried: files you made, the consent to run installed software and remembered Wi-Fi networks stay behind. The store is not encrypted: the kernel writes it to the disk as it is given (`src/syscall/microkernel/store_write.rs`).
+
+The data volume is the encrypted part. The installer clears its key header and zeroes its header ring, so the first boot from the disk keys the volume with the TPM and formats it (`userland/nonos_disk/src/lib.rs`).
+
+The installer is not a secure wipe. It first wipes the old partition tables and the kernel's markers, then writes the ESP, the zeroed header ring and key header, the store, the disk plan and the new tables, in that order (`userland/nonos_disk/src/session/queue.rs`). The rest of the data region is not overwritten: what the disk held there stays on it until the new volume writes over it. NONOS never reads those old bytes, but they are not destroyed.
