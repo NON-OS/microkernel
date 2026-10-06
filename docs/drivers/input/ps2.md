@@ -53,3 +53,13 @@ Each byte from the keyboard goes through `absorb`: E0 and E1 prefixes become fla
 - A held key repeats as more presses. Mute and Power act once per press and their repeats are dropped (`acts_once`, `userland/capsule_driver_ps2_input/src/keymap/once.rs:27-29`).
 - Ctrl+Alt+Space switches to the next keyboard layout and is not passed on (`cycle`, `userland/capsule_driver_ps2_input/src/poll/absorb.rs:66-79`). [Keyboard layouts](../../using/keyboard-layouts.md) lists the six layouts.
 - The driver also keeps the last 256 raw scan codes in a ring of its own. When it is full, the oldest is overwritten and counted as dropped (`RING_CAPACITY`, `userland/capsule_driver_ps2_input/src/constants/ports.rs:43`; `push`, `userland/capsule_driver_ps2_input/src/ring/push.rs:20-29`).
+
+## Mouse and touchpad
+
+A packet is 3 bytes, or 4 once the wheel knock succeeded. The first byte must have bit 3 set; a first byte without it is counted as a sync error and dropped, so the parser waits for the start of the next packet (`absorb`, `userland/capsule_driver_ps2_input/src/mouse/parser.rs:34-48`). The check is weak: a stray byte with bit 3 set still passes it. An axis the mouse marks as overflowed is held to 255 in its direction rather than applied as read (`axis`, `userland/capsule_driver_ps2_input/src/mouse/axis.rs:23-33`).
+
+A PS/2 mouse counts upward motion as positive. The driver negates Y, so that on the input ring positive Y points down the screen (`parse`, `userland/capsule_driver_ps2_input/src/mouse/packet.rs:26-62`). It also negates the wheel step, so a notch away from you counts as +1, as it does for USB and I2C mice (`publish`, `userland/capsule_driver_ps2_input/src/mouse/post.rs:24-37`).
+
+When the mouse bring-up failed, bytes from the aux port are still read to keep the output buffer clear, and then thrown away (`aux_enabled`, `userland/capsule_driver_ps2_input/src/poll/drain.rs:52-60`).
+
+A touchpad on the aux port gets no special treatment. The driver speaks no vendor touchpad protocol, so it sees what the touchpad sends in plain PS/2 mouse mode: relative motion and its buttons.
