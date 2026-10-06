@@ -49,3 +49,15 @@ sudo dd if=target/release/standard/nonos.img of=/dev/sdX bs=4M status=progress c
 ```
 
 Not tested in this release.
+
+## By hand on macOS
+
+Replace `disk4` with the stick's name from `diskutil list`.
+
+```
+diskutil unmountDisk /dev/disk4
+sudo dd if=target/release/standard/nonos.img of=/dev/rdisk4 bs=4m && sync
+diskutil eject /dev/disk4
+```
+
+Not tested in this release.
