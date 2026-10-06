@@ -48,3 +48,9 @@ Verified: check_stubs.py reports no rtl8153 site; rtl8153_proofs 27
 pass; cargo clippy -D warnings clean on rtl8153_proofs (--tests) and on
 capsule_driver_rtl8153 for x86_64-nonos-user; inputs.py --check passes.
 ```
+
+## What a commit leaves out
+
+- Trailers. None of the last 200 commits on `main` carries a sign-off or a co-author line; the only lines git reads as trailers are some of their `Verified:` paragraphs. Keep to that.
+- Key material of any kind. The flake build never holds a key; signing happens in the [seal](../overview/glossary.md#seal), a separate step (`seal`, `Makefile:11-14`). [Signing and publisher keys](../userland/signing-and-publisher-keys.md) explains where keys live.
+- Unrelated changes. One concern per commit; a formatting pass over files you did not otherwise change goes in a commit of its own, or nowhere.
