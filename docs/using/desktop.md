@@ -165,3 +165,14 @@ The Proofs headline is one of six sentences (`userland/capsule_about/src/about/d
 | `Not established: something below could not be read` | A check, or the route proof, could not be read. |
 
 A part that could not be read is shown as unknown, never as a pass (`userland/capsule_about/src/about/data/proofs/session.rs`). About writes nothing and asks no network anything.
+
+## See also
+
+- [Terminal](terminal.md)
+- [Files](files.md)
+- [Settings](settings.md)
+- [Keyboard layouts](keyboard-layouts.md)
+- [Sound and media](audio.md)
+- [Capsule isolation](../security/capsule-isolation.md)
+- [STARK attestation](../security/stark-attestation.md)
+- [Display drivers](../drivers/display.md)
