@@ -20,6 +20,9 @@ mod flush;
 mod healthcheck;
 mod identify_controller;
 mod identify_namespace;
+mod layout;
+mod lba_map;
+mod native;
 mod read;
 mod read_blocks;
 mod seq;
@@ -40,3 +43,8 @@ pub use identify_namespace::{identify_namespace, NvmeNamespaceIdentity};
 pub use read_blocks::read_blocks;
 pub use smart_health::{smart_health, NvmeSmartHealth};
 pub use write_blocks::write_blocks;
+
+/// Whether the client can map 512-byte sectors onto `lba_size`-byte LBAs.
+pub fn lba_size_addressable(lba_size: u32) -> bool {
+    lba_map::addressable(lba_size, super::protocol::MAX_RW_PAYLOAD_BYTES)
+}
