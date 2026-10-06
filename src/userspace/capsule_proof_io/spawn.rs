@@ -46,9 +46,13 @@ pub fn spawn_proof_io_capsule() -> Result<(), SpawnError> {
         manifest_bytes: PROOF_IO_MANIFEST_BYTES,
         attestation_trailer: PROOF_IO_ATTESTATION_BYTES,
         target_triple: TARGET_TRIPLE,
-        requested_caps: Capability::CoreExec.bit()
-            | Capability::IPC.bit()
-            | Capability::Memory.bit(),
+        // Debug, optional in the manifest and granted only by a kernel built
+        // with `capsule-serial-debug`: the proof's one output is an MkDebug
+        // line, and step three checks MkDebug refuses a bad pointer, which
+        // without Debug is refused for the capability first.
+        requested_caps: Capability::IPC.bit()
+            | Capability::Memory.bit()
+            | crate::capabilities::serial_debug_cap(),
         debug_tag: b"",
     };
     capsule_spawn::spawn_verified(&spec, &trust_anchor, None)?;
