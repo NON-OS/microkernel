@@ -31,3 +31,15 @@ Every completion is polled. MSI-X is asked for but not needed: a refused bind le
 ## NVMe versions
 
 A controller whose VS register reads 0 is refused at bring-up. Past that, the version matters in one place: the active namespace list, Identify CNS 02h, is asked only of a controller that reports NVMe 1.1 or later, since NVMe 1.0 has no such list, and otherwise NSID 1 is used (`userland/capsule_driver_nvme/src/admin/active_ns.rs:46-58`, `lists_active_namespaces`, `FALLBACK_NSID`). A controller that refuses the list is served through NSID 1 as well (`userland/capsule_driver_nvme/src/setup/namespace.rs:50-55`, `list_refused`).
+
+## Namespaces and formats
+
+One namespace is served per controller: the first active NSID the list names. It gets an I/O queue only when all of these hold (`userland/capsule_driver_nvme/src/nvm/geometry/check.rs:31-70`, `NamespaceGeometry::check`):
+
+- the controller reports a namespace and its size is not 0;
+- FLBAS selects a format the namespace has;
+- that format carries no metadata;
+- its block size is 512 or 4096 bytes;
+- the controller's MDTS lets one command move at least one block.
+
+Otherwise the controller is still served for identify and health, and read and write requests answer `E_NODEV` (`userland/capsule_driver_nvme/src/server/handlers/read.rs:28-31`, `E_NODEV`). The kernel addresses 512-byte sectors and maps them onto a 4096-byte namespace itself; see [Storage drivers](README.md#sector-sizes).
