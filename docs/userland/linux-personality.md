@@ -121,3 +121,11 @@ The network choices themselves are explained on [Privacy networks](../using/priv
 ## Tests
 
 `capsule_linux_proofs` mounts the personality's pure modules on the host, among them the task limit, the run-request parser, the route choice and the Wayland wire format (`userland/capsule_linux_proofs/src/linux/call/mod.rs:34`, `tasks`). Its 369 tests passed in the flake checks on this commit.
+
+## See also
+
+- [Linux programs](../using/linux-programs.md)
+- [Local AI](../using/local-ai.md)
+- [Capsule isolation](../security/capsule-isolation.md)
+- [Processes and capsule spawn](../kernel/processes-and-spawn.md)
+- [IPC services](ipc-services.md)
