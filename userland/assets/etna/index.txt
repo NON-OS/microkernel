@@ -1,0 +1,10 @@
+welcome etna-387f21b9dbd2.png
+home etna-90380f7829df.png
+send etna-4bb30d031341.png
+receive etna-fcb6fdda9325.png
+deposit etna-460f26b9c468.png
+withdraw etna-a0754afa8556.png
+proving etna-0b0046f5f585.png
+history etna-32f5aa765d0e.png
+settings etna-fcb6fdda9325.png
+backup etna-4bb30d031341.png
