@@ -19,7 +19,7 @@ use super::constants::PENDING_CAP;
 
 impl Cache {
     pub fn note_pending(&mut self, ipv4: [u8; 4]) {
-        if self.pending.iter().any(|p| *p == Some(ipv4)) {
+        if self.pending.contains(&Some(ipv4)) {
             return;
         }
         self.pending[self.pending_head] = Some(ipv4);
