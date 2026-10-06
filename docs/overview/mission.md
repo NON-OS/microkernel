@@ -29,3 +29,10 @@ In the Terminal, `qwen get` downloads the files of a Qwen model tier, and the ke
 ### A wallet that does not hold its key
 
 The keyring capsule holds the wallet's key and signs with it. The wallet keeps only a record sealed to this machine in its current boot state, and the keyring seals or opens that record only for a sender the service registry names as the wallet (`allowed` in `userland/capsule_keyring/src/server/vault_gate/mod.rs:23-30`). The raw key leaves the keyring only on an explicit export request from the process it belongs to (`wallet_export` in `userland/capsule_keyring/src/server/handlers/wallet_export.rs:21-27`). See [Wallet](../using/wallet.md).
+
+## Who it is for
+
+- A person who wants a laptop that keeps nothing by default and sends the system's own connections through an anonymity network. Start with [Install](../install/README.md).
+- A person who holds keys and wants every program on the machine to run with only the rights it was enrolled for. Read the [threat model](threat-model.md), then [Wallet](../using/wallet.md).
+- An OS developer or a security reviewer who wants each claim tied to a file and a line. Read [Architecture](architecture.md) and [Design principles](design-principles.md).
+- A contributor who wants to write a capsule or a driver. Read [Contributing](../contributing/README.md) and [Writing a driver](../drivers/writing-a-driver.md).
