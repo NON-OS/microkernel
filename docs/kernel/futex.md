@@ -24,3 +24,34 @@ The values are in `src/syscall/microkernel/errnos.rs:22-35`, where `ERRNO_PERM` 
 ## Who shares a futex
 
 The wait queue is keyed on the pair of thread group and address, `Key` (`src/syscall/microkernel/futex/waiters.rs:23-24`). The threads of one capsule share a thread group, so they meet on the same word. Another capsule that waits at the same numeric address has a different key and never sees their wakes. The queue is one map, `FUTEX_QUEUE`, under one lock, and `tgid_of` finds the caller's group (`src/syscall/microkernel/futex/queue.rs:27-35`).
+
+## Waiting
+
+```mermaid
+sequenceDiagram
+    participant waiter
+    participant kernel
+    participant waker
+    waiter->>kernel: MkFutexWait vaddr expected timeout_ms
+    kernel->>kernel: read wake token, join the queue
+    kernel->>kernel: read the word, return at once if it changed
+    kernel->>kernel: sleep until the deadline unless woken
+    waker->>kernel: MkFutexWake vaddr count
+    kernel-->>waiter: woken, leaves the queue, returns 0
+```
+
+`sys_futex_wait` works in this order (`src/syscall/microkernel/futex/wait.rs:26-73`):
+
+1. It reads the caller's wake token from the scheduler.
+2. It joins the queue with `join`, before reading the word, the way Linux reads the word with the waiter's bucket held (`src/syscall/microkernel/futex/wait.rs:39-46`).
+3. It reads the word with `copy_from_user`. If the read fails it returns `ERRNO_FAULT`. If the word no longer holds `expected`, it leaves the queue with `leave_early` and returns 0 at once.
+4. It sleeps until a deadline unless a wake arrived after step 1, then yields, then leaves the queue if no waker took it off already.
+
+The deadline depends on `timeout_ms` (`src/syscall/microkernel/futex/wait.rs:60-67`):
+
+- A timeout of 0 means no deadline, and the kernel caps the sleep at `SAFETY_MS`, 20 ms, then returns 0.
+- Any other timeout sleeps that long, up to `MAX_TIMED_MS`, 60 000 ms per call (`src/syscall/microkernel/futex/queue.rs:23-25`).
+
+The call returns 0 when woken, when the word had changed, and when the deadline passed. It does not say which. The caller rechecks its word after every return and waits again if needed, so an early return costs a loop and never a lost wake.
+
+If a waker already took this waiter off the list while it was returning early, `leave_early` passes that wake on to the next waiter, so the wake is not spent on a thread that was leaving anyway (`src/syscall/microkernel/futex/waiters.rs:41-58`). The waiter list code is pure so it can be tested on the host; see the last section.
