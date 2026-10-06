@@ -70,3 +70,34 @@ The spawn site does not choose the capabilities. The word installed comes from t
 ## Stacks
 
 The user stack is `USER_STACK_SIZE`, 2 MiB, ending at `USER_STACK_BASE`, `0x0000_7FFF_FFFF_0000`, and each process has a kernel stack of `KERNEL_STACK_SIZE`, 32 KiB (`src/process/userspace/constants.rs:30-32`). The page below the user stack is left unmapped, so an overflow faults as a user fault, and stack pages are never executable, as `allocate_user_stack` maps them (`src/kernel_core/process_spawn/user_stack.rs:26-57`).
+
+## Exit and reaping
+
+```mermaid
+stateDiagram-v2
+    [*] --> Ready
+    Ready --> Running
+    Running --> Sleeping
+    Sleeping --> Ready
+    Running --> Zombie
+    Sleeping --> Zombie
+    Zombie --> Terminated
+    Terminated --> [*]
+```
+
+A process ends in one of three ways, all through `exit_and_yield` or `teardown`: it calls `MkExit` (`src/syscall/microkernel/process.rs:35-52`), a fault in ring 3 or a signal kills it (`src/process/exit/exit_and_yield.rs:17-38`), or another process ends it with `MkKill`.
+
+`teardown` runs at once (`src/process/exit/teardown.rs:21-89`):
+
+- It releases the process's surfaces, then every MMIO, IRQ, DMA and PIO grant it holds in the [hardware broker](hardware-broker.md), in `release_all_for_pid` and its neighbours (`src/process/exit/teardown.rs:44-51`). The MMIO release also drops the process's device claims: `release_all_for_pid` in the claim module stops bus mastering on each device and detaches it from the capsule's IOMMU domain, before the DMA buffers are freed (`src/hardware/broker/claim/release.rs:51-62`).
+- It drops the calls the process made and the replies it owed, with `release_pending_replies_for_pid` (`src/process/exit/teardown.rs:52`).
+- It marks the process `Zombie` and releases its names, its endpoints and its reply inbox, with `release_names` (`src/process/exit/teardown.rs:54-57`), so a relaunch does not collide with the dead process's names.
+- It records the exit code for the parent with `reap_log::record` and queues the process for finalization (`src/process/exit/teardown.rs:64-82`).
+
+`finalize_teardown` runs later, from a timer tick, once `drain` finds no CPU still using the process's page tables (`src/process/exit/pending.rs:27-61`). It frees the address space, drops the [inboxes](../overview/glossary.md#inbox) or keeps the output inbox for the parent, reparents orphans with `reparent_orphans` and removes the process row (`src/process/exit/finalize.rs:11-39`). Removing the row sets the state to `Terminated` first, in `terminate_process` (`src/process/core/table/ops.rs:22-31`).
+
+`MkWait(pid, timeout_ms)` is for the parent only. `sys_wait` returns the child's exit code, `ECHILD` for a pid that is not the caller's child, or `ETIMEDOUT` when the deadline passes; it checks every `SLICE_MS`, 5 ms, and a `timeout_ms` of 0 checks once and returns (`src/syscall/microkernel/wait.rs:21-51`). After the row is gone the code is read from the reap log, which keeps 64 entries and drops the lowest pid first, as `record` does (`src/process/exit/reap_log.rs:24-36`).
+
+`MkKill(pid, sig)` accepts only `SIGINT`, `SIGTERM` and `SIGKILL`. `sys_kill` lets a parent end its child, a supervisor end its guest, and a holder of `ProcessControl` or `Admin` end anything, and gives the exit code 128 plus the signal (`src/syscall/microkernel/kill.rs:26-62`). The signal numbers are 2, 15 and 9: `SIGINT` (`src/process/signal/constants.rs:18`), `SIGTERM` (`src/process/signal/constants.rs:31`) and `SIGKILL` (`src/process/signal/constants.rs:25`).
+
+A capsule whose name starts with `driver.` and that exits on its own with a status other than 0 gets a serial line from the kernel, as `told` decides: status 2 is read as no device present and 6 as a device that never came up, in `words` (`src/process/exit/end_rule.rs:24-44`).
