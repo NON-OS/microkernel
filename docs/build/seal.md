@@ -88,3 +88,18 @@ The USB image starts as a 384 MiB GPT disk with one EFI partition named `NONOS-E
 The FAT serial and every timestamp on the media are pinned, so the media carry no clock (`IMAGE_DATE`, `tools/nonos_seal/media.py:45-47`).
 
 After a seal, commit the files it staged under `nonos-data/`, so the next `nix build` of the tree gives exactly the sealed kernel and loader (`say`, `tools/nonos_seal/__main__.py:168-170`).
+
+## The checks at the end
+
+Phase 6 stops the seal on the first failure (`checks`, `tools/nonos_seal/verify.py:51-86`):
+
+| check | what it holds |
+|---|---|
+| A | the trust ledger, every file of the trust set by sha256 |
+| B | every manifest signature, Ed25519 and ML-DSA-65, under the trust anchor policy |
+| C | each binary's declared capabilities against its signed manifest |
+| D | every STARK membership proof, by the same verifier the kernel and the loader run |
+| E | the capsules a fresh build gives against the ones signed |
+| F | the kernel and loader a fresh `nix build` gives against the ones sealed |
+
+Check F ties a sealed image to its source even though the seal itself is not reproducible: the unsigned kernel and loader inside it must be byte for byte what `nix build` gives from the tree the seal leaves, once its staged files are committed. [reproducible-builds.md](reproducible-builds.md) has the rest.
