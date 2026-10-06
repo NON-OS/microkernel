@@ -24,12 +24,21 @@ pub struct Ring {
     len: usize,
 }
 
+impl Default for Ring {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Ring {
     pub const fn new() -> Self {
         Ring { items: [Entry::empty(); CAP], len: 0 }
     }
     pub fn len(&self) -> usize {
         self.len
+    }
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
     }
     pub fn get(&self, index: usize) -> Option<&Entry> {
         if index < self.len {

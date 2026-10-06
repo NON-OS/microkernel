@@ -17,11 +17,18 @@
 use nonos_app_skeleton::EventOutcome;
 
 use super::key_classifier::{classify, Classified};
+use super::on_history;
 use crate::calc::actions::dispatch;
+use crate::calc::mode::Mode;
 use crate::calc::state::State;
 
 pub fn on_key(state: &mut State, code: u32) -> EventOutcome {
-    match classify(code) {
+    if state.mode == Mode::History {
+        if let Some(outcome) = on_history::key(state, code) {
+            return outcome;
+        }
+    }
+    match classify(code, state.mode) {
         Classified::Close => EventOutcome::Close,
         Classified::Ignored => EventOutcome::Idle,
         Classified::Action(action) => {

@@ -47,6 +47,26 @@ pub fn capacity(win_h: i32) -> usize {
     (((avail + ROW_GAP) / (ROW_H + ROW_GAP)) as usize).min(CAP)
 }
 
+/// Rows that can be scrolled past before the oldest entry sits on the last row.
+pub fn max_scroll(len: usize, win_h: i32) -> usize {
+    len.saturating_sub(capacity(win_h))
+}
+
+/// `scroll` moved by `rows` (negative is towards the newest), kept in range.
+pub fn scroll_by(scroll: usize, rows: i32, len: usize, win_h: i32) -> usize {
+    let moved = if rows < 0 {
+        scroll.saturating_sub(rows.unsigned_abs() as usize)
+    } else {
+        scroll.saturating_add(rows as usize)
+    };
+    moved.min(max_scroll(len, win_h))
+}
+
+/// The ring index of the entry drawn on visible row `row`.
+pub fn entry_at(scroll: usize, row: usize) -> usize {
+    scroll + row
+}
+
 pub fn at(win_w: i32, win_h: i32, x: i32, y: i32) -> Option<usize> {
     for i in 0..capacity(win_h) {
         let (rx, ry, rw, rh) = row(win_w, i);

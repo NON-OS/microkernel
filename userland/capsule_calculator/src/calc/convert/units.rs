@@ -22,16 +22,12 @@ pub enum Category {
     Weight,
     Temperature,
     Data,
-    Currency,
 }
 
-pub const CATEGORIES: [Category; 5] = [
-    Category::Length,
-    Category::Weight,
-    Category::Temperature,
-    Category::Data,
-    Category::Currency,
-];
+// No currency: the calculator has no source of live exchange rates, and a
+// table of fixed ones would give a wrong answer that looks right.
+pub const CATEGORIES: [Category; 4] =
+    [Category::Length, Category::Weight, Category::Temperature, Category::Data];
 
 pub struct Unit {
     pub name: &'static str,
@@ -46,7 +42,6 @@ impl Category {
             Category::Weight => "Weight",
             Category::Temperature => "Temperature",
             Category::Data => "Data",
-            Category::Currency => "Currency",
         }
     }
 }
@@ -57,6 +52,5 @@ pub fn list(cat: Category) -> &'static [Unit] {
         Category::Weight => &super::mass::WEIGHT,
         Category::Temperature => &super::temp::TEMPERATURE,
         Category::Data => &super::data::DATA,
-        Category::Currency => &super::money::CURRENCY,
     }
 }

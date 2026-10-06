@@ -28,6 +28,10 @@ pub fn run(state: &mut State, action: Action) {
     }
     match action {
         Action::Digit(d) => digit::run(state, d),
+        Action::DoubleZero => {
+            digit::run(state, 0);
+            digit::run(state, 0);
+        }
         Action::Decimal => decimal::run(state),
         Action::Operator(op) => set_op::run(state, op),
         Action::Equals => equals::run(state),

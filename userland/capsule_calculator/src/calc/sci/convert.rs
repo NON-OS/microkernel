@@ -31,7 +31,7 @@ pub fn from_f64(value: f64) -> Result<Fixed, ErrorKind> {
         return Err(ErrorKind::Overflow);
     }
     let scaled = value * (FRAC as f64);
-    if scaled > LIMIT || scaled < -LIMIT {
+    if !(-LIMIT..=LIMIT).contains(&scaled) {
         return Err(ErrorKind::Overflow);
     }
     Ok(scaled as Fixed)

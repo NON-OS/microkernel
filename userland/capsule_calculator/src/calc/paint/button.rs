@@ -38,7 +38,6 @@ pub fn paint(
         Role::Equals => (CYAN, VOID),
         Role::Function => (KEY, DIM),
         Role::Memory => (KEY, DIM),
-        Role::Blank => return,
     };
     let (bg, fg) = if enabled { (bg, fg) } else { (KEY, FAINT) };
     let (ux, uy, uw, uh) = (x as u32, y as u32, w as u32, h as u32);

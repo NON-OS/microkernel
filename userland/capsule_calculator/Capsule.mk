@@ -10,6 +10,9 @@ CAPSULE_REPLY_ENDPOINT   := reply:4721:endpoint.app.calculator.reply
 CAPSULE_INSTANCE_ENDPOINTS := service:4838:app.calculator.1 reply:4839:endpoint.app.calculator.1.reply service:4840:app.calculator.2 reply:4841:endpoint.app.calculator.2.reply
 # CoreExec|IPC|Memory|GraphicsDisplayQuery|GraphicsSurfaceCreate
 CAPSULE_REQUIRED_CAPS    := 0x1819
+# Debug, granted only by a build that compiles `capsule-serial-debug`: the
+# kernel mirror folds it in through serial_debug_cap(), for its [APP] log lines.
+CAPSULE_OPTIONAL_CAPS    := 0x100
 CAPSULE_KERNEL_MIRROR    := src/userspace/capsule_calculator
 
 include nonos-mk/capsule.mk

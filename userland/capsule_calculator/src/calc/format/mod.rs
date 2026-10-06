@@ -16,8 +16,10 @@
 
 mod constants;
 mod display;
+mod error_text;
 mod fraction;
 mod integer;
 
-pub use constants::{DISPLAY_MAX, ERROR_TEXT};
+pub use constants::DISPLAY_MAX;
 pub use display::format;
+pub use error_text::error_text;

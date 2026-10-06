@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::units::Unit;
+//! What the readout says in place of a number when a calculation stopped. One
+//! word for every cause left the user to guess whether they divided by zero,
+//! went past the largest value or asked for something undefined.
 
-pub static CURRENCY: [Unit; 7] = [
-    Unit { name: "US Dollar", num: 100, den: 100 },
-    Unit { name: "Euro", num: 108, den: 100 },
-    Unit { name: "Pound Sterling", num: 127, den: 100 },
-    Unit { name: "Swiss Franc", num: 112, den: 100 },
-    Unit { name: "Canadian Dollar", num: 74, den: 100 },
-    Unit { name: "Australian Dollar", num: 66, den: 100 },
-    Unit { name: "Japanese Yen", num: 2, den: 300 },
-];
+use crate::calc::error_kind::ErrorKind;
+
+pub fn error_text(kind: ErrorKind) -> &'static str {
+    match kind {
+        ErrorKind::DivByZero => "Cannot divide by zero",
+        ErrorKind::Overflow => "Result too large",
+        ErrorKind::DomainError => "Not defined",
+        ErrorKind::None => "",
+    }
+}

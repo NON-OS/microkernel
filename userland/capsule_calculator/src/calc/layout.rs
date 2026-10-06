@@ -17,8 +17,6 @@
 use super::mode::Mode;
 use super::ui::keypad_hit;
 
-pub const PADDING: u32 = 12;
-
 pub fn hit_test(mode: Mode, win_w: i32, win_h: i32, x: i32, y: i32) -> Option<(usize, usize)> {
     keypad_hit::at(mode, win_w, win_h, x, y)
 }
