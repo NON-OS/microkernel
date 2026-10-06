@@ -14,17 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use smoltcp::iface::{Interface, SocketHandle, SocketSet};
+use smoltcp::iface::{Interface, SocketSet};
 use smoltcp::wire::IpCidr;
 
 use crate::iface::dhcp::types::ConfiguredLease;
-use crate::iface::dhcp::{emit_lease_marker, emit_status_selfcheck, install_dns_socket};
-use crate::state::{self, Lease};
+use crate::iface::dhcp::{
+    emit_dns_marker, emit_lease_marker, emit_status_selfcheck, install_dns_socket,
+};
+use crate::state::{self, DnsSockets, Lease};
 
 pub fn handle_configured(
     iface: &mut Interface,
     sockets: &mut SocketSet<'static>,
-    dns_slot: &mut Option<SocketHandle>,
+    dns_slot: &mut DnsSockets,
     cfg: ConfiguredLease,
 ) {
     iface.update_ip_addrs(|addrs| {
@@ -34,7 +36,7 @@ pub fn handle_configured(
     if let Some(r) = cfg.router {
         let _ = iface.routes_mut().add_default_ipv4_route(r);
     }
-    if let Some(old) = dns_slot.take() {
+    for old in dns_slot.iter_mut().filter_map(Option::take) {
         sockets.remove(old);
     }
     let ip = cfg.address.address().0;
@@ -43,9 +45,14 @@ pub fn handle_configured(
         Some(r) => r.0,
         None => [0u8; 4],
     };
-    let dns = cfg.dns;
+    let dns = cfg.dns[0];
     emit_lease_marker::emit_lease_marker(ip, prefix, gw);
     state::set_lease(Some(Lease { ip, prefix, gw, dns, secs: 0, bound: true }));
-    *dns_slot = install_dns_socket::install_dns_socket(sockets, dns);
+    // Every server the lease names gets its own socket, so a lookup can ask
+    // them all and one server down does not fail it.
+    for (slot, server) in dns_slot.iter_mut().zip(cfg.dns) {
+        *slot = install_dns_socket::install_dns_socket(sockets, server);
+    }
+    emit_dns_marker::emit_dns_marker(&cfg.dns);
     emit_status_selfcheck::emit_status_selfcheck();
 }

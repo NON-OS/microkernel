@@ -16,6 +16,7 @@
 
 use smoltcp::wire::IpAddress;
 
+#[derive(Clone, Copy)]
 pub struct Endpoint {
     pub remote: IpAddress,
     pub port: u16,

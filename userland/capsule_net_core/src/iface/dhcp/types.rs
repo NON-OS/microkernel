@@ -16,10 +16,13 @@
 
 use smoltcp::wire::{Ipv4Address, Ipv4Cidr};
 
+use crate::state::DNS_SERVERS;
+
 pub struct ConfiguredLease {
     pub address: Ipv4Cidr,
     pub router: Option<Ipv4Address>,
-    pub dns: [u8; 4],
+    /// The lease's DNS servers in its order; unused entries are zero.
+    pub dns: [[u8; 4]; DNS_SERVERS],
 }
 
 pub enum DhcpAction {

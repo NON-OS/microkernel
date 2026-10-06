@@ -24,22 +24,45 @@ application socket buffers.
 
 - `MkIpcRecv` receives network service requests.
 - `MkIpcSend` returns bounded replies.
-- The capsule uses `CAPSULE_REQUIRED_CAPS` from `Capsule.mk`.
-- The service endpoint is `net.core`.
+- The service endpoint is `service:4480:net.core`, the reply endpoint
+  `reply:4481:endpoint.net.core.reply`, and the kernel mirror
+  `src/userspace/capsule_net_core`.
+- At start it registers `net.tcp` (4476), `net.udp` (4472),
+  `net.dhcp.client` (4474), `net.dns` (4478) and `net.ip` (4479) on its own
+  ports (`src/register.rs`), so callers that look up those names reach it.
+  The kernel lets it claim them because it holds RegisterService.
+- It is the network stack of the desktop image (`microkernel-desktop-base`)
+  and of the `microkernel-net-core`, `microkernel-net-nym` and
+  `microkernel-net-sockets` profiles.
 
 ## Interface contract
 
-The capsule accepts protocol-framed operations for service health, DHCP status,
-DNS A resolution, UDP bind/send/recv/unbind, TCP connect/send/recv/state/close,
-and interface polling. Requests are parsed from explicit wire headers and every
-unknown operation returns an error status.
+The capsule routes by the magic in each request header. Op 1 is a health
+check under any magic.
+
+| Family | Magic | Ops |
+|---|---|---|
+| TCP | `0x4E544350` | `OP_CONNECT` 3, `OP_SEND` 5, `OP_RECV` 6, `OP_CLOSE` 7, `OP_STATE` 9, `OP_POLL` 10 |
+| UDP | `0x4E554450` | `OP_BIND` 2, `OP_UNBIND` 3, `OP_SEND` 4, `OP_RECV` 5 |
+| DNS | `0x4E444E53` | `OP_RESOLVE_A` 2 |
+| DHCP | `0x4E444843` | `OP_LEASE_STATUS` 3 |
+| IP | `0x4E495034` | `OP_SEND_PACKET` 4, `OP_POLL_PACKET` 5, ICMP only |
+
+An unknown magic gets `E_BAD_MAGIC` and an unknown op `E_BAD_OP`. A request that
+fails to parse is answered by `refuse`, which echoes the magic, op and request
+id it could read, or answers under zeros when the frame is too short.
 
 ## Authority
 
+`CAPSULE_REQUIRED_CAPS := 0x0047d`: CoreExec (`0x001`), Network (`0x004`), IPC
+(`0x008`), Memory (`0x010`), Crypto (`0x020`, the interface's random seed),
+FileSystem (`0x040`) and RegisterService (`0x400`, the five names above).
 The capsule owns network stack state only. It does not own MMIO, IRQ, DMA, PIO,
-device enumeration, raw PCI config, filesystem access, debug authority, or
-admin authority. Hardware access remains below the selected driver capsule and
-broker grants.
+device enumeration, raw PCI config, or admin authority. It holds `FileSystem`
+only so autojoin can read the saved Wi-Fi networks through vfs
+(`nonos_wifi_client::load`), since vfs serves only a holder of FileSystem.
+`Debug` is optional (`0x100`): only a `capsule-serial-debug` build grants it.
+Hardware access remains below the selected driver capsule and broker grants.
 
 ## Privacy and persistence
 
@@ -50,10 +73,15 @@ or lease history to persistent storage.
 
 ## Runtime lifecycle
 
-At start, the capsule discovers the selected network path, initializes the
-smoltcp interface, polls the device, maintains DHCP and socket progress, and
-services IPC requests. Callers see explicit busy, empty, no-route, and protocol
-errors rather than implicit blocking.
+At start, the capsule registers its names and serves at once, before any
+interface is bound. Once a second `reevaluate` binds the stack to the best NIC
+driver whose link is up, Wi-Fi cards first, then wired ones, and rebuilds it
+when a better link appears. The same tick runs Wi-Fi autojoin: while no
+interface is bound, it joins the first saved network in range, only when the
+policy store says this boot keeps state, the radio switch is not off and the
+driver can join. smoltcp runs DHCP; the lease sets the address, the default
+route and the DNS server. A DNS lookup pumps the interface inside its handler
+for up to three seconds, and no other caller is served meanwhile.
 
 ## Failure model
 
@@ -83,6 +111,16 @@ intent, not network-global state.
 - Keep all request and response buffers bounded.
 - Return explicit protocol errors for malformed or unsupported operations.
 - Keep packet captures and persistent network telemetry out of this capsule.
+- A connection or bound port answers only the client that opened it (`src/handles/table.rs`,
+  `src/udp_ports/table.rs`).
+- Hold one client to half the connections and half the bound ports (`PER_OWNER`), so no
+  client, net.sockets included, can refuse every other program a connection or a port.
+- Let go of the connections and ports of a client that ended without closing them, as its own
+  close and unbind would have: looked for every two seconds, and at once when a connect or bind
+  finds no room (`src/server/reap.rs`).
+- A rebuilt stack forgets every client's connections and ports with the old socket set
+  (`src/state/store.rs`): their handles name sockets in a set that no longer exists, and the
+  client's next call is told the socket is gone.
 
 ## Release evidence
 
@@ -93,16 +131,17 @@ and a browser fetch that reaches the GUI through the NØNOS network path.
 
 ## Wire format
 
-Requests use explicit protocol magics for DHCP, DNS, UDP, and TCP families.
-Each request starts with an operation code and bounded payload length. Replies
-return a status word before operation-specific data. Socket operations carry
-caller-owned handles; the capsule owns the backing socket state.
+Every request and reply starts with the 20 byte little endian header the stack
+capsules share: magic, version 1, op, errno (in a reply), reserved, request id,
+body length. A receive body may be up to `RECV_PAYLOAD_MAX`, 32 KiB. Socket
+operations carry caller-owned handles; the capsule owns the backing socket
+state.
 
 ## Release target
 
-The finished capsule is a first-class production network profile:
-`nonos-mk-net-core-prod` builds the signed capsule set and the kernel profile
-with `microkernel-net-core`. The capsule must boot, acquire or report DHCP
+The capsule is built and signed with `make nonos-mk-net-core`,
+`nonos-mk-net-core-sign` and `nonos-mk-net-core-verify`, and booted alone with
+the `microkernel-net-core` kernel profile. It must boot, acquire or report DHCP
 state, resolve DNS, open TCP, move bytes, close sockets, and keep all hardware
 access below brokered driver capsules.
 
@@ -123,10 +162,20 @@ history, firewall policy, Tor/Nym routing policy, TLS verification, or GUI
 rendering belongs in `net.core`. Those remain in driver capsules, browser
 capsule, Nym capsule, or user-facing apps.
 
+Not done: no listening TCP (`OP_LISTEN` and `OP_ACCEPT` get `E_BAD_OP`), no
+AAAA lookups, no IPv6, and one thread for every caller.
+
 ## Verification
 
 - Static gate: `bash nonos-ci/run-static-checks.sh`
-- Capsule build: `make userland/capsule_net_core/target/x86_64-nonos-user/release/net_core`
-- Production profile: `make nonos-mk-net-core-prod`
+- Capsule build: `make nonos-mk-net-core`
+- Kernel profile: `microkernel-net-core` in the root `Cargo.toml`
+- Host proofs: `userland/net_proofs` (`core_table_tests.rs` runs the connection and port tables:
+  ownership, the per-client share, the take-out of ended clients' entries, and the forget on a
+  rebuilt stack).
+- Host proofs: `userland/net_core_proofs` (the request header decode, the
+  refusal and the reply).
 - Runtime proof: DHCP/DNS/TCP socket transaction followed by a browser fetch
   rendered in the GUI through `net.core`.
+
+See [the network stack](../../docs/handbook/network/stack.md).

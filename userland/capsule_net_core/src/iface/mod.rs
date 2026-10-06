@@ -17,4 +17,8 @@
 pub mod build;
 pub mod dhcp;
 pub mod icmp_socket;
+pub mod lease_wait;
+pub mod link_watch;
+pub mod no_lease;
 pub mod poll;
+pub mod relink;

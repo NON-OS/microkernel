@@ -14,9 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::sync::atomic::{AtomicU32, Ordering};
+
 use crate::state::globals::NET;
 use crate::state::types::NetState;
 
+/// Counts stores, so a handle kept across a serve-loop pass (a DNS lookup that
+/// is still waiting) can tell the socket set it names was replaced.
+static GENERATION: AtomicU32 = AtomicU32::new(0);
+
+/// Which socket set is current.
+pub fn generation() -> u32 {
+    GENERATION.load(Ordering::Acquire)
+}
+
 pub fn store(state: NetState) {
-    *NET.lock() = Some(state);
+    super::orphans::forget_all();
+    // Every client's connections and ports name sockets in the old set too.
+    // Their next call is told the socket is gone, which it is.
+    crate::handles::forget_all();
+    crate::udp_ports::forget_all();
+    let mut net = NET.lock();
+    GENERATION.fetch_add(1, Ordering::AcqRel);
+    *net = Some(state);
 }

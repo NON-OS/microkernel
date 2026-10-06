@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use smoltcp::iface::{SocketHandle, SocketSet};
 use smoltcp::socket::tcp;
 
 use crate::handles;
@@ -37,10 +38,23 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
         }
     };
 
-    state::with_iface(|_iface, sockets, _dev| {
-        sockets.get_mut::<tcp::Socket>(sock_handle).close();
-    });
+    state::with_iface(|_iface, sockets, _dev| release(sockets, sock_handle));
     handles::free(app_handle, sender_pid);
 
     let _ = reply(sender_pid, MAGIC_NTCP, OP_CLOSE, E_OK, req.request_id, &[], tx);
+}
+
+/// Let go of a connection as its client's close does, leaving the stack to
+/// finish the exchange with the peer and drop the socket after.
+pub fn release(sockets: &mut SocketSet<'static>, sock_handle: SocketHandle) {
+    let sock = sockets.get_mut::<tcp::Socket>(sock_handle);
+    /* Bytes the application never read cannot be delivered now, and a
+     * graceful close would advertise a full buffer to the peer forever;
+     * TCP resets such a connection instead (RFC 2525, section 2.17). */
+    if sock.recv_queue() > 0 {
+        sock.abort();
+    } else {
+        sock.close();
+    }
+    state::adopt(sock_handle);
 }

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod create;
+mod emit_dns_marker;
 mod emit_lease_marker;
 mod emit_status_selfcheck;
 mod fill_marker;

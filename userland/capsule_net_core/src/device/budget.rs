@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 //! Time budgets for the driver calls the serve loop makes.
 //!
 //! `net_core` is single threaded: the same loop that answers `net.dhcp.client`
@@ -27,14 +26,10 @@
 //! `iface.poll()`, which issues one call per frame and would otherwise be
 //! bounded only by how much traffic the card has queued.
 
-use core::sync::atomic::{AtomicI64, Ordering};
-
-use nonos_libc::mk_time_millis;
-
 /// How long one driver round trip may take before it is written off.
 ///
 /// A healthy driver answers a register read in about a millisecond; this is
-/// sized for a stalled one. Writing a call off is never fatal — a link probe
+/// sized for a stalled one. Writing a call off is never fatal: a link probe
 /// reads as "no carrier" and retries next second, a frame read as "nothing
 /// queued" and retries next poll.
 pub const DEVICE_CALL_MS: u64 = 8;
@@ -42,19 +37,14 @@ pub const DEVICE_CALL_MS: u64 = 8;
 /// How long the device may be polled for before the loop owes clients a turn.
 pub const POLL_WINDOW_MS: i64 = 8;
 
-static POLL_DEADLINE: AtomicI64 = AtomicI64::new(0);
-
-/// Open a polling window. Driver traffic is only allowed inside one.
-pub fn open_poll() {
-    POLL_DEADLINE.store(mk_time_millis() + POLL_WINDOW_MS, Ordering::Relaxed);
-}
-
-/// Close the polling window, so nothing reaches the driver off the poll path.
-pub fn close_poll() {
-    POLL_DEADLINE.store(0, Ordering::Relaxed);
-}
-
-/// Whether there is still budget to spend on the device this poll.
-pub fn poll_open() -> bool {
-    mk_time_millis() < POLL_DEADLINE.load(Ordering::Relaxed)
-}
+/// Frames a poll may always send, whatever the window says.
+///
+/// Egress comes after ingress in a smoltcp poll, so on a slow machine (QEMU
+/// without KVM runs one driver round trip in about the whole window) the
+/// window had always closed by the time a frame was handed over, and every
+/// frame the stack produced was discarded before reaching the card. Nothing
+/// left the machine at all, not even the DHCP discover, so there was never a
+/// lease. A frame the stack has decided to send is bounded work, one call at
+/// most `DEVICE_CALL_MS` long, and this many of them keep a poll inside the
+/// client's 64 ms even when every one runs to its timeout.
+pub const TX_FLOOR: u32 = 4;

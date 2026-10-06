@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::protocol::tcp::{MAGIC_NTCP, OP_CONNECT};
+use crate::server::handlers::tcp::connect::types::ConnectOutcome;
 use crate::server::handlers::tcp::connect::{endpoint, open_socket, reply_outcome};
 use crate::server::parse_req::Request;
 use crate::server::respond::reply;
@@ -27,6 +28,13 @@ pub fn handle(sender_pid: u32, req: &Request, body: &[u8], tx: &mut [u8]) {
             return;
         }
     };
-    let outcome = open_socket::open_socket(sender_pid, endpoint);
+    // A full table may be full of connections whose clients have ended.
+    let outcome = match open_socket::open_socket(sender_pid, endpoint) {
+        ConnectOutcome::TableFull => {
+            crate::server::reap::reap_now();
+            open_socket::open_socket(sender_pid, endpoint)
+        }
+        other => other,
+    };
     reply_outcome::reply_outcome(sender_pid, req.request_id, outcome, tx);
 }
