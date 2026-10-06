@@ -65,3 +65,20 @@ The [seal](../overview/glossary.md#seal) adds what only signing keys can add. It
 | needs a key | no | yes |
 | output | `result/` | one folder per profile under `target/release/` |
 | same bytes on two machines | yes, by design | no, by design |
+
+## What `make` leaves in `result/`
+
+The flake's `artifacts` function writes one tree per build (`tools/nix/artifacts.nix:1-15`):
+
+| path in `result/` | what it is |
+|---|---|
+| `nonos-build.json` | the resolved configuration and the sha256 of every file below |
+| `kernel/nonos-kernel` | the kernel ELF, unsigned |
+| `bootloader/nonos_boot.efi` | the UEFI loader, before enrollment and Secure Boot signing |
+| `capsules/` | one folder per capsule with its ELF, and `catalogue.json` |
+| `linux/` | the Linux userland and its data files |
+| `nonos.cdx.json` | the bill of materials ([sbom.md](sbom.md)) |
+
+The kernel embeds the certificate, manifest and STARK trailer of every capsule it ships, read from the [trust set](../overview/glossary.md#trust-set) committed under `nonos-data/trust`. When the tree lacks them for a capsule, the flake writes `kernel/README` naming the capsules instead of building the kernel (`kernelNote`, `tools/nix/artifacts.nix:24-26`). The loader compiles in the kernel's public keys; without them the flake writes `bootloader/README` (`loaderNote`, `tools/nix/artifacts.nix:21-22`).
+
+Nothing in `result/` is an image. It holds no ESP, no signature and no trailer of the kernel or the loader. Of the flake's steps, only the seal writes an image; the older make build in `mk/` writes its own, signed with local development keys ([make-targets.md](make-targets.md)).
