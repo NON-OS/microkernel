@@ -129,3 +129,14 @@ Some of these rules are compiled into host test crates by path, so the tests run
 ## What isolation does not cover
 
 A capsule can do everything its bits allow, and nothing here judges intent. DMA on a machine without a remapping unit in service is not confined. Side channels between capsules sharing a CPU are not closed. [Protections and limits](protections-and-limits.md) lists these and the other gaps with their code.
+
+## See also
+
+- [Capabilities in the kernel](../kernel/capabilities.md)
+- [System calls](../kernel/syscalls.md)
+- [IPC](../kernel/ipc.md)
+- [Hardware broker](../kernel/hardware-broker.md)
+- [IOMMU](../kernel/iommu.md)
+- [Broker API for drivers](../drivers/broker-api.md)
+- [Manifests and capabilities](../userland/manifests-and-capabilities.md)
+- [Protections and limits](protections-and-limits.md)
