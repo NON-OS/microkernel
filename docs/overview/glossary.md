@@ -67,3 +67,7 @@ The 64-bit mask of capability bits a process holds. At spawn it is the manifest'
 ## Capsule
 
 A signed ring 3 program, the form in which NONOS runs everything outside the kernel. It ships as four files, declared once in a `Capsule.mk`: its ELF, its NONOS ID certificate, its signed manifest and its attestation trailer. The kernel starts it as its own process only after the spawn gate verifies all four, with its own address space, its `proc.<pid>` and `stdin.<pid>` inboxes, and the capability word its manifest allows. Explained in [Userland](../userland/README.md#what-a-capsule-is). Code: `nonos-mk/capsule.mk`, `src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs`.
+
+## Claim epoch
+
+The number `MkDeviceClaim` returns, taken from one counter that starts at 1 and grows with every claim. Every later MMIO, DMA, interrupt, port and PCI call on that device must pass it back, and a call with an old one fails with ESTALE, -116. Explained in [Broker ABI](../abi/broker.md). Code: `src/hardware/broker/claim/state.rs`.
