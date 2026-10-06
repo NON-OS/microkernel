@@ -215,3 +215,12 @@ Not tested in this release.
 ## What is kept
 
 History, aliases, variables and scrollback live in the tab's memory and go with it. The theme, the font size and whether the side rail shows are written to `/etc/terminal/prefs.dat`, which outlives a reboot only on a machine where `Keep data across reboots` is on (`userland/capsule_terminal/src/term/prefs/store.rs`).
+
+## See also
+
+- [The desktop](desktop.md)
+- [Files](files.md)
+- [Linux programs](linux-programs.md)
+- [Local model](local-ai.md)
+- [Privacy networks](privacy-network.md)
+- [Linux personality](../userland/linux-personality.md)
