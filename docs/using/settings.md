@@ -134,3 +134,13 @@ The policy store keeps its values in memory.
 
 - On an amnesic boot, the default, every change is gone at power off.
 - On a machine where `Keep data across reboots` is on, the policy store writes the values it keeps to `/nonos/settings/values` about a second after your last change, and puts them back at the next boot after setup's answers (`QUIET_MS` in `userland/capsule_policy/src/keep/tick.rs`). The kept fields are listed in `KEPT` in `userland/policy_proto/src/settings_record.rs`.
+
+## See also
+
+- [The desktop](desktop.md)
+- [Files](files.md)
+- [Keyboard layouts](keyboard-layouts.md)
+- [Sound and media](audio.md)
+- [Wi-Fi and networking](wifi-and-networking.md)
+- [Privacy networks](privacy-network.md)
+- [First boot](../install/first-boot.md)
