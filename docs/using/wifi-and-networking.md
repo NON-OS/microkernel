@@ -59,3 +59,14 @@ A passphrase is 8 to 63 characters, or 64 hex digits.
 Two notes in the interface are older than this code. The `Connection` card in Settings reads `WPA2-Personal or open. WPA3 (SAE) cannot be joined.`, and setup says WPA3 and enterprise networks cannot be joined. The driver code above is what runs: WPA3-Personal joins, open networks do not.
 
 A hidden network cannot be joined in this release. Settings joins only a network its scan heard, and there is no field to type a network name. The drivers can probe by name for a network saved as hidden, but nothing in this release saves a network that way.
+
+## Remember networks
+
+Turn on `Remember networks I join` with `R`. A network you then join is saved, with its passphrase, and joined again at the next boot when it is in range.
+
+- At most four networks are kept; saving a fifth drops the oldest (`SLOTS` in `userland/nonos_wifi_client/src/saved/list.rs:18-19`).
+- The list is saved only on a boot that keeps data: the `Keep data across reboots` choice made during setup, which Settings shows under `Privacy`. On any other boot the row reads `Off: this boot keeps nothing`.
+- It is saved only with a TPM. The list is sealed with ChaCha20-Poly1305 under a [machine key](../overview/glossary.md#machine-key) the TPM derives for the label `wifi/saved-networks` (`LABEL` in `userland/nonos_wifi_client/src/saved/key.rs:18`). That key is bound to PCRs 0, 4, 7 and 9 (`BOUND_PCRS` in `src/security/tpm/machine_key/pcrs.rs:24`), so after a firmware or kernel change the saved list no longer opens and you join again by hand.
+- The sealed record is the file `/nonos/wifi/saved` in the NONOS store (`PATH` in `userland/nonos_wifi_client/src/saved/file.rs:20-23`).
+
+At boot, `net.core` scans and joins the first saved network in range. Each saved network is tried at most once per boot, so a wrong passphrase is not sent to the access point again and again. After eight scans with none in range (`EMPTY_PASSES_MAX` in `userland/capsule_net_core/src/autojoin/machine.rs:41`) it stops and logs `no saved Wi-Fi network in range; join one from Settings`.
