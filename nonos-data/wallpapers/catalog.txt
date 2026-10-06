@@ -1,0 +1,69 @@
+# The wallpaper collection, in catalog order: a line's position is the
+# wallpaper's index everywhere (policy_proto's labels, setup, Settings, the
+# kept set), so a new wallpaper is added at the end and none is reordered.
+# Each line is the slug the catalog names it by, then its file here.
+# tools/nonos-wallpaper-pack packs the files into the store's collection in
+# this order and writes the catalog's pins from them.
+field-focus-1 field-focus-1.jpg
+field-focus-2 field-focus-2.jpg
+field-focus-3 field-focus-3.jpg
+field-focus-4 field-focus-4.jpg
+field-focus-5 field-focus-5.jpg
+field-focus-6 field-focus-6.jpg
+field-focus-7 field-focus-7.jpg
+field-focus-8 field-focus-8.jpg
+field-focus-9 field-focus-9.jpg
+field-focus-10 field-focus-10.jpg
+field-focus-11 field-focus-11.jpg
+field-focus-12 field-focus-12.jpg
+field-focus-13 field-focus-13.jpg
+hardware-aesthetic-1 hardware-aesthetic-1.jpg
+hardware-aesthetic-2 hardware-aesthetic-2.jpg
+hardware-aesthetic-3 hardware-aesthetic-3.jpg
+hardware-aesthetic-4 hardware-aesthetic-4.jpg
+hardware-aesthetic-5 hardware-aesthetic-5.jpg
+hardware-aesthetic-6 hardware-aesthetic-6.jpg
+hardware-aesthetic-7 hardware-aesthetic-7.jpg
+hardware-aesthetic-8 hardware-aesthetic-8.jpg
+hardware-aesthetic-9 hardware-aesthetic-9.jpg
+hardware-aesthetic-10 hardware-aesthetic-10.jpg
+hardware-aesthetic-11 hardware-aesthetic-11.jpg
+hardware-aesthetic-12 hardware-aesthetic-12.jpg
+hardware-aesthetic-13 hardware-aesthetic-13.jpg
+hardware-aesthetic-14 hardware-aesthetic-14.jpg
+network-topology-1 network-topology-1.jpg
+network-topology-2 network-topology-2.jpg
+network-topology-3 network-topology-3.jpg
+network-topology-4 network-topology-4.jpg
+network-topology-5 network-topology-5.jpg
+network-topology-6 network-topology-6.jpg
+network-topology-7 network-topology-7.jpg
+network-topology-8 network-topology-8.jpg
+network-topology-9 network-topology-9.jpg
+network-topology-10 network-topology-10.jpg
+network-topology-11 network-topology-11.jpg
+network-topology-13 network-topology-13.jpg
+network-topology-14 network-topology-14.jpg
+network-topology-15 network-topology-15.jpg
+network-topology-16 network-topology-16.jpg
+network-topology-17 network-topology-17.jpg
+network-topology-18 network-topology-18.jpg
+network-topology-19 network-topology-19.jpg
+special-variant-1a special-variant-1a.jpg
+special-variant-1b special-variant-1b.jpg
+special-variant-2a special-variant-2a.jpg
+special-variant-2b special-variant-2b.jpg
+special-variant-3 special-variant-3.jpg
+special-variant-4 special-variant-4.jpg
+special-variant-5 special-variant-5.jpg
+special-variant-6 special-variant-6-1080p.jpg
+special-variant-7 special-variant-7.jpg
+special-variant-8 special-variant-8.jpg
+special-variant-9 special-variant-9.jpg
+special-variant-10 special-variant-10.jpg
+special-variant-11 special-variant-11.jpg
+special-variant-12 special-variant-12.jpg
+special-variant-13 special-variant-13.jpg
+special-variant-14 special-variant-14.jpg
+special-variant-15 special-variant-15.jpg
+pepenonos pepenonos.jpg
