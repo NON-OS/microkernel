@@ -26,4 +26,6 @@ mod read;
 
 pub use bits::ADDR_MASK;
 pub use build::{leaf, table};
-pub use read::{address, is_block, is_present, is_user, is_writable, table_grants_user};
+pub use read::{
+    address, is_block, is_executable, is_present, is_user, is_writable, table_grants_user,
+};
