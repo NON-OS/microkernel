@@ -13,3 +13,15 @@ USB Ethernet adapters and USB tethering from a phone do not work in NONOS 0.9.2.
 A fourth would follow once those are fixed: the shared core answers operation 6 with its counters and status 0 (`userland/nonos_usbnet/src/nnet/answer.rs:43-46`, `OP_STATS`), so `net.core` would read it as a receive batch, as it does for the PCI drivers; see [the receive fault](README.md#the-receive-fault).
 
 `net.core` already lists the five services as candidates after the PCI cards (`userland/capsule_net_core/src/setup/candidates.rs:25-38`, `WIRED_NICS`). For a machine with no supported Ethernet port, see [Wi-Fi chips with no driver](../wifi/not-supported.md#what-to-use-instead) for what does work.
+
+## How the pieces fit
+
+```mermaid
+flowchart LR
+  Dev["USB adapter or phone"] --> Xhci["driver.xhci0"]
+  Xhci --> Class["class capsule"]
+  Usbnet["nonos_usbnet"] --> Class
+  Class --> Core["net.core"]
+```
+
+Each class capsule holds only its binding and its framing. The shared core `nonos_usbnet` holds the client side of `driver.xhci0`, the descriptor walk, the search for a device on the root ports and the NNET frame service that `net.core` speaks (`userland/nonos_usbnet/src/lib.rs:17-21`, `run`). No USB network capsule touches the controller: it holds no Driver, DeviceEnum, Mmio, Irq, Dma or Pio [capability](../../overview/glossary.md#capability-word).
