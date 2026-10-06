@@ -1,0 +1,18 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# The wallpaper collection's pins: each wallpaper's slug, its place in the
+# store's collection and the SHA-256 its bytes must have, written by
+# tools/nonos-wallpaper-pack. The catalog reads wallpapers by them and the
+# installer carries the kept ones by them.
+[package]
+name = "nonos_wallpapers"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0-or-later"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
