@@ -44,3 +44,11 @@ The keyring capsule holds the wallet's key and signs with it. The wallet keeps o
 - Not anonymous against every observer. Direct shows this machine's address to every site it reaches. net.nym and net.anon start on every boot that starts the network stack, whatever the choice, and net.nym contacts a gateway even when nothing uses it, so the local network can see that NONOS runs Nym. The [threat model](threat-model.md) lists the other limits.
 - Not verified as a whole. Host proof crates test the shipped kernel and capsule source, and Lean 4 models cover chosen properties. NONOS makes no claim of functional correctness for the whole kernel.
 - Not independently audited. This release claims no third-party security audit.
+
+## See also
+
+- [Overview](README.md)
+- [Architecture](architecture.md)
+- [Threat model](threat-model.md)
+- [FAQ](faq.md)
+- [Release notes for 0.9.2](../release/0.9.2.md)
