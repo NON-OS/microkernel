@@ -15,10 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{BlockFsError, BlockFsMount};
+use crate::fs::cryptoblock::ram;
+
+/// The sectors the volume may allocate in: the window this boot's plan
+/// opened, which the cryptoblock layer refuses to go past. A volume was
+/// formatted to its plan's window; a later plan that gives it more lets it
+/// grow into the room, and one that gives it less must not be allocated past.
+pub fn alloc_limit(mount: &BlockFsMount) -> u64 {
+    crate::fs::cryptoblock::window_sectors().unwrap_or(mount.superblock.sectors)
+}
 
 pub fn alloc_block(mount: &mut BlockFsMount) -> Result<u64, BlockFsError> {
     let lba = mount.superblock.free_lba;
-    if lba >= mount.superblock.sectors {
+    if lba >= alloc_limit(mount) {
+        return Err(BlockFsError::OutOfSpace);
+    }
+    /* A volume in RAM stops growing while the machine is short of memory. */
+    if lba % ram::ROOM_EVERY == 0 && ram::on() && !ram::room() {
         return Err(BlockFsError::OutOfSpace);
     }
     mount.superblock.free_lba = lba + 1;
