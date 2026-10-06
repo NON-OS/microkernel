@@ -146,3 +146,14 @@ The boot profile changes what starts. `network` is true only for Standard and Ha
 - The handoff is x86_64 and UEFI only. The aarch64 `kernel_entry` takes a device tree pointer instead (`src/arch/aarch64/boot/entry.rs:31-32`); see [aarch64](../architectures/aarch64.md).
 - The CPU count in the kernel's own summary of the handoff is fixed at one by `cpus` (`src/boot/handoff/kernel_handoff/x86_64/builders.rs:43-45`). The real count comes from the ACPI MADT during SMP bring-up.
 - The checks above are about structure. Whether the kernel image was signed, measured and attested is decided by the loader and by the kernel's later check of the loader; see [boot chain and signatures](../security/boot-chain-and-signatures.md).
+
+## See also
+
+- [Memory and paging](memory-and-paging.md)
+- [Frame allocator](frame-allocator.md)
+- [Scheduler and SMP](scheduler-and-smp.md)
+- [Timers](timers.md)
+- [Logging](logging.md)
+- [Panic and boot stop](panic-and-boot-stop.md)
+- [Boot modes](../install/boot-modes.md)
+- [x86_64](../architectures/x86_64.md)
