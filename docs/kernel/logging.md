@@ -101,3 +101,12 @@ Fault lines do print addresses: the `[TRAP xx]` line from `dump_trap` carries th
 - The serial tail exists only on images built with `capsule-serial-debug`. Images from the `hardened` and `airgapped` build profiles keep no tail, so `log` has nothing to show there.
 - The tail keeps 128 KiB: the start of the boot and the latest lines. The middle of a long run is lost.
 - The on-screen boot log is a build-time choice.
+
+## See also
+
+- [Panic and boot stop](panic-and-boot-stop.md)
+- [Boot handoff](boot-handoff.md)
+- [Terminal](../using/terminal.md)
+- [Troubleshooting](../install/troubleshooting.md)
+- [Report a machine](../hardware/report.md)
+- [Profiles](../build/profiles.md)
