@@ -13,14 +13,22 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod constants;
-mod display_info;
-mod healthcheck;
-mod ping_damage;
-mod push_scene_submit;
-mod status;
 
-pub use display_info::display_info;
-pub use healthcheck::healthcheck;
-pub use ping_damage::ping_damage;
-pub use push_scene_submit::push_scene_submit;
+use super::{Context, SessionState};
+
+impl Context {
+    /// Lock a session whose owner `alive` says has ended, as that owner's
+    /// own end would have, and give back the key it was opened with. Only
+    /// the owner can end its session, so one that ended without ending it
+    /// left the machine unlocked in its name, and every later start was
+    /// refused as busy until a reboot.
+    pub fn end_if_owner_ended(&mut self, alive: impl Fn(u32) -> bool) -> Option<u32> {
+        match self.state {
+            SessionState::Unlocked { owner_pid, key_id, .. } if !alive(owner_pid) => {
+                self.state = SessionState::Locked;
+                Some(key_id)
+            }
+            _ => None,
+        }
+    }
+}

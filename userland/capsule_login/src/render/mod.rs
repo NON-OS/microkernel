@@ -1,17 +1,23 @@
 use crate::state::Context;
 
 const LOCKED_BG: u32 = 0xFF24_2A36;
-const UNLOCKED_BG: u32 = 0xFF14_3A22;
 const BAR_COLOR: u32 = 0xFFED_CB68;
+/* The overlay sits over the wallpaper and under the desktop; when no lock is
+showing it is clear, so the wallpaper shows through it. */
+const CLEAR: u32 = 0x0000_0000;
 
 pub fn paint_locked(ctx: &Context) {
     fill(ctx.backing_va, ctx.width, ctx.height, ctx.stride, LOCKED_BG);
     paint_bar(ctx, 0x20);
 }
 
+/// No lock showing: an unlocked session, or none started yet.
+pub fn paint_clear(ctx: &Context) {
+    fill(ctx.backing_va, ctx.width, ctx.height, ctx.stride, CLEAR);
+}
+
 pub fn paint_unlocked(ctx: &Context) {
-    fill(ctx.backing_va, ctx.width, ctx.height, ctx.stride, UNLOCKED_BG);
-    paint_bar(ctx, 0x38);
+    paint_clear(ctx);
 }
 
 fn paint_bar(ctx: &Context, top: u32) {

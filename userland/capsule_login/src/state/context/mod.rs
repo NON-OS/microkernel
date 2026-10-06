@@ -16,6 +16,7 @@
 mod current_key_id;
 mod end_session;
 mod new;
+mod owner_ended;
 mod start_session;
 mod state_words;
 mod types;

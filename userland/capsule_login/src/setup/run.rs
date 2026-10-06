@@ -23,7 +23,7 @@ pub fn run() -> Result<Context, &'static str> {
     let desktop_shell_port = super::discover::lookup_desktop_shell_port()?;
     let compositor_port = super::discover::lookup_compositor_port()?;
     compositor::healthcheck(compositor_port, 1).map_err(|_| "compositor health failed")?;
-    let (width, height) = super::display::dimensions()?;
+    let (width, height) = super::display::dimensions(compositor_port)?;
     let (backing_va, stride, byte_len) = super::backing::alloc(width, height)?;
     let ctx = Context::new(
         keyring_port,
@@ -34,7 +34,9 @@ pub fn run() -> Result<Context, &'static str> {
         stride,
         backing_va,
     );
-    render::paint_locked(&ctx);
+    // Nothing has asked for a lock: the overlay starts clear, so it covers
+    // nothing until one is shown.
+    render::paint_clear(&ctx);
     let handle = match super::register::surface(width, height, stride, byte_len, backing_va) {
         Ok(handle) => handle,
         Err(e) => {
