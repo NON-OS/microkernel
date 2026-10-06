@@ -14,3 +14,12 @@ NONOS is an operating system for x86_64 computers, built on a capability microke
 4. [Threat model](threat-model.md): what NONOS protects, against whom, what it assumes, and what it leaves out.
 5. [Glossary](glossary.md): the terms these pages use, each with the file that defines it.
 6. [FAQ](faq.md): short answers to the questions people ask first.
+
+## Where to go next
+
+| You are | Read next |
+|---|---|
+| a person with a laptop | [Install](../install/README.md), then [Using NONOS](../using/README.md) |
+| an OS developer | [Kernel](../kernel/README.md), then [Drivers](../drivers/README.md) and [Userland](../userland/README.md) |
+| a security reviewer | [Threat model](threat-model.md), then [Security](../security/README.md) |
+| a contributor | [Build](../build/README.md), then [Contributing](../contributing/README.md) |
