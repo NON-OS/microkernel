@@ -39,3 +39,13 @@ Not tested in this release.
 - On macOS it unmounts the disk with `diskutil unmountDisk`, writes the raw device (`/dev/rdisk4` for `/dev/disk4`) with `bs=4m`, runs `sync`, and ejects the disk.
 
 When more than one profile is sealed, `make usb` takes the first image it finds under `target/release/`. Name the one you mean: `make usb PROFILE=standard DISK=/dev/sdX`.
+
+## By hand on Linux
+
+Replace `sdX` with the stick's name from `lsblk`: the whole disk, not a partition such as `sdX1`.
+
+```
+sudo dd if=target/release/standard/nonos.img of=/dev/sdX bs=4M status=progress conv=fsync
+```
+
+Not tested in this release.
