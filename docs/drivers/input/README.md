@@ -48,3 +48,11 @@ The keyboard drivers turn a key into its final character themselves, because not
 Both use the tables in `nonos_keymap`: US, UK, German, French AZERTY, Spanish and Italian (`Layout`, `userland/nonos_keymap/src/layout.rs:21-28`). Setup offers exactly these six (`POLICY_LAYOUTS`, `userland/nonos_keymap/src/policy.rs:28`). A layout index with no table maps to nothing, and the driver keeps the layout it has (`from_policy`, `userland/nonos_keymap/src/policy.rs:32-42`).
 
 The drivers read the layout from the [policy store](../../overview/glossary.md#policy-store) at most once a second (`POLICY`, `userland/capsule_driver_ps2_input/src/keymap/active.rs:31`). Ctrl+Alt+Space moves to the next layout in the order above, and the driver consumes that chord, so no application sees it (`cycle`, `userland/capsule_driver_ps2_input/src/poll/absorb.rs:66-79`). [Keyboard layouts](../../using/keyboard-layouts.md) is the guide for people at the keyboard.
+
+## Privacy
+
+No input driver writes a key to disk or to a log. The one exception for pointer data is the touchpad driver: when it holds the Debug capability it writes the first 16 bytes of each of its first six raw reports to the console, so a decode can be checked against the wire (`frame_dumps`, `userland/capsule_driver_i2c_hid/src/input/poll/read_frame.rs:55-58`). `input_router` is granted IPC, Memory and InputSource and nothing else, so it cannot write to the serial console (`CAPSULE_REQUIRED_CAPS`, `userland/capsule_input_router/Capsule.mk:16`).
+
+The kernel holds `driver.ps2_kbd0`, `driver.usb_hid0` and `driver.i2c_hid0` to an empty sender list, so no capsule can ask a keyboard driver for keys (`KERNEL_ONLY`, `src/services/registry/held_table.rs:27-29`).
+
+Two limits follow from the capability rules above. A capsule holding `Irq` may post input events whatever its device, and the manifests of the AHCI, HD Audio, I2C controller, Intel Wi-Fi, NVMe, virtio-blk and xHCI drivers all ask for it. The three input drivers hold `InputSource` as well as `input_router`, so the kernel would let them drain the ring; in the shipped code only `input_router` calls the drain (`can_input_consumer`, `src/capabilities/token/types/authority_broker.rs:64-73`).
