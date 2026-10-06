@@ -119,3 +119,7 @@ The EFI system partition, a FAT volume. It holds the loader as `EFI/BOOT/BOOTX64
 ## File store
 
 The `vfs_pool` service, `capsule_vfs`. It holds every file the desktop and its apps see in its own memory, serves holders of FileSystem, and writes a file to the package store only when asked to keep it on a boot that keeps data. Explained in [Files](../using/files.md). Code: `userland/capsule_vfs/Capsule.mk`, `userland/capsule_vfs/src/server/handlers/persist_gate.rs`.
+
+## Foreign process
+
+<a id="guest"></a>A process that runs code the kernel has not verified, on x86_64 only; the Linux pages call it a guest. The Linux personality creates one with `MkForeignSpawn`, which needs ForeignExec, and it starts with a capability word of 0. A system call number the kernel does not know is parked for its supervising capsule to answer. Explained in [The Linux personality](../userland/linux-personality.md). Code: `src/process/foreign/spawn.rs`, `src/process/foreign/trap.rs`.
