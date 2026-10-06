@@ -47,9 +47,11 @@ fn decls(text: &str) -> Vec<Decl> {
 /// The module a line declares, and whether its body follows inline.
 fn declared(line: &str) -> Option<(String, bool)> {
     let t = line.trim();
-    let t = ["pub(crate) ", "pub(super) ", "pub "].iter().find_map(|v| t.strip_prefix(v)).unwrap_or(t);
+    let t =
+        ["pub(crate) ", "pub(super) ", "pub "].iter().find_map(|v| t.strip_prefix(v)).unwrap_or(t);
     let rest = t.strip_prefix("mod ")?;
-    let name: String = rest.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '_').collect();
+    let name: String =
+        rest.chars().take_while(|c| c.is_ascii_alphanumeric() || *c == '_').collect();
     let tail = rest[name.len()..].trim();
     if name.is_empty() || !(tail == ";" || tail.starts_with('{')) {
         return None;
@@ -135,7 +137,8 @@ mod tests {
 
     #[test]
     fn an_inline_test_module_is_masked_to_its_closing_brace() {
-        let text = "fn ship() {}\n#[cfg(test)]\nmod t {\n    fn a() { x.unwrap(); }\n}\nfn after() {}\n";
+        let text =
+            "fn ship() {}\n#[cfg(test)]\nmod t {\n    fn a() { x.unwrap(); }\n}\nfn after() {}\n";
         assert_eq!(lines(text), [false, true, true, true, true, false]);
     }
 

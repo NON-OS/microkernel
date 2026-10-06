@@ -5,7 +5,11 @@ use super::patterns::line_violation;
 use super::roots::{is_rust, skip};
 use super::test_only;
 
-pub fn scan_path(path: &Path, tests: &HashSet<PathBuf>, out: &mut Vec<String>) -> std::io::Result<()> {
+pub fn scan_path(
+    path: &Path,
+    tests: &HashSet<PathBuf>,
+    out: &mut Vec<String>,
+) -> std::io::Result<()> {
     if skip(path) || !is_rust(path) || tests.contains(path) {
         return Ok(());
     }
@@ -22,7 +26,11 @@ pub fn scan_path(path: &Path, tests: &HashSet<PathBuf>, out: &mut Vec<String>) -
     Ok(())
 }
 
-pub fn walk_dir(dir: &Path, tests: &HashSet<PathBuf>, out: &mut Vec<String>) -> std::io::Result<()> {
+pub fn walk_dir(
+    dir: &Path,
+    tests: &HashSet<PathBuf>,
+    out: &mut Vec<String>,
+) -> std::io::Result<()> {
     if !dir.exists() {
         return Ok(());
     }

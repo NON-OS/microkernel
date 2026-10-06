@@ -38,7 +38,7 @@ impl Line {
     /// `v` in lower-case hex after "0x", without leading zeros.
     pub fn hex(mut self, v: u32) -> Self {
         self = self.text("0x");
-        let digits = ((32 - v.leading_zeros() + 3) / 4).max(1);
+        let digits = (32 - v.leading_zeros()).div_ceil(4).max(1);
         for i in (0..digits).rev() {
             self.push(b"0123456789abcdef"[((v >> (i * 4)) & 0xF) as usize]);
         }

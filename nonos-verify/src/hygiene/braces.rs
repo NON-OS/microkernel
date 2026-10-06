@@ -32,7 +32,9 @@ impl Braces {
                     _ => {}
                 },
                 In::Raw(hashes) => {
-                    if b[i] == b'"' && b[i + 1..].iter().take(hashes).filter(|&&c| c == b'#').count() == hashes {
+                    if b[i] == b'"'
+                        && b[i + 1..].iter().take(hashes).filter(|&&c| c == b'#').count() == hashes
+                    {
                         self.state = In::Code;
                         i += hashes;
                     }
@@ -88,7 +90,9 @@ fn raw_open(b: &[u8], at: usize) -> Option<(usize, usize)> {
 /// lifetime, whose quote opens nothing.
 fn char_literal(b: &[u8]) -> usize {
     match b.get(1) {
-        Some(b'\\') => b.get(3..).and_then(|r| r.iter().position(|&c| c == b'\'')).map_or(0, |p| p + 3),
+        Some(b'\\') => {
+            b.get(3..).and_then(|r| r.iter().position(|&c| c == b'\'')).map_or(0, |p| p + 3)
+        }
         Some(_) if b.get(2) == Some(&b'\'') => 2,
         _ => 0,
     }
@@ -110,7 +114,10 @@ mod tests {
 
     #[test]
     fn braces_in_strings_chars_and_comments_do_not() {
-        assert_eq!(depth(&[r#"let s = "{{";"#, "let c = '{';", "// }", "/* { */", "let e = '\\'';"]), [0, 0, 0, 0, 0]);
+        assert_eq!(
+            depth(&[r#"let s = "{{";"#, "let c = '{';", "// }", "/* { */", "let e = '\\'';"]),
+            [0, 0, 0, 0, 0]
+        );
     }
 
     #[test]
