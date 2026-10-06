@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,32 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod announce;
-mod backend;
-mod capacity;
-mod error;
-mod fit;
-mod flush;
-mod geometry;
-mod identify;
-mod map_ahci;
-mod map_nvme;
-mod map_usb_msc;
-mod map_virtio;
-mod mirror;
-mod nvme_fit;
-mod read;
-mod seen;
-mod select;
-mod types;
-mod write;
+//! Saying, once, which disk the block layer settled on.
 
-pub use backend::Backend;
-pub use capacity::capacity;
-pub use error::BlockDeviceError;
-pub use flush::flush;
-pub use geometry::geometry;
-pub use read::read;
-pub use select::{chosen, selected};
-pub use types::BlockGeometry;
-pub use write::write;
+use super::backend::Backend;
+
+pub(super) fn announce(backend: Backend) -> Backend {
+    let line = match backend {
+        Backend::Nvme => "[BLOCK] NONOS disk on NVMe (driver.nvme0)",
+        Backend::Ahci => "[BLOCK] NONOS disk on SATA (driver.ahci0)",
+        Backend::VirtioBlk => "[BLOCK] NONOS disk on virtio-blk (driver.virtio_blk0)",
+        Backend::UsbMsc => "[BLOCK] NONOS disk on USB mass storage (driver.usb_msc0)",
+    };
+    crate::sys::serial::println(line.as_bytes());
+    crate::log::info!("{}", line);
+    backend
+}

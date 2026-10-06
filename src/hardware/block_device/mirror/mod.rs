@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,32 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod announce;
-mod backend;
-mod capacity;
-mod error;
-mod fit;
-mod flush;
-mod geometry;
-mod identify;
-mod map_ahci;
-mod map_nvme;
-mod map_usb_msc;
-mod map_virtio;
-mod mirror;
-mod nvme_fit;
-mod read;
-mod seen;
-mod select;
-mod types;
-mod write;
+//! The boot disk's ranges the loader copied into memory: the live plan's
+//! sector and the model files it names. Read when no driver of the kernel's
+//! drives a disk, so a live boot opens its volume and imports its model
+//! whatever stick or controller the machine has.
 
-pub use backend::Backend;
-pub use capacity::capacity;
-pub use error::BlockDeviceError;
-pub use flush::flush;
-pub use geometry::geometry;
-pub use read::read;
-pub use select::{chosen, selected};
-pub use types::BlockGeometry;
-pub use write::write;
+mod find;
+mod record;
+mod serve;
+
+pub(super) use serve::{capacity, read};
