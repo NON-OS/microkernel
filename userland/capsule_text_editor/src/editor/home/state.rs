@@ -21,10 +21,10 @@
 
 use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
 
-pub(super) const NAV_LABELS: [&str; 6] =
-    ["Home", "Recent", "Starred", "Shared with me", "Templates", "Trash"];
-
-pub(super) const NAV_LIVE: [bool; 6] = [true, true, false, false, false, false];
+/// Only the lists with a store behind them. Starred, Shared with me,
+/// Templates and Trash were drawn dimmed and did nothing: the editor keeps no
+/// stars, shares nothing, has no templates and deletes for good.
+pub(super) const NAV_LABELS: [&str; 2] = ["Home", "Recent"];
 
 static NAV: AtomicUsize = AtomicUsize::new(0);
 static PAINTED_W: AtomicU32 = AtomicU32::new(0);
@@ -44,7 +44,7 @@ impl HomeState {
     }
 
     pub(super) fn select(nav: usize) -> bool {
-        NAV_LIVE.get(nav).copied().unwrap_or(false) && NAV.swap(nav, Ordering::Relaxed) != nav
+        nav < NAV_LABELS.len() && NAV.swap(nav, Ordering::Relaxed) != nav
     }
 
     pub(super) fn note_size(w: u32, h: u32) {

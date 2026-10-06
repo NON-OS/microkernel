@@ -35,8 +35,8 @@ pub fn line_at(buf: &[u8], start: usize) -> &[u8] {
 pub fn line_starts(buf: &[u8], start: usize, end: usize) -> Vec<usize> {
     let mut out = Vec::new();
     out.push(start.min(buf.len()));
-    for i in start..end.min(buf.len()) {
-        if buf[i] == b'\n' {
+    for (i, b) in buf.iter().enumerate().take(end).skip(start) {
+        if *b == b'\n' {
             out.push(i + 1);
         }
     }

@@ -32,8 +32,6 @@ pub fn pstyle(kind: BlockKind) -> Option<&'static str> {
             5 => "Heading5",
             _ => "Heading6",
         }),
-        BlockKind::Bullet => Some("ListBullet"),
-        BlockKind::Numbered => Some("ListNumber"),
     }
 }
 

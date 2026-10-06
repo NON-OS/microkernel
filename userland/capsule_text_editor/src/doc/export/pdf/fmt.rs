@@ -47,7 +47,7 @@ pub fn push_f32(out: &mut Vec<u8>, v: f32) {
     if frac != 0 {
         out.push(b'.');
         out.push(b'0' + frac / 10);
-        if frac % 10 != 0 {
+        if !frac.is_multiple_of(10) {
             out.push(b'0' + frac % 10);
         }
     }

@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! Menu bar press handling: toggle a title, run the row that was clicked, or
-//! close on a miss. Rows the capsule cannot perform yet say so in the status bar.
+//! close on a miss.
 
 use nonos_app_skeleton::EventOutcome;
 
@@ -23,7 +23,6 @@ use super::app::Editor;
 use super::menubar::{menubar_hit, rows, MenuCmd, MenuHit};
 use super::on_ctrl::on_ctrl;
 use super::panel::Panel;
-use super::unsupported::NO_HANDLER;
 
 impl Editor {
     pub(super) fn menubar_press(&mut self, x: i32, y: i32) -> EventOutcome {
@@ -53,7 +52,7 @@ impl Editor {
             MenuCmd::NewTab => self.new_tab(),
             MenuCmd::CloseTab => {
                 let idx = self.active;
-                self.close_tab(idx);
+                self.request_close(idx);
             }
             MenuCmd::ToggleSidebar => {
                 self.sidebar_open = !self.sidebar_open;
@@ -66,7 +65,13 @@ impl Editor {
             MenuCmd::Special => self.open_panel(Panel::Special),
             MenuCmd::WordCount => self.open_panel(Panel::WordCount),
             MenuCmd::Table(op) => self.table_menu(op),
-            MenuCmd::Todo => self.doc().status = NO_HANDLER,
+            MenuCmd::Markup(image) => {
+                let doc = self.doc();
+                if !doc.insert_markup(image) {
+                    doc.status = super::unsupported::NO_ROOM;
+                }
+            }
+            MenuCmd::Theme => super::theme::cycle(),
         }
     }
 }

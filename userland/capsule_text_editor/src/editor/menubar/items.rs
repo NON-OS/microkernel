@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! What a menu row does when it is chosen. `Todo` marks a row the capsule has
-//! no implementation for yet; those draw dimmed and report themselves.
+//! What a menu row does when it is chosen. Every row is wired: one the capsule
+//! cannot perform is left out of the tables rather than drawn as a dead row.
 
 use super::tables;
 
@@ -30,7 +30,10 @@ pub(in crate::editor) enum MenuCmd {
     Special,
     WordCount,
     Table(u8),
-    Todo,
+    /// Insert > Link (false) or Insert > Image (true), as Markdown.
+    Markup(bool),
+    /// View > Toggle Theme: the same cycle as the Ctrl+K T chord.
+    Theme,
 }
 
 pub(in crate::editor) type MenuRow = (&'static str, MenuCmd);

@@ -40,10 +40,11 @@ impl Editor {
 
         // Any keystroke that is not a second Ctrl+W disarms a pending close,
         // so a confirmation cannot be answered by an unrelated key later.
-        if event.is_key_down()
-            && !(event.flags & MOD_CTRL != 0 && matches!(event.code, 0x57 | 0x77))
-        {
-            self.close_armed = false;
+        if event.is_key_down() {
+            self.quit_armed = false;
+            if !(event.flags & MOD_CTRL != 0 && matches!(event.code, 0x57 | 0x77)) {
+                self.close_armed = None;
+            }
         }
 
         // The name entry owns the keyboard while it is open.
@@ -58,6 +59,12 @@ impl Editor {
             && self.doc_ref().prompt == Some(PromptOp::Quick)
         {
             return self.finish_quick_open();
+        }
+        if event.is_key_down()
+            && event.code == KEY_ENTER
+            && self.doc_ref().prompt == Some(PromptOp::Open)
+        {
+            return self.finish_open_prompt();
         }
 
         // Shell-level shortcuts, taken before the document sees them because
@@ -105,20 +112,10 @@ impl Editor {
             }
             if event.flags & MOD_SHIFT == 0 && matches!(event.code, 0x57 | 0x77) {
                 let at = self.active;
-                // A document with unsaved edits costs two presses. `close_tab`
-                // removes it outright and there is no undo across a close, so
-                // one slip next to Ctrl+S would be unrecoverable work. The
-                // arming is cleared by any other key below.
-                if self.docs[at].dirty && !self.close_armed {
-                    self.close_armed = true;
-                    self.docs[at].status = b"unsaved: Ctrl+W again to close, Ctrl+S to write";
-                    return EventOutcome::Repaint;
-                }
-                self.close_armed = false;
-                self.close_tab(at);
+                self.request_close(at);
                 return EventOutcome::Repaint;
             }
-            self.close_armed = false;
+            self.close_armed = None;
         }
 
         if event.kind == InputKind::Wheel {

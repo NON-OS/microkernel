@@ -17,7 +17,6 @@
 mod escape;
 mod inline;
 
-use alloc::format;
 use alloc::string::String;
 
 use crate::doc::document::Doc;
@@ -25,17 +24,11 @@ use crate::doc::kind::BlockKind;
 
 pub fn to_markdown(doc: &Doc) -> String {
     let mut out = String::new();
-    let mut number = 0usize;
     for block in &doc.blocks {
-        if block.kind == BlockKind::Numbered {
-            number += 1;
-        } else {
-            number = 0;
-        }
         if !out.is_empty() {
             out.push_str("\n\n");
         }
-        push_prefix(block.kind, number, &mut out);
+        push_prefix(block.kind, &mut out);
         inline::push_inline(block, &mut out);
     }
     if !out.is_empty() {
@@ -44,7 +37,7 @@ pub fn to_markdown(doc: &Doc) -> String {
     out
 }
 
-fn push_prefix(kind: BlockKind, number: usize, out: &mut String) {
+fn push_prefix(kind: BlockKind, out: &mut String) {
     match kind {
         BlockKind::Heading(level) => {
             for _ in 0..level.clamp(1, 6) {
@@ -52,8 +45,6 @@ fn push_prefix(kind: BlockKind, number: usize, out: &mut String) {
             }
             out.push(' ');
         }
-        BlockKind::Bullet => out.push_str("- "),
-        BlockKind::Numbered => out.push_str(&format!("{}. ", number)),
         BlockKind::PageBreak => out.push_str("---"),
         BlockKind::Paragraph => {}
     }

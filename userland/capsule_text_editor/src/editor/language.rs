@@ -53,3 +53,16 @@ pub(super) fn language_name(path: &str) -> &'static str {
         _ => "Text",
     }
 }
+
+/*
+ * The colour class of each byte. Only code is lexed: prose is left as
+ * typed, since a word like `from` in a note is not a keyword and a
+ * Markdown heading is not a comment.
+ */
+pub(super) fn tokens(path: &[u8], buf: &[u8]) -> alloc::vec::Vec<super::highlight::Tok> {
+    let path = core::str::from_utf8(path).unwrap_or("");
+    if matches!(language_name(path), "Text" | "Markdown") {
+        return alloc::vec![super::highlight::Tok::Text; buf.len()];
+    }
+    super::highlight::classify(buf)
+}

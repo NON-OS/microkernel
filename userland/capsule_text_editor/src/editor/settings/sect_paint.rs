@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Painter for the six table-driven sections. Rows come from the section table
+//! Painter for the table-driven sections. Rows come from the section table
 //! and every control rect is built by `control_box`, the same function the
 //! router calls, so a switch is never drawn where a press would miss it.
 
@@ -42,7 +42,7 @@ pub(super) fn paint_section(fb: &mut PaintBuffer, nav: usize, sec: &Section) {
 }
 
 fn paint_row(fb: &mut PaintBuffer, width: u32, nav: usize, row: usize, spec: &(&str, Ctl)) {
-    let (cx, _, cw, _) = card_rect(width);
+    let (cx, _, cw) = card_rect(width);
     let ty = (row_y(width, row) + ROW_H.saturating_sub(lh(ROW_PX)) / 2) as i32;
     let avail = cw.saturating_sub(ROW_PAD * 2 + TOGGLE_W + 16) as i32;
     let cut = truncate_to_width(fb, spec.0, ROW_PX, avail);

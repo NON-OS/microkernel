@@ -40,9 +40,9 @@ fn caret_rect_and_caret_at_round_trip_at_every_offset() {
             if !b.as_str().is_char_boundary(off) {
                 continue;
             }
-            let (x, y, h) = caret_rect(p, &d, bi, off, &FixedMeasurer)
+            let (x, y, h) = caret_rect(p, &d, bi, off, pm.content_width(), &FixedMeasurer)
                 .unwrap_or_else(|| panic!("no rect for block {bi} offset {off}"));
-            let back = caret_at(p, &d, x + 0.1, y + h * 0.5, &FixedMeasurer);
+            let back = caret_at(p, &d, x + 0.1, y + h * 0.5, pm.content_width(), &FixedMeasurer);
             assert_eq!(back, (bi, off), "round trip failed at block {bi} offset {off}");
         }
     }
@@ -54,7 +54,8 @@ fn caret_x_advances_monotonically_along_a_line() {
     let pages = paginate(&d, &pm, &FixedMeasurer);
     let mut last = -1.0f32;
     for off in 0..=11 {
-        let (x, _, _) = caret_rect(&pages[0], &d, 1, off, &FixedMeasurer).unwrap();
+        let (x, _, _) =
+            caret_rect(&pages[0], &d, 1, off, pm.content_width(), &FixedMeasurer).unwrap();
         assert!(x > last, "caret x must increase: {x} after {last}");
         last = x;
     }
@@ -64,32 +65,47 @@ fn caret_x_advances_monotonically_along_a_line() {
 fn a_click_left_of_the_text_lands_at_offset_zero() {
     let (d, pm) = fixture();
     let pages = paginate(&d, &pm, &FixedMeasurer);
-    let (_, y, h) = caret_rect(&pages[0], &d, 1, 0, &FixedMeasurer).unwrap();
-    assert_eq!(caret_at(&pages[0], &d, -50.0, y + h * 0.5, &FixedMeasurer), (1, 0));
+    let (_, y, h) = caret_rect(&pages[0], &d, 1, 0, pm.content_width(), &FixedMeasurer).unwrap();
+    assert_eq!(
+        caret_at(&pages[0], &d, -50.0, y + h * 0.5, pm.content_width(), &FixedMeasurer),
+        (1, 0)
+    );
 }
 
 #[test]
 fn a_click_right_of_the_text_lands_at_the_end_of_the_line() {
     let (d, pm) = fixture();
     let pages = paginate(&d, &pm, &FixedMeasurer);
-    let (_, y, h) = caret_rect(&pages[0], &d, 1, 0, &FixedMeasurer).unwrap();
-    assert_eq!(caret_at(&pages[0], &d, 5000.0, y + h * 0.5, &FixedMeasurer), (1, 11));
+    let (_, y, h) = caret_rect(&pages[0], &d, 1, 0, pm.content_width(), &FixedMeasurer).unwrap();
+    assert_eq!(
+        caret_at(&pages[0], &d, 5000.0, y + h * 0.5, pm.content_width(), &FixedMeasurer),
+        (1, 11)
+    );
 }
 
 #[test]
 fn a_click_below_the_last_line_falls_back_to_the_last_line() {
     let (d, pm) = fixture();
     let pages = paginate(&d, &pm, &FixedMeasurer);
-    assert_eq!(caret_at(&pages[0], &d, 5000.0, 99999.0, &FixedMeasurer), (1, 11));
-    assert_eq!(caret_at(&pages[0], &d, -50.0, 99999.0, &FixedMeasurer), (1, 0));
+    assert_eq!(
+        caret_at(&pages[0], &d, 5000.0, 99999.0, pm.content_width(), &FixedMeasurer),
+        (1, 11)
+    );
+    assert_eq!(caret_at(&pages[0], &d, -50.0, 99999.0, pm.content_width(), &FixedMeasurer), (1, 0));
 }
 
 #[test]
 fn a_click_above_the_first_line_falls_back_to_the_first_line() {
     let (d, pm) = fixture();
     let pages = paginate(&d, &pm, &FixedMeasurer);
-    assert_eq!(caret_at(&pages[0], &d, -50.0, -99999.0, &FixedMeasurer), (0, 0));
-    assert_eq!(caret_at(&pages[0], &d, 5000.0, -99999.0, &FixedMeasurer), (0, 16));
+    assert_eq!(
+        caret_at(&pages[0], &d, -50.0, -99999.0, pm.content_width(), &FixedMeasurer),
+        (0, 0)
+    );
+    assert_eq!(
+        caret_at(&pages[0], &d, 5000.0, -99999.0, pm.content_width(), &FixedMeasurer),
+        (0, 16)
+    );
 }
 
 #[test]
