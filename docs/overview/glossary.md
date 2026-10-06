@@ -247,3 +247,7 @@ Four ASCII letters packed little-endian into the 64-bit system call number by `t
 ## TLB shootdown
 
 The round in which a CPU that changed a page table makes every other CPU that may cache the old translation drop it and answer. A round still unanswered after 50 ms is sent again as an NMI, and after 2000 ms the machine stops. Explained in [Scheduler and SMP](../kernel/scheduler-and-smp.md#shootdowns-and-stopping-the-other-cpus). Code: `src/memory/paging/manager/shootdown/request.rs`.
+
+## TPM
+
+The TPM 2.0 chip. NONOS keeps its rollback floor there, derives machine keys and the device secret from it without storing them, and reads PCR 4 from it to check the loader. Hardened and Air-Gapped boots refuse to start without one, and a data volume keyed by the TPM stays closed without it. Explained in [Measured boot and the TPM](../security/measured-boot-and-tpm.md). Code: `src/security/tpm/mod.rs`.
