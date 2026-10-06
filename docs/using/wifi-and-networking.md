@@ -162,3 +162,12 @@ The tree also holds a split stack, one capsule per layer: `capsule_net_dhcp`, `c
 A name is looked up in the clear only for a connection that goes Direct. When the default network is Nym or Anyone, `ping` and `nslookup` refuse to run, and the programs that follow the default hand the name to the exit unresolved; see [Privacy networks](privacy-network.md).
 
 With no address, `ping` and `nslookup` say so at once instead of timing out (`offline_line` in `userland/capsule_terminal/src/command/builtin/offline_gate.rs:43-57`). The line reads `ping: not connected to a network (no address yet). Plug in a cable or join a Wi-Fi network in Settings, then try again; nothing was sent`. On a boot that runs no network it reads `no network is running on this boot, so nothing was sent`.
+
+## Limits in this release
+
+- No open, TKIP, Enterprise or hidden networks.
+- No USB Wi-Fi, no USB tethering, no USB Ethernet.
+- No Wi-Fi in the `qemu` image.
+- No IPv6.
+- No Wi-Fi command in the Terminal.
+- Saved networks need a TPM and a boot that keeps data.
