@@ -47,3 +47,16 @@ For each controller (`userland/capsule_driver_xhci/src/setup/sequence.rs:41-94`,
 - It sets up the scratchpads, the device context array, the command ring and the event ring, starts the controller, powers every root port and runs a No-op command.
 
 The capsule marks each step with a `[driver_xhci]` line written with `mk_debug` (`userland/capsule_driver_xhci/src/setup/marker.rs:17-19`, `marker`). The kernel grants `driver.xhci0` no Debug capability, so those lines do not reach the console in this release (`src/hardware/xhci_capsule/spawn.rs:51-57`, `requested_caps`).
+
+## USB 2 and USB 3 ports
+
+The driver reads the Supported Protocol capabilities, so it knows each root port as USB 2 or USB 3. A chipset numbers its USB 2 and USB 3 ports as separate ranges, and the two kinds are reset differently (`userland/capsule_driver_xhci/src/regs/cap/port_protocols.rs:17-36`, `PortProtocols`).
+
+Before a device is addressed, its port is (`userland/capsule_driver_xhci/src/controller/reset_port.rs:36-71`, `port_action`):
+
+- powered, with 20 ms for the power to settle;
+- debounced: the connection must hold for 100 ms, read every 25 ms, within 1.5 s;
+- reset, with a warm reset for a USB 3 link stuck in Inactive or Compliance, and the reset must finish within 1 s;
+- given 50 ms to recover.
+
+Every port is reset before it is addressed, a USB 3 port that is already enabled included, because another class driver may have addressed and released the device on it (`userland/capsule_driver_xhci/src/controller/reset_port.rs:65-70`, `PortAction::Reset`).
