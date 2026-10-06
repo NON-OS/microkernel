@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::constants::{CQ_BYTES, DATA_BYTES, PRP_LIST_BYTES, SQ_BYTES};
+use super::constants::{CQ_BYTES, DATA_BYTES, IO_ENTRIES, PRP_LIST_BYTES, SQ_BYTES};
+use super::doorbell::{cq_head_doorbell, sq_tail_doorbell};
+use super::geometry::NamespaceGeometry;
 use super::queue::IoQueue;
-use crate::constants::REG_DOORBELL_BASE;
+use crate::admin::CqCursor;
 use crate::dma::DmaRegion;
 use crate::error::NvmeResult;
 
@@ -26,25 +28,23 @@ impl IoQueue {
         epoch: u64,
         stride: u8,
         qid: u16,
-        nsid: u32,
-        capacity_sectors: u64,
-        lba_size: u32,
+        geometry: &NamespaceGeometry,
     ) -> NvmeResult<Self> {
-        let stride_bytes = 4u32 << stride;
         Ok(Self {
             sq: DmaRegion::map(device_id, epoch, SQ_BYTES)?,
             cq: DmaRegion::map(device_id, epoch, CQ_BYTES)?,
             prp_list: DmaRegion::map(device_id, epoch, PRP_LIST_BYTES)?,
             data: DmaRegion::map(device_id, epoch, DATA_BYTES)?,
             sq_tail: 0,
-            cq_head: 0,
-            phase: true,
+            cursor: CqCursor::new(IO_ENTRIES),
             cid: 1,
-            sq_db: REG_DOORBELL_BASE + (2 * qid as u32) * stride_bytes,
-            cq_db: REG_DOORBELL_BASE + (2 * qid as u32 + 1) * stride_bytes,
-            nsid,
-            capacity_sectors,
-            lba_size,
+            out: None,
+            sq_db: sq_tail_doorbell(qid, stride),
+            cq_db: cq_head_doorbell(qid, stride),
+            nsid: geometry.nsid,
+            capacity_sectors: geometry.capacity_sectors,
+            lba_size: geometry.lba_size,
+            max_sectors: geometry.max_sectors,
         })
     }
 }

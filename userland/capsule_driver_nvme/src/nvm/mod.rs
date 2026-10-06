@@ -16,7 +16,10 @@
 
 mod alloc;
 mod constants;
+mod doorbell;
+mod failure;
 mod flush;
+mod geometry;
 mod prp;
 mod queue;
 mod setup;
@@ -24,6 +27,9 @@ mod submit;
 mod transfer;
 mod wait;
 
+pub(crate) use constants::IO_QID;
 pub use constants::{MAX_SECTORS, SECTOR_SIZE};
+pub(crate) use doorbell::cq_head_doorbell;
+pub use geometry::{NamespaceGeometry, Refusal};
 pub use queue::IoQueue;
-pub use setup::{bring_up, NamespaceGeometry};
+pub use setup::bring_up;

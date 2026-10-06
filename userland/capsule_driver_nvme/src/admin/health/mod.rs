@@ -20,5 +20,6 @@ mod le16;
 mod le32;
 mod parse;
 mod temperature_celsius;
+mod unread;
 
 pub use health_type::SmartHealth;

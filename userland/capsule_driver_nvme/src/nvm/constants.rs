@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) const IO_QID: u16 = 1;
+pub(crate) const IO_QID: u16 = 1;
 pub(super) const IO_ENTRIES: u16 = 8;
 pub(super) const SQ_BYTES: u64 = 4096;
 pub(super) const CQ_BYTES: u64 = 4096;
@@ -23,4 +23,7 @@ pub const SECTOR_SIZE: usize = 512;
 pub const MAX_SECTORS: u32 = 64;
 pub(super) const DATA_BYTES: u64 = MAX_SECTORS as u64 * SECTOR_SIZE as u64;
 pub(super) const PAGE: u64 = 4096;
-pub(super) const COMPLETION_TIMEOUT_MS: u64 = 5_000;
+/// How long one read, write or flush may take, as Linux's nvme io_timeout:
+/// a DRAM-less drive with no host memory buffer can stall for seconds while it
+/// writes out its mapping tables in the middle of a long install.
+pub(super) const COMPLETION_TIMEOUT_MS: u64 = 30_000;

@@ -16,7 +16,9 @@
 
 use nonos_libc::{mk_irq_bind, IrqBindOut, MK_IRQ_BIND_MSIX};
 
+use crate::constants::REG_INTMS;
 use crate::discover::Found;
+use crate::regs::Regs;
 
 pub fn bind(dev: Found, claim_epoch: u64) -> IrqBindOut {
     let mut out = IrqBindOut { grant_id: 0, vector: 0 };
@@ -29,4 +31,16 @@ pub fn bind(dev: Found, claim_epoch: u64) -> IrqBindOut {
         return IrqBindOut { grant_id: 0, vector: 0 };
     }
     out
+}
+
+/// We poll every completion. Without MSI-X the controller would signal on
+/// its legacy pin or MSI, which nothing services: mask them all, so a level
+/// interrupt cannot stay asserted. INTMS is off limits under MSI-X (NVMe
+/// 3.1.4), so it is written only when the bind failed (`grant_id` zero).
+pub fn mask_unbound(regs: Regs, grant_id: u64) {
+    if grant_id == 0 {
+        // SAFETY: REG_INTMS lies in the controller's register block, which
+        // bring-up checked fits the mapped BAR before any register access.
+        unsafe { regs.w32(REG_INTMS, u32::MAX) };
+    }
 }

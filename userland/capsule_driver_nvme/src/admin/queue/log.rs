@@ -38,7 +38,7 @@ impl AdminQueue {
                 self.identify.device_addr(),
             ),
         );
-        self.wait(regs, stride, cid)?;
+        self.wait(regs, stride, cid, "get log page SMART / health (02h)")?;
         Ok(unsafe {
             core::slice::from_raw_parts(
                 self.identify.user_va() as *const u8,

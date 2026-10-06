@@ -16,47 +16,65 @@
 
 use core::ptr::read_volatile;
 
-use nonos_libc::Deadline;
-
-use super::constants::{COMPLETION_TIMEOUT_MS, IO_ENTRIES};
+use super::constants::{COMPLETION_TIMEOUT_MS, CQ_BYTES, IO_ENTRIES, IO_QID};
 use super::queue::IoQueue;
-use crate::admin::Completion;
+use crate::admin::{wait_noting_foreign, Completion};
+use crate::clock;
 use crate::error::{NvmeError, NvmeResult};
 use crate::regs::Regs;
 
-// Check the wall-time deadline only every this many spins so the I/O completion
-// poll stays a tight loop and does not make a syscall per iteration.
-const DEADLINE_CHECK_SPINS: u32 = 1024;
+// The cursor keeps the head below IO_ENTRIES, so every slot the wait reads
+// lies inside the completion queue's DMA region.
+const _: () = assert!(IO_ENTRIES as u64 * core::mem::size_of::<Completion>() as u64 <= CQ_BYTES);
 
 impl IoQueue {
+    /// Wait for `cid`. Should its wait run out, the command is remembered as
+    /// still the controller's.
     pub(super) fn wait(&mut self, regs: Regs, cid: u16) -> NvmeResult<()> {
-        let deadline = Deadline::after_ms(COMPLETION_TIMEOUT_MS);
-        let mut spins = 0u32;
-        loop {
-            let c = self.completion();
-            if c.phase() == self.phase && c.cid == cid {
-                self.advance(regs);
-                return if c.successful() { Ok(()) } else { Err(NvmeError::AdminCommandFailed) };
-            }
-            spins = spins.wrapping_add(1);
-            if spins.is_multiple_of(DEADLINE_CHECK_SPINS) && deadline.expired() {
-                return Err(NvmeError::ControllerTimeout);
-            }
-            core::hint::spin_loop();
+        let done = self.wait_for(regs, cid);
+        if matches!(done, Err(NvmeError::ControllerTimeout)) {
+            self.out = Some(cid);
         }
+        done
     }
 
-    fn completion(&self) -> Completion {
-        let slot =
-            self.cq.user_va() + (self.cq_head as u64) * (core::mem::size_of::<Completion>() as u64);
-        unsafe { read_volatile(slot as *const Completion) }
+    /*
+     * A command given up on is waited out before the data buffer is filled
+     * or another command goes in: a write still in flight could otherwise
+     * take the next write's bytes to its own sectors, and a read still in
+     * flight could land in the buffer under the next read's answer. Refused,
+     * buffer untouched, while it stays out.
+     */
+    pub fn settle(&mut self, regs: Regs) -> NvmeResult<()> {
+        let Some(cid) = self.out else { return Ok(()) };
+        self.wait_for(regs, cid)?;
+        self.out = None;
+        Ok(())
     }
 
-    fn advance(&mut self, regs: Regs) {
-        self.cq_head = (self.cq_head + 1) % IO_ENTRIES;
-        if self.cq_head == 0 {
-            self.phase = !self.phase;
-        }
-        unsafe { regs.w32(self.cq_db, self.cq_head as u32) };
+    fn wait_for(&mut self, regs: Regs, cid: u16) -> NvmeResult<()> {
+        // A clock that cannot be read spends the budget at once: the command
+        // is then given up on like any that timed out, and stays out until
+        // its completion is seen.
+        let budget = clock::budget(COMPLETION_TIMEOUT_MS);
+        let ring = self.cq.user_va();
+        let doorbell = self.cq_db;
+        let out = &mut self.out;
+        wait_noting_foreign(
+            &mut self.cursor,
+            IO_QID,
+            cid,
+            |head| {
+                let slot = ring + (head as u64) * (core::mem::size_of::<Completion>() as u64);
+                unsafe { read_volatile(slot as *const Completion) }
+            },
+            |head| unsafe { regs.w32(doorbell, head as u32) },
+            || budget.spent(clock::uptime_ms()),
+            |seen| {
+                if *out == Some(seen) {
+                    *out = None;
+                }
+            },
+        )
     }
 }
