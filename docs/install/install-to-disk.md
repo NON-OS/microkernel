@@ -99,3 +99,11 @@ The installer is not a secure wipe. It first wipes the old partition tables and 
 ## How long it takes
 
 The write and the read-back move 2 MiB per step (`BUDGET` in `userland/capsule_install/src/install/job/work.rs`). The screen shows the percentage, the bytes and the rate the disk acknowledged, and the Done screen gives the write time in seconds (`userland/capsule_install/src/install/ui/screens/done.rs`). This release records no typical duration.
+
+## After the install
+
+The Done screen ends with `Remove the USB stick, then press Enter to restart.` Enter restarts the machine. The installed disk shows the same boot menu as the stick, because it carries the same loader. Remove the stick: while a USB stick that carries NONOS is plugged in, the kernel keeps the boot's state on it before any internal disk (`ORDER` in `src/hardware/block_device/select.rs`).
+
+On its first boot the kernel finds the cleared key header, derives the volume key from the [TPM](../overview/glossary.md#tpm) and formats the data volume, and the log says `[DATA] formatted a volume of` with its size in sectors. Without a TPM the volume stays closed: `[DATA] no machine key (...); the data volume stays closed` (`src/fs/blockfs_volume/open_machine.rs`, `src/fs/blockfs_volume/mount_or_format.rs`). Setup does not run there when setup's answers came with the store.
+
+Installing to an internal NVMe disk and booting from it was reported on real hardware. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
