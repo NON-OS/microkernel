@@ -56,3 +56,16 @@ flowchart LR
 ```
 
 Each arrow crosses a boundary. UEFI firmware, the CPU and the TPM sit below the kernel and are assumed honest. Apps and Linux programs cross the syscall gate into the Kernel, and the endpoint gates into System services. Driver capsules reach hardware only through broker grants, and Devices reach memory through their capsule's IOMMU domain where a VT-d unit in service covers them. Whatever leaves the machine takes the chosen route before a Network observer sees it.
+
+## Assumptions
+
+NONOS relies on these without proof. They are the hardware, firmware, compiler and hash rows of `verification/ASSUMPTIONS.md`. The file also lists every third-party crate linked into ring 0 and into the loader, the in-tree primitives that are tested but not proven, ChaCha20-Poly1305 and the STARK prover and verifier among them, and the axioms behind the Lean models.
+
+- The CPU implements x86-64 paging, rings, SYSCALL and SYSRET, SWAPGS and the TSS as documented, and SMEP, SMAP and NX work.
+- UEFI firmware is honest until ExitBootServices, and the Secure Boot keys belong to the person who controls the machine.
+- The TPM keeps its counters monotonic and its keys inside.
+- VT-d translates and faults device DMA as its tables say. With no IOMMU, every DMA-capable device and its driver capsule can reach all of physical memory.
+- RDRAND and RDSEED return unpredictable values.
+- BLAKE3, SHA-2, SHA-3 and the width-8 Poseidon hash are collision resistant.
+- Nobody has bus, JTAG or cold-boot access to the machine.
+- The compiler, a Rust nightly, generates what the source says.
