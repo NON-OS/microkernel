@@ -71,3 +71,11 @@ The `deny.toml` policy, for the kernel crate:
 | [third_party/pqclean/PROVENANCE.md](../../third_party/pqclean/PROVENANCE.md) | the vendored PQClean snapshot and the algorithms compiled from it |
 | [third_party/minimp3/LICENSE](../../third_party/minimp3/LICENSE) | the licence of the vendored minimp3 decoder |
 | [third_party/redox/IMPORT_MAP.md](../../third_party/redox/IMPORT_MAP.md) | reference material from Redox OS, pinned by commit; it is not compiled into NONOS |
+
+## See also
+
+- [Reproducible builds](reproducible-builds.md)
+- [The Nix flake](nix-flake.md)
+- [CI](ci.md)
+- [Reporting a vulnerability](../security/reporting-a-vulnerability.md)
+- [CycloneDX specification](https://cyclonedx.org/specification/overview/)
