@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const HANDOFF_MAGIC: u32 = 0x4E_4F_4E_4F;
-pub const HANDOFF_VERSION: u16 = 1;
+pub const HANDOFF_VERSION: u16 = 2;
 
 pub mod flags {
     pub const WX: u64 = 1 << 0;
@@ -29,4 +29,20 @@ pub mod flags {
     pub const TPM_MEASURED: u64 = 1 << 8;
     pub const SECURE_BOOT: u64 = 1 << 9;
     pub const ZK_ATTESTED: u64 = 1 << 10;
+    /*
+     * The person chose "Install NONOS" in the boot menu. Set only after the
+     * kernel passed the same signature and attestation checks as a Standard
+     * boot; the kernel starts its installer before any desktop app.
+     */
+    pub const INSTALL_REQUESTED: u64 = 1 << 11;
+    /*
+     * The boot profile chosen in the menu, one bit each; Standard sets none.
+     * The kernel acts on them: Air-Gapped, Safe Mode and Recovery start no
+     * network driver or service, Safe Mode starts no audio and no optional
+     * app, Recovery skips setup. Hardened is the stricter check done here.
+     */
+    pub const PROFILE_HARDENED: u64 = 1 << 12;
+    pub const PROFILE_SAFE: u64 = 1 << 13;
+    pub const PROFILE_AIR_GAPPED: u64 = 1 << 14;
+    pub const PROFILE_RECOVERY: u64 = 1 << 15;
 }

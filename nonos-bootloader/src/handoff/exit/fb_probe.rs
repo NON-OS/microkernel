@@ -39,8 +39,16 @@ pub fn latch() {
     if !is_initialized() {
         return;
     }
-    let (w, _h) = get_dimensions();
-    FB_PTR.store(crate::display::gop::state::FB_PTR.load(Ordering::Relaxed), Ordering::Relaxed);
+    let (w, h) = get_dimensions();
+    let ptr = crate::display::gop::state::FB_PTR.load(Ordering::Relaxed);
+    let frame = (get_stride() as u64).saturating_mul(4).saturating_mul(h as u64);
+    // The dots after the CR3 switch write through the kernel PML4's identity
+    // map; a framebuffer past what it maps is left alone rather than faulted
+    // on with no handler that could say why.
+    if !crate::paging::framebuffer_identity_reachable(ptr, frame) {
+        return;
+    }
+    FB_PTR.store(ptr, Ordering::Relaxed);
     FB_STRIDE_PX.store(get_stride(), Ordering::Relaxed);
     FB_WIDTH.store(w, Ordering::Relaxed);
 }

@@ -17,7 +17,7 @@
 use super::constants::{HANDOFF_MAGIC, HANDOFF_VERSION};
 use super::framebuffer::FramebufferInfo;
 use super::memory::MemoryMap;
-use super::security::{Measurements, RngSeed, ZkAttestation};
+use super::security::{AttestPolicy, Measurements, RngSeed, ZkAttestation};
 use super::system::{AcpiInfo, Modules, SmbiosInfo, Timing};
 use crate::firmware::FirmwareHandoff;
 use core::mem::size_of;
@@ -29,6 +29,7 @@ pub struct BootHandoffV1 {
     pub magic: u32,
     pub version: u16,
     pub size: u16,
+    /* Bits from `constants::flags`, including INSTALL_REQUESTED (1 << 11). */
     pub flags: u64,
     pub entry_point: u64,
     pub fb: FramebufferInfo,
@@ -42,6 +43,7 @@ pub struct BootHandoffV1 {
     pub zk: ZkAttestation,
     pub firmware: FirmwareHandoff,
     pub cmdline_ptr: u64,
+    pub policy: AttestPolicy,
 }
 
 impl BootHandoffV1 {

@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::params::HandoffInitParams;
 use super::modules::init_modules;
+pub use super::params::HandoffInitParams;
 use crate::handoff::types::{
     BootHandoffV1, CryptoHandoff, Measurements, MemoryMap, RngSeed, ZkAttestation, HANDOFF_MAGIC,
     HANDOFF_VERSION,
@@ -31,7 +31,7 @@ pub unsafe fn init_boothandoff(bh_ptr: *mut BootHandoffV1, p: &HandoffInitParams
     (*bh_ptr).magic = HANDOFF_MAGIC;
     (*bh_ptr).version = HANDOFF_VERSION;
     (*bh_ptr).size = size_of::<BootHandoffV1>() as u16;
-    (*bh_ptr).flags = p.handoff_flags;
+    (*bh_ptr).flags = p.handoff_flags | p.install.handoff_flag();
     (*bh_ptr).entry_point = p.entry_point;
     (*bh_ptr).fb = p.fb_info;
     (*bh_ptr).mmap = MemoryMap { ptr: 0, entry_size: 0, entry_count: 0, desc_version: 0 };
@@ -44,6 +44,7 @@ pub unsafe fn init_boothandoff(bh_ptr: *mut BootHandoffV1, p: &HandoffInitParams
     init_rng_and_zk(bh_ptr, &p.crypto, p.rng_seed);
     (*bh_ptr).firmware = p.firmware;
     (*bh_ptr).cmdline_ptr = p.cmdline_addr;
+    (*bh_ptr).policy = p.crypto.policy;
 }
 
 unsafe fn init_measurements(bh_ptr: *mut BootHandoffV1, c: &CryptoHandoff) {

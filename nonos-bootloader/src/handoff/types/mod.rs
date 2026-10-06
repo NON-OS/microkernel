@@ -14,21 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod boot_media;
 mod constants;
 mod crypto;
+mod disk_mirror;
+mod evidence;
 mod framebuffer;
 mod handoff;
+mod install;
 mod memory;
 mod security;
 mod system;
 
+pub use boot_media::{BootMedia, BOOT_MEDIA_LEN};
 pub use constants::{flags, HANDOFF_MAGIC, HANDOFF_VERSION};
 pub use crypto::CryptoHandoff;
+pub use disk_mirror::{
+    DiskMirror, MirrorExtent, DISK_MIRROR_LEN, DISK_MIRROR_MAGIC, MIRROR_EXTENTS,
+    MODULE_KIND_DISK_MIRROR,
+};
+pub use evidence::{MODULE_KIND_BOOT_ROOT_RECORD, MODULE_KIND_BOOT_TRAILER, MODULE_KIND_TCG_LOG};
 pub use framebuffer::FramebufferInfo;
 pub use handoff::BootHandoffV1;
+pub use install::InstallHandoff;
 pub use memory::MemoryMap;
-pub use security::{Measurements, RngSeed, ZkAttestation};
+pub use security::{AttestPolicy, Measurements, RngSeed, ZkAttestation};
 pub use system::{
-    AcpiInfo, Module, Modules, SmbiosInfo, Timing, MODULE_KIND_KERNEL_IMAGE,
-    MODULE_KIND_LOADER_IMAGE,
+    AcpiInfo, Module, Modules, SmbiosInfo, Timing, MODULE_KIND_BOOT_MEDIA,
+    MODULE_KIND_KERNEL_IMAGE, MODULE_KIND_LOADER_IMAGE, MODULE_KIND_STORE,
 };
