@@ -11,3 +11,8 @@ use crate::nvm::MAX_SECTORS;
 pub fn parse_rw(body: &[u8], capacity: u64) -> Result<(u64, u32), i32> {
     rw_parse::parse(body, capacity, MAX_SECTORS)
 }
+
+// The same parser under the ceiling an accepted namespace geometry sets.
+pub fn parse_rw_within(body: &[u8], capacity: u64, max_sectors: u32) -> Result<(u64, u32), i32> {
+    rw_parse::parse(body, capacity, max_sectors)
+}
