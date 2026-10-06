@@ -62,3 +62,7 @@ NONOS is free software under the GNU Affero General Public License, version 3 ([
 ## Contributing
 
 Start with [CONTRIBUTING.md](../../CONTRIBUTING.md) and [Contributing](../contributing/README.md). The build needs only Nix with flakes; [Build](../build/README.md) and [Make targets](../build/make-targets.md) give the commands, and [Review](../contributing/review.md) says what a change is held to.
+
+## Reporting a security problem
+
+Report it privately, not in a public issue. [SECURITY.md](../../SECURITY.md) and [Reporting a vulnerability](../security/reporting-a-vulnerability.md) say how.
