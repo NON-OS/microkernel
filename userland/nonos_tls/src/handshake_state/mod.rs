@@ -14,24 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Spotting a complete Finished message in a run of handshake messages.
+//! The server half of a handshake, kept for the life of the connection.
 
-use super::content::FINISHED;
+mod advance;
+mod answer;
+mod begin;
+mod cert_problem;
+mod drive;
+mod finished;
+mod reply;
+mod types;
+mod verify;
 
-pub(super) fn has_finished(msgs: &[u8]) -> bool {
-    let mut pos = 0usize;
-    while pos + 4 <= msgs.len() {
-        let len = ((msgs[pos + 1] as usize) << 16)
-            | ((msgs[pos + 2] as usize) << 8)
-            | msgs[pos + 3] as usize;
-        let end = pos + 4 + len;
-        if end > msgs.len() {
-            return false;
-        }
-        if msgs[pos] == FINISHED {
-            return true;
-        }
-        pos = end;
-    }
-    false
-}
+pub use answer::{Answer, Refusal};
+pub(crate) use reply::reply;
+pub use types::{HandshakeState, Progress, Start};

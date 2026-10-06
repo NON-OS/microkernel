@@ -33,7 +33,7 @@ pub fn cert_valid_now(cert: &[u8], now: u64) -> bool {
     from <= now && now <= until
 }
 
-fn validity(cert: &[u8]) -> Option<&[u8]> {
+pub(crate) fn validity(cert: &[u8]) -> Option<&[u8]> {
     let (_, ov, _) = super::der_tlv::der_tlv(cert, 0)?;
     let (_, tv, _) = super::der_tlv::der_tlv(cert, ov)?;
     let mut o = tv;

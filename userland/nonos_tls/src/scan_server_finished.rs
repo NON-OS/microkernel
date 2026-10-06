@@ -18,12 +18,13 @@
 
 use alloc::vec::Vec;
 
-use super::scan_messages::{certificate, certificate_verify, finished};
-use super::scan_messages::{CERTIFICATE, CERTIFICATE_VERIFY, FINISHED};
+use super::scan_messages::{certificate, certificate_request, certificate_verify, finished};
+use super::scan_messages::{CERTIFICATE, CERTIFICATE_REQUEST, CERTIFICATE_VERIFY, FINISHED};
+use super::transcript::Transcript;
 
 pub struct ScanState<'a> {
     pub secret: &'a [u8; 32],
-    pub transcript: &'a mut Vec<u8>,
+    pub transcript: &'a mut Transcript,
     pub host: &'a [u8],
     pub now: u64,
     pub cert11: &'a mut Vec<u8>,
@@ -34,6 +35,10 @@ pub struct ScanState<'a> {
     /// authenticates the peer itself, which it must then actually do: the
     /// session is otherwise bound to nothing but whoever answered.
     pub require_chain: bool,
+    /// The certificate_request_context of a CertificateRequest, when the
+    /// server sent one. The client must then answer with a Certificate of its
+    /// own, empty here, before its Finished (RFC 8446 section 4.4.2).
+    pub request_context: &'a mut Option<Vec<u8>>,
 }
 
 pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
@@ -56,9 +61,12 @@ pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
         if kind == FINISHED {
             let ok = finished(body, state);
             if ok {
-                state.transcript.extend_from_slice(&msgs[pos..end]);
+                state.transcript.push(&msgs[pos..end]);
             }
             return ok;
+        }
+        if kind == CERTIFICATE_REQUEST && !certificate_request(body, state) {
+            return false;
         }
         if kind == CERTIFICATE && !certificate(body, state) {
             return false;
@@ -66,7 +74,7 @@ pub fn scan(msgs: &[u8], state: &mut ScanState) -> bool {
         if kind == CERTIFICATE_VERIFY && !certificate_verify(body, state) {
             return false;
         }
-        state.transcript.extend_from_slice(&msgs[pos..end]);
+        state.transcript.push(&msgs[pos..end]);
         pos = end;
     }
     false

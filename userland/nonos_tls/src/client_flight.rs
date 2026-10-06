@@ -33,7 +33,9 @@ pub fn client_flight(host: &[u8]) -> Option<ClientFlight> {
     if nonos_libc::crypto_x25519_public(private.as_ptr(), public.as_mut_ptr()) != 32 {
         return None;
     }
-    let handshake = super::client_hello::client_hello(host, &random, &session, &public);
+    let (p256_private, p256_public) = super::p256_share::generate()?;
+    let handshake =
+        super::client_hello::client_hello(host, &random, &session, &public, &p256_public);
     let record = super::record::handshake_record(&handshake);
-    Some(ClientFlight { record, handshake, private })
+    Some(ClientFlight { record, handshake, private, p256_private })
 }

@@ -14,28 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Verifying the flight, answering Finished, and keeping the leftover bytes.
+//! Completing the flight, its chain checked when a host is named, answering
+//! Finished, and keeping the leftover bytes.
 
 extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::flight::ClientFlight;
+use crate::handshake_state::HandshakeState;
 use crate::session::{Io, SessionError};
 
 use super::types::Stream;
 
+/*
+ * The CertificateVerify signature and the Finished MAC are checked here, and
+ * the chain too when a host is named; with none, the chain is the caller's to
+ * check. Alerts have already ended the flight before this point, so a failure
+ * here is the handshake's, or Certificate when a host was named.
+ */
 pub(super) fn settle<S: Io>(
     io: &mut S,
-    client: &ClientFlight,
+    state: &HandshakeState,
     buf: Vec<u8>,
     end: usize,
+    peer: Option<(&[u8], u64)>,
 ) -> Result<Stream, SessionError> {
-    // Handshake is the fault only when the peer did not say what was wrong.
-    let done = crate::server_complete_unauthenticated(client, &buf[..end])
-        .ok_or_else(|| crate::handshake_fault(client, &buf[..end], SessionError::Handshake))?;
-    let record = crate::client_finished::client_finished(&done.handshake, &done.transcript)
-        .ok_or(SessionError::Handshake)?;
+    let done = match peer {
+        Some((host, now)) => state.verify(host, now, true).ok_or(SessionError::Certificate)?,
+        None => state.verify(&[], 0, false).ok_or(SessionError::Handshake)?,
+    };
+    let record = crate::client_finished::client_reply(&done).ok_or(SessionError::Handshake)?;
     io.write_all(&record)?;
     Ok(Stream::new(done.app, done.certificates, buf[end..].to_vec()))
 }

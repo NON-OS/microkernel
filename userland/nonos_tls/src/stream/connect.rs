@@ -14,39 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Opening a session whose peer the caller will authenticate itself.
+//! Opening a session that stays open: one whose peer the caller will
+//! authenticate itself, or one whose certificate chain is checked here
+//! against the built-in roots for the host, as `exchange` checks it.
 
 extern crate alloc;
 
 use alloc::vec::Vec;
 
+use crate::handshake_state::Progress;
 use crate::session::{Io, SessionError};
 
 use super::gather::gather;
 use super::handshake_keys::handshake_keys;
 use super::settle::settle;
-use super::span::Span;
-use super::span_scan::handshake_span;
 use super::types::Stream;
 
 /// Handshake with a peer whose certificate is not expected to chain to a public
 /// root, and return a session that stays open.
 pub fn connect_unauthenticated<S: Io>(io: &mut S, sni: &[u8]) -> Result<Stream, SessionError> {
+    open(io, sni, None)
+}
+
+/// Handshake with `host`, whose chain must verify for it at `now` before the
+/// session is returned; `SessionError::Certificate` when it does not.
+pub fn connect<S: Io>(io: &mut S, host: &[u8], now: u64) -> Result<Stream, SessionError> {
+    open(io, host, Some(now))
+}
+
+fn open<S: Io>(io: &mut S, sni: &[u8], now: Option<u64>) -> Result<Stream, SessionError> {
     let client = crate::client_flight(sni).ok_or(SessionError::Init)?;
     io.write_all(&client.record)?;
 
     let mut buf: Vec<u8> = Vec::new();
     /*
-     * Once, not once per read: repeating it spends a curve operation on every
-     * empty poll of the socket.
+     * Keyed once, and each record decrypted once as it arrives: the state
+     * that finds the Finished is the one that verifies it, so the key
+     * agreement is not repeated at the end.
      */
-    let (keys, used) = handshake_keys(io, &client, &mut buf)?;
+    let mut state = handshake_keys(io, &client, &mut buf)?;
     loop {
-        match handshake_span(&keys, used, &buf) {
-            Span::Broken => return Err(SessionError::Handshake),
-            Span::Alert(description) => return Err(SessionError::PeerAlert(description)),
-            Span::Found(end) => return settle(io, &client, buf, end),
-            Span::Incomplete => gather(io, &mut buf)?,
+        match state.advance(&buf) {
+            Progress::Broken => return Err(SessionError::Handshake),
+            Progress::Alert(description) => return Err(SessionError::PeerAlert(description)),
+            Progress::Complete(end) => return settle(io, &state, buf, end, now.map(|t| (sni, t))),
+            Progress::Incomplete => gather(io, &mut buf)?,
         }
     }
 }

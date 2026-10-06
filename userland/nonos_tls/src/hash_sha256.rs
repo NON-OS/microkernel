@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! SHA-256, computed in the caller.
+
+use sha2::{Digest, Sha256};
+
+/*
+ * This was a crypto_hash syscall, which the kernel forwards to the crypto
+ * pool and waits on: one scheduling round trip per digest, and a handshake
+ * takes several. The Option stays because every caller already reads it.
+ */
 pub fn hash_sha256(data: &[u8]) -> Option<[u8; 32]> {
     let mut out = [0u8; 32];
-    let n = nonos_libc::crypto_hash(1, data.as_ptr(), data.len(), out.as_mut_ptr(), out.len());
-    if n == 32 {
-        Some(out)
-    } else {
-        None
-    }
+    out.copy_from_slice(&Sha256::digest(data));
+    Some(out)
 }

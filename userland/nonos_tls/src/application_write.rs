@@ -17,7 +17,11 @@
 use alloc::vec::Vec;
 
 use super::flight::ClientFlight;
+use super::handshake_state::HandshakeState;
 
+/// Verify a whole flight against `host` and return the client Finished record
+/// followed by `body` sealed as the first application record. `None` if the
+/// flight is incomplete, the server sent an alert, or any check fails.
 pub fn application_write(
     client: &ClientFlight,
     bytes: &[u8],
@@ -25,16 +29,6 @@ pub fn application_write(
     host: &[u8],
     now: u64,
 ) -> Option<Vec<u8>> {
-    let done = super::server_complete::server_complete(client, bytes, host, now)?;
-    let mut out = super::client_finished::client_finished(&done.handshake, &done.transcript)?;
-    let record = super::record_seal::seal(
-        done.app.suite,
-        &done.app.client_key,
-        &done.app.client_iv,
-        0,
-        23,
-        body,
-    )?;
-    out.extend_from_slice(&record);
-    Some(out)
+    let (state, _) = HandshakeState::whole(client, bytes)?;
+    state.answer(host, now, body).ok().map(|answer| answer.flight)
 }

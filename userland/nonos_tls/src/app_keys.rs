@@ -16,7 +16,8 @@
 
 use super::traffic_keys::TrafficKeys;
 
-pub fn app_keys(handshake: &TrafficKeys, transcript: &[u8]) -> Option<TrafficKeys> {
+/// The application traffic keys, given the hash of ClientHello..server Finished.
+pub fn app_keys(handshake: &TrafficKeys, th: &[u8; 32]) -> Option<TrafficKeys> {
     let zero = [0u8; 32];
     let derived = super::schedule::secret(
         &handshake.handshake_secret,
@@ -24,9 +25,8 @@ pub fn app_keys(handshake: &TrafficKeys, transcript: &[u8]) -> Option<TrafficKey
         &super::schedule::EMPTY_HASH,
     )?;
     let master = super::hkdf::extract(&derived, &zero)?;
-    let th = super::hash_sha256::hash_sha256(transcript)?;
-    let client_secret = super::schedule::secret(&master, b"c ap traffic", &th)?;
-    let server_secret = super::schedule::secret(&master, b"s ap traffic", &th)?;
+    let client_secret = super::schedule::secret(&master, b"c ap traffic", th)?;
+    let server_secret = super::schedule::secret(&master, b"s ap traffic", th)?;
     let suite = handshake.suite;
     Some(TrafficKeys {
         suite,

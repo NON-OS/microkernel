@@ -14,7 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::sync::atomic::{AtomicU32, Ordering};
+
+/*
+ * The pool's service port is fixed for the life of the system, and it was
+ * looked up with a syscall before every signature check. Kept after the first
+ * lookup that succeeds; a failed lookup is not kept, so a pool that was not
+ * up yet is found later. Any CPU may race the first store, and every racer
+ * stores the same port.
+ */
+static PORT: AtomicU32 = AtomicU32::new(0);
+
 pub fn crypto_port() -> Option<u32> {
+    let known = PORT.load(Ordering::Acquire);
+    if known != 0 {
+        return Some(known);
+    }
     let mut port = 0u32;
     let mut pid = 0u32;
     let name = b"crypto_pool";
@@ -22,6 +37,7 @@ pub fn crypto_port() -> Option<u32> {
     if rc < 0 || pid == 0 || port == 0 {
         None
     } else {
+        PORT.store(port, Ordering::Release);
         Some(port)
     }
 }

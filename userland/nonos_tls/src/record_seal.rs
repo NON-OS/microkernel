@@ -41,19 +41,7 @@ pub fn seal(
         head.extend_from_slice(&ct);
         return Some(head);
     }
-    let frame = super::aad_frame::aad_frame(&head, &plain);
-    let mut ct = alloc::vec![0u8; plain.len() + 16];
-    let n = nonos_libc::crypto_encrypt_aad(
-        0,
-        key.as_ptr(),
-        nonce.as_ptr(),
-        frame.as_ptr(),
-        frame.len(),
-        ct.as_mut_ptr(),
-    );
-    if n != ct.len() as i64 {
-        return None;
-    }
+    let ct = super::chacha_record::seal(key, &nonce, &head, &plain)?;
     head.extend_from_slice(&ct);
     Some(head)
 }

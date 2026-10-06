@@ -16,32 +16,20 @@
 
 use alloc::vec::Vec;
 
+use super::app_reader::AppReader;
 use super::flight::ClientFlight;
 use super::traffic_keys::TrafficKeys;
 
-// Decrypt the application-data records with server keys already derived at the
-// end of the handshake, skipping the per-call handshake replay and certificate
-// verification. The record walk and sequence numbering match the full path
-// exactly, so the plaintext is identical; only the redundant work is dropped.
+/// Decrypt a whole response with application keys already derived. A caller
+/// reading as the response arrives keeps an `AppReader` instead, which opens
+/// each record once rather than once per call.
 pub fn application_plaintext_cached(app: &TrafficKeys, response: &[u8]) -> Vec<u8> {
-    let mut out = Vec::new();
-    let mut pos = 0usize;
-    let mut seq = 0u64;
-    while pos + 5 <= response.len() {
-        let len = u16::from_be_bytes([response[pos + 3], response[pos + 4]]) as usize;
-        let end = pos + 5 + len;
-        if end > response.len() {
-            break;
-        }
-        if response[pos] == 23 {
-            append(&mut out, app, seq, &response[pos..end]);
-            seq += 1;
-        }
-        pos = end;
-    }
-    out
+    let mut reader = AppReader::new();
+    reader.feed(app, response);
+    reader.into_plaintext()
 }
 
+/// Verify the flight against `host`, then decrypt a whole response.
 pub fn application_plaintext(
     client: &ClientFlight,
     flight: &[u8],
@@ -50,30 +38,5 @@ pub fn application_plaintext(
     now: u64,
 ) -> Option<Vec<u8>> {
     let done = super::server_complete::server_complete(client, flight, host, now)?;
-    let mut out = Vec::new();
-    let mut pos = 0usize;
-    let mut seq = 0u64;
-    while pos + 5 <= response.len() {
-        let len = u16::from_be_bytes([response[pos + 3], response[pos + 4]]) as usize;
-        let end = pos + 5 + len;
-        if end > response.len() {
-            break;
-        }
-        if response[pos] == 23 {
-            append(&mut out, &done.app, seq, &response[pos..end]);
-            seq += 1;
-        }
-        pos = end;
-    }
-    Some(out)
-}
-
-fn append(out: &mut Vec<u8>, keys: &super::traffic_keys::TrafficKeys, seq: u64, record: &[u8]) {
-    let Some(plain) =
-        super::record_open::open(keys.suite, &keys.server_key, &keys.server_iv, seq, record)
-    else {
-        return;
-    };
-    let Some((body, 23)) = super::inner_plain::split(&plain) else { return };
-    out.extend_from_slice(body);
+    Some(application_plaintext_cached(&done.app, response))
 }

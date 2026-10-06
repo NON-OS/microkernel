@@ -14,17 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Decrypting the server's encrypted handshake records into one message run.
+/* Certificates, their chains, and the signature checks the pool performs. */
 
-use alloc::vec::Vec;
-
-use super::handshake_walk::walk;
-use super::traffic_keys::TrafficKeys;
-
-pub(super) fn handshake_messages(keys: &TrafficKeys, from: usize, bytes: &[u8]) -> Option<Vec<u8>> {
-    walk(keys, from, bytes).map(|flight| flight.msgs)
-}
-
-pub(super) fn alert_in_flight(keys: &TrafficKeys, from: usize, bytes: &[u8]) -> Option<u8> {
-    walk(keys, from, bytes).and_then(|flight| flight.alert)
-}
+mod cert_at;
+mod cert_count;
+mod cert_dns_match;
+mod cert_ext;
+mod cert_ext_entry;
+mod cert_is_ca;
+mod cert_issuer;
+mod cert_problem;
+mod cert_sig_alg;
+mod cert_signature;
+mod cert_spki;
+mod cert_tbs;
+mod cert_time_value;
+mod cert_valid_now;
+mod cert_window;
+mod cert_verify_msg;
+mod chain_walk;
+mod crypto_port;
+mod crypto_status;
+mod der_tlv;
+mod ecdsa_sig_raw;
+mod hash_sha384;
+mod roots;
+mod rtc_now;
+mod spki_point;
+mod verify_link;
+mod verify_p256;
+mod verify_p384;
+mod verify_rsa;
