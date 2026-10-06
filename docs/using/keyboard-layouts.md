@@ -65,3 +65,11 @@ A key's release is sent with the same code as its press, even when Shift was let
 The host tests in `userland/input_proofs` (`layout_tests.rs`, `held_keys_tests.rs`) and `userland/ps2_input_proofs` check the tables and the held-key rule. Both crates pass on this commit: 96 and 38 tests.
 
 The PS/2 keyboard with its layouts: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+## See also
+
+- [Settings](settings.md)
+- [The desktop](desktop.md)
+- [First boot](../install/first-boot.md)
+- [PS/2 keyboard and mouse](../drivers/input/ps2.md)
+- [USB HID](../drivers/usb/hid.md)
