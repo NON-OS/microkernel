@@ -131,3 +131,7 @@ One revocable piece of a claimed device that the hardware broker hands the claim
 ## Hardware broker
 
 <a id="broker"></a>The ring 0 code through which a driver capsule lists devices, claims one and receives grants on it: MMIO windows, DMA buffers, interrupt bindings and, on x86_64 only, port I/O, each behind its own capability. When a remapping unit covers a claimed PCI device, the broker moves it into the capsule's IOMMU domain before powering it, and every grant a process holds is released when it exits. Explained in [The hardware broker](../kernel/hardware-broker.md), with the calls in [Broker ABI](../abi/broker.md). Code: `src/hardware/broker/mod.rs`, `src/hardware/broker/claim/claim.rs`.
+
+## Held endpoint
+
+A service endpoint that only the services named for it may send to, whatever capabilities a sender holds. Fifteen driver endpoints are held this way: a wired network driver takes sends from `net.core` and `net.l2`, a Wi-Fi driver from `net.core`, Settings and setup, and the keyboard, USB HID, I2C-HID, USB storage and random-source drivers from no capsule at all, because the kernel drives them itself. Explained in [IPC](../kernel/ipc.md#who-may-send-to-whom). Code: `src/services/registry/held_table.rs`.
