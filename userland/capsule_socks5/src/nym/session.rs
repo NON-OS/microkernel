@@ -60,6 +60,7 @@ pub fn reset_session() {
         let _ = call(OP_CLOSE, &id.to_le_bytes());
     }
     SESSION.store(0, Ordering::Release);
+    super::recv::forget_partial();
 }
 
 /// Open a session and bind it to the configured exit.

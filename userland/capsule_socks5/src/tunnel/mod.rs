@@ -44,6 +44,6 @@ pub use constants::{
     PROTOCOL_VERSION, REQ_CONNECT, REQ_SEND, RESP_CONNECTION_ERROR, RESP_NETWORK_DATA,
 };
 pub use decode::{decode_response, Response};
-pub use encode::{encode_connect, encode_send};
+pub use encode::{encode_connect, encode_send, SEND_DATA_MAX, SEND_FRAME_MAX};
 pub use hostport::write_hostport;
 pub use provider::{ENVELOPE_BYTES, INTERFACE_VERSION, TAG_PROVIDER_DATA};

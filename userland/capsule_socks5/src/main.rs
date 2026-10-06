@@ -51,11 +51,13 @@ pub unsafe extern "C" fn _start() -> ! {
 ///
 /// A timed receive parks this capsule off the run queue rather than yielding,
 /// which would keep it permanently runnable and burn a core for the life of
-/// the boot. A request that arrives inside the window is answered with a
-/// closed-stream marker rather than dequeued into oblivion: the old one-byte
-/// receive destroyed the caller's message and said nothing, so every early
-/// page load waited out its whole timeout on an answer that was never coming.
-/// A caller told "closed" fails fast and reconnects once serving starts.
+/// the boot. A request that arrives inside the window is answered rather than
+/// dequeued into oblivion: the old one-byte receive destroyed the caller's
+/// message and said nothing, so every early page load waited out its whole
+/// timeout on an answer that was never coming. It is answered as a SOCKS
+/// server with no network yet answers (`server::parked`): a CONNECT is told
+/// "not connected yet", which callers ask again after a pause, and a status
+/// ask says this proxy waits for net.nym.
 fn wait_for_setup() {
     let mut rx = [0u8; PARK_RX];
     loop {
@@ -66,8 +68,9 @@ fn wait_for_setup() {
         let n =
             mk_ipc_recv_from(OWN_INBOX, rx.as_mut_ptr(), rx.len(), RETRY_BACKOFF_MS, &mut sender);
         if n > 0 && sender != 0 {
-            let closed = [server::STREAM_CLOSED];
-            let _ = mk_ipc_reply(sender, closed.as_ptr(), closed.len());
+            let got = (n as usize).min(rx.len());
+            let out = server::parked(&rx[..got]);
+            let _ = mk_ipc_reply(sender, out.as_ptr(), out.len());
         }
     }
 }

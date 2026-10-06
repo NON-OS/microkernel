@@ -100,27 +100,25 @@ fn write_u64(out: &mut [u8], mut v: u64) -> usize {
     k
 }
 
-/// Say where a tunnel was asked to connect, as the exit is asked for it.
+/// Say that a tunnel was asked to connect, and how long the rendered
+/// destination is, never what it is.
 ///
-/// The request the exit receives is an ASCII host and port, and everything
-/// upstream of it is guesswork without knowing what that string actually
-/// said. A destination that is not what the client typed points at this side
-/// of the proxy rather than at the network.
+/// A mixnet proxy that logs where its users go has defeated itself: the
+/// serial log is readable by whoever holds the machine. The length is enough
+/// to tell a destination that did not render, or rendered to something
+/// unexpected in size, from one the exit refused.
 pub fn destination(dest: &crate::conn::Dest) {
     let mut host = [0u8; 288];
     let Some(len) = crate::tunnel::write_hostport(dest, &mut host) else {
         return say(b"[SOCKS5] connect: destination will not render\n");
     };
-    let mut line = [0u8; 320];
+    let mut line = [0u8; 64];
     let mut n = 0;
-    for &b in b"[SOCKS5] connect " {
+    for &b in b"[SOCKS5] connect, destination bytes " {
         line[n] = b;
         n += 1;
     }
-    for &b in &host[..len] {
-        line[n] = b;
-        n += 1;
-    }
+    n += write_u16(&mut line[n..], len.min(u16::MAX as usize) as u16);
     line[n] = b'\n';
     say(&line[..n + 1]);
 }
@@ -143,13 +141,22 @@ fn say(line: &[u8]) {
     mk_debug(line.as_ptr(), line.len());
 }
 
-/// Report what kind of answer the exit sent.
+/// Report what kind of answer the exit sent, for one that did not decode.
 ///
 /// Length alone does not say whether a short message is stream data or the
 /// exit reporting that it could not reach the host, and those need opposite
-/// fixes. The flag distinguishes them, so it is worth naming.
+/// fixes. The flag distinguishes them, so it is worth naming. It sits behind
+/// the two byte provider envelope: reading the envelope as the flag named
+/// every undecodable answer stream data.
 pub fn reply_kind(msg: &[u8]) {
-    let text: &[u8] = match msg.get(..2) {
+    let inner = match msg.get(..crate::tunnel::ENVELOPE_BYTES) {
+        Some([3, 1]) => &msg[crate::tunnel::ENVELOPE_BYTES..],
+        _ => {
+            return say(b"[SOCKS5] exit sent something outside the provider envelope
+")
+        }
+    };
+    let text: &[u8] = match inner.get(..2) {
         Some([3, 1]) => b"[SOCKS5] exit sent stream data\n",
         Some([3, 2]) => b"[SOCKS5] exit could not reach the host\n",
         Some([3, other]) => {

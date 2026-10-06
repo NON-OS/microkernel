@@ -20,6 +20,9 @@ pub const OP_OPEN_SESSION: u16 = 3;
 pub const OP_SEND: u16 = 4;
 /// Collect anything the mixnet delivered.
 pub const OP_RECV: u16 = 5;
+/// Collect everything the mixnet delivered that fits in one answer, as
+/// records a message too long for one answer is split across.
+pub const OP_RECV_BATCH: u16 = 20;
 /// Close a session, freeing the single destination slot it held.
 pub const OP_CLOSE: u16 = 7;
 /// Bind a session to the Nym address its traffic is sealed for.

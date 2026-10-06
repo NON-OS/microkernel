@@ -31,6 +31,13 @@
 /// must not abandon a requester that has already carried traffic.
 pub const SILENCE_MS: i64 = 12_000;
 
+/// Silence budget for an exit that has delivered, counted from its first
+/// unanswered send after its last delivery. A proven exit was never timed,
+/// so one that later stopped answering held the session for good; with
+/// many published exits silent at once, that was every Nym page until
+/// restart. Long enough that one slow page does not abandon it.
+pub const PROVEN_SILENCE_MS: i64 = 60_000;
+
 /// Delivery record for the exit currently in use.
 pub struct Watch {
     /// Uptime of the first send since this exit was chosen; 0 = none yet.
@@ -65,14 +72,28 @@ impl Watch {
     /// Anything delivered proves the exit and ends all rotation for it.
     pub fn on_delivered(&mut self) {
         self.proven = true;
+        /* The silence it ended is over; the next unanswered send starts the
+         * clock again. */
+        self.first_send_ms = 0;
+    }
+
+    /// The exit answered, though with no payload yet (a connect accepted).
+    /// It is not proven by that, but it is not silent either: the budget
+    /// runs again from now. Counted from the first send alone, a connect
+    /// that took most of the budget on a slow machine left the page no time
+    /// to come back, and the stream was cut as it arrived.
+    pub fn on_answered(&mut self, now_ms: i64) {
+        if self.first_send_ms != 0 {
+            self.first_send_ms = now_ms;
+        }
     }
 
     /// Whether the exit has used up its silence budget.
     pub fn should_rotate(&self, now_ms: i64) -> bool {
+        let budget = if self.proven { PROVEN_SILENCE_MS } else { SILENCE_MS };
         !self.configured
-            && !self.proven
             && self.first_send_ms != 0
-            && now_ms.saturating_sub(self.first_send_ms) >= SILENCE_MS
+            && now_ms.saturating_sub(self.first_send_ms) >= budget
     }
 
     /// A new exit starts with a clean record.

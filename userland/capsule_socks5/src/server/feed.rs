@@ -17,22 +17,29 @@
 use super::open::{open_tunnel, OpenOutcome};
 use super::relay::relay;
 use super::reply::Reply;
-use super::state::SERVER;
+use super::state::{Server, SERVER};
+use super::who::Who;
 use crate::conn::Event;
 use crate::wire::method_reply;
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicI64, Ordering};
 
 /// Drive the SOCKS handshake with bytes from the client, returning whatever
 /// should go back.
 ///
 /// A rejected or malformed client is answered and closed rather than left
 /// half open: the state machine reports that through `is_closed`, and holding
-/// the slot would deny it to the next caller.
-pub fn feed(pid: u32, data: &[u8]) -> Reply {
+/// the slot would deny it to the next caller. `room` bounds the stream bytes
+/// a relayed answer brings back.
+pub fn feed(pid: Who, data: &[u8], room: usize) -> Reply {
     let mut guard = SERVER.lock();
     let Some(server) = guard.as_mut() else {
         return Reply::closed(Vec::new());
     };
+    // A full table may be full of callers that ended.
+    if server.clients.get(pid).is_none() {
+        free_ended(server);
+    }
     let Some(conn) = server.clients.get(pid) else {
         // Table full. Refusing is the honest answer: the client disconnects
         // rather than waiting on a handshake that will never advance.
@@ -50,7 +57,7 @@ pub fn feed(pid: u32, data: &[u8]) -> Reply {
             }
         }
         Event::Relay => {
-            let bytes = relay(server, pid, data);
+            let bytes = relay(server, pid, data, room);
             match server.manager.id_of_socket(pid) {
                 Some(_) => Reply::open(bytes),
                 None => Reply::closed(bytes),
@@ -86,12 +93,51 @@ pub fn feed(pid: u32, data: &[u8]) -> Reply {
     }
 }
 
+fn alive(pid: u32) -> bool {
+    nonos_libc::mk_pid_alive(pid)
+}
+
+/// Free the slot, tunnel and held bytes of every caller that ended, as its
+/// own reset would have.
+fn free_ended(server: &mut Server) {
+    for pid in server.clients.ended(alive) {
+        if let Some(conn) = server.manager.close_socket(pid) {
+            server.inbox.forget(conn);
+        }
+        server.clients.drop_client(pid);
+    }
+}
+
+const REAP_GAP_MS: i64 = 2_000;
+
+static LAST_REAP: AtomicI64 = AtomicI64::new(i64::MIN);
+
+/// Free every ended caller at most every REAP_GAP_MS, with the replies kept
+/// for them.
+pub fn reap_due() {
+    let now = nonos_libc::mk_uptime_ms();
+    let last = LAST_REAP.load(Ordering::Relaxed);
+    if last != i64::MIN && now >= last && now - last < REAP_GAP_MS {
+        return;
+    }
+    LAST_REAP.store(now, Ordering::Relaxed);
+    if let Some(server) = SERVER.lock().as_mut() {
+        free_ended(server);
+    }
+    super::kept::forget_ended(alive);
+}
+
+/// Whether a conversation of `pid`'s is held.
+pub fn holds(pid: Who) -> bool {
+    SERVER.lock().as_ref().is_some_and(|s| s.clients.holds(pid))
+}
+
 /// Forget a caller's conversation so its next request starts a fresh one.
 ///
 /// Handshake state is keyed on the caller, so a second request from the same
 /// capsule would otherwise arrive at a connection already relaying, and its
 /// greeting would be carried to the exit as stream bytes.
-pub fn reset_client(pid: u32) -> Reply {
+pub fn reset_client(pid: Who) -> Reply {
     let mut guard = SERVER.lock();
     let Some(server) = guard.as_mut() else {
         return Reply::closed(Vec::new());

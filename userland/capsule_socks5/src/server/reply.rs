@@ -25,6 +25,42 @@ pub const STREAM_OPEN: u8 = 0;
 /// The far end finished. Any bytes that follow are the last of the stream.
 pub const STREAM_CLOSED: u8 = 1;
 
+/// This proxy holds no conversation for that stream, and the exchange asked
+/// is not the first of one: it was lost when the proxy restarted, or ended
+/// and forgotten. Said apart from a close, which is the far end's, so the
+/// caller can tell the reader the proxy lost it rather than blaming the site.
+/// The marker alone, no bytes follow.
+pub const STREAM_LOST: u8 = 2;
+
+/// The answer to a status ask (`request::STATUS_ASK`): this marker, a format
+/// version, then whether a stream can be opened now, the step the network is
+/// at and how many steps there are. Five bytes in all.
+pub const STATUS: u8 = 3;
+
+/// The format of a status answer.
+pub const STATUS_VERSION: u8 = 1;
+
+/// The steps net.socks5 reports: waiting for net.nym to start, opening its
+/// mixnet session, and trying another exit after one did not answer. Ready
+/// once a session is open on an exit not just taken after a silent one.
+pub const STEP_WAITING_FOR_NYM: u8 = 1;
+pub const STEP_OPENING_SESSION: u8 = 2;
+pub const STEP_TRYING_ANOTHER_EXIT: u8 = 3;
+pub const STEPS: u8 = 3;
+
+/// The answer to a status ask, with how many exits this session walked away
+/// from for silence after the five bytes both proxies give. A reader that
+/// knows only the five takes the sixth as no answer, as an older one would.
+pub fn progress(ready: bool, step: u8, silent: u8) -> Vec<u8> {
+    Vec::from([STATUS, STATUS_VERSION, u8::from(ready), step, STEPS, silent])
+}
+
+/// The most stream bytes one answer carries, marker aside. Every caller reads
+/// an answer into 36 KiB, and the kernel cuts a reply longer than the buffer
+/// it is read into without a word, which takes bytes out of the middle of the
+/// stream; what does not fit waits in the inbox for the next answer.
+pub const ANSWER_MAX: usize = 32 * 1024;
+
 /// What the proxy says back to one request.
 ///
 /// A caller waiting on a mixnet reply asks repeatedly and is usually told

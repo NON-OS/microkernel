@@ -18,40 +18,44 @@ use alloc::vec;
 use alloc::vec::Vec;
 use nonos_libc::mk_uptime_ms;
 
+use super::gather::{gather, Mixnet, Received};
+use super::inbox::{Accept, Inbox};
 use super::state::Server;
-use crate::nym::{recv_once, send_through_mixnet, Delivery};
-use crate::tunnel::{decode_response, encode_send};
+use super::who::Who;
+use crate::manager::Manager;
+use crate::nym::{recv_batch, send_through_mixnet, Delivery, SendError};
+use crate::tunnel::{decode_response, encode_send, SEND_DATA_MAX, SEND_FRAME_MAX};
 
-/// How long one call waits on the exit before answering with nothing.
+/// How long one answer waits on the exit when nothing has come back.
 ///
-/// A mixnet round trip is seconds, far longer than this, and a client that
-/// gets nothing simply asks again. Waiting out the whole round trip inside
-/// one call would hold the capsule against every other connection for it.
-///
-/// A mixnet round trip is seconds, so this is the window a single relay call
-/// waits for the exit's answer before handing back to the browser to poll
-/// again. It has to be long enough that a reply arriving mid-flight is caught
-/// here rather than missed between polls: a very short wait returned empty
-/// before the answer came back and the page never rendered. Responsiveness of
-/// the window is handled in the frame loop, not by starving this wait.
-const POLL_MS: i64 = 1_000;
-
-/// Room for the largest client write plus the request that carries it.
-const FRAME_MAX: usize = 34 * 1024;
+/// Shorter than the browser waits on a poll (60 ms), so the answer reaches
+/// it rather than a caller that has stopped listening. A whole second was
+/// once needed here because a reply arriving between polls was lost; now
+/// nothing is: net.nym queues every reply as it lands, the inbox holds what
+/// it has read, and an answer the caller missed is kept and given again. So
+/// waiting longer only made the browser miss the answer and ask again for
+/// the same one, a round trip per message.
+const HOLD_MS: i64 = 40;
 
 /// Carry `data` to the exit and bring back whatever has come the other way.
 ///
 /// An empty `data` is a read with nothing to send, which is how a client asks
-/// whether the far end has answered yet.
-pub fn relay(server: &mut Server, pid: u32, data: &[u8]) -> Vec<u8> {
+/// whether the far end has answered yet. At most `room` bytes come back.
+pub fn relay(server: &mut Server, pid: Who, data: &[u8], room: usize) -> Vec<u8> {
     rotate_if_stalled(server);
     let Some(conn) = server.manager.id_of_socket(pid) else {
         return Vec::new();
     };
     if !data.is_empty() && !forward(server, conn, data) {
+        // A send that did not leave is a number the exit waits on forever,
+        // so the stream cannot go on. Ending it here has the client
+        // reconnect at once instead of waiting out an answer that cannot
+        // come.
+        server.inbox.forget(conn);
+        server.manager.close(conn);
         return Vec::new();
     }
-    collect(server, conn)
+    collect(server, conn, room)
 }
 
 /// Walk off an exit that has answered nothing since we started sending.
@@ -73,50 +77,88 @@ fn rotate_if_stalled(server: &mut Server) {
     }
 }
 
+/// Carry `data` to the exit as numbered sends, each within one mix payload.
 fn forward(server: &mut Server, conn: u64, data: &[u8]) -> bool {
-    let Some(seq) = server.manager.take_seq(conn, data.len()) else {
-        return false;
-    };
-    let mut buf = vec![0u8; FRAME_MAX];
-    let Some(n) = encode_send(conn, seq, false, data, &mut buf) else {
-        return false;
-    };
-    buf.truncate(n);
-    send_through_mixnet(&buf).is_ok()
-}
-
-fn collect(server: &mut Server, conn: u64) -> Vec<u8> {
-    let deadline = mk_uptime_ms().saturating_add(POLL_MS);
-    let mut out = Vec::new();
-    loop {
-        let gone = match recv_once() {
-            Delivery::Message(msg) => {
-                take(server, &msg);
-                false
-            }
-            Delivery::Empty => false,
-            Delivery::Gone => true,
+    let mut buf = vec![0u8; SEND_FRAME_MAX];
+    for piece in data.chunks(SEND_DATA_MAX) {
+        let Some(seq) = server.manager.next_seq(conn) else {
+            return false;
         };
-        let (bytes, closed) = server.inbox.drain(conn);
-        out.extend_from_slice(&bytes);
-        if closed {
-            server.inbox.forget(conn);
-            server.manager.close(conn);
-            break;
-        }
-        if gone || !out.is_empty() || mk_uptime_ms() >= deadline {
-            break;
+        let Some(n) = encode_send(conn, seq, false, piece, &mut buf) else {
+            return false;
+        };
+        if let Err(e) = send_through_mixnet(&buf[..n]) {
+            let code = match e {
+                SendError::Remote(code) => code,
+                SendError::NoExit | SendError::NoSession | SendError::TooLarge => 0,
+            };
+            crate::server::trace_open(b"send refused, ending the stream", code);
+            return false;
         }
     }
-    out
+    true
+}
+
+fn collect(server: &mut Server, conn: u64, room: usize) -> Vec<u8> {
+    // No room is an answer already full of bytes the caller missed; what has
+    // come back since waits for the next one.
+    if room == 0 {
+        return Vec::new();
+    }
+    let Server { inbox, manager, .. } = server;
+    inbox.tick(mk_uptime_ms());
+    let got = gather(inbox, conn, room, HOLD_MS, &mut Live, |inbox, msg| take(inbox, manager, msg));
+    if got.closed {
+        inbox.forget(conn);
+        manager.close(conn);
+        return got.bytes;
+    }
+    // The session every stream rides on is gone, so none of them will hear
+    // another byte. Each is ended now, and its reader told, the way an exit
+    // rotation ends them; the next connection opens a fresh session.
+    if got.gone && crate::nym::session().is_none() {
+        crate::server::trace_step(b"mixnet session lost, streams ended", manager.count() as u64);
+        for id in manager.open_ids() {
+            inbox.close_now(id);
+        }
+    }
+    // A message in front of bytes already here has not come in the time the
+    // exit takes to resend one. It will not come now, and the stream cannot
+    // move past it, so it is ended and the reader told rather than left to
+    // wait out its own patience on a stream that is already dead.
+    inbox.tick(mk_uptime_ms());
+    if let Some(missing) = inbox.stalled(conn) {
+        crate::server::trace_step(b"stream stalled, never came: message", missing);
+        inbox.close_now(conn);
+    }
+    got.bytes
+}
+
+/// The mixnet as net.nym presents it.
+struct Live;
+
+impl Mixnet for Live {
+    fn receive(&mut self, wait_ms: u32) -> Received {
+        match recv_batch(wait_ms) {
+            Delivery::Messages(messages) => Received::Messages(messages),
+            Delivery::Empty => Received::Empty,
+            Delivery::Gone => Received::Gone,
+        }
+    }
+
+    fn now_ms(&self) -> i64 {
+        mk_uptime_ms()
+    }
 }
 
 /// File one delivered message against the connection it names.
 ///
 /// A message that does not decode is dropped rather than guessed at. The
 /// mixnet delivers whatever was addressed to us, and arriving is not evidence
-/// that it belongs to a connection of ours.
-fn take(server: &mut Server, msg: &[u8]) {
+/// that it belongs to a connection of ours. Nor is one for a connection that
+/// has already ended: the exit keeps sending until it hears the close, and
+/// holding what it sent for a reader that is gone kept it for ever.
+fn take(inbox: &mut Inbox, manager: &Manager, msg: &[u8]) {
     crate::server::trace_reply_bytes(msg.len());
     let Some(response) = decode_response(msg) else {
         // It arrived and was not ours to read. Saying so separates a reply
@@ -124,12 +166,23 @@ fn take(server: &mut Server, msg: &[u8]) {
         crate::server::trace_reply_kind(msg);
         return;
     };
+    if manager.socket_of(response.conn_id).is_none() {
+        return;
+    }
     // Only stream payload proves the exit. A requester can acknowledge a
     // connect and still never carry a byte back; counting those control
     // frames as delivery once pinned a session to exactly such a node and
     // turned the rotation off for it.
     if !response.data.is_empty() {
         crate::nym::note_delivered();
+    } else {
+        crate::nym::note_answered();
     }
-    server.inbox.accept(response.conn_id, response.seq, response.closed, response.data);
+    match inbox.accept(response.conn_id, response.seq, response.closed, response.data) {
+        Accept::Held | Accept::Duplicate => {}
+        Accept::Overflow(ended) => {
+            crate::server::trace_step(b"reader fell behind, stream ended", ended);
+            crate::server::trace_step(b"inbox holds bytes", inbox.held_bytes() as u64);
+        }
+    }
 }
