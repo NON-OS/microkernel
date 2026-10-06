@@ -52,3 +52,23 @@ Each CPU has one 4096-byte `PerCpuData` block in a static array of `MAX_CPUS` bl
 The other fields are read from Rust only: the current process, the time slice and reschedule flag, whether the current tick came from user mode, the active address-space id for shootdown targeting, and the time of the last tick. In kernel mode the GS base points at the block, and in user mode it is zero, as `init_bsp` and the entry paths arrange (`src/smp/percpu/operations.rs:27-52`).
 
 `cpu_id` finds the current CPU from its local APIC id, not from GS, and halts a CPU whose id is in no descriptor rather than guess (`src/smp/cpu_id.rs:24-43`). Guessing 0 would let it act as the boot CPU with that CPU's current process and [capabilities](../overview/glossary.md#capability).
+
+## Choosing what runs
+
+Every process is in one of five priority bands, `RealTime`, `High`, `Normal`, `Low` and `Idle`, counted by `BANDS` (`src/process/scheduler/selection/band_choice.rs:20-21`, `src/process/scheduler/selection/band_scan.rs:52-61`).
+
+Runnable processes wait in one queue for the whole machine, `PID_RUN_QUEUE` (`src/process/scheduler/dispatch/run_queue.rs:39`). `insert` refuses a pid already queued (`src/process/scheduler/dispatch/run_queue.rs:60-72`). The order in the queue does not decide who runs: `pick` sorts the queued pids before it chooses (`src/process/scheduler/selection/pick.rs:28-37`).
+
+To pick, `choose` takes the highest band that has a ready process and, within it, the lowest pid above that band's last pick, or the lowest pid once every pid had a turn: round robin by pid (`src/process/scheduler/selection/band_choice.rs:23-41`). `select_next_process` then claims the pick, trying at most `CLAIM_ATTEMPTS`, 8 times (`src/process/scheduler/selection/select.rs:30-45`). `claim` moves the process from `Ready` to `Running` under its state lock, and only if no other CPU still runs it or is still leaving it (`src/process/scheduler/selection/claim.rs:23-35`). Each CPU names the pid it runs in `OWNED` and the pid it is switching away from in `LEAVING`, so two CPUs never resume one process on the same kernel stack (`src/process/scheduler/selection/on_cpu.rs:41-64`).
+
+The band a [capsule](../overview/glossary.md#capsule) starts in comes from `for_capsule` (`src/kernel_core/process_spawn/capsule_spawn/runner/install/priority.rs:27-70`). These start in `High`, and everything else in `Normal`:
+
+- the input and display path: `driver.ps2_kbd0`, `input_router`, `compositor` and `driver.virtio_gpu0`;
+- the packet path: the virtio-net, e1000, RTL8169, RTL8139, iwlwifi and RTL8821CE driver capsules and `net.core`;
+- the storage drivers: virtio-blk, AHCI, NVMe and USB mass storage.
+
+`net.sockets` and `net.tcp` stay in `Normal` on purpose: they wait for a connection by yielding in a loop, and two of them in `High` could hold the band for a whole connect timeout (`src/kernel_core/process_spawn/capsule_spawn/runner/install/priority.rs:39-41`).
+
+The `init` process starts in `High` and drops to `Low` with `lower_init_priority` once it has spawned the system (`src/userspace/init/entry.rs:170-179`).
+
+`band_choice` is compiled into the `kernel_proofs` [proof crate](../overview/glossary.md#proof-crate), which holds it to the band-by-band scan it replaced (`userland/kernel_proofs/src/sched_pick/mod.rs:22-23`). That crate passes on this commit.
