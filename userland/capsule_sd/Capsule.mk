@@ -21,8 +21,13 @@ CAPSULE_DOMAIN             := crates.io
 CAPSULE_NAMESPACE          := systems.nonos.tool.sd
 CAPSULE_SERVICE_ENDPOINT   := service:4822:tool.sd
 CAPSULE_REPLY_ENDPOINT     := reply:4823:endpoint.tool.sd.reply
-CAPSULE_REQUIRED_CAPS      := 0x19
-CAPSULE_CAPS_CEILING       := 0x19
+# CoreExec | IPC | Memory | FileSystem: the crates.io tool sandbox,
+# SANDBOX_CAPS in src/userspace/tool_capsules/spec.rs. FileSystem is for
+# the files the person names, which std::fs opens through vfs, and vfs
+# serves only a holder of it.
+CAPSULE_REQUIRED_CAPS      := 0x59
+CAPSULE_CAPS_CEILING       := 0x59
+CAPSULE_KERNEL_MIRROR      := src/userspace/capsule_sd
 CAPSULE_PREBUILT_BIN       := target/upstream-sd/sd
 CAPSULE_METADATA           := crates.io sd v1.0.0 publisher
 
