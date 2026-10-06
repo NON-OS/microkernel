@@ -1,0 +1,21 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for the desktop's pointer path end to end. Builds for
+# the host so `cargo test` drives the real input router press grab, window
+# manager stack and hit test, compositor scene and app_skeleton drag (all
+# included via #[path]) through one press on a window's title bar, the way a
+# press travels between those capsules on a live desktop.
+[package]
+name = "desktop_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+# The master volume request the shell's volume keys send audio.server.
+nonos_audio_proto = { path = "../audio_proto" }
