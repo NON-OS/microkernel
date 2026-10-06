@@ -14,20 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The MPDU RX path for the RTL8821CE: the RX descriptor parser, the ring
-//! bookkeeping, the register setup that arms the ring, and the single-frame poll
-//! that lifts received 802.11 frames off it. An interrupt-driven service loop
-//! wraps the poll once the frames have a consumer (the MLME and the net_core
-//! link contract).
+//! Wi-Fi and Bluetooth share the 8821CE's antenna. rtw88 hands it to Wi-Fi
+//! in its coexistence setup (coex.c, rtw8821c.c) after every power-on; this
+//! driver runs no Bluetooth, so it takes the Wi-Fi-only path.
 
-pub mod desc;
-pub mod fcs;
-mod poll;
-pub mod regs;
-pub mod ring;
-mod setup;
+mod indirect;
+mod init;
+pub mod switch;
+mod wl_only;
 
-#[cfg(test)]
-pub use poll::poll_one;
-pub use poll::poll_one_info;
-pub use setup::program;
+pub use wl_only::take_antenna;

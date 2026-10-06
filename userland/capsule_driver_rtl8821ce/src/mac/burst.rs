@@ -14,20 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! The MPDU RX path for the RTL8821CE: the RX descriptor parser, the ring
-//! bookkeeping, the register setup that arms the ring, and the single-frame poll
-//! that lifts received 802.11 frames off it. An interrupt-driven service loop
-//! wraps the poll once the frames have a consumer (the MLME and the net_core
-//! link contract).
+//! The PCIe DMA burst sizes, set before the ring addresses as rtw88
+//! `rtw_pci_reset_buf_desc` sets them (pci.c:403).
 
-pub mod desc;
-pub mod fcs;
-mod poll;
-pub mod regs;
-pub mod ring;
-mod setup;
+use crate::regs::Mmio;
 
-#[cfg(test)]
-pub use poll::poll_one;
-pub use poll::poll_one_info;
-pub use setup::program;
+/// `RTK_PCI_CTRL`: the byte at +3 holds the transmit and receive DMA burst
+/// fields.
+const REG_PCI_CTRL: usize = 0x0300;
+/// The bits rtw88 sets there (pci.c:404, `tmp | 0xf7`).
+const DMA_BURST: u8 = 0xF7;
+
+/// Set the burst fields as rtw88 does, before any ring address is written.
+pub fn set_dma_burst<M: Mmio>(mmio: &M) {
+    let v = mmio.read8(REG_PCI_CTRL + 3);
+    mmio.write8(REG_PCI_CTRL + 3, v | DMA_BURST);
+}

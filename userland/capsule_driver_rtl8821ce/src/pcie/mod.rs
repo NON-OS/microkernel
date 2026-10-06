@@ -24,6 +24,9 @@
 //! (`pci.c`, `pci.h`), reimplemented not copied.
 
 mod dbi;
+mod devctl2;
+
+pub use devctl2::disable_completion_timeout;
 
 use crate::regs::Mmio;
 
