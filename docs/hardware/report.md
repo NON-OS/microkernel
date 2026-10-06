@@ -95,3 +95,18 @@ The [support matrix](MATRIX.md) lists each driver's ids. If a device you care ab
 - No MAC addresses or IP addresses.
 - No user names, file names or contents from your own files.
 - No brand or model is needed. NONOS lists machines by CPU family and chips only, and the form's Machine field is answered by the CPU family, the memory size and the ids.
+
+## Where to send it
+
+Open an issue on GitHub at [NON-OS/nonos-unified](https://github.com/NON-OS/nonos-unified/issues/new/choose) and choose the form "Hardware or boot bug" (`.github/ISSUE_TEMPLATE/hardware-bug.yml`). Its fields map to what you collected:
+
+| Form field | What to put there |
+|---|---|
+| Machine | CPU family and memory size |
+| Architecture | x86_64, aarch64 or riscv64 |
+| Build | the image file and where it came from, or the commit and profile |
+| Serial log | the `log` lines; trim the middle of a long log, keep the start and the failure |
+| What you expected, and what happened instead | in your own words |
+| Device involved | the PCI or USB id |
+
+A security problem does not go in a public issue. See [Reporting a vulnerability](../security/reporting-a-vulnerability.md).
