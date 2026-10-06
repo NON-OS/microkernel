@@ -19,7 +19,7 @@
 //! command should end with, the reason and the disk's state already printed.
 
 use nonos_blk_client::{BlockDevice, DeviceSink};
-use nonos_disk::{Plan, Progress, Receipt, Session, Verifier};
+use nonos_disk::{Plan, Progress, Receipt, Session, Verifier, WriteError};
 
 const STEP: usize = 4 << 20;
 
@@ -32,7 +32,7 @@ pub fn write_and_verify(device: BlockDevice, plan: Plan<'_>) -> Result<(Receipt<
             Ok(Progress::TableWritten) => println!("partition table written"),
             Ok(Progress::Done(r)) => break r,
             Err(e) => {
-                eprintln!("install: write failed: {e:?}; the disk has no partition table");
+                eprintln!("install: write failed: {e}; do not boot this disk, install again");
                 return Err(3);
             }
         }
@@ -44,7 +44,11 @@ pub fn write_and_verify(device: BlockDevice, plan: Plan<'_>) -> Result<(Receipt<
             Ok(true) => tick(v.checked, total, "reading back"),
             Ok(false) => break,
             Err(e) => {
-                eprintln!("install: read-back failed: {e:?}; do not boot this disk");
+                let at = match e {
+                    WriteError::Mismatch { lba } => receipt.layout.what_is_at(lba),
+                    _ => "the transfer",
+                };
+                eprintln!("install: read-back failed: {e}, in {at}; do not boot this disk");
                 return Err(4);
             }
         }
