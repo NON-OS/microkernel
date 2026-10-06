@@ -67,3 +67,13 @@ A driver serves its device raw, so the kernel holds most driver endpoints to the
 | `driver.hda0` | `audio.server` |
 
 The three PCI storage drivers are not in the table. They check each sender themselves with `mk_cap_check` for `StoreWrite` (`userland/capsule_driver_nvme/src/server/medium.rs:26-29`, `userland/capsule_driver_virtio_blk/src/server/acl.rs:33-39`). The host test `every_driver_the_kernel_spawns_is_classified` fails when a spawned `driver.` endpoint is neither in `HELD` nor one of the three its `GATED_IN_DRIVER` list names (`userland/kernel_proofs/src/ipc_held_tests/classified.rs:26-57`).
+
+## Which drivers an image carries
+
+Eighteen driver capsules have a Cargo feature (`Cargo.toml:150-168`) and a `Capsule.mk` that the build includes (`mk/20-build.mk:528-547`). The feature profiles decide which of them a kernel embeds:
+
+- `microkernel-desktop-offline` (`Cargo.toml:538`) carries virtio-rng, virtio-blk, NVMe, AHCI, virtio-gpu, PS/2, xHCI, USB HID, USB mass storage and HD Audio.
+- `microkernel-desktop-base` (`Cargo.toml:591`) adds virtio-net.
+- `microkernel-full-gui` (`Cargo.toml:632`) adds e1000, RTL8139, RTL8169, iwlwifi, RTL8821CE, the I2C controller and I2C-HID.
+
+The `profiles` table picks the set for each image (`tools/nix/config.nix:69-117`). The Standard and Hardened images build `microkernel-full-gui`. The Air-Gapped image builds it too and drops every feature in `networkFeatures`, which holds all six network drivers (`tools/nix/config.nix:50-58`). The qemu image builds `microkernel-desktop-gui`, without the seven drivers `microkernel-full-gui` adds. The core image builds `microkernel-capsules`, which carries no driver capsule. [../build/profiles.md](../build/profiles.md) covers the profiles.
