@@ -125,3 +125,7 @@ Inside `capsule_linux`:
 ## Host tests
 
 Some of these rules are compiled into host test crates by path, so the tests run the kernel's own code. The broker's `unconfined_allowed` is mounted as `posture` in `kernel_proofs` (`userland/kernel_proofs/src/confine_posture/mod.rs:22-23`), and `held.rs`, with `HELD` and `inbox_admits`, as `held` (`userland/kernel_proofs/src/ipc_held_tests/mod.rs:23-24`). At this commit `kernel_proofs` runs 388 tests and all pass.
+
+## What isolation does not cover
+
+A capsule can do everything its bits allow, and nothing here judges intent. DMA on a machine without a remapping unit in service is not confined. Side channels between capsules sharing a CPU are not closed. [Protections and limits](protections-and-limits.md) lists these and the other gaps with their code.
