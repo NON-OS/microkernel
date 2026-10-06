@@ -58,3 +58,7 @@ This release claims no independent security audit. What it has is proof crates t
 ## The licence
 
 NONOS is free software under the GNU Affero General Public License, version 3 ([LICENSE](../../LICENSE)). Each source file's header adds "or (at your option) any later version". Vendored code under `third_party/` keeps its own licence, as in `third_party/minimp3/LICENSE`, and device firmware under `nonos-bootloader/firmware/` keeps its vendor's terms, as in `nonos-bootloader/firmware/realtek/LICENSE`.
+
+## Contributing
+
+Start with [CONTRIBUTING.md](../../CONTRIBUTING.md) and [Contributing](../contributing/README.md). The build needs only Nix with flakes; [Build](../build/README.md) and [Make targets](../build/make-targets.md) give the commands, and [Review](../contributing/review.md) says what a change is held to.
