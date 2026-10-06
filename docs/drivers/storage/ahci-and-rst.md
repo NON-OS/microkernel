@@ -19,3 +19,15 @@ Its register block, the ABAR in BAR5, must be a memory BAR that holds the global
 - On every implemented port a COMRESET decides whether a disk is there. The link must come up within 2 s, and the disk must leave BSY within 10 s, time for a spinning disk to spin up (`userland/capsule_driver_ahci/src/constants/timing.rs:37-43`, `LINK_TIMEOUT_MS`, `DEVICE_READY_MS`).
 - A port whose signature names a port multiplier, an ATAPI device or an enclosure bridge is skipped. Disks behind a port multiplier are not served (`userland/capsule_driver_ahci/src/setup/say_skipped.rs:23-41`, `say_skipped`).
 - Every command completion is polled, so a controller with no routed interrupt line is served all the same (`userland/capsule_driver_ahci/src/discover/candidate.rs:30-35`, `irq_line`).
+
+## Which disk it serves
+
+One capsule serves one disk. Of the disks that came up, it serves the one that carries NONOS, the package store header at LBA 256 or the disk plan at LBA 245760, on the lowest controller and port. With none, it serves the lowest disk that came up, which is the installer's blank target (`userland/capsule_driver_ahci/src/choose/pick.rs:19-29`, `choose`). A second SATA disk on the machine is not served in this release.
+
+A disk must offer (`userland/capsule_driver_ahci/src/identity/refusal.rs:17-29`, `Refusal`):
+
+- the 48-bit address feature set, supported and enabled;
+- 512-byte logical sectors;
+- a capacity above 0 and below 2^48 sectors.
+
+The capsule sends four ATA commands: IDENTIFY DEVICE, READ DMA EXT, WRITE DMA EXT and FLUSH CACHE EXT (`userland/capsule_driver_ahci/src/constants/ata.rs:17-20`, `ATA_IDENTIFY`). It has no NCQ, no TRIM and no SMART. One request moves at most 64 sectors, 32 KiB (`userland/capsule_driver_ahci/src/constants/ata.rs:29-34`, `MAX_SECTORS`). One command may take 30 s, after which the port is recovered with a COMRESET (`userland/capsule_driver_ahci/src/constants/timing.rs:47-55`, `COMMAND_MS`). The reply still reaches the kernel inside its own 35 s wait (`src/services/lifecycle/reply_wait.rs:28`, `SLOW_BUDGET_MS`).
