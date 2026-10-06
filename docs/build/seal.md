@@ -65,3 +65,26 @@ The build receipt lists what a seal signs (`signs`, `tools/nonos-receipt:156-161
 | `BOOTX64.EFI` | the Secure Boot db key, when the seal has one |
 
 On top of the signatures, the capsules, the kernel and the loader each carry a STARK membership trailer. A [development image](../overview/glossary.md#development-image) carries only the Merkle path in each trailer, with no STARK proof, which only its own gates accept (`path_only`, `tools/nonos_seal/__main__.py:123-130`). [Boot chain and signatures](../security/boot-chain-and-signatures.md) and [STARK attestation](../security/stark-attestation.md) describe how the boot checks them.
+
+## What it writes
+
+Everything goes to `target/release/<name>/`, where the name is the profile's, with `-dev` or `-live` when they apply (`out`, `tools/nonos_seal/__main__.py:109-116`):
+
+| output | what it is |
+|---|---|
+| `esp/` | the ESP the image boots from |
+| `nonos.img` | the USB image |
+| `nonos.iso` | a UEFI ISO of the same ESP |
+| `build-receipt.json` | the roots, the loader, the kernel and the media by hash (`build_receipt`, `tools/nonos_seal/__main__.py:160-162`) |
+| `nonos-release.json` | the configuration, the build manifest and every sealed file by sha256 (`record`, `tools/nonos_seal/verify.py:98-110`) |
+| `logs/` | one log per command the seal ran |
+| `work/` | the files in between: the kernel ELF, the trailers, the signed kernel and the loader |
+| `packages/` | the Linux packages for the mirror, when `linux_packages` is set |
+
+The [ESP](../overview/glossary.md#esp) holds `EFI/BOOT/BOOTX64.EFI`, and under `EFI/nonos/` the signed `kernel.bin`, `bootloader.trailer`, `boot_root.approval`, `boot.cfg` and, when the seal made one, `kernel.approval`, with `startup.nsh` at its root (`esp`, `tools/nonos_seal/media.py:50-65`). The seal's own description says these are the files the installer writes to a disk, so the stick and the installed disk boot the same files (`tools/nonos_seal/media.py`).
+
+The USB image starts as a 384 MiB GPT disk with one EFI partition named `NONOS-ESP` from 128 MiB, and the [package store](../overview/glossary.md#package-store) written from LBA 256 (`USB_MB`, `tools/nonos_seal/media.py:34-35`, `usb`, `tools/nonos_seal/media.py:96-107`). The seal then lays the files of the pinned `qwen3-0.6b` Qwen tier past the ESP and moves the partition table's backup to the new end of the disk (`stick_tier`, `tools/nonos_seal/media.py:110-123`). That step downloads the tier from huggingface.co unless its files are already in `target/models/files` and match their pins (`fetch`, `tools/nonos_qwen_tier/download.py:27-54`).
+
+The FAT serial and every timestamp on the media are pinned, so the media carry no clock (`IMAGE_DATE`, `tools/nonos_seal/media.py:45-47`).
+
+After a seal, commit the files it staged under `nonos-data/`, so the next `nix build` of the tree gives exactly the sealed kernel and loader (`say`, `tools/nonos_seal/__main__.py:168-170`).
