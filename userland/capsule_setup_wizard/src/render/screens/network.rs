@@ -1,25 +1,35 @@
-use crate::render::{self, widgets::rows};
-use crate::server::step::{default_key, list_nav, Outcome};
+//! The network step on screen: "No network" first, then the Wi-Fi networks
+//! heard, then lines saying what the selected row does.
+
+use crate::network::NETS_MAX;
+use crate::render::{self, widgets::lines, widgets::rows};
 use crate::state::Context;
 
-const MODES: &[&[u8]] = &[b"Amnesic / offline", b"Direct connection", b"Bridged / obfuscated"];
+use super::network_lines;
+
+const NO_NETWORK: &[u8] = b"No network (default, private)";
 
 pub fn draw(ctx: &Context) {
-    render::frame(
-        ctx,
-        b"Network mode",
-        b"How this machine reaches the world",
-        b"ENTER NEXT  ESC BACK",
-    );
+    let footer: &[u8] = if ctx.net.typing {
+        b"ENTER JOIN  ESC CANCEL"
+    } else {
+        b"ENTER NEXT OR JOIN  S LOOK AGAIN  ESC BACK"
+    };
+    render::frame(ctx, b"Network", b"No network is the private choice", footer);
     let spx = ctx.stride as usize / 4;
     let (w, h) = (ctx.width, ctx.height);
-    let buf = render::buffer(ctx);
-    rows::list(buf, spx, w, h, render::content_x(w), 110, MODES, ctx.net_sel as usize);
-}
-
-pub fn on_key(ctx: &mut Context, code: u32) -> Outcome {
-    if let Some(o) = list_nav(&mut ctx.net_sel, MODES.len() as u8, code) {
-        return o;
+    let l = render::layout_of(ctx);
+    let (buf, x) = (render::buffer(ctx), l.col_x);
+    let n = &ctx.net;
+    let mut items: [&[u8]; 1 + NETS_MAX] = [b""; 1 + NETS_MAX];
+    items[0] = NO_NETWORK;
+    for (slot, net) in items[1..].iter_mut().zip(n.nets[..n.count].iter()) {
+        *slot = net.ssid();
     }
-    default_key(code)
+    let listed = rows::list(buf, spx, w, h, x, l.body_y, &items[..1 + n.count], n.sel as usize);
+    let mut y = listed + l.gap;
+    let mut say = |text: &[u8], color: u32| {
+        y = lines::text(buf, spx, w, h, x, y, &[text], color);
+    };
+    network_lines::describe(ctx, &mut say);
 }

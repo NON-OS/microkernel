@@ -1,4 +1,4 @@
-use nonos_libc::mk_service_lookup;
+use nonos_libc::{mk_service_lookup, mk_yield, Deadline};
 
 const COMPOSITOR_SERVICE: &[u8] = b"compositor";
 const INPUT_ROUTER_SERVICE: &[u8] = b"input_router";
@@ -17,6 +17,27 @@ fn lookup_port(name: &[u8]) -> Result<u32, &'static str> {
 
 fn lookup_optional(name: &[u8]) -> u32 {
     lookup_port(name).unwrap_or(0)
+}
+
+/// Setup is spawned beside the compositor and the input router, and they may
+/// not have registered yet. This bounds only a desktop that never arrives.
+const DESKTOP_WAIT_MS: u64 = 60_000;
+
+/// The compositor and input router ports, waited for rather than asked once.
+/// Asked once, a lookup that raced their registration ended setup before it
+/// drew anything, and setup ending is what starts the rest of the desktop, so
+/// the machine came up without first-boot setup and said nothing about it.
+pub fn wait_for_desktop() -> Result<(u32, u32), &'static str> {
+    let until = Deadline::after_ms(DESKTOP_WAIT_MS);
+    loop {
+        match (lookup_compositor_port(), lookup_router_port()) {
+            (Ok(compositor), Ok(router)) => return Ok((compositor, router)),
+            (Err(why), _) | (_, Err(why)) if until.expired() => return Err(why),
+            _ => {
+                let _ = mk_yield();
+            }
+        }
+    }
 }
 
 pub fn lookup_compositor_port() -> Result<u32, &'static str> {
