@@ -46,13 +46,29 @@ pub(super) fn fill_rect(fb: &KernelFramebuffer, x: u32, y: u32, w: u32, h: u32, 
     }
 }
 
+/// Framebuffer pixels per font pixel, each way: two on a panel of 2560 by
+/// 1440 or more, where an 8 by 16 glyph is too small to read, as the
+/// compositor and the desktop shell scale theirs. Every advance and line
+/// height on these screens is a multiple of it.
+// The console's font pixels per framebuffer pixel: the compositor's HiDPI
+// rule, so the boot log, the panic screen and the desktop agree, and a
+// panel whose EDID gives its size is judged by its density, not its mode.
+pub(super) fn scale(fb: &KernelFramebuffer) -> u32 {
+    fb.hidpi_scale()
+}
+
 pub(super) fn draw_char(fb: &KernelFramebuffer, x: u32, y: u32, ch: u8, color: u32) {
     let native = to_native(color, fb.bgr);
     let glyph = get_char_bitmap(ch);
+    let s = scale(fb);
     for (row, &bits) in glyph.iter().enumerate() {
         for col in 0..8u32 {
             if (bits >> (7 - col)) & 1 == 1 {
-                put_pixel(fb, x + col, y + row as u32, native);
+                for dy in 0..s {
+                    for dx in 0..s {
+                        put_pixel(fb, x + col * s + dx, y + row as u32 * s + dy, native);
+                    }
+                }
             }
         }
     }
