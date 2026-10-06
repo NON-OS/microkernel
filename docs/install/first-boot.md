@@ -13,3 +13,7 @@ Setup does not run:
 - on an image built with `install = false` in `nonos.toml`, which has no setup and no installer (`installFeatures` in `tools/nix/config.nix`).
 
 There is no login and no password. The `login` service starts with nothing on screen, and no program in this release asks it to start or end a session (`userland/capsule_login/src/setup/run.rs`).
+
+## Keys in setup
+
+Enter goes to the next step and Escape to the one before. In a list, Up and Down or `k` and `j` move, Home and End jump to the ends, and a digit picks that row (`userland/capsule_setup_wizard/src/server/step.rs`). Ctrl+Alt+Space cycles the keyboard layout at any time, in the PS/2 and the USB keyboard drivers alike (`userland/capsule_driver_ps2_input/src/poll/absorb.rs`, `userland/capsule_driver_usb_hid/src/hid/keyboard/push_key.rs`).
