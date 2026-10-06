@@ -51,3 +51,19 @@ The [boot mode](../install/boot-modes.md) can refuse a driver at spawn. On an Ai
 The kernel side of a driver is a small [kernel mirror](../overview/glossary.md#kernel-mirror) under `src/hardware/<name>_capsule`, or under `src/userspace/capsule_driver_<name>` for I2C-HID, USB HID and USB mass storage. It embeds the capsule ELF, `DRIVER_VIRTIO_RNG_ELF` in the virtio-rng mirror, with its certificate, manifest and attestation trailer when the Cargo feature is on, and empty slices when it is off (`src/hardware/virtio_rng_capsule/embed.rs:23-52`). Its spawn function fills a `CapsuleSpecVerified` and calls `spawn_verified` (`src/hardware/virtio_rng_capsule/spawn.rs:37-63`).
 
 Thirteen of the 27 driver capsules start through `start_driver` in `nonos_libc`, which returns `EXIT_ABSENT` (2) at once when discovery found nothing, and the capsule exits with that code. Otherwise `bring_up` tries the device up to `BRINGUP_ATTEMPTS` (7) times, sleeping from `BRINGUP_FIRST_DELAY_MS` (100 ms) and doubling up to `BRINGUP_MAX_DELAY_MS` (3200 ms), and the capsule exits with `EXIT_GAVE_UP` (6) after the last failure (`userland/libc/src/bringup/policy.rs:31-41`, `userland/libc/src/bringup/run.rs:29-62`).
+
+## Who may talk to a driver
+
+A driver serves its device raw, so the kernel holds most driver endpoints to the services that drive them. `HELD` lists them (`src/services/registry/held_table.rs:20-36`):
+
+| Endpoint | Who may send |
+|---|---|
+| `driver.virtio_net0`, `driver.e1000_0`, `driver.rtl8169_0`, `driver.rtl8139_0` | `net.core`, `net.l2` |
+| `driver.iwlwifi0`, `driver.rtl8821ce0` | `net.core`, `app.settings` and its two later windows, `app.setup_wizard` |
+| `driver.ps2_kbd0`, `driver.usb_hid0`, `driver.i2c_hid0`, `driver.usb_msc0`, `driver.virtio_rng` | no capsule; only the kernel's own sends |
+| `driver.xhci0` | `driver.usb_hid0`, `driver.usb_msc0` |
+| `driver.i2c_pci0` | `driver.i2c_hid0` |
+| `driver.virtio_gpu0` | `compositor` |
+| `driver.hda0` | `audio.server` |
+
+The three PCI storage drivers are not in the table. They check each sender themselves with `mk_cap_check` for `StoreWrite` (`userland/capsule_driver_nvme/src/server/medium.rs:26-29`, `userland/capsule_driver_virtio_blk/src/server/acl.rs:33-39`). The host test `every_driver_the_kernel_spawns_is_classified` fails when a spawned `driver.` endpoint is neither in `HELD` nor one of the three its `GATED_IN_DRIVER` list names (`userland/kernel_proofs/src/ipc_held_tests/classified.rs:26-57`).
