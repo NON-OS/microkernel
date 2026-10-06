@@ -81,3 +81,7 @@ No capsule in this release uses it. Its users are the crates in `userland/nonos_
 ## The SDK
 
 `userland/sdk/` holds nine crates and two example apps: `nonos_sdk`, `nonos_prelude`, `nonos_app`, `nonos_window`, `nonos_ui`, `nonos_appkit`, `nonos_desktop`, `nonos_font` and `nonos_std`. The last is a `no_std` library shaped like `std` and built on `nonos_libc`, not on the runtime. No `Capsule.mk` builds an SDK crate, so no SDK app is signed, enrolled or in an image. The one capsule crate that uses one, `capsule_gui_proof`, depends on `nonos_std` and has no `Capsule.mk` either (`userland/capsule_gui_proof/Cargo.toml:24`, `nonos_std`).
+
+## The toolkit
+
+`userland/toolkit/` is the drawing library the desktop apps link, and the same crate builds a small `toolkit` service capsule (`userland/toolkit/Cargo.toml:11-17`, `nonos_toolkit`). Because it is linked into each app, its drawing code runs in that app's process, with that app's capabilities. Twenty-five crates name it directly in their `Cargo.toml`, `app_skeleton`, the shared base of the desktop apps, among them.
