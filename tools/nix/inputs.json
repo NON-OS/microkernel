@@ -1,0 +1,5036 @@
+{
+ ".": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "nonos-boot-measure/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "Cargo.lock",
+   "Cargo.toml",
+   "VERSION",
+   "abi/manifest.toml",
+   "build.rs",
+   "build_info.rs",
+   "linker.ld",
+   "linker_aarch64.ld",
+   "linker_riscv64.ld",
+   "nonos-attest-path",
+   "nonos-bench",
+   "nonos-boot-measure",
+   "nonos-data/trust/capsules",
+   "nonos-data/trust/keys",
+   "nonos-data/trust/policy",
+   "src",
+   "third_party/pqclean"
+  ],
+  "md": [],
+  "signed": [
+   "nonos-data/trust/capsules/shield_vectors.manifest.bin",
+   "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+  ]
+ },
+ "nonos-attest-path": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-bootloader": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "nonos-boot-measure/fuzz",
+   "nonos-bootloader/boot_proofs",
+   "nonos-bootloader/tools/embed-trailer",
+   "nonos-bootloader/tools/keygen",
+   "nonos-bootloader/tools/sign-kernel",
+   "nonos-bootloader/tools/threshold-sign"
+  ],
+  "include": [
+   ".cargo",
+   "VERSION",
+   "nonos-attest-path",
+   "nonos-boot-measure",
+   "nonos-bootloader",
+   "third_party/pqclean/common",
+   "third_party/pqclean/crypto_sign/ml-dsa-65/clean"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-bootloader/boot_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-bootloader/.cargo",
+   "nonos-bootloader/boot_proofs",
+   "nonos-bootloader/src/display/gop/order.rs",
+   "nonos-bootloader/src/display/gop/pick.rs",
+   "nonos-bootloader/src/handoff/types/constants.rs",
+   "nonos-bootloader/src/image_format/footer.rs",
+   "nonos-bootloader/src/image_format/parse",
+   "nonos-bootloader/src/image_format/types.rs",
+   "nonos-bootloader/src/menu/types/mode.rs",
+   "nonos-bootloader/src/paging/constants.rs",
+   "nonos-bootloader/src/paging/fb_window.rs",
+   "nonos-bootloader/src/security/anti_rollback/floor_rule.rs",
+   "nonos-bootloader/src/security/tpm_nv/consts.rs",
+   "nonos-bootloader/src/security/tpm_nv/floor_cmd.rs",
+   "nonos-bootloader/src/security/tpm_nv/floor_seq.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-bootloader/tools/embed-trailer": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-bootloader/.cargo",
+   "nonos-bootloader/tools/embed-trailer"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-bootloader/tools/sign-kernel": {
+  "exclude": [
+   "userland/admission_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-bootloader/.cargo",
+   "nonos-bootloader/tools/sign-kernel",
+   "nonos-data/trust/capsules",
+   "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
+   "nonos-sign",
+   "src/crypto/asymmetric/alg_id/lengths.rs",
+   "src/crypto/asymmetric/alg_id/types.rs",
+   "src/security/capsule_manifest/cursor.rs",
+   "src/security/capsule_manifest/decode",
+   "src/security/capsule_manifest/error.rs",
+   "src/security/capsule_manifest/schema",
+   "src/security/nonos_id_cert/cursor.rs",
+   "src/security/nonos_id_cert/decode",
+   "src/security/nonos_id_cert/error.rs",
+   "src/security/nonos_id_cert/schema",
+   "third_party/pqclean",
+   "userland/admission_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-mk": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-mk",
+   "userland/marketplace_abi"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-sign": {
+  "exclude": [
+   "userland/admission_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-data/trust/capsules",
+   "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
+   "nonos-sign",
+   "src/crypto/asymmetric/alg_id/lengths.rs",
+   "src/crypto/asymmetric/alg_id/types.rs",
+   "src/security/capsule_manifest/cursor.rs",
+   "src/security/capsule_manifest/decode",
+   "src/security/capsule_manifest/error.rs",
+   "src/security/capsule_manifest/schema",
+   "src/security/nonos_id_cert/cursor.rs",
+   "src/security/nonos_id_cert/decode",
+   "src/security/nonos_id_cert/error.rs",
+   "src/security/nonos_id_cert/schema",
+   "third_party/pqclean",
+   "userland/admission_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-stark-enroll": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "nonos-boot-measure/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-boot-measure",
+   "nonos-stark-enroll"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "nonos-verify": {
+  "exclude": [
+   "userland/admission_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-data/trust/capsules",
+   "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
+   "nonos-sign",
+   "nonos-verify",
+   "src/crypto/asymmetric/alg_id/lengths.rs",
+   "src/crypto/asymmetric/alg_id/types.rs",
+   "src/security/capsule_manifest/cursor.rs",
+   "src/security/capsule_manifest/decode",
+   "src/security/capsule_manifest/error.rs",
+   "src/security/capsule_manifest/schema",
+   "src/security/nonos_id_cert/cursor.rs",
+   "src/security/nonos_id_cert/decode",
+   "src/security/nonos_id_cert/error.rs",
+   "src/security/nonos_id_cert/schema",
+   "third_party/pqclean",
+   "userland/admission_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "security/nonos-secops": {
+  "exclude": [
+   "nonos-attest-path/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-bootloader/.cargo",
+   "nonos-bootloader/tools/embed-trailer",
+   "security/nonos-secops"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "toolchain/nonos-rt": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "toolchain/nonos-rt"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "tools/nonos-pack": {
+  "exclude": [
+   "userland/admission_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-data/trust/capsules",
+   "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
+   "nonos-sign",
+   "src/crypto/asymmetric/alg_id/lengths.rs",
+   "src/crypto/asymmetric/alg_id/types.rs",
+   "src/security/capsule_manifest/cursor.rs",
+   "src/security/capsule_manifest/decode",
+   "src/security/capsule_manifest/error.rs",
+   "src/security/capsule_manifest/schema",
+   "src/security/nonos_id_cert/cursor.rs",
+   "src/security/nonos_id_cert/decode",
+   "src/security/nonos_id_cert/error.rs",
+   "src/security/nonos_id_cert/schema",
+   "third_party/pqclean",
+   "tools/nonos-pack",
+   "userland/admission_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/acpi_aml_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/x86_64/acpi/aml/controller/apply.rs",
+   "src/arch/x86_64/acpi/aml/controller/crs.rs",
+   "src/arch/x86_64/acpi/aml/controller/find.rs",
+   "src/arch/x86_64/acpi/aml/controller/hid_match.rs",
+   "src/arch/x86_64/acpi/aml/controller/interrupt.rs",
+   "src/arch/x86_64/acpi/aml/controller/memory32.rs",
+   "src/arch/x86_64/acpi/aml/crs.rs",
+   "src/arch/x86_64/acpi/aml/gpio_enumerate/crs.rs",
+   "src/arch/x86_64/acpi/aml/gpio_enumerate/hid_match.rs",
+   "src/arch/x86_64/acpi/aml/gpio_enumerate/sideband.rs",
+   "src/arch/x86_64/acpi/aml/gpio_enumerate/uid.rs",
+   "src/arch/x86_64/acpi/aml/power_devices.rs",
+   "src/arch/x86_64/acpi/aml/scan.rs",
+   "src/arch/x86_64/acpi/aml/sleep_obj.rs",
+   "src/arch/x86_64/acpi/aml/types",
+   "src/arch/x86_64/acpi/devices/i2c/configs.rs",
+   "src/arch/x86_64/acpi/devices/i2c/dsm.rs",
+   "src/arch/x86_64/acpi/devices/i2c/hids.rs",
+   "src/arch/x86_64/acpi/devices/i2c/names.rs",
+   "src/arch/x86_64/acpi/devices/i2c/parse.rs",
+   "src/arch/x86_64/acpi/devices/i2c/resources.rs",
+   "src/arch/x86_64/acpi/devices/i2c/types.rs",
+   "src/arch/x86_64/acpi/devices/i2c/walk.rs",
+   "src/arch/x86_64/acpi/hw/fadt_decode.rs",
+   "src/arch/x86_64/acpi/hw/gas.rs",
+   "src/arch/x86_64/acpi/hw/madt_cpu.rs",
+   "src/arch/x86_64/acpi/hw/power_button.rs",
+   "src/arch/x86_64/acpi/hw/reset.rs",
+   "src/arch/x86_64/acpi/hw/sleep.rs",
+   "src/arch/x86_64/acpi/tables/sdt/entry_count.rs",
+   "userland/acpi_aml_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/admission_proofs": {
+  "exclude": [
+   "userland/admission_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-data/trust/capsules",
+   "src/crypto/asymmetric/alg_id/lengths.rs",
+   "src/crypto/asymmetric/alg_id/types.rs",
+   "src/security/capsule_manifest/cursor.rs",
+   "src/security/capsule_manifest/decode",
+   "src/security/capsule_manifest/error.rs",
+   "src/security/capsule_manifest/schema",
+   "src/security/nonos_id_cert/cursor.rs",
+   "src/security/nonos_id_cert/decode",
+   "src/security/nonos_id_cert/error.rs",
+   "src/security/nonos_id_cert/schema",
+   "userland/admission_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/aes_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/aes_proofs",
+   "userland/capsule_net_nym/src/ack/open.rs",
+   "userland/capsule_net_nym/src/ack/plaintext.rs",
+   "userland/capsule_net_nym/src/crypto/aes",
+   "userland/nonos_aes"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/ahci_link_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/inventory/vmd.rs",
+   "userland/ahci_link_proofs",
+   "userland/capsule_driver_ahci/src/choose/candidate.rs",
+   "userland/capsule_driver_ahci/src/choose/layout.rs",
+   "userland/capsule_driver_ahci/src/choose/pick.rs",
+   "userland/capsule_driver_ahci/src/clock/wait.rs",
+   "userland/capsule_driver_ahci/src/constants/ata.rs",
+   "userland/capsule_driver_ahci/src/constants/identify.rs",
+   "userland/capsule_driver_ahci/src/constants/port.rs",
+   "userland/capsule_driver_ahci/src/constants/regs",
+   "userland/capsule_driver_ahci/src/constants/timing.rs",
+   "userland/capsule_driver_ahci/src/controller/ports.rs",
+   "userland/capsule_driver_ahci/src/controller/remap.rs",
+   "userland/capsule_driver_ahci/src/controller/restore.rs",
+   "userland/capsule_driver_ahci/src/controller/window.rs",
+   "userland/capsule_driver_ahci/src/discover/rule.rs",
+   "userland/capsule_driver_ahci/src/engine/completion.rs",
+   "userland/capsule_driver_ahci/src/engine/kick.rs",
+   "userland/capsule_driver_ahci/src/engine/link/bring_up.rs",
+   "userland/capsule_driver_ahci/src/engine/link/disk_sig.rs",
+   "userland/capsule_driver_ahci/src/engine/link/established.rs",
+   "userland/capsule_driver_ahci/src/engine/link/ready.rs",
+   "userland/capsule_driver_ahci/src/engine/prd_count.rs",
+   "userland/capsule_driver_ahci/src/engine/recover.rs",
+   "userland/capsule_driver_ahci/src/engine/span.rs",
+   "userland/capsule_driver_ahci/src/engine/start.rs",
+   "userland/capsule_driver_ahci/src/engine/stop.rs",
+   "userland/capsule_driver_ahci/src/error",
+   "userland/capsule_driver_ahci/src/identity",
+   "userland/capsule_driver_ahci/src/protocol",
+   "userland/capsule_driver_ahci/src/regs",
+   "userland/capsule_driver_ahci/src/server/handlers/rw_parse.rs",
+   "userland/capsule_driver_ahci/src/server/medium_rule.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/anon_link_proofs": {
+  "exclude": [
+   "userland/anon_link_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-boot-measure/src/tests/fixture/boot_root.approval",
+   "nonos-boot-measure/src/tests/fixture/boot_root.pub",
+   "src/crypto/asymmetric/curve25519",
+   "src/crypto/asymmetric/ed25519",
+   "src/crypto/asymmetric/p256",
+   "src/crypto/asymmetric/p384",
+   "src/crypto/asymmetric/rsa",
+   "src/crypto/error.rs",
+   "src/crypto/hash/blake3",
+   "src/crypto/hash/sha3",
+   "src/crypto/hash/sha384.rs",
+   "src/crypto/hash/sha512",
+   "src/crypto/hash/unified/hkdf.rs",
+   "src/crypto/hash/unified/hmac.rs",
+   "src/crypto/hash/unified/sha256.rs",
+   "src/crypto/symmetric/aes",
+   "src/crypto/symmetric/aes_gcm",
+   "src/crypto/symmetric/chacha20poly1305",
+   "src/crypto/util/bigint",
+   "src/crypto/util/constant_time",
+   "src/security/capsule_attest/layout.rs",
+   "src/security/local_build/trailer.rs",
+   "userland/anon_link_proofs",
+   "userland/capsule_net_anon/src/cell/commands.rs",
+   "userland/capsule_net_anon/src/cell/geometry.rs",
+   "userland/capsule_net_anon/src/cell/var.rs",
+   "userland/capsule_net_anon/src/crypto/compare.rs",
+   "userland/capsule_net_anon/src/link/bind",
+   "userland/capsule_net_anon/src/link/certs.rs",
+   "userland/capsule_net_anon/src/link/constants.rs",
+   "userland/capsule_net_anon/src/link/ed_cert",
+   "userland/capsule_net_anon/src/link/versions.rs",
+   "userland/crypto_proofs",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/anon_ntor_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/anon_ntor_proofs",
+   "userland/capsule_net_anon/src/base64_encode.rs",
+   "userland/capsule_net_anon/src/cell/commands.rs",
+   "userland/capsule_net_anon/src/cell/fixed.rs",
+   "userland/capsule_net_anon/src/cell/geometry.rs",
+   "userland/capsule_net_anon/src/cell/relay",
+   "userland/capsule_net_anon/src/circuit/build/answer.rs",
+   "userland/capsule_net_anon/src/circuit/build/error.rs",
+   "userland/capsule_net_anon/src/circuit/build/reply.rs",
+   "userland/capsule_net_anon/src/circuit/create.rs",
+   "userland/capsule_net_anon/src/circuit/destroy.rs",
+   "userland/capsule_net_anon/src/circuit/extend",
+   "userland/capsule_net_anon/src/circuit/hop.rs",
+   "userland/capsule_net_anon/src/circuit/hop_crypto.rs",
+   "userland/capsule_net_anon/src/circuit/open.rs",
+   "userland/capsule_net_anon/src/circuit/seal.rs",
+   "userland/capsule_net_anon/src/circuit/window.rs",
+   "userland/capsule_net_anon/src/crypto/compare.rs",
+   "userland/capsule_net_anon/src/crypto/keccak",
+   "userland/capsule_net_anon/src/crypto/sha1",
+   "userland/capsule_net_anon/src/crypto/sha256",
+   "userland/capsule_net_anon/src/crypto/wipe.rs",
+   "userland/capsule_net_anon/src/directory/authority",
+   "userland/capsule_net_anon/src/directory/base64.rs",
+   "userland/capsule_net_anon/src/directory/consensus",
+   "userland/capsule_net_anon/src/directory/fetch/request.rs",
+   "userland/capsule_net_anon/src/directory/lines.rs",
+   "userland/capsule_net_anon/src/directory/microdesc",
+   "userland/capsule_net_anon/src/directory/number.rs",
+   "userland/capsule_net_anon/src/directory/time.rs",
+   "userland/capsule_net_anon/src/directory/verify/cert.rs",
+   "userland/capsule_net_anon/src/directory/verify/span.rs",
+   "userland/capsule_net_anon/src/link/constants.rs",
+   "userland/capsule_net_anon/src/link/ed_cert",
+   "userland/capsule_net_anon/src/link/step.rs",
+   "userland/capsule_net_anon/src/manager/batch.rs",
+   "userland/capsule_net_anon/src/manager/body_step.rs",
+   "userland/capsule_net_anon/src/manager/cert_rule.rs",
+   "userland/capsule_net_anon/src/manager/refresh_rule.rs",
+   "userland/capsule_net_anon/src/manager/relays.rs",
+   "userland/capsule_net_anon/src/ntor/constants.rs",
+   "userland/capsule_net_anon/src/ntor/inputs.rs",
+   "userland/capsule_net_anon/src/onion/address.rs",
+   "userland/capsule_net_anon/src/onion/blind.rs",
+   "userland/capsule_net_anon/src/onion/cache.rs",
+   "userland/capsule_net_anon/src/onion/cells.rs",
+   "userland/capsule_net_anon/src/onion/cert.rs",
+   "userland/capsule_net_anon/src/onion/client_auth.rs",
+   "userland/capsule_net_anon/src/onion/desc",
+   "userland/capsule_net_anon/src/onion/fetch.rs",
+   "userland/capsule_net_anon/src/onion/hs_ntor.rs",
+   "userland/capsule_net_anon/src/onion/lookup.rs",
+   "userland/capsule_net_anon/src/onion/period.rs",
+   "userland/capsule_net_anon/src/onion/pow",
+   "userland/capsule_net_anon/src/onion/ring.rs",
+   "userland/capsule_net_anon/src/path/draw.rs",
+   "userland/capsule_net_anon/src/path/guard_pick.rs",
+   "userland/capsule_net_anon/src/path/relay.rs",
+   "userland/capsule_net_anon/src/path/select",
+   "userland/capsule_net_anon/src/path/through.rs",
+   "userland/capsule_net_anon/src/path/weights",
+   "userland/capsule_net_anon/src/server/socks/conv.rs",
+   "userland/capsule_net_anon/src/server/socks/frame.rs",
+   "userland/capsule_net_anon/src/server/socks/front.rs",
+   "userland/capsule_net_anon/src/server/socks/kept.rs",
+   "userland/capsule_net_anon/src/server/socks/relay.rs",
+   "userland/capsule_net_anon/src/server/socks/rep.rs",
+   "userland/capsule_net_anon/src/server/socks/reply.rs",
+   "userland/capsule_net_anon/src/server/socks/request.rs",
+   "userland/capsule_net_anon/src/server/socks/stage.rs",
+   "userland/capsule_net_anon/src/server/socks/stages.rs",
+   "userland/capsule_net_anon/src/server/socks/tunnel.rs",
+   "userland/capsule_net_anon/src/server/socks/turn.rs",
+   "userland/capsule_net_anon/src/server/socks/who.rs",
+   "userland/capsule_net_anon/src/server/socks/wire.rs",
+   "userland/capsule_net_anon/src/stream/begin.rs",
+   "userland/capsule_net_anon/src/stream/connected.rs",
+   "userland/capsule_net_anon/src/stream/data.rs",
+   "userland/capsule_net_anon/src/stream/end.rs",
+   "userland/capsule_net_anon/src/stream/find.rs",
+   "userland/capsule_net_anon/src/stream/grant.rs",
+   "userland/capsule_net_anon/src/stream/ids.rs",
+   "userland/capsule_net_anon/src/stream/owned.rs",
+   "userland/capsule_net_anon/src/stream/sendme.rs",
+   "userland/capsule_net_anon/src/stream/stage.rs",
+   "userland/capsule_net_anon/src/stream/table.rs",
+   "userland/equix_proofs/vectors/equix.expect",
+   "userland/nonos_aes",
+   "userland/nonos_ed25519",
+   "userland/nonos_equix",
+   "userland/nonos_hash",
+   "userland/shield_core/src/net/pools.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/anon_onion_proofs": {
+  "exclude": [
+   "userland/anon_onion_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "userland/anon_ntor_proofs/vectors/consensus-microdesc.txt",
+   "userland/anon_ntor_proofs/vectors/microdescs.txt",
+   "userland/anon_ntor_proofs/vectors/onion_descriptor.txt",
+   "userland/anon_ntor_proofs/vectors/onion_descriptor_pow.txt",
+   "userland/anon_ntor_proofs/vectors/tor_desc_bad_sig.txt",
+   "userland/anon_onion_proofs",
+   "userland/capsule_net_anon/src/base64_encode.rs",
+   "userland/capsule_net_anon/src/cell",
+   "userland/capsule_net_anon/src/circuit",
+   "userland/capsule_net_anon/src/crypto",
+   "userland/capsule_net_anon/src/directory",
+   "userland/capsule_net_anon/src/link/constants.rs",
+   "userland/capsule_net_anon/src/link/ed_cert",
+   "userland/capsule_net_anon/src/manager",
+   "userland/capsule_net_anon/src/ntor",
+   "userland/capsule_net_anon/src/onion",
+   "userland/capsule_net_anon/src/path",
+   "userland/capsule_net_anon/src/protocol",
+   "userland/capsule_net_anon/src/stream",
+   "userland/capsule_net_anon/src/tcp_client",
+   "userland/capsule_net_anon/src/trace",
+   "userland/inflate",
+   "userland/nonos_aes",
+   "userland/nonos_ed25519",
+   "userland/nonos_equix",
+   "userland/nonos_hash"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/anon_tls12_proofs": {
+  "exclude": [
+   "userland/anon_tls12_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "userland/anon_tls12_proofs",
+   "userland/capsule_net_anon/src/crypto/compare.rs",
+   "userland/capsule_net_anon/src/crypto/digest.rs",
+   "userland/capsule_net_anon/src/crypto/error.rs",
+   "userland/capsule_net_anon/src/crypto/prf.rs",
+   "userland/capsule_net_anon/src/crypto/sha384",
+   "userland/capsule_net_anon/src/crypto/wipe.rs",
+   "userland/capsule_net_anon/src/link/fallback.rs",
+   "userland/capsule_net_anon/src/link/tls12",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/apps_proofs": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/apps_proofs",
+   "userland/assets/icons",
+   "userland/audio_proto",
+   "userland/capsule_about/src/about/data/admission.rs",
+   "userland/capsule_about/src/about/data/caps.rs",
+   "userland/capsule_about/src/about/data/own_caps.rs",
+   "userland/capsule_about/src/about/data/present.rs",
+   "userland/capsule_about/src/about/data/trust.rs",
+   "userland/capsule_about/src/about/scroll_wheel.rs",
+   "userland/capsule_about/src/about/ui/metrics.rs",
+   "userland/capsule_audio_player/src/decode/decoder.rs",
+   "userland/capsule_audio_player/src/decode/mp3_index.rs",
+   "userland/capsule_audio_player/src/decode/wav.rs",
+   "userland/capsule_audio_player/src/decode/wav_pcm.rs",
+   "userland/capsule_audio_player/src/fetch/list.rs",
+   "userland/capsule_audio_player/src/fetch/name.rs",
+   "userland/capsule_audio_player/src/fetch/row_text.rs",
+   "userland/capsule_audio_player/src/library/handed.rs",
+   "userland/capsule_audio_player/src/library/order.rs",
+   "userland/capsule_audio_player/src/library/playable.rs",
+   "userland/capsule_audio_player/src/library/rescan_gap.rs",
+   "userland/capsule_audio_player/src/library/tags",
+   "userland/capsule_audio_player/src/library/track.rs",
+   "userland/capsule_audio_player/src/loading.rs",
+   "userland/capsule_audio_player/src/peaks.rs",
+   "userland/capsule_audio_player/src/resample",
+   "userland/capsule_audio_player/src/resample.rs",
+   "userland/capsule_audio_player/src/track_fmt.rs",
+   "userland/capsule_audio_player/src/track_limit.rs",
+   "userland/capsule_audio_player/src/transport/defs.rs",
+   "userland/capsule_audio_player/src/transport/machine.rs",
+   "userland/capsule_audio_player/src/transport/pump.rs",
+   "userland/capsule_audio_player/src/trouble.rs",
+   "userland/capsule_audio_player/src/ui/art/rungs.rs",
+   "userland/capsule_audio_player/src/ui/geometry.rs",
+   "userland/capsule_audio_player/src/ui/metrics.rs",
+   "userland/capsule_audio_player/src/ui/search_key.rs",
+   "userland/capsule_audio_player/src/ui/shell/rail_geom.rs",
+   "userland/capsule_audio_player/src/ui/shortcut.rs",
+   "userland/capsule_audio_player/src/volume.rs",
+   "userland/capsule_calculator/src/calc/actions",
+   "userland/capsule_calculator/src/calc/buttons",
+   "userland/capsule_calculator/src/calc/convert",
+   "userland/capsule_calculator/src/calc/error_kind.rs",
+   "userland/capsule_calculator/src/calc/event/key_classifier.rs",
+   "userland/capsule_calculator/src/calc/fixed.rs",
+   "userland/capsule_calculator/src/calc/format",
+   "userland/capsule_calculator/src/calc/history",
+   "userland/capsule_calculator/src/calc/hit.rs",
+   "userland/capsule_calculator/src/calc/manifest.rs",
+   "userland/capsule_calculator/src/calc/mode.rs",
+   "userland/capsule_calculator/src/calc/op.rs",
+   "userland/capsule_calculator/src/calc/paste.rs",
+   "userland/capsule_calculator/src/calc/prog",
+   "userland/capsule_calculator/src/calc/sci",
+   "userland/capsule_calculator/src/calc/state",
+   "userland/capsule_calculator/src/calc/ui/convert_geom.rs",
+   "userland/capsule_calculator/src/calc/ui/convert_hit.rs",
+   "userland/capsule_calculator/src/calc/ui/history_geom.rs",
+   "userland/capsule_calculator/src/calc/ui/metrics.rs",
+   "userland/capsule_calculator/src/calc/unary.rs",
+   "userland/capsule_clock/src/clock/civil.rs",
+   "userland/capsule_clock/src/clock/says.rs",
+   "userland/capsule_clock/src/clock/stopwatch.rs",
+   "userland/capsule_clock/src/clock/timer.rs",
+   "userland/capsule_image_viewer/src/viewer/app.rs",
+   "userland/capsule_image_viewer/src/viewer/arg_cadence.rs",
+   "userland/capsule_image_viewer/src/viewer/budget.rs",
+   "userland/capsule_image_viewer/src/viewer/caption.rs",
+   "userland/capsule_image_viewer/src/viewer/gallery/layout.rs",
+   "userland/capsule_image_viewer/src/viewer/nav.rs",
+   "userland/capsule_image_viewer/src/viewer/says.rs",
+   "userland/capsule_image_viewer/src/viewer/viewport.rs",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_mdview/src/mdview/layout/block.rs",
+   "userland/capsule_mdview/src/mdview/layout/metrics.rs",
+   "userland/capsule_mdview/src/mdview/scroll.rs",
+   "userland/capsule_mdview/src/mdview/verdict.rs",
+   "userland/capsule_process_manager/src/pm/critical.rs",
+   "userland/capsule_process_manager/src/pm/format.rs",
+   "userland/capsule_process_manager/src/pm/manifest.rs",
+   "userland/capsule_process_manager/src/pm/state/notes.rs",
+   "userland/capsule_process_manager/src/pm/state/query_paste.rs",
+   "userland/capsule_process_manager/src/pm/state/screen.rs",
+   "userland/capsule_process_manager/src/pm/ui/fit.rs",
+   "userland/capsule_process_manager/src/pm/ui/metrics.rs",
+   "userland/capsule_snake/src/snake/input/click_run.rs",
+   "userland/capsule_snake/src/snake/state/daily.rs",
+   "userland/capsule_snake/src/snake/state/difficulty.rs",
+   "userland/capsule_snake/src/snake/state/kept.rs",
+   "userland/capsule_snake/src/snake/state/mode.rs",
+   "userland/capsule_snake/src/snake/state/mode_text.rs",
+   "userland/capsule_snake/src/snake/state/options.rs",
+   "userland/capsule_snake/src/snake/ui/over_geom.rs",
+   "userland/capsule_snake/src/snake/ui/pause_geom.rs",
+   "userland/capsule_snake/src/snake/ui/play_geom_rows.rs",
+   "userland/capsule_video_player/src/app/browse.rs",
+   "userland/capsule_video_player/src/app/full_screen.rs",
+   "userland/capsule_video_player/src/app/open_arg_reply.rs",
+   "userland/capsule_video_player/src/catalog",
+   "userland/capsule_video_player/src/event/action.rs",
+   "userland/capsule_video_player/src/event/key.rs",
+   "userland/capsule_video_player/src/ui/rows.rs",
+   "userland/capsule_video_player/src/ui/screen.rs",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/arch_paging_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/aarch64/mmu/attributes/kind.rs",
+   "src/arch/paging/descriptor/aarch64/bits.rs",
+   "src/arch/paging/descriptor/aarch64/build.rs",
+   "src/arch/paging/descriptor/aarch64/read.rs",
+   "src/arch/paging/descriptor/flags.rs",
+   "src/arch/paging/descriptor/x86_64.rs",
+   "src/arch/x86_64/pat/value.rs",
+   "src/sys/clock/civil/days.rs",
+   "src/sys/clock/civil/time.rs",
+   "userland/arch_paging_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/attest_doc_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/security/attest_doc/document.rs",
+   "src/security/attest_policy/record.rs",
+   "src/security/boot/loader_check/record.rs",
+   "userland/attest_doc_proofs",
+   "userland/capsule_about/src/about/data/doc_parse/layout.rs",
+   "userland/capsule_about/src/about/data/doc_parse/parse.rs",
+   "userland/capsule_about/src/about/data/doc_parse/types.rs",
+   "userland/capsule_about/src/about/data/proofs/census.rs",
+   "userland/capsule_about/src/about/data/proofs/session.rs",
+   "userland/capsule_about/src/about/data/proofs/words.rs",
+   "userland/libc/src/attest_policy.rs",
+   "userland/libc/src/boot_attest/record.rs",
+   "userland/route_proof"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/attest_key_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/security/attest_doc/binding.rs",
+   "src/security/attest_doc/document.rs",
+   "src/security/tpm/ak/attributes.rs",
+   "src/security/tpm/ak/cursor.rs",
+   "src/security/tpm/ak/public.rs",
+   "src/security/tpm/error.rs",
+   "userland/attest_key_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/attest_receipt": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/capabilities/types/as_str.rs",
+   "src/capabilities/types/defs.rs",
+   "src/capabilities/types/guard.rs",
+   "src/capabilities/types/table.rs",
+   "src/security/attest_registry/format.rs",
+   "userland/attest_receipt"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/audio_proto_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/audio_proto",
+   "userland/audio_proto_proofs",
+   "userland/capsule_audio/src/mixer.rs",
+   "userland/capsule_audio/src/server/proto.rs",
+   "userland/capsule_audio/src/server/ring.rs",
+   "userland/capsule_audio/src/server/streams.rs",
+   "userland/capsule_audio/src/sink/wire.rs",
+   "userland/capsule_audio/src/volume.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/ax88179_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/ax88179_proofs",
+   "userland/capsule_driver_ax88179/src/ax",
+   "userland/nonos_usbnet/src/bind.rs",
+   "userland/nonos_usbnet/src/bus.rs",
+   "userland/nonos_usbnet/src/desc",
+   "userland/nonos_usbnet/src/found.rs",
+   "userland/nonos_usbnet/src/halt.rs",
+   "userland/nonos_usbnet/src/nic.rs",
+   "userland/nonos_usbnet/src/nnet",
+   "userland/nonos_usbnet/src/scan/book.rs",
+   "userland/nonos_usbnet/src/scan/port.rs",
+   "userland/nonos_usbnet/src/setup.rs",
+   "userland/nonos_usbnet/src/xhci/wire.rs",
+   "userland/usbnet_proofs",
+   "userland/xhci_proofs/libc_shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/bench_core_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-bench/src/overhead.rs",
+   "nonos-bench/src/sort.rs",
+   "nonos-bench/src/summary.rs",
+   "nonos-bench/src/tsc.rs",
+   "userland/bench_core_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/bga_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/bga_proofs",
+   "userland/capsule_driver_bga/src/constants.rs",
+   "userland/capsule_driver_bga/src/dispi/clear.rs",
+   "userland/capsule_driver_bga/src/dispi/dispi_off.rs",
+   "userland/capsule_driver_bga/src/dispi/set_mode.rs",
+   "userland/capsule_driver_bga/src/error.rs",
+   "userland/capsule_driver_bga/src/regs.rs",
+   "userland/nonos_devmodel"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/boot_slots_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "nonos-boot-measure/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-boot-measure",
+   "nonos-bootloader/src/image_format",
+   "src/security/boot/slots/footer.rs",
+   "src/security/boot/slots/record.rs",
+   "src/security/boot/slots/slot.rs",
+   "userland/boot_slots_proofs",
+   "userland/libc/src/boot_slots/record.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/browser_http_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/browser_http_proofs",
+   "userland/capsule_browser/src/browser/fetch/apply_css",
+   "userland/capsule_browser/src/browser/http",
+   "userland/capsule_browser/src/browser/url",
+   "userland/inflate"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_about": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "LICENSE",
+   "VERSION",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_about",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/route_proof",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": [
+   "nonos-data/trust/COMMIT"
+  ]
+ },
+ "userland/capsule_app_store": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "LICENSE",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_app_store",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_linux/src/linux/file/models",
+   "userland/capsule_model_fetch/src/need.rs",
+   "userland/capsule_model_fetch/src/path.rs",
+   "userland/capsule_model_fetch/src/size.rs",
+   "userland/capsule_model_fetch/src/status_read.rs",
+   "userland/capsule_model_fetch/src/status_wire.rs",
+   "userland/capsule_model_fetch/src/tiers/memory.rs",
+   "userland/libc",
+   "userland/market_proto",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": [
+   "nonos-data/trust/COMMIT"
+  ]
+ },
+ "userland/capsule_attest": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_attest",
+   "userland/libc",
+   "userland/route_proof"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_audio": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/audio_proto",
+   "userland/capsule_audio",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_audio_player": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "third_party/minimp3",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/audio_proto",
+   "userland/capsule_audio_player",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_vfs/src/testassets/boot_tone.mp3",
+   "userland/libc",
+   "userland/nonos_download",
+   "userland/nonos_qjs/shim",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_boot_splash": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/assets/icons",
+   "userland/capsule_boot_splash",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_browser": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/base64",
+   "userland/capsule_browser",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/inflate",
+   "userland/libc",
+   "userland/nonos_brotli",
+   "userland/nonos_qjs",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_browser_html_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_browser/src/browser/dom",
+   "userland/capsule_browser/src/browser/html",
+   "userland/capsule_browser_html_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_browser_proofs": {
+  "exclude": [
+   "userland/tls_proofs/fuzz",
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/base64/src/decode.rs",
+   "userland/capsule_browser/src/browser/cookie",
+   "userland/capsule_browser/src/browser/css",
+   "userland/capsule_browser/src/browser/dom",
+   "userland/capsule_browser/src/browser/event/dialog_line.rs",
+   "userland/capsule_browser/src/browser/event/dom_print.rs",
+   "userland/capsule_browser/src/browser/event/field_at.rs",
+   "userland/capsule_browser/src/browser/event/field_room.rs",
+   "userland/capsule_browser/src/browser/event/field_toggle.rs",
+   "userland/capsule_browser/src/browser/event/field_value.rs",
+   "userland/capsule_browser/src/browser/event/form_fields.rs",
+   "userland/capsule_browser/src/browser/event/key_names.rs",
+   "userland/capsule_browser/src/browser/event/label_for.rs",
+   "userland/capsule_browser/src/browser/event/select_list.rs",
+   "userland/capsule_browser/src/browser/fetch/budget.rs",
+   "userland/capsule_browser/src/browser/fetch/closed.rs",
+   "userland/capsule_browser/src/browser/fetch/connect.rs",
+   "userland/capsule_browser/src/browser/fetch/constants.rs",
+   "userland/capsule_browser/src/browser/fetch/deadline.rs",
+   "userland/capsule_browser/src/browser/fetch/enqueue_css",
+   "userland/capsule_browser/src/browser/fetch/exits/rule.rs",
+   "userland/capsule_browser/src/browser/fetch/expire.rs",
+   "userland/capsule_browser/src/browser/fetch/keep.rs",
+   "userland/capsule_browser/src/browser/fetch/nav_trace.rs",
+   "userland/capsule_browser/src/browser/fetch/open.rs",
+   "userland/capsule_browser/src/browser/fetch/plain",
+   "userland/capsule_browser/src/browser/fetch/pool",
+   "userland/capsule_browser/src/browser/fetch/progress.rs",
+   "userland/capsule_browser/src/browser/fetch/proxy_fault.rs",
+   "userland/capsule_browser/src/browser/fetch/retryable_error.rs",
+   "userland/capsule_browser/src/browser/fetch/reuse.rs",
+   "userland/capsule_browser/src/browser/fetch/run.rs",
+   "userland/capsule_browser/src/browser/fetch/security_error.rs",
+   "userland/capsule_browser/src/browser/fetch/socks",
+   "userland/capsule_browser/src/browser/fetch/style_hold.rs",
+   "userland/capsule_browser/src/browser/fetch/tls",
+   "userland/capsule_browser/src/browser/fetch/tls_reason.rs",
+   "userland/capsule_browser/src/browser/fetch/types",
+   "userland/capsule_browser/src/browser/fetch/wire.rs",
+   "userland/capsule_browser/src/browser/fetch/words.rs",
+   "userland/capsule_browser/src/browser/fonts",
+   "userland/capsule_browser/src/browser/html",
+   "userland/capsule_browser/src/browser/http",
+   "userland/capsule_browser/src/browser/image/decode.rs",
+   "userland/capsule_browser/src/browser/image/decode_full.rs",
+   "userland/capsule_browser/src/browser/image/ico.rs",
+   "userland/capsule_browser/src/browser/image/ico_dib.rs",
+   "userland/capsule_browser/src/browser/image/ingest.rs",
+   "userland/capsule_browser/src/browser/image/jpeg.rs",
+   "userland/capsule_browser/src/browser/image/plan.rs",
+   "userland/capsule_browser/src/browser/image/plan_vector.rs",
+   "userland/capsule_browser/src/browser/image/shrink",
+   "userland/capsule_browser/src/browser/image/shrink.rs",
+   "userland/capsule_browser/src/browser/image/sniff",
+   "userland/capsule_browser/src/browser/image/store.rs",
+   "userland/capsule_browser/src/browser/image/store_budget.rs",
+   "userland/capsule_browser/src/browser/image/store_entry.rs",
+   "userland/capsule_browser/src/browser/image/store_hint.rs",
+   "userland/capsule_browser/src/browser/image/store_lookup.rs",
+   "userland/capsule_browser/src/browser/image/store_natural.rs",
+   "userland/capsule_browser/src/browser/image/svg",
+   "userland/capsule_browser/src/browser/image/webp",
+   "userland/capsule_browser/src/browser/js/ast",
+   "userland/capsule_browser/src/browser/js/env.rs",
+   "userland/capsule_browser/src/browser/js/interp",
+   "userland/capsule_browser/src/browser/js/regex",
+   "userland/capsule_browser/src/browser/js/script_plan.rs",
+   "userland/capsule_browser/src/browser/js/value.rs",
+   "userland/capsule_browser/src/browser/js/world.rs",
+   "userland/capsule_browser/src/browser/layout",
+   "userland/capsule_browser/src/browser/net/drain.rs",
+   "userland/capsule_browser/src/browser/net/mixnet/choice.rs",
+   "userland/capsule_browser/src/browser/net/mixnet/conv.rs",
+   "userland/capsule_browser/src/browser/net/mixnet/fault.rs",
+   "userland/capsule_browser/src/browser/net/mixnet/frames.rs",
+   "userland/capsule_browser/src/browser/net/mixnet/pace.rs",
+   "userland/capsule_browser/src/browser/net/mixnet/refusal.rs",
+   "userland/capsule_browser/src/browser/net/mixnet/status.rs",
+   "userland/capsule_browser/src/browser/net/mixnet/streams.rs",
+   "userland/capsule_browser/src/browser/net/mixnet/way.rs",
+   "userland/capsule_browser/src/browser/net/parse_ipv4.rs",
+   "userland/capsule_browser/src/browser/net/recv_kind.rs",
+   "userland/capsule_browser/src/browser/net/recv_pending.rs",
+   "userland/capsule_browser/src/browser/omnibox",
+   "userland/capsule_browser/src/browser/paint/screen_y.rs",
+   "userland/capsule_browser/src/browser/proxy/said.rs",
+   "userland/capsule_browser/src/browser/short_name.rs",
+   "userland/capsule_browser/src/browser/url",
+   "userland/capsule_browser_proofs",
+   "userland/capsule_crypto/src/protocol",
+   "userland/capsule_crypto/src/server/dispatch.rs",
+   "userland/capsule_crypto/src/server/handlers",
+   "userland/capsule_crypto/src/server/wipe.rs",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/inflate",
+   "userland/libc",
+   "userland/nonos_brotli",
+   "userland/nonos_keymap",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/nonos_tls/src/aes_gcm",
+   "userland/nonos_tls/src/alert.rs",
+   "userland/nonos_tls/src/app_keys.rs",
+   "userland/nonos_tls/src/app_reader.rs",
+   "userland/nonos_tls/src/app_reader_view.rs",
+   "userland/nonos_tls/src/application_plaintext.rs",
+   "userland/nonos_tls/src/application_request.rs",
+   "userland/nonos_tls/src/application_write.rs",
+   "userland/nonos_tls/src/cert_at.rs",
+   "userland/nonos_tls/src/cert_count.rs",
+   "userland/nonos_tls/src/cert_dns_match.rs",
+   "userland/nonos_tls/src/cert_ext.rs",
+   "userland/nonos_tls/src/cert_ext_entry.rs",
+   "userland/nonos_tls/src/cert_is_ca.rs",
+   "userland/nonos_tls/src/cert_issuer.rs",
+   "userland/nonos_tls/src/cert_problem.rs",
+   "userland/nonos_tls/src/cert_sig_alg.rs",
+   "userland/nonos_tls/src/cert_signature.rs",
+   "userland/nonos_tls/src/cert_spki.rs",
+   "userland/nonos_tls/src/cert_tbs.rs",
+   "userland/nonos_tls/src/cert_time_value.rs",
+   "userland/nonos_tls/src/cert_valid_now.rs",
+   "userland/nonos_tls/src/cert_verify_msg",
+   "userland/nonos_tls/src/cert_window.rs",
+   "userland/nonos_tls/src/chacha_record.rs",
+   "userland/nonos_tls/src/chain_walk.rs",
+   "userland/nonos_tls/src/client_finished.rs",
+   "userland/nonos_tls/src/client_flight.rs",
+   "userland/nonos_tls/src/client_hello.rs",
+   "userland/nonos_tls/src/constants.rs",
+   "userland/nonos_tls/src/crypto_port.rs",
+   "userland/nonos_tls/src/crypto_status.rs",
+   "userland/nonos_tls/src/der_tlv.rs",
+   "userland/nonos_tls/src/ecdsa_sig_raw.rs",
+   "userland/nonos_tls/src/expand_label.rs",
+   "userland/nonos_tls/src/ext_groups.rs",
+   "userland/nonos_tls/src/ext_keyshare.rs",
+   "userland/nonos_tls/src/ext_sigalgs.rs",
+   "userland/nonos_tls/src/ext_sni.rs",
+   "userland/nonos_tls/src/ext_versions.rs",
+   "userland/nonos_tls/src/finished_key.rs",
+   "userland/nonos_tls/src/finished_value.rs",
+   "userland/nonos_tls/src/finished_verify.rs",
+   "userland/nonos_tls/src/flight.rs",
+   "userland/nonos_tls/src/handshake_alert.rs",
+   "userland/nonos_tls/src/handshake_fault.rs",
+   "userland/nonos_tls/src/handshake_state",
+   "userland/nonos_tls/src/handshake_step.rs",
+   "userland/nonos_tls/src/hash_sha256.rs",
+   "userland/nonos_tls/src/hash_sha384.rs",
+   "userland/nonos_tls/src/hello_retry.rs",
+   "userland/nonos_tls/src/hkdf.rs",
+   "userland/nonos_tls/src/hkdf_label.rs",
+   "userland/nonos_tls/src/hmac_sha256.rs",
+   "userland/nonos_tls/src/inner_plain.rs",
+   "userland/nonos_tls/src/nonce.rs",
+   "userland/nonos_tls/src/p256_share.rs",
+   "userland/nonos_tls/src/push.rs",
+   "userland/nonos_tls/src/read.rs",
+   "userland/nonos_tls/src/record.rs",
+   "userland/nonos_tls/src/record_frame.rs",
+   "userland/nonos_tls/src/record_open.rs",
+   "userland/nonos_tls/src/record_seal.rs",
+   "userland/nonos_tls/src/roots",
+   "userland/nonos_tls/src/rtc_now.rs",
+   "userland/nonos_tls/src/scan_messages.rs",
+   "userland/nonos_tls/src/scan_server_finished.rs",
+   "userland/nonos_tls/src/schedule.rs",
+   "userland/nonos_tls/src/server_complete",
+   "userland/nonos_tls/src/server_context.rs",
+   "userland/nonos_tls/src/server_hello.rs",
+   "userland/nonos_tls/src/server_keys.rs",
+   "userland/nonos_tls/src/server_share.rs",
+   "userland/nonos_tls/src/session",
+   "userland/nonos_tls/src/spki_point.rs",
+   "userland/nonos_tls/src/stream",
+   "userland/nonos_tls/src/traffic_keys.rs",
+   "userland/nonos_tls/src/transcript.rs",
+   "userland/nonos_tls/src/verify_link",
+   "userland/nonos_tls/src/verify_p256.rs",
+   "userland/nonos_tls/src/verify_p384.rs",
+   "userland/nonos_tls/src/verify_rsa.rs",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/tls_proofs",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_calculator": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_calculator",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_clipboard": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_clipboard",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_clock": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_clock",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_crypto": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_crypto",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_crypto_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_crypto/src/server/handlers/rsa_scheme.rs",
+   "userland/capsule_crypto_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_desktop_shell": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/audio_proto",
+   "userland/capsule_desktop_shell",
+   "userland/capsule_input_router/src/route/chord.rs",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_model_fetch/src/default_tier.rs",
+   "userland/capsule_model_fetch/src/need.rs",
+   "userland/capsule_model_fetch/src/tiers/memory.rs",
+   "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_ahci": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ahci",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_e1000": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_e1000",
+   "userland/libc",
+   "userland/nonos_mac"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_hda": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_hda",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_i2c_hid": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_i2c_hid",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_i2c_pci": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_i2c_pci",
+   "userland/libc",
+   "userland/nonos_pinctrl"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_iwlwifi": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-bootloader/firmware/intel/iwlwifi-7265D-29.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-8265-36.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-9260-th-b0-jf-b0-46.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-cc-a0-77.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-so-a0-hr-b0-84.ucode",
+   "userland/capsule_driver_iwlwifi",
+   "userland/libc",
+   "userland/nonos_mac",
+   "userland/nonos_wifi_core"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_nvme": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_nvme",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_ps2_input": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_driver_ps2_input",
+   "userland/libc",
+   "userland/nonos_keymap",
+   "userland/policy_client",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_rtl8139": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_rtl8139",
+   "userland/libc",
+   "userland/nonos_mac"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_rtl8169": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_rtl8169",
+   "userland/libc",
+   "userland/nonos_mac"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_rtl8821ce": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-bootloader/firmware/realtek/rtw8821c_fw.bin",
+   "userland/capsule_driver_rtl8821ce",
+   "userland/libc",
+   "userland/nonos_mac",
+   "userland/nonos_wifi_core"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_usb_hid": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_driver_usb_hid",
+   "userland/libc",
+   "userland/nonos_keymap",
+   "userland/policy_client",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_usb_msc": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_usb_msc",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_virtio_blk": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_virtio_blk",
+   "userland/libc",
+   "userland/nonos_virtio"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_virtio_gpu": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_virtio_gpu",
+   "userland/libc",
+   "userland/nonos_virtio"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_virtio_net": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_virtio_net",
+   "userland/libc",
+   "userland/nonos_mac",
+   "userland/nonos_virtio"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_virtio_rng": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_virtio_rng",
+   "userland/libc",
+   "userland/nonos_virtio"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_driver_xhci": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_xhci",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_egui_proof": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_egui_proof",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_entropy": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_entropy",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_file_manager": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_file_manager",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_game_2048": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_game_2048",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/libc",
+   "userland/toolkit",
+   "userland/upstream-src/tools-2048"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_gui_demo": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_gui_demo",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_hello": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_hello",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_image_codec": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/assets/icons",
+   "userland/capsule_image_codec",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_image_viewer": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_image_viewer",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_input_probe": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_input_probe",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_input_proof": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_input_proof",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_input_router": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_input_router",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_install": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "VERSION",
+   "nonos-data/wallpapers",
+   "src/fs/blockfs_volume/key_header.rs",
+   "src/fs/blockfs_volume/plan.rs",
+   "src/fs/blockfs_volume/plan_types.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install",
+   "userland/capsule_vfs/src/blk/store_header.rs",
+   "userland/capsule_vfs/src/blk/store_toc.rs",
+   "userland/fs_proofs/libc_shim",
+   "userland/libc",
+   "userland/nonos_blk_client",
+   "userland/nonos_disk",
+   "userland/nonos_disk_map",
+   "userland/nonos_hash",
+   "userland/nonos_wallpapers",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_installer": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "tools/nonos-pack/core",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_installer",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_keyring": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_keyring",
+   "userland/libc",
+   "userland/nonos_hash",
+   "userland/nonos_hd",
+   "userland/nonos_seal",
+   "userland/nonos_secp256k1",
+   "userland/nonos_vault"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_linux": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_linux",
+   "userland/capsule_model_fetch/src/exit.rs",
+   "userland/capsule_model_fetch/src/get/anyone_wait.rs",
+   "userland/inflate",
+   "userland/libc",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/openpgp",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit",
+   "userland/xz",
+   "userland/zstd"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_linux_proofs": {
+  "exclude": [
+   "userland/capsule_linux_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/capsule_linux/family.rs",
+   "src/userspace/capsule_linux/terminal/tier.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_linux/guests/busybox.elf",
+   "userland/capsule_linux/keys",
+   "userland/capsule_linux/src/linux/abi/errno.rs",
+   "userland/capsule_linux/src/linux/abi/errno_io.rs",
+   "userland/capsule_linux/src/linux/abi/errno_sock.rs",
+   "userland/capsule_linux/src/linux/applets.rs",
+   "userland/capsule_linux/src/linux/call/futex_op.rs",
+   "userland/capsule_linux/src/linux/call/ioctl_req.rs",
+   "userland/capsule_linux/src/linux/call/iovec.rs",
+   "userland/capsule_linux/src/linux/call/mem/map_args.rs",
+   "userland/capsule_linux/src/linux/call/mem/prot_args.rs",
+   "userland/capsule_linux/src/linux/call/mem/remap_args.rs",
+   "userland/capsule_linux/src/linux/call/random_flags.rs",
+   "userland/capsule_linux/src/linux/call/sigframe.rs",
+   "userland/capsule_linux/src/linux/call/sigframe_build.rs",
+   "userland/capsule_linux/src/linux/call/sigframe_read.rs",
+   "userland/capsule_linux/src/linux/call/signal_act.rs",
+   "userland/capsule_linux/src/linux/call/spawn/clone_flags.rs",
+   "userland/capsule_linux/src/linux/call/spawn/exec_args.rs",
+   "userland/capsule_linux/src/linux/call/spawn/exec_shebang.rs",
+   "userland/capsule_linux/src/linux/call/spawn/tasks.rs",
+   "userland/capsule_linux/src/linux/call/spawn/wait_opts.rs",
+   "userland/capsule_linux/src/linux/console/queue.rs",
+   "userland/capsule_linux/src/linux/console/queue_piece.rs",
+   "userland/capsule_linux/src/linux/console/queue_take.rs",
+   "userland/capsule_linux/src/linux/console/tty_rules.rs",
+   "userland/capsule_linux/src/linux/console/winsize.rs",
+   "userland/capsule_linux/src/linux/console/wipe.rs",
+   "userland/capsule_linux/src/linux/file",
+   "userland/capsule_linux/src/linux/guest/fd_kind.rs",
+   "userland/capsule_linux/src/linux/guest/futex_pick.rs",
+   "userland/capsule_linux/src/linux/guest/layout.rs",
+   "userland/capsule_linux/src/linux/guest/links_room.rs",
+   "userland/capsule_linux/src/linux/guest/mem.rs",
+   "userland/capsule_linux/src/linux/guest/memory.rs",
+   "userland/capsule_linux/src/linux/guest/sigalt.rs",
+   "userland/capsule_linux/src/linux/guest/sigrestart.rs",
+   "userland/capsule_linux/src/linux/guest/sigstate.rs",
+   "userland/capsule_linux/src/linux/guest/sigtimer.rs",
+   "userland/capsule_linux/src/linux/guest/sigtimer_rearm.rs",
+   "userland/capsule_linux/src/linux/guest/slots.rs",
+   "userland/capsule_linux/src/linux/guest/timer.rs",
+   "userland/capsule_linux/src/linux/guest/watch.rs",
+   "userland/capsule_linux/src/linux/image/elf.rs",
+   "userland/capsule_linux/src/linux/image/elf_phdr.rs",
+   "userland/capsule_linux/src/linux/image/phdr.rs",
+   "userland/capsule_linux/src/linux/image/read.rs",
+   "userland/capsule_linux/src/linux/image/stack_words.rs",
+   "userland/capsule_linux/src/linux/install",
+   "userland/capsule_linux/src/linux/net/anon_answer.rs",
+   "userland/capsule_linux/src/linux/net/anon_ops.rs",
+   "userland/capsule_linux/src/linux/net/anon_wire.rs",
+   "userland/capsule_linux/src/linux/net/dns/limits.rs",
+   "userland/capsule_linux/src/linux/net/dns/name.rs",
+   "userland/capsule_linux/src/linux/net/dns/reply.rs",
+   "userland/capsule_linux/src/linux/net/guest_route.rs",
+   "userland/capsule_linux/src/linux/net/host_body.rs",
+   "userland/capsule_linux/src/linux/net/ops.rs",
+   "userland/capsule_linux/src/linux/net/ready_sets.rs",
+   "userland/capsule_linux/src/linux/net/route.rs",
+   "userland/capsule_linux/src/linux/net/sock/adopt.rs",
+   "userland/capsule_linux/src/linux/net/sock/anon_rx.rs",
+   "userland/capsule_linux/src/linux/net/sock/backend.rs",
+   "userland/capsule_linux/src/linux/net/sock/free.rs",
+   "userland/capsule_linux/src/linux/net/sock/gram_room.rs",
+   "userland/capsule_linux/src/linux/net/sock/kinds.rs",
+   "userland/capsule_linux/src/linux/net/sock/name.rs",
+   "userland/capsule_linux/src/linux/net/sock/new.rs",
+   "userland/capsule_linux/src/linux/net/sock/opts.rs",
+   "userland/capsule_linux/src/linux/net/sock/opts_more.rs",
+   "userland/capsule_linux/src/linux/net/sock/shut_anon.rs",
+   "userland/capsule_linux/src/linux/net/sock/table.rs",
+   "userland/capsule_linux/src/linux/net/sock/types.rs",
+   "userland/capsule_linux/src/linux/net/sock/unlisten.rs",
+   "userland/capsule_linux/src/linux/run_mode.rs",
+   "userland/capsule_linux/src/linux/store_why.rs",
+   "userland/capsule_linux/src/linux/unix/cmsg.rs",
+   "userland/capsule_linux/src/linux/unix/conn.rs",
+   "userland/capsule_linux/src/linux/wayland/args.rs",
+   "userland/capsule_linux/src/linux/wayland/configure.rs",
+   "userland/capsule_linux/src/linux/wayland/fit.rs",
+   "userland/capsule_linux/src/linux/wayland/frame_len.rs",
+   "userland/capsule_linux/src/linux/wayland/object.rs",
+   "userland/capsule_linux/src/linux/wayland/ops.rs",
+   "userland/capsule_linux/src/linux/wayland/out.rs",
+   "userland/capsule_linux/src/linux/wayland/reshape.rs",
+   "userland/capsule_linux/src/linux/wayland/scene_pixels.rs",
+   "userland/capsule_linux/src/linux/wayland/window_damage.rs",
+   "userland/capsule_linux/src/linux/wayland/window_life.rs",
+   "userland/capsule_linux/src/linux/wayland/wire.rs",
+   "userland/capsule_linux_proofs",
+   "userland/capsule_model_fetch/src/exit.rs",
+   "userland/capsule_model_fetch/src/get/anyone_wait.rs",
+   "userland/capsule_net_anon/src/protocol/errno.rs",
+   "userland/capsule_net_anon/src/protocol/limits.rs",
+   "userland/capsule_net_anon/src/protocol/ops.rs",
+   "userland/capsule_net_anon/src/server/parse_req.rs",
+   "userland/capsule_net_anon/src/server/respond.rs",
+   "userland/capsule_net_anon/src/stream/end.rs",
+   "userland/capsule_net_anon/src/stream/owned.rs",
+   "userland/capsule_net_anon/src/stream/table.rs",
+   "userland/capsule_net_sockets/src/protocol/errno.rs",
+   "userland/capsule_net_sockets/src/server/handlers/connect/host_target.rs",
+   "userland/capsule_net_sockets/src/server/handlers/connect/parse_host.rs",
+   "userland/capsule_net_sockets/src/server/handlers/connect/parse_ipv4.rs",
+   "userland/capsule_net_sockets/src/server/handlers/io.rs",
+   "userland/inflate",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_route_link/src/pick.rs",
+   "userland/openpgp",
+   "userland/policy_proto",
+   "userland/xz",
+   "userland/zstd"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_load_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/kernel_core/process_spawn/capsule_spawn/from_vfs/validity_clock.rs",
+   "userland/capsule_load_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_login": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_login",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_market": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   ".keys/marketplace_operator_ed25519.pub",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_market",
+   "userland/libc",
+   "userland/market_proto",
+   "userland/marketplace_abi",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": [
+   "nonos-data/market/index.bin"
+  ]
+ },
+ "userland/capsule_mdview": {
+  "exclude": [
+   "userland/capsule_mdview/layout_tests",
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_mdview",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_model_fetch": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   ".keys/marketplace_operator_ed25519.pub",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_linux/src/linux/file/models/hex.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_coder.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_qwen25.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_qwen25_big.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs",
+   "userland/capsule_model_fetch",
+   "userland/libc",
+   "userland/nonos_cap",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_http",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/policy_client",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": [
+   "nonos-data/models/catalogue.bin"
+  ]
+ },
+ "userland/capsule_net_anon": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_anon",
+   "userland/inflate",
+   "userland/libc",
+   "userland/nonos_aes",
+   "userland/nonos_ed25519",
+   "userland/nonos_equix",
+   "userland/nonos_hash",
+   "userland/nonos_tls",
+   "userland/route_proof"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_core": {
+  "exclude": [
+   "userland/capsule_net_core/tests/ipc_framing",
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_net_core",
+   "userland/libc",
+   "userland/nonos_seal",
+   "userland/nonos_wifi_client",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_dhcp": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_dhcp",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_dns": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_dns",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_ip": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_ip",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_l2": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_l2",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_ntp": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_net_ntp",
+   "userland/libc",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/policy_client",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_nym": {
+  "exclude": [
+   "userland/capsule_net_nym/tests/live_gateway",
+   "userland/capsule_net_nym/tests/live_gateway/shim",
+   "userland/capsule_net_nym/tests/nym_interop"
+  ],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_nym",
+   "userland/libc",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_tls",
+   "userland/route_proof"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_sockets": {
+  "exclude": [
+   "userland/capsule_net_sockets/tests/connect_pending",
+   "userland/capsule_net_sockets/tests/mixnet_framing"
+  ],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_sockets",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_tcp": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_tcp",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_net_udp": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_udp",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_nonos_install": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_nonos_install"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_payment": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_payment",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_policy": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_policy",
+   "userland/libc",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_power": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_power",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_process_manager": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_process_manager",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_proof_io": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_proof_io",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_prove": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-device-attest",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_prove",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_qrgen": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_qrgen",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_ramfs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_ramfs",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_settings": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "VERSION",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/audio_proto",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_settings",
+   "userland/capsule_setup_wizard/src/qwen/labels.rs",
+   "userland/libc",
+   "userland/nonos_seal",
+   "userland/nonos_wifi_client",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": [
+   "nonos-data/trust/COMMIT"
+  ]
+ },
+ "userland/capsule_settings_proofs": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_audio_player/src/model.rs",
+   "userland/capsule_desktop_shell/src/sound/levels.rs",
+   "userland/capsule_driver_iwlwifi/src/firmware/family.rs",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_settings/src/settings/event/wifi_key.rs",
+   "userland/capsule_settings/src/settings/ipc/error.rs",
+   "userland/capsule_settings/src/settings/ipc/hydrate_pass.rs",
+   "userland/capsule_settings/src/settings/qwen_tier",
+   "userland/capsule_settings/src/settings/schema",
+   "userland/capsule_settings/src/settings/section.rs",
+   "userland/capsule_settings/src/settings/state/cache.rs",
+   "userland/capsule_settings/src/settings/state/edit_buffer.rs",
+   "userland/capsule_settings/src/settings/state/edit_paste.rs",
+   "userland/capsule_settings/src/settings/state/machine_key.rs",
+   "userland/capsule_settings/src/settings/state/wifi_cursor.rs",
+   "userland/capsule_settings/src/settings/state/wifi_pending.rs",
+   "userland/capsule_settings/src/settings/state/wifi_refusal.rs",
+   "userland/capsule_settings/src/settings/ui/field_note_user.rs",
+   "userland/capsule_settings/src/settings/ui/valbuf.rs",
+   "userland/capsule_settings/src/wifi/interface.rs",
+   "userland/capsule_settings/src/wifi/net_poll.rs",
+   "userland/capsule_settings/src/wifi/panel.rs",
+   "userland/capsule_settings_proofs",
+   "userland/capsule_setup_wizard/src/qwen/labels.rs",
+   "userland/libc",
+   "userland/nonos_seal",
+   "userland/nonos_wifi_client/src/join_wire.rs",
+   "userland/nonos_wifi_client/src/network.rs",
+   "userland/nonos_wifi_client/src/saved/error.rs",
+   "userland/nonos_wifi_client/src/saved/file.rs",
+   "userland/nonos_wifi_client/src/saved/list.rs",
+   "userland/nonos_wifi_client/src/saved/list_codec.rs",
+   "userland/nonos_wifi_client/src/wipe.rs",
+   "userland/nonos_wifi_client/src/wire.rs",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_setup_wizard": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "VERSION",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand",
+   "userland/capsule_linux/src/linux/file/models",
+   "userland/capsule_linux/src/linux/install/tcg.rs",
+   "userland/capsule_model_fetch/src/default_tier.rs",
+   "userland/capsule_model_fetch/src/need.rs",
+   "userland/capsule_setup_wizard",
+   "userland/libc",
+   "userland/nonos_keymap",
+   "userland/nonos_seal",
+   "userland/nonos_wifi_client",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_shield": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_shield",
+   "userland/libc",
+   "userland/nonos_hash",
+   "userland/nonos_hd",
+   "userland/nonos_route_link",
+   "userland/nonos_seal",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/nonos_vault",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/shield_core",
+   "userland/shield_wire",
+   "userland/wallet_proofs/fixtures/nox1-phone.txt",
+   "userland/wallet_proofs/fixtures/nox1-pinned.txt"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_shield_vectors": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_shield_vectors",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_snake": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_snake",
+   "userland/libc",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_socks5": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_socks5",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_socks5_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_socks5/src/conn",
+   "userland/capsule_socks5/src/manager",
+   "userland/capsule_socks5/src/nym/batch.rs",
+   "userland/capsule_socks5/src/nym/choose.rs",
+   "userland/capsule_socks5/src/nym/watch.rs",
+   "userland/capsule_socks5/src/server/clients.rs",
+   "userland/capsule_socks5/src/server/gather.rs",
+   "userland/capsule_socks5/src/server/inbox.rs",
+   "userland/capsule_socks5/src/server/kept.rs",
+   "userland/capsule_socks5/src/server/parked.rs",
+   "userland/capsule_socks5/src/server/reply.rs",
+   "userland/capsule_socks5/src/server/request.rs",
+   "userland/capsule_socks5/src/server/who.rs",
+   "userland/capsule_socks5/src/tunnel",
+   "userland/capsule_socks5/src/wire",
+   "userland/capsule_socks5_proofs",
+   "userland/nonos_route_link/src/answer.rs",
+   "userland/nonos_route_link/src/frame.rs",
+   "userland/nonos_route_link/src/pick.rs",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_std_proof": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_std_proof"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_terminal": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "VERSION",
+   "nonos-bench",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/base64",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_model_fetch/src/default_tier.rs",
+   "userland/capsule_model_fetch/src/need.rs",
+   "userland/capsule_model_fetch/src/tiers/memory.rs",
+   "userland/capsule_terminal",
+   "userland/inflate",
+   "userland/libc",
+   "userland/market_proto",
+   "userland/nonos_git",
+   "userland/nonos_http",
+   "userland/nonos_route_link",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/nonos_vt",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_text_editor": {
+  "exclude": [
+   "userland/capsule_text_editor/layout_tests",
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_text_editor",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_vfs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_vfs",
+   "userland/libc",
+   "userland/nonos_disk_map",
+   "userland/policy_client",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_video_player": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_video_player",
+   "userland/libc",
+   "userland/nonos_avi",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_wallet_nonos": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/etna/etna-0b0046f5f585.png",
+   "userland/assets/etna/etna-32f5aa765d0e.png",
+   "userland/assets/etna/etna-387f21b9dbd2.png",
+   "userland/assets/etna/etna-460f26b9c468.png",
+   "userland/assets/etna/etna-4bb30d031341.png",
+   "userland/assets/etna/etna-90380f7829df.png",
+   "userland/assets/etna/etna-a0754afa8556.png",
+   "userland/assets/etna/etna-fcb6fdda9325.png",
+   "userland/assets/fonts/Geist-Medium.ttf",
+   "userland/assets/fonts/Geist-Regular.ttf",
+   "userland/assets/fonts/Geist-SemiBold.ttf",
+   "userland/assets/fonts/JetBrainsMono-Regular.ttf",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_wallet_nonos",
+   "userland/libc",
+   "userland/nonos_hash",
+   "userland/nonos_hd",
+   "userland/nonos_qr",
+   "userland/nonos_route_link",
+   "userland/nonos_seal",
+   "userland/nonos_socket",
+   "userland/nonos_tls",
+   "userland/policy_client",
+   "userland/policy_proto",
+   "userland/shield_wire",
+   "userland/toolkit",
+   "userland/wallet_proofs/fixtures/nox1-phone.txt",
+   "userland/wallet_proofs/fixtures/nox1-pinned.txt"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_wallpaper": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-data/wallpapers/special-variant-9.jpg",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/assets/icons",
+   "userland/capsule_wallpaper",
+   "userland/libc",
+   "userland/policy_proto",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_wallpaper_catalog": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_wallpaper_catalog",
+   "userland/libc",
+   "userland/nonos_hash",
+   "userland/nonos_wallpapers",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/capsule_wm": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_wm",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/cdc_ecm_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_cdc_ecm/src/ecm",
+   "userland/cdc_ecm_proofs",
+   "userland/nonos_usbnet/src/bind.rs",
+   "userland/nonos_usbnet/src/bus.rs",
+   "userland/nonos_usbnet/src/desc",
+   "userland/nonos_usbnet/src/found.rs",
+   "userland/nonos_usbnet/src/halt.rs",
+   "userland/nonos_usbnet/src/nic.rs",
+   "userland/nonos_usbnet/src/nnet",
+   "userland/nonos_usbnet/src/scan/book.rs",
+   "userland/nonos_usbnet/src/scan/port.rs",
+   "userland/nonos_usbnet/src/setup.rs",
+   "userland/nonos_usbnet/src/xhci/wire.rs",
+   "userland/usbnet_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/cdc_ncm_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_cdc_ncm/src/ncm",
+   "userland/cdc_ncm_proofs",
+   "userland/nonos_usbnet/src/bind.rs",
+   "userland/nonos_usbnet/src/bus.rs",
+   "userland/nonos_usbnet/src/desc",
+   "userland/nonos_usbnet/src/found.rs",
+   "userland/nonos_usbnet/src/halt.rs",
+   "userland/nonos_usbnet/src/nic.rs",
+   "userland/nonos_usbnet/src/nnet",
+   "userland/nonos_usbnet/src/scan/book.rs",
+   "userland/nonos_usbnet/src/scan/port.rs",
+   "userland/nonos_usbnet/src/setup.rs",
+   "userland/nonos_usbnet/src/xhci/wire.rs",
+   "userland/usbnet_proofs",
+   "userland/xhci_proofs/libc_shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/clipboard_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_clipboard/src/protocol",
+   "userland/capsule_clipboard/src/server/handlers",
+   "userland/capsule_clipboard/src/server/respond.rs",
+   "userland/capsule_clipboard/src/state",
+   "userland/clipboard_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/clock_resolve_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/x86_64/cpu/frequency_pick.rs",
+   "src/arch/x86_64/time/tsc/calibration/math.rs",
+   "src/sys/clock/resolve.rs",
+   "userland/clock_resolve_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/compositor": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/compositor",
+   "userland/libc"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/compositor_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/compositor/src/frame_pacer/compose.rs",
+   "userland/compositor/src/frame_pacer/cursor.rs",
+   "userland/compositor/src/frame_pacer/drain_damage.rs",
+   "userland/compositor/src/protocol",
+   "userland/compositor/src/setup/canvas_floor.rs",
+   "userland/compositor/src/state/attach.rs",
+   "userland/compositor/src/state/damage.rs",
+   "userland/compositor/src/state/raise_rule.rs",
+   "userland/compositor/src/state/scene",
+   "userland/compositor/src/state/scene_raise.rs",
+   "userland/compositor/src/state/scene_remove.rs",
+   "userland/compositor/src/state/scene_submit.rs",
+   "userland/compositor/src/state/visible.rs",
+   "userland/compositor/src/sw_blitter",
+   "userland/compositor_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/crypto_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-boot-measure/src/tests/fixture/boot_root.approval",
+   "nonos-boot-measure/src/tests/fixture/boot_root.pub",
+   "src/crypto/asymmetric/curve25519",
+   "src/crypto/asymmetric/ed25519",
+   "src/crypto/asymmetric/p256",
+   "src/crypto/asymmetric/p384",
+   "src/crypto/asymmetric/rsa",
+   "src/crypto/error.rs",
+   "src/crypto/hash/blake3",
+   "src/crypto/hash/sha3",
+   "src/crypto/hash/sha384.rs",
+   "src/crypto/hash/sha512",
+   "src/crypto/hash/unified/hkdf.rs",
+   "src/crypto/hash/unified/hmac.rs",
+   "src/crypto/hash/unified/sha256.rs",
+   "src/crypto/symmetric/aes",
+   "src/crypto/symmetric/aes_gcm",
+   "src/crypto/symmetric/chacha20poly1305",
+   "src/crypto/util/bigint",
+   "src/crypto/util/constant_time",
+   "src/security/capsule_attest/layout.rs",
+   "src/security/local_build/trailer.rs",
+   "userland/crypto_proofs",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/deadline_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/deadline_proofs",
+   "userland/libc/src/time/deadline.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/desktop_proofs": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-data/trust/capsules",
+   "src/userspace",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/audio_proto",
+   "userland/capsule_desktop_shell/src/protocol/limits.rs",
+   "userland/capsule_desktop_shell/src/render/layout.rs",
+   "userland/capsule_desktop_shell/src/render/shadow_reach.rs",
+   "userland/capsule_desktop_shell/src/render/ui_font.rs",
+   "userland/capsule_desktop_shell/src/render/whole_frame.rs",
+   "userland/capsule_desktop_shell/src/server/desktop/home.rs",
+   "userland/capsule_desktop_shell/src/server/runner/tick.rs",
+   "userland/capsule_desktop_shell/src/state/apps.rs",
+   "userland/capsule_desktop_shell/src/state/delete_prompt.rs",
+   "userland/capsule_desktop_shell/src/state/dialog_keys.rs",
+   "userland/capsule_desktop_shell/src/state/grab_rule.rs",
+   "userland/capsule_desktop_shell/src/state/indicators/battery_text.rs",
+   "userland/capsule_desktop_shell/src/state/indicators/clock.rs",
+   "userland/capsule_desktop_shell/src/state/instance.rs",
+   "userland/capsule_desktop_shell/src/state/launch.rs",
+   "userland/capsule_desktop_shell/src/state/launchpad_wheel.rs",
+   "userland/capsule_desktop_shell/src/state/live_prompt.rs",
+   "userland/capsule_desktop_shell/src/state/notify.rs",
+   "userland/capsule_desktop_shell/src/state/open_arg.rs",
+   "userland/capsule_desktop_shell/src/state/paste_line.rs",
+   "userland/capsule_desktop_shell/src/state/quiet_gap.rs",
+   "userland/capsule_desktop_shell/src/state/says.rs",
+   "userland/capsule_desktop_shell/src/state/scale.rs",
+   "userland/capsule_desktop_shell/src/state/store_word.rs",
+   "userland/capsule_desktop_shell/src/state/system_key.rs",
+   "userland/capsule_desktop_shell/src/state/taskbar",
+   "userland/capsule_desktop_shell/src/state/toast.rs",
+   "userland/capsule_desktop_shell/src/state/toasts.rs",
+   "userland/capsule_desktop_shell/src/state/tool_apps.rs",
+   "userland/capsule_desktop_shell/src/state/tray",
+   "userland/capsule_desktop_shell/src/state/volume.rs",
+   "userland/capsule_desktop_shell/src/state/wm_notice.rs",
+   "userland/capsule_desktop_shell/src/vfs_client/constants.rs",
+   "userland/capsule_input_router/src/route/shell_keys.rs",
+   "userland/capsule_input_router/src/state/press.rs",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_wm/src/focus",
+   "userland/capsule_wm/src/geometry",
+   "userland/capsule_wm/src/protocol/notify.rs",
+   "userland/capsule_wm/src/window/full_screen.rs",
+   "userland/capsule_wm/src/window/kind.rs",
+   "userland/capsule_wm/src/window/reopen.rs",
+   "userland/capsule_wm/src/window/table/find.rs",
+   "userland/capsule_wm/src/window/table/find_mut.rs",
+   "userland/capsule_wm/src/window/table/held_by.rs",
+   "userland/capsule_wm/src/window/table/insert.rs",
+   "userland/capsule_wm/src/window/table/new.rs",
+   "userland/capsule_wm/src/window/table/remove.rs",
+   "userland/capsule_wm/src/window/table/types.rs",
+   "userland/capsule_wm/src/window/table/windows.rs",
+   "userland/capsule_wm/src/window/window.rs",
+   "userland/capsule_wm/src/z_order",
+   "userland/compositor/src/state/damage.rs",
+   "userland/compositor/src/state/scene",
+   "userland/compositor/src/state/scene_raise.rs",
+   "userland/compositor/src/state/scene_submit.rs",
+   "userland/desktop_proofs",
+   "userland/libc",
+   "userland/toolkit",
+   "userland/wm_proofs/src/window.rs",
+   "userland/wm_proofs/src/window_table.rs"
+  ],
+  "md": [],
+  "signed": [
+   "nonos-data/trust/capsules/shield_vectors.manifest.bin",
+   "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+  ]
+ },
+ "userland/dhcp_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_dhcp/src/protocol",
+   "userland/capsule_net_dhcp/src/server/parse_req.rs",
+   "userland/capsule_net_dhcp/src/server/respond.rs",
+   "userland/dhcp_proofs",
+   "userland/net_proofs/shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/dns_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_dns/src/dns",
+   "userland/capsule_net_dns/src/protocol",
+   "userland/capsule_net_dns/src/server/authz.rs",
+   "userland/capsule_net_dns/src/server/handlers",
+   "userland/capsule_net_dns/src/server/parse_req.rs",
+   "userland/capsule_net_dns/src/server/respond.rs",
+   "userland/capsule_net_dns/src/state.rs",
+   "userland/capsule_net_dns/src/udp_client",
+   "userland/dns_proofs",
+   "userland/net_proofs/shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/download_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/download_proofs",
+   "userland/nonos_download"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/driver_proofs": {
+  "exclude": [
+   "userland/driver_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "src/syscall/microkernel/errnos.rs",
+   "userland/capsule_driver_ahci/src/constants",
+   "userland/capsule_driver_ahci/src/protocol",
+   "userland/capsule_driver_ahci/src/server/handlers/rw_parse.rs",
+   "userland/driver_proofs",
+   "userland/libc/src/bringup/policy.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/e1000_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_e1000/src/constants",
+   "userland/capsule_driver_e1000/src/init/finish.rs",
+   "userland/capsule_driver_e1000/src/init/hold.rs",
+   "userland/capsule_driver_e1000/src/init/link_up.rs",
+   "userland/capsule_driver_e1000/src/init/mac_filter.rs",
+   "userland/capsule_driver_e1000/src/init/reset.rs",
+   "userland/capsule_driver_e1000/src/init/run.rs",
+   "userland/capsule_driver_e1000/src/init/rx_setup.rs",
+   "userland/capsule_driver_e1000/src/init/station_address.rs",
+   "userland/capsule_driver_e1000/src/init/tx_setup.rs",
+   "userland/capsule_driver_e1000/src/protocol",
+   "userland/capsule_driver_e1000/src/queue",
+   "userland/capsule_driver_e1000/src/regs.rs",
+   "userland/capsule_driver_e1000/src/report",
+   "userland/capsule_driver_e1000/src/setup/driver.rs",
+   "userland/e1000_proofs",
+   "userland/nonos_devmodel",
+   "userland/nonos_mac"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/e1000e_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_e1000e/src/constants",
+   "userland/capsule_driver_e1000e/src/init/cfg_done.rs",
+   "userland/capsule_driver_e1000e/src/init/errata.rs",
+   "userland/capsule_driver_e1000e/src/init/finish.rs",
+   "userland/capsule_driver_e1000e/src/init/flush_rings.rs",
+   "userland/capsule_driver_e1000e/src/init/flush_rx.rs",
+   "userland/capsule_driver_e1000e/src/init/flush_tx.rs",
+   "userland/capsule_driver_e1000e/src/init/hw_bits_82574.rs",
+   "userland/capsule_driver_e1000e/src/init/hw_bits_pch.rs",
+   "userland/capsule_driver_e1000e/src/init/interconnect.rs",
+   "userland/capsule_driver_e1000e/src/init/k1.rs",
+   "userland/capsule_driver_e1000e/src/init/lanphypc.rs",
+   "userland/capsule_driver_e1000e/src/init/link.rs",
+   "userland/capsule_driver_e1000e/src/init/mac_filter.rs",
+   "userland/capsule_driver_e1000e/src/init/pch_prepare.rs",
+   "userland/capsule_driver_e1000e/src/init/phy_reset.rs",
+   "userland/capsule_driver_e1000e/src/init/post_phy_reset.rs",
+   "userland/capsule_driver_e1000e/src/init/post_reset.rs",
+   "userland/capsule_driver_e1000e/src/init/quiesce.rs",
+   "userland/capsule_driver_e1000e/src/init/reset.rs",
+   "userland/capsule_driver_e1000e/src/init/reset_block.rs",
+   "userland/capsule_driver_e1000e/src/init/run.rs",
+   "userland/capsule_driver_e1000e/src/init/rx_setup.rs",
+   "userland/capsule_driver_e1000e/src/init/station_address.rs",
+   "userland/capsule_driver_e1000e/src/init/tx_setup.rs",
+   "userland/capsule_driver_e1000e/src/init/ulp.rs",
+   "userland/capsule_driver_e1000e/src/init/ulp_host.rs",
+   "userland/capsule_driver_e1000e/src/log",
+   "userland/capsule_driver_e1000e/src/phy",
+   "userland/capsule_driver_e1000e/src/protocol",
+   "userland/capsule_driver_e1000e/src/queue",
+   "userland/capsule_driver_e1000e/src/regs.rs",
+   "userland/capsule_driver_e1000e/src/server/link_log.rs",
+   "userland/capsule_driver_e1000e/src/setup/driver.rs",
+   "userland/capsule_driver_e1000e/src/swflag",
+   "userland/capsule_driver_e1000e/src/wait.rs",
+   "userland/e1000e_proofs",
+   "userland/nonos_devmodel",
+   "userland/nonos_mac"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/editor_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_text_editor/src/doc",
+   "userland/capsule_text_editor/src/editor",
+   "userland/editor_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/emmc_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ahci/src/constants/ata.rs",
+   "userland/capsule_driver_ahci/src/emmc/disk",
+   "userland/capsule_driver_ahci/src/emmc/env",
+   "userland/capsule_driver_ahci/src/emmc/error",
+   "userland/capsule_driver_ahci/src/emmc/info",
+   "userland/capsule_driver_ahci/src/emmc/mmc",
+   "userland/capsule_driver_ahci/src/emmc/pci",
+   "userland/capsule_driver_ahci/src/emmc/sdhci",
+   "userland/capsule_driver_ahci/src/emmc/text",
+   "userland/capsule_driver_ahci/src/protocol/identify_reply.rs",
+   "userland/capsule_driver_ahci/src/protocol/ops.rs",
+   "userland/emmc_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/equix_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/equix_proofs",
+   "userland/nonos_equix"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/fs_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-boot-measure/src/tests/fixture/boot_root.approval",
+   "nonos-boot-measure/src/tests/fixture/boot_root.pub",
+   "nonos-data/trust/capsules/hello.manifest.bin",
+   "nonos-data/trust/capsules/hello.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/hello.zk_trailer.bin",
+   "nonos-data/wallpapers",
+   "src/crypto/asymmetric/curve25519",
+   "src/crypto/asymmetric/ed25519",
+   "src/crypto/asymmetric/p256",
+   "src/crypto/asymmetric/p384",
+   "src/crypto/asymmetric/rsa",
+   "src/crypto/error.rs",
+   "src/crypto/hash/blake3",
+   "src/crypto/hash/sha3",
+   "src/crypto/hash/sha384.rs",
+   "src/crypto/hash/sha512",
+   "src/crypto/hash/unified/hkdf.rs",
+   "src/crypto/hash/unified/hmac.rs",
+   "src/crypto/hash/unified/sha256.rs",
+   "src/crypto/symmetric/aes",
+   "src/crypto/symmetric/aes_gcm",
+   "src/crypto/symmetric/chacha20poly1305",
+   "src/crypto/util/argon2",
+   "src/crypto/util/bigint",
+   "src/crypto/util/constant_time",
+   "src/fs/blockfs/dir_block.rs",
+   "src/fs/blockfs/dir_block_header.rs",
+   "src/fs/blockfs/dir_consts.rs",
+   "src/fs/blockfs/dir_name_match.rs",
+   "src/fs/blockfs/file_cache.rs",
+   "src/fs/blockfs/file_consts.rs",
+   "src/fs/blockfs/index_block.rs",
+   "src/fs/blockfs/read_u32.rs",
+   "src/fs/blockfs/read_u64.rs",
+   "src/fs/blockfs/tree_ptrs.rs",
+   "src/fs/blockfs/tree_range.rs",
+   "src/fs/blockfs/tree_reader.rs",
+   "src/fs/blockfs/tree_shape.rs",
+   "src/fs/blockfs/tree_store.rs",
+   "src/fs/blockfs/tree_writer.rs",
+   "src/fs/blockfs/tree_writer_end.rs",
+   "src/fs/blockfs/write_u32.rs",
+   "src/fs/blockfs/write_u64.rs",
+   "src/fs/blockfs_volume/import_feed/hash.rs",
+   "src/fs/blockfs_volume/import_feed/hash_save.rs",
+   "src/fs/blockfs_volume/import_guard/name.rs",
+   "src/fs/blockfs_volume/key_header.rs",
+   "src/fs/blockfs_volume/key_seal.rs",
+   "src/fs/blockfs_volume/plan.rs",
+   "src/fs/blockfs_volume/plan_types.rs",
+   "src/fs/cryptoblock/constants.rs",
+   "src/fs/cryptoblock/sector_open.rs",
+   "src/hardware/inventory/emmc.rs",
+   "src/security/capsule_attest/layout.rs",
+   "src/security/local_build/trailer.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton/src/scroll.rs",
+   "userland/app_skeleton/src/sidecar/decode.rs",
+   "userland/app_skeleton/src/sidecar/encode.rs",
+   "userland/capsule_desktop_shell/src/state/store_word.rs",
+   "userland/capsule_desktop_shell/src/vfs_client/classify.rs",
+   "userland/capsule_desktop_shell/src/vfs_client/walk.rs",
+   "userland/capsule_driver_ahci/src/protocol/errno.rs",
+   "userland/capsule_driver_nvme/src/protocol/errno.rs",
+   "userland/capsule_file_manager/src/fm",
+   "userland/capsule_net_ip/src/ipv4/addr.rs",
+   "userland/capsule_net_ip/src/ipv4/checksum.rs",
+   "userland/capsule_net_ip/src/ipv4/header.rs",
+   "userland/capsule_net_ip/src/ipv4/parse.rs",
+   "userland/capsule_net_l2/src/ethernet/frame.rs",
+   "userland/capsule_net_l2/src/ethernet/types.rs",
+   "userland/capsule_net_udp/src/udp/build.rs",
+   "userland/capsule_net_udp/src/udp/checksum.rs",
+   "userland/capsule_net_udp/src/udp/header.rs",
+   "userland/capsule_net_udp/src/udp/parse.rs",
+   "userland/capsule_ramfs/src/handles.rs",
+   "userland/capsule_ramfs/src/protocol",
+   "userland/capsule_ramfs/src/server/dispatch.rs",
+   "userland/capsule_ramfs/src/server/handlers",
+   "userland/capsule_ramfs/src/store",
+   "userland/capsule_vfs/src/blk/client.rs",
+   "userland/capsule_vfs/src/blk/error.rs",
+   "userland/capsule_vfs/src/blk/load",
+   "userland/capsule_vfs/src/blk/patience.rs",
+   "userland/capsule_vfs/src/blk/status.rs",
+   "userland/capsule_vfs/src/blk/store.rs",
+   "userland/capsule_vfs/src/blk/store_drop.rs",
+   "userland/capsule_vfs/src/blk/store_entry.rs",
+   "userland/capsule_vfs/src/blk/store_free.rs",
+   "userland/capsule_vfs/src/blk/store_header.rs",
+   "userland/capsule_vfs/src/blk/store_patch.rs",
+   "userland/capsule_vfs/src/blk/store_remove.rs",
+   "userland/capsule_vfs/src/blk/store_replace.rs",
+   "userland/capsule_vfs/src/blk/store_room.rs",
+   "userland/capsule_vfs/src/blk/store_rules.rs",
+   "userland/capsule_vfs/src/blk/store_toc.rs",
+   "userland/capsule_vfs/src/blk/store_write.rs",
+   "userland/capsule_vfs/src/blk/streamed.rs",
+   "userland/capsule_vfs/src/blk/wire.rs",
+   "userland/capsule_vfs/src/protocol/decode.rs",
+   "userland/capsule_vfs/src/protocol/encode.rs",
+   "userland/capsule_vfs/src/protocol/errno.rs",
+   "userland/capsule_vfs/src/protocol/types.rs",
+   "userland/capsule_vfs/src/server/dispatch.rs",
+   "userland/capsule_vfs/src/server/fs_gate",
+   "userland/capsule_vfs/src/server/handlers/journal.rs",
+   "userland/capsule_vfs/src/server/handlers/path",
+   "userland/capsule_vfs/src/server/handlers/search.rs",
+   "userland/capsule_vfs/src/server/handlers/util.rs",
+   "userland/capsule_vfs/src/store/fdtable",
+   "userland/capsule_vfs/src/testassets",
+   "userland/capsule_vfs/testimages",
+   "userland/crypto_proofs",
+   "userland/fs_proofs",
+   "userland/nonos_blk_client/src/device/identity_parse.rs",
+   "userland/nonos_blk_client/src/device/span.rs",
+   "userland/nonos_blk_client/src/disks/contents.rs",
+   "userland/nonos_blk_client/src/disks/word.rs",
+   "userland/nonos_blk_client/src/driver/pci.rs",
+   "userland/nonos_blk_client/src/status_text.rs",
+   "userland/nonos_disk",
+   "userland/nonos_disk_map",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_wallpapers",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/hda_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_hda/src/audio/periods.rs",
+   "userland/capsule_driver_hda/src/constants",
+   "userland/capsule_driver_hda/src/controller/bdl.rs",
+   "userland/capsule_driver_hda/src/controller/codec",
+   "userland/capsule_driver_hda/src/controller/codec_probe.rs",
+   "userland/capsule_driver_hda/src/controller/compose.rs",
+   "userland/capsule_driver_hda/src/controller/corb.rs",
+   "userland/capsule_driver_hda/src/controller/dma_sync.rs",
+   "userland/capsule_driver_hda/src/controller/info.rs",
+   "userland/capsule_driver_hda/src/controller/intel.rs",
+   "userland/capsule_driver_hda/src/controller/position.rs",
+   "userland/capsule_driver_hda/src/controller/reset.rs",
+   "userland/capsule_driver_hda/src/controller/sst.rs",
+   "userland/capsule_driver_hda/src/controller/stream_layout.rs",
+   "userland/capsule_driver_hda/src/controller/stream_run.rs",
+   "userland/capsule_driver_hda/src/controller/streams.rs",
+   "userland/capsule_driver_hda/src/controller/verb.rs",
+   "userland/capsule_driver_hda/src/controller/verdict.rs",
+   "userland/capsule_driver_hda/src/controller/verdict_name.rs",
+   "userland/capsule_driver_hda/src/controller/wait.rs",
+   "userland/capsule_driver_hda/src/error",
+   "userland/capsule_driver_hda/src/protocol",
+   "userland/capsule_driver_hda/src/regs",
+   "userland/capsule_driver_hda/src/setup/irq_plan.rs",
+   "userland/hda_proofs",
+   "userland/nonos_devmodel"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/http_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/http_proofs",
+   "userland/nonos_http"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/i2c_hid_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_i2c_hid/src/diag.rs",
+   "userland/capsule_driver_i2c_hid/src/hid",
+   "userland/capsule_driver_i2c_hid/src/i2c_client",
+   "userland/capsule_driver_i2c_hid/src/input",
+   "userland/capsule_driver_i2c_hid/src/protocol",
+   "userland/capsule_driver_i2c_hid/src/setup.rs",
+   "userland/capsule_driver_i2c_hid/src/state",
+   "userland/capsule_driver_i2c_pci/src/constants",
+   "userland/capsule_driver_i2c_pci/src/driver.rs",
+   "userland/capsule_driver_i2c_pci/src/init",
+   "userland/capsule_driver_i2c_pci/src/protocol",
+   "userland/capsule_driver_i2c_pci/src/server/handlers/transfer.rs",
+   "userland/capsule_driver_i2c_pci/src/server/respond.rs",
+   "userland/capsule_driver_i2c_pci/src/transaction",
+   "userland/i2c_hid_proofs",
+   "userland/i2c_proofs_libc_shim",
+   "userland/i2c_transfer_proofs",
+   "userland/nonos_i2cmodel"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/i2c_pci_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_i2c_pci/src/constants",
+   "userland/capsule_driver_i2c_pci/src/driver.rs",
+   "userland/capsule_driver_i2c_pci/src/init",
+   "userland/capsule_driver_i2c_pci/src/protocol",
+   "userland/capsule_driver_i2c_pci/src/regs.rs",
+   "userland/capsule_driver_i2c_pci/src/transaction",
+   "userland/i2c_pci_proofs",
+   "userland/i2c_proofs_libc_shim",
+   "userland/nonos_devmodel",
+   "userland/nonos_pinctrl"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/i2c_transfer_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_i2c_pci/src/constants",
+   "userland/capsule_driver_i2c_pci/src/driver.rs",
+   "userland/capsule_driver_i2c_pci/src/init",
+   "userland/capsule_driver_i2c_pci/src/protocol",
+   "userland/capsule_driver_i2c_pci/src/server/handlers/transfer.rs",
+   "userland/capsule_driver_i2c_pci/src/server/respond.rs",
+   "userland/capsule_driver_i2c_pci/src/transaction",
+   "userland/i2c_proofs_libc_shim",
+   "userland/i2c_transfer_proofs",
+   "userland/nonos_i2cmodel"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/igc_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_igc/src/constants",
+   "userland/capsule_driver_igc/src/init",
+   "userland/capsule_driver_igc/src/link",
+   "userland/capsule_driver_igc/src/log",
+   "userland/capsule_driver_igc/src/protocol",
+   "userland/capsule_driver_igc/src/queue",
+   "userland/capsule_driver_igc/src/regs.rs",
+   "userland/capsule_driver_igc/src/setup/driver.rs",
+   "userland/capsule_driver_igc/src/setup/pci_command.rs",
+   "userland/igc_proofs",
+   "userland/nonos_devmodel",
+   "userland/nonos_mac"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/image_codec_proofs": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/assets/icons",
+   "userland/capsule_browser_proofs/fixtures/img/gray_prog.jpg",
+   "userland/capsule_browser_proofs/fixtures/img/prog_420.jpg",
+   "userland/capsule_image_codec/src/protocol",
+   "userland/capsule_image_codec/src/server/handlers/decode_sized.rs",
+   "userland/capsule_image_codec/src/server/outputs.rs",
+   "userland/image_codec_proofs",
+   "userland/image_paint_proofs/fixtures/misc/alphabf32.bmp",
+   "userland/image_paint_proofs/fixtures/misc/b_1bit.bmp",
+   "userland/image_paint_proofs/fixtures/misc/bf16_565.bmp",
+   "userland/image_paint_proofs/fixtures/misc/g_basic.gif",
+   "userland/image_paint_proofs/fixtures/misc/g_transparent.gif",
+   "userland/image_paint_proofs/fixtures/misc/gif_interlace_1x65535_43B.gif",
+   "userland/image_paint_proofs/fixtures/misc/p_gray16.png",
+   "userland/image_paint_proofs/fixtures/pngsuite/basn0g02.png",
+   "userland/image_paint_proofs/fixtures/pngsuite/s01i3p01.png",
+   "userland/image_paint_proofs/fixtures/pngsuite/tm3n3p02.png",
+   "userland/libc",
+   "userland/toolkit",
+   "userland/toolkit/image_tests/tests/fixtures/edge16.jpg"
+  ],
+  "md": [
+   "userland/toolkit/image_tests/tests/fixtures/edge16.jpg"
+  ],
+  "signed": []
+ },
+ "userland/image_paint_proofs": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/base64",
+   "userland/capsule_browser/src/browser/css",
+   "userland/capsule_browser/src/browser/dom",
+   "userland/capsule_browser/src/browser/fonts",
+   "userland/capsule_browser/src/browser/html",
+   "userland/capsule_browser/src/browser/image",
+   "userland/capsule_browser/src/browser/layout",
+   "userland/capsule_browser/src/browser/manifest.rs",
+   "userland/capsule_browser/src/browser/paint/grad",
+   "userland/capsule_browser/src/browser/paint/mask_weights.rs",
+   "userland/capsule_browser/src/browser/paint/screen_y.rs",
+   "userland/capsule_browser/src/browser/url",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/image_paint_proofs",
+   "userland/inflate",
+   "userland/libc",
+   "userland/nonos_brotli",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/input_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_i2c_hid/src/hid/report_desc",
+   "userland/capsule_driver_i2c_hid/src/input/gesture",
+   "userland/capsule_driver_i2c_hid/src/input/parse_report.rs",
+   "userland/capsule_driver_i2c_hid/src/input/sample.rs",
+   "userland/capsule_driver_ps2_input/src/keymap/set1/keycodes.rs",
+   "userland/capsule_driver_ps2_input/src/mouse/axis.rs",
+   "userland/capsule_driver_ps2_input/src/mouse/event.rs",
+   "userland/capsule_driver_ps2_input/src/mouse/packet.rs",
+   "userland/capsule_driver_ps2_input/src/mouse/post.rs",
+   "userland/capsule_driver_usb_hid/src/hid/keyboard/repeat",
+   "userland/capsule_driver_usb_hid/src/hid/usage_keycode",
+   "userland/capsule_input_router/src/clients/wm/types.rs",
+   "userland/capsule_input_router/src/protocol/decode.rs",
+   "userland/capsule_input_router/src/protocol/delivery.rs",
+   "userland/capsule_input_router/src/protocol/encode.rs",
+   "userland/capsule_input_router/src/protocol/errno.rs",
+   "userland/capsule_input_router/src/protocol/header.rs",
+   "userland/capsule_input_router/src/protocol/limits.rs",
+   "userland/capsule_input_router/src/protocol/ops.rs",
+   "userland/capsule_input_router/src/protocol/read_u32.rs",
+   "userland/capsule_input_router/src/route",
+   "userland/capsule_input_router/src/state",
+   "userland/compositor/src/state/damage.rs",
+   "userland/input_proofs",
+   "userland/nonos_keymap"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/ip_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_ip/src/chaos.rs",
+   "userland/capsule_net_ip/src/egress",
+   "userland/capsule_net_ip/src/icmp",
+   "userland/capsule_net_ip/src/ingress.rs",
+   "userland/capsule_net_ip/src/ipv4",
+   "userland/capsule_net_ip/src/l2_client",
+   "userland/capsule_net_ip/src/protocol",
+   "userland/capsule_net_ip/src/route",
+   "userland/capsule_net_ip/src/server/authz.rs",
+   "userland/capsule_net_ip/src/server/handlers",
+   "userland/capsule_net_ip/src/server/parse_req.rs",
+   "userland/capsule_net_ip/src/server/respond.rs",
+   "userland/capsule_net_ip/src/state",
+   "userland/ip_proofs",
+   "userland/net_proofs/shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/iwlwifi_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-bootloader/firmware/intel/iwlwifi-7265D-29.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-so-a0-gf-a0-86.ucode",
+   "nonos-bootloader/firmware/intel/iwlwifi-so-a0-hr-b0-84.ucode",
+   "userland/capsule_driver_iwlwifi/src/ccmp/aes.rs",
+   "userland/capsule_driver_iwlwifi/src/ccmp/ccm.rs",
+   "userland/capsule_driver_iwlwifi/src/ccmp/keywrap.rs",
+   "userland/capsule_driver_iwlwifi/src/constants",
+   "userland/capsule_driver_iwlwifi/src/dot11/data.rs",
+   "userland/capsule_driver_iwlwifi/src/dot11/header.rs",
+   "userland/capsule_driver_iwlwifi/src/dot11/mgmt.rs",
+   "userland/capsule_driver_iwlwifi/src/dot11/parse.rs",
+   "userland/capsule_driver_iwlwifi/src/eapol/build.rs",
+   "userland/capsule_driver_iwlwifi/src/eapol/mic.rs",
+   "userland/capsule_driver_iwlwifi/src/eapol/parse.rs",
+   "userland/capsule_driver_iwlwifi/src/firmware/family.rs",
+   "userland/capsule_driver_iwlwifi/src/firmware/gen3",
+   "userland/capsule_driver_iwlwifi/src/firmware/generation.rs",
+   "userland/capsule_driver_iwlwifi/src/firmware/load.rs",
+   "userland/capsule_driver_iwlwifi/src/firmware/tlv.rs",
+   "userland/capsule_driver_iwlwifi/src/hcmd/doorbell.rs",
+   "userland/capsule_driver_iwlwifi/src/hcmd/header.rs",
+   "userland/capsule_driver_iwlwifi/src/hcmd/ring.rs",
+   "userland/capsule_driver_iwlwifi/src/hcmd/send.rs",
+   "userland/capsule_driver_iwlwifi/src/hcmd/tfd.rs",
+   "userland/capsule_driver_iwlwifi/src/init.rs",
+   "userland/capsule_driver_iwlwifi/src/mlme",
+   "userland/capsule_driver_iwlwifi/src/pci_match.rs",
+   "userland/capsule_driver_iwlwifi/src/protocol",
+   "userland/capsule_driver_iwlwifi/src/regs.rs",
+   "userland/capsule_driver_iwlwifi/src/rx/packet.rs",
+   "userland/capsule_driver_iwlwifi/src/rx/recv.rs",
+   "userland/capsule_driver_iwlwifi/src/rx/ring.rs",
+   "userland/capsule_driver_iwlwifi/src/server/control.rs",
+   "userland/capsule_driver_iwlwifi/src/server/guard.rs",
+   "userland/capsule_driver_iwlwifi/src/server/join_wire.rs",
+   "userland/capsule_driver_iwlwifi/src/setup/grants.rs",
+   "userland/capsule_driver_iwlwifi/src/setup/irq_plan.rs",
+   "userland/capsule_driver_iwlwifi/src/wpa/hmac.rs",
+   "userland/capsule_driver_iwlwifi/src/wpa/pbkdf2.rs",
+   "userland/capsule_driver_iwlwifi/src/wpa/prf.rs",
+   "userland/capsule_driver_iwlwifi/src/wpa/ptk.rs",
+   "userland/capsule_driver_iwlwifi/src/wpa/sha1.rs",
+   "userland/capsule_driver_iwlwifi/src/wpa/supplicant",
+   "userland/iwlwifi_proofs",
+   "userland/nonos_wifi_client/src/driver/services.rs",
+   "userland/nonos_wifi_client/src/join_wire.rs",
+   "userland/nonos_wifi_client/src/network.rs",
+   "userland/nonos_wifi_core",
+   "userland/nonos_wifi_core_proofs/src/ap_sim.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/kernel_proofs": {
+  "exclude": [
+   "userland/kernel_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-bootloader/src/paging/constants.rs",
+   "nonos-bootloader/src/paging/fb_window.rs",
+   "nonos-data/trust/capsules",
+   "nonos-data/trust/policy/nonos_trust_anchor.policy.bin",
+   "nonos-data/trust/policy/zk_capsule_policy_root.bin",
+   "src",
+   "userland/capsule_driver_usb_msc/src/scan/report.rs",
+   "userland/kernel_proofs",
+   "userland/libc/src/bringup/policy.rs",
+   "userland/libc/src/broker/dma_lines.rs"
+  ],
+  "md": [],
+  "signed": [
+   "nonos-data/trust/capsules/shield_vectors.manifest.bin",
+   "nonos-data/trust/capsules/shield_vectors.nonos_id_cert.bin",
+   "nonos-data/trust/capsules/shield_vectors.zk_trailer.bin"
+  ]
+ },
+ "userland/l2_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_l2/src/protocol",
+   "userland/capsule_net_l2/src/server/respond",
+   "userland/l2_proofs",
+   "userland/net_proofs/shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/login_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_login/src/protocol/errno.rs",
+   "userland/capsule_login/src/state",
+   "userland/login_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/market_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_app_store/src/store/fill_order.rs",
+   "userland/capsule_app_store/src/store/listing.rs",
+   "userland/capsule_app_store/src/store/market/failure.rs",
+   "userland/capsule_app_store/src/store/next_step.rs",
+   "userland/capsule_app_store/src/store/progress.rs",
+   "userland/capsule_app_store/src/store/refused.rs",
+   "userland/capsule_app_store/src/store/search.rs",
+   "userland/capsule_app_store/src/store/tab.rs",
+   "userland/capsule_linux/src/linux/install/why.rs",
+   "userland/capsule_market/src/install_ready/arch.rs",
+   "userland/capsule_market/src/install_ready/checks.rs",
+   "userland/capsule_market/src/protocol",
+   "userland/capsule_market/src/server/handlers/get_app/read_lp_string.rs",
+   "userland/capsule_market/src/server/handlers/get_release/encode_release.rs",
+   "userland/capsule_market/src/server/handlers/get_release/parse_pair.rs",
+   "userland/capsule_market/src/server/handlers/get_release/take_lp.rs",
+   "userland/capsule_market/src/server/handlers/get_release/write_lp_string.rs",
+   "userland/capsule_market/src/server/handlers/install_ready/find_release.rs",
+   "userland/capsule_terminal/src/command/builtin/market/wrap.rs",
+   "userland/market_proofs",
+   "userland/market_proto",
+   "userland/marketplace_abi"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/mechanism_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/arch/x86_64/context/rflags.rs",
+   "src/arch/x86_64/iommu/regs/cap",
+   "src/arch/x86_64/iommu/tables/context.rs",
+   "src/arch/x86_64/iommu/tables/sl_pte.rs",
+   "src/capabilities/chain/constants.rs",
+   "src/capabilities/delegation/lifetime.rs",
+   "src/capabilities/resource/limits.rs",
+   "src/capabilities/resource/nonce_compose.rs",
+   "src/drivers/security/mmio_range.rs",
+   "src/elf/reloc/apply/range.rs",
+   "src/ipc/nonos_channel/limits.rs",
+   "src/kernel_core/surface_registry/ring_math.rs",
+   "src/memory/buddy_alloc/constants/helpers.rs",
+   "src/memory/buddy_alloc/constants/orders.rs",
+   "src/memory/buddy_alloc/constants/sizes.rs",
+   "src/memory/layout/constants/canonical.rs",
+   "src/memory/page_info/manager/refcount.rs",
+   "src/memory/paging/constants/page_sizes.rs",
+   "src/memory/phys/bitmap/index.rs",
+   "src/memory/phys/constants/pages.rs",
+   "src/memory/region/overlap.rs",
+   "src/process/scheduler/policy_types.rs",
+   "src/security/capsule_manifest/verify/caps_bits.rs",
+   "userland/compositor/src/sw_blitter/row.rs",
+   "userland/libc/src/heap/zero_on_free.rs",
+   "userland/mechanism_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/model_fetch_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   ".keys/marketplace_operator_ed25519.pub",
+   "src/userspace/capsule_linux/family.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "src/userspace/init/linux_jobs/direct.rs",
+   "tools/nonos-qwen-tier.py",
+   "tools/nonos_qwen_tier",
+   "userland/capsule_app_store/src/store/model_card.rs",
+   "userland/capsule_app_store/src/store/progress.rs",
+   "userland/capsule_app_store/src/store/progress_text.rs",
+   "userland/capsule_app_store/src/store/route_offer.rs",
+   "userland/capsule_app_store/src/store/theme.rs",
+   "userland/capsule_app_store/src/store/tier_fit.rs",
+   "userland/capsule_linux/src/linux/file/family.rs",
+   "userland/capsule_linux/src/linux/file/models/hex.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_coder.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_qwen25.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_qwen25_big.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs",
+   "userland/capsule_linux/src/linux/install/apps.rs",
+   "userland/capsule_linux/src/linux/install/apps_coder.rs",
+   "userland/capsule_linux/src/linux/install/apps_qwen25.rs",
+   "userland/capsule_linux/src/linux/install/apps_qwen3.rs",
+   "userland/capsule_linux/src/linux/install/model_dep.rs",
+   "userland/capsule_linux/src/linux/install/model_remove.rs",
+   "userland/capsule_linux/src/linux/install/why.rs",
+   "userland/capsule_market/linux-guests.json",
+   "userland/capsule_model_fetch/src/catalogue",
+   "userland/capsule_model_fetch/src/errno.rs",
+   "userland/capsule_model_fetch/src/exit.rs",
+   "userland/capsule_model_fetch/src/get/anyone_wait.rs",
+   "userland/capsule_model_fetch/src/get/eta.rs",
+   "userland/capsule_model_fetch/src/get/memory_need.rs",
+   "userland/capsule_model_fetch/src/get/offer.rs",
+   "userland/capsule_model_fetch/src/get/retry.rs",
+   "userland/capsule_model_fetch/src/need.rs",
+   "userland/capsule_model_fetch/src/path.rs",
+   "userland/capsule_model_fetch/src/pins",
+   "userland/capsule_model_fetch/src/remove/plan.rs",
+   "userland/capsule_model_fetch/src/size.rs",
+   "userland/capsule_model_fetch/src/status_read.rs",
+   "userland/capsule_model_fetch/src/status_wire.rs",
+   "userland/capsule_model_fetch/src/status_write.rs",
+   "userland/capsule_terminal/src/command/builtin/qwen/help.rs",
+   "userland/market_proto",
+   "userland/model_fetch_proofs",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash",
+   "userland/nonos_route_link/src/pick.rs",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": [
+   "nonos-data/models/catalogue.bin"
+  ]
+ },
+ "userland/net_anon_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_anon/src/cell/geometry.rs",
+   "userland/capsule_net_anon/src/circuit/window.rs",
+   "userland/capsule_net_anon/src/protocol",
+   "userland/capsule_net_anon/src/server/parse_req.rs",
+   "userland/capsule_net_anon/src/server/respond.rs",
+   "userland/net_anon_proofs",
+   "userland/net_proofs/shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/net_core_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_core/src/autojoin/machine.rs",
+   "userland/capsule_net_core/src/iface/lease_wait.rs",
+   "userland/capsule_net_core/src/iface/link_watch.rs",
+   "userland/capsule_net_core/src/protocol",
+   "userland/capsule_net_core/src/server/handlers/dns/pending.rs",
+   "userland/capsule_net_core/src/server/handlers/dns/verdict.rs",
+   "userland/capsule_net_core/src/server/handlers/dns/waiting.rs",
+   "userland/capsule_net_core/src/server/handlers/tcp/connect/liveness.rs",
+   "userland/capsule_net_core/src/server/parse_req.rs",
+   "userland/capsule_net_core/src/server/respond.rs",
+   "userland/capsule_net_core/src/server/runner/refuse.rs",
+   "userland/net_core_proofs",
+   "userland/net_proofs/shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/net_proofs": {
+  "exclude": [
+   "userland/net_proofs/fuzz",
+   "userland/net_proofs/shim"
+  ],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_core/src/handles",
+   "userland/capsule_net_core/src/udp_ports",
+   "userland/capsule_net_dhcp/src/dhcp/build.rs",
+   "userland/capsule_net_dhcp/src/dhcp/constants.rs",
+   "userland/capsule_net_dhcp/src/dhcp/message.rs",
+   "userland/capsule_net_dhcp/src/dhcp/parse",
+   "userland/capsule_net_dhcp/src/frame",
+   "userland/capsule_net_dhcp/src/server/lease_admin.rs",
+   "userland/capsule_net_dns/src/dns",
+   "userland/capsule_net_ip/src/icmp/parse.rs",
+   "userland/capsule_net_ip/src/icmp/types.rs",
+   "userland/capsule_net_ip/src/ipv4/checksum.rs",
+   "userland/capsule_net_l2/src/arp/cache",
+   "userland/capsule_net_l2/src/arp/handle.rs",
+   "userland/capsule_net_l2/src/arp/packet/constants.rs",
+   "userland/capsule_net_l2/src/arp/packet/packet_type.rs",
+   "userland/capsule_net_l2/src/arp/packet/parse.rs",
+   "userland/capsule_net_l2/src/arp/packet/write.rs",
+   "userland/capsule_net_l2/src/arp/sender.rs",
+   "userland/capsule_net_l2/src/ethernet/frame.rs",
+   "userland/capsule_net_l2/src/ethernet/types.rs",
+   "userland/capsule_net_ntp/src/sntp.rs",
+   "userland/capsule_net_tcp/src/state/reasm",
+   "userland/capsule_net_tcp/src/tcp/checksum.rs",
+   "userland/capsule_net_tcp/src/tcp/header.rs",
+   "userland/capsule_net_tcp/src/tcp/options.rs",
+   "userland/capsule_net_tcp/src/tcp/parse.rs",
+   "userland/capsule_net_tcp/src/tcp/seq.rs",
+   "userland/capsule_net_udp/src/ip_client/recv/types.rs",
+   "userland/capsule_net_udp/src/state/bind.rs",
+   "userland/capsule_net_udp/src/state/table.rs",
+   "userland/capsule_net_udp/src/udp",
+   "userland/net_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_ed25519": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_ed25519",
+   "userland/nonos_hash"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_i2cmodel": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_i2cmodel"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_secp256k1": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_hash",
+   "userland/nonos_secp256k1"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nonos_wifi_core_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_wifi_core",
+   "userland/nonos_wifi_core_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nvme_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/hardware/nvme_capsule/client/lba_map.rs",
+   "userland/capsule_driver_nvme/src/admin/active_ns.rs",
+   "userland/capsule_driver_nvme/src/admin/completion.rs",
+   "userland/capsule_driver_nvme/src/admin/completion_step.rs",
+   "userland/capsule_driver_nvme/src/admin/completion_wait.rs",
+   "userland/capsule_driver_nvme/src/admin/cq_cursor.rs",
+   "userland/capsule_driver_nvme/src/admin/disable_step.rs",
+   "userland/capsule_driver_nvme/src/admin/health",
+   "userland/capsule_driver_nvme/src/admin/hmb",
+   "userland/capsule_driver_nvme/src/admin/identity.rs",
+   "userland/capsule_driver_nvme/src/admin/namespace",
+   "userland/capsule_driver_nvme/src/admin/queue/cq0_head.rs",
+   "userland/capsule_driver_nvme/src/admin/queue/sq0_tail.rs",
+   "userland/capsule_driver_nvme/src/admin/ready_step.rs",
+   "userland/capsule_driver_nvme/src/admin/ready_wait.rs",
+   "userland/capsule_driver_nvme/src/clock/budget.rs",
+   "userland/capsule_driver_nvme/src/constants",
+   "userland/capsule_driver_nvme/src/controller/info/doorbell_stride.rs",
+   "userland/capsule_driver_nvme/src/controller/info/doorbells_fit.rs",
+   "userland/capsule_driver_nvme/src/controller/info/info_type.rs",
+   "userland/capsule_driver_nvme/src/discover/choice.rs",
+   "userland/capsule_driver_nvme/src/discover/rank.rs",
+   "userland/capsule_driver_nvme/src/error",
+   "userland/capsule_driver_nvme/src/log/line",
+   "userland/capsule_driver_nvme/src/nvm/constants.rs",
+   "userland/capsule_driver_nvme/src/nvm/doorbell.rs",
+   "userland/capsule_driver_nvme/src/nvm/geometry",
+   "userland/capsule_driver_nvme/src/protocol",
+   "userland/capsule_driver_nvme/src/regs/lo_hi.rs",
+   "userland/capsule_driver_nvme/src/server/handlers/rw_parse.rs",
+   "userland/capsule_driver_nvme/src/server/medium_rule.rs",
+   "userland/nvme_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nym_reply_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_nym/src/ack/ledger.rs",
+   "userland/capsule_net_nym/src/gateway_client/ws/frame/parse.rs",
+   "userland/capsule_net_nym/src/gateway_client/ws/frame/read.rs",
+   "userland/capsule_net_nym/src/gateway_client/ws/frame/types.rs",
+   "userland/capsule_net_nym/src/message/fragment.rs",
+   "userland/capsule_net_nym/src/message/fragment_parse.rs",
+   "userland/capsule_net_nym/src/message/repliable.rs",
+   "userland/capsule_net_nym/src/message/types.rs",
+   "userland/capsule_net_nym/src/mixnet/exp_delay.rs",
+   "userland/capsule_net_nym/src/protocol/batch.rs",
+   "userland/capsule_net_nym/src/protocol/errno.rs",
+   "userland/capsule_net_nym/src/protocol/header.rs",
+   "userland/capsule_net_nym/src/protocol/limits.rs",
+   "userland/capsule_net_nym/src/protocol/ops.rs",
+   "userland/capsule_net_nym/src/reply/assembly.rs",
+   "userland/capsule_net_nym/src/reply/message.rs",
+   "userland/capsule_net_nym/src/reply/reassemble.rs",
+   "userland/capsule_net_nym/src/reply/types.rs",
+   "userland/capsule_net_nym/src/server/parse_req.rs",
+   "userland/capsule_net_nym/src/server/respond.rs",
+   "userland/capsule_net_nym/src/sphinx/constants",
+   "userland/capsule_net_nym/src/state/gateway.rs",
+   "userland/capsule_net_nym/src/state/replay.rs",
+   "userland/capsule_net_nym/src/state/rx_queue.rs",
+   "userland/capsule_net_nym/src/state/session.rs",
+   "userland/capsule_net_nym/src/state/table/ended.rs",
+   "userland/capsule_net_nym/src/state/table/ops.rs",
+   "userland/capsule_net_nym/src/state/table/owner.rs",
+   "userland/capsule_net_nym/src/state/table/reset.rs",
+   "userland/capsule_net_nym/src/state/table/sphinx.rs",
+   "userland/capsule_net_nym/src/state/table/stream.rs",
+   "userland/capsule_net_nym/src/state/table/topology_gate.rs",
+   "userland/capsule_net_nym/src/state/table/types.rs",
+   "userland/capsule_net_nym/src/surb/budget.rs",
+   "userland/capsule_net_nym/src/surb/store.rs",
+   "userland/capsule_net_nym/src/surb/types.rs",
+   "userland/capsule_socks5/src/nym/batch.rs",
+   "userland/net_proofs/shim",
+   "userland/nym_reply_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/nym_topology_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_nym/src/directory_sync/api/base58.rs",
+   "userland/capsule_net_nym/src/directory_sync/api/data_span.rs",
+   "userland/capsule_net_nym/src/directory_sync/api/field.rs",
+   "userland/capsule_net_nym/src/directory_sync/api/find_array.rs",
+   "userland/capsule_net_nym/src/directory_sync/api/node_objects.rs",
+   "userland/capsule_net_nym/src/directory_sync/api/objects.rs",
+   "userland/capsule_net_nym/src/directory_sync/described.rs",
+   "userland/capsule_net_nym/src/directory_sync/exit_address.rs",
+   "userland/capsule_net_nym/src/directory_sync/requesters.rs",
+   "userland/capsule_net_nym/src/json/find_key.rs",
+   "userland/capsule_net_nym/src/json/read_number.rs",
+   "userland/capsule_net_nym/src/json/read_string.rs",
+   "userland/capsule_net_nym/src/topology/draw.rs",
+   "userland/capsule_net_nym/src/topology/refresh.rs",
+   "userland/nym_topology_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/pinctrl_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_pinctrl",
+   "userland/pinctrl_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/policy_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_policy/src/push",
+   "userland/capsule_policy/src/server/handle_get.rs",
+   "userland/capsule_policy/src/server/handle_set.rs",
+   "userland/capsule_policy/src/server/handlers",
+   "userland/capsule_policy/src/server/reply.rs",
+   "userland/capsule_policy/src/server/respond",
+   "userland/capsule_policy/src/server/serve.rs",
+   "userland/capsule_policy/src/store",
+   "userland/policy_proofs",
+   "userland/policy_proto"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/prove_proofs": {
+  "exclude": [
+   "nonos-attest-path/fuzz",
+   "nonos-boot-measure/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-attest-path",
+   "nonos-boot-measure",
+   "nonos-device-attest",
+   "src/security/boot/slots/record.rs",
+   "src/security/boot/slots/slot.rs",
+   "userland/capsule_prove/src/assemble/enrolled.rs",
+   "userland/capsule_prove/src/assemble/error.rs",
+   "userland/capsule_prove/src/assemble/error_text.rs",
+   "userland/capsule_prove/src/assemble/output.rs",
+   "userland/capsule_prove/src/assemble/output_read.rs",
+   "userland/capsule_prove/src/assemble/request.rs",
+   "userland/capsule_prove/src/assemble/slots.rs",
+   "userland/capsule_prove/src/assemble/statement.rs",
+   "userland/capsule_prove/src/assemble/transcript_line.rs",
+   "userland/capsule_prove/src/assemble/wipe.rs",
+   "userland/capsule_prove/src/assemble/words.rs",
+   "userland/libc/src/boot_slots/record.rs",
+   "userland/libc/src/enroll/frame.rs",
+   "userland/libc/src/heap/span.rs",
+   "userland/prove_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/ps2_input_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_ps2_input/src/constants",
+   "userland/capsule_driver_ps2_input/src/discover.rs",
+   "userland/capsule_driver_ps2_input/src/init",
+   "userland/capsule_driver_ps2_input/src/keymap/keypad.rs",
+   "userland/capsule_driver_ps2_input/src/keymap/once.rs",
+   "userland/capsule_driver_ps2_input/src/keymap/set1",
+   "userland/capsule_driver_ps2_input/src/keymap/set1_e0.rs",
+   "userland/capsule_driver_ps2_input/src/keymap/translate.rs",
+   "userland/capsule_driver_ps2_input/src/mouse/axis.rs",
+   "userland/capsule_driver_ps2_input/src/mouse/event.rs",
+   "userland/capsule_driver_ps2_input/src/mouse/packet.rs",
+   "userland/capsule_driver_ps2_input/src/mouse/parser.rs",
+   "userland/capsule_driver_ps2_input/src/mouse/ring.rs",
+   "userland/capsule_driver_ps2_input/src/ring/flags.rs",
+   "userland/capsule_driver_ps2_input/src/setup",
+   "userland/nonos_keymap",
+   "userland/ps2_input_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/rndis_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_rndis/src/rndis",
+   "userland/nonos_usbnet/src/bind.rs",
+   "userland/nonos_usbnet/src/bus.rs",
+   "userland/nonos_usbnet/src/desc",
+   "userland/nonos_usbnet/src/found.rs",
+   "userland/nonos_usbnet/src/halt.rs",
+   "userland/nonos_usbnet/src/nic.rs",
+   "userland/nonos_usbnet/src/nnet",
+   "userland/nonos_usbnet/src/scan/book.rs",
+   "userland/nonos_usbnet/src/scan/port.rs",
+   "userland/nonos_usbnet/src/setup.rs",
+   "userland/nonos_usbnet/src/xhci/wire.rs",
+   "userland/rndis_proofs",
+   "userland/usbnet_proofs",
+   "userland/xhci_proofs/libc_shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/route_link_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_net_ntp/src/decide.rs",
+   "userland/nonos_route_link/src/answer.rs",
+   "userland/nonos_route_link/src/bounds.rs",
+   "userland/nonos_route_link/src/carrier.rs",
+   "userland/nonos_route_link/src/describe.rs",
+   "userland/nonos_route_link/src/direct_only.rs",
+   "userland/nonos_route_link/src/frame.rs",
+   "userland/nonos_route_link/src/opening.rs",
+   "userland/nonos_route_link/src/pick.rs",
+   "userland/nonos_route_link/src/refusal.rs",
+   "userland/nonos_route_link/src/slice.rs",
+   "userland/nonos_route_link/src/socks.rs",
+   "userland/nonos_route_link/src/tunnel.rs",
+   "userland/nonos_route_link/src/tunnel_io.rs",
+   "userland/policy_proto",
+   "userland/route_link_proofs",
+   "userland/sdk/nonos_std/src/net/way.rs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/route_proof_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_attest/src/protocol/decode.rs",
+   "userland/capsule_attest/src/protocol/encode.rs",
+   "userland/capsule_attest/src/protocol/errno.rs",
+   "userland/capsule_attest/src/protocol/header.rs",
+   "userland/capsule_attest/src/protocol/ops.rs",
+   "userland/route_proof/src/authorize.rs",
+   "userland/route_proof/src/board.rs",
+   "userland/route_proof/src/facts.rs",
+   "userland/route_proof/src/frame.rs",
+   "userland/route_proof/src/report.rs",
+   "userland/route_proof/src/verdict.rs",
+   "userland/route_proof_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/rtl8139_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_rtl8139/src/constants",
+   "userland/capsule_driver_rtl8139/src/init/finish.rs",
+   "userland/capsule_driver_rtl8139/src/init/mac.rs",
+   "userland/capsule_driver_rtl8139/src/init/reset.rs",
+   "userland/capsule_driver_rtl8139/src/init/run.rs",
+   "userland/capsule_driver_rtl8139/src/init/rx_setup.rs",
+   "userland/capsule_driver_rtl8139/src/init/tx_setup.rs",
+   "userland/capsule_driver_rtl8139/src/pio.rs",
+   "userland/capsule_driver_rtl8139/src/protocol",
+   "userland/capsule_driver_rtl8139/src/rx",
+   "userland/capsule_driver_rtl8139/src/setup/driver.rs",
+   "userland/nonos_mac",
+   "userland/rtl8139_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/rtl8153_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_rtl8153/src/r8153",
+   "userland/nonos_usbnet/src/bind.rs",
+   "userland/nonos_usbnet/src/bus.rs",
+   "userland/nonos_usbnet/src/desc",
+   "userland/nonos_usbnet/src/found.rs",
+   "userland/nonos_usbnet/src/halt.rs",
+   "userland/nonos_usbnet/src/nic.rs",
+   "userland/nonos_usbnet/src/nnet",
+   "userland/nonos_usbnet/src/scan/book.rs",
+   "userland/nonos_usbnet/src/scan/port.rs",
+   "userland/nonos_usbnet/src/setup.rs",
+   "userland/nonos_usbnet/src/xhci/wire.rs",
+   "userland/rtl8153_proofs",
+   "userland/usbnet_proofs",
+   "userland/xhci_proofs/libc_shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/rtl8169_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_rtl8169/src/chip",
+   "userland/capsule_driver_rtl8169/src/constants",
+   "userland/capsule_driver_rtl8169/src/hw",
+   "userland/capsule_driver_rtl8169/src/init/finish.rs",
+   "userland/capsule_driver_rtl8169/src/init/mac.rs",
+   "userland/capsule_driver_rtl8169/src/init/reset.rs",
+   "userland/capsule_driver_rtl8169/src/init/run.rs",
+   "userland/capsule_driver_rtl8169/src/init/rx_setup.rs",
+   "userland/capsule_driver_rtl8169/src/init/tx_setup.rs",
+   "userland/capsule_driver_rtl8169/src/link",
+   "userland/capsule_driver_rtl8169/src/log",
+   "userland/capsule_driver_rtl8169/src/protocol",
+   "userland/capsule_driver_rtl8169/src/queue",
+   "userland/capsule_driver_rtl8169/src/regmap",
+   "userland/capsule_driver_rtl8169/src/regs.rs",
+   "userland/capsule_driver_rtl8169/src/rx",
+   "userland/capsule_driver_rtl8169/src/setup/command_word.rs",
+   "userland/capsule_driver_rtl8169/src/setup/driver.rs",
+   "userland/capsule_driver_rtl8169/src/tx",
+   "userland/nonos_devmodel",
+   "userland/nonos_mac",
+   "userland/rtl8169_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/rtl8821ce_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-bootloader/firmware/realtek/rtw8821c_fw.bin",
+   "userland/capsule_driver_rtl8821ce/src/assoc.rs",
+   "userland/capsule_driver_rtl8821ce/src/coex",
+   "userland/capsule_driver_rtl8821ce/src/constants",
+   "userland/capsule_driver_rtl8821ce/src/efuse.rs",
+   "userland/capsule_driver_rtl8821ce/src/fw",
+   "userland/capsule_driver_rtl8821ce/src/h2c",
+   "userland/capsule_driver_rtl8821ce/src/link.rs",
+   "userland/capsule_driver_rtl8821ce/src/mac",
+   "userland/capsule_driver_rtl8821ce/src/phy",
+   "userland/capsule_driver_rtl8821ce/src/pwr",
+   "userland/capsule_driver_rtl8821ce/src/regs.rs",
+   "userland/capsule_driver_rtl8821ce/src/ring",
+   "userland/capsule_driver_rtl8821ce/src/rx",
+   "userland/capsule_driver_rtl8821ce/src/scan.rs",
+   "userland/capsule_driver_rtl8821ce/src/sec.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/probe.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/request.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/connect/result.rs",
+   "userland/capsule_driver_rtl8821ce/src/serve/refuse.rs",
+   "userland/capsule_driver_rtl8821ce/src/tx",
+   "userland/nonos_wifi_core",
+   "userland/nonos_wifi_core_proofs/src/ap_sim.rs",
+   "userland/rtl8821ce_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/rtsx_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_rtsx/src/chip",
+   "userland/capsule_driver_rtsx/src/clock/budget.rs",
+   "userland/capsule_driver_rtsx/src/log/line.rs",
+   "userland/capsule_driver_rtsx/src/regs",
+   "userland/capsule_driver_rtsx/src/sd",
+   "userland/capsule_driver_rtsx/src/wire",
+   "userland/rtsx_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/seq_wire_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_installer/src/protocol",
+   "userland/capsule_keyring/src/protocol",
+   "userland/capsule_payment/src/protocol",
+   "userland/capsule_ramfs/src/protocol",
+   "userland/seq_wire_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/service_header_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_attest/src/protocol",
+   "userland/capsule_desktop_shell/src/protocol",
+   "userland/capsule_driver_ps2_input/src/protocol",
+   "userland/capsule_driver_virtio_rng/src/protocol",
+   "userland/capsule_entropy/src/protocol",
+   "userland/capsule_login/src/protocol",
+   "userland/capsule_power/src/protocol",
+   "userland/capsule_wallpaper/src/protocol",
+   "userland/service_header_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/setup_layout_proofs": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "VERSION",
+   "src/kernel_core/init/framebuffer/hidpi.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/app_skeleton",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/assets/Geist-Medium.ttf",
+   "userland/capsule_install/brand/assets/Geist-Regular.ttf",
+   "userland/capsule_install/brand/assets/JetBrainsMono-Regular.ttf",
+   "userland/capsule_install/brand/src/faces.rs",
+   "userland/capsule_install/brand/src/labels.rs",
+   "userland/capsule_install/brand/src/palette.rs",
+   "userland/capsule_install/brand/src/release.rs",
+   "userland/capsule_install/brand/src/scale.rs",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_install/brand/src/type_set.rs",
+   "userland/capsule_install/src/install",
+   "userland/capsule_linux/src/linux/file/models/hex.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_coder.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_qwen25.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_qwen25_big.rs",
+   "userland/capsule_linux/src/linux/file/models/pinned_qwen3.rs",
+   "userland/capsule_linux/src/linux/install/tcg.rs",
+   "userland/capsule_model_fetch/src/default_tier.rs",
+   "userland/capsule_model_fetch/src/need.rs",
+   "userland/capsule_model_fetch/src/pins",
+   "userland/capsule_setup_wizard/src",
+   "userland/compositor/src/setup/canvas_scale.rs",
+   "userland/libc",
+   "userland/nonos_disk/src/describe",
+   "userland/nonos_keymap",
+   "userland/nonos_wifi_client/src/driver",
+   "userland/nonos_wifi_client/src/saved",
+   "userland/policy_proto",
+   "userland/setup_layout_proofs",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/shield_wire_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_shield/src/reply.rs",
+   "userland/capsule_wallet_nonos/src/wallet/shield/kept_names.rs",
+   "userland/capsule_wallet_nonos/src/wallet/shield/reply.rs",
+   "userland/capsule_wallet_nonos/src/wallet/state/shield_log.rs",
+   "userland/shield_wire",
+   "userland/shield_wire_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/smp_stress_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_smp_stress/src/line.rs",
+   "userland/capsule_smp_stress/src/number.rs",
+   "userland/capsule_smp_stress/src/stall.rs",
+   "userland/smp_stress_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/sockets_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_sockets/src/protocol",
+   "userland/capsule_net_sockets/src/server/parse_req.rs",
+   "userland/capsule_net_sockets/src/server/respond.rs",
+   "userland/capsule_net_sockets/src/sockets",
+   "userland/net_proofs/shim",
+   "userland/sockets_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/stark_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/crypto/hash/blake3",
+   "src/crypto/hash/sha3",
+   "src/crypto/util/constant_time",
+   "stark-attest/crates/stark-core",
+   "userland/stark_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/sync_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/sys/sync/semaphore/pure.rs",
+   "src/sys/sync/seqlock/pure.rs",
+   "userland/sync_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/tcp_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_tcp/src/clock.rs",
+   "userland/capsule_net_tcp/src/ip_client",
+   "userland/capsule_net_tcp/src/protocol",
+   "userland/capsule_net_tcp/src/server/handlers",
+   "userland/capsule_net_tcp/src/server/orphans.rs",
+   "userland/capsule_net_tcp/src/server/parse_req.rs",
+   "userland/capsule_net_tcp/src/server/persist.rs",
+   "userland/capsule_net_tcp/src/server/respond.rs",
+   "userland/capsule_net_tcp/src/server/retransmit.rs",
+   "userland/capsule_net_tcp/src/server/room.rs",
+   "userland/capsule_net_tcp/src/server/sender.rs",
+   "userland/capsule_net_tcp/src/server/tcp_rx",
+   "userland/capsule_net_tcp/src/server/tcp_tx.rs",
+   "userland/capsule_net_tcp/src/server/tick.rs",
+   "userland/capsule_net_tcp/src/state",
+   "userland/capsule_net_tcp/src/tcp",
+   "userland/net_proofs/shim",
+   "userland/tcp_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/terminal_line_proofs": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "VERSION",
+   "src/userspace/capsule_linux/terminal/tier.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "src/userspace/tool_capsules/registry.rs",
+   "userland/app_skeleton",
+   "userland/apps.list",
+   "userland/assets/icons",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_model_fetch/src/default_tier.rs",
+   "userland/capsule_model_fetch/src/need.rs",
+   "userland/capsule_net_core/src/server/runner/cadence.rs",
+   "userland/capsule_terminal/src/command/builtin/direct_gate.rs",
+   "userland/capsule_terminal/src/command/builtin/fs/grep_paint.rs",
+   "userland/capsule_terminal/src/command/builtin/fs/tree_render.rs",
+   "userland/capsule_terminal/src/command/builtin/help_layout.rs",
+   "userland/capsule_terminal/src/command/builtin/help_one.rs",
+   "userland/capsule_terminal/src/command/builtin/help_pages.rs",
+   "userland/capsule_terminal/src/command/builtin/nox/dispatch.rs",
+   "userland/capsule_terminal/src/command/builtin/nox/help.rs",
+   "userland/capsule_terminal/src/command/builtin/nox/install/follow.rs",
+   "userland/capsule_terminal/src/command/builtin/nox/kill_target.rs",
+   "userland/capsule_terminal/src/command/builtin/offline_gate.rs",
+   "userland/capsule_terminal/src/command/builtin/qwen/ask.rs",
+   "userland/capsule_terminal/src/command/builtin/qwen/complete.rs",
+   "userland/capsule_terminal/src/command/builtin/qwen/fetch_check.rs",
+   "userland/capsule_terminal/src/command/builtin/qwen/fetch_words.rs",
+   "userland/capsule_terminal/src/command/builtin/qwen/tiers.rs",
+   "userland/capsule_terminal/src/command/builtin/qwen/window.rs",
+   "userland/capsule_terminal/src/command/builtin/receipt/own.rs",
+   "userland/capsule_terminal/src/command/builtin/tool.rs",
+   "userland/capsule_terminal/src/command/builtin/tool_busy.rs",
+   "userland/capsule_terminal/src/command/builtin/tool_list.rs",
+   "userland/capsule_terminal/src/command/builtin/version.rs",
+   "userland/capsule_terminal/src/command/builtin/whoami.rs",
+   "userland/capsule_terminal/src/command/dispatch/exec.rs",
+   "userland/capsule_terminal/src/command/dispatch/filter/count.rs",
+   "userland/capsule_terminal/src/command/dispatch/filter/input.rs",
+   "userland/capsule_terminal/src/command/dispatch/filter/text.rs",
+   "userland/capsule_terminal/src/command/dispatch/redirect.rs",
+   "userland/capsule_terminal/src/command/dispatch/statements.rs",
+   "userland/capsule_terminal/src/command/dispatch/tool_admit.rs",
+   "userland/capsule_terminal/src/command/flags",
+   "userland/capsule_terminal/src/command/parse",
+   "userland/capsule_terminal/src/command/suggest.rs",
+   "userland/capsule_terminal/src/event/complete.rs",
+   "userland/capsule_terminal/src/event/cooked.rs",
+   "userland/capsule_terminal/src/event/cooked_kill.rs",
+   "userland/capsule_terminal/src/git/transport/ask.rs",
+   "userland/capsule_terminal/src/mixnet/exchange/wait.rs",
+   "userland/capsule_terminal/src/paint/fetch.rs",
+   "userland/capsule_terminal/src/paint/fetch_arch.rs",
+   "userland/capsule_terminal/src/paint/line_chars.rs",
+   "userland/capsule_terminal/src/paint/line_window.rs",
+   "userland/capsule_terminal/src/paint/vt/box_arms.rs",
+   "userland/capsule_terminal/src/term/handed/cadence.rs",
+   "userland/capsule_terminal/src/term/handed/parse.rs",
+   "userland/capsule_terminal/src/term/handed/pick.rs",
+   "userland/capsule_terminal/src/term/history/expand.rs",
+   "userland/capsule_terminal/src/term/line",
+   "userland/capsule_terminal/src/term/select.rs",
+   "userland/capsule_terminal/src/term/theme/ansi.rs",
+   "userland/capsule_terminal/src/term/util/format_u64.rs",
+   "userland/capsule_terminal/src/term/util/is_space.rs",
+   "userland/capsule_text_editor/src/editor/goto_line.rs",
+   "userland/capsule_text_editor/src/editor/quick_open.rs",
+   "userland/libc",
+   "userland/nonos_route_link/src/direct_only.rs",
+   "userland/nonos_vt",
+   "userland/policy_proto",
+   "userland/terminal_line_proofs",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/theme_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/policy_proto",
+   "userland/theme_proofs",
+   "userland/toolkit/src/component_dispatch/paint/fill_rect.rs",
+   "userland/toolkit/src/components/button.rs",
+   "userland/toolkit/src/components/label.rs",
+   "userland/toolkit/src/design/color.rs",
+   "userland/toolkit/src/font/atlas.rs",
+   "userland/toolkit/src/font/glyph.rs",
+   "userland/toolkit/src/font/lower.rs",
+   "userland/toolkit/src/font/punct.rs",
+   "userland/toolkit/src/font/render",
+   "userland/toolkit/src/font/ttf/text_scale.rs",
+   "userland/toolkit/src/font/upper.rs",
+   "userland/toolkit/src/protocol",
+   "userland/toolkit/src/theme/chrome",
+   "userland/toolkit/src/theme/contrast.rs",
+   "userland/toolkit/src/theme/derive.rs",
+   "userland/toolkit/src/theme/legible.rs",
+   "userland/toolkit/src/theme/legible_walk.rs",
+   "userland/toolkit/src/theme/linear.rs",
+   "userland/toolkit/src/theme/palette.rs",
+   "userland/toolkit/src/theme/schemes",
+   "userland/toolkit/src/theme/select.rs",
+   "userland/toolkit/src/theme/store"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/tls_proofs": {
+  "exclude": [
+   "userland/tls_proofs/fuzz"
+  ],
+  "include": [
+   ".cargo",
+   "userland/capsule_crypto/src/protocol",
+   "userland/capsule_crypto/src/server/dispatch.rs",
+   "userland/capsule_crypto/src/server/handlers",
+   "userland/capsule_crypto/src/server/wipe.rs",
+   "userland/nonos_tls/src/aes_gcm",
+   "userland/nonos_tls/src/alert.rs",
+   "userland/nonos_tls/src/app_keys.rs",
+   "userland/nonos_tls/src/app_reader.rs",
+   "userland/nonos_tls/src/app_reader_view.rs",
+   "userland/nonos_tls/src/application_plaintext.rs",
+   "userland/nonos_tls/src/application_request.rs",
+   "userland/nonos_tls/src/application_write.rs",
+   "userland/nonos_tls/src/cert_at.rs",
+   "userland/nonos_tls/src/cert_count.rs",
+   "userland/nonos_tls/src/cert_dns_match.rs",
+   "userland/nonos_tls/src/cert_ext.rs",
+   "userland/nonos_tls/src/cert_ext_entry.rs",
+   "userland/nonos_tls/src/cert_is_ca.rs",
+   "userland/nonos_tls/src/cert_issuer.rs",
+   "userland/nonos_tls/src/cert_problem.rs",
+   "userland/nonos_tls/src/cert_sig_alg.rs",
+   "userland/nonos_tls/src/cert_signature.rs",
+   "userland/nonos_tls/src/cert_spki.rs",
+   "userland/nonos_tls/src/cert_tbs.rs",
+   "userland/nonos_tls/src/cert_time_value.rs",
+   "userland/nonos_tls/src/cert_valid_now.rs",
+   "userland/nonos_tls/src/cert_verify_msg",
+   "userland/nonos_tls/src/cert_window.rs",
+   "userland/nonos_tls/src/chacha_record.rs",
+   "userland/nonos_tls/src/chain_walk.rs",
+   "userland/nonos_tls/src/client_finished.rs",
+   "userland/nonos_tls/src/client_flight.rs",
+   "userland/nonos_tls/src/client_hello.rs",
+   "userland/nonos_tls/src/constants.rs",
+   "userland/nonos_tls/src/crypto_port.rs",
+   "userland/nonos_tls/src/crypto_status.rs",
+   "userland/nonos_tls/src/der_tlv.rs",
+   "userland/nonos_tls/src/ecdsa_sig_raw.rs",
+   "userland/nonos_tls/src/expand_label.rs",
+   "userland/nonos_tls/src/ext_groups.rs",
+   "userland/nonos_tls/src/ext_keyshare.rs",
+   "userland/nonos_tls/src/ext_sigalgs.rs",
+   "userland/nonos_tls/src/ext_sni.rs",
+   "userland/nonos_tls/src/ext_versions.rs",
+   "userland/nonos_tls/src/finished_key.rs",
+   "userland/nonos_tls/src/finished_value.rs",
+   "userland/nonos_tls/src/finished_verify.rs",
+   "userland/nonos_tls/src/flight.rs",
+   "userland/nonos_tls/src/handshake_alert.rs",
+   "userland/nonos_tls/src/handshake_fault.rs",
+   "userland/nonos_tls/src/handshake_state",
+   "userland/nonos_tls/src/handshake_step.rs",
+   "userland/nonos_tls/src/hash_sha256.rs",
+   "userland/nonos_tls/src/hash_sha384.rs",
+   "userland/nonos_tls/src/hello_retry.rs",
+   "userland/nonos_tls/src/hkdf.rs",
+   "userland/nonos_tls/src/hkdf_label.rs",
+   "userland/nonos_tls/src/hmac_sha256.rs",
+   "userland/nonos_tls/src/inner_plain.rs",
+   "userland/nonos_tls/src/nonce.rs",
+   "userland/nonos_tls/src/p256_share.rs",
+   "userland/nonos_tls/src/push.rs",
+   "userland/nonos_tls/src/read.rs",
+   "userland/nonos_tls/src/record.rs",
+   "userland/nonos_tls/src/record_frame.rs",
+   "userland/nonos_tls/src/record_open.rs",
+   "userland/nonos_tls/src/record_seal.rs",
+   "userland/nonos_tls/src/roots",
+   "userland/nonos_tls/src/rtc_now.rs",
+   "userland/nonos_tls/src/scan_messages.rs",
+   "userland/nonos_tls/src/scan_server_finished.rs",
+   "userland/nonos_tls/src/schedule.rs",
+   "userland/nonos_tls/src/server_complete",
+   "userland/nonos_tls/src/server_context.rs",
+   "userland/nonos_tls/src/server_hello.rs",
+   "userland/nonos_tls/src/server_keys.rs",
+   "userland/nonos_tls/src/server_share.rs",
+   "userland/nonos_tls/src/session",
+   "userland/nonos_tls/src/spki_point.rs",
+   "userland/nonos_tls/src/stream",
+   "userland/nonos_tls/src/traffic_keys.rs",
+   "userland/nonos_tls/src/transcript.rs",
+   "userland/nonos_tls/src/verify_link",
+   "userland/nonos_tls/src/verify_p256.rs",
+   "userland/nonos_tls/src/verify_p384.rs",
+   "userland/nonos_tls/src/verify_rsa.rs",
+   "userland/tls_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/tool_install": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-data/wallpapers",
+   "src/fs/blockfs_volume/key_header.rs",
+   "src/fs/blockfs_volume/plan.rs",
+   "src/fs/blockfs_volume/plan_types.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/capsule_vfs/src/blk/store_header.rs",
+   "userland/capsule_vfs/src/blk/store_toc.rs",
+   "userland/fs_proofs/libc_shim",
+   "userland/libc",
+   "userland/nonos_blk_client",
+   "userland/nonos_disk",
+   "userland/nonos_disk_map",
+   "userland/nonos_hash",
+   "userland/nonos_wallpapers",
+   "userland/policy_proto",
+   "userland/tool_install"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/toolkit": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "userland/assets/icons",
+   "userland/libc",
+   "userland/toolkit"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/tpm_enroll_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "nonos-bootloader/src/security/tpm_nv/consts.rs",
+   "nonos-bootloader/src/security/tpm_nv/floor_cmd.rs",
+   "nonos-bootloader/src/security/tpm_nv/floor_seq.rs",
+   "src/security/tpm/ak/attributes.rs",
+   "src/security/tpm/ak/create.rs",
+   "src/security/tpm/ak/cursor.rs",
+   "src/security/tpm/ak/identity.rs",
+   "src/security/tpm/ak/load.rs",
+   "src/security/tpm/ak/public.rs",
+   "src/security/tpm/ak/template.rs",
+   "src/security/tpm/device_secret",
+   "src/security/tpm/enroll",
+   "src/security/tpm/error.rs",
+   "src/security/tpm/machine_key/consts.rs",
+   "src/security/tpm/machine_key/create.rs",
+   "src/security/tpm/machine_key/derive.rs",
+   "src/security/tpm/machine_key/error.rs",
+   "src/security/tpm/machine_key/flush.rs",
+   "src/security/tpm/machine_key/hmac.rs",
+   "src/security/tpm/machine_key/pcrs.rs",
+   "src/security/tpm/machine_key/policy.rs",
+   "src/security/tpm/machine_key/run.rs",
+   "src/security/tpm/machine_key/session.rs",
+   "src/security/tpm/machine_key/wire.rs",
+   "src/security/tpm/quote",
+   "src/security/tpm/resend.rs",
+   "src/syscall/microkernel/device_proof/enroll/answer.rs",
+   "src/syscall/microkernel/device_proof/enroll/codec.rs",
+   "src/syscall/microkernel/device_proof/enroll/errors.rs",
+   "src/syscall/microkernel/device_proof/enroll/request.rs",
+   "src/syscall/microkernel/errnos.rs",
+   "tools/nonos-policy-approve",
+   "tools/nonos_policy",
+   "userland/libc/src/enroll/frame.rs",
+   "userland/tpm_enroll_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/tpm_key_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/security/tpm/error.rs",
+   "src/security/tpm/fifo/bus.rs",
+   "src/security/tpm/fifo/fail.rs",
+   "src/security/tpm/fifo/locality.rs",
+   "src/security/tpm/fifo/recv.rs",
+   "src/security/tpm/fifo/regs.rs",
+   "src/security/tpm/fifo/send.rs",
+   "src/security/tpm/fifo/session.rs",
+   "src/security/tpm/machine_key/consts.rs",
+   "src/security/tpm/machine_key/create.rs",
+   "src/security/tpm/machine_key/error.rs",
+   "src/security/tpm/machine_key/flush.rs",
+   "src/security/tpm/machine_key/hmac.rs",
+   "src/security/tpm/machine_key/pcrs.rs",
+   "src/security/tpm/machine_key/policy.rs",
+   "src/security/tpm/machine_key/session.rs",
+   "src/security/tpm/machine_key/wire.rs",
+   "userland/tpm_key_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/udp_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_net_udp/src/protocol",
+   "userland/capsule_net_udp/src/server/parse_req.rs",
+   "userland/capsule_net_udp/src/server/respond.rs",
+   "userland/net_proofs/shim",
+   "userland/udp_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/upstream-src/csview": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/upstream-src/csview",
+   "userland/upstream-src/errno-0.3.14"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/upstream-src/dotenv-linter": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/upstream-src/dotenv-linter"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/upstream-src/grex": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/upstream-src/grex"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/upstream-src/huniq": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/upstream-src/atty-0.2.14",
+   "userland/upstream-src/huniq",
+   "userland/upstream-src/os_str_bytes-6.6.1"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/upstream-src/jsonxf": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/upstream-src/jsonxf"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/upstream-src/pastel": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/upstream-src/atty-0.2.14",
+   "userland/upstream-src/getrandom-0.2.17",
+   "userland/upstream-src/pastel"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/upstream-src/sd-1.0.0": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/upstream-src/errno-0.3.14",
+   "userland/upstream-src/sd-1.0.0",
+   "userland/vendor/is-terminal"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/upstream-src/tokei": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/upstream-src/home-0.5.12",
+   "userland/upstream-src/tokei"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/upstream-src/tokio-smoke": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/upstream-src/tokio-smoke",
+   "userland/vendor/mio",
+   "userland/vendor/socket2-shim",
+   "userland/vendor/tokio"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/usb_msc_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_usb_msc/src/bot",
+   "userland/capsule_driver_usb_msc/src/descriptors",
+   "userland/capsule_driver_usb_msc/src/disk",
+   "userland/capsule_driver_usb_msc/src/protocol",
+   "userland/capsule_driver_usb_msc/src/scsi",
+   "userland/capsule_driver_usb_msc/src/span",
+   "userland/capsule_driver_usb_msc/src/state",
+   "userland/usb_msc_proofs",
+   "userland/xhci_proofs/libc_shim"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/usb_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_usb_hid/src/descriptors/binding.rs",
+   "userland/capsule_driver_usb_hid/src/descriptors/config.rs",
+   "userland/capsule_driver_usb_hid/src/descriptors/packet_size.rs",
+   "userland/capsule_driver_usb_hid/src/descriptors/parse.rs",
+   "userland/capsule_driver_usb_hid/src/descriptors/types.rs",
+   "userland/capsule_driver_usb_hid/src/hid/button_changes.rs",
+   "userland/capsule_driver_usb_hid/src/hid/keyboard/boot_report.rs",
+   "userland/capsule_driver_usb_hid/src/hid/keyboard/is_error_code.rs",
+   "userland/capsule_driver_usb_hid/src/hid/keyboard/is_real_key.rs",
+   "userland/capsule_driver_usb_hid/src/hid/keyboard/key_changes.rs",
+   "userland/capsule_driver_usb_hid/src/hid/mouse_event.rs",
+   "userland/capsule_driver_usb_hid/src/hid/mouse_report.rs",
+   "userland/capsule_driver_usb_hid/src/hid/tablet_report.rs",
+   "userland/capsule_driver_usb_hid/src/hub/descriptor.rs",
+   "userland/capsule_driver_usb_hid/src/hub/port_status.rs",
+   "userland/capsule_driver_usb_hid/src/hub/route.rs",
+   "userland/capsule_driver_usb_hid/src/hub/status_endpoint.rs",
+   "userland/capsule_driver_usb_hid/src/orchestrator/enumerate/drop_port.rs",
+   "userland/capsule_driver_usb_hid/src/orchestrator/enumerate/types.rs",
+   "userland/capsule_driver_usb_hid/src/orchestrator/find_within.rs",
+   "userland/capsule_driver_usb_hid/src/orchestrator/poll/constants.rs",
+   "userland/capsule_driver_usb_hid/src/orchestrator/poll/read_len.rs",
+   "userland/capsule_driver_usb_hid/src/protocol",
+   "userland/capsule_driver_xhci/src/protocol/limits.rs",
+   "userland/capsule_input_router/src/state/cursor.rs",
+   "userland/usb_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/usbnet_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_usbnet/src/bind.rs",
+   "userland/nonos_usbnet/src/bus.rs",
+   "userland/nonos_usbnet/src/desc",
+   "userland/nonos_usbnet/src/found.rs",
+   "userland/nonos_usbnet/src/halt.rs",
+   "userland/nonos_usbnet/src/nic.rs",
+   "userland/nonos_usbnet/src/nnet",
+   "userland/nonos_usbnet/src/scan/book.rs",
+   "userland/nonos_usbnet/src/scan/port.rs",
+   "userland/nonos_usbnet/src/setup.rs",
+   "userland/nonos_usbnet/src/xhci/wire.rs",
+   "userland/usbnet_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/virtio_blk_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_virtio_blk/src/constants",
+   "userland/capsule_driver_virtio_blk/src/protocol",
+   "userland/capsule_driver_virtio_blk/src/queue/layout.rs",
+   "userland/capsule_driver_virtio_blk/src/queue/used.rs",
+   "userland/capsule_driver_virtio_blk/src/regs/io.rs",
+   "userland/capsule_driver_virtio_blk/src/regs/state/mmio.rs",
+   "userland/capsule_driver_virtio_blk/src/regs/state/types.rs",
+   "userland/capsule_driver_virtio_blk/src/server/acl",
+   "userland/capsule_driver_virtio_blk/src/server/handlers/read/request.rs",
+   "userland/capsule_driver_virtio_blk/src/server/handlers/write/request.rs",
+   "userland/capsule_driver_virtio_blk/src/setup/driver.rs",
+   "userland/capsule_driver_virtio_blk/src/setup/modern/capacity.rs",
+   "userland/capsule_driver_virtio_blk/src/transport/types.rs",
+   "userland/nonos_virtio",
+   "userland/virtio_blk_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/virtio_gpu_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_virtio_gpu/src/constants",
+   "userland/capsule_driver_virtio_gpu/src/device",
+   "userland/capsule_driver_virtio_gpu/src/init",
+   "userland/capsule_driver_virtio_gpu/src/protocol",
+   "userland/capsule_driver_virtio_gpu/src/regs",
+   "userland/nonos_devmodel",
+   "userland/nonos_virtio",
+   "userland/virtio_gpu_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/virtio_net_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_virtio_net/src/constants",
+   "userland/capsule_driver_virtio_net/src/protocol",
+   "userland/capsule_driver_virtio_net/src/queue/post.rs",
+   "userland/capsule_driver_virtio_net/src/queue/rx_queue.rs",
+   "userland/capsule_driver_virtio_net/src/queue/tx_queue.rs",
+   "userland/capsule_driver_virtio_net/src/queue/used.rs",
+   "userland/capsule_driver_virtio_net/src/rx.rs",
+   "userland/capsule_driver_virtio_net/src/setup/modern/config.rs",
+   "userland/capsule_driver_virtio_net/src/setup/modern/run.rs",
+   "userland/capsule_driver_virtio_net/src/setup/sequence.rs",
+   "userland/capsule_driver_virtio_net/src/setup/station.rs",
+   "userland/nonos_virtio",
+   "userland/virtio_net_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/virtio_rng_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_virtio_rng/src/constants",
+   "userland/capsule_driver_virtio_rng/src/init.rs",
+   "userland/capsule_driver_virtio_rng/src/queue",
+   "userland/capsule_driver_virtio_rng/src/regs/io.rs",
+   "userland/capsule_driver_virtio_rng/src/regs/state.rs",
+   "userland/nonos_devmodel",
+   "userland/virtio_rng_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/virtio_transport_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/nonos_virtio/src/broker.rs",
+   "userland/nonos_virtio/src/caps",
+   "userland/nonos_virtio/src/common",
+   "userland/nonos_virtio/src/error.rs",
+   "userland/nonos_virtio/src/features.rs",
+   "userland/nonos_virtio/src/map",
+   "userland/nonos_virtio/src/mmio.rs",
+   "userland/nonos_virtio/src/notify.rs",
+   "userland/nonos_virtio/src/pci",
+   "userland/nonos_virtio/src/select.rs",
+   "userland/virtio_transport_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/wallet_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "src/userspace/capsule_wallet_nonos/spawn.rs",
+   "src/userspace/init/app_choice/bits.rs",
+   "userland/assets/etna/etna-0b0046f5f585.png",
+   "userland/assets/etna/etna-32f5aa765d0e.png",
+   "userland/assets/etna/etna-387f21b9dbd2.png",
+   "userland/assets/etna/etna-460f26b9c468.png",
+   "userland/assets/etna/etna-4bb30d031341.png",
+   "userland/assets/etna/etna-90380f7829df.png",
+   "userland/assets/etna/etna-a0754afa8556.png",
+   "userland/assets/etna/etna-fcb6fdda9325.png",
+   "userland/assets/fonts/Geist-Medium.ttf",
+   "userland/assets/fonts/Geist-Regular.ttf",
+   "userland/assets/fonts/Geist-SemiBold.ttf",
+   "userland/assets/fonts/JetBrainsMono-Regular.ttf",
+   "userland/assets/icons/nonos_logo.rgba",
+   "userland/capsule_keyring/src/server/secp.rs",
+   "userland/capsule_keyring/src/server/vault_gate/rule.rs",
+   "userland/capsule_keyring/src/server/words_own.rs",
+   "userland/capsule_keyring/src/store/count.rs",
+   "userland/capsule_keyring/src/store/delete.rs",
+   "userland/capsule_keyring/src/store/ended.rs",
+   "userland/capsule_keyring/src/store/eth_valid.rs",
+   "userland/capsule_keyring/src/store/lock.rs",
+   "userland/capsule_keyring/src/store/metadata.rs",
+   "userland/capsule_keyring/src/store/retrieve.rs",
+   "userland/capsule_keyring/src/store/state.rs",
+   "userland/capsule_keyring/src/store/store_key.rs",
+   "userland/capsule_keyring/src/store/types",
+   "userland/capsule_keyring/src/store/unlock.rs",
+   "userland/capsule_keyring/src/store/wipe.rs",
+   "userland/capsule_wallet_nonos/src/wallet",
+   "userland/nonos_hash",
+   "userland/nonos_hd",
+   "userland/nonos_route_link/src/describe.rs",
+   "userland/nonos_route_link/src/pick.rs",
+   "userland/nonos_secp256k1",
+   "userland/policy_proto",
+   "userland/wallet_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/wallpaper_catalog_proofs": {
+  "exclude": [
+   "userland/toolkit/image_tests"
+  ],
+  "include": [
+   ".cargo",
+   "nonos-data/wallpapers",
+   "userland/assets/icons",
+   "userland/capsule_wallpaper/src/catalog_client",
+   "userland/capsule_wallpaper/src/paint/decode_jpeg.rs",
+   "userland/capsule_wallpaper/src/state/backoff.rs",
+   "userland/capsule_wallpaper/src/subscriber/job",
+   "userland/capsule_wallpaper/src/subscriber/say.rs",
+   "userland/capsule_wallpaper_catalog/src/catalog",
+   "userland/capsule_wallpaper_catalog/src/protocol",
+   "userland/capsule_wallpaper_catalog/src/server/handlers",
+   "userland/capsule_wallpaper_catalog/src/server/reply.rs",
+   "userland/capsule_wallpaper_catalog/src/server/respond",
+   "userland/capsule_wallpaper_catalog/src/server/serve.rs",
+   "userland/libc",
+   "userland/nonos_hash",
+   "userland/nonos_wallpapers",
+   "userland/policy_proofs/libc_shim",
+   "userland/toolkit",
+   "userland/wallpaper_catalog_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/wifi_panel_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_settings/src/wifi/panel.rs",
+   "userland/nonos_wifi_client/src/driver/fw_step.rs",
+   "userland/nonos_wifi_client/src/join_wire.rs",
+   "userland/nonos_wifi_client/src/network.rs",
+   "userland/nonos_wifi_client/src/saved/list.rs",
+   "userland/nonos_wifi_client/src/saved/list_codec.rs",
+   "userland/nonos_wifi_client/src/wipe.rs",
+   "userland/nonos_wifi_client/src/wire.rs",
+   "userland/wifi_panel_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/wm_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_install/brand/src/scale_rule.rs",
+   "userland/capsule_wm/src/focus",
+   "userland/capsule_wm/src/geometry",
+   "userland/capsule_wm/src/protocol",
+   "userland/capsule_wm/src/server/handlers/u32_at.rs",
+   "userland/capsule_wm/src/server/handlers/window_open/cascade.rs",
+   "userland/capsule_wm/src/server/handlers/window_open/constants.rs",
+   "userland/capsule_wm/src/server/handlers/window_open/decode.rs",
+   "userland/capsule_wm/src/state/restack.rs",
+   "userland/capsule_wm/src/window/full_screen.rs",
+   "userland/capsule_wm/src/window/kind.rs",
+   "userland/capsule_wm/src/window/reopen.rs",
+   "userland/capsule_wm/src/window/table/find.rs",
+   "userland/capsule_wm/src/window/table/find_mut.rs",
+   "userland/capsule_wm/src/window/table/held_by.rs",
+   "userland/capsule_wm/src/window/table/insert.rs",
+   "userland/capsule_wm/src/window/table/new.rs",
+   "userland/capsule_wm/src/window/table/remove.rs",
+   "userland/capsule_wm/src/window/table/types.rs",
+   "userland/capsule_wm/src/window/table/windows.rs",
+   "userland/capsule_wm/src/window/window.rs",
+   "userland/capsule_wm/src/z_order",
+   "userland/wm_proofs"
+  ],
+  "md": [],
+  "signed": []
+ },
+ "userland/xhci_proofs": {
+  "exclude": [],
+  "include": [
+   ".cargo",
+   "userland/capsule_driver_xhci/src/constants",
+   "userland/capsule_driver_xhci/src/contexts",
+   "userland/capsule_driver_xhci/src/controller/bulk",
+   "userland/capsule_driver_xhci/src/controller/drain_events.rs",
+   "userland/capsule_driver_xhci/src/controller/get_device_descriptor.rs",
+   "userland/capsule_driver_xhci/src/controller/halt.rs",
+   "userland/capsule_driver_xhci/src/controller/issue_address_device.rs",
+   "userland/capsule_driver_xhci/src/controller/issue_enable_slot.rs",
+   "userland/capsule_driver_xhci/src/controller/legacy_handoff/claim.rs",
+   "userland/capsule_driver_xhci/src/controller/legacy_handoff/legacy_handoff.rs",
+   "userland/capsule_driver_xhci/src/controller/park.rs",
+   "userland/capsule_driver_xhci/src/controller/poll_interrupt_in",
+   "userland/capsule_driver_xhci/src/controller/program_command_ring.rs",
+   "userland/capsule_driver_xhci/src/controller/program_event_ring.rs",
+   "userland/capsule_driver_xhci/src/controller/recover_endpoint.rs",
+   "userland/capsule_driver_xhci/src/controller/refuse_unsupported.rs",
+   "userland/capsule_driver_xhci/src/controller/reset.rs",
+   "userland/capsule_driver_xhci/src/controller/reset_port.rs",
+   "userland/capsule_driver_xhci/src/controller/reset_toggle.rs",
+   "userland/capsule_driver_xhci/src/controller/ring_doorbell.rs",
+   "userland/capsule_driver_xhci/src/controller/run_command.rs",
+   "userland/capsule_driver_xhci/src/controller/scratchpad.rs",
+   "userland/capsule_driver_xhci/src/controller/start.rs",
+   "userland/capsule_driver_xhci/src/controller/wait_cnr_clear.rs",
+   "userland/capsule_driver_xhci/src/controller/wait_command_completion.rs",
+   "userland/capsule_driver_xhci/src/controller/wait_hc_running.rs",
+   "userland/capsule_driver_xhci/src/controller/wait_transfer_completion.rs",
+   "userland/capsule_driver_xhci/src/dma",
+   "userland/capsule_driver_xhci/src/error",
+   "userland/capsule_driver_xhci/src/protocol",
+   "userland/capsule_driver_xhci/src/regs",
+   "userland/capsule_driver_xhci/src/rings",
+   "userland/capsule_driver_xhci/src/server/mux_ports.rs",
+   "userland/capsule_driver_xhci/src/slots",
+   "userland/capsule_driver_xhci/src/trb",
+   "userland/nonos_devmodel",
+   "userland/xhci_proofs"
+  ],
+  "md": [],
+  "signed": []
+ }
+}
