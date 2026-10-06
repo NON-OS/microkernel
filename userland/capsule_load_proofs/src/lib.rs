@@ -5,5 +5,11 @@
 #[path = "../../../src/kernel_core/process_spawn/capsule_spawn/from_vfs/validity_clock.rs"]
 pub mod validity_clock;
 
+/// The kernel's choice of the clock a certificate window is checked against,
+/// for the tests: a plausible wall clock passes, an unset one gives `None`.
+pub fn validity_now_ms(now: u64) -> Option<u64> {
+    validity_clock::validity_now_ms(now)
+}
+
 #[cfg(test)]
 mod tests;

@@ -17,6 +17,6 @@ fn a_plausible_wall_clock_enforces_the_window() {
     const FLOOR: u64 = 1_577_836_800_000; // 2020-01-01
     assert_eq!(validity_now_ms(FLOOR - 1), None);
     assert_eq!(validity_now_ms(FLOOR), Some(FLOOR));
-    let jul_2026 = 1_752_000_000_000u64;
+    let jul_2026 = 1_782_864_000_000u64; // 2026-07-01
     assert_eq!(validity_now_ms(jul_2026), Some(jul_2026));
 }
