@@ -28,3 +28,26 @@ flowchart LR
 - `Ctrl+B` shows or hides the side rail. `Ctrl+K` opens a palette that filters, as you type, twelve common commands, the last twelve lines run in this tab, the open tabs, and a few actions such as a new tab or the next theme. `Enter` picks, `Esc` closes it (`build` in `userland/capsule_terminal/src/palette/index.rs`).
 - `Ctrl+=` and `Ctrl+-` change the font size, from scale 1 to 6 (`MAX_FONT_SCALE` in `userland/capsule_terminal/src/term/dimensions.rs`).
 - `theme` switches the colours: `dark`, `dim`, `light` or `abyss`.
+
+## Editing a line
+
+`help keys` prints a short form of this list (`userland/capsule_terminal/src/command/builtin/help_pages.rs`). It still names `Ctrl-K` for cutting to the end of the line; in this release `Ctrl+K` opens the palette and `Ctrl+Shift+K` cuts (`opens` in `userland/capsule_terminal/src/term/terminal/palette_key.rs`).
+
+| Keys | What they do |
+|---|---|
+| `Ctrl+A`, `Ctrl+E` | Start or end of the line. With the cursor at the end, `Ctrl+E` takes the line history suggests. |
+| `Ctrl+F`, `Alt+B`, `Alt+F`, `Ctrl+Left`, `Ctrl+Right` | One character forward, or one word back or forward. |
+| `Ctrl+W`, `Alt+D`, `Ctrl+Shift+K`, `Ctrl+U` | Cut a word back, a word forward, to the end of the line, or the whole line. |
+| `Ctrl+Y` | Put back what the last cut took. |
+| `Ctrl+D`, `Ctrl+H` | Delete the character under the cursor, or the one before it. |
+| `Tab` | Complete a command or a path. |
+| `Up`, `Down`, `Ctrl+P`, `Ctrl+N` | Walk the history. |
+| `Ctrl+R` | Search the history. Press it again for the next match. |
+| `Ctrl+L` | Empty the scrollback. |
+| `Ctrl+V`, `Ctrl+Shift+V`, `Shift+Insert` | Paste. |
+| `Ctrl+Shift+C` | Copy the selection, or the line when nothing is selected. |
+| `Ctrl+Shift+F` | Find in the scrollback. `Enter` goes to older matches, `Shift+Enter` to newer. |
+
+With the mouse: drag to select, double-click a word, triple-click a line, `Alt`+drag a block. `Ctrl+D` never closes the terminal; `exit` does.
+
+History expansion works as in other shells: `!!` is the last command, `!n` the nth, `!text` the last one starting with text. The expanded line is shown before it runs. A reference that matches nothing runs nothing and prints `no matching history entry`.
