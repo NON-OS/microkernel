@@ -16,14 +16,29 @@
 
 use super::boot_inputs::ApBootInputs;
 use crate::memory::addr::PhysAddr;
+use crate::smp::boot_claim::budget_ticks;
 use crate::smp::constants::{AP_TRAMPOLINE_ADDR, PERCPU_STACK_SIZE};
 use crate::smp::state::CPU_DESCRIPTORS;
 use crate::smp::trampoline::{write_per_ap_context, PerApBootContext};
 use crate::smp::{CpuDescriptor, CpuState};
 use core::sync::atomic::Ordering;
 
-const AP_START_TIMEOUT_MS: u64 = 100;
-const AP_START_TIMEOUT_FALLBACK_TSC: u64 = 250_000_000;
+/*
+ * Two deadlines, because there are two different questions.
+ *
+ * Entry: did the AP run at all? A woken AP reaches Rust in microseconds on
+ * real hardware. The budget is generous for emulators with many vCPUs, and it
+ * is the one that decides whether the trampoline may be reused: past it the
+ * boot CPU takes the AP's claim and parks it with INIT.
+ *
+ * Online: the AP has entered and is setting itself up (GDT, IDT, guard pages,
+ * LAPIC timer). That takes locks the boot CPU may hold, so it can be slower,
+ * and an AP past entry is never sent INIT: it may be holding one of them.
+ */
+const AP_ENTRY_TIMEOUT_MS: u64 = 1000;
+const AP_ONLINE_TIMEOUT_MS: u64 = 1000;
+/// Used when the counter rate is unknown: about a second at up to 5 GHz.
+const AP_TIMEOUT_FALLBACK_TICKS: u64 = 5_000_000_000;
 
 pub(super) fn start(
     cpu_id: usize,
@@ -36,37 +51,66 @@ pub(super) fn start(
 
     configure_descriptor(ap, cpu_id, apic_id, stack_base);
     write_context(cpu_id, stack_top, boot)?;
-    crate::arch::x86_64::interrupt::apic::start_ap(apic_id, (AP_TRAMPOLINE_ADDR >> 12) as u8);
+    if let Err(e) =
+        crate::arch::x86_64::interrupt::apic::start_ap(apic_id, (AP_TRAMPOLINE_ADDR >> 12) as u8)
+    {
+        // Nothing may have reached it, or a STARTUP may have. Park it either
+        // way so the trampoline can be reused, and say why.
+        report(cpu_id, apic_id, b" startup failed: ", e.as_str().as_bytes());
+        if abandon(ap, apic_id) {
+            return Ok(false);
+        }
+        // It entered regardless, so it is running; wait for it below.
+    }
 
-    if wait_online(ap) {
-        let mut l = crate::sys::serial::Line::new();
-        l.str(b"[SMP] ap=").dec(cpu_id as u64);
-        l.str(b" apic=").dec(apic_id as u64);
-        l.str(b" online");
-        l.end();
+    if !wait_for(|| ap.boot_claim.entered(), AP_ENTRY_TIMEOUT_MS) && abandon(ap, apic_id) {
+        report(cpu_id, apic_id, b" no response, parked", b"");
+        return Ok(false);
+    }
+
+    if wait_for(|| ap.state() == CpuState::Online, AP_ONLINE_TIMEOUT_MS) {
+        report(cpu_id, apic_id, b" online", b"");
         Ok(true)
     } else {
         /*
-         * Not marked Offline. This AP missed the deadline; it was not stopped,
-         * and the loop that called us says so in its own comment. Writing
-         * Offline here raced the AP's own write of Online: lose that race and
-         * a running CPU is recorded as down, `shootdown::broadcast` skips it
-         * because it filters on `cpu_is_online`, and it goes on holding stale
-         * TLB entries with nobody flushing them. Leaving the descriptor in
-         * Starting makes the CPU the only writer of its own Online.
+         * Not marked Offline. This AP entered and then missed the deadline;
+         * it was not stopped. Writing Offline here raced the AP's own write
+         * of Online: lose that race and a running CPU is recorded as down,
+         * `shootdown::broadcast` skips it because it filters on
+         * `cpu_is_online`, and it goes on holding stale TLB entries with
+         * nobody flushing them. Leaving the descriptor in Starting makes the
+         * CPU the only writer of its own Online.
          */
-        let mut l = crate::sys::serial::Line::new();
-        l.str(b"[SMP] ap=").dec(cpu_id as u64);
-        l.str(b" apic=").dec(apic_id as u64);
-        l.str(b" timeout");
-        l.end();
+        report(cpu_id, apic_id, b" timeout after entry", b"");
         Ok(false)
     }
+}
+
+/// Take the AP's claim and park it. False when the AP claimed first, in which
+/// case it is running and must be waited for instead.
+fn abandon(ap: &CpuDescriptor, apic_id: u32) -> bool {
+    if !ap.boot_claim.bsp_abandon() {
+        return false;
+    }
+    // The AP can no longer pass its claim, so nothing else writes this state.
+    ap.set_state(CpuState::Offline);
+    let _ = crate::arch::x86_64::interrupt::apic::park_ap(apic_id);
+    true
+}
+
+fn report(cpu_id: usize, apic_id: u32, what: &[u8], detail: &[u8]) {
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[SMP] ap=").dec(cpu_id as u64);
+    l.str(b" apic=").dec(apic_id as u64);
+    l.str(what);
+    l.str(detail);
+    l.end();
 }
 
 fn configure_descriptor(ap: &CpuDescriptor, cpu_id: usize, apic_id: u32, stack_base: u64) {
     ap.set_identity(cpu_id as u32, apic_id, PERCPU_STACK_SIZE);
     ap.stack_base.store(stack_base, Ordering::Release);
+    ap.boot_claim.arm();
     // Published last: the AP, and anything sending it an IPI, must see a
     // complete descriptor before they see it leave Offline.
     ap.set_state(CpuState::Starting);
@@ -78,19 +122,15 @@ fn write_context(cpu_id: usize, stack_top: u64, boot: &ApBootInputs) -> Result<(
         .map_err(|_| "Failed to patch AP trampoline context")
 }
 
-fn wait_online(ap: &CpuDescriptor) -> bool {
+fn wait_for(done: impl Fn() -> bool, ms: u64) -> bool {
     let start = super::time::read_tsc();
-    let budget = ap_start_timeout_tsc();
-    while ap.state() != CpuState::Online {
-        if super::time::read_tsc() - start > budget {
-            return false;
+    let budget =
+        budget_ticks(ms, crate::sys::timer::tsc::tsc_frequency(), AP_TIMEOUT_FALLBACK_TICKS);
+    while !done() {
+        if super::time::read_tsc().wrapping_sub(start) > budget {
+            return done();
         }
         core::hint::spin_loop();
     }
     true
-}
-
-fn ap_start_timeout_tsc() -> u64 {
-    let ticks = crate::sys::timer::tsc::tsc_frequency() / 1000 * AP_START_TIMEOUT_MS;
-    if ticks == 0 { AP_START_TIMEOUT_FALLBACK_TSC } else { ticks }
 }

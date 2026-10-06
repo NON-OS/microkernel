@@ -44,11 +44,21 @@ pub(super) fn via_leaf_0b(topology: &mut CpuTopology) -> usize {
         }
     }
 
+    /*
+     * EBX at each level counts the logical processors that level spans: the
+     * SMT level gives threads per core, the core level gives every logical
+     * processor in the package. The package total is the core level's
+     * number, not the SMT level's, which is 1 on a part without
+     * hyperthreading (a 4-core Gemini Lake reported one CPU here).
+     */
+    let per_core = threads.max(1);
     if cores > 0 {
-        topology.physical_cores = cores;
+        topology.physical_cores = (cores / per_core).max(1);
+        topology.hyperthreading = per_core > 1;
+        return cores;
     }
     if threads > 0 {
-        topology.hyperthreading = threads > cores;
+        topology.hyperthreading = threads > 1;
         return threads;
     }
     1

@@ -23,6 +23,7 @@
 extern crate alloc;
 
 mod leaves;
+mod plan;
 
 use alloc::vec::Vec;
 
@@ -55,29 +56,59 @@ pub(super) fn detect() -> usize {
         1
     };
 
-    let enabled = crate::arch::x86_64::acpi::processors().iter().filter(|p| p.enabled).count();
-    if enabled > 0 {
-        topology.logical_cpus = enabled;
-    }
-    topology.logical_cpus = topology.logical_cpus.min(MAX_CPUS);
+    // The count is what will actually be started, plus this CPU: the MADT's
+    // enabled entries after the planner has dropped duplicates, placeholders,
+    // unaddressable ids and anything past MAX_CPUS. CPUID's count is only the
+    // answer on a machine with no MADT.
+    let aps = secondaries(topology.logical_cpus);
+    topology.logical_cpus = (aps.len() + 1).min(MAX_CPUS);
 
     set_topology(topology);
-    set_ap_list(secondaries(topology.logical_cpus));
+    set_ap_list(aps);
     topology.logical_cpus
 }
 
-/// Every enabled processor the MADT lists except this one. Without a MADT the
-/// APIC IDs are assumed dense from zero, which is what a machine old enough to
-/// lack one does.
+/// Every processor the MADT says to start, by APIC id, except this one.
+/// Without a MADT the APIC IDs are assumed dense from zero, which is what a
+/// machine old enough to lack one does.
 fn secondaries(logical_cpus: usize) -> Vec<u32> {
     let own = crate::arch::interrupt_controller::local_id();
     let processors = crate::arch::x86_64::acpi::processors();
-    if !processors.is_empty() {
-        return processors
-            .iter()
-            .filter(|p| p.enabled && p.apic_id != own)
-            .map(|p| p.apic_id)
-            .collect();
+    if processors.is_empty() {
+        return (0..logical_cpus.min(MAX_CPUS) as u32).filter(|id| *id != own).collect();
     }
-    (0..logical_cpus as u32).filter(|id| *id != own).collect()
+    let entries: Vec<plan::MadtCpu> = processors
+        .iter()
+        .map(|p| plan::MadtCpu {
+            apic_id: p.apic_id,
+            enabled: p.enabled,
+            x2apic_entry: p.is_x2apic,
+        })
+        .collect();
+    let x2apic_mode = crate::sys::apic::lapic_state().is_some_and(|(x2, _)| x2);
+    let mut aps = Vec::new();
+    let counts = plan::plan(&entries, own, x2apic_mode, MAX_CPUS, |id| aps.push(id));
+
+    let mut l = crate::sys::serial::Line::new();
+    l.str(b"[SMP] madt aps=").dec(counts.accepted as u64);
+    l.str(b" disabled=").dec(counts.disabled as u64);
+    l.str(b" duplicate=").dec(counts.duplicate as u64);
+    l.str(b" invalid=").dec(counts.invalid as u64);
+    l.str(b" unaddressable=").dec(counts.unaddressable as u64);
+    l.str(b" over_limit=").dec(counts.over_limit as u64);
+    l.end();
+    if counts.over_limit > 0 {
+        crate::log_warn!(
+            "[SMP] {} CPUs past MAX_CPUS={} left offline",
+            counts.over_limit,
+            MAX_CPUS
+        );
+    }
+    if counts.unaddressable > 0 {
+        crate::log_warn!(
+            "[SMP] {} CPUs have APIC ids above 0xFE and the APIC is in xAPIC mode; left offline",
+            counts.unaddressable
+        );
+    }
+    aps
 }

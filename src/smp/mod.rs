@@ -18,20 +18,25 @@ extern crate alloc;
 
 #[cfg(target_arch = "x86_64")]
 mod ap;
+pub mod boot_claim;
 mod constants;
 mod cpu;
 mod cpu_id;
+mod cpu_unregistered;
 mod init;
 mod ipi_dispatch;
 mod ipi_handler;
+mod panic_ipi;
 mod preempt;
 mod responsive;
+mod serve;
 mod sole_cpu;
 mod state;
 mod stats;
 mod types;
 
 pub mod ipi;
+pub mod nmi;
 pub mod percpu;
 pub mod topology;
 #[cfg(target_arch = "x86_64")]
@@ -39,7 +44,7 @@ pub mod trampoline;
 
 pub use constants::*;
 pub use cpu::*;
-pub use cpu_id::cpu_id;
+pub use cpu_id::{cpu_id, current_cpu_id};
 pub use sole_cpu::sole_cpu_apic_id;
 pub(crate) use state::{cpu_count, cpu_is_online, cpus_online};
 /// Called by the IDT builder, which is the only point early enough that every
@@ -47,13 +52,12 @@ pub(crate) use state::{cpu_count, cpu_is_online, cpus_online};
 #[cfg(target_arch = "x86_64")]
 pub(crate) use ipi_dispatch::install_gates as install_ipi_gates;
 pub use types::*;
-pub fn current_cpu_id() -> u32 {
-    cpu_id() as u32
-}
 #[cfg(target_arch = "x86_64")]
 pub use ap::*;
 pub use init::*;
 pub use ipi_handler::*;
+pub use panic_ipi::send_panic_ipi;
 pub use preempt::*;
 pub use responsive::lock_responsive;
+pub use serve::{in_serve_units, serve_shootdowns, SERVE_UNIT};
 pub use stats::*;

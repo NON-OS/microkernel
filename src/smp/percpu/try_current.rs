@@ -14,15 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bring_up;
-mod entry;
-mod go_live;
-mod idle;
-mod idle_steps;
-mod online;
-mod tsc_adjust;
-mod tsc_adjust_report;
-mod user_setup;
+use super::operations::get;
+use super::types::PerCpuData;
 
-pub use entry::ap_entry;
-pub(crate) use tsc_adjust::record_boot_cpu as record_boot_tsc_adjust;
+/// [`current`] without the halt: `None` on a CPU not yet registered.
+#[inline]
+pub fn try_current() -> Option<&'static PerCpuData> {
+    get(crate::smp::cpu_id::try_cpu_id()?)
+}

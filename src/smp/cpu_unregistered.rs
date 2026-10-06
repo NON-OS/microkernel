@@ -14,15 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod bring_up;
-mod entry;
-mod go_live;
-mod idle;
-mod idle_steps;
-mod online;
-mod tsc_adjust;
-mod tsc_adjust_report;
-mod user_setup;
-
-pub use entry::ap_entry;
-pub(crate) use tsc_adjust::record_boot_cpu as record_boot_tsc_adjust;
+/// A CPU the descriptor table does not know about has no per-CPU block, no
+/// current-process slot and no time slice. There is no index it can be given
+/// that is not a guess, so it stops here instead of running as another CPU.
+pub(super) fn unregistered(apic_id: u32) -> ! {
+    crate::sys::serial::print(b"[SMP] FATAL unregistered CPU, APIC id ");
+    crate::sys::serial::print_dec(apic_id as u64);
+    crate::sys::serial::println(b"");
+    crate::arch::halt_loop()
+}
