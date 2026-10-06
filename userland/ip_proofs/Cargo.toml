@@ -1,0 +1,28 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for net.ip's ingress and ICMP echo path. The capsule's
+# own source (everything but its entry point and its inbox loop) is included
+# via #[path] and driven through its real poll handler, with net.l2 played on
+# the host behind the stand-in nonos_libc: frames come up as they would from
+# the NIC, and what the capsule sends back down is kept for the proofs.
+[package]
+name = "ip_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+# The capsule's fault-injection feature, declared so its cfg resolves; it is
+# off here, as in every shipped build.
+[features]
+tcp-chaos = []
+
+[dependencies]
+nonos_libc = { package = "net_proofs_shim", path = "../net_proofs/shim" }
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "rwlock"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
