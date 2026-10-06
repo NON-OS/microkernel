@@ -63,3 +63,9 @@ On aarch64 the same properties come from the PXN, UXN and AP bits in each descri
 Each fault stack of the boot CPU is a `GuardedStack` with a 4096-byte `GUARD_BYTES` page below it (`src/arch/x86_64/gdt/guarded_stack.rs:27-34`). Once paging is up, `arm_stack_guards` unmaps those pages and prints `[STACK-GUARD] bsp armed n/m`, with a warning when not every guard was taken out (`src/kernel_core/init/entry/init_vm_and_protection.rs:59-73`). Each secondary CPU arms its own with `arm_ap_guards` and prints no count (`src/smp/ap/bring_up.rs:55-56`).
 
 The 64 KiB kernel stacks of secondary CPUs are mapped back to back by `allocate`, with no unmapped page between them (`src/smp/init/stack.rs:22-32`). An overflow there runs into the next CPU's stack.
+
+## KASLR
+
+There is no kernel address randomisation in this release. The image is static at `0xFFFFFFFF80000000`. The slide code exists, with `MIN_SLIDE` 256 MiB and `MAX_SLIDE` 2 GiB (`src/memory/kaslr/constants.rs:24-28`), but nothing calls `randomize_layout_from_kaslr` (`src/memory/layout/manager/kaslr_ops.rs:117-125`), so no kernel region moves. Capsule images in user space do get a random base, as described under the address layout above.
+
+What does run is the per-boot nonce. `init_boot_entropy` is the first stage of kernel init and calls `seed_boot_nonce` (`src/kernel_core/init/entry/init_boot_entropy.rs:32-47`). `collect_entropy` mixes cycle-counter jitter with RDRAND and RDSEED where the CPU has them (`src/memory/kaslr/manager/entropy.rs:31-61`). The serial line says `[BOOT-ENTROPY] nonce drawn, hardware generator present` or `absent`. Little reads the nonce in this release. The physical allocator's `derive_seed` turns it into `random_seed` (`src/memory/phys/allocator/random.rs:16-22`), a field no allocation path reads. The stack-canary code in `memory::hardening` also reads it in `generate_stack_canary`, but nothing on the boot path calls that code (`src/memory/hardening/manager/init.rs:68-77`).
