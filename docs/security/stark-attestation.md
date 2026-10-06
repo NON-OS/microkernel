@@ -82,3 +82,46 @@ NONOS_ENROLL_PATHS=1 nonos-stark-enroll recompute zk_capsule_policy_root.bin.tra
 Not tested in this release.
 
 The make rule for `ZK_CAPSULE_ROOT` calls `capsules` once with every capsule in `NONOS_ENROLLED_CAPSULES`, so the whole set shares one root; with `NONOS_TRUST_REUSE` set to 1 it only checks that the committed root exists (`mk/20-build.mk:592-605`). The [seal](../overview/glossary.md#seal) runs `kernel` and then `verify-kernel`, `bootloader` and then `verify-bootloader` (`tools/nonos_seal/chain.py:46-62`).
+
+## Who checks them
+
+### At every capsule spawn
+
+```mermaid
+sequenceDiagram
+    participant P as preflight
+    participant G as attest_gate
+    participant V as verify_capsule_attestation
+    participant A as verify_against
+    participant N as nox_verify
+    participant E as enrolled_roots
+    P->>G: spec, required_caps
+    G->>V: trailer, ELF, required_caps
+    V->>A: the vendor root
+    A->>N: proof and public words
+    N-->>A: accepted or a refusal code
+    A-->>V: measurement or AttestError
+    V->>E: only after a vendor refusal
+    V-->>G: Proved or the vendor error
+    G-->>P: Proved or AttestationRejected
+```
+
+`preflight` sorts the manifest's namespace: `systems.nonos` and names under it are `Tier::Enrolled`, everything else `Tier::Publisher` (`src/kernel_core/process_spawn/capsule_spawn/runner/tier.rs:17-28`). Both tiers end in the same `attest_gate`, with the manifest's `required_caps` as the capability word of the context (`src/kernel_core/process_spawn/capsule_spawn/runner/preflight.rs:67-77`, `src/kernel_core/process_spawn/capsule_spawn/runner/publisher_gate.rs:28-33`).
+
+`attest_gate` refuses an empty trailer outright, and any refusal reaches `preflight` as `AttestationRejected`. It prints `[ZK-ATTEST] ok`, `none` or `FAIL` on the serial line with the capsule's name and then the authority or the reason, and for a refused proof the `nox_verify` code (`src/kernel_core/process_spawn/capsule_spawn/runner/attest_gate.rs:23-63`). The reasons are the strings of `AttestError`: missing, malformed, root unavailable, rejected, or `ProofRefused` with a code from 1 to 7 (`src/security/capsule_attest/error.rs:17-37`).
+
+`verify_capsule_attestation` hashes the ELF once with BLAKE3, in serve units so that a long hash still answers TLB shootdowns (`measure`, `src/security/capsule_attest/measure.rs:17-32`). It tries the vendor root first and always; only when that refuses does it try `enrolled_roots`, the roots a person enrolled on this machine, and when none admits the capsule it returns the vendor root's refusal (`src/security/capsule_attest/verify.rs:21-63`). Against the vendor root only a v4 trailer counts. Under an enrolled root, `enrolled` checks a trailer that starts with the local-build magic as a keyed tag of a build made on this machine, not as a STARK (`src/security/capsule_attest/against_root.rs:31-45`).
+
+`verify_against` parses the trailer as a capsule trailer, builds `capsule_context` from the measurement, the capability word and `POLICY_EPOCH`, folds the path to the root, and then has `nox_verify` check the proof over the words of that same context and root (`src/security/capsule_attest/path.rs:34-54`). A success is a `Proved`: the measurement and the `Authority` that vouched, kept as one value (`src/security/capsule_attest/proved.rs:19-28`). The spawn writes both into the attestation registry with `record_attested` once the process exists (`src/kernel_core/process_spawn/capsule_spawn/runner/verified.rs:64-80`).
+
+### Before the kernel runs
+
+The loader's check of the kernel trailer is in its verification module, which these pages do not describe. `attest_kernel` turns its result into a boot or a stop, in every mode (`nonos-bootloader/src/boot/attestation/kernel_gate.rs:34-60`). The handoff's `AttestPolicy` carries the kernel root only when that gate ran and passed, and zero otherwise (`nonos-bootloader/src/handoff/types/security.rs:46-63`). The kernel keeps a copy of the same check, `verify_kernel_self_attestation`: a v4 kernel trailer, `boot_context` over BLAKE3 of the image at `BOOT_EPOCH`, the path and then the proof, and nothing calls it (`src/security/kernel_attest.rs:17-51`).
+
+### The loader, checked by the kernel
+
+`membership` checks the loader's slot the way the spawn gate checks a capsule's: `boot_context` over the Authenticode digest at `BOOT_EPOCH`, the path under the signed root, then the STARK with the bootloader kind (`nonos-boot-measure/src/gate/membership.rs:28-61`). A refused proof is logged as 400 plus the `nox_verify` code (`BootError`, `nonos-boot-measure/src/gate/error.rs:42-55`). Where the measurement and the root come from is on [Measured boot and the TPM](measured-boot-and-tpm.md).
+
+### From userspace
+
+`MkAttestPolicy` returns the kernel tree's root, epoch and depth when the handoff marks them as checked, and the capsule tree's (`sys_attest_policy`, `src/syscall/microkernel/attest_policy.rs:27-46`). Any caller with a valid token may ask (`MkAttestPolicy`, `src/syscall/contract/cap_table/mk.rs:32-35`).
