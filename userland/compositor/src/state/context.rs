@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::{AttachCache, CursorTracker, DamageAccumulator, FocusTable, SceneTable};
+use crate::sw_blitter::Surface;
 
 pub struct Context {
     pub gfx_port: u32,
@@ -36,6 +37,11 @@ pub struct Context {
     pub focus: FocusTable,
     pub cursor: CursorTracker,
     pub attach: AttachCache,
+    /// Screen pixels per canvas pixel, each way. `width`, `height`, `stride`
+    /// and the backing above are the canvas clients draw for; `screen` is
+    /// what is presented, the canvas itself when this is one.
+    pub scale: u32,
+    pub screen: Surface,
 }
 
 impl Context {

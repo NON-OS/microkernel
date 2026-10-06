@@ -18,23 +18,29 @@ use super::layer::{Layer, MAX_LAYERS};
 use super::table::SceneTable;
 
 impl SceneTable {
-    // Bottom-to-top draw order. Layers rank by z first; within the same z the
-    // window owned by `focused_pid` sorts last, so it draws on top. This is what
-    // makes a click raise a window: the click focuses it, and focus lifts it
-    // above its peers without crossing into a higher band such as the taskbar.
-    // A stable insertion sort keeps every other window in its existing order.
-    pub fn z_sorted_snapshot(&self, focused_pid: u32) -> ([Layer; MAX_LAYERS], usize) {
+    // Bottom-to-top draw order. Layers rank by z band first, then by raise
+    // stamp, so inside a band the most recently raised window draws on top and
+    // every other window keeps the place its own last raise gave it. The window
+    // manager stacks windows the same way (each raise takes a new, higher z)
+    // and tells the compositor about every raise, so the window drawn on top at
+    // a point is the window its hit test hands a click at that point to.
+    //
+    // This used to lift only the focused window above its peers and leave every
+    // other one in table order. With three windows the one drawn second from
+    // the top was then not the one the window manager had second, and a click
+    // on what was visibly on top went to a window underneath it.
+    pub fn z_sorted_snapshot(&self) -> ([Layer; MAX_LAYERS], usize) {
         let mut out = [Layer::default(); MAX_LAYERS];
         let mut n = 0;
         for layer in self.entries.iter().filter(|l| l.in_use) {
             out[n] = *layer;
             n += 1;
         }
-        // Composite rank: z in the high bits, "is focused" in the low bit, so a
-        // focused layer only outranks a peer at the same z, never one above it.
-        let rank = |l: &Layer| -> u64 {
-            ((l.z as u64) << 1) | (focused_pid != 0 && l.owner_pid == focused_pid) as u64
-        };
+        // Composite rank: the band in the high half, the raise stamp in the low
+        // half, so a raise reorders a layer among its peers and never moves it
+        // out of its band (an application window never covers a layer of a
+        // higher band, nor sinks under the desktop's).
+        let rank = |l: &Layer| -> u64 { ((l.z as u64) << 32) | l.stack as u64 };
         let mut i = 1;
         while i < n {
             let mut j = i;

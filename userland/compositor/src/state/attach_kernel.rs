@@ -14,26 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::compose::{compose, Scene};
-use crate::state::attach_kernel::Kernel;
-use crate::state::damage::Rect;
-use crate::state::Context;
+use nonos_libc::{mk_surface_attach, mk_surface_release, SurfaceDescriptor};
+
+use super::attach::SurfaceKernel;
 use crate::sw_blitter::Surface;
 
-pub fn paint(ctx: &mut Context, rect: Rect) {
-    let dst = Surface {
-        base_va: ctx.backing_va,
-        stride: ctx.stride,
-        width: ctx.width,
-        height: ctx.height,
-        byte_len: ctx.backing_len,
-    };
-    let cursor = ctx.cursor.current();
-    let scene = Scene {
-        scene: &mut ctx.scene,
-        attach: &mut ctx.attach,
-        kernel: &mut Kernel,
-        damage: &mut ctx.damage,
-    };
-    compose(dst, rect, scene, cursor.visible.then_some((cursor.x, cursor.y)));
+/// The real surface registry, through its two syscalls.
+pub struct Kernel;
+
+impl SurfaceKernel for Kernel {
+    fn attach(&mut self, handle: u64) -> Option<Surface> {
+        let mut desc = SurfaceDescriptor::default();
+        let rc = mk_surface_attach(handle, &mut desc);
+        if rc <= 0 {
+            return None;
+        }
+        Some(Surface {
+            base_va: rc as u64,
+            stride: desc.stride,
+            width: desc.width,
+            height: desc.height,
+            byte_len: desc.byte_len,
+        })
+    }
+
+    fn release(&mut self, handle: u64) -> bool {
+        mk_surface_release(handle) >= 0
+    }
 }

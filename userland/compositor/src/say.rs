@@ -14,12 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::mk_display_vsync_wait;
+//! One line on the kernel's log for the display the desktop is drawn on.
+//! The Terminal's `log DISPLAY` reads it back on a laptop with no serial
+//! port, beside the kernel's `[FB]` line for the same framebuffer.
 
-pub fn wait_for_vsync() -> Result<u64, &'static str> {
-    let rc = mk_display_vsync_wait(0);
-    if rc < 0 {
-        return Err("vsync wait failed");
-    }
-    Ok(rc as u64)
+use alloc::format;
+
+use crate::state::Context;
+
+pub fn say(line: &str) {
+    let line = format!("[DISPLAY] {}\n", line);
+    let _ = nonos_libc::mk_debug(line.as_ptr(), line.len());
+}
+
+/// Which output the desktop went to, the screen's size and the canvas the
+/// clients were given for it.
+pub fn say_display(ctx: &Context, path: &str) {
+    say(&format!(
+        "{} {}x{}, canvas {}x{} at scale {}",
+        path, ctx.screen.width, ctx.screen.height, ctx.width, ctx.height, ctx.scale
+    ));
 }

@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod drop_by_pid;
-mod drop_surface;
-mod layer;
-mod layers;
-mod new;
-mod raise;
-mod reap_unattachable;
-mod snapshot;
-mod submit;
-mod table;
+use nonos_libc::mk_munmap;
 
-pub use layer::Layer;
-pub use table::SceneTable;
+use crate::state::Context;
+
+/// Give back a canvas that is not the screen, before the screen is replaced.
+pub fn release_canvas(ctx: &mut Context) {
+    // A doubled canvas and a floor canvas are both their own mapping.
+    if ctx.backing_va != ctx.screen.base_va {
+        if let Ok(len) = usize::try_from(ctx.backing_len) {
+            let _ = mk_munmap(ctx.backing_va as *mut u8, len);
+        }
+    }
+}

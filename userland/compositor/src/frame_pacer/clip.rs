@@ -14,26 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::compose::{compose, Scene};
-use crate::state::attach_kernel::Kernel;
-use crate::state::damage::Rect;
 use crate::state::Context;
-use crate::sw_blitter::Surface;
 
-pub fn paint(ctx: &mut Context, rect: Rect) {
-    let dst = Surface {
-        base_va: ctx.backing_va,
-        stride: ctx.stride,
-        width: ctx.width,
-        height: ctx.height,
-        byte_len: ctx.backing_len,
-    };
-    let cursor = ctx.cursor.current();
-    let scene = Scene {
-        scene: &mut ctx.scene,
-        attach: &mut ctx.attach,
-        kernel: &mut Kernel,
-        damage: &mut ctx.damage,
-    };
-    compose(dst, rect, scene, cursor.visible.then_some((cursor.x, cursor.y)));
+// Clients submit layer rectangles unclipped, so damage can hang off the edge.
+// The kernel rejects a rectangle that leaves the framebuffer, and a rejected
+// present takes the compositor down, so trim here. None means nothing visible.
+pub fn clip_to_screen(
+    ctx: &Context,
+    rect: crate::state::damage::Rect,
+) -> Option<crate::state::damage::Rect> {
+    let screen = ctx.screen;
+    if rect.x >= screen.width || rect.y >= screen.height {
+        return None;
+    }
+    let width = core::cmp::min(rect.width, screen.width - rect.x);
+    let height = core::cmp::min(rect.height, screen.height - rect.y);
+    if width == 0 || height == 0 {
+        return None;
+    }
+    Some(crate::state::damage::Rect { x: rect.x, y: rect.y, width, height })
 }

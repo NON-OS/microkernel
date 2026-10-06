@@ -69,5 +69,7 @@ pub fn run_virtio_once() -> Result<Context, &'static str> {
         focus: FocusTable::new(),
         cursor: CursorTracker::at(desc.width / 2, desc.height / 2),
         attach: AttachCache::new(),
+        scale: 1,
+        screen: crate::sw_blitter::Surface::default(),
     })
 }

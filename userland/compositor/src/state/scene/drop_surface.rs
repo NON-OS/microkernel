@@ -14,32 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::layer::{Layer, MAX_LAYERS};
+use super::layer::Layer;
 use super::table::SceneTable;
 
 impl SceneTable {
-    pub const fn new() -> Self {
-        Self {
-            entries: [Layer {
-                owner_pid: 0,
-                surface_handle: 0,
-                x: 0,
-                y: 0,
-                width: 0,
-                height: 0,
-                z: 0,
-                stack: 0,
-                in_use: false,
-                miss_count: 0,
-            }; MAX_LAYERS],
-            count: 0,
-            next_stack: 1,
+    // Drop every layer drawn from `handle`, a surface the kernel no longer
+    // knows, and hand each back whole so the caller repaints where it was.
+    // Unlike the reaper this does not wait: a surface that was mapped and is
+    // now gone does not come back.
+    pub fn drop_surface(&mut self, handle: u64, dropped: &mut [Layer]) -> usize {
+        let mut n = 0;
+        for slot in self.entries.iter_mut() {
+            if !slot.in_use || slot.surface_handle != handle || n >= dropped.len() {
+                continue;
+            }
+            dropped[n] = *slot;
+            n += 1;
+            *slot = Layer::default();
+            self.count = self.count.saturating_sub(1);
         }
-    }
-}
-
-impl Default for SceneTable {
-    fn default() -> Self {
-        Self::new()
+        n
     }
 }
