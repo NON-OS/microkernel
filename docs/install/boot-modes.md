@@ -84,3 +84,13 @@ The spawn gate, the app choice and the setup plan above all ask `boot_profile`. 
 ## Development boots
 
 The menu has no development entry, on purpose. A loader built with the development policy, which only the `dev` profile and the development twins use (`tools/nix/config.nix`), looks for F12 three times, 50 ms apart, as it starts (`check_dev_key_held` in `nonos-bootloader/src/menu/dev_check.rs:20-41`). With F12 held and Secure Boot off it skips the menu and boots `SecurityMode::Development`, whose description reads `Unsigned kernel allowed; the kernel's STARK is still required` (`dev_override` in `nonos-bootloader/src/entry/dev.rs:22-37`, `description` in `nonos-bootloader/src/menu/types/mode.rs:41-44`). With Secure Boot on it prints `[SECURITY] F12 dev mode blocked: Secure Boot is enabled` and shows the menu. A `--release` seal refuses a profile that uses the development loader (`tools/nonos_seal/__main__.py`).
+
+## See also
+
+- [First boot](first-boot.md)
+- [Install to disk](install-to-disk.md)
+- [Recovery](recovery.md)
+- [Troubleshooting](troubleshooting.md)
+- [Boot chain and signatures](../security/boot-chain-and-signatures.md)
+- [Rollback protection](../security/rollback-protection.md)
+- [Boot handoff](../kernel/boot-handoff.md)
