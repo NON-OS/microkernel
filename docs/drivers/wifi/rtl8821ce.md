@@ -131,3 +131,12 @@ cd userland/rtl8821ce_proofs && cargo test --release --config profile.release.ov
 ```
 
 Not tested in this release.
+
+## See also
+
+- [Wi-Fi drivers](README.md)
+- [Intel iwlwifi](iwlwifi.md)
+- [Wi-Fi chips with no driver](not-supported.md)
+- [The broker API](../broker-api.md)
+- [Hardware support matrix](../../hardware/MATRIX.md)
+- [Wi-Fi and networking for users](../../using/wifi-and-networking.md)
