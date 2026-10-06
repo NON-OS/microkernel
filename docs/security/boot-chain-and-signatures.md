@@ -156,3 +156,15 @@ The loader's messages come from `handle_no_signature` and its neighbours (`nonos
 - `mk-trust-policy` always writes empty revocation lists and zero flags, though the kernel reads all three lists, as `TrustAnchorPolicyInput` shows (`nonos-sign/src/cli/trust_policy/run.rs:47-54`).
 - Capsules spawned from the kernel image at boot pass no time, so certificate validity windows are not checked for them, as in `spawn_verified` for the VFS capsule (`src/fs/vfs_capsule/spawn.rs:57`). A capsule loaded from the store passes the wall clock once it is set, through `validity_now_ms` (`src/kernel_core/process_spawn/capsule_spawn/from_vfs/load/spawn.rs:70-78`).
 - `verify_kernel_self_attestation` in the kernel has no caller; it is kept as a copy of the loader's check (`src/security/kernel_attest.rs:23-38`).
+
+## See also
+
+- [Rollback protection](rollback-protection.md)
+- [STARK attestation](stark-attestation.md)
+- [Measured boot and the TPM](measured-boot-and-tpm.md)
+- [Device secrets and keys](device-secrets-and-keys.md)
+- [Capsule isolation](capsule-isolation.md)
+- [Signing and publisher keys](../userland/signing-and-publisher-keys.md)
+- [Processes and capsule spawn](../kernel/processes-and-spawn.md)
+- [Boot modes](../install/boot-modes.md)
+- [The seal](../build/seal.md)
