@@ -111,3 +111,7 @@ A named IPC address with a port. A capsule's manifest declares its service endpo
 ## Enrollment
 
 Committing a set of measurements, such as the BLAKE3 hash of every capsule's ELF, to one Merkle policy tree, then writing its root and a trailer for each member. The seal runs one enrollment for the capsule set and one each for the kernel and the loader; each draws a fresh pad seed, so the same members give a new root every time. Explained in [STARK attestation](../security/stark-attestation.md#who-makes-the-trailers). Code: `nonos-stark-enroll/src/commands.rs`.
+
+## ESP
+
+The EFI system partition, a FAT volume. It holds the loader as `EFI/BOOT/BOOTX64.EFI` and, under `EFI/nonos`, the signed `kernel.bin`, the loader's trailer, the boot-root record, the kernel approval when there is one, and `boot.cfg`. Explained in [Install to disk](../install/install-to-disk.md#what-is-written). Code: `tools/nonos_seal/media.py`.
