@@ -1,0 +1,56 @@
+# Every C source the Linux userland is built from, pinned by the sha256 its
+# publisher gives (tools/nonos-linux-userland-build says how each was checked).
+# One line per file: name, URL, sha256. tools/nonos-linux-userland-build reads
+# this file, and the flake makes each line a fixed output derivation, so the
+# two builds fetch the same bytes and a hash changes in one place.
+#
+# The toolchains pinned the same way: zig by the release tarballs ziglang.org
+# lists for each host, cmake by the ones Kitware lists, llama.cpp by commit
+# and tree hash.
+lua           https://www.lua.org/ftp/lua-5.4.9.tar.gz                                                  2335b6c582a52654f94612bf10d2f4672805d05329aa6568b1d8cd9e5c6fb8e6
+zstd          https://github.com/facebook/zstd/releases/download/v1.5.7/zstd-1.5.7.tar.gz               eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3
+john          https://www.openwall.com/john/k/john-1.9.0.tar.xz                                         0b266adcfef8c11eed690187e71494baea539efbd632fe221181063ba09508df
+python        https://www.python.org/ftp/python/3.12.15/Python-3.12.15.tar.xz                          c2c4321961fab0fb999d66e0cecf521c2ab3994c7992873ea99e306c1094fd5a
+zlib          https://zlib.net/zlib-1.3.2.tar.gz                                                        bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16
+openssl       https://github.com/openssl/openssl/releases/download/openssl-3.5.9/openssl-3.5.9.tar.gz  603f5602e2eef00d77fbd429d34dcd5822bb301757a1bc9cdb24c670f1eb859a
+util-linux    https://www.kernel.org/pub/linux/utils/util-linux/v2.42/util-linux-2.42.4.tar.xz         fbd62a100ab7bb8746ba0661255c3c48185b1e9021507c624da01fbc696330ec
+libffi        https://github.com/libffi/libffi/releases/download/v3.8.0/libffi-3.8.0.tar.gz             7da3e2d9a171eb0a038f592ecad3ff2bb2550f3496d87b3b29ad0cf4430c0db4
+xz            https://github.com/tukaani-project/xz/releases/download/v5.8.4/xz-5.8.4.tar.gz           0014c7886930454fe8bd4228665b51af55eeae560ea135c9c4cd33f55b2591d9
+sqlite        https://sqlite.org/2026/sqlite-autoconf-3530400.tar.gz                                    0e9483900e92cd5de8fd48d16bf9200145a61f7fd5be542a5ac81d8a9516eb9c
+bzip2         https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz                                       ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269
+ncurses       https://ftp.gnu.org/gnu/ncurses/ncurses-6.6.tar.gz                                        355b4cbbed880b0381a04c46617b7656e362585d52e9cf84a67e2009b749ff11
+readline      https://ftp.gnu.org/gnu/readline/readline-8.3.tar.gz                                      fe5383204467828cd495ee8d1d3c037a7eba1389c22bc6a041f627976f9061cc
+readline83-001 https://ftp.gnu.org/gnu/readline/readline-8.3-patches/readline83-001                    21f0a03106dbe697337cd25c70eb0edbaa2bdb6d595b45f83285cdd35bac84de
+readline83-002 https://ftp.gnu.org/gnu/readline/readline-8.3-patches/readline83-002                    e27364396ba9f6debf7cbaaf1a669e2b2854241ae07f7eca74ca8a8ba0c97472
+readline83-003 https://ftp.gnu.org/gnu/readline/readline-8.3-patches/readline83-003                    72dee13601ce38f6746eb15239999a7c56f8e1ff5eb1ec8153a1f213e4acdb29
+readline83-004 https://ftp.gnu.org/gnu/readline/readline-8.3-patches/readline83-004                    1f189c4566aa35950964647b9ec3be1a821e42b86048129c63eb7f9d4d2f5a74
+readline83-005 https://ftp.gnu.org/gnu/readline/readline-8.3-patches/readline83-005                    5481adbe161c9f6ba972c74db9e18c7aa351d3df3035cc4a673a1aa06247d1c6
+readline83-006 https://ftp.gnu.org/gnu/readline/readline-8.3-patches/readline83-006                    4ebd261a608287796e171af0ea9af5a1e3122e46672accda2484b6698c47c1a4
+quickjs       https://bellard.org/quickjs/quickjs-2026-06-04.tar.xz                                    b376e839b322978313d929fd20663b11ba58b75df5a46c126dd19ea2fa70ad2a
+jq            https://github.com/jqlang/jq/releases/download/jq-1.8.2/jq-1.8.2.tar.gz                  71b8d6e8f5fe81f6c6d0d110e3892251f6ce76ed095abd315e26e6e1193af3af
+tcl           https://prdownloads.sourceforge.net/tcl/tcl8.6.18-src.tar.gz                              14f9af32b1767ff718477a8f974ad03c34341097e6b43f4ce54644ee974e268e
+mruby         git+https://github.com/mruby/mruby@a309524d0bc90eef077a24634db2495a6f68e318             sha256-PfiOcp65nnlLRFObdi43dII5MC4rYLO8oVw+3uEbIMg=
+ripgrep       https://static.crates.io/crates/ripgrep/ripgrep-15.2.0.crate                              a30750b6d0743bfdd2656ebbaf4555aa278c43144b84bc389bcbfa399485ec71
+fd-find       https://static.crates.io/crates/fd-find/fd-find-10.5.0.crate                              f35becce49c551724fd26d9824ec01d6578868cecbcc4e3d060658f9f8ad1e4d
+gojq           https://proxy.golang.org/github.com/itchyny/gojq/@v/v0.12.19.zip e60af51ce35c663f9fdc78a2e1139c4897602f63c1deb28fca11ae2ad70e1cf9
+go-yaml        https://proxy.golang.org/github.com/itchyny/go-yaml/@v/v0.0.0-20251001235044-fca9a0999f15.zip 4c9766586642d7feabc425c7fe2d24df5f455368484b4465a2be134e88a25bf6
+timefmt-go     https://proxy.golang.org/github.com/itchyny/timefmt-go/@v/v0.1.8.zip d3c06a79ebe97f6940f419893873d27c6e139e6882682e710b21da17a12adece
+go-isatty      https://proxy.golang.org/github.com/mattn/go-isatty/@v/v0.0.20.zip f2d5f89ca451577e17464b9bb596dc0d0ecececb5eaa63622c41b57cd0b7b8cc
+go-runewidth   https://proxy.golang.org/github.com/mattn/go-runewidth/@v/v0.0.19.zip 4a99857860b6c26557e6d275d737df8bc29a542cc28fb041d47a417515906876
+stringish      https://proxy.golang.org/github.com/clipperhouse/stringish/@v/v0.1.1.zip b64486091fd9c743a51a025c0c171b0d6f43e5a8fbba799e6d3029f79315621f
+uax29          https://proxy.golang.org/github.com/clipperhouse/uax29/v2/@v/v2.3.0.zip 511135f99f7f21d94de17848d1fc763be2ba36544ad5a0c1eb24b71f7078e649
+x-sys          https://proxy.golang.org/golang.org/x/sys/@v/v0.38.0.zip dacd7c9aa2b298f966822da214c6d601da08f14d41b29032bcac4bc503887a49
+go-cmp.mod     https://proxy.golang.org/github.com/google/go-cmp/@v/v0.7.0.mod 31c874a1d2a18e62b0550f823ce7a575c8dec7f8fd9d4fa1959bb12d7f7c0f14
+x-sys-0.6.mod  https://proxy.golang.org/golang.org/x/sys/@v/v0.6.0.mod f033333096fe198f3151deed93f2deba74e50bbfe7739134045bc3b7ce4a5024
+perl          https://www.cpan.org/src/5.0/perl-5.44.0.tar.gz                                          3b855066b92491cb40e86affb1ca57d1a388aa43e51b91c7806a32c2f65f96c3
+perl-cross    https://github.com/arsv/perl-cross/releases/download/1.6.5/perl-cross-1.6.5.tar.gz      81130cd4b8c6d9eb2a1959f37d44391a46ad6a6794fc41fed5441f74e85e3dd0
+nano          https://ftp.gnu.org/gnu/nano/nano-9.2.tar.xz                                              05ecb99247b782e8a5b3a25ed4101dd034b0236902f7449bc9795b717642f7e9
+make          https://ftp.gnu.org/gnu/make/make-4.4.1.tar.gz                                            dd16fb1d67bfab79a72f5e8390735c49e3e8e70b4945a15ab1f81ddb78658fb3
+zig-x86_64-linux   https://ziglang.org/download/0.16.0/zig-x86_64-linux-0.16.0.tar.xz                  70e49664a74374b48b51e6f3fdfbf437f6395d42509050588bd49abe52ba3d00
+zig-aarch64-linux  https://ziglang.org/download/0.16.0/zig-aarch64-linux-0.16.0.tar.xz                 ea4b09bfb22ec6f6c6ceac57ab63efb6b46e17ab08d21f69f3a48b38e1534f17
+zig-x86_64-macos   https://ziglang.org/download/0.16.0/zig-x86_64-macos-0.16.0.tar.xz                  0387557ed1877bc6a2e1802c8391953baddba76081876301c522f52977b52ba7
+zig-aarch64-macos  https://ziglang.org/download/0.16.0/zig-aarch64-macos-0.16.0.tar.xz                 b23d70deaa879b5c2d486ed3316f7eaa53e84acf6fc9cc747de152450d401489
+cmake-macos-universal https://github.com/Kitware/CMake/releases/download/v4.4.3/cmake-4.4.3-macos-universal.tar.gz 0c5d65251c14cc884bfa16bdbed3c263ce5bffe2e21c0d0d00962cb0610464fa
+cmake-linux-x86_64   https://github.com/Kitware/CMake/releases/download/v4.4.3/cmake-4.4.3-linux-x86_64.tar.gz d6c83076c575bc00b823522ac974bda66d0af05d6ddc30e739c12385cf32c6cc
+cmake-linux-aarch64  https://github.com/Kitware/CMake/releases/download/v4.4.3/cmake-4.4.3-linux-aarch64.tar.gz 2efc974dbd63b4444c0e8494b92f2e80c2d7e635b4b80eac2916985ddd8f72a6
+llama.cpp     git+https://github.com/ggml-org/llama.cpp@00af63567a3ac073919be039db8492f229de5ffc        sha256-kymi92Eb+CObdp0kWKPetyltXD5/t8MvAibLJEKi0qs=

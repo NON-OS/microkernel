@@ -1,0 +1,883 @@
+{
+ "demo": [
+  {
+   "path": "/capsules/std_proof.elf",
+   "file": "userland/capsule_std_proof/target/x86_64-nonos-user/release/std_proof"
+  },
+  {
+   "path": "/capsules/std_proof.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/std_proof.nonos_id_cert.bin"
+  },
+  {
+   "path": "/capsules/std_proof.manifest.bin",
+   "file": "nonos-data/trust/capsules/std_proof.manifest.bin"
+  },
+  {
+   "path": "/capsules/std_proof.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/std_proof.zk_trailer.bin"
+  },
+  {
+   "path": "/capsules/gui_demo.elf",
+   "file": "userland/capsule_gui_demo/target/x86_64-nonos-user/release/gui_demo"
+  },
+  {
+   "path": "/capsules/gui_demo.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/gui_demo.nonos_id_cert.bin"
+  },
+  {
+   "path": "/capsules/gui_demo.manifest.bin",
+   "file": "nonos-data/trust/capsules/gui_demo.manifest.bin"
+  },
+  {
+   "path": "/capsules/gui_demo.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/gui_demo.zk_trailer.bin"
+  },
+  {
+   "path": "/capsules/game_2048.elf",
+   "file": "userland/capsule_game_2048/target/x86_64-nonos-user/release/game_2048"
+  },
+  {
+   "path": "/capsules/game_2048.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/game_2048.nonos_id_cert.bin"
+  },
+  {
+   "path": "/capsules/game_2048.manifest.bin",
+   "file": "nonos-data/trust/capsules/game_2048.manifest.bin"
+  },
+  {
+   "path": "/capsules/game_2048.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/game_2048.zk_trailer.bin"
+  },
+  {
+   "path": "/capsules/egui_proof.elf",
+   "file": "userland/capsule_egui_proof/target/x86_64-nonos-user/release/egui_proof"
+  },
+  {
+   "path": "/capsules/egui_proof.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/egui_proof.nonos_id_cert.bin"
+  },
+  {
+   "path": "/capsules/egui_proof.manifest.bin",
+   "file": "nonos-data/trust/capsules/egui_proof.manifest.bin"
+  },
+  {
+   "path": "/capsules/egui_proof.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/egui_proof.zk_trailer.bin"
+  }
+ ],
+ "media": [
+  {
+   "path": "/Movies/big_buck_bunny.avi",
+   "file": "media/samples/big_buck_bunny.avi"
+  },
+  {
+   "path": "/Movies/blender_reel_2013.mp4",
+   "file": "media/samples/blender_reel_2013.mp4"
+  },
+  {
+   "path": "/Movies/caminandes_llamigos.avi",
+   "file": "media/samples/caminandes_llamigos.avi"
+  },
+  {
+   "path": "/Movies/elephants_dream.avi",
+   "file": "media/samples/elephants_dream.avi"
+  },
+  {
+   "path": "/Movies/sintel.avi",
+   "file": "media/samples/sintel.avi"
+  },
+  {
+   "path": "/Movies/tears_of_steel.avi",
+   "file": "media/samples/tears_of_steel.avi"
+  }
+ ],
+ "wallpapers": [
+  {
+   "path": "/Wallpapers/collection",
+   "file": "target/wallpapers/collection"
+  }
+ ],
+ "linux": [
+  {
+   "path": "/linux/usr/bin/python3",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_python3"
+  },
+  {
+   "path": "/linux/usr/bin/python3.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_python3.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/python3.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_python3.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/python3.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_python3.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/lua",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_lua"
+  },
+  {
+   "path": "/linux/usr/bin/lua.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_lua.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/lua.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_lua.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/lua.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_lua.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/zstd",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_zstd"
+  },
+  {
+   "path": "/linux/usr/bin/zstd.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_zstd.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/zstd.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_zstd.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/zstd.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_zstd.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/john",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_john"
+  },
+  {
+   "path": "/linux/usr/bin/john.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_john.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/john.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_john.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/john.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_john.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/sqlite3",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_sqlite3"
+  },
+  {
+   "path": "/linux/usr/bin/sqlite3.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_sqlite3.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/sqlite3.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_sqlite3.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/sqlite3.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_sqlite3.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/qjs",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_qjs"
+  },
+  {
+   "path": "/linux/usr/bin/qjs.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_qjs.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/qjs.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_qjs.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/qjs.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_qjs.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/jq",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_jq"
+  },
+  {
+   "path": "/linux/usr/bin/jq.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_jq.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/jq.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_jq.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/jq.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_jq.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/tclsh",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_tclsh"
+  },
+  {
+   "path": "/linux/usr/bin/tclsh.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_tclsh.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/tclsh.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_tclsh.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/tclsh.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_tclsh.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/mruby",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_mruby"
+  },
+  {
+   "path": "/linux/usr/bin/mruby.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_mruby.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/mruby.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_mruby.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/mruby.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_mruby.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/rg",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_rg"
+  },
+  {
+   "path": "/linux/usr/bin/rg.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_rg.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/rg.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_rg.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/rg.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_rg.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/fd",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_fd"
+  },
+  {
+   "path": "/linux/usr/bin/fd.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_fd.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/fd.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_fd.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/fd.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_fd.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/gojq",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_gojq"
+  },
+  {
+   "path": "/linux/usr/bin/gojq.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_gojq.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/gojq.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_gojq.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/gojq.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_gojq.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/perl",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_perl"
+  },
+  {
+   "path": "/linux/usr/bin/perl.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_perl.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/perl.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_perl.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/perl.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_perl.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/strict.pm",
+   "file": "target/linux-userland/perl5/strict.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/warnings.pm",
+   "file": "target/linux-userland/perl5/warnings.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/warnings/register.pm",
+   "file": "target/linux-userland/perl5/warnings/register.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/feature.pm",
+   "file": "target/linux-userland/perl5/feature.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/utf8.pm",
+   "file": "target/linux-userland/perl5/utf8.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/vars.pm",
+   "file": "target/linux-userland/perl5/vars.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/constant.pm",
+   "file": "target/linux-userland/perl5/constant.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/lib.pm",
+   "file": "target/linux-userland/perl5/lib.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/integer.pm",
+   "file": "target/linux-userland/perl5/integer.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/bytes.pm",
+   "file": "target/linux-userland/perl5/bytes.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/overload.pm",
+   "file": "target/linux-userland/perl5/overload.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/overloading.pm",
+   "file": "target/linux-userland/perl5/overloading.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/parent.pm",
+   "file": "target/linux-userland/perl5/parent.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/base.pm",
+   "file": "target/linux-userland/perl5/base.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/fields.pm",
+   "file": "target/linux-userland/perl5/fields.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/subs.pm",
+   "file": "target/linux-userland/perl5/subs.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/builtin.pm",
+   "file": "target/linux-userland/perl5/builtin.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/experimental.pm",
+   "file": "target/linux-userland/perl5/experimental.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/version.pm",
+   "file": "target/linux-userland/perl5/version.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/version/regex.pm",
+   "file": "target/linux-userland/perl5/version/regex.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/attributes.pm",
+   "file": "target/linux-userland/perl5/attributes.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/mro.pm",
+   "file": "target/linux-userland/perl5/mro.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Carp.pm",
+   "file": "target/linux-userland/perl5/Carp.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Carp/Heavy.pm",
+   "file": "target/linux-userland/perl5/Carp/Heavy.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Exporter.pm",
+   "file": "target/linux-userland/perl5/Exporter.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Exporter/Heavy.pm",
+   "file": "target/linux-userland/perl5/Exporter/Heavy.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/XSLoader.pm",
+   "file": "target/linux-userland/perl5/XSLoader.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/DynaLoader.pm",
+   "file": "target/linux-userland/perl5/DynaLoader.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Config.pm",
+   "file": "target/linux-userland/perl5/Config.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Errno.pm",
+   "file": "target/linux-userland/perl5/Errno.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Scalar/Util.pm",
+   "file": "target/linux-userland/perl5/Scalar/Util.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/List/Util.pm",
+   "file": "target/linux-userland/perl5/List/Util.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Sub/Util.pm",
+   "file": "target/linux-userland/perl5/Sub/Util.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Hash/Util.pm",
+   "file": "target/linux-userland/perl5/Hash/Util.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/POSIX.pm",
+   "file": "target/linux-userland/perl5/POSIX.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Fcntl.pm",
+   "file": "target/linux-userland/perl5/Fcntl.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Symbol.pm",
+   "file": "target/linux-userland/perl5/Symbol.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/SelectSaver.pm",
+   "file": "target/linux-userland/perl5/SelectSaver.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/English.pm",
+   "file": "target/linux-userland/perl5/English.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Env.pm",
+   "file": "target/linux-userland/perl5/Env.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/IO.pm",
+   "file": "target/linux-userland/perl5/IO.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/IO/Handle.pm",
+   "file": "target/linux-userland/perl5/IO/Handle.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/IO/File.pm",
+   "file": "target/linux-userland/perl5/IO/File.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/IO/Seekable.pm",
+   "file": "target/linux-userland/perl5/IO/Seekable.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/IO/Select.pm",
+   "file": "target/linux-userland/perl5/IO/Select.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/IO/Socket.pm",
+   "file": "target/linux-userland/perl5/IO/Socket.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/IO/Socket/INET.pm",
+   "file": "target/linux-userland/perl5/IO/Socket/INET.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/IO/Socket/UNIX.pm",
+   "file": "target/linux-userland/perl5/IO/Socket/UNIX.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/IO/Socket/IP.pm",
+   "file": "target/linux-userland/perl5/IO/Socket/IP.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Socket.pm",
+   "file": "target/linux-userland/perl5/Socket.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/File/Basename.pm",
+   "file": "target/linux-userland/perl5/File/Basename.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/File/Spec.pm",
+   "file": "target/linux-userland/perl5/File/Spec.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/File/Spec/Unix.pm",
+   "file": "target/linux-userland/perl5/File/Spec/Unix.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/File/Path.pm",
+   "file": "target/linux-userland/perl5/File/Path.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/File/Temp.pm",
+   "file": "target/linux-userland/perl5/File/Temp.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/File/Find.pm",
+   "file": "target/linux-userland/perl5/File/Find.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/File/Copy.pm",
+   "file": "target/linux-userland/perl5/File/Copy.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/File/stat.pm",
+   "file": "target/linux-userland/perl5/File/stat.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/File/Glob.pm",
+   "file": "target/linux-userland/perl5/File/Glob.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Cwd.pm",
+   "file": "target/linux-userland/perl5/Cwd.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/FindBin.pm",
+   "file": "target/linux-userland/perl5/FindBin.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Getopt/Long.pm",
+   "file": "target/linux-userland/perl5/Getopt/Long.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Getopt/Std.pm",
+   "file": "target/linux-userland/perl5/Getopt/Std.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Data/Dumper.pm",
+   "file": "target/linux-userland/perl5/Data/Dumper.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Storable.pm",
+   "file": "target/linux-userland/perl5/Storable.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Text/Tabs.pm",
+   "file": "target/linux-userland/perl5/Text/Tabs.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Text/ParseWords.pm",
+   "file": "target/linux-userland/perl5/Text/ParseWords.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Text/Abbrev.pm",
+   "file": "target/linux-userland/perl5/Text/Abbrev.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Time/Local.pm",
+   "file": "target/linux-userland/perl5/Time/Local.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Time/HiRes.pm",
+   "file": "target/linux-userland/perl5/Time/HiRes.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Time/Piece.pm",
+   "file": "target/linux-userland/perl5/Time/Piece.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Time/Seconds.pm",
+   "file": "target/linux-userland/perl5/Time/Seconds.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Time/localtime.pm",
+   "file": "target/linux-userland/perl5/Time/localtime.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Time/tm.pm",
+   "file": "target/linux-userland/perl5/Time/tm.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Class/Struct.pm",
+   "file": "target/linux-userland/perl5/Class/Struct.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Digest/MD5.pm",
+   "file": "target/linux-userland/perl5/Digest/MD5.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Digest/SHA.pm",
+   "file": "target/linux-userland/perl5/Digest/SHA.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Digest/base.pm",
+   "file": "target/linux-userland/perl5/Digest/base.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/MIME/Base64.pm",
+   "file": "target/linux-userland/perl5/MIME/Base64.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/MIME/QuotedPrint.pm",
+   "file": "target/linux-userland/perl5/MIME/QuotedPrint.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/JSON/PP.pm",
+   "file": "target/linux-userland/perl5/JSON/PP.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/JSON/PP/Boolean.pm",
+   "file": "target/linux-userland/perl5/JSON/PP/Boolean.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/HTTP/Tiny.pm",
+   "file": "target/linux-userland/perl5/HTTP/Tiny.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Term/ANSIColor.pm",
+   "file": "target/linux-userland/perl5/Term/ANSIColor.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Tie/Hash.pm",
+   "file": "target/linux-userland/perl5/Tie/Hash.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Tie/Array.pm",
+   "file": "target/linux-userland/perl5/Tie/Array.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Tie/Scalar.pm",
+   "file": "target/linux-userland/perl5/Tie/Scalar.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Tie/Handle.pm",
+   "file": "target/linux-userland/perl5/Tie/Handle.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Tie/StdHandle.pm",
+   "file": "target/linux-userland/perl5/Tie/StdHandle.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Benchmark.pm",
+   "file": "target/linux-userland/perl5/Benchmark.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/PerlIO.pm",
+   "file": "target/linux-userland/perl5/PerlIO.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/PerlIO/encoding.pm",
+   "file": "target/linux-userland/perl5/PerlIO/encoding.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Encode.pm",
+   "file": "target/linux-userland/perl5/Encode.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Encode/Alias.pm",
+   "file": "target/linux-userland/perl5/Encode/Alias.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Encode/Config.pm",
+   "file": "target/linux-userland/perl5/Encode/Config.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Encode/Encoding.pm",
+   "file": "target/linux-userland/perl5/Encode/Encoding.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Encode/MIME/Name.pm",
+   "file": "target/linux-userland/perl5/Encode/MIME/Name.pm"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Config_heavy.pl",
+   "file": "target/linux-userland/perl5/Config_heavy.pl"
+  },
+  {
+   "path": "/linux/usr/lib/perl5/Config_git.pl",
+   "file": "target/linux-userland/perl5/Config_git.pl"
+  },
+  {
+   "path": "/linux/usr/bin/nano",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_nano"
+  },
+  {
+   "path": "/linux/usr/bin/nano.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_nano.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/nano.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_nano.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/nano.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_nano.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/make",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_make"
+  },
+  {
+   "path": "/linux/usr/bin/make.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_make.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/make.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_make.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/make.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_make.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/bin/openssl",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_openssl"
+  },
+  {
+   "path": "/linux/usr/bin/openssl.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_openssl.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/usr/bin/openssl.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_openssl.manifest.bin"
+  },
+  {
+   "path": "/linux/usr/bin/openssl.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_openssl.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/bin/qwenchat",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_qwenchat"
+  },
+  {
+   "path": "/linux/bin/qwenchat.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_qwenchat.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/bin/qwenchat.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_qwenchat.manifest.bin"
+  },
+  {
+   "path": "/linux/bin/qwenchat.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_qwenchat.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/bin/qwenchat-x86_64_v2",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_qwenchatv2"
+  },
+  {
+   "path": "/linux/bin/qwenchat-x86_64_v2.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_qwenchatv2.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/bin/qwenchat-x86_64_v2.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_qwenchatv2.manifest.bin"
+  },
+  {
+   "path": "/linux/bin/qwenchat-x86_64_v2.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_qwenchatv2.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/bin/qwenchat-x86_64",
+   "file": "userland/linux_userland/target/x86_64-unknown-linux-musl/release/userland_qwenchatv1"
+  },
+  {
+   "path": "/linux/bin/qwenchat-x86_64.nonos_id_cert.bin",
+   "file": "nonos-data/trust/capsules/userland_qwenchatv1.nonos_id_cert.bin"
+  },
+  {
+   "path": "/linux/bin/qwenchat-x86_64.manifest.bin",
+   "file": "nonos-data/trust/capsules/userland_qwenchatv1.manifest.bin"
+  },
+  {
+   "path": "/linux/bin/qwenchat-x86_64.zk_trailer.bin",
+   "file": "nonos-data/trust/capsules/userland_qwenchatv1.zk_trailer.bin"
+  },
+  {
+   "path": "/linux/usr/lib/python312.zip",
+   "file": "target/linux-userland/python312.zip"
+  },
+  {
+   "path": "/linux/usr/lib/python3.12/lib-dynload/README",
+   "file": "userland/linux_userland/lib-dynload.txt"
+  },
+  {
+   "path": "/linux/etc/ssl/cert.pem",
+   "file": "target/linux-userland/cacert.pem"
+  },
+  {
+   "path": "/linux/usr/share/john/john.conf",
+   "file": "target/linux-userland/john.conf"
+  },
+  {
+   "path": "/linux/usr/share/john/password.lst",
+   "file": "target/linux-userland/password.lst"
+  },
+  {
+   "path": "/linux/usr/lib/tcl8.6/init.tcl",
+   "file": "target/linux-userland/tcl8.6/init.tcl"
+  },
+  {
+   "path": "/linux/usr/lib/tcl8.6/tclIndex",
+   "file": "target/linux-userland/tcl8.6/tclIndex"
+  },
+  {
+   "path": "/linux/usr/lib/tcl8.6/auto.tcl",
+   "file": "target/linux-userland/tcl8.6/auto.tcl"
+  },
+  {
+   "path": "/linux/usr/lib/tcl8.6/package.tcl",
+   "file": "target/linux-userland/tcl8.6/package.tcl"
+  },
+  {
+   "path": "/linux/usr/lib/tcl8.6/tm.tcl",
+   "file": "target/linux-userland/tcl8.6/tm.tcl"
+  },
+  {
+   "path": "/linux/usr/lib/tcl8.6/history.tcl",
+   "file": "target/linux-userland/tcl8.6/history.tcl"
+  },
+  {
+   "path": "/linux/usr/lib/tcl8.6/parray.tcl",
+   "file": "target/linux-userland/tcl8.6/parray.tcl"
+  },
+  {
+   "path": "/linux/usr/lib/tcl8.6/word.tcl",
+   "file": "target/linux-userland/tcl8.6/word.tcl"
+  },
+  {
+   "path": "/linux/usr/lib/tcl8.6/clock.tcl",
+   "file": "target/linux-userland/tcl8.6/clock.tcl"
+  },
+  {
+   "path": "/linux/usr/lib/tcl8.6/msgcat/msgcat.tcl",
+   "file": "target/linux-userland/tcl8.6/msgcat/msgcat.tcl"
+  },
+  {
+   "path": "/linux/usr/lib/tcl8.6/msgcat/pkgIndex.tcl",
+   "file": "target/linux-userland/tcl8.6/msgcat/pkgIndex.tcl"
+  },
+  {
+   "path": "/linux/etc/passwd",
+   "file": "userland/linux_userland/passwd"
+  },
+  {
+   "path": "/linux/usr/share/nonos/tour/README",
+   "file": "userland/linux_userland/tour/README"
+  },
+  {
+   "path": "/linux/usr/share/nonos/tour/mandelbrot.py",
+   "file": "userland/linux_userland/tour/mandelbrot.py"
+  },
+  {
+   "path": "/linux/etc/nonos-links",
+   "file": "userland/linux_userland/nonos-links"
+  }
+ ],
+ "packages": {}
+}
