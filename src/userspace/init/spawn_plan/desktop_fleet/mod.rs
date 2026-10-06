@@ -28,5 +28,10 @@ mod spawn_wallpaper;
 mod spawn_wallpaper_catalog;
 mod spawn_wm;
 
+#[cfg(all(not(feature = "microkernel-input-probe"), not(feature = "microkernel-setup-wizard")))]
 pub(super) use spawn::spawn;
+#[cfg(feature = "microkernel-setup-wizard")]
+pub(super) use spawn::spawn_rest;
+#[cfg(feature = "microkernel-setup-wizard")]
+pub(super) use spawn_gui_core::spawn_gui_core;
 pub(super) use spawn_early_display::spawn_early_display;

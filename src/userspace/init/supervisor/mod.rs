@@ -17,6 +17,13 @@
 // Liveness tick + cooperative yield. Each round walks the lifecycle
 // registry; capsules that exited are observed `Dead` on the next IPC.
 
+#[cfg(feature = "microkernel-setup-wizard")]
+mod after_install;
+#[cfg(feature = "microkernel-setup-wizard")]
+mod after_setup;
 mod loop_impl;
+mod watch;
+mod watch_rule;
 
 pub(crate) use loop_impl::init_loop;
+pub(crate) use watch::watch;

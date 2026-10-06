@@ -19,4 +19,4 @@ mod error;
 mod manifest_reason;
 mod run;
 
-pub(crate) use run::boot;
+pub(crate) use run::{boot, restart};

@@ -34,7 +34,11 @@ fn spawn_gpu() {}
 
 #[cfg(feature = "nonos-capsule-driver-virtio-net")]
 fn spawn_net() {
+    use crate::hardware::inventory::HardwareFamily;
     use crate::hardware::virtio_net_capsule as c;
+    if !super::device_present::present("DRIVER-VIRTIO-NET", HardwareFamily::NetworkVirtio) {
+        return;
+    }
     super::boot::capsule(
         "DRIVER-VIRTIO-NET",
         "driver_virtio_net",

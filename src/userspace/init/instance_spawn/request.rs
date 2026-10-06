@@ -21,5 +21,6 @@ use super::queue::{self, PendingApp};
 /// real spawn happens later in init. Returns true when the request was
 /// accepted.
 pub fn request(app: PendingApp) -> bool {
-    queue::push(app)
+    /* An app the person turned off at first-boot setup is never queued. */
+    !super::super::app_choice::window_off(app) && queue::push(app)
 }

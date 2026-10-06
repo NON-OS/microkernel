@@ -17,6 +17,7 @@
 pub(super) fn spawn() {
     spawn_input_proof();
     spawn_about();
+    spawn_app_store();
     spawn_nonos_install();
     spawn_hello();
     spawn_calculator();
@@ -51,6 +52,14 @@ fn spawn_about() {
 }
 #[cfg(not(feature = "nonos-capsule-about"))]
 fn spawn_about() {}
+
+#[cfg(feature = "nonos-capsule-app-store")]
+fn spawn_app_store() {
+    use crate::userspace::capsule_app_store as c;
+    super::boot::capsule("APP-STORE", "app_store", c::spawn_app_store_capsule, c::shared_state);
+}
+#[cfg(not(feature = "nonos-capsule-app-store"))]
+fn spawn_app_store() {}
 
 // The install ritual is console-only and spawns at boot; an image built
 // with this feature is a live installer image by definition.
