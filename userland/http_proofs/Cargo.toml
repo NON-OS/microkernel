@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for nonos_http's response parser: the framing rules a
+# server's bytes are held to (status line, header fields, Content-Length,
+# Transfer-Encoding, chunked bodies, interim responses), the edge cases real
+# servers send, and random bytes. The library is pulled in by path, so the
+# parser under test is the one that ships.
+[package]
+name = "http_proofs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_http = { path = "../nonos_http" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
