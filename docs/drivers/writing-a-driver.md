@@ -258,3 +258,27 @@ mod tests;
 The register accessors run against a `FakeBar` from `nonos_devmodel`, a register window in host memory (`userland/virtio_rng_proofs/src/tests/model.rs:19-30`). One test drives the driver's own virtio handshake, `init::bring_up`, not the retry loop of the same name in `nonos_libc`, and checks that the status byte ends with every bit the virtio specification requires and no `STATUS_FAILED` (`userland/virtio_rng_proofs/src/tests/status_tests.rs:28-44`). The port-I/O accessor has no host build, so the crate assembles `Regs` with a shim in its place that refuses to be called (`userland/virtio_rng_proofs/src/regs/mod.rs:17-35`).
 
 The flake finds every `userland/*_proofs` directory with a `Cargo.lock` on its own as `proofDirs` (`tools/nix/checks.nix:18-29`). Each runs `cargo test --release` with overflow checks on, then `clippy` with warnings as errors, except for the few crates the `lintLib` and `lintNone` lists still excuse; a new crate joins neither list (`tools/nix/checks.nix:44-62`, `tools/nix/checks.nix:85-94`). At this commit `proofs-virtio_rng_proofs` passes with 12 tests.
+
+## 16. Check it
+
+The proof-crate check runs on any machine with Python and reads only the tree:
+
+```sh
+python3 scripts/check_driver_proofs.py
+```
+
+At this commit its last line is `driver-proofs: 27 of 27 drivers carry a proof crate`.
+
+Building the capsule, running its proofs and running the static checks:
+
+```sh
+make nonos-mk-driver-virtio-rng
+cd userland/virtio_rng_proofs && cargo test --release
+bash nonos-ci/run-static-checks.sh
+```
+
+Not tested in this release.
+
+At this commit the flake's run of the static checks fails. One finding in its log is outside virtio-rng: the `forbidden_import_hits` gate matches an import in the AHCI driver (`nonos-ci/run-static-checks.sh:4493-4512`). The line it matches imports `read` and `write` from `super::rw` (`userland/capsule_driver_ahci/src/server/handlers/emmc/dispatch.rs:29`). The same gate covers virtio-rng, so its crate must not `use` an item named `read`, `write`, `mmap` or `_exit` either.
+
+Signing needs the publisher's private seed. The committed trust directory, `NONOS_BAKED_TRUST_DIR`, holds publisher public keys, capsule certificates and manifests and the trust-anchor policy; the seeds stay in a directory git ignores (`nonos-mk/capsule.mk:56-64`), so `nonos-mk-<slug>-sign` runs only where the seed is. [../userland/signing-and-publisher-keys.md](../userland/signing-and-publisher-keys.md) covers publisher keys.
