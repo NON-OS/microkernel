@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use nonos_libc::{InputEvent, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL};
+use nonos_libc::{InputEvent, INPUT_KIND_POINTER_ABS, INPUT_KIND_POINTER_REL, INPUT_KIND_TOUCH};
 
 use crate::state::Context;
 
@@ -22,14 +22,24 @@ use super::super::deliver::deliver_one;
 
 pub(super) fn route_to_press(ctx: &mut Context, event: &InputEvent, x: u32, y: u32) -> u32 {
     let Some(press) = ctx.press else { return 0 };
+    // The shell already has every motion in screen pixels from the mirror; a
+    // press of its own must not hand it each one twice.
+    let motion =
+        matches!(event.kind, INPUT_KIND_POINTER_REL | INPUT_KIND_POINTER_ABS | INPUT_KIND_TOUCH);
+    if motion && press.pid == ctx.shell_pid {
+        return 0;
+    }
     let mut routed = *event;
     if routed.kind == INPUT_KIND_POINTER_REL {
         routed.kind = INPUT_KIND_POINTER_ABS;
     }
-    routed.x = x as i32 - press.origin_x;
-    routed.y = y as i32 - press.origin_y;
-    routed.delta_x = 0;
-    routed.delta_y = 0;
+    (routed.x, routed.y) = press.local(x, y);
+    // Motion arrives as a position; a wheel's step is its delta, and zeroing
+    // it scrolled nothing while a button was held.
+    if motion {
+        routed.delta_x = 0;
+        routed.delta_y = 0;
+    }
     if !ctx.subscriptions.allows(press.pid, routed.kind) {
         return 0;
     }

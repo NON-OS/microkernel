@@ -28,18 +28,42 @@ pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     // while a key is held cannot strand the key-down in the old window. A press
     // routes to current focus. Resolving the release from the press target also
     // avoids a synchronous WM query on every key-up.
+    // The reserved chord and the system keys (volume, power) go to the shell
+    // whatever has focus; a release follows its press there through the press
+    // table, like any other key.
+    let chord = super::chord::is_reserved_chord(event.kind, event.code, event.flags);
+    let system = super::shell_keys::is_shell_key(event.code);
+    // A system key's release with no press on record (the press went before
+    // the shell was up) still goes to the shell, never to a window that did
+    // not see the key go down.
     let pid = if is_up {
-        ctx.key_targets.take(event.code).filter(|&p| p != 0).unwrap_or_else(|| fallback_focus(ctx))
-    } else {
-        let rid = ctx.issue_request_id();
-        match wm::query_focus(&mut ctx.wm_port, rid) {
-            Some(focused) => {
-                ctx.last_focus_pid = focused;
-                focused
-            }
+        let pressed_in = ctx.key_targets.take(event.code).filter(|&p| p != 0);
+        match pressed_in {
+            Some(pid) => pid,
+            None if system => shell_pid(ctx),
             None => fallback_focus(ctx),
         }
+    } else if chord || system {
+        shell_pid(ctx)
+    } else {
+        let rid = ctx.issue_request_id();
+        let answer = wm::query_focus(&mut ctx.wm_port, rid);
+        if let Some(focused) = answer {
+            ctx.last_focus_pid = focused;
+        }
+        let shell = shell_pid(ctx);
+        super::key_target::press_target(answer, ctx.last_focus_pid, shell)
     };
+    // A held key repeats as more presses. One that now goes to another window
+    // than the press before it is first released where it went down: that
+    // window would otherwise hold the key for good, and a client that repeats
+    // held keys itself (a Linux app under the Wayland bridge) types it forever.
+    if !is_up {
+        if let Some(held) = ctx.key_targets.held_by(event.code).filter(|&p| p != pid) {
+            ctx.key_targets.take(event.code);
+            release_in(ctx, held, event);
+        }
+    }
     if !ctx.subscriptions.allows(pid, event.kind) {
         ctx.record(0);
         return 0;
@@ -53,6 +77,14 @@ pub fn route_keyboard(ctx: &mut Context, event: &InputEvent) -> u32 {
     }
     ctx.record(delivered);
     delivered
+}
+
+fn release_in(ctx: &mut Context, pid: u32, press: &InputEvent) {
+    let mut release = *press;
+    release.kind = INPUT_KIND_KEY_UP;
+    if ctx.subscriptions.allows(pid, release.kind) && deliver_one(pid, &release) == 0 {
+        ctx.forget_pid(pid);
+    }
 }
 
 fn fallback_focus(ctx: &mut Context) -> u32 {

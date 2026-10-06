@@ -31,6 +31,7 @@ impl Context {
             wm_port: 0,
             policy_port: 0,
             last_policy_ms: 0,
+            display_checked_ms: 0,
             shell_pid: 0,
             last_focus_pid: 0,
             next_request_id: 1,
@@ -40,5 +41,11 @@ impl Context {
             cursor_y: 0,
             cursor_dirty: false,
         }
+    }
+}
+
+impl Default for Context {
+    fn default() -> Self {
+        Self::new()
     }
 }

@@ -16,7 +16,9 @@
 
 // Cached topmost-window rect so pointer motion inside it routes without
 // a WM round-trip per event. The cache is dropped on press (the window
-// may move itself during a drag) and when the cursor exits the rect.
+// may move itself during a drag) and when the cursor exits the rect, and is
+// trusted inside it only for RECHECK_MS: a window opened over it, or the
+// window moving on its own, changes what is under a pointer that never left.
 #[derive(Clone, Copy)]
 pub struct Hover {
     pub pid: u32,
@@ -24,10 +26,18 @@ pub struct Hover {
     pub y: u32,
     pub w: u32,
     pub h: u32,
+    // When the window manager last said this window is the one on top here.
+    pub checked_ms: i64,
 }
+
+const RECHECK_MS: i64 = 100;
 
 impl Hover {
     pub fn contains(&self, px: u32, py: u32) -> bool {
         px >= self.x && px < self.x + self.w && py >= self.y && py < self.y + self.h
+    }
+
+    pub fn fresh(&self, now_ms: i64) -> bool {
+        (0..RECHECK_MS).contains(&now_ms.saturating_sub(self.checked_ms))
     }
 }
