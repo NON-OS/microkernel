@@ -34,3 +34,20 @@ An Intel function whose id is not listed is still taken when its PCI class is th
 Controllers that firmware declares in ACPI rather than on PCI are matched by `_HID`: INT33C2, INT33C3, INT3432, INT3433, INT3442 to INT3447, 80860F41, 808622C1, and the AMD controllers AMDI0010, AMDI0510 and AMD0010 (`hid_is_i2c_controller`, `src/arch/x86_64/acpi/aml/controller/hid_match.rs:21-38`). The kernel gives AMD0010 a 133 MHz clock, other AMD ids 150 MHz and the Intel ones 100 MHz (`source_clock_hz`, `src/hardware/broker/acpi_i2c/clock.rs:23-31`).
 
 The driver tries at most 8 controllers in one bring-up (`MAX_CONTROLLERS`, `userland/capsule_driver_i2c_pci/src/discover/defs.rs:28`).
+
+## Finding the touchpad
+
+The kernel walks the ACPI tables for HID-over-I2C devices: a `_HID` or `_CID` of PNP0C50 or ACPI0C50, or a `_HID` that starts with a touchpad vendor's prefix (`parse_hid_devices`, `src/arch/x86_64/acpi/devices/i2c/parse.rs:35`). It registers touchpads first and leaves touchscreens out (`register_acpi_i2c`, `src/hardware/broker/acpi_i2c/register.rs:36-51`). Known touchpad and touchscreen ids are listed in `TOUCHPAD_HIDS` and `TOUCHSCREEN_HIDS` (`src/arch/x86_64/acpi/devices/i2c/hids.rs:19-62`).
+
+For each touchpad the kernel writes one line to the boot console with its id, bus, address, speed and interrupt, and a warning when the pad uses 10-bit addressing, which NONOS does not support (`report`, `src/hardware/broker/acpi_i2c/report.rs:32-74`).
+
+`driver.i2c_pci0` then picks the controller (`run`, `userland/capsule_driver_i2c_pci/src/setup/sequence/run.rs:35-104`):
+
+1. Controllers that a declared touchpad names are tried first.
+2. The first controller whose bus returns an HID descriptor from a declared address is kept.
+3. When the firmware declares no HID-over-I2C device at all, the driver looks on each controller for a descriptor at 0x15, 0x2C, 0x10, 0x20, 0x24, 0x38, 0x4B and 0x4C (`BLIND_ADDRS`, `userland/capsule_driver_i2c_pci/src/setup/sequence/run.rs:29`).
+4. Failing that, a controller where a declared device only acknowledged, then the controller the firmware named, then the first that comes up.
+
+The bus runs in fast mode unless a device on it declared a lower speed (`standard_mode`, `userland/capsule_driver_i2c_pci/src/setup/sequence/run.rs:139-144`).
+
+`driver.i2c_hid0` asks for the address the firmware gave, and probes it (`reprobe`, `userland/capsule_driver_i2c_hid/src/setup.rs:21-29`). When there is none, or no descriptor answers there, it scans 0x10, 0x15, 0x2C, 0x38, 0x4B, 0x4C, 0x20 and 0x24 at descriptor registers 0x0001 and 0x0020 (`CANDIDATE_ADDRS`, `userland/capsule_driver_i2c_hid/src/hid/probe/scan.rs:20-23`). Until a pad answers it probes again every 250 turns of its loop (`REPROBE_EVERY`, `userland/capsule_driver_i2c_hid/src/server/runner/run.rs:31`). After 20 probes with no answer it writes one console line, when it holds Debug, saying that no touchpad answers on the bus (`UNANSWERED_PROBES`, `userland/capsule_driver_i2c_hid/src/setup.rs:61-68`).
