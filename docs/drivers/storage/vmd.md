@@ -58,3 +58,12 @@ After that, the `[BLOCK]` lines name the NVMe disk when it carries NONOS; see [S
 If the bring-up stops, or the drive behind the VMD does not come up, set the firmware's storage mode to AHCI or turn VMD off. The installer says so when it finds no disk and an Intel RST or VMD controller is on the bus, and it warns that a Windows already installed may need switching to AHCI first; see [AHCI and Intel RST](ahci-and-rst.md#what-to-change-in-firmware-setup).
 
 The installer recognises ten of the thirteen VMD ids by id (`userland/nonos_blk_client/src/driver/pci.rs:51-54`, `INTEL_VMD`). The other three, 8086:b07f, d70b and d73b, are still named when they report the RAID subclass (`userland/nonos_blk_client/src/driver/pci.rs:93`, `IntelRaid`), but not when they report another class.
+
+## See also
+
+- [Storage drivers](README.md)
+- [NVMe](nvme.md)
+- [AHCI and Intel RST](ahci-and-rst.md)
+- [PCI and ACPI](../../kernel/pci-and-acpi.md)
+- [IOMMU](../../kernel/iommu.md)
+- [Hardware broker](../../kernel/hardware-broker.md)
