@@ -136,3 +136,12 @@ The sources are `userland/capsule_install/src/install/`, `userland/nonos_blk_cli
 | `[VFS] refused persist: amnesic boot` | the Mode step chose Amnesic, so nothing is kept |
 
 The sources are `src/fs/blockfs_volume/`, `src/fs/vfs/map_volume_err.rs` and `userland/capsule_vfs/src/server/handlers/persist_gate.rs`.
+
+## See also
+
+- [Reporting a machine](../hardware/report.md)
+- [Recovery](recovery.md)
+- [Boot modes](boot-modes.md)
+- [Install to disk](install-to-disk.md)
+- [Panic and boot stop](../kernel/panic-and-boot-stop.md)
+- [Logging](../kernel/logging.md)
