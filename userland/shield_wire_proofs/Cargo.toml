@@ -1,0 +1,20 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# The shield's wire end to end on the host: the service's own reply builders
+# (capsule_shield/src/reply.rs) and the wallet's own readers
+# (capsule_wallet_nonos/src/wallet/shield/reply.rs), mounted with `#[path]`
+# and driven by a mocked pool and lander through the real framing, so a
+# field one side writes and the other cannot read is caught before a boot.
+[package]
+name = "shield_wire_proofs"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+publish = false
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+shield_wire = { path = "../shield_wire" }
