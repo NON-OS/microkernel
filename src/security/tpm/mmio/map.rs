@@ -14,21 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Mapping the register window, once.
+
 use core::sync::atomic::{AtomicU64, Ordering};
 
-use super::regs::{TPM_MMIO_BASE, TPM_MMIO_SIZE};
 use crate::memory::addr::PhysAddr;
 use crate::memory::mmio::map_device_memory;
 use crate::security::tpm::error::TpmError;
+
+pub(in crate::security::tpm) const TPM_MMIO_BASE: u64 = 0xFED4_0000;
+/// Localities 0 through 4, one page each.
+pub(super) const TPM_MMIO_SIZE: usize = 0x5000;
 
 /// Virtual address of the mapped register window, or zero before bring-up.
 /// The kernel differs from the bootloader here: there is no identity map, so
 /// the window has to be mapped before a single register can be read.
 static WINDOW: AtomicU64 = AtomicU64::new(0);
 
-/// Map the register window once. Idempotent, so a second caller reuses the
-/// first mapping rather than creating an alias of the same device memory.
-pub(super) fn init_window() -> Result<u64, TpmError> {
+/// Map the register window once, uncached. Idempotent, so a second caller
+/// reuses the first mapping rather than creating an alias of the same device
+/// memory.
+pub(in crate::security::tpm) fn init_window() -> Result<u64, TpmError> {
     let existing = WINDOW.load(Ordering::Acquire);
     if existing != 0 {
         return Ok(existing);
@@ -47,27 +53,4 @@ pub(super) fn window() -> Result<u64, TpmError> {
         0 => Err(TpmError::NotPresent),
         va => Ok(va),
     }
-}
-
-pub(super) fn read32(offset: u32) -> Result<u32, TpmError> {
-    let base = window()?;
-    debug_assert!((offset as usize) + 4 <= TPM_MMIO_SIZE);
-    // SAFETY: eK@nonos.systems - `base` is the live device mapping created by
-    // `init_window`, the offset is inside the window it covers, and TPM
-    // registers are uncached device memory that tolerates a 32-bit read.
-    Ok(unsafe { core::ptr::read_volatile((base as usize + offset as usize) as *const u32) })
-}
-
-/// # Safety
-/// Writing a TPM control register starts or cancels a command. The caller owns
-/// the sequencing the part expects around it.
-pub(super) unsafe fn write32(offset: u32, value: u32) -> Result<(), TpmError> {
-    let base = window()?;
-    debug_assert!((offset as usize) + 4 <= TPM_MMIO_SIZE);
-    // SAFETY: eK@nonos.systems - as `read32` for the mapping and bounds; the
-    // caller promised the sequencing this register requires.
-    unsafe {
-        core::ptr::write_volatile((base as usize + offset as usize) as *mut u32, value);
-    }
-    Ok(())
 }

@@ -29,7 +29,7 @@ use super::consts::{
 use super::error::KeyError;
 use super::wire::{checked, frame, u32_at};
 
-pub(super) fn build_start(nonce: &[u8; NONCE_LEN]) -> Vec<u8> {
+pub(in crate::security::tpm) fn build_start(nonce: &[u8; NONCE_LEN]) -> Vec<u8> {
     let mut body = Vec::with_capacity(40);
     body.extend_from_slice(&TPM_RH_NULL.to_be_bytes());
     body.extend_from_slice(&TPM_RH_NULL.to_be_bytes());
@@ -50,7 +50,7 @@ pub(super) fn build_start(nonce: &[u8; NONCE_LEN]) -> Vec<u8> {
 
 /// The session handle. The TPM's nonce follows it and is not needed: with no
 /// HMAC to compute there is nothing to fold it into.
-pub(super) fn parse_start(resp: &[u8]) -> Result<u32, KeyError> {
+pub(in crate::security::tpm) fn parse_start(resp: &[u8]) -> Result<u32, KeyError> {
     let r = checked(resp)?;
     u32_at(r, 10)
 }

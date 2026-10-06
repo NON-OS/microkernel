@@ -22,6 +22,6 @@ use alloc::vec::Vec;
 use super::consts::{TPM_CC_FLUSH_CONTEXT, TPM_ST_NO_SESSIONS};
 use super::wire::frame;
 
-pub(super) fn build_flush(handle: u32) -> Vec<u8> {
+pub(in crate::security::tpm) fn build_flush(handle: u32) -> Vec<u8> {
     frame(TPM_ST_NO_SESSIONS, TPM_CC_FLUSH_CONTEXT, &handle.to_be_bytes())
 }

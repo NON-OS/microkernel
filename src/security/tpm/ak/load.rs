@@ -19,8 +19,10 @@ use core::sync::atomic::{AtomicU32, Ordering};
 use super::create::build_create_primary;
 use super::identity::remember;
 use super::public::parse_public;
-use crate::security::tpm::crb::transact;
 use crate::security::tpm::error::TpmError;
+use crate::security::tpm::machine_key::flush::build_flush;
+use crate::security::tpm::machine_key::run::run;
+use crate::security::tpm::transact;
 
 /// Handle of the loaded attestation key, or zero before bring-up. Transient:
 /// the TPM forgets it at reset, which costs nothing because the same
@@ -46,7 +48,11 @@ pub fn load_ak() -> Result<u32, TpmError> {
     remember(parse_public(&buf[..len])?);
     match AK_HANDLE.compare_exchange(0, handle, Ordering::AcqRel, Ordering::Acquire) {
         Ok(_) => Ok(handle),
-        Err(winner) => Ok(winner),
+        Err(winner) => {
+            /* Another caller loaded it first: give this copy's slot back. */
+            let _ = run(&build_flush(handle));
+            Ok(winner)
+        }
     }
 }
 
