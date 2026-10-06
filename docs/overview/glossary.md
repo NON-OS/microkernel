@@ -219,3 +219,7 @@ How far the TPM NV counter at 0x01000020 has risen above its base at 0x01000021.
 ## Rollback index
 
 The anti-rollback number signed into the kernel image together with its BLAKE3 hash, set by `rollback_index` in `nonos.toml`, 1 by default and never below 1. Raising it for a release retires every older kernel on each machine where the new one boots. Explained in [Rollback protection](../security/rollback-protection.md#the-kernels-rollback-index). Code: `nonos-bootloader/tools/sign-kernel/src/message.rs`, `nonos.toml`.
+
+## Seal
+
+The step between the reproducible build and a bootable image, run as `make seal` or `nix run .#seal`. In six phases it signs the market inputs, gives every capsule its certificate, manifest and trailer, enrolls the kernel and the loader, writes the signed image with its ESP, store, USB image and ISO, and checks what it wrote. It compiles nothing itself, and the build never holds a key. Explained in [The seal](../build/seal.md). Code: `tools/nonos_seal/__init__.py`.
