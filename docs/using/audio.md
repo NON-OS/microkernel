@@ -100,3 +100,7 @@ Video (`app.video_player`) plays Motion-JPEG AVI files and nothing else (`userla
 | `Esc` | Close. |
 
 Code: `from_key` in `userland/capsule_video_player/src/event/key.rs`.
+
+## Pictures
+
+Image Viewer shows a gallery of the PNG, JPEG, BMP and GIF files in the file store, and opens one picture handed to it from the desktop or from Files, with zoom, rotate and a slideshow (`userland/capsule_image_viewer/README.md`). It has no dock tile: start it from the Launchpad.
