@@ -128,3 +128,13 @@ Not tested in this release.
 - Only the process that created a file may keep it, so a file made in Files, or in another Terminal window, cannot be kept from this one (`persistable` in `userland/capsule_vfs/src/store/fdtable/persist.rs`).
 - Once a path is kept, `keep` can replace its copy on disk only with contents of exactly the same length. Any other change is refused, and removing a kept file frees no disk space.
 - The disk store holds at most 512 entries and 96 MiB of loaded files, the signed programs it already carries included. A kept path is at most 96 printable ASCII characters.
+
+## See also
+
+- [The desktop](desktop.md)
+- [Terminal](terminal.md)
+- [Settings](settings.md)
+- [Sound and media](audio.md)
+- [Install to disk](../install/install-to-disk.md)
+- [Boot modes](../install/boot-modes.md)
+- [Device secrets and keys](../security/device-secrets-and-keys.md)
