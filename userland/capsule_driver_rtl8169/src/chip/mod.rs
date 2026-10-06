@@ -14,4 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const KERNEL_REPLY_ENDPOINT: u64 = 0x1_0000_000E;
+//! Which Realtek MAC sits behind the BAR. Every later step that differs per
+//! revision asks the `MacVersion` found here, numbered as Linux numbers
+//! `RTL_GIGA_MAC_VER_<nn>` (r8169.h), so a step can be checked against the
+//! Linux function it copies by the same version ranges.
+
+mod detect;
+mod entry;
+mod error;
+mod extended;
+mod gmii;
+mod info;
+mod say;
+mod table_fast;
+mod table_giga;
+mod version;
+mod xid;
+
+pub use detect::detect;
+pub use error::ChipError;
+pub use extended::lookup_extended;
+pub use gmii::has_gmii;
+pub use info::Chip;
+pub use version::MacVersion;
+pub use xid::{lookup, xid_of, Lookup};

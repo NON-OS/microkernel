@@ -14,21 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{compiler_fence, Ordering};
+use super::{init_8125, init_8168g};
+use crate::chip::MacVersion;
+use crate::regs::Regs;
 
-use crate::constants::regs::DESC_OWN;
-use crate::queue::desc::desc;
-use crate::setup::Driver;
-
-const TX_POLL_BUDGET: u32 = 1_000_000;
-
-pub(super) fn poll_done(driver: &Driver, idx: usize) -> Result<(), &'static str> {
-    for _ in 0..TX_POLL_BUDGET {
-        compiler_fence(Ordering::Acquire);
-        if (unsafe { desc(driver.tx.desc_va, idx) }.opts1 & DESC_OWN) == 0 {
-            return Ok(());
-        }
-        core::hint::spin_loop();
+/// Linux rtl_hw_initialize: the per-generation steps taken once at probe,
+/// before the first reset. Older chips have none.
+pub fn initialize(regs: &Regs, ver: MacVersion) {
+    if ver.is_8168g_up() {
+        init_8168g(regs, ver);
+    } else if ver.is_8125() {
+        init_8125(regs, ver);
     }
-    Err("rtl8169 tx timeout")
 }

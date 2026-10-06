@@ -18,17 +18,20 @@ mod bar_command;
 mod bar_mmio;
 mod support;
 
-use nonos_libc::{mk_device_list, DeviceRecord};
 use self::bar_command::command_bits;
 use self::bar_mmio::first_mmio_bar;
 use self::support::is_supported;
+use nonos_libc::{mk_device_list, DeviceRecord};
 
-const MAX_DEVICES: usize = 32;
+/// The device list holds ACPI and fabricated records beside PCI functions;
+/// at 32 a machine with more stopped short of the device behind a root port.
+const MAX_DEVICES: usize = 128;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Found {
     pub device_id: u64,
-    pub irq_line: u8,
+    /// The PCI device id, which tells a 10/100 RTL810x board apart.
+    pub pci_device: u16,
     pub bar_index: u8,
     pub bar_size: u64,
     pub command_bits: u16,
@@ -44,13 +47,13 @@ pub fn find_rtl8169() -> Option<Found> {
         if !is_supported(r) {
             continue;
         }
-        if r.irq_pin == 0 || r.irq_line == 0xFF {
-            continue;
-        }
+        // Interrupt routing is not asked for: the driver polls. UEFI firmware
+        // often leaves Interrupt Line at 0xFF, and filtering on it skipped a
+        // present card as absent on exactly the PCs this driver is for.
         if let Some((bar_index, bar_size)) = first_mmio_bar(r) {
             return Some(Found {
                 device_id: r.device_id,
-                irq_line: r.irq_line,
+                pci_device: r.device,
                 bar_index,
                 bar_size,
                 command_bits: command_bits(r),
