@@ -19,6 +19,11 @@ path = "src/main.rs"
 [dependencies]
 nonos_libc = { package = "nonos_userland_libc", path = "../libc" }
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex"] }
+# The vfs stream the collection is read through, and the SHA-256 each
+# wallpaper is held to.
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+nonos_hash = { path = "../nonos_hash" }
+nonos_wallpapers = { path = "../nonos_wallpapers" }
 
 [profile.release]
 panic = "abort"

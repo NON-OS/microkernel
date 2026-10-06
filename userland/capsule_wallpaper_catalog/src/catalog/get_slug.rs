@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::entries::entry_by_index;
+use nonos_wallpapers::PINS;
 
 pub fn get_slug(index: u32) -> Option<&'static [u8]> {
-    entry_by_index(index).map(|e| e.slug)
+    PINS.get(index as usize).map(|p| p.slug)
 }

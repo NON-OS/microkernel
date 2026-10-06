@@ -19,3 +19,5 @@ pub const E_INVAL: u16 = 22;
 pub const E_BAD_LEN: u16 = 90;
 pub const E_NOT_FOUND: u16 = 91;
 pub const E_RANGE: u16 = 93;
+/// The store could not be read, or the wallpaper's bytes are not the pinned ones.
+pub const E_IO: u16 = 5;

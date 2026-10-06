@@ -15,13 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod count;
-pub mod entries;
-pub mod entry;
-pub mod get_bytes;
 pub mod get_size;
 pub mod get_slug;
+pub mod held;
+mod say;
 
 pub use count::count;
-pub use get_bytes::get_bytes;
 pub use get_size::get_size;
 pub use get_slug::get_slug;
+pub use held::{release, with_bytes, Fetch};
