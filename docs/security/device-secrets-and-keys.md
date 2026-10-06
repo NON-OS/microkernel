@@ -140,3 +140,12 @@ What it does not reach:
 - On a live boot, the in-memory volume. `Ram` keeps its sectors in frames taken as they are first written, outside the heap (`src/fs/cryptoblock/ram.rs:41-47`), and its key stays in `VOLUME`.
 - A kernel panic. `panic` prints, stops the other CPUs and halts without wiping (`src/boot/panic/handler.rs:41-64`).
 - A forced power-off or a power cut. Neither runs any code. The power button module notes that holding the button for four seconds still forces the machine off in hardware (`src/arch/x86_64/acpi/power_button.rs`). Memory contents then fade on their own time.
+
+## See also
+
+- [Measured boot and TPM](measured-boot-and-tpm.md)
+- [Protections and limits](protections-and-limits.md)
+- [Capsule isolation](capsule-isolation.md)
+- [Wallet](../using/wallet.md)
+- [Install to disk](../install/install-to-disk.md)
+- [Update](../install/update.md)
