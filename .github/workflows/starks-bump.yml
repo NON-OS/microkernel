@@ -1,0 +1,105 @@
+name: starks-bump
+
+# STARKs is the trust path, pinned once: the `starks` input in flake.lock.
+# Each day this looks at STARKs main. When it has moved, it moves the input,
+# writes the new commit into every Cargo.lock (tools/nonos-starks-sync), runs
+# nix flake check, and opens a pull request with the result. It never merges:
+# ek reads the STARKs change and merges it, or does not.
+#
+# A pull request opened with the workflow's token does not start other
+# workflows, so ci.yml runs on it when ek pushes to it or reruns it.
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: starks-bump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: ./.github/actions/nix-setup
+        with:
+          cache: ${{ vars.NONOS_CACHIX }}
+
+      - name: Move the starks input to STARKs main
+        id: move
+        run: |
+          set -euo pipefail
+          old=$(jq -r .nodes.starks.locked.rev flake.lock)
+          nix flake update starks
+          new=$(jq -r .nodes.starks.locked.rev flake.lock)
+          echo "old=${old}" >> "$GITHUB_OUTPUT"
+          echo "new=${new}" >> "$GITHUB_OUTPUT"
+          if [ "${old}" = "${new}" ]; then
+            echo "STARKs main is still ${old}; nothing to do"
+            echo "moved=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "STARKs main moved: ${old} -> ${new}"
+            echo "moved=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write the commit into every lock
+        if: steps.move.outputs.moved == 'true'
+        run: nix develop --command python3 tools/nonos-starks-sync 2>&1 | tee sync.log
+
+      - name: nix flake check
+        id: check
+        if: steps.move.outputs.moved == 'true'
+        run: |
+          set -o pipefail
+          if nix flake check -L --keep-going 2>&1 | tee check.log; then
+            echo "verdict=green" >> "$GITHUB_OUTPUT"
+          else
+            echo "verdict=red" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open the pull request
+        if: steps.move.outputs.moved == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OLD: ${{ steps.move.outputs.old }}
+          NEW: ${{ steps.move.outputs.new }}
+          VERDICT: ${{ steps.check.outputs.verdict }}
+        run: |
+          set -euo pipefail
+          branch="starks/${NEW:0:9}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "${branch}"
+          git add flake.lock $(git ls-files -m '*Cargo.lock' '*Cargo.toml')
+          git commit -q -m "starks: follow main to ${NEW:0:9}" \
+            -m "https://github.com/NON-OS/STARKs/compare/${OLD}...${NEW}"
+          git push -f origin "${branch}"
+          {
+            echo "STARKs main moved from \`${OLD:0:9}\` to \`${NEW:0:9}\`:"
+            echo "https://github.com/NON-OS/STARKs/compare/${OLD}...${NEW}"
+            echo
+            echo "flake.lock moves the \`starks\` input; tools/nonos-starks-sync wrote the commit into every Cargo.lock."
+            echo
+            echo "nix flake check: **${VERDICT}**"
+            echo
+            echo '```'
+            grep -E "^error|cannot follow" check.log sync.log | tail -40 || true
+            echo '```'
+            echo
+            echo "This is the trust path. Read the STARKs change before merging."
+          } > body.md
+          if gh pr view "${branch}" >/dev/null 2>&1; then
+            gh pr edit "${branch}" --body-file body.md
+          else
+            gh pr create --head "${branch}" --base main --title "starks: follow main to ${NEW:0:9}" --body-file body.md
+          fi
