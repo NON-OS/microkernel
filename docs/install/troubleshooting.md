@@ -124,3 +124,15 @@ Remembering a network can fail with `No NONOS store on this boot's disk`, `This 
 | Stopped | `stopped by you before the table was written` | you pressed Escape; the disk has no partition table now |
 
 The sources are `userland/capsule_install/src/install/`, `userland/nonos_blk_client/src/disks/` and `userland/nonos_disk/src/writer/error_text.rs`. When a write stops, the Stopped screen says whether the disk has a complete table and tells you not to boot it, names the request the driver refused, and says what to do next (`userland/capsule_install/src/install/ui/screens/failed.rs`).
+
+## After installing
+
+| Log line or message | Meaning |
+|---|---|
+| `[DATA] no machine key` | no TPM key, so the data volume stays closed |
+| `[DATA] the volume holds data this key cannot open; not formatting over it` | the boot state changed since the volume was made ([Update](update.md)) |
+| `data volume under another key` | the same, as a program sees it |
+| `too little memory free for a volume in RAM` | a boot from the stick with too little free memory for `/data` |
+| `[VFS] refused persist: amnesic boot` | the Mode step chose Amnesic, so nothing is kept |
+
+The sources are `src/fs/blockfs_volume/`, `src/fs/vfs/map_volume_err.rs` and `userland/capsule_vfs/src/server/handlers/persist_gate.rs`.
