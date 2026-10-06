@@ -1,0 +1,22 @@
+# NONOS Operating System
+# Copyright (C) 2026 NONOS Contributors
+#
+# Host-runnable proofs for first-boot setup's and the installer's layouts.
+# Builds for the host so `cargo test` runs the real scale, layout and brand
+# text sources (included via #[path]) against every display NONOS targets,
+# from 1366 by 768 to 3840 by 2160, and measures the real Geist and
+# JetBrains Mono faces: nothing overlaps, nothing leaves the canvas, and every
+# line of text fits the box it is drawn in.
+[package]
+name = "setup_layout_proofs"
+version = "0.3.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+nonos_toolkit = { path = "../toolkit", default-features = false }
+nonos_app_skeleton = { path = "../app_skeleton", default-features = false }
+nonos_policy_proto = { path = "../policy_proto" }
+nonos_keymap = { path = "../nonos_keymap" }
