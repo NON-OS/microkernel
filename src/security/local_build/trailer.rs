@@ -14,39 +14,55 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! The local trailer: magic, the local root, and a keyed tag over the
+//! capsule's context. Only the kernel holding the key can make or check one.
+
 extern crate alloc;
 
 use alloc::vec::Vec;
 
-use crate::crypto::zk_kernel::EnrolledSecretProof;
-use crate::security::capsule_attest::layout::POLICY_TREE_DEPTH;
+use crate::security::capsule_attest::layout::POLICY_EPOCH;
 
-const TRAILER_MAGIC: &[u8; 8] = b"NZKCAPS2";
+pub const MAGIC: &[u8; 8] = b"NLOCALK1";
+pub(super) const TRAILER_LEN: usize = 8 + 32 + 32;
 
-/// The inverse of `capsule_attest::trailer::parse`, field for field. Written
-/// against that reader: a trailer one byte long is refused as malformed, and
-/// that looks identical to a proof that was simply wrong.
-///
-/// `None` rather than a blob the parser will reject.
-pub fn encode(proof: &EnrolledSecretProof) -> Option<Vec<u8>> {
-    if proof.siblings.len() != POLICY_TREE_DEPTH || proof.directions.len() != POLICY_TREE_DEPTH {
+/* Separates this tag from every other use of the key. */
+const TAG_DOMAIN: &[u8] = b"NONOS-LOCAL-SIGN-v1";
+
+/// The context the path leaf binds, laid out the same way: the ELF's hash, the
+/// granted capabilities and the epoch, so a tag minted for a capsule holding
+/// nothing does not verify for the same bytes installed with more.
+pub(super) fn context(digest: &[u8; 32], granted_caps: u64) -> [u8; 48] {
+    let mut ctx = [0u8; 48];
+    ctx[..32].copy_from_slice(digest);
+    ctx[32..40].copy_from_slice(&granted_caps.to_be_bytes());
+    ctx[40..48].copy_from_slice(&POLICY_EPOCH.to_be_bytes());
+    ctx
+}
+
+pub(super) fn tag(key: &[u8; 32], ctx: &[u8; 48]) -> blake3::Hash {
+    let mut h = blake3::Hasher::new_keyed(key);
+    h.update(TAG_DOMAIN);
+    h.update(ctx);
+    h.finalize()
+}
+
+pub(super) fn encode(root: &[u8; 32], tag: &blake3::Hash) -> Vec<u8> {
+    let mut out = Vec::with_capacity(TRAILER_LEN);
+    out.extend_from_slice(MAGIC);
+    out.extend_from_slice(root);
+    out.extend_from_slice(tag.as_bytes());
+    out
+}
+
+/// The root and tag a trailer carries, or `None` for any other shape.
+pub(super) fn decode(trailer: &[u8]) -> Option<([u8; 32], [u8; 32])> {
+    if trailer.len() != TRAILER_LEN || !trailer.starts_with(MAGIC) {
         return None;
     }
-    let dir_bytes = POLICY_TREE_DEPTH.div_ceil(8);
-    let mut out = Vec::with_capacity(137 + POLICY_TREE_DEPTH * 32 + dir_bytes);
-    out.extend_from_slice(TRAILER_MAGIC);
-    out.extend_from_slice(&proof.commitment);
-    out.extend_from_slice(&proof.nonce_point);
-    out.extend_from_slice(&proof.z_x);
-    out.extend_from_slice(&proof.z_r);
-    out.push(POLICY_TREE_DEPTH as u8);
-    for sibling in &proof.siblings {
-        out.extend_from_slice(sibling);
-    }
-    let mut packed = alloc::vec![0u8; dir_bytes];
-    for (i, d) in proof.directions.iter().enumerate() {
-        packed[i / 8] |= (d & 1) << (i % 8);
-    }
-    out.extend_from_slice(&packed);
-    Some(out)
+    let mut root = [0u8; 32];
+    let mut tag = [0u8; 32];
+    root.copy_from_slice(&trailer[8..40]);
+    tag.copy_from_slice(&trailer[40..72]);
+    Some((root, tag))
 }
