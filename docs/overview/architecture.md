@@ -68,3 +68,30 @@ Apps are capsules as well: the terminal, files, the text editor, settings, the b
 The Linux personality, `userland/capsule_linux`, runs unmodified x86_64 Linux programs. It is the only capsule that holds `ForeignExec`, the right to create a process the kernel has not verified, build its address space and answer the calls it makes (`userland/capsule_linux/Capsule.mk:4-9`, `src/capabilities/types/defs.rs:72-74`). A Linux program holds no NONOS capabilities. When it makes a syscall, the kernel parks the call as a `ForeignFrame` and wakes the personality to answer it (`redirect` in `src/process/foreign/trap.rs:26-54`). A call the personality does not serve gets ENOSYS and a log line naming it (`unserved` in `userland/capsule_linux/src/linux/serve/unserved.rs:21-41`). Only the personality's install role asks for Network; the run and terminal roles do not, and every network service requires that bit (`INSTALL`, `RUN` and `TERMINAL` in `src/userspace/capsule_linux/roles.rs:35-67`). A Linux program read from the store runs only if the proof kept beside it verifies (`resolve` in `userland/capsule_linux/src/linux/call/spawn/exec_resolve.rs:40-60`).
 
 [Linux personality](../userland/linux-personality.md) says which Linux syscalls are served and which are refused, and [Linux programs](../using/linux-programs.md) covers running them.
+
+## Counting the tree
+
+The counts on this page come from these commands, run at this commit from the repository root:
+
+```sh
+find src -name '*.rs' | wc -l                                  # 5761
+find src -name '*.rs' -print0 | xargs -0 cat | wc -l           # 300321
+ls -d userland/*/Cargo.toml | wc -l                            # 271
+ls userland/*/Capsule.mk | wc -l                               # 107
+ls userland/capsule_driver_*/Capsule.mk | wc -l                # 26
+grep -c 'tag4(b"' src/syscall/numbers/defs.rs                  # 130
+grep -c ' = 1 << ' src/capabilities/types/defs.rs              # 36
+python3 -c "import json; print(len(json.load(open('tools/nix/capsules.json'))))"   # 116
+python3 -c "import json; print(sum(e['slug'].startswith('driver-') for e in json.load(open('tools/nix/capsules.json'))))"   # 18
+```
+
+| What | Count |
+|---|---|
+| Rust files under `src/` | 5,761 |
+| Lines in those files | 300,321 |
+| Crates directly under `userland/` (directories with a `Cargo.toml`) | 271 |
+| Directories under `userland/` with a `Capsule.mk` | 107 |
+| Entries in the build catalogue `tools/nix/capsules.json` | 116 |
+| Driver capsules in that catalogue | 18 |
+| Syscalls | 130 |
+| Capability bits | 36 |
