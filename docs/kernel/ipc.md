@@ -118,3 +118,7 @@ A message longer than the receive buffer is cut to the buffer and the rest is dr
 The router's constants sit beside `EACCES` in `kernel_ipc.rs` (`src/ipc/kernel_ipc.rs:39-43`), and the syscall handlers use `ERRNO_PERM` and its neighbours (`src/syscall/microkernel/errnos.rs:22-49`). The full table is on [Errors](../abi/errors.md). `ETIMEDOUT` is returned by these calls but is not listed in the `[errors]` table of [abi/syscalls.toml](../../abi/syscalls.toml).
 
 A capsule that has exited stops receiving even while its process row still exists: `owner_lives` treats a `Zombie` or `Terminated` process as gone (`src/ipc/nonos_inbox/registry.rs:164-172`).
+
+## When a capsule exits
+
+At teardown `release_pending_replies_for_pid` drops every pending call the process made or was owed (`src/process/exit/teardown.rs:52`). `unregister_for_pid` removes `proc.<pid>` and `stdin.<pid>` and zeroes every payload still queued in them (`src/ipc/nonos_inbox/drop_pid.rs:30-50`). The output inbox of a finished child is kept for its parent to drain while `is_retained` says so, and only its stdin inbox goes (`src/process/exit/finalize.rs:25-32`); at most `RETAINED_CAP`, 64, such inboxes are kept (`src/process/exit/postmortem.rs:28-29`). [Processes and capsule spawn](processes-and-spawn.md) covers the rest of exit.
