@@ -20,7 +20,9 @@ use crate::constants::{
     CLASS_DISPLAY, DEVICE_BGA, FB_BAR, PCI_CLASS_DISPLAY, REG_BAR, VENDOR_QEMU_BOCHS,
 };
 
-const MAX_DEVICES: usize = 32;
+/// The device list holds ACPI and fabricated records beside PCI functions;
+/// at 32 a machine with more stopped short of the device behind a root port.
+const MAX_DEVICES: usize = 128;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Found {

@@ -16,15 +16,17 @@
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BgaError {
-    DeviceNotFound,
     BrokerCallFailed(i64),
 }
 
 pub type BgaResult<T> = Result<T, BgaError>;
 
-pub fn exit_code(e: BgaError) -> i32 {
+/// The words a failed bring-up attempt reports, carried into the single line
+/// the shared schedule logs when the driver gives up. A machine with no
+/// adapter never gets this far: discovery decides that before any attempt,
+/// and the driver leaves with `EXIT_ABSENT`.
+pub const fn reason(e: BgaError) -> &'static str {
     match e {
-        BgaError::DeviceNotFound => 2,
-        BgaError::BrokerCallFailed(_) => 3,
+        BgaError::BrokerCallFailed(_) => "bga: broker refused a claim or grant",
     }
 }
