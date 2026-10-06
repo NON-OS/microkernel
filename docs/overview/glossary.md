@@ -83,3 +83,7 @@ The encrypted volume the disk plan places at sector 262,144 or above, where kept
 ## Development image
 
 A profile's development twin, `<profile>-dev`: the same kernel features, path-only attestation and the `dev-qemu` loader policy, sealed with throwaway keys by `make dev-image` in a copy of the checkout under `target/dev/tree`. Its gates take a capsule on its Merkle path without the STARK proof, and the seal refuses it for a release. Explained in [The seal](../build/seal.md#without-the-release-keys). Code: `tools/nonos-dev-image`.
+
+## Device secret
+
+Four field words the TPM derives as the witness of the anonymous device proof, under a policy the release approves over PCR 9 and this machine's PCRs 0, 4 and 7. It is never stored, and a firmware or loader change gives a new one. In this release only `app.prove` holds the `DeviceSecret` capability that receives it. Explained in [Device secrets and keys](../security/device-secrets-and-keys.md#the-device-secret). Code: `src/security/tpm/device_secret/mod.rs`.
