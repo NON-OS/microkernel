@@ -24,3 +24,9 @@ Not tested in this release.
 | `--mirror URL` | the NONOS model repository the model catalogue names |
 
 The options are defined in `main` (`tools/nonos_seal/__main__.py:100-107`).
+
+## Who runs it
+
+The maintainers run the release seal on their own machine, where the release keys are. The kernel's private signing keys are not committed; the seal copies only their public halves into the tree for the loader to compile in (`kernelKeys`, `tools/nix/image.nix:127-134`). The `release` bundle CI publishes is unsigned, and the workflow that builds it holds no key (`release`, `.github/workflows/ci-release-artifacts.yml:3-5`); the `release` workflow then signs build provenance over the release assets (`attest-build-provenance`, `.github/workflows/release.yml:110-113`). Other CI lanes, in production trust mode, read an Ed25519 seed from the `SIGNING_KEY_BASE64` repository secret and stop without it (`SIGNING_KEY_BASE64`, `nonos-ci/setup-signing-key.sh:22-29`). What that secret holds is a repository setting, not visible in the tree.
+
+With `--release`, the seal refuses a tree that differs from the commit outside `nonos-data/trust/`, `nonos-data/market/` and `nonos-data/models/`, where it writes its own output (`preflight`, `tools/nonos_seal/__main__.py:45-49`), and refuses any profile with the development loader (`release`, `tools/nonos_seal/__main__.py:119-120`).
