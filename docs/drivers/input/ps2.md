@@ -85,3 +85,12 @@ No capsule may send to `driver.ps2_kbd0`: the kernel holds it to an empty list (
 - `input_proofs` holds the packet decode and the layout tables against hostile bytes: 96 tests, check `proofs-input_proofs` passes.
 - The QEMU run target gives the guest its keyboard and mouse through the q35 machine's i8042 (`QEMU_USB`, `mk/10-qemu.mk:99-102`).
 - For the PS/2 keyboard with its layouts and the volume keys there is one real-hardware report. Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+## See also
+
+- [Input drivers](README.md)
+- [I2C-HID touchpads](i2c-hid.md)
+- [USB HID](../usb/hid.md)
+- [Keyboard layouts](../../using/keyboard-layouts.md)
+- [Hardware broker](../../kernel/hardware-broker.md)
+- [Support matrix](../../hardware/MATRIX.md)
