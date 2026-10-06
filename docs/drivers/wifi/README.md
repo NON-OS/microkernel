@@ -131,3 +131,7 @@ When no Wi-Fi driver answers at all, the panel names the chip by its PCI ids and
 At boot `net.core` tries the saved networks it hears. Each one is tried at most once per boot, so a wrong passphrase is not replayed at the access point (`userland/capsule_net_core/src/autojoin/machine.rs:122-136`, `tried`). With none in range it scans again after 15 s and gives up after 8 empty passes (`userland/capsule_net_core/src/autojoin/machine.rs:36-41`, `RESCAN_MS`, `EMPTY_PASSES_MAX`). A join handed to a driver is watched for 25 s (`userland/capsule_net_core/src/autojoin/machine.rs:42-45`, `JOIN_WATCH_MS`).
 
 After one join succeeds, autojoin is done for that boot (`userland/capsule_net_core/src/autojoin/machine.rs:154-158`, `after_watch`). An association the access point ends is not joined again by itself: join it again from Settings. When the bound link goes down and comes back, `net.core` asks DHCP for the lease again (`userland/capsule_net_core/src/iface/relink.rs:40-47`, `Change::Returned`).
+
+## Which images carry them
+
+The full image, the one `make` builds, adds both Wi-Fi drivers to the desktop (`Cargo.toml:627-638`, `microkernel-full-gui`). The `qemu` profile builds the desktop without them (`tools/nix/config.nix:94-98`, `qemu`), and the air-gapped profile drops every network driver (`tools/nix/config.nix:86-93`, `networkFeatures`). The hardened profile keeps them but drops the serial console for capsules, so neither driver writes a log line there (`tools/nix/config.nix:78-85`, `debugFeatures`).
