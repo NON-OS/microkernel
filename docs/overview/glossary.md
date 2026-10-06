@@ -135,3 +135,7 @@ One revocable piece of a claimed device that the hardware broker hands the claim
 ## Held endpoint
 
 A service endpoint that only the services named for it may send to, whatever capabilities a sender holds. Fifteen driver endpoints are held this way: a wired network driver takes sends from `net.core` and `net.l2`, a Wi-Fi driver from `net.core`, Settings and setup, and the keyboard, USB HID, I2C-HID, USB storage and random-source drivers from no capsule at all, because the kernel drives them itself. Explained in [IPC](../kernel/ipc.md#who-may-send-to-whom). Code: `src/services/registry/held_table.rs`.
+
+## Identity domain
+
+The VT-d domain every device found by the boot PCI scan starts in. It maps physical memory one to one up to the top of the managed range rounded up to 1 GiB, and never less than 4 GiB; a device the scan did not find has no entry and is denied. Explained in [IOMMU](../kernel/iommu.md#when-vt-d-comes-into-service). Code: `src/arch/x86_64/iommu/unit/bringup/domain.rs`, `src/arch/x86_64/iommu/unit/bringup/limit.rs`.
