@@ -58,3 +58,26 @@ When a machine cannot play, the driver says why rather than staying silent. Sett
 Some machines wire their speakers to an audio DSP rather than to an HD Audio codec. Running that DSP needs firmware NONOS does not load: Intel's Sound Open Firmware, or Intel's older Smart Sound Technology engines (PCI 8086:9c36, 8086:9cb6, 8086:0f28, 8086:22a8 and 8086:119a), which the driver never runs as HD Audio controllers (`SST` in `userland/capsule_driver_hda/src/controller/sst.rs`). The reasons are on [Audio drivers](../drivers/audio.md).
 
 Intel HD Audio: Works on an x86_64 laptop (Intel Gemini Lake, 8 GB), maintainer hardware report, 6 October 2026; the image commit was not recorded.
+
+## Music
+
+Music (`app.audio_player`) is the music player; its window is titled `Resonare` (`userland/capsule_audio_player/README.md`).
+
+- The library is the MP3 and WAV files in `/home/nonos/music`. Nothing ships in it: add files by downloading them in Music or by copying them there.
+- Formats: MP3, decoded by the vendored minimp3 library, and WAV with 8, 16 or 24-bit samples (`DECODERS` in `userland/capsule_audio_player/src/decode/sniff.rs`, `userland/capsule_audio_player/src/decode/wav_pcm.rs`). Every track is converted to 48 kHz for the driver. Any other file is refused with the reason.
+- A track may be at most 32 MiB (`MAX_FILE` in `userland/capsule_audio_player/src/track_limit.rs`).
+- Title, artist and album come from ID3v2.2 to 2.4 and ID3v1 tags. A file without tags shows its file name.
+- On the Search page, paste an `https://` address of an MP3 and press `Enter` to download it. The download goes over the network chosen in Settings, through TLS with the certificate chain checked, then lands in `/home/nonos/music`. A download that stopped resumes from where it got to.
+- Downloaded files live in the file store in memory, so they are gone at power off. See [Files](files.md#what-is-kept-after-power-off).
+
+| Key | What it does |
+|---|---|
+| `Space`, `Enter` | Play or pause. |
+| `Left`, `Right` | Seek back or forward 10 seconds. |
+| `Up`, `Down` | Master volume up or down by 5. |
+| `M` | Mute. |
+| `N`, `P` | Next or previous track. |
+| `S`, `R` | Shuffle; repeat. |
+| `/` | Open Search. |
+
+Code: `shortcut` in `userland/capsule_audio_player/src/ui/shortcut.rs`, `key` in `userland/capsule_audio_player/src/ui/event.rs`.
