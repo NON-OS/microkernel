@@ -26,7 +26,7 @@ use super::super::kv::ROW_H;
 use super::super::metrics::{BODY_PX, CARD_PAD, PAIR_H};
 use super::super::text::{line, top_of};
 
-const ROWS: u32 = 3;
+const ROWS: u32 = 4;
 
 pub const HEIGHT: u32 = card::OVERHEAD + ROW_H + PAIR_H + ROW_H * ROWS + 4;
 

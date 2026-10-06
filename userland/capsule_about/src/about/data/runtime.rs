@@ -18,11 +18,10 @@ use core::mem::size_of;
 
 use nonos_libc::{mk_proc_stat, ProcStatEntry, ProcStatHeader};
 
+use super::verify::live_count;
+
 const HEADER_LEN: usize = size_of::<ProcStatHeader>();
 const ENTRY_LEN: usize = size_of::<ProcStatEntry>();
-
-/// The terminal rail's cap, so both readers ask the kernel for the same table.
-const MAX_PROCS: usize = 64;
 
 pub struct Runtime {
     pub capsules: u32,
@@ -31,33 +30,29 @@ pub struct Runtime {
     pub load: [u64; 3],
 }
 
-/// One read of the live process table. Sizes are kibibytes exactly as the kernel
-/// publishes them, and `load` stays raw Q11 (2048 == 1.00) so the formatter owns
-/// the rounding. `mem_used_kb` is the sum of the per-entry resident sizes, hence
-/// a lower bound whenever more than `MAX_PROCS` processes are live.
+/// The machine as the kernel counts it now. `capsules` is every live process
+/// (`MkProcStat` with no buffer counts them all), and the header comes from a
+/// one-row read, since none of its figures depend on the rows. Sizes are
+/// kibibytes exactly as the kernel publishes them; `mem_used_kb` is physical
+/// memory in use, total less free as the frame allocator counts them, so it
+/// covers the kernel and every process. `load` stays raw Q11 (2048 == 1.00) so
+/// the formatter owns the rounding.
 pub fn sample() -> Option<Runtime> {
-    let mut buf = [0u8; HEADER_LEN + MAX_PROCS * ENTRY_LEN];
-    let written = mk_proc_stat(buf.as_mut_ptr(), MAX_PROCS as u32);
-    if written <= 0 {
+    let capsules = live_count()?;
+    let mut buf = [0u8; HEADER_LEN + ENTRY_LEN];
+    if mk_proc_stat(buf.as_mut_ptr(), 1) <= 0 {
         return None;
     }
+    /*
+     * SAFETY: `buf` holds a whole header at its start, and a header is plain
+     * integers, valid for any bit pattern.
+     */
     let header: ProcStatHeader =
         unsafe { core::ptr::read_unaligned(buf.as_ptr() as *const ProcStatHeader) };
-    let count = (written as usize).min(MAX_PROCS);
-    let mut mem_used_kb = 0u64;
-    for i in 0..count {
-        let off = HEADER_LEN + i * ENTRY_LEN;
-        if off + ENTRY_LEN > buf.len() {
-            break;
-        }
-        let entry: ProcStatEntry =
-            unsafe { core::ptr::read_unaligned(buf.as_ptr().add(off) as *const ProcStatEntry) };
-        mem_used_kb = mem_used_kb.saturating_add(entry.mem_kb);
-    }
     Some(Runtime {
-        capsules: header.count,
+        capsules,
         mem_total_kb: header.mem_total_kb,
-        mem_used_kb,
+        mem_used_kb: header.mem_total_kb.saturating_sub(header.mem_free_kb),
         load: header.load_avg_fixed,
     })
 }

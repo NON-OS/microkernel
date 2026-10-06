@@ -14,13 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::about::section::Section;
+//! Where the wheel takes the screen on show. A notch is three arrow steps,
+//! as a notch is three lines in the text views, and the screen stops at its
+//! top and at the last of its content.
 
-use super::nav_geom;
+use nonos_app_skeleton::scroll::{wheel_px, WHEEL_LINES};
 
-// The one routing surface. About has a single interactive region, the sidebar
-// rail, so the pane is deliberately inert: every screen is evidence to read,
-// not controls to press.
-pub fn at(x: i32, y: i32) -> Option<Section> {
-    nav_geom::at(x, y)
+use super::ui::metrics::SCROLL_STEP;
+
+/// Pixels one notch moves the screen.
+pub const WHEEL_STEP: u32 = SCROLL_STEP * WHEEL_LINES as u32;
+
+/// The scroll offset after a wheel `delta_y`, for a screen that scrolls as
+/// far as `max`.
+pub fn wheel_to(scroll: u32, max: u32, delta_y: i32) -> u32 {
+    wheel_px(scroll, delta_y, WHEEL_STEP, max)
 }

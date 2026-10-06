@@ -16,21 +16,24 @@
 
 //! The system checking its own claims, from inside itself.
 //!
-//! Four cards in the order a sceptic would want them: what was checked just now
-//! and by whom, what the hardware will sign for, what was checked once at boot by
-//! something that is no longer running, and what this window cannot check at all.
+//! Six cards in the order a sceptic would want them: what was checked just now
+//! and by whom, what the hardware will sign for and the capsules that signature
+//! covers, each proved by the kernel at spawn, what was checked once at boot by
+//! something that is no longer running and what the kernel checked of it in
+//! turn, and what this window cannot check at all.
 //! Ordering live evidence first is the point.
 //! Every other operating system's About box opens with the strongest-sounding
 //! claim; this one opens with the only claims the reader can watch being made.
 
 use nonos_app_skeleton::PaintBuffer;
 
+use crate::about::data::verify::attested;
 use crate::about::state::State;
 
 use super::super::card;
 use super::super::chrome::Rect;
 use super::super::metrics::CARD_GAP;
-use super::{verify_boot, verify_doc, verify_live, verify_open};
+use super::{verify_boot, verify_doc, verify_live, verify_loader, verify_open, verify_spawn};
 
 pub fn content_h(rect: &Rect) -> u32 {
     let inner = card::inner(rect.w);
@@ -38,7 +41,11 @@ pub fn content_h(rect: &Rect) -> u32 {
         + CARD_GAP
         + verify_doc::HEIGHT
         + CARD_GAP
+        + verify_spawn::height(attested().as_deref())
+        + CARD_GAP
         + verify_boot::HEIGHT
+        + CARD_GAP
+        + verify_loader::HEIGHT
         + CARD_GAP
         + verify_open::height(inner)
 }
@@ -49,8 +56,13 @@ pub fn paint(state: &State, fb: &mut PaintBuffer, rect: &Rect) {
     verify_live::paint(&mut pane, y, rect.w);
     let doc_y = y + (verify_live::HEIGHT + CARD_GAP) as i32;
     verify_doc::paint(&mut pane, doc_y, rect.w, &state.attest);
-    let boot_y = doc_y + (verify_doc::HEIGHT + CARD_GAP) as i32;
+    let list = attested();
+    let spawn_y = doc_y + (verify_doc::HEIGHT + CARD_GAP) as i32;
+    verify_spawn::paint(&mut pane, spawn_y, rect.w, list.as_deref());
+    let boot_y = spawn_y + (verify_spawn::height(list.as_deref()) + CARD_GAP) as i32;
     verify_boot::paint(&mut pane, boot_y, rect.w);
-    let open_y = boot_y + (verify_boot::HEIGHT + CARD_GAP) as i32;
+    let loader_y = boot_y + (verify_boot::HEIGHT + CARD_GAP) as i32;
+    verify_loader::paint(&mut pane, loader_y, rect.w);
+    let open_y = loader_y + (verify_loader::HEIGHT + CARD_GAP) as i32;
     verify_open::paint(&mut pane, open_y, rect.w);
 }

@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::about::section::Section;
+//! The live proof board: the session's attestation and its anonymity route,
+//! read from the kernel and the attest service each time the screen is drawn.
+//!
+//! This window holds AttestRead and nothing that touches the network. The
+//! route comes from the attest service's board, where only the transports may
+//! post; the window reads it and draws conclusions, it never asks a transport
+//! anything itself.
 
-use super::nav_geom;
+pub mod census;
+mod read;
+pub mod session;
+pub mod words;
 
-// The one routing surface. About has a single interactive region, the sidebar
-// rail, so the pane is deliberately inert: every screen is evidence to read,
-// not controls to press.
-pub fn at(x: i32, y: i32) -> Option<Section> {
-    nav_geom::at(x, y)
-}
+pub use read::{read, Snapshot};

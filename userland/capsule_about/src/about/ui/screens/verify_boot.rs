@@ -41,7 +41,7 @@ pub const HEIGHT: u32 = card::OVERHEAD + ROW_H + ROW_H * CLAIMS + HASH_GAP + PAI
 // at a moment that has gone, by a component that is no longer running.
 pub(super) const CLAIM_TEXT: [&[u8]; CLAIMS as usize] = [
     b"kernel image signature verified",
-    b"boot chain measured",
+    b"UEFI Secure Boot was on",
     b"attestation accepted",
     b"proof verified",
 ];
