@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify the NONOS kernel · attestation</title>
+<style>
+  :root {
+    --bg: #08090b;
+    --panel: #0d0f12;
+    --line: #1b1f24;
+    --ink: #e9ecf0;
+    --dim: #737b85;
+    --faint: #4a525c;
+    --ok: #4ac57e;
+    --bad: #f0655a;
+    --accent: #cfd6de;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: ui-sans-serif, -apple-system, "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    padding: clamp(2rem, 7vh, 6rem) 1.5rem 6rem;
+  }
+  .wrap { max-width: 44rem; margin: 0 auto; }
+  code, .mono, .data { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+
+  .eyebrow {
+    font-family: ui-monospace, monospace;
+    font-size: .72rem; letter-spacing: .22em; text-transform: uppercase;
+    color: var(--dim); margin-bottom: 2.4rem;
+    display: flex; align-items: center; gap: .8rem;
+  }
+  .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  h1 {
+    font-size: clamp(1.9rem, 5.2vw, 3rem);
+    line-height: 1.08; font-weight: 600; letter-spacing: -0.02em;
+    color: var(--ink); margin-bottom: 1.4rem;
+  }
+  h1 .soft { color: var(--faint); }
+  .lede { color: var(--dim); font-size: 1.05rem; max-width: 38rem; }
+  .lede b { color: var(--accent); font-weight: 500; }
+
+  .panel {
+    border: 1px solid var(--line); border-radius: 12px; background: var(--panel);
+    margin: 2.6rem 0; overflow: hidden;
+  }
+  .panel-head {
+    padding: .9rem 1.3rem; border-bottom: 1px solid var(--line);
+    font-family: ui-monospace, monospace; font-size: .72rem; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--dim);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); display: inline-block; }
+  .dot.live { background: var(--ok); box-shadow: 0 0 0 3px rgba(74,197,126,.15); }
+
+  .rows { padding: .4rem 1.3rem 1rem; }
+  .row {
+    display: grid; grid-template-columns: 8.5rem 1fr; gap: 1rem;
+    padding: .7rem 0; border-bottom: 1px solid var(--line); align-items: baseline;
+  }
+  .row:last-child { border-bottom: 0; }
+  .row .k { font-size: .82rem; color: var(--dim); }
+  .row .v { font-family: ui-monospace, monospace; font-size: .84rem; color: var(--ink); word-break: break-all; }
+  .row .v.small { color: var(--dim); font-family: inherit; font-size: .9rem; }
+
+  .stage { text-align: center; padding: 1.5rem 0 .5rem; }
+  .verdict {
+    font-size: clamp(1.6rem, 5vw, 2.3rem); font-weight: 650; letter-spacing: -0.01em;
+    min-height: 1.4em; transition: color .25s ease; color: var(--faint);
+  }
+  .verdict.ok { color: var(--ok); }
+  .verdict.bad { color: var(--bad); }
+  .verdict.dim { color: var(--faint); }
+  .timing { font-family: ui-monospace, monospace; font-size: .82rem; color: var(--dim); min-height: 1.4em; margin-top: .3rem; }
+
+  .actions { display: flex; gap: .8rem; flex-wrap: wrap; margin-top: 1.6rem; }
+  button {
+    font: inherit; font-size: .95rem; font-weight: 500; cursor: pointer;
+    border-radius: 8px; padding: .7rem 1.5rem; transition: all .15s ease;
+    border: 1px solid var(--line); background: #12151a; color: var(--ink);
+  }
+  button:hover:not(:disabled) { border-color: #2b323b; background: #171b21; }
+  button.primary { border-color: rgba(74,197,126,.35); background: rgba(74,197,126,.08); color: var(--ok); }
+  button.primary:hover:not(:disabled) { background: rgba(74,197,126,.14); border-color: rgba(74,197,126,.5); }
+  button.ghost { color: var(--dim); }
+  button:disabled { opacity: .35; cursor: default; }
+
+  .prose { margin-top: 3.4rem; color: var(--dim); font-size: .95rem; }
+  .prose h2 {
+    font-family: ui-monospace, monospace; font-size: .72rem; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--faint); font-weight: 500;
+    margin: 2.4rem 0 .9rem;
+  }
+  .prose p { margin-bottom: 1rem; }
+  .prose b { color: var(--accent); font-weight: 500; }
+  .prose code { font-size: .85em; background: #12151a; border: 1px solid var(--line); border-radius: 5px; padding: .1em .45em; color: var(--ink); }
+  .prose a { color: var(--ink); text-decoration: none; border-bottom: 1px solid var(--faint); }
+  .prose a:hover { border-color: var(--ink); }
+  pre {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 1rem 1.2rem; overflow-x: auto; margin: 1rem 0;
+    font-family: ui-monospace, monospace; font-size: .82rem; color: var(--ink); line-height: 1.7;
+  }
+  .foot { margin-top: 3.5rem; padding-top: 1.6rem; border-top: 1px solid var(--line); color: var(--faint); font-size: .82rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+  .foot a { color: var(--dim); text-decoration: none; }
+  .foot a:hover { color: var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">NONOS &nbsp;·&nbsp; attestation</div>
+
+  <h1>Verify the kernel proof.<br><span class="soft">Here, in this tab.</span></h1>
+  <p class="lede">A STARK membership proof for the NONOS kernel, in the v3
+  trailer format, checked here by the stark-attest verifier compiled to
+  WebAssembly. The OS gates on main now read v4 trailers through the
+  <code>nox_verify</code> verifier, and their run on a booted image is in
+  progress; this page moves to them once that run is logged.
+  <b>Transparent, post-quantum, no trusted setup.</b>
+  It verifies in your browser, and nothing is sent anywhere.</p>
+
+  <div class="panel">
+    <div class="panel-head"><span>statement</span><span><span class="dot" id="dot"></span></span></div>
+    <div class="rows">
+      <div class="row"><span class="k">claim</span><span class="v small">this kernel is an enrolled member of the set the bootloader trust root commits</span></div>
+      <div class="row"><span class="k">boot root</span><span class="v" id="root">loading</span></div>
+      <div class="row"><span class="k">kernel BLAKE3</span><span class="v" id="kb3">loading</span></div>
+      <div class="row"><span class="k">trailer</span><span class="v" id="tlen">loading</span></div>
+      <div class="row"><span class="k">verifier</span><span class="v" id="wsize">loading</span></div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="verdict dim" id="verdict">ready</div>
+    <div class="timing" id="timing"></div>
+  </div>
+
+  <div class="actions">
+    <button class="primary" id="go" disabled>verify the proof</button>
+    <button class="ghost" id="tamper" disabled>flip one bit, verify again</button>
+  </div>
+
+  <div class="prose">
+    <h2>what a green verdict proves</h2>
+    <p>The WebAssembly here is <code>verify_attestation_trailer</code>, built from
+    <a href="https://github.com/NON-OS/stark-attest">NON-OS/stark-attest</a>.
+    A green verdict proves the trailer is a valid STARK membership proof under
+    this root, bound to this context, at the parameters compiled into the
+    verifier.</p>
+    <p>It does not prove the kernel you downloaded is that member. That link is
+    the BLAKE3 measurement shown above: check it against a release with
+    <code>b3sum</code>. A verification page that overstates what it verifies
+    teaches the wrong habit.</p>
+
+    <h2>rebuild it yourself</h2>
+    <p>The verifier is 90 KB of WebAssembly, reproducible from source:</p>
+    <pre>cargo build --release --target wasm32-unknown-unknown \
+  -p stark-attest-verifier-wasm</pre>
+    <p>The red button flips the last bit of the proof and verifies again, so
+    the refusal can be watched rather than taken on faith. Acceptance and
+    rejection cost the same.</p>
+  </div>
+
+  <div class="foot">
+    <span>NONOS &nbsp;·&nbsp; AGPL-3.0-or-later</span>
+    <span><a href="https://github.com/NON-OS/stark-attest">github.com/NON-OS/stark-attest</a></span>
+  </div>
+
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const hex = b => [...b].map(x => x.toString(16).padStart(2, "0")).join("");
+
+let wasm, mem, fixture = {};
+
+async function fetchBytes(path) {
+  const r = await fetch(path);
+  if (!r.ok) throw new Error(path + ": " + r.status);
+  return new Uint8Array(await r.arrayBuffer());
+}
+
+function push(bytes) {
+  const ptr = wasm.wasm_alloc(bytes.length);
+  new Uint8Array(mem.buffer, ptr, bytes.length).set(bytes);
+  return ptr;
+}
+
+function runGate(trailer) {
+  const root = push(fixture.root), t = push(trailer), c = push(fixture.ctx);
+  const t0 = performance.now();
+  const ok = wasm.verify(root, t, trailer.length, c, fixture.ctx.length);
+  const ms = performance.now() - t0;
+  wasm.wasm_free(root, fixture.root.length);
+  wasm.wasm_free(t, trailer.length);
+  wasm.wasm_free(c, fixture.ctx.length);
+  return { ok: ok === 1, ms };
+}
+
+function show(res, label) {
+  $("verdict").className = "verdict " + (res.ok ? "ok" : "bad");
+  $("verdict").textContent = res.ok ? "PROOF VERIFIED" : "REFUSED";
+  $("timing").textContent = label + " in " + res.ms.toFixed(1) + " ms, in this tab, by the kernel own gate";
+}
+
+(async () => {
+  try {
+    const [wasmBytes, root, trailer, ctx] = await Promise.all([
+      fetchBytes("verifier.wasm"), fetchBytes("root.bin"),
+      fetchBytes("trailer.bin"), fetchBytes("context.bin"),
+    ]);
+    const { instance } = await WebAssembly.instantiate(wasmBytes, {});
+    wasm = instance.exports; mem = wasm.memory;
+    fixture = { root, trailer, ctx };
+    $("root").textContent = hex(root);
+    $("kb3").textContent = hex(ctx.slice(0, 32));
+    $("tlen").textContent = trailer.length.toLocaleString() + " bytes, path and STARK proof";
+    $("wsize").textContent = wasmBytes.length.toLocaleString() + " bytes of WebAssembly";
+    $("dot").className = "dot live";
+    $("verdict").textContent = "ready";
+    $("go").disabled = $("tamper").disabled = false;
+  } catch (e) {
+    $("verdict").className = "verdict bad";
+    $("verdict").textContent = "fixture failed to load";
+    $("timing").textContent = e.message;
+  }
+})();
+
+$("go").onclick = () => show(runGate(fixture.trailer), "verified");
+$("tamper").onclick = () => {
+  const t = fixture.trailer.slice();
+  t[t.length - 1] ^= 1;
+  show(runGate(t), "one bit flipped, refused");
+};
+</script>
+</body>
+</html>

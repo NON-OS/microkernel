@@ -1,0 +1,146 @@
+# Every push re-earns the README's claims: the build, the unit tests under
+# both prover forms, the adversarial suite (all rejections), and the CLI
+# selftest. Benchmarks run on demand, not per push; a shared runner's noise
+# would make their numbers lies.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: toolchain
+        run: rustup show active-toolchain || rustup toolchain install stable
+      - name: format
+        run: cargo fmt --all -- --check
+      - name: build
+        run: cargo build --release --workspace
+      - name: unit tests, serial prover
+        run: cargo test -p nonos-stark --lib
+      - name: unit tests, parallel prover
+        run: cargo test -p nonos-stark --lib --features parallel
+      - name: the version the consumers pin
+        run: grep -q '^version = "0.2.' crates/stark-core/Cargo.toml
+      - name: adversarial suite
+        run: cargo test -p stark-attest --test attacks --release
+      - name: committer agreement
+        run: cargo test -p stark-attest --test committer --release
+      - name: the two closed forms agree
+        run: cargo test -p stark-attest --test closed_form --release
+      - name: the hybrid binds what it claims
+        run: cargo test -p stark-attest --test hybrid --release
+      - name: the gate compiles for the browser and verifies there
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo build --release --target wasm32-unknown-unknown -p stark-attest-verifier-wasm
+          cp target/wasm32-unknown-unknown/release/stark_attest_verifier_wasm.wasm web/verifier.wasm
+          node web/smoke.mjs
+      - name: selftest
+        run: ./target/release/stark-attest selftest
+
+  measure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: toolchain
+        run: rustup show active-toolchain || rustup toolchain install stable
+      - name: cryptographic measurements
+        run: cargo run --release --bin soundness -- bench/soundness.json
+      - name: the parameters are the published rule
+        run: cargo run --release --bin regenerate-constants
+      - name: hash architecture study
+        run: cargo run --release --bin hash-study -- bench/hash-study.json
+      - name: timing measurements
+        run: |
+          cp bench/results.json /tmp/baseline.json 2>/dev/null || true
+          git stash --include-untracked --quiet || true
+          cargo run --release --bin emit-bench -- /tmp/fresh-results.json
+          git stash pop --quiet 2>/dev/null || true
+          mv /tmp/fresh-results.json bench/results.json
+      - name: regression gate
+        run: |
+          if [ -f /tmp/baseline.json ]; then
+            cargo run --release --bin compare-bench -- /tmp/baseline.json bench/results.json 100
+          else
+            echo "no baseline recorded yet; nothing to compare"
+          fi
+      - name: publish
+        uses: actions/upload-artifact@v4
+        with:
+          name: measurements
+          path: bench/
+      - name: record on main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          git config user.name "eKisNonos"
+          git config user.email "ekisanon@proton.me"
+          git add bench/
+          git diff --cached --quiet || git commit -m "bench: record the measurements for $GITHUB_SHA"
+          git push || true
+
+  proofs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: lean toolchain
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/latest/download/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+      - name: machine-checked facts
+        working-directory: lean
+        run: lake build
+      - name: no axioms beyond the core two, no sorry
+        working-directory: lean
+        run: |
+          set -euo pipefail
+          # a sorry anywhere means a claimed proof is a hole
+          ! grep -rn "sorry" Zkolang/ Zkolang.lean
+          # print the axiom dependencies of every theorem the repo advertises
+          cat > /tmp/axioms.lean <<'EOF'
+          import Zkolang
+          #print axioms Zkolang.Reduce.reduce_cong
+          #print axioms Zkolang.Reduce.mul_reduce_cong
+          #print axioms Zkolang.Trailer.sibling_cell_in_range
+          #print axioms Zkolang.Trailer.no_gap_before_proof
+          #print axioms Zkolang.Trailer.zero_depth_rejected
+          #print axioms Zkolang.Padding.admissible_ne_pad
+          #print axioms Zkolang.Padding.measure_ne_pad
+          #print axioms Zkolang.Params.no_downgrade
+          #print axioms Zkolang.Params.survival_monotone
+          EOF
+          lake env lean /tmp/axioms.lean | tee /tmp/axioms.out
+          # every line must be either "does not depend on any axioms" or the
+          # two the development permits; anything else fails the gate
+          ! grep -E "axioms" /tmp/axioms.out | grep -vE "does not depend|propext|Quot.sound|Classical.choice"
+
+  fuzz:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: nightly toolchain
+        run: rustup toolchain install nightly --profile minimal && rustup default nightly
+      - name: cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+      - name: five minutes per target, any crash fails the build
+        run: |
+          set -euo pipefail
+          for t in trailer proof_ext aggregate; do
+            cargo +nightly fuzz run "$t" -- -max_total_time=300 -print_final_stats=1
+          done
+
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v27
+        with:
+          extra_nix_config: "experimental-features = nix-command flakes"
+      - name: flake check
+        run: nix flake check -L
