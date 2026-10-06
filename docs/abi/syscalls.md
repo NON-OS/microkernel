@@ -267,3 +267,10 @@ A supervising capsule that holds `ForeignExec`, such as the Linux personality, u
 | `timestamp_ns` | 24 | `u64` | Time of the event in nanoseconds |
 
 `FMT_ARGB8888` is defined in `src/kernel_core/surface_registry/types.rs:22`, and the kinds are the `INPUT_KIND_KEY_DOWN` to `INPUT_KIND_TOUCH` constants of `nonos_abi` (`userland/nonos_abi/src/input.rs:20-27`).
+
+## Limits
+
+- Arguments are not listed here. `abi/syscalls.toml` lists them, and several lists are wrong; see [The NONOS ABI](README.md#stability-in-092). The broker and IPC arguments in [Broker](broker.md) and [IPC](ipc.md) are read from the handlers.
+- When no microkernel group handles a number, `route_tail` returns -1, which reads as `EPERM` (`src/syscall/microkernel/dispatch/route.rs:52-68`). The router's own default, `util::errno` with 38, is `ENOSYS` (`src/syscall/dispatch/router/dispatch_fn.rs:58`). Neither is reached by a number in `REGISTRY` at this commit; `scripts/check_syscall_abi.py` checks that every published call reaches a handler.
+- `AbiStatus::Unavailable` is declared and never used: every entry is routed (`src/syscall/abi/status.rs:17-21`).
+- `handle_syscall` in `src/syscall/entry.rs` is a second entry point that no architecture calls (`src/syscall/entry.rs:25-35`).
