@@ -20,11 +20,11 @@ use super::event_browse::on_browse_key;
 use super::event_click::on_click;
 use super::event_mode::route;
 use super::event_query;
+use super::preview_paint::VISIBLE_LINES;
+use super::row_geom::visible_rows;
 use super::screen::Screen;
-use super::state::{Mode, State};
-
-// Rows moved per wheel notch, matching the editor.
-const WHEEL_STEP: usize = 3;
+use super::state::{Mode, State, ViewKind};
+use super::wheel;
 
 pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
     if event.kind == InputKind::Wheel {
@@ -48,18 +48,39 @@ pub fn on_event(state: &mut State, event: InputEvent) -> EventOutcome {
     on_browse_key(state, event.code)
 }
 
-// Wheel events were delivered and dropped, so a long listing could only be
-// walked with the arrow keys.
+// The wheel scrolls what is on screen: an opened file, or the Browse listing.
+// It used to move the listing whatever was shown, by three entries even in the
+// icon grid, where that is less than a line and the view moved a line only
+// every few notches, and an opened file could be read only with the arrows.
+// The stacked screens (Home, Recents, Tags, Search) lay out what fits and do
+// not scroll, so the wheel leaves the hidden listing alone there.
 fn wheel(state: &mut State, event: InputEvent) -> EventOutcome {
-    let rows = (event.delta_y.unsigned_abs() as usize).min(10) * WHEEL_STEP;
-    if rows == 0 {
+    if event.delta_y == 0 {
         return EventOutcome::Idle;
     }
-    let max = state.entries.len().saturating_sub(state.view_rows.max(1));
-    state.scroll = if event.delta_y > 0 {
-        state.scroll.saturating_sub(rows)
+    let moved = if matches!(state.mode, Mode::Preview) {
+        match state.preview.as_mut() {
+            Some(p) => {
+                let next = wheel::preview(p.scroll, p.lines.len(), VISIBLE_LINES, event.delta_y);
+                core::mem::replace(&mut p.scroll, next) != next
+            }
+            None => false,
+        }
+    } else if state.screen == Screen::Browse {
+        let cols = match state.view {
+            ViewKind::Grid => state.grid_cols as usize,
+            ViewKind::List => 1,
+        };
+        let visible = visible_rows(state);
+        let len = state.entries.len();
+        let next = wheel::listing(state.scroll, len, visible, cols, event.delta_y);
+        core::mem::replace(&mut state.scroll, next) != next
     } else {
-        (state.scroll + rows).min(max)
+        false
     };
-    EventOutcome::Repaint
+    if moved {
+        EventOutcome::Repaint
+    } else {
+        EventOutcome::Idle
+    }
 }

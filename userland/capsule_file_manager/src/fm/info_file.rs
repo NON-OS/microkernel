@@ -45,7 +45,7 @@ pub fn file_body(fb: &mut PaintBuffer, entry: &Entry, x: u32, top: u32, w: u32) 
     }
     for (i, handler) in handlers.iter().enumerate() {
         let label = if i == 0 { "Opens with" } else { "" };
-        y += kv(fb, x, y, w, label, handler);
+        y += kv(fb, x, y, w, label, handler.name);
     }
     y + KV_ADV / 2
 }

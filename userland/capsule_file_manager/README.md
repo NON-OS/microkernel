@@ -2,117 +2,81 @@
 
 ## Role
 
-`capsule_file_manager` is a real production application capsule built on
-`nonos_app_skeleton`. It owns a static current-directory listing with a cursor
-and a selected entry. The capsule keeps its own state, has no globals, and
-reads keyboard input through the toolkit. The capsule routes UI rendering
-through the toolkit IPC path rather than through any kernel UI code.
+`capsule_file_manager` is the desktop's Files window, `app.file_manager`, an
+860 by 560 app on `nonos_app_skeleton`. It browses the `vfs_pool` file store
+under its own pid through `nonos_app_skeleton::clients::vfs`: grid and list
+views, a Home screen with recents and categories, search by name or content,
+tags, favourites, a preview pane, copy, move, rename, delete, duplicate and
+permissions. The handbook page is
+[System apps and services](../../docs/handbook/apps/system-apps.md).
 
 ```text
-file manager app
+file manager (App trait)
     |
-    | UI frame request
+    | vfs client: list, stat, read, copy, rename, unlink, chmod,
+    |             search, journal, persist, usage
     v
-toolkit endpoint
+vfs_pool (service:4104)
     |
-    `-- app event loop on app endpoint
+    `-- desktop_shell OP_OPEN_WITH for images
 ```
 
 ## Microkernel contract
 
-The capsule uses the basic Mk surface that every app skeleton uses:
-
-- `MkIpcCall` sends a UI frame request to the toolkit endpoint.
-- `MkIpcRecv` receives application messages on the app endpoint.
-- `MkYield` backs off when no message is available.
-- `MkDebug` emits ownership and proof markers.
-- `MkExit` exits when the IPC surface is parked.
-
-The active spawn path is the standard `nonos_app_skeleton::run` entry point.
-
-## Interface contract
-
-| Call | Purpose |
-|---|---|
-| `MkIpcCall` to toolkit | request a UI frame through userland toolkit policy |
-| `MkIpcRecv` on app endpoint | receive app input messages |
-| `MkYield`, `MkDebug`, `MkExit` | cooperative loop and proof markers |
-
-The keyboard surface accepts `j` and `k` for cursor movement, Enter to select
-an entry, and Esc to leave the listing.
+The window, input and frame loop come from `nonos_app_skeleton::run`. File
+operations are IPC calls to `vfs_pool`; the owner pid in each is the
+capsule's own, from `mk_getpid`. Opening an image (PNG, JPEG, BMP, GIF) asks
+the desktop shell to `OP_OPEN_WITH` the image viewer (`src/fm/open_with.rs`).
 
 ## Authority
 
-The capsule keeps the narrow capability set defined by the app skeleton. It
-does not request graphics, network, filesystem device drivers, or direct
-framebuffer authority. The directory listing visible to the user is a static
-in-memory description, not a live filesystem read.
+`CAPSULE_REQUIRED_CAPS = 0x1859`:
+
+| Bit | Capability | Purpose |
+|---|---|---|
+| 0x0001 | CoreExec | run user code |
+| 0x0008 | IPC | vfs, desktop shell, window services |
+| 0x0010 | Memory | heap and window backing |
+| 0x0040 | FileSystem | `vfs_pool` serves only a holder of it |
+| 0x0800, 0x1000 | GraphicsDisplayQuery, GraphicsSurfaceCreate | its window |
+
+Endpoints: `service:4724:app.file_manager`, reply `4725`, and the instance
+windows `app.file_manager.1` (4858) and `app.file_manager.2` (4860). The
+kernel mirror is `src/userspace/capsule_file_manager`.
 
 ## Privacy and persistence
 
-The capsule keeps no profile, no settings, no telemetry, and no persistent
-state. The cursor position and the selected entry disappear with the process.
-
-## Runtime lifecycle
-
-The capsule emits ownership markers, enters the app skeleton run loop, and
-processes input events through `MkIpcRecv` until the IPC surface is parked. On
-clean shutdown the runtime state is gone with the process.
+Files live in `vfs_pool`, in RAM. Tags, favourites and the manager's own
+preferences are written to the store and then committed to the disk with
+`persist`, which `vfs_pool` allows only when the user chose persistence at
+setup; `persist_meta` runs on session boundaries rather than per keystroke,
+since each changed record costs a store extent that a removal does not give
+back (`src/fm/persist_meta.rs`). Opening a file records it in the vfs access
+journal with `journal_touch`, which is what Recents reads.
 
 ## Failure model
 
-Toolkit failure is observable through proof markers and never grants the
-capsule a fallback framebuffer path. Invalid input is dropped by the file
-manager state machine and never escalates to a kernel call.
-
-## Current implemented surface
-
-- Source for the entry list, cursor state, theme, painter, and event loop.
-- Static directory listing with cursor navigation.
-- Keyboard surface for `j`, `k`, Enter, and Esc.
-- Runs above `nonos_app_skeleton` with toolkit-only UI.
-
-## Wire format
-
-Input messages arrive on the app endpoint as toolkit input events. UI requests
-go out on the toolkit endpoint.
-
-## State ownership
-
-The capsule owns the entry list, the cursor, and the selected entry. The
-toolkit owns rendering. The compositor owns scene and focus. The kernel owns
-none of the file manager state.
-
-## Operating rules
-
-- Route UI through toolkit IPC only.
-- Do not request direct framebuffer authority.
-- Keep all app state volatile.
-- Do not introduce kernel UI exports for this app.
-
-## Release target
-
-The release version is a signed application capsule with `Capsule.mk`, signed
-manifest, feature gated spawn, toolkit only UI rendering, a manifest contract
-for filesystem authority where it is eventually granted, and validation evidence that
-file manager policy stays out of the kernel.
-
-## Release checklist
-
-- `Capsule.mk` and signed manifest exist.
-- Toolkit IPC validation passes.
-- Feature gated spawn is present.
-- Static gate confirms no kernel app UI exports.
-
-## Explicit non-goals today
-
-No production manifest, signed spawn path, persistent settings, real
-filesystem reads, network access, graphics driver access, or direct
-framebuffer authority belongs in this directory.
+- A folder whose listing failed shows "Files are not available" with the
+  reason from `empty_listing`, never an empty folder; entries already on
+  screen stay only if they are that folder's own (`src/fm/listing_state.rs`).
+- New file, new folder, rename, permissions, paste, move and duplicate push
+  their inverse onto an undo stack, an action on several entries as one
+  entry, and `undo` replays it and says whether the store took all, part or
+  none of it (`src/fm/event_undo.rs`). A delete has no inverse, the store
+  keeps no trash, so it empties the stack and its status says so.
+- Back goes up one folder; Forward goes back down into the folders Back
+  left, and is dim once the person has gone anywhere else
+  (`src/fm/nav_trail.rs`).
+- Tag (`t`, the info pane or the selection's band) tags every selected
+  entry, or untags them when all carry it, and says when a name is refused
+  (`src/fm/tags_toggle.rs`).
+- A Home figure from a folder walk the store cut short reads "over", since
+  it counts only part of the folder (`src/fm/home_stor_text.rs`).
 
 ## Verification
 
-- Build: `cargo build --manifest-path userland/capsule_file_manager/Cargo.toml`
-- Static gate: `bash nonos-ci/run-static-checks.sh`
-- Promotion check: add `Capsule.mk`, manifest signing, feature gated spawn,
-  and validation evidence before claiming production app status.
+- Build: `make nonos-mk-file-manager`; sign: `make nonos-mk-file-manager-sign`.
+- `userland/fs_proofs` includes the manager's logic, formatting and tags
+  (`fm_tests`, `listing_tests`, `tags_tests`, `favorites_tests`,
+  `recents_tests`, `open_with_tests`, `prefs_tests`, and `fm_trail_tests`
+  for Forward and the selection's tag) and runs them on the host.

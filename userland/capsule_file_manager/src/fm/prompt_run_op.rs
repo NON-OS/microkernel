@@ -60,12 +60,14 @@ pub fn run_op(
                     failed += 1;
                 }
             }
+            // The store keeps no trash, so the undo stack is emptied
+            // (`undo_record.rs`) and the status says so.
             if failed == 0 {
-                Ok(b"deleted")
+                Ok(b"deleted; a delete cannot be undone")
             } else if failed == targets.len() {
                 Err("delete failed")
             } else {
-                Ok(b"some items not deleted")
+                Ok(b"some items not deleted; a delete cannot be undone")
             }
         }
     }

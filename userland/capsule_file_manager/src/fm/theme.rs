@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// Surfaces, from the app ground up to a raised/hovered fill.
+// Surfaces, from the app ground up to a raised fill.
 pub const VOID: u32 = 0xFF03070E;
 pub const DEEP: u32 = 0xFF061019;
 pub const WIN: u32 = 0xFF08131F;
 pub const PANEL: u32 = 0xFF0B1A28;
 pub const RAISE: u32 = 0xFF0E2233;
 
-// Borders: a hairline for separators, an emphasised one for focused edges.
+// Borders: the hairline for separators.
 pub const LINE: u32 = 0xFF12303F;
-pub const LINE2: u32 = 0xFF1B4257;
 
 // Accent.
 pub const CY: u32 = 0xFF22D3EE;
@@ -45,19 +44,13 @@ pub const GRN: u32 = 0xFF5FC26B;
 // palette moves in one place while each surface is rebuilt.
 pub const BACKGROUND: u32 = WIN;
 pub const FOREGROUND: u32 = INK;
-pub const SELECTED: u32 = CY;
 pub const DIRECTORY: u32 = CY_DIM;
 pub const MUTED: u32 = INK3;
-pub const HEADER_BG: u32 = DEEP;
-pub const ALT_ROW: u32 = PANEL;
 pub const SELECT_BG: u32 = RAISE;
-pub const ACCENT: u32 = CY;
-pub const FILE_C: u32 = INK2;
 
-// Elevation. Both carry alpha and must be laid down with a blending primitive;
+// Elevation. It carries alpha and must be laid down with a blending primitive;
 // fill_rect would replace the pixels beneath instead of glowing over them.
 pub const GLOW: u32 = 0x3322D3EE;
-pub const SHADE: u32 = 0x66020509;
 
 // Alpha-carrying edges, for chrome drawn over paint that is already down.
 pub const HAIR: u32 = 0x99143446;
@@ -67,9 +60,8 @@ pub const HAIR_CY: u32 = 0x8022D3EE;
 pub const TINT_TOP: u32 = 0x16FFFFFF;
 pub const TINT_BOT: u32 = 0x04FFFFFF;
 
-// Pill states. Idle and hover step the ground; only the active one spends cyan.
+// Pill states. Idle sits on the ground; only the active one spends cyan.
 pub const PILL_IDLE: u32 = PANEL;
-pub const PILL_HOVER: u32 = RAISE;
 pub const PILL_ON: u32 = 0x3322D3EE;
 pub const PILL_ON_LINE: u32 = HAIR_CY;
 pub const PILL_INK: u32 = INK2;

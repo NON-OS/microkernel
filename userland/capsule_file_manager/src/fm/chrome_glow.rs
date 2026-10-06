@@ -16,7 +16,7 @@
 
 use nonos_app_skeleton::PaintBuffer;
 
-use super::theme::{GLOW, SHADE};
+use super::theme::GLOW;
 
 /// Soft cyan glow spreading outward from the rounded rect, drawn as concentric
 /// hairlines that fall off quadratically. Nothing lands inside the rect, so the
@@ -42,9 +42,4 @@ pub fn glow_in(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, r: u32, spr
         spread,
         GLOW,
     );
-}
-
-/// Neutral drop shade under a raised plate: depth without spending the one hue.
-pub fn shade_out(fb: &mut PaintBuffer, x: u32, y: u32, w: u32, h: u32, r: u32, spread: u32) {
-    fb.shadow_round(x, y, w, h, r, spread, SHADE);
 }

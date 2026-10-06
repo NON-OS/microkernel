@@ -27,10 +27,6 @@ const STAR: &[&[Pt]] = &[&[
     (500, 100), (610, 390), (920, 390), (670, 580), (760, 880), (500, 700),
     (240, 880), (330, 580), (80, 390), (390, 390), (500, 100),
 ]];
-const PEOPLE: &[&[Pt]] = &[
-    &[(160, 850), (190, 670), (330, 580), (510, 580), (650, 670), (680, 850)],
-    &[(720, 590), (830, 610), (900, 700), (915, 850)],
-];
 const TAG: &[&[Pt]] =
     &[&[(120, 120), (520, 120), (900, 500), (500, 880), (120, 500), (120, 120)]];
 const DOWNLOAD: &[&[Pt]] = &[
@@ -46,7 +42,6 @@ pub fn glyph(i: Icon) -> Glyph {
         Icon::Home => HOME,
         Icon::Clock => CLOCK,
         Icon::Star => STAR,
-        Icon::People => PEOPLE,
         Icon::Tag => TAG,
         Icon::Download => DOWNLOAD,
         _ => return file_glyph(i),
@@ -57,7 +52,6 @@ pub fn glyph(i: Icon) -> Glyph {
 fn rings_for(i: Icon) -> &'static [Ring] {
     match i {
         Icon::Clock => &[(500, 500, 400)],
-        Icon::People => &[(420, 320, 180), (760, 360, 130)],
         Icon::Tag => &[(280, 290, 80)],
         _ => &[],
     }

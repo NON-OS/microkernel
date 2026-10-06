@@ -22,7 +22,9 @@ use nonos_app_skeleton::PaintBuffer;
 
 use super::grid_card::card;
 use super::grid_geom::cell_slots;
-use super::layout::{GRID_CELL_H, GRID_CELL_W};
+use super::layout::{content_w, content_x, GRID_CELL_H, GRID_CELL_W, GRID_TOP};
+use super::listing_state::empty_listing;
+use super::screen_row::empty_state;
 use super::selection_is_selected::is_selected;
 use super::state::State;
 
@@ -31,6 +33,14 @@ const INSET_X: u32 = 6;
 const INSET_Y: u32 = 3;
 
 pub fn paint_grid(state: &State, fb: &mut PaintBuffer) {
+    // The grid is the default view, so an empty or unlisted folder must read
+    // the same here as in the list instead of leaving the pane blank.
+    if state.entries.is_empty() {
+        let filtered = !state.filter.is_empty() || !state.tag_filter.is_empty();
+        let (head, note) = empty_listing(state.load_error, filtered);
+        empty_state(fb, content_x(), GRID_TOP + 40, content_w(fb.width), head, note);
+        return;
+    }
     let pw = GRID_CELL_W - INSET_X * 2;
     let ph = GRID_CELL_H - INSET_Y * 2;
     for cell in cell_slots(state) {

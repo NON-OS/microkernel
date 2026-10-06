@@ -18,13 +18,13 @@ use nonos_app_skeleton::measure_ttf;
 
 use super::state::SortMode;
 
-// The header strip's band, its label em size, the checkbox gutter, and the box
-// the per-row menu affordance owns.
+// The header strip's band, its label em size, the checkbox gutter, and the
+// gutter kept clear at the right of the last column.
 pub const HEAD_H: u32 = 30;
 pub const HEAD_PX: f32 = 13.0;
 pub const CHECK_S: u32 = 18;
 pub const CHECK_COL: u32 = 30;
-pub const MENU_W: u32 = 26;
+pub const END_GUTTER: u32 = 26;
 const COL_PAD: u32 = 12;
 const GAP: u32 = 8;
 const CHECK_PAD: u32 = 8;
@@ -43,7 +43,6 @@ pub struct Cols {
     pub check_x: u32,
     pub tile_x: u32,
     pub tag_end: u32,
-    pub menu_x: u32,
     pub cols: [HeadCol; 4],
 }
 
@@ -57,9 +56,9 @@ fn col_w(label: &str, min: u32) -> u32 {
 /// Right-to-left from the content edge, leaving the name column what is left
 /// between the filetype tile and the first meta cell.
 pub fn cols(left: u32, cw: u32) -> Cols {
-    let menu_x = (left + cw).saturating_sub(MENU_W);
+    let end = (left + cw).saturating_sub(END_GUTTER);
     let (dw, sw, tw) = (col_w("Modified", 128), col_w("Size", 92), col_w("Type", 84));
-    let date_x = menu_x.saturating_sub(GAP + dw);
+    let date_x = end.saturating_sub(GAP + dw);
     let size_x = date_x.saturating_sub(GAP + sw);
     let type_x = size_x.saturating_sub(GAP + tw);
     let tile_x = left + CHECK_COL;
@@ -71,5 +70,5 @@ pub fn cols(left: u32, cw: u32) -> Cols {
         HeadCol { x: size_x, w: sw, mode: SortMode::Size, label: "Size" },
         HeadCol { x: date_x, w: dw, mode: SortMode::Date, label: "Modified" },
     ];
-    Cols { check_x: left + CHECK_PAD, tile_x, tag_end, menu_x, cols }
+    Cols { check_x: left + CHECK_PAD, tile_x, tag_end, cols }
 }

@@ -24,6 +24,7 @@ use super::perms;
 use super::selection;
 use super::selection_select_all::select_all;
 use super::state::State;
+use super::store_meta::save_meta;
 use super::view::rebuild_view;
 
 pub fn run_action(state: &mut State, code: u32) -> Option<EventOutcome> {
@@ -36,9 +37,13 @@ pub fn run_action(state: &mut State, code: u32) -> Option<EventOutcome> {
         code if code == b'o' as u32 => duplicate::duplicate(state),
         code if code == b'u' as u32 => perms::toggle_readonly(state),
         code if code == b'f' as u32 => toggle_favorite(state),
+        // The same as the header's sort pill, kept with the other
+        // preferences: the key changed the order and lost it at the next open.
         code if code == b's' as u32 => {
             state.sort_mode = state.sort_mode.next();
+            state.prefs.sort = state.sort_mode;
             rebuild_view(state);
+            save_meta(state);
         }
         _ => return None,
     }
